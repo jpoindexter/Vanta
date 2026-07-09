@@ -7,7 +7,7 @@ export const CLI_COMMANDS = [
   "schedule", "cron", "gateway", "service", "rooms", "room", "modes", "auth", "mcp",
   "roadmap", "desktop", "browser", "memory", "hooks", "voice", "improve", "factory",
   "agents", "attach", "logs", "respawn", "stop", "rm", "daemon", "auto-mode",
-  "lint", "open", "prompt-size", "completion", "backup", "import", "help",
+  "lint", "open", "prompt-size", "harness-thickness", "completion", "backup", "import", "help",
 ] as const;
 
 export type Shell = "bash" | "zsh" | "fish";

@@ -29,7 +29,7 @@ describe("completionScript", () => {
 
   it("includes the real commands by default (lint, open, backup)", () => {
     const s = completionScript("bash");
-    for (const c of ["lint", "open", "backup", "import", "prompt-size"]) expect(CLI_COMMANDS).toContain(c);
+    for (const c of ["lint", "open", "backup", "import", "prompt-size", "harness-thickness"]) expect(CLI_COMMANDS).toContain(c);
     expect(s).toContain("lint");
   });
 });

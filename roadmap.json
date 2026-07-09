@@ -11390,7 +11390,7 @@
       "id": "HARNESS-THICKNESS-AUDIT",
       "track": "Harness",
       "title": "Harness-thickness future-proofing audit — prune scaffolding as models improve",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "The Anatomy of an Agent Harness (Pachaar, 2026) decision 7 + co-evolution: scaffolding should be removed as the building completes; harness complexity should DECREASE as models improve (Manus rebuilt 5x removing complexity; Anthropic deletes planning steps as models internalize them). Future-proofing test: performance scales with stronger models WITHOUT added harness complexity. For Vanta: a recurring audit that prunes prompt scaffolding / planning steps a stronger model no longer needs — not only adds them.",
       "done": "A periodic audit identifies harness scaffolding (prompt rules, planning steps) a current model no longer needs and removes it; complexity trends down, not up.",
@@ -11399,7 +11399,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "selfhood",
-      "updated": "2026-06-13"
+      "updated": "2026-07-09",
+      "notes": "SHIPPED 2026-07-09. Added `vanta harness-thickness` to audit always-loaded harness sources, record `.vanta/harness-thickness.jsonl` trend points, report bytes/tokens/hard-rule lines/prune candidates, and print exact file:line pruning actions. Added `vanta harness-thickness remove <file:line> --expected <text>` so stale line numbers cannot delete the wrong scaffold. The first live run measured 201,526 B / ~50,382 tokens and 75 candidates; after pruning the oversized always-loaded `CLAUDE.md` release-history status blob into pointers to `roadmap.json`, `CHANGELOG.md`, `STRATEGY.md`, reliability docs, and handoff notes, the second recorded live run measured 186,974 B / ~46,744 tokens: trend down by 14,552 B, hard-rule lines 95 -> 94, candidates 75 -> 74. Focused tests cover candidate detection, duplicate-rule detection, history parsing, trend direction, safe removal, CLI recording/no-record/remove, completion discovery, and prompt-size formatting; `npx tsc --noEmit` passed. Boundary: this is local harness-source auditing and explicit pruning, not an autonomous model-quality A/B that deletes instructions without human review."
     },
     {
       "id": "VANTA-PAUSED-GOAL-RESUME",

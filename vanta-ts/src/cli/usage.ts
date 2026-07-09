@@ -13,6 +13,7 @@ const USAGE_LINES = [
       "       vanta auto-watch [list|run|add]   watch repos/issues/email/calendar via gated commands",
       "       vanta marketing read <amplitude|customerio> [--fixture <json>]   read marketing connector data",
       "       vanta ambient-screen [enable|disable|status|tick]   opt-in screen/app context proposals",
+      "       vanta harness-thickness [--no-record] | harness-thickness remove <file:line> --expected <text>   audit/prune harness bloat",
       "       vanta autonomy [show|init|decide]   acts-alone / queues / wakes-me contract",
       "       vanta --init | --init-only | --maintenance   run lifecycle bootstrap hooks",
       "       vanta --plugin-url <url> | --plugin-dir <path>   install a plugin (.zip/dir) at startup (stays disabled until enabled)",
