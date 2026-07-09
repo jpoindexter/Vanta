@@ -142,4 +142,4 @@ export async function runProxyCommand(_root: string, rest: string[]): Promise<nu
   return 0;
 }
 
-export { runRefCommand, runSettingsCommand, runBriefCommand } from "./extra-cmds-2.js";
+export { runRefCommand, runSettingsCommand, runBriefCommand, runCommandCenterCommand } from "./extra-cmds-2.js";

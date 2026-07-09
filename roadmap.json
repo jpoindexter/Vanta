@@ -5535,7 +5535,7 @@
       "id": "COMMAND-CENTER",
       "track": "Operator",
       "title": "Full life/world command center (all dashboards)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "wants3 Phase 3, full version: the complete multi-dashboard command center -- Today, Life Admin, Money, Escape Plan, Projects, Sales Pipeline, Content/Marketing, Creative System, Learning, Memory/Reflection. Platform-scale -> horizon; Jason's own rule is 'do not build full JARVIS at once.' First slices ship as BRIEF-CMD + MONEY-OS; the rest lands once the manual loops prove out.",
       "done": "First slice covered by BRIEF-CMD + MONEY-OS; this closes when the remaining 8 dashboards render from LIFE-OS-SCHEMA in one surface.",
@@ -5543,7 +5543,9 @@
       "model": "sonnet",
       "effort": "high",
       "codex": "gpt-5.5",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-07-09",
+      "notes": "SHIPPED 2026-07-09: Added `vanta command-center` backed by `src/life-os/command-center.ts`. The renderer reads `LifeOsSchema` and renders one surface with the required lanes: Today, Life Admin, Money, Escape Plan, Projects, Sales Pipeline, Content / Marketing, Creative System, Learning, and Memory / Reflection. Empty states are explicit and real records surface across tasks, routines, contacts, risks, revenue, expenses, opportunities, projects, creative systems, learning tracks, and decisions. Live evidence: `npm run vanta -- command-center` printed all 10 lanes from the current Life OS store. Tests: `npx vitest run src/life-os/command-center.test.ts src/life-os/money.test.ts src/life-os/store.test.ts`; `npm run typecheck`; `git diff --check`."
     },
     {
       "id": "WORLD-MODEL",

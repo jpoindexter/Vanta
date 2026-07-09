@@ -68,3 +68,10 @@ export async function runBriefCommand(root: string): Promise<void> {
   const out = await buildBrief({ dataDir: dataDirFor(root), env: process.env, getGoals: () => safety.getGoals() });
   console.log(out);
 }
+
+/** `vanta command-center` */
+export async function runCommandCenterCommand(): Promise<void> {
+  const { loadLifeOs } = await import("../life-os/store.js");
+  const { buildCommandCenter } = await import("../life-os/command-center.js");
+  console.log(buildCommandCenter(await loadLifeOs(process.env)));
+}

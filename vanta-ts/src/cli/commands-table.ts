@@ -62,6 +62,7 @@ import {
   runProxyCommand,
   runRefCommand,
   runSettingsCommand,
+  runCommandCenterCommand,
   runBriefCommand,
 } from "./extra-cmds.js";
 import { runLoopCommand } from "./loop-cmd.js";
@@ -169,6 +170,7 @@ export const COMMANDS: Record<string, CommandFn> = {
   factory: (root, rest) => runFactoryCommand(root, rest[0] ?? ""),
   brief: (root) => runBriefCommand(root),
   today: (root) => runBriefCommand(root),
+  "command-center": () => runCommandCenterCommand(),
   model: (root, rest) => runModelCommand(root, rest),
   pairing: (_root, rest) => runPairingCommand(rest),
   update: (root, rest) => runUpdateCommand(root, rest),
