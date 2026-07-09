@@ -45,6 +45,13 @@ describe("useSubmit routing", () => {
     expect(h.runSlash).not.toHaveBeenCalled();
   });
 
+  it("opens the teams overlay for /teams", () => {
+    const h = harness();
+    h.onSubmit("/teams");
+    expect(h.openOverlay).toHaveBeenCalledWith("teams");
+    expect(h.runSlash).not.toHaveBeenCalled();
+  });
+
   it("runs (not overlay) when a picker command has an argument", () => {
     const h = harness();
     h.onSubmit("/model gemini");

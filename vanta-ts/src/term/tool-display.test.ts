@@ -93,6 +93,13 @@ describe("toolDisplay", () => {
     expect(toolDisplay("ref_search", { query: "x" }).verb).toBe("ref"); // prefix
   });
 
+  it("renders team task assignments as team transcript rows", () => {
+    const d = toolDisplay("team", { action: "dispatch", taskId: "t-1", workerId: "analyst", title: "Map the market" });
+    expect(d.icon).toBe("◆");
+    expect(d.verb).toBe("team");
+    expect(d.detail).toBe("t-1 -> analyst: Map the market");
+  });
+
   it("never emits raw JSON for an unknown tool", () => {
     const d = toolDisplay("mystery_tool", { path: "/var/folders/T/NSIRD_x/y.png", n: 3 });
     expect(d.detail).not.toContain("{");

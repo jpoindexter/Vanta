@@ -35,6 +35,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "money", desc: "Money OS ledger — offers, prospect pipeline, revenue total" },
   { name: "radar", desc: "Opportunity radar — scored opportunities ranked by pain + buyer signal" },
   { name: "team", desc: "background worker roster — named agents, roles, status, blockers" },
+  { name: "teams", desc: "interactive team roster — create workers, manage status, inspect assigned tasks" },
   { name: "peers", desc: "live Vanta peer sessions on this machine (UDS) — id, title, pid for cross-session collab" },
   { name: "lifesearch", arg: "<query>", desc: "search across Vanta's local stores (world/money/radar/team/errors) — source-cited" },
   { name: "compartments", arg: "[path]", desc: "Vanta's self-repair body map — compartments + max autonomy per part" },

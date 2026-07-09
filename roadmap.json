@@ -1580,7 +1580,7 @@
       "id": "VANTA-TEAMS-UI",
       "track": "Operator",
       "title": "Teams UI — TeamsDialog, TeamStatus, task assignment messages",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent has TeamsDialog (create/manage agent teams), TeamStatus (live team state), TaskAssignmentMessage (shows task assignment in transcript), UserTeammateMessage (teammate-to-leader comms). Pairs with VANTA-TEAMS (next tool). Vanta has no teams management UI.",
       "done": "/teams opens TeamsDialog for creating and managing agent teams; running teams show TeamStatus in the spinner area; task assignments and teammate messages appear distinctly in the transcript.",

@@ -130,11 +130,21 @@ function toolDisplayMemoryGroup(name: string, str: (k: string) => string): ToolD
 function toolDisplayAgentGroup(name: string, str: (k: string) => string): ToolDisplay | null {
   switch (name) {
     case "swarm":        return { icon: "↝", verb: "swarm", detail: "" };
+    case "team":         return { icon: "◆", verb: "team", detail: teamDetail(str) };
     case "todo":         return { icon: "☑", verb: "todo", detail: "" };
     case "inspect_state": return { icon: "◦", verb: "inspected", detail: "" };
     case "mount_mcp":    return { icon: "◦", verb: "mounted", detail: str("name") };
     default:             return null;
   }
+}
+
+function teamDetail(str: (k: string) => string): string {
+  const action = str("action");
+  if (action === "dispatch") return trunc(`${str("taskId")} -> ${str("workerId")}: ${str("title")}`, 60);
+  if (action === "advance") return trunc(`${str("taskId")} -> ${str("taskStatus")}`, 60);
+  if (action === "define") return trunc(`${str("id")}: ${str("role")}`, 60);
+  if (action === "status") return trunc(`${str("id")} -> ${str("status")}`, 60);
+  return action;
 }
 
 /** Clean display parts for a tool call. Detail comes from ARGS, never raw output. */
