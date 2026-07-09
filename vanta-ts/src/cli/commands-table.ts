@@ -89,6 +89,7 @@ import { runSpecToAppCommand } from "./spec-to-app-cmd.js";
 import { runAutonomyCommand } from "./autonomy-cmd.js";
 import { runResearchReceiptsCommand } from "./research-receipts-cmd.js";
 import { runIntentCommand } from "./intent-cmd.js";
+import { runAutoWatchCommand } from "./auto-watch-cmd.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
@@ -105,6 +106,7 @@ export const COMMANDS: Record<string, CommandFn> = {
   "spec-to-app": (root, rest) => runSpecToAppCommand(root, rest),
   "research-receipts": (_root, rest) => runResearchReceiptsCommand(rest),
   intent: (_root, rest) => runIntentCommand(rest),
+  "auto-watch": (root, rest) => runAutoWatchCommand(root, rest),
   autonomy: (root, rest) => runAutonomyCommand(root, rest),
   home: (root) => runHomeCommand(dataDirFor(root)),
   setup: async (root, rest) => { if (rest[0] === "messaging") await runMessagingSetup(root); else if (rest[0] === "tts") await runTtsSetup(root); else if (rest[0] === "model") await runSetup(root); else await runFullSetup(root); },

@@ -10,6 +10,7 @@ const USAGE_LINES = [
       "       vanta spec-to-app --demo posture [--open]   build a verified React/Tailwind preview from a spec",
       "       vanta research-receipts <claims.json> [--vault <dir> --apply]   source/date/expiry skeptic gate",
       "       vanta intent extract <target> --out <spec.json> | intent check <target> <spec.json>",
+      "       vanta auto-watch [list|run|add]   watch repos/issues/email/calendar via gated commands",
       "       vanta autonomy [show|init|decide]   acts-alone / queues / wakes-me contract",
       "       vanta --init | --init-only | --maintenance   run lifecycle bootstrap hooks",
       "       vanta --plugin-url <url> | --plugin-dir <path>   install a plugin (.zip/dir) at startup (stays disabled until enabled)",

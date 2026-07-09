@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseCronFlag, runScheduleCommand, runCron } from "./commands.js";
 import { addCron } from "./cron.js";
 import { createGoalSentinel } from "../goals/sentinel.js";
+import { addAutoWatch } from "../watch/auto-watch.js";
 import type { RunTask } from "./runner.js";
 
 describe("parseCronFlag", () => {
@@ -111,5 +112,17 @@ describe("runCron", () => {
     log.mockClear();
     await runCron(dataDir, new Date(2024, 0, 3, 10, 0, 0), run);
     expect(log).toHaveBeenCalledWith("vanta cron: no tasks due");
+  });
+
+  it("surfaces auto-watch changes during cron", async () => {
+    const state = join(dataDir, "watch-state.txt");
+    await writeFile(state, "one");
+    await addAutoWatch(dataDir, { id: "repo", kind: "repo", risk: "medium", command: `cat ${state}`, draft: "Draft repo action." });
+    const run: RunTask = async () => ({ finalText: "unused" });
+    await runCron(dataDir, NOW, run);
+    log.mockClear();
+    await writeFile(state, "two");
+    await runCron(dataDir, new Date(2024, 0, 3, 10, 0, 0), run);
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("watch repo: queues-for-approval"));
   });
 });

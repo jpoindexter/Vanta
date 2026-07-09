@@ -369,7 +369,7 @@
       "id": "AUTO-WATCH",
       "track": "Solutioning",
       "title": "Change-watchers for repos/issues/email/calendar",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Scheduled watchers that monitor repos/issues/emails/calendar for important changes and draft actions, awaiting approval where risk is high. Extends gateway (cron+webhook+platform poll). — the 'watch what's next' half of the SOLUTIONING-MODE loop (research→decide→ship→watch, one shared brain).",
       "done": "Vanta surfaces an important change and a drafted response without being asked, gated by approval on risk.",
