@@ -32,6 +32,7 @@ describe("overlay row builders", () => {
     expect(PICKER_KINDS.stats).toBe("stats");
     expect(PICKER_KINDS.export).toBe("export");
     expect(PICKER_KINDS.memory).toBe("memory");
+    expect(PICKER_KINDS["workflow-select"]).toBe("workflowSelect");
     expect(PICKER_KINDS.nope).toBeUndefined();
   });
 });

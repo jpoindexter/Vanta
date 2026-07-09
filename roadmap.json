@@ -5736,7 +5736,7 @@
       "id": "VANTA-WORKFLOW-MULTISELECT",
       "track": "Operator",
       "title": "WorkflowMultiselectDialog — multi-select UI for workflow steps",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's WorkflowMultiselectDialog lets users select which workflow steps to run, skip, or configure before launching a multi-agent workflow. Pairs with WORKFLOWS (shipped). Vanta runs workflows automatically without a step-selection UI.",
       "done": "Before a workflow runs, WorkflowMultiselectDialog shows all phases with checkbox selection; users can skip steps or reorder; confirmed steps proceed; skipped steps are logged as intentionally omitted.",

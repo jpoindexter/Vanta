@@ -114,6 +114,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "tasks", arg: "[add|close|block|park|reopen|next]", desc: "operator task stack — /tasks next for the best move" },
   { name: "bgtasks", arg: "[stop <id>]", desc: "background shell tasks — list status, stop one by id" },
   { name: "wftasks", desc: "workflow run task list — compose_workflow runs + their running/done/failed status" },
+  { name: "workflow-select", desc: "choose, skip, reorder, and run steps from .vanta/workflow-draft.json" },
   { name: "btw", arg: "<question>", desc: "ask a quick side question — not added to conversation history" },
   { name: "describe", arg: "<path>", desc: "generate a short LLM description of a file or directory" },
   { name: "diff", desc: "show uncommitted changes (working tree + staged)" },

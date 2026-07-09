@@ -73,6 +73,13 @@ describe("useSubmit routing", () => {
     expect(h.runSlash).not.toHaveBeenCalled();
   });
 
+  it("opens the workflow multiselect dialog for bare /workflow-select", () => {
+    const h = harness();
+    h.onSubmit("/workflow-select");
+    expect(h.openOverlay).toHaveBeenCalledWith("workflowSelect");
+    expect(h.runSlash).not.toHaveBeenCalled();
+  });
+
   it("runs (not overlay) when a picker command has an argument", () => {
     const h = harness();
     h.onSubmit("/model gemini");
