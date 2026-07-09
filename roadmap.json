@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-07",
+  "updated": "2026-07-09",
   "items": [
     {
       "id": "SETUP-DEAD-SIMPLE",
@@ -10685,7 +10685,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-13"
+      "updated": "2026-07-09",
+      "notes": "Shipped 2026-06-13; test-hardened 2026-07-09. Cursor behavior stayed the same, but the regression test now waits for the observed OFF frame instead of sleeping a fixed 100ms, preventing full-suite timing load from landing back on ON after two intervals. Verified with focused UI/skills/slash tests and the full TS suite (1070 files / 11979 pass / 3 skipped)."
     },
     {
       "id": "TUI-MODE-CYCLE",
@@ -14735,9 +14736,9 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-07-07",
+      "updated": "2026-07-09",
       "source": "ref-audit-2026-06-20",
-      "notes": "Shipped 2026-07-07. skills/gating.ts (pure): (1) OFFER-TIME GATING — parseSkillPrereqs reads platforms/env_vars/commands from a skill's raw frontmatter (list or comma-string; accepts platform/requiresEnv/requiresCommands aliases); gateSkill(prereqs, {platform, env, hasCommand}) offers a skill only where its OS matches + required env vars are set + required commands are on PATH, first-unmet-is-the-reason. (2) INJECTION SCAN — scanForInjection(text) matches 6 prompt-injection pattern banks (override-instructions, reveal-system-prompt, role-hijack, exfil-secrets, hidden zero-width/bidi control chars, fake-tool-call incl. curl|sh & rm -rf) returning {clean, hits}, tuned to flag intent not incidental prose ('set your OPENAI_API_KEY in .env' stays clean). WIRED: store.ts tryReadSkill scans every SKILL.md BEFORE parse. CORRECTED 2026-07-07 to warn-don't-skip by default (a false skip on the OPERATOR'S OWN security-topic skills — llm-safety, writing-plans, etc. legitimately quote 'ignore previous instructions' — broke real skills; 5 legit skills were being dropped). Default: FLAG (warn once per path, still loads). Opt into hard-skip with VANTA_SKILL_STRICT=1 (env-threaded through listSkills). 13 gating tests (prereq parse, each gate reason, all-satisfied, clean pass, each injection pattern incl. bidi, benign-prose negatives) + a store test proving listSkills drops an injected skill beside a clean one. Full suite 1043 files/11723 green; tsc + size gate clean. gateSkill is exported for the selector/offer path (the kernel still gates every tool call regardless)."
+      "notes": "Shipped 2026-07-07; tightened 2026-07-09. skills/gating.ts (pure): (1) OFFER-TIME GATING — parseSkillPrereqs reads platforms/env_vars/commands from a skill's raw frontmatter (list or comma-string; accepts platform/requiresEnv/requiresCommands aliases); gateSkill(prereqs, {platform, env, hasCommand}) offers a skill only where its OS matches + required env vars are set + required commands are on PATH, first-unmet-is-the-reason. (2) INJECTION SCAN — scanForInjection(text) matches 6 prompt-injection pattern banks (override-instructions, reveal-system-prompt, role-hijack, exfil-secrets, hidden zero-width/bidi control chars, fake-tool-call incl. curl|sh & rm -rf) returning {clean, hits}, tuned to flag intent not incidental prose. WIRED: store.ts scans every SKILL.md before parse. CORRECTED: trusted local skills now load quietly by default because the operator's own security-topic skills legitimately quote hostile phrases; VANTA_SKILL_STRICT=1 still hard-skips flagged skills. NEW 2026-07-09: /skills audit explicitly reports injection-scan hits on demand, and the store/read path typecheck regression was fixed. Verified with focused skill + slash tests, full TS suite (1070 files / 11979 pass / 3 skipped), tsc, cargo test, size gate, and git diff check."
     },
     {
       "id": "SEC-GODMODE-DETECT",
@@ -16388,8 +16389,8 @@
       "effort": "low",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-07-03",
-      "notes": "Shipped 2026-07-03. Chose fast-fail-with-guidance (the boundary-preserving option). shell-background-detect.ts gained looksLikeListenServer + looksLikeServeIntent (named dev servers via isLongRunningServer OR a raw nc/socat port bind); shell-cmd.ts sandboxServeRefusal() fires when a serve/listen intent meets an active shell sandbox, returning ONE actionable refusal (re-run non-sandboxed: VANTA_SHELL_SANDBOX=0, then background:true) BEFORE the background↔foreground refusal ping-pong the agent used to burn 3 failures on. Placed after the ssh branch (remote serves unaffected), pre-empts both the bg-sandbox refusal and the needsBackground steer. Verified on the real execute() path (serve→fast-fail, non-server bg→generic refusal preserved). Refactored the background block into runBackground() to hold execute() under the cx≤10 gate (behavior-preserving, byte-identical refusal text). 30 new/updated tests; 105 shell/agent-launch/self-repair tests green; tsc + size gate clean."
+      "updated": "2026-07-09",
+      "notes": "Shipped 2026-07-03; expanded 2026-07-09. Chose fast-fail-with-guidance (the boundary-preserving option). shell-background-detect.ts has looksLikeListenServer + looksLikeServeIntent (named dev servers via isLongRunningServer OR a raw nc/socat port bind); shell-cmd.ts sandboxServeRefusal() fires when a serve/listen intent meets an active shell sandbox, returning ONE actionable refusal (re-run non-sandboxed: VANTA_SHELL_SANDBOX=0, then background:true) BEFORE the background↔foreground refusal ping-pong. Placed after the ssh branch (remote serves unaffected), pre-empts both the bg-sandbox refusal and the needsBackground steer. NEW 2026-07-09: classify Tauri/Bun dev commands too, including cd ... && CMAKE_POLICY_VERSION_MINIMUM=3.5 bun run tauri dev, bun run dev, pnpm/yarn/bun dev/start/serve/watch, bunx, and pnpm dlx. Verified with shell-background-detect + shell-cmd regression tests (31 passed), tsc, size gate, and git diff check."
     },
     {
       "id": "WEB-EXTRACT-PIPELINE",
