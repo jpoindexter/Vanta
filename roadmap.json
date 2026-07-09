@@ -1764,7 +1764,7 @@
       "id": "VANTA-MESSAGE-ACTIONS",
       "track": "Operator",
       "title": "Message actions panel — shift+up keybinding to act on previous messages",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent (feature-gated `MESSAGE_ACTIONS`) adds a `shift+up` keybinding mapped to `chat:messageActions` and a `MessageActions` context with `messageActions:prev/next` navigation. Enables a contextual action panel over previous messages: copy, retry, branch, etc.",
       "done": "Pressing shift+up over a previous message opens the actions panel with options to copy, retry from that point, or branch the conversation.",

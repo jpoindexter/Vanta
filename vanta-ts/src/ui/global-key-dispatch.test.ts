@@ -12,6 +12,7 @@ function deps(over: Record<string, unknown> = {}) {
     focus: "composer" as const, focusTargets: [], setFocus: vi.fn(),
     quickOpenOpen: false, openQuickOpen: vi.fn(),
     globalSearchOpen: false, openGlobalSearch: vi.fn(),
+    messageActionsOpen: false, openMessageActions: vi.fn(),
     cycleAgent: vi.fn(),
     bindings: DEFAULT_BINDINGS,
     ...over,
@@ -38,6 +39,13 @@ describe("handleGlobalKey — default bindings", () => {
     expect(open.openGlobalSearch).toHaveBeenCalled();
     const blocked = deps({ quickOpenOpen: true }); handleGlobalKey("p", { ctrl: true, shift: true }, blocked as never);
     expect(blocked.openGlobalSearch).not.toHaveBeenCalled();
+  });
+
+  it("shift+up opens message actions when nothing else owns input", () => {
+    const open = deps(); handleGlobalKey("", { shift: true, upArrow: true }, open as never);
+    expect(open.openMessageActions).toHaveBeenCalled();
+    const blocked = deps({ globalSearchOpen: true }); handleGlobalKey("", { shift: true, upArrow: true }, blocked as never);
+    expect(blocked.openMessageActions).not.toHaveBeenCalled();
   });
 
   it("escape interrupts only when busy", () => {

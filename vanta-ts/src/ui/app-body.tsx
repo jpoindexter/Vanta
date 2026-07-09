@@ -20,11 +20,13 @@ import { TasksPanel } from "./tasks-panel.js";
 import { type FocusTarget } from "./focus.js";
 import { QuickOpen } from "./quick-open.js";
 import { GlobalSearchDialog } from "./global-search-dialog.js";
+import { MessageActionsPanel } from "./message-actions-panel.js";
 import { type Mode, ModeLine } from "./mode-line.js";
 import type { SlashMatch } from "./slash.js";
 import type { OverlayRow } from "./overlays.js";
 import type { TodoItem } from "../todo/store.js";
 import type { SearchableSession, SessionSearchHit } from "../search/cross-session.js";
+import type { Entry } from "./types.js";
 
 // The App's bottom live region: todo panel + quick-open / overlay / composer,
 // and the overlay-kind switch. Split from app.tsx so both stay under the size
@@ -33,7 +35,9 @@ import type { SearchableSession, SessionSearchHit } from "../search/cross-sessio
 type LiveBodyProps = {
   quickOpen: boolean;
   globalSearch: boolean;
+  messageActions: boolean;
   searchSessions: SearchableSession[];
+  entries: Entry[];
   overlay: OverlayView | null;
   pending: Pending | null;
   mode: Mode;
@@ -48,6 +52,10 @@ type LiveBodyProps = {
   onQuickClose: () => void;
   onSearchSelect: (hit: SessionSearchHit) => void;
   onSearchClose: () => void;
+  onMessageRetry: (text: string) => void;
+  onMessageBranch: () => void;
+  onMessageNote: (text: string) => void;
+  onMessageClose: () => void;
   onSubmit: (text: string) => void;
   onPaste: () => void;
   onSelect: (row: OverlayRow) => void;
@@ -59,9 +67,11 @@ type LiveBodyProps = {
 export function LiveBody(p: LiveBodyProps): ReactElement {
   return (
     <>
-      {p.overlay || p.quickOpen || p.globalSearch ? null : <TodoPanel todos={p.todos} />}
+      {p.overlay || p.quickOpen || p.globalSearch || p.messageActions ? null : <TodoPanel todos={p.todos} />}
       {p.globalSearch
         ? <GlobalSearchDialog sessions={p.searchSessions} onSelect={p.onSearchSelect} onClose={p.onSearchClose} />
+        : p.messageActions
+        ? <MessageActionsPanel entries={p.entries} onRetry={p.onMessageRetry} onBranch={p.onMessageBranch} onNote={p.onMessageNote} onClose={p.onMessageClose} />
         : p.quickOpen
         ? <QuickOpen files={p.files} onActivate={p.onQuickActivate} onClose={p.onQuickClose} />
         : <BottomRegion focused={p.focus} overlay={p.overlay} pending={p.pending} mode={p.mode} files={p.files} history={p.history} skills={p.skills} channels={p.channels} vim={p.vim} onSubmit={p.onSubmit} onPaste={p.onPaste} onSelect={p.onSelect} onClose={p.onClose} />}

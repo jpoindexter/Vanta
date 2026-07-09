@@ -72,6 +72,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const [vimEnabled, setVim] = useState<boolean>(() => resolveVim(process.env));
   const [quickOpen, setQuickOpen] = useState(false);
   const [globalSearch, setGlobalSearch] = useState(false);
+  const [messageActions, setMessageActions] = useState(false);
   const [searchSessions, setSearchSessions] = useState<SearchableSession[]>([]);
   const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, interruptRef, convoRef, replStateRef, gatesRef });
   const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit, setComposerAnchor, setVim });
@@ -102,7 +103,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const focusTargets = buildFocusTargets(pending, overlay);
   useFocusFallback(focus, focusTargets, pending ? "approval" : overlay?.kind ?? "composer", setFocus);
   const teammate = useTeammateFocus(agents.length, { busy: state.busy, pending, overlay, quickOpen, globalSearch });
-  useGlobalKeys({ bindings: useKeybindings(), busy: state.busy, pending, overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus, quickOpenOpen: quickOpen, openQuickOpen: () => setQuickOpen(true), globalSearchOpen: globalSearch, openGlobalSearch, cycleAgent: teammate.cycleAgent });
+  useGlobalKeys({ bindings: useKeybindings(), busy: state.busy, pending, overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus, quickOpenOpen: quickOpen, openQuickOpen: () => setQuickOpen(true), globalSearchOpen: globalSearch, openGlobalSearch, messageActionsOpen: messageActions, openMessageActions: () => setMessageActions(true), cycleAgent: teammate.cycleAgent });
   const staticItems = buildStaticItems(provider.modelId(), props.repoRoot, state.entries, { tools: props.setup.registry.schemas().length, cmds: SLASH_COMMANDS.length });
   const vp = useViewportRows();
   const rich = useFooterRich({ repoRoot: props.repoRoot, sessionId: replStateRef.current.sessionId, sessionName: replStateRef.current.title, vimEnabled });
@@ -114,7 +115,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
           {pending && mode !== "auto"
             ? <ApprovalPrompt pending={pending} focusedTarget={focus} onFocusTargetChange={setFocus} onDone={() => setPending(null)} />
             : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} liveThinking={state.liveThinking} agents={agents} selectedAgent={teammate.selectedAgent} leaderTokens={est} />}
-          <LiveBody quickOpen={quickOpen} globalSearch={globalSearch} searchSessions={searchSessions} overlay={overlay} pending={pending} mode={mode} focus={focus} todos={state.todos} files={files} history={history} skills={skillMatches} channels={channels} vim={vimEnabled} onQuickActivate={(c) => { setQuickOpen(false); runSlash(c); }} onQuickClose={() => setQuickOpen(false)} onSearchSelect={selectSearchHit} onSearchClose={() => setGlobalSearch(false)} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
+          <LiveBody quickOpen={quickOpen} globalSearch={globalSearch} messageActions={messageActions} searchSessions={searchSessions} entries={state.entries} overlay={overlay} pending={pending} mode={mode} focus={focus} todos={state.todos} files={files} history={history} skills={skillMatches} channels={channels} vim={vimEnabled} onQuickActivate={(c) => { setQuickOpen(false); runSlash(c); }} onQuickClose={() => setQuickOpen(false)} onSearchSelect={selectSearchHit} onSearchClose={() => setGlobalSearch(false)} onMessageRetry={onSubmit} onMessageBranch={() => runSlash("/fork")} onMessageNote={(text) => dispatch({ t: "note", text })} onMessageClose={() => setMessageActions(false)} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
           {!pending && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={replStateRef.current.activeGoal} mcp={mcp} elapsed={elapsed} agents={agents} rich={rich} /> : null}
         </PinnedRegion>
     </Box>
