@@ -1,8 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { toolPresent, desktopControlDoctor, formatDoctor, runControlCommand, type CmdRunner } from "./control-cmd.js";
+import { toolPresent, desktopControlDoctor, ghostOsDoctor, formatDoctor, runControlCommand, type CmdRunner } from "./control-cmd.js";
 
 const have = (...tools: string[]): CmdRunner => (cmd, args) => {
   if (cmd === "which" && tools.includes(args[0] ?? "")) return `/usr/bin/${args[0]}`;
+  throw new Error("not found");
+};
+
+const haveGhostStatus = (status: string): CmdRunner => (cmd, args) => {
+  if (cmd === "which" && ["ghost", "screencapture", "cliclick"].includes(args[0] ?? "")) return `/usr/bin/${args[0]}`;
+  if (cmd === "ghost" && args[0] === "status") return status;
   throw new Error("not found");
 };
 
@@ -32,6 +38,28 @@ describe("desktopControlDoctor", () => {
   });
 });
 
+describe("ghostOsDoctor", () => {
+  it("ready when ghost status reports ready on macOS", () => {
+    const d = ghostOsDoctor(haveGhostStatus("Ghost OS v2.2.1\nStatus: Ready\n"), "darwin");
+    expect(d.present).toBe(true);
+    expect(d.ready).toBe(true);
+    expect(d.status).toContain("Status: Ready");
+  });
+
+  it("present but not ready when ghost status is not ready", () => {
+    const d = ghostOsDoctor(haveGhostStatus("Ghost OS v2.2.1\nStatus: Run `ghost setup` first\n"), "darwin");
+    expect(d.present).toBe(true);
+    expect(d.ready).toBe(false);
+    expect(d.notes.join(" ")).toMatch(/ghost setup|ghost doctor/);
+  });
+
+  it("absent when ghost is not installed", () => {
+    const d = ghostOsDoctor(have("screencapture", "cliclick"), "darwin");
+    expect(d.present).toBe(false);
+    expect(d.ready).toBe(false);
+  });
+});
+
 describe("runControlCommand", () => {
   it("setup → opens both panes + reports", async () => {
     const opened: string[] = [];
@@ -52,5 +80,13 @@ describe("runControlCommand", () => {
   it("doctor → exit 1 when not ready", async () => {
     const code = await runControlCommand("/r", ["doctor"], { log: () => {}, run: have("screencapture") /* no cliclick */ });
     expect(code).toBe(1);
+  });
+
+  it("doctor surfaces Ghost OS when installed without making it required", async () => {
+    const lines: string[] = [];
+    const code = await runControlCommand("/r", ["doctor"], { log: (l) => lines.push(l), run: haveGhostStatus("Ghost OS v2.2.1\nStatus: Ready\n") });
+    expect(code).toBe(0);
+    expect(lines.join("\n")).toMatch(/Ghost OS/);
+    expect(lines.join("\n")).toMatch(/vanta mcp install ghost-os/);
   });
 });

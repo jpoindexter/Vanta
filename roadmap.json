@@ -5045,7 +5045,7 @@
       "codex": "gpt-5.4",
       "lens": "reach",
       "updated": "2026-07-09",
-      "notes": "Considered from https://github.com/ghostwright/ghost-os on 2026-07-09. Copy the AX-tree-first perception, ghost doctor style health checks, and transparent recipe bridge. Do not vendor Shadow/Specter or bypass Vanta's desktop-control boundary; keep Ghost OS mutating tools disabled unless explicitly allowlisted and kernel-approved."
+      "notes": "FIRST TS SLICE SHIPPED 2026-07-09: Vanta now has a TypeScript Ghost OS integration contract (vanta-ts/src/mcp/ghost-os.ts), a vetted `vanta mcp install ghost-os` catalog entry, and `vanta control doctor` detects installed Ghost status without making it required. Source considered from https://github.com/ghostwright/ghost-os. Remaining before marking this full card shipped: live install/probe of the real Ghost MCP server, explicit opt-in of mutating tools under kernel approval, and one verified macOS recipe run end-to-end. Do not vendor Shadow/Specter or bypass Vanta's desktop-control boundary."
     },
     {
       "id": "VANTA-CHICAGO-MCP",
