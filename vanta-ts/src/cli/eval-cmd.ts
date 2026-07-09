@@ -40,6 +40,18 @@ export function buildRunner(repoRoot: string): TaskRunner {
 
 /** `vanta eval mem` — memory-recall evals over the fixture or public datasets. */
 async function runMemEvalCommand(repoRoot: string, rest: string[]): Promise<void> {
+  if (rest[1] === "formation") {
+    const { runFormationEval } = await import("../mem-eval/formation.js");
+    const { formatFormationReport, recordFormationReport } = await import("../mem-eval/formation-report.js");
+    const dataDir = rest[2] ?? join(repoRoot, ".vanta", "mem-eval-public-data");
+    const publicCaseLimit = Math.max(1, Number(process.env.VANTA_MEM_FORMATION_PUBLIC_CASES) || 50);
+    console.log(`vanta eval mem formation: comparing ADD-only vs crystallization; public data dir ${dataDir}; public cases ≤${publicCaseLimit}\n`);
+    const report = runFormationEval({ dataDir, publicCaseLimit });
+    console.log(formatFormationReport(report));
+    const path = recordFormationReport(repoRoot, report);
+    console.log(`\ndecision → ${path}`);
+    return;
+  }
   if (rest[1] === "public") {
     const { runPublicMemEval } = await import("../mem-eval/public-run.js");
     const { formatPublicMemReport, recordPublicMemReport } = await import("../mem-eval/public-report.js");

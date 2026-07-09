@@ -14882,8 +14882,8 @@
       "codex": "gpt-5.4-mini",
       "lens": "reach",
       "updated": "2026-07-09",
-      "source": "ref-audit-2026-06-20",
-      "notes": "Shipped 2026-07-09. Added a token-window progress bubble on the gateway platform session path. `progressBubbleForPlatform` defaults on for LINE before its reply-token window expires and WhatsApp before the 24h response window; other platforms stay off unless explicitly configured. While an inbound platform turn is waiting on `handle()`, Vanta schedules one “Still working” outbound message and cancels it if the final reply finishes before the threshold; the final reply path remains unchanged. Verified with `npx vitest run src/gateway/progress-bubble.test.ts src/gateway/run.test.ts src/gateway/typing-heartbeat.test.ts --reporter=dot` (38 passed), `npm run typecheck`, and `npm run vanta -- lint src/gateway/progress-bubble.ts src/gateway/progress-bubble.test.ts src/gateway/run.ts src/gateway/run-session.ts src/gateway/run.test.ts`."
+      "notes": "Shipped 2026-07-09. Added a token-window progress bubble on the gateway platform session path. `progressBubbleForPlatform` defaults on for LINE before its reply-token window expires and WhatsApp before the 24h response window; other platforms stay off unless explicitly configured. While an inbound platform turn is waiting on `handle()`, Vanta schedules one “Still working” outbound message and cancels it if the final reply finishes before the threshold; the final reply path remains unchanged. Verified with `npx vitest run src/gateway/progress-bubble.test.ts src/gateway/run.test.ts src/gateway/typing-heartbeat.test.ts --reporter=dot` (38 passed), `npm run typecheck`, and `npm run vanta -- lint src/gateway/progress-bubble.ts src/gateway/progress-bubble.test.ts src/gateway/run.ts src/gateway/run-session.ts src/gateway/run.test.ts`.",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "HARNESS-ERROR-TAXONOMY",
@@ -16389,13 +16389,15 @@
       "id": "BRAIN-ADD-ONLY-AB",
       "track": "Operator",
       "title": "A/B ADD-only memory formation (agent-facts first-class) vs crystallization",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "mem0's v3 uses single-pass ADD-only extraction (one LLM call, no UPDATE/DELETE; memories accumulate) and stores agent-confirmed facts with equal weight — and it benchmarks higher than its prior update/merge approach. This conflicts with Vanta's brain thesis (crystallization, consolidation, forgetting). Don't adopt blindly: A/B ADD-only-accumulate vs the current formation on LongMemEval/LoCoMo, and capture agent-confirmed actions as first-class memories.",
       "done": "An ADD-only formation path is benchmarked against the crystallization path on the eval harness; the result (and whether agent-confirmed facts as first-class help) is recorded in a decision; the better path is adopted or the experiment is parked with its number.",
       "tier": "sand",
       "lens": "memory",
-      "source": "mem0-audit-2026-06-22"
+      "source": "mem0-audit-2026-06-22",
+      "updated": "2026-07-09",
+      "notes": "Shipped 2026-07-09. Added `vanta eval mem formation [data-dir]`, a deterministic A/B harness comparing crystallized formation, ADD-only accumulation, and ADD-only with agent-confirmed facts first-class. The live run wrote ignored local artifact `.vanta/mem-formation-ab.json` and sampled the available public data files with `VANTA_MEM_FORMATION_PUBLIC_CASES` defaulting to 50. Fixture result: crystallize 65.4% recall@5, add_only 65.4%, add_only_agent_facts 73.1% because the agent-confirmed push fact is retrievable. Public sample: LongMemEval 50/500 tied at 91.9%; LoCoMo 50/1982 favored ADD-only at 20.5% over crystallize at 2.0%. Decision recorded: adopt candidate `add_only_agent_facts` for the next memory-formation path because fixture+public mean leads at 61.8% recall@5 while preserving agent-confirmed facts as first-class. Verified with `npx vitest run src/mem-eval/formation.test.ts src/mem-eval/run.test.ts src/mem-eval/public-run.test.ts --reporter=dot` (11 passed), `npm run typecheck`, `npm run vanta -- lint src/mem-eval/formation.ts src/mem-eval/formation-report.ts src/mem-eval/formation.test.ts src/cli/eval-cmd.ts src/cli/usage.ts`, and live CLI smoke `npm run vanta -- eval mem formation`."
     },
     {
       "id": "VANTA-AGENT-ROUTING-DISCOVERY",
