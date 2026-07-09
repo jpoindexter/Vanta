@@ -28,6 +28,14 @@ describe("handleGlobalKey — default bindings", () => {
     expect(busy.abort).toHaveBeenCalled();
   });
 
+  it("transcript selection owns ctrl+c before the global exit shortcut", () => {
+    const transcriptSelectionKey = vi.fn(() => true);
+    const d = deps({ transcriptSelectionKey });
+    handleGlobalKey("c", { ctrl: true }, d as never);
+    expect(transcriptSelectionKey).toHaveBeenCalledWith("c", { ctrl: true });
+    expect(d.exit).not.toHaveBeenCalled();
+  });
+
   it("ctrl+p opens quick-open only when nothing else owns input", () => {
     const open = deps(); handleGlobalKey("p", { ctrl: true }, open as never);
     expect(open.openQuickOpen).toHaveBeenCalled();

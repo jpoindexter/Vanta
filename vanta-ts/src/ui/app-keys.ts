@@ -30,7 +30,7 @@ export function ctxSnapshot(setup: RunSetup, convo: Conversation | null, state?:
   };
 }
 
-type GlobalKey = { ctrl?: boolean; escape?: boolean; tab?: boolean; shift?: boolean; leftArrow?: boolean; rightArrow?: boolean; upArrow?: boolean };
+type GlobalKey = { ctrl?: boolean; escape?: boolean; tab?: boolean; shift?: boolean; leftArrow?: boolean; rightArrow?: boolean; upArrow?: boolean; downArrow?: boolean };
 type GlobalKeyDeps = {
   busy: boolean; pending: Pending | null; overlayOpen: boolean;
   abort: () => void; exit: () => void; cycle: () => void;
@@ -41,6 +41,8 @@ type GlobalKeyDeps = {
   backgroundResponseAvailable: boolean; toggleBackgroundResponse: () => void;
   /** Set only while a teammate tree is live; cycles focus between agents. */
   cycleAgent?: (dir: 1 | -1) => void;
+  /** Transcript text selection owns Shift+arrows / Ctrl+C only while useful. */
+  transcriptSelectionKey?: (input: string, key: GlobalKey) => boolean;
   /** KEYBINDING-CUSTOMIZATION: resolved bindings (defaults + user overrides).
    * Absent → DEFAULT_BINDINGS, so behavior is identical without a config file. */
   bindings?: KeyBinding[];
@@ -65,6 +67,7 @@ export function useKeybindings(): KeyBinding[] {
 // before). Custom chords in ~/.vanta/keybindings.json therefore take effect on
 // the live TUI. Focus keys (tab/shift-tab) stay in handleFocusKey.
 export function handleGlobalKey(input: string, key: GlobalKey, d: GlobalKeyDeps): void {
+  if (d.transcriptSelectionKey?.(input, key)) return;
   const chord = eventToChord(input, key as GlobalKey & { alt?: boolean; meta?: boolean; upArrow?: boolean; downArrow?: boolean });
   const action = chord ? actionForChord(d.bindings ?? DEFAULT_BINDINGS, chord) : null;
   if (dispatchGlobalAction(action, d)) return;

@@ -1795,7 +1795,7 @@
       "id": "VANTA-TEXT-SELECT-TUI",
       "track": "Operator",
       "title": "Text selection + clipboard in TUI",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent's ink layer has selection.ts + use-selection.ts + searchHighlight.ts enabling range-based text selection within the transcript and copy to clipboard. Distinct from MessageSelector (which selects whole messages); this selects arbitrary text spans. Vanta has no TUI text selection.",
       "done": "Shift+arrow extends a text selection in the transcript; Ctrl+C copies the selection to clipboard; a visual highlight shows the selected range; selection clears on next keystroke.",
@@ -1803,7 +1803,9 @@
       "model": "sonnet",
       "effort": "high",
       "codex": "gpt-5.5",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-07-09",
+      "notes": "SHIPPED 2026-07-09. Added a transcript selection model over committed entries, global Shift+arrow handling, Ctrl+C copy through the existing clipboard helper, clear-on-next-keystroke behavior, and a live inverse-highlight selection preview panel. This deliberately does not repaint Ink `<Static>` scrollback; the highlight lives in the bottom live region so Vanta keeps its no-ghosting scrollback architecture. Verification: 49 focused UI tests pass for selection mechanics, preview rendering, global Ctrl+C precedence, transcript rendering regressions, plus `npx tsc --noEmit` and `git diff --check`."
     },
     {
       "id": "VANTA-SETTINGS-PANEL",

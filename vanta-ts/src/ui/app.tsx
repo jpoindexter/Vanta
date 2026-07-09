@@ -24,8 +24,11 @@ import { useSessionStatus } from "./use-session-status.js";
 import { useFooterRich } from "./use-rich-status.js";
 import { useSubagentProgress } from "./use-subagent-progress.js";
 import { Footer, LiveRegion, buildStaticItems } from "./app-regions.js";
+import { writeClipboardText } from "./composer-input.js";
 import { useModeState } from "./mode-line.js";
 import { LiveBody } from "./app-body.js";
+import { TranscriptSelectionPanel } from "./transcript-selection-panel.js";
+import { handleTranscriptSelectionKey, type TranscriptSelection } from "./transcript-selection.js";
 import type { SearchableSession, SessionSearchHit } from "../search/cross-session.js";
 import {
   ctxSnapshot, useSkillMatches, useQueueDrain, useTeammateFocus,
@@ -67,6 +70,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const [globalSearch, setGlobalSearch] = useState(false);
   const [messageActions, setMessageActions] = useState(false);
   const [searchSessions, setSearchSessions] = useState<SearchableSession[]>([]);
+  const [transcriptSelection, setTranscriptSelection] = useState<TranscriptSelection | null>(null);
   const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, interruptRef, convoRef, replStateRef, gatesRef });
   const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit, setComposerAnchor, setVim });
   const { overlay, openOverlay, closeOverlay, selectRow } = useOverlay({ setup: props.setup, repoRoot: props.repoRoot, runSlash, getContext: () => ctxSnapshot(props.setup, convoRef.current, replStateRef.current) });
@@ -89,8 +93,18 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     if (state.busy) detachBackgroundResponse();
     else runSlash("/bg");
   };
+  const transcriptSelectionKey = (input: string, key: { shift?: boolean; ctrl?: boolean; leftArrow?: boolean; rightArrow?: boolean; upArrow?: boolean; downArrow?: boolean }): boolean => {
+    const result = handleTranscriptSelectionKey(state.entries, transcriptSelection, input, key);
+    if (result.kind === "none") return false;
+    if (result.kind === "clear") { setTranscriptSelection(null); return false; }
+    if (result.kind === "move") { setTranscriptSelection(result.selection); return true; }
+    const ok = writeClipboardText(result.text);
+    setTranscriptSelection(result.selection);
+    dispatch({ t: "note", text: ok ? "  ✓ copied transcript selection" : "  clipboard unavailable" });
+    return true;
+  };
   const route = buildSubmitRoute({ runSlash, send, openOverlay, openGlobalSearch, busy: state.busy, setup: props.setup, repoRoot: props.repoRoot, dispatch, detachBackgroundResponse });
-  const onSubmit = (text: string): void => { setHistory((h) => [...h, text]); route(text); };
+  const onSubmit = (text: string): void => { setTranscriptSelection(null); setHistory((h) => [...h, text]); route(text); };
   const tick = useBusyTick(state.busy);
   const skillMatches = useSkillMatches(); const channels = useSlackChannels();
   useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
@@ -105,7 +119,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const promptSuggestionsVisible = !state.busy && !quickOpen && !globalSearch && !messageActions && !pending && !overlay && agents.length === 0 && state.promptSuggestions.length > 0;
   const focusTargets = buildFocusTargets(pending, overlay, promptSuggestionsVisible);
   useFocusFallback(focus, focusTargets, pending ? "approval" : overlay?.kind ?? (promptSuggestionsVisible ? "composer+suggestions" : "composer"), setFocus);
-  useGlobalKeys({ bindings: useKeybindings(), busy: state.busy, pending, overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus, quickOpenOpen: quickOpen, openQuickOpen: () => setQuickOpen(true), globalSearchOpen: globalSearch, openGlobalSearch, messageActionsOpen: messageActions, openMessageActions: () => setMessageActions(true), backgroundResponseAvailable: Boolean(replStateRef.current.backgroundResponse), toggleBackgroundResponse, cycleAgent: teammate.cycleAgent });
+  useGlobalKeys({ bindings: useKeybindings(), busy: state.busy, pending, overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus, quickOpenOpen: quickOpen, openQuickOpen: () => setQuickOpen(true), globalSearchOpen: globalSearch, openGlobalSearch, messageActionsOpen: messageActions, openMessageActions: () => setMessageActions(true), backgroundResponseAvailable: Boolean(replStateRef.current.backgroundResponse), toggleBackgroundResponse, cycleAgent: teammate.cycleAgent, transcriptSelectionKey });
   const staticItems = buildStaticItems(provider.modelId(), props.repoRoot, state.entries, { tools: props.setup.registry.schemas().length, cmds: SLASH_COMMANDS.length });
   const vp = useViewportRows();
   const rich = useFooterRich({ repoRoot: props.repoRoot, sessionId: replStateRef.current.sessionId, sessionName: replStateRef.current.title, vimEnabled, outputStyle: process.env.VANTA_OUTPUT_STYLE, compacting: state.compacting });
@@ -117,6 +131,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
           {pending && mode !== "auto"
             ? <ApprovalPrompt pending={pending} focusedTarget={focus} onFocusTargetChange={setFocus} onDone={() => setPending(null)} />
             : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} liveThinking={state.liveThinking} agents={agents} selectedAgent={teammate.selectedAgent} leaderTokens={est} />}
+          <TranscriptSelectionPanel entries={state.entries} selection={transcriptSelection} />
           <LiveBody quickOpen={quickOpen} globalSearch={globalSearch} messageActions={messageActions} searchSessions={searchSessions} entries={state.entries} overlay={overlay} pending={pending} mode={mode} focus={focus} todos={state.todos} files={files} history={history} skills={skillMatches} channels={channels} vim={vimEnabled} promptSuggestions={promptSuggestionsVisible ? state.promptSuggestions : []} onQuickActivate={(c) => { setQuickOpen(false); runSlash(c); }} onQuickClose={() => setQuickOpen(false)} onSearchSelect={selectSearchHit} onSearchClose={() => setGlobalSearch(false)} onMessageRetry={onSubmit} onMessageBranch={() => runSlash("/fork")} onMessageNote={(text) => dispatch({ t: "note", text })} onMessageClose={() => setMessageActions(false)} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
           {!pending && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={replStateRef.current.activeGoal} mcp={mcp} elapsed={elapsed} agents={agents} rich={rich} /> : null}
         </PinnedRegion>
