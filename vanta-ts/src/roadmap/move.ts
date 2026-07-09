@@ -7,10 +7,28 @@ import { checkWipLimit } from "./wip.js";
 import { appendVelocityEvent } from "../velocity/store.js";
 export { WipLimitError } from "./wip.js";
 
+export class RoadmapDependencyError extends Error {
+  constructor(public itemId: string, public openDependencies: string[]) {
+    super(`open dependencies for ${itemId}: ${openDependencies.join(", ")}. Move dependencies to shipped first, or retry with --force.`);
+    this.name = "RoadmapDependencyError";
+  }
+}
+
+type MoveOptions = { force?: boolean };
+
+function openDependencies(items: RoadmapItem[], item: RoadmapItem): string[] {
+  const byId = new Map(items.map((i) => [i.id, i]));
+  return (item.after ?? []).flatMap((id) => {
+    const dep = byId.get(id);
+    return dep?.status === "shipped" ? [] : [`${id} (${dep?.status ?? "missing"})`];
+  });
+}
+
 export async function moveRoadmapItem(
   repoRoot: string,
   id: string,
   toStatus: Status,
+  options: MoveOptions = {},
 ): Promise<RoadmapItem> {
   const src = join(repoRoot, "roadmap.json");
   const raw = await readFile(src, "utf8");
@@ -20,6 +38,9 @@ export async function moveRoadmapItem(
   if (!item) {
     throw new Error(`no item with id '${id}' in roadmap.json`);
   }
+
+  const deps = toStatus === "building" && !options.force ? openDependencies(data.items, item) : [];
+  if (deps.length) throw new RoadmapDependencyError(id, deps);
 
   const violation = checkWipLimit(data.items, id, toStatus);
   if (violation) throw violation;

@@ -34,7 +34,7 @@ const USAGE_LINES = [
       "       vanta auth google [--client <json>] one-time Google OAuth (ingests client_secret.json)",
       "       vanta mcp [list|serve]             list MCP servers Vanta consumes, or serve Vanta's tools over MCP stdio",
       "       vanta roadmap                      build roadmap.html from roadmap.json and open it",
-      "       vanta roadmap move <id> <status>   move an item (shipped|building|next|horizon)",
+      "       vanta roadmap move <id> <status> [--force]   move an item (shipped|building|next|horizon)",
       "       vanta roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
       "       vanta desktop [port]                start local desktop command center",
       "       vanta audit                        npm + cargo dependency security scan",

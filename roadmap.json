@@ -114,7 +114,7 @@
       "id": "ROADMAP-DEPENDENCY-GUARD",
       "track": "Harness",
       "title": "Roadmap dependency guard — `after` links block premature moves to Now",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Blind audit finding #3: roadmap `after` links are currently advisory metadata, so the board can still bypass its own sequence. Enforce the sequence mechanically before more activation/autonomy cards are moved around.",
       "done": "`vanta roadmap move <id> building` and the drag-and-drop board warn or block when any open `after` dependency is not shipped; tests cover allow, block, and override/force behavior if an override exists.",
@@ -125,7 +125,7 @@
       "lens": "agent-loop",
       "updated": "2026-07-09",
       "source": "blind-audit-roadmap-activation-2026-07-09",
-      "notes": "From blind audit finding #3. This protects the activation sequence from turning back into an aesthetic board shuffle."
+      "notes": "From blind audit finding #3. This protects the activation sequence from turning back into an aesthetic board shuffle.\n\nSHIPPED 2026-07-09: `moveRoadmapItem` now blocks moves to `building` when `after` dependencies are missing or not shipped. The CLI exposes an explicit `--force` override, and the roadmap board API accepts `force: true`; otherwise board moves return 409 with a dependency payload. Tests cover block, allow-after-ship, force override, and board/API conflict behavior."
     },
     {
       "id": "OPERATOR-HOME-V1",

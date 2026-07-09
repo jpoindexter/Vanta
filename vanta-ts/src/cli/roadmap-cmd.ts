@@ -19,17 +19,18 @@ async function handleRoadmapMove(repoRoot: string, args: string[]): Promise<void
   const id = args[1];
   const status = args[2];
   if (!id || !status) {
-    console.error("Usage: vanta roadmap move <id> <status>");
+    console.error("Usage: vanta roadmap move <id> <status> [--force]");
     console.error("  status: shipped | building | next | horizon");
     process.exit(1);
   }
   const { moveRoadmapItem } = await import("../roadmap/move.js");
   const { STATUS } = await import("../roadmap/schema.js");
+  const force = args.includes("--force");
   if (!(STATUS as readonly string[]).includes(status)) {
     console.error(`Invalid status '${status}'. Valid: ${STATUS.join(", ")}`);
     process.exit(1);
   }
-  const item = await moveRoadmapItem(repoRoot, id, status as import("../roadmap/schema.js").Status);
+  const item = await moveRoadmapItem(repoRoot, id, status as import("../roadmap/schema.js").Status, { force });
   console.log(`  ✓ Moved ${item.id} → ${status}: ${item.title}`);
 }
 

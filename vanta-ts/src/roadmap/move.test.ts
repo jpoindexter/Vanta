@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach } from "vitest";
 import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { moveRoadmapItem } from "./move.js";
+import { RoadmapDependencyError, moveRoadmapItem } from "./move.js";
 
 const FIXTURE = {
   updated: "2026-01-01",
@@ -30,7 +30,7 @@ const FIXTURE = {
 
 let dir: string;
 
-async function makeRoadmap(data = FIXTURE): Promise<string> {
+async function makeRoadmap(data: unknown = FIXTURE): Promise<string> {
   dir = await mkdtemp(join(tmpdir(), "vanta-move-"));
   await writeFile(join(dir, "roadmap.json"), JSON.stringify(data, null, 2), "utf8");
   return dir;
@@ -87,5 +87,44 @@ describe("moveRoadmapItem", () => {
     const data = JSON.parse(raw);
     const kanban = data.items.find((i: { id: string }) => i.id === "KANBAN");
     expect(kanban.status).toBe("next");
+  });
+
+  it("blocks moving to building while after dependencies are open", async () => {
+    const root = await makeRoadmap({
+      updated: "2026-01-01",
+      items: [
+        { ...FIXTURE.items[0], id: "FOUNDATION", status: "next" },
+        { ...FIXTURE.items[1], id: "LAUNCH", status: "next", after: ["FOUNDATION"] },
+      ],
+    });
+
+    await expect(moveRoadmapItem(root, "LAUNCH", "building")).rejects.toThrow(RoadmapDependencyError);
+    await expect(moveRoadmapItem(root, "LAUNCH", "building")).rejects.toThrow("FOUNDATION (next)");
+  });
+
+  it("allows moving to building after dependencies ship", async () => {
+    const root = await makeRoadmap({
+      updated: "2026-01-01",
+      items: [
+        { ...FIXTURE.items[0], id: "FOUNDATION", status: "shipped" },
+        { ...FIXTURE.items[1], id: "LAUNCH", status: "next", after: ["FOUNDATION"] },
+      ],
+    });
+
+    const item = await moveRoadmapItem(root, "LAUNCH", "building");
+    expect(item.status).toBe("building");
+  });
+
+  it("force overrides open dependency blocks", async () => {
+    const root = await makeRoadmap({
+      updated: "2026-01-01",
+      items: [
+        { ...FIXTURE.items[0], id: "FOUNDATION", status: "next" },
+        { ...FIXTURE.items[1], id: "LAUNCH", status: "next", after: ["FOUNDATION"] },
+      ],
+    });
+
+    const item = await moveRoadmapItem(root, "LAUNCH", "building", { force: true });
+    expect(item.status).toBe("building");
   });
 });
