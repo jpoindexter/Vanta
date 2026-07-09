@@ -1538,7 +1538,7 @@
       "id": "VANTA-HOOKS-CONFIG-UI",
       "track": "Operator",
       "title": "Hooks configuration menu — event/hook/matcher mode selectors",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent's hooks UI has: HooksConfigMenu (list all hooks), SelectEventMode (pick event type), SelectHookMode (pick hook type: command/http/etc), SelectMatcherMode (configure matchers), ViewHookMode (inspect a hook). Pairs with VANTA-HOOKS-CMD (next) for /hooks command. Vanta will have /hooks but needs this interactive config UI.",
       "done": "/hooks opens the config menu; arrow keys navigate; selecting a hook opens view mode; new hook wizard walks through event → type → matcher → action; all hooks are editable without touching settings.json.",

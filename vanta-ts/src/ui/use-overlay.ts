@@ -14,6 +14,7 @@ import type { McpServerView } from "./mcp-view.js";
 import { reloadTasks } from "./tasks-actions.js";
 import { buildSandboxOverlay, type SandboxOverlayState } from "./sandbox-actions.js";
 import { buildConfigOverlay, type ConfigOverlayState } from "./config-actions.js";
+import { buildHooksOverlay, type HooksOverlayState } from "./hooks-actions.js";
 import type { WorkerTask } from "../team/tasks.js";
 import type { RunSetup } from "../session.js";
 
@@ -35,6 +36,7 @@ export type OverlayView =
   | { kind: "tasks"; tasks: WorkerTask[] }
   | ({ kind: "sandbox" } & SandboxOverlayState)
   | ({ kind: "config" } & ConfigOverlayState)
+  | ({ kind: "hooks" } & HooksOverlayState)
   | { kind: "help" };
 
 /** The four picker kinds that resolve to a generic selectable list; null otherwise. */
@@ -123,6 +125,10 @@ export function useOverlay(deps: { setup: RunSetup; repoRoot: string; runSlash: 
         openCommand: (line: string) => { setOverlay(null); reopenAsPicker(line, openOverlay, deps.runSlash); },
       };
       return void buildConfigOverlay(deps.repoRoot, host).then(setOverlay).catch(() => {});
+    }
+    if (kind === "hooks") {
+      const host = { publish: (v: OverlayView) => setOverlay((prev) => (prev?.kind === "hooks" ? v : prev)), isOpen: () => true };
+      return void buildHooksOverlay(deps.repoRoot, host).then(setOverlay).catch(() => {});
     }
     void loadOverlay(kind, deps.setup, deps.repoRoot, deps.getContext).then(setOverlay).catch(() => {});
   };
