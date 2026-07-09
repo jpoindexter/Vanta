@@ -85,6 +85,7 @@ import { learn } from "./learn-cmd.js";
 import { terminalSetup } from "./terminal-setup-cmd.js";
 import { whatCanIDo } from "./what-can-i-do-cmd.js";
 import { diagnoseCrash } from "./crash-diagnose-cmd.js";
+import { specToApp } from "./spec-to-app-cmd.js";
 import { bg } from "./bg-response-cmd.js";
 import { buildOperatorHome } from "../operator-home/view.js";
 
@@ -185,7 +186,7 @@ const goals: SlashHandler = async (_arg, ctx) => {
 
 /** Command-name → handler. Aliases share a handler (clear/new/reset, exit/quit, status/doctor). */
 export const HANDLERS: Record<string, SlashHandler> = {
-  help, home, "what-can-i-do": whatCanIDo, "diagnose-crash": diagnoseCrash, exit, quit: exit, init, "init-verifiers": initVerifiers, clear, new: clear, reset: clear, attachments, history,
+  help, home, "what-can-i-do": whatCanIDo, "diagnose-crash": diagnoseCrash, "spec-to-app": specToApp, exit, quit: exit, init, "init-verifiers": initVerifiers, clear, new: clear, reset: clear, attachments, history,
   export: exportConvo, stop, bg, retry, undo, rewind, hooks, skills, skillify, learn, tools, model, effort, env, cd, setup: model, status, doctor: status,
   plan, compress, compact: compress, memory, learnings, goals, goal, sessions, resume, title, fork, context: contextCmd,
   mcp, usage, copy, update, image, paste, cron, loop: loopSchedule, proactive, moim, record, next, now, planmode: planMode, planv2: planV2, boundary, where, explain, recover, wm, restart, bug, feedback, learning, handoff, open, edit, tasks, bgtasks, wftasks, btw, describe: describeCmd, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto, suggest, time,

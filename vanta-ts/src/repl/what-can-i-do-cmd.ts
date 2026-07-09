@@ -54,9 +54,10 @@ export const CAPABILITY_WORKFLOWS: CapabilityWorkflow[] = [
     title: "Turn a spec into a preview",
     outcome: "Convert a long app/product prompt into files, checks, and a local preview command.",
     example: "Build the posture routine app from this product spec...",
-    command: `vanta run "Build this spec into a verified preview: <paste spec>"`,
+    command: `vanta spec-to-app --demo posture`,
     setup: "File writing/editing, shell, and file reading tools are available.",
     requires: ["write_file", "edit_file", "shell_cmd", "read_file"],
+    demo: "spec-to-preview",
   },
   {
     id: "crash-log",
@@ -124,6 +125,12 @@ const DEMOS: Record<string, string> = {
     "Input: DYLD Code 1, Library not loaded: @rpath/lib_TestingInterop.dylib.",
     "Result: `vanta diagnose-crash --demo greg-uitests` names the missing dynamic library, cites the DYLD lines, and suggests repairing the XCTest/test-runtime search path.",
     `Command: ${CAPABILITY_WORKFLOWS[3]!.command}`,
+  ].join("\n"),
+  "spec-to-preview": [
+    "Demo: Turn a spec into a preview",
+    "Input: posture routine React/Tailwind fixture with timers, toggles, localStorage, responsive layout, and accessibility expectations.",
+    "Result: `vanta spec-to-app --demo posture` scaffolds a preview app, runs typecheck/build, and records summary plus screenshot-style evidence.",
+    `Command: ${CAPABILITY_WORKFLOWS[2]!.command}`,
   ].join("\n"),
 };
 

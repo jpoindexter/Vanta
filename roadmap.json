@@ -174,7 +174,7 @@
       "id": "SPEC-TO-APP-WIZARD",
       "track": "Operator",
       "title": "Spec-to-app wizard — turn a long product prompt into a verified preview",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "The posture-app transcript is a complete product/build spec, not a question. Vanta should treat this as a first-class workflow: parse requirements, scaffold the app, implement states/interactions, run checks, start a preview, and show the user the result.",
       "done": "Given the posture routine spec fixture, Vanta extracts requirements, produces a React/Tailwind implementation plan, builds the app, runs type/build checks, opens a local preview, and records screenshot/verification evidence in the task summary.",
@@ -185,7 +185,7 @@
       "lens": "reach",
       "updated": "2026-07-09",
       "source": "transcript-roadmap-extract-2026-07-09",
-      "notes": "Evidence: e91d797b lines 1-24 specify polished responsive React/Tailwind output and lines 26-468 enumerate detailed sections, timers, toggles, localStorage tracker, and accessibility expectations.\n\nORGANIZED 2026-07-09: Phase 2 second showcase workflow. Build after the gallery and sandbox recovery so “long spec → working preview” is discoverable and can run without scope confusion.",
+      "notes": "Evidence: e91d797b lines 1-24 specify polished responsive React/Tailwind output and lines 26-468 enumerate detailed sections, timers, toggles, localStorage tracker, and accessibility expectations.\n\nORGANIZED 2026-07-09: Phase 2 second showcase workflow. Build after the gallery and sandbox recovery so “long spec → working preview” is discoverable and can run without scope confusion.\n\nSHIPPED 2026-07-09: Added `vanta spec-to-app --demo posture [--open]` plus `/spec-to-app --demo posture`. The wizard extracts posture-app requirements, writes an implementation plan, scaffolds a Vite React app using Tailwind utility classes, includes timer controls, completion toggles, localStorage persistence, responsive cards, and accessibility markers, then runs real `tsc --noEmit` and `vite build`. Live run `npm run vanta -- spec-to-app --demo posture --open` recorded `posture-routine-2026-07-09T14-57-40-318Z/task-summary.md`: PASS typecheck, PASS build, PASS open-preview, preview `dist/index.html`, and screenshot-style evidence `preview-screenshot.svg`.",
       "after": [
         "WHAT-CAN-I-DO-GALLERY",
         "SANDBOX-SCOPE-WIZARD",

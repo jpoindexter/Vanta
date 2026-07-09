@@ -60,10 +60,11 @@ describe("what-can-i-do workflow catalog", () => {
 
   it("ships three runnable demo fixtures with exact commands", () => {
     const demoIds = CAPABILITY_WORKFLOWS.map((w) => w.demo).filter(Boolean);
-    expect(demoIds).toEqual(["fix-error", "continue-roadmap", "crash-log"]);
+    expect(demoIds).toEqual(["fix-error", "continue-roadmap", "spec-to-preview", "crash-log"]);
     expect(runWorkflowDemo("fix-error")).toContain("python3 -m http.server 8123");
     expect(runWorkflowDemo("fix-error")).toContain("VANTA_SHELL_SANDBOX=0 vanta");
     expect(runWorkflowDemo("continue-roadmap")).toContain(`Command: vanta run "Continue the top roadmap item and push the slice"`);
+    expect(runWorkflowDemo("spec-to-preview")).toContain("vanta spec-to-app --demo posture");
     expect(runWorkflowDemo("crash-log")).toContain("Library not loaded");
   });
 
