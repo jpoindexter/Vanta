@@ -8,6 +8,14 @@ import {
   writeDefaultAutonomyContract,
   type AutonomyAction,
 } from "../autonomy/contract.js";
+import {
+  applyTrustGate,
+  formatTrustLedger,
+  formatTrustWorkflow,
+  loadTrustLedger,
+  loadTrustPolicy,
+  recordTrustOutcome,
+} from "../autonomy/trust.js";
 
 export async function runAutonomyCommand(repoRoot: string, rest: string[] = []): Promise<number> {
   const dataDir = dataDirFor(repoRoot);
@@ -20,8 +28,9 @@ export async function runAutonomyCommand(repoRoot: string, rest: string[] = []):
     console.log(formatAutonomyContract(await loadAutonomyContract(dataDir)));
     return 0;
   }
+  if (sub === "trust") return runTrust(dataDir, rest.slice(1));
   if (sub === "decide") return runDecide(dataDir, rest.slice(1));
-  console.error("usage: vanta autonomy [show|init|decide <kind> <low|medium|high> <summary>]");
+  console.error("usage: vanta autonomy [show|init|trust|decide <kind> <low|medium|high> <summary>]");
   return 1;
 }
 
@@ -31,11 +40,40 @@ async function runDecide(dataDir: string, rest: string[]): Promise<number> {
     console.error("usage: vanta autonomy decide <kind> <low|medium|high> <summary>");
     return 1;
   }
-  const decision = decideAutonomy(await loadAutonomyContract(dataDir), action);
+  const decision = applyTrustGate(
+    decideAutonomy(await loadAutonomyContract(dataDir), action),
+    await loadTrustLedger(dataDir),
+    await loadTrustPolicy(dataDir),
+  );
   const log = await logAutonomyDecision(dataDir, decision);
   console.log(formatAutonomyDecision(decision));
   console.log(`Log: ${log}`);
   return decision.lane === "wakes-me" ? 2 : 0;
+}
+
+async function runTrust(dataDir: string, rest: string[]): Promise<number> {
+  const sub = rest[0] ?? "show";
+  if (sub === "show" || sub === "list") {
+    console.log(formatTrustLedger(await loadTrustLedger(dataDir), await loadTrustPolicy(dataDir)));
+    return 0;
+  }
+  if (sub === "pass" || sub === "fail") {
+    const [workflowId, ...reason] = rest.slice(1);
+    if (!workflowId || !reason.length) {
+      console.error("usage: vanta autonomy trust <pass|fail> <workflow-id> <reason>");
+      return 1;
+    }
+    const workflow = await recordTrustOutcome(dataDir, {
+      workflowId,
+      outcome: sub,
+      reason: reason.join(" "),
+      policy: await loadTrustPolicy(dataDir),
+    });
+    console.log(formatTrustWorkflow(workflow));
+    return 0;
+  }
+  console.error("usage: vanta autonomy trust [show|pass <workflow-id> <reason>|fail <workflow-id> <reason>]");
+  return 1;
 }
 
 function parseAction(rest: string[]): AutonomyAction | null {

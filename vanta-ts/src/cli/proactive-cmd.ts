@@ -10,6 +10,7 @@ import { loadDef } from "../loop/store.js";
 import { getBudget } from "../budget/store.js";
 import { isExceeded } from "../budget/types.js";
 import { decideAutonomy, loadAutonomyContract, logAutonomyDecision } from "../autonomy/contract.js";
+import { applyTrustGate, loadTrustLedger, loadTrustPolicy, recordTrustOutcome, workflowIdForDecision } from "../autonomy/trust.js";
 
 // `vanta proactive` — KAIROS heartbeat. `status` shows the throttle + whether it
 // would tick now; `run` fires one throttled pickup of queued loop wakes, then
@@ -28,21 +29,31 @@ async function fireQueuedWakes(repoRoot: string, dataDir: string, log: (m: strin
   const wakes = await drainLoopWakes(dataDir);
   const runTask = buildCronRunTask(repoRoot);
   const contract = await loadAutonomyContract(dataDir);
+  const policy = await loadTrustPolicy(dataDir);
   let ran = 0;
   for (const wake of wakes) {
     const def = await loadDef(dataDir, wake.goal_id);
     if (!def || def.status !== "active") { log(`skip ${wake.goal_id} (not active)`); continue; }
-    const decision = decideAutonomy(contract, {
+    const baseDecision = decideAutonomy(contract, {
       kind: "proactive.loop.advance",
       summary: `advance loop ${def.id}: ${def.goal}`,
       risk: "low",
       source: "vanta proactive run",
     });
+    const decision = applyTrustGate(baseDecision, await loadTrustLedger(dataDir), policy);
     await logAutonomyDecision(dataDir, decision);
     if (decision.lane !== "acts-alone") { log(`${decision.lane} ${def.id} by ${decision.ruleId}`); continue; }
     log(`acts-alone ${def.id} by ${decision.ruleId}`);
-    await runTask(`Proactively advance loop ${def.id}: ${def.goal}`, wake);
-    ran += 1;
+    const workflowId = workflowIdForDecision(baseDecision);
+    try {
+      await runTask(`Proactively advance loop ${def.id}: ${def.goal}`, wake);
+      await recordTrustOutcome(dataDir, { workflowId, outcome: "pass", reason: `verified proactive loop ${def.id}`, policy });
+      ran += 1;
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      await recordTrustOutcome(dataDir, { workflowId, outcome: "fail", reason, policy });
+      log(`failed ${def.id}; trust demoted: ${reason}`);
+    }
   }
   return ran;
 }

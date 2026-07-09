@@ -32,6 +32,15 @@ export type AutonomyDecision = {
   ruleId: string;
   reason: string;
   action: AutonomyAction;
+  trust?: {
+    workflowId: string;
+    tier: "watch" | "queue" | "auto";
+    runs: number;
+    passes: number;
+    fails: number;
+    passRate: number;
+    reason: string;
+  };
 };
 
 export const DEFAULT_AUTONOMY_CONTRACT: AutonomyContract = {
@@ -122,6 +131,7 @@ export function formatAutonomyDecision(decision: AutonomyDecision): string {
     `Autonomy decision: ${decision.lane}`,
     `Rule: ${decision.ruleId}`,
     `Reason: ${decision.reason}`,
+    ...(decision.trust ? [`Trust: ${decision.trust.workflowId} · ${decision.trust.tier} · ${decision.trust.passes}/${decision.trust.runs} pass · ${decision.trust.reason}`] : []),
     `Action: ${decision.action.kind} — ${decision.action.summary}`,
   ].join("\n");
 }

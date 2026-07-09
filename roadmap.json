@@ -264,7 +264,7 @@
       "id": "TRUST-LEDGER-AUTONOMY",
       "track": "Harness",
       "title": "Trust ledger autonomy — earn auto-run with measured pass rates",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Promote autonomy only when a skill or loop has earned it. The transcript proposes a TSV-style trust ledger with pass/fail history and tier rules; Vanta should use the same idea to decide whether a workflow auto-runs, queues, or stays watched.",
       "done": "Each autonomous workflow records run/pass/fail/rate/tier; auto-run is allowed only after the configured run count and pass-rate threshold; any failed verifier demotes the workflow and shows the reason in the operator log.",

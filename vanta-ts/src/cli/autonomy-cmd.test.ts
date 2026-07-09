@@ -28,13 +28,30 @@ describe("runAutonomyCommand", () => {
     }
   });
 
-  it("logs an autonomy decision", async () => {
+  it("trust-gates and logs an autonomy decision", async () => {
     const root = await mkdtemp(join(tmpdir(), "vanta-autonomy-cli-"));
     try {
       const result = await capture(() => runAutonomyCommand(root, ["decide", "proactive.loop.advance", "low", "advance queued loop"]));
       expect(result.code).toBe(0);
+      expect(result.output).toContain("Autonomy decision: queues-for-approval");
+      expect(result.output).toContain("trust-ledger");
+      expect(await readFile(join(root, ".vanta", "autonomy-decisions.jsonl"), "utf8")).toContain("allow-proactive-loop+trust-ledger");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("records trust outcomes and then allows earned autonomy", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-autonomy-cli-"));
+    try {
+      await capture(() => runAutonomyCommand(root, ["trust", "pass", "proactive.loop.advance", "fixture", "one"]));
+      await capture(() => runAutonomyCommand(root, ["trust", "pass", "proactive.loop.advance", "fixture", "two"]));
+      const trust = await capture(() => runAutonomyCommand(root, ["trust", "pass", "proactive.loop.advance", "fixture", "three"]));
+      expect(trust.output).toContain("auto");
+
+      const result = await capture(() => runAutonomyCommand(root, ["decide", "proactive.loop.advance", "low", "advance queued loop"]));
       expect(result.output).toContain("Autonomy decision: acts-alone");
-      expect(await readFile(join(root, ".vanta", "autonomy-decisions.jsonl"), "utf8")).toContain("allow-proactive-loop");
+      expect(result.output).toContain("earned auto");
     } finally {
       await rm(root, { recursive: true, force: true });
     }
