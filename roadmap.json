@@ -33,7 +33,7 @@
       "lens": "agent-loop",
       "updated": "2026-07-09",
       "source": "transcript-roadmap-extract-2026-07-09",
-      "notes": "Evidence: 62230797 lines 264-311 and 739fb919 lines 93-140 show bun install/background dev blocked by writable scope and sandboxed background refusal. Builds on shipped SANDBOX-SERVE-FASTFAIL/VANTA-SANDBOX-VIOLATION.\n\nORGANIZED 2026-07-09: Phase 1 reliability unblocker. Build alongside the gallery because wrong-root/background sandbox failures stop the first useful workflow before the user learns what Vanta can do.\n\nBLIND-AUDIT UPDATE 2026-07-09: Done criteria now require a gallery workflow fixture that hits and recovers from wrong-root/background sandbox failure."
+      "notes": "Evidence: 62230797 lines 264-311 and 739fb919 lines 93-140 show bun install/background dev blocked by writable scope and sandboxed background refusal. Builds on shipped SANDBOX-SERVE-FASTFAIL/VANTA-SANDBOX-VIOLATION.\n\nORGANIZED 2026-07-09: Phase 1 reliability unblocker. Build alongside the gallery because wrong-root/background sandbox failures stop the first useful workflow before the user learns what Vanta can do.\n\nBLIND-AUDIT UPDATE 2026-07-09: Done criteria now require a gallery workflow fixture that hits and recovers from wrong-root/background sandbox failure.\n\nCORE SLICE 2026-07-09: Added shared sandbox recovery guidance for readable/writable scope refusals, sandboxed background refusals, and sandboxed dev-server fast-fail. Focused tests cover exact /add-dir, VANTA_*_DIRS, VANTA_SHELL_SANDBOX=0 relaunch, and background:true retry copy. Remaining before this card can ship: gallery workflow fixture proves the path end-to-end."
     },
     {
       "id": "ACTIVATION-COLD-USER-GATE",

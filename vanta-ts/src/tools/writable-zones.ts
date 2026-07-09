@@ -8,6 +8,7 @@ import {
   resolveReadableZones,
   resolveWritableZones,
 } from "./zones.js";
+import { pathScopeRecovery } from "./sandbox-recovery.js";
 
 // The configurable zone-resolution helpers live in `zones.ts`; re-exported here so
 // existing importers of "./writable-zones.js" (read-file, write-file, sandbox, exec,
@@ -102,7 +103,7 @@ export function resolveReadablePath(
     return {
       ok: false,
       abs,
-      error: `refused: ${path} is outside the project and not in a readable zone — ask the user to type /add-dir <dir> (adds it to this session, no relaunch) or set VANTA_READABLE_DIRS`,
+      error: `refused: ${path} is outside the project and not in a readable zone.\n${pathScopeRecovery({ kind: "readable", abs, root })}`,
     };
   }
   return { ok: true, abs };
@@ -157,7 +158,7 @@ export function resolveWritablePath(
     return {
       ok: false,
       abs,
-      error: `refused: ${path} is outside the project and not in a writable zone (~/Desktop, ~/Downloads) — ask the user to type /add-dir <dir> (adds it to this session, no relaunch) or set VANTA_WRITABLE_DIRS`,
+      error: `refused: ${path} is outside the project and not in a writable zone (~/Desktop, ~/Downloads).\n${pathScopeRecovery({ kind: "writable", abs, root })}`,
     };
   }
   return { ok: true, abs };

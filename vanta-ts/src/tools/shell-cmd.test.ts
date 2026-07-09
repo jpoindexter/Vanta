@@ -116,6 +116,7 @@ describe("shell_cmd SANDBOX-SERVE-FASTFAIL", () => {
     expect(r?.ok).toBe(false);
     expect(r?.output).toMatch(/no working path under the shell sandbox/);
     expect(r?.output).toMatch(/VANTA_SHELL_SANDBOX=0/);
+    expect(r?.output).toMatch(/background:true/);
   });
 
   it("sandboxServeRefusal: null when the sandbox is off (server still runs the normal path)", () => {
@@ -133,6 +134,7 @@ describe("shell_cmd SANDBOX-SERVE-FASTFAIL", () => {
     const r = await shellCmdTool.execute({ command: "python3 -m http.server 8123", background: true }, ctx());
     expect(r.ok).toBe(false);
     expect(r.output).toMatch(/no working path under the shell sandbox/);
+    expect(r.output).toMatch(/Recovery:/);
     expect(r.output).not.toMatch(/run without background=true/); // NOT the generic bg-sandbox branch
   });
 
@@ -145,6 +147,7 @@ describe("shell_cmd SANDBOX-SERVE-FASTFAIL", () => {
     expect(r.ok).toBe(false);
     expect(r.output).toMatch(/no working path under the shell sandbox/);
     expect(r.output).toMatch(/VANTA_SHELL_SANDBOX=0/);
+    expect(r.output).toMatch(/background:true/);
     expect(r.output).not.toMatch(/run without background=true/);
   });
 
@@ -162,5 +165,15 @@ describe("shell_cmd SANDBOX-SERVE-FASTFAIL", () => {
     expect(r.ok).toBe(false);
     expect(r.output).toMatch(/is long-running or backgrounded/);
     expect(r.output).not.toMatch(/no working path/);
+  });
+
+  it("execute: generic sandboxed background refusal includes recovery steps", async () => {
+    process.env.VANTA_SHELL_SANDBOX = "1";
+    const r = await shellCmdTool.execute({ command: "sleep 10", background: true }, ctx("/tmp/vanta-root"));
+    expect(r.ok).toBe(false);
+    expect(r.output).toMatch(/background tasks are not sandboxed/);
+    expect(r.output).toMatch(/Recovery:/);
+    expect(r.output).toContain("cd '/tmp/vanta-root' && VANTA_SHELL_SANDBOX=0 vanta");
+    expect(r.output).toMatch(/background:true/);
   });
 });

@@ -15,6 +15,7 @@ import { resolveSshTarget, buildSshArgs } from "../ssh/config.js";
 import { applySessionEnv, sessionEnvStore } from "../repl/session-env.js";
 import { sessionCwd, isCwdChanged } from "../repl/session-cwd.js";
 import { combineOutput, formatRunFailure, withTimingNote, type RunError } from "./shell-output.js";
+import { sandboxBackgroundRecovery, sandboxServeRecovery } from "./sandbox-recovery.js";
 
 export { lastCommandWord, classifyExitCode } from "./shell-output.js";
 
@@ -126,7 +127,7 @@ export function sandboxAgentRefusal(command: string): ToolResult | null {
  *  by burning both refusals (background↔foreground ping-pong) until the repair loop opens.
  *  Detect the serve/listen intent under sandbox and fail FAST with the one actionable fix.
  *  Null when there's no serve intent or the sandbox is off. */
-export function sandboxServeRefusal(command: string): ToolResult | null {
+export function sandboxServeRefusal(command: string, root = process.cwd()): ToolResult | null {
   if (!looksLikeServeIntent(command)) return null;
   if (shellSandboxEnv(process.env).VANTA_SANDBOX !== "1") return null;
   return {
@@ -134,8 +135,7 @@ export function sandboxServeRefusal(command: string): ToolResult | null {
     output:
       `refused: serving a listening web server has no working path under the shell sandbox — ` +
       `background tasks aren't sandboxed and a foreground bind is denied by the deny-default network. ` +
-      `To serve it, re-run this session non-sandboxed: set VANTA_SHELL_SANDBOX=0, then start the server with background:true. ` +
-      `(If you only need to inspect a built site, build/preview it to files instead of serving.)`,
+      `To serve it, re-run this session non-sandboxed.\n${sandboxServeRecovery(root)}`,
   };
 }
 
@@ -161,7 +161,7 @@ function childRunOpts(root: string): { cwd: string; timeout: number; maxBuffer: 
  *  else spawn a detached task and return its id. */
 async function runBackground(command: string, root: string): Promise<ToolResult> {
   if (shellSandboxEnv(process.env).VANTA_SANDBOX === "1") {
-    return { ok: false, output: `refused: background tasks are not sandboxed; run without background=true under sandbox mode, or unset VANTA_SANDBOX/VANTA_SHELL_SANDBOX${agentLaunchRedirect(command) ?? ""}` };
+    return { ok: false, output: `refused: background tasks are not sandboxed under sandbox mode.${agentLaunchRedirect(command) ?? ""}\n${sandboxBackgroundRecovery(root)}` };
   }
   const task = await spawnBackground(command, join(root, ".vanta"), root);
   return { ok: true, output: `background task started: ${task.id}\ncheck with: bg_status(${task.id})` };
@@ -220,7 +220,7 @@ export const shellCmdTool: Tool = {
     }
     // SANDBOX-SERVE-FASTFAIL: pre-empt the background↔foreground refusal ping-pong for a
     // server whose only viable path is a non-sandboxed run. Fires for both branches.
-    const serveRefusal = sandboxServeRefusal(command);
+    const serveRefusal = sandboxServeRefusal(command, ctx.root);
     if (serveRefusal) return serveRefusal;
     if (background) return runBackground(command, ctx.root);
     // RELIABILITY-SHELL-BG-WEDGE: a foreground command that backgrounds a child ('&')

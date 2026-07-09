@@ -138,4 +138,15 @@ describe("resolveWritablePath", () => {
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.error).toContain("writable zone");
   });
+
+  it("names the exact recovery commands for an out-of-zone write", () => {
+    const r = resolveWritablePath("/srv/elsewhere/x", root, {} as NodeJS.ProcessEnv);
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect(r.error).toContain("Recovery:");
+      expect(r.error).toContain("/add-dir /srv/elsewhere");
+      expect(r.error).toContain("VANTA_WRITABLE_DIRS='/srv/elsewhere' vanta");
+      expect(r.error).toContain("cd '/srv/elsewhere' && vanta");
+    }
+  });
 });
