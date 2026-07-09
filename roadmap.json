@@ -241,7 +241,7 @@
       "id": "AUTONOMY-CONTRACT-WALLS",
       "track": "Harness",
       "title": "Autonomy contract walls — acts alone, queues, wakes me",
-      "status": "next",
+      "status": "horizon",
       "size": "M",
       "summary": "The Fable agentic OS transcript centers the operator contract: what the agent may do alone, what it may queue, and what must wake the human. Vanta already has kernel approvals and sandboxing; this card makes the contract visible, editable, and enforced across background loops, watchers, and tool execution.",
       "done": "A project can define acts-alone / queues-for-approval / wakes-me rules; Vanta renders the active contract, applies it before autonomous actions, and logs which rule allowed, queued, or escalated each action.",
@@ -252,7 +252,7 @@
       "lens": "agent-loop",
       "updated": "2026-07-09",
       "source": "transcript-roadmap-extract-2026-07-09",
-      "notes": "Evidence: Fable transcript 6209d944 lines 173-196 describes contract.md plus guardrails; aligns with existing kernel approval policy but adds operator-facing semantics.\n\nORGANIZED 2026-07-09: Phase 3 autonomy foundation. Do not deepen autonomy until users can see concrete workflows and recover from scope failures.",
+      "notes": "Evidence: Fable transcript 6209d944 lines 173-196 describes contract.md plus guardrails; aligns with existing kernel approval policy but adds operator-facing semantics.\n\nORGANIZED 2026-07-09: Phase 3 autonomy foundation. Do not deepen autonomy until users can see concrete workflows and recover from scope failures.\n\nLAUNCH-PAD UPDATE 2026-07-09: Deferred from Next to Later until Activation v1 ships. This keeps Next focused on the fastest path to obvious, reliable, Hermes/OpenClaw-style visible workflows.",
       "after": [
         "WHAT-CAN-I-DO-GALLERY",
         "SANDBOX-SCOPE-WIZARD",
@@ -264,7 +264,7 @@
       "id": "TRUST-LEDGER-AUTONOMY",
       "track": "Harness",
       "title": "Trust ledger autonomy — earn auto-run with measured pass rates",
-      "status": "next",
+      "status": "horizon",
       "size": "M",
       "summary": "Promote autonomy only when a skill or loop has earned it. The transcript proposes a TSV-style trust ledger with pass/fail history and tier rules; Vanta should use the same idea to decide whether a workflow auto-runs, queues, or stays watched.",
       "done": "Each autonomous workflow records run/pass/fail/rate/tier; auto-run is allowed only after the configured run count and pass-rate threshold; any failed verifier demotes the workflow and shows the reason in the operator log.",
@@ -275,7 +275,7 @@
       "lens": "agent-loop",
       "updated": "2026-07-09",
       "source": "transcript-roadmap-extract-2026-07-09",
-      "notes": "Evidence: Fable transcript 6209d944 lines 304-339 details pass/fail TSV, auto/queue/watch tiers, and demotion rules.\n\nORGANIZED 2026-07-09: Phase 3 autonomy proof. Depends on explicit contract walls so pass-rate tiers have something concrete to govern.",
+      "notes": "Evidence: Fable transcript 6209d944 lines 304-339 details pass/fail TSV, auto/queue/watch tiers, and demotion rules.\n\nORGANIZED 2026-07-09: Phase 3 autonomy proof. Depends on explicit contract walls so pass-rate tiers have something concrete to govern.\n\nLAUNCH-PAD UPDATE 2026-07-09: Deferred from Next to Later until Activation v1 ships. This keeps Next focused on the fastest path to obvious, reliable, Hermes/OpenClaw-style visible workflows.",
       "after": [
         "AUTONOMY-CONTRACT-WALLS",
         "ACTIVATION-V1-RELEASE-GATE"
@@ -285,7 +285,7 @@
       "id": "STANDING-GOAL-SENTINEL",
       "track": "Harness",
       "title": "Standing-goal sentinels — finished goals stay watched",
-      "status": "next",
+      "status": "horizon",
       "size": "M",
       "summary": "A finished goal should become a cheap predicate that stays watched, not a forgotten success claim. Convert verified goals into daily checks that report drift, regressions, or violated invariants without auto-fixing behind the user’s back.",
       "done": "A completed goal can generate a standing predicate file; a scheduled sentinel runs cheap checks, records pass/fail history, wakes the user on violation, and retires flaky predicates only with an explicit note.",
@@ -296,7 +296,7 @@
       "lens": "agent-loop",
       "updated": "2026-07-09",
       "source": "transcript-roadmap-extract-2026-07-09",
-      "notes": "Evidence: Fable transcript 6209d944 lines 340-380: every finished goal becomes a predicate, checked daily, with violations surfaced and flaky checks retired rather than deleted.\n\nORGANIZED 2026-07-09: Phase 3 persistence. Build after trust-ledger gating so daily sentinels inherit demotion/escalation behavior instead of becoming noisy cron.",
+      "notes": "Evidence: Fable transcript 6209d944 lines 340-380: every finished goal becomes a predicate, checked daily, with violations surfaced and flaky checks retired rather than deleted.\n\nORGANIZED 2026-07-09: Phase 3 persistence. Build after trust-ledger gating so daily sentinels inherit demotion/escalation behavior instead of becoming noisy cron.\n\nLAUNCH-PAD UPDATE 2026-07-09: Deferred from Next to Later until Activation v1 ships. This keeps Next focused on the fastest path to obvious, reliable, Hermes/OpenClaw-style visible workflows.",
       "after": [
         "TRUST-LEDGER-AUTONOMY",
         "ACTIVATION-V1-RELEASE-GATE"
@@ -306,7 +306,7 @@
       "id": "VAULT-COMPILE-PIPELINE",
       "track": "Memory",
       "title": "Vault compile pipeline — raw transcripts become linked knowledge",
-      "status": "next",
+      "status": "horizon",
       "size": "L",
       "summary": "Existing brain↔vault bridges handle recall, but the second-brain transcripts call for a compile pipeline: raw chats/bookmarks/notes go into raw/, then Vanta writes sourced entity and concept pages plus an index. This makes transcripts usable as durable operator knowledge instead of one-off pasted context.",
       "done": "Given a folder of raw transcripts/notes, Vanta creates or updates markdown entity/concept pages with source links, maintains an INDEX.md, keeps raw files separate, and emits a diff for review before writeback.",
@@ -317,7 +317,7 @@
       "lens": "memory",
       "updated": "2026-07-09",
       "source": "transcript-roadmap-extract-2026-07-09",
-      "notes": "Evidence: second-brain transcript a5b5decf lines 40-85 specifies raw/entities/concepts/INDEX, source links, graph links, and diff-based backfill. Complements, not duplicates, shipped BRAIN-VAULT-BRIDGE and BRAIN-VAULT-RECALL.\n\nORGANIZED 2026-07-09: Phase 4 memory leverage. Keep next, but behind activation: compile transcripts once Vanta can explain and demo what the compiled knowledge will power.",
+      "notes": "Evidence: second-brain transcript a5b5decf lines 40-85 specifies raw/entities/concepts/INDEX, source links, graph links, and diff-based backfill. Complements, not duplicates, shipped BRAIN-VAULT-BRIDGE and BRAIN-VAULT-RECALL.\n\nORGANIZED 2026-07-09: Phase 4 memory leverage. Keep next, but behind activation: compile transcripts once Vanta can explain and demo what the compiled knowledge will power.\n\nLAUNCH-PAD UPDATE 2026-07-09: Deferred from Next to Later until Activation v1 ships. This keeps Next focused on the fastest path to obvious, reliable, Hermes/OpenClaw-style visible workflows.",
       "after": [
         "WHAT-CAN-I-DO-GALLERY",
         "ACTIVATION-V1-RELEASE-GATE"
@@ -327,7 +327,7 @@
       "id": "RESEARCH-RECEIPTS-SKEPTIC",
       "track": "Solutioning",
       "title": "Research receipts + skeptic gate — claims need source, date, expiry",
-      "status": "next",
+      "status": "horizon",
       "size": "M",
       "summary": "Upgrade VANTA-RESEARCH-DECOMPOSE with the second-brain research machine: every claim carries source/date/expiry, and a skeptic pass attacks weak claims before they enter memory or a final answer. This is the difference between “researched” and reusable operator intelligence.",
       "done": "A research run returns claims as claim/source/date/expiry records, runs a skeptic gate, flags unsupported or stale claims, and writes only surviving claims into the memory/vault pipeline.",
@@ -338,7 +338,7 @@
       "lens": "memory",
       "updated": "2026-07-09",
       "source": "transcript-roadmap-extract-2026-07-09",
-      "notes": "Evidence: second-brain transcript a5b5decf lines 97-115: split into subquestions, parallel sources, receipts, skeptic attack, dated survivors with expiry.\n\nORGANIZED 2026-07-09: Phase 4 research quality. Depends on shipped research fan-out plus vault compile so receipts have somewhere useful to land.",
+      "notes": "Evidence: second-brain transcript a5b5decf lines 97-115: split into subquestions, parallel sources, receipts, skeptic attack, dated survivors with expiry.\n\nORGANIZED 2026-07-09: Phase 4 research quality. Depends on shipped research fan-out plus vault compile so receipts have somewhere useful to land.\n\nLAUNCH-PAD UPDATE 2026-07-09: Deferred from Next to Later until Activation v1 ships. This keeps Next focused on the fastest path to obvious, reliable, Hermes/OpenClaw-style visible workflows.",
       "after": [
         "VAULT-COMPILE-PIPELINE",
         "VANTA-RESEARCH-DECOMPOSE",

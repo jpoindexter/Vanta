@@ -38,6 +38,51 @@ ${routing(item) ? `<div class="badges">${routing(item)}</div>` : ""}
 </div>`;
 }
 
+function launchItem(item: RoadmapItem | undefined): string {
+  if (!item) return "";
+  const deps = item.after?.length ? `<span class="lp-deps">after ${esc(item.after.join(" + "))}</span>` : "";
+  return `<li><span class="lp-id">${esc(item.id)}</span><span class="lp-title">${esc(item.title)}</span>${deps}</li>`;
+}
+
+function launchList(items: Array<RoadmapItem | undefined>): string {
+  const rows = items.map(launchItem).filter(Boolean).join("");
+  return rows || `<li><span class="lp-title">No cards queued.</span></li>`;
+}
+
+function byId(data: Roadmap, id: string): RoadmapItem | undefined {
+  return data.items.find((i) => i.id === id);
+}
+
+function launchPad(data: Roadmap): string {
+  const now = data.items.filter((i) => i.status === "building");
+  const proof = [
+    byId(data, "ACTIVATION-COLD-USER-GATE"),
+    byId(data, "GALLERY-SANDBOX-RECOVERY-FIXTURE"),
+    byId(data, "USER-LANGUAGE-WORKFLOW-COPY"),
+    byId(data, "FRESH-CONTEXT-ACTIVATION-REVIEW"),
+    byId(data, "ROADMAP-DEPENDENCY-GUARD"),
+  ];
+  const views = [
+    byId(data, "OPERATOR-HOME-V1"),
+    byId(data, "CRASHLOG-DIAGNOSE"),
+    byId(data, "SPEC-TO-APP-WIZARD"),
+    byId(data, "VANTA-BG-RESPOND-CONTINUE"),
+  ];
+  const gate = [byId(data, "ACTIVATION-V1-RELEASE-GATE")];
+  return `<section class="launch">
+<div class="launch-head">
+<div><h2>Launch Pad</h2><p>Activation v1: a cold user gets one useful Vanta result in under 2 minutes.</p></div>
+<div class="launch-metric"><span>${now.length}/${WIP_LIMIT}</span><small>Now slots</small></div>
+</div>
+<div class="launch-grid">
+<div class="launch-block"><h3>Build Now</h3><ol>${launchList(now)}</ol></div>
+<div class="launch-block"><h3>Prove It</h3><ol>${launchList(proof)}</ol></div>
+<div class="launch-block"><h3>Visible Workflows</h3><ol>${launchList(views)}</ol></div>
+<div class="launch-block"><h3>Release Gate</h3><ol>${launchList(gate)}</ol></div>
+</div>
+</section>`;
+}
+
 function column(status: string, items: RoadmapItem[], wipLimit?: number): string {
   const colItems = items.filter((i) => i.status === status);
   const groups = TIER_ORDER.filter((t) => colItems.some((i) => i.tier === t))
@@ -99,6 +144,7 @@ export function renderRoadmap(data: Roadmap): string {
 <body>
 <h1>Vanta Roadmap</h1>
 <p class="meta">Updated ${esc(data.updated)} &middot; ${data.items.length} items</p>
+${launchPad(data)}
 ${filterBar(data)}
 <div class="board">${board}</div>
 <details class="sh-section">

@@ -38,6 +38,13 @@ describe("renderRoadmap", () => {
     expect(html).toContain("2026-06-03");
   });
 
+  it("renders the launch pad above the board", () => {
+    const html = renderRoadmap(fixture);
+    expect(html).toContain("Launch Pad");
+    expect(html).toContain("Activation v1");
+    expect(html.indexOf("Launch Pad")).toBeLessThan(html.indexOf('class="board"'));
+  });
+
   it("shows shipped count in the collapsed section header", () => {
     const html = renderRoadmap(fixture);
     expect(html).toContain("Shipped (1)");

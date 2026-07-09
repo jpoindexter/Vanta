@@ -2,6 +2,21 @@ export const CSS = `*{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,sans-serif;background:#0c0f14;color:#c8cdd8;padding:1.5rem}
 h1{font-size:1.25rem;margin-bottom:.35rem;font-weight:600}
 .meta{color:#3e4a5c;font-size:.72rem;margin-bottom:1.25rem;font-family:ui-monospace,monospace}
+.launch{background:#10141b;border:1px solid #1e2737;border-left:3px solid #f59e0b;padding:.8rem;margin-bottom:1rem}
+.launch-head{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;margin-bottom:.7rem}
+.launch h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;color:#f59e0b;font-family:ui-monospace,monospace;margin-bottom:.25rem}
+.launch p{font-size:.82rem;color:#dce0e8;line-height:1.45}
+.launch-metric{border:1px solid #1e2737;min-width:5rem;text-align:center;padding:.35rem .5rem;background:#0c0f14}
+.launch-metric span{display:block;font-size:1rem;color:#4ade80;font-family:ui-monospace,monospace;font-weight:700}
+.launch-metric small{display:block;font-size:.58rem;color:#5e6e82;text-transform:uppercase;letter-spacing:.08em;font-family:ui-monospace,monospace}
+.launch-grid{display:grid;grid-template-columns:1.1fr 1.4fr 1.4fr 1.1fr;gap:.65rem}
+.launch-block{background:#0c0f14;border:1px solid #1e2737;padding:.55rem}
+.launch-block h3{font-size:.62rem;color:#5e6e82;letter-spacing:.09em;text-transform:uppercase;font-family:ui-monospace,monospace;margin-bottom:.4rem}
+.launch-block ol{list-style:none;display:flex;flex-direction:column;gap:.35rem}
+.launch-block li{display:grid;gap:.15rem;border-left:2px solid #1e2737;padding-left:.45rem}
+.lp-id{font-size:.58rem;color:#f59e0b;font-family:ui-monospace,monospace}
+.lp-title{font-size:.72rem;color:#c8cdd8;line-height:1.3}
+.lp-deps{font-size:.58rem;color:#3e4a5c;font-family:ui-monospace,monospace;line-height:1.35}
 .filters{display:flex;flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem;align-items:center}
 .filters label{font-size:.65rem;color:#3e4a5c;font-weight:700;font-family:ui-monospace,monospace;letter-spacing:.09em;text-transform:uppercase}
 select{background:#10141b;border:1px solid #1e2737;color:#5e6e82;padding:.35rem .6rem;border-radius:0;cursor:pointer;font-size:.72rem;font-family:ui-monospace,monospace;min-width:120px}
@@ -55,8 +70,9 @@ details[open]>summary::before{content:"▾ "}
 .sh-grid{columns:3;column-gap:1rem;margin-top:.75rem}
 .sh-grid .card{break-inside:avoid}
 .hidden{display:none!important}
+@media(max-width:1040px){.launch-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:880px){.board{grid-template-columns:1fr 1fr}.sh-grid{columns:2}}
-@media(max-width:560px){.board{grid-template-columns:1fr}.sh-grid{columns:1}}
+@media(max-width:560px){.board{grid-template-columns:1fr}.sh-grid{columns:1}.launch-head{flex-direction:column}.launch-grid{grid-template-columns:1fr}.launch-metric{text-align:left}}
 .col.drag-over{outline:2px dashed #f59e0b;background:#0d1018}
 .card[draggable=true]{cursor:grab}
 .card.dragging{opacity:.4}
