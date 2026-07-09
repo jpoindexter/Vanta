@@ -83,6 +83,7 @@ import { runBlueprintCommand } from "./blueprint-cmd.js";
 import { runWorldCommand } from "./world-cmd.js";
 import { runQueueCommand } from "./queue-cmd.js";
 import { runWhatCanIDoCommand } from "./what-can-i-do-cmd.js";
+import { runHomeCommand } from "./home-cmd.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
@@ -95,6 +96,7 @@ export const COMMANDS: Record<string, CommandFn> = {
   "-h": () => usage(),
   "--help": () => usage(),
   "what-can-i-do": (_root, rest) => runWhatCanIDoCommand(rest),
+  home: (root) => runHomeCommand(dataDirFor(root)),
   setup: async (root, rest) => { if (rest[0] === "messaging") await runMessagingSetup(root); else if (rest[0] === "tts") await runTtsSetup(root); else if (rest[0] === "model") await runSetup(root); else await runFullSetup(root); },
   status: (_root, rest) => runStatus(process.env, rest),
   doctor: (_root, rest) => runStatus(process.env, rest),

@@ -131,7 +131,7 @@
       "id": "OPERATOR-HOME-V1",
       "track": "Operator",
       "title": "Operator home v1 — Hermes/OpenClaw-style capability view without the full command center",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Get closer to the visible Hermes/OpenClaw experience discussed in the roadmap without jumping straight to the full COMMAND-CENTER/DESKTOP platform. Build a compact home view that shows what Vanta can do now: workflows, channel health, skills, agents/tasks, memory, watchers, and setup gaps, with one-click entry into the activation gallery.",
       "done": "A TUI or desktop home view shows live sections for Workflows, Channels, Skills, Agents/Tasks, Memory, Watchers, and Setup; each section has status, next action, and empty/setup state; the first screen answers “what can I do with Vanta?” without reading docs.",
@@ -146,7 +146,7 @@
         "USER-LANGUAGE-WORKFLOW-COPY",
         "ACTIVATION-COLD-USER-GATE"
       ],
-      "notes": "Adds the concrete “views like Hermes/OpenClaw” slice: not full JARVIS/desktop, just the visible operator home that makes shipped Vanta capabilities legible."
+      "notes": "Adds the concrete “views like Hermes/OpenClaw” slice: not full JARVIS/desktop, just the visible operator home that makes shipped Vanta capabilities legible.\n\nSHIPPED 2026-07-09: Added a shared operator home view at `/home` and `vanta home`. The view shows live sections for Workflows, Channels, Skills, Agents/Tasks, Memory, Watchers, and Setup; every section includes a status tag, current count/detail, and a concrete next action. It reuses the live workflow registry, reach channel checks, skill store, task stack, background shell task store, memory footprint, cron watchers, and setup health. Verified with pure formatter tests, isolated CLI smoke tests, and a live `npm run vanta -- home` run."
     },
     {
       "id": "CRASHLOG-DIAGNOSE",
