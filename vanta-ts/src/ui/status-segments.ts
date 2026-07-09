@@ -89,6 +89,12 @@ export function customText(custom: string | undefined): string {
   return c.length > CUSTOM_MAX ? `${c.slice(0, CUSTOM_MAX - 1)}…` : c;
 }
 
+export function outputStyleText(style: string | undefined): string {
+  const s = style?.trim();
+  if (!s || s === "normal") return "";
+  return `style:${s.length > 18 ? `${s.slice(0, 17)}…` : s}`;
+}
+
 export type RichInput = {
   rateLimit?: RateLimit;
   lineDelta?: LineDelta;
@@ -96,6 +102,7 @@ export type RichInput = {
   isWorktree?: boolean;
   vimEnabled?: boolean;
   custom?: string;
+  outputStyle?: string;
   /** Active PR number; rendered via prUrlTemplate. Absent → no PR segment. */
   prNumber?: number;
   /** settings.prUrlTemplate; `{PR}` → the number. Absent → no PR segment. */
@@ -123,6 +130,7 @@ export function composeRichSegments(input: RichInput): RichSegment[] {
   push("worktree", worktreeText(input.isWorktree), 4);
   push("vim", vimText(input.vimEnabled), 3);
   push("pr", prText(input.prNumber, input.prUrlTemplate), 3);
+  push("style", outputStyleText(input.outputStyle), 3);
   push("custom", customText(input.custom), 2);
   return out;
 }

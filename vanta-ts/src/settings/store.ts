@@ -83,6 +83,9 @@ export function applySettingsEnv(settings: Settings, processEnv: NodeJS.ProcessE
   for (const [k, v] of Object.entries(uxSettingsToEnv(settings.ui))) {
     if (!processEnv[k]) processEnv[k] = v;
   }
+  if (settings.ui?.outputStyle && !processEnv.VANTA_OUTPUT_STYLE) {
+    processEnv.VANTA_OUTPUT_STYLE = settings.ui.outputStyle;
+  }
   if (!settings.env) return;
   for (const [k, v] of Object.entries(settings.env)) {
     if (!processEnv[k]) processEnv[k] = v;

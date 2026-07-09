@@ -52,6 +52,13 @@ describe("useSubmit routing", () => {
     expect(h.runSlash).not.toHaveBeenCalled();
   });
 
+  it("opens the output style picker for bare /output-style", () => {
+    const h = harness();
+    h.onSubmit("/output-style");
+    expect(h.openOverlay).toHaveBeenCalledWith("outputStyle");
+    expect(h.runSlash).not.toHaveBeenCalled();
+  });
+
   it("runs (not overlay) when a picker command has an argument", () => {
     const h = harness();
     h.onSubmit("/model gemini");

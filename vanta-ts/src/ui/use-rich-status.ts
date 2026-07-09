@@ -58,7 +58,7 @@ export function useRichStatus(repoRoot: string, sessionId: string): RichStatus {
   return { isWorktree, lineDelta, custom };
 }
 
-export type FooterRichInput = { repoRoot: string; sessionId: string; sessionName?: string; vimEnabled: boolean };
+export type FooterRichInput = { repoRoot: string; sessionId: string; sessionName?: string; vimEnabled: boolean; outputStyle?: string };
 
 /**
  * The footer's composed rich segments. Rate-limit data is omitted — no provider
@@ -67,5 +67,5 @@ export type FooterRichInput = { repoRoot: string; sessionId: string; sessionName
  */
 export function useFooterRich(input: FooterRichInput): RichSegment[] {
   const status = useRichStatus(input.repoRoot, input.sessionId);
-  return composeRichSegments({ ...status, sessionName: input.sessionName, vimEnabled: input.vimEnabled });
+  return composeRichSegments({ ...status, sessionName: input.sessionName, vimEnabled: input.vimEnabled, outputStyle: input.outputStyle });
 }

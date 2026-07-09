@@ -55,7 +55,7 @@ export const SettingsSchema = z.object({
     /** Input box position: "float" (default) or "bottom" (pinned chat box). */
     composerAnchor: z.enum(["float", "bottom"]).optional(),
     /** Reply verbosity preset (the /output-style choice). */
-    outputStyle: z.enum(["concise", "normal", "verbose"]).optional(),
+    outputStyle: z.string().optional(),
   }).merge(UxSettingsSchema).optional(),
   /** Opt-in runtime plugin framework config. Plugin code is disabled by default. */
   plugins: z.object({

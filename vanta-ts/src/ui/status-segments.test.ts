@@ -8,6 +8,7 @@ import {
   vimText,
   customText,
   prText,
+  outputStyleText,
   composeRichSegments,
 } from "./status-segments.js";
 
@@ -108,6 +109,16 @@ describe("customText", () => {
   });
 });
 
+describe("outputStyleText", () => {
+  it("omits unset and normal style", () => {
+    expect(outputStyleText(undefined)).toBe("");
+    expect(outputStyleText("normal")).toBe("");
+  });
+  it("shows non-default styles", () => {
+    expect(outputStyleText("concise")).toBe("style:concise");
+  });
+});
+
 describe("prText", () => {
   it("omits when there is no active PR (default footer unchanged)", () => {
     expect(prText(undefined, "https://github.com/o/r/pull/{PR}")).toBe("");
@@ -156,6 +167,10 @@ describe("composeRichSegments", () => {
   it("includes the PR segment when both number and template are present", () => {
     const segs = composeRichSegments({ prNumber: 5, prUrlTemplate: "pull/{PR}" });
     expect(segs.find((s) => s.key === "pr")?.text).toContain("pull/5");
+  });
+  it("includes the output style segment when non-default", () => {
+    const segs = composeRichSegments({ outputStyle: "verbose" });
+    expect(segs.find((s) => s.key === "style")?.text).toContain("style:verbose");
   });
   it("prefixes each present segment with a separator", () => {
     const segs = composeRichSegments({ vimEnabled: true });

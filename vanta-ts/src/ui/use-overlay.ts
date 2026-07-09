@@ -16,6 +16,7 @@ import { buildSandboxOverlay, type SandboxOverlayState } from "./sandbox-actions
 import { buildConfigOverlay, type ConfigOverlayState } from "./config-actions.js";
 import { buildHooksOverlay, type HooksOverlayState } from "./hooks-actions.js";
 import { reloadTeams, type TeamsData } from "./teams-actions.js";
+import { loadOutputStyleData, type OutputStyleData } from "./output-style-actions.js";
 import type { WorkerTask } from "../team/tasks.js";
 import type { RunSetup } from "../session.js";
 
@@ -36,6 +37,7 @@ export type OverlayView =
   | { kind: "mcp"; servers: McpServerView[]; elicitation: ElicitationRequest | null; reconnect: (name: string) => void; onElicitationDone: () => void }
   | { kind: "tasks"; tasks: WorkerTask[] }
   | { kind: "teams"; data: TeamsData }
+  | { kind: "outputStyle"; data: OutputStyleData; repoRoot: string }
   | ({ kind: "sandbox" } & SandboxOverlayState)
   | ({ kind: "config" } & ConfigOverlayState)
   | ({ kind: "hooks" } & HooksOverlayState)
@@ -61,6 +63,7 @@ async function loadOverlay(kind: OverlayKind, setup: RunSetup, repoRoot: string,
     case "context": return contextOverlay(setup, getCtx);
     case "tasks": return { kind: "tasks", tasks: await reloadTasks(process.env) };
     case "teams": return { kind: "teams", data: await reloadTeams(process.env) };
+    case "outputStyle": return { kind: "outputStyle", data: await loadOutputStyleData(repoRoot, process.env), repoRoot };
     default: return { kind: "help" };
   }
 }

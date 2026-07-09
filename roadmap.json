@@ -5674,7 +5674,7 @@
       "id": "VANTA-OUTPUT-STYLE-UI",
       "track": "Operator",
       "title": "Output style picker UI — in-TUI style switcher",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's OutputStylePicker renders an interactive in-TUI list of available output styles (default + custom from settings) with live preview. Pairs with VANTA-OUTPUT-STYLE (next) for the /output-style command. Vanta needs the visual picker to make the feature usable.",
       "done": "/output-style opens the picker; arrow keys preview each style; Enter applies; the active style shows in the status line; custom styles defined in settings appear alongside built-ins.",
