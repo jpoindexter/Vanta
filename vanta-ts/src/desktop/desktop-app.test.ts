@@ -14,7 +14,10 @@ describe("desktop-app package surface", () => {
 
     expect(pkg.scripts?.["desktop:dev"] ?? "").toContain("vite");
     expect(pkg.scripts?.["desktop:build"] ?? "").toContain("vite build");
+    expect(pkg.scripts?.["desktop:native"] ?? "").toContain("electron");
+    expect(pkg.scripts?.["desktop:native:smoke"] ?? "").toContain("--smoke");
     expect(pkg.dependencies?.["react-dom"]).toBeTruthy();
+    expect(pkg.devDependencies?.electron).toBeTruthy();
     expect(pkg.devDependencies?.vite).toBeTruthy();
   });
 
@@ -26,6 +29,7 @@ describe("desktop-app package surface", () => {
     const app = (await Promise.all(sourceFiles.map((file) => readFile(join(root, "desktop-app", "src", file), "utf8")))).join("\n");
     const main = await readFile(join(root, "desktop-app", "src", "main.tsx"), "utf8");
 
+    await expect(access(join(root, "desktop-app", "electron", "main.mjs"))).resolves.toBeUndefined();
     expect(app).toContain("function AppShell");
     expect(app).toContain("function SessionSidebar");
     expect(app).toContain("function ChatThread");

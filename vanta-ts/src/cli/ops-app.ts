@@ -1,15 +1,20 @@
 import { join } from "node:path";
 import { resolveVantaHome } from "../store/home.js";
+import { parseDesktopLaunchArgs } from "../desktop/native-shell.js";
 
 export async function runDesktopCommand(repoRoot: string, rest: string[]): Promise<void> {
-  const port = Number(rest[0] ?? process.env.VANTA_DESKTOP_PORT) || 7790;
+  const launch = parseDesktopLaunchArgs(rest, process.env);
   const { serveDesktop } = await import("../desktop/server.js");
+  if (!launch.openBrowser) {
+    await serveDesktop(repoRoot, launch.port);
+    return;
+  }
   setTimeout(() => {
     void import("node:child_process").then(({ execSync }) => {
-      try { execSync(`open "http://127.0.0.1:${port}"`); } catch {}
+      try { execSync(`open "${launch.url}"`); } catch {}
     });
   }, 300);
-  await serveDesktop(repoRoot, port);
+  await serveDesktop(repoRoot, launch.port);
 }
 
 export async function runFactoryCommand(repoRoot: string, sub: string): Promise<void> {

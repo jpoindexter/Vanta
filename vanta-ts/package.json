@@ -12,7 +12,9 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "desktop:dev": "vite --host 127.0.0.1 --config desktop-app/vite.config.ts",
-    "desktop:build": "vite build --config desktop-app/vite.config.ts"
+    "desktop:build": "vite build --config desktop-app/vite.config.ts",
+    "desktop:native": "npm run desktop:build && electron desktop-app/electron/main.mjs",
+    "desktop:native:smoke": "npm run desktop:build && electron desktop-app/electron/main.mjs --smoke"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",
@@ -40,6 +42,7 @@
     "@types/nodemailer": "7.0.4",
     "@types/react": "^19.2.16",
     "@types/react-dom": "^19.2.3",
+    "electron": "^43.1.0",
     "vite": "^6.4.3",
     "vitest": "^3.2.6"
   },

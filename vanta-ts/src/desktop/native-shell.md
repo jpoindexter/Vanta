@@ -20,14 +20,31 @@ This starts the local desktop surface at `http://127.0.0.1:7790`.
 
 ## Native app next
 
-Preferred shell: Tauri if we want small/mac-native; Electron if we want fastest feature parity (`webview`, `node-pty`, builder ecosystem).
+Preferred shell for the first verified slice: Electron, because it gets the
+current React/Vite desktop surface into a native dev window fastest while the
+server and approval model stay unchanged.
 
-Minimal native wrapper requirements:
+## Dev native shell
 
-1. launch `vanta desktop --no-open` or equivalent child process
-2. open a native window to the local URL
-3. forward close/restart events cleanly
-4. expose file picker, directory picker, clipboard image paste, and PTY bridge
-5. package/sign only after approval prompt flow is stable
+```bash
+npm run desktop:native
+```
+
+Smoke-check lifecycle without leaving a window open:
+
+```bash
+npm run desktop:native:smoke
+```
+
+The Electron main process launches `node --import tsx src/cli.ts desktop
+<port> --no-open`, waits for the local server, opens a native `BrowserWindow`,
+and terminates the child server on app quit. Use `--devtools` when debugging the
+renderer.
+
+Remaining native wrapper requirements:
+
+1. expose file picker, directory picker, clipboard image paste, and PTY bridge
+2. add restart UI once the app shell has a visible health/status control
+3. package/sign only after approval prompt flow is stable
 
 Do not claim packaged desktop is shipped until a real native shell builds and opens the current local server.

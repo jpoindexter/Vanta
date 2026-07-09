@@ -5519,7 +5519,7 @@
       "id": "DESKTOP-P12",
       "track": "Operator",
       "title": "Desktop P12 — native Electron packaging",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "Phase 12: native Electron shell under vanta-ts/desktop-app/ that launches the local Vanta server + opens a native window, clean lifecycle. Package/sign only after Jason approves the UX.",
       "done": "A dev native window opens and drives Vanta with clean open/close/restart; signing deferred until UX is approved.",
@@ -5527,7 +5527,9 @@
       "model": "sonnet",
       "effort": "high",
       "codex": "gpt-5.5",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-07-09",
+      "notes": "SHIPPED 2026-07-09: Added an Electron dev native shell under `desktop-app/electron/main.mjs`, plus `npm run desktop:native` and `npm run desktop:native:smoke`. The shell builds the React desktop assets, starts `node --import tsx src/cli.ts desktop <port> --no-open`, opens a native `BrowserWindow` to the local Vanta desktop URL, and terminates the child server on quit. Added `vanta desktop --no-open` launch parsing and pure native-shell planner tests. Live evidence: `npm run desktop:native:smoke` built the renderer, logged `vanta desktop — http://127.0.0.1:7790`, opened/loaded the Electron window, printed `desktop native smoke ok: http://127.0.0.1:7790`, and exited cleanly."
     },
     {
       "id": "COMMAND-CENTER",
