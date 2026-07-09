@@ -12715,13 +12715,14 @@
       "id": "VANTA-KANBAN",
       "track": "Harness",
       "title": "Live kanban — decompose a goal into lanes + run a subagent swarm",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "From a reference agent (kanban + kanban_decompose/_swarm/_specify/_diagnostics): a live work board that auto-decomposes a goal into board lanes, optionally generates a spec per lane, and runs a subagent SWARM across them in parallel — distinct from Vanta's static roadmap.json (strategy backlog) and the one-shot Workflow tool. Serves the Harness 'multi-agent mechanics' pillar as a durable, inspectable execution surface. Local-first (no cloud).",
       "done": "A goal becomes a kanban with auto-decomposed lanes; a swarm runs lanes in parallel; progress + blockers are inspectable and resumable.",
       "tier": "pebble",
       "effort": "high",
-      "updated": "2026-06-16"
+      "updated": "2026-07-09",
+      "notes": "SHIPPED 2026-07-09: Added `vanta kanban` with `create`, `status`, `digest`, and `swarm` commands. A goal now decomposes into persistent lanes (`understand`, `plan`, `build`, `verify`, `ship`) stored under `.vanta/kanban`; the local swarm runs unfinished lanes in parallel, records done/blocked lane outcomes, appends a swarm run record, and can resume the latest board by id or by latest board. This intentionally ships local/dry-run swarm mechanics first; live model-backed workers can build on the same board/run model. Live evidence: `npm run vanta -- kanban create \"ship VANTA-KANBAN roadmap card\" && npm run vanta -- kanban swarm && npm run vanta -- kanban status` created a real board, ran 5 lanes to done, and reloaded the persisted status. Tests: `npx vitest run src/kanban/kanban.test.ts src/cli/kanban-cmd.test.ts`; `npm run typecheck`; `git diff --check`."
     },
     {
       "id": "VANTA-BLUEPRINTS",

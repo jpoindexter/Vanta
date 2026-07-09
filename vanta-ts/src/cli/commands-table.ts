@@ -95,6 +95,7 @@ import { runMarketingCommand } from "./marketing-cmd.js";
 import { runAmbientScreenCommand } from "./ambient-screen-cmd.js";
 import { runLifeSearchCommand } from "./lifesearch-cmd.js";
 import { runHarnessThicknessCommand } from "./harness-thickness-cmd.js";
+import { runKanbanCommand } from "./kanban-cmd.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
@@ -116,6 +117,7 @@ export const COMMANDS: Record<string, CommandFn> = {
   "ambient-screen": (root, rest) => runAmbientScreenCommand(root, rest),
   lifesearch: (root, rest) => runLifeSearchCommand(root, rest),
   "harness-thickness": (root, rest) => runHarnessThicknessCommand(root, rest),
+  kanban: (root, rest) => runKanbanCommand(root, rest),
   autonomy: (root, rest) => runAutonomyCommand(root, rest),
   home: (root) => runHomeCommand(dataDirFor(root)),
   setup: async (root, rest) => { if (rest[0] === "messaging") await runMessagingSetup(root); else if (rest[0] === "tts") await runTtsSetup(root); else if (rest[0] === "model") await runSetup(root); else await runFullSetup(root); },
