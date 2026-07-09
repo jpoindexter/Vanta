@@ -15,6 +15,7 @@ import type { CronEntry } from "../schedule/cron.js";
 import type { PlatformAdapter } from "./platforms/base.js";
 import type { ImageAttachment } from "../types.js";
 import type { MediaBridgeDeps } from "./media.js";
+import type { ProgressBubbleConfig } from "./progress-bubble.js";
 import { spawnLoopChild, spawnFactoryChild, startWebhookIfConfigured } from "./child-ops.js";
 import type { WebhookServer, Deliver } from "./webhook.js";
 import { initialState, type SessionState } from "./session-manager.js";
@@ -44,6 +45,7 @@ export type GatewayDeps = {
   platform?: PlatformAdapter;
   handle?: (text: string, images?: ImageAttachment[]) => Promise<string>;
   media?: MediaBridgeDeps; // MSG-MEDIA-IMAGES: inbound image→vision, voice→STT
+  progressBubble?: ProgressBubbleConfig;
   spawnLoop?: (id: string, wake: WakeContext) => void;
   webhook?: {
     port: number;

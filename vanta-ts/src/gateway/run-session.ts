@@ -19,6 +19,7 @@ import { recordSent, nodeReplyFs, type ReplyStoreDeps } from "./reply-store.js";
 import { pollPlatform } from "./child-ops.js";
 import type { GatewayDeps } from "./run.js";
 import { finishMobileRun, handleMobileControlCommand, startMobileRun } from "./mobile-control.js";
+import { progressBubbleForPlatform, type ProgressBubbleConfig } from "./progress-bubble.js";
 
 function firstLine(text: string): string {
   const line = text.split("\n")[0] ?? "";
@@ -33,6 +34,7 @@ type SessionRun = {
   log: (msg: string) => void;
   /** Reply-context store deps; absent → sent replies aren't recorded. */
   reply?: ReplyStoreDeps;
+  progressBubble?: ProgressBubbleConfig;
 };
 
 // Wire point 2 (record-on-send): persist the sent reply's id→text for later
@@ -42,6 +44,21 @@ async function recordReply(ctx: SessionRun, out: OutboundMessage): Promise<void>
   await recordSent(ctx.reply, out.id, out.text);
 }
 
+function scheduleProgressBubble(ctx: SessionRun, m: InboundMessage): () => void {
+  const plan = progressBubbleForPlatform(ctx.platform.id, ctx.progressBubble);
+  if (!plan) return () => {};
+  let sent = false;
+  const timer = setTimeout(() => {
+    sent = true;
+    void ctx.platform.send({ chatId: m.chatId, threadId: m.threadId, text: plan.text })
+      .catch((err) => ctx.log(`  progress bubble failed: ${err instanceof Error ? err.message : String(err)}`));
+  }, plan.thresholdMs);
+  timer.unref?.();
+  return () => {
+    if (!sent) clearTimeout(timer);
+  };
+}
+
 /** Run one inbound message to completion and send the reply (errors → reply). */
 async function runOne(ctx: SessionRun, m: InboundMessage): Promise<void> {
   ctx.log(`  ✉ ${ctx.platform.id} ${m.from ?? m.chatId}: ${firstLine(m.text)}`);
@@ -49,9 +66,11 @@ async function runOne(ctx: SessionRun, m: InboundMessage): Promise<void> {
   // The agent sees the LLM-enriched rendering (timestamp + quote) when the
   // inbound pipeline produced one; otherwise the raw text (unchanged behavior).
   const { forAgent, images } = await resolveInbound(m, ctx.media ?? {}); // MSG-MEDIA-IMAGES
+  const cancelProgress = scheduleProgressBubble(ctx, m);
   let reply: string;
   try { reply = await ctx.handle(forAgent, images); }
   catch (err) { reply = `error: ${err instanceof Error ? err.message : String(err)}`; }
+  finally { cancelProgress(); }
   if (mobileRun) await finishMobileRun(ctx.dataDir, mobileRun.id, reply).catch(() => {});
   // MSG-NO-REPLY-TOKEN: an exact whole-response silence marker suppresses delivery
   // (group/channel surfaces); prose mentioning the marker still sends.
@@ -151,7 +170,15 @@ async function pollPlatformSession(
     return { state, count: await pollPlatform(deps), seen };
   }
   const log = deps.log ?? ((m: string) => console.log(m));
-  const ctx: SessionRun = { dataDir: deps.dataDir, platform: deps.platform, handle: deps.handle, media: deps.media, log, reply: replyStoreDeps(deps) };
+  const ctx: SessionRun = {
+    dataDir: deps.dataDir,
+    platform: deps.platform,
+    handle: deps.handle,
+    media: deps.media,
+    log,
+    reply: replyStoreDeps(deps),
+    progressBubble: deps.progressBubble,
+  };
   // CHANNEL-PERMISSIONS-WIRE: messages the approval pump polled (and parked)
   // while a turn was blocked come first — none are lost to the pump.
   const parked = (deps.replyBus?.drainBypassed() ?? []) as InboundMessage[];

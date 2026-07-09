@@ -14872,7 +14872,7 @@
       "id": "MSG-PROGRESS-BUBBLE",
       "track": "Operator",
       "title": "Mid-turn progress bubble for token-window platforms",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Platforms with a hard reply-token window (LINE 60s, WhatsApp 24h) need a 'still working…' message injected at a threshold before the token expires. Depends on the typing-heartbeat existing; only matters for those platforms.",
       "done": "On a token-window platform a progress message is sent before the reply token expires; layered on the typing heartbeat.",
@@ -14881,8 +14881,9 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "reach",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-09",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-09. Added a token-window progress bubble on the gateway platform session path. `progressBubbleForPlatform` defaults on for LINE before its reply-token window expires and WhatsApp before the 24h response window; other platforms stay off unless explicitly configured. While an inbound platform turn is waiting on `handle()`, Vanta schedules one “Still working” outbound message and cancels it if the final reply finishes before the threshold; the final reply path remains unchanged. Verified with `npx vitest run src/gateway/progress-bubble.test.ts src/gateway/run.test.ts src/gateway/typing-heartbeat.test.ts --reporter=dot` (38 passed), `npm run typecheck`, and `npm run vanta -- lint src/gateway/progress-bubble.ts src/gateway/progress-bubble.test.ts src/gateway/run.ts src/gateway/run-session.ts src/gateway/run.test.ts`."
     },
     {
       "id": "HARNESS-ERROR-TAXONOMY",
@@ -15315,8 +15316,8 @@
       "codex": "gpt-5.4-mini",
       "lens": "infra",
       "updated": "2026-07-09",
-      "source": "ref-audit-2026-06-20",
-      "notes": "Shipped 2026-07-09. Existing secret grant storage already failed closed on missing/corrupt `secret-scopes.json`; this adds scoped lookup enforcement to `getScopedSecret`. When `VANTA_SECRET_SCOPE` or an explicit scope is active, Vanta now checks the grant list before reading process env or the configured backend, throws `SecretScopeError` if the secret is not granted to that scope, supports instance-wide `*` grants, and keeps a tight global env allowlist for non-secret runtime variables. Legacy `getSecret` behavior remains unchanged when no active scope is set. Verified with `npx vitest run src/secrets/provider.test.ts src/secrets/scope.test.ts --reporter=dot` (25 passed), `npm run typecheck`, `npm run vanta -- lint src/secrets/provider.ts src/secrets/provider.test.ts src/secrets/scope.ts src/secrets/scope.test.ts`, and direct smoke `node --import tsx -e ...` returning `fail-closed`."
+      "notes": "Shipped 2026-07-09. Existing secret grant storage already failed closed on missing/corrupt `secret-scopes.json`; this adds scoped lookup enforcement to `getScopedSecret`. When `VANTA_SECRET_SCOPE` or an explicit scope is active, Vanta now checks the grant list before reading process env or the configured backend, throws `SecretScopeError` if the secret is not granted to that scope, supports instance-wide `*` grants, and keeps a tight global env allowlist for non-secret runtime variables. Legacy `getSecret` behavior remains unchanged when no active scope is set. Verified with `npx vitest run src/secrets/provider.test.ts src/secrets/scope.test.ts --reporter=dot` (25 passed), `npm run typecheck`, `npm run vanta -- lint src/secrets/provider.ts src/secrets/provider.test.ts src/secrets/scope.ts src/secrets/scope.test.ts`, and direct smoke `node --import tsx -e ...` returning `fail-closed`.",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "OP-BILLING-VIEW",

@@ -13,9 +13,8 @@ import { createReplyBus } from "../permissions/reply-bus.js";
 import { loadMobileRuns, startMobileRun } from "./mobile-control.js";
 
 class FakeAdapter implements PlatformAdapter {
-  readonly id = "fake";
   sent: OutboundMessage[] = [];
-  constructor(private inbox: InboundMessage[]) {}
+  constructor(private inbox: InboundMessage[], readonly id = "fake") {}
   async connect(): Promise<void> {}
   async disconnect(): Promise<void> {}
   async poll(): Promise<InboundMessage[]> {
@@ -264,5 +263,32 @@ describe("pollPlatformSession (concurrent inbound routing)", () => {
       bus.unregister("abc123");
       await rm(dataDir, { recursive: true, force: true });
     }
+  });
+
+  it("sends one progress bubble before a token-window reply expires", async () => {
+    const adapter = new FakeAdapter([{ chatId: "line-user", text: "slow task" }], "line");
+    let finish!: () => void;
+    const done = new Promise<void>((resolve) => { finish = resolve; });
+    const run = pollPlatformSession(
+      {
+        ...noCron,
+        platform: adapter,
+        progressBubble: { thresholdMs: 1 },
+        handle: async () => {
+          await done;
+          return "final answer";
+        },
+      },
+      initialState(),
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(adapter.sent).toEqual([{ chatId: "line-user", text: expect.stringContaining("Still working") }]);
+    finish();
+    await run;
+    expect(adapter.sent).toEqual([
+      { chatId: "line-user", text: expect.stringContaining("Still working") },
+      { chatId: "line-user", text: "final answer" },
+    ]);
   });
 });
