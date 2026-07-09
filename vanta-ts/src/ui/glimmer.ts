@@ -7,28 +7,31 @@
 // without timers, mirroring the sibling spinner models (spinner-stalled.ts,
 // term/spinner-verbs.ts).
 //
-// Off / static (default, VANTA_GLIMMER unset) = the plain text: glimmerSegments
-// returns the whole text as one normal (non-bright) segment, so the render layer
-// emits the exact current output. On = the band positions are "bright" and the
-// render layer wraps the bright runs in a brighter Ink color.
+// Static (VANTA_GLIMMER=0 or reduced-motion/bare/scripted contexts) = the plain
+// text: glimmerSegments returns the whole text as one normal (non-bright)
+// segment, so the render layer emits the exact current output. On = the band
+// positions are "bright" and the render layer wraps the bright runs in a
+// brighter Ink color.
 //
 // The live render point: ui/busy.ts busyLabel() composes {frame, verb, suffix};
-// ui/app-regions.tsx (LiveRegion) renders the verb. To wire the glimmer, the
-// render layer would call glimmerSegments(verb, tick) and render each segment —
-// bright runs in a brighter color (e.g. <Text color="whiteBright">), normal runs
-// as today's <Text dimColor> — instead of printing the bare verb string. Gated
-// by glimmerEnabled(process.env); off = the single-normal-segment path = plain.
+// ui/app-regions.tsx (LiveRegion) renders the verb by calling glimmerSegments
+// when glimmerEnabled(process.env) is true. Off = the single-normal-segment path
+// = plain.
 
-/** Env var that turns the glimmer on (default off so behavior is unchanged). */
+import { delightMotionEnabled } from "./delight.js";
+
+/** Env var that controls glimmer: default on for TUI, explicit 0/false disables. */
 export const GLIMMER_ENV = "VANTA_GLIMMER";
 
 /** Default bright-band width in characters. */
 const DEFAULT_BAND_WIDTH = 3;
 
-/** True only when VANTA_GLIMMER is explicitly on ("1"/"true"). Default off. */
-export function glimmerEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
-  const raw = env[GLIMMER_ENV];
-  return raw === "1" || raw === "true";
+/** True when TUI motion is allowed and the operator has not explicitly disabled it. */
+export function glimmerEnabled(env: NodeJS.ProcessEnv = process.env, isTTY = true): boolean {
+  const raw = env[GLIMMER_ENV]?.trim().toLowerCase();
+  if (raw === "0" || raw === "false" || raw === "off" || raw === "no") return false;
+  if (raw === "1" || raw === "true" || raw === "on" || raw === "yes") return delightMotionEnabled(env, isTTY);
+  return delightMotionEnabled(env, isTTY);
 }
 
 /** Options for the band/segment model: an explicit band width override. */

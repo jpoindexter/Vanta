@@ -1,5 +1,5 @@
 import { createElement as h } from "react";
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect } from "vitest";
 import { renderUi, tick } from "./test-render.js";
 import { Banner } from "./banner.js";
 import { EntryView } from "./transcript.js";
@@ -14,16 +14,46 @@ import { Footer } from "./app.js";
 import { matchSlash } from "./slash.js";
 import { EMPTY_COCKPIT } from "../tui/mission-control/cockpit-data.js";
 
+const ORIGINAL_ENV = {
+  CI: process.env.CI,
+  TERM: process.env.TERM,
+  VANTA_BARE: process.env.VANTA_BARE,
+  VANTA_DELIGHT: process.env.VANTA_DELIGHT,
+};
+
+function restoreEnv(name: keyof typeof ORIGINAL_ENV): void {
+  const value = ORIGINAL_ENV[name];
+  if (value === undefined) delete process.env[name];
+  else process.env[name] = value;
+}
+
+afterEach(() => {
+  restoreEnv("CI");
+  restoreEnv("TERM");
+  restoreEnv("VANTA_BARE");
+  restoreEnv("VANTA_DELIGHT");
+});
+
 describe("Banner", () => {
   it("renders the name, model, and kernel line", async () => {
+    delete process.env.CI;
+    process.env.TERM = "xterm-256color";
     const inst = renderUi(h(Banner, { model: "claude-sonnet-4-6", cwd: "~/dev/site", kernel: "127.0.0.1:7788", tools: 49, cmds: 41 }));
     await tick();
     const out = inst.lastFrame();
     expect(out).toContain("█"); // the VANTA block wordmark
-    expect(out).toContain("local trusted operator");
+    expect(out).toContain("goal first");
     expect(out).toContain("claude-sonnet-4-6");
     expect(out).toContain("127.0.0.1:7788");
     expect(out).toContain("49 tools");
+    inst.unmount();
+  });
+
+  it("falls back to the plain tagline when delight is disabled", async () => {
+    process.env.VANTA_DELIGHT = "0";
+    const inst = renderUi(h(Banner, { model: "claude-sonnet-4-6", cwd: "~/dev/site", kernel: "127.0.0.1:7788", tools: 49, cmds: 41 }));
+    await tick();
+    expect(inst.lastFrame()).toContain("local trusted operator");
     inst.unmount();
   });
 });

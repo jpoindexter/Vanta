@@ -2,22 +2,30 @@ import { describe, expect, it } from "vitest";
 import { GLIMMER_ENV, glimmerBand, glimmerEnabled, glimmerSegments, plainSegments } from "./glimmer.js";
 
 describe("glimmerEnabled", () => {
-  it("is off by default (unset env) so behavior is unchanged", () => {
-    expect(glimmerEnabled({})).toBe(false);
+  it("is on by default for a normal interactive TUI session", () => {
+    expect(glimmerEnabled({}, true)).toBe(true);
   });
 
   it("is on when VANTA_GLIMMER=1", () => {
-    expect(glimmerEnabled({ [GLIMMER_ENV]: "1" })).toBe(true);
+    expect(glimmerEnabled({ [GLIMMER_ENV]: "1" }, true)).toBe(true);
   });
 
   it("is on when VANTA_GLIMMER=true", () => {
-    expect(glimmerEnabled({ [GLIMMER_ENV]: "true" })).toBe(true);
+    expect(glimmerEnabled({ [GLIMMER_ENV]: "true" }, true)).toBe(true);
   });
 
-  it("is off for any other value", () => {
-    expect(glimmerEnabled({ [GLIMMER_ENV]: "0" })).toBe(false);
-    expect(glimmerEnabled({ [GLIMMER_ENV]: "yes" })).toBe(false);
-    expect(glimmerEnabled({ [GLIMMER_ENV]: "" })).toBe(false);
+  it("is off for explicit off values", () => {
+    expect(glimmerEnabled({ [GLIMMER_ENV]: "0" }, true)).toBe(false);
+    expect(glimmerEnabled({ [GLIMMER_ENV]: "false" }, true)).toBe(false);
+    expect(glimmerEnabled({ [GLIMMER_ENV]: "off" }, true)).toBe(false);
+    expect(glimmerEnabled({ [GLIMMER_ENV]: "no" }, true)).toBe(false);
+  });
+
+  it("respects reduced-motion and bare/scripted gates", () => {
+    expect(glimmerEnabled({ VANTA_REDUCED_MOTION: "1" }, true)).toBe(false);
+    expect(glimmerEnabled({ NO_COLOR: "1" }, true)).toBe(false);
+    expect(glimmerEnabled({ VANTA_BARE: "1" }, true)).toBe(false);
+    expect(glimmerEnabled({}, false)).toBe(false);
   });
 });
 

@@ -11,6 +11,7 @@ import { FOCUS, ACTIVITY, GOAL } from "../term/palette.js";
 import type { PendingTool, Entry } from "./types.js";
 import { Banner } from "./banner.js";
 import { EntryView } from "./transcript.js";
+import { glimmerEnabled, glimmerSegments, plainSegments } from "./glimmer.js";
 import type { SubagentProgress } from "../subagent/progress-store.js";
 import type { EffortLevel } from "../types.js";
 import type { RichSegment } from "./status-segments.js";
@@ -97,18 +98,31 @@ export function TeammateTree(props: { agents: SubagentProgress[]; leader: Leader
 
 /** The single thinking spinner: frame + verb + elapsed + an optional stalled
  * suffix ("(still working… Ns)" past the threshold). Shown when no tool/tree is. */
-function SingleSpinner(props: { frame: string; verb: string; secs: number; suffix: string }): ReactElement {
-  const { frame, verb, secs, suffix } = props;
+function VerbGlimmer(props: { verb: string; tick: number }): ReactElement {
+  const segments = glimmerEnabled(process.env)
+    ? glimmerSegments(props.verb, props.tick, { bandWidth: 2 })
+    : plainSegments(props.verb);
+  return (
+    <>
+      {segments.map((seg, i) => (
+        <Text key={i} color={seg.bright ? "whiteBright" : undefined}>{seg.text}</Text>
+      ))}
+    </>
+  );
+}
+
+function SingleSpinner(props: { frame: string; verb: string; tick: number; secs: number; suffix: string }): ReactElement {
+  const { frame, verb, tick, secs, suffix } = props;
   const tail = suffix ? ` ${suffix}` : "";
-  return <Text><Text color={ACTIVITY}>{frame}</Text> {verb}… ({secs}s · esc to interrupt){tail}</Text>;
+  return <Text><Text color={ACTIVITY}>{frame}</Text> <VerbGlimmer verb={verb} tick={tick} />… ({secs}s · esc to interrupt){tail}</Text>;
 }
 
 /** The single-agent busy indicator: the live reasoning preview when the model is streaming its
  *  thinking (DeepSeek-R1/OpenRouter/Anthropic/…), else the generic rotating spinner. */
-function BusyIndicator(props: { liveThinking: string; frame: string; verb: string; secs: number; suffix: string }): ReactElement {
+function BusyIndicator(props: { liveThinking: string; frame: string; verb: string; tick: number; secs: number; suffix: string }): ReactElement {
   return props.liveThinking
     ? <ThinkingPreview text={props.liveThinking} frame={props.frame} secs={props.secs} />
-    : <SingleSpinner frame={props.frame} verb={props.verb} secs={props.secs} suffix={props.suffix} />;
+    : <SingleSpinner frame={props.frame} verb={props.verb} tick={props.tick} secs={props.secs} suffix={props.suffix} />;
 }
 
 export function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy: boolean; tick: number; liveThinking?: string; agents?: SubagentProgress[]; selectedAgent?: number; leaderTokens?: number }): ReactElement | null {
@@ -132,7 +146,7 @@ export function LiveRegion(props: { streaming: string; activeTools: PendingTool[
           agents → the single thinking spinner, shown when no tool is running. */}
       {tree}
       {busy && !streaming && loaders.length === 0 && !tree
-        ? <BusyIndicator liveThinking={liveThinking} frame={frame} verb={verb} secs={secs} suffix={suffix} />
+        ? <BusyIndicator liveThinking={liveThinking} frame={frame} verb={verb} tick={tick} secs={secs} suffix={suffix} />
         : null}
     </Box>
   );

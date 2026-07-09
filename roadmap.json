@@ -567,7 +567,7 @@
       "id": "TUI-DELIGHT-PASS",
       "track": "Harness",
       "title": "TUI delight / personality pass (not a soulless CLI)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "A delight/personality/visual-identity pass so the CLI has character without sacrificing the dense, integration-friendly surface. Community signal (OpenClaw/Hermes X thread 2026-06-22), @nnehdigh: \"you keep building soulless cli tools which are great for integration but [lack] delight.\" Extends TUI-DESIGN-LANGUAGE — the feel layer, post-function.",
       "done": "a deliberate identity pass (motion, micro-copy, a signature moment) lands without bloating output or breaking --bare/scripting; reduced-motion respected.",
