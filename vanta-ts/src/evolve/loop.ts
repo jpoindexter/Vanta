@@ -1,5 +1,6 @@
 import { shouldKeep, diffOutcomes, predictionPrecision } from "./decide.js";
 import { predictAtRisk, type AtRisk } from "./regression-foresight.js";
+import { composeInteractionAware, formatInteractionPlan, type ComponentEdit, type ComponentInteraction, type InteractionPlan } from "./interaction-aware.js";
 import type { EvalReport } from "../eval/types.js";
 import type { Snapshot } from "./snapshot.js";
 import type { EvolveIteration, EvolveOutcome } from "./types.js";
@@ -16,6 +17,9 @@ export type Proposal = {
    * a human touch, when the adapter can report them. Optional/non-breaking. */
   spendUsd?: number;
   humanInLoop?: boolean;
+  /** AHE-INTERACTION-AWARE: multiple harness-component edits composed as one
+   * measured change, so shared verification is run once and predicted fixes merge. */
+  componentEdits?: ComponentEdit[];
 };
 
 export type EvolveDeps = {
@@ -29,6 +33,8 @@ export type EvolveDeps = {
   /** AHE-REGRESSION-FORESIGHT: the ranked at-risk-task set, emitted BEFORE the
    * edit is measured/committed, from the journal-so-far + the edit's scope. */
   onForesight?: (risk: AtRisk[]) => void;
+  interactions?: ComponentInteraction[];
+  onInteractionPlan?: (plan: InteractionPlan) => void;
 };
 
 export async function evolve(iters: number, deps: EvolveDeps): Promise<EvolveOutcome> {
@@ -40,8 +46,13 @@ export async function evolve(iters: number, deps: EvolveDeps): Promise<EvolveOut
     const before = best.passAt1;
     const snap = deps.snapshot();
     const proposal = await deps.propose(best);
+    const plan = proposal.componentEdits?.length
+      ? composeInteractionAware(proposal.componentEdits, deps.interactions)
+      : null;
+    if (plan) deps.onInteractionPlan?.(plan);
+    const predictedFix = plan?.predictedFix ?? proposal.predictedFix;
     // Emit the at-risk set BEFORE the edit is committed (the foresight gate).
-    deps.onForesight?.(predictAtRisk(iterations, proposal.predictedFix));
+    deps.onForesight?.(predictAtRisk(iterations, predictedFix));
     const after = await deps.evalOnce();
     const { fixed, regressions } = diffOutcomes(best.results, after.results);
     const keep = shouldKeep(before, after.passAt1);
@@ -51,11 +62,11 @@ export async function evolve(iters: number, deps: EvolveDeps): Promise<EvolveOut
       before,
       after: after.passAt1,
       kept: keep,
-      predictedFix: proposal.predictedFix,
+      predictedFix,
       actualFix: fixed,
       regressions,
-      predictionPrecision: predictionPrecision(proposal.predictedFix, fixed),
-      note: `${keep ? "KEPT" : "reverted"} ${before}%→${after.passAt1}% · ${proposal.summary}`.slice(0, 200),
+      predictionPrecision: predictionPrecision(predictedFix, fixed),
+      note: iterationNote({ keep, before, after: after.passAt1, summary: proposal.summary, plan }),
       spendUsd: proposal.spendUsd,
       humanInLoop: proposal.humanInLoop,
     };
@@ -63,4 +74,9 @@ export async function evolve(iters: number, deps: EvolveDeps): Promise<EvolveOut
     deps.onIteration?.(it);
   }
   return { baselineScore, finalScore: best.passAt1, iterations };
+}
+
+function iterationNote(args: { keep: boolean; before: number; after: number; summary: string; plan: InteractionPlan | null }): string {
+  const base = `${args.keep ? "KEPT" : "reverted"} ${args.before}%→${args.after}% · ${args.summary}`;
+  return (args.plan ? `${base} · ${formatInteractionPlan(args.plan)}` : base).slice(0, 200);
 }

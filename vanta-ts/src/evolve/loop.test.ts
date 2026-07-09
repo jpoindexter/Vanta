@@ -45,6 +45,34 @@ describe("evolve loop", () => {
     expect(out.iterations[0]?.actualFix).toEqual(["b"]);
     expect(out.iterations[0]?.kept).toBe(false);
   });
+
+  it("composes interacting component edits and dedupes redundant checks before scoring", async () => {
+    const reports = [
+      report([result("create-file", false), result("recall-path", false), result("patch-file", true)]),
+      report([result("create-file", true), result("recall-path", true), result("patch-file", true)]),
+    ];
+    let i = 0;
+    const plans: string[] = [];
+    const out = await evolve(1, {
+      evalOnce: async () => reports[i++]!,
+      propose: async () => ({
+        predictedFix: ["legacy"],
+        summary: "compose tool+memory edits",
+        componentEdits: [
+          { id: "tools", component: "tools", predictedFix: ["create-file"], verification: ["eval:create-file"], isolatedLift: 8.3 },
+          { id: "memory", component: "memory", predictedFix: ["create-file", "recall-path"], verification: ["eval:create-file", "eval:recall-path"], isolatedLift: 8.4 },
+        ],
+      }),
+      snapshot: () => ({ restore: () => {}, discard: () => {} }),
+      interactions: [{ components: ["tools", "memory"], reason: "shared path-root verification", penalty: 0.4 }],
+      onInteractionPlan: (plan) => plans.push(`${plan.expectedCombinedLift}/${plan.isolatedLiftSum}/${plan.redundantChecksRemoved}`),
+    });
+
+    expect(plans).toEqual(["16.3/16.7/1"]);
+    expect(out.iterations[0]?.predictedFix).toEqual(["create-file", "recall-path"]);
+    expect(out.iterations[0]?.predictionPrecision).toBe(100);
+    expect(out.iterations[0]?.note).toContain("interaction-aware");
+  });
 });
 
 function deps(reports: EvalReport[], next: () => number): EvolveDeps {

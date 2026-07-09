@@ -12700,13 +12700,14 @@
       "id": "AHE-INTERACTION-AWARE",
       "track": "Cofounder engine",
       "title": "Interaction-aware evolution — account for non-additive component effects",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "From the AHE paper (arXiv 2604.25850): single-component gains don't stack cleanly (3 edits summing +11.1pp net only +7.3pp together) because components spend turns on redundant re-checks. Make the evolve loop interaction-aware — consider cross-component effects when composing edits, dedupe redundant verification, rather than greedily stacking single-component fixes. Named as future work in the paper. See docs/agentic-harness-engineering.md.",
       "done": "When two edits touch interacting components, the loop composes them without redundant re-checks and the combined lift approaches the sum of their isolated gains.",
       "tier": "sand",
       "effort": "high",
-      "updated": "2026-06-16",
+      "updated": "2026-07-09",
+      "notes": "Shipped 2026-07-09. Added `composeInteractionAware`, a pure composition planner for harness component edits that merges predicted fixes, dedupes shared verification checks, tracks interacting components, and estimates combined lift against the isolated-lift sum. Wired optional `componentEdits` into the evolve loop so a proposal touching multiple interacting components emits an interaction plan, sends the merged predicted-fix set into regression foresight, and records the interaction-aware summary on the iteration. Verified with `npx vitest run src/evolve/interaction-aware.test.ts src/evolve/loop.test.ts src/evolve/regression-foresight.test.ts --reporter=dot` (13 passed), `npm run typecheck`, and `npm run vanta -- lint src/evolve/interaction-aware.ts src/evolve/interaction-aware.test.ts src/evolve/loop.ts src/evolve/loop.test.ts`. This is composition/deduping behavior, not a live benchmark lift claim.",
       "after": [
         "AHE-EVOLVE-LOOP"
       ]
