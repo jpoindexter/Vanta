@@ -15,7 +15,7 @@ export function AppShell() {
   const approval = useApproval();
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${data.tab === "canvas" ? "canvas-open" : ""}`}>
       <SessionSidebar sessions={data.sessions} activeId={data.status?.sessionId} onNew={convo.newSession} onOpen={convo.openSession} />
       <main className="workbench">
         <DesktopHeader title={convo.activeTitle} data={data} sound={sound} />
@@ -27,6 +27,8 @@ export function AppShell() {
         tools={data.tools}
         files={data.files}
         events={convo.events}
+        canvas={data.canvas}
+        onRefresh={() => { void data.refresh(); }}
         tab={data.tab}
         onTab={data.setTab}
         onInsertFile={convo.insertFile}

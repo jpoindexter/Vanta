@@ -13,6 +13,7 @@ import { listRepoFiles } from "../term/at-context.js";
 import { resolveEventFormatter } from "../term/event-format.js";
 import { pushSseEvent, type SseClients } from "./session-state.js";
 import { approvalDecision, approvalPayload, requestWebApproval, resolveApproval, type PendingApproval } from "./approval.js";
+import { readCanvasArtifact } from "../canvas/artifact.js";
 export { approvalDecision, type PendingApproval } from "./approval.js";
 
 export type DesktopEvent = { label: string; ok?: boolean };
@@ -116,6 +117,14 @@ export async function handleTools(state: DesktopState, res: http.ServerResponse)
 export async function handleFiles(state: DesktopState, res: http.ServerResponse): Promise<void> {
   const files = await listRepoFiles(state.root, 3);
   sendJson(res, 200, files.slice(0, 400));
+}
+
+export async function handleCanvas(state: DesktopState, res: http.ServerResponse): Promise<void> {
+  try {
+    sendJson(res, 200, await readCanvasArtifact(state.root));
+  } catch (error) {
+    sendJson(res, 422, { error: `invalid canvas artifact: ${(error as Error).message.split("\n")[0]}` });
+  }
 }
 
 export async function handleModels(res: http.ServerResponse): Promise<void> {

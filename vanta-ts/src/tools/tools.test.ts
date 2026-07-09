@@ -129,6 +129,7 @@ describe("registry", () => {
       "ref_list",
       "ref_search",
       "regression_lock",
+      "render_canvas",
       "research_decompose",
       "retrieve_original",
       "review_artifact",

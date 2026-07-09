@@ -7,7 +7,7 @@ import {
   type CompletionSoundPlayer,
   type CompletionSoundSettings,
 } from "./completion-sound.js";
-import type { Approval, ApprovalDecision, EventRow, Message, Provider, RailTab, Session, Status, Tool } from "./types.js";
+import type { Approval, ApprovalDecision, CanvasArtifact, EventRow, Message, Provider, RailTab, Session, Status, Tool } from "./types.js";
 
 export function useDesktopData() {
   const [status, setStatus] = useState<Status | null>(null);
@@ -15,7 +15,8 @@ export function useDesktopData() {
   const [tools, setTools] = useState<Tool[]>([]);
   const [files, setFiles] = useState<string[]>([]);
   const [models, setModels] = useState<Provider[]>([]);
-  const [tab, setTab] = useState<RailTab>("preview");
+  const [canvas, setCanvas] = useState<CanvasArtifact | null>(null);
+  const [tab, setTab] = useState<RailTab>("canvas");
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [modelOpen, setModelOpen] = useState(false);
   const [soundOpen, setSoundOpen] = useState(false);
@@ -23,18 +24,20 @@ export function useDesktopData() {
   const closeSoundSettings = useCallback(() => setSoundOpen(false), []);
 
   async function refresh() {
-    const [nextStatus, nextSessions, nextTools, nextFiles, nextModels] = await Promise.all([
+    const [nextStatus, nextSessions, nextTools, nextFiles, nextModels, nextCanvas] = await Promise.all([
       api<Status>("/api/status"),
       api<Session[]>("/api/sessions"),
       api<Tool[]>("/api/tools"),
       api<string[]>("/api/files"),
       api<Provider[]>("/api/models"),
+      api<CanvasArtifact | null>("/api/canvas").catch(() => null),
     ]);
     setStatus(nextStatus);
     setSessions(nextSessions);
     setTools(nextTools);
     setFiles(nextFiles);
     setModels(nextModels);
+    setCanvas(nextCanvas);
   }
 
   async function setModel(provider: string, model: string) {
@@ -45,7 +48,7 @@ export function useDesktopData() {
 
   useEffect(() => { void refresh(); }, []);
   return {
-    status, sessions, tools, files, models, tab, setTab, paletteOpen, modelOpen, soundOpen, refresh, setModel,
+    status, sessions, tools, files, models, canvas, tab, setTab, paletteOpen, modelOpen, soundOpen, refresh, setModel,
     openPalette: () => setPaletteOpen(true),
     closePalette: () => setPaletteOpen(false),
     openModelPicker: () => setModelOpen(true),

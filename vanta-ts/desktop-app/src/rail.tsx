@@ -1,12 +1,15 @@
 import { FormEvent, useMemo, useState } from "react";
 import { api } from "./api.js";
-import type { EventRow, RailTab, Status, Tool } from "./types.js";
+import { CanvasPanel } from "./canvas.js";
+import type { CanvasArtifact, EventRow, RailTab, Status, Tool } from "./types.js";
 
 export function RightRail(props: {
   status: Status | null;
   tools: Tool[];
   files: string[];
   events: EventRow[];
+  canvas: CanvasArtifact | null;
+  onRefresh: () => void;
   tab: RailTab;
   onTab: (tab: RailTab) => void;
   onInsertFile: (file: string) => void;
@@ -15,8 +18,9 @@ export function RightRail(props: {
   return (
     <aside className="right-rail">
       <div className="rail-tabs">
-        {(["preview", "files", "terminal"] as RailTab[]).map((tab) => <RailTabButton key={tab} tab={tab} active={props.tab === tab} onTab={props.onTab} />)}
+        {(["canvas", "preview", "files", "terminal"] as RailTab[]).map((tab) => <RailTabButton key={tab} tab={tab} active={props.tab === tab} onTab={props.onTab} />)}
       </div>
+      {props.tab === "canvas" ? <CanvasPanel artifact={props.canvas} onRefresh={props.onRefresh} /> : null}
       {props.tab === "preview" ? <PreviewPanel status={props.status} groups={groups} events={props.events} /> : null}
       {props.tab === "files" ? <FilesPanel files={props.files} onInsert={props.onInsertFile} /> : null}
       {props.tab === "terminal" ? <TerminalPanel /> : null}

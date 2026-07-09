@@ -3,7 +3,7 @@ import type { DesktopState, DesktopEvent } from "./handlers.js";
 import {
   eventLabel, readJson, sendJson,
   handleStatus, handleSessions, handleNewSession, handleOpenSession,
-  handleTools, handleFiles, handleModels, handleSetModel,
+  handleTools, handleFiles, handleCanvas, handleModels, handleSetModel,
   handleApproval, handleTerminal, handleChat,
 } from "./handlers.js";
 export { approvalDecision, type PendingApproval, type DesktopEvent, type DesktopState, eventLabel } from "./handlers.js";
@@ -23,6 +23,7 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
   if (p === "/api/sessions") { await handleSessions(res); return true; }
   if (p === "/api/tools") { await handleTools(state, res); return true; }
   if (p === "/api/files") { await handleFiles(state, res); return true; }
+  if (p === "/api/canvas") { await handleCanvas(state, res); return true; }
   if (p === "/api/models") { await handleModels(res); return true; }
   if (p === "/api/approval") { await handleApproval(state, req, res); return true; }
   return false;

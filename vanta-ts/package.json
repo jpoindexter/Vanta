@@ -15,7 +15,8 @@
     "desktop:build": "vite build --config desktop-app/vite.config.ts",
     "desktop:native": "npm run desktop:build && electron desktop-app/electron/main.mjs",
     "desktop:native:smoke": "npm run desktop:build && electron desktop-app/electron/main.mjs --smoke",
-    "desktop:sound:smoke": "npm run desktop:build && node scripts/desktop-completion-sound-smoke.mjs"
+    "desktop:sound:smoke": "npm run desktop:build && node scripts/desktop-completion-sound-smoke.mjs",
+    "desktop:canvas:smoke": "npm run desktop:build && node --import tsx scripts/desktop-canvas-smoke.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",

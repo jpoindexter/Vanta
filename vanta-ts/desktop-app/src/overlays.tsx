@@ -18,6 +18,7 @@ function commandActions(props: { onNew: () => void; onModel: () => void; onSound
     ["New session", props.onNew],
     ["Model picker", props.onModel],
     ["Completion sound", props.onSound],
+    ["Canvas", () => props.onTab("canvas")],
     ["Files", () => props.onTab("files")],
     ["Terminal", () => props.onTab("terminal")],
   ] as const;

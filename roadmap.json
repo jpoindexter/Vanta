@@ -16244,7 +16244,7 @@
       "id": "VANTA-CANVAS",
       "track": "Operator",
       "title": "Visual canvas — a surface the agent draws/builds on (beyond text)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "a reference agent harness has a Live Canvas / A2UI. For an operator that 'builds things', text is a ceiling — add a canvas the agent can render to: charts, tables, UI mockups, diffs, live artifacts, a previewable build output. Surfaces in the desktop app + companion presence.",
       "done": "The agent can render a structured visual artifact (e.g. a chart, table, or UI preview) to a canvas the user can see and interact with, driven by a tool call, kernel-gated.",
