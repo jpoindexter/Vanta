@@ -9,6 +9,7 @@ export type CapabilityWorkflow = {
   outcome: string;
   example: string;
   command: string;
+  setup: string;
   requires: string[];
   demo?: string;
 };
@@ -33,6 +34,7 @@ export const CAPABILITY_WORKFLOWS: CapabilityWorkflow[] = [
     outcome: "Paste a terminal, build, MCP, or sandbox error and get the next command plus the file to inspect.",
     example: "mcp: terminal-love failed - mcp server exited (1)",
     command: `vanta run "Fix this error: <paste the error>"`,
+    setup: "Shell, file reading, search, and edit tools are available.",
     requires: ["shell_cmd", "read_file", "grep_files", "edit_file"],
     demo: "fix-error",
   },
@@ -42,6 +44,7 @@ export const CAPABILITY_WORKFLOWS: CapabilityWorkflow[] = [
     outcome: "Pick the top build-order card, implement a verified slice, update the roadmap, commit, and push.",
     example: "Continue the activation roadmap until the next verified commit is pushed.",
     command: `vanta run "Continue the top roadmap item and push the slice"`,
+    setup: "Shell, file reading/editing, and roadmap tools are available.",
     requires: ["shell_cmd", "read_file", "edit_file", "roadmap_move"],
     demo: "continue-roadmap",
   },
@@ -51,6 +54,7 @@ export const CAPABILITY_WORKFLOWS: CapabilityWorkflow[] = [
     outcome: "Convert a long app/product prompt into files, checks, and a local preview command.",
     example: "Build the posture routine app from this product spec...",
     command: `vanta run "Build this spec into a verified preview: <paste spec>"`,
+    setup: "File writing/editing, shell, and file reading tools are available.",
     requires: ["write_file", "edit_file", "shell_cmd", "read_file"],
   },
   {
@@ -59,6 +63,7 @@ export const CAPABILITY_WORKFLOWS: CapabilityWorkflow[] = [
     outcome: "Extract the likely cause, cite evidence lines, and return the repair command or Xcode/runtime fix.",
     example: "EXC_CRASH (SIGABRT), DYLD, Library not loaded: @rpath/lib_TestingInterop.dylib",
     command: `vanta run "Diagnose this crash log and give me the fix path: <paste report>"`,
+    setup: "File reading, search, and shell tools are available.",
     requires: ["read_file", "grep_files", "shell_cmd"],
     demo: "crash-log",
   },
@@ -68,6 +73,7 @@ export const CAPABILITY_WORKFLOWS: CapabilityWorkflow[] = [
     outcome: "Break a question into subquestions, search, fetch sources, and return dated claims with citations.",
     example: "What changed in local agent sandboxes this month?",
     command: `/deep-research <question>`,
+    setup: "Research, search, and source-fetch tools are available.",
     requires: ["research_decompose", "web_search", "web_fetch"],
   },
   {
@@ -76,6 +82,7 @@ export const CAPABILITY_WORKFLOWS: CapabilityWorkflow[] = [
     outcome: "Mine pasted transcript notes into durable memory and recall the relevant lesson later.",
     example: "From this transcript, remember the bug pattern and the recovery command.",
     command: `vanta run "Extract durable lessons from this transcript: <paste transcript>"`,
+    setup: "Memory and recall tools are available.",
     requires: ["brain", "recall"],
   },
   {
@@ -84,14 +91,16 @@ export const CAPABILITY_WORKFLOWS: CapabilityWorkflow[] = [
     outcome: "Set a scheduled check or background loop and wake you only when action is needed.",
     example: "Check this repo every morning for failing tests or stale roadmap items.",
     command: `vanta schedule "daily check this repo and tell me only if action is needed"`,
+    setup: "Scheduling and shell tools are available.",
     requires: ["cron_create", "cron_list", "shell_cmd"],
   },
   {
     id: "delegate-work",
-    title: "Delegate work to agents",
+    title: "Send work to a helper",
     outcome: "Create or inspect background tasks, assign work, and collect the result without losing the main thread.",
-    example: "Ask a worker to review the activation gallery while I keep coding.",
+    example: "Ask a helper to review the activation gallery while I keep coding.",
     command: `vanta agents`,
+    setup: "Background work and chat handoff tools are available.",
     requires: ["team", "send_chat"],
   },
 ];
@@ -137,13 +146,13 @@ export function toolNamesFromSetup(setup: RunSetup): string[] {
 }
 
 function formatWorkflow(view: WorkflowView, index: number): string {
-  const missing = view.missing.length ? `\n     Missing: ${view.missing.join(", ")}` : "";
+  const setup = `\n     Needs: ${view.setup}`;
   const demo = view.demo ? `\n     Demo: /what-can-i-do --demo ${view.demo}` : "";
   return [
     `  ${index + 1}. [${view.state}] ${view.title}`,
     `     ${view.outcome}`,
     `     Example: ${view.example}`,
-    `     Command: ${view.command}${demo}${missing}`,
+    `     Command: ${view.command}${setup}${demo}`,
   ].join("\n");
 }
 

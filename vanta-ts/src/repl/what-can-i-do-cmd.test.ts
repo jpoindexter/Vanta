@@ -23,8 +23,11 @@ describe("what-can-i-do workflow catalog", () => {
     expect(CAPABILITY_WORKFLOWS).toHaveLength(8);
     for (const workflow of CAPABILITY_WORKFLOWS) {
       expect(workflow.title).not.toMatch(/ledger|sentinel|vault|research_decompose/i);
+      expect(workflow.outcome).not.toMatch(/ledger|sentinel|vault|research_decompose|cron_create|brain/i);
+      expect(workflow.setup).not.toMatch(/ledger|sentinel|vault|research_decompose|cron_create|brain|send_chat/i);
       expect(workflow.command).toMatch(/^(vanta|\/)/);
       expect(workflow.example.length).toBeGreaterThan(10);
+      expect(workflow.setup.length).toBeGreaterThan(10);
     }
   });
 
@@ -40,8 +43,10 @@ describe("what-can-i-do workflow catalog", () => {
     expect(out).toContain("What Vanta can do now");
     expect(out).toContain("[Try] Fix a pasted error");
     expect(out).toContain(`Command: vanta run "Fix this error: <paste the error>"`);
+    expect(out).toContain("Needs: Shell, file reading, search, and edit tools are available.");
     expect(out).toContain("Demo: /what-can-i-do --demo fix-error");
-    expect(out).toContain("Missing: read_file, grep_files, edit_file");
+    expect(out).not.toContain("Missing:");
+    expect(out).not.toMatch(/research_decompose|cron_create|send_chat|brain/);
   });
 
   it("ships three runnable demo fixtures with exact commands", () => {
