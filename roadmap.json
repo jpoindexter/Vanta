@@ -503,7 +503,7 @@
       "id": "MARKETING-ANALYTICS-CONNECTORS",
       "track": "Operator",
       "title": "Marketing/analytics connectors (amplitude, customer.io, ads)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "Connectors for marketing/analytics sources (amplitude, customer.io, Google Ads, Meta) so Vanta can run marketing-ops from one place. Community signal (OpenClaw/Hermes X thread 2026-06-22): Matt Stringham (\"Openclaw runs my entire marketing operation: websites, design, ads, media buys, conversion monitoring\"), Mateusz Michalik (two agents in Slack pulling amplitude/customer.io/ads). Net-new surface; build behind the plugin/MCP layer, not core; pairs with Money OS + A2A.",
       "done": "at least 2 connectors (e.g. amplitude + customer.io) read campaign/event data via the plugin/MCP layer, kernel-gated; a marketing-ops example flow is documented.",

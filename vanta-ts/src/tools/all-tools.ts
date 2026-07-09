@@ -124,6 +124,7 @@ import {
   driveUpdateTool,
 } from "./drive.js";
 import { googleAuthTool } from "./google-auth.js";
+import { marketingReadTool } from "./marketing-read.js";
 import type { Tool } from "./types.js";
 
 /**
@@ -239,6 +240,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   driveCreateTool,
   driveUpdateTool,
   googleAuthTool,
+  marketingReadTool,
   bgListTool,
   bgStatusTool,
   refIngestTool,

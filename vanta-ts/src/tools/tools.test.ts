@@ -107,6 +107,7 @@ describe("registry", () => {
       "lsp_hover",
       "lsp_references",
       "lsp_symbols",
+      "marketing_read",
       "mcp_auth",
       "money",
       "mount_mcp",
