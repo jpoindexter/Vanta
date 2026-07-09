@@ -17,6 +17,8 @@ export type MissionControlFrameProps = {
   contextWindow: number;
   goal: string | null;
   safetyVerdict: SafetyVerdict;
+  safetyReason: string;
+  workingMemory: string[];
   telemetry: MissionTelemetry;
   children: ReactNode;
 };
@@ -58,13 +60,15 @@ function LeftRail(props: MissionControlFrameProps): ReactElement {
 }
 
 function RightRail(props: MissionControlFrameProps): ReactElement {
+  const wm = props.workingMemory.length > 0 ? props.workingMemory : ["awaiting context"];
   return (
     <Box width={28} flexDirection="column" borderStyle="single" paddingX={1}>
       <Text bold>Safety Rail</Text>
       <Text>{props.safetyVerdict} current context</Text>
+      <Text dimColor>{oneLine(props.safetyReason, 24)}</Text>
       <Box marginTop={1} flexDirection="column">
         <Text bold>Working Memory</Text>
-        <Text>{props.goal ? oneLine(props.goal, 22) : "awaiting goal"}</Text>
+        {wm.slice(0, 4).map((line, i) => <Text key={i}>{oneLine(line, 22)}</Text>)}
       </Box>
       <CommandRiskPanel />
       <Box marginTop={1} flexDirection="column">

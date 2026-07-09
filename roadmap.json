@@ -1425,7 +1425,7 @@
       "id": "TUI-V2-RAILS",
       "track": "Operator",
       "title": "TUI v2 — state / safety / working-memory / telemetry rails",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "v2 rails: left durable-state (goal/model/scope/context-budget meter), right safety-rail (live ALLOW/ASK/BLOCK for current context) + working-memory panel + live telemetry (tokens/cost/time). Composes COST-VISIBLE + EF-WORKINGMEM + AUTO-ROUTER + THINK-FOLD — makes already-built state visible.",
       "done": "The v2 surface shows the durable-state rail, a live safety ALLOW/ASK/BLOCK rail, the working-memory panel, and tokens/cost/time telemetry, all from real session state.",
