@@ -84,6 +84,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "usage", desc: "token usage + context fill for this session" },
   { name: "stats", desc: "aggregate usage — sessions, turns, tool calls, tokens/cost (TUI)" },
   { name: "copy", desc: "copy the last response to the clipboard" },
+  { name: "screenshot", desc: "copy the current Vanta transcript to clipboard as a PNG image" },
   { name: "update", desc: "git pull the latest Vanta (then ./install.sh to rebuild)" },
   { name: "moim", arg: "[text|clear]", desc: "pin a top-of-mind note injected into every prompt until cleared" },
   { name: "record", arg: "[start|stop]", desc: "record terminal output to an asciicast v2 .cast file under ~/.vanta/recordings" },
