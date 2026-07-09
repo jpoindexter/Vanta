@@ -36,7 +36,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/tools/all-tools.ts` — register every new tool in the `ALL_TOOLS` array here AND in `tools/tools.test.ts` sorted list (`index.ts` is now just `buildRegistry`)
 - `src/tools/types.ts` — `Tool`, `ToolContext`, `ToolResult` shapes
 - `src/safety-client.ts` — kernel bridge (assess/approvals/goals)
-- `src/repl/catalog.ts` — canonical list of 103 slash commands for `/help`, TUI palette, and validation
+- `src/repl/catalog.ts` — canonical list of 103 slash commands for `/help`, TUI palette, and validation; `/skills audit` exposes skill injection-scan findings without noisy default loads
 - `src/repl/handlers.ts` — slash command dispatcher and handler registry
 - `src/plugins/` — plugin framework: manifest parsing, enabled-plugin loading, `PluginContext`, and runtime plugin slash-command registry
 - `src/effort.ts` / `src/providers/effort.ts` — effort-level parsing plus OpenAI reasoning_effort / Anthropic extended-thinking param mapping
@@ -93,6 +93,7 @@ npx tsc --noEmit                 # must be clean before any commit
 
 - `src/tools/all-tools.ts` currently lists **92 built-in tools** (95 registered with factory `mount_mcp`/`tool_search`); runtime MCP mounts can add more.
 - `src/repl/catalog.ts` currently exposes **103 slash commands**.
+- `/skills` lists learned + MCP skills; `/skills audit` reports trusted-local skill injection-scan hits on demand while `VANTA_SKILL_STRICT=1` still hard-skips flagged local skills.
 - Runtime plugins are opt-in via `settings.plugins.enabled`; loaded plugin tools are not built-ins and still route through the normal kernel-gated tool path.
 - Effort levels are `low|medium|high|max`: CLI `--effort`, session `/effort <level>`, `settings.effortLevel`, and `VANTA_EFFORT_LEVEL`; footer shows non-medium effort.
 - `self_repair` includes `sandbox_test {toolPath}` for pre-attach limb-tool verification; it only accepts `vanta-ts/src/tools/*.ts` paths and forces `VANTA_SANDBOX=1` through the shared sandbox wrapper.

@@ -1,6 +1,6 @@
 import { suggest } from "./suggestions.js";
 import { time } from "./time-ranges.js";
-import { listSkills } from "../skills/store.js";
+import { auditSkills, listSkills } from "../skills/store.js";
 import { gatherStatus, formatStatus, resolveStatusCondensed } from "../status.js";
 import { newSessionId } from "../sessions/store.js";
 import { slashHelp } from "./catalog.js";
@@ -124,7 +124,14 @@ const undo: SlashHandler = (_arg, ctx) => {
   return { output: "  ↩ undid the last turn" };
 };
 
-const skills: SlashHandler = async (_arg, ctx) => {
+const skills: SlashHandler = async (arg, ctx) => {
+  if (arg.trim() === "audit") {
+    const findings = await auditSkills(ctx.env);
+    if (!findings.length) return { output: "  · skills audit clean — no injection-scan hits" };
+    const rows = findings.map((f) => `  ${f.skill.meta.name}: ${f.hits.join(", ")}\n    ${f.path}`);
+    return { output: `  ${findings.length} skill(s) with audit flag(s):\n${rows.join("\n")}` };
+  }
+
   const s = await listSkills(ctx.env);
   const mcp = ctx.setup.mcpSkills ?? [];
   if (!s.length && !mcp.length) return { output: "  (no skills yet — `vanta skills install`)" };

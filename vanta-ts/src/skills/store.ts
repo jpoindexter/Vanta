@@ -37,8 +37,8 @@ function skillPath(slug: string, env?: NodeJS.ProcessEnv): string {
   return join(skillsDir(env), slug, SKILL_FILE);
 }
 
-// listSkills runs many times per process; a scan warning should surface once
-// per path, not on every call (HARNESS-SKILL-GATING noise control).
+// listSkills runs many times per process; a strict-mode warning should surface
+// once per path, not on every call (HARNESS-SKILL-GATING noise control).
 const warnedPaths = new Set<string>();
 function warnOnce(message: string): void {
   const key = message.slice(message.lastIndexOf(":") + 1).trim();
@@ -47,28 +47,35 @@ function warnOnce(message: string): void {
   console.error(message);
 }
 
-/** Read+parse a SKILL.md, returning null if it does not exist. */
-async function tryReadSkill(path: string, env: NodeJS.ProcessEnv = process.env): Promise<Skill | null> {
+export type SkillAuditFinding = { path: string; skill: Skill; hits: string[] };
+
+type ReadSkillFileResult = { skill: Skill; hits: string[] };
+
+async function readSkillFile(path: string): Promise<ReadSkillFileResult | null> {
   try {
     const raw = await readFile(path, "utf8");
-    // HARNESS-SKILL-GATING: injection-scan the body before it enters the
-    // offerable set. These are the OPERATOR'S OWN skills — a security-topic
-    // skill legitimately quotes "ignore previous instructions", so the default
-    // is FLAG (warn once), not skip: a false skip breaks a real skill. Opt in to
-    // hard-skipping tainted skills with VANTA_SKILL_STRICT=1.
     const scan = scanForInjection(raw);
-    if (!scan.clean) {
-      if (env.VANTA_SKILL_STRICT === "1") {
-        warnOnce(`  ⚠ skill skipped (VANTA_SKILL_STRICT, injection scan: ${scan.hits.join(", ")}): ${path}`);
-        return null;
-      }
-      warnOnce(`  ⚠ skill flagged (injection scan: ${scan.hits.join(", ")}) — loaded; set VANTA_SKILL_STRICT=1 to skip: ${path}`);
-    }
-    return parseSkill(raw);
+    return { skill: parseSkill(raw), hits: scan.hits };
   } catch {
-    // missing file or unparseable — treat as absent
     return null;
   }
+}
+
+/** Read+parse a SKILL.md, returning null if it does not exist. */
+async function tryReadSkill(path: string, env: NodeJS.ProcessEnv = process.env): Promise<Skill | null> {
+  const read = await readSkillFile(path);
+  if (!read) return null;
+
+  // HARNESS-SKILL-GATING: trusted local skills are the operator's own authored
+  // material. Security-topic skills legitimately quote hostile phrases, so the
+  // default is quiet load. Strict mode still hard-skips flagged skills, and
+  // `/skills audit` exposes the details on demand.
+  if (read.hits.length && env.VANTA_SKILL_STRICT === "1") {
+    warnOnce(`  ⚠ skill skipped (VANTA_SKILL_STRICT, injection scan: ${read.hits.join(", ")}): ${path}`);
+    return null;
+  }
+
+  return read.skill;
 }
 
 /**
@@ -141,23 +148,32 @@ export async function readSkill(
  * List every stored skill sorted by name. Skips the _archive dir and any
  * subdir lacking a SKILL.md (e.g. a stray file or in-progress write).
  */
-export async function listSkills(env?: NodeJS.ProcessEnv): Promise<Skill[]> {
+async function skillEntries(env?: NodeJS.ProcessEnv): Promise<string[]> {
   await ensureVantaStore(env);
-  const dir = skillsDir(env);
-
-  let entries;
   try {
-    entries = await readdir(dir, { withFileTypes: true });
+    const entries = await readdir(skillsDir(env), { withFileTypes: true });
+    return entries.filter((e) => e.isDirectory() && e.name !== ARCHIVE_DIR).map((e) => e.name);
   } catch {
     return [];
   }
+}
 
+export async function listSkills(env?: NodeJS.ProcessEnv): Promise<Skill[]> {
   const skills: Skill[] = [];
-  for (const entry of entries) {
-    if (!entry.isDirectory() || entry.name === ARCHIVE_DIR) continue;
-    const skill = await tryReadSkill(join(dir, entry.name, SKILL_FILE), env);
+  for (const entry of await skillEntries(env)) {
+    const skill = await tryReadSkill(join(skillsDir(env), entry, SKILL_FILE), env);
     if (skill) skills.push(skill);
   }
 
   return skills.sort((a, b) => a.meta.name.localeCompare(b.meta.name));
+}
+
+export async function auditSkills(env?: NodeJS.ProcessEnv): Promise<SkillAuditFinding[]> {
+  const findings: SkillAuditFinding[] = [];
+  for (const entry of await skillEntries(env)) {
+    const path = join(skillsDir(env), entry, SKILL_FILE);
+    const read = await readSkillFile(path);
+    if (read?.hits.length) findings.push({ path, skill: read.skill, hits: read.hits });
+  }
+  return findings.sort((a, b) => a.skill.meta.name.localeCompare(b.skill.meta.name));
 }
