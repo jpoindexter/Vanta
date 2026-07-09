@@ -8,6 +8,8 @@ import {
   onePasswordProvider,
   keychainProvider,
   getSecret,
+  getScopedSecret,
+  SecretScopeError,
   type ExecFn,
 } from "./provider.js";
 
@@ -112,5 +114,63 @@ describe("getSecret", () => {
   it("uses the env backend by default", async () => {
     expect(await getSecret("FOO", { FOO: "bar" })).toBe("bar");
     expect(await getSecret("FOO", {})).toBeNull();
+  });
+});
+
+describe("getScopedSecret", () => {
+  it("preserves legacy env-first behavior when no active scope is set", async () => {
+    const exec: ExecFn = vi.fn(async () => "from-cli");
+    const value = await getScopedSecret("OPENAI_API_KEY", { OPENAI_API_KEY: "from-env", VANTA_SECRET_BACKEND: "bitwarden" }, exec);
+    expect(value).toBe("from-env");
+    expect(exec).not.toHaveBeenCalled();
+  });
+
+  it("fails closed before reading process.env when the active scope lacks a grant", async () => {
+    const exec: ExecFn = vi.fn(async () => "from-cli");
+    await expect(getScopedSecret(
+      "OPENAI_API_KEY",
+      { OPENAI_API_KEY: "from-env", VANTA_SECRET_SCOPE: "agent:worker-b" },
+      exec,
+      { grants: [{ name: "OPENAI_API_KEY", scopes: ["agent:worker-a"] }] },
+    )).rejects.toBeInstanceOf(SecretScopeError);
+    expect(exec).not.toHaveBeenCalled();
+  });
+
+  it("allows a scope-granted env secret after the grant check", async () => {
+    const value = await getScopedSecret(
+      "OPENAI_API_KEY",
+      { OPENAI_API_KEY: "from-env", VANTA_SECRET_SCOPE: "agent:worker-a" },
+      vi.fn(),
+      { grants: [{ name: "OPENAI_API_KEY", scopes: ["agent:worker-a"] }] },
+    );
+    expect(value).toBe("from-env");
+  });
+
+  it("allows instance-wide grants and explicit global allowlist entries", async () => {
+    await expect(getScopedSecret(
+      "OPENAI_API_KEY",
+      { OPENAI_API_KEY: "global", VANTA_SECRET_SCOPE: "loop:any" },
+      vi.fn(),
+      { grants: [{ name: "OPENAI_API_KEY", scopes: ["*"] }] },
+    )).resolves.toBe("global");
+
+    await expect(getScopedSecret(
+      "VANTA_HOME",
+      { VANTA_HOME: "/tmp/vanta", VANTA_SECRET_SCOPE: "loop:any" },
+      vi.fn(),
+      { grants: [] },
+    )).resolves.toBe("/tmp/vanta");
+  });
+
+  it("uses the configured backend only after the scope grant passes", async () => {
+    const exec: ExecFn = vi.fn(async () => "from-op");
+    const value = await getScopedSecret(
+      "op://vault/openai/key",
+      { VANTA_SECRET_BACKEND: "1password", VANTA_SECRET_SCOPE: "loop:release" },
+      exec,
+      { grants: [{ name: "op://vault/openai/key", scopes: ["loop:release"] }] },
+    );
+    expect(value).toBe("from-op");
+    expect(exec).toHaveBeenCalledWith("op", ["read", "op://vault/openai/key"]);
   });
 });

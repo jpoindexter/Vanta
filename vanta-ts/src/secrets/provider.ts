@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import { isSecretInScope, loadGrants, type SecretGrant } from "./scope.js";
 
 // SecretProvider port — fetch a secret AT USE TIME instead of persisting
 // plaintext. Mirrors api-key-helper.ts (external command + in-memory TTL cache),
@@ -13,6 +14,13 @@ export interface SecretProvider {
   id: string;
   /** Resolve a reference, e.g. "OPENAI_API_KEY" or "op://vault/item". */
   get(ref: string): Promise<string | null>;
+}
+
+export class SecretScopeError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "SecretScopeError";
+  }
 }
 
 /** How a backend fetches a secret: an env var, a CLI, or the macOS keychain. */
@@ -178,5 +186,52 @@ export async function getSecret(
   exec: ExecFn = defaultExec,
 ): Promise<string | null> {
   if (env[ref]) return env[ref] ?? null;
+  return resolveSecretProvider(env, exec).get(ref);
+}
+
+export const ACTIVE_SECRET_SCOPE_ENV = "VANTA_SECRET_SCOPE";
+
+export const GLOBAL_SECRET_ENV_ALLOWLIST = new Set([
+  "VANTA_SECRET_BACKEND",
+  "VANTA_HOME",
+]);
+
+export type ScopedSecretOptions = {
+  scope?: string | null;
+  grants?: readonly SecretGrant[];
+  globalAllowlist?: ReadonlySet<string>;
+};
+
+function activeScope(env: NodeJS.ProcessEnv, explicit?: string | null): string | null {
+  return (explicit ?? env[ACTIVE_SECRET_SCOPE_ENV] ?? "").trim() || null;
+}
+
+function assertScopeAllows(
+  ref: string,
+  scope: string,
+  grants: readonly SecretGrant[],
+  globalAllowlist: ReadonlySet<string>,
+): void {
+  if (globalAllowlist.has(ref)) return;
+  if (isSecretInScope(grants, ref, scope)) return;
+  throw new SecretScopeError(`Secret "${ref}" is not granted to active scope "${scope}".`);
+}
+
+/**
+ * Scope-aware secret lookup. Without an active scope it preserves legacy
+ * getSecret behavior; with VANTA_SECRET_SCOPE (or opts.scope), it checks grants
+ * before touching process.env or any backend. Missing/corrupt grants therefore
+ * fail closed instead of leaking a raw env var into another run.
+ */
+export async function getScopedSecret(
+  ref: string,
+  env: NodeJS.ProcessEnv,
+  exec: ExecFn = defaultExec,
+  opts: ScopedSecretOptions = {},
+): Promise<string | null> {
+  const scope = activeScope(env, opts.scope);
+  if (!scope) return getSecret(ref, env, exec);
+  const grants = opts.grants ?? await loadGrants(env);
+  assertScopeAllows(ref, scope, grants, opts.globalAllowlist ?? GLOBAL_SECRET_ENV_ALLOWLIST);
   return resolveSecretProvider(env, exec).get(ref);
 }

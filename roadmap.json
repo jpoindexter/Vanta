@@ -15305,7 +15305,7 @@
       "id": "OP-SECRET-SCOPE",
       "track": "Operator",
       "title": "Fail-closed profile-scoped secret resolution",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "For the future multi-profile/fleet-worker case: a per-task secret scope so worker A never reads worker B's keys; get_secret reads the active scope and RAISES (fail-closed) rather than falling back to process env when multiplexing, with a tight global-var allowlist. Platform-thinking before multi-profile users — park.",
       "done": "Captured for the fleet/multi-profile slice; the fail-closed-on-missing-scope discipline noted.",
@@ -15314,8 +15314,9 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-09",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-09. Existing secret grant storage already failed closed on missing/corrupt `secret-scopes.json`; this adds scoped lookup enforcement to `getScopedSecret`. When `VANTA_SECRET_SCOPE` or an explicit scope is active, Vanta now checks the grant list before reading process env or the configured backend, throws `SecretScopeError` if the secret is not granted to that scope, supports instance-wide `*` grants, and keeps a tight global env allowlist for non-secret runtime variables. Legacy `getSecret` behavior remains unchanged when no active scope is set. Verified with `npx vitest run src/secrets/provider.test.ts src/secrets/scope.test.ts --reporter=dot` (25 passed), `npm run typecheck`, `npm run vanta -- lint src/secrets/provider.ts src/secrets/provider.test.ts src/secrets/scope.ts src/secrets/scope.test.ts`, and direct smoke `node --import tsx -e ...` returning `fail-closed`."
     },
     {
       "id": "OP-BILLING-VIEW",
@@ -15331,8 +15332,8 @@
       "codex": "gpt-5.4",
       "lens": "infra",
       "updated": "2026-07-09",
-      "source": "ref-audit-2026-06-20",
-      "notes": "Shipped 2026-07-09. Added `vanta billing [status|json]` as a fail-open operator billing panel. It reads the durable spend ledger and scoped budgets, aggregates money as integer USD micros for display, reports estimated priced turns/tokens/providers, and explicitly marks provider-reported balance/quota/reset-window as unavailable until a real provider billing adapter exists. Verified with `npx vitest run src/cli/billing-cmd.test.ts src/cost/ledger.test.ts src/budget/store.test.ts --reporter=dot` (23 passed), `npm run typecheck`, `npm run vanta -- lint src/billing/status.ts src/cli/billing-cmd.ts src/cli/billing-cmd.test.ts src/cli/commands-table.ts src/cli/usage.ts`, and live CLI smoke `npm run vanta -- billing status`."
+      "notes": "Shipped 2026-07-09. Added `vanta billing [status|json]` as a fail-open operator billing panel. It reads the durable spend ledger and scoped budgets, aggregates money as integer USD micros for display, reports estimated priced turns/tokens/providers, and explicitly marks provider-reported balance/quota/reset-window as unavailable until a real provider billing adapter exists. Verified with `npx vitest run src/cli/billing-cmd.test.ts src/cost/ledger.test.ts src/budget/store.test.ts --reporter=dot` (23 passed), `npm run typecheck`, `npm run vanta -- lint src/billing/status.ts src/cli/billing-cmd.ts src/cli/billing-cmd.test.ts src/cli/commands-table.ts src/cli/usage.ts`, and live CLI smoke `npm run vanta -- billing status`.",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "OP-CHECKPOINT-ROLLBACK",
