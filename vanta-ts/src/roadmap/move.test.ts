@@ -89,6 +89,15 @@ describe("moveRoadmapItem", () => {
     expect(kanban.status).toBe("next");
   });
 
+  it("preserves each item's existing key order to avoid unrelated diff churn", async () => {
+    const original = { updated: "2026-01-01", items: [{ ...FIXTURE.items[0], source: "audit", updated: "2026-01-01", notes: "proof" }, { ...FIXTURE.items[1], notes: "proof", source: "audit" }] };
+    const root = await makeRoadmap(original);
+    await moveRoadmapItem(root, "ND2", "building");
+    const raw = await readFile(join(root, "roadmap.json"), "utf8");
+    const written = JSON.parse(raw) as typeof original;
+    expect(written.items.map(Object.keys)).toEqual(original.items.map(Object.keys));
+  });
+
   it("blocks moving to building while after dependencies are open", async () => {
     const root = await makeRoadmap({
       updated: "2026-01-01",

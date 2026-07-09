@@ -32,7 +32,8 @@ export async function moveRoadmapItem(
 ): Promise<RoadmapItem> {
   const src = join(repoRoot, "roadmap.json");
   const raw = await readFile(src, "utf8");
-  const data = RoadmapSchema.parse(JSON.parse(raw));
+  const original = JSON.parse(raw) as { updated: string; items: Array<Record<string, unknown>> };
+  const data = RoadmapSchema.parse(original);
 
   const item = data.items.find((i) => i.id === id);
   if (!item) {
@@ -47,9 +48,12 @@ export async function moveRoadmapItem(
 
   const fromStatus = item.status;
   item.status = toStatus;
-  data.updated = new Date().toISOString().slice(0, 10);
+  const originalItem = original.items.find((candidate) => candidate.id === id);
+  if (!originalItem) throw new Error(`no item with id '${id}' in roadmap.json`);
+  originalItem.status = toStatus;
+  original.updated = new Date().toISOString().slice(0, 10);
 
-  await writeFile(src, JSON.stringify(data, null, 2) + "\n", "utf8");
+  await writeFile(src, JSON.stringify(original, null, 2) + "\n", "utf8");
   await buildRoadmap(repoRoot);
 
   // Record velocity events best-effort — never fail the move on I/O errors.
