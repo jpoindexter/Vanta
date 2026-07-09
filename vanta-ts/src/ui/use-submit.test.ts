@@ -18,15 +18,16 @@ function harness(opts: boolean | Partial<SubmitDeps> = false): {
   send: ReturnType<typeof vi.fn>;
   dispatch: ReturnType<typeof vi.fn>;
   openOverlay: ReturnType<typeof vi.fn>;
+  openGlobalSearch: ReturnType<typeof vi.fn>;
   detachBackgroundResponse: ReturnType<typeof vi.fn>;
 } {
-  const runSlash = vi.fn(), send = vi.fn(), dispatch = vi.fn(), openOverlay = vi.fn(), detachBackgroundResponse = vi.fn();
+  const runSlash = vi.fn(), send = vi.fn(), dispatch = vi.fn(), openOverlay = vi.fn(), openGlobalSearch = vi.fn(), detachBackgroundResponse = vi.fn();
   const overrides = typeof opts === "boolean" ? { busy: opts } : opts;
   const deps: SubmitDeps = {
-    runSlash, send, openOverlay, busy: false, safety: allowSafety,
+    runSlash, send, openOverlay, openGlobalSearch, busy: false, safety: allowSafety,
     repoRoot: process.cwd(), dispatch, detachBackgroundResponse, ...overrides,
   };
-  return { onSubmit: useSubmit(deps), runSlash, send, dispatch, openOverlay, detachBackgroundResponse };
+  return { onSubmit: useSubmit(deps), runSlash, send, dispatch, openOverlay, openGlobalSearch, detachBackgroundResponse };
 }
 
 describe("useSubmit routing", () => {
@@ -55,6 +56,13 @@ describe("useSubmit routing", () => {
     const h = harness();
     h.onSubmit("?");
     expect(h.openOverlay).toHaveBeenCalledWith("help");
+  });
+
+  it("opens global session search on /searchall", () => {
+    const h = harness();
+    h.onSubmit("/searchall");
+    expect(h.openGlobalSearch).toHaveBeenCalledTimes(1);
+    expect(h.runSlash).not.toHaveBeenCalled();
   });
 
   it("sends plain text (no @refs) straight through", async () => {

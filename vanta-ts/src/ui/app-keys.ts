@@ -29,6 +29,7 @@ type GlobalKeyDeps = {
   abort: () => void; exit: () => void; cycle: () => void;
   focus: FocusTarget; focusTargets: FocusTargetSpec[]; setFocus: (target: FocusTarget) => void;
   quickOpenOpen: boolean; openQuickOpen: () => void;
+  globalSearchOpen: boolean; openGlobalSearch: () => void;
   /** Set only while a teammate tree is live; cycles focus between agents. */
   cycleAgent?: (dir: 1 | -1) => void;
   /** KEYBINDING-CUSTOMIZATION: resolved bindings (defaults + user overrides).
@@ -63,10 +64,11 @@ export function handleGlobalKey(input: string, key: GlobalKey, d: GlobalKeyDeps)
 
 // action → {guard, run}. `notBlocked` = no pending/overlay owns input. Keeping
 // this a table holds dispatchGlobalAction flat (one lookup, not a guard chain).
-const notBlocked = (d: GlobalKeyDeps): boolean => !d.quickOpenOpen && !d.pending && !d.overlayOpen;
+const notBlocked = (d: GlobalKeyDeps): boolean => !d.quickOpenOpen && !d.globalSearchOpen && !d.pending && !d.overlayOpen;
 const GLOBAL_HANDLERS: Record<string, { guard: (d: GlobalKeyDeps) => boolean; run: (d: GlobalKeyDeps) => void }> = {
   [GLOBAL_ACTIONS.exitOrAbort]: { guard: () => true, run: (d) => void (d.busy ? d.abort() : d.exit()) },
   [GLOBAL_ACTIONS.quickOpen]: { guard: notBlocked, run: (d) => d.openQuickOpen() },
+  [GLOBAL_ACTIONS.globalSearch]: { guard: notBlocked, run: (d) => d.openGlobalSearch() },
   [GLOBAL_ACTIONS.cycleAgentNext]: { guard: (d) => Boolean(d.cycleAgent), run: (d) => d.cycleAgent?.(1) },
   [GLOBAL_ACTIONS.cycleAgentPrev]: { guard: (d) => Boolean(d.cycleAgent), run: (d) => d.cycleAgent?.(-1) },
   [GLOBAL_ACTIONS.interrupt]: { guard: (d) => d.busy && !d.pending && !d.overlayOpen, run: (d) => d.abort() },
@@ -114,11 +116,11 @@ export function useQueueDrain(busy: boolean, queued: string[], dispatch: Dispatc
  * otherwise so the global-key handler ignores the arrows. */
 export function useTeammateFocus(
   count: number,
-  ctx: { busy: boolean; pending: Pending | null; overlay: OverlayView | null; quickOpen: boolean },
+  ctx: { busy: boolean; pending: Pending | null; overlay: OverlayView | null; quickOpen: boolean; globalSearch?: boolean },
 ): { selectedAgent: number; cycleAgent?: (dir: 1 | -1) => void } {
   const [selectedAgent, setSelectedAgent] = useState<number>(LEADER_INDEX);
   useEffect(() => { setSelectedAgent((i) => clampAgentIndex(i, count)); }, [count]);
-  const live = ctx.busy && count >= 2 && !ctx.pending && ctx.overlay === null && !ctx.quickOpen;
+  const live = ctx.busy && count >= 2 && !ctx.pending && ctx.overlay === null && !ctx.quickOpen && !ctx.globalSearch;
   const cycleAgent = live
     ? (dir: 1 | -1): void => setSelectedAgent((i) => (dir > 0 ? nextAgentIndex(i, count) : prevAgentIndex(i, count)))
     : undefined;

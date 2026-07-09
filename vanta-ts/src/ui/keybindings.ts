@@ -11,6 +11,7 @@ import type { KeyBinding } from "./keybinding-warnings.js";
 export const GLOBAL_ACTIONS = {
   exitOrAbort: "global.exitOrAbort",
   quickOpen: "global.quickOpen",
+  globalSearch: "global.globalSearch",
   interrupt: "global.interrupt",
   cycleAgentNext: "global.cycleAgentNext",
   cycleAgentPrev: "global.cycleAgentPrev",
@@ -20,6 +21,7 @@ export const GLOBAL_ACTIONS = {
 export const DEFAULT_BINDINGS: KeyBinding[] = [
   { action: GLOBAL_ACTIONS.exitOrAbort, chord: "ctrl+c", context: "global" },
   { action: GLOBAL_ACTIONS.quickOpen, chord: "ctrl+p", context: "global" },
+  { action: GLOBAL_ACTIONS.globalSearch, chord: "ctrl+shift+p", context: "global" },
   { action: GLOBAL_ACTIONS.interrupt, chord: "escape", context: "global" },
   { action: GLOBAL_ACTIONS.cycleAgentNext, chord: "shift+right", context: "global" },
   { action: GLOBAL_ACTIONS.cycleAgentPrev, chord: "shift+left", context: "global" },

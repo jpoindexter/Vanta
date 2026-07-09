@@ -11,6 +11,7 @@ function deps(over: Record<string, unknown> = {}) {
     abort: vi.fn(), exit: vi.fn(), cycle: vi.fn(),
     focus: "composer" as const, focusTargets: [], setFocus: vi.fn(),
     quickOpenOpen: false, openQuickOpen: vi.fn(),
+    globalSearchOpen: false, openGlobalSearch: vi.fn(),
     cycleAgent: vi.fn(),
     bindings: DEFAULT_BINDINGS,
     ...over,
@@ -30,6 +31,13 @@ describe("handleGlobalKey — default bindings", () => {
     expect(open.openQuickOpen).toHaveBeenCalled();
     const blocked = deps({ overlayOpen: true }); handleGlobalKey("p", { ctrl: true }, blocked as never);
     expect(blocked.openQuickOpen).not.toHaveBeenCalled();
+  });
+
+  it("ctrl+shift+p opens global session search when nothing else owns input", () => {
+    const open = deps(); handleGlobalKey("p", { ctrl: true, shift: true }, open as never);
+    expect(open.openGlobalSearch).toHaveBeenCalled();
+    const blocked = deps({ quickOpenOpen: true }); handleGlobalKey("p", { ctrl: true, shift: true }, blocked as never);
+    expect(blocked.openGlobalSearch).not.toHaveBeenCalled();
   });
 
   it("escape interrupts only when busy", () => {

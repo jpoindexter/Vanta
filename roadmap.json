@@ -15777,7 +15777,7 @@
       "id": "GLOBAL-SEARCH-OPEN-TRIGGER",
       "track": "Operator",
       "title": "Wire GlobalSearchDialog open trigger (app.tsx slot + keybinding)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "VANTA-GLOBAL-SEARCH-UI shipped searchSessions + GlobalSearchDialog (built+tested) but no open trigger. Add a /searchall slash + handler and an overlay slot in ui/app.tsx LiveBody (state flag + a Ctrl-key in useGlobalKeys, onSelect -> /resume <id>), mirroring the existing QuickOpen wiring. The dialog uses the QuickOpen prop shape so it drops in.",
       "done": "A keybinding/slash opens GlobalSearchDialog over all sessions; selecting a result resumes that session; the overlay mounts/unmounts cleanly in app.tsx; render-tested.",

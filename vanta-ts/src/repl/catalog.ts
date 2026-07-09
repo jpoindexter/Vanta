@@ -52,6 +52,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "compress", desc: "compact the conversation context now" },
   { name: "compact", arg: "[instructions]", desc: "compact context now (alias of /compress; optional steer)" },
   { name: "sessions", desc: "list saved sessions" },
+  { name: "searchall", desc: "search across all saved sessions (TUI)" },
   { name: "resume", arg: "<id>", desc: "load a past session into this conversation" },
   { name: "title", arg: "<name>", desc: "name the current session" },
   { name: "fork", desc: "branch the current conversation into a new session" },

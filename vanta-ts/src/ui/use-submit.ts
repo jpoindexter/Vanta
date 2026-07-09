@@ -14,6 +14,7 @@ export type SubmitDeps = {
   runSlash: (line: string) => void;
   send: (text: string) => void;
   openOverlay: (kind: OverlayKind) => void;
+  openGlobalSearch?: () => void;
   busy: boolean;
   backgroundBusy?: boolean;
   safety: KernelClient;
@@ -42,6 +43,7 @@ export function useSubmit(deps: SubmitDeps): (text: string) => void {
     if (text === "?") return deps.openOverlay("help");
     if (isSlashLine(text)) {
       if (deps.busy && slashHead(text) === "bg" && deps.detachBackgroundResponse) return deps.detachBackgroundResponse();
+      if (slashHead(text) === "searchall" && !text.slice("/searchall".length).trim() && deps.openGlobalSearch) return deps.openGlobalSearch();
       const kind = pickerFor(text);
       return kind ? deps.openOverlay(kind) : deps.runSlash(text);
     }
