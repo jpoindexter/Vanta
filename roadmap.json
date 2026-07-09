@@ -5035,7 +5035,7 @@
       "id": "GHOST-OS-MCP",
       "track": "Operator",
       "title": "Ghost OS MCP backend — AX-tree native desktop control + learned recipes",
-      "status": "horizon",
+      "status": "parked",
       "size": "M",
       "summary": "Add Ghost OS as an optional, vetted computer-use backend rather than a core dependency. Source signal: Ghost OS is a native macOS MCP server for computer-use that reads the Accessibility tree first, falls back to local ShowUI-2B vision when AX is insufficient, exposes 29 MCP tools, and can record user-performed workflows into transparent JSON recipes. Vanta already has kernel-gated desktop control and CHICAGO MCP routing, so the right slice is install/probe/allowlist/recipe-bridge, not a parallel unchecked action path.",
       "done": "vanta control doctor detects a Ghost OS install and surfaces ghost doctor results; vanta mcp install ghost-os writes a read-mostly allowlist by default; Vanta can list/show/run Ghost recipes through kernel-gated MCP calls; mutating AX/click/type tools require explicit opt-in approval; at least one live macOS recipe run is verified end-to-end.",
@@ -5045,7 +5045,7 @@
       "codex": "gpt-5.4",
       "lens": "reach",
       "updated": "2026-07-09",
-      "notes": "FIRST TS SLICE SHIPPED 2026-07-09: Vanta now has a TypeScript Ghost OS integration contract (vanta-ts/src/mcp/ghost-os.ts), a vetted `vanta mcp install ghost-os` catalog entry, and `vanta control doctor` detects installed Ghost status without making it required. Source considered from https://github.com/ghostwright/ghost-os. Remaining before marking this full card shipped: live install/probe of the real Ghost MCP server, explicit opt-in of mutating tools under kernel approval, and one verified macOS recipe run end-to-end. Do not vendor Shadow/Specter or bypass Vanta's desktop-control boundary."
+      "notes": "PARKED 2026-07-09 after local verification showed `ghost` is not installed here, so the real Ghost MCP server and recipe flow were not live-verified. Removed the TypeScript catalog/control-doctor integration from Vanta for now. Revisit only after installing Ghost OS, mounting it in a scratch Vanta config, and proving one harmless recipe end-to-end under kernel approval. Source considered from https://github.com/ghostwright/ghost-os."
     },
     {
       "id": "VANTA-CHICAGO-MCP",

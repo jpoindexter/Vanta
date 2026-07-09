@@ -1,5 +1,4 @@
 import type { ServerSpec } from "./mount-config.js";
-import { GHOST_OS_DEFAULT_TOOLS, GHOST_OS_OPT_IN_TOOLS } from "./ghost-os.js";
 
 // EXT-MCP-CATALOG — a small VETTED catalog of MCP servers + `vanta mcp install
 // <name>`, so mounting isn't raw-config surgery. Each entry declares its
@@ -54,15 +53,6 @@ export const MCP_CATALOG: McpCatalogEntry[] = [
     args: ["-y", "@modelcontextprotocol/server-fetch"],
     defaultTools: ["fetch"],
     docsUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/fetch",
-  },
-  {
-    name: "ghost-os",
-    description: "Native macOS computer-use via Ghost OS (AX tree, vision fallback, recipes).",
-    command: "ghost",
-    args: ["mcp"],
-    defaultTools: [...GHOST_OS_DEFAULT_TOOLS],
-    optInTools: [...GHOST_OS_OPT_IN_TOOLS],
-    docsUrl: "https://github.com/ghostwright/ghost-os",
   },
 ];
 

@@ -30,69 +30,30 @@ export type DesktopDoctor = {
   screencapture: boolean;
   cliclick: boolean;
   ready: boolean;
-  ghostOs: GhostOsDoctor;
   notes: string[];
 };
-
-/** Optional Ghost OS backend readiness. Ghost is useful, but not required. */
-export type GhostOsDoctor = {
-  present: boolean;
-  ready: boolean;
-  status?: string;
-  notes: string[];
-};
-
-export function ghostOsDoctor(run: CmdRunner = realRun, platform: NodeJS.Platform = process.platform): GhostOsDoctor {
-  const notes: string[] = [];
-  const present = toolPresent(run, "ghost");
-  if (!present) {
-    notes.push("Ghost OS not installed — optional backend; install with `brew install ghostwright/ghost-os/ghost-os` if you want AX-tree MCP control.");
-    return { present, ready: false, notes };
-  }
-  if (platform !== "darwin") notes.push("Ghost OS is macOS-only.");
-  try {
-    const status = run("ghost", ["status"]);
-    const ready = platform === "darwin" && /Status:\s*Ready/i.test(status);
-    if (!ready) notes.push("Ghost OS is installed but not ready — run `ghost setup` or `ghost doctor`.");
-    return { present, ready, status: status.trim(), notes };
-  } catch {
-    notes.push("Ghost OS is installed, but `ghost status` failed — run `ghost doctor`.");
-    return { present, ready: false, notes };
-  }
-}
 
 /** Probe the native desktop-control deps (screencapture + cliclick). Pure-ish. */
 export function desktopControlDoctor(run: CmdRunner = realRun, platform: NodeJS.Platform = process.platform): DesktopDoctor {
   const screencapture = platform === "darwin" && toolPresent(run, "screencapture");
   const cliclick = toolPresent(run, "cliclick");
-  const ghostOs = ghostOsDoctor(run, platform);
   const notes: string[] = [];
   if (platform !== "darwin") notes.push("Native desktop control is macOS-only right now.");
   if (!cliclick) notes.push("cliclick missing — install the click helper: brew install cliclick");
   if (platform === "darwin") notes.push("Grant Screen Recording + Accessibility to your terminal (run `vanta control` to open both panes).");
-  return { os: platform, screencapture, cliclick, ghostOs, ready: screencapture && cliclick, notes };
+  return { os: platform, screencapture, cliclick, ready: screencapture && cliclick, notes };
 }
 
 /** Render the doctor report. */
 export function formatDoctor(d: DesktopDoctor): string {
   const yn = (b: boolean): string => (b ? "✓" : "✗");
-  const lines = [
+  return [
     "Desktop control (native vision_action — screencapture → ground → cliclick):",
     `  ${yn(d.screencapture)} screencapture  (built-in macOS screen capture)`,
     `  ${yn(d.cliclick)} cliclick       (mouse + keyboard actuation)`,
     `  ${d.ready ? "✓ READY — Vanta can see your screen and click/type on it" : "✗ not ready yet"}`,
     ...d.notes.map((n) => `  • ${n}`),
-  ];
-  if (d.ghostOs.present) {
-    lines.push(
-      "",
-      "Ghost OS (optional MCP backend — AX tree + recipes):",
-      `  ${yn(d.ghostOs.ready)} ${d.ghostOs.ready ? "READY" : "installed, not ready"}`,
-      ...d.ghostOs.notes.map((n) => `  • ${n}`),
-      "  • Install into Vanta with: vanta mcp install ghost-os",
-    );
-  }
-  return lines.join("\n");
+  ].join("\n");
 }
 
 /** Injected seams for {@link runControlCommand}. */

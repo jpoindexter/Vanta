@@ -16,30 +16,6 @@ describe("catalog", () => {
     expect(catalogEntry("github")?.description).toContain("GitHub");
     expect(catalogEntry("nope")).toBeUndefined();
   });
-
-  it("ghost-os defaults to perception/status tools and keeps desktop actions opt-in", () => {
-    const ghost = catalogEntry("ghost-os")!;
-    const r = buildInstallSpec(ghost);
-    expect(r.ok).toBe(true);
-    if (r.ok) {
-      expect(r.spec.command).toBe("ghost");
-      expect(r.spec.args).toEqual(["mcp"]);
-      expect(r.spec.tools).toContain("ghost_context");
-      expect(r.spec.tools).toContain("ghost_recipes");
-      expect(r.spec.tools).toContain("ghost_learn_status");
-      expect(r.spec.tools).not.toContain("ghost_click");
-      expect(r.spec.tools).not.toContain("ghost_type");
-      expect(r.spec.tools).not.toContain("ghost_run");
-      expect(r.spec.tools).not.toContain("ghost_recipe_delete");
-      expect(r.spec.tools).not.toContain("ghost_learn_start");
-    }
-  });
-
-  it("ghost-os can opt into a mutating desktop tool explicitly", () => {
-    const ghost = catalogEntry("ghost-os")!;
-    const r = buildInstallSpec(ghost, ["ghost_click"]);
-    expect(r.ok && r.spec.tools?.includes("ghost_click")).toBe(true);
-  });
 });
 
 describe("buildInstallSpec", () => {
