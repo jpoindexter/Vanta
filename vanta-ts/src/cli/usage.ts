@@ -59,7 +59,7 @@ const USAGE_LINES = [
       "       vanta roadmap                      build roadmap.html from roadmap.json and open it",
       "       vanta roadmap move <id> <status> [--force]   move an item (shipped|building|next|horizon)",
       "       vanta roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
-      "       vanta desktop [port]                start local desktop command center",
+      "       vanta desktop [port] [--companion]  start desktop; opt into token-paired LAN companion access",
       "       vanta audit                        npm + cargo dependency security scan",
       "       vanta lint [files|--staged]        code-size gate: file≤300 fn≤50 params≤4 complexity≤10",
       "       vanta model [list | <provider> [<model>]]  show or switch the active provider/model",

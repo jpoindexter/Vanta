@@ -16215,7 +16215,7 @@
       "id": "COMPANION-PRESENCE",
       "track": "Operator",
       "title": "Ambient presence — macOS menu-bar + mobile companion node",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "Vanta has an Electron desktop app but isn't ambient. Add a menu-bar/tray presence (quick ask, status, recent activity, approve-from-tray) and a lightweight mobile companion node — so Vanta is always reachable, like a reference agent harness's Windows Hub / macOS menu bar / mobile nodes. Jarvis is present, not launched.",
       "done": "A macOS menu-bar app shows status + lets you ask/approve without opening a terminal; a mobile node can reach the running gateway; both gate actions through the kernel.",

@@ -19,6 +19,7 @@ describe("desktop native shell planning", () => {
       port: 7799,
       url: "http://127.0.0.1:7799",
       openBrowser: false,
+      companion: false,
     });
   });
 
@@ -26,6 +27,7 @@ describe("desktop native shell planning", () => {
     const plan = parseNativeShellArgs(["7788", "--smoke"], { VANTA_NODE: "/usr/local/bin/node" });
     expect(plan.smoke).toBe(true);
     expect(plan.nodeBin).toBe("/usr/local/bin/node");
-    expect(desktopServerArgs(plan)).toEqual(["--import", "tsx", "src/cli.ts", "desktop", "7788", "--no-open"]);
+    expect(plan.companion).toBe(true);
+    expect(desktopServerArgs(plan)).toEqual(["--import", "tsx", "src/cli.ts", "desktop", "7788", "--no-open", "--companion"]);
   });
 });

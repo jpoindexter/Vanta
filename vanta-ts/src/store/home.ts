@@ -18,6 +18,7 @@ const GITIGNORE_ENTRIES = [
   "*-qids.json",
   "*.key",
   "*-tokens.json",
+  "companion-pairing.json",
   ".env",
   ".env.*",
 ] as const;

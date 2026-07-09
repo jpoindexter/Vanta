@@ -28,7 +28,7 @@ function contentType(path: string): string {
 
 function assetPath(repoRoot: string, pathname: string): string | null {
   const dist = desktopDist(repoRoot);
-  const rel = pathname === "/" ? "index.html" : decodeURIComponent(pathname).replace(/^\/+/, "");
+  const rel = pathname === "/" || pathname === "/companion" ? "index.html" : decodeURIComponent(pathname).replace(/^\/+/, "");
   const full = normalize(join(dist, rel));
   return relative(dist, full).startsWith("..") ? null : full;
 }
@@ -39,7 +39,7 @@ export async function resolveDesktopAsset(repoRoot: string, pathname: string): P
   try {
     return { kind: "file", contentType: contentType(path), body: await readFile(path) };
   } catch {
-    if (pathname === "/") {
+    if (pathname === "/" || pathname === "/companion") {
       return { kind: "fallback", contentType: "text/html; charset=utf-8", body: Buffer.from(desktopHtml(), "utf8") };
     }
     return { kind: "missing" };
@@ -47,7 +47,7 @@ export async function resolveDesktopAsset(repoRoot: string, pathname: string): P
 }
 
 export async function writeDesktopAsset(repoRoot: string, pathname: string, res: ServerResponse): Promise<boolean> {
-  if (pathname !== "/" && !pathname.startsWith("/assets/")) return false;
+  if (pathname !== "/" && pathname !== "/companion" && !pathname.startsWith("/assets/")) return false;
   const asset = await resolveDesktopAsset(repoRoot, pathname);
   if (asset.kind === "missing") return false;
   res.writeHead(200, { "content-type": asset.contentType });

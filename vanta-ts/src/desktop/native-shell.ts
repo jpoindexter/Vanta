@@ -4,6 +4,7 @@ export type DesktopLaunchPlan = {
   port: number;
   url: string;
   openBrowser: boolean;
+  companion: boolean;
 };
 
 export type NativeShellPlan = DesktopLaunchPlan & {
@@ -28,6 +29,7 @@ export function parseDesktopLaunchArgs(args: string[], env: NodeJS.ProcessEnv = 
     port,
     url: desktopUrl(port),
     openBrowser: !args.includes("--no-open"),
+    companion: args.includes("--companion") || env.VANTA_COMPANION === "1",
   };
 }
 
@@ -35,6 +37,7 @@ export function parseNativeShellArgs(args: string[], env: NodeJS.ProcessEnv = pr
   const base = parseDesktopLaunchArgs(args, env);
   return {
     ...base,
+    companion: !args.includes("--no-companion"),
     smoke: args.includes("--smoke"),
     devtools: args.includes("--devtools"),
     nodeBin: env.VANTA_NODE || "node",
@@ -42,5 +45,5 @@ export function parseNativeShellArgs(args: string[], env: NodeJS.ProcessEnv = pr
 }
 
 export function desktopServerArgs(plan: DesktopLaunchPlan): string[] {
-  return ["--import", "tsx", "src/cli.ts", "desktop", String(plan.port), "--no-open"];
+  return ["--import", "tsx", "src/cli.ts", "desktop", String(plan.port), "--no-open", ...(plan.companion ? ["--companion"] : [])];
 }

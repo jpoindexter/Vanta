@@ -6,7 +6,7 @@ export async function runDesktopCommand(repoRoot: string, rest: string[]): Promi
   const launch = parseDesktopLaunchArgs(rest, process.env);
   const { serveDesktop } = await import("../desktop/server.js");
   if (!launch.openBrowser) {
-    await serveDesktop(repoRoot, launch.port);
+    await serveDesktop(repoRoot, launch.port, launch.companion);
     return;
   }
   setTimeout(() => {
@@ -14,7 +14,7 @@ export async function runDesktopCommand(repoRoot: string, rest: string[]): Promi
       try { execSync(`open "${launch.url}"`); } catch {}
     });
   }, 300);
-  await serveDesktop(repoRoot, launch.port);
+  await serveDesktop(repoRoot, launch.port, launch.companion);
 }
 
 export async function runFactoryCommand(repoRoot: string, sub: string): Promise<void> {

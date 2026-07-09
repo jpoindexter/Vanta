@@ -28,6 +28,8 @@ describe("desktop-app package surface", () => {
     const sourceFiles = ["App.tsx", "chat.tsx", "rail.tsx", "canvas.tsx", "overlays.tsx"];
     const app = (await Promise.all(sourceFiles.map((file) => readFile(join(root, "desktop-app", "src", file), "utf8")))).join("\n");
     const main = await readFile(join(root, "desktop-app", "src", "main.tsx"), "utf8");
+    const native = await readFile(join(root, "desktop-app", "electron", "main.mjs"), "utf8");
+    const tray = await readFile(join(root, "desktop-app", "electron", "tray.mjs"), "utf8");
 
     await expect(access(join(root, "desktop-app", "electron", "main.mjs"))).resolves.toBeUndefined();
     expect(app).toContain("function AppShell");
@@ -41,5 +43,10 @@ describe("desktop-app package surface", () => {
     expect(app).toContain("function ApprovalOverlay");
     expect(app).toContain("function TerminalPanel");
     expect(main).toContain("createRoot");
+    expect(main).toContain("CompanionApp");
+    expect(native).toContain("createTrayController");
+    expect(tray).toContain("Quick Ask");
+    expect(tray).toContain("Approval waiting");
+    expect(tray).toContain("Pair mobile");
   });
 });

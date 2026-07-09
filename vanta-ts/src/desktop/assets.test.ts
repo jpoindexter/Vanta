@@ -50,4 +50,11 @@ describe("desktop app assets", () => {
     expect(asset.contentType).toBe("text/javascript; charset=utf-8");
     expect(asset.body.toString("utf8")).toContain("desktop");
   });
+
+  it("serves the same app shell at the companion route", async () => {
+    const { resolveDesktopAsset } = await import("./assets.js");
+    const asset = await resolveDesktopAsset(join(process.cwd(), ".."), "/companion");
+    expect(asset.kind).not.toBe("missing");
+    if (asset.kind !== "missing") expect(asset.body.toString("utf8")).toContain("id=\"root\"");
+  });
 });

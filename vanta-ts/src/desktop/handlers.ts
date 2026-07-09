@@ -19,6 +19,9 @@ export { approvalDecision, type PendingApproval } from "./approval.js";
 export type DesktopEvent = { label: string; ok?: boolean };
 export type DesktopState = {
   setup?: RunSetup;
+  _setupPromise?: Promise<RunSetup>;
+  _setupError?: { message: string; at: number };
+  _chatActive?: boolean;
   convo?: Conversation;
   root: string;
   sessionId?: string;
@@ -68,7 +71,13 @@ function attachConversation(state: DesktopState, setup: RunSetup, history?: Para
 }
 
 async function ensureDesktopConversation(state: DesktopState): Promise<Required<Pick<DesktopState, "setup" | "convo" | "root">> & DesktopState> {
-  if (!state.setup) state.setup = await prepareRun(state.root, "desktop interface session");
+  if (!state.setup) {
+    if (state._setupError && Date.now() - state._setupError.at < 30_000) throw new Error(state._setupError.message);
+    state._setupPromise ??= prepareRun(state.root, "desktop interface session");
+    try { state.setup = await state._setupPromise; state._setupError = undefined; }
+    catch (error) { state._setupError = { message: (error as Error).message, at: Date.now() }; throw error; }
+    finally { state._setupPromise = undefined; }
+  }
   if (!state.sessionId) { state.sessionId = newSessionId(); state.sessionStarted = new Date().toISOString(); }
   if (!state.convo) attachConversation(state, state.setup);
   return state as Required<Pick<DesktopState, "setup" | "convo" | "root">> & DesktopState;
@@ -181,13 +190,15 @@ export async function handleTerminal(state: DesktopState, req: http.IncomingMess
 }
 
 export async function handleChat(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  if (state._chatActive) return sendJson(res, 409, { error: "a turn is already running" });
   const body = await readJson(req) as { message?: unknown };
   const message = typeof body.message === "string" ? body.message.trim() : "";
   if (!message) return sendJson(res, 400, { error: "message is required" });
-  const live = await ensureDesktopConversation(state);
+  state._chatActive = true;
   const events: DesktopEvent[] = [];
   state.currentEvents = events;
   try {
+    const live = await ensureDesktopConversation(state);
     const outcome = await live.convo.send(message, undefined, undefined);
     await writeRunMemory({ provider: live.setup.provider, goals: live.setup.goals, instruction: message, finalText: outcome.finalText });
     await persistActiveSession(state);
@@ -195,5 +206,6 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
     sendJson(res, 200, { finalText: outcome.finalText, events, usage: outcome.usage, sessionId: state.sessionId });
   } finally {
     state.currentEvents = undefined;
+    state._chatActive = false;
   }
 }
