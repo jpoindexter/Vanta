@@ -349,7 +349,7 @@
       "id": "INTENT-SPEC-RECOVERY",
       "track": "Solutioning",
       "title": "Intent/spec recovery from code + intent-drift detection",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "Reverse-engineer a spec/intent from existing code, treat intent as a first-class review artifact, and detect intent drift in CI. Community signal (OpenClaw/Hermes X thread 2026-06-22), @br1lk_dev (usecoherence.dev): \"reverse engineer intent from code, develop it with intent as a first-class review artifact, prevent intent drift through CI.\" Aligns with the goal ledger + FAC-INTENT + verification locks; the code-archaeology direction.",
       "done": "vanta extracts a structured intent/spec from a target file/module, stores it as a reviewable artifact, and flags when a later change drifts from it; tested on a fixture repo.",
