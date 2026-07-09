@@ -9,6 +9,7 @@ import { peekLoopWakeCount, drainLoopWakes } from "../loop/wake.js";
 import { loadDef } from "../loop/store.js";
 import { getBudget } from "../budget/store.js";
 import { isExceeded } from "../budget/types.js";
+import { decideAutonomy, loadAutonomyContract, logAutonomyDecision } from "../autonomy/contract.js";
 
 // `vanta proactive` — KAIROS heartbeat. `status` shows the throttle + whether it
 // would tick now; `run` fires one throttled pickup of queued loop wakes, then
@@ -26,10 +27,20 @@ async function budgetExceededFor(dataDir: string, scope: string): Promise<boolea
 async function fireQueuedWakes(repoRoot: string, dataDir: string, log: (m: string) => void): Promise<number> {
   const wakes = await drainLoopWakes(dataDir);
   const runTask = buildCronRunTask(repoRoot);
+  const contract = await loadAutonomyContract(dataDir);
   let ran = 0;
   for (const wake of wakes) {
     const def = await loadDef(dataDir, wake.goal_id);
     if (!def || def.status !== "active") { log(`skip ${wake.goal_id} (not active)`); continue; }
+    const decision = decideAutonomy(contract, {
+      kind: "proactive.loop.advance",
+      summary: `advance loop ${def.id}: ${def.goal}`,
+      risk: "low",
+      source: "vanta proactive run",
+    });
+    await logAutonomyDecision(dataDir, decision);
+    if (decision.lane !== "acts-alone") { log(`${decision.lane} ${def.id} by ${decision.ruleId}`); continue; }
+    log(`acts-alone ${def.id} by ${decision.ruleId}`);
     await runTask(`Proactively advance loop ${def.id}: ${def.goal}`, wake);
     ran += 1;
   }

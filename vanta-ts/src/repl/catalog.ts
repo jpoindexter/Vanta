@@ -5,6 +5,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "what-can-i-do", desc: "show concrete runnable workflows for this Vanta install" },
   { name: "diagnose-crash", arg: "<report|--demo greg-uitests>", desc: "diagnose a pasted macOS/iOS/build crash log with cited evidence" },
   { name: "spec-to-app", arg: "<spec|--demo posture>", desc: "build a verified React/Tailwind preview from a product spec" },
+  { name: "autonomy", arg: "[decide <kind> <risk> <summary>]", desc: "show the acts-alone / queues / wakes-me contract" },
   { name: "clear", desc: "start a fresh conversation (keeps the session log)" },
   { name: "reset", desc: "start a fresh conversation (alias of /clear)" },
   { name: "history", desc: "show this conversation's transcript" },

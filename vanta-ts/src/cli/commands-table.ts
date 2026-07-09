@@ -86,6 +86,7 @@ import { runWhatCanIDoCommand } from "./what-can-i-do-cmd.js";
 import { runHomeCommand } from "./home-cmd.js";
 import { runCrashDiagnoseCommand } from "./crash-diagnose-cmd.js";
 import { runSpecToAppCommand } from "./spec-to-app-cmd.js";
+import { runAutonomyCommand } from "./autonomy-cmd.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
@@ -100,6 +101,7 @@ export const COMMANDS: Record<string, CommandFn> = {
   "what-can-i-do": (root, rest) => runWhatCanIDoCommand(rest, dataDirFor(root)),
   "diagnose-crash": (_root, rest) => runCrashDiagnoseCommand(rest),
   "spec-to-app": (root, rest) => runSpecToAppCommand(root, rest),
+  autonomy: (root, rest) => runAutonomyCommand(root, rest),
   home: (root) => runHomeCommand(dataDirFor(root)),
   setup: async (root, rest) => { if (rest[0] === "messaging") await runMessagingSetup(root); else if (rest[0] === "tts") await runTtsSetup(root); else if (rest[0] === "model") await runSetup(root); else await runFullSetup(root); },
   status: (_root, rest) => runStatus(process.env, rest),
