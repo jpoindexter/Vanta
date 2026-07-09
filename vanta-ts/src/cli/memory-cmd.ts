@@ -14,8 +14,23 @@ async function runMemoryForget(rest: string[]): Promise<void> {
   console.log(formatForgetSummary(results, before, after));
 }
 
+async function runVaultCompile(rest: string[]): Promise<void> {
+  const rawDir = rest[1];
+  const vaultIdx = rest.indexOf("--vault");
+  const vault = vaultIdx === -1 ? null : rest[vaultIdx + 1];
+  if (!rawDir || !vault) {
+    console.log("usage: vanta memory vault-compile <raw-dir> --vault <vault-dir> [--apply]");
+    return;
+  }
+  const { compileVault } = await import("../brain/vault-compile.js");
+  const result = await compileVault(rawDir, vault, { apply: rest.includes("--apply") });
+  console.log(`${rest.includes("--apply") ? "applied" : "review"} vault compile: ${result.changed.length} changed file(s), ${result.rawFiles.length} raw source(s)`);
+  console.log(result.diff);
+}
+
 export async function runMemoryCommand(rest: string[]): Promise<void> {
   const sub = rest[0];
+  if (sub === "vault-compile") return runVaultCompile(rest);
   if (sub === "search") {
     const query = rest.slice(1).join(" ").trim();
     if (!query) { console.log("usage: vanta memory search <query>"); return; }
@@ -33,5 +48,5 @@ export async function runMemoryCommand(rest: string[]): Promise<void> {
     for (const f of fp.files) console.log(`  goal ${f.goalId}: ${f.bytes}B, ${f.blocks} block(s)`);
     return;
   }
-  console.log("usage: vanta memory search <query> | vanta memory forget [ttl-days] | vanta memory footprint");
+  console.log("usage: vanta memory vault-compile <raw-dir> --vault <vault-dir> [--apply] | vanta memory search <query> | vanta memory forget [ttl-days] | vanta memory footprint");
 }

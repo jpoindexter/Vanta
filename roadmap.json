@@ -306,7 +306,7 @@
       "id": "VAULT-COMPILE-PIPELINE",
       "track": "Memory",
       "title": "Vault compile pipeline — raw transcripts become linked knowledge",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "Existing brain↔vault bridges handle recall, but the second-brain transcripts call for a compile pipeline: raw chats/bookmarks/notes go into raw/, then Vanta writes sourced entity and concept pages plus an index. This makes transcripts usable as durable operator knowledge instead of one-off pasted context.",
       "done": "Given a folder of raw transcripts/notes, Vanta creates or updates markdown entity/concept pages with source links, maintains an INDEX.md, keeps raw files separate, and emits a diff for review before writeback.",
