@@ -5563,7 +5563,7 @@
       "id": "LIFE-SEARCH",
       "track": "Operator",
       "title": "Life-wide semantic search",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "'Find the thing where I wrote about operator aesthetics' across notes, repos, emails, docs, chats -- return the real source, not vague memory (wants1 #17). Extends MEM-VERBATIM (Vanta's own verbatim archive + semantic search) from internal memory to external corpora. Platform-scale -> horizon. First slice: repos + Vanta memory only.",
       "done": "First slice: a natural-language query returns the actual file+line across indexed repos and Vanta memory, with the source shown.",
@@ -5571,7 +5571,9 @@
       "model": "sonnet",
       "effort": "high",
       "codex": "gpt-5.5",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-07-09",
+      "notes": "SHIPPED 2026-07-09 first slice. `vanta lifesearch <query>` and `/lifesearch <query>` now gather source-cited blobs from Vanta local stores, brain files, ERRORS.md, and the current repo text files; node_modules/dist/build/.git-style noise is ignored and large files are capped. Natural-language wrapper words like \"where did I write about\" are stripped so meaningful terms such as `operator aesthetics` drive matches. Results show source, file path, line number, relevance bar, and snippet. Verified with focused tests for repo + brain file:line hits, ignored dependency noise, CLI usage, formatter output, and rank behavior; live CLI path returned source-cited repo hits. Boundary: this is the repo + Vanta-memory lexical/token first slice, not email/docs/chat ingestion or embedding-backed semantic recall yet."
     },
     {
       "id": "AMBIENT",

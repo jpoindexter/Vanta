@@ -16,8 +16,8 @@ describe("searchBlobs", () => {
   it("matches lines case-insensitively", () => {
     const hits = searchBlobs(blobs, "acme");
     expect(hits).toHaveLength(2);
-    expect(hits.at(0)).toEqual({ source: "world", snippet: "Bob works at Acme" });
-    expect(hits.at(1)).toEqual({ source: "money", snippet: "Payment pending for Acme" });
+    expect(hits.at(0)).toEqual({ source: "world", line: 2, snippet: "Bob works at Acme" });
+    expect(hits.at(1)).toEqual({ source: "money", line: 2, snippet: "Payment pending for Acme" });
   });
 
   it("matches lines with uppercase query", () => {
@@ -58,6 +58,33 @@ describe("searchBlobs", () => {
     expect(first.snippet.length).toBeLessThanOrEqual(121); // 120 + "…"
     expect(first.snippet).toMatch(/…$/);
   });
+
+  it("matches a natural-language query against significant terms and reports line numbers", () => {
+    const hits = searchBlobs(
+      [
+        {
+          source: "repo",
+          path: "notes/operator.md",
+          text: "intro\nOperator aesthetics should make status visible.\nclosing",
+        },
+      ],
+      "where did I write about operator aesthetics",
+    );
+    expect(hits.at(0)).toEqual({
+      source: "repo",
+      path: "notes/operator.md",
+      line: 2,
+      snippet: "Operator aesthetics should make status visible.",
+    });
+  });
+
+  it("does not treat write-about wrapper words as content terms", () => {
+    const hits = searchBlobs(
+      [{ source: "repo", path: "notes/operator.md", text: "The operator may write an approval note.\n" }],
+      "where did I write about operator aesthetics",
+    );
+    expect(hits).toEqual([]);
+  });
 });
 
 // --- gatherLifeBlobs (IO) ---
@@ -95,6 +122,39 @@ describe("gatherLifeBlobs", () => {
       const err = blobs.find((b) => b.source === "errors");
       if (!err) throw new Error("errors blob missing");
       expect(err.text).toContain("crash");
+    } finally {
+      rmSync(fakeRepo, { recursive: true, force: true });
+    }
+  });
+
+  it("includes repo and brain files as source-cited blobs", async () => {
+    const fakeRepo = await mkdtemp(join(tmpdir(), "vanta-life-repo-"));
+    try {
+      await mkdir(join(fakeRepo, "notes"), { recursive: true });
+      await mkdir(join(fakeRepo, "node_modules"), { recursive: true });
+      await mkdir(join(tmpHome, "brain"), { recursive: true });
+      await writeFile(
+        join(fakeRepo, "notes", "operator.md"),
+        "Title\nOperator aesthetics belong in the launch pad.\n",
+        "utf8",
+      );
+      await writeFile(
+        join(fakeRepo, "node_modules", "ignored.md"),
+        "operator aesthetics from dependency noise\n",
+        "utf8",
+      );
+      await writeFile(
+        join(tmpHome, "brain", "semantic.md"),
+        "Remember: operator aesthetics means source-cited control.\n",
+        "utf8",
+      );
+
+      const blobs = await gatherLifeBlobs({ VANTA_HOME: tmpHome }, fakeRepo);
+      const hits = searchBlobs(blobs, "where did I write about operator aesthetics", 20);
+
+      expect(hits.some((h) => h.source === "repo" && h.path === "notes/operator.md" && h.line === 2)).toBe(true);
+      expect(hits.some((h) => h.source === "brain" && h.path?.endsWith("brain/semantic.md") && h.line === 1)).toBe(true);
+      expect(hits.some((h) => h.path?.includes("node_modules"))).toBe(false);
     } finally {
       rmSync(fakeRepo, { recursive: true, force: true });
     }

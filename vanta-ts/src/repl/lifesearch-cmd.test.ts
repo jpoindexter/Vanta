@@ -27,14 +27,14 @@ describe("formatLife", () => {
 
   it("returns header + ranked rows for hits", () => {
     const hits: RankedResult[] = [
-      { source: "world", snippet: "Bob works at Acme", relevance: 0.82 },
-      { source: "money", snippet: "Invoice from Acme", relevance: 0.45 },
+      { source: "world", path: "/tmp/vanta/world.jsonl", line: 3, snippet: "Bob works at Acme", relevance: 0.82 },
+      { source: "money", path: "/tmp/vanta/money.jsonl", line: 8, snippet: "Invoice from Acme", relevance: 0.45 },
     ];
     const out = formatLife(hits, "acme");
     expect(out).toContain('life search: "acme"');
     expect(out).toContain("2 hit(s)");
-    expect(out).toContain("world · Bob works at Acme");
-    expect(out).toContain("money · Invoice from Acme");
+    expect(out).toContain("world · /tmp/vanta/world.jsonl:3 · Bob works at Acme");
+    expect(out).toContain("money · /tmp/vanta/money.jsonl:8 · Invoice from Acme");
   });
 
   it("shows singular hit count in header", () => {

@@ -19,7 +19,8 @@ export function formatLife(hits: RankedResult[], q: string): string {
   const rows = hits.map((h) => {
     const bar = relevanceBar(h.relevance);
     const pct = (h.relevance * 100).toFixed(0).padStart(3);
-    return `  ${bar} ${pct}%  ${h.source} · ${h.snippet}`;
+    const where = h.path ? `${h.path}:${h.line ?? 1}` : h.source;
+    return `  ${bar} ${pct}%  ${h.source} · ${where} · ${h.snippet}`;
   });
   return [`life search: "${q}" — ${hits.length} hit(s)`, ...rows].join("\n");
 }
@@ -31,3 +32,10 @@ export const lifesearch: SlashHandler = async (arg, ctx) => {
   const ranked = rankResults(hits, q, Date.now());
   return { output: formatLife(ranked, q) };
 };
+
+export async function runLifeSearch(repoRoot: string, query: string, env: NodeJS.ProcessEnv = process.env): Promise<string> {
+  const q = query.trim();
+  const blobs = await gatherLifeBlobs(env, repoRoot);
+  const hits = searchBlobs(blobs, q);
+  return formatLife(rankResults(hits, q, Date.now()), q);
+}
