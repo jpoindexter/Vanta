@@ -4469,7 +4469,7 @@
       "id": "VANTA-SESSION-BACKGROUNDING",
       "track": "Operator",
       "title": "Session backgrounding — Ctrl+B to background/foreground running queries",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Ctrl+B backgrounds the current in-progress query into a background task, freeing the TUI for a new query. Foreground a running background task and sync its messages back. Enables multi-query session management without cancelling work in flight.",
       "done": "Ctrl+B while a query is running moves it to background; user can continue chatting; /tasks or the task panel shows background task progress; foreground a task to see its messages.",

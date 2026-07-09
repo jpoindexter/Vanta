@@ -16,7 +16,6 @@ export type SubmitDeps = {
   openOverlay: (kind: OverlayKind) => void;
   openGlobalSearch?: () => void;
   busy: boolean;
-  backgroundBusy?: boolean;
   safety: KernelClient;
   repoRoot: string;
   dispatch: Dispatch<Action>;
@@ -49,7 +48,7 @@ export function useSubmit(deps: SubmitDeps): (text: string) => void {
     }
     if (maybeRunShortcut(text, { safety: deps.safety, repoRoot: deps.repoRoot, note })) return;
     // While a turn runs, queue the message (with @-context resolved now) and drain it when idle.
-    if (deps.busy || deps.backgroundBusy) return void resolveLine(text, deps.repoRoot).then((resolved) => deps.dispatch({ t: "enqueue", text: resolved }));
+    if (deps.busy) return void resolveLine(text, deps.repoRoot).then((resolved) => deps.dispatch({ t: "enqueue", text: resolved }));
     void resolveLine(text, deps.repoRoot).then(deps.send);
   };
 }

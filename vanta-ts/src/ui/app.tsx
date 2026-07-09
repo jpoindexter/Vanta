@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState, type MutableRefObject, type ReactElement } from "react";
+import { useEffect, useReducer, useRef, useState, type ReactElement } from "react";
 import { Box, Static, useApp } from "ink";
 import { reduce } from "./reducer.js";
 import { initialState } from "./types.js";
@@ -18,7 +18,7 @@ import { estimateCommittedRows } from "./layout-rows.js";
 import { listRepoFiles } from "./at.js";
 import { listSessions, loadSession, newSessionId } from "../sessions/store.js";
 import { SLASH_COMMANDS } from "../repl/catalog.js";
-import { isBackgroundResponseRunning, startBackgroundResponse } from "../repl/bg-response-cmd.js";
+import { startBackgroundResponse } from "../repl/bg-response-cmd.js";
 import { estimateTokens } from "../term/tokens.js";
 import { useSessionStatus } from "./use-session-status.js";
 import { useFooterRich } from "./use-rich-status.js";
@@ -36,23 +36,16 @@ import type { Conversation } from "../agent.js";
 import type { ReplState } from "../repl/types.js";
 import type { RunSetup } from "../session.js";
 
-type SubmitRouteDeps = Omit<SubmitDeps, "backgroundBusy" | "detachBackgroundResponse" | "safety"> & {
+type SubmitRouteDeps = Omit<SubmitDeps, "detachBackgroundResponse" | "safety"> & {
   setup: RunSetup;
-  convoRef: MutableRefObject<Conversation | null>;
-  replStateRef: MutableRefObject<ReplState>;
-  backgroundBusy: boolean;
   openGlobalSearch: () => void;
+  detachBackgroundResponse: () => void;
 };
 
 function buildSubmitRoute(o: SubmitRouteDeps): (text: string) => void {
-  const detachBackgroundResponse = (): void => {
-    const prompt = [...o.convoRef.current?.messages ?? []].reverse().find((m) => m.role === "user")?.content ?? "(active response)";
-    o.dispatch({ t: "detachResponse", text: startBackgroundResponse(o.replStateRef.current, prompt, new Date()) });
-  };
   return useSubmit({
     runSlash: o.runSlash, send: o.send, openOverlay: o.openOverlay, busy: o.busy,
-    backgroundBusy: o.backgroundBusy,
-    safety: o.setup.safety, repoRoot: o.repoRoot, dispatch: o.dispatch, detachBackgroundResponse,
+    safety: o.setup.safety, repoRoot: o.repoRoot, dispatch: o.dispatch, detachBackgroundResponse: o.detachBackgroundResponse,
     openGlobalSearch: o.openGlobalSearch,
   });
 }
@@ -88,7 +81,15 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     setGlobalSearch(false);
     runSlash(`/resume ${hit.sessionId}`);
   };
-  const route = buildSubmitRoute({ runSlash, send, openOverlay, openGlobalSearch, busy: state.busy, backgroundBusy: isBackgroundResponseRunning(replStateRef.current), setup: props.setup, repoRoot: props.repoRoot, dispatch, convoRef, replStateRef });
+  const detachBackgroundResponse = (): void => {
+    const prompt = [...convoRef.current?.messages ?? []].reverse().find((m) => m.role === "user")?.content ?? "(active response)";
+    dispatch({ t: "detachResponse", text: startBackgroundResponse(replStateRef.current, prompt, new Date()) });
+  };
+  const toggleBackgroundResponse = (): void => {
+    if (state.busy) detachBackgroundResponse();
+    else runSlash("/bg");
+  };
+  const route = buildSubmitRoute({ runSlash, send, openOverlay, openGlobalSearch, busy: state.busy, setup: props.setup, repoRoot: props.repoRoot, dispatch, detachBackgroundResponse });
   const onSubmit = (text: string): void => { setHistory((h) => [...h, text]); route(text); };
   const tick = useBusyTick(state.busy);
   const skillMatches = useSkillMatches(); const channels = useSlackChannels();
@@ -97,13 +98,13 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const { mcp, elapsed } = useSessionStatus(props.setup, replStateRef, dispatch);
   const agents = useSubagentProgress();
   const { mode, cycle } = useModeState(pending, setPending, runSlash);
-  useQueueDrain(state.busy || isBackgroundResponseRunning(replStateRef.current), state.queued, dispatch, send);
+  useQueueDrain(state.busy, state.queued, dispatch, send);
   const provider = props.setup.provider;
   const est = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
   const focusTargets = buildFocusTargets(pending, overlay);
   useFocusFallback(focus, focusTargets, pending ? "approval" : overlay?.kind ?? "composer", setFocus);
   const teammate = useTeammateFocus(agents.length, { busy: state.busy, pending, overlay, quickOpen, globalSearch });
-  useGlobalKeys({ bindings: useKeybindings(), busy: state.busy, pending, overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus, quickOpenOpen: quickOpen, openQuickOpen: () => setQuickOpen(true), globalSearchOpen: globalSearch, openGlobalSearch, messageActionsOpen: messageActions, openMessageActions: () => setMessageActions(true), cycleAgent: teammate.cycleAgent });
+  useGlobalKeys({ bindings: useKeybindings(), busy: state.busy, pending, overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus, quickOpenOpen: quickOpen, openQuickOpen: () => setQuickOpen(true), globalSearchOpen: globalSearch, openGlobalSearch, messageActionsOpen: messageActions, openMessageActions: () => setMessageActions(true), backgroundResponseAvailable: Boolean(replStateRef.current.backgroundResponse), toggleBackgroundResponse, cycleAgent: teammate.cycleAgent });
   const staticItems = buildStaticItems(provider.modelId(), props.repoRoot, state.entries, { tools: props.setup.registry.schemas().length, cmds: SLASH_COMMANDS.length });
   const vp = useViewportRows();
   const rich = useFooterRich({ repoRoot: props.repoRoot, sessionId: replStateRef.current.sessionId, sessionName: replStateRef.current.title, vimEnabled });

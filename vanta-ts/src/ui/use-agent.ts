@@ -23,8 +23,13 @@ async function refreshTodos(dispatch: Dispatch<Action>): Promise<void> {
  * `toolName` lets "always allow" persist a tool-scoped rule (see ui/grant.ts). */
 export type Pending = { action: string; reason: string; toolName?: string; resolve: (ok: boolean) => void };
 
-function liveDispatch(deps: AgentDeps, action: Action): void {
-  if (!isBackgroundResponseRunning(deps.replStateRef.current)) deps.dispatch(action);
+type TurnScope = {
+  /** Foreground turns started while another response is detached still render live. */
+  forceLive?: boolean;
+};
+
+function liveDispatch(deps: AgentDeps, action: Action, scope?: TurnScope): void {
+  if (scope?.forceLive || !isBackgroundResponseRunning(deps.replStateRef.current)) deps.dispatch(action);
 }
 
 /** First non-empty line of a failed result, trimmed — used for the error tail. */
@@ -63,7 +68,7 @@ export async function runTurnGates(deps: AgentDeps): Promise<void> {
 }
 
 /** The Conversation config: every agent callback fans out into the v2 reducer. */
-function convoConfig(deps: AgentDeps): Parameters<typeof createConversation>[1] {
+function convoConfig(deps: AgentDeps, scope?: TurnScope): Parameters<typeof createConversation>[1] {
   return {
     provider: deps.setup.provider,
     advisorProvider: deps.setup.advisorProvider,
@@ -74,16 +79,16 @@ function convoConfig(deps: AgentDeps): Parameters<typeof createConversation>[1] 
     maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(deps.setup.provider),
     getEffortLevel: () => deps.replStateRef.current.effortLevel ?? deps.setup.effortLevel,
-    onThinking: (text) => liveDispatch(deps, { t: "thinking", text }),
-    onTextDelta: (d) => liveDispatch(deps, { t: "delta", d }),
-    onThinkingDelta: (d) => liveDispatch(deps, { t: "thinkingDelta", d }),
+    onThinking: (text) => liveDispatch(deps, { t: "thinking", text }, scope),
+    onTextDelta: (d) => liveDispatch(deps, { t: "delta", d }, scope),
+    onThinkingDelta: (d) => liveDispatch(deps, { t: "thinkingDelta", d }, scope),
     onToolCall: (name, args) => {
       const disp = toolDisplay(name, args);
-      liveDispatch(deps, { t: "toolCall", name, verb: disp.verb, detail: disp.detail });
+      liveDispatch(deps, { t: "toolCall", name, verb: disp.verb, detail: disp.detail }, scope);
     },
     onToolResult: (name, ok, output, diff) => {
       const tokens = Math.round((output?.length ?? 0) / 4);
-      liveDispatch(deps, { t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output, name), diff, tokens });
+      liveDispatch(deps, { t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output, name), diff, tokens }, scope);
       if (name === "todo") void refreshTodos(deps.dispatch); // reflect plan edits live
     },
     requestApproval: (action, reason, toolName) =>
@@ -103,11 +108,17 @@ export function useAgent(deps: AgentDeps): { send: (text: string, display?: stri
   }
 
   const send = async (text: string, display?: string): Promise<void> => {
+    const foregroundDuringBackground = isBackgroundResponseRunning(deps.replStateRef.current);
+    if (foregroundDuringBackground) {
+      convoRef.current = createConversation(deps.setup.systemPrompt, convoConfig(deps, { forceLive: true }), { history: convoRef.current?.messages ?? [] });
+    }
     const conv = convoRef.current;
     if (!conv) return;
     const ctrl = new AbortController();
     deps.interruptRef.current = ctrl;
     deps.replStateRef.current.turnIndex += 1;
+    const turnBackgroundId = `bg-${deps.replStateRef.current.turnIndex}`;
+    const isThisTurnDetached = (): boolean => !foregroundDuringBackground && deps.replStateRef.current.backgroundResponse?.id === turnBackgroundId;
     // Resolve a pasted/typed image-or-video PATH into an attachment AND consume
     // any pending images (/paste, /image, drag-drop) — the same shared step the
     // readline host runs. Without it, a pasted image path went out as blind text.
@@ -119,15 +130,19 @@ export function useAgent(deps: AgentDeps): { send: (text: string, display?: stri
     try {
       await fireHooks(join(deps.repoRoot, ".vanta"), "UserPromptSubmit", { prompt: text }, { cwd: deps.repoRoot, promptProvider: deps.setup.provider });
       const outcome = await conv.send(text, images, ctrl.signal);
-      finishBackgroundResponse(deps.replStateRef.current, outcome.finalText, new Date());
-      await fireStopHook(join(deps.repoRoot, ".vanta"), { finalResponse: outcome.finalText, turnIndex: deps.replStateRef.current.turnIndex }, { cwd: deps.repoRoot, promptProvider: deps.setup.provider });
-      await runTurnGates(deps);
+      if (isThisTurnDetached()) finishBackgroundResponse(deps.replStateRef.current, outcome.finalText, new Date());
+      else {
+        await fireStopHook(join(deps.repoRoot, ".vanta"), { finalResponse: outcome.finalText, turnIndex: deps.replStateRef.current.turnIndex }, { cwd: deps.repoRoot, promptProvider: deps.setup.provider });
+        await runTurnGates(deps);
+      }
     } catch (err) {
-      failBackgroundResponse(deps.replStateRef.current, err instanceof Error ? err.message : String(err), new Date());
-      await fireStopFailure(deps.repoRoot, { error: stopFailureType(err), errorDetails: errorDetails(err) }, { promptProvider: deps.setup.provider });
-      deps.dispatch({ t: "note", text: `  ✗ ${(err as Error).message}` });
+      if (isThisTurnDetached()) failBackgroundResponse(deps.replStateRef.current, err instanceof Error ? err.message : String(err), new Date());
+      else {
+        await fireStopFailure(deps.repoRoot, { error: stopFailureType(err), errorDetails: errorDetails(err) }, { promptProvider: deps.setup.provider });
+        deps.dispatch({ t: "note", text: `  ✗ ${(err as Error).message}` });
+      }
     } finally {
-      deps.dispatch({ t: "turnEnd" });
+      if (!isThisTurnDetached()) deps.dispatch({ t: "turnEnd" });
       // No per-turn token dump in the transcript (Claude shows none) — context
       // usage lives in the status bar. No blind todo reload either: the panel
       // reflects only what the agent writes via the todo tool this session.

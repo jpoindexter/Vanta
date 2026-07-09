@@ -31,6 +31,7 @@ type GlobalKeyDeps = {
   quickOpenOpen: boolean; openQuickOpen: () => void;
   globalSearchOpen: boolean; openGlobalSearch: () => void;
   messageActionsOpen: boolean; openMessageActions: () => void;
+  backgroundResponseAvailable: boolean; toggleBackgroundResponse: () => void;
   /** Set only while a teammate tree is live; cycles focus between agents. */
   cycleAgent?: (dir: 1 | -1) => void;
   /** KEYBINDING-CUSTOMIZATION: resolved bindings (defaults + user overrides).
@@ -71,6 +72,7 @@ const GLOBAL_HANDLERS: Record<string, { guard: (d: GlobalKeyDeps) => boolean; ru
   [GLOBAL_ACTIONS.quickOpen]: { guard: notBlocked, run: (d) => d.openQuickOpen() },
   [GLOBAL_ACTIONS.globalSearch]: { guard: notBlocked, run: (d) => d.openGlobalSearch() },
   [GLOBAL_ACTIONS.messageActions]: { guard: notBlocked, run: (d) => d.openMessageActions() },
+  [GLOBAL_ACTIONS.backgroundResponse]: { guard: (d) => notBlocked(d) && (d.busy || d.backgroundResponseAvailable), run: (d) => d.toggleBackgroundResponse() },
   [GLOBAL_ACTIONS.cycleAgentNext]: { guard: (d) => Boolean(d.cycleAgent), run: (d) => d.cycleAgent?.(1) },
   [GLOBAL_ACTIONS.cycleAgentPrev]: { guard: (d) => Boolean(d.cycleAgent), run: (d) => d.cycleAgent?.(-1) },
   [GLOBAL_ACTIONS.interrupt]: { guard: (d) => d.busy && !d.pending && !d.overlayOpen, run: (d) => d.abort() },

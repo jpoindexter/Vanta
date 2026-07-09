@@ -43,6 +43,7 @@ describe("lookupChord / actionForChord", () => {
   });
   it("actionForChord resolves normalized chords, global fallback", () => {
     expect(actionForChord(DEFAULT_BINDINGS, "CTRL+P")).toBe(GLOBAL_ACTIONS.quickOpen);
+    expect(actionForChord(DEFAULT_BINDINGS, "ctrl+b")).toBe(GLOBAL_ACTIONS.backgroundResponse);
     expect(actionForChord(DEFAULT_BINDINGS, "ctrl+z")).toBeNull();
   });
 });

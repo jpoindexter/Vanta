@@ -13,6 +13,7 @@ function deps(over: Record<string, unknown> = {}) {
     quickOpenOpen: false, openQuickOpen: vi.fn(),
     globalSearchOpen: false, openGlobalSearch: vi.fn(),
     messageActionsOpen: false, openMessageActions: vi.fn(),
+    backgroundResponseAvailable: false, toggleBackgroundResponse: vi.fn(),
     cycleAgent: vi.fn(),
     bindings: DEFAULT_BINDINGS,
     ...over,
@@ -46,6 +47,20 @@ describe("handleGlobalKey — default bindings", () => {
     expect(open.openMessageActions).toHaveBeenCalled();
     const blocked = deps({ globalSearchOpen: true }); handleGlobalKey("", { shift: true, upArrow: true }, blocked as never);
     expect(blocked.openMessageActions).not.toHaveBeenCalled();
+  });
+
+  it("ctrl+b backgrounds or attaches responses when available", () => {
+    const busy = deps({ busy: true }); handleGlobalKey("b", { ctrl: true }, busy as never);
+    expect(busy.toggleBackgroundResponse).toHaveBeenCalledTimes(1);
+
+    const attach = deps({ backgroundResponseAvailable: true }); handleGlobalKey("b", { ctrl: true }, attach as never);
+    expect(attach.toggleBackgroundResponse).toHaveBeenCalledTimes(1);
+
+    const idle = deps(); handleGlobalKey("b", { ctrl: true }, idle as never);
+    expect(idle.toggleBackgroundResponse).not.toHaveBeenCalled();
+
+    const blocked = deps({ busy: true, overlayOpen: true }); handleGlobalKey("b", { ctrl: true }, blocked as never);
+    expect(blocked.toggleBackgroundResponse).not.toHaveBeenCalled();
   });
 
   it("escape interrupts only when busy", () => {

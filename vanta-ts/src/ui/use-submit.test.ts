@@ -87,19 +87,19 @@ describe("useSubmit routing", () => {
     expect(h.runSlash).not.toHaveBeenCalled();
   });
 
-  it("lets /bg attach while a detached response is running", () => {
-    const h = harness({ backgroundBusy: true });
+  it("lets /bg attach when the foreground is idle", () => {
+    const h = harness();
     h.onSubmit("/bg");
     expect(h.runSlash).toHaveBeenCalledWith("/bg");
     expect(h.detachBackgroundResponse).not.toHaveBeenCalled();
   });
 
-  it("queues normal messages while a detached response is still running", async () => {
-    const h = harness({ backgroundBusy: true });
+  it("sends normal messages when the foreground is idle", async () => {
+    const h = harness();
     h.onSubmit("next message");
-    await waitUntil(() => h.dispatch.mock.calls.length > 0);
-    expect(h.send).not.toHaveBeenCalled();
-    expect(h.dispatch).toHaveBeenCalledWith({ t: "enqueue", text: "next message" });
+    await waitUntil(() => h.send.mock.calls.length > 0);
+    expect(h.send).toHaveBeenCalledWith("next message");
+    expect(h.dispatch).not.toHaveBeenCalledWith({ t: "enqueue", text: "next message" });
   });
 
   it("intercepts a ! prefix before slash/send routing", () => {

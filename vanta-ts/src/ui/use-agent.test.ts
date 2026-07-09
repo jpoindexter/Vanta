@@ -65,7 +65,16 @@ describe("useAgent send — image attachments", () => {
     const sendSpy = vi.fn(async (_text: string, _images?: ImageAttachment[], _signal?: AbortSignal) => ({ finalText: "ok" }));
     const conv = { messages: [], send: sendSpy };
     const deps = {
-      setup: { provider: { modelId: () => "m" } },
+      setup: {
+        systemPrompt: "sys",
+        provider: {
+          modelId: () => "m",
+          contextWindow: () => 100_000,
+          complete: async () => ({ text: "ok", toolCalls: [], finishReason: "stop" }),
+        },
+        safety: { getGoals: async () => [] },
+        registry: { schemas: () => [] },
+      },
       repoRoot: mkdtempSync(join(tmpdir(), "vanta-send-")),
       dispatch: () => {},
       setPending: () => {},
@@ -93,16 +102,41 @@ describe("useAgent send — image attachments", () => {
     expect(sendSpy.mock.calls[0]![1]).toBeUndefined();
   });
 
-  it("stores a detached response result instead of dropping it", async () => {
-    const { deps } = sendDeps(undefined);
-    const state = deps.replStateRef.current as ReplState;
-    startBackgroundResponse(state, "long prompt", new Date(0));
+  it("stores the result when the active turn is detached mid-send", async () => {
+    const sendSpy = vi.fn(async () => {
+      startBackgroundResponse(state, "long prompt", new Date(0));
+      return { finalText: "ok" };
+    });
+    const conv = { messages: [], send: sendSpy };
+    const state = { turnIndex: 0, started: new Date(0).toISOString() } as ReplState;
+    const deps = {
+      setup: { provider: { modelId: () => "m" } },
+      repoRoot: mkdtempSync(join(tmpdir(), "vanta-send-")),
+      dispatch: () => {},
+      setPending: () => {},
+      interruptRef: { current: null },
+      convoRef: { current: conv },
+      replStateRef: { current: state },
+      gatesRef: { current: freshGateState() },
+    };
     const { send } = useAgent(deps as never);
     await send("hi");
     expect(state.backgroundResponse).toMatchObject({
       status: "done",
       prompt: "long prompt",
       finalText: "ok",
+    });
+  });
+
+  it("does not overwrite a prior detached response when a new foreground turn starts", async () => {
+    const { deps } = sendDeps(undefined);
+    const state = deps.replStateRef.current as ReplState;
+    startBackgroundResponse(state, "long prompt", new Date(0));
+    const { send } = useAgent(deps as never);
+    await send("hi");
+    expect(state.backgroundResponse).toMatchObject({
+      status: "running",
+      prompt: "long prompt",
     });
   });
 });
