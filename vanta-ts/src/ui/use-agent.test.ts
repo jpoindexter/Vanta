@@ -173,6 +173,40 @@ describe("useAgent send — image attachments", () => {
       else process.env.VANTA_PROMPT_SUGGESTIONS = old;
     }
   });
+
+  it("notifies after a completed foreground turn when enabled and unfocused", async () => {
+    const notify = vi.fn();
+    const { deps } = sendDeps(undefined);
+    const oldEnabled = process.env.VANTA_NOTIFY_UNFOCUSED;
+    process.env.VANTA_NOTIFY_UNFOCUSED = "1";
+    try {
+      const { send } = useAgent({ ...deps, notifyTurnComplete: notify, windowFocused: () => false } as never);
+      await send("ship this");
+      expect(notify).toHaveBeenCalledWith(expect.objectContaining({
+        title: "Vanta finished",
+        message: "Turn complete: ship this",
+        notificationType: "turn_complete",
+      }));
+    } finally {
+      if (oldEnabled === undefined) delete process.env.VANTA_NOTIFY_UNFOCUSED;
+      else process.env.VANTA_NOTIFY_UNFOCUSED = oldEnabled;
+    }
+  });
+
+  it("stays silent after a completed foreground turn when focused", async () => {
+    const notify = vi.fn();
+    const { deps } = sendDeps(undefined);
+    const oldEnabled = process.env.VANTA_NOTIFY_UNFOCUSED;
+    process.env.VANTA_NOTIFY_UNFOCUSED = "1";
+    try {
+      const { send } = useAgent({ ...deps, notifyTurnComplete: notify, windowFocused: () => true } as never);
+      await send("ship this");
+      expect(notify).not.toHaveBeenCalled();
+    } finally {
+      if (oldEnabled === undefined) delete process.env.VANTA_NOTIFY_UNFOCUSED;
+      else process.env.VANTA_NOTIFY_UNFOCUSED = oldEnabled;
+    }
+  });
 });
 
 async function waitFor(cond: () => boolean, maxTicks = 100): Promise<void> {

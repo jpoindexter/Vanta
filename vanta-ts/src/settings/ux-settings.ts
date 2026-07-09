@@ -14,6 +14,7 @@ import { z } from "zod";
 //   - awaySummaryMs      → VANTA_AWAY_SUMMARY_MS (the number as a string)
 //   - idleReturn         → VANTA_IDLE_RETURN ("1"/"0"; reader is != "0")
 //   - jsonFormat         → VANTA_JSON_FORMAT ("1"/"0"; reader is == "1")
+//   - notifyWhenUnfocused → VANTA_NOTIFY_UNFOCUSED ("1"/"0")
 // The map only emits keys for fields that are SET, so an unset block produces no
 // env keys and changes nothing. Env wins at application time (the store applies
 // these only for keys not already present in env). Pure — no I/O.
@@ -39,6 +40,8 @@ export const UxSettingsSchema = z
     idleReturn: z.boolean().optional(),
     /** Pretty-print JSON in shell-tool output. Maps to VANTA_JSON_FORMAT. */
     jsonFormat: z.boolean().optional(),
+    /** Native notification when a turn completes while the window is unfocused. */
+    notifyWhenUnfocused: z.boolean().optional(),
   })
   .strict();
 
@@ -74,6 +77,7 @@ export function uxSettingsToEnv(ux: UxSettings | undefined): Record<string, stri
     ["VANTA_AWAY_SUMMARY_MS", optStr(ux.awaySummaryMs)],
     ["VANTA_IDLE_RETURN", optFlag(ux.idleReturn)],
     ["VANTA_JSON_FORMAT", optFlag(ux.jsonFormat)],
+    ["VANTA_NOTIFY_UNFOCUSED", optFlag(ux.notifyWhenUnfocused)],
   ];
   const out: Record<string, string> = {};
   for (const [k, v] of map) if (v !== undefined) out[k] = v;

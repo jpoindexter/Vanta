@@ -191,6 +191,12 @@ describe("applySettingsEnv", () => {
     applySettingsEnv({ ui: { promptSuggestionsEnabled: false } }, pe);
     expect(pe.VANTA_PROMPT_SUGGESTIONS).toBe("1");
   });
+
+  it("maps ui.notifyWhenUnfocused to VANTA_NOTIFY_UNFOCUSED", () => {
+    const pe: NodeJS.ProcessEnv = {};
+    applySettingsEnv({ ui: { notifyWhenUnfocused: true } }, pe);
+    expect(pe.VANTA_NOTIFY_UNFOCUSED).toBe("1");
+  });
 });
 
 describe("isToolAllowed / isToolBlocked", () => {

@@ -15254,7 +15254,7 @@
       "id": "OP-NOTIFY-UNFOCUSED",
       "track": "Operator",
       "title": "Native OS notification on turn-complete when unfocused",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Long runs finish unnoticed when the window is in the background. Fire a native OS notification when a turn completes while the desktop window is unfocused.",
       "done": "Completing a turn with the window unfocused raises a native notification; focused completion stays silent; gated by a setting.",
@@ -15263,8 +15263,9 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "tui",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-09",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-09. Added the live TUI turn-complete notification path, gated by `ui.notifyWhenUnfocused` / `VANTA_NOTIFY_UNFOCUSED`. `useAgent.send()` now calls `maybeNotifyTurnComplete` after a foreground `turnEnd`; focused completions stay silent, detached background responses do not double-fire, and enabled unfocused completions reuse `term/notify.ts` with `notificationType: turn_complete` while forcing the desktop notification env for that notification. Focus detection is safe by default: `VANTA_WINDOW_FOCUSED=0|1` can provide an explicit renderer signal, injected probes are supported for tests, and macOS falls back to frontmost-app detection for known terminal apps; unsupported/failed detection reports focused so it never spams. Verified with `npx vitest run src/term/turn-complete-notify.test.ts src/settings/ux-settings.test.ts src/settings/store.test.ts src/ui/use-agent.test.ts --reporter=dot` (62 passed), `npm run typecheck`, and `npm run vanta -- lint src/term/turn-complete-notify.ts src/ui/use-agent.ts src/settings/ux-settings.ts`."
     },
     {
       "id": "OP-MODEL-PRESETS",
@@ -15411,8 +15412,8 @@
       "codex": "gpt-5.4",
       "lens": "selfhood",
       "updated": "2026-07-09",
-      "source": "ref-audit-2026-06-20",
-      "notes": "Shipped 2026-07-09. `vanta migrate <openclaw|hermes>` now treats onboarding as an honest import report, not parity theater: the preview still imports the supported footprint (skills, MCP servers, model/provider config) with secrets redacted, conflict flags, picker selection, kernel gate, backup-before-write, and no overwrite unless requested, and it now also carries explicit `MigrationGap` records for what could not be imported. Malformed skills are surfaced instead of silently dropped (`missing SKILL.md or <slug>.md`, invalid/empty body), invalid config JSON is called out, and unsupported adoption footprints are named as manual-review gaps: memory schema for these sources, persona, command allowlists, and workspace/session state. Verified with focused tests (`npx vitest run src/migrate/plan.test.ts src/migrate/apply.test.ts src/migrate/parse.test.ts src/cli/migrate-cmd.test.ts --reporter=dot`, 30 passed), real CLI preview using a temp HOME + OpenClaw fixture (`vanta migrate openclaw`, selected `none`, preview showed importable items plus gaps), `npm run typecheck`, and `npm run vanta -- lint src/migrate/plan.ts src/migrate/plan.test.ts src/migrate/apply.test.ts`."
+      "notes": "Shipped 2026-07-09. `vanta migrate <openclaw|hermes>` now treats onboarding as an honest import report, not parity theater: the preview still imports the supported footprint (skills, MCP servers, model/provider config) with secrets redacted, conflict flags, picker selection, kernel gate, backup-before-write, and no overwrite unless requested, and it now also carries explicit `MigrationGap` records for what could not be imported. Malformed skills are surfaced instead of silently dropped (`missing SKILL.md or <slug>.md`, invalid/empty body), invalid config JSON is called out, and unsupported adoption footprints are named as manual-review gaps: memory schema for these sources, persona, command allowlists, and workspace/session state. Verified with focused tests (`npx vitest run src/migrate/plan.test.ts src/migrate/apply.test.ts src/migrate/parse.test.ts src/cli/migrate-cmd.test.ts --reporter=dot`, 30 passed), real CLI preview using a temp HOME + OpenClaw fixture (`vanta migrate openclaw`, selected `none`, preview showed importable items plus gaps), `npm run typecheck`, and `npm run vanta -- lint src/migrate/plan.ts src/migrate/plan.test.ts src/migrate/apply.test.ts`.",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "OP-INSTALLER-STAGED",

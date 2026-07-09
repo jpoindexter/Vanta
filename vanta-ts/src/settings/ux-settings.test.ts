@@ -18,6 +18,7 @@ describe("UxSettingsSchema", () => {
       awaySummaryMs: 30000,
       idleReturn: false,
       jsonFormat: true,
+      notifyWhenUnfocused: true,
     });
     expect(parsed.success).toBe(true);
   });
@@ -100,6 +101,11 @@ describe("uxSettingsToEnv", () => {
     expect(uxSettingsToEnv({ jsonFormat: false })).toEqual({ VANTA_JSON_FORMAT: "0" });
   });
 
+  it("maps notifyWhenUnfocused boolean to 1/0", () => {
+    expect(uxSettingsToEnv({ notifyWhenUnfocused: true })).toEqual({ VANTA_NOTIFY_UNFOCUSED: "1" });
+    expect(uxSettingsToEnv({ notifyWhenUnfocused: false })).toEqual({ VANTA_NOTIFY_UNFOCUSED: "0" });
+  });
+
   it("maps every field at once", () => {
     expect(
       uxSettingsToEnv({
@@ -112,6 +118,7 @@ describe("uxSettingsToEnv", () => {
         awaySummaryMs: 12000,
         idleReturn: true,
         jsonFormat: false,
+        notifyWhenUnfocused: true,
       }),
     ).toEqual({
       VANTA_SPINNER_VERBS: "a,b",
@@ -123,6 +130,7 @@ describe("uxSettingsToEnv", () => {
       VANTA_AWAY_SUMMARY_MS: "12000",
       VANTA_IDLE_RETURN: "1",
       VANTA_JSON_FORMAT: "0",
+      VANTA_NOTIFY_UNFOCUSED: "1",
     });
   });
 });

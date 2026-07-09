@@ -11,6 +11,8 @@ import { fireHooks, fireStopHook } from "../hooks/shell-hooks.js";
 import { resolveDroppedMedia } from "../interactive-turn.js";
 import { failBackgroundResponse, finishBackgroundResponse, isBackgroundResponseRunning } from "../repl/bg-response-cmd.js";
 import { generatePromptSuggestions, promptSuggestionsEnabled } from "./prompt-suggestions.js";
+import { maybeNotifyTurnComplete } from "../term/turn-complete-notify.js";
+import { notify as osNotify } from "../term/notify.js";
 import type { Action } from "./reducer.js";
 import type { RunSetup } from "../session.js";
 import type { ReplState } from "../repl/types.js";
@@ -48,6 +50,8 @@ type AgentDeps = {
   convoRef: MutableRefObject<Conversation | null>;
   replStateRef: MutableRefObject<ReplState>;
   gatesRef: MutableRefObject<GateState>;
+  notifyTurnComplete?: typeof osNotify;
+  windowFocused?: () => boolean | Promise<boolean>;
 };
 
 /** Run the post-turn EF/operator gate bundle (same set as the readline host) so
@@ -98,23 +102,25 @@ function convoConfig(deps: AgentDeps, scope?: TurnScope): Parameters<typeof crea
   };
 }
 
-/**
- * Owns the Conversation and exposes `send`. All agent callbacks dispatch into the
- * reducer; requestApproval surfaces a Pending the App resolves from a keypress.
- * The conversation is the SAME engine the old TUI used — only the render changed.
- */
-export function useAgent(deps: AgentDeps): { send: (text: string, display?: string) => Promise<void> } {
-  const convoRef = deps.convoRef;
-  if (convoRef.current === null) {
-    convoRef.current = createConversation(deps.setup.systemPrompt, convoConfig(deps));
+async function runForegroundAfterTurn(deps: AgentDeps, userText: string, finalText: string, suggestionTurn: number): Promise<void> {
+  if (finalText && promptSuggestionsEnabled(process.env)) {
+    void generatePromptSuggestions({ userText, finalText, provider: deps.setup.provider }).then((suggestions) => {
+      if (deps.replStateRef.current.turnIndex === suggestionTurn) deps.dispatch({ t: "promptSuggestions", suggestions });
+    }).catch(() => {});
   }
+  await maybeNotifyTurnComplete(
+    { prompt: userText, finalText, env: process.env, dataDir: join(deps.repoRoot, ".vanta"), cwd: deps.repoRoot },
+    { notify: deps.notifyTurnComplete, windowFocused: deps.windowFocused },
+  );
+}
 
-  const send = async (text: string, display?: string): Promise<void> => {
+function buildSend(deps: AgentDeps): (text: string, display?: string) => Promise<void> {
+  return async (text: string, display?: string): Promise<void> => {
     const foregroundDuringBackground = isBackgroundResponseRunning(deps.replStateRef.current);
     if (foregroundDuringBackground) {
-      convoRef.current = createConversation(deps.setup.systemPrompt, convoConfig(deps, { forceLive: true }), { history: convoRef.current?.messages ?? [] });
+      deps.convoRef.current = createConversation(deps.setup.systemPrompt, convoConfig(deps, { forceLive: true }), { history: deps.convoRef.current?.messages ?? [] });
     }
-    const conv = convoRef.current;
+    const conv = deps.convoRef.current;
     if (!conv) return;
     const ctrl = new AbortController();
     deps.interruptRef.current = ctrl;
@@ -148,18 +154,23 @@ export function useAgent(deps: AgentDeps): { send: (text: string, display?: stri
         deps.dispatch({ t: "note", text: `  ✗ ${(err as Error).message}` });
       }
     } finally {
-      if (!isThisTurnDetached()) deps.dispatch({ t: "turnEnd" });
-      if (!isThisTurnDetached() && finalText && promptSuggestionsEnabled(process.env)) {
-        void generatePromptSuggestions({ userText, finalText, provider: deps.setup.provider }).then((suggestions) => {
-          if (deps.replStateRef.current.turnIndex === suggestionTurn) deps.dispatch({ t: "promptSuggestions", suggestions });
-        }).catch(() => {});
+      if (!isThisTurnDetached()) {
+        deps.dispatch({ t: "turnEnd" });
+        await runForegroundAfterTurn(deps, userText, finalText, suggestionTurn);
       }
-      // No per-turn token dump in the transcript (Claude shows none) — context
-      // usage lives in the status bar. No blind todo reload either: the panel
-      // reflects only what the agent writes via the todo tool this session.
       deps.interruptRef.current = null;
     }
   };
+}
 
-  return { send };
+/**
+ * Owns the Conversation and exposes `send`. All agent callbacks dispatch into the
+ * reducer; requestApproval surfaces a Pending the App resolves from a keypress.
+ * The conversation is the SAME engine the old TUI used — only the render changed.
+ */
+export function useAgent(deps: AgentDeps): { send: (text: string, display?: string) => Promise<void> } {
+  if (deps.convoRef.current === null) {
+    deps.convoRef.current = createConversation(deps.setup.systemPrompt, convoConfig(deps));
+  }
+  return { send: buildSend(deps) };
 }
