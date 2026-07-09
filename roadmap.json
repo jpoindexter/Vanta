@@ -14149,7 +14149,7 @@
       "id": "PCLIP-CEO-CHAT",
       "track": "Cofounder engine",
       "title": "Leadership chat that resolves to real work objects",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Paperclip extract (CEO Chat, roadmap ⚪). A lightweight conversation with the lead agent that RESOLVES TO tracked work objects — plans, issues, approvals, decisions — instead of a freeform chat window. Improves interaction without turning Vanta into a chatbot.",
       "done": "Talking to the lead agent produces tracked issues/plans/approvals, not just replies.",

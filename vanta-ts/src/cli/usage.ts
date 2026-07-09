@@ -16,6 +16,7 @@ const USAGE_LINES = [
       "       vanta ambient-screen [enable|disable|status|tick]   opt-in screen/app context proposals",
       "       vanta harness-thickness [--no-record] | harness-thickness remove <file:line> --expected <text>   audit/prune harness bloat",
       "       vanta kanban create <goal> | kanban swarm|status|digest [id]   decompose a goal into lanes + run/resume a local swarm",
+      "       vanta lead \"<message>\" | lead list   turn lead-agent chat into tracked work objects",
       "       vanta autonomy [show|init|decide]   acts-alone / queues / wakes-me contract",
       "       vanta --init | --init-only | --maintenance   run lifecycle bootstrap hooks",
       "       vanta --plugin-url <url> | --plugin-dir <path>   install a plugin (.zip/dir) at startup (stays disabled until enabled)",
