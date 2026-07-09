@@ -45,6 +45,38 @@ describe("renderRoadmap", () => {
     expect(html.indexOf("Launch Pad")).toBeLessThan(html.indexOf('class="board"'));
   });
 
+  it("shows launchpad status badges and activation progress separately from now slots", () => {
+    const html = renderRoadmap({
+      updated: "2026-07-09",
+      items: [
+        { id: "ACTIVATION-COLD-USER-GATE", track: "Operator", title: "Cold gate", status: "shipped", size: "S", summary: "", done: "" },
+        { id: "GALLERY-SANDBOX-RECOVERY-FIXTURE", track: "Harness", title: "Sandbox fixture", status: "shipped", size: "S", summary: "", done: "" },
+        { id: "USER-LANGUAGE-WORKFLOW-COPY", track: "Operator", title: "User copy", status: "shipped", size: "S", summary: "", done: "" },
+        { id: "FRESH-CONTEXT-ACTIVATION-REVIEW", track: "Operator", title: "Fresh review", status: "shipped", size: "S", summary: "", done: "" },
+        { id: "ROADMAP-DEPENDENCY-GUARD", track: "Harness", title: "Dependency guard", status: "shipped", size: "S", summary: "", done: "" },
+        { id: "OPERATOR-HOME-V1", track: "Operator", title: "Home", status: "shipped", size: "M", summary: "", done: "" },
+        { id: "CRASHLOG-DIAGNOSE", track: "Operator", title: "Crash log", status: "shipped", size: "S", summary: "", done: "" },
+        { id: "SPEC-TO-APP-WIZARD", track: "Operator", title: "Spec wizard", status: "next", size: "M", summary: "", done: "" },
+        { id: "VANTA-BG-RESPOND-CONTINUE", track: "Harness", title: "BG continue", status: "shipped", size: "S", summary: "", done: "" },
+        {
+          id: "ACTIVATION-V1-RELEASE-GATE",
+          track: "Operator",
+          title: "Release gate",
+          status: "shipped",
+          size: "S",
+          summary: "",
+          done: "",
+          after: ["ACTIVATION-COLD-USER-GATE", "FRESH-CONTEXT-ACTIVATION-REVIEW", "CRASHLOG-DIAGNOSE", "OPERATOR-HOME-V1"],
+        },
+      ],
+    });
+    expect(html).toContain("<small>Activation gate</small>");
+    expect(html).toContain("<span>5/5</span>");
+    expect(html).toContain("Open launchpad card: SPEC-TO-APP-WIZARD.");
+    expect(html).toContain('class="lp-shipped"');
+    expect(html).toContain('class="lp-next"');
+  });
+
   it("shows shipped count in the collapsed section header", () => {
     const html = renderRoadmap(fixture);
     expect(html).toContain("Shipped (1)");

@@ -40,8 +40,8 @@ ${routing(item) ? `<div class="badges">${routing(item)}</div>` : ""}
 
 function launchItem(item: RoadmapItem | undefined): string {
   if (!item) return "";
-  const deps = item.after?.length ? `<span class="lp-deps">after ${esc(item.after.join(" + "))}</span>` : "";
-  return `<li><span class="lp-id">${esc(item.id)}</span><span class="lp-title">${esc(item.title)}</span>${deps}</li>`;
+  const deps = item.after?.length && item.status !== "shipped" ? `<span class="lp-deps">after ${esc(item.after.join(" + "))}</span>` : "";
+  return `<li class="lp-${item.status}"><span class="lp-row"><span class="lp-id">${esc(item.id)}</span><span class="lp-status">${esc(item.status)}</span></span><span class="lp-title">${esc(item.title)}</span>${deps}</li>`;
 }
 
 function launchList(items: Array<RoadmapItem | undefined>): string {
@@ -51,6 +51,19 @@ function launchList(items: Array<RoadmapItem | undefined>): string {
 
 function byId(data: Roadmap, id: string): RoadmapItem | undefined {
   return data.items.find((i) => i.id === id);
+}
+
+function shippedCount(items: Array<RoadmapItem | undefined>): number {
+  return items.filter((i) => i?.status === "shipped").length;
+}
+
+function openLaunchItems(items: Array<RoadmapItem | undefined>): RoadmapItem[] {
+  return items.filter((i): i is RoadmapItem => i !== undefined && i.status !== "shipped");
+}
+
+function openSummary(items: RoadmapItem[]): string {
+  if (!items.length) return "Activation v1 shipped. No required launchpad blockers remain.";
+  return `Open launchpad card${items.length === 1 ? "" : "s"}: ${esc(items.map((i) => i.id).join(" + "))}.`;
 }
 
 function launchPad(data: Roadmap): string {
@@ -69,10 +82,14 @@ function launchPad(data: Roadmap): string {
     byId(data, "VANTA-BG-RESPOND-CONTINUE"),
   ];
   const gate = [byId(data, "ACTIVATION-V1-RELEASE-GATE")];
+  const gateDeps = byId(data, "ACTIVATION-V1-RELEASE-GATE")?.after?.map((id) => byId(data, id)) ?? [];
+  const required = [...gateDeps, ...gate];
+  const launchItems = [...proof, ...views, ...gate];
+  const openItems = openLaunchItems(launchItems);
   return `<section class="launch">
 <div class="launch-head">
-<div><h2>Launch Pad</h2><p>Activation v1: a cold user gets one useful Vanta result in under 2 minutes.</p></div>
-<div class="launch-metric"><span>${now.length}/${WIP_LIMIT}</span><small>Now slots</small></div>
+<div><h2>Launch Pad</h2><p>Activation v1: a cold user gets one useful Vanta result in under 2 minutes.</p><p class="launch-open">${openSummary(openItems)}</p></div>
+<div class="launch-metrics"><div class="launch-metric"><span>${shippedCount(required)}/${required.length}</span><small>Activation gate</small></div><div class="launch-metric muted"><span>${now.length}/${WIP_LIMIT}</span><small>Now slots</small></div></div>
 </div>
 <div class="launch-grid">
 <div class="launch-block"><h3>Build Now</h3><ol>${launchList(now)}</ol></div>
