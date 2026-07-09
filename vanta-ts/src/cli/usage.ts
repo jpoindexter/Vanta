@@ -8,6 +8,7 @@ const USAGE_LINES = [
       "       vanta what-can-i-do [--check|--fresh-workspace-check|--fresh-context-review|--demo <id>|--review-packet]   show workflows / proofs",
       "       vanta diagnose-crash [--demo greg-uitests|<file>|-]   diagnose crash/build logs with cited evidence",
       "       vanta spec-to-app --demo posture [--open]   build a verified React/Tailwind preview from a spec",
+      "       vanta research-receipts <claims.json> [--vault <dir> --apply]   source/date/expiry skeptic gate",
       "       vanta autonomy [show|init|decide]   acts-alone / queues / wakes-me contract",
       "       vanta --init | --init-only | --maintenance   run lifecycle bootstrap hooks",
       "       vanta --plugin-url <url> | --plugin-dir <path>   install a plugin (.zip/dir) at startup (stays disabled until enabled)",

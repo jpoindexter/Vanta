@@ -327,7 +327,7 @@
       "id": "RESEARCH-RECEIPTS-SKEPTIC",
       "track": "Solutioning",
       "title": "Research receipts + skeptic gate — claims need source, date, expiry",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Upgrade VANTA-RESEARCH-DECOMPOSE with the second-brain research machine: every claim carries source/date/expiry, and a skeptic pass attacks weak claims before they enter memory or a final answer. This is the difference between “researched” and reusable operator intelligence.",
       "done": "A research run returns claims as claim/source/date/expiry records, runs a skeptic gate, flags unsupported or stale claims, and writes only surviving claims into the memory/vault pipeline.",

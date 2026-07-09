@@ -24,6 +24,7 @@ describe("deep-thinking skills", () => {
     const r = await deepResearch("what is the state of the art in agent harnesses", ctx);
     expect(r.resend).toContain("multi-source research");
     expect(r.resend).toContain("web_search");
+    expect(r.resend).toContain("claim/source/date/expiry receipts");
     expect(r.resend).toContain("verify key claims");
     expect(r.resend).toContain("agent harnesses");
   });

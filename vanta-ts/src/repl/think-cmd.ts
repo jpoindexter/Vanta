@@ -26,8 +26,9 @@ const DEEP_RESEARCH =
   "Run a deep, multi-source research pass: " +
   "(1) decompose the question into sub-questions / angles; " +
   "(2) fan out multiple web_search queries across those angles, then web_fetch and read the best sources; " +
-  "(3) adversarially verify key claims — default skeptic, corroborate each with a second source; " +
-  "(4) synthesize a structured, CITED answer and flag what is uncertain or unverified.\n\nQuestion: ";
+  "(3) turn key findings into claim/source/date/expiry receipts; " +
+  "(4) adversarially verify key claims — default skeptic, corroborate each with a second source, reject unsupported or stale receipts; " +
+  "(5) synthesize a structured, CITED answer from surviving receipts and flag what is uncertain or unverified.\n\nQuestion: ";
 
 /** Build a deep-thinking command: wrap the task with `preamble`, re-run it. */
 function thinkCmd(label: string, preamble: string): SlashHandler {
