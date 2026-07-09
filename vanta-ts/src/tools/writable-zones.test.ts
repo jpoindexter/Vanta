@@ -7,8 +7,11 @@ import {
   resolveReadableZones,
   isInZone,
   resolveReadablePath,
+  resolveReadablePathAsk,
   resolveWritablePath,
+  resolveWritablePathAsk,
   isDangerousPath,
+  getSessionDirs,
 } from "./writable-zones.js";
 
 describe("expandHome", () => {
@@ -99,6 +102,17 @@ describe("resolveReadablePath (shared read-path policy)", () => {
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.error).toContain("never accessible");
   });
+
+  it("names the exact recovery commands for an out-of-zone read", () => {
+    const r = resolveReadablePath("/srv/elsewhere/x.md", root, {} as NodeJS.ProcessEnv);
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect(r.error).toContain("Recovery:");
+      expect(r.error).toContain("/add-dir /srv/elsewhere");
+      expect(r.error).toContain("VANTA_READABLE_DIRS='/srv/elsewhere' vanta");
+      expect(r.error).toContain("cd '/srv/elsewhere' && vanta");
+    }
+  });
 });
 
 describe("isDangerousPath", () => {
@@ -148,5 +162,46 @@ describe("resolveWritablePath", () => {
       expect(r.error).toContain("VANTA_WRITABLE_DIRS='/srv/elsewhere' vanta");
       expect(r.error).toContain("cd '/srv/elsewhere' && vanta");
     }
+  });
+});
+
+describe("resolve path with session approval", () => {
+  const root = "/Users/x/Documents/GitHub/Vanta";
+
+  it("approval adds an out-of-zone readable dir to the session and proceeds", async () => {
+    const env = {} as NodeJS.ProcessEnv;
+    const asked: Array<{ action: string; reason: string; toolName?: string }> = [];
+    const r = await resolveReadablePathAsk("/srv/readable/note.md", root, env, async (action, reason, toolName) => {
+      asked.push({ action, reason, toolName });
+      return true;
+    });
+
+    expect(r).toEqual({ ok: true, abs: "/srv/readable/note.md" });
+    expect(asked).toEqual([{
+      action: "read /srv/readable/note.md",
+      reason: expect.stringContaining("approving adds /srv/readable to this session"),
+      toolName: "read_file",
+    }]);
+    expect(getSessionDirs(env)).toEqual(["/srv/readable"]);
+  });
+
+  it("approval adds an out-of-zone writable dir to the session and proceeds", async () => {
+    const env = {} as NodeJS.ProcessEnv;
+    const r = await resolveWritablePathAsk("/srv/writable/out.md", root, env, async () => true);
+
+    expect(r).toEqual({ ok: true, abs: "/srv/writable/out.md" });
+    expect(getSessionDirs(env)).toEqual(["/srv/writable"]);
+  });
+
+  it("declined approval keeps the readable recovery refusal", async () => {
+    const env = {} as NodeJS.ProcessEnv;
+    const r = await resolveReadablePathAsk("/srv/declined/note.md", root, env, async () => false);
+
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect(r.error).toContain("Recovery:");
+      expect(r.error).toContain("/add-dir /srv/declined");
+    }
+    expect(getSessionDirs(env)).toEqual([]);
   });
 });
