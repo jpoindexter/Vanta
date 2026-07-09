@@ -33,6 +33,9 @@ describe("isLongRunningServer", () => {
   it("flags known never-exiting servers/watchers", () => {
     expect(isLongRunningServer("python3 -m http.server 8765")).toBe(true);
     expect(isLongRunningServer("npm run dev")).toBe(true);
+    expect(isLongRunningServer("bun run dev")).toBe(true);
+    expect(isLongRunningServer("cd /tmp/app && bun run tauri dev")).toBe(true);
+    expect(isLongRunningServer("CMAKE_POLICY_VERSION_MINIMUM=3.5 bun run tauri dev")).toBe(true);
     expect(isLongRunningServer("vite dev --port 3000")).toBe(true);
     expect(isLongRunningServer("npx serve -s build")).toBe(true);
     expect(isLongRunningServer("php -S localhost:8000")).toBe(true);
@@ -65,6 +68,7 @@ describe("looksLikeServeIntent", () => {
   it("is true for named dev servers AND raw port binds", () => {
     expect(looksLikeServeIntent("python3 -m http.server 8123")).toBe(true);
     expect(looksLikeServeIntent("npx serve -s build")).toBe(true);
+    expect(looksLikeServeIntent("cd /Users/jasonpoindexter/Documents/GitHub/whisperflow-local-clone/Handy && bun run tauri dev")).toBe(true);
     expect(looksLikeServeIntent("nc -l 8123")).toBe(true);
   });
 

@@ -136,6 +136,18 @@ describe("shell_cmd SANDBOX-SERVE-FASTFAIL", () => {
     expect(r.output).not.toMatch(/run without background=true/); // NOT the generic bg-sandbox branch
   });
 
+  it("execute: fast-fails a Tauri dev command with background:true under sandbox", async () => {
+    process.env.VANTA_SHELL_SANDBOX = "1";
+    const r = await shellCmdTool.execute({
+      command: "cd /Users/jasonpoindexter/Documents/GitHub/whisperflow-local-clone/Handy && CMAKE_POLICY_VERSION_MINIMUM=3.5 bun run tauri dev",
+      background: true,
+    }, ctx());
+    expect(r.ok).toBe(false);
+    expect(r.output).toMatch(/no working path under the shell sandbox/);
+    expect(r.output).toMatch(/VANTA_SHELL_SANDBOX=0/);
+    expect(r.output).not.toMatch(/run without background=true/);
+  });
+
   it("execute: fast-fails a foreground serve under sandbox (pre-empts the needs-background steer)", async () => {
     process.env.VANTA_SHELL_SANDBOX = "1";
     const r = await shellCmdTool.execute({ command: "npx serve -s build" }, ctx());

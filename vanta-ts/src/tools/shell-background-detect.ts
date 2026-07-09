@@ -30,9 +30,13 @@ export function looksLikeBackgrounding(command: string): boolean {
 // they block until the 30s timeout (then orphan). Steer them to background instead.
 const SERVER_PATTERNS: RegExp[] = [
   /\bhttp\.server\b/, // python -m http.server
-  /\bnpm\s+(?:run\s+)?(?:dev|start|serve|watch)\b/,
+  /\b(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?(?:dev|start|serve|watch)\b/,
+  /\b(?:npm|pnpm|yarn|bun)\s+run\s+tauri\s+dev\b/,
+  /\b(?:bun|cargo)\s+tauri\s+dev\b/,
+  /\btauri\s+dev\b/,
   /\b(?:vite|next|nuxt|astro|remix|gatsby)\s+dev\b/,
-  /\bnpx\s+(?:serve|http-server|live-server|vite|nodemon)\b/,
+  /\b(?:npx|bunx)\s+(?:serve|http-server|live-server|vite|nodemon)\b/,
+  /\bpnpm\s+dlx\s+(?:serve|http-server|live-server|vite|nodemon)\b/,
   /\b(?:serve|http-server|live-server|nodemon)\b/,
   /\bphp\s+-S\b/,
   /\bflask\s+run\b/,
