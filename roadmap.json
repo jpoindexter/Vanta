@@ -5597,7 +5597,7 @@
       "id": "DESKTOP",
       "track": "Operator",
       "title": "Desktop app for Vanta",
-      "status": "horizon",
+      "status": "shipped",
       "size": "XL",
       "summary": "Umbrella for the native Vanta desktop app. The rough localhost web shell exists (vanta desktop); the full build is DESKTOP-P0..P12 (Electron-first foundation, kernel-enforced) per docs/desktop-completion-plan.md. NOT a generic dashboard — match interaction model first, then Vanta's operator/dossier aesthetic.",
       "done": "Closes when DESKTOP-P0..P12 ship: a native Electron Vanta app with streaming chat, sessions, approval-first actions, model control, file/terminal/preview rails, palette + command center.",
@@ -5605,7 +5605,9 @@
       "model": "opus",
       "effort": "high",
       "codex": "gpt-5.5",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-07-09",
+      "notes": "SHIPPED 2026-07-09 umbrella closeout: every DESKTOP-P0..DESKTOP-P12 child card is now shipped. The current desktop surface has the React/Vite renderer, SSE streaming events, per-session state, approval lifecycle, model picker, file/context rail, PTY/terminal rail, preview rail, command palette, command-center slice, composer attachments/voice, and the P12 Electron dev native shell. Verification for the closing dependency included `npm run desktop:native:smoke`, which built the renderer, started the local Vanta desktop server with `--no-open`, opened/loaded the Electron BrowserWindow, and exited cleanly. Package/signing remains intentionally deferred by the P12 done criterion."
     },
     {
       "id": "CODEBASE-MINE",
