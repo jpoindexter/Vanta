@@ -1,6 +1,6 @@
 import type { Approval, ApprovalDecision, PermissionSection, Provider, RailTab } from "./types.js";
 
-export function CommandPalette(props: { open: boolean; onClose: () => void; onNew: () => void; onModel: () => void; onTab: (tab: RailTab) => void }) {
+export function CommandPalette(props: { open: boolean; onClose: () => void; onNew: () => void; onModel: () => void; onSound: () => void; onTab: (tab: RailTab) => void }) {
   if (!props.open) return null;
   const actions = commandActions(props);
   return (
@@ -13,10 +13,11 @@ export function CommandPalette(props: { open: boolean; onClose: () => void; onNe
   );
 }
 
-function commandActions(props: { onNew: () => void; onModel: () => void; onTab: (tab: RailTab) => void }) {
+function commandActions(props: { onNew: () => void; onModel: () => void; onSound: () => void; onTab: (tab: RailTab) => void }) {
   return [
     ["New session", props.onNew],
     ["Model picker", props.onModel],
+    ["Completion sound", props.onSound],
     ["Files", () => props.onTab("files")],
     ["Terminal", () => props.onTab("terminal")],
   ] as const;

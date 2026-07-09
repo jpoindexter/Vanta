@@ -15240,7 +15240,7 @@
       "id": "OP-COMPLETION-SOUND",
       "track": "Operator",
       "title": "Web-Audio completion cue (desktop renderer)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "No 'long task finished' audio affordance. Add 2-3 synthesized completion chimes (Web Audio, no asset files) fired on turn-complete in the desktop renderer, behind a mute toggle.",
       "done": "The desktop renderer plays a synthesized chime on turn completion, selectable and mutable in settings; no bundled audio; toggle persisted.",
@@ -15249,7 +15249,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "tui",
-      "updated": "2026-06-20",
+      "updated": "2026-07-10",
+      "notes": "Shipped 2026-07-10. The built desktop renderer now primes Web Audio from the submit gesture and plays a low-gain synthesized cue only after a successful `/api/chat` turn. Three asset-free cues (Soft, Bright, Resonant) are selectable in a native modal settings dialog; the enabled toggle and cue choice persist in localStorage, storage/audio failures degrade silently, and the status strip shows the current cue or Muted. The modal uses `showModal()` for native focus trapping and Escape handling. Verified with 16 focused Vitest cases, a strict DOM-aware TypeScript check over `desktop-app/src`, the Vanta size lint, `npm run desktop:build`, and `npm run desktop:sound:smoke`. The Electron smoke drove the built UI through submit, observed 2 native oscillator starts for Soft, 3 for Bright preview, persisted `{enabled:false,sound:\"bright\"}`, and rendered `Sound: Muted`; screenshot inspection confirmed centered, non-overlapping controls.",
       "source": "ref-audit-2026-06-20"
     },
     {

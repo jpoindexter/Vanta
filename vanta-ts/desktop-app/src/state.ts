@@ -1,5 +1,12 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api.js";
+import {
+  createCompletionSoundPlayer,
+  loadCompletionSoundSettings,
+  saveCompletionSoundSettings,
+  type CompletionSoundPlayer,
+  type CompletionSoundSettings,
+} from "./completion-sound.js";
 import type { Approval, ApprovalDecision, EventRow, Message, Provider, RailTab, Session, Status, Tool } from "./types.js";
 
 export function useDesktopData() {
@@ -11,6 +18,9 @@ export function useDesktopData() {
   const [tab, setTab] = useState<RailTab>("preview");
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [modelOpen, setModelOpen] = useState(false);
+  const [soundOpen, setSoundOpen] = useState(false);
+  const openSoundSettings = useCallback(() => setSoundOpen(true), []);
+  const closeSoundSettings = useCallback(() => setSoundOpen(false), []);
 
   async function refresh() {
     const [nextStatus, nextSessions, nextTools, nextFiles, nextModels] = await Promise.all([
@@ -35,21 +45,46 @@ export function useDesktopData() {
 
   useEffect(() => { void refresh(); }, []);
   return {
-    status, sessions, tools, files, models, tab, setTab, paletteOpen, modelOpen, refresh, setModel,
+    status, sessions, tools, files, models, tab, setTab, paletteOpen, modelOpen, soundOpen, refresh, setModel,
     openPalette: () => setPaletteOpen(true),
     closePalette: () => setPaletteOpen(false),
     openModelPicker: () => setModelOpen(true),
     closeModelPicker: () => setModelOpen(false),
+    openSoundSettings,
+    closeSoundSettings,
   };
 }
 
-export function useConversation(refresh: () => Promise<void>) {
+export function useCompletionSound() {
+  const [settings, setSettings] = useState<CompletionSoundSettings>(() => loadCompletionSoundSettings(window.localStorage));
+  const player = useRef<CompletionSoundPlayer | null>(null);
+  const getPlayer = useCallback(() => {
+    const prefixed = (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    const AudioContextImpl = window.AudioContext ?? prefixed;
+    player.current ??= createCompletionSoundPlayer(AudioContextImpl ? () => new AudioContextImpl() : undefined);
+    return player.current;
+  }, []);
+  const update = useCallback((next: CompletionSoundSettings) => {
+    setSettings(next);
+    saveCompletionSoundSettings(window.localStorage, next);
+  }, []);
+  const prime = useCallback(() => {
+    if (settings.enabled) getPlayer().prime();
+  }, [getPlayer, settings.enabled]);
+  const play = useCallback(() => getPlayer().play(settings), [getPlayer, settings]);
+  useEffect(() => () => { void player.current?.dispose(); }, []);
+  return { settings, update, prime, play, preview: play };
+}
+
+type TurnCues = { prime?: () => void; complete?: () => unknown | Promise<unknown> };
+
+export function useConversation(refresh: () => Promise<void>, cues: TurnCues = {}) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [activeTitle, setActiveTitle] = useState("New session");
   const [draft, setDraft] = useState("");
   const [events, setEvents] = useState<EventRow[]>([{ label: "No tool activity yet." }]);
   const [busy, setBusy] = useState(false);
-  const handlers = conversationHandlers({ refresh, setMessages, setActiveTitle, setEvents, setBusy, setDraft });
+  const handlers = conversationHandlers({ refresh, setMessages, setActiveTitle, setEvents, setBusy, setDraft }, cues);
   return { messages, activeTitle, draft, setDraft, events, busy, ...handlers };
 }
 
@@ -79,7 +114,7 @@ type ConversationState = {
   setDraft: (updater: (value: string) => string) => void;
 };
 
-function conversationHandlers(state: ConversationState) {
+function conversationHandlers(state: ConversationState, cues: TurnCues) {
   async function openSession(id: string) {
     const opened = await api<{ title: string; messages: Message[] }>("/api/sessions/open", postJson({ id }));
     state.setActiveTitle(opened.title);
@@ -96,10 +131,11 @@ function conversationHandlers(state: ConversationState) {
   function insertFile(file: string) {
     state.setDraft((value) => `${value} @${file}`.trimStart());
   }
-  return { openSession, newSession, submit: (text: string) => submitMessage(state, text), insertFile };
+  return { openSession, newSession, submit: (text: string) => submitMessage(state, text, cues), insertFile };
 }
 
-async function submitMessage(state: ConversationState, text: string) {
+export async function submitMessage(state: ConversationState, text: string, cues: TurnCues = {}) {
+  cues.prime?.();
   state.setMessages((m) => [...m, { role: "user", content: text }]);
   state.setEvents([{ label: "thinking..." }]);
   state.setBusy(true);
@@ -107,6 +143,7 @@ async function submitMessage(state: ConversationState, text: string) {
     const result = await api<{ finalText: string; events?: EventRow[] }>("/api/chat", postJson({ message: text }));
     state.setMessages((m) => [...m, { role: "assistant", content: result.finalText || "(no text)" }]);
     state.setEvents(result.events?.length ? result.events : [{ label: "No tool events returned." }]);
+    await Promise.resolve(cues.complete?.()).catch(() => undefined);
     await state.refresh();
   } catch (err) {
     state.setMessages((m) => [...m, { role: "assistant", content: (err as Error).message }]);
