@@ -36,7 +36,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/tools/all-tools.ts` — register every new tool in the `ALL_TOOLS` array here AND in `tools/tools.test.ts` sorted list (`index.ts` is now just `buildRegistry`)
 - `src/tools/types.ts` — `Tool`, `ToolContext`, `ToolResult` shapes
 - `src/safety-client.ts` — kernel bridge (assess/approvals/goals)
-- `src/repl/catalog.ts` — canonical list of 133 slash commands for `/help`, TUI palette, and validation; `/skills audit` exposes skill injection-scan findings without noisy default loads
+- `src/repl/catalog.ts` — canonical list of 134 slash commands for `/help`, TUI palette, and validation; `/skills audit` exposes skill injection-scan findings without noisy default loads
 - `src/code-intel/` — swappable code-intelligence port; default adapter shells out to `codegraph`, and absent engines degrade to `Result` errors instead of breaking turns
 - `src/repl/handlers.ts` — slash command dispatcher and handler registry
 - `src/plugins/` — plugin framework: manifest parsing, enabled-plugin loading, `PluginContext`, and runtime plugin slash-command registry
@@ -93,7 +93,7 @@ npx tsc --noEmit                 # must be clean before any commit
 ## Current surface
 
 - `src/tools/all-tools.ts` currently lists **123 built-in tools** (127 registered with factory `mount_mcp`/`tool_search`/`mcp_auth`/`run_pipeline`); runtime MCP mounts can add more.
-- `src/repl/catalog.ts` currently exposes **133 slash commands**.
+- `src/repl/catalog.ts` currently exposes **134 slash commands**.
 - Code intelligence defaults to the `codegraph` adapter through `src/code-intel/index.ts`; `.codegraph/` is ignored local state, refreshed with `codegraph index -f .`, and should be verified with `codegraph status .` before trusting impact/search output.
 - `/skills` lists learned + MCP skills; `/skills audit` reports trusted-local skill injection-scan hits on demand while `VANTA_SKILL_STRICT=1` still hard-skips flagged local skills.
 - Runtime plugins are opt-in via `settings.plugins.enabled`; loaded plugin tools are not built-ins and still route through the normal kernel-gated tool path.
