@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import { shellCmdTool } from "../tools/shell-cmd.js";
+import type { ToolContext } from "../tools/types.js";
 import {
   CAPABILITY_WORKFLOWS,
   formatWhatCanIDo,
@@ -7,6 +9,14 @@ import {
   whatCanIDo,
   workflowViews,
 } from "./what-can-i-do-cmd.js";
+
+function toolCtx(root = "/tmp/vanta-gallery-fixture"): ToolContext {
+  return {
+    root,
+    safety: {} as ToolContext["safety"],
+    requestApproval: async () => true,
+  };
+}
 
 describe("what-can-i-do workflow catalog", () => {
   it("defines eight concrete workflows", () => {
@@ -37,6 +47,7 @@ describe("what-can-i-do workflow catalog", () => {
   it("ships three runnable demo fixtures with exact commands", () => {
     const demoIds = CAPABILITY_WORKFLOWS.map((w) => w.demo).filter(Boolean);
     expect(demoIds).toEqual(["fix-error", "continue-roadmap", "crash-log"]);
+    expect(runWorkflowDemo("fix-error")).toContain("python3 -m http.server 8123");
     expect(runWorkflowDemo("fix-error")).toContain("VANTA_SHELL_SANDBOX=0 vanta");
     expect(runWorkflowDemo("continue-roadmap")).toContain(`Command: vanta run "Continue the top roadmap item and push the slice"`);
     expect(runWorkflowDemo("crash-log")).toContain("Library not loaded");
@@ -62,5 +73,23 @@ describe("what-can-i-do workflow catalog", () => {
     const result = runColdActivationCheck([]);
     expect(result.ok).toBe(false);
     expect(result.output).toContain("FAIL");
+  });
+
+  it("gallery sandbox recovery fixture exercises the real shell_cmd refusal path", async () => {
+    const prev = process.env.VANTA_SHELL_SANDBOX;
+    process.env.VANTA_SHELL_SANDBOX = "1";
+    try {
+      const result = await shellCmdTool.execute(
+        { command: "python3 -m http.server 8123", background: true },
+        toolCtx("/tmp/vanta-gallery-fixture"),
+      );
+      expect(result.ok).toBe(false);
+      expect(result.output).toContain("no working path under the shell sandbox");
+      expect(result.output).toContain("cd '/tmp/vanta-gallery-fixture' && VANTA_SHELL_SANDBOX=0 vanta");
+      expect(result.output).toContain("background:true");
+    } finally {
+      if (prev === undefined) delete process.env.VANTA_SHELL_SANDBOX;
+      else process.env.VANTA_SHELL_SANDBOX = prev;
+    }
   });
 });

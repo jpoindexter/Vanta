@@ -56,7 +56,7 @@
       "id": "GALLERY-SANDBOX-RECOVERY-FIXTURE",
       "track": "Harness",
       "title": "Gallery sandbox recovery fixture — first workflow survives wrong-root/background errors",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Blind audit finding #2: the what-can-I-do gallery and sandbox scope wizard can ship separately without proving the first useful workflow survives the exact wrong-root/background-refusal failure path. Make that failure path part of the activation flow.",
       "done": "At least one gallery workflow intentionally starts from an out-of-scope repo or sandboxed background-server command, receives sandbox scope guidance, and either resumes or emits the exact safe restart command; the fixture is covered by a test and linked from the workflow demo.",
@@ -71,7 +71,7 @@
         "WHAT-CAN-I-DO-GALLERY",
         "SANDBOX-SCOPE-WIZARD"
       ],
-      "notes": "From blind audit finding #2. This keeps the activation path honest by testing the failure that already confused the user."
+      "notes": "From blind audit finding #2. This keeps the activation path honest by testing the failure that already confused the user.\n\nSHIPPED 2026-07-09. The `fix-error` gallery demo now names the exact sandboxed background-server fixture (`python3 -m http.server 8123` with background:true under VANTA_SHELL_SANDBOX=1). `what-can-i-do-cmd.test.ts` executes the real `shell_cmd` path, observes the shell-sandbox refusal, and asserts the safe restart command (`VANTA_SHELL_SANDBOX=0 vanta`) plus background:true retry guidance. The fixture is linked from `/what-can-i-do --demo fix-error`."
     },
     {
       "id": "USER-LANGUAGE-WORKFLOW-COPY",

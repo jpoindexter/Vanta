@@ -99,8 +99,8 @@ export const CAPABILITY_WORKFLOWS: CapabilityWorkflow[] = [
 const DEMOS: Record<string, string> = {
   "fix-error": [
     "Demo: Fix a pasted error",
-    "Input: refused: background tasks are not sandboxed under sandbox mode.",
-    "Result: identify sandboxed background refusal; relaunch with `VANTA_SHELL_SANDBOX=0 vanta`; retry long-running server commands with background:true.",
+    "Fixture: start `python3 -m http.server 8123` with background:true while VANTA_SHELL_SANDBOX=1.",
+    "Result: identify sandboxed background-server refusal; relaunch with `VANTA_SHELL_SANDBOX=0 vanta`; retry the server with background:true.",
     `Command: ${CAPABILITY_WORKFLOWS[0]!.command}`,
   ].join("\n"),
   "continue-roadmap": [
