@@ -5,6 +5,16 @@ import type { SessionWorkingMemory } from "../memory/working.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { SessionCost } from "../pricing.js";
 
+export type BackgroundResponse = {
+  id: string;
+  prompt: string;
+  startedAt: string;
+  completedAt?: string;
+  status: "running" | "done" | "failed";
+  finalText?: string;
+  error?: string;
+};
+
 /** Mutable per-session REPL state that some commands change (/clear, /resume, /title, /fork, /image). */
 export type ReplState = {
   sessionId: string;
@@ -31,6 +41,8 @@ export type ReplState = {
   /** ND-TIME-RANGES — ISO timestamp of the last completed turn; powers `/time`'s
    *  "since last action". Stamped post-turn; absent until the first turn ends. */
   lastActionAt?: string;
+  /** Latest response detached with `/bg` in the TUI while the turn keeps running. */
+  backgroundResponse?: BackgroundResponse;
 };
 
 export type ReplCtx = {

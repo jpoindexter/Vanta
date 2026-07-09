@@ -12,10 +12,21 @@ const waitUntil = async (cond: () => boolean, maxTicks = 100): Promise<void> => 
   if (!cond()) throw new Error("waitUntil: condition not met");
 };
 
-function harness(busy = false): { onSubmit: (t: string) => void; runSlash: ReturnType<typeof vi.fn>; send: ReturnType<typeof vi.fn>; dispatch: ReturnType<typeof vi.fn>; openOverlay: ReturnType<typeof vi.fn> } {
-  const runSlash = vi.fn(), send = vi.fn(), dispatch = vi.fn(), openOverlay = vi.fn();
-  const deps: SubmitDeps = { runSlash, send, openOverlay, busy, safety: allowSafety, repoRoot: process.cwd(), dispatch };
-  return { onSubmit: useSubmit(deps), runSlash, send, dispatch, openOverlay };
+function harness(opts: boolean | Partial<SubmitDeps> = false): {
+  onSubmit: (t: string) => void;
+  runSlash: ReturnType<typeof vi.fn>;
+  send: ReturnType<typeof vi.fn>;
+  dispatch: ReturnType<typeof vi.fn>;
+  openOverlay: ReturnType<typeof vi.fn>;
+  detachBackgroundResponse: ReturnType<typeof vi.fn>;
+} {
+  const runSlash = vi.fn(), send = vi.fn(), dispatch = vi.fn(), openOverlay = vi.fn(), detachBackgroundResponse = vi.fn();
+  const overrides = typeof opts === "boolean" ? { busy: opts } : opts;
+  const deps: SubmitDeps = {
+    runSlash, send, openOverlay, busy: false, safety: allowSafety,
+    repoRoot: process.cwd(), dispatch, detachBackgroundResponse, ...overrides,
+  };
+  return { onSubmit: useSubmit(deps), runSlash, send, dispatch, openOverlay, detachBackgroundResponse };
 }
 
 describe("useSubmit routing", () => {
@@ -59,6 +70,28 @@ describe("useSubmit routing", () => {
     await waitUntil(() => h.dispatch.mock.calls.length > 0);
     expect(h.send).not.toHaveBeenCalled();
     expect(h.dispatch).toHaveBeenCalledWith({ t: "enqueue", text: "queued message" });
+  });
+
+  it("detaches /bg instead of queueing it while a turn is visibly busy", () => {
+    const h = harness(true);
+    h.onSubmit("/bg");
+    expect(h.detachBackgroundResponse).toHaveBeenCalledTimes(1);
+    expect(h.runSlash).not.toHaveBeenCalled();
+  });
+
+  it("lets /bg attach while a detached response is running", () => {
+    const h = harness({ backgroundBusy: true });
+    h.onSubmit("/bg");
+    expect(h.runSlash).toHaveBeenCalledWith("/bg");
+    expect(h.detachBackgroundResponse).not.toHaveBeenCalled();
+  });
+
+  it("queues normal messages while a detached response is still running", async () => {
+    const h = harness({ backgroundBusy: true });
+    h.onSubmit("next message");
+    await waitUntil(() => h.dispatch.mock.calls.length > 0);
+    expect(h.send).not.toHaveBeenCalled();
+    expect(h.dispatch).toHaveBeenCalledWith({ t: "enqueue", text: "next message" });
   });
 
   it("intercepts a ! prefix before slash/send routing", () => {

@@ -10,6 +10,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "init", arg: "[--force|--print]", desc: "generate .claude/CLAUDE.md project context for future sessions" },
   { name: "init-verifiers", desc: "detect the project's build/test/lint/typecheck gates → verifier skills it can run to check its work" },
   { name: "stop", desc: "graceful soft-stop — finish the current tool call, then end the turn with a summary" },
+  { name: "bg", arg: "[clear]", desc: "detach/check the active response in the background (TUI)" },
   { name: "retry", desc: "re-run your last message" },
   { name: "undo", desc: "drop the last turn from the conversation" },
   { name: "rewind", arg: "[id]", desc: "list or restore recent per-edit file checkpoints" },

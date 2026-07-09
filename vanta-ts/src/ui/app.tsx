@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState, type ReactElement } from "react";
+import { useEffect, useReducer, useRef, useState, type MutableRefObject, type ReactElement } from "react";
 import { Box, Static, useApp } from "ink";
 import { reduce } from "./reducer.js";
 import { initialState } from "./types.js";
@@ -6,7 +6,7 @@ import { useAgent, type Pending } from "./use-agent.js";
 import { freshGateState, type GateState } from "../repl/post-turn-gates.js";
 import { ApprovalPrompt } from "./approval-prompt.js";
 import { useSlash } from "./use-slash.js";
-import { useSubmit } from "./use-submit.js";
+import { useSubmit, type SubmitDeps } from "./use-submit.js";
 import { useOverlay } from "./use-overlay.js";
 import { useBusyTick } from "./use-busy-tick.js";
 import { contextPct } from "./busy.js";
@@ -18,6 +18,7 @@ import { estimateCommittedRows } from "./layout-rows.js";
 import { listRepoFiles } from "./at.js";
 import { newSessionId } from "../sessions/store.js";
 import { SLASH_COMMANDS } from "../repl/catalog.js";
+import { isBackgroundResponseRunning, startBackgroundResponse } from "../repl/bg-response-cmd.js";
 import { estimateTokens } from "../term/tokens.js";
 import { useSessionStatus } from "./use-session-status.js";
 import { useFooterRich } from "./use-rich-status.js";
@@ -33,6 +34,25 @@ import { useSlackChannels } from "./use-slack-channels.js";
 import type { Conversation } from "../agent.js";
 import type { ReplState } from "../repl/types.js";
 import type { RunSetup } from "../session.js";
+
+type SubmitRouteDeps = Omit<SubmitDeps, "backgroundBusy" | "detachBackgroundResponse" | "safety"> & {
+  setup: RunSetup;
+  convoRef: MutableRefObject<Conversation | null>;
+  replStateRef: MutableRefObject<ReplState>;
+  backgroundBusy: boolean;
+};
+
+function buildSubmitRoute(o: SubmitRouteDeps): (text: string) => void {
+  const detachBackgroundResponse = (): void => {
+    const prompt = [...o.convoRef.current?.messages ?? []].reverse().find((m) => m.role === "user")?.content ?? "(active response)";
+    o.dispatch({ t: "detachResponse", text: startBackgroundResponse(o.replStateRef.current, prompt, new Date()) });
+  };
+  return useSubmit({
+    runSlash: o.runSlash, send: o.send, openOverlay: o.openOverlay, busy: o.busy,
+    backgroundBusy: o.backgroundBusy,
+    safety: o.setup.safety, repoRoot: o.repoRoot, dispatch: o.dispatch, detachBackgroundResponse,
+  });
+}
 
 export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement {
   const app = useApp();
@@ -51,7 +71,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, interruptRef, convoRef, replStateRef, gatesRef });
   const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit, setComposerAnchor, setVim });
   const { overlay, openOverlay, closeOverlay, selectRow } = useOverlay({ setup: props.setup, repoRoot: props.repoRoot, runSlash, getContext: () => ctxSnapshot(props.setup, convoRef.current) });
-  const route = useSubmit({ runSlash, send, openOverlay, busy: state.busy, safety: props.setup.safety, repoRoot: props.repoRoot, dispatch });
+  const route = buildSubmitRoute({ runSlash, send, openOverlay, busy: state.busy, backgroundBusy: isBackgroundResponseRunning(replStateRef.current), setup: props.setup, repoRoot: props.repoRoot, dispatch, convoRef, replStateRef });
   const onSubmit = (text: string): void => { setHistory((h) => [...h, text]); route(text); };
   const tick = useBusyTick(state.busy);
   const skillMatches = useSkillMatches(); const channels = useSlackChannels();
@@ -60,7 +80,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const { mcp, elapsed } = useSessionStatus(props.setup, replStateRef, dispatch);
   const agents = useSubagentProgress();
   const { mode, cycle } = useModeState(pending, setPending, runSlash);
-  useQueueDrain(state.busy, state.queued, dispatch, send);
+  useQueueDrain(state.busy || isBackgroundResponseRunning(replStateRef.current), state.queued, dispatch, send);
   const provider = props.setup.provider;
   const est = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
   const focusTargets = buildFocusTargets(pending, overlay);

@@ -9,6 +9,7 @@ import { readTodos } from "../todo/store.js";
 import { errorDetails, fireStopFailure, stopFailureType } from "../hooks/runtime-events.js";
 import { fireHooks, fireStopHook } from "../hooks/shell-hooks.js";
 import { resolveDroppedMedia } from "../interactive-turn.js";
+import { failBackgroundResponse, finishBackgroundResponse, isBackgroundResponseRunning } from "../repl/bg-response-cmd.js";
 import type { Action } from "./reducer.js";
 import type { RunSetup } from "../session.js";
 import type { ReplState } from "../repl/types.js";
@@ -21,6 +22,10 @@ async function refreshTodos(dispatch: Dispatch<Action>): Promise<void> {
 /** A pending kernel approval the live region renders; resolved by an a/A/d keypress.
  * `toolName` lets "always allow" persist a tool-scoped rule (see ui/grant.ts). */
 export type Pending = { action: string; reason: string; toolName?: string; resolve: (ok: boolean) => void };
+
+function liveDispatch(deps: AgentDeps, action: Action): void {
+  if (!isBackgroundResponseRunning(deps.replStateRef.current)) deps.dispatch(action);
+}
 
 /** First non-empty line of a failed result, trimmed — used for the error tail. */
 function firstLine(t: string): string {
@@ -69,16 +74,16 @@ function convoConfig(deps: AgentDeps): Parameters<typeof createConversation>[1] 
     maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(deps.setup.provider),
     getEffortLevel: () => deps.replStateRef.current.effortLevel ?? deps.setup.effortLevel,
-    onThinking: (text) => deps.dispatch({ t: "thinking", text }),
-    onTextDelta: (d) => deps.dispatch({ t: "delta", d }),
-    onThinkingDelta: (d) => deps.dispatch({ t: "thinkingDelta", d }),
+    onThinking: (text) => liveDispatch(deps, { t: "thinking", text }),
+    onTextDelta: (d) => liveDispatch(deps, { t: "delta", d }),
+    onThinkingDelta: (d) => liveDispatch(deps, { t: "thinkingDelta", d }),
     onToolCall: (name, args) => {
       const disp = toolDisplay(name, args);
-      deps.dispatch({ t: "toolCall", name, verb: disp.verb, detail: disp.detail });
+      liveDispatch(deps, { t: "toolCall", name, verb: disp.verb, detail: disp.detail });
     },
     onToolResult: (name, ok, output, diff) => {
       const tokens = Math.round((output?.length ?? 0) / 4);
-      deps.dispatch({ t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output, name), diff, tokens });
+      liveDispatch(deps, { t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output, name), diff, tokens });
       if (name === "todo") void refreshTodos(deps.dispatch); // reflect plan edits live
     },
     requestApproval: (action, reason, toolName) =>
@@ -114,9 +119,11 @@ export function useAgent(deps: AgentDeps): { send: (text: string, display?: stri
     try {
       await fireHooks(join(deps.repoRoot, ".vanta"), "UserPromptSubmit", { prompt: text }, { cwd: deps.repoRoot, promptProvider: deps.setup.provider });
       const outcome = await conv.send(text, images, ctrl.signal);
+      finishBackgroundResponse(deps.replStateRef.current, outcome.finalText, new Date());
       await fireStopHook(join(deps.repoRoot, ".vanta"), { finalResponse: outcome.finalText, turnIndex: deps.replStateRef.current.turnIndex }, { cwd: deps.repoRoot, promptProvider: deps.setup.provider });
       await runTurnGates(deps);
     } catch (err) {
+      failBackgroundResponse(deps.replStateRef.current, err instanceof Error ? err.message : String(err), new Date());
       await fireStopFailure(deps.repoRoot, { error: stopFailureType(err), errorDetails: errorDetails(err) }, { promptProvider: deps.setup.provider });
       deps.dispatch({ t: "note", text: `  ✗ ${(err as Error).message}` });
     } finally {

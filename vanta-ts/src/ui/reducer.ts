@@ -18,6 +18,7 @@ export type Action =
   | { t: "todos"; items: TodoItem[] }
   | { t: "enqueue"; text: string }
   | { t: "dequeue" }
+  | { t: "detachResponse"; text: string }
   | { t: "thinkingDelta"; d: string }
   | { t: "turnStart" }
   | { t: "turnEnd" };
@@ -135,6 +136,17 @@ function reduceAux(state: UiState, a: Action): UiState {
       return { ...state, queued: [...state.queued, a.text] };
     case "dequeue":
       return { ...state, queued: state.queued.slice(1) };
+    case "detachResponse": {
+      const s = flush(state);
+      return {
+        ...s,
+        entries: [...s.entries, { kind: "note", text: a.text }],
+        streaming: "",
+        activeTools: [],
+        busy: false,
+        liveThinking: "",
+      };
+    }
     case "thinkingDelta":
       // Live reasoning preview (live region only). Cleared the moment real output text begins.
       return { ...state, liveThinking: state.liveThinking + a.d };

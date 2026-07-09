@@ -15,9 +15,11 @@ export type SubmitDeps = {
   send: (text: string) => void;
   openOverlay: (kind: OverlayKind) => void;
   busy: boolean;
+  backgroundBusy?: boolean;
   safety: KernelClient;
   repoRoot: string;
   dispatch: Dispatch<Action>;
+  detachBackgroundResponse?: () => void;
 };
 
 /** Resolve a line with any @-referenced file content inlined as a context block. */
@@ -39,12 +41,13 @@ export function useSubmit(deps: SubmitDeps): (text: string) => void {
   return (text: string): void => {
     if (text === "?") return deps.openOverlay("help");
     if (isSlashLine(text)) {
+      if (deps.busy && slashHead(text) === "bg" && deps.detachBackgroundResponse) return deps.detachBackgroundResponse();
       const kind = pickerFor(text);
       return kind ? deps.openOverlay(kind) : deps.runSlash(text);
     }
     if (maybeRunShortcut(text, { safety: deps.safety, repoRoot: deps.repoRoot, note })) return;
     // While a turn runs, queue the message (with @-context resolved now) and drain it when idle.
-    if (deps.busy) return void resolveLine(text, deps.repoRoot).then((resolved) => deps.dispatch({ t: "enqueue", text: resolved }));
+    if (deps.busy || deps.backgroundBusy) return void resolveLine(text, deps.repoRoot).then((resolved) => deps.dispatch({ t: "enqueue", text: resolved }));
     void resolveLine(text, deps.repoRoot).then(deps.send);
   };
 }

@@ -197,7 +197,7 @@
       "id": "VANTA-BG-RESPOND-CONTINUE",
       "track": "Harness",
       "title": "`/bg` while responding — active response continues in background, not dropped",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.153) changes `/bg` behavior during an active response. Instead of dropping the in-progress output, the response continues streaming in the background session. Users can re-attach with `claude agents` to see the result.",
       "done": "Pressing `/bg` while Claude is responding transfers the live stream to the background. Attaching later shows the completed response.",
@@ -207,7 +207,7 @@
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
       "updated": "2026-07-09",
-      "notes": "Promoted to Next from transcript extraction 2026-07-09 because the transcripts point to Hermes-level operator loops: durable intent, autonomous watching, and background continuation.\n\nORGANIZED 2026-07-09: Phase 2 continuity fix. Follows sandbox scope recovery so long-running/background behavior stops feeling fragile.",
+      "notes": "Promoted to Next from transcript extraction 2026-07-09 because the transcripts point to Hermes-level operator loops: durable intent, autonomous watching, and background continuation.\n\nORGANIZED 2026-07-09: Phase 2 continuity fix. Follows sandbox scope recovery so long-running/background behavior stops feeling fragile.\n\nSHIPPED 2026-07-09: Added `/bg` to the slash catalog and TUI submit path. While a TUI response is visibly busy, typing `/bg` detaches the live render, records the active prompt as a background response, keeps the in-flight model call running, and clears the prompt surface. Normal messages submitted while that detached turn is still running are queued so the shared conversation cannot overlap turns. When the turn finishes, Vanta stores the final response on session state; typing `/bg` later attaches and prints the completed answer, and `/bg clear` drops it. Verified with pure background-response state tests, submit-router tests, TUI agent send tests, and a real Ink App integration test that submits a prompt, types `/bg` while the fake model response is pending, completes the response, then types `/bg` again and sees the completed answer.",
       "after": [
         "SANDBOX-SCOPE-WIZARD"
       ]

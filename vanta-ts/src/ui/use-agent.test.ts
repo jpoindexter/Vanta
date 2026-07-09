@@ -4,8 +4,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { runTurnGates, useAgent } from "./use-agent.js";
 import { freshGateState } from "../repl/post-turn-gates.js";
+import { startBackgroundResponse } from "../repl/bg-response-cmd.js";
 import { invalidateNdConfig } from "../nd/profile.js";
 import type { ImageAttachment } from "../types.js";
+import type { ReplState } from "../repl/types.js";
 
 // Proves the ND executive-function engine fires in the DEFAULT TUI host (not just
 // the readline REPL): runTurnGates → runPostTurnGates → ndGatesAfterTurn → a note.
@@ -89,5 +91,18 @@ describe("useAgent send — image attachments", () => {
     const { send } = useAgent(deps as never);
     await send("hi");
     expect(sendSpy.mock.calls[0]![1]).toBeUndefined();
+  });
+
+  it("stores a detached response result instead of dropping it", async () => {
+    const { deps } = sendDeps(undefined);
+    const state = deps.replStateRef.current as ReplState;
+    startBackgroundResponse(state, "long prompt", new Date(0));
+    const { send } = useAgent(deps as never);
+    await send("hi");
+    expect(state.backgroundResponse).toMatchObject({
+      status: "done",
+      prompt: "long prompt",
+      finalText: "ok",
+    });
   });
 });
