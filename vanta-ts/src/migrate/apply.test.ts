@@ -15,6 +15,7 @@ const plan = (over: Partial<MigrationPlan> = {}): MigrationPlan => ({
   mcpServers: [],
   modelConfig: null,
   notes: [],
+  gaps: [],
   ...over,
 });
 

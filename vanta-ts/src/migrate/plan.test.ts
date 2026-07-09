@@ -28,6 +28,18 @@ function fsDeps(root: string, over: Partial<Pick<PlanDeps, "existingSkillNames" 
   };
 }
 
+function memoryDeps(root: string, dirs: string[], files: Record<string, string>): PlanDeps {
+  const path = (...parts: string[]): string => [root, ...parts].join("/");
+  return {
+    sourceRoot: root,
+    exists: (p) => p === root,
+    readText: (p) => files[p] ?? null,
+    listDirs: (p) => (p === path("skills") ? dirs : []),
+    existingSkillNames: new Set(),
+    existingMcpNames: new Set(),
+  };
+}
+
 describe("buildMigrationPlan — openclaw fixture", () => {
   const plan = buildMigrationPlan("openclaw", fsDeps(fixture("openclaw")));
 
@@ -65,6 +77,33 @@ describe("conflict detection + absent source", () => {
     const plan = buildMigrationPlan("openclaw", fsDeps("/no/such/openclaw"));
     expect(plan.found).toBe(false);
     expect(formatPlan(plan)).toMatch(/no openclaw store found/);
+    expect(plan.gaps).toContainEqual({ footprint: "source", item: "/no/such/openclaw", reason: "source store not found" });
+  });
+});
+
+describe("honest could-not-migrate report", () => {
+  it("keeps malformed source items visible instead of silently dropping them", () => {
+    const root = "/tmp/.openclaw";
+    const plan = buildMigrationPlan(
+      "openclaw",
+      memoryDeps(root, ["usable", "empty", "missing"], {
+        [`${root}/skills/usable/SKILL.md`]: "---\nname: usable\n---\n\nbody",
+        [`${root}/skills/empty/SKILL.md`]: "---\nname: empty\n---\n\n",
+        [`${root}/config.json`]: "{ nope",
+      }),
+    );
+
+    expect(plan.skills.map((s) => s.name)).toEqual(["usable"]);
+    expect(plan.gaps).toContainEqual({ footprint: "skill", item: "empty", reason: "invalid skill markdown or empty body" });
+    expect(plan.gaps).toContainEqual({ footprint: "skill", item: "missing", reason: "missing SKILL.md or <slug>.md" });
+    expect(plan.gaps).toContainEqual({ footprint: "config", item: "config.json", reason: "invalid JSON; skipped MCP/model parsing for this file" });
+    expect(formatPlan(plan)).toMatch(/Could not migrate \/ needs manual review/);
+  });
+
+  it("names unsupported adoption footprints so imports do not imply parity", () => {
+    const plan = buildMigrationPlan("hermes", fsDeps(fixture("hermes")));
+    expect(plan.gaps.map((g) => g.footprint)).toEqual(expect.arrayContaining(["memory", "persona", "allowlist", "workspace"]));
+    expect(formatPlan(plan)).toMatch(/workspace\/session state is not portable/);
   });
 });
 

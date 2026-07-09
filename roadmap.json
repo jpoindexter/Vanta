@@ -14468,10 +14468,10 @@
       "effort": "medium",
       "lens": "reach",
       "updated": "2026-07-09",
+      "notes": "SHIPPED 2026-07-09: Added gateway mobile-control commands over any messaging PlatformAdapter, including local WebChat. Channel messages `/runs`, `/work <run-id>`, `/approve <request-id>`, and `/pause <run-id>` are consumed before they become agent turns. Runs are recorded in `.vanta/mobile-control.json` with title/status/work product; `/approve` routes through the existing pending-approval reply bus; `/pause` marks the run paused. Live evidence: drove WebChatAdapter with a phone-like chat id, ran a task, then sent `/runs`, `/work`, `/approve`, and `/pause`; replies included the run id/work product/approval result and the stored run status became paused.",
       "after": [
         "VANTA-CHANNEL-PERMISSIONS"
-      ],
-      "notes": "SHIPPED 2026-07-09: Added gateway mobile-control commands over any messaging PlatformAdapter, including local WebChat. Channel messages `/runs`, `/work <run-id>`, `/approve <request-id>`, and `/pause <run-id>` are consumed before they become agent turns. Runs are recorded in `.vanta/mobile-control.json` with title/status/work product; `/approve` routes through the existing pending-approval reply bus; `/pause` marks the run paused. Live evidence: drove WebChatAdapter with a phone-like chat id, ran a task, then sent `/runs`, `/work`, `/approve`, and `/pause`; replies included the run id/work product/approval result and the stored run status became paused."
+      ]
     },
     {
       "id": "PCLIP-PLUGIN-WORKERS",
@@ -15401,7 +15401,7 @@
       "id": "OP-MIGRATION-IMPORT",
       "track": "Operator",
       "title": "Import-from-other-agent onboarding (honest gaps report)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "An onboarding on-ramp that imports another agent's footprint (persona, memory, command allowlists, skills, workspace) and reports exactly what couldn't migrate and why. The honest could-not-migrate report is the reusable shape; parity-chasing otherwise.",
       "done": "Captured as an adoption on-ramp; the honest-failure-report pattern noted.",
@@ -15410,8 +15410,9 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "selfhood",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-09",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-09. `vanta migrate <openclaw|hermes>` now treats onboarding as an honest import report, not parity theater: the preview still imports the supported footprint (skills, MCP servers, model/provider config) with secrets redacted, conflict flags, picker selection, kernel gate, backup-before-write, and no overwrite unless requested, and it now also carries explicit `MigrationGap` records for what could not be imported. Malformed skills are surfaced instead of silently dropped (`missing SKILL.md or <slug>.md`, invalid/empty body), invalid config JSON is called out, and unsupported adoption footprints are named as manual-review gaps: memory schema for these sources, persona, command allowlists, and workspace/session state. Verified with focused tests (`npx vitest run src/migrate/plan.test.ts src/migrate/apply.test.ts src/migrate/parse.test.ts src/cli/migrate-cmd.test.ts --reporter=dot`, 30 passed), real CLI preview using a temp HOME + OpenClaw fixture (`vanta migrate openclaw`, selected `none`, preview showed importable items plus gaps), `npm run typecheck`, and `npm run vanta -- lint src/migrate/plan.ts src/migrate/plan.test.ts src/migrate/apply.test.ts`."
     },
     {
       "id": "OP-INSTALLER-STAGED",
