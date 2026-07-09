@@ -15286,7 +15286,7 @@
       "id": "OP-ADVERSARIAL-UX",
       "track": "Operator",
       "title": "Adversarial-persona UX QA loop (pragmatism-filtered)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Layer an 'angry/tech-resistant persona' QA pass on the existing browser + vision-to-action: roleplay the hardest user, browse the app, log friction, then a pragmatism filter separates real UX problems from 'I hate computers' noise into actionable tickets.",
       "done": "A run drives the app as an adversarial persona, logs friction, and emits only pragmatism-filtered actionable UX tickets; filter logic unit-tested.",
@@ -15295,8 +15295,9 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "coding",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-09",
+      "source": "ref-audit-2026-06-20",
+      "notes": "SHIPPED 2026-07-09: Added `vanta adversarial-ux --fixture checkout | --url <url>`. The pass uses a hard-user persona, filters venting from concrete UX/accessibility/state failures, and writes only actionable findings into the existing ticket store with evidence comments and labels. Live evidence: ran `vanta adversarial-ux --fixture checkout`, verified it created 2 adversarial UX tickets and ignored 1 noisy observation, then restored the original ticket store."
     },
     {
       "id": "OP-SECRET-SCOPE",
