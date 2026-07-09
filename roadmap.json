@@ -16171,13 +16171,15 @@
       "id": "USER-MODEL-DIALECTIC",
       "track": "Operator",
       "title": "Dialectic user modeling — a deepening model of who you are (Honcho-style)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "a reference agent harness uses Honcho dialectic user modeling to build a deepening theory-of-the-user across sessions. Vanta has operator-profile + brain user_model; upgrade to a dialectic loop that forms, tests, and revises explicit beliefs about the user's preferences/goals/working-style from real interactions, feeding the prompt + approvals.",
       "done": "Across sessions, Vanta forms and revises explicit, inspectable beliefs about the user that measurably change its behavior, with provenance and a way to see/correct them.",
       "tier": "rock",
       "lens": "memory",
-      "source": "a reference agent harness-a reference agent harness-audit-2026-06-21"
+      "source": "a reference agent harness-a reference agent harness-audit-2026-06-21",
+      "updated": "2026-07-10",
+      "notes": "Shipped 2026-07-10. Added a local versioned operator-belief store with hypothesis/accepted/rejected/superseded status, confidence, evidence quotes, session/turn provenance, and revision links. The gated post-turn dialectic pass accepts direct self-reports without an extra model call, periodically forms bounded hypotheses, and requires a direct user correction before observational inference may replace an accepted belief. `/preferences` now lists, adds, corrects, rejects, and retains legacy signal export. Active beliefs load into every new session as evidence-labelled data plus deterministic response cues; rejected and sub-55% hypotheses stay out. Behavior eval moved from 0/4 baseline policy matches to 4/4 with modeled beliefs. Real isolated-home REPL proof executed add/list/correct/reject with retained history; a live gpt-5.5 turn stored a tiny-step preference post-turn and printed `operator model: 1 belief accepted`; the next real `--dump-system-prompt` included its session provenance and concise/one-action/small-step cues. Verified with `npm test -- --reporter=dot` (1160 files, 12342 passed, 3 skipped), `npm run typecheck`, and the Vanta size lint. The live proof consumed $0.06."
     },
     {
       "id": "TRAJECTORY-TOOLING",

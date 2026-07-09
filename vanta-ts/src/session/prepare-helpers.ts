@@ -12,6 +12,7 @@ import { playbookDigest } from "../memory/playbook.js";
 import { getOutputDensity } from "../nd/profile.js";
 import { loadSettings, type Settings } from "../settings/store.js";
 import { gitInstructionsBlock } from "../settings/git-settings.js";
+import { beliefPromptBlock } from "../operator-profile/behavior.js";
 import { resolveProjectTrust, type TrustConfirmer } from "../settings/trust-gate.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
 import { resolveIsolation, skipSkills, skipHooks, skipProjectContext } from "../cli/isolation.js";
@@ -43,7 +44,11 @@ export async function loadPromptContext(repoRoot: string, activeGoalIds: number[
   // VANTA-SAFE-MODE: safe-mode + bare skip skills (install + index). Skipped →
   // empty skill index, same shape as a fresh store with no skills.
   const skills = skipSkills(resolveIsolation(process.env)) ? [] : await loadSkillIndex();
-  const brain = await resolveBrain(process.env).digest(process.env).catch(() => "");
+  const [brainDigest, beliefs] = await Promise.all([
+    resolveBrain(process.env).digest(process.env).catch(() => ""),
+    beliefPromptBlock(process.env).catch(() => ""),
+  ]);
+  const brain = [brainDigest, beliefs].filter((part) => part.trim()).join("\n\n");
   const { selfDigest } = await import("../self/store.js");
   const selfContent = await selfDigest(process.env).catch(() => "");
   const { readMoim } = await import("../moim/store.js");

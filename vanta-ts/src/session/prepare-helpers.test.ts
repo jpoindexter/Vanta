@@ -2,8 +2,9 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { loadRuntimeSettings } from "./prepare-helpers.js";
+import { loadPromptContext, loadRuntimeSettings } from "./prepare-helpers.js";
 import { buildRegistry } from "../tools/index.js";
+import { addBeliefToStore, evidence, saveBeliefStore } from "../operator-profile/beliefs.js";
 
 /**
  * SETTINGS-BLOCKEDTOOLS-ENFORCE: prepareRun loads settings BEFORE buildRegistry
@@ -82,5 +83,24 @@ describe("loadRuntimeSettings → blockedTools registry exclusion", () => {
     // not collaterally drop them.
     expect(registry.get("mount_mcp")).toBeDefined();
     expect(registry.get("tool_search")).toBeDefined();
+  });
+
+  it("loads accepted operator beliefs into the real session prompt context", async () => {
+    const store = { version: 1 as const, beliefs: [] };
+    const now = new Date("2026-07-10T15:00:00.000Z");
+    addBeliefToStore(store, {
+      statement: "Keep answers concise",
+      facet: "communication",
+      status: "accepted",
+      confidence: 1,
+      evidence: evidence({ kind: "self_report", sourceRef: "session:s1:turn:1", excerpt: "Keep answers concise" }, now),
+    }, { now, id: () => "concise" });
+    await saveBeliefStore(store, process.env);
+
+    const context = await loadPromptContext(root, []);
+    expect(context.brain).toContain("Operator beliefs");
+    expect(context.brain).toContain("Keep answers concise");
+    expect(context.brain).toContain("Default to concise responses");
+    expect(context.brain).toContain("session:s1:turn:1");
   });
 });

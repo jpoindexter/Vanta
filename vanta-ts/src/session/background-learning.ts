@@ -3,6 +3,7 @@ import { shouldReview } from "../review/background-review.js";
 import { runLearningCycle, defaultLearningDeps, formatCycleNote } from "../learning/loop.js";
 import { shouldUpdateSessionMemory, updateSessionMemory } from "../memory/session-memory.js";
 import { runMemoryExtractor } from "../memory/extractor.js";
+import { runDialecticPass, type DialecticResult } from "../operator-profile/dialectic.js";
 import { shouldLearn, learnFromTranscript } from "../brain/learn.js";
 import { scoreTurn, formatCriticNote } from "../observe/critic.js";
 import { runCompletionVerifier, shouldVerifyCompletion } from "../verify/completion-verifier.js";
@@ -137,6 +138,25 @@ export async function brainLearnAfterTurn(opts: {
   const env = opts.env ?? process.env;
   if (!shouldLearn(opts.turnIndex, opts.toolIterations, env)) return [];
   return learnFromTranscript({ provider: opts.provider, transcript: opts.transcript, env });
+}
+
+/**
+ * Explicit operator-model pass. Direct preferences are captured without an LLM;
+ * corrections and periodic pattern checks use the provider. The pass is gated,
+ * provenance-tagged, and never allowed to break the completed turn.
+ */
+export async function dialecticAfterTurn(opts: {
+  provider: LLMProvider;
+  transcript: Message[];
+  sessionId: string;
+  turnIndex: number;
+  env?: NodeJS.ProcessEnv;
+}): Promise<DialecticResult> {
+  try {
+    return await runDialecticPass(opts);
+  } catch {
+    return { ran: true, changed: [], reason: "failed" };
+  }
 }
 
 /**

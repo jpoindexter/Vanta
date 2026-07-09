@@ -20,6 +20,7 @@ import {
   memoryExtractAfterTurn,
   sessionMemoryAfterTurn,
   brainLearnAfterTurn,
+  dialecticAfterTurn,
   criticAfterTurn,
   antiSlopAfterText,
 } from "./session.js";
@@ -64,6 +65,8 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWi
   if (newScratch) convo.setSessionMemory(newScratch);
   const learned = await brainLearnAfterTurn({ provider: setup.provider, transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: state.turnIndex });
   if (learned.length) console.log(`  ◈ learned: ${learned.map((l) => (l.length > 60 ? `${l.slice(0, 57)}…` : l)).join(" · ")}`);
+  const modeled = await dialecticAfterTurn({ provider: setup.provider, transcript: convo.messages, sessionId: state.sessionId, turnIndex: state.turnIndex });
+  reportDialectic(modeled);
   const activeGoalText = setup.goals.find((g) => g.status === "active")?.text ?? "";
   await criticAfterTurn({ provider: setup.provider, goal: activeGoalText, messages: convo.messages, onNote: (note) => console.log(`\n${note}`) });
   gatesRef.current = await runPostTurnGates(gatesRef.current, { messages: convo.messages, safety: setup.safety, dataDir: join(repoRoot, ".vanta"), onNote: (note) => console.log(`\n${note}`), turnIndex: state.turnIndex, startedMs: Date.parse(state.started) || Date.now(), now: Date.now() });
@@ -76,6 +79,13 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWi
     fireStopHook(join(repoRoot, ".vanta"), stopCtx, { cwd: repoRoot, ...turnHookDeps(deps) }).catch(() => null),
   ]);
   return { continueWith: goalContinue ?? hookContext ?? null };
+}
+
+function reportDialectic(result: Awaited<ReturnType<typeof dialecticAfterTurn>>): void {
+  if (!result.changed.length) return;
+  const noun = result.changed.length === 1 ? "belief" : "beliefs";
+  const verb = result.reason === "self-report" ? "accepted" : "updated";
+  console.log(`  ◈ operator model: ${result.changed.length} ${noun} ${verb}`);
 }
 
 /**
