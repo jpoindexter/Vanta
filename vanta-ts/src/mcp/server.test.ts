@@ -13,6 +13,7 @@ import {
 } from "./server.js";
 import { McpClient, type Transport } from "./client.js";
 import { buildRegistry } from "../tools/index.js";
+import { saveSession } from "../sessions/store.js";
 import type { SafetyClient } from "../safety-client.js";
 import type { Verdict } from "../types.js";
 import type { ToolContext } from "../tools/types.js";
@@ -21,6 +22,9 @@ import type { ToolContext } from "../tools/types.js";
 function fakeSafety(risk: Verdict["risk"], reason = "test"): SafetyClient {
   return {
     assess: async (): Promise<Verdict> => ({ risk, needsHuman: risk === "ask", reason }),
+    getApprovals: async (): Promise<unknown[]> => [],
+    approve: async (): Promise<void> => {},
+    deny: async (): Promise<void> => {},
   } as unknown as SafetyClient;
 }
 
@@ -31,6 +35,7 @@ function deps(overrides: Partial<ServerDeps> = {}): ServerDeps {
     safety,
     allowlist: overrides.allowlist ?? resolveServeAllowlist({} as NodeJS.ProcessEnv),
     ctx: overrides.ctx ?? ({ root: "/tmp", safety, requestApproval: async () => false } as ToolContext),
+    env: overrides.env,
   };
 }
 
@@ -54,7 +59,7 @@ describe("buildInitializeResult", () => {
   it("matches the MCP 2024-11-05 handshake shape", () => {
     const r = buildInitializeResult();
     expect(r.protocolVersion).toBe("2024-11-05");
-    expect(r.capabilities).toEqual({ tools: {} });
+    expect(r.capabilities).toEqual({ tools: {}, resources: {} });
     expect(r.serverInfo).toEqual({ name: "vanta", version: "0.1.0" });
   });
 });
@@ -90,6 +95,19 @@ describe("handleMessage", () => {
     expect(names).toContain("read_file");
     expect(names).not.toContain("write_file");
     expect(names).not.toContain("shell_cmd");
+  });
+
+  it("lists MCP comms bridge tools only when allowlisted", async () => {
+    const hidden = (await handleMessage({ id: 20, method: "tools/list" }, deps())) as {
+      result: { tools: Array<{ name: string }> };
+    };
+    expect(hidden.result.tools.map((t) => t.name)).not.toContain("vanta_approval_resolve");
+
+    const exposed = (await handleMessage(
+      { id: 21, method: "tools/list" },
+      deps({ allowlist: new Set(["vanta_approval_resolve"]) }),
+    )) as { result: { tools: Array<{ name: string }> } };
+    expect(exposed.result.tools.map((t) => t.name)).toContain("vanta_approval_resolve");
   });
 
   it("returns a JSON-RPC error for an unknown method", async () => {
@@ -132,6 +150,49 @@ describe("handleMessage", () => {
     )) as { result: { isError: boolean; content: Array<{ text: string }> } };
     expect(res.result.isError).toBe(true);
     expect(res.result.content[0]!.text).toContain("requires human approval");
+  });
+
+  it("lists session and approval resources", async () => {
+    const res = (await handleMessage({ id: 30, method: "resources/list" }, deps())) as {
+      result: { resources: Array<{ uri: string }> };
+    };
+    expect(res.result.resources.map((r) => r.uri)).toEqual(["vanta://sessions", "vanta://approvals"]);
+  });
+
+  it("reads persisted sessions through resources/read", async () => {
+    const home = await mkdtemp(join(tmpdir(), "vanta-mcp-comms-"));
+    const env = { VANTA_HOME: home } as NodeJS.ProcessEnv;
+    await saveSession("s1", [{ role: "user", content: "hello mcp" }], { env, now: "2026-01-01T00:00:00.000Z" });
+    const res = (await handleMessage(
+      { id: 31, method: "resources/read", params: { uri: "vanta://sessions/s1" } },
+      deps({ env }),
+    )) as { result: { contents: Array<{ text: string }> } };
+    expect(JSON.parse(res.result.contents[0]!.text)).toMatchObject({ id: "s1", title: "hello mcp" });
+  });
+
+  it("reads pending approvals through resources/read", async () => {
+    const safety = { ...fakeSafety("allow"), getApprovals: async () => [{ id: 7, action: "write file" }] } as unknown as SafetyClient;
+    const res = (await handleMessage(
+      { id: 32, method: "resources/read", params: { uri: "vanta://approvals" } },
+      deps({ safety }),
+    )) as { result: { contents: Array<{ text: string }> } };
+    expect(JSON.parse(res.result.contents[0]!.text)).toEqual([{ id: 7, action: "write file" }]);
+  });
+
+  it("resolves an approval through the opt-in bridge tool", async () => {
+    const calls: string[] = [];
+    const safety = {
+      ...fakeSafety("allow"),
+      approve: async (id: number) => { calls.push(`approve:${id}`); },
+      deny: async (id: number) => { calls.push(`deny:${id}`); },
+    } as unknown as SafetyClient;
+    const res = (await handleMessage(
+      { id: 33, method: "tools/call", params: { name: "vanta_approval_resolve", arguments: { id: 9, decision: "approve" } } },
+      deps({ safety, allowlist: new Set(["vanta_approval_resolve"]) }),
+    )) as { result: { isError: boolean; content: Array<{ text: string }> } };
+    expect(res.result.isError).toBe(false);
+    expect(res.result.content[0]!.text).toContain("approved approval 9");
+    expect(calls).toEqual(["approve:9"]);
   });
 });
 

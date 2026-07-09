@@ -1,6 +1,7 @@
 import type { KernelClient } from "../kernel/client.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import type { Tool, ToolContext } from "../tools/types.js";
+import { listSessions, loadSession } from "../sessions/store.js";
 
 // Minimal MCP (Model Context Protocol) SERVER — the mirror of client.ts. Exposes
 // Vanta's own tools over stdio JSON-RPC so an external host (e.g. an MCP client) can
@@ -31,6 +32,18 @@ const DEFAULT_SERVE_TOOLS = [
   "git_diff",
 ] as const;
 
+const BRIDGE_TOOLS = {
+  vanta_approval_resolve: {
+    name: "vanta_approval_resolve",
+    description: "Approve or deny a pending Vanta approval by id. Opt-in via VANTA_MCP_SERVE_TOOLS.",
+    inputSchema: {
+      type: "object",
+      properties: { id: { type: "number" }, decision: { type: "string", enum: ["approve", "deny"] } },
+      required: ["id", "decision"],
+    },
+  },
+} as const;
+
 /** Resolve the set of tool names exposed over MCP serve. Env overrides the default. */
 export function resolveServeAllowlist(env: NodeJS.ProcessEnv): Set<string> {
   const raw = env.VANTA_MCP_SERVE_TOOLS?.trim();
@@ -49,6 +62,7 @@ export type ServerDeps = {
   safety: KernelClient;
   ctx: ToolContext;
   allowlist: Set<string>;
+  env?: NodeJS.ProcessEnv;
 };
 
 type RpcMessage = { jsonrpc?: string; id?: number | string | null; method?: string; params?: unknown };
@@ -56,12 +70,12 @@ type RpcMessage = { jsonrpc?: string; id?: number | string | null; method?: stri
 /** The `initialize` handshake result. Shape per MCP 2024-11-05. */
 export function buildInitializeResult(): {
   protocolVersion: string;
-  capabilities: { tools: Record<string, never> };
+  capabilities: { tools: Record<string, never>; resources: Record<string, never> };
   serverInfo: { name: string; version: string };
 } {
   return {
     protocolVersion: PROTOCOL_VERSION,
-    capabilities: { tools: {} },
+    capabilities: { tools: {}, resources: {} },
     serverInfo: { ...SERVER_INFO },
   };
 }
@@ -92,6 +106,46 @@ function toolResult(text: string, isError: boolean): object {
   return { content: [{ type: "text", text }], isError };
 }
 
+function content(uri: string, value: unknown): object {
+  return { contents: [{ uri, mimeType: "application/json", text: JSON.stringify(value, null, 2) }] };
+}
+
+function listResources(): object {
+  return {
+    resources: [
+      { uri: "vanta://sessions", name: "Vanta sessions", description: "Recent persisted Vanta sessions", mimeType: "application/json" },
+      { uri: "vanta://approvals", name: "Vanta approvals", description: "Pending kernel approvals", mimeType: "application/json" },
+    ],
+  };
+}
+
+async function readResource(uri: string, deps: ServerDeps): Promise<object> {
+  const env = deps.env ?? process.env;
+  if (uri === "vanta://sessions") return content(uri, await listSessions(env));
+  if (uri.startsWith("vanta://sessions/")) {
+    const id = decodeURIComponent(uri.slice("vanta://sessions/".length));
+    return content(uri, await loadSession(id, env));
+  }
+  if (uri === "vanta://approvals") return content(uri, await deps.safety.getApprovals());
+  return { contents: [] };
+}
+
+function bridgeToolDefs(deps: ServerDeps): Array<(typeof BRIDGE_TOOLS)[keyof typeof BRIDGE_TOOLS]> {
+  return Object.values(BRIDGE_TOOLS).filter((tool) => deps.allowlist.has(tool.name));
+}
+
+async function callBridgeTool(name: string, args: Record<string, unknown>, deps: ServerDeps): Promise<object | null> {
+  if (name !== "vanta_approval_resolve") return null;
+  const id = Number(args.id);
+  const decision = String(args.decision ?? "");
+  if (!Number.isInteger(id) || !["approve", "deny"].includes(decision)) return toolResult("id and decision are required", true);
+  const verdict = await deps.safety.assess(`${decision} pending approval ${id} via MCP serve`);
+  if (verdict.risk !== "allow") return toolResult(`approval resolution refused: ${verdict.reason}`, true);
+  if (decision === "approve") await deps.safety.approve(id);
+  else await deps.safety.deny(id);
+  return toolResult(`${decision}d approval ${id}`, false);
+}
+
 /**
  * Run one tool call through the kernel gate. `block`/`ask` are refused with a
  * readable reason (returned as an isError tool result, NOT a JSON-RPC error —
@@ -105,6 +159,8 @@ async function callTool(
   if (!deps.allowlist.has(name)) {
     return toolResult(`tool not exposed over MCP serve: ${name}`, true);
   }
+  const bridgeResult = await callBridgeTool(name, args, deps);
+  if (bridgeResult) return bridgeResult;
   const tool = deps.registry.get(name);
   if (!tool) return toolResult(`unknown tool: ${name}`, true);
 
@@ -126,6 +182,26 @@ async function callTool(
   return toolResult(res.output || "(empty result)", !res.ok);
 }
 
+function toolsListResult(deps: ServerDeps): object {
+  const tools = deps.registry
+    .list()
+    .filter((t) => deps.allowlist.has(t.schema.name))
+    .map(buildToolDef);
+  return { tools: [...tools, ...bridgeToolDefs(deps)] };
+}
+
+async function handleToolCall(id: RpcMessage["id"], params: unknown, deps: ServerDeps): Promise<object> {
+  const p = (params ?? {}) as { name?: string; arguments?: Record<string, unknown> };
+  if (!p.name) return rpcError(id, -32602, "tools/call requires a 'name' param");
+  return ok(id, await callTool(p.name, p.arguments ?? {}, deps));
+}
+
+async function handleResourceRead(id: RpcMessage["id"], params: unknown, deps: ServerDeps): Promise<object> {
+  const p = (params ?? {}) as { uri?: string };
+  if (!p.uri) return rpcError(id, -32602, "resources/read requires a 'uri' param");
+  return ok(id, await readResource(p.uri, deps));
+}
+
 /**
  * Handle one parsed JSON-RPC message. Returns the response object, or null for
  * notifications (no id) and the `initialized` notification. Unknown methods get
@@ -139,18 +215,14 @@ export async function handleMessage(msg: RpcMessage, deps: ServerDeps): Promise<
   switch (method) {
     case "initialize":
       return ok(id, buildInitializeResult());
-    case "tools/list": {
-      const tools = deps.registry
-        .list()
-        .filter((t) => deps.allowlist.has(t.schema.name))
-        .map(buildToolDef);
-      return ok(id, { tools });
-    }
-    case "tools/call": {
-      const params = (msg.params ?? {}) as { name?: string; arguments?: Record<string, unknown> };
-      if (!params.name) return rpcError(id, -32602, "tools/call requires a 'name' param");
-      return ok(id, await callTool(params.name, params.arguments ?? {}, deps));
-    }
+    case "tools/list":
+      return ok(id, toolsListResult(deps));
+    case "tools/call":
+      return handleToolCall(id, msg.params, deps);
+    case "resources/list":
+      return ok(id, listResources());
+    case "resources/read":
+      return handleResourceRead(id, msg.params, deps);
     default:
       return rpcError(id, -32601, `method not found: ${method ?? "(none)"}`);
   }
