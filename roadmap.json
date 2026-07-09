@@ -5579,7 +5579,7 @@
       "id": "AMBIENT",
       "track": "Operator",
       "title": "Ambient context (know what you're looking at)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "Understand what app/page/file Jason is looking at and help without him restating everything -- 'I see the error; here's the likely fix' (wants1 #8). Extends O3 look_at_screen from on-demand to ambient. Needs OS-level integration -> horizon. First slice: active-file/window awareness in the dev loop.",
       "done": "First slice: Vanta states the currently-focused file/window and offers a relevant next step without being told what it is.",
@@ -5587,7 +5587,9 @@
       "model": "sonnet",
       "effort": "high",
       "codex": "gpt-5.5",
-      "lens": "reach"
+      "lens": "reach",
+      "updated": "2026-07-09",
+      "notes": "SHIPPED 2026-07-09 first slice. Added `vanta ambient-screen look` to capture the active macOS app/window title via System Events/osascript, state the current repo, and offer one next step through the existing screen-to-task classifier. `vanta ambient-screen tick` now auto-captures active context when `--context` is omitted, while preserving opt-in enable/throttle/redaction/autonomy gating for ambient proposals. Verified with parser/fallback tests, CLI look/auto-tick tests, existing ambient state tests, TypeScript, and a live `npm run vanta -- ambient-screen look` run that reported the frontmost Codex window and a next step. Boundary: this is active app/window awareness, not continuous screenshot OCR or full ambient vision."
     },
     {
       "id": "DESKTOP",
