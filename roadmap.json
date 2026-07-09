@@ -16519,6 +16519,22 @@
       "lens": "agent-loop",
       "updated": "2026-07-03",
       "notes": "Shipped 2026-07-03. web_search gained optional category + 1-based page params, carried through SearchConfig. SearXNG honors them natively: buildSearxngUrl (extracted pure fn) adds &categories= and &pageno= when present, plain first-page search otherwise (unchanged default). Other providers simply don't read them (graceful ignore). searchAcross forwards category/page in the config unchanged. Tested: buildSearxngUrl (plain / category+page / non-positive-page omit) + config passthrough. 8 searxng + 10 web-search tests green; tsc + size gate clean."
+    },
+    {
+      "id": "BUG-TUI-CLEAR",
+      "track": "Operator",
+      "title": "Fix: /clear clears the TUI transcript, not just conversation state",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Bug fix from live TUI use: /clear already reset the underlying conversation, but the Ink host ignored SlashResult.cleared, so old committed transcript entries stayed visible. The host now maps cleared -> reducer clear before showing the fresh-session note.",
+      "done": "Typing /clear in the TUI clears committed transcript entries and live regions, then shows only the fresh-session note; conversation state remains reset as before.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "tui",
+      "updated": "2026-07-09",
+      "notes": "Shipped 2026-07-09 in commit 6f1e8641. ui/use-slash.ts now handles SlashResult.cleared with a clear effect; ui/reducer.ts adds a clear action resetting to initialState. Regression coverage: ui/slash.test.ts asserts clear runs before the /clear note; ui/reducer.test.ts asserts committed transcript/live/queued state resets. Verified with 76 focused tests, tsc, size gate, and git diff check."
     }
   ]
 }
