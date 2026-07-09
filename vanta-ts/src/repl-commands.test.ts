@@ -304,7 +304,7 @@ describe("conversation commands (history / retry / undo / reset)", () => {
   it("/memory appends what you tell it to the brain's semantic region", async () => {
     const ctx = makeCtx(home, convo());
     const r = await executeSlash("/memory Jason prefers terse replies", ctx);
-    expect(r.output).toContain("remembered");
+    expect(r.output).toContain("memory saved · semantic.md · appended");
     const { readRegion } = await import("./brain/brain.js");
     expect((await readRegion("semantic", ctx.env)) ?? "").toContain("Jason prefers terse replies");
   });

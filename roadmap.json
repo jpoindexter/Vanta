@@ -13552,7 +13552,7 @@
       "id": "WINNOW-LOCAL-SCORER",
       "track": "Harness",
       "title": "Local logprob scorer via transformers.js — zero-config real pruning",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: winnow] Zero-config real LLMLingua scoring with NO external endpoint and NO native toolchain: makeLocalLogprobScorer using transformers.js (@huggingface/transformers — pure JS/WASM, optional dependency, lazy-imported). Runs a tiny causal LM (e.g. Xenova/distilgpt2, fetched on first use) over the token sequence and returns per-token logprobs as an AsyncTokenScorer for pruneTextAsync. Absent dep/model -> returns null so the resolver falls back. Complements makeOpenAiLogprobScorer (endpoint) and the heuristic.",
       "done": "makeLocalLogprobScorer returns per-token logprobs via transformers.js (optional dep, lazy); pruneTextAsync drives real surprisal pruning offline; tests with a stubbed model (no network/download in CI); returns null when dep/model absent; CHANGELOG + version bump; pushed to winnow.",

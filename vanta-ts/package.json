@@ -34,7 +34,7 @@
     "tsx": "^4.19.0",
     "typescript": "^5.8.0",
     "web-tree-sitter": "^0.26.10",
-    "winnow": "github:jpoindexter/winnow#fae2c69de78f2534a30f8e0128ea5235a9a357d3",
+    "winnow": "github:jpoindexter/winnow#7d5756b72c32cb6bb46987ca9b85611a893d7cf1",
     "zod": "^3.25.0"
   },
   "devDependencies": {
