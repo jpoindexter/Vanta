@@ -14459,7 +14459,7 @@
       "id": "PCLIP-MOBILE-CONTROL",
       "track": "Operator",
       "title": "Mobile control — review + approve + pause runs from a phone",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Paperclip extract (Mobile Ready). Monitor and manage autonomous runs from a phone — list active runs, read a work product, approve/pause — via the comms relay. Extends VANTA-CHANNEL-PERMISSIONS from notify-only to control.",
       "done": "From a phone channel you can list active runs, read a work product, and approve/pause — not just receive notifications.",
@@ -14467,10 +14467,11 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "reach",
-      "updated": "2026-06-19",
+      "updated": "2026-07-09",
       "after": [
         "VANTA-CHANNEL-PERMISSIONS"
-      ]
+      ],
+      "notes": "SHIPPED 2026-07-09: Added gateway mobile-control commands over any messaging PlatformAdapter, including local WebChat. Channel messages `/runs`, `/work <run-id>`, `/approve <request-id>`, and `/pause <run-id>` are consumed before they become agent turns. Runs are recorded in `.vanta/mobile-control.json` with title/status/work product; `/approve` routes through the existing pending-approval reply bus; `/pause` marks the run paused. Live evidence: drove WebChatAdapter with a phone-like chat id, ran a task, then sent `/runs`, `/work`, `/approve`, and `/pause`; replies included the run id/work product/approval result and the stored run status became paused."
     },
     {
       "id": "PCLIP-PLUGIN-WORKERS",
@@ -15296,8 +15297,8 @@
       "codex": "gpt-5.4",
       "lens": "coding",
       "updated": "2026-07-09",
-      "source": "ref-audit-2026-06-20",
-      "notes": "SHIPPED 2026-07-09: Added `vanta adversarial-ux --fixture checkout | --url <url>`. The pass uses a hard-user persona, filters venting from concrete UX/accessibility/state failures, and writes only actionable findings into the existing ticket store with evidence comments and labels. Live evidence: ran `vanta adversarial-ux --fixture checkout`, verified it created 2 adversarial UX tickets and ignored 1 noisy observation, then restored the original ticket store."
+      "notes": "SHIPPED 2026-07-09: Added `vanta adversarial-ux --fixture checkout | --url <url>`. The pass uses a hard-user persona, filters venting from concrete UX/accessibility/state failures, and writes only actionable findings into the existing ticket store with evidence comments and labels. Live evidence: ran `vanta adversarial-ux --fixture checkout`, verified it created 2 adversarial UX tickets and ignored 1 noisy observation, then restored the original ticket store.",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "OP-SECRET-SCOPE",

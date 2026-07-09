@@ -18,6 +18,7 @@ import {
 import { recordSent, nodeReplyFs, type ReplyStoreDeps } from "./reply-store.js";
 import { pollPlatform } from "./child-ops.js";
 import type { GatewayDeps } from "./run.js";
+import { finishMobileRun, handleMobileControlCommand, startMobileRun } from "./mobile-control.js";
 
 function firstLine(text: string): string {
   const line = text.split("\n")[0] ?? "";
@@ -25,6 +26,7 @@ function firstLine(text: string): string {
 }
 
 type SessionRun = {
+  dataDir: string;
   platform: PlatformAdapter;
   handle: (text: string, images?: ImageAttachment[]) => Promise<string>;
   media?: MediaBridgeDeps;
@@ -43,12 +45,14 @@ async function recordReply(ctx: SessionRun, out: OutboundMessage): Promise<void>
 /** Run one inbound message to completion and send the reply (errors → reply). */
 async function runOne(ctx: SessionRun, m: InboundMessage): Promise<void> {
   ctx.log(`  ✉ ${ctx.platform.id} ${m.from ?? m.chatId}: ${firstLine(m.text)}`);
+  const mobileRun = await startMobileRun(ctx.dataDir, m).catch(() => undefined);
   // The agent sees the LLM-enriched rendering (timestamp + quote) when the
   // inbound pipeline produced one; otherwise the raw text (unchanged behavior).
   const { forAgent, images } = await resolveInbound(m, ctx.media ?? {}); // MSG-MEDIA-IMAGES
   let reply: string;
   try { reply = await ctx.handle(forAgent, images); }
   catch (err) { reply = `error: ${err instanceof Error ? err.message : String(err)}`; }
+  if (mobileRun) await finishMobileRun(ctx.dataDir, mobileRun.id, reply).catch(() => {});
   // MSG-NO-REPLY-TOKEN: an exact whole-response silence marker suppresses delivery
   // (group/channel surfaces); prose mentioning the marker still sends.
   if (isIntentionalSilence(reply)) { ctx.log(`  🤫 silence (${reply.trim()}): no reply sent`); return; }
@@ -94,6 +98,35 @@ function inboundContext(deps: GatewayDeps, seen: SeenIds): InboundContext {
   };
 }
 
+type PollStep = {
+  deps: GatewayDeps;
+  ctx: SessionRun;
+  state: SessionState;
+  seen: SeenIds;
+  msg: InboundMessage;
+  log: (msg: string) => void;
+};
+
+async function processPolledMessage(step: PollStep): Promise<{ state: SessionState; seen: SeenIds; handled: number }> {
+  const processed = await processInbound(step.msg, inboundContext(step.deps, step.seen));
+  if (processed.verdict.kind === "skip") {
+    step.log(`  ⤬ skip (${processed.verdict.reason}): ${firstLine(step.msg.text)}`);
+    return { state: step.state, seen: processed.seen, handled: 0 };
+  }
+  const enriched = processed.verdict.message;
+  const mobile = await handleMobileControlCommand({ dataDir: step.deps.dataDir, msg: enriched, replyBus: step.deps.replyBus });
+  if (mobile.consumed) {
+    if (mobile.reply) await step.ctx.platform.send({ chatId: enriched.chatId, threadId: enriched.threadId, text: mobile.reply });
+    step.log(`  ✓ mobile control: ${firstLine(enriched.text)}`);
+    return { state: step.state, seen: processed.seen, handled: 0 };
+  }
+  if (step.deps.replyBus?.tryConsume(enriched)) {
+    step.log(`  ✓ approval reply consumed: ${firstLine(enriched.text)}`);
+    return { state: step.state, seen: processed.seen, handled: 0 };
+  }
+  return { state: await routeOne(step.ctx, step.state, enriched), seen: processed.seen, handled: 1 };
+}
+
 /**
  * Poll the platform and route a *concurrent* inbound batch through the session
  * manager: the first message runs now; any further message in the same batch is
@@ -118,7 +151,7 @@ async function pollPlatformSession(
     return { state, count: await pollPlatform(deps), seen };
   }
   const log = deps.log ?? ((m: string) => console.log(m));
-  const ctx: SessionRun = { platform: deps.platform, handle: deps.handle, media: deps.media, log, reply: replyStoreDeps(deps) };
+  const ctx: SessionRun = { dataDir: deps.dataDir, platform: deps.platform, handle: deps.handle, media: deps.media, log, reply: replyStoreDeps(deps) };
   // CHANNEL-PERMISSIONS-WIRE: messages the approval pump polled (and parked)
   // while a turn was blocked come first — none are lost to the pump.
   const parked = (deps.replyBus?.drainBypassed() ?? []) as InboundMessage[];
@@ -126,21 +159,10 @@ async function pollPlatformSession(
   let s = state;
   let handled = 0;
   for (const m of messages) {
-    const processed = await processInbound(m, inboundContext(deps, seen));
-    seen = processed.seen;
-    if (processed.verdict.kind === "skip") {
-      log(`  ⤬ skip (${processed.verdict.reason}): ${firstLine(m.text)}`);
-      continue;
-    }
-    const enriched = processed.verdict.message;
-    // CHANNEL-PERMISSIONS-WIRE: a reply to a pending approval is consumed here —
-    // it resolves the relay race and must not become an agent turn.
-    if (deps.replyBus?.tryConsume(enriched)) {
-      log(`  ✓ approval reply consumed: ${firstLine(enriched.text)}`);
-      continue;
-    }
-    handled++;
-    s = await routeOne(ctx, s, enriched);
+    const step = await processPolledMessage({ deps, ctx, state: s, seen, msg: m, log });
+    s = step.state;
+    seen = step.seen;
+    handled += step.handled;
   }
   if (s.running) s = await drainQueue(ctx, s);
   return { state: s, count: handled, seen };

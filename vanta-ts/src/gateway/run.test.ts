@@ -9,6 +9,8 @@ import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./platfor
 import { enqueueLoopWake } from "../loop/wake.js";
 import { LoopDefSchema } from "../loop/types.js";
 import { saveDef } from "../loop/store.js";
+import { createReplyBus } from "../permissions/reply-bus.js";
+import { loadMobileRuns, startMobileRun } from "./mobile-control.js";
 
 class FakeAdapter implements PlatformAdapter {
   readonly id = "fake";
@@ -232,5 +234,35 @@ describe("pollPlatformSession (concurrent inbound routing)", () => {
     // steer is classified on the clean ">>" prefix → only the first ran.
     expect(handled).toEqual([`${TS} build the thing`]);
     expect(logs.some((l) => l.includes("steer"))).toBe(true);
+  });
+
+  it("consumes mobile control commands before they become agent turns", async () => {
+    const dataDir = await mkdtemp(join(tmpdir(), "vanta-mobile-session-"));
+    const bus = createReplyBus();
+    try {
+      const prior = await startMobileRun(dataDir, { chatId: "phone-1", text: "prior task" }, new Date("2026-07-09T00:00:00.000Z"));
+      bus.register("abc123");
+      const adapter = new FakeAdapter([
+        { chatId: "phone-1", text: "/runs" },
+        { chatId: "phone-1", text: `/pause ${prior.id}` },
+        { chatId: "phone-1", text: "/approve abc123" },
+      ]);
+      const handled: string[] = [];
+      const r = await pollPlatformSession(
+        { ...noCron, dataDir, platform: adapter, replyBus: bus, handle: async (t) => { handled.push(t); return "agent"; } },
+        initialState(),
+      );
+      expect(r.count).toBe(0);
+      expect(handled).toEqual([]);
+      expect(adapter.sent.map((s) => s.text)).toEqual([
+        expect.stringContaining(prior.id),
+        `Paused ${prior.id}.`,
+        "Approved abc123.",
+      ]);
+      expect((await loadMobileRuns(dataDir)).find((run) => run.id === prior.id)?.status).toBe("paused");
+    } finally {
+      bus.unregister("abc123");
+      await rm(dataDir, { recursive: true, force: true });
+    }
   });
 });
