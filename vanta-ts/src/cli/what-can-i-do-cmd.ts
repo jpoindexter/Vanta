@@ -1,7 +1,19 @@
+import { join } from "node:path";
 import { buildRegistry } from "../tools/index.js";
-import { formatWhatCanIDo, runColdActivationCheck, runWorkflowDemo, workflowViews } from "../repl/what-can-i-do-cmd.js";
+import {
+  formatFreshActivationReviewPacket,
+  formatWhatCanIDo,
+  recordFreshActivationReview,
+  runColdActivationCheck,
+  runWorkflowDemo,
+  workflowViews,
+} from "../repl/what-can-i-do-cmd.js";
 
-export function runWhatCanIDoCommand(rest: string[] = []): number {
+function recordReviewText(rest: string[]): string | null {
+  return rest[0] === "--record-review" ? rest.slice(1).join(" ").trim() || null : null;
+}
+
+export async function runWhatCanIDoCommand(rest: string[] = [], dataDir = join(process.cwd(), ".vanta")): Promise<number> {
   if (rest[0] === "--demo") {
     console.log(runWorkflowDemo(rest[1] ?? ""));
     return 0;
@@ -11,6 +23,16 @@ export function runWhatCanIDoCommand(rest: string[] = []): number {
     const result = runColdActivationCheck(toolNames);
     console.log(result.output);
     return result.ok ? 0 : 1;
+  }
+  if (rest[0] === "--review-packet") {
+    console.log(formatFreshActivationReviewPacket(workflowViews(toolNames)));
+    return 0;
+  }
+  const reviewText = recordReviewText(rest);
+  if (reviewText) {
+    const file = await recordFreshActivationReview(dataDir, { reviewer: "fresh-context", confusion: reviewText });
+    console.log(`  ✓ fresh-context review recorded → ${file}`);
+    return 0;
   }
   console.log(formatWhatCanIDo(workflowViews(toolNames)));
   return 0;

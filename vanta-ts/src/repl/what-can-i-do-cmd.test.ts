@@ -1,9 +1,14 @@
 import { describe, it, expect } from "vitest";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { shellCmdTool } from "../tools/shell-cmd.js";
 import type { ToolContext } from "../tools/types.js";
 import {
   CAPABILITY_WORKFLOWS,
+  formatFreshActivationReviewPacket,
   formatWhatCanIDo,
+  recordFreshActivationReview,
   runColdActivationCheck,
   runWorkflowDemo,
   whatCanIDo,
@@ -78,6 +83,47 @@ describe("what-can-i-do workflow catalog", () => {
     const result = runColdActivationCheck([]);
     expect(result.ok).toBe(false);
     expect(result.output).toContain("FAIL");
+  });
+
+  it("prints a self-contained fresh-context review packet", () => {
+    const out = formatFreshActivationReviewPacket(workflowViews(["shell_cmd"]));
+    expect(out).toContain("Fresh-context activation review packet");
+    expect(out).toContain("assume you have never seen this repo");
+    expect(out).toContain("vanta what-can-i-do --record-review");
+    expect(out).toContain("[Try] Fix a pasted error");
+  });
+
+  it("records the first fresh-context confusion point to evidence", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "vanta-activation-review-"));
+    try {
+      const file = await recordFreshActivationReview(
+        dir,
+        { reviewer: "fresh-context", confusion: "I did not know which workflow to pick." },
+        () => new Date("2026-07-09T12:00:00.000Z"),
+      );
+      expect(file).toContain("activation-reviews/fresh-context-2026-07-09T12-00-00-000Z.md");
+      const body = await readFile(file, "utf8");
+      expect(body).toContain("I did not know which workflow to pick.");
+      expect(body).toContain("Blocking Fix Required");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("runs review-packet and record-review through the slash handler", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "vanta-review-slash-"));
+    try {
+      const setup = { registry: { schemas: () => [{ name: "shell_cmd" }] } };
+      const packet = await whatCanIDo("--review-packet", { setup, dataDir: dir } as never);
+      expect(packet.output).toContain("Fresh-context activation review packet");
+      const recorded = await whatCanIDo("--record-review First screen was unclear", {
+        setup, dataDir: dir, now: () => new Date("2026-07-09T00:00:00.000Z"),
+      } as never);
+      expect(recorded.output).toContain("fresh-context review recorded");
+      expect(await readFile(join(dir, "activation-reviews", "fresh-context-2026-07-09T00-00-00-000Z.md"), "utf8")).toContain("First screen was unclear");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 
   it("gallery sandbox recovery fixture exercises the real shell_cmd refusal path", async () => {

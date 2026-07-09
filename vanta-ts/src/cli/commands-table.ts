@@ -95,7 +95,7 @@ export const COMMANDS: Record<string, CommandFn> = {
   help: () => usage(),
   "-h": () => usage(),
   "--help": () => usage(),
-  "what-can-i-do": (_root, rest) => runWhatCanIDoCommand(rest),
+  "what-can-i-do": (root, rest) => runWhatCanIDoCommand(rest, dataDirFor(root)),
   home: (root) => runHomeCommand(dataDirFor(root)),
   setup: async (root, rest) => { if (rest[0] === "messaging") await runMessagingSetup(root); else if (rest[0] === "tts") await runTtsSetup(root); else if (rest[0] === "model") await runSetup(root); else await runFullSetup(root); },
   status: (_root, rest) => runStatus(process.env, rest),

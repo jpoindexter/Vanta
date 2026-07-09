@@ -94,7 +94,7 @@
       "id": "FRESH-CONTEXT-ACTIVATION-REVIEW",
       "track": "Operator",
       "title": "Fresh-context activation review — test the first screen with someone who lacks repo context",
-      "status": "next",
+      "status": "building",
       "size": "S",
       "summary": "Blind audit finding #6: the roadmap relies on the same authoring loop to decide what is useful. Add an outside-feedback gate before shipping the activation gallery: a fresh model/session or real user sees the first screen cold and attempts one workflow.",
       "done": "A fresh-context reviewer or user attempts the activation gallery without prior Vanta repo context; the first confusion point is recorded; blocking confusion is fixed before `WHAT-CAN-I-DO-GALLERY` ships.",
@@ -108,7 +108,7 @@
       "after": [
         "USER-LANGUAGE-WORKFLOW-COPY"
       ],
-      "notes": "From blind audit finding #6. This shrinks the Johari blind quadrant around whether the first-run surface actually lands."
+      "notes": "From blind audit finding #6. This shrinks the Johari blind quadrant around whether the first-run surface actually lands.\n\nHARNESS SLICE 2026-07-09: Added `vanta what-can-i-do --review-packet` and `/what-can-i-do --review-packet` to print a self-contained cold-review script for someone with no Vanta repo context. Added `--record-review <first confusion point>` on both CLI and slash surfaces, writing markdown evidence under `.vanta/activation-reviews/` with reviewer, timestamp, confusion text, and blocking-fix guidance. Verified with CLI and slash tests for packet generation and evidence-file recording. Remaining before this card can ship: a real fresh-context reviewer/user must run the packet and record the first confusion point; any blocking confusion then needs to be fixed."
     },
     {
       "id": "ROADMAP-DEPENDENCY-GUARD",
