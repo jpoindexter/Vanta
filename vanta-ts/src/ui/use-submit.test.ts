@@ -52,6 +52,13 @@ describe("useSubmit routing", () => {
     expect(h.runSlash).not.toHaveBeenCalled();
   });
 
+  it("opens the custom agent editor for /agents", () => {
+    const h = harness();
+    h.onSubmit("/agents");
+    expect(h.openOverlay).toHaveBeenCalledWith("agentEditor");
+    expect(h.runSlash).not.toHaveBeenCalled();
+  });
+
   it("opens the output style picker for bare /output-style", () => {
     const h = harness();
     h.onSubmit("/output-style");
@@ -84,6 +91,13 @@ describe("useSubmit routing", () => {
     const h = harness();
     h.onSubmit("/model gemini");
     expect(h.runSlash).toHaveBeenCalledWith("/model gemini");
+    expect(h.openOverlay).not.toHaveBeenCalled();
+  });
+
+  it("keeps bare /tasks on the slash-command path", () => {
+    const h = harness();
+    h.onSubmit("/tasks");
+    expect(h.runSlash).toHaveBeenCalledWith("/tasks");
     expect(h.openOverlay).not.toHaveBeenCalled();
   });
 

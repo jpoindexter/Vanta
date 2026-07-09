@@ -1733,7 +1733,7 @@
       "id": "VANTA-AGENT-EDITOR",
       "track": "Operator",
       "title": "In-TUI agent editor — edit agent tools, color, model, and file from /agents menu",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent's `/agents` menu has an in-TUI editor for custom agents: choose allowed tools via ToolSelector, assign a color via ColorPicker, change the model via ModelSelector, or open the agent's markdown file in the external editor. Saves changes to the agent file. Only editable for custom (non-built-in, non-plugin) agents.",
       "done": "`/agents` → select a custom agent → Edit → change tools/model/color or open in VS Code. Changes persist to `~/.claude/agents/<name>.md`.",

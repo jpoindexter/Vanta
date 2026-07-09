@@ -160,7 +160,7 @@ const home: SlashHandler = async (_arg, ctx) => ({
   }),
 });
 const cockpit: SlashHandler = () => ({ output: "  mission-control is a TUI view — run `vanta` (interactive) and type /cockpit, or `vanta serve` for the web cockpit." });
-const agents: SlashHandler = () => ({ output: "  the task panel is a TUI view — run `vanta` (interactive) and type /agents, or `vanta agents` for the CLI list." });
+const agents: SlashHandler = () => ({ output: "  the custom-agent editor is a TUI view — run `vanta` (interactive) and type /agents." });
 const status: SlashHandler = async (arg, ctx) => {
   // Interactive = TTY; condense only when on a non-default model (unless --verbose).
   const verbose = /(?:^|\s)(?:--verbose|-v)(?:\s|$)/.test(arg);

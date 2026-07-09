@@ -19,6 +19,7 @@ import { reloadTeams, type TeamsData } from "./teams-actions.js";
 import { loadMemoryOverlayData, type MemoryOverlayData } from "./memory-actions.js";
 import { loadWorkflowSelectData, type WorkflowSelectData } from "./workflow-select-actions.js";
 import { loadOutputStyleData, type OutputStyleData } from "./output-style-actions.js";
+import { loadAgentEditorData, type AgentEditorData } from "./agent-editor-actions.js";
 import type { ExportContext } from "./export-actions.js";
 import type { WorkerTask } from "../team/tasks.js";
 import type { RunSetup } from "../session.js";
@@ -39,6 +40,7 @@ export type OverlayView =
   | { kind: "context"; categories: CtxCategory[]; total: number; contextWindow: number }
   | { kind: "mcp"; servers: McpServerView[]; elicitation: ElicitationRequest | null; reconnect: (name: string) => void; onElicitationDone: () => void }
   | { kind: "tasks"; tasks: WorkerTask[] }
+  | { kind: "agentEditor"; data: AgentEditorData; repoRoot: string }
   | { kind: "teams"; data: TeamsData }
   | { kind: "memory"; data: MemoryOverlayData; repoRoot: string }
   | { kind: "workflowSelect"; data: WorkflowSelectData; repoRoot: string }
@@ -68,6 +70,7 @@ async function loadOverlay(kind: OverlayKind, setup: RunSetup, repoRoot: string,
     case "review": return { kind: "review", files: await listChangedFiles(repoRoot), cwd: repoRoot };
     case "context": return contextOverlay(setup, getCtx);
     case "tasks": return { kind: "tasks", tasks: await reloadTasks(process.env) };
+    case "agentEditor": return { kind: "agentEditor", data: await loadAgentEditorData(repoRoot, setup.registry.schemas().map((s) => s.name), process.env), repoRoot };
     case "teams": return { kind: "teams", data: await reloadTeams(process.env) };
     case "memory": return { kind: "memory", data: await loadMemoryOverlayData(repoRoot, process.env), repoRoot };
     case "workflowSelect": return { kind: "workflowSelect", data: await loadWorkflowSelectData(repoRoot), repoRoot };

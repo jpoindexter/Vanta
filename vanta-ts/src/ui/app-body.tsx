@@ -17,6 +17,7 @@ import { SandboxPanel } from "./sandbox-panel.js";
 import { ConfigPanel } from "./config-panel.js";
 import { HooksPanel } from "./hooks-panel.js";
 import { TasksPanel } from "./tasks-panel.js";
+import { AgentEditorPanel } from "./agent-editor-panel.js";
 import { TeamsPanel } from "./teams-panel.js";
 import { MemoryPanel } from "./memory-panel.js";
 import { WorkflowSelectPanel } from "./workflow-select-panel.js";
@@ -136,6 +137,7 @@ function OverlayPanelMore(props: { overlay: OverlayView; onClose: () => void }):
   if (overlay.kind === "config") return <ConfigPanel state={overlay.state} onAction={overlay.onAction} onClose={onClose} />;
   if (overlay.kind === "hooks") return <HooksPanel config={overlay.config} onAction={overlay.onAction} onClose={onClose} />;
   if (overlay.kind === "tasks") return <TasksPanel tasks={overlay.tasks} onClose={onClose} />;
+  if (overlay.kind === "agentEditor") return <AgentEditorPanel repoRoot={overlay.repoRoot} data={overlay.data} onClose={onClose} />;
   if (overlay.kind === "teams") return <TeamsPanel data={overlay.data} onClose={onClose} />;
   if (overlay.kind === "memory") return <MemoryPanel repoRoot={overlay.repoRoot} data={overlay.data} onClose={onClose} />;
   if (overlay.kind === "workflowSelect") return <WorkflowSelectPanel repoRoot={overlay.repoRoot} data={overlay.data} onClose={onClose} />;
