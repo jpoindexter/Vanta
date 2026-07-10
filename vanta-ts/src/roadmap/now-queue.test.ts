@@ -168,4 +168,20 @@ describe("formatNowEmptyState", () => {
     expect(out).toContain("review with `vanta roadmap unblock` before reviving");
     expect(out).not.toContain("clear one first");
   });
+
+  it("summarizes parked cards by revival reason", () => {
+    const out = formatNowEmptyState([
+      mk("BACKEND-SERVERLESS-LIVE", "parked", "rock", "S"),
+      mk("MSG-ADAPTER-TEAMS", "parked", "rock", "S"),
+      mk("HP-SECRETS", "parked", "sand", "S"),
+      mk("VANTA-AUTO-THEME", "parked", "sand", "S"),
+      mk("PCLIP-MULTI-USER", "parked", "pebble", "M"),
+      mk("PLATFORM-MOBILE-TERMUX", "parked", "pebble", "L"),
+    ]);
+    expect(out).toContain("types:");
+    expect(out).toContain("external proof 2");
+    expect(out).toContain("declined/n-a 2");
+    expect(out).toContain("strategy decision 1");
+    expect(out).toContain("duplicate 1");
+  });
 });

@@ -6,6 +6,26 @@ import type { RoadmapItem, Tier } from "./schema.js";
 
 const TIER_RANK: Record<Tier, number> = { rock: 0, pebble: 1, sand: 2 };
 const SIZE_RANK: Record<string, number> = { S: 0, M: 1, L: 2 };
+const PARKED_REASONS: Record<string, string> = {
+  "BACKEND-SERVERLESS-LIVE": "external proof",
+  "MSG-ADAPTER-TEAMS": "external proof",
+  "RUN-ANYWHERE-TERMUX": "external proof",
+  "RUN-ANYWHERE-V1-RELEASE-GATE": "external proof",
+  "VANTA-A2A-AUTONOMOUS-SANDBOX": "external proof",
+  "GHOST-OS-MCP": "optional proof",
+  "PCLIP-MULTI-COMPANY": "strategy decision",
+  "PCLIP-MULTI-USER": "strategy decision",
+  "VANTA-H-GITHUB": "strategy decision",
+  "VANTA-H-SLACK": "strategy decision",
+  "PLATFORM-MOBILE-TERMUX": "duplicate",
+  "HP-169-BUNDLED-SKILLS": "declined/n-a",
+  "HP-ISOLATED-PROFILES": "declined/n-a",
+  "HP-SECRETS": "declined/n-a",
+  "VANTA-AUTO-THEME": "declined/n-a",
+  "VANTA-GREP-READ-EDIT": "declined/n-a",
+  "VANTA-NATIVE-CLIPBOARD": "declined/n-a",
+  "VANTA-VIM-UNDO-REDO": "declined/n-a",
+};
 
 function tierRank(t: Tier | undefined): number {
   return t !== undefined ? (TIER_RANK[t] ?? 3) : 3;
@@ -71,10 +91,24 @@ function hiddenSuffix(label: string): string {
   return "clear one first";
 }
 
+function parkedReason(item: RoadmapItem): string {
+  return PARKED_REASONS[item.id] ?? "review";
+}
+
+function parkedBreakdown(items: RoadmapItem[]): string {
+  const counts = new Map<string, number>();
+  for (const item of items) counts.set(parkedReason(item), (counts.get(parkedReason(item)) ?? 0) + 1);
+  return Array.from(counts.entries())
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([reason, count]) => `${reason} ${count}`)
+    .join(" · ");
+}
+
 function formatTopItems(label: string, items: RoadmapItem[], limit = 3): string[] {
   if (items.length === 0) return [];
   const shown = priorityItems(items).slice(0, limit);
   const lines = [`${label}: ${items.length}`];
+  if (label === "parked") lines.push(`  types: ${parkedBreakdown(items)}`);
   lines.push(...shown.map((item) => `- ${item.id} - ${item.title}`));
   const hidden = items.length - shown.length;
   if (hidden > 0) lines.push(`- (${hidden} more hidden - ${hiddenSuffix(label)})`);
