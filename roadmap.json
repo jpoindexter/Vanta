@@ -16672,12 +16672,13 @@
     {
       "id": "VANTA-A2A-AUTONOMOUS-SANDBOX",
       "track": "Harness",
-      "title": "Autonomous (bash) builds inside the sandbox — BLOCKED on sandbox-claude (A2A piece 2)",
+      "title": "Autonomous (bash) builds inside macOS sandbox — superseded by Docker box",
       "status": "parked",
       "size": "L",
-      "summary": "Real projects need bash (npm install, bundlers) acceptEdits headless can't run; plan was full autonomy (claude --permission-mode bypassPermissions) contained in Vanta's OS sandbox. BLOCKER (verified 2026-06-26): claude can't RUN inside sandbox-exec — times out even with ~/.claude/.config/.cache writable; the macOS seatbelt profile is too tight for claude's Node runtime, tuning it blind is open-ended. Reverted the wiring (didn't ship a broken mode). Paths: (a) tune the sandbox profile for claude, (b) run claude in the Docker backend with the project mounted, (c) unsandboxed bypass scoped by cwd (loses containment, explicit opt-in). Needs operator decision.",
+      "summary": "Real projects need bash (npm install, bundlers) and acceptEdits headless could not run that. The original plan was full autonomy inside the macOS seatbelt sandbox, but claude could not run reliably inside sandbox-exec. The chosen containment path is now the shipped Docker box (`VANTA-A2A-DOCKER-AUTONOMOUS`), with mount-scope and credential forwarding; this macOS-seatbelt branch is kept only as history.",
       "done": "An autonomous (bypassPermissions) claude build runs contained in the OS sandbox and completes a real npm-driven build.",
-      "parkedReason": "external proof"
+      "notes": "SUPERSEDED 2026-07-10: This is no longer required open work. VANTA-A2A-DOCKER-AUTONOMOUS shipped the chosen containment backend for autonomous bash builds, and `vanta a2a autonomous-status [--json]` now exposes the remaining local proof prerequisites: Docker daemon, vanta-agent image, boxed credential, and `.vanta/a2a-autonomous-sandbox.json` npm-driven Docker proof receipt. Keep this macOS sandbox-exec branch parked as a duplicate unless there is a deliberate product decision to support claude inside seatbelt specifically.",
+      "parkedReason": "duplicate"
     },
     {
       "id": "VANTA-A2A-DOCKER-AUTONOMOUS",
@@ -17210,6 +17211,22 @@
       "lens": "selfhood",
       "updated": "2026-07-10",
       "notes": "SHIPPED 2026-07-10: formatRoadmapOpenWork accepts actionableOnly and roadmap status filters JSON/text output with `--actionable`. Live output should list only the four concrete external proof cards, excluding RUN-ANYWHERE-V1-RELEASE-GATE until its open dependencies are cleared."
+    },
+    {
+      "id": "A2A-AUTONOMOUS-PROOF-STATUS",
+      "track": "Harness",
+      "title": "A2A autonomous proof status — Docker/image/auth/receipt gate",
+      "status": "shipped",
+      "size": "S",
+      "summary": "`vanta a2a autonomous-status [--json]` reports whether the boxed autonomous build path is actually ready: Docker daemon reachable, `vanta-agent` image built, boxed-agent credential available, and a durable npm-driven Docker proof receipt present.",
+      "done": "The command exits nonzero until all proof gates pass, supports JSON/text output, points at `VANTA-A2A-AUTONOMOUS-SANDBOX`, names `.vanta/a2a-autonomous-sandbox.json`, and CLI help documents the command.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "agent-loop",
+      "updated": "2026-07-10",
+      "notes": "SHIPPED 2026-07-10: added agents/autonomous-sandbox-readiness and `vanta a2a autonomous-status [--json]`. Live output on this Mac reports Docker daemon missing, image missing, credential ready via CLAUDE_CODE_OAUTH_TOKEN, and no `.vanta/a2a-autonomous-sandbox.json` proof receipt. This removes the stale sandbox-claude ambiguity while keeping the real proof honest."
     }
   ]
 }

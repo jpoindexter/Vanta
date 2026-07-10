@@ -21,6 +21,7 @@ const USAGE_LINES = [
       "       vanta runtime start --fleet <id> --worker <id> --port <n> --command <cmd>   start a preview bound to a fleet worktree",
       "       vanta backend [status|verify|gateway]   inspect, deploy, or live-prove the selected execution backend",
       "       vanta run-anywhere status|proof-packet [--json] [--check-release]   aggregate or package Modal/Teams/Termux proof readiness",
+      "       vanta a2a autonomous-status [--json]   check Docker/image/auth/proof readiness for boxed autonomous builds",
       "       vanta adversarial-ux --fixture checkout | --url <url>   turn hard-user UX findings into tickets",
       "       vanta egress [status|plan]        show Docker/network egress isolation posture",
       "       vanta billing [status|json]      show fail-open provider billing + estimated spend",
