@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import { resolveShellInvocation } from "../platform/shell.js";
 
 // HARNESS-CRON-SCRIPT-MODE — the no-LLM script runner for cron entries. Runs a
 // user-configured shell command with a hard timeout and a capped output, errors
@@ -27,8 +28,9 @@ export function runCronScript(
   opts: { timeoutMs?: number; env?: NodeJS.ProcessEnv } = {},
 ): Promise<ScriptResult> {
   const timeout = opts.timeoutMs ?? scriptTimeoutMs(opts.env ?? process.env);
+  const shell = resolveShellInvocation(script, { env: opts.env ?? process.env });
   return new Promise((resolve) => {
-    execFile("sh", ["-c", script], { timeout, maxBuffer: 4 * 1024 * 1024 }, (err, stdout, stderr) => {
+    execFile(shell.cmd, shell.args, { timeout, maxBuffer: 4 * 1024 * 1024 }, (err, stdout, stderr) => {
       const out = (s: string): string => (s.length > MAX_OUTPUT_CHARS ? `${s.slice(0, MAX_OUTPUT_CHARS)}\n…(truncated)` : s);
       if (!err) {
         resolve({ ok: true, output: out(stdout.trimEnd()) });

@@ -2,6 +2,7 @@ import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { BETA_PATHS, runBetaProof, formatBetaReport, type BetaPath } from "../verify/beta-proof.js";
 import { ensureKernel } from "../kernel-launcher.js";
+import { kernelBinaryPath } from "../kernel/path.js";
 import { createKernelClient } from "../kernel/client.js";
 import { parsePipeline, runPipeline } from "../workflow/rpc-pipeline.js";
 import { resolveProvider } from "../providers/index.js";
@@ -15,7 +16,7 @@ type Check = { ok: boolean; evidence: string };
 
 async function checkSafe(repoRoot: string): Promise<Check> {
   const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
-  await ensureKernel({ baseUrl, kernelBin: join(repoRoot, "target", "debug", "vanta-kernel"), root: repoRoot });
+  await ensureKernel({ baseUrl, kernelBin: kernelBinaryPath(repoRoot), root: repoRoot });
   const verdict = await createKernelClient(baseUrl).assess("rm -rf / --no-preserve-root");
   return { ok: verdict.risk === "block", evidence: `kernel verdict for 'rm -rf /' = ${verdict.risk} (expect block)` };
 }

@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import { createKernelClient } from "../kernel/client.js";
 import { ensureKernel } from "../kernel-launcher.js";
+import { kernelBinaryPath } from "../kernel/path.js";
 import { readGoalDeps } from "../goals/deps.js";
 import {
   createGoalSentinel,
@@ -31,7 +32,7 @@ export async function runGoalsCommand(root: string, deps: GoalsDeps = {}): Promi
 
 async function liveGoalReader(root: string): Promise<() => Promise<Goal[]>> {
   const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
-  await ensureKernel({ baseUrl, kernelBin: join(root, "target", "debug", "vanta-kernel"), root });
+  await ensureKernel({ baseUrl, kernelBin: kernelBinaryPath(root), root });
   return () => createKernelClient(baseUrl).getGoals();
 }
 

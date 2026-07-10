@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { tmpdir } from "node:os";
+import { kernelBinaryPath } from "./path.js";
 
 const execAsync = promisify(execFile);
 
@@ -97,7 +98,7 @@ export async function testKernelCandidate(
     await execAsync("patch", ["-d", tmpDir, "-p1", "--input", proposal.patchFile], { timeout: 10_000 });
     // Build the candidate.
     await execAsync("cargo", ["build", "--manifest-path", join(repoRoot, "Cargo.toml"), "--target-dir", join(tmpDir, "target")], { cwd: repoRoot, timeout: 120_000 });
-    const candidateBin = join(tmpDir, "target", "debug", "vanta-kernel");
+    const candidateBin = kernelBinaryPath(tmpDir);
     const result = await verifyKernelConformance(repoRoot, candidateBin);
     return result;
   } catch (err: unknown) {

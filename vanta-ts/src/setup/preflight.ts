@@ -98,9 +98,11 @@ export function formatPreflight(res: PreflightResult, platform: Platform): strin
 }
 
 /** Real probe: is `cmd` on PATH? Uses the shell's `command -v` (portable). */
-export function commandExists(cmd: string): boolean {
+export function commandExists(cmd: string, platform: NodeJS.Platform = process.platform): boolean {
   // Guard the arg so a hostile cmd can't break out of `command -v`.
   if (!/^[\w.-]+$/.test(cmd)) return false;
-  const r = spawnSync("sh", ["-c", `command -v ${cmd}`], { stdio: "ignore" });
+  const r = platform === "win32"
+    ? spawnSync("where.exe", [cmd], { stdio: "ignore", windowsHide: true })
+    : spawnSync("sh", ["-c", `command -v ${cmd}`], { stdio: "ignore" });
   return r.status === 0;
 }

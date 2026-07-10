@@ -2,6 +2,7 @@
 
 import { dataDirFor } from "./ops.js";
 import { createKernelClient } from "../kernel/client.js";
+import { kernelBinaryPath } from "../kernel/path.js";
 
 /** `vanta ref [add <url|path> | search <q> | list]` */
 export async function runRefCommand(_root: string, rest: string[]): Promise<number> {
@@ -60,9 +61,8 @@ export async function runSettingsCommand(root: string, rest: string[]): Promise<
 export async function runBriefCommand(root: string): Promise<void> {
   const { buildBrief } = await import("../repl/brief-cmd.js");
   const { ensureKernel } = await import("../kernel-launcher.js");
-  const { join: pathJoin } = await import("node:path");
   const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
-  const kernelBin = pathJoin(root, "target", "debug", "vanta-kernel");
+  const kernelBin = kernelBinaryPath(root);
   await ensureKernel({ baseUrl, kernelBin, root }).catch(() => {});
   const safety = createKernelClient(baseUrl);
   const out = await buildBrief({ dataDir: dataDirFor(root), env: process.env, getGoals: () => safety.getGoals() });

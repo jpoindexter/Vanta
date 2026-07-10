@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { kernelBinaryPath } from "../kernel/path.js";
 import { runAgent } from "../agent.js";
 import { buildMediaBridgeDeps } from "../gateway/media-deps.js";
 import { runGateway } from "../gateway/run.js";
@@ -221,7 +222,7 @@ export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<v
     const { resolveServeAllowlist, runMcpServer, stdioServerTransport } = await import("../mcp/server.js");
 
     const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
-    const kernelBin = join(repoRoot, "target", "debug", "vanta-kernel");
+    const kernelBin = kernelBinaryPath(repoRoot);
     await ensureKernel({ baseUrl, kernelBin, root: repoRoot });
 
     const safety = createKernelClient(baseUrl);

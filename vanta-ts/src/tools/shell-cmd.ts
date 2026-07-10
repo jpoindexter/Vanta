@@ -9,13 +9,14 @@ import { destructiveWarning } from "./destructive-warn.js";
 import { isSandboxError } from "../sandbox/run.js";
 import { agentLaunchRedirect, isTmuxAgentLaunch } from "./agent-launch-hint.js";
 import { needsBackground, looksLikeServeIntent } from "./shell-background-detect.js";
-import { wrapExec } from "../exec/backend.js";
+import { resolveExecBackend, wrapExec } from "../exec/backend.js";
 import { loadSettings } from "../settings/store.js";
 import { resolveSshTarget, buildSshArgs } from "../ssh/config.js";
 import { applySessionEnv, sessionEnvStore } from "../repl/session-env.js";
 import { sessionCwd, isCwdChanged } from "../repl/session-cwd.js";
 import { combineOutput, formatRunFailure, withTimingNote, type RunError } from "./shell-output.js";
 import { sandboxBackgroundRecovery, sandboxServeRecovery } from "./sandbox-recovery.js";
+import { resolveShellInvocation } from "../platform/shell.js";
 
 export { lastCommandWord, classifyExitCode } from "./shell-output.js";
 
@@ -169,7 +170,10 @@ async function runBackground(command: string, root: string): Promise<ToolResult>
 
 /** Run the command on the active execution backend (local / OS sandbox / docker). */
 async function runLocal(command: string, root: string, pfx: string): Promise<ToolResult> {
-  const sb = await wrapExec({ env: shellSandboxEnv(process.env), root, baseCmd: "sh", baseArgs: ["-c", command] });
+  const local = resolveExecBackend(process.env) === "docker"
+    ? { cmd: "sh", args: ["-c", command] }
+    : resolveShellInvocation(command);
+  const sb = await wrapExec({ env: shellSandboxEnv(process.env), root, baseCmd: local.cmd, baseArgs: local.args });
   if (isSandboxError(sb)) return { ok: false, output: pfx + sb.error };
   const startedAt = Date.now();
   try {

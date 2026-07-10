@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import { join, isAbsolute } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { resolveShellInvocation } from "../platform/shell.js";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
 import { buildAgentInvocation, runExternalAgent, type Invocation } from "../agents/external-cli.js";
 import { parseClaudeStreamLine } from "../agents/claude-stream.js";
@@ -58,7 +59,8 @@ async function verifyBuild(ctx: ToolContext, expectFiles?: string[], verifyCmd?:
   if (missing.length) return { ok: false, detail: `expected file(s) missing: ${missing.join(", ")}` };
   if (!verifyCmd) return { ok: true, detail: "" };
   try {
-    await exec("sh", ["-c", verifyCmd], { cwd: ctx.root, timeout: VERIFY_TIMEOUT_MS });
+    const shell = resolveShellInvocation(verifyCmd);
+    await exec(shell.cmd, shell.args, { cwd: ctx.root, timeout: VERIFY_TIMEOUT_MS });
     return { ok: true, detail: "" };
   } catch (e) {
     const err = e as { stdout?: string; stderr?: string };

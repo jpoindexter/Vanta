@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { kernelBinaryPath } from "../kernel/path.js";
 import {
   runCompanyTick,
   type CadenceDepartment,
@@ -127,7 +128,7 @@ async function liveCompanySources(root: string): Promise<CompanyTickSources> {
   const { createKernelClient } = await import("../kernel/client.js");
   const { ensureKernel } = await import("../kernel-launcher.js");
   const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
-  await ensureKernel({ baseUrl, kernelBin: join(root, "target", "debug", "vanta-kernel"), root });
+  await ensureKernel({ baseUrl, kernelBin: kernelBinaryPath(root), root });
   const kernel = createKernelClient(baseUrl);
   return {
     listDepartments: () => readDepartments(),

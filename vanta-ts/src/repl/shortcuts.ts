@@ -1,6 +1,7 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import type { KernelClient } from "../kernel/client.js";
+import { resolveShellInvocation } from "../platform/shell.js";
 
 const execAsync = promisify(execFile);
 
@@ -41,7 +42,8 @@ export async function runBashShortcut(
   }
   const prefix = verdict.risk === "ask" ? "⚠ risky — " : "";
   try {
-    const { stdout, stderr } = await execAsync("sh", ["-c", cmd], {
+    const shell = resolveShellInvocation(cmd);
+    const { stdout, stderr } = await execAsync(shell.cmd, shell.args, {
       cwd: root,
       timeout: 30_000,
     });

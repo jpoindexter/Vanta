@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { Tool } from "./types.js";
 import { checkStall, type StallState } from "./shell-stall.js";
 import { notify } from "../term/notify.js";
+import { resolveShellInvocation } from "../platform/shell.js";
 
 // How often the in-process watchdog samples a running task's live output buffer.
 // Must be < the stall idle window (45s) so idle time accrues across ticks.
@@ -77,10 +78,12 @@ export async function spawnBackground(
   const logFile = logPath(dataDir, id);
   await writeFile(logFile, "");
 
-  const child = spawn("sh", ["-c", command], {
+  const shell = resolveShellInvocation(command);
+  const child = spawn(shell.cmd, shell.args, {
     cwd,
     detached: true,
     stdio: ["ignore", "pipe", "pipe"],
+    windowsHide: true,
   });
 
   meta.pid = child.pid;

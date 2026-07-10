@@ -30,6 +30,7 @@ jobs:
           - { os: macos-14, target: x86_64-apple-darwin }
           - { os: ubuntu-24.04, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc }
     steps:
       - uses: actions/checkout@v4
       - name: Add Rust target
@@ -39,8 +40,10 @@ jobs:
       - name: Package binary + checksum
         shell: bash
         run: |
-          out="vanta-kernel-${{ matrix.target }}"
-          cp "target/${{ matrix.target }}/release/vanta-kernel" "$out"
+          ext=""
+          case "${{ matrix.target }}" in *windows*) ext=".exe" ;; esac
+          out="vanta-kernel-${{ matrix.target }}${ext}"
+          cp "target/${{ matrix.target }}/release/vanta-kernel${ext}" "$out"
           if command -v shasum >/dev/null 2>&1; then shasum -a 256 "$out" > "$out.sha256";
           else sha256sum "$out" > "$out.sha256"; fi
           ls -la "$out" "$out.sha256"

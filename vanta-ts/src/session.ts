@@ -1,7 +1,7 @@
-import { join } from "node:path";
 import type { Interface as Readline } from "node:readline/promises";
 import { createKernelClient, type KernelClient } from "./kernel/client.js";
 import { ensureKernel } from "./kernel-launcher.js";
+import { kernelBinaryPath } from "./kernel/path.js";
 import { buildRegistry } from "./tools/index.js";
 import { appendMemory } from "./memory/store.js";
 import { resolveRoutedProvider } from "./routing/model-router.js";
@@ -54,7 +54,7 @@ export type PrepareRunOpts = { confirmTrust?: TrustConfirmer };
 /** Ensure the kernel is up and return a client to it. */
 async function bootstrapKernel(repoRoot: string): Promise<ReturnType<typeof createKernelClient>> {
   const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
-  const kernelBin = join(repoRoot, "target", "debug", "vanta-kernel");
+  const kernelBin = kernelBinaryPath(repoRoot);
   await ensureKernel({ baseUrl, kernelBin, root: repoRoot });
   return createKernelClient(baseUrl);
 }
