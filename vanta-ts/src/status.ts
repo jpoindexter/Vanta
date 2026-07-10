@@ -8,6 +8,8 @@ import { readVelocityEvents, velocityStats, type VelocityStats } from "./velocit
 import { detectAuthConflicts } from "./providers/auth-conflict.js";
 import { modelDeprecationNotices } from "./providers/model-deprecation.js";
 import { validateConfigFiles } from "./config/validate.js";
+import { serverlessCliStatus, type ServerlessCliStatus } from "./exec/adapters/serverless.js";
+import { resolveServerlessConfig, type ServerlessProvider } from "./exec/serverless.js";
 
 // `vanta status` / `vanta doctor` — read-only health. Pings the kernel (never
 // spawns it — a status check that starts the thing it's checking is useless),
@@ -129,6 +131,17 @@ function resolveProviderStatus(env: NodeJS.ProcessEnv): StatusReport["provider"]
   }
 }
 
+export async function executionBackendNotices(
+  env: NodeJS.ProcessEnv,
+  readiness: (provider: ServerlessProvider) => Promise<ServerlessCliStatus> = serverlessCliStatus,
+): Promise<string[]> {
+  if (env.VANTA_EXEC_BACKEND !== "serverless") return [];
+  const resolved = resolveServerlessConfig(env);
+  if (!resolved.ok) return [`remote backend: ${resolved.reason}`];
+  const status = await readiness(resolved.config.provider);
+  return status.ok ? [] : [`remote backend: ${status.reason}`];
+}
+
 /** Gather the live health report. Best-effort: any probe failure degrades to a flag, never throws. */
 export async function gatherStatus(env: NodeJS.ProcessEnv): Promise<StatusReport> {
   const url = env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
@@ -173,6 +186,7 @@ export async function gatherStatus(env: NodeJS.ProcessEnv): Promise<StatusReport
       ...detectAuthConflicts(env),
       ...modelDeprecationNotices(env, new Date()),
       ...(await validateConfigFiles(env)),
+      ...(await executionBackendNotices(env)),
     ],
   };
 }

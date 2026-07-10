@@ -5,6 +5,7 @@ execution-backend port. Local execution remains the default. Remote execution is
 explicit and fails closed when the provider CLI or configuration is unavailable.
 For Modal, Vanta also checks `modal token info` before constructing the remote
 invocation and reports `modal token new --verify` when authentication is missing.
+`vanta doctor --verbose` surfaces the same readiness result before a task runs.
 
 ## Modal setup
 

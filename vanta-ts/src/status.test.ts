@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { formatStatus, isDefaultConfig, resolveStatusCondensed, type StatusReport } from "./status.js";
+import {
+  executionBackendNotices,
+  formatStatus,
+  isDefaultConfig,
+  resolveStatusCondensed,
+  type StatusReport,
+} from "./status.js";
 
 const base: StatusReport = {
   kernel: { url: "http://127.0.0.1:7788", up: true },
@@ -113,5 +119,34 @@ describe("resolveStatusCondensed", () => {
   it("on a TTY: full for default config, condensed for non-default", () => {
     expect(resolveStatusCondensed(def, { verbose: false, isTTY: true })).toBe(false);
     expect(resolveStatusCondensed(nondef, { verbose: false, isTTY: true })).toBe(true);
+  });
+});
+
+describe("executionBackendNotices", () => {
+  it("stays silent and does not probe for local execution", async () => {
+    let probed = false;
+    expect(await executionBackendNotices({} as NodeJS.ProcessEnv, async () => {
+      probed = true;
+      return { ok: true };
+    })).toEqual([]);
+    expect(probed).toBe(false);
+  });
+
+  it("reports invalid remote configuration without probing a CLI", async () => {
+    let probed = false;
+    const notices = await executionBackendNotices(
+      { VANTA_EXEC_BACKEND: "serverless" } as NodeJS.ProcessEnv,
+      async () => { probed = true; return { ok: true }; },
+    );
+    expect(notices[0]).toMatch(/VANTA_SERVERLESS_PROVIDER/);
+    expect(probed).toBe(false);
+  });
+
+  it("surfaces the Modal authentication recovery from the shared preflight", async () => {
+    const notices = await executionBackendNotices(
+      { VANTA_EXEC_BACKEND: "serverless", VANTA_SERVERLESS_PROVIDER: "modal" } as NodeJS.ProcessEnv,
+      async () => ({ ok: false, reason: "run `modal token new --verify`" }),
+    );
+    expect(notices).toEqual(["remote backend: run `modal token new --verify`"]);
   });
 });
