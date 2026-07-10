@@ -42,7 +42,7 @@ async function runSkillsList(): Promise<void> {
 }
 
 async function runSkillsBundle(rest: string[]): Promise<void> {
-  const { listBundles, readBundle } = await import("../skills/bundle.js");
+  const { listBundles, resolveBundle } = await import("../skills/bundle.js");
   const name = rest[1];
   if (!name) {
     const bundles = await listBundles();
@@ -50,9 +50,10 @@ async function runSkillsBundle(rest: string[]): Promise<void> {
     for (const b of bundles) console.log(`${b.name} — ${b.description} [${b.skills.join(", ")}]`);
     return;
   }
-  const cfg = await readBundle(name);
-  if (!cfg) { console.log(`No bundle named "${name}".`); process.exit(1); }
-  console.log(`Bundle: ${cfg.name}\n  Skills: ${cfg.skills.join(", ")}\n${cfg.instruction ? `  Instruction: ${cfg.instruction}` : ""}`);
+  const bundle = await resolveBundle(name);
+  if (!bundle) { console.log(`No bundle named "${name}".`); process.exit(1); }
+  const missing = bundle.missing.length ? `\n  Missing: ${bundle.missing.join(", ")}` : "";
+  console.log(`Bundle: ${bundle.config.name}\n  Skills: ${bundle.config.skills.join(", ")}${missing}\n${bundle.config.instruction ? `  Instruction: ${bundle.config.instruction}` : ""}`);
 }
 
 /** SKILL-TRIGGERS — `vanta skills trigger-emit <slug> <event>`: surface a recall
@@ -179,9 +180,22 @@ export async function runSkillCommand(repoRoot: string, rest: string[]): Promise
   // "distill" as a skill to print/run).
   if (name === "distill") return runSkillsDistill(rest);
   const skill = await readSkill(name);
-  if (!skill) { console.log(`No skill named "${name}".`); process.exit(1); }
+  if (!skill) return runBundleSkill(repoRoot, name, instr);
   if (instr.length === 0) return void console.log(`# ${skill.meta.name}\n\n${skill.body}`);
   await runInstruction(repoRoot, instr.join(" "), { skillBody: skill.body });
   return 0; // one-shot DONE — a numeric return makes cli.ts process.exit, so MCP child handles
   // don't keep the event loop alive forever (VANTA-ONESHOT-RUN-HANG, same class as `run`).
+}
+
+async function runBundleSkill(repoRoot: string, name: string, instr: string[]): Promise<number | void> {
+  const { resolveBundle } = await import("../skills/bundle.js");
+  const bundle = await resolveBundle(name);
+  if (!bundle) { console.log(`No skill or bundle named "${name}".`); process.exit(1); }
+  if (bundle.missing.length) {
+    console.log(`Bundle "${name}" is missing skill(s): ${bundle.missing.join(", ")}`);
+    process.exit(1);
+  }
+  if (instr.length === 0) return void console.log(bundle.body);
+  await runInstruction(repoRoot, instr.join(" "), { skillBody: bundle.body });
+  return 0;
 }

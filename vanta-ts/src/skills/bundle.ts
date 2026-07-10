@@ -1,12 +1,20 @@
 import { readFile, readdir, mkdir, writeFile } from "node:fs/promises";
 import { join, basename } from "node:path";
 import { resolveVantaHome } from "../store/home.js";
+import { readSkill } from "./store.js";
+import type { Skill } from "./types.js";
 
 export type BundleConfig = {
   name: string;
   description: string;
   skills: string[];
   instruction?: string;
+};
+export type ResolvedBundle = {
+  config: BundleConfig;
+  skills: Skill[];
+  missing: string[];
+  body: string;
 };
 
 // Parse YAML list items under `skills:` — lines starting with "  - ". Pure.
@@ -62,6 +70,26 @@ export async function readBundle(name: string, env?: NodeJS.ProcessEnv): Promise
   const file = join(bundlesDir(env), `${name}.yaml`);
   const content = await readFile(file, "utf8").catch(() => null);
   return content ? parseBundle(content) : null;
+}
+
+export function buildBundleSkillBody(cfg: BundleConfig, skills: readonly Skill[], missing: readonly string[] = []): string {
+  const sections = [
+    `# Bundle: ${cfg.name}`,
+    cfg.description,
+    cfg.instruction ? `\n## Bundle Instruction\n${cfg.instruction}` : "",
+    missing.length ? `\n## Missing Skills\n${missing.map((s) => `- ${s}`).join("\n")}` : "",
+    ...skills.map((skill) => `\n## Skill: ${skill.meta.name}\n${skill.body}`),
+  ];
+  return sections.filter(Boolean).join("\n\n");
+}
+
+export async function resolveBundle(name: string, env?: NodeJS.ProcessEnv): Promise<ResolvedBundle | null> {
+  const config = await readBundle(name, env);
+  if (!config) return null;
+  const loaded = await Promise.all(config.skills.map((skillName) => readSkill(skillName, env)));
+  const skills = loaded.filter((skill): skill is Skill => Boolean(skill));
+  const missing = config.skills.filter((_skillName, index) => !loaded[index]);
+  return { config, skills, missing, body: buildBundleSkillBody(config, skills, missing) };
 }
 
 /** Write a bundle YAML to ~/.vanta/skill-bundles/<name>.yaml. */
