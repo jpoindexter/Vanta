@@ -4,6 +4,7 @@ type UnblockPlan = {
   id: string;
   title: string;
   status: RoadmapItem["status"];
+  parkedReason?: RoadmapItem["parkedReason"];
   actions: string[];
 };
 
@@ -88,6 +89,34 @@ function fallbackActions(item: RoadmapItem): string[] {
     ];
   }
   if (item.status === "parked") {
+    if (item.parkedReason === "declined/n-a") {
+      return [
+        "Leave parked unless the architecture or product direction changes enough to make this applicable.",
+        "If revived, rewrite the done criteria first so it describes a Vanta-native outcome.",
+        `Inspect: vanta roadmap unblock ${item.id}`,
+      ];
+    }
+    if (item.parkedReason === "duplicate") {
+      return [
+        "Do not build independently; keep the owning card as the source of truth.",
+        "Split this card only if the owning card no longer covers the work.",
+        `Inspect: vanta roadmap unblock ${item.id}`,
+      ];
+    }
+    if (item.parkedReason === "strategy decision") {
+      return [
+        "Make the strategy decision explicit before treating this as buildable.",
+        "If accepted, decompose it into smaller next/building cards with concrete proof gates.",
+        `Inspect: vanta roadmap unblock ${item.id}`,
+      ];
+    }
+    if (item.parkedReason === "external proof" || item.parkedReason === "optional proof") {
+      return [
+        "Read the card notes and run the named real-world proof before moving it back to building.",
+        "Do not substitute mocks, static inspection, or adjacent tests for the proof.",
+        `Inspect: vanta roadmap unblock ${item.id}`,
+      ];
+    }
     return [
       "This card is deliberately parked outside the build sequence; read its notes before reviving it.",
       "Move it back to `next` or `building` only after the parked reason is no longer true.",
@@ -111,6 +140,7 @@ export function buildUnblockPlans(items: RoadmapItem[], ids: string[] = []): Unb
       id: item.id,
       title: item.title,
       status: item.status,
+      parkedReason: item.parkedReason,
       actions: KNOWN_ACTIONS[item.id] ?? fallbackActions(item),
     }));
 }
@@ -119,7 +149,7 @@ export function formatUnblockPlans(plans: UnblockPlan[]): string {
   if (plans.length === 0) return "No blocked, parked, or decision-only roadmap cards matched.";
   return plans
     .map((plan) => [
-      `${plan.id} (${plan.status}) - ${plan.title}`,
+      `${plan.id} (${[plan.status, plan.parkedReason].filter(Boolean).join(" · ")}) - ${plan.title}`,
       ...plan.actions.map((action, index) => `  ${index + 1}. ${action}`),
     ].join("\n"))
     .join("\n\n");

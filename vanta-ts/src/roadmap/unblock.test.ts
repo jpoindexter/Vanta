@@ -2,8 +2,13 @@ import { describe, expect, it } from "vitest";
 import type { RoadmapItem } from "./schema.js";
 import { buildUnblockPlans, formatUnblockPlans } from "./unblock.js";
 
-function card(id: string, status: RoadmapItem["status"], title = id): RoadmapItem {
-  return { id, title, status, track: "Operator", size: "S", summary: "", done: "" };
+function card(
+  id: string,
+  status: RoadmapItem["status"],
+  title = id,
+  parkedReason?: RoadmapItem["parkedReason"],
+): RoadmapItem {
+  return { id, title, status, track: "Operator", size: "S", summary: "", done: "", parkedReason };
 }
 
 describe("roadmap unblock plans", () => {
@@ -25,9 +30,27 @@ describe("roadmap unblock plans", () => {
   });
 
   it("includes parked cards with explicit revive guidance", () => {
-    const [plan] = buildUnblockPlans([card("UNKNOWN-PARKED", "parked", "Parked")]);
+    const [plan] = buildUnblockPlans([card("UNKNOWN-PARKED", "parked", "Parked", "review")]);
     expect(plan?.actions.join("\n")).toContain("deliberately parked");
     expect(plan?.actions.join("\n")).toContain("Move it back");
+  });
+
+  it("prints the parked reason in the unblock header", () => {
+    const out = formatUnblockPlans(buildUnblockPlans([card("NEEDS-PROOF", "parked", "Proof", "external proof")]));
+    expect(out).toContain("NEEDS-PROOF (parked · external proof)");
+  });
+
+  it("uses parked reason metadata for generic fallback guidance", () => {
+    const out = formatUnblockPlans(buildUnblockPlans([
+      card("DECLINED", "parked", "Declined", "declined/n-a"),
+      card("DUP", "parked", "Duplicate", "duplicate"),
+      card("STRAT", "parked", "Strategy", "strategy decision"),
+      card("PROOF", "parked", "Proof", "external proof"),
+    ]));
+    expect(out).toContain("Leave parked unless the architecture or product direction changes");
+    expect(out).toContain("Do not build independently");
+    expect(out).toContain("Make the strategy decision explicit");
+    expect(out).toContain("run the named real-world proof");
   });
 
   it("includes known parked N/A cards without pretending they are buildable", () => {
