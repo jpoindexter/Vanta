@@ -55,6 +55,12 @@ describe("resolveServerlessConfig", () => {
     expect(r.ok).toBe(true);
     if (r.ok) expect(r.config.network).toBe(true);
   });
+
+  it("defaults remote network access off", () => {
+    const r = resolveServerlessConfig(env({ VANTA_SERVERLESS_PROVIDER: "daytona" }));
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.config.network).toBe(false);
+  });
 });
 
 describe("buildServerlessArgs", () => {

@@ -84,6 +84,31 @@ describe("runSettingSection", () => {
     expect(mSet).toHaveBeenCalledWith("/repo", { VANTA_EXEC_BACKEND: "docker", VANTA_SANDBOX: "0", VANTA_DOCKER_IMAGE: "python:3.12-slim" });
   });
 
+  it("the execution-backend Modal choice is explicit, remote, and opt-in", async () => {
+    mSelect.mockResolvedValue(3); // backend[3] = Modal
+    mAskLine.mockResolvedValue("worker.py");
+    await runSettingSection("/repo", byKey("VANTA_EXEC_BACKEND")!);
+    expect(mSet).toHaveBeenCalledWith("/repo", {
+      VANTA_EXEC_BACKEND: "serverless",
+      VANTA_SERVERLESS_PROVIDER: "modal",
+      VANTA_SERVERLESS_NET: "0",
+      VANTA_SANDBOX: "0",
+      VANTA_SERVERLESS_APP: "worker.py",
+    });
+  });
+
+  it("the execution-backend Daytona choice selects the sibling adapter", async () => {
+    mSelect.mockResolvedValue(4); // backend[4] = Daytona
+    mAskLine.mockResolvedValue("");
+    await runSettingSection("/repo", byKey("VANTA_EXEC_BACKEND")!);
+    expect(mSet).toHaveBeenCalledWith("/repo", {
+      VANTA_EXEC_BACKEND: "serverless",
+      VANTA_SERVERLESS_PROVIDER: "daytona",
+      VANTA_SERVERLESS_NET: "0",
+      VANTA_SANDBOX: "0",
+    });
+  });
+
   it("an agent-knob section (tool-progress) writes its value", async () => {
     mSelect.mockResolvedValue(2); // tool-progress[2] = off
     await runSettingSection("/repo", byKey("VANTA_TOOL_PROGRESS")!);

@@ -1,12 +1,20 @@
-import { afterEach, beforeEach, describe, it, expect } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { resolveExecBackend, buildDockerArgs, dockerMounts, wrapExec, DEFAULT_DOCKER_IMAGE } from "./backend.js";
+import {
+  resolveExecBackend,
+  buildDockerArgs,
+  dockerMounts,
+  wrapExec,
+  DEFAULT_DOCKER_IMAGE,
+  type ExecBackendAdapter,
+} from "./backend.js";
 
 describe("resolveExecBackend", () => {
-  it("selects docker only when VANTA_EXEC_BACKEND=docker", () => {
+  it("selects only registered backend ids and otherwise stays local", () => {
     expect(resolveExecBackend({ VANTA_EXEC_BACKEND: "docker" } as NodeJS.ProcessEnv)).toBe("docker");
+    expect(resolveExecBackend({ VANTA_EXEC_BACKEND: "serverless" } as NodeJS.ProcessEnv)).toBe("serverless");
     expect(resolveExecBackend({} as NodeJS.ProcessEnv)).toBe("local");
     expect(resolveExecBackend({ VANTA_EXEC_BACKEND: "sandbox" } as NodeJS.ProcessEnv)).toBe("local");
   });
@@ -56,6 +64,78 @@ describe("wrapExec", () => {
     const r = await wrapExec({ env: {} as NodeJS.ProcessEnv, root, baseCmd: "sh", baseArgs: ["-c", "x"] });
     if ("error" in r) throw new Error("unexpected refuse");
     expect(r).toEqual({ cmd: "sh", args: ["-c", "x"] });
+  });
+
+  it("routes a configured Modal backend through discrete argv", async () => {
+    const r = await wrapExec(
+      {
+        env: {
+          VANTA_EXEC_BACKEND: "serverless",
+          VANTA_SERVERLESS_PROVIDER: "modal",
+          VANTA_SERVERLESS_APP: "worker.py",
+          VANTA_SERVERLESS_IDLE_SEC: "90",
+        } as NodeJS.ProcessEnv,
+        root,
+        baseCmd: "sh",
+        baseArgs: ["-c", "echo hi"],
+      },
+      { serverlessCliAvailable: async () => true },
+    );
+    if ("error" in r) throw new Error("unexpected refuse");
+    expect(r).toEqual({
+      cmd: "modal",
+      args: ["run", "worker.py", "--timeout", "90", "--", "sh", "-c", "echo hi"],
+    });
+  });
+
+  it("refuses instead of silently changing location when the selected remote CLI is unavailable", async () => {
+    const r = await wrapExec(
+      {
+        env: { VANTA_EXEC_BACKEND: "serverless", VANTA_SERVERLESS_PROVIDER: "daytona" } as NodeJS.ProcessEnv,
+        root,
+        baseCmd: "echo",
+        baseArgs: ["local"],
+      },
+      { serverlessCliAvailable: async () => false },
+    );
+    expect(r).toEqual({
+      error: expect.stringMatching(/daytona CLI unavailable.*Refusing to run locally/),
+    });
+  });
+
+  it("does not probe a remote CLI when its config is invalid", async () => {
+    const probe = vi.fn(async () => true);
+    const r = await wrapExec(
+      {
+        env: { VANTA_EXEC_BACKEND: "serverless", VANTA_SERVERLESS_PROVIDER: "invalid" } as NodeJS.ProcessEnv,
+        root,
+        baseCmd: "echo",
+        baseArgs: ["fallback"],
+      },
+      { serverlessCliAvailable: probe },
+    );
+    expect(probe).not.toHaveBeenCalled();
+    expect(r).toEqual({
+      error: expect.stringMatching(/serverless config invalid.*Refusing to run locally/),
+    });
+  });
+
+  it("lets consumers execute through a fake adapter without concrete coupling", async () => {
+    const fake: ExecBackendAdapter = {
+      id: "serverless",
+      wrap: vi.fn(async () => ({ ok: true as const, invocation: { cmd: "fake-remote", args: ["ok"] } })),
+    };
+    const r = await wrapExec(
+      {
+        env: { VANTA_EXEC_BACKEND: "serverless" } as NodeJS.ProcessEnv,
+        root,
+        baseCmd: "ignored",
+        baseArgs: [],
+      },
+      { adapters: { serverless: fake } },
+    );
+    expect(fake.wrap).toHaveBeenCalledOnce();
+    expect(r).toEqual({ cmd: "fake-remote", args: ["ok"] });
   });
 
   it("mounts the project root", () => {

@@ -2,24 +2,12 @@ import { z } from "zod";
 
 // Serverless execution backend: where shell_cmd / run_code run on a hibernate-
 // when-idle cloud sandbox (Modal or Daytona) that persists without paying for
-// idle compute. This module is PURE — config resolution + argv builder + idle/
-// hibernate policy only. It does NOT add a Modal/Daytona SDK dep and does NOT
-// run anything: the live `modal`/`daytona` CLI call is the documented boundary,
-// and the kernel assess() gate stays UPSTREAM of wrapExec (a serverless backend
-// changes WHERE a command runs, never WHETHER it is allowed). Not configured →
-// the wrapExec wire would fall back to the existing local/docker backend.
-//
-// Where wrapExec (exec/backend.ts) WOULD add a `serverless` case (NOT this round):
-//   if (serverlessBackendEnabled(a.env)) {
-//     const r = resolveServerlessConfig(a.env);
-//     if (r.ok && (await serverlessCliAvailable(r.config.provider))) {
-//       return { cmd: SERVERLESS_CLI[r.config.provider],
-//                args: buildServerlessArgs([a.baseCmd, ...a.baseArgs], r.config) };
-//     }
-//     // CLI absent OR config refused → clean fallback to local (mirrors the
-//     // docker case: backend selected but unavailable → maybeSandbox base).
-//   }
-// — same clarity-gate as docker: the backend only wraps; the kernel already gated.
+// idle compute. Config resolution + argv construction stay pure here; the
+// concrete CLI probe/wrapper lives in exec/adapters/serverless.ts. There is no
+// Modal/Daytona SDK dependency. The kernel assess() gate stays upstream of
+// wrapExec: an adapter changes WHERE a command runs, never WHETHER it is allowed.
+// Missing/invalid config or an unavailable CLI returns a typed unavailable
+// result and the resolver refuses rather than silently changing location.
 
 export type ServerlessProvider = "modal" | "daytona";
 
@@ -67,7 +55,7 @@ export function resolveServerlessConfig(env: NodeJS.ProcessEnv): ResolveResult {
     app: env.VANTA_SERVERLESS_APP || undefined,
     image: env.VANTA_SERVERLESS_IMAGE || undefined,
     idleTimeoutSec: idleRaw ? Number(idleRaw) : undefined,
-    network: env.VANTA_SERVERLESS_NET === "1" ? true : undefined,
+    network: env.VANTA_SERVERLESS_NET === "1",
   });
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
