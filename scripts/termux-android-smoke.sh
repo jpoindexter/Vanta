@@ -42,14 +42,14 @@ timeout 15s adb shell am start -W -n "$TERMUX_PACKAGE/com.termux.app.TermuxActiv
 
 ready=0
 echo "Waiting for Termux bootstrap"
-for _ in $(seq 1 90); do
+for attempt in $(seq 1 90); do
   probe=$(timeout 5s adb exec-out run-as "$TERMUX_PACKAGE" sh -c \
     "test -x '$TERMUX_PREFIX/bin/bash' && echo TERMUX_READY" </dev/null 2>/dev/null || true)
   if [ "$probe" = "TERMUX_READY" ]; then
     ready=1
     break
   fi
-  if [ $((_ % 10)) -eq 0 ]; then echo "  still waiting (${_}/90)"; fi
+  if [ $((attempt % 10)) -eq 0 ]; then echo "  still waiting (${attempt}/90)"; fi
   sleep 2
 done
 if [ "$ready" -ne 1 ]; then
