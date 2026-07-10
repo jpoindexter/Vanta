@@ -1,32 +1,27 @@
-import { FormEvent, useEffect, useState } from "react";
-import type { Approval, ApprovalDecision, EventRow, Message, Status } from "./types.js";
-
-const TOKEN_KEY = "vanta.companion.token.v1";
+import { Dispatch, FormEvent, SetStateAction, useEffect, useState } from "react";
+import type { Approval, ApprovalDecision, EventRow, Message, Session, Status } from "./types.js";
+import { companionClient, HOST_KEY, isLocalCompanion, isNativeCompanion, normalizeHost, postJson, streamCompanionEvents, TOKEN_KEY } from "./companion-client.js";
 
 export function CompanionApp() {
-  const local = isLocalHost(window.location.hostname) && !new URLSearchParams(window.location.search).has("remote");
+  const native = isNativeCompanion();
+  const local = isLocalCompanion(window.location.hostname, native, window.location.search);
   const [token, setToken] = useState(() => window.localStorage.getItem(TOKEN_KEY) ?? "");
+  const [host, setHost] = useState(() => window.localStorage.getItem(HOST_KEY) ?? (native ? "" : window.location.origin));
   const [status, setStatus] = useState<Status | null>(null);
   const [approval, setApproval] = useState<Approval | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [events, setEvents] = useState<EventRow[]>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [streamText, setStreamText] = useState("");
   const [error, setError] = useState("");
   const paired = local || !!token;
-  const api = companionClient(token);
+  const api = companionClient(token, host);
+  useCompanionPoll({ paired, token, host, setStatus, setApproval, setSessions, setError });
+  useCompanionEventStream({ paired, local, token, host, setStreamText, setEvents, setError });
 
-  useEffect(() => {
-    if (!paired) return;
-    let active = true;
-    async function poll() {
-      const [nextStatus, nextApproval] = await Promise.all([api<Status>("/status"), api<Approval | null>("/approval")]);
-      if (active) { setStatus(nextStatus); setApproval(nextApproval); setError(""); }
-    }
-    void poll().catch((cause) => setError((cause as Error).message));
-    const id = window.setInterval(() => void poll().catch(() => undefined), 1_500);
-    return () => { active = false; window.clearInterval(id); };
-  }, [paired, token]);
-
-  if (!paired) return <PairCompanion onPaired={(next) => { window.localStorage.setItem(TOKEN_KEY, next); setToken(next); }} />;
+  if (!paired) return <PairCompanion native={native} initialHost={host} onPaired={(next, nextHost) => {
+    window.localStorage.setItem(TOKEN_KEY, next); window.localStorage.setItem(HOST_KEY, nextHost); setHost(nextHost); setToken(next);
+  }} />;
   return (
     <div className="companion-shell">
       <header className="companion-header">
@@ -34,13 +29,18 @@ export function CompanionApp() {
         <span className={status?.kernel === "online" ? "presence-dot online" : "presence-dot"} aria-label={status?.kernel ?? "connecting"} />
         <p>{status?.model ?? "Waiting for host"}</p>
       </header>
+      <CompanionSessions sessions={sessions} current={status?.sessionId} onNew={async () => {
+        const next = await api<{ id: string }>("/sessions/new", postJson({})); setStatus((current) => current ? { ...current, sessionId: next.id } : current); setMessages([]); setEvents([]);
+      }} onOpen={async (id) => {
+        const opened = await api<{ id: string; messages: Message[] }>("/sessions/open", postJson({ id })); setStatus((current) => current ? { ...current, sessionId: opened.id } : current); setMessages(opened.messages); setEvents([]);
+      }} />
       {approval ? <CompanionApproval approval={approval} answer={async (decision) => { await api("/approval", postJson({ id: approval.id, decision })); setApproval(null); }} /> : null}
-      <CompanionThread messages={messages} events={events} />
+      <CompanionThread messages={messages} events={events} streamText={streamText} />
       <CompanionComposer onSend={async (message) => {
-        setMessages((current) => [...current, { role: "user", content: message }]); setError("");
+        setMessages((current) => [...current, { role: "user", content: message }]); setError(""); setStreamText("");
         try {
           const result = await api<{ finalText: string; events?: EventRow[] }>("/chat", postJson({ message }));
-          setMessages((current) => [...current, { role: "assistant", content: result.finalText }]);
+          setMessages((current) => [...current, { role: "assistant", content: result.finalText }]); setStreamText("");
           setEvents(result.events ?? []);
         } catch (cause) { setError((cause as Error).message); }
       }} />
@@ -49,24 +49,62 @@ export function CompanionApp() {
   );
 }
 
-function PairCompanion(props: { onPaired: (token: string) => void }) {
+type PollState = {
+  paired: boolean; token: string; host: string;
+  setStatus: Dispatch<SetStateAction<Status | null>>; setApproval: Dispatch<SetStateAction<Approval | null>>;
+  setSessions: Dispatch<SetStateAction<Session[]>>; setError: Dispatch<SetStateAction<string>>;
+};
+
+function useCompanionPoll(state: PollState): void {
+  useEffect(() => {
+    if (!state.paired) return;
+    let active = true;
+    const api = companionClient(state.token, state.host);
+    async function poll() {
+      const [status, approval, sessions] = await Promise.all([api<Status>("/status"), api<Approval | null>("/approval"), api<Session[]>("/sessions")]);
+      if (active) { state.setStatus(status); state.setApproval(approval); state.setSessions(sessions); state.setError(""); }
+    }
+    void poll().catch((cause) => state.setError((cause as Error).message));
+    const id = window.setInterval(() => void poll().catch(() => undefined), 1_500);
+    return () => { active = false; window.clearInterval(id); };
+  }, [state.paired, state.token, state.host]);
+}
+
+type StreamState = Pick<PollState, "paired" | "token" | "host" | "setError"> & { local: boolean; setStreamText: Dispatch<SetStateAction<string>>; setEvents: Dispatch<SetStateAction<EventRow[]>> };
+
+function useCompanionEventStream(state: StreamState): void {
+  useEffect(() => {
+    if (!state.paired || state.local) return;
+    const controller = new AbortController();
+    void streamCompanionEvents({ token: state.token, host: state.host, signal: controller.signal, onEvent: (event) => {
+      if (event.delta) state.setStreamText((current) => current + event.delta);
+      else if (event.label) state.setEvents((current) => [...current.slice(-9), event]);
+    }}).catch((cause) => { if (!controller.signal.aborted) state.setError((cause as Error).message); });
+    return () => controller.abort();
+  }, [state.paired, state.token, state.host, state.local]);
+}
+
+function PairCompanion(props: { native: boolean; initialHost: string; onPaired: (token: string, host: string) => void }) {
   const [code, setCode] = useState("");
+  const [host, setHost] = useState(props.initialHost);
   const [name, setName] = useState(() => navigator.userAgent.includes("iPhone") ? "iPhone" : "Mobile companion");
   const [error, setError] = useState("");
   async function submit(event: FormEvent) {
     event.preventDefault(); setError("");
     try {
-      const result = await companionClient("")<{ token: string }>("/pair", postJson({ code: code.toUpperCase(), name }));
-      props.onPaired(result.token);
+      const target = normalizeHost(host);
+      const result = await companionClient("", target)<{ token: string }>("/pair", postJson({ code: code.toUpperCase(), name }));
+      props.onPaired(result.token, target);
     } catch (cause) { setError((cause as Error).message); }
   }
   return (
     <main className="pair-shell">
       <form className="pair-form" onSubmit={submit}>
         <p className="eyebrow">Vanta Companion</p><h1>Pair this device</h1>
+        {props.native ? <label>Vanta host<input value={host} onChange={(event) => setHost(event.target.value)} inputMode="url" placeholder="http://192.168.1.10:7790" autoCapitalize="none" autoCorrect="off" /></label> : null}
         <label>Device name<input value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" /></label>
         <label>Pairing code<input value={code} onChange={(event) => setCode(event.target.value.replace(/[^a-zA-Z0-9]/g, "").slice(0, 6))} autoCapitalize="characters" autoComplete="one-time-code" inputMode="text" /></label>
-        <button type="submit" disabled={code.length !== 6}>Pair</button>
+        <button type="submit" disabled={code.length !== 6 || (props.native && !normalizeHost(host))}>Pair</button>
         {error ? <p className="companion-error" role="alert">{error}</p> : null}
       </form>
     </main>
@@ -84,10 +122,15 @@ function CompanionApproval(props: { approval: Approval; answer: (decision: Appro
   );
 }
 
-function CompanionThread(props: { messages: Message[]; events: EventRow[] }) {
+function CompanionSessions(props: { sessions: Session[]; current?: string; onNew: () => Promise<void>; onOpen: (id: string) => Promise<void> }) {
+  return <nav className="companion-sessions" aria-label="Sessions"><select aria-label="Current session" value={props.current ?? ""} onChange={(event) => void props.onOpen(event.target.value)}><option value="">Current session</option>{props.sessions.map((session) => <option key={session.id} value={session.id}>{session.title}</option>)}</select><button type="button" onClick={() => void props.onNew()} aria-label="New session">+</button></nav>;
+}
+
+function CompanionThread(props: { messages: Message[]; events: EventRow[]; streamText: string }) {
   return (
     <main className="companion-thread" aria-live="polite">
       {!props.messages.length ? <p className="companion-idle">Ready.</p> : props.messages.map((message, index) => <article key={index} className={`companion-message ${message.role}`}><span>{message.role}</span><p>{message.content}</p></article>)}
+      {props.streamText ? <article className="companion-message assistant streaming"><span>assistant</span><p>{props.streamText}</p></article> : null}
       {props.events.length ? <p className="companion-events">{props.events.at(-1)?.label}</p> : null}
     </main>
   );
@@ -98,14 +141,3 @@ function CompanionComposer(props: { onSend: (message: string) => Promise<void> }
   async function submit(event: FormEvent) { event.preventDefault(); const message = draft.trim(); if (!message || busy) return; setDraft(""); setBusy(true); try { await props.onSend(message); } finally { setBusy(false); } }
   return <form className="companion-composer" onSubmit={submit}><label htmlFor="companion-message">Ask Vanta</label><textarea id="companion-message" value={draft} onChange={(event) => setDraft(event.target.value)} rows={3} disabled={busy} /><button type="submit" disabled={busy || !draft.trim()}>{busy ? "Working" : "Send"}</button></form>;
 }
-
-function companionClient(token: string) {
-  return async function api<T = unknown>(path: string, init: RequestInit = {}): Promise<T> {
-    const headers = new Headers(init.headers); if (token) headers.set("authorization", `Bearer ${token}`);
-    const response = await fetch(`/api/companion${path}`, { ...init, headers });
-    const body = await response.json(); if (!response.ok) throw new Error(body.error ?? "request failed"); return body as T;
-  };
-}
-
-function postJson(body: unknown): RequestInit { return { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }; }
-function isLocalHost(host: string): boolean { return host === "127.0.0.1" || host === "localhost" || host === "::1"; }

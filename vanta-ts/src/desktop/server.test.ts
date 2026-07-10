@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { approvalDecision, eventLabel, type DesktopState, type PendingApproval } from "./server.js";
+import { applyCompanionCors, approvalDecision, eventLabel, type DesktopState, type PendingApproval } from "./server.js";
 
 const args = {};
 
@@ -61,6 +61,17 @@ describe("desktop server module exports", () => {
     expect(typeof mod.createDesktopServer).toBe("function");
     expect(typeof mod.serveDesktop).toBe("function");
     expect(typeof mod.eventLabel).toBe("function");
+  });
+});
+
+describe("native companion CORS", () => {
+  it("allows only Capacitor's local app origin", () => {
+    const headers = new Map<string, string>();
+    const res = { setHeader: (key: string, value: string) => headers.set(key, value) } as never;
+    expect(applyCompanionCors({ headers: { origin: "capacitor://localhost" } } as never, res, "/api/companion/status")).toBe(true);
+    expect(headers.get("access-control-allow-origin")).toBe("capacitor://localhost");
+    expect(applyCompanionCors({ headers: { origin: "https://evil.example" } } as never, res, "/api/companion/status")).toBe(false);
+    expect(applyCompanionCors({ headers: { origin: "capacitor://localhost" } } as never, res, "/api/status")).toBe(false);
   });
 });
 

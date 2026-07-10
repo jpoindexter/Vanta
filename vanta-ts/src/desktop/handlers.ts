@@ -16,7 +16,7 @@ import { approvalDecision, approvalPayload, requestWebApproval, resolveApproval,
 import { readCanvasArtifact } from "../canvas/artifact.js";
 export { approvalDecision, type PendingApproval } from "./approval.js";
 
-export type DesktopEvent = { label: string; ok?: boolean };
+export type DesktopEvent = { label: string; ok?: boolean; delta?: string };
 export type DesktopState = {
   setup?: RunSetup;
   _setupPromise?: Promise<RunSetup>;
@@ -61,6 +61,9 @@ function attachConversation(state: DesktopState, setup: RunSetup, history?: Para
     summarize: buildSummarizer(setup.provider),
     activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
     onEvent: (event) => {
+      if (event.type === "text_delta" && state._sseClients && state._sseSessionId) {
+        pushSseEvent(state._sseClients, state._sseSessionId, { label: "", delta: event.delta });
+      }
       const label = eventLabel(event);
       if (label) {
         state.currentEvents?.push(label);

@@ -19,10 +19,14 @@
     "desktop:canvas:smoke": "npm run desktop:build && node --import tsx scripts/desktop-canvas-smoke.mjs",
     "desktop:companion:smoke": "npm run desktop:build && node --import tsx scripts/desktop-companion-smoke.mjs",
     "desktop:presence:smoke": "npm run desktop:build && node scripts/desktop-presence-smoke.mjs",
-    "voice:wake:smoke": "node --import tsx scripts/voice-wake-smoke.ts"
+    "voice:wake:smoke": "node --import tsx scripts/voice-wake-smoke.ts",
+    "mobile:sync": "npm run desktop:build && cap sync ios",
+    "mobile:open": "cap open ios"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/ios": "^8.4.1",
     "@mozilla/readability": "^0.6.0",
     "@noble/curves": "2.2.0",
     "google-auth-library": "^10.6.2",
@@ -43,6 +47,7 @@
     "zod": "^3.25.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.4.1",
     "@types/node": "^22.15.0",
     "@types/nodemailer": "7.0.4",
     "@types/react": "^19.2.16",

@@ -1,7 +1,8 @@
 import type http from "node:http";
 import { networkInterfaces } from "node:os";
 import { authenticateCompanion, exchangeCompanionCode, listCompanionDevices, startCompanionPairing } from "./auth.js";
-import { handleApproval, handleChat, handleStatus, readJson, sendJson, type DesktopState } from "../desktop/handlers.js";
+import { handleApproval, handleChat, handleNewSession, handleOpenSession, handleSessions, handleStatus, readJson, sendJson, type DesktopState } from "../desktop/handlers.js";
+import { attachSse, type SseClients } from "../desktop/session-state.js";
 
 export type CompanionRouteOptions = { enabled: boolean; home: string; port: number };
 
@@ -16,7 +17,7 @@ export function companionUrls(port: number, interfaces = networkInterfaces()): s
 }
 
 export async function handleCompanionRoute(args: {
-  req: http.IncomingMessage; res: http.ServerResponse; state: DesktopState; pathname: string; options: CompanionRouteOptions; local?: boolean;
+  req: http.IncomingMessage; res: http.ServerResponse; state: DesktopState; pathname: string; options: CompanionRouteOptions; local?: boolean; sseClients?: SseClients; sid?: string;
 }): Promise<boolean> {
   const { req, res, state, pathname, options } = args;
   if (!pathname.startsWith("/api/companion/")) return false;
@@ -24,7 +25,7 @@ export async function handleCompanionRoute(args: {
   if (!local && !options.enabled) return forbidden(res);
   if (await handlePairingRoute({ req, res, pathname, options, local })) return true;
   if (!local && !await authorized(req, options.home)) return unauthorized(res);
-  return handleAuthorizedRoute(req, res, state, pathname);
+  return handleAuthorizedRoute({ req, res, state, pathname, sseClients: args.sseClients, sid: args.sid });
 }
 
 async function handlePairingRoute(args: {
@@ -65,10 +66,24 @@ async function companionInfo({ req, res, options, local }: PairRouteArgs): Promi
   return true;
 }
 
-async function handleAuthorizedRoute(req: http.IncomingMessage, res: http.ServerResponse, state: DesktopState, pathname: string): Promise<boolean> {
-  if (pathname === "/api/companion/status" && req.method === "GET") { await handleStatus(state, res); return true; }
-  if (pathname === "/api/companion/chat" && req.method === "POST") { await handleChat(state, req, res); return true; }
-  if (pathname === "/api/companion/approval" && (req.method === "GET" || req.method === "POST")) { await handleApproval(state, req, res); return true; }
+type AuthorizedArgs = { req: http.IncomingMessage; res: http.ServerResponse; state: DesktopState; pathname: string; sseClients?: SseClients; sid?: string };
+
+async function handleAuthorizedRoute(args: AuthorizedArgs): Promise<boolean> {
+  const { req, res, state } = args;
+  const routes: Record<string, () => Promise<void>> = {
+    "GET:/api/companion/status": () => handleStatus(state, res),
+    "POST:/api/companion/chat": () => handleChat(state, req, res),
+    "GET:/api/companion/approval": () => handleApproval(state, req, res),
+    "POST:/api/companion/approval": () => handleApproval(state, req, res),
+    "GET:/api/companion/sessions": () => handleSessions(res),
+    "POST:/api/companion/sessions/new": () => handleNewSession(state, res),
+    "POST:/api/companion/sessions/open": () => handleOpenSession(state, req, res),
+  };
+  const handler = routes[`${req.method}:${args.pathname}`];
+  if (handler) { await handler(); return true; }
+  if (req.method === "GET" && args.pathname === "/api/companion/events" && args.sseClients) {
+    attachSse(args.sseClients, args.sid ?? "default", res); return true;
+  }
   return false;
 }
 

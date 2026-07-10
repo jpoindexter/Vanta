@@ -58,18 +58,49 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
 
 type ServerOpts = { sessions: SessionMap; sseClients: SseClients; repoRoot: string; companion: CompanionRouteOptions; isLoopback: (req: http.IncomingMessage) => boolean };
 
+const NATIVE_ORIGINS = new Set(["capacitor://localhost", "http://localhost", "https://localhost"]);
+
+export function applyCompanionCors(req: http.IncomingMessage, res: http.ServerResponse, pathname: string): boolean {
+  const origin = req.headers.origin;
+  if (!pathname.startsWith("/api/companion/") || typeof origin !== "string" || !NATIVE_ORIGINS.has(origin)) return false;
+  res.setHeader("access-control-allow-origin", origin);
+  res.setHeader("vary", "origin");
+  res.setHeader("access-control-allow-headers", "authorization, content-type");
+  res.setHeader("access-control-allow-methods", "GET, POST, OPTIONS");
+  return true;
+}
+
+function handleNativePreflight(req: http.IncomingMessage, res: http.ServerResponse, pathname: string): boolean {
+  const nativeOrigin = applyCompanionCors(req, res, pathname);
+  if (req.method !== "OPTIONS" || !nativeOrigin) return false;
+  res.writeHead(204); res.end(); return true;
+}
+
+function remoteDesktopBlocked(local: boolean, pathname: string): boolean {
+  return !local && pathname !== "/companion" && !pathname.startsWith("/assets/");
+}
+
+async function routeByMethod(ctx: RouteCtx): Promise<boolean> {
+  if (ctx.req.method === "GET") return routeGet(ctx);
+  if (ctx.req.method === "POST") return routePost(ctx);
+  return false;
+}
+
 async function routeRequest(req: http.IncomingMessage, res: http.ServerResponse, opts: ServerOpts): Promise<void> {
   const { sessions, sseClients, repoRoot } = opts;
   const url = new URL(req.url ?? "/", "http://127.0.0.1");
   const local = opts.isLoopback(req);
   const sid = local ? sessionIdFromRequest(req) : "default";
   const state = getSession(sessions, sid, repoRoot);
+  if (handleNativePreflight(req, res, url.pathname)) return;
+  applyCompanionCors(req, res, url.pathname);
+  state._sseSessionId = sid; state._sseClients = sseClients;
   const ctx: RouteCtx = { req, res, state, sid, sseClients, pathname: url.pathname };
-  if (await handleCompanionRoute({ req, res, state, pathname: url.pathname, options: opts.companion, local })) return;
-  if (!local && url.pathname !== "/companion" && !url.pathname.startsWith("/assets/")) {
+  if (await handleCompanionRoute({ req, res, state, pathname: url.pathname, options: opts.companion, local, sseClients, sid })) return;
+  if (remoteDesktopBlocked(local, url.pathname)) {
     sendJson(res, 403, { error: "desktop APIs are loopback-only" }); return;
   }
-  const handled = req.method === "GET" ? await routeGet(ctx) : req.method === "POST" ? await routePost(ctx) : false;
+  const handled = await routeByMethod(ctx);
   if (!handled) sendJson(res, 404, { error: "not found" });
 }
 
