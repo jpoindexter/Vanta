@@ -25,6 +25,31 @@ describe("gateway utility commands", () => {
     expect(log).toHaveBeenCalledWith(expect.stringContaining("teams/bot-connector"));
   });
 
+  it("prints channel proofs as json when requested", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-gateway-proof-"));
+    roots.push(root);
+    await appendChannelProof(join(root, ".vanta"), {
+      kind: "channel-round-trip",
+      platform: "teams",
+      transport: "bot-connector",
+      conversationHash: "hash",
+      parts: 1,
+      acceptedAt: "2026-07-10T12:00:00.000Z",
+    });
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    await expect(runGatewayUtilityCommand(root, ["channel-proofs", "teams", "--json"])).resolves.toBe(true);
+    const proofs = JSON.parse(String(log.mock.calls[0]?.[0])) as Array<{ platform: string; transport: string }>;
+    expect(proofs).toEqual([expect.objectContaining({ platform: "teams", transport: "bot-connector" })]);
+  });
+
+  it("prints an empty json list when no channel proofs match", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-gateway-proof-"));
+    roots.push(root);
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    await expect(runGatewayUtilityCommand(root, ["channel-proofs", "teams", "--json"])).resolves.toBe(true);
+    expect(JSON.parse(String(log.mock.calls[0]?.[0]))).toEqual([]);
+  });
+
   it("returns false for daemon mode and unrelated subcommands", async () => {
     await expect(runGatewayUtilityCommand("/tmp", [])).resolves.toBe(false);
     await expect(runGatewayUtilityCommand("/tmp", ["unknown"])).resolves.toBe(false);

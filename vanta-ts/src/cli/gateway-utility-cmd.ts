@@ -1,8 +1,12 @@
 import { join } from "node:path";
 
-async function showChannelProofs(repoRoot: string, platform?: string): Promise<void> {
+async function showChannelProofs(repoRoot: string, rest: string[]): Promise<void> {
   const { readChannelProofs, formatChannelProofs } = await import("../gateway/channel-proof.js");
-  console.log(formatChannelProofs(await readChannelProofs(join(repoRoot, ".vanta")), platform));
+  const json = rest.includes("--json");
+  const platform = rest.slice(1).find((arg) => !arg.startsWith("--"));
+  const proofs = await readChannelProofs(join(repoRoot, ".vanta"));
+  const selected = platform ? proofs.filter((proof) => proof.platform === platform) : proofs;
+  console.log(json ? JSON.stringify(selected, null, 2) : formatChannelProofs(proofs, platform));
 }
 
 async function verifyChannels(repoRoot: string, rest: string[]): Promise<void> {
@@ -26,7 +30,7 @@ async function verifyChannels(repoRoot: string, rest: string[]): Promise<void> {
 /** Handle finite gateway utility commands. False means start the daemon. */
 export async function runGatewayUtilityCommand(repoRoot: string, rest: string[]): Promise<boolean> {
   if (rest[0] === "channel-proofs") {
-    await showChannelProofs(repoRoot, rest[1]);
+    await showChannelProofs(repoRoot, rest);
     return true;
   }
   if (rest[0] === "verify-channels") {
