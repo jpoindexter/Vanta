@@ -15399,9 +15399,9 @@
       "id": "OP-X-SEARCH",
       "track": "Operator",
       "title": "Live X / social search channel",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
-      "summary": "The native TypeScript X GraphQL channel, cookie auth, query-id capture/heal, `twitter_read`, and radar ingestion are wired. The remaining release gate is a real live search response after X protocol/session changes.",
+      "summary": "Authenticated TypeScript X GraphQL search now uses native fetch as a fast path and an in-process Chromium response fallback when X rejects non-browser transport. Cookie auth, live query-template capture/heal, `twitter_read`, reach doctor, and radar ingestion are wired end to end.",
       "done": "With the configured X session, `twitter_read search` returns source-linked live posts and `radar scan_web from:twitter` persists normalized opportunities; reach doctor proves the backend with a live request rather than cached credentials.",
       "tier": "pebble",
       "model": "sonnet",
@@ -15409,7 +15409,7 @@
       "codex": "gpt-5.4",
       "lens": "reach",
       "updated": "2026-07-10",
-      "notes": "LIVE AUDIT 2026-07-10: the machine has a stored X cookie and cached SearchTimeline/Bookmarks IDs, but real `twitter_read search` returned HTTP 404. The prior doctor incorrectly reported `ok` from cache presence, and browser heal incorrectly reported success after capturing zero new IDs. Hardened the channel so browser/bundle heal counts only operations observed in the current X app, reach doctor performs a real search probe, and `reach heal twitter` returns failure when the post-heal probe is still degraded. Real post-fix execution: doctor=`warn`; browser heal observed current SearchTimeline and Bookmarks operations but live search still returned 404; heal tool returned `ok:false` and now recommends renewed cookie auth or `web_search site:x.com` rather than repeating heal. NOT SHIPPED: no live posts were returned, so the card stays horizon. Likely remaining work is current X request features/variables or session renewal, not channel scaffolding. Verification: 52 focused reach/twitter/radar tests passed; full suite 1,201 files, 12,472 passed, 3 skipped; TypeScript and size gates pass; no leaked tsx stack or test notification bell.",
+      "notes": "SHIPPED 2026-07-10. Live diagnosis proved X returned 200 for Chromium SearchTimeline while byte-equivalent native fetch returned 404, including with the current query id, variables, 39 feature flags, referer, and x-client-transaction-id. Vanta now captures only allowlisted non-secret request metadata, bounds capture drains, retains native fetch as the fast path, and falls back to the authenticated Chromium GraphQL response for search; cookie/authorization/CSRF values are never cached in request templates. Executed Done criterion: `twitter_read search` returned 3 source-linked live posts; `reach doctor` reported `twitter` healthy from a live probe; an isolated `radar scan_web from:twitter` added and reread 10 normalized opportunities with x.com sources, scores, and status. Native-only control still returned HTTP 404, so the backend is labeled honestly as native + browser. Verification: TypeScript clean; 7 changed source files pass the size gate; full suite 1,202 files, 12,479 passed, 3 skipped; no leaked tsx stack or terminal bell.",
       "source": "ref-audit-2026-06-20"
     },
     {

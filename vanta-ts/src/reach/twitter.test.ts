@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { searchTwitter, bookmarks, loadQids, saveQids } from "./twitter.js";
+import { searchTwitter, bookmarks, loadQids, saveQids, saveTwitterRequestTemplates } from "./twitter.js";
 import { assertPublicUrl } from "../net/ssrf-guard.js";
 
 let home: string;
@@ -80,6 +80,38 @@ describe("native client mocked fetch paths", () => {
       vi.restoreAllMocks();
     }
   });
+
+  it("merges search input into the captured live request template", async () => {
+    saveQids({ SearchTimeline: "LIVE" }, process.env);
+    saveTwitterRequestTemplates({
+      SearchTimeline: {
+        qid: "LIVE",
+        variables: { rawQuery: "captured", withGrokTranslatedBio: false },
+        features: { current_feature: true },
+        fieldToggles: { current_toggle: false },
+        headers: { "x-client-transaction-id": "tx", authorization: "must-not-replay" },
+      },
+    }, process.env);
+    const fetchSpy = vi.fn(async (_url: string, _opts?: { headers?: Record<string, string> }) => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ data: {} }),
+    }));
+    vi.stubGlobal("fetch", fetchSpy);
+    try {
+      const env = { ...process.env, VANTA_ALLOW_PRIVATE_FETCH: "1", VANTA_TWITTER_BROWSER_FALLBACK: "0" } as NodeJS.ProcessEnv;
+      await searchTwitter({ query: "operator query", max: 3, latest: true }, "auth_token=a; ct0=b", env);
+      const url = new URL(String(fetchSpy.mock.calls[0]?.[0]));
+      expect(JSON.parse(url.searchParams.get("variables") ?? "{}")).toMatchObject({ rawQuery: "operator query", count: 3, withGrokTranslatedBio: false });
+      expect(JSON.parse(url.searchParams.get("features") ?? "{}")).toEqual({ current_feature: true });
+      expect(JSON.parse(url.searchParams.get("fieldToggles") ?? "{}")).toEqual({ current_toggle: false });
+      const requestHeaders = fetchSpy.mock.calls[0]?.[1]?.headers as Record<string, string>;
+      expect(requestHeaders["x-client-transaction-id"]).toBe("tx");
+      expect(requestHeaders.authorization).not.toBe("must-not-replay");
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
 });
 
 describe("auto-heal on a stale-qid 404", () => {
@@ -113,13 +145,36 @@ describe("auto-heal on a stale-qid 404", () => {
     }
   });
 
+  it("retries when heal refreshes the request template but the query id is unchanged", async () => {
+    saveQids({ SearchTimeline: "SAME" }, process.env);
+    saveTwitterRequestTemplates({ SearchTimeline: { qid: "SAME", variables: {}, features: { old: true }, fieldToggles: {}, headers: {} } }, process.env);
+    const fetchSpy = vi.fn(async (url: string) => {
+      const features = JSON.parse(new URL(url).searchParams.get("features") ?? "{}");
+      return features.current
+        ? { ok: true, status: 200, json: async () => ({ data: {} }) }
+        : { ok: false, status: 404, json: async () => ({}) };
+    });
+    vi.stubGlobal("fetch", fetchSpy);
+    const heal = vi.fn(async () => {
+      saveTwitterRequestTemplates({ SearchTimeline: { qid: "SAME", variables: {}, features: { current: true }, fieldToggles: {}, headers: {} } }, process.env);
+    });
+    try {
+      const env = { ...process.env, VANTA_ALLOW_PRIVATE_FETCH: "1" } as NodeJS.ProcessEnv;
+      const result = await searchTwitter({ query: "x" }, "auth_token=a; ct0=b", env, heal);
+      expect(result.ok).toBe(true);
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
+
   it("when heal can't refresh the id, returns web_search fallback guidance (no retry)", async () => {
     saveQids({ SearchTimeline: "STALE" }, process.env);
     const fetchSpy = vi.fn(async () => ({ ok: false, status: 404, json: async () => ({}) }));
     vi.stubGlobal("fetch", fetchSpy);
     const heal = vi.fn(async () => {}); // runs, but the id stays stale
     try {
-      const env = { ...process.env, VANTA_ALLOW_PRIVATE_FETCH: "1" } as NodeJS.ProcessEnv;
+      const env = { ...process.env, VANTA_ALLOW_PRIVATE_FETCH: "1", VANTA_TWITTER_BROWSER_FALLBACK: "0" } as NodeJS.ProcessEnv;
       const r = await searchTwitter({ query: "x" }, "auth_token=a; ct0=b", env, heal);
       expect(r.ok).toBe(false);
       if (!r.ok) expect(r.error).toMatch(/site:x\.com/);

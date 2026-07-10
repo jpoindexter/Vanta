@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { domainOf, cookieToPlaywright } from "./browser-session.js";
+import { domainOf, cookieToPlaywright, safeReplayHeaders } from "./browser-session.js";
 
 describe("domainOf", () => {
   it("extracts the host + drops www", () => {
@@ -24,5 +24,18 @@ describe("cookieToPlaywright", () => {
     const out = cookieToPlaywright("a=1; broken; __Host-xx=2; bad name=3", "https://reddit.com/");
     expect(out.map((c) => c.name)).toEqual(["a", "__Host-xx"]); // "broken" (no =) + "bad name" (space) dropped
     expect(out[0]?.url).toBe("https://reddit.com");
+  });
+});
+
+describe("safeReplayHeaders", () => {
+  it("keeps transaction context but strips every authentication header", () => {
+    expect(safeReplayHeaders({
+      "x-client-transaction-id": "tx",
+      referer: "https://x.com/search?q=x",
+      cookie: "secret",
+      authorization: "Bearer secret",
+      "x-csrf-token": "secret",
+      "user-agent": "ignored",
+    })).toEqual({ "x-client-transaction-id": "tx", referer: "https://x.com/search?q=x" });
   });
 });

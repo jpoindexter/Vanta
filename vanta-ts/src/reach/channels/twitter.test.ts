@@ -11,7 +11,12 @@ describe("twitter channel live check", () => {
   afterEach(() => { vi.restoreAllMocks(); rmSync(home, { recursive: true, force: true }); });
 
   function env(): NodeJS.ProcessEnv {
-    return { VANTA_HOME: home, VANTA_TWITTER_QID_SEARCHTIMELINE: "QID", VANTA_ALLOW_PRIVATE_FETCH: "1" };
+    return {
+      VANTA_HOME: home,
+      VANTA_TWITTER_QID_SEARCHTIMELINE: "QID",
+      VANTA_ALLOW_PRIVATE_FETCH: "1",
+      VANTA_TWITTER_BROWSER_FALLBACK: "0",
+    };
   }
 
   it("reports ok only after a live search probe succeeds", async () => {

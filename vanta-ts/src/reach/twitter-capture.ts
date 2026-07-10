@@ -1,7 +1,13 @@
 import { loadCookie } from "./cookie.js";
-import { loadQids, saveQids } from "./twitter.js";
+import {
+  loadQids,
+  loadTwitterRequestTemplates,
+  saveQids,
+  saveTwitterRequestTemplates,
+  type TwitterRequestTemplate,
+} from "./twitter.js";
 import { refreshQueryIds } from "./twitter-heal.js";
-import { openWithSession } from "./browser-session.js";
+import { openWithSession, type SafeRequestDetail } from "./browser-session.js";
 import type { HealResult } from "./heal.js";
 
 // X-specific self-heal: drive the general authenticated browser (browser-session)
@@ -36,6 +42,35 @@ export function capturedQueryIds(
   return { merged, observed: [...observed], changed };
 }
 
+function parseObjectParam(url: URL, name: string): Record<string, unknown> {
+  try {
+    const value: unknown = JSON.parse(url.searchParams.get(name) ?? "{}");
+    return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+  } catch {
+    return {};
+  }
+}
+
+export function capturedRequestTemplates(
+  requestUrls: string[],
+  requestDetails: SafeRequestDetail[] = [],
+): Record<string, TwitterRequestTemplate> {
+  const templates: Record<string, TwitterRequestTemplate> = {};
+  for (const requestUrl of requestUrls) {
+    const item = graphqlOp(requestUrl);
+    if (!item) continue;
+    const url = new URL(requestUrl);
+    templates[item.op] = {
+      qid: item.qid,
+      variables: parseObjectParam(url, "variables"),
+      features: parseObjectParam(url, "features"),
+      fieldToggles: parseObjectParam(url, "fieldToggles"),
+      headers: requestDetails.find((detail) => detail.url === requestUrl)?.headers ?? {},
+    };
+  }
+  return templates;
+}
+
 /** Drive a headless browser over x.com pages to capture live query IDs into the cache. */
 export async function captureQueryIds(
   cookie: string | null,
@@ -43,13 +78,19 @@ export async function captureQueryIds(
 ): Promise<HealResult> {
   if (!cookie) return { ok: false, ran: "capture", output: "no twitter cookie to drive the browser" };
   const requests: string[] = [];
+  const requestDetails: SafeRequestDetail[] = [];
   for (const url of PAGES) {
     const r = await openWithSession(url, cookie);
     if (!r.ok) return { ok: false, ran: "browser capture", output: r.error };
     requests.push(...r.requests);
+    requestDetails.push(...(r.requestDetails ?? []));
   }
   const captured = capturedQueryIds(loadQids(env), requests);
-  if (captured.observed.length) saveQids(captured.merged, env);
+  const templates = capturedRequestTemplates(requests, requestDetails);
+  if (captured.observed.length) {
+    saveQids(captured.merged, env);
+    saveTwitterRequestTemplates({ ...loadTwitterRequestTemplates(env), ...templates }, env);
+  }
   const missing = REQUIRED_OPS.filter((op) => !captured.observed.includes(op));
   return {
     ok: missing.length === 0,

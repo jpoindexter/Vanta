@@ -32,7 +32,7 @@ export const twitterReadTool: Tool = {
   schema: {
     name: "twitter_read",
     description:
-      "Search X/Twitter or list your bookmarks — native GraphQL, no external CLI, keyless cookie auth. " +
+      "Search X/Twitter or list your bookmarks — authenticated GraphQL, no external CLI, keyless cookie auth. " +
       "action:search {query, max?, latest?} finds tweets; action:bookmarks {max?} lists your saved tweets. " +
       "Needs an x.com cookie (cookie_import channel \"twitter\") + current query ids (reach heal twitter). Source-cited.",
     parameters: {

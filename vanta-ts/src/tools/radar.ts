@@ -118,7 +118,7 @@ export const radarTool: Tool = {
       "heuristics (degrades gracefully when a source is unavailable). from:web (default) searches the web (query required); " +
       "from:reddit searches Reddit for pain signals (query required, optional subreddit — needs a reddit cookie); " +
       "from:rss reads a feed (feed url required); " +
-      "from:twitter searches X/Twitter for pain signals (query required — via twitter-cli). " +
+      "from:twitter searches X/Twitter for pain signals (query required — authenticated browser GraphQL fallback). " +
       "Use it to track, score, surface, and act on the highest-signal opportunities.",
     parameters: {
       type: "object",
