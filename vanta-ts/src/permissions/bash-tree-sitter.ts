@@ -1,8 +1,8 @@
-import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
 import { Language, Parser, type Node } from "web-tree-sitter";
 import { classifyBashSafety, type BashSafety } from "./bash-classifier.js";
 
-const require = createRequire(import.meta.url);
+const BASH_LANGUAGE_WASM = fileURLToPath(new URL("./vendor/tree-sitter-bash.wasm", import.meta.url));
 
 const TRUTHY = new Set(["1", "true", "on", "yes"]);
 
@@ -104,7 +104,7 @@ export async function classifyBashSafetyTreeSitter(command: string): Promise<Tre
 async function loadBashLanguage(): Promise<Language> {
   parserReady ??= (async () => {
     await Parser.init();
-    return Language.load(require.resolve("tree-sitter-bash/tree-sitter-bash.wasm"));
+    return Language.load(BASH_LANGUAGE_WASM);
   })();
   return parserReady;
 }
