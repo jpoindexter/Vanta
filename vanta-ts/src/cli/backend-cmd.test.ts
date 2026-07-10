@@ -2,8 +2,8 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { runBackendCommand } from "./backend-cmd.js";
-import { buildRemoteProofScript, manifestFixture } from "../exec/backend-proof.js";
+import { runBackendCommand, type BackendCommandDeps } from "./backend-cmd.js";
+import { manifestFixture } from "../exec/backend-proof.js";
 
 const roots: string[] = [];
 afterEach(() => roots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true })));
@@ -40,15 +40,21 @@ describe("backend command", () => {
       stdout: `VANTA_REMOTE_PROOF ${JSON.stringify({ nonce: "n-1", platform: "linux", arch: "x64", cwd: "/workspace", manifestSha256: manifest.sha256 })}\n`,
       stderr: "",
     }));
+    const wrap = vi.fn(async (args: Parameters<NonNullable<BackendCommandDeps["wrap"]>>[0]) => ({
+      cmd: "modal",
+      args: [String(args.baseArgs[1])],
+    }));
     const code = await runBackendCommand(root, ["verify"], remoteEnv, {
       nonce: () => "n-1",
       assess,
-      wrap: async (args) => ({ cmd: "modal", args: [buildRemoteProofScript("n-1", manifest.relativePath), ...args.baseArgs.slice(2)] }),
+      wrap,
       run,
       log: vi.fn(),
     });
     expect(code).toBe(0);
     expect(assess).toHaveBeenCalledOnce();
+    expect(wrap).toHaveBeenCalledWith(expect.objectContaining({ workdir: join(root, "vanta-ts") }));
+    expect(wrap.mock.calls[0]?.[0].baseArgs[1]).toContain('readFileSync("package.json")');
     expect(run).toHaveBeenCalledOnce();
   });
 

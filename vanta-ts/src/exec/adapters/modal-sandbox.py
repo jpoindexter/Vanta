@@ -17,10 +17,44 @@ app = modal.App(os.environ.get("VANTA_SERVERLESS_APP", "vanta-remote-exec"))
 SECRET_AND_BUILD_PATHS = [
     ".git",
     ".git/**",
+    "**/.git",
+    "**/.git/**",
     ".vanta",
     ".vanta/**",
+    "**/.vanta",
+    "**/.vanta/**",
     "node_modules",
     "node_modules/**",
+    "**/node_modules",
+    "**/node_modules/**",
+    "target",
+    "target/**",
+    "**/target",
+    "**/target/**",
+    "build",
+    "build/**",
+    "**/build",
+    "**/build/**",
+    "dist",
+    "dist/**",
+    "**/dist",
+    "**/dist/**",
+    ".next",
+    ".next/**",
+    "**/.next",
+    "**/.next/**",
+    ".docusaurus",
+    ".docusaurus/**",
+    "**/.docusaurus",
+    "**/.docusaurus/**",
+    ".cache",
+    ".cache/**",
+    "**/.cache",
+    "**/.cache/**",
+    "coverage",
+    "coverage/**",
+    "**/coverage",
+    "**/coverage/**",
     ".env",
     ".env.*",
     "**/.env",
@@ -55,10 +89,15 @@ def _ignore_patterns(workspace: Path) -> list[str]:
             patterns.extend(
                 line.strip()
                 for line in path.read_text(encoding="utf-8").splitlines()
-                if line.strip() and not line.lstrip().startswith("#")
+                if line.strip()
+                and not line.lstrip().startswith("#")
+                and not line.lstrip().startswith("!")
             )
-    # Hard exclusions come last so a project negation cannot re-include secrets.
-    return [*patterns, *SECRET_AND_BUILD_PATHS]
+    # Hard exclusions come last and stay recursive across nested project roots.
+    # Negations are intentionally dropped above: any negation disables Modal's
+    # directory pruning, forcing a walk through excluded multi-GB trees. Hard
+    # secret patterns already override .gitignore re-inclusions such as !.env.example.
+    return list(dict.fromkeys([*patterns, *SECRET_AND_BUILD_PATHS]))
 
 
 @app.local_entrypoint()

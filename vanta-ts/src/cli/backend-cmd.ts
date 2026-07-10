@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { execFile } from "node:child_process";
+import { basename, dirname, resolve } from "node:path";
 import { promisify } from "node:util";
 import { resolveExecBackend, wrapExec } from "../exec/backend.js";
 import { serverlessCliStatus, type ServerlessCliStatus } from "../exec/adapters/serverless.js";
@@ -90,8 +91,10 @@ async function executeProof(
 ): Promise<number> {
   const { root, env, provider, manifest } = input;
   const nonce = (deps.nonce ?? randomUUID)();
+  const workspaceRoot = resolve(root, dirname(manifest.relativePath));
+  const uploadedManifest = basename(manifest.relativePath);
   const wrapped = await (deps.wrap ?? wrapExec)({
-    env, root, workdir: root, baseCmd: "node", baseArgs: ["-e", buildRemoteProofScript(nonce, manifest.relativePath)],
+    env, root, workdir: workspaceRoot, baseCmd: "node", baseArgs: ["-e", buildRemoteProofScript(nonce, uploadedManifest)],
   });
   if ("error" in wrapped) {
     log(`backend verify failed: ${wrapped.error}`);

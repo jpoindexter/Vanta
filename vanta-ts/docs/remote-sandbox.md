@@ -38,6 +38,11 @@ local workspace. Modal must report `/workspace`. Missing auth, a local fallback,
 stale output, or a mismatched upload exits non-zero. This proves one bounded remote
 execution; it does not prove persistent hibernate/wake behavior.
 
+The verifier uploads the smallest project directory containing its safe metadata
+fixture rather than an enclosing monorepo. Modal ignore patterns drop negated
+`.gitignore` entries so excluded directories remain prunable, and recursively
+exclude dependency, Vanta-state, build, coverage, and VCS trees.
+
 Optional settings:
 
 - `VANTA_SERVERLESS_APP`: Modal app name; defaults to `vanta-remote-exec`.
