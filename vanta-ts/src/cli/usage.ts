@@ -64,6 +64,7 @@ const USAGE_LINES = [
       "       vanta mcp [list|serve]             list MCP servers Vanta consumes, or serve Vanta's tools over MCP stdio",
       "       vanta roadmap                      build roadmap.html from roadmap.json and open it",
       "       vanta roadmap move <id> <status> [--force]   move an item (shipped|building|blocked|next|horizon|parked)",
+      "       vanta roadmap unblock [id...]      show concrete unblock steps for blocked/decision cards",
       "       vanta roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
       "       vanta now [--apply]                propose/fill the next 1-2 Now cards without exceeding WIP",
       "       vanta desktop [port] [--companion]  start desktop; opt into token-paired LAN companion access",

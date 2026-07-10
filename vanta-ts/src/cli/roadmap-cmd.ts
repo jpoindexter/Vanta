@@ -51,9 +51,23 @@ async function handleRoadmapDecompose(repoRoot: string, args: string[]): Promise
   if (skipped.length) console.log(`  · skipped (already exist): ${skipped.join(", ")}`);
 }
 
+async function handleRoadmapUnblock(repoRoot: string, args: string[]): Promise<void> {
+  const [{ readFile }, { join }, { RoadmapSchema }, { buildUnblockPlans, formatUnblockPlans }] = await Promise.all([
+    import("node:fs/promises"),
+    import("node:path"),
+    import("../roadmap/schema.js"),
+    import("../roadmap/unblock.js"),
+  ]);
+  const raw = await readFile(join(repoRoot, "roadmap.json"), "utf8");
+  const data = RoadmapSchema.parse(JSON.parse(raw));
+  const ids = args.slice(1).filter((arg) => !arg.startsWith("--"));
+  console.log(formatUnblockPlans(buildUnblockPlans(data.items, ids)));
+}
+
 export async function runRoadmapCommand(repoRoot: string, args: string[] = []): Promise<void> {
   if (args[0] === "serve") return handleRoadmapServe(repoRoot);
   if (args[0] === "move") return handleRoadmapMove(repoRoot, args);
+  if (args[0] === "unblock") return handleRoadmapUnblock(repoRoot, args);
   if (args[1] === "decompose") return handleRoadmapDecompose(repoRoot, args);
 
   const { buildRoadmap } = await import("../roadmap/build.js");
