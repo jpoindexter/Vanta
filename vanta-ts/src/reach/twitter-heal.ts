@@ -34,7 +34,9 @@ export function bundleUrls(text: string): string[] {
   return [...urls];
 }
 
-type CrawlState = { merged: Record<string, string>; seen: Set<string>; queue: string[] };
+const REQUIRED_OPS = ["SearchTimeline", "Bookmarks"] as const;
+
+type CrawlState = { merged: Record<string, string>; observed: Set<string>; seen: Set<string>; queue: string[] };
 
 /** Fetch one bundle: merge its query ids, enqueue the bundles it references. */
 async function crawlBundle(url: string, cookie: string | null, st: CrawlState): Promise<number> {
@@ -42,6 +44,7 @@ async function crawlBundle(url: string, cookie: string | null, st: CrawlState): 
   if (!js) return 0;
   let found = 0;
   for (const [op, qid] of Object.entries(extractQueryIds(js))) {
+    st.observed.add(op);
     if (st.merged[op] !== qid) found++;
     st.merged[op] = qid;
   }
@@ -63,7 +66,7 @@ export async function refreshQueryIds(
   const html = await get("https://x.com/", cookie);
   if (!html) return { ok: false, ran: "fetch x.com", output: "could not reach x.com (network or block)" };
 
-  const st: CrawlState = { merged: { ...loadQids(env) }, seen: new Set<string>(), queue: bundleUrls(html) };
+  const st: CrawlState = { merged: { ...loadQids(env) }, observed: new Set<string>(), seen: new Set<string>(), queue: bundleUrls(html) };
   let found = 0;
   while (st.queue.length > 0 && st.seen.size < MAX_BUNDLES) {
     const url = st.queue.shift()!;
@@ -73,13 +76,13 @@ export async function refreshQueryIds(
   }
 
   saveQids(st.merged, env);
-  const have = ["SearchTimeline", "Bookmarks"].filter((op) => st.merged[op]);
-  const missing = ["SearchTimeline", "Bookmarks"].filter((op) => !st.merged[op]);
+  const have = REQUIRED_OPS.filter((op) => st.observed.has(op));
+  const missing = REQUIRED_OPS.filter((op) => !st.observed.has(op));
   return {
-    ok: have.length > 0,
+    ok: missing.length === 0,
     ran: `crawl ${st.seen.size} x.com bundles${cookie ? " (logged-in)" : " (logged-out — import a cookie for Bookmarks)"}`,
     output:
-      `refreshed ${found} query id(s); have: ${have.join(", ") || "none"}` +
-      (missing.length ? `; still missing: ${missing.join(", ")} (set VANTA_TWITTER_QID_<OP> as a fallback)` : ""),
+      `refreshed ${found} query id(s); observed live: ${have.join(", ") || "none"}` +
+      (missing.length ? `; still missing live: ${missing.join(", ")} (set VANTA_TWITTER_QID_<OP> as a fallback)` : ""),
   };
 }

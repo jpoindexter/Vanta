@@ -15401,14 +15401,15 @@
       "title": "Live X / social search channel",
       "status": "horizon",
       "size": "M",
-      "summary": "Live X/Twitter search (via an xAI-style API) would feed the radar/opportunity surfaces with real-time social signal. Build via the existing REACH channel pattern when prioritized; needs creds.",
-      "done": "Captured as a REACH channel; live social search wired when the reach/radar rocks are prioritized.",
+      "summary": "The native TypeScript X GraphQL channel, cookie auth, query-id capture/heal, `twitter_read`, and radar ingestion are wired. The remaining release gate is a real live search response after X protocol/session changes.",
+      "done": "With the configured X session, `twitter_read search` returns source-linked live posts and `radar scan_web from:twitter` persists normalized opportunities; reach doctor proves the backend with a live request rather than cached credentials.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-06-20",
+      "updated": "2026-07-10",
+      "notes": "LIVE AUDIT 2026-07-10: the machine has a stored X cookie and cached SearchTimeline/Bookmarks IDs, but real `twitter_read search` returned HTTP 404. The prior doctor incorrectly reported `ok` from cache presence, and browser heal incorrectly reported success after capturing zero new IDs. Hardened the channel so browser/bundle heal counts only operations observed in the current X app, reach doctor performs a real search probe, and `reach heal twitter` returns failure when the post-heal probe is still degraded. Real post-fix execution: doctor=`warn`; browser heal observed current SearchTimeline and Bookmarks operations but live search still returned 404; heal tool returned `ok:false` and now recommends renewed cookie auth or `web_search site:x.com` rather than repeating heal. NOT SHIPPED: no live posts were returned, so the card stays horizon. Likely remaining work is current X request features/variables or session renewal, not channel scaffolding. Verification: 52 focused reach/twitter/radar tests passed; full suite 1,201 files, 12,472 passed, 3 skipped; TypeScript and size gates pass; no leaked tsx stack or test notification bell.",
       "source": "ref-audit-2026-06-20"
     },
     {

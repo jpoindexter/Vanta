@@ -67,7 +67,7 @@ export function saveQids(qids: Record<string, string>, env: NodeJS.ProcessEnv = 
   writeFileSync(qidPath(env), JSON.stringify(qids, null, 2), { mode: 0o600 });
 }
 
-function resolveQid(op: string, env: NodeJS.ProcessEnv): string | null {
+export function twitterQueryId(op: string, env: NodeJS.ProcessEnv = process.env): string | null {
   return env[`VANTA_TWITTER_QID_${op.toUpperCase()}`] ?? loadQids(env)[op] ?? null;
 }
 
@@ -117,8 +117,8 @@ async function fetchOnce(
 }
 
 const stale404 = (op: string): string =>
-  `X returned HTTP 404 — the ${op} query id is stale and an auto-heal didn't refresh it ` +
-  `(X changed its web app, or the x.com cookie expired). Re-import a fresh cookie ` +
+  `X returned HTTP 404 — the ${op} query id or request shape is stale and auto-heal did not restore a live request ` +
+  `(X changed its web app, request features, or the x.com cookie expired). Re-import a fresh cookie ` +
   `(cookie_import channel "twitter"), or fall back to web_search "site:x.com <query>".`;
 
 async function xGraphQL(
@@ -129,7 +129,7 @@ async function xGraphQL(
   const { cookie, env, heal } = ctx;
   const auth = extractAuth(cookie);
   if (!auth) return { ok: false, error: "twitter cookie missing auth_token/ct0 — re-import it" };
-  const qid = resolveQid(op, env);
+  const qid = twitterQueryId(op, env);
   if (!qid) return { ok: false, error: `no query id for ${op} — run reach heal twitter to fetch current ids` };
   const res = await fetchOnce(op, variables, { qid, ct0: auth.ct0, cookie, env });
   if ("error" in res) return { ok: false, error: res.error };
@@ -138,7 +138,7 @@ async function xGraphQL(
   // retry ONLY if the id actually changed — else the retry would 404 identically.
   if (res.status === 404 && heal) {
     await heal(cookie, env);
-    return resolveQid(op, env) !== qid
+    return twitterQueryId(op, env) !== qid
       ? xGraphQL(op, variables, { cookie, env })
       : { ok: false, error: stale404(op) };
   }

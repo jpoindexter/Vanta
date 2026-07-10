@@ -11,11 +11,29 @@ import type { HealResult } from "./heal.js";
 
 // Pages whose loads trigger the ops we want captured.
 const PAGES = ["https://x.com/i/bookmarks", "https://x.com/search?q=ai&src=typed_query&f=live"];
+const REQUIRED_OPS = ["SearchTimeline", "Bookmarks"] as const;
 
 /** Extract {op, qid} from an X GraphQL request URL. Pure. */
 export function graphqlOp(url: string): { op: string; qid: string } | null {
   const m = /\/i\/api\/graphql\/([^/?]+)\/(\w+)/.exec(url);
   return m && m[1] && m[2] ? { qid: m[1], op: m[2] } : null;
+}
+
+export function capturedQueryIds(
+  prior: Record<string, string>,
+  requestUrls: string[],
+): { merged: Record<string, string>; observed: string[]; changed: number } {
+  const merged = { ...prior };
+  const observed = new Set<string>();
+  let changed = 0;
+  for (const reqUrl of requestUrls) {
+    const item = graphqlOp(reqUrl);
+    if (!item) continue;
+    observed.add(item.op);
+    if (merged[item.op] !== item.qid) changed += 1;
+    merged[item.op] = item.qid;
+  }
+  return { merged, observed: [...observed], changed };
 }
 
 /** Drive a headless browser over x.com pages to capture live query IDs into the cache. */
@@ -24,22 +42,22 @@ export async function captureQueryIds(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<HealResult> {
   if (!cookie) return { ok: false, ran: "capture", output: "no twitter cookie to drive the browser" };
-  const found: Record<string, string> = { ...loadQids(env) };
-  let n = 0;
+  const requests: string[] = [];
   for (const url of PAGES) {
     const r = await openWithSession(url, cookie);
     if (!r.ok) return { ok: false, ran: "browser capture", output: r.error };
-    for (const reqUrl of r.requests) {
-      const g = graphqlOp(reqUrl);
-      if (g && found[g.op] !== g.qid) {
-        found[g.op] = g.qid;
-        n++;
-      }
-    }
+    requests.push(...r.requests);
   }
-  saveQids(found, env);
-  const have = ["SearchTimeline", "Bookmarks"].filter((op) => found[op]);
-  return { ok: have.length > 0, ran: "browser capture (playwright)", output: `captured ${n} live query id(s); have: ${have.join(", ") || "none"}` };
+  const captured = capturedQueryIds(loadQids(env), requests);
+  if (captured.observed.length) saveQids(captured.merged, env);
+  const missing = REQUIRED_OPS.filter((op) => !captured.observed.includes(op));
+  return {
+    ok: missing.length === 0,
+    ran: "browser capture (playwright)",
+    output: `observed ${captured.observed.length} live operation(s), refreshed ${captured.changed} id(s)` +
+      `; have: ${captured.observed.join(", ") || "none"}` +
+      (missing.length ? `; still missing live: ${missing.join(", ")}` : ""),
+  };
 }
 
 /** The twitter channel's heal: browser capture first, static bundle scrape as fallback. */

@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { bundleUrls, refreshQueryIds } from "./twitter-heal.js";
-import { loadQids } from "./twitter.js";
+import { loadQids, saveQids } from "./twitter.js";
 
 describe("bundleUrls", () => {
   it("extracts + dedupes client-web JS bundle URLs", () => {
@@ -69,5 +69,16 @@ describe("refreshQueryIds (mocked network)", () => {
     const r = await refreshQueryIds(null, process.env);
     expect(r.ok).toBe(false);
     expect(r.output).toContain("could not reach x.com");
+  });
+
+  it("does not report stale cached ids as a successful refresh", async () => {
+    saveQids({ SearchTimeline: "STALE", Bookmarks: "OLD" }, process.env);
+    const homepage = `<script src="https://abs.twimg.com/responsive-web/client-web/api.x.js"></script>`;
+    vi.stubGlobal("fetch", vi.fn()
+      .mockResolvedValueOnce({ ok: true, text: async () => homepage })
+      .mockResolvedValueOnce({ ok: true, text: async () => "no graphql operations here" }));
+    const result = await refreshQueryIds("auth_token=a; ct0=b", process.env);
+    expect(result.ok).toBe(false);
+    expect(result.output).toContain("observed live: none");
   });
 });

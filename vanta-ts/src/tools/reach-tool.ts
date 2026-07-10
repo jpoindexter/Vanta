@@ -23,6 +23,12 @@ async function doHeal(channelName: string | undefined): Promise<ToolResult> {
   const healed = await channel.heal(process.env);
   if (!healed.ok) return { ok: false, output: `heal ${channelName} failed: ${healed.output}` };
   const after = await channel.check(process.env);
+  if (after.status !== "ok") {
+    const nextFix = channelName === "twitter"
+      ? 're-import x.com auth with cookie_import channel "twitter", or use web_search "site:x.com <query>"'
+      : after.fix;
+    return { ok: false, output: `heal ${channelName} incomplete: ${after.detail}\n  ${healed.output}${nextFix ? `\n  fix: ${nextFix}` : ""}` };
+  }
   return {
     ok: true,
     output: `Healed "${channelName}" — ran: ${healed.ran}\n  before: ${before.status} (${before.activeBackend ?? "—"})\n  after:  ${after.status} (${after.activeBackend ?? "—"})\n  ${healed.output}`,
@@ -34,7 +40,7 @@ export const reachTool: Tool = {
     name: "reach",
     description:
       "Inspect + self-heal Vanta's internet-reach channels. action:doctor reports each channel's active backend + status + the exact fix on a gap. " +
-      "action:heal {channel} rebuilds a broken CLI-backed channel (e.g. re-pulls twitter-cli when X changes its API), then re-checks. " +
+      "action:heal {channel} repairs a brittle channel (for X: recaptures live GraphQL query ids), then runs a real health re-check. " +
       "Use heal when a reach channel (twitter, …) starts failing — the backend's maintainer tracks the platform's churn.",
     parameters: {
       type: "object",
@@ -45,9 +51,9 @@ export const reachTool: Tool = {
       required: ["action"],
     },
   },
-  // heal runs an install/upgrade → surface that so the kernel gates it.
+  // Heal may write refreshed channel metadata and drive an authenticated browser.
   describeForSafety: (a) =>
-    a.action === "heal" ? `upgrade reach backend (install): ${String(a.channel ?? "")}` : "reach doctor",
+    a.action === "heal" ? `repair reach backend: ${String(a.channel ?? "")}` : "reach doctor",
   async execute(raw) {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) return { ok: false, output: 'reach needs an "action" (doctor|heal)' };

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { graphqlOp } from "./twitter-capture.js";
+import { capturedQueryIds, graphqlOp } from "./twitter-capture.js";
 
 describe("graphqlOp", () => {
   it("extracts op + queryId from an X GraphQL request URL", () => {
@@ -13,5 +13,23 @@ describe("graphqlOp", () => {
   it("returns null for non-graphql urls", () => {
     expect(graphqlOp("https://x.com/i/bookmarks")).toBeNull();
     expect(graphqlOp("https://abs.twimg.com/x.js")).toBeNull();
+  });
+
+  it("does not count stale cached ids as live observations", () => {
+    const result = capturedQueryIds({ SearchTimeline: "STALE", Bookmarks: "OLD" }, []);
+    expect(result).toEqual({ merged: { SearchTimeline: "STALE", Bookmarks: "OLD" }, observed: [], changed: 0 });
+  });
+
+  it("records operations actually observed in browser requests", () => {
+    const result = capturedQueryIds(
+      { SearchTimeline: "STALE" },
+      [
+        "https://x.com/i/api/graphql/FRESH/SearchTimeline",
+        "https://x.com/i/api/graphql/BOOK/Bookmarks?variables=x",
+      ],
+    );
+    expect(result.observed.sort()).toEqual(["Bookmarks", "SearchTimeline"]);
+    expect(result.changed).toBe(2);
+    expect(result.merged).toMatchObject({ SearchTimeline: "FRESH", Bookmarks: "BOOK" });
   });
 });
