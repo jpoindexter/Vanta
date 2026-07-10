@@ -101,10 +101,19 @@ describe("moveRoadmapItem", () => {
     expect(item.parkedReason).toBeUndefined();
   });
 
-  it("does not let force ship a Run Anywhere proof card without its receipt", async () => {
+  it("does not let force move a parked strategy card directly to shipped", async () => {
     const root = await makeRoadmap({
       updated: "2026-01-01",
-      items: [{ ...FIXTURE.items[0], id: "BACKEND-SERVERLESS-LIVE", status: "parked", parkedReason: "external proof" }],
+      items: [{ ...FIXTURE.items[0], id: "PCLIP-MULTI-COMPANY", status: "parked", parkedReason: "strategy decision" }],
+    });
+    await expect(moveRoadmapItem(root, "PCLIP-MULTI-COMPANY", "shipped", { force: true })).rejects.toThrow(RoadmapParkedReviveError);
+    await expect(moveRoadmapItem(root, "PCLIP-MULTI-COMPANY", "shipped", { force: true })).rejects.toThrow("strategy decision");
+  });
+
+  it("does not let force ship a revived Run Anywhere proof card without its receipt", async () => {
+    const root = await makeRoadmap({
+      updated: "2026-01-01",
+      items: [{ ...FIXTURE.items[0], id: "BACKEND-SERVERLESS-LIVE", status: "building" }],
     });
     await expect(moveRoadmapItem(root, "BACKEND-SERVERLESS-LIVE", "shipped", { force: true })).rejects.toThrow(RoadmapProofGateError);
     await expect(moveRoadmapItem(root, "BACKEND-SERVERLESS-LIVE", "shipped", { force: true })).rejects.toThrow(".vanta/serverless-gateway.json");
@@ -113,7 +122,7 @@ describe("moveRoadmapItem", () => {
   it("allows shipping a Run Anywhere proof card after its receipt exists", async () => {
     const root = await makeRoadmap({
       updated: "2026-01-01",
-      items: [{ ...FIXTURE.items[0], id: "BACKEND-SERVERLESS-LIVE", status: "parked", parkedReason: "external proof" }],
+      items: [{ ...FIXTURE.items[0], id: "BACKEND-SERVERLESS-LIVE", status: "building" }],
     });
     await writeGatewayReceipt(root, {
       app: "vanta-gateway",
@@ -128,7 +137,7 @@ describe("moveRoadmapItem", () => {
   it("requires all Run Anywhere receipts before shipping the aggregate gate", async () => {
     const root = await makeRoadmap({
       updated: "2026-01-01",
-      items: [{ ...FIXTURE.items[0], id: "RUN-ANYWHERE-V1-RELEASE-GATE", status: "parked", parkedReason: "external proof" }],
+      items: [{ ...FIXTURE.items[0], id: "RUN-ANYWHERE-V1-RELEASE-GATE", status: "building" }],
     });
     await writeGatewayReceipt(root, {
       app: "vanta-gateway",

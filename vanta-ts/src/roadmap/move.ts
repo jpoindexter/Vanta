@@ -43,7 +43,14 @@ function parkedReviveError(item: RoadmapItem, toStatus: Status, force?: boolean)
   return new RoadmapParkedReviveError(item.id, item.parkedReason ?? "review");
 }
 
+function parkedShipError(item: RoadmapItem, toStatus: Status): RoadmapParkedReviveError | null {
+  if (item.status !== "parked" || toStatus !== "shipped") return null;
+  return new RoadmapParkedReviveError(item.id, item.parkedReason ?? "review");
+}
+
 function assertParkedReviveAllowed(item: RoadmapItem, toStatus: Status, force?: boolean): void {
+  const shipped = parkedShipError(item, toStatus);
+  if (shipped) throw shipped;
   const revive = parkedReviveError(item, toStatus, force);
   if (revive) throw revive;
 }

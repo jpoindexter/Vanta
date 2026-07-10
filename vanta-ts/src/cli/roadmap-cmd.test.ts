@@ -37,6 +37,18 @@ async function drainedWorkspace(): Promise<string> {
   return root;
 }
 
+async function parkedStrategyWorkspace(): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), "vanta-roadmap-cmd-"));
+  roots.push(root);
+  await writeFile(join(root, "roadmap.json"), JSON.stringify({
+    updated: "2026-07-10",
+    items: [
+      { id: "PCLIP-MULTI-COMPANY", track: "Cofounder", title: "Company", status: "parked", size: "L", summary: "", done: "", parkedReason: "strategy decision" },
+    ],
+  }, null, 2), "utf8");
+  return root;
+}
+
 describe("runRoadmapCommand unblock", () => {
   it("prints concrete unblock steps", async () => {
     const root = await workspace();
@@ -164,7 +176,17 @@ describe("runRoadmapCommand move", () => {
     vi.spyOn(console, "error").mockImplementation((line = "") => errors.push(String(line)));
     const code = await runRoadmapCommand(root, ["move", "BACKEND-SERVERLESS-LIVE", "shipped", "--force"]);
     expect(code).toBe(1);
-    expect(errors.join("\n")).toContain("proof gate failed");
-    expect(errors.join("\n")).toContain(".vanta/serverless-gateway.json");
+    expect(errors.join("\n")).toContain("requires review before revival");
+    expect(errors.join("\n")).toContain("external proof");
+  });
+
+  it("does not let force ship a parked strategy card directly", async () => {
+    const root = await parkedStrategyWorkspace();
+    const errors: string[] = [];
+    vi.spyOn(console, "error").mockImplementation((line = "") => errors.push(String(line)));
+    const code = await runRoadmapCommand(root, ["move", "PCLIP-MULTI-COMPANY", "shipped", "--force"]);
+    expect(code).toBe(1);
+    expect(errors.join("\n")).toContain("requires review before revival");
+    expect(errors.join("\n")).toContain("strategy decision");
   });
 });
