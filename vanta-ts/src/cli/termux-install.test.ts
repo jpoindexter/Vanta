@@ -37,6 +37,18 @@ describe("Termux install/runtime path", () => {
     await expect(readFile(join(fixture.root, "target", "debug", "vanta-kernel"), "utf8")).resolves.toContain("exit 0");
   });
 
+  it("can require a prebuilt Android kernel and refuse source-build fallback", async () => {
+    const fixture = await installerFixture();
+    await expect(exec("bash", [join(fixture.root, "install.sh")], {
+      env: { ...fixture.env, VANTA_REQUIRE_PREBUILT_KERNEL: "1" },
+      timeout: 20_000,
+    })).rejects.toMatchObject({
+      stdout: expect.stringContaining("prebuilt kernel required but unavailable"),
+    });
+    const calls = await readFile(fixture.log, "utf8");
+    expect(calls).not.toContain("cargo build");
+  });
+
   it("the real run.sh exports the Termux platform and phone heap default", async () => {
     const root = await tempDir("run");
     const home = join(root, "home");

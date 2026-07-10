@@ -6,6 +6,22 @@ TERMUX_PREFIX="${PREFIX:-}"
 PROOF_HOME="${VANTA_TERMUX_PROOF_HOME:-$HOME/.vanta-termux-arm64-proof}"
 MODEL_PORT="${VANTA_TERMUX_PROOF_MODEL_PORT:-18080}"
 KERNEL_PORT="${VANTA_TERMUX_PROOF_KERNEL_PORT:-7788}"
+REQUIRE_RELEASE_KERNEL=0
+
+for arg in "$@"; do
+  case "$arg" in
+    --require-release-kernel) REQUIRE_RELEASE_KERNEL=1 ;;
+    -h|--help)
+      echo "usage: ./scripts/termux-arm64-device-proof.sh [--require-release-kernel]"
+      exit 0
+      ;;
+    *)
+      echo "unknown argument: $arg" >&2
+      echo "usage: ./scripts/termux-arm64-device-proof.sh [--require-release-kernel]" >&2
+      exit 1
+      ;;
+  esac
+done
 
 need_termux() {
   if [ -z "${TERMUX_VERSION:-}" ] && ! [[ "$TERMUX_PREFIX" == *"/com.termux/"* ]]; then
@@ -61,12 +77,18 @@ export VANTA_OPENAI_BASE_URL="http://127.0.0.1:${MODEL_PORT}/v1"
 export VANTA_OPENAI_KEY=termux-arm64-proof
 export VANTA_MODEL=termux-arm64-proof
 export VANTA_KERNEL_URL="http://127.0.0.1:${KERNEL_PORT}"
+if [ "$REQUIRE_RELEASE_KERNEL" = "1" ]; then
+  export VANTA_REQUIRE_PREBUILT_KERNEL=1
+fi
 
 echo "TERMUX_ARM64_PROOF_START root=$ROOT"
 pkg update -y
 pkg install -y curl git nodejs-lts python esbuild
 
 cd "$ROOT"
+if [ "$REQUIRE_RELEASE_KERNEL" = "1" ]; then
+  rm -f "$ROOT/target/debug/vanta-kernel"
+fi
 ./install.sh
 
 cat > "$PROOF_HOME/mock-openai.mjs" <<'NODE'

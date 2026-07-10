@@ -47,3 +47,11 @@ vanta doctor
 vanta run "Reply with TERMUX_OK and do not use tools"
 vanta gateway verify-channels
 ```
+
+After a release is tagged with the Android/Bionic kernel asset, prove that the
+device installs the release artifact instead of falling back to an on-device Rust
+build:
+
+```sh
+./scripts/termux-arm64-device-proof.sh --require-release-kernel
+```

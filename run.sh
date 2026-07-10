@@ -35,6 +35,10 @@ fi
 # --- one-time bootstrap (kernel + node + deps) -------------------------------
 vanta_acquire_kernel() {
   if ! vanta_fetch_prebuilt_kernel "$DIR"; then
+    if [ "${VANTA_REQUIRE_PREBUILT_KERNEL:-0}" = "1" ]; then
+      echo "vanta: prebuilt kernel required but unavailable for this platform/release." >&2
+      return 1
+    fi
     if vanta_is_termux; then
       vanta_termux_prepare_build || return 1
     fi

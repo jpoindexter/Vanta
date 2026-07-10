@@ -45,6 +45,10 @@ if [ ! -x "$SCRIPT_DIR/target/debug/vanta-kernel" ]; then
   if vanta_fetch_prebuilt_kernel "$SCRIPT_DIR"; then
     echo -e "${GREEN}✓${NC} downloaded prebuilt kernel ($(uname -s)/$(uname -m)) — no Rust toolchain needed"
   else
+    if [ "${VANTA_REQUIRE_PREBUILT_KERNEL:-0}" = "1" ]; then
+      echo -e "${RED}✗${NC} prebuilt kernel required but unavailable for this platform/release"
+      exit 1
+    fi
     if vanta_is_termux; then
       echo -e "${CYAN}→${NC} building the Android-native safety kernel with Termux Rust"
       vanta_termux_prepare_build || { echo -e "${RED}✗${NC} Termux build prerequisites failed"; exit 1; }
