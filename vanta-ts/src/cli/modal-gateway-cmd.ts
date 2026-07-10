@@ -14,6 +14,7 @@ import {
   type GatewayConfig,
   type ModalApp,
 } from "../exec/modal-gateway-state.js";
+import { buildGatewayStatus, statusNextLines } from "./modal-gateway-status.js";
 
 const exec = promisify(execFile);
 const HELPER = fileURLToPath(new URL("../exec/adapters/modal-gateway.py", import.meta.url));
@@ -37,6 +38,7 @@ type RegistrationReady = {
   endpoint: string;
   previous: Awaited<ReturnType<typeof readGatewayReceipt>>;
 };
+type StatusInput = { repoRoot: string; env: NodeJS.ProcessEnv; deps: ModalGatewayDeps; log: (line: string) => void; json: boolean };
 
 export type ModalGatewayDeps = {
   log?: (line: string) => void;
@@ -83,27 +85,17 @@ function secretLine(cfg: GatewayConfig, hasSecret: boolean): string {
   return `serverless gateway: secret ${cfg.secret} ${hasSecret ? "ready" : "missing (Vanta will not upload local keys)"}`;
 }
 
-function statusNextLines(cfg: GatewayConfig, state: { app?: ModalApp; hasSecret: boolean }, receipt: Awaited<ReturnType<typeof readGatewayReceipt>>, env: NodeJS.ProcessEnv): string[] {
-  const missingEnv = ["VANTA_TELEGRAM_TOKEN", "VANTA_TELEGRAM_WEBHOOK_SECRET"].filter((key) => !env[key]?.trim());
-  const lines: string[] = [];
-  if (!state.hasSecret) lines.push(`next: modal secret create ${cfg.secret} VANTA_TELEGRAM_TOKEN=... VANTA_TELEGRAM_WEBHOOK_SECRET=... VANTA_PROVIDER=... VANTA_MODEL=...`);
-  if (!state.app) lines.push("next: vanta backend gateway deploy");
-  if (missingEnv.length) lines.push(`next: export ${missingEnv.map((key) => `${key}=...`).join(" ")}`);
-  if (!receipt?.endpoint) lines.push("next: vanta backend gateway register-telegram <https-endpoint>");
-  if (state.app?.state === "deployed" && state.hasSecret && receipt?.endpoint && missingEnv.length === 0) lines.push("next: vanta backend gateway arm, send the bot a message, then vanta backend gateway prove");
-  return lines;
-}
-
-async function status(
-  repoRoot: string,
-  env: NodeJS.ProcessEnv,
-  deps: ModalGatewayDeps,
-  log: (line: string) => void,
-): Promise<number> {
+async function status(input: StatusInput): Promise<number> {
+  const { repoRoot, env, deps, log, json } = input;
   if (!await ensureReady(deps, log)) return 1;
   const cfg = resolveModalGatewayConfig(env);
   const state = await resources(repoRoot, deps.run ?? runChild, cfg);
   const receipt = await readGatewayReceipt(repoRoot);
+  const report = buildGatewayStatus(cfg, state, receipt, env);
+  if (json) {
+    log(JSON.stringify(report, null, 2));
+    return report.ready ? 0 : 1;
+  }
   const telegramToken = env.VANTA_TELEGRAM_TOKEN?.trim() ? "present" : "missing";
   const webhookSecret = env.VANTA_TELEGRAM_WEBHOOK_SECRET?.trim() ? "present" : "missing";
   log(appLine(cfg, state.app));
@@ -111,7 +103,7 @@ async function status(
   log(`serverless gateway: Telegram registration ${receipt?.endpoint ? receipt.endpoint : "no endpoint receipt"} · token ${telegramToken} · webhook secret ${webhookSecret}`);
   log(`serverless gateway: min 0 · scaledown ${cfg.scaledownSec}s · volume ${cfg.volume}`);
   for (const line of statusNextLines(cfg, state, receipt, env)) log(`serverless gateway: ${line}`);
-  return state.app?.state === "deployed" && state.hasSecret ? 0 : 1;
+  return report.ready ? 0 : 1;
 }
 
 async function deploy(
@@ -276,11 +268,11 @@ export async function runModalGatewayCommand(
 ): Promise<number> {
   const log = deps.log ?? console.log;
   const command = rest[0] ?? "status";
-  if (command === "status") return status(repoRoot, env, deps, log);
+  if (command === "status") return status({ repoRoot, env, deps, log, json: rest.includes("--json") });
   if (command === "deploy") return deploy(repoRoot, env, deps, log);
   if (command === "register-telegram") return registerTelegram({ repoRoot, endpointArg: rest[1], env, deps, log });
   if (command === "arm") return arm(repoRoot, env, deps, log);
   if (command === "prove") return prove(repoRoot, env, deps, log);
-  log("Usage: vanta backend gateway [status|deploy|register-telegram [url]|arm|prove]");
+  log("Usage: vanta backend gateway [status [--json]|deploy|register-telegram [url]|arm|prove]");
   return 1;
 }

@@ -78,6 +78,33 @@ describe("Modal gateway command", () => {
     expect(out).not.toContain("private-token");
   });
 
+  it("prints missing gateway status as redacted json", async () => {
+    const deps = fixture({ run: control({ secret: false }) });
+    expect(await runModalGatewayCommand(await workspace(), ["status", "--json"], { VANTA_TELEGRAM_TOKEN: "private-token" }, deps)).toBe(1);
+    const report = JSON.parse(deps.lines.join("\n")) as { ready: boolean; secret: { ready: boolean }; telegram: { token: string }; next: string[] };
+    expect(report.ready).toBe(false);
+    expect(report.secret.ready).toBe(false);
+    expect(report.telegram.token).toBe("present");
+    expect(report.next.join("\n")).toContain("modal secret create vanta-gateway");
+    expect(deps.lines.join("\n")).not.toContain("private-token");
+  });
+
+  it("prints ready gateway status as json", async () => {
+    const root = await workspace();
+    const deps = fixture({ run: control() });
+    await runModalGatewayCommand(root, ["deploy"], {}, deps);
+    deps.lines.length = 0;
+    expect(await runModalGatewayCommand(root, ["status", "--json"], {
+      VANTA_TELEGRAM_TOKEN: "private-token",
+      VANTA_TELEGRAM_WEBHOOK_SECRET: "private-hook",
+    }, deps)).toBe(0);
+    const report = JSON.parse(deps.lines.join("\n")) as { ready: boolean; app: { state: string }; telegram: { endpoint?: string }; next: string[] };
+    expect(report.ready).toBe(true);
+    expect(report.app.state).toBe("deployed");
+    expect(report.telegram.endpoint).toBe("https://team--vanta-gateway.modal.run");
+    expect(report.next.join("\n")).toContain("vanta backend gateway arm");
+  });
+
   it("deploys with min-zero helper config and records the endpoint without secrets", async () => {
     const root = await workspace();
     const run = control();
