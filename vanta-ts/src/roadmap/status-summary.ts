@@ -1,6 +1,15 @@
 import { PARKED_REASON, STATUS, type RoadmapItem } from "./schema.js";
 
 const ACTIVE_STATUS = ["building", "blocked", "next", "horizon"] as const;
+type CountSummary<T extends string> = Record<T, number>;
+
+export type RoadmapStatusSummary = {
+  total: number;
+  activeTotal: number;
+  activeDrained: boolean;
+  statuses: CountSummary<RoadmapItem["status"]>;
+  parkedReasons: CountSummary<(typeof PARKED_REASON)[number]>;
+};
 
 function countBy<T extends string>(items: RoadmapItem[], getKey: (item: RoadmapItem) => T | undefined): Map<T, number> {
   const counts = new Map<T, number>();
@@ -13,19 +22,17 @@ function countBy<T extends string>(items: RoadmapItem[], getKey: (item: RoadmapI
 }
 
 export function formatRoadmapStatus(items: RoadmapItem[]): string {
-  const statusCounts = countBy(items, (item) => item.status);
+  const summary = summarizeRoadmapStatus(items);
   const lines = [
-    `total: ${items.length}`,
-    ...STATUS.map((status) => `${status}: ${statusCounts.get(status) ?? 0}`),
+    `total: ${summary.total}`,
+    ...STATUS.map((status) => `${status}: ${summary.statuses[status]}`),
   ];
-  const parked = items.filter((item) => item.status === "parked");
-  if (parked.length) {
-    const reasonCounts = countBy(parked, (item) => item.parkedReason ?? "review");
+  if (summary.statuses.parked > 0) {
     lines.push(
       "parked reasons:",
       ...PARKED_REASON
-        .filter((reason) => (reasonCounts.get(reason) ?? 0) > 0)
-        .map((reason) => `- ${reason}: ${reasonCounts.get(reason) ?? 0}`),
+        .filter((reason) => summary.parkedReasons[reason] > 0)
+        .map((reason) => `- ${reason}: ${summary.parkedReasons[reason]}`),
     );
   }
   return lines.join("\n");
@@ -35,14 +42,23 @@ export function activeRoadmapCount(items: RoadmapItem[]): number {
   return items.filter((item) => (ACTIVE_STATUS as readonly string[]).includes(item.status)).length;
 }
 
-export function formatRoadmapDrainGate(items: RoadmapItem[]): string {
+export function summarizeRoadmapStatus(items: RoadmapItem[]): RoadmapStatusSummary {
   const statusCounts = countBy(items, (item) => item.status);
-  const active = activeRoadmapCount(items);
+  const parked = items.filter((item) => item.status === "parked");
+  const reasonCounts = countBy(parked, (item) => item.parkedReason ?? "review");
+  const statuses = Object.fromEntries(STATUS.map((status) => [status, statusCounts.get(status) ?? 0])) as CountSummary<RoadmapItem["status"]>;
+  const parkedReasons = Object.fromEntries(PARKED_REASON.map((reason) => [reason, reasonCounts.get(reason) ?? 0])) as CountSummary<(typeof PARKED_REASON)[number]>;
+  const activeTotal = ACTIVE_STATUS.reduce((sum, status) => sum + statuses[status], 0);
+  return { total: items.length, activeTotal, activeDrained: activeTotal === 0, statuses, parkedReasons };
+}
+
+export function formatRoadmapDrainGate(items: RoadmapItem[]): string {
+  const summary = summarizeRoadmapStatus(items);
   const lines = [
-    `active roadmap drained: ${active === 0 ? "yes" : "no"}`,
-    ...ACTIVE_STATUS.map((status) => `${status}: ${statusCounts.get(status) ?? 0}`),
+    `active roadmap drained: ${summary.activeDrained ? "yes" : "no"}`,
+    ...ACTIVE_STATUS.map((status) => `${status}: ${summary.statuses[status]}`),
   ];
-  const parked = statusCounts.get("parked") ?? 0;
+  const parked = summary.statuses.parked;
   if (parked) lines.push(`parked: ${parked}`, "parked cards require proof/decision before revival");
   return lines.join("\n");
 }

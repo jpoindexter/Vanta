@@ -74,6 +74,10 @@ async function handleRoadmapStatus(repoRoot: string, args: string[]): Promise<nu
   ]);
   const raw = await readFile(join(repoRoot, "roadmap.json"), "utf8");
   const data = RoadmapSchema.parse(JSON.parse(raw));
+  if (args.includes("--json")) {
+    console.log(JSON.stringify(status.summarizeRoadmapStatus(data.items), null, 2));
+    return status.activeRoadmapCount(data.items) === 0 ? 0 : args.includes("--require-drained") ? 1 : 0;
+  }
   if (args.includes("--require-drained")) {
     console.log(status.formatRoadmapDrainGate(data.items));
     return status.activeRoadmapCount(data.items) === 0 ? 0 : 1;

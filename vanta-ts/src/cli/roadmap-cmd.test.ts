@@ -86,6 +86,26 @@ describe("runRoadmapCommand status", () => {
     expect(out).toContain("- external proof: 1");
   });
 
+  it("prints status as json when requested", async () => {
+    const root = await workspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    const code = await runRoadmapCommand(root, ["status", "--json"]);
+    const out = JSON.parse(lines.join("\n")) as {
+      total: number;
+      activeTotal: number;
+      activeDrained: boolean;
+      statuses: Record<string, number>;
+      parkedReasons: Record<string, number>;
+    };
+    expect(code).toBe(0);
+    expect(out.total).toBe(2);
+    expect(out.activeTotal).toBe(1);
+    expect(out.activeDrained).toBe(false);
+    expect(out.statuses.horizon).toBe(1);
+    expect(out.parkedReasons["external proof"]).toBe(1);
+  });
+
   it("passes --require-drained when only parked work remains", async () => {
     const root = await drainedWorkspace();
     const lines: string[] = [];
@@ -104,5 +124,16 @@ describe("runRoadmapCommand status", () => {
     expect(code).toBe(1);
     expect(out).toContain("active roadmap drained: no");
     expect(out).toContain("horizon: 1");
+  });
+
+  it("keeps --require-drained exit behavior with json output", async () => {
+    const root = await workspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    const code = await runRoadmapCommand(root, ["status", "--json", "--require-drained"]);
+    const out = JSON.parse(lines.join("\n")) as { activeDrained: boolean; activeTotal: number };
+    expect(code).toBe(1);
+    expect(out.activeDrained).toBe(false);
+    expect(out.activeTotal).toBe(1);
   });
 });

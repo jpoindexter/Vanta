@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RoadmapItem } from "./schema.js";
-import { activeRoadmapCount, formatRoadmapDrainGate, formatRoadmapStatus } from "./status-summary.js";
+import { activeRoadmapCount, formatRoadmapDrainGate, formatRoadmapStatus, summarizeRoadmapStatus } from "./status-summary.js";
 
 function card(id: string, status: RoadmapItem["status"], parkedReason?: RoadmapItem["parkedReason"]): RoadmapItem {
   return { id, status, parkedReason, track: "Operator", title: id, size: "S", summary: "", done: "" };
@@ -62,5 +62,21 @@ describe("formatRoadmapStatus", () => {
     expect(out).toContain("next: 1");
     expect(out).toContain("horizon: 1");
     expect(out).toContain("parked: 1");
+  });
+
+  it("summarizes active and parked counts for json output", () => {
+    const summary = summarizeRoadmapStatus([
+      card("A", "shipped"),
+      card("B", "blocked"),
+      card("C", "parked", "external proof"),
+      card("D", "parked", "strategy decision"),
+    ]);
+    expect(summary).toMatchObject({
+      total: 4,
+      activeTotal: 1,
+      activeDrained: false,
+      statuses: { shipped: 1, blocked: 1, parked: 2 },
+      parkedReasons: { "external proof": 1, "strategy decision": 1 },
+    });
   });
 });
