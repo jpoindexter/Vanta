@@ -95,7 +95,8 @@ Channels like Reddit and Twitter need a logged-in session. The shared path (`rea
 | `linkedin` | ✅ | browser-session | `linkedin_read {url, browser?}` — reads profiles/companies/posts via the headless browser session (login-walled + JS); `browser:"brave"` auto-uses your LinkedIn login |
 | `twitter` | ✅ | x-graphql (native, cookie) | `twitter_read` (search + bookmarks) — **native TS GraphQL, no Python**. Needs an x.com cookie (`cookie_import twitter`) + query ids (`reach heal twitter`). Self-heals (see below) |
 | `bilibili` | ✅ | bili-cli ▸ OpenCLI ▸ search API | `bilibili_read` searches through `bili search`, reads video detail through `bili video`, reads subtitles through `opencli bilibili subtitle`, and falls back to the public Bilibili search API for search-only use. |
+| `xueqiu` | ✅ | Xueqiu API + cookie | `xueqiu_read` reads stock quotes, stock search, hot posts, and hot-stock rankings using a stored logged-in Xueqiu cookie. Anonymous access returns a Xueqiu login/refresh error on this host, so the doctor gives cookie setup guidance. |
 
 The `reddit` channel reads Reddit's own `.json` endpoints authenticated with the stored cookie (no external CLI to install — anonymous access is blocked, so a cookie is required; `reddit_read` returns the exact setup step when none is configured). `rdt-cli` is the documented fallback backend (not wired). Live coverage of `.json` from a datacenter IP can still be rate-limited — the wiring is correct and works on a residential IP with a valid cookie, same caveat as `web_search`.
 
-Build queue + the deferred platforms (Xiaohongshu, Xueqiu) are tracked as `REACH-*` cards in `roadmap.json`.
+Build queue + the deferred platform (Xiaohongshu) is tracked as a `REACH-*` card in `roadmap.json`.

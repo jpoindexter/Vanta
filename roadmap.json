@@ -12095,16 +12095,16 @@
       "id": "REACH-XUEQIU",
       "track": "Harness",
       "title": "Xueqiu (雪球) channel — quotes, stock search, hot posts",
-      "status": "parked",
+      "status": "shipped",
       "size": "M",
-      "summary": "From Agent-Reach xueqiu.py: stock quotes, search, hot posts, hot-stock ranking (needs light config). Finance/market signal source, China-centric. Defer unless a concrete need (e.g. a markets/finance use case appears).",
-      "done": "A xueqiu reach path returns quotes + stock search + hot posts when configured; errors-as-values; setup guidance on a gap.",
+      "summary": "Vanta now ships a cookie-backed Xueqiu reach channel and `xueqiu_read` tool for read-only market/community signal gathering. The channel reports missing-cookie setup guidance, probes `SH000001` when a cookie is configured, and routes through Xueqiu's quote/search/hot-post/hot-stock API endpoints using the existing local 0600 cookie store. Anonymous access was live-probed from this machine and returns Xueqiu error 400016, so the shipped path is intentionally configured-cookie only.",
+      "done": "`/reach`/reach doctor reports Xueqiu as off with `cookie_import {channel:\"xueqiu\", browser:\"brave\"}` guidance when no cookie exists, and probes the quote API when configured; `xueqiu_read quote` returns a stock quote, `search` returns stock matches, `hot_posts` returns hot community posts, and `hot_stocks` returns hot-stock rankings; tests cover cookie requirement, cookie header use, endpoint formatting, registry exposure, and missing-field degradation.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-06-15"
+      "updated": "2026-07-10"
     },
     {
       "id": "REACH-SELFHEAL",
