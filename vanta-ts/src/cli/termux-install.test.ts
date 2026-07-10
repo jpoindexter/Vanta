@@ -10,6 +10,17 @@ const dirs: string[] = [];
 afterEach(async () => Promise.all(dirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true }))));
 
 describe("Termux install/runtime path", () => {
+  it("the physical ARM64 proof script refuses non-Termux hosts", async () => {
+    const script = join(process.cwd(), "..", "scripts", "termux-arm64-device-proof.sh");
+    await exec("bash", ["-n", script]);
+    await expect(exec("bash", [script], {
+      env: { ...process.env, TERMUX_VERSION: "", PREFIX: "" },
+      timeout: 20_000,
+    })).rejects.toMatchObject({
+      stderr: expect.stringContaining("requires a real Termux shell"),
+    });
+  });
+
   it("the real installer uses the native toolchain, lifecycle-safe deps, and PREFIX/bin", async () => {
     const fixture = await installerFixture();
     const { stdout } = await exec("bash", [join(fixture.root, "install.sh")], { env: fixture.env, timeout: 20_000 });

@@ -30,7 +30,16 @@ Desktop, iOS, microphone, and Playwright browser features are not part of the
 Termux runtime profile. The CLI, TUI, gateway, scheduler, agents, tools, memory,
 and kernel safety path use the same code as macOS/Linux. The automated Android
 x86_64 emulator gate passes the sequence below. A release claim still requires
-the same proof on a physical ARM64 Android device:
+the same proof on a physical ARM64 Android device. From the checkout on that
+device, run the executable proof:
+
+```sh
+./scripts/termux-arm64-device-proof.sh
+```
+
+The script refuses non-Termux and non-ARM64 hosts, starts a local mock
+OpenAI-compatible provider, starts the real safety kernel, runs the checks
+below, and prints `TERMUX_ARM64_E2E_OK` only after they pass:
 
 ```sh
 vanta --help
