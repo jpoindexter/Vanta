@@ -104,6 +104,7 @@ import { runEgressCommand } from "./egress-cmd.js";
 import { runBillingCommand } from "./billing-cmd.js";
 import { runOsintCommand } from "./osint-cmd.js";
 import { runApiCommand } from "./api-cmd.js";
+import { runTrajectoryCommand } from "./trajectory-cmd.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
@@ -244,4 +245,5 @@ export const COMMANDS: Record<string, CommandFn> = {
   "auto-research": (root, rest) => runAutoResearchCommand(root, rest),
   "meta-tune": (root, rest) => runMetaTuneCommand(root, rest),
   tune: (root, rest) => runTuneCommand(root, rest),
+  trajectory: (_root, rest) => runTrajectoryCommand(rest),
 };

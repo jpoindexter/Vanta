@@ -26,7 +26,7 @@ export type PythonRunner = (argv: readonly string[]) => string;
 
 /** The live python runner (10-minute cap — a real train can be slow). */
 export const realPythonRunner: PythonRunner = (argv) =>
-  execFileSync("python3", argv as string[], { encoding: "utf8", timeout: 600_000 });
+  execFileSync(process.env.VANTA_LORA_PYTHON?.trim() || "python3", argv as string[], { encoding: "utf8", timeout: 600_000 });
 
 /** A successful train's metrics, or an error — mirrors lora_train.py's JSON. */
 export type LoraTrainResult =
@@ -53,7 +53,7 @@ export function exportDatasetJsonl(
 }
 
 /** Options for {@link buildLoraTrainArgs}. */
-export type LoraTrainArgs = { datasetPath: string; outputDir: string; baseModel?: string; steps?: number };
+export type LoraTrainArgs = { datasetPath: string; outputDir: string; baseModel?: string; steps?: number; maxLength?: number };
 
 /** Build the `python3 lora_train.py …` argv (DISCRETE — never a shell string). */
 export function buildLoraTrainArgs(opts: LoraTrainArgs): string[] {
@@ -67,6 +67,8 @@ export function buildLoraTrainArgs(opts: LoraTrainArgs): string[] {
     opts.baseModel ?? "tiny-test",
     "--steps",
     String(opts.steps ?? 4),
+    "--max-length",
+    String(opts.maxLength ?? 512),
   ];
 }
 
@@ -102,6 +104,7 @@ export type RunLoraTrainDeps = {
   baseModel?: string;
   steps?: number;
   minPairs?: number;
+  maxLength?: number;
 };
 
 /** Outcome: the train result (+ readiness), or a not-ready/error gate. */
@@ -123,7 +126,7 @@ export function runLoraTrain(deps: RunLoraTrainDeps): RunLoraTrainOutcome {
   exportDatasetJsonl(deps.pairs, datasetPath, deps.write);
   const run = deps.runPython ?? realPythonRunner;
   try {
-    const stdout = run(buildLoraTrainArgs({ datasetPath, outputDir, baseModel: deps.baseModel, steps: deps.steps }));
+    const stdout = run(buildLoraTrainArgs({ datasetPath, outputDir, baseModel: deps.baseModel, steps: deps.steps, maxLength: deps.maxLength }));
     return { ok: true, result: parseLoraTrainResult(stdout), readiness };
   } catch (e) {
     return { ok: false, reason: e instanceof Error ? e.message : String(e), readiness };

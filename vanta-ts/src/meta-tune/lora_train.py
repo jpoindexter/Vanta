@@ -27,30 +27,39 @@ def _load_texts(dataset_path):
     ]
 
 
-def _tiny_model(dev):
+def _tiny_model(dev, _max_length):
     import torch
     from transformers import GPT2Config, GPT2LMHeadModel
 
-    cfg = GPT2Config(n_layer=2, n_head=2, n_embd=64, vocab_size=256, n_positions=128)
+    cfg = GPT2Config(
+        n_layer=2,
+        n_head=2,
+        n_embd=64,
+        vocab_size=256,
+        n_positions=128,
+        bos_token_id=0,
+        eos_token_id=0,
+    )
     model = GPT2LMHeadModel(cfg).to(dev)
 
     def encode(text):
-        ids = list(text.encode("utf-8")[:128]) or [0]
+        ids = list(text.encode("utf-8")[-128:]) or [0]
         return torch.tensor([ids]).to(dev)
 
     return model, ["c_attn"], encode
 
 
-def _real_model(name, dev):
+def _real_model(name, dev, max_length):
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     tok = AutoTokenizer.from_pretrained(name)
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
+    tok.truncation_side = "left"
     model = AutoModelForCausalLM.from_pretrained(name).to(dev)
 
     def encode(text):
-        return tok(text, return_tensors="pt", truncation=True, max_length=256).input_ids.to(dev)
+        return tok(text, return_tensors="pt", truncation=True, max_length=max_length).input_ids.to(dev)
 
     return model, ["q_proj", "v_proj"], encode
 
@@ -62,6 +71,7 @@ def main():
     ap.add_argument("--base-model", default="tiny-test")
     ap.add_argument("--steps", type=int, default=4)
     ap.add_argument("--lora-r", type=int, default=8)
+    ap.add_argument("--max-length", type=int, default=512)
     a = ap.parse_args()
 
     import torch
@@ -74,9 +84,9 @@ def main():
         return
 
     if a.base_model == "tiny-test":
-        model, target, encode = _tiny_model(dev)
+        model, target, encode = _tiny_model(dev, a.max_length)
     else:
-        model, target, encode = _real_model(a.base_model, dev)
+        model, target, encode = _real_model(a.base_model, dev, a.max_length)
 
     lora = LoraConfig(r=a.lora_r, lora_alpha=a.lora_r * 2, target_modules=target, task_type="CAUSAL_LM")
     model = get_peft_model(model, lora)
@@ -92,7 +102,7 @@ def main():
         out.loss.backward()
         opt.step()
         opt.zero_grad()
-        losses.append(float(out.loss))
+        losses.append(float(out.loss.detach()))
 
     os.makedirs(a.output, exist_ok=True)
     model.save_pretrained(a.output)

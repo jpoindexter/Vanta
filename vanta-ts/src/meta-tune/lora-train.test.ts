@@ -23,7 +23,7 @@ describe("buildLoraTrainArgs", () => {
   it("builds the python trainer argv with the script + flags", () => {
     const a = buildLoraTrainArgs({ datasetPath: "/ds", outputDir: "/out", baseModel: "tiny-test", steps: 4 });
     expect(a[0]).toBe(LORA_TRAIN_SCRIPT);
-    expect(a).toEqual([LORA_TRAIN_SCRIPT, "--dataset", "/ds", "--output", "/out", "--base-model", "tiny-test", "--steps", "4"]);
+    expect(a).toEqual([LORA_TRAIN_SCRIPT, "--dataset", "/ds", "--output", "/out", "--base-model", "tiny-test", "--steps", "4", "--max-length", "512"]);
   });
 });
 

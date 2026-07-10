@@ -16187,16 +16187,18 @@
       "id": "TRAJECTORY-TOOLING",
       "track": "Harness",
       "title": "Batch trajectory generation + compression for training tool-calling models",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
-      "summary": "a reference agent harness' research edge (it is a model lab): generate batches of agent trajectories and compress them to train next-gen tool-calling models. Lower priority for Vanta (not a model lab) but valuable for a personal tool-calling model + evals. Pairs with PERSONAL-MODEL-TUNE (LoRA).",
-      "done": "Vanta exports batches of its own task trajectories in a training-ready format and compresses them, feeding a fine-tune (e.g. the LoRA path); demonstrated on a small real batch.",
+      "summary": "Vanta converts private local sessions into versioned tool trajectories and decision-level SFT rows, structurally redacts secrets, compresses bulky tool results with source hashes, and feeds the existing local LoRA trainer without uploading the dataset.",
+      "done": "The real CLI exports a private tools-only batch from Vanta session history, preserves tool-call decisions, measurably compresses tool results, emits training-ready trajectory and LoRA JSONL, and trains a saved LoRA adapter from that batch.",
       "tier": "pebble",
       "lens": "selfhood",
       "source": "a reference agent harness-a reference agent harness-audit-2026-06-21",
       "after": [
         "PERSONAL-MODEL-TUNE"
-      ]
+      ],
+      "updated": "2026-07-10",
+      "notes": "SHIPPED 2026-07-10: `vanta trajectory export` emits private vanta.trajectory.v1 JSONL, one decision-level LoRA SFT row per assistant action, and a batch manifest. `--tools-only` selects genuine tool turns. Structural/high-confidence secret redaction runs before export. Winnow compresses tool output first; results still over 8,000 characters retain deterministic head/tail content plus original SHA-256. `vanta trajectory train` feeds those rows into the existing LoRA runner, supports VANTA_LORA_PYTHON virtual environments, keeps the chosen action by left-truncating long context, and makes adapter artifacts 0600 under a 0700 directory. docs/trajectory-training.md documents the local-only contract.\n\nEXECUTED 2026-07-10: the real CLI exported 3 tools-only trajectories from local Vanta history containing 43 calls + 43 results. Tool-result storage compressed 41,104 to 23,901 estimated tokens; the export produced 22 decision-level SFT rows, all files were 0600, and both JSONL artifacts returned zero secret-scan matches. A disposable Python environment then trained the real tiny-test LoRA on MPS from those 22 rows: 4,096 trainable parameters, adapter_saved=true, adapter_model.safetensors SHA-256 87c2ae7236525f686320dcc20733ebe36ad8f9125ce2756d59b0384ad3697804. The private proof dataset and 870 MB disposable environment were deleted afterward. Python syntax and TypeScript passed. Final full suite: 1192 files, 12423 passed, 3 skipped."
     },
     {
       "id": "VOICE-WAKE-WORD",
