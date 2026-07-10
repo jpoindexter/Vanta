@@ -32,6 +32,7 @@ import { maybeAutoTune } from "../meta-tune/auto-tune.js";
 import type { WakeContext } from "../loop/types.js";
 import { loadDef } from "../loop/store.js";
 import type { GatewayHandle } from "./stream-events.js";
+import { startPlatformWebhookServer, type PlatformWebhookServer } from "./platform-webhook.js";
 
 const DEFAULT_TICK_MS = 60_000;
 
@@ -54,6 +55,9 @@ export type GatewayDeps = {
     deliver: Deliver;
   };
   home?: string;
+  /** Push-channel webhook listener. Defaults to loopback:3978 when a configured adapter exposes handlers. */
+  platformWebhookPort?: number;
+  platformWebhookHost?: string;
   /** CHANNEL-PERMISSIONS-WIRE: pending-approval reply bus — an inbound message
    * referencing a pending request id is consumed as an approval reply instead
    * of becoming an agent turn. Absent → behavior unchanged. */
@@ -169,6 +173,25 @@ type GatewayLoopArgs = {
   isRunning: () => boolean;
 };
 
+/** Start the push-channel ingress owned by the configured adapter, if any. */
+export async function startMessagingWebhook(
+  deps: Pick<GatewayDeps, "platform" | "platformWebhookPort" | "platformWebhookHost">,
+  log: (message: string) => void,
+): Promise<PlatformWebhookServer | undefined> {
+  const handlers = deps.platform?.webhookHandlers?.() ?? [];
+  if (handlers.length === 0) return undefined;
+  const envPort = Number(process.env.VANTA_MESSAGING_WEBHOOK_PORT);
+  return startPlatformWebhookServer({
+    port: deps.platformWebhookPort ?? (Number.isFinite(envPort) && envPort > 0 ? envPort : 3978),
+    host: deps.platformWebhookHost ?? process.env.VANTA_MESSAGING_WEBHOOK_HOST,
+    handlers,
+    log,
+  }).catch((error: unknown) => {
+    log(`vanta gateway: messaging webhook listener failed — ${error instanceof Error ? error.message : String(error)}`);
+    return undefined;
+  });
+}
+
 /** The gateway's tick→poll→sleep loop, run for as long as `isRunning()`. */
 async function runGatewayLoop(args: GatewayLoopArgs): Promise<void> {
   const { deps, tickMs, log, isRunning } = args;
@@ -198,6 +221,7 @@ export async function runGateway(deps: GatewayDeps): Promise<void> {
   process.once("SIGTERM", stop);
   if (deps.platform) await deps.platform.connect().catch(() => {});
   const webhookServer: WebhookServer | undefined = await startWebhookIfConfigured(deps.webhook, deps.handle, log);
+  const platformWebhookServer = await startMessagingWebhook(deps, log);
   log(
     `vanta gateway: ticking every ${Math.round(tickMs / 1000)}s` +
       (deps.platform ? ` · ${deps.platform.id} gateway live` : "") +
@@ -211,6 +235,7 @@ export async function runGateway(deps: GatewayDeps): Promise<void> {
   );
   if (deps.platform) await deps.platform.disconnect().catch(() => {});
   if (webhookServer) await webhookServer.close().catch(() => {});
+  if (platformWebhookServer) await platformWebhookServer.close().catch(() => {});
   log("vanta gateway: stopped.");
 }
 

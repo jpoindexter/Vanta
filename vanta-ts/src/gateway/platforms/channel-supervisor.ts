@@ -1,4 +1,4 @@
-import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
+import type { InboundMessage, OutboundMessage, PlatformAdapter, PlatformWebhookHandler } from "./base.js";
 
 // GATEWAY-CHANNEL-SELFHEAL — wrap a child PlatformAdapter so a dropped channel
 // self-heals: a failed poll marks the channel down and schedules an
@@ -87,6 +87,10 @@ export class SupervisedChannel implements PlatformAdapter {
 
   async send(msg: OutboundMessage): Promise<void> {
     await this.child.send(msg).catch(() => {});
+  }
+
+  webhookHandlers(): PlatformWebhookHandler[] {
+    return this.child.webhookHandlers?.() ?? [];
   }
 
   /** Poll, healing first if down and the backoff has elapsed. Never throws. */

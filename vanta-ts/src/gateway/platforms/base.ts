@@ -56,6 +56,19 @@ export type OutboundMessage = {
   image?: { mime: string; dataBase64: string };
 };
 
+export type PlatformWebhookRequest = {
+  body: string;
+  headers: Record<string, string | string[] | undefined>;
+};
+
+export type PlatformWebhookResponse = { status: number; body: string };
+
+export type PlatformWebhookHandler = {
+  /** URL path registered on the messaging webhook listener. */
+  path: string;
+  receive(request: PlatformWebhookRequest): Promise<PlatformWebhookResponse>;
+};
+
 export interface PlatformAdapter {
   /** Stable platform id, e.g. "telegram". */
   readonly id: string;
@@ -72,4 +85,6 @@ export interface PlatformAdapter {
   send(msg: OutboundMessage): Promise<void>;
   /** Fetch inbound messages received since the last poll. */
   poll(): Promise<InboundMessage[]>;
+  /** Push-channel HTTP handlers, when this adapter receives webhook events. */
+  webhookHandlers?(): PlatformWebhookHandler[];
 }

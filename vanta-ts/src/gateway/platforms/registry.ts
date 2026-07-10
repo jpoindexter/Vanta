@@ -136,7 +136,9 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
     signupUrl: "https://dev.teams.microsoft.com",
     setupSteps: [
       "Register an Azure Bot + Teams app (Bot Framework).",
-      "Set VANTA_TEAMS_APP_ID and VANTA_TEAMS_APP_PASSWORD; expose the messaging endpoint.",
+      "Set VANTA_TEAMS_APP_ID and VANTA_TEAMS_APP_PASSWORD.",
+      "Expose the gateway's /api/messages endpoint through HTTPS (local listener: 127.0.0.1:3978).",
+      "Point the Azure Bot messaging endpoint at https://<your-host>/api/messages.",
     ],
   },
   {

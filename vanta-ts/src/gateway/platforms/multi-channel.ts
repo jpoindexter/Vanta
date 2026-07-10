@@ -1,4 +1,4 @@
-import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
+import type { InboundMessage, OutboundMessage, PlatformAdapter, PlatformWebhookHandler } from "./base.js";
 import { SupervisedChannel, type ChannelHealth } from "./channel-supervisor.js";
 
 // MSG-MULTICHANNEL-LIVE — run 5+ messaging channels from ONE gateway. A composite
@@ -49,6 +49,10 @@ export class MultiChannelAdapter implements PlatformAdapter {
   /** GATEWAY-CHANNEL-SELFHEAL — per-channel self-heal health snapshot. */
   health(): ChannelHealth[] {
     return [...this.children.values()].map((c) => c.health());
+  }
+
+  webhookHandlers(): PlatformWebhookHandler[] {
+    return [...this.children.values()].flatMap((child) => child.webhookHandlers());
   }
 
   async connect(): Promise<void> {

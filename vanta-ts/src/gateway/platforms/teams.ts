@@ -1,5 +1,11 @@
 import { z } from "zod";
-import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
+import type {
+  InboundMessage,
+  OutboundMessage,
+  PlatformAdapter,
+  PlatformWebhookHandler,
+} from "./base.js";
+import type { TeamsActivityVerifier } from "./teams-auth.js";
 import { formatForDialect } from "./format.js";
 import { splitForLimit } from "./split.js";
 import {
@@ -46,13 +52,16 @@ export class TeamsAdapter implements PlatformAdapter {
   readonly id = "teams";
   private readonly transport: TeamsTransport;
   private readonly allow: Set<string>;
+  private readonly verifyActivity?: TeamsActivityVerifier;
+  private readonly pending: unknown[] = [];
   // conversation.id → serviceUrl, recorded on every poll (Bot Framework serviceUrl is
   // per-conversation), so send() can POST the reply to the right base URI.
   private readonly serviceUrls = new Map<string, string>();
 
-  constructor(opts: { transport: TeamsTransport; allow?: Set<string> }) {
+  constructor(opts: { transport: TeamsTransport; allow?: Set<string>; verifyActivity?: TeamsActivityVerifier }) {
     this.transport = opts.transport;
     this.allow = opts.allow ?? new Set();
+    this.verifyActivity = opts.verifyActivity;
   }
 
   async connect(): Promise<void> {
@@ -63,10 +72,15 @@ export class TeamsAdapter implements PlatformAdapter {
   }
 
   async poll(): Promise<InboundMessage[]> {
-    const json = await this.transport.poll().catch(() => undefined);
+    const pushed = this.pending.splice(0);
+    const pulled = await this.transport.poll().catch(() => undefined);
+    const payloads = pulled === undefined ? pushed : [...pushed, pulled];
     // Record each conversation's serviceUrl so a later send routes to the right base URI.
-    for (const [convId, url] of parseServiceUrls(json)) this.serviceUrls.set(convId, url);
-    const messages = parseTeamsActivities(json);
+    const messages: InboundMessage[] = [];
+    for (const payload of payloads) {
+      for (const [convId, url] of parseServiceUrls(payload)) this.serviceUrls.set(convId, url);
+      messages.push(...parseTeamsActivities(payload));
+    }
     if (this.allow.size === 0) return messages;
     // Allow a message whose conversation (chatId) OR sender (from) is listed — the
     // allowlist accepts both conversation and user ids.
@@ -88,6 +102,23 @@ export class TeamsAdapter implements PlatformAdapter {
         /* errors-as-values: a send failure must not throw through the gateway loop */
       });
     }
+  }
+
+  webhookHandlers(): PlatformWebhookHandler[] {
+    if (!this.verifyActivity) return [];
+    return [{
+      path: "/api/messages",
+      receive: async ({ body, headers }) => {
+        let activity: unknown;
+        try { activity = JSON.parse(body); }
+        catch { return { status: 400, body: "invalid json" }; }
+        const authorization = headers.authorization;
+        const header = Array.isArray(authorization) ? authorization[0] : authorization;
+        if (!(await this.verifyActivity!(header, activity))) return { status: 401, body: "unauthorized" };
+        this.pending.push(activity);
+        return { status: 202, body: "accepted" };
+      },
+    }];
   }
 }
 

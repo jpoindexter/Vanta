@@ -11,6 +11,7 @@ import { DiscordAdapter, httpTransport as discordTransport, parseDiscordAllowlis
 import { MatrixAdapter, httpTransport as matrixTransport, parseMatrixAllowlist, matrixEnabled } from "./matrix.js";
 import { LineAdapter, httpTransport as lineTransport, parseLineAllowlist, lineEnabled } from "./line.js";
 import { TeamsAdapter, httpTransport as teamsTransport, parseTeamsAllowlist, teamsEnabled } from "./teams.js";
+import { createTeamsActivityVerifier } from "./teams-auth.js";
 import { TwitchAdapter, httpTransport as twitchTransport, parseTwitchAllowlist, twitchEnabled } from "./twitch.js";
 import { SmsAdapter, httpTransport as smsTransport, parseSmsAllowlist, smsEnabled } from "./sms.js";
 import { ZaloAdapter, httpTransport as zaloTransport, parseZaloAllowlist, zaloEnabled } from "./zalo.js";
@@ -162,6 +163,7 @@ export const ADAPTERS: Record<string, AdapterEntry> = {
       new TeamsAdapter({
         transport: teamsTransport(env.VANTA_TEAMS_APP_ID!.trim(), env.VANTA_TEAMS_APP_PASSWORD!.trim()),
         allow: parseTeamsAllowlist(env),
+        verifyActivity: createTeamsActivityVerifier(env.VANTA_TEAMS_APP_ID!.trim()),
       }),
   },
   twitch: {

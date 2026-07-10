@@ -60,7 +60,7 @@ Vanta is a **general operator**, not a coding tool — one agent runs every cate
 - **Research briefs** — search → synthesize → deliver to your channel, on a cron.
 - **Multi-agent builds** — `vanta fleet` / `vanta swarm` fan independent tasks into isolated worktrees, then review + merge.
 - **Long unattended runs** — hand it a multi-step task and walk away; it finishes **verified** or stops honestly (no silent hangs — *measured*, see [`docs/reliability-results.md`](docs/reliability-results.md)).
-- **Reach you anywhere** — one gateway, 20 messaging adapters (Telegram + ntfy live-verified; the rest need their platform token).
+- **Reach you anywhere** — one gateway, 20 messaging adapters (Telegram + ntfy live-verified; the rest need their platform credentials and any required webhook endpoint).
 
 ## Troubleshooting
 
@@ -123,7 +123,7 @@ Prefer to keep the agent on your laptop but execute on the VPS? Add an `sshConfi
 - **Goal-aware** — a goal ledger + dependency graph mean Vanta knows the goal before it picks a tool.
 - **ND-first** — executive-function support baked in: task initiation (smallest next step), choice reduction (top 3), working-memory re-anchoring, closure gates, time-blindness ranges, low-sensory output.
 - **Learns you, locally** — `vanta tune lora` trains a local adapter from your own accept/reject decisions; nothing leaves the machine.
-- **20 messaging channels** from one gateway (Telegram, Slack, Discord, Signal, WhatsApp, iMessage, Teams, Email, Nostr…) — Telegram + ntfy live-verified end-to-end; the rest offline-tested, each needs its platform token.
+- **20 messaging channels** from one gateway (Telegram, Slack, Discord, Signal, WhatsApp, iMessage, Teams, Email, Nostr…) — Telegram + ntfy live-verified end-to-end; the rest offline-tested and require platform credentials plus any channel-specific webhook setup.
 - **Any model, any host** — provider-agnostic (any OpenAI-compatible endpoint + Azure/OpenRouter/Ollama); runs local / sandbox / Docker / SSH / $5 VPS, kernel-scoped everywhere.
 - **MIT + self-hosted** — your data residency, no vendor lock-in.
 

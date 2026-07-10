@@ -73,6 +73,15 @@ describe("createAdapter", () => {
     expect((adapter as { id: string }).id).toBe("line");
   });
 
+  it("wires the authenticated Teams webhook handler when app credentials are set", () => {
+    const adapter = createAdapter("teams", {
+      VANTA_TEAMS_APP_ID: "app-id",
+      VANTA_TEAMS_APP_PASSWORD: "secret",
+    });
+    expect(isErr(adapter)).toBe(false);
+    expect((adapter as { webhookHandlers?: () => unknown[] }).webhookHandlers?.()).toHaveLength(1);
+  });
+
   it("returns a not-configured error for whatsapp without its env", () => {
     const result = createAdapter("whatsapp", {});
     expect(isErr(result)).toBe(true);
