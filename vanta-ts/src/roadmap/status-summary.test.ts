@@ -78,18 +78,29 @@ describe("formatRoadmapStatus", () => {
       activeDrained: false,
       complete: false,
       nonShippedTotal: 3,
+      openTotal: 3,
+      terminalParkedTotal: 0,
       statuses: { shipped: 1, blocked: 1, parked: 2 },
       parkedReasons: { "external proof": 1, "strategy decision": 1 },
     });
   });
 
-  it("reports completion separately from an active-queue drain", () => {
+  it("reports completion by open work, not terminal parked resolutions", () => {
     const drainedButIncomplete = [
       card("A", "shipped"),
       card("B", "parked", "external proof"),
+      card("C", "parked", "declined/n-a"),
+      card("D", "parked", "duplicate"),
     ];
     expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("roadmap complete: no");
-    expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("non-shipped: 1");
-    expect(formatRoadmapCompletionGate([card("A", "shipped")])).toContain("roadmap complete: yes");
+    expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("open: 1");
+    expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("non-shipped: 3");
+    expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("terminal parked: 2");
+    const terminalOnly = [
+      card("A", "shipped"),
+      card("C", "parked", "declined/n-a"),
+      card("D", "parked", "duplicate"),
+    ];
+    expect(formatRoadmapCompletionGate(terminalOnly)).toContain("roadmap complete: yes");
   });
 });

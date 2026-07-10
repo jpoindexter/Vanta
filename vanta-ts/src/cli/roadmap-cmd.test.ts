@@ -44,6 +44,8 @@ async function completeWorkspace(): Promise<string> {
     updated: "2026-07-10",
     items: [
       { id: "DONE", track: "Harness", title: "Done", status: "shipped", size: "S", summary: "", done: "" },
+      { id: "DECLINED", track: "Harness", title: "Declined", status: "parked", size: "S", summary: "", done: "", parkedReason: "declined/n-a" },
+      { id: "DUPE", track: "Harness", title: "Duplicate", status: "parked", size: "S", summary: "", done: "", parkedReason: "duplicate" },
     ],
   }, null, 2), "utf8");
   return root;
@@ -169,16 +171,20 @@ describe("runRoadmapCommand status", () => {
     const out = lines.join("\n");
     expect(code).toBe(1);
     expect(out).toContain("roadmap complete: no");
+    expect(out).toContain("open: 1");
     expect(out).toContain("parked: 1");
   });
 
-  it("passes --require-complete when every card is shipped", async () => {
+  it("passes --require-complete when every open card is shipped or terminally parked", async () => {
     const root = await completeWorkspace();
     const lines: string[] = [];
     vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
     const code = await runRoadmapCommand(root, ["status", "--require-complete"]);
     expect(code).toBe(0);
-    expect(lines.join("\n")).toContain("roadmap complete: yes");
+    const out = lines.join("\n");
+    expect(out).toContain("roadmap complete: yes");
+    expect(out).toContain("open: 0");
+    expect(out).toContain("terminal parked: 2");
   });
 
   it("keeps --require-complete exit behavior with json output", async () => {
@@ -186,11 +192,13 @@ describe("runRoadmapCommand status", () => {
     const lines: string[] = [];
     vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
     const code = await runRoadmapCommand(root, ["status", "--json", "--require-complete"]);
-    const out = JSON.parse(lines.join("\n")) as { complete: boolean; activeDrained: boolean; nonShippedTotal: number };
+    const out = JSON.parse(lines.join("\n")) as { complete: boolean; activeDrained: boolean; nonShippedTotal: number; openTotal: number; terminalParkedTotal: number };
     expect(code).toBe(1);
     expect(out.complete).toBe(false);
     expect(out.activeDrained).toBe(true);
     expect(out.nonShippedTotal).toBe(1);
+    expect(out.openTotal).toBe(1);
+    expect(out.terminalParkedTotal).toBe(0);
   });
 });
 

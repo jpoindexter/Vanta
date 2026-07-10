@@ -1,6 +1,7 @@
 import { PARKED_REASON, STATUS, type RoadmapItem } from "./schema.js";
 
 const ACTIVE_STATUS = ["building", "blocked", "next", "horizon"] as const;
+const TERMINAL_PARKED_REASON = ["declined/n-a", "duplicate"] as const;
 type CountSummary<T extends string> = Record<T, number>;
 
 export type RoadmapStatusSummary = {
@@ -9,6 +10,8 @@ export type RoadmapStatusSummary = {
   activeDrained: boolean;
   complete: boolean;
   nonShippedTotal: number;
+  openTotal: number;
+  terminalParkedTotal: number;
   statuses: CountSummary<RoadmapItem["status"]>;
   parkedReasons: CountSummary<(typeof PARKED_REASON)[number]>;
 };
@@ -48,6 +51,10 @@ export function nonShippedRoadmapCount(items: RoadmapItem[]): number {
   return items.filter((item) => item.status !== "shipped").length;
 }
 
+function isTerminalParked(item: RoadmapItem): boolean {
+  return item.status === "parked" && (TERMINAL_PARKED_REASON as readonly string[]).includes(item.parkedReason ?? "review");
+}
+
 export function summarizeRoadmapStatus(items: RoadmapItem[]): RoadmapStatusSummary {
   const statusCounts = countBy(items, (item) => item.status);
   const parked = items.filter((item) => item.status === "parked");
@@ -56,7 +63,9 @@ export function summarizeRoadmapStatus(items: RoadmapItem[]): RoadmapStatusSumma
   const parkedReasons = Object.fromEntries(PARKED_REASON.map((reason) => [reason, reasonCounts.get(reason) ?? 0])) as CountSummary<(typeof PARKED_REASON)[number]>;
   const activeTotal = ACTIVE_STATUS.reduce((sum, status) => sum + statuses[status], 0);
   const nonShippedTotal = items.length - statuses.shipped;
-  return { total: items.length, activeTotal, activeDrained: activeTotal === 0, complete: nonShippedTotal === 0, nonShippedTotal, statuses, parkedReasons };
+  const terminalParkedTotal = items.filter(isTerminalParked).length;
+  const openTotal = nonShippedTotal - terminalParkedTotal;
+  return { total: items.length, activeTotal, activeDrained: activeTotal === 0, complete: openTotal === 0, nonShippedTotal, openTotal, terminalParkedTotal, statuses, parkedReasons };
 }
 
 export function formatRoadmapDrainGate(items: RoadmapItem[]): string {
@@ -75,10 +84,13 @@ export function formatRoadmapCompletionGate(items: RoadmapItem[]): string {
   const lines = [
     `roadmap complete: ${summary.complete ? "yes" : "no"}`,
     `shipped: ${summary.statuses.shipped}/${summary.total}`,
+    `open: ${summary.openTotal}`,
     `non-shipped: ${summary.nonShippedTotal}`,
+    `terminal parked: ${summary.terminalParkedTotal}`,
     ...STATUS.filter((status) => status !== "shipped").map((status) => `${status}: ${summary.statuses[status]}`),
   ];
   const parked = summary.statuses.parked;
-  if (parked) lines.push("parked cards are not done; use `vanta roadmap unblock` for proof/decision steps");
+  if (summary.openTotal) lines.push("open parked cards still require proof/decision before completion");
+  if (parked) lines.push("use `vanta roadmap unblock` for proof/decision steps");
   return lines.join("\n");
 }

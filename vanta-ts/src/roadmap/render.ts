@@ -149,7 +149,9 @@ function roadmapHealth(data: Roadmap): string {
     .filter((reason) => summary.parkedReasons[reason] > 0)
     .map((reason) => `${PARKED_REASON_LABEL[reason] ?? reason} ${summary.parkedReasons[reason]}`)
     .join(" · ");
-  const completeLine = summary.complete ? "All roadmap cards are shipped." : `${summary.nonShippedTotal} non-shipped card${summary.nonShippedTotal === 1 ? "" : "s"} remain.`;
+  const completeLine = summary.complete
+    ? `No open roadmap cards remain${summary.terminalParkedTotal ? `; ${summary.terminalParkedTotal} terminally parked.` : "."}`
+    : `${summary.openTotal} open card${summary.openTotal === 1 ? "" : "s"} remain${summary.openTotal === 1 ? "s" : ""}; ${summary.terminalParkedTotal} terminally parked.`;
   return `<section class="health ${summary.activeDrained ? "is-drained" : "has-active"} ${summary.complete ? "is-complete" : "is-incomplete"}">
 <div><h2>${summary.activeDrained ? "Active queue drained" : "Active work remains"}</h2><p>${esc(statusLine)}</p></div>
 <div><h2>${summary.statuses.parked} parked</h2><p>${parkedLine ? esc(parkedLine) : "No parked cards."}</p></div>

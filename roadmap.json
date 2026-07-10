@@ -17105,15 +17105,31 @@
       "title": "Roadmap completion state UI — browser view shows not-done count",
       "status": "shipped",
       "size": "S",
-      "summary": "The generated roadmap page now mirrors the completion gate by showing whether the roadmap is complete and how many non-shipped cards remain, instead of only showing the active queue drain state.",
-      "done": "roadmap.html health strip includes Roadmap complete/incomplete plus the non-shipped count; render tests cover incomplete active work, drained-but-parked, and all-shipped states.",
+      "summary": "The generated roadmap page mirrors the completion gate by showing whether the roadmap is complete and how many cards remain open, instead of only showing the active queue drain state.",
+      "done": "roadmap.html health strip includes Roadmap complete/incomplete plus the open-card count; render tests cover incomplete active work, drained-but-parked, and all-shipped states.",
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
       "updated": "2026-07-10",
-      "notes": "SHIPPED 2026-07-10: renderRoadmap now adds a third health panel driven by RoadmapStatusSummary.complete/nonShippedTotal. The browser page shows Roadmap incomplete with the exact non-shipped count while the active queue can still be drained. This is visibility only; parked proof/decision cards remain unshipped."
+      "notes": "SHIPPED 2026-07-10: renderRoadmap now adds a third health panel driven by RoadmapStatusSummary.complete/openTotal. The browser page shows Roadmap incomplete with the exact open-card count while the active queue can still be drained. This is visibility only; parked proof/decision cards remain unshipped."
+    },
+    {
+      "id": "ROADMAP-TERMINAL-PARKED-COMPLETION",
+      "track": "Operator",
+      "title": "Roadmap terminal parked completion — declined/duplicate cards stop counting as open work",
+      "status": "shipped",
+      "size": "S",
+      "summary": "The completion gate now separates open parked work from terminal parked resolutions, so declined/n-a and duplicate cards are not counted as remaining work while external proof, strategy decision, optional proof, and review cards still are.",
+      "done": "`vanta roadmap status --require-complete` fails on open proof/decision parked cards, passes when all remaining parked cards are terminal declined/n-a or duplicate, and JSON exposes `openTotal` plus `terminalParkedTotal`; roadmap.html shows open vs terminal counts.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "selfhood",
+      "updated": "2026-07-10",
+      "notes": "SHIPPED 2026-07-10: RoadmapStatusSummary now treats parkedReason `declined/n-a` and `duplicate` as terminal parked resolutions. Current completion status reports open work separately from non-shipped/terminal parked counts; this reduces the honest remaining open roadmap work without pretending declined or duplicate cards shipped."
     }
   ]
 }
