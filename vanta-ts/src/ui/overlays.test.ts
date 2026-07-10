@@ -34,6 +34,7 @@ describe("overlay row builders", () => {
     expect(PICKER_KINDS.memory).toBe("memory");
     expect(PICKER_KINDS.agents).toBe("agentEditor");
     expect(PICKER_KINDS["workflow-select"]).toBe("workflowSelect");
+    expect(PICKER_KINDS["plugin-panels"]).toBe("pluginPanels");
     expect(PICKER_KINDS.nope).toBeUndefined();
   });
 });

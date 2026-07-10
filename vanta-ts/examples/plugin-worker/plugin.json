@@ -1,0 +1,14 @@
+{
+  "name": "operator-worker",
+  "version": "1.0.0",
+  "description": "Minimal out-of-process Vanta worker with a job and panel.",
+  "worker": {
+    "main": "worker.mjs",
+    "capabilities": [
+      "log.write",
+      "storage.write",
+      "schedule.jobs",
+      "ui.panel"
+    ]
+  }
+}

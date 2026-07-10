@@ -10,6 +10,8 @@ import type { PluginManifest } from "./manifest.js";
 import { parsePluginManifest } from "./manifest.js";
 import { createPluginContext, type PluginContext } from "./context.js";
 import { armMonitors, type DisarmHandle, type MonitorDeps } from "./monitors.js";
+import { PluginPanelRegistry } from "./panels.js";
+import { launchPluginWorker, type PluginWorkerHandle, type PluginWorkerScheduler } from "./worker.js";
 
 type Source = "bundled" | "user" | "project";
 
@@ -20,7 +22,13 @@ type PluginCandidate = {
 };
 
 export type PluginDiagnostic = { plugin: string; source: Source | "unknown"; ok: boolean; message: string };
-export type PluginLoadResult = { loaded: string[]; diagnostics: PluginDiagnostic[]; monitors: DisarmHandle[] };
+export type PluginLoadResult = {
+  loaded: string[];
+  diagnostics: PluginDiagnostic[];
+  monitors: DisarmHandle[];
+  workers: PluginWorkerHandle[];
+  panels: PluginPanelRegistry;
+};
 
 // Real arming: interval monitors get a Node timer; `run` executes the monitor's
 // shell command (best-effort, errors swallowed by armMonitors' fire wrapper).
@@ -85,18 +93,22 @@ export async function loadEnabledPlugins(opts: {
   env: NodeJS.ProcessEnv;
   log?: (message: string) => void;
   monitorDeps?: MonitorDeps;
+  panels?: PluginPanelRegistry;
+  workerSchedule?: PluginWorkerScheduler;
 }): Promise<PluginLoadResult> {
   const enabled = new Set(opts.settings.plugins?.enabled ?? []);
   const diagnostics: PluginDiagnostic[] = [];
   const loaded: string[] = [];
   const monitors: DisarmHandle[] = [];
-  if (!enabled.size) return { loaded, diagnostics, monitors };
+  const workers: PluginWorkerHandle[] = [];
+  const panels = opts.panels ?? new PluginPanelRegistry();
+  if (!enabled.size) return { loaded, diagnostics, monitors, workers, panels };
 
   let candidates: PluginCandidate[];
   try {
     candidates = await discoverPlugins(opts.repoRoot, opts.settings, opts.env);
   } catch (err) {
-    return { loaded, diagnostics: [{ plugin: "(discovery)", source: "unknown", ok: false, message: (err as Error).message }], monitors };
+    return { loaded, diagnostics: [{ plugin: "(discovery)", source: "unknown", ok: false, message: (err as Error).message }], monitors, workers, panels };
   }
 
   const byName = new Map(candidates.map((c) => [c.manifest.name, c]));
@@ -111,14 +123,20 @@ export async function loadEnabledPlugins(opts: {
       diagnostics.push({ plugin: name, source: candidate.source, ok: false, message: `missing env: ${missingEnv.join(", ")}` });
       continue;
     }
-    const { diagnostic, monitors: armed } = await loadOnePlugin(candidate, opts);
+    const { diagnostic, monitors: armed, worker } = await loadOnePlugin(candidate, {
+      ...opts,
+      panels,
+      granted: opts.settings.plugins?.capabilities?.[name] ?? [],
+    });
     diagnostics.push(diagnostic);
     if (diagnostic.ok) {
       loaded.push(name);
+      opts.commands.markLoaded(name);
       monitors.push(...armed);
+      if (worker) workers.push(worker);
     }
   }
-  return { loaded, diagnostics, monitors };
+  return { loaded, diagnostics, monitors, workers, panels };
 }
 
 async function loadOnePlugin(candidate: PluginCandidate, opts: {
@@ -128,9 +146,26 @@ async function loadOnePlugin(candidate: PluginCandidate, opts: {
   env: NodeJS.ProcessEnv;
   log?: (message: string) => void;
   monitorDeps?: MonitorDeps;
-}): Promise<{ diagnostic: PluginDiagnostic; monitors: DisarmHandle[] }> {
+  panels: PluginPanelRegistry;
+  granted: import("./capabilities.js").PluginCapability[];
+  workerSchedule?: PluginWorkerScheduler;
+}): Promise<{ diagnostic: PluginDiagnostic; monitors: DisarmHandle[]; worker?: PluginWorkerHandle }> {
   const log = opts.log ?? (() => {});
   try {
+    if (candidate.manifest.worker) {
+      const worker = await launchPluginWorker({
+        manifest: candidate.manifest,
+        pluginDir: candidate.dir,
+        vantaHome: resolveVantaHome(opts.env),
+        granted: opts.granted,
+        panels: opts.panels,
+        log,
+        schedule: opts.workerSchedule,
+      });
+      const monitors = armMonitors(candidate.manifest, opts.monitorDeps ?? defaultMonitorDeps(log));
+      log(`  · plugin: loaded ${candidate.manifest.name} worker (pid ${worker.pid}, ${worker.granted.length} capability grant(s))`);
+      return { diagnostic: { plugin: candidate.manifest.name, source: candidate.source, ok: true, message: "worker loaded" }, monitors, worker };
+    }
     const entry = resolve(candidate.dir, candidate.manifest.main);
     if (!entry.startsWith(candidate.dir)) throw new Error("plugin main must stay inside plugin directory");
     const mod = await import(pathToFileURL(entry).href) as PluginModule;
@@ -158,4 +193,3 @@ async function loadOnePlugin(candidate: PluginCandidate, opts: {
     return { diagnostic: { plugin: candidate.manifest.name, source: candidate.source, ok: false, message: (err as Error).message }, monitors: [] };
   }
 }
-

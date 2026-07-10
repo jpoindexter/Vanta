@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import type { Settings } from "../settings/store.js";
 import { parsePluginManifest, type PluginManifest } from "./manifest.js";
+import type { PluginCapability } from "./capabilities.js";
 
 // VANTA-PLUGIN-CLI — pure/injectable plugin management core.
 //
@@ -113,6 +114,18 @@ export function setEnabled(settings: Settings, name: string, on: boolean): Setti
     ? current.includes(name) ? current : [...current, name]
     : current.filter((n) => n !== name);
   return { ...settings, plugins: { ...settings.plugins, enabled: next } };
+}
+
+/** PURE: grant or revoke one worker host capability for one plugin. */
+export function setPluginCapability(settings: Settings, name: string, capability: PluginCapability, on: boolean): Settings {
+  const capabilities = { ...settings.plugins?.capabilities };
+  const current = capabilities[name] ?? [];
+  const next = on
+    ? current.includes(capability) ? current : [...current, capability]
+    : current.filter((value) => value !== capability);
+  if (next.length) capabilities[name] = next;
+  else delete capabilities[name];
+  return { ...settings, plugins: { ...settings.plugins, capabilities } };
 }
 
 /** True when `src` looks like a remote URL (deferred — local path only for now). */

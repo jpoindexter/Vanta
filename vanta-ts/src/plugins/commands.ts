@@ -7,6 +7,7 @@ const CommandName = /^[a-z][a-z0-9-]{0,63}$/;
 
 export class PluginCommandRegistry {
   private readonly commands = new Map<string, PluginCommand>();
+  private readonly loaded = new Set<string>();
 
   constructor(private readonly reserved = new Set<string>()) {}
 
@@ -21,6 +22,12 @@ export class PluginCommandRegistry {
       desc: meta?.desc ?? `plugin command from ${pluginName}`,
       handler,
     });
+    this.loaded.add(pluginName);
+  }
+
+  /** Record a successfully loaded plugin even when it contributes no command. */
+  markLoaded(pluginName: string): void {
+    this.loaded.add(pluginName);
   }
 
   get(name: string): PluginCommand | undefined {
@@ -35,8 +42,8 @@ export class PluginCommandRegistry {
     return [...this.commands.values()].map(({ name, arg, desc }) => ({ name, arg, desc }));
   }
 
-  /** Distinct plugin names with at least one command registered (for /reload-plugins). */
+  /** Distinct plugin names loaded into this session (for /reload-plugins). */
   loadedPlugins(): string[] {
-    return [...new Set([...this.commands.values()].map((c) => c.pluginName))];
+    return [...this.loaded];
   }
 }

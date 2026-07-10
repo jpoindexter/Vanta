@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { join } from "node:path";
 import {
   listPlugins, setEnabled, installPlugin, uninstallPlugin,
-  isRemoteSource, pluginsRoot, type PluginFs,
+  isRemoteSource, pluginsRoot, setPluginCapability, type PluginFs,
 } from "./manage.js";
 import type { Settings } from "../settings/store.js";
 
@@ -76,6 +76,21 @@ describe("setEnabled (pure)", () => {
     expect(next.effortLevel).toBe("high");
     expect(next.plugins?.trustProjectPlugins).toBe(true);
     expect(next.plugins?.enabled).toEqual(["echo"]);
+  });
+});
+
+describe("setPluginCapability (pure)", () => {
+  it("grants idempotently and preserves another plugin's grants", () => {
+    const input: Settings = { plugins: { capabilities: { other: ["log.write"] } } };
+    const once = setPluginCapability(input, "operator", "ui.panel", true);
+    const twice = setPluginCapability(once, "operator", "ui.panel", true);
+    expect(twice.plugins?.capabilities).toEqual({ other: ["log.write"], operator: ["ui.panel"] });
+    expect(input.plugins?.capabilities?.operator).toBeUndefined();
+  });
+
+  it("revokes a grant and removes the empty plugin entry", () => {
+    const next = setPluginCapability({ plugins: { capabilities: { operator: ["schedule.jobs"] } } }, "operator", "schedule.jobs", false);
+    expect(next.plugins?.capabilities).toEqual({});
   });
 });
 

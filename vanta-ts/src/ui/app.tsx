@@ -108,6 +108,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const tick = useBusyTick(state.busy);
   const skillMatches = useSkillMatches(); const channels = useSlackChannels();
   useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
+  useEffect(() => () => { for (const worker of props.setup.pluginWorkers ?? []) worker.dispose(); }, [props.setup.pluginWorkers]);
   useHookLifecycle(props.repoRoot, replStateRef.current.sessionId, props.setup);
   const { mcp, elapsed } = useSessionStatus(props.setup, replStateRef, dispatch);
   const agents = useSubagentProgress();

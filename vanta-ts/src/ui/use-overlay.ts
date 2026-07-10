@@ -23,6 +23,7 @@ import { loadAgentEditorData, type AgentEditorData } from "./agent-editor-action
 import type { ExportContext } from "./export-actions.js";
 import type { WorkerTask } from "../team/tasks.js";
 import type { RunSetup } from "../session.js";
+import type { PluginPanel } from "../plugins/panels.js";
 
 /** Live conversation snapshot the /context overlay computes its breakdown from. */
 export type CtxSnapshot = { messages: import("../types.js").Message[]; contextWindow: number; sessionId?: string; title?: string };
@@ -49,6 +50,7 @@ export type OverlayView =
   | ({ kind: "sandbox" } & SandboxOverlayState)
   | ({ kind: "config" } & ConfigOverlayState)
   | ({ kind: "hooks" } & HooksOverlayState)
+  | { kind: "pluginPanel"; panel: PluginPanel }
   | { kind: "help" };
 
 /** The four picker kinds that resolve to a generic selectable list; null otherwise. */
@@ -76,6 +78,15 @@ async function loadOverlay(kind: OverlayKind, setup: RunSetup, repoRoot: string,
     case "workflowSelect": return { kind: "workflowSelect", data: await loadWorkflowSelectData(repoRoot), repoRoot };
     case "outputStyle": return { kind: "outputStyle", data: await loadOutputStyleData(repoRoot, process.env), repoRoot };
     case "export": return { kind: "export", context: exportContext(getCtx), repoRoot };
+    case "pluginPanels": return {
+      kind: "list",
+      title: "Plugin panels",
+      rows: (setup.pluginPanels?.list() ?? []).map((panel) => ({
+        label: panel.title,
+        hint: `${panel.plugin} worker`,
+        command: `plugin-panel:${panel.key}`,
+      })),
+    };
     default: return { kind: "help" };
   }
 }
@@ -160,6 +171,14 @@ export function useOverlay(deps: { setup: RunSetup; repoRoot: string; runSlash: 
     void loadOverlay(kind, deps.setup, deps.repoRoot, deps.getContext).then(setOverlay).catch(() => {});
   };
   const closeOverlay = (): void => setOverlay(null);
-  const selectRow = (row: OverlayRow): void => { deps.runSlash(row.command); setOverlay(null); };
+  const selectRow = (row: OverlayRow): void => {
+    if (row.command.startsWith("plugin-panel:")) {
+      const panel = deps.setup.pluginPanels?.get(row.command.slice("plugin-panel:".length));
+      setOverlay(panel ? { kind: "pluginPanel", panel } : null);
+      return;
+    }
+    deps.runSlash(row.command);
+    setOverlay(null);
+  };
   return { overlay, openOverlay, closeOverlay, selectRow };
 }

@@ -28,6 +28,7 @@ import { QuickOpen } from "./quick-open.js";
 import { GlobalSearchDialog } from "./global-search-dialog.js";
 import { MessageActionsPanel } from "./message-actions-panel.js";
 import { PromptSuggestionsPanel } from "./prompt-suggestions-panel.js";
+import { PluginPanel } from "./plugin-panel.js";
 import { type Mode, ModeLine } from "./mode-line.js";
 import type { SlashMatch } from "./slash.js";
 import type { OverlayRow } from "./overlays.js";
@@ -143,5 +144,6 @@ function OverlayPanelMore(props: { overlay: OverlayView; onClose: () => void }):
   if (overlay.kind === "workflowSelect") return <WorkflowSelectPanel repoRoot={overlay.repoRoot} data={overlay.data} onClose={onClose} />;
   if (overlay.kind === "outputStyle") return <OutputStylePanel repoRoot={overlay.repoRoot} data={overlay.data} onClose={onClose} />;
   if (overlay.kind === "export") return <ExportDialog repoRoot={overlay.repoRoot} context={overlay.context} onClose={onClose} />;
+  if (overlay.kind === "pluginPanel") return <PluginPanel panel={overlay.panel} onClose={onClose} />;
   return <HelpPanel onClose={onClose} />;
 }

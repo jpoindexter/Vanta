@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PLUGIN_CAPABILITIES } from "../plugins/capabilities.js";
 import { EFFORT_LEVELS } from "../types.js";
 import { SshProfileSchema } from "../ssh/config.js";
 import { MemorySettingsSchema } from "./memory-settings.js";
@@ -63,6 +64,8 @@ export const SettingsSchema = z.object({
   plugins: z.object({
     enabled: z.array(z.string()).optional(),
     trustProjectPlugins: z.boolean().optional(),
+    /** Per-plugin host capabilities explicitly granted by the operator. */
+    capabilities: z.record(z.string(), z.array(z.enum(PLUGIN_CAPABILITIES))).optional(),
   }).optional(),
   /** OS sandbox config (the /sandbox UI). Persists the VANTA_SANDBOX* intent +
    *  pre-install deps + per-tool bypass/enforce overrides; env stays the runtime truth. */

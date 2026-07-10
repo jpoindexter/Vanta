@@ -9,6 +9,8 @@ import { resolveAdvisorProvider } from "./agent/advisor.js";
 import { installMessageDisplayHooks } from "./agent/message-display.js";
 import { globalHookBus } from "./plugins/hooks.js";
 import { PluginCommandRegistry } from "./plugins/commands.js";
+import { PluginPanelRegistry } from "./plugins/panels.js";
+import type { PluginWorkerHandle } from "./plugins/worker.js";
 import type { RegisteredMcpSkill } from "./mcp/mount-skills.js";
 import type { LLMProvider } from "./providers/interface.js";
 import { resolveEffortLevel } from "./effort.js";
@@ -31,6 +33,10 @@ export type RunSetup = {
   safety: KernelClient;
   registry: ReturnType<typeof buildRegistry>;
   pluginCommands: PluginCommandRegistry;
+  /** Data-only panels contributed by isolated plugin workers. */
+  pluginPanels?: PluginPanelRegistry;
+  /** Live worker handles retained for panel/job lifetime and clean shutdown. */
+  pluginWorkers?: PluginWorkerHandle[];
   /** MCP-SKILLS: skills provided by connected MCP servers (opt-in; for `/skills`). */
   mcpSkills?: RegisteredMcpSkill[];
   provider: LLMProvider;
@@ -66,7 +72,7 @@ export async function prepareRun(
   const settings = await loadRuntimeSettings(repoRoot);
   const registry = buildRegistry({ exclude: settings.blockedTools ?? [] });
   const mcpTrust = { root: repoRoot, confirm: opts.confirmTrust };
-  const { pluginCommands, mcpSkills } = await loadRuntimeExtensions(repoRoot, registry, mcpTrust, settings);
+  const { pluginCommands, pluginPanels, pluginWorkers, mcpSkills } = await loadRuntimeExtensions(repoRoot, registry, mcpTrust, settings);
   const effortLevel = resolveEffortLevel(process.env.VANTA_EFFORT_LEVEL ?? settings.effortLevel);
   const provider = resolveRoutedProvider(process.env, instruction);
   // VANTA-API-PRECONNECT: opt-in (VANTA_PRECONNECT) best-effort TCP+TLS pre-warm
@@ -100,7 +106,7 @@ export async function prepareRun(
     }
   }
   logSessionConfig(safety, provider, registry, systemPrompt);
-  return { safety, registry, pluginCommands, mcpSkills, provider, advisorProvider, effortLevel, goals, systemPrompt, ralphContinuity: prompt.ralphContinuity };
+  return { safety, registry, pluginCommands, pluginPanels, pluginWorkers, mcpSkills, provider, advisorProvider, effortLevel, goals, systemPrompt, ralphContinuity: prompt.ralphContinuity };
 }
 
 const SUMMARIZE_SYS =

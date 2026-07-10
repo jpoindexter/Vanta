@@ -78,13 +78,15 @@ function liveDeps(ctx: ReplCtx): ReloadDeps {
       const settings = await loadSettings(repoRoot, ctx.env).catch(() => ({}) as Awaited<ReturnType<typeof loadSettings>>);
       // Load only the newly-available subset; the loader registers tools/commands
       // through the same kernel-gated dispatch path as a startup load.
-      await loadEnabledPlugins({
+      const loaded = await loadEnabledPlugins({
         repoRoot,
         registry: ctx.setup.registry,
         commands: ctx.setup.pluginCommands,
         settings: { ...settings, plugins: { ...settings.plugins, enabled: [...names] } },
         env: ctx.env,
+        panels: ctx.setup.pluginPanels,
       });
+      ctx.setup.pluginWorkers = [...ctx.setup.pluginWorkers ?? [], ...loaded.workers];
     },
   };
 }

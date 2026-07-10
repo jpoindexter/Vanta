@@ -3,6 +3,8 @@ import { mountMcpSkills, type RegisteredMcpSkill } from "../mcp/mount-skills.js"
 import { type Settings } from "../settings/store.js";
 import { resolveIsolation, skipMcp, skipPlugins, skipSkills } from "../cli/isolation.js";
 import { PluginCommandRegistry } from "../plugins/commands.js";
+import { PluginPanelRegistry } from "../plugins/panels.js";
+import type { PluginWorkerHandle } from "../plugins/worker.js";
 import type { buildRegistry } from "../tools/index.js";
 
 /** SETTINGS-BLOCKEDTOOLS-ENFORCE: load + apply settings once. prepareRun calls
@@ -23,7 +25,7 @@ export async function loadRuntimeExtensions(
    *  (so the registry can exclude `blockedTools`) and passes them in to avoid a
    *  second load/apply. Omitted → load here as before (back-compat). */
   preloaded?: Settings,
-): Promise<{ settings: Settings; pluginCommands: PluginCommandRegistry; mcpSkills: RegisteredMcpSkill[] }> {
+): Promise<{ settings: Settings; pluginCommands: PluginCommandRegistry; pluginPanels: PluginPanelRegistry; pluginWorkers: PluginWorkerHandle[]; mcpSkills: RegisteredMcpSkill[] }> {
   const settings = preloaded ?? await loadRuntimeSettings(repoRoot);
   // VANTA-SAFE-MODE: safe-mode + bare skip MCP mounting (discovery); only
   // safe-mode skips plugins. Skipped → no servers/plugins register, the command
@@ -33,9 +35,12 @@ export async function loadRuntimeExtensions(
     await mountMcpServers(registry, process.env, (m) => console.log(m), { cwd: repoRoot, trust: mcpTrust });
   const { SLASH_COMMANDS } = await import("../repl/catalog.js");
   const pluginCommands = new PluginCommandRegistry(new Set(SLASH_COMMANDS.map((c) => c.name)));
+  const pluginPanels = new PluginPanelRegistry();
+  let pluginWorkers: PluginWorkerHandle[] = [];
   if (!skipPlugins(iso)) {
     const { loadEnabledPlugins } = await import("../plugins/loader.js");
-    await loadEnabledPlugins({ repoRoot, registry, commands: pluginCommands, settings, env: process.env, log: (m) => console.log(m) });
+    const loaded = await loadEnabledPlugins({ repoRoot, registry, commands: pluginCommands, settings, env: process.env, panels: pluginPanels, log: (m) => console.log(m) });
+    pluginWorkers = loaded.workers;
   }
   // MCP-SKILLS: register MCP-provided skills into the same command registry
   // (kernel-gated, opt-in via VANTA_MCP_SKILLS). Best-effort — never fatal.
@@ -46,5 +51,5 @@ export async function loadRuntimeExtensions(
       ? []
       : (await mountMcpSkills(pluginCommands, process.env, { cwd: repoRoot, log: (m) => console.log(m) })
           .catch(() => ({ skills: [] as RegisteredMcpSkill[], dispose: () => {} }))).skills;
-  return { settings, pluginCommands, mcpSkills };
+  return { settings, pluginCommands, pluginPanels, pluginWorkers, mcpSkills };
 }

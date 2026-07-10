@@ -14478,15 +14478,16 @@
       "id": "PCLIP-PLUGIN-WORKERS",
       "track": "Extensibility",
       "title": "Out-of-process plugin workers + capability-gated host services",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
-      "summary": "Paperclip extract (Plugins). Grow Vanta's in-process plugin framework (tools/commands only) into out-of-process plugin workers with capability-gated host services, job scheduling, and UI contributions — extend without forking, isolated from the core.",
-      "done": "A plugin runs in its own worker process, requests capability-gated host services, schedules jobs, and contributes a UI panel.",
+      "summary": "Enabled worker plugins run in separate Node permission-model processes, use newline-delimited protocol v1 to request operator-granted host services, schedule host-owned jobs, and contribute sanitized data-only TUI panels without importing worker code into Vanta's core process.",
+      "done": "The installable operator-worker example runs under a different PID, receives a denial for an ungranted storage service, uses granted logging, schedules and executes a heartbeat job, and contributes a panel reachable from /plugin-panels. Grant/revoke/check commands expose the operator control path.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "high",
       "lens": "infra",
-      "updated": "2026-06-19"
+      "updated": "2026-07-10",
+      "notes": "SHIPPED 2026-07-10: plugin manifests can declare a worker entry and requested capabilities. Operators explicitly grant or revoke log.write, storage.read, storage.write, schedule.jobs, and ui.panel. The host launches workers with Node's permission model, a sanitized environment, plugin-directory read only, no filesystem write or child-process permission, scoped JSON storage, unref'd host schedules, bounded startup, diagnostics, and lifecycle cleanup. Panels are schema-bounded, control-stripped, data-only contributions rendered through /plugin-panels. Existing in-process plugins remain supported. docs/plugin-workers.md and examples/plugin-worker define the v1 contract.\n\nEXECUTED 2026-07-10: against a clean VANTA_HOME, the real CLI installed and enabled operator-worker, granted log.write + schedule.jobs + ui.panel, and ran `vanta plugin check operator-worker 1200`. Worker PID 87405 differed from the host, storage.write was denied, the Operator worker panel reported PID 87405, the host-fired heartbeat logged `heartbeat job ran`, check exited 0, and PID 87405 was gone afterward. Typecheck passed. Final full suite: 1189 files, 12414 passed, 3 skipped."
     },
     {
       "id": "PCLIP-SCOPED-SECRETS",
