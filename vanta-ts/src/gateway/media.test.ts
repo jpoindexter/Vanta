@@ -28,6 +28,20 @@ describe("inboundToAgentInput — images → vision", () => {
     const { images } = await inboundToAgentInput(inbound, { fetchBase64: async () => null });
     expect(images).toEqual([]);
   });
+
+  it("caches inbound image bytes before routing them to vision", async () => {
+    const calls: unknown[] = [];
+    const inbound = base({ media: [{ kind: "image", mime: "image/png", dataBase64: "SU1H" }] });
+    const { images } = await inboundToAgentInput(inbound, { cache: async (...args) => { calls.push(args); } });
+    expect(calls).toHaveLength(1);
+    expect(images).toEqual([{ mime: "image/png", dataBase64: "SU1H" }]);
+  });
+
+  it("a cache failure does not drop the inbound image", async () => {
+    const inbound = base({ media: [{ kind: "image", mime: "image/png", dataBase64: "SU1H" }] });
+    const { images } = await inboundToAgentInput(inbound, { cache: async () => { throw new Error("disk full"); } });
+    expect(images).toEqual([{ mime: "image/png", dataBase64: "SU1H" }]);
+  });
 });
 
 describe("inboundToAgentInput — voice → STT", () => {

@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { transcribeAudio } from "../voice/whisper-stt.js";
 import type { MediaBridgeDeps } from "./media.js";
+import { cacheInboundMedia } from "./media-cache.js";
 
 // MSG-MEDIA-IMAGES — the LIVE media-bridge wire: fetch a media url → base64, and
 // transcribe inbound voice memos via the local whisper CLI. This is the injected
@@ -45,5 +46,9 @@ async function transcribe(audioBase64: string, mime: string): Promise<string> {
 
 /** The live media-bridge deps (whisper STT + url fetch) for the gateway. */
 export function buildMediaBridgeDeps(): MediaBridgeDeps {
-  return { fetchBase64, transcribe };
+  return {
+    fetchBase64,
+    transcribe,
+    cache: (attachment, dataBase64) => cacheInboundMedia(attachment, dataBase64, { env: process.env }),
+  };
 }

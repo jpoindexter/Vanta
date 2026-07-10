@@ -12,6 +12,8 @@ export type MediaBridgeDeps = {
   transcribe?: (audioBase64: string, mime: string) => Promise<string>;
   /** Fetch a media url → base64, for channels that deliver a link not bytes. */
   fetchBase64?: (url: string) => Promise<string | null>;
+  /** Cache inbound media bytes under a controlled TTL directory. */
+  cache?: (attachment: MediaAttachment, dataBase64: string) => Promise<unknown>;
 };
 
 export type AgentInput = { text: string; images: ImageAttachment[] };
@@ -44,6 +46,7 @@ export async function inboundToAgentInput(
   for (const m of inbound.media ?? []) {
     const data = await bytesOf(m, deps);
     if (!data) continue;
+    await deps.cache?.(m, data).catch(() => undefined);
     if (m.kind === "image") {
       images.push({ mime: m.mime, dataBase64: data });
     } else if (deps.transcribe) {

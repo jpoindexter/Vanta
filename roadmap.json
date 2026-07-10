@@ -14890,7 +14890,7 @@
       "id": "MSG-MEDIA-VOICE",
       "track": "Operator",
       "title": "Inbound media: image->vision, voice->STT plumbing",
-      "status": "parked",
+      "status": "shipped",
       "size": "L",
       "summary": "Adapters are text-only in/out. A media layer would cache inbound audio/image/doc (path-validated, TTL) and surface them (image->vision, voice->transcription). Smallest high-leverage entry: inbound image -> existing vision tools; full voice/STT/outbound-media is a large vertical.",
       "done": "An inbound image is routed to the existing vision describe path; cached under a validated dir with TTL; voice/STT and outbound media deferred to a later slice.",
