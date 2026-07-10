@@ -33,7 +33,7 @@ need() {
 . "$SCRIPT_DIR/scripts/setup-lib.sh"
 
 if vanta_is_termux; then
-  echo -e "${CYAN}→${NC} Termux detected — installing Android-native runtime + build tools"
+  echo -e "${CYAN}→${NC} Termux detected — installing Android-native runtime"
   vanta_termux_prepare || { echo -e "${RED}✗${NC} Termux prerequisites failed"; exit 1; }
 fi
 
@@ -47,6 +47,7 @@ if [ ! -x "$SCRIPT_DIR/target/debug/vanta-kernel" ]; then
   else
     if vanta_is_termux; then
       echo -e "${CYAN}→${NC} building the Android-native safety kernel with Termux Rust"
+      vanta_termux_prepare_build || { echo -e "${RED}✗${NC} Termux build prerequisites failed"; exit 1; }
     else
       echo -e "${YELLOW}⚠${NC}  no prebuilt kernel for this platform/release — building from source (needs Rust)"
     fi

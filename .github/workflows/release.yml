@@ -30,13 +30,30 @@ jobs:
           - { os: macos-14, target: x86_64-apple-darwin }
           - { os: ubuntu-24.04, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu }
+          - { os: ubuntu-24.04, target: aarch64-linux-android }
           - { os: windows-latest, target: x86_64-pc-windows-msvc }
     steps:
       - uses: actions/checkout@v4
       - name: Add Rust target
         run: rustup target add ${{ matrix.target }}
+      - name: Configure Android NDK linker
+        if: matrix.target == 'aarch64-linux-android'
+        shell: bash
+        run: |
+          ndk="${ANDROID_NDK_LATEST_HOME:-${ANDROID_NDK_HOME:-}}"
+          linker="$ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang"
+          test -x "$linker"
+          echo "CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=$linker" >> "$GITHUB_ENV"
       - name: Build kernel (release)
         run: cargo build --release --bin vanta-kernel --target ${{ matrix.target }}
+      - name: Verify Android ABI and Bionic interpreter
+        if: matrix.target == 'aarch64-linux-android'
+        shell: bash
+        run: |
+          binary="target/${{ matrix.target }}/release/vanta-kernel"
+          file "$binary" | grep -F "ARM aarch64"
+          readelf -h "$binary" | grep -F "AArch64"
+          readelf -l "$binary" | grep -F "/system/bin/linker64"
       - name: Package binary + checksum
         shell: bash
         run: |

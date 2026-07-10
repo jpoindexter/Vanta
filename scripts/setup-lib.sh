@@ -5,6 +5,7 @@
 #   vanta_use_vendored_node       — put a previously-downloaded node on PATH
 #   vanta_is_termux               — detect the Android/Termux runtime
 #   vanta_termux_prepare          — install the curated native build/runtime set
+#   vanta_termux_prepare_build    — install compiler fallback only when required
 #   vanta_ensure_node             — guarantee node >= 22 (download a portable one)
 #   vanta_fetch_prebuilt_kernel D — download the prebuilt kernel into D/target/debug
 #
@@ -27,7 +28,11 @@ vanta_platform_name() {
 }
 
 vanta_termux_packages() {
-  printf '%s\n' "git nodejs-lts rust python make clang pkg-config esbuild"
+  printf '%s\n' "curl git nodejs-lts python esbuild"
+}
+
+vanta_termux_build_packages() {
+  printf '%s\n' "rust make clang pkg-config"
 }
 
 vanta_termux_prepare() {
@@ -36,9 +41,15 @@ vanta_termux_prepare() {
     echo "vanta: Termux detected but its pkg command is unavailable." >&2
     return 1
   }
-  # Rust builds the zero-dep kernel; native esbuild powers the tsx loader.
-  # pkg is idempotent and skips packages already installed.
+  # Native Node/esbuild run the agent. Compilers are installed separately only
+  # when a checksum-verified Android kernel cannot be downloaded.
   pkg install -y $(vanta_termux_packages)
+}
+
+vanta_termux_prepare_build() {
+  vanta_is_termux || return 1
+  command -v pkg >/dev/null 2>&1 || return 1
+  pkg install -y $(vanta_termux_build_packages)
 }
 
 # Prepend the vendored node to PATH if we've downloaded one before.
@@ -88,27 +99,30 @@ vanta_ensure_node() {
 # Returns 0 on success, 1 to fall back to `cargo build`.
 vanta_fetch_prebuilt_kernel() {
   repo="$1"
-  # GNU/Linux release binaries target glibc; Termux is Android/Bionic. Build the
-  # zero-dependency kernel natively with Termux Rust until an Android release
-  # artifact is published and proven on-device.
-  vanta_is_termux && return 1
   command -v curl >/dev/null 2>&1 || return 1
   target=""
-  case "$(uname -s)/$(uname -m)" in
-    Darwin/arm64)              target="aarch64-apple-darwin" ;;
-    Darwin/x86_64)             target="x86_64-apple-darwin" ;;
-    Linux/aarch64|Linux/arm64) target="aarch64-unknown-linux-gnu" ;;
-    Linux/x86_64)              target="x86_64-unknown-linux-gnu" ;;
-    *) return 1 ;;
-  esac
+  if vanta_is_termux; then
+    case "$(uname -m)" in
+      aarch64|arm64) target="aarch64-linux-android" ;;
+      *) return 1 ;;
+    esac
+  else
+    case "$(uname -s)/$(uname -m)" in
+      Darwin/arm64)              target="aarch64-apple-darwin" ;;
+      Darwin/x86_64)             target="x86_64-apple-darwin" ;;
+      Linux/aarch64|Linux/arm64) target="aarch64-unknown-linux-gnu" ;;
+      Linux/x86_64)              target="x86_64-unknown-linux-gnu" ;;
+      *) return 1 ;;
+    esac
+  fi
   tmp="$(mktemp -d)"
   curl -fsSL "$KERNEL_RELEASE_BASE/vanta-kernel-$target" -o "$tmp/vanta-kernel" || { rm -rf "$tmp"; return 1; }
-  if curl -fsSL "$KERNEL_RELEASE_BASE/vanta-kernel-$target.sha256" -o "$tmp/sum" 2>/dev/null && [ -s "$tmp/sum" ]; then
-    want="$(awk '{print $1}' "$tmp/sum")"
-    if command -v shasum >/dev/null 2>&1; then got="$(shasum -a 256 "$tmp/vanta-kernel" | awk '{print $1}')"
-    else got="$(sha256sum "$tmp/vanta-kernel" | awk '{print $1}')"; fi
-    if [ -n "$want" ] && [ "$want" != "$got" ]; then rm -rf "$tmp"; return 1; fi
-  fi
+  curl -fsSL "$KERNEL_RELEASE_BASE/vanta-kernel-$target.sha256" -o "$tmp/sum" 2>/dev/null || { rm -rf "$tmp"; return 1; }
+  [ -s "$tmp/sum" ] || { rm -rf "$tmp"; return 1; }
+  want="$(awk '{print $1}' "$tmp/sum")"
+  if command -v shasum >/dev/null 2>&1; then got="$(shasum -a 256 "$tmp/vanta-kernel" | awk '{print $1}')"
+  else got="$(sha256sum "$tmp/vanta-kernel" | awk '{print $1}')"; fi
+  if [ -z "$want" ] || [ "$want" != "$got" ]; then rm -rf "$tmp"; return 1; fi
   mkdir -p "$repo/target/debug"
   cp "$tmp/vanta-kernel" "$repo/target/debug/vanta-kernel" || { rm -rf "$tmp"; return 1; }
   chmod +x "$repo/target/debug/vanta-kernel"

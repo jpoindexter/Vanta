@@ -65,6 +65,11 @@ describe("runPreflight", () => {
     const macOnly: ToolSpec = { name: "cliclick", cmd: "cliclick", required: false, purpose: "desktop", platforms: ["macos"] };
     expect(runPreflight(() => false, [node, macOnly], "termux").missingRecommended).toEqual([]);
   });
+  it("does not require cargo on Termux when the installer provides a verified kernel", () => {
+    const result = runPreflight((cmd) => cmd === "node" || cmd === "git", PREFLIGHT_TOOLS, "termux");
+    expect(result.ok).toBe(true);
+    expect(result.missingRequired.map((tool) => tool.cmd)).toEqual([]);
+  });
 });
 
 describe("formatPreflight", () => {

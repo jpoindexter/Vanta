@@ -35,6 +35,9 @@ fi
 # --- one-time bootstrap (kernel + node + deps) -------------------------------
 vanta_acquire_kernel() {
   if ! vanta_fetch_prebuilt_kernel "$DIR"; then
+    if vanta_is_termux; then
+      vanta_termux_prepare_build || return 1
+    fi
     if ! command -v cargo >/dev/null 2>&1; then
       echo "vanta: no prebuilt kernel for this platform and Rust isn't installed." >&2
       echo "  Install Rust (https://rustup.rs) or re-run ./install.sh." >&2

@@ -12,13 +12,15 @@ vanta setup
 vanta
 ```
 
-The installer detects Termux and uses Android-native packages: `nodejs-lts`,
-`rust`, `python`, `make`, `clang`, `pkg-config`, and `esbuild`. It builds the
-zero-dependency Rust safety kernel locally because GNU/Linux release binaries
-target glibc while Termux uses Android/Bionic. Runtime dependencies install
-without desktop lifecycle scripts or optional native accelerators; Vanta uses
-Termux's native esbuild and its bundled WASM Bash grammar. The launcher is
-installed into `$PREFIX/bin`, which Termux already places on `PATH`.
+The installer detects Termux and uses Android-native `curl`, `nodejs-lts`,
+`python`, and `esbuild` packages. On ARM64 it first downloads the checksum-verified
+`aarch64-linux-android` safety kernel built against Android/Bionic. If that
+release artifact is unavailable, it installs `rust`, `make`, `clang`, and
+`pkg-config` and builds the zero-dependency kernel on-device. Runtime
+dependencies install without desktop lifecycle scripts or optional native
+accelerators; Vanta uses Termux's native esbuild and its bundled WASM Bash
+grammar. The launcher is installed into `$PREFIX/bin`, which Termux already
+places on `PATH`.
 
 Termux defaults Vanta's Node heap ceiling to 1536 MB instead of the desktop 8192
 MB ceiling. Override it with `VANTA_NODE_MAX_MB` when the device has more or less

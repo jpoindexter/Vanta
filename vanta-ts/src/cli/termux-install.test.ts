@@ -17,10 +17,11 @@ describe("Termux install/runtime path", () => {
 
     expect(stdout).toContain("Termux detected");
     expect(stdout).toContain("building the Android-native safety kernel");
-    expect(calls).toContain("pkg install -y git nodejs-lts rust python make clang pkg-config esbuild");
+    expect(calls).toContain("pkg install -y curl git nodejs-lts python esbuild");
+    expect(calls).toContain("pkg install -y rust make clang pkg-config");
     expect(calls).toContain("cargo build");
     expect(calls).toContain("npm build_from_source=false install --omit=dev --omit=optional --ignore-scripts");
-    expect(calls).not.toContain("curl");
+    expect(calls).toContain("vanta-kernel-aarch64-linux-android");
     await expect(readFile(join(fixture.prefix, "bin", "vanta"), "utf8")).resolves.toContain("Vanta global launcher");
     await expect(readFile(join(fixture.root, "target", "debug", "vanta-kernel"), "utf8")).resolves.toContain("exit 0");
   });
@@ -56,6 +57,7 @@ describe("Termux install/runtime path", () => {
     const helper = join(process.cwd(), "..", "scripts", "setup-lib.sh");
     const script = `
       . "$HELPER"
+      uname() { [ "\${1:-}" = "-m" ] && echo x86_64 || echo Linux; }
       curl() { echo curl-called; return 9; }
       if vanta_ensure_node; then echo node-ok; else echo node-native-required; fi
       if vanta_fetch_prebuilt_kernel "$ROOT"; then echo kernel-ok; else echo kernel-native-required; fi
@@ -72,6 +74,63 @@ describe("Termux install/runtime path", () => {
     expect(stdout).toContain("kernel-native-required");
     expect(stdout).toContain("termux");
     expect(stdout).not.toContain("curl-called");
+  });
+
+  it("downloads and checksum-verifies the Android/Bionic kernel on ARM64 Termux", async () => {
+    const helper = join(process.cwd(), "..", "scripts", "setup-lib.sh");
+    const root = await tempDir("arm64-kernel");
+    const script = `
+      . "$HELPER"
+      uname() { [ "\${1:-}" = "-m" ] && echo aarch64 || echo Linux; }
+      curl() {
+        url=""; out=""
+        while [ "$#" -gt 0 ]; do
+          case "$1" in -o) out="$2"; shift 2 ;; http*) url="$1"; shift ;; *) shift ;; esac
+        done
+        echo "$url" >> "$CALL_LOG"
+        case "$url" in
+          *.sha256) printf '%s  vanta-kernel-aarch64-linux-android\\n' "$(printf android-kernel | sha256sum | awk '{print $1}')" > "$out" ;;
+          *) printf android-kernel > "$out" ;;
+        esac
+      }
+      vanta_fetch_prebuilt_kernel "$ROOT"
+    `;
+    const log = join(root, "downloads.log");
+    await exec("sh", ["-c", script], { env: {
+      ...process.env,
+      TERMUX_VERSION: "0.118",
+      PREFIX: "/data/data/com.termux/files/usr",
+      HELPER: helper,
+      ROOT: root,
+      CALL_LOG: log,
+    } });
+    await expect(readFile(join(root, "target", "debug", "vanta-kernel"), "utf8")).resolves.toBe("android-kernel");
+    await expect(readFile(log, "utf8")).resolves.toContain("vanta-kernel-aarch64-linux-android");
+  });
+
+  it("rejects an ARM64 Android kernel when its release checksum does not match", async () => {
+    const helper = join(process.cwd(), "..", "scripts", "setup-lib.sh");
+    const root = await tempDir("arm64-bad-sum");
+    const script = `
+      . "$HELPER"
+      uname() { [ "\${1:-}" = "-m" ] && echo aarch64 || echo Linux; }
+      curl() {
+        out=""
+        while [ "$#" -gt 0 ]; do
+          case "$1" in -o) out="$2"; shift 2 ;; *) shift ;; esac
+        done
+        case "$out" in */sum) printf '%064d  kernel\\n' 0 > "$out" ;; *) printf tampered > "$out" ;; esac
+      }
+      if vanta_fetch_prebuilt_kernel "$ROOT"; then exit 9; fi
+      test ! -e "$ROOT/target/debug/vanta-kernel"
+    `;
+    await exec("sh", ["-c", script], { env: {
+      ...process.env,
+      TERMUX_VERSION: "0.118",
+      PREFIX: "/data/data/com.termux/files/usr",
+      HELPER: helper,
+      ROOT: root,
+    } });
   });
 });
 
@@ -102,6 +161,7 @@ async function installerFixture(): Promise<{ root: string; prefix: string; log: 
   await writeFile(join(root, "vanta-ts", "package.json"), "{}\n", "utf8");
   await writeExecutable(join(root, "run.sh"), "#!/bin/sh\nexit 0\n");
   await writeExecutable(join(fakeBin, "pkg"), '#!/bin/sh\necho "pkg $*" >> "$CALL_LOG"\n');
+  await writeExecutable(join(fakeBin, "uname"), '#!/bin/sh\nif [ "${1:-}" = "-m" ]; then echo aarch64; else echo Linux; fi\n');
   await writeExecutable(join(fakeBin, "cargo"), CARGO_FIXTURE);
   await writeExecutable(join(fakeBin, "npm"), '#!/bin/sh\necho "npm build_from_source=${npm_config_build_from_source:-false} $*" >> "$CALL_LOG"\nmkdir -p node_modules\n');
   await writeExecutable(join(fakeBin, "curl"), '#!/bin/sh\necho "curl $*" >> "$CALL_LOG"\nexit 9\n');

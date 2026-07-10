@@ -27,7 +27,7 @@ export interface ToolSpec {
 // turns on an opt-in capability (voice / desktop / swarm), degraded-without.
 export const PREFLIGHT_TOOLS: ToolSpec[] = [
   { name: "Node.js 22+", cmd: "node", required: true, purpose: "the agent runtime", brew: "node", termux: "nodejs-lts", url: "https://nodejs.org" },
-  { name: "Rust (cargo)", cmd: "cargo", required: true, purpose: "the safety kernel", termux: "rust", url: "https://rustup.rs" },
+  { name: "Rust (cargo)", cmd: "cargo", required: true, purpose: "the safety kernel", termux: "rust", url: "https://rustup.rs", platforms: ["macos", "linux", "other"] },
   { name: "git", cmd: "git", required: true, purpose: "source + skill versioning", brew: "git", apt: "git", termux: "git" },
   { name: "ripgrep", cmd: "rg", required: false, purpose: "fast code search", brew: "ripgrep", apt: "ripgrep", termux: "ripgrep" },
   { name: "ffmpeg", cmd: "ffmpeg", required: false, purpose: "voice input capture", brew: "ffmpeg", apt: "ffmpeg", termux: "ffmpeg" },
