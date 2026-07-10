@@ -4,7 +4,7 @@
 // Pure core (runPreflight over an injected probe) + a real `commandExists` adapter.
 import { spawnSync } from "node:child_process";
 
-export type Platform = "macos" | "linux" | "other";
+export type Platform = "macos" | "linux" | "termux" | "other";
 
 export interface ToolSpec {
   /** Display name. */
@@ -17,6 +17,8 @@ export interface ToolSpec {
   purpose: string;
   brew?: string;
   apt?: string;
+  termux?: string;
+  platforms?: Platform[];
   /** Manual install URL when there's no package (e.g. rustup). */
   url?: string;
 }
@@ -24,17 +26,18 @@ export interface ToolSpec {
 // The tools a fresh machine needs. Required = can't run without it; recommended =
 // turns on an opt-in capability (voice / desktop / swarm), degraded-without.
 export const PREFLIGHT_TOOLS: ToolSpec[] = [
-  { name: "Node.js 22+", cmd: "node", required: true, purpose: "the agent runtime", brew: "node", url: "https://nodejs.org" },
-  { name: "Rust (cargo)", cmd: "cargo", required: true, purpose: "the safety kernel", url: "https://rustup.rs" },
-  { name: "git", cmd: "git", required: true, purpose: "source + skill versioning", brew: "git", apt: "git" },
-  { name: "ripgrep", cmd: "rg", required: false, purpose: "fast code search", brew: "ripgrep", apt: "ripgrep" },
-  { name: "ffmpeg", cmd: "ffmpeg", required: false, purpose: "voice input capture", brew: "ffmpeg", apt: "ffmpeg" },
+  { name: "Node.js 22+", cmd: "node", required: true, purpose: "the agent runtime", brew: "node", termux: "nodejs-lts", url: "https://nodejs.org" },
+  { name: "Rust (cargo)", cmd: "cargo", required: true, purpose: "the safety kernel", termux: "rust", url: "https://rustup.rs" },
+  { name: "git", cmd: "git", required: true, purpose: "source + skill versioning", brew: "git", apt: "git", termux: "git" },
+  { name: "ripgrep", cmd: "rg", required: false, purpose: "fast code search", brew: "ripgrep", apt: "ripgrep", termux: "ripgrep" },
+  { name: "ffmpeg", cmd: "ffmpeg", required: false, purpose: "voice input capture", brew: "ffmpeg", apt: "ffmpeg", termux: "ffmpeg" },
   { name: "whisper", cmd: "whisper", required: false, purpose: "local speech-to-text", brew: "openai-whisper", url: "https://github.com/openai/whisper" },
-  { name: "cliclick", cmd: "cliclick", required: false, purpose: "native desktop control", brew: "cliclick" },
-  { name: "tmux", cmd: "tmux", required: false, purpose: "terminal capture + swarm", brew: "tmux", apt: "tmux" },
+  { name: "cliclick", cmd: "cliclick", required: false, purpose: "native desktop control", brew: "cliclick", platforms: ["macos"] },
+  { name: "tmux", cmd: "tmux", required: false, purpose: "terminal capture + swarm", brew: "tmux", apt: "tmux", termux: "tmux" },
 ];
 
-export function detectPlatform(p: NodeJS.Platform = process.platform): Platform {
+export function detectPlatform(p: NodeJS.Platform = process.platform, env: NodeJS.ProcessEnv = process.env): Platform {
+  if (p === "linux" && (env.TERMUX_VERSION || env.PREFIX?.includes("com.termux"))) return "termux";
   if (p === "darwin") return "macos";
   if (p === "linux") return "linux";
   return "other";
@@ -44,6 +47,7 @@ export function detectPlatform(p: NodeJS.Platform = process.platform): Platform 
 export function installCommand(tool: ToolSpec, platform: Platform): string | null {
   if (platform === "macos" && tool.brew) return `brew install ${tool.brew}`;
   if (platform === "linux" && tool.apt) return `sudo apt-get install -y ${tool.apt}`;
+  if (platform === "termux") return tool.termux ? `pkg install -y ${tool.termux}` : tool.url ?? null;
   if (tool.url) return tool.url;
   if (tool.brew) return `brew install ${tool.brew}`;
   return null;
@@ -60,11 +64,13 @@ export interface PreflightResult {
 export function runPreflight(
   has: (cmd: string) => boolean,
   tools: ToolSpec[] = PREFLIGHT_TOOLS,
+  platform?: Platform,
 ): PreflightResult {
   const present: string[] = [];
   const missingRequired: ToolSpec[] = [];
   const missingRecommended: ToolSpec[] = [];
   for (const t of tools) {
+    if (platform && t.platforms && !t.platforms.includes(platform)) continue;
     if (has(t.cmd)) present.push(t.cmd);
     else if (t.required) missingRequired.push(t);
     else missingRecommended.push(t);

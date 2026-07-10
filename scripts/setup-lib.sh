@@ -3,6 +3,8 @@
 # install path lives in ONE place. POSIX sh (works under bash and dash).
 #
 #   vanta_use_vendored_node       — put a previously-downloaded node on PATH
+#   vanta_is_termux               — detect the Android/Termux runtime
+#   vanta_termux_prepare          — install the curated native build/runtime set
 #   vanta_ensure_node             — guarantee node >= 22 (download a portable one)
 #   vanta_fetch_prebuilt_kernel D — download the prebuilt kernel into D/target/debug
 #
@@ -12,6 +14,32 @@
 VANTA_NODE_DIR="${VANTA_NODE_DIR:-${VANTA_HOME:-$HOME/.vanta}/node}"
 KERNEL_RELEASE_BASE="${VANTA_KERNEL_RELEASE_BASE:-https://github.com/jpoindexter/Vanta/releases/latest/download}"
 NODE_DIST_BASE="${VANTA_NODE_DIST_BASE:-https://nodejs.org/dist/latest-v22.x}"
+
+vanta_is_termux() {
+  [ -n "${TERMUX_VERSION:-}" ] && return 0
+  case "${PREFIX:-}" in */com.termux/*) return 0 ;; esac
+  return 1
+}
+
+vanta_platform_name() {
+  if vanta_is_termux; then printf '%s\n' termux
+  else printf '%s/%s\n' "$(uname -s)" "$(uname -m)"; fi
+}
+
+vanta_termux_packages() {
+  printf '%s\n' "git nodejs-lts rust python make clang pkg-config"
+}
+
+vanta_termux_prepare() {
+  vanta_is_termux || return 1
+  command -v pkg >/dev/null 2>&1 || {
+    echo "vanta: Termux detected but its pkg command is unavailable." >&2
+    return 1
+  }
+  # node-gyp builds tree-sitter-bash on Android; Rust builds the zero-dep kernel.
+  # pkg is idempotent and skips packages already installed.
+  pkg install -y $(vanta_termux_packages)
+}
 
 # Prepend the vendored node to PATH if we've downloaded one before.
 vanta_use_vendored_node() {
@@ -33,6 +61,9 @@ vanta_node_ready() {
 vanta_ensure_node() {
   vanta_use_vendored_node
   vanta_node_ready && return 0
+  # nodejs.org's Linux tarballs target glibc and cannot run on Android/Bionic.
+  # The Termux package is native and is installed by vanta_termux_prepare.
+  vanta_is_termux && return 1
   command -v curl >/dev/null 2>&1 || return 1
   os=""; arch=""
   case "$(uname -s)" in Darwin) os=darwin ;; Linux) os=linux ;; *) return 1 ;; esac
@@ -57,6 +88,10 @@ vanta_ensure_node() {
 # Returns 0 on success, 1 to fall back to `cargo build`.
 vanta_fetch_prebuilt_kernel() {
   repo="$1"
+  # GNU/Linux release binaries target glibc; Termux is Android/Bionic. Build the
+  # zero-dependency kernel natively with Termux Rust until an Android release
+  # artifact is published and proven on-device.
+  vanta_is_termux && return 1
   command -v curl >/dev/null 2>&1 || return 1
   target=""
   case "$(uname -s)/$(uname -m)" in
@@ -80,4 +115,13 @@ vanta_fetch_prebuilt_kernel() {
   xattr -d com.apple.quarantine "$repo/target/debug/vanta-kernel" 2>/dev/null || true
   rm -rf "$tmp"
   return 0
+}
+
+vanta_install_agent_deps() {
+  agent_dir="$1"
+  if vanta_is_termux; then
+    (cd "$agent_dir" && npm_config_build_from_source=true npm install --omit=dev)
+  else
+    (cd "$agent_dir" && npm install --omit=dev)
+  fi
 }

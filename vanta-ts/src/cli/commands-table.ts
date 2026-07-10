@@ -13,7 +13,7 @@ import { runTtsSetup } from "../setup-tts.js";
 import { runStatus } from "../status.js";
 import { runMigrate } from "./migrate-cmd.js";
 import { runAgentImageCommand } from "./agent-image-cmd.js";
-import { runPreflight, formatPreflight, commandExists, detectPlatform } from "../setup/preflight.js";
+import { runPreflight, formatPreflight, commandExists, detectPlatform, PREFLIGHT_TOOLS } from "../setup/preflight.js";
 import { runBetaProofCommand } from "./beta-proof-cmd.js";
 import {
   dataDirFor,
@@ -143,8 +143,9 @@ export const COMMANDS: Record<string, CommandFn> = {
   migrate: (_root, rest) => runMigrate(rest),
   "agent-image": (_root, rest) => runAgentImageCommand(rest),
   preflight: () => {
-    const res = runPreflight(commandExists);
-    console.log(formatPreflight(res, detectPlatform()));
+    const platform = detectPlatform();
+    const res = runPreflight(commandExists, PREFLIGHT_TOOLS, platform);
+    console.log(formatPreflight(res, platform));
     return res.ok ? 0 : 1;
   },
   "beta-proof": (root) => runBetaProofCommand(root),

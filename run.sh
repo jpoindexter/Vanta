@@ -26,6 +26,7 @@ mkdir -p "$VANTA_STATE_HOME" 2>/dev/null || true
 . "$DIR/scripts/setup-lib.sh"
 . "$DIR/scripts/install-events.sh"
 vanta_use_vendored_node
+if vanta_is_termux; then VANTA_PLATFORM="${VANTA_PLATFORM:-termux}"; export VANTA_PLATFORM; fi
 
 # --- one-time bootstrap (kernel + node + deps) -------------------------------
 vanta_acquire_kernel() {
@@ -41,12 +42,16 @@ vanta_acquire_kernel() {
 
 vanta_acquire_node() {
   vanta_ensure_node && return 0
-  echo "vanta: Node.js 22+ not found and couldn't be downloaded. Install it: https://nodejs.org" >&2
+  if vanta_is_termux; then
+    echo "vanta: Termux Node.js 22+ not found. Run: pkg install nodejs-lts" >&2
+  else
+    echo "vanta: Node.js 22+ not found and couldn't be downloaded. Install it: https://nodejs.org" >&2
+  fi
   return 1
 }
 
 vanta_acquire_deps() {
-  (cd "$DIR/vanta-ts" && npm install --omit=dev)
+  vanta_install_agent_deps "$DIR/vanta-ts"
 }
 
 if [ ! -x "$DIR/target/debug/vanta-kernel" ] || ! vanta_node_ready || [ ! -d "$DIR/vanta-ts/node_modules" ]; then
@@ -82,7 +87,9 @@ export VANTA_RELAUNCH=1
 # or long sessions can exceed it (a default-heap node OOMs near 4GB — observed).
 # Raise the ceiling; override (MB) via VANTA_NODE_MAX_MB. Appends to any existing
 # NODE_OPTIONS rather than clobbering it. This raises the ceiling, not a leak fix.
-export NODE_OPTIONS="${NODE_OPTIONS:-} --max-old-space-size=${VANTA_NODE_MAX_MB:-8192}"
+if vanta_is_termux; then VANTA_NODE_MAX_DEFAULT=1536; else VANTA_NODE_MAX_DEFAULT=8192; fi
+VANTA_HEAP_OPTION="--max-old-space-size=${VANTA_NODE_MAX_MB:-$VANTA_NODE_MAX_DEFAULT}"
+export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }$VANTA_HEAP_OPTION"
 
 while :; do
   if $TSX src/cli.ts "$@"; then code=0; else code=$?; fi

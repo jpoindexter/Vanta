@@ -28,11 +28,16 @@ need() {
   fi
   echo -e "${RED}✗${NC} $1 is required — install it: $3"; exit 1
 }
-need git git "https://git-scm.com/downloads"
-
 # Shared no-toolchain helpers — kernel + Node download (one source of truth,
 # also used by run.sh). A non-CS user needs neither Rust nor a system Node.
 . "$SCRIPT_DIR/scripts/setup-lib.sh"
+
+if vanta_is_termux; then
+  echo -e "${CYAN}→${NC} Termux detected — installing Android-native runtime + build tools"
+  vanta_termux_prepare || { echo -e "${RED}✗${NC} Termux prerequisites failed"; exit 1; }
+fi
+
+need git git "https://git-scm.com/downloads"
 
 # --- acquire kernel + node + deps (first run only) --------------------------
 if [ ! -x "$SCRIPT_DIR/target/debug/vanta-kernel" ]; then
@@ -40,7 +45,11 @@ if [ ! -x "$SCRIPT_DIR/target/debug/vanta-kernel" ]; then
   if vanta_fetch_prebuilt_kernel "$SCRIPT_DIR"; then
     echo -e "${GREEN}✓${NC} downloaded prebuilt kernel ($(uname -s)/$(uname -m)) — no Rust toolchain needed"
   else
-    echo -e "${YELLOW}⚠${NC}  no prebuilt kernel for this platform/release — building from source (needs Rust)"
+    if vanta_is_termux; then
+      echo -e "${CYAN}→${NC} building the Android-native safety kernel with Termux Rust"
+    else
+      echo -e "${YELLOW}⚠${NC}  no prebuilt kernel for this platform/release — building from source (needs Rust)"
+    fi
     need cargo "" "https://rustup.rs  (curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh)"
     cargo build
   fi
@@ -50,7 +59,11 @@ fi
 if vanta_ensure_node; then
   command -v node >/dev/null 2>&1 && echo -e "${GREEN}✓${NC} node $(node -v) ready ($(command -v node))"
 else
-  need node node "https://nodejs.org  (Node 22+)"
+  if vanta_is_termux; then
+    echo -e "${RED}✗${NC} Termux Node.js 22+ is unavailable after pkg install nodejs-lts"; exit 1
+  else
+    need node node "https://nodejs.org  (Node 22+)"
+  fi
 fi
 
 if [ ! -d "$SCRIPT_DIR/vanta-ts/node_modules" ]; then
@@ -58,7 +71,7 @@ if [ ! -d "$SCRIPT_DIR/vanta-ts/node_modules" ]; then
   # Users install runtime deps only (--omit=dev) — keeps the test toolchain (vitest/vite)
   # and its advisories off a tester's machine. tsx + typescript are runtime deps (the app
   # runs via tsx; the size gate / LSP use the TS compiler API), so they stay installed.
-  (cd "$SCRIPT_DIR/vanta-ts" && npm install --omit=dev)
+  vanta_install_agent_deps "$SCRIPT_DIR/vanta-ts"
 fi
 echo -e "${GREEN}✓${NC} kernel + deps ready"
 
@@ -66,7 +79,7 @@ echo -e "${GREEN}✓${NC} kernel + deps ready"
 # A SELF-LOCATING launcher (not a symlink, no baked-in path): it remembers where
 # the repo is and, if the repo moves, finds it again by signature and updates the
 # memo — so moving the repo never requires re-running install.sh.
-BIN_DIR="$HOME/.local/bin"
+if vanta_is_termux; then BIN_DIR="$PREFIX/bin"; else BIN_DIR="$HOME/.local/bin"; fi
 mkdir -p "$BIN_DIR"
 cat > "$BIN_DIR/vanta" <<'LAUNCHER'
 #!/bin/sh
@@ -130,7 +143,7 @@ case ":$PATH:" in
     RC="$HOME/.zshrc"
     [[ "$SHELL" == *bash* ]] && RC="$HOME/.bashrc"
     if ! grep -q '\.local/bin' "$RC" 2>/dev/null; then
-      printf '\n# Vanta — global command\nexport PATH="$HOME/.local/bin:$PATH"\n' >> "$RC"
+      printf '\n# Vanta — global command\nexport PATH="%s:$PATH"\n' "$BIN_DIR" >> "$RC"
       echo -e "${GREEN}✓${NC} added $BIN_DIR to PATH in $RC"
       echo -e "${YELLOW}→${NC} run: source $RC   (or open a new terminal)"
     fi

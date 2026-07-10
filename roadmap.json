@@ -16294,16 +16294,18 @@
       "id": "PLATFORM-MOBILE-TERMUX",
       "track": "Harness",
       "title": "Mobile install — Android / Termux path (Vanta in your pocket)",
-      "status": "horizon",
+      "status": "parked",
       "size": "L",
-      "summary": "a reference agent harness installs on Android via Termux with a curated extras set (full deps pull Android-incompatible voice libs). Add a tested Termux install path + a curated dependency profile so Vanta runs on a phone — part of 'reaches you everywhere'. Pairs with the mobile companion node.",
+      "summary": "Folded into RUN-ANYWHERE-TERMUX so Android installer and runtime work have one owner and one on-device release gate.",
       "done": "A documented Termux install brings up the CLI + gateway on Android with a curated dep set; a basic task runs end-to-end on-device; voice/heavy deps degrade gracefully.",
       "tier": "pebble",
       "lens": "infra",
       "source": "vision-gap-audit-2026-06-21",
       "after": [
         "INSTALL-PARITY"
-      ]
+      ],
+      "updated": "2026-07-10",
+      "notes": "PARKED AS DUPLICATE 2026-07-10: RUN-ANYWHERE-TERMUX now owns Termux detection, curated pkg dependencies, native kernel build, npm native-module build, PREFIX/bin launcher, phone heap profile, preflight guidance, docs, and the remaining real-device smoke proof. Do not build or move this card independently."
     },
     {
       "id": "PLATFORM-WINDOWS",
@@ -16702,12 +16704,13 @@
       "id": "RUN-ANYWHERE-TERMUX",
       "track": "Operator",
       "title": "Termux / Android runtime (run-anywhere North Star gap)",
-      "status": "horizon",
+      "status": "building",
       "size": "M",
-      "summary": "Hermes explicitly supports Termux (Android); Vanta is Node 22 + a Rust kernel and is unproven there. Node runs on Termux; the gap is the kernel — needs an aarch64-android prebuilt (extend release.yml) OR a cargo build on Termux, plus setup-lib.sh Termux detection. Aligns with the 'runs anywhere you control' North Star (a phone IS a host you control).",
+      "summary": "The shared installer detects Termux, installs Android-native Node/Rust/build packages, builds the zero-dependency kernel against Android/Bionic, compiles native npm modules, installs the launcher into PREFIX/bin, and applies a phone-sized heap profile. Real-device execution remains the release gate.",
       "done": "install.sh + run.sh bring up a working Vanta (kernel + agent) on Termux/Android, doctor green; aarch64-android kernel published or built on-device.",
       "tier": "pebble",
-      "updated": "2026-06-27"
+      "updated": "2026-07-10",
+      "notes": "IMPLEMENTED 2026-07-10: scripts/setup-lib.sh detects TERMUX_VERSION/PREFIX, refuses incompatible nodejs.org GNU Node and glibc kernel downloads, installs the curated `git nodejs-lts rust python make clang pkg-config` set through pkg, builds native npm modules from source, and exposes a stable platform name. install.sh runs that path before prerequisite checks, builds the Rust kernel natively, and writes the launcher to PREFIX/bin. run.sh exports VANTA_PLATFORM=termux, uses the same native dependency path, gives missing-Node pkg guidance, and defaults the V8 heap ceiling to 1536 MB. Preflight now identifies Termux separately, emits pkg commands, and omits macOS-only cliclick. docs/termux.md owns the operator steps. PLATFORM-MOBILE-TERMUX is parked as a duplicate.\n\nEXECUTED OFF-DEVICE 2026-07-10: an isolated copy of the real install.sh under Termux signals invoked the exact pkg set, refused curl downloads, built the kernel through native cargo, set npm_config_build_from_source=true, installed the launcher under PREFIX/bin, and completed. An isolated warm run of the real run.sh exported `termux`, used `--max-old-space-size=1536`, and launched the CLI. Helper tests proved both GNU Node and kernel downloads fail closed on Termux. Simulated real CLI preflight exited 0. Bash/sh syntax and TypeScript passed; shellcheck was unavailable and is not claimed. Final full suite: 1193 files, 12428 passed, 3 skipped.\n\nREMAINING REAL-DEVICE GATE: on an Android/Termux host, run `./install.sh`, `vanta --help`, `vanta doctor`, `vanta run \"Reply with TERMUX_OK and do not use tools\"`, and `vanta gateway verify-channels`. Keep building until the kernel, TUI/CLI, provider turn, and gateway all execute on-device."
     },
     {
       "id": "RELIABILITY-SHELL-BG-WEDGE",

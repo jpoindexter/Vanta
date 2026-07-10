@@ -17,6 +17,8 @@ describe("detectPlatform", () => {
   it("maps node platforms to install targets", () => {
     expect(detectPlatform("darwin")).toBe("macos");
     expect(detectPlatform("linux")).toBe("linux");
+    expect(detectPlatform("linux", { TERMUX_VERSION: "0.118" })).toBe("termux");
+    expect(detectPlatform("linux", { PREFIX: "/data/data/com.termux/files/usr" })).toBe("termux");
     expect(detectPlatform("win32")).toBe("other");
   });
 });
@@ -29,6 +31,10 @@ describe("installCommand", () => {
   it("falls back to the manual URL when no package exists for the platform", () => {
     expect(installCommand(rust, "linux")).toBe("https://rustup.rs"); // no apt
     expect(installCommand(rust, "macos")).toBe("https://rustup.rs"); // no brew
+  });
+  it("uses native Termux package commands without suggesting Homebrew", () => {
+    expect(installCommand({ ...node, termux: "nodejs-lts" }, "termux")).toBe("pkg install -y nodejs-lts");
+    expect(installCommand(rg, "termux")).toBeNull();
   });
   it("uses the URL on 'other' platforms, then brew as a last resort", () => {
     expect(installCommand(node, "other")).toBe("https://nodejs.org");
@@ -54,6 +60,10 @@ describe("runPreflight", () => {
     expect(res.ok).toBe(true);
     expect(res.missingRequired).toHaveLength(0);
     expect(res.missingRecommended.map((t) => t.cmd)).toEqual(["rg"]);
+  });
+  it("omits platform-specific tools outside their platform", () => {
+    const macOnly: ToolSpec = { name: "cliclick", cmd: "cliclick", required: false, purpose: "desktop", platforms: ["macos"] };
+    expect(runPreflight(() => false, [node, macOnly], "termux").missingRecommended).toEqual([]);
   });
 });
 
