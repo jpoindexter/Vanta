@@ -28,7 +28,7 @@ cd "$TERMUX_HOME"
 HEADER
     printf '%s\n' "$body"
   } | adb exec-out run-as "$TERMUX_PACKAGE" sh -c "cat > '$remote'"
-  adb shell run-as "$TERMUX_PACKAGE" "$TERMUX_PREFIX/bin/bash" "$remote"
+  adb exec-out run-as "$TERMUX_PACKAGE" "$TERMUX_PREFIX/bin/bash" "$remote" </dev/null
 }
 
 echo "Downloading checksum-pinned Termux ${TERMUX_VERSION} x86_64 APK"
@@ -38,14 +38,16 @@ printf '%s  %s\n' "$APK_SHA256" "$APK_PATH" | sha256sum -c -
 adb wait-for-device
 adb install -r "$APK_PATH"
 adb shell am force-stop "$TERMUX_PACKAGE" || true
-adb shell monkey -p "$TERMUX_PACKAGE" -c android.intent.category.LAUNCHER 1 >/dev/null
+adb shell monkey -p "$TERMUX_PACKAGE" -c android.intent.category.LAUNCHER 1 </dev/null >/dev/null
 
 ready=0
+echo "Waiting for Termux bootstrap"
 for _ in $(seq 1 90); do
-  if adb shell run-as "$TERMUX_PACKAGE" test -x "$TERMUX_PREFIX/bin/bash" 2>/dev/null; then
+  if timeout 5s adb exec-out run-as "$TERMUX_PACKAGE" test -x "$TERMUX_PREFIX/bin/bash" </dev/null 2>/dev/null; then
     ready=1
     break
   fi
+  if [ $((_ % 10)) -eq 0 ]; then echo "  still waiting (${_}/90)"; fi
   sleep 2
 done
 if [ "$ready" -ne 1 ]; then
