@@ -12,6 +12,12 @@ APK_PATH="${RUNNER_TEMP:-/tmp}/${APK_NAME}"
 SOURCE_ARCHIVE="${RUNNER_TEMP:-/tmp}/vanta-termux-source.tgz"
 TERMUX_STEP=0
 
+launch_termux() {
+  adb shell am force-stop "$TERMUX_PACKAGE" || true
+  timeout -k 2s 15s adb shell am start -W -n \
+    "$TERMUX_PACKAGE/com.termux.app.TermuxActivity" </dev/null || true
+}
+
 termux_run() {
   local body="$1"
   local timeout_duration="${2:-30m}"
@@ -54,8 +60,8 @@ printf '%s  %s\n' "$APK_SHA256" "$APK_PATH" | sha256sum -c -
 
 adb wait-for-device
 adb install -r "$APK_PATH"
-adb shell am force-stop "$TERMUX_PACKAGE" || true
-timeout -k 2s 15s adb shell am start -W -n "$TERMUX_PACKAGE/com.termux.app.TermuxActivity" </dev/null || true
+adb logcat -c
+launch_termux
 
 ready=0
 echo "Waiting for Termux bootstrap"
@@ -68,11 +74,20 @@ for attempt in $(seq 1 90); do
     ready=1
     break
   fi
-  if [ $((attempt % 10)) -eq 0 ]; then echo "  still waiting (${attempt}/90)"; fi
+  if [ $((attempt % 10)) -eq 0 ]; then
+    echo "  still waiting (${attempt}/90)"
+    timeout -k 1s 5s adb shell \
+      "run-as $TERMUX_PACKAGE ls -ld /data/data/$TERMUX_PACKAGE/files $TERMUX_HOME $TERMUX_PREFIX" \
+      </dev/null 2>&1 || true
+  fi
+  if [ "$attempt" -eq 15 ] || [ "$attempt" -eq 30 ]; then
+    echo "  restarting Termux bootstrap activity"
+    launch_termux
+  fi
   sleep 2
 done
 if [ "$ready" -ne 1 ]; then
-  adb logcat -d | tail -200
+  adb logcat -d | grep -i -E 'termux|AndroidRuntime|FATAL EXCEPTION' | tail -400 || true
   echo "Termux bootstrap did not become ready" >&2
   exit 1
 fi
