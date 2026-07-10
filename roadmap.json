@@ -16187,7 +16187,7 @@
       "id": "BACKEND-SERVERLESS-LIVE",
       "track": "Harness",
       "title": "Serverless LIVE — Modal/Daytona hibernate + wake-on-message, proven",
-      "status": "horizon",
+      "status": "building",
       "size": "L",
       "summary": "BACKEND-SERVERLESS shipped as a structured command-transport slice. Prove it live: the agent runs on Modal/Daytona, hibernates when idle (~$0), and wakes on an inbound message so you can talk to it from Telegram while it works on a cloud VM. The kernel travels with it and gates remotely.",
       "done": "A real Modal (or Daytona) deployment runs the gateway, hibernates when idle, wakes on an inbound message, processes it, and replies end-to-end — with cost-when-idle near zero, verified.",
