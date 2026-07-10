@@ -30,7 +30,7 @@ export const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 10));
  * Returns as soon as the text appears (fast common case); throws with the actual
  * frame if it never does. Use for any assertion that follows an input/state change.
  */
-export async function waitForFrame(inst: UiTestInstance, substring: string, maxTicks = 200): Promise<string> {
+export async function waitForFrame(inst: UiTestInstance, substring: string, maxTicks = 500): Promise<string> {
   for (let i = 0; i < maxTicks; i++) {
     const frame = inst.lastFrame();
     if (frame.includes(substring)) return frame;

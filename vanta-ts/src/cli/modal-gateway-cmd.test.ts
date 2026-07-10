@@ -46,8 +46,17 @@ function control(opts: { secret?: boolean; tasks?: string; proof?: string; deplo
 describe("Modal gateway command", () => {
   it("reports the deployment, zero-task state, secret, and hibernate policy", async () => {
     const deps = fixture({ run: control() });
-    expect(await runModalGatewayCommand(await workspace(), ["status"], {}, deps)).toBe(0);
+    const root = await workspace();
+    expect(await runModalGatewayCommand(root, ["deploy"], {}, deps)).toBe(0);
+    deps.lines.length = 0;
+    expect(await runModalGatewayCommand(root, ["status"], {
+      VANTA_TELEGRAM_TOKEN: "private-token",
+      VANTA_TELEGRAM_WEBHOOK_SECRET: "private-hook",
+    }, deps)).toBe(0);
     expect(deps.lines.join("\n")).toContain("deployed · 0 task(s)");
+    expect(deps.lines.join("\n")).toContain("Telegram registration https://team--vanta-gateway.modal.run · token present · webhook secret present");
+    expect(deps.lines.join("\n")).not.toContain("private-token");
+    expect(deps.lines.join("\n")).not.toContain("private-hook");
     expect(deps.lines.join("\n")).toContain("min 0 · scaledown 60s");
   });
 

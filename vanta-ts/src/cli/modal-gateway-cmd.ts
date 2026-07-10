@@ -70,8 +70,12 @@ async function status(
   if (!await ensureReady(deps, log)) return 1;
   const cfg = resolveModalGatewayConfig(env);
   const state = await resources(repoRoot, deps.run ?? runChild, cfg);
+  const receipt = await readGatewayReceipt(repoRoot);
+  const telegramToken = env.VANTA_TELEGRAM_TOKEN?.trim() ? "present" : "missing";
+  const webhookSecret = env.VANTA_TELEGRAM_WEBHOOK_SECRET?.trim() ? "present" : "missing";
   log(`serverless gateway: app ${cfg.app} ${state.app ? `${state.app.state} · ${state.app.tasks ?? "?"} task(s)` : "not deployed"}`);
   log(`serverless gateway: secret ${cfg.secret} ${state.hasSecret ? "ready" : "missing (Vanta will not upload local keys)"}`);
+  log(`serverless gateway: Telegram registration ${receipt?.endpoint ? receipt.endpoint : "no endpoint receipt"} · token ${telegramToken} · webhook secret ${webhookSecret}`);
   log(`serverless gateway: min 0 · scaledown ${cfg.scaledownSec}s · volume ${cfg.volume}`);
   return state.app?.state === "deployed" && state.hasSecret ? 0 : 1;
 }
