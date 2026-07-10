@@ -10012,14 +10012,14 @@
       "title": "One-button fill Now",
       "status": "shipped",
       "size": "S",
-      "summary": "Pick the next 1-2 roadmap cards to move into Now using WIP limit, blockers, dependencies, size, time-since-touched, and Jason's current energy. This closes the gap where Now can be empty while Next is huge.",
-      "done": "`vanta now` proposes 1-2 cards for building with a short reason and one-keystroke accept, without exceeding the WIP limit.",
+      "summary": "Pick the next 1-2 roadmap cards to move into Now using WIP limit and priority. When there are no `next` cards, explain what blocks forward motion instead of ending on a dead-end `nothing to propose`.",
+      "done": "`vanta now` proposes 1-2 cards for building with a short reason and one-keystroke accept, without exceeding the WIP limit. If no cards are proposal-ready, it reports blocked gates and decision-only horizon work.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4-mini",
       "lens": "selfhood",
-      "notes": "REPAIRED CLI 2026-07-10: wired the existing now-queue selector to real `vanta now` and `vanta now --apply`. It proposes the best 1-2 `next` cards without exceeding WIP, prompts on a TTY, and applies non-interactively with --apply. Executed against the live roadmap after external-proof cards moved to blocked: `vanta now` returned `nothing to propose`, correctly reflecting that no `next` cards remain.",
+      "notes": "REPAIRED CLI 2026-07-10: wired the existing now-queue selector to real `vanta now` and `vanta now --apply`. It proposes the best 1-2 `next` cards without exceeding WIP, prompts on a TTY, and applies non-interactively with --apply. UPDATED 2026-07-10: when no `next` cards exist, `vanta now` now prints the remaining blocked gates and decision-only horizon cards. Live output after this update: blocked=4, needs decision=2. Focused proof: npx vitest run src/roadmap/now-queue.test.ts src/cli/now-cmd.test.ts (22 passed).",
       "updated": "2026-07-10"
     },
     {

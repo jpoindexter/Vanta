@@ -41,6 +41,16 @@ export function selectNowCandidates(items: RoadmapItem[], wipLimit = 2): Roadmap
   return candidates.slice(0, slots);
 }
 
+function priorityItems(items: RoadmapItem[]): RoadmapItem[] {
+  return items.slice().sort((a, b) => {
+    const byTier = tierRank(a.tier) - tierRank(b.tier);
+    if (byTier !== 0) return byTier;
+    const bySize = sizeRank(a.size) - sizeRank(b.size);
+    if (bySize !== 0) return bySize;
+    return a.id.localeCompare(b.id);
+  });
+}
+
 /**
  * Formats a human-readable proposal for the selected candidates.
  * Returns "nothing to propose" when the list is empty.
@@ -53,4 +63,29 @@ export function formatNowQueue(candidates: RoadmapItem[]): string {
       return `Move to Now: ${c.id} — ${c.title} (${tier}/${c.size})`;
     })
     .join("\n");
+}
+
+function formatTopItems(label: string, items: RoadmapItem[], limit = 3): string[] {
+  if (items.length === 0) return [];
+  const shown = priorityItems(items).slice(0, limit);
+  const lines = [`${label}: ${items.length}`];
+  lines.push(...shown.map((item) => `- ${item.id} - ${item.title}`));
+  const hidden = items.length - shown.length;
+  if (hidden > 0) lines.push(`- (${hidden} more hidden - clear one first)`);
+  return lines;
+}
+
+/**
+ * Explains why the Now queue is empty. This is the operator-facing dead-end
+ * message for a fully drained local board: it names external blockers and
+ * strategy-only horizon work instead of hiding behind "nothing to propose".
+ */
+export function formatNowEmptyState(items: RoadmapItem[]): string {
+  const lines = ["nothing to propose"];
+  const blocked = items.filter((i) => i.status === "blocked");
+  const horizon = items.filter((i) => i.status === "horizon");
+  lines.push(...formatTopItems("blocked", blocked));
+  lines.push(...formatTopItems("needs decision", horizon));
+  if (lines.length === 1) return "nothing to propose";
+  return lines.join("\n");
 }

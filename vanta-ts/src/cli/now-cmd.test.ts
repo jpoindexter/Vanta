@@ -40,10 +40,12 @@ describe("runNowCommand", () => {
     expect(lines.join("\n")).toContain("moved B -> building");
   });
 
-  it("prints nothing to propose when there are no next cards", async () => {
+  it("prints blockers and decision work when there are no next cards", async () => {
     const root = await workspace([card("A", "blocked"), card("B", "horizon")]);
     const lines: string[] = [];
     await runNowCommand(root, ["--apply"], { log: (line) => lines.push(line) });
-    expect(lines).toEqual(["nothing to propose"]);
+    expect(lines.join("\n")).toContain("nothing to propose");
+    expect(lines.join("\n")).toContain("blocked: 1");
+    expect(lines.join("\n")).toContain("needs decision: 1");
   });
 });

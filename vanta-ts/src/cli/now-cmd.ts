@@ -2,7 +2,7 @@ import { createInterface } from "node:readline/promises";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { RoadmapSchema, type RoadmapItem } from "../roadmap/schema.js";
-import { formatNowQueue, selectNowCandidates } from "../roadmap/now-queue.js";
+import { formatNowEmptyState, formatNowQueue, selectNowCandidates } from "../roadmap/now-queue.js";
 import { moveRoadmapItem } from "../roadmap/move.js";
 
 export type NowCommandDeps = {
@@ -31,8 +31,11 @@ export async function runNowCommand(
   const raw = await readFile(join(repoRoot, "roadmap.json"), "utf8");
   const roadmap = RoadmapSchema.parse(JSON.parse(raw));
   const candidates = selectNowCandidates(roadmap.items);
+  if (candidates.length === 0) {
+    log(formatNowEmptyState(roadmap.items));
+    return 0;
+  }
   log(formatNowQueue(candidates));
-  if (candidates.length === 0) return 0;
 
   const accepted = apply || await (deps.confirm ?? defaultConfirm)(candidates);
   if (!accepted) {

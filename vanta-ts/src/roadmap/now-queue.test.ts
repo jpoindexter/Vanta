@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { selectNowCandidates, formatNowQueue } from "./now-queue.js";
+import { selectNowCandidates, formatNowEmptyState, formatNowQueue } from "./now-queue.js";
 import type { RoadmapItem } from "./schema.js";
 
 const mk = (
@@ -119,5 +119,38 @@ describe("formatNowQueue", () => {
     expect(lines).toHaveLength(2);
     expect(lines[0]).toContain("A");
     expect(lines[1]).toContain("B");
+  });
+});
+
+describe("formatNowEmptyState", () => {
+  it("returns only nothing to propose when there are no blocked or horizon cards", () => {
+    expect(formatNowEmptyState([mk("A", "shipped")])).toBe("nothing to propose");
+  });
+
+  it("reports blocked cards and decision-only horizon cards", () => {
+    const out = formatNowEmptyState([
+      mk("BLOCKED", "blocked", "rock", "S"),
+      mk("DECIDE", "horizon", "pebble", "M"),
+    ]);
+    expect(out).toContain("nothing to propose");
+    expect(out).toContain("blocked: 1");
+    expect(out).toContain("BLOCKED");
+    expect(out).toContain("needs decision: 1");
+    expect(out).toContain("DECIDE");
+  });
+
+  it("caps long blocker lists to three visible cards", () => {
+    const out = formatNowEmptyState([
+      mk("A", "blocked", "rock", "S"),
+      mk("B", "blocked", "rock", "S"),
+      mk("C", "blocked", "rock", "S"),
+      mk("D", "blocked", "rock", "S"),
+    ]);
+    expect(out).toContain("blocked: 4");
+    expect(out).toContain("A");
+    expect(out).toContain("B");
+    expect(out).toContain("C");
+    expect(out).not.toContain("D -");
+    expect(out).toContain("1 more hidden");
   });
 });
