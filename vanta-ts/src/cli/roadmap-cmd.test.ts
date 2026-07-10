@@ -17,7 +17,7 @@ async function workspace(): Promise<string> {
   await writeFile(join(root, "roadmap.json"), JSON.stringify({
     updated: "2026-07-10",
     items: [
-      { id: "BACKEND-SERVERLESS-LIVE", track: "Harness", title: "Serverless", status: "parked", size: "L", summary: "", done: "" },
+      { id: "BACKEND-SERVERLESS-LIVE", track: "Harness", title: "Serverless", status: "parked", size: "L", summary: "", done: "", parkedReason: "external proof" },
       { id: "PCLIP-MULTI-COMPANY", track: "Cofounder", title: "Company", status: "horizon", size: "L", summary: "", done: "" },
     ],
   }, null, 2), "utf8");
@@ -44,5 +44,20 @@ describe("runRoadmapCommand unblock", () => {
     const out = lines.join("\n");
     expect(out).toContain("PCLIP-MULTI-COMPANY");
     expect(out).not.toContain("BACKEND-SERVERLESS-LIVE");
+  });
+});
+
+describe("runRoadmapCommand status", () => {
+  it("prints status counts and parked reason counts", async () => {
+    const root = await workspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    await runRoadmapCommand(root, ["status"]);
+    const out = lines.join("\n");
+    expect(out).toContain("total: 2");
+    expect(out).toContain("horizon: 1");
+    expect(out).toContain("parked: 1");
+    expect(out).toContain("parked reasons:");
+    expect(out).toContain("- external proof: 1");
   });
 });
