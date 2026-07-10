@@ -1,6 +1,10 @@
 // `vanta roadmap` command handler — extracted from ops.ts (CODE-SIZE-GATE).
 
 import { execSync } from "node:child_process";
+import type { RoadmapItem } from "../roadmap/schema.js";
+import type { RoadmapStatusSummary } from "../roadmap/status-summary.js";
+
+type RoadmapStatusModule = typeof import("../roadmap/status-summary.js");
 
 async function handleRoadmapServe(repoRoot: string): Promise<void> {
   const port = Number(process.env.VANTA_ROADMAP_PORT) || 7789;
@@ -74,6 +78,27 @@ async function handleRoadmapUnblock(repoRoot: string, args: string[]): Promise<v
   console.log(args.includes("--json") ? JSON.stringify(plans, null, 2) : formatUnblockPlans(plans));
 }
 
+function statusExitCode(summary: RoadmapStatusSummary, args: string[], openOnly: boolean): number {
+  if (openOnly || args.includes("--require-complete")) return summary.complete ? 0 : 1;
+  if (args.includes("--require-drained")) return summary.activeDrained ? 0 : 1;
+  return 0;
+}
+
+function printRoadmapStatus(items: RoadmapItem[], args: string[], status: RoadmapStatusModule, summary: RoadmapStatusSummary): void {
+  const openOnly = args.includes("--open");
+  if (args.includes("--json")) {
+    console.log(JSON.stringify(openOnly ? status.openRoadmapItems(items) : summary, null, 2));
+  } else if (openOnly) {
+    console.log(status.formatRoadmapOpenWork(items));
+  } else if (args.includes("--require-complete")) {
+    console.log(status.formatRoadmapCompletionGate(items));
+  } else if (args.includes("--require-drained")) {
+    console.log(status.formatRoadmapDrainGate(items));
+  } else {
+    console.log(status.formatRoadmapStatus(items));
+  }
+}
+
 async function handleRoadmapStatus(repoRoot: string, args: string[]): Promise<number> {
   const [{ readFile }, { join }, { RoadmapSchema }, status] = await Promise.all([
     import("node:fs/promises"),
@@ -84,21 +109,9 @@ async function handleRoadmapStatus(repoRoot: string, args: string[]): Promise<nu
   const raw = await readFile(join(repoRoot, "roadmap.json"), "utf8");
   const data = RoadmapSchema.parse(JSON.parse(raw));
   const summary = status.summarizeRoadmapStatus(data.items);
-  if (args.includes("--json")) {
-    console.log(JSON.stringify(summary, null, 2));
-    if (args.includes("--require-complete")) return summary.complete ? 0 : 1;
-    return summary.activeDrained ? 0 : args.includes("--require-drained") ? 1 : 0;
-  }
-  if (args.includes("--require-complete")) {
-    console.log(status.formatRoadmapCompletionGate(data.items));
-    return summary.complete ? 0 : 1;
-  }
-  if (args.includes("--require-drained")) {
-    console.log(status.formatRoadmapDrainGate(data.items));
-    return summary.activeDrained ? 0 : 1;
-  }
-  console.log(status.formatRoadmapStatus(data.items));
-  return 0;
+  const openOnly = args.includes("--open");
+  printRoadmapStatus(data.items, args, status, summary);
+  return statusExitCode(summary, args, openOnly);
 }
 
 export async function runRoadmapCommand(repoRoot: string, args: string[] = []): Promise<number | void> {

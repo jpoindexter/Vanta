@@ -17146,6 +17146,22 @@
       "lens": "selfhood",
       "updated": "2026-07-10",
       "notes": "SHIPPED 2026-07-10: Added `optional proof` to the terminal parked reason set. Current roadmap should report one fewer open card and one more terminal parked card; this does not ship GHOST-OS-MCP or claim its proof ran."
+    },
+    {
+      "id": "ROADMAP-OPEN-WORK-STATUS",
+      "track": "Operator",
+      "title": "Roadmap open-work status — list only cards still blocking completion",
+      "status": "shipped",
+      "size": "S",
+      "summary": "`vanta roadmap status --open` now lists only genuinely open roadmap work after terminal parked cards are excluded, so agents and operators can see the exact remaining cards instead of inferring them from parked totals.",
+      "done": "`vanta roadmap status --open` prints the open card list; `--open --json` emits structured ids/titles/status/reasons; terminal parked declined/n-a, duplicate, and optional proof cards are excluded; CLI help advertises the flags.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "selfhood",
+      "updated": "2026-07-10",
+      "notes": "SHIPPED 2026-07-10: Added openRoadmapItems/formatRoadmapOpenWork and wired `vanta roadmap status --open` plus `--open --json`. Live output lists the 9 required open cards only; terminal parked cards remain visible in parked counts but do not block completion."
     }
   ]
 }

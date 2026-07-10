@@ -200,6 +200,25 @@ describe("runRoadmapCommand status", () => {
     expect(out.openTotal).toBe(1);
     expect(out.terminalParkedTotal).toBe(0);
   });
+
+  it("prints only open work with --open", async () => {
+    const root = await completeWorkspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    const code = await runRoadmapCommand(root, ["status", "--open"]);
+    expect(code).toBe(0);
+    expect(lines.join("\n")).toBe("No open roadmap work remains.");
+  });
+
+  it("prints open work as json with --open --json", async () => {
+    const root = await drainedWorkspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    const code = await runRoadmapCommand(root, ["status", "--open", "--json"]);
+    const out = JSON.parse(lines.join("\n")) as Array<{ id: string; parkedReason?: string }>;
+    expect(code).toBe(1);
+    expect(out).toEqual([{ id: "PROOF", title: "Proof", status: "parked", parkedReason: "external proof" }]);
+  });
 });
 
 describe("runRoadmapCommand move", () => {

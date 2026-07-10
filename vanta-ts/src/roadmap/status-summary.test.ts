@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RoadmapItem } from "./schema.js";
-import { activeRoadmapCount, formatRoadmapCompletionGate, formatRoadmapDrainGate, formatRoadmapStatus, nonShippedRoadmapCount, summarizeRoadmapStatus } from "./status-summary.js";
+import { activeRoadmapCount, formatRoadmapCompletionGate, formatRoadmapDrainGate, formatRoadmapOpenWork, formatRoadmapStatus, nonShippedRoadmapCount, openRoadmapItems, summarizeRoadmapStatus } from "./status-summary.js";
 
 function card(id: string, status: RoadmapItem["status"], parkedReason?: RoadmapItem["parkedReason"]): RoadmapItem {
   return { id, status, parkedReason, track: "Operator", title: id, size: "S", summary: "", done: "" };
@@ -104,5 +104,22 @@ describe("formatRoadmapStatus", () => {
       card("E", "parked", "optional proof"),
     ];
     expect(formatRoadmapCompletionGate(terminalOnly)).toContain("roadmap complete: yes");
+  });
+
+  it("lists only open roadmap items", () => {
+    const items = [
+      card("A", "shipped"),
+      card("B", "parked", "external proof"),
+      card("C", "parked", "declined/n-a"),
+      card("D", "parked", "optional proof"),
+      card("E", "next"),
+    ];
+    expect(openRoadmapItems(items).map((item) => item.id)).toEqual(["B", "E"]);
+    const out = formatRoadmapOpenWork(items);
+    expect(out).toContain("open roadmap work: 2");
+    expect(out).toContain("B (parked · external proof)");
+    expect(out).toContain("E (next)");
+    expect(out).not.toContain("C");
+    expect(out).not.toContain("D");
   });
 });

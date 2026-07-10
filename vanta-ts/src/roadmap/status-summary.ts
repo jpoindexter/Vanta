@@ -16,6 +16,13 @@ export type RoadmapStatusSummary = {
   parkedReasons: CountSummary<(typeof PARKED_REASON)[number]>;
 };
 
+export type RoadmapOpenItem = {
+  id: string;
+  title: string;
+  status: RoadmapItem["status"];
+  parkedReason?: RoadmapItem["parkedReason"];
+};
+
 function countBy<T extends string>(items: RoadmapItem[], getKey: (item: RoadmapItem) => T | undefined): Map<T, number> {
   const counts = new Map<T, number>();
   for (const item of items) {
@@ -53,6 +60,12 @@ export function nonShippedRoadmapCount(items: RoadmapItem[]): number {
 
 function isTerminalParked(item: RoadmapItem): boolean {
   return item.status === "parked" && (TERMINAL_PARKED_REASON as readonly string[]).includes(item.parkedReason ?? "review");
+}
+
+export function openRoadmapItems(items: RoadmapItem[]): RoadmapOpenItem[] {
+  return items
+    .filter((item) => item.status !== "shipped" && !isTerminalParked(item))
+    .map((item) => ({ id: item.id, title: item.title, status: item.status, parkedReason: item.parkedReason }));
 }
 
 export function summarizeRoadmapStatus(items: RoadmapItem[]): RoadmapStatusSummary {
@@ -93,4 +106,16 @@ export function formatRoadmapCompletionGate(items: RoadmapItem[]): string {
   if (summary.openTotal) lines.push("open parked cards still require proof/decision before completion");
   if (parked) lines.push("use `vanta roadmap unblock` for proof/decision steps");
   return lines.join("\n");
+}
+
+export function formatRoadmapOpenWork(items: RoadmapItem[]): string {
+  const open = openRoadmapItems(items);
+  if (open.length === 0) return "No open roadmap work remains.";
+  return [
+    `open roadmap work: ${open.length}`,
+    ...open.map((item) => {
+      const state = [item.status, item.parkedReason].filter(Boolean).join(" · ");
+      return `- ${item.id} (${state}) - ${item.title}`;
+    }),
+  ].join("\n");
 }
