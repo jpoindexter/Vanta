@@ -15426,7 +15426,7 @@
       "id": "OP-INSTALLER-STAGED",
       "track": "Operator",
       "title": "Staged-install event contract + forensic log + retry UX",
-      "status": "parked",
+      "status": "building",
       "size": "L",
       "summary": "Upgrade run.sh setup with a staged-install model: stream manifest/stage/log/complete/failed events to a progress view, write a forensic install log, and offer retry + open-log on failure. The event contract + forensic log + failure UX is the reusable idea (no GUI required).",
       "done": "Captured as a setup-UX upgrade; staged event contract + forensic log + retry/open-log failure flow noted for run.sh setup.",
