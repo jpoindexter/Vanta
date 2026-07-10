@@ -9,6 +9,7 @@ import {
   type BrainEntry,
   type RecallResult,
 } from "./provider.js";
+import { MEMORY_LIFECYCLE_HOOKS } from "../brain/interface.js";
 
 // MEMORY-PROVIDER-FRAMEWORK — the port + catalog. Pure catalog helpers, and the
 // guarantee that unconfigured = local (no behavior change). Mirrors the
@@ -28,6 +29,7 @@ function spyBrain(): { brain: Brain; remember: ReturnType<typeof vi.fn>; recall:
   const recall = vi.fn(async () => result);
   const brain: Brain = {
     id: "live",
+    lifecycleHooks: MEMORY_LIFECYCLE_HOOKS,
     read: vi.fn(async () => null),
     write: vi.fn(async () => {}),
     remember,

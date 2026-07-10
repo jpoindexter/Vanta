@@ -1,7 +1,8 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { loadCron as defaultLoadCron, isDue, hasMissedFire } from "./cron.js";
+import { hasMissedFire, isDue } from "./cron.js";
 import type { CronEntry } from "./cron.js";
+import { resolveSchedulerDue, type SchedulerProvider } from "./provider.js";
 import { wakeContextForCron } from "../loop/wake.js";
 import type { WakeContext } from "../loop/types.js";
 import type { ImageAttachment } from "../types.js";
@@ -87,6 +88,12 @@ type RunDueTasksOptions = {
    * on-disk cron.tsv format; `cli.ts` omits it and gets the real loader.
    */
   load?: (dataDir: string) => Promise<CronEntry[]>;
+  /**
+   * Optional provider seam for "which tasks are due". Any provider failure
+   * falls back to the built-in cron selector, so Vanta is never left without a
+   * trigger source because an experimental scheduler broke.
+   */
+  scheduler?: SchedulerProvider;
   /**
    * At-most-once dedup map (taskId → last fired window key). When provided, a
    * due task is fired only if its `(id, windowKey)` has not fired before, the
@@ -210,11 +217,14 @@ function catchUpEntries(entries: CronEntry[], now: Date, lastFired: LastFired): 
 export async function runDueTasksTracked(
   opts: RunDueTasksOptions,
 ): Promise<RunDueTasksResult> {
-  const load = opts.load ?? defaultLoadCron;
-  const entries = await load(opts.dataDir);
-  const due = entries.filter(
-    (entry) => entry.status === "active" && isDue(entry.cron, opts.now),
-  );
+  const selected = await resolveSchedulerDue({
+    dataDir: opts.dataDir,
+    now: opts.now,
+    load: opts.load,
+    provider: opts.scheduler,
+  });
+  const entries = selected.entries;
+  const due = [...selected.due];
 
   const tracking = opts.lastFired !== undefined;
   const windowKey = fireWindowKey(opts.now);
