@@ -173,7 +173,8 @@ async function runLocal(command: string, root: string, pfx: string): Promise<Too
   const local = resolveExecBackend(process.env) === "docker"
     ? { cmd: "sh", args: ["-c", command] }
     : resolveShellInvocation(command);
-  const sb = await wrapExec({ env: shellSandboxEnv(process.env), root, baseCmd: local.cmd, baseArgs: local.args });
+  const workdir = spawnCwd(root);
+  const sb = await wrapExec({ env: shellSandboxEnv(process.env), root, workdir, baseCmd: local.cmd, baseArgs: local.args });
   if (isSandboxError(sb)) return { ok: false, output: pfx + sb.error };
   const startedAt = Date.now();
   try {

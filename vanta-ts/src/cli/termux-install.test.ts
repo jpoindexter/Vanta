@@ -10,16 +10,16 @@ const dirs: string[] = [];
 afterEach(async () => Promise.all(dirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true }))));
 
 describe("Termux install/runtime path", () => {
-  it("the real installer uses pkg, native cargo, source-built deps, and PREFIX/bin", async () => {
+  it("the real installer uses the native toolchain, lifecycle-safe deps, and PREFIX/bin", async () => {
     const fixture = await installerFixture();
     const { stdout } = await exec("bash", [join(fixture.root, "install.sh")], { env: fixture.env, timeout: 20_000 });
     const calls = await readFile(fixture.log, "utf8");
 
     expect(stdout).toContain("Termux detected");
     expect(stdout).toContain("building the Android-native safety kernel");
-    expect(calls).toContain("pkg install -y git nodejs-lts rust python make clang pkg-config");
+    expect(calls).toContain("pkg install -y git nodejs-lts rust python make clang pkg-config esbuild");
     expect(calls).toContain("cargo build");
-    expect(calls).toContain("npm build_from_source=true install --omit=dev");
+    expect(calls).toContain("npm build_from_source=false install --omit=dev --omit=optional --ignore-scripts");
     expect(calls).not.toContain("curl");
     await expect(readFile(join(fixture.prefix, "bin", "vanta"), "utf8")).resolves.toContain("Vanta global launcher");
     await expect(readFile(join(fixture.root, "target", "debug", "vanta-kernel"), "utf8")).resolves.toContain("exit 0");

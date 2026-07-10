@@ -48,14 +48,16 @@ export function createDockerExecAdapter(
     id: "docker",
     async wrap(args) {
       if (!(await available())) return { ok: false, reason: "docker CLI unavailable" };
+      const workdir = resolve(args.workdir ?? args.root);
+      const mounts = [...new Set([...dockerMounts(args.env, args.root), workdir])].filter(existsSync);
       return {
         ok: true,
         invocation: {
           cmd: "docker",
           args: buildDockerArgs({
             image: args.env.VANTA_DOCKER_IMAGE || DEFAULT_DOCKER_IMAGE,
-            mounts: dockerMounts(args.env, args.root),
-            workdir: resolve(args.root),
+            mounts,
+            workdir,
             net: args.env.VANTA_SANDBOX_NET === "1",
             baseCmd: args.baseCmd,
             baseArgs: args.baseArgs,
@@ -65,4 +67,3 @@ export function createDockerExecAdapter(
     },
   };
 }
-

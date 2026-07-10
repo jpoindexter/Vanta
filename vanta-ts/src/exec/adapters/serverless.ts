@@ -1,5 +1,7 @@
 import { execFile } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { resolve } from "node:path";
 import type { ExecBackendAdapter } from "../backend-port.js";
 import {
   buildServerlessArgs,
@@ -9,6 +11,7 @@ import {
 } from "../serverless.js";
 
 const run = promisify(execFile);
+const MODAL_HELPER = fileURLToPath(new URL("./modal-sandbox.py", import.meta.url));
 
 export async function serverlessCliAvailable(provider: ServerlessProvider): Promise<boolean> {
   try {
@@ -34,10 +37,13 @@ export function createServerlessExecAdapter(
         ok: true,
         invocation: {
           cmd: SERVERLESS_CLI[resolved.config.provider],
-          args: buildServerlessArgs([args.baseCmd, ...args.baseArgs], resolved.config),
+          args: buildServerlessArgs(
+            [args.baseCmd, ...args.baseArgs],
+            resolved.config,
+            { root: resolve(args.workdir ?? args.root), modalHelper: MODAL_HELPER },
+          ),
         },
       };
     },
   };
 }
-

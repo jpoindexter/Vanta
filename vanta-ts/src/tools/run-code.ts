@@ -46,7 +46,7 @@ async function runStep(
 ): Promise<ToolResult> {
   // Execution backend: docker (VANTA_EXEC_BACKEND=docker) → container; else OS
   // sandbox (VANTA_SANDBOX=1) → wrapped; else base unchanged.
-  const sb = await wrapExec({ env: process.env, root, baseCmd: cmd[0], baseArgs: cmd[1] });
+  const sb = await wrapExec({ env: process.env, root, workdir: cwd, baseCmd: cmd[0], baseArgs: cmd[1] });
   if (isSandboxError(sb)) return { ok: false, output: sb.error };
   try {
     const { stdout, stderr } = await run(sb.cmd, sb.args, {

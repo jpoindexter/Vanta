@@ -29,6 +29,19 @@ export const ServerlessConfigSchema = z.object({
 
 export type ServerlessConfig = z.infer<typeof ServerlessConfigSchema>;
 
+export type ServerlessBuildContext = {
+  root?: string;
+  modalHelper?: string;
+};
+
+export type ModalSandboxPayload = {
+  root: string;
+  idleTimeoutSec: number;
+  image: string;
+  network: boolean;
+  command: string[];
+};
+
 export type ResolveResult =
   | { ok: true; config: ServerlessConfig }
   | { ok: false; reason: string };
@@ -65,14 +78,26 @@ export function resolveServerlessConfig(env: NodeJS.ProcessEnv): ResolveResult {
   return { ok: true, config: parsed.data };
 }
 
-/** Modal argv: `modal run [<app>] [--timeout N] -- <baseCmd...>`. Pure. */
-function buildModalArgs(baseCmd: string[], config: ServerlessConfig): string[] {
-  const args = ["run"];
-  if (config.app) args.push(config.app);
-  args.push("--timeout", String(config.idleTimeoutSec ?? DEFAULT_IDLE_TIMEOUT_SEC));
-  if (config.image) args.push("--image", config.image);
-  args.push("--", ...baseCmd);
-  return args;
+/** Modal argv: run Vanta's local entrypoint, which creates a real Modal Sandbox. */
+function buildModalArgs(baseCmd: string[], config: ServerlessConfig, context: ServerlessBuildContext): string[] {
+  if (!context.root || !context.modalHelper) {
+    throw new Error("Modal execution requires a workspace root and bundled Sandbox helper");
+  }
+  const payload: ModalSandboxPayload = {
+    root: context.root,
+    idleTimeoutSec: config.idleTimeoutSec ?? DEFAULT_IDLE_TIMEOUT_SEC,
+    image: config.image ?? "node:24-bookworm-slim",
+    network: config.network === true,
+    command: baseCmd,
+  };
+  return [
+    "run", "-q", context.modalHelper,
+    "--payload", Buffer.from(JSON.stringify(payload), "utf8").toString("base64url"),
+  ];
+}
+
+export function decodeModalPayload(encoded: string): ModalSandboxPayload {
+  return JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as ModalSandboxPayload;
 }
 
 /** Daytona argv: `daytona exec [<app>] [--image I] [--idle N] [--no-network] -- <baseCmd...>`. Pure. */
@@ -92,9 +117,13 @@ function buildDaytonaArgs(baseCmd: string[], config: ServerlessConfig): string[]
  * item, so an injection-shaped token cannot break out via shell interpolation.
  * The provider CLI is prepended by the caller (wrapExec returns {cmd, args}).
  */
-export function buildServerlessArgs(baseCmd: string[], config: ServerlessConfig): string[] {
+export function buildServerlessArgs(
+  baseCmd: string[],
+  config: ServerlessConfig,
+  context: ServerlessBuildContext = {},
+): string[] {
   return config.provider === "modal"
-    ? buildModalArgs(baseCmd, config)
+    ? buildModalArgs(baseCmd, config, context)
     : buildDaytonaArgs(baseCmd, config);
 }
 

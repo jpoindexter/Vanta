@@ -29,6 +29,8 @@ BLOCKERS-GUIDE.html
 
 # Generated artifacts
 roadmap.html
+__pycache__/
+*.py[cod]
 
 # OS
 .DS_Store

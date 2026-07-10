@@ -43,7 +43,7 @@ export const SETTINGS: SettingSection[] = [
       { label: "local — run on this host [default]", env: { VANTA_EXEC_BACKEND: "local", VANTA_SANDBOX: "0" } },
       { label: "sandbox — OS isolation (macOS seatbelt / Linux bwrap)", env: { VANTA_EXEC_BACKEND: "local", VANTA_SANDBOX: "1" } },
       { label: "docker — ephemeral container", env: { VANTA_EXEC_BACKEND: "docker", VANTA_SANDBOX: "0" }, urlEnv: "VANTA_DOCKER_IMAGE", urlHint: "Docker image (empty = alpine:latest)" },
-      { label: "remote sandbox — Modal (your account, opt-in)", env: { VANTA_EXEC_BACKEND: "serverless", VANTA_SERVERLESS_PROVIDER: "modal", VANTA_SERVERLESS_NET: "0", VANTA_SANDBOX: "0" }, urlEnv: "VANTA_SERVERLESS_APP", urlHint: "Modal app path/name (optional)" },
+      { label: "remote sandbox — Modal (your account, opt-in)", env: { VANTA_EXEC_BACKEND: "serverless", VANTA_SERVERLESS_PROVIDER: "modal", VANTA_SERVERLESS_NET: "0", VANTA_SANDBOX: "0" }, urlEnv: "VANTA_SERVERLESS_APP", urlHint: "Modal app name (optional; authenticate with modal token new)" },
       { label: "remote sandbox — Daytona (your account, opt-in)", env: { VANTA_EXEC_BACKEND: "serverless", VANTA_SERVERLESS_PROVIDER: "daytona", VANTA_SERVERLESS_NET: "0", VANTA_SANDBOX: "0" }, urlEnv: "VANTA_SERVERLESS_APP", urlHint: "Daytona sandbox/app name (optional)" },
       { label: "ssh — per-command to a configured host (settings.sshConfigs; `vanta ssh <name>`)", env: { VANTA_EXEC_BACKEND: "local", VANTA_SANDBOX: "0" } },
     ],

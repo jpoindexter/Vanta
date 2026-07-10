@@ -66,7 +66,7 @@ describe("wrapExec", () => {
     expect(r).toEqual({ cmd: "sh", args: ["-c", "x"] });
   });
 
-  it("routes a configured Modal backend through discrete argv", async () => {
+  it("routes a configured Modal backend through the bundled Sandbox helper", async () => {
     const r = await wrapExec(
       {
         env: {
@@ -76,15 +76,23 @@ describe("wrapExec", () => {
           VANTA_SERVERLESS_IDLE_SEC: "90",
         } as NodeJS.ProcessEnv,
         root,
+        workdir: join(root, "nested"),
         baseCmd: "sh",
         baseArgs: ["-c", "echo hi"],
       },
       { serverlessCliAvailable: async () => true },
     );
     if ("error" in r) throw new Error("unexpected refuse");
-    expect(r).toEqual({
-      cmd: "modal",
-      args: ["run", "worker.py", "--timeout", "90", "--", "sh", "-c", "echo hi"],
+    expect(r.cmd).toBe("modal");
+    expect(r.args.slice(0, 3)).toEqual(["run", "-q", expect.stringMatching(/modal-sandbox\.py$/)]);
+    expect(r.args[3]).toBe("--payload");
+    const payload = JSON.parse(Buffer.from(r.args[4]!, "base64url").toString("utf8"));
+    expect(payload).toEqual({
+      root: resolve(root, "nested"),
+      idleTimeoutSec: 90,
+      image: "node:24-bookworm-slim",
+      network: false,
+      command: ["sh", "-c", "echo hi"],
     });
   });
 

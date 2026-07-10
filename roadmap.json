@@ -14031,13 +14031,13 @@
       "title": "Serverless backend — Modal/Daytona hibernate-when-idle persistence",
       "status": "shipped",
       "size": "L",
-      "summary": "The opt-in Modal/Daytona execution adapter is wired behind the shared backend port with discrete argv, idle policy, CLI availability checks, setup choices, and fail-closed location intent. Real hibernate/wake execution is owned by BACKEND-SERVERLESS-LIVE.",
+      "summary": "The opt-in Modal/Daytona execution adapter is wired behind the shared backend port with structured command transport, idle policy, CLI availability checks, setup choices, and fail-closed location intent. Modal now targets the real Sandbox API rather than an invalid generic `modal run` shape. Real hibernate/wake execution is owned by BACKEND-SERVERLESS-LIVE.",
       "done": "Modal and Daytona config/argv adapters are selectable through the execution-backend resolver; the kernel remains upstream; unavailable or invalid remote selection refuses instead of running locally; focused tests cover the adapter. Live cloud execution is a separate gate.",
       "tier": "pebble",
       "effort": "high",
       "lens": "reach",
       "updated": "2026-06-21",
-      "notes": "UPDATED 2026-07-10: the pure Modal/Daytona config and discrete-argv builder is now registered through ExecBackendAdapter alongside local and Docker. exec/adapters/serverless.ts owns CLI probing and transport argv; exec/backend.ts is the sole resolver/registration point. Explicit VANTA_EXEC_BACKEND=serverless with invalid config or missing CLI returns an actionable refusal and never silently changes location. Setup offers opt-in Modal and Daytona choices for the operator's own account. No SDK or cloud secret is embedded. Executed evidence: 43 backend/serverless/setup tests, 24 shell/run-code consumer tests, TypeScript, 7 architecture tests, and the size gate pass. No Modal/Daytona CLI or credentials were available, so no live cloud command, hibernate, or wake behavior is claimed; BACKEND-SERVERLESS-LIVE owns that proof.",
+      "notes": "UPDATED 2026-07-10: the pure Modal/Daytona config and discrete-argv builder is now registered through ExecBackendAdapter alongside local and Docker. exec/adapters/serverless.ts owns CLI probing and transport argv; exec/backend.ts is the sole resolver/registration point. Explicit VANTA_EXEC_BACKEND=serverless with invalid config or missing CLI returns an actionable refusal and never silently changes location. Setup offers opt-in Modal and Daytona choices for the operator's own account. No SDK or cloud secret is embedded. Executed evidence: 43 backend/serverless/setup tests, 24 shell/run-code consumer tests, TypeScript, 7 architecture tests, and the size gate pass.\n\nCORRECTED 2026-07-10: current Modal 1.5.1 documentation and CLI parsing proved the original `modal run -- <command>` assumption invalid because `modal run` requires a Python function/local-entrypoint reference. Replaced it with a bundled Modal local entrypoint that decodes one base64url JSON payload, copies the actual command workdir to `/workspace` while excluding `.git`, `.vanta`, dependencies, caches, and `.env` files, creates a real `modal.Sandbox`, applies block_network and timeout policy, executes structured argv, streams stdout/stderr, propagates exit status, and terminates the sandbox. The CLI is installed and its entrypoint parser passes, but browser account/token authorization is still pending; no live cloud command, hibernate, or wake behavior is claimed.",
       "after": [
         "BACKEND-DOCKER",
         "VANTA-SSH-SESSION"
@@ -14511,14 +14511,14 @@
       "title": "Remote/sandboxed agent backends (e2b/cloud-VM) under the kernel",
       "status": "building",
       "size": "L",
-      "summary": "Strategy ratified 2026-07-10: remote sandboxes are opt-in execution adapters for one owner on infrastructure or an account they control, never multi-tenancy or a vendor default. The shared backend port and Modal/Daytona adapters are wired; live remote execution remains the release gate.",
+      "summary": "Strategy ratified 2026-07-10: remote sandboxes are opt-in execution adapters for one owner on infrastructure or an account they control, never multi-tenancy or a vendor default. The shared backend port and a workspace-aware Modal Sandbox runner are wired; live authenticated remote execution remains the release gate.",
       "done": "A run executes in a remote sandbox with the kernel enforcing scope identically to local, selected via the run-anywhere backend picker.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "high",
       "lens": "infra",
       "updated": "2026-07-10",
-      "notes": "PARTIAL 2026-07-10: added the ExecBackendAdapter port; local, Docker, and serverless adapters; one resolver/registration point; injected fake-adapter coverage; Modal/Daytona CLI probes and discrete argv; fail-closed remote location intent; and setup picker choices. DECISIONS.md records the single-owner, user-controlled-account boundary. Focused backend/serverless/setup/shell/run-code tests (67), TypeScript, architecture fitness (7), and size gate pass. NOT DONE: no real Modal/Daytona/E2B/cloud-VM command executed on this host, no remote workspace transfer was proven, and no hibernate/wake cycle was observed. Keep building until the Done criterion runs through a real remote sandbox.",
+      "notes": "PARTIAL 2026-07-10: added the ExecBackendAdapter port; local, Docker, and serverless adapters; one resolver/registration point; injected fake-adapter coverage; Modal/Daytona CLI probes and structured command transport; fail-closed remote location intent; and setup picker choices. DECISIONS.md records the single-owner, user-controlled-account boundary.\n\nMODAL RUNNER 2026-07-10: replaced the invalid generic `modal run -- <command>` shape with a bundled Modal local entrypoint backed by `modal.Sandbox.create/exec`. It uploads the actual command workdir with secret/build exclusions, runs in `/workspace`, enforces network-denied-by-default and timeout policy, streams output, propagates the remote exit code, and terminates the sandbox. Focused backend/serverless/Termux tests: 35 passed. Full suite: 1,197 files, 12,449 passed, 3 skipped. TypeScript, Python syntax, Modal 1.5.1 entrypoint parsing, architecture fitness, and the size gate pass. Modal 1.5.1 is installed locally. NOT DONE: the browser account/token authorization is pending, so no remote container has executed and workspace transfer remains code-path rather than live evidence; no hibernate/wake cycle was observed. Keep building until the Done criterion runs through a real remote sandbox.",
       "after": [
         "RUN-ANYWHERE"
       ]
@@ -16145,7 +16145,7 @@
       "title": "Serverless LIVE — Modal/Daytona hibernate + wake-on-message, proven",
       "status": "horizon",
       "size": "L",
-      "summary": "BACKEND-SERVERLESS shipped as a pure slice (argv-not-shell). Prove it live: the agent runs on Modal/Daytona, hibernates when idle (~$0), and wakes on an inbound message so you can 'talk to it from Telegram while it works on a cloud VM' — the a reference agent harness run-anywhere story. The kernel travels with it and gates remotely.",
+      "summary": "BACKEND-SERVERLESS shipped as a structured command-transport slice. Prove it live: the agent runs on Modal/Daytona, hibernates when idle (~$0), and wakes on an inbound message so you can talk to it from Telegram while it works on a cloud VM. The kernel travels with it and gates remotely.",
       "done": "A real Modal (or Daytona) deployment runs the gateway, hibernates when idle, wakes on an inbound message, processes it, and replies end-to-end — with cost-when-idle near zero, verified.",
       "tier": "rock",
       "lens": "infra",

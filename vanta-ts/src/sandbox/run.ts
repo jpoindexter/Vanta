@@ -18,6 +18,8 @@ import {
 export interface MaybeSandboxArgs {
   env: NodeJS.ProcessEnv;
   root: string;
+  /** Actual child cwd. Remote adapters use this as the workspace upload root. */
+  workdir?: string;
   baseCmd: string;
   baseArgs: string[];
 }
