@@ -68,6 +68,16 @@ describe("Modal gateway command", () => {
     expect(deps.lines.join("\n")).toContain("will not copy local secrets");
   });
 
+  it("prints exact setup next steps from status without leaking provided secrets", async () => {
+    const deps = fixture({ run: control({ secret: false }) });
+    expect(await runModalGatewayCommand(await workspace(), ["status"], { VANTA_TELEGRAM_TOKEN: "private-token" }, deps)).toBe(1);
+    const out = deps.lines.join("\n");
+    expect(out).toContain("next: modal secret create vanta-gateway");
+    expect(out).toContain("next: export VANTA_TELEGRAM_WEBHOOK_SECRET=...");
+    expect(out).toContain("next: vanta backend gateway register-telegram <https-endpoint>");
+    expect(out).not.toContain("private-token");
+  });
+
   it("deploys with min-zero helper config and records the endpoint without secrets", async () => {
     const root = await workspace();
     const run = control();

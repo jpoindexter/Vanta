@@ -83,6 +83,17 @@ function secretLine(cfg: GatewayConfig, hasSecret: boolean): string {
   return `serverless gateway: secret ${cfg.secret} ${hasSecret ? "ready" : "missing (Vanta will not upload local keys)"}`;
 }
 
+function statusNextLines(cfg: GatewayConfig, state: { app?: ModalApp; hasSecret: boolean }, receipt: Awaited<ReturnType<typeof readGatewayReceipt>>, env: NodeJS.ProcessEnv): string[] {
+  const missingEnv = ["VANTA_TELEGRAM_TOKEN", "VANTA_TELEGRAM_WEBHOOK_SECRET"].filter((key) => !env[key]?.trim());
+  const lines: string[] = [];
+  if (!state.hasSecret) lines.push(`next: modal secret create ${cfg.secret} VANTA_TELEGRAM_TOKEN=... VANTA_TELEGRAM_WEBHOOK_SECRET=... VANTA_PROVIDER=... VANTA_MODEL=...`);
+  if (!state.app) lines.push("next: vanta backend gateway deploy");
+  if (missingEnv.length) lines.push(`next: export ${missingEnv.map((key) => `${key}=...`).join(" ")}`);
+  if (!receipt?.endpoint) lines.push("next: vanta backend gateway register-telegram <https-endpoint>");
+  if (state.app?.state === "deployed" && state.hasSecret && receipt?.endpoint && missingEnv.length === 0) lines.push("next: vanta backend gateway arm, send the bot a message, then vanta backend gateway prove");
+  return lines;
+}
+
 async function status(
   repoRoot: string,
   env: NodeJS.ProcessEnv,
@@ -99,6 +110,7 @@ async function status(
   log(secretLine(cfg, state.hasSecret));
   log(`serverless gateway: Telegram registration ${receipt?.endpoint ? receipt.endpoint : "no endpoint receipt"} · token ${telegramToken} · webhook secret ${webhookSecret}`);
   log(`serverless gateway: min 0 · scaledown ${cfg.scaledownSec}s · volume ${cfg.volume}`);
+  for (const line of statusNextLines(cfg, state, receipt, env)) log(`serverless gateway: ${line}`);
   return state.app?.state === "deployed" && state.hasSecret ? 0 : 1;
 }
 
