@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { RoadmapSchema } from "./schema.js";
-import type { RoadmapItem, Status } from "./schema.js";
+import type { ParkedReason, RoadmapItem, Status } from "./schema.js";
 import { buildRoadmap } from "./build.js";
 import { checkWipLimit } from "./wip.js";
 import { appendVelocityEvent } from "../velocity/store.js";
@@ -14,6 +14,13 @@ export class RoadmapDependencyError extends Error {
   }
 }
 
+export class RoadmapParkedReviveError extends Error {
+  constructor(public itemId: string, public parkedReason: ParkedReason) {
+    super(`parked card ${itemId} requires review before revival (${parkedReason}). Run \`vanta roadmap unblock ${itemId}\`, then retry with --force if the reason is no longer true.`);
+    this.name = "RoadmapParkedReviveError";
+  }
+}
+
 type MoveOptions = { force?: boolean };
 
 function openDependencies(items: RoadmapItem[], item: RoadmapItem): string[] {
@@ -22,6 +29,16 @@ function openDependencies(items: RoadmapItem[], item: RoadmapItem): string[] {
     const dep = byId.get(id);
     return dep?.status === "shipped" ? [] : [`${id} (${dep?.status ?? "missing"})`];
   });
+}
+
+function parkedReviveError(item: RoadmapItem, toStatus: Status, force?: boolean): RoadmapParkedReviveError | null {
+  if (force || item.status !== "parked" || toStatus === "parked") return null;
+  return new RoadmapParkedReviveError(item.id, item.parkedReason ?? "review");
+}
+
+function assertParkedReviveAllowed(item: RoadmapItem, toStatus: Status, force?: boolean): void {
+  const revive = parkedReviveError(item, toStatus, force);
+  if (revive) throw revive;
 }
 
 function applyStatusMetadata(item: RoadmapItem, toStatus: Status): void {
@@ -51,6 +68,8 @@ export async function moveRoadmapItem(
   if (!item) {
     throw new Error(`no item with id '${id}' in roadmap.json`);
   }
+
+  assertParkedReviveAllowed(item, toStatus, options.force);
 
   const deps = toStatus === "building" && !options.force ? openDependencies(data.items, item) : [];
   if (deps.length) throw new RoadmapDependencyError(id, deps);

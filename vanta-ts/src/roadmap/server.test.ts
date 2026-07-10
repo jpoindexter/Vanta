@@ -148,6 +148,42 @@ describe("POST /roadmap/move", () => {
     expect(res.status).toBe(200);
   });
 
+  it("returns 409 when a board move revives a parked card without force", async () => {
+    await startServer();
+    await writeFile(join(dir, "roadmap.json"), JSON.stringify({
+      updated: "2026-01-01",
+      items: [
+        { id: "PROOF", track: "Core", title: "Proof", status: "parked", size: "S", summary: ".", done: ".", parkedReason: "external proof" },
+      ],
+    }, null, 2), "utf8");
+    const res = await fetch(`${baseUrl}/roadmap/move`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: "PROOF", status: "building" }),
+    });
+    expect(res.status).toBe(409);
+    const j = (await res.json()) as { ok: boolean; error: string; parkedReason: string };
+    expect(j.ok).toBe(false);
+    expect(j.parkedReason).toBe("external proof");
+    expect(j.error).toContain("requires review before revival");
+  });
+
+  it("allows a forced board revive for a parked card", async () => {
+    await startServer();
+    await writeFile(join(dir, "roadmap.json"), JSON.stringify({
+      updated: "2026-01-01",
+      items: [
+        { id: "PROOF", track: "Core", title: "Proof", status: "parked", size: "S", summary: ".", done: ".", parkedReason: "external proof" },
+      ],
+    }, null, 2), "utf8");
+    const res = await fetch(`${baseUrl}/roadmap/move`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: "PROOF", status: "building", force: true }),
+    });
+    expect(res.status).toBe(200);
+  });
+
   it("returns 400 when item id does not exist", async () => {
     await startServer();
     await writeFile(join(dir, "roadmap.json"), JSON.stringify(FIXTURE, null, 2), "utf8");

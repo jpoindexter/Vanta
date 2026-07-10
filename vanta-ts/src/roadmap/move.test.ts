@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach } from "vitest";
 import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { RoadmapDependencyError, moveRoadmapItem } from "./move.js";
+import { RoadmapDependencyError, RoadmapParkedReviveError, moveRoadmapItem } from "./move.js";
 
 const FIXTURE = {
   updated: "2026-01-01",
@@ -72,12 +72,31 @@ describe("moveRoadmapItem", () => {
       updated: "2026-01-01",
       items: [{ ...FIXTURE.items[0], status: "parked", parkedReason: "review" }],
     });
-    const item = await moveRoadmapItem(root, "ND2", "next");
+    const item = await moveRoadmapItem(root, "ND2", "next", { force: true });
     const raw = await readFile(join(root, "roadmap.json"), "utf8");
     const data = JSON.parse(raw);
     const nd2 = data.items.find((i: { id: string }) => i.id === "ND2");
     expect(item.parkedReason).toBeUndefined();
     expect(nd2.parkedReason).toBeUndefined();
+  });
+
+  it("blocks moving a parked card back into active work without force", async () => {
+    const root = await makeRoadmap({
+      updated: "2026-01-01",
+      items: [{ ...FIXTURE.items[0], status: "parked", parkedReason: "external proof" }],
+    });
+    await expect(moveRoadmapItem(root, "ND2", "building")).rejects.toThrow(RoadmapParkedReviveError);
+    await expect(moveRoadmapItem(root, "ND2", "building")).rejects.toThrow("vanta roadmap unblock ND2");
+  });
+
+  it("force overrides parked revive review", async () => {
+    const root = await makeRoadmap({
+      updated: "2026-01-01",
+      items: [{ ...FIXTURE.items[0], status: "parked", parkedReason: "strategy decision" }],
+    });
+    const item = await moveRoadmapItem(root, "ND2", "building", { force: true });
+    expect(item.status).toBe("building");
+    expect(item.parkedReason).toBeUndefined();
   });
 
   it("updates the top-level updated field to today", async () => {

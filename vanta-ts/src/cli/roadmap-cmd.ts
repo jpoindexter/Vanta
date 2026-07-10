@@ -15,7 +15,7 @@ async function handleRoadmapServe(repoRoot: string): Promise<void> {
   await serveRoadmap(repoRoot, port);
 }
 
-async function handleRoadmapMove(repoRoot: string, args: string[]): Promise<void> {
+async function handleRoadmapMove(repoRoot: string, args: string[]): Promise<number> {
   const id = args[1];
   const status = args[2];
   if (!id || !status) {
@@ -23,15 +23,24 @@ async function handleRoadmapMove(repoRoot: string, args: string[]): Promise<void
     console.error("  status: shipped | building | blocked | next | horizon | parked");
     process.exit(1);
   }
-  const { moveRoadmapItem } = await import("../roadmap/move.js");
+  const { moveRoadmapItem, RoadmapDependencyError, RoadmapParkedReviveError, WipLimitError } = await import("../roadmap/move.js");
   const { STATUS } = await import("../roadmap/schema.js");
   const force = args.includes("--force");
   if (!(STATUS as readonly string[]).includes(status)) {
     console.error(`Invalid status '${status}'. Valid: ${STATUS.join(", ")}`);
     process.exit(1);
   }
-  const item = await moveRoadmapItem(repoRoot, id, status as import("../roadmap/schema.js").Status, { force });
-  console.log(`  ✓ Moved ${item.id} → ${status}: ${item.title}`);
+  try {
+    const item = await moveRoadmapItem(repoRoot, id, status as import("../roadmap/schema.js").Status, { force });
+    console.log(`  ✓ Moved ${item.id} → ${status}: ${item.title}`);
+    return 0;
+  } catch (err) {
+    if (err instanceof RoadmapDependencyError || err instanceof RoadmapParkedReviveError || err instanceof WipLimitError) {
+      console.error(err.message);
+      return 1;
+    }
+    throw err;
+  }
 }
 
 async function handleRoadmapDecompose(repoRoot: string, args: string[]): Promise<void> {

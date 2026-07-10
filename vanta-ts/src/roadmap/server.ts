@@ -1,12 +1,25 @@
 import { createServer, type Server, type ServerResponse } from "node:http";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { moveRoadmapItem, RoadmapDependencyError, WipLimitError } from "./move.js";
+import { moveRoadmapItem, RoadmapDependencyError, RoadmapParkedReviveError, WipLimitError } from "./move.js";
 import { STATUS, type Status } from "./schema.js";
 
 function json(res: ServerResponse, status: number, body: unknown): void {
   res.writeHead(status, { "Content-Type": "application/json" });
   res.end(JSON.stringify(body));
+}
+
+function moveError(err: unknown): { status: number; body: unknown } {
+  if (err instanceof WipLimitError) {
+    return { status: 409, body: { ok: false, error: err.message, wip: { count: err.count, limit: err.limit } } };
+  }
+  if (err instanceof RoadmapDependencyError) {
+    return { status: 409, body: { ok: false, error: err.message, dependencies: err.openDependencies } };
+  }
+  if (err instanceof RoadmapParkedReviveError) {
+    return { status: 409, body: { ok: false, error: err.message, parkedReason: err.parkedReason } };
+  }
+  return { status: 400, body: { ok: false, error: err instanceof Error ? err.message : String(err) } };
 }
 
 export function createRoadmapServer(repoRoot: string): Server {
@@ -41,13 +54,8 @@ export function createRoadmapServer(repoRoot: string): Server {
           const item = await moveRoadmapItem(repoRoot, id, status as Status, { force: force === true });
           json(res, 200, { ok: true, id: item.id, status: item.status, title: item.title });
         } catch (err) {
-          if (err instanceof WipLimitError) {
-            json(res, 409, { ok: false, error: err.message, wip: { count: err.count, limit: err.limit } });
-          } else if (err instanceof RoadmapDependencyError) {
-            json(res, 409, { ok: false, error: err.message, dependencies: err.openDependencies });
-          } else {
-            json(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
-          }
+          const failure = moveError(err);
+          json(res, failure.status, failure.body);
         }
       });
       return;

@@ -137,3 +137,24 @@ describe("runRoadmapCommand status", () => {
     expect(out.activeTotal).toBe(1);
   });
 });
+
+describe("runRoadmapCommand move", () => {
+  it("refuses to revive a parked card without force", async () => {
+    const root = await workspace();
+    const errors: string[] = [];
+    vi.spyOn(console, "error").mockImplementation((line = "") => errors.push(String(line)));
+    const code = await runRoadmapCommand(root, ["move", "BACKEND-SERVERLESS-LIVE", "building"]);
+    expect(code).toBe(1);
+    expect(errors.join("\n")).toContain("requires review before revival");
+    expect(errors.join("\n")).toContain("external proof");
+  });
+
+  it("allows an explicit force revive", async () => {
+    const root = await workspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    const code = await runRoadmapCommand(root, ["move", "BACKEND-SERVERLESS-LIVE", "building", "--force"]);
+    expect(code).toBe(0);
+    expect(lines.join("\n")).toContain("Moved BACKEND-SERVERLESS-LIVE");
+  });
+});
