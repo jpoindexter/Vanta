@@ -1,9 +1,15 @@
 {
-  "name": "vanta-operator-sdk",
+  "name": "@jpoindexter/vanta-operator-sdk",
   "version": "1.0.0",
   "description": "Typed client for the Vanta public API",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jpoindexter/Vanta.git",
+    "directory": "vanta-ts/packages/sdk"
+  },
+  "homepage": "https://github.com/jpoindexter/Vanta/tree/main/vanta-ts/packages/sdk",
   "sideEffects": false,
   "files": ["dist", "README.md"],
   "main": "./dist/index.js",
@@ -19,6 +25,7 @@
     "prepack": "npm run build"
   },
   "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
     "access": "public"
   },
   "engines": {

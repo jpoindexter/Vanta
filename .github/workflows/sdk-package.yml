@@ -1,0 +1,119 @@
+name: SDK package
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish-and-prove:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com
+          scope: "@jpoindexter"
+          cache: npm
+          cache-dependency-path: vanta-ts/packages/sdk/package-lock.json
+      - name: Install and build SDK
+        working-directory: vanta-ts/packages/sdk
+        run: |
+          npm ci
+          npm run build
+      - name: Pack exact release artifact
+        id: pack
+        working-directory: vanta-ts/packages/sdk
+        shell: bash
+        run: |
+          tarball=$(npm pack --json | jq -r '.[0].filename')
+          package=$(node -p 'require("./package.json").name')
+          version=$(node -p 'require("./package.json").version')
+          sha1=$(sha1sum "$tarball" | cut -d' ' -f1)
+          echo "tarball=$PWD/$tarball" >> "$GITHUB_OUTPUT"
+          echo "package=$package" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "sha1=$sha1" >> "$GITHUB_OUTPUT"
+      - name: Refuse an existing version
+        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE: ${{ steps.pack.outputs.package }}
+          VERSION: ${{ steps.pack.outputs.version }}
+        run: |
+          if npm view "$PACKAGE@$VERSION" version --registry=https://npm.pkg.github.com >/dev/null 2>&1; then
+            echo "$PACKAGE@$VERSION already exists; bump the SDK version before publishing" >&2
+            exit 1
+          fi
+      - name: Publish exact artifact
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm publish "${{ steps.pack.outputs.tarball }}"
+      - name: Verify registry integrity
+        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE: ${{ steps.pack.outputs.package }}
+          VERSION: ${{ steps.pack.outputs.version }}
+          LOCAL_SHA1: ${{ steps.pack.outputs.sha1 }}
+        run: |
+          remote_sha1=""
+          for attempt in 1 2 3 4 5 6; do
+            remote_sha1=$(npm view "$PACKAGE@$VERSION" dist.shasum --registry=https://npm.pkg.github.com 2>/dev/null || true)
+            [ -n "$remote_sha1" ] && break
+            sleep 5
+          done
+          [ "$remote_sha1" = "$LOCAL_SHA1" ] || {
+            echo "registry artifact mismatch: local=$LOCAL_SHA1 remote=$remote_sha1" >&2
+            exit 1
+          }
+          echo "SDK_REGISTRY_INTEGRITY_OK $PACKAGE@$VERSION $remote_sha1"
+      - name: Fresh install and execute published SDK
+        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE: ${{ steps.pack.outputs.package }}
+          VERSION: ${{ steps.pack.outputs.version }}
+        run: |
+          consumer="$RUNNER_TEMP/vanta-sdk-consumer"
+          mkdir -p "$consumer"
+          cd "$consumer"
+          npm init -y >/dev/null
+          npm install "$PACKAGE@$VERSION" --registry=https://npm.pkg.github.com
+          node --input-type=module <<'NODE'
+          import assert from "node:assert/strict";
+          import {
+            VANTA_API_VERSION,
+            VANTA_PLUGIN_CONTRACT_VERSION,
+            VantaClient,
+            isVantaPluginManifestV1,
+          } from "@jpoindexter/vanta-operator-sdk";
+
+          const client = new VantaClient({
+            baseUrl: "https://vanta.example",
+            token: "registry-smoke-token",
+            channelId: "registry-smoke",
+            fetch: async (url, init) => {
+              assert.equal(String(url), "https://vanta.example/api/v1/status");
+              assert.equal(init?.headers?.authorization, "Bearer registry-smoke-token");
+              return Response.json({ kernel: "online", sessionId: "registry-smoke" });
+            },
+          });
+          const status = await client.status();
+          assert.equal(status.kernel, "online");
+          assert.equal(VANTA_API_VERSION, "v1");
+          assert.equal(VANTA_PLUGIN_CONTRACT_VERSION, 1);
+          assert.equal(isVantaPluginManifestV1({
+            contractVersion: 1,
+            id: "registry-smoke",
+            name: "Registry smoke",
+            version: "1.0.0",
+            entrypoint: "index.js",
+            capabilities: ["tools"],
+          }), true);
+          console.log("SDK_REGISTRY_EXECUTION_OK");
+          NODE

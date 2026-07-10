@@ -3,7 +3,7 @@
 Typed TypeScript client for Vanta's authenticated public API v1. Node.js 20+ is supported.
 
 ```ts
-import { VantaClient } from "vanta-operator-sdk";
+import { VantaClient } from "@jpoindexter/vanta-operator-sdk";
 
 const vanta = new VantaClient({
   baseUrl: "http://127.0.0.1:7791",

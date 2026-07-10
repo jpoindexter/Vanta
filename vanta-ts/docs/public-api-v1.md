@@ -48,6 +48,8 @@ Every input ends with `turn.completed`, including an `ok` boolean. The SDK's `st
 
 ## SDK and plugin contract
 
-`vanta-operator-sdk` exports `VantaClient`, all API v1 types, `VANTA_API_VERSION`, and the plugin manifest contract. Build a registry-ready tarball with `npm run sdk:pack`.
+`@jpoindexter/vanta-operator-sdk` exports `VantaClient`, all API v1 types, `VANTA_API_VERSION`, and the plugin manifest contract. Build a registry-ready tarball with `npm run sdk:pack`.
+
+The release workflow publishes the scoped package to GitHub Packages and proves a fresh registry install. Consumers authenticate npm for the `@jpoindexter` scope against `https://npm.pkg.github.com` using a GitHub token with `read:packages`.
 
 Plugin manifests use `contractVersion: 1` with `id`, `name`, `version`, `entrypoint`, and `capabilities`. `isVantaPluginManifestV1` validates that stable envelope. Breaking fields require a new contract version; v1 changes are additive only.
