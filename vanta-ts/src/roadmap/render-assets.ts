@@ -23,6 +23,7 @@ h1{font-size:1.25rem;margin-bottom:.35rem;font-weight:600}
 .lp-status{font-size:.52rem;color:#4ade80;border:1px solid #1e4a32;padding:.03rem .22rem;font-family:ui-monospace,monospace;text-transform:uppercase}
 .lp-next .lp-status{color:#60a5fa;border-color:#1e3a5c}
 .lp-building .lp-status{color:#f59e0b;border-color:#4a3408}
+.lp-blocked .lp-status{color:#f87171;border-color:#5a1d1d}
 .lp-horizon .lp-status{color:#c084fc;border-color:#3a2452}
 .lp-title{font-size:.72rem;color:#c8cdd8;line-height:1.3}
 .lp-deps{font-size:.58rem;color:#3e4a5c;font-family:ui-monospace,monospace;line-height:1.35}
@@ -34,9 +35,10 @@ select:focus{outline:none;border-color:#f59e0b;color:#e8eaf0}
 option{background:#0c0f14;color:#c8cdd8;padding:.3rem}
 button{background:#10141b;border:1px solid #1e2737;color:#3e4a5c;padding:.25rem .6rem;border-radius:0;cursor:pointer;font-size:.7rem;font-family:ui-monospace,monospace}
 button.active,button:hover{background:#f59e0b;border-color:#f59e0b;color:#0c0f14;font-weight:700}
-.board{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;align-items:start}
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;align-items:start}
 .col h2{font-size:.65rem;font-weight:700;padding:.3rem .65rem;margin-bottom:.75rem;letter-spacing:.1em;text-transform:uppercase;font-family:ui-monospace,monospace;background:transparent;border-left:3px solid}
 h2.s-building{color:#4ade80;border-left-color:#4ade80}
+h2.s-blocked{color:#f87171;border-left-color:#f87171}
 h2.s-next{color:#60a5fa;border-left-color:#60a5fa}
 h2.s-horizon{color:#c084fc;border-left-color:#c084fc}
 h2.s-shipped{color:#475569;border-left-color:#475569}
@@ -80,7 +82,7 @@ details[open]>summary::before{content:"▾ "}
 .sh-grid .card{break-inside:avoid}
 .hidden{display:none!important}
 @media(max-width:1040px){.launch-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:880px){.board{grid-template-columns:1fr 1fr}.sh-grid{columns:2}}
+@media(max-width:1180px){.board{grid-template-columns:1fr 1fr}.sh-grid{columns:2}}
 @media(max-width:560px){.board{grid-template-columns:1fr}.sh-grid{columns:1}.launch-head{flex-direction:column}.launch-grid{grid-template-columns:1fr}.launch-metrics{width:100%}.launch-metric{text-align:left;flex:1}}
 .col.drag-over{outline:2px dashed #f59e0b;background:#0d1018}
 .card[draggable=true]{cursor:grab}

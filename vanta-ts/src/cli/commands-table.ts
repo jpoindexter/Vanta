@@ -106,6 +106,7 @@ import { runOsintCommand } from "./osint-cmd.js";
 import { runApiCommand } from "./api-cmd.js";
 import { runTrajectoryCommand } from "./trajectory-cmd.js";
 import { runBackendCommand } from "./backend-cmd.js";
+import { runNowCommand } from "./now-cmd.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
@@ -171,6 +172,7 @@ export const COMMANDS: Record<string, CommandFn> = {
   hooks: (_root, rest) => runHooksCommand(rest),
   mcp: (root, rest) => runMcpCommand(root, rest),
   roadmap: (root, rest) => runRoadmapCommand(root, rest),
+  now: (root, rest) => runNowCommand(root, rest),
   eval: (root, rest) => runEvalCommand(root, rest),
   evolve: (root, rest) => runEvolveCommand(root, rest),
   desktop: (root, rest) => runDesktopCommand(root, rest),

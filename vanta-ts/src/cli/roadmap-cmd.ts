@@ -20,7 +20,7 @@ async function handleRoadmapMove(repoRoot: string, args: string[]): Promise<void
   const status = args[2];
   if (!id || !status) {
     console.error("Usage: vanta roadmap move <id> <status> [--force]");
-    console.error("  status: shipped | building | next | horizon");
+    console.error("  status: shipped | building | blocked | next | horizon | parked");
     process.exit(1);
   }
   const { moveRoadmapItem } = await import("../roadmap/move.js");

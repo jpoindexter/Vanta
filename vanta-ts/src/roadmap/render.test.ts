@@ -7,6 +7,7 @@ const fixture: Roadmap = {
   items: [
     { id: "T1", track: "Core", title: "Shipped thing", status: "shipped", size: "S", summary: "Done.", done: "Shipped." },
     { id: "T2", track: "Core", title: "Building now", status: "building", size: "M", summary: "In progress.", done: "When done." },
+    { id: "TB", track: "Core", title: "Blocked externally", status: "blocked", size: "M", summary: "Waiting.", done: "Unblocked.", tier: "pebble" },
     { id: "T3", track: "MCP", title: "Next up", status: "next", size: "S", summary: "Coming.", done: "When shipped.", tier: "rock", model: "sonnet", effort: "medium", codex: "gpt-5.4-mini" },
     { id: "T4", track: "Vision", title: "Future thing", status: "horizon", size: "L", summary: "Aspirational.", done: "Someday.", tier: "sand", model: "haiku", effort: "low" },
   ],
@@ -107,6 +108,14 @@ describe("renderRoadmap", () => {
   it("shows shipped count in the collapsed section header", () => {
     const html = renderRoadmap(fixture);
     expect(html).toContain("Shipped (1)");
+  });
+
+  it("renders blocked as a visible non-WIP board column", () => {
+    const html = renderRoadmap(fixture);
+    expect(html).toContain('data-status="blocked"');
+    expect(html).toContain("Blocked externally");
+    expect(html).toContain('<h2 class="ch s-blocked">Blocked');
+    expect(html).not.toContain('<h2 class="ch s-blocked">Blocked <span class="wip"');
   });
 
   it("includes track filter buttons", () => {

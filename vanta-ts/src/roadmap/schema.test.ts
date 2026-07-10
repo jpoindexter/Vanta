@@ -20,6 +20,10 @@ describe("RoadmapItemSchema", () => {
     expect(() => RoadmapItemSchema.parse({ ...validItem, status: "wip" })).toThrow();
   });
 
+  it("accepts blocked as a visible non-WIP status", () => {
+    expect(RoadmapItemSchema.parse({ ...validItem, status: "blocked" }).status).toBe("blocked");
+  });
+
   it("rejects missing id", () => {
     const { id: _id, ...rest } = validItem;
     expect(() => RoadmapItemSchema.parse(rest)).toThrow();

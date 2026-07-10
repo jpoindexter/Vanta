@@ -10,8 +10,8 @@ function esc(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-const COLS = ["building", "next", "horizon"] as const;
-const COL_LABEL: Record<string, string> = { building: "Now", next: "Next", horizon: "Later" };
+const COLS = ["building", "blocked", "next", "horizon"] as const;
+const COL_LABEL: Record<string, string> = { building: "Now", blocked: "Blocked", next: "Next", horizon: "Later" };
 const TIER_ORDER = ["rock", "pebble", "sand"] as const;
 const TIER_LABEL: Record<string, string> = {
   rock: "Rocks · foundational",

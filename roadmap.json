@@ -128,6 +128,22 @@
       "source": "blind-audit-roadmap-activation-2026-07-09"
     },
     {
+      "id": "ROADMAP-BLOCKED-STATUS",
+      "track": "Operator",
+      "title": "Roadmap blocked status — external gates stop consuming Now slots",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Adds a visible Blocked column/status for cards waiting on hardware, credentials, releases, or other external proof. Blocked cards remain visible in Launch Pad and the board, but do not count against the WIP-limited Build Now slots.",
+      "done": "`blocked` is a valid roadmap status, renders as its own board/Launch Pad state, can be set via `vanta roadmap move <id> blocked`, and does not count toward Now WIP.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "selfhood",
+      "updated": "2026-07-10",
+      "notes": "SHIPPED 2026-07-10: STATUS includes blocked; roadmap render/CSS shows a Blocked column and Launch Pad badge; CLI usage includes blocked; WIP tests assert blocked does not consume Now slots; BACKEND-SERVERLESS-LIVE and RUN-ANYWHERE-TERMUX moved from building to blocked because their remaining gates require real Telegram/Modal credentials, a tagged release, and physical ARM64 Android hardware."
+    },
+    {
       "id": "OPERATOR-HOME-V1",
       "track": "Operator",
       "title": "Operator home v1 — Hermes/OpenClaw-style capability view without the full command center",
@@ -10002,7 +10018,9 @@
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4-mini",
-      "lens": "selfhood"
+      "lens": "selfhood",
+      "notes": "REPAIRED CLI 2026-07-10: wired the existing now-queue selector to real `vanta now` and `vanta now --apply`. It proposes the best 1-2 `next` cards without exceeding WIP, prompts on a TTY, and applies non-interactively with --apply. Executed against the live roadmap after external-proof cards moved to blocked: `vanta now` returned `nothing to propose`, correctly reflecting that no `next` cards remain.",
+      "updated": "2026-07-10"
     },
     {
       "id": "SHIP-MODE",
@@ -16187,7 +16205,7 @@
       "id": "BACKEND-SERVERLESS-LIVE",
       "track": "Harness",
       "title": "Serverless LIVE — Modal/Daytona hibernate + wake-on-message, proven",
-      "status": "building",
+      "status": "blocked",
       "size": "L",
       "summary": "BACKEND-SERVERLESS shipped as a structured command-transport slice. Prove it live: the agent runs on Modal/Daytona, hibernates when idle (~$0), and wakes on an inbound message so you can talk to it from Telegram while it works on a cloud VM. The kernel travels with it and gates remotely. Gateway status now reports redacted Telegram registration readiness alongside Modal app/secret/scale state, so the live proof blocker is visible before deploy.",
       "done": "A real Modal (or Daytona) deployment runs the gateway, hibernates when idle, wakes on an inbound message, processes it, and replies end-to-end — with cost-when-idle near zero, verified.",
@@ -16754,7 +16772,7 @@
       "id": "RUN-ANYWHERE-TERMUX",
       "track": "Operator",
       "title": "Termux / Android runtime (run-anywhere North Star gap)",
-      "status": "building",
+      "status": "blocked",
       "size": "M",
       "summary": "The shared installer detects Termux, prefers a checksum-verified ARM64 Android/Bionic kernel, installs compilers only as a fallback, installs portable runtime dependencies and the launcher into PREFIX/bin, and applies a phone-sized heap profile. An x86_64 Android emulator gate passes end to end and the ARM64/Bionic artifact builds in CI; physical ARM64 execution remains the release gate. A physical ARM64 proof runner now lives at scripts/termux-arm64-device-proof.sh; the card stays building until that runner passes on real ARM64 Android/Termux hardware. The proof runner also supports --require-release-kernel so the final device run can prove the release artifact path rather than source-build fallback.",
       "done": "install.sh + run.sh bring up a working Vanta (kernel + agent) on Termux/Android, doctor green; aarch64-android kernel published or built on-device.",

@@ -8,6 +8,7 @@ describe("checkWipLimit", () => {
     const items = [mk("A", "building"), mk("B", "building")];
     expect(checkWipLimit(items, "C", "next")).toBeNull();
     expect(checkWipLimit(items, "C", "shipped")).toBeNull();
+    expect(checkWipLimit(items, "C", "blocked")).toBeNull();
     expect(checkWipLimit(items, "C", "horizon")).toBeNull();
   });
 

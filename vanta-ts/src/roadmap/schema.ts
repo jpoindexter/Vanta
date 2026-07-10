@@ -1,8 +1,10 @@
 import { z } from "zod";
 
+// "blocked" = still important, but waiting on user/external proof; it stays
+// visible on the board without consuming the WIP-limited building slots.
 // "parked" = lives in roadmap.json for the audit trail but is deliberately out of
 // the build sequence (build-order + the kanban board exclude it, like "shipped").
-export const STATUS = ["shipped", "building", "next", "horizon", "parked"] as const;
+export const STATUS = ["shipped", "building", "blocked", "next", "horizon", "parked"] as const;
 export type Status = (typeof STATUS)[number];
 
 // Pickle-jar build-priority — distinct from `size` (effort estimate):
