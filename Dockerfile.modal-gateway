@@ -1,0 +1,15 @@
+FROM rust:1.85-bookworm AS kernel
+WORKDIR /build
+COPY Cargo.toml Cargo.lock ./
+COPY src ./src
+RUN cargo build --release --locked
+
+FROM node:24-bookworm-slim
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates git \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /workspace/vanta-ts
+COPY vanta-ts/package.json vanta-ts/package-lock.json ./
+RUN npm ci --omit=dev --no-audit --no-fund
+COPY vanta-ts/src ./src
+COPY --from=kernel /build/target/release/vanta-kernel /workspace/target/debug/vanta-kernel

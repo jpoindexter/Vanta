@@ -11,7 +11,11 @@ import { IrcAdapter, parseNickAllowlist } from "./irc.js";
 // per wired platform; mirrors how `providers/index.ts` resolves an LLM by env.
 export function resolvePlatform(env: NodeJS.ProcessEnv): PlatformAdapter | undefined {
   const token = env.VANTA_TELEGRAM_TOKEN?.trim();
-  if (token) return new TelegramAdapter({ token, allow: parseAllowlist(env.VANTA_TELEGRAM_ALLOW) });
+  if (token) return new TelegramAdapter({
+    token,
+    allow: parseAllowlist(env.VANTA_TELEGRAM_ALLOW),
+    webhookSecret: env.VANTA_TELEGRAM_WEBHOOK_SECRET,
+  });
 
   const mmUrl = env.VANTA_MATTERMOST_URL?.trim();
   const mmToken = env.VANTA_MATTERMOST_TOKEN?.trim();

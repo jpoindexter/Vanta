@@ -10,6 +10,7 @@ import { ensureKernel } from "../kernel-launcher.js";
 import { kernelBinaryPath } from "../kernel/path.js";
 import { createKernelClient } from "../kernel/client.js";
 import type { Verdict } from "../types.js";
+import { runModalGatewayCommand } from "./modal-gateway-cmd.js";
 
 const exec = promisify(execFile);
 const VERIFY_ACTION = "verify remote execution backend with a fixed read-only workspace probe";
@@ -132,6 +133,7 @@ export async function runBackendCommand(
   const command = rest[0] ?? "status";
   if (command === "status") return status(env, deps, log);
   if (command === "verify") return verify(repoRoot, env, deps, log);
-  log("Usage: vanta backend [status|verify]");
+  if (command === "gateway") return runModalGatewayCommand(repoRoot, rest.slice(1), env);
+  log("Usage: vanta backend [status|verify|gateway]");
   return 1;
 }

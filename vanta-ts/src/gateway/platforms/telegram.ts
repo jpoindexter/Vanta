@@ -1,5 +1,12 @@
+import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
-import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
+import type {
+  InboundMessage,
+  OutboundDeliveryReceipt,
+  OutboundMessage,
+  PlatformAdapter,
+  PlatformWebhookHandler,
+} from "./base.js";
 import { formatForDialect } from "./format.js";
 import { capabilities, segmentsFor, type AdapterCapabilities } from "./capabilities.js";
 
@@ -17,10 +24,7 @@ const TELEGRAM_CAPABILITIES: AdapterCapabilities = capabilities({
 // VANTA_TELEGRAM_TOKEN. Offline-tested (parseUpdates is pure); live use needs the
 // token. Optional VANTA_TELEGRAM_ALLOW = comma-list of chat ids to accept.
 
-const UpdatesResponse = z.object({
-  ok: z.boolean(),
-  result: z.array(
-    z.object({
+const TelegramUpdate = z.object({
       update_id: z.number(),
       // MSG-INLINE-APPROVAL — a tapped inline button arrives as callback_query;
       // its `data` becomes the inbound text (e.g. "yes ab12cd"), which the
@@ -44,8 +48,11 @@ const UpdatesResponse = z.object({
           reply_to_message: z.object({ message_id: z.number().optional() }).optional(),
         })
         .optional(),
-    }),
-  ),
+    });
+
+const UpdatesResponse = z.object({
+  ok: z.boolean(),
+  result: z.array(TelegramUpdate),
 });
 
 // Telegram's getUpdates does not echo the bot's own messages back, so a long-poll
@@ -69,6 +76,7 @@ export type ParsedUpdates = { messages: InboundMessage[]; nextOffset: number; ca
 
 type RawCallback = NonNullable<z.infer<typeof UpdatesResponse>["result"][number]["callback_query"]>;
 type RawMessage = z.infer<typeof UpdatesResponse>["result"][number]["message"];
+type TelegramUpdateValue = z.infer<typeof TelegramUpdate>;
 
 /** MSG-INLINE-APPROVAL — a tapped button becomes an inbound whose text is the callback data. */
 function callbackInbound(cb: RawCallback): InboundMessage | null {
@@ -157,6 +165,14 @@ export function parseRetryAfter(payload: unknown): number | undefined {
   return Math.min(parsed.data.parameters?.retry_after ?? 1, MAX_RETRY_AFTER_SEC);
 }
 
+/** Constant-time comparison for Telegram's webhook secret header. */
+export function matchesWebhookSecret(received: string | undefined, expected: string): boolean {
+  if (received === undefined) return false;
+  const actual = Buffer.from(received);
+  const wanted = Buffer.from(expected);
+  return actual.length === wanted.length && timingSafeEqual(actual, wanted);
+}
+
 /** Read a response body as JSON, returning undefined instead of throwing. */
 async function safeJson(res: Response): Promise<unknown> {
   try {
@@ -173,11 +189,20 @@ export class TelegramAdapter implements PlatformAdapter {
   private readonly base: string;
   private readonly allow: Set<string>;
   private readonly sleep: (ms: number) => Promise<void>;
+  private readonly webhookSecret?: string;
+  private readonly pending: TelegramUpdateValue[] = [];
 
-  constructor(opts: { token: string; allow?: Set<string>; apiBase?: string; sleep?: (ms: number) => Promise<void> }) {
+  constructor(opts: {
+    token: string;
+    allow?: Set<string>;
+    apiBase?: string;
+    sleep?: (ms: number) => Promise<void>;
+    webhookSecret?: string;
+  }) {
     this.base = `${opts.apiBase ?? "https://api.telegram.org"}/bot${opts.token}`;
     this.allow = opts.allow ?? new Set();
     this.sleep = opts.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
+    this.webhookSecret = opts.webhookSecret?.trim() || undefined;
   }
 
   async connect(): Promise<void> {
@@ -188,8 +213,10 @@ export class TelegramAdapter implements PlatformAdapter {
   }
 
   async poll(): Promise<InboundMessage[]> {
-    const res = await fetch(`${this.base}/getUpdates?timeout=0&offset=${this.offset}`);
-    const { messages, nextOffset, callbackIds } = parseUpdates(await res.json(), this.offset);
+    const payload = this.webhookSecret
+      ? { ok: true, result: this.pending.splice(0) }
+      : await fetch(`${this.base}/getUpdates?timeout=0&offset=${this.offset}`).then((res) => res.json());
+    const { messages, nextOffset, callbackIds } = parseUpdates(payload, this.offset);
     this.offset = nextOffset;
     // Ack every callback so Telegram stops the button spinner (best-effort).
     for (const id of callbackIds) {
@@ -200,6 +227,25 @@ export class TelegramAdapter implements PlatformAdapter {
       }).catch(() => {});
     }
     return this.allow.size === 0 ? messages : messages.filter((m) => this.allow.has(m.chatId));
+  }
+
+  webhookHandlers(): PlatformWebhookHandler[] {
+    if (!this.webhookSecret) return [];
+    return [{
+      path: "/telegram/webhook",
+      receive: async ({ body, headers }) => {
+        const rawHeader = headers["x-telegram-bot-api-secret-token"];
+        const header = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
+        if (!matchesWebhookSecret(header, this.webhookSecret!)) return { status: 401, body: "unauthorized" };
+        let payload: unknown;
+        try { payload = JSON.parse(body); }
+        catch { return { status: 400, body: "invalid json" }; }
+        const update = TelegramUpdate.safeParse(payload);
+        if (!update.success) return { status: 400, body: "invalid update" };
+        this.pending.push(update.data);
+        return { status: 202, body: "accepted" };
+      },
+    }];
   }
 
   /** POST one part, retrying on 429 flood control per Telegram's retry_after
@@ -232,16 +278,22 @@ export class TelegramAdapter implements PlatformAdapter {
     }
   }
 
-  async send(msg: OutboundMessage): Promise<void> {
+  async send(msg: OutboundMessage): Promise<OutboundDeliveryReceipt | undefined> {
     // Escape the agent's markdown for Telegram's MarkdownV2 (code protected first)
     // BEFORE splitting, then send with parse_mode so bold/code render — not leak.
     const formatted = formatForDialect(msg.text, "telegram");
+    let parts = 0;
     for (const part of segmentsFor(formatted, this.capabilities)) {
       const id = await this.sendPart(msg, part);
+      if (id === undefined) return undefined;
+      parts += 1;
       // Record the FIRST sent part's id as the message's reply-context key, so the
       // gateway's record-on-send (reply-store) can key the bot's reply. A split
       // message's head is the stable reply target.
       if (msg.id === undefined) msg.id = id;
     }
+    return parts > 0
+      ? { platform: "telegram", transport: "bot-api", accepted: true, parts }
+      : undefined;
   }
 }

@@ -58,6 +58,7 @@ export const ADAPTERS: Record<string, AdapterEntry> = {
       new TelegramAdapter({
         token: env.VANTA_TELEGRAM_TOKEN!.trim(),
         allow: parseAllowlist(env.VANTA_TELEGRAM_ALLOW),
+        webhookSecret: env.VANTA_TELEGRAM_WEBHOOK_SECRET,
       }),
   },
   mattermost: {

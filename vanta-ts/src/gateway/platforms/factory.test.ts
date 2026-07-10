@@ -17,6 +17,16 @@ describe("createAdapter", () => {
     expect((adapter as { id: string }).id).toBe("telegram");
   });
 
+  it("wires Telegram webhook ingress only when its secret is set", () => {
+    const polling = createAdapter("telegram", { VANTA_TELEGRAM_TOKEN: "123:abc" });
+    const webhook = createAdapter("telegram", {
+      VANTA_TELEGRAM_TOKEN: "123:abc",
+      VANTA_TELEGRAM_WEBHOOK_SECRET: "signed-hook",
+    });
+    expect((polling as { webhookHandlers?: () => unknown[] }).webhookHandlers?.()).toHaveLength(0);
+    expect((webhook as { webhookHandlers?: () => unknown[] }).webhookHandlers?.()).toHaveLength(1);
+  });
+
   it("returns the ntfy adapter for an implemented id with its env set", () => {
     const adapter = createAdapter("ntfy", { VANTA_NTFY_TOPIC: "my-topic" });
     expect((adapter as { id: string }).id).toBe("ntfy");

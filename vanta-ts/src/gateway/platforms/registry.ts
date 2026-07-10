@@ -44,6 +44,7 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
       "Send /newbot and follow the prompts to name your bot.",
       "Copy the HTTP API token BotFather gives you.",
       "Paste it here. Optionally set VANTA_TELEGRAM_ALLOW to a comma list of chat ids.",
+      "For serverless wake-on-message, set VANTA_TELEGRAM_WEBHOOK_SECRET and register /telegram/webhook with Telegram.",
     ],
   },
   {
