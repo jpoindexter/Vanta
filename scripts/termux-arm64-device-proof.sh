@@ -158,4 +158,6 @@ grep -F "TERMUX_OK" <<< "$run_output" >/dev/null
 
 vanta gateway verify-channels
 
-echo "TERMUX_ARM64_E2E_OK abi=$(getprop ro.product.cpu.abi 2>/dev/null || echo unknown) node_platform=$(node -p process.platform) kernel=$(uname -m)"
+mkdir -p "$ROOT/.vanta"
+proof_line="TERMUX_ARM64_E2E_OK release_kernel=${REQUIRE_RELEASE_KERNEL} abi=$(getprop ro.product.cpu.abi 2>/dev/null || echo unknown) node_platform=$(node -p process.platform) kernel=$(uname -m)"
+printf "%s\n" "$proof_line" | tee "$ROOT/.vanta/termux-arm64-proof.txt"

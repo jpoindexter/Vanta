@@ -93,7 +93,7 @@ const RUN_ANYWHERE_PHASE: LaunchPhase = {
   metric: "Run-anywhere gate",
   proofLabel: "Remote Execution",
   viewsLabel: "Reach Anywhere",
-  proof: ["PCLIP-SANDBOX-AGENTS", "BACKEND-SERVERLESS-LIVE"],
+  proof: ["PCLIP-SANDBOX-AGENTS", "RUN-ANYWHERE-READINESS-STATUS", "BACKEND-SERVERLESS-LIVE"],
   views: ["MSG-ADAPTER-TEAMS", "RUN-ANYWHERE-TERMUX"],
   gate: "RUN-ANYWHERE-V1-RELEASE-GATE",
 };

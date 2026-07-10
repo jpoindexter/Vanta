@@ -48,6 +48,11 @@ vanta run "Reply with TERMUX_OK and do not use tools"
 vanta gateway verify-channels
 ```
 
+It also writes the final marker to `.vanta/termux-arm64-proof.txt`, which
+`vanta run-anywhere status` reads for the aggregate release gate. The final
+release proof requires the marker to include `release_kernel=1`, produced by the
+`--require-release-kernel` mode below.
+
 After a release is tagged with the Android/Bionic kernel asset, prove that the
 device installs the release artifact instead of falling back to an on-device Rust
 build:

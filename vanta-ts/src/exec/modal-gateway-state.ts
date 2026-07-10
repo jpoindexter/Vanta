@@ -18,6 +18,9 @@ export type GatewayReceipt = {
   endpoint?: string;
   deployedAt?: string;
   armedAt?: string;
+  provedAt?: string;
+  telegramAcceptedAt?: string;
+  telegramParts?: number;
 };
 
 export function resolveModalGatewayConfig(env: NodeJS.ProcessEnv): GatewayConfig {
