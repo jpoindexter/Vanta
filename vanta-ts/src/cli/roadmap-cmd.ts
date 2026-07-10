@@ -64,8 +64,8 @@ async function handleRoadmapUnblock(repoRoot: string, args: string[]): Promise<v
   console.log(formatUnblockPlans(buildUnblockPlans(data.items, ids)));
 }
 
-async function handleRoadmapStatus(repoRoot: string): Promise<void> {
-  const [{ readFile }, { join }, { RoadmapSchema }, { formatRoadmapStatus }] = await Promise.all([
+async function handleRoadmapStatus(repoRoot: string, args: string[]): Promise<number> {
+  const [{ readFile }, { join }, { RoadmapSchema }, status] = await Promise.all([
     import("node:fs/promises"),
     import("node:path"),
     import("../roadmap/schema.js"),
@@ -73,14 +73,19 @@ async function handleRoadmapStatus(repoRoot: string): Promise<void> {
   ]);
   const raw = await readFile(join(repoRoot, "roadmap.json"), "utf8");
   const data = RoadmapSchema.parse(JSON.parse(raw));
-  console.log(formatRoadmapStatus(data.items));
+  if (args.includes("--require-drained")) {
+    console.log(status.formatRoadmapDrainGate(data.items));
+    return status.activeRoadmapCount(data.items) === 0 ? 0 : 1;
+  }
+  console.log(status.formatRoadmapStatus(data.items));
+  return 0;
 }
 
-export async function runRoadmapCommand(repoRoot: string, args: string[] = []): Promise<void> {
+export async function runRoadmapCommand(repoRoot: string, args: string[] = []): Promise<number | void> {
   if (args[0] === "serve") return handleRoadmapServe(repoRoot);
   if (args[0] === "move") return handleRoadmapMove(repoRoot, args);
   if (args[0] === "unblock") return handleRoadmapUnblock(repoRoot, args);
-  if (args[0] === "status") return handleRoadmapStatus(repoRoot);
+  if (args[0] === "status") return handleRoadmapStatus(repoRoot, args);
   if (args[1] === "decompose") return handleRoadmapDecompose(repoRoot, args);
 
   const { buildRoadmap } = await import("../roadmap/build.js");

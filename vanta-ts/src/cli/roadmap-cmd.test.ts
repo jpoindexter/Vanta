@@ -24,6 +24,19 @@ async function workspace(): Promise<string> {
   return root;
 }
 
+async function drainedWorkspace(): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), "vanta-roadmap-cmd-"));
+  roots.push(root);
+  await writeFile(join(root, "roadmap.json"), JSON.stringify({
+    updated: "2026-07-10",
+    items: [
+      { id: "DONE", track: "Harness", title: "Done", status: "shipped", size: "S", summary: "", done: "" },
+      { id: "PROOF", track: "Harness", title: "Proof", status: "parked", size: "L", summary: "", done: "", parkedReason: "external proof" },
+    ],
+  }, null, 2), "utf8");
+  return root;
+}
+
 describe("runRoadmapCommand unblock", () => {
   it("prints concrete unblock steps", async () => {
     const root = await workspace();
@@ -52,12 +65,33 @@ describe("runRoadmapCommand status", () => {
     const root = await workspace();
     const lines: string[] = [];
     vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
-    await runRoadmapCommand(root, ["status"]);
+    const code = await runRoadmapCommand(root, ["status"]);
     const out = lines.join("\n");
+    expect(code).toBe(0);
     expect(out).toContain("total: 2");
     expect(out).toContain("horizon: 1");
     expect(out).toContain("parked: 1");
     expect(out).toContain("parked reasons:");
     expect(out).toContain("- external proof: 1");
+  });
+
+  it("passes --require-drained when only parked work remains", async () => {
+    const root = await drainedWorkspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    const code = await runRoadmapCommand(root, ["status", "--require-drained"]);
+    expect(code).toBe(0);
+    expect(lines.join("\n")).toContain("active roadmap drained: yes");
+  });
+
+  it("fails --require-drained when active roadmap work remains", async () => {
+    const root = await workspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    const code = await runRoadmapCommand(root, ["status", "--require-drained"]);
+    const out = lines.join("\n");
+    expect(code).toBe(1);
+    expect(out).toContain("active roadmap drained: no");
+    expect(out).toContain("horizon: 1");
   });
 });

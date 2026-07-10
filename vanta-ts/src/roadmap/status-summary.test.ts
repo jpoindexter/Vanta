@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RoadmapItem } from "./schema.js";
-import { formatRoadmapStatus } from "./status-summary.js";
+import { activeRoadmapCount, formatRoadmapDrainGate, formatRoadmapStatus } from "./status-summary.js";
 
 function card(id: string, status: RoadmapItem["status"], parkedReason?: RoadmapItem["parkedReason"]): RoadmapItem {
   return { id, status, parkedReason, track: "Operator", title: id, size: "S", summary: "", done: "" };
@@ -35,5 +35,32 @@ describe("formatRoadmapStatus", () => {
   it("omits parked reason section when no cards are parked", () => {
     const out = formatRoadmapStatus([card("A", "shipped")]);
     expect(out).not.toContain("parked reasons:");
+  });
+
+  it("reports a drained active queue when only shipped and parked cards remain", () => {
+    const items = [
+      card("A", "shipped"),
+      card("B", "parked", "external proof"),
+    ];
+    expect(activeRoadmapCount(items)).toBe(0);
+    expect(formatRoadmapDrainGate(items)).toContain("active roadmap drained: yes");
+  });
+
+  it("reports active work when any build-sequence status remains", () => {
+    const items = [
+      card("A", "building"),
+      card("B", "blocked"),
+      card("C", "next"),
+      card("D", "horizon"),
+      card("E", "parked", "external proof"),
+    ];
+    const out = formatRoadmapDrainGate(items);
+    expect(activeRoadmapCount(items)).toBe(4);
+    expect(out).toContain("active roadmap drained: no");
+    expect(out).toContain("building: 1");
+    expect(out).toContain("blocked: 1");
+    expect(out).toContain("next: 1");
+    expect(out).toContain("horizon: 1");
+    expect(out).toContain("parked: 1");
   });
 });
