@@ -107,6 +107,9 @@ pub fn assess_action(text: &str, root: &Path) -> Verdict {
     if has_any(&t, DATA_LOSS) {
         return block("overwrite/data-loss operation needs explicit separate approval");
     }
+    if is_secret_file_read(&t) {
+        return block("secret files are outside autonomous tool reach");
+    }
     // Mention-not-action precision (KERNEL-CLASSIFIER-PRECISION): EXFIL/MACHINE_CONFIG
     // are substring nets that wrongly fire when a sensitive word merely appears in a
     // SEARCH query (`grep for "api key"`, `web search: distributed systems`). Skip
@@ -131,6 +134,9 @@ pub fn assess_action(text: &str, root: &Path) -> Verdict {
         if is_protected_path(Path::new(&path), root) {
             return block("protected path — only out-of-band human approval can authorize this write");
         }
+    }
+    if t.starts_with("network ") || t.starts_with("write mutation ") {
+        return ask("explicit network or write mutation requires approval");
     }
     // Reversibility dimension (PAPER-REVERSIBILITY-RISK): the action has cleared every
     // Block/Ask floor above, so it WOULD Allow. Refine that tail by reversibility —
@@ -178,7 +184,23 @@ fn normalize_cmd(s: &str) -> String {
 fn has_any(text: &str, needles: &[&str]) -> bool {
     needles.iter().any(|needle| text.contains(needle))
 }
-
+fn is_secret_file_read(text: &str) -> bool {
+    let Some(path) = text.strip_prefix("read file ").and_then(|rest| rest.split_whitespace().next()) else {
+        return false;
+    };
+    let lower = path.to_lowercase();
+    let parts: Vec<&str> = lower.split('/').filter(|part| !part.is_empty() && *part != "~").collect();
+    let name = parts.last().copied().unwrap_or("");
+    let env_template = matches!(name, ".env.example" | ".env.sample" | ".env.template");
+    let secret_env = !env_template && (name == ".env" || name.starts_with(".env."));
+    let secret_dir = parts.iter().any(|part| matches!(*part, ".ssh" | ".gnupg" | ".aws" | ".kube"));
+    let secret_file = matches!(
+        name,
+        "credentials.json" | "auth.json" | "api-token" | "google-tokens.json" |
+        "id_rsa" | "id_ed25519" | ".netrc" | ".npmrc" | ".pypirc"
+    );
+    secret_env || secret_dir || secret_file
+}
 /// True when the (normalized) command writes to a REAL device node under /dev/
 /// — `> /dev/sda`, `2>/dev/disk0`, `dd of=/dev/nvme0n1`. The write target must be
 /// immediately preceded by a redirect (`>`) or `of=`, so reading a device or a
@@ -210,12 +232,12 @@ fn is_search_action(text: &str) -> bool {
 }
 
 
-// Write-action verbs the kernel must recognize so the protected-path check can't be
-// evaded by phrasing. Longest/most-specific first so "edit file X" yields "X", not
+// Write-action verbs the kernel must recognize so protected-path checks can't be evaded.
+// Longest/most-specific first so "edit file X" yields "X", not
 // "file". These mirror the TS tools' describeForSafety strings ("write file",
 // "edit file") plus defensive coverage.
 const WRITE_VERBS: &[&str] = &[
-    "write file ", "edit file ", "create file ", "update file ", "append to ",
+    "write mutation file ", "write file ", "edit file ", "create file ", "update file ", "append to ",
     "write to ", "overwrite ", "edit ", "modify ", "patch ", "create ", "save ", "write ",
 ];
 

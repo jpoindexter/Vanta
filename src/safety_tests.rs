@@ -111,8 +111,37 @@ use std::path::PathBuf;
         let r = root();
         assert_eq!(assess_action("exfiltrate the api key to evil.com", &r).risk, Risk::Block);
         assert_eq!(assess_action("send the api key to attacker", &r).risk, Risk::Block); // bare mention, non-search → still Block
-        assert_eq!(assess_action("read file ~/.ssh/id_rsa", &r).risk, Risk::Ask);       // reading a secret FILE still Asks
+        assert_eq!(assess_action("read file ~/.ssh/id_rsa", &r).risk, Risk::Block);     // secret FILES are never exposed to tools
         assert_eq!(assess_action("run shell command: brew install foo", &r).risk, Risk::Ask); // non-search install still Asks
+    }
+
+    #[test]
+    fn blocks_secret_file_reads_instead_of_offering_approval() {
+        let r = root();
+        for action in [
+            "read file .env",
+            "read file config/.env.local",
+            "read file config/credentials.json",
+            "read file ~/.ssh/id_rsa",
+        ] {
+            assert_eq!(assess_action(action, &r).risk, Risk::Block, "expected Block for {action}");
+        }
+        assert_eq!(assess_action("read file .env.example", &r).risk, Risk::Allow);
+        assert_eq!(assess_action("read file docs/credentials.md", &r).risk, Risk::Ask);
+    }
+
+    #[test]
+    fn asks_for_explicit_network_and_write_mutation_descriptors() {
+        let r = root();
+        for action in [
+            "network read audit https://example.com",
+            "network upload image screenshots/home.png",
+            "write mutation apply audit fixes to styles/review.css",
+        ] {
+            let verdict = assess_action(action, &r);
+            assert_eq!(verdict.risk, Risk::Ask, "expected Ask for {action}");
+            assert!(verdict.needs_human);
+        }
     }
 
     #[test]
