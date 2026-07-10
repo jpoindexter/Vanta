@@ -52,17 +52,23 @@ describe("RoadmapItemSchema", () => {
     expect(() => RoadmapItemSchema.parse({ ...validItem, model: "gpt" })).toThrow();
   });
 
-  it("round-trips updated/notes/after instead of stripping them", () => {
+  it("round-trips updated/notes/after/parkedReason instead of stripping them", () => {
     const tagged = {
       ...validItem,
       updated: "2026-06-11",
       notes: "shipped via triage",
       after: ["VANTA-SEND-MSG"],
+      parkedReason: "external proof",
     };
     const parsed = RoadmapItemSchema.parse(tagged);
     expect(parsed.updated).toBe("2026-06-11");
     expect(parsed.notes).toBe("shipped via triage");
     expect(parsed.after).toEqual(["VANTA-SEND-MSG"]);
+    expect(parsed.parkedReason).toBe("external proof");
+  });
+
+  it("rejects an unknown parked reason", () => {
+    expect(() => RoadmapItemSchema.parse({ ...validItem, parkedReason: "maybe later" })).toThrow();
   });
 });
 

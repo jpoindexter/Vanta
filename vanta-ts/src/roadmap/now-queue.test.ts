@@ -7,6 +7,7 @@ const mk = (
   status: RoadmapItem["status"],
   tier?: RoadmapItem["tier"],
   size = "M",
+  parkedReason?: RoadmapItem["parkedReason"],
 ): RoadmapItem => ({
   id,
   title: `Title ${id}`,
@@ -16,6 +17,7 @@ const mk = (
   summary: "",
   done: "",
   tier,
+  parkedReason,
 });
 
 describe("selectNowCandidates", () => {
@@ -171,12 +173,12 @@ describe("formatNowEmptyState", () => {
 
   it("summarizes parked cards by revival reason", () => {
     const out = formatNowEmptyState([
-      mk("BACKEND-SERVERLESS-LIVE", "parked", "rock", "S"),
-      mk("MSG-ADAPTER-TEAMS", "parked", "rock", "S"),
-      mk("HP-SECRETS", "parked", "sand", "S"),
-      mk("VANTA-AUTO-THEME", "parked", "sand", "S"),
-      mk("PCLIP-MULTI-USER", "parked", "pebble", "M"),
-      mk("PLATFORM-MOBILE-TERMUX", "parked", "pebble", "L"),
+      mk("A", "parked", "rock", "S", "external proof"),
+      mk("B", "parked", "rock", "S", "external proof"),
+      mk("C", "parked", "sand", "S", "declined/n-a"),
+      mk("D", "parked", "sand", "S", "declined/n-a"),
+      mk("E", "parked", "pebble", "M", "strategy decision"),
+      mk("F", "parked", "pebble", "L", "duplicate"),
     ]);
     expect(out).toContain("types:");
     expect(out).toContain("external proof 2");

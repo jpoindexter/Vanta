@@ -50,6 +50,16 @@ export const LENS = [
 ] as const;
 export type Lens = (typeof LENS)[number];
 
+export const PARKED_REASON = [
+  "external proof",
+  "strategy decision",
+  "declined/n-a",
+  "duplicate",
+  "optional proof",
+  "review",
+] as const;
+export type ParkedReason = (typeof PARKED_REASON)[number];
+
 export const RoadmapItemSchema = z.object({
   id: z.string().min(1),
   track: z.string().min(1),
@@ -73,6 +83,9 @@ export const RoadmapItemSchema = z.object({
   source: z.string().optional(),
   // Build-order dependency: this card never sorts before an open card it names.
   after: z.array(z.string()).optional(),
+  // Why a parked card is out of the active build queue. Used by `vanta now` to
+  // explain a drained board without hardcoding roadmap-specific card ids.
+  parkedReason: z.enum(PARKED_REASON).optional(),
 });
 
 export const RoadmapSchema = z.object({
