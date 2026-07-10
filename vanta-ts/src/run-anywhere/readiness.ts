@@ -7,6 +7,7 @@ export type RunAnywhereGate = {
   id: string;
   label: string;
   ready: boolean;
+  roadmapCardId: string;
   receiptPath: string;
   evidence: string;
   next: string;
@@ -27,6 +28,7 @@ async function serverlessGate(repoRoot: string): Promise<RunAnywhereGate> {
     id: "serverless-live",
     label: "Modal/Telegram wake proof",
     ready,
+    roadmapCardId: "BACKEND-SERVERLESS-LIVE",
     receiptPath: ".vanta/serverless-gateway.json",
     evidence: ready
       ? `proved ${receipt!.provedAt}; Telegram accepted ${receipt!.telegramAcceptedAt}; ${receipt!.telegramParts ?? "?"} part(s)`
@@ -51,6 +53,7 @@ async function teamsGate(repoRoot: string): Promise<RunAnywhereGate> {
     id: "teams-round-trip",
     label: "Teams real-service round trip",
     ready: Boolean(latest),
+    roadmapCardId: "MSG-ADAPTER-TEAMS",
     receiptPath: ".vanta/channel-proofs.jsonl",
     evidence: latest
       ? `accepted ${latest.acceptedAt}; ${latest.transport}; ${latest.parts} part(s)`
@@ -74,6 +77,7 @@ async function termuxGate(repoRoot: string): Promise<RunAnywhereGate> {
     id: "termux-arm64",
     label: "Physical ARM64 Termux release-kernel proof",
     ready,
+    roadmapCardId: "RUN-ANYWHERE-TERMUX",
     receiptPath: ".vanta/termux-arm64-proof.txt",
     evidence: ready
       ? marker!
