@@ -26,6 +26,16 @@ describe("run-anywhere command", () => {
     expect(log).toHaveBeenCalledWith(expect.stringContaining("Run Anywhere readiness: not ready"));
   });
 
+  it("prints structured next actions in json mode", async () => {
+    const root = await workspace();
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    await expect(runRunAnywhereCommand(root, ["status", "--json"])).resolves.toBe(1);
+    const report = JSON.parse(String(log.mock.calls[0]?.[0])) as { gates: Array<{ id: string; nextActions: string[] }> };
+    expect(report.gates.find((gate) => gate.id === "serverless-live")?.nextActions).toContain("vanta backend gateway status --json");
+    expect(report.gates.find((gate) => gate.id === "teams-round-trip")?.nextActions).toContain("vanta gateway channel-proofs teams --json");
+    expect(report.gates.find((gate) => gate.id === "termux-arm64")?.nextActions).toContain("scripts/termux-arm64-device-proof.sh --require-release-kernel");
+  });
+
   it("prints json and exits zero when all receipts exist", async () => {
     const root = await workspace();
     await writeGatewayReceipt(root, { app: "vanta-gateway", volume: "vanta-gateway-data", provedAt: "2026-07-10T12:00:00.000Z", telegramAcceptedAt: "2026-07-10T12:00:01.000Z" });

@@ -9,6 +9,7 @@ export type RunAnywhereGate = {
   ready: boolean;
   evidence: string;
   next: string;
+  nextActions: string[];
 };
 
 export type RunAnywhereReadiness = {
@@ -31,6 +32,13 @@ async function serverlessGate(repoRoot: string): Promise<RunAnywhereGate> {
         ? `deployed endpoint receipt exists (${receipt.endpoint}), but no successful prove receipt`
         : "no deployed endpoint/prove receipt in .vanta/serverless-gateway.json",
     next: "vanta backend gateway status -> deploy -> register-telegram -> arm -> prove",
+    nextActions: [
+      "vanta backend gateway status --json",
+      "vanta backend gateway deploy",
+      "vanta backend gateway register-telegram",
+      "vanta backend gateway arm",
+      "vanta backend gateway prove",
+    ],
   };
 }
 
@@ -45,6 +53,11 @@ async function teamsGate(repoRoot: string): Promise<RunAnywhereGate> {
       ? `accepted ${latest.acceptedAt}; ${latest.transport}; ${latest.parts} part(s)`
       : "no accepted Teams proof in .vanta/channel-proofs.jsonl",
     next: "configure Azure Bot + public endpoint, send an allowlisted Teams message, then run `vanta gateway channel-proofs teams`",
+    nextActions: [
+      "configure Azure Bot app id/client secret and public HTTPS /api/messages endpoint",
+      "install the Teams app and send an allowlisted real Teams message",
+      "vanta gateway channel-proofs teams --json",
+    ],
   };
 }
 
@@ -64,6 +77,10 @@ async function termuxGate(repoRoot: string): Promise<RunAnywhereGate> {
         ? `${marker}; release-kernel proof missing`
         : "no TERMUX_ARM64_E2E_OK release-kernel proof in .vanta/termux-arm64-proof.txt",
     next: "on physical ARM64 Android/Termux, run `scripts/termux-arm64-device-proof.sh --require-release-kernel`",
+    nextActions: [
+      "use release v0.9.0 or newer with vanta-kernel-aarch64-linux-android and .sha256",
+      "scripts/termux-arm64-device-proof.sh --require-release-kernel",
+    ],
   };
 }
 
