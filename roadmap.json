@@ -16707,7 +16707,7 @@
       "id": "RUN-ANYWHERE-TERMUX",
       "track": "Operator",
       "title": "Termux / Android runtime (run-anywhere North Star gap)",
-      "status": "horizon",
+      "status": "building",
       "size": "M",
       "summary": "The shared installer detects Termux, installs Android-native Node/Rust/build packages, builds the zero-dependency kernel against Android/Bionic, compiles native npm modules, installs the launcher into PREFIX/bin, and applies a phone-sized heap profile. Real-device execution remains the release gate.",
       "done": "install.sh + run.sh bring up a working Vanta (kernel + agent) on Termux/Android, doctor green; aarch64-android kernel published or built on-device.",
