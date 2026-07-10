@@ -17,6 +17,7 @@ const CHANNEL_HOST: Record<string, string> = {
   twitter: "%x.com",
   reddit: "%reddit.com",
   xueqiu: "%xueqiu.com",
+  xiaohongshu: "%xiaohongshu.com",
 };
 
 /** The raw cookie text: from the live browser store, a saved `file`, or inline `cookie`. */

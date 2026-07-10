@@ -12080,16 +12080,16 @@
       "id": "REACH-XIAOHONGSHU",
       "track": "Harness",
       "title": "Xiaohongshu (小红书) channel — search + read notes",
-      "status": "parked",
+      "status": "shipped",
       "size": "M",
-      "summary": "From Agent-Reach xiaohongshu.py (OpenCLI desktop ▸ xiaohongshu-mcp server ▸ xhs-cli). Login-state required; reuses browser login via OpenCLI or scan-login via the MCP server. China-centric consumer-product sentiment source. Defer unless a concrete need; needs REACH-COOKIE-IMPORT / OpenCLI.",
-      "done": "A xiaohongshu reach path searches + reads notes via the upstream backend when configured, with the setup guide and graceful degradation otherwise.",
+      "summary": "Vanta now ships a Xiaohongshu reach channel and `xiaohongshu_read` tool using the confirmed OpenCLI commands for search, note, comments, and feed. The doctor probes OpenCLI first, detects a local xiaohongshu-mcp service as a server fallback, reports the exact `mcporter config add xiaohongshu http://localhost:18060/mcp` fix when the route is missing, and still recognizes legacy xhs-cli login state.",
+      "done": "`/reach`/reach doctor reports Xiaohongshu backend status with setup guidance; `xiaohongshu_read search`, `note`, `comments`, and `feed` route through OpenCLI when configured; tests cover command construction, note-id extraction, missing-backend guidance, MCP reachability/setup warnings, registry exposure, and missing-field degradation. Live Xiaohongshu content still requires a logged-in configured backend.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-06-15"
+      "updated": "2026-07-10"
     },
     {
       "id": "REACH-XUEQIU",

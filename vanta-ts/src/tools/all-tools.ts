@@ -65,6 +65,7 @@ import { podcastReadTool } from "./podcast.js";
 import { v2exReadTool } from "./v2ex-read.js";
 import { bilibiliReadTool } from "./bilibili-read.js";
 import { xueqiuReadTool } from "./xueqiu-read.js";
+import { xiaohongshuReadTool } from "./xiaohongshu-read.js";
 import { runCodeTool } from "./run-code.js";
 import { maximizerTool } from "./maximizer.js";
 import {
@@ -217,6 +218,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   v2exReadTool,
   bilibiliReadTool,
   xueqiuReadTool,
+  xiaohongshuReadTool,
   runCodeTool,
   maximizerTool,
   lspDiagnosticsTool,

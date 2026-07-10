@@ -167,6 +167,7 @@ describe("registry", () => {
       "world",
       "write_file",
       "write_skill",
+      "xiaohongshu_read",
       "xueqiu_read",
       "youtube_read",
     ]);
