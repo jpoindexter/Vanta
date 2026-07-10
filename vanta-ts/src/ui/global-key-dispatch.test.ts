@@ -19,6 +19,7 @@ function deps(over: Record<string, unknown> = {}) {
     ...over,
   };
 }
+type TestDeps = ReturnType<typeof deps> & { chordPending?: string | null };
 
 describe("handleGlobalKey — default bindings", () => {
   it("ctrl+c exits when idle, aborts when busy", () => {
@@ -95,6 +96,46 @@ describe("handleGlobalKey — CUSTOM bindings take effect on the live path", () 
     const d2 = deps({ bindings: custom });
     handleGlobalKey("p", { ctrl: true }, d2 as never); // old default chord — now unbound
     expect(d2.openQuickOpen).not.toHaveBeenCalled();
+  });
+
+  it("multi-step chords show pending state, then dispatch on completion", () => {
+    const custom: KeyBinding[] = resolveBindings(DEFAULT_BINDINGS, [{ action: GLOBAL_ACTIONS.quickOpen, chord: "ctrl+k ctrl+s", context: "global" }]);
+    let pending: string | null = null;
+    const note = vi.fn();
+    let d: TestDeps;
+    d = deps({
+      bindings: custom,
+      chordPending: pending,
+      setChordPending: (next: string | null) => { pending = next; d.chordPending = next; },
+      onChordState: note,
+    }) as TestDeps;
+
+    handleGlobalKey("k", { ctrl: true }, d as never);
+    expect(d.openQuickOpen).not.toHaveBeenCalled();
+    expect(pending).toBe("ctrl+k");
+    expect(note).toHaveBeenCalledWith(expect.stringContaining("chord pending"));
+
+    handleGlobalKey("s", { ctrl: true }, d as never);
+    expect(d.openQuickOpen).toHaveBeenCalledTimes(1);
+    expect(pending).toBeNull();
+  });
+
+  it("invalid chord followup cancels without side effects", () => {
+    const custom: KeyBinding[] = resolveBindings(DEFAULT_BINDINGS, [{ action: GLOBAL_ACTIONS.quickOpen, chord: "ctrl+k ctrl+s", context: "global" }]);
+    let pending: string | null = "ctrl+k";
+    const note = vi.fn();
+    let d: TestDeps;
+    d = deps({
+      bindings: custom,
+      chordPending: pending,
+      setChordPending: (next: string | null) => { pending = next; d.chordPending = next; },
+      onChordState: note,
+    }) as TestDeps;
+
+    handleGlobalKey("x", { ctrl: true }, d as never);
+    expect(d.openQuickOpen).not.toHaveBeenCalled();
+    expect(pending).toBeNull();
+    expect(note).toHaveBeenCalledWith(expect.stringContaining("chord cancelled"));
   });
 });
 

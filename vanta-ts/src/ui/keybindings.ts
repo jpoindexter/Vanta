@@ -40,23 +40,33 @@ export const DEFAULT_BINDINGS: KeyBinding[] = [
 ];
 
 const MOD_ORDER = ["ctrl", "alt", "shift", "meta"];
+const MOD_ALIASES: Record<string, string> = {
+  cmd: "meta",
+  command: "meta",
+  super: "meta",
+};
 
-/**
- * Canonical chord form: lowercased, modifiers in a fixed order, the key last —
- * so "Shift+Ctrl+T" and "ctrl+shift+t" compare equal. Pure.
- */
-export function normalizeChord(chord: string): string {
-  const parts = chord.toLowerCase().split("+").map((p) => p.trim()).filter(Boolean);
+function normalizeChordStep(step: string): string {
+  const parts = step.toLowerCase().split("+").map((p) => MOD_ALIASES[p.trim()] ?? p.trim()).filter(Boolean);
   const mods = MOD_ORDER.filter((m) => parts.includes(m));
   const keys = parts.filter((p) => !MOD_ORDER.includes(p));
   return [...mods, ...keys].join("+");
+}
+
+/** Canonical chord form; multi-step chords keep one space between steps. */
+export function normalizeChord(chord: string): string {
+  return chord.trim().split(/\s+/).map(normalizeChordStep).filter(Boolean).join(" ");
 }
 
 const GLYPH: Record<string, string> = { ctrl: "⌃", alt: "⌥", shift: "⇧", meta: "⌘" };
 
 /** Human display of a chord (⌃⇧T). Pure. */
 export function displayChord(chord: string): string {
-  const parts = normalizeChord(chord).split("+");
+  return normalizeChord(chord).split(/\s+/).map(displayChordStep).join(" ");
+}
+
+function displayChordStep(step: string): string {
+  const parts = step.split("+");
   const mods = parts.filter((p) => GLYPH[p]).map((p) => GLYPH[p]).join("");
   const keys = parts.filter((p) => !GLYPH[p]).map((k) => (k.length === 1 ? k.toUpperCase() : k)).join("+");
   return mods + keys;
@@ -257,6 +267,8 @@ export function watchKeybindings(
   const dir = dirname(path);
   mkdirSync(dir, { recursive: true });
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let poller: ReturnType<typeof setInterval> | undefined;
+  let lastMtime = 0;
   let watcher: FSWatcher | undefined;
   const reload = (): void => {
     if (timer) clearTimeout(timer);
@@ -264,15 +276,24 @@ export function watchKeybindings(
       void loadKeybindings(env).then(onChange).catch(() => onChange(DEFAULT_BINDINGS));
     }, 25);
   };
+  const poll = (): void => {
+    void import("node:fs/promises").then((fs) => fs.stat(path)).then((s) => {
+      if (s.mtimeMs === lastMtime) return;
+      lastMtime = s.mtimeMs;
+      reload();
+    }).catch(() => undefined);
+  };
   try {
     watcher = watch(dir, (_event, filename) => {
       if (!filename || String(filename) === "keybindings.json") reload();
     });
+    poller = setInterval(poll, 100);
   } catch {
     return () => {};
   }
   return () => {
     if (timer) clearTimeout(timer);
+    if (poller) clearInterval(poller);
     watcher?.close();
   };
 }

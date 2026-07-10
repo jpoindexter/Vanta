@@ -17,8 +17,13 @@ describe("normalizeChord / displayChord", () => {
     expect(normalizeChord("Shift+Ctrl+T")).toBe("ctrl+shift+t");
     expect(normalizeChord("ctrl+shift+t")).toBe(normalizeChord("SHIFT+CTRL+T"));
   });
+  it("canonicalizes multi-step chords and modifier aliases", () => {
+    expect(normalizeChord("Cmd+K Super+S")).toBe("meta+k meta+s");
+    expect(normalizeChord("ctrl+k   ctrl+s")).toBe("ctrl+k ctrl+s");
+  });
   it("renders glyphs for display", () => {
     expect(displayChord("ctrl+shift+t")).toBe("⌃⇧T");
+    expect(displayChord("cmd+k super+s")).toBe("⌘K ⌘S");
     expect(displayChord("escape")).toBe("escape");
   });
 });

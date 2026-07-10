@@ -4514,7 +4514,7 @@
       "id": "VANTA-CHORD-BINDINGS",
       "track": "Operator",
       "title": "Chord bindings — multi-keystroke sequences (e.g. ctrl+k ctrl+s)",
-      "status": "parked",
+      "status": "shipped",
       "size": "M",
       "summary": "Keybinding parser handles chord sequences (two or more keystrokes). Resolver tracks pending-chord state; results include chord_started, chord_cancelled, match, none. Platform modifier aliases normalised (ctrl/alt/meta/cmd/super).",
       "done": "Multi-keystroke chords defined in keybindings.json fire correctly; partial chord shows pending state; invalid followup cancels without side effects; modifier aliases all work.",

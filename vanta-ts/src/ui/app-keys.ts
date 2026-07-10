@@ -17,6 +17,7 @@ import type { ReplState } from "../repl/types.js";
 import type { Message } from "../types.js";
 import { DEFAULT_BINDINGS, GLOBAL_ACTIONS, eventToChord, actionForChord, watchKeybindings } from "./keybindings.js";
 import type { KeyBinding } from "./keybinding-warnings.js";
+import { resolveChordInput, type ChordResolveResult } from "./chord-bindings.js";
 
 // The App component's behavior hooks + pure key/focus helpers. Split from app.tsx
 // so both stay under the size gate; app.tsx imports these and stays the wiring.
@@ -46,10 +47,14 @@ type GlobalKeyDeps = {
   /** KEYBINDING-CUSTOMIZATION: resolved bindings (defaults + user overrides).
    * Absent → DEFAULT_BINDINGS, so behavior is identical without a config file. */
   bindings?: KeyBinding[];
+  chordPending?: string | null;
+  setChordPending?: (pending: string | null) => void;
+  onChordState?: (text: string) => void;
 };
 
 export function useGlobalKeys(deps: GlobalKeyDeps): void {
-  useInput((input, key) => handleGlobalKey(input, key, deps));
+  const [chordPending, setChordPending] = useState<string | null>(null);
+  useInput((input, key) => handleGlobalKey(input, key, { ...deps, chordPending, setChordPending }));
 }
 
 /** KEYBINDING-CUSTOMIZATION — load the resolved bindings once (defaults until
@@ -70,9 +75,39 @@ export function useKeybindings(): KeyBinding[] {
 export function handleGlobalKey(input: string, key: GlobalKey, d: GlobalKeyDeps): void {
   if (d.transcriptSelectionKey?.(input, key)) return;
   const chord = eventToChord(input, key as GlobalKey & { alt?: boolean; meta?: boolean; upArrow?: boolean; downArrow?: boolean });
-  const action = chord ? actionForChord(d.bindings ?? DEFAULT_BINDINGS, chord) : null;
+  const resolved = resolveGlobalAction(chord, d);
+  if (resolved.handled) return;
+  const action = resolved.action;
   if (dispatchGlobalAction(action, d)) return;
   if (handleFocusKey(key, { current: d.focus, targets: d.focusTargets, setFocus: d.setFocus, cycleMode: d.cycle })) return;
+}
+
+function resolveGlobalAction(chord: string | null, d: GlobalKeyDeps): { handled: boolean; action: string | null } {
+  if (!chord) return { handled: false, action: null };
+  const bindings = d.bindings ?? DEFAULT_BINDINGS;
+  const result = resolveChordInput(bindings, chord, d.chordPending);
+  return applyChordResult(result, chord, bindings, d);
+}
+
+function applyChordResult(
+  result: ChordResolveResult,
+  chord: string,
+  bindings: KeyBinding[],
+  d: GlobalKeyDeps,
+): { handled: boolean; action: string | null } {
+  if (result.kind === "chord_started") return noteChordState(result.pending, result.message, d);
+  if (result.kind === "chord_cancelled") return noteChordState(null, result.message, d);
+  if (result.kind === "match") {
+    d.setChordPending?.(null);
+    return { handled: false, action: result.action };
+  }
+  return { handled: false, action: actionForChord(bindings, chord) };
+}
+
+function noteChordState(pending: string | null, message: string, d: GlobalKeyDeps): { handled: true; action: null } {
+  d.setChordPending?.(pending);
+  d.onChordState?.(message);
+  return { handled: true, action: null };
 }
 
 // action → {guard, run}. `notBlocked` = no pending/overlay owns input. Keeping
