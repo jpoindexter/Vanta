@@ -1,12 +1,14 @@
-import { Dispatch, FormEvent, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, FormEvent, SetStateAction, useEffect, useRef, useState } from "react";
+import { App } from "@capacitor/app";
 import type { Approval, ApprovalDecision, EventRow, Message, Session, Status } from "./types.js";
-import { companionClient, HOST_KEY, isLocalCompanion, isNativeCompanion, normalizeHost, postJson, streamCompanionEvents, TOKEN_KEY } from "./companion-client.js";
+import { companionClient, HOST_KEY, isLocalCompanion, isNativeCompanion, mobileSmokeConfig, normalizeHost, parsePairLink, postJson, streamCompanionEvents, TOKEN_KEY } from "./companion-client.js";
 
 export function CompanionApp() {
   const native = isNativeCompanion();
+  const smoke = mobileSmokeConfig();
   const local = isLocalCompanion(window.location.hostname, native, window.location.search);
-  const [token, setToken] = useState(() => window.localStorage.getItem(TOKEN_KEY) ?? "");
-  const [host, setHost] = useState(() => window.localStorage.getItem(HOST_KEY) ?? (native ? "" : window.location.origin));
+  const [token, setToken] = useState(() => window.localStorage.getItem(TOKEN_KEY) ?? smoke.token);
+  const [host, setHost] = useState(() => window.localStorage.getItem(HOST_KEY) ?? (smoke.host || (native ? "" : window.location.origin)));
   const [status, setStatus] = useState<Status | null>(null);
   const [approval, setApproval] = useState<Approval | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -16,8 +18,14 @@ export function CompanionApp() {
   const [error, setError] = useState("");
   const paired = local || !!token;
   const api = companionClient(token, host);
+  const smokeSent = useRef(false);
   useCompanionPoll({ paired, token, host, setStatus, setApproval, setSessions, setError });
   useCompanionEventStream({ paired, local, token, host, setStreamText, setEvents, setError });
+  const sendMessage = companionSender({ api, setMessages, setEvents, setStreamText, setError });
+  useEffect(() => {
+    if (!paired || !smoke.message || smokeSent.current) return;
+    smokeSent.current = true; void sendMessage(smoke.message);
+  }, [paired, smoke.message]);
 
   if (!paired) return <PairCompanion native={native} initialHost={host} onPaired={(next, nextHost) => {
     window.localStorage.setItem(TOKEN_KEY, next); window.localStorage.setItem(HOST_KEY, nextHost); setHost(nextHost); setToken(next);
@@ -36,17 +44,20 @@ export function CompanionApp() {
       }} />
       {approval ? <CompanionApproval approval={approval} answer={async (decision) => { await api("/approval", postJson({ id: approval.id, decision })); setApproval(null); }} /> : null}
       <CompanionThread messages={messages} events={events} streamText={streamText} />
-      <CompanionComposer onSend={async (message) => {
-        setMessages((current) => [...current, { role: "user", content: message }]); setError(""); setStreamText("");
-        try {
-          const result = await api<{ finalText: string; events?: EventRow[] }>("/chat", postJson({ message }));
-          setMessages((current) => [...current, { role: "assistant", content: result.finalText }]); setStreamText("");
-          setEvents(result.events ?? []);
-        } catch (cause) { setError((cause as Error).message); }
-      }} />
+      <CompanionComposer onSend={sendMessage} />
       {error ? <p className="companion-error" role="alert">{error}</p> : null}
     </div>
   );
+}
+
+function companionSender(deps: { api: ReturnType<typeof companionClient>; setMessages: Dispatch<SetStateAction<Message[]>>; setEvents: Dispatch<SetStateAction<EventRow[]>>; setStreamText: Dispatch<SetStateAction<string>>; setError: Dispatch<SetStateAction<string>> }) {
+  return async (message: string) => {
+    deps.setMessages((current) => [...current, { role: "user", content: message }]); deps.setError(""); deps.setStreamText("");
+    try {
+      const result = await deps.api<{ finalText: string; events?: EventRow[] }>("/chat", postJson({ message }));
+      deps.setMessages((current) => [...current, { role: "assistant", content: result.finalText }]); deps.setStreamText(""); deps.setEvents(result.events ?? []);
+    } catch (cause) { deps.setError((cause as Error).message); }
+  };
 }
 
 type PollState = {
@@ -89,6 +100,24 @@ function PairCompanion(props: { native: boolean; initialHost: string; onPaired: 
   const [host, setHost] = useState(props.initialHost);
   const [name, setName] = useState(() => navigator.userAgent.includes("iPhone") ? "iPhone" : "Mobile companion");
   const [error, setError] = useState("");
+  const handledPairUrls = useRef(new Set<string>());
+  useEffect(() => {
+    if (!props.native) return;
+    async function pairUrl(value?: string) {
+      if (!value || handledPairUrls.current.has(value)) return;
+      const pair = value ? parsePairLink(value) : null;
+      if (!pair) return;
+      handledPairUrls.current.add(value);
+      setHost(pair.host); setCode(pair.code); setError("");
+      try {
+        const result = await companionClient("", pair.host)<{ token: string }>("/pair", postJson({ code: pair.code, name }));
+        props.onPaired(result.token, pair.host);
+      } catch (cause) { setError((cause as Error).message); }
+    }
+    void App.getLaunchUrl().then((launch) => pairUrl(launch?.url));
+    const listener = App.addListener("appUrlOpen", (event) => void pairUrl(event.url));
+    return () => { void listener.then((handle) => handle.remove()); };
+  }, [props.native, name]);
   async function submit(event: FormEvent) {
     event.preventDefault(); setError("");
     try {

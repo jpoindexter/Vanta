@@ -22,6 +22,7 @@ export type DesktopState = {
   _setupPromise?: Promise<RunSetup>;
   _setupError?: { message: string; at: number };
   _chatActive?: boolean;
+  _streamTextDeltas?: boolean;
   convo?: Conversation;
   root: string;
   sessionId?: string;
@@ -60,10 +61,12 @@ function attachConversation(state: DesktopState, setup: RunSetup, history?: Para
     maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(setup.provider),
     activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
-    onEvent: (event) => {
-      if (event.type === "text_delta" && state._sseClients && state._sseSessionId) {
-        pushSseEvent(state._sseClients, state._sseSessionId, { label: "", delta: event.delta });
+    onTextDelta: (delta) => {
+      if (state._streamTextDeltas && state._sseClients && state._sseSessionId) {
+        pushSseEvent(state._sseClients, state._sseSessionId, { label: "", delta });
       }
+    },
+    onEvent: (event) => {
       const label = eventLabel(event);
       if (label) {
         state.currentEvents?.push(label);

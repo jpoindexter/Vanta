@@ -72,7 +72,7 @@ async function handleAuthorizedRoute(args: AuthorizedArgs): Promise<boolean> {
   const { req, res, state } = args;
   const routes: Record<string, () => Promise<void>> = {
     "GET:/api/companion/status": () => handleStatus(state, res),
-    "POST:/api/companion/chat": () => handleChat(state, req, res),
+    "POST:/api/companion/chat": () => handleStreamingChat(state, req, res),
     "GET:/api/companion/approval": () => handleApproval(state, req, res),
     "POST:/api/companion/approval": () => handleApproval(state, req, res),
     "GET:/api/companion/sessions": () => handleSessions(res),
@@ -85,6 +85,12 @@ async function handleAuthorizedRoute(args: AuthorizedArgs): Promise<boolean> {
     attachSse(args.sseClients, args.sid ?? "default", res); return true;
   }
   return false;
+}
+
+async function handleStreamingChat(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  state._streamTextDeltas = true;
+  try { await handleChat(state, req, res); }
+  finally { state._streamTextDeltas = false; }
 }
 
 async function authorized(req: http.IncomingMessage, home: string): Promise<boolean> {

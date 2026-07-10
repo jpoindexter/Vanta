@@ -54,3 +54,21 @@ export function isLocalHost(host: string): boolean {
 export function isLocalCompanion(host: string, native: boolean, search: string): boolean {
   return !native && isLocalHost(host) && !new URLSearchParams(search).has("remote");
 }
+
+export function parsePairLink(value: string): { host: string; code: string } | null {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "vanta:" || url.hostname !== "pair") return null;
+    const host = normalizeHost(url.searchParams.get("host") ?? "");
+    const code = (url.searchParams.get("code") ?? "").trim().toUpperCase();
+    return host && /^[A-Z0-9]{6}$/.test(code) ? { host, code } : null;
+  } catch { return null; }
+}
+
+export function mobileSmokeConfig(env: Record<string, unknown> = import.meta.env): { host: string; token: string; message: string } {
+  return {
+    host: typeof env.VITE_VANTA_MOBILE_SMOKE_HOST === "string" ? normalizeHost(env.VITE_VANTA_MOBILE_SMOKE_HOST) : "",
+    token: typeof env.VITE_VANTA_MOBILE_SMOKE_TOKEN === "string" ? env.VITE_VANTA_MOBILE_SMOKE_TOKEN : "",
+    message: typeof env.VITE_VANTA_MOBILE_SMOKE_MESSAGE === "string" ? env.VITE_VANTA_MOBILE_SMOKE_MESSAGE : "",
+  };
+}
