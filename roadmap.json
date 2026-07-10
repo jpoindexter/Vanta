@@ -15056,7 +15056,7 @@
       "id": "HARNESS-STREAM-EVENTS",
       "track": "Harness",
       "title": "Typed gateway stream-event vocabulary (transport vs context)",
-      "status": "parked",
+      "status": "building",
       "size": "L",
       "summary": "If Vanta ever adds live streamed gateway delivery, model it as typed platform-agnostic events (MessageChunk/MessageStop/Commentary) consumed by a single sink that decides per-platform delivery — with the invariant that what the gateway 'eats' never diverges from stored history. Deferred: current non-streaming reply model has no racing problem.",
       "done": "Captured as the target shape for streamed gateway delivery; not built while replies are non-streaming.",
