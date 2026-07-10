@@ -12,7 +12,7 @@ export function shouldNotify(elapsedMs: number, thresholdMs = DEFAULT_THRESHOLD_
   return elapsedMs >= thresholdMs;
 }
 
-type NotifyOpts = {
+export type NotifyOpts = {
   title: string;
   message: string;
   bell?: boolean;
@@ -23,15 +23,19 @@ type NotifyOpts = {
   notificationType?: string;
 };
 
-/** Ring the terminal bell and (if VANTA_NOTIFY is on) post a desktop notification. */
-export function notify(opts: NotifyOpts): void {
+/** Ring the terminal bell, start optional desktop delivery, and await lifecycle hooks. */
+export async function notifyAndWait(opts: NotifyOpts): Promise<void> {
   const env = opts.env ?? process.env;
   const write = opts.write ?? ((s: string) => void process.stdout.write(s));
   if (opts.bell !== false) write(BELL);
-  if (opts.dataDir) {
-    const type = opts.notificationType ?? "other";
-    void fireHooks(opts.dataDir, "Notification", { type, title: opts.title, message: opts.message }, { cwd: opts.cwd, matcherValue: type });
-  }
+  const hookDelivery = opts.dataDir
+    ? fireHooks(
+      opts.dataDir,
+      "Notification",
+      { type: opts.notificationType ?? "other", title: opts.title, message: opts.message },
+      { cwd: opts.cwd, matcherValue: opts.notificationType ?? "other" },
+    )
+    : Promise.resolve();
   if (env.VANTA_NOTIFY === "1" || env.VANTA_NOTIFY === "true") {
     void import("node:child_process")
       .then(({ execFile }) => {
@@ -43,4 +47,10 @@ export function notify(opts: NotifyOpts): void {
       })
       .catch(() => {});
   }
+  await hookDelivery;
+}
+
+/** Ring the terminal bell and start notification delivery without waiting. */
+export function notify(opts: NotifyOpts): void {
+  void notifyAndWait(opts).catch(() => {});
 }

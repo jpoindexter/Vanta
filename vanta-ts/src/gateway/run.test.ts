@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -11,6 +11,7 @@ import { LoopDefSchema } from "../loop/types.js";
 import { saveDef } from "../loop/store.js";
 import { createReplyBus } from "../permissions/reply-bus.js";
 import { loadMobileRuns, startMobileRun } from "./mobile-control.js";
+import { createGoalSentinel } from "../goals/sentinel.js";
 
 class FakeAdapter implements PlatformAdapter {
   sent: OutboundMessage[] = [];
@@ -114,6 +115,29 @@ describe("gatewayTick", () => {
     });
     expect(n).toBe(1);
     expect(logs.some((l) => l.includes("error: kaboom"))).toBe(true);
+  });
+
+  it("runs daily standing-goal checks and wakes the operator on failure", async () => {
+    const dataDir = await mkdtemp(join(tmpdir(), "vanta-gateway-sentinel-"));
+    const notify = vi.fn();
+    const logs: string[] = [];
+    try {
+      await createGoalSentinel(dataDir, { goalId: 9, goalText: "keep green", command: "false" });
+      const n = await gatewayTick({
+        dataDir,
+        run: async () => ({ finalText: "unused" }),
+        now: () => new Date("2026-07-10T12:00:00Z"),
+        log: (line) => logs.push(line),
+        load: async () => [],
+        sentinelNotify: notify,
+      });
+
+      expect(n).toBe(1);
+      expect(logs).toContainEqual(expect.stringContaining("sentinel wake goal-9"));
+      expect(notify).toHaveBeenCalledWith(expect.objectContaining({ notificationType: "standing_goal_violation" }));
+    } finally {
+      await rm(dataDir, { recursive: true, force: true });
+    }
   });
 });
 

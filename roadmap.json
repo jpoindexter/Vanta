@@ -294,8 +294,8 @@
       "effort": "high",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-07-09",
-      "notes": "Evidence: Fable transcript 6209d944 lines 340-380: every finished goal becomes a predicate, checked daily, with violations surfaced and flaky checks retired rather than deleted.\n\nORGANIZED 2026-07-09: Phase 3 persistence. Build after trust-ledger gating so daily sentinels inherit demotion/escalation behavior instead of becoming noisy cron.\n\nLAUNCH-PAD UPDATE 2026-07-09: Deferred from Next to Later until Activation v1 ships. This keeps Next focused on the fastest path to obvious, reliable, Hermes/OpenClaw-style visible workflows.",
+      "updated": "2026-07-10",
+      "notes": "Evidence: Fable transcript 6209d944 lines 340-380: every finished goal becomes a predicate, checked daily, with violations surfaced and flaky checks retired rather than deleted.\n\nORGANIZED 2026-07-09: Phase 3 persistence. Build after trust-ledger gating so daily sentinels inherit demotion/escalation behavior instead of becoming noisy cron.\n\nLAUNCH-PAD UPDATE 2026-07-09: Deferred from Next to Later until Activation v1 ships. This keeps Next focused on the fastest path to obvious, reliable, Hermes/OpenClaw-style visible workflows.\n\nWAKE DELIVERY VERIFIED 2026-07-10: predicate failures now await Vanta's Notification hook before a short-lived CLI/cron process exits, while retaining the terminal bell and opt-in macOS notification. The long-lived gateway also executes the same once-daily sentinel path. Isolated real-path evidence: command-handler add/run returned 0/2, a real Notification hook completed from the watched project root, gateway logged `sentinel wake goal-42`, a second same-day gateway tick returned 0, and persisted history contained both failures. Focused sentinel/CLI/schedule/gateway/notification suite: 36 passed. Full suite: 1,198 files, 12,458 passed, 3 skipped; no leaked tsx stack or test notification bell.",
       "source": "transcript-roadmap-extract-2026-07-09",
       "after": [
         "TRUST-LEDGER-AUTONOMY",

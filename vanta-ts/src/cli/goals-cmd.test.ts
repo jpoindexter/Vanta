@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { addGoalDependency } from "../goals/deps.js";
 import { runGoalsCommand } from "./goals-cmd.js";
 import type { Goal } from "../types.js";
@@ -30,8 +30,10 @@ describe("runGoalsCommand", () => {
     const log = (line: string): void => { lines.push(line); };
 
     expect(await runGoalsCommand("/repo", { dataDir: dir, rest: ["sentinel", "add", "4", "keep", "site", "green", "--check", "false"], log })).toBe(0);
-    expect(await runGoalsCommand("/repo", { dataDir: dir, rest: ["sentinel", "run"], log })).toBe(2);
+    const notify = vi.fn();
+    expect(await runGoalsCommand("/repo", { dataDir: dir, rest: ["sentinel", "run"], log, sentinelNotify: notify })).toBe(2);
     expect(lines.join("\n")).toContain("wake goal-4");
+    expect(notify).toHaveBeenCalledWith(expect.objectContaining({ notificationType: "standing_goal_violation" }));
     expect(await runGoalsCommand("/repo", { dataDir: dir, rest: ["sentinel", "retire", "goal-4", "flaky", "check"], log })).toBe(0);
     expect(lines.join("\n")).toContain("retired: flaky check");
   });

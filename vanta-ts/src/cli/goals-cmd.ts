@@ -10,6 +10,7 @@ import {
   loadSentinels,
   retireSentinel,
   runSentinels,
+  type SentinelRunDeps,
 } from "../goals/sentinel.js";
 import { formatGoalLedger } from "../repl/goal-ledger.js";
 import type { Goal } from "../types.js";
@@ -19,11 +20,12 @@ type GoalsDeps = {
   getGoals?: () => Promise<Goal[]>;
   log?: (line: string) => void;
   rest?: string[];
+  sentinelNotify?: SentinelRunDeps["notify"];
 };
 
 export async function runGoalsCommand(root: string, deps: GoalsDeps = {}): Promise<number> {
   const dataDir = deps.dataDir ?? join(root, ".vanta");
-  if (deps.rest?.[0] === "sentinel") return runSentinelCommand(dataDir, deps.rest.slice(1), deps.log ?? console.log);
+  if (deps.rest?.[0] === "sentinel") return runSentinelCommand(dataDir, deps.rest.slice(1), deps.log ?? console.log, deps.sentinelNotify);
   const getGoals = deps.getGoals ?? await liveGoalReader(root);
   const [goals, graph] = await Promise.all([getGoals(), readGoalDeps(dataDir)]);
   (deps.log ?? console.log)(formatGoalLedger(goals, graph.edges));
@@ -36,21 +38,21 @@ async function liveGoalReader(root: string): Promise<() => Promise<Goal[]>> {
   return () => createKernelClient(baseUrl).getGoals();
 }
 
-async function runSentinelCommand(dataDir: string, rest: string[], log: (line: string) => void): Promise<number> {
+async function runSentinelCommand(dataDir: string, rest: string[], log: (line: string) => void, notify?: SentinelRunDeps["notify"]): Promise<number> {
   const sub = rest[0] ?? "list";
   if (sub === "list" || sub === "show") {
     log(formatSentinels(await loadSentinels(dataDir)));
     return 0;
   }
-  if (sub === "run") return runAndPrintSentinels(dataDir, log);
+  if (sub === "run") return runAndPrintSentinels(dataDir, log, notify);
   if (sub === "add") return addSentinel(dataDir, rest.slice(1), log);
   if (sub === "retire") return retireSentinelCommand(dataDir, rest.slice(1), log);
   log("usage: vanta goals sentinel [list|run|add <goal-id> <goal-text> --check <cmd>|retire <id> <note>]");
   return 1;
 }
 
-async function runAndPrintSentinels(dataDir: string, log: (line: string) => void): Promise<number> {
-  const results = await runSentinels(dataDir);
+async function runAndPrintSentinels(dataDir: string, log: (line: string) => void, notify?: SentinelRunDeps["notify"]): Promise<number> {
+  const results = await runSentinels(dataDir, new Date(), { notify });
   if (!results.length) log("standing-goal sentinel: no active checks");
   for (const r of results) log(`${r.status === "pass" ? "pass" : "wake"} ${r.sentinel.id}: ${r.output}`);
   return results.some((r) => r.status === "fail") ? 2 : 0;

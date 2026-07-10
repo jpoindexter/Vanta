@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -19,11 +19,19 @@ describe("standing goal sentinels", () => {
       expect(results[0]?.status).toBe("pass");
 
       await createGoalSentinel(dir, { goalId: 7, goalText: "ship invariant", command: "false" });
-      results = await runSentinels(dir, new Date("2026-07-09T17:01:00.000Z"));
+      const notify = vi.fn();
+      results = await runSentinels(dir, new Date("2026-07-09T17:01:00.000Z"), { notify, cwd: "/repo" });
       expect(results[0]?.status).toBe("fail");
       expect((await loadSentinels(dir)).sentinels[0]?.history.map((h) => h.status)).toEqual(["pass", "fail"]);
       expect(await readFile(sentinelWakePath(dir), "utf8")).toContain("goal-7");
       expect(await readFile(join(dir, "trust-ledger.json"), "utf8")).toContain("standing-goal.sentinel.goal-7");
+      expect(notify).toHaveBeenCalledWith(expect.objectContaining({
+        title: "Vanta · standing goal violated",
+        message: expect.stringContaining("#7 Goal remains true: ship invariant"),
+        dataDir: dir,
+        cwd: "/repo",
+        notificationType: "standing_goal_violation",
+      }));
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

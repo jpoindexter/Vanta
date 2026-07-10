@@ -33,6 +33,7 @@ import type { WakeContext } from "../loop/types.js";
 import { loadDef } from "../loop/store.js";
 import type { GatewayHandle } from "./stream-events.js";
 import { startPlatformWebhookServer, type PlatformWebhookServer } from "./platform-webhook.js";
+import { runDailySentinels, type SentinelRunDeps } from "../goals/sentinel.js";
 
 const DEFAULT_TICK_MS = 60_000;
 
@@ -58,6 +59,8 @@ export type GatewayDeps = {
   /** Push-channel webhook listener. Defaults to loopback:3978 when a configured adapter exposes handlers. */
   platformWebhookPort?: number;
   platformWebhookHost?: string;
+  /** Injectable only so tests do not emit real operator notifications. */
+  sentinelNotify?: SentinelRunDeps["notify"];
   /** CHANNEL-PERMISSIONS-WIRE: pending-approval reply bus — an inbound message
    * referencing a pending request id is consumed as an approval reply instead
    * of becoming an agent turn. Absent → behavior unchanged. */
@@ -126,6 +129,12 @@ export async function gatewayTick(deps: GatewayDeps): Promise<number> {
   await saveLastFired(deps.dataDir, updatedFired);
   await sweepClaims(deps.dataDir, fireWindowKey(now));
   for (const r of results) log(`  ↳ #${r.id} ${firstLine(r.result)}`);
+  const sentinelResults = await runDailySentinels(deps.dataDir, now, {
+    notify: deps.sentinelNotify,
+  });
+  for (const result of sentinelResults) {
+    log(`sentinel ${result.status === "pass" ? "pass" : "wake"} ${result.sentinel.id}: ${firstLine(result.output)}`);
+  }
   const loopsFired = await tickLoops({
     dataDir: deps.dataDir,
     now,
@@ -138,7 +147,7 @@ export async function gatewayTick(deps: GatewayDeps): Promise<number> {
   // PERSONAL-MODEL-TUNE: auto-train a LoRA when enough preference data accrued
   // (no-op unless VANTA_LORA_AUTO=1; best-effort, never breaks the tick).
   await maybeAutoTune(deps.dataDir, log);
-  return queuedWakes + results.length + factoryEntries.length + loopsFired;
+  return queuedWakes + results.length + factoryEntries.length + sentinelResults.length + loopsFired;
 }
 
 async function sleepInterval(tickMs: number, stillRunning: () => boolean): Promise<void> {
