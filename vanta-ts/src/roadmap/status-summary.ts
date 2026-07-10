@@ -7,6 +7,8 @@ export type RoadmapStatusSummary = {
   total: number;
   activeTotal: number;
   activeDrained: boolean;
+  complete: boolean;
+  nonShippedTotal: number;
   statuses: CountSummary<RoadmapItem["status"]>;
   parkedReasons: CountSummary<(typeof PARKED_REASON)[number]>;
 };
@@ -42,6 +44,10 @@ export function activeRoadmapCount(items: RoadmapItem[]): number {
   return items.filter((item) => (ACTIVE_STATUS as readonly string[]).includes(item.status)).length;
 }
 
+export function nonShippedRoadmapCount(items: RoadmapItem[]): number {
+  return items.filter((item) => item.status !== "shipped").length;
+}
+
 export function summarizeRoadmapStatus(items: RoadmapItem[]): RoadmapStatusSummary {
   const statusCounts = countBy(items, (item) => item.status);
   const parked = items.filter((item) => item.status === "parked");
@@ -49,7 +55,8 @@ export function summarizeRoadmapStatus(items: RoadmapItem[]): RoadmapStatusSumma
   const statuses = Object.fromEntries(STATUS.map((status) => [status, statusCounts.get(status) ?? 0])) as CountSummary<RoadmapItem["status"]>;
   const parkedReasons = Object.fromEntries(PARKED_REASON.map((reason) => [reason, reasonCounts.get(reason) ?? 0])) as CountSummary<(typeof PARKED_REASON)[number]>;
   const activeTotal = ACTIVE_STATUS.reduce((sum, status) => sum + statuses[status], 0);
-  return { total: items.length, activeTotal, activeDrained: activeTotal === 0, statuses, parkedReasons };
+  const nonShippedTotal = items.length - statuses.shipped;
+  return { total: items.length, activeTotal, activeDrained: activeTotal === 0, complete: nonShippedTotal === 0, nonShippedTotal, statuses, parkedReasons };
 }
 
 export function formatRoadmapDrainGate(items: RoadmapItem[]): string {
@@ -60,5 +67,18 @@ export function formatRoadmapDrainGate(items: RoadmapItem[]): string {
   ];
   const parked = summary.statuses.parked;
   if (parked) lines.push(`parked: ${parked}`, "parked cards require proof/decision before revival");
+  return lines.join("\n");
+}
+
+export function formatRoadmapCompletionGate(items: RoadmapItem[]): string {
+  const summary = summarizeRoadmapStatus(items);
+  const lines = [
+    `roadmap complete: ${summary.complete ? "yes" : "no"}`,
+    `shipped: ${summary.statuses.shipped}/${summary.total}`,
+    `non-shipped: ${summary.nonShippedTotal}`,
+    ...STATUS.filter((status) => status !== "shipped").map((status) => `${status}: ${summary.statuses[status]}`),
+  ];
+  const parked = summary.statuses.parked;
+  if (parked) lines.push("parked cards are not done; use `vanta roadmap unblock` for proof/decision steps");
   return lines.join("\n");
 }

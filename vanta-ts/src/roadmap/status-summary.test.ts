@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RoadmapItem } from "./schema.js";
-import { activeRoadmapCount, formatRoadmapDrainGate, formatRoadmapStatus, summarizeRoadmapStatus } from "./status-summary.js";
+import { activeRoadmapCount, formatRoadmapCompletionGate, formatRoadmapDrainGate, formatRoadmapStatus, nonShippedRoadmapCount, summarizeRoadmapStatus } from "./status-summary.js";
 
 function card(id: string, status: RoadmapItem["status"], parkedReason?: RoadmapItem["parkedReason"]): RoadmapItem {
   return { id, status, parkedReason, track: "Operator", title: id, size: "S", summary: "", done: "" };
@@ -43,6 +43,7 @@ describe("formatRoadmapStatus", () => {
       card("B", "parked", "external proof"),
     ];
     expect(activeRoadmapCount(items)).toBe(0);
+    expect(nonShippedRoadmapCount(items)).toBe(1);
     expect(formatRoadmapDrainGate(items)).toContain("active roadmap drained: yes");
   });
 
@@ -75,8 +76,20 @@ describe("formatRoadmapStatus", () => {
       total: 4,
       activeTotal: 1,
       activeDrained: false,
+      complete: false,
+      nonShippedTotal: 3,
       statuses: { shipped: 1, blocked: 1, parked: 2 },
       parkedReasons: { "external proof": 1, "strategy decision": 1 },
     });
+  });
+
+  it("reports completion separately from an active-queue drain", () => {
+    const drainedButIncomplete = [
+      card("A", "shipped"),
+      card("B", "parked", "external proof"),
+    ];
+    expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("roadmap complete: no");
+    expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("non-shipped: 1");
+    expect(formatRoadmapCompletionGate([card("A", "shipped")])).toContain("roadmap complete: yes");
   });
 });

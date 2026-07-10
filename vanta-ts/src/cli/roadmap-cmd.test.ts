@@ -37,6 +37,18 @@ async function drainedWorkspace(): Promise<string> {
   return root;
 }
 
+async function completeWorkspace(): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), "vanta-roadmap-cmd-"));
+  roots.push(root);
+  await writeFile(join(root, "roadmap.json"), JSON.stringify({
+    updated: "2026-07-10",
+    items: [
+      { id: "DONE", track: "Harness", title: "Done", status: "shipped", size: "S", summary: "", done: "" },
+    ],
+  }, null, 2), "utf8");
+  return root;
+}
+
 async function parkedStrategyWorkspace(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), "vanta-roadmap-cmd-"));
   roots.push(root);
@@ -147,6 +159,38 @@ describe("runRoadmapCommand status", () => {
     expect(code).toBe(1);
     expect(out.activeDrained).toBe(false);
     expect(out.activeTotal).toBe(1);
+  });
+
+  it("fails --require-complete when parked work remains", async () => {
+    const root = await drainedWorkspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    const code = await runRoadmapCommand(root, ["status", "--require-complete"]);
+    const out = lines.join("\n");
+    expect(code).toBe(1);
+    expect(out).toContain("roadmap complete: no");
+    expect(out).toContain("parked: 1");
+  });
+
+  it("passes --require-complete when every card is shipped", async () => {
+    const root = await completeWorkspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    const code = await runRoadmapCommand(root, ["status", "--require-complete"]);
+    expect(code).toBe(0);
+    expect(lines.join("\n")).toContain("roadmap complete: yes");
+  });
+
+  it("keeps --require-complete exit behavior with json output", async () => {
+    const root = await drainedWorkspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    const code = await runRoadmapCommand(root, ["status", "--json", "--require-complete"]);
+    const out = JSON.parse(lines.join("\n")) as { complete: boolean; activeDrained: boolean; nonShippedTotal: number };
+    expect(code).toBe(1);
+    expect(out.complete).toBe(false);
+    expect(out.activeDrained).toBe(true);
+    expect(out.nonShippedTotal).toBe(1);
   });
 });
 

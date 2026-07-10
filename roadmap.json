@@ -17082,6 +17082,22 @@
       "lens": "tui",
       "updated": "2026-07-10",
       "notes": "SHIPPED 2026-07-10: renderRoadmap now imports summarizeRoadmapStatus and adds a top health strip after Launch Pad. It shows Active queue drained when building/blocked/next/horizon are all zero, shows exact active counts, and shows parked reason counts. This does not move parked cards or claim external proofs passed."
+    },
+    {
+      "id": "ROADMAP-COMPLETION-GATE",
+      "track": "Operator",
+      "title": "Roadmap completion gate — drained is not the same as done",
+      "status": "shipped",
+      "size": "S",
+      "summary": "`vanta roadmap status --require-complete` now gives a hard final gate that fails while any card is non-shipped, even when the active queue is drained and all remaining work is parked for proof or decision.",
+      "done": "`vanta roadmap status --require-complete` exits 0 only when every roadmap card is shipped; JSON status includes `complete` and `nonShippedTotal`; drained-but-parked roadmaps fail the completion gate with an explicit non-shipped count.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "selfhood",
+      "updated": "2026-07-10",
+      "notes": "SHIPPED 2026-07-10: RoadmapStatusSummary now separates `activeDrained` from `complete`, adds `nonShippedTotal`, and formats a completion gate. CLI status supports `--require-complete` in text and JSON mode. Live current roadmap correctly fails this stricter gate because 18 cards remain parked; the drained gate still passes because no building/blocked/next/horizon work remains."
     }
   ]
 }
