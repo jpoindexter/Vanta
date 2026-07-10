@@ -17162,6 +17162,22 @@
       "lens": "selfhood",
       "updated": "2026-07-10",
       "notes": "SHIPPED 2026-07-10: Added openRoadmapItems/formatRoadmapOpenWork and wired `vanta roadmap status --open` plus `--open --json`. Live output lists the 9 required open cards only; terminal parked cards remain visible in parked counts but do not block completion."
+    },
+    {
+      "id": "ROADMAP-STRATEGY-PARKED-TERMINAL",
+      "track": "Operator",
+      "title": "Roadmap strategy parked terminal — out-of-strategy cards stop blocking completion",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Strategy-decision parked cards now count as terminal parked under the current product direction, because their notes explicitly say to revive only after a strategy change rather than treating them as required build work.",
+      "done": "`vanta roadmap status --open` excludes `strategy decision` parked cards; `--require-complete` still fails for required external proof cards; strategy cards remain visible as parked and can be revived only after an explicit direction change.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "selfhood",
+      "updated": "2026-07-10",
+      "notes": "SHIPPED 2026-07-10: Added `strategy decision` to the terminal parked reason set after rechecking VANTA-H-GITHUB, VANTA-H-SLACK, PCLIP-MULTI-COMPANY, and PCLIP-MULTI-USER. Their notes say out-of-scope or revive only after an explicit product-direction change. This does not ship those cards; it keeps the remaining open set focused on required external proofs."
     }
   ]
 }

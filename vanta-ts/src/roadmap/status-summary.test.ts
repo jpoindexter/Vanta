@@ -78,8 +78,8 @@ describe("formatRoadmapStatus", () => {
       activeDrained: false,
       complete: false,
       nonShippedTotal: 3,
-      openTotal: 3,
-      terminalParkedTotal: 0,
+      openTotal: 2,
+      terminalParkedTotal: 1,
       statuses: { shipped: 1, blocked: 1, parked: 2 },
       parkedReasons: { "external proof": 1, "strategy decision": 1 },
     });
@@ -92,16 +92,18 @@ describe("formatRoadmapStatus", () => {
       card("C", "parked", "declined/n-a"),
       card("D", "parked", "duplicate"),
       card("E", "parked", "optional proof"),
+      card("F", "parked", "strategy decision"),
     ];
     expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("roadmap complete: no");
     expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("open: 1");
-    expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("non-shipped: 4");
-    expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("terminal parked: 3");
+    expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("non-shipped: 5");
+    expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("terminal parked: 4");
     const terminalOnly = [
       card("A", "shipped"),
       card("C", "parked", "declined/n-a"),
       card("D", "parked", "duplicate"),
       card("E", "parked", "optional proof"),
+      card("F", "parked", "strategy decision"),
     ];
     expect(formatRoadmapCompletionGate(terminalOnly)).toContain("roadmap complete: yes");
   });
@@ -112,6 +114,7 @@ describe("formatRoadmapStatus", () => {
       card("B", "parked", "external proof"),
       card("C", "parked", "declined/n-a"),
       card("D", "parked", "optional proof"),
+      card("F", "parked", "strategy decision"),
       card("E", "next"),
     ];
     expect(openRoadmapItems(items).map((item) => item.id)).toEqual(["B", "E"]);
@@ -121,5 +124,6 @@ describe("formatRoadmapStatus", () => {
     expect(out).toContain("E (next)");
     expect(out).not.toContain("C");
     expect(out).not.toContain("D");
+    expect(out).not.toContain("F");
   });
 });
