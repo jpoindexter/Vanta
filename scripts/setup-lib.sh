@@ -120,7 +120,9 @@ vanta_fetch_prebuilt_kernel() {
 vanta_install_agent_deps() {
   agent_dir="$1"
   if vanta_is_termux; then
-    (cd "$agent_dir" && ESBUILD_BINARY_PATH="$PREFIX/bin/esbuild" npm install --omit=dev)
+    # Android-native tools come from pkg. Package lifecycle scripts assume a
+    # desktop Node runtime and try to execute incompatible shims or binaries.
+    (cd "$agent_dir" && npm install --omit=dev --omit=optional --ignore-scripts)
   else
     (cd "$agent_dir" && npm install --omit=dev)
   fi

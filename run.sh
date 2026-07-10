@@ -26,7 +26,11 @@ mkdir -p "$VANTA_STATE_HOME" 2>/dev/null || true
 . "$DIR/scripts/setup-lib.sh"
 . "$DIR/scripts/install-events.sh"
 vanta_use_vendored_node
-if vanta_is_termux; then VANTA_PLATFORM="${VANTA_PLATFORM:-termux}"; export VANTA_PLATFORM; fi
+if vanta_is_termux; then
+  VANTA_PLATFORM="${VANTA_PLATFORM:-termux}"
+  ESBUILD_BINARY_PATH="${ESBUILD_BINARY_PATH:-$PREFIX/bin/esbuild}"
+  export VANTA_PLATFORM ESBUILD_BINARY_PATH
+fi
 
 # --- one-time bootstrap (kernel + node + deps) -------------------------------
 vanta_acquire_kernel() {
