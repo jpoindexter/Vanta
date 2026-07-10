@@ -24,6 +24,20 @@ export VANTA_SERVERLESS_PROVIDER=modal
 export VANTA_SERVERLESS_NET=0
 ```
 
+Check readiness, then run the fixed live proof:
+
+```sh
+vanta backend status
+vanta backend verify
+```
+
+`backend verify` passes a nonce-bound, read-only probe through the safety kernel,
+uploads the current workspace through the selected adapter, and requires a remote
+receipt whose Linux platform, working directory, and metadata-file hash match the
+local workspace. Modal must report `/workspace`. Missing auth, a local fallback,
+stale output, or a mismatched upload exits non-zero. This proves one bounded remote
+execution; it does not prove persistent hibernate/wake behavior.
+
 Optional settings:
 
 - `VANTA_SERVERLESS_APP`: Modal app name; defaults to `vanta-remote-exec`.

@@ -105,6 +105,7 @@ import { runBillingCommand } from "./billing-cmd.js";
 import { runOsintCommand } from "./osint-cmd.js";
 import { runApiCommand } from "./api-cmd.js";
 import { runTrajectoryCommand } from "./trajectory-cmd.js";
+import { runBackendCommand } from "./backend-cmd.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
@@ -130,6 +131,7 @@ export const COMMANDS: Record<string, CommandFn> = {
   lead: (_root, rest) => runLeadCommand(rest),
   "deep-plan": (_root, rest) => runDeepPlanCommand(rest),
   runtime: (root, rest) => runRuntimeCommand(root, rest),
+  backend: (root, rest) => runBackendCommand(root, rest),
   "adversarial-ux": (root, rest) => runAdversarialUxCommand(root, rest),
   egress: (_root, rest) => runEgressCommand(rest),
   billing: (root, rest) => runBillingCommand(dataDirFor(root), rest),

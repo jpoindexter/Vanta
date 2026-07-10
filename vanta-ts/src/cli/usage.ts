@@ -19,6 +19,7 @@ const USAGE_LINES = [
       "       vanta lead \"<message>\" | lead list   turn lead-agent chat into tracked work objects",
       "       vanta deep-plan create|revise|approve|start   revisionable plan docs with approval gate",
       "       vanta runtime start --fleet <id> --worker <id> --port <n> --command <cmd>   start a preview bound to a fleet worktree",
+      "       vanta backend [status|verify]    inspect or live-prove the selected execution backend",
       "       vanta adversarial-ux --fixture checkout | --url <url>   turn hard-user UX findings into tickets",
       "       vanta egress [status|plan]        show Docker/network egress isolation posture",
       "       vanta billing [status|json]      show fail-open provider billing + estimated spend",
