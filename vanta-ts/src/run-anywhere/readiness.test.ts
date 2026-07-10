@@ -21,6 +21,11 @@ describe("Run Anywhere readiness", () => {
     await writeGatewayReceipt(root, { app: "vanta-gateway", volume: "vanta-gateway-data", endpoint: "https://example.modal.run/telegram/webhook" });
     const report = await readRunAnywhereReadiness(root);
     expect(report).toMatchObject({ ready: false, passed: 0, total: 3 });
+    expect(report.gates.map((gate) => gate.receiptPath)).toEqual([
+      ".vanta/serverless-gateway.json",
+      ".vanta/channel-proofs.jsonl",
+      ".vanta/termux-arm64-proof.txt",
+    ]);
     expect(formatRunAnywhereReadiness(report)).toContain("deployed endpoint receipt exists");
     expect(formatRunAnywhereReadiness(report)).toContain("Release gate stays parked");
   });
