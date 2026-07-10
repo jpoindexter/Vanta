@@ -1,4 +1,3 @@
-import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import type {
   InboundMessage,
@@ -9,6 +8,13 @@ import type {
 } from "./base.js";
 import { formatForDialect } from "./format.js";
 import { capabilities, segmentsFor, type AdapterCapabilities } from "./capabilities.js";
+import {
+  TelegramReceiveBehavior,
+  matchesWebhookSecret,
+  parseAllowlist,
+  parseUpdates,
+  type ParsedUpdates,
+} from "./telegram-behavior.js";
 
 // Telegram Bot API caps sendMessage text at 4096 UTF-16 code units. Declared as
 // capabilities (MSG-CAPABILITY-DESCRIPTOR) so the send path reads them off the adapter.
@@ -24,118 +30,14 @@ const TELEGRAM_CAPABILITIES: AdapterCapabilities = capabilities({
 // VANTA_TELEGRAM_TOKEN. Offline-tested (parseUpdates is pure); live use needs the
 // token. Optional VANTA_TELEGRAM_ALLOW = comma-list of chat ids to accept.
 
-const TelegramUpdate = z.object({
-      update_id: z.number(),
-      // MSG-INLINE-APPROVAL — a tapped inline button arrives as callback_query;
-      // its `data` becomes the inbound text (e.g. "yes ab12cd"), which the
-      // approval reply bus consumes exactly like a typed reply.
-      callback_query: z
-        .object({
-          id: z.string(),
-          data: z.string().optional(),
-          from: z.object({ username: z.string().optional(), first_name: z.string().optional() }).optional(),
-          message: z.object({ chat: z.object({ id: z.number() }) }).optional(),
-        })
-        .optional(),
-      message: z
-        .object({
-          message_id: z.number().optional(),
-          text: z.string().optional(),
-          chat: z.object({ id: z.number(), type: z.string().optional() }),
-          message_thread_id: z.number().optional(),
-          is_topic_message: z.boolean().optional(),
-          from: z.object({ username: z.string().optional(), first_name: z.string().optional() }).optional(),
-          reply_to_message: z.object({ message_id: z.number().optional() }).optional(),
-        })
-        .optional(),
-    });
-
-const UpdatesResponse = z.object({
-  ok: z.boolean(),
-  result: z.array(TelegramUpdate),
-});
-
-// Telegram's getUpdates does not echo the bot's own messages back, so a long-poll
-// inbound is never `fromMe`; we leave it undefined rather than spend a network
-// call on getMe to self-detect. Self-echo dedup relies on the outbound id store.
-const GROUP_CHAT_TYPES = new Set(["group", "supergroup"]);
-
-/** Group flag from chat.type — undefined when type is absent (don't guess). */
-function isGroupChat(type: string | undefined): boolean | undefined {
-  if (type === undefined) return undefined;
-  return GROUP_CHAT_TYPES.has(type);
-}
-
 // sendMessage's response surfaces the assigned message id at result.message_id.
 const SendResponse = z.object({
   ok: z.boolean(),
   result: z.object({ message_id: z.number() }).optional(),
 });
 
-export type ParsedUpdates = { messages: InboundMessage[]; nextOffset: number; callbackIds: string[] };
-
-type RawCallback = NonNullable<z.infer<typeof UpdatesResponse>["result"][number]["callback_query"]>;
-type RawMessage = z.infer<typeof UpdatesResponse>["result"][number]["message"];
-type TelegramUpdateValue = z.infer<typeof TelegramUpdate>;
-
-/** MSG-INLINE-APPROVAL — a tapped button becomes an inbound whose text is the callback data. */
-function callbackInbound(cb: RawCallback): InboundMessage | null {
-  if (!cb.data || !cb.message) return null;
-  return {
-    chatId: String(cb.message.chat.id),
-    text: cb.data,
-    from: cb.from?.username ?? cb.from?.first_name,
-    id: `cb-${cb.id}`,
-  };
-}
-
-/** A plain text update → inbound (thread routing per MSG-TELEGRAM-ROBUST). */
-function messageInbound(m: RawMessage): InboundMessage | null {
-  if (!m?.text) return null;
-  const replyToId = m.reply_to_message?.message_id;
-  return {
-    chatId: String(m.chat.id),
-    text: m.text,
-    from: m.from?.username ?? m.from?.first_name,
-    id: m.message_id !== undefined ? String(m.message_id) : undefined,
-    isGroup: isGroupChat(m.chat.type),
-    // Only a real forum-topic message routes replies to its topic —
-    // message_thread_id also rides on plain replies, where it is NOT a topic.
-    threadId: m.is_topic_message && m.message_thread_id !== undefined ? String(m.message_thread_id) : undefined,
-    replyToId: replyToId !== undefined ? String(replyToId) : undefined,
-  };
-}
-
-/**
- * Parse a getUpdates payload into inbound messages + the next offset (max
- * update_id + 1). Skips updates without a text message. Pure.
- */
-export function parseUpdates(payload: unknown, currentOffset: number): ParsedUpdates {
-  const parsed = UpdatesResponse.safeParse(payload);
-  if (!parsed.success || !parsed.data.ok) return { messages: [], nextOffset: currentOffset, callbackIds: [] };
-
-  const messages: InboundMessage[] = [];
-  const callbackIds: string[] = [];
-  let maxId = currentOffset - 1;
-  for (const u of parsed.data.result) {
-    maxId = Math.max(maxId, u.update_id);
-    const cb = u.callback_query;
-    if (cb) {
-      callbackIds.push(cb.id);
-      const tapped = callbackInbound(cb);
-      if (tapped) messages.push(tapped);
-      continue;
-    }
-    const inbound = messageInbound(u.message);
-    if (inbound) messages.push(inbound);
-  }
-  return { messages, nextOffset: maxId + 1, callbackIds };
-}
-
-/** Parse the VANTA_TELEGRAM_ALLOW chat-id allowlist (empty = allow all). Pure. */
-export function parseAllowlist(raw: string | undefined): Set<string> {
-  return new Set((raw ?? "").split(",").map((s) => s.trim()).filter(Boolean));
-}
+export { TelegramReceiveBehavior, matchesWebhookSecret, parseAllowlist, parseUpdates };
+export type { ParsedUpdates };
 
 /**
  * Pure: extract the assigned message id (stringified) from a sendMessage response
@@ -165,14 +67,6 @@ export function parseRetryAfter(payload: unknown): number | undefined {
   return Math.min(parsed.data.parameters?.retry_after ?? 1, MAX_RETRY_AFTER_SEC);
 }
 
-/** Constant-time comparison for Telegram's webhook secret header. */
-export function matchesWebhookSecret(received: string | undefined, expected: string): boolean {
-  if (received === undefined) return false;
-  const actual = Buffer.from(received);
-  const wanted = Buffer.from(expected);
-  return actual.length === wanted.length && timingSafeEqual(actual, wanted);
-}
-
 /** Read a response body as JSON, returning undefined instead of throwing. */
 async function safeJson(res: Response): Promise<unknown> {
   try {
@@ -187,10 +81,8 @@ export class TelegramAdapter implements PlatformAdapter {
   readonly capabilities = TELEGRAM_CAPABILITIES;
   private offset = 0;
   private readonly base: string;
-  private readonly allow: Set<string>;
   private readonly sleep: (ms: number) => Promise<void>;
-  private readonly webhookSecret?: string;
-  private readonly pending: TelegramUpdateValue[] = [];
+  private readonly receive: TelegramReceiveBehavior;
 
   constructor(opts: {
     token: string;
@@ -200,9 +92,8 @@ export class TelegramAdapter implements PlatformAdapter {
     webhookSecret?: string;
   }) {
     this.base = `${opts.apiBase ?? "https://api.telegram.org"}/bot${opts.token}`;
-    this.allow = opts.allow ?? new Set();
     this.sleep = opts.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
-    this.webhookSecret = opts.webhookSecret?.trim() || undefined;
+    this.receive = new TelegramReceiveBehavior({ allow: opts.allow, webhookSecret: opts.webhookSecret });
   }
 
   async connect(): Promise<void> {
@@ -213,10 +104,10 @@ export class TelegramAdapter implements PlatformAdapter {
   }
 
   async poll(): Promise<InboundMessage[]> {
-    const payload = this.webhookSecret
-      ? { ok: true, result: this.pending.splice(0) }
+    const payload = this.receive.receivesWebhook
+      ? this.receive.drainWebhookPayload()
       : await fetch(`${this.base}/getUpdates?timeout=0&offset=${this.offset}`).then((res) => res.json());
-    const { messages, nextOffset, callbackIds } = parseUpdates(payload, this.offset);
+    const { messages, nextOffset, callbackIds } = this.receive.parseAndFilter(payload, this.offset);
     this.offset = nextOffset;
     // Ack every callback so Telegram stops the button spinner (best-effort).
     for (const id of callbackIds) {
@@ -226,26 +117,11 @@ export class TelegramAdapter implements PlatformAdapter {
         body: JSON.stringify({ callback_query_id: id }),
       }).catch(() => {});
     }
-    return this.allow.size === 0 ? messages : messages.filter((m) => this.allow.has(m.chatId));
+    return messages;
   }
 
   webhookHandlers(): PlatformWebhookHandler[] {
-    if (!this.webhookSecret) return [];
-    return [{
-      path: "/telegram/webhook",
-      receive: async ({ body, headers }) => {
-        const rawHeader = headers["x-telegram-bot-api-secret-token"];
-        const header = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
-        if (!matchesWebhookSecret(header, this.webhookSecret!)) return { status: 401, body: "unauthorized" };
-        let payload: unknown;
-        try { payload = JSON.parse(body); }
-        catch { return { status: 400, body: "invalid json" }; }
-        const update = TelegramUpdate.safeParse(payload);
-        if (!update.success) return { status: 400, body: "invalid update" };
-        this.pending.push(update.data);
-        return { status: 202, body: "accepted" };
-      },
-    }];
+    return this.receive.webhookHandlers();
   }
 
   /** POST one part, retrying on 429 flood control per Telegram's retry_after

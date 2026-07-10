@@ -1,6 +1,13 @@
 import { describe, it, expect } from "vitest";
 import type { OutboundMessage } from "./base.js";
-import { TelegramAdapter, parseRetryAfter, parseUpdates, parseAllowlist, parseSentId } from "./telegram.js";
+import {
+  TelegramAdapter,
+  TelegramReceiveBehavior,
+  parseRetryAfter,
+  parseUpdates,
+  parseAllowlist,
+  parseSentId,
+} from "./telegram.js";
 
 describe("parseUpdates", () => {
   it("extracts text messages and advances the offset past the max update_id", () => {
@@ -97,6 +104,33 @@ describe("parseAllowlist", () => {
   });
   it("is empty (allow-all) for undefined", () => {
     expect(parseAllowlist(undefined).size).toBe(0);
+  });
+});
+
+describe("TelegramReceiveBehavior", () => {
+  it("shares allowlist gating across polling payloads and webhook-enqueued payloads", async () => {
+    const behavior = new TelegramReceiveBehavior({ allow: new Set(["42"]), webhookSecret: "signed-hook" });
+    const pollingPayload = {
+      ok: true,
+      result: [
+        { update_id: 1, message: { message_id: 10, text: "accept poll", chat: { id: 42 } } },
+        { update_id: 2, message: { message_id: 11, text: "reject poll", chat: { id: 99 } } },
+      ],
+    };
+    expect(behavior.parseAndFilter(pollingPayload, 0).messages.map((m) => m.text)).toEqual(["accept poll"]);
+
+    const [handler] = behavior.webhookHandlers();
+    expect(handler).toBeDefined();
+    await handler!.receive({
+      headers: { "x-telegram-bot-api-secret-token": "signed-hook" },
+      body: JSON.stringify({ update_id: 3, message: { message_id: 12, text: "accept hook", chat: { id: 42 } } }),
+    });
+    await handler!.receive({
+      headers: { "x-telegram-bot-api-secret-token": "signed-hook" },
+      body: JSON.stringify({ update_id: 4, message: { message_id: 13, text: "reject hook", chat: { id: 99 } } }),
+    });
+
+    expect(behavior.parseAndFilter(behavior.drainWebhookPayload(), 3).messages.map((m) => m.text)).toEqual(["accept hook"]);
   });
 });
 

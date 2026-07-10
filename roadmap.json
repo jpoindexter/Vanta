@@ -14921,17 +14921,18 @@
       "id": "MSG-PLUGIN-PLATFORMS",
       "track": "Extensibility",
       "title": "Sibling-adapter behavior-mixin pattern",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
-      "summary": "When one platform grows two transports (e.g. an unofficial bridge vs an official cloud API), share gating/allowlist/mention/markdown logic via a behavior mixin while each transport owns its socket/send. Capture for when a Vanta platform splits transports.",
-      "done": "Two transports for one platform share one behavior mixin; each owns transport; demonstrated when a second transport lands.",
+      "summary": "Telegram now has an explicit shared receive-behavior layer used by both getUpdates polling and authenticated webhook push. The transports still own their HTTP edges, while parsing, callback mapping, and allowlist gating live in one reusable behavior module for future sibling transports.",
+      "done": "Two transports for one platform share one behavior mixin; each owns transport; demonstrated when a second transport lands. Shipped through Telegram polling + webhook receive behavior.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-10",
+      "source": "ref-audit-2026-06-20",
+      "notes": "SHIPPED 2026-07-10: Added src/gateway/platforms/telegram-behavior.ts with TelegramReceiveBehavior, parseUpdates, parseAllowlist, and matchesWebhookSecret. TelegramAdapter now routes both getUpdates polling and webhook-drained updates through the same parse/filter layer, while webhookHandlers owns only authenticated HTTP receipt and sendPart still owns Bot API delivery. Focused proof: npx vitest run src/gateway/platforms/telegram.test.ts src/gateway/platforms/telegram-webhook.test.ts (24 passed), plus npm run typecheck."
     },
     {
       "id": "MSG-PROGRESS-BUBBLE",
