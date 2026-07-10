@@ -16320,7 +16320,7 @@
       "id": "EXT-PUBLIC-API",
       "track": "Extensibility",
       "title": "Public API + embeddable SDK — drive Vanta programmatically (versioned contract)",
-      "status": "horizon",
+      "status": "building",
       "size": "L",
       "summary": "Vanta's plugin framework is in-process and MCP/ACP/headless surfaces exist, but there is no published, documented external API + embeddable SDK with a versioned, stable contract for third parties to build on or drive Vanta programmatically. As an ecosystem forms this is the gap (a reference agent harness ships gateway-protocol + plugin-sdk + plugin-package-contract). Pairs with PCLIP-PLUGIN-WORKERS (out-of-process plugins) and EXT-MCP-SERVE-COMMS.",
       "done": "A documented, versioned public API (HTTP + typed client) lets an external program start a session, send input, stream output, and resolve approvals; a published SDK package wraps it; the plugin contract is versioned and stable. Every call still routes through the kernel.",
