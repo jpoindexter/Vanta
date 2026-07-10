@@ -1,4 +1,4 @@
-import type { Roadmap, RoadmapItem } from "./schema.js";
+import { PARKED_REASON, type Roadmap, type RoadmapItem } from "./schema.js";
 import { WIP_LIMIT } from "./wip.js";
 import { CSS, DRAG_JS, FILTER_JS, SIZE_ORDER, MODEL_ORDER, PRIORITY_ORDER, PRIORITY_LABEL, LENS_ORDER, LENS_LABEL } from "./render-assets.js";
 
@@ -17,6 +17,14 @@ const TIER_LABEL: Record<string, string> = {
   rock: "Rocks · foundational",
   pebble: "Pebbles",
   sand: "Sand · quick wins",
+};
+const PARKED_REASON_LABEL: Record<string, string> = {
+  "external proof": "External Proof",
+  "strategy decision": "Strategy Decision",
+  "declined/n-a": "Declined / N-A",
+  duplicate: "Duplicate",
+  "optional proof": "Optional Proof",
+  review: "Review",
 };
 
 function routing(item: RoadmapItem): string {
@@ -152,6 +160,24 @@ function column(status: string, items: RoadmapItem[], wipLimit?: number): string
   return `<div class="col" data-status="${status}"><h2 class="ch s-${status}">${COL_LABEL[status] ?? status}${wipBadge}</h2>${groups}${tail}</div>`;
 }
 
+function parkedSection(data: Roadmap): string {
+  const parked = data.items.filter((i) => i.status === "parked");
+  if (!parked.length) return "";
+  const groups = PARKED_REASON
+    .map((reason) => ({ reason, items: parked.filter((i) => (i.parkedReason ?? "review") === reason) }))
+    .filter((group) => group.items.length > 0)
+    .map(
+      (group) =>
+        `<div class="parked-group" data-parked-reason="${esc(group.reason)}"><h3>${esc(PARKED_REASON_LABEL[group.reason] ?? group.reason)} <span>${group.items.length}</span></h3>${group.items.map(card).join("")}</div>`,
+    )
+    .join("");
+  return `<details class="parked-section" open>
+<summary>Parked (${parked.length})</summary>
+<p class="parked-note">Out of the active build queue. Review the reason before reviving a card.</p>
+<div class="parked-grid">${groups}</div>
+</details>`;
+}
+
 function buildOptions(values: string[], labels?: Record<string, string>): string {
   return values.map((v) => `<option value="${esc(v)}">${esc(labels?.[v] ?? v)}</option>`).join("");
 }
@@ -197,6 +223,7 @@ export function renderRoadmap(data: Roadmap): string {
 ${launchPad(data)}
 ${filterBar(data)}
 <div class="board">${board}</div>
+${parkedSection(data)}
 <details class="sh-section">
 <summary>Shipped (${shipped.length})</summary>
 <div class="sh-grid">${shipped.map(card).join("")}</div>

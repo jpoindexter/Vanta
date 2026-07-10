@@ -141,6 +141,28 @@ describe("renderRoadmap", () => {
     expect(html).not.toContain('<h2 class="ch s-blocked">Blocked <span class="wip"');
   });
 
+  it("renders parked cards grouped by parked reason", () => {
+    const html = renderRoadmap({
+      updated: "2026-07-10",
+      items: [
+        ...fixture.items,
+        { id: "PX", track: "Core", title: "Needs external proof", status: "parked", size: "S", summary: "x", done: "y", parkedReason: "external proof" },
+        { id: "PD", track: "Core", title: "Duplicate card", status: "parked", size: "S", summary: "x", done: "y", parkedReason: "duplicate" },
+      ],
+    });
+    expect(html).toContain("Parked (2)");
+    expect(html).toContain("External Proof <span>1</span>");
+    expect(html).toContain("Duplicate <span>1</span>");
+    expect(html).toContain("Needs external proof");
+    expect(html).toContain('data-parked-reason="external proof"');
+  });
+
+  it("omits the parked section when no cards are parked", () => {
+    const html = renderRoadmap(fixture);
+    expect(html).not.toContain("Parked (");
+    expect(html).not.toContain('class="parked-section"');
+  });
+
   it("includes track filter buttons", () => {
     const html = renderRoadmap(fixture);
     expect(html).toContain("Core");
