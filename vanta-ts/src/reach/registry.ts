@@ -9,11 +9,13 @@ import { youtubeChannel } from "./channels/youtube.js";
 import { githubChannel } from "./channels/github.js";
 import { podcastChannel } from "./channels/podcast.js";
 import { v2exChannel } from "./channels/v2ex.js";
+import { bilibiliChannel } from "./channels/bilibili.js";
 
-// Order: most-specific URL matchers first (youtube/github/podcast/rss/reddit/twitter/linkedin/v2ex)
+// Order: most-specific URL matchers first (youtube/bilibili/github/podcast/rss/reddit/twitter/linkedin/v2ex)
 // so a YouTube link routes to youtube, not the generic web reader.
 export const REACH_CHANNELS: ReachChannel[] = [
   youtubeChannel,
+  bilibiliChannel,
   githubChannel,
   podcastChannel,
   rssChannel,

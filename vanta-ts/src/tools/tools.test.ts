@@ -41,6 +41,7 @@ describe("registry", () => {
       "ask_user",
       "bg_list",
       "bg_status",
+      "bilibili_read",
       "brain",
       "brief",
       "browser_act",

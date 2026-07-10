@@ -1036,7 +1036,7 @@
       "effort": "medium",
       "codex": "gpt-5.5",
       "lens": "agent-loop",
-      "updated": "2026-06-15"
+      "updated": "2026-07-10"
     },
     {
       "id": "COMPRESS-CODE-AST",
@@ -12065,10 +12065,10 @@
       "id": "REACH-BILIBILI",
       "track": "Harness",
       "title": "Bilibili channel — search + video detail + subtitles",
-      "status": "parked",
+      "status": "shipped",
       "size": "M",
-      "summary": "From Agent-Reach bilibili.py (bili-cli ▸ OpenCLI ▸ search API; yt-dlp retired after Bilibili 412 anti-scrape). Search + video detail with no login; subtitles via OpenCLI. Shows the multi-backend re-routing value (the channel survived an upstream break by swapping backends). China-centric — defer unless a concrete need.",
-      "done": "A bilibili reach path searches + reads video detail via the upstream CLI when present, with the documented fallback order and a fix prescription on a gap.",
+      "summary": "Vanta now ships a Bilibili reach channel and `bilibili_read` tool. The channel probes the documented Agent-Reach backend order: `bili-cli` for search/video detail, OpenCLI for subtitle/browser-session fallback, then Bilibili's public search API as a search-only fallback. `bilibili_read` supports `search`, `video`, and `subtitles`, extracts BV ids from URLs, surfaces setup fixes instead of throwing, and keeps yt-dlp out of the Bilibili path because upstream documents it as 412-blocked.",
+      "done": "`/reach`/reach doctor reports Bilibili with active backend and fix guidance; `bilibili_read search` calls `bili search <query> --type video -n <limit>` and falls back to Bilibili search API; `bilibili_read video` calls `bili video <BV>`; `bilibili_read subtitles` calls `opencli bilibili subtitle <BV>`; focused tests cover command wiring, API parsing, URL BV extraction, registry exposure, and missing-field degradation.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
