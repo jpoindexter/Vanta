@@ -137,6 +137,23 @@ describe("handleGlobalKey — CUSTOM bindings take effect on the live path", () 
     expect(pending).toBeNull();
     expect(note).toHaveBeenCalledWith(expect.stringContaining("chord cancelled"));
   });
+
+  it("context-specific bindings fire only when their context is active", () => {
+    const custom: KeyBinding[] = [
+      ...DEFAULT_BINDINGS,
+      { action: GLOBAL_ACTIONS.quickOpen, chord: "ctrl+j", context: "historySearch" },
+      { action: GLOBAL_ACTIONS.globalSearch, chord: "ctrl+j", context: "global" },
+    ];
+    const search = deps({ bindings: custom, keyContexts: ["historySearch", "chat", "global"] });
+    handleGlobalKey("j", { ctrl: true }, search as never);
+    expect(search.openQuickOpen).toHaveBeenCalledTimes(1);
+    expect(search.openGlobalSearch).not.toHaveBeenCalled();
+
+    const chat = deps({ bindings: custom, keyContexts: ["chat", "global"] });
+    handleGlobalKey("j", { ctrl: true }, chat as never);
+    expect(chat.openQuickOpen).not.toHaveBeenCalled();
+    expect(chat.openGlobalSearch).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("buildFocusTargets", () => {

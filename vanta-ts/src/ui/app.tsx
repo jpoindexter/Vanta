@@ -34,6 +34,7 @@ import {
   ctxSnapshot, useSkillMatches, useQueueDrain, useTeammateFocus,
   useFocusFallback, buildFocusTargets, useGlobalKeys, useKeybindings, useHookLifecycle,
 } from "./app-keys.js";
+import { activeKeybindingContexts } from "./keybinding-contexts.js";
 import { useSlackChannels } from "./use-slack-channels.js";
 import type { Conversation } from "../agent.js";
 import type { ReplState } from "../repl/types.js";
@@ -118,9 +119,10 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const est = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
   const teammate = useTeammateFocus(agents.length, { busy: state.busy, pending, overlay, quickOpen, globalSearch });
   const promptSuggestionsVisible = !state.busy && !quickOpen && !globalSearch && !messageActions && !pending && !overlay && agents.length === 0 && state.promptSuggestions.length > 0;
+  const keyContexts = activeKeybindingContexts({ quickOpen, globalSearch, messageActions, pending: Boolean(pending), overlayKind: overlay?.kind ?? null, transcriptSelection: Boolean(transcriptSelection), autocomplete: promptSuggestionsVisible });
   const focusTargets = buildFocusTargets(pending, overlay, promptSuggestionsVisible);
   useFocusFallback(focus, focusTargets, pending ? "approval" : overlay?.kind ?? (promptSuggestionsVisible ? "composer+suggestions" : "composer"), setFocus);
-  useGlobalKeys({ bindings: useKeybindings(), busy: state.busy, pending, overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus, quickOpenOpen: quickOpen, openQuickOpen: () => setQuickOpen(true), globalSearchOpen: globalSearch, openGlobalSearch, messageActionsOpen: messageActions, openMessageActions: () => setMessageActions(true), backgroundResponseAvailable: Boolean(replStateRef.current.backgroundResponse), toggleBackgroundResponse, cycleAgent: teammate.cycleAgent, transcriptSelectionKey, onChordState: (text) => dispatch({ t: "note", text }) });
+  useGlobalKeys({ bindings: useKeybindings(), keyContexts, busy: state.busy, pending, overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus, quickOpenOpen: quickOpen, openQuickOpen: () => setQuickOpen(true), globalSearchOpen: globalSearch, openGlobalSearch, messageActionsOpen: messageActions, openMessageActions: () => setMessageActions(true), backgroundResponseAvailable: Boolean(replStateRef.current.backgroundResponse), toggleBackgroundResponse, cycleAgent: teammate.cycleAgent, transcriptSelectionKey, onChordState: (text) => dispatch({ t: "note", text }) });
   const staticItems = buildStaticItems(provider.modelId(), props.repoRoot, state.entries, { tools: props.setup.registry.schemas().length, cmds: SLASH_COMMANDS.length });
   const vp = useViewportRows();
   const rich = useFooterRich({ repoRoot: props.repoRoot, sessionId: replStateRef.current.sessionId, sessionName: replStateRef.current.title, vimEnabled, outputStyle: process.env.VANTA_OUTPUT_STYLE, compacting: state.compacting });

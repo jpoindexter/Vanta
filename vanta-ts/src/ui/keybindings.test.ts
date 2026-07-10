@@ -8,6 +8,7 @@ import {
   buildKeybindingsTemplate, keybindingsPath, validateKeybindings, keybindingNotices,
   writeKeybindingsTemplate, watchKeybindings,
 } from "./keybindings.js";
+import { actionForChordInContexts } from "./keybinding-contexts.js";
 import type { KeyBinding } from "./keybinding-warnings.js";
 
 // KEYBINDING-CUSTOMIZATION — config-driven, context-scoped, chord-capable bindings.
@@ -52,6 +53,14 @@ describe("lookupChord / actionForChord", () => {
     expect(actionForChord(DEFAULT_BINDINGS, "CTRL+P")).toBe(GLOBAL_ACTIONS.quickOpen);
     expect(actionForChord(DEFAULT_BINDINGS, "ctrl+b")).toBe(GLOBAL_ACTIONS.backgroundResponse);
     expect(actionForChord(DEFAULT_BINDINGS, "ctrl+z")).toBeNull();
+  });
+  it("actionForChordInContexts prefers the active specific context before global", () => {
+    const b: KeyBinding[] = [
+      { action: "global.find", chord: "ctrl+f", context: "global" },
+      { action: "search.next", chord: "ctrl+f", context: "historySearch" },
+    ];
+    expect(actionForChordInContexts(b, "ctrl+f", ["historySearch", "chat", "global"])).toBe("search.next");
+    expect(actionForChordInContexts(b, "ctrl+f", ["chat", "global"])).toBe("global.find");
   });
 });
 

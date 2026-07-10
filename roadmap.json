@@ -3750,7 +3750,7 @@
       "id": "VANTA-KEYBINDING-CONTEXTS",
       "track": "Operator",
       "title": "Keybinding contexts — 17+ named UI contexts for context-sensitive bindings",
-      "status": "parked",
+      "status": "shipped",
       "size": "S",
       "summary": "Bindings are scoped to named contexts: Global, Chat, Autocomplete, Confirmation, Help, Transcript, HistorySearch, Task, ThemePicker, Settings, Tabs, Attachments, Footer, MessageSelector, DiffDialog, ModelPicker, Select, Plugin. Context registers/unregisters at React mount/unmount; resolver applies priority by active context set.",
       "done": "Bindings only fire in their declared context; Global bindings work everywhere; context stack updates on dialog open/close; conflicts within a context surface a warning.",

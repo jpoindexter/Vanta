@@ -6,6 +6,8 @@ const bindings: KeyBinding[] = [
   { action: "open.settings", chord: "ctrl+k ctrl+s", context: "global" },
   { action: "open.files", chord: "ctrl+k ctrl+f", context: "global" },
   { action: "save", chord: "cmd+s", context: "global" },
+  { action: "search.next", chord: "ctrl+k ctrl+n", context: "historySearch" },
+  { action: "chat.next", chord: "ctrl+k ctrl+n", context: "chat" },
 ];
 
 describe("resolveChordInput", () => {
@@ -42,6 +44,15 @@ describe("resolveChordInput", () => {
       kind: "match",
       action: "save",
       chord: "meta+s",
+    });
+  });
+
+  it("prefers the first active context over lower-priority contexts and global", () => {
+    const first = resolveChordInput(bindings, "ctrl+k", null, ["historySearch", "chat", "global"]);
+    if (first.kind !== "chord_started") throw new Error("expected pending chord");
+    expect(resolveChordInput(bindings, "ctrl+n", first.pending, ["historySearch", "chat", "global"])).toMatchObject({
+      kind: "match",
+      action: "search.next",
     });
   });
 });

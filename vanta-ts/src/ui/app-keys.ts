@@ -15,9 +15,10 @@ import type { Conversation } from "../agent.js";
 import type { RunSetup } from "../session.js";
 import type { ReplState } from "../repl/types.js";
 import type { Message } from "../types.js";
-import { DEFAULT_BINDINGS, GLOBAL_ACTIONS, eventToChord, actionForChord, watchKeybindings } from "./keybindings.js";
+import { DEFAULT_BINDINGS, GLOBAL_ACTIONS, eventToChord, watchKeybindings } from "./keybindings.js";
 import type { KeyBinding } from "./keybinding-warnings.js";
 import { resolveChordInput, type ChordResolveResult } from "./chord-bindings.js";
+import { actionForChordInContexts } from "./keybinding-contexts.js";
 
 // The App component's behavior hooks + pure key/focus helpers. Split from app.tsx
 // so both stay under the size gate; app.tsx imports these and stays the wiring.
@@ -50,6 +51,7 @@ type GlobalKeyDeps = {
   chordPending?: string | null;
   setChordPending?: (pending: string | null) => void;
   onChordState?: (text: string) => void;
+  keyContexts?: readonly string[];
 };
 
 export function useGlobalKeys(deps: GlobalKeyDeps): void {
@@ -85,7 +87,7 @@ export function handleGlobalKey(input: string, key: GlobalKey, d: GlobalKeyDeps)
 function resolveGlobalAction(chord: string | null, d: GlobalKeyDeps): { handled: boolean; action: string | null } {
   if (!chord) return { handled: false, action: null };
   const bindings = d.bindings ?? DEFAULT_BINDINGS;
-  const result = resolveChordInput(bindings, chord, d.chordPending);
+  const result = resolveChordInput(bindings, chord, d.chordPending, d.keyContexts ?? ["global"]);
   return applyChordResult(result, chord, bindings, d);
 }
 
@@ -101,7 +103,7 @@ function applyChordResult(
     d.setChordPending?.(null);
     return { handled: false, action: result.action };
   }
-  return { handled: false, action: actionForChord(bindings, chord) };
+  return { handled: false, action: actionForChordInContexts(bindings, chord, d.keyContexts ?? ["global"]) };
 }
 
 function noteChordState(pending: string | null, message: string, d: GlobalKeyDeps): { handled: true; action: null } {
