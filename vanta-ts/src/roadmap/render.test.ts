@@ -51,6 +51,8 @@ describe("renderRoadmap", () => {
     expect(html).toContain("Active work remains");
     expect(html).toContain("Now 1 · Blocked 1 · Next 1 · Later 1");
     expect(html).toContain("<h2>0 parked</h2>");
+    expect(html).toContain("Roadmap incomplete");
+    expect(html).toContain("4 non-shipped cards remain.");
   });
 
   it("shows a drained active queue with parked reason counts", () => {
@@ -66,6 +68,19 @@ describe("renderRoadmap", () => {
     expect(html).toContain("Now 0 · Blocked 0 · Next 0 · Later 0");
     expect(html).toContain("<h2>2 parked</h2>");
     expect(html).toContain("External Proof 1 · Duplicate 1");
+    expect(html).toContain("Roadmap incomplete");
+    expect(html).toContain("2 non-shipped cards remain.");
+  });
+
+  it("shows roadmap complete when every card is shipped", () => {
+    const html = renderRoadmap({
+      updated: "2026-07-10",
+      items: [
+        { id: "S", track: "Core", title: "Done", status: "shipped", size: "S", summary: "", done: "" },
+      ],
+    });
+    expect(html).toContain("Roadmap complete");
+    expect(html).toContain("All roadmap cards are shipped.");
   });
 
   it("shows launchpad status badges and activation progress separately from now slots", () => {

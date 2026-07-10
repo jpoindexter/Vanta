@@ -27,13 +27,17 @@ h1{font-size:1.25rem;margin-bottom:.35rem;font-weight:600}
 .lp-horizon .lp-status{color:#c084fc;border-color:#3a2452}
 .lp-title{font-size:.72rem;color:#c8cdd8;line-height:1.3}
 .lp-deps{font-size:.58rem;color:#3e4a5c;font-family:ui-monospace,monospace;line-height:1.35}
-.health{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-bottom:1rem}
+.health{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.65rem;margin-bottom:1rem}
 .health>div{background:#10141b;border:1px solid #1e2737;border-left:3px solid #5e6e82;padding:.55rem .7rem}
 .health.is-drained>div:first-child{border-left-color:#4ade80}
 .health.has-active>div:first-child{border-left-color:#f59e0b}
+.health.is-complete>div:last-child{border-left-color:#4ade80}
+.health.is-incomplete>div:last-child{border-left-color:#f87171}
 .health h2{font-size:.62rem;color:#dce0e8;letter-spacing:.09em;text-transform:uppercase;font-family:ui-monospace,monospace;margin-bottom:.25rem}
 .health.is-drained h2:first-child{color:#4ade80}
 .health.has-active h2:first-child{color:#f59e0b}
+.health.is-complete h2:last-child{color:#4ade80}
+.health.is-incomplete h2:last-child{color:#f87171}
 .health p{font-size:.68rem;color:#5e6e82;line-height:1.45;font-family:ui-monospace,monospace}
 .filters{display:flex;flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem;align-items:center}
 .filters label{font-size:.65rem;color:#3e4a5c;font-weight:700;font-family:ui-monospace,monospace;letter-spacing:.09em;text-transform:uppercase}
@@ -100,7 +104,8 @@ details[open]>summary::before{content:"▾ "}
 .hidden{display:none!important}
 @media(max-width:1180px){.board{grid-template-columns:1fr 1fr}.sh-grid{columns:2}.parked-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:1040px){.launch-grid{grid-template-columns:1fr 1fr}.parked-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:560px){.board{grid-template-columns:1fr}.sh-grid{columns:1}.parked-grid{grid-template-columns:1fr}.launch-head{flex-direction:column}.launch-grid{grid-template-columns:1fr}.launch-metrics{width:100%}.launch-metric{text-align:left;flex:1}.health{grid-template-columns:1fr}}
+@media(max-width:820px){.health{grid-template-columns:1fr}}
+@media(max-width:560px){.board{grid-template-columns:1fr}.sh-grid{columns:1}.parked-grid{grid-template-columns:1fr}.launch-head{flex-direction:column}.launch-grid{grid-template-columns:1fr}.launch-metrics{width:100%}.launch-metric{text-align:left;flex:1}}
 .col.drag-over{outline:2px dashed #f59e0b;background:#0d1018}
 .card[draggable=true]{cursor:grab}
 .card.dragging{opacity:.4}
