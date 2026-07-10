@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
 import { formatForDialect } from "./format.js";
 import { splitForLimit } from "./split.js";
+import { parseSignalRateLimit, SignalRateLimiter } from "./signal-rate-limit.js";
 
 // Signal has no hard API cap, but very long single messages are rejected/clipped
 // by clients; 2000 chars is a safe per-message budget.
@@ -13,6 +14,7 @@ const SIGNAL_LIMIT = 2000;
 // Pure parse functions are offline-testable.
 
 const DEFAULT_SIGNAL_URL = "http://127.0.0.1:8080";
+const signalSendLimiter = new SignalRateLimiter();
 
 const SignalMessageSchema = z.object({
   envelope: z.object({
@@ -132,18 +134,29 @@ export class SignalAdapter implements PlatformAdapter {
     // a future enrichment; plain is correct and never mangles code.)
     const formatted = formatForDialect(msg.text, "plain");
     for (const part of splitForLimit(formatted, SIGNAL_LIMIT, "chars")) {
+      await signalSendLimiter.acquire();
       const payload = buildSendPayload(this.number, msg.chatId, part);
       const res = await fetch(`${this.baseUrl}/api/v1/jsonrpc`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: payload,
       });
-      if (!res.ok) throw new Error(`Signal send failed: HTTP ${res.status}`);
+      if (!res.ok) {
+        const limited = parseSignalRateLimit({ status: res.status, body: await res.text().catch(() => "") });
+        signalSendLimiter.feedback(limited);
+        throw new Error(limited.limited ? `Signal send rate-limited: ${limited.reason}` : `Signal send failed: HTTP ${res.status}`);
+      }
       // Record the FIRST part's assigned timestamp as the reply-context key; a
       // split message's head is the stable reply target. Best-effort: a body we
       // can't parse just leaves id undefined.
+      const body = await res.json().catch(() => undefined);
+      const limited = parseSignalRateLimit(body);
+      if (limited.limited) {
+        signalSendLimiter.feedback(limited);
+        throw new Error(`Signal send rate-limited: ${limited.reason}`);
+      }
       if (msg.id === undefined) {
-        msg.id = parseSignalSentId(await res.json().catch(() => undefined));
+        msg.id = parseSignalSentId(body);
       }
     }
   }

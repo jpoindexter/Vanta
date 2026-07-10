@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseSignalEvent, parseSignalSentId, buildSendPayload } from "./signal.js";
+import { parseSignalEvent, parseSignalSentId, buildSendPayload, SignalAdapter } from "./signal.js";
 
 describe("parseSignalEvent", () => {
   it("returns null for invalid JSON", () => {
@@ -88,5 +88,17 @@ describe("buildSendPayload", () => {
     expect(payload.method).toBe("send");
     expect(payload.params.message).toBe("hi");
     expect(payload.params.recipient).toContain("+2222");
+  });
+});
+
+describe("SignalAdapter send", () => {
+  it("surfaces JSON-RPC rate-limit errors", async () => {
+    const oldFetch = global.fetch;
+    global.fetch = (async () => new Response(JSON.stringify({ error: { message: "RetryLaterException retry after 2 seconds" } }), { status: 200 })) as typeof fetch;
+    try {
+      await expect(new SignalAdapter({ number: "+1111" }).send({ chatId: "+2222", text: "hi" })).rejects.toThrow(/rate-limited/);
+    } finally {
+      global.fetch = oldFetch;
+    }
   });
 });

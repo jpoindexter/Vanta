@@ -14924,17 +14924,18 @@
       "id": "MSG-SIGNAL-RATELIMIT",
       "track": "Operator",
       "title": "Signal attachment token-bucket + multi-shape 429 detection",
-      "status": "parked",
+      "status": "shipped",
       "size": "M",
-      "summary": "Heavy Signal attachment sends hit server rate limits. A process-wide token bucket (acquire before send, feedback on 429) mirrors the limit; the reusable nugget is detecting the several wire shapes a signal-cli 429 takes ([429], RateLimitException, RetryLaterException).",
-      "done": "Attachment sends acquire from a token bucket and back off on any of the known 429 shapes; deferred until Signal media sending exists.",
+      "summary": "Signal send rate limiting is live: `SignalAdapter.send` acquires from a process-local token bucket before each send part and feeds back known signal-cli 429 shapes so later sends back off.",
+      "done": "`src/gateway/platforms/signal-rate-limit.ts` detects `[429]`, `RateLimitException`, `RetryLaterException`, and JSON-RPC code 429; `SignalRateLimiter` enforces burst + backoff; `SignalAdapter.send` uses both. Media sends can reuse the same helper when outbound media exists.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-10",
+      "source": "ref-audit-2026-06-20",
+      "notes": "SHIPPED 2026-07-10: added SignalRateLimiter plus multi-shape 429 parser and wired it into SignalAdapter.send before each split message part. Focused proof: npx vitest run src/gateway/platforms/signal-rate-limit.test.ts src/gateway/platforms/signal.test.ts src/gateway/platforms/factory.test.ts (40 passed). Typecheck passed."
     },
     {
       "id": "MSG-PLUGIN-PLATFORMS",
