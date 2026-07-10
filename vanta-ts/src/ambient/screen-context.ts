@@ -1,7 +1,8 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
-import { decideAutonomy, loadAutonomyContract, logAutonomyDecision } from "../autonomy/contract.js";
+import { decideAutonomy, loadAutonomyContract } from "../autonomy/contract.js";
+import { surfaceAutonomyDecision } from "../autonomy/surface.js";
 import { applyTrustGate, loadTrustLedger, loadTrustPolicy } from "../autonomy/trust.js";
 import { screenToTask } from "../repl/screen-to-task.js";
 import { redactForLog } from "../store/redact-structural.js";
@@ -66,7 +67,7 @@ export async function runAmbientScreenTick(
     await loadTrustLedger(dataDir),
     await loadTrustPolicy(dataDir),
   );
-  await logAutonomyDecision(dataDir, decision);
+  await surfaceAutonomyDecision(dataDir, decision);
   await saveAmbientScreen(dataDir, { ...state, lastAt: now.toISOString(), lastContext: safe.slice(0, 1000) });
   return { ran: true, reason: task.why, proposal: task.title, lane: decision.lane };
 }

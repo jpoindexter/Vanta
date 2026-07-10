@@ -11,7 +11,8 @@ import type { LoopDef, WakeContext } from "../loop/types.js";
 import type { RunTask } from "../schedule/runner.js";
 import { getBudget } from "../budget/store.js";
 import { isExceeded } from "../budget/types.js";
-import { decideAutonomy, loadAutonomyContract, logAutonomyDecision } from "../autonomy/contract.js";
+import { decideAutonomy, loadAutonomyContract } from "../autonomy/contract.js";
+import { surfaceAutonomyDecision } from "../autonomy/surface.js";
 import { applyTrustGate, loadTrustLedger, loadTrustPolicy, recordTrustOutcome, workflowIdForDecision } from "../autonomy/trust.js";
 
 // `vanta proactive` — KAIROS heartbeat. `status` shows the throttle + whether it
@@ -75,7 +76,7 @@ export async function processQueuedWakes(dataDir: string, runTask: RunTask, log:
     if (!def || def.status !== "active") { log(`skip ${wake.goal_id} (not active)`); continue; }
     const baseDecision = loopDecision(contract, def);
     const decision = applyTrustGate(baseDecision, await loadTrustLedger(dataDir), policy);
-    await logAutonomyDecision(dataDir, decision);
+    await surfaceAutonomyDecision(dataDir, decision);
     if (decision.lane !== "acts-alone") {
       await enqueueLoopWake(dataDir, wake);
       log(`${decision.lane} ${def.id} by ${decision.ruleId}; kept queued`);

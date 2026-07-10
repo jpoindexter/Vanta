@@ -3,9 +3,9 @@ import {
   formatAutonomyContract,
   formatAutonomyDecision,
   loadAutonomyContract,
-  logAutonomyDecision,
   type AutonomyAction,
 } from "../autonomy/contract.js";
+import { formatPendingAutonomy, loadPendingAutonomy, surfaceAutonomyDecision } from "../autonomy/surface.js";
 import {
   applyTrustGate,
   formatTrustLedger,
@@ -20,6 +20,7 @@ export const autonomy: SlashHandler = async (arg, ctx) => {
   const rest = arg.trim().split(/\s+/).filter(Boolean);
   if (rest[0] === "trust") return runTrust(rest.slice(1), ctx);
   if (rest[0] === "decide") return runDecide(rest.slice(1), ctx);
+  if (rest[0] === "pending") return { output: formatPendingAutonomy(await loadPendingAutonomy(ctx.dataDir)) };
   return { output: formatAutonomyContract(await loadAutonomyContract(ctx.dataDir)) };
 };
 
@@ -53,7 +54,7 @@ async function runDecide(rest: string[], ctx: ReplCtx): Promise<SlashResult> {
     await loadTrustLedger(ctx.dataDir),
     await loadTrustPolicy(ctx.dataDir),
   );
-  const log = await logAutonomyDecision(ctx.dataDir, decision, ctx.now);
+  const log = await surfaceAutonomyDecision(ctx.dataDir, decision, { now: ctx.now });
   return { output: `${formatAutonomyDecision(decision)}\nLog: ${log}` };
 }
 

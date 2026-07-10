@@ -4,10 +4,10 @@ import {
   formatAutonomyContract,
   formatAutonomyDecision,
   loadAutonomyContract,
-  logAutonomyDecision,
   writeDefaultAutonomyContract,
   type AutonomyAction,
 } from "../autonomy/contract.js";
+import { formatPendingAutonomy, loadPendingAutonomy, surfaceAutonomyDecision, type AutonomySurfaceDeps } from "../autonomy/surface.js";
 import {
   applyTrustGate,
   formatTrustLedger,
@@ -17,7 +17,7 @@ import {
   recordTrustOutcome,
 } from "../autonomy/trust.js";
 
-export async function runAutonomyCommand(repoRoot: string, rest: string[] = []): Promise<number> {
+export async function runAutonomyCommand(repoRoot: string, rest: string[] = [], deps: AutonomySurfaceDeps = {}): Promise<number> {
   const dataDir = dataDirFor(repoRoot);
   const sub = rest[0] ?? "show";
   if (sub === "init") {
@@ -28,13 +28,17 @@ export async function runAutonomyCommand(repoRoot: string, rest: string[] = []):
     console.log(formatAutonomyContract(await loadAutonomyContract(dataDir)));
     return 0;
   }
+  if (sub === "pending") {
+    console.log(formatPendingAutonomy(await loadPendingAutonomy(dataDir)));
+    return 0;
+  }
   if (sub === "trust") return runTrust(dataDir, rest.slice(1));
-  if (sub === "decide") return runDecide(dataDir, rest.slice(1));
-  console.error("usage: vanta autonomy [show|init|trust|decide <kind> <low|medium|high> <summary>]");
+  if (sub === "decide") return runDecide(dataDir, rest.slice(1), deps);
+  console.error("usage: vanta autonomy [show|init|pending|trust|decide <kind> <low|medium|high> <summary>]");
   return 1;
 }
 
-async function runDecide(dataDir: string, rest: string[]): Promise<number> {
+async function runDecide(dataDir: string, rest: string[], deps: AutonomySurfaceDeps): Promise<number> {
   const action = parseAction(rest);
   if (!action) {
     console.error("usage: vanta autonomy decide <kind> <low|medium|high> <summary>");
@@ -45,7 +49,7 @@ async function runDecide(dataDir: string, rest: string[]): Promise<number> {
     await loadTrustLedger(dataDir),
     await loadTrustPolicy(dataDir),
   );
-  const log = await logAutonomyDecision(dataDir, decision);
+  const log = await surfaceAutonomyDecision(dataDir, decision, deps);
   console.log(formatAutonomyDecision(decision));
   console.log(`Log: ${log}`);
   return decision.lane === "wakes-me" ? 2 : 0;

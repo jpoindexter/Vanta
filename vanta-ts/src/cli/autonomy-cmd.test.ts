@@ -56,4 +56,26 @@ describe("runAutonomyCommand", () => {
       await rm(root, { recursive: true, force: true });
     }
   });
+
+  it("actively wakes on high risk and lists the decision as pending", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-autonomy-cli-"));
+    const notify = vi.fn(async () => {});
+    try {
+      const result = await capture(() => runAutonomyCommand(
+        root,
+        ["decide", "shell.mutate", "high", "delete", "project", "files"],
+        { notify, cwd: root },
+      ));
+      expect(result.code).toBe(2);
+      expect(result.output).toContain("Autonomy decision: wakes-me");
+      expect(notify).toHaveBeenCalledWith(expect.objectContaining({ notificationType: "autonomy_wake" }));
+
+      const pending = await capture(() => runAutonomyCommand(root, ["pending"]));
+      expect(pending.output).toContain("wakes-me");
+      expect(pending.output).toContain("shell.mutate:default");
+      expect(pending.output).toContain("delete project files");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
 });

@@ -5,7 +5,8 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
 import { applyTrustGate, loadTrustLedger, loadTrustPolicy } from "../autonomy/trust.js";
-import { decideAutonomy, loadAutonomyContract, logAutonomyDecision, type AutonomyAction } from "../autonomy/contract.js";
+import { decideAutonomy, loadAutonomyContract, type AutonomyAction } from "../autonomy/contract.js";
+import { surfaceAutonomyDecision } from "../autonomy/surface.js";
 
 const execAsync = promisify(exec);
 
@@ -82,7 +83,7 @@ async function changeFor(dataDir: string, watch: AutoWatch, output: string): Pro
     source: watch.id,
   };
   const decision = applyTrustGate(decideAutonomy(await loadAutonomyContract(dataDir), action), await loadTrustLedger(dataDir), await loadTrustPolicy(dataDir));
-  await logAutonomyDecision(dataDir, decision);
+  await surfaceAutonomyDecision(dataDir, decision);
   return { watch, output, draft: `${watch.draft}\n\nChange:\n${output.slice(0, 1000)}`, lane: decision.lane, reason: decision.reason };
 }
 
