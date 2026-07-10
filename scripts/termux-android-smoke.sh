@@ -10,10 +10,17 @@ APK_URL="https://github.com/termux/termux-app/releases/download/v${TERMUX_VERSIO
 APK_SHA256="3550e61f4d9eb49b712fd1bd9519dc37085a4d8eb597c57a340f0a64859b7144"
 APK_PATH="${RUNNER_TEMP:-/tmp}/${APK_NAME}"
 SOURCE_ARCHIVE="${RUNNER_TEMP:-/tmp}/vanta-termux-source.tgz"
+TERMUX_STEP=0
 
 termux_run() {
   local body="$1"
+  local timeout_duration="${2:-30m}"
+  local local_script remote_tmp
   local remote="$TERMUX_HOME/.vanta-ci-step.sh"
+
+  TERMUX_STEP=$((TERMUX_STEP + 1))
+  local_script="${RUNNER_TEMP:-/tmp}/vanta-ci-step-${TERMUX_STEP}.sh"
+  remote_tmp="/data/local/tmp/vanta-ci-step-${TERMUX_STEP}.sh"
   {
     cat <<HEADER
 set -euo pipefail
@@ -27,8 +34,16 @@ export DEBIAN_FRONTEND=noninteractive
 cd "$TERMUX_HOME"
 HEADER
     printf '%s\n' "$body"
-  } | adb exec-out run-as "$TERMUX_PACKAGE" sh -c "cat > '$remote'"
-  adb exec-out run-as "$TERMUX_PACKAGE" "$TERMUX_PREFIX/bin/bash" "$remote" </dev/null
+  } > "$local_script"
+
+  echo "Running bounded Termux phase ${TERMUX_STEP} (timeout ${timeout_duration})"
+  adb push "$local_script" "$remote_tmp" >/dev/null
+  timeout -k 5s 30s adb shell \
+    "run-as $TERMUX_PACKAGE cp $remote_tmp $remote" </dev/null
+  adb shell "rm -f $remote_tmp" </dev/null
+  timeout -k 10s "$timeout_duration" adb shell \
+    "run-as $TERMUX_PACKAGE $TERMUX_PREFIX/bin/bash $remote" </dev/null
+  echo "TERMUX_PHASE_${TERMUX_STEP}_OK"
 }
 
 echo "Downloading checksum-pinned Termux ${TERMUX_VERSION} x86_64 APK"
@@ -38,13 +53,15 @@ printf '%s  %s\n' "$APK_SHA256" "$APK_PATH" | sha256sum -c -
 adb wait-for-device
 adb install -r "$APK_PATH"
 adb shell am force-stop "$TERMUX_PACKAGE" || true
-timeout 15s adb shell am start -W -n "$TERMUX_PACKAGE/com.termux.app.TermuxActivity" </dev/null || true
+timeout -k 2s 15s adb shell am start -W -n "$TERMUX_PACKAGE/com.termux.app.TermuxActivity" </dev/null || true
 
 ready=0
 echo "Waiting for Termux bootstrap"
 for attempt in $(seq 1 90); do
-  probe=$(timeout 5s adb exec-out run-as "$TERMUX_PACKAGE" sh -c \
-    "test -x '$TERMUX_PREFIX/bin/bash' && echo TERMUX_READY" </dev/null 2>/dev/null || true)
+  probe=$(timeout -k 1s 5s adb shell \
+    "run-as $TERMUX_PACKAGE test -x $TERMUX_PREFIX/bin/bash && echo TERMUX_READY" \
+    </dev/null 2>/dev/null || true)
+  probe=${probe//$'\r'/}
   if [ "$probe" = "TERMUX_READY" ]; then
     ready=1
     break
@@ -71,14 +88,18 @@ tar \
   --exclude='./vanta-ts/.artifacts' \
   --exclude='./roadmap.html' \
   -czf "$SOURCE_ARCHIVE" .
-cat "$SOURCE_ARCHIVE" | adb exec-out run-as "$TERMUX_PACKAGE" sh -c "cat > '$TERMUX_HOME/vanta-source.tgz'"
+adb push "$SOURCE_ARCHIVE" /data/local/tmp/vanta-source.tgz >/dev/null
+timeout -k 5s 30s adb shell \
+  "run-as $TERMUX_PACKAGE cp /data/local/tmp/vanta-source.tgz $TERMUX_HOME/vanta-source.tgz" \
+  </dev/null
+adb shell "rm -f /data/local/tmp/vanta-source.tgz" </dev/null
 termux_run '
 rm -rf "$HOME/Vanta"
 mkdir -p "$HOME/Vanta"
 tar -xzf "$HOME/vanta-source.tgz" -C "$HOME/Vanta"
 cd "$HOME/Vanta"
 ./install.sh
-'
+' 30m
 
 termux_run '
 cd "$HOME/Vanta"
@@ -143,4 +164,4 @@ grep -F "TERMUX_OK" <<< "$run_output"
 vanta gateway verify-channels
 
 echo "TERMUX_ANDROID_E2E_OK abi=$(getprop ro.product.cpu.abi) node_platform=$(node -p process.platform) kernel=$(uname -m)"
-'
+' 10m
