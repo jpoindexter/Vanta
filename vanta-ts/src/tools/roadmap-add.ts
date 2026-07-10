@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { STATUS, TIER, MODEL, EFFORT } from "../roadmap/schema.js";
+import { STATUS, TIER, MODEL, EFFORT, PARKED_REASON } from "../roadmap/schema.js";
 import type { Tool } from "./types.js";
 
 // ROADMAP-ADD — add a roadmap card without hand-editing JSON. Required: id +
@@ -16,6 +16,7 @@ const Args = z.object({
   tier: z.enum(TIER).optional(),
   model: z.enum(MODEL).optional(),
   effort: z.enum(EFFORT).optional(),
+  parkedReason: z.enum(PARKED_REASON).optional(),
 });
 
 export const roadmapAddTool: Tool = {
@@ -39,6 +40,7 @@ export const roadmapAddTool: Tool = {
         tier: { type: "string", enum: [...TIER], description: "Build-priority: rock|pebble|sand (optional)." },
         model: { type: "string", enum: [...MODEL], description: "Advisory build model (optional)." },
         effort: { type: "string", enum: [...EFFORT], description: "low|medium|high (optional)." },
+        parkedReason: { type: "string", enum: [...PARKED_REASON], description: "Why status=parked is outside the active queue (optional; defaults to review when parked)." },
       },
     },
   },

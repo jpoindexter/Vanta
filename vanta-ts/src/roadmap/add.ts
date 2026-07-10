@@ -9,12 +9,18 @@ import { buildRoadmap } from "./build.js";
 // duplicate id (case-insensitive), writes, and regenerates roadmap.html. Pure
 // except the file I/O + rebuild it shares with move.ts.
 
+function withStatusMetadata(item: RoadmapItem): RoadmapItem {
+  if (item.status === "parked") return { ...item, parkedReason: item.parkedReason ?? "review" };
+  const { parkedReason: _parkedReason, ...active } = item;
+  return active;
+}
+
 export async function addRoadmapItem(
   repoRoot: string,
   item: RoadmapItem,
   now: Date = new Date(),
 ): Promise<RoadmapItem> {
-  const validated = RoadmapItemSchema.parse(item); // throws actionably on a bad shape
+  const validated = RoadmapItemSchema.parse(withStatusMetadata(item)); // throws actionably on a bad shape
   const src = join(repoRoot, "roadmap.json");
   const data = RoadmapSchema.parse(JSON.parse(await readFile(src, "utf8")));
 

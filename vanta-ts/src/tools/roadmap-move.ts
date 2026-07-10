@@ -12,7 +12,7 @@ export const roadmapMoveTool: Tool = {
     name: "roadmap_move",
     description:
       "Move a roadmap item to a new status. Updates roadmap.json and regenerates roadmap.html. " +
-      "Valid statuses: shipped, building, next, horizon.",
+      `Valid statuses: ${STATUS.join(", ")}.`,
     parameters: {
       type: "object",
       required: ["id", "status"],
@@ -23,7 +23,7 @@ export const roadmapMoveTool: Tool = {
         },
         status: {
           type: "string",
-          enum: ["shipped", "building", "next", "horizon"],
+          enum: [...STATUS],
           description: "The target status.",
         },
       },

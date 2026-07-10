@@ -40,4 +40,22 @@ describe("addRoadmapItem", () => {
     const root = await tempRepo();
     await expect(addRoadmapItem(root, card({ status: "bogus" as RoadmapItem["status"] }))).rejects.toThrow();
   });
+
+  it("defaults parked additions to review reason", async () => {
+    const root = await tempRepo();
+    const item = await addRoadmapItem(root, card({ status: "parked" }));
+    const data = JSON.parse(await readFile(join(root, "roadmap.json"), "utf8"));
+    const added = data.items.find((i: RoadmapItem) => i.id === "NEW-CARD");
+    expect(item.parkedReason).toBe("review");
+    expect(added.parkedReason).toBe("review");
+  });
+
+  it("drops parkedReason when adding an active card", async () => {
+    const root = await tempRepo();
+    const item = await addRoadmapItem(root, card({ parkedReason: "external proof" }));
+    const data = JSON.parse(await readFile(join(root, "roadmap.json"), "utf8"));
+    const added = data.items.find((i: RoadmapItem) => i.id === "NEW-CARD");
+    expect(item.parkedReason).toBeUndefined();
+    expect(added.parkedReason).toBeUndefined();
+  });
 });
