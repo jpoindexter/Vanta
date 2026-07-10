@@ -57,8 +57,12 @@ function shippedCount(items: Array<RoadmapItem | undefined>): number {
   return items.filter((i) => i?.status === "shipped").length;
 }
 
-function openLaunchItems(items: Array<RoadmapItem | undefined>): RoadmapItem[] {
-  return items.filter((i): i is RoadmapItem => i !== undefined && i.status !== "shipped");
+function activeLaunchItems(items: Array<RoadmapItem | undefined>): RoadmapItem[] {
+  return items.filter((i): i is RoadmapItem => i !== undefined && i.status !== "shipped" && i.status !== "parked");
+}
+
+function parkedLaunchItems(items: Array<RoadmapItem | undefined>): RoadmapItem[] {
+  return items.filter((i): i is RoadmapItem => i !== undefined && i.status === "parked");
 }
 
 type LaunchPhase = {
@@ -98,9 +102,10 @@ function activeLaunchPhase(data: Roadmap): LaunchPhase {
   return byId(data, RUN_ANYWHERE_PHASE.gate) ? RUN_ANYWHERE_PHASE : ACTIVATION_PHASE;
 }
 
-function openSummary(phase: LaunchPhase, items: RoadmapItem[]): string {
-  if (!items.length) return `${phase.name} shipped. No required launchpad blockers remain.`;
-  return `Open ${esc(phase.name)} card${items.length === 1 ? "" : "s"}: ${esc(items.map((i) => i.id).join(" + "))}.`;
+function openSummary(phase: LaunchPhase, activeItems: RoadmapItem[], parkedItems: RoadmapItem[]): string {
+  if (activeItems.length) return `Open ${esc(phase.name)} card${activeItems.length === 1 ? "" : "s"}: ${esc(activeItems.map((i) => i.id).join(" + "))}.`;
+  if (parkedItems.length) return `${esc(phase.name)} active blockers are parked for later: ${esc(parkedItems.map((i) => i.id).join(" + "))}.`;
+  return `${phase.name} shipped. No required launchpad blockers remain.`;
 }
 
 function launchPad(data: Roadmap): string {
@@ -112,10 +117,11 @@ function launchPad(data: Roadmap): string {
   const gateDeps = byId(data, phase.gate)?.after?.map((id) => byId(data, id)) ?? [];
   const required = [...gateDeps, ...gate];
   const launchItems = [...proof, ...views, ...gate];
-  const openItems = openLaunchItems(launchItems);
+  const activeItems = activeLaunchItems(launchItems);
+  const parkedItems = parkedLaunchItems(launchItems);
   return `<section class="launch">
 <div class="launch-head">
-<div><h2>Launch Pad</h2><p>${esc(phase.name)}: ${esc(phase.promise)}</p><p class="launch-open">${openSummary(phase, openItems)}</p></div>
+<div><h2>Launch Pad</h2><p>${esc(phase.name)}: ${esc(phase.promise)}</p><p class="launch-open">${openSummary(phase, activeItems, parkedItems)}</p></div>
 <div class="launch-metrics"><div class="launch-metric"><span>${shippedCount(required)}/${required.length}</span><small>${esc(phase.metric)}</small></div><div class="launch-metric muted"><span>${now.length}/${WIP_LIMIT}</span><small>Now slots</small></div></div>
 </div>
 <div class="launch-grid">

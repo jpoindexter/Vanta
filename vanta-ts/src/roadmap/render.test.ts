@@ -105,6 +105,29 @@ describe("renderRoadmap", () => {
     expect(html).not.toContain("Activation v1:");
   });
 
+  it("does not call parked launchpad cards open blockers", () => {
+    const phaseCards: Roadmap["items"] = [
+      { id: "PCLIP-SANDBOX-AGENTS", track: "Harness", title: "Remote sandbox", status: "shipped", size: "L", summary: "", done: "" },
+      { id: "BACKEND-SERVERLESS-LIVE", track: "Harness", title: "Wake remote", status: "parked", size: "L", summary: "", done: "" },
+      { id: "MSG-ADAPTER-TEAMS", track: "Operator", title: "Teams", status: "parked", size: "L", summary: "", done: "" },
+      { id: "RUN-ANYWHERE-TERMUX", track: "Operator", title: "Termux", status: "parked", size: "M", summary: "", done: "" },
+      {
+        id: "RUN-ANYWHERE-V1-RELEASE-GATE",
+        track: "Operator",
+        title: "Run Anywhere gate",
+        status: "parked",
+        size: "S",
+        summary: "",
+        done: "",
+        after: ["PCLIP-SANDBOX-AGENTS", "BACKEND-SERVERLESS-LIVE", "MSG-ADAPTER-TEAMS", "RUN-ANYWHERE-TERMUX"],
+      },
+    ];
+    const html = renderRoadmap({ updated: "2026-07-10", items: phaseCards });
+    expect(html).toContain("Run Anywhere v1 active blockers are parked for later");
+    expect(html).not.toContain("Open Run Anywhere v1 cards");
+    expect(html).toContain('class="lp-parked"');
+  });
+
   it("shows shipped count in the collapsed section header", () => {
     const html = renderRoadmap(fixture);
     expect(html).toContain("Shipped (1)");
