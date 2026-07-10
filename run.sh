@@ -24,27 +24,39 @@ mkdir -p "$VANTA_STATE_HOME" 2>/dev/null || true
 
 # --- no-toolchain helpers (kernel + node download), shared with install.sh ----
 . "$DIR/scripts/setup-lib.sh"
+. "$DIR/scripts/install-events.sh"
 vanta_use_vendored_node
 
 # --- one-time bootstrap (kernel + node + deps) -------------------------------
-if [ ! -x "$DIR/target/debug/vanta-kernel" ]; then
-  echo "vanta: acquiring the safety kernel (first run only)…" >&2
+vanta_acquire_kernel() {
   if ! vanta_fetch_prebuilt_kernel "$DIR"; then
     if ! command -v cargo >/dev/null 2>&1; then
       echo "vanta: no prebuilt kernel for this platform and Rust isn't installed." >&2
       echo "  Install Rust (https://rustup.rs) or re-run ./install.sh." >&2
-      exit 1
+      return 1
     fi
     (cd "$DIR" && cargo build)
   fi
-fi
-if ! vanta_ensure_node; then
+}
+
+vanta_acquire_node() {
+  vanta_ensure_node && return 0
   echo "vanta: Node.js 22+ not found and couldn't be downloaded. Install it: https://nodejs.org" >&2
-  exit 1
-fi
-if [ ! -d "$DIR/vanta-ts/node_modules" ]; then
-  echo "vanta: installing agent dependencies (first run only)…" >&2
+  return 1
+}
+
+vanta_acquire_deps() {
   (cd "$DIR/vanta-ts" && npm install --omit=dev)
+}
+
+if [ ! -x "$DIR/target/debug/vanta-kernel" ] || ! vanta_node_ready || [ ! -d "$DIR/vanta-ts/node_modules" ]; then
+  VANTA_INSTALL_RETRY_COMMAND="$DIR/run.sh"
+  export VANTA_INSTALL_RETRY_COMMAND
+  vanta_install_init run.sh "kernel,node,deps"
+  [ -x "$DIR/target/debug/vanta-kernel" ] || vanta_install_stage kernel "Acquire safety kernel" vanta_acquire_kernel
+  vanta_node_ready || vanta_install_stage node "Acquire Node.js 22+" vanta_acquire_node
+  [ -d "$DIR/vanta-ts/node_modules" ] || vanta_install_stage deps "Install agent dependencies" vanta_acquire_deps
+  vanta_install_finish
 fi
 
 # --- launch (cli.ts finds the repo root from its own path; cwd is irrelevant) -

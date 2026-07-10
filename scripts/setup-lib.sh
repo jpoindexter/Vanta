@@ -22,14 +22,17 @@ vanta_use_vendored_node() {
   return 0
 }
 
+vanta_node_ready() {
+  command -v node >/dev/null 2>&1 || return 1
+  major="$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)"
+  [ "${major:-0}" -ge 22 ]
+}
+
 # Ensure node >= 22 is on PATH; download a portable build from nodejs.org if not.
 # Returns 0 when node is available afterwards, 1 if it couldn't be provided.
 vanta_ensure_node() {
   vanta_use_vendored_node
-  if command -v node >/dev/null 2>&1; then
-    major="$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)"
-    [ "${major:-0}" -ge 22 ] && return 0
-  fi
+  vanta_node_ready && return 0
   command -v curl >/dev/null 2>&1 || return 1
   os=""; arch=""
   case "$(uname -s)" in Darwin) os=darwin ;; Linux) os=linux ;; *) return 1 ;; esac
