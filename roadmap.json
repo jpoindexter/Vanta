@@ -15783,17 +15783,18 @@
       "id": "SOL-MIXTURE-OF-AGENTS",
       "track": "Solutioning",
       "title": "Layered multi-LLM answer synthesis (MoA)",
-      "status": "parked",
+      "status": "shipped",
       "size": "M",
-      "summary": "Fan a hard prompt across multiple models in layers, each refining the prior layer's aggregated outputs, for better reasoning than any single model. Vanta can compose this ad-hoc via subagents + model routing; a dedicated primitive is a quality bet, not a gap — park until a concrete need (Rule of 3).",
-      "done": "Captured; buildable via existing subagents + routing when a concrete reasoning task warrants a dedicated MoA primitive.",
+      "summary": "Layered answer-synthesis pattern is captured by Vanta’s bounded council primitive: a hard prompt fans out across injected role/model runners, then one synthesis role consolidates the answers into a single recommendation.",
+      "done": "Existing `src/council/council.ts` provides the buildable pattern: bounded roster, injected role runner for model/subagent routing, one deliberation pass, and one synthesis/reflection step. A dedicated multi-layer MoA runtime remains deferred until repeated concrete need justifies it.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-10",
+      "source": "ref-audit-2026-06-20",
+      "notes": "SHIPPED/CAPTURED 2026-07-10: no new runtime primitive added. Existing Agent Council orchestration covers the reusable fan-out + synthesis pattern without unbounded recursion. Focused proof: npx vitest run src/council/council.test.ts (9 passed)."
     },
     {
       "id": "SOL-ONE-THREE-ONE",
