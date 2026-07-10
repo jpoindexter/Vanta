@@ -67,9 +67,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: vanta-kernel-${{ matrix.target }}
-          path: |
-            vanta-kernel-${{ matrix.target }}
-            vanta-kernel-${{ matrix.target }}.sha256
+          path: vanta-kernel-${{ matrix.target }}*
           if-no-files-found: error
 
   release:
