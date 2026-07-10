@@ -15798,17 +15798,18 @@
       "id": "SOL-ONE-THREE-ONE",
       "track": "Solutioning",
       "title": "1-3-1 decision-output rigor",
-      "status": "parked",
+      "status": "shipped",
       "size": "S",
-      "summary": "A tidy proposal template: 1 problem sentence / exactly 3 genuinely-distinct options with pros-cons / 1 recommendation + Definition-of-Done, updating the DoD when the user picks a different option. Overlaps the existing option-presentation rule; mine the 'exactly 3, distinct, DoD attached' rigor if solutioning output is loose.",
-      "done": "Captured as a template; the exactly-3-distinct-options + attached-DoD rigor noted for solutioning output.",
+      "summary": "1-3-1 decision-output rigor is captured as a pure solutioning template: one problem sentence, exactly three distinct options with pros/cons, one recommendation, and an attached Definition of Done.",
+      "done": "`ONE_THREE_ONE_TEMPLATE`, `isOneThreeOneDecision`, and `formatOneThreeOneDecision` exist in `src/solutioning/one-three-one.ts`; tests pin exactly-three distinct options, pros/cons, recommendation, and Definition of Done rendering.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "selfhood",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-10",
+      "source": "ref-audit-2026-06-20",
+      "notes": "SHIPPED 2026-07-10: added src/solutioning/one-three-one.ts and src/solutioning/one-three-one.test.ts. Focused proof: npx vitest run src/solutioning/one-three-one.test.ts (5 passed). Typecheck passed."
     },
     {
       "id": "COFOUNDER-MEMORY-HOOKS",
