@@ -20,7 +20,7 @@ const USAGE_LINES = [
       "       vanta deep-plan create|revise|approve|start   revisionable plan docs with approval gate",
       "       vanta runtime start --fleet <id> --worker <id> --port <n> --command <cmd>   start a preview bound to a fleet worktree",
       "       vanta backend [status|verify|gateway]   inspect, deploy, or live-prove the selected execution backend",
-      "       vanta run-anywhere status [--json] [--check-release]   aggregate Modal/Teams/Termux release proof readiness",
+      "       vanta run-anywhere status|proof-packet [--json] [--check-release]   aggregate or package Modal/Teams/Termux proof readiness",
       "       vanta adversarial-ux --fixture checkout | --url <url>   turn hard-user UX findings into tickets",
       "       vanta egress [status|plan]        show Docker/network egress isolation posture",
       "       vanta billing [status|json]      show fail-open provider billing + estimated spend",

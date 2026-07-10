@@ -21,6 +21,23 @@ export type RunAnywhereReadiness = {
   gates: RunAnywhereGate[];
 };
 
+export type RunAnywhereProofStep = {
+  roadmapCardId: string;
+  gateId: string;
+  label: string;
+  ready: boolean;
+  receiptPath: string;
+  evidence: string;
+  commands: string[];
+};
+
+export type RunAnywhereProofPacket = {
+  ready: boolean;
+  passed: number;
+  total: number;
+  steps: RunAnywhereProofStep[];
+};
+
 async function serverlessGate(repoRoot: string): Promise<RunAnywhereGate> {
   const receipt = await readGatewayReceipt(repoRoot);
   const ready = Boolean(receipt?.provedAt && receipt.telegramAcceptedAt);
@@ -108,5 +125,36 @@ export function formatRunAnywhereReadiness(readiness: RunAnywhereReadiness): str
     if (!gate.ready) lines.push(`  next: ${gate.next}`);
   }
   if (!readiness.ready) lines.push("Release gate stays parked until all proofs are ready.");
+  return lines.join("\n");
+}
+
+export function buildRunAnywhereProofPacket(readiness: RunAnywhereReadiness): RunAnywhereProofPacket {
+  return {
+    ready: readiness.ready,
+    passed: readiness.passed,
+    total: readiness.total,
+    steps: readiness.gates.map((gate) => ({
+      roadmapCardId: gate.roadmapCardId,
+      gateId: gate.id,
+      label: gate.label,
+      ready: gate.ready,
+      receiptPath: gate.receiptPath,
+      evidence: gate.evidence,
+      commands: gate.nextActions,
+    })),
+  };
+}
+
+export function formatRunAnywhereProofPacket(packet: RunAnywhereProofPacket): string {
+  const lines = [
+    `Run Anywhere proof packet: ${packet.ready ? "ready" : "not ready"} (${packet.passed}/${packet.total})`,
+  ];
+  for (const step of packet.steps) {
+    lines.push(`${step.ready ? "✓" : "✘"} ${step.roadmapCardId} / ${step.gateId} — ${step.label}`);
+    lines.push(`  receipt: ${step.receiptPath}`);
+    lines.push(`  evidence: ${step.evidence}`);
+    if (!step.ready) lines.push(...step.commands.map((command, index) => `  ${index + 1}. ${command}`));
+  }
+  if (!packet.ready) lines.push("This packet is setup guidance only; receipts above must exist before release.");
   return lines.join("\n");
 }
