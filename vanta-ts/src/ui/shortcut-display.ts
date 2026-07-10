@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { DEFAULT_BINDINGS, lookupChord, displayChord, loadKeybindings } from "./keybindings.js";
+import { DEFAULT_BINDINGS, lookupChord, displayChord, loadKeybindings, watchKeybindings } from "./keybindings.js";
 import type { KeyBinding } from "./keybinding-warnings.js";
 
 // VANTA-SHORTCUT-DISPLAY — one source of truth for "what key does X here", read
@@ -25,6 +25,7 @@ export function useKeybindingSet(): KeyBinding[] {
   const [bindings, setBindings] = useState<KeyBinding[]>(DEFAULT_BINDINGS);
   useEffect(() => {
     void loadKeybindings().then(setBindings).catch(() => {});
+    return watchKeybindings(setBindings);
   }, []);
   return bindings;
 }

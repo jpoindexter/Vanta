@@ -107,6 +107,7 @@ import { runApiCommand } from "./api-cmd.js";
 import { runTrajectoryCommand } from "./trajectory-cmd.js";
 import { runBackendCommand } from "./backend-cmd.js";
 import { runNowCommand } from "./now-cmd.js";
+import { runKeybindingsCommand } from "./keybindings-cmd.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
@@ -143,6 +144,7 @@ export const COMMANDS: Record<string, CommandFn> = {
   setup: async (root, rest) => { if (rest[0] === "messaging") await runMessagingSetup(root); else if (rest[0] === "tts") await runTtsSetup(root); else if (rest[0] === "model") await runSetup(root); else await runFullSetup(root); },
   status: (_root, rest) => runStatus(process.env, rest),
   doctor: (_root, rest) => runStatus(process.env, rest),
+  keybindings: (_root, rest) => runKeybindingsCommand(rest),
   migrate: (_root, rest) => runMigrate(rest),
   "agent-image": (_root, rest) => runAgentImageCommand(rest),
   preflight: () => {

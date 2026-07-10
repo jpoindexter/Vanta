@@ -4498,7 +4498,7 @@
       "id": "VANTA-KEYBINDING-SYSTEM",
       "track": "Operator",
       "title": "User keybinding customization — ~/.claude/keybindings.json with hot-reload",
-      "status": "parked",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent loads user keybindings from ~/.claude/keybindings.json (schema-validated via Zod, hot-reloads via chokidar). Users define context-scoped bindings with named action IDs (app:interrupt, history:previous, etc.); default bindings ship as a documented template. /doctor reports validation errors.",
       "done": "Users can add/modify keybindings in ~/.claude/keybindings.json; changes reload without restart; invalid entries reported by /doctor; generating the template pre-fills all defaults.",

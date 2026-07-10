@@ -15,7 +15,7 @@ import type { Conversation } from "../agent.js";
 import type { RunSetup } from "../session.js";
 import type { ReplState } from "../repl/types.js";
 import type { Message } from "../types.js";
-import { DEFAULT_BINDINGS, GLOBAL_ACTIONS, eventToChord, actionForChord } from "./keybindings.js";
+import { DEFAULT_BINDINGS, GLOBAL_ACTIONS, eventToChord, actionForChord, watchKeybindings } from "./keybindings.js";
 import type { KeyBinding } from "./keybinding-warnings.js";
 
 // The App component's behavior hooks + pure key/focus helpers. Split from app.tsx
@@ -58,6 +58,7 @@ export function useKeybindings(): KeyBinding[] {
   const [bindings, setBindings] = useState<KeyBinding[]>(DEFAULT_BINDINGS);
   useEffect(() => {
     void import("./keybindings.js").then((m) => m.loadKeybindings()).then(setBindings).catch(() => {});
+    return watchKeybindings(setBindings);
   }, []);
   return bindings;
 }

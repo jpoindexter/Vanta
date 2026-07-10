@@ -1,5 +1,13 @@
 import { z } from "zod";
-import type { KeyBinding } from "./keybinding-warnings.js";
+import { watch, type FSWatcher } from "node:fs";
+import { mkdirSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { resolveVantaHome } from "../store/home.js";
+import {
+  buildConflictWarning,
+  findKeybindingConflicts,
+  type KeyBinding,
+} from "./keybinding-warnings.js";
 
 // KEYBINDING-CUSTOMIZATION — user-defined, context-scoped, chord-capable
 // keybindings, layered over sensible defaults, hot-reloaded + schema-validated
@@ -59,11 +67,27 @@ export const KeybindingConfigSchema = z.object({
   bindings: z.array(z.object({ action: z.string().min(1), chord: z.string().min(1), context: z.string().min(1).default("global") })),
 });
 export type KeybindingConfig = z.infer<typeof KeybindingConfigSchema>;
+export type KeybindingValidation = {
+  path: string;
+  exists: boolean;
+  ok: boolean;
+  errors: string[];
+  warnings: string[];
+  bindings: KeyBinding[];
+};
+
+export function keybindingsPath(env: NodeJS.ProcessEnv = process.env): string {
+  return join(resolveVantaHome(env), "keybindings.json");
+}
 
 /** Validate a config payload; null on shape mismatch. Pure. */
 export function parseKeybindingConfig(payload: unknown): KeybindingConfig | null {
   const parsed = KeybindingConfigSchema.safeParse(payload);
   return parsed.success ? parsed.data : null;
+}
+
+export function buildKeybindingsTemplate(bindings: readonly KeyBinding[] = DEFAULT_BINDINGS): string {
+  return `${JSON.stringify({ version: 1, bindings }, null, 2)}\n`;
 }
 
 const key = (b: { action: string; context: string }): string => `${b.context}␟${b.action}`;
@@ -119,15 +143,27 @@ const NAMED_KEYS: ReadonlyArray<[keyof ChordEvent, string]> = [
   ["escape", "escape"], ["tab", "tab"], ["leftArrow", "left"], ["rightArrow", "right"], ["upArrow", "up"], ["downArrow", "down"],
 ];
 
+function chordModifiers(key: ChordEvent): string[] {
+  return [key.ctrl && "ctrl", key.alt && "alt", key.shift && "shift", key.meta && "meta"].filter(Boolean) as string[];
+}
+
+function namedKey(key: ChordEvent): string | null {
+  return NAMED_KEYS.find(([field]) => key[field])?.[1] ?? null;
+}
+
+function printableKey(input: string): string | null {
+  return input && input.trim() ? input.toLowerCase() : null;
+}
+
 /**
  * Map an Ink (input, key) event to a canonical chord, or null when it isn't a
  * bindable chord (bare printable char with no modifier / named key). Pure —
  * the dispatcher feeds this to actionForChord.
  */
 export function eventToChord(input: string, key: ChordEvent): string | null {
-  const mods = [key.ctrl && "ctrl", key.alt && "alt", key.shift && "shift", key.meta && "meta"].filter(Boolean) as string[];
-  const named = NAMED_KEYS.find(([f]) => key[f])?.[1];
-  const base = named ?? (input && input.trim() ? input.toLowerCase() : null);
+  const mods = chordModifiers(key);
+  const named = namedKey(key);
+  const base = named ?? printableKey(input);
   if (!base) return null;
   // A bare printable key with no modifier isn't a global chord (that's typing).
   if (!named && mods.length === 0) return null;
@@ -140,11 +176,103 @@ export function eventToChord(input: string, key: ChordEvent): string | null {
 export async function loadKeybindings(env: NodeJS.ProcessEnv = process.env): Promise<KeyBinding[]> {
   try {
     const { readFile } = await import("node:fs/promises");
-    const { join } = await import("node:path");
-    const { resolveVantaHome } = await import("../store/home.js");
-    const cfg = parseKeybindingConfig(JSON.parse(await readFile(join(resolveVantaHome(env), "keybindings.json"), "utf8")));
+    const cfg = parseKeybindingConfig(JSON.parse(await readFile(keybindingsPath(env), "utf8")));
     return cfg ? resolveBindings(DEFAULT_BINDINGS, cfg.bindings.map((b) => ({ ...b }))) : DEFAULT_BINDINGS;
   } catch {
     return DEFAULT_BINDINGS;
   }
+}
+
+export async function validateKeybindings(env: NodeJS.ProcessEnv = process.env): Promise<KeybindingValidation> {
+  const path = keybindingsPath(env);
+  const { readFile } = await import("node:fs/promises");
+  const raw = await readFile(path, "utf8").catch((err: NodeJS.ErrnoException) => {
+    if (err.code === "ENOENT") return null;
+    throw err;
+  });
+  if (raw === null) {
+    return { path, exists: false, ok: true, errors: [], warnings: [], bindings: DEFAULT_BINDINGS };
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    return {
+      path,
+      exists: true,
+      ok: false,
+      errors: [`invalid JSON: ${(err as Error).message}`],
+      warnings: [],
+      bindings: DEFAULT_BINDINGS,
+    };
+  }
+  const cfg = KeybindingConfigSchema.safeParse(parsed);
+  if (!cfg.success) {
+    return {
+      path,
+      exists: true,
+      ok: false,
+      errors: cfg.error.issues.map((issue) => `${issue.path.join(".") || "config"}: ${issue.message}`),
+      warnings: [],
+      bindings: DEFAULT_BINDINGS,
+    };
+  }
+  const bindings = resolveBindings(DEFAULT_BINDINGS, cfg.data.bindings.map((b) => ({ ...b })));
+  const warnings = findKeybindingConflicts(bindings).map(buildConflictWarning);
+  return { path, exists: true, ok: warnings.length === 0, errors: [], warnings, bindings };
+}
+
+export async function keybindingNotices(env: NodeJS.ProcessEnv = process.env): Promise<string[]> {
+  const report = await validateKeybindings(env).catch((err) => ({
+    path: keybindingsPath(env),
+    exists: true,
+    ok: false,
+    errors: [(err as Error).message],
+    warnings: [],
+    bindings: DEFAULT_BINDINGS,
+  }));
+  return [...report.errors, ...report.warnings].map((msg) => `keybindings: ${msg}`);
+}
+
+export async function writeKeybindingsTemplate(
+  env: NodeJS.ProcessEnv = process.env,
+  opts: { force?: boolean } = {},
+): Promise<{ ok: true; path: string; wrote: boolean } | { ok: false; path: string; error: string }> {
+  const path = keybindingsPath(env);
+  const { access, mkdir, writeFile } = await import("node:fs/promises");
+  if (!opts.force) {
+    const exists = await access(path).then(() => true).catch(() => false);
+    if (exists) return { ok: false, path, error: "already exists; pass --force to overwrite" };
+  }
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, buildKeybindingsTemplate(), "utf8");
+  return { ok: true, path, wrote: true };
+}
+
+export function watchKeybindings(
+  onChange: (bindings: KeyBinding[]) => void,
+  env: NodeJS.ProcessEnv = process.env,
+): () => void {
+  const path = keybindingsPath(env);
+  const dir = dirname(path);
+  mkdirSync(dir, { recursive: true });
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let watcher: FSWatcher | undefined;
+  const reload = (): void => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => {
+      void loadKeybindings(env).then(onChange).catch(() => onChange(DEFAULT_BINDINGS));
+    }, 25);
+  };
+  try {
+    watcher = watch(dir, (_event, filename) => {
+      if (!filename || String(filename) === "keybindings.json") reload();
+    });
+  } catch {
+    return () => {};
+  }
+  return () => {
+    if (timer) clearTimeout(timer);
+    watcher?.close();
+  };
 }

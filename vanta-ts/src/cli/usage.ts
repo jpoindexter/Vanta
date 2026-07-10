@@ -37,6 +37,7 @@ const USAGE_LINES = [
       "       vanta voice wake [on|off|status|listen]   opt-in local Hey Vanta listener",
       "       vanta config <get|set|edit|check>  manage settings (~/.vanta/config.json; secrets → .env)",
       "       vanta status | doctor              health check (kernel, provider, keys, store)",
+      "       vanta keybindings [doctor|template [--force]|path]   manage ~/.vanta/keybindings.json",
       "       vanta goals                        show kernel goals plus dependency graph state",
       "       vanta goals sentinel [list|run|add|retire]   watch completed goals with cheap checks",
       '       vanta run "<instruction>"          run one instruction and exit',

@@ -10,6 +10,7 @@ import { modelDeprecationNotices } from "./providers/model-deprecation.js";
 import { validateConfigFiles } from "./config/validate.js";
 import { serverlessCliStatus, type ServerlessCliStatus } from "./exec/adapters/serverless.js";
 import { resolveServerlessConfig, type ServerlessProvider } from "./exec/serverless.js";
+import { keybindingNotices } from "./ui/keybindings.js";
 
 // `vanta status` / `vanta doctor` — read-only health. Pings the kernel (never
 // spawns it — a status check that starts the thing it's checking is useless),
@@ -186,6 +187,7 @@ export async function gatherStatus(env: NodeJS.ProcessEnv): Promise<StatusReport
       ...detectAuthConflicts(env),
       ...modelDeprecationNotices(env, new Date()),
       ...(await validateConfigFiles(env)),
+      ...(await keybindingNotices(env)),
       ...(await executionBackendNotices(env)),
     ],
   };

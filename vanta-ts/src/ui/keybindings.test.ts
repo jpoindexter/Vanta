@@ -1,10 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   DEFAULT_BINDINGS, GLOBAL_ACTIONS, normalizeChord, displayChord, resolveBindings,
   lookupChord, actionForChord, eventToChord, parseKeybindingConfig, loadKeybindings,
+  buildKeybindingsTemplate, keybindingsPath, validateKeybindings, keybindingNotices,
+  writeKeybindingsTemplate, watchKeybindings,
 } from "./keybindings.js";
 import type { KeyBinding } from "./keybinding-warnings.js";
 
@@ -80,5 +82,56 @@ describe("parseKeybindingConfig / loadKeybindings", () => {
     await mkdir(home, { recursive: true });
     await writeFile(join(home, "keybindings.json"), "{broken", "utf8");
     expect(await loadKeybindings({ VANTA_HOME: home })).toEqual(DEFAULT_BINDINGS);
+  });
+
+  it("writes a default template and refuses to overwrite without --force", async () => {
+    const env = { VANTA_HOME: home };
+    const result = await writeKeybindingsTemplate(env);
+    expect(result).toMatchObject({ ok: true, path: keybindingsPath(env), wrote: true });
+    expect(await readFile(keybindingsPath(env), "utf8")).toBe(buildKeybindingsTemplate());
+    await expect(writeKeybindingsTemplate(env)).resolves.toMatchObject({ ok: false });
+    await expect(writeKeybindingsTemplate(env, { force: true })).resolves.toMatchObject({ ok: true });
+  });
+
+  it("validates broken JSON, schema errors, and conflicts for doctor/status", async () => {
+    const env = { VANTA_HOME: home };
+    await mkdir(home, { recursive: true });
+    await writeFile(join(home, "keybindings.json"), "{broken", "utf8");
+    await expect(validateKeybindings(env)).resolves.toMatchObject({ ok: false, errors: [expect.stringContaining("invalid JSON")] });
+
+    await writeFile(join(home, "keybindings.json"), JSON.stringify({ version: 1, bindings: [{ action: "", chord: "ctrl+x" }] }), "utf8");
+    await expect(validateKeybindings(env)).resolves.toMatchObject({ ok: false, errors: [expect.stringContaining("bindings.0.action")] });
+
+    await writeFile(join(home, "keybindings.json"), JSON.stringify({
+      version: 1,
+      bindings: [
+        { action: "a", chord: "ctrl+x", context: "composer" },
+        { action: "b", chord: "ctrl+x", context: "composer" },
+      ],
+    }), "utf8");
+    const notices = await keybindingNotices(env);
+    expect(notices.join("\n")).toContain("keybindings:");
+    expect(notices.join("\n")).toContain("ctrl+x");
+  });
+
+  it("watches ~/.vanta/keybindings.json and reloads changed bindings", async () => {
+    const env = { VANTA_HOME: home };
+    await mkdir(home, { recursive: true });
+    const seen: KeyBinding[][] = [];
+    const stop = watchKeybindings((bindings) => seen.push(bindings), env);
+    await writeFile(join(home, "keybindings.json"), JSON.stringify({
+      version: 1,
+      bindings: [{ action: GLOBAL_ACTIONS.quickOpen, chord: "ctrl+k", context: "global" }],
+    }), "utf8");
+    await new Promise<void>((resolve, reject) => {
+      const deadline = Date.now() + 1000;
+      const poll = (): void => {
+        if (seen.some((bindings) => lookupChord(bindings, GLOBAL_ACTIONS.quickOpen) === "ctrl+k")) return resolve();
+        if (Date.now() > deadline) return reject(new Error("keybinding watcher did not reload"));
+        setTimeout(poll, 25);
+      };
+      poll();
+    });
+    stop();
   });
 });
