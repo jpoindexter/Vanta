@@ -238,6 +238,29 @@
       ]
     },
     {
+      "id": "RUN-ANYWHERE-V1-RELEASE-GATE",
+      "track": "Operator",
+      "title": "Run Anywhere v1 release gate — reach, wake, and execute on controlled infrastructure",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Activation and the autonomy foundation are shipped. The next launch milestone is not more local scaffolding: prove that one owner can reach Vanta through a real remote channel, wake it from an idle remote runtime, and execute under the same kernel boundary away from the development Mac.",
+      "done": "Run Anywhere v1 ships only after Teams completes a real inbound-to-reply round trip, a remote sandbox executes under kernel scope, a serverless runtime hibernates and wakes on a message, and the ARM64 Termux path completes on physical Android hardware.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "reach",
+      "updated": "2026-07-10",
+      "notes": "LAUNCH-PAD PHASE 2026-07-10: Activation v1 and the autonomy/memory foundation are shipped. This gate makes the remaining Hermes/OpenClaw-style reach outcome explicit and keeps all four external proofs honest. Current blockers are environmental, not missing local scaffolding: Azure Bot credentials/public Teams install, Modal or Daytona authentication, a real hibernate/wake deployment, and physical ARM64 Android/Termux hardware. Do not mark this gate shipped from mocks, emulators, static inspection, or lower-layer tests.",
+      "source": "operator-roadmap-phase-2026-07-10",
+      "after": [
+        "MSG-ADAPTER-TEAMS",
+        "PCLIP-SANDBOX-AGENTS",
+        "BACKEND-SERVERLESS-LIVE",
+        "RUN-ANYWHERE-TERMUX"
+      ]
+    },
+    {
       "id": "AUTONOMY-CONTRACT-WALLS",
       "track": "Harness",
       "title": "Autonomy contract walls — acts alone, queues, wakes me",

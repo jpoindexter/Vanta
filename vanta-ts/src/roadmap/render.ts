@@ -61,40 +61,67 @@ function openLaunchItems(items: Array<RoadmapItem | undefined>): RoadmapItem[] {
   return items.filter((i): i is RoadmapItem => i !== undefined && i.status !== "shipped");
 }
 
-function openSummary(items: RoadmapItem[]): string {
-  if (!items.length) return "Activation v1 shipped. No required launchpad blockers remain.";
-  return `Open launchpad card${items.length === 1 ? "" : "s"}: ${esc(items.map((i) => i.id).join(" + "))}.`;
+type LaunchPhase = {
+  name: string;
+  promise: string;
+  metric: string;
+  proofLabel: string;
+  viewsLabel: string;
+  proof: string[];
+  views: string[];
+  gate: string;
+};
+
+const ACTIVATION_PHASE: LaunchPhase = {
+  name: "Activation v1",
+  promise: "a cold user gets one useful Vanta result in under 2 minutes.",
+  metric: "Activation gate",
+  proofLabel: "Prove It",
+  viewsLabel: "Visible Workflows",
+  proof: ["ACTIVATION-COLD-USER-GATE", "GALLERY-SANDBOX-RECOVERY-FIXTURE", "USER-LANGUAGE-WORKFLOW-COPY", "FRESH-CONTEXT-ACTIVATION-REVIEW", "ROADMAP-DEPENDENCY-GUARD"],
+  views: ["OPERATOR-HOME-V1", "CRASHLOG-DIAGNOSE", "SPEC-TO-APP-WIZARD", "VANTA-BG-RESPOND-CONTINUE"],
+  gate: "ACTIVATION-V1-RELEASE-GATE",
+};
+
+const RUN_ANYWHERE_PHASE: LaunchPhase = {
+  name: "Run Anywhere v1",
+  promise: "one owner can reach Vanta anywhere and execute safely on controlled infrastructure.",
+  metric: "Run-anywhere gate",
+  proofLabel: "Remote Execution",
+  viewsLabel: "Reach Anywhere",
+  proof: ["PCLIP-SANDBOX-AGENTS", "BACKEND-SERVERLESS-LIVE"],
+  views: ["MSG-ADAPTER-TEAMS", "RUN-ANYWHERE-TERMUX"],
+  gate: "RUN-ANYWHERE-V1-RELEASE-GATE",
+};
+
+function activeLaunchPhase(data: Roadmap): LaunchPhase {
+  return byId(data, RUN_ANYWHERE_PHASE.gate) ? RUN_ANYWHERE_PHASE : ACTIVATION_PHASE;
+}
+
+function openSummary(phase: LaunchPhase, items: RoadmapItem[]): string {
+  if (!items.length) return `${phase.name} shipped. No required launchpad blockers remain.`;
+  return `Open ${esc(phase.name)} card${items.length === 1 ? "" : "s"}: ${esc(items.map((i) => i.id).join(" + "))}.`;
 }
 
 function launchPad(data: Roadmap): string {
+  const phase = activeLaunchPhase(data);
   const now = data.items.filter((i) => i.status === "building");
-  const proof = [
-    byId(data, "ACTIVATION-COLD-USER-GATE"),
-    byId(data, "GALLERY-SANDBOX-RECOVERY-FIXTURE"),
-    byId(data, "USER-LANGUAGE-WORKFLOW-COPY"),
-    byId(data, "FRESH-CONTEXT-ACTIVATION-REVIEW"),
-    byId(data, "ROADMAP-DEPENDENCY-GUARD"),
-  ];
-  const views = [
-    byId(data, "OPERATOR-HOME-V1"),
-    byId(data, "CRASHLOG-DIAGNOSE"),
-    byId(data, "SPEC-TO-APP-WIZARD"),
-    byId(data, "VANTA-BG-RESPOND-CONTINUE"),
-  ];
-  const gate = [byId(data, "ACTIVATION-V1-RELEASE-GATE")];
-  const gateDeps = byId(data, "ACTIVATION-V1-RELEASE-GATE")?.after?.map((id) => byId(data, id)) ?? [];
+  const proof = phase.proof.map((id) => byId(data, id));
+  const views = phase.views.map((id) => byId(data, id));
+  const gate = [byId(data, phase.gate)];
+  const gateDeps = byId(data, phase.gate)?.after?.map((id) => byId(data, id)) ?? [];
   const required = [...gateDeps, ...gate];
   const launchItems = [...proof, ...views, ...gate];
   const openItems = openLaunchItems(launchItems);
   return `<section class="launch">
 <div class="launch-head">
-<div><h2>Launch Pad</h2><p>Activation v1: a cold user gets one useful Vanta result in under 2 minutes.</p><p class="launch-open">${openSummary(openItems)}</p></div>
-<div class="launch-metrics"><div class="launch-metric"><span>${shippedCount(required)}/${required.length}</span><small>Activation gate</small></div><div class="launch-metric muted"><span>${now.length}/${WIP_LIMIT}</span><small>Now slots</small></div></div>
+<div><h2>Launch Pad</h2><p>${esc(phase.name)}: ${esc(phase.promise)}</p><p class="launch-open">${openSummary(phase, openItems)}</p></div>
+<div class="launch-metrics"><div class="launch-metric"><span>${shippedCount(required)}/${required.length}</span><small>${esc(phase.metric)}</small></div><div class="launch-metric muted"><span>${now.length}/${WIP_LIMIT}</span><small>Now slots</small></div></div>
 </div>
 <div class="launch-grid">
 <div class="launch-block"><h3>Build Now</h3><ol>${launchList(now)}</ol></div>
-<div class="launch-block"><h3>Prove It</h3><ol>${launchList(proof)}</ol></div>
-<div class="launch-block"><h3>Visible Workflows</h3><ol>${launchList(views)}</ol></div>
+<div class="launch-block"><h3>${esc(phase.proofLabel)}</h3><ol>${launchList(proof)}</ol></div>
+<div class="launch-block"><h3>${esc(phase.viewsLabel)}</h3><ol>${launchList(views)}</ol></div>
 <div class="launch-block"><h3>Release Gate</h3><ol>${launchList(gate)}</ol></div>
 </div>
 </section>`;

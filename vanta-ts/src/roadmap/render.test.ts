@@ -72,9 +72,36 @@ describe("renderRoadmap", () => {
     });
     expect(html).toContain("<small>Activation gate</small>");
     expect(html).toContain("<span>5/5</span>");
-    expect(html).toContain("Open launchpad card: SPEC-TO-APP-WIZARD.");
+    expect(html).toContain("Open Activation v1 card: SPEC-TO-APP-WIZARD.");
     expect(html).toContain('class="lp-shipped"');
     expect(html).toContain('class="lp-next"');
+  });
+
+  it("advances to Run Anywhere when its explicit release gate exists", () => {
+    const phaseCards: Roadmap["items"] = [
+      { id: "PCLIP-SANDBOX-AGENTS", track: "Harness", title: "Remote sandbox", status: "building", size: "L", summary: "", done: "" },
+      { id: "BACKEND-SERVERLESS-LIVE", track: "Harness", title: "Wake remote", status: "horizon", size: "L", summary: "", done: "" },
+      { id: "MSG-ADAPTER-TEAMS", track: "Operator", title: "Teams", status: "building", size: "L", summary: "", done: "" },
+      { id: "RUN-ANYWHERE-TERMUX", track: "Operator", title: "Termux", status: "horizon", size: "M", summary: "", done: "" },
+      {
+        id: "RUN-ANYWHERE-V1-RELEASE-GATE",
+        track: "Operator",
+        title: "Run Anywhere gate",
+        status: "horizon",
+        size: "S",
+        summary: "",
+        done: "",
+        after: ["PCLIP-SANDBOX-AGENTS", "BACKEND-SERVERLESS-LIVE", "MSG-ADAPTER-TEAMS", "RUN-ANYWHERE-TERMUX"],
+      },
+    ];
+    const html = renderRoadmap({ updated: "2026-07-10", items: phaseCards });
+    expect(html).toContain("Run Anywhere v1");
+    expect(html).toContain("one owner can reach Vanta anywhere");
+    expect(html).toContain("<small>Run-anywhere gate</small>");
+    expect(html).toContain("<span>0/5</span>");
+    expect(html).toContain("Remote Execution");
+    expect(html).toContain("Reach Anywhere");
+    expect(html).not.toContain("Activation v1:");
   });
 
   it("shows shipped count in the collapsed section header", () => {
