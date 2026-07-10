@@ -56,4 +56,20 @@ describe("trust ledger autonomy", () => {
       await rm(dir, { recursive: true, force: true });
     }
   });
+
+  it("preserves every outcome across concurrent writers", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "vanta-trust-"));
+    try {
+      await Promise.all(Array.from({ length: 24 }, (_, index) => recordTrustOutcome(dir, {
+        workflowId: index % 2 === 0 ? "loop:alpha" : "loop:beta",
+        outcome: "pass",
+        reason: `verified ${index}`,
+      })));
+      const ledger = await loadTrustLedger(dir);
+      expect(ledger.workflows["loop:alpha"]).toMatchObject({ runs: 12, passes: 12, fails: 0 });
+      expect(ledger.workflows["loop:beta"]).toMatchObject({ runs: 12, passes: 12, fails: 0 });
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
 });

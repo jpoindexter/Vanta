@@ -282,6 +282,26 @@
       ]
     },
     {
+      "id": "TRUST-LEDGER-ATOMIC-UPDATES",
+      "track": "Harness",
+      "title": "Atomic trust-ledger updates — concurrent verifiers cannot lose outcomes",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Gateway, cron, sentinels, and explicit verification can record trust outcomes concurrently. The current read-modify-write is unlocked, so last-writer-wins can erase valid pass/fail evidence and produce the wrong autonomy tier.",
+      "done": "Concurrent outcome writers are serialized with crash-safe recovery; ledger replacement is atomic for readers; a 24-writer regression records exactly 24 runs/passes and preserves every workflow entry.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4",
+      "lens": "agent-loop",
+      "updated": "2026-07-10",
+      "notes": "LIVE BASELINE 2026-07-10: executed 24 concurrent `recordTrustOutcome` calls for one workflow against an isolated real ledger; only 1 run and 1 pass survived. This is a safety defect because earned-auto and verifier-failure demotion depend on complete counts.\n\nSHIPPED 2026-07-10: trust outcomes now run under Vanta's crash-safe exclusive checkout lock, waiting for the current writer and reclaiming dead-process locks; ledger replacement uses temp-file + atomic rename so readers never see a partial document. Executed the exact baseline again: 24 concurrent calls persisted 24 runs and 24 passes, the lock released, and the ledger parsed as valid JSON. Stronger cross-process proof: eight independent Node processes persisted 8/8 outcomes. Focused trust/proactive/sentinel/watch/ambient tests: 11 passed. Full suite: 1,200 files, 12,467 passed, 3 skipped; TypeScript and size gates pass; no leaked tsx stack or test notification bell.",
+      "source": "live-concurrency-audit-2026-07-10",
+      "after": [
+        "TRUST-LEDGER-AUTONOMY"
+      ]
+    },
+    {
       "id": "STANDING-GOAL-SENTINEL",
       "track": "Harness",
       "title": "Standing-goal sentinels — finished goals stay watched",

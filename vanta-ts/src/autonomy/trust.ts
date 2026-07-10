@@ -1,7 +1,9 @@
-import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { appendFile, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { setTimeout as sleep } from "node:timers/promises";
 import { z } from "zod";
 import { autonomyLogPath, type AutonomyDecision } from "./contract.js";
+import { checkoutTask } from "../team/checkout.js";
 
 export const TrustTierSchema = z.enum(["watch", "queue", "auto"]);
 export type TrustTier = z.infer<typeof TrustTierSchema>;
@@ -91,7 +93,13 @@ export async function loadTrustLedger(dataDir: string): Promise<TrustLedger> {
 export async function saveTrustLedger(dataDir: string, ledger: TrustLedger): Promise<string> {
   await mkdir(dataDir, { recursive: true });
   const file = trustLedgerPath(dataDir);
-  await writeFile(file, `${JSON.stringify(ledger, null, 2)}\n`, "utf8");
+  const tmp = `${file}.tmp-${process.pid}`;
+  try {
+    await writeFile(tmp, `${JSON.stringify(ledger, null, 2)}\n`, "utf8");
+    await rename(tmp, file);
+  } finally {
+    await rm(tmp, { force: true }).catch(() => {});
+  }
   return file;
 }
 
@@ -151,6 +159,10 @@ export async function recordTrustOutcome(
   dataDir: string,
   input: TrustOutcomeInput,
 ): Promise<TrustWorkflow> {
+  return withTrustLedgerLock(dataDir, () => recordTrustOutcomeUnlocked(dataDir, input));
+}
+
+async function recordTrustOutcomeUnlocked(dataDir: string, input: TrustOutcomeInput): Promise<TrustWorkflow> {
   const now = input.now ?? new Date();
   const policy = input.policy ?? DEFAULT_TRUST_POLICY;
   const ledger = await loadTrustLedger(dataDir);
@@ -174,6 +186,20 @@ export async function recordTrustOutcome(
   await saveTrustLedger(dataDir, { version: 1, workflows: { ...ledger.workflows, [input.workflowId]: workflow } });
   await logTrustOutcome(dataDir, workflow, input.reason, now);
   return workflow;
+}
+
+async function withTrustLedgerLock<T>(dataDir: string, fn: () => Promise<T>): Promise<T> {
+  const timeoutAt = Date.now() + 10_000;
+  const dir = join(dataDir, "locks");
+  while (true) {
+    const claim = await checkoutTask({ taskId: "trust-ledger", workerId: `trust-${process.pid}`, dir });
+    if (claim.ok) {
+      try { return await fn(); }
+      finally { await claim.value.release(); }
+    }
+    if (Date.now() >= timeoutAt) throw new Error(`trust ledger lock timeout: ${claim.error}`);
+    await sleep(5);
+  }
 }
 
 export function formatTrustLedger(ledger: TrustLedger, policy: TrustPolicy = DEFAULT_TRUST_POLICY): string {
