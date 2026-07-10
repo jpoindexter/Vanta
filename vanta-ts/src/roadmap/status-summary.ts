@@ -1,7 +1,7 @@
 import { PARKED_REASON, STATUS, type RoadmapItem } from "./schema.js";
 
 const ACTIVE_STATUS = ["building", "blocked", "next", "horizon"] as const;
-const TERMINAL_PARKED_REASON = ["declined/n-a", "duplicate"] as const;
+const TERMINAL_PARKED_REASON = ["declined/n-a", "duplicate", "optional proof"] as const;
 type CountSummary<T extends string> = Record<T, number>;
 
 export type RoadmapStatusSummary = {

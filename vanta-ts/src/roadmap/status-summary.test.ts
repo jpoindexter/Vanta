@@ -91,15 +91,17 @@ describe("formatRoadmapStatus", () => {
       card("B", "parked", "external proof"),
       card("C", "parked", "declined/n-a"),
       card("D", "parked", "duplicate"),
+      card("E", "parked", "optional proof"),
     ];
     expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("roadmap complete: no");
     expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("open: 1");
-    expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("non-shipped: 3");
-    expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("terminal parked: 2");
+    expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("non-shipped: 4");
+    expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("terminal parked: 3");
     const terminalOnly = [
       card("A", "shipped"),
       card("C", "parked", "declined/n-a"),
       card("D", "parked", "duplicate"),
+      card("E", "parked", "optional proof"),
     ];
     expect(formatRoadmapCompletionGate(terminalOnly)).toContain("roadmap complete: yes");
   });

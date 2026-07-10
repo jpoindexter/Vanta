@@ -17130,6 +17130,22 @@
       "lens": "selfhood",
       "updated": "2026-07-10",
       "notes": "SHIPPED 2026-07-10: RoadmapStatusSummary now treats parkedReason `declined/n-a` and `duplicate` as terminal parked resolutions. Current completion status reports open work separately from non-shipped/terminal parked counts; this reduces the honest remaining open roadmap work without pretending declined or duplicate cards shipped."
+    },
+    {
+      "id": "ROADMAP-OPTIONAL-PROOF-TERMINAL",
+      "track": "Operator",
+      "title": "Roadmap optional proof terminal — tabled experiments do not block completion",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Optional proof parked cards now count as terminally parked rather than open required work, matching the decision to table Ghost OS-style experiments for later without treating them as launch blockers.",
+      "done": "`vanta roadmap status --require-complete` treats `optional proof` like declined/n-a and duplicate for completion math, while external proof and strategy decision cards still keep the roadmap incomplete.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "selfhood",
+      "updated": "2026-07-10",
+      "notes": "SHIPPED 2026-07-10: Added `optional proof` to the terminal parked reason set. Current roadmap should report one fewer open card and one more terminal parked card; this does not ship GHOST-OS-MCP or claim its proof ran."
     }
   ]
 }
