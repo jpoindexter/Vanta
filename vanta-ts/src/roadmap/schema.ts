@@ -93,12 +93,20 @@ export const RoadmapSchema = z.object({
   items: z.array(RoadmapItemSchema).min(1),
 }).superRefine((roadmap, ctx) => {
   roadmap.items.forEach((item, index) => {
-    if (item.status !== "parked" || item.parkedReason) return;
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["items", index, "parkedReason"],
-      message: "parked roadmap items require parkedReason",
-    });
+    if (item.status === "parked" && !item.parkedReason) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["items", index, "parkedReason"],
+        message: "parked roadmap items require parkedReason",
+      });
+    }
+    if (item.status !== "parked" && item.parkedReason) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["items", index, "parkedReason"],
+        message: "parkedReason is only valid for parked roadmap items",
+      });
+    }
   });
 });
 

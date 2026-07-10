@@ -94,4 +94,11 @@ describe("RoadmapSchema", () => {
       items: [{ ...validItem, status: "parked", parkedReason: "review" }],
     })).not.toThrow();
   });
+
+  it("rejects parkedReason on non-parked items", () => {
+    expect(() => RoadmapSchema.parse({
+      updated: "2026-06-03",
+      items: [{ ...validItem, status: "shipped", parkedReason: "external proof" }],
+    })).toThrow("parkedReason is only valid for parked roadmap items");
+  });
 });
