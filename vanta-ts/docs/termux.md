@@ -58,5 +58,6 @@ device installs the release artifact instead of falling back to an on-device Rus
 build:
 
 ```sh
+vanta run-anywhere status --check-release
 ./scripts/termux-arm64-device-proof.sh --require-release-kernel
 ```

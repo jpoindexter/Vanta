@@ -36,4 +36,18 @@ describe("run-anywhere command", () => {
     await expect(runRunAnywhereCommand(root, ["status", "--json"])).resolves.toBe(0);
     expect(log).toHaveBeenCalledWith(expect.stringContaining('"ready": true'));
   });
+
+  it("prints release asset check when requested", async () => {
+    const root = await workspace();
+    const original = globalThis.fetch;
+    globalThis.fetch = (async () => new Response(JSON.stringify({ tag_name: "v0.8.0", assets: [] }), { status: 200 })) as typeof fetch;
+    try {
+      const log = vi.spyOn(console, "log").mockImplementation(() => {});
+      await expect(runRunAnywhereCommand(root, ["status", "--check-release"])).resolves.toBe(1);
+      expect(log).toHaveBeenCalledWith(expect.stringContaining("Android release asset check: not ready"));
+      expect(log).toHaveBeenCalledWith(expect.stringContaining("vanta-kernel-aarch64-linux-android"));
+    } finally {
+      globalThis.fetch = original;
+    }
+  });
 });
