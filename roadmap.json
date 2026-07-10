@@ -17178,6 +17178,22 @@
       "lens": "selfhood",
       "updated": "2026-07-10",
       "notes": "SHIPPED 2026-07-10: Added `strategy decision` to the terminal parked reason set after rechecking VANTA-H-GITHUB, VANTA-H-SLACK, PCLIP-MULTI-COMPANY, and PCLIP-MULTI-USER. Their notes say out-of-scope or revive only after an explicit product-direction change. This does not ship those cards; it keeps the remaining open set focused on required external proofs."
+    },
+    {
+      "id": "ROADMAP-ACTIONABLE-OPEN-WORK",
+      "track": "Operator",
+      "title": "Roadmap actionable open work — separate aggregate gates from executable proofs",
+      "status": "shipped",
+      "size": "S",
+      "summary": "`vanta roadmap status --open` now marks which open cards are actionable immediately and which are waiting on other open `after` dependencies, so aggregate release gates do not obscure the concrete proof cards to execute next.",
+      "done": "Open-work JSON includes `blockedByOpenIds` and `actionable`; text output annotates cards waiting on open dependencies; completion status includes `actionableOpenTotal`.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "selfhood",
+      "updated": "2026-07-10",
+      "notes": "SHIPPED 2026-07-10: openRoadmapItems now checks each open card's `after` list against the open-id set. RUN-ANYWHERE-V1-RELEASE-GATE remains open but is non-actionable while its proof dependencies are open; the actionable open set is the concrete external proof work."
     }
   ]
 }

@@ -215,9 +215,9 @@ describe("runRoadmapCommand status", () => {
     const lines: string[] = [];
     vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
     const code = await runRoadmapCommand(root, ["status", "--open", "--json"]);
-    const out = JSON.parse(lines.join("\n")) as Array<{ id: string; parkedReason?: string }>;
+    const out = JSON.parse(lines.join("\n")) as Array<{ id: string; parkedReason?: string; actionable: boolean; blockedByOpenIds: string[] }>;
     expect(code).toBe(1);
-    expect(out).toEqual([{ id: "PROOF", title: "Proof", status: "parked", parkedReason: "external proof" }]);
+    expect(out).toEqual([{ id: "PROOF", title: "Proof", status: "parked", parkedReason: "external proof", blockedByOpenIds: [], actionable: true }]);
   });
 });
 

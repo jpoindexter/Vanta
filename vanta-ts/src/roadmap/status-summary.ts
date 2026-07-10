@@ -11,6 +11,7 @@ export type RoadmapStatusSummary = {
   complete: boolean;
   nonShippedTotal: number;
   openTotal: number;
+  actionableOpenTotal: number;
   terminalParkedTotal: number;
   statuses: CountSummary<RoadmapItem["status"]>;
   parkedReasons: CountSummary<(typeof PARKED_REASON)[number]>;
@@ -21,6 +22,8 @@ export type RoadmapOpenItem = {
   title: string;
   status: RoadmapItem["status"];
   parkedReason?: RoadmapItem["parkedReason"];
+  blockedByOpenIds: string[];
+  actionable: boolean;
 };
 
 function countBy<T extends string>(items: RoadmapItem[], getKey: (item: RoadmapItem) => T | undefined): Map<T, number> {
@@ -63,9 +66,12 @@ function isTerminalParked(item: RoadmapItem): boolean {
 }
 
 export function openRoadmapItems(items: RoadmapItem[]): RoadmapOpenItem[] {
-  return items
-    .filter((item) => item.status !== "shipped" && !isTerminalParked(item))
-    .map((item) => ({ id: item.id, title: item.title, status: item.status, parkedReason: item.parkedReason }));
+  const openItems = items.filter((item) => item.status !== "shipped" && !isTerminalParked(item));
+  const openIds = new Set(openItems.map((item) => item.id));
+  return openItems.map((item) => {
+    const blockedByOpenIds = item.after?.filter((id) => openIds.has(id)) ?? [];
+    return { id: item.id, title: item.title, status: item.status, parkedReason: item.parkedReason, blockedByOpenIds, actionable: blockedByOpenIds.length === 0 };
+  });
 }
 
 export function summarizeRoadmapStatus(items: RoadmapItem[]): RoadmapStatusSummary {
@@ -78,7 +84,8 @@ export function summarizeRoadmapStatus(items: RoadmapItem[]): RoadmapStatusSumma
   const nonShippedTotal = items.length - statuses.shipped;
   const terminalParkedTotal = items.filter(isTerminalParked).length;
   const openTotal = nonShippedTotal - terminalParkedTotal;
-  return { total: items.length, activeTotal, activeDrained: activeTotal === 0, complete: openTotal === 0, nonShippedTotal, openTotal, terminalParkedTotal, statuses, parkedReasons };
+  const actionableOpenTotal = openRoadmapItems(items).filter((item) => item.actionable).length;
+  return { total: items.length, activeTotal, activeDrained: activeTotal === 0, complete: openTotal === 0, nonShippedTotal, openTotal, actionableOpenTotal, terminalParkedTotal, statuses, parkedReasons };
 }
 
 export function formatRoadmapDrainGate(items: RoadmapItem[]): string {
@@ -98,6 +105,7 @@ export function formatRoadmapCompletionGate(items: RoadmapItem[]): string {
     `roadmap complete: ${summary.complete ? "yes" : "no"}`,
     `shipped: ${summary.statuses.shipped}/${summary.total}`,
     `open: ${summary.openTotal}`,
+    `actionable open: ${summary.actionableOpenTotal}`,
     `non-shipped: ${summary.nonShippedTotal}`,
     `terminal parked: ${summary.terminalParkedTotal}`,
     ...STATUS.filter((status) => status !== "shipped").map((status) => `${status}: ${summary.statuses[status]}`),
@@ -115,7 +123,8 @@ export function formatRoadmapOpenWork(items: RoadmapItem[]): string {
     `open roadmap work: ${open.length}`,
     ...open.map((item) => {
       const state = [item.status, item.parkedReason].filter(Boolean).join(" · ");
-      return `- ${item.id} (${state}) - ${item.title}`;
+      const blocked = item.blockedByOpenIds.length ? ` [after open: ${item.blockedByOpenIds.join(", ")}]` : "";
+      return `- ${item.id} (${state})${blocked} - ${item.title}`;
     }),
   ].join("\n");
 }
