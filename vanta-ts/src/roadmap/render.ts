@@ -1,4 +1,5 @@
 import { PARKED_REASON, type Roadmap, type RoadmapItem } from "./schema.js";
+import { summarizeRoadmapStatus } from "./status-summary.js";
 import { WIP_LIMIT } from "./wip.js";
 import { CSS, DRAG_JS, FILTER_JS, SIZE_ORDER, MODEL_ORDER, PRIORITY_ORDER, PRIORITY_LABEL, LENS_ORDER, LENS_LABEL } from "./render-assets.js";
 
@@ -141,6 +142,19 @@ function launchPad(data: Roadmap): string {
 </section>`;
 }
 
+function roadmapHealth(data: Roadmap): string {
+  const summary = summarizeRoadmapStatus(data.items);
+  const statusLine = COLS.map((status) => `${COL_LABEL[status]} ${summary.statuses[status]}`).join(" · ");
+  const parkedLine = PARKED_REASON
+    .filter((reason) => summary.parkedReasons[reason] > 0)
+    .map((reason) => `${PARKED_REASON_LABEL[reason] ?? reason} ${summary.parkedReasons[reason]}`)
+    .join(" · ");
+  return `<section class="health ${summary.activeDrained ? "is-drained" : "has-active"}">
+<div><h2>${summary.activeDrained ? "Active queue drained" : "Active work remains"}</h2><p>${esc(statusLine)}</p></div>
+<div><h2>${summary.statuses.parked} parked</h2><p>${parkedLine ? esc(parkedLine) : "No parked cards."}</p></div>
+</section>`;
+}
+
 function column(status: string, items: RoadmapItem[], wipLimit?: number): string {
   const colItems = items.filter((i) => i.status === status);
   const groups = TIER_ORDER.filter((t) => colItems.some((i) => i.tier === t))
@@ -221,6 +235,7 @@ export function renderRoadmap(data: Roadmap): string {
 <h1>Vanta Roadmap</h1>
 <p class="meta">Updated ${esc(data.updated)} &middot; ${data.items.length} items</p>
 ${launchPad(data)}
+${roadmapHealth(data)}
 ${filterBar(data)}
 <div class="board">${board}</div>
 ${parkedSection(data)}

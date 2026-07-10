@@ -46,6 +46,28 @@ describe("renderRoadmap", () => {
     expect(html.indexOf("Launch Pad")).toBeLessThan(html.indexOf('class="board"'));
   });
 
+  it("shows active work remains in the roadmap health strip", () => {
+    const html = renderRoadmap(fixture);
+    expect(html).toContain("Active work remains");
+    expect(html).toContain("Now 1 · Blocked 1 · Next 1 · Later 1");
+    expect(html).toContain("<h2>0 parked</h2>");
+  });
+
+  it("shows a drained active queue with parked reason counts", () => {
+    const html = renderRoadmap({
+      updated: "2026-07-10",
+      items: [
+        { id: "S", track: "Core", title: "Done", status: "shipped", size: "S", summary: "", done: "" },
+        { id: "PX", track: "Core", title: "Needs external proof", status: "parked", size: "S", summary: "", done: "", parkedReason: "external proof" },
+        { id: "PD", track: "Core", title: "Duplicate card", status: "parked", size: "S", summary: "", done: "", parkedReason: "duplicate" },
+      ],
+    });
+    expect(html).toContain("Active queue drained");
+    expect(html).toContain("Now 0 · Blocked 0 · Next 0 · Later 0");
+    expect(html).toContain("<h2>2 parked</h2>");
+    expect(html).toContain("External Proof 1 · Duplicate 1");
+  });
+
   it("shows launchpad status badges and activation progress separately from now slots", () => {
     const html = renderRoadmap({
       updated: "2026-07-09",

@@ -17066,6 +17066,22 @@
       "lens": "tui",
       "updated": "2026-07-09",
       "notes": "Shipped 2026-07-09 in commit 6f1e8641. ui/use-slash.ts now handles SlashResult.cleared with a clear effect; ui/reducer.ts adds a clear action resetting to initialState. Regression coverage: ui/slash.test.ts asserts clear runs before the /clear note; ui/reducer.test.ts asserts committed transcript/live/queued state resets. Verified with 76 focused tests, tsc, size gate, and git diff check."
+    },
+    {
+      "id": "ROADMAP-DRAINED-STATE-BANNER",
+      "track": "Operator",
+      "title": "Roadmap drained-state banner — active queue vs parked proof clearly visible",
+      "status": "shipped",
+      "size": "S",
+      "summary": "The roadmap top view now states whether active work remains, lists Now/Blocked/Next/Later counts, and separates parked reason counts so proof-gated cards are not mistaken for active blockers.",
+      "done": "roadmap.html renders an Active queue drained/Active work remains strip from the same summary logic as `vanta roadmap status`; focused render tests cover active work and drained-with-parked-reasons states.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "tui",
+      "updated": "2026-07-10",
+      "notes": "SHIPPED 2026-07-10: renderRoadmap now imports summarizeRoadmapStatus and adds a top health strip after Launch Pad. It shows Active queue drained when building/blocked/next/horizon are all zero, shows exact active counts, and shows parked reason counts. This does not move parked cards or claim external proofs passed."
     }
   ]
 }
