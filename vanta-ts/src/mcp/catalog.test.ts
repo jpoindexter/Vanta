@@ -16,6 +16,15 @@ describe("catalog", () => {
     expect(catalogEntry("github")?.description).toContain("GitHub");
     expect(catalogEntry("nope")).toBeUndefined();
   });
+
+  it("captures Home Assistant as a read-mostly optional MCP mount", () => {
+    const ha = catalogEntry("homeassistant");
+    expect(ha?.command).toBe("mcp-proxy");
+    expect(ha?.args).toContain("http://homeassistant.local:8123/api/mcp");
+    expect(ha?.defaultTools).toEqual(["GetLiveContext"]);
+    expect(ha?.optInTools).toContain("HassTurnOn");
+    expect(ha?.authEnv).toEqual(["API_ACCESS_TOKEN"]);
+  });
 });
 
 describe("buildInstallSpec", () => {

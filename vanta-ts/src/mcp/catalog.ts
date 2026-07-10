@@ -54,6 +54,16 @@ export const MCP_CATALOG: McpCatalogEntry[] = [
     defaultTools: ["fetch"],
     docsUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/fetch",
   },
+  {
+    name: "homeassistant",
+    description: "Home Assistant via its built-in MCP server and local mcp-proxy.",
+    command: "mcp-proxy",
+    args: ["--transport=streamablehttp", "--stateless", "http://homeassistant.local:8123/api/mcp"],
+    authEnv: ["API_ACCESS_TOKEN"],
+    defaultTools: ["GetLiveContext"],
+    optInTools: ["GetDateTime", "HassTurnOn", "HassTurnOff", "HassLightSet", "HassClimateSetTemperature", "HassCancelAllTimers"],
+    docsUrl: "https://www.home-assistant.io/integrations/mcp_server/",
+  },
 ];
 
 export function catalogEntry(name: string): McpCatalogEntry | undefined {

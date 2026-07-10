@@ -15446,7 +15446,7 @@
       "id": "OP-HOMEASSISTANT",
       "track": "Operator",
       "title": "Home Assistant control (as mounted MCP)",
-      "status": "parked",
+      "status": "shipped",
       "size": "M",
       "summary": "Smart-home control via Home Assistant REST + long-lived token (list/read entities, call services). Better offered as a mounted HA MCP than a built-in tool; only matters to HA users.",
       "done": "Captured as an optional HA integration, preferably via the MCP catalog rather than a built-in tool.",
