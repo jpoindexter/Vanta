@@ -16326,7 +16326,9 @@
       "done": "A documented, versioned public API (HTTP + typed client) lets an external program start a session, send input, stream output, and resolve approvals; a published SDK package wraps it; the plugin contract is versioned and stable. Every call still routes through the kernel.",
       "tier": "pebble",
       "lens": "infra",
-      "source": "parked-audit-2026-06-21"
+      "source": "parked-audit-2026-06-21",
+      "updated": "2026-07-10",
+      "notes": "IMPLEMENTED 2026-07-10: authenticated /api/v1 routes, hashed/revocable bearer tokens, session/input/SSE/approval operations, v1 plugin manifest contract, standalone vanta-operator-sdk package, CLI serve/token commands, and operator documentation.\n\nEXECUTED 2026-07-10: packed the SDK, installed it into a clean consumer, and used that artifact against the real Vanta server/kernel. The client started a session, reconstructed exact provider output from output.delta frames, received a typed turn.completed terminal frame without a timing delay, found the persisted session, validated plugin contract v1, then received 401 immediately after token revocation. Final full suite: 1181 files, 12397 passed, 3 skipped.\n\nREMAINING: publish the package to a registry. npm registry auth is absent (npm whoami -> E401), and the available GitHub token lacks write:packages. Keep this card building until a registry publication is executed and a fresh install from that registry is proven."
     },
     {
       "id": "KEYBINDING-CUSTOMIZATION",

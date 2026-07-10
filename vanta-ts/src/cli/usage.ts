@@ -24,6 +24,7 @@ const USAGE_LINES = [
       "       vanta billing [status|json]      show fail-open provider billing + estimated spend",
       "       vanta osint plan <subject> [--domain <domain> --ticker <ticker>]   public-records investigation plan",
       "       vanta autonomy [show|init|decide]   acts-alone / queues / wakes-me contract",
+      "       vanta api serve [port] | api token [create|list|revoke]   versioned HTTP API + bearer tokens",
       "       vanta --init | --init-only | --maintenance   run lifecycle bootstrap hooks",
       "       vanta --plugin-url <url> | --plugin-dir <path>   install a plugin (.zip/dir) at startup (stays disabled until enabled)",
       "       vanta sessions | resume <id> [--fork-session]   list, resume, or fork a session",

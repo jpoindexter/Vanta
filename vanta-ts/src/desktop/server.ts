@@ -13,6 +13,7 @@ import {
 } from "./session-state.js";
 import { writeDesktopAsset } from "./assets.js";
 import { handleCompanionRoute, isLoopbackRequest, type CompanionRouteOptions } from "../companion/routes.js";
+import { handlePublicApiRoute, type PublicApiRouteOptions } from "../public-api/routes.js";
 import { resolveVantaHome } from "../store/home.js";
 import { getWakeApi, setWakeApi } from "./wake-api.js";
 
@@ -56,7 +57,14 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
   return false;
 }
 
-type ServerOpts = { sessions: SessionMap; sseClients: SseClients; repoRoot: string; companion: CompanionRouteOptions; isLoopback: (req: http.IncomingMessage) => boolean };
+type ServerOpts = {
+  sessions: SessionMap;
+  sseClients: SseClients;
+  repoRoot: string;
+  companion: CompanionRouteOptions;
+  publicApi: PublicApiRouteOptions;
+  isLoopback: (req: http.IncomingMessage) => boolean;
+};
 
 const NATIVE_ORIGINS = new Set(["capacitor://localhost", "http://localhost", "https://localhost"]);
 
@@ -96,6 +104,7 @@ async function routeRequest(req: http.IncomingMessage, res: http.ServerResponse,
   applyCompanionCors(req, res, url.pathname);
   state._sseSessionId = sid; state._sseClients = sseClients;
   const ctx: RouteCtx = { req, res, state, sid, sseClients, pathname: url.pathname };
+  if (await handlePublicApiRoute({ req, res, state, pathname: url.pathname, options: opts.publicApi, sseClients, sid })) return;
   if (await handleCompanionRoute({ req, res, state, pathname: url.pathname, options: opts.companion, local, sseClients, sid })) return;
   if (remoteDesktopBlocked(local, url.pathname)) {
     sendJson(res, 403, { error: "desktop APIs are loopback-only" }); return;
@@ -104,11 +113,19 @@ async function routeRequest(req: http.IncomingMessage, res: http.ServerResponse,
   if (!handled) sendJson(res, 404, { error: "not found" });
 }
 
-export function createDesktopServer(repoRoot: string, options: Partial<CompanionRouteOptions> & { isLoopback?: (req: http.IncomingMessage) => boolean } = {}): http.Server {
-  const sessions: SessionMap = new Map();
-  const sseClients: SseClients = new Map();
+type DesktopServerOptions = Partial<CompanionRouteOptions> & {
+  isLoopback?: (req: http.IncomingMessage) => boolean;
+  publicApi?: boolean;
+  sessions?: SessionMap;
+  sseClients?: SseClients;
+};
+
+export function createDesktopServer(repoRoot: string, options: DesktopServerOptions = {}): http.Server {
+  const sessions: SessionMap = options.sessions ?? new Map();
+  const sseClients: SseClients = options.sseClients ?? new Map();
   const companion = { enabled: options.enabled ?? false, home: options.home ?? resolveVantaHome(), port: options.port ?? 7790 };
-  const opts: ServerOpts = { sessions, sseClients, repoRoot, companion, isLoopback: options.isLoopback ?? isLoopbackRequest };
+  const publicApi = { enabled: options.publicApi ?? false, home: options.home ?? resolveVantaHome() };
+  const opts: ServerOpts = { sessions, sseClients, repoRoot, companion, publicApi, isLoopback: options.isLoopback ?? isLoopbackRequest };
   return http.createServer((req, res) => {
     void routeRequest(req, res, opts)
       .catch((err: unknown) => sendJson(res, 500, { error: err instanceof Error ? err.message : String(err) }));

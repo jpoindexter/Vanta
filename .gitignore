@@ -4,6 +4,8 @@
 # Node
 node_modules
 *.tsbuildinfo
+vanta-ts/packages/sdk/dist/
+vanta-ts/.artifacts/
 
 # Env / secrets
 .env

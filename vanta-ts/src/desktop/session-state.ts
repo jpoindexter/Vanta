@@ -7,8 +7,11 @@ import type { DesktopState, DesktopEvent } from "./server.js";
 /** Map from sessionId → DesktopState. Keyed by the UUID the client tracks. */
 export type SessionMap = Map<string, DesktopState>;
 
+export type SseFrame = { event?: string; data: unknown };
+type SseClient = { response: http.ServerResponse; encode: (event: DesktopEvent) => SseFrame };
+
 /** Map from sessionId → set of active SSE response streams. */
-export type SseClients = Map<string, Set<http.ServerResponse>>;
+export type SseClients = Map<string, Set<SseClient>>;
 
 /** Get or create the DesktopState for a session id. */
 export function getSession(sessions: SessionMap, id: string, root: string): DesktopState {
@@ -25,10 +28,16 @@ export function clearSession(sessions: SessionMap, id: string): void {
  * Register an SSE connection. Writes the SSE handshake and keeps the
  * connection open until the client disconnects.
  */
-export function attachSse(clients: SseClients, sessionId: string, res: http.ServerResponse): void {
+export function attachSse(
+  clients: SseClients,
+  sessionId: string,
+  res: http.ServerResponse,
+  encode: (event: DesktopEvent) => SseFrame = (event) => ({ data: event }),
+): void {
   if (!clients.has(sessionId)) clients.set(sessionId, new Set());
   const set = clients.get(sessionId)!;
-  set.add(res);
+  const client = { response: res, encode };
+  set.add(client);
   res.writeHead(200, {
     "content-type": "text/event-stream",
     "cache-control": "no-cache",
@@ -37,7 +46,7 @@ export function attachSse(clients: SseClients, sessionId: string, res: http.Serv
   });
   res.write("retry: 1000\n\n");
   res.on("close", () => {
-    set.delete(res);
+    set.delete(client);
     if (!set.size) clients.delete(sessionId);
   });
 }
@@ -46,9 +55,12 @@ export function attachSse(clients: SseClients, sessionId: string, res: http.Serv
 export function pushSseEvent(clients: SseClients, sessionId: string, event: DesktopEvent): void {
   const set = clients.get(sessionId);
   if (!set?.size) return;
-  const data = `data: ${JSON.stringify(event)}\n\n`;
-  for (const res of set) {
-    try { res.write(data); } catch { set.delete(res); }
+  for (const client of set) {
+    try {
+      const frame = client.encode(event);
+      const eventLine = frame.event ? `event: ${frame.event}\n` : "";
+      client.response.write(`${eventLine}data: ${JSON.stringify(frame.data)}\n\n`);
+    } catch { set.delete(client); }
   }
 }
 

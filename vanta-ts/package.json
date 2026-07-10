@@ -21,7 +21,9 @@
     "desktop:presence:smoke": "npm run desktop:build && node scripts/desktop-presence-smoke.mjs",
     "voice:wake:smoke": "node --import tsx scripts/voice-wake-smoke.ts",
     "mobile:sync": "npm run desktop:build && cap sync ios",
-    "mobile:open": "cap open ios"
+    "mobile:open": "cap open ios",
+    "sdk:build": "npm --prefix packages/sdk run build",
+    "sdk:pack": "npm run sdk:build && mkdir -p .artifacts && npm pack ./packages/sdk --pack-destination .artifacts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",

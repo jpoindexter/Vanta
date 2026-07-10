@@ -1,0 +1,58 @@
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import type { AddressInfo } from "node:net";
+import { afterEach, describe, expect, it } from "vitest";
+import { VantaClient } from "../../packages/sdk/src/index.js";
+import { createDesktopServer } from "../desktop/server.js";
+import { getSession, pushSseEvent, type SessionMap, type SseClients } from "../desktop/session-state.js";
+import { issuePublicApiToken, revokePublicApiToken } from "./auth.js";
+
+const homes: string[] = [];
+afterEach(async () => Promise.all(homes.splice(0).map((home) => rm(home, { recursive: true, force: true }))));
+
+describe("public API v1", () => {
+  it("requires bearer auth and lets the SDK stream events and resolve approval", async () => {
+    const home = await mkdtemp(join(tmpdir(), "vanta-api-server-")); homes.push(home);
+    const sessions: SessionMap = new Map();
+    const sseClients: SseClients = new Map();
+    const channelId = "sdk-integration";
+    const state = getSession(sessions, channelId, join(process.cwd(), ".."));
+    let approved: boolean | undefined;
+    state.pendingApproval = { id: "approval-1", action: "write report", reason: "changes a file", toolName: "write_file", resolve: (value) => { approved = value; } };
+    const issued = await issuePublicApiToken(home, "SDK test");
+    const server = createDesktopServer(state.root, { publicApi: true, home, port: 0, sessions, sseClients });
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    try {
+      const baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+      expect((await fetch(`${baseUrl}/api/v1/sessions`)).status).toBe(401);
+      const client = new VantaClient({ baseUrl, token: issued.token, channelId });
+      expect(await client.currentApproval()).toMatchObject({ id: "approval-1", toolName: "write_file" });
+
+      const stream = client.events();
+      const next = stream.next();
+      await waitFor(() => Boolean(sseClients.get(channelId)?.size));
+      pushSseEvent(sseClients, channelId, { label: "", delta: "STREAM_OK" });
+      await expect(next).resolves.toEqual({ done: false, value: { apiVersion: "v1", type: "output.delta", sessionId: channelId, delta: "STREAM_OK" } });
+      await stream.return(undefined);
+
+      await expect(client.resolveApproval("approval-1", "allow")).resolves.toEqual({ ok: true });
+      expect(approved).toBe(true);
+      await revokePublicApiToken(home, issued.record.id);
+      await expect(client.currentApproval()).rejects.toMatchObject({ status: 401 });
+    } finally { await closeServer(server); }
+  });
+});
+
+async function waitFor(predicate: () => boolean): Promise<void> {
+  for (let attempt = 0; attempt < 100; attempt++) {
+    if (predicate()) return;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  throw new Error("timed out waiting for SSE client");
+}
+
+async function closeServer(server: ReturnType<typeof createDesktopServer>): Promise<void> {
+  server.closeAllConnections();
+  await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+}
