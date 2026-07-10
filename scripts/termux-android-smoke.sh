@@ -94,9 +94,9 @@ fi
 
 termux_run '
 pkg update -y
-pkg install -y git nodejs-lts rust python make clang pkg-config
+pkg install -y git nodejs-lts rust python make clang pkg-config esbuild
 test -f "$PREFIX/lib/libtermux-exec.so"
-echo "TERMUX_TOOLCHAIN_OK node=$(node --version) rust=$(rustc --version) arch=$(uname -m) platform=$(node -p process.platform)"
+echo "TERMUX_TOOLCHAIN_OK node=$(node --version) rust=$(rustc --version) esbuild=$(esbuild --version) arch=$(uname -m) platform=$(node -p process.platform)"
 '
 
 tar \

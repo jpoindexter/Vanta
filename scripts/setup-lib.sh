@@ -27,7 +27,7 @@ vanta_platform_name() {
 }
 
 vanta_termux_packages() {
-  printf '%s\n' "git nodejs-lts rust python make clang pkg-config"
+  printf '%s\n' "git nodejs-lts rust python make clang pkg-config esbuild"
 }
 
 vanta_termux_prepare() {
@@ -36,7 +36,7 @@ vanta_termux_prepare() {
     echo "vanta: Termux detected but its pkg command is unavailable." >&2
     return 1
   }
-  # node-gyp builds tree-sitter-bash on Android; Rust builds the zero-dep kernel.
+  # Rust builds the zero-dep kernel; native esbuild powers the tsx loader.
   # pkg is idempotent and skips packages already installed.
   pkg install -y $(vanta_termux_packages)
 }
@@ -120,7 +120,7 @@ vanta_fetch_prebuilt_kernel() {
 vanta_install_agent_deps() {
   agent_dir="$1"
   if vanta_is_termux; then
-    (cd "$agent_dir" && npm_config_build_from_source=true npm install --omit=dev)
+    (cd "$agent_dir" && ESBUILD_BINARY_PATH="$PREFIX/bin/esbuild" npm install --omit=dev)
   else
     (cd "$agent_dir" && npm install --omit=dev)
   fi
