@@ -108,6 +108,8 @@ fn enforce_0600(path: &Path) {
         use std::os::unix::fs::PermissionsExt;
         let _ = fs::set_permissions(path, fs::Permissions::from_mode(0o600));
     }
+    #[cfg(not(unix))]
+    let _ = path;
 }
 
 /// Load (or create, 0600) a per-install random secret file by name. Re-asserts 0600

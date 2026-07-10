@@ -1,4 +1,5 @@
 use crate::safety;
+#[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use std::{
     fs,
@@ -11,7 +12,9 @@ use std::{
 /// shared host. Re-asserts the mode each call (cheap, fixes a pre-existing 0755 dir).
 pub fn ensure_private_dir(path: &Path) -> std::io::Result<()> {
     fs::create_dir_all(path)?;
-    fs::set_permissions(path, fs::Permissions::from_mode(0o700))
+    #[cfg(unix)]
+    fs::set_permissions(path, fs::Permissions::from_mode(0o700))?;
+    Ok(())
 }
 
 pub struct State {
