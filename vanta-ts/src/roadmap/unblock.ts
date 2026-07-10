@@ -20,9 +20,9 @@ const KNOWN_ACTIONS: Record<string, string[]> = {
     "Require `vanta gateway channel-proofs teams` to show an accepted real-service receipt.",
   ],
   "RUN-ANYWHERE-TERMUX": [
-    "Approve/publish a release that includes `vanta-kernel-aarch64-linux-android` plus its `.sha256`.",
+    "Use release v0.9.0 or newer, which includes `vanta-kernel-aarch64-linux-android` plus its `.sha256`.",
     "On a physical ARM64 Android/Termux device, run `scripts/termux-arm64-device-proof.sh --require-release-kernel`.",
-    "Keep blocked until the real device proof reaches TERMUX_ARM64_E2E_OK.",
+    "Keep parked until the real device proof reaches TERMUX_ARM64_E2E_OK with `release_kernel=1`.",
   ],
   "RUN-ANYWHERE-V1-RELEASE-GATE": [
     "Ship BACKEND-SERVERLESS-LIVE with a real remote wake/reply/scaledown proof.",
