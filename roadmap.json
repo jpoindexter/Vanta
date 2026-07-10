@@ -17194,6 +17194,22 @@
       "lens": "selfhood",
       "updated": "2026-07-10",
       "notes": "SHIPPED 2026-07-10: openRoadmapItems now checks each open card's `after` list against the open-id set. RUN-ANYWHERE-V1-RELEASE-GATE remains open but is non-actionable while its proof dependencies are open; the actionable open set is the concrete external proof work."
+    },
+    {
+      "id": "ROADMAP-ACTIONABLE-OPEN-FILTER",
+      "track": "Operator",
+      "title": "Roadmap actionable open filter — show only proof cards that can move now",
+      "status": "shipped",
+      "size": "S",
+      "summary": "`vanta roadmap status --open --actionable` filters the open-work list down to cards whose open dependencies are already clear, making the next external proof attempts directly machine-readable.",
+      "done": "`--open --actionable` works in text and JSON mode, excludes aggregate gates blocked by other open cards, preserves the nonzero exit while work remains, and CLI help documents the flag.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "selfhood",
+      "updated": "2026-07-10",
+      "notes": "SHIPPED 2026-07-10: formatRoadmapOpenWork accepts actionableOnly and roadmap status filters JSON/text output with `--actionable`. Live output should list only the four concrete external proof cards, excluding RUN-ANYWHERE-V1-RELEASE-GATE until its open dependencies are cleared."
     }
   ]
 }

@@ -116,11 +116,11 @@ export function formatRoadmapCompletionGate(items: RoadmapItem[]): string {
   return lines.join("\n");
 }
 
-export function formatRoadmapOpenWork(items: RoadmapItem[]): string {
-  const open = openRoadmapItems(items);
-  if (open.length === 0) return "No open roadmap work remains.";
+export function formatRoadmapOpenWork(items: RoadmapItem[], opts: { actionableOnly?: boolean } = {}): string {
+  const open = openRoadmapItems(items).filter((item) => !opts.actionableOnly || item.actionable);
+  if (open.length === 0) return opts.actionableOnly ? "No actionable open roadmap work remains." : "No open roadmap work remains.";
   return [
-    `open roadmap work: ${open.length}`,
+    `${opts.actionableOnly ? "actionable open" : "open"} roadmap work: ${open.length}`,
     ...open.map((item) => {
       const state = [item.status, item.parkedReason].filter(Boolean).join(" · ");
       const blocked = item.blockedByOpenIds.length ? ` [after open: ${item.blockedByOpenIds.join(", ")}]` : "";

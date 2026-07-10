@@ -86,10 +86,12 @@ function statusExitCode(summary: RoadmapStatusSummary, args: string[], openOnly:
 
 function printRoadmapStatus(items: RoadmapItem[], args: string[], status: RoadmapStatusModule, summary: RoadmapStatusSummary): void {
   const openOnly = args.includes("--open");
+  const actionableOnly = args.includes("--actionable");
   if (args.includes("--json")) {
-    console.log(JSON.stringify(openOnly ? status.openRoadmapItems(items) : summary, null, 2));
+    const open = status.openRoadmapItems(items);
+    console.log(JSON.stringify(openOnly ? open.filter((item) => !actionableOnly || item.actionable) : summary, null, 2));
   } else if (openOnly) {
-    console.log(status.formatRoadmapOpenWork(items));
+    console.log(status.formatRoadmapOpenWork(items, { actionableOnly }));
   } else if (args.includes("--require-complete")) {
     console.log(status.formatRoadmapCompletionGate(items));
   } else if (args.includes("--require-drained")) {

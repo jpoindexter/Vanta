@@ -141,5 +141,7 @@ describe("formatRoadmapStatus", () => {
     ]);
     expect(summarizeRoadmapStatus(items).actionableOpenTotal).toBe(1);
     expect(formatRoadmapOpenWork(items)).toContain("GATE (parked · external proof) [after open: PROOF]");
+    expect(formatRoadmapOpenWork(items, { actionableOnly: true })).not.toContain("GATE");
+    expect(formatRoadmapOpenWork(items, { actionableOnly: true })).toContain("PROOF");
   });
 });

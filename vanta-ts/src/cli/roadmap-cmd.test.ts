@@ -51,6 +51,19 @@ async function completeWorkspace(): Promise<string> {
   return root;
 }
 
+async function actionableWorkspace(): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), "vanta-roadmap-cmd-"));
+  roots.push(root);
+  await writeFile(join(root, "roadmap.json"), JSON.stringify({
+    updated: "2026-07-10",
+    items: [
+      { id: "GATE", track: "Harness", title: "Gate", status: "parked", size: "S", summary: "", done: "", parkedReason: "external proof", after: ["PROOF"] },
+      { id: "PROOF", track: "Harness", title: "Proof", status: "parked", size: "L", summary: "", done: "", parkedReason: "external proof" },
+    ],
+  }, null, 2), "utf8");
+  return root;
+}
+
 async function parkedStrategyWorkspace(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), "vanta-roadmap-cmd-"));
   roots.push(root);
@@ -216,6 +229,16 @@ describe("runRoadmapCommand status", () => {
     vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
     const code = await runRoadmapCommand(root, ["status", "--open", "--json"]);
     const out = JSON.parse(lines.join("\n")) as Array<{ id: string; parkedReason?: string; actionable: boolean; blockedByOpenIds: string[] }>;
+    expect(code).toBe(1);
+    expect(out).toEqual([{ id: "PROOF", title: "Proof", status: "parked", parkedReason: "external proof", blockedByOpenIds: [], actionable: true }]);
+  });
+
+  it("filters open work to actionable cards", async () => {
+    const root = await actionableWorkspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    const code = await runRoadmapCommand(root, ["status", "--open", "--actionable", "--json"]);
+    const out = JSON.parse(lines.join("\n")) as Array<{ id: string; actionable: boolean }>;
     expect(code).toBe(1);
     expect(out).toEqual([{ id: "PROOF", title: "Proof", status: "parked", parkedReason: "external proof", blockedByOpenIds: [], actionable: true }]);
   });
