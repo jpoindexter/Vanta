@@ -62,6 +62,7 @@ import { twitterReadTool } from "./twitter-read.js";
 import { youtubeReadTool } from "./youtube.js";
 import { githubReadTool } from "./github-read.js";
 import { podcastReadTool } from "./podcast.js";
+import { v2exReadTool } from "./v2ex-read.js";
 import { runCodeTool } from "./run-code.js";
 import { maximizerTool } from "./maximizer.js";
 import {
@@ -211,6 +212,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   youtubeReadTool,
   githubReadTool,
   podcastReadTool,
+  v2exReadTool,
   runCodeTool,
   maximizerTool,
   lspDiagnosticsTool,

@@ -8,8 +8,9 @@ import { linkedinChannel } from "./channels/linkedin.js";
 import { youtubeChannel } from "./channels/youtube.js";
 import { githubChannel } from "./channels/github.js";
 import { podcastChannel } from "./channels/podcast.js";
+import { v2exChannel } from "./channels/v2ex.js";
 
-// Order: most-specific URL matchers first (youtube/github/podcast/rss/reddit/twitter/linkedin)
+// Order: most-specific URL matchers first (youtube/github/podcast/rss/reddit/twitter/linkedin/v2ex)
 // so a YouTube link routes to youtube, not the generic web reader.
 export const REACH_CHANNELS: ReachChannel[] = [
   youtubeChannel,
@@ -19,6 +20,7 @@ export const REACH_CHANNELS: ReachChannel[] = [
   redditChannel,
   twitterChannel,
   linkedinChannel,
+  v2exChannel,
   webChannel,
   searchChannel,
 ];

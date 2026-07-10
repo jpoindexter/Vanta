@@ -12049,16 +12049,17 @@
       "id": "REACH-V2EX",
       "track": "Harness",
       "title": "V2EX channel — hot/node threads + replies (zero-config)",
-      "status": "parked",
+      "status": "shipped",
       "size": "S",
-      "summary": "From Agent-Reach v2ex.py: zero-config read of V2EX hot posts, node posts, thread detail + replies, user info (public API, no auth). Cheap pure-TS channel (native fetch + parse). Niche for Jason but zero-config, so low-cost to add for dev-community signal.",
-      "done": "A v2ex reach path reads hot/node threads + a thread's detail and replies via the public API; errors-as-values; tested with an inline fixture.",
+      "summary": "Zero-config V2EX reach channel is live: Vanta can read hot topics, latest topics, node topics, topic details, replies, and member profiles through the public JSON API using native fetch.",
+      "done": "`v2ex_read` supports hot/latest/node/topic/replies/member; `/reach`/reach doctor reports v2ex as a zero-config public JSON channel; mocked tests cover parsing and errors; live smoke reads V2EX hot and python node topics.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "reach",
-      "updated": "2026-06-15"
+      "updated": "2026-07-10",
+      "notes": "SHIPPED 2026-07-10: added reach/channels/v2ex.ts, reach/v2ex.ts, and tools/v2ex-read.ts. Registered v2ex in REACH_CHANNELS before generic web and registered v2ex_read in ALL_TOOLS. Public API paths used: /api/topics/hot.json, /api/topics/latest.json, /api/topics/show.json, /api/replies/show.json, /api/members/show.json. Focused proof: npx vitest run src/tools/v2ex-read.test.ts src/reach/channels/v2ex.test.ts src/reach/reach.test.ts src/tools/reach-tool.test.ts src/tools/tools.test.ts (71 passed). Typecheck passed. Live proof: v2ex_read hot limit 2 returned two live V2EX topics; v2ex_read node python limit 1 returned a live python node topic."
     },
     {
       "id": "REACH-BILIBILI",

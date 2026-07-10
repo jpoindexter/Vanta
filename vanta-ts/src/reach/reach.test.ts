@@ -54,6 +54,7 @@ describe("checkAll + formatDoctor", () => {
       "rss",
       "search",
       "twitter",
+      "v2ex",
       "web",
       "youtube",
     ]);
@@ -69,6 +70,7 @@ describe("checkAll + formatDoctor", () => {
     expect(resolveChannel("https://www.reddit.com/r/rust/comments/abc")?.name).toBe("reddit");
     expect(resolveChannel("https://x.com/foo/status/123")?.name).toBe("twitter");
     expect(resolveChannel("https://www.linkedin.com/in/someone")?.name).toBe("linkedin");
+    expect(resolveChannel("https://www.v2ex.com/t/1")?.name).toBe("v2ex");
     expect(resolveChannel("https://example.com")?.name).toBe("web");
   });
 
