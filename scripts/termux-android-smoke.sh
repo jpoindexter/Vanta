@@ -29,6 +29,7 @@ export PREFIX="$TERMUX_PREFIX"
 export PATH="$TERMUX_PREFIX/bin"
 export TMPDIR="$TERMUX_PREFIX/tmp"
 export SHELL="$TERMUX_PREFIX/bin/bash"
+export LD_PRELOAD="$TERMUX_PREFIX/lib/libtermux-exec.so"
 export TERMUX_VERSION="$TERMUX_VERSION"
 export DEBIAN_FRONTEND=noninteractive
 cd "$TERMUX_HOME"
@@ -42,7 +43,8 @@ HEADER
     "run-as $TERMUX_PACKAGE cp $remote_tmp $remote" </dev/null
   adb shell "rm -f $remote_tmp" </dev/null
   timeout -k 10s "$timeout_duration" adb shell \
-    "run-as $TERMUX_PACKAGE $TERMUX_PREFIX/bin/bash $remote" </dev/null
+    "run-as $TERMUX_PACKAGE $TERMUX_PREFIX/bin/env LD_PRELOAD=$TERMUX_PREFIX/lib/libtermux-exec.so $TERMUX_PREFIX/bin/bash $remote" \
+    </dev/null
   echo "TERMUX_PHASE_${TERMUX_STEP}_OK"
 }
 
@@ -78,6 +80,7 @@ fi
 termux_run '
 pkg update -y
 pkg install -y git nodejs-lts rust python make clang pkg-config
+test -f "$PREFIX/lib/libtermux-exec.so"
 echo "TERMUX_TOOLCHAIN_OK node=$(node --version) rust=$(rustc --version) arch=$(uname -m) platform=$(node -p process.platform)"
 '
 
