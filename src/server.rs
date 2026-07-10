@@ -266,11 +266,17 @@ fn respond_result(stream: &mut TcpStream, result: Result<String, String>) -> Res
     }
 }
 
+fn content_length(head: &str) -> Option<usize> {
+    head.lines().find_map(|line| {
+        let (name, value) = line.split_once(':')?;
+        name.eq_ignore_ascii_case("content-length")
+            .then(|| value.trim().parse::<usize>().ok())
+            .flatten()
+    })
+}
+
 fn read_body(stream: &mut TcpStream, head: &str, first_body: &str) -> Result<String, String> {
-    let wanted = head
-        .lines()
-        .find_map(|line| line.strip_prefix("Content-Length: "))
-        .and_then(|n| n.trim().parse::<usize>().ok())
+    let wanted = content_length(head)
         .unwrap_or(first_body.len())
         .min(MAX_BODY); // clamp (don't error → don't kill the loop) so a huge declared length can't OOM us
     let mut body = first_body.as_bytes().to_vec();
@@ -359,7 +365,13 @@ fn poll_oauth_code(state: &app::State) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{api_auth, cross_origin, request_path, ApiAuth};
+    use super::{api_auth, content_length, cross_origin, request_path, ApiAuth};
+
+    #[test]
+    fn content_length_is_ascii_case_insensitive() {
+        assert_eq!(content_length("POST /api/log HTTP/1.1\r\ncontent-length: 100000\r\n"), Some(100000));
+        assert_eq!(content_length("POST /api/log HTTP/1.1\r\nCoNtEnT-LeNgTh: 42\r\n"), Some(42));
+    }
 
     #[test]
     fn api_auth_enforces_token_and_origin() {
