@@ -23,7 +23,7 @@ const USAGE_LINES = [
       "       vanta egress [status|plan]        show Docker/network egress isolation posture",
       "       vanta billing [status|json]      show fail-open provider billing + estimated spend",
       "       vanta osint plan <subject> [--domain <domain> --ticker <ticker>]   public-records investigation plan",
-      "       vanta autonomy [show|init|pending|decide]   acts-alone / queues / wakes-me contract",
+      "       vanta autonomy [show|init|pending|resolve|decide]   acts-alone / queues / wakes-me contract",
       "       vanta proactive [status|run|verify <loop-id>|silence <minutes|off>]   earn and use per-loop autonomy",
       "       vanta api serve [port] | api token [create|list|revoke]   versioned HTTP API + bearer tokens",
       "       vanta --init | --init-only | --maintenance   run lifecycle bootstrap hooks",

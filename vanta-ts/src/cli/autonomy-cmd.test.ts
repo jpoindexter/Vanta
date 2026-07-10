@@ -74,6 +74,10 @@ describe("runAutonomyCommand", () => {
       expect(pending.output).toContain("wakes-me");
       expect(pending.output).toContain("shell.mutate:default");
       expect(pending.output).toContain("delete project files");
+
+      const resolved = await capture(() => runAutonomyCommand(root, ["resolve", "shell.mutate:default", "reviewed", "and", "declined"]));
+      expect(resolved).toMatchObject({ code: 0, output: "resolved shell.mutate:default: reviewed and declined" });
+      expect((await capture(() => runAutonomyCommand(root, ["pending"]))).output).toContain("- none");
     } finally {
       await rm(root, { recursive: true, force: true });
     }

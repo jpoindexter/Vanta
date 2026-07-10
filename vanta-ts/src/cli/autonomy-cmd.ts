@@ -7,7 +7,7 @@ import {
   writeDefaultAutonomyContract,
   type AutonomyAction,
 } from "../autonomy/contract.js";
-import { formatPendingAutonomy, loadPendingAutonomy, surfaceAutonomyDecision, type AutonomySurfaceDeps } from "../autonomy/surface.js";
+import { formatPendingAutonomy, loadPendingAutonomy, resolvePendingAutonomy, surfaceAutonomyDecision, type AutonomySurfaceDeps } from "../autonomy/surface.js";
 import {
   applyTrustGate,
   formatTrustLedger,
@@ -32,10 +32,27 @@ export async function runAutonomyCommand(repoRoot: string, rest: string[] = [], 
     console.log(formatPendingAutonomy(await loadPendingAutonomy(dataDir)));
     return 0;
   }
+  if (sub === "resolve") return runResolve(dataDir, rest.slice(1));
   if (sub === "trust") return runTrust(dataDir, rest.slice(1));
   if (sub === "decide") return runDecide(dataDir, rest.slice(1), deps);
-  console.error("usage: vanta autonomy [show|init|pending|trust|decide <kind> <low|medium|high> <summary>]");
+  console.error("usage: vanta autonomy [show|init|pending|resolve <key> <note>|trust|decide <kind> <low|medium|high> <summary>]");
   return 1;
+}
+
+async function runResolve(dataDir: string, rest: string[]): Promise<number> {
+  const [key, ...noteParts] = rest;
+  const note = noteParts.join(" ").trim();
+  if (!key || !note) {
+    console.error("usage: vanta autonomy resolve <key> <note>");
+    return 1;
+  }
+  const resolution = await resolvePendingAutonomy(dataDir, key, note);
+  if (!resolution) {
+    console.error(`pending autonomy decision not found: ${key}`);
+    return 1;
+  }
+  console.log(`resolved ${resolution.key}: ${resolution.note}`);
+  return 0;
 }
 
 async function runDecide(dataDir: string, rest: string[], deps: AutonomySurfaceDeps): Promise<number> {

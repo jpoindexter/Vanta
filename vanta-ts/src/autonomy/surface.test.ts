@@ -3,7 +3,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { decideAutonomy, DEFAULT_AUTONOMY_CONTRACT } from "./contract.js";
-import { formatPendingAutonomy, loadPendingAutonomy, surfaceAutonomyDecision } from "./surface.js";
+import { formatPendingAutonomy, loadPendingAutonomy, resolvePendingAutonomy, surfaceAutonomyDecision } from "./surface.js";
 
 describe("autonomy operator surface", () => {
   it("persists queued decisions and clears them after the same workflow earns auto", async () => {
@@ -34,6 +34,22 @@ describe("autonomy operator surface", () => {
         notificationType: "autonomy_wake",
       }));
       expect((await loadPendingAutonomy(dir))[0]?.lane).toBe("wakes-me");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("resolves a pending decision with a note and reopens on a later decision", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "vanta-autonomy-surface-"));
+    const queued = decideAutonomy(DEFAULT_AUTONOMY_CONTRACT, { kind: "watch.repo", source: "repo-a", summary: "review repo", risk: "medium" });
+    try {
+      await surfaceAutonomyDecision(dir, queued, { now: () => new Date("2026-07-10T10:00:00Z") });
+      expect(await resolvePendingAutonomy(dir, "watch.repo:repo-a", "reviewed manually", () => new Date("2026-07-10T10:30:00Z"))).toMatchObject({ note: "reviewed manually" });
+      expect(await loadPendingAutonomy(dir)).toEqual([]);
+      expect(await resolvePendingAutonomy(dir, "watch.repo:repo-a", "already gone")).toBeNull();
+
+      await surfaceAutonomyDecision(dir, queued, { now: () => new Date("2026-07-10T11:00:00Z") });
+      expect(await loadPendingAutonomy(dir)).toHaveLength(1);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

@@ -5,7 +5,7 @@ import {
   loadAutonomyContract,
   type AutonomyAction,
 } from "../autonomy/contract.js";
-import { formatPendingAutonomy, loadPendingAutonomy, surfaceAutonomyDecision } from "../autonomy/surface.js";
+import { formatPendingAutonomy, loadPendingAutonomy, resolvePendingAutonomy, surfaceAutonomyDecision } from "../autonomy/surface.js";
 import {
   applyTrustGate,
   formatTrustLedger,
@@ -21,8 +21,19 @@ export const autonomy: SlashHandler = async (arg, ctx) => {
   if (rest[0] === "trust") return runTrust(rest.slice(1), ctx);
   if (rest[0] === "decide") return runDecide(rest.slice(1), ctx);
   if (rest[0] === "pending") return { output: formatPendingAutonomy(await loadPendingAutonomy(ctx.dataDir)) };
+  if (rest[0] === "resolve") return resolveDecision(rest.slice(1), ctx);
   return { output: formatAutonomyContract(await loadAutonomyContract(ctx.dataDir)) };
 };
+
+async function resolveDecision(rest: string[], ctx: ReplCtx): Promise<SlashResult> {
+  const [key, ...noteParts] = rest;
+  const note = noteParts.join(" ").trim();
+  if (!key || !note) return { output: "  usage: /autonomy resolve <key> <note>" };
+  const resolution = await resolvePendingAutonomy(ctx.dataDir, key, note, ctx.now);
+  return resolution
+    ? { output: `  resolved ${resolution.key}: ${resolution.note}` }
+    : { output: `  pending autonomy decision not found: ${key}` };
+}
 
 async function runTrust(rest: string[], ctx: ReplCtx): Promise<SlashResult> {
   const sub = rest[0] ?? "show";

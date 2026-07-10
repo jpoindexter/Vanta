@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { appendFile, readFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { z } from "zod";
 import { notifyAndWait, type NotifyOpts } from "../term/notify.js";
@@ -29,6 +29,13 @@ const AutonomyDecisionLogSchema = z.object({
   trust: TrustLogSchema.optional(),
 });
 
+const AutonomyResolutionLogSchema = z.object({
+  createdAt: z.string(),
+  event: z.literal("autonomy-resolution"),
+  key: z.string().min(1),
+  note: z.string().min(1),
+});
+
 export type AutonomySurfaceDeps = {
   notify?: (opts: NotifyOpts) => void | Promise<void>;
   now?: () => Date;
@@ -36,6 +43,7 @@ export type AutonomySurfaceDeps = {
 };
 
 export type PendingAutonomyDecision = z.infer<typeof AutonomyDecisionLogSchema>;
+export type AutonomyResolution = z.infer<typeof AutonomyResolutionLogSchema>;
 
 export function autonomyDecisionKey(decision: Pick<AutonomyDecision, "action">): string {
   return `${decision.action.kind}:${decision.action.source ?? "default"}`;
@@ -71,6 +79,11 @@ export async function loadPendingAutonomy(dataDir: string): Promise<PendingAuton
     let json: unknown;
     try { json = JSON.parse(line); }
     catch { continue; }
+    const resolution = AutonomyResolutionLogSchema.safeParse(json);
+    if (resolution.success) {
+      latest.delete(resolution.data.key);
+      continue;
+    }
     const parsed = AutonomyDecisionLogSchema.safeParse(json);
     if (!parsed.success) continue;
     latest.set(autonomyDecisionKey(parsed.data), parsed.data);
@@ -78,6 +91,28 @@ export async function loadPendingAutonomy(dataDir: string): Promise<PendingAuton
   return [...latest.values()]
     .filter((entry) => entry.lane !== "acts-alone")
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+/** Resolve one visible item with an audit note. A later decision reopens it. */
+export async function resolvePendingAutonomy(
+  dataDir: string,
+  key: string,
+  note: string,
+  now: () => Date = () => new Date(),
+): Promise<AutonomyResolution | null> {
+  const cleanKey = key.trim();
+  const cleanNote = note.trim();
+  if (!cleanKey || !cleanNote) return null;
+  const pending = await loadPendingAutonomy(dataDir);
+  if (!pending.some((entry) => autonomyDecisionKey(entry) === cleanKey)) return null;
+  const resolution = AutonomyResolutionLogSchema.parse({
+    createdAt: now().toISOString(),
+    event: "autonomy-resolution",
+    key: cleanKey,
+    note: cleanNote,
+  });
+  await appendFile(autonomyLogPath(dataDir), `${JSON.stringify(resolution)}\n`, "utf8");
+  return resolution;
 }
 
 export function formatPendingAutonomy(entries: PendingAutonomyDecision[]): string {
