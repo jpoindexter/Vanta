@@ -133,6 +133,8 @@ export const FILTER_JS = `(function(){
 var cards=document.querySelectorAll('.card');
 var tgs=document.querySelectorAll('.tg');
 var cols=document.querySelectorAll('.col');
+var parkedGroups=document.querySelectorAll('.parked-group');
+var parkedSections=document.querySelectorAll('.parked-section');
 var activeTrack='all';
 var activeSize='all';
 var activeModel='all';
@@ -154,6 +156,14 @@ t.style.display=vis?'':'none';
 cols.forEach(function(c){
 var vis=[].some.call(c.querySelectorAll('.tg'),function(t){return t.style.display!=='none';});
 c.style.display=vis?'':'none';
+});
+parkedGroups.forEach(function(g){
+var vis=[].some.call(g.querySelectorAll('.card'),function(c){return !c.classList.contains('hidden');});
+g.style.display=vis?'':'none';
+});
+parkedSections.forEach(function(s){
+var vis=[].some.call(s.querySelectorAll('.parked-group'),function(g){return g.style.display!=='none';});
+s.style.display=vis?'':'none';
 });
 }
 document.getElementById('lens-filter').addEventListener('change',function(){activeLens=this.value;applyFilters();});

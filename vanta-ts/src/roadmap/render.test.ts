@@ -157,6 +157,19 @@ describe("renderRoadmap", () => {
     expect(html).toContain('data-parked-reason="external proof"');
   });
 
+  it("generated filters hide empty parked groups", () => {
+    const html = renderRoadmap({
+      updated: "2026-07-10",
+      items: [
+        ...fixture.items,
+        { id: "PX", track: "Core", title: "Needs external proof", status: "parked", size: "S", summary: "x", done: "y", parkedReason: "external proof" },
+      ],
+    });
+    expect(html).toContain("var parkedGroups=document.querySelectorAll('.parked-group');");
+    expect(html).toContain("g.style.display=vis?'':'none';");
+    expect(html).toContain("var vis=[].some.call(s.querySelectorAll('.parked-group')");
+  });
+
   it("omits the parked section when no cards are parked", () => {
     const html = renderRoadmap(fixture);
     expect(html).not.toContain("Parked (");
