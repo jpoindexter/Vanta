@@ -1,6 +1,6 @@
 import type { RoadmapItem } from "./schema.js";
 
-type UnblockPlan = {
+export type UnblockPlan = {
   id: string;
   title: string;
   status: RoadmapItem["status"];

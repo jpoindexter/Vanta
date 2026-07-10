@@ -58,6 +58,17 @@ describe("runRoadmapCommand unblock", () => {
     expect(out).toContain("PCLIP-MULTI-COMPANY");
     expect(out).not.toContain("BACKEND-SERVERLESS-LIVE");
   });
+
+  it("prints unblock plans as json when requested", async () => {
+    const root = await workspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    await runRoadmapCommand(root, ["unblock", "BACKEND-SERVERLESS-LIVE", "--json"]);
+    const plans = JSON.parse(lines.join("\n")) as Array<{ id: string; actions: string[] }>;
+    expect(plans).toHaveLength(1);
+    expect(plans[0]?.id).toBe("BACKEND-SERVERLESS-LIVE");
+    expect(plans[0]?.actions.join("\n")).toContain("vanta backend gateway deploy");
+  });
 });
 
 describe("runRoadmapCommand status", () => {

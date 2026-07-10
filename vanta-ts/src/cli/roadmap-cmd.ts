@@ -61,7 +61,8 @@ async function handleRoadmapUnblock(repoRoot: string, args: string[]): Promise<v
   const raw = await readFile(join(repoRoot, "roadmap.json"), "utf8");
   const data = RoadmapSchema.parse(JSON.parse(raw));
   const ids = args.slice(1).filter((arg) => !arg.startsWith("--"));
-  console.log(formatUnblockPlans(buildUnblockPlans(data.items, ids)));
+  const plans = buildUnblockPlans(data.items, ids);
+  console.log(args.includes("--json") ? JSON.stringify(plans, null, 2) : formatUnblockPlans(plans));
 }
 
 async function handleRoadmapStatus(repoRoot: string, args: string[]): Promise<number> {
