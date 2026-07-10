@@ -15056,17 +15056,18 @@
       "id": "HARNESS-STREAM-EVENTS",
       "track": "Harness",
       "title": "Typed gateway stream-event vocabulary (transport vs context)",
-      "status": "building",
+      "status": "shipped",
       "size": "L",
-      "summary": "If Vanta ever adds live streamed gateway delivery, model it as typed platform-agnostic events (MessageChunk/MessageStop/Commentary) consumed by a single sink that decides per-platform delivery — with the invariant that what the gateway 'eats' never diverges from stored history. Deferred: current non-streaming reply model has no racing problem.",
-      "done": "Captured as the target shape for streamed gateway delivery; not built while replies are non-streaming.",
+      "summary": "Gateway delivery uses typed platform-agnostic MessageChunk, Commentary, and MessageStop events. One sink keeps chunks/commentary transient and makes the canonical stop the only delivered and reply-context-recorded text, preventing transport/history races.",
+      "done": "The real gateway runner emits typed MessageChunk and Commentary events into one sink; MessageStop is delivered exactly once and recorded identically. Divergent streamed drafts fail closed to the canonical stop, with automated and live provider/kernel proof.",
       "tier": "rock",
       "model": "opus",
       "effort": "high",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-10",
+      "source": "ref-audit-2026-06-20",
+      "notes": "SHIPPED 2026-07-10: buildCronRunTask now exposes per-run typed callbacks; buildGatewayHandle maps provider deltas and agent activity to MessageChunk/Commentary; run-session routes both through createGatewayStreamSink and delivers only MessageStop. Commentary never enters delivery or reply context. If accumulated chunks differ from the canonical final reply, the sink logs drift and sends/stores only the canonical stop.\n\nEXECUTED 2026-07-10: a configured provider/kernel gateway turn emitted 5 MessageChunk events, delivered GATEWAY_STREAM_OK exactly once, and stored the identical text under the outbound reply id. Focused sink tests cover exact, commentary, and divergent-draft cases. Final full suite: 1184 files, 12401 passed, 3 skipped."
     },
     {
       "id": "HARNESS-CRON-SCALE-ZERO",

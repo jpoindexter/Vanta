@@ -13,7 +13,6 @@ import { tickLoops } from "./loops-tick.js";
 import type { RunTask } from "../schedule/runner.js";
 import type { CronEntry } from "../schedule/cron.js";
 import type { PlatformAdapter } from "./platforms/base.js";
-import type { ImageAttachment } from "../types.js";
 import type { MediaBridgeDeps } from "./media.js";
 import type { ProgressBubbleConfig } from "./progress-bubble.js";
 import { spawnLoopChild, spawnFactoryChild, startWebhookIfConfigured } from "./child-ops.js";
@@ -32,6 +31,7 @@ import { runWatchdog, resolveWatchdogConfig } from "../liveness/watchdog.js";
 import { maybeAutoTune } from "../meta-tune/auto-tune.js";
 import type { WakeContext } from "../loop/types.js";
 import { loadDef } from "../loop/store.js";
+import type { GatewayHandle } from "./stream-events.js";
 
 const DEFAULT_TICK_MS = 60_000;
 
@@ -43,7 +43,7 @@ export type GatewayDeps = {
   log?: (msg: string) => void;
   load?: (dataDir: string) => Promise<CronEntry[]>;
   platform?: PlatformAdapter;
-  handle?: (text: string, images?: ImageAttachment[]) => Promise<string>;
+  handle?: GatewayHandle;
   media?: MediaBridgeDeps; // MSG-MEDIA-IMAGES: inbound image→vision, voice→STT
   progressBubble?: ProgressBubbleConfig;
   spawnLoop?: (id: string, wake: WakeContext) => void;

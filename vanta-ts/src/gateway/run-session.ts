@@ -1,5 +1,4 @@
 import type { PlatformAdapter, InboundMessage, OutboundMessage } from "./platforms/base.js";
-import type { ImageAttachment } from "../types.js";
 import { resolveInbound, type MediaBridgeDeps } from "./media.js";
 import {
   classifyInbound,
@@ -20,6 +19,7 @@ import { pollPlatform } from "./child-ops.js";
 import type { GatewayDeps } from "./run.js";
 import { finishMobileRun, handleMobileControlCommand, startMobileRun } from "./mobile-control.js";
 import { progressBubbleForPlatform, type ProgressBubbleConfig } from "./progress-bubble.js";
+import { createGatewayStreamSink, type GatewayHandle } from "./stream-events.js";
 
 function firstLine(text: string): string {
   const line = text.split("\n")[0] ?? "";
@@ -29,7 +29,7 @@ function firstLine(text: string): string {
 type SessionRun = {
   dataDir: string;
   platform: PlatformAdapter;
-  handle: (text: string, images?: ImageAttachment[]) => Promise<string>;
+  handle: GatewayHandle;
   media?: MediaBridgeDeps;
   log: (msg: string) => void;
   /** Reply-context store deps; absent → sent replies aren't recorded. */
@@ -67,18 +67,23 @@ async function runOne(ctx: SessionRun, m: InboundMessage): Promise<void> {
   // inbound pipeline produced one; otherwise the raw text (unchanged behavior).
   const { forAgent, images } = await resolveInbound(m, ctx.media ?? {}); // MSG-MEDIA-IMAGES
   const cancelProgress = scheduleProgressBubble(ctx, m);
+  const sink = createGatewayStreamSink({
+    platform: ctx.platform,
+    target: { chatId: m.chatId, threadId: m.threadId },
+    record: (message) => recordReply(ctx, message),
+    log: ctx.log,
+  });
   let reply: string;
-  try { reply = await ctx.handle(forAgent, images); }
+  try { reply = await ctx.handle(forAgent, images, (event) => { void sink.emit(event); }); }
   catch (err) { reply = `error: ${err instanceof Error ? err.message : String(err)}`; }
   finally { cancelProgress(); }
   if (mobileRun) await finishMobileRun(ctx.dataDir, mobileRun.id, reply).catch(() => {});
   // MSG-NO-REPLY-TOKEN: an exact whole-response silence marker suppresses delivery
   // (group/channel surfaces); prose mentioning the marker still sends.
   if (isIntentionalSilence(reply)) { ctx.log(`  🤫 silence (${reply.trim()}): no reply sent`); return; }
-  // MSG-TELEGRAM-ROBUST: a forum-topic inbound routes the reply back to its topic.
-  const out: OutboundMessage = { chatId: m.chatId, threadId: m.threadId, text: reply };
-  await ctx.platform.send(out);
-  await recordReply(ctx, out);
+  // MessageStop is the only deliverable/history-bearing event. Buffered chunks
+  // and commentary are transient, so platform text and reply context cannot race.
+  await sink.emit({ type: "MessageStop", text: reply });
 }
 
 /** Route one enriched inbound message: run now, queue, or surface the command. */

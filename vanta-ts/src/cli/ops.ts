@@ -1,6 +1,5 @@
 import { join } from "node:path";
 import { runAgent } from "../agent.js";
-import type { ImageAttachment } from "../types.js";
 import { buildMediaBridgeDeps } from "../gateway/media-deps.js";
 import { runGateway } from "../gateway/run.js";
 import type { PlatformAdapter } from "../gateway/platforms/base.js";
@@ -14,6 +13,7 @@ import { withWakeContext, wakeContextFromEnv } from "../loop/wake.js";
 import { estimateCostUsd } from "../pricing.js";
 import { enforceScopeBudget, scopeForLoop } from "../budget/enforce.js";
 import { recordTurnSpend } from "../cost/ledger.js";
+import { buildGatewayHandle } from "./gateway-stream.js";
 
 // Operational subcommands (gateway / service / mcp / factory + the
 // non-interactive cron task). Extracted from cli.ts to keep each file <300.
@@ -58,7 +58,7 @@ export function buildCronRunTask(
   repoRoot: string,
   opts: { requestApproval?: (action: string, reason: string, toolName?: string) => Promise<boolean> } = {},
 ): RunTask {
-  return async (instruction, wake, images) => {
+  return async (instruction, wake, images, callbacks) => {
     const prompt = withWakeContext(instruction, wake);
     const setup = await prepareRun(repoRoot, prompt);
     const outcome = await runAgent(setup.systemPrompt, prompt, {
@@ -69,6 +69,7 @@ export function buildCronRunTask(
       requestApproval: opts.requestApproval ?? (async () => false),
       maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
       summarize: buildSummarizer(setup.provider),
+      ...callbacks,
     }, images); // MSG-MEDIA-IMAGES: inbound images reach the agent's vision
     await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction: prompt, finalText: outcome.finalText });
     // Budget hard-stop: attribute this run's cost to its scope (a loop when run
@@ -145,8 +146,7 @@ export async function runGatewayCommand(repoRoot: string, rest: string[] = []): 
 
   const { replyBus, requestApproval } = await buildGatewayApprover(platform);
   const runTask = buildCronRunTask(repoRoot, { requestApproval });
-  const handle = async (text: string, images?: ImageAttachment[]): Promise<string> =>
-    (await runTask(text, undefined, images)).finalText;
+  const handle = buildGatewayHandle(runTask);
 
   const port = Number(process.env.VANTA_WEBHOOK_PORT);
   const webhook = port
