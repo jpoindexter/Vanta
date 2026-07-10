@@ -80,7 +80,7 @@ describe("wrapExec", () => {
         baseCmd: "sh",
         baseArgs: ["-c", "echo hi"],
       },
-      { serverlessCliAvailable: async () => true },
+      { serverlessCliStatus: async () => ({ ok: true }) },
     );
     if ("error" in r) throw new Error("unexpected refuse");
     expect(r.cmd).toBe("modal");
@@ -104,7 +104,7 @@ describe("wrapExec", () => {
         baseCmd: "echo",
         baseArgs: ["local"],
       },
-      { serverlessCliAvailable: async () => false },
+      { serverlessCliStatus: async () => ({ ok: false, reason: "daytona CLI unavailable" }) },
     );
     expect(r).toEqual({
       error: expect.stringMatching(/daytona CLI unavailable.*Refusing to run locally/),
@@ -112,7 +112,7 @@ describe("wrapExec", () => {
   });
 
   it("does not probe a remote CLI when its config is invalid", async () => {
-    const probe = vi.fn(async () => true);
+    const probe = vi.fn(async () => ({ ok: true as const }));
     const r = await wrapExec(
       {
         env: { VANTA_EXEC_BACKEND: "serverless", VANTA_SERVERLESS_PROVIDER: "invalid" } as NodeJS.ProcessEnv,
@@ -120,7 +120,7 @@ describe("wrapExec", () => {
         baseCmd: "echo",
         baseArgs: ["fallback"],
       },
-      { serverlessCliAvailable: probe },
+      { serverlessCliStatus: probe },
     );
     expect(probe).not.toHaveBeenCalled();
     expect(r).toEqual({

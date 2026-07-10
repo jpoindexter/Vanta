@@ -3,6 +3,8 @@
 Vanta can run `shell_cmd` and `run_code` in a Modal Sandbox selected through the
 execution-backend port. Local execution remains the default. Remote execution is
 explicit and fails closed when the provider CLI or configuration is unavailable.
+For Modal, Vanta also checks `modal token info` before constructing the remote
+invocation and reports `modal token new --verify` when authentication is missing.
 
 ## Modal setup
 

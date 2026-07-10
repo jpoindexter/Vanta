@@ -13,26 +13,45 @@ import {
 const run = promisify(execFile);
 const MODAL_HELPER = fileURLToPath(new URL("./modal-sandbox.py", import.meta.url));
 
-export async function serverlessCliAvailable(provider: ServerlessProvider): Promise<boolean> {
+export type ServerlessCliStatus = { ok: true } | { ok: false; reason: string };
+export type ServerlessCliRunner = (
+  command: string,
+  args: string[],
+  options: { timeout: number },
+) => Promise<unknown>;
+
+export async function serverlessCliStatus(
+  provider: ServerlessProvider,
+  exec: ServerlessCliRunner = run,
+): Promise<ServerlessCliStatus> {
+  const cli = SERVERLESS_CLI[provider];
   try {
-    await run(SERVERLESS_CLI[provider], ["--version"], { timeout: 5000 });
-    return true;
+    await exec(cli, ["--version"], { timeout: 5000 });
   } catch {
-    return false;
+    return { ok: false, reason: `${cli} CLI unavailable` };
+  }
+  if (provider !== "modal") return { ok: true };
+  try {
+    await exec(cli, ["token", "info"], { timeout: 5000 });
+    return { ok: true };
+  } catch {
+    return {
+      ok: false,
+      reason: "Modal CLI is installed but not authenticated; run `modal token new --verify`",
+    };
   }
 }
 
 export function createServerlessExecAdapter(
-  available: (provider: ServerlessProvider) => Promise<boolean> = serverlessCliAvailable,
+  status: (provider: ServerlessProvider) => Promise<ServerlessCliStatus> = serverlessCliStatus,
 ): ExecBackendAdapter {
   return {
     id: "serverless",
     async wrap(args) {
       const resolved = resolveServerlessConfig(args.env);
       if (!resolved.ok) return { ok: false, reason: resolved.reason };
-      if (!(await available(resolved.config.provider))) {
-        return { ok: false, reason: `${SERVERLESS_CLI[resolved.config.provider]} CLI unavailable` };
-      }
+      const readiness = await status(resolved.config.provider);
+      if (!readiness.ok) return readiness;
       return {
         ok: true,
         invocation: {

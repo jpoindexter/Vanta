@@ -1,7 +1,11 @@
 import type { MaybeSandboxArgs, MaybeSandboxResult } from "../sandbox/run.js";
 import { createDockerExecAdapter, dockerAvailable } from "./adapters/docker.js";
 import { createLocalExecAdapter } from "./adapters/local.js";
-import { createServerlessExecAdapter, serverlessCliAvailable } from "./adapters/serverless.js";
+import {
+  createServerlessExecAdapter,
+  serverlessCliStatus,
+  type ServerlessCliStatus,
+} from "./adapters/serverless.js";
 import type { ExecBackend, ExecBackendAdapter } from "./backend-port.js";
 import type { ServerlessProvider } from "./serverless.js";
 
@@ -15,7 +19,7 @@ export type { ExecBackend, ExecBackendAdapter, ExecBackendResult } from "./backe
 
 export type ExecDeps = {
   dockerAvailable?: () => Promise<boolean>;
-  serverlessCliAvailable?: (provider: ServerlessProvider) => Promise<boolean>;
+  serverlessCliStatus?: (provider: ServerlessProvider) => Promise<ServerlessCliStatus>;
   adapters?: Partial<Record<ExecBackend, ExecBackendAdapter>>;
 };
 
@@ -35,7 +39,7 @@ export function resolveExecBackendAdapter(
     local,
     docker: deps.adapters?.docker ?? createDockerExecAdapter(deps.dockerAvailable ?? dockerAvailable),
     serverless: deps.adapters?.serverless
-      ?? createServerlessExecAdapter(deps.serverlessCliAvailable ?? serverlessCliAvailable),
+      ?? createServerlessExecAdapter(deps.serverlessCliStatus ?? serverlessCliStatus),
   };
   return { selected: registry[resolveExecBackend(env)], local };
 }
