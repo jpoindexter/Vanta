@@ -65,6 +65,23 @@ describe("MultiChannelAdapter", () => {
     expect(slackSent).toEqual([]);
   });
 
+  it("propagates a child's positive delivery receipt through supervision", async () => {
+    const child: PlatformAdapter = {
+      id: "teams",
+      connect: async () => {},
+      disconnect: async () => {},
+      poll: async () => [],
+      send: async () => ({ platform: "teams", transport: "bot-connector", accepted: true, parts: 1 }),
+    };
+    const multi = new MultiChannelAdapter([child]);
+    await expect(multi.send({ chatId: "teams:C1", text: "reply" })).resolves.toEqual({
+      platform: "teams",
+      transport: "bot-connector",
+      accepted: true,
+      parts: 1,
+    });
+  });
+
   it("drops a reply with an unknown route (never throws)", async () => {
     const m = new MultiChannelAdapter([fakeAdapter("slack", [], [])]);
     await expect(m.send({ chatId: "nope:1", text: "x" })).resolves.toBeUndefined();

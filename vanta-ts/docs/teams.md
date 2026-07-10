@@ -35,6 +35,16 @@ Every inbound activity requires a Bot Framework bearer token. Vanta verifies its
 
 ```sh
 vanta gateway verify-channels
+vanta gateway channel-proofs teams
 ```
 
-The local test suite proves JWT validation and the full HTTP activity to Connector reply path with injected network boundaries. The roadmap card remains building until an Azure-hosted Teams conversation completes the same round trip with real credentials.
+`verify-channels` checks adapter readiness. `channel-proofs teams` is the stronger
+release evidence: it stays empty until an authenticated activity passes the
+allowlist, reaches the agent, and every reply part receives a successful Bot
+Connector HTTP response. Receipts contain hashes of conversation/activity ids,
+never message text or raw identifiers.
+
+The local test suite proves JWT validation and the full HTTP activity to Connector
+reply path with injected network boundaries. The roadmap card remains building
+until an Azure-hosted Teams conversation creates the same receipt with real
+credentials.

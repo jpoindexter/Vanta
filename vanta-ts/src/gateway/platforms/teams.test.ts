@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import {
   parseTeamsActivities,
   parseServiceUrls,
@@ -7,11 +7,14 @@ import {
   teamsEnabled,
   stripControl,
   TeamsAdapter,
+  httpTransport,
   type TeamsTransport,
 } from "./teams.js";
 import type { OutboundMessage } from "./base.js";
 
 const SERVICE_URL = "https://smba.trafficmanager.net/teams";
+
+afterEach(() => vi.restoreAllMocks());
 
 /** A Bot Framework message Activity from a 1:1 (personal) conversation. */
 function personalActivity(over: Record<string, unknown> = {}): Record<string, unknown> {
@@ -246,10 +249,11 @@ describe("TeamsAdapter (injected transport — no real Bot Framework API)", () =
     const adapter = new TeamsAdapter({ transport });
     await adapter.poll(); // records C_alice → SERVICE_URL
     const out: OutboundMessage = { chatId: "C_alice", text: "reply" };
-    await adapter.send(out);
+    const receipt = await adapter.send(out);
     expect(sends).toEqual([
       { serviceUrl: SERVICE_URL, conversationId: "C_alice", activity: { type: "message", text: "reply" } },
     ]);
+    expect(receipt).toEqual({ platform: "teams", transport: "bot-connector", accepted: true, parts: 1 });
   });
 
   it("drops a send (no throw) for a conversation it never saw an inbound activity for", async () => {
@@ -295,5 +299,26 @@ describe("TeamsAdapter (injected transport — no real Bot Framework API)", () =
     const adapter = new TeamsAdapter({ transport });
     await expect(adapter.connect()).resolves.toBeUndefined();
     await expect(adapter.disconnect()).resolves.toBeUndefined();
+  });
+});
+
+describe("Teams Bot Connector transport", () => {
+  it("resolves only after both token and Connector responses are successful", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ access_token: "minted", expires_in: 3600 }) })
+      .mockResolvedValueOnce({ ok: true, status: 202 });
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(httpTransport("app", "password").send(SERVICE_URL, "C1", { type: "message", text: "ok" }))
+      .resolves.toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects a non-2xx Connector response so no delivery receipt can be emitted", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ access_token: "minted", expires_in: 3600 }) })
+      .mockResolvedValueOnce({ ok: false, status: 503 });
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(httpTransport("app", "password").send(SERVICE_URL, "C1", { type: "message", text: "no" }))
+      .rejects.toThrow("Teams Connector returned HTTP 503");
   });
 });

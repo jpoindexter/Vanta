@@ -1,0 +1,37 @@
+import { join } from "node:path";
+
+async function showChannelProofs(repoRoot: string, platform?: string): Promise<void> {
+  const { readChannelProofs, formatChannelProofs } = await import("../gateway/channel-proof.js");
+  console.log(formatChannelProofs(await readChannelProofs(join(repoRoot, ".vanta")), platform));
+}
+
+async function verifyChannels(repoRoot: string, rest: string[]): Promise<void> {
+  const json = rest.includes("--json");
+  const timeoutIdx = rest.indexOf("--timeout-ms");
+  let timeoutMs: number | undefined;
+  if (timeoutIdx >= 0) {
+    const raw = rest[timeoutIdx + 1];
+    const parsed = raw ? Number(raw) : NaN;
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      console.error("usage: vanta gateway verify-channels [--json] [--timeout-ms N]");
+      return;
+    }
+    timeoutMs = parsed;
+  }
+  const { verifyMessagingChannels, formatChannelVerifyReport } = await import("../gateway/channel-verify.js");
+  const report = await verifyMessagingChannels({ dataDir: join(repoRoot, ".vanta"), timeoutMs });
+  console.log(json ? JSON.stringify(report, null, 2) : formatChannelVerifyReport(report));
+}
+
+/** Handle finite gateway utility commands. False means start the daemon. */
+export async function runGatewayUtilityCommand(repoRoot: string, rest: string[]): Promise<boolean> {
+  if (rest[0] === "channel-proofs") {
+    await showChannelProofs(repoRoot, rest[1]);
+    return true;
+  }
+  if (rest[0] === "verify-channels") {
+    await verifyChannels(repoRoot, rest);
+    return true;
+  }
+  return false;
+}

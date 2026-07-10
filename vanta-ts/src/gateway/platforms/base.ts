@@ -56,6 +56,14 @@ export type OutboundMessage = {
   image?: { mime: string; dataBase64: string };
 };
 
+/** Positive transport acknowledgement. Absence means delivery is unproven. */
+export type OutboundDeliveryReceipt = {
+  platform: string;
+  transport: string;
+  accepted: true;
+  parts: number;
+};
+
 export type PlatformWebhookRequest = {
   body: string;
   headers: Record<string, string | string[] | undefined>;
@@ -82,7 +90,7 @@ export interface PlatformAdapter {
   /** Tear down. */
   disconnect(): Promise<void>;
   /** Send one outbound message. */
-  send(msg: OutboundMessage): Promise<void>;
+  send(msg: OutboundMessage): Promise<void | OutboundDeliveryReceipt>;
   /** Fetch inbound messages received since the last poll. */
   poll(): Promise<InboundMessage[]>;
   /** Push-channel HTTP handlers, when this adapter receives webhook events. */

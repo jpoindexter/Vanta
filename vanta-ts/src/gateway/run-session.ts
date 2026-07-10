@@ -20,6 +20,7 @@ import type { GatewayDeps } from "./run.js";
 import { finishMobileRun, handleMobileControlCommand, startMobileRun } from "./mobile-control.js";
 import { progressBubbleForPlatform, type ProgressBubbleConfig } from "./progress-bubble.js";
 import { createGatewayStreamSink, type GatewayHandle } from "./stream-events.js";
+import { appendChannelProof, buildChannelProof } from "./channel-proof.js";
 
 function firstLine(text: string): string {
   const line = text.split("\n")[0] ?? "";
@@ -71,6 +72,8 @@ async function runOne(ctx: SessionRun, m: InboundMessage): Promise<void> {
     platform: ctx.platform,
     target: { chatId: m.chatId, threadId: m.threadId },
     record: (message) => recordReply(ctx, message),
+    delivered: (_message, receipt) => appendChannelProof(ctx.dataDir, buildChannelProof(m, receipt))
+      .catch((error) => ctx.log(`  channel proof failed: ${error instanceof Error ? error.message : String(error)}`)),
     log: ctx.log,
   });
   let reply: string;

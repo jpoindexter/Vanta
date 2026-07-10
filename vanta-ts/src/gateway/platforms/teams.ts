@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type {
   InboundMessage,
+  OutboundDeliveryReceipt,
   OutboundMessage,
   PlatformAdapter,
   PlatformWebhookHandler,
@@ -89,19 +90,26 @@ export class TeamsAdapter implements PlatformAdapter {
     );
   }
 
-  async send(msg: OutboundMessage): Promise<void> {
+  async send(msg: OutboundMessage): Promise<OutboundDeliveryReceipt | undefined> {
     // No recorded serviceUrl for this conversation → we never saw an inbound activity for it,
     // so there is no base URI to reply to. Drop rather than throw (errors-as-values).
     const serviceUrl = this.serviceUrls.get(msg.chatId);
-    if (serviceUrl === undefined) return;
+    if (serviceUrl === undefined) return undefined;
     // Teams renders plain text in a basic activity (no markdown parse), so degrade the agent's
     // markdown to readable plain text, then split to the budget and POST each part.
     const formatted = formatForDialect(msg.text, "plain");
+    let parts = 0;
     for (const part of splitForLimit(formatted, TEAMS_TEXT_LIMIT, "chars")) {
-      await this.transport.send(serviceUrl, msg.chatId, buildTeamsActivity(part)).catch(() => {
-        /* errors-as-values: a send failure must not throw through the gateway loop */
-      });
+      try {
+        await this.transport.send(serviceUrl, msg.chatId, buildTeamsActivity(part));
+        parts += 1;
+      } catch {
+        return undefined;
+      }
     }
+    return parts > 0
+      ? { platform: "teams", transport: "bot-connector", accepted: true, parts }
+      : undefined;
   }
 
   webhookHandlers(): PlatformWebhookHandler[] {
@@ -172,14 +180,15 @@ export function httpTransport(appId: string, appPassword: string): TeamsTranspor
     poll: async () => undefined, // inbound arrives via the Azure bot webhook, not a poll endpoint
     send: async (serviceUrl, conversationId, activity) => {
       const token = await mintToken();
-      if (token === undefined) return; // no token → cannot authenticate; drop (caller catches)
+      if (token === undefined) throw new Error("Teams Connector token unavailable");
       const base = serviceUrl.replace(/\/+$/, "");
-      await fetch(`${base}/v3/conversations/${encodeURIComponent(conversationId)}/activities`, {
+      const response = await fetch(`${base}/v3/conversations/${encodeURIComponent(conversationId)}/activities`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "content-type": "application/json" },
         body: JSON.stringify(activity),
         signal: AbortSignal.timeout(5000),
       });
+      if (!response.ok) throw new Error(`Teams Connector returned HTTP ${response.status}`);
     },
   };
 }

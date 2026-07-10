@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { OutboundMessage, PlatformAdapter } from "./platforms/base.js";
+import type { OutboundDeliveryReceipt, OutboundMessage, PlatformAdapter } from "./platforms/base.js";
 import { createGatewayStreamSink } from "./stream-events.js";
 
 class SinkAdapter implements PlatformAdapter {
@@ -8,7 +8,14 @@ class SinkAdapter implements PlatformAdapter {
   async connect(): Promise<void> {}
   async disconnect(): Promise<void> {}
   async poll() { return []; }
-  async send(message: OutboundMessage): Promise<void> { this.sent.push(message); }
+  async send(message: OutboundMessage): Promise<void | OutboundDeliveryReceipt> { this.sent.push(message); }
+}
+
+class ReceiptAdapter extends SinkAdapter {
+  override async send(message: OutboundMessage) {
+    this.sent.push(message);
+    return { platform: "teams", transport: "bot-connector", accepted: true as const, parts: 1 };
+  }
 }
 
 describe("gateway stream sink", () => {
@@ -36,5 +43,18 @@ describe("gateway stream sink", () => {
     expect(platform.sent[0]?.text).toBe("canonical");
     expect(sink.snapshot().drifted).toBe(true);
     expect(logs[0]).toContain("delivered MessageStop only");
+  });
+
+  it("surfaces a positive transport receipt after send and before history recording", async () => {
+    const platform = new ReceiptAdapter();
+    const order: string[] = [];
+    const sink = createGatewayStreamSink({
+      platform,
+      target: { chatId: "c3" },
+      delivered: async (_message, receipt) => { order.push(`delivered:${receipt.transport}`); },
+      record: async () => { order.push("recorded"); },
+    });
+    await sink.emit({ type: "MessageStop", text: "done" });
+    expect(order).toEqual(["delivered:bot-connector", "recorded"]);
   });
 });

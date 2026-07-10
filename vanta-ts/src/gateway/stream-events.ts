@@ -1,6 +1,6 @@
 import type { StreamEvent } from "../agent.js";
 import type { ImageAttachment } from "../types.js";
-import type { OutboundMessage, PlatformAdapter } from "./platforms/base.js";
+import type { OutboundDeliveryReceipt, OutboundMessage, PlatformAdapter } from "./platforms/base.js";
 
 export type GatewayStreamEvent =
   | { type: "MessageChunk"; text: string }
@@ -26,6 +26,7 @@ type SinkOptions = {
   platform: PlatformAdapter;
   target: Pick<OutboundMessage, "chatId" | "threadId">;
   record: (message: OutboundMessage) => Promise<void>;
+  delivered?: (message: OutboundMessage, receipt: OutboundDeliveryReceipt) => Promise<void>;
   log?: (message: string) => void;
 };
 
@@ -48,7 +49,8 @@ export function createGatewayStreamSink(options: SinkOptions): {
     stopped = true;
     if (drifted) options.log?.("  stream drift: buffered chunks differed from canonical reply; delivered MessageStop only");
     const message: OutboundMessage = { ...options.target, text: canonicalText };
-    await options.platform.send(message);
+    const receipt = await options.platform.send(message);
+    if (receipt) await options.delivered?.(message, receipt);
     await options.record(message);
   };
 

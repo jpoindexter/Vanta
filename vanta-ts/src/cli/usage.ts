@@ -46,6 +46,7 @@ const USAGE_LINES = [
       "       vanta cron                         run due tasks once (for launchd/cron)",
       "       vanta gateway                      run the scheduler as a foreground daemon",
       "       vanta gateway verify-channels      log live/not-configured status for messaging adapters",
+      "       vanta gateway channel-proofs [platform]   show accepted inbound-to-reply receipts",
       "       vanta service [install|uninstall|status]   manage the background launchd agent",
       "       vanta agents [list|logs|attach|stop|rm|respawn]   manage background agent sessions",
       "       vanta hire <role> --adapter <id> [--budget <usd>]   add a budgeted, role-tagged agent to the roster",

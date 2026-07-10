@@ -7,6 +7,7 @@ import { startMessagingWebhook } from "../run.js";
 import { pollPlatformSession } from "../run-session.js";
 import { initialState } from "../session-manager.js";
 import { TeamsAdapter, type TeamsTransport } from "./teams.js";
+import { readChannelProofs } from "../channel-proof.js";
 
 const SERVICE_URL = "https://smba.trafficmanager.net/teams";
 let server: PlatformWebhookServer | undefined;
@@ -71,6 +72,16 @@ describe("Teams messaging webhook", () => {
       conversationId: "C_alice",
       activity: { type: "message", text: "agent reply to [Fri 2026-07-10 12:00] status" },
     }]);
+    const proofs = await readChannelProofs(dataDir);
+    expect(proofs).toHaveLength(1);
+    expect(proofs[0]).toMatchObject({
+      kind: "channel-round-trip",
+      platform: "teams",
+      transport: "bot-connector",
+      parts: 1,
+    });
+    expect(JSON.stringify(proofs[0])).not.toContain("C_alice");
+    expect(JSON.stringify(proofs[0])).not.toContain("activity-1");
   });
 
   it("rejects invalid auth and malformed JSON without enqueueing", async () => {
@@ -83,6 +94,40 @@ describe("Teams messaging webhook", () => {
     expect((await fetch(url, { method: "POST", body: "{}" })).status).toBe(401);
     expect((await fetch(url, { method: "POST", headers: { authorization: "Bearer signed" }, body: "{" })).status).toBe(400);
     await expect(adapter.poll()).resolves.toEqual([]);
+  });
+
+  it("does not persist a round-trip proof when the Connector send fails", async () => {
+    const adapter = new TeamsAdapter({
+      transport: {
+        poll: async () => undefined,
+        send: async () => { throw new Error("Connector unavailable"); },
+      },
+      verifyActivity: async () => true,
+    });
+    const activeServer = requireServer(await startMessagingWebhook({ platform: adapter, platformWebhookPort: 0 }, () => {}));
+    const response = await fetch(`http://127.0.0.1:${activeServer.port}/api/messages`, {
+      method: "POST",
+      headers: { authorization: "Bearer signed" },
+      body: JSON.stringify({
+        type: "message",
+        id: "activity-failed",
+        text: "status",
+        serviceUrl: SERVICE_URL,
+        conversation: { id: "C_failed", conversationType: "personal" },
+        from: { id: "U_failed" },
+      }),
+    });
+    expect(response.status).toBe(202);
+    dataDir = await mkdtemp(join(tmpdir(), "vanta-teams-webhook-failed-"));
+    await pollPlatformSession({
+      dataDir,
+      run: async () => ({ finalText: "" }),
+      load: async () => [],
+      platform: adapter,
+      handle: async () => "reply",
+      log: () => {},
+    }, initialState());
+    expect(await readChannelProofs(dataDir)).toEqual([]);
   });
 
   it("returns 404 for unknown paths and 405 for non-POST requests", async () => {

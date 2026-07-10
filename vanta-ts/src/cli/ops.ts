@@ -15,6 +15,7 @@ import { estimateCostUsd } from "../pricing.js";
 import { enforceScopeBudget, scopeForLoop } from "../budget/enforce.js";
 import { recordTurnSpend } from "../cost/ledger.js";
 import { buildGatewayHandle } from "./gateway-stream.js";
+import { runGatewayUtilityCommand } from "./gateway-utility-cmd.js";
 
 // Operational subcommands (gateway / service / mcp / factory + the
 // non-interactive cron task). Extracted from cli.ts to keep each file <300.
@@ -112,7 +113,7 @@ async function buildGatewayApprover(platform: PlatformAdapter | undefined): Prom
   if (!approverChats.length || !platform) return {};
   const replyBus = createReplyBus();
   const requestApproval = buildChannelApprover({
-    send: (text, buttons) => platform.send({ chatId: approverChats[0]!, text, buttons }),
+    send: async (text, buttons) => { await platform.send({ chatId: approverChats[0]!, text, buttons }); },
     bus: replyBus,
     allowlist: approverChats,
     timeoutMs: approvalTimeoutMs(process.env),
@@ -125,24 +126,7 @@ async function buildGatewayApprover(platform: PlatformAdapter | undefined): Prom
 // `vanta gateway` — run the cron scheduler as a foreground daemon (the long-lived
 // process that fires scheduled tasks without an external trigger).
 export async function runGatewayCommand(repoRoot: string, rest: string[] = []): Promise<void> {
-  if (rest[0] === "verify-channels") {
-    const json = rest.includes("--json");
-    const timeoutIdx = rest.indexOf("--timeout-ms");
-    let timeoutMs: number | undefined;
-    if (timeoutIdx >= 0) {
-      const raw = rest[timeoutIdx + 1];
-      const parsed = raw ? Number(raw) : NaN;
-      if (!Number.isFinite(parsed) || parsed <= 0) {
-        console.error("usage: vanta gateway verify-channels [--json] [--timeout-ms N]");
-        return;
-      }
-      timeoutMs = parsed;
-    }
-    const { verifyMessagingChannels, formatChannelVerifyReport } = await import("../gateway/channel-verify.js");
-    const report = await verifyMessagingChannels({ dataDir: dataDirFor(repoRoot), timeoutMs });
-    console.log(json ? JSON.stringify(report, null, 2) : formatChannelVerifyReport(report));
-    return;
-  }
+  if (await runGatewayUtilityCommand(repoRoot, rest)) return;
   const platform = resolveMessagingChannel(process.env); // MSG-MULTICHANNEL-LIVE: run all configured channels
 
   const { replyBus, requestApproval } = await buildGatewayApprover(platform);
@@ -162,7 +146,7 @@ export async function runGatewayCommand(repoRoot: string, rest: string[] = []): 
           ),
         deliver: resolveDeliver(
           process.env.VANTA_WEBHOOK_DELIVER ?? "local",
-          platform ? (chatId, text) => platform.send({ chatId, text }) : undefined,
+          platform ? async (chatId, text) => { await platform.send({ chatId, text }); } : undefined,
         ),
       }
     : undefined;

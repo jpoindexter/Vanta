@@ -1,4 +1,4 @@
-import type { InboundMessage, OutboundMessage, PlatformAdapter, PlatformWebhookHandler } from "./base.js";
+import type { InboundMessage, OutboundDeliveryReceipt, OutboundMessage, PlatformAdapter, PlatformWebhookHandler } from "./base.js";
 import { SupervisedChannel, type ChannelHealth } from "./channel-supervisor.js";
 
 // MSG-MULTICHANNEL-LIVE — run 5+ messaging channels from ONE gateway. A composite
@@ -74,10 +74,10 @@ export class MultiChannelAdapter implements PlatformAdapter {
   }
 
   /** Route a reply back to the channel its tagged chatId names. Unknown route → drop. */
-  async send(msg: OutboundMessage): Promise<void> {
+  async send(msg: OutboundMessage): Promise<OutboundDeliveryReceipt | undefined> {
     const { platform, chatId } = splitRoute(msg.chatId);
     const child = this.children.get(platform);
     if (!child) return; // errors-as-values: an unroutable reply is dropped, never thrown
-    await child.send({ ...msg, chatId });
+    return child.send({ ...msg, chatId });
   }
 }
