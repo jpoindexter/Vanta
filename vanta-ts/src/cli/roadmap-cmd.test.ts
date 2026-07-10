@@ -17,7 +17,7 @@ async function workspace(): Promise<string> {
   await writeFile(join(root, "roadmap.json"), JSON.stringify({
     updated: "2026-07-10",
     items: [
-      { id: "BACKEND-SERVERLESS-LIVE", track: "Harness", title: "Serverless", status: "blocked", size: "L", summary: "", done: "" },
+      { id: "BACKEND-SERVERLESS-LIVE", track: "Harness", title: "Serverless", status: "parked", size: "L", summary: "", done: "" },
       { id: "PCLIP-MULTI-COMPANY", track: "Cofounder", title: "Company", status: "horizon", size: "L", summary: "", done: "" },
     ],
   }, null, 2), "utf8");

@@ -7,11 +7,11 @@ function card(id: string, status: RoadmapItem["status"], title = id): RoadmapIte
 }
 
 describe("roadmap unblock plans", () => {
-  it("returns known concrete steps for current Run Anywhere blockers", () => {
+  it("returns known concrete steps for current Run Anywhere blockers even when parked", () => {
     const plans = buildUnblockPlans([
-      card("BACKEND-SERVERLESS-LIVE", "blocked", "Serverless"),
-      card("RUN-ANYWHERE-TERMUX", "blocked", "Termux"),
-      card("MSG-ADAPTER-TEAMS", "blocked", "Teams"),
+      card("BACKEND-SERVERLESS-LIVE", "parked", "Serverless"),
+      card("RUN-ANYWHERE-TERMUX", "parked", "Termux"),
+      card("MSG-ADAPTER-TEAMS", "parked", "Teams"),
     ]);
     const out = formatUnblockPlans(plans);
     expect(out).toContain("vanta backend gateway deploy");
@@ -24,10 +24,22 @@ describe("roadmap unblock plans", () => {
     expect(plan?.actions.join("\n")).toContain("Ratify multiple human supervisors");
   });
 
+  it("includes parked cards with explicit revive guidance", () => {
+    const [plan] = buildUnblockPlans([card("UNKNOWN-PARKED", "parked", "Parked")]);
+    expect(plan?.actions.join("\n")).toContain("deliberately parked");
+    expect(plan?.actions.join("\n")).toContain("Move it back");
+  });
+
+  it("includes known parked N/A cards without pretending they are buildable", () => {
+    const [plan] = buildUnblockPlans([card("VANTA-H-GITHUB", "parked", "GitHub")]);
+    expect(plan?.actions.join("\n")).toContain("hosted GitHub App");
+    expect(plan?.actions.join("\n")).toContain("strategy changes");
+  });
+
   it("filters to requested ids", () => {
     const plans = buildUnblockPlans([
       card("BACKEND-SERVERLESS-LIVE", "blocked"),
-      card("RUN-ANYWHERE-TERMUX", "blocked"),
+      card("RUN-ANYWHERE-TERMUX", "parked"),
     ], ["RUN-ANYWHERE-TERMUX"]);
     expect(plans.map((plan) => plan.id)).toEqual(["RUN-ANYWHERE-TERMUX"]);
   });
@@ -48,6 +60,6 @@ describe("roadmap unblock plans", () => {
   });
 
   it("reports no match for shipped-only input", () => {
-    expect(formatUnblockPlans(buildUnblockPlans([card("DONE", "shipped")]))).toBe("No blocked or decision-only roadmap cards matched.");
+    expect(formatUnblockPlans(buildUnblockPlans([card("DONE", "shipped")]))).toBe("No blocked, parked, or decision-only roadmap cards matched.");
   });
 });

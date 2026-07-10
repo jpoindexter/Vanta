@@ -123,18 +123,21 @@ describe("formatNowQueue", () => {
 });
 
 describe("formatNowEmptyState", () => {
-  it("returns only nothing to propose when there are no blocked or horizon cards", () => {
+  it("returns only nothing to propose when there are no blocked, parked, or horizon cards", () => {
     expect(formatNowEmptyState([mk("A", "shipped")])).toBe("nothing to propose");
   });
 
-  it("reports blocked cards and decision-only horizon cards", () => {
+  it("reports blocked, parked, and decision-only horizon cards", () => {
     const out = formatNowEmptyState([
       mk("BLOCKED", "blocked", "rock", "S"),
+      mk("PARKED", "parked", "rock", "S"),
       mk("DECIDE", "horizon", "pebble", "M"),
     ]);
     expect(out).toContain("nothing to propose");
     expect(out).toContain("blocked: 1");
     expect(out).toContain("BLOCKED");
+    expect(out).toContain("parked: 1");
+    expect(out).toContain("PARKED");
     expect(out).toContain("needs decision: 1");
     expect(out).toContain("DECIDE");
   });

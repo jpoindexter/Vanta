@@ -78,13 +78,15 @@ function formatTopItems(label: string, items: RoadmapItem[], limit = 3): string[
 /**
  * Explains why the Now queue is empty. This is the operator-facing dead-end
  * message for a fully drained local board: it names external blockers and
- * strategy-only horizon work instead of hiding behind "nothing to propose".
+ * parked/strategy-only work instead of hiding behind "nothing to propose".
  */
 export function formatNowEmptyState(items: RoadmapItem[]): string {
   const lines = ["nothing to propose"];
   const blocked = items.filter((i) => i.status === "blocked");
   const horizon = items.filter((i) => i.status === "horizon");
+  const parked = items.filter((i) => i.status === "parked");
   lines.push(...formatTopItems("blocked", blocked));
+  lines.push(...formatTopItems("parked", parked));
   lines.push(...formatTopItems("needs decision", horizon));
   if (lines.length === 1) return "nothing to propose";
   return lines.join("\n");
