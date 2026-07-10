@@ -1,7 +1,7 @@
 import { createServer, type Server, type ServerResponse } from "node:http";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { moveRoadmapItem, RoadmapDependencyError, RoadmapParkedReviveError, WipLimitError } from "./move.js";
+import { moveRoadmapItem, RoadmapDependencyError, RoadmapParkedReviveError, RoadmapProofGateError, WipLimitError } from "./move.js";
 import { STATUS, type Status } from "./schema.js";
 
 function json(res: ServerResponse, status: number, body: unknown): void {
@@ -18,6 +18,9 @@ function moveError(err: unknown): { status: number; body: unknown } {
   }
   if (err instanceof RoadmapParkedReviveError) {
     return { status: 409, body: { ok: false, error: err.message, parkedReason: err.parkedReason } };
+  }
+  if (err instanceof RoadmapProofGateError) {
+    return { status: 409, body: { ok: false, error: err.message, receiptPath: err.receiptPath } };
   }
   return { status: 400, body: { ok: false, error: err instanceof Error ? err.message : String(err) } };
 }

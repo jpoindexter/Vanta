@@ -21,6 +21,13 @@ export class RoadmapParkedReviveError extends Error {
   }
 }
 
+export class RoadmapProofGateError extends Error {
+  constructor(public itemId: string, public evidence: string, public receiptPath?: string) {
+    super(`proof gate failed for ${itemId}: ${evidence}${receiptPath ? ` (receipt: ${receiptPath})` : ""}`);
+    this.name = "RoadmapProofGateError";
+  }
+}
+
 type MoveOptions = { force?: boolean };
 
 function openDependencies(items: RoadmapItem[], item: RoadmapItem): string[] {
@@ -39,6 +46,31 @@ function parkedReviveError(item: RoadmapItem, toStatus: Status, force?: boolean)
 function assertParkedReviveAllowed(item: RoadmapItem, toStatus: Status, force?: boolean): void {
   const revive = parkedReviveError(item, toStatus, force);
   if (revive) throw revive;
+}
+
+async function runAnywhereProofGate(repoRoot: string, item: RoadmapItem, toStatus: Status): Promise<RoadmapProofGateError | null> {
+  if (toStatus !== "shipped") return null;
+  const ids = new Set(["BACKEND-SERVERLESS-LIVE", "MSG-ADAPTER-TEAMS", "RUN-ANYWHERE-TERMUX", "RUN-ANYWHERE-V1-RELEASE-GATE"]);
+  if (!ids.has(item.id)) return null;
+  const { readRunAnywhereReadiness } = await import("../run-anywhere/readiness.js");
+  const readiness = await readRunAnywhereReadiness(repoRoot);
+  if (item.id === "RUN-ANYWHERE-V1-RELEASE-GATE") {
+    const missing = readiness.gates.filter((gate) => !gate.ready);
+    return missing.length ? new RoadmapProofGateError(item.id, missing.map((gate) => `${gate.roadmapCardId}: ${gate.evidence}`).join("; ")) : null;
+  }
+  const gate = readiness.gates.find((candidate) => candidate.roadmapCardId === item.id);
+  if (!gate?.ready) return new RoadmapProofGateError(item.id, gate?.evidence ?? "no matching readiness gate", gate?.receiptPath);
+  return null;
+}
+
+function assertDependenciesAllowed(items: RoadmapItem[], item: RoadmapItem, toStatus: Status, force?: boolean): void {
+  const deps = toStatus === "building" && !force ? openDependencies(items, item) : [];
+  if (deps.length) throw new RoadmapDependencyError(item.id, deps);
+}
+
+function assertWipAllowed(items: RoadmapItem[], id: string, toStatus: Status): void {
+  const violation = checkWipLimit(items, id, toStatus);
+  if (violation) throw violation;
 }
 
 function applyStatusMetadata(item: RoadmapItem, toStatus: Status): void {
@@ -71,11 +103,11 @@ export async function moveRoadmapItem(
 
   assertParkedReviveAllowed(item, toStatus, options.force);
 
-  const deps = toStatus === "building" && !options.force ? openDependencies(data.items, item) : [];
-  if (deps.length) throw new RoadmapDependencyError(id, deps);
+  const proofGate = await runAnywhereProofGate(repoRoot, item, toStatus);
+  if (proofGate) throw proofGate;
 
-  const violation = checkWipLimit(data.items, id, toStatus);
-  if (violation) throw violation;
+  assertDependenciesAllowed(data.items, item, toStatus, options.force);
+  assertWipAllowed(data.items, id, toStatus);
 
   const fromStatus = item.status;
   applyStatusMetadata(item, toStatus);

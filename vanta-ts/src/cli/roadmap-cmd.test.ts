@@ -157,4 +157,14 @@ describe("runRoadmapCommand move", () => {
     expect(code).toBe(0);
     expect(lines.join("\n")).toContain("Moved BACKEND-SERVERLESS-LIVE");
   });
+
+  it("does not let force ship a proof-gated parked card", async () => {
+    const root = await workspace();
+    const errors: string[] = [];
+    vi.spyOn(console, "error").mockImplementation((line = "") => errors.push(String(line)));
+    const code = await runRoadmapCommand(root, ["move", "BACKEND-SERVERLESS-LIVE", "shipped", "--force"]);
+    expect(code).toBe(1);
+    expect(errors.join("\n")).toContain("proof gate failed");
+    expect(errors.join("\n")).toContain(".vanta/serverless-gateway.json");
+  });
 });

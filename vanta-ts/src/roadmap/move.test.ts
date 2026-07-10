@@ -1,8 +1,10 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { RoadmapDependencyError, RoadmapParkedReviveError, moveRoadmapItem } from "./move.js";
+import { RoadmapDependencyError, RoadmapParkedReviveError, RoadmapProofGateError, moveRoadmapItem } from "./move.js";
+import { appendChannelProof } from "../gateway/channel-proof.js";
+import { writeGatewayReceipt } from "../exec/modal-gateway-state.js";
 
 const FIXTURE = {
   updated: "2026-01-01",
@@ -97,6 +99,56 @@ describe("moveRoadmapItem", () => {
     const item = await moveRoadmapItem(root, "ND2", "building", { force: true });
     expect(item.status).toBe("building");
     expect(item.parkedReason).toBeUndefined();
+  });
+
+  it("does not let force ship a Run Anywhere proof card without its receipt", async () => {
+    const root = await makeRoadmap({
+      updated: "2026-01-01",
+      items: [{ ...FIXTURE.items[0], id: "BACKEND-SERVERLESS-LIVE", status: "parked", parkedReason: "external proof" }],
+    });
+    await expect(moveRoadmapItem(root, "BACKEND-SERVERLESS-LIVE", "shipped", { force: true })).rejects.toThrow(RoadmapProofGateError);
+    await expect(moveRoadmapItem(root, "BACKEND-SERVERLESS-LIVE", "shipped", { force: true })).rejects.toThrow(".vanta/serverless-gateway.json");
+  });
+
+  it("allows shipping a Run Anywhere proof card after its receipt exists", async () => {
+    const root = await makeRoadmap({
+      updated: "2026-01-01",
+      items: [{ ...FIXTURE.items[0], id: "BACKEND-SERVERLESS-LIVE", status: "parked", parkedReason: "external proof" }],
+    });
+    await writeGatewayReceipt(root, {
+      app: "vanta-gateway",
+      volume: "vanta-gateway-data",
+      provedAt: "2026-07-10T12:00:00.000Z",
+      telegramAcceptedAt: "2026-07-10T12:00:01.000Z",
+    });
+    const item = await moveRoadmapItem(root, "BACKEND-SERVERLESS-LIVE", "shipped", { force: true });
+    expect(item.status).toBe("shipped");
+  });
+
+  it("requires all Run Anywhere receipts before shipping the aggregate gate", async () => {
+    const root = await makeRoadmap({
+      updated: "2026-01-01",
+      items: [{ ...FIXTURE.items[0], id: "RUN-ANYWHERE-V1-RELEASE-GATE", status: "parked", parkedReason: "external proof" }],
+    });
+    await writeGatewayReceipt(root, {
+      app: "vanta-gateway",
+      volume: "vanta-gateway-data",
+      provedAt: "2026-07-10T12:00:00.000Z",
+      telegramAcceptedAt: "2026-07-10T12:00:01.000Z",
+    });
+    await appendChannelProof(join(root, ".vanta"), {
+      kind: "channel-round-trip",
+      platform: "teams",
+      transport: "bot-connector",
+      conversationHash: "hash",
+      parts: 1,
+      acceptedAt: "2026-07-10T12:03:00.000Z",
+    });
+    await expect(moveRoadmapItem(root, "RUN-ANYWHERE-V1-RELEASE-GATE", "shipped", { force: true })).rejects.toThrow("RUN-ANYWHERE-TERMUX");
+    await mkdir(join(root, ".vanta"), { recursive: true });
+    await writeFile(join(root, ".vanta", "termux-arm64-proof.txt"), "TERMUX_ARM64_E2E_OK release_kernel=1 abi=arm64-v8a\n");
+    const item = await moveRoadmapItem(root, "RUN-ANYWHERE-V1-RELEASE-GATE", "shipped", { force: true });
+    expect(item.status).toBe("shipped");
   });
 
   it("updates the top-level updated field to today", async () => {

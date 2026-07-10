@@ -184,6 +184,26 @@ describe("POST /roadmap/move", () => {
     expect(res.status).toBe(200);
   });
 
+  it("returns 409 when a board move tries to ship a proof card without its receipt", async () => {
+    await startServer();
+    await writeFile(join(dir, "roadmap.json"), JSON.stringify({
+      updated: "2026-01-01",
+      items: [
+        { id: "BACKEND-SERVERLESS-LIVE", track: "Core", title: "Proof", status: "parked", size: "S", summary: ".", done: ".", parkedReason: "external proof" },
+      ],
+    }, null, 2), "utf8");
+    const res = await fetch(`${baseUrl}/roadmap/move`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: "BACKEND-SERVERLESS-LIVE", status: "shipped", force: true }),
+    });
+    expect(res.status).toBe(409);
+    const j = (await res.json()) as { ok: boolean; error: string; receiptPath: string };
+    expect(j.ok).toBe(false);
+    expect(j.receiptPath).toBe(".vanta/serverless-gateway.json");
+    expect(j.error).toContain("proof gate failed");
+  });
+
   it("returns 400 when item id does not exist", async () => {
     await startServer();
     await writeFile(join(dir, "roadmap.json"), JSON.stringify(FIXTURE, null, 2), "utf8");

@@ -23,7 +23,7 @@ async function handleRoadmapMove(repoRoot: string, args: string[]): Promise<numb
     console.error("  status: shipped | building | blocked | next | horizon | parked");
     process.exit(1);
   }
-  const { moveRoadmapItem, RoadmapDependencyError, RoadmapParkedReviveError, WipLimitError } = await import("../roadmap/move.js");
+  const { moveRoadmapItem, RoadmapDependencyError, RoadmapParkedReviveError, RoadmapProofGateError, WipLimitError } = await import("../roadmap/move.js");
   const { STATUS } = await import("../roadmap/schema.js");
   const force = args.includes("--force");
   if (!(STATUS as readonly string[]).includes(status)) {
@@ -35,7 +35,7 @@ async function handleRoadmapMove(repoRoot: string, args: string[]): Promise<numb
     console.log(`  ✓ Moved ${item.id} → ${status}: ${item.title}`);
     return 0;
   } catch (err) {
-    if (err instanceof RoadmapDependencyError || err instanceof RoadmapParkedReviveError || err instanceof WipLimitError) {
+    if (err instanceof RoadmapDependencyError || err instanceof RoadmapParkedReviveError || err instanceof RoadmapProofGateError || err instanceof WipLimitError) {
       console.error(err.message);
       return 1;
     }
