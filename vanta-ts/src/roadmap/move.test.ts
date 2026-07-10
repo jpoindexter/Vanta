@@ -57,6 +57,29 @@ describe("moveRoadmapItem", () => {
     expect(nd2.status).toBe("shipped");
   });
 
+  it("adds a review parkedReason when moving a card to parked", async () => {
+    const root = await makeRoadmap();
+    const item = await moveRoadmapItem(root, "ND2", "parked");
+    const raw = await readFile(join(root, "roadmap.json"), "utf8");
+    const data = JSON.parse(raw);
+    const nd2 = data.items.find((i: { id: string }) => i.id === "ND2");
+    expect(item.parkedReason).toBe("review");
+    expect(nd2.parkedReason).toBe("review");
+  });
+
+  it("removes parkedReason when moving a card out of parked", async () => {
+    const root = await makeRoadmap({
+      updated: "2026-01-01",
+      items: [{ ...FIXTURE.items[0], status: "parked", parkedReason: "review" }],
+    });
+    const item = await moveRoadmapItem(root, "ND2", "next");
+    const raw = await readFile(join(root, "roadmap.json"), "utf8");
+    const data = JSON.parse(raw);
+    const nd2 = data.items.find((i: { id: string }) => i.id === "ND2");
+    expect(item.parkedReason).toBeUndefined();
+    expect(nd2.parkedReason).toBeUndefined();
+  });
+
   it("updates the top-level updated field to today", async () => {
     const root = await makeRoadmap();
     await moveRoadmapItem(root, "ND2", "next");

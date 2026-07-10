@@ -24,6 +24,18 @@ function openDependencies(items: RoadmapItem[], item: RoadmapItem): string[] {
   });
 }
 
+function applyStatusMetadata(item: RoadmapItem, toStatus: Status): void {
+  item.status = toStatus;
+  if (toStatus === "parked" && !item.parkedReason) item.parkedReason = "review";
+  if (toStatus !== "parked") delete item.parkedReason;
+}
+
+function applyRawStatusMetadata(item: Record<string, unknown>, toStatus: Status): void {
+  item.status = toStatus;
+  if (toStatus === "parked" && typeof item.parkedReason !== "string") item.parkedReason = "review";
+  if (toStatus !== "parked") delete item.parkedReason;
+}
+
 export async function moveRoadmapItem(
   repoRoot: string,
   id: string,
@@ -47,10 +59,10 @@ export async function moveRoadmapItem(
   if (violation) throw violation;
 
   const fromStatus = item.status;
-  item.status = toStatus;
+  applyStatusMetadata(item, toStatus);
   const originalItem = original.items.find((candidate) => candidate.id === id);
   if (!originalItem) throw new Error(`no item with id '${id}' in roadmap.json`);
-  originalItem.status = toStatus;
+  applyRawStatusMetadata(originalItem, toStatus);
   original.updated = new Date().toISOString().slice(0, 10);
 
   await writeFile(src, JSON.stringify(original, null, 2) + "\n", "utf8");

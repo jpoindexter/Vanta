@@ -80,4 +80,18 @@ describe("RoadmapSchema", () => {
   it("rejects empty items array", () => {
     expect(() => RoadmapSchema.parse({ updated: "2026-06-03", items: [] })).toThrow();
   });
+
+  it("requires parked items to explain why they are parked", () => {
+    expect(() => RoadmapSchema.parse({
+      updated: "2026-06-03",
+      items: [{ ...validItem, status: "parked" }],
+    })).toThrow("parked roadmap items require parkedReason");
+  });
+
+  it("accepts parked items with a parked reason", () => {
+    expect(() => RoadmapSchema.parse({
+      updated: "2026-06-03",
+      items: [{ ...validItem, status: "parked", parkedReason: "review" }],
+    })).not.toThrow();
+  });
 });

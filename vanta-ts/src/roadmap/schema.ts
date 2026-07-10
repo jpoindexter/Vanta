@@ -91,6 +91,15 @@ export const RoadmapItemSchema = z.object({
 export const RoadmapSchema = z.object({
   updated: z.string(),
   items: z.array(RoadmapItemSchema).min(1),
+}).superRefine((roadmap, ctx) => {
+  roadmap.items.forEach((item, index) => {
+    if (item.status !== "parked" || item.parkedReason) return;
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["items", index, "parkedReason"],
+      message: "parked roadmap items require parkedReason",
+    });
+  });
 });
 
 export type RoadmapItem = z.infer<typeof RoadmapItemSchema>;
