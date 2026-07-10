@@ -110,7 +110,11 @@ describe("tsx self-call under the real seatbelt sandbox (darwin)", () => {
     writeFileSync(script, 'console.log("RAN:" + (40 + 2 as number));\n');
     const profilePath = resolve(dir, "p.sb");
     writeFileSync(profilePath, buildSeatbeltProfile(process.cwd(), [], { net: false }));
-    const sx = (cmd: string, args: string[]) => execFileSync("sandbox-exec", ["-f", profilePath, cmd, ...args], { encoding: "utf8", cwd: process.cwd() });
+    const sx = (cmd: string, args: string[]) => execFileSync("sandbox-exec", ["-f", profilePath, cmd, ...args], {
+      encoding: "utf8",
+      cwd: process.cwd(),
+      stdio: ["ignore", "pipe", "pipe"],
+    });
     // the fix: the loader has no IPC server → runs sandboxed
     expect(sx("node", ["--import", "tsx", script]).trim()).toBe("RAN:42");
     // the bug, documented: the tsx CLI's IPC server is denied → EPERM
