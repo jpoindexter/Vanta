@@ -9,24 +9,29 @@ import {
   formatTrustLedger,
   loadTrustLedger,
   recordTrustOutcome,
+  workflowIdForDecision,
 } from "./trust.js";
 
 describe("trust ledger autonomy", () => {
   it("blocks acts-alone until the workflow earns enough passing history", async () => {
     const dir = await mkdtemp(join(tmpdir(), "vanta-trust-"));
     try {
-      const action = { kind: "proactive.loop.advance", summary: "advance queued loop", risk: "low" as const };
+      const action = { kind: "proactive.loop.advance", summary: "advance queued loop", risk: "low" as const, source: "loop:alpha" };
       const base = decideAutonomy(DEFAULT_AUTONOMY_CONTRACT, action);
       expect(applyTrustGate(base, await loadTrustLedger(dir)).lane).toBe("queues-for-approval");
 
-      await recordTrustOutcome(dir, { workflowId: action.kind, outcome: "pass", reason: "verified fixture 1", now: new Date("2026-07-09T16:00:00.000Z") });
-      await recordTrustOutcome(dir, { workflowId: action.kind, outcome: "pass", reason: "verified fixture 2", now: new Date("2026-07-09T16:01:00.000Z") });
-      await recordTrustOutcome(dir, { workflowId: action.kind, outcome: "pass", reason: "verified fixture 3", now: new Date("2026-07-09T16:02:00.000Z") });
+      const workflowId = workflowIdForDecision(base);
+      await recordTrustOutcome(dir, { workflowId, outcome: "pass", reason: "verified fixture 1", now: new Date("2026-07-09T16:00:00.000Z") });
+      await recordTrustOutcome(dir, { workflowId, outcome: "pass", reason: "verified fixture 2", now: new Date("2026-07-09T16:01:00.000Z") });
+      await recordTrustOutcome(dir, { workflowId, outcome: "pass", reason: "verified fixture 3", now: new Date("2026-07-09T16:02:00.000Z") });
 
       const earned = applyTrustGate(base, await loadTrustLedger(dir));
       expect(earned.lane).toBe("acts-alone");
       expect(earned.trust?.tier).toBe("auto");
       expect(earned.reason).toContain("earned auto");
+
+      const unrelated = decideAutonomy(DEFAULT_AUTONOMY_CONTRACT, { ...action, source: "loop:beta" });
+      expect(applyTrustGate(unrelated, await loadTrustLedger(dir)).lane).toBe("queues-for-approval");
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

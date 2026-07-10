@@ -273,8 +273,8 @@
       "effort": "high",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-07-09",
-      "notes": "Evidence: Fable transcript 6209d944 lines 304-339 details pass/fail TSV, auto/queue/watch tiers, and demotion rules.\n\nORGANIZED 2026-07-09: Phase 3 autonomy proof. Depends on explicit contract walls so pass-rate tiers have something concrete to govern.\n\nLAUNCH-PAD UPDATE 2026-07-09: Deferred from Next to Later until Activation v1 ships. This keeps Next focused on the fastest path to obvious, reliable, Hermes/OpenClaw-style visible workflows.",
+      "updated": "2026-07-10",
+      "notes": "Evidence: Fable transcript 6209d944 lines 304-339 details pass/fail TSV, auto/queue/watch tiers, and demotion rules.\n\nORGANIZED 2026-07-09: Phase 3 autonomy proof. Depends on explicit contract walls so pass-rate tiers have something concrete to govern.\n\nLAUNCH-PAD UPDATE 2026-07-09: Deferred from Next to Later until Activation v1 ships. This keeps Next focused on the fastest path to obvious, reliable, Hermes/OpenClaw-style visible workflows.\n\nPER-WORKFLOW ENFORCEMENT 2026-07-10: fixed two trust defects in the proactive loop path. Trust IDs now include the owning loop source, so one loop cannot grant auto-run to another; wakes blocked by trust are requeued instead of silently drained. Added `vanta proactive verify <loop-id>` as the explicit operator-run path that consumes one queued wake, executes through the normal kernel-gated runner, and records the real pass/fail needed to earn auto. Failed auto-runs demote the loop and requeue its wake. Isolated command-handler evidence: alpha verification returned 0 three times, earned auto at 3/3, and then auto-ran once; beta had no inherited ledger entry and remained queued. Focused trust/autonomy/proactive/watch/ambient suite: 11 passed. Full suite: 1,199 files, 12,462 passed, 3 skipped; TypeScript and the size gate pass; no leaked tsx stack or test notification bell.",
       "source": "transcript-roadmap-extract-2026-07-09",
       "after": [
         "AUTONOMY-CONTRACT-WALLS",

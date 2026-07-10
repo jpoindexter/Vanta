@@ -5,8 +5,10 @@ import { runProactiveTick } from "../proactive/tick.js";
 import { resolveOutreachConfig, silenceOutreach, outreachTickText } from "../proactive/outreach.js";
 import { loadOutreachState, saveOutreachState } from "../proactive/outreach-store.js";
 import { sendOutreach } from "../proactive/outreach-send.js";
-import { peekLoopWakeCount, drainLoopWakes } from "../loop/wake.js";
+import { peekLoopWakeCount, drainLoopWakes, enqueueLoopWake } from "../loop/wake.js";
 import { loadDef } from "../loop/store.js";
+import type { LoopDef, WakeContext } from "../loop/types.js";
+import type { RunTask } from "../schedule/runner.js";
 import { getBudget } from "../budget/store.js";
 import { isExceeded } from "../budget/types.js";
 import { decideAutonomy, loadAutonomyContract, logAutonomyDecision } from "../autonomy/contract.js";
@@ -24,38 +26,87 @@ async function budgetExceededFor(dataDir: string, scope: string): Promise<boolea
   return b ? isExceeded(b) : false;
 }
 
-/** Run each queued loop wake whose loop is still active (mirrors the gateway). */
-async function fireQueuedWakes(repoRoot: string, dataDir: string, log: (m: string) => void): Promise<number> {
+function loopDecision(contract: Awaited<ReturnType<typeof loadAutonomyContract>>, def: LoopDef) {
+  return decideAutonomy(contract, {
+    kind: "proactive.loop.advance",
+    summary: `advance loop ${def.id}: ${def.goal}`,
+    risk: "low",
+    source: `loop:${def.id}`,
+  });
+}
+
+async function requeueWakes(dataDir: string, wakes: WakeContext[]): Promise<void> {
+  for (const wake of wakes) await enqueueLoopWake(dataDir, wake);
+}
+
+type ExecuteWakeArgs = {
+  dataDir: string;
+  def: LoopDef;
+  wake: WakeContext;
+  runTask: RunTask;
+  log: (message: string) => void;
+};
+
+async function executeVerifiedWake(args: ExecuteWakeArgs): Promise<boolean> {
+  const { dataDir, def, wake, runTask, log } = args;
+  const policy = await loadTrustPolicy(dataDir);
+  const workflowId = workflowIdForDecision(loopDecision(await loadAutonomyContract(dataDir), def));
+  try {
+    await runTask(`Proactively advance loop ${def.id}: ${def.goal}`, wake);
+    const trust = await recordTrustOutcome(dataDir, { workflowId, outcome: "pass", reason: `verified proactive loop ${def.id}`, policy });
+    log(`verified ${def.id}; trust ${trust.tier} (${trust.passes}/${trust.runs} pass)`);
+    return true;
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    await recordTrustOutcome(dataDir, { workflowId, outcome: "fail", reason, policy });
+    log(`failed ${def.id}; trust demoted: ${reason}`);
+    return false;
+  }
+}
+
+/** Run autonomous wakes and preserve every wake that still requires approval. */
+export async function processQueuedWakes(dataDir: string, runTask: RunTask, log: (m: string) => void): Promise<number> {
   const wakes = await drainLoopWakes(dataDir);
-  const runTask = buildCronRunTask(repoRoot);
   const contract = await loadAutonomyContract(dataDir);
   const policy = await loadTrustPolicy(dataDir);
   let ran = 0;
   for (const wake of wakes) {
     const def = await loadDef(dataDir, wake.goal_id);
     if (!def || def.status !== "active") { log(`skip ${wake.goal_id} (not active)`); continue; }
-    const baseDecision = decideAutonomy(contract, {
-      kind: "proactive.loop.advance",
-      summary: `advance loop ${def.id}: ${def.goal}`,
-      risk: "low",
-      source: "vanta proactive run",
-    });
+    const baseDecision = loopDecision(contract, def);
     const decision = applyTrustGate(baseDecision, await loadTrustLedger(dataDir), policy);
     await logAutonomyDecision(dataDir, decision);
-    if (decision.lane !== "acts-alone") { log(`${decision.lane} ${def.id} by ${decision.ruleId}`); continue; }
-    log(`acts-alone ${def.id} by ${decision.ruleId}`);
-    const workflowId = workflowIdForDecision(baseDecision);
-    try {
-      await runTask(`Proactively advance loop ${def.id}: ${def.goal}`, wake);
-      await recordTrustOutcome(dataDir, { workflowId, outcome: "pass", reason: `verified proactive loop ${def.id}`, policy });
-      ran += 1;
-    } catch (err) {
-      const reason = err instanceof Error ? err.message : String(err);
-      await recordTrustOutcome(dataDir, { workflowId, outcome: "fail", reason, policy });
-      log(`failed ${def.id}; trust demoted: ${reason}`);
+    if (decision.lane !== "acts-alone") {
+      await enqueueLoopWake(dataDir, wake);
+      log(`${decision.lane} ${def.id} by ${decision.ruleId}; kept queued`);
+      continue;
     }
+    log(`acts-alone ${def.id} by ${decision.ruleId}`);
+    if (await executeVerifiedWake({ dataDir, def, wake, runTask, log })) ran += 1;
+    else await enqueueLoopWake(dataDir, wake);
   }
   return ran;
+}
+
+/** Explicit operator verification consumes one matching wake and records its real outcome. */
+export async function verifyQueuedWake(dataDir: string, loopId: string, runTask: RunTask, log: (m: string) => void): Promise<number> {
+  const wakes = await drainLoopWakes(dataDir);
+  const index = wakes.findIndex((wake) => wake.goal_id === loopId);
+  if (index < 0) {
+    await requeueWakes(dataDir, wakes);
+    log(`no queued wake for ${loopId}`);
+    return 1;
+  }
+  const [wake] = wakes.splice(index, 1);
+  await requeueWakes(dataDir, wakes);
+  const def = await loadDef(dataDir, loopId);
+  if (!wake || !def || def.status !== "active") {
+    log(`cannot verify ${loopId} (loop is not active)`);
+    return 1;
+  }
+  const passed = await executeVerifiedWake({ dataDir, def, wake, runTask, log });
+  if (!passed) await enqueueLoopWake(dataDir, wake);
+  return passed ? 0 : 2;
 }
 
 /** One human line on the outreach channel state, appended to `status`. */
@@ -83,7 +134,7 @@ async function runStatus(dataDir: string, config: ProactiveConfig): Promise<numb
   return 0;
 }
 
-async function runOnce(repoRoot: string, dataDir: string, config: ProactiveConfig): Promise<number> {
+async function runOnce(dataDir: string, config: ProactiveConfig, runTask: RunTask): Promise<number> {
   const log = (m: string): void => console.log(`  ${m}`);
   const result = await runProactiveTick({
     dataDir,
@@ -91,7 +142,7 @@ async function runOnce(repoRoot: string, dataDir: string, config: ProactiveConfi
     config,
     queuedCount: await peekLoopWakeCount(dataDir),
     budgetExceeded: await budgetExceededFor(dataDir, config.budgetScope),
-    runBatch: () => fireQueuedWakes(repoRoot, dataDir, log),
+    runBatch: () => processQueuedWakes(dataDir, runTask, log),
   });
   console.log(result.tick ? `proactive tick: fired ${result.ran} queued wake(s)` : `proactive tick skipped: ${result.reason}`);
   if (result.tick && result.ran > 0) {
@@ -120,13 +171,18 @@ async function runSilence(dataDir: string, arg: string | undefined): Promise<num
   return 0;
 }
 
-export async function runProactiveCommand(repoRoot: string, rest: string[]): Promise<number> {
+export async function runProactiveCommand(repoRoot: string, rest: string[], deps: { runTask?: RunTask } = {}): Promise<number> {
   const dataDir = dataDirFor(repoRoot);
+  const runTask = deps.runTask ?? buildCronRunTask(repoRoot);
   const config = resolveProactiveConfig(process.env);
   const sub = rest[0] ?? "status";
   if (sub === "status") return runStatus(dataDir, config);
-  if (sub === "run") return runOnce(repoRoot, dataDir, config);
+  if (sub === "run") return runOnce(dataDir, config, runTask);
+  if (sub === "verify") {
+    if (!rest[1]) { console.error("usage: vanta proactive verify <loop-id>"); return 1; }
+    return verifyQueuedWake(dataDir, rest[1], runTask, (m) => console.log(`  ${m}`));
+  }
   if (sub === "silence") return runSilence(dataDir, rest[1]);
-  console.error("usage: vanta proactive [status|run|silence <minutes|off>]");
+  console.error("usage: vanta proactive [status|run|verify <loop-id>|silence <minutes|off>]");
   return 1;
 }

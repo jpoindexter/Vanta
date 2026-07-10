@@ -96,7 +96,9 @@ export async function saveTrustLedger(dataDir: string, ledger: TrustLedger): Pro
 }
 
 export function workflowIdForDecision(decision: AutonomyDecision): string {
-  return decision.action.kind;
+  return decision.action.source
+    ? `${decision.action.kind}:${decision.action.source}`
+    : decision.action.kind;
 }
 
 export function evaluateTrust(
