@@ -38,6 +38,9 @@ jobs:
       - name: Windows platform tests
         working-directory: vanta-ts
         run: npm test -- --run src/platform/shell.test.ts src/kernel/path.test.ts src/tools/shell-cmd.test.ts src/schedule/script-run.test.ts src/repl/goal-condition.test.ts src/setup/preflight.test.ts
+      - name: Prove shell tool execution
+        working-directory: vanta-ts
+        run: node --import tsx scripts/windows-shell-smoke.ts
       - name: Install through production PowerShell path
         shell: powershell
         run: .\install.ps1 -SkipPathUpdate -SkipSkillInstall

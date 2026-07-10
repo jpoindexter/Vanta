@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
+import { tmpdir } from "node:os";
 import { shellCmdTool, sandboxServeRefusal } from "./shell-cmd.js";
 import type { ToolContext } from "./types.js";
 
-function ctx(root = "/tmp"): ToolContext {
+function ctx(root = tmpdir()): ToolContext {
   return { root, safety: {} as ToolContext["safety"], requestApproval: vi.fn(async () => true) };
 }
 

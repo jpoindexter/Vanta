@@ -15,18 +15,26 @@ function invocation(shell: string, command: string): ShellInvocation {
     return { cmd: shell, args: ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", command], kind: "powershell" };
   }
   if (name === "cmd" || name === "cmd.exe") return { cmd: shell, args: ["/d", "/s", "/c", command], kind: "cmd" };
+  if (name === "bash" || name === "bash.exe") {
+    return { cmd: shell, args: ["--noprofile", "--norc", "-c", command], kind: "posix" };
+  }
   return { cmd: shell, args: ["-lc", command], kind: "posix" };
 }
 
 function windowsBash(env: NodeJS.ProcessEnv, exists: (path: string) => boolean): string | null {
-  for (const dir of (env.PATH ?? "").split(";").filter(Boolean)) {
-    const candidate = win32.join(dir.replace(/^"|"$/g, ""), "bash.exe");
-    if (exists(candidate)) return candidate;
-  }
   for (const candidate of [
     env.ProgramFiles ? win32.join(env.ProgramFiles, "Git", "bin", "bash.exe") : "",
+    env.ProgramW6432 ? win32.join(env.ProgramW6432, "Git", "bin", "bash.exe") : "",
     env.LOCALAPPDATA ? win32.join(env.LOCALAPPDATA, "Programs", "Git", "bin", "bash.exe") : "",
   ].filter(Boolean)) if (exists(candidate)) return candidate;
+  for (const dir of (env.PATH ?? "").split(";").filter(Boolean)) {
+    const cleanDir = dir.replace(/^"|"$/g, "");
+    // Windows ships a WSL launcher named bash.exe. Only accept a PATH hit that
+    // is visibly owned by Git so native Vanta never gains a hidden WSL dependency.
+    if (!/[\\/]Git[\\/]/i.test(cleanDir)) continue;
+    const candidate = win32.join(cleanDir, "bash.exe");
+    if (exists(candidate)) return candidate;
+  }
   return null;
 }
 

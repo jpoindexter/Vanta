@@ -9,7 +9,20 @@ describe("resolveShellInvocation", () => {
   it("uses Git Bash on Windows when available", () => {
     const path = "C:\\Program Files\\Git\\bin\\bash.exe";
     expect(resolveShellInvocation("npm test", { platform: "win32", env: { ProgramFiles: "C:\\Program Files" }, exists: (candidate) => candidate === path })).toEqual({
-      cmd: path, args: ["-lc", "npm test"], kind: "posix",
+      cmd: path, args: ["--noprofile", "--norc", "-c", "npm test"], kind: "posix",
+    });
+  });
+
+  it("ignores the WSL bash launcher on PATH", () => {
+    const wsl = "C:\\Windows\\System32\\bash.exe";
+    expect(resolveShellInvocation("echo ok", {
+      platform: "win32",
+      env: { PATH: "C:\\Windows\\System32" },
+      exists: (candidate) => candidate === wsl,
+    })).toEqual({
+      cmd: "powershell.exe",
+      args: ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", "echo ok"],
+      kind: "powershell",
     });
   });
 
