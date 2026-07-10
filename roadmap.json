@@ -16311,16 +16311,18 @@
       "id": "PLATFORM-WINDOWS",
       "track": "Harness",
       "title": "Native Windows support — CLI / gateway / tools without WSL",
-      "status": "building",
+      "status": "shipped",
       "size": "L",
-      "summary": "a reference agent harness and a reference agent harness run natively on Windows (bundled Git Bash, PowerShell installer). Vanta is mac/Linux-first. Native Windows (CLI, gateway, TUI, tools, a portable shell for shell_cmd) widens reach to most desktop users. Lower priority for a mac-first solo build, but on the path to broad beta.",
+      "summary": "Vanta now runs natively on Windows through the production PowerShell installer and launcher, with native kernel resolution, Git Bash or PowerShell tool execution, CLI, gateway, doctor, CI, and release packaging without WSL.",
       "done": "On a clean Windows box, a one-line installer brings up Vanta natively (no WSL required); CLI, gateway, and shell-based tools work; `vanta doctor` is green.",
       "tier": "pebble",
       "lens": "infra",
       "source": "vision-gap-audit-2026-06-21",
       "after": [
         "INSTALL-PARITY"
-      ]
+      ],
+      "updated": "2026-07-10",
+      "notes": "SHIPPED 2026-07-10. GitHub Windows native run 29064249910 passed on a fresh windows-latest checkout: production install.ps1 cold path, vanta.cmd launch, native Rust kernel build, TypeScript checks, 61 Windows-focused tests, real shell_cmd execution (WINDOWS_SHELL_OK), live kernel API, green vanta doctor (WINDOWS_DOCTOR_OK), and gateway verify-channels. Shell resolution explicitly rejects the WSL bash launcher and uses Git Bash without profiles or noninteractive PowerShell. Local final suite: 1,195 files passed; 12,435 tests passed; 3 skipped. Evidence: https://github.com/jpoindexter/Vanta/actions/runs/29064249910"
     },
     {
       "id": "EXT-PUBLIC-API",
