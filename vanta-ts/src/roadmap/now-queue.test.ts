@@ -156,4 +156,16 @@ describe("formatNowEmptyState", () => {
     expect(out).not.toContain("D -");
     expect(out).toContain("1 more hidden");
   });
+
+  it("does not tell the operator to clear parked cards like active blockers", () => {
+    const out = formatNowEmptyState([
+      mk("A", "parked", "rock", "S"),
+      mk("B", "parked", "rock", "S"),
+      mk("C", "parked", "rock", "S"),
+      mk("D", "parked", "rock", "S"),
+    ]);
+    expect(out).toContain("parked: 4");
+    expect(out).toContain("review with `vanta roadmap unblock` before reviving");
+    expect(out).not.toContain("clear one first");
+  });
 });

@@ -65,13 +65,19 @@ export function formatNowQueue(candidates: RoadmapItem[]): string {
     .join("\n");
 }
 
+function hiddenSuffix(label: string): string {
+  if (label === "parked") return "review with `vanta roadmap unblock` before reviving";
+  if (label === "needs decision") return "decide one before reviving";
+  return "clear one first";
+}
+
 function formatTopItems(label: string, items: RoadmapItem[], limit = 3): string[] {
   if (items.length === 0) return [];
   const shown = priorityItems(items).slice(0, limit);
   const lines = [`${label}: ${items.length}`];
   lines.push(...shown.map((item) => `- ${item.id} - ${item.title}`));
   const hidden = items.length - shown.length;
-  if (hidden > 0) lines.push(`- (${hidden} more hidden - clear one first)`);
+  if (hidden > 0) lines.push(`- (${hidden} more hidden - ${hiddenSuffix(label)})`);
   return lines;
 }
 
