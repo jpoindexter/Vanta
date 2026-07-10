@@ -38,12 +38,14 @@ printf '%s  %s\n' "$APK_SHA256" "$APK_PATH" | sha256sum -c -
 adb wait-for-device
 adb install -r "$APK_PATH"
 adb shell am force-stop "$TERMUX_PACKAGE" || true
-adb shell monkey -p "$TERMUX_PACKAGE" -c android.intent.category.LAUNCHER 1 </dev/null >/dev/null
+timeout 15s adb shell am start -W -n "$TERMUX_PACKAGE/com.termux.app.TermuxActivity" </dev/null || true
 
 ready=0
 echo "Waiting for Termux bootstrap"
 for _ in $(seq 1 90); do
-  if timeout 5s adb exec-out run-as "$TERMUX_PACKAGE" test -x "$TERMUX_PREFIX/bin/bash" </dev/null 2>/dev/null; then
+  probe=$(timeout 5s adb exec-out run-as "$TERMUX_PACKAGE" sh -c \
+    "test -x '$TERMUX_PREFIX/bin/bash' && echo TERMUX_READY" </dev/null 2>/dev/null || true)
+  if [ "$probe" = "TERMUX_READY" ]; then
     ready=1
     break
   fi
