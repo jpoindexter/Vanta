@@ -21,6 +21,12 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+      - name: Install from a fresh checkout through the production path
+        shell: powershell
+        run: .\install.ps1 -SkipPathUpdate -SkipSkillInstall
+      - name: Launch through vanta.cmd
+        shell: powershell
+        run: '& "$HOME\.local\bin\vanta.cmd" --help'
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -41,13 +47,7 @@ jobs:
       - name: Prove shell tool execution
         working-directory: vanta-ts
         run: node --import tsx scripts/windows-shell-smoke.ts
-      - name: Install through production PowerShell path
-        shell: powershell
-        run: .\install.ps1 -SkipPathUpdate -SkipSkillInstall
-      - name: Launch through vanta.cmd
-        shell: powershell
-        run: '& "$HOME\.local\bin\vanta.cmd" --help'
-      - name: Prove native kernel API
+      - name: Prove native kernel API and doctor
         shell: powershell
         run: |
           $kernel = Start-Process -FilePath ".\target\debug\vanta-kernel.exe" -ArgumentList "serve", "7788" -PassThru -WindowStyle Hidden
@@ -61,6 +61,11 @@ jobs:
             }
             if (-not $ready) { throw "native kernel did not become ready" }
             Write-Host "WINDOWS_KERNEL_OK"
+            $env:VANTA_PROVIDER = "ollama"
+            $doctor = (& "$HOME\.local\bin\vanta.cmd" doctor 2>&1 | Out-String)
+            if ($LASTEXITCODE -ne 0 -or $doctor -match "✗") { throw "vanta doctor was not green:`n$doctor" }
+            Write-Host $doctor
+            Write-Host "WINDOWS_DOCTOR_OK"
           } finally {
             Stop-Process -Id $kernel.Id -Force -ErrorAction SilentlyContinue
           }
