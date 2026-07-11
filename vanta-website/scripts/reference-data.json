@@ -3907,8 +3907,38 @@
       "hasSafety": true
     },
     {
+      "name": "finance_model",
+      "description": "Preview or generate a formula-driven three-statement, DCF, comps, LBO, or merger workbook with checks, sensitivity tables where applicable, reopen verification, and a SHA-256 receipt.",
+      "parameters": {
+        "type": "object",
+        "required": [
+          "action",
+          "path",
+          "brief"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "preview",
+              "generate"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "description": "Scoped .xlsx output path."
+          },
+          "brief": {
+            "type": "object",
+            "description": "Strict version-1 finance brief. model is three_statement, dcf, comps, lbo, or merger."
+          }
+        }
+      },
+      "hasSafety": true
+    },
+    {
       "name": "spreadsheet_workbook",
-      "description": "Inspect, preview, or approval-gated apply cell, formula, and sheet changes to a scoped local .xlsx workbook. Apply reopens the result and writes a SHA-256 receipt.",
+      "description": "Inspect or explain formulas, then preview or approval-gated apply cell, formula, sheet, and chart changes to a scoped local .xlsx workbook. Apply reopens the result and writes a SHA-256 receipt.",
       "parameters": {
         "type": "object",
         "required": [
@@ -3920,6 +3950,7 @@
             "type": "string",
             "enum": [
               "inspect",
+              "explain",
               "preview",
               "apply"
             ]
@@ -3933,12 +3964,15 @@
           "range": {
             "type": "string"
           },
+          "cell": {
+            "type": "string"
+          },
           "changes": {
             "type": "array",
             "maxItems": 500,
             "items": {
               "type": "object",
-              "description": "Change: set/formula requires sheet+cell; add_sheet/delete_sheet requires sheet."
+              "description": "Change: set/formula requires sheet+cell; chart requires sourceRange/title/titleCell/from/to; add_sheet/delete_sheet requires sheet."
             }
           }
         }

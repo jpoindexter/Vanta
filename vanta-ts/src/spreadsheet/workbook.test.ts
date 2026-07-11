@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import ExcelJS from "exceljs";
 import { describe, expect, it } from "vitest";
-import { applyWorkbookPlan, inspectWorkbook, previewWorkbookPlan, type WorkbookPlan } from "./workbook.js";
+import { applyWorkbookPlan, explainWorkbookFormula, inspectWorkbook, previewWorkbookPlan, type WorkbookPlan } from "./workbook.js";
 
 async function fixture(): Promise<{ root: string; path: string }> {
   const root = await mkdtemp(join(tmpdir(), "vanta-workbook-"));
@@ -35,6 +35,14 @@ describe("spreadsheet workbook workflow", () => {
     expect(view.range?.rows).toEqual([["Revenue", 100], [null, { formula: "B1*1.1", result: 110 }]]);
   });
 
+  it("explains a workbook formula from its real cell", async () => {
+    const { path } = await fixture();
+    const explanation = await explainWorkbookFormula(path, "Summary", "B2");
+    expect(explanation).toContain("Summary!B2 = B1*1.1");
+    expect(explanation).toContain("Inputs: B1");
+    expect(explanation).toContain("multiplies");
+  });
+
   it("previews changes without mutating the workbook", async () => {
     const { path } = await fixture();
     const before = await readFile(path);
@@ -54,5 +62,15 @@ describe("spreadsheet workbook workflow", () => {
     const receipt = JSON.parse(await readFile(result.receiptPath, "utf8"));
     expect(receipt).toMatchObject({ workbook: path, verified: true, touched: ["Summary!B1", "Summary!B2", "Forecast", "Delete me"] });
     expect(receipt.beforeSha256).not.toBe(receipt.afterSha256);
+  });
+
+  it("embeds a verified chart snapshot from a bounded source range", async () => {
+    const { root, path } = await fixture();
+    const chart: WorkbookPlan = { changes: [{ kind: "chart", sheet: "Summary", chartType: "line", title: "Revenue trend", titleCell: "D1", sourceRange: "A1:B2", from: "D2", to: "L18" }] };
+    const preview = await previewWorkbookPlan(path, chart); expect(preview.lines[0]).toContain("line chart");
+    const result = await applyWorkbookPlan(path, chart, { receiptDir: join(root, "receipts") }); expect(result.verified).toBe(true);
+    const book = new ExcelJS.Workbook(); await book.xlsx.readFile(path); const sheet = book.getWorksheet("Summary")!;
+    expect(sheet.getCell("D1").value).toBe("Revenue trend"); expect(sheet.getImages()).toHaveLength(1);
+    const receipt = JSON.parse(await readFile(result.receiptPath, "utf8")); expect(receipt.touched).toContain("Summary!A1:B2");
   });
 });

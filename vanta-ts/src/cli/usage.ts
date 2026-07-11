@@ -57,7 +57,7 @@ const USAGE_LINES = [
       "       vanta secrets vault add|status|resolve|rotate   manage scoped Bitwarden/1Password aliases",
       "       vanta up|restart|stop|logs|status      manage the cross-platform gateway service",
       "       vanta service [install|restart|stop|logs|status|uninstall]   full service lifecycle",
-      "       vanta spreadsheet inspect|preview|apply   inspect and approval-gate local .xlsx changes",
+      "       vanta spreadsheet inspect|explain|preview|apply|model   inspect, chart, and build verified .xlsx models",
       "       vanta media-studio preview|render|stages  render and verify scoped local MP4 briefs",
       "       vanta payments preview|execute|receipts   exact-total payment contracts with fresh approval",
       "       vanta shopify read|preview|apply|receipts   scoped Shopify operations with verified writes",

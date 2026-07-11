@@ -6,7 +6,7 @@ sidebar_position: 3
 
 # Tool reference
 
-Every built-in tool, generated directly from the source registry — **140 tools**. Each call is gated by the kernel before it runs (tools marked _safety-checked_ send a safety descriptor to the kernel). The model sees a per-turn scoped subset; `tool_search` pulls in the rest on demand.
+Every built-in tool, generated directly from the source registry — **141 tools**. Each call is gated by the kernel before it runs (tools marked _safety-checked_ send a safety descriptor to the kernel). The model sees a per-turn scoped subset; `tool_search` pulls in the rest on demand.
 
 ## Files & code
 
@@ -1265,6 +1265,18 @@ Remove a git worktree created by enter_worktree. Auto-cleans (drops the worktree
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
+### `finance_model`
+
+Preview or generate a formula-driven three-statement, DCF, comps, LBO, or merger workbook with checks, sensitivity tables where applicable, reopen verification, and a SHA-256 receipt.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes |  |
+| `path` | string | yes | Scoped .xlsx output path. |
+| `brief` | object | yes | Strict version-1 finance brief. model is three_statement, dcf, comps, lbo, or merger. |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
 ### `generate_agent`
 
 Generate a new agent definition (identifier + when-to-use + system prompt) from a plain-English description, tailored using repository context, and write it to an agent file under the Vanta home. Use this to create a reusable specialist agent the orchestrator can later delegate to.
@@ -1582,7 +1594,7 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 
 ### `spreadsheet_workbook`
 
-Inspect, preview, or approval-gated apply cell, formula, and sheet changes to a scoped local .xlsx workbook. Apply reopens the result and writes a SHA-256 receipt.
+Inspect or explain formulas, then preview or approval-gated apply cell, formula, sheet, and chart changes to a scoped local .xlsx workbook. Apply reopens the result and writes a SHA-256 receipt.
 
 | Param | Type | Required | Description |
 |---|---|---|---|
@@ -1590,6 +1602,7 @@ Inspect, preview, or approval-gated apply cell, formula, and sheet changes to a 
 | `path` | string | yes |  |
 | `sheet` | string | no |  |
 | `range` | string | no |  |
+| `cell` | string | no |  |
 | `changes` | array | no |  |
 
 _Safety-checked: sends a descriptor to the kernel for classification._

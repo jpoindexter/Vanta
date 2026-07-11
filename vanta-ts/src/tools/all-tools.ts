@@ -133,6 +133,7 @@ import { googleAuthTool } from "./google-auth.js";
 import { marketingReadTool } from "./marketing-read.js";
 import { renderCanvasTool } from "./render-canvas.js";
 import { spreadsheetWorkbookTool } from "./spreadsheet-workbook.js";
+import { financeModelTool } from "./finance-model.js";
 import { mediaStudioTool } from "./media-studio.js";
 import { paymentTransactionTool } from "./payment-transaction.js";
 import { shopifyOperationsTool } from "./shopify-operations.js";
@@ -264,6 +265,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   paymentTransactionTool,
   shopifyOperationsTool,
   telephonyWorkflowTool,
+  financeModelTool,
   spreadsheetWorkbookTool,
   bgListTool,
   bgStatusTool,

@@ -34,7 +34,7 @@ verified Vanta capabilities.
 | Image/video/audio/3D production recipes and generators | Verified media studio renders scoped local MP4 briefs through staged providers; broader provider coverage remains additive | `HERMES-MEDIA-STUDIO-SKILL-PACK` shipped |
 | Stripe Link, MPP, and Stripe Projects | Test-only exact-total contract, fresh approval, cap/replay ledger, redacted adapters, HTTP 402 validation, and vault-only Keychain provisioning are implemented; live Link/MPP receipts remain | `HERMES-PAYMENT-SKILL-PACK` blocked on live acceptance |
 | Shopping, Shopify, and agent telephony | Scoped Shopify operations and consented Twilio lifecycle are implemented; each awaits its live provider receipt | Child cards blocked on live acceptance under `HERMES-COMMERCE-TELEPHONY-SKILL-PACK` |
-| Excel authoring plus DCF/LBO/merger/comps packs | Existing spreadsheet card covered generic workbook control only | Expanded `HERMES-SPREADSHEET-COPILOT` |
+| Excel authoring plus DCF/LBO/merger/comps packs | Local chart snapshots, formula explanation, and verified five-pack finance model generation are implemented; Excel/Sheets sidecar acceptance remains | `HERMES-SPREADSHEET-COPILOT` blocked on host acceptance |
 
 ## Priority
 

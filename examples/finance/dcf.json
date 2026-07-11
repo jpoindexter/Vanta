@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "model": "dcf",
+  "company": "Example Company",
+  "currency": "USD",
+  "years": 5,
+  "revenue": 1000,
+  "revenueGrowth": 0.08,
+  "ebitdaMargin": 0.22,
+  "taxRate": 0.25,
+  "capexPercent": 0.05,
+  "depreciationPercent": 0.04,
+  "workingCapitalPercent": 0.1,
+  "wacc": 0.1,
+  "terminalGrowth": 0.025,
+  "netDebt": 150,
+  "shares": 100
+}

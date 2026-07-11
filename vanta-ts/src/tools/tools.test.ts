@@ -77,6 +77,7 @@ describe("registry", () => {
       "edit_file",
       "enter_worktree",
       "exit_worktree",
+      "finance_model",
       "generate_agent",
       "git_branch",
       "git_checkout",

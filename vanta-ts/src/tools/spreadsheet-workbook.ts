@@ -2,10 +2,11 @@ import { extname, join, relative } from "node:path";
 import { stat } from "node:fs/promises";
 import { z } from "zod";
 import { resolveInScope } from "../scope.js";
-import { applyWorkbookPlan, inspectWorkbook, previewWorkbookPlan, WorkbookChangeSchema } from "../spreadsheet/workbook.js";
+import { applyWorkbookPlan, explainWorkbookFormula, inspectWorkbook, previewWorkbookPlan, WorkbookChangeSchema } from "../spreadsheet/workbook.js";
 import type { Tool } from "./types.js";
 
-const Args = z.object({ action: z.enum(["inspect", "preview", "apply"]), path: z.string().min(1), sheet: z.string().optional(), range: z.string().optional(), changes: z.array(WorkbookChangeSchema).min(1).max(500).optional() });
+const Args = z.object({ action: z.enum(["inspect", "explain", "preview", "apply"]), path: z.string().min(1), sheet: z.string().optional(), range: z.string().optional(), cell: z.string().optional(), changes: z.array(WorkbookChangeSchema).min(1).max(500).optional() });
+type SpreadsheetArgs = z.infer<typeof Args>;
 
 async function workbookPath(path: string, root: string): Promise<{ ok: true; abs: string } | { ok: false; error: string }> {
   if (extname(path).toLowerCase() !== ".xlsx") return { ok: false, error: "spreadsheet_workbook supports .xlsx files only" };
@@ -16,13 +17,23 @@ async function workbookPath(path: string, root: string): Promise<{ ok: true; abs
   return { ok: true, abs: scoped.path };
 }
 
+async function readOnlyOutput(data: SpreadsheetArgs, path: string): Promise<string | null> {
+  if (data.action === "inspect") {
+    const view = await inspectWorkbook(path, { sheet: data.sheet, range: data.range });
+    return view.range ? `${view.range.sheet}!${view.range.address}\n${JSON.stringify(view.range.rows)}` : view.sheets.map((sheet) => `${sheet.name} ${sheet.rows}x${sheet.columns} charts:${sheet.charts}`).join("\n");
+  }
+  if (data.action !== "explain") return null;
+  if (!data.sheet || !data.cell) throw new Error("formula explanation requires sheet and cell");
+  return explainWorkbookFormula(path, data.sheet, data.cell);
+}
+
 export const spreadsheetWorkbookTool: Tool = {
   schema: {
     name: "spreadsheet_workbook",
-    description: "Inspect, preview, or approval-gated apply cell, formula, and sheet changes to a scoped local .xlsx workbook. Apply reopens the result and writes a SHA-256 receipt.",
+    description: "Inspect or explain formulas, then preview or approval-gated apply cell, formula, sheet, and chart changes to a scoped local .xlsx workbook. Apply reopens the result and writes a SHA-256 receipt.",
     parameters: { type: "object", required: ["action", "path"], properties: {
-      action: { type: "string", enum: ["inspect", "preview", "apply"] }, path: { type: "string" }, sheet: { type: "string" }, range: { type: "string" },
-      changes: { type: "array", maxItems: 500, items: { type: "object", description: "Change: set/formula requires sheet+cell; add_sheet/delete_sheet requires sheet." } },
+      action: { type: "string", enum: ["inspect", "explain", "preview", "apply"] }, path: { type: "string" }, sheet: { type: "string" }, range: { type: "string" }, cell: { type: "string" },
+      changes: { type: "array", maxItems: 500, items: { type: "object", description: "Change: set/formula requires sheet+cell; chart requires sourceRange/title/titleCell/from/to; add_sheet/delete_sheet requires sheet." } },
     } },
   },
   describeForSafety: (args) => `${String(args.action)} workbook ${String(args.path)}`,
@@ -32,11 +43,7 @@ export const spreadsheetWorkbookTool: Tool = {
     const resolved = await workbookPath(parsed.data.path, ctx.root);
     if (!resolved.ok) return { ok: false, output: resolved.error };
     try {
-      if (parsed.data.action === "inspect") {
-        const view = await inspectWorkbook(resolved.abs, { sheet: parsed.data.sheet, range: parsed.data.range });
-        const label = view.range ? `${view.range.sheet}!${view.range.address}\n${JSON.stringify(view.range.rows)}` : view.sheets.map((sheet) => `${sheet.name} ${sheet.rows}x${sheet.columns}`).join("\n");
-        return { ok: true, output: label };
-      }
+      const readOnly = await readOnlyOutput(parsed.data, resolved.abs); if (readOnly !== null) return { ok: true, output: readOnly };
       if (!parsed.data.changes) return { ok: false, output: "preview/apply requires changes" };
       const plan = { changes: parsed.data.changes };
       const preview = await previewWorkbookPlan(resolved.abs, plan);
