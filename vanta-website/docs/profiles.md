@@ -47,3 +47,45 @@ profile also clears the active marker.
 
 Profile data lives below `~/.vanta/profiles/<id>/` by default. Set `VANTA_HOME` before the
 first profile command to use a different base store.
+
+## Install a profile distribution
+
+A distribution packages capability and defaults without packaging private state. Preview is
+the default; `--apply` is required to write:
+
+```bash
+vanta profile install ./research-profile
+vanta profile install https://github.com/example/research-profile.git --apply
+vanta profile update research-lead
+vanta profile update research-lead --apply
+```
+
+The source root contains `vanta-profile.json`:
+
+```json
+{
+  "version": 1,
+  "name": "Research Lead",
+  "profile": {
+    "provider": "codex",
+    "model": "gpt-5.5",
+    "gatewayIdentity": "research-bot"
+  },
+  "soul": "SOUL.md",
+  "settings": "settings.json",
+  "skills": ["skills/research"],
+  "cron": "cron.json",
+  "mcp": "mcp.json"
+}
+```
+
+Vanta records the source commit and hashes of every owned destination file. Update previews
+the changed files, backs up the previous owned copies, and then applies only those paths.
+Current operator settings win over new distribution defaults.
+
+The source is rejected if its tree contains `.env` files, keys, credentials, tokens,
+memory, sessions, inboxes, work logs, or history. Those private files are never valid
+distribution content, even when the manifest does not reference them. Secret-shaped keys
+inside declared JSON, symlinks that resolve outside the source, and installed destination
+paths that escape the profile home are also rejected. When an update removes a previously
+owned file, Vanta backs it up before deleting the stale profile copy.

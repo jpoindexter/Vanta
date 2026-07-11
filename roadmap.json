@@ -17391,7 +17391,7 @@
       "id": "HERMES-PROFILE-DISTRIBUTIONS",
       "track": "Operator",
       "title": "Profile distributions — package a whole specialist agent as a git install",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Current Hermes ships profile distributions: a repo can contain the agent's manifest, SOUL, config, skills, cron, MCP, and defaults. Vanta has blueprints, imports, plugins, and profile-adjacent primitives; the missing workflow is installing and updating a whole specialist profile without copying secrets, sessions, or private memory.",
       "done": "`vanta profile install <git|path>` previews a distribution manifest, imports SOUL/config/skills/cron/MCP into an isolated profile, refuses secrets/history, records the source commit, supports update with diff/backup, and preserves local memories, sessions, API keys, and operator overrides.",
@@ -17405,7 +17405,7 @@
       ],
       "updated": "2026-07-11",
       "source": "hermes-feature-function-harvest-2026-07-11",
-      "notes": "Source: current NousResearch/hermes-agent profile distribution docs. Build on Vanta blueprints/import-export/plugin bundle primitives, but keep the safety boundary: a distribution installs capability and defaults, not private state."
+      "notes": "Source: current NousResearch/hermes-agent profile distribution docs. Build on Vanta blueprints/import-export/plugin bundle primitives, but keep the safety boundary: a distribution installs capability and defaults, not private state.\n\nSHIPPED 2026-07-11: added `vanta profile install <git|path> [--apply]` and `vanta profile update <id> [--apply]`. `vanta-profile.json` explicitly declares SOUL, settings, skills, cron, MCP, and profile defaults. Preview lists destination files and the Git commit (or deterministic local manifest hash). Apply creates an isolated profile and records owned paths/hashes in distribution.json. Update diffs those owned files, backs up previous copies, removes stale owned paths, applies source changes, refreshes provider/model identity, and merges current operator settings over incoming defaults. A full-tree deny scan refuses .env, keys, credentials, tokens, memory, sessions, inbox, work, and history before preview; referenced symlink escapes, secret-shaped JSON keys, and tampered installed destination paths fail closed. Tests use real Git commits and filesystem state to prove source commit capture, refusal, install, backup/update/removal, destination containment, and preservation of private memory/inbox/settings. A real child-process CLI test executes preview, install, update preview, and update apply across separate Vanta invocations."
     },
     {
       "id": "HERMES-AUTOMATION-BLUEPRINT-CATALOG",

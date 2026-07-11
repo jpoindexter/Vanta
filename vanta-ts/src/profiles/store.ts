@@ -162,6 +162,27 @@ export async function archiveProfile(nameOrId: string, env: NodeJS.ProcessEnv = 
   return archived;
 }
 
+export async function updateProfileDefinition(
+  nameOrId: string,
+  patch: { model?: string; provider?: string; gatewayIdentity?: string },
+  env: NodeJS.ProcessEnv = process.env,
+  now = () => new Date(),
+): Promise<ProfileRecord> {
+  const profile = await findProfile(nameOrId, env);
+  if (!profile || profile.status === "archived") throw new Error(`profile not found: ${nameOrId}`);
+  const updated: ProfileRecord = {
+    ...profile,
+    active: undefined,
+    updatedAt: now().toISOString(),
+    ...(patch.model?.trim() ? { model: patch.model.trim() } : {}),
+    ...(patch.provider?.trim() ? { provider: patch.provider.trim() } : {}),
+    ...(patch.gatewayIdentity?.trim() ? { gatewayIdentity: patch.gatewayIdentity.trim() } : {}),
+  };
+  await writeProfile(updated, env);
+  await writeFile(join(updated.home, "identity.json"), `${JSON.stringify({ profileId: updated.id, gatewayIdentity: updated.gatewayIdentity }, null, 2)}\n`, "utf8");
+  return updated;
+}
+
 export async function targetProfile(nameOrId: string, instruction: string, env: NodeJS.ProcessEnv = process.env, now = () => new Date()): Promise<ProfileInboxMessage> {
   const profile = await findProfile(nameOrId, env);
   if (!profile || profile.status === "archived") throw new Error(`profile not found: ${nameOrId}`);

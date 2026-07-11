@@ -102,14 +102,22 @@ next Vanta process into its own home, isolating model/settings, skills, memory, 
 identity/state, inbox, and work history. Operator Home renders the live roster, active and
 queued counts, and latest targeted work. A real isolated CLI run exercised every action,
 including restart activation and archival, before the card moved to shipped.
+`HERMES-PROFILE-DISTRIBUTIONS` is shipped too. A `vanta-profile.json` distribution can
+declare SOUL, settings, skills, cron, MCP, and profile defaults. `vanta profile install`
+previews a local path or Git source before `--apply`; update reports owned-file diffs,
+backs up the previous owned files, records the source commit, and preserves operator
+settings, private memory, inbox, sessions, credentials, and history. Secret/history files
+are refused even when they are not referenced by the manifest; secret-shaped JSON fields,
+symlink source escapes, and tampered installed destination paths fail closed. Removed owned
+files are deleted only after their previous copies are backed up.
 
 The extraction note is `docs/research/hermes-transcript-roadmap-extract-2026-07-11.md`;
 the current Hermes repo comparison is `docs/research/hermes-current-vs-vanta-vision-2026-07-11.md`;
 the feature/function harvest is `docs/research/hermes-feature-function-harvest-2026-07-11.md`.
 The issue, Mercury, and current user-story audit is
 `docs/research/hermes-mercury-issue-usecase-audit-2026-07-11.md`. Build priority is public-site
-v1 + story eval foundation → Hermes issue regression pack → profile roster (shipped) →
-profile distributions → profile Kanban router → second-brain corpus compiler. Promote credential
+v1 + story eval foundation → Hermes issue regression pack → profile roster + distributions
+(shipped) → profile Kanban router → second-brain corpus compiler. Promote credential
 pools/vault-backed secrets after the profile/Kanban spine if multi-profile gateways or
 run-anywhere execution need safer key distribution. The rest stay horizon until a concrete
 workflow needs them.

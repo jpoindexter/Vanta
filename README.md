@@ -163,6 +163,16 @@ vanta home
 ```
 
 See the [profiles guide](vanta-website/docs/profiles.md) for clone, inbox, and archive behavior.
+Whole specialists can also be previewed and installed from a local or Git distribution:
+
+```bash
+vanta profile install ./research-profile
+vanta profile install ./research-profile --apply
+vanta profile update research-lead --apply
+```
+
+Distribution installs copy declared capability/default files only. Secret files, credentials,
+sessions, memory, inboxes, work history, and other private state are refused.
 
 ## Community
 

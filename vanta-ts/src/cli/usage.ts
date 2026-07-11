@@ -53,6 +53,7 @@ const USAGE_LINES = [
       "       vanta service [install|uninstall|status]   manage the background launchd agent",
       "       vanta agents [list|logs|attach|stop|rm|respawn]   manage background agent sessions",
       "       vanta profiles [list|create|clone|switch|archive|target|inbox]   manage persistent specialist profiles",
+      "       vanta profile install <git|path> [--apply] | update <id> [--apply]   manage specialist distributions",
       "       vanta hire <role> --adapter <id> [--budget <usd>]   add a budgeted, role-tagged agent to the roster",
       "       vanta heartbeat                    one coalesced wakeup: budget→workspace→secret→skill→adapter + orphan recovery",
       "       vanta fleet run --task <instruction> [--task <instruction> ...]   fan out worktree workers",
