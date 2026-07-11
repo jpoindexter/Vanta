@@ -162,7 +162,18 @@ async function runSkillsSub(rest: string[]): Promise<boolean> {
   return runSkillsInterop(rest); // import / export / hub (agentskills.io)
 }
 
+async function runRegistrySubcommand(rest: string[]): Promise<boolean> {
+  const cmd = rest[0];
+  const selected = ["search", "browse", "view", "approve", "update", "remove", "doctor"].includes(cmd ?? "")
+    || (cmd === "install" && Boolean(rest[1]) && !rest[1]?.startsWith("--"));
+  if (!selected) return false;
+  const { runSkillsRegistryCommand } = await import("./skills-registry-cmd.js");
+  process.exitCode = await runSkillsRegistryCommand(rest);
+  return true;
+}
+
 export async function runSkillsCommand(rest: string[]): Promise<void> {
+  if (await runRegistrySubcommand(rest)) return;
   if (await runSkillsSub(rest)) return;
   if (rest[0] !== "install") return runSkillsList();
   const { installed, skipped } = await installSkillLibrary({ force: rest.includes("--force") });

@@ -17343,7 +17343,7 @@
       "status": "horizon",
       "size": "L",
       "summary": "Hermes demonstrates the agent inside Excel: spreadsheet edits, analysis, charting, and custom functions. Vanta has document/spreadsheet-capable runtime support in the broader Codex workspace, but Vanta itself needs a first-class spreadsheet workflow if this becomes a real operator surface.",
-      "done": "Vanta can inspect, edit, add/delete sheets, create charts, and explain formulas for a local workbook; an Excel/Sheets sidecar or custom function can call a kernel-gated Vanta session; changes are previewed before write; receipts record workbook, sheet, cell range, and verification.",
+      "done": "Vanta can inspect, edit, add/delete sheets, create charts, and explain formulas for a local workbook; an Excel/Sheets sidecar or custom function can call a kernel-gated Vanta session; changes are previewed before write; receipts record workbook, sheet, cell range, and verification; optional Excel authoring packs produce formula-driven three-statement, DCF, comps, LBO, and merger models with balance and sensitivity checks.",
       "tier": "pebble",
       "model": "opus",
       "effort": "high",
@@ -17351,7 +17351,7 @@
       "lens": "agent-loop",
       "updated": "2026-07-11",
       "source": "hermes-transcript-roadmap-extract-2026-07-11",
-      "notes": "Source: Tonbis 2026-06-16 Hermes inside Excel. Keep this as a real workflow only if spreadsheet operations become a requested Vanta surface; avoid building a generic office suite integration prematurely."
+      "notes": "Source: Tonbis 2026-06-16 Hermes inside Excel plus the current Hermes optional finance catalog (excel-author, 3-statement, DCF, comps, LBO, merger, and PPTX authoring). Build one verified workbook workflow before expanding the finance pack; avoid a generic office-suite integration."
     },
     {
       "id": "HERMES-VAULT-SECRETS-ROTATION",
@@ -17547,7 +17547,7 @@
       "id": "PUBLIC-SKILL-REGISTRY-CLIENT",
       "track": "Extensibility",
       "title": "Public skill registry client — search, inspect, install, update, and remove safely",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Hermes Skills Hub and Mercury's public registry make reusable skills discoverable. Vanta can install its bundled library and manage local skills, but its own comparison page correctly identifies the missing public exchange. Add the client and trust workflow before operating a hosted registry.",
       "done": "`vanta skills search|browse|view|install|update|remove|doctor` works against a configurable registry; install always previews the complete SKILL.md, source, version, requested capabilities, and integrity hash; untrusted skills are disabled until approval; updates show a diff and preserve local edits; installs are reversible and audited; a static test registry proves the full flow without network credentials.",
@@ -17558,7 +17558,7 @@
       "lens": "infra",
       "updated": "2026-07-11",
       "source": "cosmicstack-labs/mercury-agent@6e174a4",
-      "notes": "Mercury proves the discovery/management contract; Vanta should add stronger provenance, capability review, diff, and rollback. Hosting and community moderation are separate later decisions."
+      "notes": "SHIPPED 2026-07-11. Added a configurable local/HTTP static registry with strict schema and SHA-256 verification; search/browse/view prints source, version, capabilities, hash status, and the complete SKILL.md. Confirmed installs land mode-0600 and disabled in quarantine; a separate approve command refuses local-skill overwrite before activation. Updates preview a line diff, back up clean prior versions, and preserve locally edited files while staging incoming content for review. Removal moves packages into a reversible removed area; doctor reports ok/modified/missing/removed; lifecycle actions append redacted JSONL audit records. Executed the real CLI against an isolated static registry and VANTA_HOME: browse, search, view, preview install, confirmed disabled install, approve, doctor, preview update, apply update, doctor, remove, removed-file check, and audit actions install-disabled/approve/update/remove all passed. Focused registry/library tests: 10 passed. Full suite: 12,840 passed, 3 skipped, 0 failed; TypeScript, touched-file lint, 30-scenario use-case validation, 1,188-card JSON/ID validation, git diff checks, and Docusaurus production build pass. Complete package assets and multi-source ecosystem discovery remain separate dependent cards."
     },
     {
       "id": "VANTA-PUBLIC-SITE-V1",
@@ -17780,6 +17780,128 @@
       "updated": "2026-07-11",
       "source": "eval/use-cases/hermes-community-v1.json#enterprise-kubernetes-brief-plan",
       "notes": "SHIPPED 2026-07-11. RED was observed in receipt 10-06-38-102Z: two failed validation attempts followed by success still emitted the three-failure repair message because generic failure/cannot words were scanned anywhere in the successful payload. GREEN narrows fallback text detection to concrete error-shaped signatures. Executed: focused error-detect and turn-loop tests pass; receipt 10-09-51-830Z followed the same two-errors-then-success path with no false repair warning."
+    },
+    {
+      "id": "HERMES-PORTABLE-SKILL-PACKAGES",
+      "track": "Extensibility",
+      "title": "Portable skill packages - install references, templates, and scripts safely",
+      "status": "next",
+      "size": "M",
+      "summary": "Hermes skills are directories, not just prompts: 174 current bundled/optional packages can include references, templates, scripts, platform metadata, and setup instructions. Vanta's first registry slice intentionally installs only SKILL.md, so most outcome packs cannot yet travel intact.",
+      "done": "Registry inspect/install/update/remove handles a bounded package manifest plus SKILL.md; every path is containment-checked; file count and byte limits fail closed; executable files and setup commands are identified and scanned; preview lists every file, platform, dependency, capability, hash, and risk; confirmed install remains disabled in quarantine; approval copies the complete package atomically; updates diff companion files and preserve local edits; static fixtures prove references, templates, scripts, traversal refusal, and rollback.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4",
+      "lens": "infra",
+      "updated": "2026-07-11",
+      "source": "NousResearch/hermes-agent@3b2ef789 skill package layout",
+      "after": [
+        "PUBLIC-SKILL-REGISTRY-CLIENT"
+      ],
+      "notes": "First item from docs/research/hermes-skill-catalog-gap-audit-2026-07-11.md. Do not execute package scripts during install or approval. Runtime execution remains kernel-gated."
+    },
+    {
+      "id": "HERMES-MULTISOURCE-SKILL-HUB",
+      "track": "Extensibility",
+      "title": "Multi-source skill hub - official, skills.sh, well-known, GitHub, and taps",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Hermes aggregates official packages, skills.sh, well-known endpoints, direct URLs, GitHub repositories, custom taps, and signed NVIDIA metadata. Vanta's static registry is a safe substrate, not ecosystem parity.",
+      "done": "vanta skills browse/search/inspect accepts explicit source filters for official, skills.sh, well-known, URL, GitHub, and configured taps; results normalize provenance, versions, categories, signatures, integrity, and package metadata; cache expiry and offline behavior are visible; source failures are isolated; duplicate slugs require an explicit source; install always routes through the portable-package quarantine and approval contract; a credential-free integration fixture proves every resolver and a live read-only receipt proves at least two public sources.",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.5",
+      "lens": "infra",
+      "updated": "2026-07-11",
+      "source": "Hermes Skills Hub documentation 2026-07-11",
+      "after": [
+        "HERMES-PORTABLE-SKILL-PACKAGES"
+      ],
+      "notes": "Do not claim the Hub's 88k+ indexed entries as Vanta capabilities. Discovery is not execution proof or endorsement."
+    },
+    {
+      "id": "HERMES-SKILL-WRITE-APPROVAL-QUEUE",
+      "track": "Extensibility",
+      "title": "Skill-write approval queue - review agent-authored changes before activation",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Vanta can generate skills and blocks post-turn side effects at unresolved choice walls, but it lacks Hermes's durable pending review flow for agent-authored create, patch, edit, supporting-file, and delete operations.",
+      "done": "A setting can stage every agent-authored skill mutation; pending entries survive restart; list/diff/approve/reject works in CLI, TUI, and gateway-safe truncated views; full diffs remain locally inspectable; approval reruns injection, path, and capability checks before atomic apply; rejection makes no active change; agent-created guard scanning remains distinct from operator approval; receipts identify proposer, source session, files, decision, and resulting hash.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4",
+      "lens": "agent-loop",
+      "updated": "2026-07-11",
+      "source": "Hermes skills.write_approval documentation 2026-07-11",
+      "after": [
+        "HERMES-PORTABLE-SKILL-PACKAGES"
+      ]
+    },
+    {
+      "id": "HERMES-MEDIA-STUDIO-SKILL-PACK",
+      "track": "Operator",
+      "title": "Media studio skill pack - generate and assemble image, video, audio, and 3D work",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Hermes ships ComfyUI, Manim, HyperFrames, Blender, TouchDesigner, ASCII video, music-prompting, and Kanban video-production recipes. Vanta currently understands images and video but has no native video-generation tool or verified end-to-end production workflow.",
+      "done": "An outcome-led media command accepts a brief, previews scenes/providers/costs, and produces a playable verified artifact; provider adapters cover at least one local image path and one video path; a profile/Kanban production template can assign script, visual, audio, render, and review stages; generated assets stay in the scoped project; external generation and publishing remain approval/cost gated; ffprobe and artifact checks verify duration, dimensions, streams, and nonblank frames; receipts retain prompts, providers, costs, source assets, and checks without secrets.",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.5",
+      "lens": "reach",
+      "updated": "2026-07-11",
+      "source": "Hermes bundled/optional creative catalogs 2026-07-11",
+      "after": [
+        "HERMES-PORTABLE-SKILL-PACKAGES",
+        "HERMES-KANBAN-ROUTER"
+      ],
+      "notes": "First proof should be a short local artifact, not a broad provider matrix. Vanta's shipped watch_video path is analysis only."
+    },
+    {
+      "id": "HERMES-PAYMENT-SKILL-PACK",
+      "track": "Operator",
+      "title": "Payment skill pack - Stripe Link, MPP, and SaaS provisioning under transaction gates",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Hermes offers Stripe Link checkout, Machine Payments Protocol, and Stripe Projects provisioning. Vanta's browser and MCP layers can reach payment surfaces, but model-token budgets do not authorize purchases and generic approvals do not protect card material or merchant totals.",
+      "done": "Payment actions use a dedicated transaction contract with merchant, item, currency, exact total, per-purchase and period caps, credential type, and expiry; every spend requires a fresh operator approval plus the provider's external approval when available; payment credentials never enter model context, logs, receipts, or durable environment files; HTTP 402 challenges are validated; denials/timeouts stop cleanly; SaaS provisioning stores only vault references; receipts prove authorization, redacted provider result, amount, and cleanup; live sandbox/test-mode Stripe and MPP paths pass before any real-money enablement.",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.5",
+      "lens": "infra",
+      "updated": "2026-07-11",
+      "source": "Hermes optional payments catalog 2026-07-11",
+      "after": [
+        "HERMES-PORTABLE-SKILL-PACKAGES",
+        "HERMES-VAULT-SECRETS-ROTATION"
+      ],
+      "notes": "High-side-effect pack. Keep real-money execution disabled until test-mode receipts and an explicit release decision exist."
+    },
+    {
+      "id": "HERMES-COMMERCE-TELEPHONY-SKILL-PACK",
+      "track": "Reach",
+      "title": "Commerce and telephony skill pack - Shopify, shopping, returns, SMS, and calls",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Hermes packages shopping, Shopify administration, and Twilio/Vapi/Bland telephony as user-visible workflows. Vanta has an SMS adapter but not storefront operations, checkout/returns, number provisioning, or AI-call lifecycle receipts.",
+      "done": "Shopify read operations and write previews use scoped GraphQL permissions; product/order/inventory mutations require approval and verify the resulting object; shopping separates search from checkout and routes purchases through the payment contract; telephony can provision/configure a number, send SMS, and place a consented test call with explicit recipient/purpose/time-window controls; recordings/transcripts follow retention settings; all external actions have delivery/result receipts and idempotency guards.",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.5",
+      "lens": "reach",
+      "updated": "2026-07-11",
+      "source": "Hermes optional productivity catalog 2026-07-11",
+      "after": [
+        "HERMES-PORTABLE-SKILL-PACKAGES",
+        "HERMES-PAYMENT-SKILL-PACK"
+      ],
+      "notes": "Reuse the shipped Twilio SMS transport where applicable, but do not treat channel delivery as telephony workflow proof."
     },
     {
       "id": "HERMES-MULTITURN-STORY-RUNNER",

@@ -37,6 +37,8 @@ Source set:
 - `HERMES-CREDENTIAL-POOLS` - shipped 2026-07-11; redacted reference store, collision-free leases, cooldown/exhaustion, and same-provider rotation before fallback
 - `HERMES-PLUGIN-LLM-LANE` - shipped 2026-07-11; grant-gated host model calls with purpose, budget, timeout, structured validation, and redacted cost audit
 - `HERMES-DELIVERABLE-AUTO-ATTACH` - shipped 2026-07-11; scoped recent-file planning, path-free chat copy, Telegram-native upload, and content-free delivery receipts
+- `PUBLIC-SKILL-REGISTRY-CLIENT` - shipped 2026-07-11; static local/HTTP registry discovery, complete verified previews, disabled quarantine, explicit approval, conflict-preserving updates, reversible removal, and audit records
+- Current Hermes skill-catalog follow-up - captured in `hermes-skill-catalog-gap-audit-2026-07-11.md`; adds portable packages, multi-source discovery, skill-write approval, media production, payments, commerce/telephony, and finance-depth work in dependency order
 
 ## Build Order
 

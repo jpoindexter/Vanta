@@ -87,7 +87,7 @@ Vanta is a **general operator**, not a coding tool — one agent runs every cate
 **Agent (TypeScript):**
 - Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 129 registered tools and 136 slash commands
 - **Goals** — kernel goal ledger plus TS dependency graph (`/goal blocks`, `/goal blocked_by`, `vanta goals`)
-- **Skills & memory** — learned `~/.vanta/skills`, `/skills audit` for local skill injection-scan findings, per-goal memory, curator, LLM context compression (git-versioned)
+- **Skills & memory** — learned `~/.vanta/skills`, `/skills audit` for local skill injection-scan findings, a configurable public registry client with quarantine/approval/update rollback, per-goal memory, curator, LLM context compression (git-versioned)
 - **Web search** — keyless (DuckDuckGo/SearXNG) + keyed (Brave/SerpAPI/Exa/Firecrawl/Tavily/Parallel/xAI Grok grounded search) with domain scoping; `web_fetch` readable extraction routes large pages through a size-tiered summarize/chunk/synthesize pipeline (configurable aux model)
 - **Governance & cost** — `vanta governance export` (auditable report of every gated action), versioned `.env` + `vanta config rollback`, persisted spend ledger via `/usage breakdown`
 - **Browser & vision** — screenshot / navigate / extract / read / act (Playwright) + image/video understanding
@@ -154,6 +154,10 @@ Recent Hermes transcript mining added a focused parity path to the roadmap: pers
 Same-provider credential pools are managed with `vanta auth pool`; they lease environment, Keychain, Bitwarden, 1Password, or vault references without persisting values, rotate on credential failures, and exhaust before cross-provider fallback. See [`docs/credential-pools.md`](docs/credential-pools.md).
 
 Gateway runs can deliver recent in-scope reports, charts, spreadsheets, decks, HTML, and text files as native channel attachments while removing local paths from visible copy. See [`docs/deliverable-attachments.md`](docs/deliverable-attachments.md).
+
+Public skill registries are opt-in through `VANTA_SKILL_REGISTRY`. Vanta previews and verifies complete skills before a disabled quarantine install, requires separate approval, preserves local edits during updates, and removes reversibly. See [`docs/public-skill-registry.md`](docs/public-skill-registry.md).
+
+The current Hermes catalog comparison, including Stripe/payment, video/media, commerce, telephony, and finance packs, is tracked in [`docs/research/hermes-skill-catalog-gap-audit-2026-07-11.md`](docs/research/hermes-skill-catalog-gap-audit-2026-07-11.md). The roadmap orders package safety and discovery before high-side-effect outcome packs.
 
 Persistent specialist profiles are now available through `vanta profiles`. Each profile has
 an isolated Vanta home for its model/settings, skills, memory, gateway identity/state,

@@ -8,17 +8,21 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1161 capabilities shipped · 0 in flight · 3 on the horizon. Updated 2026-07-11._
+_1162 capabilities shipped · 1 in flight · 7 on the horizon. Updated 2026-07-11._
 
 ## In flight
 
 What we are actively building next.
 
-_Nothing in flight right now — see the horizon below._
+### Portable skill packages - install references, templates, and scripts safely
+
+**Extensibility** · M-size
+
+Vanta's first registry slice intentionally installs only SKILL.md, so most outcome packs cannot yet travel intact
 
 ## Recently shipped
 
-The latest of 1161+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1162+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Profile roster — persistent specialist agents with isolated state** — Operator · 2026-07-11
 - **Profile Kanban router — durable board routes work by specialist skill** — Operator · 2026-07-11
@@ -36,23 +40,27 @@ The latest of 1161+ capabilities. See the [changelog](./changelog) for curated m
 - **Deliverable auto-attach — generated files become native chat artifacts** — Reach · 2026-07-11
 - **Hermes issue regression pack — turn competitor failures into Vanta invariants** — Harness · 2026-07-11
 - **Hermes story eval harness — test real community jobs across all 15 categories** — Harness · 2026-07-11
+- **Public skill registry client — search, inspect, install, update, and remove safely** — Extensibility · 2026-07-11
 - **Vanta public site v1 — product-first homepage, use cases, install, and proof** — Reach · 2026-07-11
 - **Choice-wall side-effect guard — no post-turn writes before the operator chooses** — Harness · 2026-07-11
 - **Glob base-path root scope — relative searches use the declared project** — Harness · 2026-07-11
-- **Compaction intent grounding — generated summaries cannot invent user asks** — Harness · 2026-07-11
 
 ## On the horizon
 
 Directional, not committed — grouped by area, newest thinking first.
 
-### Extensibility — 1 planned
+### Extensibility — 2 planned
 
-- Public skill registry client — search, inspect, install, update, and remove safely
+- Multi-source skill hub - official, skills.sh, well-known, GitHub, and taps
+- Skill-write approval queue - review agent-authored changes before activation
 
-### Operator — 1 planned
+### Operator — 3 planned
 
 - Spreadsheet copilot — Excel/Sheets agent surface with charts and custom functions
+- Media studio skill pack - generate and assemble image, video, audio, and 3D work
+- Payment skill pack - Stripe Link, MPP, and SaaS provisioning under transaction gates
 
-### Reach — 1 planned
+### Reach — 2 planned
 
 - Cross-platform service supervisor — one `vanta up` on macOS, Linux, and Windows
+- Commerce and telephony skill pack - Shopify, shopping, returns, SMS, and calls
