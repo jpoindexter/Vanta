@@ -57,6 +57,7 @@ const USAGE_LINES = [
       "       vanta secrets vault add|status|resolve|rotate   manage scoped Bitwarden/1Password aliases",
       "       vanta up|restart|stop|logs|status      manage the cross-platform gateway service",
       "       vanta service [install|restart|stop|logs|status|uninstall]   full service lifecycle",
+      "       vanta spreadsheet inspect|preview|apply   inspect and approval-gate local .xlsx changes",
       "       vanta agents [list|logs|attach|stop|rm|respawn]   manage background agent sessions",
       "       vanta profiles [list|create|clone|switch|archive|target|inbox]   manage persistent specialist profiles",
       "       vanta profile install <git|path> [--apply] | update <id> [--apply]   manage specialist distributions",

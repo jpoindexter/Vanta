@@ -150,6 +150,7 @@ describe("registry", () => {
       "skill_manage",
       "sleep",
       "speak",
+      "spreadsheet_workbook",
       "swarm",
       "taste_critique",
       "team",

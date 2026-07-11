@@ -132,6 +132,7 @@ import {
 import { googleAuthTool } from "./google-auth.js";
 import { marketingReadTool } from "./marketing-read.js";
 import { renderCanvasTool } from "./render-canvas.js";
+import { spreadsheetWorkbookTool } from "./spreadsheet-workbook.js";
 import type { Tool } from "./types.js";
 
 /**
@@ -255,6 +256,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   googleAuthTool,
   marketingReadTool,
   renderCanvasTool,
+  spreadsheetWorkbookTool,
   bgListTool,
   bgStatusTool,
   refIngestTool,
