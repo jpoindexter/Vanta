@@ -96,13 +96,20 @@ successful policy/rollback prose no longer opens a false repair loop. Five repre
 Hermes scenarios now have explicit reviewed passes; the harness remains open for broader
 category execution and deterministic outcome verifiers.
 
+`HERMES-PROFILE-ROSTER` is now shipped. `vanta profiles` creates, clones, switches,
+archives, targets, and inspects durable specialists. The selected profile redirects the
+next Vanta process into its own home, isolating model/settings, skills, memory, gateway
+identity/state, inbox, and work history. Operator Home renders the live roster, active and
+queued counts, and latest targeted work. A real isolated CLI run exercised every action,
+including restart activation and archival, before the card moved to shipped.
+
 The extraction note is `docs/research/hermes-transcript-roadmap-extract-2026-07-11.md`;
 the current Hermes repo comparison is `docs/research/hermes-current-vs-vanta-vision-2026-07-11.md`;
 the feature/function harvest is `docs/research/hermes-feature-function-harvest-2026-07-11.md`.
 The issue, Mercury, and current user-story audit is
 `docs/research/hermes-mercury-issue-usecase-audit-2026-07-11.md`. Build priority is public-site
-v1 + story eval foundation → Hermes issue regression pack → profile roster → profile
-distributions → profile Kanban router → second-brain corpus compiler. Promote credential
+v1 + story eval foundation → Hermes issue regression pack → profile roster (shipped) →
+profile distributions → profile Kanban router → second-brain corpus compiler. Promote credential
 pools/vault-backed secrets after the profile/Kanban spine if multi-profile gateways or
 run-anywhere execution need safer key distribution. The rest stay horizon until a concrete
 workflow needs them.

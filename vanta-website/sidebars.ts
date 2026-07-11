@@ -43,6 +43,7 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'operator-systems',
+        'profiles',
         'self-improvement',
         'sessions-and-continuity',
         'modes-rooms-routing',

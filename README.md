@@ -151,6 +151,19 @@ It reads the other agent's `skills/<slug>/SKILL.md`, `mcpServers` config, and pr
 
 Recent Hermes transcript mining added a focused parity path to the roadmap: persistent specialist profiles, profile-routed Kanban, transcript/notes corpus memory, delegation receipts, webhook workflow templates, spreadsheet control, vault-backed secrets, and bounded dashboard plugin slots. See [`docs/research/hermes-transcript-roadmap-extract-2026-07-11.md`](docs/research/hermes-transcript-roadmap-extract-2026-07-11.md); the executable source of truth remains `roadmap.json`.
 
+Persistent specialist profiles are now available through `vanta profiles`. Each profile has
+an isolated Vanta home for its model/settings, skills, memory, gateway identity/state,
+inbox, and work history. Create and target one by name, then switch on the next start:
+
+```bash
+vanta profiles create "Research Lead" --provider codex --model gpt-5.5
+vanta profiles target research-lead "Audit provider fallback"
+vanta profiles switch research-lead
+vanta home
+```
+
+See the [profiles guide](vanta-website/docs/profiles.md) for clone, inbox, and archive behavior.
+
 ## Community
 
 - 💬 **[Discussions](https://github.com/jpoindexter/Vanta/discussions)** — questions, ideas, show-and-tell.

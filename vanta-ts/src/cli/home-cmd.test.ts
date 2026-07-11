@@ -3,6 +3,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { runHomeCommand } from "./home-cmd.js";
+import { createProfile, switchProfile, targetProfile } from "../profiles/store.js";
 
 let root: string;
 let home: string;
@@ -31,8 +32,27 @@ describe("runHomeCommand", () => {
       expect(out).toContain("Workflows");
       expect(out).toContain("Channels");
       expect(out).toContain("Agents/Tasks");
+      expect(out).toContain("Profiles");
       expect(out).toContain("Watchers");
       expect(out).toContain("Setup");
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("shows the active profile roster and latest targeted work", async () => {
+    const env = { ...process.env, VANTA_HOME: home };
+    await createProfile({ name: "Research Lead", model: "gpt-5.5" }, env);
+    await targetProfile("research-lead", "Audit provider fallback", env);
+    await switchProfile("research-lead", env);
+    const lines: string[] = [];
+    const spy = vi.spyOn(console, "log").mockImplementation((msg = "") => { lines.push(String(msg)); });
+    try {
+      expect(await runHomeCommand(join(root, ".vanta"), env)).toBe(0);
+      const out = lines.join("\n");
+      expect(out).toContain("1 profile(s), 1 active, 1 queued");
+      expect(out).toContain("research-lead: Audit provider fallback");
+      expect(out).toContain("`vanta profiles list`");
     } finally {
       spy.mockRestore();
     }

@@ -5,11 +5,18 @@ import {
   resumeIdFrom, hasForkSession, parseRunArgs, parseStartupFlags,
 } from "./cli/startup.js";
 import { COMMANDS } from "./cli/commands-table.js";
+import { activateProfileEnvironment } from "./profiles/store.js";
+
+async function initializeStoreAndProfile(): Promise<void> {
+  const baseHome = await ensureVantaStore();
+  await activateProfileEnvironment(process.env);
+  if (process.env.VANTA_HOME !== baseHome) await ensureVantaStore(process.env);
+}
 
 async function main(): Promise<void> {
   const repoRoot = findRepoRoot();
   loadEnv(repoRoot);
-  await ensureVantaStore();
+  await initializeStoreAndProfile();
 
   const { rest: parsedArgs, lifecycle, pluginSources, dumpPrompt } = parseStartupFlags(process.argv.slice(2));
   const [cmd, ...rest] = parsedArgs;

@@ -110,6 +110,7 @@ import { runNowCommand } from "./now-cmd.js";
 import { runKeybindingsCommand } from "./keybindings-cmd.js";
 import { runRunAnywhereCommand } from "./run-anywhere-cmd.js";
 import { runA2aCommand } from "./a2a-cmd.js";
+import { runProfilesCommand } from "./profiles-cmd.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
@@ -117,6 +118,7 @@ export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | v
 // `vanta <cmd>` dispatch table. The interactive entry points (chat/resume/run)
 // parse flags, so they stay as explicit checks in cli.ts main(); everything else is here.
 export const COMMANDS: Record<string, CommandFn> = {
+  profiles: (_root, rest) => runProfilesCommand(rest),
   sessions: () => runSessionsList(),
   help: () => usage(),
   "-h": () => usage(),

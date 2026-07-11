@@ -6,6 +6,7 @@ import { getMemoryFootprint } from "../memory/forget.js";
 import { checkAll } from "../reach/registry.js";
 import { gatherCapabilities } from "../repl/health-cmd.js";
 import { workflowViews } from "../repl/what-can-i-do-cmd.js";
+import { listProfiles, type ProfileRecord } from "../profiles/store.js";
 
 export type HomeSection = {
   name: string;
@@ -36,7 +37,7 @@ export async function buildOperatorHome(opts: {
   env: NodeJS.ProcessEnv;
   toolNames: string[];
 }): Promise<string> {
-  const [stack, bgTasks, cron, skills, memory, reach, caps] = await Promise.all([
+  const [stack, bgTasks, cron, skills, memory, reach, caps, profiles] = await Promise.all([
     readStack(opts.dataDir),
     listBgTasks(opts.dataDir),
     loadCron(opts.dataDir),
@@ -44,16 +45,33 @@ export async function buildOperatorHome(opts: {
     getMemoryFootprint(opts.env),
     checkAll(opts.env),
     gatherCapabilities(opts.env),
+    listProfiles(opts.env),
   ]);
   return formatOperatorHome({ sections: [
     workflowSection(opts.toolNames),
     channelsSection(reach),
     skillsSection(skills.length),
     agentsSection(stack.tasks.length, bgTasks.filter((t) => t.status === "running").length),
+    profilesSection(profiles),
     memorySection(memory.goals, memory.totalBytes),
     watchersSection(cron.filter((c) => c.status === "active").length),
     setupSection(caps.filter((c) => !c.ok).length),
   ] });
+}
+
+function profilesSection(profiles: ProfileRecord[]): HomeSection {
+  const visible = profiles.filter((profile) => profile.status !== "archived");
+  const active = visible.filter((profile) => profile.active).length;
+  const queued = visible.filter((profile) => profile.status === "queued").length;
+  const latest = [...visible].filter((profile) => profile.lastWorkAt)
+    .sort((a, b) => (b.lastWorkAt ?? "").localeCompare(a.lastWorkAt ?? ""))[0];
+  const work = latest?.lastWork ? ` · ${latest.id}: ${latest.lastWork}` : "";
+  return section(
+    "Profiles",
+    queued ? "watch" : visible.length ? "ok" : "setup",
+    `${visible.length} profile(s), ${active} active, ${queued} queued${work}`,
+    visible.length ? "`vanta profiles list`" : "`vanta profiles create <name>`",
+  );
 }
 
 function workflowSection(toolNames: string[]): HomeSection {

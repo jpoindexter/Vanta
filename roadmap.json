@@ -17232,7 +17232,7 @@
       "id": "HERMES-PROFILE-ROSTER",
       "track": "Operator",
       "title": "Profile roster — persistent specialist agents with isolated state",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "Tonbis Hermes transcript extract 2026-07-11: Hermes profiles are treated as durable specialist agents, not throwaway subagents. Vanta has teams, workers, per-agent memory, and isolated profile primitives, but lacks one operator-visible roster where a profile has its own config, model, memory, skills, gateway identity, and work history.",
       "done": "`vanta profiles` can create, clone, switch, archive, and target specialist profiles; each profile has isolated config/model/memory/skills/gateway identity; Operator Home shows live profile roster, last work, current status, and safe actions; profiles survive restart and can receive tasks/messages by name.",
@@ -17243,7 +17243,7 @@
       "lens": "agent-loop",
       "updated": "2026-07-11",
       "source": "hermes-transcript-roadmap-extract-2026-07-11",
-      "notes": "Sources: Tonbis AI Garage Hermes Masterclass 9 (Profiles/Kanban), Masterclass 8 (Subagents/Delegation), and Masterclass 3 (Memory/Plugins/Honcho/Obsidian). This is not a second team system; it is the visible owner surface that makes existing profile/team/memory pieces addressable."
+      "notes": "Sources: Tonbis AI Garage Hermes Masterclass 9 (Profiles/Kanban), Masterclass 8 (Subagents/Delegation), and Masterclass 3 (Memory/Plugins/Honcho/Obsidian). This is not a second team system; it is the visible owner surface that makes existing profile/team/memory pieces addressable.\n\nSHIPPED 2026-07-11: added the persistent profile store and `vanta profiles list|create|clone|switch|archive|target|send|inbox`. Each profile owns an isolated VANTA_HOME containing settings/model selection, skills, memory, agent-memory, gateway identity/state, durable inbox, and work ledger. Startup reloads the active marker and redirects the next process into that home while VANTA_PROFILE_BASE_HOME preserves roster access. Operator Home shows profile count, active/queued state, and latest target. Focused proof: 10 tests across store, CLI, real child-process restart dispatch, and Operator Home. Live proof in an isolated home exercised create, clone, target, switch, restart list, inbox, Operator Home, archive, and final list with exit 0. Targeting is a durable queue boundary; task execution remains governed by the existing agent/task runner."
     },
     {
       "id": "HERMES-KANBAN-ROUTER",

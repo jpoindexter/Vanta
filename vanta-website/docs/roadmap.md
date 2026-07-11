@@ -8,17 +8,11 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1145 capabilities shipped · 6 in flight · 13 on the horizon. Updated 2026-07-11._
+_1146 capabilities shipped · 5 in flight · 13 on the horizon. Updated 2026-07-11._
 
 ## In flight
 
 What we are actively building next.
-
-### Profile roster — persistent specialist agents with isolated state
-
-**Operator** · L-size
-
-Vanta has teams, workers, per-agent memory, and isolated profile primitives, but lacks one operator-visible roster where a profile has its own config, model, memory, skills, gateway identity, and work history
 
 ### Profile Kanban router — durable board routes work by specialist skill
 
@@ -52,8 +46,9 @@ The current use-case runner executes one-shot commands. It can prove that Vanta 
 
 ## Recently shipped
 
-The latest of 1145+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1146+ capabilities. See the [changelog](./changelog) for curated milestones.
 
+- **Profile roster — persistent specialist agents with isolated state** — Operator · 2026-07-11
 - **Hermes issue regression pack — turn competitor failures into Vanta invariants** — Harness · 2026-07-11
 - **Vanta public site v1 — product-first homepage, use cases, install, and proof** — Reach · 2026-07-11
 - **Choice-wall side-effect guard — no post-turn writes before the operator chooses** — Harness · 2026-07-11
@@ -73,7 +68,6 @@ The latest of 1145+ capabilities. See the [changelog](./changelog) for curated m
 - **Run Anywhere readiness status — one auditable release-proof checklist** — Operator · 2026-07-10
 - **Autonomy contract walls — acts alone, queues, wakes me** — Harness · 2026-07-10
 - **Trust ledger autonomy — earn auto-run with measured pass rates** — Harness · 2026-07-10
-- **Atomic trust-ledger updates — concurrent verifiers cannot lose outcomes** — Harness · 2026-07-10
 
 ## On the horizon
 
