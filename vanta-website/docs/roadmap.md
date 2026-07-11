@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1163 capabilities shipped · 0 in flight · 7 on the horizon. Updated 2026-07-11._
+_1163 capabilities shipped · 0 in flight · 6 on the horizon. Updated 2026-07-11._
 
 ## In flight
 
@@ -45,9 +45,8 @@ The latest of 1163+ capabilities. See the [changelog](./changelog) for curated m
 
 Directional, not committed — grouped by area, newest thinking first.
 
-### Extensibility — 2 planned
+### Extensibility — 1 planned
 
-- Multi-source skill hub - official, skills.sh, well-known, GitHub, and taps
 - Skill-write approval queue - review agent-authored changes before activation
 
 ### Operator — 3 planned

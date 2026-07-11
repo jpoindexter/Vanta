@@ -17805,7 +17805,7 @@
       "id": "HERMES-MULTISOURCE-SKILL-HUB",
       "track": "Extensibility",
       "title": "Multi-source skill hub - official, skills.sh, well-known, GitHub, and taps",
-      "status": "horizon",
+      "status": "building",
       "size": "L",
       "summary": "Hermes aggregates official packages, skills.sh, well-known endpoints, direct URLs, GitHub repositories, custom taps, and signed NVIDIA metadata. Vanta's static registry is a safe substrate, not ecosystem parity.",
       "done": "vanta skills browse/search/inspect accepts explicit source filters for official, skills.sh, well-known, URL, GitHub, and configured taps; results normalize provenance, versions, categories, signatures, integrity, and package metadata; cache expiry and offline behavior are visible; source failures are isolated; duplicate slugs require an explicit source; install always routes through the portable-package quarantine and approval contract; a credential-free integration fixture proves every resolver and a live read-only receipt proves at least two public sources.",
