@@ -1,6 +1,6 @@
 import { SERVICE_MARKER } from "./systemd.js";
 
-export type TaskXmlOptions = { runnerPath: string; workingDir: string };
+export type TaskXmlOptions = { runnerPath: string; workingDir: string; userId: string };
 export type TaskRunnerOptions = { command: string; args: string[]; logPath: string };
 
 function xml(value: string): string {
@@ -30,7 +30,7 @@ export function buildTaskXml(opts: TaskXmlOptions): string {
     `    <Description>${SERVICE_MARKER}</Description>`,
     "  </RegistrationInfo>",
     "  <Triggers><LogonTrigger><Enabled>true</Enabled></LogonTrigger></Triggers>",
-    "  <Principals><Principal id=\"Author\"><LogonType>InteractiveToken</LogonType><RunLevel>LeastPrivilege</RunLevel></Principal></Principals>",
+    `  <Principals><Principal id="Author"><UserId>${xml(opts.userId)}</UserId><LogonType>InteractiveToken</LogonType><RunLevel>LeastPrivilege</RunLevel></Principal></Principals>`,
     "  <Settings>",
     "    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>",
     "    <RestartOnFailure><Interval>PT1M</Interval><Count>5</Count></RestartOnFailure>",

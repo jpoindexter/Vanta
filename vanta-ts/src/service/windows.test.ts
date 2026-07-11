@@ -3,9 +3,10 @@ import { buildTaskRunner, buildTaskXml } from "./windows.js";
 
 describe("Windows Task Scheduler artifacts", () => {
   it("builds a least-privilege task with bounded restart", () => {
-    const xml = buildTaskXml({ runnerPath: "C:\\Users\\me\\.vanta\\service\\runner.ps1", workingDir: "C:\\Vanta & tools" });
+    const xml = buildTaskXml({ runnerPath: "C:\\Users\\me\\.vanta\\service\\runner.ps1", workingDir: "C:\\Vanta & tools", userId: "S-1-5-21-123" });
     expect(xml).toContain("VANTA-MANAGED: studio.theft.vanta.gateway");
     expect(xml).toContain("<RunLevel>LeastPrivilege</RunLevel>");
+    expect(xml).toContain("<UserId>S-1-5-21-123</UserId>");
     expect(xml).toContain("<Count>5</Count>");
     expect(xml).toContain("runner.ps1");
     expect(xml).toContain("C:\\Vanta &amp; tools");

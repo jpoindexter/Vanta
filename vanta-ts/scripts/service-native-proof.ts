@@ -17,7 +17,7 @@ if (process.platform === "win32") {
   ].join("\r\n"));
 } else {
   const script = join(fixture, "run.sh");
-  await writeFile(script, '#!/bin/sh\necho SERVICE_PROOF_STARTED\ntrap "" HUP INT TERM\nexec /usr/bin/env -u RUNNER_TRACKING_ID /bin/sleep 600\n');
+  await writeFile(script, '#!/bin/sh\necho SERVICE_PROOF_STARTED\ntrap "" HUP INT TERM\nwhile :; do /bin/sleep 1; done\n');
   await chmod(script, 0o700);
 }
 
@@ -67,6 +67,11 @@ try {
   if (removed.installed) throw new Error("service artifact remains installed after uninstall");
   receipt.removed = removed;
   receipt.ok = true;
+} catch (error) {
+  receipt.error = error instanceof Error ? error.message : String(error);
+  receipt.failureStatus = await manager.status().catch(() => null);
+  receipt.failureLogs = await manager.logs(50).catch(() => "(logs unavailable)");
+  throw error;
 } finally {
   await manager.uninstall().catch(() => undefined);
   receipt.finishedAt = new Date().toISOString();

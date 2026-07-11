@@ -84,7 +84,9 @@ async function installSystemd(ctx: Context, repoRoot: string): Promise<void> {
 async function installTask(ctx: Context, repoRoot: string): Promise<void> {
   const command = win32.join(repoRoot, "run.ps1");
   const runner = buildTaskRunner({ command, args: ["gateway"], logPath: ctx.logPath });
-  const xml = buildTaskXml({ runnerPath: ctx.taskRunnerPath, workingDir: repoRoot });
+  const identity = await ctx.run("whoami", ["/user", "/fo", "csv", "/nh"]), userId = identity.stdout.match(/S-\d(?:-\d+)+/)?.[0];
+  if (!userId) throw new Error("Could not resolve the current Windows user SID for Task Scheduler.");
+  const xml = buildTaskXml({ runnerPath: ctx.taskRunnerPath, workingDir: repoRoot, userId });
   await writeFile(ctx.taskRunnerPath, runner, "utf8");
   await writeFile(ctx.artifactPath, `\uFEFF${xml}`, "utf16le");
   await ctx.run("schtasks", ["/Create", "/TN", WINDOWS_NAME, "/XML", ctx.artifactPath, "/F"]);

@@ -31,10 +31,11 @@ describe("cross-platform service manager", () => {
 
   it("uses Task Scheduler without admin elevation on Windows", async () => {
     const home = await mkdtemp(join(tmpdir(), "vanta-service-"));
-    const exec = vi.fn(async (_file: string, args: string[]) => ({ stdout: args.includes("/Query") ? "Status: Running" : "", stderr: "" }));
+    const exec = vi.fn(async (file: string, args: string[]) => ({ stdout: file === "whoami" ? '"runner","S-1-5-21-123"' : args.includes("/Query") ? "Status: Running" : "", stderr: "" }));
     const manager = createServiceManager({ platform: "win32", home, vantaHome: join(home, ".vanta"), exec });
     await manager.install("C:\\Vanta");
     expect(exec.mock.calls.some((call) => call[0] === "schtasks" && call[1].includes("/Create"))).toBe(true);
+    expect(await readFile(join(home, ".vanta", "service", "vanta-gateway.xml"), "utf16le")).toContain("S-1-5-21-123");
     expect((await manager.status()).running).toBe(true);
   });
 });
