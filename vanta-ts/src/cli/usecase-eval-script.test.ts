@@ -59,4 +59,24 @@ describe("usecase eval receipt verification", () => {
     expect(run.stdout).toContain("verified general-capability-start: fail");
     expect(JSON.parse(await readFile(receiptPath, "utf8")).results[0].outcomeVerification.missing).toContain("Needs setup");
   });
+
+  it("rechecks saved multi-turn outputs against the current manifest", async () => {
+    const receiptPath = join(root, "multi.json");
+    const outputs = [
+      "What onboarding outcome matters?",
+      "Small plan. Choose docs-only or CLI.",
+      "Final plan. Waiting for explicit approval.",
+      "Stopped. No files inspected or changed.",
+    ];
+    await writeFile(receiptPath, JSON.stringify({ results: [{
+      id: "dev-converse-before-act", category: "Dev Workflow", tier: "route",
+      turns: outputs.map((output, index) => ({ index, output, tools: [], stoppedReason: "done" })),
+      outcomeVerification: { status: "pending" },
+    }] }));
+
+    const run = await exec("node", [script, "--verify-receipt", receiptPath], { cwd: repoRoot });
+    expect(run.stdout).toContain("verified dev-converse-before-act: pass");
+    const result = JSON.parse(await readFile(receiptPath, "utf8")).results[0];
+    expect(result.turns.every((turn: { passed: boolean }) => turn.passed)).toBe(true);
+  });
 });

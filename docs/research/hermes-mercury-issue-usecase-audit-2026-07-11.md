@@ -75,6 +75,14 @@ node scripts/usecase-eval.mjs --export-public vanta-website/static/proof/hermes-
 
 The status reader selects the latest receipt per scenario and reports pass/fail/blocked/pending counts plus category gaps. Public export writes only aggregate counts and gap names; it excludes output tails and reviewer text. A deterministic Vitest integration case runs the verifier/status/export flow in an isolated receipt directory, so CI proves the offline harness path without counting its fixture as product execution.
 
+Multi-turn scenarios add `firstTurn` and ordered `operatorReplies`, each with a boundary and
+semantic checks. `scripts/usecase-eval.mjs --run` delegates those jobs to `vanta story-eval`,
+which uses one production conversation and waits for `send()` to resolve before advancing.
+The 2026-07-11 `dev-converse-before-act` run reached clarification, scope clarification,
+an approval wall, and explicit rejection in four turns; all boundaries and guards passed
+with no file or shell action. The redacted local receipt is
+`.vanta/eval-runs/use-cases/2026-07-11T12-37-41-278Z.json`.
+
 ### First executed story
 
 `general-capability-start` ran through the real `./run.sh run` path on 2026-07-11. The process exited cleanly and waited for the operator to choose before acting, but the route gate failed: Vanta did not call `inspect_state` and did not explicitly separate setup-required workflows. The redacted local receipt is `.vanta/eval-runs/use-cases/2026-07-11T08-55-52-366Z.json`. The scenario wording now requires checking the installation before answering; this is an observed activation gap, not a shipped claim.

@@ -17785,7 +17785,7 @@
       "id": "HERMES-MULTITURN-STORY-RUNNER",
       "track": "Harness",
       "title": "Hermes multi-turn story runner — continue choices and approvals in one session",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "The current use-case runner executes one-shot commands. It can prove that Vanta stops at a clarification wall, but it cannot send a scripted operator choice back into the same conversation and verify the resulting plan, approval gate, artifact, or delivery across later turns.",
       "done": "Scenario manifests can declare ordered operator replies and expected turn boundaries; the runner drives one persistent Vanta session, waits for each completed turn, sends the next scripted reply, and exits cleanly; receipts preserve redacted per-turn outputs, tools, guards, and outcome checks; clarification, approval, resume, and reject branches have deterministic fixtures; CI runs offline multi-turn cases without a TTY race.",
@@ -17796,7 +17796,7 @@
       "lens": "agent-loop",
       "updated": "2026-07-11",
       "source": "eval/use-cases/hermes-community-v1.json#dev-converse-before-act",
-      "notes": "Captured from executed receipt 09-49-48-049Z. The first turn correctly asked one outcome-defining question and stopped with zero forbidden side effects, but a complete converse-before-act job requires the operator answer and plan-approval turn in the same session. Build this as a harness extension, not by weakening the agent's choice wall."
+      "notes": "Captured from executed receipt 09-49-48-049Z. The first turn correctly asked one outcome-defining question and stopped with zero forbidden side effects, but a complete converse-before-act job requires the operator answer and plan-approval turn in the same session. Build this as a harness extension, not by weakening the agent's choice wall.\n\nSHIPPED 2026-07-11: added a pure scripted-turn orchestrator, production persistent-conversation adapter, and `vanta story-eval --manifest --id --out` command. Manifests declare `firstTurn` plus ordered operator replies, boundary type, required semantic checks, and per-turn forbidden patterns. Each `send()` resolves before the next reply; no TTY/prompt parsing is used. Receipts retain redacted input/output, tools, stop reason, iterations, missing checks, guard hits, and boundary verdict per turn. Kernel approval is granted only when the active scripted reply begins with explicit approve; brain learning is frozen during the eval. The root `scripts/usecase-eval.mjs` delegates scripted scenarios to this command and merges the receipt into normal history. `--verify-receipt` can recompute multi-turn verdicts from saved outputs after contract calibration without rerunning the model. Deterministic tests cover clarification, approval, resume, reject, guard failure, CLI receipt writing, and retro-verification. Real path: `dev-converse-before-act` ran one persistent four-turn session (clarification -> scope clarification -> approval wall -> reject), exited cleanly, used no file/shell tools, changed no files, and the saved 12-37-41-278Z receipt re-verified with all four boundaries and guards passing."
     }
   ]
 }

@@ -11,6 +11,7 @@ const USAGE_LINES = [
       "       vanta spec-to-app --demo posture [--open]   build a verified React/Tailwind preview from a spec",
       "       vanta research-receipts <claims.json> [--vault <dir> --apply]   source/date/expiry skeptic gate",
       "       vanta corpus ingest <folder|url> | recall <query> | status | refresh <id|all> | vault-export --vault <dir> [--apply]",
+      "       vanta story-eval --manifest <json> --id <scenario> --out <receipt>   run scripted turns in one session",
       "       vanta intent extract <target> --out <spec.json> | intent check <target> <spec.json>",
       "       vanta auto-watch [list|run|add]   watch repos/issues/email/calendar via gated commands",
       "       vanta marketing read <amplitude|customerio> [--fixture <json>]   read marketing connector data",

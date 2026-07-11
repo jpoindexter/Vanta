@@ -8,21 +8,17 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1150 capabilities shipped · 1 in flight · 13 on the horizon. Updated 2026-07-11._
+_1151 capabilities shipped · 0 in flight · 13 on the horizon. Updated 2026-07-11._
 
 ## In flight
 
 What we are actively building next.
 
-### Hermes multi-turn story runner — continue choices and approvals in one session
-
-**Harness** · M-size
-
-The current use-case runner executes one-shot commands. It can prove that Vanta stops at a clarification wall, but it cannot send a scripted operator choice back into the same conversation and verify the resulting plan, approval gate, artifact, or delivery across later turns
+_Nothing in flight right now — see the horizon below._
 
 ## Recently shipped
 
-The latest of 1150+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1151+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Profile roster — persistent specialist agents with isolated state** — Operator · 2026-07-11
 - **Profile Kanban router — durable board routes work by specialist skill** — Operator · 2026-07-11
@@ -43,7 +39,7 @@ The latest of 1150+ capabilities. See the [changelog](./changelog) for curated m
 - **Live context cost inspector — measure prompt surfaces before optimizing** — Harness · 2026-07-11
 - **Workflow acceptance evidence contract — validate requested operations, not labels** — Harness · 2026-07-11
 - **Successful tool error classification — policy prose cannot open repair loops** — Harness · 2026-07-11
-- **Roadmap blocked status — external gates stop consuming Now slots** — Operator · 2026-07-10
+- **Hermes multi-turn story runner — continue choices and approvals in one session** — Harness · 2026-07-11
 
 ## On the horizon
 

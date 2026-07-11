@@ -203,6 +203,15 @@ node scripts/usecase-eval.mjs --status --json
 Executed runs write redacted local receipts. Deterministic contracts can verify reviewed
 outputs; unexecuted scenarios remain explicit gaps in the public aggregate proof.
 
+Scenarios that need operator choices can add `firstTurn` and ordered `operatorReplies`.
+The use-case runner then keeps one Vanta conversation alive, waits for each turn to finish,
+and records redacted per-turn boundary, tool, and guard evidence. The lower-level command is:
+
+```bash
+vanta story-eval --manifest eval/use-cases/hermes-community-v1.json \
+  --id dev-converse-before-act --out .vanta/eval-runs/story.json
+```
+
 Persistent profiles can own routed Kanban cards. Cards declare skills, dependencies, wake
 policy, evidence, and fallback; Vanta can select a capable profile and preserve handoffs:
 
