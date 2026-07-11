@@ -59,6 +59,32 @@ function count(results: ChannelVerifyResult[]): Record<ChannelVerifyStatus, numb
   return totals;
 }
 
+async function verifyPlatform(
+  platform: (typeof MESSAGING_CATALOG)[number],
+  env: NodeJS.ProcessEnv,
+  timeoutMs: number,
+): Promise<ChannelVerifyResult> {
+  const entry = ADAPTERS[platform.id];
+  const availability = platformAvailability(platform, env);
+  const base = { id: platform.id, label: platform.label };
+  if (!entry) {
+    return { ...base, status: "missing-adapter", missingEnv: availability.missing, evidence: "catalog entry has no registered PlatformAdapter" };
+  }
+  if (!entry.configured(env)) {
+    const evidence = availability.missing.length > 0
+      ? `missing ${availability.missing.join(", ")}`
+      : "adapter configured() returned false";
+    return { ...base, status: "not-configured", missingEnv: availability.missing, evidence };
+  }
+  try {
+    const evidence = await probeAdapter(entry.build(env), timeoutMs);
+    return { ...base, status: "live", missingEnv: [], evidence };
+  } catch (err) {
+    const evidence = err instanceof Error ? err.message : String(err);
+    return { ...base, status: "failed", missingEnv: [], evidence };
+  }
+}
+
 export async function verifyMessagingChannels(opts: {
   env?: NodeJS.ProcessEnv;
   dataDir?: string;
@@ -68,51 +94,7 @@ export async function verifyMessagingChannels(opts: {
   const env = opts.env ?? process.env;
   const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const results: ChannelVerifyResult[] = [];
-
-  for (const platform of MESSAGING_CATALOG) {
-    const entry = ADAPTERS[platform.id];
-    const availability = platformAvailability(platform, env);
-    if (!entry) {
-      results.push({
-        id: platform.id,
-        label: platform.label,
-        status: "missing-adapter",
-        missingEnv: availability.missing,
-        evidence: "catalog entry has no registered PlatformAdapter",
-      });
-      continue;
-    }
-    if (!entry.configured(env)) {
-      results.push({
-        id: platform.id,
-        label: platform.label,
-        status: "not-configured",
-        missingEnv: availability.missing,
-        evidence: availability.missing.length > 0
-          ? `missing ${availability.missing.join(", ")}`
-          : "adapter configured() returned false",
-      });
-      continue;
-    }
-    try {
-      const adapter = entry.build(env);
-      results.push({
-        id: platform.id,
-        label: platform.label,
-        status: "live",
-        missingEnv: [],
-        evidence: await probeAdapter(adapter, timeoutMs),
-      });
-    } catch (err) {
-      results.push({
-        id: platform.id,
-        label: platform.label,
-        status: "failed",
-        missingEnv: [],
-        evidence: err instanceof Error ? err.message : String(err),
-      });
-    }
-  }
+  for (const platform of MESSAGING_CATALOG) results.push(await verifyPlatform(platform, env, timeoutMs));
 
   const generatedAt = (opts.now ?? new Date()).toISOString();
   const report: ChannelVerifyReport = {
@@ -121,7 +103,7 @@ export async function verifyMessagingChannels(opts: {
     totals: count(results),
     results,
     decision:
-      "Native mobile nodes and a shareable channel/skills ecosystem stay out of this parity card; track native mobile as PLATFORM-MOBILE-TERMUX and treat shareable channel packages as a separate ecosystem card.",
+      "Native mobile nodes and a shareable channel/skills ecosystem stay out of this parity card; track native mobile as RUN-ANYWHERE-TERMUX and treat shareable channel packages as a separate ecosystem card.",
   };
   if (opts.dataDir) {
     const dir = join(opts.dataDir, "channel-verification");

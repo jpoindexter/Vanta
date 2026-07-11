@@ -20,6 +20,13 @@ _Nothing in flight right now — see the horizon below._
 
 The latest of 1171+ capabilities. See the [changelog](./changelog) for curated milestones.
 
+- **Roadmap unblock command — turn blocked cards into exact next actions** — Operator · 2026-07-11
+- **Messaging channel parity — reach Hermes(20+)/OpenClaw(13+) channel coverage** — Operator · 2026-07-11
+- **Fix: Cmd+V image paste into the TUI doesn't attach (only /image + drag-drop work)** — Operator · 2026-07-11
+- **Autonomous (bash) builds in a Docker container — the containment that works** — Harness · 2026-07-11
+- **Roadmap optional proof terminal — tabled experiments do not block completion** — Operator · 2026-07-11
+- **Roadmap strategy parked terminal — out-of-strategy cards stop blocking completion** — Operator · 2026-07-11
+- **A2A autonomous proof status — Docker/image/auth/receipt gate** — Harness · 2026-07-11
 - **Profile roster — persistent specialist agents with isolated state** — Operator · 2026-07-11
 - **Profile Kanban router — durable board routes work by specialist skill** — Operator · 2026-07-11
 - **Second-brain corpus compiler — notes, transcripts, and receipts become searchable memory** — Operator · 2026-07-11
@@ -33,13 +40,6 @@ The latest of 1171+ capabilities. See the [changelog](./changelog) for curated m
 - **Context references v2 — @file ranges, @folder, @diff, @git, @url** — Harness · 2026-07-11
 - **Credential pools — rotate same-provider keys before cross-provider fallback** — Harness · 2026-07-11
 - **Plugin LLM lane — bounded host-owned model calls from plugins** — Harness · 2026-07-11
-- **Deliverable auto-attach — generated files become native chat artifacts** — Reach · 2026-07-11
-- **Hermes issue regression pack — turn competitor failures into Vanta invariants** — Harness · 2026-07-11
-- **Hermes story eval harness — test real community jobs across all 15 categories** — Harness · 2026-07-11
-- **Public skill registry client — search, inspect, install, update, and remove safely** — Extensibility · 2026-07-11
-- **Vanta public site v1 — product-first homepage, use cases, install, and proof** — Reach · 2026-07-11
-- **Choice-wall side-effect guard — no post-turn writes before the operator chooses** — Harness · 2026-07-11
-- **Glob base-path root scope — relative searches use the declared project** — Harness · 2026-07-11
 
 ## On the horizon
 

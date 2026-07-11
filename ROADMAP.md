@@ -37,21 +37,20 @@ self-repair, background agent CLI management, auto permission mode, `/init`, lif
 resume forking, Tab/Shift+Tab focus traversal, the opt-in TUI v2 mission-control shell, the Vite/React desktop renderer, per-tool permission request UIs, operator profile preferences, preference-signal capture, memory guardrails, per-task tool scoping, solutioning mode, and the opt-in runtime plugin framework are live slices; browser OS-level
 control and deeper ambient channels remain horizon.
 
-## Parity & differentiator epics — `next` queue (2026-06-22)
+## Parity & differentiator epics — shipped (2026-07-11)
 
 Triggered by the OpenClaw / Hermes head-to-head. These are **standing high-priority
-asks** — they kept slipping because per-channel cards were marked *"out of scope for a
-local operator."* That disposition is now reversed. Cards live in `roadmap.json` at
-`status: next`.
+asks** that had slipped because per-channel cards were marked *"out of scope for a
+local operator."* That disposition was reversed and all three cards are now shipped.
 
-- [ ] **MSG-CHANNEL-PARITY** — reach Hermes(20+)/OpenClaw(13+) channel coverage. Umbrella
+- [x] **MSG-CHANNEL-PARITY** — reached Hermes(20+)/OpenClaw(13+) channel coverage. Umbrella
   over the `PlatformAdapter` pattern: Discord, Signal, iMessage, Matrix, Teams, Google
-  Chat, email/SMS + finish Slack app (Telegram + WhatsApp already shipped). Supersedes the
-  prior out-of-scope disposition on `VANTA-H-SLACK` et al.
-- [ ] **VANTA-SELF-LEARNING-LOOP** — the Hermes wedge to *own*, not just match. One named,
+  Chat, email/SMS, and Slack. The old hosted Slack-app card was retired after this
+  adapter-based parity slice shipped.
+- [x] **VANTA-SELF-LEARNING-LOOP** — the Hermes wedge to *own*, not just match. One named,
   always-on closed loop: observe trajectory → propose skill/edit → eval-gate → adopt
   (gated) → measure reuse. Unifies the existing curator, meta-tune, LoRA, and brain layers.
-- [ ] **VANTA-MIGRATE** — `vanta migrate openclaw|hermes`: import skills + MCP servers +
+- [x] **VANTA-MIGRATE** — `vanta migrate openclaw|hermes`: import skills + MCP servers +
   model config into `~/.vanta`, preview → select → backup → apply. On-pattern (both
   competitors ship importers). Pairs with the docs comparison page.
 
@@ -478,7 +477,7 @@ Hermes is known for long-session stability. These close that gap.
 ### P3 — Channel parity → Hermes 20+ / OpenClaw 13+ (~2 weeks)
 Biggest visible competitive gap. MSG-CHANNEL-PARITY is the umbrella already at the top of this file.
 
-- [ ] **MSG-CHANNEL-PARITY** (L) — Discord, Signal, iMessage, Matrix, Teams, Google Chat, email/SMS + finish Slack app. `PlatformAdapter` pattern; Telegram + WhatsApp already shipped. *(see top of file for full spec)*
+- [x] **MSG-CHANNEL-PARITY** (L) — Discord, Signal, iMessage, Matrix, Teams, Google Chat, email/SMS, and Slack shipped through the `PlatformAdapter` pattern. *(see top of file for full spec)*
 - [ ] **PLATFORMS-LONG-TAIL** (demand-driven) — remaining ~19 platforms beyond the umbrella above. Build on explicit request.
 
 ---

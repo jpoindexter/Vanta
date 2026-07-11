@@ -209,13 +209,13 @@ describe("POST /roadmap/move", () => {
     await writeFile(join(dir, "roadmap.json"), JSON.stringify({
       updated: "2026-01-01",
       items: [
-        { id: "PCLIP-MULTI-COMPANY", track: "Core", title: "Strategy", status: "parked", size: "S", summary: ".", done: ".", parkedReason: "strategy decision" },
+        { id: "STRATEGY-CARD", track: "Core", title: "Strategy", status: "parked", size: "S", summary: ".", done: ".", parkedReason: "strategy decision" },
       ],
     }, null, 2), "utf8");
     const res = await fetch(`${baseUrl}/roadmap/move`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: "PCLIP-MULTI-COMPANY", status: "shipped", force: true }),
+      body: JSON.stringify({ id: "STRATEGY-CARD", status: "shipped", force: true }),
     });
     expect(res.status).toBe(409);
     const j = (await res.json()) as { ok: boolean; error: string; parkedReason: string };

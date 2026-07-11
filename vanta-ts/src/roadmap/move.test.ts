@@ -104,10 +104,10 @@ describe("moveRoadmapItem", () => {
   it("does not let force move a parked strategy card directly to shipped", async () => {
     const root = await makeRoadmap({
       updated: "2026-01-01",
-      items: [{ ...FIXTURE.items[0], id: "PCLIP-MULTI-COMPANY", status: "parked", parkedReason: "strategy decision" }],
+      items: [{ ...FIXTURE.items[0], id: "STRATEGY-CARD", status: "parked", parkedReason: "strategy decision" }],
     });
-    await expect(moveRoadmapItem(root, "PCLIP-MULTI-COMPANY", "shipped", { force: true })).rejects.toThrow(RoadmapParkedReviveError);
-    await expect(moveRoadmapItem(root, "PCLIP-MULTI-COMPANY", "shipped", { force: true })).rejects.toThrow("strategy decision");
+    await expect(moveRoadmapItem(root, "STRATEGY-CARD", "shipped", { force: true })).rejects.toThrow(RoadmapParkedReviveError);
+    await expect(moveRoadmapItem(root, "STRATEGY-CARD", "shipped", { force: true })).rejects.toThrow("strategy decision");
   });
 
   it("does not let force ship a revived Run Anywhere proof card without its receipt", async () => {

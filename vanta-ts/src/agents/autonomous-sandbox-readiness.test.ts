@@ -17,7 +17,7 @@ describe("a2aAutonomousReadiness", () => {
       receipt: null,
     });
     expect(status.ready).toBe(false);
-    expect(status.roadmapCardId).toBe("VANTA-A2A-AUTONOMOUS-SANDBOX");
+    expect(status.roadmapCardId).toBe("VANTA-A2A-DOCKER-AUTONOMOUS");
     expect(status.gates.map((g) => [g.id, g.ready])).toEqual([
       ["docker", false],
       ["image", false],

@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { AUTONOMOUS_IMAGE_DEFAULT, defaultExecProbe, type ExecProbe } from "./autonomous-preflight.js";
 import { resolveBoxCredential, type AuthReader } from "./autonomous-creds.js";
 
-export const A2A_AUTONOMOUS_CARD = "VANTA-A2A-AUTONOMOUS-SANDBOX";
+export const A2A_AUTONOMOUS_CARD = "VANTA-A2A-DOCKER-AUTONOMOUS";
 export const A2A_AUTONOMOUS_RECEIPT = ".vanta/a2a-autonomous-sandbox.json";
 
 type GateId = "docker" | "image" | "credential" | "proof";

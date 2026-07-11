@@ -156,8 +156,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "selfhood",
-      "updated": "2026-07-10",
-      "notes": "SHIPPED 2026-07-10: added `vanta roadmap unblock [id...]`. Follow-up 2026-07-10: include parked cards too, because the Run Anywhere gates are deliberately parked for later external proof rather than marked blocked. The command reads roadmap.json, reports blocked/parked/decision cards in useful order, orders direct Run Anywhere dependencies before the aggregate release gate, and prints concrete next actions for Modal/Telegram, Teams/Azure, Termux release hardware proof, Ghost OS install proof, hosted-app strategy changes, duplicates, and strategy ratification. It does not move cards or claim external proofs passed. Focused proof: npx vitest run src/roadmap/unblock.test.ts src/roadmap/now-queue.test.ts src/cli/roadmap-cmd.test.ts. Live proof: npm run vanta -- roadmap unblock BACKEND-SERVERLESS-LIVE MSG-ADAPTER-TEAMS RUN-ANYWHERE-TERMUX RUN-ANYWHERE-V1-RELEASE-GATE prints all four parked launch unblock paths.\n\nDRAIN GATE 2026-07-10: added `vanta roadmap status --require-drained` so the no-active-work state is machine-checkable. It returns exit 1 if any building/blocked/next/horizon card remains and exit 0 when remaining non-shipped cards are parked. Live proof against the current roadmap returns `active roadmap drained: yes` with building/blocked/next/horizon all 0 and parked 18.\n\nJSON PLANS 2026-07-10: added `vanta roadmap unblock --json` so agent workflows can consume the same unblock plan objects without scraping prose. Live proof: `npm run vanta -- roadmap unblock BACKEND-SERVERLESS-LIVE --json` returns one structured plan with status `parked`, parkedReason `external proof`, and the gateway deploy/register/prove actions.\n\nJSON STATUS 2026-07-10: `vanta roadmap status --json` now emits `total`, `activeTotal`, `activeDrained`, `statuses`, and `parkedReasons` instead of requiring scripts to scrape prose. `--json --require-drained` preserves the hard exit gate while returning the same structured object. Live proof reports activeTotal 0, activeDrained true, shipped 1121, parked 18, and parked reason counts for external proof, strategy decision, declined/n-a, duplicate, and optional proof.\n\nPARKED REVIVE GUARD 2026-07-10: `vanta roadmap move <parked-id> <active-status>` and the drag board now refuse to revive parked cards unless `--force`/force is explicit. The error preserves the parked reason and points to `vanta roadmap unblock <id>` first. Live proof: `vanta roadmap move BACKEND-SERVERLESS-LIVE building` exits 1 with the external-proof revive warning and leaves the roadmap unchanged.\n\nSHIP PROOF GUARD 2026-07-10: known Run Anywhere proof cards cannot be moved to shipped until their readiness receipts exist. Live proof: `vanta roadmap move BACKEND-SERVERLESS-LIVE shipped --force` now exits 1 with `.vanta/serverless-gateway.json` as the required receipt, and the roadmap remains drained with BACKEND-SERVERLESS-LIVE parked.\n\nDIRECT SHIP GUARD 2026-07-10: no parked card can be moved directly to shipped, even with `--force`; it must first be revived into active work after reviewing `vanta roadmap unblock <id>`. Live proof: `vanta roadmap move PCLIP-MULTI-COMPANY shipped --force` exits 1 with the strategy-decision revive warning and leaves the card parked.\n\nPARKED REASON SCHEMA GUARD 2026-07-10: RoadmapSchema now rejects `parkedReason` on non-parked cards as well as parked cards without a reason. Live metadata check reports zero parked cards missing a reason and zero active/shipped cards carrying one."
+      "updated": "2026-07-11",
+      "notes": "SHIPPED 2026-07-10: added `vanta roadmap unblock [id...]`. Follow-up 2026-07-10: include parked cards too, because the Run Anywhere gates are deliberately parked for later external proof rather than marked blocked. The command reads roadmap.json, reports blocked/parked/decision cards in useful order, orders direct Run Anywhere dependencies before the aggregate release gate, and prints concrete next actions for Modal/Telegram, Teams/Azure, Termux release hardware proof, the remaining external provider and device proofs. It does not move cards or claim external proofs passed. Focused proof: npx vitest run src/roadmap/unblock.test.ts src/roadmap/now-queue.test.ts src/cli/roadmap-cmd.test.ts. Live proof: npm run vanta -- roadmap unblock BACKEND-SERVERLESS-LIVE MSG-ADAPTER-TEAMS RUN-ANYWHERE-TERMUX RUN-ANYWHERE-V1-RELEASE-GATE prints all four parked launch unblock paths.\n\nDRAIN GATE 2026-07-10: added `vanta roadmap status --require-drained` so the no-active-work state is machine-checkable. It returns exit 1 if any building/blocked/next/horizon card remains and exit 0 when remaining non-shipped cards are parked. Live proof against the current roadmap returns `active roadmap drained: yes` with building/blocked/next/horizon all 0 and parked 18.\n\nJSON PLANS 2026-07-10: added `vanta roadmap unblock --json` so agent workflows can consume the same unblock plan objects without scraping prose. Live proof: `npm run vanta -- roadmap unblock BACKEND-SERVERLESS-LIVE --json` returns one structured plan with status `parked`, parkedReason `external proof`, and the gateway deploy/register/prove actions.\n\nJSON STATUS 2026-07-10: `vanta roadmap status --json` now emits `total`, `activeTotal`, `activeDrained`, `statuses`, and `parkedReasons` instead of requiring scripts to scrape prose. `--json --require-drained` preserves the hard exit gate while returning the same structured object. Live proof reports activeTotal 0, activeDrained true, shipped 1121, parked 18, and parked reason counts for external proof, strategy decision, declined/n-a, duplicate, and optional proof.\n\nPARKED REVIVE GUARD 2026-07-10: `vanta roadmap move <parked-id> <active-status>` and the drag board now refuse to revive parked cards unless `--force`/force is explicit. The error preserves the parked reason and points to `vanta roadmap unblock <id>` first. Live proof: `vanta roadmap move BACKEND-SERVERLESS-LIVE building` exits 1 with the external-proof revive warning and leaves the roadmap unchanged.\n\nSHIP PROOF GUARD 2026-07-10: known Run Anywhere proof cards cannot be moved to shipped until their readiness receipts exist. Live proof: `vanta roadmap move BACKEND-SERVERLESS-LIVE shipped --force` now exits 1 with `.vanta/serverless-gateway.json` as the required receipt, and the roadmap remains drained with BACKEND-SERVERLESS-LIVE parked.\n\nDIRECT SHIP GUARD 2026-07-10: no parked card can be moved directly to shipped, even with `--force`; it must first be revived into active work after reviewing `vanta roadmap unblock <id>`. The guard applies generically to future strategy-decision cards; retired examples are recorded in `docs/roadmap-retired-cards.md`.\n\nPARKED REASON SCHEMA GUARD 2026-07-10: RoadmapSchema now rejects `parkedReason` on non-parked cards as well as parked cards without a reason. Live metadata check reports zero parked cards missing a reason and zero active/shipped cards carrying one."
     },
     {
       "id": "OPERATOR-HOME-V1",
@@ -688,8 +688,8 @@
       "effort": "high",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-22",
-      "notes": "Recurring high-priority operator ask. SWEEP COMPLETE 2026-06-22: full channel-parity build landed — 20 adapters wired in gateway/platforms/adapter-registry.ts (added Teams, Twitch, SMS/Twilio, Zalo, Feishu, WebChat, Nostr; finished Google Chat SA->token + Email IMAP/SMTP; earlier Matrix + LINE). At parity with Hermes 20+/OpenClaw 13+. New deps (dynamic-imported): @noble/curves (Nostr), nodemailer + imapflow (Email). 944 files/10831 tests green. REMAINING (not build — operator-side): per-platform live credential verification (5 verified live so far: Telegram/WhatsApp/Signal/Discord/Slack) + native mobile client (PLATFORM-MOBILE-TERMUX, separate card). Rolls up MSG-WHATSAPP, Telegram, VANTA-SLACK-CHANNEL-SUGGEST, VANTA-CHANNEL-MSG, VANTA-CHANNEL-PERMISSIONS, VANTA-H-SLACK."
+      "updated": "2026-07-11",
+      "notes": "Recurring high-priority operator ask. SWEEP COMPLETE 2026-06-22: full channel-parity build landed — 20 adapters wired in gateway/platforms/adapter-registry.ts (added Teams, Twitch, SMS/Twilio, Zalo, Feishu, WebChat, Nostr; finished Google Chat SA->token + Email IMAP/SMTP; earlier Matrix + LINE). At parity with Hermes 20+/OpenClaw 13+. New deps (dynamic-imported): @noble/curves (Nostr), nodemailer + imapflow (Email). 944 files/10831 tests green. REMAINING (not build — operator-side): per-platform live credential verification (5 verified live so far: Telegram/WhatsApp/Signal/Discord/Slack) + native mobile client (RUN-ANYWHERE-TERMUX, separate card). Rolls up MSG-WHATSAPP, Telegram, VANTA-SLACK-CHANNEL-SUGGEST, VANTA-CHANNEL-MSG, VANTA-CHANNEL-PERMISSIONS, MSG-ADAPTER-SLACK."
     },
     {
       "id": "VANTA-SELF-LEARNING-LOOP",
@@ -3120,23 +3120,6 @@
       "notes": "Pure extractSessionTitle (tolerant: sessionTitle field trimmed + 60-char cap matching deriveTitle; missing/blank/non-object -> null) + applyHookTitle (unchanged when none). Extractor built+tested; consumption = the 3 UserPromptSubmit fireHooks sites parse stdout -> applyHookTitle -> saveSession({title}) like /title (named follow-up)."
     },
     {
-      "id": "VANTA-GREP-READ-EDIT",
-      "track": "Harness",
-      "title": "grep satisfies read-before-edit — single-file grep counts as a read for Edit tool",
-      "status": "parked",
-      "size": "S",
-      "summary": "another agent (v2.1.160) makes single-file `grep`/`egrep`/`fgrep` commands satisfy the read-before-edit check. Previously, `head`/`tail` could count; now grep does too. Avoids an extra Read call when the agent has already grepped the file.",
-      "done": "After `grep 'pattern' src/foo.ts`, the Edit tool can modify `src/foo.ts` without a separate Read call.",
-      "tier": "sand",
-      "model": "sonnet",
-      "effort": "low",
-      "codex": "gpt-5.4-mini",
-      "lens": "infra",
-      "updated": "2026-06-20",
-      "notes": "N/A for Vanta architecture: there is no separate Edit tool with a read-before-edit gate — write_file is the editor and uses post-write re-read verification (ACTION-PROOF), not a prior-read requirement. No read-before-edit precondition exists for a grep to satisfy. Parked (does not apply); revisit only if an Edit-with-read-requirement tool is added.",
-      "parkedReason": "declined/n-a"
-    },
-    {
       "id": "VANTA-LESS-PERMS-SKILL",
       "track": "Harness",
       "title": "`/less-permission-prompts` — scan transcript and propose read-only allow rules",
@@ -4185,40 +4168,6 @@
       "notes": "Pure summarizeMcpResult (3 blocks: 2 text, 1 image · ~Nk tokens, per-type counts) + richMcpOutput (small <=2000 chars -> byte-identical plain join; large -> summary + bounded head preview (800) + [N more chars truncated]; control/ANSI stripped on the large preview only) + isLargeResult + joinText. Malformed content best-effort, never throws. Built+tested; mount wire = mcp/mount mcpToolToVantaTool pass the raw content blocks through richMcpOutput instead of the joined string (named). Small = current behavior."
     },
     {
-      "id": "VANTA-NATIVE-CLIPBOARD",
-      "track": "Operator",
-      "title": "Native clipboard image — capture images without external tools (xclip/pbpaste)",
-      "status": "parked",
-      "size": "S",
-      "summary": "another agent (feature-gated `NATIVE_CLIPBOARD_IMAGE`) uses native OS clipboard APIs for image capture instead of shelling out to `xclip`/`xsel` (Linux) or `pbpaste` (macOS). Faster, works in environments where clipboard tools aren't installed, and avoids subprocess overhead.",
-      "done": "Pasting an image from clipboard works on Linux even without xclip installed. `/paste` and auto-detect both use the native API path.",
-      "tier": "sand",
-      "model": "sonnet",
-      "effort": "low",
-      "codex": "gpt-5.4-mini",
-      "lens": "agent-loop",
-      "updated": "2026-06-21",
-      "notes": "N/A: Node cannot capture a clipboard IMAGE natively without an external tool/native module. The card asks for image capture WITHOUT external tools (xclip/pbpaste), which Node has no API for — and Vantas existing clipboard path IS osascript/pbpaste, i.e. the external tool the card wants to avoid. Genuinely not buildable in pure Node without adding a native binding (out of scope). Parked unless a native clipboard binding is adopted.",
-      "parkedReason": "declined/n-a"
-    },
-    {
-      "id": "VANTA-AUTO-THEME",
-      "track": "Operator",
-      "title": "Auto theme — dynamic OS-aware theme switching ('auto' option in theme settings)",
-      "status": "parked",
-      "size": "S",
-      "summary": "another agent (feature-gated `AUTO_THEME`) adds an `auto` option to theme settings. The `ThemeProvider` subscribes to OS appearance changes and switches between light/dark automatically. Without the flag, only named themes (dark, light, etc.) are available.",
-      "done": "Setting theme to 'auto' in `/config` makes another agent follow the OS dark mode toggle in real time.",
-      "tier": "sand",
-      "model": "sonnet",
-      "effort": "low",
-      "codex": "gpt-5.4-mini",
-      "lens": "tui",
-      "updated": "2026-06-20",
-      "notes": "N/A: the theme system was REMOVED (DECISIONS 2026-06-17 — no ThemeProvider/useTheme/VANTA_THEME/theme.ts; UI uses literal Ink colors). There is no theme to switch, so an auto OS-aware theme has nothing to drive. Parked unless a theme system returns.",
-      "parkedReason": "declined/n-a"
-    },
-    {
       "id": "VANTA-IDLE-RETURN",
       "track": "Operator",
       "title": "Idle return dialog — re-engagement prompt after session inactivity",
@@ -4313,23 +4262,6 @@
       "lens": "infra",
       "updated": "2026-06-20",
       "notes": "Pure/injectable splitPathPartial ({dir,prefix}; handles bare/./~/absolute/root/trailing-sep, preserves typed dir shape) + commonPrefix + completePath ({candidates,completion}; filters by literal prefix, dirs suffixed /, fills common-prefix extension or full single match, null when ambiguous/no-match/listDir-throw — never throws) + formatPathCandidates. listDir injected (no real fs). SECURITY: literal startsWith no glob, names only never reads contents. Built+tested; composer Tab wire named."
-    },
-    {
-      "id": "VANTA-VIM-UNDO-REDO",
-      "track": "Operator",
-      "title": "`/undo` as alias for `/rewind` — consistent session rollback UX",
-      "status": "parked",
-      "size": "S",
-      "summary": "another agent (v2.1.108) makes `/undo` an alias for `/rewind`, so the more intuitive command name works. Both now open the rewind checkpoint picker.",
-      "done": "Typing `/undo` opens the same rewind menu as `/rewind`. No behavioral difference — purely a discoverability improvement.",
-      "tier": "sand",
-      "model": "sonnet",
-      "effort": "low",
-      "codex": "gpt-5.4-mini",
-      "lens": "tui",
-      "updated": "2026-06-21",
-      "notes": "RECONCILE/N-A-as-specified: Vanta ALREADY has BOTH /undo (drop the last conversation turn) AND /rewind [id] (list/restore per-edit file checkpoints) — two DISTINCT, both-valid rollback operations. The card asks to make /undo an ALIAS of /rewind, which would REGRESS the conversation-turn undo (delete valid behavior — violates never-delete-valid-work). The consistent rollback UX the card wants is already served by having both clearly-described commands. Parked unless a deliberate UX redesign merges them.",
-      "parkedReason": "declined/n-a"
     },
     {
       "id": "VANTA-USAGE-MERGED",
@@ -5474,23 +5406,6 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "GHOST-OS-MCP",
-      "track": "Operator",
-      "title": "Ghost OS MCP backend — AX-tree native desktop control + learned recipes",
-      "status": "parked",
-      "size": "M",
-      "summary": "Add Ghost OS as an optional, vetted computer-use backend rather than a core dependency. Source signal: Ghost OS is a native macOS MCP server for computer-use that reads the Accessibility tree first, falls back to local ShowUI-2B vision when AX is insufficient, exposes 29 MCP tools, and can record user-performed workflows into transparent JSON recipes. Vanta already has kernel-gated desktop control and CHICAGO MCP routing, so the right slice is install/probe/allowlist/recipe-bridge, not a parallel unchecked action path.",
-      "done": "vanta control doctor detects a Ghost OS install and surfaces ghost doctor results; vanta mcp install ghost-os writes a read-mostly allowlist by default; Vanta can list/show/run Ghost recipes through kernel-gated MCP calls; mutating AX/click/type tools require explicit opt-in approval; at least one live macOS recipe run is verified end-to-end.",
-      "tier": "pebble",
-      "model": "sonnet",
-      "effort": "medium",
-      "codex": "gpt-5.4",
-      "lens": "reach",
-      "updated": "2026-07-09",
-      "notes": "PARKED 2026-07-09 after local verification showed `ghost` is not installed here, so the real Ghost MCP server and recipe flow were not live-verified. Removed the TypeScript catalog/control-doctor integration from Vanta for now. Revisit only after installing Ghost OS, mounting it in a scratch Vanta config, and proving one harmless recipe end-to-end under kernel approval. Source considered from https://github.com/ghostwright/ghost-os.",
-      "parkedReason": "optional proof"
-    },
-    {
       "id": "VANTA-CHICAGO-MCP",
       "track": "Extensibility",
       "title": "Computer use via MCP (CHICAGO) — route computer-use tool calls through MCP server",
@@ -5567,40 +5482,6 @@
       "effort": "medium",
       "codex": "gpt-5.4-mini",
       "lens": "reach"
-    },
-    {
-      "id": "VANTA-H-GITHUB",
-      "track": "Operator",
-      "title": "GitHub integration",
-      "status": "parked",
-      "size": "M",
-      "summary": "another agent: /install-github-app, GitHub Actions CI, PR status badges, --from-pr. Needs a hosted GitHub App; Vanta has local git tools + a webhook gateway.",
-      "done": "Out of scope for a local, provider-agnostic, kernel-gated operator; revisit only if Vanta grows this surface.",
-      "tier": "pebble",
-      "model": "sonnet",
-      "effort": "low",
-      "codex": "gpt-5.4-mini",
-      "lens": "agent-loop",
-      "updated": "2026-07-04",
-      "notes": "Parked 2026-07-04 (was miscategorized as horizon/buildable). The card's own done criterion says out of scope — a hosted GitHub App is platform-thinking-before-users for a local operator. Matches the 82df9082 precedent (5 similar anti-scope cards). Promote if Vanta ever grows a hosted-app surface.",
-      "parkedReason": "strategy decision"
-    },
-    {
-      "id": "VANTA-H-SLACK",
-      "track": "Operator",
-      "title": "Slack app",
-      "status": "parked",
-      "size": "M",
-      "summary": "another agent: /install-slack-app, trigger Claude from Slack. Vanta proves the messaging-adapter pattern with Telegram (others planned in the messaging registry).",
-      "done": "Out of scope for a local, provider-agnostic, kernel-gated operator; revisit only if Vanta grows this surface.",
-      "tier": "pebble",
-      "model": "sonnet",
-      "effort": "low",
-      "codex": "gpt-5.4-mini",
-      "lens": "agent-loop",
-      "updated": "2026-07-04",
-      "notes": "Parked 2026-07-04 (was miscategorized as horizon/buildable). The card's own done criterion says out of scope — a hosted Slack app is platform-thinking-before-users; Vanta already proves the messaging-adapter pattern (22 adapters incl. Slack) without a hosted app. Matches the 82df9082 precedent. Promote if Vanta ever grows a hosted-app surface.",
-      "parkedReason": "strategy decision"
     },
     {
       "id": "VANTA-STRUCTURED-DIFF",
@@ -5747,36 +5628,6 @@
       "notes": "Dep preflight (setup/preflight.ts: required+recommended tools, per-platform install cmd, injection-safe probe) + vanta preflight CLI + install.sh offers brew auto-install for missing deps. First-run = one command + one setup step."
     },
     {
-      "id": "HP-SECRETS",
-      "track": "Harness",
-      "title": "Secrets (Bitwarden Secrets Manager)",
-      "status": "parked",
-      "size": "S",
-      "summary": "DECLINED (evidence/thesis): Secrets (Bitwarden Secrets Manager). Vanta: `.env` + gitleaks pre-commit. External secret source = platform-thinking. See docs/vanta-what-to-build.html for why this is parked, not built.",
-      "done": "Not built unless real demand proves otherwise — External secret source = platform-thinking.",
-      "tier": "sand",
-      "model": "haiku",
-      "effort": "low",
-      "codex": "gpt-5.4-mini",
-      "lens": "infra",
-      "parkedReason": "declined/n-a"
-    },
-    {
-      "id": "HP-ISOLATED-PROFILES",
-      "track": "Harness",
-      "title": "Isolated profiles (full VANTA_HOME each)",
-      "status": "parked",
-      "size": "S",
-      "summary": "DECLINED (evidence/thesis): Isolated profiles (full VANTA_HOME each). Vanta: rooms (per-project goal streams). Multi-tenancy before users; rooms = 80%. See docs/vanta-what-to-build.html for why this is parked, not built.",
-      "done": "Not built unless real demand proves otherwise — Multi-tenancy before users; rooms = 80%.",
-      "tier": "sand",
-      "model": "haiku",
-      "effort": "low",
-      "codex": "gpt-5.4-mini",
-      "lens": "infra",
-      "parkedReason": "declined/n-a"
-    },
-    {
       "id": "HP-COMPUTER-USE",
       "track": "Operator",
       "title": "Computer-use (cua-driver, desktop control)",
@@ -5879,21 +5730,6 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra"
-    },
-    {
-      "id": "HP-169-BUNDLED-SKILLS",
-      "track": "Extensibility",
-      "title": "169 bundled skills (74 + 95 optional)",
-      "status": "parked",
-      "size": "S",
-      "summary": "DECLINED (evidence/thesis): 169 bundled skills (74 + 95 optional). Vanta: ~26 bundled + design/ai libraries. 'Management beats count' — curate on demand. See docs/vanta-what-to-build.html for why this is parked, not built.",
-      "done": "Not built unless real demand proves otherwise — 'Management beats count' — curate on demand.",
-      "tier": "sand",
-      "model": "haiku",
-      "effort": "low",
-      "codex": "gpt-5.4-mini",
-      "lens": "infra",
-      "parkedReason": "declined/n-a"
     },
     {
       "id": "AUX-VISION",
@@ -14173,11 +14009,13 @@
       "title": "Fix: Cmd+V image paste into the TUI doesn't attach (only /image + drag-drop work)",
       "status": "shipped",
       "size": "S",
-      "summary": "Reported 2026-06-19 (Jason): pasting a screenshot into the TUI composer leaves the model blind — Vanta replies it can't see the image unless you use /image <path> or drag it in. But TUI-IMAGE-CLICKABLE and VANTA-S-IMAGE are both marked SHIPPED claiming paste works, so this is a shipped-but-broken gap on the core flow. Likely fix: bind the composer paste chord (Cmd+V / bracketed-paste image data) to the SAME clipboard-image grab /paste already does on macOS (and wire VANTA-NATIVE-CLIPBOARD pbpaste/xclip for non-/paste capture), so paste Just Works without a command. Pairs with VANTA-NATIVE-CLIPBOARD + VANTA-CLIPBOARD-IMAGE-HINT.",
+      "summary": "Reported 2026-06-19 (Jason): pasting a screenshot into the TUI composer leaves the model blind — Vanta replies it can't see the image unless you use /image <path> or drag it in. But TUI-IMAGE-CLICKABLE and VANTA-S-IMAGE are both marked SHIPPED claiming paste works, so this is a shipped-but-broken gap on the core flow. Likely fix: bind the composer paste chord (Cmd+V / bracketed-paste image data) to the SAME clipboard-image grab /paste already does on macOS (and wire the existing clipboard adapter for non-/paste capture), so paste Just Works without a command. Pairs with the shipped VANTA-CLIPBOARD-IMAGE-HINT flow.",
       "done": "Cmd+V in the TUI composer with an image on the clipboard attaches it to the next message and the model receives it — verified live by pasting a screenshot, no /image path or drag-drop needed. The shipped paste cards (TUI-IMAGE-CLICKABLE, VANTA-S-IMAGE) are reconciled with the real flow.",
       "tier": "pebble",
       "effort": "low",
-      "lens": "tui"
+      "lens": "tui",
+      "notes": "",
+      "updated": "2026-07-11"
     },
     {
       "id": "TUI-CMD-BACKSPACE-CLEAR",
@@ -14313,38 +14151,6 @@
       "lens": "infra",
       "updated": "2026-07-07",
       "notes": "Shipped 2026-07-07. Distinct from `vanta backup` (raw whole-store tarball, unscrubbed): a SCRUBBED, SELECTIVE, collision-handled workspace bundle. workspace/portability.ts (pure, collection-generic — a collection = a named list of {id,...} records): parseBundle (zod, version:1, drops id-less records), scrubBundle (recurses every string field through redactForLog — vendor-key + positional URL/header/conn-string credential masking; new bundle, input untouched), mergeCollection (id-collision handling: skip keeps existing / overwrite lets incoming win / rename adds incoming under a fresh '<id>-imported[-n]' id; order-stable, returns added/skipped/renamed/overwritten counts). cli/workspace-cmd.ts: `vanta workspace export [file]` gathers via collection adapters → scrub → JSON; `import <file> [--on-collision skip|rename|overwrite]` merges back per-collection. Adapters wired for skills (writeSkill) + routines (durable-cron) — both with clean list/write APIs; the engine is collection-generic so goals/agents/tasks are additive one-adapter-each. 8 engine tests (parse+drop, scrub incl. nested + no-mutation, all 4 collision behaviors incl. -imported suffix bump). LIVE real-path: exported a skill workspace (scrub verified — a real 48-char sk- key masked; a sub-threshold 14-char token correctly kept, near-zero-false-positive by design) then imported into a fresh home (+1 added). Full suite 1047 files/11759 green; tsc + size gate clean."
-    },
-    {
-      "id": "PCLIP-MULTI-COMPANY",
-      "track": "Cofounder engine",
-      "title": "Multi-company isolation (one install, many orgs)",
-      "status": "parked",
-      "size": "L",
-      "summary": "Paperclip extract (True multi-company isolation). ⚠ STRATEGY-TENSION (local-first / single-ND-operator; multi-tenancy auto-parked DECISIONS 2026-06-11) — ratify before building. One deployment runs many isolated operator orgs with company-scoped data + separate audit trails. Directly opposes the single-operator north star and the parked multi-tenancy decision.",
-      "done": "Every entity is company-scoped and one install serves ≥2 fully isolated orgs with separate audit trails.",
-      "tier": "sand",
-      "model": "opus",
-      "effort": "high",
-      "lens": "infra",
-      "updated": "2026-07-10",
-      "notes": "RECHECK 2026-07-10: Needs explicit strategy ratification before any implementation. This directly conflicts with the current single-ND-operator/local-first direction and remains horizon/decision work, not a buildable next card.\n\nUNBLOCKED/PARKED 2026-07-10: operator chose not to keep this as an active decision blocker. It is not shipped; resume only after an explicit strategy change away from the current single-operator/local-first direction.",
-      "parkedReason": "strategy decision"
-    },
-    {
-      "id": "PCLIP-MULTI-USER",
-      "track": "Cofounder engine",
-      "title": "Multiple human supervisors (board users, invites, roles)",
-      "status": "parked",
-      "size": "L",
-      "summary": "Paperclip extract (Identity & Access / Multiple Human Users). ⚠ STRATEGY-TENSION (local-first / single-ND-operator; multi-tenancy auto-parked DECISIONS 2026-06-11) — ratify before building. Shared board access, memberships, invite flows, agent API keys, short-lived run JWTs — several humans supervising one autonomous org. Opposes the single-ND-operator north star.",
-      "done": "≥2 human users with scoped roles can supervise the same org with per-actor audit.",
-      "tier": "sand",
-      "model": "opus",
-      "effort": "high",
-      "lens": "infra",
-      "updated": "2026-07-10",
-      "notes": "RECHECK 2026-07-10: Needs explicit strategy ratification before any implementation. Multiple human supervisors implies roles, invites, shared board access, and short-lived run credentials; it remains horizon/decision work, not a buildable next card.\n\nUNBLOCKED/PARKED 2026-07-10: operator chose not to keep this as an active decision blocker. It is not shipped; resume only after multiple human supervisors become an intentional product direction.",
-      "parkedReason": "strategy decision"
     },
     {
       "id": "PCLIP-ATOMIC-CHECKOUT",
@@ -16417,24 +16223,6 @@
       ]
     },
     {
-      "id": "PLATFORM-MOBILE-TERMUX",
-      "track": "Harness",
-      "title": "Mobile install — Android / Termux path (Vanta in your pocket)",
-      "status": "parked",
-      "size": "L",
-      "summary": "Folded into RUN-ANYWHERE-TERMUX so Android installer and runtime work have one owner and one on-device release gate.",
-      "done": "A documented Termux install brings up the CLI + gateway on Android with a curated dep set; a basic task runs end-to-end on-device; voice/heavy deps degrade gracefully.",
-      "tier": "pebble",
-      "lens": "infra",
-      "source": "vision-gap-audit-2026-06-21",
-      "after": [
-        "INSTALL-PARITY"
-      ],
-      "updated": "2026-07-10",
-      "notes": "PARKED AS DUPLICATE 2026-07-10: RUN-ANYWHERE-TERMUX now owns Termux detection, curated pkg dependencies, native kernel build, npm native-module build, PREFIX/bin launcher, phone heap profile, preflight guidance, docs, and the remaining real-device smoke proof. Do not build or move this card independently.",
-      "parkedReason": "duplicate"
-    },
-    {
       "id": "PLATFORM-WINDOWS",
       "track": "Harness",
       "title": "Native Windows support — CLI / gateway / tools without WSL",
@@ -16670,25 +16458,15 @@
       "done": "A read-only python3+pathlib verify no longer Blocks; destructive pathlib methods still Block; 67 kernel tests green."
     },
     {
-      "id": "VANTA-A2A-AUTONOMOUS-SANDBOX",
-      "track": "Harness",
-      "title": "Autonomous (bash) builds inside macOS sandbox — superseded by Docker box",
-      "status": "parked",
-      "size": "L",
-      "summary": "Real projects need bash (npm install, bundlers) and acceptEdits headless could not run that. The original plan was full autonomy inside the macOS seatbelt sandbox, but claude could not run reliably inside sandbox-exec. The chosen containment path is now the shipped Docker box (`VANTA-A2A-DOCKER-AUTONOMOUS`), with mount-scope and credential forwarding; this macOS-seatbelt branch is kept only as history.",
-      "done": "An autonomous (bypassPermissions) claude build runs contained in the OS sandbox and completes a real npm-driven build.",
-      "notes": "SUPERSEDED 2026-07-10: This is no longer required open work. VANTA-A2A-DOCKER-AUTONOMOUS shipped the chosen containment backend for autonomous bash builds, and `vanta a2a autonomous-status [--json]` now exposes the remaining local proof prerequisites: Docker daemon, vanta-agent image, boxed credential, and `.vanta/a2a-autonomous-sandbox.json` npm-driven Docker proof receipt. Keep this macOS sandbox-exec branch parked as a duplicate unless there is a deliberate product decision to support claude inside seatbelt specifically.",
-      "parkedReason": "duplicate"
-    },
-    {
       "id": "VANTA-A2A-DOCKER-AUTONOMOUS",
       "track": "Harness",
       "title": "Autonomous (bash) builds in a Docker container — the containment that works",
       "status": "shipped",
       "size": "L",
-      "summary": "Replaces the parked sandbox-exec approach (VANTA-A2A-AUTONOMOUS-SANDBOX), where claude couldn't even RUN inside macOS seatbelt. A Docker container gives claude a FULL machine where it runs normally, boxed to exactly the folders Vanta mounts (the mount-set IS the boundary). Daytona was the obvious purpose-built fit but went open→CLOSED source — don't build Vanta's autonomy on a ruggable platform; use the open Docker primitive Vanta ALREADY ships (exec/backend.ts buildDockerArgs / the BACKEND-DOCKER card). Plumbing left: a small claude-image (node + `npm i -g @anthropic-ai/claude-code`) + per-run OAuth-token injection, --network on for npm, project bind-mounted. CONTAINMENT PROVEN LIVE 2026-06-26: a real OrbStack/Docker container cleaned a mounted /tmp folder (organized by type) and provably could NOT read an un-mounted folder or ~/.ssh; work persisted on disk after --rm. Can't live-verify the claude bypass from Claude Code's own harness (it blocks the flag) → build the image + adapter here, operator verifies the first real run. Apple's open `container` runtime is a macOS-native lighter alternative to evaluate.",
+      "summary": "Replaces the retired macOS sandbox-exec approach, where claude couldn't even RUN inside macOS seatbelt. A Docker container gives claude a FULL machine where it runs normally, boxed to exactly the folders Vanta mounts (the mount-set IS the boundary). Daytona was the obvious purpose-built fit but went open→CLOSED source — don't build Vanta's autonomy on a ruggable platform; use the open Docker primitive Vanta ALREADY ships (exec/backend.ts buildDockerArgs / the BACKEND-DOCKER card). Plumbing left: a small claude-image (node + `npm i -g @anthropic-ai/claude-code`) + per-run OAuth-token injection, --network on for npm, project bind-mounted. CONTAINMENT PROVEN LIVE 2026-06-26: a real OrbStack/Docker container cleaned a mounted /tmp folder (organized by type) and provably could NOT read an un-mounted folder or ~/.ssh; work persisted on disk after --rm. Can't live-verify the claude bypass from Claude Code's own harness (it blocks the flag) → build the image + adapter here, operator verifies the first real run. Apple's open `container` runtime is a macOS-native lighter alternative to evaluate.",
       "done": "call_agent(autonomous:true) runs `claude --dangerously-skip-permissions` inside a Docker container scoped to the mounted dir(s); a real npm-driven build completes, streams progress, and provably can't touch anything outside the mounts.",
-      "notes": "SHIPPED + LIVE-PROVEN end-to-end 2026-06-28. call_agent(autonomous:true) runs claude --dangerously-skip-permissions inside a Docker box scoped to the mounted dir(s); a real build completes (claude authenticated, wrote /work/hello.txt, clean exit 10s) and provably cannot escape (a host file outside the mount stayed untouched, network off). The macOS-keychain wall is FIXED the way Hermes does it: resolveBoxCredential forwards a headless credential as env (-e CLAUDE_CODE_OAUTH_TOKEN / ANTHROPIC_API_KEY; value from the parent, never in argv) instead of mounting host creds — so a Linux container authenticates without the keychain. Non-root image (claude rejects --dangerously-skip-permissions under root). Universal setup: autonomousPreflight + bundled docker/agent.Dockerfile + vanta agent-image build. Mount-scope (VANTA-A2A-MOUNT-SCOPE) derives the blast radius + OS-enforced read-only dry-run on destructive tasks."
+      "notes": "SHIPPED + LIVE-PROVEN end-to-end 2026-06-28. call_agent(autonomous:true) runs claude --dangerously-skip-permissions inside a Docker box scoped to the mounted dir(s); a real build completes (claude authenticated, wrote /work/hello.txt, clean exit 10s) and provably cannot escape (a host file outside the mount stayed untouched, network off). The macOS-keychain wall is FIXED the way Hermes does it: resolveBoxCredential forwards a headless credential as env (-e CLAUDE_CODE_OAUTH_TOKEN / ANTHROPIC_API_KEY; value from the parent, never in argv) instead of mounting host creds — so a Linux container authenticates without the keychain. Non-root image (claude rejects --dangerously-skip-permissions under root). Universal setup: autonomousPreflight + bundled docker/agent.Dockerfile + vanta agent-image build. Mount-scope (VANTA-A2A-MOUNT-SCOPE) derives the blast radius + OS-enforced read-only dry-run on destructive tasks.",
+      "updated": "2026-07-11"
     },
     {
       "id": "VANTA-A2A-MOUNT-SCOPE",
@@ -16840,8 +16618,8 @@
       "summary": "The shared installer detects Termux, prefers the checksum-verified ARM64 Android/Bionic release kernel, installs compilers only as a fallback, installs portable runtime dependencies and the launcher into PREFIX/bin, and applies a phone-sized heap profile. An x86_64 Android emulator gate passes end to end, the ARM64/Bionic artifact builds in CI, and release v0.9.0 publishes the Android kernel plus checksum; physical ARM64 execution remains the release gate. A physical ARM64 proof runner now lives at scripts/termux-arm64-device-proof.sh and supports --require-release-kernel so the final device run proves the release artifact path rather than source-build fallback.",
       "done": "install.sh + run.sh bring up a working Vanta (kernel + agent) on Termux/Android, doctor green; aarch64-android kernel published or built on-device.",
       "tier": "pebble",
-      "updated": "2026-07-10",
-      "notes": "IMPLEMENTED 2026-07-10: scripts/setup-lib.sh detects TERMUX_VERSION/PREFIX, refuses incompatible nodejs.org GNU Node and glibc kernel downloads, and installs the Android runtime set through pkg, prefers a checksum-verified aarch64-linux-android kernel, and installs Rust/Clang only as a fallback. install.sh preserves native kernel compilation and writes the launcher to PREFIX/bin. Termux dependency installation omits optional desktop accelerators and lifecycle scripts; run.sh exports VANTA_PLATFORM=termux plus the native ESBUILD_BINARY_PATH and defaults the V8 heap ceiling to 1536 MB. The Bash safety parser now loads the exact MIT-licensed tree-sitter-bash 0.25.1 WASM grammar from a checksummed vendored asset instead of installing its unused native binding. Winnow remains pinned to commit 7d5756b via an immutable archive, avoiding npm Git preparation. Preflight identifies Termux separately, omits cargo when the installer supplies the kernel, emits pkg commands, and omits macOS-only cliclick. vanta-ts/docs/termux.md owns the operator steps. PLATFORM-MOBILE-TERMUX is parked as a duplicate.\n\nEXECUTED ANDROID EMULATOR 2026-07-10: GitHub Actions run 29070389320 passed the checksum-pinned official Termux 0.118.3 APK on Android API 35 x86_64 in 3m38s. The real app bootstrap installed Node 24.17.0, Rust 1.96.1, and esbuild 0.28.1; the real ./install.sh compiled the Android/Bionic kernel, installed 126 runtime packages, and installed the self-locating launcher. The installed CLI produced help, doctor reported kernel and custom provider green with no failed checks, `vanta run` returned TERMUX_OK through an OpenAI-compatible provider, `vanta gateway verify-channels` passed, and the gate emitted TERMUX_ANDROID_E2E_OK plus all three phase markers. Workflow: https://github.com/jpoindexter/Vanta/actions/runs/29070389320. Local typecheck, 172 Winnow/compression tests, and 5 vendored Bash-parser tests also passed. This is executed Android proof, not ARM64 hardware proof.\n\nEXECUTED ARM64 ARTIFACT 2026-07-10: release workflow run 29079864380 passed all six kernel targets on commit 030e528e. The aarch64-linux-android job used the Android NDK API-24 linker, verified an AArch64 ELF header plus /system/bin/linker64, generated a SHA-256 receipt, and uploaded the artifact in 22s. The downloaded 835,432-byte artifact independently passed shasum -c; file reported an ARM aarch64 ELF with the Bionic interpreter. Installer tests execute accepted-checksum and tampered-checksum paths. Full suite: 1,208 files, 12,511 passed, 3 skipped; TypeScript, shell syntax, YAML parse, socket-noise scan, and bell scan pass. Release v0.9.0 now serves this artifact through releases/latest; the remaining gap is physical ARM64 Termux execution.\n\nREMAINING REAL-DEVICE GATE: release v0.9.0 now contains the Android/Bionic kernel and checksum; on a physical ARM64 Android/Termux host, run `scripts/termux-arm64-device-proof.sh --require-release-kernel`. Keep parked until the release kernel, TUI/CLI, provider turn, and gateway all execute on-device and write `TERMUX_ARM64_E2E_OK release_kernel=1`.\n\nPROOF RUNNER 2026-07-10: added scripts/termux-arm64-device-proof.sh and vanta-ts/docs/termux.md instructions for the remaining physical ARM64 gate. The script refuses non-Termux/non-ARM64 hosts, installs the Termux runtime packages, runs ./install.sh, starts a local mock OpenAI-compatible provider plus the real safety kernel, then executes vanta --help, vanta doctor, vanta run \"Reply with TERMUX_OK and do not use tools\", and vanta gateway verify-channels. Focused Termux install/runtime tests now assert the script syntax and non-Termux refusal. This does NOT ship the card: release v0.9.0 exists, but the script still must be executed on physical ARM64 Android/Termux hardware to prove the release artifact path on-device.\n\nRELEASE-ARTIFACT GUARD 2026-07-10: verified latest GitHub release v0.8.0 exposes macOS/Linux kernel assets but no vanta-kernel-aarch64-linux-android asset. Added VANTA_REQUIRE_PREBUILT_KERNEL=1 handling in install.sh and run.sh plus scripts/termux-arm64-device-proof.sh --require-release-kernel, which removes any existing local kernel before install and fails instead of compiling from source when the release asset is missing. Focused tests cover the prebuilt-required refusal and prove cargo build is not invoked. This prepares the final physical ARM64 proof after an explicitly approved tagged release.\n\nRECHECK 2026-07-10: Release asset prerequisite is now satisfied. GitHub release v0.9.0 has `vanta-kernel-aarch64-linux-android` and `vanta-kernel-aarch64-linux-android.sha256`; `vanta run-anywhere status --check-release` reports Android release asset check: ready. Current host is Darwin arm64 with no TERMUX_VERSION/PREFIX, so the physical device proof remains unexecuted. Do not mark shipped until `scripts/termux-arm64-device-proof.sh --require-release-kernel` passes on a physical ARM64 Android/Termux device against that release asset.\n\nUNBLOCKED/PARKED 2026-07-10: operator chose to set physical Android/Termux proof aside for later. This card is no longer a board blocker, but it is not shipped; resume when physical ARM64 Termux hardware is available to run scripts/termux-arm64-device-proof.sh --require-release-kernel.",
+      "updated": "2026-07-11",
+      "notes": "IMPLEMENTED 2026-07-10: scripts/setup-lib.sh detects TERMUX_VERSION/PREFIX, refuses incompatible nodejs.org GNU Node and glibc kernel downloads, and installs the Android runtime set through pkg, prefers a checksum-verified aarch64-linux-android kernel, and installs Rust/Clang only as a fallback. install.sh preserves native kernel compilation and writes the launcher to PREFIX/bin. Termux dependency installation omits optional desktop accelerators and lifecycle scripts; run.sh exports VANTA_PLATFORM=termux plus the native ESBUILD_BINARY_PATH and defaults the V8 heap ceiling to 1536 MB. The Bash safety parser now loads the exact MIT-licensed tree-sitter-bash 0.25.1 WASM grammar from a checksummed vendored asset instead of installing its unused native binding. Winnow remains pinned to commit 7d5756b via an immutable archive, avoiding npm Git preparation. Preflight identifies Termux separately, omits cargo when the installer supplies the kernel, emits pkg commands, and omits macOS-only cliclick. vanta-ts/docs/termux.md owns the operator steps. The former duplicate mobile-install card was retired; this card is the sole Android/Termux owner.\n\nEXECUTED ANDROID EMULATOR 2026-07-10: GitHub Actions run 29070389320 passed the checksum-pinned official Termux 0.118.3 APK on Android API 35 x86_64 in 3m38s. The real app bootstrap installed Node 24.17.0, Rust 1.96.1, and esbuild 0.28.1; the real ./install.sh compiled the Android/Bionic kernel, installed 126 runtime packages, and installed the self-locating launcher. The installed CLI produced help, doctor reported kernel and custom provider green with no failed checks, `vanta run` returned TERMUX_OK through an OpenAI-compatible provider, `vanta gateway verify-channels` passed, and the gate emitted TERMUX_ANDROID_E2E_OK plus all three phase markers. Workflow: https://github.com/jpoindexter/Vanta/actions/runs/29070389320. Local typecheck, 172 Winnow/compression tests, and 5 vendored Bash-parser tests also passed. This is executed Android proof, not ARM64 hardware proof.\n\nEXECUTED ARM64 ARTIFACT 2026-07-10: release workflow run 29079864380 passed all six kernel targets on commit 030e528e. The aarch64-linux-android job used the Android NDK API-24 linker, verified an AArch64 ELF header plus /system/bin/linker64, generated a SHA-256 receipt, and uploaded the artifact in 22s. The downloaded 835,432-byte artifact independently passed shasum -c; file reported an ARM aarch64 ELF with the Bionic interpreter. Installer tests execute accepted-checksum and tampered-checksum paths. Full suite: 1,208 files, 12,511 passed, 3 skipped; TypeScript, shell syntax, YAML parse, socket-noise scan, and bell scan pass. Release v0.9.0 now serves this artifact through releases/latest; the remaining gap is physical ARM64 Termux execution.\n\nREMAINING REAL-DEVICE GATE: release v0.9.0 now contains the Android/Bionic kernel and checksum; on a physical ARM64 Android/Termux host, run `scripts/termux-arm64-device-proof.sh --require-release-kernel`. Keep parked until the release kernel, TUI/CLI, provider turn, and gateway all execute on-device and write `TERMUX_ARM64_E2E_OK release_kernel=1`.\n\nPROOF RUNNER 2026-07-10: added scripts/termux-arm64-device-proof.sh and vanta-ts/docs/termux.md instructions for the remaining physical ARM64 gate. The script refuses non-Termux/non-ARM64 hosts, installs the Termux runtime packages, runs ./install.sh, starts a local mock OpenAI-compatible provider plus the real safety kernel, then executes vanta --help, vanta doctor, vanta run \"Reply with TERMUX_OK and do not use tools\", and vanta gateway verify-channels. Focused Termux install/runtime tests now assert the script syntax and non-Termux refusal. This does NOT ship the card: release v0.9.0 exists, but the script still must be executed on physical ARM64 Android/Termux hardware to prove the release artifact path on-device.\n\nRELEASE-ARTIFACT GUARD 2026-07-10: verified latest GitHub release v0.8.0 exposes macOS/Linux kernel assets but no vanta-kernel-aarch64-linux-android asset. Added VANTA_REQUIRE_PREBUILT_KERNEL=1 handling in install.sh and run.sh plus scripts/termux-arm64-device-proof.sh --require-release-kernel, which removes any existing local kernel before install and fails instead of compiling from source when the release asset is missing. Focused tests cover the prebuilt-required refusal and prove cargo build is not invoked. This prepares the final physical ARM64 proof after an explicitly approved tagged release.\n\nRECHECK 2026-07-10: Release asset prerequisite is now satisfied. GitHub release v0.9.0 has `vanta-kernel-aarch64-linux-android` and `vanta-kernel-aarch64-linux-android.sha256`; `vanta run-anywhere status --check-release` reports Android release asset check: ready. Current host is Darwin arm64 with no TERMUX_VERSION/PREFIX, so the physical device proof remains unexecuted. Do not mark shipped until `scripts/termux-arm64-device-proof.sh --require-release-kernel` passes on a physical ARM64 Android/Termux device against that release asset.\n\nUNBLOCKED/PARKED 2026-07-10: operator chose to set physical Android/Termux proof aside for later. This card is no longer a board blocker, but it is not shipped; resume when physical ARM64 Termux hardware is available to run scripts/termux-arm64-device-proof.sh --require-release-kernel.",
       "parkedReason": "external proof"
     },
     {
@@ -17145,8 +16923,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "selfhood",
-      "updated": "2026-07-10",
-      "notes": "SHIPPED 2026-07-10: Added `optional proof` to the terminal parked reason set. Current roadmap should report one fewer open card and one more terminal parked card; this does not ship GHOST-OS-MCP or claim its proof ran."
+      "updated": "2026-07-11",
+      "notes": "SHIPPED 2026-07-10: Added `optional proof` to the terminal parked reason set so optional external experiments do not block the active build queue. The historical example was retired on 2026-07-11; the generic reason remains available for future evidence-only experiments."
     },
     {
       "id": "ROADMAP-OPEN-WORK-STATUS",
@@ -17177,8 +16955,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "selfhood",
-      "updated": "2026-07-10",
-      "notes": "SHIPPED 2026-07-10: Added `strategy decision` to the terminal parked reason set after rechecking VANTA-H-GITHUB, VANTA-H-SLACK, PCLIP-MULTI-COMPANY, and PCLIP-MULTI-USER. Their notes say out-of-scope or revive only after an explicit product-direction change. This does not ship those cards; it keeps the remaining open set focused on required external proofs."
+      "updated": "2026-07-11",
+      "notes": "SHIPPED 2026-07-10: Added `strategy decision` to the terminal parked reason set so rejected product directions do not block the active build queue. The historical examples were retired from the roadmap on 2026-07-11 and are preserved in `docs/roadmap-retired-cards.md`; the generic reason remains available for future decisions."
     },
     {
       "id": "ROADMAP-ACTIONABLE-OPEN-WORK",
@@ -17219,13 +16997,13 @@
       "status": "shipped",
       "size": "S",
       "summary": "`vanta a2a autonomous-status [--json]` reports whether the boxed autonomous build path is actually ready: Docker daemon reachable, `vanta-agent` image built, boxed-agent credential available, and a durable npm-driven Docker proof receipt present.",
-      "done": "The command exits nonzero until all proof gates pass, supports JSON/text output, points at `VANTA-A2A-AUTONOMOUS-SANDBOX`, names `.vanta/a2a-autonomous-sandbox.json`, and CLI help documents the command.",
+      "done": "The command exits nonzero until all proof gates pass, supports JSON/text output, points at `VANTA-A2A-DOCKER-AUTONOMOUS`, names `.vanta/a2a-autonomous-sandbox.json`, and CLI help documents the command.",
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-07-10",
+      "updated": "2026-07-11",
       "notes": "SHIPPED 2026-07-10: added agents/autonomous-sandbox-readiness and `vanta a2a autonomous-status [--json]`. Live output on this Mac reports Docker daemon missing, image missing, credential ready via CLAUDE_CODE_OAUTH_TOKEN, and no `.vanta/a2a-autonomous-sandbox.json` proof receipt. This removes the stale sandbox-claude ambiguity while keeping the real proof honest."
     },
     {

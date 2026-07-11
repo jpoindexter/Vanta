@@ -63,38 +63,6 @@ const KNOWN_ACTIONS: Record<string, string[]> = {
     "Ship HERMES-TELEPHONY-CONSENT-LIFECYCLE with live Twilio callback and retention receipts.",
     "Only then execute and ship this aggregate release gate.",
   ],
-  "PCLIP-MULTI-COMPANY": [
-    "Ratify a strategy change away from the current single-operator/local-first direction.",
-    "Only then move the card out of horizon and decompose isolation, audit, and data-boundary work.",
-  ],
-  "PCLIP-MULTI-USER": [
-    "Ratify multiple human supervisors as an intentional product direction.",
-    "Only then move the card out of horizon and decompose roles, invites, board access, and run credentials.",
-  ],
-  "GHOST-OS-MCP": [
-    "Install Ghost OS in a scratch Vanta config; do not re-add code from static inspection alone.",
-    "Run `ghost doctor` and verify the real MCP server exposes harmless read/list tools.",
-    "Prove one harmless recipe end-to-end under kernel approval before moving this card back to building.",
-  ],
-  "VANTA-H-GITHUB": [
-    "Do not build the hosted GitHub App path unless Vanta intentionally grows a hosted-app surface.",
-    "If that strategy changes, first prove local git/gh tools are insufficient for the user workflow.",
-    "Then decompose app install, webhook auth, PR status, and `--from-pr` as separate cards.",
-  ],
-  "VANTA-H-SLACK": [
-    "Do not build the hosted Slack app path unless Vanta intentionally grows a hosted-app surface.",
-    "If that strategy changes, first prove existing messaging adapters are insufficient.",
-    "Then decompose Slack app install, event auth, allowlist, and gateway reply proof as separate cards.",
-  ],
-  "PLATFORM-MOBILE-TERMUX": [
-    "Do not build independently; RUN-ANYWHERE-TERMUX owns this work.",
-    "Keep this parked duplicate until RUN-ANYWHERE-TERMUX ships or is deliberately split again.",
-  ],
-  "VANTA-A2A-AUTONOMOUS-SANDBOX": [
-    "Reproduce whether Claude can run inside the OS sandbox with the current CLI before changing Vanta code.",
-    "If still blocked, choose a different containment backend instead of tuning macOS seatbelt blind.",
-    "Only ship after a real npm-driven autonomous build completes inside the chosen sandbox.",
-  ],
 };
 
 export function knownUnblockActions(id: string): string[] {
@@ -112,8 +80,6 @@ const PLAN_ORDER = [
   "HERMES-SHOPIFY-OPERATIONS",
   "HERMES-TELEPHONY-CONSENT-LIFECYCLE",
   "HERMES-COMMERCE-TELEPHONY-SKILL-PACK",
-  "PCLIP-MULTI-COMPANY",
-  "PCLIP-MULTI-USER",
 ];
 
 function planRank(item: RoadmapItem): number {

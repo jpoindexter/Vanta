@@ -42,8 +42,8 @@ describe("roadmap unblock plans", () => {
   });
 
   it("includes decision-only horizon cards and explains ratification", () => {
-    const [plan] = buildUnblockPlans([card("PCLIP-MULTI-USER", "horizon", "Multi user")]);
-    expect(plan?.actions.join("\n")).toContain("Ratify multiple human supervisors");
+    const [plan] = buildUnblockPlans([card("FUTURE-STRATEGY", "horizon", "Future strategy")]);
+    expect(plan?.actions.join("\n")).toContain("explicit strategy decision");
   });
 
   it("includes parked cards with explicit revive guidance", () => {
@@ -70,12 +70,6 @@ describe("roadmap unblock plans", () => {
     expect(out).toContain("run the named real-world proof");
   });
 
-  it("includes known parked N/A cards without pretending they are buildable", () => {
-    const [plan] = buildUnblockPlans([card("VANTA-H-GITHUB", "parked", "GitHub")]);
-    expect(plan?.actions.join("\n")).toContain("hosted GitHub App");
-    expect(plan?.actions.join("\n")).toContain("strategy changes");
-  });
-
   it("filters to requested ids", () => {
     const plans = buildUnblockPlans([
       card("BACKEND-SERVERLESS-LIVE", "blocked"),
@@ -87,7 +81,7 @@ describe("roadmap unblock plans", () => {
   it("orders direct unblock dependencies before the aggregate release gate and decisions", () => {
     const plans = buildUnblockPlans([
       card("RUN-ANYWHERE-V1-RELEASE-GATE", "blocked"),
-      card("PCLIP-MULTI-USER", "horizon"),
+      card("FUTURE-STRATEGY", "horizon"),
       card("RUN-ANYWHERE-TERMUX", "blocked"),
       card("BACKEND-SERVERLESS-LIVE", "blocked"),
     ]);
@@ -95,7 +89,7 @@ describe("roadmap unblock plans", () => {
       "BACKEND-SERVERLESS-LIVE",
       "RUN-ANYWHERE-TERMUX",
       "RUN-ANYWHERE-V1-RELEASE-GATE",
-      "PCLIP-MULTI-USER",
+      "FUTURE-STRATEGY",
     ]);
   });
 

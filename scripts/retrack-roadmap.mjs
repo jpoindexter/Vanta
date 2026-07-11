@@ -53,7 +53,6 @@ const TRACK_MAP = {
 const NON_CC_OVERRIDES = {
   "AUTO-WATCH": "Solutioning", // the watch-half of the solutioning loop
   "PLUGIN-FRAMEWORK": "Extensibility",
-  "HP-169-BUNDLED-SKILLS": "Extensibility",
   "HP-BUNDLES": "Extensibility",
   "HP-COMPUTER-USE": "Operator",
 };
@@ -282,7 +281,7 @@ const CC_OPEN = {
   "VANTA-HOOK-ADDITIONAL-CTX": "Harness", "VANTA-HOOK-MESSAGE-DISPLAY": "Harness",
   "VANTA-HOOK-PERM-DENIED": "Harness", "VANTA-HOOK-EXEC-FORM": "Harness",
   "VANTA-HOOK-CONTINUE-BLOCK": "Harness", "VANTA-HOOK-SESSION-TITLE": "Harness",
-  "VANTA-HOOK-MCP-TOOL-TYPE": "Harness", "VANTA-GREP-READ-EDIT": "Harness",
+  "VANTA-HOOK-MCP-TOOL-TYPE": "Harness",
   "VANTA-LESS-PERMS-SKILL": "Harness", "VANTA-SANDBOX-NETWORK-DENY": "Harness",
   "VANTA-ULTRACODE-TRIGGER": "Harness", "VANTA-BG-FLAG-PRESERVE": "Harness",
   "VANTA-BG-RESPOND-CONTINUE": "Harness", "VANTA-SHELL-SNAPSHOT": "Harness",
@@ -299,7 +298,7 @@ const CC_OPEN = {
 
   // — KEEP → Operator —
   "VANTA-VIM-MODE": "Operator", "VANTA-VIM-OPERATORS": "Operator", "VANTA-VIM-VISUAL-MODE": "Operator",
-  "VANTA-VIM-UNDO-REDO": "Operator", "VANTA-SETTINGS-UX": "Operator", "VANTA-AWAY-SUMMARY": "Operator",
+  "VANTA-SETTINGS-UX": "Operator", "VANTA-AWAY-SUMMARY": "Operator",
   "VANTA-SPINNER-TEAMMATE": "Operator", "VANTA-SPINNER-STALLED": "Operator",
   "VANTA-SPINNER-GLIMMER": "Operator", "VANTA-SPINNER-VERBS": "Operator",
   "VANTA-MSG-PLAN-APPROVAL": "Operator", "VANTA-MSG-TIMESTAMPS": "Operator",
@@ -330,7 +329,7 @@ const CC_OPEN = {
   "VANTA-TEAMMATE-COLOR": "Operator", "VANTA-STANDALONE-AGENT-NAME": "Operator",
   "VANTA-AGENT-SUMMARY": "Operator", "VANTA-PROMPT-SUGGEST-UI": "Operator",
   "VANTA-IDLE-RETURN": "Operator", "VANTA-OS-NOTIFY": "Operator", "VANTA-COPY-ON-SELECT": "Operator",
-  "VANTA-CLIPBOARD-IMAGE-HINT": "Operator", "VANTA-NATIVE-CLIPBOARD": "Operator",
+  "VANTA-CLIPBOARD-IMAGE-HINT": "Operator",
   "VANTA-HISTORY-PICKER": "Operator", "VANTA-MESSAGE-ACTIONS": "Operator", "VANTA-ASCIICAST": "Operator",
   "VANTA-SCREENSHOT-CLIPBOARD": "Operator", "VANTA-SESSION-TITLE": "Operator", "VANTA-PDF-READ": "Operator",
   "VANTA-VOICE-STT": "Operator", "VANTA-TERMINAL-CAPTURE": "Operator",
@@ -344,11 +343,11 @@ const CC_OPEN = {
   "VANTA-TUI-FULLSCREEN-CMD": "Operator", "VANTA-FOCUS-CMD": "Operator",
   "VANTA-TODO-ACTIVE-FORM": "Operator", "VANTA-EXAMPLE-COMMANDS": "Operator",
   "VANTA-PROJECT-ONBOARDING": "Operator", "VANTA-PROMPT-EDITOR": "Operator",
-  "VANTA-AUTO-THEME": "Operator", "VANTA-TERMINAL-SETUP-CMD": "Operator",
+  "VANTA-TERMINAL-SETUP-CMD": "Operator",
   "VANTA-CTRL-U-CLEAR-ALL": "Operator", "VANTA-AGENTIC-SESSION-SEARCH": "Operator",
   "VANTA-MEM-RELEVANCE-LLM": "Operator", "VANTA-EXTRACT-MEMORIES": "Operator",
   "VANTA-AUTO-DREAM-SVC": "Operator", "VANTA-SANDBOX-VIOLATION": "Operator",
-  "VANTA-AUTO-ISSUE": "Operator", "VANTA-H-GITHUB": "Operator", "VANTA-H-SLACK": "Operator",
+  "VANTA-AUTO-ISSUE": "Operator",
   "VANTA-SLACK-CHANNEL-SUGGEST": "Operator", "VANTA-SSH-SESSION": "Operator",
   "VANTA-SSH-CONFIGS": "Operator", "VANTA-CHROME-GIF-RECORDER": "Operator", "VANTA-DEEP-LINK": "Operator",
   "VANTA-REVIEW-ARTIFACT": "Operator", "VANTA-COPY-CMD": "Operator", "VANTA-ASK-USER-TOOL": "Operator",

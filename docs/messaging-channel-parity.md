@@ -9,4 +9,4 @@ Status: parity adapters are built; verification is an operator-run ledger.
 - `failed`: configured adapter threw or timed out during verification.
 - `missing-adapter`: catalog entry has no registered adapter.
 
-Decision: native mobile nodes and a shareable channel/skills ecosystem stay out of this parity card. Track native mobile separately via `PLATFORM-MOBILE-TERMUX`; treat shareable channel packages as a future ecosystem/distribution card.
+Decision: native mobile nodes and a shareable channel/skills ecosystem stay out of this parity card. Track native mobile separately via `RUN-ANYWHERE-TERMUX`; treat shareable channel packages as a future ecosystem/distribution card.

@@ -18,7 +18,7 @@ async function workspace(): Promise<string> {
     updated: "2026-07-10",
     items: [
       { id: "BACKEND-SERVERLESS-LIVE", track: "Harness", title: "Serverless", status: "parked", size: "L", summary: "", done: "", parkedReason: "external proof" },
-      { id: "PCLIP-MULTI-COMPANY", track: "Cofounder", title: "Company", status: "horizon", size: "L", summary: "", done: "" },
+      { id: "STRATEGY-CARD", track: "Cofounder", title: "Company", status: "horizon", size: "L", summary: "", done: "" },
     ],
   }, null, 2), "utf8");
   return root;
@@ -70,7 +70,7 @@ async function parkedStrategyWorkspace(): Promise<string> {
   await writeFile(join(root, "roadmap.json"), JSON.stringify({
     updated: "2026-07-10",
     items: [
-      { id: "PCLIP-MULTI-COMPANY", track: "Cofounder", title: "Company", status: "parked", size: "L", summary: "", done: "", parkedReason: "strategy decision" },
+      { id: "STRATEGY-CARD", track: "Cofounder", title: "Company", status: "parked", size: "L", summary: "", done: "", parkedReason: "strategy decision" },
     ],
   }, null, 2), "utf8");
   return root;
@@ -85,16 +85,16 @@ describe("runRoadmapCommand unblock", () => {
     const out = lines.join("\n");
     expect(out).toContain("BACKEND-SERVERLESS-LIVE");
     expect(out).toContain("vanta backend gateway deploy");
-    expect(out).toContain("PCLIP-MULTI-COMPANY");
+    expect(out).toContain("STRATEGY-CARD");
   });
 
   it("filters to requested card ids", async () => {
     const root = await workspace();
     const lines: string[] = [];
     vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
-    await runRoadmapCommand(root, ["unblock", "PCLIP-MULTI-COMPANY"]);
+    await runRoadmapCommand(root, ["unblock", "STRATEGY-CARD"]);
     const out = lines.join("\n");
-    expect(out).toContain("PCLIP-MULTI-COMPANY");
+    expect(out).toContain("STRATEGY-CARD");
     expect(out).not.toContain("BACKEND-SERVERLESS-LIVE");
   });
 
@@ -291,7 +291,7 @@ describe("runRoadmapCommand move", () => {
     const root = await parkedStrategyWorkspace();
     const errors: string[] = [];
     vi.spyOn(console, "error").mockImplementation((line = "") => errors.push(String(line)));
-    const code = await runRoadmapCommand(root, ["move", "PCLIP-MULTI-COMPANY", "shipped", "--force"]);
+    const code = await runRoadmapCommand(root, ["move", "STRATEGY-CARD", "shipped", "--force"]);
     expect(code).toBe(1);
     expect(errors.join("\n")).toContain("requires review before revival");
     expect(errors.join("\n")).toContain("strategy decision");

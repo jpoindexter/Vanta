@@ -61,19 +61,6 @@ const cards: RoadmapItem[] = [
     summary: `${P} (Company Portability / companies.sh). Export and import a whole operator workspace — agents, skills, goals, routines, tasks — with secret scrubbing and id-collision handling. Reframed from Paperclip's multi-company export to single-workspace; aligns with Vanta's local-first / your-data-residency values.`,
     done: "vanta export writes a scrubbed bundle; vanta import re-creates agents/skills/goals/routines with collision handling.",
   },
-  {
-    id: "PCLIP-MULTI-COMPANY", track: "Cofounder engine", title: "Multi-company isolation (one install, many orgs)",
-    status: "horizon", size: "L", tier: "sand", model: "opus", effort: "high", lens: "infra", updated: "2026-06-19",
-    summary: `${P} (True multi-company isolation). ${TENSION}One deployment runs many isolated operator orgs with company-scoped data + separate audit trails. Directly opposes the single-operator north star and the parked multi-tenancy decision.`,
-    done: "Every entity is company-scoped and one install serves ≥2 fully isolated orgs with separate audit trails.",
-  },
-  {
-    id: "PCLIP-MULTI-USER", track: "Cofounder engine", title: "Multiple human supervisors (board users, invites, roles)",
-    status: "horizon", size: "L", tier: "sand", model: "opus", effort: "high", lens: "infra", updated: "2026-06-19",
-    summary: `${P} (Identity & Access / Multiple Human Users). ${TENSION}Shared board access, memberships, invite flows, agent API keys, short-lived run JWTs — several humans supervising one autonomous org. Opposes the single-ND-operator north star.`,
-    done: "≥2 human users with scoped roles can supervise the same org with per-actor audit.",
-  },
-
   // ── Harness: reliability rails (atomic-checkout + budget-hardstop ALIGN with current pillars → next) ──
   {
     id: "PCLIP-ATOMIC-CHECKOUT", track: "Harness", title: "Atomic task checkout + execution locks (no double-work)",
