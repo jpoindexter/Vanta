@@ -159,4 +159,17 @@ describe("gatherLifeBlobs", () => {
       rmSync(fakeRepo, { recursive: true, force: true });
     }
   });
+
+  it("includes bounded raw delegation sidechains despite the repo .vanta ignore", async () => {
+    const fakeRepo = await mkdtemp(join(tmpdir(), "vanta-life-delegation-"));
+    try {
+      await mkdir(join(fakeRepo, ".vanta", "sidechains"), { recursive: true });
+      await writeFile(join(fakeRepo, ".vanta", "sidechains", "child.json"), JSON.stringify({ messages: [{ content: "Mercury rollback evidence" }] }), "utf8");
+      const blobs = await gatherLifeBlobs({ VANTA_HOME: tmpHome }, fakeRepo);
+      const hits = searchBlobs(blobs, "Mercury rollback evidence", 10);
+      expect(hits.some((hit) => hit.source === "delegation" && hit.path?.endsWith("child.json"))).toBe(true);
+    } finally {
+      rmSync(fakeRepo, { recursive: true, force: true });
+    }
+  });
 });

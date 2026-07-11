@@ -139,37 +139,32 @@ async function gatherTextFiles(
   opts: Required<Pick<GatherLifeOptions, "maxRepoFiles" | "maxFileBytes">>,
 ): Promise<LifeBlob[]> {
   const blobs: LifeBlob[] = [];
-  async function walk(dir: string): Promise<void> {
-    if (blobs.length >= opts.maxRepoFiles) return;
-    let entries;
-    try {
-      entries = await readdir(dir, { withFileTypes: true });
-    } catch {
-      return;
-    }
-    entries.sort((a, b) => a.name.localeCompare(b.name));
-    for (const entry of entries) {
-      if (blobs.length >= opts.maxRepoFiles) return;
-      const path = join(dir, entry.name);
-      if (entry.isDirectory()) {
-        if (!IGNORE_DIRS.has(entry.name)) await walk(path);
-        continue;
-      }
-      if (!entry.isFile() || !isTextPath(path)) continue;
-      if (IGNORE_FILES.has(entry.name)) continue;
-      let size = 0;
-      try {
-        size = (await stat(path)).size;
-      } catch {
-        continue;
-      }
-      if (size > opts.maxFileBytes) continue;
-      const text = await readBestEffort(path);
-      if (text !== null) blobs.push({ source: "repo", path: sourcePath(path, root), text });
-    }
-  }
-  await walk(root);
+  await walkTextFiles(root, root, opts, blobs);
   return blobs;
+}
+
+async function walkTextFiles(root: string, dir: string, opts: Required<Pick<GatherLifeOptions, "maxRepoFiles" | "maxFileBytes">>, blobs: LifeBlob[]): Promise<void> {
+  if (blobs.length >= opts.maxRepoFiles) return;
+  const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
+  entries.sort((a, b) => a.name.localeCompare(b.name));
+  for (const entry of entries) {
+    if (blobs.length >= opts.maxRepoFiles) return;
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (!IGNORE_DIRS.has(entry.name)) await walkTextFiles(root, path, opts, blobs);
+      continue;
+    }
+    const blob = await readTextBlob(root, path, { name: entry.name, isFile: entry.isFile(), maxBytes: opts.maxFileBytes });
+    if (blob) blobs.push(blob);
+  }
+}
+
+async function readTextBlob(root: string, path: string, opts: { name: string; isFile: boolean; maxBytes: number }): Promise<LifeBlob | null> {
+  if (!opts.isFile || !isTextPath(path) || IGNORE_FILES.has(opts.name)) return null;
+  const size = await stat(path).then((info) => info.size).catch(() => opts.maxBytes + 1);
+  if (size > opts.maxBytes) return null;
+  const text = await readBestEffort(path);
+  return text === null ? null : { source: "repo", path: sourcePath(path, root), text };
 }
 
 async function gatherBrainBlobs(env: NodeJS.ProcessEnv): Promise<LifeBlob[]> {
@@ -183,6 +178,12 @@ async function gatherBrainBlobs(env: NodeJS.ProcessEnv): Promise<LifeBlob[]> {
     source: "brain",
     path: join(root, blob.path ?? ""),
   }));
+}
+
+async function gatherDelegationBlobs(repoRoot: string): Promise<LifeBlob[]> {
+  const root = join(repoRoot, ".vanta", "sidechains");
+  const blobs = await gatherTextFiles(root, { maxRepoFiles: 300, maxFileBytes: DEFAULT_MAX_FILE_BYTES });
+  return blobs.map((blob) => ({ ...blob, source: "delegation", path: join(root, blob.path ?? "") }));
 }
 
 /** Read Vanta's local stores, brain files, and the current repo as named, source-cited blobs. */
@@ -210,6 +211,7 @@ export async function gatherLifeBlobs(
   if (errors !== null) blobs.push({ source: "errors", path: "ERRORS.md", text: errors });
 
   blobs.push(...(await gatherBrainBlobs(env)));
+  blobs.push(...(await gatherDelegationBlobs(repoRoot)));
   if (opts.includeRepo) {
     blobs.push(...(await gatherTextFiles(repoRoot, opts)));
   }

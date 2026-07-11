@@ -1,5 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { randomUUID } from "node:crypto";
 import { createConversation } from "../agent.js";
 import { buildSystemPrompt } from "../prompt.js";
@@ -32,19 +32,22 @@ const RECENT_CALLS_CAP = 8;
  * onToolCall) so the progress reporter can name the specific file/symbol in
  * flight. Returns wrapped deps + a reader for the latest calls.
  */
-function withProgressCapture(deps: AgentDeps): { deps: AgentDeps; getRecentCalls: () => RecentCall[] } {
+function withProgressCapture(deps: AgentDeps): { deps: AgentDeps; getRecentCalls: () => RecentCall[]; getToolNames: () => string[] } {
   const recent: RecentCall[] = [];
+  const tools = new Set<string>();
   const prior = deps.onToolCall;
   return {
     deps: {
       ...deps,
       onToolCall: (name, args) => {
+        tools.add(name);
         recent.push({ name, args });
         if (recent.length > RECENT_CALLS_CAP) recent.shift();
         prior?.(name, args);
       },
     },
     getRecentCalls: () => [...recent],
+    getToolNames: () => [...tools],
   };
 }
 
@@ -87,9 +90,10 @@ function blockedOutcome(finalText: string): AgentOutcome {
 }
 
 async function runWorker(opts: WorkerOpts): Promise<AgentOutcome> {
-  const { deps: runDeps, getRecentCalls } = withProgressCapture(opts.deps);
+  const { deps: runDeps, getRecentCalls, getToolNames } = withProgressCapture(opts.deps);
   const deps = runDeps;
   const now = (opts.now ?? new Date()).toISOString();
+  const started = Date.now();
   const dataDir = join(deps.root, ".vanta");
   await fireHooks(dataDir, "SubagentStart", { goal: opts.goal, instruction: opts.instruction }, { cwd: deps.root, matcherValue: "general-purpose", ...buildAgentHookDeps(deps) });
   const goals: Goal[] = [{ id: 0, text: opts.goal, status: "active" }];
@@ -114,9 +118,9 @@ async function runWorker(opts: WorkerOpts): Promise<AgentOutcome> {
   const stopProgress = startProgressReporter({ id: randomUUID(), goal: opts.goal, provider: deps.provider, getRecentCalls });
   try {
     const outcome = await convo.send(opts.instruction);
-    await persistSidechain({ root: deps.root, goal: opts.goal, instruction: opts.instruction, model: deps.provider.modelId(), createdAt: now, outcome, messages: convo.messages });
+    const rawSidechain = await persistSidechain({ root: deps.root, goal: opts.goal, instruction: opts.instruction, model: deps.provider.modelId(), createdAt: now, outcome, messages: convo.messages });
     await fireHooks(dataDir, "SubagentStop", { goal: opts.goal, result: outcome.finalText, stoppedReason: outcome.stoppedReason }, { cwd: deps.root, matcherValue: "general-purpose", ...buildAgentHookDeps(deps) });
-    return outcome;
+    return { ...outcome, workerEvidence: { rawSidechain, tools: getToolNames(), durationMs: Date.now() - started, model: deps.provider.modelId() } };
   } catch (err) {
     await persistSidechain({ root: deps.root, goal: opts.goal, instruction: opts.instruction, model: deps.provider.modelId(), createdAt: now, error: err instanceof Error ? err.message : String(err), messages: convo.messages });
     await fireHooks(dataDir, "SubagentStop", { goal: opts.goal, error: err instanceof Error ? err.message : String(err) }, { cwd: deps.root, matcherValue: "general-purpose", ...buildAgentHookDeps(deps) });
@@ -135,7 +139,7 @@ async function persistSidechain(o: {
   outcome?: AgentOutcome;
   error?: string;
   messages: Message[];
-}): Promise<void> {
+}): Promise<string> {
   const dir = join(o.root, ".vanta", "sidechains");
   await mkdir(dir, { recursive: true });
   const file = join(dir, `${o.createdAt.replace(/[:.]/g, "-")}-${randomUUID()}.json`);
@@ -149,4 +153,5 @@ async function persistSidechain(o: {
     messages: o.messages,
   };
   await writeFile(file, `${JSON.stringify({ version: 1, ...record }, null, 2)}\n`);
+  return relative(o.root, file);
 }

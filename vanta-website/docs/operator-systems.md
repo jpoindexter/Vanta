@@ -29,6 +29,24 @@ the card. Claim is refused while dependencies are open or required skills are mi
 Closure is refused without receipt evidence. Blocked cards print exact retry and fallback
 actions, and Operator Home summarizes active and blocked lanes.
 
+## Delegation receipts
+
+Subagents keep isolated raw transcripts under `.vanta/sidechains/`, while the parent receives
+only their compact final summary. Every delegated child also appends a node under
+`.vanta/delegations/` with parent task, child prompt, model, tools, verification, time,
+token/cost evidence, and the raw sidechain path.
+
+```bash
+vanta agents delegations
+vanta agents delegations <tree-id>
+vanta agents delegation replay <child-id>
+vanta agents delegation follow-up <child-id> "inspect the unresolved item"
+```
+
+Replay and follow-up create tracked assigned work; they do not silently execute. Operator
+Home reports tree, child-run, and failed/blocked counts. `vanta lifesearch <query>` includes
+bounded raw sidechains as the `delegation` source.
+
 ## World model
 `world` tool · `/world` — entities and relations across your systems. Recall is cited and flags contradictions (same subject + predicate, different object); `merge` / `duplicates` consolidate and re-point relations. Confidence is surfaced as `[likely · 62% · source:…]`.
 

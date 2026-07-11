@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { appendTask, latestTasks, readTasks, type WorkerTask } from "../team/tasks.js";
 import { runAgentsCommand } from "./agents-cmd.js";
+import { recordDelegationNode } from "../subagent/delegation-receipt.js";
 
 let root: string;
 let home: string;
@@ -104,6 +105,21 @@ describe("runAgentsCommand", () => {
     expect(await run(["daemon", "status"])).toBe(0);
     expect(logs.join("\n")).toContain("daemon platform darwin");
     expect(logs.join("\n")).toContain("running yes");
+  });
+
+  it("inspects delegation trees and queues replay controls", async () => {
+    await recordDelegationNode(root, {
+      id: "child-1", treeId: "tree-1", parentId: "parent", parentTask: "Audit release",
+      childPrompt: "Inspect tests", model: "gpt-5.5", tools: ["read_file"], summary: "Tests pass",
+      rawSidechain: ".vanta/sidechains/child.json", verification: "pass", stoppedReason: "done",
+      durationMs: 100, createdAt: "2026-07-11T12:00:00.000Z",
+    });
+    expect(await run(["delegations", "tree-1"])).toBe(0);
+    expect(logs.join("\n")).toContain("Tests pass");
+    logs = [];
+    expect(await run(["delegation", "replay", "child-1"])).toBe(0);
+    expect(logs.join("\n")).toContain("queued replay");
+    expect(latestTasks(await readTasks(env)).some((task) => task.title.includes("Inspect tests"))).toBe(true);
   });
 
   it("honors the disableAgentView setting", async () => {

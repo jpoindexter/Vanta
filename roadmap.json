@@ -17286,7 +17286,7 @@
       "id": "HERMES-DELEGATION-TREE-RECEIPTS",
       "track": "Harness",
       "title": "Delegation tree receipts — parent sees summaries, raw sidechains stay searchable",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Hermes delegation emphasizes isolated child contexts that return compact summaries while preserving raw work. Vanta ships delegate, swarm, async delegation, sidechain transcripts, and build loops; the remaining UX is a tree receipt that makes delegated work inspectable without flooding the parent context.",
       "done": "Every multi-agent run records a delegation tree with parent task, child prompt, tools used, summary returned, raw sidechain location, verification result, cost/time, and replay/follow-up controls; parent context receives summaries only; Operator Home and `vanta agents` can inspect the tree.",
@@ -17297,7 +17297,7 @@
       "lens": "agent-loop",
       "updated": "2026-07-11",
       "source": "hermes-transcript-roadmap-extract-2026-07-11",
-      "notes": "Source: Tonbis Hermes Masterclass 8 (Subagents/Delegation). This is a presentation/receipt layer over shipped delegation primitives, not a new execution engine."
+      "notes": "Source: Tonbis Hermes Masterclass 8 (Subagents/Delegation). This is a presentation/receipt layer over shipped delegation primitives, not a new execution engine.\n\nSHIPPED 2026-07-11: spawnSubagent now returns optional worker evidence containing the raw sidechain path, complete tool-name set, model, and elapsed time while preserving existing AgentOutcome compatibility. The delegate wrapper appends a durable parent/child node under `.vanta/delegations/` with parent task, child prompt, compact summary, verification/stopped reason, sidechain, usage, and estimated model cost. Parent output remains summary-only. `vanta agents delegations [tree]` renders the tree; replay/follow-up controls queue tracked assigned work and retain the raw evidence path. Operator Home reports tree/child/failure counts. Life-wide search explicitly indexes up to 300 bounded raw sidechains as the `delegation` source despite the normal `.vanta` repo ignore. Focused tests cover append/group/render, spawn sidechain behavior, delegate behavior, agent controls, Home, and sidechain search. Real CLI proof delegated one package-metadata read: the parent received only `name: vanta / version: 0.8.0`; inspection showed one passing child using read_file, the raw five-message sidechain, 4,881ms, 35,629 tokens, estimated $0.0451, and replay/follow-up controls. Replay queued a tracked task, Operator Home showed 1 tree/1 child/0 failures, the proof task was removed from the visible queue afterward, and `vanta lifesearch` returned delegation-source sidechain hits."
     },
     {
       "id": "HERMES-TOOL-SURFACE-PROFILES",

@@ -229,6 +229,20 @@ vanta profiles tools research-lead --allow read_file,grep_files,web_search,ref_s
 vanta tools why gmail_send
 ```
 
+Delegated workers return compact summaries to the parent while retaining an inspectable
+evidence tree and raw sidechain:
+
+```bash
+vanta agents delegations
+vanta agents delegations <tree-id>
+vanta agents delegation replay <child-id>
+vanta agents delegation follow-up <child-id> "check the remaining risk"
+```
+
+Each child node records its prompt, model, tools, summary, verification result, sidechain
+path, elapsed time, token usage, estimated cost, and tracked replay/follow-up controls.
+`vanta lifesearch` searches the bounded raw sidechain source.
+
 ## Community
 
 - 💬 **[Discussions](https://github.com/jpoindexter/Vanta/discussions)** — questions, ideas, show-and-tell.

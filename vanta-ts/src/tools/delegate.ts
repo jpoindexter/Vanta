@@ -7,6 +7,8 @@ import { enqueueAsyncResult } from "../subagent/async-delegate.js";
 import { resolveProvider } from "../providers/index.js";
 import { providerOverrideEnv } from "../providers/override-env.js";
 import { buildRegistry } from "./index.js";
+import { recordDelegationNode } from "../subagent/delegation-receipt.js";
+import { estimateCostUsd } from "../pricing.js";
 
 const Args = z.object({
   goal: z.string().min(1),
@@ -79,11 +81,28 @@ async function runDelegate(
       },
       maxIterations,
     });
+    await persistDelegateReceipt(data, ctx, outcome);
     const prefix = worktreeHandle ? `[worktree:${worktreeHandle.branch}] ` : "";
     return { ok: true, output: `${prefix}[worker:${outcome.stoppedReason}] ${outcome.finalText}` };
   } finally {
     if (worktreeHandle) await worktreeHandle.cleanup().catch(() => {});
   }
+}
+
+async function persistDelegateReceipt(data: DelegateArgs, ctx: ToolContext, outcome: import("../agent.js").AgentOutcome): Promise<void> {
+  const evidence = outcome.workerEvidence;
+  if (!evidence) return;
+  const id = randomUUID();
+  const treeId = ctx.sessionId ?? `delegate-${id}`;
+  const usage = outcome.usage;
+  await recordDelegationNode(ctx.root, {
+    id, treeId, parentId: ctx.sessionId ?? "interactive", parentTask: data.goal, childPrompt: data.instruction,
+    model: evidence.model, tools: evidence.tools, summary: outcome.finalText, rawSidechain: evidence.rawSidechain,
+    verification: outcome.stoppedReason === "done" ? "pass" : outcome.stoppedReason === "interrupted" ? "blocked" : "fail",
+    stoppedReason: outcome.stoppedReason, durationMs: evidence.durationMs, ...(usage ? { usage } : {}),
+    estimatedCostUsd: usage ? estimateCostUsd(evidence.model, usage.inputTokens, usage.outputTokens) : null,
+    createdAt: new Date().toISOString(),
+  });
 }
 
 /** VANTA-ASYNC-DELEGATE: kick off the worker detached — return an ack in ~ms; on

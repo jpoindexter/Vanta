@@ -159,6 +159,12 @@ role visibility, typical per-call kernel risk, setup, missing credentials, and r
 Profiles without an allowlist warn that they expose the full surface, and failed calls append
 the same repair path after retries.
 
+`HERMES-DELEGATION-TREE-RECEIPTS` is shipped. Workers still return only compact summaries
+to the parent and preserve full sidechains; delegation now records parent/child linkage,
+prompt, model, tools, summary, verification, raw path, elapsed time, usage, and estimated
+cost. `vanta agents delegations` and Operator Home inspect trees; replay/follow-up controls
+queue tracked work rather than executing silently.
+
 ## TUI — real terminal UI (shipped 2026-06-02)
 - **Streaming engine**: `LLMProvider.stream()` (OpenAI family **+ Anthropic**) yields `StreamChunk`s — token deltas, **`thinking` (live reasoning, universal)**, and tool calls; `agent.ts` emits them via `onTextDelta`/`onThinkingDelta` (falls back to `complete()` when unused). Pure `foldToolCallDeltas`/`reasoningDelta`/`streamAnthropicEvents` assemble the streamed shapes.
 - **Ink TUI** (`tui/app.tsx` + `tui/launch.tsx`): React/Ink 7 app — streaming transcript (live token-by-token), interleaved tool activity (`→`/`✓`/`✗`), spinner status line (model + state), input composer (`ink-text-input`), **inline approval prompts** for kernel `ask` risks, minimal slash (`/help /clear /model /exit`). `vanta` launches it on a TTY; `--no-tui` / `VANTA_NO_TUI` / resume / non-TTY fall back to the readline REPL (which keeps the full slash set).

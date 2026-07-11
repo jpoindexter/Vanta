@@ -13,6 +13,7 @@ import {
   uninstallService as defaultUninstallService,
   type ServiceStatus,
 } from "../service/manager.js";
+import { findDelegationNode, formatDelegationTree, listDelegationTrees } from "../subagent/delegation-receipt.js";
 
 export type AgentsCommandDeps = {
   env?: NodeJS.ProcessEnv;
@@ -85,8 +86,30 @@ async function stopDaemon(log: (line: string) => void, uninstallService: () => P
 }
 
 function usage(log: (line: string) => void): number {
-  log("Usage: vanta agents [list|logs|attach|stop|rm|respawn <id>|daemon status|daemon stop]");
+  log("Usage: vanta agents [list|logs|attach|stop|rm|respawn <id>|delegations [tree]|delegation replay|follow-up <id> [text]|daemon status|daemon stop]");
   return 1;
+}
+
+async function handleDelegations(root: string, treeId: string | undefined, log: (line: string) => void): Promise<number> {
+  const trees = await listDelegationTrees(root);
+  const selected = treeId ? trees.filter((tree) => tree.id === treeId) : trees;
+  if (!selected.length) { log(treeId ? `delegation tree not found: ${treeId}` : "Delegations — 0 trees"); return treeId ? 1 : 0; }
+  log(`Delegations — ${selected.length} tree(s)`);
+  for (const tree of selected) log(formatDelegationTree(tree));
+  return 0;
+}
+
+async function handleDelegationControl(root: string, args: string[], env: NodeJS.ProcessEnv, log: (line: string) => void): Promise<number> {
+  const [action, id, ...detail] = args;
+  if (!id || (action !== "replay" && action !== "follow-up")) return usage(log);
+  const node = await findDelegationNode(root, id);
+  if (!node) { log(`delegation not found: ${id}`); return 1; }
+  const instruction = action === "replay" ? node.childPrompt : `Follow up on ${node.childPrompt}: ${detail.join(" ") || "review the result"}`;
+  const assigned = assignTask(await readTasks(env), `delegation-${id}-${Date.now().toString(36)}`, "delegate", instruction);
+  if (!assigned.ok) { log(assigned.error); return 1; }
+  await appendTask(assigned.value, env);
+  log(`queued ${action} ${assigned.value.id} · raw ${node.rawSidechain}`);
+  return 0;
 }
 
 async function agentViewDisabled(projectRoot: string, env: NodeJS.ProcessEnv): Promise<boolean> {
@@ -189,5 +212,7 @@ export async function runAgentsCommand(
   if (cmd === "daemon") {
     return handleDaemonCommand(id, log, serviceStatus, uninstallService);
   }
+  if (cmd === "delegations") return handleDelegations(projectRoot, id, log);
+  if (cmd === "delegation") return handleDelegationControl(projectRoot, rest.slice(1), env, log);
   return handleTaskCommand(cmd, id, env, log);
 }

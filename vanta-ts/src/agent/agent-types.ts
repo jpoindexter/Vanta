@@ -105,6 +105,8 @@ export type AgentOutcome = {
   tokensSaved?: number;
   /** Validated StructuredOutput arguments when outputSchema is active. */
   structuredResult?: unknown;
+  /** Subagent-only receipt metadata; absent for normal parent turns. */
+  workerEvidence?: { rawSidechain: string; tools: string[]; durationMs: number; model: string };
 };
 
 /** A stateful multi-turn conversation that retains history across `send` calls. */

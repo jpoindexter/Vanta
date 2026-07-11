@@ -10,6 +10,7 @@ import { listProfiles, type ProfileRecord } from "../profiles/store.js";
 import { listKanbanBoards } from "../kanban/store.js";
 import type { KanbanBoard } from "../kanban/schema.js";
 import { dirname } from "node:path";
+import { listDelegationTrees } from "../subagent/delegation-receipt.js";
 
 export type HomeSection = {
   name: string;
@@ -40,7 +41,7 @@ export async function buildOperatorHome(opts: {
   env: NodeJS.ProcessEnv;
   toolNames: string[];
 }): Promise<string> {
-  const [stack, bgTasks, cron, skills, memory, reach, caps, profiles, boards] = await Promise.all([
+  const [stack, bgTasks, cron, skills, memory, reach, caps, profiles, boards, delegations] = await Promise.all([
     readStack(opts.dataDir),
     listBgTasks(opts.dataDir),
     loadCron(opts.dataDir),
@@ -50,18 +51,26 @@ export async function buildOperatorHome(opts: {
     gatherCapabilities(opts.env),
     listProfiles(opts.env),
     listKanbanBoards(dirname(opts.dataDir)),
+    listDelegationTrees(dirname(opts.dataDir)),
   ]);
   return formatOperatorHome({ sections: [
     workflowSection(opts.toolNames),
     channelsSection(reach),
     skillsSection(skills.length),
     agentsSection(stack.tasks.length, bgTasks.filter((t) => t.status === "running").length),
+    delegationSection(delegations),
     profilesSection(profiles),
     kanbanSection(boards),
     memorySection(memory.goals, memory.totalBytes),
     watchersSection(cron.filter((c) => c.status === "active").length),
     setupSection(caps.filter((c) => !c.ok).length),
   ] });
+}
+
+function delegationSection(trees: Awaited<ReturnType<typeof listDelegationTrees>>): HomeSection {
+  const nodes = trees.flatMap((tree) => tree.nodes);
+  const failed = nodes.filter((node) => node.verification !== "pass").length;
+  return section("Delegations", failed ? "watch" : trees.length ? "ok" : "setup", `${trees.length} tree(s), ${nodes.length} child run(s), ${failed} failed/blocked`, trees.length ? "`vanta agents delegations`" : "delegate a scoped subtask");
 }
 
 function kanbanSection(boards: KanbanBoard[]): HomeSection {
