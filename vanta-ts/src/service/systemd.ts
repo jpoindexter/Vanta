@@ -26,6 +26,7 @@ export function buildSystemdUnit(opts: SystemdUnitOptions): string {
     `ExecStart=${[opts.command, ...opts.args].map(quote).join(" ")}`,
     "Restart=on-failure",
     "RestartSec=5",
+    "TimeoutStopSec=2",
     `StandardOutput=append:${opts.logPath}`,
     `StandardError=append:${opts.logPath}`,
     "",

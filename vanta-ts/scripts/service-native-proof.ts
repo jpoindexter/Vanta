@@ -17,7 +17,7 @@ if (process.platform === "win32") {
   ].join("\r\n"));
 } else {
   const script = join(fixture, "run.sh");
-  await writeFile(script, '#!/bin/sh\necho SERVICE_PROOF_STARTED\nexec /usr/bin/env -u RUNNER_TRACKING_ID /bin/sleep 600\n');
+  await writeFile(script, '#!/bin/sh\necho SERVICE_PROOF_STARTED\ntrap "" HUP INT TERM\nexec /usr/bin/env -u RUNNER_TRACKING_ID /bin/sleep 600\n');
   await chmod(script, 0o700);
 }
 

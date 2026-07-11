@@ -1,11 +1,7 @@
 import { SERVICE_MARKER } from "./systemd.js";
 
-export type TaskXmlOptions = {
-  command: string;
-  args: string[];
-  workingDir: string;
-  logPath: string;
-};
+export type TaskXmlOptions = { runnerPath: string; workingDir: string };
+export type TaskRunnerOptions = { command: string; args: string[]; logPath: string };
 
 function xml(value: string): string {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -15,9 +11,17 @@ function psQuote(value: string): string {
   return `'${value.replaceAll("'", "''")}'`;
 }
 
+export function buildTaskRunner(opts: TaskRunnerOptions): string {
+  return [
+    `# ${SERVICE_MARKER}`,
+    `$env:VANTA_SERVICE_LOG = ${psQuote(opts.logPath)}`,
+    `& ${psQuote(opts.command)} ${opts.args.map(psQuote).join(" ")} *>> ${psQuote(opts.logPath)}`,
+    "exit $LASTEXITCODE",
+    "",
+  ].join("\r\n");
+}
+
 export function buildTaskXml(opts: TaskXmlOptions): string {
-  const invocation = `$env:VANTA_SERVICE_LOG=${psQuote(opts.logPath)}; & ${psQuote(opts.command)} ${opts.args.map(psQuote).join(" ")} *>> ${psQuote(opts.logPath)}`;
-  const encoded = Buffer.from(invocation, "utf16le").toString("base64");
   return [
     '<?xml version="1.0" encoding="UTF-16"?>',
     '<Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">',
@@ -33,7 +37,7 @@ export function buildTaskXml(opts: TaskXmlOptions): string {
     "  </Settings>",
     "  <Actions Context=\"Author\"><Exec>",
     "    <Command>powershell.exe</Command>",
-    `    <Arguments>-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand ${encoded}</Arguments>`,
+    `    <Arguments>-NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;${xml(opts.runnerPath)}&quot;</Arguments>`,
     `    <WorkingDirectory>${xml(opts.workingDir)}</WorkingDirectory>`,
     "  </Exec></Actions>",
     "</Task>",

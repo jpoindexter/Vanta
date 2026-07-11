@@ -7,7 +7,7 @@ import { promisify } from "node:util";
 import { resolveVantaHome } from "../store/home.js";
 import { buildLaunchdPlist } from "./launchd.js";
 import { buildSystemdUnit, SERVICE_MARKER } from "./systemd.js";
-import { buildTaskXml } from "./windows.js";
+import { buildTaskRunner, buildTaskXml } from "./windows.js";
 
 export const SERVICE_LABEL = "studio.theft.vanta.gateway";
 const SYSTEMD_NAME = "vanta-gateway.service";
@@ -15,7 +15,7 @@ const WINDOWS_NAME = "VantaGateway";
 type Platform = NodeJS.Platform;
 type ExecResult = { stdout: string; stderr: string };
 type Exec = (file: string, args: string[]) => Promise<ExecResult>;
-type Context = { platform: Platform; run: Exec; logPath: string; artifactPath: string };
+type Context = { platform: Platform; run: Exec; logPath: string; artifactPath: string; taskRunnerPath: string };
 type ManagerOptions = { platform?: Platform; home?: string; vantaHome?: string; exec?: Exec };
 const ignored: ExecResult = { stdout: "", stderr: "" };
 
@@ -83,7 +83,9 @@ async function installSystemd(ctx: Context, repoRoot: string): Promise<void> {
 
 async function installTask(ctx: Context, repoRoot: string): Promise<void> {
   const command = win32.join(repoRoot, "run.ps1");
-  const xml = buildTaskXml({ command, args: ["gateway"], workingDir: repoRoot, logPath: ctx.logPath });
+  const runner = buildTaskRunner({ command, args: ["gateway"], logPath: ctx.logPath });
+  const xml = buildTaskXml({ runnerPath: ctx.taskRunnerPath, workingDir: repoRoot });
+  await writeFile(ctx.taskRunnerPath, runner, "utf8");
   await writeFile(ctx.artifactPath, `\uFEFF${xml}`, "utf16le");
   await ctx.run("schtasks", ["/Create", "/TN", WINDOWS_NAME, "/XML", ctx.artifactPath, "/F"]);
   await ctx.run("schtasks", ["/Run", "/TN", WINDOWS_NAME]);
@@ -99,14 +101,23 @@ async function install(ctx: Context, repoRoot: string): Promise<string> {
   return ctx.artifactPath;
 }
 
+async function assertOwnedArtifacts(ctx: Context): Promise<void> {
+  if (!(await owned(ctx.artifactPath))) throw new Error(`Refusing to remove ${ctx.artifactPath}: artifact is not Vanta-owned.`);
+  const runnerNeedsCheck = ctx.platform === "win32" && existsSync(ctx.taskRunnerPath);
+  if (runnerNeedsCheck && !(await owned(ctx.taskRunnerPath))) {
+    throw new Error(`Refusing to remove ${ctx.taskRunnerPath}: artifact is not Vanta-owned.`);
+  }
+}
+
 async function uninstall(ctx: Context): Promise<void> {
   requireSupported(ctx.platform);
   if (!existsSync(ctx.artifactPath)) return;
-  if (!(await owned(ctx.artifactPath))) throw new Error(`Refusing to remove ${ctx.artifactPath}: artifact is not Vanta-owned.`);
+  await assertOwnedArtifacts(ctx);
   if (ctx.platform === "darwin") await ctx.run("launchctl", ["unload", ctx.artifactPath]).catch(() => ignored);
   if (ctx.platform === "linux") await ctx.run("systemctl", ["--user", "disable", "--now", SYSTEMD_NAME]).catch(() => ignored);
   if (ctx.platform === "win32") await ctx.run("schtasks", ["/Delete", "/TN", WINDOWS_NAME, "/F"]).catch(() => ignored);
   await rm(ctx.artifactPath, { force: true });
+  if (ctx.platform === "win32") await rm(ctx.taskRunnerPath, { force: true });
   if (ctx.platform === "linux") await ctx.run("systemctl", ["--user", "daemon-reload"]);
 }
 
@@ -150,7 +161,7 @@ export function createServiceManager(options: ManagerOptions = {}): ServiceManag
   const platform = options.platform ?? process.platform;
   const home = options.home ?? homedir();
   const vantaHome = options.vantaHome ?? resolveVantaHome();
-  const ctx = { platform, run: options.exec ?? defaultExec, logPath: join(vantaHome, "gateway.log"), artifactPath: artifactFor(platform, home, vantaHome) };
+  const ctx = { platform, run: options.exec ?? defaultExec, logPath: join(vantaHome, "gateway.log"), artifactPath: artifactFor(platform, home, vantaHome), taskRunnerPath: join(vantaHome, "service", "vanta-gateway-runner.ps1") };
   return {
     install: (repoRoot) => install(ctx, repoRoot),
     uninstall: () => uninstall(ctx), restart: () => restart(ctx), stop: () => stop(ctx),
