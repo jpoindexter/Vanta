@@ -36,6 +36,7 @@ const sidebars: SidebarsConfig = {
         'executive-function',
         'desktop-and-tui',
         'payment-transactions',
+        'shopify-operations',
       ],
     },
     {

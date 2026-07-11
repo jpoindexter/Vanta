@@ -47,4 +47,4 @@ Directional, not committed — grouped by area, newest thinking first.
 
 ### Reach — 1 planned
 
-- Commerce and telephony skill pack - Shopify, shopping, returns, SMS, and calls
+- Telephony consent lifecycle - provision numbers, SMS, calls, callbacks, and retention

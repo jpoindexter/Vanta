@@ -17884,10 +17884,52 @@
       "notes": "BLOCKED 2026-07-11 on external acceptance only. Implemented strict environment:test transaction contracts, exact minor-unit totals, per-purchase/day/month caps, expiry, replay refusal, concurrent ledger reservations, mode-0600 redacted receipts, provider-output allowlisting, scrubbed child environments, Stripe Link external-approval enforcement, bounded HTTP 402 parsing/validation, payment_transaction tool, and vanta payments preview|execute|receipts. Fresh approvals cannot be auto-approved or persisted; CLI approval must equal the transaction ID. Production link-cli is unreachable unless an explicit VANTA_PAYMENT_TEST_LINK_CLI wrapper is configured. Executed the real Vanta CLI process against a local executable adapter: exact-ID approval -> reserved -> spend_approved -> authorized receipt; provider ID redacted; replay exited 1. Full suite: 12,912 passed, 3 skipped, 0 failed; TypeScript, 16-file size gate, npm audit (0 vulnerabilities), 30-scenario use-case validation, and Docusaurus production build pass. This proves Vanta orchestration and test-adapter isolation, NOT live payment. Remaining done-criterion blockers: live Stripe Link sandbox/test receipt, live paid MPP endpoint receipt, and a Stripe Projects adapter that moves generated credentials directly into vault references without plaintext .env writes. Real money stays disabled."
     },
     {
+      "id": "HERMES-SHOPIFY-OPERATIONS",
+      "track": "Operator",
+      "title": "Shopify operations - scoped catalog, orders, inventory, and verified mutations",
+      "status": "blocked",
+      "size": "L",
+      "summary": "Extract the independently buildable Shopify surface from the combined commerce/telephony card. Reads and mutation previews do not require Vanta's payment release gate; checkout still does.",
+      "done": "A strict store profile names the myshopify domain, API version, vault credential alias, and explicit read/write scopes; products, orders, and inventory reads are bounded and redact customer data by default; typed product and inventory mutations preview the exact GraphQL operation and variables, require fresh approval, include required idempotency keys, reject undeclared scopes, execute once, inspect userErrors, and read the resulting object back; receipts retain operation, object IDs, hashes, scopes, idempotency key, and verification without tokens or customer secrets; a local HTTP fixture and a real Shopify development-store path both pass before shipping.",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.5",
+      "lens": "reach",
+      "updated": "2026-07-11",
+      "source": "Hermes Shopify skill plus Shopify Admin GraphQL documentation 2026-07-11",
+      "after": [
+        "HERMES-PORTABLE-SKILL-PACKAGES",
+        "HERMES-VAULT-SECRETS-ROTATION"
+      ],
+      "notes": "BLOCKED 2026-07-11 on one external acceptance path. Implemented strict myshopify/version/vault/scope profiles; fixed bounded products/orders/inventory documents; order reads omit customer name/email/phone/address/payment fields; vault token resolution uses exact shopify:<store>:read|write scopes; transport fixes HTTPS production endpoints, caps responses at 1 MiB, and never returns raw headers/provider errors. Typed product_update and inventory_set plans enforce expiry, scopes, exact preview, fresh non-cacheable approval, UUID idempotency, replay lock, Shopify userErrors stop, separate readback verification, and mode-0600 hash/object-ID receipts without credentials or customer data. Inventory uses Shopify's @idempotent directive. Added shopify_operations plus vanta shopify read|preview|apply|receipts. Executed a real local HTTP server fixture proving token-only request headers, bounded order read, typed mutation, userErrors stop, and a second verification request. Full suite: 12,929 passed, 3 skipped, 0 failed; TypeScript, 8-file size gate, npm audit (0 vulnerabilities), 30-scenario use-case validation, and Docusaurus build pass. Missing external proof: no SHOPIFY_DEV_TOKEN vault alias is configured, so a real development-store read plus approved verified mutation could not be executed. Checkout/returns that move money remain outside this child and depend on the payment card."
+    },
+    {
+      "id": "HERMES-TELEPHONY-CONSENT-LIFECYCLE",
+      "track": "Reach",
+      "title": "Telephony consent lifecycle - provision numbers, SMS, calls, callbacks, and retention",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Turn the existing Twilio SMS transport into an operator workflow and add consented call/number lifecycle receipts, with later Vapi/Bland adapters behind the same contract.",
+      "done": "A provider-neutral telephony contract supports number search/provisioning, SMS/MMS, and outbound calls; every recipient, purpose, consent source, allowed time window, maximum duration, recording choice, and retention policy is explicit; number purchases and sends/calls require fresh approval and idempotency; Twilio status and recording callbacks are authenticated, sequence-tolerant, and correlated into delivery/call receipts; recording is off by default and retained artifacts/transcripts follow deletion policy; existing SMS behavior is reused without exposing credentials; local callback fixtures plus live Twilio test-number/SMS/call paths pass, and Vapi/Bland remain optional adapters rather than core assumptions.",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.5",
+      "lens": "reach",
+      "updated": "2026-07-11",
+      "source": "Hermes telephony skill plus Twilio Voice/Numbers documentation 2026-07-11",
+      "after": [
+        "HERMES-PORTABLE-SKILL-PACKAGES",
+        "HERMES-VAULT-SECRETS-ROTATION"
+      ],
+      "notes": "Build after the Shopify child. Live phone setup remains an external acceptance step."
+    },
+    {
       "id": "HERMES-COMMERCE-TELEPHONY-SKILL-PACK",
       "track": "Reach",
       "title": "Commerce and telephony skill pack - Shopify, shopping, returns, SMS, and calls",
-      "status": "horizon",
+      "status": "blocked",
       "size": "L",
       "summary": "Hermes packages shopping, Shopify administration, and Twilio/Vapi/Bland telephony as user-visible workflows. Vanta has an SMS adapter but not storefront operations, checkout/returns, number provisioning, or AI-call lifecycle receipts.",
       "done": "Shopify read operations and write previews use scoped GraphQL permissions; product/order/inventory mutations require approval and verify the resulting object; shopping separates search from checkout and routes purchases through the payment contract; telephony can provision/configure a number, send SMS, and place a consented test call with explicit recipient/purpose/time-window controls; recordings/transcripts follow retention settings; all external actions have delivery/result receipts and idempotency guards.",
@@ -17900,9 +17942,11 @@
       "source": "Hermes optional productivity catalog 2026-07-11",
       "after": [
         "HERMES-PORTABLE-SKILL-PACKAGES",
-        "HERMES-PAYMENT-SKILL-PACK"
+        "HERMES-PAYMENT-SKILL-PACK",
+        "HERMES-SHOPIFY-OPERATIONS",
+        "HERMES-TELEPHONY-CONSENT-LIFECYCLE"
       ],
-      "notes": "Reuse the shipped Twilio SMS transport where applicable, but do not treat channel delivery as telephony workflow proof."
+      "notes": "Release gate split 2026-07-11. Build Shopify and telephony independently; keep this card blocked until those children and the payment acceptance card ship. Reuse the existing Twilio SMS transport, but do not treat channel delivery as telephony workflow proof."
     },
     {
       "id": "HERMES-MULTITURN-STORY-RUNNER",

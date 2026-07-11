@@ -6,7 +6,7 @@ sidebar_position: 3
 
 # Tool reference
 
-Every built-in tool, generated directly from the source registry — **138 tools**. Each call is gated by the kernel before it runs (tools marked _safety-checked_ send a safety descriptor to the kernel). The model sees a per-turn scoped subset; `tool_search` pulls in the rest on demand.
+Every built-in tool, generated directly from the source registry — **139 tools**. Each call is gated by the kernel before it runs (tools marked _safety-checked_ send a safety descriptor to the kernel). The model sees a per-turn scoped subset; `tool_search` pulls in the rest on demand.
 
 ## Files & code
 
@@ -1545,6 +1545,19 @@ Proactively send a message to a configured chat platform (e.g. telegram) — wor
 | `platform` | string | yes | Configured platform id, e.g. telegram |
 | `chatId` | string | yes | Platform-specific conversation id to send to |
 | `text` | string | yes | The message text to send |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `shopify_operations`
+
+Read bounded products/orders/inventory or preview and fresh-approval-gate typed product/inventory mutations. Store tokens resolve from scoped vault aliases and never enter arguments or receipts.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes |  |
+| `profile` | object | no |  |
+| `request` | object | no |  |
+| `plan` | object | no |  |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 

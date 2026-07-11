@@ -3849,6 +3849,36 @@
       "hasSafety": true
     },
     {
+      "name": "shopify_operations",
+      "description": "Read bounded products/orders/inventory or preview and fresh-approval-gate typed product/inventory mutations. Store tokens resolve from scoped vault aliases and never enter arguments or receipts.",
+      "parameters": {
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "read",
+              "preview",
+              "mutate"
+            ]
+          },
+          "profile": {
+            "type": "object"
+          },
+          "request": {
+            "type": "object"
+          },
+          "plan": {
+            "type": "object"
+          }
+        }
+      },
+      "hasSafety": true
+    },
+    {
       "name": "spreadsheet_workbook",
       "description": "Inspect, preview, or approval-gated apply cell, formula, and sheet changes to a scoped local .xlsx workbook. Apply reopens the result and writes a SHA-256 receipt.",
       "parameters": {

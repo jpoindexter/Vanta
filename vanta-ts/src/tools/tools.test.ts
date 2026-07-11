@@ -149,6 +149,7 @@ describe("registry", () => {
       "send_chat",
       "send_message",
       "shell_cmd",
+      "shopify_operations",
       "skill_manage",
       "sleep",
       "speak",
