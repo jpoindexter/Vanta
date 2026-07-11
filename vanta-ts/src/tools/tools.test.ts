@@ -117,6 +117,7 @@ describe("registry", () => {
       "nl_assertions",
       "open_deep_link",
       "outreach",
+      "payment_transaction",
       "pdf_read",
       "peer_send",
       "playbook",

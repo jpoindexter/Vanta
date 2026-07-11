@@ -24,7 +24,7 @@ async function refreshTodos(dispatch: Dispatch<Action>): Promise<void> {
 
 /** A pending kernel approval the live region renders; resolved by an a/A/d keypress.
  * `toolName` lets "always allow" persist a tool-scoped rule (see ui/grant.ts). */
-export type Pending = { action: string; reason: string; toolName?: string; resolve: (ok: boolean) => void };
+export type Pending = { action: string; reason: string; toolName?: string; fresh?: boolean; resolve: (ok: boolean) => void };
 
 type TurnScope = {
   /** Foreground turns started while another response is detached still render live. */
@@ -97,8 +97,8 @@ function convoConfig(deps: AgentDeps, scope?: TurnScope): Parameters<typeof crea
       liveDispatch(deps, { t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output, name), diff, tokens }, scope);
       if (name === "todo") void refreshTodos(deps.dispatch); // reflect plan edits live
     },
-    requestApproval: (action, reason, toolName) =>
-      new Promise<boolean>((resolve) => deps.setPending({ action, reason, toolName, resolve })),
+    requestApproval: (action, reason, toolName, detail) =>
+      new Promise<boolean>((resolve) => deps.setPending({ action, reason, toolName, fresh: detail?.fresh, resolve })),
   };
 }
 

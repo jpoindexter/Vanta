@@ -17866,7 +17866,7 @@
       "id": "HERMES-PAYMENT-SKILL-PACK",
       "track": "Operator",
       "title": "Payment skill pack - Stripe Link, MPP, and SaaS provisioning under transaction gates",
-      "status": "building",
+      "status": "blocked",
       "size": "L",
       "summary": "Hermes offers Stripe Link checkout, Machine Payments Protocol, and Stripe Projects provisioning. Vanta's browser and MCP layers can reach payment surfaces, but model-token budgets do not authorize purchases and generic approvals do not protect card material or merchant totals.",
       "done": "Payment actions use a dedicated transaction contract with merchant, item, currency, exact total, per-purchase and period caps, credential type, and expiry; every spend requires a fresh operator approval plus the provider's external approval when available; payment credentials never enter model context, logs, receipts, or durable environment files; HTTP 402 challenges are validated; denials/timeouts stop cleanly; SaaS provisioning stores only vault references; receipts prove authorization, redacted provider result, amount, and cleanup; live sandbox/test-mode Stripe and MPP paths pass before any real-money enablement.",
@@ -17881,7 +17881,7 @@
         "HERMES-PORTABLE-SKILL-PACKAGES",
         "HERMES-VAULT-SECRETS-ROTATION"
       ],
-      "notes": "High-side-effect pack. Keep real-money execution disabled until test-mode receipts and an explicit release decision exist."
+      "notes": "BLOCKED 2026-07-11 on external acceptance only. Implemented strict environment:test transaction contracts, exact minor-unit totals, per-purchase/day/month caps, expiry, replay refusal, concurrent ledger reservations, mode-0600 redacted receipts, provider-output allowlisting, scrubbed child environments, Stripe Link external-approval enforcement, bounded HTTP 402 parsing/validation, payment_transaction tool, and vanta payments preview|execute|receipts. Fresh approvals cannot be auto-approved or persisted; CLI approval must equal the transaction ID. Production link-cli is unreachable unless an explicit VANTA_PAYMENT_TEST_LINK_CLI wrapper is configured. Executed the real Vanta CLI process against a local executable adapter: exact-ID approval -> reserved -> spend_approved -> authorized receipt; provider ID redacted; replay exited 1. Full suite: 12,912 passed, 3 skipped, 0 failed; TypeScript, 16-file size gate, npm audit (0 vulnerabilities), 30-scenario use-case validation, and Docusaurus production build pass. This proves Vanta orchestration and test-adapter isolation, NOT live payment. Remaining done-criterion blockers: live Stripe Link sandbox/test receipt, live paid MPP endpoint receipt, and a Stripe Projects adapter that moves generated credentials directly into vault references without plaintext .env writes. Real money stays disabled."
     },
     {
       "id": "HERMES-COMMERCE-TELEPHONY-SKILL-PACK",

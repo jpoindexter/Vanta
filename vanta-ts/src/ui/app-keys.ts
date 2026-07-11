@@ -141,7 +141,7 @@ export function useFocusFallback(focus: FocusTarget, targets: FocusTargetSpec[],
 }
 
 export function buildFocusTargets(pending: Pending | null, overlay: OverlayView | null, promptSuggestions = false): FocusTargetSpec[] {
-  if (pending) return ["approval-allow", "approval-always", "approval-deny", "approval-never"].map((id) => ({ id: id as FocusTarget }));
+  if (pending) return ["approval-allow", ...(pending.fresh ? [] : ["approval-always"]), "approval-deny", "approval-never"].map((id) => ({ id: id as FocusTarget }));
   if (overlay) return [{ id: overlay.kind === "list" ? "overlay-list" : "overlay-close" }];
   return promptSuggestions ? [{ id: "composer" }, { id: "prompt-suggestions" }] : [{ id: "composer" }];
 }

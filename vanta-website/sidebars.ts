@@ -35,6 +35,7 @@ const sidebars: SidebarsConfig = {
         'comms-and-gateway',
         'executive-function',
         'desktop-and-tui',
+        'payment-transactions',
       ],
     },
     {

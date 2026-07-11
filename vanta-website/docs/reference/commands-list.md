@@ -6,7 +6,7 @@ sidebar_position: 4
 
 # Command reference
 
-Every slash command, generated from the command catalog — **125 commands**. Type any of these in an interactive session; `/help` prints the live list.
+Every slash command, generated from the command catalog — **145 commands**. Type any of these in an interactive session; `/help` prints the live list.
 
 ## Session & history
 
@@ -16,7 +16,7 @@ Every slash command, generated from the command catalog — **125 commands**. Ty
 | `/clear` | start a fresh conversation (keeps the session log) |
 | `/reset` | start a fresh conversation (alias of /clear) |
 | `/history` | show this conversation's transcript |
-| `/export` | export this conversation to a markdown file |
+| `/export` | export this conversation — format, tool/thinking toggles, file or clipboard |
 | `/retry` | re-run your last message |
 | `/undo` | drop the last turn from the conversation |
 | `/rewind` | list or restore recent per-edit file checkpoints |
@@ -57,8 +57,8 @@ Every slash command, generated from the command catalog — **125 commands**. Ty
 | Command | Description |
 |---|---|
 | `/tools` | list available tools |
-| `/skills` | list learned + installed skills |
-| `/memory` | tell Vanta something to remember (→ its brain) |
+| `/skills` | list skills, audit injection flags, or review staged agent skill changes |
+| `/memory` | browse memory files, or save a fact to Vanta's brain |
 | `/moim` | pin a top-of-mind note injected into every prompt until cleared |
 | `/context` | visual context-budget breakdown |
 | `/compress` | compact the conversation context now |
@@ -66,7 +66,7 @@ Every slash command, generated from the command catalog — **125 commands**. Ty
 | `/hooks` | list, add, or remove shell hooks in .vanta/hooks.json |
 | `/mcp` | MCP panel — servers + connection status, per-server tools, tool detail, reconnect (TUI) |
 | `/permissions` | tighten-only tool permission rules (~/.vanta/permissions.tsv) |
-| `/preferences` | export operator preference signals (~/.vanta/preferences.jsonl) |
+| `/preferences` | inspect and correct Vanta's operator beliefs |
 
 ## Deep work
 
@@ -156,14 +156,24 @@ Every slash command, generated from the command catalog — **125 commands**. Ty
 
 | Command | Description |
 |---|---|
-| `/agents` | background task panel — agent/shell/remote tasks, status, stop/respawn (TUI) |
+| `/activity` | who/what/why timeline over the event log — /activity [--who tool] [--kind gate\|tool\|note] [--risk ask\|blocked] [--since 2h] [--limit N] [text] |
+| `/agents` | custom agent editor — model, tools, color, markdown file (TUI) |
+| `/autonomy` | show the acts-alone / queues / wakes-me contract |
+| `/bg` | detach/check the active response in the background (TUI) |
 | `/bgtasks` | background shell tasks — list status, stop one by id |
+| `/blueprint` | preview a form-driven schedule or webhook automation |
 | `/btw` | ask a quick side question — not added to conversation history |
 | `/cd` | change the session working directory for shell_cmd (no arg prints it) |
+| `/checkpoint` | snapshot the full conversation state under a name |
 | `/describe` | generate a short LLM description of a file or directory |
+| `/diagnose-crash` | diagnose a pasted macOS/iOS/build crash log with cited evidence |
 | `/env` | session-scoped env vars injected into shell_cmd/run_code child processes |
 | `/explain` | capability-preservation surface — what changed + why, with a comprehension probe on risky/large changes |
+| `/feedback` | draft a redacted GitHub issue from feedback/feature requests; `send` files it |
+| `/home` | operator home — workflows, channels, skills, tasks, memory, watchers, setup |
 | `/init-verifiers` | detect the project's build/test/lint/typecheck gates → verifier skills it can run to check its work |
+| `/learn` | build a skill from a doc/URL — distills, gates, and saves an editable SKILL.md |
+| `/learning` | self-learning loop status — skills minted/refined/adopted + adoption rate |
 | `/learnings` | per-project learnings index — relevant insights, stale/conflicting flagged |
 | `/less-permission-prompts` | scan the session for repeatedly-approved read-only tools and propose allow rules to cut future prompts (propose-only) |
 | `/loop` | schedule a recurring task from a natural-language interval (e.g. every 2 hours &lt;task&gt;, daily, every monday) |
@@ -171,20 +181,30 @@ Every slash command, generated from the command catalog — **125 commands**. Ty
 | `/outreach` | authorized brand workspace — pending drafts + the proof ledger (draft-only, approval-gated) |
 | `/peers` | live Vanta peer sessions on this machine (UDS) — id, title, pid for cross-session collab |
 | `/planv2` | plan mode v2 — fan a task out across N concurrent plan-execution agents (VANTA_PLAN_V2_AGENT_COUNT, 1-10) |
+| `/plugin-panels` | open data-only panels contributed by isolated plugin workers (TUI) |
 | `/proactive` | proactive-autonomy mode (KAIROS) — whether idle ticking is enabled, the throttle, and would-it-tick-now (read-only) |
 | `/record` | record terminal output to an asciicast v2 .cast file under ~/.vanta/recordings |
 | `/recover` | classify trouble — targeted bug, polluted context, or wrong assumption |
 | `/reload-plugins` | re-scan enabled plugins and load any added this session — reports newly available vs already loaded |
 | `/reload-skills` | re-scan skill directories and pick up any added this session — reports added vs already-indexed vs removed |
+| `/restore` | restore a checkpoint in place, or branch it into a new session |
 | `/run` | launch and drive this project's app |
 | `/sandbox` | sandbox settings — config, dependencies, doctor, per-tool overrides (TUI) |
+| `/screenshot` | copy the current Vanta transcript to clipboard as a PNG image |
+| `/searchall` | search across all saved sessions (TUI) |
 | `/security-review` | security audit of the current branch's diff vs base (injection/secret/authz/traversal/exec/SSRF) |
 | `/skillify` | distill this session into a draft SKILL.md (write_skill saves it — not auto-written) |
+| `/spec-to-app` | build a verified React/Tailwind preview from a product spec |
 | `/stats` | aggregate usage — sessions, turns, tool calls, tokens/cost (TUI) |
 | `/status` | kernel, provider, keys, store health |
 | `/stop` | graceful soft-stop — finish the current tool call, then end the turn with a summary |
+| `/suggest` | recap + ranked next-step (top 3); '/suggest all' for the full backlog |
+| `/teams` | interactive team roster — create workers, manage status, inspect assigned tasks |
 | `/terminal-setup` | print the steps to bind Shift+Enter → newline for your detected terminal (iTerm2/Apple Terminal/VS Code/WezTerm) |
 | `/tickets` | issue board — first-class tickets grouped by status, with goal/parent links + inbox state |
+| `/time` | session elapsed + time since last action (ND-TIME-RANGES) |
 | `/vim` | toggle vi-mode in the composer (normal/insert: hjkl, w/b, dd, yy, p, i/a/o) |
 | `/wftasks` | workflow run task list — compose_workflow runs + their running/done/failed status |
+| `/what-can-i-do` | show concrete runnable workflows for this Vanta install |
+| `/workflow-select` | choose, skip, reorder, and run steps from .vanta/workflow-draft.json |
 

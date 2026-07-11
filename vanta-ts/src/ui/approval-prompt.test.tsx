@@ -50,6 +50,16 @@ describe("ApprovalPrompt — Claude-method numbered menu", () => {
     expect(pending.resolve).toHaveBeenCalledWith(false);
     inst.unmount();
   });
+
+  it("removes persistent approval from a fresh transaction decision", async () => {
+    const pending = mkPending({ fresh: true, toolName: "payment_transaction" });
+    const inst = renderUi(h(ApprovalPrompt, { pending, onDone: () => {} }));
+    await tick();
+    expect(inst.lastFrame()).not.toContain("don't ask again");
+    decide(pending, "always");
+    expect(pending.resolve).toHaveBeenCalledWith(false);
+    inst.unmount();
+  });
 });
 
 describe("approves — outcome → run-or-not (pure)", () => {

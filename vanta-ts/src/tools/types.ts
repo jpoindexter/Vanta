@@ -14,7 +14,7 @@ export type ToolContext = {
   safety: KernelClient;
   /** Pause and ask the human y/n. Returns true if approved. toolName lets the
    *  host key session/always-allow and accept-edits auto-approve decisions. */
-  requestApproval: (action: string, reason: string, toolName?: string, detail?: { diff?: string }) => Promise<boolean>;
+  requestApproval: (action: string, reason: string, toolName?: string, detail?: { diff?: string; fresh?: boolean }) => Promise<boolean>;
   /** Surface incremental progress mid-execution (a long tool can stream a line or
    *  heartbeat to the transcript before it returns). Wired to the StreamEvent
    *  `note` surface by the dispatcher; absent in non-streaming contexts. */

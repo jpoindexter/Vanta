@@ -25,6 +25,7 @@ export const approves = (outcome: Outcome): boolean => outcome === "allow" || ou
 
 /** Resolve a pending approval for an outcome; "always" also persists the rule. */
 export function decide(pending: Pending, outcome: Outcome): void {
+  if (pending.fresh && outcome === "always") { pending.resolve(false); return; }
   if (outcome === "always") void grantAlways(pending.toolName).catch(() => {});
   if (outcome === "never") void grantNever(pending.toolName).catch(() => {});
   pending.resolve(approves(outcome));
@@ -32,20 +33,21 @@ export function decide(pending: Pending, outcome: Outcome): void {
 
 export function ApprovalPrompt(props: { focusedTarget?: FocusTarget; onDone: () => void; onFocusTargetChange?: (target: FocusTarget) => void; pending: Pending }): ReactElement {
   const { pending, onDone } = props;
-  const [sel, setSel] = useState(() => Math.max(0, choiceIndex(props.focusedTarget)));
+  const choices = pending.fresh ? CHOICES.filter((choice) => choice.outcome !== "always") : CHOICES;
+  const [sel, setSel] = useState(() => Math.max(0, choiceIndex(props.focusedTarget, choices)));
   const request = buildPermissionRequest(pending);
-  const pick = (i: number): void => { decide(pending, CHOICES[i]!.outcome); onDone(); };
+  const pick = (i: number): void => { decide(pending, choices[i]!.outcome); onDone(); };
   useEffect(() => {
-    const idx = choiceIndex(props.focusedTarget);
+    const idx = choiceIndex(props.focusedTarget, choices);
     if (idx >= 0) setSel(idx);
   }, [props.focusedTarget]);
 
   useInput((input, key) => {
-    if (key.upArrow) moveChoice(sel, -1, setSel, props.onFocusTargetChange);
-    else if (key.downArrow) moveChoice(sel, 1, setSel, props.onFocusTargetChange);
+    if (key.upArrow) moveChoice(sel, -1, { choices, setSel, onFocus: props.onFocusTargetChange });
+    else if (key.downArrow) moveChoice(sel, 1, { choices, setSel, onFocus: props.onFocusTargetChange });
     else if (key.return) pick(sel);
-    else if (key.escape) pick(2);
-    else if (/^[1-4]$/.test(input)) pick(Number(input) - 1);
+    else if (key.escape) pick(choices.findIndex((choice) => choice.outcome === "deny"));
+    else if (/^[1-4]$/.test(input)) { const index = choices.findIndex((choice) => choice.n === Number(input)); if (index >= 0) pick(index); }
   });
 
   return (
@@ -56,20 +58,20 @@ export function ApprovalPrompt(props: { focusedTarget?: FocusTarget; onDone: () 
       {request.sections.map((section) => <RequestSection key={section.label} section={section} />)}
       <Box marginTop={1} flexDirection="column">
         <Text bold>Do you want to proceed?</Text>
-        {CHOICES.map((c, i) => <ChoiceRow key={c.n} choice={c} selected={i === sel} accent={"white"} primary={"white"} />)}
+        {choices.map((c, i) => <ChoiceRow key={c.n} choice={c} selected={i === sel} accent={"white"} primary={"white"} />)}
       </Box>
     </Box>
   );
 }
 
-function choiceIndex(target: FocusTarget | undefined): number {
-  return CHOICES.findIndex((c) => c.focus === target);
+function choiceIndex(target: FocusTarget | undefined, choices: Choice[]): number {
+  return choices.findIndex((c) => c.focus === target);
 }
 
-function moveChoice(sel: number, step: 1 | -1, setSel: (n: number) => void, onFocus?: (target: FocusTarget) => void): void {
-  const next = (sel + step + CHOICES.length) % CHOICES.length;
-  setSel(next);
-  onFocus?.(CHOICES[next]!.focus);
+function moveChoice(sel: number, step: 1 | -1, options: { choices: Choice[]; setSel: (n: number) => void; onFocus?: (target: FocusTarget) => void }): void {
+  const next = (sel + step + options.choices.length) % options.choices.length;
+  options.setSel(next);
+  options.onFocus?.(options.choices[next]!.focus);
 }
 
 function RequestSection(props: { section: PermissionSection }): ReactElement {

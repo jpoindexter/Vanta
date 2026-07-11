@@ -85,7 +85,7 @@ Vanta is a **general operator**, not a coding tool — one agent runs every cate
 **Kernel (Rust):** enforced risk classifier (allow/ask/block), approval queue, goal ledger, event log, HTTP cockpit + JSON API, `VANTA_ROOT` scoping.
 
 **Agent (TypeScript):**
-- Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 133 registered tools and 145 slash commands
+- Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 138 registered tools and 145 slash commands
 - **Goals** — kernel goal ledger plus TS dependency graph (`/goal blocks`, `/goal blocked_by`, `vanta goals`)
 - **Skills & memory** — learned `~/.vanta/skills`, `/skills audit` for local skill injection-scan findings, a configurable public registry client with quarantine/approval/update rollback, per-goal memory, curator, LLM context compression (git-versioned)
 - **Web search** — keyless (DuckDuckGo/SearXNG) + keyed (Brave/SerpAPI/Exa/Firecrawl/Tavily/Parallel/xAI Grok grounded search) with domain scoping; `web_fetch` readable extraction routes large pages through a size-tiered summarize/chunk/synthesize pipeline (configurable aux model)
@@ -162,6 +162,8 @@ Multi-source discovery supports official registries, skills.sh, well-known endpo
 Agent-authored skill changes can be staged with `vanta skills approval on`. Create/edit/patch/supporting-file/delete proposals survive restarts and require diff review before activation. See [`docs/skill-write-approval.md`](docs/skill-write-approval.md).
 
 The current Hermes catalog comparison, including Stripe/payment, video/media, commerce, telephony, and finance packs, is tracked in [`docs/research/hermes-skill-catalog-gap-audit-2026-07-11.md`](docs/research/hermes-skill-catalog-gap-audit-2026-07-11.md). The roadmap orders package safety and discovery before high-side-effect outcome packs.
+
+Test-only payment contracts now enforce exact totals, purchase/period caps, expiry, replay protection, non-cacheable operator approval, provider approval, HTTP 402 validation, and mode-0600 redacted receipts. Real-money Link execution, live MPP, and Stripe Projects remain disabled pending live acceptance receipts. See [`docs/payment-transactions.md`](docs/payment-transactions.md).
 
 Persistent specialist profiles are now available through `vanta profiles`. Each profile has
 an isolated Vanta home for its model/settings, skills, memory, gateway identity/state,

@@ -134,6 +134,7 @@ import { marketingReadTool } from "./marketing-read.js";
 import { renderCanvasTool } from "./render-canvas.js";
 import { spreadsheetWorkbookTool } from "./spreadsheet-workbook.js";
 import { mediaStudioTool } from "./media-studio.js";
+import { paymentTransactionTool } from "./payment-transaction.js";
 import type { Tool } from "./types.js";
 
 /**
@@ -258,6 +259,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   marketingReadTool,
   renderCanvasTool,
   mediaStudioTool,
+  paymentTransactionTool,
   spreadsheetWorkbookTool,
   bgListTool,
   bgStatusTool,

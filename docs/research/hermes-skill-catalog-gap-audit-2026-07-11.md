@@ -32,7 +32,7 @@ verified Vanta capabilities.
 | Official, skills.sh, well-known, GitHub, and custom-tap discovery | Shipped normalized source filters, cache/offline state, provenance, aliases, taps, and quarantine routing | `HERMES-MULTISOURCE-SKILL-HUB` shipped |
 | Staged approval for agent-authored skill create/edit/delete | Shipped durable create/edit/patch/supporting-file/delete queue with CLI/TUI review, stale guards, and receipts | `HERMES-SKILL-WRITE-APPROVAL-QUEUE` shipped |
 | Image/video/audio/3D production recipes and generators | Vanta analyzes images/video; it has no native video-generation tool or verified studio workflow | `HERMES-MEDIA-STUDIO-SKILL-PACK` |
-| Stripe Link, MPP, and Stripe Projects | Generic browser/MCP can attempt these, but no payment-specific secret, approval, amount, or receipt contract exists | `HERMES-PAYMENT-SKILL-PACK` |
+| Stripe Link, MPP, and Stripe Projects | Test-only exact-total contract, fresh approval, cap/replay ledger, redacted adapters, and HTTP 402 validation are implemented; live Link/MPP receipts and vault-only provisioning remain | `HERMES-PAYMENT-SKILL-PACK` building |
 | Shopping, Shopify, and agent telephony | SMS transport exists; storefront administration, checkout/returns, and voice-call workflows do not | `HERMES-COMMERCE-TELEPHONY-SKILL-PACK` |
 | Excel authoring plus DCF/LBO/merger/comps packs | Existing spreadsheet card covered generic workbook control only | Expanded `HERMES-SPREADSHEET-COPILOT` |
 
@@ -40,8 +40,8 @@ verified Vanta capabilities.
 
 1. Prove the media studio workflow. It is high-value and can use reversible
    file outputs rather than financial or external side effects.
-2. Add payments only behind a transaction-specific contract. A model budget is
-   not a purchase authorization.
+2. Prove the shipped payment boundary against live sandbox/test-mode Stripe and
+   MPP endpoints; keep real money unreachable until those receipts exist.
 3. Add commerce/telephony and finance packs after their underlying operator
    surfaces have real acceptance receipts.
 

@@ -2,6 +2,7 @@ import { createElement as h } from "react";
 import { describe, it, expect, vi } from "vitest";
 import { renderUi, tick } from "./test-render.js";
 import { ModeLine, cycleMode } from "./app.js";
+import { shouldAutoApprove } from "./mode-line.js";
 
 describe("cycleMode — Shift+Tab autonomy cycle", () => {
   it("cycles default → acceptEdits → auto → default", () => {
@@ -26,6 +27,12 @@ describe("cycleMode — Shift+Tab autonomy cycle", () => {
 });
 
 describe("ModeLine", () => {
+  it("does not auto-approve a fresh transaction decision", () => {
+    const pending = { action: "pay", reason: "purchase", fresh: true, resolve: vi.fn() };
+    expect(shouldAutoApprove(pending, "auto")).toBe(false);
+    expect(shouldAutoApprove({ ...pending, fresh: false }, "auto")).toBe(true);
+  });
+
   it("shows the accept-edits badge with the cycle hint", async () => {
     const inst = renderUi(h(ModeLine, { mode: "acceptEdits" }));
     await tick();

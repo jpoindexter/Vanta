@@ -12,9 +12,13 @@ export function cycleMode(mode: Mode, setMode: (m: Mode) => void, runSlash: (s: 
   setMode(next);
 }
 
+export function shouldAutoApprove(pending: Pending | null, mode: Mode): boolean {
+  return Boolean(pending && !pending.fresh && mode === "auto");
+}
+
 function useAutoApprove(pending: Pending | null, mode: Mode, setPending: (p: Pending | null) => void): void {
   useEffect(() => {
-    if (pending && mode === "auto") { pending.resolve(true); setPending(null); }
+    if (pending && shouldAutoApprove(pending, mode)) { pending.resolve(true); setPending(null); }
   }, [pending, mode]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 

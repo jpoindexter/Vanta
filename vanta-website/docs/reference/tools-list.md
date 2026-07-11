@@ -6,7 +6,7 @@ sidebar_position: 3
 
 # Tool reference
 
-Every built-in tool, generated directly from the source registry — **122 tools**. Each call is gated by the kernel before it runs (tools marked _safety-checked_ send a safety descriptor to the kernel). The model sees a per-turn scoped subset; `tool_search` pulls in the rest on demand.
+Every built-in tool, generated directly from the source registry — **138 tools**. Each call is gated by the kernel before it runs (tools marked _safety-checked_ send a safety descriptor to the kernel). The model sees a per-turn scoped subset; `tool_search` pulls in the rest on demand.
 
 ## Files & code
 
@@ -188,7 +188,7 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 
 ### `regression_lock`
 
-Lock a verified behavior so a later change can't silently break it. action:lock &#123;claim, command, expect&#125; records a claim + the shell command that proves it + the substring its output must contain. action:check [id] re-runs the locked command(s) and flags a regression if the substring is gone or the command fails (each run is approval-gated). action:list shows every lock and its current status.
+Lock a verified behavior so a later change can't silently break it. action:lock &#123;claim, command, expect&#125; records a claim + the shell command that proves it + the substring its output must contain. action:check [id] re-runs the locked command(s) and flags a regression if the substring is gone or the command fails (each run is approval-gated). action:list shows every lock and its current status. action:prune flags locks whose tool/schema assumptions went stale (removed command, not re-verified, long-regressed) for refresh/removal — never auto-deletes.
 
 | Param | Type | Required | Description |
 |---|---|---|---|
@@ -214,18 +214,22 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 
 ### `web_search`
 
-Search the web and return a numbered list of result titles, URLs, and snippets.
+Search the web and return a numbered list of result titles, URLs, and snippets. Scope with allowed_domains OR excluded_domains (mutually exclusive) instead of hand-writing site: filters. category and page are honored by backends that support them (SearXNG).
 
 | Param | Type | Required | Description |
 |---|---|---|---|
 | `query` | string | yes | The search query |
 | `max_results` | integer | no | Maximum results to return (1-10). Defaults to 5. |
+| `allowed_domains` | array | no | Restrict results to these domains (e.g. ["docs.rs"]). Mutually exclusive with excluded_domains; max 10. |
+| `excluded_domains` | array | no | Exclude these domains from results. Mutually exclusive with allowed_domains; max 10. |
+| `category` | string | no | Result category (e.g. news, images) — honored by SearXNG, ignored elsewhere. |
+| `page` | integer | no | 1-based result page for backends that paginate (SearXNG). |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
 ### `web_fetch`
 
-Fetch a URL and return its main content as clean, readable text (markdown-ish). Strips nav, scripts, and boilerplate.
+Fetch a URL and return its main content as clean, readable text (markdown-ish). Strips nav, scripts, and boilerplate. Large pages are size-tiered: small pages return as-is, large pages are summarized, huge pages are chunked and synthesized, and pages beyond a hard ceiling are refused with guidance to pick a more focused source.
 
 | Param | Type | Required | Description |
 |---|---|---|---|
@@ -260,7 +264,7 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 
 ### `twitter_read`
 
-Search X/Twitter or list your bookmarks — native GraphQL, no external CLI, keyless cookie auth. action:search &#123;query, max?, latest?&#125; finds tweets; action:bookmarks &#123;max?&#125; lists your saved tweets. Needs an x.com cookie (cookie_import channel "twitter") + current query ids (reach heal twitter). Source-cited.
+Search X/Twitter or list your bookmarks — authenticated GraphQL, no external CLI, keyless cookie auth. action:search &#123;query, max?, latest?&#125; finds tweets; action:bookmarks &#123;max?&#125; lists your saved tweets. Needs an x.com cookie (cookie_import channel "twitter") + current query ids (reach heal twitter). Source-cited.
 
 | Param | Type | Required | Description |
 |---|---|---|---|
@@ -318,7 +322,7 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 
 ### `reach`
 
-Inspect + self-heal Vanta's internet-reach channels. action:doctor reports each channel's active backend + status + the exact fix on a gap. action:heal &#123;channel&#125; rebuilds a broken CLI-backed channel (e.g. re-pulls twitter-cli when X changes its API), then re-checks. Use heal when a reach channel (twitter, …) starts failing — the backend's maintainer tracks the platform's churn.
+Inspect + self-heal Vanta's internet-reach channels. action:doctor reports each channel's active backend + status + the exact fix on a gap. action:heal &#123;channel&#125; repairs a brittle channel (for X: recaptures live GraphQL query ids), then runs a real health re-check. Use heal when a reach channel (twitter, …) starts failing — the backend's maintainer tracks the platform's churn.
 
 | Param | Type | Required | Description |
 |---|---|---|---|
@@ -636,11 +640,11 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 
 ### `team`
 
-Worker roster + task ledger. action:define — add/update a worker (id, role, model?, tools?, note?); action:status — update worker status (id, status: idle|running|blocked|done); action:list — list roster; action:dispatch — assign a task to a worker (taskId, workerId, title); action:advance — move a task to a new status (taskId, taskStatus: assigned|running|done|blocked, detail?); action:tasks — list tasks (optional: workerId to filter); action:run — actually execute a dispatched task by spawning a worker agent (taskId; optional detail = instruction), updating the task to done/blocked with the result.
+Worker roster + task ledger. action:define — add/update a worker (id, role, model?, tools?, note?); action:status — update worker status (id, status: idle|running|blocked|done); action:list — list roster; action:dispatch — assign a task to a worker (taskId, workerId, title); action:advance — move a task to a new status (taskId, taskStatus: assigned|running|done|blocked, detail?); action:tasks — list tasks (optional: workerId to filter); action:run — actually execute a dispatched task by spawning a worker agent (taskId; optional detail = instruction), updating the task to done/blocked with the result; action:require_review — add a named review stage that BLOCKS the task's done transition until approved (taskId, stage, reviewerId); action:review — approve/reject a stage (taskId, stage, approve, reviewerId = who decides, detail? = reason); action:reviews — list pending review stages routed to a reviewer (reviewerId); action:artifact — record a work-product artifact (file path/preview url/deploy ref) on a task (taskId, artifact, artifactKind?); action:artifacts — list a task's linked artifacts without reading the transcript (taskId); action:delegate_down — a manager assigns a subtask to a direct report (managerId, reportId, taskId, title); action:escalate_up — a report escalates a blocker to its manager (id = the worker, taskId, blocker).
 
 | Param | Type | Required | Description |
 |---|---|---|---|
-| `action` | string | yes | define worker \| update worker status \| list roster \| dispatch task \| advance task \| list tasks \| run task (spawn worker) |
+| `action` | string | yes | define worker \| update worker status \| list roster \| dispatch task \| advance task \| list tasks \| run task (spawn worker) \| require review stage \| decide review \| list pending reviews |
 | `id` | string | no | worker id (define/status) |
 | `role` | string | no | worker role (define) |
 | `model` | string | no | model id the worker runs on (define, optional) |
@@ -651,7 +655,15 @@ Worker roster + task ledger. action:define — add/update a worker (id, role, mo
 | `workerId` | string | no | worker id target (dispatch/tasks) |
 | `title` | string | no | task description (dispatch) |
 | `taskStatus` | string | no | target task status (advance) |
-| `detail` | string | no | result or blocker text (advance, optional) |
+| `detail` | string | no | result or blocker text (advance, optional); review reason (review, optional) |
+| `stage` | string | no | review stage name (require_review/review) |
+| `reviewerId` | string | no | reviewer the stage routes to (require_review/reviews) or who decides (review) |
+| `approve` | boolean | no | review decision (review): true approves, false rejects |
+| `artifact` | string | no | work-product ref — file path, preview/deploy url, or content (artifact action) |
+| `artifactKind` | string | no | artifact category (artifact action, default document) |
+| `managerId` | string | no | delegating manager id (delegate_down) |
+| `reportId` | string | no | target report id (delegate_down) |
+| `blocker` | string | no | blocker text to escalate (escalate_up) |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
@@ -923,7 +935,7 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 
 ### `radar`
 
-Vanta's opportunity radar: a durable ledger of scored business opportunities, persisted across sessions. action:record adds/updates an opportunity (id, title, optional source/note); action:score sets pain (0..1 — how expensive/urgent/repeated/reachable the problem is) and/or buyer (0..1 — how reachable/budgeted/timing-ready the buyer is) on an existing opportunity (id required); action:list returns all opportunities ranked by composite score (pain + buyer, 0..2); action:scan returns a ranked scan with composite scores and position numbers; action:offer drafts a short offer pitch for a given opportunity (id required); action:promote promotes a scored opportunity into a Money-OS prospect (id required) at stage:lead. action:scan_web pulls live candidate opportunities from a reach source and appends them, scored by pain+buyer heuristics (degrades gracefully when a source is unavailable). from:web (default) searches the web (query required); from:reddit searches Reddit for pain signals (query required, optional subreddit — needs a reddit cookie); from:rss reads a feed (feed url required); from:twitter searches X/Twitter for pain signals (query required — via twitter-cli). Use it to track, score, surface, and act on the highest-signal opportunities.
+Vanta's opportunity radar: a durable ledger of scored business opportunities, persisted across sessions. action:record adds/updates an opportunity (id, title, optional source/note); action:score sets pain (0..1 — how expensive/urgent/repeated/reachable the problem is) and/or buyer (0..1 — how reachable/budgeted/timing-ready the buyer is) on an existing opportunity (id required); action:list returns all opportunities ranked by composite score (pain + buyer, 0..2); action:scan returns a ranked scan with composite scores and position numbers; action:offer drafts a short offer pitch for a given opportunity (id required); action:promote promotes a scored opportunity into a Money-OS prospect (id required) at stage:lead. action:scan_web pulls live candidate opportunities from a reach source and appends them, scored by pain+buyer heuristics (degrades gracefully when a source is unavailable). from:web (default) searches the web (query required); from:reddit searches Reddit for pain signals (query required, optional subreddit — needs a reddit cookie); from:rss reads a feed (feed url required); from:twitter searches X/Twitter for pain signals (query required — authenticated browser GraphQL fallback). Use it to track, score, surface, and act on the highest-signal opportunities.
 
 | Param | Type | Required | Description |
 |---|---|---|---|
@@ -983,12 +995,13 @@ Add a NEW roadmap card to roadmap.json (then regenerates roadmap.html). Enforces
 | `tier` | string | no | Build-priority: rock\|pebble\|sand (optional). |
 | `model` | string | no | Advisory build model (optional). |
 | `effort` | string | no | low\|medium\|high (optional). |
+| `parkedReason` | string | no | Why status=parked is outside the active queue (optional; defaults to review when parked). |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
 ### `roadmap_move`
 
-Move a roadmap item to a new status. Updates roadmap.json and regenerates roadmap.html. Valid statuses: shipped, building, next, horizon.
+Move a roadmap item to a new status. Updates roadmap.json and regenerates roadmap.html. Valid statuses: shipped, building, blocked, next, horizon, parked.
 
 | Param | Type | Required | Description |
 |---|---|---|---|
@@ -1053,6 +1066,21 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 
 ## Other
 
+### `agent_session`
+
+Open a PERSISTENT interactive session over another agent CLI (claude/codex/gemini/cursor-agent/opencode) and drive it turn-by-turn — unlike call_agent (one-shot, headless), this keeps its conversation context AND opens a VISIBLE terminal window the user can watch the agent work in. Use this (not call_agent) when the user says open/start/watch a session or wants to see it. Pass coding:true to launch it BUILD-READY (auto-accepts file edits so it can actually write/change code hands-free) — use that when the user wants the agent to build/implement/fix code, not just chat. Actions: open &#123;agent, coding?&#125; → id (pops a window; pass show:false for headless); send &#123;id, text&#125; (returns the agent's reply); read &#123;id&#125; (re-read the pane); close &#123;id&#125;; list. Backed by a tmux session.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes | What to do |
+| `agent` | string | no | For open: which agent CLI (claude/codex/gemini/cursor-agent/opencode) |
+| `id` | string | no | For send/read/close: the session id from open |
+| `text` | string | no | For send: the prompt to send to the agent |
+| `show` | boolean | no | For open: open a visible terminal window to watch (default true; false = headless) |
+| `coding` | boolean | no | For open: launch build-ready (auto-accepts file edits so the agent can write/change code hands-free). Default false. |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
 ### `ask_user`
 
 Ask the operator a STRUCTURED question set when a genuinely user-owned decision must be collected cleanly — use this over free-text `clarify` when the answer is a choice among labelled options. Provide 1-4 questions; each has a short `header` (≤12 chars), the `question` text, 2-4 `options` (label + description), and optional `multiSelect`. Returns the formatted question set for you to surface; await the user's selection before proceeding. Ask only what the user must decide.
@@ -1060,6 +1088,20 @@ Ask the operator a STRUCTURED question set when a genuinely user-owned decision 
 | Param | Type | Required | Description |
 |---|---|---|---|
 | `questions` | array | yes | 1-4 structured questions to put to the operator. |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `bilibili_read`
+
+Search Bilibili videos and read video detail through bili-cli when installed, with Bilibili's public search API as a search-only fallback. Subtitles use OpenCLI when configured. Actions: search &#123;query, limit?&#125;, video &#123;url|bvid&#125;, subtitles &#123;url|bvid&#125;.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes |  |
+| `query` | string | no | search query for action=search |
+| `url` | string | no | Bilibili video URL for action=video\|subtitles |
+| `bvid` | string | no | Bilibili BV id for action=video\|subtitles |
+| `limit` | integer | no | search result limit, default 5 |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
@@ -1085,6 +1127,34 @@ Set, inspect, or clear a scoped spend budget (USD). On overspend the scope auto-
 | `scope` | string | no | budget scope key, e.g. "loop:nightly" or "session". Omit on status to list all. |
 | `limit_usd` | number | no | hard-stop limit in USD (required for set) |
 | `warn_fraction` | number | no | fraction of the limit that flips to warning (default 0.8) |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `build_with_agent`
+
+Delegate a BUILD to another coding agent and CLOSE THE LOOP: it builds (coding mode, streams progress), then Vanta VERIFIES (the expectFiles exist + an optional verifyCmd exits 0), and re-delegates a targeted fix if verification fails — up to maxIters. Use this (over a bare call_agent) when the user wants something built and actually working. Pass &#123;agent, task, expectFiles?, verifyCmd?, maxIters?&#125;.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `agent` | string | yes | Which agent CLI builds it (e.g. claude) |
+| `task` | string | yes | What to build |
+| `expectFiles` | array | no | Files that must exist after a successful build (relative to cwd) |
+| `verifyCmd` | string | no | Optional shell command that must exit 0 to count as verified (e.g. 'npm test', 'node check.js') |
+| `maxIters` | number | no | Max build→verify→fix attempts (default 3, max 6) |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `call_agent`
+
+Call ANOTHER AI coding-agent CLI non-interactively (agent-to-agent: headless, no terminal) and return its result. Auto-detects whatever is installed (claude, gemini, cursor-agent, opencode out of the box; ANY other CLI/harness declared in ~/.vanta/agents.json). Call with no agent (or agent='list') to list. Pass coding:true to delegate BUILDING — the agent runs build-ready (auto-accepts file edits) and actually writes/changes code, then returns what it did; use coding:true whenever the user wants the other agent to build/implement/fix/create code (without it, the agent can only answer, not edit files). Otherwise pass &#123;agent, prompt, model?&#125;. The called agent runs in its own harness. Use to delegate a build, get a second model's take, or cross-check.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `agent` | string | no | Which agent CLI to call (e.g. claude, gemini). Omit or 'list' to list detected agents. |
+| `prompt` | string | no | The prompt/task to send to the agent |
+| `model` | string | no | Optional model override passed through to that agent's CLI |
+| `coding` | boolean | no | Delegate BUILDING: the agent auto-accepts file edits so it can write/change code headless. Default false (answer-only). |
+| `autonomous` | boolean | no | FULL autonomy, OS-contained: runs the agent with --dangerously-skip-permissions inside a Docker container scoped to exactly this project (rw) + its auth (ro), network on only for the model API. The container is the boundary — it provably cannot touch any other host path. For hands-free builds you want boxed. claude only; needs Docker — run `vanta agent-image build` once to set up the container image (override with VANTA_AGENT_DOCKER_IMAGE). |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
@@ -1206,6 +1276,24 @@ Generate a new agent definition (identifier + when-to-use + system prompt) from 
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
+### `google_auth`
+
+Authorize Vanta with Google. Two steps: 1) Call with action='start' — returns the consent URL; show it to the user. 2) Call with action='complete' — waits (up to 5 min) for the user to approve in their browser, then saves the tokens. Use when the user says 'auth google' or 'vanta auth google'. Do NOT shell out to ./run.sh auth google.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes | 'start' returns the consent URL. 'complete' polls for the callback and saves tokens. |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `inspect_context`
+
+Measure the live conversation context without exposing message contents: token estimates by role, exposed tool-schema cost, context-window utilization, and the largest message slots. Use before ranking prompt or context costs.
+
+_No parameters._
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
 ### `lan_control`
 
 Drive a local LAN device discovered by lan_discover: send a mutating HTTP request (POST/PUT, or GET for control endpoints) to its local API. LAN-only (refuses non-private hosts) and ALWAYS approval-gated — the human confirms the exact request before it is sent.
@@ -1273,6 +1361,17 @@ List the document symbols (declarations) of a .ts/.tsx file inside the project s
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
+### `marketing_read`
+
+Read marketing/analytics records from Amplitude events or Customer.io campaigns. Uses env credentials for live reads or a fixture path for review/test runs.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `provider` | string | yes |  |
+| `fixture` | string | no | Optional local JSON fixture path instead of a live API read. |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
 ### `mcp_auth`
 
 Authorize an MCP server that requires OAuth. Call with the server name to get an authorization URL — give it to the user to open and approve. After they authorize, call mcp_auth again for the same server to reconnect it and make its tools available.
@@ -1280,6 +1379,17 @@ Authorize an MCP server that requires OAuth. Call with the server name to get an
 | Param | Type | Required | Description |
 |---|---|---|---|
 | `server` | string | yes | Name of the MCP server to authorize (as configured). |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `media_studio`
+
+Preview or approval-gated render a scoped local MP4 from bounded color/image scenes. FFmpeg/ffprobe verify duration, dimensions, streams, bytes, and a nonblank frame; receipts retain sources, provider, cost, and checks.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes |  |
+| `brief` | object | yes | Media brief: title, relative .mp4 output, dimensions/fps, and 1-24 color or project-image scenes. |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
@@ -1324,6 +1434,17 @@ Authorized brand/outreach workspace — DRAFT-ONLY, batch-approved. action:draft
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
+### `payment_transaction`
+
+Preview or execute a strict test-gated payment contract. Exact totals, caps, expiry, replay protection, fresh operator approval, provider approval, redacted receipts, and HTTP 402 validation are mandatory. Never accepts card data, API keys, or plaintext credentials.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes |  |
+| `contract` | object | yes | Strict version-1 payment contract. Use minor units and provider_cli credential storage only. |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
 ### `pdf_read`
 
 Extract text from a PDF file (scoped to the project) and return it as context. Enforces a max file-size limit and returns a clear error for encrypted, corrupt, missing, or image-only PDFs.
@@ -1343,6 +1464,21 @@ Send a message to another Vanta session over a Unix domain socket. Pass the targ
 |---|---|---|---|
 | `to` | string | yes | The peer agent id to send to (from list_peers). |
 | `text` | string | yes | The message text. |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `render_canvas`
+
+Render a bounded interactive chart, table, or board in the Vanta Desktop Canvas. Replaces the current canvas artifact.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `kind` | string | yes |  |
+| `title` | string | yes | Visible artifact title, at most 120 characters. |
+| `subtitle` | string | no | Optional visible context, at most 240 characters. |
+| `chart` | object | no |  |
+| `table` | object | no |  |
+| `board` | object | no |  |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
@@ -1379,6 +1515,16 @@ Maximizer mode: higher-autonomy execution under a HARD budget. Delegates each ta
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
+### `run_pipeline`
+
+Run a linear, deterministic chain of tool calls in ONE turn. Each step calls a tool; bind a step's output with `assignTo` and reference it in a later step's `args` via `$name` or `&#123;&#123;name&#125;&#125;`. Only the FINAL step's result returns to you — intermediate outputs stay in bindings, costing ~zero context. Every step is kernel-gated like a direct call. Use for fetch→transform→write chains where you don't need to read each intermediate. Example: steps=[&#123;tool:"read_file",args:&#123;path:"a.json"&#125;,assignTo:"raw"&#125;,&#123;tool:"run_code",args:&#123;lang:"python",code:"...$raw..."&#125;,assignTo:"clean"&#125;,&#123;tool:"write_file",args:&#123;path:"b.json",content:"&#123;&#123;clean&#125;&#125;"&#125;&#125;].
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `steps` | array | yes | ordered tool calls; each &#123;tool, args, assignTo?&#125; |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
 ### `self_correct`
 
 Self-correct a failing command in one loop: confirm the failure, drive a fix (diagnose + gated edits), rerun the failing input, and lock a regression test on success. command = the failing shell command; expect = the substring its output must contain when fixed.
@@ -1392,13 +1538,46 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 
 ### `send_chat`
 
-Proactively send a message to a configured chat platform (e.g. telegram) — works WITHOUT the gateway running. Resolves the platform's adapter, connects, sends one message, and disconnects. Use to push an update to a chat from a cron/loop wake. Outbound — approval-gated. Implemented platforms: telegram, mattermost, irc, ntfy, imessage, signal.
+Proactively send a message to a configured chat platform (e.g. telegram) — works WITHOUT the gateway running. Resolves the platform's adapter, connects, sends one message, and disconnects. Use to push an update to a chat from a cron/loop wake. Outbound — approval-gated. Implemented platforms: telegram, mattermost, irc, ntfy, imessage, signal, whatsapp, slack, discord, matrix, line, teams, twitch, sms, zalo, feishu, qq, wechat, webchat, nostr, googlechat, email.
 
 | Param | Type | Required | Description |
 |---|---|---|---|
 | `platform` | string | yes | Configured platform id, e.g. telegram |
 | `chatId` | string | yes | Platform-specific conversation id to send to |
 | `text` | string | yes | The message text to send |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `skill_manage`
+
+Create, edit, patch, archive, or change supporting files in a reusable skill. Agent mutations may be staged for operator approval.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes |  |
+| `name` | string | no |  |
+| `description` | string | no |  |
+| `body` | string | no |  |
+| `tags` | array | no |  |
+| `slug` | string | no |  |
+| `oldString` | string | no |  |
+| `newString` | string | no |  |
+| `path` | string | no |  |
+| `content` | string | no |  |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `spreadsheet_workbook`
+
+Inspect, preview, or approval-gated apply cell, formula, and sheet changes to a scoped local .xlsx workbook. Apply reopens the result and writes a SHA-256 receipt.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes |  |
+| `path` | string | yes |  |
+| `sheet` | string | no |  |
+| `range` | string | no |  |
+| `changes` | array | no |  |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
@@ -1450,6 +1629,20 @@ First-class issue tracker above goals, persisted in .vanta/tickets.json. action:
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
+### `v2ex_read`
+
+Read V2EX public community data with no auth. Actions: hot, latest, node &#123;node&#125;, topic &#123;topicId&#125;, replies &#123;topicId&#125;, member &#123;username&#125;.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes |  |
+| `node` | string | no | V2EX node name for action=node, e.g. python |
+| `topicId` | integer | no | V2EX topic id for action=topic\|replies |
+| `username` | string | no | V2EX username for action=member |
+| `limit` | integer | no | Max topics/replies (default 10) |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
 ### `vision_action`
 
 Locate a UI target from a screenshot and execute one grounded click, then re-observe to confirm the screen changed — detecting a mis-click and retrying. Vanta's perceive→ground→act→verify loop. macOS: needs a vision model + Screen Recording permission + the 'cliclick' helper for OS-level clicks.
@@ -1479,6 +1672,33 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 Record a short push-to-talk voice clip from the microphone and transcribe it to text (local whisper). No args — records, transcribes, returns the transcript.
 
 _No parameters._
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `xiaohongshu_read`
+
+Read Xiaohongshu through a configured logged-in OpenCLI backend. Actions: search &#123;query&#125;, note &#123;url|noteId&#125;, comments &#123;url|noteId&#125;, feed &#123;&#125;.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes |  |
+| `query` | string | no | search query for action=search |
+| `url` | string | no | Xiaohongshu note URL for action=note\|comments |
+| `noteId` | string | no | Xiaohongshu note id for action=note\|comments |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `xueqiu_read`
+
+Read Xueqiu stock quotes, stock search, hot posts, and hot-stock ranking using a stored logged-in xueqiu cookie. Actions: quote &#123;symbol&#125;, search &#123;query, limit?&#125;, hot_posts &#123;limit?&#125;, hot_stocks &#123;limit?, type?&#125;.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes |  |
+| `symbol` | string | no | quote symbol, e.g. SH600519, SZ000858, AAPL, 00700 |
+| `query` | string | no | stock code or name for action=search |
+| `limit` | integer | no |  |
+| `type` | integer | no | hot_stocks ranking type; 10 popularity, 12 watchlist |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
