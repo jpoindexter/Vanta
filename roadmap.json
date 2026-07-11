@@ -17340,7 +17340,7 @@
       "id": "HERMES-SPREADSHEET-COPILOT",
       "track": "Operator",
       "title": "Spreadsheet copilot — Excel/Sheets agent surface with charts and custom functions",
-      "status": "building",
+      "status": "blocked",
       "size": "L",
       "summary": "Hermes demonstrates the agent inside Excel: spreadsheet edits, analysis, charting, and custom functions. Vanta has document/spreadsheet-capable runtime support in the broader Codex workspace, but Vanta itself needs a first-class spreadsheet workflow if this becomes a real operator surface.",
       "done": "Vanta can inspect, edit, add/delete sheets, create charts, and explain formulas for a local workbook; an Excel/Sheets sidecar or custom function can call a kernel-gated Vanta session; changes are previewed before write; receipts record workbook, sheet, cell range, and verification; optional Excel authoring packs produce formula-driven three-statement, DCF, comps, LBO, and merger models with balance and sensitivity checks.",
@@ -17351,7 +17351,7 @@
       "lens": "agent-loop",
       "updated": "2026-07-11",
       "source": "hermes-transcript-roadmap-extract-2026-07-11",
-      "notes": "Source: Tonbis 2026-06-16 Hermes inside Excel plus the current Hermes optional finance catalog (excel-author, 3-statement, DCF, comps, LBO, merger, and PPTX authoring). Build one verified workbook workflow before expanding the finance pack; avoid a generic office-suite integration."
+      "notes": "Local workbook slice shipped in 4bc7daf7: spreadsheet_workbook + vanta spreadsheet inspect/preview/apply, values/formulas/add-delete sheets, approval gate, atomic replace, reopen verification, SHA receipts, real CLI proof, 12,873 tests green, clean npm audit. Blocked on full card: embedded charts, Excel/Sheets sidecar/custom function, and finance model packs require an Excel/Sheets host plus add-in CORS/HTTPS acceptance. Do not claim those from local OOXML editing alone."
     },
     {
       "id": "HERMES-VAULT-SECRETS-ROTATION",
@@ -17845,7 +17845,7 @@
       "id": "HERMES-MEDIA-STUDIO-SKILL-PACK",
       "track": "Operator",
       "title": "Media studio skill pack - generate and assemble image, video, audio, and 3D work",
-      "status": "horizon",
+      "status": "building",
       "size": "L",
       "summary": "Hermes ships ComfyUI, Manim, HyperFrames, Blender, TouchDesigner, ASCII video, music-prompting, and Kanban video-production recipes. Vanta currently understands images and video but has no native video-generation tool or verified end-to-end production workflow.",
       "done": "An outcome-led media command accepts a brief, previews scenes/providers/costs, and produces a playable verified artifact; provider adapters cover at least one local image path and one video path; a profile/Kanban production template can assign script, visual, audio, render, and review stages; generated assets stay in the scoped project; external generation and publishing remain approval/cost gated; ffprobe and artifact checks verify duration, dimensions, streams, and nonblank frames; receipts retain prompts, providers, costs, source assets, and checks without secrets.",
