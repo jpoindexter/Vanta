@@ -48,7 +48,7 @@ jobs:
             XDG_RUNTIME_DIR="/run/user/${uid}" \
             DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${uid}/bus" \
             PATH="$PATH" \
-            node --import tsx scripts/service-native-proof.ts
+            node --import "$PWD/node_modules/tsx/dist/loader.mjs" scripts/service-native-proof.ts
       - name: Prove native lifecycle
         if: runner.os != 'Linux'
         run: node --import tsx scripts/service-native-proof.ts
