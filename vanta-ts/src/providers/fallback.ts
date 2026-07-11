@@ -15,6 +15,7 @@ import type { ToolSchema } from "./interface.js";
  * (revoked key) auth verdicts propagate immediately here.
  */
 function isAuthError(err: unknown): boolean {
+  if (isPoolExhaustion(err)) return false;
   const reason = classifyProviderError(err).reason;
   return reason === "auth" || reason === "auth_permanent";
 }
@@ -26,7 +27,12 @@ function isAuthError(err: unknown): boolean {
  * retryable regex with a typed decision.
  */
 function isTransientError(err: unknown): boolean {
+  if (isPoolExhaustion(err)) return true;
   return classifyProviderError(err).shouldFallback;
+}
+
+function isPoolExhaustion(err: unknown): boolean {
+  return Boolean(err && typeof err === "object" && "poolExhausted" in err && (err as { poolExhausted?: unknown }).poolExhausted === true);
 }
 
 // ---------------------------------------------------------------------------

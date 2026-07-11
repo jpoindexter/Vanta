@@ -17,6 +17,8 @@ import { resolveEffortLevel } from "./effort.js";
 import type { Summarizer } from "./context.js";
 import { resolveAuxProvider } from "./routing/aux-map.js";
 import { preconnectStartup } from "./net/preconnect.js";
+import { buildFallbackChain } from "./providers/fallback.js";
+import { wrapCredentialPool } from "./credentials/resolve.js";
 import type { EffortLevel, Goal } from "./types.js";
 import {
   loadRuntimeExtensions, loadRuntimeSettings, buildRunPrompt, injectResume, logSessionConfig,
@@ -51,6 +53,12 @@ export type RunSetup = {
 /** VANTA-TRUST-DIALOG: interactive hosts pass a confirmer to gate untrusted project/MCP. */
 export type PrepareRunOpts = { confirmTrust?: TrustConfirmer };
 
+function resolveSessionProvider(instruction: string, env: NodeJS.ProcessEnv): LLMProvider {
+  const routed = resolveRoutedProvider(env, instruction);
+  const owner = env.VANTA_SECRET_SCOPE ?? (env.VANTA_PROFILE ? `profile:${env.VANTA_PROFILE}` : "interactive");
+  return buildFallbackChain(wrapCredentialPool(routed, env, owner), env);
+}
+
 /** Ensure the kernel is up and return a client to it. */
 async function bootstrapKernel(repoRoot: string): Promise<ReturnType<typeof createKernelClient>> {
   const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
@@ -74,7 +82,7 @@ export async function prepareRun(
   const mcpTrust = { root: repoRoot, confirm: opts.confirmTrust };
   const { pluginCommands, pluginPanels, pluginWorkers, mcpSkills } = await loadRuntimeExtensions(repoRoot, registry, mcpTrust, settings);
   const effortLevel = resolveEffortLevel(process.env.VANTA_EFFORT_LEVEL ?? settings.effortLevel);
-  const provider = resolveRoutedProvider(process.env, instruction);
+  const provider = resolveSessionProvider(instruction, process.env);
   // VANTA-API-PRECONNECT: opt-in (VANTA_PRECONNECT) best-effort TCP+TLS pre-warm
   // to the provider's API host so the first request skips the handshake. Fire-
   // and-forget — never awaited, swallows its own failure, cannot affect startup.

@@ -118,6 +118,7 @@ import { runToolsCommand } from "./tools-cmd.js";
 import { runWebhookCommand } from "./webhook-workflow-cmd.js";
 import { runSecretsCommand } from "./secrets-vault-cmd.js";
 import { runAutomationCommand } from "./automation-cmd.js";
+import { runAuthPoolCommand } from "./auth-pool-cmd.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
@@ -188,7 +189,7 @@ export const COMMANDS: Record<string, CommandFn> = {
   rooms: () => runRoomsList(process.env),
   room: (root, rest) => runRoomCommand(root, rest),
   modes: (_root, rest) => runModes(process.env, rest[0]),
-  auth: (_root, rest) => runAuthCommand(rest),
+  auth: (_root, rest) => rest[0] === "pool" ? runAuthPoolCommand(rest.slice(1)) : runAuthCommand(rest),
   voice: (root, rest) => runVoiceCommand(root, rest),
   control: (root, rest) => runControlCommand(root, rest),
   hooks: (_root, rest) => runHooksCommand(rest),

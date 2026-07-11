@@ -17445,7 +17445,7 @@
       "id": "HERMES-CREDENTIAL-POOLS",
       "track": "Harness",
       "title": "Credential pools — rotate same-provider keys before cross-provider fallback",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Hermes supports credential pools per provider with rotation strategy and cooldowns. Vanta has provider fallback and key helpers, but not a same-provider credential lease pool that subagents and profiles can share safely before falling back to a different model provider.",
       "done": "`vanta auth pool` lists, adds, removes, and tests provider credentials; env/keychain/vault refs can seed pools; 429/402/401 responses mark cooldown or exhaustion and rotate within the provider before MODEL-FALLBACK; subagents get leased credentials without collisions; logs redact values and explain cache/cost impact.",
@@ -17456,7 +17456,7 @@
       "lens": "infra",
       "updated": "2026-07-11",
       "source": "hermes-feature-function-harvest-2026-07-11",
-      "notes": "Source: current Hermes credential pool docs. Pair with HERMES-VAULT-SECRETS-ROTATION when external vault-backed keys become the default source."
+      "notes": "Source: current Hermes credential pool docs. Pair with HERMES-VAULT-SECRETS-ROTATION when external vault-backed keys become the default source.\n\nSHIPPED 2026-07-11: `vanta auth pool list|add|remove|test` manages reference-only provider pools backed by env, macOS Keychain, Bitwarden, 1Password, or scoped Vanta vault aliases. Literal values are never accepted or persisted; files are mode 0600 and audit entries hash references. Atomic directory locks and two-minute leases prevent concurrent profiles/subagents from sharing a key. 429 enters a one-minute cooldown; 401/402 exhaust a reference; non-credential errors release without consuming it. Complete and pre-yield stream paths rotate same-provider keys, then the base key, then emit an explicit pool-exhausted error that the existing cross-provider fallback recognizes. Mid-stream errors never replay. Live CLI acceptance added, listed, resolved, and removed an env reference under an isolated VANTA_HOME, then proved the plaintext absent from disk. Focused gates: 35 tests, typecheck, and touched-file size/complexity lint. Full suite: 1,275 files / 12,828 passed / 3 skipped. Docs build, use-case validation, roadmap uniqueness, and diff checks passed."
     },
     {
       "id": "HERMES-PLUGIN-LLM-LANE",

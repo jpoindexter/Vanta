@@ -34,6 +34,7 @@ Source set:
 - `HERMES-SPREADSHEET-COPILOT` - horizon
 - `HERMES-DASHBOARD-PLUGIN-SLOTS` - shipped 2026-07-11; bounded manifest slots, worker updates, gated actions, disable route, and Operator Home readiness
 - `HERMES-AUTOMATION-BLUEPRINT-CATALOG` - shipped 2026-07-11; data-only schedule/webhook forms, pure previews, confirmation-gated apply, unified controls, receipts, and Operator Home visibility
+- `HERMES-CREDENTIAL-POOLS` - shipped 2026-07-11; redacted reference store, collision-free leases, cooldown/exhaustion, and same-provider rotation before fallback
 
 ## Build Order
 

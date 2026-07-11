@@ -80,10 +80,14 @@ function scopeAllows(record: VaultSecretRecord, scope: string): boolean {
 }
 
 export async function resolveVaultSecret(name: string, scope: string, env: NodeJS.ProcessEnv, exec: ExecFn): Promise<boolean> {
+  return (await resolveVaultSecretValue(name, scope, env, exec)) !== null;
+}
+
+export async function resolveVaultSecretValue(name: string, scope: string, env: NodeJS.ProcessEnv, exec: ExecFn): Promise<string | null> {
   const record = (await listVaultSecrets(env)).find((item) => item.name === name);
   if (!record) throw new Error(`vault secret not found: ${name}`);
   if (!scopeAllows(record, scope)) throw new Error(`${name} is not granted to scope ${scope}`);
-  return (await providerFor(record.backend, exec).get(record.ref)) !== null;
+  return providerFor(record.backend, exec).get(record.ref);
 }
 
 export async function injectVaultSecrets(scope: string, env: NodeJS.ProcessEnv, exec: ExecFn): Promise<{ injected: string[]; missing: string[] }> {
