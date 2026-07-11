@@ -36,10 +36,10 @@ anything if you can trust it, so this one is built to survive a skeptic, not to 
 | Subagents / parallel | ≈ subagents + worktree fleet + tmux swarm | ≈ subagent delegation | Multi-agent routing |
 | Scheduling | ≈ cron scheduler | ≈ built-in cron delivery | ≈ scheduler / heartbeat |
 | Model providers | ≈ Any OpenAI-compatible endpoint (custom base URL) + Azure + OpenRouter (200+) + Ollama (any local) + OpenAI / Anthropic / Gemini — and exposes its own OpenAI-compatible proxy | ≈ Nous Portal / OpenRouter / OpenAI / any endpoint | ≈ Provider-agnostic |
-| Execution backends | ≈ local / sandbox / Docker / SSH | ≈ VPS / GPU / serverless / container | Self-hosted |
+| Execution backends | ≈ local / sandbox / Docker / SSH / serverless adapter; live hibernate+wake proof remains parked | ≈ VPS / GPU / serverless / container | Self-hosted |
 | MCP | ≈ yes | ≈ yes | ≈ yes |
 | License | ≈ MIT | ≈ MIT | ≈ MIT |
-| Migrate _from_ | OpenClaw / Hermes — [planned](#migrating-to-vanta) | OpenClaw | Codex CLI / Claude / Hermes |
+| Migrate _from_ | OpenClaw / Hermes — [shipped](#migrating-to-vanta) | OpenClaw | Codex CLI / Claude / Hermes |
 
 ## Where Vanta is genuinely different
 
@@ -67,27 +67,34 @@ We'd rather you hear it here than find out later. The honest gaps are **ecosyste
 reach**, not core capability — Vanta's channels and self-improvement loop are already
 shipped (see [Comms & gateway](/comms-and-gateway) and [Self-improvement](/self-improvement)):
 
-- **Shareable public ecosystem.** Hermes's Skills Hub and OpenClaw's plugin marketplace
-  are _public_ exchanges for sharing and pulling skills/plugins. Vanta has skill
-  search/install/manage, a plugin framework, and bundled skills — but no public community
-  marketplace yet; its skills stay local.
-- **Native mobile.** OpenClaw ships dedicated mobile nodes (iOS/Android with camera and
-  voice); Vanta has no native mobile client yet (a Termux path is on the roadmap). Channel
-  _count_ is now at parity — 20 adapters wired (5 verified live, rest need creds).
+- **Community ecosystem scale.** Vanta now ships a public multi-source skill registry
+  client with verified previews, approval-gated install/update, quarantine, and reversible
+  removal. Hermes's Skills Hub and OpenClaw's plugin marketplace still lead in public
+  catalog size and contributor activity.
+- **Proven mobile reach.** Vanta ships a native mobile surface over its API/gateway, and
+  its Termux installer passes emulator and CI gates. OpenClaw still leads in mature mobile
+  node reach; Vanta's physical ARM64 Termux run remains an external acceptance gate.
 - **Community & maturity.** Both have a head start in public users and contributions;
   Vanta is newer.
+
+The current Hermes-main delta also exposed six narrower reliability and routing gaps. Two
+are queued next: durable unknown-effect disposition for interrupted tools and compaction
+judged against real prompt headroom. Usage-route accounting, session-scoped model changes,
+gateway context references, and authenticated readiness remain later local cards. See the
+[current delta audit](https://github.com/jpoindexter/Vanta/blob/main/docs/research/hermes-current-delta-2026-07-12.md).
 
 ## Migrating to Vanta
 
 Importers between these tools are standard in this category — OpenClaw imports from Codex
-CLI, Claude, and Hermes; Hermes imports from OpenClaw. Vanta is building the same:
-`vanta migrate openclaw|hermes` will import your skills, MCP servers, and model config into
+CLI, Claude, and Hermes; Hermes imports from OpenClaw. Vanta ships the same outcome:
+`vanta migrate openclaw|hermes` imports skills, MCP servers, and model config into
 `~/.vanta`, with a preview → select → backup → apply flow and secrets redacted in the
-report. It's a tracked next-up item on the roadmap (`VANTA-MIGRATE`).
+report.
 
 ---
 
-_Last verified 2026-06-22 against each project's public repo and docs:
+_Last verified 2026-07-12 against Vanta main and Hermes Agent at `4281151a`; OpenClaw
+claims were refreshed against its public repo and docs:
 [OpenClaw](https://github.com/openclaw/openclaw) ·
 [Hermes Agent](https://github.com/NousResearch/hermes-agent). Spotted something out of
 date? Open an issue — accuracy is the point._

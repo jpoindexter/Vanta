@@ -1,5 +1,8 @@
 # Hermes Transcript Roadmap Extract - 2026-07-11
 
+Status refreshed 2026-07-12. For the newer repository delta, see
+`hermes-current-delta-2026-07-12.md`.
+
 Source set:
 - `reference/tonbis-ai-garage-transcripts/2026-07-03__Hermes_Agent_Masterclass_-_9._Profiles_Kanban__KPsMThlFb8Y.txt`
 - `reference/tonbis-ai-garage-transcripts/2026-06-26__Hermes_Agent_Masterclass_-_8._Subagents_Delegation___6DtQkDpcEs.txt`
@@ -24,14 +27,14 @@ Source set:
 
 ## Roadmap Cards Added
 
-- `HERMES-PROFILE-ROSTER` - next
-- `HERMES-KANBAN-ROUTER` - next, after `HERMES-PROFILE-ROSTER`
-- `HERMES-SECOND-BRAIN-CORPUS` - next
-- `HERMES-DELEGATION-TREE-RECEIPTS` - horizon
-- `HERMES-TOOL-SURFACE-PROFILES` - horizon, after `HERMES-PROFILE-ROSTER`
+- `HERMES-PROFILE-ROSTER` - shipped 2026-07-11
+- `HERMES-KANBAN-ROUTER` - shipped 2026-07-11
+- `HERMES-SECOND-BRAIN-CORPUS` - shipped 2026-07-11
+- `HERMES-DELEGATION-TREE-RECEIPTS` - shipped 2026-07-11
+- `HERMES-TOOL-SURFACE-PROFILES` - shipped 2026-07-11
 - `HERMES-WEBHOOK-WORKFLOW-BUILDER` - shipped 2026-07-11; real CLI plus signed gateway route/delivery receipt proof
 - `HERMES-VAULT-SECRETS-ROTATION` - shipped 2026-07-11; scoped Bitwarden/1Password aliases, startup injection, status, confirmed cutover, and redacted audit proof
-- `HERMES-SPREADSHEET-COPILOT` - horizon
+- `HERMES-SPREADSHEET-COPILOT` - parked pending Excel/Sheets host acceptance
 - `HERMES-DASHBOARD-PLUGIN-SLOTS` - shipped 2026-07-11; bounded manifest slots, worker updates, gated actions, disable route, and Operator Home readiness
 - `HERMES-AUTOMATION-BLUEPRINT-CATALOG` - shipped 2026-07-11; data-only schedule/webhook forms, pure previews, confirmation-gated apply, unified controls, receipts, and Operator Home visibility
 - `HERMES-CREDENTIAL-POOLS` - shipped 2026-07-11; redacted reference store, collision-free leases, cooldown/exhaustion, and same-provider rotation before fallback
@@ -42,10 +45,10 @@ Source set:
 
 ## Build Order
 
-1. Ship `HERMES-PROFILE-ROSTER`.
-2. Build `HERMES-KANBAN-ROUTER` on top of the profile roster and existing Kanban/work-queue primitives.
-3. Ship `HERMES-SECOND-BRAIN-CORPUS` so future transcript/reference reads become reusable memory instead of one-off analysis.
-4. Add the horizon items only when a concrete workflow needs them; most are presentation or integration layers over primitives Vanta already has.
+The locally executable profile, routing, corpus, delegation, tool-surface, webhook, vault,
+plugin, blueprint, credential, deliverable, and registry slices shipped on 2026-07-11.
+Spreadsheet copilot stays parked until its real host-side acceptance can run. The next
+local build order is maintained in the 2026-07-12 current-main delta audit.
 
 ## Guardrail
 

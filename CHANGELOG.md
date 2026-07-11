@@ -3,6 +3,13 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Unreleased — 2026-07-12
+
+### Documentation
+- Refreshed the Hermes/OpenClaw comparison against current Hermes main and linked the six remaining local delta cards.
+- Synchronized legacy roadmap checklists with `roadmap.json`, regenerated the 141-tool and 145-command catalogs, and documented the ten external acceptance gates without reporting them as live.
+- Updated the Docusaurus deployment path and repository links for the Cloudflare Pages project serving `docs.vanta.theft.studio`.
+
 ## v0.8.0 — 2026-07-05
 
 **Web extraction closes the standout gap vs Hermes.** `web_fetch` no longer blind-truncates a large page; it now routes through a size-tiered pipeline, and a new xAI/Grok search backend adds a fundamentally different search shape — a reasoning model performing the search itself.

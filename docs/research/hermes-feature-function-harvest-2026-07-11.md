@@ -1,5 +1,8 @@
 # Hermes Feature / Function Harvest - 2026-07-11
 
+Status refreshed 2026-07-12. For the newer repository delta, see
+`hermes-current-delta-2026-07-12.md`.
+
 Source checked:
 - `reference/hermes-agent` at `3b2ef789d`
 - `reference/hermes-agent/website/docs/user-guide/profile-distributions.md`
@@ -33,20 +36,17 @@ These Hermes features are already substantially represented in Vanta and did not
 
 ## Roadmap Cards Added
 
-- `HERMES-PROFILE-DISTRIBUTIONS` - next, after `HERMES-PROFILE-ROSTER`
-- `HERMES-AUTOMATION-BLUEPRINT-CATALOG` - horizon
+- `HERMES-PROFILE-DISTRIBUTIONS` - shipped 2026-07-11
+- `HERMES-AUTOMATION-BLUEPRINT-CATALOG` - shipped 2026-07-11
 - `HERMES-CONTEXT-REFS-V2` - shipped 2026-07-11; rendered Composer acceptance covers typed refs, receipts, warnings, and hard limits
-- `HERMES-CREDENTIAL-POOLS` - horizon
-- `HERMES-PLUGIN-LLM-LANE` - horizon
-- `HERMES-DELIVERABLE-AUTO-ATTACH` - horizon
+- `HERMES-CREDENTIAL-POOLS` - shipped 2026-07-11
+- `HERMES-PLUGIN-LLM-LANE` - shipped 2026-07-11
+- `HERMES-DELIVERABLE-AUTO-ATTACH` - shipped 2026-07-11
 
 ## Build Priority
 
-1. Build `HERMES-PROFILE-ROSTER`, then `HERMES-PROFILE-DISTRIBUTIONS`.
-2. Build `HERMES-KANBAN-ROUTER` so installed profiles become useful workers, not just saved settings.
-3. Pull `HERMES-CREDENTIAL-POOLS` and `HERMES-VAULT-SECRETS-ROTATION` forward when multi-profile gateway work needs safer key sharing.
-4. Build `HERMES-AUTOMATION-BLUEPRINT-CATALOG`; `HERMES-CONTEXT-REFS-V2` is shipped as the context accelerator.
-5. Keep plugin LLM access and deliverable auto-attach horizon until plugin or messaging work requires them.
+All six extracted cards shipped on 2026-07-11. The next local reliability work comes from
+the 2026-07-12 delta audit: effect disposition first, then real-headroom compaction.
 
 ## Guardrail
 

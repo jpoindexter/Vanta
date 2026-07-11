@@ -10,7 +10,7 @@
     "start": "docusaurus start",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
-    "deploy": "npm run build && npx wrangler pages deploy build --project-name=vanta-docs",
+    "deploy": "npm run build && npx --yes wrangler@4 pages deploy build --project-name=vanta-docs --branch=main",
     "clear": "docusaurus clear",
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",

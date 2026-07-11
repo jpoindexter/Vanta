@@ -13,13 +13,12 @@ const config: Config = {
     v4: true, // Improve compatibility with the upcoming Docusaurus v4
   },
 
-  // Production URL — the custom domain served via Vercel (Cloudflare DNS-only).
+  // Production URL served by the Cloudflare Pages project `vanta-docs`.
   url: 'https://docs.vanta.theft.studio',
   baseUrl: '/',
 
-  // GitHub deployment config — update org/repo if these differ.
-  organizationName: 'theft-studio',
-  projectName: 'vanta',
+  organizationName: 'jpoindexter',
+  projectName: 'Vanta',
 
   // Warn (don't throw) on broken links so a missing page never fails the build
   // while the docs corpus is still being wired up.
@@ -79,7 +78,7 @@ const config: Config = {
         {to: '/use-cases', label: 'Use cases', position: 'left'},
         {to: '/roadmap', label: 'Roadmap', position: 'left'},
         {
-          href: 'https://github.com/theft-studio/vanta',
+          href: 'https://github.com/jpoindexter/Vanta',
           label: 'GitHub',
           position: 'right',
         },
@@ -98,7 +97,7 @@ const config: Config = {
         {
           title: 'More',
           items: [
-            {label: 'GitHub', href: 'https://github.com/theft-studio/vanta'},
+            {label: 'GitHub', href: 'https://github.com/jpoindexter/Vanta'},
           ],
         },
       ],

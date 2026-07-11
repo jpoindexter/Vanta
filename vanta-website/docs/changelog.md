@@ -8,6 +8,12 @@ sidebar_position: 2
 
 Major capability milestones, newest first. This is a curated highlight reel — the full per-slice history lives in `roadmap.json`.
 
+## 2026-07-12 — Hermes delta and documentation release
+- **Current-main audit** — compared Hermes Agent `4281151a` with Vanta production paths, kept only six material local gaps, and ordered effect disposition plus real-headroom compaction first.
+- **Hermes workflow wave shipped** — persistent profiles and distributions, profile-routed Kanban, delegation receipts, corpus memory, typed context references, workflow blueprints, vault-backed secrets, credential pools, bounded plugin model calls, native deliverable attachments, and the public skill registry are now represented by shipped roadmap slices.
+- **Honest release boundary** — the roadmap reports **1,171 shipped**, **6 remaining local cards**, and **10 parked external acceptance gates**. Parked provider, credential, and physical-device proofs are not reported as live.
+- **Docs synchronized** — comparison, roadmap, generated command/tool reference, and Cloudflare deployment instructions now derive from the current repository state.
+
 ## 2026-06-24 — model freedom & creative ideation
 - **Add any model provider with no code** — declare any OpenAI-compatible backend in `~/.vanta/providers.json` (`{baseURL, keyEnv, model}`); `VANTA_PROVIDER=<id>` just works. The secret stays in `.env` (the file holds only the env-var name); keyless local endpoints supported; a user entry can even override a built-in. See [Providers](./providers.md).
 - **Routers reach every model** — pick `tokenrouter`/`openrouter` in `vanta setup` and free-type any model the token serves, instead of a pinned list.

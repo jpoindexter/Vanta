@@ -124,7 +124,7 @@ Vanta is not laptop-bound — it runs on any host you control and the **kernel t
 3. `vanta setup` → pick a model backend + the **Execution backend**, then export your provider key.
 4. Run `vanta` (or `vanta run "..."`) on the VPS. The kernel enforces scope there exactly as on your laptop — `VANTA_ROOT` bounds the writable tree and every tool call is gated by `assess()`.
 
-Prefer to keep the agent on your laptop but execute on the VPS? Add an `sshConfigs` profile and use the **ssh** backend — the loop runs locally, commands run on the host you control. (Serverless / hibernate-when-idle is a later, data-residency-gated child — `roadmap.json` `BACKEND-SERVERLESS`.)
+Prefer to keep the agent on your laptop but execute on the VPS? Add an `sshConfigs` profile and use the **ssh** backend — the loop runs locally, commands run on the host you control. The structured serverless backend is shipped; live Modal/Daytona hibernate + wake-on-message remains an external acceptance gate (`BACKEND-SERVERLESS-LIVE`).
 
 ## Why Vanta
 
@@ -150,6 +150,8 @@ vanta migrate hermes        # or: openclaw   (--skills/--mcp/--model to narrow; 
 It reads the other agent's `skills/<slug>/SKILL.md`, `mcpServers` config, and provider/model settings, **flags secret env keys without copying the secret**, and only writes after you confirm — your `~/.vanta` is backed up first.
 
 Recent Hermes transcript mining added a focused parity path to the roadmap: persistent specialist profiles, profile-routed Kanban, transcript/notes corpus memory, delegation receipts, webhook workflow templates, automation blueprints, spreadsheet control, vault-backed secrets, and bounded dashboard plugin slots. The automation catalog now ships through `vanta automation blueprints` and `/blueprint`; see [`docs/automation-blueprints.md`](docs/automation-blueprints.md). The executable source of truth remains `roadmap.json`.
+
+The 2026-07-12 Hermes-main delta found six smaller gaps after that parity wave. Unknown tool-effect disposition and real-headroom compaction are next; usage-route accounting, session-scoped model selection, gateway context references, and authenticated readiness remain later local work. See [`docs/research/hermes-current-delta-2026-07-12.md`](docs/research/hermes-current-delta-2026-07-12.md).
 
 Parked external acceptance is machine-readable through `vanta roadmap proof-status [--json]`. It verifies all ten canonical receipt gates and rejects local provider fixtures unless a matching external-acceptance packet binds the exact event IDs. See [`docs/roadmap-external-proofs.md`](docs/roadmap-external-proofs.md).
 

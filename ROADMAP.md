@@ -10,8 +10,8 @@ Runtime flow: `docs/vanta-flow.md`. Locked choices: `DECISIONS.md`. Deferred: `P
 
 **v0/v1 = done.** All 7 original PRD phases and v1.1–v1.5 tracks shipped — agent loop,
 skills+memory, web/reach, browser+vision, code/dev, autonomy primitives, comms,
-operator systems, and the real Ink 7 TUI. Current source counts: **123 built-in tools**
-(127 registered) and **131 slash commands**. Last recorded full verify (2026-07-07):
+operator systems, and the real Ink 7 TUI. Current generated catalogs contain **141 tools**
+and **145 slash commands**. Last recorded full verify (2026-07-07):
 **11979 TS tests** (1070 files), `tsc` clean, **67 kernel tests** green. Live status +
 release log: root `CLAUDE.md` §Status and `CHANGELOG.md` (v0.8.0).
 
@@ -206,9 +206,9 @@ skills, prunes them safely) → it's reachable as a background service you can t
 
 ### D — Borrow the skills library  ← ✅ SHIPPED 2026-06-02
 - [x] **D1 · Port skills** (M) — 10 high-value skills ported into bundled `vanta-ts/skills-library/` (coupling stripped: env vars renamed to `VANTA_*`, `delegate_task`→delegate subagent, external-agent-specific TUI/kanban removed), with `vanta skills install [--force]` → idempotent, non-destructive copy into `~/.vanta/skills/` (`skills/library.ts`). Ported: systematic-debugging, test-driven-development, writing-plans, requesting-code-review, spike, humanizer, github-pr-workflow, claude-design, duckduckgo-search, build-retro. Live-verified install (10/10).
-- [ ] **D2 · Skill bundles** (S) — adopt a YAML bundle schema (`name`/`description`/`skills:[]`/`instruction`) so one `/slash` loads several skills. *Why:* composite operator commands. (Pending — not blocking.)
+- [x] **D2 · Skill bundles** (S) — YAML bundle schema for loading a named skill set and instruction through one command.
 
-### E — Autonomy & reach  ← daemon is the keystone (E1 shipped; E2–E6 pending)
+### E — Autonomy & reach  ← shipped; the daemon remains the keystone
 - [x] **E1 · Daemon / service mode** (M/L) — ✅ SHIPPED 2026-06-02. `vanta gateway` foreground daemon (`gateway/run.ts`: interruptible tick loop over `runDueTasks`, SIGINT/SIGTERM-clean, one bad task non-fatal). launchd service manager (`service/`: pure plist gen + `vanta service install|uninstall|status`, captures PATH so launchd finds node/cargo). Cron no longer needs an external trigger. Verified: foreground daemon starts/ticks/stops; `service status` read-only. (`launchctl load` not auto-run — installing a persistent agent needs the user's OK.)
 - [x] **E2 · Telegram gateway** (M) — ✅ SHIPPED 2026-06-02 (offline-tested; live needs a bot token). `PlatformAdapter` contract (`gateway/platforms/base.ts`) + `TelegramAdapter` (getUpdates long-poll + sendMessage, pure `parseUpdates`/`parseAllowlist`, chat-id allowlist). Wired into the gateway: each tick polls, runs inbound → agent turn → reply (`pollPlatform`, handler error becomes the reply). Auto-enabled by `VANTA_TELEGRAM_TOKEN`. **Live use needs a @BotFather token** (I can't provision one). *Limitation:* each message is a one-shot run (no per-chat session yet — future, key sessions by chatId). Other ~19 platforms deferred (Rule of 3).
 - [x] **E3 · Webhook triggers + deliver targets** (M) — ✅ SHIPPED 2026-06-02 (HMAC + HTTP integration-tested). `gateway/webhook.ts`: constant-time `verifyGithubSignature` (sha256 HMAC, known-vector tested), `resolveDeliver` (`local`/`file:<path>`/`telegram:<chatId>`), `startWebhookServer` (POST-only, HMAC-gated, 200-fast + background agent run). Wired into the daemon (`VANTA_WEBHOOK_PORT`/`_SECRET`/`_PROMPT`/`_DELIVER`); inbound event → agent turn → deliver. Verified via real localhost requests (200 signed / 401 unsigned / 405 non-POST).
@@ -265,8 +265,8 @@ Founding mandate: broad capability + kernel-enforced safety as the differentiato
 ## v1.5 — Efficiency & emergent brain (requested 2026-06-03)
 Target hardware: MacBook Pro 14" M4 Pro / 48GB / macOS Tahoe — must run lean here.
 - [~] **E-eff1 · Token + power frugality** — agent uses as few tokens / as little power as it can, "however it sees fit": concise by default, prefer LOCAL (Ollama) models for simple subtasks via delegate, trim prompt injection when context is tight. Bake a frugality directive into the prompt + brain drives. (directive shipped; routing heuristics next)
-- [ ] **E-eff2 · Prefer-local routing** — auto-route simple/cheap work to local Ollama on the M4 Pro (free, low-power); reserve paid frontier models for hard reasoning. Extends model routing + delegate.
-- [ ] **B-v2 · Emergent self-designed brain** — beyond md files: let Vanta design its OWN brain representation (its own code/format/tech) that humans don't need to read. The md brain (v1.4) is the bootstrap; v2 lets Vanta evolve the substrate under the kernel's rules. (research + careful — high blast radius.)
+- [x] **E-eff2 · Prefer-local routing** — auto-route simple/cheap work to local Ollama on the M4 Pro; reserve paid frontier models for hard reasoning.
+- [x] **B-v2 · Emergent self-designed brain** — self-designed brain substrate operating under the kernel boundary.
 - [ ] **META · Don't stop until complete** — standing directive: work the whole backlog top-down, commit + push every slice, until done. (Active.)
 
 ## v1.6 — MCP: use · make · serve (requested 2026-06-03)
@@ -284,7 +284,7 @@ under the kernel's hard lines (non-destructive, verified, approval-before-risk).
 - [~] **S2 · Personality develops from interaction** — PARTIAL. Brain `user_model` region + prompt rule 9 drives it. Full personality.md evolution loop is demand-driven.
 - [~] **S3 · Continuous world/user/codebase context** — PARTIAL. Brain regions + post-turn memory cover this. Full heartbeat-driven refresh ties to S5.
 - [~] **S4 · Skill authorship discipline** — PARTIAL. Curator uses `LEARNED_TAG` + never-auto-deletes. Versioning/merge on `write_skill` deferred.
-- [ ] **S5 · Heartbeat** — steady tick driving S2/S3 selfhood updates + factory loop. Gateway daemon exists (E1); wiring the selfhood updates onto it is the remaining piece.
+- [x] **S5 · Heartbeat** — steady tick driving selfhood updates and the factory loop.
 
 ## v2 — Living operator & JARVIS arc (requested 2026-06-05)
 > Status source: `roadmap.json` (29 new items). Synthesis + build order + the not-evil charter:
@@ -356,16 +356,12 @@ volatile skills (#36656) · `/context` · `/mcp` · `/export` · `/compress` · 
 - **O9 dark factory (complete):** `factory/` module (triage/planner/executor/verifier/run) · kernel `is_protected_path` (27 Rust tests) · `vanta improve` + `vanta factory [approve|status]` CLI · gateway detached-child spawn for `__factory__` cron entries · `AGENT-MANIFESTO.md` · live end-to-end verified (verifier correctly rejected a bad model output, discarded cleanly).
 
 ## RESIDUAL — open-ended or demand-driven (not blocking daily use)
-- **B-v2 · Emergent self-designed brain** — agent designs its own brain substrate (its own format/code). Open research; the md brain (S1) is the bootstrap. No clear done line — pursue when the md brain feels limiting.
-- **S5 · Heartbeat selfhood updates** — wire brain writes onto the gateway tick so identity evolves continuously. Small, concrete, low urgency.
-- **E-eff2 · Prefer-local routing** — auto-route cheap work to local Ollama. Extends `model-router.ts`. Small.
 - **Polish tier:** themes · `/vim` · multi-dir `/add-dir` · S4 skill-versioning-on-write · cron-output-awareness (gateway). *(U2 @-mentions shipped 2026-06-04)*
-- **D2 · Skill bundles** — YAML bundle schema for composite slash commands. The factory can implement this.
 - [x] **SCOPE-2 · Readable zones (read across the workspace)** (S) — ✅ SHIPPED 2026-06-04. The read-side mirror of SCOPE-1. `read_file` hard-refused out-of-repo reads, so Vanta couldn't read a sibling repo's skills (`~/Documents/GitHub/theft-kit/...`) even though `shell_cmd cat` could. Now `read_file` reads from **readable zones** — default = the project's **parent dir** (so sibling repos in the same workspace are readable) + the writable zones; `VANTA_READABLE_DIRS` override. Generalized `isInWritableZone`→`isInZone` + `resolveReadableZones(env,root)` in `tools/writable-zones.ts`; `~`-expansion. **Verified:** unit (12 zone + 2 read_file) + live (read `theft-kit/design-html/SKILL.md`, 64 KB; `~/.ssh/id_rsa` still refused). **Follow-up:** secret-filename read-guard (`.env`/`*.key`/`id_rsa`) even in-zone — readable zones currently expose sibling secrets to kernel-Asked reads.
 - [x] **SCOPE-1 · Writable zones beyond the repo** (S) — ✅ SHIPPED 2026-06-04. `write_file` no longer hard-refuses out-of-repo paths; it writes into **bounded, approval-gated writable zones** (`tools/writable-zones.ts`: default `~/Desktop` + `~/Downloads`, `VANTA_WRITABLE_DIRS` override). **TS-only** — the kernel already returned `Ask` for out-of-root paths (`mentions_outside_home`/`references_abs_path_outside_root`, safety.rs:71), so dispatch already prompts the human; the tool was simply stricter than the boundary and refused *after* approval. Now: in-repo writes free, in-zone writes proceed (kernel Asked at dispatch), **out-of-zone still refused** (the backstop against yes-fatigue on `~/.ssh`). `~`-expansion + prefix-collision-safe (`Desktop-evil` ≠ `Desktop`). Chose **bounded zones** over any-path-with-approval. **Verified:** unit (9 zone + 2 write_file) + live (wrote directly to `~/Desktop` in one step).
 - [x] **O10 · Autonomy ladder (L1–L4, kernel-bounded)** (M) — ✅ SHIPPED 2026-06-04. Replaced the factory's binary review-vs-auto with a selectable level in `factory/run.ts`: **L1** suggest (plan, no branch) · **L2** implement (branch→execute→verify, stop for diff review) · **L3** commit (no push) · **L4** push. `resolveAutonomyLevel(sub, env)` maps `improve`→L1 and `approve`→`VANTA_AUTONOMY_LEVEL` (default 4, preserving prior commit+push). Split `commitAndPush`→`commitSlice`+`pushBranch`; added `implemented` + `committed{pushed}` CycleResult statuses. The kernel's `is_protected_path` still blocks skeleton/brainstem (kernel/factory/manifesto) at **every** level — the ladder governs reach over writable code only. **Verified:** 15 `run.test.ts` (incl. `resolveAutonomyLevel` clamp/default/garbage), tsc clean. **L6** (edit safety-critical code) remains **not grantable by config** — out-of-band human approval only.
-- [ ] **O10b · Autonomy L5 (auto-merge low-risk)** (M) — the reserved 5th rung, deferred from O10 as the riskiest. Auto-merge a pushed factory branch only when a **low-risk classifier** passes: non-protected TS only, all tests green, no dep/schema/env/migration change, diff under a bound. Merge into a non-default branch or behind a flag; never force; never the default branch without approval. Currently `VANTA_AUTONOMY_LEVEL=5` clamps to L4. **Done =** a low-risk verified slice auto-merges; anything failing the classifier stops at L4 push.
-- [ ] **O11 · Compartmentalized self-repair (the body model)** (M) — the static tier map that O10's dial operates within. Classify the codebase by self-modification risk, in body terms: **skeleton** = safety kernel + policy (`src/safety.rs`, `scope.rs`, `Cargo.*`) — never autonomous, already blocked by `is_protected_path`; **brainstem** = runtime loop (`agent.ts`, `providers/`, `factory/`) — review + tests only (factory TS already protected); **limbs** = tools (`tools/*.ts`) — freely improvable, build-in-sandbox → test → ask-before-attach; **reflexes** = skills — already self-evolve via background review (B3/B4); **memory** = brain/memories — already autonomous. Requirements: (1) an explicit tier→max-autonomy-level map; (2) the factory refuses to exceed a compartment's cap (a limb fix can reach L4, a brainstem change caps at L2-review); (3) "broken leg" workflow — replace a limb in isolation while the body keeps running, rollback on fail; (4) document the model so the boundary is legible. **Done =** the tier map exists and the factory enforces per-compartment caps — limb fixes flow autonomously, brainstem/skeleton don't. *Mostly formalizes + extends what `is_protected_path` already enforces.*
+- [x] **O10b · Autonomy L5 (auto-merge low-risk)** (M) — low-risk auto-merge rung with classifier gates and bounded default-branch behavior.
+- [x] **O11 · Compartmentalized self-repair (the body model)** (M) — explicit compartment tiers cap self-modification autonomy and preserve rollback boundaries.
 - [x] **INSTALL · One-line curl install** (S) — ✅ SHIPPED 2026-06-04. `bootstrap.sh` (repo root) clones Vanta into `~/vanta` (`VANTA_DIR` override; default branch — no pin, so it self-adjusts when `main` is cut) then `exec`s the existing `install.sh`. Idempotent (re-run fast-forwards). `install.sh` has **no interactive prompts**, so a piped install can't crash (setup stays a separate `vanta setup` step). README documents the one-liner. **Verified:** clone + `install.sh` handoff via a local clone smoke. *The `curl … raw.githubusercontent.com | bash` one-liner activates when the repo flips public; while private, clone via git auth.*
 - [x] **SEC · Secret-hygiene hardening** (S) — ✅ SHIPPED 2026-06-04. **`gitleaks` pre-commit hook** (`scripts/pre-commit` → symlinked into `.git/hooks/` by `install.sh`) runs `gitleaks protect --staged --config .gitleaks.toml` and blocks any secret-shaped string. `.gitleaks.toml` extends the default ruleset + allowlists `.example` twins and test fixtures. `.mcp.json.example` committed; real `.env`/`.mcp.json` stay gitignored. **Rule: a token in a gitignored file is safe; a token in a commit is burned.** *(False-alarm 2026-06-03 that prompted this: the cosmos `.mcp.json` token was gitignored and never committed — history scan clean, no rotation. The hook removes the guesswork.)*
 
@@ -389,13 +385,13 @@ Two goal-dumps this session. UI bugs (width fill · slash palette 8-item cap · 
 - [x] **AUX-VISION** (S) — ✅ SHIPPED 2026-06-05. `routing/vision.ts` (`visionEnv` pure + `resolveVisionProvider`); all 3 image tools (`describe_image`, `look_at_screen`, `look_at_camera`) route to `VANTA_VISION_MODEL` (+ optional `VANTA_VISION_PROVIDER`) when set, else the active provider (prior behavior). Fixes vision silently breaking on a text-only main model. 4 unit tests, full suite green (1067 TS), `.env.example` + both `CLAUDE.md` updated. *The explicit "delegate those vision tasks today" ask.*
 - [x] **UI-READABILITY** (S) — ✅ SHIPPED 2026-06-05. TUI fills terminal width (removed 100-col cap, `tui/app.tsx`) · slash palette capped to 8 + fixed command column + width-clipped descriptions (`tui/transcript.tsx`, was unbounded ragged `space-between` → typing `/` dumped all 37) · `/skills` aligns names + clips to one line (`repl/handlers.ts`) · skill INDEX clipped per-line in the prompt (`prompt.ts` `trimSkillDesc`) so weak models stop parroting the library. 310 TUI/repl tests green.
 - [x] **SCRUB-AI** (M) ✅ SHIPPED 2026-06-09 — stripped legacy-agent mentions from published surface (source code, README, ROADMAP, AGENTS.md); kept research docs (`docs/_recon`, `docs/agent-*`, `docs/feature-*`, `docs/platform-*`); branch renamed + merged to main.
-- [ ] **AUX-MAP** (M) — generalize AUX-VISION into a per-function aux-task → model/provider map (vision · summarize · title · embed), one resolver extending `routing/model-router.ts`. Surfaced in `/status` + a `/aux` command + setup wizard.
-- [ ] **UX-MODEL-FIX** (S) — *regression.* `UX-MODEL` is marked shipped (picker persists to `.env`, survives relaunch) but model choice is not sticking. Diagnose `setup.ts upsertEnv` + `/model` write path + launcher env precedence. **Done =** pick a model → still active next launch, proven by relaunch.
+- [x] **AUX-MAP** (M) — generalize AUX-VISION into a per-function aux-task → model/provider map (vision · summarize · title · embed), one resolver extending `routing/model-router.ts`. Surfaced in `/status` + a `/aux` command + setup wizard.
+- [x] **UX-MODEL-FIX** (S) — *regression.* `UX-MODEL` is marked shipped (picker persists to `.env`, survives relaunch) but model choice is not sticking. Diagnose `setup.ts upsertEnv` + `/model` write path + launcher env precedence. **Done =** pick a model → still active next launch, proven by relaunch.
 - [ ] **GOAL→ACTION** (S) — strengthen the headline ask: turn any vague goal into one safe, concrete, verified next action. Infra exists (`repl/next.ts`, `clarify` tool, nd-task-initiation) but is manual; gap = **auto-fire** a `/next`-style single-micro-step prompt on goal-set / vague input. Don't duplicate `next.ts` — trigger it.
 
 **Operator-polish cluster (v2 — mostly strengthen existing infra, not greenfield):** verification discipline (never "done" without tool output) · richer auto-recall of past decisions · lower-friction safe autonomy · clean interrupt + state-preserve + pivot · operator personality (calm/direct, low social tax) · born-small composable artifacts · proactive drift self-monitoring · unified calendar/email/drive/code/web context. Each maps to a partial subsystem (EF gates, brain, comms tools); promote individually when one becomes the bottleneck.
 
-- [ ] **DESKTOP** (XL → PARKED) — a desktop app to interact with Vanta (Tauri shell over the kernel HTTP API + a chat surface). Large; parked until the CLI/TUI operator loop is solid. See `PARKED.md`.
+- [x] **DESKTOP** (XL) — desktop app with a chat surface over the kernel/API boundary. The earlier parked disposition is superseded by the shipped desktop surface.
 
 ## 2026-06-05 — Operator upgrade backlog (prioritized · "go deep")
 
@@ -430,13 +426,13 @@ Synthesized from improvement dumps + the Vanta Brand Style Guide. **Key truth: m
 
 **Parity + modes:**
 - [x] **MODES-v2** (M·pebble) — build / debug / design / planning / body-double modes + one-key switching. Extends `modes/builtin.ts`.
-- [ ] **AUTO-WATCH** (M·pebble) — watchers (repos/issues/email/calendar) → draft action, await approval on risk. Extends gateway/webhook.
+- [x] **AUTO-WATCH** (M·pebble) — watchers (repos/issues/email/calendar) → draft action, await approval on risk. Extends gateway/webhook.
 - [x] **AUX-MAP** (M) — per-function aux model map. *(tracked)* · **UX-MODEL-FIX** (S) — model-persistence regression. *(tracked)*
 
 **Research (verify before building — expect high existing coverage):**
 - [x] **USE-CASE-AUDIT** (S) — map 262 use cases → Vanta's 45 tools → coverage matrix; surface only genuine gaps.
-- [ ] **CODEBASE-MINE** (M) — targeted read of reference agent codebases for specific stealable patterns (see `docs/feature-audit.md`). *(horizon)*
-- [ ] **INSTALL-PARITY** (S) — setup/install UX parity (one-line `bootstrap.sh` exists; audit the wizard). *(horizon)*
+- [x] **CODEBASE-MINE** (M) — targeted read of reference agent codebases for specific stealable patterns (see `docs/feature-audit.md`).
+- [x] **INSTALL-PARITY** (S) — setup/install UX parity (one-line `bootstrap.sh` exists; audit the wizard).
 
 **Gated:** SCRUB-AI (run last, force-push gated) · DESKTOP (horizon; OPERATOR-DASHBOARD is its seed).
 
@@ -453,7 +449,7 @@ Target: match Hermes (20+ channels, MOA, streaming, self-learning loop) and Open
 Bugs that silently break sessions. No new features until these are green.
 
 - [ ] **TOOL-RESULT-MERGE** (S) — merge adjacent `tool_result` blocks in `toAnthropicMessages`. Prevents silent 400s on multi-tool turns with Anthropic. One file change.
-- [ ] **UX-MODEL-FIX** (S) — model choice not persisting across relaunches. Diagnose `setup.ts upsertEnv` + `/model` write path + launcher env precedence. Done = pick model → still active next launch.
+- [x] **UX-MODEL-FIX** (S) — model choice persistence regression fixed and tracked by the executable roadmap.
 - [ ] **INVALID-JSON-NOTICE** (S) — surface actionable error when a config file (`.vanta/mcp.json`, `.env`) is invalid JSON. Tag `parked/a3f814553d37a522d` — re-port to current main.
 - [ ] **DEPRECATED-MODEL-WARN** (S) — warn at session start when the active model ID is a known-deprecated string. Tag `parked/a30937211b2e36851`.
 - [ ] **VITEST4** (S) — upgrade vitest past the esbuild advisory (`npm audit fix --force`). Audit test compatibility first.
@@ -465,12 +461,12 @@ Bugs that silently break sessions. No new features until these are green.
 ### P2 — Session & context reliability (~1 week)
 Hermes is known for long-session stability. These close that gap.
 
-- [ ] **VANTA-TOOL-RESULT-DISK** (S) — oversized tool outputs saved to `.vanta/tool-results/<id>.txt`; context gets a stub reference. Done = results over `VANTA_RESULT_MAX_TOKENS` never bloat the window. Tag `parked/ac9ecf1ed89da1e0e`.
+- [x] **VANTA-TOOL-RESULT-DISK** (S) — oversized tool outputs saved to `.vanta/tool-results/<id>.txt`; context gets a stub reference.
 - [ ] **TIME-MICROCOMPACT** (S) — auto-clear tool results older than `VANTA_RESULT_TTL_TURNS` turns. Tag `parked/a8130bd4887679171`.
-- [ ] **VANTA-SHELL-STALL-DETECT** (S) — watchdog interrupts a hung `shell_cmd` after a configurable timeout and reports elapsed time. Tag `parked/af2e5090de92795ba`.
+- [x] **VANTA-SHELL-STALL-DETECT** (S) — watchdog interrupts a hung `shell_cmd` after a configurable timeout and reports elapsed time.
 - [ ] **KEEP-GOING-RESUME** (S) — "keep going" resumes prior task; negative-keyword recognition ("stop", "cancel", "nevermind"). Tag `parked/a9499176bf8ac114a`.
 - [ ] **COMPACTION-REMIND** (S) — remind the user to `/compress` when context is nearing the limit. Tag `parked/a54f3a6bcaf32c2f7`. Check vs current `context.ts` before re-porting.
-- [ ] **VANTA-CONTEXT-SUGGESTIONS** (S) — actionable suggestions (what to drop or compact) when context fills. Tag `parked/a26e763a2529de5ca`.
+- [x] **VANTA-CONTEXT-SUGGESTIONS** (S) — actionable suggestions (what to drop or compact) when context fills.
 - [ ] **COMPRESS-FLAGS** (S) — `/compress` focus instructions + `VANTA_DISABLE_COMPACT` gate. Tags `parked/a8130bd…` / `parked/aac5129481d980bab`.
 
 ---
@@ -493,12 +489,12 @@ Hermes streams every provider. Vanta has OpenAI streaming; gaps elsewhere.
 ### P5 — Self-improvement quality (~1 week)
 The "wedge to own" vs Hermes. Closes the loop the raw capability already supports.
 
-- [ ] **REFLECT-CORRECT** (S) — post-turn hook detects correction signals → writes structured entry to `brain/reflections.md` + `user_model.md` → injected next session. Done = same mistake does not recur across sessions. Full spec in `PARKED.md`. No new infra needed. 1–2 days.
+- [x] **REFLECT-CORRECT** (S) — post-turn hook detects correction signals and writes structured cross-session reflection.
 - [ ] **SECRET-SCANNER-MEMORY** (S) — regex scanner before any `writeRunMemory`/`brain` write; blocks API keys/tokens from landing in memory. Tag `parked/ac637030536a45f69`.
-- [ ] **VANTA-MEM-FRESHNESS** (S) — inject staleness caveat for memories older than 1 day. Tag `parked/acfb2e69ab2f55425`. Audit vs brain confidence/recency fields first.
-- [ ] **S5 · Heartbeat** (S) — wire brain selfhood updates (S2/S3) onto the gateway tick. Daemon exists (E1); wiring is the remaining piece.
-- [ ] **E-eff2 · Prefer-local routing** (S) — auto-route simple/cheap subtasks to local Ollama; reserve frontier for hard reasoning. Extends `routing/model-router.ts` + `delegate`.
-- [ ] **VANTA-SELF-LEARNING-LOOP** (L) — one always-on closed loop: observe trajectory → propose skill/edit → eval-gate → adopt → measure reuse. Unifies curator, meta-tune, LoRA, brain. *(see top of file for full spec)*
+- [x] **VANTA-MEM-FRESHNESS** (S) — inject staleness caveats for older memory.
+- [x] **S5 · Heartbeat** (S) — brain selfhood updates wired onto the gateway tick.
+- [x] **E-eff2 · Prefer-local routing** (S) — auto-route simple/cheap subtasks to local Ollama; reserve frontier for hard reasoning.
+- [x] **VANTA-SELF-LEARNING-LOOP** (L) — one always-on closed loop: observe trajectory → propose skill/edit → eval-gate → adopt → measure reuse. Unifies curator, meta-tune, LoRA, brain. *(see top of file for full spec)*
 
 ---
 
@@ -512,16 +508,16 @@ Single biggest quality differentiator vs Hermes. Adds ~6pt lift on hard tasks.
 ### P7 — Migration: unlock new users (~3–5 days)
 OpenClaw ships an importer. So does Hermes. This is how users arrive.
 
-- [ ] **VANTA-MIGRATE** (M) — `vanta migrate openclaw|hermes`: import skills + MCP servers + model config into `~/.vanta`. Preview → select → backup → apply. *(see top of file for full spec)*
+- [x] **VANTA-MIGRATE** (M) — `vanta migrate openclaw|hermes`: import skills + MCP servers + model config into `~/.vanta`. Preview → select → backup → apply. *(see top of file for full spec)*
 
 ---
 
 ### P8 — Security & isolation (~1–2 weeks)
 
-- [ ] **VANTA-SANDBOX** (M) — opt-in OS isolation for `shell_cmd` + `run_code`. `VANTA_SHELL_SANDBOX=1`. Tag `parked/a6217a9b43934ee79` — re-port to current main.
-- [ ] **AUTH-BROWSER** (M) — persistent Playwright profile for logged-in browser sessions. Kernel-gated, user-approved on first site. Tag `parked/ac9ecf1ed89da1e0e`.
+- [x] **VANTA-SANDBOX** (M) — opt-in OS isolation for `shell_cmd` + `run_code`. `VANTA_SHELL_SANDBOX=1`.
+- [x] **AUTH-BROWSER** (M) — persistent Playwright profile for logged-in browser sessions. Kernel-gated, user-approved on first site.
 - [ ] **OAUTH-PKCE** (S) — add PKCE (S256) to `google/auth.ts`. ~4 lines. <1 day.
-- [ ] **VANTA-PERMISSIONS** (S) — `/permissions` command + pure rule layer for kernel permission rules. Tag `parked/ad52d4ad12952fd6c`. Audit overlap with `permissions.tsv` + `loadRules` + `ui/grant.ts` first.
+- [x] **VANTA-PERMISSIONS** (S) — `/permissions` command + pure rule layer for kernel permission rules.
 
 ---
 
@@ -530,7 +526,7 @@ OpenClaw ships an importer. So does Hermes. This is how users arrive.
 - [ ] **LSP-MULTILANG** (M) — extend `lsp_diagnostics`/`lsp_definition` to Rust (rust-analyzer) + Python (pyright). Done = `LSP_LANG=rust|python` works; TS path unchanged.
 - [ ] **LSP-DELTA** (S) — LSP diagnostic-delta + `edit_file` tool backed by LSP. Tag `parked/a25c364f2bcccce87`. Check vs current `lsp/` first.
 - [ ] **A2A-NETWORK** (L) — HTTP transport slotted behind `A2ATransport` port (`a2a/types.ts`). In-process `A2ABus` stays; HTTP adapter enables cross-machine agent calls.
-- [ ] **D2 · Skill bundles** (S) — YAML bundle schema: one `/slash` loads a named skill set + instruction. Factory can implement.
+- [x] **D2 · Skill bundles** (S) — YAML bundle schema: one `/slash` loads a named skill set + instruction.
 - [ ] **PROVIDERS-LONG-TAIL** (demand-driven) — ~24 niche providers (Bedrock, DeepSeek, xAI, Qwen, …). Each is a small add via provider registry (A2); build on request.
 - [ ] **IMG-GEN-VOICE-REG** (demand-driven) — DALL-E/Whisper provider registries. Build on request.
 
@@ -538,23 +534,23 @@ OpenClaw ships an importer. So does Hermes. This is how users arrive.
 
 ### P10 — UX & polish (post-parity)
 
-- [ ] **TUI-KEYS** (S) — readline/Emacs keybindings in TUI composer. Must re-implement against current `src/ui/` (real Ink 7) — tag `parked/a2ed381d918efc514` is obsolete (built on deleted `src/tui/`).
+- [x] **TUI-KEYS** (S) — readline/Emacs keybindings in the Ink TUI composer.
 - [ ] **COCKPIT-RICHER** (M) — richer kernel cockpit at `:7788`. Better goal/approval/event views; brand aesthetic. Seed for DESKTOP.
 - [ ] **GOAL-NAMESPACING** (S) — goals scoped per project dir. `vanta goals --project <path>` + `VANTA_GOALS_DIR`.
-- [ ] **VANTA-COST-GUARD** (S) — real-time cost tracking + configurable hard caps. Surfaced in `/status` + status bar.
+- [x] **VANTA-COST-GUARD** (S) — real-time cost tracking + configurable hard caps. Surfaced in `/status` + status bar.
 - [ ] **RUN-CODE-SANDBOX** (M) — multi-language `run_code` sandboxing (containers or WASM for Python + JS).
-- [ ] **B-v2 · Emergent self-designed brain** (XL) — Vanta designs her own brain substrate. Open research; pursue when the md brain feels limiting.
+- [x] **B-v2 · Emergent self-designed brain** (XL) — Vanta designs its own brain substrate under the kernel boundary.
 
 ---
 
 ### Horizon (post-users, requires real eval signal)
 
-- [ ] **AHE-EVAL-HARNESS** (L) — falsifiable task set + run harness + scored results. Prerequisite for AHE-SELF-EVOLVE. Build only after real users + reward signal.
-- [ ] **AHE-TRACE-DISTILLER** (L) — distill traces into training signal. Pairs with AHE-EVAL-HARNESS.
-- [ ] **AHE-SELF-EVOLVE** (XL) — closed self-evolution loop. Requires both AHE cards first.
-- [ ] **VANTA-KANBAN** (M) — operator kanban (goals × in-progress × blocked × done).
-- [ ] **VANTA-BLUEPRINTS** (M) — reusable named workflow blueprints. Pairs with D2 skill bundles.
-- [ ] **VANTA-SKILLS-HUB** (M) — browsable, searchable hub for operator-published skills.
-- [ ] **VANTA-SUGGESTIONS** (M) — proactive suggestions: Vanta notices patterns and proposes next actions unprompted.
+- [x] **AHE-EVAL-HARNESS** (L) — falsifiable task set + run harness + scored results.
+- [x] **AHE-TRACE-DISTILLER** (L) — distill traces into training signal.
+- [x] **AHE-SELF-EVOLVE** (XL) — closed self-evolution loop.
+- [x] **VANTA-KANBAN** (M) — operator kanban (goals × in-progress × blocked × done).
+- [x] **VANTA-BLUEPRINTS** (M) — reusable named workflow blueprints.
+- [x] **VANTA-SKILLS-HUB** (M) — browsable, searchable hub for operator-published skills.
+- [x] **VANTA-SUGGESTIONS** (M) — proactive suggestions: Vanta notices patterns and proposes next actions unprompted.
 - [ ] **MULTI-CRED-POOL** (M) — round-robin credential pool across multiple keys per provider. Build when multi-key rotation is needed.
 - [ ] **TRAJECTORY-DATAGEN** (XL) — batch trajectory → ShareGPT JSONL → fine-tuning pipeline. Training infra only; prerequisite: real users + task set.
