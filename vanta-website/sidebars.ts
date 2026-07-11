@@ -37,6 +37,7 @@ const sidebars: SidebarsConfig = {
         'desktop-and-tui',
         'payment-transactions',
         'shopify-operations',
+        'telephony-workflows',
       ],
     },
     {

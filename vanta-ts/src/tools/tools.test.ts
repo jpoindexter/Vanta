@@ -157,6 +157,7 @@ describe("registry", () => {
       "swarm",
       "taste_critique",
       "team",
+      "telephony_workflow",
       "terminal_capture",
       "ticket",
       "todo",

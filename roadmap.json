@@ -17908,7 +17908,7 @@
       "id": "HERMES-TELEPHONY-CONSENT-LIFECYCLE",
       "track": "Reach",
       "title": "Telephony consent lifecycle - provision numbers, SMS, calls, callbacks, and retention",
-      "status": "horizon",
+      "status": "blocked",
       "size": "L",
       "summary": "Turn the existing Twilio SMS transport into an operator workflow and add consented call/number lifecycle receipts, with later Vapi/Bland adapters behind the same contract.",
       "done": "A provider-neutral telephony contract supports number search/provisioning, SMS/MMS, and outbound calls; every recipient, purpose, consent source, allowed time window, maximum duration, recording choice, and retention policy is explicit; number purchases and sends/calls require fresh approval and idempotency; Twilio status and recording callbacks are authenticated, sequence-tolerant, and correlated into delivery/call receipts; recording is off by default and retained artifacts/transcripts follow deletion policy; existing SMS behavior is reused without exposing credentials; local callback fixtures plus live Twilio test-number/SMS/call paths pass, and Vapi/Bland remain optional adapters rather than core assumptions.",
@@ -17923,7 +17923,7 @@
         "HERMES-PORTABLE-SKILL-PACKAGES",
         "HERMES-VAULT-SECRETS-ROTATION"
       ],
-      "notes": "Build after the Shopify child. Live phone setup remains an external acceptance step."
+      "notes": "BLOCKED 2026-07-11 on external/live and provider-retention acceptance. Implemented strict environment:test Twilio profiles and provider-neutral number/SMS/call contracts with E.164 target, purpose, consent source/timestamps, allowed window, expiry, scope, UUID idempotency, bounded call duration, explicit recording/disclosure choice, callback URL, and retention. Reused the shipped SMS buildSmsForm path; added safe number search, exact number provisioning, generated XML-escaped TwiML, progress/recording callbacks, fresh non-cacheable approval, exact CLI action-ID confirmation, replay lock, and test API base restricted before credential resolution to localhost or Twilio-owned hosts. Authenticated callback service verifies the full URL/all fields using Twilio's HMAC-SHA1 algorithm and constant-time compare; test matches Twilio's published vector. Message/call/recording events correlate by account/provider ID and terminal states survive late out-of-order events. Mode-0600 receipts hash recipient/purpose/content and local prune enforces receipt retention. Added telephony_workflow plus vanta telephony search|preview|execute|receipts|prune. Real local HTTP fixtures executed number search, SMS, call, and number-provision forms while proving request-only Basic Auth and redacted outputs. Full suite: 12,955 passed, 3 skipped, 0 failed; TypeScript, 9-file size gate, npm audit (0 vulnerabilities), 30-scenario use-case validation, and Docusaurus build pass. Remaining blockers: no TWILIO_TEST_TOKEN vault alias or VANTA_TELEPHONY_TEST_API_BASE is configured, so live Twilio test number/SMS/call paths could not run; no public HTTP callback ingress is mounted; provider-side recording deletion at retention expiry is not wired; Vapi/Bland adapters remain optional follow-ups."
     },
     {
       "id": "HERMES-COMMERCE-TELEPHONY-SKILL-PACK",

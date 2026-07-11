@@ -34,6 +34,7 @@ import { runSpreadsheetCommand } from "./spreadsheet-cmd.js";
 import { runMediaStudioCommand } from "./media-studio-cmd.js";
 import { runPaymentsCommand } from "./payments-cmd.js";
 import { runShopifyCommand } from "./shopify-cmd.js";
+import { runTelephonyCommand } from "./telephony-cmd.js";
 import { runEvalCommand } from "./eval-cmd.js";
 import { runEvolveCommand } from "./evolve-cmd.js";
 import { runModelCommand } from "./model-cmd.js";
@@ -196,6 +197,7 @@ export const COMMANDS: Record<string, CommandFn> = {
   "media-studio": (root, rest) => runMediaStudioCommand(root, rest),
   payments: (root, rest) => runPaymentsCommand(root, rest),
   shopify: (root, rest) => runShopifyCommand(root, rest),
+  telephony: (root, rest) => runTelephonyCommand(root, rest),
   up: (root) => runServiceCommand(root, ["up"]),
   restart: (root) => runServiceCommand(root, ["restart"]),
   skills: (_root, rest) => runSkillsCommand(rest),

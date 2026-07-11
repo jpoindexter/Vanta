@@ -6,7 +6,7 @@ sidebar_position: 3
 
 # Tool reference
 
-Every built-in tool, generated directly from the source registry — **139 tools**. Each call is gated by the kernel before it runs (tools marked _safety-checked_ send a safety descriptor to the kernel). The model sees a per-turn scoped subset; `tool_search` pulls in the rest on demand.
+Every built-in tool, generated directly from the source registry — **140 tools**. Each call is gated by the kernel before it runs (tools marked _safety-checked_ send a safety descriptor to the kernel). The model sees a per-turn scoped subset; `tool_search` pulls in the rest on demand.
 
 ## Files & code
 
@@ -1609,6 +1609,18 @@ Score and critique a generated artifact against a persisted Jason-specific taste
 | `preference` | string | no | a durable preference signal to learn (action:prefer) |
 | `name` | string | no | baseline name for visual snapshot/regress/rebaseline |
 | `target` | string | no | screenshot target for snapshot/regress: an http(s) url or an in-scope file path |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `telephony_workflow`
+
+Search test numbers or preview/execute consented Twilio SMS, bounded calls, and number provisioning. Requires explicit purpose, consent, time window, recording/retention choice, idempotency, fresh approval, and lifecycle receipts.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes |  |
+| `search` | object | no |  |
+| `contract` | object | no |  |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 

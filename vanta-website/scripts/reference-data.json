@@ -3879,6 +3879,34 @@
       "hasSafety": true
     },
     {
+      "name": "telephony_workflow",
+      "description": "Search test numbers or preview/execute consented Twilio SMS, bounded calls, and number provisioning. Requires explicit purpose, consent, time window, recording/retention choice, idempotency, fresh approval, and lifecycle receipts.",
+      "parameters": {
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "search_numbers",
+              "preview",
+              "execute",
+              "status"
+            ]
+          },
+          "search": {
+            "type": "object"
+          },
+          "contract": {
+            "type": "object"
+          }
+        }
+      },
+      "hasSafety": true
+    },
+    {
       "name": "spreadsheet_workbook",
       "description": "Inspect, preview, or approval-gated apply cell, formula, and sheet changes to a scoped local .xlsx workbook. Apply reopens the result and writes a SHA-256 receipt.",
       "parameters": {
