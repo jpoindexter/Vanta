@@ -41,3 +41,4 @@ jobs:
           name: service-proof-${{ matrix.os }}
           path: vanta-ts/.artifacts/service-proof-*.json
           if-no-files-found: error
+          include-hidden-files: true
