@@ -68,6 +68,15 @@ export function resolveDeliver(
   return build(rest, { telegram });
 }
 
+/** Validate only the target scheme; live credentials are checked when delivery starts. */
+export function validateDeliverTarget(target: string): { ok: true } | { ok: false; error: string } {
+  const normalized = target === "" ? "local" : target;
+  const colon = normalized.indexOf(":");
+  const scheme = colon >= 0 ? normalized.slice(0, colon) : normalized;
+  if (DELIVERY_TARGETS.has(scheme)) return { ok: true };
+  return { ok: false, error: `unknown deliver target "${target}" (registered: ${[...DELIVERY_TARGETS.keys()].join(" | ")})` };
+}
+
 export type WebhookServer = { port: number; close: () => Promise<void> };
 
 /**

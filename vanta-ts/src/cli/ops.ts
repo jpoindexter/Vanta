@@ -159,6 +159,13 @@ export async function runGatewayCommand(repoRoot: string, rest: string[] = []): 
     replyBus,
     media: buildMediaBridgeDeps(), // MSG-MEDIA-IMAGES: inbound image→vision, voice→STT
     webhook,
+    workflowWebhooks: {
+      port: Number(process.env.VANTA_WORKFLOW_WEBHOOK_PORT) || 7790,
+      resolveDeliver: (target: string) => resolveDeliver(
+        target,
+        platform ? async (chatId, text) => { await platform.send({ chatId, text }); } : undefined,
+      ),
+    },
     home: resolveVantaHome(),
     tickMs: Number(process.env.VANTA_GATEWAY_TICK_MS) || undefined,
   });

@@ -17323,7 +17323,7 @@
       "id": "HERMES-WEBHOOK-WORKFLOW-BUILDER",
       "track": "Operator",
       "title": "Webhook workflow builder — internet events trigger approved Vanta work",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "The Hermes webhooks transcript frames webhooks as the bridge from chat agent to automated backend: email, signup, PR, and other internet events should start useful work. Vanta has webhook triggers and delivery targets; the missing layer is a guided builder with templates, dry runs, and receipts.",
       "done": "`vanta webhook workflow new` creates event templates for GitHub PRs, email, form/subscriber events, and generic HMAC POST; it generates the secret/test payload, runs a dry-run, stores route/delivery receipts, and shows the workflow in Operator Home with enable/disable controls.",
@@ -17334,7 +17334,7 @@
       "lens": "agent-loop",
       "updated": "2026-07-11",
       "source": "hermes-transcript-roadmap-extract-2026-07-11",
-      "notes": "Source: Tonbis 2026-04-22 Hermes Agent + Webhooks. Extends shipped E3/HP-WEBHOOK-SUBSCRIPTIONS/PCLIP-WORK-QUEUES with activation UX and receipts."
+      "notes": "Shipped 2026-07-11. `vanta webhook workflow` creates GitHub PR, email, subscriber/form, and generic HMAC templates; stores mode-0600 secrets separately; prints a one-time secret and sample payload; runs dry-runs; and supports list/show/test/enable/disable. Enabled routes run through the gateway agent handle and registered delivery targets, record body-hash route and delivery receipts, and appear in Operator Home. Executed proof used the real CLI to create/show/enable a generic workflow, sent a correctly signed POST through the gateway bridge, observed HTTP 202 plus agent output delivery, and verified accepted-route and delivered receipts. Source: Tonbis 2026-04-22 Hermes Agent + Webhooks."
     },
     {
       "id": "HERMES-SPREADSHEET-COPILOT",

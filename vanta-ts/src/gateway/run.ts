@@ -34,6 +34,8 @@ import { loadDef } from "../loop/store.js";
 import type { GatewayHandle } from "./stream-events.js";
 import { startPlatformWebhookServer, type PlatformWebhookServer } from "./platform-webhook.js";
 import { runDailySentinels, type SentinelRunDeps } from "../goals/sentinel.js";
+import { listWorkflows } from "../webhook-workflows/store.js";
+import { startWorkflowWebhookServer, type WorkflowWebhookServer } from "../webhook-workflows/runtime.js";
 
 const DEFAULT_TICK_MS = 60_000;
 
@@ -54,6 +56,10 @@ export type GatewayDeps = {
     secret?: string;
     prompt: (body: string) => string;
     deliver: Deliver;
+  };
+  workflowWebhooks?: {
+    port: number;
+    resolveDeliver: (target: string) => Deliver;
   };
   home?: string;
   /** Push-channel webhook listener. Defaults to loopback:3978 when a configured adapter exposes handlers. */
@@ -106,10 +112,7 @@ export async function gatewayTick(deps: GatewayDeps): Promise<number> {
   const log = deps.log ?? ((m: string) => console.log(m));
   const spawnLoop = deps.spawnLoop ?? ((id: string, wake: WakeContext) => spawnLoopChild(id, log, wake));
   const queuedWakes = await fireQueuedWakes(deps, spawnLoop, log);
-  const allEntries = deps.load ? await deps.load(deps.dataDir) : await loadCron(deps.dataDir);
-  const dueEntries = allEntries.filter((e) => e.status === "active" && isDue(e.cron, now));
-  const factoryEntries = dueEntries.filter((e) => e.instruction.startsWith("__factory__"));
-  const regularEntries = dueEntries.filter((e) => !e.instruction.startsWith("__factory__"));
+  const { factoryEntries, regularEntries } = await dueTaskGroups(deps, now);
   for (const _entry of factoryEntries) {
     spawnFactoryChild(deps.dataDir, log);
   }
@@ -148,6 +151,15 @@ export async function gatewayTick(deps: GatewayDeps): Promise<number> {
   // (no-op unless VANTA_LORA_AUTO=1; best-effort, never breaks the tick).
   await maybeAutoTune(deps.dataDir, log);
   return queuedWakes + results.length + factoryEntries.length + sentinelResults.length + loopsFired;
+}
+
+async function dueTaskGroups(deps: GatewayDeps, now: Date): Promise<{ factoryEntries: CronEntry[]; regularEntries: CronEntry[] }> {
+  const allEntries = deps.load ? await deps.load(deps.dataDir) : await loadCron(deps.dataDir);
+  const dueEntries = allEntries.filter((entry) => entry.status === "active" && isDue(entry.cron, now));
+  return {
+    factoryEntries: dueEntries.filter((entry) => entry.instruction.startsWith("__factory__")),
+    regularEntries: dueEntries.filter((entry) => !entry.instruction.startsWith("__factory__")),
+  };
 }
 
 async function sleepInterval(tickMs: number, stillRunning: () => boolean): Promise<void> {
@@ -201,6 +213,26 @@ export async function startMessagingWebhook(
   });
 }
 
+/** Start persisted, multi-route workflow webhooks when at least one is enabled. */
+export async function startWorkflowWebhooks(
+  deps: Pick<GatewayDeps, "dataDir" | "handle" | "workflowWebhooks">,
+  log: (message: string) => void,
+): Promise<WorkflowWebhookServer | undefined> {
+  if (!deps.handle || !deps.workflowWebhooks) return undefined;
+  const workflows = await listWorkflows(deps.dataDir);
+  if (!workflows.some((workflow) => workflow.enabled)) return undefined;
+  return startWorkflowWebhookServer({
+    port: deps.workflowWebhooks.port,
+    dataDir: deps.dataDir,
+    handle: deps.handle,
+    resolveDeliver: deps.workflowWebhooks.resolveDeliver,
+    log,
+  }).catch((error: unknown) => {
+    log(`vanta gateway: workflow webhook listener failed — ${error instanceof Error ? error.message : String(error)}`);
+    return undefined;
+  });
+}
+
 /** The gateway's tick→poll→sleep loop, run for as long as `isRunning()`. */
 async function runGatewayLoop(args: GatewayLoopArgs): Promise<void> {
   const { deps, tickMs, log, isRunning } = args;
@@ -230,6 +262,7 @@ export async function runGateway(deps: GatewayDeps): Promise<void> {
   process.once("SIGTERM", stop);
   if (deps.platform) await deps.platform.connect().catch(() => {});
   const webhookServer: WebhookServer | undefined = await startWebhookIfConfigured(deps.webhook, deps.handle, log);
+  const workflowWebhookServer = await startWorkflowWebhooks(deps, log);
   const platformWebhookServer = await startMessagingWebhook(deps, log);
   log(
     `vanta gateway: ticking every ${Math.round(tickMs / 1000)}s` +
@@ -244,6 +277,7 @@ export async function runGateway(deps: GatewayDeps): Promise<void> {
   );
   if (deps.platform) await deps.platform.disconnect().catch(() => {});
   if (webhookServer) await webhookServer.close().catch(() => {});
+  if (workflowWebhookServer) await workflowWebhookServer.close().catch(() => {});
   if (platformWebhookServer) await platformWebhookServer.close().catch(() => {});
   log("vanta gateway: stopped.");
 }

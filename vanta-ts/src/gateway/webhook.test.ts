@@ -6,6 +6,7 @@ import { createHmac } from "node:crypto";
 import {
   verifyGithubSignature,
   resolveDeliver,
+  validateDeliverTarget,
   registerDeliveryTarget,
   startWebhookServer,
   type WebhookServer,
@@ -56,6 +57,8 @@ describe("resolveDeliver", () => {
   });
 
   it("throws on a telegram target with no sender, and on unknown targets", () => {
+    expect(validateDeliverTarget("telegram:1")).toEqual({ ok: true });
+    expect(validateDeliverTarget("carrier-pigeon")).toMatchObject({ ok: false });
     expect(() => resolveDeliver("telegram:1")).toThrow(/VANTA_TELEGRAM_TOKEN/);
     expect(() => resolveDeliver("carrier-pigeon")).toThrow(/unknown deliver target/);
   });

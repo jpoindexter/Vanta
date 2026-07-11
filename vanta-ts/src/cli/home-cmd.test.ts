@@ -7,6 +7,7 @@ import { createProfile, switchProfile, targetProfile } from "../profiles/store.j
 import { decomposeGoal } from "../kanban/kanban.js";
 import { addRoutedLane, claimRoutedLane } from "../kanban/router.js";
 import { saveKanbanBoard } from "../kanban/store.js";
+import { createWorkflow, setWorkflowEnabled } from "../webhook-workflows/store.js";
 
 let root: string;
 let home: string;
@@ -66,5 +67,21 @@ describe("runHomeCommand", () => {
     } finally {
       spy.mockRestore();
     }
+  });
+
+  it("shows enabled and disabled webhook workflows with controls", async () => {
+    const dataDir = join(root, ".vanta");
+    await createWorkflow(dataDir, { id: "pr-review", name: "PR review", template: "github-pr", secret: "s" });
+    await createWorkflow(dataDir, { id: "signup", name: "Signup", template: "subscriber", secret: "s" });
+    await setWorkflowEnabled(dataDir, "pr-review", true);
+    const lines: string[] = [];
+    const spy = vi.spyOn(console, "log").mockImplementation((msg = "") => { lines.push(String(msg)); });
+    try {
+      expect(await runHomeCommand(dataDir, { ...process.env, VANTA_HOME: home })).toBe(0);
+      const out = lines.join("\n");
+      expect(out).toContain("Webhook Workflows");
+      expect(out).toContain("2 workflow(s), 1 enabled, 1 disabled");
+      expect(out).toContain("vanta webhook workflow list");
+    } finally { spy.mockRestore(); }
   });
 });

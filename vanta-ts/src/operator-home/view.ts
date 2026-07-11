@@ -11,6 +11,7 @@ import { listKanbanBoards } from "../kanban/store.js";
 import type { KanbanBoard } from "../kanban/schema.js";
 import { dirname } from "node:path";
 import { listDelegationTrees } from "../subagent/delegation-receipt.js";
+import { listWorkflows as listWebhookWorkflows, type WebhookWorkflow } from "../webhook-workflows/store.js";
 
 export type HomeSection = {
   name: string;
@@ -41,7 +42,7 @@ export async function buildOperatorHome(opts: {
   env: NodeJS.ProcessEnv;
   toolNames: string[];
 }): Promise<string> {
-  const [stack, bgTasks, cron, skills, memory, reach, caps, profiles, boards, delegations] = await Promise.all([
+  const [stack, bgTasks, cron, skills, memory, reach, caps, profiles, boards, delegations, webhooks] = await Promise.all([
     readStack(opts.dataDir),
     listBgTasks(opts.dataDir),
     loadCron(opts.dataDir),
@@ -52,6 +53,7 @@ export async function buildOperatorHome(opts: {
     listProfiles(opts.env),
     listKanbanBoards(dirname(opts.dataDir)),
     listDelegationTrees(dirname(opts.dataDir)),
+    listWebhookWorkflows(opts.dataDir),
   ]);
   return formatOperatorHome({ sections: [
     workflowSection(opts.toolNames),
@@ -59,12 +61,24 @@ export async function buildOperatorHome(opts: {
     skillsSection(skills.length),
     agentsSection(stack.tasks.length, bgTasks.filter((t) => t.status === "running").length),
     delegationSection(delegations),
+    webhookSection(webhooks),
     profilesSection(profiles),
     kanbanSection(boards),
     memorySection(memory.goals, memory.totalBytes),
     watchersSection(cron.filter((c) => c.status === "active").length),
     setupSection(caps.filter((c) => !c.ok).length),
   ] });
+}
+
+function webhookSection(workflows: WebhookWorkflow[]): HomeSection {
+  const enabled = workflows.filter((workflow) => workflow.enabled).length;
+  const disabled = workflows.length - enabled;
+  return section(
+    "Webhook Workflows",
+    enabled ? "watch" : workflows.length ? "setup" : "setup",
+    `${workflows.length} workflow(s), ${enabled} enabled, ${disabled} disabled`,
+    workflows.length ? "`vanta webhook workflow list`" : "`vanta webhook workflow new generic --id <id>`",
+  );
 }
 
 function delegationSection(trees: Awaited<ReturnType<typeof listDelegationTrees>>): HomeSection {
