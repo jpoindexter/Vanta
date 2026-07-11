@@ -42,6 +42,7 @@ jobs:
           sudo systemctl start "user@${uid}.service"
           mkdir -p .artifacts
           sudo chown vanta-proof .artifacts
+          sudo chmod o+rx "$HOME" "$HOME/work" "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/vanta-ts"
           sudo chmod -R a+rX node_modules
           sudo -u vanta-proof env \
             HOME=/home/vanta-proof \
