@@ -6,7 +6,7 @@ import {
 } from "../desktop/handlers.js";
 import { attachSse, pushSseEvent, type SseClients } from "../desktop/session-state.js";
 
-export type PublicApiRouteOptions = { enabled: boolean; home: string };
+export type PublicApiRouteOptions = { enabled: boolean; home: string; allowedOrigins: ReadonlySet<string> };
 type RouteArgs = {
   req: http.IncomingMessage;
   res: http.ServerResponse;
@@ -20,6 +20,9 @@ type RouteArgs = {
 export async function handlePublicApiRoute(args: RouteArgs): Promise<boolean> {
   if (!args.pathname.startsWith("/api/v1/")) return false;
   if (!args.options.enabled) return forbidden(args.res);
+  const cors = applyPublicApiCors(args.req, args.res, args.options.allowedOrigins);
+  if (args.req.method === "OPTIONS") { args.res.writeHead(cors ? 204 : 403); args.res.end(); return true; }
+  if (args.req.headers.origin && !cors) return forbiddenOrigin(args.res);
   if (!await authorized(args.req, args.options.home)) return unauthorized(args.res);
 
   const key = `${args.req.method}:${args.pathname}`;
@@ -39,6 +42,20 @@ export async function handlePublicApiRoute(args: RouteArgs): Promise<boolean> {
     return true;
   }
   return false;
+}
+
+export function parsePublicApiAllowedOrigins(raw: string | undefined): Set<string> {
+  const origins = new Set<string>();
+  for (const entry of (raw ?? "").split(",").map((value) => value.trim()).filter(Boolean)) {
+    const url = new URL(entry); if (url.protocol !== "https:" || url.origin !== entry) throw new Error(`public API CORS origin must be an exact HTTPS origin: ${entry}`); origins.add(entry);
+  }
+  return origins;
+}
+
+function applyPublicApiCors(req: http.IncomingMessage, res: http.ServerResponse, allowed: ReadonlySet<string>): boolean {
+  const origin = req.headers.origin; if (typeof origin !== "string" || !allowed.has(origin)) return false;
+  res.setHeader("access-control-allow-origin", origin); res.setHeader("vary", "origin");
+  res.setHeader("access-control-allow-headers", "authorization, content-type, x-session-id"); res.setHeader("access-control-allow-methods", "GET, POST, OPTIONS"); return true;
 }
 
 async function handleStreamingInput(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
@@ -76,4 +93,5 @@ async function authorized(req: http.IncomingMessage, home: string): Promise<bool
 }
 
 function forbidden(res: http.ServerResponse): true { sendJson(res, 403, { error: "public API is not enabled" }); return true; }
+function forbiddenOrigin(res: http.ServerResponse): true { sendJson(res, 403, { error: "public API origin is not allowed" }); return true; }
 function unauthorized(res: http.ServerResponse): true { sendJson(res, 401, { error: "valid bearer token required" }); return true; }

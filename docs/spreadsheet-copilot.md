@@ -69,8 +69,28 @@ opened the workbook and rendered assumptions, five forecast years, 25
 sensitivity values, the 640x360 chart, and passing checks without formula
 errors.
 
-Current boundary: Google Sheets and Excel custom functions are not yet claimed.
-The sidecar should use the existing token-authenticated public API
-(`vanta api serve`, then `POST /api/v1/input`) so spreadsheet requests enter the
-same Vanta session and kernel-gated tool boundary; it must not write workbooks
-directly around `spreadsheet_workbook`.
+## Excel sidecar
+
+`SpreadsheetVantaClient` in the operator SDK sends bounded workbook context to
+the token-authenticated public API and marks cell values as untrusted data. The
+example custom function is under
+`examples/spreadsheet-sidecar/excel-custom-functions.ts`.
+
+Put an HTTPS proxy in front of loopback Vanta, create a revocable API token, and
+allow only the add-in origin:
+
+```bash
+vanta api token create "Excel add-in"
+export VANTA_PUBLIC_API_ALLOWED_ORIGINS="https://localhost:3000"
+vanta api serve 7791
+```
+
+Store the proxied API URL and token in `OfficeRuntime.storage`, never workbook
+cells. Exact HTTPS CORS preflight plus authenticated allowed/denied-origin
+requests pass against a real Vanta HTTP server fixture. Spreadsheet requests
+therefore enter the normal Vanta session and kernel-gated tool boundary; the
+client does not write workbooks around `spreadsheet_workbook`.
+
+Current boundary: the client, CORS, auth, and kernel path are implemented, but
+the custom function has not run inside a real Excel host. Google Sheets host
+integration is also not claimed.

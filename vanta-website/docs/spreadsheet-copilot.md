@@ -23,7 +23,8 @@ reopened, checked, and recorded with SHA-256 evidence.
 
 A real Vanta CLI run generated an 88-formula DCF and embedded a revenue chart;
 LibreOffice independently opened and rendered the workbook with passing model
-checks. Excel/Google Sheets custom-function and sidecar acceptance remains an
-external host proof.
+checks. The operator SDK now includes a bounded spreadsheet client, and the
+public API enforces an exact HTTPS CORS allowlist for browser add-ins. A real
+Excel or Google Sheets host round trip remains the external proof.
 
 See the repository's [full spreadsheet guide](https://github.com/jpoindexter/Vanta/blob/main/docs/spreadsheet-copilot.md).

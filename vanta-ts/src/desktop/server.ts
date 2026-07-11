@@ -116,6 +116,7 @@ async function routeRequest(req: http.IncomingMessage, res: http.ServerResponse,
 type DesktopServerOptions = Partial<CompanionRouteOptions> & {
   isLoopback?: (req: http.IncomingMessage) => boolean;
   publicApi?: boolean;
+  publicApiAllowedOrigins?: readonly string[];
   sessions?: SessionMap;
   sseClients?: SseClients;
 };
@@ -124,7 +125,7 @@ export function createDesktopServer(repoRoot: string, options: DesktopServerOpti
   const sessions: SessionMap = options.sessions ?? new Map();
   const sseClients: SseClients = options.sseClients ?? new Map();
   const companion = { enabled: options.enabled ?? false, home: options.home ?? resolveVantaHome(), port: options.port ?? 7790 };
-  const publicApi = { enabled: options.publicApi ?? false, home: options.home ?? resolveVantaHome() };
+  const publicApi = { enabled: options.publicApi ?? false, home: options.home ?? resolveVantaHome(), allowedOrigins: new Set(options.publicApiAllowedOrigins ?? []) };
   const opts: ServerOpts = { sessions, sseClients, repoRoot, companion, publicApi, isLoopback: options.isLoopback ?? isLoopbackRequest };
   return http.createServer((req, res) => {
     void routeRequest(req, res, opts)

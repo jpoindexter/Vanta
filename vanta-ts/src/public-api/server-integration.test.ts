@@ -42,6 +42,19 @@ describe("public API v1", () => {
       await expect(client.currentApproval()).rejects.toMatchObject({ status: 401 });
     } finally { await closeServer(server); }
   });
+
+  it("allows exact HTTPS CORS origins for preflight and rejects other browser origins", async () => {
+    const home = await mkdtemp(join(tmpdir(), "vanta-api-cors-")); homes.push(home); const issued = await issuePublicApiToken(home, "Excel add-in");
+    const state = getSession(new Map(), "excel", join(process.cwd(), "..")), server = createDesktopServer(state.root, { publicApi: true, publicApiAllowedOrigins: ["https://localhost:3000"], home, port: 0 });
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    try {
+      const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api/v1/sessions`, allowed = "https://localhost:3000";
+      const preflight = await fetch(base, { method: "OPTIONS", headers: { origin: allowed, "access-control-request-method": "GET", "access-control-request-headers": "authorization,x-session-id" } });
+      expect(preflight.status).toBe(204); expect(preflight.headers.get("access-control-allow-origin")).toBe(allowed); expect(preflight.headers.get("access-control-allow-headers")).toContain("x-session-id");
+      expect((await fetch(base, { headers: { origin: "https://evil.example", authorization: `Bearer ${issued.token}` } })).status).toBe(403);
+      const accepted = await fetch(base, { headers: { origin: allowed, authorization: `Bearer ${issued.token}` } }); expect(accepted.status).toBe(200); expect(accepted.headers.get("access-control-allow-origin")).toBe(allowed);
+    } finally { await closeServer(server); }
+  });
 });
 
 async function waitFor(predicate: () => boolean): Promise<void> {

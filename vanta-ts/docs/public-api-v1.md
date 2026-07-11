@@ -13,6 +13,19 @@ The token is printed once. Vanta stores only its SHA-256 hash in `~/.vanta/publi
 
 Every request requires `Authorization: Bearer <token>`. A client channel is selected with `X-Session-Id`; the SDK generates one and keeps it stable for the life of the client. Revoke a credential immediately with `vanta api token revoke <id>`.
 
+Browser-hosted clients such as an Excel add-in require an exact HTTPS CORS
+allowlist. Put a trusted TLS proxy in front of the loopback server, then start
+Vanta with the add-in origin, not the API URL:
+
+```bash
+export VANTA_PUBLIC_API_ALLOWED_ORIGINS="https://localhost:3000"
+vanta api serve 7791
+```
+
+Only exact HTTPS origins are accepted; paths, HTTP origins, and wildcards are
+rejected at startup. Allowed preflight requests do not require bearer auth, but
+every real API request still does. Unlisted browser origins receive `403`.
+
 ## HTTP contract
 
 Base URL: `http://127.0.0.1:7791/api/v1`
