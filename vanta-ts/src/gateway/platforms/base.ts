@@ -56,6 +56,23 @@ export type OutboundMessage = {
   image?: { mime: string; dataBase64: string };
 };
 
+export type OutboundFile = {
+  chatId: string;
+  threadId?: string;
+  name: string;
+  mime: string;
+  data: Uint8Array;
+};
+
+export type OutboundFileDeliveryReceipt = {
+  platform: string;
+  transport: string;
+  accepted: true;
+  name: string;
+  mime: string;
+  bytes: number;
+};
+
 /** Positive transport acknowledgement. Absence means delivery is unproven. */
 export type OutboundDeliveryReceipt = {
   platform: string;
@@ -91,6 +108,8 @@ export interface PlatformAdapter {
   disconnect(): Promise<void>;
   /** Send one outbound message. */
   send(msg: OutboundMessage): Promise<void | OutboundDeliveryReceipt>;
+  /** Native file upload. Absence means this channel is text/image-only. */
+  sendFile?(file: OutboundFile): Promise<void | OutboundFileDeliveryReceipt>;
   /** Fetch inbound messages received since the last poll. */
   poll(): Promise<InboundMessage[]>;
   /** Push-channel HTTP handlers, when this adapter receives webhook events. */

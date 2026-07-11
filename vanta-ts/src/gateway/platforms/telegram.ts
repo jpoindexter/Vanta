@@ -3,6 +3,8 @@ import type {
   InboundMessage,
   OutboundDeliveryReceipt,
   OutboundMessage,
+  OutboundFile,
+  OutboundFileDeliveryReceipt,
   PlatformAdapter,
   PlatformWebhookHandler,
 } from "./base.js";
@@ -171,5 +173,18 @@ export class TelegramAdapter implements PlatformAdapter {
     return parts > 0
       ? { platform: "telegram", transport: "bot-api", accepted: true, parts }
       : undefined;
+  }
+
+  async sendFile(file: OutboundFile): Promise<OutboundFileDeliveryReceipt | undefined> {
+    const body = new FormData();
+    body.set("chat_id", file.chatId);
+    if (file.threadId !== undefined) body.set("message_thread_id", file.threadId);
+    body.set("document", new Blob([file.data], { type: file.mime }), file.name);
+    const response = await fetch(`${this.base}/sendDocument`, { method: "POST", body });
+    const id = parseSentId(await safeJson(response));
+    return id ? {
+      platform: "telegram", transport: "bot-api:sendDocument", accepted: true,
+      name: file.name, mime: file.mime, bytes: file.data.byteLength,
+    } : undefined;
   }
 }

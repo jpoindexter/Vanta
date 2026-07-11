@@ -21,6 +21,10 @@ import { finishMobileRun, handleMobileControlCommand, startMobileRun } from "./m
 import { progressBubbleForPlatform, type ProgressBubbleConfig } from "./progress-bubble.js";
 import { createGatewayStreamSink, type GatewayHandle } from "./stream-events.js";
 import { appendChannelProof, buildChannelProof } from "./channel-proof.js";
+import { dirname } from "node:path";
+import { readWorkProducts } from "../cofounder/work-products.js";
+import { planDeliverables } from "./deliverables.js";
+import { sendDeliverables } from "./deliverable-send.js";
 
 function firstLine(text: string): string {
   const line = text.split("\n")[0] ?? "";
@@ -86,7 +90,23 @@ async function runOne(ctx: SessionRun, m: InboundMessage): Promise<void> {
   if (isIntentionalSilence(reply)) { ctx.log(`  🤫 silence (${reply.trim()}): no reply sent`); return; }
   // MessageStop is the only deliverable/history-bearing event. Buffered chunks
   // and commentary are transient, so platform text and reply context cannot race.
-  await sink.emit({ type: "MessageStop", text: reply });
+  await deliverFinalReply(ctx, m, sink.emit, reply);
+}
+
+async function deliverFinalReply(ctx: SessionRun, m: InboundMessage, emit: (event: { type: "MessageStop"; text: string }) => Promise<void>, reply: string): Promise<void> {
+  const plan = await planDeliverables({
+    reply, root: dirname(ctx.dataDir), env: process.env, now: Date.now(),
+    workProducts: await readWorkProducts(process.env),
+  }).catch((error) => {
+    ctx.log(`  deliverable planning failed: ${(error as Error).message}`);
+    return { visibleText: reply, files: [], skipped: [] };
+  });
+  await emit({ type: "MessageStop", text: plan.visibleText });
+  const delivered = await sendDeliverables({
+    dataDir: ctx.dataDir, platform: ctx.platform, target: { chatId: m.chatId, threadId: m.threadId },
+    files: plan.files, log: ctx.log,
+  });
+  for (const reason of [...plan.skipped, ...delivered.skipped]) ctx.log(`  deliverable skipped: ${reason}`);
 }
 
 /** Route one enriched inbound message: run now, queue, or surface the command. */

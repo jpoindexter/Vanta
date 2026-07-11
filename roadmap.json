@@ -17479,7 +17479,7 @@
       "id": "HERMES-DELIVERABLE-AUTO-ATTACH",
       "track": "Reach",
       "title": "Deliverable auto-attach — generated files become native chat artifacts",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Hermes deliverable mode scans final responses and Kanban completions for generated files, then sends supported files as native chat attachments. Vanta has work products and media plumbing; the gap is turning produced reports, charts, spreadsheets, decks, and HTML files into channel-native artifacts automatically.",
       "done": "When a run produces approved artifact paths, gateway delivery uploads supported image, pdf, csv, xlsx, pptx, html, and text outputs as native attachments on capable channels; source/log extensions are skipped by default; existence, recency, and workspace scope are validated; visible chat copy removes local paths and receipt logs record delivery.",
@@ -17490,7 +17490,7 @@
       "lens": "reach",
       "updated": "2026-07-11",
       "source": "hermes-feature-function-harvest-2026-07-11",
-      "notes": "Source: current Hermes deliverable mode docs. Build on Vanta work products and messaging media adapters; the key behavior is channel-native delivery with scoped file validation."
+      "notes": "Source: current Hermes deliverable mode docs. Build on Vanta work products and messaging media adapters; the key behavior is channel-native delivery with scoped file validation.\n\nSHIPPED 2026-07-11: the gateway scans canonical final replies plus approved work products for png/jpg/jpeg/gif/webp/pdf/csv/xlsx/pptx/html/txt/md artifacts, dedupes them, removes local paths from visible copy, and skips source/config/log extensions by default. Every file must pass the existing protected-path/workspace scope guard plus a recent-mtime anti-exfil window before bytes are read. PlatformAdapter now has an optional native sendFile port; Telegram implements Bot API sendDocument with forum-topic routing. Channels without the port receive sanitized text and never read the file. Successful uploads append platform, transport, name, MIME, bytes, source, and timestamp to `.vanta/deliverable-receipts.jsonl`, never contents. Executed gateway acceptance proved a generated PDF path becomes sanitized canonical text, a native upload, and a receipt. Focused gates: 50 gateway tests plus typecheck and touched-file size/complexity lint. The first full suite hit one unrelated ENOTEMPTY watcher-cleanup race; its isolated rerun passed and the required full rerun passed 1,278 files / 12,837 tests with 3 skipped. Docs build, use-case validation, roadmap uniqueness, and diff checks passed."
     },
     {
       "id": "HERMES-ISSUE-REGRESSION-PACK",

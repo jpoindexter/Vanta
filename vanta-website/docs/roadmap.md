@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1160 capabilities shipped · 0 in flight · 4 on the horizon. Updated 2026-07-11._
+_1161 capabilities shipped · 0 in flight · 3 on the horizon. Updated 2026-07-11._
 
 ## In flight
 
@@ -18,7 +18,7 @@ _Nothing in flight right now — see the horizon below._
 
 ## Recently shipped
 
-The latest of 1160+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1161+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Profile roster — persistent specialist agents with isolated state** — Operator · 2026-07-11
 - **Profile Kanban router — durable board routes work by specialist skill** — Operator · 2026-07-11
@@ -33,13 +33,13 @@ The latest of 1160+ capabilities. See the [changelog](./changelog) for curated m
 - **Context references v2 — @file ranges, @folder, @diff, @git, @url** — Harness · 2026-07-11
 - **Credential pools — rotate same-provider keys before cross-provider fallback** — Harness · 2026-07-11
 - **Plugin LLM lane — bounded host-owned model calls from plugins** — Harness · 2026-07-11
+- **Deliverable auto-attach — generated files become native chat artifacts** — Reach · 2026-07-11
 - **Hermes issue regression pack — turn competitor failures into Vanta invariants** — Harness · 2026-07-11
 - **Hermes story eval harness — test real community jobs across all 15 categories** — Harness · 2026-07-11
 - **Vanta public site v1 — product-first homepage, use cases, install, and proof** — Reach · 2026-07-11
 - **Choice-wall side-effect guard — no post-turn writes before the operator chooses** — Harness · 2026-07-11
 - **Glob base-path root scope — relative searches use the declared project** — Harness · 2026-07-11
 - **Compaction intent grounding — generated summaries cannot invent user asks** — Harness · 2026-07-11
-- **ACP session routing isolation — peer events cannot cross active session IDs** — Harness · 2026-07-11
 
 ## On the horizon
 
@@ -53,7 +53,6 @@ Directional, not committed — grouped by area, newest thinking first.
 
 - Spreadsheet copilot — Excel/Sheets agent surface with charts and custom functions
 
-### Reach — 2 planned
+### Reach — 1 planned
 
-- Deliverable auto-attach — generated files become native chat artifacts
 - Cross-platform service supervisor — one `vanta up` on macOS, Linux, and Windows

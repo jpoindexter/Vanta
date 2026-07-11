@@ -153,6 +153,8 @@ Recent Hermes transcript mining added a focused parity path to the roadmap: pers
 
 Same-provider credential pools are managed with `vanta auth pool`; they lease environment, Keychain, Bitwarden, 1Password, or vault references without persisting values, rotate on credential failures, and exhaust before cross-provider fallback. See [`docs/credential-pools.md`](docs/credential-pools.md).
 
+Gateway runs can deliver recent in-scope reports, charts, spreadsheets, decks, HTML, and text files as native channel attachments while removing local paths from visible copy. See [`docs/deliverable-attachments.md`](docs/deliverable-attachments.md).
+
 Persistent specialist profiles are now available through `vanta profiles`. Each profile has
 an isolated Vanta home for its model/settings, skills, memory, gateway identity/state,
 inbox, and work history. Create and target one by name, then switch on the next start:

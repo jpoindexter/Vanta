@@ -215,6 +215,26 @@ describe("MSG-TELEGRAM-ROBUST send behavior", () => {
   });
 });
 
+describe("Telegram native file delivery", () => {
+  it("uploads a document with thread routing and returns a byte receipt", async () => {
+    const real = globalThis.fetch;
+    let request: { url: string; body: FormData } | undefined;
+    globalThis.fetch = (async (url: unknown, init?: RequestInit) => {
+      request = { url: String(url), body: init?.body as FormData };
+      return new Response(JSON.stringify({ ok: true, result: { message_id: 9 } }), { headers: { "content-type": "application/json" } });
+    }) as typeof fetch;
+    try {
+      const adapter = new TelegramAdapter({ token: "T" });
+      const receipt = await adapter.sendFile({ chatId: "5", threadId: "42", name: "report.pdf", mime: "application/pdf", data: new Uint8Array([1, 2, 3]) });
+      expect(request?.url).toContain("/sendDocument");
+      expect(request?.body.get("chat_id")).toBe("5");
+      expect(request?.body.get("message_thread_id")).toBe("42");
+      expect((request?.body.get("document") as File).name).toBe("report.pdf");
+      expect(receipt).toMatchObject({ accepted: true, name: "report.pdf", bytes: 3 });
+    } finally { globalThis.fetch = real; }
+  });
+});
+
 describe("parseUpdates forum topics", () => {
   it("carries threadId only for real topic messages", () => {
     const payload = {
