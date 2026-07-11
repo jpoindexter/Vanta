@@ -82,6 +82,7 @@ const USAGE_LINES = [
       "       vanta roadmap status [--json] [--open [--actionable]] [--require-drained|--require-complete]  print counts/open work; gates exit nonzero when unmet",
       "       vanta roadmap move <id> <status> [--force]   move an item (shipped|building|blocked|next|horizon|parked)",
       "       vanta roadmap unblock [id...] [--json]  show concrete unblock steps for blocked/parked/decision cards",
+      "       vanta roadmap proof-status [--json]  verify canonical receipts for every parked external-proof card",
       "       vanta roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
       "       vanta now [--apply]                propose/fill the next 1-2 Now cards without exceeding WIP",
       "       vanta desktop [port] [--companion]  start desktop; opt into token-paired LAN companion access",

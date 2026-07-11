@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1168 capabilities shipped · 0 in flight · 0 on the horizon. Updated 2026-07-11._
+_1169 capabilities shipped · 0 in flight · 0 on the horizon. Updated 2026-07-11._
 
 ## In flight
 
@@ -18,7 +18,7 @@ _Nothing in flight right now — see the horizon below._
 
 ## Recently shipped
 
-The latest of 1168+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1169+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Profile roster — persistent specialist agents with isolated state** — Operator · 2026-07-11
 - **Profile Kanban router — durable board routes work by specialist skill** — Operator · 2026-07-11

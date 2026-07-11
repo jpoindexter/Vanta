@@ -151,6 +151,8 @@ It reads the other agent's `skills/<slug>/SKILL.md`, `mcpServers` config, and pr
 
 Recent Hermes transcript mining added a focused parity path to the roadmap: persistent specialist profiles, profile-routed Kanban, transcript/notes corpus memory, delegation receipts, webhook workflow templates, automation blueprints, spreadsheet control, vault-backed secrets, and bounded dashboard plugin slots. The automation catalog now ships through `vanta automation blueprints` and `/blueprint`; see [`docs/automation-blueprints.md`](docs/automation-blueprints.md). The executable source of truth remains `roadmap.json`.
 
+Parked external acceptance is machine-readable through `vanta roadmap proof-status [--json]`. It verifies all ten canonical receipt gates and rejects local provider fixtures unless a matching external-acceptance packet binds the exact event IDs. See [`docs/roadmap-external-proofs.md`](docs/roadmap-external-proofs.md).
+
 Same-provider credential pools are managed with `vanta auth pool`; they lease environment, Keychain, Bitwarden, 1Password, or vault references without persisting values, rotate on credential failures, and exhaust before cross-provider fallback. See [`docs/credential-pools.md`](docs/credential-pools.md).
 
 Gateway runs can deliver recent in-scope reports, charts, spreadsheets, decks, HTML, and text files as native channel attachments while removing local paths from visible copy. See [`docs/deliverable-attachments.md`](docs/deliverable-attachments.md).

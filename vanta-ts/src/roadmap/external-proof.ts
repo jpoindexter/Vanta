@@ -1,0 +1,171 @@
+import { access, readFile } from "node:fs/promises";
+import { isAbsolute, join, normalize } from "node:path";
+import { loadPaymentReceipts, type PaymentReceipt } from "../payments/ledger.js";
+import { readRunAnywhereReadiness, type RunAnywhereReadiness } from "../run-anywhere/readiness.js";
+import { loadShopifyReceipts, type ShopifyReceipt } from "../shopify/receipts.js";
+import { loadTelephonyReceipts, type TelephonyReceipt } from "../telephony/receipts.js";
+import { knownUnblockActions } from "./unblock.js";
+
+export type ExternalProofGate = {
+  roadmapCardId: string;
+  label: string;
+  ready: boolean;
+  receiptPath: string;
+  evidence: string;
+  nextActions: string[];
+};
+
+export type ExternalProofReadiness = {
+  ready: boolean;
+  passed: number;
+  total: number;
+  gates: ExternalProofGate[];
+};
+
+export type ExternalProofInputs = {
+  runAnywhere: RunAnywhereReadiness;
+  spreadsheetHost?: unknown;
+  spreadsheetWorkbookReceiptExists?: boolean;
+  windowsService?: unknown;
+  payments: PaymentReceipt[];
+  paymentAcceptance?: unknown;
+  shopify: ShopifyReceipt[];
+  shopifyAcceptance?: unknown;
+  telephony: TelephonyReceipt[];
+  telephonyAcceptance?: unknown;
+  loadErrors?: Partial<Record<"payments" | "shopify" | "telephony", string>>;
+};
+
+function gate(cardId: string, label: string, ready: boolean, detail: { receiptPath: string; evidence: string }): ExternalProofGate {
+  return { roadmapCardId: cardId, label, ready, ...detail, nextActions: ready ? [] : knownUnblockActions(cardId) };
+}
+
+function aggregate(cardId: string, label: string, children: ExternalProofGate[]): ExternalProofGate {
+  const missing = children.filter((item) => !item.ready).map((item) => item.roadmapCardId);
+  return gate(cardId, label, missing.length === 0, { receiptPath: "dependent proof receipts", evidence: missing.length ? `waiting on ${missing.join(", ")}` : "all dependent proof receipts are ready" });
+}
+
+function runAnywhereGates(readiness: RunAnywhereReadiness): ExternalProofGate[] {
+  return readiness.gates.map((item) => gate(item.roadmapCardId, item.label, item.ready, { receiptPath: item.receiptPath, evidence: item.evidence }));
+}
+
+function validSpreadsheetHost(value: unknown): value is { ok: true; host: string; workbookReceipt: string; approvalGatedAction: true; executedAt: string; apiSessionId: string; evidenceSha256: string } {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Record<string, unknown>;
+  return [
+    item.ok === true, ["excel", "google_sheets"].includes(String(item.host)), item.approvalGatedAction === true,
+    typeof item.workbookReceipt === "string", Boolean(item.workbookReceipt), typeof item.apiSessionId === "string",
+    Boolean(item.apiSessionId), typeof item.evidenceSha256 === "string", /^[a-f0-9]{64}$/.test(String(item.evidenceSha256)),
+    Number.isFinite(Date.parse(String(item.executedAt))),
+  ].every(Boolean);
+}
+
+function accepted(value: unknown, cardId: string, eventIds: string[]): boolean {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Record<string, unknown>, ids = Array.isArray(item.receiptEventIds) ? item.receiptEventIds : [];
+  return [
+    item.version === 1, item.ok === true, item.roadmapCardId === cardId, item.environment === "external-test",
+    Number.isFinite(Date.parse(String(item.executedAt))), typeof item.evidenceSha256 === "string",
+    /^[a-f0-9]{64}$/.test(String(item.evidenceSha256)), eventIds.length > 0, eventIds.every((id) => ids.includes(id)),
+  ].every(Boolean);
+}
+
+function candidate(value: boolean): string { return value ? "candidate" : "missing"; }
+
+function spreadsheetGate(input: ExternalProofInputs): ExternalProofGate {
+  const host = validSpreadsheetHost(input.spreadsheetHost) ? input.spreadsheetHost : undefined;
+  const receipt = input.spreadsheetWorkbookReceiptExists === true, ready = Boolean(host) && receipt;
+  const evidence = ready
+    ? `${host!.host} host passed at ${host!.executedAt}; workbook receipt exists`
+    : host ? "host packet exists, but its workbook action receipt is missing" : "no valid spreadsheet host proof packet";
+  return gate("HERMES-SPREADSHEET-COPILOT", "Excel/Sheets host round trip", ready, { receiptPath: ".vanta/spreadsheet/host-proof.json", evidence });
+}
+
+function windowsServiceGate(value: unknown): ExternalProofGate {
+  const item = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  const ready = item.ok === true && item.platform === "win32" && item.logCaptured === true;
+  return gate("MERCURY-CROSS-PLATFORM-SERVICE", "Windows native service lifecycle", ready, { receiptPath: "vanta-ts/.artifacts/service-proof-win32.json", evidence: ready ? "Windows lifecycle receipt is ok:true with log capture" : "no valid Windows lifecycle receipt" });
+}
+
+function paymentGate(input: ExternalProofInputs): ExternalProofGate {
+  const link = input.payments.find((item) => item.provider === "stripe_link" && item.status === "authorized" && item.approval.external === "approved");
+  const mpp = input.payments.find((item) => item.provider === "mpp" && item.status === "settled" && item.approval.external === "approved" && item.providerResult.httpStatus !== 402);
+  const packet = link && mpp ? accepted(input.paymentAcceptance, "HERMES-PAYMENT-SKILL-PACK", [link.eventId, mpp.eventId]) : false;
+  const ready = Boolean(link && mpp && packet) && !input.loadErrors?.payments;
+  const evidence = input.loadErrors?.payments ?? `Stripe Link ${link ? "candidate" : "missing"}; MPP ${mpp ? "candidate" : "missing"}; external packet ${packet ? "ready" : "missing"}`;
+  return gate("HERMES-PAYMENT-SKILL-PACK", "Stripe Link and MPP sandbox acceptance", ready, { receiptPath: ".vanta/external-proofs/HERMES-PAYMENT-SKILL-PACK.json", evidence });
+}
+
+function shopifyGate(input: ExternalProofInputs): ExternalProofGate {
+  const receipt = input.shopify.find((item) => item.status === "verified" && item.verified && item.userErrorCount === 0);
+  const packet = receipt ? accepted(input.shopifyAcceptance, "HERMES-SHOPIFY-OPERATIONS", [receipt.eventId]) : false;
+  const ready = Boolean(receipt && packet) && !input.loadErrors?.shopify;
+  return gate("HERMES-SHOPIFY-OPERATIONS", "Shopify development-store mutation", ready, { receiptPath: ".vanta/external-proofs/HERMES-SHOPIFY-OPERATIONS.json", evidence: input.loadErrors?.shopify ?? (receipt ? `verified ${receipt.operation} candidate on ${receipt.store}; external packet ${packet ? "ready" : "missing"}` : "no verified Shopify mutation receipt") });
+}
+
+function telephonyGate(input: ExternalProofInputs): ExternalProofGate {
+  const number = input.telephony.some((item) => item.action === "number_provision" && item.status === "accepted");
+  const sms = input.telephony.some((item) => item.action === "sms" && item.status === "callback" && (item.callbackRank ?? 0) >= 2);
+  const call = input.telephony.some((item) => item.action === "call" && item.status === "callback" && (item.callbackRank ?? 0) >= 2);
+  const deletion = input.telephony.some((item) => item.providerStatus === "recording_deleted");
+  const ids = input.telephony.filter((item) => item.status === "accepted" || item.status === "callback").map((item) => item.eventId);
+  const complete = [number, sms, call, deletion].every(Boolean);
+  const packet = complete ? accepted(input.telephonyAcceptance, "HERMES-TELEPHONY-CONSENT-LIFECYCLE", ids) : false;
+  const ready = [complete, packet, !input.loadErrors?.telephony].every(Boolean);
+  const parts = [`number ${candidate(number)}`, `SMS callback ${candidate(sms)}`, `call callback ${candidate(call)}`, `retention deletion ${candidate(deletion)}`, `external packet ${packet ? "ready" : "missing"}`];
+  const evidence = input.loadErrors?.telephony ?? parts.join("; ");
+  return gate("HERMES-TELEPHONY-CONSENT-LIFECYCLE", "Twilio consent and retention lifecycle", ready, { receiptPath: ".vanta/external-proofs/HERMES-TELEPHONY-CONSENT-LIFECYCLE.json", evidence });
+}
+
+export function assessExternalProofReadiness(input: ExternalProofInputs): ExternalProofReadiness {
+  const remote = runAnywhereGates(input.runAnywhere), reach = aggregate("RUN-ANYWHERE-V1-RELEASE-GATE", "Run Anywhere v1 release gate", remote);
+  const spreadsheet = spreadsheetGate(input), windows = windowsServiceGate(input.windowsService);
+  const payments = paymentGate(input), shopify = shopifyGate(input), telephony = telephonyGate(input);
+  const commerce = aggregate("HERMES-COMMERCE-TELEPHONY-SKILL-PACK", "Commerce and telephony release gate", [payments, shopify, telephony]);
+  const gates = [...remote, reach, spreadsheet, windows, payments, shopify, telephony, commerce];
+  const passed = gates.filter((item) => item.ready).length;
+  return { ready: passed === gates.length, passed, total: gates.length, gates };
+}
+
+async function json(path: string): Promise<unknown> {
+  try { return JSON.parse(await readFile(path, "utf8")); } catch { return undefined; }
+}
+
+async function loaded<T>(load: () => Promise<T[]>): Promise<{ data: T[]; error?: string }> {
+  try { return { data: await load() }; } catch (error) { return { data: [], error: error instanceof Error ? error.message : String(error) }; }
+}
+
+async function spreadsheetEvidence(repoRoot: string): Promise<{ packet?: unknown; receiptExists: boolean }> {
+  const packet = await json(join(repoRoot, ".vanta", "spreadsheet", "host-proof.json"));
+  if (!validSpreadsheetHost(packet)) return { packet, receiptExists: false };
+  const relative = normalize(packet.workbookReceipt);
+  if (isAbsolute(relative) || relative.startsWith("..")) return { packet, receiptExists: false };
+  try { await access(join(repoRoot, relative)); return { packet, receiptExists: true }; } catch { return { packet, receiptExists: false }; }
+}
+
+export async function readExternalProofReadiness(repoRoot: string): Promise<ExternalProofReadiness> {
+  const proof = (id: string) => json(join(repoRoot, ".vanta", "external-proofs", `${id}.json`));
+  const [runAnywhere, spreadsheet, windowsService, payments, paymentAcceptance, shopify, shopifyAcceptance, telephony, telephonyAcceptance] = await Promise.all([
+    readRunAnywhereReadiness(repoRoot), spreadsheetEvidence(repoRoot), json(join(repoRoot, "vanta-ts", ".artifacts", "service-proof-win32.json")),
+    loaded(() => loadPaymentReceipts(repoRoot)), proof("HERMES-PAYMENT-SKILL-PACK"),
+    loaded(() => loadShopifyReceipts(repoRoot)), proof("HERMES-SHOPIFY-OPERATIONS"),
+    loaded(() => loadTelephonyReceipts(repoRoot)), proof("HERMES-TELEPHONY-CONSENT-LIFECYCLE"),
+  ]);
+  return assessExternalProofReadiness({
+    runAnywhere, spreadsheetHost: spreadsheet.packet, spreadsheetWorkbookReceiptExists: spreadsheet.receiptExists,
+    windowsService, payments: payments.data, paymentAcceptance, shopify: shopify.data, shopifyAcceptance,
+    telephony: telephony.data, telephonyAcceptance,
+    loadErrors: { payments: payments.error, shopify: shopify.error, telephony: telephony.error },
+  });
+}
+
+export function formatExternalProofReadiness(report: ExternalProofReadiness): string {
+  const lines = [`External proof readiness: ${report.ready ? "ready" : "not ready"} (${report.passed}/${report.total})`];
+  for (const item of report.gates) {
+    lines.push(`${item.ready ? "✓" : "✘"} ${item.roadmapCardId} — ${item.label}`);
+    lines.push(`  receipt: ${item.receiptPath}`, `  evidence: ${item.evidence}`);
+    if (!item.ready) lines.push(...item.nextActions.map((action, index) => `  ${index + 1}. ${action}`));
+  }
+  if (!report.ready) lines.push("Roadmap cards stay parked until their canonical receipts are ready.");
+  return lines.join("\n");
+}

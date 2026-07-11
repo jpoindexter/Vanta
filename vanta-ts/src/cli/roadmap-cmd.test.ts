@@ -110,6 +110,19 @@ describe("runRoadmapCommand unblock", () => {
   });
 });
 
+describe("runRoadmapCommand proof-status", () => {
+  it("prints all external gates as json and exits nonzero while receipts are absent", async () => {
+    const root = await workspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    const code = await runRoadmapCommand(root, ["proof-status", "--json"]);
+    const report = JSON.parse(lines.join("\n")) as { ready: boolean; passed: number; total: number; gates: Array<{ roadmapCardId: string }> };
+    expect(code).toBe(1);
+    expect(report).toMatchObject({ ready: false, passed: 0, total: 10 });
+    expect(report.gates.map((gate) => gate.roadmapCardId)).toContain("MERCURY-CROSS-PLATFORM-SERVICE");
+  });
+});
+
 describe("runRoadmapCommand status", () => {
   it("prints status counts and parked reason counts", async () => {
     const root = await workspace();

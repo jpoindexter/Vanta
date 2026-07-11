@@ -18004,6 +18004,23 @@
       "summary": "Make every remaining external acceptance gate explicit instead of hiding it behind a generic review state.",
       "done": "All parked external cards use the external-proof reason; `vanta roadmap unblock` names the required account or host, exact command path, and release receipt for each; tests cover every specialized plan; docs match the parked state.",
       "notes": "SHIPPED 2026-07-11. Rechecked the current host: no Teams receipt, Modal app/secret or Telegram credentials, Android device, Excel host, or Windows VM is available. Reclassified six Hermes/Mercury cards from review to external proof and added exact spreadsheet, Windows service, Stripe/MPP, Shopify, Twilio, and aggregate release steps. Focused unblock tests, TypeScript, and size gates pass."
+    },
+    {
+      "id": "ROADMAP-EXTERNAL-PROOF-STATUS",
+      "track": "Harness",
+      "title": "External proof readiness - one release status for all parked gates",
+      "status": "shipped",
+      "size": "M",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4",
+      "lens": "infra",
+      "updated": "2026-07-11",
+      "source": "roadmap-completion-audit-2026-07-11",
+      "summary": "Replace repeated manual audits with one machine-readable readiness report over every remaining external proof.",
+      "done": "`vanta roadmap proof-status [--json]` evaluates all ten external cards from canonical receipts, returns nonzero while any gate is missing, rejects fixture-only provider ledgers without an external acceptance packet, prevents spreadsheet receipt path traversal, and reports exact next actions.",
+      "notes": "SHIPPED 2026-07-11. Added a ten-gate aggregate over Modal/Telegram, Teams, physical Termux, Run Anywhere, Excel/Sheets, Windows service, Stripe Link/MPP, Shopify, Twilio, and the commerce parent. Provider candidates require a versioned external-test packet binding exact receipt event IDs and a redacted evidence hash. The real current-repo command exits 1 at 0/10 and correctly labels existing local Stripe Link events as candidates with the external packet missing. Focused evaluator/CLI tests, TypeScript, and size/complexity gates pass."
     }
   ]
 }

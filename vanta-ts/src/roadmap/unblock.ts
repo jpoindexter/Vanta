@@ -97,6 +97,10 @@ const KNOWN_ACTIONS: Record<string, string[]> = {
   ],
 };
 
+export function knownUnblockActions(id: string): string[] {
+  return [...(KNOWN_ACTIONS[id] ?? [])];
+}
+
 const PLAN_ORDER = [
   "BACKEND-SERVERLESS-LIVE",
   "MSG-ADAPTER-TEAMS",
