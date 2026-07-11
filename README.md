@@ -191,6 +191,18 @@ prints its original source, source date, and freshness. When embeddings are unav
 the signal line says so by omitting `semantic`; it does not present lexical fallback as
 semantic retrieval. URL ingest passes through the public-URL/egress guard before fetch.
 
+Community-job proof is versioned separately from feature claims. The Hermes-derived
+manifest has two scenarios in each of 15 categories and keeps live credentials gated:
+
+```bash
+node scripts/usecase-eval.mjs --validate
+node scripts/usecase-eval.mjs --category Research
+node scripts/usecase-eval.mjs --status --json
+```
+
+Executed runs write redacted local receipts. Deterministic contracts can verify reviewed
+outputs; unexecuted scenarios remain explicit gaps in the public aggregate proof.
+
 Persistent profiles can own routed Kanban cards. Cards declare skills, dependencies, wake
 policy, evidence, and fallback; Vanta can select a capable profile and preserve handoffs:
 

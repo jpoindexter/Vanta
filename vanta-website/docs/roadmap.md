@@ -8,17 +8,11 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1149 capabilities shipped · 2 in flight · 13 on the horizon. Updated 2026-07-11._
+_1150 capabilities shipped · 1 in flight · 13 on the horizon. Updated 2026-07-11._
 
 ## In flight
 
 What we are actively building next.
-
-### Hermes story eval harness — test real community jobs across all 15 categories
-
-**Harness** · M-size
-
-Vanta's June USE-CASE-AUDIT is a static capability map and the existing surface script samples 12 routes; neither proves complete user jobs or tracks receipts over time. Build a versioned representative corpus and run it at route, sandbox, and live tiers
 
 ### Hermes multi-turn story runner — continue choices and approvals in one session
 
@@ -28,13 +22,14 @@ The current use-case runner executes one-shot commands. It can prove that Vanta 
 
 ## Recently shipped
 
-The latest of 1149+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1150+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Profile roster — persistent specialist agents with isolated state** — Operator · 2026-07-11
 - **Profile Kanban router — durable board routes work by specialist skill** — Operator · 2026-07-11
 - **Second-brain corpus compiler — notes, transcripts, and receipts become searchable memory** — Operator · 2026-07-11
 - **Profile distributions — package a whole specialist agent as a git install** — Operator · 2026-07-11
 - **Hermes issue regression pack — turn competitor failures into Vanta invariants** — Harness · 2026-07-11
+- **Hermes story eval harness — test real community jobs across all 15 categories** — Harness · 2026-07-11
 - **Vanta public site v1 — product-first homepage, use cases, install, and proof** — Reach · 2026-07-11
 - **Choice-wall side-effect guard — no post-turn writes before the operator chooses** — Harness · 2026-07-11
 - **Glob base-path root scope — relative searches use the declared project** — Harness · 2026-07-11
@@ -49,7 +44,6 @@ The latest of 1149+ capabilities. See the [changelog](./changelog) for curated m
 - **Workflow acceptance evidence contract — validate requested operations, not labels** — Harness · 2026-07-11
 - **Successful tool error classification — policy prose cannot open repair loops** — Harness · 2026-07-11
 - **Roadmap blocked status — external gates stop consuming Now slots** — Operator · 2026-07-10
-- **Roadmap unblock command — turn blocked cards into exact next actions** — Operator · 2026-07-10
 
 ## On the horizon
 

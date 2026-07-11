@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -35,12 +35,76 @@ function validate(catalog) {
     categories.add(scenario.category);
     if (!scenario.instruction || !scenario.verify) errors.push(`${scenario.id}: instruction and verify are required`);
     if (!Array.isArray(scenario.expectedTools) || scenario.expectedTools.length === 0) errors.push(`${scenario.id}: expectedTools must be non-empty`);
+    if (!Array.isArray(scenario.expectedArtifacts) || scenario.expectedArtifacts.length === 0) errors.push(`${scenario.id}: expectedArtifacts must be non-empty`);
     if (!Array.isArray(scenario.setup)) errors.push(`${scenario.id}: setup must be an array`);
+    if (scenario.checks !== undefined && (!Array.isArray(scenario.checks) || scenario.checks.length === 0)) errors.push(`${scenario.id}: checks must be a non-empty array`);
     if (scenario.forbiddenPatterns !== undefined && !Array.isArray(scenario.forbiddenPatterns)) errors.push(`${scenario.id}: forbiddenPatterns must be an array`);
     if (!new Set(["route", "sandbox", "live"]).has(scenario.tier)) errors.push(`${scenario.id}: invalid tier ${scenario.tier}`);
   }
   if (categories.size !== 15) errors.push(`expected 15 categories, found ${categories.size}`);
   return errors;
+}
+
+function outcomeStatus(result) {
+  return typeof result.outcomeVerification === "object" ? result.outcomeVerification.status : "pending";
+}
+
+function deterministicOutcome(scenario, result) {
+  if (!scenario?.checks?.length) return { status: "pending", verifier: scenario?.verify ?? "manual review required" };
+  const output = String(result.outputTail ?? "").toLowerCase();
+  const missing = scenario.checks.filter((check) => !output.includes(check.toLowerCase()));
+  const passed = result.reliable && result.surfacePassed && result.guardPassed && missing.length === 0;
+  return {
+    status: passed ? "pass" : "fail",
+    method: "deterministic-output-contract",
+    verifier: scenario.verify,
+    checkedAt: new Date().toISOString(),
+    missing,
+  };
+}
+
+async function verifyReceipt(pathValue, catalog) {
+  const receiptPath = resolve(pathValue);
+  const receipt = JSON.parse(await readFile(receiptPath, "utf8"));
+  for (const result of receipt.results ?? []) {
+    const scenario = catalog.scenarios.find((item) => item.id === result.id);
+    const prior = typeof result.outcomeVerification === "object" ? result.outcomeVerification : undefined;
+    result.outcomeVerification = deterministicOutcome(scenario, result);
+    if (prior?.status && prior.status !== "pending") result.outcomeVerification.priorReview = prior;
+    console.log(`verified ${result.id}: ${result.outcomeVerification.status}`);
+  }
+  await writeFile(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`, "utf8");
+}
+
+async function receiptStatus(dir, catalog) {
+  const latest = new Map();
+  const files = (await readdir(dir).catch(() => [])).filter((name) => name.endsWith(".json")).sort();
+  for (const name of files) {
+    const receipt = JSON.parse(await readFile(join(dir, name), "utf8"));
+    for (const result of receipt.results ?? []) latest.set(result.id, result);
+  }
+  const results = [...latest.values()];
+  const passed = results.filter((result) => outcomeStatus(result) === "pass");
+  const passedCategories = new Set(passed.map((result) => result.category));
+  const categories = [...new Set(catalog.scenarios.map((scenario) => scenario.category))].sort();
+  return {
+    executedScenarios: results.length,
+    passedScenarios: passed.length,
+    failedScenarios: results.filter((result) => outcomeStatus(result) === "fail").length,
+    blockedScenarios: results.filter((result) => outcomeStatus(result) === "blocked").length,
+    pendingScenarios: results.filter((result) => outcomeStatus(result) === "pending").length,
+    categoryCoverage: passedCategories.size,
+    gaps: categories.filter((category) => !passedCategories.has(category)),
+  };
+}
+
+async function exportPublic(pathValue, receiptDir, catalog) {
+  const path = resolve(pathValue);
+  const status = await receiptStatus(receiptDir, catalog);
+  const proof = { manifestVersion: catalog.version, generatedAt: new Date().toISOString(), ...status };
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, `${JSON.stringify(proof, null, 2)}\n`, "utf8");
+  console.log(`public proof: ${path}`);
 }
 
 async function reviewReceipt(pathValue) {
@@ -113,7 +177,7 @@ function runScenario(scenario, timeoutMs) {
       const plain = stripAnsi(output);
       const hits = scenario.expectedTools.filter((tool) => surfaceHit(plain, tool));
       const forbiddenHits = (scenario.forbiddenPatterns ?? []).filter((pattern) => plain.toLowerCase().includes(pattern.toLowerCase()));
-      resolve({
+      const result = {
         id: scenario.id,
         sourceStoryId: scenario.sourceStoryId,
         category: scenario.category,
@@ -129,9 +193,10 @@ function runScenario(scenario, timeoutMs) {
         forbiddenPatterns: scenario.forbiddenPatterns ?? [],
         forbiddenHits,
         guardPassed: forbiddenHits.length === 0,
-        outcomeVerification: { status: "pending", verifier: scenario.verify },
         outputTail: redact(plain),
-      });
+      };
+      result.outcomeVerification = deterministicOutcome(scenario, result);
+      resolve(result);
     });
   });
 }
@@ -148,8 +213,18 @@ if (reviewPath) {
 
 const catalog = JSON.parse(await readFile(manifestPath, "utf8"));
 const errors = validate(catalog);
+const verifyPath = value("--verify-receipt");
+const receiptDir = resolve(value("--receipt-dir") ?? join(root, ".vanta", "eval-runs", "use-cases"));
 if (errors.length) {
   for (const error of errors) fail(error);
+} else if (verifyPath) {
+  await verifyReceipt(verifyPath, catalog);
+} else if (value("--export-public")) {
+  await exportPublic(value("--export-public"), receiptDir, catalog);
+} else if (has("--status")) {
+  const status = await receiptStatus(receiptDir, catalog);
+  if (has("--json")) console.log(JSON.stringify(status, null, 2));
+  else console.log(`${status.passedScenarios}/${status.executedScenarios} scenarios passed across ${status.categoryCoverage}/15 categories; gaps: ${status.gaps.join(", ") || "none"}`);
 } else if (has("--validate")) {
   console.log(`valid: ${catalog.scenarios.length} scenarios across 15 categories`);
 } else {

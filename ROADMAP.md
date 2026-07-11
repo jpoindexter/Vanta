@@ -140,6 +140,12 @@ pools/vault-backed secrets after the profile/Kanban spine if multi-profile gatew
 run-anywhere execution need safer key distribution. The rest stay horizon until a concrete
 workflow needs them.
 
+`HERMES-STORY-EVAL-HARNESS` now has 30 versioned scenarios across all 15 Hermes story
+categories, list/filter/run controls, live setup gates, redacted receipts, deterministic
+contracts for the five reviewed passes, receipt history status, and a redacted public export.
+The public use-case page links the generated 5-pass/5-category summary and names the ten
+category gaps; fixtures never count as executed product proof.
+
 ## TUI — real terminal UI (shipped 2026-06-02)
 - **Streaming engine**: `LLMProvider.stream()` (OpenAI family **+ Anthropic**) yields `StreamChunk`s — token deltas, **`thinking` (live reasoning, universal)**, and tool calls; `agent.ts` emits them via `onTextDelta`/`onThinkingDelta` (falls back to `complete()` when unused). Pure `foldToolCallDeltas`/`reasoningDelta`/`streamAnthropicEvents` assemble the streamed shapes.
 - **Ink TUI** (`tui/app.tsx` + `tui/launch.tsx`): React/Ink 7 app — streaming transcript (live token-by-token), interleaved tool activity (`→`/`✓`/`✗`), spinner status line (model + state), input composer (`ink-text-input`), **inline approval prompts** for kernel `ask` risks, minimal slash (`/help /clear /model /exit`). `vanta` launches it on a TTY; `--no-tui` / `VANTA_NO_TUI` / resume / non-TTY fall back to the readline REPL (which keeps the full slash set).

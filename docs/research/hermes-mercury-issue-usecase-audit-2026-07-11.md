@@ -62,7 +62,18 @@ The existing `docs/use-case-audit.md` is a June capability comparison, not a cur
 14. Trading & Markets
 15. Marketing
 
-Each scenario references a real source story ID, separates route proof from live proof, and names setup, risk, expected tools, forbidden side effects, and verification. The next step is deterministic outcome verifiers and broader execution receipts; that is tracked by `HERMES-STORY-EVAL-HARNESS`.
+Each scenario references a real source story ID, separates route proof from live proof, and names setup, risk, expected tools, forbidden side effects, and verification. Five already reviewed scenarios now also carry deterministic output contracts. New runs apply those contracts automatically; old receipts can be reassessed without rerunning the model. The remaining scenarios stay pending until a real run establishes a reviewable contract.
+
+```bash
+node scripts/usecase-eval.mjs --validate
+node scripts/usecase-eval.mjs --category "Dev Workflow"
+node scripts/usecase-eval.mjs --id general-capability-start --run
+node scripts/usecase-eval.mjs --verify-receipt .vanta/eval-runs/use-cases/<run>.json
+node scripts/usecase-eval.mjs --status --json
+node scripts/usecase-eval.mjs --export-public vanta-website/static/proof/hermes-usecases.json
+```
+
+The status reader selects the latest receipt per scenario and reports pass/fail/blocked/pending counts plus category gaps. Public export writes only aggregate counts and gap names; it excludes output tails and reviewer text. A deterministic Vitest integration case runs the verifier/status/export flow in an isolated receipt directory, so CI proves the offline harness path without counting its fixture as product execution.
 
 ### First executed story
 
