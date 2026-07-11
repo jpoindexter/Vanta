@@ -23,6 +23,9 @@ describe("vanta skills registry commands", () => {
     expect(await runSkillsRegistryCommand(["view", "useful"], deps)).toBe(0);
     expect(await runSkillsRegistryCommand(["install", "useful"], deps)).toBe(0);
     expect(lines.join("\n")).toContain("Complete SKILL.md");
+    expect(lines.join("\n")).toContain("package files:");
+    expect(lines.join("\n")).toContain("SKILL.md");
+    expect(lines.join("\n")).toContain("risks: none detected");
     expect(lines.join("\n")).toContain("rerun with --yes");
     expect(await runSkillsRegistryCommand(["install", "useful", "--yes"], deps)).toBe(0);
     expect(await runSkillsRegistryCommand(["approve", "useful", "--yes"], deps)).toBe(0);

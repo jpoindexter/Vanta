@@ -8,21 +8,17 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1162 capabilities shipped · 1 in flight · 7 on the horizon. Updated 2026-07-11._
+_1163 capabilities shipped · 0 in flight · 7 on the horizon. Updated 2026-07-11._
 
 ## In flight
 
 What we are actively building next.
 
-### Portable skill packages - install references, templates, and scripts safely
-
-**Extensibility** · M-size
-
-Vanta's first registry slice intentionally installs only SKILL.md, so most outcome packs cannot yet travel intact
+_Nothing in flight right now — see the horizon below._
 
 ## Recently shipped
 
-The latest of 1162+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1163+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Profile roster — persistent specialist agents with isolated state** — Operator · 2026-07-11
 - **Profile Kanban router — durable board routes work by specialist skill** — Operator · 2026-07-11

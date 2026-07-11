@@ -155,7 +155,7 @@ Same-provider credential pools are managed with `vanta auth pool`; they lease en
 
 Gateway runs can deliver recent in-scope reports, charts, spreadsheets, decks, HTML, and text files as native channel attachments while removing local paths from visible copy. See [`docs/deliverable-attachments.md`](docs/deliverable-attachments.md).
 
-Public skill registries are opt-in through `VANTA_SKILL_REGISTRY`. Vanta previews and verifies complete skills before a disabled quarantine install, requires separate approval, preserves local edits during updates, and removes reversibly. See [`docs/public-skill-registry.md`](docs/public-skill-registry.md).
+Public skill registries are opt-in through `VANTA_SKILL_REGISTRY`. Vanta previews and verifies complete skill packages before a disabled quarantine install, requires separate approval, preserves local edits during updates, supports confirmed version rollback, and removes reversibly. See [`docs/public-skill-registry.md`](docs/public-skill-registry.md).
 
 The current Hermes catalog comparison, including Stripe/payment, video/media, commerce, telephony, and finance packs, is tracked in [`docs/research/hermes-skill-catalog-gap-audit-2026-07-11.md`](docs/research/hermes-skill-catalog-gap-audit-2026-07-11.md). The roadmap orders package safety and discovery before high-side-effect outcome packs.
 

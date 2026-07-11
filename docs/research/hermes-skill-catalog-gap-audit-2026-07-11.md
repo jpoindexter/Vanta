@@ -28,7 +28,7 @@ verified Vanta capabilities.
 
 | Hermes surface | Vanta evidence | Roadmap action |
 | --- | --- | --- |
-| Skill packages with `references/`, `templates/`, and `scripts/` | Registry client installs only `SKILL.md` | `HERMES-PORTABLE-SKILL-PACKAGES` |
+| Skill packages with `references/`, `templates/`, and `scripts/` | Shipped bounded full-package preview, quarantine, update, rollback, and removal | `HERMES-PORTABLE-SKILL-PACKAGES` shipped |
 | Official, skills.sh, well-known, GitHub, and custom-tap discovery | One configured static index | `HERMES-MULTISOURCE-SKILL-HUB` |
 | Staged approval for agent-authored skill create/edit/delete | Choice-wall protection exists, but no durable skill-write review queue | `HERMES-SKILL-WRITE-APPROVAL-QUEUE` |
 | Image/video/audio/3D production recipes and generators | Vanta analyzes images/video; it has no native video-generation tool or verified studio workflow | `HERMES-MEDIA-STUDIO-SKILL-PACK` |
@@ -38,16 +38,13 @@ verified Vanta capabilities.
 
 ## Priority
 
-1. Finish the static registry client and portable package contract. Outcome
-   packs are not safe to distribute until companion files can be inspected,
-   bounded, scanned, quarantined, and updated without losing local edits.
-2. Add multi-source discovery without weakening Vanta's approval and
-   provenance rules.
-3. Prove the media studio workflow. It is high-value and can use reversible
+1. Add multi-source discovery without weakening the shipped static-registry,
+   portable-package, approval, provenance, and rollback rules.
+2. Prove the media studio workflow. It is high-value and can use reversible
    file outputs rather than financial or external side effects.
-4. Add payments only behind a transaction-specific contract. A model budget is
+3. Add payments only behind a transaction-specific contract. A model budget is
    not a purchase authorization.
-5. Add commerce/telephony and finance packs after their underlying operator
+4. Add commerce/telephony and finance packs after their underlying operator
    surfaces have real acceptance receipts.
 
 The goal is not to copy 174 prompts into Vanta. The goal is to make portable

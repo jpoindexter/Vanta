@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   approveRegistrySkill, browseRegistry, doctorRegistrySkills, installRegistrySkill,
-  removeRegistrySkill, searchRegistry, updateRegistrySkill, viewRegistrySkill,
+  removeRegistrySkill, rollbackRegistrySkill, searchRegistry, updateRegistrySkill, viewRegistrySkill,
 } from "./registry-client.js";
 
 let root = "";
@@ -46,6 +46,51 @@ describe("public skill registry client", () => {
     expect(conflict.status).toBe("local-edits-preserved");
     expect(await readFile(join(fixture.home, "skills", "useful", "SKILL.md"), "utf8")).toBe("my local edit\n");
   });
+
+  it("installs, verifies, updates, and rolls back complete bounded packages", async () => {
+    const fixture = await registryFixture("1.0.0", "# Useful\nRun scripts/setup.sh after approval.\n");
+    await fixture.publish("1.0.0", "# Useful\nRun scripts/setup.sh after approval.\n", {
+      "references/api.md": "# API v1\n",
+      "scripts/setup.sh": "#!/bin/sh\nnpm install useful\n",
+    });
+    const viewed = await viewRegistrySkill("useful", fixture.env);
+    expect(viewed).toMatchObject({ platforms: ["linux", "macos"], dependencies: ["node>=20"] });
+    expect(viewed?.packageFiles.map((file) => file.path)).toEqual(["SKILL.md", "references/api.md", "scripts/setup.sh"]);
+    expect(viewed?.risks).toEqual(expect.arrayContaining(["executable: scripts/setup.sh", "setup command: npm install"]));
+    await installRegistrySkill("useful", { env: fixture.env, confirmed: true });
+    expect(await readFile(join(fixture.home, "skill-registry-quarantine/useful/references/api.md"), "utf8")).toBe("# API v1\n");
+    await approveRegistrySkill("useful", fixture.env);
+    expect(await readFile(join(fixture.home, "skills/useful/scripts/setup.sh"), "utf8")).toContain("npm install");
+    expect((await doctorRegistrySkills(fixture.env))[0]?.status).toBe("ok");
+
+    await fixture.publish("2.0.0", "# Useful\nRun scripts/setup.sh after approval.\n", {
+      "references/api.md": "# API v2\n",
+      "scripts/setup.sh": "#!/bin/sh\nnpm install useful@2\n",
+    });
+    expect((await updateRegistrySkill("useful", { env: fixture.env, confirmed: false })).diff).toContain("references/api.md");
+    expect((await updateRegistrySkill("useful", { env: fixture.env, confirmed: true })).status).toBe("updated");
+    expect(await readFile(join(fixture.home, "skills/useful/references/api.md"), "utf8")).toBe("# API v2\n");
+    expect(await readFile(join(fixture.home, "skill-registry-backups/useful/1.0.0/references/api.md"), "utf8")).toBe("# API v1\n");
+    await rollbackRegistrySkill("useful", "1.0.0", fixture.env);
+    expect(await readFile(join(fixture.home, "skills/useful/references/api.md"), "utf8")).toBe("# API v1\n");
+    expect((await doctorRegistrySkills(fixture.env))[0]?.status).toBe("ok");
+    await updateRegistrySkill("useful", { env: fixture.env, confirmed: true });
+
+    await writeFile(join(fixture.home, "skills/useful/references/api.md"), "local notes\n");
+    await fixture.publish("3.0.0", "# Useful\n", { "references/api.md": "# API v3\n" });
+    expect((await updateRegistrySkill("useful", { env: fixture.env, confirmed: true })).status).toBe("local-edits-preserved");
+    expect(await readFile(join(fixture.home, "skills/useful/references/api.md"), "utf8")).toBe("local notes\n");
+    expect(await readFile(join(fixture.home, "skill-registry-updates/useful/3.0.0/references/api.md"), "utf8")).toBe("# API v3\n");
+  });
+
+  it("refuses package paths that escape the skill directory", async () => {
+    const fixture = await registryFixture("1.0.0", "safe\n");
+    const indexPath = fixture.env.VANTA_SKILL_REGISTRY;
+    const raw = JSON.parse(await readFile(indexPath, "utf8"));
+    raw.skills[0].files = [{ path: "../escape.sh", source: "useful/escape.sh", sha256: "0".repeat(64), bytes: 1, executable: true }];
+    await writeFile(indexPath, JSON.stringify(raw));
+    await expect(viewRegistrySkill("useful", fixture.env)).rejects.toThrow(/path|registry/i);
+  });
 });
 
 async function registryFixture(version: string, content: string) {
@@ -53,11 +98,18 @@ async function registryFixture(version: string, content: string) {
   const home = join(root, "home"), registry = join(root, "registry");
   await mkdir(join(registry, "useful"), { recursive: true });
   const env = { VANTA_HOME: home, VANTA_SKILL_REGISTRY: join(registry, "index.json") };
-  const publish = async (nextVersion: string, nextContent: string) => {
+  const publish = async (nextVersion: string, nextContent: string, companions: Record<string, string> = {}) => {
     await writeFile(join(registry, "useful", "SKILL.md"), nextContent);
+    const files = [];
+    for (const [path, fileContent] of Object.entries(companions)) {
+      await mkdir(join(registry, "useful", path.split("/").slice(0, -1).join("/")), { recursive: true });
+      await writeFile(join(registry, "useful", path), fileContent);
+      files.push({ path, source: `useful/${path}`, sha256: createHash("sha256").update(fileContent).digest("hex"), bytes: Buffer.byteLength(fileContent), executable: path.startsWith("scripts/") });
+    }
     await writeFile(join(registry, "index.json"), JSON.stringify({ version: 1, skills: [{
       slug: "useful", name: "Useful", version: nextVersion, description: "A useful skill",
       source: "useful/SKILL.md", sha256: createHash("sha256").update(nextContent).digest("hex"), capabilities: ["read files"],
+      platforms: ["linux", "macos"], dependencies: ["node>=20"], files,
     }] }));
   };
   await publish(version, content);

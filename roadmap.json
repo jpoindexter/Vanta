@@ -17785,7 +17785,7 @@
       "id": "HERMES-PORTABLE-SKILL-PACKAGES",
       "track": "Extensibility",
       "title": "Portable skill packages - install references, templates, and scripts safely",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Hermes skills are directories, not just prompts: 174 current bundled/optional packages can include references, templates, scripts, platform metadata, and setup instructions. Vanta's first registry slice intentionally installs only SKILL.md, so most outcome packs cannot yet travel intact.",
       "done": "Registry inspect/install/update/remove handles a bounded package manifest plus SKILL.md; every path is containment-checked; file count and byte limits fail closed; executable files and setup commands are identified and scanned; preview lists every file, platform, dependency, capability, hash, and risk; confirmed install remains disabled in quarantine; approval copies the complete package atomically; updates diff companion files and preserve local edits; static fixtures prove references, templates, scripts, traversal refusal, and rollback.",
@@ -17799,7 +17799,7 @@
       "after": [
         "PUBLIC-SKILL-REGISTRY-CLIENT"
       ],
-      "notes": "First item from docs/research/hermes-skill-catalog-gap-audit-2026-07-11.md. Do not execute package scripts during install or approval. Runtime execution remains kernel-gated."
+      "notes": "SHIPPED 2026-07-11. Extended the static registry schema and lifecycle from single SKILL.md files to bounded portable packages with up to 64 companion files, 512 KiB per companion, and 2 MiB total. Package paths are relative, unique, traversal-refusing, and exclude duplicate SKILL.md; every declared byte count and SHA-256 is verified. View/preview lists platforms, dependencies, capabilities, every file/hash/size, executable declarations, setup commands, and injection-scan findings. Install writes the complete package mode-0600 into disabled quarantine and never executes or enables declared scripts. Approval moves the whole package atomically. Doctor verifies every managed file. Updates diff changed companion paths, back up the complete old version plus metadata, replace clean packages through staging, and preserve locally edited package files while staging incoming versions. `vanta skills rollback <slug> <version> --yes` restores a verified prior package while backing up the displaced version; removal remains reversible. Executed real CLI package lifecycle against isolated VANTA_HOME: visible package/risk preview; install; non-executable script check; approve; doctor; companion update preview/apply; backup check; local companion edit conflict; incoming staged check; reversible remove. A separate real CLI run updated v1 to v2, rolled back to v1, and doctor returned ok. Focused registry/CLI/library tests: 12 passed. Full suite: 12,842 passed, 3 skipped, 0 failed; TypeScript, touched lint, Docusaurus production build, 30-scenario use-case validation, 1,188-card validation, and diff checks pass. Runtime execution remains kernel-gated; multi-source discovery is the next separate card."
     },
     {
       "id": "HERMES-MULTISOURCE-SKILL-HUB",

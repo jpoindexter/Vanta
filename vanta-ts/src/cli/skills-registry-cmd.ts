@@ -1,11 +1,11 @@
 import {
   approveRegistrySkill, browseRegistry, doctorRegistrySkills, installRegistrySkill,
-  removeRegistrySkill, searchRegistry, updateRegistrySkill, viewRegistrySkill,
+  removeRegistrySkill, rollbackRegistrySkill, searchRegistry, updateRegistrySkill, viewRegistrySkill,
 } from "../skills/registry-client.js";
 
 type Deps = { env?: NodeJS.ProcessEnv; log?: (line: string) => void };
 type Context = { env: NodeJS.ProcessEnv; log: (line: string) => void };
-const USAGE = "usage: vanta skills search <query> | browse | view <slug> | install <slug> [--yes] | approve <slug> --yes | update <slug> [--yes] | remove <slug> --yes | doctor";
+const USAGE = "usage: vanta skills search <query> | browse | view <slug> | install <slug> [--yes] | approve <slug> --yes | update <slug> [--yes] | rollback <slug> <version> --yes | remove <slug> --yes | doctor";
 
 export async function runSkillsRegistryCommand(args: string[], deps: Deps = {}): Promise<number> {
   const ctx = { env: deps.env ?? process.env, log: deps.log ?? console.log };
@@ -21,6 +21,7 @@ async function route(args: string[], ctx: Context): Promise<number> {
   if (action === "install") return install(slug, args.includes("--yes"), ctx);
   if (action === "approve") return approve(slug, args.includes("--yes"), ctx);
   if (action === "update") return update(slug, args.includes("--yes"), ctx);
+  if (action === "rollback") return rollback(slug, args[2], args.includes("--yes"), ctx);
   if (action === "remove") return remove(slug, args.includes("--yes"), ctx);
   if (action === "doctor") return doctor(ctx);
   ctx.log(USAGE); return 1;
@@ -42,7 +43,10 @@ async function view(slug: string | undefined, ctx: Context): Promise<number> {
 function formatView(item: NonNullable<Awaited<ReturnType<typeof viewRegistrySkill>>>): string {
   return [
     `${item.slug} ${item.version} - ${item.description}`, `source: ${item.source}`, `sha256: ${item.sha256} (${item.integrityOk ? "verified" : "MISMATCH"})`,
-    `requested capabilities: ${item.capabilities.join(", ") || "none"}`, "", "Complete SKILL.md:", item.content,
+    `platforms: ${item.platforms.join(", ") || "any"}`, `dependencies: ${item.dependencies.join(", ") || "none"}`,
+    `requested capabilities: ${item.capabilities.join(", ") || "none"}`,
+    "package files:", ...item.packageFiles.map((file) => `  ${file.path}\t${file.bytes.byteLength} bytes\t${file.sha256}${file.executable ? "\texecutable" : ""}`),
+    `risks: ${item.risks.join("; ") || "none detected"}`, "", "Complete SKILL.md:", item.content,
   ].join("\n");
 }
 
@@ -70,6 +74,12 @@ async function update(slug: string | undefined, confirmed: boolean, ctx: Context
 async function remove(slug: string | undefined, confirmed: boolean, ctx: Context): Promise<number> {
   if (!slug || !confirmed) throw new Error("remove needs a slug and --yes");
   await removeRegistrySkill(slug, ctx.env); ctx.log(`removed ${slug} reversibly into skill-registry-removed`); return 0;
+}
+
+async function rollback(slug: string | undefined, version: string | undefined, confirmed: boolean, ctx: Context): Promise<number> {
+  if (!slug || !version || !confirmed) throw new Error("rollback needs a slug, version, and --yes");
+  const record = await rollbackRegistrySkill(slug, version, ctx.env);
+  ctx.log(`rolled back ${slug} to ${record.version}`); return 0;
 }
 
 async function doctor(ctx: Context): Promise<number> {
