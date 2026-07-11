@@ -1,5 +1,5 @@
 import { createInterface } from "node:readline/promises";
-import { createConversation, type AgentDeps } from "../agent.js";
+import { createConversation, type AgentDeps, type AgentOutcome, type Conversation } from "../agent.js";
 import { listSessions } from "../sessions/store.js";
 import { resolveRoomOrExit, suggestSkillFromRun } from "../projects/commands.js";
 import {
@@ -75,6 +75,22 @@ export function buildOneShotSendText(instruction: string): string {
   return routeHint ? `${routeHint}\n\n${augmented}` : augmented;
 }
 
+async function finishOneShot(o: {
+  outcome: AgentOutcome; format: OutputFormat; structured: boolean;
+  setup: Awaited<ReturnType<typeof prepareRun>>; root: string; instruction: string; convo: Conversation;
+}): Promise<void> {
+  const choiceWall = isExplicitChoiceWall(o.outcome.finalText);
+  emitOutput(o.format, o.outcome.finalText, o.setup.provider.modelId());
+  if (!o.structured) console.log(`\n[${o.outcome.stoppedReason} · ${o.outcome.iterations} iteration(s)]`);
+  await writeRunMemory({ provider: o.setup.provider, goals: o.setup.goals, instruction: o.instruction, finalText: o.outcome.finalText });
+  if (!choiceWall) await suggestSkillFromRun(o.instruction, process.env);
+  await reviewAfterTurn({
+    provider: o.setup.provider, safety: o.setup.safety, root: o.root, transcript: o.convo.messages,
+    toolIterations: o.outcome.toolIterations, turnIndex: 1, deferMutation: choiceWall,
+  });
+  memoryExtractAfterTurn({ provider: o.setup.provider, transcript: o.convo.messages });
+}
+
 export async function runInstruction(
   repoRoot: string,
   instruction: string,
@@ -101,27 +117,13 @@ export async function runInstruction(
     const convo = createConversation(setup.systemPrompt, agentDeps);
     await fireHooks(join(root, ".vanta"), "UserPromptSubmit", { prompt: instruction }, { cwd: root, prompt: instruction, sessionType: "one-shot", ...buildAgentHookDeps(agentDeps) });
     const outcome = await convo.send(buildOneShotSendText(instruction));
-    const choiceWall = isExplicitChoiceWall(outcome.finalText);
     await fireHooks(join(root, ".vanta"), "Stop", { finalResponse: outcome.finalText, turnIndex: 1 }, { cwd: root, sessionType: "one-shot", ...buildAgentHookDeps(agentDeps) });
-    emitOutput(format, outcome.finalText, setup.provider.modelId());
-    if (!structured) console.log(`\n[${outcome.stoppedReason} · ${outcome.iterations} iteration(s)]`);
-    await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction, finalText: outcome.finalText });
-    if (!choiceWall) await suggestSkillFromRun(instruction, process.env);
-    await reviewAfterTurn({
-      provider: setup.provider,
-      safety: setup.safety,
-      root,
-      transcript: convo.messages,
-      toolIterations: outcome.toolIterations,
-      turnIndex: 1,
-      deferMutation: choiceWall,
-    });
-    memoryExtractAfterTurn({ provider: setup.provider, transcript: convo.messages });
+    await finishOneShot({ outcome, format, structured, setup, root, instruction, convo });
   } catch (err) {
     await fireStopFailure(root, { error: stopFailureType(err), errorDetails: errorDetails(err) }, buildAgentHookDeps(agentDeps));
     throw err;
   } finally {
-    stopFileWatcher();
+    await stopFileWatcher();
     await fireHooks(join(root, ".vanta"), "SessionEnd", { reason: "other", sessionType: "one-shot" }, { cwd: root, matcherValue: "other", sessionType: "one-shot", ...buildAgentHookDeps(agentDeps) });
     process.removeListener("SIGINT", onSigint);
     rl.close();

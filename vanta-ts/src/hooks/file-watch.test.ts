@@ -32,7 +32,7 @@ describe("FileChanged hook watcher", () => {
     await writeFile(shellHooksPath(dataDir), JSON.stringify({ Stop: [{ command: "true" }] }));
     expect(await hasFileChangedHooks(dataDir)).toBe(false);
     const close = await startHookFileWatcher(root, { dataDir });
-    close();
+    await close();
   });
 
   it("fires for matching changed files", async () => {
@@ -44,7 +44,7 @@ describe("FileChanged hook watcher", () => {
       let n = 0;
       await waitForMarker(marker, () => writeFile(join(root, "watched.txt"), `changed-${n++}`));
     } finally {
-      close();
+      await close();
     }
   });
 });

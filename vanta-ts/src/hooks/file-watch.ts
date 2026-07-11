@@ -22,24 +22,25 @@ export async function hasFileChangedHooks(dataDir: string): Promise<boolean> {
 export async function startHookFileWatcher(
   repoRoot: string,
   opts: HookRunDeps & { dataDir?: string; watch?: typeof watch } = {},
-): Promise<() => void> {
+): Promise<() => Promise<void>> {
   const dataDir = opts.dataDir ?? join(repoRoot, ".vanta");
-  if (!await hasFileChangedHooks(dataDir)) return () => {};
+  if (!await hasFileChangedHooks(dataDir)) return async () => {};
   const watchFn = opts.watch ?? watch;
+  const pending = new Set<Promise<void>>();
+  const dispatch = (eventType: string, filename: string | Buffer | null): void => {
+    if (!filename) return;
+    const task = fireFileChanged({ repoRoot, dataDir, filename: normalize(String(filename)), eventType, opts });
+    pending.add(task);
+    void task.finally(() => pending.delete(task));
+  };
   let watcher: FSWatcher;
   try {
-    watcher = watchFn(repoRoot, { recursive: true }, (eventType, filename) => {
-      if (!filename) return;
-      void fireFileChanged({ repoRoot, dataDir, filename: normalize(String(filename)), eventType, opts });
-    });
+    watcher = watchFn(repoRoot, { recursive: true }, dispatch);
   } catch {
-    watcher = watchFn(repoRoot, (eventType, filename) => {
-      if (!filename) return;
-      void fireFileChanged({ repoRoot, dataDir, filename: normalize(String(filename)), eventType, opts });
-    });
+    watcher = watchFn(repoRoot, dispatch);
   }
   watcher.unref?.();
-  return () => watcher.close();
+  return async () => { watcher.close(); await Promise.allSettled([...pending]); };
 }
 
 async function fireFileChanged(o: {

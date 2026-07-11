@@ -122,7 +122,7 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
     // VANTA-CONCURRENT-SESSIONS: deregister on clean exit (a crash leaves a stale
     // row that the next `listActiveSessions` prunes via the dead-pid check).
     await deregisterSession(process.pid, defaultRegistryDeps());
-    stopFileWatcher();
+    await stopFileWatcher();
     await stopPeer();
     archiveSession(state.sessionId, convo.messages, { now: new Date().toISOString() }).catch(() => {});
     await fireHooks(join(repoRoot, ".vanta"), "Stop", { sessionId: state.sessionId }, { cwd: repoRoot, ...buildAgentHookDeps(agentDeps, (m) => console.log(m)) });

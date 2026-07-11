@@ -183,10 +183,10 @@ export function useHookLifecycle(repoRoot: string, sessionId: string, setup: Run
   useEffect(() => {
     const dataDir = join(repoRoot, ".vanta");
     void fireHooks(dataDir, "SessionStart", { sessionId, source: "startup" }, { cwd: repoRoot, matcherValue: "startup", promptProvider: setup.provider });
-    let closeWatcher: (() => void) | undefined;
+    let closeWatcher: (() => Promise<void>) | undefined;
     void startHookFileWatcher(repoRoot, { dataDir, promptProvider: setup.provider }).then((close) => { closeWatcher = close; });
     return () => {
-      closeWatcher?.();
+      void closeWatcher?.();
       void fireHooks(dataDir, "Stop", { sessionId }, { cwd: repoRoot, promptProvider: setup.provider });
       void fireHooks(dataDir, "SessionEnd", { sessionId, reason: "prompt_input_exit" }, { cwd: repoRoot, matcherValue: "prompt_input_exit", promptProvider: setup.provider });
     };
