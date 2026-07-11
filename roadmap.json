@@ -17970,6 +17970,23 @@
       "updated": "2026-07-11",
       "source": "eval/use-cases/hermes-community-v1.json#dev-converse-before-act",
       "notes": "Captured from executed receipt 09-49-48-049Z. The first turn correctly asked one outcome-defining question and stopped with zero forbidden side effects, but a complete converse-before-act job requires the operator answer and plan-approval turn in the same session. Build this as a harness extension, not by weakening the agent's choice wall.\n\nSHIPPED 2026-07-11: added a pure scripted-turn orchestrator, production persistent-conversation adapter, and `vanta story-eval --manifest --id --out` command. Manifests declare `firstTurn` plus ordered operator replies, boundary type, required semantic checks, and per-turn forbidden patterns. Each `send()` resolves before the next reply; no TTY/prompt parsing is used. Receipts retain redacted input/output, tools, stop reason, iterations, missing checks, guard hits, and boundary verdict per turn. Kernel approval is granted only when the active scripted reply begins with explicit approve; brain learning is frozen during the eval. The root `scripts/usecase-eval.mjs` delegates scripted scenarios to this command and merges the receipt into normal history. `--verify-receipt` can recompute multi-turn verdicts from saved outputs after contract calibration without rerunning the model. Deterministic tests cover clarification, approval, resume, reject, guard failure, CLI receipt writing, and retro-verification. Real path: `dev-converse-before-act` ran one persistent four-turn session (clarification -> scope clarification -> approval wall -> reject), exited cleanly, used no file/shell tools, changed no files, and the saved 12-37-41-278Z receipt re-verified with all four boundaries and guards passing."
+    },
+    {
+      "id": "ROADMAP-LIGHT-MODE",
+      "track": "Operator",
+      "title": "Roadmap light mode - persisted system-aware theme control",
+      "status": "shipped",
+      "size": "S",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "tui",
+      "updated": "2026-07-11",
+      "source": "operator-request-2026-07-11",
+      "summary": "Give the generated roadmap a legible light palette without losing its existing dark operator view.",
+      "done": "The board follows the system theme on first load; a keyboard-focusable icon button switches light and dark modes; the choice persists locally; generated file and served views share the behavior; desktop and narrow layouts have no horizontal overflow; print hides controls.",
+      "notes": "SHIPPED 2026-07-11. Added an accessible sun/moon button, OS-preference bootstrap, local persistence, semantic light-surface overrides, visible focus states, and print rules to the shared roadmap renderer. Focused render/build tests: 25 passed. Headless Chrome verified both themes at desktop/mobile widths; DevTools executed dark-to-light persistence at a true 390px viewport with zero horizontal overflow and the theme button visible."
     }
   ]
 }

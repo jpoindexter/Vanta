@@ -20,6 +20,15 @@ describe("renderRoadmap", () => {
     expect(html).toContain("</html>");
   });
 
+  it("renders a persisted, accessible theme control", () => {
+    const html = renderRoadmap(fixture);
+    expect(html).toContain('id="theme-toggle"');
+    expect(html).toContain('aria-label="Use light theme"');
+    expect(html).toContain("prefers-color-scheme: light");
+    expect(html).toContain("vanta-roadmap-theme");
+    expect(html).toContain("html[data-theme=light]");
+  });
+
   it("includes all item titles", () => {
     const html = renderRoadmap(fixture);
     for (const item of fixture.items) {

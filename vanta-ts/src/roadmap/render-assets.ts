@@ -1,5 +1,5 @@
 export const CSS = `*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,sans-serif;background:#0c0f14;color:#c8cdd8;padding:1.5rem}
+body{font-family:system-ui,sans-serif;background:#0c0f14;color:#c8cdd8;padding:1.5rem;overflow-x:hidden}
 h1{font-size:1.25rem;margin-bottom:.35rem;font-weight:600}
 .meta{color:#3e4a5c;font-size:.72rem;margin-bottom:1.25rem;font-family:ui-monospace,monospace}
 .launch{background:#10141b;border:1px solid #1e2737;border-left:3px solid #f59e0b;padding:.8rem;margin-bottom:1rem}
@@ -13,12 +13,14 @@ h1{font-size:1.25rem;margin-bottom:.35rem;font-weight:600}
 .launch-metric small{display:block;font-size:.58rem;color:#5e6e82;text-transform:uppercase;letter-spacing:.08em;font-family:ui-monospace,monospace}
 .launch-metric.muted span{color:#5e6e82}
 .launch-grid{display:grid;grid-template-columns:1.1fr 1.4fr 1.4fr 1.1fr;gap:.65rem}
+.launch-head>div,.launch-grid>*,.board>*,.page-head>div,.card{min-width:0}
+.launch-open,.lp-id,.lp-title,.lp-deps,.sum,.done{overflow-wrap:anywhere}
 .launch-block{background:#0c0f14;border:1px solid #1e2737;padding:.55rem}
 .launch-block h3{font-size:.62rem;color:#5e6e82;letter-spacing:.09em;text-transform:uppercase;font-family:ui-monospace,monospace;margin-bottom:.4rem}
 .launch-block ol{list-style:none;display:flex;flex-direction:column;gap:.35rem}
 .launch-block li{display:grid;gap:.15rem;border-left:2px solid #1e2737;padding-left:.45rem}
 .launch-block li.lp-shipped{border-left-color:#163923;opacity:.68}
-.lp-row{display:flex;align-items:center;gap:.35rem;justify-content:space-between}
+.lp-row{display:flex;align-items:center;gap:.35rem;justify-content:space-between;flex-wrap:wrap;min-width:0}
 .lp-id{font-size:.58rem;color:#f59e0b;font-family:ui-monospace,monospace}
 .lp-status{font-size:.52rem;color:#4ade80;border:1px solid #1e4a32;padding:.03rem .22rem;font-family:ui-monospace,monospace;text-transform:uppercase}
 .lp-next .lp-status{color:#60a5fa;border-color:#1e3a5c}
@@ -105,19 +107,47 @@ details[open]>summary::before{content:"▾ "}
 @media(max-width:1180px){.board{grid-template-columns:1fr 1fr}.sh-grid{columns:2}.parked-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:1040px){.launch-grid{grid-template-columns:1fr 1fr}.parked-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:820px){.health{grid-template-columns:1fr}}
-@media(max-width:560px){.board{grid-template-columns:1fr}.sh-grid{columns:1}.parked-grid{grid-template-columns:1fr}.launch-head{flex-direction:column}.launch-grid{grid-template-columns:1fr}.launch-metrics{width:100%}.launch-metric{text-align:left;flex:1}}
+@media(max-width:560px){body{padding:1rem}.board{grid-template-columns:minmax(0,1fr)}.sh-grid{columns:1}.parked-grid{grid-template-columns:minmax(0,1fr)}.launch-head{flex-direction:column}.launch-grid{grid-template-columns:minmax(0,1fr)}.launch-metrics{width:100%}.launch-metric{min-width:0;text-align:left;flex:1}}
 .col.drag-over{outline:2px dashed #f59e0b;background:#0d1018}
 .card[draggable=true]{cursor:grab}
 .card.dragging{opacity:.4}
 .wip{font-size:.62rem;font-weight:400;color:#5e6e82;background:#0c0f14;padding:.1rem .3rem;margin-left:.4rem;font-family:ui-monospace,monospace;vertical-align:middle}
-.wip.at-limit{color:#f87171;background:#1c0a0a}`;
+.wip.at-limit{color:#f87171;background:#1c0a0a}
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+.theme-toggle{display:grid;place-items:center;width:2.25rem;height:2.25rem;padding:0;flex:0 0 auto;font-size:1rem;color:#c8cdd8}
+.theme-toggle:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid #f59e0b;outline-offset:2px}
+.read-only-banner{position:sticky;top:0;z-index:99;max-width:100%;overflow-wrap:anywhere;background:#1e293b;border:1px solid #334155;border-left:3px solid #fbbf24;color:#cbd5e1;font:.75rem/1.5 ui-monospace,monospace;padding:.5rem .75rem;margin-bottom:.75rem;border-radius:4px}
+html[data-theme=light]{color-scheme:light}
+html[data-theme=light] body{background:#f6f7f9;color:#20242b}
+html[data-theme=light] .meta,html[data-theme=light] .sum,html[data-theme=light] .health p,html[data-theme=light] .launch-metric small,html[data-theme=light] .launch-block h3,html[data-theme=light] .lp-deps,html[data-theme=light] .parked-note{color:#5b6574}
+html[data-theme=light] .launch,html[data-theme=light] .launch-block,html[data-theme=light] .launch-metric,html[data-theme=light] .health>div,html[data-theme=light] .card,html[data-theme=light] select,html[data-theme=light] button,html[data-theme=light] .parked-section>summary,html[data-theme=light] .sh-section>summary{background:#fff;border-color:#cbd2dc}
+html[data-theme=light] .launch p,html[data-theme=light] .health h2,html[data-theme=light] .ttl,html[data-theme=light] .lp-title{color:#20242b}
+html[data-theme=light] .done,html[data-theme=light] .wip{background:#f1f3f6;border-color:#cbd2dc;color:#4b5563}
+html[data-theme=light] .tg h3,html[data-theme=light] .parked-group h3,html[data-theme=light] .sz,html[data-theme=light] .me{border-color:#cbd2dc;color:#596273}
+html[data-theme=light] option{background:#fff;color:#20242b}
+html[data-theme=light] .l-agent-loop{background:#fff7e6}html[data-theme=light] .l-tui{background:#edf6ff}html[data-theme=light] .l-memory{background:#f7efff}html[data-theme=light] .l-reach{background:#edf9f1}html[data-theme=light] .l-selfhood{background:#fff0f6}html[data-theme=light] .l-coding,html[data-theme=light] .l-infra,html[data-theme=light] .l-cosmetic{background:#f1f3f6}
+html[data-theme=light] .read-only-banner{background:#fff8db;border-color:#d7b85c;color:#4b4121}
+html[data-theme=light] .col.drag-over{background:#fff8e6}
+html[data-theme=light] .theme-toggle{color:#20242b}
+@media print{body{background:#fff!important;color:#000!important;padding:0}.theme-toggle,.filters,.read-only-banner{display:none!important}.card,.launch,.health>div{break-inside:avoid;background:#fff!important;border-color:#aaa!important}.board{grid-template-columns:repeat(2,1fr)}.sh-grid{columns:2}}
+`;
+
+export const THEME_BOOT_JS = `try{var saved=localStorage.getItem('vanta-roadmap-theme');var theme=saved||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=theme;}catch(_){}`;
+
+export const THEME_JS = `(function(){
+var button=document.getElementById('theme-toggle');
+if(!button)return;
+function sync(){var light=document.documentElement.dataset.theme==='light';button.textContent=light?'☾':'☀';var label=light?'Use dark theme':'Use light theme';button.setAttribute('aria-label',label);button.title=label;}
+button.addEventListener('click',function(){var next=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=next;try{localStorage.setItem('vanta-roadmap-theme',next);}catch(_){}sync();});
+sync();
+})();`;
 
 export const DRAG_JS = `(function(){
 var served=location.protocol==='http:'||location.protocol==='https:';
 if(!served){
 var b=document.createElement('div');
 b.textContent='Read-only view. To drag cards between columns, run  vanta roadmap serve  then open  http://localhost:7789/roadmap/board';
-b.style.cssText='position:sticky;top:0;z-index:99;background:#1e293b;border:1px solid #334155;border-left:3px solid #fbbf24;color:#cbd5e1;font:.75rem/1.5 ui-monospace,monospace;padding:.5rem .75rem;margin-bottom:.75rem;border-radius:4px';
+b.className='read-only-banner';
 document.body.insertBefore(b,document.body.firstChild);
 return;
 }

@@ -1,7 +1,7 @@
 import { PARKED_REASON, type Roadmap, type RoadmapItem } from "./schema.js";
 import { summarizeRoadmapStatus } from "./status-summary.js";
 import { WIP_LIMIT } from "./wip.js";
-import { CSS, DRAG_JS, FILTER_JS, SIZE_ORDER, MODEL_ORDER, PRIORITY_ORDER, PRIORITY_LABEL, LENS_ORDER, LENS_LABEL } from "./render-assets.js";
+import { CSS, DRAG_JS, FILTER_JS, THEME_BOOT_JS, THEME_JS, SIZE_ORDER, MODEL_ORDER, PRIORITY_ORDER, PRIORITY_LABEL, LENS_ORDER, LENS_LABEL } from "./render-assets.js";
 
 function esc(s: string): string {
   return s
@@ -233,11 +233,11 @@ export function renderRoadmap(data: Roadmap): string {
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Vanta Roadmap · ${esc(data.updated)}</title>
+<script>${THEME_BOOT_JS}</script>
 <style>${CSS}</style>
 </head>
 <body>
-<h1>Vanta Roadmap</h1>
-<p class="meta">Updated ${esc(data.updated)} &middot; ${data.items.length} items</p>
+<header class="page-head"><div><h1>Vanta Roadmap</h1><p class="meta">Updated ${esc(data.updated)} &middot; ${data.items.length} items</p></div><button id="theme-toggle" class="theme-toggle" type="button" aria-label="Use light theme" title="Use light theme">☀</button></header>
 ${launchPad(data)}
 ${roadmapHealth(data)}
 ${filterBar(data)}
@@ -247,7 +247,7 @@ ${parkedSection(data)}
 <summary>Shipped (${shipped.length})</summary>
 <div class="sh-grid">${shipped.map(card).join("")}</div>
 </details>
-<script>${DRAG_JS}${FILTER_JS}</script>
+<script>${THEME_JS}${DRAG_JS}${FILTER_JS}</script>
 </body>
 </html>`;
 }
