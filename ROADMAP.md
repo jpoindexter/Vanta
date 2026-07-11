@@ -37,6 +37,15 @@ self-repair, background agent CLI management, auto permission mode, `/init`, lif
 resume forking, Tab/Shift+Tab focus traversal, the opt-in TUI v2 mission-control shell, the Vite/React desktop renderer, per-tool permission request UIs, operator profile preferences, preference-signal capture, memory guardrails, per-task tool scoping, solutioning mode, and the opt-in runtime plugin framework are live slices; browser OS-level
 control and deeper ambient channels remain horizon.
 
+### Prompt-routed operating roles (2026-07-12)
+
+- [x] **SYSTEM-PROMPT-PRESETS** — `/prompt list|show|use|reset` switches a bounded
+  session role from project/home markdown definitions while preserving Vanta's base prompt,
+  kernel boundary, goals, and live mode additions.
+- [x] **PROMPT-ROUTED-AGENT-SPAWN** — `delegate {agent_type}` resolves the same definitions,
+  narrows the child tool surface, applies an optional model default, and records the selected
+  role in hooks and persisted sidechains.
+
 ## Parity & differentiator epics — shipped (2026-07-11)
 
 Triggered by the OpenClaw / Hermes head-to-head. These are **standing high-priority

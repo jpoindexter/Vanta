@@ -7,8 +7,12 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 
 ### Documentation
 - Refreshed the Hermes/OpenClaw comparison against current Hermes main and linked the six remaining local delta cards.
-- Synchronized legacy roadmap checklists with `roadmap.json`, regenerated the 141-tool and 145-command catalogs, and documented the ten external acceptance gates without reporting them as live.
+- Synchronized legacy roadmap checklists with `roadmap.json`, regenerated the 141-tool and 146-command catalogs, and documented the ten external acceptance gates without reporting them as live.
 - Updated the Docusaurus deployment path and repository links for the Cloudflare Pages project serving `docs.vanta.theft.studio`.
+
+### Added
+- **System prompt presets** — `/prompt list|show|use|reset` switches a bounded operating-role overlay from project or Vanta-home markdown definitions without replacing the base safety prompt.
+- **Prompt-routed workers** — `delegate {agent_type}` applies the same definition's prompt, narrowing-only tool policy, and optional model default to a fresh kernel-gated worker. Dynamic MCP tools remain constrained by the worker allowlist.
 
 ## v0.8.0 — 2026-07-05
 

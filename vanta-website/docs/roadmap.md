@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1171 capabilities shipped · 2 in flight · 4 on the horizon. Updated 2026-07-12._
+_1173 capabilities shipped · 2 in flight · 4 on the horizon. Updated 2026-07-11._
 
 ## In flight
 
@@ -28,8 +28,10 @@ Vanta anti-thrash currently scores estimated before/after message savings, so it
 
 ## Recently shipped
 
-The latest of 1171+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1173+ capabilities. See the [changelog](./changelog) for curated milestones.
 
+- **System prompt presets - switch Vanta's operating role per session** — Operator · 2026-07-12
+- **Prompt-routed agent spawn - launch workers with different operating prompts** — Harness · 2026-07-12
 - **Roadmap unblock command — turn blocked cards into exact next actions** — Operator · 2026-07-11
 - **Messaging channel parity — reach Hermes(20+)/OpenClaw(13+) channel coverage** — Operator · 2026-07-11
 - **Fix: Cmd+V image paste into the TUI doesn't attach (only /image + drag-drop work)** — Operator · 2026-07-11
@@ -48,8 +50,6 @@ The latest of 1171+ capabilities. See the [changelog](./changelog) for curated m
 - **Profile distributions — package a whole specialist agent as a git install** — Operator · 2026-07-11
 - **Automation blueprint catalog — form-driven scheduled and webhook workflows** — Operator · 2026-07-11
 - **Context references v2 — @file ranges, @folder, @diff, @git, @url** — Harness · 2026-07-11
-- **Credential pools — rotate same-provider keys before cross-provider fallback** — Harness · 2026-07-11
-- **Plugin LLM lane — bounded host-owned model calls from plugins** — Harness · 2026-07-11
 
 ## On the horizon
 

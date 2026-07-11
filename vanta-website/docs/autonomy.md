@@ -20,7 +20,7 @@ Tasks live in `.vanta/cron.tsv` (5-field cron). The runner runs every due active
 
 ## Subagent delegation
 
-The `delegate` tool spawns a scoped worker with its own goal, prompt, and iteration budget, and returns only the verified outcome. The child registry excludes `delegate` itself, so there's no runaway recursion.
+The `delegate` tool spawns a scoped worker with its own goal, prompt, and iteration budget, and returns only the verified outcome. Pass `agent_type` to select a built-in or markdown-defined prompt, tool allowlist, and optional default model. The child registry excludes `delegate` itself, so there's no runaway recursion. See [Prompt presets & custom agents](./prompt-presets-and-agents.md).
 
 ## Background teams
 

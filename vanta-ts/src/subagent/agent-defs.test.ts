@@ -157,10 +157,11 @@ describe("listAgentDefs", () => {
 });
 
 describe("defaultAgentDirs", () => {
-  it("returns project .claude/agents then user ~/.vanta/agents", () => {
+  it("returns project Vanta/Claude dirs then the Vanta-home agents dir", () => {
     expect(defaultAgentDirs("/repo", "/home")).toEqual([
+      "/repo/.vanta/agents",
       "/repo/.claude/agents",
-      "/home/.vanta/agents",
+      "/home/agents",
     ]);
   });
 });

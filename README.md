@@ -85,7 +85,7 @@ Vanta is a **general operator**, not a coding tool — one agent runs every cate
 **Kernel (Rust):** enforced risk classifier (allow/ask/block), approval queue, goal ledger, event log, HTTP cockpit + JSON API, `VANTA_ROOT` scoping.
 
 **Agent (TypeScript):**
-- Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 140 registered tools and 145 commands
+- Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 141 registered tools and 146 commands
 - **Goals** — kernel goal ledger plus TS dependency graph (`/goal blocks`, `/goal blocked_by`, `vanta goals`)
 - **Skills & memory** — learned `~/.vanta/skills`, `/skills audit` for local skill injection-scan findings, a configurable public registry client with quarantine/approval/update rollback, per-goal memory, curator, LLM context compression with [settled local Git versioning](docs/local-store-versioning.md)
 - **Web search** — keyless (DuckDuckGo/SearXNG) + keyed (Brave/SerpAPI/Exa/Firecrawl/Tavily/Parallel/xAI Grok grounded search) with domain scoping; `web_fetch` readable extraction routes large pages through a size-tiered summarize/chunk/synthesize pipeline (configurable aux model)
@@ -97,6 +97,7 @@ Vanta is a **general operator**, not a coding tool — one agent runs every cate
 - **Personal tuning** — `vanta tune lora` trains a local LoRA adapter from your accepted/rejected operator decisions (real MPS/CUDA/CPU training)
 - **Code & dev** — scoped file editing, grep/glob, `run_code`, LSP diagnostics/definition (TS), git tools, regression locks
 - **Autonomous** — cron scheduler, background tasks, subagent delegation, swarm/workflow, A2A bus, team workers
+- **Prompt-routed agents** — `/prompt` swaps a bounded session role; `delegate {agent_type}` spawns workers from the same project/home markdown definitions with prompt, tool, and model routing
 - **Parallel work** — `vanta fleet run/status/review/accept` fans independent tasks into isolated worktrees for review; `vanta fleet tmux` runs a live one-pane-per-task tmux swarm
 - **Auto-research** — `vanta auto-research --objective --metric --bounds` runs an unattended metric loop and keeps only improving candidate commits
 - **Meta-tune** — `vanta meta-tune instructions` scores bounded `PROGRAM.md` variants against evals and requires approval before adoption

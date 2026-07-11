@@ -2,35 +2,21 @@
  * VANTA-AGENTS-DIR — custom agent TYPES from markdown files (PURE).
  *
  * Mirrors the Claude Code `.claude/agents/*.md` model: a markdown file whose
- * flat frontmatter declares a subagent type (`name`, `description`, an optional
+ * flat frontmatter declares a prompt/agent type (`name`, `description`, an optional
  * `tools` allowlist, an optional `model`) and whose body becomes that type's
  * system prompt. Defs are discoverable in two dirs (project `.claude/agents/` +
  * user `~/.vanta/agents/`) and resolve ALONGSIDE the built-in agent types — a
  * custom def WINS on a name clash, so an operator can override a built-in.
  *
- * Everything here is PURE + injectable — the dir/file readers are passed in, so
- * no real disk is touched in tests. No files = the built-ins only (current
- * behavior, unchanged).
- *
- * NOT WIRED into the live delegate/spawn this round (deliberate — delivered as
- * the pure parser + loader + resolution + tests). NAMED wire-up points (mirrors
- * how builtin-agents.ts names its consumers):
- *   - `tools/delegate.ts` `runDelegate`: load `listAgentDefs(deps)` once, then
- *     `resolveAgentType(args.agent_type, customDefs)` — a custom def carries its
- *     own `systemPrompt` (injected into the worker's prompt) and `allowTools`
- *     (feeds the same `exclude` computation builtin-agents names; intersect with
- *     the child registry, never grant an absent/kernel-blocked tool).
- *   - `subagent/spawn.ts`: when the resolved type is a CustomAgentDef, use its
- *     `systemPrompt` as the worker persona and its `model` (if set) as the
- *     worker's provider model override.
- *   - a `generate-agent` surface would write a new `.claude/agents/<name>.md`
- *     that this loader then picks up.
+ * The pure parser/list seam is injectable; `loadAgentDefs` is the production
+ * disk adapter used by `/prompt` and `delegate {agent_type}`.
  * SECURITY: a custom def's tools/prompt still flow through the kernel-gated
  * dispatch — a custom def can NOT grant a tool the kernel blocks; `allowTools`
  * only narrows which present tools the worker is offered.
  */
-import { homedir } from "node:os";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { resolveVantaHome } from "../store/home.js";
 
 import { resolveBuiltinAgent, type BuiltinAgentType } from "./builtin-agents.js";
 import { parseAgentDef, type CustomAgentDef } from "./agent-def-parse.js";
@@ -76,13 +62,27 @@ export function listAgentDefs(deps: AgentDefsDeps): CustomAgentDef[] {
 }
 
 /**
- * Default agent-def directories: the project's `.claude/agents/` (highest
- * precedence) then the user's `~/.vanta/agents/`. Pure given `root`/`home` (both
- * injectable for tests; `home` defaults to the real home dir). A wiring site
- * builds {@link AgentDefsDeps} from this plus real `listMd`/`readText`.
+ * Default definition directories in precedence order: project-native
+ * `.vanta/agents`, compatible `.claude/agents`, then the Vanta home `agents`.
  */
-export function defaultAgentDirs(root: string, home: string = homedir()): string[] {
-  return [join(root, ".claude", "agents"), join(home, ".vanta", "agents")];
+export function defaultAgentDirs(root: string, vantaHome: string = resolveVantaHome()): string[] {
+  return [join(root, ".vanta", "agents"), join(root, ".claude", "agents"), join(vantaHome, "agents")];
+}
+
+/** Load project + Vanta-home definitions from disk. Missing/unreadable dirs fail closed to []. */
+export function loadAgentDefs(root: string, env: NodeJS.ProcessEnv = process.env): CustomAgentDef[] {
+  const dirs = defaultAgentDirs(root, resolveVantaHome(env));
+  return listAgentDefs({
+    dirs,
+    listMd: (dir) => {
+      try { return readdirSync(dir).filter((name) => name.toLowerCase().endsWith(".md")); }
+      catch { return []; }
+    },
+    readText: (path) => {
+      try { return readFileSync(path, "utf8"); }
+      catch { return null; }
+    },
+  });
 }
 
 /** What `resolveAgentType` returns — a custom def, or a built-in type. */

@@ -136,7 +136,7 @@ export function resolveBuiltinAgent(name?: string | null): BuiltinAgentType {
  * `exclude` computation at the named delegate/spawn wire-up point.
  */
 export function agentToolFilter(
-  type: BuiltinAgentType,
+  type: Pick<BuiltinAgentType, "allowTools" | "denyTools">,
   allToolNames: readonly string[],
 ): string[] {
   const deny = new Set(type.denyTools ?? []);

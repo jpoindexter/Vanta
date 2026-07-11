@@ -6,7 +6,7 @@ sidebar_position: 4
 
 # Command reference
 
-Every slash command, generated from the command catalog — **145 commands**. Type any of these in an interactive session; `/help` prints the live list.
+Every slash command, generated from the command catalog — **146 commands**. Type any of these in an interactive session; `/help` prints the live list.
 
 ## Session & history
 
@@ -183,6 +183,7 @@ Every slash command, generated from the command catalog — **145 commands**. Ty
 | `/planv2` | plan mode v2 — fan a task out across N concurrent plan-execution agents (VANTA_PLAN_V2_AGENT_COUNT, 1-10) |
 | `/plugin-panels` | open data-only panels contributed by isolated plugin workers (TUI) |
 | `/proactive` | proactive-autonomy mode (KAIROS) — whether idle ticking is enabled, the throttle, and would-it-tick-now (read-only) |
+| `/prompt` | switch the session's operating prompt preset |
 | `/record` | record terminal output to an asciicast v2 .cast file under ~/.vanta/recordings |
 | `/recover` | classify trouble — targeted bug, polluted context, or wrong assumption |
 | `/reload-plugins` | re-scan enabled plugins and load any added this session — reports newly available vs already loaded |

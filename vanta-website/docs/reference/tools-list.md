@@ -612,6 +612,7 @@ Delegate a scoped subtask to a worker agent — optionally on a DIFFERENT model/
 | `model` | string | no | Optional model id for the worker (e.g. gpt-4o, qwen2.5:14b, gemini-2.5-flash). |
 | `isolation` | string | no | Set to 'worktree' to run the agent in a fresh git worktree on a new branch so parallel agents don't conflict. |
 | `background` | boolean | no | Run the worker in the BACKGROUND: the call returns immediately and the worker's result re-enters as a new turn when the session is idle. Use for long subtasks you don't need to block on. |
+| `agent_type` | string | no | Optional worker prompt/type. Built-ins: explore, plan, verification, general-purpose. Custom markdown definitions load from project .vanta/agents, compatible .claude/agents, and ~/.vanta/agents. |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 

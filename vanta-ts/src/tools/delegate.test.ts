@@ -2,7 +2,9 @@ import { describe, it, expect } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { delegateTool, delegateEnv } from "./delegate.js";
+import { buildDelegateRegistry, delegateTool, delegateEnv, resolveDelegateAgentConfig } from "./delegate.js";
+import type { Tool } from "./types.js";
+import type { CustomAgentDef } from "../subagent/agent-defs.js";
 import type { ToolContext } from "./types.js";
 
 // The zod-failure path returns before provider resolution / subagent spawn, so
@@ -90,5 +92,52 @@ describe("delegateEnv", () => {
     const out = delegateEnv({ VANTA_PROVIDER: "openai", VANTA_MODEL: "gpt-4o" }, "ollama");
     expect(out.VANTA_PROVIDER).toBe("ollama");
     expect(out.VANTA_MODEL).toBeUndefined();
+  });
+});
+
+describe("resolveDelegateAgentConfig", () => {
+  const tools = ["read_file", "grep_files", "shell_cmd", "write_file", "delegate"];
+  const custom: CustomAgentDef[] = [{
+    name: "security-reviewer",
+    description: "reviews only",
+    allowTools: ["read_file", "grep_files", "mcp_custom", "not-installed"],
+    model: "review-model",
+    systemPrompt: "Review for security defects.",
+  }];
+
+  it("resolves a custom prompt, model, and narrowing-only tool list", () => {
+    const config = resolveDelegateAgentConfig("security-reviewer", custom, tools);
+    expect(config.promptPreset).toEqual({ name: "security-reviewer", content: "Review for security defects." });
+    expect(config.model).toBe("review-model");
+    expect(config.allowedTools).toEqual(["read_file", "grep_files"]);
+    expect(config.toolAllowlist).toEqual(["read_file", "grep_files", "mcp_custom", "not-installed"]);
+  });
+
+  it("uses built-in prompt/tool policy and documents unknown fallback", () => {
+    const plan = resolveDelegateAgentConfig("plan", custom, tools);
+    expect(plan.promptPreset.content).toContain("planning worker");
+    expect(plan.allowedTools).not.toContain("write_file");
+    expect(plan.allowedTools).not.toContain("delegate");
+    const fallback = resolveDelegateAgentConfig("missing", custom, tools);
+    expect(fallback.type.name).toBe("general-purpose");
+    expect(fallback.allowedTools).toEqual(tools);
+  });
+
+  it("exposes agent_type on the public tool schema", () => {
+    expect(delegateTool.schema.parameters.properties).toHaveProperty("agent_type");
+  });
+
+  it("enforces a custom allowlist on tools registered later by MCP", async () => {
+    const config = resolveDelegateAgentConfig("security-reviewer", custom, tools);
+    const registry = await buildDelegateRegistry(config);
+    const tool = (name: string): Tool => ({
+      schema: { name, description: name, parameters: { type: "object", properties: {} } },
+      execute: async () => ({ ok: true, output: "ok" }),
+    });
+    registry.register(tool("mcp_custom"));
+    registry.register(tool("mcp_unlisted"));
+    expect(registry.get("mcp_custom")).toBeDefined();
+    expect(registry.get("mcp_unlisted")).toBeUndefined();
+    expect(registry.get("write_file")).toBeUndefined();
   });
 });

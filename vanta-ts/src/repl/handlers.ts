@@ -93,6 +93,7 @@ import { autonomy } from "./autonomy-cmd.js";
 import { bg } from "./bg-response-cmd.js";
 import { buildOperatorHome } from "../operator-home/view.js";
 import { blueprint } from "./blueprint-cmd.js";
+import { promptCommand } from "./prompt-cmd.js";
 
 const help: SlashHandler = (_arg, ctx) => ({ output: slashHelp(ctx.setup.pluginCommands?.list()) });
 const exit: SlashHandler = () => ({ exit: true });
@@ -199,7 +200,7 @@ const goals: SlashHandler = async (_arg, ctx) => {
 
 /** Command-name → handler. Aliases share a handler (clear/new/reset, exit/quit, status/doctor). */
 export const HANDLERS: Record<string, SlashHandler> = {
-  help, home, blueprint, "what-can-i-do": whatCanIDo, "diagnose-crash": diagnoseCrash, "spec-to-app": specToApp, autonomy, exit, quit: exit, init, "init-verifiers": initVerifiers, clear, new: clear, reset: clear, attachments, history,
+  help, home, blueprint, prompt: promptCommand, "system-prompt": promptCommand, "what-can-i-do": whatCanIDo, "diagnose-crash": diagnoseCrash, "spec-to-app": specToApp, autonomy, exit, quit: exit, init, "init-verifiers": initVerifiers, clear, new: clear, reset: clear, attachments, history,
   export: exportConvo, stop, bg, retry, undo, rewind, hooks, skills, skillify, learn, tools, model, effort, env, cd, setup: model, status, doctor: status,
   plan, compress, compact: compress, memory, learnings, goals, goal, sessions, resume, title, fork, context: contextCmd,
   mcp, usage, copy, screenshot, update, image, paste, cron, loop: loopSchedule, proactive, moim, record, next, now, planmode: planMode, planv2: planV2, boundary, where, explain, recover, wm, restart, bug, feedback, learning, handoff, open, edit, tasks, bgtasks, wftasks, btw, describe: describeCmd, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto, suggest, time,

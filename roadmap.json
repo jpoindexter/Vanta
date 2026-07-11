@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-12",
+  "updated": "2026-07-11",
   "items": [
     {
       "id": "WHAT-CAN-I-DO-GALLERY",
@@ -17948,6 +17948,43 @@
       "after": [
         "EXT-PUBLIC-API",
         "GATEWAY-CHANNEL-SELFHEAL"
+      ]
+    },
+    {
+      "id": "SYSTEM-PROMPT-PRESETS",
+      "track": "Operator",
+      "title": "System prompt presets - switch Vanta's operating role per session",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Let the operator select a named system-prompt preset for the current Vanta conversation without editing source files or weakening the kernel boundary. Reuse the existing markdown agent-definition format so prompts are portable, inspectable, and shared with spawned workers.",
+      "done": "Named prompt definitions are discovered from the project and Vanta home; /prompt list|show|use|reset switches a bounded prompt overlay in the live session; switching preserves Vanta's base safety and kernel instructions; invalid or missing presets fail as values; focused tests prove switching, replacement, reset, and project-over-user precedence.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4",
+      "lens": "selfhood",
+      "updated": "2026-07-12",
+      "source": "operator-request-2026-07-12",
+      "notes": "SHIPPED 2026-07-12. /prompt list|show|use|reset loads project .vanta/agents, compatible .claude/agents, then Vanta-home agents. Marker-bounded replacement preserves the base prompt and other live additions; empty, oversized, multiline-name, and reserved-marker definitions are refused. Focused command/preset tests and the full TypeScript suite pass."
+    },
+    {
+      "id": "PROMPT-ROUTED-AGENT-SPAWN",
+      "track": "Harness",
+      "title": "Prompt-routed agent spawn - launch workers with different operating prompts",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Allow delegate and subagent spawn to select a built-in or operator-defined agent type whose prompt, tool allowlist, and optional model shape that worker while every action remains kernel-gated.",
+      "done": "The delegate tool accepts agent_type; built-in and markdown-defined agent types resolve through one loader; the resolved prompt is appended to the worker's immutable Vanta base prompt, its tool list only narrows available tools, and its optional model override is honored unless the call explicitly chooses a model. Tests execute a worker and inspect its persisted sidechain system message, prove tool narrowing and precedence, and prove unknown types fail closed to the documented general-purpose default.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.5",
+      "lens": "agent-loop",
+      "updated": "2026-07-12",
+      "source": "operator-request-2026-07-12",
+      "notes": "SHIPPED 2026-07-12. delegate accepts agent_type and resolves the same built-in/custom definitions. Prompt overlays remain subordinate to the Vanta base prompt; tool declarations only narrow the present registry, including tools mounted later by MCP; explicit delegate.model overrides a definition default. An executed spawn test inspected the persisted sidechain system message and agentType, focused routing tests pass, and the final full suite passed 1324 files / 13004 tests.",
+      "after": [
+        "SYSTEM-PROMPT-PRESETS"
       ]
     }
   ]

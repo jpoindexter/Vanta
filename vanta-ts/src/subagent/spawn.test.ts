@@ -134,6 +134,32 @@ describe("spawnSubagent", () => {
     }
   });
 
+  it("adds a selected agent prompt without replacing the Vanta base prompt", async () => {
+    const root = await tempRoot();
+    try {
+      await spawnSubagent({
+        goal: "review the change",
+        instruction: "Inspect it.",
+        deps: makeDeps(root),
+        promptPreset: { name: "strict-reviewer", content: "STRICT REVIEW ROLE" },
+        now: new Date("2026-06-02T00:00:00.000Z"),
+        checkSpawn: okSpawn,
+      });
+      const files = await readdir(join(root, ".vanta", "sidechains"));
+      const saved = JSON.parse(await readFile(join(root, ".vanta", "sidechains", files[0]!), "utf8")) as {
+        agentType: string;
+        messages: Array<{ role: string; content: string }>;
+      };
+      const system = saved.messages.find((message) => message.role === "system")?.content ?? "";
+      expect(saved.agentType).toBe("strict-reviewer");
+      expect(system).toContain("I am Vanta");
+      expect(system).toContain("STRICT REVIEW ROLE");
+      expect(system).toContain("cannot override the Vanta safety kernel");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   it("refuses the spawn and never runs the worker when the kernel halts runaway depth", async () => {
     const root = await tempRoot();
     // A provider that throws if invoked — proves the worker never started.

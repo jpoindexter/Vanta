@@ -9,6 +9,7 @@ sidebar_position: 2
 Major capability milestones, newest first. This is a curated highlight reel — the full per-slice history lives in `roadmap.json`.
 
 ## 2026-07-12 — Hermes delta and documentation release
+- **Prompt presets and routed agents** — `/prompt` can switch the current operating role, while `delegate {agent_type}` spawns a worker from the same project/home markdown definition with a bounded prompt, narrowing-only tools, and an optional model default. The base Vanta safety prompt and kernel remain enforced.
 - **Current-main audit** — compared Hermes Agent `4281151a` with Vanta production paths, kept only six material local gaps, and ordered effect disposition plus real-headroom compaction first.
 - **Hermes workflow wave shipped** — persistent profiles and distributions, profile-routed Kanban, delegation receipts, corpus memory, typed context references, workflow blueprints, vault-backed secrets, credential pools, bounded plugin model calls, native deliverable attachments, and the public skill registry are now represented by shipped roadmap slices.
 - **Honest release boundary** — the roadmap reports **1,171 shipped**, **6 remaining local cards**, and **10 parked external acceptance gates**. Parked provider, credential, and physical-device proofs are not reported as live.

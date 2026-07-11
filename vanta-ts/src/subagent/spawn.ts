@@ -13,6 +13,7 @@ import type { RecentCall } from "./progress.js";
 import type { SpawnGuardOptions, SpawnGuardVerdict } from "./spawn-guard.js";
 import type { AgentDeps, AgentOutcome } from "../agent.js";
 import type { Goal, Message } from "../types.js";
+import type { PromptPreset } from "../prompt/presets.js";
 
 type WorkerOpts = {
   goal: string;
@@ -20,6 +21,8 @@ type WorkerOpts = {
   deps: AgentDeps;
   maxIterations?: number;
   soulPath?: string;
+  /** Bounded role overlay; the standard Vanta prompt and kernel contract remain. */
+  promptPreset?: PromptPreset;
   // Injected for deterministic tests; defaults to wall-clock at call time.
   now?: Date;
 };
@@ -95,7 +98,8 @@ async function runWorker(opts: WorkerOpts): Promise<AgentOutcome> {
   const now = (opts.now ?? new Date()).toISOString();
   const started = Date.now();
   const dataDir = join(deps.root, ".vanta");
-  await fireHooks(dataDir, "SubagentStart", { goal: opts.goal, instruction: opts.instruction }, { cwd: deps.root, matcherValue: "general-purpose", ...buildAgentHookDeps(deps) });
+  const agentType = opts.promptPreset?.name ?? "general-purpose";
+  await fireHooks(dataDir, "SubagentStart", { goal: opts.goal, instruction: opts.instruction, agentType }, { cwd: deps.root, matcherValue: agentType, ...buildAgentHookDeps(deps) });
   const goals: Goal[] = [{ id: 0, text: opts.goal, status: "active" }];
   // Workers are as aware as the parent: they see the skill index + the brain.
   const skills = (await listSkills(process.env).catch(() => [])).map((s) => ({
@@ -111,6 +115,7 @@ async function runWorker(opts: WorkerOpts): Promise<AgentOutcome> {
     now,
     skills,
     brain,
+    promptPreset: opts.promptPreset,
   });
   const convo = createConversation(systemPrompt, { ...deps, maxIterations: opts.maxIterations ?? DEFAULT_MAX_ITERATIONS });
   // Live footer pill: shows immediately (title), then a ~30s-throttled side-query
@@ -118,12 +123,12 @@ async function runWorker(opts: WorkerOpts): Promise<AgentOutcome> {
   const stopProgress = startProgressReporter({ id: randomUUID(), goal: opts.goal, provider: deps.provider, getRecentCalls });
   try {
     const outcome = await convo.send(opts.instruction);
-    const rawSidechain = await persistSidechain({ root: deps.root, goal: opts.goal, instruction: opts.instruction, model: deps.provider.modelId(), createdAt: now, outcome, messages: convo.messages });
-    await fireHooks(dataDir, "SubagentStop", { goal: opts.goal, result: outcome.finalText, stoppedReason: outcome.stoppedReason }, { cwd: deps.root, matcherValue: "general-purpose", ...buildAgentHookDeps(deps) });
+    const rawSidechain = await persistSidechain({ root: deps.root, goal: opts.goal, instruction: opts.instruction, agentType, model: deps.provider.modelId(), createdAt: now, outcome, messages: convo.messages });
+    await fireHooks(dataDir, "SubagentStop", { goal: opts.goal, result: outcome.finalText, stoppedReason: outcome.stoppedReason, agentType }, { cwd: deps.root, matcherValue: agentType, ...buildAgentHookDeps(deps) });
     return { ...outcome, workerEvidence: { rawSidechain, tools: getToolNames(), durationMs: Date.now() - started, model: deps.provider.modelId() } };
   } catch (err) {
-    await persistSidechain({ root: deps.root, goal: opts.goal, instruction: opts.instruction, model: deps.provider.modelId(), createdAt: now, error: err instanceof Error ? err.message : String(err), messages: convo.messages });
-    await fireHooks(dataDir, "SubagentStop", { goal: opts.goal, error: err instanceof Error ? err.message : String(err) }, { cwd: deps.root, matcherValue: "general-purpose", ...buildAgentHookDeps(deps) });
+    await persistSidechain({ root: deps.root, goal: opts.goal, instruction: opts.instruction, agentType, model: deps.provider.modelId(), createdAt: now, error: err instanceof Error ? err.message : String(err), messages: convo.messages });
+    await fireHooks(dataDir, "SubagentStop", { goal: opts.goal, error: err instanceof Error ? err.message : String(err), agentType }, { cwd: deps.root, matcherValue: agentType, ...buildAgentHookDeps(deps) });
     throw err;
   } finally {
     stopProgress();
@@ -134,6 +139,7 @@ async function persistSidechain(o: {
   root: string;
   goal: string;
   instruction: string;
+  agentType: string;
   model: string;
   createdAt: string;
   outcome?: AgentOutcome;
@@ -146,6 +152,7 @@ async function persistSidechain(o: {
   const record = {
     goal: o.goal,
     instruction: o.instruction,
+    agentType: o.agentType,
     model: o.model,
     createdAt: o.createdAt,
     outcome: o.outcome,

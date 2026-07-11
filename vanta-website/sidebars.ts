@@ -32,6 +32,7 @@ const sidebars: SidebarsConfig = {
         'knowledge-and-refs',
         'commands',
         'autonomy',
+        'prompt-presets-and-agents',
         'comms-and-gateway',
         'executive-function',
         'desktop-and-tui',

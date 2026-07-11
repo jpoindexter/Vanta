@@ -6,9 +6,11 @@ import { spawnSubagent } from "../subagent/spawn.js";
 import { enqueueAsyncResult } from "../subagent/async-delegate.js";
 import { resolveProvider } from "../providers/index.js";
 import { providerOverrideEnv } from "../providers/override-env.js";
-import { buildRegistry } from "./index.js";
 import { recordDelegationNode } from "../subagent/delegation-receipt.js";
 import { estimateCostUsd } from "../pricing.js";
+import { agentToolFilter } from "../subagent/builtin-agents.js";
+import { isCustomAgentDef, loadAgentDefs, resolveAgentType, type CustomAgentDef, type ResolvedAgentType } from "../subagent/agent-defs.js";
+import { validatePromptPreset, type PromptPreset } from "../prompt/presets.js";
 
 const Args = z.object({
   goal: z.string().min(1),
@@ -18,6 +20,7 @@ const Args = z.object({
   model: z.string().optional(),
   isolation: z.enum(["worktree"]).optional(),
   background: z.boolean().optional(),
+  agent_type: z.string().min(1).optional(),
 });
 
 /** Env for the worker — overlay the agent's chosen provider/model over the parent's. */
@@ -30,6 +33,45 @@ export function delegateEnv(
 }
 
 type DelegateArgs = import("zod").infer<typeof Args>;
+
+export type DelegateAgentConfig = {
+  type: ResolvedAgentType;
+  promptPreset: PromptPreset;
+  allowedTools: string[];
+  /** Undefined means unrestricted; otherwise enforced for built-ins and later MCP mounts. */
+  toolAllowlist?: string[];
+  model?: string;
+};
+
+/** Resolve one worker role without granting any tool absent from the child registry. */
+export function resolveDelegateAgentConfig(
+  requested: string | undefined,
+  customDefs: readonly CustomAgentDef[],
+  allToolNames: readonly string[],
+): DelegateAgentConfig {
+  const type = resolveAgentType(requested, customDefs);
+  const custom = isCustomAgentDef(type);
+  const declared = type.allowTools;
+  const deny = new Set([...(("denyTools" in type && type.denyTools) || []), "delegate"]);
+  const toolAllowlist = declared === undefined || declared === "all"
+    ? undefined
+    : [...new Set(declared.filter((name) => !deny.has(name)))];
+  return {
+    type,
+    promptPreset: { name: type.name, content: custom ? type.systemPrompt : type.persona },
+    allowedTools: agentToolFilter(type, allToolNames),
+    ...(toolAllowlist ? { toolAllowlist } : {}),
+    ...(custom && type.model ? { model: type.model } : {}),
+  };
+}
+
+/** Build a registry whose registration boundary also constrains tools mounted later. */
+export async function buildDelegateRegistry(config: DelegateAgentConfig) {
+  const { buildRegistry } = await import("./index.js");
+  return config.toolAllowlist
+    ? buildRegistry({ include: config.toolAllowlist })
+    : buildRegistry({ exclude: ["delegate"] });
+}
 
 async function resolveWorktree(
   root: string,
@@ -51,15 +93,23 @@ async function runDelegate(
 ): Promise<import("./types.js").ToolResult> {
   const { goal, instruction, max_iterations: maxIterations, provider: prov, model, isolation } = data;
 
+  const { buildRegistry } = await import("./index.js");
+  const baseRegistry = buildRegistry({ exclude: ["delegate"] });
+  const baseNames = baseRegistry.schemas().map((schema) => schema.name);
+  const agent = resolveDelegateAgentConfig(data.agent_type, loadAgentDefs(ctx.root, process.env), baseNames);
+  const promptError = validatePromptPreset(agent.promptPreset);
+  if (promptError) return { ok: false, output: promptError };
+  const workerModel = model ?? agent.model;
+
   let provider;
   try {
-    provider = resolveProvider(delegateEnv(process.env, prov, model));
+    provider = resolveProvider(delegateEnv(process.env, prov, workerModel));
   } catch (err) {
-    return { ok: false, output: `cannot use ${prov ?? "default"}/${model ?? "default"}: ${(err as Error).message}` };
+    return { ok: false, output: `cannot use ${prov ?? "default"}/${workerModel ?? "default"}: ${(err as Error).message}` };
   }
 
   // Child cannot spawn further delegates — prevents runaway recursion.
-  const registry = buildRegistry({ exclude: ["delegate"] });
+  const registry = await buildDelegateRegistry(agent);
 
   const wt = await resolveWorktree(ctx.root, isolation);
   if ("ok" in wt && !wt.ok) return wt;
@@ -80,6 +130,7 @@ async function runDelegate(
         maxIterations,
       },
       maxIterations,
+      promptPreset: agent.promptPreset,
     });
     await persistDelegateReceipt(data, ctx, outcome);
     const prefix = worktreeHandle ? `[worktree:${worktreeHandle.branch}] ` : "";
@@ -160,6 +211,10 @@ export const delegateTool: Tool = {
         background: {
           type: "boolean",
           description: "Run the worker in the BACKGROUND: the call returns immediately and the worker's result re-enters as a new turn when the session is idle. Use for long subtasks you don't need to block on.",
+        },
+        agent_type: {
+          type: "string",
+          description: "Optional worker prompt/type. Built-ins: explore, plan, verification, general-purpose. Custom markdown definitions load from project .vanta/agents, compatible .claude/agents, and ~/.vanta/agents.",
         },
       },
       required: ["goal", "instruction"],

@@ -22,6 +22,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "restore", arg: "<name|id> [branch]", desc: "restore a checkpoint in place, or branch it into a new session" },
   { name: "hooks", arg: "[add|remove]", desc: "list, add, or remove shell hooks in .vanta/hooks.json" },
   { name: "model", desc: "change provider & model — interactive picker" },
+  { name: "prompt", arg: "list|show <name>|use <name>|reset", desc: "switch the session's operating prompt preset" },
   { name: "effort", arg: "<low|medium|high|max>", desc: "set model effort for this session" },
   { name: "env", arg: "[KEY=value|-KEY]", desc: "session-scoped env vars injected into shell_cmd/run_code child processes" },
   { name: "cd", arg: "[path]", desc: "change the session working directory for shell_cmd (no arg prints it)" },

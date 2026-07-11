@@ -3208,6 +3208,10 @@
           "background": {
             "type": "boolean",
             "description": "Run the worker in the BACKGROUND: the call returns immediately and the worker's result re-enters as a new turn when the session is idle. Use for long subtasks you don't need to block on."
+          },
+          "agent_type": {
+            "type": "string",
+            "description": "Optional worker prompt/type. Built-ins: explore, plan, verification, general-purpose. Custom markdown definitions load from project .vanta/agents, compatible .claude/agents, and ~/.vanta/agents."
           }
         },
         "required": [
@@ -4547,6 +4551,10 @@
     {
       "name": "model",
       "desc": "change provider & model — interactive picker"
+    },
+    {
+      "name": "prompt",
+      "desc": "switch the session's operating prompt preset"
     },
     {
       "name": "effort",

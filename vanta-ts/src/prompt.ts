@@ -5,6 +5,7 @@ import type { ToolSchema } from "./providers/interface.js";
 import { readStack } from "./task-stack/store.js";
 import { taskStackSummary } from "./task-stack/summary.js";
 import { platformHint } from "./gateway/platforms/hints.js";
+import { formatPromptPreset, type PromptPreset } from "./prompt/presets.js";
 import {
   readIfExists,
   stableTier,
@@ -61,6 +62,8 @@ export type BuildPromptOptions = {
    * (the env the gateway sets); unset/unknown = no line (default prompt unchanged).
    */
   gatewayPlatform?: string;
+  /** Operator-selected role overlay. Base safety/kernel instructions remain intact. */
+  promptPreset?: PromptPreset;
 };
 
 /** What each prompt tier reads to render itself. */
@@ -80,6 +83,7 @@ export type PromptTier = {
 /** The ordered prompt-tier registry. Add/reorder here, not in buildSystemPrompt. */
 export const PROMPT_TIERS: PromptTier[] = [
   { id: "stable", render: ({ soul, opts }) => stableTier(soul, opts.root, opts.tools, opts.outputDensity) },
+  { id: "prompt-preset", render: ({ opts }) => (opts.promptPreset ? formatPromptPreset(opts.promptPreset) : "") },
   {
     id: "self",
     render: ({ opts }) =>

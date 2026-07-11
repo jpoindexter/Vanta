@@ -11,7 +11,7 @@ Two layers:
 | Path | Language | Role |
 |------|----------|------|
 | `src/` | Rust | Safety kernel: risk classifier, approvals, goals, HTTP sidecar on :7788 |
-| `vanta-ts/` | TypeScript, Node 22, ESM | Agent loop: LLM providers, 123 built-in tools (127 registered), 136 slash commands, TUI, REPL |
+| `vanta-ts/` | TypeScript, Node 22, ESM | Agent loop: LLM providers, 137 built-in tools (141 registered), 146 slash commands, TUI, REPL |
 
 The kernel is the enforced security boundary — `assess()` blocks, it doesn't advise. Deep TS docs: `vanta-ts/AGENTS.md`.
 
@@ -24,7 +24,7 @@ cd vanta-ts && npx vitest run && npx tsc --noEmit  # TS agent (last recorded ful
 vanta                                          # launch TUI (TTY) or readline REPL
 ```
 
-> **Status (2026-07-09):** v0.8.0 roadmap-grind in progress on `main`. Current source registers **123 built-in tools** (127 with factory `mount_mcp`/`tool_search`/`mcp_auth`/`run_pipeline`) and **136 slash commands**; last recorded full verify is **11979 TS tests green** (1070 files), `tsc` clean, size gate clean, plus **67 kernel tests**. Current direction and per-card status live in `roadmap.json`; the human launch-pad view is generated as `roadmap.html`. The local codegraph index lives in ignored `.codegraph/`; refresh it with `codegraph index -f .` and verify with `codegraph status .` before relying on code-intel results.
+> **Status (2026-07-12):** v0.8.0 roadmap-grind continues on `main`. Current source registers **137 built-in tools** (141 with factory `mount_mcp`/`tool_search`/`mcp_auth`/`run_pipeline`) and **146 slash commands**; last recorded full verify is **11979 TS tests green** (1070 files), `tsc` clean, size gate clean, plus **67 kernel tests**. Current direction and per-card status live in `roadmap.json`; the human launch-pad view is generated as `roadmap.html`. The local codegraph index lives in ignored `.codegraph/`; refresh it with `codegraph index -f .` and verify with `codegraph status .` before relying on code-intel results.
 
 ## Key files
 
