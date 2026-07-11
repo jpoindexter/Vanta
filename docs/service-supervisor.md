@@ -26,3 +26,20 @@ receipt was executed under an Ubuntu 24.04 systemd user manager with a dedicated
 non-root user and covered install, start, restart, log capture, stop, stale-state
 reporting, and uninstall, including working and log paths containing spaces.
 Windows remains the unexecuted native lifecycle gate.
+
+## Windows proof gate
+
+Run the lifecycle proof from PowerShell in a real logged-in Windows desktop
+session:
+
+```powershell
+cd vanta-ts
+npm ci
+node --import tsx scripts/service-native-proof.ts
+```
+
+The expected receipt is `.artifacts/service-proof-win32.json` with `ok: true`.
+GitHub-hosted Windows runners do not satisfy this gate: Task Scheduler reports
+the `InteractiveToken` task as running (`0x41301`) and later terminated
+(`0x41306`) without launching its action. Do not switch the production task to
+S4U to make CI pass; S4U tasks cannot access the network or encrypted files.
