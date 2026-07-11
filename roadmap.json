@@ -17462,7 +17462,7 @@
       "id": "HERMES-PLUGIN-LLM-LANE",
       "track": "Harness",
       "title": "Plugin LLM lane — bounded host-owned model calls from plugins",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Hermes gives plugins a controlled `ctx.llm` path for one-shot chat or structured generation without exposing provider secrets. Vanta plugins can register tools, commands, and UI surfaces; the missing capability is a safe host-owned LLM lane with budget, schema, audit, and permission boundaries.",
       "done": "PluginContext exposes `ctx.llm.complete` and `ctx.llm.completeStructured` with required purpose, budget, timeout, and optional schema validation; provider/model selection inherits host policy unless explicitly allowed; calls are audited and cost-attributed; untrusted plugins cannot read credentials or choose arbitrary providers.",
@@ -17473,7 +17473,7 @@
       "lens": "infra",
       "updated": "2026-07-11",
       "source": "hermes-feature-function-harvest-2026-07-11",
-      "notes": "Source: current Hermes plugin LLM access docs. Keep plugin LLM calls behind the same kernel/accounting path as normal Vanta model calls."
+      "notes": "Source: current Hermes plugin LLM access docs. Keep plugin LLM calls behind the same kernel/accounting path as normal Vanta model calls.\n\nSHIPPED 2026-07-11: `PluginContext.llm.complete` and `completeStructured` provide host-owned one-shot generation to enabled in-process plugins only after the operator grants `llm.generate`. Strict requests require purpose, prompt, budgetUsd, timeoutMs, and maxTokens and reject provider/model overrides. Host routing selects the provider from purpose; VANTA_PLUGIN_LLM_MAX_USD plus a conservative worst-case token ceiling bound spend; AbortSignal enforces timeout. Structured calls append a JSON-only instruction, parse output, and validate the requested object/array/primitive shape. Audit JSONL attributes plugin, purpose, host model, token usage, cost, budget, timeout, outcome, and timestamp while omitting prompts, outputs, and credentials. The loader refactor preserved diagnostic error handling and split oversized branches under the code-size gate. Isolated worker protocol v1 intentionally does not expose model calls; worker RPC remains a separate trust-boundary decision. Focused plugin gates: 39 tests plus typecheck and touched-file size/complexity lint. Full suite: 1,276 files / 12,831 passed / 3 skipped. Docs build, use-case validation, roadmap uniqueness, and diff checks passed."
     },
     {
       "id": "HERMES-DELIVERABLE-AUTO-ATTACH",

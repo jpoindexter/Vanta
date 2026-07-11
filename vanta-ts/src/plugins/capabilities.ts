@@ -4,6 +4,7 @@ export const PLUGIN_CAPABILITIES = [
   "storage.write",
   "schedule.jobs",
   "ui.panel",
+  "llm.generate",
 ] as const;
 
 export type PluginCapability = (typeof PLUGIN_CAPABILITIES)[number];

@@ -4,6 +4,7 @@ import type { SlashHandler } from "../repl/types.js";
 import type { PluginManifest } from "./manifest.js";
 import { pluginToolPrefix } from "./manifest.js";
 import type { PluginCommandRegistry } from "./commands.js";
+import type { PluginLlmLane } from "./llm.js";
 
 export type PluginInfo = {
   name: string;
@@ -19,6 +20,7 @@ export type PluginContext = {
   registerTool: (tool: Tool) => void;
   registerCommand: (name: string, handler: SlashHandler, meta?: { arg?: string; desc?: string }) => void;
   log: (message: string) => void;
+  llm: PluginLlmLane;
 };
 
 export type PluginContribution = {
@@ -34,6 +36,7 @@ export function createPluginContext(opts: {
   registry: ToolRegistry;
   commands: PluginCommandRegistry;
   log: (message: string) => void;
+  llm: PluginLlmLane;
 }): { ctx: PluginContext; contribution: PluginContribution } {
   const contribution: PluginContribution = { tools: [], commands: [] };
   const info: PluginInfo = {
@@ -67,6 +70,7 @@ export function createPluginContext(opts: {
     log(message) {
       opts.log(`  · plugin ${opts.manifest.name}: ${message}`);
     },
+    llm: opts.llm,
   };
   return { ctx, contribution };
 }

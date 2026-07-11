@@ -17,8 +17,8 @@ Shipped v1 surface:
 - Enablement: plugins are disabled by default and load only when their manifest name is listed
   in `plugins.enabled`.
 - Runtime: `src/plugins/loader.ts` imports only enabled plugins and calls `register(ctx)`.
-- `PluginContext`: `registerTool(tool)`, `registerCommand(name, handler, meta)`, plugin metadata,
-  repo root, Vanta home, and a scoped logger.
+- `PluginContext`: `registerTool(tool)`, `registerCommand(name, handler, meta)`, `llm.complete()`,
+  `llm.completeStructured()`, plugin metadata, repo root, Vanta home, and a scoped logger.
 - Safety: plugin tools register as normal `Tool`s and execute through the existing
   `dispatchTool -> safety.assess()` path. Tool names must start with `plugin_<plugin-name>_`,
   cannot collide with existing tools, and must provide `describeForSafety`.
@@ -53,8 +53,28 @@ renders live content. Numbered actions become normal Vanta turns, so any tool us
 still crosses the kernel permission gate. Press `d` in a panel to route a disable
 request through the same gated path.
 
-Not shipped in this slice: npm loading, CLI enable/disable management, provider/platform
-registration, plugin hooks, `llm.complete`, `dispatch_tool`, background monitors, or hot reload.
+### Host-owned LLM lane
+
+In-process plugins can request one-shot model work without receiving a provider
+object or credentials. Grant the capability separately from enabling the plugin:
+
+```sh
+vanta plugin grant reporter llm.generate
+```
+
+Every call requires `purpose`, `prompt`, `budgetUsd`, `timeoutMs`, and
+`maxTokens`. Vanta selects the provider/model from the purpose using host routing,
+applies a conservative token ceiling and `VANTA_PLUGIN_LLM_MAX_USD` host cap,
+and writes plugin, purpose, model, usage, cost, and outcome to
+`.vanta/plugin-llm-audit.jsonl`. Prompts and responses are omitted from receipts.
+`completeStructured` also requires a JSON schema and rejects invalid output.
+Request objects are strict, so plugins cannot include provider/model overrides.
+
+This capability is currently on `PluginContext` for enabled in-process plugins.
+Isolated worker RPC does not expose model calls in protocol v1.
+
+Not shipped in this slice: npm loading, provider/platform registration,
+`dispatch_tool`, or worker-side LLM RPC.
 
 ## What Vanta already has (don't rebuild)
 

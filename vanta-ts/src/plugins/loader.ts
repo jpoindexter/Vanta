@@ -12,6 +12,8 @@ import { createPluginContext, type PluginContext } from "./context.js";
 import { armMonitors, type DisarmHandle, type MonitorDeps } from "./monitors.js";
 import { PluginPanelRegistry } from "./panels.js";
 import { launchPluginWorker, type PluginWorkerHandle, type PluginWorkerScheduler } from "./worker.js";
+import { createPluginLlmLane, type PluginLlmLane } from "./llm.js";
+import { resolveRoutedProvider } from "../routing/model-router.js";
 
 type Source = "bundled" | "user" | "project";
 
@@ -95,51 +97,27 @@ export async function loadEnabledPlugins(opts: {
   monitorDeps?: MonitorDeps;
   panels?: PluginPanelRegistry;
   workerSchedule?: PluginWorkerScheduler;
+  pluginLlmFactory?: (plugin: string) => PluginLlmLane;
 }): Promise<PluginLoadResult> {
   const enabled = new Set(opts.settings.plugins?.enabled ?? []);
-  const diagnostics: PluginDiagnostic[] = [];
-  const loaded: string[] = [];
-  const monitors: DisarmHandle[] = [];
-  const workers: PluginWorkerHandle[] = [];
   const panels = opts.panels ?? new PluginPanelRegistry();
-  if (!enabled.size) return { loaded, diagnostics, monitors, workers, panels };
+  const result: PluginLoadResult = { loaded: [], diagnostics: [], monitors: [], workers: [], panels };
+  if (!enabled.size) return result;
 
   let candidates: PluginCandidate[];
   try {
     candidates = await discoverPlugins(opts.repoRoot, opts.settings, opts.env);
   } catch (err) {
-    return { loaded, diagnostics: [{ plugin: "(discovery)", source: "unknown", ok: false, message: (err as Error).message }], monitors, workers, panels };
+    result.diagnostics.push({ plugin: "(discovery)", source: "unknown", ok: false, message: (err as Error).message });
+    return result;
   }
 
   const byName = new Map(candidates.map((c) => [c.manifest.name, c]));
-  for (const name of enabled) {
-    const candidate = byName.get(name);
-    if (!candidate) {
-      diagnostics.push({ plugin: name, source: "unknown", ok: false, message: "enabled plugin not found" });
-      continue;
-    }
-    const missingEnv = (candidate.manifest.requiresEnv ?? []).filter((key) => !opts.env[key]);
-    if (missingEnv.length) {
-      diagnostics.push({ plugin: name, source: candidate.source, ok: false, message: `missing env: ${missingEnv.join(", ")}` });
-      continue;
-    }
-    const { diagnostic, monitors: armed, worker } = await loadOnePlugin(candidate, {
-      ...opts,
-      panels,
-      granted: opts.settings.plugins?.capabilities?.[name] ?? [],
-    });
-    diagnostics.push(diagnostic);
-    if (diagnostic.ok) {
-      loaded.push(name);
-      opts.commands.markLoaded(name);
-      monitors.push(...armed);
-      if (worker) workers.push(worker);
-    }
-  }
-  return { loaded, diagnostics, monitors, workers, panels };
+  for (const name of enabled) await loadEnabledCandidate(name, byName, opts, result);
+  return result;
 }
 
-async function loadOnePlugin(candidate: PluginCandidate, opts: {
+type LoadOneOptions = {
   repoRoot: string;
   registry: ToolRegistry;
   commands: PluginCommandRegistry;
@@ -149,47 +127,74 @@ async function loadOnePlugin(candidate: PluginCandidate, opts: {
   panels: PluginPanelRegistry;
   granted: import("./capabilities.js").PluginCapability[];
   workerSchedule?: PluginWorkerScheduler;
-}): Promise<{ diagnostic: PluginDiagnostic; monitors: DisarmHandle[]; worker?: PluginWorkerHandle }> {
+  pluginLlmFactory?: (plugin: string) => PluginLlmLane;
+};
+type LoadedOne = { diagnostic: PluginDiagnostic; monitors: DisarmHandle[]; worker?: PluginWorkerHandle };
+
+async function loadEnabledCandidate(name: string, byName: Map<string, PluginCandidate>, opts: Parameters<typeof loadEnabledPlugins>[0], result: PluginLoadResult): Promise<void> {
+  const candidate = byName.get(name);
+  if (!candidate) return void result.diagnostics.push({ plugin: name, source: "unknown", ok: false, message: "enabled plugin not found" });
+  const missingEnv = (candidate.manifest.requiresEnv ?? []).filter((key) => !opts.env[key]);
+  if (missingEnv.length) return void result.diagnostics.push({ plugin: name, source: candidate.source, ok: false, message: `missing env: ${missingEnv.join(", ")}` });
+  const loaded = await loadOnePlugin(candidate, { ...opts, panels: result.panels, granted: opts.settings.plugins?.capabilities?.[name] ?? [] });
+  result.diagnostics.push(loaded.diagnostic);
+  if (!loaded.diagnostic.ok) return;
+  result.loaded.push(name);
+  opts.commands.markLoaded(name);
+  result.monitors.push(...loaded.monitors);
+  if (loaded.worker) result.workers.push(loaded.worker);
+}
+
+async function loadOnePlugin(candidate: PluginCandidate, opts: LoadOneOptions): Promise<LoadedOne> {
   const log = opts.log ?? (() => {});
+  const llm = opts.pluginLlmFactory?.(candidate.manifest.name) ?? defaultPluginLlm(candidate.manifest.name, opts.repoRoot, opts.env, opts.granted);
   try {
-    if (candidate.manifest.worker) {
-      const worker = await launchPluginWorker({
-        manifest: candidate.manifest,
-        pluginDir: candidate.dir,
-        vantaHome: resolveVantaHome(opts.env),
-        granted: opts.granted,
-        panels: opts.panels,
-        log,
-        schedule: opts.workerSchedule,
-      });
-      const monitors = armMonitors(candidate.manifest, opts.monitorDeps ?? defaultMonitorDeps(log));
-      log(`  · plugin: loaded ${candidate.manifest.name} worker (pid ${worker.pid}, ${worker.granted.length} capability grant(s))`);
-      return { diagnostic: { plugin: candidate.manifest.name, source: candidate.source, ok: true, message: "worker loaded" }, monitors, worker };
-    }
-    const entry = resolve(candidate.dir, candidate.manifest.main);
-    if (!entry.startsWith(candidate.dir)) throw new Error("plugin main must stay inside plugin directory");
-    const mod = await import(pathToFileURL(entry).href) as PluginModule;
-    const register = mod.register ?? mod.default?.register;
-    if (typeof register !== "function") throw new Error("plugin module must export register(ctx)");
-    const { ctx, contribution } = createPluginContext({
-      manifest: candidate.manifest,
-      pluginDir: candidate.dir,
-      repoRoot: opts.repoRoot,
-      vantaHome: resolveVantaHome(opts.env),
-      registry: opts.registry,
-      commands: opts.commands,
-      log,
-    });
-    await register(ctx);
-    for (const tool of contribution.tools) opts.registry.register(tool);
-    for (const command of contribution.commands) opts.commands.register(candidate.manifest.name, command.name, command.handler, command.meta);
-    // Auto-arm declared background monitors once the plugin has registered.
-    // No monitors declared → armMonitors is a no-op (empty handles, no schedule).
-    const monitors = armMonitors(candidate.manifest, opts.monitorDeps ?? defaultMonitorDeps(log));
-    if (monitors.length) log(`  · plugin ${candidate.manifest.name}: armed ${monitors.length} monitor(s)`);
-    log(`  · plugin: loaded ${candidate.manifest.name} (${contribution.tools.length} tool(s), ${contribution.commands.length} command(s))`);
-    return { diagnostic: { plugin: candidate.manifest.name, source: candidate.source, ok: true, message: "loaded" }, monitors };
+    return await (candidate.manifest.worker ? loadWorkerPlugin(candidate, opts, log) : loadContextPlugin(candidate, opts, log, llm));
   } catch (err) {
     return { diagnostic: { plugin: candidate.manifest.name, source: candidate.source, ok: false, message: (err as Error).message }, monitors: [] };
   }
+}
+
+async function loadWorkerPlugin(candidate: PluginCandidate, opts: LoadOneOptions, log: (message: string) => void): Promise<LoadedOne> {
+  const worker = await launchPluginWorker({
+    manifest: candidate.manifest, pluginDir: candidate.dir, vantaHome: resolveVantaHome(opts.env),
+    granted: opts.granted, panels: opts.panels, log, schedule: opts.workerSchedule,
+  });
+  const monitors = armMonitors(candidate.manifest, opts.monitorDeps ?? defaultMonitorDeps(log));
+  log(`  · plugin: loaded ${candidate.manifest.name} worker (pid ${worker.pid}, ${worker.granted.length} capability grant(s))`);
+  return { diagnostic: { plugin: candidate.manifest.name, source: candidate.source, ok: true, message: "worker loaded" }, monitors, worker };
+}
+
+async function loadContextPlugin(candidate: PluginCandidate, opts: LoadOneOptions, log: (message: string) => void, llm: PluginLlmLane): Promise<LoadedOne> {
+  const entry = resolve(candidate.dir, candidate.manifest.main);
+  if (!entry.startsWith(candidate.dir)) throw new Error("plugin main must stay inside plugin directory");
+  const mod = await import(pathToFileURL(entry).href) as PluginModule;
+  const register = mod.register ?? mod.default?.register;
+  if (typeof register !== "function") throw new Error("plugin module must export register(ctx)");
+  const { ctx, contribution } = createPluginContext({
+    manifest: candidate.manifest, pluginDir: candidate.dir, repoRoot: opts.repoRoot,
+    vantaHome: resolveVantaHome(opts.env), registry: opts.registry, commands: opts.commands, log, llm,
+  });
+  await register(ctx);
+  for (const tool of contribution.tools) opts.registry.register(tool);
+  for (const command of contribution.commands) opts.commands.register(candidate.manifest.name, command.name, command.handler, command.meta);
+  const monitors = armMonitors(candidate.manifest, opts.monitorDeps ?? defaultMonitorDeps(log));
+  if (monitors.length) log(`  · plugin ${candidate.manifest.name}: armed ${monitors.length} monitor(s)`);
+  log(`  · plugin: loaded ${candidate.manifest.name} (${contribution.tools.length} tool(s), ${contribution.commands.length} command(s))`);
+  return { diagnostic: { plugin: candidate.manifest.name, source: candidate.source, ok: true, message: "loaded" }, monitors };
+}
+
+function defaultPluginLlm(plugin: string, repoRoot: string, env: NodeJS.ProcessEnv, granted: readonly string[] = []): PluginLlmLane {
+  if (!granted.includes("llm.generate")) return deniedPluginLlm();
+  const configured = Number(env.VANTA_PLUGIN_LLM_MAX_USD ?? "0.05");
+  const hostBudgetUsd = Number.isFinite(configured) && configured > 0 ? configured : 0.05;
+  return createPluginLlmLane({
+    plugin, dataDir: join(repoRoot, ".vanta"), hostBudgetUsd,
+    provider: (purpose) => resolveRoutedProvider(env, purpose),
+  });
+}
+
+function deniedPluginLlm(): PluginLlmLane {
+  const denied = async (): Promise<never> => { throw new Error("plugin needs the llm.generate capability grant"); };
+  return { complete: denied, completeStructured: denied };
 }

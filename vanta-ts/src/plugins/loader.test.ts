@@ -29,6 +29,7 @@ beforeEach(async () => {
 afterEach(async () => {
   delete (globalThis as Record<string, unknown>).__pluginImported;
   delete (globalThis as Record<string, unknown>).__pluginRan;
+  delete (globalThis as Record<string, unknown>).__pluginLlm;
   await Promise.all([
     rm(root, { recursive: true, force: true }),
     rm(home, { recursive: true, force: true }),
@@ -69,6 +70,27 @@ export function register(ctx) {
 `;
 
 describe("loadEnabledPlugins", () => {
+  it("exposes host-owned ctx.llm only with the llm.generate grant", async () => {
+    await writePlugin(join(home, "plugins"), "analyst", `
+      export async function register(ctx) {
+        globalThis.__pluginLlm = await ctx.llm.complete({ purpose: "summarize", prompt: "x", budgetUsd: 0.001, timeoutMs: 1000, maxTokens: 10 });
+      }
+    `);
+    const { registry, commands } = loaderDeps({});
+    const denied = await loadEnabledPlugins({ repoRoot: root, registry, commands, settings: { plugins: { enabled: ["analyst"] } }, env });
+    expect(denied.diagnostics[0]?.message).toContain("llm.generate capability grant");
+    const settings: Settings = { plugins: { enabled: ["analyst"], capabilities: { analyst: ["llm.generate"] } } };
+    const allowed = await loadEnabledPlugins({
+      repoRoot: root, registry, commands, settings, env,
+      pluginLlmFactory: () => ({
+        complete: async () => ({ text: "host answer", model: "host-model", inputTokens: 1, outputTokens: 1, costUsd: 0 }),
+        completeStructured: async () => ({ ok: true }),
+      }),
+    });
+    expect(allowed.loaded).toEqual(["analyst"]);
+    expect((globalThis as Record<string, unknown>).__pluginLlm).toMatchObject({ text: "host answer", model: "host-model" });
+  });
+
   it("does not import disabled plugin code", async () => {
     await writePlugin(join(home, "plugins"), "disabled", `throw new Error("disabled plugin was imported");`);
     const { registry, commands } = loaderDeps({});
