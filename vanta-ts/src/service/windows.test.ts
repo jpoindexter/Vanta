@@ -16,6 +16,7 @@ describe("Windows Task Scheduler artifacts", () => {
     expect(runner).toContain("VANTA-MANAGED");
     expect(runner).toContain("C:\\Vanta & tools\\run.ps1");
     expect(runner).toContain("gateway.log");
+    expect(runner).toContain("VANTA_SERVICE_STARTED");
     expect(runner).toContain("*>>");
   });
 });

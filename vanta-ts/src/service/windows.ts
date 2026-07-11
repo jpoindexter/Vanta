@@ -15,6 +15,7 @@ export function buildTaskRunner(opts: TaskRunnerOptions): string {
   return [
     `# ${SERVICE_MARKER}`,
     `$env:VANTA_SERVICE_LOG = ${psQuote(opts.logPath)}`,
+    `[System.IO.File]::AppendAllText(${psQuote(opts.logPath)}, 'VANTA_SERVICE_STARTED' + [Environment]::NewLine)`,
     `& ${psQuote(opts.command)} ${opts.args.map(psQuote).join(" ")} *>> ${psQuote(opts.logPath)}`,
     "exit $LASTEXITCODE",
     "",
