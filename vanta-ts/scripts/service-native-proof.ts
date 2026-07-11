@@ -11,7 +11,7 @@ await mkdir(stateHome, { recursive: true });
 
 if (process.platform === "win32") {
   await writeFile(join(fixture, "run.ps1"), [
-    'Write-Output "SERVICE_PROOF_STARTED"',
+    '"SERVICE_PROOF_STARTED" | Out-File -Append $env:VANTA_SERVICE_LOG',
     "while ($true) { Start-Sleep -Seconds 1 }",
     "",
   ].join("\r\n"));

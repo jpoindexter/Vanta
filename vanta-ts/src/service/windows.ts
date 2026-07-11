@@ -16,7 +16,7 @@ function psQuote(value: string): string {
 }
 
 export function buildTaskXml(opts: TaskXmlOptions): string {
-  const invocation = `& ${psQuote(opts.command)} ${opts.args.map(psQuote).join(" ")} *>> ${psQuote(opts.logPath)}`;
+  const invocation = `$env:VANTA_SERVICE_LOG=${psQuote(opts.logPath)}; & ${psQuote(opts.command)} ${opts.args.map(psQuote).join(" ")} *>> ${psQuote(opts.logPath)}`;
   return [
     '<?xml version="1.0" encoding="UTF-16"?>',
     '<Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">',

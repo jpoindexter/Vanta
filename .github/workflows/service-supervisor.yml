@@ -32,12 +32,24 @@ jobs:
       - name: Verify platform fixtures
         run: npm test -- --run src/service
         working-directory: vanta-ts
-      - name: Keep the Linux user manager alive for the native proof
+      - name: Prove native lifecycle on a dedicated Linux login user
         if: runner.os == 'Linux'
+        working-directory: vanta-ts
         run: |
-          sudo loginctl enable-linger "$USER"
-          systemctl --user unset-environment RUNNER_TRACKING_ID || true
+          sudo useradd --create-home --shell /bin/bash vanta-proof
+          uid="$(id -u vanta-proof)"
+          sudo loginctl enable-linger vanta-proof
+          sudo systemctl start "user@${uid}.service"
+          mkdir -p .artifacts
+          sudo chown vanta-proof .artifacts
+          sudo -u vanta-proof env \
+            HOME=/home/vanta-proof \
+            XDG_RUNTIME_DIR="/run/user/${uid}" \
+            DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${uid}/bus" \
+            PATH="$PATH" \
+            node --import tsx scripts/service-native-proof.ts
       - name: Prove native lifecycle
+        if: runner.os != 'Linux'
         run: node --import tsx scripts/service-native-proof.ts
         working-directory: vanta-ts
       - uses: actions/upload-artifact@v4
