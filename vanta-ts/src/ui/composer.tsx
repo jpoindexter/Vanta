@@ -1,9 +1,9 @@
 import { useRef, useState, type ReactElement } from "react";
 import { useInput } from "ink";
 import { matchSlash, completeSlash, isPartialSlash, type SlashMatch } from "./slash.js";
-import { activeAtRef, matchAtFiles, completeAtRef, slackCompletionFor, channelSuggestionLabels, completeChannelRef } from "./at.js";
+import { activeAtRef, matchContextRefs, completeAtRef, slackCompletionFor, channelSuggestionLabels, completeChannelRef } from "./at.js";
 import type { SlackChannel } from "../repl/slack-suggest.js";
-import { navigateHistory, historyTypeahead, type Edit, type HistState } from "./composer-keys.js";
+import { navigateHistory, historyTypeahead, type Edit, type HistState, type Key } from "./composer-keys.js";
 import { useVim } from "./use-vim.js";
 import { editInEditor } from "./composer-editor.js";
 import { ComposerView } from "./composer-view.js";
@@ -66,7 +66,7 @@ function useComposerBuffer(): {
   return { value, cursor, sel, setSel, selection, valueRef, cursorRef, selectionRef, setBuf, setSelection };
 }
 
-export function Composer(props: {
+type ComposerProps = {
   onSubmit: (text: string) => void;
   placeholder: string;
   files: string[];
@@ -76,7 +76,9 @@ export function Composer(props: {
   channels?: SlackChannel[];
   focused?: boolean;
   vim?: boolean;
-}): ReactElement {
+};
+
+export function Composer(props: ComposerProps): ReactElement {
   const { value, cursor, sel, setSel, selection, valueRef, cursorRef, selectionRef, setBuf, setSelection } = useComposerBuffer();
   const killRef = useRef("");
   const undoRef = useRef("");
@@ -102,29 +104,63 @@ export function Composer(props: {
   const undo = (): void => { const prev = undoRef.current; undoRef.current = value; setBuf(prev, prev.length); };
   const histNav = (dir: "up" | "down"): void => { const n = navigateHistory(props.history, histRef.current, dir); histRef.current = n; setBuf(n.value, n.value.length); };
 
-  useInput((input, key) => {
-    const burst = isPasteBurst(inputAtRef.current); inputAtRef.current = Date.now(); // a return mid-burst = a paste newline
-    if (key.tab && key.shift) return; // Shift+Tab is the global mode cycle (App owns it)
-    const selMove = extendComposerSelection(valueRef.current, cursorRef.current, selectionRef.current, key);
-    if (selMove) { setSelection(selMove.selection ?? null); return; }
-    if (key.super && input === "v") { const text = readClipboardText(); if (text) pasteText(text); else props.onPaste?.(); return; }
-    const selEdit = composerSelectionCommand(input, key, valueRef.current, selectionRef.current);
-    if (selEdit) {
-      if (selEdit.clipboard !== undefined) writeClipboardText(selEdit.clipboard);
-      selEdit.selection === undefined ? setSelection(selectionRef.current) : setSelection(selEdit.selection);
-      if (selEdit.value !== valueRef.current || selEdit.cursor !== cursorRef.current) setBuf(selEdit.value, selEdit.cursor);
-      return;
-    }
-    if (vimHandle.handle({ input, key, value, cursor, setBuf })) return; // vi normal mode owns the key; insert falls through
-    if (isMultiLinePaste(input)) { pasteText(input); return; } // raw multi-line paste chunk → normalize, never submit
-    if (handleReturnKey(key, burst, insertNewline, submitNow)) return;
-    if (handleSpecialChord(input, key, { openEditor, undo, pasteText, paste: props.onPaste })) return;
-    if (activeLen > 0 && handlePaletteKey({ key, len: activeLen, sel: selClamped, setSel, complete: completeNow })) return;
-    if (handleHistory(input, key, histNav)) return;
-    handleGhostOrEdit({ input, key, ghost, value: valueRef.current, cursor: cursorRef.current, killRing: killRef.current, setBuf, applyEdit });
-  }, { isActive: focused });
+  useInput((input, key) => handleComposerInput(input, key, {
+    value, cursor, activeLen, selClamped, ghost, inputAtRef, valueRef, cursorRef, selectionRef,
+    setBuf, setSel, setSelection, pasteText, submitNow, insertNewline, openEditor, undo, completeNow,
+    histNav, applyEdit, vimHandle, killRef, onPaste: props.onPaste,
+  }), { isActive: focused });
 
   return <ComposerView focused={focused} slashMatches={slashMatches} atMatches={atMatches} channelMatches={channelSuggestionLabels(channelMatches)} sel={selClamped} value={value} cursor={cursor} selection={selection} placeholder={props.placeholder} pill={pill} ghost={ghost} vimMode={vimHandle.mode} />;
+}
+
+type InputCtx = {
+  value: string; cursor: number; activeLen: number; selClamped: number; ghost: string;
+  inputAtRef: { current: number }; valueRef: { current: string }; cursorRef: { current: number };
+  selectionRef: { current: Sel | null }; killRef: { current: string };
+  setBuf: (v: string, c: number) => void; setSel: (n: number) => void; setSelection: (s: Sel | null) => void;
+  pasteText: (text: string) => void; submitNow: () => void; insertNewline: () => void; openEditor: () => void;
+  undo: () => void; completeNow: () => void; histNav: (dir: "up" | "down") => void; applyEdit: (edit: Edit) => void;
+  vimHandle: ReturnType<typeof useVim>; onPaste?: () => void;
+};
+
+function handleComposerInput(input: string, key: Key, o: InputCtx): void {
+  const burst = isPasteBurst(o.inputAtRef.current);
+  o.inputAtRef.current = Date.now();
+  if (key.tab && key.shift) return;
+  if (handleSelectionInput(input, key, o)) return;
+  if (o.vimHandle.handle({ input, key, value: o.value, cursor: o.cursor, setBuf: o.setBuf })) return;
+  if (isMultiLinePaste(input)) return o.pasteText(input);
+  handleStandardInput(input, key, burst, o);
+}
+
+function handleStandardInput(input: string, key: Key, burst: boolean, o: InputCtx): void {
+  if (handleReturnKey(key, burst, o.insertNewline, o.submitNow)) return;
+  if (handleSpecialChord(input, key, { openEditor: o.openEditor, undo: o.undo, pasteText: o.pasteText, paste: o.onPaste })) return;
+  if (o.activeLen > 0 && handlePaletteKey({ key, len: o.activeLen, sel: o.selClamped, setSel: o.setSel, complete: o.completeNow })) return;
+  if (handleHistory(input, key, o.histNav)) return;
+  handleGhostOrEdit({ input, key, ghost: o.ghost, value: o.valueRef.current, cursor: o.cursorRef.current, killRing: o.killRef.current, setBuf: o.setBuf, applyEdit: o.applyEdit });
+}
+
+function handleSelectionInput(input: string, key: Key, o: InputCtx): boolean {
+  const move = extendComposerSelection(o.valueRef.current, o.cursorRef.current, o.selectionRef.current, key);
+  if (move) { o.setSelection(move.selection ?? null); return true; }
+  if (key.super && input === "v") return pasteClipboard(o);
+  const edit = composerSelectionCommand(input, key, o.valueRef.current, o.selectionRef.current);
+  if (!edit) return false;
+  applySelectionEdit(edit, o);
+  return true;
+}
+
+function pasteClipboard(o: InputCtx): boolean {
+  const text = readClipboardText();
+  if (text) o.pasteText(text); else o.onPaste?.();
+  return true;
+}
+
+function applySelectionEdit(edit: ReturnType<typeof composerSelectionCommand> & {}, o: InputCtx): void {
+  if (edit.clipboard !== undefined) writeClipboardText(edit.clipboard);
+  edit.selection === undefined ? o.setSelection(o.selectionRef.current) : o.setSelection(edit.selection);
+  if (edit.value !== o.valueRef.current || edit.cursor !== o.cursorRef.current) o.setBuf(edit.value, edit.cursor);
 }
 
 type PaletteInput = { value: string; cursor: number; files: string[]; channels?: SlackChannel[]; skills?: SlashMatch[] };
@@ -135,7 +171,7 @@ function useComposerPalettes(o: PaletteInput): { slashMatches: SlashMatch[]; atM
   // the channel palette; otherwise we fall to the file palette (slash always wins both).
   const channelMatches = slashMatches.length === 0 ? slackCompletionFor(o.value, o.cursor, o.channels ?? []) : [];
   const atPartial = slashMatches.length === 0 && channelMatches.length === 0 ? activeAtRef(o.value) : null;
-  const atMatches = atPartial !== null ? matchAtFiles(o.files, atPartial) : [];
+  const atMatches = atPartial !== null ? matchContextRefs(o.files, atPartial) : [];
   return { slashMatches, atMatches, channelMatches, activeLen: slashMatches.length || channelMatches.length || atMatches.length };
 }
 

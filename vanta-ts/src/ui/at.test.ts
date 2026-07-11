@@ -3,6 +3,7 @@ import {
   matchAtFiles,
   completeAtRef,
   activeAtRef,
+  matchContextRefs,
   slackCompletionFor,
   channelSuggestionLabels,
   completeChannelRef,
@@ -25,6 +26,22 @@ describe("matchAtFiles", () => {
   it("returns the head of the list for an empty partial, capped", () => {
     expect(matchAtFiles(FILES, "")).toEqual(FILES);
     expect(matchAtFiles(Array.from({ length: 20 }, (_, i) => `f${i}`), "f").length).toBe(8);
+  });
+});
+
+describe("matchContextRefs", () => {
+  it("advertises typed reference kinds for an empty @ token", () => {
+    expect(matchContextRefs(FILES, "")).toEqual([
+      "file:", "folder:", "diff", "staged", "git:", "url:", "src/app.ts", "src/composer.tsx",
+    ]);
+  });
+
+  it("prefixes file matches after @file:", () => {
+    expect(matchContextRefs(FILES, "file:comp")).toEqual(["file:src/composer.tsx"]);
+  });
+
+  it("prefixes folder matches after @folder:", () => {
+    expect(matchContextRefs(FILES, "folder:src")).toEqual(["folder:src"]);
   });
 });
 

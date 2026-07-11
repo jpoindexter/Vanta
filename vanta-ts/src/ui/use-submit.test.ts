@@ -121,6 +121,24 @@ describe("useSubmit routing", () => {
     expect(h.send).toHaveBeenCalledWith("just a message");
   });
 
+  it("expands typed context refs and shows an expansion receipt", async () => {
+    const h = harness();
+    h.onSubmit("review @file:package.json:1-1");
+    await waitUntil(() => h.send.mock.calls.length > 0);
+    expect(h.send.mock.calls[0]![0]).toContain('<file path="package.json" lines="1-1">');
+    expect(h.dispatch).toHaveBeenCalledWith({ t: "note", text: "  context expanded: @file:package.json:1-1" });
+  });
+
+  it("shows context warnings and keeps them visible in the submitted message", async () => {
+    const h = harness();
+    h.onSubmit("review @file:missing-context-ref.txt");
+    await waitUntil(() => h.send.mock.calls.length > 0);
+    expect(h.send.mock.calls[0]![0]).toContain("<context-warnings>");
+    expect(h.dispatch).toHaveBeenCalledWith(expect.objectContaining({
+      t: "note", text: expect.stringMatching(/context warning.*missing or unreadable/i),
+    }));
+  });
+
   it("queues instead of sending while busy", async () => {
     const h = harness(true);
     h.onSubmit("queued message");

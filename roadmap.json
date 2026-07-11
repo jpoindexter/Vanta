@@ -17428,7 +17428,7 @@
       "id": "HERMES-CONTEXT-REFS-V2",
       "track": "Harness",
       "title": "Context references v2 — @file ranges, @folder, @diff, @git, @url",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Vanta's shipped @-context references cover the basic path workflow. Hermes' current context references are more explicit: file ranges, folder summaries, git diff/staged/history, and URL fetches with tab completion and scope warnings. Vanta should expand context refs without silently overloading the prompt.",
       "done": "The composer expands `@file:path:10-25`, `@folder:path`, `@diff`, `@staged`, `@git:N`, and `@url:https://...`; completion advertises supported reference types; sensitive, out-of-scope, binary, and oversized refs produce inline warnings; expanded context remains visible and cannot exceed hard context limits silently.",
@@ -17439,7 +17439,7 @@
       "lens": "memory",
       "updated": "2026-07-11",
       "source": "hermes-feature-function-harvest-2026-07-11",
-      "notes": "Source: current Hermes context reference docs. Treat as U2 expansion, not a replacement for the shipped basic @path support."
+      "notes": "Shipped 2026-07-11. The rendered Composer-to-submit acceptance typed and submitted an @file line range, observed source-labelled expansion, and emitted an operator receipt. Focused coverage also executes @folder, @diff, @staged, @git:N, @url, completion, root/sensitive/binary checks, and explicit per-ref/total-limit warnings. Source: current Hermes context reference docs; this extends rather than replaces legacy @path."
     },
     {
       "id": "HERMES-CREDENTIAL-POOLS",

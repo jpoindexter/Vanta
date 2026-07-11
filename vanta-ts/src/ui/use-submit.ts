@@ -1,7 +1,7 @@
 import { type Dispatch } from "react";
 import { isSlashLine, slashHead } from "./slash.js";
 import { maybeRunShortcut } from "./shortcuts.js";
-import { parseAtRefs, buildContextBlock } from "./at.js";
+import { expandContextRefs, type ExpandResult } from "../context/ref-expand.js";
 import { PICKER_KINDS, type OverlayKind } from "./overlays.js";
 import type { KernelClient } from "../kernel/client.js";
 import type { Action } from "./reducer.js";
@@ -22,11 +22,15 @@ export type SubmitDeps = {
   detachBackgroundResponse?: () => void;
 };
 
-/** Resolve a line with any @-referenced file content inlined as a context block. */
-async function resolveLine(line: string, repoRoot: string): Promise<string> {
-  const refs = parseAtRefs(line);
-  const block = refs.length > 0 ? await buildContextBlock(refs, repoRoot) : "";
-  return block ? `${block}\n\n${line}` : line;
+/** Resolve a line with bounded, source-labelled context and warning receipts. */
+async function resolveLine(line: string, repoRoot: string): Promise<ExpandResult & { text: string }> {
+  const result = await expandContextRefs(line, repoRoot);
+  return { ...result, text: result.block ? `${result.block}\n\n${line}` : line };
+}
+
+function reportContext(result: ExpandResult, note: (text: string) => void): void {
+  if (result.expanded.length) note(`  context expanded: ${result.expanded.join(", ")}`);
+  for (const warning of result.warnings) note(`  context warning: ${warning}`);
 }
 
 /** A bare picker command (`/model`, `/cockpit`, …) with no argument → overlay kind. */
@@ -40,15 +44,23 @@ export function useSubmit(deps: SubmitDeps): (text: string) => void {
   const note = (text: string): void => deps.dispatch({ t: "note", text });
   return (text: string): void => {
     if (text === "?") return deps.openOverlay("help");
-    if (isSlashLine(text)) {
-      if (deps.busy && slashHead(text) === "bg" && deps.detachBackgroundResponse) return deps.detachBackgroundResponse();
-      if (slashHead(text) === "searchall" && !text.slice("/searchall".length).trim() && deps.openGlobalSearch) return deps.openGlobalSearch();
-      const kind = pickerFor(text);
-      return kind ? deps.openOverlay(kind) : deps.runSlash(text);
-    }
+    if (isSlashLine(text)) return routeSlash(text, deps);
     if (maybeRunShortcut(text, { safety: deps.safety, repoRoot: deps.repoRoot, note })) return;
-    // While a turn runs, queue the message (with @-context resolved now) and drain it when idle.
-    if (deps.busy) return void resolveLine(text, deps.repoRoot).then((resolved) => deps.dispatch({ t: "enqueue", text: resolved }));
-    void resolveLine(text, deps.repoRoot).then(deps.send);
+    void submitMessage(text, deps, note);
   };
+}
+
+function routeSlash(text: string, deps: SubmitDeps): void {
+  const head = slashHead(text);
+  if (deps.busy && head === "bg" && deps.detachBackgroundResponse) return deps.detachBackgroundResponse();
+  if (head === "searchall" && !text.slice("/searchall".length).trim() && deps.openGlobalSearch) return deps.openGlobalSearch();
+  const kind = pickerFor(text);
+  return kind ? deps.openOverlay(kind) : deps.runSlash(text);
+}
+
+async function submitMessage(text: string, deps: SubmitDeps, note: (text: string) => void): Promise<void> {
+  const resolved = await resolveLine(text, deps.repoRoot);
+  reportContext(resolved, note);
+  if (deps.busy) deps.dispatch({ t: "enqueue", text: resolved.text });
+  else deps.send(resolved.text);
 }

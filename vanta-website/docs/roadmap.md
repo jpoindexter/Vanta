@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1153 capabilities shipped · 0 in flight · 11 on the horizon. Updated 2026-07-11._
+_1154 capabilities shipped · 0 in flight · 10 on the horizon. Updated 2026-07-11._
 
 ## In flight
 
@@ -18,7 +18,7 @@ _Nothing in flight right now — see the horizon below._
 
 ## Recently shipped
 
-The latest of 1153+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1154+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Profile roster — persistent specialist agents with isolated state** — Operator · 2026-07-11
 - **Profile Kanban router — durable board routes work by specialist skill** — Operator · 2026-07-11
@@ -26,6 +26,7 @@ The latest of 1153+ capabilities. See the [changelog](./changelog) for curated m
 - **Delegation tree receipts — parent sees summaries, raw sidechains stay searchable** — Harness · 2026-07-11
 - **Tool-surface profiles — shrink available tools by role and explain the boundary** — Harness · 2026-07-11
 - **Profile distributions — package a whole specialist agent as a git install** — Operator · 2026-07-11
+- **Context references v2 — @file ranges, @folder, @diff, @git, @url** — Harness · 2026-07-11
 - **Hermes issue regression pack — turn competitor failures into Vanta invariants** — Harness · 2026-07-11
 - **Hermes story eval harness — test real community jobs across all 15 categories** — Harness · 2026-07-11
 - **Vanta public site v1 — product-first homepage, use cases, install, and proof** — Reach · 2026-07-11
@@ -39,7 +40,6 @@ The latest of 1153+ capabilities. See the [changelog](./changelog) for curated m
 - **Session environment output redaction — credentials never enter recordings** — Harness · 2026-07-11
 - **Desktop and gateway provider parity — user aliases keep complete identity** — Harness · 2026-07-11
 - **Live context cost inspector — measure prompt surfaces before optimizing** — Harness · 2026-07-11
-- **Workflow acceptance evidence contract — validate requested operations, not labels** — Harness · 2026-07-11
 
 ## On the horizon
 
@@ -49,10 +49,9 @@ Directional, not committed — grouped by area, newest thinking first.
 
 - Public skill registry client — search, inspect, install, update, and remove safely
 
-### Harness — 4 planned
+### Harness — 3 planned
 
 - Vault secrets rotation — one bootstrap token, scoped provider keys
-- Context references v2 — @file ranges, @folder, @diff, @git, @url
 - Credential pools — rotate same-provider keys before cross-provider fallback
 - Plugin LLM lane — bounded host-owned model calls from plugins
 

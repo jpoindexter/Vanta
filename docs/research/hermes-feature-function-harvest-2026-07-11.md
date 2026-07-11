@@ -35,7 +35,7 @@ These Hermes features are already substantially represented in Vanta and did not
 
 - `HERMES-PROFILE-DISTRIBUTIONS` - next, after `HERMES-PROFILE-ROSTER`
 - `HERMES-AUTOMATION-BLUEPRINT-CATALOG` - horizon
-- `HERMES-CONTEXT-REFS-V2` - horizon
+- `HERMES-CONTEXT-REFS-V2` - shipped 2026-07-11; rendered Composer acceptance covers typed refs, receipts, warnings, and hard limits
 - `HERMES-CREDENTIAL-POOLS` - horizon
 - `HERMES-PLUGIN-LLM-LANE` - horizon
 - `HERMES-DELIVERABLE-AUTO-ATTACH` - horizon
@@ -45,7 +45,7 @@ These Hermes features are already substantially represented in Vanta and did not
 1. Build `HERMES-PROFILE-ROSTER`, then `HERMES-PROFILE-DISTRIBUTIONS`.
 2. Build `HERMES-KANBAN-ROUTER` so installed profiles become useful workers, not just saved settings.
 3. Pull `HERMES-CREDENTIAL-POOLS` and `HERMES-VAULT-SECRETS-ROTATION` forward when multi-profile gateway work needs safer key sharing.
-4. Build `HERMES-CONTEXT-REFS-V2` and `HERMES-AUTOMATION-BLUEPRINT-CATALOG` as activation/workflow accelerators.
+4. Build `HERMES-AUTOMATION-BLUEPRINT-CATALOG`; `HERMES-CONTEXT-REFS-V2` is shipped as the context accelerator.
 5. Keep plugin LLM access and deliverable auto-attach horizon until plugin or messaging work requires them.
 
 ## Guardrail

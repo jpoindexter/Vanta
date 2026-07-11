@@ -12,6 +12,7 @@ import {
 // drives while you type `@partial`.
 
 const AT_LIMIT = 8;
+const REF_KINDS = ["file:", "folder:", "diff", "staged", "git:", "url:"];
 
 /** Repo files matching the partial after the last `@`, capped for the palette. */
 export function matchAtFiles(files: string[], partial: string, limit = AT_LIMIT): string[] {
@@ -20,10 +21,23 @@ export function matchAtFiles(files: string[], partial: string, limit = AT_LIMIT)
   return files.filter((f) => f.toLowerCase().includes(p)).slice(0, limit);
 }
 
+/** Typed v2 refs plus legacy file paths for the active completion token. */
+export function matchContextRefs(files: string[], partial: string, limit = AT_LIMIT): string[] {
+  if (!partial) return [...REF_KINDS, ...files].slice(0, limit);
+  if (partial.startsWith("file:")) return matchAtFiles(files, partial.slice(5), limit).map((f) => `file:${f}`);
+  if (partial.startsWith("folder:")) {
+    const needle = partial.slice(7).toLowerCase();
+    const folders = [...new Set(files.map((f) => f.split("/").slice(0, -1).join("/")).filter(Boolean))];
+    return folders.filter((f) => f.toLowerCase().includes(needle)).slice(0, limit).map((f) => `folder:${f}`);
+  }
+  const kinds = REF_KINDS.filter((kind) => kind.startsWith(partial.toLowerCase()));
+  return [...kinds, ...matchAtFiles(files, partial, limit)].slice(0, limit);
+}
+
 /** Replace the active `@partial` at the end of the line with the selected file. */
 export function completeAtRef(line: string, files: string[], sel: number): string {
   const f = files[Math.min(sel, files.length - 1)] ?? files[0];
-  return f ? line.replace(/@[\w./\-]*$/, `@${f}`) : line;
+  return f ? line.replace(/@[^\s]*$/, `@${f}`) : line;
 }
 
 // VANTA-SLACK-CHANNEL-SUGGEST — the composer's `#channel` path, the exact mirror of

@@ -77,7 +77,7 @@
 | `Ctrl+C` | interrupt running turn / cancel | ✅ |
 | `Ctrl+L` | clear screen | [ ] |
 | `Ctrl+R` | reverse history search | [ ] |
-| `Tab` | autocomplete (@file, /command) | ✅ |
+| `Tab` | autocomplete (context reference, `/command`) | ✅ |
 | `Ctrl+G` | cancel search / selection | [ ] |
 
 ## Implementation notes
@@ -88,3 +88,21 @@
   shift-arrows extend it, typing/cut replace it, copy reads it.
 - Vim mode (`TUI-VIM`, shipped) is the alternative editing model; these are the default/Emacs set.
 - Keep parity with the readline bindings users already know from bash/zsh/Claude CLI.
+
+## Context references
+
+Type a reference in the composer and press `Tab` to see the supported forms. Vanta
+shows an expansion receipt or an inline warning before the turn runs.
+
+| Reference | Context added |
+|---|---|
+| `@path` or `@file:path` | project file (legacy and explicit forms) |
+| `@file:path:10-25` | selected line range |
+| `@folder:path` | bounded recursive file list |
+| `@diff` / `@staged` | working-tree / staged patch |
+| `@git:5` | recent commit subjects and stats (maximum 20) |
+| `@url:https://…` | readable public web content |
+
+Paths cannot escape the project root. Sensitive paths and binary files are refused.
+Each reference is capped at 20,000 characters and total expanded payload at 60,000;
+Vanta warns instead of silently truncating or overloading the prompt.

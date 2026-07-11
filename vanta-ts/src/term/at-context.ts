@@ -18,7 +18,7 @@ export function parseAtRefs(input: string): string[] {
  * a space that follows a completed @ref, or no @ present).
  */
 export function activeAtRef(input: string): string | null {
-  const m = input.match(/@([\w./\-]*)$/);
+  const m = input.match(/(?:^|\s)@([^\s]*)$/);
   return m ? m[1]! : null;
 }
 
