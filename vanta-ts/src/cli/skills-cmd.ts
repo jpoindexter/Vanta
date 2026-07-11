@@ -164,7 +164,7 @@ async function runSkillsSub(rest: string[]): Promise<boolean> {
 
 async function runRegistrySubcommand(rest: string[]): Promise<boolean> {
   const cmd = rest[0];
-  const selected = ["search", "browse", "view", "approve", "update", "rollback", "remove", "doctor"].includes(cmd ?? "")
+  const selected = ["search", "browse", "inspect", "tap", "view", "approve", "update", "rollback", "remove", "doctor"].includes(cmd ?? "")
     || (cmd === "install" && Boolean(rest[1]) && !rest[1]?.startsWith("--"));
   if (!selected) return false;
   const { runSkillsRegistryCommand } = await import("./skills-registry-cmd.js");

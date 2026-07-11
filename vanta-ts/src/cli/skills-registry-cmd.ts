@@ -3,17 +3,23 @@ import {
   removeRegistrySkill, rollbackRegistrySkill, searchRegistry, updateRegistrySkill, viewRegistrySkill,
 } from "../skills/registry-client.js";
 
-type Deps = { env?: NodeJS.ProcessEnv; log?: (line: string) => void };
-type Context = { env: NodeJS.ProcessEnv; log: (line: string) => void };
-const USAGE = "usage: vanta skills search <query> | browse | view <slug> | install <slug> [--yes] | approve <slug> --yes | update <slug> [--yes] | rollback <slug> <version> --yes | remove <slug> --yes | doctor";
+type Deps = { env?: NodeJS.ProcessEnv; fetcher?: typeof fetch; log?: (line: string) => void };
+type Context = { env: NodeJS.ProcessEnv; fetcher: typeof fetch; log: (line: string) => void };
+const USAGE = "usage: vanta skills search <query> [--source <source>] | browse [--source <source>] | inspect <source:id> | view <slug> | install <slug|source:id> [--yes] | tap add|list | approve|update|rollback|remove|doctor";
 
 export async function runSkillsRegistryCommand(args: string[], deps: Deps = {}): Promise<number> {
-  const ctx = { env: deps.env ?? process.env, log: deps.log ?? console.log };
+  const ctx = { env: deps.env ?? process.env, fetcher: deps.fetcher ?? fetch, log: deps.log ?? console.log };
   try { return await route(args, ctx); }
   catch (error) { ctx.log(`skill registry error: ${(error as Error).message}`); return 1; }
 }
 
 async function route(args: string[], ctx: Context): Promise<number> {
+  const { runSkillsHubCommand } = await import("./skills-hub-cmd.js"), hub = await runSkillsHubCommand(args, ctx);
+  if (hub !== null) return hub;
+  return routeRegistry(args, ctx);
+}
+
+async function routeRegistry(args: string[], ctx: Context): Promise<number> {
   const action = args[0], slug = args[1];
   if (action === "browse") return printList(await browseRegistry(ctx.env), ctx.log);
   if (action === "search") return printList(await searchRegistry(args.slice(1).join(" "), ctx.env), ctx.log);

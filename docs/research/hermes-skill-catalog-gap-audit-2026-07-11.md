@@ -29,7 +29,7 @@ verified Vanta capabilities.
 | Hermes surface | Vanta evidence | Roadmap action |
 | --- | --- | --- |
 | Skill packages with `references/`, `templates/`, and `scripts/` | Shipped bounded full-package preview, quarantine, update, rollback, and removal | `HERMES-PORTABLE-SKILL-PACKAGES` shipped |
-| Official, skills.sh, well-known, GitHub, and custom-tap discovery | One configured static index | `HERMES-MULTISOURCE-SKILL-HUB` |
+| Official, skills.sh, well-known, GitHub, and custom-tap discovery | Shipped normalized source filters, cache/offline state, provenance, aliases, taps, and quarantine routing | `HERMES-MULTISOURCE-SKILL-HUB` shipped |
 | Staged approval for agent-authored skill create/edit/delete | Choice-wall protection exists, but no durable skill-write review queue | `HERMES-SKILL-WRITE-APPROVAL-QUEUE` |
 | Image/video/audio/3D production recipes and generators | Vanta analyzes images/video; it has no native video-generation tool or verified studio workflow | `HERMES-MEDIA-STUDIO-SKILL-PACK` |
 | Stripe Link, MPP, and Stripe Projects | Generic browser/MCP can attempt these, but no payment-specific secret, approval, amount, or receipt contract exists | `HERMES-PAYMENT-SKILL-PACK` |
@@ -38,13 +38,11 @@ verified Vanta capabilities.
 
 ## Priority
 
-1. Add multi-source discovery without weakening the shipped static-registry,
-   portable-package, approval, provenance, and rollback rules.
-2. Prove the media studio workflow. It is high-value and can use reversible
+1. Prove the media studio workflow. It is high-value and can use reversible
    file outputs rather than financial or external side effects.
-3. Add payments only behind a transaction-specific contract. A model budget is
+2. Add payments only behind a transaction-specific contract. A model budget is
    not a purchase authorization.
-4. Add commerce/telephony and finance packs after their underlying operator
+3. Add commerce/telephony and finance packs after their underlying operator
    surfaces have real acceptance receipts.
 
 The goal is not to copy 174 prompts into Vanta. The goal is to make portable

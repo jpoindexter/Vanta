@@ -26,15 +26,11 @@ async function exportSkill(name: string | undefined, agentFormat: boolean): Prom
   console.log(agentFormat ? toAgentSkills(skill) : serializeSkill(skill));
 }
 
-/** `vanta skills hub <url>` — fetch a skill from a hub URL and import it (network). */
+/** Legacy alias: preview a direct URL through the quarantined registry flow. */
 async function hubImport(url: string | undefined): Promise<void> {
   if (!url) { console.error("usage: vanta skills hub <url-to-SKILL.md>"); process.exit(1); }
-  const md = await fetch(url).then((r) => (r.ok ? r.text() : null)).catch(() => null);
-  if (md === null) { console.error(`vanta skills hub: fetch failed for ${url}`); process.exit(1); }
-  const skill = fromAgentSkills(md, new Date().toISOString());
-  if (!skill.meta.name) { console.error(`vanta skills hub: ${url} did not return a valid skill`); process.exit(1); }
-  await writeSkill({ name: skill.meta.name, description: skill.meta.description, body: skill.body, tags: skill.meta.tags, allowedTools: skill.meta.allowedTools, license: skill.meta.license });
-  console.log(`Pulled "${skill.meta.name}" from the hub → installed.`);
+  const { runSkillsRegistryCommand } = await import("./skills-registry-cmd.js");
+  process.exitCode = await runSkillsRegistryCommand(["install", `url:${url}`]);
 }
 
 /** Dispatch the interop subcommands; returns false when `rest[0]` isn't one. */

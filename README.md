@@ -157,6 +157,8 @@ Gateway runs can deliver recent in-scope reports, charts, spreadsheets, decks, H
 
 Public skill registries are opt-in through `VANTA_SKILL_REGISTRY`. Vanta previews and verifies complete skill packages before a disabled quarantine install, requires separate approval, preserves local edits during updates, supports confirmed version rollback, and removes reversibly. See [`docs/public-skill-registry.md`](docs/public-skill-registry.md).
 
+Multi-source discovery supports official registries, skills.sh, well-known endpoints, direct URLs, curated GitHub sources, and removable GitHub taps. Discovery retains provenance and explicit cache/integrity state; every install still routes through quarantine. See [`docs/multi-source-skill-hub.md`](docs/multi-source-skill-hub.md).
+
 The current Hermes catalog comparison, including Stripe/payment, video/media, commerce, telephony, and finance packs, is tracked in [`docs/research/hermes-skill-catalog-gap-audit-2026-07-11.md`](docs/research/hermes-skill-catalog-gap-audit-2026-07-11.md). The roadmap orders package safety and discovery before high-side-effect outcome packs.
 
 Persistent specialist profiles are now available through `vanta profiles`. Each profile has
