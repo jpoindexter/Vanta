@@ -92,6 +92,7 @@ replay, denial, fresh approval, and local retention tests pass.
 
 The callback ingress is available through `vanta telephony ingress <profile>
 --public-url https://host/twilio`; place it behind an HTTPS reverse proxy. The
-card remains blocked because no `TWILIO_TEST_TOKEN` vault alias/test account is
+The card is parked because no `TWILIO_TEST_TOKEN` vault alias/test account is
 configured, so live number/SMS/call/callback/recording-deletion proof has not
-run. Vapi and Bland remain optional future adapters behind this contract.
+run. The implementation card is parked on that external acceptance rather than
+active build work. Vapi and Bland remain optional future adapters behind this contract.

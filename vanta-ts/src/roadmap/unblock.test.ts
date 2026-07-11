@@ -24,6 +24,23 @@ describe("roadmap unblock plans", () => {
     expect(out).toContain("vanta gateway channel-proofs teams");
   });
 
+  it("returns exact host and receipt gates for the parked Hermes and Mercury proofs", () => {
+    const out = formatUnblockPlans(buildUnblockPlans([
+      card("HERMES-SPREADSHEET-COPILOT", "parked", "Spreadsheet", "external proof"),
+      card("MERCURY-CROSS-PLATFORM-SERVICE", "parked", "Service", "external proof"),
+      card("HERMES-PAYMENT-SKILL-PACK", "parked", "Payments", "external proof"),
+      card("HERMES-SHOPIFY-OPERATIONS", "parked", "Shopify", "external proof"),
+      card("HERMES-TELEPHONY-CONSENT-LIFECYCLE", "parked", "Telephony", "external proof"),
+      card("HERMES-COMMERCE-TELEPHONY-SKILL-PACK", "parked", "Commerce", "external proof"),
+    ]));
+    expect(out).toContain("examples/spreadsheet-sidecar/excel-custom-functions.ts");
+    expect(out).toContain("service-proof-win32.json");
+    expect(out).toContain("VANTA_PAYMENT_TEST_LINK_CLI");
+    expect(out).toContain("vanta shopify read");
+    expect(out).toContain("vanta telephony ingress");
+    expect(out).toContain("Only then execute and ship this aggregate release gate");
+  });
+
   it("includes decision-only horizon cards and explains ratification", () => {
     const [plan] = buildUnblockPlans([card("PCLIP-MULTI-USER", "horizon", "Multi user")]);
     expect(plan?.actions.join("\n")).toContain("Ratify multiple human supervisors");

@@ -30,6 +30,39 @@ const KNOWN_ACTIONS: Record<string, string[]> = {
     "Ship MSG-ADAPTER-TEAMS with a real Azure/Teams round trip.",
     "Ship RUN-ANYWHERE-TERMUX with a physical ARM64 release-kernel proof.",
   ],
+  "HERMES-SPREADSHEET-COPILOT": [
+    "Install a real Excel host (or choose a Google Sheets host) and load `examples/spreadsheet-sidecar/excel-custom-functions.ts`.",
+    "Create a revocable API token, expose Vanta through HTTPS, and set `VANTA_PUBLIC_API_ALLOWED_ORIGINS` to the exact add-in origin.",
+    "Invoke the custom function with bounded workbook context, then execute one approval-gated workbook action through the same kernel session.",
+    "Keep parked until the host round trip and workbook receipt both exist; local XLSX/LibreOffice output is not host proof.",
+  ],
+  "MERCURY-CROSS-PLATFORM-SERVICE": [
+    "Use a real logged-in Windows desktop session; GitHub-hosted runners do not provide the required InteractiveToken session.",
+    "From `vanta-ts` in PowerShell, run `npm ci` and `node --import tsx scripts/service-native-proof.ts`.",
+    "Require `.artifacts/service-proof-win32.json` with `ok: true` before shipping the cross-platform service card.",
+  ],
+  "HERMES-PAYMENT-SKILL-PACK": [
+    "Configure a real Stripe Link sandbox/test account behind the isolated `VANTA_PAYMENT_TEST_LINK_CLI` adapter.",
+    "Execute `vanta payments preview` and `vanta payments execute ... --approve <exact-id>`, then require an authorized redacted receipt.",
+    "Run a bounded live MPP HTTP 402 test contract and require the paid-retry receipt with the exact amount, currency, merchant, item, and resource.",
+    "Keep real-money mode disabled; sandbox Link and MPP receipts are the release proof.",
+  ],
+  "HERMES-SHOPIFY-OPERATIONS": [
+    "Create a Shopify development store and register `SHOPIFY_DEV_TOKEN` as a scoped Vanta vault alias for that exact store.",
+    "Run `vanta shopify read <profile> products`, then preview and apply one typed development-store mutation with its exact approval id.",
+    "Require the mutation receipt and separate readback verification before moving the card out of parked.",
+  ],
+  "HERMES-TELEPHONY-CONSENT-LIFECYCLE": [
+    "Configure a Twilio test account, scoped `TWILIO_TEST_TOKEN` vault alias, and explicit `VANTA_TELEPHONY_TEST_API_BASE`.",
+    "Expose `vanta telephony ingress <profile> --public-url https://<host>/twilio` through HTTPS and verify signed callbacks.",
+    "Execute consented test SMS and call contracts with exact approval ids, then prove callback correlation and recording-retention deletion receipts.",
+  ],
+  "HERMES-COMMERCE-TELEPHONY-SKILL-PACK": [
+    "Ship HERMES-PAYMENT-SKILL-PACK with live sandbox Link and MPP receipts.",
+    "Ship HERMES-SHOPIFY-OPERATIONS with a verified development-store mutation receipt.",
+    "Ship HERMES-TELEPHONY-CONSENT-LIFECYCLE with live Twilio callback and retention receipts.",
+    "Only then execute and ship this aggregate release gate.",
+  ],
   "PCLIP-MULTI-COMPANY": [
     "Ratify a strategy change away from the current single-operator/local-first direction.",
     "Only then move the card out of horizon and decompose isolation, audit, and data-boundary work.",
@@ -69,6 +102,12 @@ const PLAN_ORDER = [
   "MSG-ADAPTER-TEAMS",
   "RUN-ANYWHERE-TERMUX",
   "RUN-ANYWHERE-V1-RELEASE-GATE",
+  "HERMES-SPREADSHEET-COPILOT",
+  "MERCURY-CROSS-PLATFORM-SERVICE",
+  "HERMES-PAYMENT-SKILL-PACK",
+  "HERMES-SHOPIFY-OPERATIONS",
+  "HERMES-TELEPHONY-CONSENT-LIFECYCLE",
+  "HERMES-COMMERCE-TELEPHONY-SKILL-PACK",
   "PCLIP-MULTI-COMPANY",
   "PCLIP-MULTI-USER",
 ];

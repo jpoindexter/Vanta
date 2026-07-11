@@ -28,8 +28,9 @@ missing, Vanta refuses removal instead of deleting an operator-managed service.
 
 The native acceptance workflow is `.github/workflows/service-supervisor.yml`.
 It runs install, restart, log, stop, stale-state, and uninstall and uploads a
-JSON receipt. macOS is proven locally and in Actions. The card remains blocked:
-GitHub-hosted Ubuntu terminates the user-service payload cleanly, and its
-Windows runner reports the task as running without executing the owned runner.
-Run `scripts/service-native-proof.ts` on real Linux and Windows hosts and require
-`ok: true` receipts before treating those platforms as released.
+JSON receipt. macOS is proven locally and in Actions.
+GitHub Actions run 29166838401 also produced an `ok: true` Ubuntu systemd-user
+receipt. The card is parked only on Windows acceptance: the hosted Windows
+runner reports the InteractiveToken task as running without executing the owned
+runner. Run `scripts/service-native-proof.ts` from a real logged-in Windows
+desktop and require an `ok: true` receipt before treating Windows as released.

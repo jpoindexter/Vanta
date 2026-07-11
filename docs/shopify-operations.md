@@ -88,5 +88,5 @@ Executed tests start a real local HTTP server and prove bounded order reads,
 token-only request headers, typed mutation, `userErrors` stop, and a separate
 verification request. CLI/tool tests prove exact/fresh approval, denial, replay,
 and receipt behavior. A real Shopify development-store read and mutation have
-not been executed, so `HERMES-SHOPIFY-OPERATIONS` remains blocked until that
-external acceptance receipt exists.
+not been executed, so `HERMES-SHOPIFY-OPERATIONS` is parked until that external
+acceptance receipt exists.
