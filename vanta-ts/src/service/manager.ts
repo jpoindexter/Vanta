@@ -148,14 +148,20 @@ async function runningState(ctx: Context): Promise<{ running: boolean; detail?: 
     const state = await ctx.run("systemctl", ["--user", "show", SYSTEMD_NAME, "--property=ActiveState,SubState,Result,ExecMainStatus"]).catch(() => ignored);
     return { running: active.stdout.trim() === "active", detail: state.stdout.trim().replaceAll("\n", " · ") || undefined };
   }
-  const result = await ctx.run("schtasks", ["/Query", "/TN", WINDOWS_NAME, "/FO", "LIST"]).catch(() => ignored);
-  return { running: /status:\s*running/i.test(result.stdout) };
+  const result = await ctx.run("schtasks", ["/Query", "/TN", WINDOWS_NAME, "/FO", "LIST", "/V"]).catch(() => ignored);
+  const detail = result.stdout
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => /^(status|last run time|last result|task to run|scheduled task state|logon mode):/i.test(line))
+    .join(" · ")
+    .slice(0, 1200);
+  return { running: /status:\s*running/i.test(result.stdout), detail: detail || undefined };
 }
 
 async function status(ctx: Context): Promise<ServiceStatus> {
   const installed = existsSync(ctx.artifactPath) && await owned(ctx.artifactPath);
   const state = await runningState(ctx);
-  const detail = state.running ? "supervisor active" : state.detail ?? (installed ? "installed but supervisor is inactive" : "not installed");
+  const detail = state.running ? state.detail ?? "supervisor active" : state.detail ?? (installed ? "installed but supervisor is inactive" : "not installed");
   return { platform: ctx.platform, installed, running: state.running, stale: installed && !state.running, artifactPath: ctx.artifactPath, plistPath: ctx.artifactPath, logPath: ctx.logPath, detail };
 }
 
