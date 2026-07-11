@@ -149,7 +149,7 @@ vanta migrate hermes        # or: openclaw   (--skills/--mcp/--model to narrow; 
 
 It reads the other agent's `skills/<slug>/SKILL.md`, `mcpServers` config, and provider/model settings, **flags secret env keys without copying the secret**, and only writes after you confirm — your `~/.vanta` is backed up first.
 
-Recent Hermes transcript mining added a focused parity path to the roadmap: persistent specialist profiles, profile-routed Kanban, transcript/notes corpus memory, delegation receipts, webhook workflow templates, spreadsheet control, vault-backed secrets, and bounded dashboard plugin slots. See [`docs/research/hermes-transcript-roadmap-extract-2026-07-11.md`](docs/research/hermes-transcript-roadmap-extract-2026-07-11.md); the executable source of truth remains `roadmap.json`.
+Recent Hermes transcript mining added a focused parity path to the roadmap: persistent specialist profiles, profile-routed Kanban, transcript/notes corpus memory, delegation receipts, webhook workflow templates, automation blueprints, spreadsheet control, vault-backed secrets, and bounded dashboard plugin slots. The automation catalog now ships through `vanta automation blueprints` and `/blueprint`; see [`docs/automation-blueprints.md`](docs/automation-blueprints.md). The executable source of truth remains `roadmap.json`.
 
 Persistent specialist profiles are now available through `vanta profiles`. Each profile has
 an isolated Vanta home for its model/settings, skills, memory, gateway identity/state,

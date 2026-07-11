@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1157 capabilities shipped · 0 in flight · 7 on the horizon. Updated 2026-07-11._
+_1158 capabilities shipped · 0 in flight · 6 on the horizon. Updated 2026-07-11._
 
 ## In flight
 
@@ -18,7 +18,7 @@ _Nothing in flight right now — see the horizon below._
 
 ## Recently shipped
 
-The latest of 1157+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1158+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Profile roster — persistent specialist agents with isolated state** — Operator · 2026-07-11
 - **Profile Kanban router — durable board routes work by specialist skill** — Operator · 2026-07-11
@@ -29,6 +29,7 @@ The latest of 1157+ capabilities. See the [changelog](./changelog) for curated m
 - **Vault secrets rotation — one bootstrap token, scoped provider keys** — Harness · 2026-07-11
 - **Dashboard plugin slots — operator home accepts safe custom panels** — Operator · 2026-07-11
 - **Profile distributions — package a whole specialist agent as a git install** — Operator · 2026-07-11
+- **Automation blueprint catalog — form-driven scheduled and webhook workflows** — Operator · 2026-07-11
 - **Context references v2 — @file ranges, @folder, @diff, @git, @url** — Harness · 2026-07-11
 - **Hermes issue regression pack — turn competitor failures into Vanta invariants** — Harness · 2026-07-11
 - **Hermes story eval harness — test real community jobs across all 15 categories** — Harness · 2026-07-11
@@ -39,7 +40,6 @@ The latest of 1157+ capabilities. See the [changelog](./changelog) for curated m
 - **ACP session routing isolation — peer events cannot cross active session IDs** — Harness · 2026-07-11
 - **Subagent provider identity — provider switches cannot inherit the parent model** — Harness · 2026-07-11
 - **MCP reconnect process reap — obsolete clients close before replacement** — Harness · 2026-07-11
-- **Safe-mode state isolation — no user memory, plugins, MCP, or settings** — Harness · 2026-07-11
 
 ## On the horizon
 
@@ -54,10 +54,9 @@ Directional, not committed — grouped by area, newest thinking first.
 - Credential pools — rotate same-provider keys before cross-provider fallback
 - Plugin LLM lane — bounded host-owned model calls from plugins
 
-### Operator — 2 planned
+### Operator — 1 planned
 
 - Spreadsheet copilot — Excel/Sheets agent surface with charts and custom functions
-- Automation blueprint catalog — form-driven scheduled and webhook workflows
 
 ### Reach — 2 planned
 

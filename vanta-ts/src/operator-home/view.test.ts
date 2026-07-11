@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { formatOperatorHome, type HomeSnapshot } from "./view.js";
+import { automationSection, formatOperatorHome, type HomeSnapshot } from "./view.js";
+import type { AutomationRecord } from "../automation-blueprints/store.js";
 
 describe("formatOperatorHome", () => {
   it("renders the required launch-pad sections with next actions", () => {
@@ -21,5 +22,18 @@ describe("formatOperatorHome", () => {
       expect(out).toContain(`[${section.status}] ${section.name}`);
       expect(out).toContain(`Next: ${section.next}`);
     }
+  });
+});
+
+describe("automationSection", () => {
+  it("shows active and paused blueprints with their control path", () => {
+    const records = [
+      { id: "daily-brief-1", status: "active", kind: "schedule", blueprint: "daily-brief" },
+      { id: "github-pr-review-review-pr", status: "paused", kind: "webhook", blueprint: "github-pr-review" },
+    ] as AutomationRecord[];
+    expect(automationSection(records)).toEqual({
+      name: "Automations", status: "watch", detail: "2 automation(s), 1 active, 1 paused",
+      next: "`vanta automation list` (pause, resume, test, receipts)",
+    });
   });
 });

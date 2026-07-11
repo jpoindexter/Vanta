@@ -12,6 +12,7 @@ import type { KanbanBoard } from "../kanban/schema.js";
 import { dirname } from "node:path";
 import { listDelegationTrees } from "../subagent/delegation-receipt.js";
 import { listWorkflows as listWebhookWorkflows, type WebhookWorkflow } from "../webhook-workflows/store.js";
+import { listAutomationRecords, type AutomationRecord } from "../automation-blueprints/store.js";
 
 export type HomeSection = {
   name: string;
@@ -42,7 +43,7 @@ export async function buildOperatorHome(opts: {
   env: NodeJS.ProcessEnv;
   toolNames: string[];
 }): Promise<string> {
-  const [stack, bgTasks, cron, skills, memory, reach, caps, profiles, boards, delegations, webhooks, pluginPanels] = await Promise.all([
+  const [stack, bgTasks, cron, skills, memory, reach, caps, profiles, boards, delegations, webhooks, automations, pluginPanels] = await Promise.all([
     readStack(opts.dataDir),
     listBgTasks(opts.dataDir),
     loadCron(opts.dataDir),
@@ -54,6 +55,7 @@ export async function buildOperatorHome(opts: {
     listKanbanBoards(dirname(opts.dataDir)),
     listDelegationTrees(dirname(opts.dataDir)),
     listWebhookWorkflows(opts.dataDir),
+    listAutomationRecords(opts.dataDir),
     pluginPanelsHomeSection(dirname(opts.dataDir), opts.env),
   ]);
   return formatOperatorHome({ sections: [
@@ -62,6 +64,7 @@ export async function buildOperatorHome(opts: {
     skillsSection(skills.length),
     agentsSection(stack.tasks.length, bgTasks.filter((t) => t.status === "running").length),
     delegationSection(delegations),
+    automationSection(automations),
     webhookSection(webhooks),
     pluginPanels,
     profilesSection(profiles),
@@ -70,6 +73,17 @@ export async function buildOperatorHome(opts: {
     watchersSection(cron.filter((c) => c.status === "active").length),
     setupSection(caps.filter((c) => !c.ok).length),
   ] });
+}
+
+export function automationSection(records: AutomationRecord[]): HomeSection {
+  const active = records.filter((item) => item.status === "active").length;
+  const paused = records.length - active;
+  return section(
+    "Automations",
+    active ? "watch" : "setup",
+    `${records.length} automation(s), ${active} active, ${paused} paused`,
+    records.length ? "`vanta automation list` (pause, resume, test, receipts)" : "`vanta automation blueprints`",
+  );
 }
 
 async function pluginPanelsHomeSection(repoRoot: string, env: NodeJS.ProcessEnv): Promise<HomeSection> {

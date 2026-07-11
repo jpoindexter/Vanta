@@ -1,0 +1,13 @@
+{
+  "name": "daily-brief",
+  "description": "Prepare a focused brief on a recurring schedule.",
+  "kind": "schedule",
+  "fields": [
+    { "key": "cron", "label": "When", "default": "0 8 * * *" },
+    { "key": "topic", "label": "Brief topic" }
+  ],
+  "schedule": {
+    "cron": "{{cron}}",
+    "instruction": "Prepare a concise daily brief about {{topic}} with sources and next actions."
+  }
+}

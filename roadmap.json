@@ -17411,7 +17411,7 @@
       "id": "HERMES-AUTOMATION-BLUEPRINT-CATALOG",
       "track": "Operator",
       "title": "Automation blueprint catalog — form-driven scheduled and webhook workflows",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Hermes turns common automations into reusable blueprints available from dashboard, CLI, TUI, and chat. Vanta has shipped blueprints, scheduler, cron, and webhook primitives; the gap is a user-facing catalog that asks only for needed fields, previews the resulting job, and arms it after confirmation.",
       "done": "`vanta automation blueprints` lists schedule and webhook blueprints; `/blueprint <name>` prompts for missing fields and accepts inline key=value arguments; preview/confirm happens before creating cron/webhook state; created automations appear in Operator Home with pause, resume, test, and receipt links; user blueprints live outside `src`.",
@@ -17422,7 +17422,7 @@
       "lens": "agent-loop",
       "updated": "2026-07-11",
       "source": "hermes-feature-function-harvest-2026-07-11",
-      "notes": "Source: current Hermes automation blueprint catalog docs. This is not a duplicate of VANTA-BLUEPRINTS; it productizes recurring operator automations over existing schedule/webhook machinery."
+      "notes": "Source: current Hermes automation blueprint catalog docs. This is not a duplicate of VANTA-BLUEPRINTS; it productizes recurring operator automations over existing schedule/webhook machinery.\n\nSHIPPED 2026-07-11: added a validated data-only catalog under vanta-ts/automation-blueprints plus user overrides at ~/.vanta/automation-blueprints. `vanta automation blueprints|preview|apply|list|pause|resume|test|receipts` delegates to existing cron and signed-webhook stores; apply requires `--yes`. `/blueprint` lists definitions, accepts inline key=value fields, reports only missing inputs, and previews without state changes. Operator Home reports active/paused automation counts and links to all controls. Live CLI acceptance executed catalog, preview, confirmed schedule creation, list, pause, resume, target test, and receipts; temporary acceptance state was removed afterward. Focused tests: 14 passed. Full suite: 1,272 files / 12,821 passed / 3 skipped. Typecheck, touched-file size/complexity lint, docs build, use-case validation, and roadmap integrity passed."
     },
     {
       "id": "HERMES-CONTEXT-REFS-V2",

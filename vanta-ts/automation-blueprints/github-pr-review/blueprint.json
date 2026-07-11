@@ -1,0 +1,15 @@
+{
+  "name": "github-pr-review",
+  "description": "Review incoming GitHub pull request events.",
+  "kind": "webhook",
+  "fields": [
+    { "key": "id", "label": "Workflow id", "default": "github-pr-review" },
+    { "key": "deliver", "label": "Delivery target" }
+  ],
+  "webhook": {
+    "id": "{{id}}",
+    "name": "GitHub PR review",
+    "template": "github-pr",
+    "deliver": "{{deliver}}"
+  }
+}

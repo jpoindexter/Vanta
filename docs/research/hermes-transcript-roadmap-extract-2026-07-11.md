@@ -33,6 +33,7 @@ Source set:
 - `HERMES-VAULT-SECRETS-ROTATION` - shipped 2026-07-11; scoped Bitwarden/1Password aliases, startup injection, status, confirmed cutover, and redacted audit proof
 - `HERMES-SPREADSHEET-COPILOT` - horizon
 - `HERMES-DASHBOARD-PLUGIN-SLOTS` - shipped 2026-07-11; bounded manifest slots, worker updates, gated actions, disable route, and Operator Home readiness
+- `HERMES-AUTOMATION-BLUEPRINT-CATALOG` - shipped 2026-07-11; data-only schedule/webhook forms, pure previews, confirmation-gated apply, unified controls, receipts, and Operator Home visibility
 
 ## Build Order
 

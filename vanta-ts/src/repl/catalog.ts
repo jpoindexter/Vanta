@@ -2,6 +2,7 @@
 export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: string }> = [
   { name: "help", desc: "show this command list" },
   { name: "home", desc: "operator home — workflows, channels, skills, tasks, memory, watchers, setup" },
+  { name: "blueprint", arg: "[name] [key=value]", desc: "preview a form-driven schedule or webhook automation" },
   { name: "what-can-i-do", desc: "show concrete runnable workflows for this Vanta install" },
   { name: "diagnose-crash", arg: "<report|--demo greg-uitests>", desc: "diagnose a pasted macOS/iOS/build crash log with cited evidence" },
   { name: "spec-to-app", arg: "<spec|--demo posture>", desc: "build a verified React/Tailwind preview from a product spec" },
