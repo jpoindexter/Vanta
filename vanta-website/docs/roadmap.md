@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1165 capabilities shipped · 0 in flight · 5 on the horizon. Updated 2026-07-11._
+_1165 capabilities shipped · 0 in flight · 4 on the horizon. Updated 2026-07-11._
 
 ## In flight
 
@@ -51,7 +51,6 @@ Directional, not committed — grouped by area, newest thinking first.
 - Media studio skill pack - generate and assemble image, video, audio, and 3D work
 - Payment skill pack - Stripe Link, MPP, and SaaS provisioning under transaction gates
 
-### Reach — 2 planned
+### Reach — 1 planned
 
-- Cross-platform service supervisor — one `vanta up` on macOS, Linux, and Windows
 - Commerce and telephony skill pack - Shopify, shopping, returns, SMS, and calls

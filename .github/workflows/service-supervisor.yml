@@ -1,0 +1,43 @@
+name: Service supervisor proof
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "vanta-ts/src/service/**"
+      - "vanta-ts/scripts/service-native-proof.ts"
+      - ".github/workflows/service-supervisor.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  native-lifecycle:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, ubuntu-24.04, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: vanta-ts/package-lock.json
+      - run: npm ci
+        working-directory: vanta-ts
+      - name: Verify platform fixtures
+        run: npm test -- --run src/service
+        working-directory: vanta-ts
+      - name: Prove native lifecycle
+        run: node --import tsx scripts/service-native-proof.ts
+        working-directory: vanta-ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: service-proof-${{ matrix.os }}
+          path: vanta-ts/.artifacts/service-proof-*.json
+          if-no-files-found: error

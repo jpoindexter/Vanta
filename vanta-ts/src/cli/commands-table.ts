@@ -19,7 +19,6 @@ import {
   dataDirFor,
   buildCronRunTask,
   runGatewayCommand,
-  runServiceCommand,
   runMcpCommand,
   runRoadmapCommand,
   runFactoryCommand,
@@ -30,6 +29,7 @@ import {
   runDeptCommand,
   runLibraryCommand,
 } from "./ops.js";
+import { runServiceCommand } from "./service-cmd.js";
 import { runEvalCommand } from "./eval-cmd.js";
 import { runEvolveCommand } from "./evolve-cmd.js";
 import { runModelCommand } from "./model-cmd.js";
@@ -163,7 +163,11 @@ export const COMMANDS: Record<string, CommandFn> = {
   api: (root, rest) => runApiCommand(root, rest),
   home: (root) => runHomeCommand(dataDirFor(root)),
   setup: async (root, rest) => { if (rest[0] === "messaging") await runMessagingSetup(root); else if (rest[0] === "tts") await runTtsSetup(root); else if (rest[0] === "model") await runSetup(root); else await runFullSetup(root); },
-  status: (_root, rest) => runStatus(process.env, rest),
+  status: async (root, rest) => {
+    const serviceCode = await runServiceCommand(root, ["status"]);
+    const healthCode = await runStatus(process.env, rest);
+    return serviceCode || healthCode;
+  },
   doctor: (_root, rest) => runStatus(process.env, rest),
   keybindings: (_root, rest) => runKeybindingsCommand(rest),
   migrate: (_root, rest) => runMigrate(rest),
@@ -184,6 +188,8 @@ export const COMMANDS: Record<string, CommandFn> = {
   cron: (root) => runCron(dataDirFor(root), new Date(), buildCronRunTask(root)),
   gateway: (root, rest) => runGatewayCommand(root, rest),
   service: (root, rest) => runServiceCommand(root, rest),
+  up: (root) => runServiceCommand(root, ["up"]),
+  restart: (root) => runServiceCommand(root, ["restart"]),
   skills: (_root, rest) => runSkillsCommand(rest),
   skill: (root, rest) => runSkillCommand(root, rest),
   rooms: () => runRoomsList(process.env),
@@ -264,9 +270,9 @@ export const COMMANDS: Record<string, CommandFn> = {
   world: (root, rest) => runWorldCommand(root, rest),
   queue: (root, rest) => runQueueCommand(root, rest),
   attach: (root, rest) => runAgentsCommand(root, ["attach", ...rest]),
-  logs: (root, rest) => runAgentsCommand(root, ["logs", ...rest]),
+  logs: (root, rest) => rest.length ? runAgentsCommand(root, ["logs", ...rest]) : runServiceCommand(root, ["logs"]),
   respawn: (root, rest) => runAgentsCommand(root, ["respawn", ...rest]),
-  stop: (root, rest) => runAgentsCommand(root, ["stop", ...rest]),
+  stop: (root, rest) => rest.length ? runAgentsCommand(root, ["stop", ...rest]) : runServiceCommand(root, ["stop"]),
   rm: (root, rest) => runAgentsCommand(root, ["rm", ...rest]),
   daemon: (root, rest) => runAgentsCommand(root, ["daemon", ...rest]),
   "auto-mode": (root, rest) => runAutoModeCommand(root, rest),

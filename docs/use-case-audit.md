@@ -45,7 +45,7 @@ Of the 9 actionable missing items, all have roadmap cards (SELF-UPDATE, MODEL-CM
 
 | Capability area | Prior agent | Vanta | Status | Notes |
 |---|---|---|---|---|
-| Gateway daemon | run/start/stop/install | `vanta gateway` + launchd service | ✅ | |
+| Gateway daemon | run/start/stop/install | `vanta up|restart|stop|logs|status` via launchd, systemd user services, or Task Scheduler | ✅ | [Cross-platform service](cross-platform-service.md) |
 | Messaging platforms | 21 platforms (discord/slack/whatsapp/signal/imessage/email/matrix/…) | Telegram live + MSG-REGISTRY (iMessage/Signal/WhatsApp planned) | 🟡 | Add on demand; HP-21-PLATFORMS (S, next) |
 | Webhook subscriptions | `webhook` subscriptions | Webhook listener + HMAC verify | ✅ | |
 | Send to platform | `send` command | Gateway reply only | 🟡 | → CLI-DX-PACK |
@@ -134,7 +134,7 @@ Of the 9 actionable missing items, all have roadmap cards (SELF-UPDATE, MODEL-CM
 |---|---|---|---|---|
 | Update + rollback | `update` — snapshot, autostash, dep/skill refresh | `install.sh`/`run.sh` self-bootstrap only | ❌ | → SELF-UPDATE (M, next) |
 | Logs / debug | Events log | `events.jsonl` + kernel logs | ✅ | |
-| Relaunch / service manager | External service | launchd user agent | ✅ | |
+| Relaunch / service manager | External service | launchd, systemd user service, or Windows Task Scheduler | ✅ | Native receipt workflow covers all three OSes |
 | Executive-function gates | None | Inhibit/set-shift/closure/research/self-monitor (shipped) | ✅ | Vanta-distinctive — no prior agent equivalent |
 
 ### TUI / Command Surface

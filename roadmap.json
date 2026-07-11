@@ -17530,7 +17530,7 @@
       "id": "MERCURY-CROSS-PLATFORM-SERVICE",
       "track": "Reach",
       "title": "Cross-platform service supervisor — one `vanta up` on macOS, Linux, and Windows",
-      "status": "horizon",
+      "status": "building",
       "size": "M",
       "summary": "Mercury's strongest operational advantage is a single persistent-service command backed by launchd, systemd user units, or Windows Task Scheduler with crash restart and logs. Vanta's foreground gateway is portable, but `vanta service install` currently supports launchd only.",
       "done": "`vanta up|restart|stop|logs|status` behaves consistently across macOS launchd, Linux systemd user services, and Windows Task Scheduler; install is non-admin where the platform permits; crash restart is bounded; status identifies stale PID/service state; uninstall removes only Vanta-owned artifacts; platform fixtures and one live proof per OS produce receipts.",

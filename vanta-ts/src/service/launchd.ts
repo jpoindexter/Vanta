@@ -50,6 +50,8 @@ export function buildLaunchdPlist(opts: PlistOptions): string {
     "    <true/>",
     "    <key>KeepAlive</key>",
     "    <true/>",
+    "    <key>ThrottleInterval</key>",
+    "    <integer>5</integer>",
     "    <key>StandardOutPath</key>",
     `    ${stringTag(opts.logPath)}`,
     "    <key>StandardErrorPath</key>",

@@ -75,7 +75,7 @@ async function printDaemonStatus(log: (line: string) => void, serviceStatus: () 
   log(`daemon platform ${status.platform}`);
   log(`installed ${status.installed ? "yes" : "no"}`);
   log(`running ${status.running ? "yes" : "no"}`);
-  log(`plist ${status.plistPath}`);
+  log(`artifact ${status.artifactPath ?? status.plistPath}`);
   return 0;
 }
 

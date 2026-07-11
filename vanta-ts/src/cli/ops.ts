@@ -6,7 +6,6 @@ import { runGateway } from "../gateway/run.js";
 import type { PlatformAdapter } from "../gateway/platforms/base.js";
 import { resolveMessagingChannel } from "../gateway/platforms/factory.js";
 import { resolveDeliver } from "../gateway/webhook.js";
-import { installService, uninstallService, serviceStatus } from "../service/manager.js";
 import { resolveVantaHome } from "../store/home.js";
 import { prepareRun, buildSummarizer, writeRunMemory } from "../session.js";
 import type { RunTask } from "../schedule/runner.js";
@@ -169,34 +168,6 @@ export async function runGatewayCommand(repoRoot: string, rest: string[] = []): 
     home: resolveVantaHome(),
     tickMs: Number(process.env.VANTA_GATEWAY_TICK_MS) || undefined,
   });
-}
-
-// `vanta service install|uninstall|status` — manage the background launchd agent.
-export async function runServiceCommand(repoRoot: string, rest: string[]): Promise<void> {
-  const sub = rest[0] ?? "status";
-  try {
-    if (sub === "install") {
-      const path = await installService(repoRoot);
-      console.log(`Service installed and loaded: ${path}`);
-      console.log(`Logs: ${join(resolveVantaHome(), "gateway.log")}`);
-      return;
-    }
-    if (sub === "uninstall") {
-      await uninstallService();
-      return void console.log("Service uninstalled.");
-    }
-    if (sub === "status") {
-      const s = await serviceStatus();
-      console.log(
-        `platform ${s.platform} · installed ${s.installed ? "yes" : "no"} · running ${s.running ? "yes" : "no"}`,
-      );
-      return void console.log(s.plistPath);
-    }
-    console.log("Usage: vanta service install | uninstall | status");
-  } catch (err: unknown) {
-    console.error(err instanceof Error ? err.message : String(err));
-    process.exit(1);
-  }
 }
 
 export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<void> {
