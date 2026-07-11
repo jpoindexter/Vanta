@@ -8,13 +8,23 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1171 capabilities shipped · 0 in flight · 0 on the horizon. Updated 2026-07-11._
+_1171 capabilities shipped · 2 in flight · 4 on the horizon. Updated 2026-07-12._
 
 ## In flight
 
 What we are actively building next.
 
-_Nothing in flight right now — see the horizon below._
+### Interrupted tool effects - preserve unknown mutations and inspect before retry
+
+**Harness** · M-size
+
+Vanta avoids automatic retries for known mutators, but an exception, timeout, process death, or dangling tool tail is not durably classified; session recovery can therefore lose the fact that a mutation may already have landed. Add Vanta-native effect disposition to the canonical tool result and recovery path
+
+### Compaction real-headroom guard - stop when the prompt floor stays over threshold
+
+**Harness** · M-size
+
+Vanta anti-thrash currently scores estimated before/after message savings, so it can judge a rewrite healthy while the actual prompt still cannot fit. Judge compaction effectiveness from the next real provider prompt count and treat no-op boundaries as failed progress
 
 ## Recently shipped
 
@@ -44,3 +54,13 @@ The latest of 1171+ capabilities. See the [changelog](./changelog) for curated m
 ## On the horizon
 
 Directional, not committed — grouped by area, newest thinking first.
+
+### Harness — 1 planned
+
+- Authenticated runtime readiness - bounded health for remote supervision
+
+### Operator — 3 planned
+
+- Usage route ledger - attribute every model, fallback, and included call
+- Session-scoped model switching - change this conversation without changing the default
+- Remote context references - safe @file, @diff, and @git expansion through the gateway

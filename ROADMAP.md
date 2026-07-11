@@ -130,6 +130,7 @@ then applied and inspected all five files.
 
 The extraction note is `docs/research/hermes-transcript-roadmap-extract-2026-07-11.md`;
 the current Hermes repo comparison is `docs/research/hermes-current-vs-vanta-vision-2026-07-11.md`;
+the 2026-07-12 current-main delta is `docs/research/hermes-current-delta-2026-07-12.md`;
 the feature/function harvest is `docs/research/hermes-feature-function-harvest-2026-07-11.md`.
 The issue, Mercury, and current user-story audit is
 `docs/research/hermes-mercury-issue-usecase-audit-2026-07-11.md`. Build priority is public-site

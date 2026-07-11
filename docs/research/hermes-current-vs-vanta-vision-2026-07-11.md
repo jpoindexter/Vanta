@@ -1,7 +1,8 @@
-# Hermes Current vs Vanta Vision - 2026-07-11
+# Hermes Current vs Vanta Vision - refreshed 2026-07-12
 
 Source checked:
-- `reference/hermes-agent` at `3b2ef789d` (`origin/main`, NousResearch/hermes-agent)
+- `NousResearch/hermes-agent` at `4281151ae859241351ba14d8c7682dc67ff4c126` (`origin/main` when refreshed)
+- Delta from the prior pinned snapshot `3b2ef789dfcf92f5b7b18c08c59d25948e50857f`: 33 commits, audited in `docs/research/hermes-current-delta-2026-07-12.md`
 - Hermes docs under `reference/hermes-agent/website/docs`
 - Vanta `README.md`, `MANIFESTO.md`, `docs/living-operator.md`, `roadmap.json`
 - Prior Hermes transcript extraction: `docs/research/hermes-transcript-roadmap-extract-2026-07-11.md`
@@ -53,15 +54,15 @@ Vanta is ahead or differentiated on:
 - local LoRA/personal tuning path
 - whole-system roadmap/launch discipline
 
-Vanta's remaining proof gaps from this comparison are:
+Vanta's remaining external proof gaps from the original comparison are:
 - spreadsheet/copilot execution in a real workbook host
 - live proof of some reach/run-anywhere channels
 - real-provider acceptance for commerce and telephony workflows added later
 
 ## Recommended Order
 
-The profile roster, Kanban router, vault rotation, second-brain corpus, tool-surface profiles, webhook builder, dashboard slots, and delegation receipts are shipped. The only card from this comparison still open is `HERMES-SPREADSHEET-COPILOT`, parked until a real Excel or Google Sheets host produces the required receipt.
+The profile roster, Kanban router, vault rotation, second-brain corpus, tool-surface profiles, webhook builder, dashboard slots, and delegation receipts are shipped. The 2026-07-12 refresh found two new reliability priorities: interrupted-tool effect disposition and real-headroom compaction. Four smaller cross-surface gaps follow them.
 
 ## Roadmap Action
 
-Existing roadmap cards cover the current Hermes gaps. No new card is required from this check. Use `vanta roadmap proof-status` for the remaining external acceptance boundary.
+The 2026-07-12 delta added six cards: `HERMES-DELTA-EFFECT-DISPOSITION`, `HERMES-DELTA-COMPACTION-REAL-HEADROOM`, `HERMES-DELTA-USAGE-ROUTE-LEDGER`, `HERMES-DELTA-SESSION-MODEL-SCOPE`, `HERMES-DELTA-GATEWAY-CONTEXT-REFS`, and `HERMES-DELTA-AUTH-READINESS`. Use `vanta roadmap proof-status` separately for the ten external acceptance gates.
