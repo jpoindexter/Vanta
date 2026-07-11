@@ -42,7 +42,7 @@ export async function buildOperatorHome(opts: {
   env: NodeJS.ProcessEnv;
   toolNames: string[];
 }): Promise<string> {
-  const [stack, bgTasks, cron, skills, memory, reach, caps, profiles, boards, delegations, webhooks] = await Promise.all([
+  const [stack, bgTasks, cron, skills, memory, reach, caps, profiles, boards, delegations, webhooks, pluginPanels] = await Promise.all([
     readStack(opts.dataDir),
     listBgTasks(opts.dataDir),
     loadCron(opts.dataDir),
@@ -54,6 +54,7 @@ export async function buildOperatorHome(opts: {
     listKanbanBoards(dirname(opts.dataDir)),
     listDelegationTrees(dirname(opts.dataDir)),
     listWebhookWorkflows(opts.dataDir),
+    pluginPanelsHomeSection(dirname(opts.dataDir), opts.env),
   ]);
   return formatOperatorHome({ sections: [
     workflowSection(opts.toolNames),
@@ -62,12 +63,38 @@ export async function buildOperatorHome(opts: {
     agentsSection(stack.tasks.length, bgTasks.filter((t) => t.status === "running").length),
     delegationSection(delegations),
     webhookSection(webhooks),
+    pluginPanels,
     profilesSection(profiles),
     kanbanSection(boards),
     memorySection(memory.goals, memory.totalBytes),
     watchersSection(cron.filter((c) => c.status === "active").length),
     setupSection(caps.filter((c) => !c.ok).length),
   ] });
+}
+
+async function pluginPanelsHomeSection(repoRoot: string, env: NodeJS.ProcessEnv): Promise<HomeSection> {
+  try {
+    const [{ discoverPlugins }, { loadSettings }] = await Promise.all([import("../plugins/loader.js"), import("../settings/store.js")]);
+    const settings = await loadSettings(repoRoot, env);
+    const enabled = new Set(settings.plugins?.enabled ?? []);
+    const candidates = (await discoverPlugins(repoRoot, settings, env)).filter((candidate) => enabled.has(candidate.manifest.name));
+    const { ready, disabled } = countPluginPanels(candidates, settings.plugins?.capabilities ?? {});
+    return section("Plugin Panels", ready ? "ok" : disabled ? "setup" : "setup", `${ready} ready, ${disabled} permission-disabled`, ready ? "/plugin-panels" : "`vanta plugin capabilities <name>`");
+  } catch { return section("Plugin Panels", "setup", "0 ready, 0 permission-disabled", "`vanta plugin list`"); }
+}
+
+type PanelCandidate = { manifest: { name: string; dashboardPanels?: Array<{ requiredCapabilities: string[] }> } };
+
+function countPluginPanels(candidates: PanelCandidate[], grants: Record<string, string[]>): { ready: number; disabled: number } {
+  let ready = 0, disabled = 0;
+  for (const candidate of candidates) {
+    const granted = grants[candidate.manifest.name] ?? [];
+    for (const panel of candidate.manifest.dashboardPanels ?? []) {
+      if (panel.requiredCapabilities.every((capability) => granted.includes(capability))) ready++;
+      else disabled++;
+    }
+  }
+  return { ready, disabled };
 }
 
 function webhookSection(workflows: WebhookWorkflow[]): HomeSection {

@@ -17374,7 +17374,7 @@
       "id": "HERMES-DASHBOARD-PLUGIN-SLOTS",
       "track": "Operator",
       "title": "Dashboard plugin slots — operator home accepts safe custom panels",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Hermes dashboard/theme/plugin transcripts show a local web surface where plugins can contribute panels and controls. Vanta ships a plugin framework, desktop, command center, and operator home; the gap is a stable, bounded dashboard-slot contract for custom operator panels.",
       "done": "A plugin can declare a dashboard panel with title, data provider, refresh interval, actions, and required permissions; Operator Home renders the panel in a bounded slot; plugin actions remain kernel-gated; bad panels fail closed and can be disabled from the UI.",
@@ -17385,7 +17385,7 @@
       "lens": "tui",
       "updated": "2026-07-11",
       "source": "hermes-transcript-roadmap-extract-2026-07-11",
-      "notes": "Source: Tonbis 2026-04-28 Hermes dashboard/themes/plugins. This should extend PLUGIN-FRAMEWORK/COMMAND-CENTER rather than making dashboard customization the product center."
+      "notes": "Shipped 2026-07-11. Strict plugin manifests can declare up to eight bounded dashboard panels with host-owned title, provider, 5s-1h refresh interval, up to six prompt actions, and required worker capabilities. Runtime discovery admits enabled declarations only when every permission is granted; missing grants leave the panel disabled without launching unsafe UI. Isolated workers update bounded lines while declaration metadata/actions remain fixed. `/plugin-panels` renders the slot, numbered actions and `d` route through a normal Vanta turn (so resulting tools remain kernel-gated), and `vanta home` reports ready versus permission-disabled slots. Executed tests launch a real isolated worker, preserve declared provider/refresh/actions across its content update, reject missing grants, render/activate actions, and verify Operator Home integration. Source: Tonbis 2026-04-28 Hermes dashboard/themes/plugins."
     },
     {
       "id": "HERMES-PROFILE-DISTRIBUTIONS",

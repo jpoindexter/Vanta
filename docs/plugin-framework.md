@@ -10,7 +10,7 @@ remains install/location hygiene in `plugins/catalog.ts`; MCP remains external-p
 
 Shipped v1 surface:
 - Manifest: strict JSON `plugin.json` with `name`, `version`, optional `main`, `description`,
-  `tools`, `commands`, and `requiresEnv`.
+  `tools`, `commands`, `requiresEnv`, `worker`, and bounded `dashboardPanels`.
 - Discovery: bundled `vanta-ts/plugins/`, then user `~/.vanta/plugins/`, then project
   `.vanta/plugins/` only when `plugins.trustProjectPlugins=true` and
   `VANTA_ENABLE_PROJECT_PLUGINS=true`.
@@ -28,6 +28,30 @@ Shipped v1 surface:
 Acceptance verified: a third-party plugin fixture under `~/.vanta/plugins`, enabled through
 `plugins.enabled`, registers a kernel-gated tool plus slash command; disabled plugins do not
 import; project plugins stay disabled unless both trust controls are present.
+
+### Dashboard panel slots
+
+An isolated worker plugin can declare up to eight panels in `plugin.json`:
+
+```json
+{
+  "dashboardPanels": [{
+    "id": "status",
+    "title": "Worker status",
+    "provider": "loadStatus",
+    "refreshMs": 10000,
+    "requiredCapabilities": ["ui.panel", "schedule.jobs"],
+    "actions": [{ "id": "refresh", "label": "Refresh", "prompt": "Refresh worker status" }]
+  }]
+}
+```
+
+Titles, refresh intervals, actions, and permissions are host-owned manifest data;
+the worker can update only the bounded line payload. Missing grants leave the panel
+permission-disabled. `vanta home` reports ready/disabled slots and `/plugin-panels`
+renders live content. Numbered actions become normal Vanta turns, so any tool use
+still crosses the kernel permission gate. Press `d` in a panel to route a disable
+request through the same gated path.
 
 Not shipped in this slice: npm loading, CLI enable/disable management, provider/platform
 registration, plugin hooks, `llm.complete`, `dispatch_tool`, background monitors, or hot reload.

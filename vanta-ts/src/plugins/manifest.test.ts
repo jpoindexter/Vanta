@@ -32,6 +32,23 @@ describe("plugin manifest", () => {
     })).toThrow();
   });
 
+  it("accepts bounded dashboard panel declarations and rejects unsafe refresh intervals", () => {
+    const manifest = parsePluginManifest({
+      name: "operator", version: "1.0.0",
+      worker: { main: "worker.mjs", capabilities: ["ui.panel", "storage.read"] },
+      dashboardPanels: [{
+        id: "status", title: "Worker status", provider: "loadStatus", refreshMs: 10_000,
+        requiredCapabilities: ["ui.panel", "storage.read"],
+        actions: [{ id: "refresh", label: "Refresh now", prompt: "Refresh the operator status panel" }],
+      }],
+    });
+    expect(manifest.dashboardPanels?.[0]?.provider).toBe("loadStatus");
+    expect(() => parsePluginManifest({
+      name: "operator", version: "1.0.0", worker: { main: "worker.mjs", capabilities: ["ui.panel"] },
+      dashboardPanels: [{ id: "x", title: "X", provider: "x", refreshMs: 100, requiredCapabilities: ["ui.panel"] }],
+    })).toThrow();
+  });
+
   it("builds a namespaced tool prefix", () => {
     expect(pluginToolPrefix("my-plugin")).toBe("plugin_my_plugin_");
   });

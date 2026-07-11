@@ -32,7 +32,7 @@ Source set:
 - `HERMES-WEBHOOK-WORKFLOW-BUILDER` - shipped 2026-07-11; real CLI plus signed gateway route/delivery receipt proof
 - `HERMES-VAULT-SECRETS-ROTATION` - shipped 2026-07-11; scoped Bitwarden/1Password aliases, startup injection, status, confirmed cutover, and redacted audit proof
 - `HERMES-SPREADSHEET-COPILOT` - horizon
-- `HERMES-DASHBOARD-PLUGIN-SLOTS` - horizon
+- `HERMES-DASHBOARD-PLUGIN-SLOTS` - shipped 2026-07-11; bounded manifest slots, worker updates, gated actions, disable route, and Operator Home readiness
 
 ## Build Order
 

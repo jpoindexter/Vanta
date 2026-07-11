@@ -40,6 +40,7 @@ export async function loadRuntimeExtensions(
   let pluginWorkers: PluginWorkerHandle[] = [];
   if (!skipPlugins(iso)) {
     const { loadEnabledPlugins } = await import("../plugins/loader.js");
+    await registerDeclaredPanels(repoRoot, settings, pluginPanels);
     const loaded = await loadEnabledPlugins({ repoRoot, registry, commands: pluginCommands, settings, env: process.env, panels: pluginPanels, log: (m) => console.log(m) });
     pluginWorkers = loaded.workers;
   }
@@ -53,4 +54,17 @@ export async function loadRuntimeExtensions(
       : (await mountMcpSkills(pluginCommands, process.env, { cwd: repoRoot, log: (m) => console.log(m) })
           .catch(() => ({ skills: [] as RegisteredMcpSkill[], dispose: () => {} }))).skills;
   return { settings, pluginCommands, pluginPanels, pluginWorkers, mcpSkills };
+}
+
+async function registerDeclaredPanels(repoRoot: string, settings: Settings, panels: PluginPanelRegistry): Promise<void> {
+  const { discoverPlugins } = await import("../plugins/loader.js");
+  const enabled = new Set(settings.plugins?.enabled ?? []);
+  for (const candidate of await discoverPlugins(repoRoot, settings, process.env).catch(() => [])) {
+    if (!enabled.has(candidate.manifest.name)) continue;
+    const granted = settings.plugins?.capabilities?.[candidate.manifest.name] ?? [];
+    for (const panel of candidate.manifest.dashboardPanels ?? []) {
+      try { panels.publish(candidate.manifest.name, panel, [], granted); }
+      catch (error) { console.log(`  · plugin ${candidate.manifest.name}: panel ${panel.id} disabled (${(error as Error).message})`); }
+    }
+  }
 }

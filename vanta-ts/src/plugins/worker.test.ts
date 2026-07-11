@@ -32,7 +32,13 @@ describe("plugin worker host", () => {
         main: "worker.mjs",
         capabilities: ["log.write", "storage.write", "schedule.jobs", "ui.panel"],
       },
+      dashboardPanels: [{
+        id: "status", title: "Worker status", provider: "heartbeat", refreshMs: 5_000,
+        requiredCapabilities: ["ui.panel", "schedule.jobs"],
+        actions: [{ id: "refresh", label: "Refresh", prompt: "Refresh worker status" }],
+      }],
     };
+    panels.publish("operator", manifest.dashboardPanels![0]!, [], ["ui.panel", "schedule.jobs"]);
     await writeFile(join(dir, "worker.mjs"), WORKER_FIXTURE, "utf8");
 
     const handle = await launchPluginWorker({
@@ -51,6 +57,8 @@ describe("plugin worker host", () => {
     expect(logs.join("\n")).toContain("denied: capability storage.write is not granted");
     expect(panels.list()).toEqual([expect.objectContaining({ plugin: "operator", id: "status", title: "Worker status" })]);
     expect(panels.list()[0]?.lines).toContain(`worker pid ${handle.pid}`);
+    expect(panels.list()[0]).toMatchObject({ provider: "heartbeat", refreshMs: 5_000 });
+    expect(panels.list()[0]?.actions?.[0]?.prompt).toBe("Refresh worker status");
     await expect(readFile(join(home, "plugin-data", "operator.json"), "utf8")).rejects.toThrow();
 
     fireJob?.();

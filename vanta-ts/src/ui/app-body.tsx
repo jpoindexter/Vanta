@@ -106,7 +106,7 @@ function BottomRegion(props: {
 }): ReactElement | null {
   const { overlay } = props;
   if (props.pending) return null;
-  if (overlay) return <OverlayPanel overlay={overlay} focused={props.focused} onSelect={props.onSelect} onClose={props.onClose} />;
+  if (overlay) return <OverlayPanel overlay={overlay} focused={props.focused} onSelect={props.onSelect} onClose={props.onClose} onSubmit={props.onSubmit} />;
   return (
     <Box flexDirection="column">
       <PromptSuggestionsPanel suggestions={props.promptSuggestions} focused={props.focused === "prompt-suggestions"} onSelect={props.onSubmit} />
@@ -118,19 +118,19 @@ function BottomRegion(props: {
 
 /** Renders the open overlay's panel. Split from BottomRegion so each stays under
  * the complexity gate; the switch is append-only (one branch per overlay kind). */
-function OverlayPanel(props: { overlay: OverlayView; focused: FocusTarget; onSelect: (row: OverlayRow) => void; onClose: () => void }): ReactElement | null {
+function OverlayPanel(props: { overlay: OverlayView; focused: FocusTarget; onSelect: (row: OverlayRow) => void; onClose: () => void; onSubmit: (text: string) => void }): ReactElement | null {
   const { overlay, onClose } = props;
   if (overlay.kind === "list") return <OverlayList focused={props.focused === "overlay-list"} title={overlay.title} rows={overlay.rows} onSelect={props.onSelect} onClose={onClose} />;
   if (overlay.kind === "cockpit") return <CockpitPanel data={overlay.data} onClose={onClose} />;
   if (overlay.kind === "stats") return <StatsPanel stats={overlay.stats} onClose={onClose} />;
   if (overlay.kind === "loops") return <LoopsPanel loops={overlay.loops} onClose={onClose} />;
   if (overlay.kind === "review") return <ReviewPanel files={overlay.files} cwd={overlay.cwd} onClose={onClose} />;
-  return <OverlayPanelMore overlay={overlay} onClose={onClose} />;
+  return <OverlayPanelMore overlay={overlay} onClose={onClose} onSubmit={props.onSubmit} />;
 }
 
 /** The remaining overlay kinds — split from OverlayPanel so each stays under the
  * complexity gate (append-only; one branch per overlay kind). */
-function OverlayPanelMore(props: { overlay: OverlayView; onClose: () => void }): ReactElement | null {
+function OverlayPanelMore(props: { overlay: OverlayView; onClose: () => void; onSubmit: (text: string) => void }): ReactElement | null {
   const { overlay, onClose } = props;
   if (overlay.kind === "context") return <ContextPanel categories={overlay.categories} total={overlay.total} contextWindow={overlay.contextWindow} onClose={onClose} />;
   if (overlay.kind === "mcp") return <McpPanel servers={overlay.servers} elicitation={overlay.elicitation} onReconnect={overlay.reconnect} onElicitationDone={overlay.onElicitationDone} onClose={onClose} />;
@@ -139,11 +139,16 @@ function OverlayPanelMore(props: { overlay: OverlayView; onClose: () => void }):
   if (overlay.kind === "hooks") return <HooksPanel config={overlay.config} onAction={overlay.onAction} onClose={onClose} />;
   if (overlay.kind === "tasks") return <TasksPanel tasks={overlay.tasks} onClose={onClose} />;
   if (overlay.kind === "agentEditor") return <AgentEditorPanel repoRoot={overlay.repoRoot} data={overlay.data} onClose={onClose} />;
+  return <OverlayPanelLast {...props} />;
+}
+
+function OverlayPanelLast(props: { overlay: OverlayView; onClose: () => void; onSubmit: (text: string) => void }): ReactElement | null {
+  const { overlay, onClose } = props;
   if (overlay.kind === "teams") return <TeamsPanel data={overlay.data} onClose={onClose} />;
   if (overlay.kind === "memory") return <MemoryPanel repoRoot={overlay.repoRoot} data={overlay.data} onClose={onClose} />;
   if (overlay.kind === "workflowSelect") return <WorkflowSelectPanel repoRoot={overlay.repoRoot} data={overlay.data} onClose={onClose} />;
   if (overlay.kind === "outputStyle") return <OutputStylePanel repoRoot={overlay.repoRoot} data={overlay.data} onClose={onClose} />;
   if (overlay.kind === "export") return <ExportDialog repoRoot={overlay.repoRoot} context={overlay.context} onClose={onClose} />;
-  if (overlay.kind === "pluginPanel") return <PluginPanel panel={overlay.panel} onClose={onClose} />;
+  if (overlay.kind === "pluginPanel") return <PluginPanel panel={overlay.panel} onAction={props.onSubmit} onClose={onClose} />;
   return <HelpPanel onClose={onClose} />;
 }
