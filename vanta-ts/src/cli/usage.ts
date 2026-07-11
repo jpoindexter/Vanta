@@ -58,6 +58,7 @@ const USAGE_LINES = [
       "       vanta up|restart|stop|logs|status      manage the cross-platform gateway service",
       "       vanta service [install|restart|stop|logs|status|uninstall]   full service lifecycle",
       "       vanta spreadsheet inspect|preview|apply   inspect and approval-gate local .xlsx changes",
+      "       vanta media-studio preview|render|stages  render and verify scoped local MP4 briefs",
       "       vanta agents [list|logs|attach|stop|rm|respawn]   manage background agent sessions",
       "       vanta profiles [list|create|clone|switch|archive|target|inbox]   manage persistent specialist profiles",
       "       vanta profile install <git|path> [--apply] | update <id> [--apply]   manage specialist distributions",

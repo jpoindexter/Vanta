@@ -111,6 +111,7 @@ describe("registry", () => {
       "lsp_symbols",
       "marketing_read",
       "mcp_auth",
+      "media_studio",
       "money",
       "mount_mcp",
       "nl_assertions",
