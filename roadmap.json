@@ -17340,7 +17340,7 @@
       "id": "HERMES-SPREADSHEET-COPILOT",
       "track": "Operator",
       "title": "Spreadsheet copilot — Excel/Sheets agent surface with charts and custom functions",
-      "status": "horizon",
+      "status": "building",
       "size": "L",
       "summary": "Hermes demonstrates the agent inside Excel: spreadsheet edits, analysis, charting, and custom functions. Vanta has document/spreadsheet-capable runtime support in the broader Codex workspace, but Vanta itself needs a first-class spreadsheet workflow if this becomes a real operator surface.",
       "done": "Vanta can inspect, edit, add/delete sheets, create charts, and explain formulas for a local workbook; an Excel/Sheets sidecar or custom function can call a kernel-gated Vanta session; changes are previewed before write; receipts record workbook, sheet, cell range, and verification; optional Excel authoring packs produce formula-driven three-statement, DCF, comps, LBO, and merger models with balance and sensitivity checks.",
@@ -17530,7 +17530,7 @@
       "id": "MERCURY-CROSS-PLATFORM-SERVICE",
       "track": "Reach",
       "title": "Cross-platform service supervisor — one `vanta up` on macOS, Linux, and Windows",
-      "status": "building",
+      "status": "blocked",
       "size": "M",
       "summary": "Mercury's strongest operational advantage is a single persistent-service command backed by launchd, systemd user units, or Windows Task Scheduler with crash restart and logs. Vanta's foreground gateway is portable, but `vanta service install` currently supports launchd only.",
       "done": "`vanta up|restart|stop|logs|status` behaves consistently across macOS launchd, Linux systemd user services, and Windows Task Scheduler; install is non-admin where the platform permits; crash restart is bounded; status identifies stale PID/service state; uninstall removes only Vanta-owned artifacts; platform fixtures and one live proof per OS produce receipts.",
@@ -17541,7 +17541,7 @@
       "lens": "reach",
       "updated": "2026-07-11",
       "source": "cosmicstack-labs/mercury-agent@6e174a4",
-      "notes": "Borrow the operator contract, not Mercury's implementation. Extend vanta-ts/src/service over the existing launchd manager; preserve Vanta's kernel, root, and receipt boundaries."
+      "notes": "Implementation and fixtures shipped in 90a4635b..0bf40185. macOS live lifecycle receipt passes locally and in Actions. Blocked on remaining native receipts: GitHub-hosted Ubuntu terminates the systemd user-service payload cleanly even under a dedicated lingering user, and Windows Task Scheduler reports Running without executing the owned runner/log path. Latest evidence: Actions run 29159430860. Do not mark shipped until real Linux and Windows hosts produce ok:true receipts."
     },
     {
       "id": "PUBLIC-SKILL-REGISTRY-CLIENT",

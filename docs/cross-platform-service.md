@@ -27,5 +27,9 @@ checks a Vanta ownership marker before touching the artifact. If that marker is
 missing, Vanta refuses removal instead of deleting an operator-managed service.
 
 The native acceptance workflow is `.github/workflows/service-supervisor.yml`.
-It runs the real install, restart, log, stop, stale-state, and uninstall path on
-macOS, Ubuntu, and Windows and uploads a JSON receipt for each runner.
+It runs install, restart, log, stop, stale-state, and uninstall and uploads a
+JSON receipt. macOS is proven locally and in Actions. The card remains blocked:
+GitHub-hosted Ubuntu terminates the user-service payload cleanly, and its
+Windows runner reports the task as running without executing the owned runner.
+Run `scripts/service-native-proof.ts` on real Linux and Windows hosts and require
+`ok: true` receipts before treating those platforms as released.
