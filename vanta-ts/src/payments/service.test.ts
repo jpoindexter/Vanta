@@ -61,13 +61,13 @@ describe("payment execution service", () => {
     expect(next.ok).toBe(true);
   });
 
-  it("refuses live provisioning when a vault-only adapter is unavailable", async () => {
+  it("refuses provisioning when a vault-only sink is unavailable", async () => {
     const root = await mkdtemp(join(tmpdir(), "vanta-payment-service-"));
     const provision = PaymentContractSchema.parse({
       ...contract("pay_provision_1234"), provider: "stripe_projects",
       credential: { type: "stripe_cli", storage: "provider_cli" },
       provisioning: { service: "neon/postgres", credentialVaultRefs: ["NEON_DATABASE_URL"] },
     });
-    expect(await executePayment(root, provision, { approve: async () => true, now })).toMatchObject({ ok: false, state: "vault_only_provisioning_adapter_unavailable" });
+    expect(await executePayment(root, provision, { approve: async () => true, now, env: {}, platform: "linux" })).toMatchObject({ ok: false, state: "vault_sink_unavailable" });
   });
 });

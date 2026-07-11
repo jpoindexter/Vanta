@@ -48,13 +48,28 @@ raw CLI output, credential, card data, API key, or durable environment value.
 | --- | --- | --- |
 | Stripe Link | Exact spend request with `--request-approval`; only allowlisted IDs/status leave the adapter | Real Vanta process plus executable test fixture passed; live Link account not run |
 | MPP over HTTP 402 | Bounded probe; exact amount/currency/method/resource/merchant/item/expiry validation; Stripe shared-payment-token request; paid retry | Deterministic adapter tests passed; no live paid endpoint receipt |
-| Stripe Projects | Contract permits only named vault references | Execution refuses because a vault-only credential sink is not implemented |
+| Stripe Projects | Runs the plugin in a private temporary workspace, requires generated keys to exactly match approved aliases, moves values into Keychain through stdin, registers only vault references, and removes plaintext before success | Real child-process fixture passed; live Stripe Projects account not run |
 
-The production `link-cli` executable is deliberately unreachable. Developers
-can point `VANTA_PAYMENT_TEST_LINK_CLI` at an isolated test wrapper; without
-that variable, provider execution stops before spawning a process. Enabling
-real money requires a separate release decision after live sandbox/test-mode
-Stripe and MPP receipts and a vault-only Stripe Projects adapter exist.
+The production payment executables are deliberately unreachable. Developers
+can point `VANTA_PAYMENT_TEST_LINK_CLI` or
+`VANTA_PAYMENT_TEST_STRIPE_PROJECTS_CLI` at isolated test wrappers; without
+those variables, provider execution stops before spawning a process. Stripe
+Projects also requires macOS and `VANTA_KEYCHAIN=1`. Its contract names every
+generated alias in `provisioning.credentialVaultRefs`; extra, missing, empty,
+or duplicate aliases fail before vault registration. Enabling real money
+requires a separate release decision after live sandbox/test-mode Stripe Link
+and MPP receipts.
+
+```json
+{
+  "provider": "stripe_projects",
+  "credential": { "type": "stripe_cli", "storage": "provider_cli" },
+  "provisioning": {
+    "service": "neon/postgres",
+    "credentialVaultRefs": ["DATABASE_URL"]
+  }
+}
+```
 
 MPP contracts add a request block:
 

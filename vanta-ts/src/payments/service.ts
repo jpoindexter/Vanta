@@ -2,6 +2,7 @@ import type { PaymentContract, ContractAssessment } from "./contract.js";
 import { assessPaymentContract, formatPaymentPreview } from "./contract.js";
 import { appendPaymentReceipt, buildReceipt, loadPaymentReceipts, summarizePaymentReceipts, withPaymentLedgerLock } from "./ledger.js";
 import { executeMpp, executeStripeLink, type PaymentCommandRunner, type PaymentFetch, type ProviderOutcome } from "./providers.js";
+import { executeStripeProjects, type StripeProjectsDeps, type StripeProjectsRunner } from "./projects.js";
 
 export type PaymentApproval = (preview: string) => Promise<boolean>;
 export type PaymentProvider = (contract: PaymentContract) => Promise<ProviderOutcome>;
@@ -11,7 +12,8 @@ export type PaymentExecutionDeps = {
   provider?: PaymentProvider;
   run?: PaymentCommandRunner;
   fetch?: PaymentFetch;
-};
+  projectsRun?: StripeProjectsRunner;
+} & Omit<StripeProjectsDeps, "run">;
 export type PaymentExecution = {
   ok: boolean; state: string; preview: string; receiptRecorded: boolean;
   assessment?: ContractAssessment;
@@ -23,10 +25,10 @@ export async function previewPayment(root: string, contract: PaymentContract, no
   return { assessment, preview: formatPaymentPreview(contract, assessment) };
 }
 
-async function defaultProvider(contract: PaymentContract, deps: PaymentExecutionDeps): Promise<ProviderOutcome> {
+async function defaultProvider(root: string, contract: PaymentContract, deps: PaymentExecutionDeps): Promise<ProviderOutcome> {
   if (contract.provider === "stripe_link") return executeStripeLink(contract, deps.run);
   if (contract.provider === "mpp") return executeMpp(contract, deps.run, deps.fetch, (deps.now ?? (() => new Date()))());
-  return { ok: false, state: "vault_only_provisioning_adapter_unavailable", external: "not_available" };
+  return executeStripeProjects(root, contract, { ...deps, run: deps.projectsRun });
 }
 
 async function recordDecision(root: string, contract: PaymentContract, now: Date): Promise<void> {
@@ -72,7 +74,7 @@ export async function executePayment(root: string, contract: PaymentContract, de
   const assessment = await reserve(root, contract, clock());
   if (!assessment.ok) return { ok: false, state: "contract_rejected_after_approval", preview: initial.preview, receiptRecorded: false, assessment };
   let outcome: ProviderOutcome;
-  try { outcome = await (deps.provider ?? ((value) => defaultProvider(value, deps)))(contract); }
+  try { outcome = await (deps.provider ?? ((value) => defaultProvider(root, value, deps)))(contract); }
   catch { outcome = { ok: false, state: "provider_error", external: "not_available" }; }
   await finalize(root, contract, outcome, clock());
   return { ok: outcome.ok, state: outcome.state, preview: initial.preview, receiptRecorded: true };

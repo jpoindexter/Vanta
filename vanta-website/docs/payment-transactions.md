@@ -6,8 +6,9 @@ sidebar_position: 8
 
 # Payment transactions
 
-Vanta has a test-only payment boundary for Stripe Link and HTTP 402 Machine
-Payments Protocol workflows. Real-money execution remains disabled.
+Vanta has a test-only payment boundary for Stripe Link, HTTP 402 Machine
+Payments Protocol, and Stripe Projects provisioning. Real-money execution
+remains disabled.
 
 ```bash
 vanta payments preview contracts/purchase.json
@@ -31,10 +32,12 @@ Stripe method, resource, merchant, item, and expiry must match the approved
 contract. A denial, timeout, mismatch, malformed result, corrupt ledger, or
 replay stops without exposing provider output.
 
-Current proof is intentionally limited: the full Vanta command path passed with
-an executable test adapter, but live Stripe Link, a live paid MPP endpoint, and
-vault-only Stripe Projects provisioning have not passed. The production
-`link-cli` path remains unreachable until those release receipts exist.
+Stripe Projects runs in a private temporary workspace, accepts only the exact
+generated aliases named in the approved contract, pipes values into macOS
+Keychain, registers only vault references, and removes plaintext before
+success. A real child-process fixture passed this path. Live Stripe Link, a
+live paid MPP endpoint, and a live Stripe Projects account have not run; the
+production payment paths remain unreachable until the release receipts exist.
 
 See the repository's
 [`docs/payment-transactions.md`](https://github.com/jpoindexter/vanta/blob/main/docs/payment-transactions.md)

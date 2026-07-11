@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
-  activateVaultEnvironment, addVaultSecret, auditPath, injectVaultSecrets, listVaultSecrets, rotateVaultSecret, vaultSecretStatus,
+  activateVaultEnvironment, addVaultSecret, addVaultSecrets, auditPath, injectVaultSecrets, listVaultSecrets, rotateVaultSecret, vaultSecretStatus,
 } from "./vault-manager.js";
 
 let home = "";
@@ -18,6 +18,19 @@ describe("vault secret manager", () => {
     expect(records).toHaveLength(1);
     expect(JSON.stringify(records)).not.toContain("bootstrap");
     expect(vaultSecretStatus(records[0]!, new Date("2026-07-11T00:00:00.000Z"))).toMatchObject({ stale: true, overbroad: true });
+  });
+
+  it("adds a keychain-backed alias batch atomically and rejects duplicate names", async () => {
+    home = await mkdtemp(join(tmpdir(), "vanta-vault-manager-"));
+    await addVaultSecrets([
+      { name: "DATABASE_URL", backend: "keychain", ref: "vanta-project-db", scopes: ["payment:stripe-projects"] },
+      { name: "DATABASE_KEY", backend: "keychain", ref: "vanta-project-key", scopes: ["payment:stripe-projects"] },
+    ], { ...env(), VANTA_KEYCHAIN: "1" });
+    expect((await listVaultSecrets(env())).map((record) => record.backend)).toEqual(["keychain", "keychain"]);
+    await expect(addVaultSecrets([
+      { name: "DUPLICATE_KEY", backend: "keychain", ref: "one", scopes: ["payment:stripe-projects"] },
+      { name: "DUPLICATE_KEY", backend: "keychain", ref: "two", scopes: ["payment:stripe-projects"] },
+    ], env())).rejects.toThrow("already exists");
   });
 
   it("injects only records granted to the active scope and uses each selected backend", async () => {

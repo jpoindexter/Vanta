@@ -1,6 +1,7 @@
 # Vault-backed secrets
 
-Vanta can map logical environment names to Bitwarden or 1Password references.
+Vanta can map logical environment names to Bitwarden, 1Password, or macOS
+Keychain references.
 The manifest stores aliases, scopes, and rotation dates only. Secret values are
 resolved into process memory at startup and are never written to the manifest,
 receipts, or command output.
@@ -15,6 +16,10 @@ export BW_SESSION="$(bw unlock --raw)"
 
 # or 1Password service-account / signed-in CLI
 export OP_SERVICE_ACCOUNT_TOKEN="..."
+
+# or opt in to macOS Keychain
+export VANTA_KEYCHAIN=1
+security add-generic-password -U -a vanta -s vanta-example-key -w
 ```
 
 Add only the aliases a profile or run needs:
@@ -29,7 +34,16 @@ vanta secrets vault add GEMINI_API_KEY \
   --backend 1password \
   --ref op://Engineering/Gemini/password \
   --scope profile:research,loop:daily-report
+
+vanta secrets vault add EXAMPLE_API_KEY \
+  --backend keychain \
+  --ref vanta-example-key \
+  --scope profile:research
 ```
+
+For Keychain, `security ... -w` reads the value from a protected prompt or
+stdin; do not put the secret after `-w`. Stripe Projects provisioning creates
+these Keychain entries automatically and registers only their references.
 
 An active profile automatically uses scope `profile:<profile-id>`. A headless run
 can set `VANTA_SECRET_SCOPE=loop:<id>`. Only exact or `*` grants are injected.

@@ -29,7 +29,7 @@ async function routeVaultCommand(rest: string[], ctx: CommandContext): Promise<n
 async function addCommand(args: string[], env: NodeJS.ProcessEnv, log: (line: string) => void, now?: () => Date): Promise<number> {
   const name = args[0], flags = parseFlags(args.slice(1));
   const backend = flags.backend as VaultBackend, ref = flags.ref;
-  if (!name || !["bitwarden", "1password"].includes(backend) || !ref || !flags.scope) throw new Error("add needs NAME --backend bitwarden|1password --ref REF --scope SCOPE[,SCOPE]");
+  if (!name || !["bitwarden", "1password", "keychain"].includes(backend) || !ref || !flags.scope) throw new Error("add needs NAME --backend bitwarden|1password|keychain --ref REF --scope SCOPE[,SCOPE]");
   const at = (now?.() ?? new Date()).toISOString();
   const record = await addVaultSecret({ name, backend, ref, scopes: flags.scope.split(","), createdAt: at, expiresAt: flags.expires }, env);
   log(`added ${record.name} · ${record.backend} · scopes ${record.scopes.join(",")} · bootstrap ${bootstrapStatus(record.backend, env)}`);

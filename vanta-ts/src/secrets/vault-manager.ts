@@ -3,9 +3,9 @@ import { appendFile, mkdir, readFile, rename, writeFile } from "node:fs/promises
 import { join } from "node:path";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
-import { bitwardenProvider, onePasswordProvider, type ExecFn } from "./provider.js";
+import { bitwardenProvider, keychainProvider, onePasswordProvider, type ExecFn } from "./provider.js";
 
-const BackendSchema = z.enum(["bitwarden", "1password"]);
+const BackendSchema = z.enum(["bitwarden", "1password", "keychain"]);
 export type VaultBackend = z.infer<typeof BackendSchema>;
 
 const RecordSchema = z.object({
@@ -47,13 +47,19 @@ export async function listVaultSecrets(env: NodeJS.ProcessEnv = process.env): Pr
 }
 
 export async function addVaultSecret(input: AddVaultSecretInput, env: NodeJS.ProcessEnv = process.env): Promise<VaultSecretRecord> {
+  return (await addVaultSecrets([input], env))[0]!;
+}
+
+export async function addVaultSecrets(inputs: readonly AddVaultSecretInput[], env: NodeJS.ProcessEnv = process.env): Promise<VaultSecretRecord[]> {
   const records = await listVaultSecrets(env);
-  if (records.some((record) => record.name === input.name)) throw new Error(`vault secret ${input.name} already exists`);
+  const names = inputs.map((input) => input.name);
+  const duplicate = names.find((name, index) => names.indexOf(name) !== index || records.some((record) => record.name === name));
+  if (duplicate) throw new Error(`vault secret ${duplicate} already exists`);
   const now = new Date().toISOString();
-  const record = RecordSchema.parse({ ...input, createdAt: input.createdAt ?? now, rotatedAt: input.rotatedAt ?? input.createdAt ?? now });
-  await saveRecords([...records, record], env);
-  await appendAudit(env, { action: "add", name: record.name, backend: record.backend, scopes: record.scopes, at: now });
-  return record;
+  const added = inputs.map((input) => RecordSchema.parse({ ...input, createdAt: input.createdAt ?? now, rotatedAt: input.rotatedAt ?? input.createdAt ?? now }));
+  await saveRecords([...records, ...added], env);
+  for (const record of added) await appendAudit(env, { action: "add", name: record.name, backend: record.backend, scopes: record.scopes, at: now });
+  return added;
 }
 
 async function saveRecords(records: VaultSecretRecord[], env: NodeJS.ProcessEnv): Promise<void> {
@@ -72,7 +78,9 @@ export function vaultSecretStatus(record: VaultSecretRecord, now = new Date()): 
 }
 
 function providerFor(backend: VaultBackend, exec: ExecFn) {
-  return backend === "bitwarden" ? bitwardenProvider(exec) : onePasswordProvider(exec);
+  if (backend === "bitwarden") return bitwardenProvider(exec);
+  if (backend === "1password") return onePasswordProvider(exec);
+  return keychainProvider(exec);
 }
 
 function scopeAllows(record: VaultSecretRecord, scope: string): boolean {
@@ -139,6 +147,8 @@ async function appendAudit(env: NodeJS.ProcessEnv, event: Record<string, unknown
 export function bootstrapStatus(backend: VaultBackend, env: NodeJS.ProcessEnv): "present" | "missing" {
   const present = backend === "bitwarden"
     ? Boolean(env.BW_SESSION)
-    : Boolean(env.OP_SERVICE_ACCOUNT_TOKEN || env.OP_CONNECT_TOKEN || env.OP_SESSION);
+    : backend === "1password"
+      ? Boolean(env.OP_SERVICE_ACCOUNT_TOKEN || env.OP_CONNECT_TOKEN || env.OP_SESSION)
+      : process.platform === "darwin" && env.VANTA_KEYCHAIN === "1";
   return present ? "present" : "missing";
 }

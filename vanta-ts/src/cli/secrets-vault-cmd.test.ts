@@ -26,4 +26,12 @@ describe("vanta secrets vault", () => {
     expect(output).not.toContain("never-print-this-value");
     expect(output).not.toContain("token");
   });
+
+  it("registers a macOS Keychain service reference", async () => {
+    home = await mkdtemp(join(tmpdir(), "vanta-secrets-cli-"));
+    const lines: string[] = [], deps = { env: { VANTA_HOME: home, VANTA_KEYCHAIN: "1" }, log: (line: string) => lines.push(line) };
+    expect(await runSecretsCommand(["vault", "add", "DATABASE_URL", "--backend", "keychain", "--ref", "vanta-project-db", "--scope", "payment:stripe-projects"], deps)).toBe(0);
+    expect(lines.join("\n")).toContain("DATABASE_URL · keychain");
+    expect(lines.join("\n")).not.toContain("postgres://");
+  });
 });

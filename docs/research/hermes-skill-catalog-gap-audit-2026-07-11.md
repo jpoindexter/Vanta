@@ -31,19 +31,19 @@ verified Vanta capabilities.
 | Skill packages with `references/`, `templates/`, and `scripts/` | Shipped bounded full-package preview, quarantine, update, rollback, and removal | `HERMES-PORTABLE-SKILL-PACKAGES` shipped |
 | Official, skills.sh, well-known, GitHub, and custom-tap discovery | Shipped normalized source filters, cache/offline state, provenance, aliases, taps, and quarantine routing | `HERMES-MULTISOURCE-SKILL-HUB` shipped |
 | Staged approval for agent-authored skill create/edit/delete | Shipped durable create/edit/patch/supporting-file/delete queue with CLI/TUI review, stale guards, and receipts | `HERMES-SKILL-WRITE-APPROVAL-QUEUE` shipped |
-| Image/video/audio/3D production recipes and generators | Vanta analyzes images/video; it has no native video-generation tool or verified studio workflow | `HERMES-MEDIA-STUDIO-SKILL-PACK` |
-| Stripe Link, MPP, and Stripe Projects | Test-only exact-total contract, fresh approval, cap/replay ledger, redacted adapters, and HTTP 402 validation are implemented; live Link/MPP receipts and vault-only provisioning remain | `HERMES-PAYMENT-SKILL-PACK` building |
-| Shopping, Shopify, and agent telephony | SMS transport exists; storefront administration, checkout/returns, and voice-call workflows do not | `HERMES-COMMERCE-TELEPHONY-SKILL-PACK` |
+| Image/video/audio/3D production recipes and generators | Verified media studio renders scoped local MP4 briefs through staged providers; broader provider coverage remains additive | `HERMES-MEDIA-STUDIO-SKILL-PACK` shipped |
+| Stripe Link, MPP, and Stripe Projects | Test-only exact-total contract, fresh approval, cap/replay ledger, redacted adapters, HTTP 402 validation, and vault-only Keychain provisioning are implemented; live Link/MPP receipts remain | `HERMES-PAYMENT-SKILL-PACK` blocked on live acceptance |
+| Shopping, Shopify, and agent telephony | Scoped Shopify operations and consented Twilio lifecycle are implemented; each awaits its live provider receipt | Child cards blocked on live acceptance under `HERMES-COMMERCE-TELEPHONY-SKILL-PACK` |
 | Excel authoring plus DCF/LBO/merger/comps packs | Existing spreadsheet card covered generic workbook control only | Expanded `HERMES-SPREADSHEET-COPILOT` |
 
 ## Priority
 
-1. Prove the media studio workflow. It is high-value and can use reversible
-   file outputs rather than financial or external side effects.
-2. Prove the shipped payment boundary against live sandbox/test-mode Stripe and
+1. Prove the shipped payment boundary against live sandbox/test-mode Stripe and
    MPP endpoints; keep real money unreachable until those receipts exist.
-3. Add commerce/telephony and finance packs after their underlying operator
-   surfaces have real acceptance receipts.
+2. Run the scoped Shopify and consented Twilio workflows against development
+   accounts and retain their redacted live receipts.
+3. Finish spreadsheet host acceptance and finance-pack depth after the live
+   commerce receipts, without reopening the shipped local workflow contracts.
 
 The goal is not to copy 174 prompts into Vanta. The goal is to make portable
 outcome packs installable and then ship a small set of workflows with executed
