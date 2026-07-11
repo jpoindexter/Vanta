@@ -43,6 +43,7 @@ Major capability milestones, newest first. This is a curated highlight reel — 
 ## Selfhood & knowledge
 - **Brain** — one cohesive memory unit (markdown regions + structured, decaying entries) with recall guardrails.
 - **Knowledge graph** + **references** for cross-session facts and ingested sources.
+- **Corpus compiler** — ingest note/transcript folders or guarded URLs, recall with keyword/semantic/entity fusion and source freshness receipts, refresh stale material, and preview/apply linked Obsidian exports.
 - **MCP** both directions — mount external servers as tools; serve Vanta as an MCP server.
 
 ## v1 — feels like an operator

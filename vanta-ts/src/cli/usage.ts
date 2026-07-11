@@ -10,6 +10,7 @@ const USAGE_LINES = [
       "       vanta diagnose-crash [--demo greg-uitests|<file>|-]   diagnose crash/build logs with cited evidence",
       "       vanta spec-to-app --demo posture [--open]   build a verified React/Tailwind preview from a spec",
       "       vanta research-receipts <claims.json> [--vault <dir> --apply]   source/date/expiry skeptic gate",
+      "       vanta corpus ingest <folder|url> | recall <query> | status | refresh <id|all> | vault-export --vault <dir> [--apply]",
       "       vanta intent extract <target> --out <spec.json> | intent check <target> <spec.json>",
       "       vanta auto-watch [list|run|add]   watch repos/issues/email/calendar via gated commands",
       "       vanta marketing read <amplitude|customerio> [--fixture <json>]   read marketing connector data",

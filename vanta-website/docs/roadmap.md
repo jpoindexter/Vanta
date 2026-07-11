@@ -8,17 +8,11 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1148 capabilities shipped · 3 in flight · 13 on the horizon. Updated 2026-07-11._
+_1149 capabilities shipped · 2 in flight · 13 on the horizon. Updated 2026-07-11._
 
 ## In flight
 
 What we are actively building next.
-
-### Second-brain corpus compiler — notes, transcripts, and receipts become searchable memory
-
-**Operator** · M-size
-
-Vanta has brain memory, vault bridge, world model, and transcript tooling; the missing product workflow is a corpus compiler with hybrid search, source receipts, and refresh status
 
 ### Hermes story eval harness — test real community jobs across all 15 categories
 
@@ -34,10 +28,11 @@ The current use-case runner executes one-shot commands. It can prove that Vanta 
 
 ## Recently shipped
 
-The latest of 1148+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1149+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Profile roster — persistent specialist agents with isolated state** — Operator · 2026-07-11
 - **Profile Kanban router — durable board routes work by specialist skill** — Operator · 2026-07-11
+- **Second-brain corpus compiler — notes, transcripts, and receipts become searchable memory** — Operator · 2026-07-11
 - **Profile distributions — package a whole specialist agent as a git install** — Operator · 2026-07-11
 - **Hermes issue regression pack — turn competitor failures into Vanta invariants** — Harness · 2026-07-11
 - **Vanta public site v1 — product-first homepage, use cases, install, and proof** — Reach · 2026-07-11
@@ -55,7 +50,6 @@ The latest of 1148+ capabilities. See the [changelog](./changelog) for curated m
 - **Successful tool error classification — policy prose cannot open repair loops** — Harness · 2026-07-11
 - **Roadmap blocked status — external gates stop consuming Now slots** — Operator · 2026-07-10
 - **Roadmap unblock command — turn blocked cards into exact next actions** — Operator · 2026-07-10
-- **Run Anywhere readiness status — one auditable release-proof checklist** — Operator · 2026-07-10
 
 ## On the horizon
 

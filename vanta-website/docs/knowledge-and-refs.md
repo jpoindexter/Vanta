@@ -32,3 +32,37 @@ A durable store of ingested reference material so you never re-paste the same so
 Refs live in `~/.vanta/refs/index.json`. Source type is auto-detected; ingesting a URL stores a readable excerpt you can search and cite in later sessions — a persistent per-project knowledge base.
 
 > Both stores are local and git-adjacent under `~/.vanta`. They differ from the brain: the brain is associative/decaying memory; the graph is structured facts; refs are verbatim source excerpts.
+
+## Corpus compiler
+
+The corpus compiler is the visible workflow for making a folder of Markdown notes,
+downloaded `.vtt`/`.srt` transcripts, text files, or an approved public URL searchable:
+
+```bash
+vanta corpus ingest ./interviews
+vanta corpus recall "Atlas launch receipt"
+vanta corpus status
+vanta corpus refresh all
+```
+
+Corpus data lives in `~/.vanta/corpus/index.json`. Each source keeps its original path or
+URL, source date, content hash, ingest/refresh timestamps, freshness window, entity links,
+chunks, and any embeddings available at ingest time. Recall fuses BM25 keyword ranking,
+semantic similarity when an embedding backend is available, and entity-link ranking. The
+printed `Signals` line lists only signals actually used; each result includes a
+source/date/freshness receipt.
+
+Local ingest accepts `.md`, `.markdown`, `.txt`, `.vtt`, and `.srt`, skips hidden paths and
+unsupported files, and refuses symbolic-link inputs. URL ingest is checked by Vanta's SSRF
+and egress policy before it is fetched. `status` identifies stale material and `refresh`
+re-reads the original local path or URL.
+
+Export to an Obsidian-compatible vault is preview-first:
+
+```bash
+vanta corpus vault-export --vault ~/Documents/Notes
+vanta corpus vault-export --vault ~/Documents/Notes --apply
+```
+
+The export writes raw source pages under `raw/corpus/`, linked source pages under
+`wiki/corpus/`, and entity wiki-links without altering the corpus index.

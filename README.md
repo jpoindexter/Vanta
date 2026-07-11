@@ -174,6 +174,23 @@ vanta profile update research-lead --apply
 Distribution installs copy declared capability/default files only. Secret files, credentials,
 sessions, memory, inboxes, work history, and other private state are refused.
 
+Notes, downloaded transcripts, and text documents can now be compiled into a durable,
+source-indexed corpus under `~/.vanta/corpus`:
+
+```bash
+vanta corpus ingest ./research
+vanta corpus recall "What did Caroline decide about Atlas?"
+vanta corpus status
+vanta corpus refresh all
+vanta corpus vault-export --vault ~/Documents/Notes       # preview
+vanta corpus vault-export --vault ~/Documents/Notes --apply
+```
+
+Recall fuses BM25 keyword rank, optional Ollama embeddings, and entity links. Every hit
+prints its original source, source date, and freshness. When embeddings are unavailable,
+the signal line says so by omitting `semantic`; it does not present lexical fallback as
+semantic retrieval. URL ingest passes through the public-URL/egress guard before fetch.
+
 Persistent profiles can own routed Kanban cards. Cards declare skills, dependencies, wake
 policy, evidence, and fallback; Vanta can select a capable profile and preserve handoffs:
 

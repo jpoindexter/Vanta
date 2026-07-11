@@ -120,13 +120,22 @@ Home summarizes active and blocked lanes. A real CLI run installed a skilled pro
 routed, handed off, blocked, retried, closed with a receipt, rendered Home, and cleaned up
 its proof board.
 
+`HERMES-SECOND-BRAIN-CORPUS` is shipped. `vanta corpus ingest <folder|url>` compiles
+Markdown, text, VTT, and SRT sources into `~/.vanta/corpus`; guarded URL fetches retain
+source dates. `recall` fuses BM25, available embeddings, and entity links while printing
+source/date/freshness receipts and naming only the retrieval signals actually used.
+`status` and `refresh <id|all>` expose stale sources. Vault export is preview-first and
+preserves raw-source and entity links. An isolated real CLI proof ingested a note plus a
+downloaded-transcript fixture, recalled it, refreshed it, previewed five vault changes,
+then applied and inspected all five files.
+
 The extraction note is `docs/research/hermes-transcript-roadmap-extract-2026-07-11.md`;
 the current Hermes repo comparison is `docs/research/hermes-current-vs-vanta-vision-2026-07-11.md`;
 the feature/function harvest is `docs/research/hermes-feature-function-harvest-2026-07-11.md`.
 The issue, Mercury, and current user-story audit is
 `docs/research/hermes-mercury-issue-usecase-audit-2026-07-11.md`. Build priority is public-site
 v1 + story eval foundation → Hermes issue regression pack → profile roster + distributions
-(shipped) → profile Kanban router (shipped) → second-brain corpus compiler. Promote credential
+(shipped) → profile Kanban router (shipped) → second-brain corpus compiler (shipped). Promote credential
 pools/vault-backed secrets after the profile/Kanban spine if multi-profile gateways or
 run-anywhere execution need safer key distribution. The rest stay horizon until a concrete
 workflow needs them.

@@ -17269,7 +17269,7 @@
       "id": "HERMES-SECOND-BRAIN-CORPUS",
       "track": "Operator",
       "title": "Second-brain corpus compiler — notes, transcripts, and receipts become searchable memory",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Hermes plus Gbrain frames the useful memory gap: the agent should see curated external notes and transcripts, not only what passed through chat. Vanta has brain memory, vault bridge, world model, and transcript tooling; the missing product workflow is a corpus compiler with hybrid search, source receipts, and refresh status.",
       "done": "`vanta corpus ingest <folder|url>` imports markdown notes, downloaded transcripts, and local docs into a source-indexed corpus; recall combines keyword, semantic, and entity links; each answer can show source/date/freshness receipts; stale sources are refreshable; Obsidian/vault export preserves links.",
@@ -17280,7 +17280,7 @@
       "lens": "selfhood",
       "updated": "2026-07-11",
       "source": "hermes-transcript-roadmap-extract-2026-07-11",
-      "notes": "Sources: Tonbis 2026-07-07 Gbrain + Hermes, 2026-05-18 Memory/Plugins/Honcho/Obsidian, and the local Tonbis transcript corpus now available under reference/tonbis-ai-garage-transcripts. This extends BRAIN-VAULT-BRIDGE/BRAIN-INGEST-GATE with a visible ingest workflow and evidence contract."
+      "notes": "Sources: Tonbis 2026-07-07 Gbrain + Hermes, 2026-05-18 Memory/Plugins/Honcho/Obsidian, and the local Tonbis transcript corpus now available under reference/tonbis-ai-garage-transcripts. This extends BRAIN-VAULT-BRIDGE/BRAIN-INGEST-GATE with a visible ingest workflow and evidence contract.\n\nSHIPPED 2026-07-11: added `vanta corpus ingest|recall|status|refresh|vault-export` over a durable source index in VANTA_HOME/corpus. Local ingest accepts Markdown/text/VTT/SRT, skips hidden/unsupported paths, refuses symlink roots, chunks content, hashes sources, extracts entity links, and records source/ingest/refresh dates. URL ingest is SSRF/egress-guarded and retains Last-Modified when present. Recall fuses BM25, available stored embeddings, and entity rank through RRF; output names only signals actually used and prints source/date/freshness receipts. Refresh re-reads the original local path or guarded URL. Vault export previews before `--apply` and writes raw sources plus corpus/entity wiki links. Seven focused tests cover the contract. Real isolated CLI proof ingested a note and transcript, recalled with keyword+entity fallback while Ollama was unavailable, reported freshness, refreshed both sources, previewed five vault changes, applied them, and inspected all five output files."
     },
     {
       "id": "HERMES-DELEGATION-TREE-RECEIPTS",
