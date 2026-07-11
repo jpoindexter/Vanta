@@ -17845,7 +17845,7 @@
       "id": "HERMES-MEDIA-STUDIO-SKILL-PACK",
       "track": "Operator",
       "title": "Media studio skill pack - generate and assemble image, video, audio, and 3D work",
-      "status": "building",
+      "status": "shipped",
       "size": "L",
       "summary": "Hermes ships ComfyUI, Manim, HyperFrames, Blender, TouchDesigner, ASCII video, music-prompting, and Kanban video-production recipes. Vanta currently understands images and video but has no native video-generation tool or verified end-to-end production workflow.",
       "done": "An outcome-led media command accepts a brief, previews scenes/providers/costs, and produces a playable verified artifact; provider adapters cover at least one local image path and one video path; a profile/Kanban production template can assign script, visual, audio, render, and review stages; generated assets stay in the scoped project; external generation and publishing remain approval/cost gated; ffprobe and artifact checks verify duration, dimensions, streams, and nonblank frames; receipts retain prompts, providers, costs, source assets, and checks without secrets.",
@@ -17860,13 +17860,13 @@
         "HERMES-PORTABLE-SKILL-PACKAGES",
         "HERMES-KANBAN-ROUTER"
       ],
-      "notes": "First proof should be a short local artifact, not a broad provider matrix. Vanta's shipped watch_video path is analysis only."
+      "notes": "Shipped in ab572dcd. Real proofs: ffmpeg-local color brief produced playable H.264 640x360 2.0s MP4; project-image adapter produced 640x360 1.0s MP4. Receipts passed artifact bytes, video stream, dimensions, duration, and nonblank-frame checks. media_studio approval preview includes scenes/providers/$0 cost; vanta media-studio board created routed script/visual/audio/render/review Kanban dependencies. Full suite: 12,878 passed, 3 skipped, 0 failed."
     },
     {
       "id": "HERMES-PAYMENT-SKILL-PACK",
       "track": "Operator",
       "title": "Payment skill pack - Stripe Link, MPP, and SaaS provisioning under transaction gates",
-      "status": "horizon",
+      "status": "building",
       "size": "L",
       "summary": "Hermes offers Stripe Link checkout, Machine Payments Protocol, and Stripe Projects provisioning. Vanta's browser and MCP layers can reach payment surfaces, but model-token budgets do not authorize purchases and generic approvals do not protect card material or merchant totals.",
       "done": "Payment actions use a dedicated transaction contract with merchant, item, currency, exact total, per-purchase and period caps, credential type, and expiry; every spend requires a fresh operator approval plus the provider's external approval when available; payment credentials never enter model context, logs, receipts, or durable environment files; HTTP 402 challenges are validated; denials/timeouts stop cleanly; SaaS provisioning stores only vault references; receipts prove authorization, redacted provider result, amount, and cleanup; live sandbox/test-mode Stripe and MPP paths pass before any real-money enablement.",
