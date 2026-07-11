@@ -32,6 +32,11 @@ jobs:
       - name: Verify platform fixtures
         run: npm test -- --run src/service
         working-directory: vanta-ts
+      - name: Keep the Linux user manager alive for the native proof
+        if: runner.os == 'Linux'
+        run: |
+          sudo loginctl enable-linger "$USER"
+          systemctl --user unset-environment RUNNER_TRACKING_ID || true
       - name: Prove native lifecycle
         run: node --import tsx scripts/service-native-proof.ts
         working-directory: vanta-ts

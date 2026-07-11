@@ -35,6 +35,14 @@ async function waitRunning(expected: boolean): Promise<Awaited<ReturnType<typeof
   return status;
 }
 
+async function waitForLog(marker: string): Promise<boolean> {
+  for (let i = 0; i < 20; i += 1) {
+    if ((await manager.logs(50)).includes(marker)) return true;
+    await sleep(500);
+  }
+  return false;
+}
+
 try {
   const before = await manager.status();
   if (before.installed || (before.artifactPath && existsSync(before.artifactPath))) {
@@ -44,9 +52,7 @@ try {
   receipt.started = await waitRunning(true);
   await manager.restart();
   receipt.restarted = await waitRunning(true);
-  await sleep(500);
-  const logs = await manager.logs(50);
-  if (!logs.includes("SERVICE_PROOF_STARTED")) throw new Error("service output did not reach the configured log");
+  if (!(await waitForLog("SERVICE_PROOF_STARTED"))) throw new Error("service output did not reach the configured log");
   receipt.logCaptured = true;
   await manager.stop();
   const stopped = await waitRunning(false);
