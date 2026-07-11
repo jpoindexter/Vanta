@@ -16,6 +16,7 @@ const ProfileSchema = z.object({
   model: z.string().min(1).optional(),
   provider: z.string().min(1).optional(),
   gatewayIdentity: z.string().min(1),
+  allowedTools: z.array(z.string().min(1)).optional(),
   clonedFrom: z.string().min(1).optional(),
   lastWork: z.string().min(1).optional(),
   lastWorkAt: z.string().min(1).optional(),
@@ -37,6 +38,7 @@ export type CreateProfileInput = {
   provider?: string;
   gatewayIdentity?: string;
   clonedFrom?: string;
+  allowedTools?: string[];
 };
 
 const MANIFEST = "profile.json";
@@ -112,7 +114,7 @@ async function writeProfile(profile: ProfileRecord, env: NodeJS.ProcessEnv): Pro
 async function initializeHome(profile: ProfileRecord, env: NodeJS.ProcessEnv): Promise<void> {
   const dirs = ["skills", "memories", "agent-memory", "gateway"];
   await Promise.all(dirs.map((dir) => mkdir(join(profile.home, dir), { recursive: true })));
-  const settings = { env: { ...(profile.provider ? { VANTA_PROVIDER: profile.provider } : {}), ...(profile.model ? { VANTA_MODEL: profile.model } : {}) } };
+  const settings = { env: { ...(profile.provider ? { VANTA_PROVIDER: profile.provider } : {}), ...(profile.model ? { VANTA_MODEL: profile.model } : {}) }, ...(profile.allowedTools ? { allowedTools: profile.allowedTools } : {}) };
   const identity = { profileId: profile.id, gatewayIdentity: profile.gatewayIdentity };
   await Promise.all([
     writeFile(join(profile.home, "settings.json"), `${JSON.stringify(settings, null, 2)}\n`, "utf8"),
@@ -134,6 +136,7 @@ export async function createProfile(input: CreateProfileInput, env: NodeJS.Proce
     ...(input.model?.trim() ? { model: input.model.trim() } : {}),
     ...(input.provider?.trim() ? { provider: input.provider.trim() } : {}),
     ...(input.clonedFrom ? { clonedFrom: input.clonedFrom } : {}),
+    ...(input.allowedTools ? { allowedTools: cleanTools(input.allowedTools) } : {}),
   };
   await initializeHome(profile, env);
   return profile;
@@ -142,7 +145,24 @@ export async function createProfile(input: CreateProfileInput, env: NodeJS.Proce
 export async function cloneProfile(sourceName: string, name: string, env: NodeJS.ProcessEnv = process.env, now = () => new Date()): Promise<ProfileRecord> {
   const source = await findProfile(sourceName, env);
   if (!source || source.status === "archived") throw new Error(`profile not found: ${sourceName}`);
-  return createProfile({ name, model: source.model, provider: source.provider, clonedFrom: source.id }, env, now);
+  return createProfile({ name, model: source.model, provider: source.provider, clonedFrom: source.id, allowedTools: source.allowedTools }, env, now);
+}
+
+export async function setProfileTools(nameOrId: string, allowedTools: string[], env: NodeJS.ProcessEnv = process.env, now = () => new Date()): Promise<ProfileRecord> {
+  const profile = await findProfile(nameOrId, env);
+  if (!profile || profile.status === "archived") throw new Error(`profile not found: ${nameOrId}`);
+  const tools = cleanTools(allowedTools);
+  const updated = { ...profile, active: undefined, allowedTools: tools, updatedAt: now().toISOString() };
+  await writeProfile(updated, env);
+  const path = join(updated.home, "settings.json");
+  const current = await readJson(path);
+  const settings = typeof current === "object" && current !== null ? current as Record<string, unknown> : {};
+  await writeFile(path, `${JSON.stringify({ ...settings, allowedTools: tools }, null, 2)}\n`, "utf8");
+  return updated;
+}
+
+function cleanTools(tools: string[]): string[] {
+  return [...new Set(tools.map((tool) => tool.trim()).filter((tool) => /^[a-zA-Z0-9_-]+$/.test(tool)))].sort();
 }
 
 export async function switchProfile(nameOrId: string, env: NodeJS.ProcessEnv = process.env, now = () => new Date()): Promise<ProfileRecord> {

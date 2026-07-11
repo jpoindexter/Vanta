@@ -9,6 +9,8 @@ import { firePreToolUse, firePostToolUse, fireHooks } from "../hooks/shell-hooks
 import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
 import { acceptsEditsWithoutKernel, resolvePermissionMode } from "../modes/permission-mode.js";
 import { join } from "node:path";
+import { loadSettings } from "../settings/store.js";
+import { repairToolFailure } from "../tools/tool-boundary.js";
 
 export type DispatchOutcome = { executed: boolean; empty: boolean; output: string; ok: boolean; tokensSaved?: number };
 
@@ -54,6 +56,7 @@ export async function dispatchTool(
   // StreamEvent, so a long external call streams output/heartbeats mid-execution.
   const execCtx: ToolContext = { ...executionContext(call.name, ctx), onProgress: (text) => deps.onEvent?.({ type: "note", text }) };
   const res = await executeWithRetry(call, deps, execCtx, tool);
+  if (!res.ok) res.output = await addRepairPath(call.name, res.output, deps, ctx.root);
   const postBlocked = await applyPostToolUseBlock({ call, deps, ctx, res, hookDeps });
   if (postBlocked) return postBlocked;
   deps.onToolResult?.(call.name, res.ok, res.output, res.diff);
@@ -66,6 +69,20 @@ export async function dispatchTool(
   // stashing it whole (CCR store) and replacing it with a preview + retrieval id.
   const offloaded = await offloadResult(compressed.output, { toolName: call.name, dataDir, modelId: deps.provider?.modelId?.() });
   return { executed: true, empty: offloaded.output.trim().length === 0, ok: res.ok, output: offloaded.output, tokensSaved: compressed.tokensSaved };
+}
+
+async function addRepairPath(tool: string, output: string, deps: AgentDeps, root: string): Promise<string> {
+  const settings = await loadSettings(root, process.env).catch(() => ({}));
+  return repairToolFailure(tool, output, {
+    schemas: registrySchemas(deps, tool), settings, profileId: process.env.VANTA_PROFILE, env: process.env,
+  });
+}
+
+function registrySchemas(deps: AgentDeps, tool: string) {
+  const registry = deps.registry as AgentDeps["registry"] & { schemas?: AgentDeps["registry"]["schemas"] };
+  if (typeof registry.schemas === "function") return registry.schemas();
+  const schema = registry.get(tool)?.schema;
+  return schema ? [schema] : [];
 }
 
 /**

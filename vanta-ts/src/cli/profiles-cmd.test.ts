@@ -22,8 +22,12 @@ const run = (args: string[]) => runProfilesCommand(args, { env, log: (line) => l
 
 describe("vanta profiles", () => {
   it("creates, lists, targets, clones, switches, inspects, and archives profiles", async () => {
-    expect(await run(["create", "Research Lead", "--provider", "codex", "--model", "gpt-5.5"])).toBe(0);
+    expect(await run(["create", "Research Lead", "--provider", "codex", "--model", "gpt-5.5", "--tools", "read_file,web_search"])).toBe(0);
     expect(lines.at(-1)).toContain("created research-lead");
+
+    lines = [];
+    expect(await run(["tools", "research-lead", "--allow", "read_file,grep_files"])).toBe(0);
+    expect(lines.at(-1)).toContain("read_file");
 
     lines = [];
     expect(await run(["target", "research-lead", "Audit provider fallback"])).toBe(0);

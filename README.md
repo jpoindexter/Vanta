@@ -221,6 +221,14 @@ vanta kanban route research
 vanta kanban update research done --evidence receipts/research.json
 ```
 
+Profiles can also declare a small role-specific tool surface. The allowlist is enforced for
+built-in, MCP, and plugin tools; failed calls reuse the same repair explanation:
+
+```bash
+vanta profiles tools research-lead --allow read_file,grep_files,web_search,ref_search
+vanta tools why gmail_send
+```
+
 ## Community
 
 - 💬 **[Discussions](https://github.com/jpoindexter/Vanta/discussions)** — questions, ideas, show-and-tell.

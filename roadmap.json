@@ -17303,7 +17303,7 @@
       "id": "HERMES-TOOL-SURFACE-PROFILES",
       "track": "Harness",
       "title": "Tool-surface profiles — shrink available tools by role and explain the boundary",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Hermes tool/MCP guidance stresses a small visible tool surface, role-specific tool sets, and recoverable tool failures. Vanta has tool search, blocked tools, skill gating, and kernel gating; the missing workflow is an operator-visible explanation of why a profile can see a tool and how to repair missing capability.",
       "done": "Each profile/agent role declares an allowed tool surface; `vanta tools why <tool>` explains role visibility, kernel risk, setup prerequisites, and missing credentials; overbroad surfaces warn; failed tool calls return a repair path instead of an opaque stack.",
@@ -17317,7 +17317,7 @@
       ],
       "updated": "2026-07-11",
       "source": "hermes-transcript-roadmap-extract-2026-07-11",
-      "notes": "Source: Tonbis Hermes Masterclass 6 (Tools/MCP Servers). Build by wiring existing SETTINGS-BLOCKEDTOOLS-ENFORCE, VANTA-TOOL-SEARCH-AUTO, HARNESS-SKILL-GATING, and setup prerequisites into a user-facing explanation."
+      "notes": "Source: Tonbis Hermes Masterclass 6 (Tools/MCP Servers). Build by wiring existing SETTINGS-BLOCKEDTOOLS-ENFORCE, VANTA-TOOL-SEARCH-AUTO, HARNESS-SKILL-GATING, and setup prerequisites into a user-facing explanation.\n\nSHIPPED 2026-07-11: profiles and profile distributions accept `allowedTools`; create, clone, activation settings, and `vanta profiles tools <id> --allow <csv>` persist the role boundary. `buildRegistry({include})` enforces it for initial built-ins and late MCP/plugin registrations, while blockedTools remains a tightening exclusion. `vanta tools why <tool>` reports active-role visibility, typical kernel risk with a per-call disclaimer, setup prerequisites, missing credentials, overbroad full-surface warnings, and exact repair commands. Final failed tool results append the same repair guidance after retries and before hooks/callbacks. Focused tests cover registry inclusion and late registration, profile persistence/clone/distributions, CLI explanations, Google OAuth repair, overbroad warnings, and dispatch failure repair. Real isolated CLI proof created and activated a research profile, showed gmail_send hidden plus OAuth/profile repairs, widened the allowlist, showed gmail_send visible but still credential-gated, showed read_file as typical allow, then activated an unrestricted profile and observed the full-surface warning."
     },
     {
       "id": "HERMES-WEBHOOK-WORKFLOW-BUILDER",

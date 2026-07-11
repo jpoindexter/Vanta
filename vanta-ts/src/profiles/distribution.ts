@@ -16,6 +16,7 @@ const ManifestSchema = z.object({
     provider: z.string().min(1).optional(),
     model: z.string().min(1).optional(),
     gatewayIdentity: z.string().min(1).optional(),
+    allowedTools: z.array(z.string().min(1)).optional(),
   }).optional(),
   soul: z.string().min(1).optional(),
   settings: z.string().min(1).optional(),

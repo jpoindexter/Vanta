@@ -152,6 +152,13 @@ conversation without TTY parsing and records redacted per-turn outputs, tools, g
 boundary checks. The real converse-before-act story passed clarification, scope choice,
 approval wall, and rejection in four turns with no file or shell action.
 
+`HERMES-TOOL-SURFACE-PROFILES` is shipped. Profiles and distributions can declare
+`allowedTools`; the live registry enforces the allowlist for built-ins and late MCP/plugin
+registration. `vanta profiles tools` edits the boundary, while `vanta tools why` explains
+role visibility, typical per-call kernel risk, setup, missing credentials, and repair.
+Profiles without an allowlist warn that they expose the full surface, and failed calls append
+the same repair path after retries.
+
 ## TUI — real terminal UI (shipped 2026-06-02)
 - **Streaming engine**: `LLMProvider.stream()` (OpenAI family **+ Anthropic**) yields `StreamChunk`s — token deltas, **`thinking` (live reasoning, universal)**, and tool calls; `agent.ts` emits them via `onTextDelta`/`onThinkingDelta` (falls back to `complete()` when unused). Pure `foldToolCallDeltas`/`reasoningDelta`/`streamAnthropicEvents` assemble the streamed shapes.
 - **Ink TUI** (`tui/app.tsx` + `tui/launch.tsx`): React/Ink 7 app — streaming transcript (live token-by-token), interleaved tool activity (`→`/`✓`/`✗`), spinner status line (model + state), input composer (`ink-text-input`), **inline approval prompts** for kernel `ask` risks, minimal slash (`/help /clear /model /exit`). `vanta` launches it on a TTY; `--no-tui` / `VANTA_NO_TUI` / resume / non-TTY fall back to the readline REPL (which keeps the full slash set).

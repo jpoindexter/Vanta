@@ -27,7 +27,7 @@ async function writeFixture(soul = "You are a research specialist.\n", model = "
   await writeFile(join(source, "vanta-profile.json"), JSON.stringify({
     version: 1,
     name: "Research Lead",
-    profile: { provider: "codex", model, gatewayIdentity: "research-bot" },
+    profile: { provider: "codex", model, gatewayIdentity: "research-bot", allowedTools: ["read_file", "web_search"] },
     soul: "SOUL.md",
     settings: "settings.json",
     skills: ["skills/research"],
@@ -93,6 +93,7 @@ describe("profile distributions", () => {
     const installed = await installProfileDistribution(source, env);
     const target = profileHome(installed.profile.id, env);
     expect(installed.profile.id).toBe("research-lead");
+    expect(installed.profile.allowedTools).toEqual(["read_file", "web_search"]);
     expect(installed.sourceCommit).toMatch(/^[0-9a-f]{40}$/);
     await expect(readFile(join(target, "SOUL.md"), "utf8")).resolves.toContain("research specialist");
     await expect(readFile(join(target, "skills", "research", "SKILL.md"), "utf8")).resolves.toContain("Use sources");

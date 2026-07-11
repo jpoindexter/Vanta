@@ -10,8 +10,10 @@ export interface ToolRegistry {
 
 export class InMemoryToolRegistry implements ToolRegistry {
   private readonly tools = new Map<string, Tool>();
+  constructor(private readonly allowed?: ReadonlySet<string>) {}
 
   register(tool: Tool): void {
+    if (this.allowed && !this.allowed.has(tool.schema.name)) return;
     this.tools.set(tool.schema.name, tool);
   }
 

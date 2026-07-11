@@ -70,7 +70,7 @@ export async function prepareRun(
   // in settings.blockedTools is excluded from the live session registry. The
   // same settings object is reused by loadRuntimeExtensions (no second load).
   const settings = await loadRuntimeSettings(repoRoot);
-  const registry = buildRegistry({ exclude: settings.blockedTools ?? [] });
+  const registry = buildRegistry({ exclude: settings.blockedTools ?? [], include: settings.allowedTools });
   const mcpTrust = { root: repoRoot, confirm: opts.confirmTrust };
   const { pluginCommands, pluginPanels, pluginWorkers, mcpSkills } = await loadRuntimeExtensions(repoRoot, registry, mcpTrust, settings);
   const effortLevel = resolveEffortLevel(process.env.VANTA_EFFORT_LEVEL ?? settings.effortLevel);

@@ -12,22 +12,24 @@ import { buildRunPipelineTool } from "./run-pipeline.js";
  * it cannot recursively spawn further workers.
  * `mount_mcp`/`mcp_auth` are registered via factory (need the live registry ref).
  */
-export function buildRegistry(opts?: { exclude?: string[] }): ToolRegistry {
-  const registry = new InMemoryToolRegistry();
+export function buildRegistry(opts?: { exclude?: string[]; include?: string[] }): ToolRegistry {
   const exclude = new Set(opts?.exclude ?? []);
+  const include = opts?.include ? new Set(opts.include) : null;
+  const registry = new InMemoryToolRegistry(include ?? undefined);
+  const allowed = (name: string): boolean => !exclude.has(name) && (!include || include.has(name));
   for (const tool of ALL_TOOLS) {
-    if (!exclude.has(tool.schema.name)) registry.register(tool);
+    if (allowed(tool.schema.name)) registry.register(tool);
   }
-  if (!exclude.has("mount_mcp")) {
+  if (allowed("mount_mcp")) {
     registry.register(buildMountMcpTool(registry));
   }
-  if (!exclude.has("mcp_auth")) {
+  if (allowed("mcp_auth")) {
     registry.register(buildMcpAuthTool(registry));
   }
-  if (!exclude.has("tool_search")) {
+  if (allowed("tool_search")) {
     registry.register(buildToolSearchTool(registry));
   }
-  if (!exclude.has("run_pipeline")) {
+  if (allowed("run_pipeline")) {
     registry.register(buildRunPipelineTool(registry));
   }
   return registry;

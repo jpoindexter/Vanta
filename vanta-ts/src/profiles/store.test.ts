@@ -34,6 +34,7 @@ describe("profile store", () => {
       model: "gpt-5.5",
       provider: "codex",
       gatewayIdentity: "research-lead",
+      allowedTools: ["read_file", "web_search"],
     }, env, at("2026-07-11T12:00:00.000Z"));
 
     expect(created.id).toBe("research-lead");
@@ -41,6 +42,8 @@ describe("profile store", () => {
     expect(created.home).toBe(profileHome("research-lead", env));
     expect((await listProfiles(env)).map((profile) => profile.id)).toEqual(["research-lead"]);
     await expect(readFile(join(created.home, "settings.json"), "utf8")).resolves.toContain("gpt-5.5");
+    await expect(readFile(join(created.home, "settings.json"), "utf8")).resolves.toContain("web_search");
+    expect(created.allowedTools).toEqual(["read_file", "web_search"]);
     await expect(readFile(join(created.home, "identity.json"), "utf8")).resolves.toContain("research-lead");
   });
 
@@ -57,12 +60,13 @@ describe("profile store", () => {
   });
 
   it("clones configuration without private memory or queued work", async () => {
-    await createProfile({ name: "Research Lead", model: "gpt-5.5", provider: "codex" }, env);
+    await createProfile({ name: "Research Lead", model: "gpt-5.5", provider: "codex", allowedTools: ["read_file"] }, env);
     await targetProfile("research-lead", "private assignment", env);
     const clone = await cloneProfile("research-lead", "Research Backup", env, at("2026-07-11T12:10:00.000Z"));
 
     expect(clone.clonedFrom).toBe("research-lead");
     expect(clone.model).toBe("gpt-5.5");
+    expect(clone.allowedTools).toEqual(["read_file"]);
     expect(await listProfileInbox(clone.id, env)).toEqual([]);
     await expect(readFile(join(clone.home, "memories", "profile.md"), "utf8")).resolves.toBe("");
   });

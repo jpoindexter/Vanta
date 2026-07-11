@@ -232,6 +232,7 @@ describe("applySafetyGate + permissions", () => {
     } as unknown as AgentDeps["registry"];
     const res = await dispatchTool({ id: "5", name: "failing_tool", arguments: {} }, deps, { root: home, requestApproval: deps.requestApproval } as ToolContext);
     expect(res.ok).toBe(false);
+    expect(res.output).toContain("Repair: install or enable the plugin/MCP server");
     await waitUntil(async () => (await readFile(marker, "utf8").catch(() => "")) === "failed");
     expect(await readFile(marker, "utf8")).toBe("failed");
   });

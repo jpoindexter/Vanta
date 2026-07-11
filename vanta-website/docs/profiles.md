@@ -12,7 +12,7 @@ across Vanta restarts.
 ## Create and target a profile
 
 ```bash
-vanta profiles create "Research Lead" --provider codex --model gpt-5.5
+vanta profiles create "Research Lead" --provider codex --model gpt-5.5 --tools read_file,web_search,ref_search
 vanta profiles target research-lead "Audit provider fallback"
 vanta profiles inbox research-lead
 ```
@@ -20,6 +20,22 @@ vanta profiles inbox research-lead
 `target` (or its `send` alias) writes a durable queued message. It does not bypass the
 kernel or silently execute work; the existing task and agent runners remain responsible for
 execution and approval.
+
+## Tool boundaries
+
+`--tools` declares the role's allowed tool surface. It is enforced by the live registry,
+including tools registered later by MCP servers or plugins. Change it explicitly:
+
+```bash
+vanta profiles tools research-lead --allow read_file,grep_files,web_search,ref_search
+vanta tools why gmail_send
+```
+
+`tools why` reports whether the active profile can see the tool, its typical kernel risk,
+setup prerequisites, missing credentials, and exact repair commands. The kernel still
+assesses real arguments per call; the typical label is explanatory, not a replacement
+decision. Profiles without `allowedTools` remain backward-compatible but emit a full-surface
+warning. Failed tool calls append the same repair guidance after retries.
 
 ## Switch profiles
 
@@ -69,7 +85,8 @@ The source root contains `vanta-profile.json`:
   "profile": {
     "provider": "codex",
     "model": "gpt-5.5",
-    "gatewayIdentity": "research-bot"
+    "gatewayIdentity": "research-bot",
+    "allowedTools": ["read_file", "web_search", "ref_search"]
   },
   "soul": "SOUL.md",
   "settings": "settings.json",

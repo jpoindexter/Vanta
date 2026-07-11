@@ -5,6 +5,7 @@ import {
   listProfileInbox,
   listProfiles,
   switchProfile,
+  setProfileTools,
   targetProfile,
 } from "../profiles/store.js";
 
@@ -14,7 +15,7 @@ export type ProfilesCommandDeps = {
 };
 
 function usage(log: (line: string) => void): number {
-  log("Usage: vanta profiles [list|create <name> [--provider <id> --model <id>]|clone <source> <name>|switch <name>|archive <name>|target <name> <instruction>|inbox <name>]");
+  log("Usage: vanta profiles [list|create <name> [--provider <id> --model <id> --tools <a,b>]|tools <name> --allow <a,b>|clone <source> <name>|switch <name>|archive <name>|target <name> <instruction>|inbox <name>]");
   return 1;
 }
 
@@ -42,8 +43,14 @@ const handlers: Record<string, Handler> = {
   list: async ({ env, log }) => list(env, log),
   create: async ({ args, env, log }) => {
     if (!args[1]) return usage(log);
-    const profile = await createProfile({ name: args[1], provider: flag(args, "--provider"), model: flag(args, "--model"), gatewayIdentity: flag(args, "--gateway-identity") }, env);
+    const profile = await createProfile({ name: args[1], provider: flag(args, "--provider"), model: flag(args, "--model"), gatewayIdentity: flag(args, "--gateway-identity"), allowedTools: csv(flag(args, "--tools")) }, env);
     log(`created ${profile.id} · home ${profile.home}`);
+    return 0;
+  },
+  tools: async ({ args, env, log }) => {
+    if (!args[1] || flag(args, "--allow") === undefined) return usage(log);
+    const profile = await setProfileTools(args[1], csv(flag(args, "--allow")) ?? [], env);
+    log(`${profile.id} allowedTools: ${profile.allowedTools?.join(", ") || "(none)"}`);
     return 0;
   },
   clone: async ({ args, env, log }) => {
@@ -78,6 +85,10 @@ const handlers: Record<string, Handler> = {
     return 0;
   },
 };
+
+function csv(value: string | undefined): string[] | undefined {
+  return value === undefined ? undefined : value.split(",").map((item) => item.trim()).filter(Boolean);
+}
 
 handlers.send = handlers.target as Handler;
 
