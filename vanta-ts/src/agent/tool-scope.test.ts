@@ -11,9 +11,10 @@ function schema(name: string, description = `${name} tool`): ToolSchema {
 }
 
 const manySchemas = [
-  "tool_search", "clarify", "brain", "recall", "inspect_state", "read_file", "grep_files", "glob_files",
+  "tool_search", "clarify", "brain", "recall", "inspect_state", "inspect_context", "read_file", "grep_files", "glob_files",
   "web_search", "web_fetch", "git_status", "git_diff", "edit_file", "write_file", "shell_cmd", "lsp_diagnostics",
   "gmail_send", "calendar_create", "browser_act", "money", "radar", "roadmap_move", "call_agent", "delegate",
+  "compose_workflow", "protect", "brief",
 ].map((name) => schema(name));
 
 const fakeSafety = {
@@ -44,6 +45,14 @@ describe("per-task tool scoping", () => {
     // and not surfaced for an unrelated request
     const emailScope = scopeToolSchemas(manySchemas, "send an email to bob about the meeting").map((s) => s.name);
     expect(emailScope).not.toContain("call_agent");
+  });
+
+  it("exposes workflow validation, protection, and review tools for architecture workflows", () => {
+    const scoped = scopeToolSchemas(
+      manySchemas,
+      "Draft a Kubernetes workflow with isolation, scoped secrets, health checks, rollback, and approval before deploy",
+    ).map((s) => s.name);
+    expect(scoped).toEqual(expect.arrayContaining(["compose_workflow", "protect", "brief"]));
   });
 
   it("returns the full set when the user explicitly asks for all tools", () => {

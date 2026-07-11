@@ -75,12 +75,9 @@ const config: Config = {
     navbar: {
       title: 'Vanta',
       items: [
-        {
-          type: 'docSidebar',
-          sidebarId: 'docsSidebar',
-          position: 'left',
-          label: 'Docs',
-        },
+        {to: '/docs', label: 'Docs', position: 'left'},
+        {to: '/use-cases', label: 'Use cases', position: 'left'},
+        {to: '/roadmap', label: 'Roadmap', position: 'left'},
         {
           href: 'https://github.com/theft-studio/vanta',
           label: 'GitHub',
@@ -94,7 +91,7 @@ const config: Config = {
         {
           title: 'Docs',
           items: [
-            {label: 'Introduction', to: '/'},
+            {label: 'Introduction', to: '/docs'},
             {label: 'Quickstart', to: '/quickstart'},
           ],
         },

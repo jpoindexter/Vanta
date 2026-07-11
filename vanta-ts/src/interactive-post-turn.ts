@@ -17,6 +17,7 @@ import { pruneVolatileSkills } from "./skills/volatile.js";
 import {
   writeRunMemory,
   reviewAfterTurn,
+  isExplicitChoiceWall,
   memoryExtractAfterTurn,
   sessionMemoryAfterTurn,
   brainLearnAfterTurn,
@@ -50,6 +51,7 @@ export type PostTurnOpts = {
 export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWith: string | null }> {
   const { outcome, text, t0, turnStart, deps } = o;
   const { convo, setup, state, repoRoot, gatesRef } = deps;
+  const choiceWall = isExplicitChoiceWall(outcome.finalText);
   pruneVolatileSkills(convo.messages);
   console.log(`\n${outcome.finalText}`);
   if (outcome.usage) await recordTurnCost(outcome, t0, deps);
@@ -57,9 +59,9 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWi
   maybeSuggestContextUpgrade(outcome, deps);
   await saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title }).catch(() => {});
   await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction: text, finalText: outcome.finalText, now: turnStart, sessionId: state.sessionId, turnIndex: state.turnIndex });
-  await suggestSkillFromRun(text, process.env);
+  if (!choiceWall) await suggestSkillFromRun(text, process.env);
   await antiSlopAfterText(outcome.finalText, (note) => console.log(`\n${note}`)).catch(() => {});
-  await reviewAfterTurn({ provider: setup.provider, safety: setup.safety, root: repoRoot, transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: state.turnIndex });
+  await reviewAfterTurn({ provider: setup.provider, safety: setup.safety, root: repoRoot, transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: state.turnIndex, deferMutation: choiceWall });
   memoryExtractAfterTurn({ provider: setup.provider, transcript: convo.messages });
   const newScratch = await sessionMemoryAfterTurn({ provider: setup.provider, dataDir: join(repoRoot, ".vanta"), transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: state.turnIndex });
   if (newScratch) convo.setSessionMemory(newScratch);

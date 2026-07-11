@@ -87,7 +87,7 @@ describe("delegateEnv", () => {
   });
 
   it("applies only the provider when model is omitted", () => {
-    const out = delegateEnv({ VANTA_PROVIDER: "openai" }, "ollama");
+    const out = delegateEnv({ VANTA_PROVIDER: "openai", VANTA_MODEL: "gpt-4o" }, "ollama");
     expect(out.VANTA_PROVIDER).toBe("ollama");
     expect(out.VANTA_MODEL).toBeUndefined();
   });

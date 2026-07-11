@@ -24,6 +24,8 @@ import { CONTINUE_NUDGE, shouldAutoContinue } from "./auto-continue.js";
 import { MAX_CONSECUTIVE_FAILURES, MAX_IDENTICAL_CALLS, makeInitialState, recordUsage, recordToolOutcome } from "./turn-state.js";
 import type { TurnState } from "./turn-state.js";
 import { join } from "node:path";
+import { buildContextInspection } from "../tools/inspect-context.js";
+import { requiredToolNudge } from "./tool-use-contract.js";
 
 export type TurnOpts = {
   messages: Message[];
@@ -82,14 +84,23 @@ async function processToolCalls(args: ProcessToolCallsArgs): Promise<string | nu
   return stuckTool;
 }
 
-type NoToolCallsArgs = { result: CompletionResult; messages: Message[]; deps: AgentDeps; iter: number; state: TurnState };
+type NoToolCallsArgs = { result: CompletionResult; messages: Message[]; deps: AgentDeps; iter: number; state: TurnState; userText: string; schemas: import("../providers/interface.js").ToolSchema[] };
 
 async function handleNoToolCalls(args: NoToolCallsArgs): Promise<AgentOutcome | null> {
-  const { result, messages, deps, iter, state } = args;
+  const { result, messages, deps, iter, state, userText, schemas } = args;
   const usage = () => (state.sawUsage ? { ...state.turnUsage } : undefined);
   const ti = () => state.toolIterations;
   const ts = () => (state.tokensSaved > 0 ? state.tokensSaved : undefined);
   if (result.text.trim()) {
+    const contractNudge = state.toolContractNudges === 0
+      ? requiredToolNudge(userText, schemas.map((schema) => schema.name), state.toolNames)
+      : null;
+    if (contractNudge) {
+      state.toolContractNudges++;
+      messages.push({ role: "assistant", content: result.text });
+      messages.push({ role: "user", content: contractNudge });
+      return null;
+    }
     messages.push({ role: "assistant", content: result.text });
     const shown = await displayText(deps, result.text);
     if (await shouldAutoContinue({ result, messages, autoContinues: state.autoContinues, toolNames: state.toolNames, deps })) {
@@ -169,11 +180,15 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
     const result = completion.result;
     recordUsage(state, result);
     if (result.toolCalls.length === 0) {
-      const outcome = await handleNoToolCalls({ result, messages, deps, iter, state });
+      const outcome = await handleNoToolCalls({ result, messages, deps, iter, state, userText, schemas });
       if (outcome) return outcome;
       continue;
     }
-    const earlyExit = await handleToolCallsPresent({ result, messages, deps, ctx, state, prefetched, iter });
+    const liveCtx: ToolContext = {
+      ...ctx,
+      inspectContext: () => buildContextInspection(messages, schemas, deps.provider.contextWindow()),
+    };
+    const earlyExit = await handleToolCallsPresent({ result, messages, deps, ctx: liveCtx, state, prefetched, iter });
     if (earlyExit) return earlyExit;
   }
   return { finalText: `Reached the ${maxIter}-iteration limit before completing.`, iterations: maxIter, stoppedReason: "max_iterations", toolIterations: ti(), usage: usage(), tokensSaved: ts() };

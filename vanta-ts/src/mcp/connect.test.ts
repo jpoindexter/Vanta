@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { gatherMcpConnections, reconnectServer } from "./connect.js";
 
 // The view-shaping is covered in ui/mcp-view.test.ts; here we verify the IO
@@ -24,5 +24,15 @@ describe("reconnectServer — unknown server", () => {
     expect(conn.status).toBe("error");
     expect(conn.error).toContain("not in config");
     expect(conn.tools).toEqual([]);
+  });
+
+  it("closes the obsolete client before attempting a replacement", async () => {
+    const close = vi.fn();
+    await reconnectServer("ghost", {
+      env: { VANTA_MCP_SERVERS: "{}" } as NodeJS.ProcessEnv,
+      cwd: "/nonexistent",
+      previous: { name: "ghost", transport: "stdio", status: "connected", tools: [], client: { close } as never },
+    });
+    expect(close).toHaveBeenCalledOnce();
   });
 });

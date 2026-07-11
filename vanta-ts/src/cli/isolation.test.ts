@@ -8,6 +8,8 @@ import {
   skipSkills,
   skipMcp,
   skipProjectContext,
+  skipMemory,
+  skipSettings,
   type Isolation,
 } from "./isolation.js";
 import { parseIsolationFlags } from "./startup.js";
@@ -59,6 +61,8 @@ describe("skip matrix — safe-mode skips everything", () => {
     expect(skipSkills(SAFE)).toBe(true);
     expect(skipMcp(SAFE)).toBe(true);
     expect(skipProjectContext(SAFE)).toBe(true);
+    expect(skipMemory(SAFE)).toBe(true);
+    expect(skipSettings(SAFE)).toBe(true);
   });
 });
 
@@ -71,6 +75,8 @@ describe("skip matrix — bare skips discovery only", () => {
   it("keeps hooks and plugins (lighter than safe-mode)", () => {
     expect(skipHooks(BARE)).toBe(false);
     expect(skipPlugins(BARE)).toBe(false);
+    expect(skipMemory(BARE)).toBe(false);
+    expect(skipSettings(BARE)).toBe(false);
   });
 });
 

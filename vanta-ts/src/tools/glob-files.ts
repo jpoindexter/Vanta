@@ -2,6 +2,7 @@ import { glob } from "node:fs/promises";
 import { z } from "zod";
 import type { Tool } from "./types.js";
 import { expandHome } from "./writable-zones.js";
+import { resolveInScope } from "../scope.js";
 
 const Args = z.object({
   pattern: z.string().min(1),
@@ -36,7 +37,11 @@ export const globFilesTool: Tool = {
       return { ok: false, output: `glob_files: ${parsed.error.issues[0]?.message ?? "invalid args"}` };
     }
     const { pattern, base_path } = parsed.data;
-    const base = base_path ? expandHome(base_path) : ctx.root;
+    const scoped = resolveInScope(base_path ? expandHome(base_path) : ctx.root, ctx.root);
+    if (!scoped.ok) {
+      return { ok: false, output: `glob_files: base_path is outside project scope: ${scoped.path}` };
+    }
+    const base = scoped.path;
 
     try {
       const matches: string[] = [];

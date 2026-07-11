@@ -60,7 +60,8 @@ export async function gatherMcpConnections(opts: { env?: NodeJS.ProcessEnv; cwd?
 }
 
 /** Reconnect a single server by name (re-reads config, re-runs connect). */
-export async function reconnectServer(name: string, opts: { env?: NodeJS.ProcessEnv; cwd?: string; onElicit?: ElicitHandler } = {}): Promise<McpConnection> {
+export async function reconnectServer(name: string, opts: { env?: NodeJS.ProcessEnv; cwd?: string; onElicit?: ElicitHandler; previous?: McpConnection } = {}): Promise<McpConnection> {
+  try { opts.previous?.client?.close(); } catch { /* already gone */ }
   const env = opts.env ?? process.env;
   const config = await readMcpConfig(env, opts.cwd ?? process.cwd()).catch(() => ({ servers: {} }) as McpConfig);
   const spec = config.servers[name];

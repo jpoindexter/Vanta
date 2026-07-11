@@ -93,6 +93,7 @@ describe("registry", () => {
       "google_auth",
       "graph_query",
       "grep_files",
+      "inspect_context",
       "inspect_state",
       "lan_control",
       "lan_discover",

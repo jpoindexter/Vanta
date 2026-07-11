@@ -42,6 +42,19 @@ describe("/env handler", () => {
     expect(store.snapshot()).toEqual({ SECRET: "s3cr3t" });
   });
 
+  it("redacts opaque credential values when listing session env", async () => {
+    const store = new SessionEnvStore();
+    const handler = buildEnvHandler(store);
+    await handler("API_KEY=s3cr3t", ctx);
+    await handler("DATABASE_URL=postgres://user:pass@db/prod", ctx);
+    const r = await handler("", ctx);
+
+    expect(r.output).toContain("API_KEY");
+    expect(r.output).toContain("[REDACTED]");
+    expect(r.output).not.toContain("s3cr3t");
+    expect(r.output).not.toContain("user:pass");
+  });
+
   it("unsets an existing var", async () => {
     const store = new SessionEnvStore();
     const handler = buildEnvHandler(store);

@@ -16,6 +16,10 @@ describe("isErrorResult", () => {
     expect(isErrorResult(true, "command failed with exit code 1")).toBe(true);
   });
 
+  it("does not treat successful policy or rollback prose as an error", () => {
+    expect(isErrorResult(true, "Rollback on failure; this workflow cannot deploy without approval.")).toBe(false);
+  });
+
   it("is case-insensitive for keyword detection", () => {
     expect(isErrorResult(true, "error in pipeline")).toBe(true);
     expect(isErrorResult(true, "Failed to connect")).toBe(true);

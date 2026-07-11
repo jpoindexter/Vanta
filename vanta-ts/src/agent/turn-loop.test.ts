@@ -76,6 +76,40 @@ describe("context-length retry", () => {
   });
 });
 
+describe("specialized tool-use contract", () => {
+  it("retries one text-only workflow draft and validates through compose_workflow", async () => {
+    const registry = new InMemoryToolRegistry();
+    registry.register({
+      schema: { name: "compose_workflow", description: "validate workflow", parameters: { type: "object", properties: {} } },
+      execute: async () => ({ ok: true, output: "workflow valid" }),
+    });
+    const seen: Message[][] = [];
+    let turn = 0;
+    const provider: LLMProvider = {
+      modelId: () => "fake",
+      contextWindow: () => 100_000,
+      complete: vi.fn(async (messages): Promise<CompletionResult> => {
+        seen.push(messages);
+        turn++;
+        if (turn === 1) return { text: "Here is an unvalidated draft", toolCalls: [], finishReason: "stop" };
+        if (turn === 2) return { text: "", toolCalls: [{ id: "wf", name: "compose_workflow", arguments: { mode: "validate", spec: {} } }], finishReason: "tool_calls" };
+        return { text: "Validated workflow draft", toolCalls: [], finishReason: "stop" };
+      }),
+    };
+    const { safety } = spySafety();
+    const out = await runTurn({
+      messages: [{ role: "system", content: "sys" }],
+      ctx: { root: "/tmp", safety, requestApproval: async () => true },
+      deps: { provider, safety, registry, root: "/tmp", requestApproval: async () => true },
+      userText: "Draft a Kubernetes briefing workflow for review",
+    });
+
+    expect(out.finalText).toBe("Validated workflow draft");
+    expect(out.toolIterations).toBe(1);
+    expect(seen[1]?.at(-1)?.content).toMatch(/compose_workflow.*validate/i);
+  });
+});
+
 // A tool whose output is a secret-shaped string. describeForSafety returns a
 // benign, kernel-allowable string (never the output) so the gate approves.
 function secretLeakTool(secret: string): Tool {

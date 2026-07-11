@@ -1,4 +1,7 @@
 import { describe, it, expect } from "vitest";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { resolveProvider } from "../providers/index.js";
 import { classifyTask, resolveRoutedProvider } from "./model-router.js";
 
@@ -60,5 +63,22 @@ describe("resolveRoutedProvider", () => {
     // Expensive task with only a cheap override → no relevant override → default.
     const provider = resolveRoutedProvider(env, "refactor the loop");
     expect(provider.modelId()).toBe(resolveProvider(baseEnv).modelId());
+  });
+
+  it("preserves a user alias credential and configured model on the gateway routing path", () => {
+    const home = mkdtempSync(join(tmpdir(), "vanta-router-alias-"));
+    try {
+      writeFileSync(join(home, "providers.json"), JSON.stringify({
+        providers: { myrouter: { baseURL: "https://router.example/v1", keyEnv: "ROUTER_KEY", model: "router-default" } },
+      }));
+      const provider = resolveRoutedProvider({
+        VANTA_HOME: home,
+        VANTA_PROVIDER: "myrouter",
+        ROUTER_KEY: "opaque-key",
+      }, "run gateway task");
+      expect(provider.modelId()).toBe("router-default");
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
   });
 });

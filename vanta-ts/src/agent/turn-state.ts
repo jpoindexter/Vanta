@@ -29,10 +29,12 @@ export type TurnState = {
   toolNames: string[];
   /** VANTA-AUTOCONTINUE: how many times this turn auto-continued past a premature stop. */
   autoContinues: number;
+  /** Bounded retries that enforce an explicit specialized-tool contract. */
+  toolContractNudges: number;
 };
 
 export function makeInitialState(): TurnState {
-  return { consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map(), tokensSaved: 0, toolNames: [], autoContinues: 0 };
+  return { consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map(), tokensSaved: 0, toolNames: [], autoContinues: 0, toolContractNudges: 0 };
 }
 
 export function recordUsage(state: TurnState, result: CompletionResult): void {

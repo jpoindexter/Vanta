@@ -2,14 +2,12 @@ import { z } from "zod";
 import type { Tool } from "./types.js";
 import { spawnSubagent } from "../subagent/spawn.js";
 import { resolveProvider } from "../providers/index.js";
+import { providerOverrideEnv } from "../providers/override-env.js";
 
 // Inlined (not imported from delegate.js) to avoid a load-time import cycle
 // swarm → delegate → tools/index → swarm.
 function workerEnv(env: NodeJS.ProcessEnv, provider?: string, model?: string): NodeJS.ProcessEnv {
-  const merged: NodeJS.ProcessEnv = { ...env };
-  if (provider) merged.VANTA_PROVIDER = provider;
-  if (model) merged.VANTA_MODEL = model;
-  return merged;
+  return providerOverrideEnv(env, provider, model);
 }
 
 // Run several scoped subtasks IN PARALLEL (a swarm) — each its own worker agent,

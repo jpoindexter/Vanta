@@ -50,6 +50,7 @@ function pickOption(options: Array<{ optionId: string; kind?: string }> | undefi
 
 export class AcpClient {
   private pending = new Map<JsonRpcId, Pending>();
+  private readonly sessions = new Set<string>();
   private nextId = 1;
   private buffer = "";
 
@@ -76,7 +77,9 @@ export class AcpClient {
 
   async newSession(cwd: string): Promise<string> {
     const r = (await this.request("session/new", { cwd })) as { sessionId?: string };
-    return r.sessionId ?? "";
+    const sessionId = r.sessionId ?? "";
+    if (sessionId) this.sessions.add(sessionId);
+    return sessionId;
   }
 
   prompt(sessionId: string, text: string): Promise<{ stopReason: string }> {
@@ -105,7 +108,8 @@ export class AcpClient {
     const inbound = parseMessage(line);
     if (inbound.kind === "response") return this.resolveResponse(inbound);
     if (inbound.kind === "notification" && inbound.method === "session/update") {
-      this.deps.onUpdate?.(inbound.params as AcpUpdate);
+      const update = inbound.params as AcpUpdate;
+      if (this.sessions.has(update.sessionId)) this.deps.onUpdate?.(update);
       return;
     }
     if (inbound.kind === "request") return this.handlePeerRequest(inbound);
@@ -126,7 +130,10 @@ export class AcpClient {
       return;
     }
     const params = (inbound.params ?? {}) as { sessionId?: string; options?: Array<{ optionId: string; kind?: string }> };
-    const allowed = this.deps.approve ? await this.deps.approve(params.sessionId ?? "", params as Record<string, unknown>) : false;
+    const sessionId = params.sessionId ?? "";
+    const allowed = this.sessions.has(sessionId) && this.deps.approve
+      ? await this.deps.approve(sessionId, params as Record<string, unknown>)
+      : false;
     const optionId = pickOption(params.options, allowed);
     this.deps.transport.send(serializeResult(inbound.id, { outcome: { outcome: "selected", optionId } }));
   }

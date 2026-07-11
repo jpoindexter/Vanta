@@ -1,5 +1,12 @@
 import type { SlashHandler, SlashResult } from "./types.js";
 import { parseEnvArg, sessionEnvStore, type SessionEnvStore, type SessionEnv } from "./session-env.js";
+import { redactForLog } from "../store/redact-structural.js";
+
+const CREDENTIAL_ENV_KEY = /(?:^|_)(?:API_?KEY|ACCESS_?KEY|AUTH|BEARER|COOKIE|CREDENTIALS?|PASS(?:WORD)?|PRIVATE_?KEY|REFRESH_?TOKEN|SECRET|SESSION_?TOKEN|TOKEN)(?:_|$)/i;
+
+function displayEnvValue(key: string, value: string): string {
+  return CREDENTIAL_ENV_KEY.test(key) ? "[REDACTED]" : redactForLog(value);
+}
 
 /** Render the current session env as a sorted, aligned list (or an empty note). */
 function formatEnv(snapshot: SessionEnv): string {
@@ -8,7 +15,7 @@ function formatEnv(snapshot: SessionEnv): string {
     return "  (no session env vars — set one with /env KEY=value)";
   }
   const w = Math.min(24, Math.max(...keys.map((k) => k.length)) + 1);
-  const rows = keys.map((k) => `  ${k.padEnd(w)} ${snapshot[k]}`);
+  const rows = keys.map((k) => `  ${k.padEnd(w)} ${displayEnvValue(k, snapshot[k] ?? "")}`);
   return [`  ${keys.length} session env var(s):`, ...rows].join("\n");
 }
 

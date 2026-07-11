@@ -1,0 +1,374 @@
+.page {
+  background: #0c0e13;
+  color: #f3f6f8;
+}
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  min-height: min(760px, 84vh);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background-color: #090c11;
+  background-image: url('/img/vanta-desktop.png');
+  background-size: cover;
+  background-position: center top;
+  border-bottom: 1px solid #28303a;
+}
+
+.heroScrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(5, 8, 12, 0.76);
+  box-shadow: inset 48vw 0 160px rgba(5, 8, 12, 0.78);
+}
+
+.heroContent {
+  width: min(1180px, calc(100% - 3rem));
+  margin: 0 auto;
+  padding: 6.5rem 0 5.5rem;
+}
+
+.kicker,
+.sectionLabel,
+.captureLabel {
+  margin: 0;
+  color: #78dcf7;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.hero h1 {
+  margin: 0.7rem 0 0;
+  color: #ffffff;
+  font-size: 8.5rem;
+  line-height: 0.92;
+  letter-spacing: 0;
+}
+
+.lede {
+  max-width: 690px;
+  margin: 1.6rem 0 0;
+  color: #d5dce3;
+  font-size: 1.55rem;
+  line-height: 1.55;
+  text-wrap: balance;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.primaryAction,
+.secondaryAction {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  padding: 0.72rem 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.primaryAction {
+  border: 1px solid #78dcf7;
+  background: #78dcf7;
+  color: #071116;
+}
+
+.primaryAction:hover {
+  background: #a5eafb;
+  color: #071116;
+  text-decoration: none;
+}
+
+.secondaryAction {
+  border: 1px solid #66717e;
+  background: rgba(10, 14, 20, 0.7);
+  color: #f3f6f8;
+}
+
+.secondaryAction:hover {
+  border-color: #aab5c0;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.installLine {
+  display: flex;
+  max-width: 650px;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  border-left: 2px solid #83f2b0;
+  padding: 0.55rem 0.8rem;
+  background: rgba(5, 8, 12, 0.72);
+  color: #83f2b0;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.83rem;
+  line-height: 1.55;
+}
+
+.installLine code {
+  overflow-wrap: anywhere;
+  border: 0;
+  background: transparent;
+  color: #e6ebef;
+  padding: 0;
+}
+
+.captureLabel {
+  position: absolute;
+  right: 1.25rem;
+  bottom: 1rem;
+  color: #9da8b4;
+}
+
+.sectionInner {
+  width: min(1180px, calc(100% - 3rem));
+  margin: 0 auto;
+}
+
+.thesis,
+.capabilitiesSection,
+.proof {
+  padding: 6rem 0;
+}
+
+.thesis {
+  background: #f3f5f6;
+  color: #151a20;
+}
+
+.thesis .sectionLabel {
+  color: #087f9b;
+}
+
+.thesis h2,
+.capabilitiesSection h2,
+.proof h2 {
+  max-width: 850px;
+  margin: 0.65rem 0 0;
+  font-size: 4.5rem;
+  line-height: 1.05;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.thesisGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 3rem;
+  margin-top: 3rem;
+  border-top: 1px solid #cbd2d8;
+  padding-top: 2rem;
+}
+
+.thesisGrid p,
+.thesisGrid ol {
+  margin: 0;
+  color: #4a5560;
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+.thesisGrid ol {
+  display: grid;
+  gap: 0.8rem;
+  padding-left: 1.25rem;
+}
+
+.thesisGrid strong {
+  color: #151a20;
+}
+
+.textLink {
+  display: inline-block;
+  margin-top: 2rem;
+  color: #087f9b;
+  font-weight: 700;
+}
+
+.capabilitiesSection {
+  background: #10141a;
+}
+
+.sectionHeading {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.6fr);
+  align-items: end;
+  gap: 2rem;
+}
+
+.sectionHeading > p {
+  margin: 0 0 0.4rem;
+  color: #9da8b4;
+  line-height: 1.7;
+}
+
+.capabilityGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 3rem;
+  border-top: 1px solid #303844;
+  border-left: 1px solid #303844;
+}
+
+.capability {
+  min-height: 260px;
+  border-right: 1px solid #303844;
+  border-bottom: 1px solid #303844;
+  padding: 1.5rem;
+  background: #12171e;
+}
+
+.capabilityMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #8f9aa6;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.capability h3 {
+  margin: 3.5rem 0 0;
+  color: #f4f7f9;
+  font-size: 1.35rem;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.capability p {
+  margin: 0.8rem 0 0;
+  color: #9da8b4;
+  line-height: 1.65;
+}
+
+.focus { border-top: 3px solid #6bdcff; }
+.health { border-top: 3px solid #83f2b0; }
+.activity { border-top: 3px solid #ffb86b; }
+.goal { border-top: 3px solid #b7a4ff; }
+.risk { border-top: 3px solid #ff6b7a; }
+.neutral { border-top: 3px solid #d2d8de; }
+
+.proof {
+  border-top: 1px solid #28303a;
+  background: #090c11;
+}
+
+.proofCopy {
+  max-width: 750px;
+  margin: 1.5rem 0 0;
+  color: #aeb8c2;
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    min-height: 720px;
+    background-position: 35% top;
+  }
+
+  .heroScrim {
+    background: rgba(5, 8, 12, 0.82);
+    box-shadow: none;
+  }
+
+  .sectionHeading,
+  .thesisGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .capabilityGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero h1 {
+    font-size: 6.5rem;
+  }
+
+  .thesis h2,
+  .capabilitiesSection h2,
+  .proof h2 {
+    font-size: 3.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .heroContent,
+  .sectionInner {
+    width: min(100% - 2rem, 1180px);
+  }
+
+  .hero {
+    min-height: 740px;
+  }
+
+  .heroContent {
+    padding: 5rem 0 4rem;
+  }
+
+  .hero h1 {
+    font-size: 4.2rem;
+  }
+
+  .lede {
+    font-size: 1.08rem;
+  }
+
+  .thesis h2,
+  .capabilitiesSection h2,
+  .proof h2 {
+    font-size: 2.4rem;
+  }
+
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .primaryAction,
+  .secondaryAction {
+    width: 100%;
+  }
+
+  .captureLabel {
+    right: 1rem;
+    left: 1rem;
+  }
+
+  .thesis,
+  .capabilitiesSection,
+  .proof {
+    padding: 4.5rem 0;
+  }
+
+  .capabilityGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .capability {
+    min-height: 220px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primaryAction,
+  .secondaryAction {
+    transition: none;
+  }
+}

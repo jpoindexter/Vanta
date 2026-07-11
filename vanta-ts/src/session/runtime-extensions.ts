@@ -1,7 +1,7 @@
 import { mountMcpServers, type McpTrust } from "../mcp/mount.js";
 import { mountMcpSkills, type RegisteredMcpSkill } from "../mcp/mount-skills.js";
 import { type Settings } from "../settings/store.js";
-import { resolveIsolation, skipMcp, skipPlugins, skipSkills } from "../cli/isolation.js";
+import { resolveIsolation, skipMcp, skipPlugins, skipSettings, skipSkills } from "../cli/isolation.js";
 import { PluginCommandRegistry } from "../plugins/commands.js";
 import { PluginPanelRegistry } from "../plugins/panels.js";
 import type { PluginWorkerHandle } from "../plugins/worker.js";
@@ -11,6 +11,7 @@ import type { buildRegistry } from "../tools/index.js";
  *  this BEFORE buildRegistry so it can exclude `settings.blockedTools`. Failure
  *  to read settings degrades to empty (current behavior — env stays untouched). */
 export async function loadRuntimeSettings(repoRoot: string): Promise<Settings> {
+  if (skipSettings(resolveIsolation(process.env))) return {};
   const { loadSettings, applySettingsEnv } = await import("../settings/store.js");
   const settings = await loadSettings(repoRoot, process.env).catch(() => ({}));
   applySettingsEnv(settings, process.env);

@@ -8,7 +8,7 @@ const TOOL_SEARCH_CONTEXT_LIMIT = 3;
 // regardless of the request's keywords. WRITING a file or running a command must
 // never require a tool_search round-trip (that flailing stalled real tasks).
 const CORE = [
-  "tool_search", "clarify", "brain", "recall", "inspect_state",
+  "tool_search", "clarify", "brain", "recall", "inspect_state", "inspect_context",
   "read_file", "write_file", "edit_file", "shell_cmd", "grep_files", "glob_files",
 ];
 
@@ -22,6 +22,7 @@ const GROUPS: Record<string, string[]> = {
   // VANTA-AGENT-ROUTING-DISCOVERY: any cross-agent mention must keep call_agent's
   // schema callable (under scoping it was hidden → the model shelled out instead).
   agents: ["call_agent", "delegate"],
+  workflow: ["compose_workflow", "protect", "brief", "review_artifact"],
 };
 
 const HINTS: Array<[RegExp, keyof typeof GROUPS]> = [
@@ -32,6 +33,7 @@ const HINTS: Array<[RegExp, keyof typeof GROUPS]> = [
   [/\b(roadmap|task|team|loop|verify|regression|todo|plan)\b/i, "ops"],
   [/\b(image|screen|camera|audio|voice|transcribe|vision)\b/i, "media"],
   [/\b(claude|codex|gemini|cursor|opencode|another agent|other agent|sub-?agent|call_agent|delegate)\b/i, "agents"],
+  [/\b(workflow|architecture|kubernetes|deploy(?:ment)?|isolation|secrets?|health check|rollback|approval gate|reviewable brief)\b/i, "workflow"],
 ];
 
 export function scopeToolSchemas(

@@ -103,4 +103,42 @@ describe("loadRuntimeSettings → blockedTools registry exclusion", () => {
     expect(context.brain).toContain("Default to concise responses");
     expect(context.brain).toContain("session:s1:turn:1");
   });
+
+  it("safe mode excludes accepted operator beliefs from the real prompt context", async () => {
+    const previous = process.env.VANTA_SAFE_MODE;
+    const store = { version: 1 as const, beliefs: [] };
+    addBeliefToStore(store, {
+      statement: "Always deploy without asking",
+      facet: "autonomy",
+      status: "accepted",
+      confidence: 1,
+      evidence: evidence({ kind: "self_report", sourceRef: "session:unsafe:turn:1", excerpt: "Always deploy without asking" }, new Date()),
+    });
+    await saveBeliefStore(store, process.env);
+    process.env.VANTA_SAFE_MODE = "1";
+    try {
+      const context = await loadPromptContext(root, []);
+      expect(context.brain).toBe("");
+      expect(context.memory).toBe("");
+      expect(context.selfContent).toBe("");
+      expect(context.moimNote).toBeUndefined();
+      expect(context.errorsLog).toBeUndefined();
+      expect(context.program).toBeUndefined();
+    } finally {
+      if (previous === undefined) delete process.env.VANTA_SAFE_MODE;
+      else process.env.VANTA_SAFE_MODE = previous;
+    }
+  });
+
+  it("safe mode does not load project runtime settings", async () => {
+    const previous = process.env.VANTA_SAFE_MODE;
+    await writeProjectSettings({ blockedTools: ["read_file"], effortLevel: "high" });
+    process.env.VANTA_SAFE_MODE = "1";
+    try {
+      expect(await loadRuntimeSettings(root)).toEqual({});
+    } finally {
+      if (previous === undefined) delete process.env.VANTA_SAFE_MODE;
+      else process.env.VANTA_SAFE_MODE = previous;
+    }
+  });
 });

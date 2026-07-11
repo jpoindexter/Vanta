@@ -47,6 +47,7 @@ describe("checkAll + formatDoctor", () => {
     // empty home -> auth/session-backed channels report not-ok; local CLI-backed channels depend on host tools.
     const statuses = await checkAll({ VANTA_HOME: "/nonexistent-vanta-reach-test" }, REACH_CHANNELS);
     expect(statuses.map((s) => s.name).sort()).toEqual([
+      "bilibili",
       "github",
       "linkedin",
       "podcast",
@@ -56,6 +57,8 @@ describe("checkAll + formatDoctor", () => {
       "twitter",
       "v2ex",
       "web",
+      "xiaohongshu",
+      "xueqiu",
       "youtube",
     ]);
     // web/search/rss are always ok; other channels may require sessions, API keys, or local CLIs.

@@ -8,6 +8,9 @@ import type { RunSetup } from "../session.js";
 import { listSessions, loadSession, newSessionId, saveSession } from "../sessions/store.js";
 import { PROVIDER_CATALOG, providerById } from "../providers/catalog.js";
 import { resolveProvider } from "../providers/index.js";
+import type { LLMProvider } from "../providers/interface.js";
+import { loadUserProviders } from "../providers/user-providers.js";
+import { providerOverrideEnv } from "../providers/override-env.js";
 import { upsertEnvMigratingLegacy, envPath } from "../setup.js";
 import { listRepoFiles } from "../term/at-context.js";
 import { resolveEventFormatter } from "../term/event-format.js";
@@ -142,24 +145,66 @@ export async function handleCanvas(state: DesktopState, res: http.ServerResponse
   }
 }
 
+export type DesktopProviderOption = { id: string; label: string; short: string; defaultModel: string; models: string[]; current: boolean };
+
+export function desktopProviderOptions(env: NodeJS.ProcessEnv): DesktopProviderOption[] {
+  const current = (env.VANTA_PROVIDER ?? "openai").toLowerCase();
+  const options = new Map<string, DesktopProviderOption>();
+  for (const provider of PROVIDER_CATALOG) {
+    options.set(provider.id, {
+      id: provider.id,
+      label: provider.label,
+      short: provider.short,
+      defaultModel: provider.defaultModel,
+      models: provider.models,
+      current: provider.id === current,
+    });
+  }
+  for (const [id, provider] of Object.entries(loadUserProviders(env))) {
+    options.set(id, {
+      id,
+      label: id,
+      short: "User-declared OpenAI-compatible provider",
+      defaultModel: provider.model ?? "",
+      models: provider.model ? [provider.model] : [],
+      current: id === current,
+    });
+  }
+  return [...options.values()];
+}
+
+export function resolveDesktopProviderSelection(env: NodeJS.ProcessEnv, provider: string, model?: string): {
+  provider: string;
+  model: string;
+  env: NodeJS.ProcessEnv;
+  resolved: LLMProvider;
+} {
+  const id = provider.trim().toLowerCase();
+  if (!id) throw new Error("provider is required");
+  const selectedEnv = providerOverrideEnv(env, id, model?.trim() || undefined);
+  const resolved = resolveProvider(selectedEnv);
+  return { provider: id, model: resolved.modelId(), env: selectedEnv, resolved };
+}
+
 export async function handleModels(res: http.ServerResponse): Promise<void> {
-  sendJson(res, 200, PROVIDER_CATALOG.map((p) => ({ id: p.id, label: p.label, short: p.short, defaultModel: p.defaultModel, models: p.models, current: p.id === (process.env.VANTA_PROVIDER ?? "openai") })));
+  sendJson(res, 200, desktopProviderOptions(process.env));
 }
 
 export async function handleSetModel(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const body = await readJson(req) as { provider?: unknown; model?: unknown };
   const provider = typeof body.provider === "string" ? body.provider : "";
-  const model = typeof body.model === "string" ? body.model : "";
-  if (!provider || !model) return sendJson(res, 400, { error: "provider and model are required" });
-  process.env.VANTA_PROVIDER = provider;
-  process.env.VANTA_MODEL = model;
+  const model = typeof body.model === "string" ? body.model.trim() : "";
+  if (!provider) return sendJson(res, 400, { error: "provider is required" });
   try {
+    const selection = resolveDesktopProviderSelection(process.env, provider, model || undefined);
     const existing = existsSync(envPath(state.root)) ? await readFile(envPath(state.root), "utf8") : "";
-    const entry = providerById(provider);
-    await writeFile(envPath(state.root), upsertEnvMigratingLegacy(existing, { VANTA_PROVIDER: provider, VANTA_MODEL: model }), { mode: 0o600 });
-    const next = resolveProvider(process.env);
-    state.convo?.setProvider(next, buildSummarizer(next));
-    sendJson(res, 200, { provider, model, label: entry?.label ?? provider });
+    await writeFile(envPath(state.root), upsertEnvMigratingLegacy(existing, { VANTA_PROVIDER: selection.provider, VANTA_MODEL: selection.model }), { mode: 0o600 });
+    process.env.VANTA_PROVIDER = selection.provider;
+    process.env.VANTA_MODEL = selection.model;
+    state.setup && (state.setup.provider = selection.resolved);
+    state.convo?.setProvider(selection.resolved, buildSummarizer(selection.resolved));
+    const entry = providerById(selection.provider);
+    sendJson(res, 200, { provider: selection.provider, model: selection.model, label: entry?.label ?? selection.provider });
   } catch (err: unknown) {
     sendJson(res, 400, { error: err instanceof Error ? err.message : String(err), provider, model });
   }

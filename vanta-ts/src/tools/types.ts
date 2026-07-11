@@ -1,6 +1,7 @@
 import type { KernelClient } from "../kernel/client.js";
 import type { ToolSchema } from "../providers/interface.js";
 import type { DiffLine } from "../util/diff.js";
+import type { ContextInspection } from "./inspect-context.js";
 
 export type { DiffLine };
 
@@ -18,6 +19,8 @@ export type ToolContext = {
    *  heartbeat to the transcript before it returns). Wired to the StreamEvent
    *  `note` surface by the dispatcher; absent in non-streaming contexts. */
   onProgress?: (text: string) => void;
+  /** Read-only live prompt/tool-schema measurements for inspect_context. */
+  inspectContext?: () => ContextInspection;
 };
 
 export type Tool = {

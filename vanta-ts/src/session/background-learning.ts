@@ -17,6 +17,18 @@ import type { Message } from "../types.js";
 // best-effort: a failure never touches the main turn. Split from after-turn.ts
 // (size budget); re-exported there, so the public surface is unchanged.
 
+const CHOICE_REQUEST = /\b(?:choose|pick|select|confirm|approve|reply(?:\s+with)?|tell\s+me\s+which)\b/i;
+const DEFERRED_ACTION = /(?:\b(?:i\s+)?(?:won't|will\s+not|don't|do\s+not)\b[^.!?\n]{0,80}\b(?:start|act|proceed|execute|change|write|send)\b|\b(?:start|act|proceed|execute|change|write|send)\b[^.!?\n]{0,50}\b(?:only\s+after|until)\b[^.!?\n]{0,50}\b(?:you\s+)?(?:choose|pick|select|confirm|approve|reply)\b|\b(?:wait|hold)\b[^.!?\n]{0,80}\b(?:choice|selection|confirmation|you\s+(?:choose|pick|select|confirm|approve|reply))\b|\bbefore\s+i\s+(?:start|act|proceed|execute|change|write|send)\b)/i;
+
+/** True only when the assistant explicitly asks for a choice and promises not
+ * to act before it arrives. Used to stop mutating post-turn learning hooks. */
+export function isExplicitChoiceWall(finalText: string): boolean {
+  const normalized = finalText.replace(/[’]/g, "'").trim();
+  return CHOICE_REQUEST.test(normalized) && DEFERRED_ACTION.test(normalized);
+}
+
+export type ReviewAfterTurnResult = "deferred" | "reviewed" | "skipped";
+
 /**
  * Post-turn self-improvement nudge. When the turn warrants review (busy turn or
  * the periodic interval — see {@link shouldReview}), spawn the background-review
@@ -30,12 +42,14 @@ export async function reviewAfterTurn(opts: {
   toolIterations: number;
   turnIndex: number;
   env?: NodeJS.ProcessEnv;
-}): Promise<void> {
+  deferMutation?: boolean;
+}): Promise<ReviewAfterTurnResult> {
   const env = opts.env ?? process.env;
-  if (shouldReview(opts.toolIterations, opts.turnIndex, env)) {
+  let reviewStatus: ReviewAfterTurnResult = opts.deferMutation ? "deferred" : "skipped";
+  if (!opts.deferMutation && shouldReview(opts.toolIterations, opts.turnIndex, env)) {
     // VANTA-SELF-LEARNING-LOOP: the named closed loop — propose (reviewTurn) →
     // eval-gate → adopt-or-archive → measure (ledger). On by default, gated.
-    const result = await runLearningCycle(
+    const cycle = await runLearningCycle(
       defaultLearningDeps({
         provider: opts.provider,
         safety: opts.safety,
@@ -45,8 +59,9 @@ export async function reviewAfterTurn(opts: {
         env,
       }),
     );
-    const note = formatCycleNote(result);
+    const note = formatCycleNote(cycle);
     if (note) console.log(note);
+    reviewStatus = "reviewed";
   }
   completionVerifierAfterTurn({
     provider: opts.provider,
@@ -54,6 +69,7 @@ export async function reviewAfterTurn(opts: {
     transcript: opts.transcript,
     env,
   });
+  return reviewStatus;
 }
 
 /**

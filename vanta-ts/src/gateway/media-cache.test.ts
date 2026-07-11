@@ -28,10 +28,13 @@ describe("media cache", () => {
     const dir = await mkdtemp(join(tmpdir(), "vanta-media-prune-"));
     const old = await cacheInboundMedia({ kind: "image", mime: "image/png", dataBase64: "T0xE" }, "T0xE", { dir });
     const fresh = await cacheInboundMedia({ kind: "image", mime: "image/png", dataBase64: "TkVX" }, "TkVX", { dir });
-    const staleDate = new Date(Date.now() - 10_000);
+    const now = Date.UTC(2026, 6, 11, 12, 0, 0);
+    const staleDate = new Date(now - 10_000);
+    const freshDate = new Date(now);
     await utimes(old.path, staleDate, staleDate);
+    await utimes(fresh.path, freshDate, freshDate);
 
-    await expect(pruneMediaCache({ dir, ttlMs: 1, now: Date.now() })).resolves.toBe(1);
+    await expect(pruneMediaCache({ dir, ttlMs: 1, now })).resolves.toBe(1);
     await expect(stat(old.path)).rejects.toThrow();
     await expect(stat(fresh.path)).resolves.toBeTruthy();
   });

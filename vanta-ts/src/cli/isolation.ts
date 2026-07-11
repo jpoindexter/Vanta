@@ -71,6 +71,16 @@ export function skipProjectContext(iso: Isolation): boolean {
   return iso.safeMode || iso.bare;
 }
 
+/** Skip persistent operator/session memory. Only full safe-mode does this. */
+export function skipMemory(iso: Isolation): boolean {
+  return iso.safeMode;
+}
+
+/** Skip user and project settings. Only full safe-mode does this. */
+export function skipSettings(iso: Isolation): boolean {
+  return iso.safeMode;
+}
+
 /** The one-line banner confirming the active isolation level (empty for normal). */
 export function isolationBanner(level: IsolationLevel): string {
   if (level === "safe-mode")

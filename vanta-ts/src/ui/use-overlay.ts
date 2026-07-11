@@ -8,7 +8,7 @@ import { sessionRows, skillRows, modelRows, PICKER_KINDS, type OverlayKind, type
 import { listLoopSummaries, type LoopSummary } from "../loop/summary.js";
 import { listChangedFiles, type ChangedFile } from "../repl/changed-files.js";
 import { contextBreakdown, type CtxCategory } from "./context-breakdown.js";
-import { gatherMcpConnections, reconnectServer } from "../mcp/connect.js";
+import { gatherMcpConnections, reconnectServer, type McpConnection } from "../mcp/connect.js";
 import { elicitationMessage, type ElicitationRequest } from "./elicitation-dialog.js";
 import type { McpServerView } from "./mcp-view.js";
 import { reloadTasks } from "./tasks-actions.js";
@@ -39,7 +39,7 @@ export type OverlayView =
   | { kind: "loops"; loops: LoopSummary[] }
   | { kind: "review"; files: ChangedFile[]; cwd: string }
   | { kind: "context"; categories: CtxCategory[]; total: number; contextWindow: number }
-  | { kind: "mcp"; servers: McpServerView[]; elicitation: ElicitationRequest | null; reconnect: (name: string) => void; onElicitationDone: () => void }
+  | { kind: "mcp"; servers: McpServerView[]; elicitation: ElicitationRequest | null; reconnect: (name: string) => void; onElicitationDone: () => void; dispose: () => void }
   | { kind: "tasks"; tasks: WorkerTask[] }
   | { kind: "agentEditor"; data: AgentEditorData; repoRoot: string }
   | { kind: "teams"; data: TeamsData }
@@ -110,6 +110,8 @@ function reopenAsPicker(line: string, openOverlay: (kind: OverlayKind) => void, 
  * update the live overlay in place.
  */
 async function buildMcpOverlay(repoRoot: string, setOverlay: SetOverlay): Promise<OverlayView> {
+  const live = new Map<string, McpConnection>();
+  let disposed = false;
   const onElicit = (req: { server: string; method: string; params: unknown }): Promise<Record<string, unknown>> =>
     new Promise((resolve) => {
       const request: ElicitationRequest = { server: req.server, message: elicitationMessage(req.params), resolve };
@@ -117,12 +119,21 @@ async function buildMcpOverlay(repoRoot: string, setOverlay: SetOverlay): Promis
     });
   const onElicitationDone = (): void => setOverlay((prev) => (prev?.kind === "mcp" ? { ...prev, elicitation: null } : prev));
   const reconnect = (name: string): void => {
-    void reconnectServer(name, { cwd: repoRoot, onElicit }).then((conn) =>
-      setOverlay((prev) => (prev?.kind === "mcp" ? { ...prev, servers: prev.servers.map((s) => (s.name === name ? conn : s)) } : prev)),
-    );
+    void reconnectServer(name, { cwd: repoRoot, onElicit, previous: live.get(name) }).then((conn) => {
+      if (disposed) { try { conn.client?.close(); } catch { /* already gone */ } return; }
+      live.set(name, conn);
+      setOverlay((prev) => (prev?.kind === "mcp" ? { ...prev, servers: prev.servers.map((s) => (s.name === name ? conn : s)) } : prev));
+    });
   };
-  const servers = (await gatherMcpConnections({ cwd: repoRoot, onElicit })) as McpServerView[];
-  return { kind: "mcp", servers, elicitation: null, reconnect, onElicitationDone };
+  const connections = await gatherMcpConnections({ cwd: repoRoot, onElicit });
+  for (const connection of connections) live.set(connection.name, connection);
+  const dispose = (): void => {
+    if (disposed) return;
+    disposed = true;
+    for (const connection of live.values()) { try { connection.client?.close(); } catch { /* already gone */ } }
+    live.clear();
+  };
+  return { kind: "mcp", servers: connections, elicitation: null, reconnect, onElicitationDone, dispose };
 }
 
 /** Build the /context overlay: per-category token breakdown of the live convo. */
@@ -170,7 +181,10 @@ export function useOverlay(deps: { setup: RunSetup; repoRoot: string; runSlash: 
     }
     void loadOverlay(kind, deps.setup, deps.repoRoot, deps.getContext).then(setOverlay).catch(() => {});
   };
-  const closeOverlay = (): void => setOverlay(null);
+  const closeOverlay = (): void => setOverlay((prev) => {
+    if (prev?.kind === "mcp") prev.dispose();
+    return null;
+  });
   const selectRow = (row: OverlayRow): void => {
     if (row.command.startsWith("plugin-panel:")) {
       const panel = deps.setup.pluginPanels?.get(row.command.slice("plugin-panel:".length));

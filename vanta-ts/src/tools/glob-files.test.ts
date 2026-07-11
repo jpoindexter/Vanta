@@ -71,6 +71,33 @@ describe("globFilesTool", () => {
     expect(result.output).not.toContain("index.ts");
   });
 
+  it("resolves a relative base_path from the declared project root", async () => {
+    const dir = await tempDir();
+    await writeFile(join(dir, "root-only.vanta-glob"), "");
+
+    const result = await globFilesTool.execute(
+      { pattern: "**/*.vanta-glob", base_path: "." },
+      makeCtx(dir),
+    );
+
+    expect(result.ok).toBe(true);
+    expect(result.output).toContain("root-only.vanta-glob");
+  });
+
+  it("rejects a base_path outside the declared project root", async () => {
+    const dir = await tempDir();
+    const outside = await mkdtemp(join(tmpdir(), "glob-outside-"));
+    await writeFile(join(outside, "outside.vanta-glob"), "");
+
+    const result = await globFilesTool.execute(
+      { pattern: "**/*.vanta-glob", base_path: outside },
+      makeCtx(dir),
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.output).toMatch(/outside project scope/i);
+  });
+
   it("describeForSafety names the pattern", () => {
     expect(globFilesTool.describeForSafety?.({ pattern: "src/**/*.ts" })).toBe('glob "src/**/*.ts"');
   });

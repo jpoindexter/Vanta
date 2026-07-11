@@ -5,6 +5,7 @@ import type { Tool, ToolContext, ToolResult } from "./types.js";
 import { spawnSubagent } from "../subagent/spawn.js";
 import { enqueueAsyncResult } from "../subagent/async-delegate.js";
 import { resolveProvider } from "../providers/index.js";
+import { providerOverrideEnv } from "../providers/override-env.js";
 import { buildRegistry } from "./index.js";
 
 const Args = z.object({
@@ -23,10 +24,7 @@ export function delegateEnv(
   provider?: string,
   model?: string,
 ): NodeJS.ProcessEnv {
-  const merged: NodeJS.ProcessEnv = { ...env };
-  if (provider) merged.VANTA_PROVIDER = provider;
-  if (model) merged.VANTA_MODEL = model;
-  return merged;
+  return providerOverrideEnv(env, provider, model);
 }
 
 type DelegateArgs = import("zod").infer<typeof Args>;

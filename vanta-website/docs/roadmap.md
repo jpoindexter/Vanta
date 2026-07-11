@@ -8,102 +8,98 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_930 capabilities shipped · 3 in flight · 149 on the horizon. Updated 2026-06-27._
+_1145 capabilities shipped · 6 in flight · 13 on the horizon. Updated 2026-07-11._
 
 ## In flight
 
 What we are actively building next.
 
-### Auto-fire ideation routing across Vanta / Claude /
+### Profile roster — persistent specialist agents with isolated state
 
-**Cofounder engine** · S-size
+**Operator** · L-size
 
-Make the 22-method ideation routing fire automatically when an ideation-intent prompt arrives, in every agent the operator uses. Vanta side is done (UserPromptSubmit trigger in the skill frontmatter, auto-synced to ~/.vanta/hooks.json each session). The cross-agent half writes global agent config, so it stays confirm-gated
+Vanta has teams, workers, per-agent memory, and isolated profile primitives, but lacks one operator-visible roster where a profile has its own config, model, memory, skills, gateway identity, and work history
 
-### Autonomous (bash) builds in a Docker container — the containment that works
+### Profile Kanban router — durable board routes work by specialist skill
 
-**Harness** · L-size
+**Operator** · M-size
 
-Replaces the parked sandbox-exec approach (VANTA-A2A-AUTONOMOUS-SANDBOX), where claude couldn't even RUN inside macOS seatbelt. A Docker container gives claude a FULL machine where it runs normally, boxed to exactly the folders Vanta mounts (the mount-set IS the boundary). Daytona was the obvious purpose-built fit but went open→CLOSED source — don't build Vanta's autonomy on a ruggable platform; use the open Docker primitive Vanta ALREADY ships (exec/backend.ts buildDockerArgs / the BACKEND-DOCKER card). Plumbing left: a small claude-image + per-run OAuth-token injection, --network on for npm, project bind-mounted. CONTAINMENT PROVEN LIVE 2026-06-26: a real OrbStack/Docker container cleaned a mounted /tmp folder (organized by type) and provably could NOT read an un-mounted folder or ~/.ssh; work persisted on disk after --rm. Can't live-verify the claude bypass from other agents's own harness (it blocks the flag) → build the image + adapter here, operator verifies the first real run. Apple's open `container` runtime is a macOS-native lighter alternative to evaluate
+Vanta ships roadmap Kanban, work queues, teams, delegation, and org chart primitives; the missing workflow is a user-facing board where cards declare required skills and persistent profiles claim, update, hand off, and close work with receipts
 
-### Mount-set = scope: Vanta picks + approves the agent's blast radius per task
+### Second-brain corpus compiler — notes, transcripts, and receipts become searchable memory
+
+**Operator** · M-size
+
+Vanta has brain memory, vault bridge, world model, and transcript tooling; the missing product workflow is a corpus compiler with hybrid search, source receipts, and refresh status
+
+### Profile distributions — package a whole specialist agent as a git install
+
+**Operator** · M-size
+
+Vanta has blueprints, imports, plugins, and profile-adjacent primitives; the missing workflow is installing and updating a whole specialist profile without copying secrets, sessions, or private memory
+
+### Hermes story eval harness — test real community jobs across all 15 categories
 
 **Harness** · M-size
 
-The policy layer over VANTA-A2A-DOCKER-AUTONOMOUS. The container turns Vanta's existing 'scope' concept into a HARD, OS-enforced boundary — a mount can't be talked-past the way a keyword denylist can. Vanta infers the mount-set from the task (build → a fresh output dir; clean Downloads → ~/Downloads rw; fix repo X → that repo; analyze photos → ~/Pictures ro), SURFACES it for human approval (the blast radius) before spinning up, then runs the agent boxed to it. Whole-system tasks ('find big files across my disk') don't fit a box (mounting / = no containment) → fall back to host + approval-gating, or ask. Caveat to design for: the box scopes WHERE, not WHETHER-reversible — 'clean up' inside the mount still means real deletes, so destructive-within-scope wants a dry-run/confirm or a pre-snapshot of the dir
+Vanta's June USE-CASE-AUDIT is a static capability map and the existing surface script samples 12 routes; neither proves complete user jobs or tracks receipts over time. Build a versioned representative corpus and run it at route, sandbox, and live tiers
+
+### Hermes multi-turn story runner — continue choices and approvals in one session
+
+**Harness** · M-size
+
+The current use-case runner executes one-shot commands. It can prove that Vanta stops at a clarification wall, but it cannot send a scripted operator choice back into the same conversation and verify the resulting plan, approval gate, artifact, or delivery across later turns
 
 ## Recently shipped
 
-The latest of 930+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1145+ capabilities. See the [changelog](./changelog) for curated milestones.
 
-- **Reliability stress harness — scored, repeated, concurrency + long-horizon batteries** — Harness · 2026-06-27
-- **Prove a long autonomous run finishes unattended (Pillar 1 win condition)** — Harness · 2026-06-27
-- **Headless multi-turn: fix the input mechanism or declare run the only path** — Harness · 2026-06-27
-- **Wire the reliability harnesses into a tracked scored eval** — Harness · 2026-06-27
-- **Reliability across providers (cold-start / timeout / tool-parse variance)** — Harness · 2026-06-27
-- **Higher-concurrency kernel soak (&gt;16 parallel) to find the contention ceiling** — Harness · 2026-06-27
-- **Provider hardening for long unattended runs — request/idle timeout + transient retry** — Harness · 2026-06-27
-- **Width-responsive TUI menus — kill fixed truncation across every palette/list** — Operator · 2026-06-25
-- **Gate UserPromptSubmit skill triggers on the prompt regex for other agents** — Harness · 2026-06-25
-- **Route 'talk to / start other agents' to the existing call_agent tool** — Harness · 2026-06-25
-- **Persistent interactive external-agent session — drive other agents turn-by-turn** — Harness · 2026-06-25
-- **ACP client — drive another ACP agent over the protocol, not the terminal** — Extensibility · 2026-06-25
-- **Sandbox dead-end -&gt; redirect a refused agent launch to the supported path** — Harness · 2026-06-25
-- **Stream a called agent's output live instead of a silent wait-then-dump** — Harness · 2026-06-25
-- **Routed creative-ideation method catalog** — Cofounder engine · 2026-06-24
-- **User-extensible provider registry (~/.vanta/providers.json)** — Extensibility · 2026-06-24
-- **Router providers free-type any model in the setup wizard** — Operator · 2026-06-24
-- **Internal sandbox blocks tsx when Vanta shells out to its own CLI (EPERM on IPC pipe)** — Harness · 2026-06-24
-- **Dead-simple setup — first install works for a non-CS user (no toolchain)** — Operator · 2026-06-22
-- **Prebuilt vanta-kernel binaries via GitHub Releases (no Rust to install)** — Operator · 2026-06-22
+- **Hermes issue regression pack — turn competitor failures into Vanta invariants** — Harness · 2026-07-11
+- **Vanta public site v1 — product-first homepage, use cases, install, and proof** — Reach · 2026-07-11
+- **Choice-wall side-effect guard — no post-turn writes before the operator chooses** — Harness · 2026-07-11
+- **Glob base-path root scope — relative searches use the declared project** — Harness · 2026-07-11
+- **Compaction intent grounding — generated summaries cannot invent user asks** — Harness · 2026-07-11
+- **ACP session routing isolation — peer events cannot cross active session IDs** — Harness · 2026-07-11
+- **Subagent provider identity — provider switches cannot inherit the parent model** — Harness · 2026-07-11
+- **MCP reconnect process reap — obsolete clients close before replacement** — Harness · 2026-07-11
+- **Safe-mode state isolation — no user memory, plugins, MCP, or settings** — Harness · 2026-07-11
+- **Session environment output redaction — credentials never enter recordings** — Harness · 2026-07-11
+- **Desktop and gateway provider parity — user aliases keep complete identity** — Harness · 2026-07-11
+- **Live context cost inspector — measure prompt surfaces before optimizing** — Harness · 2026-07-11
+- **Workflow acceptance evidence contract — validate requested operations, not labels** — Harness · 2026-07-11
+- **Successful tool error classification — policy prose cannot open repair loops** — Harness · 2026-07-11
+- **Roadmap blocked status — external gates stop consuming Now slots** — Operator · 2026-07-10
+- **Roadmap unblock command — turn blocked cards into exact next actions** — Operator · 2026-07-10
+- **Run Anywhere readiness status — one auditable release-proof checklist** — Operator · 2026-07-10
+- **Autonomy contract walls — acts alone, queues, wakes me** — Harness · 2026-07-10
+- **Trust ledger autonomy — earn auto-run with measured pass rates** — Harness · 2026-07-10
+- **Atomic trust-ledger updates — concurrent verifiers cannot lose outcomes** — Harness · 2026-07-10
 
 ## On the horizon
 
 Directional, not committed — grouped by area, newest thinking first.
 
-### Cofounder engine — 11 planned
+### Extensibility — 1 planned
 
-- Self-evolve metrics — lift-per-iteration + human-in-loop ratio + spend
-- Regression foresight — predict what an evolve edit will BREAK, not just fix
-- Interaction-aware evolution — account for non-additive component effects
-- Delegation up/down the org chart
-- Leadership chat that resolves to real work objects
-- Self-organization — agents propose org changes within governance
-- _…and 5 more_
+- Public skill registry client — search, inspect, install, update, and remove safely
 
-### Extensibility — 17 planned
+### Harness — 6 planned
 
-- Bundles (skill aliases)
-- 169 bundled skills (74 + 95 optional)
-- Blueprints — reusable project/agent scaffolds you instantiate
-- Skills hub — discover/share skills + agentskills.io standard compat
-- A2A networked transport behind a Transport interface
-- Out-of-process plugin workers + capability-gated host services
-- _…and 11 more_
+- Delegation tree receipts — parent sees summaries, raw sidechains stay searchable
+- Tool-surface profiles — shrink available tools by role and explain the boundary
+- Vault secrets rotation — one bootstrap token, scoped provider keys
+- Context references v2 — @file ranges, @folder, @diff, @git, @url
+- Credential pools — rotate same-provider keys before cross-provider fallback
+- Plugin LLM lane — bounded host-owned model calls from plugins
 
-### Harness — 35 planned
+### Operator — 4 planned
 
-- TUI delight / personality pass (not a soulless CLI)
-- Commit attribution — track another agent-modified files for git co-authorship
-- `/bg` while responding — active response continues in background, not dropped
-- Tree-sitter bash parser — AST-accurate security validation for bash commands
-- Self-hosted runner — dedicated entrypoint for running another agent as a CI/CD runner
-- Secrets (Bitwarden Secrets Manager)
-- _…and 29 more_
+- Webhook workflow builder — internet events trigger approved Vanta work
+- Spreadsheet copilot — Excel/Sheets agent surface with charts and custom functions
+- Dashboard plugin slots — operator home accepts safe custom panels
+- Automation blueprint catalog — form-driven scheduled and webhook workflows
 
-### Operator — 82 planned
+### Reach — 2 planned
 
-- Gateway channel self-heal — auto-reconnect + health recovery
-- Marketing/analytics connectors (amplitude, customer.io, ads)
-- Unified cross-agent memory — ingest from/other agents/other agents
-- Continuous live screen + app-context feed (approved local actions)
-- TUI v2 — state / safety / working-memory / telemetry rails
-- Hooks configuration menu — event/hook/matcher mode selectors
-- _…and 76 more_
-
-### Solutioning — 4 planned
-
-- Intent/spec recovery from code + intent-drift detection
-- Change-watchers for repos/issues/email/calendar
-- Mine Goose/Reference for stealable patterns
-- Calibrated solutioning — ranged/ensembled recommendations + revisit triggers
+- Deliverable auto-attach — generated files become native chat artifacts
+- Cross-platform service supervisor — one `vanta up` on macOS, Linux, and Windows

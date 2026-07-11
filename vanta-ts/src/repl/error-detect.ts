@@ -1,6 +1,6 @@
 export const DEFAULT_ERRORDETECT_THRESHOLD = 3;
 
-const ERROR_PATTERNS = /\b(error|failed|failure|not found|ENOENT|exit code|exception|cannot|unable)\b/i;
+const ERROR_PATTERNS = /(?:^|\n)\s*(?:error|failed|failure|exception)\b|\bENOENT\b|\b(?:command\s+failed|exit code\s+[1-9]\d*|file not found)\b/i;
 
 /** True when a tool result signals a failure — either ok:false or error keywords in output. */
 export function isErrorResult(ok: boolean, output: string): boolean {

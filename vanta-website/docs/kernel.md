@@ -18,8 +18,8 @@ The kernel (`vanta-kernel`, in `src/`) is the enforced security boundary — sma
 | `goals` | `GoalLedger`, persisted to `.vanta/goals.tsv` |
 | `runtime` | `run_native()` — safety-gates then dispatches; returns `Unsupported` rather than silently falling back |
 | `server` | Raw TCP HTTP/1.1 — the cockpit UI + all `/api/*` JSON endpoints |
-| `audit` | Tamper-evident hash chain over `events.jsonl` (per-install secret key) — see [Security](./security.md#tamper-evident-audit-log) |
-| `scope` | Path containment (`inside_scope`) + protected-path enforcement — see [Security](./security.md#scope-containment) |
+| `audit` | Tamper-evident hash chain over `events.jsonl` (per-install secret key) — see [Security](./security.md#the-boundary-a-separate-rust-kernel) |
+| `scope` | Path containment (`inside_scope`) + protected-path enforcement — see [Security](./security.md#the-boundary-a-separate-rust-kernel) |
 | `loops` | Loop ledger reader/writer (`.vanta/loops/*`): summaries for the cockpit, pause/resume/kill, escalation clearing |
 
 ## How `assess()` decides

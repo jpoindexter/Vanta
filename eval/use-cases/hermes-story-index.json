@@ -1,0 +1,2368 @@
+{
+  "version": 1,
+  "generated": "2026-07-11",
+  "sourceRepository": "https://github.com/NousResearch/hermes-agent",
+  "sourceCommit": "3b2ef789dfcf92f5b7b18c08c59d25948e50857f",
+  "sourcePath": "website/src/data/userStories.json",
+  "contentPolicy": "Index metadata only. Third-party quote bodies are intentionally excluded.",
+  "stories": [
+    {
+      "id": "anthony-inbox-cron",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "'Every weekday at 9am, summarize my inbox and post to Slack'",
+      "source": "blog",
+      "url": "https://anthonymaio.substack.com/p/getting-started-with-hermes-agent",
+      "date": "2026-03-30"
+    },
+    {
+      "id": "discord-salma-nextcloud-libreoffice",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Self-hosted Google Drive replacement with Nextcloud + LibreOffice",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/developers.txt",
+      "date": "2026-04-18"
+    },
+    {
+      "id": "discord-hackafterdark-reverie-core",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Iterating on a local-first cognition layer for Hermes",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1498945272632315974-Reverie-Core--Agentic-cognition-layer-for-Hermes.txt",
+      "date": ""
+    },
+    {
+      "id": "vectorize-hindsight",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Hindsight Cloud memory, connected",
+      "source": "linkedin",
+      "url": "https://www.linkedin.com/posts/vectorizeio_connect-your-nous-research-hermes-agent-to-activity-7447280348457107456-_Y7L",
+      "date": "2026"
+    },
+    {
+      "id": "captain-awesome-google-me-deploy",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Told it to Google me and ship a landing page to my VPS",
+      "source": "x",
+      "url": "https://x.com/emmagine79/status/2053360898501468362",
+      "date": "2026-05-10"
+    },
+    {
+      "id": "discord-erhnysr-turkish-locale",
+      "category": "Content Creation",
+      "categorySlug": "content-creation",
+      "headline": "Built a Turkish locale skill pack: market data, news, daily briefing cards",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-03-21"
+    },
+    {
+      "id": "deronin-weather",
+      "category": "Trading & Markets",
+      "categorySlug": "trading",
+      "headline": "$100 → $216 in 48h with a self-learning weather bot",
+      "source": "x",
+      "url": "https://x.com/DeRonin_/status/2045087400607568378",
+      "date": "2026-04-17"
+    },
+    {
+      "id": "discord-masonjames-meta-ads-kit",
+      "category": "Marketing",
+      "categorySlug": "marketing",
+      "headline": "I built a Hermes skill pack on top of Meta's CLI",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1499394737088626810-Meta-Ads-Kit-for-Hermes.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-flensbo-searxng-setup",
+      "category": "Privacy & Self-Hosted",
+      "categorySlug": "privacy",
+      "headline": "Sharing a local SearXNG container across my Hermes agents",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-03-22"
+    },
+    {
+      "id": "gkisokay-codex-watcher",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Codex watches my Hermes agent-to-agent workflows live",
+      "source": "x",
+      "url": "https://x.com/gkisokay/status/2045048092341555639",
+      "date": "2026-04-17"
+    },
+    {
+      "id": "discord-timmmie-voice-from-terminal",
+      "category": "General",
+      "categorySlug": "general",
+      "headline": "I can't type well — voice from the terminal is huge for me",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1492490328979144754-hermes-whisper-cpp-addon.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-ibrandis-converse-before-act",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Built converse mode so my agent thinks before it acts",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1501531131734917170-Converse--chat-before-your-agent-acts.txt",
+      "date": ""
+    },
+    {
+      "id": "gh-bichev-dashboard",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "73% of every API call is fixed overhead (I measured it)",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/4379",
+      "date": "2026"
+    },
+    {
+      "id": "discord-megabyte0x-hermes-for-team",
+      "category": "Business Ops",
+      "categorySlug": "business-ops",
+      "headline": "Hermes Agent for my team — repos, onchain debug, protocol docs",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1492207991162671255-Hermes-Agent-for-my-team.txt",
+      "date": ""
+    },
+    {
+      "id": "davidondrej-browser-harness",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Hermes + Browser Harness on a Hostinger VPS",
+      "source": "gist",
+      "url": "https://gist.github.com/davidondrej/6f158de34ce83c530526011054fde8d3",
+      "date": "2026"
+    },
+    {
+      "id": "metics-weekly-cron",
+      "category": "Content Creation",
+      "categorySlug": "content-creation",
+      "headline": "Weekly cron: top 3 trending AI tools for my next video",
+      "source": "youtube",
+      "url": "https://www.youtube.com/watch?v=CwPUOVUdApE",
+      "date": "2026"
+    },
+    {
+      "id": "gh-jgravelle-jmunch",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "jMunch MCP: 52 tools via tree-sitter for code intelligence",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/10409",
+      "date": "2026"
+    },
+    {
+      "id": "discord-0xchauncy-reina-hackathons",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "My Hermes agent Reina has been on a hackathon bender",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-03-15"
+    },
+    {
+      "id": "gh-oangelo-tasks",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Google Tasks integration",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/9189",
+      "date": "2026"
+    },
+    {
+      "id": "gh-edward-win",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "hermes-for-win: one-click Windows installer",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/11876",
+      "date": "2026"
+    },
+    {
+      "id": "gh-kovern-bedtime",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Bedtime stories for my daughter",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/17177",
+      "date": "2026"
+    },
+    {
+      "id": "discord-jezza2463-daily-journal-kimi",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Daily journaling into Obsidian, learning to use OSS models",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-03-29"
+    },
+    {
+      "id": "gh-2024fatwolf-qq",
+      "category": "Messaging",
+      "categorySlug": "messaging",
+      "headline": "QQ Bot adapter for China",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/9166",
+      "date": "2026"
+    },
+    {
+      "id": "tooluse-hermes-won",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "Hermes Agent has won. Here's why.",
+      "source": "podcast",
+      "url": "https://open.spotify.com/episode/7tF7zf5GKcxqe2Q2BRRNfn",
+      "date": "2026"
+    },
+    {
+      "id": "gh-austin-latex",
+      "category": "Research",
+      "categorySlug": "research",
+      "headline": "LaTeX math renders properly in the TUI",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/pull/17175",
+      "date": "2026"
+    },
+    {
+      "id": "gh-iacker-discord-gate",
+      "category": "Messaging",
+      "categorySlug": "messaging",
+      "headline": "DM-based approval gate for kid-facing Discord bots",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/13124",
+      "date": "2026"
+    },
+    {
+      "id": "reddit-sicklerunner-switching-between-hermes",
+      "category": "Cost Optimization",
+      "categorySlug": "cost-optimization",
+      "headline": "Switching between Hermes and OpenClaw on primeclaws.com",
+      "source": "reddit",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1ro9lph/anybody_who_tried_hermesagent/",
+      "date": "2026-03-08"
+    },
+    {
+      "id": "discord-synextco-hermes-hud",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "Built a TUI dashboard that watches my agent think",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1489107955327570081-HERMES-TUI-Companion.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-petllama-coding-after-20-years",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Hadn't coded in 20 years — Hermes brought it back",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1492970295915446524-Meet-Hermes-Conrad....-GUI.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-dre108-gigaxity-research",
+      "category": "Research",
+      "categorySlug": "research",
+      "headline": "Got tired of paying Perplexity, built my own research stack",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1501578622350393404-Gigaxity--low-cost-research-stack.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-lauratom-brainstack-memory-kernel",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Spent 200–400 hours writing a memory kernel for Hermes",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1494703787103752365-SOTA-memory-kernel-for-real--BRAINSTACK.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-m05tr0-hermes-on-kubernetes",
+      "category": "Enterprise",
+      "categorySlug": "enterprise",
+      "headline": "Hermes on my k8s cluster for a daily cybersec + AI briefing",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1493622814887120926-Installed-Hermes-on-Kubernetes.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-winterwarrior-pi5-247",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Raspberry Pi 5 running Hermes 24/7",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-04-04"
+    },
+    {
+      "id": "gh-yuga-line",
+      "category": "Messaging",
+      "categorySlug": "messaging",
+      "headline": "LINE for 95M+ users in Japan",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/8395",
+      "date": "2026"
+    },
+    {
+      "id": "gh-shloms-touchdesigner",
+      "category": "Creative",
+      "categorySlug": "creative",
+      "headline": "Generative visuals in TouchDesigner, via Hermes skill",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/pull/16768",
+      "date": "2026"
+    },
+    {
+      "id": "discord-kouff-obsidian-calendar-signal",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Hermes manages my tasks across Obsidian, Apple Calendar and Signal",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent/",
+      "date": "2026-04-11"
+    },
+    {
+      "id": "gh-prasad-vertex",
+      "category": "Enterprise",
+      "categorySlug": "enterprise",
+      "headline": "Vertex AI for GCP-standardized enterprises",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/13484",
+      "date": "2026"
+    },
+    {
+      "id": "discord-monty-13277-claude-hermes-mcp",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Claude for chat, Hermes 24/7 on a mini PC for real-world stuff",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1503091259760316436-Claude-Hermes-MCP.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-tzep123-clanker-skin",
+      "category": "Creative",
+      "categorySlug": "creative",
+      "headline": "A B1 battle droid skin for May the 4th",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1500688683890774056-Clanker-skin--May-the-4th-be-with-you.txt",
+      "date": ""
+    },
+    {
+      "id": "codewithimanshu-higgsfield",
+      "category": "Marketing",
+      "categorySlug": "marketing",
+      "headline": "UGC ad studio on Hermes (4 minutes, zero prompt engineering)",
+      "source": "x",
+      "url": "https://x.com/codewithimanshu/status/2047507277259923696",
+      "date": "2026-04-24"
+    },
+    {
+      "id": "discord-buray-mcp-server",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Built hermes mcp-server so Claude Desktop can use Hermes tools",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-02-26"
+    },
+    {
+      "id": "discord-cyberfarmacist-roofing-leadgen",
+      "category": "Business Ops",
+      "categorySlug": "business-ops",
+      "headline": "Building a roofing lead-gen app for my friend with Hermes",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1492721511658815539-Hermes-for-app-builders..txt",
+      "date": ""
+    },
+    {
+      "id": "teknium-12-instances",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "12 Hermes instances every day, in parallel",
+      "source": "x",
+      "url": "https://x.com/Teknium/status/2047869295686975529",
+      "date": "2026-04-25"
+    },
+    {
+      "id": "discord-mayuronx-email-state-machine",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Two-tier email pipeline so the LLM only fires when needed",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1492347479805530182-Email-Checker-State-Machine.txt",
+      "date": ""
+    },
+    {
+      "id": "pfanis-companion",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Sometimes Hermes Agent melts my heart",
+      "source": "x",
+      "url": "https://x.com/pfanis/status/2043863599689457952",
+      "date": "2026-04-14"
+    },
+    {
+      "id": "x-heyyanvi-hermes-designed-an",
+      "category": "Creative",
+      "categorySlug": "creative",
+      "headline": "Hermes designed an X-to-NotebookLM podcast workflow for me",
+      "source": "x",
+      "url": "https://x.com/HeyYanvi/status/2046015096514617385",
+      "date": "2026-04-19"
+    },
+    {
+      "id": "gh-scotttrinh-vercel",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Vercel Sandbox as a Hermes backend",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/pull/17445",
+      "date": "2026"
+    },
+    {
+      "id": "gh-haoqi-feishu",
+      "category": "Messaging",
+      "categorySlug": "messaging",
+      "headline": "Give Hermes hands inside Feishu (Lark)",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/10356",
+      "date": "2026"
+    },
+    {
+      "id": "hn-ethan-install-guide",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "Show HN: an independent install guide",
+      "source": "hn",
+      "url": "https://news.ycombinator.com/item?id=47865412",
+      "date": "2026"
+    },
+    {
+      "id": "discord-stefan171-hooks-for-context",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Hooks that swap in better tools every time the agent runs",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent/",
+      "date": "2026-04-13"
+    },
+    {
+      "id": "gh-tcollins-audit",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Audited 129 of my own sessions across 23 days",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/17619",
+      "date": "2026"
+    },
+    {
+      "id": "gh-autholykos-ccd",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "CCD multi-agent pod on an M2 Ultra with Mem0 + Qdrant",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/4837",
+      "date": "2026"
+    },
+    {
+      "id": "discord-lauratom-sqlite-graph-kernel",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "I built a custom kernel — the LLM never touches the disk",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-04-04"
+    },
+    {
+      "id": "gh-pypl0-ombre",
+      "category": "Enterprise",
+      "categorySlug": "enterprise",
+      "headline": "EU AI Act compliance via Ombre",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/17431",
+      "date": "2026"
+    },
+    {
+      "id": "discord-modestmaoist-mapsos-life-os",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Built mapsOS because 'rate your mood 1–10' wasn't my brain",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1492209844185338077-mapsOS--qualitative-life-operating-system.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-brennerspear-editing-internals",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "My Hermes keeps editing its own internals — and I'm worried",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/developers.txt",
+      "date": "2026-04-16"
+    },
+    {
+      "id": "danfiru-convergence",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Built my own stack, then converged on Hermes",
+      "source": "x",
+      "url": "https://x.com/danfiru/status/2036481605666218278",
+      "date": "2026-03-24"
+    },
+    {
+      "id": "derek-supabase-crm",
+      "category": "Business Ops",
+      "categorySlug": "business-ops",
+      "headline": "24/7 assistant with a Supabase CRM, built in a demo",
+      "source": "youtube",
+      "url": "https://www.youtube.com/watch?v=W_ZgH0WPayo",
+      "date": "2026"
+    },
+    {
+      "id": "gh-manoj-pi4",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Hermes running on a Pi 4 as my home server",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/14197",
+      "date": "2026"
+    },
+    {
+      "id": "x-vmiss33-human-guide",
+      "category": "Cost Optimization",
+      "categorySlug": "cost-optimization",
+      "headline": "100% human guide: what I use Hermes for and how I keep it cheap",
+      "source": "x",
+      "url": "https://x.com/vmiss33/status/2050984822168830302",
+      "date": "2026-05-03"
+    },
+    {
+      "id": "reddit-birdinhandandbush-hermes",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Hermes + Qwen3.5:4b on a 5060Ti is all I need",
+      "source": "reddit",
+      "url": "https://www.reddit.com/r/hermesagent/comments/1snfnq9/yes_hermes_and_qwen354b_is_all_i_need_details/",
+      "date": "2026-04-16"
+    },
+    {
+      "id": "captain-awesome-life-changing",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Hermes + Discord with GPT-5.5 / DeepSeek v4 has been life changing",
+      "source": "x",
+      "url": "https://x.com/emmagine79/status/2053360898501468362",
+      "date": "2026-05-10"
+    },
+    {
+      "id": "discord-mayuronx-backup-hermes-github",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "I back up my Hermes config and DB to GitHub nightly",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1491933536423510117-Backup-Manage-Hermes-Config-via-your-Github-repo.txt",
+      "date": ""
+    },
+    {
+      "id": "gkisokay-research-brief",
+      "category": "Research",
+      "categorySlug": "research",
+      "headline": "Daily research brief across Discord, Slack, Notion & Obsidian",
+      "source": "x",
+      "url": "https://x.com/gkisokay/status/2050026869274395020",
+      "date": "2026-05-01"
+    },
+    {
+      "id": "discord-ereid7-hermes-lab",
+      "category": "Research",
+      "categorySlug": "research",
+      "headline": "Hermes-lab is the bookkeeper for running experiments autonomously",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1486588376940281937-Hermes-Lab---file-first-experiment-scaffolding-for-autonomous-research.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-salt555-skill-audit-on-itself",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "A skill-audit skill that improves itself on a cron job",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent/",
+      "date": "2026-04-23"
+    },
+    {
+      "id": "alexfinn-employee",
+      "category": "General",
+      "categorySlug": "general",
+      "headline": "An AI employee for my hardest tasks",
+      "source": "x",
+      "url": "https://x.com/AlexFinn/status/2049278028619121089",
+      "date": "2026-04-29"
+    },
+    {
+      "id": "discord-sammcf-vps-tailscale",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "My Hermes lives on a VPS, talks home over Tailscale",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-04-06"
+    },
+    {
+      "id": "discord-justinalbrethsen-zeroid-subagents",
+      "category": "Cost Optimization",
+      "categorySlug": "cost-optimization",
+      "headline": "Built ZeroID to fix sub-agent scope delegation and context costs",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1499443650847969370-ZeroID---Agent-Identity-Layer.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-fahdad-blunder-lens-chess",
+      "category": "Creative",
+      "categorySlug": "creative",
+      "headline": "Tortured a repo with Hermes to build a chess blunder finder",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1496239289309073539-Blunder-lens.com-a-tortured-repo-that-helps-you-find-your-first-blunders-in-chess.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-muschi2396-voice-fitness-coach",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Voice-first fitness coach that learns my body over time",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1493325531637088429-working-on-a-voice-first-AI-coach-that-learns-your-body-over-time--training---nutrition-feedback.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-sergiparpal-meal-manager",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "A meal planner for people who hate logging ingredients",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1493336259874000926-Plugin-for-Hermes-Agent---The-Fridge-Inventory-System-for-People-Who-Hate-Logging-Ingredients.txt",
+      "date": ""
+    },
+    {
+      "id": "technmak-10-days",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Day 10: it knows my codebase better than I do",
+      "source": "x",
+      "url": "https://x.com/techNmak/status/2041422554729267267",
+      "date": "2026-04-07"
+    },
+    {
+      "id": "discord-lauratom-memory-kernel",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Built a 22k-line memory kernel underneath Hermes",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-04-04"
+    },
+    {
+      "id": "discord-drewsni-rust-weather-stack",
+      "category": "Research",
+      "categorySlug": "research",
+      "headline": "I ported the whole Python weather stack to Rust for my Hermes plugins",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1486508813816168580-Two-Hermes-Agent-plugins-for-weather-ML---all-Rust--no-Python-deps.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-yodaaa-x-roast-poster",
+      "category": "Content Creation",
+      "categorySlug": "content-creation",
+      "headline": "Hermes runs my X roast poster — no $100 API needed",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1491880999913656432-Hermes-found-away-around-expensive-X-API.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-purkkaviritys-goban-kanban",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Built a local kanban so my agents see what's going on",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1502769628559179937-Goban---Local-network-kanban-for-agents..txt",
+      "date": ""
+    },
+    {
+      "id": "jsong-llm-wiki",
+      "category": "Research",
+      "categorySlug": "research",
+      "headline": "A self-improving LLM Wiki second brain",
+      "source": "blog",
+      "url": "https://medium.com/@jsong_49820/how-i-built-a-self-improving-llm-wiki-with-hermes-agent-and-why-im-not-using-obsidian-1e9a7fa438c1",
+      "date": "2026-04-16"
+    },
+    {
+      "id": "discord-kysiv-hermes-control-interface",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "Built a dashboard so Hermes config and management is easier",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1492427034541162517-Hermes-Control-Interface-Web-UI.txt",
+      "date": ""
+    },
+    {
+      "id": "adiix-polymarket",
+      "category": "Trading & Markets",
+      "categorySlug": "trading",
+      "headline": "Polymarket trading, 4 layers in parallel",
+      "source": "x",
+      "url": "https://x.com/adiix_official/status/2046702189469450616",
+      "date": "2026-04-21"
+    },
+    {
+      "id": "rumjahn-everything",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Apple Health, Threads analytics, Gmail, Calendar — in one CLI",
+      "source": "blog",
+      "url": "https://rumjahn.substack.com/p/complete-guide-to-mastering-hermes",
+      "date": "2026-04-26"
+    },
+    {
+      "id": "gh-chrisr-horse-racing",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Horse-racing Telegram community bot",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/4431",
+      "date": "2026"
+    },
+    {
+      "id": "onlyterp-file-change",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "It sees a file change and auto-acts on it",
+      "source": "x",
+      "url": "https://x.com/OnlyTerp/status/2047890882809016805",
+      "date": "2026-04-25"
+    },
+    {
+      "id": "gh-arkka-legal",
+      "category": "Privacy & Self-Hosted",
+      "categorySlug": "privacy",
+      "headline": "Legal-domain work on an edge GPU, 4B Gemma, no cloud APIs",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/15562",
+      "date": "2026"
+    },
+    {
+      "id": "discord-modest-maoist-cartographer-polycule",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Two things I built with Hermes: Cartographer and an agent IRC",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-04-27"
+    },
+    {
+      "id": "discord-ajaylakhani-agent-dreams",
+      "category": "Creative",
+      "categorySlug": "creative",
+      "headline": "My agent dreams at night for $0.014",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1491512248714399744-Do-Agents-dream-of-Electric-Sheep.txt",
+      "date": ""
+    },
+    {
+      "id": "gkisokay-autobuild",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Multi-agent auto-build workflow (plan → code → QA → ship)",
+      "source": "x",
+      "url": "https://x.com/gkisokay/status/2044339964612362499",
+      "date": "2026-04-15"
+    },
+    {
+      "id": "worldofai-shadcn-manim",
+      "category": "Creative",
+      "categorySlug": "creative",
+      "headline": "shadcn finance dashboard + Manim explainer videos",
+      "source": "youtube",
+      "url": "https://www.youtube.com/watch?v=cu2fgknmemA",
+      "date": "2026-04-07"
+    },
+    {
+      "id": "olaf-azure-patch",
+      "category": "Enterprise",
+      "categorySlug": "enterprise",
+      "headline": "Azure-compliant prompt patch so the safety filter doesn't kick in",
+      "source": "gist",
+      "url": "https://gist.github.com/olafgeibig/c51474131c2f5802a699dc7edfac04ad",
+      "date": "2026"
+    },
+    {
+      "id": "hn-flere-imsaho-im-using-hermes",
+      "category": "Privacy & Self-Hosted",
+      "categorySlug": "privacy",
+      "headline": "I'm using Hermes — same applies to all agents, sandbox it",
+      "source": "hn",
+      "url": "https://news.ycombinator.com/item?id=47636804",
+      "date": "2026-04-04"
+    },
+    {
+      "id": "andrew-gordon-5-apps",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "5 apps built and launched in a single day",
+      "source": "linkedin",
+      "url": "https://www.linkedin.com/posts/andrewwgordon_hermes-agent-the-agent-that-grows-with-activity-7449351350800429056-Alw0",
+      "date": "2026"
+    },
+    {
+      "id": "firecrawl-integration",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Firecrawl for scrape/search/browse",
+      "source": "linkedin",
+      "url": "https://www.linkedin.com/posts/firecrawl_hermes-agent-by-nous-research-can-now-scrape-activity-7445140884683395072-sm2d",
+      "date": "2026"
+    },
+    {
+      "id": "discord-bert-71849-audit-grafana",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "Every tool call into SQLite, with Grafana dashboards",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1503114142117265448-Hermes-Audit-Plugin---Grafana-Dashboards.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-tonywhelan-memory-tools-workflow",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "How I use Hermes memory: durable facts, session search, skills",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-04-10"
+    },
+    {
+      "id": "dev-arsh-natural-cron",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "'Every morning at 9am, check HN for AI news and DM me on Telegram'",
+      "source": "blog",
+      "url": "https://dev.to/arshtechpro/hermes-agent-a-self-improving-ai-agent-that-runs-anywhere-2b7d",
+      "date": "2026-03"
+    },
+    {
+      "id": "discord-zmaxx-onchain-attest",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Onchain identity and proof-of-work for Hermes agents",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1502632110345818123-Attest---onchain-identity-and-proof-of-work-for-Hermes-agents-via-EAS.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-omarlittle-matrix-skin",
+      "category": "Creative",
+      "categorySlug": "creative",
+      "headline": "Had the agent whip me up a Matrix-inspired skin",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1496977719429169404-Enter-the-Matrix-skin.txt",
+      "date": ""
+    },
+    {
+      "id": "greg-isenberg-termux",
+      "category": "Cost Optimization",
+      "categorySlug": "cost-optimization",
+      "headline": "90% token spend cut. Runs on a cheap Android via Termux.",
+      "source": "podcast",
+      "url": "https://podcasts.apple.com/dk/podcast/hermes-agent-clearly-explained-and-how-to-use-it/id1593424985?i=1000762440356",
+      "date": "2026"
+    },
+    {
+      "id": "discord-dalekc72-hermes-managing-tickets",
+      "category": "Business Ops",
+      "categorySlug": "business-ops",
+      "headline": "Hermes triages and works tickets in my PM software",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1493589434971717763-Small-Win---Hermes---Claude-Code-managing-my-Tickets.txt",
+      "date": ""
+    },
+    {
+      "id": "gh-alexferrari-checkin",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Proactive check-ins ('anything you want me to watch this afternoon?')",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/9645",
+      "date": "2026"
+    },
+    {
+      "id": "discord-alpaca1712-hermes-ships-with-vals",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "I gave my Hermes agent hands — it ships micro-apps now",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1496701579234119850-I-gave-my-Hermes-agent-hands--aka-the-ability-to-ship-now.txt",
+      "date": ""
+    },
+    {
+      "id": "gh-isak-hunter",
+      "category": "Business Ops",
+      "categorySlug": "business-ops",
+      "headline": "Hunter.io email-finding for sales outreach",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/15818",
+      "date": "2026"
+    },
+    {
+      "id": "kristopher-codebase-memory",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Accumulates knowledge about my codebase over time",
+      "source": "blog",
+      "url": "https://medium.com/@creativeaininja/hermes-agent-the-open-source-ai-agent-that-actually-remembers-what-it-learned-yesterday-278441cd1870",
+      "date": "2026-04-14"
+    },
+    {
+      "id": "reddit-ninjapapi-5-things-hermes",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "5 things Hermes does that ChatGPT will never do",
+      "source": "reddit",
+      "url": "https://www.reddit.com/r/SideProject/comments/1t6356h/5_things_hermes_does_as_an_ai_agent_that_chatgpt/",
+      "date": "2026-05-07"
+    },
+    {
+      "id": "discord-nour-h-recall-memory",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Dogfooding a memory layer that isn't a black box",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1503085649325195374-Introducing-Recall--a-local--auditable-memory-layer-for-Hermes-Agent.txt",
+      "date": ""
+    },
+    {
+      "id": "reddit-jonathan-rivera-obsidian-as-the",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Obsidian as the long-term memory backbone for Hermes (794 upvotes)",
+      "source": "reddit",
+      "url": "https://www.reddit.com/r/hermesagent/comments/1stz6gd/how_i_use_obsidian_as_the_longterm_memory/",
+      "date": "2026-04-23"
+    },
+    {
+      "id": "nazt-mcp-hybrid",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Fat agent → thin tool provider via hermes mcp serve",
+      "source": "gist",
+      "url": "https://gist.github.com/nazt/849e29cd25c148b6cebafdbcc38bb6cc",
+      "date": "2026"
+    },
+    {
+      "id": "discord-atomlib-vpn-control-panel",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "I don't know how to write code — Codex built me a VPN service",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-05-06"
+    },
+    {
+      "id": "discord-absolutegamer-minecraft-skill",
+      "category": "Creative",
+      "categorySlug": "creative",
+      "headline": "Asked Hermes to write a skill that auto-plays Minecraft",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1495582727217479720-Hermes-Auto-Plays-Minecraft-SKILL.txt",
+      "date": ""
+    },
+    {
+      "id": "reddit-itsdodobitch-one-month-with",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "One month with Hermes: don't build the whole machine on day one",
+      "source": "reddit",
+      "url": "https://www.reddit.com/r/hermesagent/comments/1t29ogw/one_month_with_hermes_agent_what_i_wish_i_knew/",
+      "date": "2026-05-03"
+    },
+    {
+      "id": "0xmega-no-mac-mini",
+      "category": "Cost Optimization",
+      "categorySlug": "cost-optimization",
+      "headline": "Under $20/mo total — no Mac Mini, no Opus",
+      "source": "blog",
+      "url": "https://medium.com/@0xmega/hermes-agent-the-complete-setup-guide-telegram-discord-vps-no-mac-mini-required-dda315a702d3",
+      "date": "2026-03-30"
+    },
+    {
+      "id": "gh-zednik-slides",
+      "category": "Business Ops",
+      "categorySlug": "business-ops",
+      "headline": "Create and edit Google Slides decks",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/15600",
+      "date": "2026"
+    },
+    {
+      "id": "discord-mulkproject-copilot-delegate-opencode",
+      "category": "Cost Optimization",
+      "categorySlug": "cost-optimization",
+      "headline": "Free GPT-4.1 via Copilot, Hermes delegates coding to OpenCode",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-04-12"
+    },
+    {
+      "id": "reddit-suitable-currency440-hermes-very-good",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Hermes very good as personal agent on Qwen3.5 27B",
+      "source": "reddit",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1ro9lph/anybody_who_tried_hermesagent/",
+      "date": "2026-03-08"
+    },
+    {
+      "id": "discord-malaiwah-fork-watchtower",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Local Gitea fork + watchtower auto-restarts my Hermes in 10 minutes",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-04-10"
+    },
+    {
+      "id": "discord-anibal3608-adguard-plugin",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "An AdGuard plugin so I browse faster, ad-free",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1487973263455031296-Hermes-AdGuard-Home-Plugin.txt",
+      "date": ""
+    },
+    {
+      "id": "gh-declan-webchat",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Webchat: custom themed browser UI on MEMORY.md",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/4514",
+      "date": "2026"
+    },
+    {
+      "id": "discord-lauratom-memory-kernel-companion",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "A memory kernel that compiles thoughts, not vectors",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent/",
+      "date": "2026-04-04"
+    },
+    {
+      "id": "x-brucexu-eth-hermes",
+      "category": "Creative",
+      "categorySlug": "creative",
+      "headline": "Hermes Inc.: Telegram-native startup sim built at Hermes hackathon",
+      "source": "x",
+      "url": "https://x.com/brucexu_eth/status/2048625942416023874",
+      "date": "2026-04-27"
+    },
+    {
+      "id": "discord-arm64be-personal-webpage-style",
+      "category": "Creative",
+      "categorySlug": "creative",
+      "headline": "Turned my personal site's webdev style into a skill",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1497329157149954099-my-personal-webpage-style-skill.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-modest-maoist-cartographer-brain",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "A semantic knowledge substrate I made for my brain",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1495354913205780661-Cartographer--Fully-Configurable-Semantic-Knowledge---Memory-Substrate.txt",
+      "date": ""
+    },
+    {
+      "id": "saboo-monica",
+      "category": "Content Creation",
+      "categorySlug": "content-creation",
+      "headline": "Monica that writes in my voice",
+      "source": "x",
+      "url": "https://x.com/Saboo_Shubham_/status/2049541356767576388",
+      "date": "2026-04-29"
+    },
+    {
+      "id": "discord-o-o-o-o000-adhd-cronjobs",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Cronjobs nudging me on Discord and Signal for executive function",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-05-07"
+    },
+    {
+      "id": "nathanwilbanks-297-streak",
+      "category": "Business Ops",
+      "categorySlug": "business-ops",
+      "headline": "Day 297 of my streak: $100K of client work automated",
+      "source": "x",
+      "url": "https://x.com/NathanWilbanks_/status/2047883176622620934",
+      "date": "2026-04-25"
+    },
+    {
+      "id": "reddit-delicious-ease2595-hermes-more",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Side-by-side: Hermes more stable, troubleshoots OpenClaw",
+      "source": "reddit",
+      "url": "https://www.reddit.com/r/openclaw/comments/1slqt5h/is_hermes_agent_a_new_hype_or_is_it_genuinely/",
+      "date": "2026-04-15"
+    },
+    {
+      "id": "discord-itsdodo21-hermes-desktop",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "A native Mac app that sits next to my terminal",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1492615746629402735-Hermes-Desktop-v0.4.0---why-I-didn-t-build-another-gateway-UI.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-reyartage-operational-checkpoint",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "A compression plugin for sessions that go on forever",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1495063142416257095-Hermes-Operational-Checkpoint-Plugin.txt",
+      "date": ""
+    },
+    {
+      "id": "captain-awesome-news-discord-cron",
+      "category": "Content Creation",
+      "categorySlug": "content-creation",
+      "headline": "Cron jobs that triage tech news into Discord channels by urgency",
+      "source": "x",
+      "url": "https://x.com/emmagine79/status/2053360898501468362",
+      "date": "2026-05-10"
+    },
+    {
+      "id": "ken-huang-production",
+      "category": "Enterprise",
+      "categorySlug": "enterprise",
+      "headline": "Hermes as CLI/gateway-first — 13 platforms under one process",
+      "source": "blog",
+      "url": "https://kenhuangus.substack.com/p/chapter-10-production-deployment",
+      "date": "2026-04-27"
+    },
+    {
+      "id": "gh-paultisl-tailscale",
+      "category": "Privacy & Self-Hosted",
+      "categorySlug": "privacy",
+      "headline": "Tailscale serve for secure remote access, no exposed ports",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/9269",
+      "date": "2026"
+    },
+    {
+      "id": "discord-0xajpanda-validator-monitor",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Hermes watches my homelab validators and pings Telegram",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent/",
+      "date": "2026-03-24"
+    },
+    {
+      "id": "discord-s0uthpaw-agentic-elevator-music",
+      "category": "Creative",
+      "categorySlug": "creative",
+      "headline": "Speech-to-speech with Hermes, plus generated background music",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent/",
+      "date": "2026-03-10"
+    },
+    {
+      "id": "discord-ogiberstein-project-os",
+      "category": "Business Ops",
+      "categorySlug": "business-ops",
+      "headline": "Hermes as my Chief of Staff with sub-agents per project",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1496117910287024159-Running-Hermes-as-a-Hardcore-Project-Operating-System.txt",
+      "date": ""
+    },
+    {
+      "id": "exm-family-whatsapp",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "One Hermes for the whole family on WhatsApp",
+      "source": "x",
+      "url": "https://x.com/EXM7777/status/2049869015221510424",
+      "date": "2026-04-30"
+    },
+    {
+      "id": "discord-mibayy-hermes-memory",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Built persistent structured memory because compression dropped my constraints",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1486509881673383998-Hermes-memory---Persistent-structured-memory-for-Hermes-agents.txt",
+      "date": ""
+    },
+    {
+      "id": "gh-rohit-agentmemory",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Cross-agent memory: Hermes + Claude Code + Cursor",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/6715",
+      "date": "2026"
+    },
+    {
+      "id": "discord-gwyntel-onstar-remote-start",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "I made a skill to remote start my car",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1502215257173790730-Control-OnStar-vehicles--Chevrolet--GMC--Buick--Cadillac--via-Hermes-Agent.txt",
+      "date": ""
+    },
+    {
+      "id": "gh-0xmrblue-computer-use",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Desktop computer-use module: noVNC, screenshots, mouse/keyboard",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/15876",
+      "date": "2026"
+    },
+    {
+      "id": "discord-jerometao-38874-compiled-skills",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "I now compile skills into code, only invoking AI at necessary steps",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-04-06"
+    },
+    {
+      "id": "betterstack-tweets",
+      "category": "Content Creation",
+      "categorySlug": "content-creation",
+      "headline": "Tweets in my voice, pulled from past video scripts",
+      "source": "youtube",
+      "url": "https://www.youtube.com/watch?v=HdxtLpL9CC8",
+      "date": "2026"
+    },
+    {
+      "id": "gh-m1chael-jmap",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "JMAP email for Fastmail users",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/11424",
+      "date": "2026"
+    },
+    {
+      "id": "reddit-itsdodobitch-kanban-feature",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Kanban multi-agent feature is game-changing",
+      "source": "reddit",
+      "url": "https://www.reddit.com/r/hermesagent/comments/1t4efcb/what_is_the_new_kanban_feature_built_into_hermes/",
+      "date": "2026-05-05"
+    },
+    {
+      "id": "discord-mattbcool-monterey-otterbot",
+      "category": "General",
+      "categorySlug": "general",
+      "headline": "My local community agent runs on a 16GB Mac mini",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1498343497848197171-Monterey-Bay-Tech-Agent.txt",
+      "date": ""
+    },
+    {
+      "id": "krynsky-switched",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "Switched from OpenClaw, not looking back",
+      "source": "x",
+      "url": "https://x.com/krynsky/status/2044089946018062614",
+      "date": "2026-04-14"
+    },
+    {
+      "id": "awesome-hermes",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "awesome-hermes-agent: community-curated skills list",
+      "source": "github",
+      "url": "https://github.com/0xNyk/awesome-hermes-agent",
+      "date": "2026"
+    },
+    {
+      "id": "gh-trevor-imessage",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Hermes over iMessage on my always-on Mac Studio",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/6430",
+      "date": "2026"
+    },
+    {
+      "id": "theo-hetzner",
+      "category": "Cost Optimization",
+      "categorySlug": "cost-optimization",
+      "headline": "Hetzner VPS at $10/mo, Claude Opus via OpenRouter",
+      "source": "youtube",
+      "url": "https://www.youtube.com/watch?v=tm4h8dG-xlI",
+      "date": "2026-03"
+    },
+    {
+      "id": "discord-lemoussel-vectorless-rag",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Built a vectorless RAG workflow with PageIndex and Hermes",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1501565023359598754-Vectorless-RAG-with-PageIndex-and-Hermes-Agent.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-0xchauncy-reina-soul-tone",
+      "category": "Creative",
+      "categorySlug": "creative",
+      "headline": "Wrote my Hermes agent's tone examples with my sister",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-03-10"
+    },
+    {
+      "id": "discord-jonmichaels-discord-read-plugin",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Built a Discord-read plugin because I missed it from OpenClaw",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1502295189446856995-Read-Discord-Messages-Plugin.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-name-name-workshop-news-briefing",
+      "category": "General",
+      "categorySlug": "general",
+      "headline": "Teaching a Linux user group to build agents with Hermes",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent/",
+      "date": "2026-04-02"
+    },
+    {
+      "id": "discord-quark2world-hermelin-skins",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "Made 4 custom skins for my HermelinChat GUI",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1487120834756874470-Hermes-Agent-Skins--Templates.txt",
+      "date": ""
+    },
+    {
+      "id": "michael-security-eval",
+      "category": "Privacy & Self-Hosted",
+      "categorySlug": "privacy",
+      "headline": "Independent technical security eval: 5 defensive patterns",
+      "source": "gist",
+      "url": "https://gist.github.com/michaeloboyle/10461598db36066e4c366413d5416f83",
+      "date": "2026"
+    },
+    {
+      "id": "yashica-linkedin",
+      "category": "Content Creation",
+      "categorySlug": "content-creation",
+      "headline": "LinkedIn posts that remember my style",
+      "source": "youtube",
+      "url": "https://www.youtube.com/watch?v=Mom3GVeiBR8",
+      "date": "2026"
+    },
+    {
+      "id": "discord-liftaris-herm-tui",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Built my own TUI so Hermes feels like OpenCode",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1498955668311248948-Herm---Chat-and-Dashboard-TUI.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-codename11-hermes-relay-android",
+      "category": "Messaging",
+      "categorySlug": "messaging",
+      "headline": "Built an Android app for Hermes because I wanted no middleman",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1492283125613465640-Hermes-Relay--Android-App----Chat--terminal--and-device-control-over-WSS.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-lance960-rookery-llama-server",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Built Rookery because I was tired of killing llama-server processes",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1490440028860579992-Rookery.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-jeyjay1245-bundled-api-endpoints",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Got fed up with a million API keys, so I bundled them",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1502170319215923240-Bundled-API-endpoints-for-agents.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-offendingcommit-honcho-memory-ui",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Tried every memory system, built a UI for the one I love",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1500131734178762814-OpenConcho---a-Honcho-Memory-UI.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-denis-skripnik-nvda-translator",
+      "category": "General",
+      "categorySlug": "general",
+      "headline": "Blind since birth, I built an NVDA translator addon with Nous",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1477982563099349036-AI-translater-NVDA-addon-with-Nous-research.txt",
+      "date": ""
+    },
+    {
+      "id": "kisztof-modal",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Telegram → Modal serverless. 40% faster on research tasks.",
+      "source": "blog",
+      "url": "https://kisztof.medium.com/hermes-agent-review-nous-researchs-self-improving-ai-agent-e72bc244435a",
+      "date": "2026-04-20"
+    },
+    {
+      "id": "reddit-yellow-green-bird-every-openclaw-update",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Every OpenClaw update breaks something — Hermes just runs",
+      "source": "reddit",
+      "url": "https://www.reddit.com/r/openclaw/comments/1slqt5h/is_hermes_agent_a_new_hype_or_is_it_genuinely/",
+      "date": "2026-04-15"
+    },
+    {
+      "id": "clawdi-builtwith",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "'The best self-improving agent we've used'",
+      "source": "producthunt",
+      "url": "https://www.producthunt.com/products/clawdi/built-with",
+      "date": "2026"
+    },
+    {
+      "id": "reddit-hackrepair-my-hermes-journey",
+      "category": "Cost Optimization",
+      "categorySlug": "cost-optimization",
+      "headline": "My Hermes Journey: smart-routing tiers that save 10 hours and $40",
+      "source": "reddit",
+      "url": "https://www.reddit.com/r/hermesagent/comments/1smgo1i/my_hermes_journey/",
+      "date": "2026-04-15"
+    },
+    {
+      "id": "discord-renomg-voice-call-timeout",
+      "category": "Creative",
+      "categorySlug": "creative",
+      "headline": "I wanted to talk to my agent for hours, so I fixed the timeout",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1496367052045291540-Hermes-Voice-Call-Timeout-Plugin.txt",
+      "date": ""
+    },
+    {
+      "id": "reddit-windows-wrapper",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "Native Windows app wrapper for Hermes",
+      "source": "reddit",
+      "url": "https://www.reddit.com/r/SideProject/comments/1sdaojm/i_took_the_nousresearch_hermes_agent_and_built_a/",
+      "date": "2026"
+    },
+    {
+      "id": "gh-xwm1234-factory",
+      "category": "Business Ops",
+      "categorySlug": "business-ops",
+      "headline": "Task-centric memory for a printing factory",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/11653",
+      "date": "2026"
+    },
+    {
+      "id": "discord-splosh123-tidal-music-skills",
+      "category": "Creative",
+      "categorySlug": "creative",
+      "headline": "Twice-daily Tidal curation built for an avid music lover",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1494297717420199996-Tidal-Music-Player-Skills.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-dworfd-boltai-gateway",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Wired BoltAI v2 into Hermes with full markdown and slash commands",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1502296506735268102-gateway-plugin-for-BoltAI--and-other-OpenAI-API-clients----full-markdown---slash-commands.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-francipenov-macos-control-center",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "A MacOS control center for the local models on my two machines",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1496335871035576350-MacOS-Control-Center-for-local-models.txt",
+      "date": ""
+    },
+    {
+      "id": "hn-vessel-browser",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Vessel Browser: agent-native browser born at the Hermes hackathon",
+      "source": "hn",
+      "url": "https://news.ycombinator.com/item?id=47470156",
+      "date": "2026"
+    },
+    {
+      "id": "discord-glitchglitchglitch-hermes-on-nixos",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Running Hermes in a NixOS + container setup",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent/",
+      "date": "2026-04-18"
+    },
+    {
+      "id": "discord-awais-h-hermes-reads-internet",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Hermes reads HackerNews and emails me a daily summary",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1502519565144428605-Hermes-to-read-the-internet-for-me.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-smantena-aws-google-workspace",
+      "category": "Enterprise",
+      "categorySlug": "enterprise",
+      "headline": "Got Hermes running on AWS VPS with Google Workspace automation",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1498227628337791006-Hermes-setup-on-Amazon-AWS-VPS-and-Google-Workspace-Automation.txt",
+      "date": ""
+    },
+    {
+      "id": "hn-rnxrx-obsidian",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Obsidian, home automation, VPS server management — on a cheap VPS",
+      "source": "hn",
+      "url": "https://news.ycombinator.com/item?id=47786673",
+      "date": "2026-04"
+    },
+    {
+      "id": "discord-anibal3608-ollama-multiagent",
+      "category": "Cost Optimization",
+      "categorySlug": "cost-optimization",
+      "headline": "Multi-agent Hermes on Ollama because it's cheaper",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1496175277120950332-Hermes-Multi-Agent-with-Ollama-cloud-models.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-stefan171-dream-auto",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "A plugin that lets Hermes think while I'm away",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1496725150656102561-Dream-Auto---Background-Thinking-Plugin-for-Hermes-Agent.txt",
+      "date": ""
+    },
+    {
+      "id": "captain-awesome-pm-standups-adhd",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "PM agent runs morning + evening standups for my ADHD",
+      "source": "x",
+      "url": "https://x.com/emmagine79/status/2053360898501468362",
+      "date": "2026-05-10"
+    },
+    {
+      "id": "reddit-patbhakta-hermes-vs-openclaw",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Hermes vs OpenClaw: memory lets me jump between projects",
+      "source": "reddit",
+      "url": "https://www.reddit.com/r/Rag/comments/1sgmvxh/anyone_here_tried_hermes_agent_whats_your/",
+      "date": "2026-04-09"
+    },
+    {
+      "id": "gkisokay-watchdog",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Hermes as a watchdog for my other agent",
+      "source": "x",
+      "url": "https://x.com/gkisokay/status/2037924543311016432",
+      "date": "2026-03-28"
+    },
+    {
+      "id": "discord-roach-jeong-h-ops-dashboard",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "Built H-OPS to make multi-agent work observable",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1500463136182898709-Hermes-Oprations.txt",
+      "date": ""
+    },
+    {
+      "id": "ksimback-hermesatlas",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "Scraped the entire Hermes ecosystem (hermesatlas.com)",
+      "source": "x",
+      "url": "https://x.com/KSimback/status/2041937777508675611",
+      "date": "2026-04-08"
+    },
+    {
+      "id": "discord-zedosplasticos-business-swarm",
+      "category": "Business Ops",
+      "categorySlug": "business-ops",
+      "headline": "Ported a competitor-analysis swarm from Codex to Hermes",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-03-21"
+    },
+    {
+      "id": "discord-vgallotti-rtk-token-savings",
+      "category": "Cost Optimization",
+      "categorySlug": "cost-optimization",
+      "headline": "Cut 60–90% of context tokens with an RTK integration",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1490184342507491489-RTK-Hermes---60---Token-Savings.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-wolframravenwolf-home-assistant",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Run Hermes Agent right inside Home Assistant",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1487152060465156216-Hermes-Agent-Home-Assistant-Add-on.txt",
+      "date": ""
+    },
+    {
+      "id": "reddit-suitable-currency440-hermes-is-openclaw",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Hermes is OpenClaw with a week of debug + RAG + memory",
+      "source": "reddit",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1ro9lph/anybody_who_tried_hermesagent/",
+      "date": "2026-03-08"
+    },
+    {
+      "id": "discord-djbuck-ios-companion",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Giving my agent iOS sensors: health, location, voice",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1490473436085223657-Hermes-iOS-App.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-phillipd-agentbox-email",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Built agentbox.id because no mail service felt right for agents",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1496465635478077561-agentbox.id---email-for-hermes-agents.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-jezza2463-standing-instructions-plugin",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "A STANDING.md plugin so my agent stops guessing",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-04-03"
+    },
+    {
+      "id": "discord-fathah-mobile-remote",
+      "category": "Messaging",
+      "categorySlug": "messaging",
+      "headline": "Controlling my Hermes Agent remotely from my phone",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1496513601115131996-Hermes-Mobile-App.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-mikebirdtech-hermes-mini-doc",
+      "category": "Content Creation",
+      "categorySlug": "content-creation",
+      "headline": "Made a Hermes Agent mini-documentary with hackathon finalists",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1493649462122381394-Hermes-Agent-Mini-Documentary.txt",
+      "date": ""
+    },
+    {
+      "id": "x-hypepartners-why-of",
+      "category": "Enterprise",
+      "categorySlug": "enterprise",
+      "headline": "Why 95% of AI users see no results — Hype's Hermes deep dive",
+      "source": "x",
+      "url": "https://x.com/hypepartners/status/2033578968612233606",
+      "date": "2026-03-16"
+    },
+    {
+      "id": "julian-meet-teams",
+      "category": "Business Ops",
+      "categorySlug": "business-ops",
+      "headline": "Auto-transcribe Meet calls, control from Teams, local models for client data",
+      "source": "blog",
+      "url": "https://juliangoldieseo1.substack.com/p/hermes-agent-v012-just-changed-ai",
+      "date": "2026-04-30"
+    },
+    {
+      "id": "discord-wysie-health-connect-receiver",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Standalone, but I built it to use with Hermes",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1498344744449871952-Health-Connect-Webhook-Receiver.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-ones07389-4-agents-on-laptop",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "Running 4 Hermes agents 24/7 on a 32GB Ubuntu laptop",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1499716570878840882-Hermes-Multi-Agent-Setup---4-Agents-on-a-Laptop.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-l-acie-skill-md-tool-calls",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Using SKILL.md as my Notion / Outlook / SharePoint tool router",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-04-03"
+    },
+    {
+      "id": "discord-visible-fix-natural-language-harness",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "3,000 logs of self-improvement on a custom harness",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-04-08"
+    },
+    {
+      "id": "discord-anibal3608-hermes-radar-spanish",
+      "category": "General",
+      "categorySlug": "general",
+      "headline": "Built a Hermes guide in Spanish using Hermes itself",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1496557014971584783-Hermes-Agent-Radar---Guia-para-usuarios-en-espa%C3%B1ol.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-jesus359-hermes-cardputer",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Connected my M5 Cardputer to Hermes via the API",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1494518737116729394-Hermes-x-Cardputer.txt",
+      "date": ""
+    },
+    {
+      "id": "reddit-hermify",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "Hermify: managed hosting for Hermes",
+      "source": "reddit",
+      "url": "https://www.reddit.com/r/vibecoding/comments/1slhhj1/i_took_the_nousresearch_hermes_agent_and_built_a/",
+      "date": "2026"
+    },
+    {
+      "id": "nickspisak-everything",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Replaced everything with a single Hermes agent",
+      "source": "x",
+      "url": "https://x.com/NickSpisak_/status/2042709705991295221",
+      "date": "2026-04-10"
+    },
+    {
+      "id": "discord-kayp5780-webui-home-server",
+      "category": "Messaging",
+      "categorySlug": "messaging",
+      "headline": "My Hermes runs on my home server, I reach it from anywhere",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1498760475926597693-Hermes-WebUI.txt",
+      "date": ""
+    },
+    {
+      "id": "gh-enigma-merxex",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Agent-to-agent commerce via Merxex",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/13562",
+      "date": "2026"
+    },
+    {
+      "id": "discord-wysie-whoop-plugin",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Pulling my Whoop data into Hermes locally",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1498020050047729806-Whoop-Plugin.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-bennytimz-pharma-skills-africa",
+      "category": "Research",
+      "categorySlug": "research",
+      "headline": "Bringing AI-assisted drug discovery to Africa as a pharmacy undergrad",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1493141848527474841-Pharma-skills-covering-ChEMBL--AlphaFold--OpenFDA--QSAR-workflows..txt",
+      "date": ""
+    },
+    {
+      "id": "gh-romanescu-skillfactory",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Skill Factory: silently watches workflows and writes SKILL.md + plugin.py",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/1935",
+      "date": "2026"
+    },
+    {
+      "id": "gh-samdu-kubernetes",
+      "category": "Enterprise",
+      "categorySlug": "enterprise",
+      "headline": "Kubernetes pod-hop handoff across restarts",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/11248",
+      "date": "2026"
+    },
+    {
+      "id": "wolfram-home-assistant-addon",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Home Assistant add-on: zero to agent in under 5 minutes",
+      "source": "x",
+      "url": "https://x.com/WolframRvnwlf/status/2037583878009889013",
+      "date": "2026"
+    },
+    {
+      "id": "discord-lsof-hermes-chat-proxy",
+      "category": "Messaging",
+      "categorySlug": "messaging",
+      "headline": "Built a web proxy so I can hand off Hermes sessions to mobile",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1495819189938552994-Lightweight-web-based-Hermes-chat-proxy.txt",
+      "date": ""
+    },
+    {
+      "id": "gh-flyingcloud-migration",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "Shadow-to-live migration from OpenClaw",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/16134",
+      "date": "2026"
+    },
+    {
+      "id": "discord-harrison07525-security-rule-skill",
+      "category": "Privacy & Self-Hosted",
+      "categorySlug": "privacy",
+      "headline": "A skill that hardens my agent against common LLM threats",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1488447168280006745-Hermes-Security-Rule-Skill.txt",
+      "date": ""
+    },
+    {
+      "id": "gh-juan-email-pipeline",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "8h/day on Opus: email pipeline with DBOS + Postgres + S3",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/5563",
+      "date": "2026"
+    },
+    {
+      "id": "agentmail-inbox",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Give your Hermes its own email inbox",
+      "source": "x",
+      "url": "https://x.com/agentmail/status/2041605207704895810",
+      "date": "2026-04-07"
+    },
+    {
+      "id": "x-exileai-0-hermes-iris",
+      "category": "Creative",
+      "categorySlug": "creative",
+      "headline": "Spare-laptop Hermes 'Iris' builds a RenPy visual novel autonomously",
+      "source": "x",
+      "url": "https://x.com/ExileAI_0/status/2046197309495533698",
+      "date": "2026-04-20"
+    },
+    {
+      "id": "discord-misswuhanliang-translator-extension",
+      "category": "Content Creation",
+      "categorySlug": "content-creation",
+      "headline": "Built a browser extension for translation and summarization on Hermes-4-70B",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1484856405424078980-HermesAI-Translator.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-luminousix-claude-orchestrator",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Hermes orchestrates Claude Code over SSH to my Mac",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-03-30"
+    },
+    {
+      "id": "discord-arm64be-models-running",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "All my knowledge on making models run, as a skill",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1501317699698032772-all-my-knowledge-on-making-models-run.txt",
+      "date": ""
+    },
+    {
+      "id": "gh-artile-zed",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Hermes in Zed editor via ACP Registry",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/16028",
+      "date": "2026"
+    },
+    {
+      "id": "gideon-trading-hetzner",
+      "category": "Trading & Markets",
+      "categorySlug": "trading",
+      "headline": "24/7 crosschain trading agent on Hetzner",
+      "source": "blog",
+      "url": "https://medium.com/@gideonfip/hermes-is-easier-than-openclaw-how-i-deployed-mine-on-hetzner-719faf08bc29",
+      "date": "2026"
+    },
+    {
+      "id": "discord-meatrition-conventional-commits-skill",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "A commits skill that keeps my history clean",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1492904603694530622-Would-appreciate-a-conventional-commits-skill.txt",
+      "date": ""
+    },
+    {
+      "id": "akashnet-inventory",
+      "category": "Business Ops",
+      "categorySlug": "business-ops",
+      "headline": "Live inventory tracking on Hermes",
+      "source": "x",
+      "url": "https://x.com/akashnet/status/2046622301395845264",
+      "date": "2026-04-21"
+    },
+    {
+      "id": "discord-tranquilflow-docker-mode",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Used Claude Code to set up Hermes in Docker mode",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-04-07"
+    },
+    {
+      "id": "gladiator-hackathon",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "GLADIATOR: 9 Hermes agents, two rival AI companies, one GitHub stars war",
+      "source": "youtube",
+      "url": "https://www.youtube.com/watch?v=YqLcMmzl3Yg",
+      "date": "2026"
+    },
+    {
+      "id": "discord-1tiger4u-dreamer-agent",
+      "category": "Creative",
+      "categorySlug": "creative",
+      "headline": "I built a fully autonomous 'Dreamer' agent that just wanders and thinks",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1492829904591392869-Dreamer.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-hanscnelson-xfce-browser",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Hermes and OpenClaw in XFCE desktop containers, side by side",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/hermes-agent.txt",
+      "date": "2026-04-07"
+    },
+    {
+      "id": "reddit-research-agent",
+      "category": "Research",
+      "categorySlug": "research",
+      "headline": "I had my research agent dig into what people are building with Hermes",
+      "source": "reddit",
+      "url": "https://www.reddit.com/r/hermesagent/comments/1sd3bwf/had_my_research_agent_dig_into_what_people_are/",
+      "date": "2026"
+    },
+    {
+      "id": "alexcovo-movies",
+      "category": "Creative",
+      "categorySlug": "creative",
+      "headline": "My Hermes agent makes movies now",
+      "source": "x",
+      "url": "https://x.com/alexcovo_eth/status/2046437996262539539",
+      "date": "2026-04-21"
+    },
+    {
+      "id": "mvanhorn-business-ops",
+      "category": "Business Ops",
+      "categorySlug": "business-ops",
+      "headline": "Client research, follow-ups, podcasts, leads — all on Hermes",
+      "source": "x",
+      "url": "https://x.com/mvanhorn/status/2045935785661349956",
+      "date": "2026-04-19"
+    },
+    {
+      "id": "leon-amazon-titles",
+      "category": "Content Creation",
+      "categorySlug": "content-creation",
+      "headline": "Scraped Amazon without extra config; built a YouTube title skill",
+      "source": "youtube",
+      "url": "https://www.youtube.com/watch?v=jmtpYUOr7_U",
+      "date": "2026"
+    },
+    {
+      "id": "mishig-jarvis",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Jarvis at home in 2026",
+      "source": "x",
+      "url": "https://x.com/mishig25/status/2044433805017014414",
+      "date": "2026-04-15"
+    },
+    {
+      "id": "anup-5vps",
+      "category": "Cost Optimization",
+      "categorySlug": "cost-optimization",
+      "headline": "$5 VPS playbook — so the defaults don't eat your OpenRouter budget",
+      "source": "blog",
+      "url": "https://medium.com/@anup.karanjkar08/how-to-run-hermes-agent-on-a-5-vps-the-self-evolving-agent-that-ate-last-weeks-trending-chart-cbe94a82d094",
+      "date": "2026"
+    },
+    {
+      "id": "gh-bsxy-higress",
+      "category": "Enterprise",
+      "categorySlug": "enterprise",
+      "headline": "Hermes inside an MCP infrastructure behind Higress",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/8881",
+      "date": "2026"
+    },
+    {
+      "id": "discord-hugh1979-1969-teletype",
+      "category": "Creative",
+      "categorySlug": "creative",
+      "headline": "Chatting with Hermes on a 1969 Teletype Model 33 at 110 baud",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1496700201526759494-Hardcopy-TUI.txt",
+      "date": ""
+    },
+    {
+      "id": "discord-sprmn24-diff-review-plugin",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "A small plugin that audits my diffs before I commit",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/plugins-skills-and-skins/1487444194191605932-diff-review--Hermes-plugin-that-audits-your-diffs-before-you-commit.txt",
+      "date": ""
+    },
+    {
+      "id": "anand-telegram-topics",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Private Telegram topics, each with its own skill bindings",
+      "source": "blog",
+      "url": "https://mranand.substack.com/p/inside-hermes-agent-how-a-self-improving",
+      "date": "2026-04"
+    },
+    {
+      "id": "discord-hypercubed-knowledge-starter-kit",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Built a tool-agnostic repo knowledge layer across all my agents",
+      "source": "discord",
+      "url": "https://github.com/teknium1/nous-discord-archive/blob/main/archives/community-projects-showcase/1492657008539730010-Hypercubed-Agent-Knowledge-Starter-Kit.txt",
+      "date": ""
+    },
+    {
+      "id": "gh-oleg-multi-role",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "One agent, many roles: nutritionist, developer, finance advisor",
+      "source": "github",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/5143",
+      "date": "2026"
+    },
+    {
+      "id": "witcheer-macmini-24-7",
+      "category": "Cost Optimization",
+      "categorySlug": "cost-optimization",
+      "headline": "24/7 agent on a Mac Mini for 2 months — $21/month",
+      "source": "x",
+      "url": "https://x.com/witcheer/status/2037530350763524482",
+      "date": "2026-03-27"
+    },
+    {
+      "id": "cyrilxbt-tiktok-factory",
+      "category": "Content Creation",
+      "categorySlug": "content-creation",
+      "headline": "Automated TikTok slideshow factory that works while you sleep",
+      "source": "x",
+      "url": "https://x.com/cyrilXBT/status/2054611133911417266",
+      "date": "2026-05-13"
+    },
+    {
+      "id": "ibuzovskyi-3-money-setups",
+      "category": "Business Ops",
+      "categorySlug": "business-ops",
+      "headline": "One isolated Hermes profile per client — sell AI ops to local businesses",
+      "source": "x",
+      "url": "https://x.com/IBuzovskyi/status/2060773706574479754",
+      "date": "2026-05-30"
+    },
+    {
+      "id": "akshay-hermes-folder-anatomy",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "The anatomy of the ~/.hermes folder — one folder controls everything",
+      "source": "x",
+      "url": "https://x.com/akshay_pachaar/status/2055629943891988719",
+      "date": "2026-05-16"
+    },
+    {
+      "id": "sudoingx-general-agent",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "Community admin: Hermes is the general agent, not a coding/research/automation agent",
+      "source": "x",
+      "url": "https://x.com/sudoingX/status/2044405911150829709",
+      "date": "2026-04-15"
+    },
+    {
+      "id": "aakashgupta-pm-briefing",
+      "category": "Business Ops",
+      "categorySlug": "business-ops",
+      "headline": "PM competitive briefing went from 20 min to 8 min over 6 weeks — same prompt",
+      "source": "x",
+      "url": "https://x.com/aakashgupta/status/2050349093969694825",
+      "date": "2026-05-01"
+    },
+    {
+      "id": "datachaz-nesquena-webui",
+      "category": "Meta & Ecosystem",
+      "categorySlug": "meta",
+      "headline": "Open-source web UI for Hermes with 1:1 terminal parity in the browser",
+      "source": "x",
+      "url": "https://x.com/DataChaz/status/2061179421990740248",
+      "date": "2026-05-31"
+    },
+    {
+      "id": "kanika-daily-workflows",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "The real power is what it does every day without you prompting it",
+      "source": "x",
+      "url": "https://x.com/KanikaBK/status/2054572674777797018",
+      "date": "2026-05-13"
+    },
+    {
+      "id": "tessakriesel-railway-telegram",
+      "category": "Integrations",
+      "categorySlug": "integrations",
+      "headline": "Deployed Hermes on Railway with Telegram — the 10 undocumented gotchas",
+      "source": "blog",
+      "url": "https://tessakriesel.com/how-i-deployed-hermes-agent-on-railway-with-telegram-and-every-gotcha-i-hit-along-the-way/",
+      "date": "2026-05-13"
+    },
+    {
+      "id": "defi0xjeff-30-skills",
+      "category": "Research",
+      "categorySlug": "research",
+      "headline": "$200 and 30 skills later — training Hermes as a personal analyst",
+      "source": "blog",
+      "url": "https://defi0xjeff.substack.com/p/hermes-200-and-30-skills-later-here",
+      "date": "2026-04-20"
+    },
+    {
+      "id": "jahangir-stackademic-field-report",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "After a 15-tool-call monitoring pipeline, Hermes wrote the skill unprompted",
+      "source": "blog",
+      "url": "https://blog.stackademic.com/forget-chatbots-hermes-agent-is-an-ai-that-actually-learns-from-you-d8d517be7b88",
+      "date": "2026-05-13"
+    },
+    {
+      "id": "sathishraju-switched-from-openclaw",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Sr AI Architect: 40% less task time on domain-similar tasks after 20+ skills",
+      "source": "blog",
+      "url": "https://medium.com/@sathishkraju/i-switched-from-openclaw-to-hermes-agent-heres-what-nobody-told-me-5f33a746b6ca",
+      "date": "2026-04-22"
+    },
+    {
+      "id": "avichawla-masterclass-three-agents",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Three isolated agents — a programmer, a researcher, a designer — each with its own Telegram bot",
+      "source": "blog",
+      "url": "https://blog.dailydoseofds.com/p/hermes-agent-masterclass",
+      "date": "2026-05-13"
+    },
+    {
+      "id": "chintanonweb-smarter-and-the-bill",
+      "category": "Cost Optimization",
+      "categorySlug": "cost-optimization",
+      "headline": "Compounding autonomy is a property you manage, not just enjoy",
+      "source": "blog",
+      "url": "https://dev.to/chintanonweb/hermes-agent-gets-smarter-every-day-so-does-the-bill-4i8o",
+      "date": "2026-05-15"
+    },
+    {
+      "id": "emmanuel-run-yourself",
+      "category": "Privacy & Self-Hosted",
+      "categorySlug": "privacy",
+      "headline": "The self-improving agent you can actually run yourself — Termux included",
+      "source": "blog",
+      "url": "https://dev.to/emmanuelthecoder/hermes-the-self-improving-agent-you-can-actually-run-yourself-555l",
+      "date": "2026-05-15"
+    },
+    {
+      "id": "moonsat-polymarket-weather",
+      "category": "Trading & Markets",
+      "categorySlug": "trading",
+      "headline": "No-code Polymarket weather-trading bot driven by plain-English prompts",
+      "source": "blog",
+      "url": "https://moonsat.medium.com/hermes-agent-polymarket-how-i-built-self-learning-weather-trading-bot-100-5-000-guide-233fd4a008f2",
+      "date": "2026-04-20"
+    },
+    {
+      "id": "tonbi-18-agent-kanban-fleet",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "18-agent fleet on the Kanban board that scouts pain points and auto-ships tools",
+      "source": "youtube",
+      "url": "https://www.youtube.com/watch?v=EKVRqcpTT6s",
+      "date": "2026-06-01"
+    },
+    {
+      "id": "zsecurity-red-team-telegram",
+      "category": "Privacy & Self-Hosted",
+      "categorySlug": "privacy",
+      "headline": "24/7 cloud red-team 'AI hacking team' controlled from Telegram",
+      "source": "youtube",
+      "url": "https://www.youtube.com/watch?v=zwV5p1L0COI",
+      "date": "2026-05-01"
+    },
+    {
+      "id": "sharbel-junior-operator",
+      "category": "Business Ops",
+      "categorySlug": "business-ops",
+      "headline": "Runs Hermes as a 'junior operator' across 5 money-making workflows",
+      "source": "youtube",
+      "url": "https://www.youtube.com/watch?v=2WZAcWtwoDI",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "sharbel-polymarket-alerts",
+      "category": "Trading & Markets",
+      "categorySlug": "trading",
+      "headline": "Polymarket movement-alert agent that researches but never trades",
+      "source": "youtube",
+      "url": "https://www.youtube.com/watch?v=2WZAcWtwoDI",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "vivek-shetye-trip-memory",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "Telegram assistant recalled Japan-trip preferences while planning a France trip",
+      "source": "youtube",
+      "url": "https://www.youtube.com/watch?v=PuNVmPGcffg",
+      "date": "2026-05-04"
+    },
+    {
+      "id": "codehead-daily-operator",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "7am filtered tech briefing + a check-in that spots tasks worth automating",
+      "source": "youtube",
+      "url": "https://www.youtube.com/watch?v=8GjyOQy19so",
+      "date": "2026-05-14"
+    },
+    {
+      "id": "alexfinn-2am-microapp",
+      "category": "Dev Workflow",
+      "categorySlug": "dev-workflow",
+      "headline": "Scheduled Hermes to build a useful micro-app for him every night at 2am",
+      "source": "youtube",
+      "url": "https://www.youtube.com/watch?v=RoBD7Lc-0MI",
+      "date": "2026-05-10"
+    },
+    {
+      "id": "alexfinn-memory-wiki",
+      "category": "Personal Assistant",
+      "categorySlug": "personal-assistant",
+      "headline": "A clickable 'memory wiki' of everything worked on, plus a 9am priority routine",
+      "source": "youtube",
+      "url": "https://www.youtube.com/watch?v=AQHlyGA2cZM",
+      "date": "2026-05-22"
+    },
+    {
+      "id": "worldofai-recursive-crm",
+      "category": "Creative",
+      "categorySlug": "creative",
+      "headline": "Recursively built a Supabase-backed CRM dashboard where each build reuses prior components",
+      "source": "youtube",
+      "url": "https://www.youtube.com/watch?v=YBp_PXBbe80",
+      "date": "2026-05-20"
+    }
+  ]
+}

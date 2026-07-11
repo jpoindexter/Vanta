@@ -8,6 +8,7 @@ import {
   writeRunMemory,
   approver,
   reviewAfterTurn,
+  isExplicitChoiceWall,
   memoryExtractAfterTurn,
   maybeCurate,
 } from "../session.js";
@@ -100,11 +101,12 @@ export async function runInstruction(
     const convo = createConversation(setup.systemPrompt, agentDeps);
     await fireHooks(join(root, ".vanta"), "UserPromptSubmit", { prompt: instruction }, { cwd: root, prompt: instruction, sessionType: "one-shot", ...buildAgentHookDeps(agentDeps) });
     const outcome = await convo.send(buildOneShotSendText(instruction));
+    const choiceWall = isExplicitChoiceWall(outcome.finalText);
     await fireHooks(join(root, ".vanta"), "Stop", { finalResponse: outcome.finalText, turnIndex: 1 }, { cwd: root, sessionType: "one-shot", ...buildAgentHookDeps(agentDeps) });
     emitOutput(format, outcome.finalText, setup.provider.modelId());
     if (!structured) console.log(`\n[${outcome.stoppedReason} · ${outcome.iterations} iteration(s)]`);
     await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction, finalText: outcome.finalText });
-    await suggestSkillFromRun(instruction, process.env);
+    if (!choiceWall) await suggestSkillFromRun(instruction, process.env);
     await reviewAfterTurn({
       provider: setup.provider,
       safety: setup.safety,
@@ -112,6 +114,7 @@ export async function runInstruction(
       transcript: convo.messages,
       toolIterations: outcome.toolIterations,
       turnIndex: 1,
+      deferMutation: choiceWall,
     });
     memoryExtractAfterTurn({ provider: setup.provider, transcript: convo.messages });
   } catch (err) {

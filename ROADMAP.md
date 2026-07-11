@@ -55,6 +55,58 @@ local operator."* That disposition is now reversed. Cards live in `roadmap.json`
   model config into `~/.vanta`, preview → select → backup → apply. On-pattern (both
   competitors ship importers). Pairs with the docs comparison page.
 
+### Hermes transcript extraction (2026-07-11)
+
+The Tonbis AI Garage Hermes transcript pass produced a newer set of workflow cards in
+`roadmap.json`: `HERMES-PROFILE-ROSTER`, `HERMES-KANBAN-ROUTER`,
+`HERMES-SECOND-BRAIN-CORPUS`, `HERMES-DELEGATION-TREE-RECEIPTS`,
+`HERMES-TOOL-SURFACE-PROFILES`, `HERMES-WEBHOOK-WORKFLOW-BUILDER`,
+`HERMES-SPREADSHEET-COPILOT`, `HERMES-VAULT-SECRETS-ROTATION`, and
+`HERMES-DASHBOARD-PLUGIN-SLOTS`. The current Hermes feature/function harvest added
+`HERMES-PROFILE-DISTRIBUTIONS`, `HERMES-AUTOMATION-BLUEPRINT-CATALOG`,
+`HERMES-CONTEXT-REFS-V2`, `HERMES-CREDENTIAL-POOLS`, `HERMES-PLUGIN-LLM-LANE`, and
+`HERMES-DELIVERABLE-AUTO-ATTACH`. The live issue + Mercury + user-story pass added
+`HERMES-ISSUE-REGRESSION-PACK`, `HERMES-STORY-EVAL-HARNESS`,
+`MERCURY-CROSS-PLATFORM-SERVICE`, `PUBLIC-SKILL-REGISTRY-CLIENT`, and
+`VANTA-PUBLIC-SITE-V1`. The first executed story then exposed
+`CHOICE-WALL-SIDE-EFFECT-GUARD`: post-turn learning wrote a skill after the agent said it
+would wait for the operator's choice. The second executed story exposed and shipped
+`GLOB-BASE-PATH-ROOT-SCOPE`: relative `glob_files` bases were resolved from the process
+cwd instead of the declared project root, hiding root installer files. The first issue-pack
+regression shipped `COMPACTION-INTENT-GROUNDING`: generated summaries are reference-only
+and cannot preserve fabricated attributed user asks as actionable conversation turns.
+`ACP-SESSION-ROUTING-ISOLATION` then bound peer updates and permission requests to session
+IDs opened by the active ACP client, failing unknown-session approvals closed.
+`SUBAGENT-PROVIDER-IDENTITY` prevents delegate/swarm provider switches from carrying an
+incompatible parent model into the selected provider or user alias.
+`MCP-RECONNECT-PROCESS-REAP` closes obsolete management clients before reconnect and
+adds owned cleanup when the MCP panel is dismissed. `SAFE-MODE-STATE-ISOLATION` removes
+persistent memory/settings from the real prompt path and proves plugins/MCP do not start.
+`SESSION-ENV-OUTPUT-REDACTION` masks opaque credential slots and structured secrets before
+session-environment listings can enter terminal recordings. `DESKTOP-GATEWAY-PROVIDER-PARITY`
+adds user aliases to the desktop catalog and pins the same identity through gateway routing.
+Together these shipped slices complete `HERMES-ISSUE-REGRESSION-PACK`. Continued story
+execution shipped `LIVE-CONTEXT-COST-INSPECTOR` after three preserved failure receipts;
+`HERMES-MULTITURN-STORY-RUNNER` captures the remaining same-session clarification and
+approval proof gap instead of weakening choice-wall behavior. The Enterprise/Kubernetes
+story then preserved two failed receipts before `WORKFLOW-ACCEPTANCE-EVIDENCE-CONTRACT`
+required validated node-level evidence for schedule, isolation, secrets, health, rollback,
+and approval. That run also exposed and shipped `SUCCESSFUL-TOOL-ERROR-CLASSIFICATION`, so
+successful policy/rollback prose no longer opens a false repair loop. Five representative
+Hermes scenarios now have explicit reviewed passes; the harness remains open for broader
+category execution and deterministic outcome verifiers.
+
+The extraction note is `docs/research/hermes-transcript-roadmap-extract-2026-07-11.md`;
+the current Hermes repo comparison is `docs/research/hermes-current-vs-vanta-vision-2026-07-11.md`;
+the feature/function harvest is `docs/research/hermes-feature-function-harvest-2026-07-11.md`.
+The issue, Mercury, and current user-story audit is
+`docs/research/hermes-mercury-issue-usecase-audit-2026-07-11.md`. Build priority is public-site
+v1 + story eval foundation → Hermes issue regression pack → profile roster → profile
+distributions → profile Kanban router → second-brain corpus compiler. Promote credential
+pools/vault-backed secrets after the profile/Kanban spine if multi-profile gateways or
+run-anywhere execution need safer key distribution. The rest stay horizon until a concrete
+workflow needs them.
+
 ## TUI — real terminal UI (shipped 2026-06-02)
 - **Streaming engine**: `LLMProvider.stream()` (OpenAI family **+ Anthropic**) yields `StreamChunk`s — token deltas, **`thinking` (live reasoning, universal)**, and tool calls; `agent.ts` emits them via `onTextDelta`/`onThinkingDelta` (falls back to `complete()` when unused). Pure `foldToolCallDeltas`/`reasoningDelta`/`streamAnthropicEvents` assemble the streamed shapes.
 - **Ink TUI** (`tui/app.tsx` + `tui/launch.tsx`): React/Ink 7 app — streaming transcript (live token-by-token), interleaved tool activity (`→`/`✓`/`✗`), spinner status line (model + state), input composer (`ink-text-input`), **inline approval prompts** for kernel `ask` risks, minimal slash (`/help /clear /model /exit`). `vanta` launches it on a TTY; `--no-tui` / `VANTA_NO_TUI` / resume / non-TTY fall back to the readline REPL (which keeps the full slash set).

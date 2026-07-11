@@ -18,13 +18,23 @@ See `docs/prd.md` for the full roadmap.
 
 ## Install
 
-One command on a fresh machine — clones Vanta into `~/vanta`, downloads the prebuilt kernel (and a portable Node if you don't have one), and puts a global `vanta` on your PATH:
+On macOS or Linux, one command clones Vanta into `~/vanta`, downloads the prebuilt kernel (and a portable Node if you don't have one), and puts a global `vanta` on your PATH:
 
 ```bash
 curl -fsSL https://vanta.theft.studio/install.sh | bash
 ```
 
 > **Only `git` is required.** No Rust toolchain, no system Node — `install.sh` downloads a checksum-verified prebuilt kernel (from the GitHub release) and a portable **Node 22** (from nodejs.org) when they're missing. Already have Rust + Node? It uses them. Override the location with `VANTA_DIR=/path bash bootstrap.sh`.
+
+On Windows 11, clone the repository and run the tracked PowerShell installer:
+
+```powershell
+git clone https://github.com/jpoindexter/Vanta.git
+cd Vanta
+powershell -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+The current Windows installer uses `winget` for missing Git, Node 22, and Rust. It downloads the checksum-verified x64 kernel when available and falls back to a native Cargo build. Native Windows service supervision is not shipped yet; run the gateway in the foreground.
 
 Then: `vanta setup` (pick a model backend) → `vanta` (interactive session) → `vanta doctor` (health check).
 
@@ -139,12 +149,14 @@ vanta migrate hermes        # or: openclaw   (--skills/--mcp/--model to narrow; 
 
 It reads the other agent's `skills/<slug>/SKILL.md`, `mcpServers` config, and provider/model settings, **flags secret env keys without copying the secret**, and only writes after you confirm — your `~/.vanta` is backed up first.
 
+Recent Hermes transcript mining added a focused parity path to the roadmap: persistent specialist profiles, profile-routed Kanban, transcript/notes corpus memory, delegation receipts, webhook workflow templates, spreadsheet control, vault-backed secrets, and bounded dashboard plugin slots. See [`docs/research/hermes-transcript-roadmap-extract-2026-07-11.md`](docs/research/hermes-transcript-roadmap-extract-2026-07-11.md); the executable source of truth remains `roadmap.json`.
+
 ## Community
 
 - 💬 **[Discussions](https://github.com/jpoindexter/Vanta/discussions)** — questions, ideas, show-and-tell.
 - 🐛 **[Issues](https://github.com/jpoindexter/Vanta/issues)** — bugs + feature requests (templates provided).
 - 📚 **[Docs](https://docs.vanta.theft.studio)** — the full guide.
-- 📦 **[Releases](https://github.com/jpoindexter/Vanta/releases)** — prebuilt kernels for macOS + Linux (arm64 / x64).
+- 📦 **[Releases](https://github.com/jpoindexter/Vanta/releases)** — prebuilt kernels for macOS arm64/x64, Linux GNU arm64/x64, Windows x64, and Android/Termux arm64.
 
 ## Related
 

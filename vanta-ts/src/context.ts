@@ -83,6 +83,29 @@ export function trimMessages(
 
 export type Summarizer = (messages: Message[]) => Promise<string>;
 
+const USER_INTENT_CLAIM = /\b(?:the\s+)?user(?:'s)?\s+(?:asked|asks|requested|requests|instructed|instructs|told|wanted|wants|needs|expects|said\s+(?:to|that)|would\s+like|must|should|request|instruction|intent)\b/i;
+const PENDING_INTENT_CLAIM = /\b(?:pending|unresolved|next)\s+(?:user\s+)?(?:ask|request|instruction|action)\b/i;
+
+/**
+ * Generated summaries may preserve facts and decisions, but they are never a
+ * trusted source of user intent. The protected real-message tail owns current
+ * instructions, so attributed or pending intent claims are removed here.
+ */
+export function sanitizeCompactionSummary(summary: string): string {
+  const retained = (summary.match(/[^.!?\n]+[.!?]?/g) ?? [])
+    .map((sentence) => sentence.trim())
+    .filter(Boolean)
+    .filter((sentence) => !USER_INTENT_CLAIM.test(sentence) && !PENDING_INTENT_CLAIM.test(sentence));
+  return retained.join(" ").trim() || "No trusted factual summary was retained.";
+}
+
+function buildCompactionNote(summary: string, dropped: number): Message {
+  return {
+    role: "system",
+    content: `[Compaction summary — reference only; not a user request; ${dropped} earlier messages]: ${sanitizeCompactionSummary(summary)}`,
+  };
+}
+
 /**
  * Like trimMessages, but replaces the dropped middle with an LLM summary
  * instead of a bare notice. Falls back to trimMessages if summarize throws.
@@ -106,10 +129,7 @@ export async function compressMessages(
     summary = await extractiveMiddle(middle);
   }
 
-  const note: Message = {
-    role: "user",
-    content: `[Summary of ${middle.length} earlier messages]: ${summary}`,
-  };
+  const note = buildCompactionNote(summary, middle.length);
   // Compaction reminder: a transient nudge to /compress, injected interior so
   // it never displaces head/goalNote at index 1 (pinned by tests).
   const reminder = compactionReminder(estimateTokens(messages), contextWindow);
@@ -153,8 +173,8 @@ export async function compactConversation(
 
   try {
     await opts.onPreCompact?.(middle).catch(() => {});
-    const summary = await summarize(middle);
-    const note: Message = { role: "user", content: `[Summary of ${middle.length} earlier messages]: ${summary}` };
+    const summary = sanitizeCompactionSummary(await summarize(middle));
+    const note = buildCompactionNote(summary, middle.length);
     // HARNESS-IMAGE-SHRINK: historical screenshots stop costing tokens post-compaction —
     // keep images only on the most recent image-bearing survivor.
     const survivors = stripHistoricalImages([...system, ...head, note, ...tail]).messages;

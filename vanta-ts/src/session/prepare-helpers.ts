@@ -15,7 +15,7 @@ import { gitInstructionsBlock } from "../settings/git-settings.js";
 import { beliefPromptBlock } from "../operator-profile/behavior.js";
 import { resolveProjectTrust, type TrustConfirmer } from "../settings/trust-gate.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
-import { resolveIsolation, skipSkills, skipHooks, skipProjectContext } from "../cli/isolation.js";
+import { resolveIsolation, skipSkills, skipHooks, skipMemory, skipProjectContext, skipSettings } from "../cli/isolation.js";
 import { sessionConfig, sessionConfigEvent } from "../sessions/config-event.js";
 import { formatRalphContinuityBlock, hasIncompleteRalphWork, readRalphState } from "../ralph/state.js";
 import type { LLMProvider } from "../providers/interface.js";
@@ -40,6 +40,19 @@ type PromptContext = {
 };
 
 export async function loadPromptContext(repoRoot: string, activeGoalIds: number[]): Promise<PromptContext> {
+  const isolation = resolveIsolation(process.env);
+  if (skipMemory(isolation)) {
+    return {
+      memory: "",
+      skills: [],
+      brain: "",
+      selfContent: "",
+      moimNote: undefined,
+      errorsLog: undefined,
+      program: undefined,
+      projectId: undefined,
+    };
+  }
   const memory = await recentMemory(activeGoalIds);
   // VANTA-SAFE-MODE: safe-mode + bare skip skills (install + index). Skipped →
   // empty skill index, same shape as a fresh store with no skills.
@@ -85,6 +98,7 @@ async function recentlyWritten(path: string, maxAgeMs: number): Promise<boolean>
 }
 
 export async function injectResume(systemPrompt: string, repoRoot: string): Promise<string> {
+  if (skipMemory(resolveIsolation(process.env))) return systemPrompt;
   const { readAutoHandoff, clearAutoHandoff } = await import("../repl/auto-handoff.js");
   const dataDir = join(repoRoot, ".vanta");
   const maxAgeMs = (Number(process.env.VANTA_RESUME_MAX_AGE_MIN ?? 120) || 0) * 60_000;
@@ -159,15 +173,16 @@ export async function buildRunPrompt(o: {
   /** VANTA-TRUST-DIALOG: false → untrusted project, context files are not loaded. */
   loadContext?: boolean;
 }): Promise<{ systemPrompt: string; ralphContinuity?: string }> {
+  const isolation = resolveIsolation(process.env);
   const ctx = await loadPromptContext(o.repoRoot, o.activeIds);
-  const playbook = await playbookDigest(o.instruction).catch(() => "");
-  const ralphContinuity = await loadRalphContinuity(o.repoRoot);
+  const playbook = skipMemory(isolation) ? "" : await playbookDigest(o.instruction).catch(() => "");
+  const ralphContinuity = skipMemory(isolation) ? undefined : await loadRalphContinuity(o.repoRoot);
   // Task-condition the skill index for a real one-shot task (interactive keeps the full
   // index → stable cached prefix). Opt out with VANTA_SKILL_SUBSET=0.
   const skills = process.env.VANTA_SKILL_SUBSET === "0"
     ? ctx.skills
     : selectSkillsForTask(ctx.skills ?? [], o.instruction);
-  const settings = await loadSettings(o.repoRoot, process.env);
+  const settings = skipSettings(isolation) ? {} : await loadSettings(o.repoRoot, process.env);
   const systemPrompt = await buildSystemPrompt({
     root: o.repoRoot,
     soulPath: join(o.repoRoot, "SOUL.md"),
@@ -186,7 +201,7 @@ export async function buildRunPrompt(o: {
     ralphContinuity,
     goalsPaused: process.env.VANTA_GOAL_RESUME !== "auto",
     loadContext: o.loadContext,
-    outputDensity: await getOutputDensity(),
+    outputDensity: skipSettings(isolation) ? undefined : await getOutputDensity(),
     gitInstructions: gitInstructionsBlock(settings),
   });
   // VANTA-CACHE-HINTS: opt-in (VANTA_EXCLUDE_DYNAMIC_PROMPT/VANTA_CACHE_HINTS=1)

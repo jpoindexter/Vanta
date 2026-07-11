@@ -2,6 +2,7 @@ import { readFileTool } from "./read-file.js";
 import { writeFileTool } from "./write-file.js";
 import { shellCmdTool } from "./shell-cmd.js";
 import { inspectStateTool } from "./inspect-state.js";
+import { inspectContextTool } from "./inspect-context.js";
 import { codeContextTool } from "./code-context.js";
 import { codeSearchTool } from "./code-search.js";
 import { codeAffectedTool } from "./code-affected.js";
@@ -146,6 +147,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   globFilesTool,
   shellCmdTool,
   inspectStateTool,
+  inspectContextTool,
   codeContextTool,
   codeSearchTool,
   codeAffectedTool,

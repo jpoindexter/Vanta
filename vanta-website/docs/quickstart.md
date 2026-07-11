@@ -6,17 +6,31 @@ sidebar_position: 2
 
 # Quickstart
 
-**Prereqs:** `git`. That's it — the Rust kernel and Node 22 are downloaded automatically on first install (no toolchain needed).
+**macOS/Linux prereq:** `git`. The Rust kernel and Node 22 are downloaded automatically on first install when supported prebuilt assets are available.
 
 ## Install
 
-One command on a fresh machine — clones Vanta, downloads the prebuilt kernel, and puts a global `vanta` on your PATH:
+### macOS and Linux
+
+One command on a fresh machine clones Vanta, downloads the prebuilt kernel, and puts a global `vanta` on your PATH:
 
 ```bash
 curl -fsSL https://vanta.theft.studio/install.sh | bash
 ```
 
 > No Rust or system Node required — `install.sh` downloads a checksum-verified prebuilt kernel (from the GitHub release) and a portable Node 22 (from nodejs.org) when they're missing. Override the location with `VANTA_DIR=/path bash bootstrap.sh`.
+
+### Windows 11
+
+Run the tracked PowerShell installer from a clone:
+
+```powershell
+git clone https://github.com/jpoindexter/Vanta.git
+cd Vanta
+powershell -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+The Windows installer uses `winget` when Git, Node 22, or Rust is missing. It first tries the checksum-verified x64 release kernel, then falls back to a native Cargo build. Background service installation is currently macOS-only, so run `vanta gateway` in the foreground on Windows.
 
 Then pick a model backend and start a session:
 
