@@ -47,6 +47,8 @@ export const SkillSettingsSchema = z
     maxSkills: z.number().int().positive().optional(),
     /** Clip each skill description to this many characters (+ an ellipsis). */
     descriptionMaxChars: z.number().int().positive().optional(),
+    /** Stage agent-authored skill mutations for explicit operator review. */
+    writeApproval: z.boolean().optional(),
   })
   .strict();
 

@@ -16,6 +16,7 @@ import { roadmapAddTool } from "./roadmap-add.js";
 import { webSearchTool } from "./web-search.js";
 import { webFetchTool } from "./web-fetch.js";
 import { writeSkillTool } from "./write-skill.js";
+import { skillManageTool } from "./skill-manage.js";
 import { recallTool } from "./recall.js";
 import { researchDecomposeTool } from "./research-decompose.js";
 import { screenshotTool } from "./screenshot.js";
@@ -167,6 +168,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   webSearchTool,
   webFetchTool,
   writeSkillTool,
+  skillManageTool,
   recallTool,
   researchDecomposeTool,
   redditReadTool,

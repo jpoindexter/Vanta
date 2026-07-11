@@ -2,7 +2,8 @@ import { z } from "zod";
 import { InMemoryToolRegistry } from "../tools/registry.js";
 import { recallTool } from "../tools/recall.js";
 import { writeSkillTool } from "../tools/write-skill.js";
-import { writeSkill, LEARNED_TAG } from "../skills/store.js";
+import { LEARNED_TAG, readSkill } from "../skills/store.js";
+import { submitAgentSkillMutation } from "../skills/write-approval.js";
 import { runAgent } from "../agent.js";
 import type { Tool } from "../tools/types.js";
 import type { LLMProvider } from "../providers/interface.js";
@@ -63,7 +64,7 @@ const LearnedArgs = z.object({
 });
 
 /** A write_skill that stamps the learned-provenance tag and records what it wrote. */
-function learnedSkillTool(written: string[]): Tool {
+function learnedSkillTool(written: string[], staged: string[], opts: { root: string; env: NodeJS.ProcessEnv; sessionId?: string }): Tool {
   return {
     schema: writeSkillTool.schema,
     describeForSafety: () => "record a learned skill in vanta's memory",
@@ -74,9 +75,13 @@ function learnedSkillTool(written: string[]): Tool {
       }
       const tags = Array.from(new Set([...(parsed.data.tags ?? []), LEARNED_TAG]));
       try {
-        const { skill } = await writeSkill({ ...parsed.data, tags });
-        written.push(skill.meta.name);
-        return { ok: true, output: `saved skill "${skill.meta.name}"` };
+        const action = await readSkill(parsed.data.name, opts.env) ? "edit" as const : "create" as const;
+        const result = await submitAgentSkillMutation({ action, input: { ...parsed.data, tags } }, {
+          root: opts.root, env: opts.env, sessionId: opts.sessionId, reason: "background self-improvement review",
+        });
+        if (result.status === "staged") { staged.push(result.id); return { ok: true, output: `staged learned skill for approval (${result.id})` }; }
+        written.push(parsed.data.name);
+        return { ok: true, output: `saved skill "${parsed.data.name}"` };
       } catch (err) {
         return { ok: false, output: (err as Error).message };
       }
@@ -121,11 +126,13 @@ export async function reviewTurn(opts: {
   safety: KernelClient;
   root: string;
   transcript: Message[];
-}): Promise<{ wrote: string[] }> {
-  const written: string[] = [];
+  env?: NodeJS.ProcessEnv;
+  sessionId?: string;
+}): Promise<{ wrote: string[]; staged: string[] }> {
+  const written: string[] = [], staged: string[] = [], env = opts.env ?? process.env;
   const registry = new InMemoryToolRegistry();
   registry.register(recallTool);
-  registry.register(learnedSkillTool(written));
+  registry.register(learnedSkillTool(written, staged, { root: opts.root, env, sessionId: opts.sessionId }));
 
   try {
     await runAgent(REVIEW_SYSTEM, serializeTranscript(opts.transcript), {
@@ -139,5 +146,5 @@ export async function reviewTurn(opts: {
   } catch {
     // Best-effort: a review failure must never surface to the main turn.
   }
-  return { wrote: written };
+  return { wrote: written, staged };
 }

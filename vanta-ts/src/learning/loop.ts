@@ -86,7 +86,7 @@ export function defaultLearningDeps(opts: {
   return {
     propose: async () => {
       const before = new Set((await learnedNames(env)));
-      const { wrote } = await reviewTurn({ provider: opts.provider, safety: opts.safety, root: opts.root, transcript: opts.transcript });
+      const { wrote } = await reviewTurn({ provider: opts.provider, safety: opts.safety, root: opts.root, transcript: opts.transcript, env });
       return wrote.map((name) => ({ name, existed: before.has(name) }));
     },
     load: (name) => readSkill(name, env),

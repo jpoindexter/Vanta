@@ -23,7 +23,7 @@ export const LEARNED_TAG = "vanta-learned";
 
 type StoreOpts = { env?: NodeJS.ProcessEnv; now?: string };
 
-type WriteInput = {
+export type WriteInput = {
   name: string;
   description: string;
   body: string;

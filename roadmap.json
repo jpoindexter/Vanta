@@ -17825,7 +17825,7 @@
       "id": "HERMES-SKILL-WRITE-APPROVAL-QUEUE",
       "track": "Extensibility",
       "title": "Skill-write approval queue - review agent-authored changes before activation",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Vanta can generate skills and blocks post-turn side effects at unresolved choice walls, but it lacks Hermes's durable pending review flow for agent-authored create, patch, edit, supporting-file, and delete operations.",
       "done": "A setting can stage every agent-authored skill mutation; pending entries survive restart; list/diff/approve/reject works in CLI, TUI, and gateway-safe truncated views; full diffs remain locally inspectable; approval reruns injection, path, and capability checks before atomic apply; rejection makes no active change; agent-created guard scanning remains distinct from operator approval; receipts identify proposer, source session, files, decision, and resulting hash.",
@@ -17838,7 +17838,8 @@
       "source": "Hermes skills.write_approval documentation 2026-07-11",
       "after": [
         "HERMES-PORTABLE-SKILL-PACKAGES"
-      ]
+      ],
+      "notes": "SHIPPED 2026-07-11. Added `skills.writeApproval` plus `vanta skills approval on|off`; agent-authored `write_skill`, new `skill_manage`, and background self-improvement now share one durable mutation service. Actions cover create, edit, exact patch, contained supporting-file write/remove, and reversible whole-skill delete/archive. Explicit create refuses overwrite; existing `write_skill` automatically labels rewrites as edit. Pending mode writes mode-0600 proposals under `~/.vanta/pending/skills`; the active tree remains unchanged until approval. CLI and `/skills` support pending, full/compact diff, approve, reject, and setting status; slash diffs truncate safely and name the full local proposal. Each proposal binds to the target's base hash; approval refuses stale writes after operator/process edits. Approval reruns path containment, injection scan, size/schema, and requested-capability syntax checks; scanner refusal remains independent of human approval. Rejection changes no active file. Supporting-file removal moves content into `skill-write-removed`; deletion uses the existing reversible skill archive. Resolved proposals survive under `_resolved`; redacted JSONL receipts retain id/action/skill/session/reason/decision/timestamps/result hash without skill content. Executed isolated real path: enabled approval; real write_skill staged create; CLI pending/diff/approve; active file appeared; real skill_manage staged patch; direct operator edit changed base; approval failed stale; reject succeeded; skill_manage staged supporting-file write; approve created file; queue emptied; audit contained approved:create, rejected:patch, approved:write_file and no body text. Focused queue/tool/background/CLI/TUI/settings tests: 126 passed. Full suite: 12,858 passed, 3 skipped, 0 failed; TypeScript, touched lint, Docusaurus production build, 30-scenario use-case validation, 1,188-card validation, and diff checks pass. This proves local queue behavior; it does not make unreviewed third-party skill content safe."
     },
     {
       "id": "HERMES-MEDIA-STUDIO-SKILL-PACK",

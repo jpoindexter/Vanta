@@ -1,6 +1,9 @@
 import { z } from "zod";
 import type { Tool } from "./types.js";
-import { writeSkill } from "../skills/store.js";
+import { join } from "node:path";
+import { skillsDir, slugifySkillName } from "../store/home.js";
+import { submitAgentSkillMutation } from "../skills/write-approval.js";
+import { readSkill } from "../skills/store.js";
 
 const Args = z.object({
   name: z.string().min(1),
@@ -42,7 +45,7 @@ export const writeSkillTool: Tool = {
   // no user files. Echoing name/description/body/tags here would let their
   // content (e.g. the word "delete") false-trigger the kernel safety classifier.
   describeForSafety: () => "record a learned skill in vanta's memory",
-  async execute(raw) {
+  async execute(raw, ctx) {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) {
       return {
@@ -52,10 +55,15 @@ export const writeSkillTool: Tool = {
     }
     try {
       const { name, description, body, tags } = parsed.data;
-      const result = await writeSkill({ name, description, body, tags });
+      const action = await readSkill(name, process.env) ? "edit" as const : "create" as const;
+      const result = await submitAgentSkillMutation({ action, input: { name, description, body, tags } }, {
+        root: ctx.root || process.cwd(), env: process.env, sessionId: ctx.sessionId, reason: "agent write_skill",
+      });
+      if (result.status === "staged") return { ok: true, output: `staged skill "${name}" for approval (${result.id}); review with vanta skills diff ${result.id}` };
+      const path = join(skillsDir(process.env), slugifySkillName(name), "SKILL.md");
       return {
         ok: true,
-        output: `saved skill "${result.skill.meta.name}" (${result.path})`,
+        output: `saved skill "${name}" (${path})`,
       };
     } catch (err) {
       return { ok: false, output: (err as Error).message };

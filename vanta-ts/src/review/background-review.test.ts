@@ -3,6 +3,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { shouldReview, reviewTurn } from "./background-review.js";
+import { listPendingSkillMutations, setSkillWriteApproval } from "../skills/write-approval.js";
 import { listSkills, LEARNED_TAG } from "../skills/store.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { SafetyClient } from "../safety-client.js";
@@ -120,5 +121,15 @@ describe("reviewTurn", () => {
       transcript: [{ role: "user", content: "x" }],
     });
     expect(wrote).toEqual([]);
+  });
+
+  it("stages background learning when skill write approval is enabled", async () => {
+    await setSkillWriteApproval(true, home, process.env);
+    const result = await reviewTurn({ provider: new WritingProvider(), safety: fakeSafety, root: home, sessionId: "review-session",
+      transcript: [{ role: "user", content: "learn a reusable debugging process" }] });
+    expect(result.wrote).toEqual([]);
+    expect(result.staged).toHaveLength(1);
+    expect((await listPendingSkillMutations(process.env))[0]?.sessionId).toBe("review-session");
+    expect(await listSkills(process.env)).toEqual([]);
   });
 });

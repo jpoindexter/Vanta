@@ -30,7 +30,7 @@ verified Vanta capabilities.
 | --- | --- | --- |
 | Skill packages with `references/`, `templates/`, and `scripts/` | Shipped bounded full-package preview, quarantine, update, rollback, and removal | `HERMES-PORTABLE-SKILL-PACKAGES` shipped |
 | Official, skills.sh, well-known, GitHub, and custom-tap discovery | Shipped normalized source filters, cache/offline state, provenance, aliases, taps, and quarantine routing | `HERMES-MULTISOURCE-SKILL-HUB` shipped |
-| Staged approval for agent-authored skill create/edit/delete | Choice-wall protection exists, but no durable skill-write review queue | `HERMES-SKILL-WRITE-APPROVAL-QUEUE` |
+| Staged approval for agent-authored skill create/edit/delete | Shipped durable create/edit/patch/supporting-file/delete queue with CLI/TUI review, stale guards, and receipts | `HERMES-SKILL-WRITE-APPROVAL-QUEUE` shipped |
 | Image/video/audio/3D production recipes and generators | Vanta analyzes images/video; it has no native video-generation tool or verified studio workflow | `HERMES-MEDIA-STUDIO-SKILL-PACK` |
 | Stripe Link, MPP, and Stripe Projects | Generic browser/MCP can attempt these, but no payment-specific secret, approval, amount, or receipt contract exists | `HERMES-PAYMENT-SKILL-PACK` |
 | Shopping, Shopify, and agent telephony | SMS transport exists; storefront administration, checkout/returns, and voice-call workflows do not | `HERMES-COMMERCE-TELEPHONY-SKILL-PACK` |

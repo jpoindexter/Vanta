@@ -14,6 +14,8 @@ export async function runSkillsRegistryCommand(args: string[], deps: Deps = {}):
 }
 
 async function route(args: string[], ctx: Context): Promise<number> {
+  const { runSkillsApprovalCommand } = await import("./skills-approval-cmd.js"), approval = await runSkillsApprovalCommand(args, { root: process.cwd(), ...ctx });
+  if (approval !== null) return approval;
   const { runSkillsHubCommand } = await import("./skills-hub-cmd.js"), hub = await runSkillsHubCommand(args, ctx);
   if (hub !== null) return hub;
   return routeRegistry(args, ctx);

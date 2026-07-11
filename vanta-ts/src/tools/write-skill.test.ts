@@ -3,6 +3,7 @@ import { rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { writeSkillTool } from "./write-skill.js";
+import { listPendingSkillMutations, setSkillWriteApproval } from "../skills/write-approval.js";
 import type { ToolContext } from "./types.js";
 
 // Validation and the skill store both run without a real ctx.
@@ -70,5 +71,13 @@ describe("writeSkillTool", () => {
     });
 
     expect(description).toBe("record a learned skill in vanta's memory");
+  });
+
+  it("stages instead of activating when skill write approval is enabled", async () => {
+    process.env.VANTA_HOME = HOME;
+    await setSkillWriteApproval(true, HOME, process.env);
+    const result = await writeSkillTool.execute({ name: "queued", description: "d", body: "safe steps" }, { root: HOME, sessionId: "s1" } as ToolContext);
+    expect(result.output).toContain("staged skill");
+    expect(await listPendingSkillMutations(process.env)).toHaveLength(1);
   });
 });

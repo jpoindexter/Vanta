@@ -27,7 +27,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "cd", arg: "[path]", desc: "change the session working directory for shell_cmd (no arg prints it)" },
   { name: "setup", desc: "configure the model backend — opens the provider/model picker" },
   { name: "tools", desc: "list available tools" },
-  { name: "skills", arg: "[audit]", desc: "list learned + installed skills; audit shows hidden injection-scan flags" },
+  { name: "skills", arg: "[audit|pending|diff|approve|reject|approval]", desc: "list skills, audit injection flags, or review staged agent skill changes" },
   { name: "skillify", arg: "[name]", desc: "distill this session into a draft SKILL.md (write_skill saves it — not auto-written)" },
   { name: "learn", arg: "<url|path> [as <name>]", desc: "build a skill from a doc/URL — distills, gates, and saves an editable SKILL.md" },
   { name: "status", desc: "kernel, provider, keys, store health" },

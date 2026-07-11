@@ -69,7 +69,7 @@ Of the 9 actionable missing items, all have roadmap cards (SELF-UPDATE, MODEL-CM
 
 | Capability area | Prior agent | Vanta | Status | Notes |
 |---|---|---|---|---|
-| Skill search/install/manage | `skills` command | `write_skill`/`recall` + library auto-install | ✅ | |
+| Skill search/install/manage | `skills` command | public multi-source hub + quarantined packages + `write_skill`/`skill_manage`/`recall` + optional write-approval queue | ✅ | Agent mutations can require durable diff approval. |
 | Skill index in prompt + body on demand | Index injected, body on demand | Skill INDEX injected + `recall` loads body | ✅ | |
 | Curator (background maintenance + pin) | Umbrella consolidation + pin | `curate()` — archive-stale only | 🟡 | → SKILL-UMBRELLA (next) |
 | Skill bundles | Skill aliases | Operator modes (skill groups) | ✅ | Modes ≈ bundles |

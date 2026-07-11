@@ -147,6 +147,7 @@ describe("registry", () => {
       "send_chat",
       "send_message",
       "shell_cmd",
+      "skill_manage",
       "sleep",
       "speak",
       "swarm",

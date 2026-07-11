@@ -1,4 +1,5 @@
 import { suggest } from "./suggestions.js";
+import { dirname } from "node:path";
 import { time } from "./time-ranges.js";
 import { auditSkills, listSkills } from "../skills/store.js";
 import { gatherStatus, formatStatus, resolveStatusCondensed } from "../status.js";
@@ -134,6 +135,14 @@ const undo: SlashHandler = (_arg, ctx) => {
 };
 
 const skills: SlashHandler = async (arg, ctx) => {
+  const approvalArgs = arg.trim().split(/\s+/).filter(Boolean);
+  if (["pending", "diff", "approve", "reject", "approval"].includes(approvalArgs[0] ?? "")) {
+    try {
+      const lines: string[] = [], { runSkillsApprovalCommand } = await import("../cli/skills-approval-cmd.js");
+      const code = await runSkillsApprovalCommand(approvalArgs, { root: dirname(ctx.dataDir), env: ctx.env, log: (line) => lines.push(line), maxDiffChars: 1800 });
+      return { output: `${code === 0 ? "" : "  skill approval error\n"}${lines.join("\n")}` };
+    } catch (error) { return { output: `  skill approval error: ${(error as Error).message}` }; }
+  }
   if (arg.trim() === "audit") {
     const findings = await auditSkills(ctx.env);
     if (!findings.length) return { output: "  · skills audit clean — no injection-scan hits" };
