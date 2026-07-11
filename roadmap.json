@@ -18038,6 +18038,23 @@
       "summary": "Make session shutdown wait for already-dispatched FileChanged hooks after stopping new filesystem events.",
       "done": "The watcher close contract is awaitable; it closes the OS watcher, drains every in-flight hook with settled results, and interactive/one-shot callers await it; full-suite temporary workspace teardown no longer races a hook write.",
       "notes": "SHIPPED 2026-07-11. The current-HEAD full suite exposed ENOTEMPTY in FileChanged hook teardown. The watcher now tracks dispatched promises and close awaits Promise.allSettled after watcher.close. Interactive and one-shot lifecycles await shutdown; TUI cleanup starts the async drain. Hook suites (188 tests), focused file-watch/one-shot tests, TypeScript, and touched-file size gates pass. Full-suite rerun remains the release check."
+    },
+    {
+      "id": "STORE-GIT-MAINTENANCE-SETTLE",
+      "track": "Harness",
+      "title": "Local store Git commits settle before teardown - disable invocation auto-maintenance",
+      "status": "shipped",
+      "size": "S",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "infra",
+      "updated": "2026-07-11",
+      "source": "full-suite-regression-2026-07-11",
+      "summary": "Prevent Git auto-GC or maintenance from mutating a Vanta home after commitInHome has returned.",
+      "done": "Vanta home commits disable auto-GC and auto-maintenance for that invocation; bundled library installs can be removed immediately after return without ENOTEMPTY; explicit/manual maintenance remains available.",
+      "notes": "SHIPPED 2026-07-11. A current-HEAD full suite exposed Git background maintenance racing temporary VANTA_HOME removal after a 169-skill batch commit. commitInHome now invokes git with gc.auto=0 and maintenance.auto=false. The real bundled-library plus store suite passed three consecutive install/teardown runs; TypeScript and size gates pass. Full-suite rerun remains the release check."
     }
   ]
 }

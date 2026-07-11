@@ -120,7 +120,10 @@ export async function commitInHome(
   const home = resolveVantaHome(env);
   try {
     await run("git", ["add", relPath], { cwd: home });
-    await run("git", ["commit", "-q", "-m", message], { cwd: home });
+    // Git may launch auto-GC/maintenance after commit and return before that
+    // background process finishes. Vanta owns teardown timing, so keep this
+    // invocation synchronous and leave explicit/manual maintenance available.
+    await run("git", ["-c", "gc.auto=0", "-c", "maintenance.auto=false", "commit", "-q", "-m", message], { cwd: home });
   } catch {
     // nothing to commit or git unavailable — fine
   }
