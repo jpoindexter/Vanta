@@ -32,6 +32,12 @@ export function decomposeGoal(goal: string, deps: KanbanDeps = {}): KanbanBoard 
     title,
     instruction: `${instruction}\nGoal: ${goal}`,
     status: "todo" as const,
+    requiredSkills: [],
+    dependencies: [],
+    evidence: [],
+    wakePolicy: "manual" as const,
+    retries: 0,
+    handoffs: [],
     updated: created,
   }));
   return { id, goal, created, updated: created, lanes, swarmRuns: [] };

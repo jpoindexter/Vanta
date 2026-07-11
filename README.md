@@ -174,6 +174,15 @@ vanta profile update research-lead --apply
 Distribution installs copy declared capability/default files only. Secret files, credentials,
 sessions, memory, inboxes, work history, and other private state are refused.
 
+Persistent profiles can own routed Kanban cards. Cards declare skills, dependencies, wake
+policy, evidence, and fallback; Vanta can select a capable profile and preserve handoffs:
+
+```bash
+vanta kanban add research "Research sources" --instruction "Find evidence" --skills research --wake immediate
+vanta kanban route research
+vanta kanban update research done --evidence receipts/research.json
+```
+
 ## Community
 
 - 💬 **[Discussions](https://github.com/jpoindexter/Vanta/discussions)** — questions, ideas, show-and-tell.

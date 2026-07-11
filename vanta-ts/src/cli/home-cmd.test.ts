@@ -4,6 +4,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { runHomeCommand } from "./home-cmd.js";
 import { createProfile, switchProfile, targetProfile } from "../profiles/store.js";
+import { decomposeGoal } from "../kanban/kanban.js";
+import { addRoutedLane, claimRoutedLane } from "../kanban/router.js";
+import { saveKanbanBoard } from "../kanban/store.js";
 
 let root: string;
 let home: string;
@@ -45,6 +48,9 @@ describe("runHomeCommand", () => {
     await createProfile({ name: "Research Lead", model: "gpt-5.5" }, env);
     await targetProfile("research-lead", "Audit provider fallback", env);
     await switchProfile("research-lead", env);
+    const base = decomposeGoal("route work");
+    const added = addRoutedLane(base, { id: "research", title: "Research", instruction: "Research", requiredSkills: [], wakePolicy: "manual" });
+    saveKanbanBoard(root, claimRoutedLane(added, "research", { id: "research-lead", skills: [] }));
     const lines: string[] = [];
     const spy = vi.spyOn(console, "log").mockImplementation((msg = "") => { lines.push(String(msg)); });
     try {
@@ -53,6 +59,10 @@ describe("runHomeCommand", () => {
       expect(out).toContain("1 profile(s), 1 active, 1 queued");
       expect(out).toContain("research-lead: Audit provider fallback");
       expect(out).toContain("`vanta profiles list`");
+      expect(out).toContain("Kanban");
+      expect(out).toContain("1 active lane(s), 0 blocked");
+      expect(out).toContain("research: research-lead");
+      expect(out).toContain("`vanta kanban status`");
     } finally {
       spy.mockRestore();
     }

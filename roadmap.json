@@ -17249,7 +17249,7 @@
       "id": "HERMES-KANBAN-ROUTER",
       "track": "Operator",
       "title": "Profile Kanban router — durable board routes work by specialist skill",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Hermes uses Kanban as a durable multi-agent work router. Vanta ships roadmap Kanban, work queues, teams, delegation, and org chart primitives; the missing workflow is a user-facing board where cards declare required skills and persistent profiles claim, update, hand off, and close work with receipts.",
       "done": "A board card can declare owner/profile, required skills, dependencies, evidence, and wake policy; profile agents claim/update/hand off cards; the board survives restart; Operator Home shows active lanes; completed cards link to transcript/receipt evidence and failed cards expose retry/fallback actions.",
@@ -17263,7 +17263,7 @@
       ],
       "updated": "2026-07-11",
       "source": "hermes-transcript-roadmap-extract-2026-07-11",
-      "notes": "Sources: Tonbis Hermes Masterclass 9 plus the multi-agent Kanban workflow transcripts from 2026-06-01 and 2026-06-08. Build over existing KANBAN/VANTA-KANBAN/PCLIP-WORK-QUEUES rather than creating another board model."
+      "notes": "Sources: Tonbis Hermes Masterclass 9 plus the multi-agent Kanban workflow transcripts from 2026-06-01 and 2026-06-08. Build over existing KANBAN/VANTA-KANBAN/PCLIP-WORK-QUEUES rather than creating another board model.\n\nSHIPPED 2026-07-11: extended the existing durable Kanban schema with profile owner/fallback, required skills, dependencies, evidence receipts, wake policy, retry count, and handoff history. Added `vanta kanban add|route|claim|handoff|update|retry`. Route reads installed skill directories from persistent profile homes; dependency and skill gates fail closed. Done requires at least one evidence receipt. Blocked rendering names exact retry and fallback actions. Operator Home lists active/blocked lanes and the current owner. Backward-compatible schema defaults preserve existing boards. Focused proof covers pure transitions, persistence, legacy swarm output, profile-backed CLI routing, and Home rendering. Live proof through src/cli.ts installed a skilled profile distribution, created/added/routed/handed-off/blocked/retried/closed a lane with evidence, rendered status and Home, and removed only the generated proof board."
     },
     {
       "id": "HERMES-SECOND-BRAIN-CORPUS",

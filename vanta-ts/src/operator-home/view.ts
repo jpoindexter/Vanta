@@ -7,6 +7,9 @@ import { checkAll } from "../reach/registry.js";
 import { gatherCapabilities } from "../repl/health-cmd.js";
 import { workflowViews } from "../repl/what-can-i-do-cmd.js";
 import { listProfiles, type ProfileRecord } from "../profiles/store.js";
+import { listKanbanBoards } from "../kanban/store.js";
+import type { KanbanBoard } from "../kanban/schema.js";
+import { dirname } from "node:path";
 
 export type HomeSection = {
   name: string;
@@ -37,7 +40,7 @@ export async function buildOperatorHome(opts: {
   env: NodeJS.ProcessEnv;
   toolNames: string[];
 }): Promise<string> {
-  const [stack, bgTasks, cron, skills, memory, reach, caps, profiles] = await Promise.all([
+  const [stack, bgTasks, cron, skills, memory, reach, caps, profiles, boards] = await Promise.all([
     readStack(opts.dataDir),
     listBgTasks(opts.dataDir),
     loadCron(opts.dataDir),
@@ -46,6 +49,7 @@ export async function buildOperatorHome(opts: {
     checkAll(opts.env),
     gatherCapabilities(opts.env),
     listProfiles(opts.env),
+    listKanbanBoards(dirname(opts.dataDir)),
   ]);
   return formatOperatorHome({ sections: [
     workflowSection(opts.toolNames),
@@ -53,10 +57,24 @@ export async function buildOperatorHome(opts: {
     skillsSection(skills.length),
     agentsSection(stack.tasks.length, bgTasks.filter((t) => t.status === "running").length),
     profilesSection(profiles),
+    kanbanSection(boards),
     memorySection(memory.goals, memory.totalBytes),
     watchersSection(cron.filter((c) => c.status === "active").length),
     setupSection(caps.filter((c) => !c.ok).length),
   ] });
+}
+
+function kanbanSection(boards: KanbanBoard[]): HomeSection {
+  const lanes = boards.flatMap((board) => board.lanes);
+  const active = lanes.filter((lane) => lane.status === "running");
+  const blocked = lanes.filter((lane) => lane.status === "blocked");
+  const named = active[0]?.ownerProfile ? ` · ${active[0].id}: ${active[0].ownerProfile}` : "";
+  return section(
+    "Kanban",
+    blocked.length || active.length ? "watch" : boards.length ? "ok" : "setup",
+    `${active.length} active lane(s), ${blocked.length} blocked${named}`,
+    boards.length ? "`vanta kanban status`" : "`vanta kanban create <goal>`",
+  );
 }
 
 function profilesSection(profiles: ProfileRecord[]): HomeSection {

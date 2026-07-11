@@ -7,7 +7,12 @@ function oneLine(text: string): string {
 
 function laneLine(lane: KanbanLane): string {
   const detail = lane.blocker ? ` blocker: ${oneLine(lane.blocker)}` : lane.result ? ` result: ${oneLine(lane.result)}` : "";
-  return `  ${lane.id.padEnd(10)} ${lane.status.padEnd(7)} ${lane.title}${detail}`;
+  const owner = lane.ownerProfile ? ` owner: ${lane.ownerProfile}` : "";
+  const evidence = lane.evidence.length ? ` evidence: ${lane.evidence.join(",")}` : "";
+  const recovery = lane.status === "blocked"
+    ? ` retry: vanta kanban retry ${lane.id}${lane.fallbackProfile ? ` fallback: ${lane.fallbackProfile}` : ""}`
+    : "";
+  return `  ${lane.id.padEnd(10)} ${lane.status.padEnd(7)} ${lane.title}${owner}${detail}${evidence}${recovery}`;
 }
 
 export function formatKanbanBoard(board: KanbanBoard): string {

@@ -111,13 +111,22 @@ are refused even when they are not referenced by the manifest; secret-shaped JSO
 symlink source escapes, and tampered installed destination paths fail closed. Removed owned
 files are deleted only after their previous copies are backed up.
 
+`HERMES-KANBAN-ROUTER` is shipped. Existing durable Kanban lanes now carry optional
+profile owner/fallback, required skills, dependencies, evidence receipts, wake policy,
+retry count, and handoff history. `vanta kanban add|route|claim|handoff|update|retry`
+drives those transitions; route inspects each persistent profile's installed skills,
+dependencies and skill gaps fail closed, and done is refused without evidence. Operator
+Home summarizes active and blocked lanes. A real CLI run installed a skilled profile,
+routed, handed off, blocked, retried, closed with a receipt, rendered Home, and cleaned up
+its proof board.
+
 The extraction note is `docs/research/hermes-transcript-roadmap-extract-2026-07-11.md`;
 the current Hermes repo comparison is `docs/research/hermes-current-vs-vanta-vision-2026-07-11.md`;
 the feature/function harvest is `docs/research/hermes-feature-function-harvest-2026-07-11.md`.
 The issue, Mercury, and current user-story audit is
 `docs/research/hermes-mercury-issue-usecase-audit-2026-07-11.md`. Build priority is public-site
 v1 + story eval foundation → Hermes issue regression pack → profile roster + distributions
-(shipped) → profile Kanban router → second-brain corpus compiler. Promote credential
+(shipped) → profile Kanban router (shipped) → second-brain corpus compiler. Promote credential
 pools/vault-backed secrets after the profile/Kanban spine if multi-profile gateways or
 run-anywhere execution need safer key distribution. The rest stay horizon until a concrete
 workflow needs them.

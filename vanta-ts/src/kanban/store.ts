@@ -25,3 +25,12 @@ export function latestKanbanId(repoRoot: string): string | null {
   const files = readdirSync(dir).filter((file) => file.endsWith(".json")).sort();
   return files.at(-1)?.replace(/\.json$/, "") ?? null;
 }
+
+export function listKanbanBoards(repoRoot: string): KanbanBoard[] {
+  const dir = kanbanDir(repoRoot);
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir).filter((file) => file.endsWith(".json")).flatMap((file) => {
+    try { return [KanbanBoardSchema.parse(JSON.parse(readFileSync(join(dir, file), "utf8")))]; }
+    catch { return []; }
+  }).sort((a, b) => b.updated.localeCompare(a.updated));
+}

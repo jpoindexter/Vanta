@@ -2,6 +2,14 @@ import { z } from "zod";
 
 export const KanbanLaneStatusSchema = z.enum(["todo", "running", "done", "blocked"]);
 export type KanbanLaneStatus = z.infer<typeof KanbanLaneStatusSchema>;
+export const KanbanWakePolicySchema = z.enum(["immediate", "scheduled", "manual"]);
+
+const KanbanHandoffSchema = z.object({
+  from: z.string().min(1),
+  to: z.string().min(1),
+  reason: z.string().min(1),
+  at: z.string(),
+});
 
 export const KanbanLaneSchema = z.object({
   id: z.string().min(1),
@@ -10,6 +18,14 @@ export const KanbanLaneSchema = z.object({
   status: KanbanLaneStatusSchema,
   result: z.string().optional(),
   blocker: z.string().optional(),
+  ownerProfile: z.string().optional(),
+  fallbackProfile: z.string().optional(),
+  requiredSkills: z.array(z.string()).default([]),
+  dependencies: z.array(z.string()).default([]),
+  evidence: z.array(z.string()).default([]),
+  wakePolicy: KanbanWakePolicySchema.default("manual"),
+  retries: z.number().int().min(0).default(0),
+  handoffs: z.array(KanbanHandoffSchema).default([]),
   updated: z.string(),
 });
 export type KanbanLane = z.infer<typeof KanbanLaneSchema>;

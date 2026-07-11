@@ -8,6 +8,27 @@ sidebar_position: 1
 
 Beyond code and research, Vanta carries a set of operator subsystems — durable, source-cited stores with kernel-gated tools and `/`-command views. Each follows the same shape: a `~/.vanta/*.jsonl` (or per-project) store + a tool + a command.
 
+## Profile-routed Kanban
+
+Kanban cards can declare a persistent profile owner, required skills, dependencies,
+evidence, wake policy, and fallback profile. Boards remain under the project `.vanta`
+store and survive restarts.
+
+```bash
+vanta kanban create "ship the research brief"
+vanta kanban add research "Research sources" --instruction "Find primary evidence" --skills research,citations --after understand --wake immediate --fallback research-backup
+vanta kanban route research
+vanta kanban handoff research research-backup --reason "primary unavailable"
+vanta kanban update research blocked --detail "provider timeout"
+vanta kanban retry research
+vanta kanban update research done --detail finished --evidence receipts/research.json
+```
+
+`route` selects the first non-archived profile whose isolated skill directory satisfies
+the card. Claim is refused while dependencies are open or required skills are missing.
+Closure is refused without receipt evidence. Blocked cards print exact retry and fallback
+actions, and Operator Home summarizes active and blocked lanes.
+
 ## World model
 `world` tool · `/world` — entities and relations across your systems. Recall is cited and flags contradictions (same subject + predicate, different object); `merge` / `duplicates` consolidate and re-point relations. Confidence is surfaced as `[likely · 62% · source:…]`.
 

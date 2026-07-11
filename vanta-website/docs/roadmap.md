@@ -8,17 +8,11 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1147 capabilities shipped · 4 in flight · 13 on the horizon. Updated 2026-07-11._
+_1148 capabilities shipped · 3 in flight · 13 on the horizon. Updated 2026-07-11._
 
 ## In flight
 
 What we are actively building next.
-
-### Profile Kanban router — durable board routes work by specialist skill
-
-**Operator** · M-size
-
-Vanta ships roadmap Kanban, work queues, teams, delegation, and org chart primitives; the missing workflow is a user-facing board where cards declare required skills and persistent profiles claim, update, hand off, and close work with receipts
 
 ### Second-brain corpus compiler — notes, transcripts, and receipts become searchable memory
 
@@ -40,9 +34,10 @@ The current use-case runner executes one-shot commands. It can prove that Vanta 
 
 ## Recently shipped
 
-The latest of 1147+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1148+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Profile roster — persistent specialist agents with isolated state** — Operator · 2026-07-11
+- **Profile Kanban router — durable board routes work by specialist skill** — Operator · 2026-07-11
 - **Profile distributions — package a whole specialist agent as a git install** — Operator · 2026-07-11
 - **Hermes issue regression pack — turn competitor failures into Vanta invariants** — Harness · 2026-07-11
 - **Vanta public site v1 — product-first homepage, use cases, install, and proof** — Reach · 2026-07-11
@@ -61,7 +56,6 @@ The latest of 1147+ capabilities. See the [changelog](./changelog) for curated m
 - **Roadmap blocked status — external gates stop consuming Now slots** — Operator · 2026-07-10
 - **Roadmap unblock command — turn blocked cards into exact next actions** — Operator · 2026-07-10
 - **Run Anywhere readiness status — one auditable release-proof checklist** — Operator · 2026-07-10
-- **Autonomy contract walls — acts alone, queues, wakes me** — Harness · 2026-07-10
 
 ## On the horizon
 
