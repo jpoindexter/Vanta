@@ -1,8 +1,8 @@
 import { defaultExec } from "../secrets/provider.js";
 import { resolveVaultSecretValue } from "../secrets/vault-manager.js";
 import { parseTwilioCallback, validateTwilioSignature } from "./callbacks.js";
-import { executeTelephonyAction, type TelephonyClientDeps, type TelephonyResult } from "./client.js";
-import { appendTelephonyReceipt, buildTelephonyCallbackReceipt, buildTelephonyReceipt, latestTelephonyStates, loadTelephonyReceipts, withTelephonyReceiptLock } from "./receipts.js";
+import { deleteTelephonyRecording, executeTelephonyAction, type TelephonyClientDeps, type TelephonyResult } from "./client.js";
+import { appendTelephonyReceipt, buildRecordingDeletedReceipt, buildTelephonyCallbackReceipt, buildTelephonyReceipt, latestTelephonyStates, loadTelephonyReceipts, pruneTelephonyReceipts, withTelephonyReceiptLock } from "./receipts.js";
 import { previewTelephonyAction, requiredTelephonyScope, telephonyEligibility, type TelephonyAction, type TelephonyProfile } from "./schema.js";
 
 export type TelephonyExecutor = (action: TelephonyAction) => Promise<TelephonyResult>;
@@ -64,5 +64,23 @@ export async function ingestTwilioCallback(root: string, input: CallbackInput, d
     if (!prior) return { ok: false, state: "unknown_provider_id" };
     await appendTelephonyReceipt(root, buildTelephonyCallbackReceipt(prior, callback, (deps.now ?? (() => new Date()))().toISOString()));
     return { ok: true, state: callback.status };
+  });
+}
+
+export async function applyTelephonyRetention(root: string, profile: TelephonyProfile, deps: {
+  now?: () => Date; deleteRecording?: (recordingSid: string) => Promise<TelephonyResult>;
+} & TelephonyClientDeps = {}): Promise<{ deletedRecordings: number; failedRecordings: number; prunedReceipts: number }> {
+  return withTelephonyReceiptLock(root, async () => {
+    const now = (deps.now ?? (() => new Date()))(), receipts = await loadTelephonyReceipts(root);
+    const deleted = new Set(receipts.filter((receipt) => receipt.providerStatus === "recording_deleted").map((receipt) => receipt.recordingSid));
+    const due = new Map(receipts.filter((receipt) => receipt.recordingSid && receipt.recordingRetainUntil && Date.parse(receipt.recordingRetainUntil) <= now.getTime() && !deleted.has(receipt.recordingSid)).map((receipt) => [receipt.recordingSid!, receipt]));
+    let deletedRecordings = 0, failedRecordings = 0;
+    for (const [sid, receipt] of due) {
+      const result = await (deps.deleteRecording ?? ((value) => deleteTelephonyRecording(profile, value, deps)))(sid);
+      if (!result.ok) { failedRecordings += 1; continue; }
+      await appendTelephonyReceipt(root, buildRecordingDeletedReceipt(receipt, now.toISOString())); deletedRecordings += 1;
+    }
+    const prunedReceipts = failedRecordings === 0 ? await pruneTelephonyReceipts(root, now) : 0;
+    return { deletedRecordings, failedRecordings, prunedReceipts };
   });
 }

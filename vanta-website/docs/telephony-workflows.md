@@ -26,8 +26,8 @@ exists only in the outbound request. Receipts hash recipient and content fields.
 Authenticated callbacks are provider-ID correlated and tolerate out-of-order
 delivery/call events.
 
-Local HTTP and callback fixtures pass. Release still requires a live Twilio
-test-number/SMS/call receipt, public callback ingress, and provider recording
-deletion at retention expiry.
+Local HTTP and callback fixtures pass. A bounded `/twilio` ingress and
+provider-side recording deletion are wired. Release still requires a live
+Twilio test-number/SMS/call/callback/retention receipt.
 
 See the repository's [full telephony guide](https://github.com/jpoindexter/Vanta/blob/main/docs/telephony-workflows.md).

@@ -55,7 +55,7 @@ Every SMS or call fixes:
 vanta telephony preview plans/test-sms.json
 vanta telephony execute plans/test-sms.json --approve tel_test_sms_20260711
 vanta telephony receipts
-vanta telephony prune --yes
+vanta telephony prune config/twilio-test.json --yes
 ```
 
 The CLI accepts only the exact action ID. The `telephony_workflow` tool asks
@@ -80,7 +80,8 @@ cannot replace an already received `delivered` callback.
 
 Mode-`0600` receipts store hashes for recipient, purpose, and action content;
 they do not store phone numbers, SMS body, spoken text, Auth Token, or recording
-URL. `prune --yes` removes local receipt events after their configured deadline.
+URL. The retention command deletes due Twilio recordings through the scoped
+voice credential before pruning local receipt events after their deadline.
 
 ## Proof status
 
@@ -89,7 +90,8 @@ provision requests while proving Basic Auth remains request-only. Signature,
 account mismatch, invalid signature, callback correlation, out-of-order status,
 replay, denial, fresh approval, and local retention tests pass.
 
-The card remains blocked because no `TWILIO_TEST_TOKEN` vault alias/test account
-is configured, no public callback ingress is mounted, and expired provider-side
-recordings are not yet deleted automatically. Vapi and Bland remain optional
-future adapters behind this contract.
+The callback ingress is available through `vanta telephony ingress <profile>
+--public-url https://host/twilio`; place it behind an HTTPS reverse proxy. The
+card remains blocked because no `TWILIO_TEST_TOKEN` vault alias/test account is
+configured, so live number/SMS/call/callback/recording-deletion proof has not
+run. Vapi and Bland remain optional future adapters behind this contract.

@@ -2,7 +2,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { once } from "node:events";
 import { afterEach, describe, expect, it } from "vitest";
 import { NumberSearchSchema, TelephonyActionSchema, TelephonyProfileSchema } from "./schema.js";
-import { executeTelephonyAction, searchTelephonyNumbers } from "./client.js";
+import { deleteTelephonyRecording, executeTelephonyAction, searchTelephonyNumbers } from "./client.js";
 
 const profile = TelephonyProfileSchema.parse({ version: 1, environment: "test", provider: "twilio", accountSid: `AC${"1".repeat(32)}`, authTokenVaultAlias: "TWILIO_TEST_TOKEN", from: "+15005550006", scopes: ["numbers", "sms", "voice"] });
 const common = { version: 1, profile, idempotencyKey: "00000000-0000-4000-8000-000000000001", purpose: "test", window: { notBefore: "2026-07-11T11:00:00Z", notAfter: "2099-07-11T13:00:00Z" }, expiresAt: "2099-07-11T13:00:00Z", retention: { receiptDays: 30, transcriptDays: 0 } };
@@ -60,5 +60,13 @@ describe("Twilio telephony client", () => {
     const action = TelephonyActionSchema.parse({ ...common, id: "tel_sms_badhost1", action: "sms", recipient: "+15005550009", consent: { source: "test", obtainedAt: "2026-07-11T10:00:00Z", expiresAt: "2099-07-12T00:00:00Z" }, statusCallbackUrl: "https://callbacks.example/twilio", body: "hello" });
     expect(await executeTelephonyAction(action, { apiBase: "https://attacker.example", resolveToken: async () => { resolved = true; return "token"; } })).toEqual({ ok: false, state: "test_adapter_unavailable" });
     expect(resolved).toBe(false);
+  });
+
+  it("deletes a provider recording through the scoped voice credential", async () => {
+    let method = "", path = "";
+    const apiBase = await fixture((_path, _body, req) => { method = req.method ?? ""; path = _path; return {}; });
+    const voice = { ...profile, scopes: ["voice" as const] };
+    expect(await deleteTelephonyRecording(voice, `RE${"c".repeat(32)}`, { apiBase, resolveToken: async () => "token" })).toMatchObject({ ok: true, state: "recording_deleted" });
+    expect(method).toBe("DELETE"); expect(path).toContain(`/Recordings/RE${"c".repeat(32)}.json`);
   });
 });

@@ -13,7 +13,7 @@ const ReceiptSchema = z.object({
   status: z.enum(["denied", "reserved", "accepted", "failed", "callback"]), providerStatus: z.string().max(80),
   callbackKind: z.enum(["message", "call", "recording"]).optional(), callbackRank: z.number().int().nonnegative().optional(),
   sequence: z.number().int().nonnegative().optional(), durationSeconds: z.number().int().nonnegative().optional(),
-  recordingSid: z.string().optional(), retainUntil: z.string().datetime(),
+  recordingSid: z.string().optional(), recordingRetainUntil: z.string().datetime().optional(), retainUntil: z.string().datetime(),
   credentialPersisted: z.literal(false), contentPersisted: z.literal(false),
 }).strict();
 export type TelephonyReceipt = z.infer<typeof ReceiptSchema>;
@@ -34,6 +34,11 @@ function retainedUntil(action: TelephonyAction, at: string): string {
   return new Date(Date.parse(at) + action.retention.receiptDays * 86_400_000).toISOString();
 }
 
+function recordingRetainedUntil(action: TelephonyAction, at: string): string | undefined {
+  return action.action === "call" && action.recording.enabled
+    ? new Date(Date.parse(at) + action.recording.retentionDays * 86_400_000).toISOString() : undefined;
+}
+
 export function buildTelephonyReceipt(action: TelephonyAction, input: {
   at: string; status: TelephonyReceipt["status"]; providerStatus: string; providerId?: string; callback?: TelephonyCallback;
 }): TelephonyReceipt {
@@ -44,7 +49,8 @@ export function buildTelephonyReceipt(action: TelephonyAction, input: {
     idempotencyKey: action.idempotencyKey, actionHash: hashTelephonyAction(action), status: input.status,
     providerStatus: input.providerStatus, callbackKind: callback?.kind, callbackRank: callback ? callbackRank(callback.status) : undefined,
     sequence: callback?.sequence, durationSeconds: callback?.durationSeconds, recordingSid: callback?.recordingSid,
-    retainUntil: retainedUntil(action, input.at), credentialPersisted: false, contentPersisted: false,
+    retainUntil: retainedUntil(action, input.at), recordingRetainUntil: recordingRetainedUntil(action, input.at),
+    credentialPersisted: false, contentPersisted: false,
   });
 }
 
@@ -53,6 +59,13 @@ export function buildTelephonyCallbackReceipt(prior: TelephonyReceipt, callback:
     ...prior, eventId: randomUUID(), at, status: "callback", providerId: callback.providerId,
     providerStatus: callback.status, callbackKind: callback.kind, callbackRank: callbackRank(callback.status),
     sequence: callback.sequence, durationSeconds: callback.durationSeconds, recordingSid: callback.recordingSid,
+  });
+}
+
+export function buildRecordingDeletedReceipt(prior: TelephonyReceipt, at: string): TelephonyReceipt {
+  return ReceiptSchema.parse({
+    ...prior, eventId: randomUUID(), at, status: "callback", providerStatus: "recording_deleted",
+    callbackKind: "recording", callbackRank: 8,
   });
 }
 

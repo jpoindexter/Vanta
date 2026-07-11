@@ -88,3 +88,19 @@ export async function searchTelephonyNumbers(search: NumberSearch, deps: Telepho
   const result = await request(search.profile, { scope: "numbers", path, init: { method: "GET" }, deps });
   return result.ok && result.data ? { ok: true, state: "ok", data: safeNumbers(result.data), httpStatus: result.httpStatus } : result;
 }
+
+export async function deleteTelephonyRecording(profile: TelephonyProfile, recordingSid: string, deps: TelephonyClientDeps = {}): Promise<TelephonyResult> {
+  if (!profile.scopes.includes("voice")) return { ok: false, state: "scope_denied" };
+  if (!/^RE[a-fA-F0-9]{32}$/.test(recordingSid)) return { ok: false, state: "invalid_recording_id" };
+  const base = testApiBase(deps); if (!base) return { ok: false, state: "test_adapter_unavailable" };
+  let token: string | null;
+  try { token = await (deps.resolveToken ?? defaultToken)(profile, "voice"); } catch { return { ok: false, state: "credential_unavailable" }; }
+  if (!token) return { ok: false, state: "credential_unavailable" };
+  try {
+    const response = await (deps.fetch ?? fetch)(`${base}/Accounts/${profile.accountSid}/Recordings/${recordingSid}.json`, {
+      method: "DELETE", redirect: "manual", signal: AbortSignal.timeout(20_000),
+      headers: { authorization: `Basic ${Buffer.from(`${profile.accountSid}:${token}`).toString("base64")}` },
+    });
+    return response.ok ? { ok: true, state: "recording_deleted", httpStatus: response.status } : { ok: false, state: "recording_delete_failed", httpStatus: response.status };
+  } catch { return { ok: false, state: "transport_error" }; }
+}

@@ -61,7 +61,7 @@ const USAGE_LINES = [
       "       vanta media-studio preview|render|stages  render and verify scoped local MP4 briefs",
       "       vanta payments preview|execute|receipts   exact-total payment contracts with fresh approval",
       "       vanta shopify read|preview|apply|receipts   scoped Shopify operations with verified writes",
-      "       vanta telephony search|preview|execute|receipts|prune   consented test SMS/calls/numbers",
+      "       vanta telephony search|preview|execute|receipts|prune|ingress   consented test SMS/calls/numbers",
       "       vanta agents [list|logs|attach|stop|rm|respawn]   manage background agent sessions",
       "       vanta profiles [list|create|clone|switch|archive|target|inbox]   manage persistent specialist profiles",
       "       vanta profile install <git|path> [--apply] | update <id> [--apply]   manage specialist distributions",
