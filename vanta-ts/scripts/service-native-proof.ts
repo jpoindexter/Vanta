@@ -52,9 +52,12 @@ try {
   receipt.started = await waitRunning(true);
   await manager.restart();
   receipt.restarted = await waitRunning(true);
+  if (process.platform !== "win32" && !(await waitForLog("SERVICE_PROOF_STARTED"))) {
+    throw new Error("service output did not reach the configured log");
+  }
+  await manager.stop();
   if (!(await waitForLog("SERVICE_PROOF_STARTED"))) throw new Error("service output did not reach the configured log");
   receipt.logCaptured = true;
-  await manager.stop();
   const stopped = await waitRunning(false);
   if (!stopped.stale) throw new Error("stopped installed service was not reported stale");
   receipt.stopped = stopped;
