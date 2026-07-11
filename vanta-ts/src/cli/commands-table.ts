@@ -116,6 +116,7 @@ import { runCorpusCommand } from "./corpus-cmd.js";
 import { runStoryEvalCommand } from "./story-eval-cmd.js";
 import { runToolsCommand } from "./tools-cmd.js";
 import { runWebhookCommand } from "./webhook-workflow-cmd.js";
+import { runSecretsCommand } from "./secrets-vault-cmd.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
@@ -123,6 +124,7 @@ export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | v
 // `vanta <cmd>` dispatch table. The interactive entry points (chat/resume/run)
 // parse flags, so they stay as explicit checks in cli.ts main(); everything else is here.
 export const COMMANDS: Record<string, CommandFn> = {
+  secrets: (_root, rest) => runSecretsCommand(rest),
   webhook: (root, rest) => runWebhookCommand(dataDirFor(root), rest),
   tools: (root, rest) => runToolsCommand(root, rest),
   "story-eval": (root, rest) => runStoryEvalCommand(root, rest),

@@ -30,8 +30,8 @@ Source set:
 - `HERMES-DELEGATION-TREE-RECEIPTS` - horizon
 - `HERMES-TOOL-SURFACE-PROFILES` - horizon, after `HERMES-PROFILE-ROSTER`
 - `HERMES-WEBHOOK-WORKFLOW-BUILDER` - shipped 2026-07-11; real CLI plus signed gateway route/delivery receipt proof
+- `HERMES-VAULT-SECRETS-ROTATION` - shipped 2026-07-11; scoped Bitwarden/1Password aliases, startup injection, status, confirmed cutover, and redacted audit proof
 - `HERMES-SPREADSHEET-COPILOT` - horizon
-- `HERMES-VAULT-SECRETS-ROTATION` - horizon
 - `HERMES-DASHBOARD-PLUGIN-SLOTS` - horizon
 
 ## Build Order

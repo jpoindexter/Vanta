@@ -17357,7 +17357,7 @@
       "id": "HERMES-VAULT-SECRETS-ROTATION",
       "track": "Harness",
       "title": "Vault secrets rotation — one bootstrap token, scoped provider keys",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "The Hermes + Bitwarden transcript highlights a practical multi-device problem: scattered `.env` keys are hard to rotate and easy to overexpose. Vanta has key helpers, scoped secret injection, and secret scanners; the missing slice is external vault-backed secret resolution and rotation status.",
       "done": "Vanta can read selected secrets from Bitwarden or 1Password using one bootstrap credential, inject only scoped secrets into the run/profile that needs them, report stale/overbroad keys, rotate a provider key with operator confirmation, and write an audit receipt without logging secret values.",
@@ -17368,7 +17368,7 @@
       "lens": "infra",
       "updated": "2026-07-11",
       "source": "hermes-transcript-roadmap-extract-2026-07-11",
-      "notes": "Source: Tonbis 2026-07-01 Hermes + Bitwarden. Build on PCLIP-SCOPED-SECRETS, OP-SECRET-SCOPE, VANTA-SECRET-SCANNER, and setup wizard validation."
+      "notes": "Shipped 2026-07-11. `vanta secrets vault` manages value-free Bitwarden/1Password aliases with exact scopes, bootstrap readiness, stale/expired/overbroad status, redacted resolve checks, and confirmed reference cutover. Active profiles and explicit VANTA_SECRET_SCOPE runs inject only granted aliases from the base manifest before provider resolution. Rotation verifies the new vault reference and audits only reference hashes. Executed proof used the real CLI with a fake `bw` binary: add/status/resolve succeeded without value output, unconfirmed rotation exited 2, `--yes` verified the new reference, and the audit contained no refs, resolved value, or bootstrap token. Source: Tonbis 2026-07-01 Hermes + Bitwarden."
     },
     {
       "id": "HERMES-DASHBOARD-PLUGIN-SLOTS",

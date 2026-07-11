@@ -54,6 +54,7 @@ const USAGE_LINES = [
       "       vanta gateway verify-channels      log live/not-configured status for messaging adapters",
       "       vanta gateway channel-proofs [platform] [--json]  show accepted inbound-to-reply receipts",
       "       vanta webhook workflow new|list|show|test|enable|disable   build HMAC event workflows",
+      "       vanta secrets vault add|status|resolve|rotate   manage scoped Bitwarden/1Password aliases",
       "       vanta service [install|uninstall|status]   manage the background launchd agent",
       "       vanta agents [list|logs|attach|stop|rm|respawn]   manage background agent sessions",
       "       vanta profiles [list|create|clone|switch|archive|target|inbox]   manage persistent specialist profiles",

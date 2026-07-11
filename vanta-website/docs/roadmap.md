@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1155 capabilities shipped · 0 in flight · 9 on the horizon. Updated 2026-07-11._
+_1156 capabilities shipped · 0 in flight · 8 on the horizon. Updated 2026-07-11._
 
 ## In flight
 
@@ -18,7 +18,7 @@ _Nothing in flight right now — see the horizon below._
 
 ## Recently shipped
 
-The latest of 1155+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1156+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Profile roster — persistent specialist agents with isolated state** — Operator · 2026-07-11
 - **Profile Kanban router — durable board routes work by specialist skill** — Operator · 2026-07-11
@@ -26,6 +26,7 @@ The latest of 1155+ capabilities. See the [changelog](./changelog) for curated m
 - **Delegation tree receipts — parent sees summaries, raw sidechains stay searchable** — Harness · 2026-07-11
 - **Tool-surface profiles — shrink available tools by role and explain the boundary** — Harness · 2026-07-11
 - **Webhook workflow builder — internet events trigger approved Vanta work** — Operator · 2026-07-11
+- **Vault secrets rotation — one bootstrap token, scoped provider keys** — Harness · 2026-07-11
 - **Profile distributions — package a whole specialist agent as a git install** — Operator · 2026-07-11
 - **Context references v2 — @file ranges, @folder, @diff, @git, @url** — Harness · 2026-07-11
 - **Hermes issue regression pack — turn competitor failures into Vanta invariants** — Harness · 2026-07-11
@@ -39,7 +40,6 @@ The latest of 1155+ capabilities. See the [changelog](./changelog) for curated m
 - **MCP reconnect process reap — obsolete clients close before replacement** — Harness · 2026-07-11
 - **Safe-mode state isolation — no user memory, plugins, MCP, or settings** — Harness · 2026-07-11
 - **Session environment output redaction — credentials never enter recordings** — Harness · 2026-07-11
-- **Desktop and gateway provider parity — user aliases keep complete identity** — Harness · 2026-07-11
 
 ## On the horizon
 
@@ -49,9 +49,8 @@ Directional, not committed — grouped by area, newest thinking first.
 
 - Public skill registry client — search, inspect, install, update, and remove safely
 
-### Harness — 3 planned
+### Harness — 2 planned
 
-- Vault secrets rotation — one bootstrap token, scoped provider keys
 - Credential pools — rotate same-provider keys before cross-provider fallback
 - Plugin LLM lane — bounded host-owned model calls from plugins
 
