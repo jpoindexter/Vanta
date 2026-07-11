@@ -17,9 +17,9 @@ macOS uses a launchd user agent in `~/Library/LaunchAgents`. Linux uses a
 systemd user unit in `~/.config/systemd/user`. Windows uses a least-privilege
 Task Scheduler task and keeps its source XML under `~/.vanta/service`.
 
-Crash restart is rate-bounded to five-second intervals. systemd and Task
-Scheduler stop after five failures in a five-minute window; launchd applies its
-native throttle. Output from every supervisor is written to
+Crash restart is rate-bounded. systemd uses five-second spacing and stops after
+five failures in five minutes; Task Scheduler retries at one-minute intervals
+up to five times; launchd applies its native throttle. Output is written to
 `~/.vanta/gateway.log`.
 
 `vanta status` reports an installed but inactive service as `stale yes`. Removal

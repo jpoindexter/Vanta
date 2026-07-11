@@ -18,7 +18,7 @@ if (process.platform === "win32") {
   ].join("\r\n"));
 } else {
   const script = join(fixture, "run.sh");
-  await writeFile(script, '#!/bin/sh\necho SERVICE_PROOF_STARTED\nwhile :; do sleep 1; done\n');
+  await writeFile(script, '#!/bin/sh\necho SERVICE_PROOF_STARTED\nexec /bin/sleep 600\n');
   await chmod(script, 0o700);
 }
 

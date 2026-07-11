@@ -27,7 +27,7 @@ export function buildTaskXml(opts: TaskXmlOptions): string {
     "  <Principals><Principal id=\"Author\"><LogonType>InteractiveToken</LogonType><RunLevel>LeastPrivilege</RunLevel></Principal></Principals>",
     "  <Settings>",
     "    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>",
-    "    <RestartOnFailure><Interval>PT5S</Interval><Count>5</Count></RestartOnFailure>",
+    "    <RestartOnFailure><Interval>PT1M</Interval><Count>5</Count></RestartOnFailure>",
     "    <ExecutionTimeLimit>PT0S</ExecutionTimeLimit><Enabled>true</Enabled>",
     "  </Settings>",
     "  <Actions Context=\"Author\"><Exec>",
