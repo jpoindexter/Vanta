@@ -11,6 +11,10 @@ function quote(value: string): string {
   return `"${value.replaceAll("%", "%%").replaceAll("\\", "\\\\").replaceAll('"', '\\"')}"`;
 }
 
+function assignmentPathValue(value: string): string {
+  return value.replaceAll("%", "%%");
+}
+
 export function buildSystemdUnit(opts: SystemdUnitOptions): string {
   return [
     `# ${SERVICE_MARKER}`,
@@ -22,13 +26,13 @@ export function buildSystemdUnit(opts: SystemdUnitOptions): string {
     "",
     "[Service]",
     "Type=simple",
-    `WorkingDirectory=${quote(opts.workingDir)}`,
+    `WorkingDirectory=${assignmentPathValue(opts.workingDir)}`,
     `ExecStart=${[opts.command, ...opts.args].map(quote).join(" ")}`,
     "Restart=on-failure",
     "RestartSec=5",
     "TimeoutStopSec=2",
-    `StandardOutput=append:${opts.logPath}`,
-    `StandardError=append:${opts.logPath}`,
+    `StandardOutput=append:${assignmentPathValue(opts.logPath)}`,
+    `StandardError=append:${assignmentPathValue(opts.logPath)}`,
     "",
     "[Install]",
     "WantedBy=default.target",

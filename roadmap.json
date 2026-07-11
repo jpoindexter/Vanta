@@ -17532,7 +17532,7 @@
       "title": "Cross-platform service supervisor — one `vanta up` on macOS, Linux, and Windows",
       "status": "building",
       "size": "M",
-      "summary": "Mercury's strongest operational advantage is a single persistent-service command backed by launchd, systemd user units, or Windows Task Scheduler with crash restart and logs. Vanta's foreground gateway is portable, but `vanta service install` currently supports launchd only.",
+      "summary": "Mercury's strongest operational advantage is a single persistent-service command backed by launchd, systemd user units, or Windows Task Scheduler with crash restart and logs. Vanta now implements all three native supervisors; the remaining gate is executed Windows lifecycle proof.",
       "done": "`vanta up|restart|stop|logs|status` behaves consistently across macOS launchd, Linux systemd user services, and Windows Task Scheduler; install is non-admin where the platform permits; crash restart is bounded; status identifies stale PID/service state; uninstall removes only Vanta-owned artifacts; platform fixtures and one live proof per OS produce receipts.",
       "tier": "pebble",
       "model": "sonnet",
@@ -17541,7 +17541,7 @@
       "lens": "reach",
       "updated": "2026-07-11",
       "source": "cosmicstack-labs/mercury-agent@6e174a4",
-      "notes": "BUILDING 2026-07-11. Implementation and fixtures shipped in 90a4635b..0bf40185. Actions run 29159430860 isolated two proof-harness defects: the Linux fixture installed a TERM trap and then discarded it by exec'ing sleep, while the Windows task XML omitted the current user SID and could report Running without launching the owned runner. The fixture now keeps its trapped shell loop alive, captures status/log diagnostics on failure, and Windows resolves the current SID with whoami before registering an explicit least-privilege InteractiveToken principal. Service unit tests, TypeScript, and size gates pass; the updated real macOS launchd start/restart/log/stop/uninstall receipt is ok:true. Keep building until the pushed workflow produces ok:true Ubuntu systemd-user and Windows Task Scheduler receipts."
+      "notes": "BUILDING 2026-07-11. Implementation and fixtures shipped in 90a4635b..0bf40185. The real macOS launchd lifecycle receipt is ok:true. GitHub Actions runs 29159430860 and 29166510440 exposed Linux and Windows lifecycle defects rather than proving them. Linux was reproduced under a privileged Ubuntu 24.04 systemd container with a dedicated non-root user and persistent user manager: systemd rejected the quoted WorkingDirectory as a non-absolute path. The serializer now keeps assignment-path spaces literal and escapes systemd percent specifiers without wrapping the path in quotes. The exact install/start/restart/log/stop/stale/uninstall proof produced ok:true under that live systemd user manager both normally and with spaces in the working/log path. Focused service tests and TypeScript pass. Keep building until Windows Task Scheduler also produces an ok:true lifecycle receipt; hosted-runner diagnostics remain the next proof step."
     },
     {
       "id": "PUBLIC-SKILL-REGISTRY-CLIENT",
