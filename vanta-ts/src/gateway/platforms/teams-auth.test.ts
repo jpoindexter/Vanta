@@ -67,6 +67,8 @@ describe("createTeamsActivityVerifier", () => {
     await expect(f.verifier(`Bearer ${f.sign()}`, { serviceUrl: "https://evil.test" })).resolves.toBe(false);
     await expect(f.verifier(`Bearer ${f.sign({ serviceurl: undefined })}`, activity)).resolves.toBe(false);
     const token = f.sign();
-    await expect(f.verifier(`Bearer ${token.slice(0, -2)}aa`, activity)).resolves.toBe(false);
+    const [header, claims, signature] = token.split(".") as [string, string, string];
+    const tampered = `${signature[0] === "A" ? "B" : "A"}${signature.slice(1)}`;
+    await expect(f.verifier(`Bearer ${header}.${claims}.${tampered}`, activity)).resolves.toBe(false);
   });
 });

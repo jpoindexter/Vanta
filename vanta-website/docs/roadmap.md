@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1178 capabilities shipped · 0 in flight · 0 on the horizon. Updated 2026-07-12._
+_1179 capabilities shipped · 0 in flight · 0 on the horizon. Updated 2026-07-12._
 
 ## In flight
 
@@ -18,13 +18,14 @@ _Nothing in flight right now — see the horizon below._
 
 ## Recently shipped
 
-The latest of 1178+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1179+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Interrupted tool effects - preserve unknown mutations and inspect before retry** — Harness · 2026-07-12
 - **Compaction real-headroom guard - stop when the prompt floor stays over threshold** — Harness · 2026-07-12
 - **Usage route ledger - attribute every model, fallback, and included call** — Operator · 2026-07-12
 - **Session-scoped model switching - change this conversation without changing the default** — Operator · 2026-07-12
 - **Remote context references - safe @file, @diff, and @git expansion through the gateway** — Operator · 2026-07-12
+- **Authenticated runtime readiness - bounded health for remote supervision** — Harness · 2026-07-12
 - **System prompt presets - switch Vanta's operating role per session** — Operator · 2026-07-12
 - **Prompt-routed agent spawn - launch workers with different operating prompts** — Harness · 2026-07-12
 - **Roadmap unblock command — turn blocked cards into exact next actions** — Operator · 2026-07-11
@@ -39,7 +40,6 @@ The latest of 1178+ capabilities. See the [changelog](./changelog) for curated m
 - **Second-brain corpus compiler — notes, transcripts, and receipts become searchable memory** — Operator · 2026-07-11
 - **Delegation tree receipts — parent sees summaries, raw sidechains stay searchable** — Harness · 2026-07-11
 - **Tool-surface profiles — shrink available tools by role and explain the boundary** — Harness · 2026-07-11
-- **Webhook workflow builder — internet events trigger approved Vanta work** — Operator · 2026-07-11
 
 ## On the horizon
 

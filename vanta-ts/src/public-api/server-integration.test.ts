@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { AddressInfo } from "node:net";
@@ -12,6 +12,36 @@ const homes: string[] = [];
 afterEach(async () => Promise.all(homes.splice(0).map((home) => rm(home, { recursive: true, force: true }))));
 
 describe("public API v1", () => {
+  it("serves non-mutating liveness and authenticated readiness before allocating a session", async () => {
+    const home = await mkdtemp(join(tmpdir(), "vanta-api-readiness-")); homes.push(home);
+    const root = await mkdtemp(join(tmpdir(), "vanta-api-readiness-root-")); homes.push(root);
+    const issued = await issuePublicApiToken(home, "Supervisor");
+    const tokenPath = join(home, "public-api-tokens.json");
+    const before = await readFile(tokenPath, "utf8");
+    const sessions: SessionMap = new Map();
+    const server = createDesktopServer(root, {
+      publicApi: true, home, port: 0, sessions,
+      readinessDeps: {
+        env: { VANTA_PROVIDER: "codex" },
+        kernelStatus: async () => true,
+        diskStat: async () => ({ bavail: 90, blocks: 100, bsize: 1024 ** 3 }),
+      },
+    });
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    try {
+      const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api/v1`;
+      expect(await (await fetch(`${base}/live`)).json()).toEqual({ apiVersion: "v1", status: "live" });
+      expect((await fetch(`${base}/live`, { method: "OPTIONS" })).status).toBe(403);
+      expect((await fetch(`${base}/readiness`)).status).toBe(401);
+      const response = await fetch(`${base}/readiness`, { headers: { authorization: `Bearer ${issued.token}` } });
+      expect(response.status).toBe(200);
+      expect(await response.json()).toMatchObject({ apiVersion: "v1", status: "ready", checks: { kernel: { status: "ok" }, activity: { activeTurns: 0 } } });
+      expect((await fetch(`${base}/status`, { headers: { authorization: `Bearer ${issued.token}` } })).status).toBe(200);
+      expect(sessions.size).toBe(0);
+      expect(await readFile(tokenPath, "utf8")).toBe(before);
+    } finally { await closeServer(server); }
+  });
+
   it("requires bearer auth and lets the SDK stream events and resolve approval", async () => {
     const home = await mkdtemp(join(tmpdir(), "vanta-api-server-")); homes.push(home);
     const sessions: SessionMap = new Map();

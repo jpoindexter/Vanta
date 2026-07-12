@@ -46,11 +46,17 @@ export async function issuePublicApiToken(home: string, name: string, now = Date
   return { token, record: publicRecord(stored) };
 }
 
-export async function authenticatePublicApiToken(home: string, token: string | undefined, now = Date.now()): Promise<PublicApiToken | null> {
+export async function authenticatePublicApiToken(
+  home: string,
+  token: string | undefined,
+  now = Date.now(),
+  options: { touch?: boolean } = {},
+): Promise<PublicApiToken | null> {
   if (!token) return null;
   const store = await loadStore(home);
   const match = store.tokens.find((entry) => !entry.revokedAt && safeEqual(entry.tokenHash, hash(token)));
   if (!match) return null;
+  if (options.touch === false) return publicRecord(match);
   if (match.lastUsedAt && now - Date.parse(match.lastUsedAt) < 60_000) return publicRecord(match);
   const updated = { ...match, lastUsedAt: new Date(now).toISOString() };
   await saveStore(home, { version: 1, tokens: store.tokens.map((entry) => entry.id === match.id ? updated : entry) });

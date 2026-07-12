@@ -38,6 +38,7 @@ import { listWorkflows } from "../webhook-workflows/store.js";
 import { startWorkflowWebhookServer, type WorkflowWebhookServer } from "../webhook-workflows/runtime.js";
 import type { ContextRefScope } from "../context/ref-preprocess.js";
 import type { ExpandDeps } from "../context/ref-expand.js";
+import { writeGatewayReadiness } from "./readiness-state.js";
 
 const DEFAULT_TICK_MS = 60_000;
 
@@ -253,6 +254,7 @@ async function runGatewayLoop(args: GatewayLoopArgs): Promise<void> {
       session = polled.state;
       seen = polled.seen;
       health = logChannelHealth(deps.platform, health, log);
+      await writeGatewayReadiness(deps.dataDir, health).catch(() => {});
     } catch (err) {
       log(`vanta gateway: tick error — ${err instanceof Error ? err.message : String(err)}`);
     }

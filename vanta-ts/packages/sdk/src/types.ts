@@ -1,13 +1,11 @@
 export const VANTA_API_VERSION = "v1" as const;
 export const VANTA_PLUGIN_CONTRACT_VERSION = 1 as const;
 
-export type VantaStatus = {
-  kernel: "online";
-  model: string;
-  provider: string;
-  tools: number;
-  sessionId: string;
-  goals: Array<{ id: number; text: string; status: "active" }>;
+export type VantaLiveness = { apiVersion: "v1"; status: "live" };
+export type VantaReadiness = {
+  apiVersion: "v1";
+  status: "ready" | "degraded";
+  checks: Record<string, { status: string; [key: string]: string | number }>;
 };
 
 export type VantaSession = {

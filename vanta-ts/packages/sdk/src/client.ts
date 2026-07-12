@@ -1,6 +1,6 @@
 import type {
   VantaApproval, VantaApprovalDecision, VantaEvent, VantaOpenedSession,
-  VantaSession, VantaStatus, VantaTurn,
+  VantaLiveness, VantaReadiness, VantaSession, VantaTurn,
 } from "./types.js";
 
 export type VantaClientOptions = {
@@ -32,7 +32,9 @@ export class VantaClient {
     if (!this.fetchImpl) throw new Error("VantaClient requires a fetch implementation");
   }
 
-  status(): Promise<VantaStatus> { return this.request("/status"); }
+  live(): Promise<VantaLiveness> { return this.request("/live"); }
+  readiness(): Promise<VantaReadiness> { return this.request("/readiness"); }
+  status(): Promise<VantaReadiness> { return this.request("/status"); }
   listSessions(): Promise<VantaSession[]> { return this.request("/sessions"); }
 
   async startSession(): Promise<{ id: string }> {

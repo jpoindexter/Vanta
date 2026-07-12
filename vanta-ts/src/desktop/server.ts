@@ -13,7 +13,8 @@ import {
 } from "./session-state.js";
 import { writeDesktopAsset } from "./assets.js";
 import { handleCompanionRoute, isLoopbackRequest, type CompanionRouteOptions } from "../companion/routes.js";
-import { handlePublicApiRoute, type PublicApiRouteOptions } from "../public-api/routes.js";
+import { handlePublicApiProbeRoute, handlePublicApiRoute, type PublicApiRouteOptions } from "../public-api/routes.js";
+import type { ReadinessDeps } from "../public-api/readiness.js";
 import { resolveVantaHome } from "../store/home.js";
 import { getWakeApi, setWakeApi } from "./wake-api.js";
 
@@ -99,6 +100,7 @@ async function routeRequest(req: http.IncomingMessage, res: http.ServerResponse,
   const url = new URL(req.url ?? "/", "http://127.0.0.1");
   const local = opts.isLoopback(req);
   const sid = local ? sessionIdFromRequest(req) : "default";
+  if (await handlePublicApiProbeRoute({ req, res, pathname: url.pathname, options: opts.publicApi, sessions, root: repoRoot })) return;
   const state = getSession(sessions, sid, repoRoot);
   if (handleNativePreflight(req, res, url.pathname)) return;
   applyCompanionCors(req, res, url.pathname);
@@ -119,13 +121,14 @@ type DesktopServerOptions = Partial<CompanionRouteOptions> & {
   publicApiAllowedOrigins?: readonly string[];
   sessions?: SessionMap;
   sseClients?: SseClients;
+  readinessDeps?: ReadinessDeps;
 };
 
 export function createDesktopServer(repoRoot: string, options: DesktopServerOptions = {}): http.Server {
   const sessions: SessionMap = options.sessions ?? new Map();
   const sseClients: SseClients = options.sseClients ?? new Map();
   const companion = { enabled: options.enabled ?? false, home: options.home ?? resolveVantaHome(), port: options.port ?? 7790 };
-  const publicApi = { enabled: options.publicApi ?? false, home: options.home ?? resolveVantaHome(), allowedOrigins: new Set(options.publicApiAllowedOrigins ?? []) };
+  const publicApi = { enabled: options.publicApi ?? false, home: options.home ?? resolveVantaHome(), allowedOrigins: new Set(options.publicApiAllowedOrigins ?? []), readinessDeps: options.readinessDeps };
   const opts: ServerOpts = { sessions, sseClients, repoRoot, companion, publicApi, isLoopback: options.isLoopback ?? isLoopbackRequest };
   return http.createServer((req, res) => {
     void routeRequest(req, res, opts)

@@ -2,6 +2,22 @@ import { describe, expect, it } from "vitest";
 import { VantaClient, type VantaEvent } from "../../packages/sdk/src/index.js";
 
 describe("VantaClient streamInput", () => {
+  it("routes liveness, readiness, and status without starting a session", async () => {
+    const paths: string[] = [];
+    const client = new VantaClient({
+      baseUrl: "http://vanta.test",
+      token: "secret",
+      fetch: (async (input: string | URL | Request) => {
+        const path = new URL(String(input)).pathname; paths.push(path);
+        return Response.json(path.endsWith("/live") ? { apiVersion: "v1", status: "live" } : { apiVersion: "v1", status: "ready", checks: {} });
+      }) as typeof fetch,
+    });
+    await expect(client.live()).resolves.toMatchObject({ status: "live" });
+    await expect(client.readiness()).resolves.toMatchObject({ status: "ready" });
+    await expect(client.status()).resolves.toMatchObject({ status: "ready" });
+    expect(paths).toEqual(["/api/v1/live", "/api/v1/readiness", "/api/v1/status"]);
+  });
+
   it("opens SSE before input and resolves on the terminal frame", async () => {
     const calls: string[] = [];
     const encoder = new TextEncoder();

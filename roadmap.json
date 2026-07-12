@@ -17933,7 +17933,7 @@
       "id": "HERMES-DELTA-AUTH-READINESS",
       "track": "Harness",
       "title": "Authenticated runtime readiness - bounded health for remote supervision",
-      "status": "building",
+      "status": "shipped",
       "size": "S",
       "summary": "Hermes current delta (f9728af5, 6142203b) adds an authenticated detailed readiness surface over config, state DB, model, disk, gateway, active runs, process completions, and delegations while keeping public liveness cheap. Vanta Public API /status initializes a live conversation and returns only kernel/model/tool/session/goals, so a remote supervisor cannot distinguish liveness from degraded readiness without shell access.",
       "done": "The public API exposes a cheap liveness route that performs no setup or mutation and an authenticated readiness route with bounded checks for kernel, provider/config, state stores, disk pressure, gateway/channel state, active turns, background completions, and delegated workers. Responses expose status/counts only - no secrets, config values, paths, commands, payloads, or raw errors. Degraded readiness remains a successful transport response with explicit status. Integration tests prove auth, non-mutation, redaction, corrupt-store degradation, low-disk injection, and queue counts.",
@@ -17943,7 +17943,7 @@
       "codex": "gpt-5.4-mini",
       "lens": "infra",
       "updated": "2026-07-12",
-      "notes": "Extend EXT-PUBLIC-API rather than create a second server. Reuse existing doctor/capability/channel health probes behind a read-only collector.",
+      "notes": "SHIPPED 2026-07-12: extended the existing public API/desktop server with unauthenticated GET /api/v1/live and bearer-authenticated GET /api/v1/readiness plus the /status compatibility alias. Probe routing occurs before session allocation; liveness performs no setup/auth/store work, and readiness verifies tokens without touching lastUsedAt. The bounded collector caps kernel wait time, file count, and bytes per file, then returns only status enums and counts for kernel, provider config, state stores, disk, fresh gateway/channel snapshots, active turns, background tasks/completions, and delegated workers. Gateway ticks persist status-only snapshots with raw channel errors removed. Executed HTTP proof covered auth rejection/acceptance, zero session allocation, zero token-store mutation, corrupt-store and low-disk degradation, configured-but-unobserved channel degradation, queue counts, and response redaction. Focused gate: 7 files / 26 tests passed. The Teams JWT tamper fixture was made deterministic and passed 20/20 repeated runs. Full suite: 1,333 files / 13,038 tests passed / 3 skipped. TypeScript, SDK build, desktop production build, Docusaurus production build, file-size limits, and git diff check passed.",
       "source": "hermes-current-delta-2026-07-12",
       "after": [
         "EXT-PUBLIC-API",

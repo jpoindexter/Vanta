@@ -10,6 +10,8 @@ const vanta = new VantaClient({
   token: process.env.VANTA_API_TOKEN!,
 });
 
+const live = await vanta.live();             // cheap, non-mutating liveness
+const readiness = await vanta.readiness();   // authenticated status + counts
 await vanta.startSession();
 const turn = await vanta.streamInput("Summarize this repository", (event) => {
   if (event.type === "output.delta") process.stdout.write(event.delta);
@@ -36,4 +38,4 @@ const answer = await client.ask("Explain this range", {
 });
 ```
 
-Create a bearer token with `vanta api token create <name>`, then run the loopback server with `vanta api serve`. See `docs/public-api-v1.md` in the Vanta repository for the endpoint and approval contract.
+Create a bearer token with `vanta api token create <name>`, then run the loopback server with `vanta api serve`. See the [HTTP API reference](https://docs.vanta.theft.studio/reference/api/) for the endpoint and approval contract.

@@ -6,7 +6,7 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 ## Unreleased — 2026-07-12
 
 ### Documentation
-- Refreshed the Hermes/OpenClaw comparison against current Hermes main and tracked six focused delta cards; five are now shipped and authenticated readiness remains.
+- Refreshed the Hermes/OpenClaw comparison against current Hermes main and shipped all six focused local delta cards; ten real-service/device acceptance cards remain parked.
 - Synchronized legacy roadmap checklists with `roadmap.json`, regenerated the 141-tool and 146-command catalogs, and documented the ten external acceptance gates without reporting them as live.
 - Updated the Docusaurus deployment path and repository links for the Cloudflare Pages project serving `docs.vanta.theft.studio`.
 
@@ -14,6 +14,7 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - **System prompt presets** — `/prompt list|show|use|reset` switches a bounded operating-role overlay from project or Vanta-home markdown definitions without replacing the base safety prompt.
 - **Prompt-routed workers** — `delegate {agent_type}` applies the same definition's prompt, narrowing-only tool policy, and optional model default to a fresh kernel-gated worker. Dynamic MCP tools remain constrained by the worker allowlist.
 - **Gateway context references** — allowlisted remote messages now share the local `@file`, `@folder`, `@diff`, `@staged`, `@git:N`, and `@url` preprocessor. Expansion is bound to the received message's project/profile scope and routed-model budget before queueing, with source and warning receipts sent back through the channel.
+- **Bounded runtime readiness** — `GET /api/v1/live` is a cheap, unauthenticated, non-mutating liveness probe. Bearer-authenticated `/api/v1/readiness` and `/status` report redacted status/counts for the kernel, provider config, stores, disk, gateway channels, active turns, background work, and delegated workers without initializing a conversation.
 
 ## v0.8.0 — 2026-07-05
 

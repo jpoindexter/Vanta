@@ -39,6 +39,33 @@ Exposes the agent loop over HTTP/JSON-RPC for editors. See [Integrations](../int
 | `POST /run` | Execute an instruction → response |
 | `GET /status` | Health |
 
+## Authenticated operator API — `vanta api serve [port]` (default 7791)
+
+Create a bearer token, then start the versioned API:
+
+```bash
+vanta api token create "remote supervisor"
+vanta api serve 7791
+```
+
+| Method + path | Auth | Purpose |
+|---------------|------|---------|
+| `GET /api/v1/live` | no | Cheap process liveness; no setup, session allocation, or store writes |
+| `GET /api/v1/readiness` | bearer | Bounded kernel, provider/config, state-store, disk, gateway/channel, active-turn, background, and delegated-worker status |
+| `GET /api/v1/status` | bearer | Compatibility alias for readiness |
+| `GET/POST /api/v1/sessions` | bearer | List or start sessions |
+| `POST /api/v1/input` | bearer | Run a turn through the kernel-gated agent loop |
+| `GET /api/v1/events` | bearer | Stream turn events over SSE |
+| `GET/POST /api/v1/approvals/*` | bearer | Inspect and resolve pending approvals |
+
+Readiness always returns HTTP 200 after successful authentication. Inspect its top-level
+`ready`/`degraded` status and per-check status/counts. It never returns secret values, paths,
+commands, payloads, identifiers, or raw errors. Checks cap kernel wait time, inspected entries,
+and bytes per file. A configured channel without a fresh gateway observation is degraded.
+
+The TypeScript SDK exposes `client.live()`, `client.readiness()`, and the compatibility
+`client.status()` method.
+
 ## OpenAI-compatible proxy — `vanta proxy [port]` (default 7791)
 
 Speaks the OpenAI API and routes through Vanta's provider layer.
