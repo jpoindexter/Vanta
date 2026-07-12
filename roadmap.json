@@ -18079,6 +18079,26 @@
       "notes": "SHIPPED 2026-07-12. The workbench now always owns exactly three rows: header, one bounded conversation stage, and composer. Loading and connection-recovery content live inside the conversation stage, so an error banner cannot create an implicit row below the native viewport. Added desktop:layout:smoke with healthy and forced-error bounds assertions and packaged-app support. Executed proof against both the rebuilt signed ARM64 Vanta.app and the Vanta.app launched directly from the mounted DMG at the reported 1778x1136 content viewport: document/shell stayed 1136px high; conversation ended and composer began at 1002.15625px; composer ended exactly at 1136px in both states. TypeScript, file-size gate, 24 focused desktop tests, and the full 1,339-file / 13,059-test suite passed; strict codesign and DMG checksum verification passed."
     },
     {
+      "id": "DESKTOP-FILES-PANEL-RESPONSIVE-FIX",
+      "track": "Operator",
+      "title": "Desktop Files panel responsive fix — restore rows and contain long paths",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Keep the inspector's two-row grid when it opens as a narrow overlay, and constrain file paths to stable single-line rows without horizontal overflow.",
+      "done": "At the reported narrow inspector width, Files keeps tabs above content, every filename row remains readable, long paths ellipsize, only the file list scrolls vertically, and the packaged-app responsive bounds smoke passes.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "tui",
+      "updated": "2026-07-12",
+      "source": "operator screenshot 2026-07-12",
+      "after": [
+        "DESKTOP-VIEWPORT-COMPOSER-FIX"
+      ],
+      "notes": "SHIPPED 2026-07-12. Fixed the compact inspector selector that replaced the right rail's required two-row grid with a horizontal flex layout below 1080px. Files now keeps an explicit header/list grid, hides horizontal overflow, gives each path a stable 28px row, ellipsizes long paths, and exposes the full path as a native title tooltip. Extended desktop:layout:smoke with 220 long-path fixtures at 760x900. Executed against source, rebuilt signed ARM64 Vanta.app, and Vanta.app launched from the mounted DMG: inspector display grid; tabs bottom 71.5px; panel top 83.5px; panel client/scroll widths 391/391; list widths 388/388; sampled rows all 28px. TypeScript, size gate, 24 focused desktop tests, full 1,339-file / 13,059-test suite, strict codesign, and DMG checksum passed."
+    },
+    {
       "id": "DESKTOP-MAC-NOTARIZATION",
       "track": "Release",
       "title": "Desktop macOS notarization — staple a Gatekeeper-clean public build",

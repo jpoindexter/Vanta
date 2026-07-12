@@ -74,10 +74,10 @@ function ToolGroups(props: { groups: Record<string, Tool[]> }) {
 
 function FilesPanel(props: { files: string[]; onInsert: (file: string) => void }) {
   return (
-    <section className="rail-panel">
+    <section className="rail-panel files-panel">
       <h2>Project Files</h2>
       <div className="file-list">
-        {props.files.slice(0, 220).map((file) => <button key={file} type="button" onClick={() => props.onInsert(file)}>{file}</button>)}
+        {props.files.slice(0, 220).map((file) => <button key={file} type="button" title={file} onClick={() => props.onInsert(file)}>{file}</button>)}
       </div>
     </section>
   );

@@ -109,7 +109,7 @@ h2 { margin: 14px 0 8px; font-size: 11px; letter-spacing: .08em; text-transform:
 .rail-tabs button { min-width: 0; display: grid; justify-items: center; gap: 3px; border: 1px solid var(--line); background: var(--panel-2); border-radius: 7px; color: var(--muted); padding: 7px 4px; text-transform: capitalize; }
 .rail-tabs button span { font-size: 10px; }
 .rail-tabs button.active { color: var(--text); border-color: var(--accent); }
-.rail-panel { min-height: 0; align-content: start; display: grid; gap: 10px; overflow: auto; overscroll-behavior: contain; padding-right: 3px; }
+.rail-panel { min-width: 0; min-height: 0; align-content: start; display: grid; gap: 10px; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; padding-right: 3px; }
 .metric { padding: 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--ok); background: #101a12; }
 .rail-form { display: flex; gap: 6px; }
 .rail-form input { min-width: 0; flex: 1; border: 1px solid var(--line); background: var(--bg); color: var(--text); border-radius: 7px; padding: 8px; }
@@ -121,8 +121,9 @@ details { border-top: 1px solid var(--line); padding: 8px 0; }
 summary { cursor: pointer; color: var(--text); }
 summary span { color: var(--faint); }
 .tool-row { padding: 4px 0 0 12px; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
-.file-list { display: grid; gap: 2px; max-height: calc(100dvh - 94px); overflow: auto; }
-.file-list button { min-width: 0; border: 0; background: transparent; color: var(--muted); text-align: left; padding: 5px 4px; border-radius: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.files-panel { align-content: stretch; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; }
+.file-list { min-width: 0; min-height: 0; width: 100%; display: grid; grid-auto-rows: 28px; align-content: start; gap: 2px; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }
+.file-list button { min-width: 0; width: 100%; height: 28px; display: block; border: 0; background: transparent; color: var(--muted); text-align: left; line-height: 18px; padding: 5px 4px; border-radius: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .file-list button:hover { background: #202020; color: var(--text); }
 .rail-panel pre { min-height: 190px; margin: 0; white-space: pre-wrap; border: 1px solid var(--line); border-radius: 8px; background: #05070a; color: var(--muted); padding: 10px; }
 .canvas-panel { min-height: 0; overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 12px; }
@@ -249,7 +250,7 @@ button:focus-visible, textarea:focus-visible, input:focus-visible, select:focus-
 @media (max-width: 1080px) {
   .app-shell { grid-template-columns: 232px minmax(0, 1fr); }
   .right-rail { position: fixed; z-index: 8; top: 0; right: 0; bottom: 0; width: min(420px, 88vw); transform: translateX(100%); transition: transform .18s ease; box-shadow: -24px 0 60px #0009; }
-  .app-shell.panel-inspect .right-rail { display: flex; transform: translateX(0); }
+  .app-shell.panel-inspect .right-rail { display: grid; transform: translateX(0); }
   .right-rail .panel-dismiss { display: grid; }
   .right-rail .rail-tabs { padding-right: 40px; }
   .mobile-panel-controls { display: flex; }

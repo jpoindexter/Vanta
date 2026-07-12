@@ -29,12 +29,48 @@ try {
   const recovery = await measure(page);
   assertLayout(recovery, "recovery");
 
+  await page.unroute("**/api/status");
+  await page.route("**/api/files", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify(Array.from({ length: 220 }, (_, index) => `src/a-very-long-project-folder/feature-${index}/implementation-with-a-long-name.ts`)),
+  }));
+  await page.setViewportSize({ width: 760, height: 900 });
+  await page.reload({ waitUntil: "networkidle" });
+  await page.getByRole("button", { name: "Show inspector" }).click();
+  await page.getByRole("button", { name: "Open files" }).click();
+  await page.getByRole("heading", { name: "Project Files" }).waitFor();
+  const files = await measureFiles(page);
+  assertFiles(files);
+
   if (process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT) {
     await page.screenshot({ path: process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT });
   }
-  console.log(JSON.stringify({ viewport: "1778x1136", healthy, recovery }));
+  console.log(JSON.stringify({ viewport: "1778x1136", healthy, recovery, files }));
 } finally {
   await app.close();
+}
+
+async function measureFiles(page) {
+  return page.evaluate(() => {
+    const box = (element) => {
+      const rect = element.getBoundingClientRect();
+      return { top: rect.top, bottom: rect.bottom, width: rect.width, height: rect.height };
+    };
+    const rail = document.querySelector(".right-rail");
+    const tabs = document.querySelector(".rail-tabs");
+    const panel = document.querySelector(".files-panel");
+    const list = document.querySelector(".file-list");
+    const rows = [...document.querySelectorAll(".file-list button")].slice(0, 5);
+    if (!rail || !tabs || !panel || !list || rows.length === 0) throw new Error("Files panel fixture did not render");
+    return {
+      railDisplay: getComputedStyle(rail).display,
+      rail: box(rail), tabs: box(tabs), panel: box(panel), list: box(list),
+      panelWidths: [panel.clientWidth, panel.scrollWidth],
+      listWidths: [list.clientWidth, list.scrollWidth],
+      rowHeights: rows.map((row) => box(row).height),
+    };
+  });
 }
 
 async function measure(page) {
@@ -63,4 +99,12 @@ function assertLayout(result, label) {
   if (result.composer.top < 0 || result.composer.bottom > result.viewportHeight + tolerance) throw new Error(`${label}: composer is clipped`);
   if (result.stage.bottom > result.composer.top + tolerance) throw new Error(`${label}: conversation overlaps composer`);
   if (result.thread.bottom > result.stage.bottom + tolerance) throw new Error(`${label}: chat exceeds conversation stage`);
+}
+
+function assertFiles(result) {
+  if (result.railDisplay !== "grid") throw new Error(`files: inspector uses ${result.railDisplay}, expected grid`);
+  if (result.panel.top < result.tabs.bottom - 1) throw new Error("files: panel overlaps tabs");
+  if (result.panelWidths[1] > result.panelWidths[0]) throw new Error("files: panel scrolls horizontally");
+  if (result.listWidths[1] > result.listWidths[0]) throw new Error("files: list scrolls horizontally");
+  if (result.rowHeights.some((height) => height < 27)) throw new Error(`files: clipped rows ${result.rowHeights.join(",")}`);
 }
