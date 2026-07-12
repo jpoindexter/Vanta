@@ -281,8 +281,9 @@
       "model": "sonnet",
       "effort": "high",
       "codex": "gpt-5.4",
-      "lens": "harness",
+      "lens": "agent-loop",
       "updated": "2026-07-12",
+      "notes": "EXECUTED 2026-07-12: real provider README read and scoped write/readback passed; corpus ingest/recall returned source and freshness evidence; one bounded delegate worker passed; the notarized v0.8.0 desktop completed real chat and kernel-blocked a destructive terminal command; a clean ~/vanta install ran under launchd, fired a provider-free no_agent schedule, and completed an authenticated Codex agent schedule; cold-start capability reporting passed; bounded cited research passed with primary sources, skeptic review, and explicit uncertainty. Full regression: 13,066 TypeScript tests passed (3 skipped), 70 Rust kernel tests passed, typecheck/boundaries/desktop build passed, and production npm audit found 0 vulnerabilities. The card remains building until these current-main scheduling and research fixes are included in a refreshed notarized public artifact, satisfying the same-public-build criterion. See docs/product-acceptance.md.",
       "source": "operator request 2026-07-12",
       "after": [
         "DESKTOP-MAC-NOTARIZATION"

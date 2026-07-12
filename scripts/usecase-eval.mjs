@@ -109,6 +109,27 @@ function surfaceHit(output, tool) {
   return new RegExp(`(?:→|tool\\(|tool[ :=])[^\\n]{0,80}\\b${escaped}\\b`, "i").test(output);
 }
 
+function signalProcessTree(child, signal) {
+  try {
+    if (process.platform !== "win32" && child.pid) process.kill(-child.pid, signal);
+    else child.kill(signal);
+  } catch {
+    // The process may have exited between the timeout and signal delivery.
+  }
+}
+
+function armTimeout(child, timeoutMs) {
+  let hardTimer;
+  const softTimer = setTimeout(() => {
+    signalProcessTree(child, "SIGTERM");
+    hardTimer = setTimeout(() => signalProcessTree(child, "SIGKILL"), 5000);
+  }, timeoutMs);
+  return () => {
+    clearTimeout(softTimer);
+    if (hardTimer) clearTimeout(hardTimer);
+  };
+}
+
 function runScenario(scenario, timeoutMs) {
   if (scenario.operatorReplies?.length) return runMultiTurnScenario(scenario, timeoutMs);
   return new Promise((resolve) => {
@@ -117,13 +138,14 @@ function runScenario(scenario, timeoutMs) {
       cwd: root,
       env: process.env,
       stdio: ["ignore", "pipe", "pipe"],
+      detached: process.platform !== "win32",
     });
     let output = "";
     child.stdout.on("data", (chunk) => { output += chunk; process.stdout.write(chunk); });
     child.stderr.on("data", (chunk) => { output += chunk; process.stderr.write(chunk); });
-    const timer = setTimeout(() => child.kill("SIGTERM"), timeoutMs);
+    const clearTimer = armTimeout(child, timeoutMs);
     child.on("close", (code, signal) => {
-      clearTimeout(timer);
+      clearTimer();
       const plain = stripAnsi(output);
       const hits = scenario.expectedTools.filter((tool) => surfaceHit(plain, tool));
       const forbiddenHits = (scenario.forbiddenPatterns ?? []).filter((pattern) => plain.toLowerCase().includes(pattern.toLowerCase()));
@@ -156,13 +178,13 @@ function runMultiTurnScenario(scenario, timeoutMs) {
     const started = Date.now();
     const temp = join(root, ".vanta", "eval-runs", "use-cases", `.multiturn-${scenario.id}-${started}.json`);
     const child = spawn(join(root, "run.sh"), ["story-eval", "--manifest", manifestPath, "--id", scenario.id, "--out", temp], {
-      cwd: root, env: process.env, stdio: ["ignore", "pipe", "pipe"],
+      cwd: root, env: process.env, stdio: ["ignore", "pipe", "pipe"], detached: process.platform !== "win32",
     });
     child.stdout.on("data", (chunk) => process.stdout.write(chunk));
     child.stderr.on("data", (chunk) => process.stderr.write(chunk));
-    const timer = setTimeout(() => child.kill("SIGTERM"), timeoutMs);
+    const clearTimer = armTimeout(child, timeoutMs);
     child.on("close", async (code, signal) => {
-      clearTimeout(timer);
+      clearTimer();
       try {
         const receipt = JSON.parse(await readFile(temp, "utf8"));
         const result = receipt.results[0];

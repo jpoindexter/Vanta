@@ -20,6 +20,32 @@ const Args = z.object({
  */
 export type SubQueryRunner = (sub: SubQuery, ctx: ToolContext) => Promise<SubQueryResult>;
 
+export function researchWorkerTimeoutMs(env: NodeJS.ProcessEnv = process.env): number {
+  const configured = Number(env.VANTA_RESEARCH_WORKER_TIMEOUT_MS);
+  return Number.isFinite(configured) && configured >= 1000
+    ? Math.min(configured, 300_000)
+    : 60_000;
+}
+
+export async function withResearchDeadline<T>(
+  run: (signal: AbortSignal) => Promise<T>,
+  timeoutMs: number,
+): Promise<T> {
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => {
+      controller.abort();
+      reject(new Error(`research worker timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+  });
+  try {
+    return await Promise.race([run(controller.signal), timeout]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 /**
  * Default runner: spawn a scoped subagent per sub-query, tee its tool calls into
  * a ring so we know WHICH tools ran (AgentOutcome doesn't surface them), and
@@ -35,18 +61,20 @@ async function defaultRunner(sub: SubQuery, ctx: ToolContext): Promise<SubQueryR
   const toolsUsed: string[] = [];
   try {
     const provider = resolveProvider(process.env);
-    const outcome = await spawnSubagent({
+    const outcome = await withResearchDeadline((signal) => spawnSubagent({
       goal: `Research the "${sub.dimension}" dimension`,
       instruction: sub.query,
+      maxIterations: 8,
       deps: {
         provider,
         safety: ctx.safety,
         registry,
         root: ctx.root,
         requestApproval: ctx.requestApproval,
+        signal,
         onToolCall: (name) => toolsUsed.push(name),
       },
-    });
+    }), researchWorkerTimeoutMs());
     return { dimension: sub.dimension, query: sub.query, toolsUsed, findings: outcome.finalText };
   } catch (err) {
     return {

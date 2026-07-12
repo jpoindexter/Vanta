@@ -74,6 +74,7 @@ const sidebars: SidebarsConfig = {
         'reference/commands-list',
       ],
     },
+    'acceptance',
     'faq',
     'roadmap',
     'changelog',

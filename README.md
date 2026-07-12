@@ -111,6 +111,8 @@ Vanta is a **general operator**, not a coding tool — one agent runs every cate
 
 Some capabilities need one-time setup for *live* use (browser binaries, API keys, Google OAuth client, login cookies for gated reach channels) — see `PARKED.md`. Tests: `cargo test` (kernel) · `cd vanta-ts && npm test` (agent).
 
+Executed release-critical stories and their remaining boundary are recorded in [`docs/product-acceptance.md`](docs/product-acceptance.md). The record covers real model work, file mutation/readback, corpus recall, delegation, packaged desktop chat and safety, unattended launchd scheduling, and cited research.
+
 ## Run anywhere you control
 
 Vanta is not laptop-bound — it runs on any host you control and the **kernel travels with it**, gating every action wherever it runs (no vendor lock-in, your data residency). Pick the execution backend in `vanta setup` → **Execution backend** (local · sandbox · docker · ssh):

@@ -8,13 +8,17 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1186 capabilities shipped · 0 in flight · 0 on the horizon. Updated 2026-07-12._
+_1186 capabilities shipped · 1 in flight · 0 on the horizon. Updated 2026-07-12._
 
 ## In flight
 
 What we are actively building next.
 
-_Nothing in flight right now — see the horizon below._
+### Real use-case acceptance — prove Vanta completes operator outcomes
+
+**Release** · L-size
+
+Execute a bounded acceptance campaign across real provider work, safe file changes, memory recall, scheduling, delegation, destructive-action blocking, and the packaged desktop path; replace configuration-only proxies with behavioral receipts
 
 ## Recently shipped
 

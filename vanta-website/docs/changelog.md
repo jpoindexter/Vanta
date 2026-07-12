@@ -9,6 +9,7 @@ sidebar_position: 2
 Major capability milestones, newest first. This is a curated highlight reel — the full per-slice history lives in `roadmap.json`.
 
 ## 2026-07-12 — Hermes delta and documentation release
+- **Executed product acceptance** — real model read/write/readback, corpus recall, delegation, packaged desktop chat and destructive-command blocking, clean-install launchd scheduling, cold-start capability reporting, and bounded cited research now have recorded behavioral evidence. The refreshed public artifact remains the final local acceptance boundary.
 - **Session-scoped model switching** — `/model` and both model pickers now change only the current conversation by default, persist that route with the session, and reserve `.env` mutation for explicit **Set as default**/`--global` actions.
 - **Per-call route usage ledger** — completed agent-loop calls now persist the provider/model/base route that actually served them, including fallback depth, model switches, cache/reasoning tokens, and zero-cost local or subscription-included calls. `/usage breakdown` and `/dashboard` read the route ledger without double-counting legacy spend rows.
 - **Real-headroom compaction guard** — automatic compaction now uses the next provider input-token count to detect a fixed system/tool floor. Two ineffective passes suppress a third automatic rewrite, while `/compact <focus>` remains available.

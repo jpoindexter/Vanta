@@ -43,6 +43,8 @@ const leaky = (s) => /\b(hermes|openclaw|wedge)\b/i.test(scrub(s)) && !/migrat|i
 
 const byStatus = (st) => items.filter((c) => (c.status || '').toLowerCase() === st);
 const next = byStatus('next');
+const building = byStatus('building');
+const inFlight = [...building, ...next];
 const shipped = byStatus('shipped');
 const horizon = byStatus('horizon');
 
@@ -60,14 +62,14 @@ out.push(
   '',
 );
 out.push(
-  `_${shipped.length} capabilities shipped · ${next.length} in flight · ${horizon.length} on the horizon. Updated ${roadmap.updated || 'recently'}._`,
+  `_${shipped.length} capabilities shipped · ${inFlight.length} in flight · ${horizon.length} on the horizon. Updated ${roadmap.updated || 'recently'}._`,
   '',
 );
 
 out.push('## In flight', '');
 out.push('What we are actively building next.', '');
-if (next.length === 0) out.push('_Nothing in flight right now — see the horizon below._', '');
-for (const c of next) {
+if (inFlight.length === 0) out.push('_Nothing in flight right now — see the horizon below._', '');
+for (const c of inFlight) {
   out.push(`### ${clean(c.title)}`, '');
   out.push(`**${c.track}** · ${c.size || 'M'}-size`, '');
   const d = cleanDesc(c);
@@ -93,4 +95,4 @@ for (const track of tracks) {
 }
 
 writeFileSync(join(here, '..', 'docs', 'roadmap.md'), out.join('\n'));
-console.log(`gen-roadmap: wrote docs/roadmap.md (${next.length} next, ${recent.length} recent, ${horizon.length} horizon across ${tracks.length} tracks)`);
+console.log(`gen-roadmap: wrote docs/roadmap.md (${building.length} building, ${next.length} next, ${recent.length} recent, ${horizon.length} horizon across ${tracks.length} tracks)`);

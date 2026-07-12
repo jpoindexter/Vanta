@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   buildResearchDecomposeTool,
+  researchWorkerTimeoutMs,
+  withResearchDeadline,
   type SubQueryRunner,
 } from "./research-decompose.js";
 import type { ToolContext } from "./types.js";
@@ -22,6 +24,21 @@ const fakeRunner: SubQueryRunner = async (sub) => ({
 });
 
 describe("research_decompose tool", () => {
+  it("bounds live research workers and accepts a sane override", () => {
+    expect(researchWorkerTimeoutMs({})).toBe(60_000);
+    expect(researchWorkerTimeoutMs({ VANTA_RESEARCH_WORKER_TIMEOUT_MS: "2500" })).toBe(2500);
+    expect(researchWorkerTimeoutMs({ VANTA_RESEARCH_WORKER_TIMEOUT_MS: "999999" })).toBe(300_000);
+  });
+
+  it("enforces the research worker deadline even when work ignores cancellation", async () => {
+    const never = new Promise<string>(() => {});
+    await expect(withResearchDeadline(() => never, 5)).rejects.toThrow("timed out after 5ms");
+  });
+
+  it("returns work that finishes before the research deadline", async () => {
+    await expect(withResearchDeadline(async () => "done", 100)).resolves.toBe("done");
+  });
+
   it("has a kernel-gated research describeForSafety", () => {
     const tool = buildResearchDecomposeTool(fakeRunner);
     expect(tool.schema.name).toBe("research_decompose");

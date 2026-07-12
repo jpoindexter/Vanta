@@ -105,7 +105,7 @@
       "sourceStoryId": "discord-dre108-gigaxity-research",
       "category": "Research",
       "tier": "route",
-      "instruction": "Research a disputed technical claim, compare primary sources, run a skeptic pass, and return a cited conclusion with uncertainty.",
+      "instruction": "Investigate this technical claim: Node.js built-in fetch is implemented on top of Undici and was marked stable in Node.js 21. Use research_decompose once with dimensions=2, then compare at most three primary Node.js or Undici pages using web_search and web_fetch. Do not use shell commands. Run a skeptic pass and return a concise cited conclusion that states any unresolved uncertainty.",
       "setup": ["web-access"],
       "risk": "network-read",
       "expectedTools": ["research_decompose", "web_search", "web_fetch"],
