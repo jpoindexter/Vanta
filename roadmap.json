@@ -18102,7 +18102,7 @@
       "id": "DESKTOP-MAC-NOTARIZATION",
       "track": "Release",
       "title": "Desktop macOS notarization — staple a Gatekeeper-clean public build",
-      "status": "building",
+      "status": "shipped",
       "size": "S",
       "summary": "Submit the signed desktop DMG to Apple, wait for acceptance, staple the ticket, and prove Gatekeeper acceptance on a quarantined clean Mac before publishing a public download.",
       "done": "Apple notarytool accepts the exact release DMG; stapler validate passes; spctl accepts the installed app after quarantine on a separate Mac; the published checksum matches the notarized artifact.",
@@ -18115,7 +18115,8 @@
       "source": "DESKTOP-APP-V1 release boundary 2026-07-12",
       "after": [
         "DESKTOP-APP-V1"
-      ]
+      ],
+      "notes": "SHIPPED 2026-07-12. Added npm run desktop:release: build and Developer ID-sign the app, build ZIP/DMG, sign the DMG container, submit with the saved notarytool Keychain profile, wait for Apple, staple, validate, and require spctl source=Notarized Developer ID. The first manual submission exposed that an accepted app inside an unsigned DMG still fails Gatekeeper; the automated path fixes that order. Executed release submission 82513167-9ee2-451e-896a-bde16e21ea15 returned Accepted. Public v0.8.0 DMG: https://github.com/jpoindexter/Vanta/releases/download/v0.8.0/Vanta-0.8.0-arm64.dmg; SHA-256 aa39b49307c5fe70fb197c2bba6fd4caa7695d384c2317ca7448a043d40e85b6, matching GitHub's server digest and the published .sha256 asset. Fresh separate macos-14 GitHub-hosted runner proof https://github.com/jpoindexter/Vanta/actions/runs/29208066598 passed checksum, stapler validate, DMG codesign, DMG Gatekeeper, mounted install, quarantine attribute, deep app codesign, and installed-app Gatekeeper; both assessments reported Notarized Developer ID."
     }
   ]
 }

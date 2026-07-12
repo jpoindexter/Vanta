@@ -94,7 +94,7 @@ Vanta is a **general operator**, not a coding tool — one agent runs every cate
 - **Voice & terminal** — push-to-talk voice input (local whisper STT), live terminal capture (tmux-backed), Slack `#channel` autocomplete in the composer
 - **Desktop control** — native screen control (screencapture → vision grounding → cliclick, or the CHICAGO computer-use MCP); `vanta control setup` grants OS permissions
 - **Ambient companion** — native Electron menu-bar presence with Quick Ask and approval status; `vanta desktop --companion` exposes a token-paired mobile status/chat/approval surface while terminal, files, tools, and model settings remain loopback-only
-- **Native desktop app** — one-viewport React/Electron workspace with persisted project selection, in-app model setup, sessions/chat/canvas/files/terminal, actionable startup recovery, and Developer ID signed ARM64 DMG/ZIP packaging
+- **Native desktop app** — one-viewport React/Electron workspace with persisted project selection, in-app model setup, sessions/chat/canvas/files/terminal, actionable startup recovery, and a [notarized ARM64 macOS DMG](https://github.com/jpoindexter/Vanta/releases/download/v0.8.0/Vanta-0.8.0-arm64.dmg)
 - **Personal tuning** — `vanta tune lora` trains a local LoRA adapter from your accepted/rejected operator decisions (real MPS/CUDA/CPU training)
 - **Code & dev** — scoped file editing, grep/glob, `run_code`, LSP diagnostics/definition (TS), git tools, regression locks
 - **Autonomous** — cron scheduler, background tasks, subagent delegation, swarm/workflow, A2A bus, team workers
