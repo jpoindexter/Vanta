@@ -18054,6 +18054,7 @@
       "effort": "high",
       "codex": "gpt-5.4",
       "lens": "tui",
+      "updated": "2026-07-12",
       "source": "operator request 2026-07-12",
       "notes": "SHIPPED 2026-07-12. Rebuilt the React/Electron surface as a fixed one-viewport workspace: the outer document never scrolls, while only genuine session/chat/inspector content does. Added searchable sessions, prompt starters, explicit loading/recovery, command/model/setup dialogs, safer approvals, compact panel navigation with close controls, resilient API parsing, and in-app provider/model/API-key setup stored privately in project .vanta/.env. The native host now persists and switches project roots, selects a free port, shows a startup splash, handles single-instance/menu/tray lifecycle, bundles renderer/TypeScript runtime/Rust kernel paths, unpacks executable transform dependencies, and produces ARM64 app/DMG/ZIP artifacts. Executed proof: focused desktop/setup gates, TypeScript, and size gates passed; the full suite passed 1,339 files / 13,059 tests / 3 skipped; Playwright at 1440x960 and 760x700 measured html/body/shell exactly one viewport with no outer scroll; signed app passed strict codesign verification; DMG checksum verified; the root-level Vanta.app launched directly from the mounted DMG against an empty temporary project with no Vanta checkout and reported renderer assets ready, first-run setup ready, and bundled kernel online. Artifacts: 176 MiB DMG and 176 MiB ZIP. Public Apple notarization is captured separately as DESKTOP-MAC-NOTARIZATION because notary credentials are not configured."
     },
@@ -18070,6 +18071,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
+      "updated": "2026-07-12",
       "source": "DESKTOP-APP-V1 release boundary 2026-07-12",
       "after": [
         "DESKTOP-APP-V1"

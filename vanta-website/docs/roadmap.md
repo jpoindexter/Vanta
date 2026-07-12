@@ -32,6 +32,7 @@ The latest of 1183+ capabilities. See the [changelog](./changelog) for curated m
 - **Needs-human queue — one actionable ticket instead of repeated failure** — Operator · 2026-07-12
 - **Documentation router health — measure loads, use, staleness, and contradictions** — Memory · 2026-07-12
 - **Maintenance budget — keep meta-work from competing with delivery** — Harness · 2026-07-12
+- **Desktop app v1 — dependable native Vanta for daily use** — Operator · 2026-07-12
 - **Roadmap unblock command — turn blocked cards into exact next actions** — Operator · 2026-07-11
 - **Messaging channel parity — reach Hermes(20+)/OpenClaw(13+) channel coverage** — Operator · 2026-07-11
 - **Fix: Cmd+V image paste into the TUI doesn't attach (only /image + drag-drop work)** — Operator · 2026-07-11
@@ -39,7 +40,6 @@ The latest of 1183+ capabilities. See the [changelog](./changelog) for curated m
 - **Roadmap optional proof terminal — tabled experiments do not block completion** — Operator · 2026-07-11
 - **Roadmap strategy parked terminal — out-of-strategy cards stop blocking completion** — Operator · 2026-07-11
 - **A2A autonomous proof status — Docker/image/auth/receipt gate** — Harness · 2026-07-11
-- **Profile roster — persistent specialist agents with isolated state** — Operator · 2026-07-11
 
 ## On the horizon
 
