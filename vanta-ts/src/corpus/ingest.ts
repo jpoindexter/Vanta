@@ -14,6 +14,7 @@ const CHUNK_SIZE = 1_200;
 const CHUNK_OVERLAP = 120;
 
 export type IngestDeps = {
+  root?: string;
   env?: NodeJS.ProcessEnv;
   now?: Date;
   staleAfterDays?: number;
@@ -29,7 +30,7 @@ export async function ingestCorpus(target: string, deps: IngestDeps = {}): Promi
   const env = deps.env ?? process.env;
   const now = deps.now ?? new Date();
   const embedder = deps.embedder ?? ((text) => embed(text, env));
-  const input = isUrl(target) ? await readUrl(target, deps) : await readLocal(target);
+  const input = isUrl(target) ? await readUrl(target, deps) : await readLocal(target, deps.root);
   const existing = await loadCorpus(env);
   const existingById = new Map(existing.sources.map((source) => [source.id, source]));
   const sources: CorpusSource[] = [];
@@ -65,8 +66,8 @@ async function compileChunks(text: string, sourceId: string, embedder: Embedder)
   }));
 }
 
-async function readLocal(target: string): Promise<{ docs: InputDoc[]; skipped: number }> {
-  const root = resolve(target);
+async function readLocal(target: string, projectRoot?: string): Promise<{ docs: InputDoc[]; skipped: number }> {
+  const root = resolve(projectRoot ?? process.cwd(), target);
   const info = await lstat(root);
   if (info.isSymbolicLink()) throw new Error("Corpus ingest refuses symbolic links");
   if (info.isFile()) {

@@ -69,6 +69,15 @@ describe("runScheduleCommand", () => {
     expect(code).toBe(0);
     expect(log).toHaveBeenCalledWith(expect.stringContaining("do the thing"));
   });
+
+  it("removes a stored task through the command surface", async () => {
+    const entry = await addCron(dataDir, "* * * * *", "acceptance task");
+    expect(await runScheduleCommand(dataDir, ["remove", String(entry.id)])).toBe(0);
+    expect(log).toHaveBeenCalledWith(`removed scheduled task #${entry.id}`);
+    log.mockClear();
+    await runScheduleCommand(dataDir, ["list"]);
+    expect(log).toHaveBeenCalledWith("(no scheduled tasks)");
+  });
 });
 
 describe("runCron", () => {

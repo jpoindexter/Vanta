@@ -49,7 +49,7 @@ const USAGE_LINES = [
       '       vanta run "<instruction>"          run one instruction and exit',
       "       vanta skills [install [--force]|lint]   list / install bundled / validate SKILL.md files",
       '       vanta skill <name> ["<instruction>"]  print a skill, or run with it',
-      '       vanta schedule "<instruction>" --cron "<expr>" | schedule list',
+      '       vanta schedule "<instruction>" --cron "<expr>" | schedule list | schedule remove <id>',
       "       vanta cron                         run due tasks once (for launchd/cron)",
       "       vanta gateway                      run the scheduler as a foreground daemon",
       "       vanta gateway verify-channels      log live/not-configured status for messaging adapters",

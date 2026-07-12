@@ -2,9 +2,15 @@ import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
-import { createServiceManager } from "./manager.js";
+import { createServiceManager, protectedMacServicePath } from "./manager.js";
 
 describe("cross-platform service manager", () => {
+  it("detects macOS folders that launchd cannot reliably read", () => {
+    expect(protectedMacServicePath("/Users/operator/Documents/Vanta", "/Users/operator")).toBe(true);
+    expect(protectedMacServicePath("/Users/operator/Desktop/Vanta", "/Users/operator")).toBe(true);
+    expect(protectedMacServicePath("/Users/operator/vanta", "/Users/operator")).toBe(false);
+  });
+
   it("installs, starts, restarts, stops, and removes a systemd user service", async () => {
     const home = await mkdtemp(join(tmpdir(), "vanta-service-"));
     const exec = vi.fn(async () => ({ stdout: "inactive\n", stderr: "" }));

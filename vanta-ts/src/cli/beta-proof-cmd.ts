@@ -5,7 +5,9 @@ import { ensureKernel } from "../kernel-launcher.js";
 import { kernelBinaryPath } from "../kernel/path.js";
 import { createKernelClient } from "../kernel/client.js";
 import { parsePipeline, runPipeline } from "../workflow/rpc-pipeline.js";
-import { resolveProvider } from "../providers/index.js";
+import { createConversation } from "../agent.js";
+import { prepareRun, buildSummarizer } from "../session.js";
+import type { Message } from "../types.js";
 
 // BETA-LIVE-PROOF — `vanta beta-proof`: run the headless-provable beta paths live
 // (kernel blocks a destructive action; a multi-step pipeline collapses to one
@@ -39,19 +41,28 @@ async function checkMultiStep(): Promise<Check> {
   return { ok: calls === 3 && onlyFinal, evidence: `${calls} tools ran in one turn; only the final result returned (${onlyFinal})` };
 }
 
-function checkDoesATask(): Check {
-  try {
-    const p = resolveProvider(process.env);
-    return { ok: true, evidence: `a provider is configured: ${p.modelId()}` };
-  } catch (e) {
-    return { ok: false, evidence: `no provider configured — run 'vanta setup' (${e instanceof Error ? e.message : String(e)})` };
-  }
+export function assessTaskProof(finalText: string, messages: Message[], iterations: number, stoppedReason: string): Check {
+  const read = messages.find((message) => message.role === "tool" && message.name === "read_file" && message.content.includes("# Vanta"));
+  const marker = finalText.includes("VANTA_BETA_TASK_OK") && finalText.includes("# Vanta");
+  const ok = Boolean(read) && marker && stoppedReason === "done";
+  return { ok, evidence: `real README task: read_file=${Boolean(read)}, contract=${marker}, stopped=${stoppedReason}, iterations=${iterations}` };
+}
+
+async function checkDoesATask(repoRoot: string): Promise<Check> {
+  const instruction = "Read README.md with read_file. Do not modify files. Reply with exactly two lines: VANTA_BETA_TASK_OK and # Vanta.";
+  const setup = await prepareRun(repoRoot, instruction);
+  const convo = createConversation(setup.systemPrompt, {
+    provider: setup.provider, safety: setup.safety, registry: setup.registry, root: repoRoot,
+    requestApproval: async () => false, maxIterations: 8, summarize: buildSummarizer(setup.provider),
+  });
+  const outcome = await convo.send(instruction);
+  return assessTaskProof(outcome.finalText, convo.messages, outcome.iterations, outcome.stoppedReason);
 }
 
 async function runCheck(p: BetaPath, repoRoot: string): Promise<Check> {
   if (p.id === "safe") return checkSafe(repoRoot);
   if (p.id === "multi-step") return checkMultiStep();
-  if (p.id === "does-a-task") return checkDoesATask();
+  if (p.id === "does-a-task") return checkDoesATask(repoRoot);
   return { ok: false, evidence: "no live check wired for this path" };
 }
 

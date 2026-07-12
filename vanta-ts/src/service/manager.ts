@@ -2,7 +2,7 @@ import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
-import { dirname, join, win32 } from "node:path";
+import { dirname, join, relative, resolve, win32 } from "node:path";
 import { promisify } from "node:util";
 import { resolveVantaHome } from "../store/home.js";
 import { buildLaunchdPlist } from "./launchd.js";
@@ -15,7 +15,7 @@ const WINDOWS_NAME = "VantaGateway";
 type Platform = NodeJS.Platform;
 type ExecResult = { stdout: string; stderr: string };
 type Exec = (file: string, args: string[]) => Promise<ExecResult>;
-type Context = { platform: Platform; run: Exec; logPath: string; artifactPath: string; taskRunnerPath: string };
+type Context = { platform: Platform; home: string; run: Exec; logPath: string; artifactPath: string; taskRunnerPath: string };
 type ManagerOptions = { platform?: Platform; home?: string; vantaHome?: string; exec?: Exec };
 const ignored: ExecResult = { stdout: "", stderr: "" };
 
@@ -67,6 +67,14 @@ function requireSupported(platform: Platform): void {
   }
 }
 
+export function protectedMacServicePath(repoRoot: string, home: string): boolean {
+  const target = resolve(repoRoot);
+  return ["Documents", "Desktop", "Downloads"].some((folder) => {
+    const rel = relative(resolve(home, folder), target);
+    return rel === "" || (!rel.startsWith("..") && !rel.startsWith("/"));
+  });
+}
+
 async function installLaunchd(ctx: Context, repoRoot: string): Promise<void> {
   const plist = buildLaunchdPlist({ label: SERVICE_LABEL, programArgs: [join(repoRoot, "run.sh"), "gateway"], workingDir: repoRoot, logPath: ctx.logPath, pathDirs: (process.env.PATH ?? "").split(":").filter(Boolean) });
   await writeFile(ctx.artifactPath, plist.replace("<plist version=\"1.0\">", `<plist version=\"1.0\">\n<!-- ${SERVICE_MARKER} -->`), "utf8");
@@ -95,6 +103,9 @@ async function installTask(ctx: Context, repoRoot: string): Promise<void> {
 
 async function install(ctx: Context, repoRoot: string): Promise<string> {
   requireSupported(ctx.platform);
+  if (ctx.platform === "darwin" && protectedMacServicePath(repoRoot, ctx.home)) {
+    throw new Error("macOS blocks launchd access to protected folders. Install Vanta outside Documents/Desktop/Downloads (recommended: ~/vanta), then run `vanta service install` there.");
+  }
   await mkdir(dirname(ctx.artifactPath), { recursive: true });
   await mkdir(dirname(ctx.logPath), { recursive: true });
   if (ctx.platform === "darwin") await installLaunchd(ctx, repoRoot);
@@ -169,7 +180,7 @@ export function createServiceManager(options: ManagerOptions = {}): ServiceManag
   const platform = options.platform ?? process.platform;
   const home = options.home ?? homedir();
   const vantaHome = options.vantaHome ?? resolveVantaHome();
-  const ctx = { platform, run: options.exec ?? defaultExec, logPath: join(vantaHome, "gateway.log"), artifactPath: artifactFor(platform, home, vantaHome), taskRunnerPath: join(vantaHome, "service", "vanta-gateway-runner.ps1") };
+  const ctx = { platform, home, run: options.exec ?? defaultExec, logPath: join(vantaHome, "gateway.log"), artifactPath: artifactFor(platform, home, vantaHome), taskRunnerPath: join(vantaHome, "service", "vanta-gateway-runner.ps1") };
   return {
     install: (repoRoot) => install(ctx, repoRoot),
     uninstall: () => uninstall(ctx), restart: () => restart(ctx), stop: () => stop(ctx),

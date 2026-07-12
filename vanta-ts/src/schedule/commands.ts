@@ -1,4 +1,4 @@
-import { addCron, loadCron, type CronMode, type RoutinePolicy } from "./cron.js";
+import { addCron, loadCron, removeCron, type CronMode, type RoutinePolicy } from "./cron.js";
 import {
   runDueTasksTracked,
   loadLastFired,
@@ -85,6 +85,14 @@ async function runScheduleList(dataDir: string): Promise<number> {
   return 0;
 }
 
+async function runScheduleRemove(dataDir: string, rawId: string | undefined): Promise<number> {
+  const id = Number(rawId);
+  if (!Number.isInteger(id)) return 1;
+  const removed = await removeCron(dataDir, id);
+  console.log(removed ? `removed scheduled task #${id}` : `scheduled task #${id} not found`);
+  return removed ? 0 : 1;
+}
+
 /** Flag validation for `vanta schedule` adds; a returned string is the error. */
 function scheduleFlagError(f: ReturnType<typeof parseScheduleFlags>): string | null {
   if (f.invalidMode) return `--mode must be no_agent or script_context, got "${f.invalidMode}"`;
@@ -99,6 +107,7 @@ export async function runScheduleCommand(
   rest: string[],
 ): Promise<number> {
   if (rest[0] === "list") return runScheduleList(dataDir);
+  if (rest[0] === "remove") return runScheduleRemove(dataDir, rest[1]);
 
   const flags = parseScheduleFlags(rest);
   const instruction = flags.rest.join(" ").trim();

@@ -168,7 +168,7 @@ function withOptionalCells(entry: CronEntry, modeCell?: string, scriptCell?: str
 }
 
 /** Read all cron entries from <dataDir>/cron.tsv, or [] if absent. */
-export async function loadCron(dataDir: string): Promise<CronEntry[]> {
+async function loadLegacyCron(dataDir: string): Promise<CronEntry[]> {
   let raw = "";
   try {
     raw = await readFile(cronPath(dataDir), "utf8");
@@ -181,7 +181,11 @@ export async function loadCron(dataDir: string): Promise<CronEntry[]> {
     const entry = parseLine(line);
     if (entry !== null) entries.push(entry);
   }
-  return [...entries, ...await loadDurableCron(dataDir)];
+  return entries;
+}
+
+export async function loadCron(dataDir: string): Promise<CronEntry[]> {
+  return [...await loadLegacyCron(dataDir), ...await loadDurableCron(dataDir)];
 }
 
 /** Rewrite <dataDir>/cron.tsv with the given entries (creating the dir). */
@@ -204,10 +208,19 @@ export async function addCron(
   instruction: string,
   opts: { mode?: CronMode; script?: string; routine?: RoutinePolicy } = {},
 ): Promise<CronEntry> {
-  const entries = await loadCron(dataDir);
-  const nextId = entries.reduce((max, e) => Math.max(max, e.id), 0) + 1;
+  const entries = await loadLegacyCron(dataDir);
+  const all = [...entries, ...await loadDurableCron(dataDir)];
+  const nextId = all.reduce((max, e) => Math.max(max, e.id), 0) + 1;
   const entry: CronEntry = { id: nextId, cron, instruction, status: "active", ...opts };
   entries.push(entry);
   await saveCron(dataDir, entries);
   return entry;
+}
+
+export async function removeCron(dataDir: string, id: number): Promise<boolean> {
+  const entries = await loadLegacyCron(dataDir);
+  const remaining = entries.filter((entry) => entry.id !== id);
+  if (remaining.length === entries.length) return false;
+  await saveCron(dataDir, remaining);
+  return true;
 }

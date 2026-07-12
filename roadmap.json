@@ -270,6 +270,25 @@
       ]
     },
     {
+      "id": "VANTA-REAL-USE-CASE-ACCEPTANCE",
+      "track": "Release",
+      "title": "Real use-case acceptance — prove Vanta completes operator outcomes",
+      "status": "building",
+      "size": "L",
+      "summary": "Execute a bounded acceptance campaign across real provider work, safe file changes, memory recall, scheduling, delegation, destructive-action blocking, and the packaged desktop path; replace configuration-only proxies with behavioral receipts.",
+      "done": "A versioned acceptance manifest runs the selected operator stories end to end, records redacted receipts, identifies each executed versus externally gated path, and every local release-critical story passes from the same public build without relying on unit-test or configuration-only proxies.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "codex": "gpt-5.4",
+      "lens": "harness",
+      "updated": "2026-07-12",
+      "source": "operator request 2026-07-12",
+      "after": [
+        "DESKTOP-MAC-NOTARIZATION"
+      ]
+    },
+    {
       "id": "RUN-ANYWHERE-V1-RELEASE-GATE",
       "track": "Operator",
       "title": "Run Anywhere v1 release gate — reach, wake, and execute on controlled infrastructure",
