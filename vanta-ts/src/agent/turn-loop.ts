@@ -26,6 +26,8 @@ import type { TurnState } from "./turn-state.js";
 import { join } from "node:path";
 import { buildContextInspection } from "../tools/inspect-context.js";
 import { requiredToolNudge } from "./tool-use-contract.js";
+import { interruptedDisposition, interruptedToolResult } from "./effect-disposition.js";
+import { checkpointToolTranscript, persistEffectTransition } from "./effect-persistence.js";
 
 export type TurnOpts = {
   messages: Message[];
@@ -59,14 +61,33 @@ async function processToolCalls(args: ProcessToolCallsArgs): Promise<string | nu
   let stuckTool: string | null = null;
   for (const call of calls) {
     const inFlight = prefetched?.get(call.id);
-    const outcome = inFlight ? await inFlight : await dispatchTool(call, deps, ctx);
+    let executionStarted = false;
+    const trackedCtx: ToolContext = {
+      ...ctx,
+      onToolExecutionStart: async () => {
+        executionStarted = true;
+        call.effectState = "started";
+        await persistEffectTransition(ctx.root, deps.sessionId, call, "started");
+        await checkpointToolTranscript(deps.sessionId, messages);
+      },
+    };
+    let outcome: DispatchOutcome;
+    try {
+      outcome = inFlight ? await inFlight : await dispatchTool(call, deps, trackedCtx);
+    } catch (error) {
+      const disposition = interruptedDisposition(call, executionStarted);
+      const synthetic = interruptedToolResult(call, disposition);
+      outcome = { executed: executionStarted, empty: false, ok: false, output: `${synthetic.content}\nError: ${error instanceof Error ? error.message : String(error)}`, effectDisposition: disposition };
+    }
     batch.push({ name: call.name, ok: outcome.ok, output: outcome.output });
     state.toolNames.push(call.name);
     state.toolIterations++;
     if (outcome.tokensSaved) state.tokensSaved += outcome.tokensSaved;
     const reactive = compactOversizedResult(outcome.output, { contextWindow: deps.provider.contextWindow() });
     if (reactive.tokensSaved) state.tokensSaved += reactive.tokensSaved;
-    messages.push({ role: "tool", toolCallId: call.id, name: call.name, content: reactive.output });
+    messages.push({ role: "tool", toolCallId: call.id, name: call.name, content: reactive.output, effectDisposition: outcome.effectDisposition });
+    await persistEffectTransition(ctx.root, deps.sessionId, call, "settled", outcome.effectDisposition);
+    await checkpointToolTranscript(deps.sessionId, messages);
     await logToolOutcome(deps, call.name, outcome.ok, reactive.output.length);
     const stuck = recordToolOutcome(state, call, outcome, deps);
     const t = DEFAULT_ERRORDETECT_THRESHOLD;
@@ -127,9 +148,14 @@ async function handleToolCallsPresent(args: ToolCallIterArgs): Promise<AgentOutc
   const shownText = result.text.trim() ? await displayText(deps, result.text) : "";
   if (shownText) { deps.onText?.(shownText); deps.onEvent?.({ type: "text_complete", text: shownText }); }
   messages.push({ role: "assistant", content: result.text, toolCalls: result.toolCalls });
+  for (const call of result.toolCalls) {
+    call.effectState = "pending";
+    await persistEffectTransition(ctx.root, deps.sessionId, call, "pending");
+  }
+  await checkpointToolTranscript(deps.sessionId, messages);
   const structured = maybeStructuredOutput(result.toolCalls, deps.outputSchema);
   if (structured.handled) {
-    messages.push({ role: "tool", toolCallId: result.toolCalls.find((c) => c.name === "StructuredOutput")?.id ?? "structured-output", name: "StructuredOutput", content: structured.output });
+    messages.push({ role: "tool", toolCallId: result.toolCalls.find((c) => c.name === "StructuredOutput")?.id ?? "structured-output", name: "StructuredOutput", content: structured.output, effectDisposition: "none" });
     return structuredOutcome(structured, iter, usage());
   }
   const stuckTool = await processToolCalls({ calls: result.toolCalls, deps, ctx, state, messages, prefetched });

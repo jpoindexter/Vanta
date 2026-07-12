@@ -15,7 +15,7 @@ one-owner, kernel-gated operator direction.
 
 | Priority | Hermes evidence | Vanta finding | Roadmap action |
 | --- | --- | --- | --- |
-| 1 | `a0a6cd80` preserves `none` versus `unknown` effects for interrupted or dangling tools. | Vanta avoids automatic retries for known mutators, but exceptions and interrupted tails have no durable effect disposition. | `HERMES-DELTA-EFFECT-DISPOSITION` (`next`) |
+| 1 | `a0a6cd80` preserves `none` versus `unknown` effects for interrupted or dangling tools. | Shipped: Vanta persists `pending`/`started` boundaries, classifies canonical results as `none`/`confirmed`/`unknown`, and repairs dangling sessions with inspect-before-retry guidance. | `HERMES-DELTA-EFFECT-DISPOSITION` (`shipped`) |
 | 2 | `32f30d2a` through `83000c72` judge compaction against the next real prompt count and stop ineffective loops. | Vanta's anti-thrash gate measures estimated before/after message savings, which cannot detect an incompressible system/tool-schema floor. | `HERMES-DELTA-COMPACTION-REAL-HEADROOM` (`next`) |
 | 3 | `cb7f6bbb` through `0d63c23f` persist per-call model/provider/base-route usage, including included and fallback calls. | Vanta's `CostDetail` helper is test-only and the durable spend ledger drops zero or unknown-cost calls. | `HERMES-DELTA-USAGE-ROUTE-LEDGER` |
 | 4 | `ce5c1f9f` and `aac77f16` keep picker model changes session-scoped. | Vanta hot-swaps correctly, but every `/model` selection persists to `.env` and can bleed into concurrent/future sessions. | `HERMES-DELTA-SESSION-MODEL-SCOPE` |
@@ -34,11 +34,10 @@ one-owner, kernel-gated operator direction.
 
 ## Build order
 
-1. Preserve unknown tool effects before retry/replay cleanup.
-2. Stop real-token compaction thrash.
-3. Persist every served model route, then make model switches session-scoped.
-4. Share context-reference preprocessing with the gateway.
-5. Add bounded authenticated readiness to the existing public API server.
+1. Stop real-token compaction thrash.
+2. Persist every served model route, then make model switches session-scoped.
+3. Share context-reference preprocessing with the gateway.
+4. Add bounded authenticated readiness to the existing public API server.
 
 The first two are reliability work and should ship before expanding visible
 operator surfaces. The ten existing parked cards remain external acceptance

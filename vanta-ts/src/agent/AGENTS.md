@@ -4,6 +4,7 @@ Agent-loop internals split out from `../agent.ts`. Keep this layer orchestration
 
 - `turn-loop.ts` owns `runTurn`: completion → tool-call dispatch → stop conditions; emits `PostToolBatch` and `MessageDisplay` shell-hook events from the central loop.
 - `dispatch-tool.ts` runs plan gate → safety gate → `PreToolUse` hooks → tool execution → `PostToolUse`/`PostToolUseFailure` hooks → compression/offload.
+- Tool-effect durability marks calls `pending` before dispatch and `started` immediately before tool code. Interrupted effect-capable calls recover as `unknown`; never infer success or retry a mutation blindly.
 - `dispatch-helpers.ts` owns safety-gate composition and emits `PermissionRequest`/`PermissionDenied` hook events. Kernel verdict first, user permission rules second, auto-mode classifier third. Kernel `block` is immovable.
 - `tool-scope.ts` reduces exposed schemas per provider call; `tool_search` stays reachable and its result headings are carried into the next scope calculation so searched tools become callable with full schemas.
 - `permission-gate.test.ts` is the focused integration proof for that composition.

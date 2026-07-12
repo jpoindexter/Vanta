@@ -5,6 +5,7 @@ import { join } from "node:path";
 import {
   saveSession,
   loadSession,
+  checkpointSessionMessages,
   listSessions,
   newSessionId,
   forkSession,
@@ -95,6 +96,52 @@ describe("session store", () => {
     expect(fork?.messages).toEqual(TRANSCRIPT);
     expect(original?.updated).toBe("2026-06-02T12:00:00.000Z");
     expect((await listSessions(env())).map((s) => s.id)).toEqual(["20260603-120000", "20260602-120000"]);
+  });
+
+  it("recovers a started mutating call as unknown and persists the repair", async () => {
+    const interrupted: Message[] = [
+      { role: "system", content: "sys" },
+      { role: "user", content: "publish it" },
+      { role: "assistant", content: "", toolCalls: [{ id: "mutate-1", name: "publish_release", arguments: { token: "secret" }, effectState: "started" }] },
+    ];
+    await saveSession("interrupted", interrupted, { env: env() });
+
+    const loaded = await loadSession("interrupted", env());
+    const result = loaded?.messages.at(-1);
+    expect(result).toMatchObject({
+      role: "tool",
+      toolCallId: "mutate-1",
+      effectDisposition: "unknown",
+    });
+    expect(result?.content).toMatch(/inspect current state before any retry/i);
+
+    const raw = JSON.parse(
+      await readFile(join(home, "sessions", "interrupted.json"), "utf8"),
+    ) as Session;
+    expect(raw.messages.at(-1)).toEqual(result);
+  });
+
+  it("does not reconcile a pending call during a live checkpoint", async () => {
+    const pending: Message[] = [
+      { role: "system", content: "sys" },
+      { role: "user", content: "publish it" },
+      { role: "assistant", content: "", toolCalls: [{ id: "mutate-2", name: "publish_release", arguments: {}, effectState: "pending" }] },
+    ];
+    await saveSession("live", pending, { env: env(), title: "preserved title" });
+    const started = structuredClone(pending);
+    const assistant = started.at(-1);
+    if (assistant?.role === "assistant" && assistant.toolCalls?.[0]) {
+      assistant.toolCalls[0].effectState = "started";
+    }
+
+    await checkpointSessionMessages("live", started, env());
+
+    const raw = JSON.parse(
+      await readFile(join(home, "sessions", "live.json"), "utf8"),
+    ) as Session;
+    expect(raw.title).toBe("preserved title");
+    expect(raw.messages).toEqual(started);
+    expect(raw.messages.some((message) => message.role === "tool")).toBe(false);
   });
 });
 

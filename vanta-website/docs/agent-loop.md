@@ -16,13 +16,13 @@ each iteration (max VANTA_MAX_ITER):
   trim/compress → provider.complete(messages, toolSchemas)
   no tool calls + non-empty text  → DONE
   no tool calls + empty           → nudge once
-  for each tool call → dispatchTool:
+  for each tool call → persist pending → dispatchTool:
     describeForSafety(args) → kernel.assess()
       block → tool result "blocked", no execution
       ask   → permission rules / auto-mode may tighten or auto-confirm;
               otherwise prompt; record allow/deny in the kernel
-      allow → execute
-    append tool result; log the event
+      allow → persist started → execute
+    append tool result + effect disposition; log the event
   3 consecutive empty results → stop
 ```
 
@@ -39,7 +39,7 @@ flowchart TD
   v2 -->|deny| blocked
   v2 -->|allow| ex[execute]
   v -->|allow| ex[execute]
-  ex --> append["append result · log event"]
+  ex --> append["append result + effect disposition · log event"]
   append --> c
 ```
 
@@ -55,6 +55,16 @@ Safety is enforced twice:
 ## Tool results are values, not exceptions
 
 Tools return `{ ok, output }`. The loop never crashes on a tool error — a failure is just a result the model can read and react to. Idempotent reads are retried on transient failure (`VANTA_TOOL_RETRIES`).
+
+### Interrupted side effects
+
+Every tool attempt carries an effect disposition:
+
+- `none` — execution did not start, or the interrupted tool is a known read.
+- `confirmed` — tool code returned a result, whether that result was success or failure.
+- `unknown` — an effect-capable tool started but was interrupted before returning.
+
+Vanta checkpoints `pending` before dispatch and `started` immediately before tool code. On session restore, a dangling mutating call becomes a synthetic `unknown` result that tells the model to inspect current state before retrying. Unknown plugin and MCP tools are treated as effect-capable. Metadata-only receipts are written to `<project>/.vanta/tool-effects.jsonl`; arguments and outputs are excluded.
 
 ## The three-tier prompt
 

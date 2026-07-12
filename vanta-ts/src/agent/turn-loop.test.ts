@@ -1,10 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { runTurn } from "./turn-loop.js";
 import { InMemoryToolRegistry } from "../tools/registry.js";
 import type { AgentDeps } from "./agent-types.js";
 import type { LLMProvider, CompletionResult, ToolSchema } from "../providers/interface.js";
 import type { Message, ToolCall, Verdict } from "../types.js";
 import type { Tool } from "../tools/types.js";
+import { loadSession } from "../sessions/store.js";
 
 function history(): Message[] {
   return [
@@ -198,5 +202,77 @@ describe("tool-output logging is best-effort", () => {
       userText: "read it",
     });
     expect(out.finalText).toBe("done");
+  });
+});
+
+describe("interrupted mutation recovery", () => {
+  it("records an unknown effect, resumes with inspection guidance, and never retries blindly", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-effect-root-"));
+    const home = await mkdtemp(join(tmpdir(), "vanta-effect-home-"));
+    const previousHome = process.env.VANTA_HOME;
+    process.env.VANTA_HOME = home;
+    try {
+      const marker = join(root, "published.txt");
+      const execute = vi.fn(async () => {
+        await writeFile(marker, "published", "utf8");
+        throw new Error("transport dropped after publish");
+      });
+      const registry = new InMemoryToolRegistry();
+      registry.register({
+        schema: { name: "publish_release", description: "publish", parameters: { type: "object", properties: {} } },
+        describeForSafety: () => "publish release",
+        execute,
+      });
+      const seen: Message[][] = [];
+      let turn = 0;
+      const provider: LLMProvider = {
+        modelId: () => "fake",
+        contextWindow: () => 100_000,
+        complete: vi.fn(async (messages): Promise<CompletionResult> => {
+          seen.push(structuredClone(messages));
+          turn++;
+          return turn === 1
+            ? { text: "", toolCalls: [{ id: "publish-1", name: "publish_release", arguments: { apiKey: "do-not-log" } }], finishReason: "tool_calls" }
+            : { text: "I will inspect the published state before deciding whether to retry.", toolCalls: [], finishReason: "stop" };
+        }),
+      };
+      const { safety } = spySafety();
+      const messages: Message[] = [{ role: "system", content: "sys" }];
+
+      const out = await runTurn({
+        messages,
+        ctx: { root, safety, requestApproval: async () => true },
+        deps: { provider, safety, registry, root, sessionId: "effect-session", requestApproval: async () => true },
+        userText: "publish it",
+      });
+
+      expect(out.stoppedReason).toBe("done");
+      expect(execute).toHaveBeenCalledOnce();
+      expect(await readFile(marker, "utf8")).toBe("published");
+      const modelReceipt = seen[1]?.find((message) => message.role === "tool");
+      expect(modelReceipt).toMatchObject({
+        role: "tool",
+        toolCallId: "publish-1",
+        effectDisposition: "unknown",
+      });
+      expect(modelReceipt?.content).toMatch(/inspect current state before any retry/i);
+
+      const journal = await readFile(join(root, ".vanta", "tool-effects.jsonl"), "utf8");
+      const records = journal.trim().split("\n").map((line) => JSON.parse(line) as Record<string, unknown>);
+      expect(records.map((record) => record.transition)).toEqual(["pending", "started", "settled"]);
+      expect(records.at(-1)?.disposition).toBe("unknown");
+      expect(journal).not.toContain("do-not-log");
+      expect(journal).not.toContain("transport dropped");
+
+      const restored = await loadSession("effect-session", { VANTA_HOME: home } as NodeJS.ProcessEnv);
+      expect(restored?.messages.find((message) => message.role === "tool")).toMatchObject({
+        effectDisposition: "unknown",
+      });
+    } finally {
+      if (previousHome === undefined) delete process.env.VANTA_HOME;
+      else process.env.VANTA_HOME = previousHome;
+      await rm(root, { recursive: true, force: true });
+      await rm(home, { recursive: true, force: true });
+    }
   });
 });

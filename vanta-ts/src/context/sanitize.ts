@@ -1,4 +1,5 @@
 import type { Message } from "../types.js";
+import { reconcileDanglingToolResults } from "../agent/effect-disposition.js";
 
 // Message sanitization helpers. Extracted from context.ts (size gate).
 
@@ -9,18 +10,6 @@ const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[
 
 function stripSurrogates(text: string): string {
   return text.replace(LONE_SURROGATE, "");
-}
-
-/** Stub results for an assistant message's tool calls that never got one (aborted turn). */
-function stubsForDanglingCalls(m: Extract<Message, { role: "assistant" }>, resultIds: Set<string>): Message[] {
-  return (m.toolCalls ?? [])
-    .filter((tc) => !resultIds.has(tc.id))
-    .map((tc) => ({
-      role: "tool" as const,
-      toolCallId: tc.id,
-      name: tc.name,
-      content: "[no result — the turn was interrupted before this tool finished]",
-    }));
 }
 
 /**
@@ -35,22 +24,20 @@ function stubsForDanglingCalls(m: Extract<Message, { role: "assistant" }>, resul
  * Pure — returns a new array; the live transcript is untouched.
  */
 export function sanitizeMessages(messages: Message[]): Message[] {
+  const reconciled = reconcileDanglingToolResults(messages).messages;
   const callIds = new Set<string>();
-  const resultIds = new Set<string>();
-  for (const m of messages) {
+  for (const m of reconciled) {
     if (m.role === "assistant") for (const tc of m.toolCalls ?? []) callIds.add(tc.id);
-    if (m.role === "tool") resultIds.add(m.toolCallId);
   }
 
   const out: Message[] = [];
-  for (const m of messages) {
+  for (const m of reconciled) {
     if (m.role === "tool") {
       if (!callIds.has(m.toolCallId)) continue; // orphaned result → drop
       out.push({ ...m, content: stripSurrogates(m.content) });
       continue;
     }
     out.push({ ...m, content: stripSurrogates(m.content) });
-    if (m.role === "assistant") out.push(...stubsForDanglingCalls(m, resultIds));
   }
   return out;
 }

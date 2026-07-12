@@ -1,4 +1,4 @@
-import type { ToolCall } from "../types.js";
+import type { EffectDisposition, ToolCall } from "../types.js";
 import type { ToolContext, Tool } from "../tools/types.js";
 import type { AgentDeps } from "./agent-types.js";
 import { applySafetyGate, executeWithRetry, compressOutput } from "./dispatch-helpers.js";
@@ -12,7 +12,7 @@ import { join } from "node:path";
 import { loadSettings } from "../settings/store.js";
 import { repairToolFailure } from "../tools/tool-boundary.js";
 
-export type DispatchOutcome = { executed: boolean; empty: boolean; output: string; ok: boolean; tokensSaved?: number };
+export type DispatchOutcome = { executed: boolean; empty: boolean; output: string; ok: boolean; effectDisposition: EffectDisposition; tokensSaved?: number };
 
 // TOOL-CALL-REPAIR: log an auto-repair + coerce args to the tool schema so
 // weak/local models clear zod on the first try.
@@ -39,12 +39,12 @@ export async function dispatchTool(
     const output = `blocked: plan mode is active — read-only tools only. Present your plan and run /planmode approve to proceed.`;
     deps.onToolResult?.(call.name, false, output);
     deps.onEvent?.({ type: "tool_end", name: call.name, ok: false, output });
-    return { executed: false, empty: false, ok: false, output };
+    return { executed: false, empty: false, ok: false, output, effectDisposition: "none" };
   }
 
   const gateResult = await applySafetyGate(call, deps, ctx);
   if (!gateResult.approved) {
-    return { executed: false, empty: false, ok: false, output: gateResult.reason ?? "approval denied" };
+    return { executed: false, empty: false, ok: false, output: gateResult.reason ?? "approval denied", effectDisposition: "none" };
   }
 
   const dataDir = join(ctx.root, ".vanta");
@@ -55,6 +55,7 @@ export async function dispatchTool(
   // CALL-AGENT-STREAM: give the tool a progress channel wired to the `note`
   // StreamEvent, so a long external call streams output/heartbeats mid-execution.
   const execCtx: ToolContext = { ...executionContext(call.name, ctx), onProgress: (text) => deps.onEvent?.({ type: "note", text }) };
+  await ctx.onToolExecutionStart?.(call);
   const res = await executeWithRetry(call, deps, execCtx, tool);
   if (!res.ok) res.output = await addRepairPath(call.name, res.output, deps, ctx.root);
   const postBlocked = await applyPostToolUseBlock({ call, deps, ctx, res, hookDeps });
@@ -68,7 +69,7 @@ export async function dispatchTool(
   // tool (incl. non-allow-listed reads/shell) whose output is still oversized,
   // stashing it whole (CCR store) and replacing it with a preview + retrieval id.
   const offloaded = await offloadResult(compressed.output, { toolName: call.name, dataDir, modelId: deps.provider?.modelId?.() });
-  return { executed: true, empty: offloaded.output.trim().length === 0, ok: res.ok, output: offloaded.output, tokensSaved: compressed.tokensSaved };
+  return { executed: true, empty: offloaded.output.trim().length === 0, ok: res.ok, output: offloaded.output, effectDisposition: "confirmed", tokensSaved: compressed.tokensSaved };
 }
 
 async function addRepairPath(tool: string, output: string, deps: AgentDeps, root: string): Promise<string> {
@@ -103,7 +104,7 @@ async function applyPreToolUseHooks(
     const output = `blocked by PreToolUse hook: ${pre.reason}`;
     deps.onToolResult?.(call.name, false, output);
     deps.onEvent?.({ type: "tool_end", name: call.name, ok: false, output });
-    return { executed: false, empty: false, ok: false, output };
+    return { executed: false, empty: false, ok: false, output, effectDisposition: "none" };
   }
   if (pre.userMessage) deps.onText?.(`PreToolUse hook: ${pre.userMessage}`);
   return undefined;
@@ -132,7 +133,7 @@ async function applyPostToolUseBlock(o: {
     const output = `blocked by PostToolUse hook: ${post.feedback ?? "rejected"}`;
     deps.onToolResult?.(call.name, false, output);
     deps.onEvent?.({ type: "tool_end", name: call.name, ok: false, output });
-    return { executed: false, empty: false, ok: false, output };
+    return { executed: true, empty: false, ok: false, output, effectDisposition: "confirmed" };
   }
   if (post.feedback) res.output = `${res.output}\n\n[PostToolUse hook] ${post.feedback}`;
   return undefined;

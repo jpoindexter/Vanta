@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-11",
+  "updated": "2026-07-12",
   "items": [
     {
       "id": "WHAT-CAN-I-DO-GALLERY",
@@ -17838,7 +17838,7 @@
       "id": "HERMES-DELTA-EFFECT-DISPOSITION",
       "track": "Harness",
       "title": "Interrupted tool effects - preserve unknown mutations and inspect before retry",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Hermes current delta (a0a6cd80) distinguishes a tool that definitely did nothing from a side-effecting tool interrupted after dispatch whose outcome is unknown. Vanta avoids automatic retries for known mutators, but an exception, timeout, process death, or dangling tool tail is not durably classified; session recovery can therefore lose the fact that a mutation may already have landed. Add Vanta-native effect disposition to the canonical tool result and recovery path.",
       "done": "Every tool attempt records and persists an effect disposition of none, confirmed, or unknown; pre-execution denials and cancelled-not-started calls are none; completed results are confirmed; interrupted/timed-out/dangling effect-capable calls are unknown; unknown/plugin/MCP tools fail toward effect-capable. Session restore preserves the assistant call plus a synthetic result that tells the model to inspect state before retrying. A real crash/interrupt fixture around a mutating tool proves Vanta neither erases the attempt nor blindly repeats it.",
@@ -17848,14 +17848,14 @@
       "codex": "gpt-5.5",
       "lens": "agent-loop",
       "updated": "2026-07-12",
-      "notes": "Priority 1 from NousResearch/hermes-agent 3b2ef789d..4281151a. Source files: agent/replay_cleanup.py, agent/tool_executor.py, agent/tool_result_classification.py, hermes_state.py. Vanta evidence: tool-retry.ts correctly excludes mutators, but dispatchTool/executeWithRetry has no durable unknown-effect state and execute exceptions escape before a canonical result is written.",
+      "notes": "Shipped 2026-07-12. Tool calls persist pending immediately after the assistant call and started at the final pre-execution boundary. Canonical results carry none, confirmed, or unknown; restore repairs dangling effect-capable calls with inspect-before-retry guidance. The production turn-loop crash fixture executes a mutation once, observes post-effect failure, proves no blind retry, restores the unknown receipt, and verifies the metadata journal excludes arguments and output. Full suite: 1,325 files / 13,012 passed / 3 skipped; TypeScript clean.",
       "source": "hermes-current-delta-2026-07-12"
     },
     {
       "id": "HERMES-DELTA-COMPACTION-REAL-HEADROOM",
       "track": "Harness",
       "title": "Compaction real-headroom guard - stop when the prompt floor stays over threshold",
-      "status": "next",
+      "status": "building",
       "size": "M",
       "summary": "Hermes current delta (32f30d2a through 83000c72) fixed a compaction loop where message text shrank but the incompressible system prompt and tool schemas still left real provider usage over threshold. Vanta anti-thrash currently scores estimated before/after message savings, so it can judge a rewrite healthy while the actual prompt still cannot fit. Judge compaction effectiveness from the next real provider prompt count and treat no-op boundaries as failed progress.",
       "done": "After a compaction boundary, the next provider-reported prompt count decides whether headroom was restored. Two compactions that leave real prompt usage at or above the trigger suppress further automatic compaction for that episode; a no-op/too-short compaction counts as ineffective; only a real below-threshold reading or a fresh session resets the strike. Providers without usage retain the existing low-savings fallback. Tests reproduce a large system/tool-schema floor with shrinking messages and prove the third pass is skipped without blocking manual focused compaction.",

@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
 import type { Message } from "../types.js";
+import { reconcileDanglingToolResults } from "../agent/effect-disposition.js";
 
 // Session persistence behind a SessionStore PORT (PORT-SESSION-STORE). The default
 // adapter (createFsSessionStore) writes one JSON file per session under
@@ -26,7 +27,7 @@ const MessageSchema: z.ZodType<Message> = z.lazy(() =>
       role: z.literal("assistant"),
       content: z.string(),
       toolCalls: z
-        .array(z.object({ id: z.string(), name: z.string(), arguments: z.record(z.unknown()) }))
+        .array(z.object({ id: z.string(), name: z.string(), arguments: z.record(z.unknown()), effectState: z.enum(["pending", "started"]).optional() }))
         .optional(),
     }),
     z.object({
@@ -34,6 +35,7 @@ const MessageSchema: z.ZodType<Message> = z.lazy(() =>
       toolCallId: z.string(),
       name: z.string(),
       content: z.string(),
+      effectDisposition: z.enum(["none", "confirmed", "unknown"]).optional(),
     }),
   ]),
 ) as z.ZodType<Message>;
@@ -74,6 +76,18 @@ function sessionsDir(env?: NodeJS.ProcessEnv): string {
   return join(resolveVantaHome(env), SESSIONS_SUBDIR);
 }
 
+async function readRawSession(id: string, env?: NodeJS.ProcessEnv): Promise<Session | null> {
+  try {
+    const raw: unknown = JSON.parse(
+      await readFile(join(sessionsDir(env), `${id}.json`), "utf8"),
+    );
+    const parsed = SessionSchema.safeParse(raw);
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Timestamp-based id `YYYYMMDD-HHMMSS`. `now` injectable for tests. */
 export function newSessionId(now: Date = new Date()): string {
   const p = (n: number, w = 2): string => String(n).padStart(w, "0");
@@ -110,13 +124,14 @@ export function createFsSessionStore(env?: NodeJS.ProcessEnv): SessionStore {
   const dir = sessionsDir(env);
 
   const load: SessionStore["load"] = async (id) => {
-    try {
-      const raw: unknown = JSON.parse(await readFile(join(dir, `${id}.json`), "utf8"));
-      const parsed = SessionSchema.safeParse(raw);
-      return parsed.success ? parsed.data : null;
-    } catch {
-      return null;
+    const session = await readRawSession(id, env);
+    if (!session) return null;
+    const recovered = reconcileDanglingToolResults(session.messages);
+    if (recovered.added > 0) {
+      session.messages = recovered.messages;
+      await writeFile(join(dir, `${id}.json`), JSON.stringify(session, null, 2), "utf8");
     }
+    return session;
   };
 
   const save: SessionStore["save"] = async (id, messages, opts = {}) => {
@@ -165,6 +180,21 @@ export async function saveSession(
   opts: SaveSessionOpts & { env?: NodeJS.ProcessEnv } = {},
 ): Promise<void> {
   return createFsSessionStore(opts.env).save(id, messages, opts);
+}
+
+/** Mid-turn durability checkpoint preserving existing session metadata when present. */
+export async function checkpointSessionMessages(
+  id: string,
+  messages: Message[],
+  env?: NodeJS.ProcessEnv,
+): Promise<void> {
+  const store = createFsSessionStore(env);
+  // A live checkpoint must not invoke restore-time reconciliation: a pending
+  // tool call is valid while the turn is still running.
+  const existing = await readRawSession(id, env);
+  await store.save(id, messages, existing
+    ? { started: existing.started, title: existing.title, projectId: existing.projectId }
+    : undefined);
 }
 
 /** Load a session by id, or null if missing/corrupt. */

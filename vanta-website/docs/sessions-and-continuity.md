@@ -18,6 +18,8 @@ vanta resume <id>                    # resume history
 vanta resume <id> --fork-session     # resume into a NEW session id (original untouched)
 ```
 
+Sessions are also checkpointed around tool execution. If Vanta stops after a mutating tool starts but before it returns, restore preserves the assistant tool call and adds an `unknown` result. The next model call is instructed to inspect the external state before considering a retry; it does not silently erase or replay the mutation.
+
 ## Age-gated resume
 
 A prior thread is only carried into a restart if it's recent — `VANTA_RESUME_MAX_AGE_MIN` (default 120; `0` = always start clean). This fixes "stuck on an old thread after restart."
