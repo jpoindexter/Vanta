@@ -29,6 +29,20 @@ How a result is routed:
 | allow-listed tools | content router — JSON crush, log squash, repeated-block dedupe |
 | everything else | returned unchanged |
 
+## Real-headroom guard
+
+Conversation compaction is judged by the next real provider input-token count, not only by how much message text appeared to shrink. This matters when the system prompt and tool schemas form a large fixed floor that message rewriting cannot reduce.
+
+After a changed automatic compaction pass, Vanta waits for the provider's input usage (or its exact preflight token count):
+
+- Below the active trigger restores headroom and resets the episode.
+- At or above the trigger records an ineffective strike.
+- Two ineffective passes suppress further automatic compaction for that conversation.
+- A triggered pass that changes nothing counts as ineffective immediately.
+- Missing or zero usage falls back to the existing estimated-savings guard; it does not claim that headroom was restored.
+
+Start a fresh session to reset the episode, or use `/compact <focus>` for an explicit manual compaction. Automatic suppression does not block that manual command.
+
 ## Lossy inline, lossless on demand
 
 The core contract: compression shrinks the **inline** view, but the full original is stashed locally under a content id. When the model needs detail it calls `retrieve_original` and gets the exact bytes back. A 200-row array becomes a head + tail sample inline — and row 137 is one retrieve away.

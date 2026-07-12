@@ -43,6 +43,53 @@ const lastTurnAt = new WeakMap<Message[], number>();
 const savingsHistory = new WeakMap<Message[], number[]>();
 const SAVINGS_HISTORY_MAX = 4;
 
+type HeadroomEpisode = {
+  strikes: number;
+  awaitingRealPrompt: boolean;
+  triggerRatio: number;
+  suppressed: boolean;
+};
+
+/** Real provider readings outrank estimated message savings for auto-compaction. */
+const headroomEpisodes = new WeakMap<Message[], HeadroomEpisode>();
+
+function episode(messages: Message[], triggerPct = 75): HeadroomEpisode {
+  const current = headroomEpisodes.get(messages);
+  if (current) return current;
+  const created = { strikes: 0, awaitingRealPrompt: false, triggerRatio: triggerPct / 100, suppressed: false };
+  headroomEpisodes.set(messages, created);
+  return created;
+}
+
+function recordIneffectivePass(messages: Message[], triggerPct: number): void {
+  const state = episode(messages, triggerPct);
+  state.triggerRatio = triggerPct / 100;
+  state.awaitingRealPrompt = false;
+  state.strikes++;
+  state.suppressed = state.strikes >= 2;
+}
+
+/**
+ * Feed the actual input-token count for the provider call after compaction.
+ * A below-trigger reading restores headroom and resets the episode. High usage
+ * counts as a strike only when a preceding compaction pass awaits evaluation.
+ */
+export function recordRealPromptCount(messages: Message[], inputTokens: number, contextWindow: number): void {
+  if (!Number.isFinite(inputTokens) || inputTokens <= 0 || contextWindow <= 0) return;
+  const state = headroomEpisodes.get(messages);
+  if (!state) return;
+  if (inputTokens / contextWindow < state.triggerRatio) {
+    state.strikes = 0;
+    state.awaitingRealPrompt = false;
+    state.suppressed = false;
+    return;
+  }
+  if (!state.awaitingRealPrompt) return;
+  state.awaitingRealPrompt = false;
+  state.strikes++;
+  state.suppressed = state.strikes >= 2;
+}
+
 /** Record one pass's savings against the conversation, bounded to a small ring. */
 function recordPassSavings(messages: Message[], beforeTokens: number, afterTokens: number): void {
   const history = savingsHistory.get(messages) ?? [];
@@ -53,6 +100,7 @@ function recordPassSavings(messages: Message[], beforeTokens: number, afterToken
 /** Test-only: forget a conversation's compaction-savings history (resets the gate). */
 export function resetSavingsHistory(messages: Message[]): void {
   savingsHistory.delete(messages);
+  headroomEpisodes.delete(messages);
 }
 
 /** Auto-compact threshold (% of window) from env, or undefined for the default. */
@@ -166,12 +214,15 @@ export async function prepareCallMessages(
   const fresh = keepRecent !== undefined ? maskStaleToolOutputs(afterIdle, { keepRecent }) : afterIdle;
   // If the provider supports exact token counting, use it to tighten the compaction threshold.
   let overrideThresholdPct: number | undefined;
+  let realPromptOverTrigger = false;
   if (deps.provider.countTokens && deps.currentTools) {
     try {
       const exact = await deps.provider.countTokens(fresh, deps.currentTools);
+      recordRealPromptCount(messages, exact, deps.provider.contextWindow());
       const pct = Math.round((exact / deps.provider.contextWindow()) * 100);
       // Force compaction sooner when real count already exceeds 80% of window.
       if (pct >= 80) overrideThresholdPct = Math.min(pct - 5, 80);
+      realPromptOverTrigger = pct >= (overrideThresholdPct ?? tc.thresholdPct ?? 75);
     } catch { /* best-effort — fall through to estimate-based threshold */ }
   }
   return gatedCompaction(messages, fresh, {
@@ -180,7 +231,7 @@ export async function prepareCallMessages(
     activeGoalText: deps.activeGoalText,
     sessionMemory: deps.sessionMemory,
     thresholdPct: overrideThresholdPct ?? tc.thresholdPct,
-  });
+  }, realPromptOverTrigger);
 }
 
 /**
@@ -195,9 +246,22 @@ async function gatedCompaction(
   convo: Message[],
   fresh: Message[],
   opts: Parameters<typeof graduatedCompaction>[1],
+  realPromptOverTrigger = false,
 ): Promise<Message[]> {
+  const headroom = headroomEpisodes.get(convo);
+  if (headroom?.suppressed) return fresh;
   if (!shouldCompact({ recentSavings: savingsHistory.get(convo) ?? [] })) return fresh;
   const result = await graduatedCompaction(fresh, opts);
+  const triggerPct = opts.thresholdPct ?? 75;
+  const attempted = realPromptOverTrigger || result.beforeTokens >= opts.contextWindow * (triggerPct / 100);
+  if (!attempted) return result.messages;
   recordPassSavings(convo, result.beforeTokens, result.afterTokens);
+  if (result.layers.length === 0 || result.afterTokens >= result.beforeTokens) {
+    recordIneffectivePass(convo, triggerPct);
+  } else {
+    const state = episode(convo, triggerPct);
+    state.triggerRatio = triggerPct / 100;
+    state.awaitingRealPrompt = true;
+  }
   return result.messages;
 }

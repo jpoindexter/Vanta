@@ -15,6 +15,7 @@ import {
   isContextLengthError,
   persistCompaction,
   prepareCallMessages,
+  recordRealPromptCount,
   resetSavingsHistory,
   resolveCompactThresholdPct,
 } from "./context-pipeline.js";
@@ -52,7 +53,7 @@ beforeEach(() => {
   // empty (and `shouldCompact` returns true) for each test.
   resetSavingsHistory(MESSAGES);
   // A healthy pass: 1000 → 500 tokens = 50% savings (>10%), so the gate stays open.
-  mockGraduatedCompaction.mockResolvedValue({ messages: MESSAGES, layers: [], beforeTokens: 1_000, afterTokens: 500 });
+  mockGraduatedCompaction.mockResolvedValue({ messages: MESSAGES, layers: ["trim"], beforeTokens: 1_000, afterTokens: 500 });
 });
 
 describe("resolveCompactThresholdPct", () => {
@@ -125,10 +126,10 @@ describe("prepareCallMessages — token counting", () => {
 describe("prepareCallMessages — anti-thrash gate", () => {
   // A private conversation array so this block owns its savings history.
   const convo: Message[] = [{ role: "user", content: "thrash" }];
-  const deps = { provider: makeProvider(), root: "/tmp", currentTools: TOOLS };
+  const deps = { provider: { ...makeProvider(), contextWindow: () => 1_000 }, root: "/tmp", currentTools: TOOLS };
 
   function mockSavings(beforeTokens: number, afterTokens: number): void {
-    mockGraduatedCompaction.mockResolvedValue({ messages: convo, layers: [], beforeTokens, afterTokens });
+    mockGraduatedCompaction.mockResolvedValue({ messages: convo, layers: ["trim"], beforeTokens, afterTokens });
   }
 
   beforeEach(() => {
@@ -202,6 +203,105 @@ describe("prepareCallMessages — anti-thrash gate", () => {
     // Assert: no compaction ran, and the call still resolves with a message list.
     expect(mockGraduatedCompaction).not.toHaveBeenCalled();
     expect(out).toEqual(convo);
+  });
+
+  it("uses real prompt counts to stop a healthy-looking rewrite above the prompt floor", async () => {
+    const floorConvo: Message[] = [{ role: "user", content: "small message history" }];
+    const countTokens = vi.fn().mockResolvedValue(900);
+    const floorDeps = {
+      provider: { ...makeProvider(), contextWindow: () => 1_000, countTokens },
+      root: "/tmp",
+      currentTools: TOOLS,
+    };
+    resetSavingsHistory(floorConvo);
+    mockGraduatedCompaction.mockResolvedValue({
+      messages: [{ role: "user", content: "x" }],
+      layers: ["trim"],
+      beforeTokens: 900,
+      afterTokens: 100,
+    });
+
+    await prepareCallMessages(floorConvo, floorDeps, 2, IDLE_TC);
+    await prepareCallMessages(floorConvo, floorDeps, 2, IDLE_TC);
+    await prepareCallMessages(floorConvo, floorDeps, 2, IDLE_TC);
+
+    expect(countTokens).toHaveBeenCalledTimes(3);
+    expect(mockGraduatedCompaction).toHaveBeenCalledTimes(2);
+  });
+
+  it("accepts billed provider input usage as the post-compaction reading", async () => {
+    const usageConvo: Message[] = [{ role: "user", content: "large history" }];
+    const usageDeps = {
+      provider: { ...makeProvider(), contextWindow: () => 1_000 },
+      root: "/tmp",
+      currentTools: TOOLS,
+    };
+    resetSavingsHistory(usageConvo);
+    mockGraduatedCompaction.mockResolvedValue({
+      messages: [{ role: "user", content: "x" }],
+      layers: ["trim"],
+      beforeTokens: 900,
+      afterTokens: 100,
+    });
+
+    await prepareCallMessages(usageConvo, usageDeps, 2, IDLE_TC);
+    recordRealPromptCount(usageConvo, 900, 1_000);
+    recordRealPromptCount(usageConvo, 0, 1_000); // missing/unknown usage cannot reset the strike
+    await prepareCallMessages(usageConvo, usageDeps, 2, IDLE_TC);
+    recordRealPromptCount(usageConvo, 900, 1_000);
+    await prepareCallMessages(usageConvo, usageDeps, 2, IDLE_TC);
+
+    expect(mockGraduatedCompaction).toHaveBeenCalledTimes(2);
+  });
+
+  it("counts a no-op boundary as ineffective and skips the third pass", async () => {
+    const noOpConvo: Message[] = [{ role: "user", content: "small message history" }];
+    const noOpDeps = {
+      provider: { ...makeProvider(), contextWindow: () => 1_000, countTokens: vi.fn().mockResolvedValue(900) },
+      root: "/tmp",
+      currentTools: TOOLS,
+    };
+    resetSavingsHistory(noOpConvo);
+    mockGraduatedCompaction.mockResolvedValue({
+      messages: noOpConvo,
+      layers: [],
+      beforeTokens: 100,
+      afterTokens: 100,
+    });
+
+    await prepareCallMessages(noOpConvo, noOpDeps, 2, IDLE_TC);
+    await prepareCallMessages(noOpConvo, noOpDeps, 2, IDLE_TC);
+    await prepareCallMessages(noOpConvo, noOpDeps, 2, IDLE_TC);
+
+    expect(mockGraduatedCompaction).toHaveBeenCalledTimes(2);
+  });
+
+  it("resets real-headroom strikes only after a below-trigger provider reading", async () => {
+    const resetConvo: Message[] = [{ role: "user", content: "small message history" }];
+    const countTokens = vi.fn()
+      .mockResolvedValueOnce(900)
+      .mockResolvedValueOnce(900)
+      .mockResolvedValueOnce(500)
+      .mockResolvedValueOnce(900);
+    const resetDeps = {
+      provider: { ...makeProvider(), contextWindow: () => 1_000, countTokens },
+      root: "/tmp",
+      currentTools: TOOLS,
+    };
+    resetSavingsHistory(resetConvo);
+    mockGraduatedCompaction.mockResolvedValue({
+      messages: [{ role: "user", content: "x" }],
+      layers: ["trim"],
+      beforeTokens: 900,
+      afterTokens: 100,
+    });
+
+    await prepareCallMessages(resetConvo, resetDeps, 2, IDLE_TC);
+    await prepareCallMessages(resetConvo, resetDeps, 2, IDLE_TC);
+    await prepareCallMessages(resetConvo, resetDeps, 2, IDLE_TC);
+    await prepareCallMessages(resetConvo, resetDeps, 2, IDLE_TC);
+
+    expect(mockGraduatedCompaction).toHaveBeenCalledTimes(4);
   });
 });
 

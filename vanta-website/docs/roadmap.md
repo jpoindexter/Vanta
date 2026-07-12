@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1174 capabilities shipped · 0 in flight · 4 on the horizon. Updated 2026-07-12._
+_1175 capabilities shipped · 0 in flight · 3 on the horizon. Updated 2026-07-12._
 
 ## In flight
 
@@ -18,9 +18,10 @@ _Nothing in flight right now — see the horizon below._
 
 ## Recently shipped
 
-The latest of 1174+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1175+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Interrupted tool effects - preserve unknown mutations and inspect before retry** — Harness · 2026-07-12
+- **Compaction real-headroom guard - stop when the prompt floor stays over threshold** — Harness · 2026-07-12
 - **System prompt presets - switch Vanta's operating role per session** — Operator · 2026-07-12
 - **Prompt-routed agent spawn - launch workers with different operating prompts** — Harness · 2026-07-12
 - **Roadmap unblock command — turn blocked cards into exact next actions** — Operator · 2026-07-11
@@ -39,7 +40,6 @@ The latest of 1174+ capabilities. See the [changelog](./changelog) for curated m
 - **Vault secrets rotation — one bootstrap token, scoped provider keys** — Harness · 2026-07-11
 - **Dashboard plugin slots — operator home accepts safe custom panels** — Operator · 2026-07-11
 - **Profile distributions — package a whole specialist agent as a git install** — Operator · 2026-07-11
-- **Automation blueprint catalog — form-driven scheduled and webhook workflows** — Operator · 2026-07-11
 
 ## On the horizon
 
@@ -49,8 +49,7 @@ Directional, not committed — grouped by area, newest thinking first.
 
 - Authenticated runtime readiness - bounded health for remote supervision
 
-### Operator — 3 planned
+### Operator — 2 planned
 
-- Usage route ledger - attribute every model, fallback, and included call
 - Session-scoped model switching - change this conversation without changing the default
 - Remote context references - safe @file, @diff, and @git expansion through the gateway

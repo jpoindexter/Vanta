@@ -1,9 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { mkdtemp, rm, mkdir, appendFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { usage } from "./context-cmds.js";
+import { compress, usage } from "./context-cmds.js";
 import type { ReplCtx } from "./types.js";
+import type { Message } from "../types.js";
+import type { LLMProvider } from "../providers/interface.js";
+import { beginTurnContext, prepareCallMessages, resetSavingsHistory } from "../agent/context-pipeline.js";
 
 // PCLIP-COST-ATTRIBUTION: `/usage` stays session-scoped by default; `/usage
 // breakdown [--since <ISO>]` reads the persisted cross-session spend ledger.
@@ -64,5 +67,50 @@ describe("/usage", () => {
   it("/usage breakdown rejects an unparseable --since date", async () => {
     const r = await usage("breakdown --since not-a-date", ctx());
     expect(r.output).toContain("invalid --since date");
+  });
+});
+
+describe("/compact after automatic suppression", () => {
+  it("still runs a focused manual compaction after two real-headroom strikes", async () => {
+    const messages: Message[] = [
+      { role: "system", content: "large fixed system floor" },
+      ...Array.from({ length: 14 }, (_, index): Message => ({
+        role: index % 2 === 0 ? "user" : "assistant",
+        content: `message ${index} ${"x".repeat(2_000)}`,
+      })),
+    ];
+    const complete = vi.fn(async (_messages: Message[]) => ({
+      text: "focused decisions",
+      toolCalls: [],
+      finishReason: "stop",
+    }));
+    const provider: LLMProvider = {
+      complete,
+      modelId: () => "test-model",
+      contextWindow: () => 1_000,
+      countTokens: async () => 900,
+    };
+    const deps = { provider, root: "/tmp", currentTools: [] };
+    const tc = beginTurnContext(messages, deps);
+    resetSavingsHistory(messages);
+
+    await prepareCallMessages(messages, deps, 2, tc);
+    await prepareCallMessages(messages, deps, 2, tc);
+    await prepareCallMessages(messages, deps, 2, tc); // automatic pass suppressed
+    const before = messages.length;
+
+    const result = await compress("decisions", {
+      convo: { messages },
+      setup: { provider },
+      dataDir: "/tmp/.vanta",
+      state: { sessionId: "s", started: "2026-07-12T00:00:00Z", turnIndex: 1 },
+      env: {},
+      now: () => new Date("2026-07-12T00:00:00Z"),
+    } as unknown as ReplCtx);
+
+    expect(complete).toHaveBeenCalledOnce();
+    expect(complete.mock.calls[0]?.[0]?.[0]?.content).toMatch(/focus especially on: decisions/i);
+    expect(messages.length).toBeLessThan(before);
+    expect(result.output).toMatch(/compressed 15 →/);
   });
 });

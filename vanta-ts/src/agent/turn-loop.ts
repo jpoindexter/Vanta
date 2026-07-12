@@ -4,7 +4,7 @@ import type { ToolContext } from "../tools/types.js";
 import type { Message, ImageAttachment } from "../types.js";
 import type { Summarizer } from "../context.js";
 import { DEFAULT_ERRORDETECT_THRESHOLD } from "../repl/error-detect.js";
-import { beginTurnContext, prepareCallMessages } from "./context-pipeline.js";
+import { beginTurnContext, prepareCallMessages, recordRealPromptCount } from "./context-pipeline.js";
 import { applyMessageDisplay } from "./message-display.js";
 import { globalHookBus } from "../plugins/hooks.js";
 import { globalFileCheckpointStore } from "../sessions/file-checkpoint.js";
@@ -205,6 +205,7 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
       return { finalText: completion.error, iterations: iter, stoppedReason: "repeated_failure", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
     const result = completion.result;
     recordUsage(state, result);
+    if (result.usage) recordRealPromptCount(messages, result.usage.inputTokens, deps.provider.contextWindow());
     if (result.toolCalls.length === 0) {
       const outcome = await handleNoToolCalls({ result, messages, deps, iter, state, userText, schemas });
       if (outcome) return outcome;
