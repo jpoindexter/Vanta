@@ -32,8 +32,10 @@ export function AppShell() {
       <SessionSidebar sessions={data.sessions} activeId={data.status?.sessionId} onNew={convo.newSession} onOpen={convo.openSession} onDismiss={() => setMobilePanel("work")} />
       <main className="workbench">
         <DesktopHeader title={convo.activeTitle} data={data} sound={sound} onPanel={setMobilePanel} />
-        {data.phase === "error" ? <ConnectionError message={data.error} onRetry={() => { void data.refresh(); }} onSetup={data.openSetup} /> : null}
-        {data.phase === "loading" ? <LoadingState /> : <ChatThread messages={convo.messages} busy={convo.busy} onPrompt={convo.setDraft} />}
+        <div className={`conversation-stage ${data.phase === "error" ? "has-error" : ""}`}>
+          {data.phase === "error" ? <ConnectionError message={data.error} onRetry={() => { void data.refresh(); }} onSetup={data.openSetup} /> : null}
+          {data.phase === "loading" ? <LoadingState /> : <ChatThread messages={convo.messages} busy={convo.busy} onPrompt={convo.setDraft} />}
+        </div>
         <Composer value={convo.draft} disabled={convo.busy} onChange={convo.setDraft} onSubmit={convo.submit} />
       </main>
       <RightRail

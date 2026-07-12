@@ -19,6 +19,9 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - **Gateway context references** — allowlisted remote messages now share the local `@file`, `@folder`, `@diff`, `@staged`, `@git:N`, and `@url` preprocessor. Expansion is bound to the received message's project/profile scope and routed-model budget before queueing, with source and warning receipts sent back through the channel.
 - **Bounded runtime readiness** — `GET /api/v1/live` is a cheap, unauthenticated, non-mutating liveness probe. Bearer-authenticated `/api/v1/readiness` and `/status` report redacted status/counts for the kernel, provider config, stores, disk, gateway channels, active turns, background work, and delegated workers without initializing a conversation.
 
+### Fixed
+- **Desktop composer clipped below the native window** — startup and recovery UI now share one explicitly bounded conversation grid track, so an error banner cannot create an implicit row that pushes the empty state and composer offscreen. A packaged Electron smoke locks the reported `1778×1136` viewport in healthy and forced-recovery states.
+
 ## v0.8.0 — 2026-07-05
 
 **Web extraction closes the standout gap vs Hermes.** `web_fetch` no longer blind-truncates a large page; it now routes through a size-tiered pipeline, and a new xAI/Grok search backend adds a fundamentally different search shape — a reasoning model performing the search itself.

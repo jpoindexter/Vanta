@@ -18059,6 +18059,26 @@
       "notes": "SHIPPED 2026-07-12. Rebuilt the React/Electron surface as a fixed one-viewport workspace: the outer document never scrolls, while only genuine session/chat/inspector content does. Added searchable sessions, prompt starters, explicit loading/recovery, command/model/setup dialogs, safer approvals, compact panel navigation with close controls, resilient API parsing, and in-app provider/model/API-key setup stored privately in project .vanta/.env. The native host now persists and switches project roots, selects a free port, shows a startup splash, handles single-instance/menu/tray lifecycle, bundles renderer/TypeScript runtime/Rust kernel paths, unpacks executable transform dependencies, and produces ARM64 app/DMG/ZIP artifacts. Executed proof: focused desktop/setup gates, TypeScript, and size gates passed; the full suite passed 1,339 files / 13,059 tests / 3 skipped; Playwright at 1440x960 and 760x700 measured html/body/shell exactly one viewport with no outer scroll; signed app passed strict codesign verification; DMG checksum verified; the root-level Vanta.app launched directly from the mounted DMG against an empty temporary project with no Vanta checkout and reported renderer assets ready, first-run setup ready, and bundled kernel online. Artifacts: 176 MiB DMG and 176 MiB ZIP. Public Apple notarization is captured separately as DESKTOP-MAC-NOTARIZATION because notary credentials are not configured."
     },
     {
+      "id": "DESKTOP-VIEWPORT-COMPOSER-FIX",
+      "track": "Operator",
+      "title": "Desktop viewport composer fix — keep the empty state and input visible",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Harden the desktop conversation layout so startup, recovery, and empty-session states cannot create an implicit grid row that pushes the composer below the native window.",
+      "done": "The packaged renderer keeps the shell at one viewport and the composer fully visible at the reported wide/tall window size, in normal and connection-error states; visual bounds checks and the signed app smoke pass.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "tui",
+      "updated": "2026-07-12",
+      "source": "operator screenshot 2026-07-12",
+      "after": [
+        "DESKTOP-APP-V1"
+      ],
+      "notes": "SHIPPED 2026-07-12. The workbench now always owns exactly three rows: header, one bounded conversation stage, and composer. Loading and connection-recovery content live inside the conversation stage, so an error banner cannot create an implicit row below the native viewport. Added desktop:layout:smoke with healthy and forced-error bounds assertions and packaged-app support. Executed proof against both the rebuilt signed ARM64 Vanta.app and the Vanta.app launched directly from the mounted DMG at the reported 1778x1136 content viewport: document/shell stayed 1136px high; conversation ended and composer began at 1002.15625px; composer ended exactly at 1136px in both states. TypeScript, file-size gate, 24 focused desktop tests, and the full 1,339-file / 13,059-test suite passed; strict codesign and DMG checksum verification passed."
+    },
+    {
       "id": "DESKTOP-MAC-NOTARIZATION",
       "track": "Release",
       "title": "Desktop macOS notarization — staple a Gatekeeper-clean public build",

@@ -60,6 +60,8 @@ h2 { margin: 14px 0 8px; font-size: 11px; letter-spacing: .08em; text-transform:
 .session span { color: var(--faint); font-size: 11px; }
 
 .workbench { min-width: 0; min-height: 0; height: 100dvh; overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; background: var(--bg); }
+.conversation-stage { min-width: 0; min-height: 0; overflow: hidden; display: grid; grid-template-rows: minmax(0, 1fr); }
+.conversation-stage.has-error { grid-template-rows: auto minmax(0, 1fr); }
 .topbar { min-width: 0; min-height: 56px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 16px; }
 .title-block { min-width: 0; }
 .title-block h1 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -98,7 +100,7 @@ h2 { margin: 14px 0 8px; font-size: 11px; letter-spacing: .08em; text-transform:
 .loading-state { min-height: 0; display: grid; place-content: center; justify-items: center; gap: 8px; color: var(--muted); text-align: center; }
 .loading-state h2 { margin: 4px 0 0; color: var(--text); font-size: 17px; text-transform: none; letter-spacing: 0; }
 .loader { width: 28px; height: 28px; }
-.connection-error { margin: 12px 16px 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; border: 1px solid #6b3430; background: #271211; color: var(--danger); padding: 10px 12px; }
+.connection-error { margin: 12px 16px 0; min-height: 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; border: 1px solid #6b3430; background: #271211; color: var(--danger); padding: 10px 12px; }
 .connection-error p { color: #dcb0ac; overflow-wrap: anywhere; }
 .connection-error button { display: flex; align-items: center; gap: 6px; border: 1px solid #76413d; border-radius: 6px; background: #351917; padding: 7px 9px; }
 .connection-error > div:last-child { display: flex; gap: 7px; }

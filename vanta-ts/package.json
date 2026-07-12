@@ -25,6 +25,7 @@
     "desktop:canvas:smoke": "npm run desktop:build && node --import tsx scripts/desktop-canvas-smoke.mjs",
     "desktop:companion:smoke": "npm run desktop:build && node --import tsx scripts/desktop-companion-smoke.mjs",
     "desktop:presence:smoke": "npm run desktop:build && node scripts/desktop-presence-smoke.mjs",
+    "desktop:layout:smoke": "npm run desktop:build && node scripts/desktop-layout-smoke.mjs",
     "voice:wake:smoke": "node --import tsx scripts/voice-wake-smoke.ts",
     "mobile:sync": "npm run desktop:build && cap sync ios",
     "mobile:open": "cap open ios",
