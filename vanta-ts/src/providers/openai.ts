@@ -103,7 +103,12 @@ export class OpenAIProvider implements LLMProvider {
     const toolDeltas: ToolCallDelta[] = [];
     let emittedThrough = -1;
     for await (const chunk of stream) {
-      if (chunk.usage) usage = { inputTokens: chunk.usage.prompt_tokens, outputTokens: chunk.usage.completion_tokens };
+      if (chunk.usage) usage = {
+        inputTokens: chunk.usage.prompt_tokens,
+        outputTokens: chunk.usage.completion_tokens,
+        ...(chunk.usage.prompt_tokens_details?.cached_tokens != null ? { cacheTokens: chunk.usage.prompt_tokens_details.cached_tokens } : {}),
+        ...(chunk.usage.completion_tokens_details?.reasoning_tokens != null ? { reasoningTokens: chunk.usage.completion_tokens_details.reasoning_tokens } : {}),
+      };
       const choice = chunk.choices[0];
       if (!choice) continue;
       const delta = choice.delta;

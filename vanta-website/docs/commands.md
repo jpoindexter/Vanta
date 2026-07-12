@@ -23,7 +23,7 @@ An interactive session exposes **125 slash commands**. `/help` lists them all; b
 |---------|------|
 | `/model [id]` | Show or hot-swap the model (persists to `.env`) |
 | `/effort <low\|medium\|high\|max>` | Set reasoning effort live |
-| `/usage` | Per-session cost split (local-free vs metered) |
+| `/usage` | Per-session cost; `/usage breakdown` shows actual model/provider/base routes, fallbacks, tokens, and billing status |
 
 ## Memory, skills, knowledge
 `/skills` · `/skill <name>` · `/recall` · `/context` (token breakdown) · `/cockpit` (kernel ladder + live goals + loops).

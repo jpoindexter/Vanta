@@ -60,6 +60,7 @@ function attachConversation(state: DesktopState, setup: RunSetup, history?: Para
   state.convo = createConversation(setup.systemPrompt, {
     provider: setup.provider, safety: setup.safety, registry: setup.registry, root: state.root,
     sessionId: state.sessionId,
+    usageAgent: "desktop",
     requestApproval: (action, reason, toolName) => requestWebApproval(state, action, reason, toolName),
     maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(setup.provider),

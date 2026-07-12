@@ -53,6 +53,7 @@ function oneShotDeps(o: { setup: Awaited<ReturnType<typeof prepareRun>>; root: s
     safety: o.setup.safety,
     registry: o.setup.registry,
     root: o.root,
+    usageAgent: "one-shot",
     requestApproval: approver(o.rl),
     maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(o.setup.provider),

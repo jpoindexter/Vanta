@@ -14,6 +14,8 @@ export type AgentDeps = {
   root: string;
   /** Current conversation/session id, when the host has one. */
   sessionId?: string;
+  /** Surface label persisted with per-call route usage (interactive/gateway/subagent/etc.). */
+  usageAgent?: string;
   /** Ask the human to approve a gated action. `toolName` lets the host key an
    * allowlist ("always allow this tool"); omitted by tool-internal callers. */
   requestApproval: (action: string, reason: string, toolName?: string, detail?: { diff?: string; fresh?: boolean }) => Promise<boolean>;

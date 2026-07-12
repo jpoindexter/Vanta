@@ -64,6 +64,19 @@ User messages can carry images (attach via `/image`, `/paste`, or drag-drop). Ev
 
 Set `VANTA_MODEL_CHEAP` / `VANTA_MODEL_EXPENSIVE` and Vanta classifies each task and routes it to the cheaper or stronger model. Unset = no routing.
 
+## Per-call route usage
+
+Every completed agent-loop provider call is appended to `<project>/.vanta/route-usage-ledger.jsonl`. Each versioned row records the session and surface, actual serving provider/model, normalized base route, fallback depth, billing mode/status, input/output/cache/reasoning tokens, one API call, and cost when known.
+
+This is call-level attribution, so a fallback is charged to the route that served it and a mid-session model switch starts a new route row. Local and subscription-included calls remain visible at `$0`; unknown-cost calls remain visible as `~?`.
+
+```bash
+/usage breakdown   # route totals when route rows exist; legacy spend view otherwise
+/dashboard         # current model plus accumulated serving routes
+```
+
+The older `spend-ledger.jsonl` remains the turn-level budget compatibility source. Views never add both ledgers together, so existing sessions remain readable without double counting.
+
 ## Adding a provider
 
 Implement `LLMProvider` (`complete` / `modelId` / `contextWindow`) and add a branch in `providers/index.ts`. The loop stays unchanged — see [Extending Vanta](./extending.md).

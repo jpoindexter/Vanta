@@ -17,7 +17,7 @@ one-owner, kernel-gated operator direction.
 | --- | --- | --- | --- |
 | 1 | `a0a6cd80` preserves `none` versus `unknown` effects for interrupted or dangling tools. | Shipped: Vanta persists `pending`/`started` boundaries, classifies canonical results as `none`/`confirmed`/`unknown`, and repairs dangling sessions with inspect-before-retry guidance. | `HERMES-DELTA-EFFECT-DISPOSITION` (`shipped`) |
 | 2 | `32f30d2a` through `83000c72` judge compaction against the next real prompt count and stop ineffective loops. | Shipped: Vanta evaluates the next billed/preflight input count, suppresses a third automatic pass after two high readings, counts no-op boundaries, and leaves focused manual compaction available. | `HERMES-DELTA-COMPACTION-REAL-HEADROOM` (`shipped`) |
-| 3 | `cb7f6bbb` through `0d63c23f` persist per-call model/provider/base-route usage, including included and fallback calls. | Vanta's `CostDetail` helper is test-only and the durable spend ledger drops zero or unknown-cost calls. | `HERMES-DELTA-USAGE-ROUTE-LEDGER` |
+| 3 | `cb7f6bbb` through `0d63c23f` persist per-call model/provider/base-route usage, including included and fallback calls. | Shipped: a versioned call ledger records actual served routes, fallback depth, billing status, token dimensions, and known/unknown/zero costs; route-aware operator views do not combine it with legacy turn spend. | `HERMES-DELTA-USAGE-ROUTE-LEDGER` (`shipped`) |
 | 4 | `ce5c1f9f` and `aac77f16` keep picker model changes session-scoped. | Vanta hot-swaps correctly, but every `/model` selection persists to `.env` and can bleed into concurrent/future sessions. | `HERMES-DELTA-SESSION-MODEL-SCOPE` |
 | 5 | `4df6e628` through `4281151a` run context-reference expansion through the gateway under the routed profile and effective model budget. | Vanta context references execute only in the TUI submit path; inbound channel messages bypass them. | `HERMES-DELTA-GATEWAY-CONTEXT-REFS` |
 | 6 | `f9728af5` and `6142203b` add authenticated, bounded runtime readiness while preserving cheap liveness. | Vanta's authenticated `/api/v1/status` initializes conversation state and exposes only a shallow status snapshot. | `HERMES-DELTA-AUTH-READINESS` |
@@ -34,7 +34,7 @@ one-owner, kernel-gated operator direction.
 
 ## Build order
 
-1. Persist every served model route, then make model switches session-scoped.
+1. Make model switches session-scoped.
 2. Share context-reference preprocessing with the gateway.
 3. Add bounded authenticated readiness to the existing public API server.
 

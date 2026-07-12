@@ -28,6 +28,7 @@ import { buildContextInspection } from "../tools/inspect-context.js";
 import { requiredToolNudge } from "./tool-use-contract.js";
 import { interruptedDisposition, interruptedToolResult } from "./effect-disposition.js";
 import { checkpointToolTranscript, persistEffectTransition } from "./effect-persistence.js";
+import { recordProviderCall } from "../cost/route-ledger.js";
 
 export type TurnOpts = {
   messages: Message[];
@@ -206,6 +207,20 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
     const result = completion.result;
     recordUsage(state, result);
     if (result.usage) recordRealPromptCount(messages, result.usage.inputTokens, deps.provider.contextWindow());
+    const route = result.servedRoute ?? deps.provider.routeInfo?.() ?? {
+      provider: "unknown",
+      model: deps.provider.modelId(),
+      baseRoute: "provider://unknown",
+      billingMode: "unknown" as const,
+    };
+    if (deps.sessionId || deps.usageAgent) {
+      await recordProviderCall(join(ctx.root, ".vanta"), {
+        sessionId: deps.sessionId ?? "one-shot",
+        agent: deps.usageAgent ?? "agent",
+        route,
+        usage: result.usage,
+      });
+    }
     if (result.toolCalls.length === 0) {
       const outcome = await handleNoToolCalls({ result, messages, deps, iter, state, userText, schemas });
       if (outcome) return outcome;

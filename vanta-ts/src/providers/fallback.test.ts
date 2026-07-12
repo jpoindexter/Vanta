@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { FallbackChain, buildFallbackChain } from "./fallback.js";
-import type { LLMProvider, CompletionResult, StreamChunk } from "./interface.js";
+import type { BillingMode, LLMProvider, CompletionResult, StreamChunk } from "./interface.js";
 import type { Message } from "../types.js";
 import type { ToolSchema } from "./interface.js";
 
@@ -19,11 +19,15 @@ function makeProvider(opts: {
   window?: number;
   complete?: (msgs: Message[], tools: ToolSchema[]) => Promise<CompletionResult>;
   stream?: (msgs: Message[], tools: ToolSchema[]) => AsyncIterable<StreamChunk>;
+  provider?: string;
+  baseRoute?: string;
+  billingMode?: BillingMode;
 }): LLMProvider {
   return {
     modelId: () => opts.id ?? "test-model",
     contextWindow: () => opts.window ?? 4096,
     complete: opts.complete ?? (() => Promise.resolve(GOOD_RESULT)),
+    routeInfo: () => ({ provider: opts.provider ?? "test", model: opts.id ?? "test-model", baseRoute: opts.baseRoute ?? "https://test.invalid/v1", billingMode: opts.billingMode ?? "unknown" }),
     ...(opts.stream !== undefined ? { stream: opts.stream } : {}),
   };
 }
@@ -61,11 +65,22 @@ describe("FallbackChain.complete()", () => {
       complete: () => Promise.reject(transientError()),
     });
     const p1 = makeProvider({
+      id: "fallback-model",
+      provider: "included-subscription",
+      baseRoute: "subscription://fallback",
+      billingMode: "included",
       complete: () => Promise.resolve(p1Result),
     });
     const chain = new FallbackChain([p0, p1]);
     const result = await chain.complete([], []);
     expect(result.text).toBe("fallback");
+    expect(result.servedRoute).toEqual({
+      provider: "included-subscription",
+      model: "fallback-model",
+      baseRoute: "subscription://fallback",
+      billingMode: "included",
+      fallbackDepth: 1,
+    });
   });
 
   it("does NOT retry when provider[0] throws a non-retryable auth error (401)", async () => {
@@ -199,6 +214,7 @@ describe("FallbackChain.stream()", () => {
     expect(chunks[0]).toMatchObject({ type: "done" });
     if (chunks[0]?.type === "done") {
       expect(chunks[0].result.text).toBe("fallback-stream");
+      expect(chunks[0].result.servedRoute?.fallbackDepth).toBe(1);
     }
   });
 });

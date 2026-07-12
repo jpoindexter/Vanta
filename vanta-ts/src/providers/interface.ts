@@ -23,10 +23,29 @@ export type CompletionResult = {
   usage?: Usage;
   /** Extended thinking / reasoning text, when the provider returns it. */
   thinking?: string;
+  /** Actual provider route that served this call, including fallback selection. */
+  servedRoute?: ProviderRoute;
 };
 
 /** Real token counts from the provider's response, when it reports them. */
-export type Usage = { inputTokens: number; outputTokens: number };
+export type Usage = {
+  inputTokens: number;
+  outputTokens: number;
+  cacheTokens?: number;
+  reasoningTokens?: number;
+};
+
+export type BillingMode = "metered" | "included" | "local" | "unknown";
+
+export type ProviderRoute = {
+  provider: string;
+  model: string;
+  /** Normalized endpoint identity; query strings and credentials are excluded. */
+  baseRoute: string;
+  billingMode: BillingMode;
+  /** Position in a fallback chain; zero is the selected primary route. */
+  fallbackDepth?: number;
+};
 
 /**
  * A streaming chunk. `text` deltas arrive as the model generates. A `tool_call`
@@ -57,6 +76,8 @@ export interface LLMProvider {
   ): Promise<CompletionResult>;
   modelId(): string;
   contextWindow(): number;
+  /** Stable, secret-free route metadata for usage attribution. */
+  routeInfo?(): ProviderRoute;
   /**
    * Optional token streaming. When present, the agent loop consumes it to emit
    * live text deltas (the TUI / REPL renders them as they arrive). Yields `text`

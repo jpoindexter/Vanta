@@ -4,6 +4,7 @@ import { formatExport, formatHistory, lines } from "./format.js";
 import { formatSessionCost } from "../pricing.js";
 import { listSpend } from "../cost/ledger.js";
 import { filterSpendSince, summarizeSpend, formatSpendBreakdown } from "../cost/attribution.js";
+import { formatRouteUsage, listRouteUsage, summarizeRouteUsage } from "../cost/route-ledger.js";
 import type { SlashHandler } from "./types.js";
 
 export const history: SlashHandler = (_arg, ctx) => ({ output: formatHistory(ctx.convo.messages) || "  (no history yet)" });
@@ -41,12 +42,18 @@ export const compress: SlashHandler = async (arg, ctx) => {
 async function usageBreakdown(arg: string, ctx: Parameters<SlashHandler>[1]): Promise<{ output: string }> {
   const sinceRaw = /--since\s+(\S+)/.exec(arg)?.[1];
   let entries = await listSpend(ctx.dataDir);
+  let routeEntries = await listRouteUsage(ctx.dataDir);
   if (sinceRaw) {
     const sinceMs = Date.parse(sinceRaw);
     if (Number.isNaN(sinceMs)) return { output: `  invalid --since date: "${sinceRaw}" (expected an ISO date)` };
     entries = filterSpendSince(entries, sinceMs);
+    routeEntries = routeEntries.filter((entry) => (Date.parse(entry.ts) || 0) >= sinceMs);
   }
-  const report = formatSpendBreakdown(summarizeSpend(entries));
+  // Route rows are the per-call source of truth. Legacy sessions without them
+  // retain the prior spend view; never add the ledgers together.
+  const report = routeEntries.length
+    ? formatRouteUsage(summarizeRouteUsage(routeEntries))
+    : formatSpendBreakdown(summarizeSpend(entries));
   return { output: report.split("\n").map((l) => (l ? `  ${l}` : l)).join("\n") };
 }
 

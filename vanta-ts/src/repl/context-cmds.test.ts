@@ -7,6 +7,7 @@ import type { ReplCtx } from "./types.js";
 import type { Message } from "../types.js";
 import type { LLMProvider } from "../providers/interface.js";
 import { beginTurnContext, prepareCallMessages, resetSavingsHistory } from "../agent/context-pipeline.js";
+import { appendRouteUsage } from "../cost/route-ledger.js";
 
 // PCLIP-COST-ATTRIBUTION: `/usage` stays session-scoped by default; `/usage
 // breakdown [--since <ISO>]` reads the persisted cross-session spend ledger.
@@ -62,6 +63,19 @@ describe("/usage", () => {
 
     const r = await usage("breakdown --since 2026-06-01", ctx());
     expect(r.output).toContain("Total: $2.00 across 1 priced turn");
+  });
+
+  it("/usage breakdown prefers per-call routes and preserves included fallback calls", async () => {
+    await appendRouteUsage(dataDir, {
+      callId: "fallback", ts: "2026-07-02T00:00:00.000Z", sessionId: "s", agent: "interactive",
+      route: { provider: "codex", model: "gpt-5.5", baseRoute: "subscription://openai-codex", billingMode: "included", fallbackDepth: 1 },
+      usage: { inputTokens: 25, outputTokens: 5 },
+    });
+    const r = await usage("breakdown", ctx());
+    expect(r.output).toContain("Model calls: 1");
+    expect(r.output).toContain("codex/gpt-5.5");
+    expect(r.output).toContain("fallback:1");
+    expect(r.output).not.toContain("priced turn");
   });
 
   it("/usage breakdown rejects an unparseable --since date", async () => {

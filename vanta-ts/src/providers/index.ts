@@ -5,11 +5,26 @@ import { resolveClaudeCodeToken } from "./claude-code-auth.js";
 import { loadUserProviders, makeUserProvider } from "./user-providers.js";
 import type { LLMProvider } from "./interface.js";
 import { normalizeModelForProvider } from "./normalize-model.js";
+import { normalizeBaseRoute, withProviderRoute } from "./route.js";
+import type { BillingMode, ProviderRoute } from "./interface.js";
 
 const DEFAULT_OLLAMA_URL = "http://localhost:11434/v1";
 const GEMINI_OPENAI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1";
 const NVIDIA_NIM_URL = "https://integrate.api.nvidia.com/v1";
+
+const BUILTIN_BASE_ROUTES: Record<string, string> = {
+  openai: "https://api.openai.com/v1",
+  anthropic: "https://api.anthropic.com/v1/messages",
+  codex: "subscription://openai-codex",
+  "openai-codex": "subscription://openai-codex",
+  "claude-code": "subscription://anthropic-claude-code",
+  "claude-cli": "subscription://anthropic-claude-code",
+  gemini: GEMINI_OPENAI_URL,
+  openrouter: OPENROUTER_URL,
+  nvidia: NVIDIA_NIM_URL,
+  nim: NVIDIA_NIM_URL,
+};
 
 function requireKey(env: NodeJS.ProcessEnv, key: string, hint: string): string {
   const val = env[key];
@@ -134,6 +149,38 @@ const PROVIDERS: Record<string, (env: NodeJS.ProcessEnv) => LLMProvider> = {
   ...Object.fromEntries(Object.entries(OPENAI_COMPAT).map(([id, c]) => [id, makeCompat(c)])),
 };
 
+function routeBilling(id: string, baseRoute: string, keylessUser = false): BillingMode {
+  if (["codex", "openai-codex", "claude-code", "claude-cli"].includes(id)) return "included";
+  try {
+    const host = new URL(baseRoute).hostname;
+    if (host === "localhost" || host === "127.0.0.1" || host === "::1") return "local";
+  } catch { /* non-HTTP subscription routes are handled above */ }
+  if (id === "ollama" || id === "lmstudio") return "local";
+  if (keylessUser) return "unknown";
+  return baseRoute ? "metered" : "unknown";
+}
+
+function routeDescriptor(
+  id: string,
+  env: NodeJS.ProcessEnv,
+  user?: { baseURL: string; keyEnv?: string },
+): Omit<ProviderRoute, "model"> {
+  let baseRoute = user?.baseURL ?? BUILTIN_BASE_ROUTES[id] ?? OPENAI_COMPAT[id]?.url ?? "";
+  if (id === "ollama") baseRoute = env.VANTA_OLLAMA_URL ?? DEFAULT_OLLAMA_URL;
+  if (id === "azure") {
+    const endpoint = env.AZURE_OPENAI_ENDPOINT ?? "azure://unconfigured";
+    const deployment = env.AZURE_OPENAI_DEPLOYMENT ?? "deployment";
+    baseRoute = `${endpoint.replace(/\/$/, "")}/openai/deployments/${deployment}`;
+  }
+  if (id === "custom") baseRoute = env.VANTA_OPENAI_BASE_URL ?? "custom://unconfigured";
+  const normalized = normalizeBaseRoute(baseRoute || `provider://${id}`);
+  return {
+    provider: id,
+    baseRoute: normalized,
+    billingMode: routeBilling(id, normalized, Boolean(user && !user.keyEnv)),
+  };
+}
+
 /**
  * Resolve an LLM provider from environment.
  *   VANTA_PROVIDER=openai     → api.openai.com (needs OPENAI_API_KEY)
@@ -147,14 +194,15 @@ const PROVIDERS: Record<string, (env: NodeJS.ProcessEnv) => LLMProvider> = {
 export function resolveProvider(env: NodeJS.ProcessEnv): LLMProvider {
   const id = (env.VANTA_PROVIDER ?? "openai").toLowerCase();
   const user = loadUserProviders(env)[id]; // user-declared providers win, so you can add OR fix any backend
-  if (user) return makeUserProvider(env, id, user);
+  if (user) return withProviderRoute(makeUserProvider(env, id, user), routeDescriptor(id, env, user));
   const factory = PROVIDERS[id];
   if (!factory) throw new Error(`Unknown VANTA_PROVIDER "${id}". Run \`vanta setup\`, declare it in ~/.vanta/providers.json, or pick from: ${Object.keys(PROVIDERS).join(", ")}.`);
   // EXT-MODEL-NORMALIZE: canonicalize the model id for THIS provider (vendor
   // prefix add/strip) before the factory reads VANTA_MODEL — kills wrong-shape
   // 400s. Unset model / unknown shape → pass-through (factory defaults stand).
   const model = normalizeModelForProvider(id, env.VANTA_MODEL);
-  return factory(model === env.VANTA_MODEL ? env : { ...env, VANTA_MODEL: model });
+  const resolvedEnv = model === env.VANTA_MODEL ? env : { ...env, VANTA_MODEL: model };
+  return withProviderRoute(factory(resolvedEnv), routeDescriptor(id, resolvedEnv));
 }
 
 export type { LLMProvider } from "./interface.js";

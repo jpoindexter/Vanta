@@ -5,7 +5,7 @@
 
 import { resolveProvider } from "./index.js";
 import { classifyProviderError } from "./error-taxonomy.js";
-import type { LLMProvider, CompletionResult, CompletionConfig, StreamChunk } from "./interface.js";
+import type { LLMProvider, CompletionResult, CompletionConfig, ProviderRoute, StreamChunk } from "./interface.js";
 import type { Message, ToolCall } from "../types.js";
 import type { ToolSchema } from "./interface.js";
 
@@ -58,7 +58,9 @@ async function tryComplete(
 
 /** Yields stream chunks; returns `{done:true}` on success, `{done:false}` on pre-yield error. */
 async function* tryStream(
+  provider: LLMProvider,
   streamFn: NonNullable<LLMProvider["stream"]>,
+  fallbackDepth: number,
   messages: Message[],
   tools: ToolSchema[],
   config?: CompletionConfig,
@@ -67,13 +69,28 @@ async function* tryStream(
   try {
     for await (const chunk of streamFn(messages, tools, config)) {
       yielded = true;
-      yield chunk;
+      yield chunk.type === "done"
+        ? { ...chunk, result: attributeServedRoute(chunk.result, provider, fallbackDepth) }
+        : chunk;
     }
     return { done: true, value: undefined };
   } catch (err) {
     if (yielded) throw err; // mid-stream: can't recover cleanly
     return { done: false, err, transient: isTransientError(err) && !isAuthError(err) };
   }
+}
+
+function fallbackRoute(provider: LLMProvider): ProviderRoute {
+  return provider.routeInfo?.() ?? {
+    provider: "unknown",
+    model: provider.modelId(),
+    baseRoute: "provider://unknown",
+    billingMode: "unknown",
+  };
+}
+
+function attributeServedRoute(result: CompletionResult, provider: LLMProvider, fallbackDepth: number): CompletionResult {
+  return { ...result, servedRoute: { ...(result.servedRoute ?? fallbackRoute(provider)), fallbackDepth } };
 }
 
 /**
@@ -95,6 +112,10 @@ export class FallbackChain implements LLMProvider {
     return this.providers[0]!.contextWindow();
   }
 
+  routeInfo(): ProviderRoute {
+    return fallbackRoute(this.providers[0]!);
+  }
+
   async complete(
     messages: Message[],
     tools: ToolSchema[],
@@ -104,7 +125,7 @@ export class FallbackChain implements LLMProvider {
     for (let i = 0; i < this.providers.length; i++) {
       const provider = this.providers[i]!;
       try {
-        return await provider.complete(messages, tools, config);
+        return attributeServedRoute(await provider.complete(messages, tools, config), provider, i);
       } catch (err) {
         // Auth errors propagate immediately — retrying a bad key won't help.
         if (isAuthError(err)) throw err;
@@ -123,10 +144,11 @@ export class FallbackChain implements LLMProvider {
     config?: CompletionConfig,
   ): AsyncIterable<StreamChunk> {
     let lastErr: unknown;
-    for (const provider of this.providers) {
+    for (let i = 0; i < this.providers.length; i++) {
+      const provider = this.providers[i]!;
       const streamFn = provider.stream?.bind(provider);
       if (streamFn) {
-        const result = yield* tryStream(streamFn, messages, tools, config);
+        const result = yield* tryStream(provider, streamFn, i, messages, tools, config);
         if (result.done) return;
         if (!result.transient) throw result.err;
         lastErr = result.err;

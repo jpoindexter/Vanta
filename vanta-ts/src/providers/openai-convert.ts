@@ -89,7 +89,12 @@ export function mapCompletionResponse(response: any): CompletionResult {
     toolCalls,
     finishReason: choice.finish_reason ?? "stop",
     usage: response.usage
-      ? { inputTokens: response.usage.prompt_tokens, outputTokens: response.usage.completion_tokens }
+      ? {
+          inputTokens: response.usage.prompt_tokens,
+          outputTokens: response.usage.completion_tokens,
+          ...(response.usage.prompt_tokens_details?.cached_tokens != null ? { cacheTokens: response.usage.prompt_tokens_details.cached_tokens } : {}),
+          ...(response.usage.completion_tokens_details?.reasoning_tokens != null ? { reasoningTokens: response.usage.completion_tokens_details.reasoning_tokens } : {}),
+        }
       : undefined,
   };
 }

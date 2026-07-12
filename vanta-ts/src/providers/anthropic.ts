@@ -55,7 +55,11 @@ export class AnthropicProvider implements LLMProvider {
     }
     const result = parseResponse(response.content, response.stop_reason ?? "end_turn");
     if (response.usage) {
-      result.usage = { inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens };
+      result.usage = {
+        inputTokens: response.usage.input_tokens,
+        outputTokens: response.usage.output_tokens,
+        ...(response.usage.cache_read_input_tokens != null ? { cacheTokens: response.usage.cache_read_input_tokens } : {}),
+      };
     }
     return result;
   }

@@ -7,6 +7,7 @@ import { formatSessionCost } from "../pricing.js";
 import type { OperatorTask } from "../task-stack/types.js";
 import type { SlashHandler } from "./types.js";
 import { formatWhatCanIDo, toolNamesFromSetup, workflowViews } from "./what-can-i-do-cmd.js";
+import { formatRouteUsage, listRouteUsage, summarizeRouteUsage } from "../cost/route-ledger.js";
 
 // /dashboard — live operator state at a glance: tasks, goals, repo, model, cost.
 
@@ -93,6 +94,7 @@ function assembleDashboard(opts: {
   activeSection: string; pendingSection: string; blockedSection: string;
   goalLines: string; approvalsOut: string; gitOutput: string;
   modelLine: string; costLine: string; nextLine: string;
+  routeLine: string;
 }): string {
   return [
     header("Active Task"), opts.activeSection, "",
@@ -102,17 +104,20 @@ function assembleDashboard(opts: {
     header("Pending Approvals"), opts.approvalsOut, "",
     header("Repo Status"), opts.gitOutput, "",
     header("Model"), opts.modelLine, "",
+    header("Model Routes"), opts.routeLine, "",
     header("Session Cost"), opts.costLine, "",
     header("Next Recommended"), opts.nextLine,
   ].join("\n");
 }
 
-function emptyDashboard(ctx: import("./types.js").ReplCtx): string {
-  return [
+function emptyDashboard(ctx: import("./types.js").ReplCtx, routeLine: string): string {
+  const base = [
     "No active tasks, no active goals, clean repo.",
     "",
     formatWhatCanIDo(workflowViews(toolNamesFromSetup(ctx.setup))),
-  ].join("\n");
+  ];
+  if (routeLine !== "  (none recorded)") base.push("", header("Model Routes"), routeLine);
+  return base.join("\n");
 }
 
 /** Build and return the full dashboard output string. */
@@ -120,14 +125,18 @@ export async function buildDashboard(ctx: import("./types.js").ReplCtx): Promise
   const repoRoot = dirname(ctx.dataDir);
   const allGoals = await ctx.setup.safety.getGoals().catch(() => []);
   const activeGoals = allGoals.filter((g) => g.status === "active");
-  const [taskData, approvalsOut, gitData] = await Promise.all([
+  const [taskData, approvalsOut, gitData, routeRows] = await Promise.all([
     renderTasks(ctx.dataDir),
     renderApprovals(ctx),
     renderGitStatus(repoRoot),
+    listRouteUsage(ctx.dataDir).catch(() => []),
   ]);
+  const routeLine = routeRows.length
+    ? formatRouteUsage(summarizeRouteUsage(routeRows)).split("\n").map((line) => `  ${line}`).join("\n")
+    : "  (none recorded)";
   const { activeSection, pendingSection, blockedSection, stack } = taskData;
   if (stack.tasks.length === 0 && activeGoals.length === 0 && gitData.clean) {
-    return emptyDashboard(ctx);
+    return emptyDashboard(ctx, routeLine);
   }
   return assembleDashboard({
     activeSection, pendingSection, blockedSection,
@@ -135,6 +144,7 @@ export async function buildDashboard(ctx: import("./types.js").ReplCtx): Promise
     approvalsOut,
     gitOutput: gitData.output,
     modelLine: `  ${ctx.setup.provider.modelId()}`,
+    routeLine,
     costLine: `  ${formatSessionCost(ctx.state.sessionCost)}`,
     nextLine: renderNext(stack),
   });

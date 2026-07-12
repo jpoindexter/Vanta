@@ -9,12 +9,13 @@ sidebar_position: 2
 Major capability milestones, newest first. This is a curated highlight reel — the full per-slice history lives in `roadmap.json`.
 
 ## 2026-07-12 — Hermes delta and documentation release
+- **Per-call route usage ledger** — completed agent-loop calls now persist the provider/model/base route that actually served them, including fallback depth, model switches, cache/reasoning tokens, and zero-cost local or subscription-included calls. `/usage breakdown` and `/dashboard` read the route ledger without double-counting legacy spend rows.
 - **Real-headroom compaction guard** — automatic compaction now uses the next provider input-token count to detect a fixed system/tool floor. Two ineffective passes suppress a third automatic rewrite, while `/compact <focus>` remains available.
 - **Interrupted-tool effect safety** — every tool attempt now records `none`, `confirmed`, or `unknown`; session restore preserves dangling mutations and requires state inspection instead of blindly replaying them. A redacted metadata receipt is kept in `.vanta/tool-effects.jsonl`.
 - **Prompt presets and routed agents** — `/prompt` can switch the current operating role, while `delegate {agent_type}` spawns a worker from the same project/home markdown definition with a bounded prompt, narrowing-only tools, and an optional model default. The base Vanta safety prompt and kernel remain enforced.
 - **Current-main audit** — compared Hermes Agent `4281151a` with Vanta production paths, kept only six material local gaps, and ordered effect disposition plus real-headroom compaction first.
 - **Hermes workflow wave shipped** — persistent profiles and distributions, profile-routed Kanban, delegation receipts, corpus memory, typed context references, workflow blueprints, vault-backed secrets, credential pools, bounded plugin model calls, native deliverable attachments, and the public skill registry are now represented by shipped roadmap slices.
-- **Honest release boundary** — the roadmap reports **1,175 shipped**, **4 remaining local cards**, and **10 parked external acceptance gates**. Parked provider, credential, and physical-device proofs are not reported as live.
+- **Honest release boundary** — the roadmap reports **1,176 shipped**, **3 remaining local cards**, and **10 parked external acceptance gates**. Parked provider, credential, and physical-device proofs are not reported as live.
 - **Docs synchronized** — comparison, roadmap, generated command/tool reference, and Cloudflare deployment instructions now derive from the current repository state.
 
 ## 2026-06-24 — model freedom & creative ideation

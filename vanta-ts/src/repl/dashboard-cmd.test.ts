@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildDashboard } from "./dashboard-cmd.js";
 import type { ReplCtx } from "./types.js";
+import { appendRouteUsage } from "../cost/route-ledger.js";
 
 // Helpers to build a minimal ReplCtx with controlled task-stack + goals.
 
@@ -63,6 +64,19 @@ describe("buildDashboard — all-clear", () => {
     const out = await buildDashboard(ctx);
     expect(out).toContain("No active tasks, no active goals, clean repo.");
     expect(out).toContain("What Vanta can do now");
+  });
+
+  it("shows actual served routes even when the task dashboard is otherwise clear", async () => {
+    const dataDir = join(tmpBase, ".vanta");
+    await appendRouteUsage(dataDir, {
+      callId: "r1", sessionId: "s1", agent: "interactive",
+      route: { provider: "codex", model: "gpt-5.5", baseRoute: "subscription://openai-codex", billingMode: "included", fallbackDepth: 1 },
+      usage: { inputTokens: 10, outputTokens: 2 },
+    });
+    const out = await buildDashboard(makeCtx(dataDir));
+    expect(out).toContain("Model Routes");
+    expect(out).toContain("codex/gpt-5.5");
+    expect(out).toContain("fallback:1");
   });
 });
 

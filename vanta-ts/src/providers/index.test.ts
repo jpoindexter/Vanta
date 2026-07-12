@@ -6,6 +6,7 @@ describe("resolveProvider", () => {
     const p = resolveProvider({ VANTA_PROVIDER: "gemini", GEMINI_API_KEY: "k" });
     expect(p.modelId()).toBe("gemini-2.5-flash");
     expect(p.contextWindow()).toBe(1_000_000);
+    expect(p.routeInfo?.()).toMatchObject({ provider: "gemini", baseRoute: "https://generativelanguage.googleapis.com/v1beta/openai", billingMode: "metered" });
   });
 
   it("accepts GOOGLE_API_KEY as a gemini key fallback", () => {
@@ -55,7 +56,9 @@ describe("resolveProvider", () => {
   });
 
   it("resolves LM Studio locally with no key", () => {
-    expect(resolveProvider({ VANTA_PROVIDER: "lmstudio" }).modelId()).toBe("local-model");
+    const p = resolveProvider({ VANTA_PROVIDER: "lmstudio" });
+    expect(p.modelId()).toBe("local-model");
+    expect(p.routeInfo?.()).toMatchObject({ provider: "lmstudio", billingMode: "local" });
   });
 
   it("resolves Azure with the deployment as the default model", () => {
@@ -66,6 +69,7 @@ describe("resolveProvider", () => {
       AZURE_OPENAI_API_KEY: "k",
     });
     expect(p.modelId()).toBe("gpt4o");
+    expect(p.routeInfo?.().baseRoute).toBe("https://r.openai.azure.com/openai/deployments/gpt4o");
   });
 
   it("resolves a custom OpenAI-compatible endpoint via VANTA_OPENAI_BASE_URL", () => {
