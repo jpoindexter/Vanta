@@ -1,0 +1,61 @@
+name: desktop release proof
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: GitHub release tag containing the notarized desktop DMG
+        required: true
+        default: v0.8.0
+
+permissions:
+  contents: read
+
+jobs:
+  gatekeeper:
+    name: clean Mac Gatekeeper proof
+    runs-on: macos-14
+    steps:
+      - name: Download public desktop release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" \
+            --pattern 'Vanta-*-arm64.dmg' --pattern 'Vanta-*-arm64.dmg.sha256' \
+            --dir "$RUNNER_TEMP/release"
+
+      - name: Verify checksum, staple, signature, and Gatekeeper
+        shell: bash
+        run: |
+          set -euo pipefail
+          receipt="$RUNNER_TEMP/desktop-release-proof.txt"
+          exec > >(tee "$receipt") 2>&1
+          cd "$RUNNER_TEMP/release"
+          shasum -a 256 -c ./*.dmg.sha256
+          dmg=$(find . -maxdepth 1 -name '*.dmg' -print -quit)
+          xcrun stapler validate "$dmg"
+          codesign --verify --verbose=4 "$dmg"
+          spctl --assess --type open --context context:primary-signature --verbose=4 "$dmg"
+
+          mount="$RUNNER_TEMP/vanta-mount"
+          app="$RUNNER_TEMP/Vanta.app"
+          mkdir -p "$mount"
+          hdiutil attach -nobrowse -readonly -mountpoint "$mount" "$dmg"
+          trap 'hdiutil detach "$mount" >/dev/null 2>&1 || true' EXIT
+          ditto "$mount/Vanta.app" "$app"
+          hdiutil detach "$mount"
+          trap - EXIT
+
+          xattr -w com.apple.quarantine "0083;$(printf '%x' "$(date +%s)");GitHubActions;" "$app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          spctl --assess --type execute --verbose=4 "$app"
+          echo "clean Mac desktop release proof passed"
+
+      - name: Publish proof receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-release-proof-${{ inputs.tag }}
+          path: ${{ runner.temp }}/desktop-release-proof.txt
+          if-no-files-found: error

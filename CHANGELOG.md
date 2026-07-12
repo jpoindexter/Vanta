@@ -22,6 +22,7 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 ### Fixed
 - **Desktop composer clipped below the native window** — startup and recovery UI now share one explicitly bounded conversation grid track, so an error banner cannot create an implicit row that pushes the empty state and composer offscreen. A packaged Electron smoke locks the reported `1778×1136` viewport in healthy and forced-recovery states.
 - **Desktop Files panel corruption at compact widths** — opening the inspector no longer replaces its two-row grid with a horizontal flex layout. File paths now render as stable single-line rows, ellipsize with full-path tooltips, and stay inside a vertical-only list scroller.
+- **Repeatable notarized desktop releases** — `npm run desktop:release` now signs the DMG container itself before submitting it to Apple, then staples, validates, and Gatekeeper-assesses the accepted artifact. This prevents an accepted app bundle from being wrapped in a DMG that Gatekeeper reports as having no usable signature.
 
 ## v0.8.0 — 2026-07-05
 

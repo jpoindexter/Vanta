@@ -21,6 +21,7 @@
     "desktop:kernel": "cargo build --manifest-path ../Cargo.toml --release --bin vanta-kernel",
     "desktop:pack": "npm run desktop:build && npm run desktop:kernel && node scripts/package-desktop.mjs",
     "desktop:dist": "npm run desktop:build && npm run desktop:kernel && node scripts/package-desktop.mjs --dist",
+    "desktop:release": "npm run desktop:build && npm run desktop:kernel && node scripts/package-desktop.mjs --dist --notarize",
     "desktop:sound:smoke": "npm run desktop:build && node scripts/desktop-completion-sound-smoke.mjs",
     "desktop:canvas:smoke": "npm run desktop:build && node --import tsx scripts/desktop-canvas-smoke.mjs",
     "desktop:companion:smoke": "npm run desktop:build && node --import tsx scripts/desktop-companion-smoke.mjs",

@@ -18102,7 +18102,7 @@
       "id": "DESKTOP-MAC-NOTARIZATION",
       "track": "Release",
       "title": "Desktop macOS notarization — staple a Gatekeeper-clean public build",
-      "status": "parked",
+      "status": "building",
       "size": "S",
       "summary": "Submit the signed desktop DMG to Apple, wait for acceptance, staple the ticket, and prove Gatekeeper acceptance on a quarantined clean Mac before publishing a public download.",
       "done": "Apple notarytool accepts the exact release DMG; stapler validate passes; spctl accepts the installed app after quarantine on a separate Mac; the published checksum matches the notarized artifact.",
@@ -18115,8 +18115,7 @@
       "source": "DESKTOP-APP-V1 release boundary 2026-07-12",
       "after": [
         "DESKTOP-APP-V1"
-      ],
-      "parkedReason": "external proof"
+      ]
     }
   ]
 }

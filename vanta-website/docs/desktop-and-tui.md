@@ -33,11 +33,12 @@ Vanta includes a native Electron app for macOS with sessions, chat, model switch
 cd vanta-ts
 npm run desktop:native  # build and launch from source
 npm run desktop:dist    # signed ARM64 .app, .dmg, and .zip under release/
+npm run desktop:release # sign, notarize, staple, and Gatekeeper-check the DMG
 ```
 
 The installed app asks for a working folder and remembers it. If that folder has no model configuration, **Configure model** writes a private `.vanta/.env` from inside the app; API keys are never rendered back into the interface. **Vanta → Open Project…** (`⌘O`) switches roots later.
 
-The macOS build bundles the renderer, TypeScript runtime, and Rust safety kernel, so it does not need a Vanta checkout. `npm run desktop:dist` uses an available Developer ID certificate by unique hash and leaves a clearly labelled unsigned local build when none exists. Public distribution still requires Apple notarization credentials; the repository does not claim notarization from code signing alone.
+The macOS build bundles the renderer, TypeScript runtime, and Rust safety kernel, so it does not need a Vanta checkout. `npm run desktop:dist` uses an available Developer ID certificate by unique hash and leaves a clearly labelled unsigned local build when none exists. For public distribution, first store credentials with `xcrun notarytool store-credentials vanta`, then run `npm run desktop:release`. The release command signs the DMG container, waits for Apple acceptance, staples and validates the ticket, and requires Gatekeeper to report `Notarized Developer ID`. Set `VANTA_DESKTOP_NOTARY_PROFILE` to use a profile name other than `vanta`.
 
 ## Voice, sight & desktop control
 
