@@ -4,6 +4,8 @@
   "type": "module",
   "private": true,
   "description": "Vanta agent layer — goal-aware, scope-enforced operator runtime",
+  "author": "Jason Poindexter <jason@theft.studio>",
+  "main": "desktop-app/electron/main.mjs",
   "bin": {
     "vanta": "bin/vanta.mjs"
   },
@@ -15,6 +17,10 @@
     "desktop:build": "vite build --config desktop-app/vite.config.ts",
     "desktop:native": "npm run desktop:build && electron desktop-app/electron/main.mjs",
     "desktop:native:smoke": "npm run desktop:build && electron desktop-app/electron/main.mjs --smoke",
+    "desktop:host:test": "node --test desktop-app/electron/project-root.node-test.mjs && vitest run desktop-app/electron/tray.test.mjs",
+    "desktop:kernel": "cargo build --manifest-path ../Cargo.toml --release --bin vanta-kernel",
+    "desktop:pack": "npm run desktop:build && npm run desktop:kernel && node scripts/package-desktop.mjs",
+    "desktop:dist": "npm run desktop:build && npm run desktop:kernel && node scripts/package-desktop.mjs --dist",
     "desktop:sound:smoke": "npm run desktop:build && node scripts/desktop-completion-sound-smoke.mjs",
     "desktop:canvas:smoke": "npm run desktop:build && node --import tsx scripts/desktop-canvas-smoke.mjs",
     "desktop:companion:smoke": "npm run desktop:build && node --import tsx scripts/desktop-companion-smoke.mjs",
@@ -37,6 +43,7 @@
     "imapflow": "1.4.2",
     "ink": "^7.0.6",
     "linkedom": "^0.18.12",
+    "lucide-react": "^0.468.0",
     "nodemailer": "9.0.1",
     "openai": "^5.12.0",
     "pdfjs-dist": "6.0.227",
@@ -56,8 +63,60 @@
     "@types/react": "^19.2.16",
     "@types/react-dom": "^19.2.3",
     "electron": "^43.1.0",
+    "electron-builder": "^26.15.3",
     "vite": "^6.4.3",
     "vitest": "^3.2.6"
+  },
+  "build": {
+    "appId": "studio.theft.vanta",
+    "productName": "Vanta",
+    "artifactName": "Vanta-${version}-${arch}.${ext}",
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/esbuild/**/*",
+      "node_modules/@esbuild/**/*",
+      "node_modules/tsx/**/*"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "desktop-app/dist/**/*",
+      "desktop-app/electron/**/*.mjs",
+      "src/**/*",
+      "package.json",
+      "!node_modules/@huggingface/**/*",
+      "!node_modules/onnxruntime-node/**/*",
+      "!node_modules/onnxruntime-web/**/*",
+      "!node_modules/lucide-react/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../target/release/vanta-kernel",
+        "to": "kernel/vanta-kernel"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "desktop-app/build/icon.png",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "dmg": {
+      "title": "Vanta ${version}",
+      "window": {
+        "width": 540,
+        "height": 380
+      },
+      "contents": [
+        { "x": 140, "y": 190, "type": "file" },
+        { "x": 400, "y": 190, "type": "link", "path": "/Applications" }
+      ]
+    }
   },
   "overrides": {
     "esbuild": "^0.28.1",

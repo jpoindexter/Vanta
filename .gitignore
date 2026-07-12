@@ -29,6 +29,7 @@ BLOCKERS-GUIDE.html
 
 # Generated artifacts
 roadmap.html
+vanta-ts/release/
 __pycache__/
 *.py[cod]
 

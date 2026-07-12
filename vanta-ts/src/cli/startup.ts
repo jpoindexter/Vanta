@@ -27,6 +27,11 @@ export function findRepoRoot(): string {
 
 export function loadEnv(repoRoot: string): void {
   try {
+    process.loadEnvFile(join(repoRoot, ".vanta", ".env"));
+  } catch {
+    // no project-local desktop config
+  }
+  try {
     process.loadEnvFile(join(repoRoot, "vanta-ts", ".env"));
   } catch {
     // no .env file — rely on the ambient environment
@@ -171,4 +176,3 @@ export function parseStartupFlags(args: string[]): { rest: string[]; lifecycle: 
   const lifecycleParse = parseLifecycleFlags(pluginParse.rest);
   return { rest: lifecycleParse.rest, lifecycle: lifecycleParse.flags, pluginSources: pluginParse.sources, dumpPrompt };
 }
-

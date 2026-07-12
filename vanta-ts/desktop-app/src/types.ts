@@ -1,9 +1,9 @@
 export type Session = { id: string; title: string; turns: number; updated: string };
 export type Tool = { name: string; desc: string };
 export type Goal = { text: string };
-export type Status = { kernel: string; model: string; tools: number; sessionId: string; goals: Goal[] };
+export type Status = { kernel: string; model: string; provider?: string; tools: number; sessionId: string; root?: string; goals: Goal[] };
 export type Message = { role: string; content?: string; name?: string };
-export type Provider = { id: string; label: string; short: string; models: string[] };
+export type Provider = { id: string; label: string; short: string; models: string[]; defaultModel?: string; requiresKey?: boolean; signupUrl?: string; note?: string };
 export type EventRow = { label: string; ok?: boolean };
 export type CanvasScalar = string | number | boolean | null;
 export type CanvasArtifact = {

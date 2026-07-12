@@ -17,44 +17,51 @@ export function useDesktopData() {
   const [models, setModels] = useState<Provider[]>([]);
   const [canvas, setCanvas] = useState<CanvasArtifact | null>(null);
   const [tab, setTab] = useState<RailTab>("canvas");
-  const [paletteOpen, setPaletteOpen] = useState(false);
-  const [modelOpen, setModelOpen] = useState(false);
-  const [soundOpen, setSoundOpen] = useState(false);
-  const openSoundSettings = useCallback(() => setSoundOpen(true), []);
-  const closeSoundSettings = useCallback(() => setSoundOpen(false), []);
-
-  async function refresh() {
-    const [nextStatus, nextSessions, nextTools, nextFiles, nextModels, nextCanvas] = await Promise.all([
-      api<Status>("/api/status"),
-      api<Session[]>("/api/sessions"),
-      api<Tool[]>("/api/tools"),
-      api<string[]>("/api/files"),
-      api<Provider[]>("/api/models"),
-      api<CanvasArtifact | null>("/api/canvas").catch(() => null),
-    ]);
-    setStatus(nextStatus);
-    setSessions(nextSessions);
-    setTools(nextTools);
-    setFiles(nextFiles);
-    setModels(nextModels);
-    setCanvas(nextCanvas);
-  }
+  const overlays = useDesktopOverlays();
+  const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
+  const [error, setError] = useState("");
+  const refresh = useCallback(async () => {
+    try {
+      const [nextStatus, nextSessions, nextTools, nextFiles, nextModels, nextCanvas] = await Promise.all([
+        api<Status>("/api/status"), api<Session[]>("/api/sessions"), api<Tool[]>("/api/tools"),
+        api<string[]>("/api/files"), api<Provider[]>("/api/models"), api<CanvasArtifact | null>("/api/canvas").catch(() => null),
+      ]);
+      setStatus(nextStatus); setSessions(nextSessions); setTools(nextTools); setFiles(nextFiles);
+      setModels(nextModels); setCanvas(nextCanvas); setError(""); setPhase("ready");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause));
+      setPhase("error");
+      void api<Provider[]>("/api/setup").then(setModels).catch(() => undefined);
+    }
+  }, []);
 
   async function setModel(provider: string, model: string, scope: "session" | "global" = "session") {
     await api("/api/model", { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ provider, model, scope }) });
-    setModelOpen(false);
+    overlays.closeModelPicker();
     await refresh();
   }
 
-  useEffect(() => { void refresh(); }, []);
+  useEffect(() => { void refresh(); }, [refresh]);
   return {
-    status, sessions, tools, files, models, canvas, tab, setTab, paletteOpen, modelOpen, soundOpen, refresh, setModel,
-    openPalette: () => setPaletteOpen(true),
-    closePalette: () => setPaletteOpen(false),
-    openModelPicker: () => setModelOpen(true),
-    closeModelPicker: () => setModelOpen(false),
-    openSoundSettings,
-    closeSoundSettings,
+    status, sessions, tools, files, models, canvas, tab, setTab, phase, error, refresh, setModel, ...overlays,
+    saveSetup: async (provider: string, model: string, apiKey: string) => {
+      await api("/api/setup", { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ provider, model, apiKey }) });
+      overlays.closeSetup(); setPhase("loading"); await refresh();
+    },
+  };
+}
+
+function useDesktopOverlays() {
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [modelOpen, setModelOpen] = useState(false);
+  const [soundOpen, setSoundOpen] = useState(false);
+  const [setupOpen, setSetupOpen] = useState(false);
+  return {
+    paletteOpen, modelOpen, soundOpen, setupOpen,
+    openPalette: () => setPaletteOpen(true), closePalette: () => setPaletteOpen(false),
+    openModelPicker: () => setModelOpen(true), closeModelPicker: () => setModelOpen(false),
+    openSoundSettings: () => setSoundOpen(true), closeSoundSettings: () => setSoundOpen(false),
+    openSetup: () => setSetupOpen(true), closeSetup: () => setSetupOpen(false),
   };
 }
 

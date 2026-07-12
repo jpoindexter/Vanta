@@ -106,7 +106,7 @@ async function persistActiveSession(state: DesktopState): Promise<void> {
 export async function handleStatus(state: DesktopState, res: http.ServerResponse): Promise<void> {
   const live = await ensureDesktopConversation(state);
   const goals = await live.setup.safety.getGoals().catch(() => live.setup.goals);
-  sendJson(res, 200, { kernel: "online", model: live.setup.provider.modelId(), provider: live.providerId ?? process.env.VANTA_PROVIDER ?? "openai", tools: live.setup.registry.list().length, sessionId: live.sessionId, goals: goals.filter((g) => g.status === "active") });
+  sendJson(res, 200, { kernel: "online", model: live.setup.provider.modelId(), provider: live.providerId ?? process.env.VANTA_PROVIDER ?? "openai", tools: live.setup.registry.list().length, sessionId: live.sessionId, root: state.root, goals: goals.filter((g) => g.status === "active") });
 }
 
 export async function handleSessions(res: http.ServerResponse): Promise<void> {

@@ -1,0 +1,47 @@
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import { PROVIDER_CATALOG, providerById } from "../providers/catalog.js";
+import { buildEnvUpdates, upsertEnvMigratingLegacy } from "../setup.js";
+import type { DesktopState } from "./handlers.js";
+import { readJson, sendJson } from "./handlers.js";
+import type http from "node:http";
+import type { ProviderEntry } from "../providers/catalog.js";
+
+type SetupInput = { provider: ProviderEntry; model: string; apiKey: string } | { error: string };
+
+export function desktopSetupOptions() {
+  return PROVIDER_CATALOG.map((provider) => ({
+    id: provider.id, label: provider.label, short: provider.short, models: provider.models,
+    defaultModel: provider.defaultModel, requiresKey: !!provider.envVar,
+    signupUrl: provider.signupUrl, note: provider.note,
+  }));
+}
+
+export async function handleDesktopSetup(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  if (req.method === "GET") return sendJson(res, 200, desktopSetupOptions());
+  const input = setupInput(await readJson(req));
+  if ("error" in input) return sendJson(res, 400, { error: input.error });
+  await persistSetup(state, input);
+  sendJson(res, 200, { ok: true, provider: input.provider.id, model: input.model });
+}
+
+function setupInput(raw: unknown): SetupInput {
+  const body = raw as { provider?: unknown; model?: unknown; apiKey?: unknown };
+  const provider = typeof body.provider === "string" ? providerById(body.provider) : undefined;
+  if (!provider) return { error: "Choose a supported provider." };
+  const model = typeof body.model === "string" && body.model.trim() ? body.model.trim() : provider.defaultModel;
+  const apiKey = typeof body.apiKey === "string" ? body.apiKey.trim() : "";
+  if (provider.envVar && !apiKey && !process.env[provider.envVar]) return { error: `${provider.envVar} is required.` };
+  return { provider, model, apiKey };
+}
+
+async function persistSetup(state: DesktopState, input: Exclude<SetupInput, { error: string }>): Promise<void> {
+  const updates = buildEnvUpdates(input.provider, input.apiKey || undefined, input.model);
+  const path = join(state.root, ".vanta", ".env");
+  await mkdir(join(state.root, ".vanta"), { recursive: true });
+  const existing = existsSync(path) ? await readFile(path, "utf8") : "";
+  await writeFile(path, upsertEnvMigratingLegacy(existing, updates), { mode: 0o600 });
+  Object.assign(process.env, updates);
+  state.setup = undefined; state.convo = undefined; state._setupError = undefined;
+}

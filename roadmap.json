@@ -18001,8 +18001,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-12",
-      "source": "Jamon agentic-repo maintenance thread",
-      "notes": "SHIPPED 2026-07-12. The shared conversation path detects explicit missing-tool, permission, decision, and repeated-failure boundaries; fingerprints the blocker; and creates or updates one unread operator ticket with a reason and next action. The tickets tool can queue a needs-human decision explicitly, while vanta maintenance queue lists and resolves it. Executed proof: a real conversation turn created one ticket, repeated occurrence deduplicated it, and ordinary questions did not queue. Focused tests and the final full suite passed 1,338 files / 13,055 tests / 3 skipped."
+      "notes": "SHIPPED 2026-07-12. The shared conversation path detects explicit missing-tool, permission, decision, and repeated-failure boundaries; fingerprints the blocker; and creates or updates one unread operator ticket with a reason and next action. The tickets tool can queue a needs-human decision explicitly, while vanta maintenance queue lists and resolves it. Executed proof: a real conversation turn created one ticket, repeated occurrence deduplicated it, and ordinary questions did not queue. Focused tests and the final full suite passed 1,338 files / 13,055 tests / 3 skipped.",
+      "source": "Jamon agentic-repo maintenance thread"
     },
     {
       "id": "DOC-ROUTER-HEALTH",
@@ -18018,8 +18018,8 @@
       "codex": "gpt-5.4",
       "lens": "memory",
       "updated": "2026-07-12",
-      "source": "Jamon agentic-repo maintenance thread",
-      "notes": "SHIPPED 2026-07-12. Prompt assembly records top-level and recursively imported context documents, completed turns record explicit document references, and vanta maintenance docs reports loads, references, stale and never-consulted files, missing imports, and exact opposite instructions without rewriting source documents. Executed proof: a real AGENTS.md to docs/INDEX.md prompt import and five conversation turns produced measured load/reference evidence. Focused tests and the final full suite passed 1,338 files / 13,055 tests / 3 skipped."
+      "notes": "SHIPPED 2026-07-12. Prompt assembly records top-level and recursively imported context documents, completed turns record explicit document references, and vanta maintenance docs reports loads, references, stale and never-consulted files, missing imports, and exact opposite instructions without rewriting source documents. Executed proof: a real AGENTS.md to docs/INDEX.md prompt import and five conversation turns produced measured load/reference evidence. Focused tests and the final full suite passed 1,338 files / 13,055 tests / 3 skipped.",
+      "source": "Jamon agentic-repo maintenance thread"
     },
     {
       "id": "MAINTENANCE-BUDGET",
@@ -18035,11 +18035,46 @@
       "codex": "gpt-5.4",
       "lens": "infra",
       "updated": "2026-07-12",
+      "notes": "SHIPPED 2026-07-12. Every identified real agent turn records a task hash, conservative delivery/maintenance class, elapsed time, tokens, tool iterations, and stop reason. vanta maintenance budget exposes text/JSON reports, threshold and time-window controls, CI enforcement, and VANTA_WORK_CLASS overrides. Executed proof: five real maintenance turns crossed the 60 percent budget and created exactly one deduplicated needs-human ticket with a concrete next action. TypeScript, file-size limits, Docusaurus production build, focused tests, and the full suite passed 1,338 files / 13,055 tests / 3 skipped.",
       "source": "Jamon agentic-repo maintenance thread",
       "after": [
         "NEEDS-HUMAN-QUEUE"
+      ]
+    },
+    {
+      "id": "DESKTOP-APP-V1",
+      "track": "Operator",
+      "title": "Desktop app v1 — dependable native Vanta for daily use",
+      "status": "shipped",
+      "size": "L",
+      "summary": "Turn the existing React and Electron shell into a production-grade desktop application with reliable startup, project ownership, complete connection/error/empty states, keyboard-accessible navigation, and distributable macOS artifacts.",
+      "done": "A clean machine artifact installs and launches without a source checkout; project selection persists; the primary chat/session/model/approval/rail workflows remain usable across desktop widths; startup failures are actionable; native smoke, UI integration tests, packaged artifact inspection, and visual screenshots pass.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "codex": "gpt-5.4",
+      "lens": "tui",
+      "source": "operator request 2026-07-12",
+      "notes": "SHIPPED 2026-07-12. Rebuilt the React/Electron surface as a fixed one-viewport workspace: the outer document never scrolls, while only genuine session/chat/inspector content does. Added searchable sessions, prompt starters, explicit loading/recovery, command/model/setup dialogs, safer approvals, compact panel navigation with close controls, resilient API parsing, and in-app provider/model/API-key setup stored privately in project .vanta/.env. The native host now persists and switches project roots, selects a free port, shows a startup splash, handles single-instance/menu/tray lifecycle, bundles renderer/TypeScript runtime/Rust kernel paths, unpacks executable transform dependencies, and produces ARM64 app/DMG/ZIP artifacts. Executed proof: focused desktop/setup gates, TypeScript, and size gates passed; the full suite passed 1,339 files / 13,059 tests / 3 skipped; Playwright at 1440x960 and 760x700 measured html/body/shell exactly one viewport with no outer scroll; signed app passed strict codesign verification; DMG checksum verified; the root-level Vanta.app launched directly from the mounted DMG against an empty temporary project with no Vanta checkout and reported renderer assets ready, first-run setup ready, and bundled kernel online. Artifacts: 176 MiB DMG and 176 MiB ZIP. Public Apple notarization is captured separately as DESKTOP-MAC-NOTARIZATION because notary credentials are not configured."
+    },
+    {
+      "id": "DESKTOP-MAC-NOTARIZATION",
+      "track": "Release",
+      "title": "Desktop macOS notarization — staple a Gatekeeper-clean public build",
+      "status": "parked",
+      "size": "S",
+      "summary": "Submit the signed desktop DMG to Apple, wait for acceptance, staple the ticket, and prove Gatekeeper acceptance on a quarantined clean Mac before publishing a public download.",
+      "done": "Apple notarytool accepts the exact release DMG; stapler validate passes; spctl accepts the installed app after quarantine on a separate Mac; the published checksum matches the notarized artifact.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "infra",
+      "source": "DESKTOP-APP-V1 release boundary 2026-07-12",
+      "after": [
+        "DESKTOP-APP-V1"
       ],
-      "notes": "SHIPPED 2026-07-12. Every identified real agent turn records a task hash, conservative delivery/maintenance class, elapsed time, tokens, tool iterations, and stop reason. vanta maintenance budget exposes text/JSON reports, threshold and time-window controls, CI enforcement, and VANTA_WORK_CLASS overrides. Executed proof: five real maintenance turns crossed the 60 percent budget and created exactly one deduplicated needs-human ticket with a concrete next action. TypeScript, file-size limits, Docusaurus production build, focused tests, and the full suite passed 1,338 files / 13,055 tests / 3 skipped."
+      "parkedReason": "external proof"
     }
   ]
 }

@@ -1,7 +1,7 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { ApprovalOverlay, ModelPicker } from "./overlays.js";
+import { ApprovalOverlay, ModelPicker, SetupWizard } from "./overlays.js";
 
 describe("ApprovalOverlay", () => {
   it("renders dedicated request context and all four decisions", () => {
@@ -47,5 +47,14 @@ describe("ModelPicker", () => {
     expect(html).toContain("Models for this session");
     expect(html).toContain("Local · qwen");
     expect(html).toContain("Set as default");
+  });
+});
+
+describe("SetupWizard", () => {
+  it("renders provider, model, and conditional secret fields", () => {
+    const html = renderToStaticMarkup(<SetupWizard open models={[{ id: "openai", label: "OpenAI", short: "OpenAI", models: ["gpt-4o-mini"], defaultModel: "gpt-4o-mini", requiresKey: true }]} onClose={vi.fn()} onSave={vi.fn()} />);
+    expect(html).toContain("Connect a model");
+    expect(html).toContain("API key");
+    expect(html).toContain("gpt-4o-mini");
   });
 });

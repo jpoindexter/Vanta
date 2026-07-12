@@ -27,11 +27,17 @@ Chords are configurable via `~/.vanta/keybindings.json` (zod-validated, fail-sof
 
 ## The desktop app
 
-A Vite + React desktop renderer ships under `desktop-app/` — an app shell with a session sidebar, chat thread, composer, and a right rail.
+Vanta includes a native Electron app for macOS with sessions, chat, model switching, approvals, canvas, project files, a kernel-gated terminal, tray controls, and the mobile companion bridge. The workspace is fixed to one viewport: the header and composer stay pinned while only genuine content lists scroll.
 
 ```bash
-npm run desktop:build    # build the renderer (served from desktop-app/dist/)
+cd vanta-ts
+npm run desktop:native  # build and launch from source
+npm run desktop:dist    # signed ARM64 .app, .dmg, and .zip under release/
 ```
+
+The installed app asks for a working folder and remembers it. If that folder has no model configuration, **Configure model** writes a private `.vanta/.env` from inside the app; API keys are never rendered back into the interface. **Vanta → Open Project…** (`⌘O`) switches roots later.
+
+The macOS build bundles the renderer, TypeScript runtime, and Rust safety kernel, so it does not need a Vanta checkout. `npm run desktop:dist` uses an available Developer ID certificate by unique hash and leaves a clearly labelled unsigned local build when none exists. Public distribution still requires Apple notarization credentials; the repository does not claim notarization from code signing alone.
 
 ## Voice, sight & desktop control
 

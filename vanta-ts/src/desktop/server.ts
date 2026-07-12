@@ -17,6 +17,7 @@ import { handlePublicApiProbeRoute, handlePublicApiRoute, type PublicApiRouteOpt
 import type { ReadinessDeps } from "../public-api/readiness.js";
 import { resolveVantaHome } from "../store/home.js";
 import { getWakeApi, setWakeApi } from "./wake-api.js";
+import { handleDesktopSetup } from "./setup.js";
 
 type RouteCtx = { req: http.IncomingMessage; res: http.ServerResponse; state: DesktopState; sid: string; sseClients: SseClients; pathname: string };
 
@@ -31,6 +32,7 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
     "/api/files": () => handleFiles(state, res),
     "/api/canvas": () => handleCanvas(state, res),
     "/api/models": () => handleModels(res),
+    "/api/setup": () => handleDesktopSetup(state, req, res),
     "/api/approval": () => handleApproval(state, req, res),
     "/api/wake": async () => sendJson(res, 200, await getWakeApi()),
   };
@@ -43,6 +45,7 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
   if (p === "/api/sessions/new") { await handleNewSession(state, res); return true; }
   if (p === "/api/sessions/open") { await handleOpenSession(state, req, res); return true; }
   if (p === "/api/model") { await handleSetModel(state, req, res); return true; }
+  if (p === "/api/setup") { await handleDesktopSetup(state, req, res); return true; }
   if (p === "/api/approval") { await handleApproval(state, req, res); return true; }
   if (p === "/api/terminal") { await handleTerminal(state, req, res); return true; }
   if (p === "/api/wake") {

@@ -9,6 +9,7 @@ export function createTrayController(deps) {
   let pending = false;
   let deviceCount = 0;
   let wakeEnabled = false;
+  let disposed = false;
 
   function openMain() {
     const window = BrowserWindow.getAllWindows().find((item) => item !== quickWindow);
@@ -50,6 +51,7 @@ export function createTrayController(deps) {
   }
 
   function rebuild() {
+    if (disposed) return;
     tray.setContextMenu(Menu.buildFromTemplate([
       { label: `Vanta · ${status}`, enabled: false },
       { label: "Open Vanta", click: openMain },
@@ -72,12 +74,12 @@ export function createTrayController(deps) {
       const [nextStatus, approval, info, wake] = await Promise.all([statusResponse.json(), approvalResponse.json(), infoResponse.json(), wakeResponse.json()]);
       status = nextStatus.kernel === "online" ? "online" : "offline"; pending = !!approval; deviceCount = info.devices?.length ?? 0; wakeEnabled = wake.enabled && wake.running;
     } catch { status = "offline"; }
-    rebuild();
+    if (!disposed) rebuild();
   }
 
   tray.on("click", openMain);
   rebuild();
   void refresh();
   const interval = setInterval(() => void refresh(), 2_000);
-  return { tray, refresh, openQuick, pairMobile, toggleWake, dispose: () => { clearInterval(interval); tray.destroy(); quickWindow?.destroy(); } };
+  return { tray, refresh, openQuick, pairMobile, toggleWake, dispose: () => { disposed = true; clearInterval(interval); tray.destroy(); quickWindow?.destroy(); } };
 }

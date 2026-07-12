@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1182 capabilities shipped · 0 in flight · 0 on the horizon. Updated 2026-07-12._
+_1183 capabilities shipped · 0 in flight · 0 on the horizon. Updated 2026-07-12._
 
 ## In flight
 
@@ -18,7 +18,7 @@ _Nothing in flight right now — see the horizon below._
 
 ## Recently shipped
 
-The latest of 1182+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1183+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Vanta public site v1 — product-first homepage, use cases, install, and proof** — Reach · 2026-07-12
 - **Interrupted tool effects - preserve unknown mutations and inspect before retry** — Harness · 2026-07-12

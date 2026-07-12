@@ -1,4 +1,5 @@
 import { FormEvent, useMemo, useState } from "react";
+import { AppWindow, FileText, LayoutDashboard, TerminalSquare, X } from "lucide-react";
 import { api } from "./api.js";
 import { CanvasPanel } from "./canvas.js";
 import type { CanvasArtifact, EventRow, RailTab, Status, Tool } from "./types.js";
@@ -13,6 +14,7 @@ export function RightRail(props: {
   tab: RailTab;
   onTab: (tab: RailTab) => void;
   onInsertFile: (file: string) => void;
+  onDismiss?: () => void;
 }) {
   const groups = useMemo(() => groupTools(props.tools), [props.tools]);
   return (
@@ -20,6 +22,7 @@ export function RightRail(props: {
       <div className="rail-tabs">
         {(["canvas", "preview", "files", "terminal"] as RailTab[]).map((tab) => <RailTabButton key={tab} tab={tab} active={props.tab === tab} onTab={props.onTab} />)}
       </div>
+      <button className="panel-dismiss rail-dismiss" type="button" aria-label="Close inspector" onClick={props.onDismiss}><X size={16} /></button>
       {props.tab === "canvas" ? <CanvasPanel artifact={props.canvas} onRefresh={props.onRefresh} /> : null}
       {props.tab === "preview" ? <PreviewPanel status={props.status} groups={groups} events={props.events} /> : null}
       {props.tab === "files" ? <FilesPanel files={props.files} onInsert={props.onInsertFile} /> : null}
@@ -29,7 +32,9 @@ export function RightRail(props: {
 }
 
 function RailTabButton(props: { tab: RailTab; active: boolean; onTab: (tab: RailTab) => void }) {
-  return <button className={props.active ? "active" : ""} type="button" onClick={() => props.onTab(props.tab)}>{props.tab}</button>;
+  const icons = { canvas: LayoutDashboard, preview: AppWindow, files: FileText, terminal: TerminalSquare };
+  const Icon = icons[props.tab];
+  return <button className={props.active ? "active" : ""} type="button" title={props.tab} aria-label={`Open ${props.tab}`} onClick={() => props.onTab(props.tab)}><Icon size={16} /><span>{props.tab}</span></button>;
 }
 
 function PreviewPanel(props: { status: Status | null; groups: Record<string, Tool[]>; events: EventRow[] }) {
@@ -86,12 +91,12 @@ export function TerminalPanel() {
     const value = command.trim();
     if (!value) return;
     setOutput(`running: ${value}`);
-    const result = await api<{ ok: boolean; output: string }>("/api/terminal", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ command: value }),
-    });
-    setOutput(result.output);
+    try {
+      const result = await api<{ ok: boolean; output: string }>("/api/terminal", {
+        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ command: value }),
+      });
+      setOutput(result.output);
+    } catch (cause) { setOutput(cause instanceof Error ? cause.message : String(cause)); }
   }
   return (
     <section className="rail-panel">

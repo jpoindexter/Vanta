@@ -18,8 +18,8 @@ const TYPES: Record<string, string> = {
   ".json": "application/json; charset=utf-8",
 };
 
-function desktopDist(repoRoot: string): string {
-  return join(repoRoot, "vanta-ts", "desktop-app", "dist");
+function desktopDist(repoRoot: string, env: NodeJS.ProcessEnv = process.env): string {
+  return env.VANTA_DESKTOP_DIST || join(repoRoot, "vanta-ts", "desktop-app", "dist");
 }
 
 function contentType(path: string): string {
