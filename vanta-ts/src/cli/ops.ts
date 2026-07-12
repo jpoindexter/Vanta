@@ -131,8 +131,6 @@ export async function runGatewayCommand(repoRoot: string, rest: string[] = []): 
   const { replyBus, requestApproval } = await buildGatewayApprover(platform);
   const runTask = buildCronRunTask(repoRoot, { requestApproval });
   const handle = buildGatewayHandle(runTask);
-  const { resolveProvider } = await import("../providers/index.js");
-  const gatewayProvider = resolveProvider(process.env);
 
   const port = Number(process.env.VANTA_WEBHOOK_PORT);
   const webhook = port
@@ -160,11 +158,14 @@ export async function runGatewayCommand(repoRoot: string, rest: string[] = []): 
     replyBus,
     media: buildMediaBridgeDeps(), // MSG-MEDIA-IMAGES: inbound image→vision, voice→STT
     contextRefs: {
-      resolveScope: () => ({
-        root: repoRoot,
-        contextWindow: gatewayProvider.contextWindow(),
-        scopeId: process.env.VANTA_PROFILE ?? "default",
-      }),
+      resolveScope: async () => {
+        const { resolveProvider } = await import("../providers/index.js");
+        return {
+          root: repoRoot,
+          contextWindow: resolveProvider(process.env).contextWindow(),
+          scopeId: process.env.VANTA_PROFILE ?? "default",
+        };
+      },
     },
     webhook,
     workflowWebhooks: {
