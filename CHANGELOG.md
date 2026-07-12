@@ -12,6 +12,7 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - Updated the Docusaurus deployment path and repository links for the Cloudflare Pages project serving `docs.vanta.theft.studio`.
 
 ### Added
+- **Maintenance health** — `vanta maintenance` combines a deduplicated needs-human ticket queue, documentation-router load/reference/staleness/contradiction evidence, and a delivery-versus-maintenance time/token budget. A meaningful over-budget sample creates one actionable operator ticket instead of more automatic meta-work.
 - **System prompt presets** — `/prompt list|show|use|reset` switches a bounded operating-role overlay from project or Vanta-home markdown definitions without replacing the base safety prompt.
 - **Prompt-routed workers** — `delegate {agent_type}` applies the same definition's prompt, narrowing-only tool policy, and optional model default to a fresh kernel-gated worker. Dynamic MCP tools remain constrained by the worker allowlist.
 - **Gateway context references** — allowlisted remote messages now share the local `@file`, `@folder`, `@diff`, `@staged`, `@git:N`, and `@url` preprocessor. Expansion is bound to the received message's project/profile scope and routed-model budget before queueing, with source and warning receipts sent back through the channel.

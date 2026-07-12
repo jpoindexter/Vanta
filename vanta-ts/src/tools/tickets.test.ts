@@ -47,6 +47,22 @@ describe("ticket tool", () => {
     expect(t.links.goalId).toBe("g9");
     expect(t.inbox).toBe("read");
   });
+
+  it("queues an explicit human decision without duplicating the blocker", async () => {
+    const ctx = makeCtx(root);
+    const input = {
+      action: "needs_human",
+      title: "Choose the production region",
+      reason: "Two compliant regions remain",
+      next: "Select eu-west or us-east",
+    };
+    expect((await ticketTool.execute(input, ctx)).output).toContain("queued");
+    expect((await ticketTool.execute(input, ctx)).output).toContain("updated");
+    const tickets = await listTickets(join(root, ".vanta"));
+    expect(tickets).toHaveLength(1);
+    expect(tickets[0]?.labels).toContain("needs-human");
+    expect(tickets[0]?.comments).toHaveLength(2);
+  });
 });
 
 describe("ticket tool — views & validation", () => {

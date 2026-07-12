@@ -8,6 +8,10 @@ sidebar_position: 1
 
 Beyond code and research, Vanta carries a set of operator subsystems — durable, source-cited stores with kernel-gated tools and `/`-command views. Each follows the same shape: a `~/.vanta/*.jsonl` (or per-project) store + a tool + a command.
 
+## Maintenance health
+
+`vanta maintenance` composes the needs-human ticket queue, documentation-router evidence, and delivery-versus-maintenance budget into one operator report. See [Maintenance health](./maintenance-health.md).
+
 ## Profile-routed Kanban
 
 Kanban cards can declare a persistent profile owner, required skills, dependencies,

@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import type { Goal } from "./types.js";
 import type { OutputDensity } from "./nd/types.js";
 import type { ToolSchema } from "./providers/interface.js";
@@ -7,8 +7,7 @@ import { memoryGuardPromptLine } from "./memory/guardrails.js";
 import { scopeToolSchemas, toolScopeSummary } from "./agent/tool-scope.js";
 import { resolveImports, type ReadFile as ImportReadFile } from "./context/md-imports.js";
 import { cyberRiskSection } from "./prompt/cyber-risk.js";
-
-const CONTEXT_FILES = ["VANTA.md", "ARGO.md", "AGENTS.md", "CLAUDE.md", "README.md"];
+import { CONTEXT_DOCUMENTS } from "./context/router-health.js";
 
 /** The length-cap phrase rule 10a opens with at `balanced` (DEFAULT) density. */
 const BALANCED_LENGTH_CAP = "default to 1–4 short sentences";
@@ -56,7 +55,7 @@ export function stableTier(soul: string, root: string, tools: ToolSchema[], dens
     `\nHow you operate — no exceptions:`,
     `1. Goal before tool: before any tool call, know INTERNALLY which active goal it serves and what you expect it to return — do NOT print this reasoning; just act and report the result. When the user references an app/repo ("like X but better"), inspect X's real structure + interaction model FIRST and reproduce it before improving — never ship a generic stand-in.`,
     `2. Verify: after each tool call, check the output matches your expectation before continuing.`,
-    `3. If verification fails, stop and report. Do not continue or fake success.`,
+    `3. If verification fails, stop and report. Do not continue or fake success. When work needs an unavailable tool, a permission decision, or other human input, call \`ticket\` with action:\"needs_human\", a concrete reason, and exactly one next action instead of retrying or losing the blocker.`,
     `4. Never declare a task complete without verified tool output proving it — cite the command and its result, and prove the ACTUAL claim (UI/behaviour: run it and observe; a green tsc/test proves it compiles, not that it works). Do not claim "done", "fixed", or "working" in prose alone. Close a multi-step task with: what changed · what was verified · what remains · next.`,
     `5. File writes stay within ${root}; the safety kernel gates everything else. Risky or out-of-scope actions go through approval, not around it.`,
     `6. Never run destructive commands (rm -rf, delete, drop table, reset --hard, sudo) — propose them for approval instead.`,
@@ -77,15 +76,22 @@ export function stableTier(soul: string, root: string, tools: ToolSchema[], dens
 /** readFile adapter for the @-import resolver: null on missing/unreadable. */
 const importReader: ImportReadFile = (path) => readIfExists(path);
 
-export async function contextTier(root: string): Promise<string> {
+export async function contextTier(
+  root: string,
+  observer?: (event: { kind: "loaded" | "missing" | "cycle"; path: string; source: string }) => void | Promise<void>,
+): Promise<string> {
   const blocks: string[] = [];
-  for (const name of CONTEXT_FILES) {
+  for (const name of CONTEXT_DOCUMENTS) {
     const raw = await readIfExists(join(root, name));
     if (!raw) continue;
+    await observer?.({ kind: "loaded", path: name, source: "prompt" });
     // VANTA-MD-IMPORTS: inline any `@<path>` imports the context file declares
     // (relative paths resolve against the repo root; recursion capped at 4 hops;
     // cycles + missing files skip the token). No @import → unchanged content.
-    const content = await resolveImports(raw, importReader, { baseDir: root });
+    const content = await resolveImports(raw, importReader, {
+      baseDir: root,
+      onResolve: (event) => observer?.({ ...event, path: relative(root, event.path), source: "import" }),
+    });
     blocks.push(`# ${name}\n${content.trim()}`);
   }
   return blocks.length ? `Project context:\n\n${blocks.join("\n\n")}` : "";

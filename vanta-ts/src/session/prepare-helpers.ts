@@ -22,6 +22,7 @@ import type { LLMProvider } from "../providers/interface.js";
 import type { Goal } from "../types.js";
 import type { buildRegistry } from "../tools/index.js";
 import type { KernelClient } from "../kernel/client.js";
+import { appendDocRouterEvent } from "../context/router-health.js";
 
 // Runtime extensions (settings env apply + MCP servers / plugins / MCP skills
 // mounting) are a distinct sub-concern — moved to ./runtime-extensions.ts and
@@ -203,6 +204,7 @@ export async function buildRunPrompt(o: {
     loadContext: o.loadContext,
     outputDensity: skipSettings(isolation) ? undefined : await getOutputDensity(),
     gitInstructions: gitInstructionsBlock(settings),
+    contextObserver: (event) => appendDocRouterEvent(join(o.repoRoot, ".vanta"), event).catch(() => {}),
   });
   // VANTA-CACHE-HINTS: opt-in (VANTA_EXCLUDE_DYNAMIC_PROMPT/VANTA_CACHE_HINTS=1)
   // drops the volatile tail so the prompt stays cacheable across turns. Off by

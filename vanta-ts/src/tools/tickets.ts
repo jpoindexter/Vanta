@@ -17,18 +17,21 @@ import {
   type Ticket,
   type TicketDeps,
 } from "../tickets/store.js";
+import { upsertNeedsHumanTicket } from "../operator/needs-human.js";
 
 // Tickets are internal issue objects in `.vanta/tickets.json` — no shell, no
 // path arg, no network. A constant safety string keeps the kernel verdict Allow.
 const SAFETY = "manage internal issue tickets";
 
 const Args = z.object({
-  action: z.enum(["create", "comment", "attach", "link", "inbox", "list", "board"]),
+  action: z.enum(["create", "needs_human", "comment", "attach", "link", "inbox", "list", "board"]),
   id: z.string().optional(),
   title: z.string().optional(),
   status: z.enum(TICKET_STATUSES).optional(),
   inbox: z.enum(INBOX_STATES).optional(),
   text: z.string().optional(),
+  reason: z.string().optional(),
+  next: z.string().optional(),
   name: z.string().optional(),
   path: z.string().optional(),
   link: z.enum(["goal", "parent", "project"]).optional(),
@@ -57,6 +60,18 @@ async function doComment(dir: string, a: Parsed): Promise<ToolResult> {
   if (!a.id || !a.text) return { ok: false, output: "comment needs id and text" };
   const t = await addComment(dir, a.id, a.text, deps());
   return t ? { ok: true, output: `commented on ${t.id} (${t.comments.length} total)` } : missing(a.id);
+}
+
+async function doNeedsHuman(dir: string, a: Parsed): Promise<ToolResult> {
+  if (!a.title || !a.reason || !a.next) return { ok: false, output: "needs_human needs title, reason, and next" };
+  const result = await upsertNeedsHumanTicket(dir, {
+    kind: "decision",
+    title: a.title,
+    reason: a.reason,
+    nextAction: a.next,
+    source: "ticket tool",
+  }, deps());
+  return { ok: true, output: `${result.created ? "queued" : "updated"} ${summarize(result.ticket)}` };
 }
 
 async function doAttach(dir: string, a: Parsed): Promise<ToolResult> {
@@ -97,6 +112,7 @@ async function doList(dir: string): Promise<ToolResult> {
 
 const HANDLERS: Record<Parsed["action"], (dir: string, a: Parsed) => Promise<ToolResult>> = {
   create: doCreate,
+  needs_human: doNeedsHuman,
   comment: doComment,
   attach: doAttach,
   link: doLink,
@@ -111,6 +127,7 @@ export const ticketTool: Tool = {
     description:
       "First-class issue tracker above goals, persisted in .vanta/tickets.json. " +
       "action:create {title, status?, labels?} opens an issue (default status open, inbox unread). " +
+      "action:needs_human {title, reason, next} queues one deduplicated human decision instead of retrying. " +
       "action:comment {id, text} appends a comment. action:attach {id, name, path} records an attachment reference. " +
       "action:link {id, link:goal|parent|project, target} links the issue to a goal/parent ticket/project. " +
       "action:inbox {id, inbox:unread|read|archived?, status?} sets inbox and/or status (omit both to show the ticket). " +
@@ -118,12 +135,14 @@ export const ticketTool: Tool = {
     parameters: {
       type: "object",
       properties: {
-        action: { type: "string", enum: ["create", "comment", "attach", "link", "inbox", "list", "board"] },
+        action: { type: "string", enum: ["create", "needs_human", "comment", "attach", "link", "inbox", "list", "board"] },
         id: { type: "string", description: "ticket id (comment/attach/link/inbox)" },
         title: { type: "string", description: "ticket title (create)" },
         status: { type: "string", enum: [...TICKET_STATUSES], description: "open|in_progress|done|closed (create/inbox)" },
         inbox: { type: "string", enum: [...INBOX_STATES], description: "unread|read|archived (inbox)" },
         text: { type: "string", description: "comment body (comment)" },
+        reason: { type: "string", description: "why human input is required (needs_human)" },
+        next: { type: "string", description: "one concrete operator action that unblocks the work (needs_human)" },
         name: { type: "string", description: "attachment display name (attach)" },
         path: { type: "string", description: "attachment path/reference (attach)" },
         link: { type: "string", enum: ["goal", "parent", "project"], description: "link kind (link)" },
@@ -137,7 +156,7 @@ export const ticketTool: Tool = {
   async execute(raw, ctx) {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) {
-      return { ok: false, output: 'ticket needs an "action" (create|comment|attach|link|inbox|list|board)' };
+      return { ok: false, output: 'ticket needs an "action" (create|needs_human|comment|attach|link|inbox|list|board)' };
     }
     const dir = join(ctx.root, ".vanta");
     return HANDLERS[parsed.data.action](dir, parsed.data);

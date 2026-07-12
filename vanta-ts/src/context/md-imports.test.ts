@@ -113,4 +113,19 @@ describe("resolveImports", () => {
     const out = await resolveImports("@a.md", read, { baseDir: BASE, maxHops: 1 });
     expect(out).toBe("A>@b.md");
   });
+
+  it("reports loaded, missing, and cyclic imports to the router observer", async () => {
+    const events: Array<{ kind: string; path: string }> = [];
+    const read = fakeReader({
+      "/proj/a.md": "A @b.md @missing.md",
+      "/proj/b.md": "B @a.md",
+    });
+    await resolveImports("@a.md", read, { baseDir: BASE, onResolve: (event) => { events.push(event); } });
+    expect(events).toEqual(expect.arrayContaining([
+      { kind: "loaded", path: "/proj/a.md" },
+      { kind: "loaded", path: "/proj/b.md" },
+      { kind: "cycle", path: "/proj/a.md" },
+      { kind: "missing", path: "/proj/missing.md" },
+    ]));
+  });
 });

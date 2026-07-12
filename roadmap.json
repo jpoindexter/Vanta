@@ -9902,8 +9902,8 @@
       "effort": "medium",
       "codex": "gpt-5.4-mini",
       "lens": "selfhood",
-      "notes": "REPAIRED CLI 2026-07-10: wired the existing now-queue selector to real `vanta now` and `vanta now --apply`. It proposes the best 1-2 `next` cards without exceeding WIP, prompts on a TTY, and applies non-interactively with --apply. UPDATED 2026-07-10: when no `next` cards exist, `vanta now` now prints the remaining blocked gates and decision-only horizon cards. Live output after this update: blocked=4, needs decision=2. Focused proof: npx vitest run src/roadmap/now-queue.test.ts src/cli/now-cmd.test.ts (22 passed).",
-      "updated": "2026-07-10"
+      "updated": "2026-07-10",
+      "notes": "REPAIRED CLI 2026-07-10: wired the existing now-queue selector to real `vanta now` and `vanta now --apply`. It proposes the best 1-2 `next` cards without exceeding WIP, prompts on a TTY, and applies non-interactively with --apply. UPDATED 2026-07-10: when no `next` cards exist, `vanta now` now prints the remaining blocked gates and decision-only horizon cards. Live output after this update: blocked=4, needs decision=2. Focused proof: npx vitest run src/roadmap/now-queue.test.ts src/cli/now-cmd.test.ts (22 passed)."
     },
     {
       "id": "SHIP-MODE",
@@ -14014,8 +14014,8 @@
       "tier": "pebble",
       "effort": "low",
       "lens": "tui",
-      "notes": "",
-      "updated": "2026-07-11"
+      "updated": "2026-07-11",
+      "notes": ""
     },
     {
       "id": "TUI-CMD-BACKSPACE-CLEAR",
@@ -14774,8 +14774,8 @@
       "codex": "gpt-5.4",
       "lens": "reach",
       "updated": "2026-07-10",
-      "source": "ref-audit-2026-06-20",
-      "notes": "SHIPPED 2026-07-10: added SignalRateLimiter plus multi-shape 429 parser and wired it into SignalAdapter.send before each split message part. Focused proof: npx vitest run src/gateway/platforms/signal-rate-limit.test.ts src/gateway/platforms/signal.test.ts src/gateway/platforms/factory.test.ts (40 passed). Typecheck passed."
+      "notes": "SHIPPED 2026-07-10: added SignalRateLimiter plus multi-shape 429 parser and wired it into SignalAdapter.send before each split message part. Focused proof: npx vitest run src/gateway/platforms/signal-rate-limit.test.ts src/gateway/platforms/signal.test.ts src/gateway/platforms/factory.test.ts (40 passed). Typecheck passed.",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "MSG-PLUGIN-PLATFORMS",
@@ -14791,8 +14791,8 @@
       "codex": "gpt-5.4",
       "lens": "reach",
       "updated": "2026-07-10",
-      "source": "ref-audit-2026-06-20",
-      "notes": "SHIPPED 2026-07-10: Added src/gateway/platforms/telegram-behavior.ts with TelegramReceiveBehavior, parseUpdates, parseAllowlist, and matchesWebhookSecret. TelegramAdapter now routes both getUpdates polling and webhook-drained updates through the same parse/filter layer, while webhookHandlers owns only authenticated HTTP receipt and sendPart still owns Bot API delivery. Focused proof: npx vitest run src/gateway/platforms/telegram.test.ts src/gateway/platforms/telegram-webhook.test.ts (24 passed), plus npm run typecheck."
+      "notes": "SHIPPED 2026-07-10: Added src/gateway/platforms/telegram-behavior.ts with TelegramReceiveBehavior, parseUpdates, parseAllowlist, and matchesWebhookSecret. TelegramAdapter now routes both getUpdates polling and webhook-drained updates through the same parse/filter layer, while webhookHandlers owns only authenticated HTTP receipt and sendPart still owns Bot API delivery. Focused proof: npx vitest run src/gateway/platforms/telegram.test.ts src/gateway/platforms/telegram-webhook.test.ts (24 passed), plus npm run typecheck.",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "MSG-PROGRESS-BUBBLE",
@@ -14991,8 +14991,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-10",
-      "source": "ref-audit-2026-06-20",
-      "notes": "SHIPPED 2026-07-10: buildCronRunTask now exposes per-run typed callbacks; buildGatewayHandle maps provider deltas and agent activity to MessageChunk/Commentary; run-session routes both through createGatewayStreamSink and delivers only MessageStop. Commentary never enters delivery or reply context. If accumulated chunks differ from the canonical final reply, the sink logs drift and sends/stores only the canonical stop.\n\nEXECUTED 2026-07-10: a configured provider/kernel gateway turn emitted 5 MessageChunk events, delivered GATEWAY_STREAM_OK exactly once, and stored the identical text under the outbound reply id. Focused sink tests cover exact, commentary, and divergent-draft cases. Final full suite: 1184 files, 12401 passed, 3 skipped."
+      "notes": "SHIPPED 2026-07-10: buildCronRunTask now exposes per-run typed callbacks; buildGatewayHandle maps provider deltas and agent activity to MessageChunk/Commentary; run-session routes both through createGatewayStreamSink and delivers only MessageStop. Commentary never enters delivery or reply context. If accumulated chunks differ from the canonical final reply, the sink logs drift and sends/stores only the canonical stop.\n\nEXECUTED 2026-07-10: a configured provider/kernel gateway turn emitted 5 MessageChunk events, delivered GATEWAY_STREAM_OK exactly once, and stored the identical text under the outbound reply id. Focused sink tests cover exact, commentary, and divergent-draft cases. Final full suite: 1184 files, 12401 passed, 3 skipped.",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "HARNESS-CRON-SCALE-ZERO",
@@ -15025,8 +15025,8 @@
       "codex": "gpt-5.4",
       "lens": "infra",
       "updated": "2026-07-10",
-      "source": "ref-audit-2026-06-20",
-      "notes": "SHIPPED 2026-07-10: added src/schedule/provider.ts and provider tests; wired runDueTasksTracked through resolveSchedulerDue with fallback to builtin-cron on provider failure. Focused proof: npx vitest run src/schedule/provider.test.ts src/schedule/runner.test.ts src/schedule/commands.test.ts (29 passed). Typecheck passed."
+      "notes": "SHIPPED 2026-07-10: added src/schedule/provider.ts and provider tests; wired runDueTasksTracked through resolveSchedulerDue with fallback to builtin-cron on provider failure. Focused proof: npx vitest run src/schedule/provider.test.ts src/schedule/runner.test.ts src/schedule/commands.test.ts (29 passed). Typecheck passed.",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "HARNESS-SKILL-GATING",
@@ -15634,8 +15634,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-10",
-      "source": "ref-audit-2026-06-20",
-      "notes": "SHIPPED/CAPTURED 2026-07-10: no new runtime primitive added. Existing Agent Council orchestration covers the reusable fan-out + synthesis pattern without unbounded recursion. Focused proof: npx vitest run src/council/council.test.ts (9 passed)."
+      "notes": "SHIPPED/CAPTURED 2026-07-10: no new runtime primitive added. Existing Agent Council orchestration covers the reusable fan-out + synthesis pattern without unbounded recursion. Focused proof: npx vitest run src/council/council.test.ts (9 passed).",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "SOL-ONE-THREE-ONE",
@@ -15651,8 +15651,8 @@
       "codex": "gpt-5.4-mini",
       "lens": "selfhood",
       "updated": "2026-07-10",
-      "source": "ref-audit-2026-06-20",
-      "notes": "SHIPPED 2026-07-10: added src/solutioning/one-three-one.ts and src/solutioning/one-three-one.test.ts. Focused proof: npx vitest run src/solutioning/one-three-one.test.ts (5 passed). Typecheck passed."
+      "notes": "SHIPPED 2026-07-10: added src/solutioning/one-three-one.ts and src/solutioning/one-three-one.test.ts. Focused proof: npx vitest run src/solutioning/one-three-one.test.ts (5 passed). Typecheck passed.",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "COFOUNDER-MEMORY-HOOKS",
@@ -15668,8 +15668,8 @@
       "codex": "gpt-5.4",
       "lens": "memory",
       "updated": "2026-07-10",
-      "source": "ref-audit-2026-06-20",
-      "notes": "SHIPPED 2026-07-10: added a typed lifecycle taxonomy to the existing Brain port instead of a runtime hook bus or pluggable-backend ABC. Focused proof: npx vitest run src/brain/interface.test.ts src/memory/provider.test.ts (19 passed). Typecheck passed."
+      "notes": "SHIPPED 2026-07-10: added a typed lifecycle taxonomy to the existing Brain port instead of a runtime hook bus or pluggable-backend ABC. Focused proof: npx vitest run src/brain/interface.test.ts src/memory/provider.test.ts (19 passed). Typecheck passed.",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "HARNESS-COMPACT-THRASH-WIRE",
@@ -16074,14 +16074,14 @@
       "size": "L",
       "summary": "BACKEND-SERVERLESS shipped as a structured command-transport slice. Prove it live: the agent runs on Modal/Daytona, hibernates when idle (~$0), and wakes on an inbound message so you can talk to it from Telegram while it works on a cloud VM. The kernel travels with it and gates remotely. Gateway status now reports redacted Telegram registration readiness alongside Modal app/secret/scale state, prints exact setup commands for the missing secret/deploy/env/registration steps, and exposes the same readiness as JSON.",
       "done": "A real Modal (or Daytona) deployment runs the gateway, hibernates when idle, wakes on an inbound message, processes it, and replies end-to-end — with cost-when-idle near zero, verified.",
-      "notes": "PARTIAL 2026-07-10: Added authenticated Telegram webhook ingress with constant-time secret validation, webhook-mode queue draining without getUpdates conflicts, callback acknowledgement, Bot API delivery receipts, and a localhost HTTP update -> gateway turn -> accepted reply proof. Added `vanta backend gateway status|deploy|register-telegram|arm|prove` plus a Modal web-server deployment with min_containers=0, max_containers=1, a 60s scaledown window, and persistent volume-backed Vanta state. Vanta never uploads local secrets automatically. Executed Modal image evidence: the pruned 11.8 MiB context built the pinned Rust 1.85 + Node 24 image; a network-blocked Linux Sandbox ran the compiled kernel and returned status ready from /workspace/vanta-ts; the actual TypeScript gateway process bound 0.0.0.0:3978 and accepted an authenticated Telegram update with HTTP 202; all three temporary proof apps stopped at 0 tasks. Focused suite: 100 passed. Full suite: 1,208 files, 12,508 passed, 3 skipped; TypeScript, Python syntax, JSON, changed-file size gates, socket-noise scan, and bell scan pass. Card remains blocked: the named Modal secret and real Telegram token are absent, so no public inbound message -> real provider -> Telegram reply -> idle-zero proof has been executed.\n\nREADINESS STATUS 2026-07-10: `vanta backend gateway status` now includes redacted Telegram registration readiness: endpoint receipt, local token presence, and webhook secret presence, without logging secret values. Executed locally after the change: app vanta-gateway not deployed, Modal secret vanta-gateway missing, Telegram registration no endpoint receipt, token missing, webhook secret missing, min 0/scaledown 60s/volume vanta-gateway-data. Focused modal gateway tests cover present-token/secret redaction. Card remains blocked until a real Modal secret/provider config plus Telegram token/webhook execute deploy -> register -> arm -> public Telegram wake/reply -> scaledown proof.\n\nRECHECK 2026-07-10: Still blocked by live gateway environment. `vanta backend gateway status` reports app vanta-gateway not deployed, secret vanta-gateway missing, Telegram endpoint receipt absent, token missing, and webhook secret missing. Do not mark shipped until a real inbound Telegram message wakes the remote runtime, reaches a real provider-backed agent, replies through Telegram, and scales back toward zero.\n\nUNBLOCKED/PARKED 2026-07-10: operator chose to set live bot/provider setup aside for later. This card is no longer a board blocker, but it is not shipped; resume when Modal/Daytona credentials, Telegram token/webhook secret, and a real public wake -> reply -> scaledown proof are available.\n\nSETUP HINTS 2026-07-10: `vanta backend gateway status` now prints exact next commands when the live proof environment is absent: `modal secret create vanta-gateway ...`, `vanta backend gateway deploy`, missing Telegram env exports, and `vanta backend gateway register-telegram <https-endpoint>`. Live run still exits 1 because app, secret, endpoint, token, and webhook secret are absent; this is setup guidance only, not the wake proof.\n\nJSON STATUS 2026-07-10: `vanta backend gateway status --json` now emits redacted readiness fields for app, secret, Telegram endpoint/token/webhook presence, min-zero/scaledown policy, and next actions. Live run returns ready=false with the same missing secret/deploy/env/register next actions; no secret values are printed.",
       "tier": "rock",
       "lens": "infra",
+      "updated": "2026-07-10",
+      "notes": "PARTIAL 2026-07-10: Added authenticated Telegram webhook ingress with constant-time secret validation, webhook-mode queue draining without getUpdates conflicts, callback acknowledgement, Bot API delivery receipts, and a localhost HTTP update -> gateway turn -> accepted reply proof. Added `vanta backend gateway status|deploy|register-telegram|arm|prove` plus a Modal web-server deployment with min_containers=0, max_containers=1, a 60s scaledown window, and persistent volume-backed Vanta state. Vanta never uploads local secrets automatically. Executed Modal image evidence: the pruned 11.8 MiB context built the pinned Rust 1.85 + Node 24 image; a network-blocked Linux Sandbox ran the compiled kernel and returned status ready from /workspace/vanta-ts; the actual TypeScript gateway process bound 0.0.0.0:3978 and accepted an authenticated Telegram update with HTTP 202; all three temporary proof apps stopped at 0 tasks. Focused suite: 100 passed. Full suite: 1,208 files, 12,508 passed, 3 skipped; TypeScript, Python syntax, JSON, changed-file size gates, socket-noise scan, and bell scan pass. Card remains blocked: the named Modal secret and real Telegram token are absent, so no public inbound message -> real provider -> Telegram reply -> idle-zero proof has been executed.\n\nREADINESS STATUS 2026-07-10: `vanta backend gateway status` now includes redacted Telegram registration readiness: endpoint receipt, local token presence, and webhook secret presence, without logging secret values. Executed locally after the change: app vanta-gateway not deployed, Modal secret vanta-gateway missing, Telegram registration no endpoint receipt, token missing, webhook secret missing, min 0/scaledown 60s/volume vanta-gateway-data. Focused modal gateway tests cover present-token/secret redaction. Card remains blocked until a real Modal secret/provider config plus Telegram token/webhook execute deploy -> register -> arm -> public Telegram wake/reply -> scaledown proof.\n\nRECHECK 2026-07-10: Still blocked by live gateway environment. `vanta backend gateway status` reports app vanta-gateway not deployed, secret vanta-gateway missing, Telegram endpoint receipt absent, token missing, and webhook secret missing. Do not mark shipped until a real inbound Telegram message wakes the remote runtime, reaches a real provider-backed agent, replies through Telegram, and scales back toward zero.\n\nUNBLOCKED/PARKED 2026-07-10: operator chose to set live bot/provider setup aside for later. This card is no longer a board blocker, but it is not shipped; resume when Modal/Daytona credentials, Telegram token/webhook secret, and a real public wake -> reply -> scaledown proof are available.\n\nSETUP HINTS 2026-07-10: `vanta backend gateway status` now prints exact next commands when the live proof environment is absent: `modal secret create vanta-gateway ...`, `vanta backend gateway deploy`, missing Telegram env exports, and `vanta backend gateway register-telegram <https-endpoint>`. Live run still exits 1 because app, secret, endpoint, token, and webhook secret are absent; this is setup guidance only, not the wake proof.\n\nJSON STATUS 2026-07-10: `vanta backend gateway status --json` now emits redacted readiness fields for app, secret, Telegram endpoint/token/webhook presence, min-zero/scaledown policy, and next actions. Live run returns ready=false with the same missing secret/deploy/env/register next actions; no secret values are printed.",
       "source": "a reference agent harness-a reference agent harness-audit-2026-06-21",
       "after": [
         "BACKEND-SERVERLESS"
       ],
-      "updated": "2026-07-10",
       "parkedReason": "external proof"
     },
     {
@@ -16111,9 +16111,9 @@
       "done": "Across sessions, Vanta forms and revises explicit, inspectable beliefs about the user that measurably change its behavior, with provenance and a way to see/correct them.",
       "tier": "rock",
       "lens": "memory",
-      "source": "a reference agent harness-a reference agent harness-audit-2026-06-21",
       "updated": "2026-07-10",
-      "notes": "Shipped 2026-07-10. Added a local versioned operator-belief store with hypothesis/accepted/rejected/superseded status, confidence, evidence quotes, session/turn provenance, and revision links. The gated post-turn dialectic pass accepts direct self-reports without an extra model call, periodically forms bounded hypotheses, and requires a direct user correction before observational inference may replace an accepted belief. `/preferences` now lists, adds, corrects, rejects, and retains legacy signal export. Active beliefs load into every new session as evidence-labelled data plus deterministic response cues; rejected and sub-55% hypotheses stay out. Behavior eval moved from 0/4 baseline policy matches to 4/4 with modeled beliefs. Real isolated-home REPL proof executed add/list/correct/reject with retained history; a live gpt-5.5 turn stored a tiny-step preference post-turn and printed `operator model: 1 belief accepted`; the next real `--dump-system-prompt` included its session provenance and concise/one-action/small-step cues. Verified with `npm test -- --reporter=dot` (1160 files, 12342 passed, 3 skipped), `npm run typecheck`, and the Vanta size lint. The live proof consumed $0.06."
+      "notes": "Shipped 2026-07-10. Added a local versioned operator-belief store with hypothesis/accepted/rejected/superseded status, confidence, evidence quotes, session/turn provenance, and revision links. The gated post-turn dialectic pass accepts direct self-reports without an extra model call, periodically forms bounded hypotheses, and requires a direct user correction before observational inference may replace an accepted belief. `/preferences` now lists, adds, corrects, rejects, and retains legacy signal export. Active beliefs load into every new session as evidence-labelled data plus deterministic response cues; rejected and sub-55% hypotheses stay out. Behavior eval moved from 0/4 baseline policy matches to 4/4 with modeled beliefs. Real isolated-home REPL proof executed add/list/correct/reject with retained history; a live gpt-5.5 turn stored a tiny-step preference post-turn and printed `operator model: 1 belief accepted`; the next real `--dump-system-prompt` included its session provenance and concise/one-action/small-step cues. Verified with `npm test -- --reporter=dot` (1160 files, 12342 passed, 3 skipped), `npm run typecheck`, and the Vanta size lint. The live proof consumed $0.06.",
+      "source": "a reference agent harness-a reference agent harness-audit-2026-06-21"
     },
     {
       "id": "TRAJECTORY-TOOLING",
@@ -16125,12 +16125,12 @@
       "done": "The real CLI exports a private tools-only batch from Vanta session history, preserves tool-call decisions, measurably compresses tool results, emits training-ready trajectory and LoRA JSONL, and trains a saved LoRA adapter from that batch.",
       "tier": "pebble",
       "lens": "selfhood",
+      "updated": "2026-07-10",
+      "notes": "SHIPPED 2026-07-10: `vanta trajectory export` emits private vanta.trajectory.v1 JSONL, one decision-level LoRA SFT row per assistant action, and a batch manifest. `--tools-only` selects genuine tool turns. Structural/high-confidence secret redaction runs before export. Winnow compresses tool output first; results still over 8,000 characters retain deterministic head/tail content plus original SHA-256. `vanta trajectory train` feeds those rows into the existing LoRA runner, supports VANTA_LORA_PYTHON virtual environments, keeps the chosen action by left-truncating long context, and makes adapter artifacts 0600 under a 0700 directory. docs/trajectory-training.md documents the local-only contract.\n\nEXECUTED 2026-07-10: the real CLI exported 3 tools-only trajectories from local Vanta history containing 43 calls + 43 results. Tool-result storage compressed 41,104 to 23,901 estimated tokens; the export produced 22 decision-level SFT rows, all files were 0600, and both JSONL artifacts returned zero secret-scan matches. A disposable Python environment then trained the real tiny-test LoRA on MPS from those 22 rows: 4,096 trainable parameters, adapter_saved=true, adapter_model.safetensors SHA-256 87c2ae7236525f686320dcc20733ebe36ad8f9125ce2756d59b0384ad3697804. The private proof dataset and 870 MB disposable environment were deleted afterward. Python syntax and TypeScript passed. Final full suite: 1192 files, 12423 passed, 3 skipped.",
       "source": "a reference agent harness-a reference agent harness-audit-2026-06-21",
       "after": [
         "PERSONAL-MODEL-TUNE"
-      ],
-      "updated": "2026-07-10",
-      "notes": "SHIPPED 2026-07-10: `vanta trajectory export` emits private vanta.trajectory.v1 JSONL, one decision-level LoRA SFT row per assistant action, and a batch manifest. `--tools-only` selects genuine tool turns. Structural/high-confidence secret redaction runs before export. Winnow compresses tool output first; results still over 8,000 characters retain deterministic head/tail content plus original SHA-256. `vanta trajectory train` feeds those rows into the existing LoRA runner, supports VANTA_LORA_PYTHON virtual environments, keeps the chosen action by left-truncating long context, and makes adapter artifacts 0600 under a 0700 directory. docs/trajectory-training.md documents the local-only contract.\n\nEXECUTED 2026-07-10: the real CLI exported 3 tools-only trajectories from local Vanta history containing 43 calls + 43 results. Tool-result storage compressed 41,104 to 23,901 estimated tokens; the export produced 22 decision-level SFT rows, all files were 0600, and both JSONL artifacts returned zero secret-scan matches. A disposable Python environment then trained the real tiny-test LoRA on MPS from those 22 rows: 4,096 trainable parameters, adapter_saved=true, adapter_model.safetensors SHA-256 87c2ae7236525f686320dcc20733ebe36ad8f9125ce2756d59b0384ad3697804. The private proof dataset and 870 MB disposable environment were deleted afterward. Python syntax and TypeScript passed. Final full suite: 1192 files, 12423 passed, 3 skipped."
+      ]
     },
     {
       "id": "VOICE-WAKE-WORD",
@@ -16232,12 +16232,12 @@
       "done": "On a clean Windows box, a one-line installer brings up Vanta natively (no WSL required); CLI, gateway, and shell-based tools work; `vanta doctor` is green.",
       "tier": "pebble",
       "lens": "infra",
+      "updated": "2026-07-10",
+      "notes": "SHIPPED 2026-07-10. GitHub Windows native run 29064249910 passed on a fresh windows-latest checkout: production install.ps1 cold path, vanta.cmd launch, native Rust kernel build, TypeScript checks, 61 Windows-focused tests, real shell_cmd execution (WINDOWS_SHELL_OK), live kernel API, green vanta doctor (WINDOWS_DOCTOR_OK), and gateway verify-channels. Shell resolution explicitly rejects the WSL bash launcher and uses Git Bash without profiles or noninteractive PowerShell. Local final suite: 1,195 files passed; 12,435 tests passed; 3 skipped. Evidence: https://github.com/jpoindexter/Vanta/actions/runs/29064249910",
       "source": "vision-gap-audit-2026-06-21",
       "after": [
         "INSTALL-PARITY"
-      ],
-      "updated": "2026-07-10",
-      "notes": "SHIPPED 2026-07-10. GitHub Windows native run 29064249910 passed on a fresh windows-latest checkout: production install.ps1 cold path, vanta.cmd launch, native Rust kernel build, TypeScript checks, 61 Windows-focused tests, real shell_cmd execution (WINDOWS_SHELL_OK), live kernel API, green vanta doctor (WINDOWS_DOCTOR_OK), and gateway verify-channels. Shell resolution explicitly rejects the WSL bash launcher and uses Git Bash without profiles or noninteractive PowerShell. Local final suite: 1,195 files passed; 12,435 tests passed; 3 skipped. Evidence: https://github.com/jpoindexter/Vanta/actions/runs/29064249910"
+      ]
     },
     {
       "id": "EXT-PUBLIC-API",
@@ -16249,9 +16249,9 @@
       "done": "A documented, versioned public API (HTTP + typed client) lets an external program start a session, send input, stream output, and resolve approvals; a published SDK package wraps it; the plugin contract is versioned and stable. Every call still routes through the kernel.",
       "tier": "pebble",
       "lens": "infra",
-      "source": "parked-audit-2026-06-21",
       "updated": "2026-07-10",
-      "notes": "SHIPPED 2026-07-10. IMPLEMENTED: authenticated /api/v1 routes, hashed/revocable bearer tokens, session/input/SSE/approval operations, v1 plugin manifest contract, CLI serve/token commands, operator documentation, and the scoped @jpoindexter/vanta-operator-sdk package.\n\nEXECUTED API PATH: packed the SDK, installed it into a clean consumer, and used that artifact against the real Vanta server/kernel. The client started a session, reconstructed exact provider output from output.delta frames, received a typed turn.completed terminal frame without a timing delay, found the persisted session, validated plugin contract v1, then received 401 immediately after token revocation. Full suite at that gate: 1,181 files passed; 12,397 tests passed; 3 skipped.\n\nEXECUTED REGISTRY PATH: GitHub Actions run 29065319911 used repository-scoped packages:write permission to publish @jpoindexter/vanta-operator-sdk@1.0.0 to GitHub Packages. The registry returned the exact packed artifact SHA-1 75e79b7a22c50a20f3b959f7ef0d863363d2f36d. A blank consumer then installed that version from the registry and executed VantaClient API request construction, API version exports, and the v1 plugin manifest validator (SDK_REGISTRY_EXECUTION_OK). Consumers need a GitHub token with read:packages, as documented. Evidence: https://github.com/jpoindexter/Vanta/actions/runs/29065319911"
+      "notes": "SHIPPED 2026-07-10. IMPLEMENTED: authenticated /api/v1 routes, hashed/revocable bearer tokens, session/input/SSE/approval operations, v1 plugin manifest contract, CLI serve/token commands, operator documentation, and the scoped @jpoindexter/vanta-operator-sdk package.\n\nEXECUTED API PATH: packed the SDK, installed it into a clean consumer, and used that artifact against the real Vanta server/kernel. The client started a session, reconstructed exact provider output from output.delta frames, received a typed turn.completed terminal frame without a timing delay, found the persisted session, validated plugin contract v1, then received 401 immediately after token revocation. Full suite at that gate: 1,181 files passed; 12,397 tests passed; 3 skipped.\n\nEXECUTED REGISTRY PATH: GitHub Actions run 29065319911 used repository-scoped packages:write permission to publish @jpoindexter/vanta-operator-sdk@1.0.0 to GitHub Packages. The registry returned the exact packed artifact SHA-1 75e79b7a22c50a20f3b959f7ef0d863363d2f36d. A blank consumer then installed that version from the registry and executed VantaClient API request construction, API version exports, and the v1 plugin manifest validator (SDK_REGISTRY_EXECUTION_OK). Consumers need a GitHub token with read:packages, as documented. Evidence: https://github.com/jpoindexter/Vanta/actions/runs/29065319911",
+      "source": "parked-audit-2026-06-21"
     },
     {
       "id": "KEYBINDING-CUSTOMIZATION",
@@ -16325,9 +16325,9 @@
       "done": "An ADD-only formation path is benchmarked against the crystallization path on the eval harness; the result (and whether agent-confirmed facts as first-class help) is recorded in a decision; the better path is adopted or the experiment is parked with its number.",
       "tier": "sand",
       "lens": "memory",
-      "source": "mem0-audit-2026-06-22",
       "updated": "2026-07-09",
-      "notes": "Shipped 2026-07-09. Added `vanta eval mem formation [data-dir]`, a deterministic A/B harness comparing crystallized formation, ADD-only accumulation, and ADD-only with agent-confirmed facts first-class. The live run wrote ignored local artifact `.vanta/mem-formation-ab.json` and sampled the available public data files with `VANTA_MEM_FORMATION_PUBLIC_CASES` defaulting to 50. Fixture result: crystallize 65.4% recall@5, add_only 65.4%, add_only_agent_facts 73.1% because the agent-confirmed push fact is retrievable. Public sample: LongMemEval 50/500 tied at 91.9%; LoCoMo 50/1982 favored ADD-only at 20.5% over crystallize at 2.0%. Decision recorded: adopt candidate `add_only_agent_facts` for the next memory-formation path because fixture+public mean leads at 61.8% recall@5 while preserving agent-confirmed facts as first-class. Verified with `npx vitest run src/mem-eval/formation.test.ts src/mem-eval/run.test.ts src/mem-eval/public-run.test.ts --reporter=dot` (11 passed), `npm run typecheck`, `npm run vanta -- lint src/mem-eval/formation.ts src/mem-eval/formation-report.ts src/mem-eval/formation.test.ts src/cli/eval-cmd.ts src/cli/usage.ts`, and live CLI smoke `npm run vanta -- eval mem formation`."
+      "notes": "Shipped 2026-07-09. Added `vanta eval mem formation [data-dir]`, a deterministic A/B harness comparing crystallized formation, ADD-only accumulation, and ADD-only with agent-confirmed facts first-class. The live run wrote ignored local artifact `.vanta/mem-formation-ab.json` and sampled the available public data files with `VANTA_MEM_FORMATION_PUBLIC_CASES` defaulting to 50. Fixture result: crystallize 65.4% recall@5, add_only 65.4%, add_only_agent_facts 73.1% because the agent-confirmed push fact is retrievable. Public sample: LongMemEval 50/500 tied at 91.9%; LoCoMo 50/1982 favored ADD-only at 20.5% over crystallize at 2.0%. Decision recorded: adopt candidate `add_only_agent_facts` for the next memory-formation path because fixture+public mean leads at 61.8% recall@5 while preserving agent-confirmed facts as first-class. Verified with `npx vitest run src/mem-eval/formation.test.ts src/mem-eval/run.test.ts src/mem-eval/public-run.test.ts --reporter=dot` (11 passed), `npm run typecheck`, `npm run vanta -- lint src/mem-eval/formation.ts src/mem-eval/formation-report.ts src/mem-eval/formation.test.ts src/cli/eval-cmd.ts src/cli/usage.ts`, and live CLI smoke `npm run vanta -- eval mem formation`.",
+      "source": "mem0-audit-2026-06-22"
     },
     {
       "id": "VANTA-AGENT-ROUTING-DISCOVERY",
@@ -16465,8 +16465,8 @@
       "size": "L",
       "summary": "Replaces the retired macOS sandbox-exec approach, where claude couldn't even RUN inside macOS seatbelt. A Docker container gives claude a FULL machine where it runs normally, boxed to exactly the folders Vanta mounts (the mount-set IS the boundary). Daytona was the obvious purpose-built fit but went open→CLOSED source — don't build Vanta's autonomy on a ruggable platform; use the open Docker primitive Vanta ALREADY ships (exec/backend.ts buildDockerArgs / the BACKEND-DOCKER card). Plumbing left: a small claude-image (node + `npm i -g @anthropic-ai/claude-code`) + per-run OAuth-token injection, --network on for npm, project bind-mounted. CONTAINMENT PROVEN LIVE 2026-06-26: a real OrbStack/Docker container cleaned a mounted /tmp folder (organized by type) and provably could NOT read an un-mounted folder or ~/.ssh; work persisted on disk after --rm. Can't live-verify the claude bypass from Claude Code's own harness (it blocks the flag) → build the image + adapter here, operator verifies the first real run. Apple's open `container` runtime is a macOS-native lighter alternative to evaluate.",
       "done": "call_agent(autonomous:true) runs `claude --dangerously-skip-permissions` inside a Docker container scoped to the mounted dir(s); a real npm-driven build completes, streams progress, and provably can't touch anything outside the mounts.",
-      "notes": "SHIPPED + LIVE-PROVEN end-to-end 2026-06-28. call_agent(autonomous:true) runs claude --dangerously-skip-permissions inside a Docker box scoped to the mounted dir(s); a real build completes (claude authenticated, wrote /work/hello.txt, clean exit 10s) and provably cannot escape (a host file outside the mount stayed untouched, network off). The macOS-keychain wall is FIXED the way Hermes does it: resolveBoxCredential forwards a headless credential as env (-e CLAUDE_CODE_OAUTH_TOKEN / ANTHROPIC_API_KEY; value from the parent, never in argv) instead of mounting host creds — so a Linux container authenticates without the keychain. Non-root image (claude rejects --dangerously-skip-permissions under root). Universal setup: autonomousPreflight + bundled docker/agent.Dockerfile + vanta agent-image build. Mount-scope (VANTA-A2A-MOUNT-SCOPE) derives the blast radius + OS-enforced read-only dry-run on destructive tasks.",
-      "updated": "2026-07-11"
+      "updated": "2026-07-11",
+      "notes": "SHIPPED + LIVE-PROVEN end-to-end 2026-06-28. call_agent(autonomous:true) runs claude --dangerously-skip-permissions inside a Docker box scoped to the mounted dir(s); a real build completes (claude authenticated, wrote /work/hello.txt, clean exit 10s) and provably cannot escape (a host file outside the mount stayed untouched, network off). The macOS-keychain wall is FIXED the way Hermes does it: resolveBoxCredential forwards a headless credential as env (-e CLAUDE_CODE_OAUTH_TOKEN / ANTHROPIC_API_KEY; value from the parent, never in argv) instead of mounting host creds — so a Linux container authenticates without the keychain. Non-root image (claude rejects --dangerously-skip-permissions under root). Universal setup: autonomousPreflight + bundled docker/agent.Dockerfile + vanta agent-image build. Mount-scope (VANTA-A2A-MOUNT-SCOPE) derives the blast radius + OS-enforced read-only dry-run on destructive tasks."
     },
     {
       "id": "VANTA-A2A-MOUNT-SCOPE",
@@ -17020,8 +17020,8 @@
       "codex": "gpt-5.5",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "hermes-transcript-roadmap-extract-2026-07-11",
-      "notes": "Sources: Tonbis AI Garage Hermes Masterclass 9 (Profiles/Kanban), Masterclass 8 (Subagents/Delegation), and Masterclass 3 (Memory/Plugins/Honcho/Obsidian). This is not a second team system; it is the visible owner surface that makes existing profile/team/memory pieces addressable.\n\nSHIPPED 2026-07-11: added the persistent profile store and `vanta profiles list|create|clone|switch|archive|target|send|inbox`. Each profile owns an isolated VANTA_HOME containing settings/model selection, skills, memory, agent-memory, gateway identity/state, durable inbox, and work ledger. Startup reloads the active marker and redirects the next process into that home while VANTA_PROFILE_BASE_HOME preserves roster access. Operator Home shows profile count, active/queued state, and latest target. Focused proof: 10 tests across store, CLI, real child-process restart dispatch, and Operator Home. Live proof in an isolated home exercised create, clone, target, switch, restart list, inbox, Operator Home, archive, and final list with exit 0. Targeting is a durable queue boundary; task execution remains governed by the existing agent/task runner."
+      "notes": "Sources: Tonbis AI Garage Hermes Masterclass 9 (Profiles/Kanban), Masterclass 8 (Subagents/Delegation), and Masterclass 3 (Memory/Plugins/Honcho/Obsidian). This is not a second team system; it is the visible owner surface that makes existing profile/team/memory pieces addressable.\n\nSHIPPED 2026-07-11: added the persistent profile store and `vanta profiles list|create|clone|switch|archive|target|send|inbox`. Each profile owns an isolated VANTA_HOME containing settings/model selection, skills, memory, agent-memory, gateway identity/state, durable inbox, and work ledger. Startup reloads the active marker and redirects the next process into that home while VANTA_PROFILE_BASE_HOME preserves roster access. Operator Home shows profile count, active/queued state, and latest target. Focused proof: 10 tests across store, CLI, real child-process restart dispatch, and Operator Home. Live proof in an isolated home exercised create, clone, target, switch, restart list, inbox, Operator Home, archive, and final list with exit 0. Targeting is a durable queue boundary; task execution remains governed by the existing agent/task runner.",
+      "source": "hermes-transcript-roadmap-extract-2026-07-11"
     },
     {
       "id": "HERMES-KANBAN-ROUTER",
@@ -17036,12 +17036,12 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
+      "updated": "2026-07-11",
+      "notes": "Sources: Tonbis Hermes Masterclass 9 plus the multi-agent Kanban workflow transcripts from 2026-06-01 and 2026-06-08. Build over existing KANBAN/VANTA-KANBAN/PCLIP-WORK-QUEUES rather than creating another board model.\n\nSHIPPED 2026-07-11: extended the existing durable Kanban schema with profile owner/fallback, required skills, dependencies, evidence receipts, wake policy, retry count, and handoff history. Added `vanta kanban add|route|claim|handoff|update|retry`. Route reads installed skill directories from persistent profile homes; dependency and skill gates fail closed. Done requires at least one evidence receipt. Blocked rendering names exact retry and fallback actions. Operator Home lists active/blocked lanes and the current owner. Backward-compatible schema defaults preserve existing boards. Focused proof covers pure transitions, persistence, legacy swarm output, profile-backed CLI routing, and Home rendering. Live proof through src/cli.ts installed a skilled profile distribution, created/added/routed/handed-off/blocked/retried/closed a lane with evidence, rendered status and Home, and removed only the generated proof board.",
+      "source": "hermes-transcript-roadmap-extract-2026-07-11",
       "after": [
         "HERMES-PROFILE-ROSTER"
-      ],
-      "updated": "2026-07-11",
-      "source": "hermes-transcript-roadmap-extract-2026-07-11",
-      "notes": "Sources: Tonbis Hermes Masterclass 9 plus the multi-agent Kanban workflow transcripts from 2026-06-01 and 2026-06-08. Build over existing KANBAN/VANTA-KANBAN/PCLIP-WORK-QUEUES rather than creating another board model.\n\nSHIPPED 2026-07-11: extended the existing durable Kanban schema with profile owner/fallback, required skills, dependencies, evidence receipts, wake policy, retry count, and handoff history. Added `vanta kanban add|route|claim|handoff|update|retry`. Route reads installed skill directories from persistent profile homes; dependency and skill gates fail closed. Done requires at least one evidence receipt. Blocked rendering names exact retry and fallback actions. Operator Home lists active/blocked lanes and the current owner. Backward-compatible schema defaults preserve existing boards. Focused proof covers pure transitions, persistence, legacy swarm output, profile-backed CLI routing, and Home rendering. Live proof through src/cli.ts installed a skilled profile distribution, created/added/routed/handed-off/blocked/retried/closed a lane with evidence, rendered status and Home, and removed only the generated proof board."
+      ]
     },
     {
       "id": "HERMES-SECOND-BRAIN-CORPUS",
@@ -17057,8 +17057,8 @@
       "codex": "gpt-5.4",
       "lens": "selfhood",
       "updated": "2026-07-11",
-      "source": "hermes-transcript-roadmap-extract-2026-07-11",
-      "notes": "Sources: Tonbis 2026-07-07 Gbrain + Hermes, 2026-05-18 Memory/Plugins/Honcho/Obsidian, and the local Tonbis transcript corpus now available under reference/tonbis-ai-garage-transcripts. This extends BRAIN-VAULT-BRIDGE/BRAIN-INGEST-GATE with a visible ingest workflow and evidence contract.\n\nSHIPPED 2026-07-11: added `vanta corpus ingest|recall|status|refresh|vault-export` over a durable source index in VANTA_HOME/corpus. Local ingest accepts Markdown/text/VTT/SRT, skips hidden/unsupported paths, refuses symlink roots, chunks content, hashes sources, extracts entity links, and records source/ingest/refresh dates. URL ingest is SSRF/egress-guarded and retains Last-Modified when present. Recall fuses BM25, available stored embeddings, and entity rank through RRF; output names only signals actually used and prints source/date/freshness receipts. Refresh re-reads the original local path or guarded URL. Vault export previews before `--apply` and writes raw sources plus corpus/entity wiki links. Seven focused tests cover the contract. Real isolated CLI proof ingested a note and transcript, recalled with keyword+entity fallback while Ollama was unavailable, reported freshness, refreshed both sources, previewed five vault changes, applied them, and inspected all five output files."
+      "notes": "Sources: Tonbis 2026-07-07 Gbrain + Hermes, 2026-05-18 Memory/Plugins/Honcho/Obsidian, and the local Tonbis transcript corpus now available under reference/tonbis-ai-garage-transcripts. This extends BRAIN-VAULT-BRIDGE/BRAIN-INGEST-GATE with a visible ingest workflow and evidence contract.\n\nSHIPPED 2026-07-11: added `vanta corpus ingest|recall|status|refresh|vault-export` over a durable source index in VANTA_HOME/corpus. Local ingest accepts Markdown/text/VTT/SRT, skips hidden/unsupported paths, refuses symlink roots, chunks content, hashes sources, extracts entity links, and records source/ingest/refresh dates. URL ingest is SSRF/egress-guarded and retains Last-Modified when present. Recall fuses BM25, available stored embeddings, and entity rank through RRF; output names only signals actually used and prints source/date/freshness receipts. Refresh re-reads the original local path or guarded URL. Vault export previews before `--apply` and writes raw sources plus corpus/entity wiki links. Seven focused tests cover the contract. Real isolated CLI proof ingested a note and transcript, recalled with keyword+entity fallback while Ollama was unavailable, reported freshness, refreshed both sources, previewed five vault changes, applied them, and inspected all five output files.",
+      "source": "hermes-transcript-roadmap-extract-2026-07-11"
     },
     {
       "id": "HERMES-DELEGATION-TREE-RECEIPTS",
@@ -17074,8 +17074,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "hermes-transcript-roadmap-extract-2026-07-11",
-      "notes": "Source: Tonbis Hermes Masterclass 8 (Subagents/Delegation). This is a presentation/receipt layer over shipped delegation primitives, not a new execution engine.\n\nSHIPPED 2026-07-11: spawnSubagent now returns optional worker evidence containing the raw sidechain path, complete tool-name set, model, and elapsed time while preserving existing AgentOutcome compatibility. The delegate wrapper appends a durable parent/child node under `.vanta/delegations/` with parent task, child prompt, compact summary, verification/stopped reason, sidechain, usage, and estimated model cost. Parent output remains summary-only. `vanta agents delegations [tree]` renders the tree; replay/follow-up controls queue tracked assigned work and retain the raw evidence path. Operator Home reports tree/child/failure counts. Life-wide search explicitly indexes up to 300 bounded raw sidechains as the `delegation` source despite the normal `.vanta` repo ignore. Focused tests cover append/group/render, spawn sidechain behavior, delegate behavior, agent controls, Home, and sidechain search. Real CLI proof delegated one package-metadata read: the parent received only `name: vanta / version: 0.8.0`; inspection showed one passing child using read_file, the raw five-message sidechain, 4,881ms, 35,629 tokens, estimated $0.0451, and replay/follow-up controls. Replay queued a tracked task, Operator Home showed 1 tree/1 child/0 failures, the proof task was removed from the visible queue afterward, and `vanta lifesearch` returned delegation-source sidechain hits."
+      "notes": "Source: Tonbis Hermes Masterclass 8 (Subagents/Delegation). This is a presentation/receipt layer over shipped delegation primitives, not a new execution engine.\n\nSHIPPED 2026-07-11: spawnSubagent now returns optional worker evidence containing the raw sidechain path, complete tool-name set, model, and elapsed time while preserving existing AgentOutcome compatibility. The delegate wrapper appends a durable parent/child node under `.vanta/delegations/` with parent task, child prompt, compact summary, verification/stopped reason, sidechain, usage, and estimated model cost. Parent output remains summary-only. `vanta agents delegations [tree]` renders the tree; replay/follow-up controls queue tracked assigned work and retain the raw evidence path. Operator Home reports tree/child/failure counts. Life-wide search explicitly indexes up to 300 bounded raw sidechains as the `delegation` source despite the normal `.vanta` repo ignore. Focused tests cover append/group/render, spawn sidechain behavior, delegate behavior, agent controls, Home, and sidechain search. Real CLI proof delegated one package-metadata read: the parent received only `name: vanta / version: 0.8.0`; inspection showed one passing child using read_file, the raw five-message sidechain, 4,881ms, 35,629 tokens, estimated $0.0451, and replay/follow-up controls. Replay queued a tracked task, Operator Home showed 1 tree/1 child/0 failures, the proof task was removed from the visible queue afterward, and `vanta lifesearch` returned delegation-source sidechain hits.",
+      "source": "hermes-transcript-roadmap-extract-2026-07-11"
     },
     {
       "id": "HERMES-TOOL-SURFACE-PROFILES",
@@ -17090,12 +17090,12 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
+      "updated": "2026-07-11",
+      "notes": "Source: Tonbis Hermes Masterclass 6 (Tools/MCP Servers). Build by wiring existing SETTINGS-BLOCKEDTOOLS-ENFORCE, VANTA-TOOL-SEARCH-AUTO, HARNESS-SKILL-GATING, and setup prerequisites into a user-facing explanation.\n\nSHIPPED 2026-07-11: profiles and profile distributions accept `allowedTools`; create, clone, activation settings, and `vanta profiles tools <id> --allow <csv>` persist the role boundary. `buildRegistry({include})` enforces it for initial built-ins and late MCP/plugin registrations, while blockedTools remains a tightening exclusion. `vanta tools why <tool>` reports active-role visibility, typical kernel risk with a per-call disclaimer, setup prerequisites, missing credentials, overbroad full-surface warnings, and exact repair commands. Final failed tool results append the same repair guidance after retries and before hooks/callbacks. Focused tests cover registry inclusion and late registration, profile persistence/clone/distributions, CLI explanations, Google OAuth repair, overbroad warnings, and dispatch failure repair. Real isolated CLI proof created and activated a research profile, showed gmail_send hidden plus OAuth/profile repairs, widened the allowlist, showed gmail_send visible but still credential-gated, showed read_file as typical allow, then activated an unrestricted profile and observed the full-surface warning.",
+      "source": "hermes-transcript-roadmap-extract-2026-07-11",
       "after": [
         "HERMES-PROFILE-ROSTER"
-      ],
-      "updated": "2026-07-11",
-      "source": "hermes-transcript-roadmap-extract-2026-07-11",
-      "notes": "Source: Tonbis Hermes Masterclass 6 (Tools/MCP Servers). Build by wiring existing SETTINGS-BLOCKEDTOOLS-ENFORCE, VANTA-TOOL-SEARCH-AUTO, HARNESS-SKILL-GATING, and setup prerequisites into a user-facing explanation.\n\nSHIPPED 2026-07-11: profiles and profile distributions accept `allowedTools`; create, clone, activation settings, and `vanta profiles tools <id> --allow <csv>` persist the role boundary. `buildRegistry({include})` enforces it for initial built-ins and late MCP/plugin registrations, while blockedTools remains a tightening exclusion. `vanta tools why <tool>` reports active-role visibility, typical kernel risk with a per-call disclaimer, setup prerequisites, missing credentials, overbroad full-surface warnings, and exact repair commands. Final failed tool results append the same repair guidance after retries and before hooks/callbacks. Focused tests cover registry inclusion and late registration, profile persistence/clone/distributions, CLI explanations, Google OAuth repair, overbroad warnings, and dispatch failure repair. Real isolated CLI proof created and activated a research profile, showed gmail_send hidden plus OAuth/profile repairs, widened the allowlist, showed gmail_send visible but still credential-gated, showed read_file as typical allow, then activated an unrestricted profile and observed the full-surface warning."
+      ]
     },
     {
       "id": "HERMES-WEBHOOK-WORKFLOW-BUILDER",
@@ -17111,8 +17111,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "hermes-transcript-roadmap-extract-2026-07-11",
-      "notes": "Shipped 2026-07-11. `vanta webhook workflow` creates GitHub PR, email, subscriber/form, and generic HMAC templates; stores mode-0600 secrets separately; prints a one-time secret and sample payload; runs dry-runs; and supports list/show/test/enable/disable. Enabled routes run through the gateway agent handle and registered delivery targets, record body-hash route and delivery receipts, and appear in Operator Home. Executed proof used the real CLI to create/show/enable a generic workflow, sent a correctly signed POST through the gateway bridge, observed HTTP 202 plus agent output delivery, and verified accepted-route and delivered receipts. Source: Tonbis 2026-04-22 Hermes Agent + Webhooks."
+      "notes": "Shipped 2026-07-11. `vanta webhook workflow` creates GitHub PR, email, subscriber/form, and generic HMAC templates; stores mode-0600 secrets separately; prints a one-time secret and sample payload; runs dry-runs; and supports list/show/test/enable/disable. Enabled routes run through the gateway agent handle and registered delivery targets, record body-hash route and delivery receipts, and appear in Operator Home. Executed proof used the real CLI to create/show/enable a generic workflow, sent a correctly signed POST through the gateway bridge, observed HTTP 202 plus agent output delivery, and verified accepted-route and delivered receipts. Source: Tonbis 2026-04-22 Hermes Agent + Webhooks.",
+      "source": "hermes-transcript-roadmap-extract-2026-07-11"
     },
     {
       "id": "HERMES-SPREADSHEET-COPILOT",
@@ -17128,8 +17128,8 @@
       "codex": "gpt-5.5",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "hermes-transcript-roadmap-extract-2026-07-11",
       "notes": "PARKED EXTERNAL PROOF 2026-07-11 only on a real Excel/Google Sheets host round trip. Local workbook editing shipped in 4bc7daf7 and now includes deterministic formula explanation plus approval-gated embedded bar/line chart snapshots with bounded series/points, source ranges, title/anchor cells, reopen verification, chart counts, and SHA receipts. Added finance_model and vanta spreadsheet model for strict three-statement, DCF, comps, LBO, and merger briefs; outputs contain assumptions, native formulas with cached results, Checks sheets, DCF/LBO 5x5 sensitivity tables, atomic writes, reopen/formula/check verification, and mode-0600 hash receipts. Real CLI proof generated an 88-formula five-year DCF from examples/finance/dcf.json, applied examples/finance/dcf-chart-plan.json, reported DCF charts:1, and wrote both receipts. Independent LibreOffice conversion rendered assumptions, forecast, terminal value, all 25 sensitivity values, a 640x360 chart, and PASS checks without formula errors. Added SpreadsheetVantaClient to the built operator SDK and an Excel custom-function template under examples/spreadsheet-sidecar; workbook context is capped at 32 KiB and marked untrusted. Public API browser access now requires an exact configured HTTPS origin, supports bounded preflight, rejects unlisted origins, and still requires bearer auth on every real request. Actual HTTP CORS/auth integration tests pass. Full suite: 12,986 passed, 3 skipped, 0 failed across 4,749 suites; main TypeScript, SDK build, 5-file size gate, npm audit (0 vulnerabilities), 30-scenario use-case validation, and Docusaurus production build pass. Remaining external done criterion: install the template in a real Excel host (or equivalent Sheets client), call the TLS-proxied token-authenticated Vanta API, receive a result, and exercise an approval-gated workbook action through that same kernel session. Chart outputs are explicit PNG snapshots, not native dynamic Excel chart objects, and must be regenerated after source changes.",
+      "source": "hermes-transcript-roadmap-extract-2026-07-11",
       "parkedReason": "external proof"
     },
     {
@@ -17146,8 +17146,8 @@
       "codex": "gpt-5.4",
       "lens": "infra",
       "updated": "2026-07-11",
-      "source": "hermes-transcript-roadmap-extract-2026-07-11",
-      "notes": "Shipped 2026-07-11. `vanta secrets vault` manages value-free Bitwarden/1Password aliases with exact scopes, bootstrap readiness, stale/expired/overbroad status, redacted resolve checks, and confirmed reference cutover. Active profiles and explicit VANTA_SECRET_SCOPE runs inject only granted aliases from the base manifest before provider resolution. Rotation verifies the new vault reference and audits only reference hashes. Executed proof used the real CLI with a fake `bw` binary: add/status/resolve succeeded without value output, unconfirmed rotation exited 2, `--yes` verified the new reference, and the audit contained no refs, resolved value, or bootstrap token. Source: Tonbis 2026-07-01 Hermes + Bitwarden."
+      "notes": "Shipped 2026-07-11. `vanta secrets vault` manages value-free Bitwarden/1Password aliases with exact scopes, bootstrap readiness, stale/expired/overbroad status, redacted resolve checks, and confirmed reference cutover. Active profiles and explicit VANTA_SECRET_SCOPE runs inject only granted aliases from the base manifest before provider resolution. Rotation verifies the new vault reference and audits only reference hashes. Executed proof used the real CLI with a fake `bw` binary: add/status/resolve succeeded without value output, unconfirmed rotation exited 2, `--yes` verified the new reference, and the audit contained no refs, resolved value, or bootstrap token. Source: Tonbis 2026-07-01 Hermes + Bitwarden.",
+      "source": "hermes-transcript-roadmap-extract-2026-07-11"
     },
     {
       "id": "HERMES-DASHBOARD-PLUGIN-SLOTS",
@@ -17163,8 +17163,8 @@
       "codex": "gpt-5.4",
       "lens": "tui",
       "updated": "2026-07-11",
-      "source": "hermes-transcript-roadmap-extract-2026-07-11",
-      "notes": "Shipped 2026-07-11. Strict plugin manifests can declare up to eight bounded dashboard panels with host-owned title, provider, 5s-1h refresh interval, up to six prompt actions, and required worker capabilities. Runtime discovery admits enabled declarations only when every permission is granted; missing grants leave the panel disabled without launching unsafe UI. Isolated workers update bounded lines while declaration metadata/actions remain fixed. `/plugin-panels` renders the slot, numbered actions and `d` route through a normal Vanta turn (so resulting tools remain kernel-gated), and `vanta home` reports ready versus permission-disabled slots. Executed tests launch a real isolated worker, preserve declared provider/refresh/actions across its content update, reject missing grants, render/activate actions, and verify Operator Home integration. Source: Tonbis 2026-04-28 Hermes dashboard/themes/plugins."
+      "notes": "Shipped 2026-07-11. Strict plugin manifests can declare up to eight bounded dashboard panels with host-owned title, provider, 5s-1h refresh interval, up to six prompt actions, and required worker capabilities. Runtime discovery admits enabled declarations only when every permission is granted; missing grants leave the panel disabled without launching unsafe UI. Isolated workers update bounded lines while declaration metadata/actions remain fixed. `/plugin-panels` renders the slot, numbered actions and `d` route through a normal Vanta turn (so resulting tools remain kernel-gated), and `vanta home` reports ready versus permission-disabled slots. Executed tests launch a real isolated worker, preserve declared provider/refresh/actions across its content update, reject missing grants, render/activate actions, and verify Operator Home integration. Source: Tonbis 2026-04-28 Hermes dashboard/themes/plugins.",
+      "source": "hermes-transcript-roadmap-extract-2026-07-11"
     },
     {
       "id": "HERMES-PROFILE-DISTRIBUTIONS",
@@ -17179,12 +17179,12 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "selfhood",
+      "updated": "2026-07-11",
+      "notes": "Source: current NousResearch/hermes-agent profile distribution docs. Build on Vanta blueprints/import-export/plugin bundle primitives, but keep the safety boundary: a distribution installs capability and defaults, not private state.\n\nSHIPPED 2026-07-11: added `vanta profile install <git|path> [--apply]` and `vanta profile update <id> [--apply]`. `vanta-profile.json` explicitly declares SOUL, settings, skills, cron, MCP, and profile defaults. Preview lists destination files and the Git commit (or deterministic local manifest hash). Apply creates an isolated profile and records owned paths/hashes in distribution.json. Update diffs those owned files, backs up previous copies, removes stale owned paths, applies source changes, refreshes provider/model identity, and merges current operator settings over incoming defaults. A full-tree deny scan refuses .env, keys, credentials, tokens, memory, sessions, inbox, work, and history before preview; referenced symlink escapes, secret-shaped JSON keys, and tampered installed destination paths fail closed. Tests use real Git commits and filesystem state to prove source commit capture, refusal, install, backup/update/removal, destination containment, and preservation of private memory/inbox/settings. A real child-process CLI test executes preview, install, update preview, and update apply across separate Vanta invocations.",
+      "source": "hermes-feature-function-harvest-2026-07-11",
       "after": [
         "HERMES-PROFILE-ROSTER"
-      ],
-      "updated": "2026-07-11",
-      "source": "hermes-feature-function-harvest-2026-07-11",
-      "notes": "Source: current NousResearch/hermes-agent profile distribution docs. Build on Vanta blueprints/import-export/plugin bundle primitives, but keep the safety boundary: a distribution installs capability and defaults, not private state.\n\nSHIPPED 2026-07-11: added `vanta profile install <git|path> [--apply]` and `vanta profile update <id> [--apply]`. `vanta-profile.json` explicitly declares SOUL, settings, skills, cron, MCP, and profile defaults. Preview lists destination files and the Git commit (or deterministic local manifest hash). Apply creates an isolated profile and records owned paths/hashes in distribution.json. Update diffs those owned files, backs up previous copies, removes stale owned paths, applies source changes, refreshes provider/model identity, and merges current operator settings over incoming defaults. A full-tree deny scan refuses .env, keys, credentials, tokens, memory, sessions, inbox, work, and history before preview; referenced symlink escapes, secret-shaped JSON keys, and tampered installed destination paths fail closed. Tests use real Git commits and filesystem state to prove source commit capture, refusal, install, backup/update/removal, destination containment, and preservation of private memory/inbox/settings. A real child-process CLI test executes preview, install, update preview, and update apply across separate Vanta invocations."
+      ]
     },
     {
       "id": "HERMES-AUTOMATION-BLUEPRINT-CATALOG",
@@ -17200,8 +17200,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "hermes-feature-function-harvest-2026-07-11",
-      "notes": "Source: current Hermes automation blueprint catalog docs. This is not a duplicate of VANTA-BLUEPRINTS; it productizes recurring operator automations over existing schedule/webhook machinery.\n\nSHIPPED 2026-07-11: added a validated data-only catalog under vanta-ts/automation-blueprints plus user overrides at ~/.vanta/automation-blueprints. `vanta automation blueprints|preview|apply|list|pause|resume|test|receipts` delegates to existing cron and signed-webhook stores; apply requires `--yes`. `/blueprint` lists definitions, accepts inline key=value fields, reports only missing inputs, and previews without state changes. Operator Home reports active/paused automation counts and links to all controls. Live CLI acceptance executed catalog, preview, confirmed schedule creation, list, pause, resume, target test, and receipts; temporary acceptance state was removed afterward. Focused tests: 14 passed. Full suite: 1,272 files / 12,821 passed / 3 skipped. Typecheck, touched-file size/complexity lint, docs build, use-case validation, and roadmap integrity passed."
+      "notes": "Source: current Hermes automation blueprint catalog docs. This is not a duplicate of VANTA-BLUEPRINTS; it productizes recurring operator automations over existing schedule/webhook machinery.\n\nSHIPPED 2026-07-11: added a validated data-only catalog under vanta-ts/automation-blueprints plus user overrides at ~/.vanta/automation-blueprints. `vanta automation blueprints|preview|apply|list|pause|resume|test|receipts` delegates to existing cron and signed-webhook stores; apply requires `--yes`. `/blueprint` lists definitions, accepts inline key=value fields, reports only missing inputs, and previews without state changes. Operator Home reports active/paused automation counts and links to all controls. Live CLI acceptance executed catalog, preview, confirmed schedule creation, list, pause, resume, target test, and receipts; temporary acceptance state was removed afterward. Focused tests: 14 passed. Full suite: 1,272 files / 12,821 passed / 3 skipped. Typecheck, touched-file size/complexity lint, docs build, use-case validation, and roadmap integrity passed.",
+      "source": "hermes-feature-function-harvest-2026-07-11"
     },
     {
       "id": "HERMES-CONTEXT-REFS-V2",
@@ -17217,8 +17217,8 @@
       "codex": "gpt-5.4-mini",
       "lens": "memory",
       "updated": "2026-07-11",
-      "source": "hermes-feature-function-harvest-2026-07-11",
-      "notes": "Shipped 2026-07-11. The rendered Composer-to-submit acceptance typed and submitted an @file line range, observed source-labelled expansion, and emitted an operator receipt. Focused coverage also executes @folder, @diff, @staged, @git:N, @url, completion, root/sensitive/binary checks, and explicit per-ref/total-limit warnings. Source: current Hermes context reference docs; this extends rather than replaces legacy @path."
+      "notes": "Shipped 2026-07-11. The rendered Composer-to-submit acceptance typed and submitted an @file line range, observed source-labelled expansion, and emitted an operator receipt. Focused coverage also executes @folder, @diff, @staged, @git:N, @url, completion, root/sensitive/binary checks, and explicit per-ref/total-limit warnings. Source: current Hermes context reference docs; this extends rather than replaces legacy @path.",
+      "source": "hermes-feature-function-harvest-2026-07-11"
     },
     {
       "id": "HERMES-CREDENTIAL-POOLS",
@@ -17234,8 +17234,8 @@
       "codex": "gpt-5.4",
       "lens": "infra",
       "updated": "2026-07-11",
-      "source": "hermes-feature-function-harvest-2026-07-11",
-      "notes": "Source: current Hermes credential pool docs. Pair with HERMES-VAULT-SECRETS-ROTATION when external vault-backed keys become the default source.\n\nSHIPPED 2026-07-11: `vanta auth pool list|add|remove|test` manages reference-only provider pools backed by env, macOS Keychain, Bitwarden, 1Password, or scoped Vanta vault aliases. Literal values are never accepted or persisted; files are mode 0600 and audit entries hash references. Atomic directory locks and two-minute leases prevent concurrent profiles/subagents from sharing a key. 429 enters a one-minute cooldown; 401/402 exhaust a reference; non-credential errors release without consuming it. Complete and pre-yield stream paths rotate same-provider keys, then the base key, then emit an explicit pool-exhausted error that the existing cross-provider fallback recognizes. Mid-stream errors never replay. Live CLI acceptance added, listed, resolved, and removed an env reference under an isolated VANTA_HOME, then proved the plaintext absent from disk. Focused gates: 35 tests, typecheck, and touched-file size/complexity lint. Full suite: 1,275 files / 12,828 passed / 3 skipped. Docs build, use-case validation, roadmap uniqueness, and diff checks passed."
+      "notes": "Source: current Hermes credential pool docs. Pair with HERMES-VAULT-SECRETS-ROTATION when external vault-backed keys become the default source.\n\nSHIPPED 2026-07-11: `vanta auth pool list|add|remove|test` manages reference-only provider pools backed by env, macOS Keychain, Bitwarden, 1Password, or scoped Vanta vault aliases. Literal values are never accepted or persisted; files are mode 0600 and audit entries hash references. Atomic directory locks and two-minute leases prevent concurrent profiles/subagents from sharing a key. 429 enters a one-minute cooldown; 401/402 exhaust a reference; non-credential errors release without consuming it. Complete and pre-yield stream paths rotate same-provider keys, then the base key, then emit an explicit pool-exhausted error that the existing cross-provider fallback recognizes. Mid-stream errors never replay. Live CLI acceptance added, listed, resolved, and removed an env reference under an isolated VANTA_HOME, then proved the plaintext absent from disk. Focused gates: 35 tests, typecheck, and touched-file size/complexity lint. Full suite: 1,275 files / 12,828 passed / 3 skipped. Docs build, use-case validation, roadmap uniqueness, and diff checks passed.",
+      "source": "hermes-feature-function-harvest-2026-07-11"
     },
     {
       "id": "HERMES-PLUGIN-LLM-LANE",
@@ -17251,8 +17251,8 @@
       "codex": "gpt-5.4",
       "lens": "infra",
       "updated": "2026-07-11",
-      "source": "hermes-feature-function-harvest-2026-07-11",
-      "notes": "Source: current Hermes plugin LLM access docs. Keep plugin LLM calls behind the same kernel/accounting path as normal Vanta model calls.\n\nSHIPPED 2026-07-11: `PluginContext.llm.complete` and `completeStructured` provide host-owned one-shot generation to enabled in-process plugins only after the operator grants `llm.generate`. Strict requests require purpose, prompt, budgetUsd, timeoutMs, and maxTokens and reject provider/model overrides. Host routing selects the provider from purpose; VANTA_PLUGIN_LLM_MAX_USD plus a conservative worst-case token ceiling bound spend; AbortSignal enforces timeout. Structured calls append a JSON-only instruction, parse output, and validate the requested object/array/primitive shape. Audit JSONL attributes plugin, purpose, host model, token usage, cost, budget, timeout, outcome, and timestamp while omitting prompts, outputs, and credentials. The loader refactor preserved diagnostic error handling and split oversized branches under the code-size gate. Isolated worker protocol v1 intentionally does not expose model calls; worker RPC remains a separate trust-boundary decision. Focused plugin gates: 39 tests plus typecheck and touched-file size/complexity lint. Full suite: 1,276 files / 12,831 passed / 3 skipped. Docs build, use-case validation, roadmap uniqueness, and diff checks passed."
+      "notes": "Source: current Hermes plugin LLM access docs. Keep plugin LLM calls behind the same kernel/accounting path as normal Vanta model calls.\n\nSHIPPED 2026-07-11: `PluginContext.llm.complete` and `completeStructured` provide host-owned one-shot generation to enabled in-process plugins only after the operator grants `llm.generate`. Strict requests require purpose, prompt, budgetUsd, timeoutMs, and maxTokens and reject provider/model overrides. Host routing selects the provider from purpose; VANTA_PLUGIN_LLM_MAX_USD plus a conservative worst-case token ceiling bound spend; AbortSignal enforces timeout. Structured calls append a JSON-only instruction, parse output, and validate the requested object/array/primitive shape. Audit JSONL attributes plugin, purpose, host model, token usage, cost, budget, timeout, outcome, and timestamp while omitting prompts, outputs, and credentials. The loader refactor preserved diagnostic error handling and split oversized branches under the code-size gate. Isolated worker protocol v1 intentionally does not expose model calls; worker RPC remains a separate trust-boundary decision. Focused plugin gates: 39 tests plus typecheck and touched-file size/complexity lint. Full suite: 1,276 files / 12,831 passed / 3 skipped. Docs build, use-case validation, roadmap uniqueness, and diff checks passed.",
+      "source": "hermes-feature-function-harvest-2026-07-11"
     },
     {
       "id": "HERMES-DELIVERABLE-AUTO-ATTACH",
@@ -17268,8 +17268,8 @@
       "codex": "gpt-5.4",
       "lens": "reach",
       "updated": "2026-07-11",
-      "source": "hermes-feature-function-harvest-2026-07-11",
-      "notes": "Source: current Hermes deliverable mode docs. Build on Vanta work products and messaging media adapters; the key behavior is channel-native delivery with scoped file validation.\n\nSHIPPED 2026-07-11: the gateway scans canonical final replies plus approved work products for png/jpg/jpeg/gif/webp/pdf/csv/xlsx/pptx/html/txt/md artifacts, dedupes them, removes local paths from visible copy, and skips source/config/log extensions by default. Every file must pass the existing protected-path/workspace scope guard plus a recent-mtime anti-exfil window before bytes are read. PlatformAdapter now has an optional native sendFile port; Telegram implements Bot API sendDocument with forum-topic routing. Channels without the port receive sanitized text and never read the file. Successful uploads append platform, transport, name, MIME, bytes, source, and timestamp to `.vanta/deliverable-receipts.jsonl`, never contents. Executed gateway acceptance proved a generated PDF path becomes sanitized canonical text, a native upload, and a receipt. Focused gates: 50 gateway tests plus typecheck and touched-file size/complexity lint. The first full suite hit one unrelated ENOTEMPTY watcher-cleanup race; its isolated rerun passed and the required full rerun passed 1,278 files / 12,837 tests with 3 skipped. Docs build, use-case validation, roadmap uniqueness, and diff checks passed."
+      "notes": "Source: current Hermes deliverable mode docs. Build on Vanta work products and messaging media adapters; the key behavior is channel-native delivery with scoped file validation.\n\nSHIPPED 2026-07-11: the gateway scans canonical final replies plus approved work products for png/jpg/jpeg/gif/webp/pdf/csv/xlsx/pptx/html/txt/md artifacts, dedupes them, removes local paths from visible copy, and skips source/config/log extensions by default. Every file must pass the existing protected-path/workspace scope guard plus a recent-mtime anti-exfil window before bytes are read. PlatformAdapter now has an optional native sendFile port; Telegram implements Bot API sendDocument with forum-topic routing. Channels without the port receive sanitized text and never read the file. Successful uploads append platform, transport, name, MIME, bytes, source, and timestamp to `.vanta/deliverable-receipts.jsonl`, never contents. Executed gateway acceptance proved a generated PDF path becomes sanitized canonical text, a native upload, and a receipt. Focused gates: 50 gateway tests plus typecheck and touched-file size/complexity lint. The first full suite hit one unrelated ENOTEMPTY watcher-cleanup race; its isolated rerun passed and the required full rerun passed 1,278 files / 12,837 tests with 3 skipped. Docs build, use-case validation, roadmap uniqueness, and diff checks passed.",
+      "source": "hermes-feature-function-harvest-2026-07-11"
     },
     {
       "id": "HERMES-ISSUE-REGRESSION-PACK",
@@ -17285,8 +17285,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "hermes-mercury-issue-usecase-audit-2026-07-11",
-      "notes": "SHIPPED 2026-07-11. Primary issue evidence: NousResearch/hermes-agent #62365, #51058, #60385, #62406, #62435, and #62336. Shipped regressions: COMPACTION-INTENT-GROUNDING, ACP-SESSION-ROUTING-ISOLATION, SUBAGENT-PROVIDER-IDENTITY, DESKTOP-GATEWAY-PROVIDER-PARITY, MCP-RECONNECT-PROCESS-REAP, SAFE-MODE-STATE-ISOLATION, and SESSION-ENV-OUTPUT-REDACTION. Final executed proof: the complete vanta-ts suite passes 1,243/1,243 files and 12,720 tests with 3 intentional skips; TypeScript is clean. The full run also exposed and fixed stale reach-channel expectations plus a wall-clock-flaky media-cache test fixture without changing production behavior."
+      "notes": "SHIPPED 2026-07-11. Primary issue evidence: NousResearch/hermes-agent #62365, #51058, #60385, #62406, #62435, and #62336. Shipped regressions: COMPACTION-INTENT-GROUNDING, ACP-SESSION-ROUTING-ISOLATION, SUBAGENT-PROVIDER-IDENTITY, DESKTOP-GATEWAY-PROVIDER-PARITY, MCP-RECONNECT-PROCESS-REAP, SAFE-MODE-STATE-ISOLATION, and SESSION-ENV-OUTPUT-REDACTION. Final executed proof: the complete vanta-ts suite passes 1,243/1,243 files and 12,720 tests with 3 intentional skips; TypeScript is clean. The full run also exposed and fixed stale reach-channel expectations plus a wall-clock-flaky media-cache test fixture without changing production behavior.",
+      "source": "hermes-mercury-issue-usecase-audit-2026-07-11"
     },
     {
       "id": "HERMES-STORY-EVAL-HARNESS",
@@ -17302,8 +17302,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "hermes-mercury-issue-usecase-audit-2026-07-11",
-      "notes": "The durable source index covers all 262 Hermes stories from commit 3b2ef789df without quote bodies; the executable manifest has 30 scenarios, two per category, each tied to a real sourceStoryId. Five scenarios now have explicit reviewed passes: General/capability-start (09-07-13-368Z), Meta/cross-platform-install (09-21-20-037Z), Dev/converse-before-act (09-49-48-049Z), Cost/context-reduction (09-56-40-765Z), and Enterprise/Kubernetes briefing (10-09-51-830Z). Enterprise preserved two manual failure receipts before WORKFLOW-ACCEPTANCE-EVIDENCE-CONTRACT encoded the missing schedule and criterion evidence. HERMES-MULTITURN-STORY-RUNNER remains required to continue clarification/approval workflows in one session.\n\nSHIPPED 2026-07-11: the versioned manifest now enforces two scenarios in every one of 15 categories and structured setup, risk, expected tools, expected artifacts, verifier, tier, and live setup gates. List/filter/run and `--include-live` remain the execution surface; live jobs without credentials are recorded as skipped, not passed. Five reviewed real runs now carry deterministic output contracts that apply automatically to new runs and can retro-verify old receipts. `--status` selects the latest receipt per scenario and reports pass/fail/blocked/pending plus category gaps. `--export-public` emits only aggregate counts and gap names, never transcript tails or reviewer notes; the use-case page links that redacted 5-pass/5-category artifact and explicitly names ten unproved categories. A Vitest integration case executes verify/status/export against an isolated receipt directory, so CI proves the offline harness without counting the fixture as product execution. Real acceptance listed the General category, refused a live morning-brief run without Google/delivery setup, reassessed five receipts to pass, reported 5/5 executed across 5/15 categories, and generated the public proof artifact."
+      "notes": "The durable source index covers all 262 Hermes stories from commit 3b2ef789df without quote bodies; the executable manifest has 30 scenarios, two per category, each tied to a real sourceStoryId. Five scenarios now have explicit reviewed passes: General/capability-start (09-07-13-368Z), Meta/cross-platform-install (09-21-20-037Z), Dev/converse-before-act (09-49-48-049Z), Cost/context-reduction (09-56-40-765Z), and Enterprise/Kubernetes briefing (10-09-51-830Z). Enterprise preserved two manual failure receipts before WORKFLOW-ACCEPTANCE-EVIDENCE-CONTRACT encoded the missing schedule and criterion evidence. HERMES-MULTITURN-STORY-RUNNER remains required to continue clarification/approval workflows in one session.\n\nSHIPPED 2026-07-11: the versioned manifest now enforces two scenarios in every one of 15 categories and structured setup, risk, expected tools, expected artifacts, verifier, tier, and live setup gates. List/filter/run and `--include-live` remain the execution surface; live jobs without credentials are recorded as skipped, not passed. Five reviewed real runs now carry deterministic output contracts that apply automatically to new runs and can retro-verify old receipts. `--status` selects the latest receipt per scenario and reports pass/fail/blocked/pending plus category gaps. `--export-public` emits only aggregate counts and gap names, never transcript tails or reviewer notes; the use-case page links that redacted 5-pass/5-category artifact and explicitly names ten unproved categories. A Vitest integration case executes verify/status/export against an isolated receipt directory, so CI proves the offline harness without counting the fixture as product execution. Real acceptance listed the General category, refused a live morning-brief run without Google/delivery setup, reassessed five receipts to pass, reported 5/5 executed across 5/15 categories, and generated the public proof artifact.",
+      "source": "hermes-mercury-issue-usecase-audit-2026-07-11"
     },
     {
       "id": "MERCURY-CROSS-PLATFORM-SERVICE",
@@ -17319,8 +17319,8 @@
       "codex": "gpt-5.4",
       "lens": "reach",
       "updated": "2026-07-11",
-      "source": "cosmicstack-labs/mercury-agent@6e174a4",
       "notes": "PARKED EXTERNAL PROOF 2026-07-11. Implementation and fixtures shipped in 90a4635b..38990ef5. GitHub Actions run 29166838401 produced ok:true lifecycle receipts for macOS launchd and Ubuntu systemd-user, covering install/start/restart/log/stop/stale/uninstall; Linux also passed locally under a dedicated non-root Ubuntu 24.04 systemd user manager with spaces in working and log paths. The Windows hosted runner registered the owned least-privilege InteractiveToken task and reported 0x41301 running, then 0x41306 terminated, but never launched the action or wrote its first marker. Microsoft defines InteractiveToken as requiring an existing interactive session; S4U is not a valid gateway substitute because it removes network and encrypted-file access. docs/service-supervisor.md now gives the exact PowerShell proof command. Park until that command produces `.artifacts/service-proof-win32.json` with ok:true on a real logged-in Windows desktop; do not call the card shipped before then.",
+      "source": "cosmicstack-labs/mercury-agent@6e174a4",
       "parkedReason": "external proof"
     },
     {
@@ -17337,8 +17337,8 @@
       "codex": "gpt-5.4",
       "lens": "infra",
       "updated": "2026-07-11",
-      "source": "cosmicstack-labs/mercury-agent@6e174a4",
-      "notes": "SHIPPED 2026-07-11. Added a configurable local/HTTP static registry with strict schema and SHA-256 verification; search/browse/view prints source, version, capabilities, hash status, and the complete SKILL.md. Confirmed installs land mode-0600 and disabled in quarantine; a separate approve command refuses local-skill overwrite before activation. Updates preview a line diff, back up clean prior versions, and preserve locally edited files while staging incoming content for review. Removal moves packages into a reversible removed area; doctor reports ok/modified/missing/removed; lifecycle actions append redacted JSONL audit records. Executed the real CLI against an isolated static registry and VANTA_HOME: browse, search, view, preview install, confirmed disabled install, approve, doctor, preview update, apply update, doctor, remove, removed-file check, and audit actions install-disabled/approve/update/remove all passed. Focused registry/library tests: 10 passed. Full suite: 12,840 passed, 3 skipped, 0 failed; TypeScript, touched-file lint, 30-scenario use-case validation, 1,188-card JSON/ID validation, git diff checks, and Docusaurus production build pass. Complete package assets and multi-source ecosystem discovery remain separate dependent cards."
+      "notes": "SHIPPED 2026-07-11. Added a configurable local/HTTP static registry with strict schema and SHA-256 verification; search/browse/view prints source, version, capabilities, hash status, and the complete SKILL.md. Confirmed installs land mode-0600 and disabled in quarantine; a separate approve command refuses local-skill overwrite before activation. Updates preview a line diff, back up clean prior versions, and preserve locally edited files while staging incoming content for review. Removal moves packages into a reversible removed area; doctor reports ok/modified/missing/removed; lifecycle actions append redacted JSONL audit records. Executed the real CLI against an isolated static registry and VANTA_HOME: browse, search, view, preview install, confirmed disabled install, approve, doctor, preview update, apply update, doctor, remove, removed-file check, and audit actions install-disabled/approve/update/remove all passed. Focused registry/library tests: 10 passed. Full suite: 12,840 passed, 3 skipped, 0 failed; TypeScript, touched-file lint, 30-scenario use-case validation, 1,188-card JSON/ID validation, git diff checks, and Docusaurus production build pass. Complete package assets and multi-source ecosystem discovery remain separate dependent cards.",
+      "source": "cosmicstack-labs/mercury-agent@6e174a4"
     },
     {
       "id": "VANTA-PUBLIC-SITE-V1",
@@ -17354,8 +17354,8 @@
       "codex": "gpt-5.4",
       "lens": "reach",
       "updated": "2026-07-12",
-      "source": "hermes-agent.nousresearch.com landing-page pattern",
-      "notes": "SHIPPED 2026-07-11; VISUAL REFINEMENT 2026-07-12. Added a product-first Docusaurus page at `/`, moved Introduction to `/docs`, used a real current desktop capture, kept existing docs/use-case/roadmap routes, and avoided unproved metrics/testimonials. The refinement rebuilt the site as one long-form page: the user-selected Vanta operator artwork leads the hero, a current desktop capture and real terminal recording provide product proof, and six full-width chapters cover Reach, Remember, Schedule, Delegate, Research, and Enforce before the execution-contract, kernel, roadmap, and install sections. Executed: TypeScript clean; production Docusaurus build with no broken-link/anchor warnings; Playwright desktop 1440x1000 and mobile 390x844 full-page screenshots with no overlap; automated browser checks report zero horizontal overflow, failed images, or console errors; `/docs`, `/use-cases`, `/roadmap`, `/quickstart`, and `/safety-model` return 200. Local preview: http://127.0.0.1:4180/. Separate gap observed: the desktop Vite dev path currently fails transforming Capacitor for configured legacy browser targets; the homepage uses the already-built desktop artifact for its capture."
+      "notes": "SHIPPED 2026-07-11; VISUAL REFINEMENT 2026-07-12. Added a product-first Docusaurus page at `/`, moved Introduction to `/docs`, used a real current desktop capture, kept existing docs/use-case/roadmap routes, and avoided unproved metrics/testimonials. The refinement rebuilt the site as one long-form page: the user-selected Vanta operator artwork leads the hero, a current desktop capture and real terminal recording provide product proof, and six full-width chapters cover Reach, Remember, Schedule, Delegate, Research, and Enforce before the execution-contract, kernel, roadmap, and install sections. Executed: TypeScript clean; production Docusaurus build with no broken-link/anchor warnings; Playwright desktop 1440x1000 and mobile 390x844 full-page screenshots with no overlap; automated browser checks report zero horizontal overflow, failed images, or console errors; `/docs`, `/use-cases`, `/roadmap`, `/quickstart`, and `/safety-model` return 200. Local preview: http://127.0.0.1:4180/. Separate gap observed: the desktop Vite dev path currently fails transforming Capacitor for configured legacy browser targets; the homepage uses the already-built desktop artifact for its capture.",
+      "source": "hermes-agent.nousresearch.com landing-page pattern"
     },
     {
       "id": "CHOICE-WALL-SIDE-EFFECT-GUARD",
@@ -17371,8 +17371,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "eval/use-cases/hermes-community-v1.json#general-capability-start",
-      "notes": "SHIPPED 2026-07-11. Added conservative explicit-choice-wall detection to session/background-learning; one-shot and interactive hosts skip recurring-skill capture and defer the mutating learning review while preserving normal session/verification work. TDD RED: 3 expected failures for missing detector/deferral. GREEN: 22 relevant tests pass and TypeScript clean. Real rerun .vanta/eval-runs/use-cases/2026-07-11T09-07-13-368Z.json: reliable=true, surfacePassed=true, guardPassed=true, forbiddenHits=[], exitCode=0. Prior failing receipt 09-01-10-472Z remains the regression evidence."
+      "notes": "SHIPPED 2026-07-11. Added conservative explicit-choice-wall detection to session/background-learning; one-shot and interactive hosts skip recurring-skill capture and defer the mutating learning review while preserving normal session/verification work. TDD RED: 3 expected failures for missing detector/deferral. GREEN: 22 relevant tests pass and TypeScript clean. Real rerun .vanta/eval-runs/use-cases/2026-07-11T09-07-13-368Z.json: reliable=true, surfacePassed=true, guardPassed=true, forbiddenHits=[], exitCode=0. Prior failing receipt 09-01-10-472Z remains the regression evidence.",
+      "source": "eval/use-cases/hermes-community-v1.json#general-capability-start"
     },
     {
       "id": "GLOB-BASE-PATH-ROOT-SCOPE",
@@ -17388,8 +17388,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "eval/use-cases/hermes-community-v1.json#ecosystem-cross-platform-install-plan",
-      "notes": "SHIPPED 2026-07-11. TDD RED proved relative base_path missed a root-only fixture and outside absolute bases were readable. GREEN uses resolveInScope for base calculation; 14 focused tests pass, TypeScript clean, direct real tool output includes install.ps1 + install.sh. Initial receipt 09-15-09-887Z is reviewer fail; corrected receipt 09-21-20-037Z is reliable/surface/guard pass and manual outcome pass."
+      "notes": "SHIPPED 2026-07-11. TDD RED proved relative base_path missed a root-only fixture and outside absolute bases were readable. GREEN uses resolveInScope for base calculation; 14 focused tests pass, TypeScript clean, direct real tool output includes install.ps1 + install.sh. Initial receipt 09-15-09-887Z is reviewer fail; corrected receipt 09-21-20-037Z is reliable/surface/guard pass and manual outcome pass.",
+      "source": "eval/use-cases/hermes-community-v1.json#ecosystem-cross-platform-install-plan"
     },
     {
       "id": "COMPACTION-INTENT-GROUNDING",
@@ -17405,8 +17405,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "NousResearch/hermes-agent#62365",
-      "notes": "SHIPPED 2026-07-11. TDD RED reproduced fabricated transfer/deploy and secret-email requests in both compaction APIs. GREEN routes both paths through one sanitizer and reference-only system wrapper; factual summary content and the real protected user tail survive. Executed: 28 context + auto-compaction tests pass; TypeScript clean. This closes only the compaction slice of HERMES-ISSUE-REGRESSION-PACK."
+      "notes": "SHIPPED 2026-07-11. TDD RED reproduced fabricated transfer/deploy and secret-email requests in both compaction APIs. GREEN routes both paths through one sanitizer and reference-only system wrapper; factual summary content and the real protected user tail survive. Executed: 28 context + auto-compaction tests pass; TypeScript clean. This closes only the compaction slice of HERMES-ISSUE-REGRESSION-PACK.",
+      "source": "NousResearch/hermes-agent#62365"
     },
     {
       "id": "ACP-SESSION-ROUTING-ISOLATION",
@@ -17422,8 +17422,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "NousResearch/hermes-agent#51058",
-      "notes": "SHIPPED 2026-07-11. TDD RED proved an unknown session update was forwarded and an unknown-session permission reached the approver. GREEN binds inbound ACP events to IDs returned by this client's session/new lifecycle and rejects unknown approvals. Executed: 36 ACP client/server/session tests pass; TypeScript clean. This closes only the cross-session routing slice of HERMES-ISSUE-REGRESSION-PACK."
+      "notes": "SHIPPED 2026-07-11. TDD RED proved an unknown session update was forwarded and an unknown-session permission reached the approver. GREEN binds inbound ACP events to IDs returned by this client's session/new lifecycle and rejects unknown approvals. Executed: 36 ACP client/server/session tests pass; TypeScript clean. This closes only the cross-session routing slice of HERMES-ISSUE-REGRESSION-PACK.",
+      "source": "NousResearch/hermes-agent#51058"
     },
     {
       "id": "SUBAGENT-PROVIDER-IDENTITY",
@@ -17439,8 +17439,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "NousResearch/hermes-agent#60385",
-      "notes": "SHIPPED 2026-07-11. TDD RED proved an ollama child selected from an openai/gpt-4o parent retained gpt-4o. GREEN centralizes providerOverrideEnv for delegate and swarm: switching provider without a model clears only VANTA_MODEL, while credentials and all other environment remain available for the selected alias. Executed: 62 provider, user-provider, delegate, swarm, and teammate tests pass; TypeScript clean. Desktop/gateway parity remains in the parent pack."
+      "notes": "SHIPPED 2026-07-11. TDD RED proved an ollama child selected from an openai/gpt-4o parent retained gpt-4o. GREEN centralizes providerOverrideEnv for delegate and swarm: switching provider without a model clears only VANTA_MODEL, while credentials and all other environment remain available for the selected alias. Executed: 62 provider, user-provider, delegate, swarm, and teammate tests pass; TypeScript clean. Desktop/gateway parity remains in the parent pack.",
+      "source": "NousResearch/hermes-agent#60385"
     },
     {
       "id": "MCP-RECONNECT-PROCESS-REAP",
@@ -17456,8 +17456,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "NousResearch/hermes-agent#62406",
-      "notes": "SHIPPED 2026-07-11. TDD RED proved reconnectServer left an injected previous client's close() untouched. GREEN closes it before replacement and adds panel ownership/disposal plus late-result cleanup. Executed: reconnect close regression and 49 MCP client/connect/mount/view tests pass; TypeScript clean. Code-path only: panel dismissal and reconnect-race cleanup are wired but were not exercised through an interactive Ink render in this pass."
+      "notes": "SHIPPED 2026-07-11. TDD RED proved reconnectServer left an injected previous client's close() untouched. GREEN closes it before replacement and adds panel ownership/disposal plus late-result cleanup. Executed: reconnect close regression and 49 MCP client/connect/mount/view tests pass; TypeScript clean. Code-path only: panel dismissal and reconnect-race cleanup are wired but were not exercised through an interactive Ink render in this pass.",
+      "source": "NousResearch/hermes-agent#62406"
     },
     {
       "id": "SAFE-MODE-STATE-ISOLATION",
@@ -17473,8 +17473,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "NousResearch/hermes-agent#62435",
-      "notes": "SHIPPED 2026-07-11. TDD RED showed safe mode injected an accepted autonomy belief, the full persistent brain, and project settings. GREEN gates memory/settings at source loaders and later resume/playbook/continuity/profile paths. Executed: a runtime fixture proves an enabled user plugin is not imported and an MCP child marker is not created; 58 broader isolation/session/plugin/MCP tests and 29 final focused tests pass; TypeScript clean."
+      "notes": "SHIPPED 2026-07-11. TDD RED showed safe mode injected an accepted autonomy belief, the full persistent brain, and project settings. GREEN gates memory/settings at source loaders and later resume/playbook/continuity/profile paths. Executed: a runtime fixture proves an enabled user plugin is not imported and an MCP child marker is not created; 58 broader isolation/session/plugin/MCP tests and 29 final focused tests pass; TypeScript clean.",
+      "source": "NousResearch/hermes-agent#62435"
     },
     {
       "id": "SESSION-ENV-OUTPUT-REDACTION",
@@ -17490,8 +17490,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "NousResearch/hermes-agent#62336",
-      "notes": "SHIPPED 2026-07-11. TDD RED proved /env listed API_KEY=s3cr3t and a postgres user:pass URL verbatim. GREEN masks credential-key slots and applies the shared structural/vendor log redactor to remaining values before output. Executed: 93 env command/store, redaction, asciicast, and record-command tests pass; TypeScript clean. The store intentionally retains originals in memory for child process execution; this card governs durable output, not runtime secret use."
+      "notes": "SHIPPED 2026-07-11. TDD RED proved /env listed API_KEY=s3cr3t and a postgres user:pass URL verbatim. GREEN masks credential-key slots and applies the shared structural/vendor log redactor to remaining values before output. Executed: 93 env command/store, redaction, asciicast, and record-command tests pass; TypeScript clean. The store intentionally retains originals in memory for child process execution; this card governs durable output, not runtime secret use.",
+      "source": "NousResearch/hermes-agent#62336"
     },
     {
       "id": "DESKTOP-GATEWAY-PROVIDER-PARITY",
@@ -17507,8 +17507,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "NousResearch/hermes-agent#60385",
-      "notes": "SHIPPED 2026-07-11. TDD RED showed desktop alias discovery and provider-only selection were absent. GREEN merges providers.json aliases into desktop options, validates through resolveProvider before mutation, persists the resolved model, and updates both setup and conversation. A gateway routing characterization resolves the same alias/key/default model. Executed: final 35 provider/router/desktop/delegate/swarm tests pass; TypeScript clean."
+      "notes": "SHIPPED 2026-07-11. TDD RED showed desktop alias discovery and provider-only selection were absent. GREEN merges providers.json aliases into desktop options, validates through resolveProvider before mutation, persists the resolved model, and updates both setup and conversation. A gateway routing characterization resolves the same alias/key/default model. Executed: final 35 provider/router/desktop/delegate/swarm tests pass; TypeScript clean.",
+      "source": "NousResearch/hermes-agent#60385"
     },
     {
       "id": "LIVE-CONTEXT-COST-INSPECTOR",
@@ -17524,8 +17524,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "eval/use-cases/hermes-community-v1.json#cost-context-reduction-plan",
-      "notes": "SHIPPED 2026-07-11. Initial receipt 09-50-36-371Z failed because no measurement tool ran. Receipts 09-54-08-022Z and 09-55-21-158Z preserved manual failures for hypothetical and double-counted third sources. Passing receipt 09-56-40-765Z used inspect_context and ranked system_messages 13,110, tool_schemas 6,400, and user_messages 75 tokens exactly. Executed: 62 focused registry/tool/agent tests pass; TypeScript clean; 30-scenario manifest validates."
+      "notes": "SHIPPED 2026-07-11. Initial receipt 09-50-36-371Z failed because no measurement tool ran. Receipts 09-54-08-022Z and 09-55-21-158Z preserved manual failures for hypothetical and double-counted third sources. Passing receipt 09-56-40-765Z used inspect_context and ranked system_messages 13,110, tool_schemas 6,400, and user_messages 75 tokens exactly. Executed: 62 focused registry/tool/agent tests pass; TypeScript clean; 30-scenario manifest validates.",
+      "source": "eval/use-cases/hermes-community-v1.json#cost-context-reduction-plan"
     },
     {
       "id": "WORKFLOW-ACCEPTANCE-EVIDENCE-CONTRACT",
@@ -17541,8 +17541,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "eval/use-cases/hermes-community-v1.json#enterprise-kubernetes-brief-plan",
-      "notes": "SHIPPED 2026-07-11. Receipts 10-03-08-543Z and 10-06-38-102Z are preserved manual failures: the first omitted health/rollback evidence and the second represented daily scheduling only as title intent. Passing receipt 10-09-51-830Z invoked compose_workflow mode=validate and mapped a UTC cron schedule, namespace/pod isolation, external scoped secrets, observability, rollback, and approval-before-action to graph nodes. Executed: 17 focused contract/turn-loop/error-detection tests pass; the real CLI story passed review with no deployment or credential action."
+      "notes": "SHIPPED 2026-07-11. Receipts 10-03-08-543Z and 10-06-38-102Z are preserved manual failures: the first omitted health/rollback evidence and the second represented daily scheduling only as title intent. Passing receipt 10-09-51-830Z invoked compose_workflow mode=validate and mapped a UTC cron schedule, namespace/pod isolation, external scoped secrets, observability, rollback, and approval-before-action to graph nodes. Executed: 17 focused contract/turn-loop/error-detection tests pass; the real CLI story passed review with no deployment or credential action.",
+      "source": "eval/use-cases/hermes-community-v1.json#enterprise-kubernetes-brief-plan"
     },
     {
       "id": "SUCCESSFUL-TOOL-ERROR-CLASSIFICATION",
@@ -17558,8 +17558,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "eval/use-cases/hermes-community-v1.json#enterprise-kubernetes-brief-plan",
-      "notes": "SHIPPED 2026-07-11. RED was observed in receipt 10-06-38-102Z: two failed validation attempts followed by success still emitted the three-failure repair message because generic failure/cannot words were scanned anywhere in the successful payload. GREEN narrows fallback text detection to concrete error-shaped signatures. Executed: focused error-detect and turn-loop tests pass; receipt 10-09-51-830Z followed the same two-errors-then-success path with no false repair warning."
+      "notes": "SHIPPED 2026-07-11. RED was observed in receipt 10-06-38-102Z: two failed validation attempts followed by success still emitted the three-failure repair message because generic failure/cannot words were scanned anywhere in the successful payload. GREEN narrows fallback text detection to concrete error-shaped signatures. Executed: focused error-detect and turn-loop tests pass; receipt 10-09-51-830Z followed the same two-errors-then-success path with no false repair warning.",
+      "source": "eval/use-cases/hermes-community-v1.json#enterprise-kubernetes-brief-plan"
     },
     {
       "id": "HERMES-PORTABLE-SKILL-PACKAGES",
@@ -17575,11 +17575,11 @@
       "codex": "gpt-5.4",
       "lens": "infra",
       "updated": "2026-07-11",
+      "notes": "SHIPPED 2026-07-11. Extended the static registry schema and lifecycle from single SKILL.md files to bounded portable packages with up to 64 companion files, 512 KiB per companion, and 2 MiB total. Package paths are relative, unique, traversal-refusing, and exclude duplicate SKILL.md; every declared byte count and SHA-256 is verified. View/preview lists platforms, dependencies, capabilities, every file/hash/size, executable declarations, setup commands, and injection-scan findings. Install writes the complete package mode-0600 into disabled quarantine and never executes or enables declared scripts. Approval moves the whole package atomically. Doctor verifies every managed file. Updates diff changed companion paths, back up the complete old version plus metadata, replace clean packages through staging, and preserve locally edited package files while staging incoming versions. `vanta skills rollback <slug> <version> --yes` restores a verified prior package while backing up the displaced version; removal remains reversible. Executed real CLI package lifecycle against isolated VANTA_HOME: visible package/risk preview; install; non-executable script check; approve; doctor; companion update preview/apply; backup check; local companion edit conflict; incoming staged check; reversible remove. A separate real CLI run updated v1 to v2, rolled back to v1, and doctor returned ok. Focused registry/CLI/library tests: 12 passed. Full suite: 12,842 passed, 3 skipped, 0 failed; TypeScript, touched lint, Docusaurus production build, 30-scenario use-case validation, 1,188-card validation, and diff checks pass. Runtime execution remains kernel-gated; multi-source discovery is the next separate card.",
       "source": "NousResearch/hermes-agent@3b2ef789 skill package layout",
       "after": [
         "PUBLIC-SKILL-REGISTRY-CLIENT"
-      ],
-      "notes": "SHIPPED 2026-07-11. Extended the static registry schema and lifecycle from single SKILL.md files to bounded portable packages with up to 64 companion files, 512 KiB per companion, and 2 MiB total. Package paths are relative, unique, traversal-refusing, and exclude duplicate SKILL.md; every declared byte count and SHA-256 is verified. View/preview lists platforms, dependencies, capabilities, every file/hash/size, executable declarations, setup commands, and injection-scan findings. Install writes the complete package mode-0600 into disabled quarantine and never executes or enables declared scripts. Approval moves the whole package atomically. Doctor verifies every managed file. Updates diff changed companion paths, back up the complete old version plus metadata, replace clean packages through staging, and preserve locally edited package files while staging incoming versions. `vanta skills rollback <slug> <version> --yes` restores a verified prior package while backing up the displaced version; removal remains reversible. Executed real CLI package lifecycle against isolated VANTA_HOME: visible package/risk preview; install; non-executable script check; approve; doctor; companion update preview/apply; backup check; local companion edit conflict; incoming staged check; reversible remove. A separate real CLI run updated v1 to v2, rolled back to v1, and doctor returned ok. Focused registry/CLI/library tests: 12 passed. Full suite: 12,842 passed, 3 skipped, 0 failed; TypeScript, touched lint, Docusaurus production build, 30-scenario use-case validation, 1,188-card validation, and diff checks pass. Runtime execution remains kernel-gated; multi-source discovery is the next separate card."
+      ]
     },
     {
       "id": "HERMES-MULTISOURCE-SKILL-HUB",
@@ -17595,11 +17595,11 @@
       "codex": "gpt-5.5",
       "lens": "infra",
       "updated": "2026-07-11",
+      "notes": "SHIPPED 2026-07-11. Added source-qualified browse/search/inspect/install for configured official registries, skills.sh, well-known endpoints, direct URLs, curated GitHub repositories, and removable custom GitHub taps. Results retain provenance, source identifier, declared version, category when supplied, literal signature state (unsigned or present-unverified), literal integrity state (source-declared, content-hashed, or unverified), and cache status plus expiry. Per-source one-hour caches expose stale-offline fallback; failures are isolated so one source cannot erase another source's results. Duplicate slugs require an explicit source identifier. skills.sh current API fields and alias-to-GitHub-directory resolution are supported through bounded frontmatter matching. GitHub packages are tree-discovered with category sidecars and signature presence; source and package paths are containment-checked. Provider fetches enforce the portable 65-total-file, 512-KiB-file, and 2-MiB-package limits before bulk download/materialization. Every source-qualified install generates a local hashed registry and routes through complete preview, disabled quarantine, separate approval, doctor, rollback, and reversible removal. Legacy `vanta skills hub <url>` is now preview-only and cannot directly activate a skill. Credential-free fixtures cover all six resolvers, cache expiry/offline fallback, failure isolation, duplicate-slug refusal, alias resolution, tap add/list/remove, oversized content/tree refusal, and package quarantine. Live read-only proofs: skills.sh returned current React catalog results with visible cache/provenance; GitHub inspection resolved OpenAI/skills `skill-creator` with seven package files. Real isolated live package path: previewed the public OpenAI package, installed disabled, confirmed scripts remained non-executable, approved, doctor returned ok, removed reversibly, and preserved companion scripts. Focused hub/registry tests: 18 passed. Full suite: 12,848 passed, 3 skipped, 0 failed; TypeScript, touched lint, Docusaurus production build, 30-scenario use-case validation, 1,188-card validation, and diff checks pass. The Hub's indexed counts are not Vanta capability claims, and content hashing is not publisher authentication or safety endorsement.",
       "source": "Hermes Skills Hub documentation 2026-07-11",
       "after": [
         "HERMES-PORTABLE-SKILL-PACKAGES"
-      ],
-      "notes": "SHIPPED 2026-07-11. Added source-qualified browse/search/inspect/install for configured official registries, skills.sh, well-known endpoints, direct URLs, curated GitHub repositories, and removable custom GitHub taps. Results retain provenance, source identifier, declared version, category when supplied, literal signature state (unsigned or present-unverified), literal integrity state (source-declared, content-hashed, or unverified), and cache status plus expiry. Per-source one-hour caches expose stale-offline fallback; failures are isolated so one source cannot erase another source's results. Duplicate slugs require an explicit source identifier. skills.sh current API fields and alias-to-GitHub-directory resolution are supported through bounded frontmatter matching. GitHub packages are tree-discovered with category sidecars and signature presence; source and package paths are containment-checked. Provider fetches enforce the portable 65-total-file, 512-KiB-file, and 2-MiB-package limits before bulk download/materialization. Every source-qualified install generates a local hashed registry and routes through complete preview, disabled quarantine, separate approval, doctor, rollback, and reversible removal. Legacy `vanta skills hub <url>` is now preview-only and cannot directly activate a skill. Credential-free fixtures cover all six resolvers, cache expiry/offline fallback, failure isolation, duplicate-slug refusal, alias resolution, tap add/list/remove, oversized content/tree refusal, and package quarantine. Live read-only proofs: skills.sh returned current React catalog results with visible cache/provenance; GitHub inspection resolved OpenAI/skills `skill-creator` with seven package files. Real isolated live package path: previewed the public OpenAI package, installed disabled, confirmed scripts remained non-executable, approved, doctor returned ok, removed reversibly, and preserved companion scripts. Focused hub/registry tests: 18 passed. Full suite: 12,848 passed, 3 skipped, 0 failed; TypeScript, touched lint, Docusaurus production build, 30-scenario use-case validation, 1,188-card validation, and diff checks pass. The Hub's indexed counts are not Vanta capability claims, and content hashing is not publisher authentication or safety endorsement."
+      ]
     },
     {
       "id": "HERMES-SKILL-WRITE-APPROVAL-QUEUE",
@@ -17615,11 +17615,11 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-11",
+      "notes": "SHIPPED 2026-07-11. Added `skills.writeApproval` plus `vanta skills approval on|off`; agent-authored `write_skill`, new `skill_manage`, and background self-improvement now share one durable mutation service. Actions cover create, edit, exact patch, contained supporting-file write/remove, and reversible whole-skill delete/archive. Explicit create refuses overwrite; existing `write_skill` automatically labels rewrites as edit. Pending mode writes mode-0600 proposals under `~/.vanta/pending/skills`; the active tree remains unchanged until approval. CLI and `/skills` support pending, full/compact diff, approve, reject, and setting status; slash diffs truncate safely and name the full local proposal. Each proposal binds to the target's base hash; approval refuses stale writes after operator/process edits. Approval reruns path containment, injection scan, size/schema, and requested-capability syntax checks; scanner refusal remains independent of human approval. Rejection changes no active file. Supporting-file removal moves content into `skill-write-removed`; deletion uses the existing reversible skill archive. Resolved proposals survive under `_resolved`; redacted JSONL receipts retain id/action/skill/session/reason/decision/timestamps/result hash without skill content. Executed isolated real path: enabled approval; real write_skill staged create; CLI pending/diff/approve; active file appeared; real skill_manage staged patch; direct operator edit changed base; approval failed stale; reject succeeded; skill_manage staged supporting-file write; approve created file; queue emptied; audit contained approved:create, rejected:patch, approved:write_file and no body text. Focused queue/tool/background/CLI/TUI/settings tests: 126 passed. Full suite: 12,858 passed, 3 skipped, 0 failed; TypeScript, touched lint, Docusaurus production build, 30-scenario use-case validation, 1,188-card validation, and diff checks pass. This proves local queue behavior; it does not make unreviewed third-party skill content safe.",
       "source": "Hermes skills.write_approval documentation 2026-07-11",
       "after": [
         "HERMES-PORTABLE-SKILL-PACKAGES"
-      ],
-      "notes": "SHIPPED 2026-07-11. Added `skills.writeApproval` plus `vanta skills approval on|off`; agent-authored `write_skill`, new `skill_manage`, and background self-improvement now share one durable mutation service. Actions cover create, edit, exact patch, contained supporting-file write/remove, and reversible whole-skill delete/archive. Explicit create refuses overwrite; existing `write_skill` automatically labels rewrites as edit. Pending mode writes mode-0600 proposals under `~/.vanta/pending/skills`; the active tree remains unchanged until approval. CLI and `/skills` support pending, full/compact diff, approve, reject, and setting status; slash diffs truncate safely and name the full local proposal. Each proposal binds to the target's base hash; approval refuses stale writes after operator/process edits. Approval reruns path containment, injection scan, size/schema, and requested-capability syntax checks; scanner refusal remains independent of human approval. Rejection changes no active file. Supporting-file removal moves content into `skill-write-removed`; deletion uses the existing reversible skill archive. Resolved proposals survive under `_resolved`; redacted JSONL receipts retain id/action/skill/session/reason/decision/timestamps/result hash without skill content. Executed isolated real path: enabled approval; real write_skill staged create; CLI pending/diff/approve; active file appeared; real skill_manage staged patch; direct operator edit changed base; approval failed stale; reject succeeded; skill_manage staged supporting-file write; approve created file; queue emptied; audit contained approved:create, rejected:patch, approved:write_file and no body text. Focused queue/tool/background/CLI/TUI/settings tests: 126 passed. Full suite: 12,858 passed, 3 skipped, 0 failed; TypeScript, touched lint, Docusaurus production build, 30-scenario use-case validation, 1,188-card validation, and diff checks pass. This proves local queue behavior; it does not make unreviewed third-party skill content safe."
+      ]
     },
     {
       "id": "HERMES-MEDIA-STUDIO-SKILL-PACK",
@@ -17635,12 +17635,12 @@
       "codex": "gpt-5.5",
       "lens": "reach",
       "updated": "2026-07-11",
+      "notes": "Shipped in ab572dcd. Real proofs: ffmpeg-local color brief produced playable H.264 640x360 2.0s MP4; project-image adapter produced 640x360 1.0s MP4. Receipts passed artifact bytes, video stream, dimensions, duration, and nonblank-frame checks. media_studio approval preview includes scenes/providers/$0 cost; vanta media-studio board created routed script/visual/audio/render/review Kanban dependencies. Full suite: 12,878 passed, 3 skipped, 0 failed.",
       "source": "Hermes bundled/optional creative catalogs 2026-07-11",
       "after": [
         "HERMES-PORTABLE-SKILL-PACKAGES",
         "HERMES-KANBAN-ROUTER"
-      ],
-      "notes": "Shipped in ab572dcd. Real proofs: ffmpeg-local color brief produced playable H.264 640x360 2.0s MP4; project-image adapter produced 640x360 1.0s MP4. Receipts passed artifact bytes, video stream, dimensions, duration, and nonblank-frame checks. media_studio approval preview includes scenes/providers/$0 cost; vanta media-studio board created routed script/visual/audio/render/review Kanban dependencies. Full suite: 12,878 passed, 3 skipped, 0 failed."
+      ]
     },
     {
       "id": "HERMES-PAYMENT-SKILL-PACK",
@@ -17656,12 +17656,12 @@
       "codex": "gpt-5.5",
       "lens": "infra",
       "updated": "2026-07-11",
+      "notes": "PARKED EXTERNAL PROOF 2026-07-11 only on external payment acceptance. Implemented strict environment:test transaction contracts, exact minor-unit totals, per-purchase/day/month caps, expiry, replay refusal, concurrent ledger reservations, mode-0600 redacted receipts, provider-output allowlisting, scrubbed child environments, Stripe Link external-approval enforcement, bounded HTTP 402 parsing/validation, payment_transaction tool, and vanta payments preview|execute|receipts. Fresh approvals cannot be auto-approved or persisted; CLI approval must equal the transaction ID. Production payment CLIs are unreachable unless explicit test wrappers are configured. Stripe Projects now runs in a mode-0700 temporary workspace, requires the generated .env key set to exactly equal approved vault aliases, removes plaintext before success, pipes values into macOS Keychain through stdin, atomically registers only Keychain references, and rolls back writes on failure. A real child-process fixture executed init/add, generated two credentials, vaulted both without argv/manifest leakage, and removed the workspace. The real Vanta Link CLI fixture also passed exact-ID approval -> reserved -> spend_approved -> authorized receipt with replay refusal. Full suite: 12,967 passed, 3 skipped, 0 failed across 4,737 suites; TypeScript, 4-file size gate, npm audit (0 vulnerabilities), 30-scenario use-case validation, and Docusaurus production build pass. This proves Vanta orchestration, vault-only provisioning, and test-adapter isolation, NOT live payment. Read-only host check: Stripe CLI 1.31.1 is installed, but its Projects plugin is absent; link-cli, Keychain opt-in, test wrappers, and an MPP test URL are unconfigured. Remaining done-criterion blockers: live Stripe Link sandbox/test receipt and live paid MPP endpoint receipt; a live Stripe Projects account is also unverified but no longer a local implementation blocker. Real money stays disabled.",
       "source": "Hermes optional payments catalog 2026-07-11",
       "after": [
         "HERMES-PORTABLE-SKILL-PACKAGES",
         "HERMES-VAULT-SECRETS-ROTATION"
       ],
-      "notes": "PARKED EXTERNAL PROOF 2026-07-11 only on external payment acceptance. Implemented strict environment:test transaction contracts, exact minor-unit totals, per-purchase/day/month caps, expiry, replay refusal, concurrent ledger reservations, mode-0600 redacted receipts, provider-output allowlisting, scrubbed child environments, Stripe Link external-approval enforcement, bounded HTTP 402 parsing/validation, payment_transaction tool, and vanta payments preview|execute|receipts. Fresh approvals cannot be auto-approved or persisted; CLI approval must equal the transaction ID. Production payment CLIs are unreachable unless explicit test wrappers are configured. Stripe Projects now runs in a mode-0700 temporary workspace, requires the generated .env key set to exactly equal approved vault aliases, removes plaintext before success, pipes values into macOS Keychain through stdin, atomically registers only Keychain references, and rolls back writes on failure. A real child-process fixture executed init/add, generated two credentials, vaulted both without argv/manifest leakage, and removed the workspace. The real Vanta Link CLI fixture also passed exact-ID approval -> reserved -> spend_approved -> authorized receipt with replay refusal. Full suite: 12,967 passed, 3 skipped, 0 failed across 4,737 suites; TypeScript, 4-file size gate, npm audit (0 vulnerabilities), 30-scenario use-case validation, and Docusaurus production build pass. This proves Vanta orchestration, vault-only provisioning, and test-adapter isolation, NOT live payment. Read-only host check: Stripe CLI 1.31.1 is installed, but its Projects plugin is absent; link-cli, Keychain opt-in, test wrappers, and an MPP test URL are unconfigured. Remaining done-criterion blockers: live Stripe Link sandbox/test receipt and live paid MPP endpoint receipt; a live Stripe Projects account is also unverified but no longer a local implementation blocker. Real money stays disabled.",
       "parkedReason": "external proof"
     },
     {
@@ -17678,12 +17678,12 @@
       "codex": "gpt-5.5",
       "lens": "reach",
       "updated": "2026-07-11",
+      "notes": "PARKED EXTERNAL PROOF 2026-07-11 on one external acceptance path. Implemented strict myshopify/version/vault/scope profiles; fixed bounded products/orders/inventory documents; order reads omit customer name/email/phone/address/payment fields; vault token resolution uses exact shopify:<store>:read|write scopes; transport fixes HTTPS production endpoints, caps responses at 1 MiB, and never returns raw headers/provider errors. Typed product_update and inventory_set plans enforce expiry, scopes, exact preview, fresh non-cacheable approval, UUID idempotency, replay lock, Shopify userErrors stop, separate readback verification, and mode-0600 hash/object-ID receipts without credentials or customer data. Inventory uses Shopify's @idempotent directive. Added shopify_operations plus vanta shopify read|preview|apply|receipts. Executed a real local HTTP server fixture proving token-only request headers, bounded order read, typed mutation, userErrors stop, and a second verification request. Full suite: 12,929 passed, 3 skipped, 0 failed; TypeScript, 8-file size gate, npm audit (0 vulnerabilities), 30-scenario use-case validation, and Docusaurus build pass. Missing external proof: no SHOPIFY_DEV_TOKEN vault alias is configured, so a real development-store read plus approved verified mutation could not be executed. Checkout/returns that move money remain outside this child and depend on the payment card.",
       "source": "Hermes Shopify skill plus Shopify Admin GraphQL documentation 2026-07-11",
       "after": [
         "HERMES-PORTABLE-SKILL-PACKAGES",
         "HERMES-VAULT-SECRETS-ROTATION"
       ],
-      "notes": "PARKED EXTERNAL PROOF 2026-07-11 on one external acceptance path. Implemented strict myshopify/version/vault/scope profiles; fixed bounded products/orders/inventory documents; order reads omit customer name/email/phone/address/payment fields; vault token resolution uses exact shopify:<store>:read|write scopes; transport fixes HTTPS production endpoints, caps responses at 1 MiB, and never returns raw headers/provider errors. Typed product_update and inventory_set plans enforce expiry, scopes, exact preview, fresh non-cacheable approval, UUID idempotency, replay lock, Shopify userErrors stop, separate readback verification, and mode-0600 hash/object-ID receipts without credentials or customer data. Inventory uses Shopify's @idempotent directive. Added shopify_operations plus vanta shopify read|preview|apply|receipts. Executed a real local HTTP server fixture proving token-only request headers, bounded order read, typed mutation, userErrors stop, and a second verification request. Full suite: 12,929 passed, 3 skipped, 0 failed; TypeScript, 8-file size gate, npm audit (0 vulnerabilities), 30-scenario use-case validation, and Docusaurus build pass. Missing external proof: no SHOPIFY_DEV_TOKEN vault alias is configured, so a real development-store read plus approved verified mutation could not be executed. Checkout/returns that move money remain outside this child and depend on the payment card.",
       "parkedReason": "external proof"
     },
     {
@@ -17700,12 +17700,12 @@
       "codex": "gpt-5.5",
       "lens": "reach",
       "updated": "2026-07-11",
+      "notes": "PARKED EXTERNAL PROOF 2026-07-11 only on live Twilio acceptance. Implemented strict environment:test Twilio profiles and provider-neutral number/SMS/call contracts with E.164 target, purpose, consent source/timestamps, allowed window, expiry, scope, UUID idempotency, bounded call duration, explicit recording/disclosure choice, callback URL, and retention. Reused the shipped SMS buildSmsForm path; added safe number search, exact number provisioning, generated XML-escaped TwiML, progress/recording callbacks, fresh non-cacheable approval, exact CLI action-ID confirmation, replay lock, and test API base restricted before credential resolution to localhost or Twilio-owned hosts. Authenticated callback service verifies the full URL/all fields using Twilio's HMAC-SHA1 algorithm and constant-time compare; test matches Twilio's published vector. Message/call/recording events correlate by account/provider ID and terminal states survive late out-of-order events. Mode-0600 receipts hash recipient/purpose/content. `vanta telephony ingress` now mounts a bounded 64 KiB form-only /twilio listener with fixed HTTPS public signature URL; serialized retention deletes due provider recordings through the scoped voice credential before pruning local receipts and preserves retry evidence on provider failure. Added telephony_workflow plus vanta telephony search|preview|execute|receipts|prune|ingress. Real local HTTP fixtures executed number search, SMS, call, number-provision, ingress, callback, recording-delete, and failed-retention paths while proving request-only Basic Auth and redacted outputs. Full suite: 12,961 passed, 3 skipped, 0 failed; TypeScript, 8-file size gate, npm audit (0 vulnerabilities), 30-scenario use-case validation, and Docusaurus build pass. Remaining external proof: no TWILIO_TEST_TOKEN vault alias or VANTA_TELEPHONY_TEST_API_BASE is configured, so the live Twilio test-number/SMS/call/callback/recording-retention receipt cannot run. Vapi/Bland remain optional follow-ups behind the shared contract.",
       "source": "Hermes telephony skill plus Twilio Voice/Numbers documentation 2026-07-11",
       "after": [
         "HERMES-PORTABLE-SKILL-PACKAGES",
         "HERMES-VAULT-SECRETS-ROTATION"
       ],
-      "notes": "PARKED EXTERNAL PROOF 2026-07-11 only on live Twilio acceptance. Implemented strict environment:test Twilio profiles and provider-neutral number/SMS/call contracts with E.164 target, purpose, consent source/timestamps, allowed window, expiry, scope, UUID idempotency, bounded call duration, explicit recording/disclosure choice, callback URL, and retention. Reused the shipped SMS buildSmsForm path; added safe number search, exact number provisioning, generated XML-escaped TwiML, progress/recording callbacks, fresh non-cacheable approval, exact CLI action-ID confirmation, replay lock, and test API base restricted before credential resolution to localhost or Twilio-owned hosts. Authenticated callback service verifies the full URL/all fields using Twilio's HMAC-SHA1 algorithm and constant-time compare; test matches Twilio's published vector. Message/call/recording events correlate by account/provider ID and terminal states survive late out-of-order events. Mode-0600 receipts hash recipient/purpose/content. `vanta telephony ingress` now mounts a bounded 64 KiB form-only /twilio listener with fixed HTTPS public signature URL; serialized retention deletes due provider recordings through the scoped voice credential before pruning local receipts and preserves retry evidence on provider failure. Added telephony_workflow plus vanta telephony search|preview|execute|receipts|prune|ingress. Real local HTTP fixtures executed number search, SMS, call, number-provision, ingress, callback, recording-delete, and failed-retention paths while proving request-only Basic Auth and redacted outputs. Full suite: 12,961 passed, 3 skipped, 0 failed; TypeScript, 8-file size gate, npm audit (0 vulnerabilities), 30-scenario use-case validation, and Docusaurus build pass. Remaining external proof: no TWILIO_TEST_TOKEN vault alias or VANTA_TELEPHONY_TEST_API_BASE is configured, so the live Twilio test-number/SMS/call/callback/recording-retention receipt cannot run. Vapi/Bland remain optional follow-ups behind the shared contract.",
       "parkedReason": "external proof"
     },
     {
@@ -17722,6 +17722,7 @@
       "codex": "gpt-5.5",
       "lens": "reach",
       "updated": "2026-07-11",
+      "notes": "PARKED EXTERNAL RELEASE GATE 2026-07-11. Shopify, telephony, and payment local implementations are complete, but their live external acceptance receipts remain unexecuted. Resume this parent only after those three parked children ship. Reuse the existing Twilio SMS transport, but do not treat channel delivery as telephony workflow proof.",
       "source": "Hermes optional productivity catalog 2026-07-11",
       "after": [
         "HERMES-PORTABLE-SKILL-PACKAGES",
@@ -17729,7 +17730,6 @@
         "HERMES-SHOPIFY-OPERATIONS",
         "HERMES-TELEPHONY-CONSENT-LIFECYCLE"
       ],
-      "notes": "PARKED EXTERNAL RELEASE GATE 2026-07-11. Shopify, telephony, and payment local implementations are complete, but their live external acceptance receipts remain unexecuted. Resume this parent only after those three parked children ship. Reuse the existing Twilio SMS transport, but do not treat channel delivery as telephony workflow proof.",
       "parkedReason": "external proof"
     },
     {
@@ -17746,8 +17746,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-07-11",
-      "source": "eval/use-cases/hermes-community-v1.json#dev-converse-before-act",
-      "notes": "Captured from executed receipt 09-49-48-049Z. The first turn correctly asked one outcome-defining question and stopped with zero forbidden side effects, but a complete converse-before-act job requires the operator answer and plan-approval turn in the same session. Build this as a harness extension, not by weakening the agent's choice wall.\n\nSHIPPED 2026-07-11: added a pure scripted-turn orchestrator, production persistent-conversation adapter, and `vanta story-eval --manifest --id --out` command. Manifests declare `firstTurn` plus ordered operator replies, boundary type, required semantic checks, and per-turn forbidden patterns. Each `send()` resolves before the next reply; no TTY/prompt parsing is used. Receipts retain redacted input/output, tools, stop reason, iterations, missing checks, guard hits, and boundary verdict per turn. Kernel approval is granted only when the active scripted reply begins with explicit approve; brain learning is frozen during the eval. The root `scripts/usecase-eval.mjs` delegates scripted scenarios to this command and merges the receipt into normal history. `--verify-receipt` can recompute multi-turn verdicts from saved outputs after contract calibration without rerunning the model. Deterministic tests cover clarification, approval, resume, reject, guard failure, CLI receipt writing, and retro-verification. Real path: `dev-converse-before-act` ran one persistent four-turn session (clarification -> scope clarification -> approval wall -> reject), exited cleanly, used no file/shell tools, changed no files, and the saved 12-37-41-278Z receipt re-verified with all four boundaries and guards passing."
+      "notes": "Captured from executed receipt 09-49-48-049Z. The first turn correctly asked one outcome-defining question and stopped with zero forbidden side effects, but a complete converse-before-act job requires the operator answer and plan-approval turn in the same session. Build this as a harness extension, not by weakening the agent's choice wall.\n\nSHIPPED 2026-07-11: added a pure scripted-turn orchestrator, production persistent-conversation adapter, and `vanta story-eval --manifest --id --out` command. Manifests declare `firstTurn` plus ordered operator replies, boundary type, required semantic checks, and per-turn forbidden patterns. Each `send()` resolves before the next reply; no TTY/prompt parsing is used. Receipts retain redacted input/output, tools, stop reason, iterations, missing checks, guard hits, and boundary verdict per turn. Kernel approval is granted only when the active scripted reply begins with explicit approve; brain learning is frozen during the eval. The root `scripts/usecase-eval.mjs` delegates scripted scenarios to this command and merges the receipt into normal history. `--verify-receipt` can recompute multi-turn verdicts from saved outputs after contract calibration without rerunning the model. Deterministic tests cover clarification, approval, resume, reject, guard failure, CLI receipt writing, and retro-verification. Real path: `dev-converse-before-act` ran one persistent four-turn session (clarification -> scope clarification -> approval wall -> reject), exited cleanly, used no file/shell tools, changed no files, and the saved 12-37-41-278Z receipt re-verified with all four boundaries and guards passing.",
+      "source": "eval/use-cases/hermes-community-v1.json#dev-converse-before-act"
     },
     {
       "id": "ROADMAP-LIGHT-MODE",
@@ -17755,16 +17755,16 @@
       "title": "Roadmap light mode - persisted system-aware theme control",
       "status": "shipped",
       "size": "S",
+      "summary": "Give the generated roadmap a legible light palette without losing its existing dark operator view.",
+      "done": "The board follows the system theme on first load; a keyboard-focusable icon button switches light and dark modes; the choice persists locally; generated file and served views share the behavior; desktop and narrow layouts have no horizontal overflow; print hides controls.",
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
       "updated": "2026-07-11",
-      "source": "operator-request-2026-07-11",
-      "summary": "Give the generated roadmap a legible light palette without losing its existing dark operator view.",
-      "done": "The board follows the system theme on first load; a keyboard-focusable icon button switches light and dark modes; the choice persists locally; generated file and served views share the behavior; desktop and narrow layouts have no horizontal overflow; print hides controls.",
-      "notes": "SHIPPED 2026-07-11. Added an accessible sun/moon button, OS-preference bootstrap, local persistence, semantic light-surface overrides, visible focus states, and print rules to the shared roadmap renderer. Focused render/build tests: 25 passed. Headless Chrome verified both themes at desktop/mobile widths; DevTools executed dark-to-light persistence at a true 390px viewport with zero horizontal overflow and the theme button visible."
+      "notes": "SHIPPED 2026-07-11. Added an accessible sun/moon button, OS-preference bootstrap, local persistence, semantic light-surface overrides, visible focus states, and print rules to the shared roadmap renderer. Focused render/build tests: 25 passed. Headless Chrome verified both themes at desktop/mobile widths; DevTools executed dark-to-light persistence at a true 390px viewport with zero horizontal overflow and the theme button visible.",
+      "source": "operator-request-2026-07-11"
     },
     {
       "id": "ROADMAP-EXTERNAL-PROOF-GUIDANCE",
@@ -17772,16 +17772,16 @@
       "title": "External proof roadmap guidance - classify and expose exact revival steps",
       "status": "shipped",
       "size": "S",
+      "summary": "Make every remaining external acceptance gate explicit instead of hiding it behind a generic review state.",
+      "done": "All parked external cards use the external-proof reason; `vanta roadmap unblock` names the required account or host, exact command path, and release receipt for each; tests cover every specialized plan; docs match the parked state.",
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
       "updated": "2026-07-11",
-      "source": "roadmap-completion-audit-2026-07-11",
-      "summary": "Make every remaining external acceptance gate explicit instead of hiding it behind a generic review state.",
-      "done": "All parked external cards use the external-proof reason; `vanta roadmap unblock` names the required account or host, exact command path, and release receipt for each; tests cover every specialized plan; docs match the parked state.",
-      "notes": "SHIPPED 2026-07-11. Rechecked the current host: no Teams receipt, Modal app/secret or Telegram credentials, Android device, Excel host, or Windows VM is available. Reclassified six Hermes/Mercury cards from review to external proof and added exact spreadsheet, Windows service, Stripe/MPP, Shopify, Twilio, and aggregate release steps. Focused unblock tests, TypeScript, and size gates pass."
+      "notes": "SHIPPED 2026-07-11. Rechecked the current host: no Teams receipt, Modal app/secret or Telegram credentials, Android device, Excel host, or Windows VM is available. Reclassified six Hermes/Mercury cards from review to external proof and added exact spreadsheet, Windows service, Stripe/MPP, Shopify, Twilio, and aggregate release steps. Focused unblock tests, TypeScript, and size gates pass.",
+      "source": "roadmap-completion-audit-2026-07-11"
     },
     {
       "id": "ROADMAP-EXTERNAL-PROOF-STATUS",
@@ -17789,16 +17789,16 @@
       "title": "External proof readiness - one release status for all parked gates",
       "status": "shipped",
       "size": "M",
+      "summary": "Replace repeated manual audits with one machine-readable readiness report over every remaining external proof.",
+      "done": "`vanta roadmap proof-status [--json]` evaluates all ten external cards from canonical receipts, returns nonzero while any gate is missing, rejects fixture-only provider ledgers without an external acceptance packet, prevents spreadsheet receipt path traversal, and reports exact next actions.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "infra",
       "updated": "2026-07-11",
-      "source": "roadmap-completion-audit-2026-07-11",
-      "summary": "Replace repeated manual audits with one machine-readable readiness report over every remaining external proof.",
-      "done": "`vanta roadmap proof-status [--json]` evaluates all ten external cards from canonical receipts, returns nonzero while any gate is missing, rejects fixture-only provider ledgers without an external acceptance packet, prevents spreadsheet receipt path traversal, and reports exact next actions.",
-      "notes": "SHIPPED 2026-07-11. Added a ten-gate aggregate over Modal/Telegram, Teams, physical Termux, Run Anywhere, Excel/Sheets, Windows service, Stripe Link/MPP, Shopify, Twilio, and the commerce parent. Provider candidates require a versioned external-test packet binding exact receipt event IDs and a redacted evidence hash. The real current-repo command exits 1 at 0/10 and correctly labels existing local Stripe Link events as candidates with the external packet missing. Focused evaluator/CLI tests, TypeScript, and size/complexity gates pass."
+      "notes": "SHIPPED 2026-07-11. Added a ten-gate aggregate over Modal/Telegram, Teams, physical Termux, Run Anywhere, Excel/Sheets, Windows service, Stripe Link/MPP, Shopify, Twilio, and the commerce parent. Provider candidates require a versioned external-test packet binding exact receipt event IDs and a redacted evidence hash. The real current-repo command exits 1 at 0/10 and correctly labels existing local Stripe Link events as candidates with the external packet missing. Focused evaluator/CLI tests, TypeScript, and size/complexity gates pass.",
+      "source": "roadmap-completion-audit-2026-07-11"
     },
     {
       "id": "HOOK-FILE-WATCH-DRAIN-CLOSE",
@@ -17806,16 +17806,16 @@
       "title": "FileChanged watcher drain-on-close - no hook writes after teardown",
       "status": "shipped",
       "size": "S",
+      "summary": "Make session shutdown wait for already-dispatched FileChanged hooks after stopping new filesystem events.",
+      "done": "The watcher close contract is awaitable; it closes the OS watcher, drains every in-flight hook with settled results, and interactive/one-shot callers await it; full-suite temporary workspace teardown no longer races a hook write.",
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
       "updated": "2026-07-11",
-      "source": "full-suite-regression-2026-07-11",
-      "summary": "Make session shutdown wait for already-dispatched FileChanged hooks after stopping new filesystem events.",
-      "done": "The watcher close contract is awaitable; it closes the OS watcher, drains every in-flight hook with settled results, and interactive/one-shot callers await it; full-suite temporary workspace teardown no longer races a hook write.",
-      "notes": "SHIPPED 2026-07-11. The current-HEAD full suite exposed ENOTEMPTY in FileChanged hook teardown. The watcher now tracks dispatched promises and close awaits Promise.allSettled after watcher.close. Interactive and one-shot lifecycles await shutdown; TUI cleanup starts the async drain. Hook suites (188 tests), focused file-watch/one-shot tests, TypeScript, and touched-file size gates pass. Full-suite rerun remains the release check."
+      "notes": "SHIPPED 2026-07-11. The current-HEAD full suite exposed ENOTEMPTY in FileChanged hook teardown. The watcher now tracks dispatched promises and close awaits Promise.allSettled after watcher.close. Interactive and one-shot lifecycles await shutdown; TUI cleanup starts the async drain. Hook suites (188 tests), focused file-watch/one-shot tests, TypeScript, and touched-file size gates pass. Full-suite rerun remains the release check.",
+      "source": "full-suite-regression-2026-07-11"
     },
     {
       "id": "STORE-GIT-MAINTENANCE-SETTLE",
@@ -17823,16 +17823,16 @@
       "title": "Local store Git commits settle before teardown - disable invocation auto-maintenance",
       "status": "shipped",
       "size": "S",
+      "summary": "Prevent Git auto-GC or maintenance from mutating a Vanta home after commitInHome has returned.",
+      "done": "Vanta home commits disable auto-GC and auto-maintenance for that invocation; bundled library installs can be removed immediately after return without ENOTEMPTY; explicit/manual maintenance remains available.",
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
       "updated": "2026-07-11",
-      "source": "full-suite-regression-2026-07-11",
-      "summary": "Prevent Git auto-GC or maintenance from mutating a Vanta home after commitInHome has returned.",
-      "done": "Vanta home commits disable auto-GC and auto-maintenance for that invocation; bundled library installs can be removed immediately after return without ENOTEMPTY; explicit/manual maintenance remains available.",
-      "notes": "SHIPPED 2026-07-11. A current-HEAD full suite exposed Git background maintenance racing temporary VANTA_HOME removal after a 169-skill batch commit. commitInHome now invokes git with gc.auto=0 and maintenance.auto=false. The real bundled-library plus store suite passed three consecutive install/teardown runs; TypeScript and size gates pass. Full-suite rerun remains the release check."
+      "notes": "SHIPPED 2026-07-11. A current-HEAD full suite exposed Git background maintenance racing temporary VANTA_HOME removal after a 169-skill batch commit. commitInHome now invokes git with gc.auto=0 and maintenance.auto=false. The real bundled-library plus store suite passed three consecutive install/teardown runs; TypeScript and size gates pass. Full-suite rerun remains the release check.",
+      "source": "full-suite-regression-2026-07-11"
     },
     {
       "id": "HERMES-DELTA-EFFECT-DISPOSITION",
@@ -17964,8 +17964,8 @@
       "codex": "gpt-5.4",
       "lens": "selfhood",
       "updated": "2026-07-12",
-      "source": "operator-request-2026-07-12",
-      "notes": "SHIPPED 2026-07-12. /prompt list|show|use|reset loads project .vanta/agents, compatible .claude/agents, then Vanta-home agents. Marker-bounded replacement preserves the base prompt and other live additions; empty, oversized, multiline-name, and reserved-marker definitions are refused. Focused command/preset tests and the full TypeScript suite pass."
+      "notes": "SHIPPED 2026-07-12. /prompt list|show|use|reset loads project .vanta/agents, compatible .claude/agents, then Vanta-home agents. Marker-bounded replacement preserves the base prompt and other live additions; empty, oversized, multiline-name, and reserved-marker definitions are refused. Focused command/preset tests and the full TypeScript suite pass.",
+      "source": "operator-request-2026-07-12"
     },
     {
       "id": "PROMPT-ROUTED-AGENT-SPAWN",
@@ -17981,11 +17981,65 @@
       "codex": "gpt-5.5",
       "lens": "agent-loop",
       "updated": "2026-07-12",
-      "source": "operator-request-2026-07-12",
       "notes": "SHIPPED 2026-07-12. delegate accepts agent_type and resolves the same built-in/custom definitions. Prompt overlays remain subordinate to the Vanta base prompt; tool declarations only narrow the present registry, including tools mounted later by MCP; explicit delegate.model overrides a definition default. An executed spawn test inspected the persisted sidechain system message and agentType, focused routing tests pass, and the final full suite passed 1324 files / 13004 tests.",
+      "source": "operator-request-2026-07-12",
       "after": [
         "SYSTEM-PROMPT-PRESETS"
       ]
+    },
+    {
+      "id": "NEEDS-HUMAN-QUEUE",
+      "track": "Operator",
+      "title": "Needs-human queue — one actionable ticket instead of repeated failure",
+      "status": "shipped",
+      "size": "M",
+      "summary": "When Vanta reaches a missing-tool, repeated-failure, or explicit human-decision boundary, create or update one deduplicated internal ticket with the reason and next action rather than retrying or losing the blocker.",
+      "done": "A repeated-failure run creates exactly one unread needs-human ticket; the same blocker increments that ticket instead of duplicating it; the agent can explicitly queue an unclear decision; and the operator can list and resolve the queue from the CLI.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4",
+      "lens": "agent-loop",
+      "updated": "2026-07-12",
+      "source": "Jamon agentic-repo maintenance thread",
+      "notes": "SHIPPED 2026-07-12. The shared conversation path detects explicit missing-tool, permission, decision, and repeated-failure boundaries; fingerprints the blocker; and creates or updates one unread operator ticket with a reason and next action. The tickets tool can queue a needs-human decision explicitly, while vanta maintenance queue lists and resolves it. Executed proof: a real conversation turn created one ticket, repeated occurrence deduplicated it, and ordinary questions did not queue. Focused tests and the final full suite passed 1,338 files / 13,055 tests / 3 skipped."
+    },
+    {
+      "id": "DOC-ROUTER-HEALTH",
+      "track": "Memory",
+      "title": "Documentation router health — measure loads, use, staleness, and contradictions",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Context documentation currently loads without an evidence trail. Record what is loaded or imported, track later references, flag stale and conflicting instructions, and surface never-consulted files before any self-heal rewrites them.",
+      "done": "Real prompt assembly records top-level and imported context files; completed turns record file references; vanta maintenance docs reports loaded, referenced, never-consulted, stale, missing, and contradictory documents with evidence and no writes.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4",
+      "lens": "memory",
+      "updated": "2026-07-12",
+      "source": "Jamon agentic-repo maintenance thread",
+      "notes": "SHIPPED 2026-07-12. Prompt assembly records top-level and recursively imported context documents, completed turns record explicit document references, and vanta maintenance docs reports loads, references, stale and never-consulted files, missing imports, and exact opposite instructions without rewriting source documents. Executed proof: a real AGENTS.md to docs/INDEX.md prompt import and five conversation turns produced measured load/reference evidence. Focused tests and the final full suite passed 1,338 files / 13,055 tests / 3 skipped."
+    },
+    {
+      "id": "MAINTENANCE-BUDGET",
+      "track": "Harness",
+      "title": "Maintenance budget — keep meta-work from competing with delivery",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Record each turn as delivery or maintenance with elapsed time and tokens, report the ratio over a selected window, and raise one deduplicated needs-human ticket when maintenance dominates a meaningful sample.",
+      "done": "Each real agent turn records work class, elapsed time, token use, and outcome; vanta maintenance budget reports delivery versus maintenance; override and threshold controls are documented; and a >=5-turn over-threshold fixture creates one actionable warning ticket without duplicates.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4",
+      "lens": "infra",
+      "updated": "2026-07-12",
+      "source": "Jamon agentic-repo maintenance thread",
+      "after": [
+        "NEEDS-HUMAN-QUEUE"
+      ],
+      "notes": "SHIPPED 2026-07-12. Every identified real agent turn records a task hash, conservative delivery/maintenance class, elapsed time, tokens, tool iterations, and stop reason. vanta maintenance budget exposes text/JSON reports, threshold and time-window controls, CI enforcement, and VANTA_WORK_CLASS overrides. Executed proof: five real maintenance turns crossed the 60 percent budget and created exactly one deduplicated needs-human ticket with a concrete next action. TypeScript, file-size limits, Docusaurus production build, focused tests, and the full suite passed 1,338 files / 13,055 tests / 3 skipped."
     }
   ]
 }

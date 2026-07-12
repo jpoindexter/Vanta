@@ -1650,7 +1650,7 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 
 ### `ticket`
 
-First-class issue tracker above goals, persisted in .vanta/tickets.json. action:create &#123;title, status?, labels?&#125; opens an issue (default status open, inbox unread). action:comment &#123;id, text&#125; appends a comment. action:attach &#123;id, name, path&#125; records an attachment reference. action:link &#123;id, link:goal|parent|project, target&#125; links the issue to a goal/parent ticket/project. action:inbox &#123;id, inbox:unread|read|archived?, status?&#125; sets inbox and/or status (omit both to show the ticket). action:list lists every ticket; action:board renders the issue board grouped by status.
+First-class issue tracker above goals, persisted in .vanta/tickets.json. action:create &#123;title, status?, labels?&#125; opens an issue (default status open, inbox unread). action:needs_human &#123;title, reason, next&#125; queues one deduplicated human decision instead of retrying. action:comment &#123;id, text&#125; appends a comment. action:attach &#123;id, name, path&#125; records an attachment reference. action:link &#123;id, link:goal|parent|project, target&#125; links the issue to a goal/parent ticket/project. action:inbox &#123;id, inbox:unread|read|archived?, status?&#125; sets inbox and/or status (omit both to show the ticket). action:list lists every ticket; action:board renders the issue board grouped by status.
 
 | Param | Type | Required | Description |
 |---|---|---|---|
@@ -1660,6 +1660,8 @@ First-class issue tracker above goals, persisted in .vanta/tickets.json. action:
 | `status` | string | no | open\|in_progress\|done\|closed (create/inbox) |
 | `inbox` | string | no | unread\|read\|archived (inbox) |
 | `text` | string | no | comment body (comment) |
+| `reason` | string | no | why human input is required (needs_human) |
+| `next` | string | no | one concrete operator action that unblocks the work (needs_human) |
 | `name` | string | no | attachment display name (attach) |
 | `path` | string | no | attachment path/reference (attach) |
 | `link` | string | no | link kind (link) |

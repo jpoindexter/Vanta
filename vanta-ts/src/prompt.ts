@@ -64,6 +64,8 @@ export type BuildPromptOptions = {
   gatewayPlatform?: string;
   /** Operator-selected role overlay. Base safety/kernel instructions remain intact. */
   promptPreset?: PromptPreset;
+  /** Best-effort evidence sink for project-context loads and imports. */
+  contextObserver?: (event: { kind: "loaded" | "missing" | "cycle"; path: string; source: string }) => void | Promise<void>;
 };
 
 /** What each prompt tier reads to render itself. */
@@ -91,7 +93,7 @@ export const PROMPT_TIERS: PromptTier[] = [
   },
   { id: "brain", render: ({ opts }) => brainTier(opts.brain) },
   { id: "skills", render: ({ opts }) => skillsTier(opts.skills) },
-  { id: "context", render: ({ opts }) => (opts.loadContext === false ? "" : contextTier(opts.root)) },
+  { id: "context", render: ({ opts }) => (opts.loadContext === false ? "" : contextTier(opts.root, opts.contextObserver)) },
   { id: "errors", render: ({ opts }) => errorsLogTier(opts.errorsLog) },
   { id: "program", render: ({ opts }) => programTier(opts.program) },
   { id: "git", render: ({ opts }) => (opts.gitInstructions?.trim() ? opts.gitInstructions.trim() : "") },

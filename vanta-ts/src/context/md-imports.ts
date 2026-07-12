@@ -20,6 +20,8 @@ export type ResolveOpts = {
   seen?: Set<string>;
   /** Current recursion depth (internal). */
   depth?: number;
+  /** Evidence hook for documentation-router health. */
+  onResolve?: (event: { kind: "loaded" | "missing" | "cycle"; path: string }) => void | Promise<void>;
 };
 
 /** Same path char class the @-context picker uses: words, `.`, `/`, `-`. */
@@ -48,7 +50,7 @@ export async function resolveImports(text: string, readFile: ReadFile, opts: Res
   if (matches.length === 0) return text;
 
   const replacements = await Promise.all(
-    matches.map((m) => expandOne(m[1]!, m[0]!, readFile, { baseDir: opts.baseDir, maxHops, seen, depth })),
+    matches.map((m) => expandOne(m[1]!, m[0]!, readFile, { baseDir: opts.baseDir, maxHops, seen, depth, onResolve: opts.onResolve })),
   );
 
   let out = "";
@@ -66,17 +68,25 @@ async function expandOne(
   path: string,
   token: string,
   readFile: ReadFile,
-  ctx: { baseDir: string; maxHops: number; seen: Set<string>; depth: number },
+  ctx: { baseDir: string; maxHops: number; seen: Set<string>; depth: number; onResolve?: ResolveOpts["onResolve"] },
 ): Promise<string> {
   const abs = toAbsolute(path, ctx.baseDir);
-  if (ctx.seen.has(abs)) return token; // cycle — skip, leave the token in place
+  if (ctx.seen.has(abs)) {
+    await ctx.onResolve?.({ kind: "cycle", path: abs });
+    return token;
+  }
   const content = await readFile(abs);
-  if (content === null) return token; // missing/unreadable — skip
+  if (content === null) {
+    await ctx.onResolve?.({ kind: "missing", path: abs });
+    return token;
+  }
+  await ctx.onResolve?.({ kind: "loaded", path: abs });
   const nextSeen = new Set(ctx.seen).add(abs);
   return resolveImports(content, readFile, {
     baseDir: dirname(abs),
     maxHops: ctx.maxHops,
     seen: nextSeen,
     depth: ctx.depth + 1,
+    onResolve: ctx.onResolve,
   });
 }

@@ -47,6 +47,7 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'operator-systems',
+        'maintenance-health',
         'profiles',
         'self-improvement',
         'sessions-and-continuity',

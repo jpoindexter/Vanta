@@ -18,6 +18,7 @@ const USAGE_LINES = [
       "       vanta marketing read <amplitude|customerio> [--fixture <json>]   read marketing connector data",
       "       vanta ambient-screen [enable|disable|status|tick]   opt-in screen/app context proposals",
       "       vanta harness-thickness [--no-record] | harness-thickness remove <file:line> --expected <text>   audit/prune harness bloat",
+      "       vanta maintenance [status|queue|resolve|docs|budget]   human blockers, documentation health, and meta-work budget",
       "       vanta kanban create <goal> | kanban swarm|status|digest [id]   decompose a goal into lanes + run/resume a local swarm",
       "       vanta lead \"<message>\" | lead list   turn lead-agent chat into tracked work objects",
       "       vanta deep-plan create|revise|approve|start   revisionable plan docs with approval gate",
