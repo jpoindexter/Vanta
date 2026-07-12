@@ -40,8 +40,8 @@ export function useDesktopData() {
     setCanvas(nextCanvas);
   }
 
-  async function setModel(provider: string, model: string) {
-    await api("/api/model", { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ provider, model }) });
+  async function setModel(provider: string, model: string, scope: "session" | "global" = "session") {
+    await api("/api/model", { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ provider, model, scope }) });
     setModelOpen(false);
     await refresh();
   }

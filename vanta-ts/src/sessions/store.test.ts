@@ -75,6 +75,13 @@ describe("session store", () => {
     expect(list[0]?.projectId).toBe("abc123def456");
   });
 
+  it("persists an optional session-scoped provider and model", async () => {
+    await saveSession("model-session", TRANSCRIPT, { env: env(), providerId: "ollama", modelId: "qwen2.5:14b" });
+    const loaded = await loadSession("model-session", env());
+    expect(loaded).toMatchObject({ providerId: "ollama", modelId: "qwen2.5:14b" });
+    expect((await listSessions(env()))[0]).toMatchObject({ providerId: "ollama", modelId: "qwen2.5:14b" });
+  });
+
   it("omits projectId when not provided (existing sessions still load)", async () => {
     await saveSession("20260620-130000", TRANSCRIPT, { env: env() });
     const loaded = await loadSession("20260620-130000", env());

@@ -27,6 +27,9 @@ export type ReplState = {
   sessionCost?: SessionCost;
   /** Current session model-effort setting; /effort mutates it live. */
   effortLevel?: EffortLevel;
+  /** Provider/model override owned by this session; absent means configured default. */
+  providerId?: string;
+  modelId?: string;
   /**
    * The goal the session is actively working toward — the footer's ◇ line reads
    * this, not the kernel ledger. A carried goal launches PAUSED (null here) so it

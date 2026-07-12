@@ -1,7 +1,7 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { ApprovalOverlay } from "./overlays.js";
+import { ApprovalOverlay, ModelPicker } from "./overlays.js";
 
 describe("ApprovalOverlay", () => {
   it("renders dedicated request context and all four decisions", () => {
@@ -31,5 +31,21 @@ describe("ApprovalOverlay", () => {
     expect(html).toContain("Always allow");
     expect(html).toContain("Deny");
     expect(html).toContain("Never allow");
+  });
+});
+
+describe("ModelPicker", () => {
+  it("defaults to session scope and exposes an explicit default action", () => {
+    const html = renderToStaticMarkup(
+      <ModelPicker
+        open
+        models={[{ id: "ollama", label: "Ollama", short: "Local", models: ["qwen"] }]}
+        onClose={vi.fn()}
+        onSelect={vi.fn()}
+      />,
+    );
+    expect(html).toContain("Models for this session");
+    expect(html).toContain("Local · qwen");
+    expect(html).toContain("Set as default");
   });
 });

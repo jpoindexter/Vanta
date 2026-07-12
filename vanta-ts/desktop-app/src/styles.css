@@ -127,6 +127,9 @@ summary span { color: var(--faint); }
 .palette button { text-align: left; }
 .model-grid { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
 .model-grid h2 { grid-column: 1 / -1; }
+.model-choice { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; min-width: 0; }
+.model-choice > button { min-width: 0; }
+.model-choice .model-default { font-size: 12px; padding-inline: 8px; color: var(--muted); }
 .approval { display: grid; gap: 12px; }
 .approval div { display: flex; justify-content: flex-end; gap: 8px; }
 .approval-subject { color: var(--text); font-weight: 700; }

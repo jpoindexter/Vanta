@@ -28,8 +28,8 @@ export type ModelSelection = {
  * catalog id (so "gpt-4o-mini" stays a model, "gemini" becomes a provider).
  * A tier keyword (opus|sonnet|haiku) in the model position resolves to a pinned
  * model id via env (VANTA_MODEL_<TIER>), else that tier's catalogued default.
- * `persistGlobal` is true — a typed switch should stick next launch, like the
- * picker's default. Returns null for an empty arg. Pure.
+ * `persistGlobal` defaults false: switching is session-scoped unless the caller
+ * explicitly requests `--global`. Returns null for an empty arg. Pure.
  */
 export function parseModelArg(
   arg: string,
@@ -42,9 +42,9 @@ export function parseModelArg(
   const head = providerById((tokens[0] ?? "").toLowerCase());
   if (head) {
     const model = tokens.slice(1).join(" ").trim() || head.defaultModel;
-    return { providerId: head.id, model: pinTier(model, env), persistGlobal: true };
+    return { providerId: head.id, model: pinTier(model, env), persistGlobal: false };
   }
-  return { providerId: currentProviderId, model: pinTier(trimmed, env), persistGlobal: true };
+  return { providerId: currentProviderId, model: pinTier(trimmed, env), persistGlobal: false };
 }
 
 /** Resolve a tier keyword to its pinned/default model id; pass any other model through unchanged. */

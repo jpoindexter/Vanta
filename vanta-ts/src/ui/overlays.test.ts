@@ -18,12 +18,13 @@ describe("overlay row builders", () => {
   });
 
   it("modelRows marks the current provider with ● and carries /model <id>", () => {
-    const rows = modelRows("openai");
+    const rows = modelRows("openai", "gpt-5");
     const openai = rows.find((r) => r.command === "/model openai");
     expect(openai).toBeTruthy();
     expect(openai!.mark).toBe("●"); // current marker, its own column
     const other = rows.find((r) => r.command !== "/model openai");
     expect(other!.mark).toBeUndefined(); // non-current rows carry no mark
+    expect(rows.at(-1)).toMatchObject({ label: "Set current as default", command: "/model --global openai gpt-5" });
   });
 
   it("PICKER_KINDS maps bare commands to overlay kinds", () => {

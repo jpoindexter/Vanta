@@ -12,6 +12,7 @@ import type { LLMProvider } from "../providers/interface.js";
 import { loadUserProviders } from "../providers/user-providers.js";
 import { providerOverrideEnv } from "../providers/override-env.js";
 import { upsertEnvMigratingLegacy, envPath } from "../setup.js";
+import { providerIdFor, resolveSessionModel } from "../sessions/model-scope.js";
 import { listRepoFiles } from "../term/at-context.js";
 import { resolveEventFormatter } from "../term/event-format.js";
 import { pushSseEvent, type SseClients } from "./session-state.js";
@@ -30,6 +31,8 @@ export type DesktopState = {
   root: string;
   sessionId?: string;
   sessionStarted?: string;
+  providerId?: string;
+  modelId?: string;
   currentEvents?: DesktopEvent[];
   pendingApproval?: PendingApproval;
   _sseSessionId?: string;
@@ -89,19 +92,21 @@ async function ensureDesktopConversation(state: DesktopState): Promise<Required<
     finally { state._setupPromise = undefined; }
   }
   if (!state.sessionId) { state.sessionId = newSessionId(); state.sessionStarted = new Date().toISOString(); }
+  state.providerId ??= providerIdFor(state.setup.provider, process.env);
+  state.modelId ??= state.setup.provider.modelId();
   if (!state.convo) attachConversation(state, state.setup);
   return state as Required<Pick<DesktopState, "setup" | "convo" | "root">> & DesktopState;
 }
 
 async function persistActiveSession(state: DesktopState): Promise<void> {
   if (!state.convo || !state.sessionId) return;
-  await saveSession(state.sessionId, state.convo.messages, { started: state.sessionStarted });
+  await saveSession(state.sessionId, state.convo.messages, { started: state.sessionStarted, providerId: state.providerId, modelId: state.modelId });
 }
 
 export async function handleStatus(state: DesktopState, res: http.ServerResponse): Promise<void> {
   const live = await ensureDesktopConversation(state);
   const goals = await live.setup.safety.getGoals().catch(() => live.setup.goals);
-  sendJson(res, 200, { kernel: "online", model: live.setup.provider.modelId(), provider: process.env.VANTA_PROVIDER ?? "openai", tools: live.setup.registry.list().length, sessionId: live.sessionId, goals: goals.filter((g) => g.status === "active") });
+  sendJson(res, 200, { kernel: "online", model: live.setup.provider.modelId(), provider: live.providerId ?? process.env.VANTA_PROVIDER ?? "openai", tools: live.setup.registry.list().length, sessionId: live.sessionId, goals: goals.filter((g) => g.status === "active") });
 }
 
 export async function handleSessions(res: http.ServerResponse): Promise<void> {
@@ -113,6 +118,8 @@ export async function handleNewSession(state: DesktopState, res: http.ServerResp
   state.setup = setup;
   state.sessionId = newSessionId();
   state.sessionStarted = new Date().toISOString();
+  state.providerId = providerIdFor(setup.provider, process.env);
+  state.modelId = setup.provider.modelId();
   attachConversation(state, setup);
   sendJson(res, 200, { id: state.sessionId });
 }
@@ -123,7 +130,11 @@ export async function handleOpenSession(state: DesktopState, req: http.IncomingM
   const session = id ? await loadSession(id, process.env) : null;
   if (!session) return sendJson(res, 404, { error: "session not found" });
   const setup = state.setup ?? await prepareRun(state.root, "desktop interface session");
+  const sessionProvider = resolveSessionModel(session, process.env);
+  if (sessionProvider) setup.provider = sessionProvider;
   state.setup = setup; state.sessionId = session.id; state.sessionStarted = session.started;
+  state.providerId = session.providerId ?? providerIdFor(setup.provider, process.env);
+  state.modelId = session.modelId ?? setup.provider.modelId();
   attachConversation(state, setup, { history: session.messages });
   sendJson(res, 200, { id: session.id, title: session.title, messages: session.messages.filter((m) => m.role !== "system") });
 }
@@ -192,20 +203,25 @@ export async function handleModels(res: http.ServerResponse): Promise<void> {
 }
 
 export async function handleSetModel(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  const body = await readJson(req) as { provider?: unknown; model?: unknown };
+  const body = await readJson(req) as { provider?: unknown; model?: unknown; scope?: unknown };
   const provider = typeof body.provider === "string" ? body.provider : "";
   const model = typeof body.model === "string" ? body.model.trim() : "";
+  const global = body.scope === "global";
   if (!provider) return sendJson(res, 400, { error: "provider is required" });
   try {
     const selection = resolveDesktopProviderSelection(process.env, provider, model || undefined);
-    const existing = existsSync(envPath(state.root)) ? await readFile(envPath(state.root), "utf8") : "";
-    await writeFile(envPath(state.root), upsertEnvMigratingLegacy(existing, { VANTA_PROVIDER: selection.provider, VANTA_MODEL: selection.model }), { mode: 0o600 });
-    process.env.VANTA_PROVIDER = selection.provider;
-    process.env.VANTA_MODEL = selection.model;
+    if (global) {
+      const existing = existsSync(envPath(state.root)) ? await readFile(envPath(state.root), "utf8") : "";
+      await writeFile(envPath(state.root), upsertEnvMigratingLegacy(existing, { VANTA_PROVIDER: selection.provider, VANTA_MODEL: selection.model }), { mode: 0o600 });
+      process.env.VANTA_PROVIDER = selection.provider;
+      process.env.VANTA_MODEL = selection.model;
+    }
+    state.providerId = selection.provider;
+    state.modelId = selection.model;
     state.setup && (state.setup.provider = selection.resolved);
     state.convo?.setProvider(selection.resolved, buildSummarizer(selection.resolved));
     const entry = providerById(selection.provider);
-    sendJson(res, 200, { provider: selection.provider, model: selection.model, label: entry?.label ?? selection.provider });
+    sendJson(res, 200, { provider: selection.provider, model: selection.model, scope: global ? "global" : "session", label: entry?.label ?? selection.provider });
   } catch (err: unknown) {
     sendJson(res, 400, { error: err instanceof Error ? err.message : String(err), provider, model });
   }

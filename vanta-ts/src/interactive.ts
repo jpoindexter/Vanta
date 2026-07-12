@@ -2,6 +2,7 @@ import { createInterface } from "node:readline/promises";
 import { join, basename } from "node:path";
 import { advertisePeer } from "./uds/peers.js";
 import { createConversation, type AgentDeps } from "./agent.js";
+import { providerIdFor, resolveSessionModel } from "./sessions/model-scope.js";
 import { listSkills } from "./skills/store.js";
 import { type ReplState } from "./repl-commands.js";
 import { RESTART_EXIT_CODE } from "./repl/restart-cmd.js";
@@ -89,11 +90,15 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
   await maybeCurate();
   const skills = await loadSkillsWithCronSync(repoRoot);
   const resumed = opts.resumeId ? await loadResumeTarget(opts.resumeId, opts.forkSession) : null;
+  const resumedProvider = resumed ? resolveSessionModel(resumed, process.env) : null;
+  if (resumedProvider) setup.provider = resumedProvider;
   const state: ReplState = {
     sessionId: resumed?.id ?? newSessionId(),
     started: resumed?.started ?? new Date().toISOString(),
     turnIndex: resumed?.messages.filter((m) => m.role === "user").length ?? 0,
     effortLevel: setup.effortLevel,
+    providerId: resumed?.providerId ?? providerIdFor(setup.provider, process.env),
+    modelId: resumed?.modelId ?? setup.provider.modelId(),
   };
   await announceSessionStart({ setup, repoRoot, skills, state, resumed, resumeId: opts.resumeId });
 

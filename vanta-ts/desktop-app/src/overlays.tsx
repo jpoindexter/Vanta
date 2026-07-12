@@ -24,20 +24,23 @@ function commandActions(props: { onNew: () => void; onModel: () => void; onSound
   ] as const;
 }
 
-export function ModelPicker(props: { open: boolean; models: Provider[]; onClose: () => void; onSelect: (provider: string, model: string) => void }) {
+export function ModelPicker(props: { open: boolean; models: Provider[]; onClose: () => void; onSelect: (provider: string, model: string, scope?: "session" | "global") => void }) {
   if (!props.open) return null;
   return (
     <div className="overlay" onClick={props.onClose}>
       <div className="palette model-grid" onClick={(e) => e.stopPropagation()}>
-        <h2>Models</h2>
+        <h2>Models for this session</h2>
         {props.models.flatMap((p) => p.models.map((model) => <ModelButton key={`${p.id}:${model}`} provider={p} model={model} onSelect={props.onSelect} />))}
       </div>
     </div>
   );
 }
 
-function ModelButton(props: { provider: Provider; model: string; onSelect: (provider: string, model: string) => void }) {
-  return <button type="button" onClick={() => props.onSelect(props.provider.id, props.model)}>{props.provider.short} · {props.model}</button>;
+function ModelButton(props: { provider: Provider; model: string; onSelect: (provider: string, model: string, scope?: "session" | "global") => void }) {
+  return <div className="model-choice">
+    <button type="button" onClick={() => props.onSelect(props.provider.id, props.model, "session")}>{props.provider.short} · {props.model}</button>
+    <button type="button" className="model-default" onClick={() => props.onSelect(props.provider.id, props.model, "global")}>Set as default</button>
+  </div>;
 }
 
 export function ApprovalOverlay(props: { approval: Approval | null; onAnswer: (decision: ApprovalDecision) => void }) {

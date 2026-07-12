@@ -54,15 +54,15 @@ export type OverlayView =
   | { kind: "help" };
 
 /** The four picker kinds that resolve to a generic selectable list; null otherwise. */
-async function listOverlay(kind: OverlayKind): Promise<OverlayView | null> {
-  if (kind === "model") return { kind: "list", title: "Switch model", rows: modelRows(process.env.VANTA_PROVIDER ?? "openai") };
+async function listOverlay(kind: OverlayKind, setup: RunSetup): Promise<OverlayView | null> {
+  if (kind === "model") return { kind: "list", title: "Switch model for this session", rows: modelRows(setup.provider.routeInfo?.().provider ?? process.env.VANTA_PROVIDER ?? "openai", setup.provider.modelId()) };
   if (kind === "sessions") return { kind: "list", title: "Sessions", rows: sessionRows(await listSessions(process.env)) };
   if (kind === "skills") return { kind: "list", title: "Skills", rows: skillRows(await listSkills(process.env)) };
   return null;
 }
 
 async function loadOverlay(kind: OverlayKind, setup: RunSetup, repoRoot: string, getCtx?: () => CtxSnapshot): Promise<OverlayView> {
-  const list = await listOverlay(kind);
+  const list = await listOverlay(kind, setup);
   if (list) return list;
   const dataDir = join(repoRoot, ".vanta");
   switch (kind) {

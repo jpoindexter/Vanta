@@ -48,17 +48,19 @@ const SessionSchema = z.object({
   // Origin project (canonicalProjectId). Optional + additive: sessions saved
   // before this field still load. Enables cross-project resume (see cross-project.ts).
   projectId: z.string().optional(),
+  providerId: z.string().optional(),
+  modelId: z.string().optional(),
   messages: z.array(MessageSchema),
 });
 
 export type Session = z.infer<typeof SessionSchema>;
-export type SessionMeta = Pick<Session, "id" | "title" | "started" | "updated" | "projectId"> & {
+export type SessionMeta = Pick<Session, "id" | "title" | "started" | "updated" | "projectId" | "providerId" | "modelId"> & {
   turns: number;
 };
 
 /** Options for writing a session. The store binds its own location, so `env` is not
  *  a per-call field here (the delegator saveSession accepts it and passes it through). */
-export type SaveSessionOpts = { now?: string; started?: string; title?: string; projectId?: string };
+export type SaveSessionOpts = { now?: string; started?: string; title?: string; projectId?: string; providerId?: string; modelId?: string };
 
 /**
  * The session persistence port. createFsSessionStore is the default (fs-JSON) adapter;
@@ -112,6 +114,8 @@ function toMeta(session: Session): SessionMeta {
     started: session.started,
     updated: session.updated,
     projectId: session.projectId,
+    providerId: session.providerId,
+    modelId: session.modelId,
     turns: session.messages.filter((m) => m.role === "user").length,
   };
 }
@@ -145,6 +149,8 @@ export function createFsSessionStore(env?: NodeJS.ProcessEnv): SessionStore {
       updated: now,
       // Origin project — additive; omitted when not provided so old sessions stay byte-identical.
       ...(opts.projectId ? { projectId: opts.projectId } : {}),
+      ...(opts.providerId ? { providerId: opts.providerId } : {}),
+      ...(opts.modelId ? { modelId: opts.modelId } : {}),
       messages,
     };
     await writeFile(join(dir, `${id}.json`), JSON.stringify(session, null, 2), "utf8");
@@ -193,7 +199,7 @@ export async function checkpointSessionMessages(
   // tool call is valid while the turn is still running.
   const existing = await readRawSession(id, env);
   await store.save(id, messages, existing
-    ? { started: existing.started, title: existing.title, projectId: existing.projectId }
+    ? { started: existing.started, title: existing.title, projectId: existing.projectId, providerId: existing.providerId, modelId: existing.modelId }
     : undefined);
 }
 
@@ -223,6 +229,6 @@ export async function forkSession(
   const now = opts.now ?? new Date();
   const id = newSessionId(now);
   const started = now.toISOString();
-  await store.save(id, source.messages, { now: started, started, title: source.title });
+  await store.save(id, source.messages, { now: started, started, title: source.title, providerId: source.providerId, modelId: source.modelId });
   return store.load(id);
 }

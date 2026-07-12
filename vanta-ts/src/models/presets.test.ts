@@ -50,20 +50,21 @@ describe("preset store", () => {
 });
 
 describe("/model re-applies the remembered preset", () => {
-  it("switching to a model restores its remembered effort into state/setup/env", async () => {
+  it("a session switch restores remembered effort without changing the global env", async () => {
     const { model } = await import("../repl/model-cmd.js");
-    await savePresets(rememberPreset({}, "gpt-5.4", { effort: "max" }, new Date()), env());
+    await savePresets(rememberPreset({}, "qwen2.5:14b", { effort: "max" }, new Date()), env());
     const ctx = {
-      env: { ...env(), VANTA_PROVIDER: "codex" },
+      env: { ...env(), VANTA_PROVIDER: "ollama" },
       state: {},
       setup: { effortLevel: "medium", provider: { modelId: () => "old" } },
       convo: { setProvider: () => {} },
       dataDir: join(home, ".vanta"),
     } as unknown as ReplCtx;
-    const r = await model("codex gpt-5.4", ctx);
+    const r = await model("ollama qwen2.5:14b", ctx);
     expect(r.output).toContain("effort max (remembered)");
     expect((ctx as { state: { effortLevel?: string } }).state.effortLevel).toBe("max");
-    expect(ctx.env.VANTA_EFFORT_LEVEL).toBe("max");
+    expect(ctx.setup.effortLevel).toBe("max");
+    expect(ctx.env.VANTA_EFFORT_LEVEL).toBeUndefined();
   });
 });
 

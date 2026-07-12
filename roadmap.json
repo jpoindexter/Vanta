@@ -17893,7 +17893,7 @@
       "id": "HERMES-DELTA-SESSION-MODEL-SCOPE",
       "track": "Operator",
       "title": "Session-scoped model switching - change this conversation without changing the default",
-      "status": "building",
+      "status": "shipped",
       "size": "S",
       "summary": "Hermes current delta (ce5c1f9f, aac77f16) keeps desktop/TUI picker changes session-scoped. Vanta hot-swaps correctly but every typed /model selection sets persistGlobal=true and writes .env, so experimenting in one concurrent session silently changes the next launch and other surfaces. Add explicit session/global scope with a session-safe picker default.",
       "done": "/model <provider> <model> --session changes only the current conversation and survives that session resume; --global updates the configured default; the TUI/desktop picker defaults to session scope and clearly offers Set as default. Concurrent sessions can use different providers without process.env or .env bleed. A production-path test opens two sessions, switches one, resumes both, and proves the global default is unchanged.",
@@ -17903,7 +17903,7 @@
       "codex": "gpt-5.4-mini",
       "lens": "tui",
       "updated": "2026-07-12",
-      "notes": "Build after all-call route attribution so mid-session switches remain observable. Preserve the existing explicit global persistence path; this is scope control, not removal.",
+      "notes": "Shipped 2026-07-12. Session JSON carries optional providerId/modelId; typed /model, TUI rows, and desktop picker default to session scope, while --global/Set as default is the only .env mutation path. Resume rebuilds the saved provider from a copied env, and old sessions adopt the configured default on next save. The production fixture opens two sessions, switches one, saves and resumes both on distinct models, and proves global env plus .env are unchanged. Desktop production build passed. Full suite: 1,329 files / 13,029 passed / 3 skipped; TypeScript clean.",
       "source": "hermes-current-delta-2026-07-12",
       "after": [
         "HERMES-DELTA-USAGE-ROUTE-LEDGER"
@@ -17913,7 +17913,7 @@
       "id": "HERMES-DELTA-GATEWAY-CONTEXT-REFS",
       "track": "Operator",
       "title": "Remote context references - safe @file, @diff, and @git expansion through the gateway",
-      "status": "horizon",
+      "status": "building",
       "size": "M",
       "summary": "Hermes current delta (4df6e628 through 4281151a) repaired @ context references on gateway messages and scoped expansion to the routed profile and effective model budget. Vanta HERMES-CONTEXT-REFS-V2 executes through the TUI composer only; inbound Telegram/Slack/etc. messages bypass ui/use-submit.ts and cannot use the same bounded references. Extend the feature to remote work without widening file scope.",
       "done": "An allowlisted inbound gateway message can use the same @file ranges, @folder, @diff, @staged, @git:N, and @url syntax as the local composer. Expansion runs under the message session profile/project root, enforces the same sensitive/binary/root limits, derives the total budget from the actual routed model, and sends source/warning receipts back through the channel. Queued messages retain their original profile/session scope. Tests prove cross-profile and out-of-root references cannot bleed, followed by one live configured-channel round trip.",

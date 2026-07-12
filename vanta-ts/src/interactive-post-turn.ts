@@ -57,7 +57,7 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWi
   if (outcome.usage) await recordTurnCost(outcome, t0, deps);
   await handleAutoHandoff(outcome, deps);
   maybeSuggestContextUpgrade(outcome, deps);
-  await saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title }).catch(() => {});
+  await saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title, providerId: state.providerId, modelId: state.modelId }).catch(() => {});
   await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction: text, finalText: outcome.finalText, now: turnStart, sessionId: state.sessionId, turnIndex: state.turnIndex });
   if (!choiceWall) await suggestSkillFromRun(text, process.env);
   await antiSlopAfterText(outcome.finalText, (note) => console.log(`\n${note}`)).catch(() => {});

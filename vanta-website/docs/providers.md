@@ -24,6 +24,19 @@ Plus subscription-OAuth backends (`codex` for ChatGPT, `claude-code` for a Claud
 
 Set it interactively with `vanta setup`, or edit `vanta-ts/.env`.
 
+## Session vs default model
+
+Model switches are session-scoped by default. They hot-swap the current conversation and are saved with that session, but do not mutate `process.env` or `vanta-ts/.env`.
+
+```bash
+/model ollama qwen2.5:14b             # this session (default)
+/model openai gpt-4o --session        # explicit session scope
+/model gemini gemini-2.5-pro --global # set current + future default
+/model --global                       # set the current session model as default
+```
+
+The TUI and desktop pickers use session scope for their primary model action and expose **Set as default** separately. Two concurrent sessions can therefore use different providers; resuming either restores its saved route. Sessions created before this metadata existed adopt the configured default and write explicit model metadata on their next save.
+
 ### Routers reach every model
 
 A **router** (`tokenrouter`, `openrouter`) is one key that proxies many models, so you're never pinned to one. `VANTA_MODEL` accepts **any** id the router serves — and `vanta setup` free-types the model for a router instead of showing a fixed list. (`VANTA_MODEL` has always accepted any string; routers just make that the default UX.)

@@ -26,11 +26,17 @@ export function skillRows(skills: Skill[]): OverlayRow[] {
   return skills.map((s) => ({ label: s.meta.name, hint: s.meta.description, command: `/${s.meta.name}` }));
 }
 
-export function modelRows(currentProviderId: string): OverlayRow[] {
-  return PROVIDER_CATALOG.map((p) => ({
+export function modelRows(currentProviderId: string, currentModel?: string): OverlayRow[] {
+  const rows: OverlayRow[] = PROVIDER_CATALOG.map((p) => ({
     mark: p.id === currentProviderId ? "●" : undefined,
     label: p.short,
     hint: p.defaultModel,
     command: `/model ${p.id}`,
   }));
+  if (currentModel) rows.push({
+    label: "Set current as default",
+    hint: `${currentProviderId} · ${currentModel}`,
+    command: `/model --global ${currentProviderId} ${currentModel}`,
+  });
+  return rows;
 }

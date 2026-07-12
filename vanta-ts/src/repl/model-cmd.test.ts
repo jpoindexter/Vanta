@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { mkdtemp, mkdir, readFile } from "node:fs/promises";
+import { access, mkdtemp, mkdir, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { model } from "./model-cmd.js";
@@ -37,18 +37,18 @@ describe("/model handler", () => {
     expect(r.output).toContain("32,768");
   });
 
-  it("switches to an explicit keyless provider+model, hot-swaps, and persists to .env", async () => {
+  it("switches to an explicit keyless provider+model for this session without changing defaults", async () => {
     const env: NodeJS.ProcessEnv = { VANTA_PROVIDER: "ollama" };
     const { ctx, setProvider, repoRoot } = await makeCtx(env);
     const r = await model("ollama qwen2.5:14b", ctx);
     expect(setProvider).toHaveBeenCalledOnce();
     expect(ctx.setup.provider.modelId()).toBe("qwen2.5:14b");
-    expect(env.VANTA_PROVIDER).toBe("ollama");
-    expect(env.VANTA_MODEL).toBe("qwen2.5:14b");
-    const written = await readFile(join(repoRoot, "vanta-ts", ".env"), "utf8");
-    expect(written).toContain("VANTA_PROVIDER=ollama");
-    expect(written).toContain("VANTA_MODEL=qwen2.5:14b");
+    expect(ctx.state.providerId).toBe("ollama");
+    expect(ctx.state.modelId).toBe("qwen2.5:14b");
+    expect(env.VANTA_MODEL).toBeUndefined();
+    await expect(access(join(repoRoot, "vanta-ts", ".env"))).rejects.toThrow();
     expect(r.output).toContain("qwen2.5:14b");
+    expect(r.output).toContain("this session");
     expect(r.provider?.modelId()).toBe("qwen2.5:14b"); // drives the TUI banner refresh
   });
 
@@ -56,8 +56,19 @@ describe("/model handler", () => {
     const env: NodeJS.ProcessEnv = { VANTA_PROVIDER: "ollama" };
     const { ctx } = await makeCtx(env);
     await model("llama3.3", ctx);
-    expect(env.VANTA_PROVIDER).toBe("ollama");
-    expect(env.VANTA_MODEL).toBe("llama3.3");
+    expect(ctx.state.providerId).toBe("ollama");
+    expect(ctx.state.modelId).toBe("llama3.3");
+    expect(env.VANTA_MODEL).toBeUndefined();
+  });
+
+  it("persists only when --global is explicit", async () => {
+    const env: NodeJS.ProcessEnv = { VANTA_PROVIDER: "ollama", VANTA_MODEL: "global-old" };
+    const { ctx, repoRoot } = await makeCtx(env);
+    const r = await model("ollama qwen2.5:14b --global", ctx);
+    expect(env.VANTA_MODEL).toBe("qwen2.5:14b");
+    const written = await readFile(join(repoRoot, "vanta-ts", ".env"), "utf8");
+    expect(written).toContain("VANTA_MODEL=qwen2.5:14b");
+    expect(r.output).toContain("set as default");
   });
 
   it("reports an actionable failure for a keyed provider with no key (no swap)", async () => {

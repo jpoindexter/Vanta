@@ -46,22 +46,22 @@ describe("buildProviderForSelection", () => {
 
 describe("parseModelArg", () => {
   it("treats a leading provider id as the provider, rest as the model", () => {
-    expect(parseModelArg("openai gpt-4o", "ollama")).toEqual({ providerId: "openai", model: "gpt-4o", persistGlobal: true });
+    expect(parseModelArg("openai gpt-4o", "ollama")).toEqual({ providerId: "openai", model: "gpt-4o", persistGlobal: false });
   });
 
   it("uses the provider's default model when only a provider is given", () => {
-    expect(parseModelArg("gemini", "openai")).toEqual({ providerId: "gemini", model: "gemini-2.5-flash", persistGlobal: true });
+    expect(parseModelArg("gemini", "openai")).toEqual({ providerId: "gemini", model: "gemini-2.5-flash", persistGlobal: false });
   });
 
   it("keeps the current provider when the arg is just a model id", () => {
-    expect(parseModelArg("gpt-4o-mini", "openai")).toEqual({ providerId: "openai", model: "gpt-4o-mini", persistGlobal: true });
+    expect(parseModelArg("gpt-4o-mini", "openai")).toEqual({ providerId: "openai", model: "gpt-4o-mini", persistGlobal: false });
   });
 
   it("keeps slashed OpenRouter model ids intact under an explicit provider", () => {
     expect(parseModelArg("openrouter anthropic/claude-sonnet-4.5", "ollama")).toEqual({
       providerId: "openrouter",
       model: "anthropic/claude-sonnet-4.5",
-      persistGlobal: true,
+      persistGlobal: false,
     });
   });
 
