@@ -25,6 +25,7 @@ import { dirname } from "node:path";
 import { readWorkProducts } from "../cofounder/work-products.js";
 import { planDeliverables } from "./deliverables.js";
 import { sendDeliverables } from "./deliverable-send.js";
+import { formatContextRefReceipt, preprocessContextRefs } from "../context/ref-preprocess.js";
 
 function firstLine(text: string): string {
   const line = text.split("\n")[0] ?? "";
@@ -160,7 +161,14 @@ async function processPolledMessage(step: PollStep): Promise<{ state: SessionSta
     step.log(`  ⤬ skip (${processed.verdict.reason}): ${firstLine(step.msg.text)}`);
     return { state: step.state, seen: processed.seen, handled: 0 };
   }
-  const enriched = processed.verdict.message;
+  let enriched = processed.verdict.message;
+  if (step.deps.contextRefs) {
+    const scope = await step.deps.contextRefs.resolveScope(enriched);
+    const refs = await preprocessContextRefs(enriched.text, scope, step.deps.contextRefs.deps);
+    if (refs.block) enriched = { ...enriched, llmText: `${refs.block}\n\n${enriched.llmText ?? enriched.text}` };
+    const receipt = formatContextRefReceipt(refs);
+    if (receipt) await step.ctx.platform.send({ chatId: enriched.chatId, threadId: enriched.threadId, text: receipt });
+  }
   const mobile = await handleMobileControlCommand({ dataDir: step.deps.dataDir, msg: enriched, replyBus: step.deps.replyBus });
   if (mobile.consumed) {
     if (mobile.reply) await step.ctx.platform.send({ chatId: enriched.chatId, threadId: enriched.threadId, text: mobile.reply });

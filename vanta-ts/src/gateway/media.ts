@@ -72,6 +72,6 @@ export async function resolveInbound(
 ): Promise<{ forAgent: string; images?: ImageAttachment[] }> {
   const fallback = inbound.llmText ?? inbound.text;
   if (!hasMedia(inbound)) return { forAgent: fallback };
-  const input = await inboundToAgentInput(inbound, deps);
+  const input = await inboundToAgentInput({ ...inbound, text: fallback }, deps);
   return { forAgent: input.text || fallback, images: input.images.length ? input.images : undefined };
 }

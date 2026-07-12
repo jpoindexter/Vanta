@@ -50,6 +50,7 @@ function buildSubmitRoute(o: SubmitRouteDeps): (text: string) => void {
   return useSubmit({
     runSlash: o.runSlash, send: o.send, openOverlay: o.openOverlay, busy: o.busy,
     safety: o.setup.safety, repoRoot: o.repoRoot, dispatch: o.dispatch, detachBackgroundResponse: o.detachBackgroundResponse,
+    contextWindow: o.setup.provider.contextWindow(),
     openGlobalSearch: o.openGlobalSearch,
   });
 }

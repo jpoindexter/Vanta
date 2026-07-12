@@ -17913,7 +17913,7 @@
       "id": "HERMES-DELTA-GATEWAY-CONTEXT-REFS",
       "track": "Operator",
       "title": "Remote context references - safe @file, @diff, and @git expansion through the gateway",
-      "status": "building",
+      "status": "shipped",
       "size": "M",
       "summary": "Hermes current delta (4df6e628 through 4281151a) repaired @ context references on gateway messages and scoped expansion to the routed profile and effective model budget. Vanta HERMES-CONTEXT-REFS-V2 executes through the TUI composer only; inbound Telegram/Slack/etc. messages bypass ui/use-submit.ts and cannot use the same bounded references. Extend the feature to remote work without widening file scope.",
       "done": "An allowlisted inbound gateway message can use the same @file ranges, @folder, @diff, @staged, @git:N, and @url syntax as the local composer. Expansion runs under the message session profile/project root, enforces the same sensitive/binary/root limits, derives the total budget from the actual routed model, and sends source/warning receipts back through the channel. Queued messages retain their original profile/session scope. Tests prove cross-profile and out-of-root references cannot bleed, followed by one live configured-channel round trip.",
@@ -17923,7 +17923,7 @@
       "codex": "gpt-5.5",
       "lens": "reach",
       "updated": "2026-07-12",
-      "notes": "Depends on the shipped local reference grammar. Do not share the TUI helper by importing React/UI code; extract a surface-neutral preprocessing port used by both composer and gateway.",
+      "notes": "SHIPPED 2026-07-12: extracted surface-neutral context preprocessing shared by the local composer and gateway. Allowlisted inbound messages expand @file ranges, @folder, @diff, @staged, @git:N, and @url before queueing under the received message's root/profile identity and routed-model character budget. The existing hardened expander still enforces root, sensitive-file, binary, per-reference, and aggregate limits; source and warning receipts return through the channel, and media turns preserve the expanded block. Executed proof: a configured production WebChat adapter round trip exercised the full grammar; a queued multi-profile fixture proved profile A/B isolation and refused an out-of-root read. Focused gate: 9 files / 88 tests passed. Full suite: 1,331 files / 13,033 tests passed / 3 skipped. TypeScript, git diff check, and the production Docusaurus build passed.",
       "source": "hermes-current-delta-2026-07-12",
       "after": [
         "HERMES-CONTEXT-REFS-V2"
@@ -17933,7 +17933,7 @@
       "id": "HERMES-DELTA-AUTH-READINESS",
       "track": "Harness",
       "title": "Authenticated runtime readiness - bounded health for remote supervision",
-      "status": "horizon",
+      "status": "building",
       "size": "S",
       "summary": "Hermes current delta (f9728af5, 6142203b) adds an authenticated detailed readiness surface over config, state DB, model, disk, gateway, active runs, process completions, and delegations while keeping public liveness cheap. Vanta Public API /status initializes a live conversation and returns only kernel/model/tool/session/goals, so a remote supervisor cannot distinguish liveness from degraded readiness without shell access.",
       "done": "The public API exposes a cheap liveness route that performs no setup or mutation and an authenticated readiness route with bounded checks for kernel, provider/config, state stores, disk pressure, gateway/channel state, active turns, background completions, and delegated workers. Responses expose status/counts only - no secrets, config values, paths, commands, payloads, or raw errors. Degraded readiness remains a successful transport response with explicit status. Integration tests prove auth, non-mutation, redaction, corrupt-store degradation, low-disk injection, and queue counts.",

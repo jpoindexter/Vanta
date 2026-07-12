@@ -1,7 +1,8 @@
 import { type Dispatch } from "react";
 import { isSlashLine, slashHead } from "./slash.js";
 import { maybeRunShortcut } from "./shortcuts.js";
-import { expandContextRefs, type ExpandResult } from "../context/ref-expand.js";
+import type { ExpandResult } from "../context/ref-expand.js";
+import { preprocessContextRefs } from "../context/ref-preprocess.js";
 import { PICKER_KINDS, type OverlayKind } from "./overlays.js";
 import type { KernelClient } from "../kernel/client.js";
 import type { Action } from "./reducer.js";
@@ -19,13 +20,13 @@ export type SubmitDeps = {
   safety: KernelClient;
   repoRoot: string;
   dispatch: Dispatch<Action>;
+  contextWindow?: number;
   detachBackgroundResponse?: () => void;
 };
 
 /** Resolve a line with bounded, source-labelled context and warning receipts. */
-async function resolveLine(line: string, repoRoot: string): Promise<ExpandResult & { text: string }> {
-  const result = await expandContextRefs(line, repoRoot);
-  return { ...result, text: result.block ? `${result.block}\n\n${line}` : line };
+async function resolveLine(line: string, repoRoot: string, contextWindow?: number): Promise<ExpandResult & { text: string }> {
+  return preprocessContextRefs(line, { root: repoRoot, contextWindow: contextWindow ?? 0 });
 }
 
 function reportContext(result: ExpandResult, note: (text: string) => void): void {
@@ -59,7 +60,7 @@ function routeSlash(text: string, deps: SubmitDeps): void {
 }
 
 async function submitMessage(text: string, deps: SubmitDeps, note: (text: string) => void): Promise<void> {
-  const resolved = await resolveLine(text, deps.repoRoot);
+  const resolved = await resolveLine(text, deps.repoRoot, deps.contextWindow);
   reportContext(resolved, note);
   if (deps.busy) deps.dispatch({ t: "enqueue", text: resolved.text });
   else deps.send(resolved.text);

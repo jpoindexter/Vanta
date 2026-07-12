@@ -36,6 +36,8 @@ import { startPlatformWebhookServer, type PlatformWebhookServer } from "./platfo
 import { runDailySentinels, type SentinelRunDeps } from "../goals/sentinel.js";
 import { listWorkflows } from "../webhook-workflows/store.js";
 import { startWorkflowWebhookServer, type WorkflowWebhookServer } from "../webhook-workflows/runtime.js";
+import type { ContextRefScope } from "../context/ref-preprocess.js";
+import type { ExpandDeps } from "../context/ref-expand.js";
 
 const DEFAULT_TICK_MS = 60_000;
 
@@ -79,6 +81,11 @@ export type GatewayDeps = {
     requireMentionIn?: Set<string>;
     /** Human-readable timezone label appended to the inbound timestamp (e.g. "CEST"). */
     zone?: string;
+  };
+  /** Surface-neutral @reference expansion under the message's project/profile scope. */
+  contextRefs?: {
+    resolveScope: (message: import("./platforms/base.js").InboundMessage) => Promise<ContextRefScope> | ContextRefScope;
+    deps?: ExpandDeps;
   };
 };
 

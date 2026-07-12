@@ -31,6 +31,12 @@ Every outbound action (send / draft / create / update) is approval-gated. Provis
 
 The `send_message` tool delivers an outbound message through a configured platform (approval-gated).
 
+Allowlisted inbound messages accept the same bounded context syntax as the local composer:
+`@file`, `@folder`, `@diff`, `@staged`, `@git:N`, and `@url`. Expansion uses that message's
+active project/profile scope and routed model budget before it enters the session queue. The
+channel receives a source and warning receipt, and out-of-root, sensitive, binary, or oversized
+references are refused. See [Knowledge graph & references](./knowledge-and-refs.md).
+
 ## The gateway daemon
 
 ```bash

@@ -6,4 +6,5 @@ Gateway daemon surfaces: cron ticks, loop wake/spawn, messaging platform polling
 - `loops-tick.ts` decides clock-based loop wakes and passes compact wake context to the child process.
 - `child-ops.ts` owns detached child spawning, platform polling, and webhook dispatch helpers.
 - `webhook.ts` owns the HTTP listener and HMAC verification.
+- Expand inbound `@file`/`@folder`/`@diff`/`@staged`/`@git`/`@url` references before queueing. Resolve the root, model budget, and profile/session identity from that message; never re-resolve queued work against later mutable state.
 - Keep long-running work detached or injected; a gateway tick must stay responsive.

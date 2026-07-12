@@ -21,6 +21,26 @@ Recall is substring match plus direct-relation traversal, so it's good for proje
 
 ## References
 
+### One-message context references
+
+In the local composer or an allowlisted gateway conversation, add bounded project context
+directly to a message:
+
+```text
+Review @file:src/server.ts:40-90 with @diff and @git:2
+Compare @folder:src/auth with @url:https://example.com/spec
+```
+
+Supported forms are `@file:path[:start-end]`, `@folder:path`, `@diff`, `@staged`,
+`@git:N`, and `@url:https://...`. Vanta expands them before the turn and returns a receipt
+listing expanded sources and warnings. File and folder references stay inside the active
+project root, binary and sensitive files are refused, and the aggregate character budget is
+derived from the routed model's context window. Remote messages keep the profile, root, and
+budget they had when received, including while queued.
+
+These references are transient context for one message. Use the durable reference store below
+when material should remain searchable across sessions.
+
 A durable store of ingested reference material so you never re-paste the same source.
 
 | Tool | Does |

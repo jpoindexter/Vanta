@@ -19,7 +19,7 @@ one-owner, kernel-gated operator direction.
 | 2 | `32f30d2a` through `83000c72` judge compaction against the next real prompt count and stop ineffective loops. | Shipped: Vanta evaluates the next billed/preflight input count, suppresses a third automatic pass after two high readings, counts no-op boundaries, and leaves focused manual compaction available. | `HERMES-DELTA-COMPACTION-REAL-HEADROOM` (`shipped`) |
 | 3 | `cb7f6bbb` through `0d63c23f` persist per-call model/provider/base-route usage, including included and fallback calls. | Shipped: a versioned call ledger records actual served routes, fallback depth, billing status, token dimensions, and known/unknown/zero costs; route-aware operator views do not combine it with legacy turn spend. | `HERMES-DELTA-USAGE-ROUTE-LEDGER` (`shipped`) |
 | 4 | `ce5c1f9f` and `aac77f16` keep picker model changes session-scoped. | Shipped: typed, TUI, and desktop switches default to session scope; provider/model metadata survives resume, while only explicit `--global`/Set as default mutates `.env`. | `HERMES-DELTA-SESSION-MODEL-SCOPE` (`shipped`) |
-| 5 | `4df6e628` through `4281151a` run context-reference expansion through the gateway under the routed profile and effective model budget. | Vanta context references execute only in the TUI submit path; inbound channel messages bypass them. | `HERMES-DELTA-GATEWAY-CONTEXT-REFS` |
+| 5 | `4df6e628` through `4281151a` run context-reference expansion through the gateway under the routed profile and effective model budget. | Shipped: local and gateway messages share one bounded preprocessor; remote expansion occurs before queueing under the message root/profile and routed-model budget, with source and warning receipts. | `HERMES-DELTA-GATEWAY-CONTEXT-REFS` (`shipped`) |
 | 6 | `f9728af5` and `6142203b` add authenticated, bounded runtime readiness while preserving cheap liveness. | Vanta's authenticated `/api/v1/status` initializes conversation state and exposes only a shallow status snapshot. | `HERMES-DELTA-AUTH-READINESS` |
 
 ## No new card
@@ -34,9 +34,8 @@ one-owner, kernel-gated operator direction.
 
 ## Build order
 
-1. Share context-reference preprocessing with the gateway.
-2. Add bounded authenticated readiness to the existing public API server.
+1. Add bounded authenticated readiness to the existing public API server.
 
-The first two are reliability work and should ship before expanding visible
-operator surfaces. The ten existing parked cards remain external acceptance
-work and are not dependencies for these local changes.
+The final local delta is reliability work and should ship before expanding visible operator
+surfaces. The ten existing parked cards remain external acceptance work and are not dependencies
+for this local change.

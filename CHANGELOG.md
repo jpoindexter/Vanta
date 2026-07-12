@@ -6,13 +6,14 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 ## Unreleased — 2026-07-12
 
 ### Documentation
-- Refreshed the Hermes/OpenClaw comparison against current Hermes main and linked the six remaining local delta cards.
+- Refreshed the Hermes/OpenClaw comparison against current Hermes main and tracked six focused delta cards; five are now shipped and authenticated readiness remains.
 - Synchronized legacy roadmap checklists with `roadmap.json`, regenerated the 141-tool and 146-command catalogs, and documented the ten external acceptance gates without reporting them as live.
 - Updated the Docusaurus deployment path and repository links for the Cloudflare Pages project serving `docs.vanta.theft.studio`.
 
 ### Added
 - **System prompt presets** — `/prompt list|show|use|reset` switches a bounded operating-role overlay from project or Vanta-home markdown definitions without replacing the base safety prompt.
 - **Prompt-routed workers** — `delegate {agent_type}` applies the same definition's prompt, narrowing-only tool policy, and optional model default to a fresh kernel-gated worker. Dynamic MCP tools remain constrained by the worker allowlist.
+- **Gateway context references** — allowlisted remote messages now share the local `@file`, `@folder`, `@diff`, `@staged`, `@git:N`, and `@url` preprocessor. Expansion is bound to the received message's project/profile scope and routed-model budget before queueing, with source and warning receipts sent back through the channel.
 
 ## v0.8.0 — 2026-07-05
 

@@ -152,7 +152,7 @@ It reads the other agent's `skills/<slug>/SKILL.md`, `mcpServers` config, and pr
 
 Recent Hermes transcript mining added a focused parity path to the roadmap: persistent specialist profiles, profile-routed Kanban, transcript/notes corpus memory, delegation receipts, webhook workflow templates, automation blueprints, spreadsheet control, vault-backed secrets, and bounded dashboard plugin slots. The automation catalog now ships through `vanta automation blueprints` and `/blueprint`; see [`docs/automation-blueprints.md`](docs/automation-blueprints.md). The executable source of truth remains `roadmap.json`.
 
-The 2026-07-12 Hermes-main delta found six smaller gaps after that parity wave. Unknown tool-effect disposition and real-headroom compaction are next; usage-route accounting, session-scoped model selection, gateway context references, and authenticated readiness remain later local work. See [`docs/research/hermes-current-delta-2026-07-12.md`](docs/research/hermes-current-delta-2026-07-12.md).
+The 2026-07-12 Hermes-main delta found six smaller gaps after that parity wave. Tool-effect disposition, real-headroom compaction, route-aware usage, session-scoped model selection, and gateway context references are shipped; bounded authenticated readiness is the final local delta. See [`docs/research/hermes-current-delta-2026-07-12.md`](docs/research/hermes-current-delta-2026-07-12.md).
 
 Parked external acceptance is machine-readable through `vanta roadmap proof-status [--json]`. It verifies all ten canonical receipt gates and rejects local provider fixtures unless a matching external-acceptance packet binds the exact event IDs. See [`docs/roadmap-external-proofs.md`](docs/roadmap-external-proofs.md).
 
