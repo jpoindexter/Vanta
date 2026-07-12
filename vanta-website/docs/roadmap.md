@@ -20,6 +20,7 @@ _Nothing in flight right now — see the horizon below._
 
 The latest of 1179+ capabilities. See the [changelog](./changelog) for curated milestones.
 
+- **Vanta public site v1 — product-first homepage, use cases, install, and proof** — Reach · 2026-07-12
 - **Interrupted tool effects - preserve unknown mutations and inspect before retry** — Harness · 2026-07-12
 - **Compaction real-headroom guard - stop when the prompt floor stays over threshold** — Harness · 2026-07-12
 - **Usage route ledger - attribute every model, fallback, and included call** — Operator · 2026-07-12
@@ -39,7 +40,6 @@ The latest of 1179+ capabilities. See the [changelog](./changelog) for curated m
 - **Profile Kanban router — durable board routes work by specialist skill** — Operator · 2026-07-11
 - **Second-brain corpus compiler — notes, transcripts, and receipts become searchable memory** — Operator · 2026-07-11
 - **Delegation tree receipts — parent sees summaries, raw sidechains stay searchable** — Harness · 2026-07-11
-- **Tool-surface profiles — shrink available tools by role and explain the boundary** — Harness · 2026-07-11
 
 ## On the horizon
 

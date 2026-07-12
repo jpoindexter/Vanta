@@ -66,13 +66,17 @@ const config: Config = {
   ],
 
   themeConfig: {
-    image: 'img/docusaurus-social-card.jpg',
+    image: 'img/vanta-social-card.png',
     colorMode: {
       defaultMode: 'light',
       respectPrefersColorScheme: false,
     },
     navbar: {
       title: 'Vanta',
+      logo: {
+        alt: 'Vanta',
+        src: 'img/vanta-mark.webp',
+      },
       items: [
         {to: '/docs', label: 'Docs', position: 'left'},
         {to: '/use-cases', label: 'Use cases', position: 'left'},

@@ -17353,9 +17353,9 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-07-11",
+      "updated": "2026-07-12",
       "source": "hermes-agent.nousresearch.com landing-page pattern",
-      "notes": "SHIPPED 2026-07-11. Added a product-first Docusaurus page at `/`, moved Introduction to `/docs`, used a real current desktop capture, kept existing docs/use-case/roadmap routes, and avoided unproved metrics/testimonials. Executed: TypeScript clean; production Docusaurus build with no broken-link/anchor warnings; Playwright desktop 1440x900 and mobile 390x844 screenshots with no page-width overflow or console errors; `/docs`, `/use-cases`, `/roadmap` returned 200. Local preview: http://127.0.0.1:4180/. Separate gap observed: the desktop Vite dev path currently fails transforming Capacitor for configured legacy browser targets; the homepage uses the already-built desktop artifact for its capture."
+      "notes": "SHIPPED 2026-07-11; VISUAL REFINEMENT 2026-07-12. Added a product-first Docusaurus page at `/`, moved Introduction to `/docs`, used a real current desktop capture, kept existing docs/use-case/roadmap routes, and avoided unproved metrics/testimonials. The refinement rebuilt the site as one long-form page: the user-selected Vanta operator artwork leads the hero, a current desktop capture and real terminal recording provide product proof, and six full-width chapters cover Reach, Remember, Schedule, Delegate, Research, and Enforce before the execution-contract, kernel, roadmap, and install sections. Executed: TypeScript clean; production Docusaurus build with no broken-link/anchor warnings; Playwright desktop 1440x1000 and mobile 390x844 full-page screenshots with no overlap; automated browser checks report zero horizontal overflow, failed images, or console errors; `/docs`, `/use-cases`, `/roadmap`, `/quickstart`, and `/safety-model` return 200. Local preview: http://127.0.0.1:4180/. Separate gap observed: the desktop Vite dev path currently fails transforming Capacitor for configured legacy browser targets; the homepage uses the already-built desktop artifact for its capture."
     },
     {
       "id": "CHOICE-WALL-SIDE-EFFECT-GUARD",

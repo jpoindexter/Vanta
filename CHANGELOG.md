@@ -6,6 +6,7 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 ## Unreleased — 2026-07-12
 
 ### Documentation
+- Rebuilt `vanta.theft.studio` as a single long-form product page using the selected Vanta operator artwork, real desktop and terminal evidence, and six capability chapters for Reach, Remember, Schedule, Delegate, Research, and Enforce.
 - Refreshed the Hermes/OpenClaw comparison against current Hermes main and shipped all six focused local delta cards; ten real-service/device acceptance cards remain parked.
 - Synchronized legacy roadmap checklists with `roadmap.json`, regenerated the 141-tool and 146-command catalogs, and documented the ten external acceptance gates without reporting them as live.
 - Updated the Docusaurus deployment path and repository links for the Cloudflare Pages project serving `docs.vanta.theft.studio`.
