@@ -36,6 +36,14 @@ receipts, then checks these additional gates:
 | `HERMES-TELEPHONY-CONSENT-LIFECYCLE` | Number, SMS, call, callback, and recording-deletion events plus a matching external-acceptance packet |
 | `HERMES-COMMERCE-TELEPHONY-SKILL-PACK` | All three commerce/telephony child gates |
 
+For `BACKEND-SERVERLESS-LIVE`, deployment alone is not readiness. Run
+`vanta backend gateway status --json`: the Telegram token must report `valid-format`,
+the webhook must have a distinct `registeredAt` receipt, and the app must be
+idle at zero tasks before arming. Placeholder tokens report `invalid-format` and
+`register-telegram` refuses them before making a Telegram request. The card
+ships only after `arm` and `prove` observe a real wake, provider-backed reply,
+and return to zero tasks.
+
 ## External acceptance packet
 
 Provider fixture receipts are candidates, not live acceptance. Payment,

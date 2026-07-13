@@ -17,6 +17,7 @@ export type GatewayReceipt = {
   volume: string;
   endpoint?: string;
   deployedAt?: string;
+  telegramRegisteredAt?: string;
   armedAt?: string;
   provedAt?: string;
   telegramAcceptedAt?: string;

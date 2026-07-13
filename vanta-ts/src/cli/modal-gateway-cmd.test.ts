@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { runModalGatewayCommand, type ModalGatewayDeps } from "./modal-gateway-cmd.js";
 
 const roots: string[] = [];
+const VALID_TOKEN = "123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij";
 
 afterEach(async () => {
   await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
@@ -50,12 +51,12 @@ describe("Modal gateway command", () => {
     expect(await runModalGatewayCommand(root, ["deploy"], {}, deps)).toBe(0);
     deps.lines.length = 0;
     expect(await runModalGatewayCommand(root, ["status"], {
-      VANTA_TELEGRAM_TOKEN: "private-token",
+      VANTA_TELEGRAM_TOKEN: VALID_TOKEN,
       VANTA_TELEGRAM_WEBHOOK_SECRET: "private-hook",
-    }, deps)).toBe(0);
+    }, deps)).toBe(1);
     expect(deps.lines.join("\n")).toContain("deployed · 0 task(s)");
-    expect(deps.lines.join("\n")).toContain("Telegram registration https://team--vanta-gateway.modal.run · token present · webhook secret present");
-    expect(deps.lines.join("\n")).not.toContain("private-token");
+    expect(deps.lines.join("\n")).toContain("Telegram endpoint https://team--vanta-gateway.modal.run · not registered · token valid-format · webhook secret present");
+    expect(deps.lines.join("\n")).not.toContain(VALID_TOKEN);
     expect(deps.lines.join("\n")).not.toContain("private-hook");
     expect(deps.lines.join("\n")).toContain("min 0 · scaledown 60s");
   });
@@ -70,38 +71,38 @@ describe("Modal gateway command", () => {
 
   it("prints exact setup next steps from status without leaking provided secrets", async () => {
     const deps = fixture({ run: control({ secret: false }) });
-    expect(await runModalGatewayCommand(await workspace(), ["status"], { VANTA_TELEGRAM_TOKEN: "private-token" }, deps)).toBe(1);
+    expect(await runModalGatewayCommand(await workspace(), ["status"], { VANTA_TELEGRAM_TOKEN: VALID_TOKEN }, deps)).toBe(1);
     const out = deps.lines.join("\n");
     expect(out).toContain("next: modal secret create vanta-gateway");
     expect(out).toContain("next: export VANTA_TELEGRAM_WEBHOOK_SECRET=...");
     expect(out).toContain("next: vanta backend gateway register-telegram <https-endpoint>");
-    expect(out).not.toContain("private-token");
+    expect(out).not.toContain(VALID_TOKEN);
   });
 
   it("prints missing gateway status as redacted json", async () => {
     const deps = fixture({ run: control({ secret: false }) });
-    expect(await runModalGatewayCommand(await workspace(), ["status", "--json"], { VANTA_TELEGRAM_TOKEN: "private-token" }, deps)).toBe(1);
+    expect(await runModalGatewayCommand(await workspace(), ["status", "--json"], { VANTA_TELEGRAM_TOKEN: VALID_TOKEN }, deps)).toBe(1);
     const report = JSON.parse(deps.lines.join("\n")) as { ready: boolean; secret: { ready: boolean }; telegram: { token: string }; next: string[] };
     expect(report.ready).toBe(false);
     expect(report.secret.ready).toBe(false);
-    expect(report.telegram.token).toBe("present");
+    expect(report.telegram.token).toBe("valid-format");
     expect(report.next.join("\n")).toContain("modal secret create vanta-gateway");
-    expect(deps.lines.join("\n")).not.toContain("private-token");
+    expect(deps.lines.join("\n")).not.toContain(VALID_TOKEN);
   });
 
   it("prints ready gateway status as json", async () => {
     const root = await workspace();
     const deps = fixture({ run: control() });
     await runModalGatewayCommand(root, ["deploy"], {}, deps);
+    deps.fetch = async () => new Response(JSON.stringify({ ok: true }), { status: 200 });
+    const env = { VANTA_TELEGRAM_TOKEN: VALID_TOKEN, VANTA_TELEGRAM_WEBHOOK_SECRET: "private-hook" };
+    await runModalGatewayCommand(root, ["register-telegram"], env, deps);
     deps.lines.length = 0;
-    expect(await runModalGatewayCommand(root, ["status", "--json"], {
-      VANTA_TELEGRAM_TOKEN: "private-token",
-      VANTA_TELEGRAM_WEBHOOK_SECRET: "private-hook",
-    }, deps)).toBe(0);
+    expect(await runModalGatewayCommand(root, ["status", "--json"], env, deps)).toBe(0);
     const report = JSON.parse(deps.lines.join("\n")) as { ready: boolean; app: { state: string }; telegram: { endpoint?: string }; next: string[] };
     expect(report.ready).toBe(true);
     expect(report.app.state).toBe("deployed");
-    expect(report.telegram.endpoint).toBe("https://team--vanta-gateway.modal.run");
+    expect(report.telegram.endpoint).toBe("https://team--vanta-gateway.modal.run/telegram/webhook");
     expect(report.next.join("\n")).toContain("vanta backend gateway arm");
   });
 
@@ -124,20 +125,20 @@ describe("Modal gateway command", () => {
       return new Response(JSON.stringify({ ok: true }), { status: 200 });
     };
     const deps = fixture({ run: control(), fetch });
-    const env = { VANTA_TELEGRAM_TOKEN: "private-token", VANTA_TELEGRAM_WEBHOOK_SECRET: "private-hook" };
+    const env = { VANTA_TELEGRAM_TOKEN: VALID_TOKEN, VANTA_TELEGRAM_WEBHOOK_SECRET: "private-hook" };
     expect(await runModalGatewayCommand(root, ["register-telegram", "https://team--vanta-gateway.modal.run"], env, deps)).toBe(0);
-    expect(requests[0]?.input).toContain("private-token/setWebhook");
+    expect(requests[0]?.input).toContain(`${VALID_TOKEN}/setWebhook`);
     expect(String(requests[0]?.init?.body)).toContain("private-hook");
-    expect(deps.lines.join("\n")).not.toContain("private-token");
+    expect(deps.lines.join("\n")).not.toContain(VALID_TOKEN);
     expect(deps.lines.join("\n")).not.toContain("private-hook");
   });
 
   it("redacts Telegram credentials when webhook registration cannot connect", async () => {
     const deps = fixture({
       run: control(),
-      fetch: async () => { throw new Error("request included private-token"); },
+      fetch: async () => { throw new Error(`request included ${VALID_TOKEN}`); },
     });
-    const env = { VANTA_TELEGRAM_TOKEN: "private-token", VANTA_TELEGRAM_WEBHOOK_SECRET: "private-hook" };
+    const env = { VANTA_TELEGRAM_TOKEN: VALID_TOKEN, VANTA_TELEGRAM_WEBHOOK_SECRET: "private-hook" };
     expect(await runModalGatewayCommand(
       await workspace(),
       ["register-telegram", "https://team--vanta-gateway.modal.run"],
@@ -145,6 +146,24 @@ describe("Modal gateway command", () => {
       deps,
     )).toBe(1);
     expect(deps.lines.join("\n")).toBe("gateway register failed: Telegram request unavailable");
+  });
+
+  it("rejects a placeholder Telegram token before making a registration request", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>();
+    const deps = fixture({ run: control(), fetch });
+    const env = { VANTA_TELEGRAM_TOKEN: "placeholder-token", VANTA_TELEGRAM_WEBHOOK_SECRET: "private-hook" };
+    expect(await runModalGatewayCommand(await workspace(), ["register-telegram", "https://team--vanta-gateway.modal.run"], env, deps)).toBe(1);
+    expect(fetch).not.toHaveBeenCalled();
+    expect(deps.lines.join("\n")).toContain("valid BotFather");
+    expect(deps.lines.join("\n")).not.toContain("placeholder-token");
+  });
+
+  it("refuses to arm before Telegram registration succeeds", async () => {
+    const root = await workspace();
+    const deps = fixture({ run: control() });
+    expect(await runModalGatewayCommand(root, ["deploy"], {}, deps)).toBe(0);
+    expect(await runModalGatewayCommand(root, ["arm"], {}, deps)).toBe(1);
+    expect(deps.lines.at(-1)).toContain("registered Telegram webhook");
   });
 
   it("proves zero -> accepted Telegram reply -> zero from the Modal volume receipt", async () => {
@@ -159,6 +178,9 @@ describe("Modal gateway command", () => {
     }) });
     const deps = fixture({ run });
     expect(await runModalGatewayCommand(root, ["deploy"], {}, deps)).toBe(0);
+    const fetch: typeof globalThis.fetch = async () => new Response(JSON.stringify({ ok: true }), { status: 200 });
+    deps.fetch = fetch;
+    expect(await runModalGatewayCommand(root, ["register-telegram"], { VANTA_TELEGRAM_TOKEN: VALID_TOKEN, VANTA_TELEGRAM_WEBHOOK_SECRET: "hook" }, deps)).toBe(0);
     expect(await runModalGatewayCommand(root, ["arm"], {}, deps)).toBe(0);
     expect(await runModalGatewayCommand(root, ["prove"], {}, deps)).toBe(0);
     expect(deps.lines.at(-2)).toContain("0 tasks -> Telegram wake/reply");
@@ -169,6 +191,8 @@ describe("Modal gateway command", () => {
     const idle = control();
     const deps = fixture({ run: idle });
     expect(await runModalGatewayCommand(root, ["deploy"], {}, deps)).toBe(0);
+    deps.fetch = async () => new Response(JSON.stringify({ ok: true }), { status: 200 });
+    expect(await runModalGatewayCommand(root, ["register-telegram"], { VANTA_TELEGRAM_TOKEN: VALID_TOKEN, VANTA_TELEGRAM_WEBHOOK_SECRET: "hook" }, deps)).toBe(0);
     expect(await runModalGatewayCommand(root, ["arm"], {}, deps)).toBe(0);
     deps.run = control({ tasks: "1", proof: JSON.stringify({
       kind: "channel-round-trip", platform: "telegram", transport: "bot-api",

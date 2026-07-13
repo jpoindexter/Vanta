@@ -14,7 +14,7 @@ import {
   type GatewayConfig,
   type ModalApp,
 } from "../exec/modal-gateway-state.js";
-import { buildGatewayStatus, statusNextLines } from "./modal-gateway-status.js";
+import { buildGatewayStatus, statusNextLines, telegramTokenState } from "./modal-gateway-status.js";
 
 const exec = promisify(execFile);
 const HELPER = fileURLToPath(new URL("../exec/adapters/modal-gateway.py", import.meta.url));
@@ -96,11 +96,12 @@ async function status(input: StatusInput): Promise<number> {
     log(JSON.stringify(report, null, 2));
     return report.ready ? 0 : 1;
   }
-  const telegramToken = env.VANTA_TELEGRAM_TOKEN?.trim() ? "present" : "missing";
+  const telegramToken = telegramTokenState(env.VANTA_TELEGRAM_TOKEN);
   const webhookSecret = env.VANTA_TELEGRAM_WEBHOOK_SECRET?.trim() ? "present" : "missing";
   log(appLine(cfg, state.app));
   log(secretLine(cfg, state.hasSecret));
-  log(`serverless gateway: Telegram registration ${receipt?.endpoint ? receipt.endpoint : "no endpoint receipt"} · token ${telegramToken} · webhook secret ${webhookSecret}`);
+  const registration = receipt?.telegramRegisteredAt ? `registered ${receipt.telegramRegisteredAt}` : "not registered";
+  log(`serverless gateway: Telegram endpoint ${receipt?.endpoint ?? "missing"} · ${registration} · token ${telegramToken} · webhook secret ${webhookSecret}`);
   log(`serverless gateway: min 0 · scaledown ${cfg.scaledownSec}s · volume ${cfg.volume}`);
   for (const line of statusNextLines(cfg, state, receipt, env)) log(`serverless gateway: ${line}`);
   return report.ready ? 0 : 1;
@@ -178,6 +179,10 @@ async function telegramAccepted(response: Response, log: (line: string) => void)
 
 async function registerTelegram(input: RegisterInput): Promise<number> {
   const { repoRoot, endpointArg, env, deps, log } = input;
+  if (telegramTokenState(env.VANTA_TELEGRAM_TOKEN) === "invalid-format") {
+    log("gateway register requires a valid BotFather VANTA_TELEGRAM_TOKEN");
+    return 1;
+  }
   const ready = await registrationReady({ repoRoot, endpointArg, env, deps, log });
   if (!ready) {
     log("gateway register requires VANTA_TELEGRAM_TOKEN, VANTA_TELEGRAM_WEBHOOK_SECRET, and the deployed HTTPS endpoint");
@@ -186,7 +191,8 @@ async function registerTelegram(input: RegisterInput): Promise<number> {
   const response = await setTelegramWebhook({ repoRoot, endpointArg, env, deps, log }, ready);
   if (!response || !await telegramAccepted(response, log)) return 1;
   const cfg = resolveModalGatewayConfig(env);
-  await writeGatewayReceipt(repoRoot, { ...ready.previous, app: ready.previous?.app ?? cfg.app, volume: ready.previous?.volume ?? cfg.volume, endpoint: ready.endpoint });
+  const telegramRegisteredAt = (deps.now ?? (() => new Date()))().toISOString();
+  await writeGatewayReceipt(repoRoot, { ...ready.previous, app: ready.previous?.app ?? cfg.app, volume: ready.previous?.volume ?? cfg.volume, endpoint: ready.endpoint, telegramRegisteredAt });
   log(`Telegram webhook registered: ${ready.endpoint}`);
   return 0;
 }
@@ -201,8 +207,8 @@ async function arm(
   const cfg = resolveModalGatewayConfig(env);
   const state = await resources(repoRoot, deps.run ?? runChild, cfg);
   const receipt = await readGatewayReceipt(repoRoot);
-  if (state.app?.state !== "deployed" || state.app.tasks !== "0" || !receipt?.endpoint) {
-    log("gateway proof cannot arm: deployment must be idle at 0 tasks with a registered endpoint");
+  if (state.app?.state !== "deployed" || state.app.tasks !== "0" || !receipt?.endpoint || !receipt.telegramRegisteredAt) {
+    log("gateway proof cannot arm: deployment must be idle at 0 tasks with a registered Telegram webhook");
     return 1;
   }
   const armedAt = (deps.now ?? (() => new Date()))().toISOString();
