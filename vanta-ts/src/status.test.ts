@@ -96,7 +96,7 @@ describe("isDefaultConfig", () => {
   it("is true when the provider runs its catalog default model", () => {
     expect(isDefaultConfig({ VANTA_PROVIDER: "ollama" } as NodeJS.ProcessEnv)).toBe(true); // qwen2.5:14b default
     expect(isDefaultConfig({ VANTA_PROVIDER: "ollama", VANTA_MODEL: "qwen2.5:14b" } as NodeJS.ProcessEnv)).toBe(true);
-    expect(isDefaultConfig({} as NodeJS.ProcessEnv)).toBe(true); // openai/gpt-4o-mini default
+    expect(isDefaultConfig({} as NodeJS.ProcessEnv)).toBe(true); // openai/gpt-5.6-sol default
   });
   it("is false when a non-default model is selected", () => {
     expect(isDefaultConfig({ VANTA_PROVIDER: "ollama", VANTA_MODEL: "llama3.3" } as NodeJS.ProcessEnv)).toBe(false);

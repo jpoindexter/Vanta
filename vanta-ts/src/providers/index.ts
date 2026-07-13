@@ -35,7 +35,7 @@ function requireKey(env: NodeJS.ProcessEnv, key: string, hint: string): string {
 function makeOpenAI(env: NodeJS.ProcessEnv): LLMProvider {
   const apiKey = requireKey(env, "OPENAI_API_KEY",
     "Run `vanta setup`, or set it in vanta-ts/.env, or use VANTA_PROVIDER=ollama for local models.");
-  return new OpenAIProvider({ apiKey, model: env.VANTA_MODEL ?? "gpt-4o-mini" });
+  return new OpenAIProvider({ apiKey, model: env.VANTA_MODEL ?? "gpt-5.6-sol" });
 }
 
 function makeOllama(env: NodeJS.ProcessEnv): LLMProvider {
@@ -53,7 +53,7 @@ function makeAnthropic(env: NodeJS.ProcessEnv): LLMProvider {
 }
 
 function makeCodex(env: NodeJS.ProcessEnv): LLMProvider {
-  return new CodexProvider({ model: env.VANTA_MODEL ?? "gpt-5.5" });
+  return new CodexProvider({ model: env.VANTA_MODEL ?? "gpt-5.6-sol" });
 }
 
 function makeClaudeCode(env: NodeJS.ProcessEnv): LLMProvider {

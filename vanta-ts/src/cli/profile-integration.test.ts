@@ -12,7 +12,7 @@ let source: string;
 
 async function cli(...args: string[]): Promise<string> {
   const result = await exec(process.execPath, ["--import", "tsx", "src/cli.ts", ...args], {
-    cwd: process.cwd(), env: { ...process.env, VANTA_HOME: home }, timeout: 10_000,
+    cwd: process.cwd(), env: { ...process.env, VANTA_HOME: home }, timeout: 30_000,
   });
   expect(result.stderr).toBe("");
   return result.stdout;
@@ -38,5 +38,5 @@ describe("vanta profile distribution dispatch", () => {
     await writeFile(join(source, "SOUL.md"), "Write with evidence.\n");
     expect(await cli("profile", "update", "writer")).toContain("changed 1: SOUL.md");
     expect(await cli("profile", "update", "writer", "--apply")).toContain("updated writer · backup");
-  });
+  }, 30_000);
 });

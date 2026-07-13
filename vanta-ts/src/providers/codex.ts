@@ -12,6 +12,10 @@ export { toCodexInput, toCodexTools, sanitizeCodexParams } from "./codex-codec.j
 // shared ~/.codex/auth.json OAuth session (see codex-auth.ts).
 
 const CODEX_CONTEXT: Record<string, number> = {
+  "gpt-5.6-sol": 1_050_000,
+  "gpt-5.6-terra": 1_050_000,
+  "gpt-5.6-luna": 1_050_000,
+  "gpt-5.6": 1_050_000,
   "gpt-5.5": 272_000,
   "gpt-5.4": 272_000,
   "gpt-5.4-mini": 272_000,
@@ -134,4 +138,3 @@ async function fetchCodexStream(opts: FetchCodexOpts): Promise<Response> {
   }
   return res;
 }
-

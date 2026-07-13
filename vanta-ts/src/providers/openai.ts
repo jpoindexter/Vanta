@@ -14,6 +14,10 @@ import {
 } from "./openai-convert.js";
 
 const CONTEXT_WINDOWS: Record<string, number> = {
+  "gpt-5.6-sol": 1_050_000,
+  "gpt-5.6-terra": 1_050_000,
+  "gpt-5.6-luna": 1_050_000,
+  "gpt-5.6": 1_050_000,
   "gpt-4o": 128_000,
   "gpt-4o-mini": 128_000,
   "gpt-4.1": 1_000_000,

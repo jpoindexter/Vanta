@@ -5,12 +5,12 @@ import { providerById } from "../providers/catalog.js";
 // The strong-model map is private; mirror only the pairs we assert against the
 // catalog so a drift (a strong model removed from a provider's list) trips a test.
 const STRONG_PAIRS: Array<[provider: string, model: string]> = [
-  ["openai", "gpt-4o"],
+  ["openai", "gpt-5.6-sol"],
   ["anthropic", "claude-opus-4-8"],
   ["claude-code", "claude-opus-4-8"],
   ["gemini", "gemini-2.5-pro"],
   ["openrouter", "anthropic/claude-opus-4.1"],
-  ["codex", "gpt-5.5"],
+  ["codex", "gpt-5.6-sol"],
   ["ollama", "llama3.3"],
 ];
 
@@ -53,12 +53,12 @@ describe("resolveTeammateModel", () => {
 
     it("is case-insensitive on the sentinel", () => {
       const env: NodeJS.ProcessEnv = { VANTA_PROVIDER: "openai", VANTA_TEAMMATE_MODEL: "AUTO" };
-      expect(resolveTeammateModel(env, "gpt-4o-mini")).toBe("gpt-4o");
+      expect(resolveTeammateModel(env, "gpt-4o-mini")).toBe("gpt-5.6-sol");
     });
 
     it("defaults the provider to openai when VANTA_PROVIDER is unset", () => {
       const env: NodeJS.ProcessEnv = { VANTA_TEAMMATE_MODEL: "auto" };
-      expect(resolveTeammateModel(env, "gpt-4o-mini")).toBe("gpt-4o");
+      expect(resolveTeammateModel(env, "gpt-4o-mini")).toBe("gpt-5.6-sol");
     });
 
     it("falls back SAFELY to the active model for an unknown provider", () => {

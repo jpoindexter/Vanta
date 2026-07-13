@@ -44,7 +44,7 @@ describe("hireAgent", () => {
     expect(r.agent.title).toBe("Researcher");
     expect(r.agent.status).toBe("idle");
     // model is resolved from the adapter's catalog default so the agent is runnable.
-    expect(r.agent.model).toBe("gpt-4o-mini");
+    expect(r.agent.model).toBe("gpt-5.6-sol");
     expect(r.roster).toHaveLength(1);
   });
 

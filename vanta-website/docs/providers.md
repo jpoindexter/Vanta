@@ -24,6 +24,10 @@ Plus subscription-OAuth backends (`codex` for ChatGPT, `claude-code` for a Claud
 
 Set it interactively with `vanta setup`, or edit `vanta-ts/.env`.
 
+### Current OpenAI models
+
+Vanta's OpenAI API and ChatGPT-subscription Codex pickers include the current GPT-5.6 family: `gpt-5.6-sol` (the default for difficult coding and research), `gpt-5.6-terra` (balanced everyday work), and `gpt-5.6-luna` (fast, repeatable work). Older models remain selectable for compatibility. The picker is curated rather than an access-control boundary: type any model ID your account can use when it is not shown.
+
 ## Session vs default model
 
 Model switches are session-scoped by default. They hot-swap the current conversation and are saved with that session, but do not mutate `process.env` or `vanta-ts/.env`.

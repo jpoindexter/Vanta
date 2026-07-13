@@ -29,12 +29,12 @@ const AUTO = "auto";
  * provider never breaks teammate resolution — it just inherits until tuned.
  */
 const STRONG_MODEL_BY_PROVIDER: Record<string, string> = {
-  openai: "gpt-4o",
+  openai: "gpt-5.6-sol",
   anthropic: "claude-opus-4-8",
   "claude-code": "claude-opus-4-8",
   gemini: "gemini-2.5-pro",
   openrouter: "anthropic/claude-opus-4.1",
-  codex: "gpt-5.5",
+  codex: "gpt-5.6-sol",
   ollama: "llama3.3",
 };
 

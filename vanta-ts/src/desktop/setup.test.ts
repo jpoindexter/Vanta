@@ -14,7 +14,7 @@ afterEach(() => {
 describe("desktop first-run setup", () => {
   it("exposes provider requirements without secrets", () => {
     const openai = desktopSetupOptions().find((provider) => provider.id === "openai");
-    expect(openai).toMatchObject({ requiresKey: true, defaultModel: "gpt-4o-mini" });
+    expect(openai).toMatchObject({ requiresKey: true, defaultModel: "gpt-5.6-sol" });
     expect(JSON.stringify(openai)).not.toContain("OPENAI_API_KEY");
   });
 

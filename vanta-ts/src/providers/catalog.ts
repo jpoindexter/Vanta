@@ -68,8 +68,11 @@ export const PROVIDER_CATALOG: ProviderEntry[] = [
     label: "OpenAI (ChatGPT models)",
     short: "OpenAI",
     envVar: "OPENAI_API_KEY",
-    defaultModel: "gpt-4o-mini",
+    defaultModel: "gpt-5.6-sol",
     models: [
+      "gpt-5.6-sol",
+      "gpt-5.6-terra",
+      "gpt-5.6-luna",
       "gpt-4o",
       "gpt-4o-mini",
       "gpt-4.1",
@@ -82,6 +85,7 @@ export const PROVIDER_CATALOG: ProviderEntry[] = [
       "gpt-3.5-turbo",
     ],
     signupUrl: "https://platform.openai.com/api-keys",
+    note: "GPT-5.6 Sol for complex coding; Terra for everyday work; Luna for fast, repeatable work",
   },
   {
     id: "anthropic",
@@ -123,13 +127,13 @@ export const PROVIDER_CATALOG: ProviderEntry[] = [
     label: "OpenAI Codex via ChatGPT subscription (uses your `codex` login)",
     short: "Codex (sub)",
     envVar: null,
-    defaultModel: "gpt-5.5",
-    models: ["gpt-5.5", "gpt-5.4", "gpt-5.4-mini", "gpt-5.3-codex-spark"],
-    // Model guidance (OpenAI Codex docs, verified 2026-06): gpt-5.5 = default, most
-    // capable, start here · gpt-5.4 = fallback if 5.5 isn't in your account, native
-    // computer-use · gpt-5.4-mini = subagents/lighter, ~2x faster, ~30% quota ·
-    // gpt-5.3-codex-spark = near-instant (1000+ tok/s), text-only, 128K ctx, Pro-only.
-    note: "needs `codex login` (ChatGPT Plus/Pro); Responses API. Default gpt-5.5 (most capable); gpt-5.4-mini for cheap/fast subagents; gpt-5.3-codex-spark for near-instant text-only (Pro).",
+    defaultModel: "gpt-5.6-sol",
+    models: ["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.4", "gpt-5.4-mini", "gpt-5.3-codex-spark"],
+    // Model guidance (OpenAI Codex docs, verified 2026-07): GPT-5.6 Sol is the
+    // default flagship; Terra is the balanced everyday option; Luna suits clear,
+    // repeatable work. GPT-5.5 is now previous-generation; 5.4-mini remains a
+    // responsive subagent choice and 5.3 Codex Spark is text-only and Pro-only.
+    note: "needs `codex login` (ChatGPT Plus/Pro); Responses API. Default GPT-5.6 Sol for difficult coding; Terra for everyday work; Luna for repeatable tasks; gpt-5.4-mini for responsive subagents.",
   },
   {
     id: "ollama",

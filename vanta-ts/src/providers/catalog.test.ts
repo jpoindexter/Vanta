@@ -52,4 +52,16 @@ describe("PROVIDER_CATALOG", () => {
       expect(Array.isArray(p.models)).toBe(true);
     }
   });
+
+  it("surfaces the current GPT-5.6 family for OpenAI API and Codex subscription users", () => {
+    for (const providerId of ["openai", "codex"]) {
+      const provider = PROVIDER_CATALOG.find((entry) => entry.id === providerId);
+      expect(provider?.defaultModel).toBe("gpt-5.6-sol");
+      expect(provider?.models).toEqual(expect.arrayContaining([
+        "gpt-5.6-sol",
+        "gpt-5.6-terra",
+        "gpt-5.6-luna",
+      ]));
+    }
+  });
 });
