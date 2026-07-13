@@ -5,6 +5,7 @@ import type { ParkedReason, RoadmapItem, Status } from "./schema.js";
 import { buildRoadmap } from "./build.js";
 import { checkWipLimit } from "./wip.js";
 import { appendVelocityEvent } from "../velocity/store.js";
+import type { ExternalProofGate } from "./external-proof.js";
 export { WipLimitError } from "./wip.js";
 
 export class RoadmapDependencyError extends Error {
@@ -28,7 +29,11 @@ export class RoadmapProofGateError extends Error {
   }
 }
 
-type MoveOptions = { force?: boolean };
+type MoveOptions = {
+  force?: boolean;
+  acceptExternalProof?: boolean;
+  requireShippedDependencies?: boolean;
+};
 
 function openDependencies(items: RoadmapItem[], item: RoadmapItem): string[] {
   const byId = new Map(items.map((i) => [i.id, i]));
@@ -39,39 +44,36 @@ function openDependencies(items: RoadmapItem[], item: RoadmapItem): string[] {
 }
 
 function parkedReviveError(item: RoadmapItem, toStatus: Status, force?: boolean): RoadmapParkedReviveError | null {
-  if (force || item.status !== "parked" || toStatus === "parked") return null;
+  if (force || item.status !== "parked" || toStatus === "parked" || toStatus === "shipped") return null;
   return new RoadmapParkedReviveError(item.id, item.parkedReason ?? "review");
 }
 
-function parkedShipError(item: RoadmapItem, toStatus: Status): RoadmapParkedReviveError | null {
+function parkedShipError(item: RoadmapItem, toStatus: Status, acceptExternalProof?: boolean): RoadmapParkedReviveError | null {
   if (item.status !== "parked" || toStatus !== "shipped") return null;
+  if (acceptExternalProof && item.parkedReason === "external proof") return null;
   return new RoadmapParkedReviveError(item.id, item.parkedReason ?? "review");
 }
 
-function assertParkedReviveAllowed(item: RoadmapItem, toStatus: Status, force?: boolean): void {
-  const shipped = parkedShipError(item, toStatus);
+function assertParkedReviveAllowed(item: RoadmapItem, toStatus: Status, options: MoveOptions): void {
+  const shipped = parkedShipError(item, toStatus, options.acceptExternalProof);
   if (shipped) throw shipped;
-  const revive = parkedReviveError(item, toStatus, force);
+  const revive = parkedReviveError(item, toStatus, options.force);
   if (revive) throw revive;
 }
 
-async function runAnywhereProofGate(repoRoot: string, item: RoadmapItem, toStatus: Status): Promise<RoadmapProofGateError | null> {
+async function externalProofGate(repoRoot: string, item: RoadmapItem, toStatus: Status): Promise<ExternalProofGate | null> {
   if (toStatus !== "shipped") return null;
-  const ids = new Set(["BACKEND-SERVERLESS-LIVE", "MSG-ADAPTER-TEAMS", "RUN-ANYWHERE-TERMUX", "RUN-ANYWHERE-V1-RELEASE-GATE"]);
-  if (!ids.has(item.id)) return null;
-  const { readRunAnywhereReadiness } = await import("../run-anywhere/readiness.js");
-  const readiness = await readRunAnywhereReadiness(repoRoot);
-  if (item.id === "RUN-ANYWHERE-V1-RELEASE-GATE") {
-    const missing = readiness.gates.filter((gate) => !gate.ready);
-    return missing.length ? new RoadmapProofGateError(item.id, missing.map((gate) => `${gate.roadmapCardId}: ${gate.evidence}`).join("; ")) : null;
-  }
+  const { readExternalProofReadiness } = await import("./external-proof.js");
+  const readiness = await readExternalProofReadiness(repoRoot);
   const gate = readiness.gates.find((candidate) => candidate.roadmapCardId === item.id);
-  if (!gate?.ready) return new RoadmapProofGateError(item.id, gate?.evidence ?? "no matching readiness gate", gate?.receiptPath);
-  return null;
+  if (!gate) return null;
+  if (!gate.ready) throw new RoadmapProofGateError(item.id, gate.evidence, gate.receiptPath);
+  return gate;
 }
 
-function assertDependenciesAllowed(items: RoadmapItem[], item: RoadmapItem, toStatus: Status, force?: boolean): void {
-  const deps = toStatus === "building" && !force ? openDependencies(items, item) : [];
+function assertDependenciesAllowed(items: RoadmapItem[], item: RoadmapItem, toStatus: Status, options: MoveOptions): void {
+  const check = (toStatus === "building" && !options.force) || options.requireShippedDependencies;
+  const deps = check ? openDependencies(items, item) : [];
   if (deps.length) throw new RoadmapDependencyError(item.id, deps);
 }
 
@@ -92,6 +94,15 @@ function applyRawStatusMetadata(item: Record<string, unknown>, toStatus: Status)
   if (toStatus !== "parked") delete item.parkedReason;
 }
 
+function proofNote(gate: ExternalProofGate): string {
+  return `EXTERNAL PROOF ACCEPTED ${new Date().toISOString()}: ${gate.label}; receipt ${gate.receiptPath}; ${gate.evidence}`;
+}
+
+function appendProofMetadata(item: RoadmapItem | Record<string, unknown>, gate: ExternalProofGate): void {
+  const note = proofNote(gate);
+  item.notes = typeof item.notes === "string" && item.notes ? `${item.notes}\n\n${note}` : note;
+}
+
 export async function moveRoadmapItem(
   repoRoot: string,
   id: string,
@@ -108,12 +119,9 @@ export async function moveRoadmapItem(
     throw new Error(`no item with id '${id}' in roadmap.json`);
   }
 
-  assertParkedReviveAllowed(item, toStatus, options.force);
-
-  const proofGate = await runAnywhereProofGate(repoRoot, item, toStatus);
-  if (proofGate) throw proofGate;
-
-  assertDependenciesAllowed(data.items, item, toStatus, options.force);
+  assertParkedReviveAllowed(item, toStatus, options);
+  const proofGate = await externalProofGate(repoRoot, item, toStatus);
+  assertDependenciesAllowed(data.items, item, toStatus, options);
   assertWipAllowed(data.items, id, toStatus);
 
   const fromStatus = item.status;
@@ -121,6 +129,10 @@ export async function moveRoadmapItem(
   const originalItem = original.items.find((candidate) => candidate.id === id);
   if (!originalItem) throw new Error(`no item with id '${id}' in roadmap.json`);
   applyRawStatusMetadata(originalItem, toStatus);
+  if (proofGate) {
+    appendProofMetadata(item, proofGate);
+    appendProofMetadata(originalItem, proofGate);
+  }
   original.updated = new Date().toISOString().slice(0, 10);
 
   await writeFile(src, JSON.stringify(original, null, 2) + "\n", "utf8");

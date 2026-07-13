@@ -85,6 +85,31 @@ async function handleExternalProofStatus(repoRoot: string, args: string[]): Prom
   return report.ready ? 0 : 1;
 }
 
+function expectedProofAcceptError(error: unknown): error is Error {
+  return error instanceof Error && ["ExternalProofCardError", "RoadmapDependencyError", "RoadmapProofGateError"].includes(error.name);
+}
+
+async function handleExternalProofAccept(repoRoot: string, args: string[]): Promise<number> {
+  const ids = args.slice(1).filter((arg) => !arg.startsWith("--"));
+  const allReady = args.includes("--all-ready");
+  if ((!allReady && ids.length === 0) || (allReady && ids.length > 0)) {
+    console.error("Usage: vanta roadmap proof-accept <card-id> | --all-ready [--json]");
+    return 1;
+  }
+  const { acceptExternalProofs, formatProofAcceptance } = await import("../roadmap/proof-accept.js");
+  try {
+    const result = await acceptExternalProofs(repoRoot, ids, allReady);
+    console.log(args.includes("--json") ? JSON.stringify(result, null, 2) : formatProofAcceptance(result));
+    return result.accepted.length > 0 || result.alreadyShipped.length > 0 ? 0 : 1;
+  } catch (error) {
+    if (expectedProofAcceptError(error)) {
+      console.error(error.message);
+      return 1;
+    }
+    throw error;
+  }
+}
+
 function statusExitCode(summary: RoadmapStatusSummary, args: string[], openOnly: boolean): number {
   if (openOnly || args.includes("--require-complete")) return summary.complete ? 0 : 1;
   if (args.includes("--require-drained")) return summary.activeDrained ? 0 : 1;
@@ -128,6 +153,7 @@ export async function runRoadmapCommand(repoRoot: string, args: string[] = []): 
   if (args[0] === "move") return handleRoadmapMove(repoRoot, args);
   if (args[0] === "unblock") return handleRoadmapUnblock(repoRoot, args);
   if (args[0] === "proof-status") return handleExternalProofStatus(repoRoot, args);
+  if (args[0] === "proof-accept") return handleExternalProofAccept(repoRoot, args);
   if (args[0] === "status") return handleRoadmapStatus(repoRoot, args);
   if (args[1] === "decompose") return handleRoadmapDecompose(repoRoot, args);
 

@@ -9,6 +9,20 @@ vanta roadmap proof-status
 vanta roadmap proof-status --json
 ```
 
+Once a gate is ready, consume its receipt and close the parked card through the
+guarded acceptance command:
+
+```bash
+vanta roadmap proof-accept <card-id>
+vanta roadmap proof-accept --all-ready
+```
+
+`proof-accept` cannot override a missing receipt. It only accepts canonical
+external-proof cards, requires every `after` dependency to be shipped, removes
+`parkedReason`, records the accepted receipt and evidence in the card notes,
+and regenerates the roadmap. `--all-ready` accepts ready child cards before
+their aggregate release gates. Use `--json` for automation.
+
 The report reuses the existing Modal/Telegram, Teams, and physical Termux
 receipts, then checks these additional gates:
 

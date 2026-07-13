@@ -119,6 +119,15 @@ describe("moveRoadmapItem", () => {
     await expect(moveRoadmapItem(root, "BACKEND-SERVERLESS-LIVE", "shipped", { force: true })).rejects.toThrow(".vanta/serverless-gateway.json");
   });
 
+  it("proof-gates non-Run-Anywhere external cards when shipping from active work", async () => {
+    const root = await makeRoadmap({
+      updated: "2026-01-01",
+      items: [{ ...FIXTURE.items[0], id: "HERMES-SHOPIFY-OPERATIONS", status: "building" }],
+    });
+    await expect(moveRoadmapItem(root, "HERMES-SHOPIFY-OPERATIONS", "shipped")).rejects.toThrow(RoadmapProofGateError);
+    await expect(moveRoadmapItem(root, "HERMES-SHOPIFY-OPERATIONS", "shipped")).rejects.toThrow("external-proofs/HERMES-SHOPIFY-OPERATIONS.json");
+  });
+
   it("allows shipping a Run Anywhere proof card after its receipt exists", async () => {
     const root = await makeRoadmap({
       updated: "2026-01-01",

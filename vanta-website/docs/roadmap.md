@@ -25,6 +25,7 @@ The latest of 1191+ capabilities. See the [changelog](./changelog) for curated m
 - **Desktop user-flow reset - one dependable work loop** — Operator · 2026-07-13
 - **provider model selection — verify + document which model to use** — Harness · 2026-07-13
 - **Multi-channel LIVE — 5+ platforms from one gateway (Telegram · WhatsApp · Signal · Discord · Slack)** — Operator · 2026-07-13
+- **External proof readiness - one release status for all parked gates** — Harness · 2026-07-13
 - **Desktop session management — rename, archive, restore, and delete conversations** — Operator · 2026-07-13
 - **Managed runtime installer — one command provisions CLI and optional desktop from the same Vanta home** — Operator · 2026-07-13
 - **Vanta public site v1 — product-first homepage, use cases, install, and proof** — Reach · 2026-07-12
@@ -39,7 +40,6 @@ The latest of 1191+ capabilities. See the [changelog](./changelog) for curated m
 - **Needs-human queue — one actionable ticket instead of repeated failure** — Operator · 2026-07-12
 - **Documentation router health — measure loads, use, staleness, and contradictions** — Memory · 2026-07-12
 - **Maintenance budget — keep meta-work from competing with delivery** — Harness · 2026-07-12
-- **Desktop app v1 — dependable native Vanta for daily use** — Operator · 2026-07-12
 
 ## On the horizon
 
