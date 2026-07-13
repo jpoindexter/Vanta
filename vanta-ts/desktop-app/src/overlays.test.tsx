@@ -35,18 +35,21 @@ describe("ApprovalOverlay", () => {
 });
 
 describe("ModelPicker", () => {
-  it("defaults to session scope and exposes an explicit default action", () => {
+  it("groups models by provider and exposes an explicit default action", () => {
     const html = renderToStaticMarkup(
       <ModelPicker
         open
         models={[{ id: "ollama", label: "Ollama", short: "Local", models: ["qwen"] }]}
+        status={{ kernel: "ready", model: "qwen", provider: "ollama", tools: 1, sessionId: "s1" }}
         onClose={vi.fn()}
         onSelect={vi.fn()}
       />,
     );
-    expect(html).toContain("Models for this session");
-    expect(html).toContain("Local · qwen");
-    expect(html).toContain("Set as default");
+    expect(html).toContain("Choose a model");
+    expect(html).toContain("Search models");
+    expect(html).toContain("Ollama");
+    expect(html).toContain("Current");
+    expect(html).toContain("Set Ollama qwen as default");
   });
 });
 

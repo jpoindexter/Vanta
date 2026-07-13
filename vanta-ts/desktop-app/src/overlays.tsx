@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { Bot, Command, KeyRound, MonitorCog, Search, ShieldCheck, X } from "lucide-react";
+import { Bot, Check, Command, KeyRound, MonitorCog, Search, ShieldCheck, Star, X } from "lucide-react";
 import type { Approval, ApprovalDecision, PermissionSection, Provider, RailTab, Status } from "./types.js";
 
 export function CommandPalette(props: { open: boolean; onClose: () => void; onNew: () => void; onModel: () => void; onSound: () => void; onSettings: () => void; onTab: (tab: RailTab) => void }) {
@@ -61,22 +61,45 @@ export function SettingsDialog(props: { open: boolean; models: Provider[]; statu
   </section></div>;
 }
 
-export function ModelPicker(props: { open: boolean; models: Provider[]; onClose: () => void; onSelect: (provider: string, model: string, scope?: "session" | "global") => void }) {
+export function ModelPicker(props: { open: boolean; models: Provider[]; status: Status | null; onClose: () => void; onSelect: (provider: string, model: string, scope?: "session" | "global") => void }) {
+  const [query, setQuery] = useState("");
+  useEffect(() => {
+    if (props.open) setQuery("");
+  }, [props.open]);
   if (!props.open) return null;
+  const normalizedQuery = query.trim().toLowerCase();
+  const providers = props.models
+    .map((provider) => ({
+      provider,
+      models: provider.models.filter((model) => !normalizedQuery || `${provider.label} ${provider.short} ${model}`.toLowerCase().includes(normalizedQuery)),
+    }))
+    .filter((entry) => entry.models.length > 0);
   return (
     <div className="overlay" onClick={props.onClose}>
-      <div className="palette model-grid" role="dialog" aria-modal="true" aria-labelledby="model-title" onClick={(e) => e.stopPropagation()}>
-        <div className="dialog-heading"><h2 id="model-title">Models for this session</h2><button className="icon-button" type="button" aria-label="Close" onClick={props.onClose}><X size={16} /></button></div>
-        {props.models.flatMap((p) => p.models.map((model) => <ModelButton key={`${p.id}:${model}`} provider={p} model={model} onSelect={props.onSelect} />))}
+      <div className="palette model-picker" role="dialog" aria-modal="true" aria-labelledby="model-title" onClick={(e) => e.stopPropagation()}>
+        <div className="dialog-heading"><div><p className="eyebrow">Active session</p><h2 id="model-title">Choose a model</h2></div><button className="icon-button" type="button" aria-label="Close" onClick={props.onClose}><X size={16} /></button></div>
+        <label className="palette-search model-search"><Search size={16} /><span className="sr-only">Search models</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search models" /></label>
+        <p className="model-picker-note">Select a model for this session. Use the star to make one the default for new sessions.</p>
+        <div className="model-provider-list">
+          {providers.map(({ provider, models }) => <section key={provider.id} className="model-provider-group" aria-labelledby={`provider-${provider.id}`}>
+            <header><div><h3 id={`provider-${provider.id}`}>{provider.label}</h3><span>{models.length} model{models.length === 1 ? "" : "s"}</span></div></header>
+            <div className="model-rows">{models.map((model) => <ModelRow key={model} provider={provider} model={model} status={props.status} onSelect={props.onSelect} />)}</div>
+          </section>)}
+          {providers.length === 0 ? <p className="muted model-empty">No matching models.</p> : null}
+        </div>
       </div>
     </div>
   );
 }
 
-function ModelButton(props: { provider: Provider; model: string; onSelect: (provider: string, model: string, scope?: "session" | "global") => void }) {
-  return <div className="model-choice">
-    <button type="button" onClick={() => props.onSelect(props.provider.id, props.model, "session")}>{props.provider.short} · {props.model}</button>
-    <button type="button" className="model-default" onClick={() => props.onSelect(props.provider.id, props.model, "global")}>Set as default</button>
+function ModelRow(props: { provider: Provider; model: string; status: Status | null; onSelect: (provider: string, model: string, scope?: "session" | "global") => void }) {
+  const selected = props.status?.provider === props.provider.id && props.status?.model === props.model;
+  return <div className={`model-row${selected ? " selected" : ""}`}>
+    <button className="model-select" type="button" onClick={() => props.onSelect(props.provider.id, props.model, "session")} aria-pressed={selected}>
+      <span className="model-name">{props.model}</span>
+      {selected ? <span className="model-active"><Check size={14} />Current</span> : null}
+    </button>
+    <button className="icon-button model-default" type="button" onClick={() => props.onSelect(props.provider.id, props.model, "global")} aria-label={`Set ${props.provider.label} ${props.model} as default`} title="Set as default"><Star size={15} /></button>
   </div>;
 }
 

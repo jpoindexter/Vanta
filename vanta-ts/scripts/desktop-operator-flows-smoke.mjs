@@ -114,6 +114,14 @@ try {
   await page.getByText("https://example.test/receipt").waitFor();
 
   await page.getByRole("button", { name: "Work" }).click();
+  await page.getByTitle("Change model").click();
+  await page.getByRole("heading", { name: "Choose a model" }).waitFor();
+  if (process.env.VANTA_DESKTOP_MODEL_PICKER_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_MODEL_PICKER_SCREENSHOT, fullPage: false });
+  await page.getByPlaceholder("Search models").fill("__missing_model__");
+  await page.getByText("No matching models.").waitFor();
+  await page.getByPlaceholder("Search models").fill("");
+  await page.locator(".model-provider-group").first().waitFor();
+  await page.locator(".model-picker").getByRole("button", { name: "Close" }).click();
   await page.locator("#vanta-composer").press("@");
   await page.locator(".right-rail").waitFor();
   await page.locator(".files-panel").waitFor();
@@ -147,7 +155,7 @@ try {
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
 
   if (process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT, fullPage: false });
-  process.stdout.write(`${JSON.stringify({ work: true, connect: true, capabilities: true, messaging: true, outputs: true, visibleContextChips: true, queue: true, stop: true, shortcuts: true, settings: true, providerSetup: true, lightTheme: true, resizablePanes: true })}\n`);
+  process.stdout.write(`${JSON.stringify({ work: true, modelPicker: true, connect: true, capabilities: true, messaging: true, outputs: true, visibleContextChips: true, queue: true, stop: true, shortcuts: true, settings: true, providerSetup: true, lightTheme: true, resizablePanes: true })}\n`);
   await new Promise((resolveDone) => setTimeout(resolveDone, 100));
 } finally {
   if (app) {

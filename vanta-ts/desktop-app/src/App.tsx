@@ -243,7 +243,7 @@ function DesktopOverlays(props: {
         onSettings={data.openSettings}
         onTab={props.onInspector}
       />
-      <ModelPicker open={data.modelOpen} models={data.models} onClose={data.closeModelPicker} onSelect={data.setModel} />
+      <ModelPicker open={data.modelOpen} models={data.models} status={data.status} onClose={data.closeModelPicker} onSelect={data.setModel} />
       <SettingsDialog open={data.settingsOpen} models={data.models} status={data.status} theme={props.theme} onTheme={props.onTheme} onClose={data.closeSettings} onModel={data.openModelPicker} onSetup={data.openSetup} />
       <KeyboardShortcuts open={data.shortcutsOpen} onClose={data.closeShortcuts} />
       <SetupWizard open={data.setupOpen} models={data.models} onClose={data.closeSetup} onSave={data.saveSetup} />
