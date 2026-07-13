@@ -193,9 +193,9 @@ export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<v
     const { buildRegistry } = await import("../tools/index.js");
     const { resolveServeAllowlist, runMcpServer, stdioServerTransport } = await import("../mcp/server.js");
 
-    const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
+    const configuredUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
     const kernelBin = kernelBinaryPath(repoRoot);
-    await ensureKernel({ baseUrl, kernelBin, root: repoRoot });
+    const baseUrl = await ensureKernel({ baseUrl: configuredUrl, kernelBin, root: repoRoot });
 
     const safety = createKernelClient(baseUrl);
     const registry = buildRegistry();

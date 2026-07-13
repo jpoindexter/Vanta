@@ -13,11 +13,6 @@ function run(command, args, env = process.env) {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
-function tryRun(command, args, env = process.env) {
-  const result = spawnSync(command, args, { stdio: "inherit", env });
-  return result.status ?? 1;
-}
-
 function clearSigningState(target) {
   // Finder provenance and a stale .cstemp file make codesign leave Electron's
   // top-level bundle ad hoc-signed. Both are generated packaging state.
@@ -26,12 +21,33 @@ function clearSigningState(target) {
 }
 
 function signApp(target, identity) {
-  const args = ["--force", "--deep", "--options", "runtime", "--timestamp", "--sign", identity, target];
   clearSigningState(target);
-  if (tryRun("codesign", args) !== 0) {
-    clearSigningState(target);
-    run("codesign", args);
+  const candidates = execFileSync(
+    "find",
+    [
+      `${target}/Contents`, "-type", "f", "(", "-perm", "-111", "-o", "-name", "*.dylib", "-o", "-name", "*.node", ")", "-print",
+    ],
+    { encoding: "utf8" },
+  ).trim().split("\n").filter(Boolean);
+  for (const candidate of candidates) {
+    const kind = execFileSync("file", ["-b", candidate], { encoding: "utf8" });
+    if (!kind.includes("Mach-O")) continue;
+    run("codesign", ["--force", "--options", "runtime", "--timestamp", "--sign", identity, candidate]);
   }
+  const frameworks = execFileSync(
+    "find",
+    [
+      `${target}/Contents/Frameworks`, "-depth", "-type", "d", "(", "-name", "*.app", "-o", "-name", "*.framework", ")", "-print",
+    ],
+    { encoding: "utf8" },
+  ).trim().split("\n").filter(Boolean);
+  for (const framework of frameworks) {
+    run("codesign", ["--force", "--options", "runtime", "--timestamp", "--sign", identity, framework]);
+  }
+  // Enclosed code can leave transient .cstemp files. Remove those before sealing
+  // the outer bundle, otherwise macOS will reject a bundle that `--deep` appears to verify.
+  clearSigningState(target);
+  run("codesign", ["--force", "--options", "runtime", "--timestamp", "--sign", identity, target]);
   run("codesign", ["--verify", "--deep", "--strict", "--verbose=2", target]);
 }
 

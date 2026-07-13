@@ -178,8 +178,8 @@ async function liveDeptDeps(root: string): Promise<DeptDeps> {
   const dataDir = join(root, ".vanta");
   const { createKernelClient } = await import("../kernel/client.js");
   const { ensureKernel } = await import("../kernel-launcher.js");
-  const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
-  await ensureKernel({ baseUrl, kernelBin: kernelBinaryPath(root), root });
+  const configuredUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
+  const baseUrl = await ensureKernel({ baseUrl: configuredUrl, kernelBin: kernelBinaryPath(root), root });
   const kernel = createKernelClient(baseUrl);
   return {
     readDepartments: () => readDepartments(),

@@ -17,8 +17,8 @@ import type { Message } from "../types.js";
 type Check = { ok: boolean; evidence: string };
 
 async function checkSafe(repoRoot: string): Promise<Check> {
-  const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
-  await ensureKernel({ baseUrl, kernelBin: kernelBinaryPath(repoRoot), root: repoRoot });
+  const configuredUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
+  const baseUrl = await ensureKernel({ baseUrl: configuredUrl, kernelBin: kernelBinaryPath(repoRoot), root: repoRoot });
   const verdict = await createKernelClient(baseUrl).assess("rm -rf / --no-preserve-root");
   return { ok: verdict.risk === "block", evidence: `kernel verdict for 'rm -rf /' = ${verdict.risk} (expect block)` };
 }

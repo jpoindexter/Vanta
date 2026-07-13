@@ -108,8 +108,8 @@ async function liveOrgDeps(root: string): Promise<OrgDeps> {
   const { ensureKernel } = await import("../kernel-launcher.js");
   const { kernelBinaryPath } = await import("../kernel/path.js");
   const dataDir = join(root, ".vanta");
-  const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
-  await ensureKernel({ baseUrl, kernelBin: kernelBinaryPath(root), root });
+  const configuredUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
+  const baseUrl = await ensureKernel({ baseUrl: configuredUrl, kernelBin: kernelBinaryPath(root), root });
   const kernel = createKernelClient(baseUrl);
   return {
     export: {

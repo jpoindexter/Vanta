@@ -61,9 +61,9 @@ export async function runSettingsCommand(root: string, rest: string[]): Promise<
 export async function runBriefCommand(root: string): Promise<void> {
   const { buildBrief } = await import("../repl/brief-cmd.js");
   const { ensureKernel } = await import("../kernel-launcher.js");
-  const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
+  const configuredUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
   const kernelBin = kernelBinaryPath(root);
-  await ensureKernel({ baseUrl, kernelBin, root }).catch(() => {});
+  const baseUrl = await ensureKernel({ baseUrl: configuredUrl, kernelBin, root }).catch(() => configuredUrl);
   const safety = createKernelClient(baseUrl);
   const out = await buildBrief({ dataDir: dataDirFor(root), env: process.env, getGoals: () => safety.getGoals() });
   console.log(out);

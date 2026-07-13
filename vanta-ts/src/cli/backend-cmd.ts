@@ -43,8 +43,8 @@ async function runChild(command: string, args: string[], options: Parameters<Pro
 }
 
 async function assessProof(repoRoot: string, env: NodeJS.ProcessEnv): Promise<Verdict> {
-  const baseUrl = env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
-  await ensureKernel({ baseUrl, kernelBin: kernelBinaryPath(repoRoot), root: repoRoot });
+  const configuredUrl = env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
+  const baseUrl = await ensureKernel({ baseUrl: configuredUrl, kernelBin: kernelBinaryPath(repoRoot), root: repoRoot });
   return createKernelClient(baseUrl).assess(VERIFY_ACTION);
 }
 

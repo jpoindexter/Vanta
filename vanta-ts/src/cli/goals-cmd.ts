@@ -33,8 +33,8 @@ export async function runGoalsCommand(root: string, deps: GoalsDeps = {}): Promi
 }
 
 async function liveGoalReader(root: string): Promise<() => Promise<Goal[]>> {
-  const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
-  await ensureKernel({ baseUrl, kernelBin: kernelBinaryPath(root), root });
+  const configuredUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
+  const baseUrl = await ensureKernel({ baseUrl: configuredUrl, kernelBin: kernelBinaryPath(root), root });
   return () => createKernelClient(baseUrl).getGoals();
 }
 
