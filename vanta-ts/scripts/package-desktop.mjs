@@ -7,6 +7,7 @@ const notarize = process.argv.includes("--notarize");
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const app = "release/mac-arm64/Vanta.app";
 const dmg = `release/Vanta-${version}-arm64.dmg`;
+const entitlements = "desktop-app/build/entitlements.mac.plist";
 
 function run(command, args, env = process.env) {
   const result = spawnSync(command, args, { stdio: "inherit", env });
@@ -42,12 +43,14 @@ function signApp(target, identity) {
     { encoding: "utf8" },
   ).trim().split("\n").filter(Boolean);
   for (const framework of frameworks) {
-    run("codesign", ["--force", "--options", "runtime", "--timestamp", "--sign", identity, framework]);
+    const args = ["--force", "--options", "runtime", "--timestamp", "--sign", identity];
+    if (framework.endsWith(".app")) args.push("--entitlements", entitlements);
+    run("codesign", [...args, framework]);
   }
   // Enclosed code can leave transient .cstemp files. Remove those before sealing
   // the outer bundle, otherwise macOS will reject a bundle that `--deep` appears to verify.
   clearSigningState(target);
-  run("codesign", ["--force", "--options", "runtime", "--timestamp", "--sign", identity, target]);
+  run("codesign", ["--force", "--options", "runtime", "--timestamp", "--sign", identity, "--entitlements", entitlements, target]);
   run("codesign", ["--verify", "--deep", "--strict", "--verbose=2", target]);
 }
 
