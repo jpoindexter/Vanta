@@ -52,6 +52,12 @@ button { color: inherit; cursor: pointer; }
 .desktop-nav button { display: flex; align-items: center; gap: 8px; width: 100%; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--muted); padding: 9px; text-align: left; }
 .desktop-nav button:hover { background: var(--raised); color: var(--text); }
 .desktop-nav button.active { border-color: #285258; background: #102529; color: var(--text); }
+.run-activity { width: min(760px, 100%); margin: 12px auto; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); overflow: hidden; }
+.run-activity > p { padding: 8px 11px; color: var(--faint); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.run-activity > div { border-top: 1px solid var(--line); padding: 8px 11px; color: var(--muted); font-size: 13px; }
+.run-activity > div.ok { color: var(--ok); }.run-activity > div.bad { color: var(--danger); }
+.run-recovery { width: min(760px, 100%); margin: 12px auto; border: 1px solid color-mix(in srgb, var(--amber) 56%, var(--line)); border-radius: 7px; background: color-mix(in srgb, var(--amber) 8%, var(--panel)); display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px; }
+.run-recovery div { display: grid; gap: 3px; }.run-recovery strong { font-size: 13px; }.run-recovery span { color: var(--muted); font-size: 13px; }.run-recovery button { flex: 0 0 auto; display: inline-flex; gap: 6px; align-items: center; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--raised); padding: 7px 9px; }
 
 h1, h2, p { margin: 0; }
 h1 { font-size: 18px; letter-spacing: 0; }
@@ -129,6 +135,7 @@ h2 { margin: 14px 0 8px; font-size: 11px; letter-spacing: .08em; text-transform:
 .composer kbd { border: 1px solid var(--line); border-bottom-color: var(--line-strong); border-radius: 4px; background: var(--raised); padding: 1px 4px; font: 10px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
 .send-button { display: inline-flex; align-items: center; gap: 6px; border-color: var(--accent) !important; background: #14353a !important; }
 .stop-button { display: inline-flex; align-items: center; gap: 7px; border-color: var(--danger) !important; color: var(--danger); }
+.queue-button { display: inline-flex; align-items: center; gap: 6px; border-color: var(--accent) !important; }
 .composer button:disabled, .composer textarea:disabled { opacity: .55; cursor: not-allowed; }
 .loading-state { min-height: 0; display: grid; place-content: center; justify-items: center; gap: 8px; color: var(--muted); text-align: center; }
 .loading-state h2 { margin: 4px 0 0; color: var(--text); font-size: 17px; text-transform: none; letter-spacing: 0; }

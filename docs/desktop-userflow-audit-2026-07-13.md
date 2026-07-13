@@ -150,12 +150,14 @@ The app correctly constrains the outer window and makes sidebar, chat, rail, and
 
 ### Phase 1 - establish the work loop
 
-- Replace the current chat request/response path with streamed message and live tool-step events.
-- Add queue/steer, inline approval, and an always-visible active-run indicator. Stop is now implemented through the active agent AbortSignal.
-- Preserve partial results and give every failed run a concrete recovery action.
+- Stream message text and live tool-step events directly in Work.
+- Keep one bounded next instruction behind the active kernel-gated run; show the queued receipt, Stop, approval, and run activity inline. True in-turn steering remains a future model capability, not a mislabeled queue.
+- Preserve partial results and give every failed run a retry action.
 - Move active model, model scope, and attached context into the work header/composer.
 
-**Exit criterion:** a task that reads, edits, tests, and asks for an approval remains understandable at every step; the user can stop it, approve/reject it, leave Outputs, and return without losing progress.
+Executed evidence: the source and locally signed arm64 package operator-flow smokes start a run, queue one next instruction, verify the visible receipt, and stop the active run. This proves the bounded desktop interaction path, not a live-provider result.
+
+**Exit criterion:** a provider-backed task that reads, edits, tests, and asks for an approval remains understandable at every step; the user can stop it, queue one follow-up, approve/reject it, leave Outputs, and return without losing progress.
 
 ### Phase 2 - collapse navigation and contextualize the inspector
 

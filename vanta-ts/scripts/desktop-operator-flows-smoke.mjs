@@ -83,9 +83,15 @@ try {
     await route.fulfill({ status: 202, contentType: "application/json", body: JSON.stringify({ stopping: true }) });
     releaseChat?.();
   });
+  await page.route(/\/api\/chat\/queue$/, async (route) => {
+    await route.fulfill({ status: 202, contentType: "application/json", body: JSON.stringify({ queued: true }) });
+  });
   await page.locator("#vanta-composer").fill("start a cancellable fixture");
   await page.locator("#vanta-composer").press("Enter");
   await page.getByRole("button", { name: "Stop current run" }).waitFor();
+  await page.locator("#vanta-composer").fill("then summarize the result");
+  await page.getByTitle("Queue next instruction").click();
+  await page.getByText("Next instruction queued.").last().waitFor();
   await page.getByRole("button", { name: "Stop current run" }).click();
   await page.getByText("Stopped by operator.").first().waitFor();
 
@@ -132,7 +138,7 @@ try {
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
 
   if (process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT, fullPage: false });
-  process.stdout.write(`${JSON.stringify({ work: true, connect: true, capabilities: true, messaging: true, outputs: true, contextAttachment: true, stop: true, shortcuts: true, settings: true, providerSetup: true, lightTheme: true, resizablePanes: true })}\n`);
+  process.stdout.write(`${JSON.stringify({ work: true, connect: true, capabilities: true, messaging: true, outputs: true, contextAttachment: true, queue: true, stop: true, shortcuts: true, settings: true, providerSetup: true, lightTheme: true, resizablePanes: true })}\n`);
   await new Promise((resolveDone) => setTimeout(resolveDone, 100));
 } finally {
   if (app) {

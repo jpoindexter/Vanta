@@ -29,6 +29,7 @@ export type DesktopState = {
   _chatActive?: boolean;
   _chatAbort?: AbortController;
   _chatDeltas?: string[];
+  _queuedMessage?: string;
   _streamTextDeltas?: boolean;
   convo?: Conversation;
   root: string;
@@ -337,10 +338,24 @@ export async function handleStopChat(state: DesktopState, res: http.ServerRespon
   const controller = state._chatAbort;
   if (!state._chatActive || !controller) return sendJson(res, 409, { error: "no turn is running" });
   controller.abort();
+  state._queuedMessage = undefined;
   const event = { label: "Stop requested by operator.", ok: false };
   state.currentEvents?.push(event);
   if (state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, event);
   sendJson(res, 202, { stopping: true });
+}
+
+export async function handleQueueChat(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  if (!state._chatActive) return sendJson(res, 409, { error: "no turn is running" });
+  if (state._queuedMessage) return sendJson(res, 409, { error: "one next instruction is already queued" });
+  const body = await readJson(req) as { message?: unknown };
+  const message = typeof body.message === "string" ? body.message.trim() : "";
+  if (!message) return sendJson(res, 400, { error: "message is required" });
+  state._queuedMessage = message;
+  const event = { label: "Next instruction queued.", ok: true };
+  state.currentEvents?.push(event);
+  if (state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, event);
+  sendJson(res, 202, { queued: true });
 }
 
 function interrupted(error: unknown, controller: AbortController): boolean {
@@ -356,16 +371,28 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
   state._chatActive = true;
   state._chatAbort = controller;
   state._chatDeltas = [];
+  state._queuedMessage = undefined;
   state._streamTextDeltas = true;
   const events: DesktopEvent[] = [];
   state.currentEvents = events;
   let live: Awaited<ReturnType<typeof ensureDesktopConversation>> | undefined;
   try {
     live = await ensureDesktopConversation(state);
-    const outcome = await live.convo.send(message, undefined, controller.signal);
-    await writeRunMemory({ provider: live.setup.provider, goals: live.setup.goals, instruction: message, finalText: outcome.finalText });
+    let instruction = message;
+    let outcome: Awaited<ReturnType<typeof live.convo.send>>;
+    while (true) {
+      outcome = await live.convo.send(instruction, undefined, controller.signal);
+      await writeRunMemory({ provider: live.setup.provider, goals: live.setup.goals, instruction, finalText: outcome.finalText });
+      events.push({ label: `${outcome.stoppedReason} · ${outcome.iterations} iteration(s)`, ok: outcome.stoppedReason === "done" });
+      const queued = state._queuedMessage;
+      state._queuedMessage = undefined;
+      if (!queued || controller.signal.aborted) break;
+      instruction = queued;
+      const event = { label: "Running queued instruction.", ok: true };
+      events.push(event);
+      if (state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, event);
+    }
     await persistActiveSession(state);
-    events.push({ label: `${outcome.stoppedReason} · ${outcome.iterations} iteration(s)`, ok: outcome.stoppedReason === "done" });
     sendJson(res, 200, { finalText: outcome.finalText, events, usage: outcome.usage, sessionId: state.sessionId });
   } catch (error) {
     const wasInterrupted = interrupted(error, controller);
@@ -382,6 +409,7 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
   } finally {
     state.currentEvents = undefined;
     state._chatDeltas = undefined;
+    state._queuedMessage = undefined;
     state._streamTextDeltas = false;
     state._chatActive = false;
     if (state._chatAbort === controller) state._chatAbort = undefined;

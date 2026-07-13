@@ -118,6 +118,8 @@ export function useConversation(refresh: () => Promise<void>, cues: TurnCues = {
   const [events, setEvents] = useState<EventRow[]>([{ label: "No tool activity yet." }]);
   const [streamText, setStreamText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [recovery, setRecovery] = useState("");
+  const lastFailedMessage = useRef("");
   useEffect(() => {
     const stream = new EventSource("/api/events");
     stream.onmessage = (message) => {
@@ -131,8 +133,8 @@ export function useConversation(refresh: () => Promise<void>, cues: TurnCues = {
     };
     return () => stream.close();
   }, []);
-  const handlers = conversationHandlers({ refresh, setMessages, setActiveTitle, setEvents, setStreamText, setBusy, setDraft }, cues);
-  return { messages, activeTitle, draft, setDraft, events, streamText, busy, stop: () => stopMessage(setEvents), ...handlers };
+  const handlers = conversationHandlers({ refresh, setMessages, setActiveTitle, setEvents, setStreamText, setBusy, setDraft, setRecovery }, cues, lastFailedMessage);
+  return { messages, activeTitle, draft, setDraft, events, streamText, busy, recovery, stop: () => stopMessage(setEvents), ...handlers };
 }
 
 async function stopMessage(setEvents: (events: EventRow[]) => void): Promise<void> {
@@ -169,9 +171,10 @@ type ConversationState = {
   setStreamText: (updater: (value: string) => string) => void;
   setBusy: (value: boolean) => void;
   setDraft: (updater: (value: string) => string) => void;
+  setRecovery: (value: string) => void;
 };
 
-function conversationHandlers(state: ConversationState, cues: TurnCues) {
+function conversationHandlers(state: ConversationState, cues: TurnCues, lastFailedMessage: { current: string }) {
   async function openSession(id: string) {
     const opened = await api<{ title: string; messages: Message[] }>("/api/sessions/open", postJson({ id }));
     state.setActiveTitle(opened.title);
@@ -205,26 +208,47 @@ function conversationHandlers(state: ConversationState, cues: TurnCues) {
   function insertFile(file: string) {
     state.setDraft((value) => `${value} @${file}`.trimStart());
   }
-  return { openSession, newSession, renameSession, archiveSession, deleteSession, submit: (text: string) => submitMessage(state, text, cues), insertFile };
+  async function submit(text: string) {
+    await submitMessage(state, text, cues, (failed) => { lastFailedMessage.current = failed ? text : ""; });
+  }
+  async function queue(text: string) {
+    const queued = text.trim();
+    if (!queued) return;
+    try {
+      await api<{ queued: boolean }>("/api/chat/queue", postJson({ message: queued }));
+      state.setMessages((messages) => [...messages, { role: "user", content: queued }]);
+      state.setDraft(() => "");
+      state.setEvents([{ label: "Next instruction queued.", ok: true }]);
+    } catch (error) {
+      state.setEvents([{ label: error instanceof Error ? error.message : String(error), ok: false }]);
+    }
+  }
+  return { openSession, newSession, renameSession, archiveSession, deleteSession, submit, queue, retry: () => lastFailedMessage.current ? submit(lastFailedMessage.current) : Promise.resolve(), insertFile };
 }
 
-export async function submitMessage(state: ConversationState, text: string, cues: TurnCues = {}) {
+export async function submitMessage(state: ConversationState, text: string, cues: TurnCues = {}, onRecovery: (failed: boolean) => void = () => {}) {
   cues.prime?.();
   state.setMessages((m) => [...m, { role: "user", content: text }]);
   state.setEvents([{ label: "thinking..." }]);
   state.setStreamText(() => "");
+  state.setRecovery("");
   state.setBusy(true);
   try {
-    const result = await api<{ finalText: string; events?: EventRow[] }>("/api/chat", postJson({ message: text }));
+    const result = await api<{ finalText: string; events?: EventRow[]; interrupted?: boolean }>("/api/chat", postJson({ message: text }));
     state.setMessages((m) => [...m, { role: "assistant", content: result.finalText || "(no text)" }]);
     state.setStreamText(() => "");
     state.setEvents(result.events?.length ? result.events : [{ label: "No tool events returned." }]);
+    const failed = !result.interrupted && Boolean(result.events?.some((event) => event.ok === false));
+    state.setRecovery(failed ? "Vanta kept the partial result. Retry this instruction when the connection or provider is ready." : "");
+    onRecovery(failed);
     await Promise.resolve(cues.complete?.()).catch(() => undefined);
     await state.refresh();
   } catch (err) {
     state.setMessages((m) => [...m, { role: "assistant", content: (err as Error).message }]);
     state.setStreamText(() => "");
     state.setEvents([{ label: (err as Error).message, ok: false }]);
+    state.setRecovery("Vanta kept the draft and partial conversation. Retry this instruction after fixing the reported issue.");
+    onRecovery(true);
   } finally {
     state.setBusy(false);
   }

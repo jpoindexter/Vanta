@@ -6,7 +6,7 @@ import {
   handleRenameSession, handleArchiveSession, handleDeleteSession,
   handleTools, handleCapabilities, handleMessaging, handleArtifacts, handleSaveMessaging,
   handleFiles, handleCanvas, handleModels, handleSetModel,
-  handleApproval, handleTerminal, handleChat, handleStopChat,
+  handleApproval, handleTerminal, handleChat, handleStopChat, handleQueueChat,
 } from "./handlers.js";
 export { approvalDecision, type PendingApproval, type DesktopEvent, type DesktopState, eventLabel } from "./handlers.js";
 import {
@@ -58,6 +58,7 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
   if (p === "/api/approval") { await handleApproval(state, req, res); return true; }
   if (p === "/api/terminal") { await handleTerminal(state, req, res); return true; }
   if (p === "/api/chat/stop") { await handleStopChat(state, res); return true; }
+  if (p === "/api/chat/queue") { await handleQueueChat(state, req, res); return true; }
   if (p === "/api/wake") {
     const body = await readJson(req) as { enabled?: unknown };
     if (typeof body.enabled !== "boolean") sendJson(res, 400, { error: "enabled must be boolean" });

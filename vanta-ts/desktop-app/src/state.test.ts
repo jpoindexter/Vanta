@@ -15,6 +15,7 @@ function conversationState(order: string[]) {
       setStreamText: vi.fn(),
       setBusy: (next: boolean) => { busy = next; },
       setDraft: vi.fn(),
+      setRecovery: vi.fn(),
     },
     snapshot: () => ({ messages, events, busy }),
   };

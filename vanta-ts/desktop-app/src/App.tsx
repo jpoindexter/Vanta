@@ -110,9 +110,9 @@ export function AppShell() {
         {view === "work" ? <>
           <div className={`conversation-stage ${data.phase === "error" ? "has-error" : ""}`}>
             {data.phase === "error" ? <ConnectionError message={data.error} onRetry={() => { void data.refresh(); }} onSetup={data.openSetup} /> : null}
-            {data.phase === "loading" ? <LoadingState /> : <ChatThread messages={convo.messages} busy={convo.busy} streamText={convo.streamText} onPrompt={convo.setDraft} />}
+            {data.phase === "loading" ? <LoadingState /> : <ChatThread messages={convo.messages} busy={convo.busy} streamText={convo.streamText} events={convo.events} recovery={convo.recovery} onRetry={convo.retry} onPrompt={convo.setDraft} />}
           </div>
-          <Composer value={convo.draft} disabled={convo.busy} onChange={convo.setDraft} onSubmit={convo.submit} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onCommand={data.openPalette} />
+          <Composer value={convo.draft} busy={convo.busy} onChange={convo.setDraft} onSubmit={convo.submit} onQueue={convo.queue} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onCommand={data.openPalette} />
         </> : <OperatorWorkspace view={view} data={data} onOpenSession={(id) => { setView("work"); void convo.openSession(id); }} />}
       </main>
       {inspectorVisible ? <RightRail

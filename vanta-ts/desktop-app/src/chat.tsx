@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
-import { Archive, ArchiveRestore, ArrowUp, Boxes, Check, MessageSquare, MoreHorizontal, Network, PackageOpen, Paperclip, Pencil, Plus, Search, Square, Trash2, X } from "lucide-react";
+import { Archive, ArchiveRestore, ArrowUp, Boxes, Check, ListPlus, MessageSquare, MoreHorizontal, Network, PackageOpen, Paperclip, Pencil, Plus, RotateCcw, Search, Square, Trash2, X } from "lucide-react";
 import type { DesktopView, Message, Session } from "./types.js";
 
 type SessionSidebarProps = {
@@ -112,7 +112,7 @@ function SessionButton(props: {
   );
 }
 
-export function ChatThread(props: { messages: Message[]; busy: boolean; streamText: string; onPrompt: (text: string) => void }) {
+export function ChatThread(props: { messages: Message[]; busy: boolean; streamText: string; events: { label: string; ok?: boolean }[]; recovery: string; onRetry: () => void; onPrompt: (text: string) => void }) {
   const rows = props.messages.filter((m) => m.role !== "system");
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [rows.length, props.busy, props.streamText]);
@@ -121,6 +121,8 @@ export function ChatThread(props: { messages: Message[]; busy: boolean; streamTe
       {rows.length === 0 ? <EmptyState onPrompt={props.onPrompt} /> : rows.map((m, i) => <MessageBubble key={i} message={m} />)}
       {props.streamText ? <article className="message assistant streaming"><span>Vanta</span><p>{props.streamText}</p></article> : null}
       {props.busy ? <div className="thinking"><i />Working through context and tools...</div> : null}
+      {props.events.length && props.events[0]?.label !== "No tool activity yet." ? <section className="run-activity" aria-label="Current run activity"><p>Run activity</p>{props.events.slice(-5).map((event, index) => <div key={`${event.label}-${index}`} className={event.ok === false ? "bad" : event.ok ? "ok" : ""}>{event.label}</div>)}</section> : null}
+      {props.recovery ? <section className="run-recovery" role="status"><div><strong>Run needs attention</strong><span>{props.recovery}</span></div><button type="button" onClick={props.onRetry}><RotateCcw size={15} />Retry</button></section> : null}
       <div ref={endRef} />
     </section>
   );
@@ -136,21 +138,22 @@ function MessageBubble({ message }: { message: Message }) {
   );
 }
 
-export function Composer(props: { value: string; disabled: boolean; onChange: (value: string) => void; onSubmit: (text: string) => void; onStop: () => void; onAttach: () => void; onCommand: () => void }) {
+export function Composer(props: { value: string; busy: boolean; onChange: (value: string) => void; onSubmit: (text: string) => void; onQueue: (text: string) => void; onStop: () => void; onAttach: () => void; onCommand: () => void }) {
   function send(event: FormEvent) {
     event.preventDefault();
     const value = props.value.trim();
     if (!value) return;
     props.onChange("");
-    props.onSubmit(value);
+    if (props.busy) props.onQueue(value);
+    else props.onSubmit(value);
   }
   return (
     <form className="composer" onSubmit={send}>
       <label className="sr-only" htmlFor="vanta-composer">Message Vanta</label>
-      <textarea id="vanta-composer" value={props.value} onChange={(e) => props.onChange(e.target.value)} onKeyDown={(event) => keyDown(event, props)} placeholder="Ask Vanta to do something..." disabled={props.disabled} />
+      <textarea id="vanta-composer" value={props.value} onChange={(e) => props.onChange(e.target.value)} onKeyDown={(event) => keyDown(event, props)} placeholder={props.busy ? "Queue the next instruction..." : "Ask Vanta to do something..."} />
       <div className="composer-footer">
-        <span><kbd>Enter</kbd> send <kbd>Shift Enter</kbd> newline · <strong>@</strong> files · <strong>/</strong> actions</span>
-        <div className="composer-actions">{props.disabled ? <button className="stop-button" type="button" title="Stop current run" aria-label="Stop current run" onClick={props.onStop}><Square size={14} /><span>Stop</span></button> : <><button className="attach-button" type="button" title="Attach project files" aria-label="Attach project files" onClick={props.onAttach}><Paperclip size={16} /></button><button className="send-button" type="submit" disabled={!props.value.trim()}><ArrowUp size={16} /><span>Send</span></button></>}</div>
+        <span>{props.busy ? <><kbd>Enter</kbd> queue one next instruction · <strong>Stop</strong> cancels this run</> : <><kbd>Enter</kbd> send <kbd>Shift Enter</kbd> newline · <strong>@</strong> files · <strong>/</strong> actions</>}</span>
+        <div className="composer-actions">{props.busy ? <><button className="queue-button" type="submit" disabled={!props.value.trim()} title="Queue next instruction"><ListPlus size={15} /><span>Queue</span></button><button className="stop-button" type="button" title="Stop current run" aria-label="Stop current run" onClick={props.onStop}><Square size={14} /><span>Stop</span></button></> : <><button className="attach-button" type="button" title="Attach project files" aria-label="Attach project files" onClick={props.onAttach}><Paperclip size={16} /></button><button className="send-button" type="submit" disabled={!props.value.trim()}><ArrowUp size={16} /><span>Send</span></button></>}</div>
       </div>
     </form>
   );

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { handleChat, handleStopChat, type DesktopState } from "./handlers.js";
+import { handleChat, handleQueueChat, handleStopChat, type DesktopState } from "./handlers.js";
 
 function response() {
   let status = 0; let body = "";
@@ -30,5 +30,18 @@ describe("desktop chat concurrency", () => {
     const reply = response();
     await handleStopChat({ root: "/repo" }, reply.res);
     expect(reply.result()).toEqual({ status: 409, body: { error: "no turn is running" } });
+  });
+
+  it("keeps one bounded next instruction for the active turn", async () => {
+    const state: DesktopState = { root: "/repo", _chatActive: true };
+    const first = response();
+    const req = { on: (event: string, listener: (value?: Buffer) => void) => { if (event === "data") listener(Buffer.from('{"message":"then summarize"}')); if (event === "end") listener(); return req; } } as any;
+    await handleQueueChat(state, req, first.res);
+    expect(first.result()).toEqual({ status: 202, body: { queued: true } });
+    expect(state._queuedMessage).toBe("then summarize");
+
+    const second = response();
+    await handleQueueChat(state, req, second.res);
+    expect(second.result()).toEqual({ status: 409, body: { error: "one next instruction is already queued" } });
   });
 });
