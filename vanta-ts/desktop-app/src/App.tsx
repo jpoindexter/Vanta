@@ -38,6 +38,7 @@ export function AppShell() {
   const [view, setView] = useState<DesktopView>("work");
   const [inspectorOpen, setInspectorOpen] = useState(() => window.innerWidth >= 1180);
   const [theme, setTheme] = useState<"dark" | "light">(() => window.localStorage.getItem("vanta.desktop.theme") === "light" ? "light" : "dark");
+  const [attachments, setAttachments] = useState<string[]>([]);
   const [sidebarWidth, setSidebarWidth] = useState(() => storedPaneWidth(SIDEBAR_STORAGE_KEY, 292));
   const [railWidth, setRailWidth] = useState(() => storedPaneWidth(RAIL_STORAGE_KEY, 336));
   function changeTheme(next: "dark" | "light") { setTheme(next); window.localStorage.setItem("vanta.desktop.theme", next); }
@@ -112,7 +113,7 @@ export function AppShell() {
             {data.phase === "error" ? <ConnectionError message={data.error} onRetry={() => { void data.refresh(); }} onSetup={data.openSetup} /> : null}
             {data.phase === "loading" ? <LoadingState /> : <ChatThread messages={convo.messages} busy={convo.busy} streamText={convo.streamText} events={convo.events} recovery={convo.recovery} onRetry={convo.retry} onPrompt={convo.setDraft} />}
           </div>
-          <Composer value={convo.draft} busy={convo.busy} onChange={convo.setDraft} onSubmit={convo.submit} onQueue={convo.queue} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onCommand={data.openPalette} />
+          <Composer value={convo.draft} busy={convo.busy} attachments={attachments} onChange={convo.setDraft} onSubmit={(text) => { void convo.submit(withAttachments(text, attachments)); setAttachments([]); }} onQueue={convo.queue} onRemoveAttachment={(file) => setAttachments((current) => current.filter((entry) => entry !== file))} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onCommand={data.openPalette} />
         </> : <OperatorWorkspace view={view} data={data} onOpenSession={(id) => { setView("work"); void convo.openSession(id); }} />}
       </main>
       {inspectorVisible ? <RightRail
@@ -125,7 +126,7 @@ export function AppShell() {
         onRefresh={() => { void data.refresh(); }}
         tab={data.tab}
         onTab={data.setTab}
-        onInsertFile={convo.insertFile}
+        onInsertFile={(file) => setAttachments((current) => current.includes(file) ? current : [...current, file])}
         onOpenOutputs={() => { setInspectorOpen(false); setView("outputs"); }}
         onOpenSession={(id) => { setInspectorOpen(false); void convo.openSession(id); }}
         onDismiss={() => { setInspectorOpen(false); setMobilePanel("work"); }}
@@ -265,4 +266,8 @@ function OperatorWorkspace(props: { view: DesktopView; data: DesktopData; onOpen
 
 function viewLabel(view: Exclude<DesktopView, "work">): string {
   return view === "outputs" ? "Outputs" : "Connect";
+}
+
+function withAttachments(text: string, attachments: string[]): string {
+  return [text.trim(), ...attachments.map((file) => `@${file}`)].filter(Boolean).join("\n");
 }

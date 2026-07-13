@@ -128,6 +128,9 @@ h2 { margin: 14px 0 8px; font-size: 11px; letter-spacing: .08em; text-transform:
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .composer { border-top: 1px solid var(--line); padding: 14px clamp(18px, 5vw, 56px); background: var(--panel-2); display: grid; gap: 8px; }
+.context-chips { width: min(790px, 100%); justify-self: center; display: flex; flex-wrap: wrap; gap: 6px; }
+.context-chips > span { min-width: 0; max-width: 100%; display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--raised); color: var(--muted); padding: 4px 5px 4px 8px; font-size: 12px; }
+.context-chips > span > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.context-chips button { display: grid; place-items: center; flex: 0 0 auto; width: 20px; height: 20px; border: 0 !important; border-radius: 4px; background: transparent !important; color: var(--faint); padding: 0 !important; }.context-chips button:hover { color: var(--text); background: var(--panel) !important; }
 .composer textarea { width: min(790px, 100%); justify-self: center; resize: none; min-height: 64px; max-height: 140px; border: 1px solid var(--line-strong); border-radius: 8px; background: #30323f; color: var(--text); padding: 12px; outline: none; }
 .composer-footer { width: min(790px, 100%); justify-self: center; display: flex; justify-content: space-between; align-items: center; gap: 12px; color: var(--faint); }
 .composer-actions { display: flex; align-items: center; gap: 7px; }

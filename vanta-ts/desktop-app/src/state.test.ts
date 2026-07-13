@@ -6,6 +6,7 @@ function conversationState(order: string[]) {
   let messages: Message[] = [];
   let events: EventRow[] = [];
   let busy = false;
+  const recovery: string[] = [];
   return {
     state: {
       refresh: async () => { order.push("refresh"); },
@@ -15,9 +16,9 @@ function conversationState(order: string[]) {
       setStreamText: vi.fn(),
       setBusy: (next: boolean) => { busy = next; },
       setDraft: vi.fn(),
-      setRecovery: vi.fn(),
+      setRecovery: (next: string) => { recovery.push(next); },
     },
-    snapshot: () => ({ messages, events, busy }),
+    snapshot: () => ({ messages, events, busy, recovery }),
   };
 }
 
@@ -48,6 +49,7 @@ describe("desktop turn completion", () => {
       ],
       events: [{ label: "done", ok: true }],
       busy: false,
+      recovery: ["", ""],
     });
   });
 
@@ -61,5 +63,15 @@ describe("desktop turn completion", () => {
     expect(complete).not.toHaveBeenCalled();
     expect(harness.snapshot().messages.at(-1)).toEqual({ role: "assistant", content: "offline" });
     expect(harness.snapshot().busy).toBe(false);
+    expect(harness.snapshot().recovery.at(-1)).toContain("Retry this instruction");
+  });
+
+  it("offers scoped retry after a failed completed response", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => ({ finalText: "Partial work", events: [{ label: "provider unavailable", ok: false }] }) })));
+    const harness = conversationState([]);
+
+    await submitMessage(harness.state, "do the task");
+
+    expect(harness.snapshot().recovery.at(-1)).toContain("partial result");
   });
 });

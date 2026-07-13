@@ -138,7 +138,7 @@ function MessageBubble({ message }: { message: Message }) {
   );
 }
 
-export function Composer(props: { value: string; busy: boolean; onChange: (value: string) => void; onSubmit: (text: string) => void; onQueue: (text: string) => void; onStop: () => void; onAttach: () => void; onCommand: () => void }) {
+export function Composer(props: { value: string; busy: boolean; attachments: string[]; onChange: (value: string) => void; onSubmit: (text: string) => void; onQueue: (text: string) => void; onRemoveAttachment: (file: string) => void; onStop: () => void; onAttach: () => void; onCommand: () => void }) {
   function send(event: FormEvent) {
     event.preventDefault();
     const value = props.value.trim();
@@ -151,6 +151,7 @@ export function Composer(props: { value: string; busy: boolean; onChange: (value
     <form className="composer" onSubmit={send}>
       <label className="sr-only" htmlFor="vanta-composer">Message Vanta</label>
       <textarea id="vanta-composer" value={props.value} onChange={(e) => props.onChange(e.target.value)} onKeyDown={(event) => keyDown(event, props)} placeholder={props.busy ? "Queue the next instruction..." : "Ask Vanta to do something..."} />
+      {props.attachments.length ? <div className="context-chips" aria-label="Attached project context">{props.attachments.map((file) => <span key={file}><span title={file}>{file}</span><button type="button" aria-label={`Remove ${file}`} title={`Remove ${file}`} onClick={() => props.onRemoveAttachment(file)}><X size={13} /></button></span>)}</div> : null}
       <div className="composer-footer">
         <span>{props.busy ? <><kbd>Enter</kbd> queue one next instruction · <strong>Stop</strong> cancels this run</> : <><kbd>Enter</kbd> send <kbd>Shift Enter</kbd> newline · <strong>@</strong> files · <strong>/</strong> actions</>}</span>
         <div className="composer-actions">{props.busy ? <><button className="queue-button" type="submit" disabled={!props.value.trim()} title="Queue next instruction"><ListPlus size={15} /><span>Queue</span></button><button className="stop-button" type="button" title="Stop current run" aria-label="Stop current run" onClick={props.onStop}><Square size={14} /><span>Stop</span></button></> : <><button className="attach-button" type="button" title="Attach project files" aria-label="Attach project files" onClick={props.onAttach}><Paperclip size={16} /></button><button className="send-button" type="submit" disabled={!props.value.trim()}><ArrowUp size={16} /><span>Send</span></button></>}</div>

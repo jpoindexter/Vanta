@@ -17,6 +17,7 @@ try {
   await mkdir(join(home, "skills", "operator-smoke"), { recursive: true });
   await mkdir(join(project, "docs"), { recursive: true });
   await writeFile(join(home, "skills", "operator-smoke", "SKILL.md"), "---\nname: Operator smoke skill\ndescription: A real stored skill for the desktop smoke.\n---\nUse this fixture.", "utf8");
+  await writeFile(join(project, "README.md"), "context fixture", "utf8");
   await writeFile(join(project, "docs", "output.md"), "artifact fixture", "utf8");
   await writeFile(join(home, "sessions", "operator-flow.json"), JSON.stringify({
     id: "operator-flow", title: "Operator flow fixture", started: "2026-07-13T00:00:00.000Z", updated: "2026-07-13T00:00:00.000Z",
@@ -116,6 +117,14 @@ try {
   await page.locator("#vanta-composer").press("@");
   await page.locator(".right-rail").waitFor();
   await page.locator(".files-panel").waitFor();
+  const fileButton = page.locator(".file-list button").first();
+  await fileButton.waitFor();
+  const file = (await fileButton.textContent())?.trim();
+  if (!file) throw new Error("File context fixture has no visible label");
+  await fileButton.click();
+  await page.getByRole("button", { name: `Remove ${file}` }).waitFor();
+  await page.getByRole("button", { name: `Remove ${file}` }).click();
+  await page.locator(".context-chips").waitFor({ state: "detached" });
   await page.locator(".topbar").getByRole("button", { name: "Close inspector" }).click();
   await page.locator(".right-rail").waitFor({ state: "detached" });
 
@@ -138,7 +147,7 @@ try {
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
 
   if (process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT, fullPage: false });
-  process.stdout.write(`${JSON.stringify({ work: true, connect: true, capabilities: true, messaging: true, outputs: true, contextAttachment: true, queue: true, stop: true, shortcuts: true, settings: true, providerSetup: true, lightTheme: true, resizablePanes: true })}\n`);
+  process.stdout.write(`${JSON.stringify({ work: true, connect: true, capabilities: true, messaging: true, outputs: true, visibleContextChips: true, queue: true, stop: true, shortcuts: true, settings: true, providerSetup: true, lightTheme: true, resizablePanes: true })}\n`);
   await new Promise((resolveDone) => setTimeout(resolveDone, 100));
 } finally {
   if (app) {

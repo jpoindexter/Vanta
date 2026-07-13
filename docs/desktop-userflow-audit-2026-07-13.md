@@ -25,7 +25,8 @@ Evidence includes the current renderer and route code, isolated Electron launch,
 | --- | --- | --- |
 | `npm run typecheck` | Passed before this audit repair | Core TypeScript sources compile. It does **not** replace the renderer-specific check. |
 | `npm run desktop:renderer:typecheck` | Passed after the repair | The Electron renderer source now type-checks independently. |
-| `npm run desktop:operator-flows:smoke` | Passed | An isolated native window executes Work, Connect, capabilities, messaging save, Outputs, file attachment, Stop, shortcuts, settings, light mode, and keyboard/pointer pane resizing without renderer errors. It does **not** prove a provider-backed task turn. |
+| `npm run desktop:operator-flows:smoke` | Passed | An isolated native window executes Work, Connect, capabilities, messaging save, Outputs, visible/removable file context, Queue-next, Stop, shortcuts, settings, light mode, and keyboard/pointer pane resizing without renderer errors. |
+| `VANTA_DESKTOP_LIVE_PROOF=1 npm run desktop:live-turn:proof` | Passed | The signed ARM64 package, isolated project/profile, and local Codex provider returned `DESKTOP_LIVE_OK` in 6.4 seconds. The command refuses provider use unless explicitly opted in. |
 | `npm run desktop:layout:smoke` | Passed | A wide work/recovery layout and 760px Files drawer contain long file names without document or horizontal overflow. |
 | Signed arm64 `Vanta.app` + `desktop:operator-flows:smoke` | Passed | The packaged Electron app passes the same operator workflow after deep macOS signature verification. First-run status/tools setup failures are accepted only while the visible provider setup flow succeeds. |
 | Isolated Electron launch with a temporary Vanta home and profile | Initially failed: `theme is not defined`; now renders `.app-shell` after the repair | Confirms the boot failure and the narrow source-renderer repair. |
@@ -47,17 +48,17 @@ The desktop now uses three primary destinations: **Work**, **Outputs**, and **Co
 
 The desktop shell no longer relies on fixed wide-screen pane widths. Sessions and Outputs have bounded, draggable, keyboard-adjustable separators; their widths persist locally, the central work surface retains a 380px minimum, and the responsive drawer behavior remains in force below 1080px. Source and signed-package operator smoke both exercise keyboard and pointer resizing. The package signing flow uses the pinned Developer ID hash because the local keychain contains two certificates with the same display name; the verified bundle has Team ID `5352PXMNV5` and hardened runtime enabled.
 
-The Work surface now consumes the desktop's existing SSE channel. Text deltas render as a temporary assistant message and tool activity replaces the generic waiting row; the final API result remains the saved conversation record. This has renderer and native-flow coverage, but still needs a provider-backed task run to prove live deltas end to end. On an empty composer, `@` opens the file attachment drawer and `/` opens quick actions, so the keyboard help maps to real desktop behavior.
+The Work surface consumes the desktop's existing SSE channel. Text deltas render as a temporary assistant message and the five most recent tool/run events remain visible in the conversation; the final API result remains the saved conversation record. The signed-package live proof now exercises the real provider path. On an empty composer, `@` opens the file attachment drawer and `/` opens quick actions; selected files appear as removable context chips and submit through Vanta's existing `@file` syntax.
 
 ### P1 - chat is a request/response form, not an agent-work surface
 
-The user message is optimistic, but the response is appended only after `/api/chat` resolves. The UI now receives streamed text/tool events and provides a Stop control, but it still lacks concise named run steps, a queue/steer path, and persistent run state. The composer is disabled for the entire run. See [state.ts](../vanta-ts/desktop-app/src/state.ts#L197-L214), [chat.tsx](../vanta-ts/desktop-app/src/chat.tsx#L108-L158), and [App.tsx](../vanta-ts/desktop-app/src/App.tsx#L52-L58).
+The user message is optimistic, and the final assistant response is saved when `/api/chat` resolves. During the active turn, Work shows streamed text, compact named run activity, Stop, and one bounded Queue-next instruction. A failed result retains partial text and exposes Retry; scoped approval remains rendered through the existing kernel approval overlay. See [state.ts](../vanta-ts/desktop-app/src/state.ts), [chat.tsx](../vanta-ts/desktop-app/src/chat.tsx), and [App.tsx](../vanta-ts/desktop-app/src/App.tsx).
 
-This makes normal agent latency indistinguishable from a hang and prevents a user from steering or queueing the next instruction. The right rail receives post-run events, but it disappears whenever the user visits Capabilities, Messaging, or Artifacts.
+True in-turn model steering and a durable run timeline remain future improvements. They are not required for the shipped one-work-loop contract: queueing is serial, bounded to one next instruction, and never bypasses the active kernel-gated session.
 
 **Partial change delivered:** Work consumes text and tool SSE updates, visual activity appears in the central transcript rather than only after completion, and Stop aborts the active agent signal. A Stop receipt is visible, and any streamed partial text is retained as the interrupted result.
 
-**Remaining change:** make one run a first-class object in the conversation: concise named live steps, a queued or steering message, and a small active-run status strip that survives navigation.
+**Follow-up:** enrich run evidence and context search without adding a new primary destination.
 
 ### P1 - too many top-level modes compete with the work loop
 
@@ -155,7 +156,7 @@ The app correctly constrains the outer window and makes sidebar, chat, rail, and
 - Preserve partial results and give every failed run a retry action.
 - Move active model, model scope, and attached context into the work header/composer.
 
-Executed evidence: the source and locally signed arm64 package operator-flow smokes start a run, queue one next instruction, verify the visible receipt, and stop the active run. This proves the bounded desktop interaction path, not a live-provider result.
+Executed evidence: the source and locally signed arm64 package operator-flow smokes start a run, queue one next instruction, verify the visible receipt, select and remove a context chip, and stop the active run. The opt-in signed-package proof then runs a real local-Codex turn from an isolated project/profile. Scoped approval has dedicated renderer and server tests.
 
 **Exit criterion:** a provider-backed task that reads, edits, tests, and asks for an approval remains understandable at every step; the user can stop it, queue one follow-up, approve/reject it, leave Outputs, and return without losing progress.
 
