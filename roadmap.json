@@ -16098,8 +16098,8 @@
       "done": "From one running gateway, a message on each of Telegram, WhatsApp, Signal, Discord, and Slack reaches the agent and gets a reply, verified live; the gateway survives one channel failing.",
       "tier": "rock",
       "lens": "reach",
-      "updated": "2026-06-22",
-      "notes": "gateway/platforms/multi-channel.ts: MultiChannelAdapter composite — polls ALL configured channels (per-channel error isolation: one down != all down), tags each inbound chatId platform:<id>, routes replies back to the originating channel. resolveMessagingChannel(env): 0->undefined, 1->adapter, 2+->composite. Discord wired into factory (5th channel). Gateway (cli/ops.ts) now runs all configured channels. Telegram+WhatsApp+Signal+Slack+Discord resolve together; live needs each channels real token.",
+      "updated": "2026-07-13",
+      "notes": "gateway/platforms/multi-channel.ts: MultiChannelAdapter composite — polls ALL configured channels (per-channel error isolation: one down != all down), tags each inbound chatId platform:<id>, routes replies back to the originating channel. resolveMessagingChannel(env): 0->undefined, 1->adapter, 2+->composite. Discord wired into factory (5th channel). Gateway (cli/ops.ts) now runs all configured channels. Telegram+WhatsApp+Signal+Slack+Discord resolve together; live needs each channels real token.\n\nRELIABILITY FIX 2026-07-13: `vanta gateway status [--json]` is now a finite read-only command backed by the existing mode-0600 readiness snapshot. It reports live/stale/idle state, age, and redacted per-channel health, and unknown gateway subcommands print usage instead of silently starting another daemon. Focused utility tests pass; a live CLI check returned the existing stale receipt and exited without creating a second process.",
       "source": "a reference agent harness-a reference agent harness-audit-2026-06-21",
       "after": [
         "MSG-ADAPTER-WHATSAPP",

@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { appendChannelProof, buildChannelProof } from "../gateway/channel-proof.js";
+import { writeGatewayReadiness } from "../gateway/readiness-state.js";
 import { runGatewayUtilityCommand } from "./gateway-utility-cmd.js";
 
 const roots: string[] = [];
@@ -12,6 +13,17 @@ afterEach(async () => {
 });
 
 describe("gateway utility commands", () => {
+  it("reports persisted gateway status without starting the daemon", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-gateway-status-"));
+    roots.push(root);
+    await writeGatewayReadiness(join(root, ".vanta"), [{ id: "telegram", status: "up", failures: 0 }], new Date());
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    await expect(runGatewayUtilityCommand(root, ["status", "--json"])).resolves.toBe(true);
+    const report = JSON.parse(String(log.mock.calls[0]?.[0])) as { state: string; channels: Array<{ id: string; status: string }> };
+    expect(report.state).toBe("live");
+    expect(report.channels).toEqual([{ id: "telegram", status: "up" }]);
+  });
+
   it("prints persisted proofs filtered by platform", async () => {
     const root = await mkdtemp(join(tmpdir(), "vanta-gateway-proof-"));
     roots.push(root);
@@ -52,7 +64,9 @@ describe("gateway utility commands", () => {
 
   it("returns false for daemon mode and unrelated subcommands", async () => {
     await expect(runGatewayUtilityCommand("/tmp", [])).resolves.toBe(false);
-    await expect(runGatewayUtilityCommand("/tmp", ["unknown"])).resolves.toBe(false);
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    await expect(runGatewayUtilityCommand("/tmp", ["unknown"])).resolves.toBe(true);
+    expect(error).toHaveBeenCalledWith(expect.stringContaining("usage: vanta gateway"));
   });
 
   it("keeps invalid verify-channel timeout handling finite", async () => {

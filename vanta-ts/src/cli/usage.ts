@@ -52,6 +52,7 @@ const USAGE_LINES = [
       '       vanta schedule "<instruction>" --cron "<expr>" | schedule list | schedule remove <id>',
       "       vanta cron                         run due tasks once (for launchd/cron)",
       "       vanta gateway                      run the scheduler as a foreground daemon",
+      "       vanta gateway status [--json]      report live/stale/idle gateway readiness without starting it",
       "       vanta gateway verify-channels      log live/not-configured status for messaging adapters",
       "       vanta gateway channel-proofs [platform] [--json]  show accepted inbound-to-reply receipts",
       "       vanta webhook workflow new|list|show|test|enable|disable   build HMAC event workflows",

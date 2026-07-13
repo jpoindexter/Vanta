@@ -41,6 +41,7 @@ references are refused. See [Knowledge graph & references](./knowledge-and-refs.
 
 ```bash
 vanta gateway          # cron + message polling + webhook listener, in one loop
+vanta gateway status   # finite live/stale/idle readiness; add --json for automation
 vanta service install  # keep the gateway alive via a launchd user agent (macOS)
 ```
 
