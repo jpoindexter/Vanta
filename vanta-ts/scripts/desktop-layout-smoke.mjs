@@ -24,7 +24,7 @@ try {
     contentType: "application/json",
     body: JSON.stringify({ error: "Forced layout recovery fixture" }),
   }));
-  await page.reload({ waitUntil: "networkidle" });
+  await page.reload({ waitUntil: "domcontentloaded" });
   await page.getByRole("alert").waitFor();
   const recovery = await measure(page);
   assertLayout(recovery, "recovery");
@@ -36,10 +36,11 @@ try {
     body: JSON.stringify(Array.from({ length: 220 }, (_, index) => `src/a-very-long-project-folder/feature-${index}/implementation-with-a-long-name.ts`)),
   }));
   await page.setViewportSize({ width: 760, height: 900 });
-  await page.reload({ waitUntil: "networkidle" });
+  await page.reload({ waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "Show inspector" }).click();
-  await page.getByRole("button", { name: "Open files" }).click();
-  await page.getByRole("heading", { name: "Project Files" }).waitFor();
+  await page.getByRole("button", { name: "Attach project files" }).click();
+  await page.locator(".files-panel").waitFor();
+  await page.locator(".file-list button").first().waitFor();
   const files = await measureFiles(page);
   assertFiles(files);
 
@@ -58,14 +59,14 @@ async function measureFiles(page) {
       return { top: rect.top, bottom: rect.bottom, width: rect.width, height: rect.height };
     };
     const rail = document.querySelector(".right-rail");
-    const tabs = document.querySelector(".rail-tabs");
+    const heading = document.querySelector(".rail-heading");
     const panel = document.querySelector(".files-panel");
     const list = document.querySelector(".file-list");
     const rows = [...document.querySelectorAll(".file-list button")].slice(0, 5);
-    if (!rail || !tabs || !panel || !list || rows.length === 0) throw new Error("Files panel fixture did not render");
+    if (!rail || !heading || !panel || !list || rows.length === 0) throw new Error("Files panel fixture did not render");
     return {
       railDisplay: getComputedStyle(rail).display,
-      rail: box(rail), tabs: box(tabs), panel: box(panel), list: box(list),
+      rail: box(rail), heading: box(heading), panel: box(panel), list: box(list),
       panelWidths: [panel.clientWidth, panel.scrollWidth],
       listWidths: [list.clientWidth, list.scrollWidth],
       rowHeights: rows.map((row) => box(row).height),
@@ -103,7 +104,7 @@ function assertLayout(result, label) {
 
 function assertFiles(result) {
   if (result.railDisplay !== "grid") throw new Error(`files: inspector uses ${result.railDisplay}, expected grid`);
-  if (result.panel.top < result.tabs.bottom - 1) throw new Error("files: panel overlaps tabs");
+  if (result.panel.top < result.heading.bottom - 1) throw new Error("files: panel overlaps heading");
   if (result.panelWidths[1] > result.panelWidths[0]) throw new Error("files: panel scrolls horizontally");
   if (result.listWidths[1] > result.listWidths[0]) throw new Error("files: list scrolls horizontally");
   if (result.rowHeights.some((height) => height < 27)) throw new Error(`files: clipped rows ${result.rowHeights.join(",")}`);

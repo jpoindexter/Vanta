@@ -12,6 +12,7 @@ const args = process.argv.slice(app.isPackaged ? 1 : 2);
 const smoke = args.includes("--smoke");
 const devtools = args.includes("--devtools");
 const companion = !args.includes("--no-companion");
+const automation = process.env.VANTA_DESKTOP_AUTOMATION === "1";
 let serverProcess;
 let mainWindow;
 let trayController;
@@ -130,7 +131,7 @@ async function createWindow() {
   mainWindow.once("ready-to-show", () => { if (!smoke) mainWindow.show(); });
   mainWindow.webContents.setWindowOpenHandler(({ url }) => { if (/^https?:/.test(url)) void shell.openExternal(url); return { action: "deny" }; });
   if (devtools) mainWindow.webContents.openDevTools({ mode: "detach" });
-  mainWindow.on("close", (event) => { if (!shuttingDown && !smoke) { event.preventDefault(); mainWindow.hide(); } });
+  mainWindow.on("close", (event) => { if (!shuttingDown && !smoke && !automation) { event.preventDefault(); mainWindow.hide(); } });
   if (!smoke) await mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(splashHtml())}`);
 }
 
@@ -154,11 +155,14 @@ function showFatal(message) {
   app.quit();
 }
 
+// Test and automation runs use an isolated profile so they never contend with
+// the operator's running Vanta instance or mutate its remembered project.
+if (process.env.VANTA_DESKTOP_USER_DATA) app.setPath("userData", process.env.VANTA_DESKTOP_USER_DATA);
 if (!app.requestSingleInstanceLock()) app.quit();
 else {
   app.on("second-instance", () => { mainWindow?.show(); mainWindow?.focus(); });
   app.on("before-quit", () => { shuttingDown = true; stopServer(); });
-  app.on("window-all-closed", () => { if (process.platform !== "darwin") app.quit(); });
+  app.on("window-all-closed", () => { if (automation || process.platform !== "darwin") app.quit(); });
   app.on("activate", () => { mainWindow?.show(); });
   app.whenReady().then(async () => {
     projectRoot = await initialProject();

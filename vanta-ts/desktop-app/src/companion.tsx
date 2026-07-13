@@ -1,4 +1,5 @@
-import { Dispatch, FormEvent, SetStateAction, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { App } from "@capacitor/app";
 import type { Approval, ApprovalDecision, EventRow, Message, Session, Status } from "./types.js";
 import { companionClient, HOST_KEY, isLocalCompanion, isNativeCompanion, mobileSmokeConfig, normalizeHost, parsePairLink, postJson, streamCompanionEvents, TOKEN_KEY } from "./companion-client.js";

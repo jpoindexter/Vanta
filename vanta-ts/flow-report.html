@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vanta Desktop - User Flow Report</title>
+<style>
+  :root{--ink:#111;--muted:#666;--line:#ddd;--accent:#0b5fff;--ok:#0a7d33;--warn:#b45309;--bad:#b91c1c;--bg:#fafafa;--card:#fff}
+  *{box-sizing:border-box;margin:0} body{font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg);padding:48px 24px;max-width:880px;margin:0 auto} h1{font-size:28px;letter-spacing:0} h2{font-size:20px;margin:48px 0 8px;padding-top:24px;border-top:1px solid var(--line)} h3{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:28px 0 12px}.meta{color:var(--muted);font-size:14px;margin:6px 0 4px}.skills{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 0}.chip{font-size:13px;padding:3px 10px;border:1px solid var(--line);border-radius:999px;background:var(--card)}.flow{list-style:none;padding:0;margin:16px 0}.flow>li{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;position:relative}.flow>li+li{margin-top:34px}.flow>li+li::before{content:"";position:absolute;top:-27px;left:32px;width:2px;height:20px;background:var(--accent)}.flow>li+li::after{content:"";position:absolute;top:-12px;left:28px;border:5px solid transparent;border-top-color:var(--accent)}.step-n{display:inline-block;font-size:12px;font-weight:700;color:var(--accent);border:1.5px solid var(--accent);border-radius:999px;padding:1px 9px;margin-right:8px;vertical-align:1px}.step-t{font-weight:650}.step-d{color:var(--muted);font-size:14px;margin-top:6px}.cta{font-size:13px;margin-top:8px}.cta b{color:var(--ok)}.branch{font-size:13px;margin-top:8px;padding:8px 12px;background:#f4f6ff;border-left:3px solid var(--accent);border-radius:0 6px 6px 0}table{border-collapse:collapse;width:100%;font-size:14px;background:var(--card)}th,td{text-align:left;padding:9px 12px;border:1px solid var(--line);vertical-align:top}th{background:var(--bg);font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}.pass{color:var(--ok);font-weight:650}.warn{color:var(--warn);font-weight:650}.fail{color:var(--bad);font-weight:650}.overflow{overflow-x:auto}footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}@media print{body{background:#fff;padding:0}.flow>li{break-inside:avoid}}
+</style>
+</head>
+<body>
+<h1>Vanta Desktop - User Flow Report</h1>
+<p class="meta">2026-07-13 · Native desktop workflow audit and streamlining plan</p>
+<div class="skills"><span class="chip">flow-app-shell</span><span class="chip">flow-navigation</span><span class="chip">flow-ai-chat</span><span class="chip">flow-errors</span></div>
+
+<h2>Summary</h2>
+<p>Vanta has enough desktop capability for daily work, but the original arrangement made ordinary agent work look like a collection of adjacent tools. The reset keeps Vanta's kernel-gated operator model and condenses the surface into Work, Outputs, and Connect. The initial <code>theme is not defined</code> boot failure is repaired: source and signed-package operator-flow smokes now render the shell. The remaining release work is provider-backed turn proof, queue/steer, scoped recovery, and richer context selection.</p>
+
+<h2>Flow: Start and complete a task</h2>
+<p class="meta">Pattern source: flow-ai-chat + flow-app-shell · Entry point: launch or New session</p>
+<h3>Target steps</h3>
+<ol class="flow">
+  <li><span class="step-n">1</span><span class="step-t">Work opens with useful context</span><p class="step-d">The user sees the current project, selected session, model scope, and visible attached-context chips. A short empty state offers concrete task starters.</p><p class="cta">Primary action: <b>Describe the outcome</b> -> new agent run</p></li>
+  <li><span class="step-n">2</span><span class="step-t">Run state appears in the conversation</span><p class="step-d">The user message appears immediately. Vanta streams the response and shows compact, named tool steps that can expand for evidence.</p><p class="cta">Primary action: <b>Stop</b> -> keeps partial work and restores control</p><div class="branch">If an action needs permission -> show the exact action with Approve, Edit, and Reject in the thread.</div></li>
+  <li><span class="step-n">3</span><span class="step-t">Completion points to reviewable output</span><p class="step-d">The completed run summarizes changed files, preview, links, and receipts. The active-run strip remains visible if the user navigates away.</p><p class="cta">Primary action: <b>Open outputs</b> -> Outputs filtered to this run</p></li>
+</ol>
+<h3>Screen inventory</h3>
+<div class="overflow"><table><tr><th>Screen</th><th>Purpose</th><th>Primary action</th><th>States</th></tr><tr><td>Work</td><td>Run or resume a task</td><td>Send outcome</td><td>Starter prompts; loading shell; scoped setup error; active run; inline retry</td></tr><tr><td>Run block</td><td>Make agent activity inspectable</td><td>Stop, steer, approve</td><td>Streaming; tool step; approval; partial failure; completed</td></tr><tr><td>Outputs</td><td>Review what Vanta produced</td><td>Open artifact or source session</td><td>No outputs; grouped recent runs; failed preview</td></tr></table></div>
+<h3>Anti-pattern audit</h3>
+<div class="overflow"><table><tr><th>Check</th><th>Verdict</th><th>Note</th></tr><tr><td>Empty state teaches by example</td><td class="pass">PASS</td><td>Starter prompts are concrete and useful.</td></tr><tr><td>Response streams with visible tool work</td><td class="warn">PARTIAL</td><td>Text deltas stream and tool events are retained; named, expandable run steps remain unfinished.</td></tr><tr><td>Stop or steering control during a run</td><td class="warn">PARTIAL</td><td>Stop aborts the live agent signal and preserves partial text. Queue and steer are not implemented.</td></tr><tr><td>Inspector is contextual rather than permanently squeezing work</td><td class="pass">PASS</td><td>Inspector starts closed, opens on demand, and becomes a drawer at narrower widths.</td></tr></table></div>
+
+<h2>Flow: Recover from setup or execution failure</h2>
+<p class="meta">Pattern source: flow-errors · Entry point: failed bootstrap, provider setup, or failed agent step</p>
+<h3>Target steps</h3>
+<ol class="flow">
+  <li><span class="step-n">1</span><span class="step-t">Keep work visible</span><p class="step-d">The shell, draft, and cached sessions stay available. Only the affected surface reports a failure.</p><p class="cta">Primary action: <b>See the fix</b> -> scoped recovery action</p></li>
+  <li><span class="step-n">2</span><span class="step-t">Explain the failure in task language</span><p class="step-d">Vanta states whether the provider, project files, session store, or an agent step failed and whether partial output is preserved.</p><p class="cta">Primary action: <b>Retry failed step</b> -> resumes from checkpoint</p><div class="branch">If the selected provider has no credentials -> open provider setup with the current task preserved.</div></li>
+  <li><span class="step-n">3</span><span class="step-t">Confirm reconciliation</span><p class="step-d">When retry succeeds, Vanta reports what completed and links to the output rather than silently clearing the error.</p><p class="cta">Primary action: <b>Review output</b> -> Outputs for the recovered run</p></li>
+</ol>
+<h3>Screen inventory</h3>
+<div class="overflow"><table><tr><th>Screen</th><th>Purpose</th><th>Primary action</th><th>States</th></tr><tr><td>Work banner</td><td>Explain a scoped degradation</td><td>Retry or configure</td><td>Persistent until resolved; draft remains intact</td></tr><tr><td>Failed run block</td><td>Preserve partial work</td><td>Retry failed step</td><td>Partial output; error reason; manual recovery</td></tr><tr><td>Connect setup</td><td>Complete one required setup</td><td>Save and test</td><td>Ready; needs setup; validation error; test success</td></tr></table></div>
+<h3>Anti-pattern audit</h3>
+<div class="overflow"><table><tr><th>Check</th><th>Verdict</th><th>Note</th></tr><tr><td>Failure names the object, cause, and next action</td><td class="warn">PARTIAL</td><td>Bootstrap states keep the shell available, but recovery is still generic rather than scoped to the failed run step.</td></tr><tr><td>Partial failure preserves completed work</td><td class="warn">PARTIAL</td><td>Interrupted streamed text is kept as an assistant result. Checkpoints and retry are still absent.</td></tr><tr><td>Global shell remains available</td><td class="pass">PASS</td><td>Source Electron boot and package operator-flow smoke render the application shell.</td></tr></table></div>
+
+<h2>Flow: Attach context and review outputs</h2>
+<p class="meta">Pattern source: flow-navigation + flow-app-shell · Entry point: composer attachment or completed run</p>
+<h3>Target steps</h3>
+<ol class="flow">
+  <li><span class="step-n">1</span><span class="step-t">Choose relevant project context</span><p class="step-d">The user opens an attachment picker from the composer and searches Recent, Changed by Vanta, Mentioned in this task, or the project tree.</p><p class="cta">Primary action: <b>Attach file</b> -> removable context chip</p></li>
+  <li><span class="step-n">2</span><span class="step-t">Review a run's output</span><p class="step-d">Outputs groups artifacts by run and lets the user filter changed files, preview, links, and receipts.</p><p class="cta">Primary action: <b>Open output</b> -> contextual preview or source session</p></li>
+  <li><span class="step-n">3</span><span class="step-t">Continue from an artifact</span><p class="step-d">An output can be attached to a new task or opened in its originating conversation without replacing the primary navigation model.</p><p class="cta">Primary action: <b>Continue work</b> -> Work with artifact context attached</p></li>
+</ol>
+<h3>Screen inventory</h3>
+<div class="overflow"><table><tr><th>Screen</th><th>Purpose</th><th>Primary action</th><th>States</th></tr><tr><td>Context picker</td><td>Choose relevant files safely</td><td>Attach</td><td>Recent; search; no results; ignored/private explanations</td></tr><tr><td>Composer</td><td>Show what Vanta can see</td><td>Remove or send context</td><td>Attached chips; capacity warning; active run queue</td></tr><tr><td>Outputs</td><td>Find work Vanta completed</td><td>Open or continue</td><td>No outputs; run groups; preview unavailable; receipt links</td></tr></table></div>
+<h3>Anti-pattern audit</h3>
+<div class="overflow"><table><tr><th>Check</th><th>Verdict</th><th>Note</th></tr><tr><td>Context is visible and removable</td><td class="warn">PARTIAL</td><td>Attachment entry points are real, but the picker still needs task relevance and visible removable chips.</td></tr><tr><td>Navigation keeps a stable map</td><td class="pass">PASS</td><td>Work, Outputs, and Connect are stable primary destinations; the inspector is contextual.</td></tr><tr><td>One scroll container per pane</td><td class="pass">PASS</td><td>The outer shell is bounded and individual panes own their scrolling.</td></tr><tr><td>Raw project dump avoided</td><td class="warn">PARTIAL</td><td>Raw Files is reached only from the composer, not a permanent rail; relevance filtering remains unfinished.</td></tr></table></div>
+
+<h2>Open questions and parked items</h2>
+<ul><li>Keep existing Messenger adapters and capability data; their configuration UI moves under Connect rather than being removed.</li><li>Decide whether Run history belongs in Outputs or becomes a filtered view within Work after Phase 1 evidence.</li><li>Run a dedicated screen-reader and keyboard audit after the primary shell is stable; this review only inspected source semantics and existing controls.</li></ul>
+<footer>Generated with the userflow skill. The full source-backed plan is in <code>../docs/desktop-userflow-audit-2026-07-13.md</code>.</footer>
+</body>
+</html>

@@ -1,6 +1,7 @@
-import { FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
-import { Archive, ArchiveRestore, ArrowUp, Check, MoreHorizontal, Pencil, Plus, Search, Trash2, X } from "lucide-react";
-import type { Message, Session } from "./types.js";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { FormEvent, KeyboardEvent } from "react";
+import { Archive, ArchiveRestore, ArrowUp, Boxes, Check, MessageSquare, MoreHorizontal, Network, PackageOpen, Paperclip, Pencil, Plus, Search, Square, Trash2, X } from "lucide-react";
+import type { DesktopView, Message, Session } from "./types.js";
 
 type SessionSidebarProps = {
   sessions: Session[];
@@ -10,6 +11,8 @@ type SessionSidebarProps = {
   onRename: (id: string, title: string) => void | Promise<void>;
   onArchive: (id: string, archived: boolean) => void | Promise<void>;
   onDelete: (id: string) => void | Promise<void>;
+  view: DesktopView;
+  onView: (view: DesktopView) => void;
   onDismiss?: () => void;
 };
 
@@ -21,7 +24,12 @@ export function SessionSidebar(props: SessionSidebarProps) {
   return (
     <aside className="session-sidebar">
       <div className="brand-lockup"><span className="brand-mark">V</span><div><strong>Vanta</strong><small>Local operator</small></div><button className="panel-dismiss" type="button" aria-label="Close sessions" onClick={props.onDismiss}><X size={16} /></button></div>
-      <button className="new-button" type="button" onClick={props.onNew}><Plus size={16} />New session</button>
+      <nav className="desktop-nav" aria-label="Vanta workspace">
+        <button className={props.view === "work" ? "active" : ""} type="button" onClick={() => props.onView("work")}><MessageSquare size={16} />Work</button>
+        <button className={props.view === "outputs" ? "active" : ""} type="button" onClick={() => props.onView("outputs")}><PackageOpen size={16} />Outputs</button>
+        <button className={props.view === "connect" ? "active" : ""} type="button" onClick={() => props.onView("connect")}><Network size={16} />Connect</button>
+      </nav>
+      <button className="new-button" type="button" onClick={() => { props.onView("work"); props.onNew(); }}><Plus size={16} />New session</button>
       <section>
         <div className="section-heading"><h2>Sessions</h2><span>{active.length}</span></div>
         <label className="session-search"><Search size={14} /><span className="sr-only">Search sessions</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search sessions" /></label>
@@ -104,13 +112,14 @@ function SessionButton(props: {
   );
 }
 
-export function ChatThread(props: { messages: Message[]; busy: boolean; onPrompt: (text: string) => void }) {
+export function ChatThread(props: { messages: Message[]; busy: boolean; streamText: string; onPrompt: (text: string) => void }) {
   const rows = props.messages.filter((m) => m.role !== "system");
   const endRef = useRef<HTMLDivElement>(null);
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [rows.length, props.busy]);
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [rows.length, props.busy, props.streamText]);
   return (
     <section className="chat-thread" aria-live="polite">
       {rows.length === 0 ? <EmptyState onPrompt={props.onPrompt} /> : rows.map((m, i) => <MessageBubble key={i} message={m} />)}
+      {props.streamText ? <article className="message assistant streaming"><span>Vanta</span><p>{props.streamText}</p></article> : null}
       {props.busy ? <div className="thinking"><i />Working through context and tools...</div> : null}
       <div ref={endRef} />
     </section>
@@ -127,7 +136,7 @@ function MessageBubble({ message }: { message: Message }) {
   );
 }
 
-export function Composer(props: { value: string; disabled: boolean; onChange: (value: string) => void; onSubmit: (text: string) => void }) {
+export function Composer(props: { value: string; disabled: boolean; onChange: (value: string) => void; onSubmit: (text: string) => void; onStop: () => void; onAttach: () => void; onCommand: () => void }) {
   function send(event: FormEvent) {
     event.preventDefault();
     const value = props.value.trim();
@@ -138,19 +147,30 @@ export function Composer(props: { value: string; disabled: boolean; onChange: (v
   return (
     <form className="composer" onSubmit={send}>
       <label className="sr-only" htmlFor="vanta-composer">Message Vanta</label>
-      <textarea id="vanta-composer" value={props.value} onChange={(e) => props.onChange(e.target.value)} onKeyDown={keyDown} placeholder="Ask Vanta to do something..." disabled={props.disabled} />
-      <div>
-        <span><kbd>Enter</kbd> send <kbd>Shift Enter</kbd> newline · <strong>@</strong> files · <strong>/</strong> commands</span>
-        <button className="send-button" type="submit" disabled={props.disabled || !props.value.trim()}><ArrowUp size={16} /><span>Send</span></button>
+      <textarea id="vanta-composer" value={props.value} onChange={(e) => props.onChange(e.target.value)} onKeyDown={(event) => keyDown(event, props)} placeholder="Ask Vanta to do something..." disabled={props.disabled} />
+      <div className="composer-footer">
+        <span><kbd>Enter</kbd> send <kbd>Shift Enter</kbd> newline · <strong>@</strong> files · <strong>/</strong> actions</span>
+        <div className="composer-actions">{props.disabled ? <button className="stop-button" type="button" title="Stop current run" aria-label="Stop current run" onClick={props.onStop}><Square size={14} /><span>Stop</span></button> : <><button className="attach-button" type="button" title="Attach project files" aria-label="Attach project files" onClick={props.onAttach}><Paperclip size={16} /></button><button className="send-button" type="submit" disabled={!props.value.trim()}><ArrowUp size={16} /><span>Send</span></button></>}</div>
       </div>
     </form>
   );
 }
 
-function keyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-  if (event.key !== "Enter" || event.shiftKey) return;
-  event.preventDefault();
-  event.currentTarget.form?.requestSubmit();
+function keyDown(event: KeyboardEvent<HTMLTextAreaElement>, props: Pick<Parameters<typeof Composer>[0], "value" | "onAttach" | "onCommand">) {
+  if (!props.value && event.key === "@") {
+    event.preventDefault();
+    props.onAttach();
+    return;
+  }
+  if (!props.value && event.key === "/") {
+    event.preventDefault();
+    props.onCommand();
+    return;
+  }
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    event.currentTarget.form?.requestSubmit();
+  }
 }
 
 function EmptyState(props: { onPrompt: (text: string) => void }) {

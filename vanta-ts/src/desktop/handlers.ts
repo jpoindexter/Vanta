@@ -18,6 +18,7 @@ import { resolveEventFormatter } from "../term/event-format.js";
 import { pushSseEvent, type SseClients } from "./session-state.js";
 import { approvalDecision, approvalPayload, requestWebApproval, resolveApproval, type PendingApproval } from "./approval.js";
 import { readCanvasArtifact } from "../canvas/artifact.js";
+import { desktopArtifacts, desktopCapabilities, desktopMessagingPlatforms, saveDesktopMessagingPlatform } from "./operator-data.js";
 export { approvalDecision, type PendingApproval } from "./approval.js";
 
 export type DesktopEvent = { label: string; ok?: boolean; delta?: string };
@@ -26,6 +27,8 @@ export type DesktopState = {
   _setupPromise?: Promise<RunSetup>;
   _setupError?: { message: string; at: number };
   _chatActive?: boolean;
+  _chatAbort?: AbortController;
+  _chatDeltas?: string[];
   _streamTextDeltas?: boolean;
   convo?: Conversation;
   root: string;
@@ -69,6 +72,7 @@ function attachConversation(state: DesktopState, setup: RunSetup, history?: Para
     summarize: buildSummarizer(setup.provider),
     activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
     onTextDelta: (delta) => {
+      state._chatDeltas?.push(delta);
       if (state._streamTextDeltas && state._sseClients && state._sseSessionId) {
         pushSseEvent(state._sseClients, state._sseSessionId, { label: "", delta });
       }
@@ -188,6 +192,34 @@ export async function handleTools(state: DesktopState, res: http.ServerResponse)
   sendJson(res, 200, live.setup.registry.schemas().map((t) => ({ name: t.name, desc: t.description })));
 }
 
+export async function handleCapabilities(state: DesktopState, res: http.ServerResponse): Promise<void> {
+  try {
+    const live = await ensureDesktopConversation(state);
+    sendJson(res, 200, await desktopCapabilities(live.setup.registry.schemas().map((t) => ({ name: t.name, description: t.description }))));
+  } catch {
+    // Installed skills are useful before first-run provider setup succeeds.
+    sendJson(res, 200, await desktopCapabilities([]));
+  }
+}
+
+export async function handleMessaging(res: http.ServerResponse): Promise<void> {
+  sendJson(res, 200, desktopMessagingPlatforms(process.env));
+}
+
+export async function handleSaveMessaging(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const body = await readJson(req) as { id?: unknown; values?: unknown };
+  if (typeof body.id !== "string" || !body.id.trim()) return sendJson(res, 400, { error: "platform id is required" });
+  try {
+    sendJson(res, 200, await saveDesktopMessagingPlatform(state.root, body.id.trim(), body.values));
+  } catch (error) {
+    sendJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
+  }
+}
+
+export async function handleArtifacts(state: DesktopState, res: http.ServerResponse): Promise<void> {
+  sendJson(res, 200, await desktopArtifacts(state.root));
+}
+
 export async function handleFiles(state: DesktopState, res: http.ServerResponse): Promise<void> {
   const files = await listRepoFiles(state.root, 3);
   sendJson(res, 200, files.slice(0, 400));
@@ -301,23 +333,57 @@ export async function handleTerminal(state: DesktopState, req: http.IncomingMess
   sendJson(res, 200, result);
 }
 
+export async function handleStopChat(state: DesktopState, res: http.ServerResponse): Promise<void> {
+  const controller = state._chatAbort;
+  if (!state._chatActive || !controller) return sendJson(res, 409, { error: "no turn is running" });
+  controller.abort();
+  const event = { label: "Stop requested by operator.", ok: false };
+  state.currentEvents?.push(event);
+  if (state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, event);
+  sendJson(res, 202, { stopping: true });
+}
+
+function interrupted(error: unknown, controller: AbortController): boolean {
+  return controller.signal.aborted || (error instanceof DOMException && error.name === "AbortError") || (error instanceof Error && error.name === "AbortError");
+}
+
 export async function handleChat(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   if (state._chatActive) return sendJson(res, 409, { error: "a turn is already running" });
   const body = await readJson(req) as { message?: unknown };
   const message = typeof body.message === "string" ? body.message.trim() : "";
   if (!message) return sendJson(res, 400, { error: "message is required" });
+  const controller = new AbortController();
   state._chatActive = true;
+  state._chatAbort = controller;
+  state._chatDeltas = [];
+  state._streamTextDeltas = true;
   const events: DesktopEvent[] = [];
   state.currentEvents = events;
+  let live: Awaited<ReturnType<typeof ensureDesktopConversation>> | undefined;
   try {
-    const live = await ensureDesktopConversation(state);
-    const outcome = await live.convo.send(message, undefined, undefined);
+    live = await ensureDesktopConversation(state);
+    const outcome = await live.convo.send(message, undefined, controller.signal);
     await writeRunMemory({ provider: live.setup.provider, goals: live.setup.goals, instruction: message, finalText: outcome.finalText });
     await persistActiveSession(state);
     events.push({ label: `${outcome.stoppedReason} · ${outcome.iterations} iteration(s)`, ok: outcome.stoppedReason === "done" });
     sendJson(res, 200, { finalText: outcome.finalText, events, usage: outcome.usage, sessionId: state.sessionId });
+  } catch (error) {
+    const wasInterrupted = interrupted(error, controller);
+    const partial = state._chatDeltas?.join("").trim();
+    const finalText = partial
+      ? `${partial}\n\n${wasInterrupted ? "Stopped by operator." : "The run stopped before completing."}`
+      : wasInterrupted ? "Stopped by operator." : error instanceof Error ? error.message : String(error);
+    events.push({ label: wasInterrupted ? "Stopped by operator." : "Run failed before completion.", ok: false });
+    if (live) {
+      live.convo.messages.push({ role: "assistant", content: finalText });
+      await persistActiveSession(state);
+    }
+    sendJson(res, 200, { finalText, events, interrupted: wasInterrupted, sessionId: state.sessionId });
   } finally {
     state.currentEvents = undefined;
+    state._chatDeltas = undefined;
+    state._streamTextDeltas = false;
     state._chatActive = false;
+    if (state._chatAbort === controller) state._chatAbort = undefined;
   }
 }

@@ -1,28 +1,32 @@
-import { FormEvent, useMemo, useState } from "react";
-import { AppWindow, FileText, LayoutDashboard, TerminalSquare, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import type { FormEvent } from "react";
+import { AppWindow, ChevronLeft, ExternalLink, FileText, Image, Link2, X } from "lucide-react";
 import { api } from "./api.js";
 import { CanvasPanel } from "./canvas.js";
-import type { CanvasArtifact, EventRow, RailTab, Status, Tool } from "./types.js";
+import type { Artifact, CanvasArtifact, EventRow, RailTab, Status, Tool } from "./types.js";
 
 export function RightRail(props: {
   status: Status | null;
   tools: Tool[];
   files: string[];
+  artifacts: Artifact[];
   events: EventRow[];
   canvas: CanvasArtifact | null;
   onRefresh: () => void;
   tab: RailTab;
   onTab: (tab: RailTab) => void;
   onInsertFile: (file: string) => void;
+  onOpenOutputs: () => void;
+  onOpenSession: (id: string) => void;
   onDismiss?: () => void;
 }) {
   const groups = useMemo(() => groupTools(props.tools), [props.tools]);
+  const title = railTitle(props.tab);
   return (
     <aside className="right-rail">
-      <div className="rail-tabs">
-        {(["canvas", "preview", "files", "terminal"] as RailTab[]).map((tab) => <RailTabButton key={tab} tab={tab} active={props.tab === tab} onTab={props.onTab} />)}
-      </div>
+      <header className="rail-heading"><div><p className="eyebrow">Workspace</p><h2>{title}</h2></div>{props.tab === "outputs" ? <button className="icon-button" type="button" title="Open all outputs" aria-label="Open all outputs" onClick={props.onOpenOutputs}><ExternalLink size={16} /></button> : <button className="icon-button" type="button" title="Back to outputs" aria-label="Back to outputs" onClick={() => props.onTab("outputs")}><ChevronLeft size={16} /></button>}</header>
       <button className="panel-dismiss rail-dismiss" type="button" aria-label="Close inspector" onClick={props.onDismiss}><X size={16} /></button>
+      {props.tab === "outputs" ? <OutputsPanel artifacts={props.artifacts} events={props.events} onOpenSession={props.onOpenSession} onOpenOutputs={props.onOpenOutputs} /> : null}
       {props.tab === "canvas" ? <CanvasPanel artifact={props.canvas} onRefresh={props.onRefresh} /> : null}
       {props.tab === "preview" ? <PreviewPanel status={props.status} groups={groups} events={props.events} /> : null}
       {props.tab === "files" ? <FilesPanel files={props.files} onInsert={props.onInsertFile} /> : null}
@@ -31,10 +35,26 @@ export function RightRail(props: {
   );
 }
 
-function RailTabButton(props: { tab: RailTab; active: boolean; onTab: (tab: RailTab) => void }) {
-  const icons = { canvas: LayoutDashboard, preview: AppWindow, files: FileText, terminal: TerminalSquare };
-  const Icon = icons[props.tab];
-  return <button className={props.active ? "active" : ""} type="button" title={props.tab} aria-label={`Open ${props.tab}`} onClick={() => props.onTab(props.tab)}><Icon size={16} /><span>{props.tab}</span></button>;
+function railTitle(tab: RailTab): string {
+  return tab === "outputs" ? "Outputs" : tab === "canvas" ? "Canvas" : tab === "preview" ? "Preview" : tab === "files" ? "Project files" : "Terminal";
+}
+
+function OutputsPanel(props: { artifacts: Artifact[]; events: EventRow[]; onOpenSession: (id: string) => void; onOpenOutputs: () => void }) {
+  const visible = props.artifacts.slice(0, 7);
+  return <section className="rail-panel outputs-panel">
+    {visible.length ? <div className="output-list">{visible.map((artifact) => <OutputRow key={artifact.id} artifact={artifact} onOpenSession={props.onOpenSession} />)}</div> : <div className="rail-empty"><FileText size={18} /><p>Files, previews, links, and receipts from completed work appear here.</p></div>}
+    {props.artifacts.length > visible.length ? <button className="rail-link" type="button" onClick={props.onOpenOutputs}>Show {props.artifacts.length - visible.length} more</button> : null}
+    <section className="rail-section"><h3>Activity</h3><EventList events={props.events} /></section>
+    <section className="rail-section"><h3>Workspace tools</h3><p>Use the command palette for Canvas, Preview, or Terminal. Attach files directly from the composer.</p></section>
+  </section>;
+}
+
+function OutputRow(props: { artifact: Artifact; onOpenSession: (id: string) => void }) {
+  const Icon = props.artifact.kind === "canvas" ? Image : props.artifact.kind === "link" ? Link2 : FileText;
+  const content = <><Icon size={16} /><span>{props.artifact.label}</span></>;
+  if (props.artifact.kind === "link") return <a className="output-row" href={props.artifact.value} target="_blank" rel="noreferrer">{content}<ExternalLink size={14} /></a>;
+  if (props.artifact.sessionId) return <button className="output-row" type="button" onClick={() => props.onOpenSession(props.artifact.sessionId!)}>{content}</button>;
+  return <div className="output-row">{content}</div>;
 }
 
 function PreviewPanel(props: { status: Status | null; groups: Record<string, Tool[]>; events: EventRow[] }) {

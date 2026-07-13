@@ -4,8 +4,9 @@ import {
   eventLabel, readJson, sendJson,
   handleStatus, handleSessions, handleNewSession, handleOpenSession,
   handleRenameSession, handleArchiveSession, handleDeleteSession,
-  handleTools, handleFiles, handleCanvas, handleModels, handleSetModel,
-  handleApproval, handleTerminal, handleChat,
+  handleTools, handleCapabilities, handleMessaging, handleArtifacts, handleSaveMessaging,
+  handleFiles, handleCanvas, handleModels, handleSetModel,
+  handleApproval, handleTerminal, handleChat, handleStopChat,
 } from "./handlers.js";
 export { approvalDecision, type PendingApproval, type DesktopEvent, type DesktopState, eventLabel } from "./handlers.js";
 import {
@@ -30,6 +31,9 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
     "/api/status": () => handleStatus(state, res),
     "/api/sessions": () => handleSessions(res),
     "/api/tools": () => handleTools(state, res),
+    "/api/capabilities": () => handleCapabilities(state, res),
+    "/api/messaging": () => handleMessaging(res),
+    "/api/artifacts": () => handleArtifacts(state, res),
     "/api/files": () => handleFiles(state, res),
     "/api/canvas": () => handleCanvas(state, res),
     "/api/models": () => handleModels(res),
@@ -49,9 +53,11 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
   if (p === "/api/sessions/archive") { await handleArchiveSession(req, res); return true; }
   if (p === "/api/sessions/delete") { await handleDeleteSession(state, req, res); return true; }
   if (p === "/api/model") { await handleSetModel(state, req, res); return true; }
+  if (p === "/api/messaging") { await handleSaveMessaging(state, req, res); return true; }
   if (p === "/api/setup") { await handleDesktopSetup(state, req, res); return true; }
   if (p === "/api/approval") { await handleApproval(state, req, res); return true; }
   if (p === "/api/terminal") { await handleTerminal(state, req, res); return true; }
+  if (p === "/api/chat/stop") { await handleStopChat(state, res); return true; }
   if (p === "/api/wake") {
     const body = await readJson(req) as { enabled?: unknown };
     if (typeof body.enabled !== "boolean") sendJson(res, 400, { error: "enabled must be boolean" });

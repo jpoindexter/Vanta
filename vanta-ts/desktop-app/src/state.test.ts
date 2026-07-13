@@ -12,6 +12,7 @@ function conversationState(order: string[]) {
       setMessages: (updater: (current: Message[]) => Message[]) => { messages = updater(messages); },
       setActiveTitle: vi.fn(),
       setEvents: (next: EventRow[]) => { events = next; },
+      setStreamText: vi.fn(),
       setBusy: (next: boolean) => { busy = next; },
       setDraft: vi.fn(),
     },

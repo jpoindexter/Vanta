@@ -1,8 +1,9 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
-import { Search, X } from "lucide-react";
-import type { Approval, ApprovalDecision, PermissionSection, Provider, RailTab } from "./types.js";
+import { useEffect, useMemo, useState } from "react";
+import type { FormEvent } from "react";
+import { Bot, Command, KeyRound, MonitorCog, Search, ShieldCheck, X } from "lucide-react";
+import type { Approval, ApprovalDecision, PermissionSection, Provider, RailTab, Status } from "./types.js";
 
-export function CommandPalette(props: { open: boolean; onClose: () => void; onNew: () => void; onModel: () => void; onSound: () => void; onTab: (tab: RailTab) => void }) {
+export function CommandPalette(props: { open: boolean; onClose: () => void; onNew: () => void; onModel: () => void; onSound: () => void; onSettings: () => void; onTab: (tab: RailTab) => void }) {
   const [query, setQuery] = useState("");
   const actions = commandActions(props);
   const visible = useMemo(() => actions.filter(([label]) => label.toLowerCase().includes(query.toLowerCase())), [actions, query]);
@@ -19,15 +20,45 @@ export function CommandPalette(props: { open: boolean; onClose: () => void; onNe
   );
 }
 
-function commandActions(props: { onNew: () => void; onModel: () => void; onSound: () => void; onTab: (tab: RailTab) => void }) {
+function commandActions(props: { onNew: () => void; onModel: () => void; onSound: () => void; onSettings: () => void; onTab: (tab: RailTab) => void }) {
   return [
     ["New session", props.onNew],
     ["Model picker", props.onModel],
     ["Completion sound", props.onSound],
+    ["Settings", props.onSettings],
+    ["Outputs", () => props.onTab("outputs")],
     ["Canvas", () => props.onTab("canvas")],
     ["Files", () => props.onTab("files")],
     ["Terminal", () => props.onTab("terminal")],
   ] as const;
+}
+
+export function KeyboardShortcuts(props: { open: boolean; onClose: () => void }) {
+  if (!props.open) return null;
+  const command = navigator.platform.toLowerCase().includes("mac") ? "Command" : "Ctrl";
+  const rows = [
+    [`${command} N`, "New session"], [`${command} K`, "Command palette"], ["?", "Keyboard shortcuts"], ["Esc", "Close the active dialog"], ["Enter", "Send message"], ["Shift Enter", "Insert newline"], ["@", "Attach a project file"], ["/", "Open quick actions"],
+  ];
+  return <div className="overlay" onClick={props.onClose}><section className="palette shortcut-dialog" role="dialog" aria-modal="true" aria-labelledby="shortcuts-title" onClick={(event) => event.stopPropagation()}>
+    <div className="dialog-heading"><div><p className="eyebrow">Desktop controls</p><h2 id="shortcuts-title">Keyboard shortcuts</h2></div><button className="icon-button" type="button" aria-label="Close" onClick={props.onClose}><X size={16} /></button></div>
+    <div className="shortcut-list">{rows.map(([keys, label]) => <div key={label}><span>{label}</span><kbd>{keys}</kbd></div>)}</div>
+  </section></div>;
+}
+
+export function SettingsDialog(props: { open: boolean; models: Provider[]; status: Status | null; theme: "dark" | "light"; onTheme: (theme: "dark" | "light") => void; onClose: () => void; onModel: () => void; onSetup: () => void }) {
+  const [section, setSection] = useState<"model" | "appearance" | "safety" | "workspace">("model");
+  if (!props.open) return null;
+  const current = props.models.find((provider) => provider.id === props.status?.provider);
+  return <div className="overlay" onClick={props.onClose}><section className="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-title" onClick={(event) => event.stopPropagation()}>
+    <header className="dialog-heading"><div><p className="eyebrow">Vanta desktop</p><h2 id="settings-title">Settings</h2></div><button className="icon-button" type="button" aria-label="Close" onClick={props.onClose}><X size={16} /></button></header>
+    <nav className="settings-nav" aria-label="Settings sections"><button className={section === "model" ? "active" : ""} type="button" onClick={() => setSection("model")}><Bot size={16} />Model</button><button className={section === "appearance" ? "active" : ""} type="button" onClick={() => setSection("appearance")}><MonitorCog size={16} />Appearance</button><button className={section === "safety" ? "active" : ""} type="button" onClick={() => setSection("safety")}><ShieldCheck size={16} />Safety</button><button className={section === "workspace" ? "active" : ""} type="button" onClick={() => setSection("workspace")}><KeyRound size={16} />Workspace</button></nav>
+    <div className="settings-content">
+      {section === "model" ? <><section><p className="eyebrow">Model</p><h3>{props.status?.model ?? "No model selected"}</h3><p>{current?.label ?? "Choose a provider"} · applies to the active session unless you set a default in the picker.</p><button type="button" onClick={props.onModel}>Change model</button></section><section><p className="eyebrow">Providers</p><h3>{props.models.length} available providers</h3><p>Connect or change a provider through Vanta’s local setup flow. Keys are stored in the project’s local configuration.</p><button type="button" onClick={props.onSetup}>Connect provider</button></section></> : null}
+      {section === "appearance" ? <section><p className="eyebrow">Appearance</p><h3>Desktop theme</h3><p>Use the calm light workspace or Vanta's default dark operator theme. This setting stays on this device.</p><div className="theme-picker" role="group" aria-label="Desktop theme"><button className={props.theme === "dark" ? "active" : ""} type="button" onClick={() => props.onTheme("dark")}>Dark</button><button className={props.theme === "light" ? "active" : ""} type="button" onClick={() => props.onTheme("light")}>Light</button></div></section> : null}
+      {section === "safety" ? <section><p className="eyebrow">Safety</p><h3>Kernel {props.status?.kernel ?? "checking"}</h3><p>Requests that cross Vanta’s kernel boundary still require the configured approval policy.</p></section> : null}
+      {section === "workspace" ? <section><p className="eyebrow">Workspace</p><h3>{props.status?.root?.split("/").filter(Boolean).at(-1) ?? "Current project"}</h3><p>{props.status?.root ?? "Project path unavailable"}</p></section> : null}
+    </div>
+  </section></div>;
 }
 
 export function ModelPicker(props: { open: boolean; models: Provider[]; onClose: () => void; onSelect: (provider: string, model: string, scope?: "session" | "global") => void }) {

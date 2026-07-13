@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-12",
+  "updated": "2026-07-13",
   "items": [
     {
       "id": "WHAT-CAN-I-DO-GALLERY",
@@ -940,6 +940,43 @@
       "lens": "tui",
       "updated": "2026-06-15",
       "notes": "SHIPPED 2026-06-15. Added src/ui/focus.ts with pure focus target traversal helpers and wired ui/app.tsx so Tab moves forward through visible targets and Shift+Tab moves backward when dialogs/panels are active. Preserved the existing Shift+Tab mode cycle when the composer is the only focus target. Composer input is inactive while unfocused, focused elements show visible markers, approval actions expose focus targets and Enter activates the focused action, and overlay lists show focus while preserving arrow/Enter selection. Verified with focus/composer/approval/UI tests, full TS suite (3357 green), tsc --noEmit, and size lint."
+    },
+    {
+      "id": "DESKTOP-HERMES-OPERATOR-FLOWS",
+      "track": "Operator",
+      "title": "Desktop operator flows v1 — capabilities, channels, artifacts, settings",
+      "status": "shipped",
+      "size": "L",
+      "summary": "Port the useful Hermes desktop interaction model into Vanta without copying Hermes branding or creating a second control plane: chat remains the home surface; a durable navigator exposes Vanta's live tool/skill catalog, real messaging adapter configuration, saved-output artifacts, model/provider settings, and shortcut help. The desktop reads and writes Vanta's existing stores and approval boundary.",
+      "done": "The packaged Vanta desktop lets an operator navigate chat, capabilities, messaging, and artifacts; capability rows derive from live tool/skill data; selecting a messaging adapter reveals real setup steps and saves credentials to the project-local Vanta config without exposing secrets; artifacts are collected from saved Vanta outputs; settings and shortcut help expose only real desktop behavior; focused route/UI tests plus a packaged Electron interaction smoke pass.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "codex": "gpt-5.5",
+      "lens": "selfhood",
+      "updated": "2026-07-13",
+      "notes": "SHIPPED 2026-07-13. The useful Hermes flows now live inside Vanta's Codex-inspired shell without copying Hermes branding: Work, Outputs, and Connect are the only primary destinations; capabilities read registered tool schemas and persisted skills; Messaging reads implemented gateway adapters and saves selected credentials under `.vanta/.env` with mode 0600 without echoing secrets; Outputs collects canvas, external links, and in-project files from saved assistant/tool outputs. The renderer boot defect (`theme is not defined`) is repaired and `desktop:renderer:typecheck` now covers `desktop-app/src`. The native operator-flow smoke passes Work, Connect, capability discovery, messaging save, Outputs, keyboard and button file attachment, Stop, quick actions, shortcuts, Settings, provider setup, and light mode without renderer errors. The same smoke passes against the locally signed arm64 `Vanta.app`, whose deep code-signature verification passes. First-run `/api/status` and `/api/tools` can correctly report model setup needed; the smoke accepts only those bootstrap failures and proves the visible setup flow. Work consumes text/tool SSE events and Stop aborts the active agent signal, retaining partial streamed text as the interrupted result. A provider-backed live-turn proof, queue/steer, and a richer file-context picker belong to DESKTOP-USERFLOW-RESET rather than this capability/navigation card.",
+      "source": "hermes-desktop-ui-audit-2026-07-13"
+    },
+    {
+      "id": "DESKTOP-USERFLOW-RESET",
+      "track": "Operator",
+      "title": "Desktop user-flow reset - one dependable work loop",
+      "status": "building",
+      "size": "XL",
+      "summary": "Repair the source renderer and streamline the native app around one dependable operator loop: start or resume work, follow/steer a kernel-gated run, review outputs, and configure connections only when needed. Preserve Vanta capabilities while reducing the current competing shells, raw file dump, and opaque task waiting.",
+      "done": "A fresh source and packaged Vanta desktop boot without renderer errors; Work, Outputs, and Connect are the only primary destinations; a task streams visible agent steps, supports Stop and scoped approval, preserves partial failures with recovery, attaches visible project context, and exposes run outputs without changing the primary shell. Renderer typecheck, Electron page-error/boot smoke, workflow tests at desktop/narrow widths, and fresh-context acceptance all pass.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.5",
+      "lens": "selfhood",
+      "updated": "2026-07-13",
+      "source": "desktop-userflow-audit-2026-07-13",
+      "after": [
+        "DESKTOP-HERMES-OPERATOR-FLOWS"
+      ],
+      "notes": "BUILDING 2026-07-13. Audit and ordered delivery plan: docs/desktop-userflow-audit-2026-07-13.md; vanta-ts/flow-report.html. P0 is repaired and executed: an isolated native Electron launch renders `.app-shell` without page errors, Appearance opens, and `desktop:renderer:typecheck` covers renderer code. Phase 2 is also materially in place: Work, Outputs, and Connect are stable destinations; a compact Outputs rail stays visible on a wide desktop and becomes a dismissible drawer at narrower widths; raw Files only opens from the composer, and `@` / `/` now invoke actual attachment and quick-action flows. The source and locally signed arm64 package both pass the native operator-flow smoke; the 760px long-file layout smoke passes. SCALABILITY UPDATE 2026-07-13: Sessions and Outputs are now bounded, persistent, draggable and keyboard-adjustable desktop panes; the central work area stays at least 380px and the responsive drawer transition remains below 1080px. Source and signed-package operator-flow smoke both execute keyboard and pointer resizing. The signing flow pins the Developer ID hash because the local keychain has duplicate certificate display names; the rebuilt bundle passes strict deep verification with Team ID 5352PXMNV5 and hardened runtime. Phase 1 is partial: the desktop consumes streamed text and tool events in Work, supports Stop through the live AbortSignal, keeps partial streamed text after interruption, and emits a visible stop receipt. It still needs a provider-backed live-turn proof, queue/steer, scoped run failure recovery, and concise inline run steps. Phase 3 still needs archive undo/trash and richer connector feedback. This card intentionally does not add another dashboard or weaken kernel gating."
     },
     {
       "id": "DESKTOP-P3",

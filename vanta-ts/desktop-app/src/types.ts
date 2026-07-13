@@ -1,5 +1,12 @@
 export type Session = { id: string; title: string; turns: number; updated: string; archived?: boolean };
 export type Tool = { name: string; desc: string };
+export type DesktopView = "work" | "outputs" | "connect";
+export type Capability = { id: string; kind: "tool" | "skill"; name: string; description: string; tags: string[] };
+export type MessagingPlatform = {
+  id: string; label: string; configured: boolean; missing: string[]; prerequisite?: string; warning?: string;
+  setupSteps: string[]; signupUrl?: string; fields: { key: string; label: string; secret: boolean }[];
+};
+export type Artifact = { id: string; kind: "canvas" | "link" | "file"; label: string; value: string; sessionId?: string; sessionTitle?: string };
 export type Goal = { text: string };
 export type Status = { kernel: string; model: string; provider?: string; tools: number; sessionId: string; root?: string; goals: Goal[] };
 export type Message = { role: string; content?: string; name?: string };
@@ -27,4 +34,4 @@ export type PermissionRequest = {
 };
 export type ApprovalDecision = "allow" | "always" | "deny" | "never";
 export type Approval = { id: string; action: string; reason: string; toolName?: string; request?: PermissionRequest };
-export type RailTab = "canvas" | "preview" | "files" | "terminal";
+export type RailTab = "outputs" | "canvas" | "preview" | "files" | "terminal";
