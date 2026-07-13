@@ -1,4 +1,4 @@
-export type Session = { id: string; title: string; turns: number; updated: string };
+export type Session = { id: string; title: string; turns: number; updated: string; archived?: boolean };
 export type Tool = { name: string; desc: string };
 export type Goal = { text: string };
 export type Status = { kernel: string; model: string; provider?: string; tools: number; sessionId: string; root?: string; goals: Goal[] };

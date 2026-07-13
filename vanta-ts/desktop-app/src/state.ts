@@ -21,18 +21,26 @@ export function useDesktopData() {
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [error, setError] = useState("");
   const refresh = useCallback(async () => {
-    try {
-      const [nextStatus, nextSessions, nextTools, nextFiles, nextModels, nextCanvas] = await Promise.all([
+    const [statusResult, sessionsResult, toolsResult, filesResult, modelsResult, canvasResult] = await Promise.allSettled([
         api<Status>("/api/status"), api<Session[]>("/api/sessions"), api<Tool[]>("/api/tools"),
         api<string[]>("/api/files"), api<Provider[]>("/api/models"), api<CanvasArtifact | null>("/api/canvas").catch(() => null),
-      ]);
-      setStatus(nextStatus); setSessions(nextSessions); setTools(nextTools); setFiles(nextFiles);
-      setModels(nextModels); setCanvas(nextCanvas); setError(""); setPhase("ready");
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
+    ]);
+    if (statusResult.status === "fulfilled") setStatus(statusResult.value);
+    if (sessionsResult.status === "fulfilled") setSessions(sessionsResult.value);
+    if (toolsResult.status === "fulfilled") setTools(toolsResult.value);
+    if (filesResult.status === "fulfilled") setFiles(filesResult.value);
+    if (modelsResult.status === "fulfilled") setModels(modelsResult.value);
+    setCanvas(canvasResult.status === "fulfilled" ? canvasResult.value : null);
+
+    const failure = [statusResult, sessionsResult, toolsResult, filesResult, modelsResult]
+      .find((result): result is PromiseRejectedResult => result.status === "rejected");
+    if (failure) {
+      setError(failure.reason instanceof Error ? failure.reason.message : String(failure.reason));
       setPhase("error");
       void api<Provider[]>("/api/setup").then(setModels).catch(() => undefined);
+      return;
     }
+    setError(""); setPhase("ready");
   }, []);
 
   async function setModel(provider: string, model: string, scope: "session" | "global" = "session") {
@@ -138,10 +146,25 @@ function conversationHandlers(state: ConversationState, cues: TurnCues) {
     state.setEvents([{ label: "New session ready.", ok: true }]);
     await state.refresh();
   }
+  async function renameSession(id: string, title: string, active: boolean) {
+    const renamed = await api<{ title: string }>("/api/sessions/rename", postJson({ id, title }));
+    if (active) state.setActiveTitle(renamed.title);
+    await state.refresh();
+  }
+  async function archiveSession(id: string, archived: boolean, active: boolean) {
+    await api("/api/sessions/archive", postJson({ id, archived }));
+    if (active && archived) await newSession();
+    else await state.refresh();
+  }
+  async function deleteSession(id: string, active: boolean) {
+    await api("/api/sessions/delete", postJson({ id }));
+    if (active) await newSession();
+    else await state.refresh();
+  }
   function insertFile(file: string) {
     state.setDraft((value) => `${value} @${file}`.trimStart());
   }
-  return { openSession, newSession, submit: (text: string) => submitMessage(state, text, cues), insertFile };
+  return { openSession, newSession, renameSession, archiveSession, deleteSession, submit: (text: string) => submitMessage(state, text, cues), insertFile };
 }
 
 export async function submitMessage(state: ConversationState, text: string, cues: TurnCues = {}) {

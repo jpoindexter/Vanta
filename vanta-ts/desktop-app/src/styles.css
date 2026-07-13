@@ -53,11 +53,28 @@ h2 { margin: 14px 0 8px; font-size: 11px; letter-spacing: .08em; text-transform:
 .session-search input, .palette-search input { min-width: 0; width: 100%; border: 0; outline: 0; background: transparent; color: var(--text); padding: 8px 0; }
 
 .session-list { min-height: 0; align-content: start; display: grid; gap: 4px; overflow: auto; overscroll-behavior: contain; padding-right: 3px; }
-.session { width: 100%; text-align: left; border: 0; border-radius: 8px; background: transparent; padding: 9px; display: grid; gap: 2px; }
-.session:hover { background: #1b1b1b; }
-.session.active { background: #202020; box-shadow: inset 2px 0 var(--accent); }
+.session-row { position: relative; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) 30px; align-items: stretch; border-radius: 8px; }
+.session { min-width: 0; width: 100%; text-align: left; border: 0; border-radius: 8px; background: transparent; padding: 9px; display: grid; gap: 2px; }
+.session-row:hover, .session-row:focus-within { background: #1b1b1b; }
+.session-row.active { background: #202020; box-shadow: inset 2px 0 var(--accent); }
 .session strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .session span { color: var(--faint); font-size: 11px; }
+.session-menu-button { align-self: center; width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--faint); }
+.session-menu-button:hover, .session-menu-button[aria-expanded="true"] { background: var(--raised); color: var(--text); }
+.session-actions { position: absolute; z-index: 6; top: calc(100% + 3px); right: 3px; width: 148px; display: grid; gap: 2px; border: 1px solid var(--line-strong); border-radius: 7px; background: #171717; box-shadow: 0 12px 28px #000a; padding: 4px; }
+.session-actions button { display: flex; align-items: center; gap: 7px; width: 100%; border: 0; border-radius: 5px; background: transparent; color: var(--text); padding: 7px; text-align: left; }
+.session-actions button:hover { background: #292929; }
+.session-actions .danger { color: var(--danger); }
+.session-rename { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) 28px 28px; gap: 4px; padding: 5px; }
+.session-rename input { min-width: 0; border: 1px solid var(--accent); border-radius: 5px; outline: 0; background: var(--bg); color: var(--text); padding: 5px 7px; }
+.session-rename button { display: grid; place-items: center; border: 1px solid var(--line); border-radius: 5px; background: var(--raised); }
+.archived-sessions { margin-top: 8px; border-top: 1px solid var(--line); padding-top: 8px; }
+.archived-sessions summary { display: flex; justify-content: space-between; cursor: pointer; color: var(--muted); font-size: 11px; list-style: none; padding: 3px 5px; }
+.archived-sessions summary::-webkit-details-marker { display: none; }
+.archived-sessions summary::before { content: "+"; margin-right: 6px; color: var(--faint); }
+.archived-sessions[open] summary::before { content: "-"; }
+.archived-sessions summary span { margin-left: auto; color: var(--faint); }
+.archived-sessions > div { display: grid; gap: 4px; margin-top: 4px; }
 
 .workbench { min-width: 0; min-height: 0; height: 100dvh; overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; background: var(--bg); }
 .conversation-stage { min-width: 0; min-height: 0; overflow: hidden; display: grid; grid-template-rows: minmax(0, 1fr); }

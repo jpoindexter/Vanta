@@ -9,6 +9,19 @@ set -e
 
 GREEN='\033[0;32m'; CYAN='\033[0;36m'; YELLOW='\033[0;33m'; RED='\033[0;31m'; NC='\033[0m'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# A raw `curl | bash` invocation has only this file, not a Vanta checkout. Hand
+# it to the source-agnostic bootstrap before sourcing repo-local helpers. A
+# normal checkout keeps the existing installer behavior unchanged.
+if [ ! -f "$SCRIPT_DIR/Cargo.toml" ] || [ ! -x "$SCRIPT_DIR/run.sh" ]; then
+  BOOTSTRAP_URL="${VANTA_BOOTSTRAP_URL:-https://raw.githubusercontent.com/jpoindexter/Vanta/main/scripts/bootstrap-install.sh}"
+  if ! command -v curl >/dev/null 2>&1; then
+    echo -e "${RED}✗${NC} curl is required to bootstrap Vanta from outside a checkout." >&2
+    exit 1
+  fi
+  exec bash -c "$(curl -fsSL "$BOOTSTRAP_URL")" -- "$@"
+fi
+
 cd "$SCRIPT_DIR"
 
 echo ""
@@ -21,7 +34,7 @@ echo ""
 need() {
   command -v "$1" >/dev/null 2>&1 && return 0
   echo -e "${YELLOW}⚠${NC}  $1 not found."
-  if [ -n "$2" ] && command -v brew >/dev/null 2>&1; then
+  if [ -n "$2" ] && command -v brew >/dev/null 2>&1 && [ "${VANTA_INSTALL_NONINTERACTIVE:-0}" != "1" ]; then
     printf "   Install %s with Homebrew now? [Y/n] " "$1"
     read -r ans </dev/tty 2>/dev/null || ans=n
     case "$ans" in [Nn]*) ;; *) brew install "$2" && command -v "$1" >/dev/null 2>&1 && return 0 ;; esac

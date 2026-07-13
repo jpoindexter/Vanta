@@ -3,6 +3,7 @@ import type { DesktopState, DesktopEvent } from "./handlers.js";
 import {
   eventLabel, readJson, sendJson,
   handleStatus, handleSessions, handleNewSession, handleOpenSession,
+  handleRenameSession, handleArchiveSession, handleDeleteSession,
   handleTools, handleFiles, handleCanvas, handleModels, handleSetModel,
   handleApproval, handleTerminal, handleChat,
 } from "./handlers.js";
@@ -44,6 +45,9 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
   const { req, res, state, sid, sseClients, pathname: p } = ctx;
   if (p === "/api/sessions/new") { await handleNewSession(state, res); return true; }
   if (p === "/api/sessions/open") { await handleOpenSession(state, req, res); return true; }
+  if (p === "/api/sessions/rename") { await handleRenameSession(req, res); return true; }
+  if (p === "/api/sessions/archive") { await handleArchiveSession(req, res); return true; }
+  if (p === "/api/sessions/delete") { await handleDeleteSession(state, req, res); return true; }
   if (p === "/api/model") { await handleSetModel(state, req, res); return true; }
   if (p === "/api/setup") { await handleDesktopSetup(state, req, res); return true; }
   if (p === "/api/approval") { await handleApproval(state, req, res); return true; }

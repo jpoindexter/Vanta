@@ -18,13 +18,22 @@ See `docs/prd.md` for the full roadmap.
 
 ## Install
 
-On macOS or Linux, one command clones Vanta into `~/vanta`, downloads the prebuilt kernel (and a portable Node if you don't have one), and puts a global `vanta` on your PATH:
+On macOS or Linux, one command creates a managed Vanta runtime in `~/.vanta/app`, downloads the prebuilt kernel (and a portable Node if you don't have one), and puts a global `vanta` on your PATH:
 
 ```bash
-curl -fsSL https://vanta.theft.studio/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/jpoindexter/Vanta/main/install.sh | bash
 ```
 
-> **Only `git` is required.** No Rust toolchain, no system Node — `install.sh` downloads a checksum-verified prebuilt kernel (from the GitHub release) and a portable **Node 22** (from nodejs.org) when they're missing. Already have Rust + Node? It uses them. Override the location with `VANTA_DIR=/path bash bootstrap.sh`.
+> **Only `git` is required.** No Rust toolchain or system Node — the managed installer downloads a checksum-verified prebuilt kernel (from the GitHub release) and a portable **Node 22** (from nodejs.org) when they are missing. Existing source checkouts still support `./install.sh` unchanged.
+
+Choose a different managed location, skip provider setup for automation, or build the Electron app from that same runtime:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jpoindexter/Vanta/main/install.sh | bash -s -- --dir "$HOME/.local/share/vanta" --skip-setup
+curl -fsSL https://raw.githubusercontent.com/jpoindexter/Vanta/main/install.sh | bash -s -- --desktop
+```
+
+The installer never pulls over a managed checkout with local changes. See [installation details](docs/installation.md).
 
 On Windows 11, clone the repository and run the tracked PowerShell installer:
 

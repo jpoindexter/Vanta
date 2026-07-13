@@ -5,7 +5,7 @@ import { createConversation, type StreamEvent } from "../agent.js";
 import type { Conversation } from "../agent.js";
 import { buildSummarizer, prepareRun, writeRunMemory } from "../session.js";
 import type { RunSetup } from "../session.js";
-import { listSessions, loadSession, newSessionId, saveSession } from "../sessions/store.js";
+import { deleteSession, listAllSessions, loadSession, newSessionId, renameSession, saveSession, setSessionArchived } from "../sessions/store.js";
 import { PROVIDER_CATALOG, providerById } from "../providers/catalog.js";
 import { resolveProvider } from "../providers/index.js";
 import type { LLMProvider } from "../providers/interface.js";
@@ -110,7 +110,7 @@ export async function handleStatus(state: DesktopState, res: http.ServerResponse
 }
 
 export async function handleSessions(res: http.ServerResponse): Promise<void> {
-  sendJson(res, 200, await listSessions(process.env));
+  sendJson(res, 200, await listAllSessions(process.env));
 }
 
 export async function handleNewSession(state: DesktopState, res: http.ServerResponse): Promise<void> {
@@ -137,6 +137,50 @@ export async function handleOpenSession(state: DesktopState, req: http.IncomingM
   state.modelId = session.modelId ?? setup.provider.modelId();
   attachConversation(state, setup, { history: session.messages });
   sendJson(res, 200, { id: session.id, title: session.title, messages: session.messages.filter((m) => m.role !== "system") });
+}
+
+function sessionIdFromBody(body: { id?: unknown }): string {
+  return typeof body.id === "string" ? body.id.trim() : "";
+}
+
+export async function handleRenameSession(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const body = await readJson(req) as { id?: unknown; title?: unknown };
+  const id = sessionIdFromBody(body);
+  const title = typeof body.title === "string" ? body.title.trim().replace(/\s+/g, " ") : "";
+  if (!id) return sendJson(res, 400, { error: "session id is required" });
+  if (!title) return sendJson(res, 400, { error: "session title is required" });
+  if (title.length > 120) return sendJson(res, 400, { error: "session title must be 120 characters or fewer" });
+  const session = await renameSession(id, title, process.env);
+  if (!session) return sendJson(res, 404, { error: "session not found" });
+  sendJson(res, 200, { id: session.id, title: session.title });
+}
+
+export async function handleArchiveSession(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const body = await readJson(req) as { id?: unknown; archived?: unknown };
+  const id = sessionIdFromBody(body);
+  if (!id) return sendJson(res, 400, { error: "session id is required" });
+  if (body.archived !== undefined && typeof body.archived !== "boolean") return sendJson(res, 400, { error: "archived must be boolean" });
+  const session = await setSessionArchived(id, body.archived ?? true, process.env);
+  if (!session) return sendJson(res, 404, { error: "session not found" });
+  sendJson(res, 200, { id: session.id, archived: Boolean(session.archived) });
+}
+
+export async function handleDeleteSession(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const body = await readJson(req) as { id?: unknown };
+  const id = sessionIdFromBody(body);
+  if (!id) return sendJson(res, 400, { error: "session id is required" });
+  const session = await loadSession(id, process.env);
+  if (!session) return sendJson(res, 404, { error: "session not found" });
+  await deleteSession(id, process.env);
+  if (state.sessionId === id) {
+    state.convo = undefined;
+    state.sessionId = undefined;
+    state.sessionStarted = undefined;
+    state.providerId = undefined;
+    state.modelId = undefined;
+    state.currentEvents = undefined;
+  }
+  sendJson(res, 200, { id });
 }
 
 export async function handleTools(state: DesktopState, res: http.ServerResponse): Promise<void> {

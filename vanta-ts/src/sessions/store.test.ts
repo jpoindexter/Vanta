@@ -6,9 +6,13 @@ import {
   saveSession,
   loadSession,
   checkpointSessionMessages,
+  deleteSession,
+  listAllSessions,
   listSessions,
   newSessionId,
   forkSession,
+  renameSession,
+  setSessionArchived,
   createFsSessionStore,
   type Session,
   type SessionMeta,
@@ -103,6 +107,24 @@ describe("session store", () => {
     expect(fork?.messages).toEqual(TRANSCRIPT);
     expect(original?.updated).toBe("2026-06-02T12:00:00.000Z");
     expect((await listSessions(env())).map((s) => s.id)).toEqual(["20260603-120000", "20260602-120000"]);
+  });
+
+  it("renames, archives, and restores a session without losing its transcript or routing metadata", async () => {
+    await saveSession("managed", TRANSCRIPT, {
+      env: env(), now: "2026-06-02T12:00:00.000Z", providerId: "openai", modelId: "gpt-5.5",
+    });
+
+    await renameSession("managed", "Roadmap review", env());
+    await setSessionArchived("managed", true, env());
+
+    expect(await listSessions(env())).toEqual([]);
+    expect(await listAllSessions(env())).toMatchObject([{ id: "managed", title: "Roadmap review", archived: true }]);
+    expect(await loadSession("managed", env())).toMatchObject({
+      title: "Roadmap review", providerId: "openai", modelId: "gpt-5.5", messages: TRANSCRIPT,
+    });
+
+    await setSessionArchived("managed", false, env());
+    expect(await listSessions(env())).toMatchObject([{ id: "managed", title: "Roadmap review", archived: undefined }]);
   });
 
   it("recovers a started mutating call as unknown and persists the repair", async () => {

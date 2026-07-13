@@ -29,7 +29,16 @@ export function AppShell() {
 
   return (
     <div className={`app-shell panel-${mobilePanel} ${data.tab === "canvas" ? "canvas-open" : ""}`}>
-      <SessionSidebar sessions={data.sessions} activeId={data.status?.sessionId} onNew={convo.newSession} onOpen={convo.openSession} onDismiss={() => setMobilePanel("work")} />
+      <SessionSidebar
+        sessions={data.sessions}
+        activeId={data.status?.sessionId}
+        onNew={convo.newSession}
+        onOpen={convo.openSession}
+        onRename={(id, title) => convo.renameSession(id, title, id === data.status?.sessionId)}
+        onArchive={(id, archived) => convo.archiveSession(id, archived, id === data.status?.sessionId)}
+        onDelete={(id) => convo.deleteSession(id, id === data.status?.sessionId)}
+        onDismiss={() => setMobilePanel("work")}
+      />
       <main className="workbench">
         <DesktopHeader title={convo.activeTitle} data={data} sound={sound} onPanel={setMobilePanel} />
         <div className={`conversation-stage ${data.phase === "error" ? "has-error" : ""}`}>
