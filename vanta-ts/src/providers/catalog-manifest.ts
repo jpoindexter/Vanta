@@ -9,7 +9,7 @@ import { PROVIDER_CATALOG, type ProviderEntry } from "./catalog.js";
 //   injected fetch + fs seams; the bundled catalog is the always-available floor.
 
 const DEFAULT_TTL_MS = 6 * 60 * 60 * 1000; // 6h
-export const CATALOG_PRIMARY_URL = "https://docs.vanta.theft.studio/model-catalog.json";
+export const CATALOG_PRIMARY_URL = "https://vanta-docs.pages.dev/model-catalog.json";
 export const CATALOG_GITHUB_RAW = "https://raw.githubusercontent.com/jpoindexter/Vanta/main/docs/model-catalog.json";
 
 // A remote entry is a permissive subset — we validate the shape but tolerate

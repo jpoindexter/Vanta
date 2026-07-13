@@ -33,6 +33,12 @@ describe("parseManifest", () => {
   });
 });
 
+describe("published catalog endpoints", () => {
+  it("uses the Pages production domain as the primary manifest source", () => {
+    expect(CATALOG_PRIMARY_URL).toBe("https://vanta-docs.pages.dev/model-catalog.json");
+  });
+});
+
 describe("resolveCatalog fallback chain", () => {
   it("a fresh cache short-circuits the network", async () => {
     const cached: CachedManifest = { fetchedAt: 999_000, manifest: MANIFEST };
