@@ -1,7 +1,6 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { basename } from "node:path";
-import { signAsync } from "@electron/osx-sign";
 
 const mode = process.argv.includes("--dist") ? "dist" : "dir";
 const notarize = process.argv.includes("--notarize");
@@ -12,6 +11,28 @@ const dmg = `release/Vanta-${version}-arm64.dmg`;
 function run(command, args, env = process.env) {
   const result = spawnSync(command, args, { stdio: "inherit", env });
   if (result.status !== 0) process.exit(result.status ?? 1);
+}
+
+function tryRun(command, args, env = process.env) {
+  const result = spawnSync(command, args, { stdio: "inherit", env });
+  return result.status ?? 1;
+}
+
+function clearSigningState(target) {
+  // Finder provenance and a stale .cstemp file make codesign leave Electron's
+  // top-level bundle ad hoc-signed. Both are generated packaging state.
+  run("xattr", ["-cr", target]);
+  run("find", [target, "-name", "*.cstemp", "-delete"]);
+}
+
+function signApp(target, identity) {
+  const args = ["--force", "--deep", "--options", "runtime", "--timestamp", "--sign", identity, target];
+  clearSigningState(target);
+  if (tryRun("codesign", args) !== 0) {
+    clearSigningState(target);
+    run("codesign", args);
+  }
+  run("codesign", ["--verify", "--deep", "--strict", "--verbose=2", target]);
 }
 
 function developerIdentity() {
@@ -26,8 +47,7 @@ run("npx", ["electron-builder", "--mac", "dir", "--arm64"], { ...process.env, CS
 const identity = developerIdentity();
 if (identity) {
   console.log(`Signing Vanta.app with Developer ID ${identity.slice(0, 8)}…`);
-  await signAsync({ app, identity, identityValidation: true, platform: "darwin", hardenedRuntime: true, gatekeeperAssess: false });
-  run("codesign", ["--verify", "--deep", "--strict", "--verbose=2", app]);
+  signApp(app, identity);
 } else console.warn("No Developer ID Application certificate found; leaving the local artifact unsigned.");
 
 if (mode === "dist") {
