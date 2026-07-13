@@ -273,7 +273,7 @@
       "id": "VANTA-REAL-USE-CASE-ACCEPTANCE",
       "track": "Release",
       "title": "Real use-case acceptance — prove Vanta completes operator outcomes",
-      "status": "building",
+      "status": "shipped",
       "size": "L",
       "summary": "Execute a bounded acceptance campaign across real provider work, safe file changes, memory recall, scheduling, delegation, destructive-action blocking, and the packaged desktop path; replace configuration-only proxies with behavioral receipts.",
       "done": "A versioned acceptance manifest runs the selected operator stories end to end, records redacted receipts, identifies each executed versus externally gated path, and every local release-critical story passes from the same public build without relying on unit-test or configuration-only proxies.",
@@ -282,8 +282,8 @@
       "effort": "high",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-07-12",
-      "notes": "EXECUTED 2026-07-12: real provider README read and scoped write/readback passed; corpus ingest/recall returned source and freshness evidence; one bounded delegate worker passed; the notarized v0.8.0 desktop completed real chat and kernel-blocked a destructive terminal command; a clean ~/vanta install ran under launchd, fired a provider-free no_agent schedule, and completed an authenticated Codex agent schedule; cold-start capability reporting passed; bounded cited research passed with primary sources, skeptic review, and explicit uncertainty. Full regression: 13,066 TypeScript tests passed (3 skipped), 70 Rust kernel tests passed, typecheck/boundaries/desktop build passed, and production npm audit found 0 vulnerabilities. The card remains building until these current-main scheduling and research fixes are included in a refreshed notarized public artifact, satisfying the same-public-build criterion. See docs/product-acceptance.md.",
+      "updated": "2026-07-13",
+      "notes": "SHIPPED 2026-07-13: real provider README read and scoped write/readback passed; corpus ingest/recall returned source and freshness evidence; one bounded delegate worker passed; the prior notarized desktop completed real chat and kernel-blocked a destructive terminal command; a clean ~/vanta install ran under launchd, fired a provider-free no_agent schedule, and completed an authenticated Codex agent schedule; cold-start capability reporting passed; bounded cited research passed with primary sources, skeptic review, and explicit uncertainty. The selected versioned manifest reports 6 executed and 6 passed scenarios across 6 categories; remaining catalog categories are explicit coverage gaps or external setup paths, not false passes. The refreshed public v0.9.2 artifact was built from tag commit 742459c1 containing the current schedule/research fixes, notarized, stapled, checksum-verified, and passed a clean-Mac download/Gatekeeper proof: https://github.com/jpoindexter/Vanta/actions/runs/29249460403. A final signed-package local-Codex desktop turn passed in an isolated project (6.3s). See docs/product-acceptance.md.",
       "source": "operator request 2026-07-12",
       "after": [
         "DESKTOP-MAC-NOTARIZATION"

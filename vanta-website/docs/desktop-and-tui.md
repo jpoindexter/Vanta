@@ -40,7 +40,7 @@ The installed app asks for a working folder and remembers it. If that folder has
 
 The macOS build bundles the renderer, TypeScript runtime, and Rust safety kernel, so it does not need a Vanta checkout. `npm run desktop:dist` uses an available Developer ID certificate by unique hash and leaves a clearly labelled unsigned local build when none exists. For public distribution, first store credentials with `xcrun notarytool store-credentials vanta`, then run `npm run desktop:release`. The release command signs the DMG container, waits for Apple acceptance, staples and validates the ticket, and requires Gatekeeper to report `Notarized Developer ID`. Set `VANTA_DESKTOP_NOTARY_PROFILE` to use a profile name other than `vanta`.
 
-[Download the notarized Vanta v0.8.0 DMG](https://github.com/jpoindexter/Vanta/releases/download/v0.8.0/Vanta-0.8.0-arm64.dmg). SHA-256: `aa39b49307c5fe70fb197c2bba6fd4caa7695d384c2317ca7448a043d40e85b6`. The public checksum and fresh-Mac Gatekeeper receipt are attached to the release and its [verification run](https://github.com/jpoindexter/Vanta/actions/runs/29208066598).
+[Download the notarized Vanta v0.9.2 DMG](https://github.com/jpoindexter/Vanta/releases/download/v0.9.2/Vanta-0.9.2-arm64.dmg). SHA-256: `ca3e3143fc56685acd9d37d1bb62c6566000e2639144e72279601ba8b12c47fb`. The public checksum and fresh-Mac Gatekeeper receipt are attached to the release and its [verification run](https://github.com/jpoindexter/Vanta/actions/runs/29249460403).
 
 ## Voice, sight & desktop control
 

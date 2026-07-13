@@ -8,22 +8,23 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1186 capabilities shipped · 1 in flight · 0 on the horizon. Updated 2026-07-12._
+_1191 capabilities shipped · 0 in flight · 0 on the horizon. Updated 2026-07-13._
 
 ## In flight
 
 What we are actively building next.
 
-### Real use-case acceptance — prove Vanta completes operator outcomes
-
-**Release** · L-size
-
-Execute a bounded acceptance campaign across real provider work, safe file changes, memory recall, scheduling, delegation, destructive-action blocking, and the packaged desktop path; replace configuration-only proxies with behavioral receipts
+_Nothing in flight right now — see the horizon below._
 
 ## Recently shipped
 
-The latest of 1186+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1191+ capabilities. See the [changelog](./changelog) for curated milestones.
 
+- **Real use-case acceptance — prove Vanta completes operator outcomes** — Release · 2026-07-13
+- **Desktop operator flows v1 — capabilities, channels, artifacts, settings** — Operator · 2026-07-13
+- **Desktop user-flow reset - one dependable work loop** — Operator · 2026-07-13
+- **Desktop session management — rename, archive, restore, and delete conversations** — Operator · 2026-07-13
+- **Managed runtime installer — one command provisions CLI and optional desktop from the same Vanta home** — Operator · 2026-07-13
 - **Vanta public site v1 — product-first homepage, use cases, install, and proof** — Reach · 2026-07-12
 - **Interrupted tool effects - preserve unknown mutations and inspect before retry** — Harness · 2026-07-12
 - **Compaction real-headroom guard - stop when the prompt floor stays over threshold** — Harness · 2026-07-12
@@ -39,11 +40,6 @@ The latest of 1186+ capabilities. See the [changelog](./changelog) for curated m
 - **Desktop app v1 — dependable native Vanta for daily use** — Operator · 2026-07-12
 - **Desktop viewport composer fix — keep the empty state and input visible** — Operator · 2026-07-12
 - **Desktop Files panel responsive fix — restore rows and contain long paths** — Operator · 2026-07-12
-- **Desktop macOS notarization — staple a Gatekeeper-clean public build** — Release · 2026-07-12
-- **Roadmap unblock command — turn blocked cards into exact next actions** — Operator · 2026-07-11
-- **Messaging channel parity — reach Hermes(20+)/OpenClaw(13+) channel coverage** — Operator · 2026-07-11
-- **Fix: Cmd+V image paste into the TUI doesn't attach (only /image + drag-drop work)** — Operator · 2026-07-11
-- **Autonomous (bash) builds in a Docker container — the containment that works** — Harness · 2026-07-11
 
 ## On the horizon
 

@@ -1,6 +1,6 @@
 # Product acceptance
 
-Updated 2026-07-12. This record separates executed behavior from static tests and external setup gates.
+Updated 2026-07-13. This record separates executed behavior from static tests and external setup gates.
 
 ## Executed operator paths
 
@@ -10,7 +10,7 @@ Updated 2026-07-12. This record separates executed behavior from static tests an
 | Write and read back a file | Pass | The model wrote `.vanta/eval-runs/product-acceptance/model-write.txt`, read it back, and returned the exact marker in 3 iterations. |
 | Recall an ingested project artifact | Pass | Corpus ingest and keyword/semantic recall returned the written marker with its project-root source path. |
 | Delegate bounded work | Pass | One parent call spawned one worker; the worker read the README and returned the required result in 2 parent iterations. |
-| Use the packaged desktop chat | Pass | The notarized v0.8.0 app called `read_file` and returned `VANTA_DESKTOP_CHAT_OK` in 2 iterations. |
+| Use the packaged desktop chat | Pass | The notarized v0.8.0 app called `read_file` and returned `VANTA_DESKTOP_CHAT_OK` in 2 iterations; the refreshed notarized v0.9.2 package completed a real isolated local-Codex desktop turn in 6.3 seconds. |
 | Block a destructive desktop command | Pass | The packaged desktop rejected `rm -rf / --no-preserve-root` at the kernel boundary. |
 | Run an unattended schedule | Pass | A clean `~/vanta` install launched through launchd, fired a provider-free task (`VANTA_SCHEDULE_OK`), then completed a real Codex agent task (`VANTA_SERVICE_AGENT_OK`). Temporary tasks were removed; the service and 9 AM greeting remain active. |
 | Report cold-start capabilities | Pass | `general-capability-start` inspected doctor, activation, backend, channels, keybindings, Run Anywhere, and A2A state; it separated ready and setup-required workflows before action. |
@@ -29,7 +29,7 @@ The use-case catalog currently records 6 executed and 6 passed scenarios across 
 
 ## Release boundary
 
-The notarized v0.8.0 desktop artifact passed desktop chat and safety. Scheduling and bounded research fixes are verified on current `main`; publish a refreshed notarized artifact before closing `VANTA-REAL-USE-CASE-ACCEPTANCE` under its same-public-build criterion.
+The public [v0.9.2 desktop artifact](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.2) was built from tag commit `742459c1`, which includes the current scheduling and bounded-research reliability fixes. Its DMG is notarized, stapled, checksum-verified, and passed the [clean-Mac Gatekeeper proof](https://github.com/jpoindexter/Vanta/actions/runs/29249460403) after download from the public release. This satisfies the same-public-build requirement for `VANTA-REAL-USE-CASE-ACCEPTANCE`.
 
 Provider credentials, physical devices, and third-party accounts remain separate external gates. Run `vanta roadmap proof-status` for the exact ten parked proofs.
 

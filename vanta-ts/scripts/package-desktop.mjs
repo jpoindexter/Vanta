@@ -1,5 +1,6 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
+import { basename } from "node:path";
 import { signAsync } from "@electron/osx-sign";
 
 const mode = process.argv.includes("--dist") ? "dist" : "dir";
@@ -44,4 +45,7 @@ if (mode === "dist") {
     run("xcrun", ["stapler", "validate", dmg]);
     run("spctl", ["--assess", "--type", "open", "--context", "context:primary-signature", "--verbose=4", dmg]);
   }
+  const checksum = execFileSync("shasum", ["-a", "256", basename(dmg)], { cwd: "release", encoding: "utf8" });
+  writeFileSync(`${dmg}.sha256`, checksum);
+  console.log(`Wrote ${dmg}.sha256`);
 }
