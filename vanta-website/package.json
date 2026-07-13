@@ -6,7 +6,7 @@
     "docusaurus": "docusaurus",
     "gen:roadmap": "node scripts/gen-roadmap.mjs",
     "prestart": "node scripts/gen-roadmap.mjs",
-    "prebuild": "node scripts/gen-roadmap.mjs && cp ../bootstrap.sh static/install.sh",
+    "prebuild": "node scripts/gen-roadmap.mjs && ../vanta-ts/node_modules/.bin/tsx ../vanta-ts/scripts/generate-model-catalog.ts && node scripts/sync-model-catalog.mjs && cp ../bootstrap.sh static/install.sh",
     "start": "docusaurus start",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",

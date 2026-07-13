@@ -1,12 +1,15 @@
 import http from "node:http";
 import { readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { createConversation, type StreamEvent } from "../agent.js";
 import type { Conversation } from "../agent.js";
 import { buildSummarizer, prepareRun, writeRunMemory } from "../session.js";
 import type { RunSetup } from "../session.js";
 import { deleteSession, listAllSessions, loadSession, newSessionId, renameSession, saveSession, setSessionArchived } from "../sessions/store.js";
-import { PROVIDER_CATALOG, providerById } from "../providers/catalog.js";
+import { PROVIDER_CATALOG, providerById, type ProviderEntry } from "../providers/catalog.js";
+import { diskCacheDeps, resolveCatalog } from "../providers/catalog-manifest.js";
+import { resolveVantaHome } from "../store/home.js";
 import { resolveProvider } from "../providers/index.js";
 import type { LLMProvider } from "../providers/interface.js";
 import { loadUserProviders } from "../providers/user-providers.js";
@@ -236,10 +239,10 @@ export async function handleCanvas(state: DesktopState, res: http.ServerResponse
 
 export type DesktopProviderOption = { id: string; label: string; short: string; defaultModel: string; models: string[]; current: boolean };
 
-export function desktopProviderOptions(env: NodeJS.ProcessEnv): DesktopProviderOption[] {
+export function desktopProviderOptions(env: NodeJS.ProcessEnv, catalog: ProviderEntry[] = PROVIDER_CATALOG): DesktopProviderOption[] {
   const current = (env.VANTA_PROVIDER ?? "openai").toLowerCase();
   const options = new Map<string, DesktopProviderOption>();
-  for (const provider of PROVIDER_CATALOG) {
+  for (const provider of catalog) {
     options.set(provider.id, {
       id: provider.id,
       label: provider.label,
@@ -262,6 +265,31 @@ export function desktopProviderOptions(env: NodeJS.ProcessEnv): DesktopProviderO
   return [...options.values()];
 }
 
+export type DesktopCatalogLoader = (env: NodeJS.ProcessEnv) => Promise<ProviderEntry[]>;
+
+async function fetchCatalogJson(url: string): Promise<unknown> {
+  const response = await fetch(url, { signal: AbortSignal.timeout(2_500) });
+  return response.ok ? response.json() : null;
+}
+
+/** Resolve the published catalog once per cache TTL; the bundled catalog is the offline floor. */
+export const loadDesktopProviderCatalog: DesktopCatalogLoader = async (env) => {
+  const cachePath = join(resolveVantaHome(env), "model-catalog.json");
+  const catalog = await resolveCatalog({
+    ...diskCacheDeps(cachePath),
+    fetchJson: fetchCatalogJson,
+    now: Date.now(),
+  });
+  return catalog.providers;
+};
+
+export async function desktopProviderOptionsLive(
+  env: NodeJS.ProcessEnv,
+  loadCatalog: DesktopCatalogLoader = loadDesktopProviderCatalog,
+): Promise<DesktopProviderOption[]> {
+  return desktopProviderOptions(env, await loadCatalog(env));
+}
+
 export function resolveDesktopProviderSelection(env: NodeJS.ProcessEnv, provider: string, model?: string): {
   provider: string;
   model: string;
@@ -276,7 +304,7 @@ export function resolveDesktopProviderSelection(env: NodeJS.ProcessEnv, provider
 }
 
 export async function handleModels(res: http.ServerResponse): Promise<void> {
-  sendJson(res, 200, desktopProviderOptions(process.env));
+  sendJson(res, 200, await desktopProviderOptionsLive(process.env));
 }
 
 export async function handleSetModel(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {

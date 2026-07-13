@@ -36,6 +36,7 @@ describe("external proof readiness", () => {
     const report = assessExternalProofReadiness({ runAnywhere: remote(false), payments: [], shopify: [], telephony: [] });
     expect(report).toMatchObject({ ready: false, passed: 0, total: 10 });
     expect(report.gates.map((gate) => gate.roadmapCardId)).toContain("HERMES-COMMERCE-TELEPHONY-SKILL-PACK");
+    expect(report.gates.find((gate) => gate.roadmapCardId === "BACKEND-SERVERLESS-LIVE")?.nextActions).toEqual(["next"]);
     const out = formatExternalProofReadiness(report);
     expect(out).toContain("VANTA_PAYMENT_TEST_LINK_CLI");
     expect(out).toContain("service-proof-win32.json");

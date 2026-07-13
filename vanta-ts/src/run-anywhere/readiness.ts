@@ -41,6 +41,11 @@ export type RunAnywhereProofPacket = {
 async function serverlessGate(repoRoot: string): Promise<RunAnywhereGate> {
   const receipt = await readGatewayReceipt(repoRoot);
   const ready = Boolean(receipt?.provedAt && receipt.telegramAcceptedAt);
+  const nextActions = ["vanta backend gateway status --json"];
+  if (!receipt?.endpoint) nextActions.push("vanta backend gateway deploy");
+  if (!receipt?.telegramRegisteredAt) nextActions.push("vanta backend gateway register-telegram");
+  if (!receipt?.armedAt) nextActions.push("vanta backend gateway arm");
+  nextActions.push("send one real Telegram message to the bot", "vanta backend gateway prove");
   return {
     id: "serverless-live",
     label: "Modal/Telegram wake proof",
@@ -52,14 +57,8 @@ async function serverlessGate(repoRoot: string): Promise<RunAnywhereGate> {
       : receipt?.endpoint
         ? `deployed endpoint receipt exists (${receipt.endpoint}), but no successful prove receipt`
         : "no deployed endpoint/prove receipt in .vanta/serverless-gateway.json",
-    next: "vanta backend gateway status -> deploy -> register-telegram -> arm -> prove",
-    nextActions: [
-      "vanta backend gateway status --json",
-      "vanta backend gateway deploy",
-      "vanta backend gateway register-telegram",
-      "vanta backend gateway arm",
-      "vanta backend gateway prove",
-    ],
+    next: nextActions.join(" -> "),
+    nextActions,
   };
 }
 

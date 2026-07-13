@@ -33,6 +33,27 @@ describe("Run Anywhere readiness", () => {
     ]);
     expect(formatRunAnywhereReadiness(report)).toContain("deployed endpoint receipt exists");
     expect(formatRunAnywhereReadiness(report)).toContain("Release gate stays parked");
+    const serverless = report.gates.find((gate) => gate.id === "serverless-live");
+    expect(serverless?.nextActions).not.toContain("vanta backend gateway deploy");
+    expect(serverless?.nextActions).toContain("vanta backend gateway register-telegram");
+  });
+
+  it("only asks for the live message and prove step after the gateway is armed", async () => {
+    const root = await workspace();
+    await writeGatewayReceipt(root, {
+      app: "vanta-gateway",
+      volume: "vanta-gateway-data",
+      endpoint: "https://example.modal.run",
+      telegramRegisteredAt: "2026-07-13T12:00:00.000Z",
+      armedAt: "2026-07-13T12:01:00.000Z",
+    });
+    const report = await readRunAnywhereReadiness(root);
+    const serverless = report.gates.find((gate) => gate.id === "serverless-live");
+    expect(serverless?.nextActions).toEqual([
+      "vanta backend gateway status --json",
+      "send one real Telegram message to the bot",
+      "vanta backend gateway prove",
+    ]);
   });
 
   it("requires serverless prove, Teams proof, and ARM64 release-kernel proof", async () => {

@@ -2,7 +2,8 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { desktopProviderOptions, resolveDesktopProviderSelection } from "./handlers.js";
+import { desktopProviderOptions, desktopProviderOptionsLive, resolveDesktopProviderSelection } from "./handlers.js";
+import type { ProviderEntry } from "../providers/catalog.js";
 
 describe("desktop provider aliases", () => {
   let home: string;
@@ -29,6 +30,35 @@ describe("desktop provider aliases", () => {
       models: ["router-default"],
       current: true,
     }));
+  });
+
+  it("lists the current OpenAI agent model family", () => {
+    const openai = desktopProviderOptions({ VANTA_HOME: home }).find((option) => option.id === "openai");
+
+    expect(openai?.models).toEqual(expect.arrayContaining([
+      "gpt-5.6",
+      "gpt-5.6-sol",
+      "gpt-5.6-terra",
+      "gpt-5.6-luna",
+      "gpt-5.5",
+      "gpt-5.5-pro",
+      "gpt-5.4",
+      "gpt-5.4-pro",
+      "gpt-5.4-mini",
+      "gpt-5.4-nano",
+      "gpt-5.3-codex",
+    ]));
+  });
+
+  it("uses a refreshed catalog when the desktop picker opens", async () => {
+    const refreshed: ProviderEntry[] = [{
+      id: "openai", label: "OpenAI", short: "OpenAI", envVar: "OPENAI_API_KEY",
+      defaultModel: "gpt-current", models: ["gpt-current"],
+    }];
+
+    await expect(desktopProviderOptionsLive({ VANTA_HOME: home }, async () => refreshed)).resolves.toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: "openai", models: ["gpt-current"] }),
+    ]));
   });
 
   it("provider-only selection uses the alias model and credential instead of the parent model", () => {

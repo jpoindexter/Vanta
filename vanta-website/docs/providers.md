@@ -85,6 +85,10 @@ Set `VANTA_MODEL_CHEAP` / `VANTA_MODEL_EXPENSIVE` and Vanta classifies each task
 
 Every completed agent-loop provider call is appended to `<project>/.vanta/route-usage-ledger.jsonl`. Each versioned row records the session and surface, actual serving provider/model, normalized base route, fallback depth, billing mode/status, input/output/cache/reasoning tokens, one API call, and cost when known.
 
+## Model catalog updates
+
+The desktop model picker refreshes from Vanta's published model catalog and caches it for six hours. If the network is unavailable, it uses the last valid local catalog and then the bundled catalog. A listed model still requires that your selected provider account is entitled to run it; Vanta reports provider errors rather than treating a picker entry as an entitlement guarantee.
+
 This is call-level attribution, so a fallback is charged to the route that served it and a mid-session model switch starts a new route row. Local and subscription-included calls remain visible at `$0`; unknown-cost calls remain visible as `~?`.
 
 ```bash

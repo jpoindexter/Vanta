@@ -36,8 +36,9 @@ export type ExternalProofInputs = {
   loadErrors?: Partial<Record<"payments" | "shopify" | "telephony", string>>;
 };
 
-function gate(cardId: string, label: string, ready: boolean, detail: { receiptPath: string; evidence: string }): ExternalProofGate {
-  return { roadmapCardId: cardId, label, ready, ...detail, nextActions: ready ? [] : knownUnblockActions(cardId) };
+function gate(cardId: string, label: string, ready: boolean, detail: { receiptPath: string; evidence: string; nextActions?: string[] }): ExternalProofGate {
+  const { nextActions, ...evidence } = detail;
+  return { roadmapCardId: cardId, label, ready, ...evidence, nextActions: ready ? [] : nextActions ?? knownUnblockActions(cardId) };
 }
 
 function aggregate(cardId: string, label: string, children: ExternalProofGate[]): ExternalProofGate {
@@ -46,7 +47,11 @@ function aggregate(cardId: string, label: string, children: ExternalProofGate[])
 }
 
 function runAnywhereGates(readiness: RunAnywhereReadiness): ExternalProofGate[] {
-  return readiness.gates.map((item) => gate(item.roadmapCardId, item.label, item.ready, { receiptPath: item.receiptPath, evidence: item.evidence }));
+  return readiness.gates.map((item) => gate(item.roadmapCardId, item.label, item.ready, {
+    receiptPath: item.receiptPath,
+    evidence: item.evidence,
+    nextActions: item.nextActions,
+  }));
 }
 
 function validSpreadsheetHost(value: unknown): value is { ok: true; host: string; workbookReceipt: string; approvalGatedAction: true; executedAt: string; apiSessionId: string; evidenceSha256: string } {
