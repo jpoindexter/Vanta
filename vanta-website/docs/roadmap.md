@@ -8,13 +8,23 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1191 capabilities shipped · 0 in flight · 0 on the horizon. Updated 2026-07-14._
+_1191 capabilities shipped · 2 in flight · 5 on the horizon. Updated 2026-07-14._
 
 ## In flight
 
 What we are actively building next.
 
-_Nothing in flight right now — see the horizon below._
+### Desktop model picker UX — searchable grouped selector with current/default clarity
+
+**Desktop App** · M-size
+
+The current model selector can become a dense grid of repeated model/default buttons. Replace it with a-style searchable list grouped by provider, showing current session model, default model, provider/account status, and one clear Set default action
+
+### Desktop run recovery timeline — retry failed step with receipts
+
+**Desktop App** · L-size
+
+Turn the desktop Work stream from request/response chat into a reliable agent-work surface: durable run timeline, visible partial output, classified failure state, and recovery actions in the place the failure occurred
 
 ## Recently shipped
 
@@ -44,3 +54,11 @@ The latest of 1191+ capabilities. See the [changelog](./changelog) for curated m
 ## On the horizon
 
 Directional, not committed — grouped by area, newest thinking first.
+
+### Desktop App — 5 planned
+
+- Desktop context attachments — files as searchable task context, not raw inventory
+- Desktop safe session operations — archive undo, recoverable trash, menu feedback
+- Desktop Connect setup status — outcome cards with test actions
+- Desktop context legibility — model scope, tools, memory, approvals inline
+- Desktop flow proof suite — cold start, work, recovery, attachments, outputs, resize

@@ -29,6 +29,8 @@ Chords are configurable via `~/.vanta/keybindings.json` (zod-validated, fail-sof
 
 Vanta includes a native Electron app for macOS with sessions, chat, model switching, approvals, canvas, project files, a kernel-gated terminal, tray controls, and the mobile companion bridge. The workspace is fixed to one viewport: the header and composer stay pinned while only genuine content lists scroll.
 
+The desktop app backlog lives in the single product roadmap, not in a separate side plan. Current desktop follow-up cards include `DESKTOP-MODEL-PICKER-UX`, `DESKTOP-RUN-RECOVERY-TIMELINE`, `DESKTOP-CONTEXT-ATTACHMENTS`, `DESKTOP-SAFE-SESSION-OPS`, `DESKTOP-CONNECT-SETUP-STATUS`, `DESKTOP-CONTEXT-LEGIBILITY`, and `DESKTOP-FLOW-PROOF-SUITE`.
+
 ```bash
 cd vanta-ts
 npm run desktop:native  # build and launch from source

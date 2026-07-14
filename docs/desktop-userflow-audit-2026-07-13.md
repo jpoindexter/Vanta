@@ -13,6 +13,20 @@ Do not add another desktop destination or another inspector tab. The current app
 
 The target is a focused local operator, not a copy of Hermes and not a general dashboard.
 
+## Roadmap Consolidation
+
+Updated 2026-07-14: this audit is no longer a separate desktop backlog. The remaining desktop app work now lives in the single product roadmap, `roadmap.json`, under these cards:
+
+- `DESKTOP-MODEL-PICKER-UX` — searchable grouped model picker with current/default clarity.
+- `DESKTOP-RUN-RECOVERY-TIMELINE` — durable run timeline, classified failures, and retry failed step.
+- `DESKTOP-CONTEXT-ATTACHMENTS` — files as searchable task context instead of raw project inventory.
+- `DESKTOP-SAFE-SESSION-OPS` — archive undo, recoverable trash, and operation feedback.
+- `DESKTOP-CONNECT-SETUP-STATUS` — outcome cards and test actions for providers, tools, and messaging.
+- `DESKTOP-CONTEXT-LEGIBILITY` — model scope, tools, memory, approvals, and context chips inline.
+- `DESKTOP-FLOW-PROOF-SUITE` — source and packaged-app desktop acceptance coverage across core flows and sizes.
+
+Use the roadmap for sequencing and status. Keep this document as evidence and rationale only.
+
 ## Evidence and Method
 
 This review applied `flow-app-shell`, `flow-navigation`, `flow-ai-chat`, and `flow-errors`, plus the design principles of progressive disclosure, recognition over recall, visible agent state, and keyboard accessibility.

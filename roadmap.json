@@ -972,11 +972,11 @@
       "codex": "gpt-5.6-sol",
       "lens": "selfhood",
       "updated": "2026-07-14",
+      "notes": "SHIPPED 2026-07-13: Audit and plan: docs/desktop-userflow-audit-2026-07-13.md; vanta-ts/flow-report.html. Work, Outputs, and Connect are the only primary destinations; the compact Outputs rail is scalable, persistent, draggable, keyboard-adjustable, and becomes a drawer below 1080px. Work renders text/tool SSE activity inline, supports Stop through the live AbortSignal, retains partial text, exposes scoped Retry recovery, and permits exactly one serial Queue-next instruction within the active kernel-gated session. Composer `@` attachment produces visible/removable context chips that expand through the existing syntax; Outputs remain accessible without changing the primary shell. The model picker is provider-grouped, searchable, two-column at desktop width, and marks the active session model.\n\nPACKAGED RELEASE REPAIR 2026-07-13: a submitted crash report proved the former broad deep-sign operation left Electron's libffmpeg under a different Team ID. The packer now removes generated signing state, signs every Mach-O payload, signs enclosed frameworks and helpers, then seals the outer app with Electron's JIT entitlement. Executed proof: strict Developer ID validation passed; a fresh signed arm64 package booted from an isolated project, served renderer assets, reported packaged kernel online, and exited 0; the opt-in signed-package proof used local Codex to `read_file` the isolated README and returned its unique marker in 7.6s. The root-scoped launcher also prevents a second Vanta project from borrowing another project's default-port kernel/token boundary; a direct isolated assessment passed at its deterministic local endpoint. True in-turn steering, richer evidence expansion, relevance-ranked context search, archive undo/trash, and connector feedback are later improvements.\n\nMODEL CATALOG FIX 2026-07-14: expanded the Codex subscription picker to include the full current GPT-5.6/GPT-5.5/GPT-5.4/GPT-5.3-Codex/GPT-5.2/GPT-5.1/GPT-5 agent family and changed desktop catalog resolution so stale remote/cache manifests can add models but cannot hide or outrank newer bundled models. Follow-up same day: expanded the OpenAI API picker with current dated snapshots and adjacent current aliases documented by OpenAI, including `gpt-5.5-2026-04-23`, `gpt-5.4-2026-03-05`, `gpt-5.2-2025-12-11`, `gpt-5.1-2025-11-13`, `gpt-5-pro-2025-10-06`, `gpt-5-chat-latest`, `o1-pro`, and `computer-use-preview`; regenerated the docs and website model catalog manifests. Focused provider/catalog tests cover stale-cache and refreshed-catalog paths.",
       "source": "desktop-userflow-audit-2026-07-13",
       "after": [
         "DESKTOP-HERMES-OPERATOR-FLOWS"
-      ],
-      "notes": "SHIPPED 2026-07-13: Audit and plan: docs/desktop-userflow-audit-2026-07-13.md; vanta-ts/flow-report.html. Work, Outputs, and Connect are the only primary destinations; the compact Outputs rail is scalable, persistent, draggable, keyboard-adjustable, and becomes a drawer below 1080px. Work renders text/tool SSE activity inline, supports Stop through the live AbortSignal, retains partial text, exposes scoped Retry recovery, and permits exactly one serial Queue-next instruction within the active kernel-gated session. Composer `@` attachment produces visible/removable context chips that expand through the existing syntax; Outputs remain accessible without changing the primary shell. The model picker is provider-grouped, searchable, two-column at desktop width, and marks the active session model.\n\nPACKAGED RELEASE REPAIR 2026-07-13: a submitted crash report proved the former broad deep-sign operation left Electron's libffmpeg under a different Team ID. The packer now removes generated signing state, signs every Mach-O payload, signs enclosed frameworks and helpers, then seals the outer app with Electron's JIT entitlement. Executed proof: strict Developer ID validation passed; a fresh signed arm64 package booted from an isolated project, served renderer assets, reported packaged kernel online, and exited 0; the opt-in signed-package proof used local Codex to `read_file` the isolated README and returned its unique marker in 7.6s. The root-scoped launcher also prevents a second Vanta project from borrowing another project's default-port kernel/token boundary; a direct isolated assessment passed at its deterministic local endpoint. True in-turn steering, richer evidence expansion, relevance-ranked context search, archive undo/trash, and connector feedback are later improvements.\n\nMODEL CATALOG FIX 2026-07-14: expanded the Codex subscription picker to include the full current GPT-5.6/GPT-5.5/GPT-5.4/GPT-5.3-Codex/GPT-5.2/GPT-5.1/GPT-5 agent family and changed desktop catalog resolution so stale remote/cache manifests can add models but cannot hide or outrank newer bundled models. Follow-up same day: expanded the OpenAI API picker with current dated snapshots and adjacent current aliases documented by OpenAI, including `gpt-5.5-2026-04-23`, `gpt-5.4-2026-03-05`, `gpt-5.2-2025-12-11`, `gpt-5.1-2025-11-13`, `gpt-5-pro-2025-10-06`, `gpt-5-chat-latest`, `o1-pro`, and `computer-use-preview`; regenerated the docs and website model catalog manifests. Focused provider/catalog tests cover stale-cache and refreshed-catalog paths."
+      ]
     },
     {
       "id": "DESKTOP-P3",
@@ -18112,8 +18112,8 @@
       "codex": "gpt-5.6-terra",
       "lens": "tui",
       "updated": "2026-07-12",
-      "source": "operator request 2026-07-12",
-      "notes": "SHIPPED 2026-07-12. Rebuilt the React/Electron surface as a fixed one-viewport workspace: the outer document never scrolls, while only genuine session/chat/inspector content does. Added searchable sessions, prompt starters, explicit loading/recovery, command/model/setup dialogs, safer approvals, compact panel navigation with close controls, resilient API parsing, and in-app provider/model/API-key setup stored privately in project .vanta/.env. The native host now persists and switches project roots, selects a free port, shows a startup splash, handles single-instance/menu/tray lifecycle, bundles renderer/TypeScript runtime/Rust kernel paths, unpacks executable transform dependencies, and produces ARM64 app/DMG/ZIP artifacts. Executed proof: focused desktop/setup gates, TypeScript, and size gates passed; the full suite passed 1,339 files / 13,059 tests / 3 skipped; Playwright at 1440x960 and 760x700 measured html/body/shell exactly one viewport with no outer scroll; signed app passed strict codesign verification; DMG checksum verified; the root-level Vanta.app launched directly from the mounted DMG against an empty temporary project with no Vanta checkout and reported renderer assets ready, first-run setup ready, and bundled kernel online. Artifacts: 176 MiB DMG and 176 MiB ZIP. Public Apple notarization is captured separately as DESKTOP-MAC-NOTARIZATION because notary credentials are not configured."
+      "notes": "SHIPPED 2026-07-12. Rebuilt the React/Electron surface as a fixed one-viewport workspace: the outer document never scrolls, while only genuine session/chat/inspector content does. Added searchable sessions, prompt starters, explicit loading/recovery, command/model/setup dialogs, safer approvals, compact panel navigation with close controls, resilient API parsing, and in-app provider/model/API-key setup stored privately in project .vanta/.env. The native host now persists and switches project roots, selects a free port, shows a startup splash, handles single-instance/menu/tray lifecycle, bundles renderer/TypeScript runtime/Rust kernel paths, unpacks executable transform dependencies, and produces ARM64 app/DMG/ZIP artifacts. Executed proof: focused desktop/setup gates, TypeScript, and size gates passed; the full suite passed 1,339 files / 13,059 tests / 3 skipped; Playwright at 1440x960 and 760x700 measured html/body/shell exactly one viewport with no outer scroll; signed app passed strict codesign verification; DMG checksum verified; the root-level Vanta.app launched directly from the mounted DMG against an empty temporary project with no Vanta checkout and reported renderer assets ready, first-run setup ready, and bundled kernel online. Artifacts: 176 MiB DMG and 176 MiB ZIP. Public Apple notarization is captured separately as DESKTOP-MAC-NOTARIZATION because notary credentials are not configured.",
+      "source": "operator request 2026-07-12"
     },
     {
       "id": "DESKTOP-VIEWPORT-COMPOSER-FIX",
@@ -18129,11 +18129,11 @@
       "codex": "gpt-5.6-luna",
       "lens": "tui",
       "updated": "2026-07-12",
+      "notes": "SHIPPED 2026-07-12. The workbench now always owns exactly three rows: header, one bounded conversation stage, and composer. Loading and connection-recovery content live inside the conversation stage, so an error banner cannot create an implicit row below the native viewport. Added desktop:layout:smoke with healthy and forced-error bounds assertions and packaged-app support. Executed proof against both the rebuilt signed ARM64 Vanta.app and the Vanta.app launched directly from the mounted DMG at the reported 1778x1136 content viewport: document/shell stayed 1136px high; conversation ended and composer began at 1002.15625px; composer ended exactly at 1136px in both states. TypeScript, file-size gate, 24 focused desktop tests, and the full 1,339-file / 13,059-test suite passed; strict codesign and DMG checksum verification passed.",
       "source": "operator screenshot 2026-07-12",
       "after": [
         "DESKTOP-APP-V1"
-      ],
-      "notes": "SHIPPED 2026-07-12. The workbench now always owns exactly three rows: header, one bounded conversation stage, and composer. Loading and connection-recovery content live inside the conversation stage, so an error banner cannot create an implicit row below the native viewport. Added desktop:layout:smoke with healthy and forced-error bounds assertions and packaged-app support. Executed proof against both the rebuilt signed ARM64 Vanta.app and the Vanta.app launched directly from the mounted DMG at the reported 1778x1136 content viewport: document/shell stayed 1136px high; conversation ended and composer began at 1002.15625px; composer ended exactly at 1136px in both states. TypeScript, file-size gate, 24 focused desktop tests, and the full 1,339-file / 13,059-test suite passed; strict codesign and DMG checksum verification passed."
+      ]
     },
     {
       "id": "DESKTOP-FILES-PANEL-RESPONSIVE-FIX",
@@ -18149,11 +18149,11 @@
       "codex": "gpt-5.6-luna",
       "lens": "tui",
       "updated": "2026-07-12",
+      "notes": "SHIPPED 2026-07-12. Fixed the compact inspector selector that replaced the right rail's required two-row grid with a horizontal flex layout below 1080px. Files now keeps an explicit header/list grid, hides horizontal overflow, gives each path a stable 28px row, ellipsizes long paths, and exposes the full path as a native title tooltip. Extended desktop:layout:smoke with 220 long-path fixtures at 760x900. Executed against source, rebuilt signed ARM64 Vanta.app, and Vanta.app launched from the mounted DMG: inspector display grid; tabs bottom 71.5px; panel top 83.5px; panel client/scroll widths 391/391; list widths 388/388; sampled rows all 28px. TypeScript, size gate, 24 focused desktop tests, full 1,339-file / 13,059-test suite, strict codesign, and DMG checksum passed.",
       "source": "operator screenshot 2026-07-12",
       "after": [
         "DESKTOP-VIEWPORT-COMPOSER-FIX"
-      ],
-      "notes": "SHIPPED 2026-07-12. Fixed the compact inspector selector that replaced the right rail's required two-row grid with a horizontal flex layout below 1080px. Files now keeps an explicit header/list grid, hides horizontal overflow, gives each path a stable 28px row, ellipsizes long paths, and exposes the full path as a native title tooltip. Extended desktop:layout:smoke with 220 long-path fixtures at 760x900. Executed against source, rebuilt signed ARM64 Vanta.app, and Vanta.app launched from the mounted DMG: inspector display grid; tabs bottom 71.5px; panel top 83.5px; panel client/scroll widths 391/391; list widths 388/388; sampled rows all 28px. TypeScript, size gate, 24 focused desktop tests, full 1,339-file / 13,059-test suite, strict codesign, and DMG checksum passed."
+      ]
     },
     {
       "id": "DESKTOP-SESSION-MANAGEMENT",
@@ -18169,11 +18169,11 @@
       "codex": "gpt-5.6-luna",
       "lens": "tui",
       "updated": "2026-07-13",
+      "notes": "SHIPPED 2026-07-13. The sidebar now provides a compact per-session action control with inline rename, reversible archive/restore, and confirmed permanent deletion. Persisted archive state preserves the complete transcript plus project/provider/model metadata; normal session listings exclude archived conversations while the desktop API returns them for the restore disclosure. Added loopback POST routes for rename, archive, and delete with request validation, and deleting the active persisted session clears runtime state before a new session is created. Executed proof: 20 focused persistence/API/desktop tests passed; TypeScript and production renderer build passed; `npm run desktop:sessions:smoke` launched Electron and completed rename, archive, restore, and delete through the rendered UI. The rebuilt ARM64 `release/mac-arm64/Vanta.app` also passed strict Developer ID codesign verification and the same packaged-app smoke.",
       "source": "operator screenshot 2026-07-13",
       "after": [
         "DESKTOP-APP-V1"
-      ],
-      "notes": "SHIPPED 2026-07-13. The sidebar now provides a compact per-session action control with inline rename, reversible archive/restore, and confirmed permanent deletion. Persisted archive state preserves the complete transcript plus project/provider/model metadata; normal session listings exclude archived conversations while the desktop API returns them for the restore disclosure. Added loopback POST routes for rename, archive, and delete with request validation, and deleting the active persisted session clears runtime state before a new session is created. Executed proof: 20 focused persistence/API/desktop tests passed; TypeScript and production renderer build passed; `npm run desktop:sessions:smoke` launched Electron and completed rename, archive, restore, and delete through the rendered UI. The rebuilt ARM64 `release/mac-arm64/Vanta.app` also passed strict Developer ID codesign verification and the same packaged-app smoke."
+      ]
     },
     {
       "id": "MANAGED-RUNTIME-INSTALLER",
@@ -18189,11 +18189,11 @@
       "codex": "gpt-5.6-terra",
       "lens": "infra",
       "updated": "2026-07-13",
+      "notes": "SHIPPED 2026-07-13. Added a source-agnostic public bootstrap that clones atomically into VANTA_HOME/app, updates only clean managed checkouts, preserves dirty ones, delegates to the existing verified installer, records the runtime, and installs the global launcher. `--desktop` packages from that same runtime; desktop packaging now reuses the verified runtime kernel before requiring Cargo. The desktop sidebar now retains loaded sessions even when provider status fails, so chats remain manageable during setup. Executed proof: 5 managed-installer fixtures cover clean provision, clean update, dirty protection, and standalone raw-installer routing; the real isolated managed CLI smoke and source-checkout smoke passed; the managed desktop smoke packaged and launched Vanta.app and completed rename, archive, restore, and delete. TypeScript passed; full suite passed 1,342 files / 13,075 tests (3 skipped).",
       "source": "NousResearch/hermes-agent installer and desktop audit 2026-07-13",
       "after": [
         "DESKTOP-APP-V1"
-      ],
-      "notes": "SHIPPED 2026-07-13. Added a source-agnostic public bootstrap that clones atomically into VANTA_HOME/app, updates only clean managed checkouts, preserves dirty ones, delegates to the existing verified installer, records the runtime, and installs the global launcher. `--desktop` packages from that same runtime; desktop packaging now reuses the verified runtime kernel before requiring Cargo. The desktop sidebar now retains loaded sessions even when provider status fails, so chats remain manageable during setup. Executed proof: 5 managed-installer fixtures cover clean provision, clean update, dirty protection, and standalone raw-installer routing; the real isolated managed CLI smoke and source-checkout smoke passed; the managed desktop smoke packaged and launched Vanta.app and completed rename, archive, restore, and delete. TypeScript passed; full suite passed 1,342 files / 13,075 tests (3 skipped)."
+      ]
     },
     {
       "id": "DESKTOP-MAC-NOTARIZATION",
@@ -18209,11 +18209,158 @@
       "codex": "gpt-5.6-luna",
       "lens": "infra",
       "updated": "2026-07-12",
+      "notes": "SHIPPED 2026-07-12. Added npm run desktop:release: build and Developer ID-sign the app, build ZIP/DMG, sign the DMG container, submit with the saved notarytool Keychain profile, wait for Apple, staple, validate, and require spctl source=Notarized Developer ID. The first manual submission exposed that an accepted app inside an unsigned DMG still fails Gatekeeper; the automated path fixes that order. Executed release submission 82513167-9ee2-451e-896a-bde16e21ea15 returned Accepted. Public v0.8.0 DMG: https://github.com/jpoindexter/Vanta/releases/download/v0.8.0/Vanta-0.8.0-arm64.dmg; SHA-256 aa39b49307c5fe70fb197c2bba6fd4caa7695d384c2317ca7448a043d40e85b6, matching GitHub's server digest and the published .sha256 asset. Fresh separate macos-14 GitHub-hosted runner proof https://github.com/jpoindexter/Vanta/actions/runs/29208066598 passed checksum, stapler validate, DMG codesign, DMG Gatekeeper, mounted install, quarantine attribute, deep app codesign, and installed-app Gatekeeper; both assessments reported Notarized Developer ID.",
       "source": "DESKTOP-APP-V1 release boundary 2026-07-12",
       "after": [
         "DESKTOP-APP-V1"
-      ],
-      "notes": "SHIPPED 2026-07-12. Added npm run desktop:release: build and Developer ID-sign the app, build ZIP/DMG, sign the DMG container, submit with the saved notarytool Keychain profile, wait for Apple, staple, validate, and require spctl source=Notarized Developer ID. The first manual submission exposed that an accepted app inside an unsigned DMG still fails Gatekeeper; the automated path fixes that order. Executed release submission 82513167-9ee2-451e-896a-bde16e21ea15 returned Accepted. Public v0.8.0 DMG: https://github.com/jpoindexter/Vanta/releases/download/v0.8.0/Vanta-0.8.0-arm64.dmg; SHA-256 aa39b49307c5fe70fb197c2bba6fd4caa7695d384c2317ca7448a043d40e85b6, matching GitHub's server digest and the published .sha256 asset. Fresh separate macos-14 GitHub-hosted runner proof https://github.com/jpoindexter/Vanta/actions/runs/29208066598 passed checksum, stapler validate, DMG codesign, DMG Gatekeeper, mounted install, quarantine attribute, deep app codesign, and installed-app Gatekeeper; both assessments reported Notarized Developer ID."
+      ]
+    },
+    {
+      "id": "DESKTOP-MODEL-PICKER-UX",
+      "track": "Desktop App",
+      "title": "Desktop model picker UX — searchable grouped selector with current/default clarity",
+      "status": "next",
+      "size": "M",
+      "summary": "The current model selector can become a dense grid of repeated model/default buttons. Replace it with a Codex-style searchable list grouped by provider, showing current session model, default model, provider/account status, and one clear Set default action.",
+      "done": "Opening the desktop model control shows a compact searchable picker; models are grouped by provider; the current session model and default are visually distinct; Set default is a secondary action, not a duplicated tile; recent OpenAI/Codex models from the catalog are present; keyboard navigation and narrow-window layout are covered by renderer tests and an Electron smoke.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4",
+      "lens": "tui",
+      "updated": "2026-07-14",
+      "notes": "Consolidated from the desktop user-flow audit and user feedback that the desktop model selector looked broken/horrible. This is not a new side plan; it is the single-roadmap card for the model picker cleanup.",
+      "source": "desktop-userflow-audit-2026-07-13",
+      "after": [
+        "DESKTOP-USERFLOW-RESET",
+        "EXT-MODEL-CATALOG-REMOTE"
+      ]
+    },
+    {
+      "id": "DESKTOP-RUN-RECOVERY-TIMELINE",
+      "track": "Desktop App",
+      "title": "Desktop run recovery timeline — retry failed step with receipts",
+      "status": "next",
+      "size": "L",
+      "summary": "Turn the desktop Work stream from request/response chat into a reliable agent-work surface: durable run timeline, visible partial output, classified failure state, and recovery actions in the place the failure occurred.",
+      "done": "A failed or interrupted desktop run preserves partial output, records tool/run events as a durable timeline, distinguishes setup/tool/model/user-denied failures, and offers Retry failed step, Edit request, or Start from checkpoint. A renderer test and Electron smoke prove stop, failure, retry, and return-to-output behavior without losing context.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.5",
+      "lens": "agent-loop",
+      "updated": "2026-07-14",
+      "notes": "Consolidated from audit P1: in-turn model steering and durable run timeline remained future improvements; connection/task errors needed scoped recovery instead of generic assistant bubbles.",
+      "source": "desktop-userflow-audit-2026-07-13",
+      "after": [
+        "DESKTOP-USERFLOW-RESET",
+        "DESKTOP-HERMES-OPERATOR-FLOWS"
+      ]
+    },
+    {
+      "id": "DESKTOP-CONTEXT-ATTACHMENTS",
+      "track": "Desktop App",
+      "title": "Desktop context attachments — files as searchable task context, not raw inventory",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Replace the raw project-files dump with an attachment flow opened from the composer: Recent, Mentioned in this task, Changed by Vanta, and Search project, with selected files shown as removable context chips.",
+      "done": "The Files surface no longer defaults to a wall of raw paths. The composer attachment flow filters ignored/private metadata by default, supports search and recent/changed groupings, submits selected files through existing @file context syntax, and keeps long paths contained at 760px and desktop widths.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4",
+      "lens": "tui",
+      "updated": "2026-07-14",
+      "notes": "Consolidated from audit P1 and the user screenshot showing the Files panel as a broken wall of file names. DESKTOP-FILES-PANEL-RESPONSIVE-FIX fixed containment; this card tracks the remaining product behavior.",
+      "source": "desktop-userflow-audit-2026-07-13",
+      "after": [
+        "DESKTOP-FILES-PANEL-RESPONSIVE-FIX"
+      ]
+    },
+    {
+      "id": "DESKTOP-SAFE-SESSION-OPS",
+      "track": "Desktop App",
+      "title": "Desktop safe session operations — archive undo, recoverable trash, menu feedback",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Session rename/archive/delete mechanics exist, but desktop UX still needs safe feedback: archive undo, recoverable trash for delete, optimistic pending state, success/error toasts, outside-click close, and keyboard focus handling.",
+      "done": "Rename stays inline; archive shows an Undo toast; delete moves to recoverable trash instead of irreversible removal; restore/delete/archive show pending, success, and error states; outside click and keyboard navigation are covered by renderer tests and desktop session-management smoke.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4",
+      "lens": "tui",
+      "updated": "2026-07-14",
+      "notes": "Consolidated from audit P2. DESKTOP-SESSION-MANAGEMENT shipped the mechanics; this card tracks the user-facing safety and feedback layer.",
+      "source": "desktop-userflow-audit-2026-07-13",
+      "after": [
+        "DESKTOP-SESSION-MANAGEMENT"
+      ]
+    },
+    {
+      "id": "DESKTOP-CONNECT-SETUP-STATUS",
+      "track": "Desktop App",
+      "title": "Desktop Connect setup status — outcome cards with test actions",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Make Connect an outcome-oriented setup surface instead of a settings maze: provider, tools/skills, and messaging channels show ready/needs setup/unavailable states with one next action and a test button after save.",
+      "done": "Connect cards use user-language outcomes, keep credentials hidden, show ready/needs setup/unavailable, and expose a safe test action for provider and adapter setup. Provider setup opens only for provider failures; file/catalog failures show scoped local recovery instead.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4",
+      "lens": "infra",
+      "updated": "2026-07-14",
+      "notes": "Consolidated from audit target flow 4 and P1 error-recovery guidance. This keeps configuration inside the single desktop roadmap rather than a separate setup plan.",
+      "source": "desktop-userflow-audit-2026-07-13",
+      "after": [
+        "DESKTOP-HERMES-OPERATOR-FLOWS",
+        "SETUP-COMPLETE-WIZARD"
+      ]
+    },
+    {
+      "id": "DESKTOP-CONTEXT-LEGIBILITY",
+      "track": "Desktop App",
+      "title": "Desktop context legibility — model scope, tools, memory, approvals inline",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Make the active model, model scope, attached files, active tools, memory usage, and approval state visible in Work without forcing the user to open a rail or settings panel.",
+      "done": "The Work header/composer renders active model and session/default scope, removable context chips, and concise tool/memory/approval state. Approval and tool-use details appear inline in the run stream and remain accessible by keyboard.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "tui",
+      "updated": "2026-07-14",
+      "notes": "Consolidated from audit P2: the empty state is useful, but the agent context and model scope remain insufficiently legible during real work.",
+      "source": "desktop-userflow-audit-2026-07-13",
+      "after": [
+        "DESKTOP-USERFLOW-RESET",
+        "HERMES-DELTA-SESSION-MODEL-SCOPE"
+      ]
+    },
+    {
+      "id": "DESKTOP-FLOW-PROOF-SUITE",
+      "track": "Desktop App",
+      "title": "Desktop flow proof suite — cold start, work, recovery, attachments, outputs, resize",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Promote the desktop audit acceptance plan into automated proof: source and packaged-app Electron flows for cold start, work/run/approval, failed run recovery, file attachment, archive undo, outputs, connector setup, and responsive resize.",
+      "done": "Playwright/Electron coverage runs source and packaged app separately at 1440x960, 1024x640, and 760x700; it proves cold start, one useful task, approval, failed-run recovery, file attachment, session archive undo, Outputs, Connect setup, and no layout overflow. The suite is listed in release preflight docs.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.5",
+      "lens": "infra",
+      "updated": "2026-07-14",
+      "notes": "Consolidated from audit Phase 4. Existing desktop smokes cover important paths, but this card tracks the complete end-to-end desktop acceptance suite in the single roadmap.",
+      "source": "desktop-userflow-audit-2026-07-13",
+      "after": [
+        "DESKTOP-MODEL-PICKER-UX",
+        "DESKTOP-RUN-RECOVERY-TIMELINE",
+        "DESKTOP-CONTEXT-ATTACHMENTS",
+        "DESKTOP-SAFE-SESSION-OPS"
+      ]
     }
   ]
 }
