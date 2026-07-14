@@ -32,9 +32,15 @@ Once a gate is ready, consume its receipt and close the parked card through the
 guarded acceptance command:
 
 ```bash
+vanta roadmap proof-template HERMES-SHOPIFY-OPERATIONS <receipt-event-id>
 vanta roadmap proof-accept <card-id>
 vanta roadmap proof-accept --all-ready
 ```
+
+`proof-template` prints the exact external-acceptance packet skeleton for the
+packet-based commerce and telephony gates. Use it for
+`HERMES-PAYMENT-SKILL-PACK`, `HERMES-SHOPIFY-OPERATIONS`, or
+`HERMES-TELEPHONY-CONSENT-LIFECYCLE` after the real provider receipt IDs exist.
 
 `proof-accept` cannot override a missing receipt. It only accepts canonical
 external-proof cards, requires every `after` dependency to be shipped, removes

@@ -22,6 +22,20 @@ export type ExternalProofReadiness = {
   gates: ExternalProofGate[];
 };
 
+export type ExternalProofAcceptanceTemplate = {
+  roadmapCardId: string;
+  receiptPath: string;
+  template: {
+    version: 1;
+    ok: true;
+    roadmapCardId: string;
+    environment: "external-test";
+    executedAt: string;
+    evidenceSha256: string;
+    receiptEventIds: string[];
+  };
+};
+
 export type ExternalProofInputs = {
   runAnywhere: RunAnywhereReadiness;
   spreadsheetHost?: unknown;
@@ -73,6 +87,41 @@ function accepted(value: unknown, cardId: string, eventIds: string[]): boolean {
     Number.isFinite(Date.parse(String(item.executedAt))), typeof item.evidenceSha256 === "string",
     /^[a-f0-9]{64}$/.test(String(item.evidenceSha256)), eventIds.length > 0, eventIds.every((id) => ids.includes(id)),
   ].every(Boolean);
+}
+
+const ACCEPTANCE_PACKET_CARDS = new Set([
+  "HERMES-PAYMENT-SKILL-PACK",
+  "HERMES-SHOPIFY-OPERATIONS",
+  "HERMES-TELEPHONY-CONSENT-LIFECYCLE",
+]);
+
+export function externalProofAcceptanceTemplate(
+  roadmapCardId: string,
+  receiptEventIds: string[] = [],
+  executedAt = new Date().toISOString(),
+): ExternalProofAcceptanceTemplate | null {
+  if (!ACCEPTANCE_PACKET_CARDS.has(roadmapCardId)) return null;
+  return {
+    roadmapCardId,
+    receiptPath: `.vanta/external-proofs/${roadmapCardId}.json`,
+    template: {
+      version: 1,
+      ok: true,
+      roadmapCardId,
+      environment: "external-test",
+      executedAt,
+      evidenceSha256: "<64-lowercase-hex-redacted-evidence-sha256>",
+      receiptEventIds: receiptEventIds.length ? receiptEventIds : ["<receipt-event-id>"],
+    },
+  };
+}
+
+export function formatExternalProofAcceptanceTemplate(template: ExternalProofAcceptanceTemplate): string {
+  return [
+    `External proof acceptance template: ${template.roadmapCardId}`,
+    `write to: ${template.receiptPath}`,
+    JSON.stringify(template.template, null, 2),
+  ].join("\n");
 }
 
 function candidate(value: boolean): string { return value ? "candidate" : "missing"; }

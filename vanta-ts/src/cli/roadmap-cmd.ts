@@ -92,6 +92,23 @@ async function handleExternalProofPacket(repoRoot: string, args: string[]): Prom
   return 0;
 }
 
+async function handleExternalProofTemplate(args: string[]): Promise<number> {
+  const { externalProofAcceptanceTemplate, formatExternalProofAcceptanceTemplate } = await import("../roadmap/external-proof.js");
+  const ids = args.slice(1).filter((arg) => !arg.startsWith("--"));
+  const [cardId, ...receiptEventIds] = ids;
+  if (!cardId) {
+    console.error("Usage: vanta roadmap proof-template <card-id> [receipt-event-id...] [--json]");
+    return 1;
+  }
+  const template = externalProofAcceptanceTemplate(cardId, receiptEventIds);
+  if (!template) {
+    console.error(`${cardId} does not use an external acceptance packet template`);
+    return 1;
+  }
+  console.log(args.includes("--json") ? JSON.stringify(template, null, 2) : formatExternalProofAcceptanceTemplate(template));
+  return 0;
+}
+
 function expectedProofAcceptError(error: unknown): error is Error {
   return error instanceof Error && ["ExternalProofCardError", "RoadmapDependencyError", "RoadmapProofGateError"].includes(error.name);
 }
@@ -162,6 +179,7 @@ export async function runRoadmapCommand(repoRoot: string, args: string[] = []): 
   if (args[0] === "unblock") return handleRoadmapUnblock(repoRoot, args);
   if (args[0] === "proof-status") return handleExternalProofStatus(repoRoot, args);
   if (args[0] === "proof-packet") return handleExternalProofPacket(repoRoot, args);
+  if (args[0] === "proof-template") return handleExternalProofTemplate(args);
   if (args[0] === "proof-accept") return handleExternalProofAccept(repoRoot, args);
   if (args[0] === "status") return handleRoadmapStatus(repoRoot, args);
   if (args[1] === "decompose") return handleRoadmapDecompose(repoRoot, args);

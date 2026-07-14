@@ -6,7 +6,7 @@ import type { PaymentReceipt } from "../payments/ledger.js";
 import type { RunAnywhereReadiness } from "../run-anywhere/readiness.js";
 import type { ShopifyReceipt } from "../shopify/receipts.js";
 import type { TelephonyReceipt } from "../telephony/receipts.js";
-import { assessExternalProofReadiness, formatExternalProofReadiness, readExternalProofReadiness } from "./external-proof.js";
+import { assessExternalProofReadiness, externalProofAcceptanceTemplate, formatExternalProofAcceptanceTemplate, formatExternalProofReadiness, readExternalProofReadiness } from "./external-proof.js";
 
 function remote(ready: boolean): RunAnywhereReadiness {
   const ids = [
@@ -81,5 +81,24 @@ describe("external proof readiness", () => {
     await writeFile(packetPath, JSON.stringify({ ok: true, host: "excel", workbookReceipt: "../outside-receipt.json", approvalGatedAction: true, executedAt: "2026-07-11T00:00:00.000Z", apiSessionId: "excel", evidenceSha256: "c".repeat(64) }));
     const report = await readExternalProofReadiness(root);
     expect(report.gates.find((gate) => gate.roadmapCardId === "HERMES-SPREADSHEET-COPILOT")?.ready).toBe(false);
+  });
+
+  it("prints acceptance packet templates for packet-based external proof cards", () => {
+    const template = externalProofAcceptanceTemplate("HERMES-SHOPIFY-OPERATIONS", [ids.shopify], "2026-07-14T00:00:00.000Z");
+    expect(template).toEqual({
+      roadmapCardId: "HERMES-SHOPIFY-OPERATIONS",
+      receiptPath: ".vanta/external-proofs/HERMES-SHOPIFY-OPERATIONS.json",
+      template: {
+        version: 1,
+        ok: true,
+        roadmapCardId: "HERMES-SHOPIFY-OPERATIONS",
+        environment: "external-test",
+        executedAt: "2026-07-14T00:00:00.000Z",
+        evidenceSha256: "<64-lowercase-hex-redacted-evidence-sha256>",
+        receiptEventIds: [ids.shopify],
+      },
+    });
+    expect(formatExternalProofAcceptanceTemplate(template!)).toContain("write to: .vanta/external-proofs/HERMES-SHOPIFY-OPERATIONS.json");
+    expect(externalProofAcceptanceTemplate("BACKEND-SERVERLESS-LIVE")).toBeNull();
   });
 });

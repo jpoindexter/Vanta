@@ -149,6 +149,29 @@ describe("runRoadmapCommand proof-packet", () => {
   });
 });
 
+describe("runRoadmapCommand proof-template", () => {
+  it("prints an external acceptance packet template as json", async () => {
+    const root = await workspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    const code = await runRoadmapCommand(root, ["proof-template", "HERMES-SHOPIFY-OPERATIONS", "00000000-0000-4000-8000-000000000003", "--json"]);
+    const result = JSON.parse(lines.join("\n")) as { receiptPath: string; template: { roadmapCardId: string; receiptEventIds: string[] } };
+    expect(code).toBe(0);
+    expect(result.receiptPath).toBe(".vanta/external-proofs/HERMES-SHOPIFY-OPERATIONS.json");
+    expect(result.template.roadmapCardId).toBe("HERMES-SHOPIFY-OPERATIONS");
+    expect(result.template.receiptEventIds).toEqual(["00000000-0000-4000-8000-000000000003"]);
+  });
+
+  it("refuses cards that do not use external acceptance packets", async () => {
+    const root = await workspace();
+    const errors: string[] = [];
+    vi.spyOn(console, "error").mockImplementation((line = "") => errors.push(String(line)));
+    const code = await runRoadmapCommand(root, ["proof-template", "BACKEND-SERVERLESS-LIVE"]);
+    expect(code).toBe(1);
+    expect(errors.join("\n")).toContain("does not use an external acceptance packet template");
+  });
+});
+
 describe("runRoadmapCommand proof-accept", () => {
   it("refuses acceptance while the receipt is missing", async () => {
     const root = await workspace();

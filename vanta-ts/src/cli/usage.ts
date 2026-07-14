@@ -86,6 +86,7 @@ const USAGE_LINES = [
       "       vanta roadmap unblock [id...] [--json]  show concrete unblock steps for blocked/parked/decision cards",
       "       vanta roadmap proof-status [--json]  verify canonical receipts for every parked external-proof card",
       "       vanta roadmap proof-packet [--json]  print a non-failing handoff packet for parked external proofs",
+      "       vanta roadmap proof-template <card-id> [receipt-event-id...] [--json]  print an external acceptance packet skeleton",
       "       vanta roadmap proof-accept <card-id> | --all-ready [--json]  ship only externally proven parked cards",
       "       vanta roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
       "       vanta now [--apply]                propose/fill the next 1-2 Now cards without exceeding WIP",
