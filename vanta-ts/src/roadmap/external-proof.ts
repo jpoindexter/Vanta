@@ -137,6 +137,33 @@ function proofExportDir(repoRoot: string, outDir = ".vanta/external-proofs/proof
   return target;
 }
 
+function gateRunbook(gate: ExternalProofGate): string {
+  return [
+    `# ${gate.roadmapCardId}`,
+    "",
+    gate.label,
+    "",
+    `Status: ${gate.ready ? "ready" : "not ready"}`,
+    `Receipt: \`${gate.receiptPath}\``,
+    "",
+    "## Current Evidence",
+    "",
+    gate.evidence,
+    "",
+    "## Next Actions",
+    "",
+    ...(gate.nextActions.length ? gate.nextActions.map((action, index) => `${index + 1}. ${action}`) : ["No next actions; this gate is ready."]),
+    "",
+    "## Acceptance",
+    "",
+    "After the receipt exists and `vanta roadmap proof-status` reports this gate ready, run:",
+    "",
+    "```bash",
+    `vanta roadmap proof-accept ${gate.roadmapCardId}`,
+    "```",
+  ].join("\n");
+}
+
 function candidate(value: boolean): string { return value ? "candidate" : "missing"; }
 
 function spreadsheetGate(input: ExternalProofInputs): ExternalProofGate {
@@ -265,6 +292,7 @@ export async function writeExternalProofPacket(repoRoot: string, outDir?: string
 
   await write("proof-status.json", JSON.stringify(report, null, 2));
   await write("checklist.md", formatExternalProofPacket(report));
+  for (const gate of report.gates) await write(join("runbooks", `${gate.roadmapCardId}.md`), gateRunbook(gate));
   for (const cardId of ACCEPTANCE_PACKET_CARDS) {
     const template = externalProofAcceptanceTemplate(cardId);
     if (template) await write(join("templates", `${cardId}.json`), JSON.stringify(template.template, null, 2));
@@ -276,6 +304,7 @@ export async function writeExternalProofPacket(repoRoot: string, outDir?: string
     "",
     "- `proof-status.json` is the machine-readable current state.",
     "- `checklist.md` is the operator checklist with receipt paths and next actions.",
+    "- `runbooks/*.md` contains one executable handoff per external-proof gate.",
     "- `templates/*.json` are acceptance-packet skeletons for provider-backed commerce and telephony gates.",
     "",
     "After creating real external receipts, run:",

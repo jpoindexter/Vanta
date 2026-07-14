@@ -25,9 +25,9 @@ prints the current gate evidence, receipt paths, and next actions, then exits
 external work is available. `proof-status` remains the hard release gate.
 
 `proof-export` writes that same handoff packet to a local repo-bound folder:
-`proof-status.json`, `checklist.md`, `README.md`, and acceptance-packet
-templates for the payment, Shopify, and telephony gates. The export path must
-stay inside the repository.
+`proof-status.json`, `checklist.md`, `README.md`, one `runbooks/<CARD>.md`
+file per external-proof gate, and acceptance-packet templates for the payment,
+Shopify, and telephony gates. The export path must stay inside the repository.
 
 `vanta roadmap status --open --actionable` is intentionally narrower than
 `--open`: it excludes parked `external proof` cards. Those cards still count as

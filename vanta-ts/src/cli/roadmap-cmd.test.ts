@@ -182,6 +182,7 @@ describe("runRoadmapCommand proof-export", () => {
     expect(code).toBe(0);
     expect(result.dir).toContain(".vanta/external-proofs/export-test");
     expect(result.files.some((file) => file.endsWith("proof-status.json"))).toBe(true);
+    expect(result.files.some((file) => file.endsWith("runbooks/BACKEND-SERVERLESS-LIVE.md"))).toBe(true);
     expect(result.files.some((file) => file.endsWith("templates/HERMES-PAYMENT-SKILL-PACK.json"))).toBe(true);
   });
 

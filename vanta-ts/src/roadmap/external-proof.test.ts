@@ -109,6 +109,16 @@ describe("external proof readiness", () => {
       "README.md",
       "checklist.md",
       "proof-status.json",
+      "runbooks/BACKEND-SERVERLESS-LIVE.md",
+      "runbooks/HERMES-COMMERCE-TELEPHONY-SKILL-PACK.md",
+      "runbooks/HERMES-PAYMENT-SKILL-PACK.md",
+      "runbooks/HERMES-SHOPIFY-OPERATIONS.md",
+      "runbooks/HERMES-SPREADSHEET-COPILOT.md",
+      "runbooks/HERMES-TELEPHONY-CONSENT-LIFECYCLE.md",
+      "runbooks/MERCURY-CROSS-PLATFORM-SERVICE.md",
+      "runbooks/MSG-ADAPTER-TEAMS.md",
+      "runbooks/RUN-ANYWHERE-TERMUX.md",
+      "runbooks/RUN-ANYWHERE-V1-RELEASE-GATE.md",
       "templates/HERMES-PAYMENT-SKILL-PACK.json",
       "templates/HERMES-SHOPIFY-OPERATIONS.json",
       "templates/HERMES-TELEPHONY-CONSENT-LIFECYCLE.json",
@@ -116,5 +126,6 @@ describe("external proof readiness", () => {
     const status = JSON.parse(await readFile(join(result.dir, "proof-status.json"), "utf8")) as { total: number; ready: boolean };
     expect(status).toMatchObject({ ready: false, total: 10 });
     expect(await readFile(join(result.dir, "templates", "HERMES-SHOPIFY-OPERATIONS.json"), "utf8")).toContain("\"roadmapCardId\": \"HERMES-SHOPIFY-OPERATIONS\"");
+    expect(await readFile(join(result.dir, "runbooks", "HERMES-SHOPIFY-OPERATIONS.md"), "utf8")).toContain("vanta roadmap proof-accept HERMES-SHOPIFY-OPERATIONS");
   });
 });
