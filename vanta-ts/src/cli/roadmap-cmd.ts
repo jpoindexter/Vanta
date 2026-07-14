@@ -118,6 +118,7 @@ async function handleExternalProofAccept(repoRoot: string, args: string[]): Prom
 }
 
 function statusExitCode(summary: RoadmapStatusSummary, args: string[], openOnly: boolean): number {
+  if (openOnly && args.includes("--actionable")) return summary.actionableOpenTotal === 0 ? 0 : 1;
   if (openOnly || args.includes("--require-complete")) return summary.complete ? 0 : 1;
   if (args.includes("--require-drained")) return summary.activeDrained ? 0 : 1;
   return 0;

@@ -79,7 +79,7 @@ describe("formatRoadmapStatus", () => {
       complete: false,
       nonShippedTotal: 3,
       openTotal: 2,
-      actionableOpenTotal: 2,
+      actionableOpenTotal: 1,
       terminalParkedTotal: 1,
       statuses: { shipped: 1, blocked: 1, parked: 2 },
       parkedReasons: { "external proof": 1, "strategy decision": 1 },
@@ -97,7 +97,7 @@ describe("formatRoadmapStatus", () => {
     ];
     expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("roadmap complete: no");
     expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("open: 1");
-    expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("actionable open: 1");
+    expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("actionable open: 0");
     expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("non-shipped: 5");
     expect(formatRoadmapCompletionGate(drainedButIncomplete)).toContain("terminal parked: 4");
     const terminalOnly = [
@@ -137,11 +137,11 @@ describe("formatRoadmapStatus", () => {
     const open = openRoadmapItems(items);
     expect(open).toEqual([
       expect.objectContaining({ id: "GATE", actionable: false, blockedByOpenIds: ["PROOF"] }),
-      expect.objectContaining({ id: "PROOF", actionable: true, blockedByOpenIds: [] }),
+      expect.objectContaining({ id: "PROOF", actionable: false, blockedByOpenIds: [] }),
     ]);
-    expect(summarizeRoadmapStatus(items).actionableOpenTotal).toBe(1);
+    expect(summarizeRoadmapStatus(items).actionableOpenTotal).toBe(0);
     expect(formatRoadmapOpenWork(items)).toContain("GATE (parked · external proof) [after open: PROOF]");
     expect(formatRoadmapOpenWork(items, { actionableOnly: true })).not.toContain("GATE");
-    expect(formatRoadmapOpenWork(items, { actionableOnly: true })).toContain("PROOF");
+    expect(formatRoadmapOpenWork(items, { actionableOnly: true })).toBe("No actionable open roadmap work remains.");
   });
 });

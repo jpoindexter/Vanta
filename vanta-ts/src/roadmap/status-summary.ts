@@ -65,12 +65,17 @@ function isTerminalParked(item: RoadmapItem): boolean {
   return item.status === "parked" && (TERMINAL_PARKED_REASON as readonly string[]).includes(item.parkedReason ?? "review");
 }
 
+function isLocallyActionable(item: RoadmapItem, blockedByOpenIds: string[]): boolean {
+  if (blockedByOpenIds.length > 0) return false;
+  return !(item.status === "parked" && item.parkedReason === "external proof");
+}
+
 export function openRoadmapItems(items: RoadmapItem[]): RoadmapOpenItem[] {
   const openItems = items.filter((item) => item.status !== "shipped" && !isTerminalParked(item));
   const openIds = new Set(openItems.map((item) => item.id));
   return openItems.map((item) => {
     const blockedByOpenIds = item.after?.filter((id) => openIds.has(id)) ?? [];
-    return { id: item.id, title: item.title, status: item.status, parkedReason: item.parkedReason, blockedByOpenIds, actionable: blockedByOpenIds.length === 0 };
+    return { id: item.id, title: item.title, status: item.status, parkedReason: item.parkedReason, blockedByOpenIds, actionable: isLocallyActionable(item, blockedByOpenIds) };
   });
 }
 

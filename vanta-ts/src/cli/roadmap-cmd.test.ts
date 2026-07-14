@@ -305,7 +305,7 @@ describe("runRoadmapCommand status", () => {
     const code = await runRoadmapCommand(root, ["status", "--open", "--json"]);
     const out = JSON.parse(lines.join("\n")) as Array<{ id: string; parkedReason?: string; actionable: boolean; blockedByOpenIds: string[] }>;
     expect(code).toBe(1);
-    expect(out).toEqual([{ id: "PROOF", title: "Proof", status: "parked", parkedReason: "external proof", blockedByOpenIds: [], actionable: true }]);
+    expect(out).toEqual([{ id: "PROOF", title: "Proof", status: "parked", parkedReason: "external proof", blockedByOpenIds: [], actionable: false }]);
   });
 
   it("filters open work to actionable cards", async () => {
@@ -314,8 +314,8 @@ describe("runRoadmapCommand status", () => {
     vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
     const code = await runRoadmapCommand(root, ["status", "--open", "--actionable", "--json"]);
     const out = JSON.parse(lines.join("\n")) as Array<{ id: string; actionable: boolean }>;
-    expect(code).toBe(1);
-    expect(out).toEqual([{ id: "PROOF", title: "Proof", status: "parked", parkedReason: "external proof", blockedByOpenIds: [], actionable: true }]);
+    expect(code).toBe(0);
+    expect(out).toEqual([]);
   });
 });
 

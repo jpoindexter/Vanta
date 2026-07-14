@@ -22,6 +22,12 @@ prints the current gate evidence, receipt paths, and next actions, then exits
 `0` so it can be attached to a task, sent to an operator, or archived before the
 external work is available. `proof-status` remains the hard release gate.
 
+`vanta roadmap status --open --actionable` is intentionally narrower than
+`--open`: it excludes parked `external proof` cards. Those cards still count as
+open release work and keep `--require-complete` failing, but they no longer
+look like local code tasks when the only remaining steps need credentials,
+accounts, devices, or a real third-party host.
+
 Once a gate is ready, consume its receipt and close the parked card through the
 guarded acceptance command:
 
