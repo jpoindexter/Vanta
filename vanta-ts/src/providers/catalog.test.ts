@@ -77,15 +77,33 @@ describe("PROVIDER_CATALOG", () => {
     const codex = PROVIDER_CATALOG.find((entry) => entry.id === "codex");
 
     expect(openai?.models).toEqual(expect.arrayContaining([
+      "gpt-5.5-2026-04-23",
+      "gpt-5.4-2026-03-05",
+      "gpt-5.4-mini-2026-03-17",
+      "gpt-5.4-nano-2026-03-17",
       "gpt-5.3-codex",
       "gpt-5.2",
+      "gpt-5.2-2025-12-11",
       "gpt-5.2-pro",
       "gpt-5.1",
+      "gpt-5.1-2025-11-13",
       "gpt-5",
+      "gpt-5-2025-08-07",
       "gpt-5-pro",
+      "gpt-5-pro-2025-10-06",
       "gpt-5-mini",
+      "gpt-5-mini-2025-08-07",
       "gpt-5-nano",
+      "gpt-5-nano-2025-08-07",
+      "gpt-5-chat-latest",
+      "gpt-5-chat-latest-2025-08-07",
+      "gpt-4.1-2025-04-14",
+      "gpt-4.1-mini-2025-04-14",
+      "gpt-4.1-nano-2025-04-14",
+      "o1-pro",
+      "o1-pro-2025-03-19",
       "o3-pro",
+      "computer-use-preview",
     ]));
     expect(openai?.models).not.toContain("gpt-5.3-codex-spark");
 

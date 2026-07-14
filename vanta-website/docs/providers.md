@@ -26,7 +26,7 @@ Set it interactively with `vanta setup`, or edit `vanta-ts/.env`.
 
 ### Current OpenAI models
 
-Vanta's OpenAI API and ChatGPT-subscription Codex pickers include the current GPT-5.6 family: `gpt-5.6-sol` (the default for difficult coding and research), `gpt-5.6-terra` (balanced everyday work), and `gpt-5.6-luna` (fast, repeatable work). The OpenAI API picker also includes current API-key models such as `gpt-5.3-codex`, `gpt-5.2`, `gpt-5.2-pro`, `gpt-5.1`, `gpt-5`, `gpt-5-pro`, `gpt-5-mini`, `gpt-5-nano`, and `o3-pro`. The Codex subscription picker keeps Codex-agent models under the OAuth-backed `codex` provider, including `gpt-5.3-codex`, `gpt-5.3-codex-spark`, `gpt-5.2-codex`, `gpt-5.1-codex-max`, `gpt-5.1-codex`, `gpt-5.1-codex-mini`, `gpt-5-codex`, and `gpt-5-codex-mini`.
+Vanta's OpenAI API and ChatGPT-subscription Codex pickers include the current GPT-5.6 family: `gpt-5.6-sol` (the default for difficult coding and research), `gpt-5.6-terra` (balanced everyday work), and `gpt-5.6-luna` (fast, repeatable work). The OpenAI API picker also includes current API-key aliases and dated snapshots such as `gpt-5.5-2026-04-23`, `gpt-5.4-2026-03-05`, `gpt-5.2-2025-12-11`, `gpt-5.1-2025-11-13`, `gpt-5-pro-2025-10-06`, `gpt-5-chat-latest`, `o1-pro`, and `computer-use-preview`. The Codex subscription picker keeps Codex-agent models under the OAuth-backed `codex` provider, including `gpt-5.3-codex`, `gpt-5.3-codex-spark`, `gpt-5.2-codex`, `gpt-5.1-codex-max`, `gpt-5.1-codex`, `gpt-5.1-codex-mini`, `gpt-5-codex`, and `gpt-5-codex-mini`.
 
 The picker is curated rather than an access-control boundary: type any model ID your account can use when it is not shown.
 
