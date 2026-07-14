@@ -124,6 +124,31 @@ describe("runRoadmapCommand proof-status", () => {
   });
 });
 
+describe("runRoadmapCommand proof-packet", () => {
+  it("prints the same external gates as a non-failing handoff packet", async () => {
+    const root = await workspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    const code = await runRoadmapCommand(root, ["proof-packet", "--json"]);
+    const report = JSON.parse(lines.join("\n")) as { ready: boolean; passed: number; total: number; gates: Array<{ roadmapCardId: string }> };
+    expect(code).toBe(0);
+    expect(report).toMatchObject({ ready: false, passed: 0, total: 10 });
+    expect(report.gates.map((gate) => gate.roadmapCardId)).toContain("HERMES-COMMERCE-TELEPHONY-SKILL-PACK");
+  });
+
+  it("labels text output as a packet, not the failing readiness gate", async () => {
+    const root = await workspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    const code = await runRoadmapCommand(root, ["proof-packet"]);
+    const out = lines.join("\n");
+    expect(code).toBe(0);
+    expect(out).toContain("External proof packet: not ready (0/10)");
+    expect(out).toContain("This is a handoff packet, not a release gate");
+    expect(out).toContain("vanta roadmap proof-status");
+  });
+});
+
 describe("runRoadmapCommand proof-accept", () => {
   it("refuses acceptance while the receipt is missing", async () => {
     const root = await workspace();

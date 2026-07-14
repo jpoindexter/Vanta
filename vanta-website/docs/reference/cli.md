@@ -57,6 +57,7 @@ Run from the repo with `./run.sh` (alias `./vanta`), or globally as `vanta` afte
 |---------|------|
 | `vanta lint [files\|--staged]` | Code-size gate |
 | `vanta roadmap [serve]` | Roadmap board |
+| `vanta roadmap proof-status\|proof-packet\|proof-accept` | Check, package, or accept parked external-proof gates |
 | `vanta open <file[:line]>` | Open in `$EDITOR` |
 | `vanta mcp serve` | Run Vanta as an MCP server |
 

@@ -9,6 +9,19 @@ vanta roadmap proof-status
 vanta roadmap proof-status --json
 ```
 
+Use `proof-packet` when you need the same checklist as a handoff artifact
+without failing the shell while receipts are still missing:
+
+```bash
+vanta roadmap proof-packet
+vanta roadmap proof-packet --json
+```
+
+`proof-packet` never marks a card ready and never changes roadmap state. It
+prints the current gate evidence, receipt paths, and next actions, then exits
+`0` so it can be attached to a task, sent to an operator, or archived before the
+external work is available. `proof-status` remains the hard release gate.
+
 Once a gate is ready, consume its receipt and close the parked card through the
 guarded acceptance command:
 

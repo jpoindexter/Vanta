@@ -85,6 +85,13 @@ async function handleExternalProofStatus(repoRoot: string, args: string[]): Prom
   return report.ready ? 0 : 1;
 }
 
+async function handleExternalProofPacket(repoRoot: string, args: string[]): Promise<number> {
+  const { readExternalProofReadiness, formatExternalProofPacket } = await import("../roadmap/external-proof.js");
+  const report = await readExternalProofReadiness(repoRoot);
+  console.log(args.includes("--json") ? JSON.stringify(report, null, 2) : formatExternalProofPacket(report));
+  return 0;
+}
+
 function expectedProofAcceptError(error: unknown): error is Error {
   return error instanceof Error && ["ExternalProofCardError", "RoadmapDependencyError", "RoadmapProofGateError"].includes(error.name);
 }
@@ -153,6 +160,7 @@ export async function runRoadmapCommand(repoRoot: string, args: string[] = []): 
   if (args[0] === "move") return handleRoadmapMove(repoRoot, args);
   if (args[0] === "unblock") return handleRoadmapUnblock(repoRoot, args);
   if (args[0] === "proof-status") return handleExternalProofStatus(repoRoot, args);
+  if (args[0] === "proof-packet") return handleExternalProofPacket(repoRoot, args);
   if (args[0] === "proof-accept") return handleExternalProofAccept(repoRoot, args);
   if (args[0] === "status") return handleRoadmapStatus(repoRoot, args);
   if (args[1] === "decompose") return handleRoadmapDecompose(repoRoot, args);

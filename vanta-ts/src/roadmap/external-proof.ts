@@ -174,3 +174,15 @@ export function formatExternalProofReadiness(report: ExternalProofReadiness): st
   if (!report.ready) lines.push("Roadmap cards stay parked until their canonical receipts are ready.");
   return lines.join("\n");
 }
+
+export function formatExternalProofPacket(report: ExternalProofReadiness): string {
+  const lines = [`External proof packet: ${report.ready ? "ready" : "not ready"} (${report.passed}/${report.total})`];
+  lines.push("This is a handoff packet, not a release gate. Use `vanta roadmap proof-status` when you need a failing readiness check.");
+  for (const item of report.gates) {
+    lines.push("", `${item.ready ? "✓" : "○"} ${item.roadmapCardId} — ${item.label}`);
+    lines.push(`  receipt: ${item.receiptPath}`, `  evidence: ${item.evidence}`);
+    if (!item.ready) lines.push(...item.nextActions.map((action, index) => `  next ${index + 1}: ${action}`));
+  }
+  lines.push("", "Acceptance path: create the missing receipts, then run `vanta roadmap proof-accept <card-id>` or `vanta roadmap proof-accept --all-ready`.");
+  return lines.join("\n");
+}
