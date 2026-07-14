@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -6,7 +6,7 @@ import type { PaymentReceipt } from "../payments/ledger.js";
 import type { RunAnywhereReadiness } from "../run-anywhere/readiness.js";
 import type { ShopifyReceipt } from "../shopify/receipts.js";
 import type { TelephonyReceipt } from "../telephony/receipts.js";
-import { assessExternalProofReadiness, externalProofAcceptanceTemplate, formatExternalProofAcceptanceTemplate, formatExternalProofReadiness, readExternalProofReadiness } from "./external-proof.js";
+import { assessExternalProofReadiness, externalProofAcceptanceTemplate, formatExternalProofAcceptanceTemplate, formatExternalProofReadiness, readExternalProofReadiness, writeExternalProofPacket } from "./external-proof.js";
 
 function remote(ready: boolean): RunAnywhereReadiness {
   const ids = [
@@ -100,5 +100,21 @@ describe("external proof readiness", () => {
     });
     expect(formatExternalProofAcceptanceTemplate(template!)).toContain("write to: .vanta/external-proofs/HERMES-SHOPIFY-OPERATIONS.json");
     expect(externalProofAcceptanceTemplate("BACKEND-SERVERLESS-LIVE")).toBeNull();
+  });
+
+  it("writes a local external proof packet folder with status, checklist, and templates", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-external-proof-export-"));
+    const result = await writeExternalProofPacket(root, ".vanta/external-proofs/export-test");
+    expect(result.files.map((file) => file.slice(result.dir.length + 1)).sort()).toEqual([
+      "README.md",
+      "checklist.md",
+      "proof-status.json",
+      "templates/HERMES-PAYMENT-SKILL-PACK.json",
+      "templates/HERMES-SHOPIFY-OPERATIONS.json",
+      "templates/HERMES-TELEPHONY-CONSENT-LIFECYCLE.json",
+    ]);
+    const status = JSON.parse(await readFile(join(result.dir, "proof-status.json"), "utf8")) as { total: number; ready: boolean };
+    expect(status).toMatchObject({ ready: false, total: 10 });
+    expect(await readFile(join(result.dir, "templates", "HERMES-SHOPIFY-OPERATIONS.json"), "utf8")).toContain("\"roadmapCardId\": \"HERMES-SHOPIFY-OPERATIONS\"");
   });
 });

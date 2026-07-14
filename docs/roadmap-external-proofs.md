@@ -15,12 +15,19 @@ without failing the shell while receipts are still missing:
 ```bash
 vanta roadmap proof-packet
 vanta roadmap proof-packet --json
+vanta roadmap proof-export
+vanta roadmap proof-export --out .vanta/external-proofs/proof-packet
 ```
 
 `proof-packet` never marks a card ready and never changes roadmap state. It
 prints the current gate evidence, receipt paths, and next actions, then exits
 `0` so it can be attached to a task, sent to an operator, or archived before the
 external work is available. `proof-status` remains the hard release gate.
+
+`proof-export` writes that same handoff packet to a local repo-bound folder:
+`proof-status.json`, `checklist.md`, `README.md`, and acceptance-packet
+templates for the payment, Shopify, and telephony gates. The export path must
+stay inside the repository.
 
 `vanta roadmap status --open --actionable` is intentionally narrower than
 `--open`: it excludes parked `external proof` cards. Those cards still count as

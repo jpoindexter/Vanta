@@ -1,5 +1,5 @@
-import { access, readFile } from "node:fs/promises";
-import { isAbsolute, join, normalize } from "node:path";
+import { access, mkdir, readFile, writeFile } from "node:fs/promises";
+import { isAbsolute, join, normalize, relative, resolve } from "node:path";
 import { loadPaymentReceipts, type PaymentReceipt } from "../payments/ledger.js";
 import { readRunAnywhereReadiness, type RunAnywhereReadiness } from "../run-anywhere/readiness.js";
 import { loadShopifyReceipts, type ShopifyReceipt } from "../shopify/receipts.js";
@@ -34,6 +34,11 @@ export type ExternalProofAcceptanceTemplate = {
     evidenceSha256: string;
     receiptEventIds: string[];
   };
+};
+
+export type ExternalProofPacketExport = {
+  dir: string;
+  files: string[];
 };
 
 export type ExternalProofInputs = {
@@ -122,6 +127,14 @@ export function formatExternalProofAcceptanceTemplate(template: ExternalProofAcc
     `write to: ${template.receiptPath}`,
     JSON.stringify(template.template, null, 2),
   ].join("\n");
+}
+
+function proofExportDir(repoRoot: string, outDir = ".vanta/external-proofs/proof-packet"): string {
+  const root = resolve(repoRoot);
+  const target = resolve(isAbsolute(outDir) ? outDir : join(root, outDir));
+  const rel = relative(root, target);
+  if (rel === "" || rel.startsWith("..") || isAbsolute(rel)) throw new Error(`proof packet export must stay inside the repo: ${outDir}`);
+  return target;
 }
 
 function candidate(value: boolean): string { return value ? "candidate" : "missing"; }
@@ -234,4 +247,43 @@ export function formatExternalProofPacket(report: ExternalProofReadiness): strin
   }
   lines.push("", "Acceptance path: create the missing receipts, then run `vanta roadmap proof-accept <card-id>` or `vanta roadmap proof-accept --all-ready`.");
   return lines.join("\n");
+}
+
+export async function writeExternalProofPacket(repoRoot: string, outDir?: string): Promise<ExternalProofPacketExport> {
+  const report = await readExternalProofReadiness(repoRoot);
+  const dir = proofExportDir(repoRoot, outDir);
+  const templatesDir = join(dir, "templates");
+  await mkdir(templatesDir, { recursive: true });
+
+  const files: string[] = [];
+  async function write(relativePath: string, content: string): Promise<void> {
+    const path = join(dir, relativePath);
+    await mkdir(resolve(path, ".."), { recursive: true });
+    await writeFile(path, content.endsWith("\n") ? content : `${content}\n`, "utf8");
+    files.push(path);
+  }
+
+  await write("proof-status.json", JSON.stringify(report, null, 2));
+  await write("checklist.md", formatExternalProofPacket(report));
+  for (const cardId of ACCEPTANCE_PACKET_CARDS) {
+    const template = externalProofAcceptanceTemplate(cardId);
+    if (template) await write(join("templates", `${cardId}.json`), JSON.stringify(template.template, null, 2));
+  }
+  await write("README.md", [
+    "# Vanta external proof packet",
+    "",
+    "This folder is a local handoff packet for the remaining parked external-proof roadmap cards.",
+    "",
+    "- `proof-status.json` is the machine-readable current state.",
+    "- `checklist.md` is the operator checklist with receipt paths and next actions.",
+    "- `templates/*.json` are acceptance-packet skeletons for provider-backed commerce and telephony gates.",
+    "",
+    "After creating real external receipts, run:",
+    "",
+    "```bash",
+    "vanta roadmap proof-status",
+    "vanta roadmap proof-accept <card-id>",
+    "```",
+  ].join("\n"));
+  return { dir, files };
 }

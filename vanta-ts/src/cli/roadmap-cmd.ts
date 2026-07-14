@@ -109,6 +109,24 @@ async function handleExternalProofTemplate(args: string[]): Promise<number> {
   return 0;
 }
 
+function valueAfter(args: string[], flag: string): string | undefined {
+  const index = args.indexOf(flag);
+  return index >= 0 ? args[index + 1] : undefined;
+}
+
+async function handleExternalProofExport(repoRoot: string, args: string[]): Promise<number> {
+  const { writeExternalProofPacket } = await import("../roadmap/external-proof.js");
+  const outDir = valueAfter(args, "--out");
+  try {
+    const result = await writeExternalProofPacket(repoRoot, outDir);
+    console.log(args.includes("--json") ? JSON.stringify(result, null, 2) : [`External proof packet exported: ${result.dir}`, ...result.files.map((file) => `  - ${file}`)].join("\n"));
+    return 0;
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    return 1;
+  }
+}
+
 function expectedProofAcceptError(error: unknown): error is Error {
   return error instanceof Error && ["ExternalProofCardError", "RoadmapDependencyError", "RoadmapProofGateError"].includes(error.name);
 }
@@ -180,6 +198,7 @@ export async function runRoadmapCommand(repoRoot: string, args: string[] = []): 
   if (args[0] === "proof-status") return handleExternalProofStatus(repoRoot, args);
   if (args[0] === "proof-packet") return handleExternalProofPacket(repoRoot, args);
   if (args[0] === "proof-template") return handleExternalProofTemplate(args);
+  if (args[0] === "proof-export") return handleExternalProofExport(repoRoot, args);
   if (args[0] === "proof-accept") return handleExternalProofAccept(repoRoot, args);
   if (args[0] === "status") return handleRoadmapStatus(repoRoot, args);
   if (args[1] === "decompose") return handleRoadmapDecompose(repoRoot, args);

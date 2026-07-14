@@ -172,6 +172,29 @@ describe("runRoadmapCommand proof-template", () => {
   });
 });
 
+describe("runRoadmapCommand proof-export", () => {
+  it("writes a local proof packet folder and reports its files as json", async () => {
+    const root = await workspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    const code = await runRoadmapCommand(root, ["proof-export", "--out", ".vanta/external-proofs/export-test", "--json"]);
+    const result = JSON.parse(lines.join("\n")) as { dir: string; files: string[] };
+    expect(code).toBe(0);
+    expect(result.dir).toContain(".vanta/external-proofs/export-test");
+    expect(result.files.some((file) => file.endsWith("proof-status.json"))).toBe(true);
+    expect(result.files.some((file) => file.endsWith("templates/HERMES-PAYMENT-SKILL-PACK.json"))).toBe(true);
+  });
+
+  it("refuses to export outside the repo", async () => {
+    const root = await workspace();
+    const errors: string[] = [];
+    vi.spyOn(console, "error").mockImplementation((line = "") => errors.push(String(line)));
+    const code = await runRoadmapCommand(root, ["proof-export", "--out", "../outside"]);
+    expect(code).toBe(1);
+    expect(errors.join("\n")).toContain("proof packet export must stay inside the repo");
+  });
+});
+
 describe("runRoadmapCommand proof-accept", () => {
   it("refuses acceptance while the receipt is missing", async () => {
     const root = await workspace();
