@@ -40,6 +40,47 @@ export function bundledManifest(): CatalogManifest {
   return { version: 1, providers: PROVIDER_CATALOG };
 }
 
+function uniqueModels(primary: string[], fallback: string[]): string[] {
+  const seen = new Set<string>();
+  const models: string[] = [];
+  for (const model of [...primary, ...fallback]) {
+    if (seen.has(model)) continue;
+    seen.add(model);
+    models.push(model);
+  }
+  return models;
+}
+
+/**
+ * Remote catalogs are additive, not authoritative deletions. This keeps the
+ * bundled catalog as the offline/current-app floor, so an older cache/remote
+ * manifest cannot hide or outrank newly shipped models while still adding more.
+ */
+export function mergeProviderCatalog(remote: ProviderEntry[]): ProviderEntry[] {
+  const bundled = PROVIDER_CATALOG;
+  const byId = new Map<string, ProviderEntry>();
+  for (const provider of bundled) byId.set(provider.id, provider);
+
+  for (const provider of remote) {
+    const base = byId.get(provider.id);
+    if (!base) {
+      byId.set(provider.id, provider);
+      continue;
+    }
+    byId.set(provider.id, {
+      ...base,
+      ...provider,
+      defaultModel: base.defaultModel,
+      models: uniqueModels(base.models, provider.models),
+    });
+  }
+  return [...byId.values()];
+}
+
+function catalogFrom(manifest: CatalogManifest): ProviderEntry[] {
+  return mergeProviderCatalog(manifest.providers);
+}
+
 /** Live disk-cache adapter: atomic write (temp + rename), tolerant read. */
 export function diskCacheDeps(cachePath: string): Pick<CatalogDeps, "readCache" | "writeCache"> {
   return {
@@ -99,15 +140,15 @@ export async function resolveCatalog(deps: CatalogDeps): Promise<CatalogResult> 
   const cached = await deps.readCache().catch(() => null);
 
   if (cached && deps.now - cached.fetchedAt < ttl) {
-    return { providers: cached.manifest.providers, source: "cache-fresh" };
+    return { providers: catalogFrom(cached.manifest), source: "cache-fresh" };
   }
 
   const fetched = await fetchFirstValid(urls, deps.fetchJson);
   if (fetched) {
     await deps.writeCache({ fetchedAt: deps.now, manifest: fetched.manifest }).catch(() => {});
-    return { providers: fetched.manifest.providers, source: fetched.url === urls[0] ? "primary" : "github" };
+    return { providers: catalogFrom(fetched.manifest), source: fetched.url === urls[0] ? "primary" : "github" };
   }
 
-  if (cached) return { providers: cached.manifest.providers, source: "cache-stale" };
+  if (cached) return { providers: catalogFrom(cached.manifest), source: "cache-stale" };
   return { providers: bundledManifest().providers, source: "bundled" };
 }

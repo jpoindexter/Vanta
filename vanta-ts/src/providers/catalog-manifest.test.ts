@@ -3,7 +3,7 @@ import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
-  resolveCatalog, parseManifest, bundledManifest, diskCacheDeps,
+  resolveCatalog, parseManifest, bundledManifest, diskCacheDeps, mergeProviderCatalog,
   CATALOG_PRIMARY_URL, CATALOG_GITHUB_RAW, type CatalogManifest, type CachedManifest, type CatalogDeps,
 } from "./catalog-manifest.js";
 
@@ -46,6 +46,7 @@ describe("resolveCatalog fallback chain", () => {
     const r = await resolveCatalog(deps({ readCache: async () => cached, fetchJson: async () => { fetched = true; return null; }, ttlMs: 10_000 }));
     expect(r.source).toBe("cache-fresh");
     expect(fetched).toBe(false);
+    expect(r.providers.find((provider) => provider.id === "openai")?.models).toEqual(expect.arrayContaining(["gpt-5.6-sol", "gpt-5", "gpt-5-mini"]));
   });
 
   it("a stale cache triggers a refresh from the PRIMARY url and persists it", async () => {
@@ -70,7 +71,7 @@ describe("resolveCatalog fallback chain", () => {
     const cached: CachedManifest = { fetchedAt: 0, manifest: MANIFEST };
     const r = await resolveCatalog(deps({ readCache: async () => cached, fetchJson: async () => null, ttlMs: 10_000 }));
     expect(r.source).toBe("cache-stale");
-    expect(r.providers[0]?.id).toBe("openai");
+    expect(r.providers.find((provider) => provider.id === "openai")?.models).toEqual(expect.arrayContaining(["gpt-5.6-sol", "gpt-5", "gpt-5-mini"]));
   });
 
   it("falls back to the BUNDLED catalog when offline with no cache", async () => {
@@ -84,6 +85,40 @@ describe("resolveCatalog fallback chain", () => {
     // primary returns junk → github returns valid.
     const r = await resolveCatalog(deps({ fetchJson: async (url) => (url === CATALOG_PRIMARY_URL ? { bad: true } : MANIFEST) }));
     expect(r.source).toBe("github");
+  });
+});
+
+describe("mergeProviderCatalog", () => {
+  it("keeps bundled current models visible when a cached manifest is older", () => {
+    const providers = mergeProviderCatalog([{
+      id: "openai",
+      label: "OpenAI",
+      short: "OpenAI",
+      envVar: "OPENAI_API_KEY",
+      defaultModel: "gpt-4o",
+      models: ["gpt-4o"],
+    }]);
+
+    const openai = providers.find((provider) => provider.id === "openai");
+    expect(openai?.defaultModel).toBe("gpt-5.6-sol");
+    expect(openai?.models.slice(0, 4)).toEqual(["gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"]);
+    expect(openai?.models).toContain("gpt-4o");
+  });
+
+  it("allows a fresh remote manifest to add models without deleting or outranking bundled ones", () => {
+    const providers = mergeProviderCatalog([{
+      id: "openai",
+      label: "OpenAI",
+      short: "OpenAI",
+      envVar: "OPENAI_API_KEY",
+      defaultModel: "gpt-next",
+      models: ["gpt-next"],
+    }]);
+
+    const openai = providers.find((provider) => provider.id === "openai");
+    expect(openai?.defaultModel).toBe("gpt-5.6-sol");
+    expect(openai?.models.slice(0, 4)).toEqual(["gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"]);
+    expect(openai?.models).toContain("gpt-next");
   });
 });
 

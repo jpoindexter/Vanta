@@ -8,7 +8,7 @@ import { buildSummarizer, prepareRun, writeRunMemory } from "../session.js";
 import type { RunSetup } from "../session.js";
 import { deleteSession, listAllSessions, loadSession, newSessionId, renameSession, saveSession, setSessionArchived } from "../sessions/store.js";
 import { PROVIDER_CATALOG, providerById, type ProviderEntry } from "../providers/catalog.js";
-import { diskCacheDeps, resolveCatalog } from "../providers/catalog-manifest.js";
+import { diskCacheDeps, mergeProviderCatalog, resolveCatalog } from "../providers/catalog-manifest.js";
 import { resolveVantaHome } from "../store/home.js";
 import { resolveProvider } from "../providers/index.js";
 import type { LLMProvider } from "../providers/interface.js";
@@ -287,7 +287,7 @@ export async function desktopProviderOptionsLive(
   env: NodeJS.ProcessEnv,
   loadCatalog: DesktopCatalogLoader = loadDesktopProviderCatalog,
 ): Promise<DesktopProviderOption[]> {
-  return desktopProviderOptions(env, await loadCatalog(env));
+  return desktopProviderOptions(env, mergeProviderCatalog(await loadCatalog(env)));
 }
 
 export function resolveDesktopProviderSelection(env: NodeJS.ProcessEnv, provider: string, model?: string): {
