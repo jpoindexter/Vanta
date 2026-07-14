@@ -6,7 +6,7 @@ import type { PaymentReceipt } from "../payments/ledger.js";
 import type { RunAnywhereReadiness } from "../run-anywhere/readiness.js";
 import type { ShopifyReceipt } from "../shopify/receipts.js";
 import type { TelephonyReceipt } from "../telephony/receipts.js";
-import { assessExternalProofReadiness, externalProofAcceptanceTemplate, formatExternalProofAcceptanceTemplate, formatExternalProofReadiness, nextExternalProofGate, readExternalProofReadiness, writeExternalProofPacket } from "./external-proof.js";
+import { assessExternalProofReadiness, externalProofAcceptanceTemplate, formatExternalProofAcceptanceTemplate, formatExternalProofNext, formatExternalProofReadiness, nextExternalProofGate, readExternalProofReadiness, writeExternalProofPacket } from "./external-proof.js";
 
 function remote(ready: boolean): RunAnywhereReadiness {
   const ids = [
@@ -65,6 +65,7 @@ describe("external proof readiness", () => {
   it("selects the first non-ready leaf proof gate before aggregate release gates", () => {
     const report = assessExternalProofReadiness({ runAnywhere: remote(false), payments: [], shopify: [], telephony: [] });
     expect(nextExternalProofGate(report)?.roadmapCardId).toBe("BACKEND-SERVERLESS-LIVE");
+    expect(formatExternalProofNext(nextExternalProofGate(report))).toContain("runbooks/BACKEND-SERVERLESS-LIVE.md");
   });
 
   it("does not promote provider fixture candidates without external packets", () => {

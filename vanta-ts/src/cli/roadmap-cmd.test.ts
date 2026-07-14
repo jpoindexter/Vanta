@@ -149,6 +149,32 @@ describe("runRoadmapCommand proof-packet", () => {
   });
 });
 
+describe("runRoadmapCommand proof-next", () => {
+  it("prints the first non-ready external proof gate as json and exits nonzero", async () => {
+    const root = await workspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    const code = await runRoadmapCommand(root, ["proof-next", "--json"]);
+    const result = JSON.parse(lines.join("\n")) as { ready: boolean; next: { roadmapCardId: string; nextActions: string[] } };
+    expect(code).toBe(1);
+    expect(result.ready).toBe(false);
+    expect(result.next.roadmapCardId).toBe("BACKEND-SERVERLESS-LIVE");
+    expect(result.next.nextActions.join("\n")).toContain("vanta backend gateway status --json");
+  });
+
+  it("prints a human-readable next proof brief", async () => {
+    const root = await workspace();
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    const code = await runRoadmapCommand(root, ["proof-next"]);
+    const out = lines.join("\n");
+    expect(code).toBe(1);
+    expect(out).toContain("# Next External Proof");
+    expect(out).toContain("BACKEND-SERVERLESS-LIVE");
+    expect(out).toContain("runbooks/BACKEND-SERVERLESS-LIVE.md");
+  });
+});
+
 describe("runRoadmapCommand proof-template", () => {
   it("prints an external acceptance packet template as json", async () => {
     const root = await workspace();

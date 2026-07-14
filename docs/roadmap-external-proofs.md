@@ -15,6 +15,8 @@ without failing the shell while receipts are still missing:
 ```bash
 vanta roadmap proof-packet
 vanta roadmap proof-packet --json
+vanta roadmap proof-next
+vanta roadmap proof-next --json
 vanta roadmap proof-export
 vanta roadmap proof-export --out .vanta/external-proofs/proof-packet
 ```
@@ -23,6 +25,8 @@ vanta roadmap proof-export --out .vanta/external-proofs/proof-packet
 prints the current gate evidence, receipt paths, and next actions, then exits
 `0` so it can be attached to a task, sent to an operator, or archived before the
 external work is available. `proof-status` remains the hard release gate.
+`proof-next` prints only the first non-ready leaf gate to clear next. It exits
+nonzero while work remains, so automation can use it as a focused wake target.
 
 `proof-export` writes that same handoff packet to a local repo-bound folder:
 `proof-status.json`, `NEXT.md`, `checklist.md`, `README.md`, one

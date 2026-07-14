@@ -171,7 +171,7 @@ export function nextExternalProofGate(report: ExternalProofReadiness): ExternalP
     ?? report.gates.find((gate) => !gate.ready);
 }
 
-function nextGateReadme(gate: ExternalProofGate | undefined): string {
+export function formatExternalProofNext(gate: ExternalProofGate | undefined): string {
   if (!gate) return "# Next External Proof\n\nAll external proof gates are ready. Run `vanta roadmap proof-accept --all-ready`.\n";
   return [
     "# Next External Proof",
@@ -322,7 +322,7 @@ export async function writeExternalProofPacket(repoRoot: string, outDir?: string
 
   await write("proof-status.json", JSON.stringify(report, null, 2));
   await write("checklist.md", formatExternalProofPacket(report));
-  await write("NEXT.md", nextGateReadme(nextExternalProofGate(report)));
+  await write("NEXT.md", formatExternalProofNext(nextExternalProofGate(report)));
   for (const gate of report.gates) await write(join("runbooks", `${gate.roadmapCardId}.md`), gateRunbook(gate));
   for (const cardId of ACCEPTANCE_PACKET_CARDS) {
     const template = externalProofAcceptanceTemplate(cardId);
