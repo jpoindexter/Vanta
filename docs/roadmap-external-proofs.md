@@ -57,6 +57,11 @@ idle at zero tasks before arming. Placeholder tokens report `invalid-format` and
 ships only after `arm` and `prove` observe a real wake, provider-backed reply,
 and return to zero tasks.
 
+`proof-status` and `proof-packet` mirror that same stage gate for the serverless
+card. When the local token is missing or has placeholder syntax, the packet names
+that setup fix first and does not ask the operator to arm, send, or prove a wake
+path that cannot succeed yet.
+
 ## External acceptance packet
 
 Provider fixture receipts are candidates, not live acceptance. Payment,

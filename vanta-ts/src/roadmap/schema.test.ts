@@ -39,8 +39,8 @@ describe("RoadmapItemSchema", () => {
   });
 
   it("accepts the optional codex routing tag", () => {
-    const parsed = RoadmapItemSchema.parse({ ...validItem, codex: "gpt-5.4-mini" });
-    expect(parsed.codex).toBe("gpt-5.4-mini");
+    const parsed = RoadmapItemSchema.parse({ ...validItem, codex: "gpt-5.6-terra" });
+    expect(parsed.codex).toBe("gpt-5.6-terra");
   });
 
   it("rejects an unknown codex routing tag", () => {

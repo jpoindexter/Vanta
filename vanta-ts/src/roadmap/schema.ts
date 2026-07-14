@@ -24,7 +24,15 @@ export type Effort = (typeof EFFORT)[number];
 
 // Advisory Codex build-routing tag. This is the model Vanta would hand to Codex
 // for the item, separate from the older Claude-tier `model` field.
-export const CODEX = ["gpt-5.4-mini", "gpt-5.4", "gpt-5.5"] as const;
+export const CODEX = [
+  "gpt-5.6-sol",
+  "gpt-5.6-terra",
+  "gpt-5.6-luna",
+  "gpt-5.5",
+  "gpt-5.4",
+  "gpt-5.4-mini",
+  "gpt-5.3-codex-spark",
+] as const;
 export type Codex = (typeof CODEX)[number];
 
 // Strategic lens — what this item serves for Vanta as a do-everything

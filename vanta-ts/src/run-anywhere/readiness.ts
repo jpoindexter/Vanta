@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { telegramTokenState } from "../cli/modal-gateway-status.js";
 import { readGatewayReceipt } from "../exec/modal-gateway-state.js";
 import { readChannelProofs } from "../gateway/channel-proof.js";
 
@@ -38,14 +39,27 @@ export type RunAnywhereProofPacket = {
   steps: RunAnywhereProofStep[];
 };
 
-async function serverlessGate(repoRoot: string): Promise<RunAnywhereGate> {
+function telegramSetupState(env: NodeJS.ProcessEnv): { token: ReturnType<typeof telegramTokenState>; webhookSecret: "present" | "missing" } {
+  return {
+    token: telegramTokenState(env.VANTA_TELEGRAM_TOKEN),
+    webhookSecret: env.VANTA_TELEGRAM_WEBHOOK_SECRET?.trim() ? "present" : "missing",
+  };
+}
+
+async function serverlessGate(repoRoot: string, env: NodeJS.ProcessEnv): Promise<RunAnywhereGate> {
   const receipt = await readGatewayReceipt(repoRoot);
   const ready = Boolean(receipt?.provedAt && receipt.telegramAcceptedAt);
+  const telegram = telegramSetupState(env);
   const nextActions = ["vanta backend gateway status --json"];
   if (!receipt?.endpoint) nextActions.push("vanta backend gateway deploy");
-  if (!receipt?.telegramRegisteredAt) nextActions.push("vanta backend gateway register-telegram");
-  if (!receipt?.armedAt) nextActions.push("vanta backend gateway arm");
-  nextActions.push("send one real Telegram message to the bot", "vanta backend gateway prove");
+  if (telegram.token === "missing") nextActions.push("export VANTA_TELEGRAM_TOKEN=...");
+  if (telegram.token === "invalid-format") nextActions.push("replace VANTA_TELEGRAM_TOKEN with a valid BotFather token");
+  if (telegram.webhookSecret === "missing") nextActions.push("export VANTA_TELEGRAM_WEBHOOK_SECRET=...");
+  if (!receipt?.telegramRegisteredAt) nextActions.push("vanta backend gateway register-telegram <https-endpoint>");
+  const setupCanProceed = telegram.token === "valid-format" && telegram.webhookSecret === "present";
+  if (setupCanProceed && receipt?.telegramRegisteredAt && !receipt?.armedAt) nextActions.push("vanta backend gateway arm");
+  if (setupCanProceed && receipt?.armedAt) nextActions.push("send one real Telegram message to the bot", "vanta backend gateway prove");
+  const setupEvidence = `Telegram token ${telegram.token}; webhook secret ${telegram.webhookSecret}`;
   return {
     id: "serverless-live",
     label: "Modal/Telegram wake proof",
@@ -55,8 +69,8 @@ async function serverlessGate(repoRoot: string): Promise<RunAnywhereGate> {
     evidence: ready
       ? `proved ${receipt!.provedAt}; Telegram accepted ${receipt!.telegramAcceptedAt}; ${receipt!.telegramParts ?? "?"} part(s)`
       : receipt?.endpoint
-        ? `deployed endpoint receipt exists (${receipt.endpoint}), but no successful prove receipt`
-        : "no deployed endpoint/prove receipt in .vanta/serverless-gateway.json",
+        ? `deployed endpoint receipt exists (${receipt.endpoint}), but no successful prove receipt; ${setupEvidence}`
+        : `no deployed endpoint/prove receipt in .vanta/serverless-gateway.json; ${setupEvidence}`,
     next: nextActions.join(" -> "),
     nextActions,
   };
@@ -108,8 +122,8 @@ async function termuxGate(repoRoot: string): Promise<RunAnywhereGate> {
   };
 }
 
-export async function readRunAnywhereReadiness(repoRoot: string): Promise<RunAnywhereReadiness> {
-  const gates = await Promise.all([serverlessGate(repoRoot), teamsGate(repoRoot), termuxGate(repoRoot)]);
+export async function readRunAnywhereReadiness(repoRoot: string, env: NodeJS.ProcessEnv = process.env): Promise<RunAnywhereReadiness> {
+  const gates = await Promise.all([serverlessGate(repoRoot, env), teamsGate(repoRoot), termuxGate(repoRoot)]);
   const passed = gates.filter((gate) => gate.ready).length;
   return { ready: passed === gates.length, passed, total: gates.length, gates };
 }

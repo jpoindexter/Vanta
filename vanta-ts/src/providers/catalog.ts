@@ -115,26 +115,9 @@ const CODEX_SUBSCRIPTION_MODELS = [
   "gpt-5.6-terra",
   "gpt-5.6-luna",
   "gpt-5.5",
-  "gpt-5.5-pro",
   "gpt-5.4",
-  "gpt-5.4-pro",
   "gpt-5.4-mini",
-  "gpt-5.4-nano",
-  "gpt-5.3-codex",
   "gpt-5.3-codex-spark",
-  "gpt-5.2",
-  "gpt-5.2-pro",
-  "gpt-5.2-codex",
-  "gpt-5.1",
-  "gpt-5.1-codex-max",
-  "gpt-5.1-codex",
-  "gpt-5.1-codex-mini",
-  "gpt-5",
-  "gpt-5-pro",
-  "gpt-5-mini",
-  "gpt-5-nano",
-  "gpt-5-codex",
-  "gpt-5-codex-mini",
 ];
 
 export const PROVIDER_CATALOG: ProviderEntry[] = [
@@ -209,9 +192,9 @@ export const PROVIDER_CATALOG: ProviderEntry[] = [
     models: CODEX_SUBSCRIPTION_MODELS,
     // Model guidance (OpenAI Codex docs, verified 2026-07): GPT-5.6 Sol is the
     // default flagship; Terra is the balanced everyday option; Luna suits clear,
-    // repeatable work. The Codex changelog documents the agentic Codex line
-    // separately from API-key access, so keep these slugs under this provider.
-    note: "needs `codex login` (ChatGPT Plus/Pro); Responses API. Includes current GPT-5.6 choices plus Codex agent models such as GPT-5.3 Codex and Codex Spark.",
+    // repeatable work. Deprecated ChatGPT sign-in models stay free-typable but
+    // are intentionally hidden from the picker so the default path stays current.
+    note: "needs `codex login` (ChatGPT Plus/Pro); Responses API. Shows the current signed-in Codex set: GPT-5.6 Sol/Terra/Luna, GPT-5.5, GPT-5.4, GPT-5.4 Mini, and GPT-5.3 Codex Spark.",
   },
   {
     id: "ollama",

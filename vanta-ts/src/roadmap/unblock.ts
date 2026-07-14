@@ -10,10 +10,11 @@ export type UnblockPlan = {
 
 const KNOWN_ACTIONS: Record<string, string[]> = {
   "BACKEND-SERVERLESS-LIVE": [
-    "Create the Modal secret explicitly; Vanta will not copy local keys.",
-    "Set VANTA_TELEGRAM_TOKEN and VANTA_TELEGRAM_WEBHOOK_SECRET.",
-    "Run `vanta backend gateway deploy`, then `vanta backend gateway register-telegram`.",
-    "Arm and prove the live wake path: `vanta backend gateway arm`, send the bot a message, then `vanta backend gateway prove`.",
+    "Run `vanta backend gateway status --json` and follow its exact `next` lines first.",
+    "Deploy if needed with `vanta backend gateway deploy`; Vanta will not copy local keys into Modal secrets.",
+    "If status reports a missing or invalid Telegram token, replace `VANTA_TELEGRAM_TOKEN` with a valid BotFather token and set `VANTA_TELEGRAM_WEBHOOK_SECRET`.",
+    "Register the deployed HTTPS endpoint with `vanta backend gateway register-telegram <https-endpoint>`.",
+    "Only when status stops reporting setup errors, arm and prove the live wake path: `vanta backend gateway arm`, send the bot a message, then `vanta backend gateway prove`.",
   ],
   "MSG-ADAPTER-TEAMS": [
     "Provide Azure Bot app id/client secret and a public HTTPS endpoint.",

@@ -20,6 +20,7 @@ describe("roadmap unblock plans", () => {
     ]);
     const out = formatUnblockPlans(plans);
     expect(out).toContain("vanta backend gateway deploy");
+    expect(out).toContain("missing or invalid Telegram token");
     expect(out).toContain("scripts/termux-arm64-device-proof.sh --require-release-kernel");
     expect(out).toContain("vanta gateway channel-proofs teams");
   });

@@ -7,6 +7,11 @@ import { writeGatewayReceipt } from "../exec/modal-gateway-state.js";
 import { formatRunAnywhereReadiness, readRunAnywhereReadiness } from "./readiness.js";
 
 const roots: string[] = [];
+const VALID_TELEGRAM_ENV = {
+  VANTA_TELEGRAM_TOKEN: "123456789:abcdefghijklmnopqrstuvwxyzABCDE_12345",
+  VANTA_TELEGRAM_WEBHOOK_SECRET: "distinct-webhook-secret",
+};
+
 afterEach(async () => Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true }))));
 
 async function workspace(): Promise<string> {
@@ -19,7 +24,7 @@ describe("Run Anywhere readiness", () => {
   it("reports missing proof gates without treating setup receipts as release proof", async () => {
     const root = await workspace();
     await writeGatewayReceipt(root, { app: "vanta-gateway", volume: "vanta-gateway-data", endpoint: "https://example.modal.run/telegram/webhook" });
-    const report = await readRunAnywhereReadiness(root);
+    const report = await readRunAnywhereReadiness(root, VALID_TELEGRAM_ENV);
     expect(report).toMatchObject({ ready: false, passed: 0, total: 3 });
     expect(report.gates.map((gate) => gate.roadmapCardId)).toEqual([
       "BACKEND-SERVERLESS-LIVE",
@@ -35,7 +40,23 @@ describe("Run Anywhere readiness", () => {
     expect(formatRunAnywhereReadiness(report)).toContain("Release gate stays parked");
     const serverless = report.gates.find((gate) => gate.id === "serverless-live");
     expect(serverless?.nextActions).not.toContain("vanta backend gateway deploy");
-    expect(serverless?.nextActions).toContain("vanta backend gateway register-telegram");
+    expect(serverless?.nextActions).toContain("vanta backend gateway register-telegram <https-endpoint>");
+  });
+
+  it("surfaces invalid Telegram setup before suggesting arm or prove", async () => {
+    const root = await workspace();
+    await writeGatewayReceipt(root, { app: "vanta-gateway", volume: "vanta-gateway-data", endpoint: "https://example.modal.run/telegram/webhook" });
+    const report = await readRunAnywhereReadiness(root, {
+      VANTA_TELEGRAM_TOKEN: "not-a-botfather-token",
+      VANTA_TELEGRAM_WEBHOOK_SECRET: "distinct-webhook-secret",
+    });
+    const serverless = report.gates.find((gate) => gate.id === "serverless-live");
+    expect(serverless?.evidence).toContain("Telegram token invalid-format; webhook secret present");
+    expect(serverless?.nextActions).toContain("replace VANTA_TELEGRAM_TOKEN with a valid BotFather token");
+    expect(serverless?.nextActions).toContain("vanta backend gateway register-telegram <https-endpoint>");
+    expect(serverless?.nextActions).not.toContain("vanta backend gateway arm");
+    expect(serverless?.nextActions).not.toContain("send one real Telegram message to the bot");
+    expect(serverless?.nextActions).not.toContain("vanta backend gateway prove");
   });
 
   it("only asks for the live message and prove step after the gateway is armed", async () => {
@@ -47,7 +68,7 @@ describe("Run Anywhere readiness", () => {
       telegramRegisteredAt: "2026-07-13T12:00:00.000Z",
       armedAt: "2026-07-13T12:01:00.000Z",
     });
-    const report = await readRunAnywhereReadiness(root);
+    const report = await readRunAnywhereReadiness(root, VALID_TELEGRAM_ENV);
     const serverless = report.gates.find((gate) => gate.id === "serverless-live");
     expect(serverless?.nextActions).toEqual([
       "vanta backend gateway status --json",
@@ -75,7 +96,7 @@ describe("Run Anywhere readiness", () => {
     });
     await mkdir(join(root, ".vanta"), { recursive: true });
     await writeFile(join(root, ".vanta", "termux-arm64-proof.txt"), "TERMUX_ARM64_E2E_OK release_kernel=1 abi=arm64-v8a\n");
-    const report = await readRunAnywhereReadiness(root);
+    const report = await readRunAnywhereReadiness(root, VALID_TELEGRAM_ENV);
     expect(report).toMatchObject({ ready: true, passed: 3, total: 3 });
     expect(formatRunAnywhereReadiness(report)).toContain("Run Anywhere readiness: ready (3/3)");
   });
@@ -84,7 +105,7 @@ describe("Run Anywhere readiness", () => {
     const root = await workspace();
     await mkdir(join(root, ".vanta"), { recursive: true });
     await writeFile(join(root, ".vanta", "termux-arm64-proof.txt"), "TERMUX_ARM64_E2E_OK release_kernel=0 abi=arm64-v8a\n");
-    const report = await readRunAnywhereReadiness(root);
+    const report = await readRunAnywhereReadiness(root, VALID_TELEGRAM_ENV);
     const termux = report.gates.find((gate) => gate.id === "termux-arm64");
     expect(termux).toMatchObject({ ready: false });
     expect(termux?.evidence).toContain("release-kernel proof missing");
