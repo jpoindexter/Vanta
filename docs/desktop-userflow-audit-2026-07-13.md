@@ -1,6 +1,6 @@
 # Vanta Desktop User-Flow Audit and Reset Plan
 
-Updated 2026-07-13. Scope: the native Electron desktop application from launch through first task, active work, session reuse, output review, setup, and recovery.
+Updated 2026-07-14. Scope: the native Electron desktop application from launch through first task, active work, session reuse, output review, setup, and recovery.
 
 ## Decision
 
@@ -18,6 +18,7 @@ The target is a focused local operator, not a copy of Hermes and not a general d
 Updated 2026-07-14: this audit is no longer a separate desktop backlog. The remaining desktop app work now lives in the single product roadmap, `roadmap.json`, under these cards:
 
 - `DESKTOP-MODEL-PICKER-UX` — searchable grouped model picker with current/default clarity.
+- `DESKTOP-CODEX-KEELHOUSE-SHELL` — Keelhouse project/task flow in a Codex-style native workbench.
 - `DESKTOP-RUN-RECOVERY-TIMELINE` — durable run timeline, classified failures, and retry failed step.
 - `DESKTOP-CONTEXT-ATTACHMENTS` — files as searchable task context instead of raw project inventory.
 - `DESKTOP-SAFE-SESSION-OPS` — archive undo, recoverable trash, and operation feedback.
@@ -41,7 +42,7 @@ Evidence includes the current renderer and route code, isolated Electron launch,
 | `npm run desktop:renderer:typecheck` | Passed after the repair | The Electron renderer source now type-checks independently. |
 | `npm run desktop:operator-flows:smoke` | Passed | An isolated native window executes Work, Connect, capabilities, messaging save, Outputs, visible/removable file context, Queue-next, Stop, shortcuts, settings, light mode, and keyboard/pointer pane resizing without renderer errors. |
 | `VANTA_DESKTOP_LIVE_PROOF=1 npm run desktop:live-turn:proof` | Passed | The signed ARM64 package, isolated project/profile, and local Codex provider returned `DESKTOP_LIVE_OK` in 6.4 seconds. The command refuses provider use unless explicitly opted in. |
-| `npm run desktop:layout:smoke` | Passed | A wide work/recovery layout and 760px Files drawer contain long file names without document or horizontal overflow. |
+| `npm run desktop:layout:smoke` | Passed 2026-07-14 | The Keelhouse-derived shell, recovery state, contextual Files rail, and model picker remain contained at 1778x1136, 760x900, and 640x900 without document or horizontal overflow. |
 | Signed arm64 `Vanta.app` + `desktop:operator-flows:smoke` | Passed | The packaged Electron app passes the same operator workflow after deep macOS signature verification. First-run status/tools setup failures are accepted only while the visible provider setup flow succeeds. |
 | Isolated Electron launch with a temporary Vanta home and profile | Initially failed: `theme is not defined`; now renders `.app-shell` after the repair | Confirms the boot failure and the narrow source-renderer repair. |
 | Existing session management smoke | Covers rename, archive, restore, and delete mechanics | It does **not** cover recovery, undo, keyboard focus, or the user-facing information scent. |
@@ -56,11 +57,15 @@ Evidence includes the current renderer and route code, isolated Electron launch,
 
 **Executed repair:** theme state is passed into `DesktopOverlays`, `desktop:renderer:typecheck` includes `desktop-app/src`, and native smoke captures renderer errors. This area remains protected by the new renderer typecheck; it is no longer the active user-flow blocker.
 
-### 2026-07-13 Implementation Update
+### 2026-07-14 Keelhouse Shell Update
 
-The desktop now uses three primary destinations: **Work**, **Outputs**, and **Connect**. At normal desktop widths, a compact Outputs rail stays visible beside the central work stream, matching the useful context density of Codex Desktop without reproducing its branding. The header inspector control is a visible toggle; at narrower widths the rail becomes a drawer.
+Vanta Desktop now uses the structural flow from the sibling Keelhouse agent CLI rather than only borrowing its visual styling: an app-level titlebar, a project-first task rail, one central agent conversation, and a composer that owns model and context controls. Vanta keeps its own kernel, approvals, sessions, files, Canvas, receipts, and provider runtime.
+
+The three primary destinations remain **Work**, **Outputs**, and **Connect**. The contextual inspector starts closed, opens from an output/file/Canvas action, and becomes a drawer at narrower widths. This keeps the first task surface full width and prevents an empty right rail from reading as a broken or black region.
 
 The desktop shell no longer relies on fixed wide-screen pane widths. Sessions and Outputs have bounded, draggable, keyboard-adjustable separators; their widths persist locally, the central work surface retains a 380px minimum, and the responsive drawer behavior remains in force below 1080px. Source and signed-package operator smoke both exercise keyboard and pointer resizing. The package signing flow uses the pinned Developer ID hash because the local keychain contains two certificates with the same display name; the verified bundle has Team ID `5352PXMNV5` and hardened runtime enabled.
+
+The model picker is a searchable provider/model browser instead of a repeated button grid. It distinguishes the active model from the saved default, permits a typed model ID, and can refresh provider models from server-side authenticated discovery endpoints while retaining the generated static catalog as an offline floor.
 
 The Work surface consumes the desktop's existing SSE channel. Text deltas render as a temporary assistant message and the five most recent tool/run events remain visible in the conversation; the final API result remains the saved conversation record. The signed-package live proof now exercises the real provider path. On an empty composer, `@` opens the file attachment drawer and `/` opens quick actions; selected files appear as removable context chips and submit through Vanta's existing `@file` syntax.
 
@@ -120,7 +125,7 @@ The empty state gives useful starter prompts, but files, tools, memory, model sc
 
 The app correctly constrains the outer window and makes sidebar, chat, rail, and operator views independently scrollable. But at desktop width it starts with three panes, then switches to a different two-pane shell on non-chat views. The default Canvas rail takes significant width even when no canvas exists. See [styles.css](../vanta-ts/desktop-app/src/styles.css#L27-L33), [styles.css](../vanta-ts/desktop-app/src/styles.css#L86-L103), and [App.tsx](../vanta-ts/desktop-app/src/App.tsx#L60-L71).
 
-**Revised direction from the Codex Desktop reference:** at wide desktop width, default to sidebar, central work, and a compact Outputs rail so recent artifacts and activity remain discoverable. The rail must be toggleable. At narrower widths, retain the existing overlay behavior; Preview, Files, Canvas, and Terminal remain contextual rather than becoming primary destinations.
+**Executed direction from the Codex Desktop and Keelhouse references:** default to the project/task sidebar and central work surface. Keep the contextual rail closed until the user opens an output, attaches a file, or invokes Canvas/Preview/Terminal. At narrower widths, the same rail becomes an overlay drawer rather than changing the information architecture.
 
 ## Target Flows
 

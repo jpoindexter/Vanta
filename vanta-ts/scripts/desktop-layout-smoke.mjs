@@ -18,6 +18,13 @@ try {
   await page.getByRole("heading", { name: "What should Vanta handle?" }).waitFor();
   const healthy = await measure(page);
   assertLayout(healthy, "healthy");
+  if (process.env.VANTA_DESKTOP_SHELL_SCREENSHOT) {
+    await page.screenshot({ path: process.env.VANTA_DESKTOP_SHELL_SCREENSHOT });
+  }
+  await page.getByTitle("Change model").click();
+  const modelDesktop = await measureModelPicker(page);
+  assertModelPicker(modelDesktop, "desktop");
+  await page.getByRole("dialog", { name: "Choose a model" }).getByRole("button", { name: "Close" }).click();
 
   await page.route("**/api/status", (route) => route.fulfill({
     status: 500,
@@ -37,19 +44,48 @@ try {
   }));
   await page.setViewportSize({ width: 760, height: 900 });
   await page.reload({ waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "Show inspector" }).click();
+  await page.getByRole("button", { name: "Open contextual inspector" }).click();
   await page.getByRole("button", { name: "Attach project files" }).click();
   await page.locator(".files-panel").waitFor();
   await page.locator(".file-list button").first().waitFor();
   const files = await measureFiles(page);
   assertFiles(files);
 
+  await page.setViewportSize({ width: 640, height: 900 });
+  await page.keyboard.press("Meta+K");
+  await page.getByRole("dialog", { name: "Command palette" }).getByRole("button", { name: "Model picker" }).click();
+  const modelCompact = await measureModelPicker(page);
+  assertModelPicker(modelCompact, "compact");
+
   if (process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT) {
     await page.screenshot({ path: process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT });
   }
-  console.log(JSON.stringify({ viewport: "1778x1136", healthy, recovery, files }));
+  console.log(JSON.stringify({ viewport: "1778x1136", healthy, modelDesktop, recovery, files, modelCompact }));
 } finally {
   await app.close();
+}
+
+async function measureModelPicker(page) {
+  const dialog = page.getByRole("dialog", { name: "Choose a model" });
+  await dialog.waitFor();
+  await dialog.locator(".model-row").first().waitFor();
+  return dialog.evaluate((element) => {
+    const box = (target) => {
+      const rect = target.getBoundingClientRect();
+      return { top: rect.top, right: rect.right, bottom: rect.bottom, left: rect.left, width: rect.width, height: rect.height };
+    };
+    const body = element.querySelector(".model-picker-body");
+    const detail = element.querySelector(".model-provider-detail");
+    const custom = element.querySelector(".custom-model");
+    if (!body || !detail || !custom) throw new Error("Model picker fixture did not render");
+    return {
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+      dialog: box(element), body: box(body), detail: box(detail), custom: box(custom),
+      widths: [element.clientWidth, element.scrollWidth, detail.clientWidth, detail.scrollWidth],
+      providers: element.querySelectorAll(".model-provider-nav button").length,
+      models: element.querySelectorAll(".model-row").length,
+    };
+  });
 }
 
 async function measureFiles(page) {
@@ -108,4 +144,15 @@ function assertFiles(result) {
   if (result.panelWidths[1] > result.panelWidths[0]) throw new Error("files: panel scrolls horizontally");
   if (result.listWidths[1] > result.listWidths[0]) throw new Error("files: list scrolls horizontally");
   if (result.rowHeights.some((height) => height < 27)) throw new Error(`files: clipped rows ${result.rowHeights.join(",")}`);
+}
+
+function assertModelPicker(result, label) {
+  const tolerance = 1;
+  if (result.dialog.left < -tolerance || result.dialog.right > result.viewport.width + tolerance) throw new Error(`${label} model picker exceeds viewport width`);
+  if (result.dialog.top < -tolerance || result.dialog.bottom > result.viewport.height + tolerance) throw new Error(`${label} model picker exceeds viewport height`);
+  if (result.widths[1] > result.widths[0] + tolerance) throw new Error(`${label} model picker scrolls horizontally`);
+  if (result.widths[3] > result.widths[2] + tolerance) throw new Error(`${label} model detail scrolls horizontally`);
+  if (result.custom.bottom > result.dialog.bottom + tolerance) throw new Error(`${label} custom model control is clipped`);
+  if (result.custom.height < 60) throw new Error(`${label} custom model control collapsed to ${result.custom.height}px`);
+  if (result.providers < 1 || result.models < 1) throw new Error(`${label} model picker has no selectable provider/model`);
 }

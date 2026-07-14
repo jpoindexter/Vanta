@@ -1,50 +1,37 @@
-# Vanta Desktop native shell path
+# Vanta Desktop native shell
 
-Current command:
-
-```bash
-npm run vanta -- desktop
-```
-
-This starts the local desktop surface at `http://127.0.0.1:7790`.
-
-## What is live now
-
-- session sidebar with search + open/new session
-- central chat thread + composer
-- model picker overlay backed by `PROVIDER_CATALOG`
-- approval modal for kernel `ask` actions
-- right rail: preview iframe, file/context list, gated terminal command runner
-- command palette (`Cmd/Ctrl+K`)
-- command center (`Cmd/Ctrl+.`): sessions/system/usage skeleton
-
-## Native app next
-
-Preferred shell for the first verified slice: Electron, because it gets the
-current React/Vite desktop surface into a native dev window fastest while the
-server and approval model stay unchanged.
-
-## Dev native shell
+Launch from source:
 
 ```bash
 npm run desktop:native
 ```
 
-Smoke-check lifecycle without leaving a window open:
+Build the renderer and run the native layout contract:
 
 ```bash
-npm run desktop:native:smoke
+npm run desktop:renderer:typecheck
+npm run desktop:layout:smoke
 ```
 
-The Electron main process launches `node --import tsx src/cli.ts desktop
-<port> --no-open`, waits for the local server, opens a native `BrowserWindow`,
-and terminates the child server on app quit. Use `--devtools` when debugging the
-renderer.
+## Shell contract
 
-Remaining native wrapper requirements:
+Vanta Desktop uses the Keelhouse agent-task flow inside Vanta's own runtime boundary:
 
-1. expose file picker, directory picker, clipboard image paste, and PTY bridge
-2. add restart UI once the app shell has a visible health/status control
-3. package/sign only after approval prompt flow is stable
+- app-level titlebar for task identity, kernel status, and shell controls
+- project-first task rail with session search and lifecycle actions
+- one central conversation and run surface
+- composer-owned file context and per-session model choice
+- contextual outputs/files/Canvas/preview/terminal inspector, closed at startup
+- bounded resizable panes on desktop and overlay drawers at compact widths
 
-Do not claim packaged desktop is shipped until a real native shell builds and opens the current local server.
+The renderer does not import Keelhouse code or branding. It ports the shell hierarchy and flow while retaining Vanta's kernel approvals, provider routing, receipts, artifacts, Canvas, and local session store.
+
+## Model flow
+
+The model picker uses a generated static catalog as an offline floor and can refresh a selected provider from server-side discovery. Provider credentials remain in the desktop server process and are never sent to the renderer. The picker distinguishes the current session model from the saved provider default and permits a typed model ID for newly released models that have not reached the static catalog yet.
+
+## Native lifecycle
+
+The Electron main process launches `node --import tsx src/cli.ts desktop <port> --no-open`, waits for the local server, opens a native `BrowserWindow`, and terminates the child server on app quit. Use `--devtools` when debugging the renderer.
+
+The packaged-app release criterion is stricter than a renderer build: the signed application must launch, complete the operator-flow smoke, pass the layout smoke at desktop and compact sizes, and satisfy the notarization/Gatekeeper checks documented by the release workflow.

@@ -27,9 +27,13 @@ Chords are configurable via `~/.vanta/keybindings.json` (zod-validated, fail-sof
 
 ## The desktop app
 
-Vanta includes a native Electron app for macOS with sessions, chat, model switching, approvals, canvas, project files, a kernel-gated terminal, tray controls, and the mobile companion bridge. The workspace is fixed to one viewport: the header and composer stay pinned while only genuine content lists scroll.
+Vanta includes a native Electron app for macOS with sessions, chat, model switching, approvals, canvas, project files, a kernel-gated terminal, tray controls, and the mobile companion bridge. Its shell follows the Keelhouse agent workflow in a Codex-style workbench: project and task history on the left, one primary agent conversation, model and context controls in the composer, and contextual outputs on demand. The workspace is fixed to one viewport; the titlebar and composer stay pinned while only genuine content lists scroll.
 
-The desktop app backlog lives in the single product roadmap, not in a separate side plan. Current desktop follow-up cards include `DESKTOP-MODEL-PICKER-UX`, `DESKTOP-RUN-RECOVERY-TIMELINE`, `DESKTOP-CONTEXT-ATTACHMENTS`, `DESKTOP-SAFE-SESSION-OPS`, `DESKTOP-CONNECT-SETUP-STATUS`, `DESKTOP-CONTEXT-LEGIBILITY`, and `DESKTOP-FLOW-PROOF-SUITE`.
+The contextual inspector starts closed and opens for files, output review, Canvas, preview, or terminal work. At compact widths it becomes a drawer. Pane widths are bounded, resizable, and persisted without letting the central task surface collapse.
+
+The model picker searches by provider or model, marks the active and saved-default models separately, accepts a typed model ID, and can refresh the authenticated provider's live model list. The generated catalog remains the offline fallback, so a temporary provider failure does not remove model selection.
+
+The desktop app backlog lives in the single product roadmap, not in a separate side plan. Desktop cards include `DESKTOP-CODEX-KEELHOUSE-SHELL`, `DESKTOP-MODEL-PICKER-UX`, `DESKTOP-RUN-RECOVERY-TIMELINE`, `DESKTOP-CONTEXT-ATTACHMENTS`, `DESKTOP-SAFE-SESSION-OPS`, `DESKTOP-CONNECT-SETUP-STATUS`, `DESKTOP-CONTEXT-LEGIBILITY`, and `DESKTOP-FLOW-PROOF-SUITE`.
 
 ```bash
 cd vanta-ts

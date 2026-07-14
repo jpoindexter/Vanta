@@ -4,14 +4,14 @@ import { resolveProvider } from "./index.js";
 describe("resolveProvider", () => {
   it("resolves gemini via GEMINI_API_KEY with the default flash model", () => {
     const p = resolveProvider({ VANTA_PROVIDER: "gemini", GEMINI_API_KEY: "k" });
-    expect(p.modelId()).toBe("gemini-2.5-flash");
+    expect(p.modelId()).toBe("gemini-3.5-flash");
     expect(p.contextWindow()).toBe(1_000_000);
     expect(p.routeInfo?.()).toMatchObject({ provider: "gemini", baseRoute: "https://generativelanguage.googleapis.com/v1beta/openai", billingMode: "metered" });
   });
 
   it("accepts GOOGLE_API_KEY as a gemini key fallback", () => {
     const p = resolveProvider({ VANTA_PROVIDER: "gemini", GOOGLE_API_KEY: "k" });
-    expect(p.modelId()).toBe("gemini-2.5-flash");
+    expect(p.modelId()).toBe("gemini-3.5-flash");
   });
 
   it("honors VANTA_MODEL for gemini", () => {

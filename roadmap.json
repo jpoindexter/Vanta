@@ -18219,7 +18219,7 @@
       "id": "DESKTOP-MODEL-PICKER-UX",
       "track": "Desktop App",
       "title": "Desktop model picker UX — searchable grouped selector with current/default clarity",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "The current model selector can become a dense grid of repeated model/default buttons. Replace it with a Codex-style searchable list grouped by provider, showing current session model, default model, provider/account status, and one clear Set default action.",
       "done": "Opening the desktop model control shows a compact searchable picker; models are grouped by provider; the current session model and default are visually distinct; Set default is a secondary action, not a duplicated tile; recent OpenAI/Codex models from the catalog are present; keyboard navigation and narrow-window layout are covered by renderer tests and an Electron smoke.",
@@ -18229,7 +18229,7 @@
       "codex": "gpt-5.4",
       "lens": "tui",
       "updated": "2026-07-14",
-      "notes": "Consolidated from the desktop user-flow audit and user feedback that the desktop model selector looked broken/horrible. This is not a new side plan; it is the single-roadmap card for the model picker cleanup.",
+      "notes": "Implemented 2026-07-14: replaced the repeated model/default tile grid with a searchable provider rail and model list, active/default state, one secondary default action, typed model IDs, and server-side live discovery with static fallback. Renderer tests passed and packaged Electron smoke proved 27 providers and 22 visible models without clipping at desktop and compact widths.",
       "source": "desktop-userflow-audit-2026-07-13",
       "after": [
         "DESKTOP-USERFLOW-RESET",
@@ -18360,6 +18360,27 @@
         "DESKTOP-RUN-RECOVERY-TIMELINE",
         "DESKTOP-CONTEXT-ATTACHMENTS",
         "DESKTOP-SAFE-SESSION-OPS"
+      ]
+    },
+    {
+      "id": "DESKTOP-CODEX-KEELHOUSE-SHELL",
+      "track": "Desktop App",
+      "title": "Codex and Keelhouse desktop shell — dense project workbench with native pane behavior",
+      "status": "shipped",
+      "size": "L",
+      "summary": "Refine Vanta Desktop around the proven Codex Desktop and Keelhouse task-workbench pattern: project/session rail, focused agent run surface, optional contextual outputs, compact controls, and user-resizable panes without fixed-width breakage.",
+      "done": "Vanta Desktop preserves one focused task surface at 760px, standard desktop, and ultrawide widths; sessions, composer, run activity, and contextual outputs follow the Codex/Keelhouse hierarchy; left and right panes resize and persist without overlap; the inspector starts contextually and can collapse; keyboard and pointer navigation remain usable; renderer tests and Electron layout smoke prove the current packaged shell at narrow and desktop widths.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.5",
+      "lens": "tui",
+      "updated": "2026-07-14",
+      "notes": "Implemented 2026-07-14: ported Keelhouse's project-first task hierarchy into Vanta Desktop with an app-level titlebar, central run surface, composer-owned model/context controls, collapsible task rail, and contextual inspector closed at startup. Packaged Electron layout smoke passed at 1778x1136, 760x900, and 640x900; the captured shell shows no empty black right region.",
+      "source": "Codex Desktop reference and Keelhouse app audit 2026-07-14",
+      "after": [
+        "DESKTOP-USERFLOW-RESET",
+        "DESKTOP-HERMES-OPERATOR-FLOWS"
       ]
     }
   ]

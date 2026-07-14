@@ -50,7 +50,7 @@ describe("parseModelArg", () => {
   });
 
   it("uses the provider's default model when only a provider is given", () => {
-    expect(parseModelArg("gemini", "openai")).toEqual({ providerId: "gemini", model: "gemini-2.5-flash", persistGlobal: false });
+    expect(parseModelArg("gemini", "openai")).toEqual({ providerId: "gemini", model: "gemini-3.5-flash", persistGlobal: false });
   });
 
   it("keeps the current provider when the arg is just a model id", () => {

@@ -10,7 +10,8 @@ import { deleteSession, listAllSessions, loadSession, newSessionId, renameSessio
 import { PROVIDER_CATALOG, providerById, type ProviderEntry } from "../providers/catalog.js";
 import { diskCacheDeps, mergeProviderCatalog, resolveCatalog } from "../providers/catalog-manifest.js";
 import { resolveVantaHome } from "../store/home.js";
-import { resolveProvider } from "../providers/index.js";
+import { providerModelDiscoveryTarget, resolveProvider } from "../providers/index.js";
+import { discoverProviderModels, type ModelDiscoveryResult } from "../providers/model-discovery.js";
 import type { LLMProvider } from "../providers/interface.js";
 import { loadUserProviders } from "../providers/user-providers.js";
 import { providerOverrideEnv } from "../providers/override-env.js";
@@ -237,29 +238,48 @@ export async function handleCanvas(state: DesktopState, res: http.ServerResponse
   }
 }
 
-export type DesktopProviderOption = { id: string; label: string; short: string; defaultModel: string; models: string[]; current: boolean };
+export type DesktopProviderOption = {
+  id: string;
+  label: string;
+  short: string;
+  defaultModel: string;
+  models: string[];
+  current: boolean;
+  savedDefaultModel?: string;
+  modelSource: "catalog" | "live";
+  discoveryAvailable: boolean;
+  discoveryError?: string;
+};
 
 export function desktopProviderOptions(env: NodeJS.ProcessEnv, catalog: ProviderEntry[] = PROVIDER_CATALOG): DesktopProviderOption[] {
   const current = (env.VANTA_PROVIDER ?? "openai").toLowerCase();
   const options = new Map<string, DesktopProviderOption>();
   for (const provider of catalog) {
+    const isDefaultProvider = provider.id === current;
     options.set(provider.id, {
       id: provider.id,
       label: provider.label,
       short: provider.short,
       defaultModel: provider.defaultModel,
       models: provider.models,
-      current: provider.id === current,
+      current: isDefaultProvider,
+      savedDefaultModel: isDefaultProvider ? env.VANTA_MODEL ?? provider.defaultModel : undefined,
+      modelSource: "catalog",
+      discoveryAvailable: Boolean(providerModelDiscoveryTarget(env, provider.id)),
     });
   }
   for (const [id, provider] of Object.entries(loadUserProviders(env))) {
+    const isDefaultProvider = id === current;
     options.set(id, {
       id,
       label: id,
       short: "User-declared OpenAI-compatible provider",
       defaultModel: provider.model ?? "",
       models: provider.model ? [provider.model] : [],
-      current: id === current,
+      current: isDefaultProvider,
+      savedDefaultModel: isDefaultProvider ? env.VANTA_MODEL ?? provider.model : undefined,
+      modelSource: "catalog",
+      discoveryAvailable: Boolean(providerModelDiscoveryTarget(env, id)),
     });
   }
   return [...options.values()];
@@ -283,11 +303,25 @@ export const loadDesktopProviderCatalog: DesktopCatalogLoader = async (env) => {
   return catalog.providers;
 };
 
+export type DesktopModelDiscoverer = (providerId: string, env: NodeJS.ProcessEnv) => Promise<ModelDiscoveryResult>;
+
 export async function desktopProviderOptionsLive(
   env: NodeJS.ProcessEnv,
   loadCatalog: DesktopCatalogLoader = loadDesktopProviderCatalog,
+  providerId?: string,
+  discover: DesktopModelDiscoverer = discoverProviderModels,
 ): Promise<DesktopProviderOption[]> {
-  return desktopProviderOptions(env, mergeProviderCatalog(await loadCatalog(env)));
+  const options = desktopProviderOptions(env, mergeProviderCatalog(await loadCatalog(env)));
+  if (!providerId) return options;
+  const id = providerId.trim().toLowerCase();
+  const result = await discover(id, env);
+  return options.map((option) => option.id !== id ? option : {
+    ...option,
+    models: [...new Set([...result.models, ...option.models])],
+    modelSource: result.source,
+    discoveryAvailable: result.available,
+    discoveryError: result.error,
+  });
 }
 
 export function resolveDesktopProviderSelection(env: NodeJS.ProcessEnv, provider: string, model?: string): {
@@ -303,8 +337,8 @@ export function resolveDesktopProviderSelection(env: NodeJS.ProcessEnv, provider
   return { provider: id, model: resolved.modelId(), env: selectedEnv, resolved };
 }
 
-export async function handleModels(res: http.ServerResponse): Promise<void> {
-  sendJson(res, 200, await desktopProviderOptionsLive(process.env));
+export async function handleModels(res: http.ServerResponse, providerId?: string): Promise<void> {
+  sendJson(res, 200, await desktopProviderOptionsLive(process.env, loadDesktopProviderCatalog, providerId));
 }
 
 export async function handleSetModel(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {

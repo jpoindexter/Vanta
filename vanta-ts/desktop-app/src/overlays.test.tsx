@@ -39,17 +39,21 @@ describe("ModelPicker", () => {
     const html = renderToStaticMarkup(
       <ModelPicker
         open
-        models={[{ id: "ollama", label: "Ollama", short: "Local", models: ["qwen"] }]}
+        models={[{ id: "ollama", label: "Ollama", short: "Local", models: ["qwen"], current: true, savedDefaultModel: "qwen", modelSource: "live", discoveryAvailable: true }]}
         status={{ kernel: "ready", model: "qwen", provider: "ollama", tools: 1, sessionId: "s1" }}
         onClose={vi.fn()}
+        onRefresh={vi.fn()}
         onSelect={vi.fn()}
       />,
     );
     expect(html).toContain("Choose a model");
-    expect(html).toContain("Search models");
+    expect(html).toContain("Search providers and models");
     expect(html).toContain("Ollama");
+    expect(html).toContain("Live provider models");
     expect(html).toContain("Current");
-    expect(html).toContain("Set Ollama qwen as default");
+    expect(html).toContain("Default");
+    expect(html).toContain("Ollama qwen is the default");
+    expect(html).toContain("Use another model ID");
   });
 });
 

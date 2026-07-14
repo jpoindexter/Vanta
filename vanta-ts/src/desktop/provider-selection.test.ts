@@ -103,6 +103,22 @@ describe("desktop provider aliases", () => {
     ]));
   });
 
+  it("merges a live provider list while preserving the offline floor and saved default", async () => {
+    const discover = async () => ({ models: ["gpt-new-live"], source: "live" as const, available: true });
+    const options = await desktopProviderOptionsLive(
+      { VANTA_HOME: home, VANTA_PROVIDER: "openai", VANTA_MODEL: "gpt-5.6-terra", OPENAI_API_KEY: "secret" },
+      async () => [],
+      "openai",
+      discover,
+    );
+    expect(options.find((option) => option.id === "openai")).toEqual(expect.objectContaining({
+      models: expect.arrayContaining(["gpt-new-live", "gpt-5.6-sol"]),
+      savedDefaultModel: "gpt-5.6-terra",
+      modelSource: "live",
+      discoveryAvailable: true,
+    }));
+  });
+
   it("provider-only selection uses the alias model and credential instead of the parent model", () => {
     const selected = resolveDesktopProviderSelection({
       VANTA_HOME: home,

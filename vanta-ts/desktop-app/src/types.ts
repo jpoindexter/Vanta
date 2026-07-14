@@ -10,7 +10,21 @@ export type Artifact = { id: string; kind: "canvas" | "link" | "file"; label: st
 export type Goal = { text: string };
 export type Status = { kernel: string; model: string; provider?: string; tools: number; sessionId: string; root?: string; goals: Goal[] };
 export type Message = { role: string; content?: string; name?: string };
-export type Provider = { id: string; label: string; short: string; models: string[]; defaultModel?: string; requiresKey?: boolean; signupUrl?: string; note?: string };
+export type Provider = {
+  id: string;
+  label: string;
+  short: string;
+  models: string[];
+  defaultModel?: string;
+  current?: boolean;
+  savedDefaultModel?: string;
+  modelSource?: "catalog" | "live";
+  discoveryAvailable?: boolean;
+  discoveryError?: string;
+  requiresKey?: boolean;
+  signupUrl?: string;
+  note?: string;
+};
 export type EventRow = { label: string; ok?: boolean };
 export type CanvasScalar = string | number | boolean | null;
 export type CanvasArtifact = {

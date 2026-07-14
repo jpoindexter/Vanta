@@ -8,17 +8,11 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1191 capabilities shipped · 2 in flight · 5 on the horizon. Updated 2026-07-14._
+_1193 capabilities shipped · 1 in flight · 5 on the horizon. Updated 2026-07-14._
 
 ## In flight
 
 What we are actively building next.
-
-### Desktop model picker UX — searchable grouped selector with current/default clarity
-
-**Desktop App** · M-size
-
-The current model selector can become a dense grid of repeated model/default buttons. Replace it with a-style searchable list grouped by provider, showing current session model, default model, provider/account status, and one clear Set default action
 
 ### Desktop run recovery timeline — retry failed step with receipts
 
@@ -28,12 +22,14 @@ Turn the desktop Work stream from request/response chat into a reliable agent-wo
 
 ## Recently shipped
 
-The latest of 1191+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1193+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Desktop user-flow reset - one dependable work loop** — Operator · 2026-07-14
 - **provider model selection — verify + document which model to use** — Harness · 2026-07-14
 - **Remote model-catalog manifest with fallback chain** — Extensibility · 2026-07-14
 - **External proof readiness - one release status for all parked gates** — Harness · 2026-07-14
+- **Desktop model picker UX — searchable grouped selector with current/default clarity** — Desktop App · 2026-07-14
+- **and Keelhouse desktop shell — dense project workbench with native pane behavior** — Desktop App · 2026-07-14
 - **Real use-case acceptance — prove Vanta completes operator outcomes** — Release · 2026-07-13
 - **Desktop operator flows v1 — capabilities, channels, artifacts, settings** — Operator · 2026-07-13
 - **Multi-channel LIVE — 5+ platforms from one gateway (Telegram · WhatsApp · Signal · Discord · Slack)** — Operator · 2026-07-13
@@ -48,8 +44,6 @@ The latest of 1191+ capabilities. See the [changelog](./changelog) for curated m
 - **Authenticated runtime readiness - bounded health for remote supervision** — Harness · 2026-07-12
 - **System prompt presets - switch Vanta's operating role per session** — Operator · 2026-07-12
 - **Prompt-routed agent spawn - launch workers with different operating prompts** — Harness · 2026-07-12
-- **Needs-human queue — one actionable ticket instead of repeated failure** — Operator · 2026-07-12
-- **Documentation router health — measure loads, use, staleness, and contradictions** — Memory · 2026-07-12
 
 ## On the horizon
 

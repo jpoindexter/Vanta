@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Bell, Boxes, Command, FolderKanban, PanelLeft, PanelRight, RefreshCw, Settings2 } from "lucide-react";
+import { Bell, Command, FolderKanban, MessageSquarePlus, PanelLeft, PanelRight, RefreshCw, Search, Settings2 } from "lucide-react";
 import { ChatThread, Composer, SessionSidebar } from "./chat.js";
 import { ApprovalOverlay, CommandPalette, KeyboardShortcuts, ModelPicker, SettingsDialog, SetupWizard } from "./overlays.js";
 import { ArtifactsView, ConnectView } from "./operator-views.js";
@@ -35,8 +35,9 @@ export function AppShell() {
   const convo = useConversation(data.refresh, { prime: sound.prime, complete: sound.play });
   const approval = useApproval();
   const [mobilePanel, setMobilePanel] = useState<"sessions" | "work" | "inspect">("work");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [view, setView] = useState<DesktopView>("work");
-  const [inspectorOpen, setInspectorOpen] = useState(() => window.innerWidth >= 1180);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">(() => window.localStorage.getItem("vanta.desktop.theme") === "light" ? "light" : "dark");
   const [attachments, setAttachments] = useState<string[]>([]);
   const [sidebarWidth, setSidebarWidth] = useState(() => storedPaneWidth(SIDEBAR_STORAGE_KEY, 292));
@@ -82,11 +83,24 @@ export function AppShell() {
 
   return (
     <div
-      className={`app-shell theme-${theme} panel-${mobilePanel} ${inspectorVisible ? "inspector-open" : ""} ${data.tab === "canvas" && inspectorVisible ? "canvas-open" : ""}`}
+      className={`app-shell theme-${theme} panel-${mobilePanel} ${sidebarCollapsed ? "sidebar-collapsed" : ""} ${inspectorVisible ? "inspector-open" : ""} ${data.tab === "canvas" && inspectorVisible ? "canvas-open" : ""}`}
       style={{ "--sidebar-width": `${sidebarWidth}px`, "--rail-width": `${railWidth}px` } as CSSProperties}
     >
+      <DesktopHeader
+        title={view === "work" ? convo.activeTitle : viewLabel(view)}
+        data={data}
+        inspectorOpen={inspectorOpen}
+        sidebarCollapsed={sidebarCollapsed}
+        onNew={() => { setView("work"); void convo.newSession(); }}
+        onSidebar={() => {
+          if (window.innerWidth <= 760) setMobilePanel((panel) => panel === "sessions" ? "work" : "sessions");
+          else setSidebarCollapsed((collapsed) => !collapsed);
+        }}
+        onInspector={() => { setInspectorOpen((open) => !open); setMobilePanel(inspectorOpen ? "work" : "inspect"); }}
+      />
       <SessionSidebar
         sessions={data.sessions}
+        root={data.status?.root}
         activeId={data.status?.sessionId}
         onNew={convo.newSession}
         onOpen={convo.openSession}
@@ -107,13 +121,12 @@ export function AppShell() {
         onChange={setSidebarWidth}
       />
       <main className="workbench">
-        <DesktopHeader title={view === "work" ? convo.activeTitle : viewLabel(view)} data={data} inspectorOpen={inspectorOpen} onPanel={setMobilePanel} onInspector={() => { setInspectorOpen((open) => !open); setMobilePanel(inspectorOpen ? "work" : "inspect"); }} />
         {view === "work" ? <>
           <div className={`conversation-stage ${data.phase === "error" ? "has-error" : ""}`}>
             {data.phase === "error" ? <ConnectionError message={data.error} onRetry={() => { void data.refresh(); }} onSetup={data.openSetup} /> : null}
             {data.phase === "loading" ? <LoadingState /> : <ChatThread messages={convo.messages} busy={convo.busy} streamText={convo.streamText} events={convo.events} recovery={convo.recovery} onRetry={convo.retry} onPrompt={convo.setDraft} />}
           </div>
-          <Composer value={convo.draft} busy={convo.busy} attachments={attachments} onChange={convo.setDraft} onSubmit={(text) => { void convo.submit(withAttachments(text, attachments)); setAttachments([]); }} onQueue={convo.queue} onRemoveAttachment={(file) => setAttachments((current) => current.filter((entry) => entry !== file))} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onCommand={data.openPalette} />
+          <Composer value={convo.draft} busy={convo.busy} model={data.status?.model} attachments={attachments} onChange={convo.setDraft} onSubmit={(text) => { void convo.submit(withAttachments(text, attachments)); setAttachments([]); }} onQueue={convo.queue} onRemoveAttachment={(file) => setAttachments((current) => current.filter((entry) => entry !== file))} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onModel={data.openModelPicker} onCommand={data.openPalette} />
         </> : <OperatorWorkspace view={view} data={data} onOpenSession={(id) => { setView("work"); void convo.openSession(id); }} />}
       </main>
       {inspectorVisible ? <RightRail
@@ -192,20 +205,19 @@ function PaneResizeHandle(props: {
   ><span className="sr-only">{props.label}</span></div>;
 }
 
-function DesktopHeader(props: { title: string; data: DesktopData; inspectorOpen: boolean; onPanel: (panel: "sessions" | "work" | "inspect") => void; onInspector: () => void }) {
+function DesktopHeader(props: { title: string; data: DesktopData; inspectorOpen: boolean; sidebarCollapsed: boolean; onNew: () => void; onSidebar: () => void; onInspector: () => void }) {
   const { data } = props;
   const root = data.status?.root?.split("/").filter(Boolean).at(-1) ?? "Project";
   return (
-    <header className="topbar">
-      <div className="mobile-panel-controls">
-        <button type="button" title="Sessions" aria-label="Show sessions" onClick={() => props.onPanel("sessions")}><PanelLeft size={17} /></button>
-        <button type="button" title="Conversation" aria-label="Show conversation" onClick={() => props.onPanel("work")}><Boxes size={17} /></button>
-        <button type="button" title="Inspector" aria-label="Show inspector" onClick={props.onInspector}><PanelRight size={17} /></button>
+    <header className="app-titlebar" aria-label="Application chrome">
+      <div className="titlebar-identity">
+        <button className={props.sidebarCollapsed ? "" : "active"} type="button" title="Toggle threads" aria-label="Toggle threads" aria-pressed={!props.sidebarCollapsed} onClick={props.onSidebar}><PanelLeft size={16} /></button>
+        <button type="button" title="New session" aria-label="New session" onClick={props.onNew}><MessageSquarePlus size={16} /></button>
+        <button type="button" title="Search tasks or run a command" aria-label="Search tasks or run a command" onClick={data.openPalette}><Search size={16} /></button>
       </div>
-      <div className="title-block"><p><FolderKanban size={13} />{root}</p><h1>{props.title}</h1></div>
-      <div className="status-strip">
+      <div className="titlebar-agent-context"><FolderKanban size={14} /><div className="title-block"><p>{root}</p><h1>{props.title}</h1></div></div>
+      <div className="status-strip titlebar-actions">
         <span className={`kernel-status ${data.phase}`}><i />{data.status?.kernel ?? data.phase}</span>
-        <button type="button" title="Change model" onClick={data.openModelPicker}>{data.status?.model ?? "Choose model"}</button>
         <button className="icon-button" type="button" title={props.inspectorOpen ? "Close inspector" : "Open contextual inspector"} onClick={props.onInspector} aria-label={props.inspectorOpen ? "Close inspector" : "Open contextual inspector"}><PanelRight size={16} /></button>
         <button className="icon-button" type="button" title="Settings" onClick={data.openSettings} aria-label="Settings"><Settings2 size={16} /></button>
         <button className="icon-button" type="button" title="Command palette (Command K)" onClick={data.openPalette} aria-label="Open command palette"><Command size={16} /></button>
@@ -243,7 +255,7 @@ function DesktopOverlays(props: {
         onSettings={data.openSettings}
         onTab={props.onInspector}
       />
-      <ModelPicker open={data.modelOpen} models={data.models} status={data.status} onClose={data.closeModelPicker} onSelect={data.setModel} />
+      <ModelPicker open={data.modelOpen} models={data.models} status={data.status} onClose={data.closeModelPicker} onRefresh={data.refreshProviderModels} onSelect={data.setModel} />
       <SettingsDialog open={data.settingsOpen} models={data.models} status={data.status} theme={props.theme} onTheme={props.onTheme} onClose={data.closeSettings} onModel={data.openModelPicker} onSetup={data.openSetup} />
       <KeyboardShortcuts open={data.shortcutsOpen} onClose={data.closeShortcuts} />
       <SetupWizard open={data.setupOpen} models={data.models} onClose={data.closeSetup} onSave={data.saveSetup} />

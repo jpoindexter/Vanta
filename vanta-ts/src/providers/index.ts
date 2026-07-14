@@ -1,17 +1,23 @@
 import { OpenAIProvider } from "./openai.js";
 import { AnthropicProvider } from "./anthropic.js";
 import { CodexProvider } from "./codex.js";
+import type { UserProvider } from "./user-providers.js";
 import { resolveClaudeCodeToken } from "./claude-code-auth.js";
 import { loadUserProviders, makeUserProvider } from "./user-providers.js";
 import type { LLMProvider } from "./interface.js";
 import { normalizeModelForProvider } from "./normalize-model.js";
 import { normalizeBaseRoute, withProviderRoute } from "./route.js";
 import type { BillingMode, ProviderRoute } from "./interface.js";
+import { providerById } from "./catalog.js";
 
 const DEFAULT_OLLAMA_URL = "http://localhost:11434/v1";
 const GEMINI_OPENAI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1";
 const NVIDIA_NIM_URL = "https://integrate.api.nvidia.com/v1";
+
+function catalogDefault(providerId: string, fallback: string): string {
+  return providerById(providerId)?.defaultModel ?? fallback;
+}
 
 const BUILTIN_BASE_ROUTES: Record<string, string> = {
   openai: "https://api.openai.com/v1",
@@ -35,7 +41,7 @@ function requireKey(env: NodeJS.ProcessEnv, key: string, hint: string): string {
 function makeOpenAI(env: NodeJS.ProcessEnv): LLMProvider {
   const apiKey = requireKey(env, "OPENAI_API_KEY",
     "Run `vanta setup`, or set it in vanta-ts/.env, or use VANTA_PROVIDER=ollama for local models.");
-  return new OpenAIProvider({ apiKey, model: env.VANTA_MODEL ?? "gpt-5.6-sol" });
+  return new OpenAIProvider({ apiKey, model: env.VANTA_MODEL ?? catalogDefault("openai", "gpt-5.6-sol") });
 }
 
 function makeOllama(env: NodeJS.ProcessEnv): LLMProvider {
@@ -49,21 +55,21 @@ function makeOllama(env: NodeJS.ProcessEnv): LLMProvider {
 function makeAnthropic(env: NodeJS.ProcessEnv): LLMProvider {
   const apiKey = requireKey(env, "ANTHROPIC_API_KEY",
     "Run `vanta setup`, set it in vanta-ts/.env, use VANTA_PROVIDER=claude-code for a Claude subscription, or VANTA_PROVIDER=openai|ollama.");
-  return new AnthropicProvider({ apiKey, model: env.VANTA_MODEL ?? "claude-sonnet-4-6" });
+  return new AnthropicProvider({ apiKey, model: env.VANTA_MODEL ?? catalogDefault("anthropic", "claude-sonnet-5") });
 }
 
 function makeCodex(env: NodeJS.ProcessEnv): LLMProvider {
-  return new CodexProvider({ model: env.VANTA_MODEL ?? "gpt-5.6-sol" });
+  return new CodexProvider({ model: env.VANTA_MODEL ?? catalogDefault("codex", "gpt-5.6-sol") });
 }
 
 function makeClaudeCode(env: NodeJS.ProcessEnv): LLMProvider {
-  return new AnthropicProvider({ authToken: resolveClaudeCodeToken(env), model: env.VANTA_MODEL ?? "claude-sonnet-4-6" });
+  return new AnthropicProvider({ authToken: resolveClaudeCodeToken(env), model: env.VANTA_MODEL ?? catalogDefault("claude-code", "claude-sonnet-5") });
 }
 
 function makeGemini(env: NodeJS.ProcessEnv): LLMProvider {
   const apiKey = env.GEMINI_API_KEY ?? env.GOOGLE_API_KEY;
   if (!apiKey) throw new Error("GEMINI_API_KEY is not set. Run `vanta setup`, or get a key at https://aistudio.google.com/apikey and set GEMINI_API_KEY in vanta-ts/.env.");
-  return new OpenAIProvider({ apiKey, baseURL: GEMINI_OPENAI_URL, model: env.VANTA_MODEL ?? "gemini-2.5-flash" });
+  return new OpenAIProvider({ apiKey, baseURL: GEMINI_OPENAI_URL, model: env.VANTA_MODEL ?? catalogDefault("gemini", "gemini-3.5-flash") });
 }
 
 function makeOpenRouter(env: NodeJS.ProcessEnv): LLMProvider {
@@ -99,6 +105,71 @@ const OPENAI_COMPAT: Record<string, { url: string; key: string; model: string }>
   stepfun: { url: "https://api.stepfun.com/v1", key: "STEPFUN_API_KEY", model: "step-2-16k" },
   lmstudio: { url: "http://localhost:1234/v1", key: "", model: "local-model" }, // local, no key
 };
+
+export type ProviderModelDiscoveryTarget = {
+  kind: "openai" | "anthropic" | "gemini";
+  url: string;
+  headers: Record<string, string>;
+};
+
+function openAiModelsUrl(baseURL: string): string {
+  return `${baseURL.replace(/\/$/, "")}/models`;
+}
+
+function userDiscoveryTarget(env: NodeJS.ProcessEnv, provider: UserProvider): ProviderModelDiscoveryTarget | null {
+  const apiKey = provider.keyEnv ? env[provider.keyEnv] : "local";
+  if (!apiKey) return null;
+  return { kind: "openai", url: openAiModelsUrl(provider.baseURL), headers: { authorization: `Bearer ${apiKey}` } };
+}
+
+/** Server-only model-list target. Credentials stay in request headers and never cross the desktop API. */
+export function providerModelDiscoveryTarget(env: NodeJS.ProcessEnv, providerId: string): ProviderModelDiscoveryTarget | null {
+  const id = providerId.trim().toLowerCase();
+  const user = loadUserProviders(env)[id];
+  if (user) return userDiscoveryTarget(env, user);
+
+  if (id === "openai") {
+    const apiKey = env.OPENAI_API_KEY;
+    return apiKey ? { kind: "openai", url: "https://api.openai.com/v1/models", headers: { authorization: `Bearer ${apiKey}` } } : null;
+  }
+  if (id === "anthropic") {
+    const apiKey = env.ANTHROPIC_API_KEY;
+    return apiKey ? {
+      kind: "anthropic",
+      url: "https://api.anthropic.com/v1/models?limit=1000",
+      headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
+    } : null;
+  }
+  if (id === "gemini") {
+    const apiKey = env.GEMINI_API_KEY ?? env.GOOGLE_API_KEY;
+    return apiKey ? {
+      kind: "gemini",
+      url: "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000",
+      headers: { "x-goog-api-key": apiKey },
+    } : null;
+  }
+  if (id === "ollama") {
+    return { kind: "openai", url: openAiModelsUrl(env.VANTA_OLLAMA_URL ?? DEFAULT_OLLAMA_URL), headers: { authorization: "Bearer ollama" } };
+  }
+  if (id === "openrouter") {
+    const apiKey = env.OPENROUTER_API_KEY;
+    return apiKey ? { kind: "openai", url: openAiModelsUrl(OPENROUTER_URL), headers: { authorization: `Bearer ${apiKey}` } } : null;
+  }
+  if (id === "nvidia" || id === "nim") {
+    const apiKey = env.NVIDIA_API_KEY;
+    return apiKey ? { kind: "openai", url: openAiModelsUrl(NVIDIA_NIM_URL), headers: { authorization: `Bearer ${apiKey}` } } : null;
+  }
+  if (id === "custom") {
+    const baseURL = env.VANTA_OPENAI_BASE_URL;
+    if (!baseURL) return null;
+    const apiKey = env.VANTA_OPENAI_KEY ?? env.OPENAI_API_KEY ?? "local";
+    return { kind: "openai", url: openAiModelsUrl(baseURL), headers: { authorization: `Bearer ${apiKey}` } };
+  }
+  const compatible = OPENAI_COMPAT[id];
+  if (!compatible) return null;
+  const apiKey = compatible.key ? env[compatible.key] : "local";
+  return apiKey ? { kind: "openai", url: openAiModelsUrl(compatible.url), headers: { authorization: `Bearer ${apiKey}` } } : null;
+}
 
 /** Azure OpenAI / AI Foundry — OpenAI-compatible but with an api-version query + api-key header. */
 function makeAzure(env: NodeJS.ProcessEnv): LLMProvider {

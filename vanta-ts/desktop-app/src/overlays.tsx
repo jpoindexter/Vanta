@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import type { FormEvent } from "react";
-import { Bot, Check, Command, KeyRound, MonitorCog, Search, ShieldCheck, Star, X } from "lucide-react";
+import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
+import { Bot, Check, Command, KeyRound, MonitorCog, RefreshCw, Search, ShieldCheck, Star, X } from "lucide-react";
 import type { Approval, ApprovalDecision, PermissionSection, Provider, RailTab, Status } from "./types.js";
 
 export function CommandPalette(props: { open: boolean; onClose: () => void; onNew: () => void; onModel: () => void; onSound: () => void; onSettings: () => void; onTab: (tab: RailTab) => void }) {
@@ -61,45 +61,99 @@ export function SettingsDialog(props: { open: boolean; models: Provider[]; statu
   </section></div>;
 }
 
-export function ModelPicker(props: { open: boolean; models: Provider[]; status: Status | null; onClose: () => void; onSelect: (provider: string, model: string, scope?: "session" | "global") => void }) {
+export function ModelPicker(props: { open: boolean; models: Provider[]; status: Status | null; onClose: () => void; onRefresh: (provider: string) => Promise<void>; onSelect: (provider: string, model: string, scope?: "session" | "global") => void }) {
   const [query, setQuery] = useState("");
+  const [selectedProviderId, setSelectedProviderId] = useState("");
+  const [customModel, setCustomModel] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
   useEffect(() => {
-    if (props.open) setQuery("");
+    if (!props.open) return;
+    const providerId = props.status?.provider ?? props.models.find((provider) => provider.current)?.id ?? props.models[0]?.id ?? "";
+    setQuery("");
+    setCustomModel("");
+    setSelectedProviderId(providerId);
+    if (providerId) {
+      setRefreshing(true);
+      void props.onRefresh(providerId).finally(() => setRefreshing(false));
+    }
   }, [props.open]);
   if (!props.open) return null;
-  const normalizedQuery = query.trim().toLowerCase();
-  const providers = props.models
-    .map((provider) => ({
-      provider,
-      models: provider.models.filter((model) => !normalizedQuery || `${provider.label} ${provider.short} ${model}`.toLowerCase().includes(normalizedQuery)),
-    }))
-    .filter((entry) => entry.models.length > 0);
+  const matchingProviders = filterProviders(props.models, query);
+  const activeProvider = matchingProviders.find((provider) => provider.id === selectedProviderId)
+    ?? matchingProviders.find((provider) => provider.id === props.status?.provider)
+    ?? matchingProviders[0];
+  const visibleModels = activeProvider ? filterModels(activeProvider, query) : [];
+  async function refreshSelected() {
+    if (!activeProvider || !activeProvider.discoveryAvailable) return;
+    setRefreshing(true);
+    try { await props.onRefresh(activeProvider.id); }
+    finally { setRefreshing(false); }
+  }
+  function chooseCustom(event: FormEvent) {
+    event.preventDefault();
+    const model = customModel.trim();
+    if (activeProvider && model) props.onSelect(activeProvider.id, model, "session");
+  }
+  function navigateProviders(event: ReactKeyboardEvent<HTMLElement>) {
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    const buttons = [...event.currentTarget.querySelectorAll<HTMLButtonElement>("button[data-provider-id]")];
+    const current = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    const delta = event.key === "ArrowDown" ? 1 : -1;
+    const next = buttons[(Math.max(0, current) + delta + buttons.length) % buttons.length];
+    if (!next) return;
+    event.preventDefault();
+    setSelectedProviderId(next.dataset.providerId ?? "");
+    next.focus();
+  }
   return (
     <div className="overlay" onClick={props.onClose}>
       <div className="palette model-picker" role="dialog" aria-modal="true" aria-labelledby="model-title" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-heading"><div><p className="eyebrow">Active session</p><h2 id="model-title">Choose a model</h2></div><button className="icon-button" type="button" aria-label="Close" onClick={props.onClose}><X size={16} /></button></div>
-        <label className="palette-search model-search"><Search size={16} /><span className="sr-only">Search models</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search models" /></label>
-        <p className="model-picker-note">Select a model for this session. Use the star to make one the default for new sessions.</p>
-        <div className="model-provider-list">
-          {providers.map(({ provider, models }) => <section key={provider.id} className="model-provider-group" aria-labelledby={`provider-${provider.id}`}>
-            <header><div><h3 id={`provider-${provider.id}`}>{provider.label}</h3><span>{models.length} model{models.length === 1 ? "" : "s"}</span></div></header>
-            <div className="model-rows">{models.map((model) => <ModelRow key={model} provider={provider} model={model} status={props.status} onSelect={props.onSelect} />)}</div>
-          </section>)}
-          {providers.length === 0 ? <p className="muted model-empty">No matching models.</p> : null}
+        <label className="palette-search model-search"><Search size={16} /><span className="sr-only">Search models</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search providers and models" /></label>
+        <div className="model-picker-body">
+          <nav className="model-provider-nav" aria-label="Model providers" onKeyDown={navigateProviders}>
+            {matchingProviders.map((provider) => <button key={provider.id} data-provider-id={provider.id} className={provider.id === activeProvider?.id ? "active" : ""} type="button" onClick={() => setSelectedProviderId(provider.id)}>
+              <span><strong>{provider.short || provider.label}</strong>{provider.current ? <small>Default provider</small> : null}</span>
+              <b>{filterModels(provider, query).length}</b>
+            </button>)}
+          </nav>
+          <section className="model-provider-detail" aria-live="polite">
+            {activeProvider ? <>
+              <header className="model-detail-heading">
+                <div><h3>{activeProvider.label}</h3><p>{activeProvider.modelSource === "live" ? "Live provider models" : "Vanta catalog"}</p></div>
+                <button className="icon-button" type="button" onClick={() => void refreshSelected()} disabled={!activeProvider.discoveryAvailable || refreshing} aria-label={`Refresh ${activeProvider.label} models`} title={activeProvider.discoveryAvailable ? "Refresh models from provider" : "Connect this provider to load live models"}><RefreshCw size={15} className={refreshing ? "spinning" : ""} /></button>
+              </header>
+              {activeProvider.discoveryError ? <p className="model-discovery-error" role="status">{activeProvider.discoveryError} Showing the offline catalog.</p> : null}
+              <div className="model-rows">{visibleModels.map((model) => <ModelRow key={model} provider={activeProvider} model={model} status={props.status} onSelect={props.onSelect} />)}</div>
+              {visibleModels.length === 0 ? <p className="muted model-empty">No matching models for this provider.</p> : null}
+              <form className="custom-model" onSubmit={chooseCustom}><label htmlFor="custom-model-id">Use another model ID</label><div><input id="custom-model-id" value={customModel} onChange={(event) => setCustomModel(event.target.value)} placeholder="provider model ID" /><button type="submit" disabled={!customModel.trim()}>Use</button></div></form>
+            </> : <p className="muted model-empty">No matching providers or models.</p>}
+          </section>
         </div>
       </div>
     </div>
   );
 }
 
+export function filterModels(provider: Provider, query: string): string[] {
+  const normalized = query.trim().toLowerCase();
+  return provider.models.filter((model) => !normalized || `${provider.label} ${provider.short} ${model}`.toLowerCase().includes(normalized));
+}
+
+export function filterProviders(providers: Provider[], query: string): Provider[] {
+  const normalized = query.trim().toLowerCase();
+  return providers.filter((provider) => filterModels(provider, query).length > 0 || `${provider.label} ${provider.short}`.toLowerCase().includes(normalized));
+}
+
 function ModelRow(props: { provider: Provider; model: string; status: Status | null; onSelect: (provider: string, model: string, scope?: "session" | "global") => void }) {
   const selected = props.status?.provider === props.provider.id && props.status?.model === props.model;
+  const savedDefault = props.provider.current && props.provider.savedDefaultModel === props.model;
   return <div className={`model-row${selected ? " selected" : ""}`}>
     <button className="model-select" type="button" onClick={() => props.onSelect(props.provider.id, props.model, "session")} aria-pressed={selected}>
       <span className="model-name">{props.model}</span>
-      {selected ? <span className="model-active"><Check size={14} />Current</span> : null}
+      <span className="model-badges">{selected ? <span className="model-active"><Check size={14} />Current</span> : null}{savedDefault ? <span className="model-saved"><Star size={12} fill="currentColor" />Default</span> : null}</span>
     </button>
-    <button className="icon-button model-default" type="button" onClick={() => props.onSelect(props.provider.id, props.model, "global")} aria-label={`Set ${props.provider.label} ${props.model} as default`} title="Set as default"><Star size={15} /></button>
+    <button className={`icon-button model-default${savedDefault ? " saved" : ""}`} type="button" onClick={() => props.onSelect(props.provider.id, props.model, "global")} aria-label={savedDefault ? `${props.provider.label} ${props.model} is the default` : `Set ${props.provider.label} ${props.model} as default`} title={savedDefault ? "Default for new sessions" : "Set as default"}><Star size={15} fill={savedDefault ? "currentColor" : "none"} /></button>
   </div>;
 }
 

@@ -56,9 +56,14 @@ export function useDesktopData() {
     await refresh();
   }
 
+  async function refreshProviderModels(providerId: string) {
+    const refreshed = await api<Provider[]>(`/api/models/${encodeURIComponent(providerId)}`);
+    setModels(refreshed);
+  }
+
   useEffect(() => { void refresh(); }, [refresh]);
   return {
-    status, sessions, tools, files, models, canvas, capabilities, messaging, artifacts, tab, setTab, phase, error, refresh, setModel, ...overlays,
+    status, sessions, tools, files, models, canvas, capabilities, messaging, artifacts, tab, setTab, phase, error, refresh, refreshProviderModels, setModel, ...overlays,
     saveMessaging: async (id: string, values: Record<string, string>) => {
       await api<MessagingPlatform>("/api/messaging", { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ id, values }) });
       await refresh();

@@ -27,6 +27,11 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
   const { req, res, state, sid, sseClients, pathname: p } = ctx;
   if (await writeDesktopAsset(state.root, p, res)) return true;
   if (p === "/api/events") { attachSse(sseClients, sid, res); return true; }
+  if (p.startsWith("/api/models/")) {
+    const providerId = decodeURIComponent(p.slice("/api/models/".length));
+    await handleModels(res, providerId);
+    return true;
+  }
   const handler: Record<string, () => Promise<void>> = {
     "/api/status": () => handleStatus(state, res),
     "/api/sessions": () => handleSessions(res),

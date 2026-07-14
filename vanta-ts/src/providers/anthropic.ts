@@ -5,7 +5,7 @@ import { buildAnthropicBetas } from "./interleaved-thinking.js";
 import { toAnthropicMessages, toAnthropicTool, parseResponse, streamAnthropicEvents } from "./anthropic-convert.js";
 import type { AnthropicTextBlock } from "./anthropic-convert.js";
 
-const DEFAULT_MODEL = "claude-sonnet-4-6";
+const DEFAULT_MODEL = "claude-sonnet-5";
 const CONTEXT_WINDOW = 200_000;
 const DEFAULT_MAX_TOKENS = 4096;
 
