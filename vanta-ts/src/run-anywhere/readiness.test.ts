@@ -51,8 +51,8 @@ describe("Run Anywhere readiness", () => {
       VANTA_TELEGRAM_WEBHOOK_SECRET: "distinct-webhook-secret",
     });
     const serverless = report.gates.find((gate) => gate.id === "serverless-live");
-    expect(serverless?.evidence).toContain("Telegram token invalid-format; webhook secret present");
-    expect(serverless?.nextActions).toContain("replace VANTA_TELEGRAM_TOKEN with a valid BotFather token");
+    expect(serverless?.evidence).toContain("Telegram token invalid-format (missing-colon); webhook secret present");
+    expect(serverless?.nextActions).toContain("replace VANTA_TELEGRAM_TOKEN with a valid BotFather token (diagnostic: missing-colon)");
     expect(serverless?.nextActions).toContain("vanta backend gateway register-telegram <https-endpoint>");
     expect(serverless?.nextActions).not.toContain("vanta backend gateway arm");
     expect(serverless?.nextActions).not.toContain("send one real Telegram message to the bot");

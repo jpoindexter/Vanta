@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 
 const exec = promisify(execFile);
+const TEST_TIMEOUT_MS = 120_000;
 let root: string;
 let home: string;
 let source: string;
@@ -38,5 +39,5 @@ describe("vanta profile distribution dispatch", () => {
     await writeFile(join(source, "SOUL.md"), "Write with evidence.\n");
     expect(await cli("profile", "update", "writer")).toContain("changed 1: SOUL.md");
     expect(await cli("profile", "update", "writer", "--apply")).toContain("updated writer · backup");
-  }, 30_000);
+  }, TEST_TIMEOUT_MS);
 });

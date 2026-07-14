@@ -82,12 +82,41 @@ describe("Modal gateway command", () => {
   it("prints missing gateway status as redacted json", async () => {
     const deps = fixture({ run: control({ secret: false }) });
     expect(await runModalGatewayCommand(await workspace(), ["status", "--json"], { VANTA_TELEGRAM_TOKEN: VALID_TOKEN }, deps)).toBe(1);
-    const report = JSON.parse(deps.lines.join("\n")) as { ready: boolean; secret: { ready: boolean }; telegram: { token: string }; next: string[] };
+    const report = JSON.parse(deps.lines.join("\n")) as { ready: boolean; secret: { ready: boolean }; telegram: { token: string; tokenDiagnostic: string }; next: string[] };
     expect(report.ready).toBe(false);
     expect(report.secret.ready).toBe(false);
     expect(report.telegram.token).toBe("valid-format");
+    expect(report.telegram.tokenDiagnostic).toBe("valid-format");
     expect(report.next.join("\n")).toContain("modal secret create vanta-gateway");
     expect(deps.lines.join("\n")).not.toContain(VALID_TOKEN);
+  });
+
+  it("explains invalid Telegram token shape without printing the token", async () => {
+    const deps = fixture({ run: control() });
+    const badToken = "placeholder-token";
+    expect(await runModalGatewayCommand(await workspace(), ["status"], {
+      VANTA_TELEGRAM_TOKEN: badToken,
+      VANTA_TELEGRAM_WEBHOOK_SECRET: "private-hook",
+    }, deps)).toBe(1);
+    const out = deps.lines.join("\n");
+    expect(out).toContain("token invalid-format (missing-colon)");
+    expect(out).toContain("valid BotFather token (diagnostic: missing-colon)");
+    expect(out).not.toContain(badToken);
+    expect(out).not.toContain("private-hook");
+  });
+
+  it("includes invalid Telegram token diagnostics in json without printing the token", async () => {
+    const deps = fixture({ run: control() });
+    const badToken = "abc:short";
+    expect(await runModalGatewayCommand(await workspace(), ["status", "--json"], {
+      VANTA_TELEGRAM_TOKEN: badToken,
+      VANTA_TELEGRAM_WEBHOOK_SECRET: "private-hook",
+    }, deps)).toBe(1);
+    const report = JSON.parse(deps.lines.join("\n")) as { telegram: { token: string; tokenDiagnostic: string }; next: string[] };
+    expect(report.telegram).toMatchObject({ token: "invalid-format", tokenDiagnostic: "bot-id-not-numeric" });
+    expect(report.next.join("\n")).toContain("diagnostic: bot-id-not-numeric");
+    expect(deps.lines.join("\n")).not.toContain(badToken);
+    expect(deps.lines.join("\n")).not.toContain("private-hook");
   });
 
   it("prints ready gateway status as json", async () => {
@@ -155,6 +184,7 @@ describe("Modal gateway command", () => {
     expect(await runModalGatewayCommand(await workspace(), ["register-telegram", "https://team--vanta-gateway.modal.run"], env, deps)).toBe(1);
     expect(fetch).not.toHaveBeenCalled();
     expect(deps.lines.join("\n")).toContain("valid BotFather");
+    expect(deps.lines.join("\n")).toContain("diagnostic: missing-colon");
     expect(deps.lines.join("\n")).not.toContain("placeholder-token");
   });
 

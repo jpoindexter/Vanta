@@ -14,7 +14,7 @@ import {
   type GatewayConfig,
   type ModalApp,
 } from "../exec/modal-gateway-state.js";
-import { buildGatewayStatus, statusNextLines, telegramTokenState } from "./modal-gateway-status.js";
+import { buildGatewayStatus, statusNextLines, telegramTokenDiagnostic, telegramTokenState } from "./modal-gateway-status.js";
 
 const exec = promisify(execFile);
 const HELPER = fileURLToPath(new URL("../exec/adapters/modal-gateway.py", import.meta.url));
@@ -97,11 +97,13 @@ async function status(input: StatusInput): Promise<number> {
     return report.ready ? 0 : 1;
   }
   const telegramToken = telegramTokenState(env.VANTA_TELEGRAM_TOKEN);
+  const tokenDiagnostic = telegramTokenDiagnostic(env.VANTA_TELEGRAM_TOKEN);
   const webhookSecret = env.VANTA_TELEGRAM_WEBHOOK_SECRET?.trim() ? "present" : "missing";
   log(appLine(cfg, state.app));
   log(secretLine(cfg, state.hasSecret));
   const registration = receipt?.telegramRegisteredAt ? `registered ${receipt.telegramRegisteredAt}` : "not registered";
-  log(`serverless gateway: Telegram endpoint ${receipt?.endpoint ?? "missing"} · ${registration} · token ${telegramToken} · webhook secret ${webhookSecret}`);
+  const diagnostic = telegramToken === "invalid-format" ? ` (${tokenDiagnostic})` : "";
+  log(`serverless gateway: Telegram endpoint ${receipt?.endpoint ?? "missing"} · ${registration} · token ${telegramToken}${diagnostic} · webhook secret ${webhookSecret}`);
   log(`serverless gateway: min 0 · scaledown ${cfg.scaledownSec}s · volume ${cfg.volume}`);
   for (const line of statusNextLines(cfg, state, receipt, env)) log(`serverless gateway: ${line}`);
   return report.ready ? 0 : 1;
@@ -180,7 +182,7 @@ async function telegramAccepted(response: Response, log: (line: string) => void)
 async function registerTelegram(input: RegisterInput): Promise<number> {
   const { repoRoot, endpointArg, env, deps, log } = input;
   if (telegramTokenState(env.VANTA_TELEGRAM_TOKEN) === "invalid-format") {
-    log("gateway register requires a valid BotFather VANTA_TELEGRAM_TOKEN");
+    log(`gateway register requires a valid BotFather VANTA_TELEGRAM_TOKEN (diagnostic: ${telegramTokenDiagnostic(env.VANTA_TELEGRAM_TOKEN)})`);
     return 1;
   }
   const ready = await registrationReady({ repoRoot, endpointArg, env, deps, log });
