@@ -164,6 +164,36 @@ function gateRunbook(gate: ExternalProofGate): string {
   ].join("\n");
 }
 
+const AGGREGATE_GATE_IDS = new Set(["RUN-ANYWHERE-V1-RELEASE-GATE", "HERMES-COMMERCE-TELEPHONY-SKILL-PACK"]);
+
+export function nextExternalProofGate(report: ExternalProofReadiness): ExternalProofGate | undefined {
+  return report.gates.find((gate) => !gate.ready && !AGGREGATE_GATE_IDS.has(gate.roadmapCardId))
+    ?? report.gates.find((gate) => !gate.ready);
+}
+
+function nextGateReadme(gate: ExternalProofGate | undefined): string {
+  if (!gate) return "# Next External Proof\n\nAll external proof gates are ready. Run `vanta roadmap proof-accept --all-ready`.\n";
+  return [
+    "# Next External Proof",
+    "",
+    `${gate.roadmapCardId} — ${gate.label}`,
+    "",
+    `Receipt: \`${gate.receiptPath}\``,
+    "",
+    "## Why This Is Next",
+    "",
+    gate.evidence,
+    "",
+    "## Do This",
+    "",
+    ...gate.nextActions.map((action, index) => `${index + 1}. ${action}`),
+    "",
+    "## Runbook",
+    "",
+    `See \`runbooks/${gate.roadmapCardId}.md\`.`,
+  ].join("\n");
+}
+
 function candidate(value: boolean): string { return value ? "candidate" : "missing"; }
 
 function spreadsheetGate(input: ExternalProofInputs): ExternalProofGate {
@@ -292,6 +322,7 @@ export async function writeExternalProofPacket(repoRoot: string, outDir?: string
 
   await write("proof-status.json", JSON.stringify(report, null, 2));
   await write("checklist.md", formatExternalProofPacket(report));
+  await write("NEXT.md", nextGateReadme(nextExternalProofGate(report)));
   for (const gate of report.gates) await write(join("runbooks", `${gate.roadmapCardId}.md`), gateRunbook(gate));
   for (const cardId of ACCEPTANCE_PACKET_CARDS) {
     const template = externalProofAcceptanceTemplate(cardId);
@@ -303,6 +334,7 @@ export async function writeExternalProofPacket(repoRoot: string, outDir?: string
     "This folder is a local handoff packet for the remaining parked external-proof roadmap cards.",
     "",
     "- `proof-status.json` is the machine-readable current state.",
+    "- `NEXT.md` names the first external gate to clear and its immediate actions.",
     "- `checklist.md` is the operator checklist with receipt paths and next actions.",
     "- `runbooks/*.md` contains one executable handoff per external-proof gate.",
     "- `templates/*.json` are acceptance-packet skeletons for provider-backed commerce and telephony gates.",

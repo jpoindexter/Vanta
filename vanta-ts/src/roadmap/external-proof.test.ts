@@ -6,7 +6,7 @@ import type { PaymentReceipt } from "../payments/ledger.js";
 import type { RunAnywhereReadiness } from "../run-anywhere/readiness.js";
 import type { ShopifyReceipt } from "../shopify/receipts.js";
 import type { TelephonyReceipt } from "../telephony/receipts.js";
-import { assessExternalProofReadiness, externalProofAcceptanceTemplate, formatExternalProofAcceptanceTemplate, formatExternalProofReadiness, readExternalProofReadiness, writeExternalProofPacket } from "./external-proof.js";
+import { assessExternalProofReadiness, externalProofAcceptanceTemplate, formatExternalProofAcceptanceTemplate, formatExternalProofReadiness, nextExternalProofGate, readExternalProofReadiness, writeExternalProofPacket } from "./external-proof.js";
 
 function remote(ready: boolean): RunAnywhereReadiness {
   const ids = [
@@ -62,6 +62,11 @@ describe("external proof readiness", () => {
     expect(report.gates.every((gate) => gate.nextActions.length === 0)).toBe(true);
   });
 
+  it("selects the first non-ready leaf proof gate before aggregate release gates", () => {
+    const report = assessExternalProofReadiness({ runAnywhere: remote(false), payments: [], shopify: [], telephony: [] });
+    expect(nextExternalProofGate(report)?.roadmapCardId).toBe("BACKEND-SERVERLESS-LIVE");
+  });
+
   it("does not promote provider fixture candidates without external packets", () => {
     const report = assessExternalProofReadiness({
       runAnywhere: remote(false),
@@ -106,6 +111,7 @@ describe("external proof readiness", () => {
     const root = await mkdtemp(join(tmpdir(), "vanta-external-proof-export-"));
     const result = await writeExternalProofPacket(root, ".vanta/external-proofs/export-test");
     expect(result.files.map((file) => file.slice(result.dir.length + 1)).sort()).toEqual([
+      "NEXT.md",
       "README.md",
       "checklist.md",
       "proof-status.json",
@@ -125,6 +131,7 @@ describe("external proof readiness", () => {
     ]);
     const status = JSON.parse(await readFile(join(result.dir, "proof-status.json"), "utf8")) as { total: number; ready: boolean };
     expect(status).toMatchObject({ ready: false, total: 10 });
+    expect(await readFile(join(result.dir, "NEXT.md"), "utf8")).toContain("BACKEND-SERVERLESS-LIVE");
     expect(await readFile(join(result.dir, "templates", "HERMES-SHOPIFY-OPERATIONS.json"), "utf8")).toContain("\"roadmapCardId\": \"HERMES-SHOPIFY-OPERATIONS\"");
     expect(await readFile(join(result.dir, "runbooks", "HERMES-SHOPIFY-OPERATIONS.md"), "utf8")).toContain("vanta roadmap proof-accept HERMES-SHOPIFY-OPERATIONS");
   });
