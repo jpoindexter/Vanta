@@ -51,7 +51,7 @@ describe("parseStylesheet", () => {
     const r = parseStylesheet("* { model: haiku; reasoning_effort: turbo }");
     expect(r.ok).toBe(false);
     if (r.ok) return;
-    expect(r.error).toContain("low, medium, high, max");
+    expect(r.error).toContain("low, medium, high, xhigh, max");
     expect(r.error).toContain("turbo");
   });
 

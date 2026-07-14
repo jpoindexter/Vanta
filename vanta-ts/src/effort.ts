@@ -1,6 +1,7 @@
 import { EFFORT_LEVELS, type EffortLevel } from "./types.js";
 
 export const DEFAULT_EFFORT_LEVEL: EffortLevel = "medium";
+const EFFORT_LEVEL_HELP = EFFORT_LEVELS.join(", ");
 
 export function isEffortLevel(value: string): value is EffortLevel {
   return (EFFORT_LEVELS as readonly string[]).includes(value);
@@ -24,7 +25,7 @@ export function parseEffortFlag(
     }
     const value = args[i + 1];
     if (!value || !isEffortLevel(value)) {
-      return { rest: args, env, error: "--effort must be one of: low, medium, high, max" };
+      return { rest: args, env, error: `--effort must be one of: ${EFFORT_LEVEL_HELP}` };
     }
     nextEnv.VANTA_EFFORT_LEVEL = value;
     i++;

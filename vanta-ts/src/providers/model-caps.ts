@@ -25,7 +25,7 @@ const BLOCKS: Array<{ prefixes: string[]; blocks: ModelCapability[] }> = [
 // Prefix patterns that explicitly SUPPORT a capability (overrides default false).
 const ALLOWS: Array<{ prefixes: string[]; allows: ModelCapability[] }> = [
   {
-    prefixes: ["o1", "o3", "o4"],
+    prefixes: ["o1", "o3", "o4", "gpt-5"],
     allows: ["reasoning_effort"],
   },
   {

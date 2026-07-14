@@ -26,7 +26,7 @@ const ULTRATHINK_WORD = /\bultrathink\b/i;
 // Global variant for strip — removes every standalone occurrence in one pass.
 const ULTRATHINK_WORD_GLOBAL = /\bultrathink\b/gi;
 
-// The max effort level — the ceiling of the `low|medium|high|max` vocabulary
+// The max effort level — the ceiling of the `low|medium|high|xhigh|max` vocabulary
 // (types.ts EFFORT_LEVELS). `/ultrathink` engages maximum reasoning depth; the
 // keyword path resolves to the SAME max effort the level system already maps
 // (providers/effort.ts: 32000-token thinking budget / reasoning_effort:"max").

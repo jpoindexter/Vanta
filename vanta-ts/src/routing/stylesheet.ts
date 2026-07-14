@@ -9,7 +9,7 @@
 //
 // `*` is the universal rule (the default for any task class). `.<name>` rules
 // target a named task class. Declarations: `model` (a VANTA_MODEL value) and
-// `reasoning_effort` (one of Vanta's effort levels: low|medium|high|max).
+// `reasoning_effort` (one of Vanta's effort levels: low|medium|high|xhigh|max).
 //
 // This module is PURE: it parses untrusted env-driven config (validated) and
 // resolves a style; it touches no provider and has no side effects.
@@ -21,7 +21,7 @@ import { isEffortLevel } from "../effort.js";
 export type ResolvedStyle = {
   /** Model id for the task class (a VANTA_MODEL value). */
   model: string;
-  /** Effort level mapped onto Vanta's existing low|medium|high|max levels. */
+  /** Effort level mapped onto Vanta's existing low|medium|high|xhigh|max levels. */
   effort: EffortLevel;
   /**
    * Ordered fallback chain. The first entry is the resolved (class) rule; later

@@ -15,7 +15,7 @@ describe("adaptive effort vocabulary", () => {
   });
 
   it("leaves the core fixed levels unchanged (additive only)", () => {
-    expect(EFFORT_LEVELS).toEqual(["low", "medium", "high", "max"]);
+    expect(EFFORT_LEVELS).toEqual(["low", "medium", "high", "xhigh", "max"]);
     // the fixed set is a prefix of the extended set — nothing reordered/removed
     expect(ADAPTIVE_EFFORT_LEVELS.slice(0, EFFORT_LEVELS.length)).toEqual([
       ...EFFORT_LEVELS,

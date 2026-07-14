@@ -1,5 +1,5 @@
 // VANTA-EFFORT-INDICATOR — a compact, pure status indicator for the active
-// reasoning-effort level (low|medium|high|max, plus the additive "adaptive").
+// reasoning-effort level (low|medium|high|xhigh|max, plus the additive "adaptive").
 // Pure glyph + label + visibility helpers only: the live status row
 // (ui/status-bar.tsx) would render formatEffortIndicator(level) as a chip at the
 // EFFORT slot (next to model/ctx), gated on effortIndicatorVisible(level, env) so
@@ -24,6 +24,7 @@ const EFFORT_GLYPHS: Record<AdaptiveEffortLevel, string> = {
   low: GLYPHS.ring, // ○ empty — least budget
   medium: GLYPHS.halfRing, // ◐ half — default budget
   high: GLYPHS.bullet, // ● full — high budget
+  xhigh: "◈", // filled diamond with center — extra-high budget
   max: "◆", // filled diamond — max budget
   [ADAPTIVE_LEVEL]: "◇", // hollow diamond — model self-budgets
 };

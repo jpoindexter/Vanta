@@ -8,8 +8,14 @@ describe("resolveContextWindow", () => {
     expect(resolveContextWindow("gpt-5.6-terra", env)).toBe(1_050_000);
     expect(resolveContextWindow("gpt-5.6-luna", env)).toBe(1_050_000);
     expect(resolveContextWindow("gpt-5.5-pro", env)).toBe(1_050_000);
-    expect(resolveContextWindow("gpt-5.4-nano", env)).toBe(1_050_000);
+    expect(resolveContextWindow("gpt-5.4", env)).toBe(1_050_000);
+    expect(resolveContextWindow("gpt-5.4-mini", env)).toBe(400_000);
+    expect(resolveContextWindow("gpt-5.4-nano", env)).toBe(400_000);
     expect(resolveContextWindow("gpt-5.3-codex", env)).toBe(400_000);
+    expect(resolveContextWindow("gpt-5.2", env)).toBe(400_000);
+    expect(resolveContextWindow("gpt-5.2-codex", env)).toBe(400_000);
+    expect(resolveContextWindow("gpt-5.1", env)).toBe(400_000);
+    expect(resolveContextWindow("gpt-5-mini", env)).toBe(400_000);
   });
 
   it("maps MiniMax-M3 to 1M (not the 32k default)", () => {

@@ -47,6 +47,32 @@ describe("desktop provider aliases", () => {
       "gpt-5.4-mini",
       "gpt-5.4-nano",
       "gpt-5.3-codex",
+      "gpt-5.2",
+      "gpt-5.2-pro",
+      "gpt-5.1",
+      "gpt-5",
+      "gpt-5-pro",
+      "gpt-5-mini",
+      "gpt-5-nano",
+      "o3-pro",
+    ]));
+  });
+
+  it("lists current Codex subscription agent models", () => {
+    const codex = desktopProviderOptions({ VANTA_HOME: home }).find((option) => option.id === "codex");
+
+    expect(codex?.models).toEqual(expect.arrayContaining([
+      "gpt-5.6-sol",
+      "gpt-5.6-terra",
+      "gpt-5.6-luna",
+      "gpt-5.3-codex",
+      "gpt-5.3-codex-spark",
+      "gpt-5.2-codex",
+      "gpt-5.1-codex-max",
+      "gpt-5.1-codex",
+      "gpt-5.1-codex-mini",
+      "gpt-5-codex",
+      "gpt-5-codex-mini",
     ]));
   });
 

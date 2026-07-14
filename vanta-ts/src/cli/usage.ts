@@ -3,7 +3,7 @@ const USAGE_LINES = [
       "The bar is finishing real tasks reliably and unattended, not feature count.",
       "",
       "Usage: vanta                              start an interactive session",
-      "       vanta --effort <low|medium|high|max>   set model effort for this session",
+      "       vanta --effort <low|medium|high|xhigh|max>   set model effort for this session",
       "       vanta home                         operator home: workflows, channels, tasks, memory, setup",
       "       vanta command-center               Life OS dashboards: today, money, projects, sales, learning, reflection",
       "       vanta what-can-i-do [--check|--fresh-workspace-check|--fresh-context-review|--demo <id>|--review-packet]   show workflows / proofs",

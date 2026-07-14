@@ -12,7 +12,7 @@ Vanta is model-agnostic. The agent loop only sees the `LLMProvider` interface, s
 
 | `VANTA_PROVIDER` | Notes |
 |------------------|-------|
-| `openai` | OpenAI API; o-series gets `reasoning_effort` from the effort level |
+| `openai` | OpenAI API; GPT-5 and o-series models get `reasoning_effort` from the effort level |
 | `ollama` | Local models, no API key — the default (`qwen2.5:14b`) |
 | `anthropic` | Anthropic Claude models; thinking-capable models use extended thinking on high/max effort |
 | `gemini` | Google, via the OpenAI-compatible adapter (baseURL swap) |
@@ -26,7 +26,9 @@ Set it interactively with `vanta setup`, or edit `vanta-ts/.env`.
 
 ### Current OpenAI models
 
-Vanta's OpenAI API and ChatGPT-subscription Codex pickers include the current GPT-5.6 family: `gpt-5.6-sol` (the default for difficult coding and research), `gpt-5.6-terra` (balanced everyday work), and `gpt-5.6-luna` (fast, repeatable work). Older models remain selectable for compatibility. The picker is curated rather than an access-control boundary: type any model ID your account can use when it is not shown.
+Vanta's OpenAI API and ChatGPT-subscription Codex pickers include the current GPT-5.6 family: `gpt-5.6-sol` (the default for difficult coding and research), `gpt-5.6-terra` (balanced everyday work), and `gpt-5.6-luna` (fast, repeatable work). The OpenAI API picker also includes current API-key models such as `gpt-5.3-codex`, `gpt-5.2`, `gpt-5.2-pro`, `gpt-5.1`, `gpt-5`, `gpt-5-pro`, `gpt-5-mini`, `gpt-5-nano`, and `o3-pro`. The Codex subscription picker keeps Codex-agent models under the OAuth-backed `codex` provider, including `gpt-5.3-codex`, `gpt-5.3-codex-spark`, `gpt-5.2-codex`, `gpt-5.1-codex-max`, `gpt-5.1-codex`, `gpt-5.1-codex-mini`, `gpt-5-codex`, and `gpt-5-codex-mini`.
+
+The picker is curated rather than an access-control boundary: type any model ID your account can use when it is not shown.
 
 ## Session vs default model
 
@@ -68,9 +70,9 @@ Template: `vanta-ts/providers.json.example`.
 
 ## Effort levels
 
-`VANTA_EFFORT_LEVEL` (or `/effort <level>` live) is `low | medium | high | max`:
+`VANTA_EFFORT_LEVEL` (or `/effort <level>` live) is `low | medium | high | xhigh | max`:
 
-- **OpenAI o-series** — maps to `reasoning_effort` for low/high/max.
+- **OpenAI GPT-5 and o-series** — maps to `reasoning_effort` for low/high/xhigh/max when the selected model supports it.
 - **Anthropic** — high/max enable extended thinking (8k / 32k budget tokens); low caps `max_tokens`.
 
 ## Multimodal

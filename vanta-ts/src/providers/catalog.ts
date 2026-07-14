@@ -45,6 +45,55 @@ const ANTHROPIC_MODELS = [
   "claude-opus-4-1",
 ];
 
+const OPENAI_API_MODELS = [
+  "gpt-5.6",
+  "gpt-5.6-sol",
+  "gpt-5.6-terra",
+  "gpt-5.6-luna",
+  "gpt-5.5",
+  "gpt-5.5-pro",
+  "gpt-5.4",
+  "gpt-5.4-pro",
+  "gpt-5.4-mini",
+  "gpt-5.4-nano",
+  "gpt-5.3-codex",
+  "gpt-5.2",
+  "gpt-5.2-pro",
+  "gpt-5.1",
+  "gpt-5",
+  "gpt-5-pro",
+  "gpt-5-mini",
+  "gpt-5-nano",
+  "gpt-4.1",
+  "gpt-4.1-mini",
+  "gpt-4.1-nano",
+  "gpt-4o",
+  "gpt-4o-mini",
+  "o3-pro",
+  "o3",
+  "o4-mini",
+  "o3-mini",
+  "gpt-4-turbo",
+  "gpt-3.5-turbo",
+];
+
+const CODEX_SUBSCRIPTION_MODELS = [
+  "gpt-5.6-sol",
+  "gpt-5.6-terra",
+  "gpt-5.6-luna",
+  "gpt-5.5",
+  "gpt-5.4",
+  "gpt-5.4-mini",
+  "gpt-5.3-codex",
+  "gpt-5.3-codex-spark",
+  "gpt-5.2-codex",
+  "gpt-5.1-codex-max",
+  "gpt-5.1-codex",
+  "gpt-5.1-codex-mini",
+  "gpt-5-codex",
+  "gpt-5-codex-mini",
+];
+
 export const PROVIDER_CATALOG: ProviderEntry[] = [
   {
     id: "gemini",
@@ -69,31 +118,9 @@ export const PROVIDER_CATALOG: ProviderEntry[] = [
     short: "OpenAI",
     envVar: "OPENAI_API_KEY",
     defaultModel: "gpt-5.6-sol",
-    models: [
-      "gpt-5.6",
-      "gpt-5.6-sol",
-      "gpt-5.6-terra",
-      "gpt-5.6-luna",
-      "gpt-5.5",
-      "gpt-5.5-pro",
-      "gpt-5.4",
-      "gpt-5.4-pro",
-      "gpt-5.4-mini",
-      "gpt-5.4-nano",
-      "gpt-5.3-codex",
-      "gpt-4o",
-      "gpt-4o-mini",
-      "gpt-4.1",
-      "gpt-4.1-mini",
-      "gpt-4.1-nano",
-      "o3",
-      "o4-mini",
-      "o3-mini",
-      "gpt-4-turbo",
-      "gpt-3.5-turbo",
-    ],
+    models: OPENAI_API_MODELS,
     signupUrl: "https://platform.openai.com/api-keys",
-    note: "GPT-5.6 Sol for complex coding; GPT-5.4 mini/nano for lower-latency work; GPT-5.3 Codex for agentic coding",
+    note: "GPT-5.6 Sol for complex coding; GPT-5.6 Terra/Luna for lower cost; GPT-5.3 Codex for agentic coding",
   },
   {
     id: "anthropic",
@@ -136,12 +163,12 @@ export const PROVIDER_CATALOG: ProviderEntry[] = [
     short: "Codex (sub)",
     envVar: null,
     defaultModel: "gpt-5.6-sol",
-    models: ["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.4", "gpt-5.4-mini", "gpt-5.3-codex-spark"],
+    models: CODEX_SUBSCRIPTION_MODELS,
     // Model guidance (OpenAI Codex docs, verified 2026-07): GPT-5.6 Sol is the
     // default flagship; Terra is the balanced everyday option; Luna suits clear,
-    // repeatable work. GPT-5.5 is now previous-generation; 5.4-mini remains a
-    // responsive subagent choice and 5.3 Codex Spark is text-only and Pro-only.
-    note: "needs `codex login` (ChatGPT Plus/Pro); Responses API. Default GPT-5.6 Sol for difficult coding; Terra for everyday work; Luna for repeatable tasks; gpt-5.4-mini for responsive subagents.",
+    // repeatable work. The Codex changelog documents the agentic Codex line
+    // separately from API-key access, so keep these slugs under this provider.
+    note: "needs `codex login` (ChatGPT Plus/Pro); Responses API. Includes current GPT-5.6 choices plus Codex agent models such as GPT-5.3 Codex and Codex Spark.",
   },
   {
     id: "ollama",

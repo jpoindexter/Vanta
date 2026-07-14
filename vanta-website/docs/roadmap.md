@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1191 capabilities shipped · 0 in flight · 0 on the horizon. Updated 2026-07-13._
+_1191 capabilities shipped · 0 in flight · 0 on the horizon. Updated 2026-07-14._
 
 ## In flight
 
@@ -20,11 +20,11 @@ _Nothing in flight right now — see the horizon below._
 
 The latest of 1191+ capabilities. See the [changelog](./changelog) for curated milestones.
 
+- **provider model selection — verify + document which model to use** — Harness · 2026-07-14
+- **Remote model-catalog manifest with fallback chain** — Extensibility · 2026-07-14
 - **Real use-case acceptance — prove Vanta completes operator outcomes** — Release · 2026-07-13
 - **Desktop operator flows v1 — capabilities, channels, artifacts, settings** — Operator · 2026-07-13
 - **Desktop user-flow reset - one dependable work loop** — Operator · 2026-07-13
-- **provider model selection — verify + document which model to use** — Harness · 2026-07-13
-- **Remote model-catalog manifest with fallback chain** — Extensibility · 2026-07-13
 - **Multi-channel LIVE — 5+ platforms from one gateway (Telegram · WhatsApp · Signal · Discord · Slack)** — Operator · 2026-07-13
 - **External proof readiness - one release status for all parked gates** — Harness · 2026-07-13
 - **Desktop session management — rename, archive, restore, and delete conversations** — Operator · 2026-07-13

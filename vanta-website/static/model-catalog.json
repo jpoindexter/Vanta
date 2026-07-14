@@ -36,11 +36,19 @@
         "gpt-5.4-mini",
         "gpt-5.4-nano",
         "gpt-5.3-codex",
-        "gpt-4o",
-        "gpt-4o-mini",
+        "gpt-5.2",
+        "gpt-5.2-pro",
+        "gpt-5.1",
+        "gpt-5",
+        "gpt-5-pro",
+        "gpt-5-mini",
+        "gpt-5-nano",
         "gpt-4.1",
         "gpt-4.1-mini",
         "gpt-4.1-nano",
+        "gpt-4o",
+        "gpt-4o-mini",
+        "o3-pro",
         "o3",
         "o4-mini",
         "o3-mini",
@@ -48,7 +56,7 @@
         "gpt-3.5-turbo"
       ],
       "signupUrl": "https://platform.openai.com/api-keys",
-      "note": "GPT-5.6 Sol for complex coding; GPT-5.4 mini/nano for lower-latency work; GPT-5.3 Codex for agentic coding"
+      "note": "GPT-5.6 Sol for complex coding; GPT-5.6 Terra/Luna for lower cost; GPT-5.3 Codex for agentic coding"
     },
     {
       "id": "anthropic",
@@ -110,9 +118,16 @@
         "gpt-5.5",
         "gpt-5.4",
         "gpt-5.4-mini",
-        "gpt-5.3-codex-spark"
+        "gpt-5.3-codex",
+        "gpt-5.3-codex-spark",
+        "gpt-5.2-codex",
+        "gpt-5.1-codex-max",
+        "gpt-5.1-codex",
+        "gpt-5.1-codex-mini",
+        "gpt-5-codex",
+        "gpt-5-codex-mini"
       ],
-      "note": "needs `codex login` (ChatGPT Plus/Pro); Responses API. Default GPT-5.6 Sol for difficult coding; Terra for everyday work; Luna for repeatable tasks; gpt-5.4-mini for responsive subagents."
+      "note": "needs `codex login` (ChatGPT Plus/Pro); Responses API. Includes current GPT-5.6 choices plus Codex agent models such as GPT-5.3 Codex and Codex Spark."
     },
     {
       "id": "ollama",

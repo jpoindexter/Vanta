@@ -94,8 +94,9 @@ describe("config-view — grouping + actions", () => {
 });
 
 describe("config-view — pure cyclers", () => {
-  it("nextEffort cycles low→medium→high→max→low", () => {
+  it("nextEffort cycles low→medium→high→xhigh→max→low", () => {
     expect(nextEffort("low")).toBe("medium");
+    expect(nextEffort("high")).toBe("xhigh");
     expect(nextEffort("max")).toBe("low");
   });
 

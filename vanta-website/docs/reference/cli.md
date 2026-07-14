@@ -27,7 +27,7 @@ Run from the repo with `./run.sh` (alias `./vanta`), or globally as `vanta` afte
 | `vanta sessions` | List saved sessions |
 | `vanta --init` / `--init-only` / `--maintenance` | Run Setup / SessionStart lifecycle hooks |
 | `vanta maintenance [status\|queue\|resolve\|docs\|budget]` | Review human blockers, documentation-router health, and the maintenance budget |
-| `vanta --effort <low\|medium\|high\|max>` | Set reasoning effort |
+| `vanta --effort <low\|medium\|high\|xhigh\|max>` | Set reasoning effort |
 | `vanta --permission-mode auto\|default` | Permission mode |
 
 ## Knowledge & projects

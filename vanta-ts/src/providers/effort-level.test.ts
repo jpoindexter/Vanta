@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildAnthropicEffortParams, buildOpenAIEffortParams } from "./effort.js";
 import type { EffortLevel } from "../types.js";
 
-const LEVELS: EffortLevel[] = ["low", "medium", "high", "max"];
+const LEVELS: EffortLevel[] = ["low", "medium", "high", "xhigh", "max"];
 
 describe("OpenAI effort mapping", () => {
   it("maps low/high/max to reasoning_effort and leaves medium unchanged", () => {
@@ -11,8 +11,14 @@ describe("OpenAI effort mapping", () => {
       { reasoning_effort: "low" },
       {},
       { reasoning_effort: "high" },
+      { reasoning_effort: "xhigh" },
       { reasoning_effort: "max" },
     ]);
+  });
+
+  it("maps GPT-5 effort controls to reasoning_effort", () => {
+    expect(buildOpenAIEffortParams("gpt-5.6-sol", { effortLevel: "xhigh" })).toEqual({ reasoning_effort: "xhigh" });
+    expect(buildOpenAIEffortParams("gpt-5.3-codex", { effortLevel: "high" })).toEqual({ reasoning_effort: "high" });
   });
 
   it("skips unsupported OpenAI models with a debug message", () => {
@@ -32,6 +38,7 @@ describe("Anthropic effort mapping", () => {
       { max_tokens: 4096 },
       {},
       { max_tokens: 9024, thinking: { type: "enabled", budget_tokens: 8000 } },
+      {},
       { max_tokens: 33024, thinking: { type: "enabled", budget_tokens: 32000 } },
     ]);
   });

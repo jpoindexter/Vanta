@@ -8,7 +8,7 @@ describe("isEffortLevel", () => {
   });
 
   it("rejects non-level strings", () => {
-    for (const value of ["", "xhigh", "maximum", "HIGH", "low "]) {
+    for (const value of ["", "maximum", "HIGH", "low "]) {
       expect(isEffortLevel(value)).toBe(false);
     }
   });
@@ -19,12 +19,12 @@ describe("resolveEffortLevel", () => {
     expect(resolveEffortLevel("low")).toBe("low");
     expect(resolveEffortLevel("medium")).toBe("medium");
     expect(resolveEffortLevel("high")).toBe("high");
+    expect(resolveEffortLevel("xhigh")).toBe("xhigh");
     expect(resolveEffortLevel("max")).toBe("max");
   });
 
   it("falls back to medium for invalid or missing values", () => {
     expect(resolveEffortLevel(undefined)).toBe(DEFAULT_EFFORT_LEVEL);
-    expect(resolveEffortLevel("xhigh")).toBe(DEFAULT_EFFORT_LEVEL);
     expect(resolveEffortLevel(1)).toBe(DEFAULT_EFFORT_LEVEL);
   });
 });
@@ -46,7 +46,7 @@ describe("parseEffortFlag", () => {
   });
 
   it("errors on invalid or missing values", () => {
-    expect(parseEffortFlag(["--effort", "xhigh"], {}).error).toContain("low, medium, high, max");
-    expect(parseEffortFlag(["--effort"], {}).error).toContain("low, medium, high, max");
+    expect(parseEffortFlag(["--effort", "turbo"], {}).error).toContain("low, medium, high, xhigh, max");
+    expect(parseEffortFlag(["--effort"], {}).error).toContain("low, medium, high, xhigh, max");
   });
 });

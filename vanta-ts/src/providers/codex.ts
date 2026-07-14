@@ -16,11 +16,18 @@ const CODEX_CONTEXT: Record<string, number> = {
   "gpt-5.6-terra": 1_050_000,
   "gpt-5.6-luna": 1_050_000,
   "gpt-5.6": 1_050_000,
-  "gpt-5.5": 272_000,
-  "gpt-5.4": 272_000,
-  "gpt-5.4-mini": 272_000,
+  "gpt-5.5": 1_050_000,
+  "gpt-5.4": 1_050_000,
+  "gpt-5.4-mini": 400_000,
   "codex-auto-review": 272_000,
+  "gpt-5.3-codex": 400_000,
   "gpt-5.3-codex-spark": 128_000,
+  "gpt-5.2-codex": 400_000,
+  "gpt-5.1-codex-max": 400_000,
+  "gpt-5.1-codex": 400_000,
+  "gpt-5.1-codex-mini": 400_000,
+  "gpt-5-codex": 400_000,
+  "gpt-5-codex-mini": 400_000,
 };
 
 export type CodexProviderOpts = {

@@ -151,7 +151,7 @@ export function configSummary(state: ConfigState): string {
   return `effort ${state.effort} · ${state.outputStyle} · ${on}/${GATE_KEYS.length} gates`;
 }
 
-/** Cycle an effort level low→medium→high→max→low. Pure. */
+/** Cycle an effort level low→medium→high→xhigh→max→low. Pure. */
 export function nextEffort(current: EffortLevel): EffortLevel {
   const i = EFFORT_LEVELS.indexOf(current);
   return EFFORT_LEVELS[(i + 1) % EFFORT_LEVELS.length]!;

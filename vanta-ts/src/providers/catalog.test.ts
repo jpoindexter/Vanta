@@ -17,6 +17,13 @@ describe("modelSupports", () => {
     expect(modelSupports("o4-mini", "reasoning_effort")).toBe(true);
   });
 
+  it("returns true for reasoning_effort on GPT-5 models", () => {
+    expect(modelSupports("gpt-5.6-sol", "reasoning_effort")).toBe(true);
+    expect(modelSupports("gpt-5.4-mini", "reasoning_effort")).toBe(true);
+    expect(modelSupports("gpt-5.3-codex", "reasoning_effort")).toBe(true);
+    expect(modelSupports("gpt-5.2-codex", "reasoning_effort")).toBe(true);
+  });
+
   it("returns false for reasoning_effort on non-o-series models", () => {
     expect(modelSupports("gpt-4o", "reasoning_effort")).toBe(false);
     expect(modelSupports("claude-sonnet-4-6", "reasoning_effort")).toBe(false);
@@ -63,5 +70,34 @@ describe("PROVIDER_CATALOG", () => {
         "gpt-5.6-luna",
       ]));
     }
+  });
+
+  it("keeps current API-key and Codex-subscription model choices separate", () => {
+    const openai = PROVIDER_CATALOG.find((entry) => entry.id === "openai");
+    const codex = PROVIDER_CATALOG.find((entry) => entry.id === "codex");
+
+    expect(openai?.models).toEqual(expect.arrayContaining([
+      "gpt-5.3-codex",
+      "gpt-5.2",
+      "gpt-5.2-pro",
+      "gpt-5.1",
+      "gpt-5",
+      "gpt-5-pro",
+      "gpt-5-mini",
+      "gpt-5-nano",
+      "o3-pro",
+    ]));
+    expect(openai?.models).not.toContain("gpt-5.3-codex-spark");
+
+    expect(codex?.models).toEqual(expect.arrayContaining([
+      "gpt-5.3-codex",
+      "gpt-5.3-codex-spark",
+      "gpt-5.2-codex",
+      "gpt-5.1-codex-max",
+      "gpt-5.1-codex",
+      "gpt-5.1-codex-mini",
+      "gpt-5-codex",
+      "gpt-5-codex-mini",
+    ]));
   });
 });

@@ -22,7 +22,7 @@ An interactive session exposes **125 slash commands**. `/help` lists them all; b
 | Command | Does |
 |---------|------|
 | `/model [id]` | Show or hot-swap the model (persists to `.env`) |
-| `/effort <low\|medium\|high\|max>` | Set reasoning effort live |
+| `/effort <low\|medium\|high\|xhigh\|max>` | Set reasoning effort live |
 | `/usage` | Per-session cost; `/usage breakdown` shows actual model/provider/base routes, fallbacks, tokens, and billing status |
 | `/model [provider] [model] [--session\|--global]` | Switch this session by default; `--global` also changes the configured default |
 

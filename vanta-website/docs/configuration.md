@@ -22,7 +22,7 @@ This writes `VANTA_PROVIDER` + `VANTA_MODEL` to `vanta-ts/.env`. The default is 
 |----------|---------|
 | `VANTA_PROVIDER` | `openai` · `ollama` · `anthropic` · `gemini` · `openrouter` |
 | `VANTA_MODEL` | Model id for the chosen provider |
-| `VANTA_EFFORT_LEVEL` | `low` · `medium` · `high` · `max` (maps to reasoning effort / thinking budget) |
+| `VANTA_EFFORT_LEVEL` | `low` · `medium` · `high` · `xhigh` · `max` (maps to reasoning effort / thinking budget) |
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | Provider keys (only the one you use) |
 | `VANTA_OLLAMA_URL` | Local Ollama endpoint |
 | `VANTA_KERNEL_URL` | Kernel address (default `127.0.0.1:7788`) |

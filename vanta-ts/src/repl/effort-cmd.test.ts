@@ -14,13 +14,13 @@ describe("/effort", () => {
   it("shows the current level and usage when called without an arg", async () => {
     const result = await effort("", ctx());
     expect(result.output).toContain("effort medium");
-    expect(result.output).toContain("usage: /effort <low|medium|high|max>");
+    expect(result.output).toContain("usage: /effort <low|medium|high|xhigh|max>");
   });
 
   it("reports invalid args without mutating the context", async () => {
     const c = ctx();
-    const result = await effort("xhigh", c);
-    expect(result.output).toContain('invalid effort "xhigh"');
+    const result = await effort("turbo", c);
+    expect(result.output).toContain('invalid effort "turbo"');
     expect(c.state.effortLevel).toBe("medium");
     expect(c.setup.effortLevel).toBe("medium");
     expect(c.env.VANTA_EFFORT_LEVEL).toBeUndefined();

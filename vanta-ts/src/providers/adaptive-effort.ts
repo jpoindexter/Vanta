@@ -1,11 +1,11 @@
 // ADAPTIVE-EFFORT — an additive `"adaptive"` effort level that lets the model
 // self-budget its reasoning/effort for the turn, rather than the operator pinning
-// a fixed low|medium|high|max ceiling. Pure: vocabulary + a resolver that maps
+// a fixed low|medium|high|xhigh|max ceiling. Pure: vocabulary + a resolver that maps
 // "adaptive" to a self-budget DISPOSITION sentinel the provider layer can read,
 // defaulting safely to current behavior for any other (or unknown) input.
 //
 // Additive by construction: the core EFFORT_LEVELS tuple (types.ts:
-// low|medium|high|max) is NOT touched — those levels resolve exactly as today.
+// low|medium|high|xhigh|max) is NOT touched — those levels resolve exactly as today.
 // "adaptive" is a SUPERSET level carried alongside; only this module knows it.
 //
 // Intended provider read-point (NOT wired this round): providers/effort.ts
@@ -35,7 +35,7 @@ export type AdaptiveEffortLevel = EffortLevel | typeof ADAPTIVE_LEVEL;
  * - `{ kind: "self-budget" }` — the model decides its own effort this turn
  *   (the provider read-point should emit its "let the model decide" params).
  * - `{ kind: "fixed", level }` — a pinned ceiling (current behavior); `level`
- *   is one of low|medium|high|max.
+ *   is one of low|medium|high|xhigh|max.
  */
 export type EffortDisposition =
   | { kind: "self-budget" }
@@ -57,11 +57,11 @@ export function isAdaptiveEffortLevel(value: unknown): value is AdaptiveEffortLe
 /**
  * Resolve an effort level to a provider disposition. Pure, total.
  * - "adaptive" → self-budget sentinel (model decides).
- * - a fixed level (low|medium|high|max) → that pinned level (unchanged behavior).
+ * - a fixed level (low|medium|high|xhigh|max) → that pinned level (unchanged behavior).
  * - anything else (unknown / unset) → the safe default fixed level ("medium").
  *
  * Additive: fixed levels pass straight through, so existing callers that only
- * ever see low|medium|high|max behave exactly as before.
+ * ever see low|medium|high|xhigh|max behave exactly as before.
  */
 export function resolveAdaptiveEffort(level: unknown): EffortDisposition {
   if (isAdaptiveLevel(level)) return { kind: "self-budget" };
