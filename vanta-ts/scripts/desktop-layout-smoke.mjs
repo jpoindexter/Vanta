@@ -27,13 +27,21 @@ try {
   await page.locator(".kernel-status.ready").waitFor({ timeout: 30_000 });
   const emptyTypography = await page.locator(".empty-state h2").evaluate((heading) => {
     const computed = getComputedStyle(heading);
-    return { fontFamily: computed.fontFamily, fontSize: computed.fontSize, lineHeight: computed.lineHeight };
+    return {
+      fontFamily: computed.fontFamily,
+      fontSize: computed.fontSize,
+      fontWeight: computed.fontWeight,
+      lineHeight: computed.lineHeight,
+    };
   });
-  if (!/(SFMono|SF Mono|Menlo|monospace)/i.test(emptyTypography.fontFamily)) {
-    throw new Error(`Empty-state heading is not using the technical mono stack: ${emptyTypography.fontFamily}`);
+  if (!/(-apple-system|BlinkMacSystemFont|SF Pro Text)/i.test(emptyTypography.fontFamily)) {
+    throw new Error(`Empty-state heading is not using the native Codex UI stack: ${emptyTypography.fontFamily}`);
   }
-  if (Number.parseFloat(emptyTypography.fontSize) > 34) {
+  if (Number.parseFloat(emptyTypography.fontSize) > 28) {
     throw new Error(`Empty-state heading exceeds the workbench type ceiling: ${emptyTypography.fontSize}`);
+  }
+  if (Number.parseInt(emptyTypography.fontWeight, 10) > 500) {
+    throw new Error(`Empty-state heading is too heavy: ${emptyTypography.fontWeight}`);
   }
   if (process.env.VANTA_DESKTOP_EMPTY_SCREENSHOT) {
     await page.screenshot({ path: process.env.VANTA_DESKTOP_EMPTY_SCREENSHOT });
