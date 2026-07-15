@@ -1,8 +1,11 @@
 import { _electron as electron } from "playwright-core";
-import { resolve } from "node:path";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 
 const port = process.env.VANTA_DESKTOP_SMOKE_PORT ?? "7821";
 const executablePath = process.env.VANTA_DESKTOP_APP;
+const userData = await mkdtemp(join(tmpdir(), "vanta-desktop-layout-profile-"));
 const app = await electron.launch({
   ...(executablePath ? { executablePath } : {}),
   args: executablePath ? ["--project", resolve(process.cwd(), "..")] : ["desktop-app/electron/main.mjs"],
@@ -10,6 +13,7 @@ const app = await electron.launch({
   env: {
     ...process.env,
     VANTA_DESKTOP_PORT: port,
+    VANTA_DESKTOP_USER_DATA: userData,
     VANTA_DESKTOP_AUTOMATION: "1",
     OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "vanta-desktop-smoke-key",
     ELECTRON_DISABLE_SECURITY_WARNINGS: "1",
@@ -30,6 +34,10 @@ try {
   if (process.env.VANTA_DESKTOP_SHELL_SCREENSHOT) {
     await page.screenshot({ path: process.env.VANTA_DESKTOP_SHELL_SCREENSHOT });
   }
+  await page.locator(".app-titlebar").getByRole("button", { name: "Close inspector" }).click();
+  const inspectorClosed = await measure(page);
+  assertLayout(inspectorClosed, "inspector closed");
+  await page.locator(".app-titlebar").getByRole("button", { name: "Open contextual inspector" }).click();
   await page.locator(".composer").getByTitle("Change model").click();
   const modelDesktop = await measureModelPicker(page);
   assertModelPicker(modelDesktop, "desktop");
@@ -73,9 +81,10 @@ try {
   if (process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT) {
     await page.screenshot({ path: process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT });
   }
-  console.log(JSON.stringify({ viewport: "1778x1136", healthy, modelDesktop, recovery, files, modelCompact }));
+  console.log(JSON.stringify({ viewport: "1778x1136", healthy, inspectorClosed, modelDesktop, recovery, files, modelCompact }));
 } finally {
   await app.close();
+  await rm(userData, { recursive: true, force: true });
 }
 
 async function measureModelPicker(page) {
@@ -133,12 +142,18 @@ async function measure(page) {
       const element = document.querySelector(selector);
       if (!element) throw new Error(`Missing ${selector}`);
       const rect = element.getBoundingClientRect();
-      return { top: rect.top, bottom: rect.bottom, height: rect.height };
+      return { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height };
     };
     return {
+      viewportWidth: window.innerWidth,
       viewportHeight: window.innerHeight,
+      documentScrollWidth: document.documentElement.scrollWidth,
       documentScrollHeight: document.documentElement.scrollHeight,
+      hasRail: !!document.querySelector(".right-rail"),
+      root: box("#root"),
       shell: box(".app-shell"),
+      titlebar: box(".app-titlebar"),
+      workbench: box(".workbench"),
       stage: box(".conversation-stage"),
       thread: box(".chat-thread"),
       composer: box(".composer"),
@@ -148,7 +163,12 @@ async function measure(page) {
 
 function assertLayout(result, label) {
   const tolerance = 1;
+  if (result.documentScrollWidth > result.viewportWidth + tolerance) throw new Error(`${label}: document scrolls horizontally`);
   if (result.documentScrollHeight > result.viewportHeight + tolerance) throw new Error(`${label}: document scrolls`);
+  if (result.root.right < result.viewportWidth - tolerance) throw new Error(`${label}: root leaves empty right gutter`);
+  if (result.shell.right < result.viewportWidth - tolerance) throw new Error(`${label}: shell leaves empty right gutter`);
+  if (result.titlebar.right < result.viewportWidth - tolerance) throw new Error(`${label}: titlebar leaves empty right gutter`);
+  if (result.workbench.right < result.shell.right - tolerance && !result.hasRail) throw new Error(`${label}: workbench leaves empty right gutter without inspector`);
   if (result.shell.bottom > result.viewportHeight + tolerance) throw new Error(`${label}: shell exceeds viewport`);
   if (result.composer.top < 0 || result.composer.bottom > result.viewportHeight + tolerance) throw new Error(`${label}: composer is clipped`);
   if (result.stage.bottom > result.composer.top + tolerance) throw new Error(`${label}: conversation overlaps composer`);
