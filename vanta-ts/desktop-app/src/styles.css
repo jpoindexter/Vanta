@@ -118,13 +118,25 @@ h2 { margin: 14px 0 8px; font-size: 11px; letter-spacing: .08em; text-transform:
 
 .session-list { min-height: 0; align-content: start; display: grid; gap: 4px; overflow: auto; overscroll-behavior: contain; padding-right: 3px; }
 .session-row { position: relative; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) 30px; align-items: stretch; border-radius: 8px; }
+.session-row.selecting { grid-template-columns: 30px minmax(0, 1fr); }
 .session { min-width: 0; width: 100%; text-align: left; border: 0; border-radius: 8px; background: transparent; padding: 9px; display: grid; gap: 2px; }
 .session-row:hover, .session-row:focus-within { background: #353744; }
 .session-row.active { background: #393b49; box-shadow: inset 2px 0 var(--accent); }
+.session-row.selected { background: color-mix(in srgb, var(--accent) 16%, var(--raised)); }
 .session strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .session span { color: var(--faint); font-size: 11px; }
+.session-select { display: grid; place-items: center; min-width: 30px; cursor: pointer; }
+.session-select input { width: 15px; height: 15px; margin: 0; accent-color: var(--accent); }
 .session-menu-button { align-self: center; width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--faint); }
 .session-menu-button:hover, .session-menu-button[aria-expanded="true"] { background: var(--raised); color: var(--text); }
+.session-bulk-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); padding: 6px 7px; }
+.session-bulk-actions span, .session-bulk-status { color: var(--faint); font-size: 11px; }
+.session-bulk-actions span { flex: 1 0 100%; }
+.session-bulk-actions button { flex: 1 1 58px; min-height: 28px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; border: 1px solid var(--line); border-radius: 5px; background: var(--raised); color: var(--muted); padding: 4px 6px; font-size: 11px; }
+.session-bulk-actions button:hover:not(:disabled) { border-color: var(--line-strong); color: var(--text); }
+.session-bulk-actions button:disabled { opacity: .42; cursor: default; }
+.session-bulk-actions .danger { color: var(--danger); }
+.session-bulk-status { border-bottom: 1px solid var(--line); padding: 6px 7px; }
 .session-actions { position: absolute; z-index: 6; top: calc(100% + 3px); right: 3px; width: 148px; display: grid; gap: 2px; border: 1px solid var(--line-strong); border-radius: 7px; background: #30323f; box-shadow: 0 12px 28px #11131a80; padding: 4px; }
 .session-actions button { display: flex; align-items: center; gap: 7px; width: 100%; border: 0; border-radius: 5px; background: transparent; color: var(--text); padding: 7px; text-align: left; }
 .session-actions button:hover { background: #292929; }

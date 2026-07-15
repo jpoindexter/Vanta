@@ -111,9 +111,9 @@ The Files rail renders up to 220 raw paths with no filtering, grouping, search, 
 
 ### P2 - session management exists but lacks safety and feedback
 
-Rename, archive, restore, and delete are implemented in an overflow menu, but delete uses an immediate native confirmation rather than recoverable deletion. There is no optimistic pending state, completion feedback, undo, outside-click close, or durable archive/trash destination. See [chat.tsx](../vanta-ts/desktop-app/src/chat.tsx#L52-L105).
+Rename, archive, restore, delete, and bulk archive/delete are implemented in the session rail, but delete still uses a native confirmation rather than recoverable deletion. There is no optimistic pending state, undo, outside-click close, or durable archive/trash destination. See [chat.tsx](../vanta-ts/desktop-app/src/chat.tsx#L52-L140).
 
-**Required change:** archive immediately with an Undo toast; make delete move to a recoverable trash. Keep rename inline. Add explicit save/error feedback and keyboard/outside-click handling for the overflow menu.
+**Required change:** archive immediately with an Undo toast; make delete move to a recoverable trash. Keep rename inline and preserve the shipped bulk select path. Add explicit save/error feedback and keyboard/outside-click handling for the overflow menu.
 
 ### P2 - agent context and model scope are insufficiently legible
 

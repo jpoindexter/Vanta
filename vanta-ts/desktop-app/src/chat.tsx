@@ -21,12 +21,73 @@ type SessionSidebarProps = {
 
 export function SessionSidebar(props: SessionSidebarProps) {
   const [query, setQuery] = useState("");
+  const [selecting, setSelecting] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const [bulkStatus, setBulkStatus] = useState("");
   const sessions = useMemo(() => props.sessions.filter((session) => session.title.toLowerCase().includes(query.toLowerCase())), [props.sessions, query]);
   const active = sessions.filter((session) => !session.archived);
   const archived = sessions.filter((session) => session.archived);
   const projectSessions = active.slice(0, 3);
   const recentSessions = active.slice(3);
   const projectName = props.root?.split("/").filter(Boolean).at(-1) ?? "Current project";
+  const selectedSessions = useMemo(() => props.sessions.filter((session) => selected.has(session.id)), [props.sessions, selected]);
+
+  useEffect(() => {
+    setSelected((current) => {
+      const ids = new Set(props.sessions.map((session) => session.id));
+      const next = new Set([...current].filter((id) => ids.has(id)));
+      return next.size === current.size ? current : next;
+    });
+  }, [props.sessions]);
+
+  function toggleSelected(id: string) {
+    setBulkStatus("");
+    setSelected((current) => {
+      const next = new Set(current);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+  function startSelecting() {
+    setSelecting(true);
+    setBulkStatus("");
+  }
+  function stopSelecting() {
+    setSelecting(false);
+    setSelected(new Set());
+  }
+  async function archiveSelected(archivedState: boolean) {
+    const targets = [...selectedSessions];
+    if (!targets.length) return;
+    for (const session of targets) await props.onArchive(session.id, archivedState);
+    setBulkStatus(`${archivedState ? "Archived" : "Restored"} ${targets.length} session${targets.length === 1 ? "" : "s"}.`);
+    setSelected(new Set());
+    setSelecting(false);
+  }
+  async function deleteSelected() {
+    const targets = [...selectedSessions];
+    if (!targets.length) return;
+    if (!window.confirm(`Delete ${targets.length} selected session${targets.length === 1 ? "" : "s"} permanently? This cannot be undone.`)) return;
+    for (const session of targets) await props.onDelete(session.id);
+    setBulkStatus(`Deleted ${targets.length} session${targets.length === 1 ? "" : "s"}.`);
+    setSelected(new Set());
+    setSelecting(false);
+  }
+  const renderSession = (session: Session) => (
+    <SessionButton
+      key={session.id}
+      session={session}
+      active={session.id === props.activeId}
+      selecting={selecting}
+      selected={selected.has(session.id)}
+      onSelect={toggleSelected}
+      onOpen={props.onOpen}
+      onRename={props.onRename}
+      onArchive={props.onArchive}
+      onDelete={props.onDelete}
+    />
+  );
+
   return (
     <aside className="session-sidebar">
       <div className="drawer-toolbar"><span>Threads</span><button className="panel-dismiss" type="button" aria-label="Close sessions" onClick={props.onDismiss}><X size={16} /></button></div>
@@ -40,16 +101,21 @@ export function SessionSidebar(props: SessionSidebarProps) {
         <div className="section-heading project-heading"><h2>Projects</h2><button type="button" title="New task" aria-label="New task" onClick={props.onNew}><Plus size={14} /></button></div>
         <div className="project-row active"><span><FolderKanban size={15} />{projectName}</span><b>{projectSessions.length}</b></div>
         <div className="session-list project-session-group">
-          {projectSessions.map((s) => <SessionButton key={s.id} session={s} active={s.id === props.activeId} onOpen={props.onOpen} onRename={props.onRename} onArchive={props.onArchive} onDelete={props.onDelete} />)}
+          {projectSessions.map(renderSession)}
         </div>
-        <div className="section-heading recent-heading"><h2>Recent sessions</h2><span>{recentSessions.length}</span></div>
+        <div className="section-heading recent-heading">
+          <h2>Recent sessions</h2>
+          <div><span>{recentSessions.length}</span><button type="button" onClick={selecting ? stopSelecting : startSelecting}>{selecting ? "Cancel" : "Select"}</button></div>
+        </div>
         <label className="session-search"><Search size={14} /><span className="sr-only">Search sessions</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search sessions" /></label>
+        {selecting ? <BulkSessionActions count={selected.size} onArchive={() => void archiveSelected(true)} onRestore={() => void archiveSelected(false)} onDelete={() => void deleteSelected()} onCancel={stopSelecting} /> : null}
+        {bulkStatus ? <div className="session-bulk-status" role="status">{bulkStatus}</div> : null}
         <div className="session-list recent-session-group">
-          {recentSessions.map((s) => <SessionButton key={s.id} session={s} active={s.id === props.activeId} onOpen={props.onOpen} onRename={props.onRename} onArchive={props.onArchive} onDelete={props.onDelete} />)}
+          {recentSessions.map(renderSession)}
           {archived.length > 0 ? (
             <details className="archived-sessions">
               <summary>Archived <span>{archived.length}</span></summary>
-              <div>{archived.map((s) => <SessionButton key={s.id} session={s} active={s.id === props.activeId} onOpen={props.onOpen} onRename={props.onRename} onArchive={props.onArchive} onDelete={props.onDelete} />)}</div>
+              <div>{archived.map(renderSession)}</div>
             </details>
           ) : null}
           {recentSessions.length === 0 && projectSessions.length === 0 ? <p className="muted">{query ? "No matching sessions." : "No saved sessions yet."}</p> : null}
@@ -60,9 +126,25 @@ export function SessionSidebar(props: SessionSidebarProps) {
   );
 }
 
+function BulkSessionActions(props: { count: number; onArchive: () => void; onRestore: () => void; onDelete: () => void; onCancel: () => void }) {
+  const disabled = props.count === 0;
+  return (
+    <div className="session-bulk-actions" role="toolbar" aria-label="Selected session actions">
+      <span>{props.count} selected</span>
+      <button type="button" disabled={disabled} onClick={props.onArchive}><Archive size={13} />Archive</button>
+      <button type="button" disabled={disabled} onClick={props.onRestore}><ArchiveRestore size={13} />Restore</button>
+      <button className="danger" type="button" disabled={disabled} onClick={props.onDelete}><Trash2 size={13} />Delete</button>
+      <button type="button" onClick={props.onCancel}><X size={13} />Done</button>
+    </div>
+  );
+}
+
 function SessionButton(props: {
   session: Session;
   active: boolean;
+  selecting?: boolean;
+  selected?: boolean;
+  onSelect?: (id: string) => void;
   onOpen: (id: string) => void;
   onRename: (id: string, title: string) => void | Promise<void>;
   onArchive: (id: string, archived: boolean) => void | Promise<void>;
@@ -72,7 +154,7 @@ function SessionButton(props: {
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(props.session.title);
   const inputRef = useRef<HTMLInputElement>(null);
-  const className = props.active ? "session-row active" : "session-row";
+  const className = `${props.active ? "session-row active" : "session-row"}${props.selecting ? " selecting" : ""}${props.selected ? " selected" : ""}`;
 
   useEffect(() => { setTitle(props.session.title); }, [props.session.title]);
   useEffect(() => { if (editing) inputRef.current?.focus(); }, [editing]);
@@ -104,11 +186,12 @@ function SessionButton(props: {
         </form>
       ) : (
         <>
-          <button className="session" type="button" onClick={() => props.onOpen(props.session.id)}>
+          {props.selecting ? <label className="session-select" title={`Select ${props.session.title}`}><input type="checkbox" checked={!!props.selected} onChange={() => props.onSelect?.(props.session.id)} /><span className="sr-only">Select {props.session.title}</span></label> : null}
+          <button className="session" type="button" onClick={() => props.selecting ? props.onSelect?.(props.session.id) : props.onOpen(props.session.id)}>
             <strong>{props.session.title}</strong>
             <span>{props.session.turns} turns</span>
           </button>
-          <button className="session-menu-button" type="button" aria-label={`Manage ${props.session.title}`} aria-expanded={menuOpen} title="Manage session" onClick={() => setMenuOpen((open) => !open)}><MoreHorizontal size={16} /></button>
+          {props.selecting ? null : <button className="session-menu-button" type="button" aria-label={`Manage ${props.session.title}`} aria-expanded={menuOpen} title="Manage session" onClick={() => setMenuOpen((open) => !open)}><MoreHorizontal size={16} /></button>}
           {menuOpen ? (
             <div className="session-actions" onKeyDown={(event) => { if (event.key === "Escape") setMenuOpen(false); }}>
               <button type="button" onClick={startRename}><Pencil size={14} />Rename</button>
