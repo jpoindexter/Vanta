@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
+import { resolveIsolation, skipSettings } from "../cli/isolation.js";
 import { defaultNdConfig, defaultNdPreferences, defaultNdProfile } from "./engine.js";
 import { GATES } from "./gates.js";
 import {
@@ -116,6 +117,14 @@ export async function saveNdPreferences(prefs: NdPreferences, env: NodeJS.Proces
 /** Focused accessor: the user's output density, for a renderer / the prompt to read. */
 export async function getOutputDensity(env: NodeJS.ProcessEnv = process.env): Promise<NdPreferences["outputDensity"]> {
   return (await getNdProfileCached(env)).prefs.outputDensity;
+}
+
+/** Preferences for prompt assembly; safe mode intentionally omits user customization. */
+export async function loadPromptNdPreferences(
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<NdPreferences | undefined> {
+  if (skipSettings(resolveIsolation(env))) return undefined;
+  return (await getNdProfileCached(env)).prefs;
 }
 
 /** True if `id` is a real gate. */

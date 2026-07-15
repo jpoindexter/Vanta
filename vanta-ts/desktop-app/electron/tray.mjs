@@ -1,6 +1,10 @@
 export function createTrayController(deps) {
   const { Tray, Menu, nativeImage, dialog, clipboard, BrowserWindow, app, baseUrl, fetchImpl = fetch } = deps;
-  const icon = process.platform === "darwin" ? nativeImage.createFromNamedImage("NSActionTemplate") : nativeImage.createEmpty();
+  // NSActionTemplate is a fixed, visually heavy circled glyph on current macOS and
+  // ignores pointSize. Use the scalable SF Symbol so the status item stays compact.
+  const icon = process.platform === "darwin"
+    ? nativeImage.createFromNamedImage("ellipsis", { pointSize: 13, weight: "semibold" })
+    : nativeImage.createEmpty();
   icon.setTemplateImage?.(true);
   const tray = new Tray(icon);
   tray.setToolTip("Vanta");

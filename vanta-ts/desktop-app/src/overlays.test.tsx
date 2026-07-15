@@ -46,8 +46,8 @@ describe("ModelPicker", () => {
         onSelect={vi.fn()}
       />,
     );
-    expect(html).toContain("Choose a model");
-    expect(html).toContain("Search providers and models");
+    expect(html).toContain("Models for this task");
+    expect(html).toContain("Search provider or model");
     expect(html).toContain("Ollama");
     expect(html).toContain("Live provider models");
     expect(html).toContain("Current");

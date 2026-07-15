@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
-import { Archive, ArchiveRestore, ArrowUp, Check, Cpu, FolderKanban, ListPlus, MessageSquare, MoreHorizontal, Network, PackageOpen, Paperclip, Pencil, RotateCcw, Search, Square, Trash2, X } from "lucide-react";
-import type { DesktopView, Message, Session } from "./types.js";
+import { Activity, Archive, ArchiveRestore, ArrowUp, Bot, Check, CheckCircle2, ChevronRight, Cpu, FileText, FolderKanban, GitBranch, Keyboard, Laptop, ListPlus, MessageSquare, MoreHorizontal, Network, PackageOpen, Paperclip, Pencil, Plus, RotateCcw, Search, Settings2, ShieldCheck, Square, Trash2, X } from "lucide-react";
+import type { Approval, ApprovalDecision, DesktopView, Message, Session } from "./types.js";
 
 type SessionSidebarProps = {
   sessions: Session[];
@@ -14,6 +14,8 @@ type SessionSidebarProps = {
   onDelete: (id: string) => void | Promise<void>;
   view: DesktopView;
   onView: (view: DesktopView) => void;
+  onSettings: () => void;
+  onShortcuts: () => void;
   onDismiss?: () => void;
 };
 
@@ -22,31 +24,39 @@ export function SessionSidebar(props: SessionSidebarProps) {
   const sessions = useMemo(() => props.sessions.filter((session) => session.title.toLowerCase().includes(query.toLowerCase())), [props.sessions, query]);
   const active = sessions.filter((session) => !session.archived);
   const archived = sessions.filter((session) => session.archived);
+  const projectSessions = active.slice(0, 3);
+  const recentSessions = active.slice(3);
   const projectName = props.root?.split("/").filter(Boolean).at(-1) ?? "Current project";
   return (
     <aside className="session-sidebar">
       <div className="drawer-toolbar"><span>Threads</span><button className="panel-dismiss" type="button" aria-label="Close sessions" onClick={props.onDismiss}><X size={16} /></button></div>
       <nav className="desktop-nav" aria-label="Vanta workspace">
-        <button className={props.view === "work" ? "active" : ""} type="button" onClick={() => props.onView("work")}><MessageSquare size={16} />Work</button>
+        <div className="nav-heading"><strong>Work</strong><Search size={15} aria-hidden="true" /></div>
+        <button className={props.view === "work" ? "active" : ""} type="button" onClick={() => props.onView("work")}><MessageSquare size={16} />Work <span aria-hidden="true">{active.length}</span></button>
+        <button className={props.view === "operate" ? "active" : ""} type="button" onClick={() => props.onView("operate")}><Activity size={16} />Operate</button>
         <button className={props.view === "outputs" ? "active" : ""} type="button" onClick={() => props.onView("outputs")}><PackageOpen size={16} />Outputs</button>
         <button className={props.view === "connect" ? "active" : ""} type="button" onClick={() => props.onView("connect")}><Network size={16} />Connect</button>
       </nav>
       <section className="project-rail">
-        <p className="project-rail-heading">Project</p>
-        <div className="project-row active"><span><FolderKanban size={15} />{projectName}</span><i aria-label="Active project" /></div>
-        <div className="section-heading"><h2>Sessions</h2><span>{active.length}</span></div>
+        <div className="section-heading project-heading"><h2>Projects</h2><button type="button" title="New task" aria-label="New task" onClick={props.onNew}><Plus size={14} /></button></div>
+        <div className="project-row active"><span><FolderKanban size={15} />{projectName}</span><b>{projectSessions.length}</b></div>
+        <div className="session-list project-session-group">
+          {projectSessions.map((s) => <SessionButton key={s.id} session={s} active={s.id === props.activeId} onOpen={props.onOpen} onRename={props.onRename} onArchive={props.onArchive} onDelete={props.onDelete} />)}
+        </div>
+        <div className="section-heading recent-heading"><h2>Recent sessions</h2><span>{recentSessions.length}</span></div>
         <label className="session-search"><Search size={14} /><span className="sr-only">Search sessions</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search sessions" /></label>
-        <div className="session-list">
-          {active.map((s) => <SessionButton key={s.id} session={s} active={s.id === props.activeId} onOpen={props.onOpen} onRename={props.onRename} onArchive={props.onArchive} onDelete={props.onDelete} />)}
+        <div className="session-list recent-session-group">
+          {recentSessions.map((s) => <SessionButton key={s.id} session={s} active={s.id === props.activeId} onOpen={props.onOpen} onRename={props.onRename} onArchive={props.onArchive} onDelete={props.onDelete} />)}
           {archived.length > 0 ? (
             <details className="archived-sessions">
               <summary>Archived <span>{archived.length}</span></summary>
               <div>{archived.map((s) => <SessionButton key={s.id} session={s} active={s.id === props.activeId} onOpen={props.onOpen} onRename={props.onRename} onArchive={props.onArchive} onDelete={props.onDelete} />)}</div>
             </details>
           ) : null}
-          {sessions.length === 0 ? <p className="muted">{query ? "No matching sessions." : "No saved sessions yet."}</p> : null}
+          {recentSessions.length === 0 && projectSessions.length === 0 ? <p className="muted">{query ? "No matching sessions." : "No saved sessions yet."}</p> : null}
         </div>
       </section>
+      <footer className="session-sidebar-footer"><button type="button" onClick={props.onShortcuts}><Keyboard size={14} />Keyboard shortcuts <kbd>?</kbd></button><button type="button" onClick={props.onSettings}><Settings2 size={14} />Settings</button></footer>
     </aside>
   );
 }
@@ -115,16 +125,18 @@ function SessionButton(props: {
   );
 }
 
-export function ChatThread(props: { messages: Message[]; busy: boolean; streamText: string; events: { label: string; ok?: boolean }[]; recovery: string; onRetry: () => void; onPrompt: (text: string) => void }) {
+export function ChatThread(props: { messages: Message[]; busy: boolean; streamText: string; events: { label: string; ok?: boolean }[]; recovery: string; approval: Approval | null; onApproval: (decision: ApprovalDecision) => void; onRetry: () => void; onPrompt: (text: string) => void }) {
   const rows = props.messages.filter((m) => m.role !== "system");
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [rows.length, props.busy, props.streamText]);
   return (
     <section className="chat-thread" aria-live="polite">
-      {rows.length === 0 ? <EmptyState onPrompt={props.onPrompt} /> : rows.map((m, i) => <MessageBubble key={i} message={m} />)}
-      {props.streamText ? <article className="message assistant streaming"><span>Vanta</span><p>{props.streamText}</p></article> : null}
+      {rows.length === 0 ? <EmptyState onPrompt={props.onPrompt} /> : <div className="run-summary"><span><i />{props.busy ? "Active run" : "Task transcript"}</span><time>{props.busy ? "working now" : "current session"}</time></div>}
+      {rows.map((message, index) => message.role === "tool" ? null : <div className="transcript-turn" key={`${message.role}-${index}`}><MessageBubble message={message} />{message.toolCalls?.length ? <RunTimeline calls={message.toolCalls} messages={rows} /> : null}</div>)}
+      {props.approval ? <ApprovalCheckpoint approval={props.approval} onAnswer={props.onApproval} /> : null}
+      {props.streamText ? <article className="message assistant streaming"><span className="message-avatar">V</span><div className="message-content"><header><strong>Vanta</strong><time>now</time></header><p>{props.streamText}</p></div></article> : null}
       {props.busy ? <div className="thinking"><i />Working through context and tools...</div> : null}
-      {props.events.length && props.events[0]?.label !== "No tool activity yet." ? <section className="run-activity" aria-label="Current run activity"><p>Run activity</p>{props.events.slice(-5).map((event, index) => <div key={`${event.label}-${index}`} className={event.ok === false ? "bad" : event.ok ? "ok" : ""}>{event.label}</div>)}</section> : null}
+      {props.events.length && props.events[0]?.label !== "No tool activity yet." ? <EventTimeline events={props.events.slice(-5)} /> : null}
       {props.recovery ? <section className="run-recovery" role="status"><div><strong>Run needs attention</strong><span>{props.recovery}</span></div><button type="button" onClick={props.onRetry}><RotateCcw size={15} />Retry</button></section> : null}
       <div ref={endRef} />
     </section>
@@ -135,13 +147,33 @@ function MessageBubble({ message }: { message: Message }) {
   const role = message.role === "user" ? "You" : message.role === "assistant" ? "Vanta" : message.name ?? message.role;
   return (
     <article className={`message ${message.role}`}>
-      <span>{role}</span>
-      <p>{message.content ?? ""}</p>
+      <span className="message-avatar">{message.role === "user" ? "J" : "V"}</span>
+      <div className="message-content"><header><strong>{role}</strong><time>now</time></header><p>{message.content ?? ""}</p></div>
     </article>
   );
 }
 
-export function Composer(props: { value: string; busy: boolean; model?: string; attachments: string[]; onChange: (value: string) => void; onSubmit: (text: string) => void; onQueue: (text: string) => void; onRemoveAttachment: (file: string) => void; onStop: () => void; onAttach: () => void; onModel: () => void; onCommand: () => void }) {
+function RunTimeline(props: { calls: NonNullable<Message["toolCalls"]>; messages: Message[] }) {
+  return <section className="run-timeline" aria-label="Run steps">{props.calls.map((call) => {
+    const result = props.messages.find((message) => message.role === "tool" && message.toolCallId === call.id);
+    return <div className="timeline-step" key={call.id}><span><CheckCircle2 size={13} /></span><div><strong>{result?.content || humanizeTool(call.name)}</strong><small>{call.name}</small></div><em>{result ? "done" : "running"}</em></div>;
+  })}</section>;
+}
+
+function EventTimeline(props: { events: { label: string; ok?: boolean }[] }) {
+  return <section className="run-timeline event-timeline" aria-label="Current run activity">{props.events.map((event, index) => <div className={`timeline-step ${event.ok === false ? "bad" : ""}`} key={`${event.label}-${index}`}><span><ChevronRight size={13} /></span><div><strong>{event.label}</strong></div><em>{event.ok === false ? "attention" : event.ok ? "done" : "active"}</em></div>)}</section>;
+}
+
+function ApprovalCheckpoint(props: { approval: Approval; onAnswer: (decision: ApprovalDecision) => void }) {
+  const request = props.approval.request;
+  return <section className="inline-approval" role="alert"><header><ShieldCheck size={15} /><strong>Approval required</strong></header><p>{request?.reason ?? props.approval.reason}</p>{request?.subject ? <code>{request.subject}</code> : null}<div><button className="primary" type="button" onClick={() => props.onAnswer("allow")}>Allow once</button><button type="button" onClick={() => props.onAnswer("deny")}>Reject</button></div></section>;
+}
+
+function humanizeTool(name: string): string {
+  return name.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
+}
+
+export function Composer(props: { value: string; busy: boolean; model?: string; root?: string; attachments: string[]; onChange: (value: string) => void; onSubmit: (text: string) => void; onQueue: (text: string) => void; onRemoveAttachment: (file: string) => void; onStop: () => void; onAttach: () => void; onModel: () => void; onCommand: () => void }) {
   function send(event: FormEvent) {
     event.preventDefault();
     const value = props.value.trim();
@@ -152,12 +184,13 @@ export function Composer(props: { value: string; busy: boolean; model?: string; 
   }
   return (
     <form className="composer" onSubmit={send}>
+      <div className="task-context" aria-label="Task execution context"><span><Bot size={12} />Agent <strong>Operator</strong></span><span><Laptop size={12} />Run on <strong>Local Mac</strong></span><span><FolderKanban size={12} /><strong>{props.root?.split("/").filter(Boolean).at(-1) ?? "Project"}</strong></span><span><GitBranch size={12} /><strong>main</strong></span><span className="safe"><ShieldCheck size={12} />Ask before risk</span></div>
       <label className="sr-only" htmlFor="vanta-composer">Message Vanta</label>
       <textarea id="vanta-composer" value={props.value} onChange={(e) => props.onChange(e.target.value)} onKeyDown={(event) => keyDown(event, props)} placeholder={props.busy ? "Queue the next instruction..." : "Ask Vanta to do something..."} />
       {props.attachments.length ? <div className="context-chips" aria-label="Attached project context">{props.attachments.map((file) => <span key={file}><span title={file}>{file}</span><button type="button" aria-label={`Remove ${file}`} title={`Remove ${file}`} onClick={() => props.onRemoveAttachment(file)}><X size={13} /></button></span>)}</div> : null}
       <div className="composer-footer">
-        <div className="composer-context-controls"><button className="attach-button" type="button" title="Attach project files" aria-label="Attach project files" onClick={props.onAttach}><Paperclip size={16} /></button><button className="model-button" type="button" title="Change model" onClick={props.onModel}><Cpu size={15} /><span>{props.model ?? "Choose model"}</span></button></div>
-        <div className="composer-actions">{props.busy ? <><button className="queue-button" type="submit" disabled={!props.value.trim()} title="Queue next instruction"><ListPlus size={15} /><span>Queue</span></button><button className="stop-button" type="button" title="Stop current run" aria-label="Stop current run" onClick={props.onStop}><Square size={14} /><span>Stop</span></button></> : <button className="send-button" type="submit" disabled={!props.value.trim()} aria-label="Send"><ArrowUp size={16} /></button>}</div>
+        <div className="composer-context-controls"><button className="composer-context-button" type="button" title="Attach project files" aria-label="Attach project files" onClick={props.onAttach}><Paperclip size={15} /><span>Context</span></button><button className="composer-command-button" type="button" title="Open commands" aria-label="Open commands" onClick={props.onCommand}><Plus size={15} /><span>Commands</span></button></div>
+        <div className="composer-actions"><button className="model-button" type="button" title="Change model" onClick={props.onModel}><Cpu size={14} /><span>{props.model ?? "Choose model"}</span></button><span className="approval-mode"><ShieldCheck size={12} />Ask</span>{props.busy ? <><button className="queue-button" type="submit" disabled={!props.value.trim()} title="Queue next instruction"><ListPlus size={15} /><span>Queue</span></button><button className="stop-button" type="button" title="Stop current run" aria-label="Stop current run" onClick={props.onStop}><Square size={14} /><span>Stop</span></button></> : <button className="send-button" type="submit" disabled={!props.value.trim()} aria-label="Send"><ArrowUp size={16} /></button>}</div>
       </div>
     </form>
   );

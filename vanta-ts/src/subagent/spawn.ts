@@ -5,6 +5,7 @@ import { createConversation } from "../agent.js";
 import { buildSystemPrompt } from "../prompt.js";
 import { listSkills } from "../skills/store.js";
 import { resolveBrain } from "../brain/interface.js";
+import { loadPromptNdPreferences } from "../nd/profile.js";
 import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
 import { startProgressReporter } from "./progress-reporter.js";
@@ -107,6 +108,7 @@ async function runWorker(opts: WorkerOpts): Promise<AgentOutcome> {
     description: s.meta.description,
   }));
   const brain = await resolveBrain(process.env).digest(process.env).catch(() => "");
+  const ndPreferences = await loadPromptNdPreferences(process.env);
   const systemPrompt = await buildSystemPrompt({
     root: deps.root,
     soulPath: opts.soulPath ?? join(deps.root, "SOUL.md"),
@@ -115,6 +117,8 @@ async function runWorker(opts: WorkerOpts): Promise<AgentOutcome> {
     now,
     skills,
     brain,
+    outputDensity: ndPreferences?.outputDensity,
+    ndPreferences,
     promptPreset: opts.promptPreset,
   });
   const convo = createConversation(systemPrompt, { ...deps, maxIterations: opts.maxIterations ?? DEFAULT_MAX_ITERATIONS });

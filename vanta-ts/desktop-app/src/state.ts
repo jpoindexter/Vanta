@@ -19,7 +19,7 @@ export function useDesktopData() {
   const [capabilities, setCapabilities] = useState<Capability[]>([]);
   const [messaging, setMessaging] = useState<MessagingPlatform[]>([]);
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
-  const [tab, setTab] = useState<RailTab>("outputs");
+  const [tab, setTab] = useState<RailTab>("activity");
   const overlays = useDesktopOverlays();
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [error, setError] = useState("");

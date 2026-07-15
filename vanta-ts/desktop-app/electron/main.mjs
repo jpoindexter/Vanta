@@ -126,6 +126,10 @@ async function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1440, height: 960, minWidth: 760, minHeight: 620, show: false,
     title: "Vanta", backgroundColor: "#090909",
+    ...(process.platform === "darwin" ? {
+      titleBarStyle: "hiddenInset",
+      trafficLightPosition: { x: 14, y: 13 },
+    } : {}),
     webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
   mainWindow.once("ready-to-show", () => { if (!smoke) mainWindow.show(); });

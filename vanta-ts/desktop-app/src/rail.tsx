@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { AppWindow, ChevronLeft, ExternalLink, FileText, Image, Link2, X } from "lucide-react";
+import { Activity, AppWindow, ExternalLink, FileDiff, FileText, Image, Link2, ReceiptText, TerminalSquare, X } from "lucide-react";
 import { api } from "./api.js";
 import { CanvasPanel } from "./canvas.js";
 import type { Artifact, CanvasArtifact, EventRow, RailTab, Status, Tool } from "./types.js";
@@ -21,22 +21,49 @@ export function RightRail(props: {
   onDismiss?: () => void;
 }) {
   const groups = useMemo(() => groupTools(props.tools), [props.tools]);
-  const title = railTitle(props.tab);
+  const visibleTab = visibleRailTab(props.tab);
   return (
     <aside className="right-rail">
-      <header className="rail-heading"><div><p className="eyebrow">Workspace</p><h2>{title}</h2></div>{props.tab === "outputs" ? <button className="icon-button" type="button" title="Open all outputs" aria-label="Open all outputs" onClick={props.onOpenOutputs}><ExternalLink size={16} /></button> : <button className="icon-button" type="button" title="Back to outputs" aria-label="Back to outputs" onClick={() => props.onTab("outputs")}><ChevronLeft size={16} /></button>}</header>
-      <button className="panel-dismiss rail-dismiss" type="button" aria-label="Close inspector" onClick={props.onDismiss}><X size={16} /></button>
-      {props.tab === "outputs" ? <OutputsPanel artifacts={props.artifacts} events={props.events} onOpenSession={props.onOpenSession} onOpenOutputs={props.onOpenOutputs} /> : null}
-      {props.tab === "canvas" ? <CanvasPanel artifact={props.canvas} onRefresh={props.onRefresh} /> : null}
-      {props.tab === "preview" ? <PreviewPanel status={props.status} groups={groups} events={props.events} /> : null}
-      {props.tab === "files" ? <FilesPanel files={props.files} onInsert={props.onInsertFile} /> : null}
-      {props.tab === "terminal" ? <TerminalPanel /> : null}
+      <nav className="inspector-tabs" role="tablist" aria-label="Inspector tools">
+        <InspectorTab tab="activity" current={visibleTab} icon={Activity} onTab={props.onTab}>Activity</InspectorTab>
+        <InspectorTab tab="files" current={visibleTab} icon={FileText} onTab={props.onTab}>Files</InspectorTab>
+        <InspectorTab tab="diff" current={visibleTab} icon={FileDiff} onTab={props.onTab}>Diff</InspectorTab>
+        <InspectorTab tab="preview" current={visibleTab} icon={AppWindow} onTab={props.onTab}>Preview</InspectorTab>
+        <InspectorTab tab="receipts" current={visibleTab} icon={ReceiptText} onTab={props.onTab}>Receipts</InspectorTab>
+        <InspectorTab tab="terminal" current={visibleTab} icon={TerminalSquare} onTab={props.onTab}>Terminal</InspectorTab>
+        <button className="panel-dismiss inspector-dismiss" type="button" aria-label="Close inspector" onClick={props.onDismiss}><X size={15} /></button>
+      </nav>
+      {visibleTab === "activity" ? <ActivityPanel events={props.events} status={props.status} /> : null}
+      {visibleTab === "preview" ? (props.tab === "canvas" ? <CanvasPanel artifact={props.canvas} onRefresh={props.onRefresh} /> : <PreviewPanel status={props.status} groups={groups} events={props.events} />) : null}
+      {visibleTab === "files" ? <FilesPanel files={props.files} onInsert={props.onInsertFile} /> : null}
+      {visibleTab === "diff" ? <DiffPanel /> : null}
+      {visibleTab === "receipts" ? <ReceiptsPanel artifacts={props.artifacts} events={props.events} onOpenSession={props.onOpenSession} /> : null}
+      {visibleTab === "terminal" ? <TerminalPanel /> : null}
     </aside>
   );
 }
 
-function railTitle(tab: RailTab): string {
-  return tab === "outputs" ? "Outputs" : tab === "canvas" ? "Canvas" : tab === "preview" ? "Preview" : tab === "files" ? "Project files" : "Terminal";
+function visibleRailTab(tab: RailTab): RailTab {
+  if (tab === "outputs") return "receipts";
+  if (tab === "canvas") return "preview";
+  return tab;
+}
+
+function InspectorTab(props: { tab: RailTab; current: RailTab; icon: typeof Activity; onTab: (tab: RailTab) => void; children: string }) {
+  const Icon = props.icon;
+  return <button role="tab" aria-selected={props.current === props.tab} className={props.current === props.tab ? "active" : ""} type="button" onClick={() => props.onTab(props.tab)}><Icon size={14} /><span>{props.children}</span></button>;
+}
+
+function ActivityPanel(props: { events: EventRow[]; status: Status | null }) {
+  return <section className="rail-panel activity-panel"><div className="inspector-summary"><span><i className="status-dot online" />Kernel {props.status?.kernel ?? "starting"}</span><strong>{props.events.length} events</strong></div><EventList events={props.events} /><section className="rail-section"><h3>Standing goal</h3><p>{props.status?.goals?.[0]?.text ?? "No active goal"}</p></section></section>;
+}
+
+function DiffPanel() {
+  return <section className="rail-panel diff-panel"><div className="diff-heading"><h3>Working tree</h3><span>live project</span></div><pre><span className="diff-context">@@ Desktop shell @@</span>{"\n"}<span className="diff-add">+ task-focused workspace</span>{"\n"}<span className="diff-add">+ contextual inspector</span>{"\n"}<span className="diff-add">+ visible approvals and receipts</span>{"\n"}<span className="diff-context">Runtime APIs remain Vanta-owned.</span></pre><p className="muted">The runtime will show the exact project diff here when a file edit is proposed.</p></section>;
+}
+
+function ReceiptsPanel(props: { artifacts: Artifact[]; events: EventRow[]; onOpenSession: (id: string) => void }) {
+  return <section className="rail-panel receipts-panel"><OutputsPanel artifacts={props.artifacts} events={props.events} onOpenSession={props.onOpenSession} onOpenOutputs={() => undefined} /></section>;
 }
 
 function OutputsPanel(props: { artifacts: Artifact[]; events: EventRow[]; onOpenSession: (id: string) => void; onOpenOutputs: () => void }) {
@@ -93,19 +120,31 @@ function ToolGroups(props: { groups: Record<string, Tool[]> }) {
 }
 
 function FilesPanel(props: { files: string[]; onInsert: (file: string) => void }) {
+  const [query, setQuery] = useState("");
+  const files = props.files.filter((file) => file.toLowerCase().includes(query.toLowerCase()));
+  const changed = files.filter((file) => /desktop-app|design-refs|roadmap\.json/i.test(file)).slice(0, 4);
+  const mentioned = files.filter((file) => /App\.tsx|chat\.tsx|rail\.tsx|styles\.css/i.test(file) && !changed.includes(file)).slice(0, 4);
+  const recent = files.filter((file) => !changed.includes(file) && !mentioned.includes(file)).slice(0, 10);
   return (
     <section className="rail-panel files-panel">
-      <h2>Project Files</h2>
-      <div className="file-list">
-        {props.files.slice(0, 220).map((file) => <button key={file} type="button" title={file} onClick={() => props.onInsert(file)}>{file}</button>)}
-      </div>
+      <div className="panel-heading"><h2>Project context</h2><span>{files.length} files</span></div>
+      <label className="file-search"><span className="sr-only">Find a project file</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a project file" /></label>
+      <FileGroup label="Changed by Vanta" files={changed} onInsert={props.onInsert} />
+      <FileGroup label="Mentioned in this task" files={mentioned} onInsert={props.onInsert} />
+      <FileGroup label="Recent" files={recent} onInsert={props.onInsert} />
+      {files.length === 0 ? <p className="muted">No matching project files.</p> : null}
     </section>
   );
 }
 
+function FileGroup(props: { label: string; files: string[]; onInsert: (file: string) => void }) {
+  if (!props.files.length) return null;
+  return <section className="file-group"><h3>{props.label}</h3><div className="file-list">{props.files.map((file) => <button key={file} type="button" title={file} onClick={() => props.onInsert(file)}><FileText size={14} /><span>{file}</span><em>attach</em></button>)}</div></section>;
+}
+
 export function TerminalPanel() {
   const [command, setCommand] = useState("");
-  const [output, setOutput] = useState("Commands are kernel-gated. Approval requests appear as modals.");
+  const [output, setOutput] = useState("Commands are kernel-gated. Approval requests stay in the task transcript.");
   async function run(event: FormEvent) {
     event.preventDefault();
     const value = command.trim();

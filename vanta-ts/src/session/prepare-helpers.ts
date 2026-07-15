@@ -9,7 +9,7 @@ import { resolveBrain } from "../brain/interface.js";
 import { readSessionMemory, sessionMemoryBlock } from "../memory/session-memory.js";
 import { learningsDigest } from "../learnings/relevance.js";
 import { playbookDigest } from "../memory/playbook.js";
-import { getOutputDensity } from "../nd/profile.js";
+import { loadPromptNdPreferences } from "../nd/profile.js";
 import { loadSettings, type Settings } from "../settings/store.js";
 import { gitInstructionsBlock } from "../settings/git-settings.js";
 import { beliefPromptBlock } from "../operator-profile/behavior.js";
@@ -28,6 +28,7 @@ import { appendDocRouterEvent } from "../context/router-health.js";
 // mounting) are a distinct sub-concern — moved to ./runtime-extensions.ts and
 // re-exported so prepareRun's import surface stays unchanged.
 export { loadRuntimeSettings, loadRuntimeExtensions } from "./runtime-extensions.js";
+export { loadPromptNdPreferences } from "../nd/profile.js";
 
 type PromptContext = {
   memory: string;
@@ -184,6 +185,7 @@ export async function buildRunPrompt(o: {
     ? ctx.skills
     : selectSkillsForTask(ctx.skills ?? [], o.instruction);
   const settings = skipSettings(isolation) ? {} : await loadSettings(o.repoRoot, process.env);
+  const ndPreferences = await loadPromptNdPreferences(process.env);
   const systemPrompt = await buildSystemPrompt({
     root: o.repoRoot,
     soulPath: join(o.repoRoot, "SOUL.md"),
@@ -202,7 +204,8 @@ export async function buildRunPrompt(o: {
     ralphContinuity,
     goalsPaused: process.env.VANTA_GOAL_RESUME !== "auto",
     loadContext: o.loadContext,
-    outputDensity: skipSettings(isolation) ? undefined : await getOutputDensity(),
+    outputDensity: ndPreferences?.outputDensity,
+    ndPreferences,
     gitInstructions: gitInstructionsBlock(settings),
     contextObserver: (event) => appendDocRouterEvent(join(o.repoRoot, ".vanta"), event).catch(() => {}),
   });

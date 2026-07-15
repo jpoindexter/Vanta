@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Bell, Command, FolderKanban, MessageSquarePlus, PanelLeft, PanelRight, RefreshCw, Search, Settings2 } from "lucide-react";
+import { Activity, Bell, Bot, Command, Cpu, FolderKanban, MessageSquare, MessageSquarePlus, Network, PackageOpen, PanelLeft, PanelRight, Pause, RefreshCw, RotateCcw, Search, Settings2, ShieldCheck, Square } from "lucide-react";
 import { ChatThread, Composer, SessionSidebar } from "./chat.js";
-import { ApprovalOverlay, CommandPalette, KeyboardShortcuts, ModelPicker, SettingsDialog, SetupWizard } from "./overlays.js";
-import { ArtifactsView, ConnectView } from "./operator-views.js";
+import { CommandPalette, KeyboardShortcuts, ModelPicker, NewTaskDialog, SettingsDialog, SetupWizard, type NewTaskDraft } from "./overlays.js";
+import { ArtifactsView, ConnectView, OperateView } from "./operator-views.js";
 import { RightRail } from "./rail.js";
 import { CompletionSoundSettings } from "./sound-settings.js";
 import { useApproval, useCompletionSound, useConversation, useDesktopData } from "./state.js";
@@ -25,7 +25,9 @@ function clamp(value: number, minimum: number, maximum: number): number {
 }
 
 function storedPaneWidth(key: string, fallback: number): number {
-  const value = Number(window.localStorage.getItem(key));
+  const stored = window.localStorage.getItem(key);
+  if (stored === null || stored.trim() === "") return fallback;
+  const value = Number(stored);
   return Number.isFinite(value) ? value : fallback;
 }
 
@@ -37,12 +39,26 @@ export function AppShell() {
   const [mobilePanel, setMobilePanel] = useState<"sessions" | "work" | "inspect">("work");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [view, setView] = useState<DesktopView>("work");
-  const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [inspectorOpen, setInspectorOpen] = useState(() => window.innerWidth > 1080);
   const [theme, setTheme] = useState<"dark" | "light">(() => window.localStorage.getItem("vanta.desktop.theme") === "light" ? "light" : "dark");
   const [attachments, setAttachments] = useState<string[]>([]);
-  const [sidebarWidth, setSidebarWidth] = useState(() => storedPaneWidth(SIDEBAR_STORAGE_KEY, 292));
-  const [railWidth, setRailWidth] = useState(() => storedPaneWidth(RAIL_STORAGE_KEY, 336));
+  const [newTaskOpen, setNewTaskOpen] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(() => storedPaneWidth(SIDEBAR_STORAGE_KEY, 268));
+  const [railWidth, setRailWidth] = useState(() => storedPaneWidth(RAIL_STORAGE_KEY, 352));
+  const preferredSidebarWidth = useRef(sidebarWidth);
+  const preferredRailWidth = useRef(railWidth);
+  const bootSession = useRef("");
   function changeTheme(next: "dark" | "light") { setTheme(next); window.localStorage.setItem("vanta.desktop.theme", next); }
+  function changeSidebarWidth(next: number) {
+    preferredSidebarWidth.current = next;
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(next));
+    setSidebarWidth(next);
+  }
+  function changeRailWidth(next: number) {
+    preferredRailWidth.current = next;
+    window.localStorage.setItem(RAIL_STORAGE_KEY, String(next));
+    setRailWidth(next);
+  }
   const inspectorVisible = inspectorOpen && view === "work";
   const railMinimum = data.tab === "canvas" ? CANVAS_MIN_RAIL_WIDTH : MIN_RAIL_WIDTH;
   const sidebarMaximum = Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, window.innerWidth - MIN_WORK_WIDTH - (inspectorVisible ? railWidth : 0)));
@@ -50,8 +66,8 @@ export function AppShell() {
 
   useEffect(() => {
     function constrainPanes() {
-      let nextSidebar = sidebarWidth;
-      let nextRail = railWidth;
+      let nextSidebar = preferredSidebarWidth.current;
+      let nextRail = preferredRailWidth.current;
       if (inspectorVisible) {
         nextRail = clamp(nextRail, railMinimum, Math.min(MAX_RAIL_WIDTH, window.innerWidth - MIN_WORK_WIDTH - nextSidebar));
       }
@@ -59,21 +75,26 @@ export function AppShell() {
       if (inspectorVisible) {
         nextRail = clamp(nextRail, railMinimum, Math.min(MAX_RAIL_WIDTH, window.innerWidth - MIN_WORK_WIDTH - nextSidebar));
       }
-      if (nextSidebar !== sidebarWidth) setSidebarWidth(nextSidebar);
-      if (nextRail !== railWidth) setRailWidth(nextRail);
+      setSidebarWidth((current) => current === nextSidebar ? current : nextSidebar);
+      setRailWidth((current) => current === nextRail ? current : nextRail);
     }
     constrainPanes();
     window.addEventListener("resize", constrainPanes);
     return () => window.removeEventListener("resize", constrainPanes);
-  }, [inspectorVisible, railMinimum, railWidth, sidebarWidth]);
+  }, [inspectorVisible, railMinimum]);
 
-  useEffect(() => { window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(sidebarWidth)); }, [sidebarWidth]);
-  useEffect(() => { window.localStorage.setItem(RAIL_STORAGE_KEY, String(railWidth)); }, [railWidth]);
+  useEffect(() => {
+    if (data.phase !== "ready" || bootSession.current || !data.sessions.length) return;
+    const id = data.sessions.find((session) => session.id === data.status?.sessionId)?.id ?? data.sessions.find((session) => !session.archived)?.id;
+    if (!id) return;
+    bootSession.current = id;
+    void convo.openSession(id).catch(() => { bootSession.current = ""; });
+  }, [convo.openSession, data.phase, data.sessions, data.status?.sessionId]);
 
   useEffect(() => {
     function shortcut(event: KeyboardEvent) {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); data.openPalette(); }
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "n") { event.preventDefault(); setView("work"); void convo.newSession(); }
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "n") { event.preventDefault(); setNewTaskOpen(true); }
       if (event.key === "?") { const target = event.target as HTMLElement | null; if (target?.tagName !== "INPUT" && target?.tagName !== "TEXTAREA") data.openShortcuts(); }
       if (event.key === "Escape") { data.closePalette(); data.closeModelPicker(); data.closeSoundSettings(); data.closeSettings(); data.closeShortcuts(); }
     }
@@ -89,9 +110,10 @@ export function AppShell() {
       <DesktopHeader
         title={view === "work" ? convo.activeTitle : viewLabel(view)}
         data={data}
+        approvalPending={!!approval.approval}
         inspectorOpen={inspectorOpen}
         sidebarCollapsed={sidebarCollapsed}
-        onNew={() => { setView("work"); void convo.newSession(); }}
+        onNew={() => setNewTaskOpen(true)}
         onSidebar={() => {
           if (window.innerWidth <= 760) setMobilePanel((panel) => panel === "sessions" ? "work" : "sessions");
           else setSidebarCollapsed((collapsed) => !collapsed);
@@ -102,13 +124,15 @@ export function AppShell() {
         sessions={data.sessions}
         root={data.status?.root}
         activeId={data.status?.sessionId}
-        onNew={convo.newSession}
+        onNew={() => setNewTaskOpen(true)}
         onOpen={convo.openSession}
         onRename={(id, title) => convo.renameSession(id, title, id === data.status?.sessionId)}
         onArchive={(id, archived) => convo.archiveSession(id, archived, id === data.status?.sessionId)}
         onDelete={(id) => convo.deleteSession(id, id === data.status?.sessionId)}
         view={view}
         onView={setView}
+        onSettings={data.openSettings}
+        onShortcuts={data.openShortcuts}
         onDismiss={() => setMobilePanel("work")}
       />
       <PaneResizeHandle
@@ -118,16 +142,17 @@ export function AppShell() {
         minimum={MIN_SIDEBAR_WIDTH}
         maximum={sidebarMaximum}
         direction="right"
-        onChange={setSidebarWidth}
+        onChange={changeSidebarWidth}
       />
       <main className="workbench">
         {view === "work" ? <>
+          <WorkToolbar busy={convo.busy} onBackground={() => setView("operate")} onStop={() => { void convo.stop(); }} onReset={() => setNewTaskOpen(true)} />
           <div className={`conversation-stage ${data.phase === "error" ? "has-error" : ""}`}>
             {data.phase === "error" ? <ConnectionError message={data.error} onRetry={() => { void data.refresh(); }} onSetup={data.openSetup} /> : null}
-            {data.phase === "loading" ? <LoadingState /> : <ChatThread messages={convo.messages} busy={convo.busy} streamText={convo.streamText} events={convo.events} recovery={convo.recovery} onRetry={convo.retry} onPrompt={convo.setDraft} />}
+            {data.phase === "loading" ? <LoadingState /> : <ChatThread messages={convo.messages} busy={convo.busy} streamText={convo.streamText} events={convo.events} recovery={convo.recovery} approval={approval.approval} onApproval={approval.answerApproval} onRetry={convo.retry} onPrompt={convo.setDraft} />}
           </div>
-          <Composer value={convo.draft} busy={convo.busy} model={data.status?.model} attachments={attachments} onChange={convo.setDraft} onSubmit={(text) => { void convo.submit(withAttachments(text, attachments)); setAttachments([]); }} onQueue={convo.queue} onRemoveAttachment={(file) => setAttachments((current) => current.filter((entry) => entry !== file))} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onModel={data.openModelPicker} onCommand={data.openPalette} />
-        </> : <OperatorWorkspace view={view} data={data} onOpenSession={(id) => { setView("work"); void convo.openSession(id); }} />}
+          <Composer value={convo.draft} busy={convo.busy} model={data.status?.model} root={data.status?.root} attachments={attachments} onChange={convo.setDraft} onSubmit={(text) => { void convo.submit(withAttachments(text, attachments)); setAttachments([]); }} onQueue={convo.queue} onRemoveAttachment={(file) => setAttachments((current) => current.filter((entry) => entry !== file))} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onModel={data.openModelPicker} onCommand={data.openPalette} />
+        </> : <OperatorWorkspace view={view} data={data} events={convo.events} onOpenSession={(id) => { setView("work"); void convo.openSession(id); }} />}
       </main>
       {inspectorVisible ? <RightRail
         status={data.status}
@@ -151,9 +176,12 @@ export function AppShell() {
         minimum={railMinimum}
         maximum={railMaximum}
         direction="left"
-        onChange={setRailWidth}
+        onChange={changeRailWidth}
       /> : null}
-      <DesktopOverlays data={data} sound={sound} approval={approval} convo={convo} theme={theme} onTheme={changeTheme} onInspector={(tab) => { data.setTab(tab); setInspectorOpen(true); setMobilePanel("inspect"); }} />
+      <MobileNavigation view={view} onView={(next) => { setView(next); setMobilePanel("work"); }} onInspect={() => { setInspectorOpen(true); setMobilePanel("inspect"); }} />
+      <DesktopStatusbar data={data} />
+      <NewTaskDialog open={newTaskOpen} root={data.status?.root} model={data.status?.model} onClose={() => setNewTaskOpen(false)} onCreate={(draft) => { void createTask(draft, convo, () => { setNewTaskOpen(false); setView("work"); }); }} />
+      <DesktopOverlays data={data} sound={sound} convo={convo} theme={theme} onTheme={changeTheme} onNew={() => setNewTaskOpen(true)} onInspector={(tab) => { data.setTab(tab); setInspectorOpen(true); setMobilePanel("inspect"); }} />
     </div>
   );
 }
@@ -205,25 +233,31 @@ function PaneResizeHandle(props: {
   ><span className="sr-only">{props.label}</span></div>;
 }
 
-function DesktopHeader(props: { title: string; data: DesktopData; inspectorOpen: boolean; sidebarCollapsed: boolean; onNew: () => void; onSidebar: () => void; onInspector: () => void }) {
+function DesktopHeader(props: { title: string; data: DesktopData; approvalPending: boolean; inspectorOpen: boolean; sidebarCollapsed: boolean; onNew: () => void; onSidebar: () => void; onInspector: () => void }) {
   const { data } = props;
   const root = data.status?.root?.split("/").filter(Boolean).at(-1) ?? "Project";
   return (
     <header className="app-titlebar" aria-label="Application chrome">
       <div className="titlebar-identity">
-        <button className={props.sidebarCollapsed ? "" : "active"} type="button" title="Toggle threads" aria-label="Toggle threads" aria-pressed={!props.sidebarCollapsed} onClick={props.onSidebar}><PanelLeft size={16} /></button>
-        <button type="button" title="New session" aria-label="New session" onClick={props.onNew}><MessageSquarePlus size={16} /></button>
-        <button type="button" title="Search tasks or run a command" aria-label="Search tasks or run a command" onClick={data.openPalette}><Search size={16} /></button>
+        <div className="titlebar-brand"><span>V</span><div><strong>Vanta</strong><small>Local operator</small></div></div>
+        <div className="titlebar-leading-actions"><button className={props.sidebarCollapsed ? "" : "active"} type="button" title="Toggle threads" aria-label="Toggle threads" aria-pressed={!props.sidebarCollapsed} onClick={props.onSidebar}><PanelLeft size={16} /></button><button type="button" title="New task" aria-label="New task" onClick={props.onNew}><MessageSquarePlus size={16} /></button></div>
       </div>
-      <div className="titlebar-agent-context"><FolderKanban size={14} /><div className="title-block"><p>{root}</p><h1>{props.title}</h1></div></div>
+      <div className="titlebar-agent-context"><div className="titlebar-task"><FolderKanban size={14} /><div className="title-block"><p>Vanta · {root}</p><h1>{props.title}</h1></div></div><div className="titlebar-runtime"><span className={`kernel-status ${data.phase}`}><i />{data.phase === "ready" ? "online" : data.phase}</span><button type="button" title="Change model" onClick={data.openModelPicker}><Cpu size={14} /><span>{data.status?.model ?? "model"}</span></button><button className="icon-button" type="button" title={props.inspectorOpen ? "Close inspector" : "Open contextual inspector"} onClick={props.onInspector} aria-label={props.inspectorOpen ? "Close inspector" : "Open contextual inspector"}><PanelRight size={16} /></button></div></div>
       <div className="status-strip titlebar-actions">
-        <span className={`kernel-status ${data.phase}`}><i />{data.status?.kernel ?? data.phase}</span>
-        <button className="icon-button" type="button" title={props.inspectorOpen ? "Close inspector" : "Open contextual inspector"} onClick={props.onInspector} aria-label={props.inspectorOpen ? "Close inspector" : "Open contextual inspector"}><PanelRight size={16} /></button>
+        <span className={`approval-status ${props.approvalPending ? "pending" : ""}`}><i />{props.approvalPending ? "approve" : "ask"}</span>
         <button className="icon-button" type="button" title="Settings" onClick={data.openSettings} aria-label="Settings"><Settings2 size={16} /></button>
         <button className="icon-button" type="button" title="Command palette (Command K)" onClick={data.openPalette} aria-label="Open command palette"><Command size={16} /></button>
       </div>
     </header>
   );
+}
+
+function WorkToolbar(props: { busy: boolean; onBackground: () => void; onStop: () => void; onReset: () => void }) {
+  return <section className="work-toolbar" role="toolbar" aria-label="Task controls"><div><strong>Work</strong><span>One task surface. Context and approvals stay close.</span></div><div><span className="task-state"><i />{props.busy ? "Active run" : "Kernel gated"}</span><button type="button" onClick={props.onBackground}><Pause size={14} />Background</button><button className="danger" type="button" onClick={props.onStop} disabled={!props.busy}><Square size={13} />Stop run</button><button type="button" onClick={props.onReset}><RotateCcw size={14} />Reset</button></div></section>;
+}
+
+function DesktopStatusbar(props: { data: DesktopData }) {
+  return <footer className="desktop-statusbar"><span><i />Gateway {props.data.phase === "ready" ? "ready" : props.data.phase}</span><span><Bot size={12} />4 agents</span><span><Activity size={12} />{props.data.sessions.filter((session) => !session.archived).length} tasks</span><span><ShieldCheck size={12} />Kernel {props.data.status?.kernel ?? "checking"}</span><em>Vanta Desktop</em></footer>;
 }
 
 function LoadingState() {
@@ -237,19 +271,19 @@ function ConnectionError(props: { message: string; onRetry: () => void; onSetup:
 function DesktopOverlays(props: {
   data: DesktopData;
   sound: CompletionSound;
-  approval: ReturnType<typeof useApproval>;
   convo: ReturnType<typeof useConversation>;
   theme: "dark" | "light";
   onTheme: (theme: "dark" | "light") => void;
+  onNew: () => void;
   onInspector: (tab: RailTab) => void;
 }) {
-  const { data, sound, approval, convo } = props;
+  const { data, sound, convo } = props;
   return (
     <>
       <CommandPalette
         open={data.paletteOpen}
         onClose={data.closePalette}
-        onNew={convo.newSession}
+        onNew={props.onNew}
         onModel={data.openModelPicker}
         onSound={data.openSoundSettings}
         onSettings={data.openSettings}
@@ -266,18 +300,30 @@ function DesktopOverlays(props: {
         onPreview={() => { void sound.preview(); }}
         onClose={data.closeSoundSettings}
       />
-      <ApprovalOverlay approval={approval.approval} onAnswer={approval.answerApproval} />
     </>
   );
 }
 
-function OperatorWorkspace(props: { view: DesktopView; data: DesktopData; onOpenSession: (id: string) => void }) {
+function OperatorWorkspace(props: { view: DesktopView; data: DesktopData; events: ReturnType<typeof useConversation>["events"]; onOpenSession: (id: string) => void }) {
+  if (props.view === "operate") return <OperateView sessions={props.data.sessions} events={props.events} status={props.data.status} onOpenSession={props.onOpenSession} />;
   if (props.view === "outputs") return <ArtifactsView artifacts={props.data.artifacts} onOpenSession={props.onOpenSession} onRefresh={() => { void props.data.refresh(); }} />;
   return <ConnectView capabilities={props.data.capabilities} platforms={props.data.messaging} models={props.data.models} status={props.data.status} onSaveMessaging={props.data.saveMessaging} onOpenModel={props.data.openModelPicker} onOpenSetup={props.data.openSetup} />;
 }
 
 function viewLabel(view: Exclude<DesktopView, "work">): string {
-  return view === "outputs" ? "Outputs" : "Connect";
+  return view === "operate" ? "Operate" : view === "outputs" ? "Outputs" : "Connect";
+}
+
+async function createTask(draft: NewTaskDraft, convo: ReturnType<typeof useConversation>, close: () => void) {
+  await convo.newSession();
+  const context = [`Agent: ${draft.agent}`, `Host: ${draft.host}`, `Project: ${draft.folder}`, `Branch: ${draft.branch}`, draft.worktree ? "Use an isolated worktree." : "Work in the current checkout.", draft.approvals ? "Ask before consequential actions." : "Use the configured approval policy."].join("\n");
+  convo.setDraft(`${draft.prompt.trim()}${draft.prompt.trim() ? "\n\n" : ""}${context}`);
+  close();
+}
+
+function MobileNavigation(props: { view: DesktopView; onView: (view: DesktopView) => void; onInspect: () => void }) {
+  const destinations: Array<[DesktopView, typeof MessageSquare, string]> = [["work", MessageSquare, "Work"], ["operate", Activity, "Operate"], ["outputs", PackageOpen, "Outputs"], ["connect", Network, "Connect"]];
+  return <nav className="mobile-nav" aria-label="Mobile workspace">{destinations.map(([view, Icon, label]) => <button key={view} className={props.view === view ? "active" : ""} type="button" onClick={() => props.onView(view)}><Icon size={17} /><span>{label}</span></button>)}<button type="button" onClick={props.onInspect}><PanelRight size={17} /><span>Inspect</span></button></nav>;
 }
 
 function withAttachments(text: string, attachments: string[]): string {

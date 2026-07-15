@@ -1,7 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
-import { ArrowRight, Bot, Boxes, ExternalLink, FileText, Image, Link2, Network, PackageOpen, RefreshCw, Search, Wrench } from "lucide-react";
-import type { Artifact, Capability, MessagingPlatform, Provider, Status } from "./types.js";
+import { Activity, ArrowRight, Bot, Boxes, CheckCircle2, ExternalLink, FileText, Image, Link2, Network, PackageOpen, PauseCircle, RefreshCw, Search, ShieldAlert, Wrench } from "lucide-react";
+import type { Artifact, Capability, EventRow, MessagingPlatform, Provider, Session, Status } from "./types.js";
+
+export function OperateView(props: { sessions: Session[]; events: EventRow[]; status: Status | null; onOpenSession: (id: string) => void }) {
+  const active = props.sessions.filter((session) => !session.archived).slice(0, 6);
+  const needsAttention = props.events.filter((event) => event.ok === false).length;
+  return <WorkspaceView title="Operate" eyebrow="Background work" description="See what Vanta is running, what needs a decision, and what finished without opening every task.">
+    <div className="operate-summary" aria-label="Task summary">
+      <div><Activity size={16} /><strong>{active.length}</strong><span>active tasks</span></div>
+      <div><ShieldAlert size={16} /><strong>{needsAttention}</strong><span>need you</span></div>
+      <div><CheckCircle2 size={16} /><strong>{props.events.filter((event) => event.ok).length}</strong><span>verified events</span></div>
+    </div>
+    <div className="operate-ledger">
+      {active.map((session, index) => <button key={session.id} type="button" onClick={() => props.onOpenSession(session.id)}>
+        <span className={`operate-state ${index === 0 ? "working" : "idle"}`}>{index === 0 ? <Activity size={15} /> : <PauseCircle size={15} />}</span>
+        <span><strong>{session.title}</strong><small>{index === 0 ? "Working in the current project" : `Last updated ${session.updated}`}</small></span>
+        <em>{session.turns} turns</em>
+      </button>)}
+      {active.length === 0 ? <Empty message="No active tasks. Start one from Work when there is an outcome for Vanta to handle." /> : null}
+    </div>
+    <section className="operate-policy"><div><p className="eyebrow">Execution contract</p><h2>Kernel {props.status?.kernel ?? "checking"}</h2></div><p>Vanta can continue routine work in the background. Consequential commands and file changes still surface an exact approval.</p></section>
+  </WorkspaceView>;
+}
 
 export function CapabilitiesView(props: { items: Capability[] }) {
   return <WorkspaceView title="Capabilities" eyebrow="What Vanta can use" description="Live tools and project skills available to this operator."><CapabilitiesPanel {...props} /></WorkspaceView>;

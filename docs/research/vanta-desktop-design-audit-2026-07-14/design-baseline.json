@@ -1,0 +1,35 @@
+{
+  "date": "2026-07-14",
+  "artifact": "docs/design-refs/vanta-desktop-shell-convergence.html",
+  "designScore": "B",
+  "aiSlopScore": "A",
+  "categoryGrades": {
+    "hierarchy": "A",
+    "typography": "B",
+    "colorContrast": "B",
+    "spacingLayout": "A",
+    "interactionStates": "A",
+    "responsive": "A",
+    "contentQuality": "A",
+    "aiSlop": "A",
+    "motion": "B",
+    "performanceFeel": "B"
+  },
+  "resolvedFindings": [
+    "F-01",
+    "F-02",
+    "F-03",
+    "F-04",
+    "F-05",
+    "F-06",
+    "F-07",
+    "F-08"
+  ],
+  "remainingGaps": [
+    "electron-runtime-integration",
+    "manual-screen-reader-verification",
+    "200-percent-text-scaling",
+    "live-provider-model-discovery",
+    "visual-regression-suite"
+  ]
+}

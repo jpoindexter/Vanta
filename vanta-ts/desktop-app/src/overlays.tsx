@@ -20,6 +20,33 @@ export function CommandPalette(props: { open: boolean; onClose: () => void; onNe
   );
 }
 
+export type NewTaskDraft = { agent: string; host: string; folder: string; branch: string; model: string; prompt: string; worktree: boolean; approvals: boolean };
+
+export function NewTaskDialog(props: { open: boolean; root?: string; model?: string; onClose: () => void; onCreate: (draft: NewTaskDraft) => void }) {
+  const [draft, setDraft] = useState<NewTaskDraft>(() => ({ agent: "Operator", host: "Local Mac", folder: props.root ?? "", branch: "main", model: props.model ?? "", prompt: "", worktree: true, approvals: true }));
+  useEffect(() => {
+    if (!props.open) return;
+    setDraft((current) => ({ ...current, folder: props.root ?? current.folder, model: props.model ?? current.model }));
+  }, [props.model, props.open, props.root]);
+  if (!props.open) return null;
+  const set = <K extends keyof NewTaskDraft>(key: K, value: NewTaskDraft[K]) => setDraft((current) => ({ ...current, [key]: value }));
+  return <div className="overlay" onClick={props.onClose}><form className="new-task-dialog" role="dialog" aria-modal="true" aria-labelledby="new-task-title" onSubmit={(event) => { event.preventDefault(); props.onCreate(draft); }} onClick={(event) => event.stopPropagation()}>
+    <div className="dialog-heading"><div><p className="eyebrow">Work contract</p><h2 id="new-task-title">Start a new task</h2></div><button className="icon-button" type="button" aria-label="Close new task" onClick={props.onClose}><X size={16} /></button></div>
+    <p className="dialog-copy">Choose where the work runs before the first message. The session starts only when you create it.</p>
+    <div className="new-task-grid">
+      <label>Agent<select value={draft.agent} onChange={(event) => set("agent", event.target.value)}><option>Operator</option><option>Researcher</option><option>Verifier</option><option>Sentinel</option></select></label>
+      <label>Execution host<select value={draft.host} onChange={(event) => set("host", event.target.value)}><option>Local Mac</option><option>Gateway</option><option>Remote worker</option></select></label>
+      <label className="wide">Project folder<input value={draft.folder} onChange={(event) => set("folder", event.target.value)} /></label>
+      <label>Base branch<input value={draft.branch} onChange={(event) => set("branch", event.target.value)} /></label>
+      <label>Model<input value={draft.model} onChange={(event) => set("model", event.target.value)} /></label>
+      <label className="wide">First instruction<textarea autoFocus value={draft.prompt} onChange={(event) => set("prompt", event.target.value)} placeholder="What should Vanta handle?" /></label>
+    </div>
+    <label className="task-toggle"><input type="checkbox" checked={draft.worktree} onChange={(event) => set("worktree", event.target.checked)} /><span><strong>Use isolated worktree</strong><small>Create a reversible branch for this task.</small></span></label>
+    <label className="task-toggle"><input type="checkbox" checked={draft.approvals} onChange={(event) => set("approvals", event.target.checked)} /><span><strong>Ask before consequential actions</strong><small>Show the exact command or diff before execution.</small></span></label>
+    <div className="dialog-actions"><button type="button" onClick={props.onClose}>Cancel</button><button className="primary" type="submit">Create and run</button></div>
+  </form></div>;
+}
+
 function commandActions(props: { onNew: () => void; onModel: () => void; onSound: () => void; onSettings: () => void; onTab: (tab: RailTab) => void }) {
   return [
     ["New session", props.onNew],
@@ -108,8 +135,8 @@ export function ModelPicker(props: { open: boolean; models: Provider[]; status: 
   return (
     <div className="overlay" onClick={props.onClose}>
       <div className="palette model-picker" role="dialog" aria-modal="true" aria-labelledby="model-title" onClick={(e) => e.stopPropagation()}>
-        <div className="dialog-heading"><div><p className="eyebrow">Active session</p><h2 id="model-title">Choose a model</h2></div><button className="icon-button" type="button" aria-label="Close" onClick={props.onClose}><X size={16} /></button></div>
-        <label className="palette-search model-search"><Search size={16} /><span className="sr-only">Search models</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search providers and models" /></label>
+        <div className="dialog-heading"><div><p className="eyebrow">Active task</p><h2 id="model-title">Models for this task</h2></div><button className="icon-button" type="button" aria-label="Close model picker" onClick={props.onClose}><X size={16} /></button></div>
+        <label className="palette-search model-search"><Search size={16} /><span className="sr-only">Search provider or model</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search provider or model" /></label>
         <div className="model-picker-body">
           <nav className="model-provider-nav" aria-label="Model providers" onKeyDown={navigateProviders}>
             {matchingProviders.map((provider) => <button key={provider.id} data-provider-id={provider.id} className={provider.id === activeProvider?.id ? "active" : ""} type="button" onClick={() => setSelectedProviderId(provider.id)}>

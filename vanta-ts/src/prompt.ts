@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import type { Goal } from "./types.js";
-import type { OutputDensity } from "./nd/types.js";
+import type { NdPreferences, OutputDensity } from "./nd/types.js";
 import type { ToolSchema } from "./providers/interface.js";
 import { readStack } from "./task-stack/store.js";
 import { taskStackSummary } from "./task-stack/summary.js";
@@ -55,6 +55,8 @@ export type BuildPromptOptions = {
   loadContext?: boolean;
   /** ND-PREFS-WIRE: scales rule 10a's length cap. Default `balanced` = unchanged. */
   outputDensity?: OutputDensity;
+  /** User-controlled executive-function communication contract. Omitted in safe mode. */
+  ndPreferences?: NdPreferences;
   /**
    * MSG-PLATFORM-HINTS: active messaging-platform id (telegram/irc/…). When set
    * to a known id, a one-line formatting hint is folded into the context tier so
@@ -85,6 +87,7 @@ export type PromptTier = {
 /** The ordered prompt-tier registry. Add/reorder here, not in buildSystemPrompt. */
 export const PROMPT_TIERS: PromptTier[] = [
   { id: "stable", render: ({ soul, opts }) => stableTier(soul, opts.root, opts.tools, opts.outputDensity) },
+  { id: "executive-function", render: ({ opts }) => executiveFunctionTier(opts.ndPreferences) },
   { id: "prompt-preset", render: ({ opts }) => (opts.promptPreset ? formatPromptPreset(opts.promptPreset) : "") },
   {
     id: "self",
@@ -114,16 +117,52 @@ export const PROMPT_TIERS: PromptTier[] = [
   },
 ];
 
+/** Compose existing ND supports into one profile-driven operating contract. */
+export function executiveFunctionTier(prefs?: NdPreferences): string {
+  if (!prefs) return "";
+
+  const density = {
+    minimal: "Keep responses compressed: one action or decision at a time unless the task needs more.",
+    balanced: "Keep responses concise and structured; expand only when the task needs it.",
+    rich: "Include useful context and reasoning, but keep the active action easy to find.",
+  }[prefs.outputDensity];
+  const sensory = {
+    low: "Use plain labels and minimal visual decoration; avoid emoji and noisy status ornament.",
+    medium: "Use restrained structure and decoration only when it improves scanning.",
+    high: "Richer visual structure is acceptable, but never let decoration obscure the next action.",
+  }[prefs.sensoryLoad];
+  const time = {
+    ranges: "When estimating, use best / realistic / worst ranges with named hidden costs and explicit checkpoints.",
+    points: "Use a single practical estimate when asked, and surface an explicit checkpoint for longer work.",
+    off: "Do not add time estimates or elapsed-time nudges unless the user asks.",
+  }[prefs.timeSupport];
+
+  return [
+    "Executive-function operating contract (profile-driven support, never diagnosis):",
+    "- Orient from the active goal, operator task stack, and recent evidence; do not make the user reconstruct context Vanta already has.",
+    "- Start with the smallest concrete reversible action when intent is clear; otherwise ask only the question that unlocks motion.",
+    "- For multi-step work, expose Now / Next / Later and offer at most three ranked choices instead of an unranked backlog.",
+    "- Preserve unfinished work across topic shifts, name the boundary once, and never nag or shame a pause.",
+    "- Checkpoint after meaningful progress; close only with actual verification and one explicit next action or a closed loop.",
+    "- Reduce scope before adding explanation when the user appears overloaded.",
+    "- Do not turn a simple request into a coaching ritual; just do the work when the path is clear.",
+    `Active support profile: output=${prefs.outputDensity} · sensory=${prefs.sensoryLoad} · time=${prefs.timeSupport}.`,
+    `- ${density}`,
+    `- ${sensory}`,
+    `- ${time}`,
+  ].join("\n");
+}
+
 /** Build the system prompt by rendering the ordered PROMPT_TIERS registry. */
 export async function buildSystemPrompt(opts: BuildPromptOptions): Promise<string> {
   const soul =
     (await readIfExists(opts.soulPath)) ??
     "# Vanta\n" +
-      "I am Vanta — a trusted personal operator. " +
-      "I know the user's goals before I act, work under a hard safety boundary, do the work myself, " +
-      "and report only what I have verified. I operate across the user's whole digital life — code, " +
-      "research, comms, calendar, the web, business — not just a codebase. I am a real operator, not a " +
-      "chatbot, not a coding tool, and never a fabricator of progress I cannot prove.";
+      "I am Vanta — a trusted personal operator and neurodivergent-first executive-function support. " +
+      "I turn messy intent into safe, visible progress: orient, start with the smallest useful action, " +
+      "execute under the safety kernel, checkpoint, verify the actual claim, and close the loop. " +
+      "I work across the user's digital life — code, research, comms, calendar, and the web — while " +
+      "staying direct, warm, concise, honest about uncertainty, and never fabricating progress.";
   const stack = await readStack(join(opts.root, ".vanta")).catch(() => ({ tasks: [] }));
   const tasksTier = taskStackSummary(stack) ? `Operator task stack:\n${taskStackSummary(stack)}` : "";
   const ctx: PromptTierContext = { opts, soul, tasksTier };

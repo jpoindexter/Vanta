@@ -1,0 +1,865 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Vanta Desktop Full Product Concept</title>
+    <script src="https://unpkg.com/lucide@0.468.0"></script>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #141518;
+        --surface: #1a1b1f;
+        --surface-2: #202126;
+        --surface-3: #26272d;
+        --surface-4: #2c2d34;
+        --text: #f0f0eb;
+        --text-2: #b0b1b4;
+        --text-3: #989ba2;
+        --line: #36373d;
+        --line-soft: #292a2f;
+        --accent: #62d5d6;
+        --accent-strong: #a6f1ef;
+        --accent-dim: #173638;
+        --green: #7ce6a2;
+        --yellow: #f1ca79;
+        --red: #ff8d86;
+        --blue: #91b9ff;
+        --rail-width: 268px;
+        --inspector-width: 352px;
+        --titlebar-height: 54px;
+        --statusbar-height: 27px;
+        --shadow: 0 16px 40px #00000045;
+        font-family: "Avenir Next", Avenir, "Helvetica Neue", sans-serif;
+        font-size: 14px;
+      }
+
+      :root[data-theme="light"] {
+        color-scheme: light;
+        --bg: #f1f3f2;
+        --surface: #f8f9f7;
+        --surface-2: #ffffff;
+        --surface-3: #eef1ef;
+        --surface-4: #e5eae8;
+        --text: #1e2424;
+        --text-2: #5f6867;
+        --text-3: #65706e;
+        --line: #d3dcd9;
+        --line-soft: #e2e7e5;
+        --accent: #187e85;
+        --accent-strong: #0c5960;
+        --accent-dim: #d6eeee;
+        --green: #1b8750;
+        --yellow: #a96c09;
+        --red: #bb413b;
+        --blue: #3266b3;
+        --shadow: 0 16px 40px #21403b18;
+      }
+
+      * { box-sizing: border-box; }
+      [hidden] { display: none !important; }
+      html, body { min-width: 320px; min-height: 100%; margin: 0; background: #0c0d0f; }
+      body { display: grid; min-height: 100dvh; place-items: center; color: var(--text); }
+      button, input, textarea, select { font: inherit; letter-spacing: 0; }
+      button { color: inherit; }
+      button:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+      .icon { width: 16px; height: 16px; stroke-width: 1.8; }
+      .icon-sm { width: 14px; height: 14px; stroke-width: 1.8; }
+      .icon-lg { width: 18px; height: 18px; stroke-width: 1.8; }
+
+      .desktop-window {
+        position: relative;
+        display: grid;
+        grid-template-areas:
+          "titlebar titlebar titlebar titlebar"
+          "rail rail-grip main inspector"
+          "status status status status";
+        grid-template-columns: var(--rail-width) 5px minmax(380px, 1fr) var(--inspector-width);
+        grid-template-rows: var(--titlebar-height) minmax(0, 1fr) var(--statusbar-height);
+        inline-size: min(1800px, calc(100vw - 24px));
+        block-size: min(1060px, calc(100dvh - 24px));
+        min-block-size: 640px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+
+      .desktop-window.inspector-closed { grid-template-columns: var(--rail-width) 5px minmax(380px, 1fr) 0px; }
+      .desktop-window.rail-closed { grid-template-columns: 0px 0px minmax(380px, 1fr) var(--inspector-width); }
+      .desktop-window.rail-closed.inspector-closed { grid-template-columns: 0px 0px minmax(380px, 1fr) 0px; }
+
+      .titlebar {
+        grid-area: titlebar;
+        display: grid;
+        grid-template-columns: var(--rail-width) minmax(0, 1fr) var(--inspector-width);
+        min-inline-size: 0;
+        border-block-end: 1px solid var(--line);
+        background: var(--surface-2);
+        user-select: none;
+      }
+      .inspector-closed .titlebar { grid-template-columns: var(--rail-width) minmax(0, 1fr) 0; }
+      .rail-closed .titlebar { grid-template-columns: 0 minmax(0, 1fr) var(--inspector-width); }
+      .rail-closed.inspector-closed .titlebar { grid-template-columns: 0 minmax(0, 1fr) 0; }
+      .titlebar-cell { display: flex; min-inline-size: 0; align-items: center; gap: 7px; padding: 0 12px; }
+      .titlebar-cell + .titlebar-cell { border-inline-start: 1px solid var(--line); }
+      .titlebar-leading { justify-content: space-between; }
+      .titlebar-context { justify-content: space-between; }
+      .titlebar-tools { justify-content: flex-end; }
+      .brand { display: flex; min-inline-size: 0; align-items: center; gap: 8px; }
+      .brand-mark { display: grid; inline-size: 26px; block-size: 26px; place-items: center; border: 1px solid var(--line); border-radius: 7px; background: var(--text); color: var(--bg); font-weight: 800; }
+      .brand-copy { min-inline-size: 0; line-height: 1.1; }
+      .brand-copy strong, .brand-copy span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .brand-copy span { margin-block-start: 2px; color: var(--text-3); font-size: 11px; }
+      .title-context { min-inline-size: 0; }
+      .title-context .eyebrow { margin: 0 0 2px; color: var(--text-3); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+      .title-context h1 { overflow: hidden; margin: 0; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 650; }
+      .title-context p { overflow: hidden; margin: 1px 0 0; color: var(--text-3); text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+      .status-pill { display: inline-flex; align-items: center; gap: 6px; min-block-size: 26px; padding: 0 9px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-3); color: var(--text-2); font-size: 11px; white-space: nowrap; }
+      .status-pill strong { color: var(--text); font-weight: 650; }
+      .status-dot { inline-size: 7px; block-size: 7px; border-radius: 50%; background: var(--green); }
+      .status-pill.warning .status-dot { background: var(--yellow); }
+
+      .icon-button, .window-button {
+        display: inline-grid;
+        inline-size: 30px;
+        block-size: 30px;
+        flex: 0 0 30px;
+        place-items: center;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--text-2);
+        cursor: pointer;
+      }
+      .icon-button:hover, .window-button:hover { border-color: var(--line); background: var(--surface-3); color: var(--text); }
+      .icon-button.active { border-color: var(--accent); background: var(--accent-dim); color: var(--accent-strong); }
+      .window-controls { display: flex; align-items: center; gap: 4px; }
+
+      .project-rail {
+        grid-area: rail;
+        min-inline-size: 0;
+        min-block-size: 0;
+        overflow: auto;
+        border-inline-end: 1px solid var(--line);
+        background: var(--surface);
+      }
+      .rail-closed .project-rail { visibility: hidden; }
+      .rail-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 14px 10px; }
+      .rail-header h2 { margin: 0; font-size: 13px; font-weight: 700; }
+      .rail-section { padding: 0 10px 14px; }
+      .rail-label { display: flex; align-items: center; justify-content: space-between; margin: 12px 5px 6px; color: var(--text-3); font-size: 10px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+      .rail-label button { display: inline-grid; inline-size: 26px; min-block-size: 26px; place-items: center; border: 0; border-radius: 5px; background: transparent; color: var(--text-3); cursor: pointer; }
+      .nav-list { display: grid; gap: 2px; }
+      .nav-item, .project-item, .task-item, .utility-item {
+        display: flex;
+        min-inline-size: 0;
+        align-items: center;
+        gap: 9px;
+        inline-size: 100%;
+        min-block-size: 34px;
+        padding: 0 9px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--text-2);
+        cursor: pointer;
+        text-align: start;
+      }
+      .nav-item:hover, .project-item:hover, .task-item:hover, .utility-item:hover { background: var(--surface-3); color: var(--text); }
+      .nav-item.active, .project-item.active { border-color: var(--accent-dim); background: var(--accent-dim); color: var(--text); }
+      .nav-item .count, .project-item .count, .task-item .count { margin-inline-start: auto; color: var(--text-3); font-size: 11px; }
+      .project-item { font-weight: 650; }
+      .task-group { margin-inline-start: 11px; padding-inline-start: 9px; border-inline-start: 1px solid var(--line); }
+      .task-entry { display: grid; min-inline-size: 0; grid-template-columns: minmax(0, 1fr) 30px; align-items: center; border-radius: 6px; }
+      .task-entry:hover, .task-entry:focus-within { background: var(--surface-3); }
+      .task-entry.active { background: var(--accent-dim); }
+      .task-entry .task-item { border-start-end-radius: 0; border-end-end-radius: 0; }
+      .task-item { min-block-size: 30px; padding-inline-start: 8px; font-size: 12px; }
+      .task-item.active, .task-entry.active .task-item { color: var(--text); }
+      .task-marker { inline-size: 5px; block-size: 5px; flex: 0 0 5px; border-radius: 50%; background: var(--text-3); }
+      .task-item.active .task-marker { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+      .rail-search { display: flex; align-items: center; gap: 7px; margin: 0 10px 9px; padding: 0 9px; border-block-end: 1px solid var(--line); color: var(--text-3); }
+      .rail-search input { min-inline-size: 0; inline-size: 100%; block-size: 30px; border: 0; outline: 0; background: transparent; color: var(--text); }
+      .rail-search input::placeholder { color: var(--text-3); }
+      .rail-footer { position: sticky; inset-block-end: 0; display: grid; gap: 3px; padding: 10px; border-block-start: 1px solid var(--line); background: var(--surface); }
+      .utility-item { min-block-size: 30px; font-size: 12px; }
+      .utility-item .shortcut { margin-inline-start: auto; color: var(--text-3); font-size: 10px; }
+
+      .pane-grip { grid-area: rail-grip; z-index: 5; cursor: col-resize; background: transparent; }
+      .pane-grip:hover, .pane-grip.dragging { background: var(--accent); }
+      .pane-grip:focus-visible { background: var(--accent); outline: 0; }
+
+      .main-surface { grid-area: main; min-inline-size: 0; min-block-size: 0; overflow: hidden; background: var(--bg); }
+      .view { display: none; block-size: 100%; min-block-size: 0; }
+      .view.active { display: flex; flex-direction: column; }
+      .view-header { display: flex; min-block-size: 44px; align-items: center; justify-content: space-between; gap: 12px; padding: 0 22px; border-block-end: 1px solid var(--line-soft); }
+      .view-header h2 { margin: 0; font-size: 13px; font-weight: 700; }
+      .view-header p { margin: 2px 0 0; color: var(--text-3); font-size: 11px; }
+      .view-actions { display: flex; align-items: center; gap: 6px; }
+      .quiet-button, .primary-button, .danger-button {
+        display: inline-flex;
+        min-block-size: 30px;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 0 10px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--surface-3);
+        color: var(--text-2);
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .quiet-button:hover { border-color: var(--accent); color: var(--text); }
+      .primary-button { border-color: var(--accent); background: var(--accent); color: #0d2526; font-weight: 700; }
+      .primary-button:hover { background: var(--accent-strong); }
+      .danger-button { border-color: #6b3432; background: transparent; color: var(--red); }
+
+      .conversation { display: flex; min-block-size: 0; flex: 1; flex-direction: column; }
+      .transcript { min-block-size: 0; flex: 1; overflow: auto; padding: 26px clamp(18px, 6vw, 84px) 18px; }
+      .transcript-inner { inline-size: min(100%, 800px); margin: 0 auto; }
+      .run-kicker { display: flex; align-items: center; justify-content: space-between; margin-block-end: 18px; color: var(--text-3); font-size: 11px; }
+      .run-kicker span { display: inline-flex; align-items: center; gap: 6px; }
+      .run-kicker .live { color: var(--green); }
+      .message { margin-block-end: 22px; }
+      .message-meta { display: flex; align-items: center; gap: 8px; margin-block-end: 8px; color: var(--text-3); font-size: 11px; }
+      .avatar { display: grid; inline-size: 22px; block-size: 22px; place-items: center; border-radius: 6px; background: var(--surface-4); color: var(--text); font-size: 11px; font-weight: 800; }
+      .avatar.vanta { background: var(--accent-dim); color: var(--accent-strong); }
+      .message-body { color: var(--text); font-size: 14px; line-height: 1.65; }
+      .message-body p { margin: 0 0 10px; }
+      .message-body p:last-child { margin-block-end: 0; }
+      .message-body code { padding: 2px 4px; border-radius: 4px; background: var(--surface-3); color: var(--accent-strong); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+      .run-timeline { margin: 16px 0 24px 11px; padding-inline-start: 21px; border-inline-start: 1px solid var(--line); }
+      .timeline-step { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 10px; padding: 0 0 17px; }
+      .timeline-step:last-child { padding-block-end: 0; }
+      .timeline-step::before { position: absolute; inset-inline-start: -26px; inset-block-start: 3px; inline-size: 8px; block-size: 8px; border: 2px solid var(--bg); border-radius: 50%; background: var(--text-3); box-shadow: 0 0 0 1px var(--line); content: ""; }
+      .timeline-step.done::before { background: var(--green); }
+      .timeline-step.waiting::before { background: var(--yellow); }
+      .timeline-step strong { font-size: 12px; font-weight: 650; }
+      .timeline-step time { color: var(--text-3); font-size: 11px; }
+      .timeline-step span { grid-column: 1 / -1; color: var(--text-3); font-size: 11px; }
+      .approval { margin: 4px 0 24px; padding: 13px; border: 1px solid #73592d; border-radius: 7px; background: color-mix(in srgb, var(--surface-2) 86%, var(--yellow)); }
+      .approval-head { display: flex; align-items: center; gap: 8px; color: var(--yellow); font-size: 12px; font-weight: 700; }
+      .approval p { margin: 8px 0 12px; color: var(--text-2); font-size: 12px; line-height: 1.5; }
+      .approval-actions { display: flex; gap: 7px; }
+      .approval-actions button { min-block-size: 29px; padding: 0 10px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface-3); color: var(--text-2); cursor: pointer; font-size: 11px; }
+      .approval-actions button:first-child { border-color: var(--green); color: var(--green); }
+      .approval.resolved { border-color: var(--line); background: var(--surface-2); }
+      .approval.resolved .approval-head { color: var(--green); }
+      .receipt { display: grid; grid-template-columns: 1fr auto; gap: 9px 16px; margin-block-start: 16px; padding: 12px; border-block-start: 1px solid var(--line); }
+      .receipt h3 { margin: 0; font-size: 12px; }
+      .receipt p { grid-column: 1 / -1; margin: 0; color: var(--text-2); font-size: 12px; }
+      .receipt-status { align-self: start; color: var(--green); font-size: 11px; font-weight: 700; }
+
+      .composer-wrap { padding: 12px clamp(18px, 6vw, 84px) 13px; border-block-start: 1px solid var(--line); background: var(--surface); }
+      .composer { inline-size: min(100%, 800px); margin: 0 auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); box-shadow: 0 8px 20px #00000020; }
+      .target-row { display: flex; align-items: center; gap: 5px; overflow-x: auto; padding: 7px 9px 5px; border-block-end: 1px solid var(--line-soft); scrollbar-width: none; }
+      .target-chip { display: inline-flex; min-block-size: 25px; flex: 0 0 auto; align-items: center; gap: 5px; padding: 0 7px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface-3); color: var(--text-3); cursor: pointer; font-size: 10px; }
+      .target-chip strong { color: var(--text-2); font-weight: 650; }
+      .target-chip.safety { border-color: #73592d; color: var(--yellow); }
+      .composer textarea { display: block; inline-size: 100%; min-block-size: 56px; resize: none; padding: 13px 14px 5px; border: 0; outline: 0; background: transparent; color: var(--text); line-height: 1.45; }
+      .composer textarea::placeholder { color: var(--text-3); }
+      .composer-context { display: flex; flex-wrap: wrap; gap: 5px; padding: 0 12px 8px; }
+      .context-chip { display: inline-flex; max-inline-size: 220px; align-items: center; gap: 5px; padding: 3px 6px 3px 7px; border: 1px solid var(--accent-dim); border-radius: 4px; background: var(--accent-dim); color: var(--accent-strong); font-size: 11px; }
+      .context-chip button { display: grid; inline-size: 17px; block-size: 17px; place-items: center; border: 0; background: transparent; color: inherit; cursor: pointer; }
+      .composer-toolbar { display: flex; min-block-size: 40px; align-items: center; justify-content: space-between; gap: 8px; padding: 0 8px 7px 10px; }
+      .composer-tools, .composer-submit { display: flex; min-inline-size: 0; align-items: center; gap: 5px; }
+      .composer-action { display: inline-flex; min-block-size: 29px; align-items: center; gap: 6px; padding: 0 8px; border: 1px solid transparent; border-radius: 5px; background: transparent; color: var(--text-3); cursor: pointer; font-size: 11px; }
+      .composer-action:hover { border-color: var(--line); background: var(--surface-3); color: var(--text-2); }
+      .model-pill { display: inline-flex; min-block-size: 29px; align-items: center; gap: 6px; padding: 0 9px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface-3); color: var(--text-2); cursor: pointer; font-size: 11px; }
+      .model-pill strong { color: var(--text); font-weight: 650; }
+      .send-button { display: inline-grid; inline-size: 32px; block-size: 32px; place-items: center; border: 1px solid var(--accent); border-radius: 6px; background: var(--accent); color: #102728; cursor: pointer; }
+      .send-button:hover { background: var(--accent-strong); }
+      .send-button:disabled { cursor: default; opacity: .4; }
+
+      .inspector { grid-area: inspector; min-inline-size: 0; min-block-size: 0; overflow: hidden; border-inline-start: 1px solid var(--line); background: var(--surface); }
+      .inspector-closed .inspector { visibility: hidden; }
+      .inspector-header { display: flex; min-block-size: 44px; align-items: center; gap: 3px; overflow-x: auto; padding: 0 9px; border-block-end: 1px solid var(--line); scrollbar-width: none; }
+      .inspector-tab { display: inline-flex; min-block-size: 29px; align-items: center; gap: 6px; padding: 0 8px; border: 1px solid transparent; border-radius: 5px; background: transparent; color: var(--text-3); cursor: pointer; font-size: 11px; }
+      .inspector-tab { flex: 0 0 auto; }
+      .inspector-tab:hover { color: var(--text); }
+      .inspector-tab.active { border-color: var(--accent-dim); background: var(--accent-dim); color: var(--accent-strong); }
+      .inspector-content { min-block-size: 0; block-size: calc(100% - 44px); overflow: auto; padding: 16px 14px; }
+      .panel-heading { display: flex; align-items: center; justify-content: space-between; margin-block-end: 12px; }
+      .panel-heading h2 { margin: 0; font-size: 12px; }
+      .panel-heading span { color: var(--text-3); font-size: 10px; }
+      .file-search { display: flex; align-items: center; gap: 7px; margin-block-end: 12px; padding: 0 8px; border-block-end: 1px solid var(--line); color: var(--text-3); }
+      .file-search input { min-inline-size: 0; inline-size: 100%; block-size: 30px; border: 0; outline: 0; background: transparent; color: var(--text); font-size: 12px; }
+      .file-group { margin-block-end: 16px; }
+      .file-group h3 { margin: 0 0 6px; color: var(--text-3); font-size: 10px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+      .file-row { display: flex; min-inline-size: 0; align-items: center; gap: 8px; inline-size: 100%; min-block-size: 32px; padding: 0 7px; border: 1px solid transparent; border-radius: 5px; background: transparent; color: var(--text-2); cursor: pointer; text-align: start; font-size: 12px; }
+      .file-row:hover { border-color: var(--line); background: var(--surface-3); color: var(--text); }
+      .file-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .file-row em { margin-inline-start: auto; color: var(--text-3); font-size: 10px; font-style: normal; }
+      .preview { display: grid; gap: 12px; }
+      .preview-frame { min-block-size: 170px; padding: 16px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface-2); }
+      .preview-frame strong { display: block; margin-block-end: 16px; font-size: 12px; }
+      .preview-lines { display: grid; gap: 8px; }
+      .preview-lines i { display: block; block-size: 8px; border-radius: 3px; background: var(--surface-4); }
+      .preview-lines i:nth-child(1) { inline-size: 72%; background: var(--accent-dim); }
+      .preview-lines i:nth-child(2) { inline-size: 92%; }
+      .preview-lines i:nth-child(3) { inline-size: 58%; }
+      .receipt-list { display: grid; gap: 8px; }
+      .receipt-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; padding: 10px 8px; border-block-end: 1px solid var(--line-soft); }
+      .receipt-row strong { font-size: 12px; }
+      .receipt-row span { grid-column: 1 / -1; color: var(--text-3); font-size: 11px; }
+      .receipt-row em { color: var(--green); font-size: 10px; font-style: normal; }
+      .terminal { min-block-size: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 7px; background: #101114; color: #bbd7cf; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; line-height: 1.7; }
+      :root[data-theme="light"] .terminal { background: #202a2a; color: #c9ebe3; }
+      .terminal .prompt { color: var(--accent); }
+
+      .statusbar { grid-area: status; display: flex; min-inline-size: 0; align-items: center; justify-content: space-between; gap: 10px; padding: 0 10px; border-block-start: 1px solid var(--line); background: var(--surface-2); color: var(--text-3); font-size: 10px; }
+      .status-items { display: flex; min-inline-size: 0; align-items: center; gap: 14px; }
+      .status-item { display: inline-flex; min-inline-size: 0; align-items: center; gap: 5px; white-space: nowrap; }
+      .status-item strong { color: var(--text-2); font-weight: 650; }
+      .status-item .status-dot { inline-size: 5px; block-size: 5px; }
+
+      .outputs-layout, .connect-layout { min-block-size: 0; flex: 1; overflow: auto; padding: 24px clamp(18px, 6vw, 84px); }
+      .outputs-inner, .connect-inner { inline-size: min(100%, 800px); margin: 0 auto; }
+      .output-list { display: grid; gap: 8px; }
+      .output-item { display: grid; grid-template-columns: 1fr auto; gap: 5px 14px; padding: 14px; border-block-end: 1px solid var(--line); cursor: pointer; }
+      .output-item:hover { background: var(--surface-3); }
+      .output-item strong { font-size: 13px; }
+      .output-item span { grid-column: 1 / -1; color: var(--text-2); font-size: 12px; }
+      .output-item time { color: var(--text-3); font-size: 10px; }
+      .output-tag { display: inline-flex; min-block-size: 22px; align-items: center; padding: 0 6px; border: 1px solid var(--accent-dim); border-radius: 4px; color: var(--accent-strong); font-size: 10px; }
+      .connect-list { display: grid; gap: 1px; }
+      .connect-item { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 14px 0; border-block-end: 1px solid var(--line); }
+      .connect-item strong { font-size: 13px; }
+      .connect-item p { grid-column: 1 / -1; margin: 0; color: var(--text-2); font-size: 12px; }
+      .connect-state { align-self: start; color: var(--green); font-size: 11px; font-weight: 700; }
+      .connect-state.needs { color: var(--yellow); }
+
+      .operate-layout { min-block-size: 0; flex: 1; overflow: auto; padding: 18px clamp(18px, 4vw, 48px); }
+      .operate-inner { inline-size: min(100%, 980px); margin: 0 auto; }
+      .summary-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-block: 1px solid var(--line); }
+      .summary-item { padding: 11px 12px; border-inline-end: 1px solid var(--line); }
+      .summary-item:last-child { border-inline-end: 0; }
+      .summary-item strong, .summary-item span { display: block; }
+      .summary-item strong { font-size: 17px; }
+      .summary-item span { margin-block-start: 2px; color: var(--text-3); font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+      .section-heading { display: flex; align-items: center; justify-content: space-between; margin: 18px 0 8px; }
+      .section-heading h3 { margin: 0; font-size: 12px; }
+      .section-heading span { color: var(--text-3); font-size: 10px; }
+      .data-list { border-block-start: 1px solid var(--line); }
+      .data-row { display: grid; grid-template-columns: minmax(190px, 1.4fr) minmax(110px, .7fr) minmax(72px, .35fr) auto; align-items: center; gap: 12px; min-block-size: 50px; border-block-end: 1px solid var(--line-soft); color: var(--text-2); font-size: 11px; }
+      .data-row strong, .data-row small { display: block; }
+      .data-row strong { color: var(--text); font-size: 11px; }
+      .data-row small { margin-block-start: 2px; color: var(--text-3); font-size: 9px; }
+      .task-state { display: inline-flex; align-items: center; gap: 5px; color: var(--text-3); font-size: 10px; }
+      .task-state.running { color: var(--yellow); }
+      .task-state.done { color: var(--green); }
+      .task-state.blocked { color: var(--red); }
+      .agent-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); border-block-start: 1px solid var(--line); }
+      .agent-card { display: flex; min-block-size: 66px; align-items: center; gap: 9px; padding: 10px; border-inline-end: 1px solid var(--line-soft); border-block-end: 1px solid var(--line-soft); }
+      .agent-card div { min-inline-size: 0; }
+      .agent-card strong, .agent-card span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .agent-card strong { font-size: 11px; }
+      .agent-card span { margin-block-start: 3px; color: var(--text-3); font-size: 9px; }
+      .agent-card .task-state { margin-inline-start: auto; }
+      .activity-list { border-block-start: 1px solid var(--line); }
+      .activity-row { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 8px; padding: 10px 0; border-block-end: 1px solid var(--line-soft); font-size: 10px; }
+      .activity-row strong, .activity-row span { display: block; }
+      .activity-row span { margin-block-start: 3px; color: var(--text-3); line-height: 1.4; }
+      .activity-row time { color: var(--text-3); font-size: 9px; }
+      .diff-view { overflow: auto; border: 1px solid var(--line); border-radius: 6px; background: #101114; font: 10px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .diff-view div { min-inline-size: 430px; padding: 0 9px; white-space: pre; }
+      .diff-view .add { background: #173a286b; color: var(--green); }
+      .diff-view .del { background: #47201e6b; color: var(--red); }
+      .session-actions { display: inline-grid; inline-size: 30px; block-size: 30px; place-items: center; border: 0; border-radius: 5px; background: transparent; color: var(--text-3); cursor: pointer; opacity: .65; }
+      .task-entry:hover .session-actions, .task-entry:focus-within .session-actions, .session-actions:focus-visible { background: var(--surface-3); color: var(--text); opacity: 1; }
+      .session-menu { position: fixed; z-index: 35; display: none; inline-size: 150px; padding: 5px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); box-shadow: var(--shadow); }
+      .session-menu.open { display: grid; }
+      .session-menu button { display: flex; min-block-size: 31px; align-items: center; gap: 7px; padding: 0 8px; border: 0; border-radius: 5px; background: transparent; color: var(--text-2); cursor: pointer; text-align: start; font-size: 10px; }
+      .session-menu button:hover { background: var(--surface-3); color: var(--text); }
+      .session-menu button.danger { color: var(--red); }
+      .overlay-copy { margin: -8px 0 14px; color: var(--text-3); font-size: 11px; }
+      .target-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .field { display: grid; gap: 5px; }
+      .field.wide { grid-column: 1 / -1; }
+      .field label { color: var(--text-3); font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+      .field input, .field select { min-inline-size: 0; inline-size: 100%; min-block-size: 35px; padding: 0 8px; border: 1px solid var(--line); border-radius: 5px; background: var(--bg); color: var(--text); }
+      .toggle-row { display: flex; min-block-size: 45px; align-items: center; justify-content: space-between; gap: 12px; border-block-end: 1px solid var(--line-soft); }
+      .toggle-row strong, .toggle-row span { display: block; }
+      .toggle-row strong { font-size: 10px; }
+      .toggle-row span { margin-block-start: 2px; color: var(--text-3); font-size: 9px; }
+      .toggle { position: relative; inline-size: 32px; block-size: 18px; flex: 0 0 32px; border: 0; border-radius: 9px; background: var(--line); cursor: pointer; }
+      .toggle::after { position: absolute; inset-block-start: 3px; inset-inline-start: 3px; inline-size: 12px; block-size: 12px; border-radius: 50%; background: white; content: ""; transition: transform .16s; }
+      .toggle.on { background: var(--accent); }
+      .toggle.on::after { transform: translateX(14px); }
+      .overlay-actions { display: flex; justify-content: flex-end; gap: 7px; margin-block-start: 15px; }
+
+      .overlay-backdrop { position: fixed; inset: 0; z-index: 20; display: none; place-items: start center; padding: 12vh 16px 24px; background: #00000080; }
+      .overlay-backdrop.open { display: grid; }
+      .overlay { inline-size: min(560px, 100%); max-block-size: 76dvh; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); box-shadow: var(--shadow); }
+      .overlay-header { display: flex; min-block-size: 54px; align-items: center; justify-content: space-between; padding: 10px 12px 10px 16px; border-block-end: 1px solid var(--line); }
+      .overlay-header h2 { margin: 0; font-size: 14px; }
+      .overlay-header .icon-button { border-color: var(--line); background: var(--surface-3); color: var(--text); }
+      .overlay-body { overflow: auto; padding: 14px 16px 16px; }
+      .model-search { display: flex; align-items: center; gap: 8px; margin-block-end: 14px; padding: 0 8px; border-block-end: 1px solid var(--line); color: var(--text-3); }
+      .model-search input { inline-size: 100%; min-block-size: 34px; border: 0; outline: 0; background: transparent; color: var(--text); }
+      .model-group { display: grid; gap: 2px; margin-block-end: 16px; }
+      .model-group h3 { margin: 0 0 6px; color: var(--text-3); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+      .model-row { display: grid; inline-size: 100%; min-block-size: 46px; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 6px 10px; border: 1px solid transparent; border-radius: 5px; background: transparent; color: inherit; cursor: pointer; text-align: start; }
+      .model-row:hover { border-color: var(--line); background: var(--surface-3); }
+      .model-row.active { border-color: var(--accent); background: var(--accent-dim); }
+      .model-row span { display: grid; min-inline-size: 0; grid-template-columns: minmax(138px, .8fr) minmax(0, 1fr); align-items: baseline; gap: 14px; color: var(--text-2); font-size: 12px; }
+      .model-row strong { display: block; color: var(--text); font-size: 12px; font-weight: 650; }
+      .model-row em { color: var(--green); font-size: 10px; font-style: normal; }
+      .empty-note { margin: 12px 0 2px; padding: 16px 12px; border: 1px dashed var(--line); border-radius: 6px; color: var(--text-2); text-align: center; font-size: 12px; }
+      .command-list { display: grid; gap: 3px; }
+      .command-row { display: flex; min-block-size: 38px; align-items: center; gap: 9px; padding: 0 9px; border-radius: 5px; color: var(--text-2); cursor: pointer; }
+      .command-row:hover { background: var(--surface-3); color: var(--text); }
+      .command-row kbd { margin-inline-start: auto; color: var(--text-3); font-size: 10px; }
+      .toast { position: fixed; inset-inline-end: 20px; inset-block-end: 38px; z-index: 30; display: none; min-block-size: 38px; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); color: var(--text-2); box-shadow: var(--shadow); font-size: 12px; }
+      .toast.open { display: inline-flex; }
+      .toast button { margin-inline-start: 6px; border: 0; background: transparent; color: var(--accent); cursor: pointer; font-size: 11px; font-weight: 700; }
+
+      .mobile-switcher { display: none; }
+      .mobile-switcher span { display: none; }
+      @media (max-width: 1180px) {
+        :root { --inspector-width: 320px; }
+        .desktop-window { inline-size: calc(100vw - 16px); block-size: calc(100dvh - 16px); }
+        .desktop-window, .desktop-window.inspector-open, .desktop-window.inspector-closed { grid-template-columns: var(--rail-width) 5px minmax(380px, 1fr) 0; }
+        .desktop-window.rail-closed, .desktop-window.rail-closed.inspector-open, .desktop-window.rail-closed.inspector-closed { grid-template-columns: 0 0 minmax(380px, 1fr) 0; }
+        .desktop-window .inspector { position: absolute; z-index: 14; inset-block: var(--titlebar-height) var(--statusbar-height); inset-inline-end: 0; inline-size: var(--inspector-width); box-shadow: var(--shadow); }
+        .titlebar-cell { padding-inline: 9px; }
+        .titlebar-tools { display: none; }
+        .brand-copy span, .title-context p { display: none; }
+      }
+      @media (max-width: 900px) {
+        .desktop-window, .desktop-window.rail-open, .desktop-window.inspector-open, .desktop-window.rail-open.inspector-open, .desktop-window.rail-closed, .desktop-window.rail-closed.inspector-closed { grid-template-columns: 0 0 minmax(0, 1fr) 0; }
+        .desktop-window .project-rail { position: absolute; z-index: 15; inset-block: var(--titlebar-height) var(--statusbar-height); inset-inline-start: 0; inline-size: var(--rail-width); box-shadow: var(--shadow); }
+        .desktop-window .inspector { position: absolute; z-index: 15; inset-block: var(--titlebar-height) var(--statusbar-height); inset-inline-end: 0; inline-size: var(--inspector-width); box-shadow: var(--shadow); }
+        .pane-grip { display: none; }
+        .titlebar { grid-template-columns: 0 minmax(0, 1fr) 0; }
+        .rail-open .titlebar { grid-template-columns: var(--rail-width) minmax(0, 1fr) 0; }
+        .inspector-open .titlebar { grid-template-columns: 0 minmax(0, 1fr) var(--inspector-width); }
+        .rail-open.inspector-open .titlebar { grid-template-columns: var(--rail-width) minmax(0, 1fr) var(--inspector-width); }
+        .titlebar-leading { padding-inline-start: 9px; }
+        .titlebar-leading .brand { display: none; }
+        .mobile-switcher { display: flex; position: absolute; inset-inline-start: 50%; inset-block-end: 7px; transform: translateX(-50%); gap: 4px; }
+        .mobile-switcher button { inline-size: 24px; block-size: 4px; padding: 0; border: 0; border-radius: 2px; background: var(--line); }
+        .mobile-switcher button.active { background: var(--accent); }
+      }
+      @media (max-width: 620px) {
+        :root { --statusbar-height: calc(54px + env(safe-area-inset-bottom)); }
+        body { display: block; }
+        .desktop-window { inline-size: 100vw; block-size: 100dvh; min-block-size: 520px; border: 0; border-radius: 0; }
+        .desktop-window, .desktop-window.rail-closed, .desktop-window.inspector-closed, .desktop-window.rail-closed.inspector-closed, .desktop-window.rail-open, .desktop-window.inspector-open, .desktop-window.rail-open.inspector-open { grid-template-columns: 0 0 minmax(0, 1fr) 0; }
+        .desktop-window .project-rail, .desktop-window .inspector { position: absolute; inset-block-start: var(--titlebar-height); inset-block-end: var(--statusbar-height); inline-size: min(88vw, 320px); }
+        .desktop-window .project-rail { inset-inline-start: 0; }
+        .desktop-window .inspector { inset-inline-end: 0; }
+        .desktop-window:not(.rail-open) .project-rail, .desktop-window:not(.inspector-open) .inspector { display: none; }
+        .desktop-window .titlebar, .desktop-window.rail-closed.inspector-closed .titlebar, .desktop-window.rail-open .titlebar, .desktop-window.inspector-open .titlebar, .desktop-window.rail-open.inspector-open .titlebar { grid-template-columns: 1fr; }
+        .titlebar-cell + .titlebar-cell { border-inline-start: 0; }
+        .titlebar-leading, .titlebar-tools { display: none; }
+        .titlebar-context { padding-inline: max(14px, env(safe-area-inset-left)) max(14px, env(safe-area-inset-right)); }
+        .transcript { padding-inline: 14px; }
+        .composer-wrap { padding-inline: max(10px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-right)); }
+        .composer-action span { display: none; }
+        .view-header { min-block-size: auto; align-items: flex-start; flex-direction: column; gap: 8px; padding: 10px 14px; }
+        .view-header p { max-inline-size: 42ch; }
+        .view-actions { inline-size: 100%; overflow-x: auto; padding-block-end: 2px; scrollbar-width: none; }
+        .outputs-layout, .connect-layout { padding-inline: 14px; }
+        .statusbar { display: none; }
+        .mobile-switcher { position: absolute; z-index: 18; inset: auto 0 0; display: grid; min-block-size: var(--statusbar-height); grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 0; padding: 4px max(8px, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(8px, env(safe-area-inset-left)); transform: none; border-block-start: 1px solid var(--line); background: var(--surface-2); }
+        .mobile-switcher button { display: grid; inline-size: 100%; min-block-size: 46px; grid-template-rows: 18px auto; place-items: center; gap: 2px; padding: 4px 8px; border: 0; border-radius: 6px; background: transparent; color: var(--text-3); font-size: 10px; }
+        .mobile-switcher button.active { background: var(--accent-dim); color: var(--accent-strong); }
+        .mobile-switcher span { display: block; }
+        .target-chip { min-block-size: 36px; }
+        .composer-action, .model-pill, .send-button { min-block-size: 44px; }
+        .composer-action { min-inline-size: 44px; justify-content: center; }
+        .model-pill { min-inline-size: 0; max-inline-size: 176px; flex: 1 1 176px; }
+        .model-pill strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .composer-submit .status-pill, #run-reset { display: none; }
+        .send-button { inline-size: 44px; block-size: 44px; }
+        .overlay-backdrop { align-items: end; padding: 0; }
+        .overlay { inline-size: 100%; max-block-size: min(88dvh, 760px); border-radius: 8px 8px 0 0; padding-block-end: env(safe-area-inset-bottom); }
+        .overlay-actions button, .overlay-header .icon-button { min-block-size: 44px; }
+        .model-row { min-block-size: 54px; }
+        .model-row span { grid-template-columns: 1fr; gap: 2px; }
+        .summary-strip { grid-template-columns: 1fr 1fr; }
+        .summary-item:nth-child(2) { border-inline-end: 0; }
+        .summary-item:nth-child(-n+2) { border-block-end: 1px solid var(--line); }
+        .data-row { grid-template-columns: minmax(0, 1fr) auto; padding-block: 7px; }
+        .data-row > :nth-child(2), .data-row > :nth-child(3) { display: none; }
+        .target-grid { grid-template-columns: 1fr; }
+        .field.wide { grid-column: auto; }
+      }
+
+      @media (max-width: 360px) {
+        #command-composer { display: none; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+      }
+
+      @media (hover: none), (pointer: coarse) {
+        button, input, textarea, select { min-block-size: 44px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="desktop-window" id="desktop-window">
+      <header class="titlebar" aria-label="Application chrome">
+        <div class="titlebar-cell titlebar-leading">
+          <div class="brand">
+            <span class="brand-mark" aria-hidden="true">V</span>
+            <span class="brand-copy"><strong>Vanta</strong><span>Local operator</span></span>
+          </div>
+          <div class="window-controls">
+            <button class="icon-button" id="rail-toggle" type="button" title="Toggle project rail" aria-label="Toggle project rail" aria-pressed="true"><i data-lucide="panel-left"></i></button>
+            <button class="icon-button" id="new-session" type="button" title="New session" aria-label="New session"><i data-lucide="message-square-plus"></i></button>
+          </div>
+        </div>
+        <div class="titlebar-cell titlebar-context">
+          <div class="title-context">
+            <p class="eyebrow" id="context-project">Vanta</p>
+            <h1 id="context-title">Ship the desktop workbench</h1>
+            <p id="context-detail">main · kernel gated · local project</p>
+          </div>
+          <div class="window-controls">
+            <span class="status-pill"><i class="status-dot"></i><strong>online</strong></span>
+            <button class="icon-button" id="model-open" type="button" title="Change session model" aria-label="Change session model"><i data-lucide="cpu"></i></button>
+            <button class="icon-button active" id="inspector-toggle" type="button" title="Toggle context tools" aria-label="Toggle context tools" aria-pressed="true"><i data-lucide="panel-right"></i></button>
+          </div>
+        </div>
+        <div class="titlebar-cell titlebar-tools">
+          <span class="status-pill warning"><i class="status-dot"></i><strong>approve</strong></span>
+          <button class="icon-button" id="theme-toggle" type="button" title="Toggle appearance" aria-label="Toggle appearance"><i data-lucide="sun-moon"></i></button>
+          <button class="icon-button" id="command-open" type="button" title="Command palette (Command K)" aria-label="Open command palette"><i data-lucide="command"></i></button>
+          <button class="icon-button" id="settings-open" type="button" title="Settings" aria-label="Open settings"><i data-lucide="settings-2"></i></button>
+        </div>
+        <div class="mobile-switcher" aria-label="Mobile pane switcher">
+          <button type="button" data-mobile-pane="rail" aria-label="Show projects"><i data-lucide="panel-left" class="icon-sm"></i><span>Projects</span></button>
+          <button class="active" type="button" data-mobile-pane="main" aria-label="Show work surface"><i data-lucide="message-square" class="icon-sm"></i><span>Work</span></button>
+          <button type="button" data-mobile-pane="inspector" aria-label="Show context tools"><i data-lucide="panel-right" class="icon-sm"></i><span>Tools</span></button>
+        </div>
+      </header>
+
+      <aside class="project-rail" aria-label="Projects and sessions">
+        <div class="rail-header"><h2>Work</h2><button class="icon-button" id="rail-search-open" type="button" title="Search sessions" aria-label="Search sessions"><i data-lucide="search"></i></button></div>
+        <nav class="rail-section nav-list" aria-label="Primary destinations">
+          <button class="nav-item active" type="button" data-view="work"><i data-lucide="message-square" class="icon-sm"></i><span>Work</span><span class="count">8</span></button>
+          <button class="nav-item" type="button" data-view="operate"><i data-lucide="waypoints" class="icon-sm"></i><span>Operate</span><span class="count">3</span></button>
+          <button class="nav-item" type="button" data-view="outputs"><i data-lucide="package-open" class="icon-sm"></i><span>Outputs</span><span class="count">3</span></button>
+          <button class="nav-item" type="button" data-view="connect"><i data-lucide="plug-zap" class="icon-sm"></i><span>Connect</span><span class="count">1</span></button>
+        </nav>
+        <section class="rail-section" id="session-section">
+          <div class="rail-label"><span>Projects</span><button type="button" title="Add project" aria-label="Add project"><i data-lucide="plus" class="icon-sm"></i></button></div>
+          <button class="project-item active" type="button"><i data-lucide="folder-kanban" class="icon-sm"></i><span>Vanta</span><span class="count">4</span></button>
+          <div class="task-group">
+            <div class="task-entry active" data-session="ship"><button class="task-item active" type="button"><i class="task-marker"></i><span>Ship the desktop workbench</span></button><button class="session-actions" type="button" data-session-more aria-label="Actions for Ship the desktop workbench"><i data-lucide="ellipsis" class="icon-sm"></i></button></div>
+            <div class="task-entry" data-session="models"><button class="task-item" type="button"><i class="task-marker"></i><span>Refresh provider models</span></button><button class="session-actions" type="button" data-session-more aria-label="Actions for Refresh provider models"><i data-lucide="ellipsis" class="icon-sm"></i></button></div>
+            <div class="task-entry" data-session="recovery"><button class="task-item" type="button"><i class="task-marker"></i><span>Recover a failed run</span></button><button class="session-actions" type="button" data-session-more aria-label="Actions for Recover a failed run"><i data-lucide="ellipsis" class="icon-sm"></i></button></div>
+          </div>
+          <button class="project-item" type="button"><i data-lucide="folder" class="icon-sm"></i><span>Website</span><span class="count">2</span></button>
+          <div class="task-group">
+            <div class="task-entry" data-session="docs"><button class="task-item" type="button"><i class="task-marker"></i><span>Update the docs site</span></button><button class="session-actions" type="button" data-session-more aria-label="Actions for Update the docs site"><i data-lucide="ellipsis" class="icon-sm"></i></button></div>
+            <div class="task-entry" data-session="landing"><button class="task-item" type="button"><i class="task-marker"></i><span>Review the launch page</span></button><button class="session-actions" type="button" data-session-more aria-label="Actions for Review the launch page"><i data-lucide="ellipsis" class="icon-sm"></i></button></div>
+          </div>
+        </section>
+        <section class="rail-section">
+          <div class="rail-label"><span>Recent sessions</span><span>5</span></div>
+          <label class="rail-search"><i data-lucide="search" class="icon-sm"></i><span class="sr-only">Search recent sessions</span><input id="session-search" type="search" aria-label="Search recent sessions" placeholder="Search sessions" /></label>
+          <div class="nav-list" id="recent-list">
+            <div class="task-entry" data-session="roadmap"><button class="task-item" type="button"><i class="task-marker"></i><span>Review the current roadmap</span></button><button class="session-actions" type="button" data-session-more aria-label="Actions for Review the current roadmap"><i data-lucide="ellipsis" class="icon-sm"></i></button></div>
+            <div class="task-entry" data-session="usecase"><button class="task-item" type="button"><i class="task-marker"></i><span>Prove a real use case</span></button><button class="session-actions" type="button" data-session-more aria-label="Actions for Prove a real use case"><i data-lucide="ellipsis" class="icon-sm"></i></button></div>
+            <div class="task-entry" data-session="apple"><button class="task-item" type="button"><i class="task-marker"></i><span>Prepare macOS release</span></button><button class="session-actions" type="button" data-session-more aria-label="Actions for Prepare macOS release"><i data-lucide="ellipsis" class="icon-sm"></i></button></div>
+          </div>
+        </section>
+        <div class="rail-footer">
+          <button class="utility-item" id="shortcuts-open" type="button"><i data-lucide="keyboard" class="icon-sm"></i><span>Keyboard shortcuts</span><span class="shortcut">?</span></button>
+          <button class="utility-item" id="settings-open-footer" type="button"><i data-lucide="sliders-horizontal" class="icon-sm"></i><span>Settings</span></button>
+        </div>
+      </aside>
+
+      <div class="pane-grip" id="rail-grip" role="separator" aria-orientation="vertical" aria-label="Resize project rail" tabindex="0"></div>
+
+      <main class="main-surface" aria-live="polite">
+        <section class="view active" id="view-work" data-view-panel="work">
+          <div class="view-header">
+            <div><h2>Work</h2><p>One task surface. Context and approvals stay close.</p></div>
+            <div class="view-actions"><span class="status-pill"><i class="status-dot"></i><strong>Kernel gated</strong></span><button class="quiet-button" id="background-run" type="button"><i data-lucide="picture-in-picture-2" class="icon-sm"></i>Background</button><button class="danger-button" id="stop-run" type="button"><i data-lucide="square" class="icon-sm"></i>Stop run</button><button class="quiet-button" id="run-reset" type="button"><i data-lucide="rotate-ccw" class="icon-sm"></i>Reset</button></div>
+          </div>
+          <div class="conversation">
+            <div class="transcript" id="transcript">
+              <div class="transcript-inner">
+                <div class="run-kicker"><span class="live"><i data-lucide="activity" class="icon-sm"></i> Active run · 3 steps</span><span>Started just now</span></div>
+                <article class="message">
+                  <div class="message-meta"><span class="avatar">J</span><strong>You</strong><span>10:42</span></div>
+                  <div class="message-body"><p>Make the desktop shell feel like a serious operator workbench. Keep the conversation central, show me what Vanta is doing, and make the output easy to verify.</p></div>
+                </article>
+                <article class="message">
+                  <div class="message-meta"><span class="avatar vanta">V</span><strong>Vanta</strong><span>10:42</span></div>
+                  <div class="message-body"><p>I’m mapping the current shell against the project rail, the workbench layout, and the Vanta kernel boundary. I’ll keep the change scoped to the desktop experience.</p></div>
+                </article>
+                <section class="run-timeline" aria-label="Run activity">
+                  <div class="timeline-step done"><strong>Read the current desktop surface</strong><time>done</time><span>App shell, sessions, model picker, files, and output routes</span></div>
+                  <div class="timeline-step done"><strong>Compare Hermes, Keelhouse, and OpenClaw workflows</strong><time>done</time><span>Chat home, pane ownership, target routing, background tasks, and tool surfaces</span></div>
+                  <div class="timeline-step waiting"><strong>Confirm the risky shell migration</strong><time>waiting</time><span>Vanta can continue, but changing the native host needs your approval</span></div>
+                </section>
+                <section class="approval" id="approval-card" aria-label="Approval request">
+                  <div class="approval-head"><i data-lucide="shield-alert" class="icon-sm"></i><span>Approval required</span><span id="approval-status"></span></div>
+                  <p>Allow Vanta to replace the current renderer shell with the shared workbench contract while preserving the existing kernel and provider runtime?</p>
+                  <div class="approval-actions"><button type="button" data-approval="allow">Allow once</button><button type="button" data-approval="deny">Keep current shell</button></div>
+                </section>
+                <article class="message">
+                  <div class="message-meta"><span class="avatar vanta">V</span><strong>Vanta</strong><span>Waiting for you</span></div>
+                  <div class="message-body"><p>The recommended path is a shell adapter, not a wholesale rewrite. The existing runtime stays behind this surface, so provider routing, approvals, receipts, and remote work remain Vanta-owned.</p></div>
+                  <div class="receipt"><div><h3>Shell convergence brief</h3><p>Comparison saved with source pins and a prototype link.</p></div><span class="receipt-status">verified</span><button class="quiet-button" type="button" data-open-output>Open output</button></div>
+                </article>
+              </div>
+            </div>
+            <div class="composer-wrap">
+              <form class="composer" id="composer-form">
+                <div class="target-row" aria-label="Execution targets"><button class="target-chip" type="button" data-open-target><i data-lucide="bot" class="icon-sm"></i>Agent <strong>Operator</strong></button><button class="target-chip" type="button" data-open-target><i data-lucide="laptop" class="icon-sm"></i>Run on <strong>Local Mac</strong></button><button class="target-chip" type="button" data-open-target><i data-lucide="folder" class="icon-sm"></i><strong>Vanta</strong></button><button class="target-chip" type="button"><i data-lucide="git-branch" class="icon-sm"></i><strong>main</strong></button><button class="target-chip safety" type="button"><i data-lucide="shield-check" class="icon-sm"></i><strong>Ask before risk</strong></button></div>
+                <label class="sr-only" for="composer-input">Ask Vanta to do something</label>
+                <textarea id="composer-input" rows="2" placeholder="Ask Vanta to do something..."></textarea>
+                <div class="composer-context" id="composer-context"></div>
+                <div class="composer-toolbar">
+                  <div class="composer-tools">
+                    <button class="composer-action" type="button" id="attach-file"><i data-lucide="paperclip" class="icon-sm"></i><span>Context</span></button>
+                    <button class="composer-action" type="button" id="command-composer"><i data-lucide="slash" class="icon-sm"></i><span>Commands</span></button>
+                    <button class="model-pill" type="button" id="model-pill"><i data-lucide="cpu" class="icon-sm"></i><strong id="current-model">OpenAI · gpt-5.6-codex</strong><i data-lucide="chevron-down" class="icon-sm"></i></button>
+                  </div>
+                  <div class="composer-submit"><span class="status-pill"><i class="status-dot"></i><strong>approve</strong></span><button class="send-button" type="submit" title="Send message" aria-label="Send message"><i data-lucide="arrow-up" class="icon"></i></button></div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-operate" data-view-panel="operate">
+          <div class="view-header"><div><h2>Operate</h2><p>Active work, agents, goals, schedules, and nodes that need supervision.</p></div><div class="view-actions"><button class="quiet-button" type="button" data-toast="Health audit queued"><i data-lucide="shield-check" class="icon-sm"></i>Run audit</button></div></div>
+          <div class="operate-layout"><div class="operate-inner">
+            <div class="summary-strip"><div class="summary-item"><strong>3</strong><span>active tasks</span></div><div class="summary-item"><strong>1</strong><span>needs you</span></div><div class="summary-item"><strong>4</strong><span>agents online</span></div><div class="summary-item"><strong>92%</strong><span>trusted pass rate</span></div></div>
+            <div class="section-heading"><h3>Tasks requiring attention</h3><span>push-based completion · no polling</span></div>
+            <div class="data-list" id="operator-task-list">
+              <div class="data-row"><div><strong>Desktop shell migration</strong><small>Operator · Vanta · run 42</small></div><span class="task-state running"><i class="status-dot"></i>waiting approval</span><span>2m 14s</span><button class="quiet-button" type="button" data-open-session="ship">Review</button></div>
+              <div class="data-row"><div><strong>Refresh provider catalog</strong><small>Researcher · gateway</small></div><span class="task-state running"><i class="status-dot"></i>running</span><span>6m 09s</span><button class="danger-button" type="button" data-cancel-task>Stop</button></div>
+              <div class="data-row"><div><strong>Roadmap dependency audit</strong><small>Sentinel · scheduled</small></div><span class="task-state done"><i class="status-dot"></i>succeeded</span><span>44s</span><button class="quiet-button" type="button" data-inspector-open="receipts">Receipt</button></div>
+              <div class="data-row"><div><strong>Teams credential proof</strong><small>Operator · external gate</small></div><span class="task-state blocked"><i class="status-dot"></i>blocked</span><span>external</span><button class="quiet-button" type="button" data-toast="Needs-human ticket opened">Ticket</button></div>
+            </div>
+            <div class="section-heading"><h3>Agents</h3><span>prompt + tools + trust contract</span></div>
+            <div class="agent-grid">
+              <div class="agent-card"><span class="avatar vanta">OP</span><div><strong>Operator</strong><span>main session · local Mac</span></div><span class="task-state done">working</span></div>
+              <div class="agent-card"><span class="avatar">RS</span><div><strong>Researcher</strong><span>2 sources · browser sandbox</span></div><span class="task-state running">running</span></div>
+              <div class="agent-card"><span class="avatar">QA</span><div><strong>Verifier</strong><span>tests, screenshots, receipts</span></div><span class="task-state done">idle</span></div>
+              <div class="agent-card"><span class="avatar">ST</span><div><strong>Sentinel</strong><span>standing goals · daily</span></div><span class="task-state done">watching</span></div>
+            </div>
+            <div class="section-heading"><h3>Schedules, goals, and nodes</h3><span>next wake · 18:00</span></div>
+            <div class="data-list">
+              <div class="data-row"><div><strong>Run Anywhere release gate</strong><small>standing goal · daily recheck</small></div><span class="task-state running">2 external proofs</span><span>tomorrow</span><button class="quiet-button" type="button" data-toast="Standing goal opened">Open</button></div>
+              <div class="data-row"><div><strong>Morning operator brief</strong><small>schedule · Telegram + desktop</small></div><span class="task-state done">enabled</span><span>08:00</span><button class="quiet-button" type="button" data-toast="Schedule editor opened">Edit</button></div>
+              <div class="data-row"><div><strong>Local Mac</strong><small>gateway · browser · shell · voice</small></div><span class="task-state done">online</span><span>4ms</span><button class="quiet-button" type="button" data-toast="Node details opened">Inspect</button></div>
+            </div>
+          </div></div>
+        </section>
+
+        <section class="view" id="view-outputs" data-view-panel="outputs">
+          <div class="view-header"><div><h2>Outputs</h2><p>Results, changed files, previews, and receipts from recent work.</p></div><div class="view-actions"><button class="quiet-button" type="button" data-open-session="ship"><i data-lucide="message-square" class="icon-sm"></i>Open source session</button></div></div>
+          <div class="outputs-layout"><div class="outputs-inner"><div class="output-list">
+            <div class="output-item" data-inspector-open="preview"><div><strong>Full Vanta desktop product demo</strong><div class="output-tag">preview</div></div><time>just now</time><span>Keelhouse workbench, Hermes chat UX, OpenClaw operator visibility, and Vanta safety.</span></div>
+            <div class="output-item" data-inspector-open="receipts"><div><strong>Desktop product direction</strong><div class="output-tag">receipt</div></div><time>just now</time><span>Evidence-backed feature map, IA, flows, shell contract, and production delivery order.</span></div>
+            <div class="output-item" data-inspector-open="diff"><div><strong>Proposed shell adapter</strong><div class="output-tag">changed files</div></div><time>12m ago</time><span>Host-neutral pane contract preserving Vanta runtime APIs and checkpoints.</span></div>
+            <div class="output-item" data-inspector-open="files"><div><strong>Hermes, Keelhouse, and OpenClaw evidence</strong><div class="output-tag">research</div></div><time>24m ago</time><span>Source revisions, official docs, UI contracts, task lifecycle, and target routing.</span></div>
+            <div class="output-item" data-inspector-open="terminal"><div><strong>Desktop layout proof</strong><div class="output-tag">verification</div></div><time>1h ago</time><span>Resizable project rail, contextual inspector, and compact window reflow.</span></div>
+          </div></div></div>
+        </section>
+
+        <section class="view" id="view-connect" data-view-panel="connect">
+          <div class="view-header"><div><h2>Connect</h2><p>Set up capabilities only when a task needs them.</p></div><div class="view-actions"><button class="primary-button" type="button" data-toast="Setup check queued"><i data-lucide="check-circle-2" class="icon-sm"></i>Run setup check</button></div></div>
+          <div class="connect-layout"><div class="connect-inner"><div class="connect-list">
+            <div class="connect-item"><div><strong>Providers and models</strong><p>OpenAI OAuth, Anthropic API, Gemini, local fallback, and session-scoped routing.</p></div><span class="connect-state">3 connected</span></div>
+            <div class="connect-item"><div><strong>Skills</strong><p>81 installed across project and user scopes, with usage and health evidence.</p></div><span class="connect-state">ready</span></div>
+            <div class="connect-item"><div><strong>Tools and MCP</strong><p>Terminal, browser, Obsidian, Cloudflare, GitHub, Canvas, and codegraph policy.</p></div><span class="connect-state">24 mounted</span></div>
+            <div class="connect-item"><div><strong>Memory and context</strong><p>Inspectable memory, project documents, transcript compiler, and stale-context health.</p></div><span class="connect-state">on</span></div>
+            <div class="connect-item"><div><strong>Telegram</strong><p>Operator agent, allowlist, source-session routing, and completion replies.</p></div><span class="connect-state">connected</span></div>
+            <div class="connect-item"><div><strong>Discord and Teams</strong><p>Guided credential setup with explicit inbound allowlists and health checks.</p></div><span class="connect-state needs">needs proof</span></div>
+            <div class="connect-item"><div><strong>Local and remote runtimes</strong><p>Local Mac is online; serverless wake-on-message and physical Android proof remain gated.</p></div><span class="connect-state needs">limited</span></div>
+          </div></div></div>
+        </section>
+      </main>
+
+      <aside class="inspector" aria-label="Context tools">
+        <div class="inspector-header">
+          <button class="inspector-tab active" type="button" data-inspector-tab="activity"><i data-lucide="activity" class="icon-sm"></i>Activity</button>
+          <button class="inspector-tab" type="button" data-inspector-tab="files"><i data-lucide="files" class="icon-sm"></i>Files</button>
+          <button class="inspector-tab" type="button" data-inspector-tab="diff"><i data-lucide="file-diff" class="icon-sm"></i>Diff</button>
+          <button class="inspector-tab" type="button" data-inspector-tab="preview"><i data-lucide="layout-template" class="icon-sm"></i>Preview</button>
+          <button class="inspector-tab" type="button" data-inspector-tab="receipts"><i data-lucide="receipt-text" class="icon-sm"></i>Receipts</button>
+          <button class="inspector-tab" type="button" data-inspector-tab="terminal"><i data-lucide="terminal" class="icon-sm"></i>Terminal</button>
+        </div>
+        <div class="inspector-content" id="inspector-activity" data-inspector-panel="activity">
+          <div class="panel-heading"><h2>Run activity</h2><span>3 active · 2 finished</span></div>
+          <div class="activity-list"><div class="activity-row"><i data-lucide="shield-alert" class="icon-sm"></i><div><strong>Waiting for approval</strong><span>Production shell migration is paused before file changes.</span></div><time>now</time></div><div class="activity-row"><i data-lucide="bot" class="icon-sm"></i><div><strong>Researcher working</strong><span>Refreshing provider and model sources in a browser sandbox.</span></div><time>6m</time></div><div class="activity-row"><i data-lucide="check-circle-2" class="icon-sm"></i><div><strong>Verifier finished</strong><span>Desktop and compact layout checks passed.</span></div><time>1m</time></div><div class="activity-row"><i data-lucide="radio-tower" class="icon-sm"></i><div><strong>Sentinel watching</strong><span>Run Anywhere release gate will recheck tomorrow.</span></div><time>daily</time></div></div>
+          <div class="section-heading"><h3>Completion delivery</h3><span>push-based</span></div><button class="file-row" type="button" data-toast="Desktop notifications enabled"><i data-lucide="monitor" class="icon-sm"></i><span>Desktop notification</span><em>on</em></button><button class="file-row" type="button" data-toast="Telegram completion replies enabled"><i data-lucide="send" class="icon-sm"></i><span>Telegram reply</span><em>on</em></button>
+        </div>
+        <div class="inspector-content" id="inspector-files" data-inspector-panel="files" hidden>
+          <div class="panel-heading"><h2>Project context</h2><span>8 selected · 32 files</span></div>
+          <label class="file-search"><i data-lucide="search" class="icon-sm"></i><span class="sr-only">Search project context</span><input id="file-search" type="search" aria-label="Search project context" placeholder="Search project context" /></label>
+          <div class="file-group"><h3>Changed by Vanta</h3><button class="file-row" type="button" data-file="desktop-shell-convergence.html"><i data-lucide="file-code-2" class="icon-sm"></i><span>docs/design-refs/desktop-shell-convergence.html</span><em>new</em></button><button class="file-row" type="button" data-file="desktop-shell-convergence-2026-07-14.md"><i data-lucide="file-text" class="icon-sm"></i><span>docs/research/desktop-shell-convergence-2026-07-14.md</span><em>new</em></button></div>
+          <div class="file-group"><h3>Mentioned in this task</h3><button class="file-row" type="button" data-file="desktop-app/src/App.tsx"><i data-lucide="file-code-2" class="icon-sm"></i><span>vanta-ts/desktop-app/src/App.tsx</span><em>line 1</em></button><button class="file-row" type="button" data-file="apps/desktop/src/app/shell/app-shell.tsx"><i data-lucide="file-code-2" class="icon-sm"></i><span>reference/hermes-agent/apps/desktop/src/app/shell/app-shell.tsx</span><em>source</em></button><button class="file-row" type="button" data-file="apps/agent cli/app/src/useWorkbenchLayout.ts"><i data-lucide="file-code-2" class="icon-sm"></i><span>apps/agent cli/app/src/useWorkbenchLayout.ts</span><em>source</em></button></div>
+          <div class="file-group"><h3>Recent</h3><button class="file-row" type="button" data-file="roadmap.json"><i data-lucide="list-checks" class="icon-sm"></i><span>roadmap.json</span><em>updated</em></button><button class="file-row" type="button" data-file="docs/desktop-userflow-audit-2026-07-13.md"><i data-lucide="file-text" class="icon-sm"></i><span>docs/desktop-userflow-audit-2026-07-13.md</span><em>audit</em></button></div>
+        </div>
+        <div class="inspector-content" id="inspector-diff" data-inspector-panel="diff" hidden><div class="panel-heading"><h2>Proposed shell adapter</h2><span>concept diff</span></div><div class="diff-view"><div>@@ DesktopShell @@</div><div class="del">- fixed chat + permanent empty inspector</div><div class="add">+ project and task workbench</div><div class="add">+ target-aware composer</div><div class="add">+ background task ledger</div><div class="add">+ contextual files, diff, preview, terminal</div><div class="add">+ approvals, receipts, and restore checkpoints</div><div> </div><div>Runtime APIs remain Vanta-owned.</div></div><div class="overlay-actions"><button class="quiet-button" type="button" data-toast="Full diff opened">Open full diff</button><button class="primary-button" type="button" data-toast="Migration review opened">Review migration</button></div></div>
+        <div class="inspector-content" id="inspector-preview" data-inspector-panel="preview" hidden><div class="panel-heading"><h2>Live preview</h2><span>last render · 2m ago</span></div><div class="preview"><div class="preview-frame"><strong>Vanta Desktop Full Concept</strong><div class="preview-lines"><i></i><i></i><i></i></div></div><button class="primary-button" type="button" data-toast="Preview opened in browser"><i data-lucide="external-link" class="icon-sm"></i>Open preview</button></div></div>
+        <div class="inspector-content" id="inspector-receipts" data-inspector-panel="receipts" hidden><div class="panel-heading"><h2>Run receipts</h2><span>4 verified</span></div><div class="receipt-list"><div class="receipt-row"><strong>Read source surfaces</strong><em>verified</em><span>Vanta · Hermes · Keelhouse · OpenClaw official docs</span></div><div class="receipt-row"><strong>Wrote product direction</strong><em>verified</em><span>docs/research/vanta-desktop-product-direction-2026-07-14.md</span></div><div class="receipt-row"><strong>Built full interactive demo</strong><em>verified</em><span>docs/design-refs/vanta-desktop-shell-convergence.html</span></div><div class="receipt-row"><strong>Runtime integration</strong><em style="color:var(--yellow)">not executed</em><span>Demo data only; production desktop remains unchanged.</span></div></div></div>
+        <div class="inspector-content" id="inspector-terminal" data-inspector-panel="terminal" hidden><div class="panel-heading"><h2>Terminal</h2><span>project shell</span></div><div class="terminal"><div><span class="prompt">vanta $</span> npm run desktop:layout:smoke</div><div>✓ source renderer ready</div><div>✓ compact layout contained</div><div>✓ contextual rail toggled</div><div><span class="prompt">vanta $</span> _</div></div></div>
+      </aside>
+
+      <footer class="statusbar">
+        <div class="status-items"><span class="status-item"><i class="status-dot"></i><strong>Gateway ready</strong></span><span class="status-item"><i data-lucide="bot" class="icon-sm"></i><strong>4 agents</strong></span><span class="status-item"><i data-lucide="list-checks" class="icon-sm"></i><strong>3 tasks</strong></span><span class="status-item"><i data-lucide="shield-check" class="icon-sm"></i><strong>Trust 92%</strong></span></div>
+        <div class="status-items"><span class="status-item">Vanta Desktop full concept</span><span class="status-item">⌘K commands</span></div>
+      </footer>
+    </div>
+
+    <div class="session-menu" id="session-menu" role="menu"><button type="button" data-session-action="rename"><i data-lucide="pencil" class="icon-sm"></i>Rename</button><button type="button" data-session-action="pin"><i data-lucide="pin" class="icon-sm"></i>Pin or unpin</button><button type="button" data-session-action="archive"><i data-lucide="archive" class="icon-sm"></i>Archive</button><button class="danger" type="button" data-session-action="delete"><i data-lucide="trash-2" class="icon-sm"></i>Delete</button></div>
+
+    <div class="overlay-backdrop" id="new-session-overlay" role="presentation" aria-hidden="true">
+      <section class="overlay" role="dialog" aria-modal="true" aria-labelledby="new-session-title">
+        <div class="overlay-header"><h2 id="new-session-title">New task</h2><button class="icon-button" data-close-overlay="new-session-overlay" type="button" title="Close new task" aria-label="Close new task"><i data-lucide="x"></i></button></div>
+        <div class="overlay-body"><p class="overlay-copy">Choose where the work runs before the first message. The session is created only when you send.</p><div class="target-grid"><div class="field"><label for="new-agent">Agent</label><select id="new-agent" data-autofocus><option>Operator</option><option>Researcher</option><option>Verifier</option><option>Sentinel</option></select></div><div class="field"><label for="new-host">Execution host</label><select id="new-host"><option>Local Mac</option><option>Gateway</option><option>Remote worker</option></select></div><div class="field wide"><label for="new-folder">Project folder</label><input id="new-folder" value="/Users/jasonpoindexter/Documents/GitHub/docs/Vanta" /></div><div class="field"><label for="new-branch">Base branch</label><select id="new-branch"><option>main</option><option>release</option></select></div><div class="field"><label for="new-task-model">Model</label><select id="new-task-model"><option>OpenAI · gpt-5.6-codex</option><option>Anthropic · claude-sonnet-4-6</option><option>Google · gemini-3.1-pro</option></select></div></div><div class="toggle-row"><div><strong>Use isolated worktree</strong><span>Create a reversible branch for this task.</span></div><button class="toggle on" type="button" aria-label="Toggle worktree"></button></div><div class="toggle-row"><div><strong>Ask before consequential actions</strong><span>Exact command or diff must be approved.</span></div><button class="toggle on" type="button" aria-label="Toggle approvals"></button></div><div class="field wide" style="margin-block-start:12px"><label for="new-prompt">First instruction</label><input id="new-prompt" placeholder="What should Vanta handle?" /></div><div class="overlay-actions"><button class="quiet-button" data-close-overlay="new-session-overlay" type="button">Cancel</button><button class="primary-button" id="create-session" type="button">Create and run</button></div></div>
+      </section>
+    </div>
+
+    <div class="overlay-backdrop" id="model-overlay" role="presentation" aria-hidden="true">
+      <section class="overlay" role="dialog" aria-modal="true" aria-labelledby="model-title">
+        <div class="overlay-header"><h2 id="model-title">Models for this session</h2><button class="icon-button" data-close-overlay="model-overlay" type="button" title="Close model picker" aria-label="Close model picker"><i data-lucide="x"></i></button></div>
+        <div class="overlay-body"><p class="overlay-copy">This choice applies to the active task. Provider defaults and fallbacks remain separate.</p><label class="model-search"><i data-lucide="search" class="icon-sm"></i><span class="sr-only">Search models</span><input id="model-search" type="search" aria-label="Search models" data-autofocus placeholder="Search provider or model" /></label><div id="model-list"><div class="model-group"><h3>OpenAI</h3><button class="model-row active" type="button" data-model="OpenAI · gpt-5.6-codex"><span><strong>gpt-5.6-codex</strong>frontier coding and agent work</span><em>current</em></button><button class="model-row" type="button" data-model="OpenAI · gpt-5.6"><span><strong>gpt-5.6</strong>general frontier reasoning</span><em>available</em></button><button class="model-row" type="button" data-model="OpenAI · gpt-5.6-mini"><span><strong>gpt-5.6-mini</strong>fast execution and routing</span><em>available</em></button></div><div class="model-group"><h3>Anthropic</h3><button class="model-row" type="button" data-model="Anthropic · claude-sonnet-4-6"><span><strong>claude-sonnet-4-6</strong>balanced work</span><em>connected</em></button><button class="model-row" type="button" data-model="Anthropic · claude-opus-4-6"><span><strong>claude-opus-4-6</strong>deep reasoning</span><em>connected</em></button></div><div class="model-group"><h3>Google and local</h3><button class="model-row" type="button" data-model="Google · gemini-3.1-pro"><span><strong>gemini-3.1-pro</strong>long-context multimodal work</span><em>connected</em></button><button class="model-row" type="button" data-model="OpenAI-compatible · local-qwen"><span><strong>local-qwen</strong>private local fallback</span><em>offline</em></button></div><p id="model-empty" class="empty-note" hidden>No matching models. Try a provider name or clear the search.</p></div></div>
+      </section>
+    </div>
+
+    <div class="overlay-backdrop" id="command-overlay" role="presentation" aria-hidden="true">
+      <section class="overlay" role="dialog" aria-modal="true" aria-labelledby="command-title">
+        <div class="overlay-header"><h2 id="command-title">Command palette</h2><button class="icon-button" data-close-overlay="command-overlay" type="button" title="Close command palette" aria-label="Close command palette"><i data-lucide="x"></i></button></div>
+        <div class="overlay-body"><label class="model-search"><i data-lucide="search" class="icon-sm"></i><span class="sr-only">Search commands</span><input id="command-search" type="search" aria-label="Search commands" data-autofocus placeholder="Search commands" /></label><div class="command-list"><button class="command-row" type="button" data-command="new"><i data-lucide="message-square-plus" class="icon-sm"></i><span>New task</span><kbd>⌘ N</kbd></button><button class="command-row" type="button" data-command="model"><i data-lucide="cpu" class="icon-sm"></i><span>Change task model</span><kbd>⌘ M</kbd></button><button class="command-row" type="button" data-command="operate"><i data-lucide="waypoints" class="icon-sm"></i><span>Open Operate</span><kbd>G O</kbd></button><button class="command-row" type="button" data-command="outputs"><i data-lucide="package-open" class="icon-sm"></i><span>Open Outputs</span><kbd>G U</kbd></button><button class="command-row" type="button" data-command="connect"><i data-lucide="plug-zap" class="icon-sm"></i><span>Open Connect</span><kbd>G C</kbd></button><button class="command-row" type="button" data-command="activity"><i data-lucide="activity" class="icon-sm"></i><span>Open background activity</span><kbd>⌘ B</kbd></button><button class="command-row" type="button" data-command="terminal"><i data-lucide="terminal" class="icon-sm"></i><span>Open terminal tool</span><kbd>⌃ `</kbd></button><button class="command-row" type="button" data-command="theme"><i data-lucide="sun-moon" class="icon-sm"></i><span>Toggle appearance</span><kbd>⌘ \</kbd></button></div></div>
+      </section>
+    </div>
+
+    <div class="toast" id="toast" role="status"><i data-lucide="check-circle-2" class="icon-sm"></i><span id="toast-text"></span><button id="toast-action" type="button" hidden>Undo</button></div>
+
+    <script>
+      const root = document.documentElement;
+      const windowEl = document.getElementById("desktop-window");
+      const railToggle = document.getElementById("rail-toggle");
+      const inspectorToggle = document.getElementById("inspector-toggle");
+      const newSessionOverlay = document.getElementById("new-session-overlay");
+      const modelOverlay = document.getElementById("model-overlay");
+      const commandOverlay = document.getElementById("command-overlay");
+      const sessionMenu = document.getElementById("session-menu");
+      const toast = document.getElementById("toast");
+      const toastAction = document.getElementById("toast-action");
+      let toastTimer;
+      let selectedSessionButton = null;
+      let removedSession = null;
+      const overlayOpeners = new WeakMap();
+
+      function icons() { if (window.lucide) window.lucide.createIcons({ attrs: { "aria-hidden": "true" } }); }
+      function setOpen(element, open) {
+        const wasOpen = element.classList.contains("open");
+        element.classList.toggle("open", open);
+        element.setAttribute("aria-hidden", String(!open));
+        if (open && !wasOpen) {
+          overlayOpeners.set(element, document.activeElement);
+          windowEl.inert = true;
+          setTimeout(() => {
+            const preferred = element.querySelector("[data-autofocus], input, textarea, select, button");
+            preferred?.focus();
+          }, 0);
+        }
+        if (!open && wasOpen) {
+          if (![newSessionOverlay, modelOverlay, commandOverlay].some((item) => item.classList.contains("open"))) windowEl.inert = false;
+          const opener = overlayOpeners.get(element);
+          if (opener && document.contains(opener)) opener.focus();
+        }
+      }
+      function notify(message, undo) { document.getElementById("toast-text").textContent = message; toastAction.hidden = !undo; toastAction.onclick = undo || null; toast.classList.add("open"); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove("open"), 3200); }
+      function setRail(open) { windowEl.classList.toggle("rail-closed", !open); windowEl.classList.toggle("rail-open", open); railToggle.classList.toggle("active", open); railToggle.setAttribute("aria-pressed", String(open)); }
+      function setInspector(open) { windowEl.classList.toggle("inspector-closed", !open); windowEl.classList.toggle("inspector-open", open); inspectorToggle.classList.toggle("active", open); inspectorToggle.setAttribute("aria-pressed", String(open)); }
+      function setView(name) { document.querySelectorAll("[data-view-panel]").forEach((panel) => panel.classList.toggle("active", panel.dataset.viewPanel === name)); document.querySelectorAll("[data-view]").forEach((button) => { const active = button.dataset.view === name; button.classList.toggle("active", active); button.setAttribute("aria-current", active ? "page" : "false"); }); const labels = { work: ["Work", "Ship the desktop workbench"], operate: ["Operate", "3 active tasks · 1 needs you"], outputs: ["Outputs", "Recent results and receipts"], connect: ["Connect", "Providers, skills, channels, and runtimes"] }; document.getElementById("context-title").textContent = labels[name][1]; document.getElementById("context-detail").textContent = name === "work" ? "main · kernel gated · local project" : "Vanta · operator surface"; document.querySelector(".rail-header h2").textContent = labels[name][0]; if (window.innerWidth <= 900) setRail(false); }
+      function showInspectorTab(name) { document.querySelectorAll("[data-inspector-tab]").forEach((tab) => tab.classList.toggle("active", tab.dataset.inspectorTab === name)); document.querySelectorAll("[data-inspector-panel]").forEach((panel) => { panel.hidden = panel.dataset.inspectorPanel !== name; }); setInspector(true); }
+      function closeOverlays() { setOpen(newSessionOverlay, false); setOpen(modelOverlay, false); setOpen(commandOverlay, false); }
+
+      railToggle.addEventListener("click", () => setRail(windowEl.classList.contains("rail-closed")));
+      inspectorToggle.addEventListener("click", () => setInspector(windowEl.classList.contains("inspector-closed")));
+      document.getElementById("new-session").addEventListener("click", () => setOpen(newSessionOverlay, true));
+      document.querySelectorAll("[data-open-target]").forEach((button) => button.addEventListener("click", () => setOpen(newSessionOverlay, true)));
+      document.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => setView(button.dataset.view)));
+      document.querySelectorAll("[data-inspector-tab]").forEach((tab) => tab.addEventListener("click", () => showInspectorTab(tab.dataset.inspectorTab)));
+      document.getElementById("model-open").addEventListener("click", () => setOpen(modelOverlay, true));
+      document.getElementById("model-pill").addEventListener("click", () => setOpen(modelOverlay, true));
+      document.getElementById("command-open").addEventListener("click", () => setOpen(commandOverlay, true));
+      document.getElementById("command-composer").addEventListener("click", () => setOpen(commandOverlay, true));
+      document.getElementById("shortcuts-open").addEventListener("click", () => { setOpen(commandOverlay, true); document.getElementById("command-search").value = "shortcut"; });
+      document.getElementById("settings-open").addEventListener("click", () => notify("Settings stays available as a utility surface"));
+      document.getElementById("settings-open-footer").addEventListener("click", () => notify("Settings stays available as a utility surface"));
+      document.querySelectorAll("[data-close-overlay]").forEach((button) => button.addEventListener("click", () => setOpen(document.getElementById(button.dataset.closeOverlay), false)));
+      [newSessionOverlay, modelOverlay, commandOverlay].forEach((overlay) => overlay.addEventListener("click", (event) => { if (event.target === overlay) setOpen(overlay, false); }));
+      document.addEventListener("keydown", (event) => {
+        const openOverlay = [newSessionOverlay, modelOverlay, commandOverlay].find((item) => item.classList.contains("open"));
+        if (event.key === "Tab" && openOverlay) {
+          const focusable = [...openOverlay.querySelectorAll("button, input, textarea, select, [tabindex]:not([tabindex='-1'])")].filter((item) => !item.hidden && item.offsetParent !== null && !item.disabled);
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+        }
+        if (event.key === "Escape") { closeOverlays(); sessionMenu.classList.remove("open"); }
+        if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setOpen(commandOverlay, true); }
+        if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "n") { event.preventDefault(); setOpen(newSessionOverlay, true); }
+        if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "m") { event.preventDefault(); setOpen(modelOverlay, true); }
+        if (event.key === "?" && document.activeElement.tagName !== "TEXTAREA" && document.activeElement.tagName !== "INPUT") setOpen(commandOverlay, true);
+      });
+
+      document.getElementById("theme-toggle").addEventListener("click", () => { const next = root.dataset.theme === "light" ? "dark" : "light"; root.dataset.theme = next; notify(`${next === "light" ? "Light" : "Dark"} appearance enabled`); icons(); });
+      document.querySelectorAll("[data-mobile-pane]").forEach((button) => button.addEventListener("click", () => { const pane = button.dataset.mobilePane; if (pane === "rail") { setRail(true); setInspector(false); } else if (pane === "inspector") { setRail(false); setInspector(true); } else { setRail(false); setInspector(false); } document.querySelectorAll("[data-mobile-pane]").forEach((item) => { const active = item === button; item.classList.toggle("active", active); item.setAttribute("aria-pressed", String(active)); }); }));
+
+      document.querySelectorAll("[data-model]").forEach((button) => button.addEventListener("click", () => { document.querySelectorAll("[data-model]").forEach((row) => row.classList.remove("active")); button.classList.add("active"); document.getElementById("current-model").textContent = button.dataset.model; setOpen(modelOverlay, false); notify(`Session model: ${button.dataset.model}`); }));
+      document.getElementById("model-search").addEventListener("input", (event) => { const value = event.target.value.toLowerCase(); let totalVisible = 0; document.querySelectorAll(".model-group").forEach((group) => { let visible = 0; group.querySelectorAll("[data-model]").forEach((row) => { const show = row.textContent.toLowerCase().includes(value); row.hidden = !show; if (show) { visible++; totalVisible++; } }); group.hidden = visible === 0; }); document.getElementById("model-empty").hidden = totalVisible !== 0; });
+      document.getElementById("command-search").addEventListener("input", (event) => { const value = event.target.value.toLowerCase(); document.querySelectorAll("[data-command]").forEach((row) => row.hidden = !row.textContent.toLowerCase().includes(value)); });
+      document.querySelectorAll("[data-command]").forEach((button) => button.addEventListener("click", () => { const command = button.dataset.command; closeOverlays(); if (command === "model") setOpen(modelOverlay, true); if (["operate", "outputs", "connect"].includes(command)) setView(command); if (command === "activity") showInspectorTab("activity"); if (command === "terminal") showInspectorTab("terminal"); if (command === "theme") document.getElementById("theme-toggle").click(); if (command === "new") setOpen(newSessionOverlay, true); }));
+
+      document.querySelectorAll(".toggle").forEach((button) => { button.setAttribute("aria-pressed", String(button.classList.contains("on"))); button.addEventListener("click", () => { const on = button.classList.toggle("on"); button.setAttribute("aria-pressed", String(on)); }); });
+      document.getElementById("create-session").addEventListener("click", () => { const prompt = document.getElementById("new-prompt").value.trim() || "Untitled task"; setOpen(newSessionOverlay, false); setView("work"); document.getElementById("context-title").textContent = prompt; document.getElementById("context-detail").textContent = `${document.getElementById("new-branch").value} · ${document.getElementById("new-agent").value} · ${document.getElementById("new-host").value}`; document.getElementById("composer-input").value = prompt; document.getElementById("composer-input").focus(); notify("Task draft ready; session starts when you send"); });
+
+      document.querySelectorAll("[data-session]").forEach((button) => button.addEventListener("click", (event) => { if (event.target.closest("[data-session-more]")) return; document.querySelectorAll("[data-session]").forEach((row) => row.classList.toggle("active", row === button)); const labels = { ship: ["Ship the desktop workbench", "main · kernel gated · local project"], models: ["Refresh provider models", "main · provider catalog"], recovery: ["Recover a failed run", "main · checkpoint available"], docs: ["Update the docs site", "docs · preview attached"], landing: ["Review the launch page", "main · website project"], roadmap: ["Review the current roadmap", "main · roadmap.json"], usecase: ["Prove a real use case", "main · acceptance gate"], apple: ["Prepare macOS release", "release · notarization"] }; const next = labels[button.dataset.session] || labels.ship; document.getElementById("context-title").textContent = next[0]; document.getElementById("context-detail").textContent = next[1]; setView("work"); notify(`Opened ${next[0]}`); }));
+      document.getElementById("session-search").addEventListener("input", (event) => { const value = event.target.value.toLowerCase(); document.querySelectorAll("[data-session]").forEach((row) => row.hidden = !row.textContent.toLowerCase().includes(value)); });
+      document.querySelectorAll("[data-session-more]").forEach((trigger) => { const openMenu = (event) => { event.preventDefault(); event.stopPropagation(); selectedSessionButton = trigger.closest("[data-session]"); const rect = trigger.getBoundingClientRect(); sessionMenu.style.insetInlineStart = `${Math.min(rect.left, window.innerWidth - 160)}px`; sessionMenu.style.insetBlockStart = `${Math.min(rect.bottom + 3, window.innerHeight - 150)}px`; sessionMenu.classList.add("open"); }; trigger.addEventListener("click", openMenu); trigger.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") openMenu(event); }); });
+      document.querySelectorAll("[data-session-action]").forEach((button) => button.addEventListener("click", () => { if (!selectedSessionButton) return; const action = button.dataset.sessionAction; sessionMenu.classList.remove("open"); const label = selectedSessionButton.querySelector(".task-item span"); if (action === "rename") { const next = window.prompt("Rename task", label.textContent); if (next?.trim()) { label.textContent = next.trim(); notify("Task renamed"); } } else if (action === "pin") notify("Pinned state updated"); else { removedSession = { button: selectedSessionButton, parent: selectedSessionButton.parentElement, next: selectedSessionButton.nextSibling }; selectedSessionButton.remove(); notify(action === "archive" ? "Task archived" : "Task deleted", () => { removedSession.parent.insertBefore(removedSession.button, removedSession.next); notify("Task restored"); }); } }));
+      document.addEventListener("click", (event) => { if (!event.target.closest("#session-menu") && !event.target.closest("[data-session-more]")) sessionMenu.classList.remove("open"); });
+      document.getElementById("file-search").addEventListener("input", (event) => { const value = event.target.value.toLowerCase(); document.querySelectorAll("#inspector-files .file-row").forEach((row) => row.hidden = !row.textContent.toLowerCase().includes(value)); });
+      document.querySelectorAll("[data-file]").forEach((button) => button.addEventListener("click", () => { const name = button.dataset.file; const context = document.getElementById("composer-context"); if ([...context.children].some((chip) => chip.dataset.file === name)) return; const chip = document.createElement("span"); chip.className = "context-chip"; chip.dataset.file = name; chip.innerHTML = `<span>${name}</span><button type="button" aria-label="Remove ${name}" title="Remove context"><i data-lucide="x" class="icon-sm"></i></button>`; chip.querySelector("button").addEventListener("click", () => chip.remove()); context.appendChild(chip); icons(); notify(`Attached ${name}`); }));
+      document.querySelectorAll("[data-open-output]").forEach((button) => button.addEventListener("click", () => { setView("outputs"); notify("Opened output receipt"); }));
+      document.querySelectorAll("[data-open-session]").forEach((button) => button.addEventListener("click", () => { setView("work"); notify("Returned to source session"); }));
+      document.querySelectorAll("[data-inspector-open]").forEach((button) => button.addEventListener("click", () => showInspectorTab(button.dataset.inspectorOpen)));
+      document.querySelectorAll("[data-toast]").forEach((button) => button.addEventListener("click", () => notify(button.dataset.toast)));
+      document.querySelectorAll("[data-cancel-task]").forEach((button) => button.addEventListener("click", () => { const row = button.closest(".data-row"); row.querySelector(".task-state").className = "task-state blocked"; row.querySelector(".task-state").textContent = "cancelled"; button.remove(); notify("Task cancelled; child session stopped"); }));
+      document.getElementById("background-run").addEventListener("click", () => { showInspectorTab("activity"); notify("Run continues in background; completion will be pushed"); });
+      document.getElementById("stop-run").addEventListener("click", () => { const kicker = document.querySelector(".run-kicker .live"); kicker.classList.remove("live"); kicker.innerHTML = '<i data-lucide="square" class="icon-sm"></i> Run stopped · checkpoint saved'; icons(); notify("Run stopped; resume remains available from this checkpoint"); });
+      document.querySelectorAll("[data-approval]").forEach((button) => button.addEventListener("click", () => { const allowed = button.dataset.approval === "allow"; const card = document.getElementById("approval-card"); card.classList.add("resolved"); document.getElementById("approval-status").textContent = allowed ? "· allowed once" : "· kept current shell"; card.querySelector(".approval-actions").innerHTML = `<span class="receipt-status">${allowed ? "Run continuing" : "Run paused"}</span>`; notify(allowed ? "Approval recorded" : "Approval recorded; current shell kept"); }));
+      document.getElementById("run-reset").addEventListener("click", () => { document.getElementById("approval-card").classList.remove("resolved"); document.getElementById("approval-status").textContent = ""; document.querySelector("#approval-card .approval-actions").innerHTML = '<button type="button" data-approval="allow">Allow once</button><button type="button" data-approval="deny">Keep current shell</button>'; document.querySelectorAll("[data-approval]").forEach((button) => button.addEventListener("click", approvalHandler)); notify("Example run reset"); });
+      function approvalHandler(event) { const allowed = event.currentTarget.dataset.approval === "allow"; const card = document.getElementById("approval-card"); card.classList.add("resolved"); document.getElementById("approval-status").textContent = allowed ? "· allowed once" : "· kept current shell"; card.querySelector(".approval-actions").innerHTML = `<span class="receipt-status">${allowed ? "Run continuing" : "Run paused"}</span>`; notify(allowed ? "Approval recorded" : "Approval recorded; current shell kept"); }
+      document.getElementById("composer-form").addEventListener("submit", (event) => { event.preventDefault(); const input = document.getElementById("composer-input"); const value = input.value.trim(); if (!value) return; const inner = document.querySelector(".transcript-inner"); const article = document.createElement("article"); article.className = "message"; article.innerHTML = `<div class="message-meta"><span class="avatar">J</span><strong>You</strong><span>now</span></div><div class="message-body"><p>${value.replace(/[&<>]/g, (char) => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[char]))}</p></div>`; inner.appendChild(article); input.value = ""; document.getElementById("transcript").scrollTop = document.getElementById("transcript").scrollHeight; notify("Instruction queued in this prototype"); });
+
+      let drag = null;
+      const grip = document.getElementById("rail-grip");
+      function setRailWidth(width) { const value = Math.min(Math.max(width, 220), Math.min(380, window.innerWidth - 520)); root.style.setProperty("--rail-width", `${value}px`); }
+      grip.addEventListener("pointerdown", (event) => { if (window.innerWidth <= 900) return; drag = { x: event.clientX, width: parseFloat(getComputedStyle(root).getPropertyValue("--rail-width")) }; grip.classList.add("dragging"); grip.setPointerCapture(event.pointerId); });
+      grip.addEventListener("pointermove", (event) => { if (drag) setRailWidth(drag.width + event.clientX - drag.x); });
+      grip.addEventListener("pointerup", () => { drag = null; grip.classList.remove("dragging"); });
+      grip.addEventListener("keydown", (event) => { const current = parseFloat(getComputedStyle(root).getPropertyValue("--rail-width")); if (event.key === "ArrowRight") { event.preventDefault(); setRailWidth(current + 16); } if (event.key === "ArrowLeft") { event.preventDefault(); setRailWidth(current - 16); } });
+
+      icons();
+      document.querySelectorAll("[data-mobile-pane]").forEach((button) => button.setAttribute("aria-pressed", String(button.classList.contains("active"))));
+      setRail(window.innerWidth > 900);
+      setInspector(window.innerWidth > 1180);
+    </script>
+  </body>
+</html>

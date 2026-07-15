@@ -2,9 +2,10 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { loadPromptContext, loadRuntimeSettings } from "./prepare-helpers.js";
+import { loadPromptContext, loadPromptNdPreferences, loadRuntimeSettings } from "./prepare-helpers.js";
 import { buildRegistry } from "../tools/index.js";
 import { addBeliefToStore, evidence, saveBeliefStore } from "../operator-profile/beliefs.js";
+import { invalidateNdConfig } from "../nd/profile.js";
 
 /**
  * SETTINGS-BLOCKEDTOOLS-ENFORCE: prepareRun loads settings BEFORE buildRegistry
@@ -29,9 +30,11 @@ describe("loadRuntimeSettings → blockedTools registry exclusion", () => {
     home = await mkdtemp(join(tmpdir(), "vanta-blocked-home-"));
     // Isolate the user scope so a real ~/.vanta/settings.json never bleeds in.
     process.env.VANTA_HOME = home;
+    invalidateNdConfig();
   });
 
   afterEach(async () => {
+    invalidateNdConfig();
     if (prevHome === undefined) delete process.env.VANTA_HOME;
     else process.env.VANTA_HOME = prevHome;
     await rm(root, { recursive: true, force: true });
@@ -136,6 +139,29 @@ describe("loadRuntimeSettings → blockedTools registry exclusion", () => {
     process.env.VANTA_SAFE_MODE = "1";
     try {
       expect(await loadRuntimeSettings(root)).toEqual({});
+    } finally {
+      if (previous === undefined) delete process.env.VANTA_SAFE_MODE;
+      else process.env.VANTA_SAFE_MODE = previous;
+    }
+  });
+
+  it("loads the complete ND preferences for real prompt assembly", async () => {
+    await writeFile(join(home, "nd-profile.json"), JSON.stringify({
+      prefs: { outputDensity: "minimal", sensoryLoad: "low", timeSupport: "points" },
+    }), "utf8");
+
+    await expect(loadPromptNdPreferences(process.env)).resolves.toEqual({
+      outputDensity: "minimal",
+      sensoryLoad: "low",
+      timeSupport: "points",
+    });
+  });
+
+  it("omits ND preferences in safe mode", async () => {
+    const previous = process.env.VANTA_SAFE_MODE;
+    process.env.VANTA_SAFE_MODE = "1";
+    try {
+      await expect(loadPromptNdPreferences(process.env)).resolves.toBeUndefined();
     } finally {
       if (previous === undefined) delete process.env.VANTA_SAFE_MODE;
       else process.env.VANTA_SAFE_MODE = previous;

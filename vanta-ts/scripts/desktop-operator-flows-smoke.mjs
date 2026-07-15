@@ -44,8 +44,10 @@ try {
   page.setDefaultTimeout(30_000);
   await page.locator(".app-shell").waitFor();
   await page.getByRole("button", { name: "Work" }).waitFor();
+  const inspectorToggle = page.getByRole("button", { name: "Open contextual inspector" });
+  if (await inspectorToggle.isVisible().catch(() => false)) await inspectorToggle.click();
   await page.locator(".right-rail").waitFor();
-  await page.locator(".right-rail").getByRole("heading", { name: "Outputs", exact: true }).waitFor();
+  await page.locator(".right-rail").getByRole("tab", { name: "Activity", exact: true }).waitFor();
 
   const paneWidths = () => page.locator(".app-shell").evaluate((shell) => ({
     sidebar: Number.parseInt(getComputedStyle(shell).getPropertyValue("--sidebar-width"), 10),
@@ -75,6 +77,7 @@ try {
   await page.mouse.move(railBox.x + railBox.width / 2 - 24, railBox.y + railBox.height / 2);
   await page.mouse.up();
   await page.waitForFunction((previous) => Number.parseInt(getComputedStyle(document.querySelector(".app-shell")).getPropertyValue("--rail-width"), 10) > previous, keyboardPanes.rail);
+  const resizedPanes = await paneWidths();
 
   let releaseChat;
   await page.route(/\/api\/chat$/, (route) => new Promise((resolve) => {
@@ -114,26 +117,26 @@ try {
   await page.getByText("https://example.test/receipt").waitFor();
 
   await page.getByRole("button", { name: "Work" }).click();
-  await page.getByTitle("Change model").click();
-  await page.getByRole("heading", { name: "Choose a model" }).waitFor();
+  await page.locator(".composer").getByTitle("Change model").click();
+  await page.getByRole("heading", { name: "Models for this task" }).waitFor();
   if (process.env.VANTA_DESKTOP_MODEL_PICKER_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_MODEL_PICKER_SCREENSHOT, fullPage: false });
-  await page.getByPlaceholder("Search models").fill("__missing_model__");
-  await page.getByText("No matching models.").waitFor();
-  await page.getByPlaceholder("Search models").fill("");
-  await page.locator(".model-provider-group").first().waitFor();
-  await page.locator(".model-picker").getByRole("button", { name: "Close" }).click();
+  await page.getByPlaceholder("Search provider or model").fill("__missing_model__");
+  await page.getByText("No matching providers or models.").waitFor();
+  await page.getByPlaceholder("Search provider or model").fill("");
+  await page.locator(".model-provider-nav button").first().waitFor();
+  await page.locator(".model-picker").getByRole("button", { name: "Close model picker" }).click();
   await page.locator("#vanta-composer").press("@");
   await page.locator(".right-rail").waitFor();
   await page.locator(".files-panel").waitFor();
   const fileButton = page.locator(".file-list button").first();
   await fileButton.waitFor();
-  const file = (await fileButton.textContent())?.trim();
+  const file = (await fileButton.getAttribute("title"))?.trim();
   if (!file) throw new Error("File context fixture has no visible label");
   await fileButton.click();
   await page.getByRole("button", { name: `Remove ${file}` }).waitFor();
   await page.getByRole("button", { name: `Remove ${file}` }).click();
   await page.locator(".context-chips").waitFor({ state: "detached" });
-  await page.locator(".topbar").getByRole("button", { name: "Close inspector" }).click();
+  await page.locator(".right-rail").getByRole("button", { name: "Close inspector" }).click();
   await page.locator(".right-rail").waitFor({ state: "detached" });
 
   await page.locator("#vanta-composer").press("/");
@@ -143,7 +146,7 @@ try {
   await page.keyboard.press("?");
   await page.getByRole("heading", { name: "Keyboard shortcuts" }).waitFor();
   await page.getByRole("button", { name: "Close" }).click();
-  await page.getByRole("button", { name: "Settings" }).click();
+  await page.locator(".session-sidebar-footer").getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByRole("heading", { name: "Settings" }).waitFor();
   await page.getByRole("button", { name: "Model", exact: true }).click();
   await page.getByRole("button", { name: "Connect provider" }).click();
@@ -152,10 +155,14 @@ try {
   await page.getByRole("button", { name: "Appearance" }).click();
   await page.getByRole("button", { name: "Light" }).click();
   await page.locator(".app-shell.theme-light").waitFor();
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.locator(".app-shell.theme-light").waitFor();
+  const reloadedPanes = await paneWidths();
+  if (reloadedPanes.sidebar !== resizedPanes.sidebar || reloadedPanes.rail !== resizedPanes.rail) throw new Error(`Pane widths did not persist: ${JSON.stringify({ resizedPanes, reloadedPanes })}`);
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
 
   if (process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT, fullPage: false });
-  process.stdout.write(`${JSON.stringify({ work: true, modelPicker: true, connect: true, capabilities: true, messaging: true, outputs: true, visibleContextChips: true, queue: true, stop: true, shortcuts: true, settings: true, providerSetup: true, lightTheme: true, resizablePanes: true })}\n`);
+  process.stdout.write(`${JSON.stringify({ work: true, modelPicker: true, connect: true, capabilities: true, messaging: true, outputs: true, visibleContextChips: true, queue: true, stop: true, shortcuts: true, settings: true, providerSetup: true, lightTheme: true, resizablePanes: true, persistentPanes: true })}\n`);
   await new Promise((resolveDone) => setTimeout(resolveDone, 100));
 } finally {
   if (app) {

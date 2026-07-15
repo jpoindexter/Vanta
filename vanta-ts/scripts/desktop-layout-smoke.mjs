@@ -13,18 +13,19 @@ const app = await electron.launch({
 try {
   const page = await app.firstWindow();
   await page.setViewportSize({ width: 1778, height: 1136 });
-  await page.getByRole("heading", { name: "New session" }).waitFor({ timeout: 15_000 });
-  await page.getByRole("button", { name: "New session" }).click();
+  await page.locator(".app-shell").waitFor({ timeout: 15_000 });
+  await page.locator(".session-sidebar").getByRole("button", { name: "New task" }).click();
+  await page.getByRole("dialog", { name: "Start a new task" }).getByRole("button", { name: "Create and run" }).click();
   await page.getByRole("heading", { name: "What should Vanta handle?" }).waitFor();
   const healthy = await measure(page);
   assertLayout(healthy, "healthy");
   if (process.env.VANTA_DESKTOP_SHELL_SCREENSHOT) {
     await page.screenshot({ path: process.env.VANTA_DESKTOP_SHELL_SCREENSHOT });
   }
-  await page.getByTitle("Change model").click();
+  await page.locator(".composer").getByTitle("Change model").click();
   const modelDesktop = await measureModelPicker(page);
   assertModelPicker(modelDesktop, "desktop");
-  await page.getByRole("dialog", { name: "Choose a model" }).getByRole("button", { name: "Close" }).click();
+  await page.getByRole("dialog", { name: "Models for this task" }).getByRole("button", { name: "Close model picker" }).click();
 
   await page.route("**/api/status", (route) => route.fulfill({
     status: 500,
@@ -66,7 +67,7 @@ try {
 }
 
 async function measureModelPicker(page) {
-  const dialog = page.getByRole("dialog", { name: "Choose a model" });
+  const dialog = page.getByRole("dialog", { name: "Models for this task" });
   await dialog.waitFor();
   await dialog.locator(".model-row").first().waitFor();
   return dialog.evaluate((element) => {
@@ -95,7 +96,7 @@ async function measureFiles(page) {
       return { top: rect.top, bottom: rect.bottom, width: rect.width, height: rect.height };
     };
     const rail = document.querySelector(".right-rail");
-    const heading = document.querySelector(".rail-heading");
+    const heading = document.querySelector(".inspector-tabs");
     const panel = document.querySelector(".files-panel");
     const list = document.querySelector(".file-list");
     const rows = [...document.querySelectorAll(".file-list button")].slice(0, 5);

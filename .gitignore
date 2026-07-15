@@ -49,6 +49,7 @@ argo
 # Agent scratch space (OCR/temp output from running Vanta in this repo)
 .vanta_tmp/
 tmp/
+.tmp-media-image-proof/
 
 # Internal dev artifacts — not for the public repo (machine config, handoffs, planning docs)
 .codex/

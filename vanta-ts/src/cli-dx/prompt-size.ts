@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import { buildSystemPrompt } from "../prompt.js";
 import { buildRegistry } from "../tools/index.js";
+import { loadPromptNdPreferences } from "../nd/profile.js";
 
 // CLI-DX-PACK — `vanta prompt-size`: where the per-turn token budget goes.
 // Serves the frugality rule (rule 8) — the tool schemas + context files are
@@ -33,6 +34,7 @@ export async function runPromptSize(repoRoot: string): Promise<number> {
   const brain = await resolveBrain(process.env).digest(process.env).catch(() => "");
   const { listSkills } = await import("../skills/store.js");
   const skills = (await listSkills(process.env).catch(() => [])).map((s) => ({ name: s.meta.name, description: s.meta.description }));
+  const ndPreferences = await loadPromptNdPreferences(process.env);
   const prompt = await buildSystemPrompt({
     root: repoRoot,
     soulPath: join(repoRoot, "SOUL.md"),
@@ -41,6 +43,8 @@ export async function runPromptSize(repoRoot: string): Promise<number> {
     now: new Date().toISOString(),
     brain,
     skills,
+    outputDensity: ndPreferences?.outputDensity,
+    ndPreferences,
   });
   const b = (s: string) => Buffer.byteLength(s);
   const parts: SizePart[] = [

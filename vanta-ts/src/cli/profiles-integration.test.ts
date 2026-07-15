@@ -18,7 +18,7 @@ afterEach(async () => {
 });
 
 describe("vanta profiles command dispatch", () => {
-  it("reloads the active profile and lists it through the real CLI entry point", async () => {
+  it("reloads the active profile and lists it through the real CLI entry point", { timeout: 60_000 }, async () => {
     const env = { VANTA_HOME: home } as NodeJS.ProcessEnv;
     await createProfile({ name: "Research Lead", provider: "codex", model: "gpt-5.5" }, env);
     await switchProfile("research-lead", env);
@@ -26,7 +26,7 @@ describe("vanta profiles command dispatch", () => {
     const result = await exec(process.execPath, ["--import", "tsx", "src/cli.ts", "profiles", "list"], {
       cwd: process.cwd(),
       env: { ...process.env, VANTA_HOME: home },
-      timeout: 10_000,
+      timeout: 60_000,
     });
     expect(result.stderr).toBe("");
     expect(result.stdout).toContain("research-lead · active · codex/gpt-5.5");

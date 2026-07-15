@@ -1,3 +1,6 @@
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   applyOutputDensity,
@@ -101,6 +104,51 @@ describe("buildSystemPrompt", () => {
     const minimal = await buildSystemPrompt({ ...base, outputDensity: "minimal" });
     expect(minimal).toContain("1–2 short sentences");
     expect(minimal).not.toContain("default to 1–4 short sentences");
+  });
+
+  it("assembles the profile-driven executive-function contract independently of a custom soul", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-ef-contract-"));
+    const soulPath = join(root, "SOUL.md");
+    await writeFile(soulPath, "# Custom operator\nHandle invoices without ceremony.\n", "utf8");
+
+    try {
+      const prompt = await buildSystemPrompt({
+        root,
+        soulPath,
+        goals: [],
+        tools,
+        now: "2026-07-14T00:00:00Z",
+        ndPreferences: {
+          outputDensity: "minimal",
+          sensoryLoad: "low",
+          timeSupport: "ranges",
+        },
+      });
+
+      expect(prompt).toContain("Handle invoices without ceremony.");
+      expect(prompt).toContain("Executive-function operating contract");
+      expect(prompt).toContain("Now / Next / Later");
+      expect(prompt).toContain("at most three ranked choices");
+      expect(prompt).toContain("output=minimal");
+      expect(prompt).toContain("sensory=low");
+      expect(prompt).toContain("time=ranges");
+      expect(prompt).toContain("best / realistic / worst");
+      expect(prompt).toContain("Do not turn a simple request into a coaching ritual");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("omits the user support contract when the profile is intentionally unavailable", async () => {
+    const prompt = await buildSystemPrompt({
+      root: "/tmp/vanta",
+      soulPath: "/nonexistent/SOUL.md",
+      goals: [],
+      tools,
+      now: "2026-07-14T00:00:00Z",
+    });
+
+    expect(prompt).not.toContain("Executive-function operating contract");
   });
 
   it("frames a carried goal as PAUSED when goalsPaused, active otherwise", async () => {
