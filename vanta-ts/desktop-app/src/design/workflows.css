@@ -278,18 +278,18 @@
 }
 
 .right-rail {
-  grid-template-rows: 48px minmax(0, 1fr);
+  grid-template-rows: 52px minmax(0, 1fr);
 }
 
 .inspector-tabs {
-  height: 48px;
+  height: 52px;
   gap: 0;
   border-color: var(--line);
   padding: 0 6px;
 }
 
 .inspector-tabs button {
-  min-height: 47px;
+  min-height: 51px;
   gap: 5px;
   border: 0;
   border-radius: 0;

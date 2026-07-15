@@ -201,10 +201,11 @@
 }
 
 .work-toolbar {
-  min-height: 42px;
+  height: 52px;
+  min-height: 52px;
   justify-content: flex-end;
   border-color: var(--line);
-  padding: 5px 11px;
+  padding: 7px 11px;
 }
 
 .work-toolbar-title {

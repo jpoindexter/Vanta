@@ -29,6 +29,7 @@ Vanta Desktop is an operator workbench, not a generic AI dashboard. The visual a
 - The two project-rail controls are right-aligned within the project rail, while the native traffic lights are centered on the 50px titlebar row. The inspector toggle lives with the right-side actions it governs, not beside the model selector.
 - The task model picker uses a provider index and stable model rows. It states that clicking changes the current task, the star saves a default for new tasks, and an unlisted model ID is an advanced disclosure rather than a permanent form.
 - The renderer root and app shell explicitly fill `100vw`/`100dvh`; the native BrowserWindow and splash fallback use the same workspace color so uncovered resize edges do not read as broken black space.
+- The Work run-control toolbar and the inspector tab tray now share one 52px chrome row, matching top and bottom baselines so the shell reads as a single aligned surface instead of two mismatched bars.
 - Dark and light themes share the same semantic tokens and layout contract.
 
 ## Verification ledger
@@ -39,6 +40,7 @@ Executed against the current source renderer and Electron shell:
 - `npm run desktop:shell-convergence:smoke` — passed Work/Operate/Outputs/Connect, new task, inline approval, model picker, responsive widths, titlebar safe zone, and no redundant brand.
 - `npm run desktop:devtools:smoke` — passed detached `devtools://` window, 900px renderer content width, full shell width, traffic-light-safe controls at 76px, and zero titlebar brand nodes.
 - `npm run desktop:layout:smoke` — passed healthy, inspector-closed, and forced recovery layouts. Root, shell, titlebar, and Work all reach the right viewport edge when expected; desktop and compact model picker, long-path files fixture, and no horizontal overflow also passed.
+- `npm run desktop:shell-convergence:smoke` — passed the explicit chrome-row geometry check: Work toolbar and inspector tabs both measured 52px high with a shared 102px bottom baseline.
 - `npm run desktop:operator-flows:smoke` — passed model, connect, capabilities, messaging, outputs, attachments, queue/stop, shortcuts, settings, provider setup, light theme, and pane persistence.
 - `npm run desktop:sessions:smoke` — passed rename, archive, restore, and delete.
 - `npm run desktop:native:smoke` — passed renderer asset startup, packaged kernel online, terminal-love mount, and obsidian-vault mount. Codegraph remained skipped because its trust gate is external to this visual pass.

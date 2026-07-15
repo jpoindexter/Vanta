@@ -203,6 +203,7 @@ try {
       sidebar: rect(".session-sidebar"),
       titlebarIdentity: rect(".titlebar-identity"),
       titlebarControls: rect(".titlebar-leading-actions"),
+      workToolbar: rect(".work-toolbar"),
       inspector: rect(".right-rail"),
       inspectorTabs: rect(".inspector-tabs"),
       composer: rect(".composer"),
@@ -216,6 +217,8 @@ try {
   if (Math.abs(geometry.titlebarControls.right - geometry.titlebarIdentity.right) > 16) throw new Error(`Titlebar controls are not right-aligned in the project rail: ${JSON.stringify(geometry)}`);
   if (await page.locator(".titlebar-brand").count()) throw new Error("Redundant in-app product branding returned to the titlebar");
   if (geometry.inspectorTabs.top - geometry.inspector.top > 4) throw new Error(`Inspector tabs do not own the tray top: ${JSON.stringify(geometry)}`);
+  if (Math.abs(geometry.workToolbar.height - geometry.inspectorTabs.height) > 1) throw new Error(`Work toolbar and inspector tabs have different heights: ${JSON.stringify(geometry)}`);
+  if (Math.abs(geometry.workToolbar.bottom - geometry.inspectorTabs.bottom) > 1) throw new Error(`Work toolbar and inspector tabs do not share a baseline: ${JSON.stringify(geometry)}`);
   if (geometry.composer.width > 660 || geometry.composer.width < 480) throw new Error(`Composer width drifted from the accepted demo: ${JSON.stringify(geometry)}`);
   if (geometry.message.width > 700) throw new Error(`Transcript reading column is too wide: ${JSON.stringify(geometry)}`);
   if (Math.abs(geometry.statusbar.height - 27) > 1) throw new Error(`Statusbar height drifted: ${JSON.stringify(geometry)}`);
