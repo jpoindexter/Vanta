@@ -25,7 +25,7 @@ Vanta Desktop is an operator workbench, not a generic AI dashboard. The visual a
 - The composer carries execution context, model, approval mode, attachments, and commands in one functional row.
 - The statusbar reports Gateway, Kernel, task count, project root, and branch context.
 - Source DevTools are explicitly detached; the renderer must retain the full BrowserWindow content width.
-- The two pane controls are right-aligned within the project rail, while the native traffic lights are centered on the 50px titlebar row.
+- The two project-rail controls are right-aligned within the project rail, while the native traffic lights are centered on the 50px titlebar row. The inspector toggle lives with the right-side actions it governs, not beside the model selector.
 - Dark and light themes share the same semantic tokens and layout contract.
 
 ## Verification ledger
