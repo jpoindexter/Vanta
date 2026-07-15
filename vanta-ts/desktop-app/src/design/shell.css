@@ -10,9 +10,9 @@
 }
 
 .titlebar-identity {
-  justify-content: flex-start;
+  justify-content: flex-end;
   border-color: var(--line);
-  padding: 0 10px 0 76px;
+  padding: 0 12px 0 76px;
 }
 
 .titlebar-identity button,

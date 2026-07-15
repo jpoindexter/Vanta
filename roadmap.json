@@ -18439,7 +18439,7 @@
       "codex": "gpt-5.6-sol",
       "lens": "tui",
       "updated": "2026-07-15",
-      "notes": "Shipped 2026-07-15 from the anti-slop design-law review and the user-provided desktop screenshot. Removed the in-app VANTA titlebar brand and rounded mark, replaced avatar tiles/pills/card grids with a functional operator ledger and evidence spine, tightened status/composer controls, reserved the macOS traffic-light zone, and changed source DevTools to detached mode. Evidence: docs/research/vanta-desktop-anti-slop-2026-07-15.md, before/after screenshots, detached DevTools smoke, shell convergence smoke, layout/recovery smoke, operator flows, session management, native Electron smoke, and renderer typecheck.",
+      "notes": "Shipped 2026-07-15 from the anti-slop design-law review and the user-provided desktop screenshot. Removed the in-app VANTA titlebar brand and rounded mark, replaced avatar tiles/pills/card grids with a functional operator ledger and evidence spine, tightened status/composer controls, right-aligned the two project-rail controls, centered the native traffic lights on the titlebar row, reserved the traffic-light zone, and changed source DevTools to detached mode. Evidence: docs/research/vanta-desktop-anti-slop-2026-07-15.md, before/after screenshots, detached DevTools smoke, shell convergence smoke, layout/recovery smoke, operator flows, session management, native Electron smoke, and renderer typecheck.",
       "source": "anti-slop-design-law review and user screenshot 2026-07-15",
       "after": [
         "DESKTOP-SHELL-CONVERGENCE-1TO1"

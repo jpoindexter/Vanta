@@ -213,6 +213,7 @@ try {
   if (geometry.sidebar.width < 250 || geometry.sidebar.width > 340) throw new Error(`Project rail width drifted: ${JSON.stringify(geometry)}`);
   if (Math.abs(geometry.sidebar.right - geometry.titlebarIdentity.right) > 2) throw new Error(`Titlebar is not pane-aligned: ${JSON.stringify(geometry)}`);
   if (geometry.titlebarControls.left < 70) throw new Error(`Titlebar controls overlap the macOS traffic-light zone: ${JSON.stringify(geometry)}`);
+  if (Math.abs(geometry.titlebarControls.right - geometry.titlebarIdentity.right) > 16) throw new Error(`Titlebar controls are not right-aligned in the project rail: ${JSON.stringify(geometry)}`);
   if (await page.locator(".titlebar-brand").count()) throw new Error("Redundant in-app product branding returned to the titlebar");
   if (geometry.inspectorTabs.top - geometry.inspector.top > 4) throw new Error(`Inspector tabs do not own the tray top: ${JSON.stringify(geometry)}`);
   if (geometry.composer.width > 660 || geometry.composer.width < 480) throw new Error(`Composer width drifted from the accepted demo: ${JSON.stringify(geometry)}`);

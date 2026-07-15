@@ -134,7 +134,7 @@ async function createWindow() {
     title: "Vanta", backgroundColor: "#090909",
     ...(process.platform === "darwin" ? {
       titleBarStyle: "hiddenInset",
-      trafficLightPosition: { x: 14, y: 13 },
+      trafficLightPosition: { x: 14, y: 18 },
     } : {}),
     webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
