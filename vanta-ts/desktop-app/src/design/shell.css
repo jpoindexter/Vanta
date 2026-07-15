@@ -200,7 +200,7 @@
 .session-actions {
   border-radius: var(--radius-sm);
   background: var(--raised);
-  box-shadow: 0 14px 28px rgba(0, 0, 0, .28);
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--text) 22%, transparent);
 }
 
 .session-search {

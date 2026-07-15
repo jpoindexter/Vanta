@@ -6,7 +6,7 @@ import { ArtifactsView, ConnectView, OperateView } from "./operator-views.js";
 import { RightRail } from "./rail.js";
 import { CompletionSoundSettings } from "./sound-settings.js";
 import { useApproval, useCompletionSound, useConversation, useDesktopData } from "./state.js";
-import type { DesktopView, RailTab } from "./types.js";
+import type { DesktopTheme, DesktopView, RailTab } from "./types.js";
 
 type DesktopData = ReturnType<typeof useDesktopData>;
 type CompletionSound = ReturnType<typeof useCompletionSound>;
@@ -40,7 +40,7 @@ export function AppShell() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [view, setView] = useState<DesktopView>("work");
   const [inspectorOpen, setInspectorOpen] = useState(() => window.innerWidth > 1080);
-  const [theme, setTheme] = useState<"dark" | "light">(() => window.localStorage.getItem("vanta.desktop.theme") === "light" ? "light" : "dark");
+  const [theme, setTheme] = useState<DesktopTheme>(() => window.localStorage.getItem("vanta.desktop.theme") === "light" ? "light" : "dark");
   const [attachments, setAttachments] = useState<string[]>([]);
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(() => storedPaneWidth(SIDEBAR_STORAGE_KEY, 268));
@@ -48,7 +48,7 @@ export function AppShell() {
   const preferredSidebarWidth = useRef(sidebarWidth);
   const preferredRailWidth = useRef(railWidth);
   const bootSession = useRef("");
-  function changeTheme(next: "dark" | "light") { setTheme(next); window.localStorage.setItem("vanta.desktop.theme", next); }
+  function changeTheme(next: DesktopTheme) { setTheme(next); window.localStorage.setItem("vanta.desktop.theme", next); }
   function changeSidebarWidth(next: number) {
     preferredSidebarWidth.current = next;
     window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(next));
@@ -273,8 +273,8 @@ function DesktopOverlays(props: {
   data: DesktopData;
   sound: CompletionSound;
   convo: ReturnType<typeof useConversation>;
-  theme: "dark" | "light";
-  onTheme: (theme: "dark" | "light") => void;
+  theme: DesktopTheme;
+  onTheme: (theme: DesktopTheme) => void;
   onNew: () => void;
   onInspector: (tab: RailTab) => void;
 }) {

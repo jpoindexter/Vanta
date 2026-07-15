@@ -214,7 +214,7 @@
   border-color: var(--accent) !important;
   border-radius: var(--radius-sm) !important;
   background: var(--accent) !important;
-  color: #10201e;
+  color: var(--bg);
 }
 
 .empty-state {
@@ -470,7 +470,7 @@
 }
 
 .overlay {
-  background: rgba(6, 7, 7, .72);
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
 }
 
 .palette,
@@ -482,7 +482,7 @@
   border-color: var(--line-strong);
   border-radius: var(--radius-md);
   background: var(--panel);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, .42);
+  box-shadow: 0 24px 60px color-mix(in srgb, var(--text) 28%, transparent);
 }
 
 .model-picker-body,

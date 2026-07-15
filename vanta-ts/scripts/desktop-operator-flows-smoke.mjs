@@ -153,7 +153,7 @@ try {
   await page.getByRole("heading", { name: "Connect a model" }).waitFor();
   await page.locator(".setup-dialog").getByRole("button", { name: "Close" }).click();
   await page.getByRole("button", { name: "Appearance" }).click();
-  await page.getByRole("button", { name: "Light" }).click();
+  await page.getByRole("button", { name: "Dossier light" }).click();
   await page.locator(".app-shell.theme-light").waitFor();
   await page.reload({ waitUntil: "domcontentloaded" });
   await page.locator(".app-shell.theme-light").waitFor();

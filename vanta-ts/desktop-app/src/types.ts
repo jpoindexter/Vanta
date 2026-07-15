@@ -1,5 +1,6 @@
 export type Session = { id: string; title: string; turns: number; updated: string; archived?: boolean };
 export type Tool = { name: string; desc: string };
+export type DesktopTheme = "dark" | "light";
 export type DesktopView = "work" | "operate" | "outputs" | "connect";
 export type Capability = { id: string; kind: "tool" | "skill"; name: string; description: string; tags: string[] };
 export type MessagingPlatform = {
