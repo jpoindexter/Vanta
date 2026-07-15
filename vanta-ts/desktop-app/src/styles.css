@@ -131,7 +131,8 @@ h2 { margin: 14px 0 8px; font-size: 11px; letter-spacing: .08em; text-transform:
 .session-menu-button:hover, .session-menu-button[aria-expanded="true"] { background: var(--raised); color: var(--text); }
 .session-bulk-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); padding: 6px 7px; }
 .session-bulk-actions span, .session-bulk-status { color: var(--faint); font-size: 11px; }
-.session-bulk-actions span { flex: 1 0 100%; }
+.session-bulk-actions span { flex: 1 0 100%; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.session-bulk-actions small { color: var(--muted); font-size: 10px; font-weight: 600; }
 .session-bulk-actions button { flex: 1 1 58px; min-height: 28px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; border: 1px solid var(--line); border-radius: 5px; background: var(--raised); color: var(--muted); padding: 4px 6px; font-size: 11px; }
 .session-bulk-actions button:hover:not(:disabled) { border-color: var(--line-strong); color: var(--text); }
 .session-bulk-actions button:disabled { opacity: .42; cursor: default; }

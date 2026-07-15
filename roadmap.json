@@ -18291,7 +18291,7 @@
       "codex": "gpt-5.4",
       "lens": "tui",
       "updated": "2026-07-15",
-      "notes": "Consolidated from audit P2. DESKTOP-SESSION-MANAGEMENT shipped the mechanics; this card tracks the user-facing safety and feedback layer. SUBSLICE SHIPPED 2026-07-15: the left session rail now has a Select mode with checkboxes, selected count, bulk Archive, Restore, Delete, and Done actions. Bulk delete uses one confirmation for the whole selection; bulk archive/delete are covered by npm run desktop:sessions:smoke. Remaining work for full card completion: archive undo toast, recoverable trash instead of permanent delete, optimistic pending/error states, outside-click close, and keyboard menu traversal.",
+      "notes": "Consolidated from audit P2. DESKTOP-SESSION-MANAGEMENT shipped the mechanics; this card tracks the user-facing safety and feedback layer. SUBSLICE SHIPPED 2026-07-15: the left session rail now has a Select chats mode with checkboxes, selected count, Shift-click range selection, All visible, Clear, bulk Archive, Restore, Delete, and Done actions. Bulk delete uses one confirmation for the whole selection; shift range, all-visible selection, bulk archive, and bulk delete are covered by npm run desktop:sessions:smoke. Remaining work for full card completion: archive undo toast, recoverable trash instead of permanent delete, optimistic pending/error states, outside-click close, and keyboard menu traversal.",
       "source": "desktop-userflow-audit-2026-07-13",
       "after": [
         "DESKTOP-SESSION-MANAGEMENT"

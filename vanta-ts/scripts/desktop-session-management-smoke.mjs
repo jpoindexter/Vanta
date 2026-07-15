@@ -29,6 +29,13 @@ const bulkSessions = [
     updated: "2026-07-13T00:00:02.000Z",
     messages: [{ role: "user", content: "bulk two" }],
   },
+  {
+    id: "bulk-three",
+    title: "Bulk target three",
+    started: "2026-07-13T00:00:03.000Z",
+    updated: "2026-07-13T00:00:03.000Z",
+    messages: [{ role: "user", content: "bulk three" }],
+  },
 ];
 let app;
 
@@ -73,23 +80,24 @@ try {
   await remove.click();
   await page.getByRole("button", { name: `Manage ${renamed}` }).waitFor({ state: "detached" });
 
-  await page.getByRole("button", { name: "Select" }).click();
-  await page.getByLabel("Select Bulk target one").check();
-  await page.getByLabel("Select Bulk target two").check();
+  await page.getByRole("button", { name: "Select chats" }).click();
+  await page.getByLabel("Select Bulk target one").click();
+  await page.getByRole("button", { name: /Bulk target three/ }).click({ modifiers: ["Shift"] });
+  await page.getByText("3 selected").waitFor();
   await page.getByRole("button", { name: "Archive", exact: true }).click();
-  await page.getByText("Archived 2 sessions.").waitFor();
+  await page.getByText("Archived 3 sessions.").waitFor();
 
   await archive.waitFor();
   await archive.locator("summary").click();
-  await page.getByRole("button", { name: "Select" }).click();
-  await page.getByLabel("Select Bulk target one").check();
-  await page.getByLabel("Select Bulk target two").check();
+  await page.getByRole("button", { name: "Select chats" }).click();
+  await page.getByRole("button", { name: "All visible" }).click();
+  await page.getByText("3 selected").waitFor();
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Delete", exact: true }).click();
-  await page.getByText("Deleted 2 sessions.").waitFor();
+  await page.getByText("Deleted 3 sessions.").waitFor();
   await page.getByLabel("Select Bulk target one").waitFor({ state: "detached" });
 
-  console.log(JSON.stringify({ rename: true, archive: true, restore: true, delete: true, bulkArchive: true, bulkDelete: true }));
+  console.log(JSON.stringify({ rename: true, archive: true, restore: true, delete: true, shiftRange: true, selectAllVisible: true, bulkArchive: true, bulkDelete: true }));
 } finally {
   await app?.close().catch(() => undefined);
   await Promise.all([rm(home, { recursive: true, force: true }), rm(userData, { recursive: true, force: true })]);

@@ -23,12 +23,15 @@ export function SessionSidebar(props: SessionSidebarProps) {
   const [query, setQuery] = useState("");
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
   const [bulkStatus, setBulkStatus] = useState("");
+  const [archivedOpen, setArchivedOpen] = useState(false);
   const sessions = useMemo(() => props.sessions.filter((session) => session.title.toLowerCase().includes(query.toLowerCase())), [props.sessions, query]);
   const active = sessions.filter((session) => !session.archived);
   const archived = sessions.filter((session) => session.archived);
   const projectSessions = active.slice(0, 3);
   const recentSessions = active.slice(3);
+  const visibleSessions = useMemo(() => [...projectSessions, ...recentSessions, ...(archivedOpen ? archived : [])], [projectSessions, recentSessions, archived, archivedOpen]);
   const projectName = props.root?.split("/").filter(Boolean).at(-1) ?? "Current project";
   const selectedSessions = useMemo(() => props.sessions.filter((session) => selected.has(session.id)), [props.sessions, selected]);
 
@@ -39,14 +42,26 @@ export function SessionSidebar(props: SessionSidebarProps) {
       return next.size === current.size ? current : next;
     });
   }, [props.sessions]);
+  useEffect(() => { if (!archived.length) setArchivedOpen(false); }, [archived.length]);
 
-  function toggleSelected(id: string) {
+  function toggleSelected(id: string, range = false) {
     setBulkStatus("");
     setSelected((current) => {
       const next = new Set(current);
+      if (range && lastSelectedId) {
+        const anchor = visibleSessions.findIndex((session) => session.id === lastSelectedId);
+        const target = visibleSessions.findIndex((session) => session.id === id);
+        if (anchor >= 0 && target >= 0) {
+          const start = Math.min(anchor, target);
+          const end = Math.max(anchor, target);
+          for (const session of visibleSessions.slice(start, end + 1)) next.add(session.id);
+          return next;
+        }
+      }
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
+    setLastSelectedId(id);
   }
   function startSelecting() {
     setSelecting(true);
@@ -55,6 +70,19 @@ export function SessionSidebar(props: SessionSidebarProps) {
   function stopSelecting() {
     setSelecting(false);
     setSelected(new Set());
+    setLastSelectedId(null);
+  }
+  function clearSelected() {
+    setSelected(new Set());
+    setLastSelectedId(null);
+    setBulkStatus("");
+  }
+  function selectAllVisible() {
+    const ids = visibleSessions.map((session) => session.id);
+    setSelecting(true);
+    setSelected(new Set(ids));
+    setLastSelectedId(ids.at(-1) ?? null);
+    setBulkStatus("");
   }
   async function archiveSelected(archivedState: boolean) {
     const targets = [...selectedSessions];
@@ -62,6 +90,7 @@ export function SessionSidebar(props: SessionSidebarProps) {
     for (const session of targets) await props.onArchive(session.id, archivedState);
     setBulkStatus(`${archivedState ? "Archived" : "Restored"} ${targets.length} session${targets.length === 1 ? "" : "s"}.`);
     setSelected(new Set());
+    setLastSelectedId(null);
     setSelecting(false);
   }
   async function deleteSelected() {
@@ -71,6 +100,7 @@ export function SessionSidebar(props: SessionSidebarProps) {
     for (const session of targets) await props.onDelete(session.id);
     setBulkStatus(`Deleted ${targets.length} session${targets.length === 1 ? "" : "s"}.`);
     setSelected(new Set());
+    setLastSelectedId(null);
     setSelecting(false);
   }
   const renderSession = (session: Session) => (
@@ -105,15 +135,15 @@ export function SessionSidebar(props: SessionSidebarProps) {
         </div>
         <div className="section-heading recent-heading">
           <h2>Recent sessions</h2>
-          <div><span>{recentSessions.length}</span><button type="button" onClick={selecting ? stopSelecting : startSelecting}>{selecting ? "Cancel" : "Select"}</button></div>
+          <div><span>{recentSessions.length}</span><button type="button" onClick={selecting ? stopSelecting : startSelecting}>{selecting ? "Cancel" : "Select chats"}</button></div>
         </div>
         <label className="session-search"><Search size={14} /><span className="sr-only">Search sessions</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search sessions" /></label>
-        {selecting ? <BulkSessionActions count={selected.size} onArchive={() => void archiveSelected(true)} onRestore={() => void archiveSelected(false)} onDelete={() => void deleteSelected()} onCancel={stopSelecting} /> : null}
+        {selecting ? <BulkSessionActions count={selected.size} visibleCount={visibleSessions.length} onSelectAll={selectAllVisible} onClear={clearSelected} onArchive={() => void archiveSelected(true)} onRestore={() => void archiveSelected(false)} onDelete={() => void deleteSelected()} onCancel={stopSelecting} /> : null}
         {bulkStatus ? <div className="session-bulk-status" role="status">{bulkStatus}</div> : null}
         <div className="session-list recent-session-group">
           {recentSessions.map(renderSession)}
           {archived.length > 0 ? (
-            <details className="archived-sessions">
+            <details className="archived-sessions" open={archivedOpen} onToggle={(event) => setArchivedOpen(event.currentTarget.open)}>
               <summary>Archived <span>{archived.length}</span></summary>
               <div>{archived.map(renderSession)}</div>
             </details>
@@ -126,11 +156,13 @@ export function SessionSidebar(props: SessionSidebarProps) {
   );
 }
 
-function BulkSessionActions(props: { count: number; onArchive: () => void; onRestore: () => void; onDelete: () => void; onCancel: () => void }) {
+function BulkSessionActions(props: { count: number; visibleCount: number; onSelectAll: () => void; onClear: () => void; onArchive: () => void; onRestore: () => void; onDelete: () => void; onCancel: () => void }) {
   const disabled = props.count === 0;
   return (
     <div className="session-bulk-actions" role="toolbar" aria-label="Selected session actions">
-      <span>{props.count} selected</span>
+      <span>{props.count ? `${props.count} selected` : "Select chats"} <small>Shift-click for a range</small></span>
+      <button type="button" disabled={props.visibleCount === 0} onClick={props.onSelectAll}><Check size={13} />All visible</button>
+      <button type="button" disabled={disabled} onClick={props.onClear}><X size={13} />Clear</button>
       <button type="button" disabled={disabled} onClick={props.onArchive}><Archive size={13} />Archive</button>
       <button type="button" disabled={disabled} onClick={props.onRestore}><ArchiveRestore size={13} />Restore</button>
       <button className="danger" type="button" disabled={disabled} onClick={props.onDelete}><Trash2 size={13} />Delete</button>
@@ -144,7 +176,7 @@ function SessionButton(props: {
   active: boolean;
   selecting?: boolean;
   selected?: boolean;
-  onSelect?: (id: string) => void;
+  onSelect?: (id: string, range?: boolean) => void;
   onOpen: (id: string) => void;
   onRename: (id: string, title: string) => void | Promise<void>;
   onArchive: (id: string, archived: boolean) => void | Promise<void>;
@@ -186,8 +218,8 @@ function SessionButton(props: {
         </form>
       ) : (
         <>
-          {props.selecting ? <label className="session-select" title={`Select ${props.session.title}`}><input type="checkbox" checked={!!props.selected} onChange={() => props.onSelect?.(props.session.id)} /><span className="sr-only">Select {props.session.title}</span></label> : null}
-          <button className="session" type="button" onClick={() => props.selecting ? props.onSelect?.(props.session.id) : props.onOpen(props.session.id)}>
+          {props.selecting ? <label className="session-select" title={`Select ${props.session.title}`}><input type="checkbox" checked={!!props.selected} onChange={() => undefined} onClick={(event) => props.onSelect?.(props.session.id, event.shiftKey)} /><span className="sr-only">Select {props.session.title}</span></label> : null}
+          <button className="session" type="button" onClick={(event) => props.selecting ? props.onSelect?.(props.session.id, event.shiftKey) : props.onOpen(props.session.id)}>
             <strong>{props.session.title}</strong>
             <span>{props.session.turns} turns</span>
           </button>
