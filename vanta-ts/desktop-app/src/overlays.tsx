@@ -135,25 +135,25 @@ export function ModelPicker(props: { open: boolean; models: Provider[]; status: 
   return (
     <div className="overlay" onClick={props.onClose}>
       <div className="palette model-picker" role="dialog" aria-modal="true" aria-labelledby="model-title" onClick={(e) => e.stopPropagation()}>
-        <div className="dialog-heading"><div><p className="eyebrow">Active task</p><h2 id="model-title">Models for this task</h2></div><button className="icon-button" type="button" aria-label="Close model picker" onClick={props.onClose}><X size={16} /></button></div>
-        <label className="palette-search model-search"><Search size={16} /><span className="sr-only">Search provider or model</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search provider or model" /></label>
+        <div className="dialog-heading model-picker-heading"><div><h2 id="model-title">Choose a model</h2><p>Click a model for this task. Use the star to save a default for new tasks.</p></div><button className="icon-button" type="button" aria-label="Close model picker" onClick={props.onClose}><X size={16} /></button></div>
+        <label className="palette-search model-search"><Search size={16} /><span className="sr-only">Search models and providers</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search models and providers" /></label>
         <div className="model-picker-body">
-          <nav className="model-provider-nav" aria-label="Model providers" onKeyDown={navigateProviders}>
-            {matchingProviders.map((provider) => <button key={provider.id} data-provider-id={provider.id} className={provider.id === activeProvider?.id ? "active" : ""} type="button" onClick={() => setSelectedProviderId(provider.id)}>
-              <span><strong>{provider.short || provider.label}</strong>{provider.current ? <small>Default provider</small> : null}</span>
+          <nav className="model-provider-nav" role="tablist" aria-label="Model providers" aria-orientation="vertical" onKeyDown={navigateProviders}>
+            {matchingProviders.map((provider) => <button key={provider.id} role="tab" aria-selected={provider.id === activeProvider?.id} data-provider-id={provider.id} className={provider.id === activeProvider?.id ? "active" : ""} type="button" onClick={() => setSelectedProviderId(provider.id)}>
+              <span><strong>{provider.short || provider.label}</strong>{provider.current ? <small>Default</small> : <small>{provider.modelSource === "live" ? "Live catalog" : "Catalog"}</small>}</span>
               <b>{filterModels(provider, query).length}</b>
             </button>)}
           </nav>
           <section className="model-provider-detail" aria-live="polite">
             {activeProvider ? <>
               <header className="model-detail-heading">
-                <div><h3>{activeProvider.label}</h3><p>{activeProvider.modelSource === "live" ? "Live provider models" : "Vanta catalog"}</p></div>
+                <div><h3>{activeProvider.short || activeProvider.label}</h3><p>{visibleModels.length} models · {activeProvider.modelSource === "live" ? "Live provider catalog" : "Vanta catalog"}</p></div>
                 <button className="icon-button" type="button" onClick={() => void refreshSelected()} disabled={!activeProvider.discoveryAvailable || refreshing} aria-label={`Refresh ${activeProvider.label} models`} title={activeProvider.discoveryAvailable ? "Refresh models from provider" : "Connect this provider to load live models"}><RefreshCw size={15} className={refreshing ? "spinning" : ""} /></button>
               </header>
               {activeProvider.discoveryError ? <p className="model-discovery-error" role="status">{activeProvider.discoveryError} Showing the offline catalog.</p> : null}
-              <div className="model-rows">{visibleModels.map((model) => <ModelRow key={model} provider={activeProvider} model={model} status={props.status} onSelect={props.onSelect} />)}</div>
+              <div className="model-rows" aria-label={`${activeProvider.short || activeProvider.label} models`}>{visibleModels.map((model) => <ModelRow key={model} provider={activeProvider} model={model} status={props.status} onSelect={props.onSelect} />)}</div>
               {visibleModels.length === 0 ? <p className="muted model-empty">No matching models for this provider.</p> : null}
-              <form className="custom-model" onSubmit={chooseCustom}><label htmlFor="custom-model-id">Use another model ID</label><div><input id="custom-model-id" value={customModel} onChange={(event) => setCustomModel(event.target.value)} placeholder="provider model ID" /><button type="submit" disabled={!customModel.trim()}>Use</button></div></form>
+              <details className="custom-model-disclosure"><summary>Use a model ID that is not listed</summary><form className="custom-model" onSubmit={chooseCustom}><label htmlFor="custom-model-id">Model ID</label><div><input id="custom-model-id" value={customModel} onChange={(event) => setCustomModel(event.target.value)} placeholder="Enter the provider model ID" /><button type="submit" disabled={!customModel.trim()}>Use for task</button></div></form></details>
             </> : <p className="muted model-empty">No matching providers or models.</p>}
           </section>
         </div>
@@ -177,8 +177,8 @@ function ModelRow(props: { provider: Provider; model: string; status: Status | n
   const savedDefault = props.provider.current && props.provider.savedDefaultModel === props.model;
   return <div className={`model-row${selected ? " selected" : ""}`}>
     <button className="model-select" type="button" onClick={() => props.onSelect(props.provider.id, props.model, "session")} aria-pressed={selected}>
-      <span className="model-name">{props.model}</span>
-      <span className="model-badges">{selected ? <span className="model-active"><Check size={14} />Current</span> : null}{savedDefault ? <span className="model-saved"><Star size={12} fill="currentColor" />Default</span> : null}</span>
+      <strong className="model-name">{props.model}</strong>
+      <span className="model-badges">{selected ? <span className="model-active"><Check size={14} />This task</span> : null}{savedDefault ? <span className="model-saved"><Star size={12} fill="currentColor" />Default</span> : null}</span>
     </button>
     <button className={`icon-button model-default${savedDefault ? " saved" : ""}`} type="button" onClick={() => props.onSelect(props.provider.id, props.model, "global")} aria-label={savedDefault ? `${props.provider.label} ${props.model} is the default` : `Set ${props.provider.label} ${props.model} as default`} title={savedDefault ? "Default for new sessions" : "Set as default"}><Star size={15} fill={savedDefault ? "currentColor" : "none"} /></button>
   </div>;

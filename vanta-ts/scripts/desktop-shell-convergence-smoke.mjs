@@ -147,8 +147,8 @@ try {
   await inspector.locator(".file-list button").first().waitFor();
 
   await page.locator(".composer").getByTitle("Change model").click();
-  await page.getByRole("heading", { name: "Models for this task" }).waitFor();
-  await page.getByPlaceholder("Search provider or model").fill("openai");
+  await page.getByRole("heading", { name: "Choose a model" }).waitFor();
+  await page.getByPlaceholder("Search models and providers").fill("openai");
   await page.locator(".model-row").first().waitFor();
   await page.getByRole("button", { name: "Close model picker" }).click();
 

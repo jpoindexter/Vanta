@@ -118,11 +118,11 @@ try {
 
   await page.getByRole("button", { name: "Work" }).click();
   await page.locator(".composer").getByTitle("Change model").click();
-  await page.getByRole("heading", { name: "Models for this task" }).waitFor();
+  await page.getByRole("heading", { name: "Choose a model" }).waitFor();
   if (process.env.VANTA_DESKTOP_MODEL_PICKER_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_MODEL_PICKER_SCREENSHOT, fullPage: false });
-  await page.getByPlaceholder("Search provider or model").fill("__missing_model__");
+  await page.getByPlaceholder("Search models and providers").fill("__missing_model__");
   await page.getByText("No matching providers or models.").waitFor();
-  await page.getByPlaceholder("Search provider or model").fill("");
+  await page.getByPlaceholder("Search models and providers").fill("");
   await page.locator(".model-provider-nav button").first().waitFor();
   await page.locator(".model-picker").getByRole("button", { name: "Close model picker" }).click();
   await page.locator("#vanta-composer").press("@");

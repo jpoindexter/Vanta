@@ -26,6 +26,7 @@ Vanta Desktop is an operator workbench, not a generic AI dashboard. The visual a
 - The statusbar reports Gateway, Kernel, task count, project root, and branch context.
 - Source DevTools are explicitly detached; the renderer must retain the full BrowserWindow content width.
 - The two project-rail controls are right-aligned within the project rail, while the native traffic lights are centered on the 50px titlebar row. The inspector toggle lives with the right-side actions it governs, not beside the model selector.
+- The task model picker uses a provider index and stable model rows. It states that clicking changes the current task, the star saves a default for new tasks, and an unlisted model ID is an advanced disclosure rather than a permanent form.
 - Dark and light themes share the same semantic tokens and layout contract.
 
 ## Verification ledger
@@ -44,6 +45,7 @@ Visual receipt:
 
 - Before: `docs/research/vanta-desktop-anti-slop-2026-07-15/screenshots/before.png`
 - After: `docs/research/vanta-desktop-anti-slop-2026-07-15/screenshots/after.png`
+- Model picker: `docs/research/vanta-desktop-anti-slop-2026-07-15/screenshots/model-picker-fixed.png` — 22 Codex models rendered in 48px rows; the 640x900 compact proof kept the 616x876 dialog entirely inside the viewport with no horizontal overflow.
 
 ## Remaining boundary
 

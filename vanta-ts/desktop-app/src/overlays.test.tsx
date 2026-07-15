@@ -46,14 +46,14 @@ describe("ModelPicker", () => {
         onSelect={vi.fn()}
       />,
     );
-    expect(html).toContain("Models for this task");
-    expect(html).toContain("Search provider or model");
+    expect(html).toContain("Choose a model");
+    expect(html).toContain("Search models and providers");
     expect(html).toContain("Ollama");
-    expect(html).toContain("Live provider models");
-    expect(html).toContain("Current");
+    expect(html).toContain("Live provider catalog");
+    expect(html).toContain("This task");
     expect(html).toContain("Default");
     expect(html).toContain("Ollama qwen is the default");
-    expect(html).toContain("Use another model ID");
+    expect(html).toContain("Use a model ID that is not listed");
   });
 });
 

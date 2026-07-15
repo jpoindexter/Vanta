@@ -33,7 +33,10 @@ try {
   await page.locator(".composer").getByTitle("Change model").click();
   const modelDesktop = await measureModelPicker(page);
   assertModelPicker(modelDesktop, "desktop");
-  await page.getByRole("dialog", { name: "Models for this task" }).getByRole("button", { name: "Close model picker" }).click();
+  if (process.env.VANTA_DESKTOP_MODEL_SCREENSHOT) {
+    await page.screenshot({ path: process.env.VANTA_DESKTOP_MODEL_SCREENSHOT });
+  }
+  await page.getByRole("dialog", { name: "Choose a model" }).getByRole("button", { name: "Close model picker" }).click();
 
   await page.route("**/api/status", (route) => route.fulfill({
     status: 500,
@@ -53,7 +56,8 @@ try {
   }));
   await page.setViewportSize({ width: 760, height: 900 });
   await page.reload({ waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "Open contextual inspector" }).click();
+  // The composer owns the file-context entry point and opens the inspector in
+  // either initial state, so the proof does not depend on a stale tray toggle.
   await page.getByRole("button", { name: "Attach project files" }).click();
   await page.locator(".files-panel").waitFor();
   await page.locator(".file-list button").first().waitFor();
@@ -75,7 +79,7 @@ try {
 }
 
 async function measureModelPicker(page) {
-  const dialog = page.getByRole("dialog", { name: "Models for this task" });
+  const dialog = page.getByRole("dialog", { name: "Choose a model" });
   await dialog.waitFor();
   await dialog.locator(".model-row").first().waitFor();
   return dialog.evaluate((element) => {
@@ -85,12 +89,16 @@ async function measureModelPicker(page) {
     };
     const body = element.querySelector(".model-picker-body");
     const detail = element.querySelector(".model-provider-detail");
-    const custom = element.querySelector(".custom-model");
-    if (!body || !detail || !custom) throw new Error("Model picker fixture did not render");
+    const custom = element.querySelector(".custom-model-disclosure");
+    const rows = [...element.querySelectorAll(".model-row")].slice(0, 8);
+    const names = [...element.querySelectorAll(".model-name")].slice(0, 8);
+    if (!body || !detail || !custom || rows.length === 0 || names.length === 0) throw new Error("Model picker fixture did not render");
     return {
       viewport: { width: window.innerWidth, height: window.innerHeight },
       dialog: box(element), body: box(body), detail: box(detail), custom: box(custom),
       widths: [element.clientWidth, element.scrollWidth, detail.clientWidth, detail.scrollWidth],
+      rowHeights: rows.map((row) => box(row).height),
+      nameHeights: names.map((name) => box(name).height),
       providers: element.querySelectorAll(".model-provider-nav button").length,
       models: element.querySelectorAll(".model-row").length,
     };
@@ -162,6 +170,8 @@ function assertModelPicker(result, label) {
   if (result.widths[1] > result.widths[0] + tolerance) throw new Error(`${label} model picker scrolls horizontally`);
   if (result.widths[3] > result.widths[2] + tolerance) throw new Error(`${label} model detail scrolls horizontally`);
   if (result.custom.bottom > result.dialog.bottom + tolerance) throw new Error(`${label} custom model control is clipped`);
-  if (result.custom.height < 60) throw new Error(`${label} custom model control collapsed to ${result.custom.height}px`);
+  if (result.custom.height < 32) throw new Error(`${label} custom model disclosure collapsed to ${result.custom.height}px`);
+  if (result.rowHeights.some((height) => height < 44)) throw new Error(`${label} model rows collapsed: ${result.rowHeights.join(",")}`);
+  if (result.nameHeights.some((height) => height < 14)) throw new Error(`${label} model labels are clipped: ${result.nameHeights.join(",")}`);
   if (result.providers < 1 || result.models < 1) throw new Error(`${label} model picker has no selectable provider/model`);
 }
