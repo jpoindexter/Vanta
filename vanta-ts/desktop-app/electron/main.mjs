@@ -131,7 +131,7 @@ function toggleDeveloperTools() {
 async function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1440, height: 960, minWidth: 760, minHeight: 620, show: false,
-    title: "Vanta", backgroundColor: "#191a1b",
+    title: "Vanta", backgroundColor: "#151515",
     ...(process.platform === "darwin" ? {
       titleBarStyle: "hiddenInset",
       trafficLightPosition: { x: 14, y: 18 },
@@ -145,7 +145,7 @@ async function createWindow() {
 }
 
 function splashHtml() {
-  return `<!doctype html><meta charset="utf-8"><title>Vanta</title><style>body{margin:0;display:grid;place-items:center;height:100vh;background:#191a1b;color:#f2f0eb;font:14px system-ui}main{text-align:center}.mark{display:grid;place-items:center;width:44px;height:44px;margin:0 auto 16px;border-radius:8px;background:#f2f0eb;color:#191a1b;font-weight:800;font-size:20px}p{color:#aaa7a0}</style><main><div class="mark">V</div><strong>Opening Vanta</strong><p>Loading the local runtime and kernel…</p></main>`;
+  return `<!doctype html><meta charset="utf-8"><title>Vanta</title><style>body{margin:0;display:grid;place-items:center;height:100vh;background:#151515;color:#f5f5f3;font:14px system-ui}main{text-align:center}.mark{display:grid;place-items:center;width:44px;height:44px;margin:0 auto 16px;border-radius:8px;background:#f5f5f3;color:#151515;font-weight:800;font-size:20px}p{color:#b8b8b4}</style><main><div class="mark">V</div><strong>Opening Vanta</strong><p>Loading the local runtime and kernel…</p></main>`;
 }
 
 async function initialProject() {

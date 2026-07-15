@@ -1,21 +1,21 @@
 :root {
   color-scheme: dark;
-  --bg: #0c0b09;
-  --panel: #15130f;
-  --panel-2: #1b1812;
-  --workspace: #100f0d;
-  --raised: #211e18;
-  --line: #383329;
-  --line-strong: #5b5142;
-  --text: #f1eadc;
-  --muted: #b9ad9b;
-  --faint: #83796a;
-  --accent: #d5801c;
-  --ok: #87a06f;
-  --amber: #d49b33;
-  --danger: #c96d55;
+  --bg: #0a0a0a;
+  --panel: #111111;
+  --panel-2: #0e0e0e;
+  --workspace: #151515;
+  --raised: #1c1c1c;
+  --line: #292929;
+  --line-strong: #454545;
+  --text: #f5f5f3;
+  --muted: #b8b8b4;
+  --faint: #858581;
+  --accent: #f5f5f3;
+  --ok: #83bd96;
+  --amber: #d5ac62;
+  --danger: #d67972;
 }
-.theme-light { --bg: #e7dfd2; --panel: #f3eddf; --panel-2: #ded5c5; --workspace: #ece6da; --raised: #d8cfbf; --line: #bcb2a2; --line-strong: #83796b; --text: #171511; --muted: #4d473e; --faint: #746d62; --accent: #c96512; --ok: #536b4b; --amber: #9b6415; --danger: #934333; background: var(--bg); }
+.theme-light { --bg: #e9e9e6; --panel: #f7f7f4; --panel-2: #efefec; --workspace: #ffffff; --raised: #dfdfdc; --line: #c9c9c5; --line-strong: #969690; --text: #111111; --muted: #4f4f4b; --faint: #686864; --accent: #111111; --ok: #247949; --amber: #8b6118; --danger: #a6403b; background: var(--bg); }
 .theme-light .session-row:hover, .theme-light .session-row:focus-within, .theme-light .session-row.active { background: var(--surface-selected); }.theme-light .session-row.active { box-shadow: inset 2px 0 var(--accent); }.theme-light .desktop-nav button.active, .theme-light .segmented button.active, .theme-light .artifact-tabs button.active, .theme-light .settings-nav button.active, .theme-light .connect-tabs button.active { background: var(--surface-selected); border-color: var(--line-strong); }.theme-light .platform-list button.active { background: var(--surface-selected); border-color: var(--line-strong); }.theme-light .view-search, .theme-light .session-search, .theme-light .composer textarea, .theme-light .messaging-detail input { background: var(--panel); }.theme-light .artifact-card, .theme-light .capability-row, .theme-light .operator-empty, .theme-light .connect-card { background: var(--panel); }.theme-light .overlay { background: color-mix(in srgb, var(--text) 32%, transparent); }
 
 * { box-sizing: border-box; }
