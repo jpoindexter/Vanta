@@ -1,0 +1,312 @@
+.app-shell {
+  grid-template-rows: var(--titlebar-height) minmax(0, 1fr) var(--statusbar-height);
+  background: var(--bg);
+}
+
+.app-titlebar {
+  min-height: var(--titlebar-height);
+  border-color: var(--line);
+  background: var(--panel-2);
+}
+
+.titlebar-identity {
+  justify-content: flex-start;
+  border-color: var(--line);
+  padding: 0 10px 0 76px;
+}
+
+.titlebar-identity button,
+.titlebar-actions .icon-button,
+.titlebar-runtime > button {
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+}
+
+.titlebar-identity button:hover,
+.titlebar-identity button.active,
+.titlebar-actions .icon-button:hover,
+.titlebar-runtime > button:hover {
+  background: var(--raised);
+  color: var(--text);
+}
+
+.titlebar-agent-context {
+  border-color: var(--line);
+  padding-inline: 13px 9px;
+}
+
+.titlebar-task > svg {
+  color: var(--faint);
+}
+
+.titlebar-agent-context .title-block p {
+  color: var(--faint);
+  font-size: 9px;
+}
+
+.titlebar-agent-context .title-block h1 {
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.titlebar-runtime {
+  gap: 3px;
+}
+
+.titlebar-runtime > span,
+.approval-status {
+  min-height: 28px;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+  color: var(--muted) !important;
+  padding-inline: 6px !important;
+  font-size: 10px !important;
+}
+
+.kernel-status i,
+.approval-status i,
+.desktop-statusbar span > i,
+.status-dot,
+.project-row i,
+.task-state i {
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  box-shadow: none;
+}
+
+.approval-status.pending {
+  color: var(--amber) !important;
+}
+
+.session-sidebar,
+.right-rail {
+  border-color: var(--line);
+  background: var(--panel);
+}
+
+.desktop-nav {
+  gap: 0;
+  border-color: var(--line);
+  padding: 9px 10px;
+}
+
+.desktop-nav button {
+  position: relative;
+  min-height: 33px;
+  gap: 9px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  padding: 7px 9px 7px 12px;
+}
+
+.desktop-nav button.active {
+  border: 0;
+  background: var(--surface-selected);
+  color: var(--text);
+}
+
+.desktop-nav button.active::before {
+  position: absolute;
+  inset-block: 6px;
+  inset-inline-start: 0;
+  width: 3px;
+  background: var(--accent);
+  clip-path: polygon(0 0, 100% 4px, 100% calc(100% - 4px), 0 100%);
+  content: "";
+}
+
+.desktop-nav button > span {
+  color: var(--faint);
+}
+
+.project-rail {
+  padding: 8px 10px 0;
+}
+
+.project-rail .section-heading h2,
+.file-group h3,
+.rail-section h3 {
+  color: var(--faint);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.project-heading button,
+.session-sidebar-footer button,
+.session-menu-button {
+  border-radius: var(--radius-xs);
+}
+
+.project-row {
+  min-height: 32px;
+  border-radius: var(--radius-xs);
+  background: transparent;
+}
+
+.project-row.active {
+  background: var(--raised);
+}
+
+.project-session-group {
+  margin-inline-start: 11px;
+  border-color: var(--line-strong);
+}
+
+.project-session-group .session-row,
+.recent-session-group .session-row,
+.session {
+  border-radius: var(--radius-xs);
+}
+
+.project-session-group .session::before,
+.recent-session-group .session::before {
+  display: none;
+}
+
+.session-row.active {
+  background: var(--surface-selected);
+  box-shadow: none;
+}
+
+.session-row.active::before {
+  position: absolute;
+  z-index: 1;
+  inset-block: 5px;
+  inset-inline-start: 0;
+  width: 2px;
+  background: var(--accent);
+  content: "";
+}
+
+.session-actions {
+  border-radius: var(--radius-sm);
+  background: var(--raised);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, .28);
+}
+
+.session-search {
+  border-color: var(--line);
+}
+
+.session-sidebar-footer {
+  border-color: var(--line);
+  padding: 7px 10px;
+}
+
+.workbench {
+  background: var(--workspace);
+}
+
+.work-toolbar {
+  min-height: 42px;
+  justify-content: flex-end;
+  border-color: var(--line);
+  padding: 5px 11px;
+}
+
+.work-toolbar-title {
+  margin-inline-end: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--faint);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.work-toolbar-title i {
+  width: 7px;
+  height: 7px;
+  background: var(--faint);
+  clip-path: polygon(0 0, 100% 0, 100% 65%, 65% 100%, 0 100%);
+}
+
+.work-toolbar[data-busy="true"] .work-toolbar-title {
+  color: var(--accent);
+}
+
+.work-toolbar[data-busy="true"] .work-toolbar-title i {
+  background: var(--accent);
+}
+
+.work-toolbar button {
+  min-height: 29px;
+  border-color: transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+}
+
+.work-toolbar button:hover {
+  border-color: transparent;
+  background: var(--raised);
+}
+
+.work-toolbar button.danger:not(:disabled) {
+  color: var(--danger);
+}
+
+.desktop-statusbar {
+  min-height: var(--statusbar-height);
+  gap: 13px;
+  border-color: var(--line);
+  background: var(--panel-2);
+  padding-inline: 10px;
+  font-size: 10px;
+}
+
+.desktop-statusbar em {
+  color: var(--muted);
+}
+
+.pane-resize-handle {
+  top: var(--titlebar-height);
+}
+
+.pane-resize-handle::before {
+  width: 1px;
+  height: 46px;
+  border-radius: 0;
+}
+
+@media (max-width: 1080px) {
+  .app-shell,
+  .app-shell.inspector-open,
+  .app-shell.inspector-open.canvas-open,
+  .app-shell.sidebar-collapsed,
+  .app-shell.sidebar-collapsed.inspector-open {
+    grid-template-rows: var(--titlebar-height) minmax(0, 1fr) var(--statusbar-height);
+  }
+
+  .right-rail {
+    top: var(--titlebar-height);
+    bottom: var(--statusbar-height);
+    height: calc(100dvh - var(--titlebar-height) - var(--statusbar-height));
+  }
+}
+
+@media (max-width: 760px) {
+  .app-shell,
+  .app-shell.sidebar-collapsed,
+  .app-shell.inspector-open,
+  .app-shell.sidebar-collapsed.inspector-open {
+    grid-template-rows: var(--titlebar-height) minmax(0, 1fr) 56px;
+  }
+
+  .session-sidebar,
+  .app-shell.sidebar-collapsed .session-sidebar {
+    inset-block: var(--titlebar-height) 56px;
+  }
+
+  .right-rail {
+    top: var(--titlebar-height);
+    bottom: 56px;
+    height: calc(100dvh - var(--titlebar-height) - 56px);
+  }
+
+  .titlebar-identity {
+    padding-right: 6px;
+  }
+}

@@ -7,16 +7,24 @@ const app = await electron.launch({
   ...(executablePath ? { executablePath } : {}),
   args: executablePath ? ["--project", resolve(process.cwd(), "..")] : ["desktop-app/electron/main.mjs"],
   cwd: process.cwd(),
-  env: { ...process.env, VANTA_DESKTOP_PORT: port, ELECTRON_DISABLE_SECURITY_WARNINGS: "1" },
+  env: {
+    ...process.env,
+    VANTA_DESKTOP_PORT: port,
+    VANTA_DESKTOP_AUTOMATION: "1",
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "vanta-desktop-smoke-key",
+    ELECTRON_DISABLE_SECURITY_WARNINGS: "1",
+  },
 });
 
 try {
   const page = await app.firstWindow();
   await page.setViewportSize({ width: 1778, height: 1136 });
   await page.locator(".app-shell").waitFor({ timeout: 15_000 });
+  await page.locator(".kernel-status.ready").waitFor({ timeout: 30_000 });
   await page.locator(".session-sidebar").getByRole("button", { name: "New task" }).click();
   await page.getByRole("dialog", { name: "Start a new task" }).getByRole("button", { name: "Create and run" }).click();
-  await page.getByRole("heading", { name: "What should Vanta handle?" }).waitFor();
+  await page.locator(".composer").waitFor();
+  await page.getByPlaceholder("Ask Vanta to do something...").waitFor();
   const healthy = await measure(page);
   assertLayout(healthy, "healthy");
   if (process.env.VANTA_DESKTOP_SHELL_SCREENSHOT) {

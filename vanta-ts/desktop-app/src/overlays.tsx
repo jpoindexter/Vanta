@@ -13,7 +13,7 @@ export function CommandPalette(props: { open: boolean; onClose: () => void; onNe
       <div className="palette" role="dialog" aria-modal="true" aria-labelledby="command-title" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-heading"><h2 id="command-title">Command palette</h2><button className="icon-button" type="button" aria-label="Close" onClick={props.onClose}><X size={16} /></button></div>
         <label className="palette-search"><Search size={16} /><span className="sr-only">Search commands</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search actions" /></label>
-        <div className="palette-actions">{visible.map(([label, action]) => <button key={label} type="button" onClick={() => { action(); props.onClose(); }}>{label}</button>)}</div>
+        <div className="palette-actions">{visible.map(([label, action], index) => <button key={label} type="button" onClick={() => { action(); props.onClose(); }}><span>{String(index + 1).padStart(2, "0")}</span><strong>{label}</strong><kbd>↵</kbd></button>)}</div>
         {visible.length === 0 ? <p className="muted">No matching action.</p> : null}
       </div>
     </div>

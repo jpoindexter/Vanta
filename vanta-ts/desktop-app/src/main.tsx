@@ -3,6 +3,9 @@ import { createRoot } from "react-dom/client";
 import { AppShell } from "./App";
 import { CompanionApp } from "./companion";
 import "./styles.css";
+import "./design/tokens.css";
+import "./design/shell.css";
+import "./design/workflows.css";
 import { isNativeCompanion } from "./companion-client";
 
 const Root = window.location.pathname === "/companion" || isNativeCompanion() ? CompanionApp : AppShell;

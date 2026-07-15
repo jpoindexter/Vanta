@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Activity, Bell, Bot, Command, Cpu, FolderKanban, MessageSquare, MessageSquarePlus, Network, PackageOpen, PanelLeft, PanelRight, Pause, RefreshCw, RotateCcw, Search, Settings2, ShieldCheck, Square } from "lucide-react";
+import { Activity, Bell, Command, Cpu, FolderKanban, MessageSquare, MessageSquarePlus, Network, PackageOpen, PanelLeft, PanelRight, Pause, RefreshCw, RotateCcw, Search, Settings2, ShieldCheck, Square } from "lucide-react";
 import { ChatThread, Composer, SessionSidebar } from "./chat.js";
 import { CommandPalette, KeyboardShortcuts, ModelPicker, NewTaskDialog, SettingsDialog, SetupWizard, type NewTaskDraft } from "./overlays.js";
 import { ArtifactsView, ConnectView, OperateView } from "./operator-views.js";
@@ -239,10 +239,9 @@ function DesktopHeader(props: { title: string; data: DesktopData; approvalPendin
   return (
     <header className="app-titlebar" aria-label="Application chrome">
       <div className="titlebar-identity">
-        <div className="titlebar-brand"><span>V</span><div><strong>Vanta</strong><small>Local operator</small></div></div>
         <div className="titlebar-leading-actions"><button className={props.sidebarCollapsed ? "" : "active"} type="button" title="Toggle threads" aria-label="Toggle threads" aria-pressed={!props.sidebarCollapsed} onClick={props.onSidebar}><PanelLeft size={16} /></button><button type="button" title="New task" aria-label="New task" onClick={props.onNew}><MessageSquarePlus size={16} /></button></div>
       </div>
-      <div className="titlebar-agent-context"><div className="titlebar-task"><FolderKanban size={14} /><div className="title-block"><p>Vanta · {root}</p><h1>{props.title}</h1></div></div><div className="titlebar-runtime"><span className={`kernel-status ${data.phase}`}><i />{data.phase === "ready" ? "online" : data.phase}</span><button type="button" title="Change model" onClick={data.openModelPicker}><Cpu size={14} /><span>{data.status?.model ?? "model"}</span></button><button className="icon-button" type="button" title={props.inspectorOpen ? "Close inspector" : "Open contextual inspector"} onClick={props.onInspector} aria-label={props.inspectorOpen ? "Close inspector" : "Open contextual inspector"}><PanelRight size={16} /></button></div></div>
+      <div className="titlebar-agent-context"><div className="titlebar-task"><FolderKanban size={14} /><div className="title-block"><p>{root}</p><h1>{props.title}</h1></div></div><div className="titlebar-runtime"><span className={`kernel-status ${data.phase}`}><i />{data.phase === "ready" ? "online" : data.phase}</span><button type="button" title="Change model" onClick={data.openModelPicker}><Cpu size={14} /><span>{data.status?.model ?? "model"}</span></button><button className="icon-button" type="button" title={props.inspectorOpen ? "Close inspector" : "Open contextual inspector"} onClick={props.onInspector} aria-label={props.inspectorOpen ? "Close inspector" : "Open contextual inspector"}><PanelRight size={16} /></button></div></div>
       <div className="status-strip titlebar-actions">
         <span className={`approval-status ${props.approvalPending ? "pending" : ""}`}><i />{props.approvalPending ? "approve" : "ask"}</span>
         <button className="icon-button" type="button" title="Settings" onClick={data.openSettings} aria-label="Settings"><Settings2 size={16} /></button>
@@ -253,11 +252,12 @@ function DesktopHeader(props: { title: string; data: DesktopData; approvalPendin
 }
 
 function WorkToolbar(props: { busy: boolean; onBackground: () => void; onStop: () => void; onReset: () => void }) {
-  return <section className="work-toolbar" role="toolbar" aria-label="Task controls"><div><strong>Work</strong><span>One task surface. Context and approvals stay close.</span></div><div><span className="task-state"><i />{props.busy ? "Active run" : "Kernel gated"}</span><button type="button" onClick={props.onBackground}><Pause size={14} />Background</button><button className="danger" type="button" onClick={props.onStop} disabled={!props.busy}><Square size={13} />Stop run</button><button type="button" onClick={props.onReset}><RotateCcw size={14} />Reset</button></div></section>;
+  return <section className="work-toolbar" data-busy={props.busy ? "true" : "false"} role="toolbar" aria-label="Task controls"><strong className="work-toolbar-title"><i />{props.busy ? "Run active" : "Run controls"}</strong><div><button type="button" onClick={props.onBackground}><Pause size={14} />Background</button><button className="danger" type="button" onClick={props.onStop} disabled={!props.busy}><Square size={13} />Stop</button><button type="button" onClick={props.onReset}><RotateCcw size={14} />New task</button></div></section>;
 }
 
 function DesktopStatusbar(props: { data: DesktopData }) {
-  return <footer className="desktop-statusbar"><span><i />Gateway {props.data.phase === "ready" ? "ready" : props.data.phase}</span><span><Bot size={12} />4 agents</span><span><Activity size={12} />{props.data.sessions.filter((session) => !session.archived).length} tasks</span><span><ShieldCheck size={12} />Kernel {props.data.status?.kernel ?? "checking"}</span><em>Vanta Desktop</em></footer>;
+  const root = props.data.status?.root?.split("/").filter(Boolean).at(-1) ?? "Project";
+  return <footer className="desktop-statusbar"><span><i />Gateway {props.data.phase === "ready" ? "ready" : props.data.phase}</span><span><ShieldCheck size={12} />Kernel {props.data.status?.kernel ?? "checking"}</span><span><Activity size={12} />{props.data.sessions.filter((session) => !session.archived).length} tasks</span><em>{root}</em></footer>;
 }
 
 function LoadingState() {

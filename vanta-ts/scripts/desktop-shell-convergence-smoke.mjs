@@ -88,7 +88,7 @@ try {
   });
 
   await page.locator(".app-shell").waitFor();
-  await page.locator(".titlebar-brand").getByText("Vanta", { exact: true }).waitFor();
+  await page.locator(".titlebar-leading-actions").waitFor();
   for (const destination of ["Work", "Operate", "Outputs", "Connect"]) {
     await page.getByRole("button", { name: destination, exact: true }).waitFor();
   }
@@ -202,6 +202,7 @@ try {
     return {
       sidebar: rect(".session-sidebar"),
       titlebarIdentity: rect(".titlebar-identity"),
+      titlebarControls: rect(".titlebar-leading-actions"),
       inspector: rect(".right-rail"),
       inspectorTabs: rect(".inspector-tabs"),
       composer: rect(".composer"),
@@ -211,6 +212,8 @@ try {
   });
   if (geometry.sidebar.width < 250 || geometry.sidebar.width > 340) throw new Error(`Project rail width drifted: ${JSON.stringify(geometry)}`);
   if (Math.abs(geometry.sidebar.right - geometry.titlebarIdentity.right) > 2) throw new Error(`Titlebar is not pane-aligned: ${JSON.stringify(geometry)}`);
+  if (geometry.titlebarControls.left < 70) throw new Error(`Titlebar controls overlap the macOS traffic-light zone: ${JSON.stringify(geometry)}`);
+  if (await page.locator(".titlebar-brand").count()) throw new Error("Redundant in-app product branding returned to the titlebar");
   if (geometry.inspectorTabs.top - geometry.inspector.top > 4) throw new Error(`Inspector tabs do not own the tray top: ${JSON.stringify(geometry)}`);
   if (geometry.composer.width > 660 || geometry.composer.width < 480) throw new Error(`Composer width drifted from the accepted demo: ${JSON.stringify(geometry)}`);
   if (geometry.message.width > 700) throw new Error(`Transcript reading column is too wide: ${JSON.stringify(geometry)}`);

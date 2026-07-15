@@ -1,0 +1,100 @@
+:root {
+  color-scheme: dark;
+  --bg: #0f1011;
+  --panel: #151617;
+  --panel-2: #121314;
+  --workspace: #191a1b;
+  --raised: #202224;
+  --line: #2b2d2f;
+  --line-strong: #404346;
+  --text: #f2f0e9;
+  --muted: #b4b1a9;
+  --faint: #7f817f;
+  --accent: #79c8c0;
+  --ok: #7fc49a;
+  --amber: #d7a952;
+  --danger: #df746c;
+  --surface-selected: #202827;
+  --surface-danger: #291918;
+  --surface-warning: #282116;
+  --focus: #a4ded8;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --titlebar-height: 50px;
+  --statusbar-height: 27px;
+  font-synthesis: none;
+}
+
+.theme-light {
+  color-scheme: light;
+  --bg: #e9ece9;
+  --panel: #f5f6f3;
+  --panel-2: #ecefeb;
+  --workspace: #fafbf8;
+  --raised: #e1e5e1;
+  --line: #c9cfca;
+  --line-strong: #a8b1aa;
+  --text: #202522;
+  --muted: #58615c;
+  --faint: #768079;
+  --accent: #176f69;
+  --ok: #247949;
+  --amber: #8b6118;
+  --danger: #a6403b;
+  --surface-selected: #d9e6e2;
+  --surface-danger: #f2dfdd;
+  --surface-warning: #eee5d3;
+  --focus: #0d625d;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+button,
+input,
+textarea,
+select {
+  letter-spacing: 0;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 32%, transparent);
+  color: var(--text);
+}
+
+:where(button, input, textarea, select, summary, a):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.eyebrow,
+.project-rail-heading,
+.rail-section h3,
+.file-group h3,
+.run-activity > p,
+.canvas-search,
+.board-column h3,
+.message span,
+.artifact-card span,
+.approval-status,
+.drawer-toolbar {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

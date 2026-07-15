@@ -116,10 +116,16 @@ function buildApplicationMenu() {
       { type: "separator" }, { role: "hide" }, { role: "hideOthers" }, { role: "unhide" }, { type: "separator" }, { role: "quit" },
     ] },
     { label: "Edit", submenu: [{ role: "undo" }, { role: "redo" }, { type: "separator" }, { role: "cut" }, { role: "copy" }, { role: "paste" }, { role: "selectAll" }] },
-    { label: "View", submenu: [{ role: "reload" }, { role: "toggleDevTools", visible: !app.isPackaged }, { type: "separator" }, { role: "resetZoom" }, { role: "zoomIn" }, { role: "zoomOut" }, { role: "togglefullscreen" }] },
+    { label: "View", submenu: [{ role: "reload" }, { label: "Developer Tools", accelerator: process.platform === "darwin" ? "Alt+Command+I" : "Ctrl+Shift+I", visible: !app.isPackaged, click: () => toggleDeveloperTools() }, { type: "separator" }, { role: "resetZoom" }, { role: "zoomIn" }, { role: "zoomOut" }, { role: "togglefullscreen" }] },
     { label: "Window", submenu: [{ role: "minimize" }, { role: "zoom" }, { role: "front" }] },
   ];
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+}
+
+function toggleDeveloperTools() {
+  if (!mainWindow) return;
+  if (mainWindow.webContents.isDevToolsOpened()) mainWindow.webContents.closeDevTools();
+  else mainWindow.webContents.openDevTools({ mode: "detach", activate: true });
 }
 
 async function createWindow() {
@@ -134,7 +140,6 @@ async function createWindow() {
   });
   mainWindow.once("ready-to-show", () => { if (!smoke) mainWindow.show(); });
   mainWindow.webContents.setWindowOpenHandler(({ url }) => { if (/^https?:/.test(url)) void shell.openExternal(url); return { action: "deny" }; });
-  if (devtools) mainWindow.webContents.openDevTools({ mode: "detach" });
   mainWindow.on("close", (event) => { if (!shuttingDown && !smoke && !automation) { event.preventDefault(); mainWindow.hide(); } });
   if (!smoke) await mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(splashHtml())}`);
 }
@@ -154,7 +159,7 @@ async function initialProject() {
 }
 
 function showFatal(message) {
-  if (smoke) { console.error(message); shuttingDown = true; app.exit(1); return; }
+  if (smoke || automation) { console.error(message); shuttingDown = true; app.exit(1); return; }
   dialog.showErrorBox("Vanta could not start", `${message}\n\nProject: ${projectRoot ?? "not selected"}`);
   app.quit();
 }
@@ -171,6 +176,7 @@ else {
   app.whenReady().then(async () => {
     projectRoot = await initialProject();
     await createWindow(); buildApplicationMenu(); await loadProject();
+    if (devtools) mainWindow.webContents.openDevTools({ mode: "detach", activate: true });
     if (smoke) { console.log(`desktop native smoke ok: http://127.0.0.1:${port} · ${projectRoot}`); shuttingDown = true; app.quit(); }
   }).catch((error) => showFatal(error instanceof Error ? error.message : String(error)));
 }

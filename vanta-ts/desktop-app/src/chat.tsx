@@ -31,7 +31,6 @@ export function SessionSidebar(props: SessionSidebarProps) {
     <aside className="session-sidebar">
       <div className="drawer-toolbar"><span>Threads</span><button className="panel-dismiss" type="button" aria-label="Close sessions" onClick={props.onDismiss}><X size={16} /></button></div>
       <nav className="desktop-nav" aria-label="Vanta workspace">
-        <div className="nav-heading"><strong>Work</strong><Search size={15} aria-hidden="true" /></div>
         <button className={props.view === "work" ? "active" : ""} type="button" onClick={() => props.onView("work")}><MessageSquare size={16} />Work <span aria-hidden="true">{active.length}</span></button>
         <button className={props.view === "operate" ? "active" : ""} type="button" onClick={() => props.onView("operate")}><Activity size={16} />Operate</button>
         <button className={props.view === "outputs" ? "active" : ""} type="button" onClick={() => props.onView("outputs")}><PackageOpen size={16} />Outputs</button>
@@ -131,11 +130,11 @@ export function ChatThread(props: { messages: Message[]; busy: boolean; streamTe
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [rows.length, props.busy, props.streamText]);
   return (
     <section className="chat-thread" aria-live="polite">
-      {rows.length === 0 ? <EmptyState onPrompt={props.onPrompt} /> : <div className="run-summary"><span><i />{props.busy ? "Active run" : "Task transcript"}</span><time>{props.busy ? "working now" : "current session"}</time></div>}
+      {rows.length === 0 ? <EmptyState onPrompt={props.onPrompt} /> : <div className="run-summary"><span><i />{props.busy ? "Live trace" : "Run record"}</span><time>{props.busy ? "working now" : "current session"}</time></div>}
       {rows.map((message, index) => message.role === "tool" ? null : <div className="transcript-turn" key={`${message.role}-${index}`}><MessageBubble message={message} />{message.toolCalls?.length ? <RunTimeline calls={message.toolCalls} messages={rows} /> : null}</div>)}
       {props.approval ? <ApprovalCheckpoint approval={props.approval} onAnswer={props.onApproval} /> : null}
-      {props.streamText ? <article className="message assistant streaming"><span className="message-avatar">V</span><div className="message-content"><header><strong>Vanta</strong><time>now</time></header><p>{props.streamText}</p></div></article> : null}
-      {props.busy ? <div className="thinking"><i />Working through context and tools...</div> : null}
+      {props.streamText ? <article className="message assistant streaming"><span className="message-avatar">VANTA</span><div className="message-content"><header><strong>Vanta</strong><time>now</time></header><p>{props.streamText}</p></div></article> : null}
+      {props.busy ? <div className="thinking"><i />Working...</div> : null}
       {props.events.length && props.events[0]?.label !== "No tool activity yet." ? <EventTimeline events={props.events.slice(-5)} /> : null}
       {props.recovery ? <section className="run-recovery" role="status"><div><strong>Run needs attention</strong><span>{props.recovery}</span></div><button type="button" onClick={props.onRetry}><RotateCcw size={15} />Retry</button></section> : null}
       <div ref={endRef} />
@@ -147,7 +146,7 @@ function MessageBubble({ message }: { message: Message }) {
   const role = message.role === "user" ? "You" : message.role === "assistant" ? "Vanta" : message.name ?? message.role;
   return (
     <article className={`message ${message.role}`}>
-      <span className="message-avatar">{message.role === "user" ? "J" : "V"}</span>
+      <span className="message-avatar">{message.role === "user" ? "YOU" : "VANTA"}</span>
       <div className="message-content"><header><strong>{role}</strong><time>now</time></header><p>{message.content ?? ""}</p></div>
     </article>
   );
@@ -184,7 +183,7 @@ export function Composer(props: { value: string; busy: boolean; model?: string; 
   }
   return (
     <form className="composer" onSubmit={send}>
-      <div className="task-context" aria-label="Task execution context"><span><Bot size={12} />Agent <strong>Operator</strong></span><span><Laptop size={12} />Run on <strong>Local Mac</strong></span><span><FolderKanban size={12} /><strong>{props.root?.split("/").filter(Boolean).at(-1) ?? "Project"}</strong></span><span><GitBranch size={12} /><strong>main</strong></span><span className="safe"><ShieldCheck size={12} />Ask before risk</span></div>
+      <div className="task-context" aria-label="Task execution context"><span><Bot size={12} /><strong>Operator</strong></span><span><Laptop size={12} /><strong>Local Mac</strong></span><span><FolderKanban size={12} /><strong>{props.root?.split("/").filter(Boolean).at(-1) ?? "Project"}</strong></span><span><GitBranch size={12} /><strong>main</strong></span><span className="safe"><ShieldCheck size={12} />Ask before risk</span></div>
       <label className="sr-only" htmlFor="vanta-composer">Message Vanta</label>
       <textarea id="vanta-composer" value={props.value} onChange={(e) => props.onChange(e.target.value)} onKeyDown={(event) => keyDown(event, props)} placeholder={props.busy ? "Queue the next instruction..." : "Ask Vanta to do something..."} />
       {props.attachments.length ? <div className="context-chips" aria-label="Attached project context">{props.attachments.map((file) => <span key={file}><span title={file}>{file}</span><button type="button" aria-label={`Remove ${file}`} title={`Remove ${file}`} onClick={() => props.onRemoveAttachment(file)}><X size={13} /></button></span>)}</div> : null}
@@ -217,11 +216,10 @@ function EmptyState(props: { onPrompt: (text: string) => void }) {
   const prompts = ["Show me what changed in this project", "Find the highest-impact task", "Review the current roadmap"];
   return (
     <div className="empty-state">
-      <span className="empty-mark">V</span>
-      <p className="eyebrow">Ready in this project</p>
-      <h2>What should Vanta handle?</h2>
-      <p>Give it an outcome. Context, tools, approvals, and receipts stay visible.</p>
-      <div className="prompt-grid">{prompts.map((prompt) => <button key={prompt} type="button" onClick={() => props.onPrompt(prompt)}>{prompt}</button>)}</div>
+      <p className="empty-kicker">Vanta is ready in this project</p>
+      <h2>Name the outcome.</h2>
+      <p>Vanta will show its context, actions, approvals, and proof as it works.</p>
+      <div className="prompt-grid">{prompts.map((prompt, index) => <button key={prompt} type="button" onClick={() => props.onPrompt(prompt)}><span aria-hidden="true">0{index + 1}</span><strong>{prompt}</strong></button>)}</div>
     </div>
   );
 }
