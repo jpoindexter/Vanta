@@ -19,6 +19,8 @@
   --surface-danger: #2a1b1b;
   --surface-warning: #29241b;
   --focus: #ffffff;
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   --radius-xs: 2px;
   --radius-sm: 4px;
   --radius-md: 6px;
@@ -52,7 +54,7 @@
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  font-family: var(--font-ui);
   font-size: 13px;
   letter-spacing: 0;
 }

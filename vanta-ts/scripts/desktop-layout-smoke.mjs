@@ -25,6 +25,19 @@ try {
   await page.setViewportSize({ width: 1778, height: 1136 });
   await page.locator(".app-shell").waitFor({ timeout: 15_000 });
   await page.locator(".kernel-status.ready").waitFor({ timeout: 30_000 });
+  const emptyTypography = await page.locator(".empty-state h2").evaluate((heading) => {
+    const computed = getComputedStyle(heading);
+    return { fontFamily: computed.fontFamily, fontSize: computed.fontSize, lineHeight: computed.lineHeight };
+  });
+  if (!/(SFMono|SF Mono|Menlo|monospace)/i.test(emptyTypography.fontFamily)) {
+    throw new Error(`Empty-state heading is not using the technical mono stack: ${emptyTypography.fontFamily}`);
+  }
+  if (Number.parseFloat(emptyTypography.fontSize) > 34) {
+    throw new Error(`Empty-state heading exceeds the workbench type ceiling: ${emptyTypography.fontSize}`);
+  }
+  if (process.env.VANTA_DESKTOP_EMPTY_SCREENSHOT) {
+    await page.screenshot({ path: process.env.VANTA_DESKTOP_EMPTY_SCREENSHOT });
+  }
   await page.locator(".session-sidebar").getByRole("button", { name: "New task" }).click();
   await page.getByRole("dialog", { name: "Start a new task" }).getByRole("button", { name: "Create and run" }).click();
   await page.locator(".composer").waitFor();
@@ -81,7 +94,7 @@ try {
   if (process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT) {
     await page.screenshot({ path: process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT });
   }
-  console.log(JSON.stringify({ viewport: "1778x1136", healthy, inspectorClosed, modelDesktop, recovery, files, modelCompact }));
+  console.log(JSON.stringify({ viewport: "1778x1136", emptyTypography, healthy, inspectorClosed, modelDesktop, recovery, files, modelCompact }));
 } finally {
   await app.close();
   await rm(userData, { recursive: true, force: true });

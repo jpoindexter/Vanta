@@ -30,7 +30,9 @@ body {
   margin: 0;
   background: var(--workspace);
   color: var(--text);
-  font: 13px/1.45 "Avenir Next", Avenir, "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.45;
 }
 button, textarea, input { font: inherit; }
 button { color: inherit; cursor: pointer; }

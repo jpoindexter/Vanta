@@ -31,6 +31,7 @@ Vanta Desktop is an operator workbench, not a generic AI dashboard. The visual a
 - The renderer root and app shell explicitly fill `100vw`/`100dvh`; the native BrowserWindow and splash fallback use the same workspace color so uncovered resize edges do not read as broken black space.
 - The Work run-control toolbar and the inspector tab tray now share one 52px chrome row, matching top and bottom baselines so the shell reads as a single aligned surface instead of two mismatched bars.
 - Dark and light themes now use the corrected Vanta Ghost system: black, bone white, and neutral gray. Green, amber, and red are reserved for semantic status only; selection, navigation, focus, and actions remain monochrome. Both modes share the same semantic tokens and layout contract.
+- Typography now follows the installed Codex desktop stack: SF Pro Text/system UI for interface copy and SF Mono/ui-monospace for technical headings and labels. The outcome heading is capped at 34px so it reads as workbench chrome instead of a marketing hero.
 
 ## Verification ledger
 
@@ -43,6 +44,7 @@ Executed against the current source renderer and Electron shell:
 - `npm run desktop:shell-convergence:smoke` — passed the explicit chrome-row geometry check: Work toolbar and inspector tabs both measured 52px high with a shared 102px bottom baseline.
 - `npm run desktop:operator-flows:smoke` — passed model, connect, capabilities, messaging, outputs, attachments, queue/stop, shortcuts, settings, provider setup, light theme, and pane persistence.
 - 2026-07-15 Ghost theme correction: `npm run desktop:renderer:typecheck`, `npm run desktop:operator-flows:smoke`, `VANTA_DESKTOP_SMOKE_PORT=7921 npm run desktop:layout:smoke`, and `npm run desktop:shell-convergence:smoke` passed. Shell convergence measured the running dark shell as `rgb(10, 10, 10)` with bone-white text `rgb(245, 245, 243)`; operator flows switched through Settings to Ghost light. All normal, muted, faint, and action text pairs measured at or above WCAG AA contrast.
+- 2026-07-15 Codex typography correction: `npm run desktop:renderer:typecheck` passed and the Electron layout smoke computed the empty-state heading as `ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace` at `34px` with a `39.1px` line height. The same run completed the desktop, recovery, files, and 640x900 model-picker flows.
 - `npm run desktop:sessions:smoke` — passed rename, archive, restore, and delete.
 - `npm run desktop:native:smoke` — passed renderer asset startup, packaged kernel online, terminal-love mount, and obsidian-vault mount. Codegraph remained skipped because its trust gate is external to this visual pass.
 
@@ -53,6 +55,7 @@ Visual receipt:
 - Model picker: `docs/research/vanta-desktop-anti-slop-2026-07-15/screenshots/model-picker-fixed.png` — 22 Codex models rendered in 48px rows; the 640x900 compact proof kept the 616x876 dialog entirely inside the viewport with no horizontal overflow.
 - Ghost dark: `docs/research/vanta-desktop-anti-slop-2026-07-15/screenshots/ghost-dark.png`.
 - Ghost light: `docs/research/vanta-desktop-anti-slop-2026-07-15/screenshots/ghost-light.png`.
+- Codex typography: `docs/research/vanta-desktop-anti-slop-2026-07-15/screenshots/codex-typography.png`.
 
 ## Remaining boundary
 
