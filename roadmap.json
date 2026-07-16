@@ -18361,6 +18361,27 @@
       ]
     },
     {
+      "id": "DESKTOP-POINTER-FOCUS-HIGHLIGHT-BUG",
+      "track": "Desktop App",
+      "title": "Desktop pointer focus highlight bug — stop click/open from drawing keyboard rings",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Fix the desktop regression where opening dialogs or clicking controls paints the large keyboard-focus outline, as seen on the Command palette search field. Pointer interaction should not leave a heavy white rectangle over the UI, while keyboard users still get a visible accessible focus state.",
+      "done": "Command palette, model picker, settings, setup, shortcuts, and inspector/dialog controls use focus-visible discipline: pointer click/open states show only normal hover/active styling, keyboard Tab/arrow navigation shows a clear AA-contrast focus ring, and modal focus is trapped/restored without visual noise. Electron proof captures pointer-open and keyboard-navigation states for the command palette and at least one second dialog, proving no oversized click highlight and no loss of keyboard focus visibility.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "tui",
+      "updated": "2026-07-16",
+      "notes": "Added from user screenshot 2026-07-16. Likely root class: styling :focus instead of :focus-visible or programmatic focus being treated like keyboard focus in modal open paths. Do not remove focus indicators globally; fix modality so mouse/pointer open is calm and keyboard navigation remains visibly accessible. Screenshot target: Command palette search input currently shows a large white outline immediately after opening/clicking.",
+      "source": "user screenshot 2026-07-16 command palette focus highlight bug",
+      "after": [
+        "DESKTOP-ANTI-SLOP-DESIGN-PASS",
+        "DESKTOP-USERFLOW-RESET"
+      ]
+    },
+    {
       "id": "DESKTOP-FLOW-PROOF-SUITE",
       "track": "Desktop App",
       "title": "Desktop flow proof suite — cold start, work, recovery, attachments, outputs, resize",
