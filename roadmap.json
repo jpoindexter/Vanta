@@ -18388,7 +18388,7 @@
       "id": "DESKTOP-MESSAGE-ACTION-BAR",
       "track": "Desktop App",
       "title": "Desktop message action bar — copy, feedback, expand, timestamp",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Add the expected assistant-message tail controls shown in the desktop reference: copy response, thumbs-up quality signal, thumbs-down correction signal, expand/open focused response view, and visible timestamp metadata without turning every message into noisy chrome.",
       "done": "Every assistant response in Work exposes keyboard-reachable icon buttons for Copy, Helpful, Not helpful, and Expand/Open, plus a timestamp that does not crowd the message body. Copy writes the rendered/plain transcript text and shows feedback; thumbs persist message-level feedback with optional one-tap reason on downvote; Expand opens a focused full-response/transcript view and returns focus on close. Hover, focus-visible, active, disabled, loading, and touch/keyboard states are defined, and an Electron/UI proof verifies the controls on desktop and compact widths.",
@@ -18398,7 +18398,7 @@
       "codex": "gpt-5.4-mini",
       "lens": "tui",
       "updated": "2026-07-16",
-      "notes": "Added from user screenshot 2026-07-16 showing copy, thumbs-up, thumbs-down, expand/open, and time controls. Flow-ai-chat requires assistant response tails to carry recovery/quality affordances; components must not be hover-only because desktop keyboard and touch users still need access. Keep the treatment Ghost-simple: icon-only buttons with accessible names/tooltips, no pill row, no generic social chrome.",
+      "notes": "Added from user screenshot 2026-07-16 showing copy, thumbs-up, thumbs-down, expand/open, and time controls. Flow-ai-chat requires assistant response tails to carry recovery/quality affordances; components must not be hover-only because desktop keyboard and touch users still need access. Keep the treatment Ghost-simple: icon-only buttons with accessible names/tooltips, no pill row, no generic social chrome.\n\nSHIPPED 2026-07-16: Assistant responses in Work now expose keyboard-reachable icon controls for Copy response, Mark helpful, Mark not helpful, and Expand response beside compact timestamp metadata. Copy writes the response and shows feedback, thumbs persist via localStorage with one-tap downvote reasons, and Expand opens a focused full-response dialog that restores focus on close. Verification: `npm test -- --run desktop-app/src/chat.test.tsx`, `npm run desktop:renderer:typecheck`, `npm run typecheck`, `npm run desktop:native:smoke`, and `npm run desktop:shell-convergence:smoke`; the convergence smoke asserts desktop and compact-width message controls, copy feedback, persisted thumbs/reason state, and expanded response behavior.",
       "source": "user screenshot 2026-07-16 desktop message controls",
       "after": [
         "DESKTOP-ANTI-SLOP-DESIGN-PASS",

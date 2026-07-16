@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
-import { Activity, Archive, ArchiveRestore, ArrowUp, Bot, Check, CheckCircle2, ChevronRight, Cpu, FileText, FolderKanban, GitBranch, Keyboard, Laptop, ListPlus, MessageSquare, MoreHorizontal, Network, PackageOpen, Paperclip, Pencil, Plus, RotateCcw, Search, Settings2, ShieldCheck, Square, Trash2, X } from "lucide-react";
+import { Activity, Archive, ArchiveRestore, ArrowUp, Bot, Check, CheckCircle2, ChevronRight, Copy, Cpu, FileText, FolderKanban, GitBranch, Keyboard, Laptop, ListPlus, Maximize2, MessageSquare, MoreHorizontal, Network, PackageOpen, Paperclip, Pencil, Plus, RotateCcw, Search, Settings2, ShieldCheck, Square, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
 import type { Approval, ApprovalDecision, DesktopRunReceipt, DesktopView, Message, Session } from "./types.js";
 
 type SessionSidebarProps = {
@@ -239,33 +239,175 @@ function SessionButton(props: {
   );
 }
 
+type MessageFeedback = "helpful" | "not_helpful";
+type ExpandedMessage = { content: string; opener: HTMLButtonElement | null } | null;
+
 export function ChatThread(props: { messages: Message[]; busy: boolean; streamText: string; events: { label: string; ok?: boolean }[]; recovery: DesktopRunReceipt | null; approval: Approval | null; onApproval: (decision: ApprovalDecision) => void; onRetry: () => void; onPrompt: (text: string) => void }) {
-  const rows = props.messages.filter((m) => m.role !== "system");
+  const rows = useMemo(() => props.messages.filter((m) => m.role !== "system"), [props.messages]);
   const recovery = props.recovery;
   const endRef = useRef<HTMLDivElement>(null);
+  const [feedback, setFeedback] = useState<Record<string, MessageFeedback>>({});
+  const [feedbackReasons, setFeedbackReasons] = useState<Record<string, string>>({});
+  const [expanded, setExpanded] = useState<ExpandedMessage>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const next: Record<string, MessageFeedback> = {};
+    const reasons: Record<string, string> = {};
+    rows.forEach((message, index) => {
+      if (message.role !== "assistant") return;
+      const key = messageFeedbackKey(message, index);
+      const stored = window.localStorage.getItem(key);
+      if (stored === "helpful" || stored === "not_helpful") next[key] = stored;
+      const reason = window.localStorage.getItem(`${key}:reason`);
+      if (reason) reasons[key] = reason;
+    });
+    setFeedback(next);
+    setFeedbackReasons(reasons);
+  }, [rows]);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [rows.length, props.busy, props.streamText]);
+
+  function setMessageFeedback(key: string, value: MessageFeedback) {
+    setFeedback((current) => ({ ...current, [key]: value }));
+    if (typeof window !== "undefined") window.localStorage.setItem(key, value);
+  }
+  function setMessageFeedbackReason(key: string, value: string) {
+    setFeedbackReasons((current) => ({ ...current, [key]: value }));
+    if (typeof window !== "undefined") window.localStorage.setItem(`${key}:reason`, value);
+  }
+  function closeExpanded() {
+    const opener = expanded?.opener;
+    setExpanded(null);
+    window.requestAnimationFrame(() => opener?.focus());
+  }
+
   return (
     <section className="chat-thread" aria-live="polite">
       {rows.length === 0 ? <EmptyState onPrompt={props.onPrompt} /> : <div className="run-summary"><span><i />{props.busy ? "Live trace" : "Run record"}</span><time>{props.busy ? "working now" : "current session"}</time></div>}
-      {rows.map((message, index) => message.role === "tool" ? null : <div className="transcript-turn" key={`${message.role}-${index}`}><MessageBubble message={message} />{message.toolCalls?.length ? <RunTimeline calls={message.toolCalls} messages={rows} /> : null}</div>)}
+      {rows.map((message, index) => {
+        if (message.role === "tool") return null;
+        const key = messageFeedbackKey(message, index);
+        return (
+          <div className="transcript-turn" key={`${message.role}-${index}`}>
+            <MessageBubble
+              message={message}
+              feedback={feedback[key]}
+              feedbackReason={feedbackReasons[key]}
+              onFeedback={(value) => setMessageFeedback(key, value)}
+              onFeedbackReason={(value) => setMessageFeedbackReason(key, value)}
+              onExpand={(opener) => setExpanded({ content: message.content ?? "", opener })}
+            />
+            {message.toolCalls?.length ? <RunTimeline calls={message.toolCalls} messages={rows} /> : null}
+          </div>
+        );
+      })}
       {props.approval ? <ApprovalCheckpoint approval={props.approval} onAnswer={props.onApproval} /> : null}
       {props.streamText ? <article className="message assistant streaming" aria-label="Vanta response streaming"><div className="message-content"><header><strong>Vanta</strong><time>now</time></header><p>{props.streamText}</p></div></article> : null}
       {props.busy ? <div className="thinking"><i />Working...</div> : null}
       {props.events.length && props.events[0]?.label !== "No tool activity yet." ? <EventTimeline events={props.events.slice(-5)} /> : null}
       {recovery ? <RunRecovery receipt={recovery} onRetry={props.onRetry} onEdit={() => props.onPrompt(recovery.checkpoint?.instruction ?? "")} onCheckpoint={() => props.onPrompt(checkpointPrompt(recovery))} /> : null}
+      {expanded ? <ExpandedResponseDialog content={expanded.content} onClose={closeExpanded} /> : null}
       <div ref={endRef} />
     </section>
   );
 }
 
-function MessageBubble({ message }: { message: Message }) {
+function MessageBubble(props: { message: Message; feedback?: MessageFeedback; feedbackReason?: string; onFeedback?: (value: MessageFeedback) => void; onFeedbackReason?: (reason: string) => void; onExpand?: (opener: HTMLButtonElement) => void }) {
+  const { message } = props;
   const role = message.role === "user" ? "You" : message.role === "assistant" ? "Vanta" : message.name ?? message.role;
   const showHeader = message.role !== "user";
+  const [copyState, setCopyState] = useState<"idle" | "copying" | "copied" | "failed">("idle");
+  const canAct = message.role === "assistant" && !!message.content;
+
+  async function copyMessage() {
+    const text = message.content ?? "";
+    setCopyState("copying");
+    try {
+      await copyText(text);
+      setCopyState("copied");
+      window.setTimeout(() => setCopyState("idle"), 1600);
+    } catch {
+      setCopyState("failed");
+    }
+  }
+
   return (
     <article className={`message ${message.role}`} aria-label={`${role} message`}>
-      <div className="message-content">{showHeader ? <header><strong>{role}</strong><time>now</time></header> : null}<p>{message.content ?? ""}</p></div>
+      <div className="message-content">
+        {showHeader ? (
+          <header>
+            <span className="message-meta"><strong>{role}</strong><time dateTime={new Date(0).toISOString()}>now</time></span>
+            {canAct ? (
+              <span className="message-actions" role="toolbar" aria-label="Response actions">
+                <button type="button" aria-label="Copy response" title="Copy response" disabled={copyState === "copying"} data-state={copyState} onClick={() => void copyMessage()}><Copy size={14} /></button>
+                <button type="button" aria-label="Mark helpful" title="Helpful" aria-pressed={props.feedback === "helpful"} data-state={props.feedback === "helpful" ? "selected" : "idle"} onClick={() => props.onFeedback?.("helpful")}><ThumbsUp size={14} /></button>
+                <button type="button" aria-label="Mark not helpful" title="Not helpful" aria-pressed={props.feedback === "not_helpful"} data-state={props.feedback === "not_helpful" ? "selected" : "idle"} onClick={() => props.onFeedback?.("not_helpful")}><ThumbsDown size={14} /></button>
+                <button type="button" aria-label="Expand response" title="Expand response" onClick={(event) => props.onExpand?.(event.currentTarget)}><Maximize2 size={14} /></button>
+              </span>
+            ) : null}
+          </header>
+        ) : null}
+        <p>{message.content ?? ""}</p>
+        {copyState === "copied" ? <small className="message-action-feedback" role="status">Copied response</small> : null}
+        {copyState === "failed" ? <small className="message-action-feedback bad" role="status">Copy failed</small> : null}
+        {props.feedback === "not_helpful" ? <FeedbackReasonPicker selected={props.feedbackReason} onSelect={(reason) => props.onFeedbackReason?.(reason)} /> : null}
+      </div>
     </article>
   );
+}
+
+function FeedbackReasonPicker(props: { selected?: string; onSelect: (reason: string) => void }) {
+  const reasons = ["Wrong", "Incomplete", "Unsafe"];
+  return (
+    <div className="feedback-reasons" aria-label="Not helpful reason">
+      {reasons.map((reason) => <button key={reason} type="button" aria-pressed={props.selected === reason} onClick={() => props.onSelect(reason)}>{reason}</button>)}
+    </div>
+  );
+}
+
+function ExpandedResponseDialog(props: { content: string; onClose: () => void }) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => { closeRef.current?.focus(); }, []);
+  useEffect(() => {
+    const onKeyDown = (event: globalThis.KeyboardEvent) => { if (event.key === "Escape") props.onClose(); };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [props]);
+  return (
+    <div className="dialog-backdrop response-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) props.onClose(); }}>
+      <section className="response-dialog" role="dialog" aria-modal="true" aria-labelledby="response-dialog-title">
+        <header><div><span>Full response</span><h2 id="response-dialog-title">Vanta transcript</h2></div><button ref={closeRef} type="button" aria-label="Close expanded response" onClick={props.onClose}><X size={16} /></button></header>
+        <pre>{props.content}</pre>
+      </section>
+    </div>
+  );
+}
+
+async function copyText(text: string) {
+  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  if (typeof document === "undefined") return;
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "true");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  textarea.remove();
+}
+
+function messageFeedbackKey(message: Message, index: number): string {
+  return `vanta.desktop.message-feedback.${index}.${messageFingerprint(message.content ?? "")}`;
+}
+
+function messageFingerprint(value: string): string {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) hash = Math.imul(31, hash) + value.charCodeAt(index) | 0;
+  return Math.abs(hash).toString(36);
 }
 
 function RunTimeline(props: { calls: NonNullable<Message["toolCalls"]>; messages: Message[] }) {

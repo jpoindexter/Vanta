@@ -109,6 +109,20 @@ try {
   await page.locator(".project-session-group .session-row").first().waitFor();
   await page.locator(".recent-session-group .session-row").first().waitFor();
   await page.locator(".message-content").first().waitFor();
+  const assistantMessage = page.locator(".message.assistant").first();
+  await assistantMessage.getByRole("toolbar", { name: "Response actions" }).waitFor();
+  await assistantMessage.getByRole("button", { name: "Copy response" }).click();
+  await assistantMessage.getByText("Copied response").waitFor();
+  await assistantMessage.getByRole("button", { name: "Mark helpful" }).click();
+  if (await assistantMessage.getByRole("button", { name: "Mark helpful" }).getAttribute("aria-pressed") !== "true") throw new Error("Helpful response feedback did not persist selected state");
+  await assistantMessage.getByRole("button", { name: "Mark not helpful" }).click();
+  await assistantMessage.getByRole("button", { name: "Wrong" }).waitFor();
+  await assistantMessage.getByRole("button", { name: "Wrong" }).click();
+  if (await assistantMessage.getByRole("button", { name: "Wrong" }).getAttribute("aria-pressed") !== "true") throw new Error("Not-helpful reason did not persist selected state");
+  await assistantMessage.getByRole("button", { name: "Expand response" }).click();
+  await page.getByRole("dialog", { name: "Vanta transcript" }).waitFor();
+  await page.getByRole("button", { name: "Close expanded response" }).click();
+  await page.getByRole("dialog", { name: "Vanta transcript" }).waitFor({ state: "detached" });
   await page.locator(".run-timeline").waitFor();
   const inlineApproval = page.locator(".inline-approval");
   await inlineApproval.waitFor();
@@ -196,6 +210,8 @@ try {
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator(".mobile-nav").waitFor();
+  await page.getByRole("button", { name: "Copy response" }).first().waitFor();
+  await page.getByRole("button", { name: "Expand response" }).first().waitFor();
   const compact = await page.evaluate(() => ({
     viewportWidth: window.innerWidth,
     scrollWidth: document.documentElement.scrollWidth,

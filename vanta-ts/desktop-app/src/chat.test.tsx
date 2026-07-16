@@ -67,3 +67,31 @@ describe("Composer context legibility", () => {
     expect(html).toContain("Remove desktop-app/src/App.tsx");
   });
 });
+
+describe("assistant message actions", () => {
+  it("renders copy, feedback, expand, and timestamp controls for assistant responses only", () => {
+    const html = renderToStaticMarkup(
+      <ChatThread
+        messages={[
+          { role: "user", content: "Can you fix the desktop app?" },
+          { role: "assistant", content: "I will keep the transcript readable and expose response actions." },
+        ]}
+        busy={false}
+        streamText=""
+        events={[]}
+        recovery={null}
+        approval={null}
+        onApproval={vi.fn()}
+        onRetry={vi.fn()}
+        onPrompt={vi.fn()}
+      />,
+    );
+
+    expect(html).toContain("Copy response");
+    expect(html).toContain("Mark helpful");
+    expect(html).toContain("Mark not helpful");
+    expect(html).toContain("Expand response");
+    expect(html).toContain("<time");
+    expect(html.match(/Response actions/g)).toHaveLength(1);
+  });
+});
