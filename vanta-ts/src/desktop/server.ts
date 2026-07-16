@@ -20,6 +20,7 @@ import type { ReadinessDeps } from "../public-api/readiness.js";
 import { resolveVantaHome } from "../store/home.js";
 import { getWakeApi, setWakeApi } from "./wake-api.js";
 import { handleDesktopSetup } from "./setup.js";
+import { ensureDesktopPermissionMode } from "./permission-mode.js";
 
 type RouteCtx = { req: http.IncomingMessage; res: http.ServerResponse; state: DesktopState; sid: string; sseClients: SseClients; pathname: string };
 
@@ -144,6 +145,7 @@ type DesktopServerOptions = Partial<CompanionRouteOptions> & {
 };
 
 export function createDesktopServer(repoRoot: string, options: DesktopServerOptions = {}): http.Server {
+  ensureDesktopPermissionMode();
   const sessions: SessionMap = options.sessions ?? new Map();
   const sseClients: SseClients = options.sseClients ?? new Map();
   const companion = { enabled: options.enabled ?? false, home: options.home ?? resolveVantaHome(), port: options.port ?? 7790 };
