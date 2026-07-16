@@ -18906,6 +18906,28 @@
         "SCHEMA-DESKTOP-TRACE-EXPLORER",
         "SCHEMA-HARNESS-EVAL-ABLATION"
       ]
+    },
+    {
+      "id": "DESKTOP-FULL-ACCESS-WARNING",
+      "track": "Desktop App",
+      "title": "Desktop full-access warning - persistent risk banner before unrestricted actions",
+      "status": "horizon",
+      "size": "M",
+      "summary": "When the operator selects Full access, show a prominent in-context warning above the Work composer that names the expanded command, network, and filesystem capabilities and the risks of data loss and prompt injection. Keep the active mode visible after the warning is dismissed.",
+      "done": "Selecting Full access presents a danger banner before the first unrestricted action and explains in plain language that Vanta may run commands, use the internet, and create, modify, upload, or delete files within the configured Full access boundary without asking each time; it also states that kernel-blocked actions remain blocked. The banner uses icon plus text rather than color alone, meets WCAG AA in Ghost light and dark themes, is announced to assistive technology, and exposes keyboard-operable close and Don't show again controls. Close dismisses only the current banner; Don't show again stores a versioned acknowledgement that can be reversed in Settings > Safety and is invalidated when the material risk copy or access scope changes. The compact Full access status remains visible by the composer even after dismissal. Electron proof covers entering the mode, warning timing, both dismissal paths, restart persistence, settings reset, scope/version invalidation, blocked-kernel behavior, keyboard navigation, screen-reader semantics, and both themes.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "tui",
+      "updated": "2026-07-16",
+      "notes": "Added from the user-provided Codex desktop warning screenshot on 2026-07-16. Compose this with the approval-mode picker instead of creating a second safety settings system. The warning must describe real Vanta boundaries accurately: Full access suppresses repeated prompts inside its configured scope but never bypasses kernel Block. Applied AI-native human-in-the-loop, action-guardrail, complete-state, and accessibility principles.",
+      "source": "user screenshot 2026-07-16 full-access warning",
+      "after": [
+        "DESKTOP-APPROVAL-MODE-PICKER",
+        "DESKTOP-ACTION-APPROVAL-PROMPT",
+        "VANTA-PERMISSIONS"
+      ]
     }
   ]
 }
