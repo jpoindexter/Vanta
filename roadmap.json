@@ -18319,6 +18319,51 @@
       ]
     },
     {
+      "id": "VANTA-MCP-FIRST-CLASS-CONNECTORS",
+      "track": "Extensibility",
+      "title": "First-class MCP connectors — one registry for Vanta CLI, TUI, and Desktop",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Make MCP the obvious extension layer across Vanta, not a hidden advanced setting. Vanta already has shipped MCP plumbing; this card consolidates it into one durable connector contract shared by CLI, TUI, desktop, agents, and docs.",
+      "done": "There is one project-scoped MCP registry model for installed/imported servers, trust state, auth state, enablement, tool/resource inventory, health, and last error. CLI/TUI/Desktop all read and write the same source of truth; server install/import/test/reconnect actions produce audit receipts; kernel Block remains immovable; stdio and remote/OAuth servers are covered; docs explain the connector lifecycle and failure recovery in user language.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4",
+      "lens": "infra",
+      "updated": "2026-07-16",
+      "notes": "Added from user request 2026-07-16: \"add mcp to the desktop app and vanta.\" Existing shipped cards cover MCP client/server/resources/OAuth/registry/import/trust/remote pieces; this card is the product contract that makes those pieces feel like one Vanta connector system instead of scattered internals.",
+      "source": "user request 2026-07-16 MCP in Vanta and desktop app",
+      "after": [
+        "VANTA-MCP-PANEL",
+        "VANTA-MCP-REMOTE",
+        "EXT-MCP-CATALOG",
+        "EXT-MCP-SERVE-COMMS"
+      ]
+    },
+    {
+      "id": "DESKTOP-MCP-CONTROL-CENTER",
+      "track": "Desktop App",
+      "title": "Desktop MCP control center — install, approve, test, and use MCP servers",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Add MCP to the desktop app as a real Connect surface: browse/import servers, approve project servers, authenticate remote servers, inspect tools/resources, test a tool call, reconnect/disable, and show what Vanta can use in the active task.",
+      "done": "Desktop Connect has an MCP section backed by the shared Vanta MCP registry. It shows installed/imported/catalog servers with ready/needs setup/blocked/error states, supports Claude Desktop import and vetted catalog install, handles OAuth/auth prompts, shows tool and resource inventory, exposes safe Test, Reconnect, Enable/Disable, and Remove actions, and writes audit receipts. Work/composer context shows active MCP tool/resource availability; risky MCP tools route through the desktop approval prompt; Electron proof covers install/import, trust approval, OAuth-needed state, tool test, resource read, reconnect failure, and disabled-server behavior.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4",
+      "lens": "tui",
+      "updated": "2026-07-16",
+      "notes": "This is the desktop product layer for MCP. It should reuse shipped Vanta MCP primitives rather than invent a second MCP store. Treat every MCP server output as untrusted input; all side-effecting MCP tools stay kernel-gated and use the desktop approval UI. Keep copy outcome-oriented: \"Connect tools\" and \"Test server\" instead of raw protocol jargon except where users need exact MCP names.",
+      "source": "user request 2026-07-16 MCP in Vanta Desktop",
+      "after": [
+        "VANTA-MCP-FIRST-CLASS-CONNECTORS",
+        "DESKTOP-CONNECT-SETUP-STATUS",
+        "DESKTOP-ACTION-APPROVAL-PROMPT"
+      ]
+    },
+    {
       "id": "DESKTOP-CONTEXT-LEGIBILITY",
       "track": "Desktop App",
       "title": "Desktop context legibility — model scope, tools, memory, approvals inline",
