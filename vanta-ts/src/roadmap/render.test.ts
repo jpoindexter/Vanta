@@ -151,6 +151,32 @@ describe("renderRoadmap", () => {
     expect(html).not.toContain("Activation v1:");
   });
 
+  it("promotes an active Schema milestone ahead of parked Run Anywhere proof", () => {
+    const phaseCards: Roadmap["items"] = [
+      { id: "RUN-ANYWHERE-V1-RELEASE-GATE", track: "Operator", title: "Run Anywhere gate", status: "parked", size: "L", summary: "", done: "", parkedReason: "external proof" },
+      { id: "SCHEMA-TASK-ENVIRONMENT-CONTRACT", track: "Harness", title: "Task contract", status: "next", size: "M", summary: "", done: "" },
+      { id: "SCHEMA-COMPLETE-HISTORY-BACKTEST", track: "Harness", title: "Backtest", status: "horizon", size: "L", summary: "", done: "" },
+      {
+        id: "SCHEMA-V1-RELEASE-GATE",
+        track: "Harness",
+        title: "Schema release gate",
+        status: "horizon",
+        size: "L",
+        summary: "",
+        done: "",
+        after: ["SCHEMA-TASK-ENVIRONMENT-CONTRACT", "SCHEMA-COMPLETE-HISTORY-BACKTEST"],
+      },
+    ];
+    const html = renderRoadmap({ updated: "2026-07-16", items: phaseCards });
+    expect(html).toContain("Schema v1");
+    expect(html).toContain("Vanta predicts, verifies, and safely executes real work");
+    expect(html).toContain("<small>Verified-execution gate</small>");
+    expect(html).toContain("Model Reality");
+    expect(html).toContain("Plan and Recover");
+    expect(html).toContain("Open Schema v1 cards: SCHEMA-TASK-ENVIRONMENT-CONTRACT + SCHEMA-COMPLETE-HISTORY-BACKTEST + SCHEMA-V1-RELEASE-GATE.");
+    expect(html).not.toContain("Run Anywhere v1:");
+  });
+
   it("does not call parked launchpad cards open blockers", () => {
     const phaseCards: Roadmap["items"] = [
       { id: "PCLIP-SANDBOX-AGENTS", track: "Harness", title: "Remote sandbox", status: "shipped", size: "L", summary: "", done: "" },

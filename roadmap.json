@@ -18574,6 +18574,338 @@
       "after": [
         "DESKTOP-SHELL-CONVERGENCE-1TO1"
       ]
+    },
+    {
+      "id": "SCHEMA-TASK-ENVIRONMENT-CONTRACT",
+      "track": "Harness",
+      "title": "Schema task environment contract - typed observe, act, predict, and outcome boundary",
+      "status": "next",
+      "size": "M",
+      "summary": "Generalize Schema's game boundary into a Vanta task protocol. A task adapter declares observations, legal actions, state snapshots, terminal outcomes, side-effect class, and verification hooks so repo, browser, desktop, and operator workflows can run through one deterministic harness instead of keeping task state implicit in chat.",
+      "done": "A versioned TypeScript contract represents observation, legal action, predicted transition, observed transition, terminal reason, and verifier result; at least repo and browser fixture adapters implement it; invalid actions and malformed observations fail as typed values; contract tests prove adapters can replay the same fixture deterministically.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "agent-loop",
+      "updated": "2026-07-16",
+      "notes": "First build card from the Schema extraction. It creates the narrow seam required by every later card without coupling Vanta to ARC grids or Python.",
+      "source": "schema-harness-2026-07-15"
+    },
+    {
+      "id": "SCHEMA-TRANSITION-TIMELINE",
+      "track": "Harness",
+      "title": "Schema transition timeline - append-only ground truth for every real action",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Extend Vanta's hash-chained event receipts into a task-transition ledger. Every real action records the before observation, chosen action, predicted next state, actual observation, outcome flags, model version, approval, and correlation IDs; hypotheses remain editable, but reality never is.",
+      "done": "A task run writes an append-only transition JSONL compatible with the kernel audit chain; replay reconstructs ordered transitions after restart; reset, skipped, partial, and terminal observations are explicit; tampering fails verification; tests prove predictions and actual observations remain distinguishable and secrets are redacted.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "agent-loop",
+      "updated": "2026-07-16",
+      "source": "schema-harness-2026-07-15",
+      "after": [
+        "SCHEMA-TASK-ENVIRONMENT-CONTRACT",
+        "KERNEL-AUDIT-CHAIN"
+      ]
+    },
+    {
+      "id": "SCHEMA-EXECUTABLE-MODEL-SANDBOX",
+      "track": "Harness",
+      "title": "Schema executable-model sandbox - generated simulators cannot escape task scope",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Schema's latent representation is executable code. Vanta must run generated state and transition programs inside a stricter sandbox than ordinary tools: no undeclared network or filesystem access, bounded CPU/memory/time, deterministic inputs, and immutable access to the transition timeline.",
+      "done": "Executable task models run in an isolated worker or kernel-backed sandbox with declared inputs only, no ambient secrets, denied network by default, filesystem scope limited to a disposable model workspace, and hard CPU/time/memory limits; escape, infinite-loop, nondeterminism, and secret-read fixtures fail closed with receipts.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "updated": "2026-07-16",
+      "source": "schema-harness-2026-07-15",
+      "after": [
+        "SCHEMA-TASK-ENVIRONMENT-CONTRACT",
+        "SELFHARNESS-SANDBOX"
+      ]
+    },
+    {
+      "id": "SCHEMA-STATE-GROUNDING",
+      "track": "Harness",
+      "title": "Schema state grounding - turn raw task observations into inspectable entities and variables",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Build the first half of Schema's joint model: convert raw files, UI snapshots, logs, and tool results into a versioned task-state representation with entities, properties, relations, counters, affordances, and uncertainty. Representation changes are first-class because a failed rule may mean the state itself is wrong.",
+      "done": "A task adapter can produce a typed, diffable state snapshot from raw observations; every field has provenance and confidence; representation versions preserve superseded fields; a counterexample can revise entity boundaries or add a missing variable without rewriting the immutable transition record; repo and browser fixtures prove stable identity across steps.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "agent-loop",
+      "updated": "2026-07-16",
+      "source": "schema-harness-2026-07-15",
+      "after": [
+        "SCHEMA-TASK-ENVIRONMENT-CONTRACT",
+        "SCHEMA-TRANSITION-TIMELINE"
+      ]
+    },
+    {
+      "id": "SCHEMA-EXECUTABLE-TASK-MODEL",
+      "track": "Harness",
+      "title": "Schema executable task model - editable step() and isGoal() programs",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Encode Vanta's current theory of a task as a human-readable program over grounded state. The model owns a deterministic step(state, action) transition and an explicit goal predicate, remains diffable by the operator, and can be revised when observations contradict it.",
+      "done": "A task workspace contains a versioned executable transition function and goal predicate with generated types; model versions are diffable and tied to source transitions; a fixture model predicts state and terminal outcomes without touching the real environment; model compilation and semantic validation fail as typed errors; the operator can inspect the active version.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "agent-loop",
+      "updated": "2026-07-16",
+      "source": "schema-harness-2026-07-15",
+      "after": [
+        "SCHEMA-STATE-GROUNDING",
+        "SCHEMA-EXECUTABLE-MODEL-SANDBOX"
+      ]
+    },
+    {
+      "id": "SCHEMA-COMPLETE-HISTORY-BACKTEST",
+      "track": "Harness",
+      "title": "Schema complete-history backtest - certify each model against recorded reality",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Replay every checkable transition through the active executable model before it can be used for planning. Report exact matches, skipped transitions, partial-observation coverage, terminal-flag mismatches, and the first pointed counterexample instead of a vague green check.",
+      "done": "runBacktest(modelVersion, timeline) deterministically replays the full task history; certification is denied on any unexplained mismatch; output names transition, field/path, predicted value, observed value, and coverage totals; skipped or partially observed transitions cannot count as exact; mutation and stale-model tests prove the gate catches false theories.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "agent-loop",
+      "updated": "2026-07-16",
+      "source": "schema-harness-2026-07-15",
+      "after": [
+        "SCHEMA-TRANSITION-TIMELINE",
+        "SCHEMA-EXECUTABLE-TASK-MODEL"
+      ]
+    },
+    {
+      "id": "SCHEMA-CONTROLLED-COMMIT-GATE",
+      "track": "Harness",
+      "title": "Schema controlled commit gate - one channel from deliberation to side effects",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Separate thinking from acting. Simulations, search, model edits, and backtests remain side-effect free; only a controlled commitActions channel may reach real tools. Each committed action carries approval, model version, expected transition, idempotency key, and risk assessment.",
+      "done": "No Schema-mode code path can invoke a real task action outside commitActions; the gate requires a currently certified model, validates legal action and approval policy, assigns an idempotency key, records prediction and result, and routes through the kernel; bypass and duplicate-execution tests fail closed while read-only deliberation remains approval-free.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "agent-loop",
+      "updated": "2026-07-16",
+      "source": "schema-harness-2026-07-15",
+      "after": [
+        "SCHEMA-COMPLETE-HISTORY-BACKTEST",
+        "AUTONOMY-CONTRACT-WALLS",
+        "VANTA-PERMISSIONS"
+      ]
+    },
+    {
+      "id": "SCHEMA-COUNTEREXAMPLE-REVISION",
+      "track": "Harness",
+      "title": "Schema counterexample recovery - prediction errors void plans and revise the theory",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Reality outranks the model. After each committed action Vanta compares the actual transition with the prediction; one mismatch immediately discards the remaining action queue, preserves partial output, opens a recovery episode, and allows revision of either the state representation or transition rule before replanning.",
+      "done": "A multi-action fixture stops on the first mismatched transition and proves no later action executes; the mismatch is stored as a counterexample tied to the failed model and plan; recovery can revise grounded state or step logic, rerun the full backtest, and resume only from a new certified model; desktop and CLI show the classified failure and safe next action.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "agent-loop",
+      "updated": "2026-07-16",
+      "source": "schema-harness-2026-07-15",
+      "after": [
+        "SCHEMA-CONTROLLED-COMMIT-GATE",
+        "DESKTOP-RUN-RECOVERY-TIMELINE"
+      ]
+    },
+    {
+      "id": "SCHEMA-HYPOTHESIS-PROBE-PLANNER",
+      "track": "Harness",
+      "title": "Schema hypothesis and probe planner - choose actions that separate competing explanations",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Track multiple task-mechanism hypotheses when history does not distinguish them. Generate candidate probes whose predicted outcomes differ, then rank them by expected information gain, real side-effect cost, reversibility, risk, and operator approval requirements rather than wandering through generic trial and error.",
+      "done": "A hypothesis ledger stores competing predictions and supporting/refuting transition IDs; the planner proposes at most three discriminating probes with expected outcomes and cost/risk; a fixture selects a reversible probe that separates two equally plausible models, records the result, rejects the falsified hypothesis, and does not silently treat absence of evidence as confirmation.",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "agent-loop",
+      "updated": "2026-07-16",
+      "source": "schema-harness-2026-07-15",
+      "after": [
+        "SCHEMA-COUNTEREXAMPLE-REVISION"
+      ]
+    },
+    {
+      "id": "SCHEMA-MODEL-PLANNER",
+      "track": "Harness",
+      "title": "Schema model planner - search certified simulations before spending real actions",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Once a task model is certified, search inside it for an action plan without touching the real environment. Support bounded breadth-first search for small discrete spaces plus a planner interface for domain-specific or heuristic search, with explicit state hashing, budgets, and proof that the plan reaches isGoal in simulation.",
+      "done": "A certified fixture model produces a shortest plan through bounded search; planning records expanded/distinct states, depth, cost, terminal prediction, and budget stop reason; uncertified models are rejected; repeated-state and state-explosion guards halt cleanly; the produced plan enters the real world only through the controlled commit gate.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "agent-loop",
+      "updated": "2026-07-16",
+      "source": "schema-harness-2026-07-15",
+      "after": [
+        "SCHEMA-COMPLETE-HISTORY-BACKTEST",
+        "SCHEMA-EXECUTABLE-MODEL-SANDBOX"
+      ]
+    },
+    {
+      "id": "SCHEMA-PERSISTENT-WORKSPACE",
+      "track": "Harness",
+      "title": "Schema persistent workspace - model, notes, hypotheses, and timeline survive compaction",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Treat the task workspace as the agent's durable working weights: executable model, concise notes, hypothesis ledger, certified plans, and immutable transitions persist outside the context window. Resume reconstructs typed state from artifacts instead of trusting a compressed transcript.",
+      "done": "After forced context compaction and process restart, Vanta restores the active model version, certification status, unresolved hypotheses, last committed transition, remaining budgets, and next safe action from task artifacts; raw exploratory chatter is not required; stale or internally inconsistent workspace state fails to a recoverable diagnostic.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "memory",
+      "updated": "2026-07-16",
+      "source": "schema-harness-2026-07-15",
+      "after": [
+        "SCHEMA-TRANSITION-TIMELINE",
+        "SCHEMA-EXECUTABLE-TASK-MODEL",
+        "LOOP-STATE",
+        "VANTA-SESSION-MEMORY-COMPACT"
+      ]
+    },
+    {
+      "id": "SCHEMA-MODEL-QUALITY-LEDGER",
+      "track": "Harness",
+      "title": "Schema model quality ledger - measure prediction accuracy, coverage, and discovery cost",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Make model trust measurable. Track exact-transition coverage, skipped/partial observations, prediction error by field, model revisions, representation changes, probe cost, simulated-search cost, committed-action efficiency, plan aborts, and successful transfer across later task stages.",
+      "done": "Every Schema-mode run emits a redacted scorecard with model/version provenance and the defined metrics; CLI and receipts distinguish exact, partial, untested, and contradicted beliefs; a model cannot display certified when coverage is incomplete; regression tests aggregate scorecards across runs without counting simulated actions as real actions.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "agent-loop",
+      "updated": "2026-07-16",
+      "source": "schema-harness-2026-07-15",
+      "after": [
+        "SCHEMA-COMPLETE-HISTORY-BACKTEST",
+        "SCHEMA-CONTROLLED-COMMIT-GATE",
+        "SCHEMA-COUNTEREXAMPLE-REVISION"
+      ]
+    },
+    {
+      "id": "SCHEMA-MECHANISM-LIBRARY",
+      "track": "Harness",
+      "title": "Schema mechanism library - promote verified task rules without freezing bad abstractions",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Convert repeatedly verified mechanisms into reusable, typed components only after evidence supports transfer. Preserve the causal abstraction across tasks while allowing structured revisions for new variables, and retain counterexamples so a coincidental rule is not promoted as general knowledge.",
+      "done": "A mechanism can be proposed from a certified task model, must cite supporting transitions and counterexamples, passes held-out replay fixtures, and enters the existing self-learning adoption gate; later tasks can retrieve and adapt it; failed transfer supersedes or scopes the mechanism without deleting prior evidence; reuse and regression rates are measured.",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "memory",
+      "updated": "2026-07-16",
+      "source": "schema-harness-2026-07-15",
+      "after": [
+        "SCHEMA-PERSISTENT-WORKSPACE",
+        "SCHEMA-MODEL-QUALITY-LEDGER",
+        "VANTA-SELF-LEARNING-LOOP"
+      ]
+    },
+    {
+      "id": "SCHEMA-DESKTOP-TRACE-EXPLORER",
+      "track": "Desktop App",
+      "title": "Schema desktop trace explorer - inspect theory, predictions, mismatches, and recovery",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Bring Schema's interpretable loop into Vanta Desktop without a new dashboard maze. The existing run timeline can reveal the active model version, certification coverage, simulated plan, committed actions, prediction-versus-observation diffs, plan abort point, counterexample, and revised model in the place work happened.",
+      "done": "A desktop fixture run lets the operator open any transition, compare predicted and observed state, inspect the model diff and backtest receipt, distinguish simulated from real actions, see why a queue stopped, and retry only after recertification; the panel remains optional, keyboard accessible, and usable at 760px and desktop widths; Electron proof covers match, mismatch, revision, and resumed run.",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "tui",
+      "updated": "2026-07-16",
+      "source": "schema-harness-2026-07-15",
+      "after": [
+        "SCHEMA-TRANSITION-TIMELINE",
+        "SCHEMA-COMPLETE-HISTORY-BACKTEST",
+        "SCHEMA-CONTROLLED-COMMIT-GATE",
+        "SCHEMA-COUNTEREXAMPLE-REVISION",
+        "DESKTOP-RUN-RECOVERY-TIMELINE"
+      ]
+    },
+    {
+      "id": "SCHEMA-HARNESS-EVAL-ABLATION",
+      "track": "Harness",
+      "title": "Schema harness eval and ablation - prove the process beats generic agent runs",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Run controlled comparisons with the same provider, model, task, tools, and budgets while changing only the harness. Measure success, real actions, tool calls, cost, prediction accuracy, recovery rate, and transfer; use fresh sessions and held-out tasks so Vanta does not mistake memorized public fixtures for general capability.",
+      "done": "The existing eval harness runs matched generic-versus-Schema trials over repo repair, browser workflow, and operator task fixtures with at least two fresh runs each; frozen configs and artifacts are replayable; results report variance, failures, and cost; ablations remove timeline backtest, commit gate, probe planning, and model search individually; no release claim is made from training/public fixtures alone.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "agent-loop",
+      "updated": "2026-07-16",
+      "source": "schema-harness-2026-07-15",
+      "after": [
+        "SCHEMA-HYPOTHESIS-PROBE-PLANNER",
+        "SCHEMA-MODEL-PLANNER",
+        "SCHEMA-PERSISTENT-WORKSPACE",
+        "SCHEMA-MODEL-QUALITY-LEDGER",
+        "AHE-EVAL-HARNESS"
+      ]
+    },
+    {
+      "id": "SCHEMA-V1-RELEASE-GATE",
+      "track": "Harness",
+      "title": "Schema v1 release gate - verified-model execution on real Vanta work",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Ship Schema mode only after the full observe-deliberate-execute-record loop works on real Vanta tasks, prediction errors stop side effects, state and mechanism revisions recover correctly, and controlled evaluation shows a reliability or action-efficiency gain worth the added harness complexity.",
+      "done": "A real repo task and a real browser/operator task each produce an append-only timeline, grounded state, executable model, complete-history backtest, simulated plan, controlled commit, and replayable receipts; an injected mismatch proves remaining actions are discarded; resume works after restart; the matched eval shows non-regression in success and a documented gain in reliability, recovery, or real-action efficiency; desktop trace proof passes before release.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "agent-loop",
+      "updated": "2026-07-16",
+      "source": "schema-harness-2026-07-15",
+      "after": [
+        "SCHEMA-COUNTEREXAMPLE-REVISION",
+        "SCHEMA-HYPOTHESIS-PROBE-PLANNER",
+        "SCHEMA-MODEL-PLANNER",
+        "SCHEMA-PERSISTENT-WORKSPACE",
+        "SCHEMA-MODEL-QUALITY-LEDGER",
+        "SCHEMA-DESKTOP-TRACE-EXPLORER",
+        "SCHEMA-HARNESS-EVAL-ABLATION"
+      ]
     }
   ]
 }

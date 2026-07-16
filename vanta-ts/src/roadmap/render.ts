@@ -107,7 +107,41 @@ const RUN_ANYWHERE_PHASE: LaunchPhase = {
   gate: "RUN-ANYWHERE-V1-RELEASE-GATE",
 };
 
+const SCHEMA_PHASE: LaunchPhase = {
+  name: "Schema v1",
+  promise: "Vanta predicts, verifies, and safely executes real work through an inspectable task model.",
+  metric: "Verified-execution gate",
+  proofLabel: "Model Reality",
+  viewsLabel: "Plan and Recover",
+  proof: [
+    "SCHEMA-TASK-ENVIRONMENT-CONTRACT",
+    "SCHEMA-TRANSITION-TIMELINE",
+    "SCHEMA-EXECUTABLE-MODEL-SANDBOX",
+    "SCHEMA-STATE-GROUNDING",
+    "SCHEMA-EXECUTABLE-TASK-MODEL",
+    "SCHEMA-COMPLETE-HISTORY-BACKTEST",
+  ],
+  views: [
+    "SCHEMA-CONTROLLED-COMMIT-GATE",
+    "SCHEMA-COUNTEREXAMPLE-REVISION",
+    "SCHEMA-HYPOTHESIS-PROBE-PLANNER",
+    "SCHEMA-MODEL-PLANNER",
+    "SCHEMA-PERSISTENT-WORKSPACE",
+    "SCHEMA-MODEL-QUALITY-LEDGER",
+    "SCHEMA-MECHANISM-LIBRARY",
+    "SCHEMA-DESKTOP-TRACE-EXPLORER",
+    "SCHEMA-HARNESS-EVAL-ABLATION",
+  ],
+  gate: "SCHEMA-V1-RELEASE-GATE",
+};
+
+function phaseIsActive(data: Roadmap, phase: LaunchPhase): boolean {
+  const gate = byId(data, phase.gate);
+  return gate !== undefined && gate.status !== "shipped" && gate.status !== "parked";
+}
+
 function activeLaunchPhase(data: Roadmap): LaunchPhase {
+  if (phaseIsActive(data, SCHEMA_PHASE)) return SCHEMA_PHASE;
   return byId(data, RUN_ANYWHERE_PHASE.gate) ? RUN_ANYWHERE_PHASE : ACTIVATION_PHASE;
 }
 
