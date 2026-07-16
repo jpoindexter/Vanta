@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { GroundedStateSchema, type GroundedState } from "./grounding.js";
 import { executeTaskModel, type ModelSandboxReceipt } from "./model-sandbox.js";
 import type { TaskModelArtifact } from "./task-model.js";
@@ -26,11 +27,22 @@ export type BacktestCoverage = {
 };
 export type BacktestReport = {
   modelVersion: number;
+  timelineHash: string;
   certified: boolean;
   coverage: BacktestCoverage;
   mismatches: BacktestMismatch[];
   firstCounterexample?: BacktestMismatch;
 };
+
+const certifiedReports = new WeakSet<BacktestReport>();
+
+export function hashTaskTimeline(timeline: readonly TaskTimelineRecord[]): string {
+  return createHash("sha256").update(JSON.stringify(timeline)).digest("hex");
+}
+
+export function isCurrentBacktestCertification(report: BacktestReport): boolean {
+  return report.certified && certifiedReports.has(report);
+}
 export type RunBacktestOptions = {
   artifact: TaskModelArtifact;
   timeline: readonly TaskTimelineRecord[];
@@ -160,11 +172,14 @@ export async function runBacktest(options: RunBacktestOptions): Promise<Backtest
     && coverage.skipped === 0
     && coverage.uncheckable === 0
     && mismatches.length === 0;
-  return {
+  const report: BacktestReport = {
     modelVersion: options.artifact.manifest.modelVersion,
+    timelineHash: hashTaskTimeline(options.timeline),
     certified,
     coverage,
     mismatches,
     ...(mismatches[0] ? { firstCounterexample: mismatches[0] } : {}),
   };
+  if (report.certified) certifiedReports.add(report);
+  return report;
 }

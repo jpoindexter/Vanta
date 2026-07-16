@@ -24,7 +24,14 @@ const TransitionRecordSchema = TimelineMetadataSchema.extend({
   status: z.enum(["observed", "partial", "terminal"]),
   before: z.object({ snapshot: z.unknown(), observation: z.unknown() }),
   action: z.unknown(),
-  prediction: z.object({ summary: z.string() }),
+  prediction: z.object({
+    summary: z.string(),
+    expectedState: z.unknown().optional(),
+    goal: z.boolean().optional(),
+    modelVersion: z.number().int().positive().optional(),
+    idempotencyKey: z.string().min(1).optional(),
+    risk: z.enum(["low", "medium", "high"]).optional(),
+  }),
   observed: z.unknown(),
   after: z.unknown(),
   terminal: z.string().min(1).optional(),
@@ -116,7 +123,7 @@ export class TaskTransitionTimeline {
   }
 }
 
-/** Execute one validated environment step and persist its observable outcome. */
+/** Execute one side-effect-free fixture step and persist its observable outcome. */
 export async function runRecordedTaskStep<Snapshot, Observation, Action>(
   environment: TaskEnvironment<Snapshot, Observation, Action>,
   rawAction: unknown,

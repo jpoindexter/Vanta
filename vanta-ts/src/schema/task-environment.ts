@@ -5,7 +5,7 @@ export const TASK_ENVIRONMENT_VERSION = "1" as const;
 export const SideEffectClassSchema = z.enum(["none", "reversible", "external"]);
 export type SideEffectClass = z.infer<typeof SideEffectClassSchema>;
 
-export type TaskErrorCode = "invalid_action" | "malformed_observation" | "malformed_snapshot";
+export type TaskErrorCode = "invalid_action" | "malformed_observation" | "malformed_snapshot" | "controlled_commit_required";
 export type TaskError = { code: TaskErrorCode; message: string };
 export type Prediction = { summary: string };
 export type VerifierResult = { ok: boolean; summary: string };
@@ -64,10 +64,12 @@ async function beforeStep<Snapshot, Observation, Action>(
   return action ? { snapshot, observation, action } : { error: failure("invalid_action").error };
 }
 
+/** Execute side-effect-free fixtures only. Reversible/external work must use commitActions. */
 export async function runTaskStep<Snapshot, Observation, Action>(
   environment: TaskEnvironment<Snapshot, Observation, Action>,
   rawAction: unknown,
 ): Promise<TaskStepResult<Snapshot, Observation, Action>> {
+  if (environment.sideEffect !== "none") return failure("controlled_commit_required");
   const before = await beforeStep(environment, rawAction);
   if ("error" in before) return { ok: false, error: before.error };
   const prediction = environment.predict(before.snapshot, before.action);

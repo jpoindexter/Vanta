@@ -13,7 +13,7 @@ export function createRepoFixture(): TaskEnvironment<RepoState, z.infer<typeof R
   return {
     version: TASK_ENVIRONMENT_VERSION,
     id: "repo-fixture",
-    sideEffect: "reversible",
+    sideEffect: "none",
     snapshotSchema: RepoStateSchema,
     observationSchema: RepoObservationSchema,
     legalActions: RepoActionSchema,
@@ -44,7 +44,7 @@ export function createBrowserFixture(): TaskEnvironment<BrowserState, BrowserSta
   return {
     version: TASK_ENVIRONMENT_VERSION,
     id: "browser-fixture",
-    sideEffect: "reversible",
+    sideEffect: "none",
     snapshotSchema: BrowserStateSchema,
     observationSchema: BrowserObservationSchema,
     legalActions: BrowserActionSchema,
