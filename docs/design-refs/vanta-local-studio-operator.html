@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Vanta Runtime Operator Concept</title>
+    <script src="https://unpkg.com/lucide@0.468.0"></script>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0b0b;
+        --panel: #101010;
+        --raised: #171717;
+        --hover: #1e1e1e;
+        --text: #f4f4f1;
+        --muted: #a5a5a0;
+        --dim: #73736f;
+        --line: #2b2b29;
+        --line-strong: #41413e;
+        --inverse: #0b0b0b;
+        --accent: #f4f4f1;
+        --good: #8fd3a8;
+        --warn: #e5c574;
+        --bad: #e2847d;
+        --info: #9db7d7;
+        --sidebar: 264px;
+        --inspector: 360px;
+        --titlebar: 48px;
+        --statusbar: 26px;
+        --toolbar: 44px;
+        --radius: 7px;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+        font-size: 14px;
+      }
+
+      :root[data-theme="light"] {
+        color-scheme: light;
+        --bg: #f5f4f0;
+        --panel: #fbfaf7;
+        --raised: #efeee9;
+        --hover: #e7e6e1;
+        --text: #11110f;
+        --muted: #5e5d58;
+        --dim: #85847e;
+        --line: #d6d4ce;
+        --line-strong: #b9b7af;
+        --inverse: #fbfaf7;
+        --accent: #11110f;
+        --good: #27663e;
+        --warn: #865f13;
+        --bad: #9e3e38;
+        --info: #365b83;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { min-width: 320px; min-height: 100%; margin: 0; background: #000; }
+      body { min-height: 100dvh; color: var(--text); }
+      button, input, textarea, select { font: inherit; letter-spacing: 0; }
+      button { color: inherit; }
+      button:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      [hidden] { display: none !important; }
+      .icon { width: 16px; height: 16px; stroke-width: 1.8; }
+      .icon-sm { width: 14px; height: 14px; stroke-width: 1.8; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+      .app {
+        display: grid;
+        grid-template-areas:
+          "title title title"
+          "sidebar work inspector"
+          "status status status";
+        grid-template-columns: var(--sidebar) minmax(420px, 1fr) var(--inspector);
+        grid-template-rows: var(--titlebar) minmax(0, 1fr) var(--statusbar);
+        width: 100vw;
+        height: 100dvh;
+        overflow: hidden;
+        background: var(--bg);
+      }
+      .app.sidebar-closed { grid-template-columns: 0 minmax(420px, 1fr) var(--inspector); }
+      .app.inspector-closed { grid-template-columns: var(--sidebar) minmax(420px, 1fr) 0; }
+      .app.sidebar-closed.inspector-closed { grid-template-columns: 0 minmax(420px, 1fr) 0; }
+
+      .titlebar {
+        grid-area: title;
+        display: grid;
+        grid-template-columns: var(--sidebar) minmax(0, 1fr) var(--inspector);
+        border-bottom: 1px solid var(--line);
+        background: var(--panel);
+        user-select: none;
+      }
+      .sidebar-closed .titlebar { grid-template-columns: 0 minmax(0, 1fr) var(--inspector); }
+      .inspector-closed .titlebar { grid-template-columns: var(--sidebar) minmax(0, 1fr) 0; }
+      .sidebar-closed.inspector-closed .titlebar { grid-template-columns: 0 minmax(0, 1fr) 0; }
+      .title-cell { display: flex; min-width: 0; align-items: center; gap: 7px; padding: 0 10px; overflow: hidden; }
+      .title-cell + .title-cell { border-left: 1px solid var(--line); }
+      .traffic { display: flex; gap: 8px; padding-left: 2px; }
+      .traffic span { width: 12px; height: 12px; border-radius: 50%; background: var(--line-strong); }
+      .title-tools { margin-left: auto; display: flex; align-items: center; gap: 3px; }
+      .compact-control { display: none; }
+      .task-title { display: flex; min-width: 0; align-items: center; gap: 8px; font-size: 13px; font-weight: 650; }
+      .task-title span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .title-runtime { margin-left: auto; display: flex; min-width: 0; align-items: center; gap: 8px; }
+
+      .icon-button {
+        display: inline-grid;
+        width: 30px;
+        height: 30px;
+        flex: 0 0 30px;
+        place-items: center;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+      }
+      .icon-button:hover, .icon-button.active { border-color: var(--line); background: var(--hover); color: var(--text); }
+      .status-chip {
+        display: inline-flex;
+        min-width: 0;
+        height: 28px;
+        align-items: center;
+        gap: 7px;
+        padding: 0 9px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--raised);
+        color: var(--muted);
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .status-chip strong { max-width: 140px; overflow: hidden; color: var(--text); text-overflow: ellipsis; font-weight: 650; }
+      .dot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: var(--good); }
+      .dot.warn { background: var(--warn); }
+      .dot.bad { background: var(--bad); }
+
+      .sidebar {
+        grid-area: sidebar;
+        display: flex;
+        min-width: 0;
+        min-height: 0;
+        flex-direction: column;
+        overflow: hidden;
+        border-right: 1px solid var(--line);
+        background: var(--panel);
+      }
+      .sidebar-closed .sidebar { visibility: hidden; }
+      .primary-nav { display: grid; gap: 2px; padding: 10px; border-bottom: 1px solid var(--line); }
+      .nav-button, .session-button, .project-button, .footer-button {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        min-height: 34px;
+        align-items: center;
+        gap: 9px;
+        padding: 0 9px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        text-align: left;
+      }
+      .nav-button:hover, .session-button:hover, .project-button:hover, .footer-button:hover { background: var(--hover); color: var(--text); }
+      .nav-button.active, .session-button.active { background: var(--raised); color: var(--text); }
+      .nav-button span, .session-button span, .project-button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .nav-button .count, .project-button .count { margin-left: auto; color: var(--dim); font-size: 11px; }
+      .new-task { border: 1px solid var(--line); color: var(--text); }
+      .sidebar-scroll { min-height: 0; flex: 1; overflow-y: auto; padding: 0 10px 10px; }
+      .section-label { display: flex; align-items: center; justify-content: space-between; margin: 13px 5px 6px; color: var(--dim); font-size: 10px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+      .project-button { font-weight: 650; }
+      .project-sessions { margin-left: 12px; padding-left: 7px; border-left: 1px solid var(--line); }
+      .session-button { min-height: 31px; font-size: 12px; }
+      .session-state { width: 5px; height: 5px; flex: 0 0 5px; border-radius: 50%; background: var(--dim); }
+      .session-button.active .session-state { background: var(--text); }
+      .session-button.running .session-state { background: var(--good); box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 18%, transparent); }
+      .search-row { display: flex; align-items: center; gap: 7px; margin: 8px 4px 2px; padding: 0 4px; border-bottom: 1px solid var(--line); color: var(--dim); }
+      .search-row input { width: 100%; min-width: 0; height: 31px; border: 0; outline: 0; background: transparent; color: var(--text); }
+      .sidebar-footer { display: grid; gap: 2px; padding: 8px 10px; border-top: 1px solid var(--line); }
+      .footer-button { min-height: 31px; font-size: 12px; }
+      .footer-button kbd { margin-left: auto; color: var(--dim); font: 10px ui-monospace, monospace; }
+
+      .work { grid-area: work; display: flex; min-width: 0; min-height: 0; flex-direction: column; background: var(--bg); }
+      .runtime-strip {
+        display: flex;
+        min-height: var(--toolbar);
+        align-items: center;
+        gap: 6px;
+        padding: 0 14px;
+        overflow-x: auto;
+        border-bottom: 1px solid var(--line);
+        background: var(--panel);
+        scrollbar-width: none;
+      }
+      .runtime-strip::-webkit-scrollbar { display: none; }
+      .runtime-label { display: inline-flex; align-items: center; gap: 7px; margin-right: 4px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+      .runtime-label strong { color: var(--text); font-weight: 650; }
+      .runtime-divider { width: 1px; height: 20px; flex: 0 0 1px; margin: 0 4px; background: var(--line); }
+      .runtime-action {
+        display: inline-flex;
+        height: 28px;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 6px;
+        padding: 0 9px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 11px;
+      }
+      .runtime-action:hover { background: var(--hover); color: var(--text); }
+      .runtime-action.primary { border-color: var(--line-strong); background: var(--text); color: var(--inverse); font-weight: 700; }
+      .runtime-action.danger { color: var(--bad); }
+      .runtime-spacer { flex: 1; }
+
+      .conversation { position: relative; display: flex; min-height: 0; flex: 1; flex-direction: column; }
+      .transcript { min-height: 0; flex: 1; overflow: auto; padding: 24px clamp(18px, 5vw, 68px) 20px; }
+      .transcript-inner { width: min(100%, 780px); margin: 0 auto; }
+      .run-context { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; color: var(--dim); font-size: 11px; }
+      .run-context span { display: inline-flex; align-items: center; gap: 7px; }
+      .message { margin-bottom: 25px; }
+      .message.operator { display: flex; justify-content: flex-end; }
+      .message-bubble { max-width: min(76%, 620px); padding: 10px 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--raised); line-height: 1.55; }
+      .message-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; color: var(--dim); font-size: 10px; }
+      .message-meta strong { color: var(--muted); font-weight: 700; text-transform: uppercase; }
+      .message-body { color: var(--text); font-size: 13px; line-height: 1.65; }
+      .message-body p { margin: 0 0 9px; }
+      .message-body p:last-child { margin-bottom: 0; }
+      .message-body code { padding: 2px 4px; border-radius: 4px; background: var(--raised); font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .activity-group { margin: 13px 0 22px; padding-left: 16px; border-left: 1px solid var(--line); }
+      .activity-row { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: start; gap: 8px; min-height: 31px; padding: 6px 0; color: var(--muted); font-size: 11px; }
+      .activity-row strong { color: var(--text); font-weight: 600; }
+      .activity-row time { color: var(--dim); }
+      .activity-row .detail { grid-column: 2 / -1; margin-top: -2px; color: var(--dim); }
+      .activity-row.failed strong { color: var(--bad); }
+      .receipt-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 13px; padding: 10px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+      .receipt-row strong { color: var(--text); }
+      .text-action { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 11px; }
+      .text-action:hover { color: var(--text); }
+      .message-actions { display: flex; gap: 2px; margin-top: 8px; }
+      .message-actions .icon-button { width: 26px; height: 26px; flex-basis: 26px; }
+
+      .prompt-map { position: absolute; top: 22px; right: 10px; z-index: 4; display: grid; gap: 8px; }
+      .prompt-marker { position: relative; width: 18px; height: 10px; border: 0; background: transparent; cursor: pointer; }
+      .prompt-marker::after { position: absolute; top: 4px; right: 0; width: 10px; height: 1px; background: var(--line-strong); content: ""; }
+      .prompt-marker.current::after { width: 16px; background: var(--text); }
+      .prompt-marker span { position: absolute; top: -8px; right: 25px; display: none; width: 190px; padding: 7px 8px; border: 1px solid var(--line); border-radius: 5px; background: var(--panel); color: var(--muted); text-align: left; font-size: 10px; box-shadow: 0 12px 30px #0008; }
+      .prompt-marker:hover span, .prompt-marker:focus-visible span { display: block; }
+
+      .composer-wrap { padding: 12px clamp(18px, 5vw, 68px) 14px; border-top: 1px solid var(--line); background: var(--panel); }
+      .composer { width: min(100%, 780px); margin: 0 auto; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--bg); }
+      .context-row { display: flex; align-items: center; gap: 6px; overflow-x: auto; padding: 7px 9px 5px; border-bottom: 1px solid var(--line); scrollbar-width: none; }
+      .context-chip { display: inline-flex; height: 24px; flex: 0 0 auto; align-items: center; gap: 5px; padding: 0 7px; border: 1px solid var(--line); border-radius: 5px; background: var(--raised); color: var(--muted); font-size: 10px; }
+      .composer textarea { display: block; width: 100%; height: 66px; resize: none; border: 0; outline: 0; background: transparent; color: var(--text); padding: 11px 12px; line-height: 1.5; }
+      .composer textarea::placeholder { color: var(--dim); }
+      .composer-footer { display: flex; min-height: 37px; align-items: center; gap: 5px; padding: 4px 7px 6px; }
+      .composer-footer .mode { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; padding: 0 6px; color: var(--muted); font-size: 11px; }
+      .send-button { display: inline-grid; width: 29px; height: 29px; place-items: center; border: 0; border-radius: 6px; background: var(--text); color: var(--inverse); cursor: pointer; }
+
+      .inspector {
+        grid-area: inspector;
+        display: flex;
+        min-width: 0;
+        min-height: 0;
+        flex-direction: column;
+        overflow: hidden;
+        border-left: 1px solid var(--line);
+        background: var(--panel);
+      }
+      .inspector-closed .inspector { visibility: hidden; }
+      .tabs { display: flex; min-height: var(--toolbar); align-items: stretch; overflow-x: auto; border-bottom: 1px solid var(--line); scrollbar-width: none; }
+      .tab { display: inline-flex; min-width: 0; flex: 1 0 auto; align-items: center; justify-content: center; gap: 6px; padding: 0 10px; border: 0; border-top: 2px solid transparent; background: transparent; color: var(--dim); cursor: pointer; font-size: 10px; }
+      .tab:hover { color: var(--text); }
+      .tab.active { border-top-color: var(--text); background: var(--raised); color: var(--text); }
+      .inspector-body { min-height: 0; flex: 1; overflow-y: auto; }
+      .inspector-view { display: none; }
+      .inspector-view.active { display: block; }
+      .detail-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px; border-bottom: 1px solid var(--line); }
+      .eyebrow { margin-bottom: 4px; color: var(--dim); font: 10px ui-monospace, SFMono-Regular, monospace; text-transform: uppercase; }
+      .detail-header h2 { margin: 0; font-size: 15px; font-weight: 680; }
+      .detail-header p { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+      .controller-tabs { display: flex; gap: 5px; overflow-x: auto; padding: 10px 12px; border-bottom: 1px solid var(--line); scrollbar-width: none; }
+      .controller-tab { display: inline-flex; height: 29px; flex: 0 0 auto; align-items: center; gap: 7px; padding: 0 8px; border: 1px solid var(--line); border-radius: 5px; background: transparent; color: var(--muted); cursor: pointer; font-size: 10px; }
+      .controller-tab.active { border-color: var(--line-strong); background: var(--raised); color: var(--text); }
+      .detail-section { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+      .section-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+      .section-head h3 { margin: 0; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+      .section-head span { color: var(--dim); font-size: 10px; }
+      .metric { display: grid; grid-template-columns: 82px minmax(0, 1fr) auto; align-items: center; gap: 9px; min-height: 28px; color: var(--muted); font-size: 10px; }
+      .metric strong { color: var(--text); font-weight: 600; }
+      .bar { height: 4px; overflow: hidden; border-radius: 2px; background: var(--line); }
+      .bar span { display: block; height: 100%; background: var(--text); }
+      .metric.warn .bar span { background: var(--warn); }
+      .button-row { display: flex; flex-wrap: wrap; gap: 6px; }
+      .flat-button { display: inline-flex; min-height: 30px; align-items: center; gap: 6px; padding: 0 9px; border: 1px solid var(--line); border-radius: 5px; background: transparent; color: var(--muted); cursor: pointer; font-size: 10px; }
+      .flat-button:hover { background: var(--hover); color: var(--text); }
+      .flat-button.primary { background: var(--text); color: var(--inverse); font-weight: 700; }
+      .flat-button.danger { color: var(--bad); }
+      .command-line { overflow-x: auto; padding: 9px; border: 1px solid var(--line); border-radius: 5px; background: var(--bg); color: var(--muted); font: 10px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; }
+      .log-list { display: grid; gap: 5px; max-height: 180px; overflow-y: auto; color: var(--dim); font: 9px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .log-list .good { color: var(--good); }
+      .empty-view { display: grid; min-height: 380px; place-items: center; padding: 28px; color: var(--dim); text-align: center; }
+
+      .statusbar { grid-area: status; display: flex; align-items: center; gap: 14px; padding: 0 10px; border-top: 1px solid var(--line); background: var(--panel); color: var(--dim); font-size: 9px; }
+      .statusbar span { display: inline-flex; align-items: center; gap: 5px; }
+      .statusbar .right { margin-left: auto; }
+
+      .scrim { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 18px; background: #000a; }
+      .modal { width: min(720px, 100%); max-height: min(760px, calc(100dvh - 36px)); overflow: auto; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--panel); box-shadow: 0 24px 70px #000b; }
+      .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px; border-bottom: 1px solid var(--line); }
+      .modal-header h2 { margin: 0; font-size: 16px; }
+      .modal-header p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
+      .setup-progress { display: grid; grid-template-columns: repeat(5, 1fr); border-bottom: 1px solid var(--line); }
+      .setup-step { padding: 9px 10px; border-right: 1px solid var(--line); color: var(--dim); font: 9px ui-monospace, monospace; text-transform: uppercase; }
+      .setup-step:last-child { border-right: 0; }
+      .setup-step.active { background: var(--raised); color: var(--text); }
+      .modal-content { padding: 18px; }
+      .modal-content h3 { margin: 0 0 7px; font-size: 14px; }
+      .modal-content > p { margin: 0 0 15px; color: var(--muted); font-size: 11px; line-height: 1.55; }
+      .hardware-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line); }
+      .hardware-cell { min-height: 78px; padding: 12px; border-right: 1px solid var(--line); }
+      .hardware-cell:last-child { border-right: 0; }
+      .hardware-cell span { display: block; color: var(--dim); font: 9px ui-monospace, monospace; text-transform: uppercase; }
+      .hardware-cell strong { display: block; margin-top: 6px; font-size: 13px; }
+      .recommendation { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; margin-top: 14px; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+      .recommendation .dot { width: 8px; height: 8px; }
+      .recommendation strong { display: block; font-size: 12px; }
+      .recommendation span { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+      .modal-footer { display: flex; justify-content: space-between; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
+
+      .queue-drawer { position: fixed; right: 18px; bottom: 40px; z-index: 25; width: min(410px, calc(100vw - 36px)); border: 1px solid var(--line-strong); border-radius: 8px; background: var(--panel); box-shadow: 0 20px 60px #000a; }
+      .queue-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 13px; border-bottom: 1px solid var(--line); }
+      .queue-header h2 { margin: 0; font-size: 13px; }
+      .queue-list { padding: 4px 12px 10px; }
+      .queue-item { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+      .queue-item:last-child { border-bottom: 0; }
+      .queue-index { color: var(--dim); font: 10px ui-monospace, monospace; }
+      .queue-item strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+      .queue-item span { display: block; margin-top: 2px; color: var(--dim); font-size: 9px; }
+      .queue-actions { display: flex; gap: 2px; }
+
+      .toast { position: fixed; left: 50%; bottom: 42px; z-index: 50; transform: translateX(-50%); padding: 8px 11px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--panel); color: var(--text); font-size: 11px; box-shadow: 0 12px 35px #0009; }
+
+      @media (max-width: 1120px) {
+        :root { --inspector: 330px; }
+        .title-runtime .status-chip:nth-child(2) { display: none; }
+      }
+      @media (max-width: 920px) {
+        .app { grid-template-columns: var(--sidebar) minmax(0, 1fr) 0; }
+        .titlebar { grid-template-columns: var(--sidebar) minmax(0, 1fr) 0; }
+        .inspector { position: fixed; top: var(--titlebar); right: 0; bottom: var(--statusbar); z-index: 20; width: min(380px, calc(100vw - 52px)); box-shadow: -18px 0 48px #0008; }
+        .app:not(.inspector-open-mobile) .inspector { display: none; }
+        .compact-inspector-control { display: inline-grid; }
+      }
+      @media (max-width: 680px) {
+        :root { --sidebar: 264px; }
+        .app {
+          grid-template-areas:
+            "title title title"
+            "work work work"
+            "status status status";
+          grid-template-columns: minmax(0, 1fr) 0 0;
+        }
+        .titlebar { grid-template-columns: minmax(0, 1fr) 0 0; }
+        .titlebar .title-cell:first-child, .titlebar .title-cell:last-child { display: none; }
+        .compact-sidebar-control { display: inline-grid; }
+        .sidebar { position: fixed; top: var(--titlebar); left: 0; bottom: var(--statusbar); z-index: 24; width: min(290px, calc(100vw - 42px)); box-shadow: 18px 0 48px #0008; }
+        .app:not(.sidebar-open-mobile) .sidebar { display: none; }
+        .title-runtime .status-chip { display: none; }
+        .runtime-label:nth-of-type(2), .runtime-divider:nth-of-type(2) { display: none; }
+        .transcript { padding-inline: 14px 32px; }
+        .composer-wrap { padding-inline: 12px; }
+        .message-bubble { max-width: 90%; }
+        .statusbar span:nth-child(n+3):not(.right) { display: none; }
+        .hardware-grid { grid-template-columns: 1fr; }
+        .hardware-cell { border-right: 0; border-bottom: 1px solid var(--line); }
+        .hardware-cell:last-child { border-bottom: 0; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app" id="app">
+      <header class="titlebar">
+        <div class="title-cell">
+          <div class="traffic" aria-label="Window controls"><span></span><span></span><span></span></div>
+          <div class="title-tools">
+            <button class="icon-button" id="sidebarToggle" aria-label="Toggle projects"><i data-lucide="panel-left" class="icon"></i></button>
+            <button class="icon-button" aria-label="New task"><i data-lucide="square-pen" class="icon"></i></button>
+          </div>
+        </div>
+        <div class="title-cell">
+          <button class="icon-button compact-control compact-sidebar-control" id="compactSidebarToggle" aria-label="Toggle projects mobile"><i data-lucide="panel-left" class="icon"></i></button>
+          <button class="icon-button compact-control compact-inspector-control" id="compactInspectorToggle" aria-label="Toggle inspector mobile"><i data-lucide="panel-right" class="icon"></i></button>
+          <div class="task-title"><i data-lucide="folder" class="icon-sm"></i><span>Make local inference dependable</span></div>
+          <div class="title-runtime">
+            <button class="status-chip" id="controllerChip"><span class="dot"></span><strong>Local Mac</strong><span>ready</span></button>
+            <button class="status-chip" id="modelChip"><i data-lucide="cpu" class="icon-sm"></i><strong>Qwen 3 30B</strong><span>MLX</span></button>
+            <button class="icon-button" id="themeToggle" aria-label="Toggle light and dark theme"><i data-lucide="sun-moon" class="icon"></i></button>
+            <button class="icon-button" id="queueToggle" aria-label="Open queued turns"><i data-lucide="list-ordered" class="icon"></i></button>
+          </div>
+        </div>
+        <div class="title-cell">
+          <span class="status-chip"><span class="dot warn"></span><strong>Ask</strong></span>
+          <div class="title-tools">
+            <button class="icon-button" id="inspectorToggle" aria-label="Toggle inspector"><i data-lucide="panel-right" class="icon"></i></button>
+            <button class="icon-button" aria-label="Settings"><i data-lucide="sliders-horizontal" class="icon"></i></button>
+          </div>
+        </div>
+      </header>
+
+      <aside class="sidebar">
+        <nav class="primary-nav" aria-label="Primary">
+          <button class="nav-button new-task"><i data-lucide="plus" class="icon"></i><span>New task</span><kbd>⌘N</kbd></button>
+          <button class="nav-button active"><i data-lucide="message-square" class="icon"></i><span>Work</span><span class="count">34</span></button>
+          <button class="nav-button"><i data-lucide="activity" class="icon"></i><span>Operate</span><span class="count">2</span></button>
+          <button class="nav-button"><i data-lucide="package-open" class="icon"></i><span>Outputs</span></button>
+          <button class="nav-button"><i data-lucide="network" class="icon"></i><span>Connect</span></button>
+        </nav>
+        <div class="sidebar-scroll">
+          <div class="section-label"><span>Projects</span><button class="text-action">+</button></div>
+          <button class="project-button"><i data-lucide="folder" class="icon-sm"></i><span>Vanta</span><span class="count">3</span></button>
+          <div class="project-sessions">
+            <button class="session-button active running"><span class="session-state"></span><span>Make local inference dependable</span></button>
+            <button class="session-button"><span class="session-state"></span><span>Desktop runtime receipts</span></button>
+            <button class="session-button"><span class="session-state"></span><span>Provider model parity</span></button>
+          </div>
+          <button class="project-button"><i data-lucide="folder" class="icon-sm"></i><span>Keelhouse</span><span class="count">2</span></button>
+          <div class="project-sessions">
+            <button class="session-button"><span class="session-state"></span><span>Pane ownership proof</span></button>
+            <button class="session-button"><span class="session-state"></span><span>Package release</span></button>
+          </div>
+          <div class="section-label"><span>Pinned</span><span>2</span></div>
+          <button class="session-button"><i data-lucide="pin" class="icon-sm"></i><span>Run Anywhere release gate</span></button>
+          <button class="session-button"><i data-lucide="pin" class="icon-sm"></i><span>Desktop proof suite</span></button>
+          <div class="section-label"><span>Recent</span><span>29</span></div>
+          <div class="search-row"><i data-lucide="search" class="icon-sm"></i><input aria-label="Search sessions" placeholder="Search tasks" /></div>
+          <button class="session-button"><span class="session-state"></span><span>Review agent skills</span></button>
+          <button class="session-button"><span class="session-state"></span><span>Notarize macOS build</span></button>
+          <button class="session-button"><span class="session-state"></span><span>Repair gateway status</span></button>
+        </div>
+        <div class="sidebar-footer">
+          <button class="footer-button"><i data-lucide="keyboard" class="icon-sm"></i><span>Keyboard shortcuts</span><kbd>?</kbd></button>
+          <button class="footer-button"><i data-lucide="settings" class="icon-sm"></i><span>Settings</span></button>
+        </div>
+      </aside>
+
+      <section class="work">
+        <div class="runtime-strip" aria-label="Active runtime">
+          <span class="runtime-label"><span class="dot"></span><strong id="stripController">Local Mac</strong><span id="stripState">running</span></span>
+          <span class="runtime-divider"></span>
+          <span class="runtime-label"><i data-lucide="box" class="icon-sm"></i><strong id="stripModel">Qwen3-Coder-30B-A3B</strong><span id="stripEngine">MLX</span></span>
+          <span class="runtime-divider"></span>
+          <span class="runtime-label"><i data-lucide="gauge" class="icon-sm"></i><strong>21.8 GB</strong><span>of 32 GB</span></span>
+          <span class="runtime-label"><i data-lucide="timer" class="icon-sm"></i><strong>48.2 tok/s</strong></span>
+          <span class="runtime-spacer"></span>
+          <button class="runtime-action" id="profilesButton"><i data-lucide="notebook-tabs" class="icon-sm"></i>Profiles</button>
+          <button class="runtime-action" id="benchmarkButton"><i data-lucide="gauge" class="icon-sm"></i>Benchmark</button>
+          <button class="runtime-action danger" id="lifecycleButton"><i data-lucide="square" class="icon-sm"></i><span>Stop</span></button>
+        </div>
+        <div class="conversation">
+          <div class="prompt-map" aria-label="Prompt positions">
+            <button class="prompt-marker" data-target="prompt-1" aria-label="Go to first prompt"><span>Audit local model readiness</span></button>
+            <button class="prompt-marker" data-target="prompt-2" aria-label="Go to second prompt"><span>Run the smoke test</span></button>
+            <button class="prompt-marker current" data-target="prompt-3" aria-label="Go to latest prompt"><span>Make recovery visible</span></button>
+          </div>
+          <div class="transcript" id="transcript">
+            <div class="transcript-inner">
+              <div class="run-context"><span><i data-lucide="shield-check" class="icon-sm"></i>Kernel gated · project files only</span><span class="mono">run_24f1</span></div>
+
+              <article class="message operator" id="prompt-1"><div class="message-bubble">Audit whether the local model runtime is ready for a real Vanta coding task. Do not launch anything until the hardware fit and command are visible.</div></article>
+
+              <article class="message assistant">
+                <div class="message-meta"><strong>Vanta</strong><span>9:41 PM</span></div>
+                <div class="message-body"><p>The controller is reachable and kernel-ready. The selected MLX profile fits the machine with 8.4 GB estimated headroom. I am holding at the launch boundary so you can inspect the exact runtime command.</p></div>
+                <div class="activity-group">
+                  <div class="activity-row"><i data-lucide="check" class="icon-sm"></i><strong>Controller handshake</strong><time>0.4s</time><span class="detail">Local Mac · authenticated · kernel policy loaded</span></div>
+                  <div class="activity-row"><i data-lucide="check" class="icon-sm"></i><strong>Hardware fit</strong><time>0.2s</time><span class="detail">32 GB unified memory · 21.8 GB estimated active use</span></div>
+                  <div class="activity-row"><i data-lucide="eye" class="icon-sm"></i><strong>Command held for review</strong><time>now</time><span class="detail mono">mlx_lm.server --model Qwen3-Coder-30B-A3B-4bit --port 8081</span></div>
+                </div>
+                <div class="message-actions"><button class="icon-button" aria-label="Copy response"><i data-lucide="copy" class="icon-sm"></i></button><button class="icon-button" aria-label="Helpful"><i data-lucide="thumbs-up" class="icon-sm"></i></button><button class="icon-button" aria-label="Not helpful"><i data-lucide="thumbs-down" class="icon-sm"></i></button></div>
+              </article>
+
+              <article class="message operator" id="prompt-2"><div class="message-bubble">Launch it, benchmark one short prompt, then run the project smoke test.</div></article>
+
+              <article class="message assistant">
+                <div class="message-meta"><strong>Vanta</strong><span>9:43 PM</span></div>
+                <div class="message-body"><p>The model launched, reached its health endpoint, and completed the benchmark. The project smoke failed at the renderer check, so I preserved the model and stopped before changing files.</p></div>
+                <div class="activity-group">
+                  <div class="activity-row"><i data-lucide="check" class="icon-sm"></i><strong>Model ready</strong><time>18.7s</time><span class="detail">First token 412 ms · 48.2 tok/s · 8k context</span></div>
+                  <div class="activity-row"><i data-lucide="check" class="icon-sm"></i><strong>Benchmark receipt</strong><time>6.1s</time><span class="detail">Local inference response matched the fixture</span></div>
+                  <div class="activity-row failed"><i data-lucide="x" class="icon-sm"></i><strong>Desktop renderer smoke</strong><time>3.8s</time><span class="detail">Expected inspector width 360; observed 0 after restore</span></div>
+                </div>
+                <div class="receipt-row"><span><strong>Partial receipt</strong> · 2 passed · 1 recoverable failure</span><button class="text-action" data-open-tab="receipts">Review receipt →</button></div>
+              </article>
+
+              <article class="message operator" id="prompt-3"><div class="message-bubble">Make the failed step recoverable in place, and queue the package test after it passes.</div></article>
+
+              <article class="message assistant">
+                <div class="message-meta"><strong>Vanta</strong><span>working now</span></div>
+                <div class="message-body"><p>I restored the inspector state before the renderer assertion and queued the packaged-app proof behind this retry. The current run stays foregrounded; the queued turn is visible in the titlebar.</p></div>
+                <div class="activity-group">
+                  <div class="activity-row"><i data-lucide="loader-circle" class="icon-sm"></i><strong>Retry renderer smoke</strong><time>running</time><span class="detail">Restoring persisted pane geometry, then measuring at 1024×700</span></div>
+                  <div class="activity-row"><i data-lucide="list-plus" class="icon-sm"></i><strong>Package proof queued</strong><time>next</time><span class="detail">Will start only after the renderer smoke passes</span></div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <div class="composer-wrap">
+            <div class="composer">
+              <div class="context-row">
+                <span class="context-chip"><i data-lucide="folder" class="icon-sm"></i>Vanta</span>
+                <span class="context-chip"><i data-lucide="monitor" class="icon-sm"></i>Local Mac</span>
+                <span class="context-chip"><i data-lucide="git-branch" class="icon-sm"></i>main</span>
+                <span class="context-chip"><i data-lucide="file-code" class="icon-sm"></i>desktop-layout-smoke.mjs</span>
+              </div>
+              <textarea id="composerInput" aria-label="Task instruction" placeholder="Ask Vanta to handle an outcome…"></textarea>
+              <div class="composer-footer">
+                <button class="icon-button" aria-label="Attach context"><i data-lucide="paperclip" class="icon"></i></button>
+                <button class="icon-button" aria-label="Open commands"><i data-lucide="plus" class="icon"></i></button>
+                <button class="mode"><i data-lucide="shield" class="icon-sm"></i>Ask</button>
+                <button class="mode"><i data-lucide="cpu" class="icon-sm"></i>Qwen 3 30B</button>
+                <button class="send-button" id="sendButton" aria-label="Send"><i data-lucide="arrow-up" class="icon"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="inspector">
+        <div class="tabs" role="tablist">
+          <button class="tab" data-tab="activity"><i data-lucide="activity" class="icon-sm"></i>Activity</button>
+          <button class="tab active" data-tab="runtime"><i data-lucide="server" class="icon-sm"></i>Runtime</button>
+          <button class="tab" data-tab="files"><i data-lucide="files" class="icon-sm"></i>Files</button>
+          <button class="tab" data-tab="receipts"><i data-lucide="receipt-text" class="icon-sm"></i>Receipts</button>
+        </div>
+        <div class="inspector-body">
+          <section class="inspector-view" data-view="activity"><div class="empty-view"><div><i data-lucide="activity" class="icon"></i><p>Run activity stays grouped in the transcript.<br />This pane expands only when detail is requested.</p></div></div></section>
+          <section class="inspector-view active" data-view="runtime">
+            <div class="detail-header"><div><div class="eyebrow">Active controller</div><h2 id="runtimeTitle">Local Mac</h2><p id="runtimeSubtitle">Apple Silicon · MLX · kernel ready</p></div><button class="icon-button" id="setupButton" aria-label="Set up a runtime"><i data-lucide="wand-sparkles" class="icon"></i></button></div>
+            <div class="controller-tabs" aria-label="Controllers">
+              <button class="controller-tab active" data-controller="Local Mac" data-model="Qwen3-Coder-30B-A3B" data-engine="MLX" data-state="running"><span class="dot"></span>Local Mac · running</button>
+              <button class="controller-tab" data-controller="GPU Rig" data-model="DeepSeek-Coder-V2" data-engine="vLLM" data-state="idle"><span class="dot warn"></span>GPU Rig · idle</button>
+              <button class="controller-tab" data-controller="Cloud Wake" data-model="No model" data-engine="Modal" data-state="offline"><span class="dot bad"></span>Cloud Wake · offline</button>
+            </div>
+            <div class="detail-section">
+              <div class="section-head"><h3>Model lifecycle</h3><span id="lifecycleState">running · pid 4812</span></div>
+              <div class="button-row"><button class="flat-button danger" id="panelLifecycle"><i data-lucide="square" class="icon-sm"></i>Stop model</button><button class="flat-button" id="panelBenchmark"><i data-lucide="gauge" class="icon-sm"></i>Benchmark</button><button class="flat-button" id="panelProfiles"><i data-lucide="notebook-tabs" class="icon-sm"></i>Profiles</button></div>
+            </div>
+            <div class="detail-section">
+              <div class="section-head"><h3>Resource fit</h3><span>8.4 GB headroom</span></div>
+              <div class="metric"><span>Unified memory</span><div class="bar"><span style="width:68%"></span></div><strong>21.8 / 32 GB</strong></div>
+              <div class="metric"><span>Context</span><div class="bar"><span style="width:26%"></span></div><strong>8k / 32k</strong></div>
+              <div class="metric warn"><span>KV cache</span><div class="bar"><span style="width:74%"></span></div><strong>6.2 GB</strong></div>
+              <div class="metric"><span>Throughput</span><div class="bar"><span style="width:62%"></span></div><strong>48.2 t/s</strong></div>
+            </div>
+            <div class="detail-section">
+              <div class="section-head"><h3>Launch command</h3><button class="text-action">Copy</button></div>
+              <div class="command-line">mlx_lm.server --model Qwen3-Coder-30B-A3B-4bit --port 8081 --max-tokens 8192</div>
+            </div>
+            <div class="detail-section">
+              <div class="section-head"><h3>Runtime log</h3><button class="text-action">Open full log →</button></div>
+              <div class="log-list"><span class="good">21:42:08 health endpoint ready</span><span>21:42:09 model warmup 18.7s</span><span>21:42:15 benchmark 48.2 tok/s</span><span>21:43:02 request run_24f1 attached</span><span>21:43:06 renderer smoke failed; runtime retained</span></div>
+            </div>
+          </section>
+          <section class="inspector-view" data-view="files"><div class="empty-view"><div><i data-lucide="files" class="icon"></i><p>Recent, mentioned, and changed files appear here.<br />Raw project inventories stay out of the default view.</p></div></div></section>
+          <section class="inspector-view" data-view="receipts"><div class="detail-header"><div><div class="eyebrow">Run receipt</div><h2>run_24f1</h2><p>Local inference · two verified steps · one retrying step</p></div></div><div class="detail-section"><div class="metric"><span>Controller</span><div></div><strong>Local Mac</strong></div><div class="metric"><span>Model</span><div></div><strong>Qwen 3 30B</strong></div><div class="metric"><span>Approval</span><div></div><strong>Ask</strong></div><div class="metric"><span>Runtime</span><div></div><strong>00:01:12</strong></div></div></section>
+        </div>
+      </aside>
+
+      <footer class="statusbar"><span><span class="dot"></span>Gateway ready</span><span><i data-lucide="shield-check" class="icon-sm"></i>Kernel online</span><span><i data-lucide="server" class="icon-sm"></i>3 controllers</span><span><i data-lucide="list-ordered" class="icon-sm"></i>1 queued turn</span><span class="right mono">VANTA / LOCAL-FIRST</span></footer>
+    </main>
+
+    <section class="queue-drawer" id="queueDrawer" hidden aria-label="Queued turns">
+      <div class="queue-header"><div><div class="eyebrow">After current step</div><h2>Queued turns</h2></div><button class="icon-button" data-close="queue" aria-label="Close queue"><i data-lucide="x" class="icon"></i></button></div>
+      <div class="queue-list">
+        <div class="queue-item"><span class="queue-index">01</span><div><strong>Run the packaged-app proof</strong><span>Starts after renderer smoke passes</span></div><div class="queue-actions"><button class="icon-button" aria-label="Move queued turn up"><i data-lucide="arrow-up" class="icon-sm"></i></button><button class="icon-button" aria-label="Edit queued turn"><i data-lucide="pencil" class="icon-sm"></i></button><button class="icon-button" aria-label="Remove queued turn"><i data-lucide="x" class="icon-sm"></i></button></div></div>
+        <div class="queue-item"><span class="queue-index">02</span><div><strong>Summarize the runtime receipt</strong><span>Held until package proof completes</span></div><div class="queue-actions"><button class="icon-button" aria-label="Move queued turn up"><i data-lucide="arrow-up" class="icon-sm"></i></button><button class="icon-button" aria-label="Edit queued turn"><i data-lucide="pencil" class="icon-sm"></i></button><button class="icon-button" aria-label="Remove queued turn"><i data-lucide="x" class="icon-sm"></i></button></div></div>
+      </div>
+    </section>
+
+    <section class="scrim" id="setupModal" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+        <div class="modal-header"><div><div class="eyebrow">Local model setup</div><h2 id="setupTitle">One verified inference, end to end</h2><p>Detect hardware, choose a safe profile, download, launch, and prove it inside Vanta.</p></div><button class="icon-button" data-close="setup" aria-label="Close setup"><i data-lucide="x" class="icon"></i></button></div>
+        <div class="setup-progress"><div class="setup-step active">1 Hardware</div><div class="setup-step">2 Profile</div><div class="setup-step">3 Download</div><div class="setup-step">4 Launch</div><div class="setup-step">5 Prove</div></div>
+        <div class="modal-content">
+          <h3>Hardware detected</h3><p>Vanta uses this only to recommend compatible runtime profiles. Nothing launches until the exact command and resource fit are visible.</p>
+          <div class="hardware-grid"><div class="hardware-cell"><span>Platform</span><strong>Apple M3 Max</strong></div><div class="hardware-cell"><span>Memory</span><strong>32 GB unified</strong></div><div class="hardware-cell"><span>Available</span><strong>29.4 GB</strong></div></div>
+          <div class="recommendation"><span class="dot"></span><div><strong>Recommended: Qwen3-Coder 30B · MLX 4-bit</strong><span>Estimated 21.8 GB active use · 8.4 GB headroom · 8k safe context</span></div><button class="flat-button">Change</button></div>
+        </div>
+        <div class="modal-footer"><button class="flat-button" data-close="setup">Cancel</button><button class="flat-button primary" id="setupNext">Use this profile</button></div>
+      </div>
+    </section>
+
+    <section class="scrim" id="profilesModal" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="profilesTitle">
+        <div class="modal-header"><div><div class="eyebrow">Runtime profiles</div><h2 id="profilesTitle">Saved launch contracts</h2><p>Profiles keep backend details reusable while Vanta retains approval and receipt ownership.</p></div><button class="icon-button" data-close="profiles" aria-label="Close profiles"><i data-lucide="x" class="icon"></i></button></div>
+        <div class="modal-content">
+          <div class="recommendation"><span class="dot"></span><div><strong>Qwen3-Coder 30B · MLX</strong><span>Current · 8k context · 21.8 GB estimated</span></div><button class="flat-button primary">Selected</button></div>
+          <div class="recommendation"><span class="dot warn"></span><div><strong>DeepSeek Coder V2 · vLLM</strong><span>GPU Rig · 32k context · remote controller</span></div><button class="flat-button">Use</button></div>
+          <div class="recommendation"><span class="dot"></span><div><strong>Qwen 7B · llama.cpp</strong><span>Low-memory fallback · CPU/GPU hybrid</span></div><button class="flat-button">Use</button></div>
+        </div>
+        <div class="modal-footer"><button class="flat-button" data-close="profiles">Close</button><button class="flat-button primary"><i data-lucide="plus" class="icon-sm"></i>New profile</button></div>
+      </div>
+    </section>
+
+    <div class="toast" id="toast" hidden></div>
+
+    <script>
+      const app = document.getElementById("app");
+      const toast = document.getElementById("toast");
+      const controllerChip = document.getElementById("controllerChip");
+      const queueDrawer = document.getElementById("queueDrawer");
+      const setupModal = document.getElementById("setupModal");
+      const profilesModal = document.getElementById("profilesModal");
+      let running = true;
+
+      function renderIcons() { if (window.lucide) window.lucide.createIcons(); }
+      function showToast(message) {
+        toast.textContent = message;
+        toast.hidden = false;
+        window.clearTimeout(showToast.timer);
+        showToast.timer = window.setTimeout(() => { toast.hidden = true; }, 1800);
+      }
+      function syncResponsivePanels(kind) {
+        if (window.innerWidth <= 680 && kind === "sidebar") app.classList.toggle("sidebar-open-mobile");
+        else if (window.innerWidth <= 920 && kind === "inspector") app.classList.toggle("inspector-open-mobile");
+        else app.classList.toggle(kind === "sidebar" ? "sidebar-closed" : "inspector-closed");
+      }
+      function openTab(name) {
+        document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === name));
+        document.querySelectorAll(".inspector-view").forEach((view) => view.classList.toggle("active", view.dataset.view === name));
+        if (window.innerWidth <= 920) app.classList.add("inspector-open-mobile");
+      }
+      function setLifecycle(nextRunning) {
+        running = nextRunning;
+        const labels = [document.querySelector("#lifecycleButton span"), document.getElementById("panelLifecycle")];
+        labels.forEach((label) => { if (label) label.textContent = running ? (label.id ? "Stop model" : "Stop") : (label.id ? "Launch model" : "Launch"); });
+        document.getElementById("stripState").textContent = running ? "running" : "idle";
+        document.getElementById("lifecycleState").textContent = running ? "running · pid 4812" : "idle · model retained";
+        showToast(running ? "Model launch started · receipt opened" : "Model stopped · memory released");
+      }
+
+      document.getElementById("sidebarToggle").addEventListener("click", () => syncResponsivePanels("sidebar"));
+      document.getElementById("inspectorToggle").addEventListener("click", () => syncResponsivePanels("inspector"));
+      document.getElementById("compactSidebarToggle").addEventListener("click", () => syncResponsivePanels("sidebar"));
+      document.getElementById("compactInspectorToggle").addEventListener("click", () => syncResponsivePanels("inspector"));
+      document.getElementById("themeToggle").addEventListener("click", () => {
+        document.documentElement.dataset.theme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      });
+      document.getElementById("queueToggle").addEventListener("click", () => { queueDrawer.hidden = !queueDrawer.hidden; });
+      controllerChip.addEventListener("click", () => openTab("runtime"));
+      document.querySelectorAll(".tab").forEach((tab) => tab.addEventListener("click", () => openTab(tab.dataset.tab)));
+      document.querySelectorAll("[data-open-tab]").forEach((button) => button.addEventListener("click", () => openTab(button.dataset.openTab)));
+      document.querySelectorAll(".controller-tab").forEach((button) => button.addEventListener("click", () => {
+        document.querySelectorAll(".controller-tab").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        document.getElementById("runtimeTitle").textContent = button.dataset.controller;
+        document.getElementById("runtimeSubtitle").textContent = `${button.dataset.engine} · ${button.dataset.state} · kernel policy checked`;
+        document.getElementById("stripController").textContent = button.dataset.controller;
+        document.getElementById("stripModel").textContent = button.dataset.model;
+        document.getElementById("stripEngine").textContent = button.dataset.engine;
+        document.getElementById("stripState").textContent = button.dataset.state;
+        showToast(`Controller switched to ${button.dataset.controller}`);
+      }));
+      ["lifecycleButton", "panelLifecycle"].forEach((id) => document.getElementById(id).addEventListener("click", () => setLifecycle(!running)));
+      ["benchmarkButton", "panelBenchmark"].forEach((id) => document.getElementById(id).addEventListener("click", () => showToast("Benchmark queued after the current step")));
+      ["profilesButton", "panelProfiles"].forEach((id) => document.getElementById(id).addEventListener("click", () => { profilesModal.hidden = false; }));
+      document.getElementById("setupButton").addEventListener("click", () => { setupModal.hidden = false; });
+      document.getElementById("setupNext").addEventListener("click", () => {
+        const steps = [...document.querySelectorAll(".setup-step")];
+        const current = steps.findIndex((step) => step.classList.contains("active"));
+        steps[current].classList.remove("active");
+        steps[(current + 1) % steps.length].classList.add("active");
+        showToast(current === 4 ? "Proof complete" : `Setup advanced to ${steps[(current + 1) % steps.length].textContent.trim()}`);
+      });
+      document.querySelectorAll("[data-close]").forEach((button) => button.addEventListener("click", () => {
+        if (button.dataset.close === "queue") queueDrawer.hidden = true;
+        if (button.dataset.close === "setup") setupModal.hidden = true;
+        if (button.dataset.close === "profiles") profilesModal.hidden = true;
+      }));
+      document.querySelectorAll(".prompt-marker").forEach((marker) => marker.addEventListener("click", () => {
+        document.getElementById(marker.dataset.target).scrollIntoView({ behavior: "smooth", block: "center" });
+      }));
+      document.querySelectorAll(".session-button").forEach((button) => button.addEventListener("click", () => {
+        document.querySelectorAll(".session-button").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+      }));
+      document.getElementById("sendButton").addEventListener("click", () => {
+        const input = document.getElementById("composerInput");
+        if (!input.value.trim()) return showToast("Name the outcome first");
+        showToast("Instruction queued behind the active step");
+        input.value = "";
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") { queueDrawer.hidden = true; setupModal.hidden = true; profilesModal.hidden = true; }
+        if (event.key === "?" && !event.metaKey && !event.ctrlKey) showToast("Shortcuts: ⌘N new task · ⌘K commands · Esc close");
+      });
+      renderIcons();
+    </script>
+  </body>
+</html>

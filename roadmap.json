@@ -18948,6 +18948,282 @@
         "DESKTOP-ACTION-APPROVAL-PROMPT",
         "VANTA-PERMISSIONS"
       ]
+    },
+    {
+      "id": "LOCAL-STUDIO-OPERATOR-EXTRACTION",
+      "track": "Desktop App",
+      "title": "Local Studio operator extraction - runtime patterns translated into Vanta",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Audit Local Studio's current desktop and controller architecture, separate reusable runtime/operator patterns from product-specific implementation, and turn the accepted Vanta fit into one interactive Ghost/Codex-style desktop concept plus a dependency-ordered build plan.",
+      "done": "The official repository is pinned by revision and license; the extraction memo maps source evidence to adopt, defer, and reject decisions; the standalone demo exercises controller switching, lifecycle controls, resource fit, prompt navigation, queued turns, setup, profiles, dark/light themes, and compact drawers; automated Chrome proof passes at 1440x960, 1024x700, 760x700, and 390x844 with no viewport overflow.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.6-sol",
+      "lens": "tui",
+      "updated": "2026-07-16",
+      "source": "docs/research/local-studio-vanta-extraction-2026-07-16.md",
+      "notes": "Reference: sybil-solutions/local-studio at 07be5be7ce69bea0c3118744ab90d148b010fce0, Apache-2.0. The demo is product-flow evidence, not production runtime proof.",
+      "after": [
+        "DESKTOP-CODEX-KEELHOUSE-SHELL",
+        "DESKTOP-CODEX-CHAT-SURFACE"
+      ]
+    },
+    {
+      "id": "LOCAL-RUNTIME-CONTROLLER-CONTRACT",
+      "track": "Infrastructure",
+      "title": "Local runtime controller contract - discover, trust, and supervise local or remote inference hosts",
+      "status": "next",
+      "size": "L",
+      "summary": "Create one Vanta-owned controller boundary for local and remote inference hosts. It reports authenticated reachability, kernel readiness, engine and model state, resource telemetry, queue depth, and bounded event streams without treating a reachable endpoint as trusted.",
+      "done": "A typed controller adapter discovers configured local and remote hosts; distinguishes offline, auth-required, idle, starting, running, stopping, failed, and degraded states; reports kernel policy readiness separately from transport health; streams redacted lifecycle/resource events with reconnect and stale-state handling; and passes contract tests against local, remote, auth failure, event loss, and controller restart fixtures.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "updated": "2026-07-16",
+      "source": "local-studio-vanta-extraction-2026-07-16",
+      "after": [
+        "HERMES-DELTA-AUTH-READINESS",
+        "DESKTOP-CONTROL-BOUNDARY",
+        "MANAGED-RUNTIME-INSTALLER"
+      ]
+    },
+    {
+      "id": "DESKTOP-RUNTIME-CONTROLLER-STRIP",
+      "track": "Desktop App",
+      "title": "Desktop runtime strip - active controller, model, engine, pressure, and queue at a glance",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Add a compact runtime strip to the existing Work surface so the operator can see and switch the active host, model, engine, lifecycle state, memory pressure, throughput, and queued-turn count without opening a dashboard or losing the transcript.",
+      "done": "The strip consumes the controller contract, preserves session scope, distinguishes controller transport health from kernel trust, switches controllers without dropping the active draft, opens contextual detail instead of navigating away, never causes horizontal page overflow, and passes desktop/compact/keyboard/screen-reader Electron proof in Ghost light and dark themes.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "tui",
+      "updated": "2026-07-16",
+      "source": "local-studio-vanta-extraction-2026-07-16",
+      "after": [
+        "LOCAL-RUNTIME-CONTROLLER-CONTRACT",
+        "DESKTOP-CONTEXT-LEGIBILITY",
+        "DESKTOP-CODEX-KEELHOUSE-SHELL"
+      ]
+    },
+    {
+      "id": "LOCAL-RUNTIME-ENGINE-LIFECYCLE",
+      "track": "Infrastructure",
+      "title": "Local inference lifecycle - launch, health, benchmark, stop, and recover through Vanta",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Own model lifecycle behind Vanta's kernel and receipt boundary instead of assuming an OpenAI-compatible endpoint already exists. Start with Apple Silicon MLX and llama.cpp, then use the same contract for remote vLLM and SGLang controllers.",
+      "done": "Vanta can preview the exact command and resource estimate, request the configured approval, launch one MLX or llama.cpp model, wait on bounded health, run a deterministic benchmark, serve one real provider-compatible turn, stop or retain the model after downstream failure, recover stale processes after restart, and emit redacted receipts for every transition; remote vLLM/SGLang adapters pass the same contract fixtures before being marked supported.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "updated": "2026-07-16",
+      "source": "local-studio-vanta-extraction-2026-07-16",
+      "after": [
+        "LOCAL-RUNTIME-CONTROLLER-CONTRACT",
+        "HP-APPROVAL-BEFORE-RISK",
+        "VANTA-REAL-USAGE"
+      ]
+    },
+    {
+      "id": "DESKTOP-RUNTIME-DETAIL-TRAY",
+      "track": "Desktop App",
+      "title": "Desktop runtime detail tray - lifecycle, resource fit, command, and failure logs in context",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Add Runtime to the existing contextual workbench tray. It exposes lifecycle actions, resource fit, the exact launch command, current request ownership, and bounded logs for the active controller while keeping Work as the home surface.",
+      "done": "Opening Runtime from the strip or a failure receipt shows controller identity, model/engine state, resource estimate and live pressure, command preview, approval state, lifecycle controls, benchmark result, and filtered logs; actions update in place, preserve transcript focus, provide undo/recovery where possible, and pass Electron proof for launch, stop, failure, reconnect, compact overlay, keyboard navigation, and both themes.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "tui",
+      "updated": "2026-07-16",
+      "source": "local-studio-vanta-extraction-2026-07-16",
+      "after": [
+        "DESKTOP-RUNTIME-CONTROLLER-STRIP",
+        "LOCAL-RUNTIME-ENGINE-LIFECYCLE",
+        "DESKTOP-RUN-RECOVERY-TIMELINE"
+      ]
+    },
+    {
+      "id": "DESKTOP-LONG-SESSION-NAVIGATION",
+      "track": "Desktop App",
+      "title": "Desktop long-session navigation - prompt markers, reading position, and Latest return",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Make long agent conversations navigable without fighting the operator during streaming. Show compact prompt-position markers, preserve each task's reading position, detach from auto-follow when the operator scrolls up, and offer an explicit Latest/New messages return.",
+      "done": "Prompt markers jump to user turns and expose an accessible label; per-session scroll position and follow state survive task switches and relaunch; wheel, touch, keyboard, and streamed content do not snap a reader back to the bottom; Latest/New messages appears only when detached; virtualization and 500-turn fixtures remain stable; Electron proof covers streaming, resize, compact mode, keyboard, and reduced motion.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "tui",
+      "updated": "2026-07-16",
+      "source": "local-studio-vanta-extraction-2026-07-16",
+      "after": [
+        "DESKTOP-CODEX-CHAT-SURFACE",
+        "DESKTOP-RUN-RECOVERY-TIMELINE"
+      ]
+    },
+    {
+      "id": "DESKTOP-QUEUED-TURN-EDITOR",
+      "track": "Desktop App",
+      "title": "Desktop queued-turn editor - inspect, reorder, edit, steer, or cancel what runs next",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Expose Vanta's existing queued-input and gateway steering substrate in Desktop. The current turn remains primary while pending instructions show their execution order, dependency, target, and safe edit/cancel actions.",
+      "done": "Work shows a compact queued count and an accessible drawer; queued instructions can be edited, reordered, removed, or sent as a steer action; target/controller/model/approval scope is visible per item; changes persist through restart and reconcile with gateway/background execution; races with a just-starting item resolve deterministically; Electron proof covers queue, steer, reorder, cancel, reconnect, and compact layout.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "tui",
+      "updated": "2026-07-16",
+      "source": "local-studio-vanta-extraction-2026-07-16",
+      "after": [
+        "VANTA-S-QUEUE",
+        "GATEWAY-SESSION-MANAGER",
+        "DESKTOP-RUN-RECOVERY-TIMELINE"
+      ]
+    },
+    {
+      "id": "LOCAL-MODEL-FIRST-INFERENCE-WIZARD",
+      "track": "Infrastructure",
+      "title": "Local model first-inference wizard - hardware to one verified Vanta result",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Guide a cold operator from hardware detection through one compatible runtime profile, model download, launch, benchmark, and a real Vanta task. The flow ends in Work with a receipt instead of ending at a green settings screen.",
+      "done": "On a clean supported Mac, the wizard detects hardware without collecting unnecessary identifiers, explains the recommendation and storage impact, allows model/profile changes, verifies disk and checksum, previews the launch command and approval boundary, launches and benchmarks the model, runs one useful Vanta prompt, and produces a receipt; cancel, retry, low-disk, incompatible hardware, offline download, failed launch, and resume-after-restart paths are proven.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "tui",
+      "updated": "2026-07-16",
+      "source": "local-studio-vanta-extraction-2026-07-16",
+      "after": [
+        "LOCAL-RUNTIME-ENGINE-LIFECYCLE",
+        "SETUP-DEAD-SIMPLE",
+        "ACTIVATION-COLD-USER-GATE"
+      ]
+    },
+    {
+      "id": "LOCAL-RUNTIME-PROFILES",
+      "track": "Infrastructure",
+      "title": "Local runtime profiles - reusable backend, model, resource, and command contracts",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Represent local model launch configuration as versioned Vanta profiles with backend-aware safe defaults, resource estimates, environment and performance controls, command preview, portability, and policy scope.",
+      "done": "Operators can create, clone, validate, export, import, and select profiles for supported engines; required and advanced fields are progressively disclosed; resource fit updates before launch; unsafe or unknown flags require explicit review; secrets are referenced rather than embedded; generated commands round-trip through the lifecycle adapter; profile migrations, invalid configs, and cross-host incompatibility have fixtures and recovery copy.",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "updated": "2026-07-16",
+      "source": "local-studio-vanta-extraction-2026-07-16",
+      "after": [
+        "LOCAL-RUNTIME-ENGINE-LIFECYCLE",
+        "LOCAL-MODEL-FIRST-INFERENCE-WIZARD"
+      ]
+    },
+    {
+      "id": "LOCAL-MODEL-DOWNLOAD-QUEUE",
+      "track": "Infrastructure",
+      "title": "Local model download queue - storage, progress, checksum, pause, retry, and cleanup",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Make large model acquisition a durable operator workflow rather than a blocking setup step. Downloads own target storage, expected size, progress, pause/resume, retry, integrity verification, partial-file cleanup, and model-to-profile linkage.",
+      "done": "The queue supports at least one Hugging Face-compatible source, persists across restart, reports accurate bytes and storage destination, pauses/resumes without corruption, verifies checksum or trusted manifest, handles auth, offline, low-disk, moved storage, and duplicate requests, removes partial artifacts only with confirmation, and hands a verified model to the selected runtime profile with a receipt.",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "updated": "2026-07-16",
+      "source": "local-studio-vanta-extraction-2026-07-16",
+      "after": [
+        "LOCAL-MODEL-FIRST-INFERENCE-WIZARD",
+        "LOCAL-RUNTIME-PROFILES"
+      ]
+    },
+    {
+      "id": "RUNTIME-RESOURCE-USAGE-LEDGER",
+      "track": "Infrastructure",
+      "title": "Runtime resource usage ledger - local throughput and pressure beside provider cost",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Extend Vanta's existing usage ledger with controller, runtime, and model resource receipts: launch time, active minutes, prompt and generation throughput, memory/VRAM pressure, cache behavior, failures, and host attribution. Keep provider-reported token cost distinct from estimated local resource cost.",
+      "done": "Each local or remote runtime turn records controller, engine, model/profile version, launch and request latency, tokens and throughput where reported, peak memory/VRAM, cache/context state, failure class, and active duration; aggregates can be filtered by task/model/host; missing telemetry is explicit; local estimates never masquerade as billed cost; redaction, retention, export, and performance-overhead tests pass.",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "updated": "2026-07-16",
+      "source": "local-studio-vanta-extraction-2026-07-16",
+      "after": [
+        "LOCAL-RUNTIME-ENGINE-LIFECYCLE",
+        "LOCAL-MODEL-DOWNLOAD-QUEUE",
+        "VANTA-COST-TRACKER-DETAIL",
+        "HERMES-DELTA-USAGE-ROUTE-LEDGER"
+      ]
+    },
+    {
+      "id": "DESKTOP-PINNED-TASK-ORDER",
+      "track": "Desktop App",
+      "title": "Desktop pinned task order - explicit pinning and durable project session priority",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Complete the project rail with visible pin/unpin actions and a durable manual order for high-value tasks. Active, historical, and restored sessions keep one identity so pinning does not duplicate rows or lose activity state.",
+      "done": "Task menus expose pin and unpin without hidden modifier gestures; pinned tasks can be reordered by keyboard and pointer; order persists across restart; active/history identity merges without duplicates; archived or deleted tasks leave predictable pinned state; compact drawer, focus, screen-reader, and optimistic error feedback are covered by Electron tests.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.6-terra",
+      "lens": "tui",
+      "updated": "2026-07-16",
+      "source": "local-studio-vanta-extraction-2026-07-16",
+      "after": [
+        "DESKTOP-SAFE-SESSION-OPS",
+        "DESKTOP-CODEX-KEELHOUSE-SHELL"
+      ]
+    },
+    {
+      "id": "LOCAL-RUNTIME-V1-RELEASE-GATE",
+      "track": "Infrastructure",
+      "title": "Local runtime v1 release gate - one model, one task, one recoverable receipt",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Release the Local Studio-derived runtime slice only after Vanta can set up, supervise, and recover one real local model through its existing Work surface, kernel boundary, and receipt model without introducing a competing dashboard.",
+      "done": "A clean supported Mac completes hardware detection, verified download, profile selection, approved launch, benchmark, and one real Vanta coding task; Work shows controller/model/resource/queue state; a forced downstream failure retains or stops the runtime per operator choice and retries in place; queued turns, prompt navigation, and restart recovery work; runtime telemetry joins the usage receipt; packaged Electron proof passes at desktop, compact, keyboard-only, 200% zoom, Ghost light/dark, and offline/reconnect paths.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "updated": "2026-07-16",
+      "source": "local-studio-vanta-extraction-2026-07-16",
+      "after": [
+        "DESKTOP-RUNTIME-DETAIL-TRAY",
+        "DESKTOP-LONG-SESSION-NAVIGATION",
+        "DESKTOP-QUEUED-TURN-EDITOR",
+        "LOCAL-MODEL-FIRST-INFERENCE-WIZARD",
+        "LOCAL-RUNTIME-PROFILES",
+        "LOCAL-MODEL-DOWNLOAD-QUEUE",
+        "RUNTIME-RESOURCE-USAGE-LEDGER",
+        "DESKTOP-PINNED-TASK-ORDER",
+        "DESKTOP-FLOW-PROOF-SUITE"
+      ]
     }
   ]
 }
