@@ -44,6 +44,10 @@ export const SettingsSchema = z.object({
       label: z.string().optional(),
     })).optional(),
   }).optional(),
+  /** Desktop project-scoped action approval mode. */
+  desktop: z.object({
+    accessMode: z.enum(["ask", "approve", "full"]).optional(),
+  }).optional(),
   /** UI preferences. VANTA-SETTINGS-UX folds in the display/UX toggles
    *  (spinnerVerbs/messageTimestamps/timestampStyle/effortIndicator/
    *  terminalTitle/hyperlinks/awaySummaryMs/idleReturn/jsonFormat) so each maps

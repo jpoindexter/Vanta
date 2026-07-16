@@ -7,7 +7,7 @@ import {
   type CompletionSoundPlayer,
   type CompletionSoundSettings,
 } from "./completion-sound.js";
-import type { Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, DesktopRunReceipt, EventRow, Message, MessagingPlatform, Provider, RailTab, Session, Status, Tool } from "./types.js";
+import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, DesktopRunReceipt, EventRow, Message, MessagingPlatform, Provider, RailTab, Session, Status, Tool } from "./types.js";
 
 export function useDesktopData() {
   const [status, setStatus] = useState<Status | null>(null);
@@ -61,9 +61,18 @@ export function useDesktopData() {
     setModels(refreshed);
   }
 
+  async function setAccessMode(mode: AccessMode) {
+    const saved = await api<{ mode: AccessMode; scope: "project" }>("/api/access-mode", {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify({ mode }),
+    });
+    setStatus((current) => current ? { ...current, accessMode: saved.mode, accessScope: saved.scope } : current);
+  }
+
   useEffect(() => { void refresh(); }, [refresh]);
   return {
-    status, sessions, tools, files, models, canvas, capabilities, messaging, artifacts, tab, setTab, phase, error, refresh, refreshProviderModels, setModel, ...overlays,
+    status, sessions, tools, files, models, canvas, capabilities, messaging, artifacts, tab, setTab, phase, error, refresh, refreshProviderModels, setModel, setAccessMode, ...overlays,
     saveMessaging: async (id: string, values: Record<string, string>) => {
       await api<MessagingPlatform>("/api/messaging", { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ id, values }) });
       await refresh();

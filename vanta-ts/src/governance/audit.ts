@@ -17,6 +17,7 @@ export type GateResolution =
   | "approved"
   | "denied"
   | "accept-edits-auto"
+  | "full-access-auto"
   | "delegated-auto"
   | "kernel-unreachable";
 
@@ -60,7 +61,7 @@ function parseGateLine(line: TraceLine): GateRecord | null {
 
 const RISKS = new Set(["allow", "ask", "block", "unknown"]);
 const RESOLUTIONS = new Set<GateResolution>([
-  "allow", "blocked", "approved", "denied", "accept-edits-auto", "delegated-auto", "kernel-unreachable",
+  "allow", "blocked", "approved", "denied", "accept-edits-auto", "full-access-auto", "delegated-auto", "kernel-unreachable",
 ]);
 
 function isGateEvent(v: unknown): v is GateAuditEvent {

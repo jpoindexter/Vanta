@@ -3,6 +3,8 @@ import type { FormEvent, KeyboardEvent } from "react";
 import { Activity, Archive, ArchiveRestore, ArrowUp, Check, CheckCircle2, ChevronRight, Copy, FileText, FolderKanban, Keyboard, Laptop, ListPlus, Maximize2, MessageSquare, MoreHorizontal, Network, PackageOpen, Paperclip, Pencil, Plus, RotateCcw, Search, Settings2, ShieldCheck, Square, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
 import type { Approval, ApprovalDecision, DesktopRunReceipt, DesktopView, Message, PermissionSection, Session } from "./types.js";
 import { MessageMarkdown } from "./message-markdown.js";
+import { AccessModePicker } from "./access-mode-picker.js";
+import type { AccessMode } from "./types.js";
 
 type SessionSidebarProps = {
   sessions: Session[];
@@ -484,7 +486,7 @@ function humanizeTool(name: string): string {
   return name.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
 }
 
-export function Composer(props: { value: string; busy: boolean; model?: string; root?: string; tools?: number; attachments: string[]; onChange: (value: string) => void; onSubmit: (text: string) => void; onQueue: (text: string) => void; onRemoveAttachment: (file: string) => void; onStop: () => void; onAttach: () => void; onModel: () => void; onCommand: () => void }) {
+export function Composer(props: { value: string; busy: boolean; model?: string; root?: string; tools?: number; accessMode: AccessMode; attachments: string[]; onChange: (value: string) => void; onSubmit: (text: string) => void; onQueue: (text: string) => void; onRemoveAttachment: (file: string) => void; onStop: () => void; onAttach: () => void; onModel: () => void; onAccessMode: (mode: AccessMode) => Promise<void>; onCommand: () => void }) {
   function send(event: FormEvent) {
     event.preventDefault();
     const value = props.value.trim();
@@ -501,7 +503,7 @@ export function Composer(props: { value: string; busy: boolean; model?: string; 
       {props.attachments.length ? <div className="context-chips" aria-label="Attached project context">{props.attachments.map((file) => <span key={file}><span title={file}>{file}</span><button type="button" aria-label={`Remove ${file}`} title={`Remove ${file}`} onClick={() => props.onRemoveAttachment(file)}><X size={13} /></button></span>)}</div> : null}
       <div className="composer-footer">
         <div className="composer-context-controls"><button className="composer-context-button" type="button" title="Attach project files" aria-label="Attach project files" onClick={props.onAttach}><Paperclip size={16} /><span className="sr-only">Context</span></button><button className="composer-command-button" type="button" title="Open commands" aria-label="Open commands" onClick={props.onCommand}><Plus size={16} /><span className="sr-only">Commands</span></button></div>
-        <div className="composer-actions"><button className="model-button" type="button" title="Change model" aria-label={`Change session model, currently ${props.model ?? "not selected"}`} onClick={props.onModel}><span>{props.model ?? "Choose model"}</span></button><span className="approval-mode"><ShieldCheck size={12} />Ask</span>{props.busy ? <><button className="queue-button" type="submit" disabled={!props.value.trim()} title="Queue next instruction"><ListPlus size={15} /><span>Queue</span></button><button className="stop-button" type="button" title="Stop current run" aria-label="Stop current run" onClick={props.onStop}><Square size={14} /><span>Stop</span></button></> : <button className="send-button" type="submit" disabled={!props.value.trim()} aria-label="Send"><ArrowUp size={16} /></button>}</div>
+        <div className="composer-actions"><button className="model-button" type="button" title="Change model" aria-label={`Change session model, currently ${props.model ?? "not selected"}`} onClick={props.onModel}><span>{props.model ?? "Choose model"}</span></button><AccessModePicker mode={props.accessMode} onChange={props.onAccessMode} />{props.busy ? <><button className="queue-button" type="submit" disabled={!props.value.trim()} title="Queue next instruction"><ListPlus size={15} /><span>Queue</span></button><button className="stop-button" type="button" title="Stop current run" aria-label="Stop current run" onClick={props.onStop}><Square size={14} /><span>Stop</span></button></> : <button className="send-button" type="submit" disabled={!props.value.trim()} aria-label="Send"><ArrowUp size={16} /></button>}</div>
       </div>
     </form>
   );

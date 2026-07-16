@@ -89,6 +89,7 @@ describe("Composer context legibility", () => {
         model="gpt-5.5"
         root="/Users/jasonpoindexter/Documents/GitHub/docs/Vanta"
         tools={42}
+        accessMode="ask"
         attachments={["desktop-app/src/App.tsx"]}
         onChange={vi.fn()}
         onSubmit={vi.fn()}
@@ -97,6 +98,7 @@ describe("Composer context legibility", () => {
         onStop={vi.fn()}
         onAttach={vi.fn()}
         onModel={vi.fn()}
+        onAccessMode={vi.fn(async () => undefined)}
         onCommand={vi.fn()}
       />,
     );
@@ -104,7 +106,8 @@ describe("Composer context legibility", () => {
     expect(html).toContain("Session model");
     expect(html).toContain("Tools 42");
     expect(html).toContain("Memory local");
-    expect(html).toContain('class="approval-mode"');
+    expect(html).toContain('class="approval-mode mode-ask"');
+    expect(html).toContain('aria-haspopup="dialog"');
     expect(html).toContain(">Ask</span>");
     expect(html).toContain("gpt-5.5");
     expect(html).toContain("desktop-app/src/App.tsx");

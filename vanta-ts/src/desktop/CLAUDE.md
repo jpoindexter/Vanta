@@ -35,4 +35,6 @@ npm run desktop:native          # native Electron window + macOS tray presence
 
 The desktop and companion chats use the same `createConversation` path as the CLI. `requestApproval` blocks on a real web approval: an `ask`-tier action stalls until the UI POSTs a decision, so `ask` actions prompt rather than auto-deny. Kernel `block` stays immovable. Companion tokens are stored hashed under `VANTA_HOME`; the six-character pairing code expires after ten minutes and is single-use.
 
+Desktop Work exposes a project-scoped access picker backed by `GET|POST /api/access-mode`. `Ask` uses the normal human approval path; `Approve for me` auto-confirms project file operations while shell/network/risky actions still ask; `Full access` clears Ask prompts inside the project and tool-internal approval prompts, but never clears a kernel or explicit Block. The setting persists in `.vanta/settings.local.json`, and each change writes an activity event and kernel audit event.
+
 See `native-shell.md` for the packaging path and honest shipped/not-shipped boundary.

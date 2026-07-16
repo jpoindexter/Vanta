@@ -181,7 +181,19 @@ try {
   await taskContext.getByText(/Tools \d+/).waitFor();
   await taskContext.getByText("Memory local").waitFor();
   await page.getByRole("button", { name: /Change session model/ }).waitFor();
-  await page.locator(".approval-mode").getByText("Ask").waitFor();
+  await page.evaluate(async () => fetch("/api/access-mode", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode: "ask" }) }));
+  await page.reload();
+  await page.locator(".app-shell").waitFor();
+  const accessTrigger = page.locator(".approval-mode");
+  await accessTrigger.getByText("Ask", { exact: true }).waitFor();
+  await selectAccessMode(page, accessTrigger, "Approve for me", "approve", "Approve");
+  await selectAccessMode(page, accessTrigger, "Full access", "full", "Full access");
+  await page.reload();
+  await page.locator(".app-shell").waitFor();
+  await page.locator(".approval-mode").getByText("Full access").waitFor();
+  const persistedAccess = await page.evaluate(async () => (await fetch("/api/access-mode")).json());
+  if (persistedAccess.mode !== "full" || persistedAccess.scope !== "project") throw new Error(`Full access did not persist at project scope: ${JSON.stringify(persistedAccess)}`);
+  await selectAccessMode(page, page.locator(".approval-mode"), "Ask for approval", "ask", "Ask");
   await page.getByRole("button", { name: "Open commands" }).waitFor();
   await page.getByRole("button", { name: "Open command palette" }).click();
   await page.getByRole("dialog", { name: "Command palette" }).waitFor();
@@ -343,7 +355,7 @@ try {
   if (visual.userMessage.background === "rgba(0, 0, 0, 0)") throw new Error(`Operator message lost its compact bubble: ${JSON.stringify(visual)}`);
   if (visual.assistantSpeakerLabels !== 0) throw new Error(`Redundant assistant speaker chrome returned: ${JSON.stringify(visual)}`);
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
-  process.stdout.write(`${JSON.stringify({ destinations: true, newTask: true, operate: true, inlineApproval: approvalDecisions, inspector: true, modelPicker: true, responsive, compact: true, geometry, visual })}\n`);
+  process.stdout.write(`${JSON.stringify({ destinations: true, newTask: true, operate: true, accessModes: ["approve", "full", "ask"], inlineApproval: approvalDecisions, inspector: true, modelPicker: true, responsive, compact: true, geometry, visual })}\n`);
 } finally {
   await app?.close().catch(() => undefined);
   await Promise.all([
@@ -366,4 +378,18 @@ async function focusState(page) {
       className: typeof active.className === "string" ? active.className : "",
     };
   });
+}
+
+async function selectAccessMode(page, trigger, label, expectedMode, expectedButtonText) {
+  await trigger.click();
+  const menu = page.getByRole("dialog", { name: "Action approval mode" });
+  await menu.waitFor();
+  await menu.getByText("Project setting").waitFor();
+  const responsePromise = page.waitForResponse((response) => new URL(response.url()).pathname === "/api/access-mode" && response.request().method() === "POST");
+  await menu.getByRole("radio", { name: new RegExp(label) }).click();
+  const response = await responsePromise;
+  const saved = await response.json();
+  if (saved.mode !== expectedMode || saved.scope !== "project") throw new Error(`Access mode ${label} did not save: ${JSON.stringify(saved)}`);
+  await menu.waitFor({ state: "detached" });
+  await trigger.getByText(expectedButtonText, { exact: true }).waitFor();
 }

@@ -65,13 +65,19 @@ export async function applySafetyGate(
   }
 
   const decision = await resolveLayeredDecision(verdict, call, action, ctx);
+  const permissionMode = ctx.permissionMode?.() ?? resolvePermissionMode(process.env);
 
   if (decision.decision === "block") {
     return handleBlockDecision({ call, action, verdict, decision, deps, root: ctx.root });
   }
 
   if (decision.decision === "ask") {
-    return handleAskDecision({ call, action, verdict, decision, deps, root: ctx.root, tool });
+    if (permissionMode === "fullAccess") {
+      recordAutoDecision(action, deps.activeGoalText);
+      await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "full-access-auto" });
+      return { approved: true, reason: "full access (kernel and explicit blocks remain enforced)" };
+    }
+    return handleAskDecision({ call, action, verdict, decision, deps, root: ctx.root, tool, permissionMode });
   }
 
   await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "allow" });
@@ -95,14 +101,15 @@ async function handleAskDecision(o: {
   deps: AgentDeps;
   root: string;
   tool?: DiffCapable;
+  permissionMode: ReturnType<typeof resolvePermissionMode>;
 }): Promise<SafetyGateResult> {
-  const { call, action, verdict, decision, deps, root, tool } = o;
+  const { call, action, verdict, decision, deps, root, tool, permissionMode } = o;
   // DECISION-CLASSIFIER: a blanket auto-approve grant must NOT silently clear a
   // decision that overrides the operator's stated direction (user-challenge) —
   // it is forced to the prompt below. Taste decisions auto-decide but are logged
   // for the final-gate batch. Guarded so a grantless run is byte-identical.
   const overridesDirection = autoApproveOverridden(action, deps.activeGoalText);
-  if (!overridesDirection && acceptsEditsWithoutKernel(resolvePermissionMode(process.env), call.name)) {
+  if (!overridesDirection && acceptsEditsWithoutKernel(permissionMode, call.name)) {
     recordAutoDecision(action, deps.activeGoalText); // log a taste auto-decision for the final gate
     await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "accept-edits-auto" });
     return { approved: true, reason: "acceptEdits (kernel block still enforced)" };

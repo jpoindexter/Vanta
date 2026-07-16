@@ -156,6 +156,7 @@ function fireFailureHook(o: {
 }
 
 function executionContext(toolName: string, ctx: ToolContext): ToolContext {
-  if (!acceptsEditsWithoutKernel(resolvePermissionMode(process.env), toolName)) return ctx;
+  const mode = ctx.permissionMode?.() ?? resolvePermissionMode(process.env);
+  if (mode !== "fullAccess" && !acceptsEditsWithoutKernel(mode, toolName)) return ctx;
   return { ...ctx, requestApproval: async () => true };
 }

@@ -1,9 +1,10 @@
-export type PermissionMode = "default" | "acceptEdits" | "auto";
+export type PermissionMode = "default" | "acceptEdits" | "auto" | "fullAccess";
 
 const ACCEPT_EDITS_TOOLS = new Set(["write_file", "edit_file", "read_file", "mkdir", "glob_files", "grep_files"]);
 
 export function parsePermissionMode(mode: string | undefined): PermissionMode | null {
   if (mode === "auto") return "auto";
+  if (mode === "fullAccess" || mode === "full-access" || mode === "full_access") return "fullAccess";
   if (mode === "acceptEdits" || mode === "accept-edits" || mode === "accept_edits") return "acceptEdits";
   if (mode === "default" || mode === "normal" || mode === "manual") return "default";
   return null;

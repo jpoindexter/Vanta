@@ -51,6 +51,7 @@ export function createConversation(
     sessionId: deps.sessionId,
     safety: deps.safety,
     requestApproval: deps.requestApproval,
+    permissionMode: deps.permissionMode,
   };
   return {
     messages,

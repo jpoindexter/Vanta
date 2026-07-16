@@ -163,6 +163,37 @@ describe("applySafetyGate + permissions", () => {
     expect(res.approved).toBe(false); // previously acceptEdits skipped assess() entirely → could rewrite the kernel
   });
 
+  it("fullAccess clears an ASK without prompting but never clears a kernel BLOCK", async () => {
+    process.env.VANTA_PERMISSION_MODE = "fullAccess";
+    let prompted = false;
+    const askDeps = makeDeps({ risk: "ask", onAsk: () => { prompted = true; } });
+    const allowed = await applySafetyGate(call, askDeps, ctx);
+    expect(allowed.approved).toBe(true);
+    expect(prompted).toBe(false);
+
+    const blocked = await applySafetyGate(call, makeDeps({ risk: "block" }), ctx);
+    expect(blocked.approved).toBe(false);
+  });
+
+  it("fullAccess clears a tool-internal approval after the kernel allows execution", async () => {
+    process.env.VANTA_PERMISSION_MODE = "fullAccess";
+    let prompted = false;
+    const deps = makeDeps({ risk: "allow", onAsk: () => { prompted = true; } });
+    deps.registry = {
+      get: () => ({
+        execute: async (_raw: unknown, toolCtx: ToolContext) => ({
+          ok: await toolCtx.requestApproval("Run command", "tool confirmation", "shell_cmd"),
+          output: "ran",
+        }),
+        describeForSafety: () => "run command",
+      }),
+    } as unknown as AgentDeps["registry"];
+
+    const result = await dispatchTool(call, deps, { root: home, safety: deps.safety, requestApproval: deps.requestApproval });
+    expect(result.ok).toBe(true);
+    expect(prompted).toBe(false);
+  });
+
   it("acceptEdits keeps shell_cmd on the normal approval flow", async () => {
     process.env.VANTA_PERMISSION_MODE = "acceptEdits";
     let assessed = false;

@@ -1,0 +1,155 @@
+.access-mode-picker {
+  position: relative;
+}
+
+.approval-mode {
+  cursor: pointer;
+}
+
+.approval-mode.mode-full {
+  color: var(--danger);
+}
+
+.access-mode-menu {
+  position: absolute;
+  z-index: 40;
+  inset: auto 0 calc(100% + 10px) auto;
+  width: min(500px, calc(100vw - 40px));
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 12px;
+  box-shadow: 0 24px 70px color-mix(in srgb, var(--bg) 72%, transparent);
+}
+
+.access-mode-menu > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 2px 6px;
+}
+
+.access-mode-menu > header > div {
+  display: grid;
+  gap: 2px;
+}
+
+.access-mode-menu > header strong {
+  font-size: 13px;
+}
+
+.access-mode-menu > header span,
+.access-mode-menu small,
+.access-mode-menu details p {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.access-mode-menu > header button {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+}
+
+.access-mode-menu fieldset {
+  display: grid;
+  gap: 2px;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.access-mode-menu label {
+  min-height: 60px;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 9px 10px;
+  cursor: pointer;
+}
+
+.access-mode-menu label:hover {
+  background: var(--raised);
+}
+
+.access-mode-menu label:has(input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.access-mode-menu label.active {
+  border-color: var(--line-strong);
+  background: var(--surface-selected);
+}
+
+.access-mode-menu label:has(input[value="full"]) .mode-icon,
+.access-mode-menu label:has(input[value="full"]) .mode-check {
+  color: var(--danger);
+}
+
+.access-mode-menu input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.access-mode-menu label > span:nth-of-type(2) {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.access-mode-menu label strong {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.access-mode-menu label small {
+  line-height: 1.35;
+}
+
+.mode-check {
+  color: var(--accent);
+}
+
+.access-mode-error {
+  color: var(--danger);
+  font-size: 11px;
+}
+
+.access-mode-menu details {
+  border-top: 1px solid var(--line);
+  padding: 8px 3px 0;
+}
+
+.access-mode-menu summary {
+  width: fit-content;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.access-mode-menu details p {
+  margin-top: 7px;
+  line-height: 1.45;
+}
+
+@media (max-width: 600px) {
+  .access-mode-menu {
+    position: fixed;
+    inset: auto 12px 76px;
+    width: auto;
+  }
+}

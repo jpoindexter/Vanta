@@ -18451,7 +18451,7 @@
       "id": "DESKTOP-APPROVAL-MODE-PICKER",
       "track": "Desktop App",
       "title": "Desktop approval mode picker — Ask, Approve for me, Full access",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Add a desktop action-approval mode control equivalent to the ChatGPT/Codex options: Ask for approval, Approve for me, and Full access. The user should understand what each mode changes before a run starts and be able to switch modes without guessing what Vanta will do.",
       "done": "Work exposes the active approval mode near the composer/header and a picker with Ask for approval, Approve for me, and Full access. Each option explains exactly what Vanta may do alone, what still asks, and what remains blocked by the kernel. Mode changes apply to the active/new session as designed, are persisted with project/session scope visible, never override kernel Block, and produce an audit event. The picker is keyboard accessible, includes a learn-more/details path, and Electron proof verifies all three modes, persistence, blocked-action behavior, and visible mode state during a run.",
@@ -18461,7 +18461,7 @@
       "codex": "gpt-5.4",
       "lens": "tui",
       "updated": "2026-07-16",
-      "notes": "Added from user screenshot 2026-07-16 showing Ask for approval / Approve for me / Full access. This should compose with Vanta autonomy contract and permissions rules: Ask = default HITL, Approve for me = auto-approve low/known-safe actions while risky actions ask, Full access = unrestricted within configured project scope but kernel Block remains immovable. Avoid dangerous copy that implies bypassing the local boundary.",
+      "notes": "Added from user screenshot 2026-07-16 showing Ask for approval / Approve for me / Full access. This should compose with Vanta autonomy contract and permissions rules: Ask = default HITL, Approve for me = auto-approve project file changes while shell/network/risky actions ask, Full access = unrestricted within configured project scope but kernel and explicit Block decisions remain immovable. Avoid dangerous copy that implies bypassing the local boundary.\n\nSHIPPED 2026-07-16: the Work composer access label is now a real keyboard-operable picker. Ask, Approve for me, and Full access save through /api/access-mode at project scope, update the active desktop runtime without restart, persist in .vanta/settings.local.json, emit a visible activity entry plus kernel audit event, and remain visible beside the composer. Full access auto-clears Ask decisions and tool-internal prompts only after kernel assessment; kernel and explicit blocks remain enforced. Electron convergence proof switched Approve -> Full access -> Ask, verified the API response, reloaded under Full access to prove persistence, and retained inline Allow/Reject behavior. Unit/runtime proof covers mode mapping, settings preservation, Full-access Ask bypass, and immutable kernel Block. Native host smoke passed with packaged kernel online. The separate DESKTOP-FULL-ACCESS-WARNING card remains open.",
       "source": "user screenshot 2026-07-16 action approval mode menu",
       "after": [
         "DESKTOP-ACTION-APPROVAL-PROMPT",

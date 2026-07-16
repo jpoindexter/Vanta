@@ -9,7 +9,8 @@ export type MessagingPlatform = {
 };
 export type Artifact = { id: string; kind: "canvas" | "link" | "file"; label: string; value: string; sessionId?: string; sessionTitle?: string };
 export type Goal = { text: string };
-export type Status = { kernel: string; model: string; provider?: string; tools: number; sessionId: string; root?: string; goals: Goal[] };
+export type AccessMode = "ask" | "approve" | "full";
+export type Status = { kernel: string; model: string; provider?: string; tools: number; sessionId: string; root?: string; goals: Goal[]; accessMode?: AccessMode; accessScope?: "project" };
 export type DesktopRunFailureKind = "setup" | "tool" | "model" | "user_denied" | "interrupted" | "unknown";
 export type DesktopRunReceipt = {
   status: "done" | "failed" | "interrupted";

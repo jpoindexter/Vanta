@@ -24,6 +24,7 @@ import { pushSseEvent, type SseClients } from "./session-state.js";
 import { approvalDecision, approvalPayload, requestWebApproval, resolveApproval, type PendingApproval } from "./approval.js";
 import { readCanvasArtifact } from "../canvas/artifact.js";
 import { desktopArtifacts, desktopCapabilities, desktopMessagingPlatforms, saveDesktopMessagingPlatform } from "./operator-data.js";
+import { loadDesktopAccessMode, permissionModeForAccess, saveDesktopAccessMode, type DesktopAccessMode } from "./access-mode.js";
 export { approvalDecision, type PendingApproval } from "./approval.js";
 
 export type DesktopEvent = { label: string; ok?: boolean; delta?: string };
@@ -44,6 +45,7 @@ export type DesktopState = {
   modelId?: string;
   currentEvents?: DesktopEvent[];
   pendingApproval?: PendingApproval;
+  accessMode?: DesktopAccessMode;
   _sseSessionId?: string;
   _sseClients?: SseClients;
 };
@@ -74,6 +76,7 @@ function attachConversation(state: DesktopState, setup: RunSetup, history?: Para
     sessionId: state.sessionId,
     usageAgent: "desktop",
     requestApproval: (action, reason, toolName, detail) => requestWebApproval(state, action, reason, toolName, detail),
+    permissionMode: () => permissionModeForAccess(state.accessMode ?? "approve"),
     maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(setup.provider),
     activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
@@ -94,6 +97,7 @@ function attachConversation(state: DesktopState, setup: RunSetup, history?: Para
 }
 
 async function ensureDesktopConversation(state: DesktopState): Promise<Required<Pick<DesktopState, "setup" | "convo" | "root">> & DesktopState> {
+  state.accessMode ??= await loadDesktopAccessMode(state.root);
   if (!state.setup) {
     if (state._setupError && Date.now() - state._setupError.at < 30_000) throw new Error(state._setupError.message);
     state._setupPromise ??= prepareRun(state.root, "desktop interface session");
@@ -116,7 +120,24 @@ async function persistActiveSession(state: DesktopState): Promise<void> {
 export async function handleStatus(state: DesktopState, res: http.ServerResponse): Promise<void> {
   const live = await ensureDesktopConversation(state);
   const goals = await live.setup.safety.getGoals().catch(() => live.setup.goals);
-  sendJson(res, 200, { kernel: "online", model: live.setup.provider.modelId(), provider: live.providerId ?? process.env.VANTA_PROVIDER ?? "openai", tools: live.setup.registry.list().length, sessionId: live.sessionId, root: state.root, goals: goals.filter((g) => g.status === "active") });
+  sendJson(res, 200, { kernel: "online", model: live.setup.provider.modelId(), provider: live.providerId ?? process.env.VANTA_PROVIDER ?? "openai", tools: live.setup.registry.list().length, sessionId: live.sessionId, root: state.root, goals: goals.filter((g) => g.status === "active"), accessMode: live.accessMode, accessScope: "project" });
+}
+
+export async function handleAccessMode(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const live = await ensureDesktopConversation(state);
+  if (req.method === "GET") return sendJson(res, 200, { mode: live.accessMode, scope: "project" });
+  const body = await readJson(req) as { mode?: unknown };
+  if (body.mode !== "ask" && body.mode !== "approve" && body.mode !== "full") {
+    return sendJson(res, 400, { error: "mode must be ask, approve, or full" });
+  }
+  await saveDesktopAccessMode(state.root, body.mode);
+  state.accessMode = body.mode;
+  const label = body.mode === "ask" ? "Ask for approval" : body.mode === "approve" ? "Approve for me" : "Full access";
+  const event = { label: `Access mode changed to ${label} for this project.`, ok: true };
+  state.currentEvents?.push(event);
+  if (state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, event);
+  await live.setup.safety.logEvent(JSON.stringify({ kind: "desktop_access_mode", mode: body.mode, scope: "project" })).catch(() => {});
+  sendJson(res, 200, { mode: body.mode, scope: "project" });
 }
 
 export async function handleSessions(res: http.ServerResponse): Promise<void> {

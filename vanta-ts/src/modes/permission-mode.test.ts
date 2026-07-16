@@ -15,6 +15,8 @@ describe("parsePermissionMode", () => {
     expect(parsePermissionMode("default")).toBe("default");
     expect(parsePermissionMode("normal")).toBe("default");
     expect(parsePermissionMode("manual")).toBe("default");
+    expect(parsePermissionMode("fullAccess")).toBe("fullAccess");
+    expect(parsePermissionMode("full-access")).toBe("fullAccess");
   });
 
   it("rejects missing or unknown values", () => {
@@ -58,5 +60,6 @@ describe("envForPermissionMode", () => {
     expect(envForPermissionMode("auto")).toMatchObject({ VANTA_PERMISSION_MODE: "auto", VANTA_AUTO_MODE: "1" });
     expect(envForPermissionMode("acceptEdits")).toMatchObject({ VANTA_PERMISSION_MODE: "acceptEdits", VANTA_AUTO_MODE: "0" });
     expect(envForPermissionMode("default")).toMatchObject({ VANTA_PERMISSION_MODE: "default", VANTA_AUTO_MODE: "0" });
+    expect(envForPermissionMode("fullAccess")).toMatchObject({ VANTA_PERMISSION_MODE: "fullAccess", VANTA_AUTO_MODE: "0" });
   });
 });

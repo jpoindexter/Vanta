@@ -3,6 +3,7 @@ import type { ToolSchema } from "../providers/interface.js";
 import type { DiffLine } from "../util/diff.js";
 import type { ToolCall } from "../types.js";
 import type { ContextInspection } from "./inspect-context.js";
+import type { PermissionMode } from "../modes/permission-mode.js";
 
 export type { DiffLine };
 
@@ -16,6 +17,9 @@ export type ToolContext = {
   /** Pause and ask the human y/n. Returns true if approved. toolName lets the
    *  host key session/always-allow and accept-edits auto-approve decisions. */
   requestApproval: (action: string, reason: string, toolName?: string, detail?: { diff?: string; fresh?: boolean }) => Promise<boolean>;
+  /** Host-owned live permission mode. Desktop uses this instead of mutating the
+   * process-wide mode when the operator changes a project setting. */
+  permissionMode?: () => PermissionMode;
   /** Surface incremental progress mid-execution (a long tool can stream a line or
    *  heartbeat to the transcript before it returns). Wired to the StreamEvent
    *  `note` surface by the dispatcher; absent in non-streaming contexts. */
