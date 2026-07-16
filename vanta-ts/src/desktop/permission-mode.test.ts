@@ -9,8 +9,15 @@ describe("ensureDesktopPermissionMode", () => {
     expect(env.VANTA_AUTO_MODE).toBe("0");
   });
 
-  it("preserves an explicit permission mode", () => {
+  it("uses acceptEdits even when a parent shell is in default mode", () => {
     const env: NodeJS.ProcessEnv = { VANTA_PERMISSION_MODE: "default", VANTA_AUTO_MODE: "0" };
+    ensureDesktopPermissionMode(env);
+    expect(env.VANTA_PERMISSION_MODE).toBe("acceptEdits");
+    expect(env.VANTA_AUTO_MODE).toBe("0");
+  });
+
+  it("lets desktop explicitly opt into manual approval mode", () => {
+    const env: NodeJS.ProcessEnv = { VANTA_DESKTOP_PERMISSION_MODE: "default", VANTA_PERMISSION_MODE: "acceptEdits", VANTA_AUTO_MODE: "0" };
     ensureDesktopPermissionMode(env);
     expect(env.VANTA_PERMISSION_MODE).toBe("default");
     expect(env.VANTA_AUTO_MODE).toBe("0");
