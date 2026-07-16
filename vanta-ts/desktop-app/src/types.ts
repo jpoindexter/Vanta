@@ -10,12 +10,21 @@ export type MessagingPlatform = {
 export type Artifact = { id: string; kind: "canvas" | "link" | "file"; label: string; value: string; sessionId?: string; sessionTitle?: string };
 export type Goal = { text: string };
 export type Status = { kernel: string; model: string; provider?: string; tools: number; sessionId: string; root?: string; goals: Goal[] };
+export type DesktopRunFailureKind = "setup" | "tool" | "model" | "user_denied" | "interrupted" | "unknown";
+export type DesktopRunReceipt = {
+  status: "done" | "failed" | "interrupted";
+  failureKind?: DesktopRunFailureKind;
+  events: EventRow[];
+  actions: ("retry_failed_step" | "edit_request" | "start_from_checkpoint")[];
+  checkpoint?: { instruction: string; partialText?: string };
+};
 export type Message = {
   role: string;
   content?: string;
   name?: string;
   toolCallId?: string;
   toolCalls?: { id: string; name: string; arguments?: Record<string, unknown> }[];
+  desktopRun?: DesktopRunReceipt;
 };
 export type Provider = {
   id: string;

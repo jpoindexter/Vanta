@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { submitMessage } from "./state.js";
-import type { EventRow, Message } from "./types.js";
+import type { DesktopRunReceipt, EventRow, Message } from "./types.js";
 
 function conversationState(order: string[]) {
   let messages: Message[] = [];
   let events: EventRow[] = [];
   let busy = false;
-  const recovery: string[] = [];
+  const recovery: Array<DesktopRunReceipt | null> = [];
   return {
     state: {
       refresh: async () => { order.push("refresh"); },
@@ -16,7 +16,7 @@ function conversationState(order: string[]) {
       setStreamText: vi.fn(),
       setBusy: (next: boolean) => { busy = next; },
       setDraft: vi.fn(),
-      setRecovery: (next: string) => { recovery.push(next); },
+      setRecovery: (next: DesktopRunReceipt | null) => { recovery.push(next); },
     },
     snapshot: () => ({ messages, events, busy, recovery }),
   };
@@ -49,7 +49,7 @@ describe("desktop turn completion", () => {
       ],
       events: [{ label: "done", ok: true }],
       busy: false,
-      recovery: ["", ""],
+      recovery: [null, null],
     });
   });
 
@@ -63,7 +63,11 @@ describe("desktop turn completion", () => {
     expect(complete).not.toHaveBeenCalled();
     expect(harness.snapshot().messages.at(-1)).toEqual({ role: "assistant", content: "offline" });
     expect(harness.snapshot().busy).toBe(false);
-    expect(harness.snapshot().recovery.at(-1)).toContain("Retry this instruction");
+    expect(harness.snapshot().recovery.at(-1)).toMatchObject({
+      status: "failed",
+      checkpoint: { instruction: "do the task", partialText: "offline" },
+      actions: ["retry_failed_step", "edit_request", "start_from_checkpoint"],
+    });
   });
 
   it("offers scoped retry after a failed completed response", async () => {
@@ -72,6 +76,9 @@ describe("desktop turn completion", () => {
 
     await submitMessage(harness.state, "do the task");
 
-    expect(harness.snapshot().recovery.at(-1)).toContain("partial result");
+    expect(harness.snapshot().recovery.at(-1)).toMatchObject({
+      status: "failed",
+      checkpoint: { instruction: "do the task", partialText: "Partial work" },
+    });
   });
 });

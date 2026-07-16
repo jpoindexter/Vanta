@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
 import { Activity, Archive, ArchiveRestore, ArrowUp, Bot, Check, CheckCircle2, ChevronRight, Cpu, FileText, FolderKanban, GitBranch, Keyboard, Laptop, ListPlus, MessageSquare, MoreHorizontal, Network, PackageOpen, Paperclip, Pencil, Plus, RotateCcw, Search, Settings2, ShieldCheck, Square, Trash2, X } from "lucide-react";
-import type { Approval, ApprovalDecision, DesktopView, Message, Session } from "./types.js";
+import type { Approval, ApprovalDecision, DesktopRunReceipt, DesktopView, Message, Session } from "./types.js";
 
 type SessionSidebarProps = {
   sessions: Session[];
@@ -239,8 +239,9 @@ function SessionButton(props: {
   );
 }
 
-export function ChatThread(props: { messages: Message[]; busy: boolean; streamText: string; events: { label: string; ok?: boolean }[]; recovery: string; approval: Approval | null; onApproval: (decision: ApprovalDecision) => void; onRetry: () => void; onPrompt: (text: string) => void }) {
+export function ChatThread(props: { messages: Message[]; busy: boolean; streamText: string; events: { label: string; ok?: boolean }[]; recovery: DesktopRunReceipt | null; approval: Approval | null; onApproval: (decision: ApprovalDecision) => void; onRetry: () => void; onPrompt: (text: string) => void }) {
   const rows = props.messages.filter((m) => m.role !== "system");
+  const recovery = props.recovery;
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [rows.length, props.busy, props.streamText]);
   return (
@@ -251,7 +252,7 @@ export function ChatThread(props: { messages: Message[]; busy: boolean; streamTe
       {props.streamText ? <article className="message assistant streaming" aria-label="Vanta response streaming"><div className="message-content"><header><strong>Vanta</strong><time>now</time></header><p>{props.streamText}</p></div></article> : null}
       {props.busy ? <div className="thinking"><i />Working...</div> : null}
       {props.events.length && props.events[0]?.label !== "No tool activity yet." ? <EventTimeline events={props.events.slice(-5)} /> : null}
-      {props.recovery ? <section className="run-recovery" role="status"><div><strong>Run needs attention</strong><span>{props.recovery}</span></div><button type="button" onClick={props.onRetry}><RotateCcw size={15} />Retry</button></section> : null}
+      {recovery ? <RunRecovery receipt={recovery} onRetry={props.onRetry} onEdit={() => props.onPrompt(recovery.checkpoint?.instruction ?? "")} onCheckpoint={() => props.onPrompt(checkpointPrompt(recovery))} /> : null}
       <div ref={endRef} />
     </section>
   );
@@ -276,6 +277,27 @@ function RunTimeline(props: { calls: NonNullable<Message["toolCalls"]>; messages
 
 function EventTimeline(props: { events: { label: string; ok?: boolean }[] }) {
   return <section className="run-timeline event-timeline" aria-label="Current run activity">{props.events.map((event, index) => <div className={`timeline-step ${event.ok === false ? "bad" : ""}`} key={`${event.label}-${index}`}><span><ChevronRight size={13} /></span><div><strong>{event.label}</strong></div><em>{event.ok === false ? "attention" : event.ok ? "done" : "active"}</em></div>)}</section>;
+}
+
+function RunRecovery(props: { receipt: DesktopRunReceipt; onRetry: () => void; onEdit: () => void; onCheckpoint: () => void }) {
+  const label = props.receipt.status === "interrupted" ? "Run stopped" : "Run needs attention";
+  const reason = props.receipt.failureKind ? props.receipt.failureKind.replaceAll("_", " ") : "unknown";
+  return (
+    <section className="run-recovery" role="status">
+      <div><strong>{label}</strong><span>Partial output and timeline were saved. Failure: {reason}.</span></div>
+      <div className="run-recovery-actions">
+        <button type="button" onClick={props.onRetry}><RotateCcw size={15} />Retry failed step</button>
+        <button type="button" onClick={props.onEdit}>Edit request</button>
+        <button type="button" onClick={props.onCheckpoint}>Start from checkpoint</button>
+      </div>
+    </section>
+  );
+}
+
+function checkpointPrompt(receipt: DesktopRunReceipt): string {
+  const instruction = receipt.checkpoint?.instruction ?? "Continue from the saved checkpoint.";
+  const partial = receipt.checkpoint?.partialText?.trim();
+  return partial ? `Continue from this checkpoint and avoid repeating completed work. Original request: ${instruction}\n\nSaved partial output:\n${partial}` : `Continue from this checkpoint. Original request: ${instruction}`;
 }
 
 function ApprovalCheckpoint(props: { approval: Approval; onAnswer: (decision: ApprovalDecision) => void }) {

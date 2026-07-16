@@ -7,7 +7,7 @@ import {
   type CompletionSoundPlayer,
   type CompletionSoundSettings,
 } from "./completion-sound.js";
-import type { Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, EventRow, Message, MessagingPlatform, Provider, RailTab, Session, Status, Tool } from "./types.js";
+import type { Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, DesktopRunReceipt, EventRow, Message, MessagingPlatform, Provider, RailTab, Session, Status, Tool } from "./types.js";
 
 export function useDesktopData() {
   const [status, setStatus] = useState<Status | null>(null);
@@ -123,7 +123,7 @@ export function useConversation(refresh: () => Promise<void>, cues: TurnCues = {
   const [events, setEvents] = useState<EventRow[]>([{ label: "No tool activity yet." }]);
   const [streamText, setStreamText] = useState("");
   const [busy, setBusy] = useState(false);
-  const [recovery, setRecovery] = useState("");
+  const [recovery, setRecovery] = useState<DesktopRunReceipt | null>(null);
   const lastFailedMessage = useRef("");
   useEffect(() => {
     const stream = new EventSource("/api/events");
@@ -176,7 +176,7 @@ type ConversationState = {
   setStreamText: (updater: (value: string) => string) => void;
   setBusy: (value: boolean) => void;
   setDraft: (updater: (value: string) => string) => void;
-  setRecovery: (value: string) => void;
+  setRecovery: (value: DesktopRunReceipt | null) => void;
 };
 
 function conversationHandlers(state: ConversationState, cues: TurnCues, lastFailedMessage: { current: string }) {
@@ -236,15 +236,15 @@ export async function submitMessage(state: ConversationState, text: string, cues
   state.setMessages((m) => [...m, { role: "user", content: text }]);
   state.setEvents([{ label: "thinking..." }]);
   state.setStreamText(() => "");
-  state.setRecovery("");
+  state.setRecovery(null);
   state.setBusy(true);
   try {
-    const result = await api<{ finalText: string; events?: EventRow[]; interrupted?: boolean }>("/api/chat", postJson({ message: text }));
-    state.setMessages((m) => [...m, { role: "assistant", content: result.finalText || "(no text)" }]);
+    const result = await api<{ finalText: string; events?: EventRow[]; interrupted?: boolean; receipt?: DesktopRunReceipt }>("/api/chat", postJson({ message: text }));
+    const failed = result.receipt ? result.receipt.status !== "done" : !result.interrupted && Boolean(result.events?.some((event) => event.ok === false));
+    state.setMessages((m) => [...m, { role: "assistant", content: result.finalText || "(no text)", ...(result.receipt ? { desktopRun: result.receipt } : {}) }]);
     state.setStreamText(() => "");
     state.setEvents(result.events?.length ? result.events : [{ label: "No tool events returned." }]);
-    const failed = !result.interrupted && Boolean(result.events?.some((event) => event.ok === false));
-    state.setRecovery(failed ? "Vanta kept the partial result. Retry this instruction when the connection or provider is ready." : "");
+    state.setRecovery(failed ? result.receipt ?? fallbackReceipt(text, result.finalText, result.events) : null);
     onRecovery(failed);
     await Promise.resolve(cues.complete?.()).catch(() => undefined);
     await state.refresh();
@@ -252,11 +252,21 @@ export async function submitMessage(state: ConversationState, text: string, cues
     state.setMessages((m) => [...m, { role: "assistant", content: (err as Error).message }]);
     state.setStreamText(() => "");
     state.setEvents([{ label: (err as Error).message, ok: false }]);
-    state.setRecovery("Vanta kept the draft and partial conversation. Retry this instruction after fixing the reported issue.");
+    state.setRecovery(fallbackReceipt(text, (err as Error).message, [{ label: (err as Error).message, ok: false }]));
     onRecovery(true);
   } finally {
     state.setBusy(false);
   }
+}
+
+function fallbackReceipt(instruction: string, partialText: string, events: EventRow[] = []): DesktopRunReceipt {
+  return {
+    status: "failed",
+    failureKind: "unknown",
+    events,
+    actions: ["retry_failed_step", "edit_request", "start_from_checkpoint"],
+    checkpoint: { instruction, ...(partialText ? { partialText } : {}) },
+  };
 }
 
 function postJson(body: unknown): RequestInit {

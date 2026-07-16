@@ -4,9 +4,10 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { createConversation, type StreamEvent } from "../agent.js";
 import type { Conversation } from "../agent.js";
+import type { DesktopRunFailureKind, DesktopRunReceipt } from "../types.js";
 import { buildSummarizer, prepareRun, writeRunMemory } from "../session.js";
 import type { RunSetup } from "../session.js";
-import { deleteSession, listAllSessions, loadSession, newSessionId, renameSession, saveSession, setSessionArchived } from "../sessions/store.js";
+import { deleteSession, listAllSessions, loadSession, newSessionId, renameSession, saveSession, setSessionArchived, checkpointSessionMessages } from "../sessions/store.js";
 import { PROVIDER_CATALOG, providerById, type ProviderEntry } from "../providers/catalog.js";
 import { diskCacheDeps, mergeProviderCatalog, resolveCatalog } from "../providers/catalog-manifest.js";
 import { resolveVantaHome } from "../store/home.js";
@@ -424,6 +425,48 @@ function interrupted(error: unknown, controller: AbortController): boolean {
   return controller.signal.aborted || (error instanceof DOMException && error.name === "AbortError") || (error instanceof Error && error.name === "AbortError");
 }
 
+function classifyDesktopFailure(error: unknown, wasInterrupted: boolean, events: DesktopEvent[]): DesktopRunFailureKind {
+  if (wasInterrupted) return "interrupted";
+  const text = `${error instanceof Error ? `${error.name} ${error.message}` : String(error)} ${events.map((event) => event.label).join(" ")}`.toLowerCase();
+  if (/setup|api key|provider is required|no provider|configure/.test(text)) return "setup";
+  if (/denied|rejected|not approved|approval/.test(text)) return "user_denied";
+  if (/tool|shell_cmd|web_fetch|file_|execute/.test(text)) return "tool";
+  if (/model|provider|rate limit|quota|timeout|network|fetch|offline|abort/.test(text)) return "model";
+  return "unknown";
+}
+
+function recoveryActions(status: DesktopRunReceipt["status"]): DesktopRunReceipt["actions"] {
+  return status === "done" ? [] : ["retry_failed_step", "edit_request", "start_from_checkpoint"];
+}
+
+function receiptStatusForStoppedReason(stoppedReason: string): Pick<DesktopRunReceipt, "status" | "failureKind"> {
+  if (stoppedReason === "done") return { status: "done" };
+  if (stoppedReason === "interrupted") return { status: "interrupted", failureKind: "interrupted" };
+  return { status: "failed", failureKind: "unknown" };
+}
+
+function buildRunReceipt(opts: {
+  status: DesktopRunReceipt["status"];
+  events: DesktopEvent[];
+  instruction: string;
+  partialText?: string;
+  failureKind?: DesktopRunFailureKind;
+}): DesktopRunReceipt {
+  return {
+    status: opts.status,
+    ...(opts.failureKind ? { failureKind: opts.failureKind } : {}),
+    events: opts.events.map(({ label, ok }) => ({ label, ok })),
+    actions: recoveryActions(opts.status),
+    checkpoint: opts.status === "done" ? undefined : { instruction: opts.instruction, ...(opts.partialText ? { partialText: opts.partialText } : {}) },
+  };
+}
+
+function attachDesktopRunReceipt(convo: Conversation, receipt: DesktopRunReceipt, finalText: string): void {
+  const last = convo.messages.at(-1);
+  if (last?.role === "assistant") last.desktopRun = receipt;
+  else convo.messages.push({ role: "assistant", content: finalText, desktopRun: receipt });
+}
+
 export async function handleChat(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   if (state._chatActive) return sendJson(res, 409, { error: "a turn is already running" });
   const body = await readJson(req) as { message?: unknown };
@@ -443,9 +486,12 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
     let instruction = message;
     let outcome: Awaited<ReturnType<typeof live.convo.send>>;
     while (true) {
+      if (live.sessionId) await checkpointSessionMessages(live.sessionId, [...live.convo.messages, { role: "user", content: instruction }], process.env);
       outcome = await live.convo.send(instruction, undefined, controller.signal);
       await writeRunMemory({ provider: live.setup.provider, goals: live.setup.goals, instruction, finalText: outcome.finalText });
       events.push({ label: `${outcome.stoppedReason} · ${outcome.iterations} iteration(s)`, ok: outcome.stoppedReason === "done" });
+      const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events, instruction, partialText: outcome.finalText });
+      attachDesktopRunReceipt(live.convo, receipt, outcome.finalText);
       const queued = state._queuedMessage;
       state._queuedMessage = undefined;
       if (!queued || controller.signal.aborted) break;
@@ -455,7 +501,8 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
       if (state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, event);
     }
     await persistActiveSession(state);
-    sendJson(res, 200, { finalText: outcome.finalText, events, usage: outcome.usage, sessionId: state.sessionId });
+    const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events, instruction, partialText: outcome.finalText });
+    sendJson(res, 200, { finalText: outcome.finalText, events, usage: outcome.usage, sessionId: state.sessionId, receipt });
   } catch (error) {
     const wasInterrupted = interrupted(error, controller);
     const partial = state._chatDeltas?.join("").trim();
@@ -463,11 +510,18 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
       ? `${partial}\n\n${wasInterrupted ? "Stopped by operator." : "The run stopped before completing."}`
       : wasInterrupted ? "Stopped by operator." : error instanceof Error ? error.message : String(error);
     events.push({ label: wasInterrupted ? "Stopped by operator." : "Run failed before completion.", ok: false });
+    const receipt = buildRunReceipt({
+      status: wasInterrupted ? "interrupted" : "failed",
+      events,
+      instruction: message,
+      partialText: partial || undefined,
+      failureKind: classifyDesktopFailure(error, wasInterrupted, events),
+    });
     if (live) {
-      live.convo.messages.push({ role: "assistant", content: finalText });
+      live.convo.messages.push({ role: "assistant", content: finalText, desktopRun: receipt });
       await persistActiveSession(state);
     }
-    sendJson(res, 200, { finalText, events, interrupted: wasInterrupted, sessionId: state.sessionId });
+    sendJson(res, 200, { finalText, events, interrupted: wasInterrupted, sessionId: state.sessionId, receipt });
   } finally {
     state.currentEvents = undefined;
     state._chatDeltas = undefined;

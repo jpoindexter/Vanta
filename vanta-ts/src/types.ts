@@ -13,6 +13,15 @@ export type ToolCall = {
   effectState?: "pending" | "started";
 };
 
+export type DesktopRunFailureKind = "setup" | "tool" | "model" | "user_denied" | "interrupted" | "unknown";
+export type DesktopRunReceipt = {
+  status: "done" | "failed" | "interrupted";
+  failureKind?: DesktopRunFailureKind;
+  events: { label: string; ok?: boolean }[];
+  actions: ("retry_failed_step" | "edit_request" | "start_from_checkpoint")[];
+  checkpoint?: { instruction: string; partialText?: string };
+};
+
 export type EffectDisposition = "none" | "confirmed" | "unknown";
 
 /** An image attached to a user turn — sent natively to the model (no file tool). */
@@ -21,7 +30,7 @@ export type ImageAttachment = { mime: string; dataBase64: string };
 export type Message =
   | { role: "system"; content: string }
   | { role: "user"; content: string; images?: ImageAttachment[] }
-  | { role: "assistant"; content: string; toolCalls?: ToolCall[] }
+  | { role: "assistant"; content: string; toolCalls?: ToolCall[]; desktopRun?: DesktopRunReceipt }
   | { role: "tool"; toolCallId: string; name: string; content: string; effectDisposition?: EffectDisposition };
 
 export type Risk = "allow" | "ask" | "block";

@@ -29,6 +29,13 @@ const MessageSchema: z.ZodType<Message> = z.lazy(() =>
       toolCalls: z
         .array(z.object({ id: z.string(), name: z.string(), arguments: z.record(z.unknown()), effectState: z.enum(["pending", "started"]).optional() }))
         .optional(),
+      desktopRun: z.object({
+        status: z.enum(["done", "failed", "interrupted"]),
+        failureKind: z.enum(["setup", "tool", "model", "user_denied", "interrupted", "unknown"]).optional(),
+        events: z.array(z.object({ label: z.string(), ok: z.boolean().optional() })),
+        actions: z.array(z.enum(["retry_failed_step", "edit_request", "start_from_checkpoint"])),
+        checkpoint: z.object({ instruction: z.string(), partialText: z.string().optional() }).optional(),
+      }).optional(),
     }),
     z.object({
       role: z.literal("tool"),
