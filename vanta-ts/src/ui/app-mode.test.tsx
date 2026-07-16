@@ -24,6 +24,16 @@ describe("cycleMode — Shift+Tab autonomy cycle", () => {
     expect(set).toHaveBeenCalledWith("default");
     expect(run).not.toHaveBeenCalled();
   });
+
+  it("returns an externally selected full-access mode to default", () => {
+    const set = vi.fn();
+    const run = vi.fn();
+
+    cycleMode("fullAccess", set, run);
+
+    expect(set).toHaveBeenCalledWith("default");
+    expect(run).not.toHaveBeenCalled();
+  });
 });
 
 describe("ModeLine", () => {
@@ -47,6 +57,15 @@ describe("ModeLine", () => {
     await tick();
     const out = inst.lastFrame();
     expect(out).toContain("AUTO");
+    expect(out).toContain("shift+tab");
+    inst.unmount();
+  });
+
+  it("shows the full-access badge with the cycle hint", async () => {
+    const inst = renderUi(h(ModeLine, { mode: "fullAccess" }));
+    await tick();
+    const out = inst.lastFrame();
+    expect(out).toContain("FULL ACCESS");
     expect(out).toContain("shift+tab");
     inst.unmount();
   });

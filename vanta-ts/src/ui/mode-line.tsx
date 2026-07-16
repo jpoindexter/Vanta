@@ -4,7 +4,12 @@ import { envForPermissionMode, resolvePermissionMode, type PermissionMode } from
 import type { Pending } from "./use-agent.js";
 
 export type Mode = PermissionMode;
-const NEXT_MODE: Record<Mode, Mode> = { default: "acceptEdits", acceptEdits: "auto", auto: "default" };
+const NEXT_MODE: Record<Mode, Mode> = {
+  default: "acceptEdits",
+  acceptEdits: "auto",
+  auto: "default",
+  fullAccess: "default",
+};
 
 export function cycleMode(mode: Mode, setMode: (m: Mode) => void, runSlash: (s: string) => void): void {
   const next = NEXT_MODE[mode];
@@ -36,5 +41,6 @@ export function useModeState(
 export function ModeLine(props: { mode: Mode }): ReactElement | null {
   if (props.mode === "acceptEdits") return <Text bold>EDITS <Text>(shift+tab to cycle)</Text></Text>;
   if (props.mode === "auto") return <Text bold>AUTO <Text>(shift+tab to cycle)</Text></Text>;
+  if (props.mode === "fullAccess") return <Text bold color="yellow">FULL ACCESS <Text>(shift+tab to cycle)</Text></Text>;
   return null;
 }
