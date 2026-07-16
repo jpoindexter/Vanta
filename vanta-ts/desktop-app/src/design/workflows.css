@@ -32,30 +32,16 @@
   clip-path: polygon(0 0, 100% 0, 100% 65%, 65% 100%, 0 100%);
 }
 
-.message,
-.message.user {
-  grid-template-columns: 52px minmax(0, 1fr);
-  gap: 12px;
+.message {
   padding: 15px 0;
 }
 
-.message-avatar,
-.message.assistant .message-avatar {
-  width: auto;
-  height: auto;
-  display: block !important;
-  border-radius: 0;
-  background: transparent;
-  color: var(--faint) !important;
-  font-family: var(--font-mono);
-  font-size: 9px !important;
-  font-weight: 700;
-  line-height: 22px;
-  text-align: end;
-}
-
-.message.assistant .message-avatar {
-  color: var(--accent) !important;
+.message.user {
+  justify-self: end;
+  max-width: min(68ch, 76%);
+  border-radius: 18px;
+  background: var(--raised);
+  padding: 10px 13px;
 }
 
 .message-content header {
@@ -63,13 +49,20 @@
 }
 
 .message-content header strong {
+  color: var(--muted);
   font-size: 12px;
+  font-weight: 600;
 }
 
 .message-content p {
   max-width: 72ch;
   font-size: 13px;
   line-height: 1.62;
+}
+
+.message.user .message-content p {
+  max-width: none;
+  line-height: 1.5;
 }
 
 .run-timeline {

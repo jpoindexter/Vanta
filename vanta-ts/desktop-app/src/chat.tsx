@@ -248,7 +248,7 @@ export function ChatThread(props: { messages: Message[]; busy: boolean; streamTe
       {rows.length === 0 ? <EmptyState onPrompt={props.onPrompt} /> : <div className="run-summary"><span><i />{props.busy ? "Live trace" : "Run record"}</span><time>{props.busy ? "working now" : "current session"}</time></div>}
       {rows.map((message, index) => message.role === "tool" ? null : <div className="transcript-turn" key={`${message.role}-${index}`}><MessageBubble message={message} />{message.toolCalls?.length ? <RunTimeline calls={message.toolCalls} messages={rows} /> : null}</div>)}
       {props.approval ? <ApprovalCheckpoint approval={props.approval} onAnswer={props.onApproval} /> : null}
-      {props.streamText ? <article className="message assistant streaming"><span className="message-avatar">VANTA</span><div className="message-content"><header><strong>Vanta</strong><time>now</time></header><p>{props.streamText}</p></div></article> : null}
+      {props.streamText ? <article className="message assistant streaming" aria-label="Vanta response streaming"><div className="message-content"><header><strong>Vanta</strong><time>now</time></header><p>{props.streamText}</p></div></article> : null}
       {props.busy ? <div className="thinking"><i />Working...</div> : null}
       {props.events.length && props.events[0]?.label !== "No tool activity yet." ? <EventTimeline events={props.events.slice(-5)} /> : null}
       {props.recovery ? <section className="run-recovery" role="status"><div><strong>Run needs attention</strong><span>{props.recovery}</span></div><button type="button" onClick={props.onRetry}><RotateCcw size={15} />Retry</button></section> : null}
@@ -259,10 +259,10 @@ export function ChatThread(props: { messages: Message[]; busy: boolean; streamTe
 
 function MessageBubble({ message }: { message: Message }) {
   const role = message.role === "user" ? "You" : message.role === "assistant" ? "Vanta" : message.name ?? message.role;
+  const showHeader = message.role !== "user";
   return (
-    <article className={`message ${message.role}`}>
-      <span className="message-avatar">{message.role === "user" ? "YOU" : "VANTA"}</span>
-      <div className="message-content"><header><strong>{role}</strong><time>now</time></header><p>{message.content ?? ""}</p></div>
+    <article className={`message ${message.role}`} aria-label={`${role} message`}>
+      <div className="message-content">{showHeader ? <header><strong>{role}</strong><time>now</time></header> : null}<p>{message.content ?? ""}</p></div>
     </article>
   );
 }
