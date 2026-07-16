@@ -32,6 +32,7 @@ Vanta Desktop is an operator workbench, not a generic AI dashboard. The visual a
 - The Work run-control toolbar and the inspector tab tray now share one 52px chrome row, matching top and bottom baselines so the shell reads as a single aligned surface instead of two mismatched bars.
 - Dark and light themes now use the corrected Vanta Ghost system: black, bone white, and neutral gray. Green, amber, and red are reserved for semantic status only; selection, navigation, focus, and actions remain monochrome. Both modes share the same semantic tokens and layout contract.
 - Typography now follows the installed Codex desktop stack: SF Pro Text/system UI for interface copy and display headings, with SF Mono/ui-monospace reserved for technical metadata. The outcome heading is capped at 28px and weight 500 so it reads as quiet workbench chrome instead of a heavy poster headline.
+- Added a simple vector app-icon concept, `vanta-ts/desktop-app/build/vanta-ghost-icon.svg`, so the brand mark can be judged as real SVG before replacing the shipped PNG. This concept intentionally avoids face detail, text, gradients, and generic AI-logo styling.
 
 ## Verification ledger
 
@@ -56,7 +57,8 @@ Visual receipt:
 - Ghost dark: `docs/research/vanta-desktop-anti-slop-2026-07-15/screenshots/ghost-dark.png`.
 - Ghost light: `docs/research/vanta-desktop-anti-slop-2026-07-15/screenshots/ghost-light.png`.
 - Codex typography: `docs/research/vanta-desktop-anti-slop-2026-07-15/screenshots/codex-typography.png`.
+- Vector icon concept: `docs/research/vanta-desktop-anti-slop-2026-07-15/screenshots/icon-proof/vanta-ghost-icon.svg.png`.
 
 ## Remaining boundary
 
-These checks prove the desktop shell, renderer behavior, local kernel startup, and interaction contracts. They do not prove signed distribution, notarization, or live provider-backed conversation. Those remain release proofs rather than reasons to weaken the shell design.
+These checks prove the desktop shell, renderer behavior, local kernel startup, interaction contracts, and the existence of a vector icon concept. They do not prove signed distribution, notarization, live provider-backed conversation, or that the vector concept has been accepted and installed as the production app icon. Those remain release proofs rather than reasons to weaken the shell design.
