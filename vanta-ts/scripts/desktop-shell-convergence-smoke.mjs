@@ -66,24 +66,54 @@ try {
     const text = message.text();
     if (message.type() === "error" && !text.includes("Failed to load resource")) rendererErrors.push(`console error: ${text}`);
   });
-  let approvalDecision;
+  const approvalDecisions = [];
+  let approvalIndex = 0;
+  const smokeApprovals = [
+    {
+      id: "convergence-file-approval",
+      action: "Edit file desktop-app/src/App.tsx",
+      reason: "Apply the accepted desktop shell convergence change.",
+      toolName: "edit_file",
+      request: {
+        kind: "file_edit",
+        title: "File edit permission request",
+        subject: "desktop-app/src/App.tsx",
+        reason: "Apply the accepted desktop shell convergence change.",
+        sections: [
+          { label: "Target file", value: "desktop-app/src/App.tsx", tone: "code" },
+          { label: "Preview", value: "- old shell\n+ accepted desktop shell", tone: "code" },
+        ],
+      },
+    },
+    {
+      id: "convergence-shell-approval",
+      action: "run shell command: npm run deploy",
+      reason: "Shell command changes the outside world.",
+      toolName: "shell_cmd",
+      request: {
+        kind: "bash",
+        title: "Bash permission request",
+        subject: "npm run deploy",
+        reason: "Shell command changes the outside world.",
+        sections: [
+          { label: "Command", value: "npm run deploy", tone: "code" },
+          { label: "Options", value: "Runs inside the current project root.", tone: "muted" },
+        ],
+      },
+    },
+  ];
   await page.route("**/api/approval", async (route) => {
     if (route.request().method() === "GET") {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(approvalDecision ? null : {
-          id: "convergence-approval",
-          action: "write_file desktop-app/src/App.tsx",
-          reason: "Apply the accepted desktop shell convergence change.",
-          toolName: "write_file",
-          request: { subject: "desktop-app/src/App.tsx", reason: "Apply the accepted desktop shell convergence change." },
-        }),
+        body: JSON.stringify(smokeApprovals[approvalIndex] ?? null),
       });
       return;
     }
     const body = route.request().postDataJSON();
-    approvalDecision = body.decision;
+    approvalDecisions.push({ id: body.id, decision: body.decision });
+    approvalIndex += 1;
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
   });
 
@@ -126,9 +156,19 @@ try {
   await page.locator(".run-timeline").waitFor();
   const inlineApproval = page.locator(".inline-approval");
   await inlineApproval.waitFor();
+  await inlineApproval.getByText("File edit permission request").waitFor();
+  await inlineApproval.getByText("Target file").waitFor();
+  await inlineApproval.getByText("Preview").waitFor();
+  await inlineApproval.getByText("- old shell").waitFor();
   await inlineApproval.getByRole("button", { name: "Allow once" }).click();
   await inlineApproval.waitFor({ state: "detached" });
-  if (approvalDecision !== "allow") throw new Error(`Inline approval did not post allow: ${approvalDecision ?? "missing"}`);
+  if (approvalDecisions[0]?.decision !== "allow") throw new Error(`Inline approval did not post allow: ${JSON.stringify(approvalDecisions)}`);
+  await inlineApproval.waitFor();
+  await inlineApproval.getByText("Bash permission request").waitFor();
+  await inlineApproval.getByText("npm run deploy").first().waitFor();
+  await inlineApproval.getByRole("button", { name: "Reject" }).click();
+  await inlineApproval.waitFor({ state: "detached" });
+  if (approvalDecisions[1]?.decision !== "deny") throw new Error(`Inline approval did not post reject: ${JSON.stringify(approvalDecisions)}`);
   await page.locator(".conversation-stage").waitFor();
   await page.locator("#vanta-composer").waitFor();
   const taskContext = page.getByLabel("Task execution context");
@@ -271,7 +311,7 @@ try {
     if (surface.background === "rgba(0, 0, 0, 0)") throw new Error(`${name} surface is transparent: ${JSON.stringify(visual)}`);
   }
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
-  process.stdout.write(`${JSON.stringify({ destinations: true, newTask: true, operate: true, inlineApproval: approvalDecision === "allow", inspector: true, modelPicker: true, responsive, compact: true, geometry, visual })}\n`);
+  process.stdout.write(`${JSON.stringify({ destinations: true, newTask: true, operate: true, inlineApproval: approvalDecisions, inspector: true, modelPicker: true, responsive, compact: true, geometry, visual })}\n`);
 } finally {
   await app?.close().catch(() => undefined);
   await Promise.all([

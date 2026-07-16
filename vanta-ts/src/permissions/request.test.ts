@@ -17,12 +17,13 @@ describe("buildPermissionRequest", () => {
   });
 
   it("builds file edit and file write requests with the target path surfaced", () => {
-    const edit = buildPermissionRequest({ toolName: "edit_file", action: "Edit file src/app.ts", reason: "modifying existing file content" });
+    const edit = buildPermissionRequest({ toolName: "edit_file", action: "Edit file src/app.ts", reason: "modifying existing file content", detail: { diff: "- old\n+ new" } });
     const write = buildPermissionRequest({ toolName: "write_file", action: "Overwrite existing file notes.md", reason: "file already exists" });
 
     expect(edit.kind).toBe("file_edit");
     expect(edit.title).toBe("File edit permission request");
     expect(edit.sections).toContainEqual({ label: "Target file", value: "src/app.ts", tone: "code" });
+    expect(edit.sections).toContainEqual({ label: "Preview", value: "- old\n+ new", tone: "code" });
     expect(write.kind).toBe("file_write");
     expect(write.title).toBe("File write permission request");
     expect(write.sections).toContainEqual({ label: "Target file", value: "notes.md", tone: "code" });

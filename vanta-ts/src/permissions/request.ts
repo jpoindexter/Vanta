@@ -10,7 +10,7 @@ export type PermissionRequest = {
   sections: PermissionSection[];
 };
 
-type Args = { toolName?: string; action: string; reason: string };
+type Args = { toolName?: string; action: string; reason: string; detail?: { diff?: string; fresh?: boolean } };
 
 const TITLES: Record<PermissionKind, string> = {
   bash: "Bash permission request",
@@ -32,7 +32,7 @@ export function buildPermissionRequest(args: Args): PermissionRequest {
     subject,
     reason: args.reason,
     toolName: args.toolName,
-    sections: sectionsFor(kind, subject, args.action),
+    sections: sectionsFor(kind, subject, args.action, args.detail),
   };
 }
 
@@ -55,15 +55,16 @@ function subjectFor(kind: PermissionKind, action: string): string {
   return action;
 }
 
-function sectionsFor(kind: PermissionKind, subject: string, action: string): PermissionSection[] {
+function sectionsFor(kind: PermissionKind, subject: string, action: string, detail?: Args["detail"]): PermissionSection[] {
+  const preview = detail?.diff ? [{ label: "Preview", value: detail.diff, tone: "code" as const }] : [];
   if (kind === "bash") return [{ label: "Command", value: subject, tone: "code" }, { label: "Options", value: "Runs inside the current project root.", tone: "muted" }];
-  if (kind === "file_edit") return [{ label: "Target file", value: subject, tone: "code" }, { label: "Change", value: "Modifies existing file content.", tone: "danger" }];
-  if (kind === "file_write") return [{ label: "Target file", value: subject, tone: "code" }, { label: "Write mode", value: writeMode(action), tone: "danger" }];
+  if (kind === "file_edit") return [{ label: "Target file", value: subject, tone: "code" }, { label: "Change", value: "Modifies existing file content.", tone: "danger" }, ...preview];
+  if (kind === "file_write") return [{ label: "Target file", value: subject, tone: "code" }, { label: "Write mode", value: writeMode(action), tone: "danger" }, ...preview];
   if (kind === "web_fetch") return [{ label: "Target", value: subject, tone: "code" }];
   if (kind === "computer_use") return [{ label: "Computer control", value: action, tone: "danger" }];
-  if (kind === "sandbox") return [{ label: "Sandbox action", value: action, tone: "code" }];
-  if (kind === "skill") return [{ label: "Skill memory", value: action, tone: "muted" }];
-  return [{ label: "Action", value: action, tone: "code" }];
+  if (kind === "sandbox") return [{ label: "Sandbox action", value: action, tone: "code" }, ...preview];
+  if (kind === "skill") return [{ label: "Skill memory", value: action, tone: "muted" }, ...preview];
+  return [{ label: "Action", value: action, tone: "code" }, ...preview];
 }
 
 function strip(value: string, ...prefixes: string[]): string {

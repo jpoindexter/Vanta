@@ -37,6 +37,49 @@ describe("ChatThread recovery", () => {
   });
 });
 
+describe("ChatThread approval checkpoint", () => {
+  it("renders action type, target, reason, preview, and approval controls", () => {
+    const html = renderToStaticMarkup(
+      <ChatThread
+        messages={[{ role: "assistant", content: "I need approval before changing a file." }]}
+        busy={false}
+        streamText=""
+        events={[]}
+        recovery={null}
+        approval={{
+          id: "approval-1",
+          action: "Edit file desktop-app/src/chat.tsx",
+          reason: "modifying existing file content",
+          toolName: "edit_file",
+          request: {
+            kind: "file_edit",
+            title: "File edit permission request",
+            subject: "desktop-app/src/chat.tsx",
+            reason: "modifying existing file content",
+            sections: [
+              { label: "Target file", value: "desktop-app/src/chat.tsx", tone: "code" },
+              { label: "Preview", value: "- old\n+ new", tone: "code" },
+            ],
+          },
+        }}
+        onApproval={vi.fn()}
+        onRetry={vi.fn()}
+        onPrompt={vi.fn()}
+      />,
+    );
+
+    expect(html).toContain("Approval required");
+    expect(html).toContain("File edit permission request");
+    expect(html).toContain("desktop-app/src/chat.tsx");
+    expect(html).toContain("modifying existing file content");
+    expect(html).toContain("Preview");
+    expect(html).toContain("- old");
+    expect(html).toContain("+ new");
+    expect(html).toContain("Allow once");
+    expect(html).toContain("Reject");
+  });
+});
+
 describe("Composer context legibility", () => {
   it("renders model scope, tools, memory, approval state, and removable file chips", () => {
     const html = renderToStaticMarkup(

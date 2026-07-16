@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
 import { Activity, Archive, ArchiveRestore, ArrowUp, Bot, Check, CheckCircle2, ChevronRight, Copy, Cpu, FileText, FolderKanban, GitBranch, Keyboard, Laptop, ListPlus, Maximize2, MessageSquare, MoreHorizontal, Network, PackageOpen, Paperclip, Pencil, Plus, RotateCcw, Search, Settings2, ShieldCheck, Square, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
-import type { Approval, ApprovalDecision, DesktopRunReceipt, DesktopView, Message, Session } from "./types.js";
+import type { Approval, ApprovalDecision, DesktopRunReceipt, DesktopView, Message, PermissionSection, Session } from "./types.js";
 
 type SessionSidebarProps = {
   sessions: Session[];
@@ -242,7 +242,7 @@ function SessionButton(props: {
 type MessageFeedback = "helpful" | "not_helpful";
 type ExpandedMessage = { content: string; opener: HTMLButtonElement | null } | null;
 
-export function ChatThread(props: { messages: Message[]; busy: boolean; streamText: string; events: { label: string; ok?: boolean }[]; recovery: DesktopRunReceipt | null; approval: Approval | null; onApproval: (decision: ApprovalDecision) => void; onRetry: () => void; onPrompt: (text: string) => void }) {
+export function ChatThread(props: { messages: Message[]; busy: boolean; streamText: string; events: { label: string; ok?: boolean }[]; recovery: DesktopRunReceipt | null; approval: Approval | null; onApproval: (decision: ApprovalDecision) => void | Promise<void>; onRetry: () => void; onPrompt: (text: string) => void }) {
   const rows = useMemo(() => props.messages.filter((m) => m.role !== "system"), [props.messages]);
   const recovery = props.recovery;
   const endRef = useRef<HTMLDivElement>(null);
@@ -442,9 +442,41 @@ function checkpointPrompt(receipt: DesktopRunReceipt): string {
   return partial ? `Continue from this checkpoint and avoid repeating completed work. Original request: ${instruction}\n\nSaved partial output:\n${partial}` : `Continue from this checkpoint. Original request: ${instruction}`;
 }
 
-function ApprovalCheckpoint(props: { approval: Approval; onAnswer: (decision: ApprovalDecision) => void }) {
+function ApprovalCheckpoint(props: { approval: Approval; onAnswer: (decision: ApprovalDecision) => void | Promise<void> }) {
   const request = props.approval.request;
-  return <section className="inline-approval" role="alert"><header><ShieldCheck size={15} /><strong>Approval required</strong></header><p>{request?.reason ?? props.approval.reason}</p>{request?.subject ? <code>{request.subject}</code> : null}<div><button className="primary" type="button" onClick={() => props.onAnswer("allow")}>Allow once</button><button type="button" onClick={() => props.onAnswer("deny")}>Reject</button></div></section>;
+  const [pending, setPending] = useState<ApprovalDecision | null>(null);
+  const titleId = `approval-${props.approval.id}`;
+  const sections = request?.sections?.length ? request.sections : [{ label: "Action", value: props.approval.action, tone: "code" as const }];
+
+  async function answer(decision: ApprovalDecision) {
+    setPending(decision);
+    try {
+      await props.onAnswer(decision);
+    } catch {
+      setPending(null);
+    }
+  }
+
+  return (
+    <section className={`inline-approval ${request?.kind ?? "generic"}`} role="alert" aria-labelledby={titleId}>
+      <header><ShieldCheck size={15} /><div><strong id={titleId}>Approval required</strong><span>{request?.title ?? props.approval.action}</span></div></header>
+      <div className="approval-brief">
+        <p>{request?.reason ?? props.approval.reason}</p>
+        <code>{request?.subject ?? props.approval.action}</code>
+      </div>
+      <div className="approval-sections">
+        {sections.map((section) => <ApprovalSection key={section.label} section={section} />)}
+      </div>
+      <div className="approval-actions">
+        <button className="primary" type="button" disabled={!!pending} aria-busy={pending === "allow"} onClick={() => void answer("allow")}>{pending === "allow" ? "Allowing..." : "Allow once"}</button>
+        <button type="button" disabled={!!pending} aria-busy={pending === "deny"} onClick={() => void answer("deny")}>{pending === "deny" ? "Rejecting..." : "Reject"}</button>
+      </div>
+    </section>
+  );
+}
+
+function ApprovalSection({ section }: { section: PermissionSection }) {
+  return <div className={`approval-section ${section.tone ?? ""}`}><strong>{section.label}</strong><code>{section.value}</code></div>;
 }
 
 function humanizeTool(name: string): string {

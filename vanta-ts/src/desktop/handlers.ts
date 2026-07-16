@@ -73,7 +73,7 @@ function attachConversation(state: DesktopState, setup: RunSetup, history?: Para
     provider: setup.provider, safety: setup.safety, registry: setup.registry, root: state.root,
     sessionId: state.sessionId,
     usageAgent: "desktop",
-    requestApproval: (action, reason, toolName) => requestWebApproval(state, action, reason, toolName),
+    requestApproval: (action, reason, toolName, detail) => requestWebApproval(state, action, reason, toolName, detail),
     maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(setup.provider),
     activeGoalText: setup.goals.find((g) => g.status === "active")?.text,

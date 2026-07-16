@@ -6,6 +6,7 @@ export type PendingApproval = {
   action: string;
   reason: string;
   toolName?: string;
+  detail?: { diff?: string; fresh?: boolean };
   resolve: (approved: boolean) => void;
 };
 
@@ -28,9 +29,9 @@ export async function resolveApproval(p: PendingApproval, decision: ApprovalDeci
   p.resolve(decision === "allow" || decision === "always");
 }
 
-export async function requestWebApproval(host: ApprovalHost, action: string, reason: string, toolName?: string): Promise<boolean> {
+export async function requestWebApproval(host: ApprovalHost, action: string, reason: string, toolName?: string, detail?: { diff?: string; fresh?: boolean }): Promise<boolean> {
   if (host.pendingApproval) return false;
   return new Promise<boolean>((resolve) => {
-    host.pendingApproval = { id: `${Date.now()}`, action, reason, toolName, resolve };
+    host.pendingApproval = { id: `${Date.now()}`, action, reason, toolName, detail, resolve };
   });
 }

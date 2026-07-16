@@ -650,13 +650,23 @@ button:focus, textarea:focus, input:focus, select:focus, summary:focus { outline
 .timeline-step small { color: var(--faint); font-size: 10px; }
 .timeline-step em { color: var(--faint); font-size: 10px; font-style: normal; }
 .timeline-step.bad > span, .timeline-step.bad em { color: var(--danger); }
-.inline-approval { display: grid; gap: 9px; margin-block: 8px 12px; border: 1px solid color-mix(in srgb, var(--amber) 55%, var(--line)); border-radius: 7px; background: color-mix(in srgb, var(--amber) 10%, var(--panel)); padding: 12px; }
-.inline-approval header { display: flex; align-items: center; gap: 7px; color: var(--amber); }
-.inline-approval p { color: var(--muted); }
-.inline-approval code { overflow-wrap: anywhere; color: var(--text); }
-.inline-approval > div { display: flex; gap: 7px; }
+.inline-approval { display: grid; gap: 10px; margin-block: 8px 12px; border: 1px solid color-mix(in srgb, var(--amber) 55%, var(--line)); border-radius: 7px; background: color-mix(in srgb, var(--amber) 10%, var(--panel)); padding: 12px; }
+.inline-approval header { display: flex; align-items: flex-start; gap: 8px; color: var(--amber); }
+.inline-approval header > div { display: grid; gap: 1px; }
+.inline-approval header strong { color: var(--amber); font-size: 13px; }
+.inline-approval header span { color: var(--muted); font-size: 11px; }
+.approval-brief { display: grid; gap: 6px; }
+.approval-brief p { color: var(--muted); }
+.approval-brief code { overflow-wrap: anywhere; color: var(--text); }
+.approval-sections { display: grid; gap: 7px; }
+.inline-approval .approval-section { display: grid; gap: 5px; border: 1px solid var(--line); border-radius: 6px; background: color-mix(in srgb, var(--bg) 64%, transparent); padding: 8px; }
+.inline-approval .approval-section strong { color: var(--faint); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.inline-approval .approval-section code { max-height: 180px; overflow: auto; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 11px; }
+.inline-approval .approval-section.danger { border-color: color-mix(in srgb, var(--amber) 70%, var(--line)); }
+.approval-actions { display: flex; flex-wrap: wrap; gap: 7px; }
 .inline-approval button { border: 1px solid var(--line); border-radius: 6px; background: var(--raised); color: var(--muted); padding: 7px 9px; }
 .inline-approval button.primary { border-color: var(--ok); color: var(--text); }
+.inline-approval button:disabled { opacity: .55; cursor: wait; }
 .thinking { padding: 8px 0 8px 35px; }
 .run-recovery { margin-block: 12px; }
 

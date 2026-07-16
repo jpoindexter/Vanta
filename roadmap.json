@@ -18430,7 +18430,7 @@
       "id": "DESKTOP-ACTION-APPROVAL-PROMPT",
       "track": "Desktop App",
       "title": "Desktop action approval prompt — allow once, reject, and inspect side effects",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Give Vanta Desktop the same clear approval surface shown in Codex when an agent wants to modify files, use the network, run shell commands, or perform another side-effecting action. The prompt must name the action, target path or service, risk reason, and expose Allow once and Reject without burying the user in settings.",
       "done": "When a desktop run reaches a kernel Ask verdict, Work renders an inline approval card with action type, affected file/service/command, risk explanation, and available controls. File edits show a readable diff or preview before approval; shell/network actions show command or destination context; Allow once resumes the paused action, Reject records the denial and keeps the run recoverable. The approval card is keyboard/screen-reader operable, survives reload/resume, writes an audit receipt, and Electron proof covers file edit, shell/network, allow, reject, and resumed-run states.",
@@ -18440,7 +18440,7 @@
       "codex": "gpt-5.4",
       "lens": "tui",
       "updated": "2026-07-16",
-      "notes": "Added from user screenshots 2026-07-16 comparing Codex approval-required UI. This is desktop parity for Vanta runs, not a new kernel bypass. Use the existing kernel verdict as authority; UI only presents the decision point and writes receipts. Keep controls calm and explicit: Allow once / Reject first, richer Always/Never rules only if the kernel exposes safe scoped persistence.",
+      "notes": "Added from user screenshots 2026-07-16 comparing Codex approval-required UI. This is desktop parity for Vanta runs, not a new kernel bypass. Use the existing kernel verdict as authority; UI only presents the decision point and writes receipts. Keep controls calm and explicit: Allow once / Reject first, richer Always/Never rules only if the kernel exposes safe scoped persistence.\n\nSHIPPED 2026-07-16: Desktop Work now renders structured inline approval cards with request title, target subject, reason, sectioned action context, and file-edit preview/diff details when the tool dispatcher provides them. The approval API preserves pending detail metadata through `requestWebApproval`, and the card exposes busy/disabled states for Allow once and Reject. Verification: `npm test -- --run desktop-app/src/chat.test.tsx src/permissions/request.test.ts`, `npm run desktop:renderer:typecheck`, `npm run typecheck`, `npm run desktop:shell-convergence:smoke`, and `npm run desktop:native:smoke`. The convergence smoke proves a file-edit approval with preview is allowed, then a bash approval with command context is rejected.",
       "source": "user screenshots 2026-07-16 Codex approval required",
       "after": [
         "DESKTOP-CONTEXT-LEGIBILITY",
