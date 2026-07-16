@@ -31,10 +31,14 @@ const MessageSchema: z.ZodType<Message> = z.lazy(() =>
         .optional(),
       desktopRun: z.object({
         status: z.enum(["done", "failed", "interrupted"]),
-        failureKind: z.enum(["setup", "tool", "model", "user_denied", "interrupted", "unknown"]).optional(),
+        failureKind: z.enum(["setup", "tool", "model", "model_mismatch", "user_denied", "interrupted", "unknown"]).optional(),
         events: z.array(z.object({ label: z.string(), ok: z.boolean().optional() })),
         actions: z.array(z.enum(["retry_failed_step", "edit_request", "start_from_checkpoint"])),
         checkpoint: z.object({ instruction: z.string(), partialText: z.string().optional() }).optional(),
+        counterexample: z.object({
+          modelVersion: z.number().int().positive(), transition: z.string(), path: z.string(),
+          predicted: z.string(), observed: z.string(), safeNextAction: z.string(),
+        }).optional(),
       }).optional(),
     }),
     z.object({

@@ -18743,7 +18743,7 @@
       "id": "SCHEMA-COUNTEREXAMPLE-REVISION",
       "track": "Harness",
       "title": "Schema counterexample recovery - prediction errors void plans and revise the theory",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "Reality outranks the model. After each committed action Vanta compares the actual transition with the prediction; one mismatch immediately discards the remaining action queue, preserves partial output, opens a recovery episode, and allows revision of either the state representation or transition rule before replanning.",
       "done": "A multi-action fixture stops on the first mismatched transition and proves no later action executes; the mismatch is stored as a counterexample tied to the failed model and plan; recovery can revise grounded state or step logic, rerun the full backtest, and resume only from a new certified model; desktop and CLI show the classified failure and safe next action.",
@@ -18753,7 +18753,7 @@
       "codex": "gpt-5.6-sol",
       "lens": "agent-loop",
       "updated": "2026-07-17",
-      "notes": "PROMOTED 2026-07-17 after the controlled commit gate and desktop run-recovery timeline shipped. Stop on the first reality/model mismatch, preserve it, revise the theory, recertify, and resume only from the new model.",
+      "notes": "SHIPPED 2026-07-17. Controlled commits now compare predicted and observed state after every kernel action, stop the remaining queue on the first pointed mismatch, and persist a durable episode tied to the failed plan and model. State or model revisions install a new immutable version, rerun complete-history certification, and resume only when the newer artifact and live history match. `/schema-recovery` and the desktop recovery receipt expose the classified mismatch and safe next action. Executed proof: 11 files / 57 tests, core typecheck, desktop renderer typecheck, and diff check passed. Evidence: docs/research/schema-counterexample-recovery-2026-07-17.md.",
       "source": "schema-harness-2026-07-15",
       "after": [
         "SCHEMA-CONTROLLED-COMMIT-GATE",
@@ -18764,7 +18764,7 @@
       "id": "SCHEMA-HYPOTHESIS-PROBE-PLANNER",
       "track": "Harness",
       "title": "Schema hypothesis and probe planner - choose actions that separate competing explanations",
-      "status": "horizon",
+      "status": "next",
       "size": "L",
       "summary": "Track multiple task-mechanism hypotheses when history does not distinguish them. Generate candidate probes whose predicted outcomes differ, then rank them by expected information gain, real side-effect cost, reversibility, risk, and operator approval requirements rather than wandering through generic trial and error.",
       "done": "A hypothesis ledger stores competing predictions and supporting/refuting transition IDs; the planner proposes at most three discriminating probes with expected outcomes and cost/risk; a fixture selects a reversible probe that separates two equally plausible models, records the result, rejects the falsified hypothesis, and does not silently treat absence of evidence as confirmation.",
@@ -18773,7 +18773,8 @@
       "effort": "high",
       "codex": "gpt-5.6-sol",
       "lens": "agent-loop",
-      "updated": "2026-07-16",
+      "updated": "2026-07-17",
+      "notes": "PROMOTED 2026-07-17 after SCHEMA-COUNTEREXAMPLE-REVISION shipped. Build the smallest bounded experiment planner that separates competing explanations without creating a generic autonomous exploration loop.",
       "source": "schema-harness-2026-07-15",
       "after": [
         "SCHEMA-COUNTEREXAMPLE-REVISION"

@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   hashTaskTimeline,
   isCurrentBacktestCertification,
+  findFirstValueMismatch,
   type BacktestReport,
 } from "./backtest.js";
 import { GroundedStateSchema, type GroundedState } from "./grounding.js";
@@ -51,10 +52,19 @@ export type ControlledCommitErrorCode =
   | "invalid_observation"
   | "model_failed"
   | "approval_denied"
-  | "duplicate_action";
+  | "duplicate_action"
+  | "prediction_mismatch";
+export type ControlledCounterexample = {
+  modelVersion: number;
+  runId: string;
+  sequence: number;
+  path: string;
+  predicted: unknown;
+  observed: unknown;
+};
 export type ControlledCommitResult =
   | { ok: true; records: TaskTransitionRecord[] }
-  | { ok: false; records: TaskTransitionRecord[]; error: { code: ControlledCommitErrorCode; message: string } };
+  | { ok: false; records: TaskTransitionRecord[]; error: { code: ControlledCommitErrorCode; message: string; counterexample?: ControlledCounterexample } };
 
 type PreviewOptions<Action> = {
   artifact: TaskModelArtifact;
@@ -184,6 +194,30 @@ export async function commitActions<Observation, Action>(options: {
     });
     records.push(record);
     history.push(record);
+    const stateMismatch = findFirstValueMismatch(preview.state, after.data);
+    const actualGoal = Boolean(options.environment.terminal(after.data));
+    const goalMismatch = preview.goal === actualGoal ? undefined : {
+      path: "$.terminal",
+      predicted: preview.goal,
+      observed: actualGoal,
+    };
+    const divergence = stateMismatch ?? goalMismatch;
+    if (divergence) {
+      return {
+        ok: false,
+        records,
+        error: {
+          code: "prediction_mismatch",
+          message: `recorded reality diverged at ${divergence.path}`,
+          counterexample: {
+            modelVersion: options.artifact.manifest.modelVersion,
+            runId: record.runId,
+            sequence: record.sequence,
+            ...divergence,
+          },
+        },
+      };
+    }
   }
   return { ok: true, records };
 }

@@ -430,6 +430,7 @@ function RunRecovery(props: { receipt: DesktopRunReceipt; onRetry: () => void; o
   return (
     <section className="run-recovery" role="status">
       <div><strong>{label}</strong><span>Partial output and timeline were saved. Failure: {reason}.</span></div>
+      {props.receipt.counterexample ? <div className="run-counterexample"><strong>{props.receipt.counterexample.path}</strong><span>Predicted {props.receipt.counterexample.predicted}; observed {props.receipt.counterexample.observed}.</span><span>Safe next: {props.receipt.counterexample.safeNextAction}.</span></div> : null}
       <div className="run-recovery-actions">
         <button type="button" onClick={props.onRetry}><RotateCcw size={15} />Retry failed step</button>
         <button type="button" onClick={props.onEdit}>Edit request</button>

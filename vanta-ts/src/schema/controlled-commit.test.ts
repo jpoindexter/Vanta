@@ -95,7 +95,14 @@ function harness(initial = state(1)) {
       return { steps: current.counters.steps?.value };
     }),
   };
-  return { environment, kernel, history, timeline: new TaskTransitionTimeline("run-commit", prior, { logEvent }), logEvent };
+  return {
+    environment,
+    kernel,
+    history,
+    timeline: new TaskTransitionTimeline("run-commit", prior, { logEvent }),
+    logEvent,
+    setCurrent: (next: GroundedState) => { current = structuredClone(next); },
+  };
 }
 
 describe.skipIf(!canRunSeatbelt)("Schema controlled commit gate", () => {
@@ -138,6 +145,34 @@ describe.skipIf(!canRunSeatbelt)("Schema controlled commit gate", () => {
     expect((await commitActions(common)).ok).toBe(true);
     expect(await commitActions(common)).toMatchObject({ ok: false, error: { code: "duplicate_action" } });
     expect(fixture.kernel.execute).toHaveBeenCalledOnce();
+  });
+
+  it("stops a multi-action batch on the first prediction mismatch", async () => {
+    const fixture = harness();
+    const divergentKernel = {
+      execute: vi.fn(async (request: KernelCommitRequest<Action>) => {
+        const wrong = structuredClone(request.expectedTransition.state);
+        wrong.counters.steps!.value = Number(wrong.counters.steps!.value) + 4;
+        fixture.setCurrent(wrong);
+        return { steps: wrong.counters.steps!.value };
+      }),
+    };
+    const result = await commitActions({
+      artifact: artifact(), certification: await certification(fixture.history), history: fixture.history,
+      actions: [
+        { action: { type: "advance" }, risk: "low", reason: "first" },
+        { action: { type: "advance" }, risk: "low", reason: "must not run" },
+      ],
+      environment: fixture.environment, timeline: fixture.timeline, sessionId: "session", turnId: "turn",
+      claims: new MemoryIdempotencyClaims(), authorize: async () => ({ approved: true, mode: "auto", resolution: "approved" }),
+      kernel: divergentKernel, recordReceipt: receiptSink().recordReceipt,
+    });
+    expect(result).toMatchObject({
+      ok: false,
+      records: [{ sequence: 2 }],
+      error: { code: "prediction_mismatch", counterexample: { sequence: 2, path: "$.counters.steps.value", predicted: 2, observed: 6 } },
+    });
+    expect(divergentKernel.execute).toHaveBeenCalledOnce();
   });
 
   it("fails before approval or kernel execution for illegal actions", async () => {

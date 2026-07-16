@@ -35,6 +35,40 @@ describe("ChatThread recovery", () => {
     expect(html).toContain("Edit request");
     expect(html).toContain("Start from checkpoint");
   });
+
+  it("shows a Schema model mismatch and one safe next action", () => {
+    const recovery: DesktopRunReceipt = {
+      status: "failed",
+      failureKind: "model_mismatch",
+      events: [{ label: "Model diverged", ok: false }],
+      actions: ["edit_request", "start_from_checkpoint"],
+      counterexample: {
+        modelVersion: 4,
+        transition: "run-7:12",
+        path: "$.counters.steps.value",
+        predicted: "2",
+        observed: "6",
+        safeNextAction: "revise state or model",
+      },
+    };
+    const html = renderToStaticMarkup(
+      <ChatThread
+        messages={[]}
+        busy={false}
+        streamText=""
+        events={[]}
+        recovery={recovery}
+        approval={null}
+        onApproval={vi.fn()}
+        onRetry={vi.fn()}
+        onPrompt={vi.fn()}
+      />,
+    );
+    expect(html).toContain("Failure: model mismatch");
+    expect(html).toContain("$.counters.steps.value");
+    expect(html).toContain("Predicted 2; observed 6");
+    expect(html).toContain("Safe next: revise state or model");
+  });
 });
 
 describe("ChatThread approval checkpoint", () => {

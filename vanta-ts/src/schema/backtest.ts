@@ -49,14 +49,14 @@ export type RunBacktestOptions = {
   recordReceipt(receipt: ModelSandboxReceipt): Promise<void>;
 };
 
-type ValueMismatch = { path: string; predicted: unknown; observed: unknown };
+export type ValueMismatch = { path: string; predicted: unknown; observed: unknown };
 
-function firstValueMismatch(predicted: unknown, observed: unknown, path = "$" ): ValueMismatch | undefined {
+export function findFirstValueMismatch(predicted: unknown, observed: unknown, path = "$" ): ValueMismatch | undefined {
   if (Object.is(predicted, observed)) return undefined;
   if (Array.isArray(predicted) && Array.isArray(observed)) {
     const length = Math.max(predicted.length, observed.length);
     for (let index = 0; index < length; index += 1) {
-      const mismatch = firstValueMismatch(predicted[index], observed[index], `${path}[${index}]`);
+      const mismatch = findFirstValueMismatch(predicted[index], observed[index], `${path}[${index}]`);
       if (mismatch) return mismatch;
     }
     return undefined;
@@ -66,7 +66,7 @@ function firstValueMismatch(predicted: unknown, observed: unknown, path = "$" ):
     const right = observed as Record<string, unknown>;
     const keys = [...new Set([...Object.keys(left), ...Object.keys(right)])].sort();
     for (const key of keys) {
-      const mismatch = firstValueMismatch(left[key], right[key], `${path}.${key}`);
+      const mismatch = findFirstValueMismatch(left[key], right[key], `${path}.${key}`);
       if (mismatch) return mismatch;
     }
     return undefined;
@@ -126,7 +126,7 @@ async function checkTransition(
     return [mismatch(record, "state", { path: "$", predicted: executed.predicted, observed: after.data }, "model returned an invalid GroundedState")];
   }
   const mismatches: BacktestMismatch[] = [];
-  const value = firstValueMismatch(predicted.data, after.data);
+  const value = findFirstValueMismatch(predicted.data, after.data);
   if (value) mismatches.push(mismatch(record, "state", value, "predicted state differs from recorded state"));
   const expectedGoal = record.status === "terminal";
   if (executed.goal !== expectedGoal) {

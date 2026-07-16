@@ -13,13 +13,14 @@ export type ToolCall = {
   effectState?: "pending" | "started";
 };
 
-export type DesktopRunFailureKind = "setup" | "tool" | "model" | "user_denied" | "interrupted" | "unknown";
+export type DesktopRunFailureKind = "setup" | "tool" | "model" | "model_mismatch" | "user_denied" | "interrupted" | "unknown";
 export type DesktopRunReceipt = {
   status: "done" | "failed" | "interrupted";
   failureKind?: DesktopRunFailureKind;
   events: { label: string; ok?: boolean }[];
   actions: ("retry_failed_step" | "edit_request" | "start_from_checkpoint")[];
   checkpoint?: { instruction: string; partialText?: string };
+  counterexample?: { modelVersion: number; transition: string; path: string; predicted: string; observed: string; safeNextAction: string };
 };
 
 export type EffectDisposition = "none" | "confirmed" | "unknown";
