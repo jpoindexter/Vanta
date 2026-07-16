@@ -18764,7 +18764,7 @@
       "id": "SCHEMA-HYPOTHESIS-PROBE-PLANNER",
       "track": "Harness",
       "title": "Schema hypothesis and probe planner - choose actions that separate competing explanations",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "Track multiple task-mechanism hypotheses when history does not distinguish them. Generate candidate probes whose predicted outcomes differ, then rank them by expected information gain, real side-effect cost, reversibility, risk, and operator approval requirements rather than wandering through generic trial and error.",
       "done": "A hypothesis ledger stores competing predictions and supporting/refuting transition IDs; the planner proposes at most three discriminating probes with expected outcomes and cost/risk; a fixture selects a reversible probe that separates two equally plausible models, records the result, rejects the falsified hypothesis, and does not silently treat absence of evidence as confirmation.",
@@ -18774,7 +18774,7 @@
       "codex": "gpt-5.6-sol",
       "lens": "agent-loop",
       "updated": "2026-07-17",
-      "notes": "PROMOTED 2026-07-17 after SCHEMA-COUNTEREXAMPLE-REVISION shipped. Build the smallest bounded experiment planner that separates competing explanations without creating a generic autonomous exploration loop.",
+      "notes": "SHIPPED 2026-07-17. A durable hypothesis ledger stores competing explanations, weights, predictions, and supporting/refuting transition IDs. The deterministic planner excludes non-discriminating candidates, ranks weighted information gain against real side-effect, reversibility, risk, and approval costs, and returns at most three proposals. Evidence adjudication rejects contradictions, keeps support provisional, and records unavailable observations as inconclusive. Executed proof: focused planner 3/3, isolated sandbox 9/9, core typecheck, and diff check passed; final serial Schema acceptance is recorded in docs/research/schema-hypothesis-probe-planner-2026-07-17.md.",
       "source": "schema-harness-2026-07-15",
       "after": [
         "SCHEMA-COUNTEREXAMPLE-REVISION"
@@ -18784,7 +18784,7 @@
       "id": "SCHEMA-MODEL-PLANNER",
       "track": "Harness",
       "title": "Schema model planner - search certified simulations before spending real actions",
-      "status": "horizon",
+      "status": "next",
       "size": "L",
       "summary": "Once a task model is certified, search inside it for an action plan without touching the real environment. Support bounded breadth-first search for small discrete spaces plus a planner interface for domain-specific or heuristic search, with explicit state hashing, budgets, and proof that the plan reaches isGoal in simulation.",
       "done": "A certified fixture model produces a shortest plan through bounded search; planning records expanded/distinct states, depth, cost, terminal prediction, and budget stop reason; uncertified models are rejected; repeated-state and state-explosion guards halt cleanly; the produced plan enters the real world only through the controlled commit gate.",
@@ -18793,7 +18793,8 @@
       "effort": "high",
       "codex": "gpt-5.6-sol",
       "lens": "agent-loop",
-      "updated": "2026-07-16",
+      "updated": "2026-07-17",
+      "notes": "PROMOTED 2026-07-17 after the bounded hypothesis/probe planner shipped. Search certified simulations under explicit state, depth, and expansion budgets before any plan is eligible for the controlled commit gate.",
       "source": "schema-harness-2026-07-15",
       "after": [
         "SCHEMA-COMPLETE-HISTORY-BACKTEST",
