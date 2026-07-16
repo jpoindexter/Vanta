@@ -1,29 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
   <title id="title">Vanta Ghost icon</title>
-  <desc id="desc">A minimal black and bone operator-boundary mark: a hooded V aperture with a central protected core.</desc>
+  <desc id="desc">A minimal black and bone operator-boundary mark: two brackets protecting a central local core.</desc>
   <rect width="1024" height="1024" fill="#0b0b0a"/>
-  <path
-    fill="#f4f1ea"
-    d="M218 172h170l124 546 124-546h170L590 852H434L218 172Z"
-  />
-  <path
-    fill="#0b0b0a"
-    d="M420 220h72v388l-72-316V220Zm112 0h72v72l-72 316V220Z"
-  />
-  <path
-    fill="none"
-    stroke="#f4f1ea"
-    stroke-linecap="square"
-    stroke-width="24"
-    d="M512 278v366"
-  />
-  <path
-    fill="none"
-    stroke="#f4f1ea"
-    stroke-linecap="square"
-    stroke-width="18"
-    d="M176 176h86M176 176v86M762 176h86M848 176v86M176 762v86M176 848h86M848 762v86M762 848h86"
-    opacity=".62"
-  />
-  <circle cx="512" cy="512" r="338" fill="none" stroke="#f4f1ea" stroke-width="8" opacity=".18"/>
+  <path fill="none" stroke="#f4f1ea" stroke-linecap="square" stroke-linejoin="miter" stroke-width="64" d="M336 256H248v512h88"/>
+  <path fill="none" stroke="#f4f1ea" stroke-linecap="square" stroke-linejoin="miter" stroke-width="64" d="M688 256h88v512h-88"/>
+  <path fill="none" stroke="#f4f1ea" stroke-linecap="square" stroke-width="72" d="M512 304v416"/>
 </svg>
