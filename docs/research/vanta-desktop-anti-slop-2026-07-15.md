@@ -32,7 +32,7 @@ Vanta Desktop is an operator workbench, not a generic AI dashboard. The visual a
 - The Work run-control toolbar and the inspector tab tray now share one 52px chrome row, matching top and bottom baselines so the shell reads as a single aligned surface instead of two mismatched bars.
 - Dark and light themes now use the corrected Vanta Ghost system: black, bone white, and neutral gray. Green, amber, and red are reserved for semantic status only; selection, navigation, focus, and actions remain monochrome. Both modes share the same semantic tokens and layout contract.
 - Typography now follows the installed Codex desktop stack: SF Pro Text/system UI for interface copy and display headings, with SF Mono/ui-monospace reserved for technical metadata. The outcome heading is capped at 28px and weight 500 so it reads as quiet workbench chrome instead of a heavy poster headline.
-- Added a simple vector app-icon concept, `vanta-ts/desktop-app/build/vanta-ghost-icon.svg`, so the brand mark can be judged as real SVG before replacing the shipped PNG. The first V-shaped concept was rejected in visual review; the current concept is reduced to boundary brackets plus one local-core stroke, avoiding face detail, text, gradients, and generic AI-logo styling.
+- Added and installed a simple vector-derived app icon. The source lives at `vanta-ts/desktop-app/build/vanta-ghost-icon.svg`, the production desktop PNG is `vanta-ts/desktop-app/build/icon.png`, and Electron startup sets that asset for dev Dock/window launches when available. The first V-shaped concept was rejected in visual review; the current mark is reduced to boundary brackets plus one local-core stroke, avoiding face detail, text, gradients, and generic AI-logo styling.
 
 ## Verification ledger
 
@@ -46,6 +46,7 @@ Executed against the current source renderer and Electron shell:
 - `npm run desktop:operator-flows:smoke` — passed model, connect, capabilities, messaging, outputs, attachments, queue/stop, shortcuts, settings, provider setup, light theme, and pane persistence.
 - 2026-07-15 Ghost theme correction: `npm run desktop:renderer:typecheck`, `npm run desktop:operator-flows:smoke`, `VANTA_DESKTOP_SMOKE_PORT=7921 npm run desktop:layout:smoke`, and `npm run desktop:shell-convergence:smoke` passed. Shell convergence measured the running dark shell as `rgb(10, 10, 10)` with bone-white text `rgb(245, 245, 243)`; operator flows switched through Settings to Ghost light. All normal, muted, faint, and action text pairs measured at or above WCAG AA contrast.
 - 2026-07-15 Codex typography correction: the first mono display treatment was rejected in visual review as too tall and heavy. `npm run desktop:renderer:typecheck` passed and the corrected Electron layout smoke computed the empty-state heading as `-apple-system, system-ui, "SF Pro Text", sans-serif` at `28px`, weight `500`, with a `33.6px` line height. The same run completed the desktop, recovery, files, and 640x900 model-picker flows.
+- 2026-07-16 app icon install: `vanta-ts/desktop-app/build/icon.png` now renders from the simplified SVG concept at `1024x1024`; `xmllint` validates the SVG source, `sips` validates both the production PNG and proof dimensions, and `npm run desktop:renderer:typecheck` / `npm run desktop:native:smoke` passed after Electron startup was wired to the icon path.
 - `npm run desktop:sessions:smoke` — passed rename, archive, restore, and delete.
 - `npm run desktop:native:smoke` — passed renderer asset startup, packaged kernel online, terminal-love mount, and obsidian-vault mount. Codegraph remained skipped because its trust gate is external to this visual pass.
 
@@ -57,8 +58,8 @@ Visual receipt:
 - Ghost dark: `docs/research/vanta-desktop-anti-slop-2026-07-15/screenshots/ghost-dark.png`.
 - Ghost light: `docs/research/vanta-desktop-anti-slop-2026-07-15/screenshots/ghost-light.png`.
 - Codex typography: `docs/research/vanta-desktop-anti-slop-2026-07-15/screenshots/codex-typography.png`.
-- Vector icon concept: `docs/research/vanta-desktop-anti-slop-2026-07-15/screenshots/icon-proof/vanta-ghost-icon.svg.png`.
+- Vector icon proof: `docs/research/vanta-desktop-anti-slop-2026-07-15/screenshots/icon-proof/vanta-ghost-icon.svg.png`.
 
 ## Remaining boundary
 
-These checks prove the desktop shell, renderer behavior, local kernel startup, interaction contracts, and the existence of a vector icon concept. They do not prove signed distribution, notarization, live provider-backed conversation, or that the vector concept has been accepted and installed as the production app icon. Those remain release proofs rather than reasons to weaken the shell design.
+These checks prove the desktop shell, renderer behavior, local kernel startup, interaction contracts, and the installed desktop icon asset. They do not prove signed distribution, notarization, or live provider-backed conversation. Those remain release proofs rather than reasons to weaken the shell design.

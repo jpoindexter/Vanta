@@ -1,4 +1,5 @@
 import { execFileSync, spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { homedir } from "node:os";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -28,8 +29,14 @@ function runtimePaths() {
     cli: join(appPath, "src", "cli.ts"),
     loader: join(loaderRoot, "node_modules", "tsx", "dist", "loader.mjs"),
     dist: join(appPath, "desktop-app", "dist"),
+    icon: join(appPath, "desktop-app", "build", "icon.png"),
     kernel: join(process.resourcesPath, "kernel", process.platform === "win32" ? "vanta-kernel.exe" : "vanta-kernel"),
   };
+}
+
+function desktopIconPath() {
+  const icon = runtimePaths().icon;
+  return existsSync(icon) ? icon : undefined;
 }
 
 function startServer() {
@@ -129,9 +136,12 @@ function toggleDeveloperTools() {
 }
 
 async function createWindow() {
+  const icon = desktopIconPath();
+  if (process.platform === "darwin" && icon) app.dock?.setIcon(icon);
   mainWindow = new BrowserWindow({
     width: 1440, height: 960, minWidth: 760, minHeight: 620, show: false,
     title: "Vanta", backgroundColor: "#151515",
+    ...(icon ? { icon } : {}),
     ...(process.platform === "darwin" ? {
       titleBarStyle: "hiddenInset",
       trafficLightPosition: { x: 14, y: 18 },
