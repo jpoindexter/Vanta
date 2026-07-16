@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-16",
+  "updated": "2026-07-17",
   "items": [
     {
       "id": "WHAT-CAN-I-DO-GALLERY",
@@ -18616,7 +18616,7 @@
       "id": "SCHEMA-TRANSITION-TIMELINE",
       "track": "Harness",
       "title": "Schema transition timeline - append-only ground truth for every real action",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Extend Vanta's hash-chained event receipts into a task-transition ledger. Every real action records the before observation, chosen action, predicted next state, actual observation, outcome flags, model version, approval, and correlation IDs; hypotheses remain editable, but reality never is.",
       "done": "A task run writes an append-only transition JSONL compatible with the kernel audit chain; replay reconstructs ordered transitions after restart; reset, skipped, partial, and terminal observations are explicit; tampering fails verification; tests prove predictions and actual observations remain distinguishable and secrets are redacted.",
@@ -18626,7 +18626,7 @@
       "codex": "gpt-5.6-terra",
       "lens": "agent-loop",
       "updated": "2026-07-17",
-      "notes": "PROMOTED 2026-07-17 after SCHEMA-TASK-ENVIRONMENT-CONTRACT shipped. This is the next Schema slice: persist the typed transitions through the existing kernel audit chain without conflating predictions with observed reality.",
+      "notes": "SHIPPED 2026-07-17. Added typed task_transition and task_marker events on Vanta's existing kernel audit writer, plus runRecordedTaskStep so validated task execution persists predictions and actual observations as separate fields. Records include model, approval, correlation, verifier, terminal, and explicit observed/partial/terminal/reset/skipped outcomes. Restart replay resumes sequence numbers from prior events; replay is refused until the owning Rust kernel verifies its keyed hash chain. Nested secrets are redacted before persistence. Executed proof: Schema suite 12/12, TypeScript typecheck, and Rust audit integrity suite 5/5 including edit, deletion, and tail-truncation detection. Evidence: docs/research/schema-transition-timeline-2026-07-17.md.",
       "source": "schema-harness-2026-07-15",
       "after": [
         "SCHEMA-TASK-ENVIRONMENT-CONTRACT",
@@ -18657,7 +18657,7 @@
       "id": "SCHEMA-STATE-GROUNDING",
       "track": "Harness",
       "title": "Schema state grounding - turn raw task observations into inspectable entities and variables",
-      "status": "horizon",
+      "status": "next",
       "size": "L",
       "summary": "Build the first half of Schema's joint model: convert raw files, UI snapshots, logs, and tool results into a versioned task-state representation with entities, properties, relations, counters, affordances, and uncertainty. Representation changes are first-class because a failed rule may mean the state itself is wrong.",
       "done": "A task adapter can produce a typed, diffable state snapshot from raw observations; every field has provenance and confidence; representation versions preserve superseded fields; a counterexample can revise entity boundaries or add a missing variable without rewriting the immutable transition record; repo and browser fixtures prove stable identity across steps.",
@@ -18666,7 +18666,8 @@
       "effort": "high",
       "codex": "gpt-5.6-sol",
       "lens": "agent-loop",
-      "updated": "2026-07-16",
+      "updated": "2026-07-17",
+      "notes": "PROMOTED 2026-07-17 after the task environment contract and transition timeline shipped. Next Schema slice: derive versioned, provenance-bearing state without mutating the immutable transition record.",
       "source": "schema-harness-2026-07-15",
       "after": [
         "SCHEMA-TASK-ENVIRONMENT-CONTRACT",

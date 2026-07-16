@@ -1,3 +1,3 @@
 # Schema task environments
 
-Use `TaskEnvironment` for a bounded, replayable task substrate. Keep live browser, repository, and operator I/O in callers; this folder only owns typed contract execution and deterministic fixtures.
+Use `TaskEnvironment` for a bounded, replayable task substrate. Use `TaskTransitionTimeline` for append-only, redacted transition events on the kernel audit chain. Keep live browser, repository, operator, and cryptographic verification I/O behind injected callers.
