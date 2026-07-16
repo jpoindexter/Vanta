@@ -18382,6 +18382,49 @@
       ]
     },
     {
+      "id": "DESKTOP-ACTION-APPROVAL-PROMPT",
+      "track": "Desktop App",
+      "title": "Desktop action approval prompt — allow once, reject, and inspect side effects",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Give Vanta Desktop the same clear approval surface shown in Codex when an agent wants to modify files, use the network, run shell commands, or perform another side-effecting action. The prompt must name the action, target path or service, risk reason, and expose Allow once and Reject without burying the user in settings.",
+      "done": "When a desktop run reaches a kernel Ask verdict, Work renders an inline approval card with action type, affected file/service/command, risk explanation, and available controls. File edits show a readable diff or preview before approval; shell/network actions show command or destination context; Allow once resumes the paused action, Reject records the denial and keeps the run recoverable. The approval card is keyboard/screen-reader operable, survives reload/resume, writes an audit receipt, and Electron proof covers file edit, shell/network, allow, reject, and resumed-run states.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4",
+      "lens": "tui",
+      "updated": "2026-07-16",
+      "notes": "Added from user screenshots 2026-07-16 comparing Codex approval-required UI. This is desktop parity for Vanta runs, not a new kernel bypass. Use the existing kernel verdict as authority; UI only presents the decision point and writes receipts. Keep controls calm and explicit: Allow once / Reject first, richer Always/Never rules only if the kernel exposes safe scoped persistence.",
+      "source": "user screenshots 2026-07-16 Codex approval required",
+      "after": [
+        "DESKTOP-CONTEXT-LEGIBILITY",
+        "DESKTOP-RUN-RECOVERY-TIMELINE"
+      ]
+    },
+    {
+      "id": "DESKTOP-APPROVAL-MODE-PICKER",
+      "track": "Desktop App",
+      "title": "Desktop approval mode picker — Ask, Approve for me, Full access",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Add a desktop action-approval mode control equivalent to the ChatGPT/Codex options: Ask for approval, Approve for me, and Full access. The user should understand what each mode changes before a run starts and be able to switch modes without guessing what Vanta will do.",
+      "done": "Work exposes the active approval mode near the composer/header and a picker with Ask for approval, Approve for me, and Full access. Each option explains exactly what Vanta may do alone, what still asks, and what remains blocked by the kernel. Mode changes apply to the active/new session as designed, are persisted with project/session scope visible, never override kernel Block, and produce an audit event. The picker is keyboard accessible, includes a learn-more/details path, and Electron proof verifies all three modes, persistence, blocked-action behavior, and visible mode state during a run.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4",
+      "lens": "tui",
+      "updated": "2026-07-16",
+      "notes": "Added from user screenshot 2026-07-16 showing Ask for approval / Approve for me / Full access. This should compose with Vanta autonomy contract and permissions rules: Ask = default HITL, Approve for me = auto-approve low/known-safe actions while risky actions ask, Full access = unrestricted within configured project scope but kernel Block remains immovable. Avoid dangerous copy that implies bypassing the local boundary.",
+      "source": "user screenshot 2026-07-16 action approval mode menu",
+      "after": [
+        "DESKTOP-ACTION-APPROVAL-PROMPT",
+        "AUTONOMY-CONTRACT-WALLS",
+        "VANTA-PERMISSIONS"
+      ]
+    },
+    {
       "id": "DESKTOP-FLOW-PROOF-SUITE",
       "track": "Desktop App",
       "title": "Desktop flow proof suite — cold start, work, recovery, attachments, outputs, resize",
