@@ -32,6 +32,7 @@ function storedPaneWidth(key: string, fallback: number): number {
 }
 
 export function AppShell() {
+  useInputModality();
   const data = useDesktopData();
   const sound = useCompletionSound();
   const convo = useConversation(data.refresh, { prime: sound.prime, complete: sound.play });
@@ -184,6 +185,30 @@ export function AppShell() {
       <DesktopOverlays data={data} sound={sound} convo={convo} theme={theme} onTheme={changeTheme} onNew={() => setNewTaskOpen(true)} onInspector={(tab) => { data.setTab(tab); setInspectorOpen(true); setMobilePanel("inspect"); }} />
     </div>
   );
+}
+
+function useInputModality(): void {
+  useEffect(() => {
+    const root = document.documentElement;
+    const setModality = (modality: "keyboard" | "pointer") => {
+      root.dataset.inputModality = modality;
+      root.classList.toggle("keyboard-modality", modality === "keyboard");
+      root.classList.toggle("pointer-modality", modality === "pointer");
+    };
+    setModality("pointer");
+    const keyboard = () => setModality("keyboard");
+    const pointer = () => setModality("pointer");
+    window.addEventListener("keydown", keyboard, true);
+    window.addEventListener("pointerdown", pointer, true);
+    window.addEventListener("mousedown", pointer, true);
+    window.addEventListener("touchstart", pointer, true);
+    return () => {
+      window.removeEventListener("keydown", keyboard, true);
+      window.removeEventListener("pointerdown", pointer, true);
+      window.removeEventListener("mousedown", pointer, true);
+      window.removeEventListener("touchstart", pointer, true);
+    };
+  }, []);
 }
 
 function PaneResizeHandle(props: {

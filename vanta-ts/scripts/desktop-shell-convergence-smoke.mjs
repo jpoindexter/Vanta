@@ -108,7 +108,7 @@ try {
   await fixtureMessage.waitFor();
   await page.locator(".project-session-group .session-row").first().waitFor();
   await page.locator(".recent-session-group .session-row").first().waitFor();
-  await page.locator(".message-avatar").first().waitFor();
+  await page.locator(".message-content").first().waitFor();
   await page.locator(".run-timeline").waitFor();
   const inlineApproval = page.locator(".inline-approval");
   await inlineApproval.waitFor();
@@ -118,6 +118,16 @@ try {
   await page.locator(".conversation-stage").waitFor();
   await page.locator("#vanta-composer").waitFor();
   await page.getByRole("button", { name: "Open commands" }).waitFor();
+  await page.getByRole("button", { name: "Open command palette" }).click();
+  await page.getByRole("dialog", { name: "Command palette" }).waitFor();
+  const pointerPaletteFocus = await focusState(page);
+  if (pointerPaletteFocus.modality !== "pointer" || pointerPaletteFocus.outlineWidth !== 0) throw new Error(`Pointer-open command palette showed a keyboard focus ring: ${JSON.stringify(pointerPaletteFocus)}`);
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Meta+K");
+  await page.getByRole("dialog", { name: "Command palette" }).waitFor();
+  const keyboardPaletteFocus = await focusState(page);
+  if (keyboardPaletteFocus.modality !== "keyboard" || keyboardPaletteFocus.outlineWidth < 1) throw new Error(`Keyboard-open command palette lost its focus ring: ${JSON.stringify(keyboardPaletteFocus)}`);
+  await page.keyboard.press("Escape");
 
   await page.locator(".session-sidebar").getByRole("button", { name: "New task", exact: true }).click();
   const newTask = page.getByRole("dialog", { name: "Start a new task" });
@@ -149,6 +159,11 @@ try {
   await page.locator(".composer").getByTitle("Change model").click();
   await page.getByRole("heading", { name: "Choose a model" }).waitFor();
   await page.getByPlaceholder("Search models and providers").fill("openai");
+  const pointerModelFocus = await focusState(page);
+  if (pointerModelFocus.modality !== "pointer" || pointerModelFocus.outlineWidth !== 0) throw new Error(`Pointer-open model picker showed a keyboard focus ring: ${JSON.stringify(pointerModelFocus)}`);
+  await page.keyboard.press("Tab");
+  const keyboardModelFocus = await focusState(page);
+  if (keyboardModelFocus.modality !== "keyboard" || keyboardModelFocus.outlineWidth < 1) throw new Error(`Keyboard navigation in model picker lost its focus ring: ${JSON.stringify(keyboardModelFocus)}`);
   await page.locator(".model-row").first().waitFor();
   await page.getByRole("button", { name: "Close model picker" }).click();
 
@@ -243,4 +258,19 @@ try {
     rm(userData, { recursive: true, force: true }),
     rm(project, { recursive: true, force: true }),
   ]);
+}
+
+async function focusState(page) {
+  return page.evaluate(() => {
+    const active = document.activeElement;
+    if (!active) return { modality: document.documentElement.dataset.inputModality ?? "", outlineWidth: 0, outlineStyle: "", tag: "" };
+    const computed = getComputedStyle(active);
+    return {
+      modality: document.documentElement.dataset.inputModality ?? "",
+      outlineWidth: Number.parseFloat(computed.outlineWidth) || 0,
+      outlineStyle: computed.outlineStyle,
+      tag: active.tagName,
+      className: typeof active.className === "string" ? active.className : "",
+    };
+  });
 }
