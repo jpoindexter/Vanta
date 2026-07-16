@@ -117,6 +117,11 @@ try {
   if (approvalDecision !== "allow") throw new Error(`Inline approval did not post allow: ${approvalDecision ?? "missing"}`);
   await page.locator(".conversation-stage").waitFor();
   await page.locator("#vanta-composer").waitFor();
+  const taskContext = page.getByLabel("Task execution context");
+  await taskContext.getByText("Session model").waitFor();
+  await taskContext.getByText(/Tools \d+/).waitFor();
+  await taskContext.getByText("Memory local").waitFor();
+  await taskContext.getByText("Ask before risk").waitFor();
   await page.getByRole("button", { name: "Open commands" }).waitFor();
   await page.getByRole("button", { name: "Open command palette" }).click();
   await page.getByRole("dialog", { name: "Command palette" }).waitFor();

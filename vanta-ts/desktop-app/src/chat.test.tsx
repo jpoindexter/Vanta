@@ -1,7 +1,7 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
-import { ChatThread } from "./chat.js";
+import { ChatThread, Composer } from "./chat.js";
 import type { DesktopRunReceipt } from "./types.js";
 
 describe("ChatThread recovery", () => {
@@ -34,5 +34,36 @@ describe("ChatThread recovery", () => {
     expect(html).toContain("Retry failed step");
     expect(html).toContain("Edit request");
     expect(html).toContain("Start from checkpoint");
+  });
+});
+
+describe("Composer context legibility", () => {
+  it("renders model scope, tools, memory, approval state, and removable file chips", () => {
+    const html = renderToStaticMarkup(
+      <Composer
+        value=""
+        busy={false}
+        model="gpt-5.5"
+        root="/Users/jasonpoindexter/Documents/GitHub/docs/Vanta"
+        tools={42}
+        attachments={["desktop-app/src/App.tsx"]}
+        onChange={vi.fn()}
+        onSubmit={vi.fn()}
+        onQueue={vi.fn()}
+        onRemoveAttachment={vi.fn()}
+        onStop={vi.fn()}
+        onAttach={vi.fn()}
+        onModel={vi.fn()}
+        onCommand={vi.fn()}
+      />,
+    );
+
+    expect(html).toContain("Session model");
+    expect(html).toContain("Tools 42");
+    expect(html).toContain("Memory local");
+    expect(html).toContain("Ask before risk");
+    expect(html).toContain("gpt-5.5");
+    expect(html).toContain("desktop-app/src/App.tsx");
+    expect(html).toContain("Remove desktop-app/src/App.tsx");
   });
 });

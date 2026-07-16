@@ -309,7 +309,7 @@ function humanizeTool(name: string): string {
   return name.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
 }
 
-export function Composer(props: { value: string; busy: boolean; model?: string; root?: string; attachments: string[]; onChange: (value: string) => void; onSubmit: (text: string) => void; onQueue: (text: string) => void; onRemoveAttachment: (file: string) => void; onStop: () => void; onAttach: () => void; onModel: () => void; onCommand: () => void }) {
+export function Composer(props: { value: string; busy: boolean; model?: string; root?: string; tools?: number; attachments: string[]; onChange: (value: string) => void; onSubmit: (text: string) => void; onQueue: (text: string) => void; onRemoveAttachment: (file: string) => void; onStop: () => void; onAttach: () => void; onModel: () => void; onCommand: () => void }) {
   function send(event: FormEvent) {
     event.preventDefault();
     const value = props.value.trim();
@@ -320,7 +320,7 @@ export function Composer(props: { value: string; busy: boolean; model?: string; 
   }
   return (
     <form className="composer" onSubmit={send}>
-      <div className="task-context" aria-label="Task execution context"><span><Bot size={12} /><strong>Operator</strong></span><span><Laptop size={12} /><strong>Local Mac</strong></span><span><FolderKanban size={12} /><strong>{props.root?.split("/").filter(Boolean).at(-1) ?? "Project"}</strong></span><span><GitBranch size={12} /><strong>main</strong></span><span className="safe"><ShieldCheck size={12} />Ask before risk</span></div>
+      <div className="task-context" aria-label="Task execution context"><span><Bot size={12} /><strong>Operator</strong></span><span><Laptop size={12} /><strong>Local Mac</strong></span><span><FolderKanban size={12} /><strong>{props.root?.split("/").filter(Boolean).at(-1) ?? "Project"}</strong></span><span><GitBranch size={12} /><strong>main</strong></span><span><Cpu size={12} /><strong>Session model</strong></span><span><Network size={12} /><strong>Tools {props.tools ?? 0}</strong></span><span><PackageOpen size={12} /><strong>Memory local</strong></span><span className="safe"><ShieldCheck size={12} />Ask before risk</span></div>
       <label className="sr-only" htmlFor="vanta-composer">Message Vanta</label>
       <textarea id="vanta-composer" value={props.value} onChange={(e) => props.onChange(e.target.value)} onKeyDown={(event) => keyDown(event, props)} placeholder={props.busy ? "Queue the next instruction..." : "Ask Vanta to do something..."} />
       {props.attachments.length ? <div className="context-chips" aria-label="Attached project context">{props.attachments.map((file) => <span key={file}><span title={file}>{file}</span><button type="button" aria-label={`Remove ${file}`} title={`Remove ${file}`} onClick={() => props.onRemoveAttachment(file)}><X size={13} /></button></span>)}</div> : null}
