@@ -1,0 +1,236 @@
+.message {
+  width: 100%;
+  padding: 18px 0;
+}
+
+.message.user {
+  width: fit-content;
+  max-width: min(70ch, 76%);
+  justify-self: end;
+  border: 0;
+  background: transparent;
+  padding: 12px 0;
+}
+
+.message.user .message-markdown {
+  border-radius: 18px;
+  background: var(--raised);
+  padding: 10px 14px;
+}
+
+.message-markdown {
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.62;
+  overflow-wrap: anywhere;
+}
+
+.message-markdown > :first-child {
+  margin-top: 0;
+}
+
+.message-markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.message-markdown p {
+  margin: 0 0 12px;
+}
+
+.message-markdown ul,
+.message-markdown ol {
+  margin: 8px 0 12px;
+  padding-left: 22px;
+}
+
+.message-markdown li {
+  margin: 4px 0;
+  padding-left: 2px;
+}
+
+.message-markdown h1,
+.message-markdown h2,
+.message-markdown h3,
+.message-markdown h4,
+.message-markdown h5,
+.message-markdown h6 {
+  margin: 18px 0 8px;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: 0;
+  line-height: 1.35;
+  text-transform: none;
+}
+
+.message-markdown code {
+  border-radius: 5px;
+  background: var(--raised);
+  padding: 2px 5px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: .92em;
+}
+
+.message-markdown pre {
+  max-width: 100%;
+  margin: 12px 0;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  padding: 12px 14px;
+}
+
+.message-markdown pre code {
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  white-space: pre;
+}
+
+.message-markdown a {
+  color: var(--text);
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 3px;
+}
+
+.message-markdown a:hover {
+  text-decoration-color: var(--text);
+}
+
+.message-markdown a[data-unsafe-link] {
+  color: var(--faint);
+  cursor: not-allowed;
+  text-decoration-style: dotted;
+}
+
+.message-footer {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+  color: var(--faint);
+}
+
+.message.user .message-footer {
+  justify-content: flex-end;
+  padding-right: 4px;
+}
+
+.message-footer time {
+  font-size: 10px;
+  font-style: normal;
+}
+
+.message-actions {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 1px;
+  margin: 0 !important;
+  opacity: .64;
+  transition: opacity .12s ease;
+}
+
+.message:hover .message-actions,
+.message:focus-within .message-actions {
+  opacity: 1;
+}
+
+.message-actions button {
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--faint);
+  padding: 0;
+}
+
+.message-actions button:hover:not(:disabled),
+.message-actions button[data-state="selected"] {
+  background: var(--raised);
+  color: var(--text);
+}
+
+.message-actions button:active:not(:disabled) {
+  transform: none;
+}
+
+.message-action-feedback {
+  display: block;
+  margin-top: 2px;
+  color: var(--ok);
+  font-size: 10px;
+  text-align: end;
+}
+
+.run-timeline {
+  margin-block: 2px 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--raised) 56%, transparent);
+  padding: 0;
+}
+
+.run-timeline::before {
+  display: none;
+}
+
+.timeline-step {
+  min-height: 44px;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 9px;
+  padding: 8px 11px;
+}
+
+.timeline-step + .timeline-step {
+  border-top: 1px solid var(--line);
+}
+
+.timeline-step > span {
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  clip-path: none;
+}
+
+.timeline-step strong {
+  font-size: 12px;
+  font-weight: 550;
+}
+
+.thinking {
+  padding: 8px 0;
+  color: var(--muted);
+}
+
+@media (max-width: 760px) {
+  .message {
+    padding-block: 14px;
+  }
+
+  .message.user {
+    max-width: 88%;
+  }
+
+  .message-markdown {
+    font-size: 13px;
+  }
+
+  .message-actions {
+    opacity: 1;
+  }
+
+  .message-actions button {
+    width: 32px;
+    height: 32px;
+  }
+}

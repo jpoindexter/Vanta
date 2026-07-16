@@ -104,7 +104,8 @@ describe("Composer context legibility", () => {
     expect(html).toContain("Session model");
     expect(html).toContain("Tools 42");
     expect(html).toContain("Memory local");
-    expect(html).toContain("Ask before risk");
+    expect(html).toContain('class="approval-mode"');
+    expect(html).toContain(">Ask</span>");
     expect(html).toContain("gpt-5.5");
     expect(html).toContain("desktop-app/src/App.tsx");
     expect(html).toContain("Remove desktop-app/src/App.tsx");
@@ -112,7 +113,7 @@ describe("Composer context legibility", () => {
 });
 
 describe("assistant message actions", () => {
-  it("renders copy, feedback, expand, and timestamp controls for assistant responses only", () => {
+  it("renders Codex-style actions after assistant and operator messages", () => {
     const html = renderToStaticMarkup(
       <ChatThread
         messages={[
@@ -131,10 +132,13 @@ describe("assistant message actions", () => {
     );
 
     expect(html).toContain("Copy response");
+    expect(html).toContain("Copy message");
     expect(html).toContain("Mark helpful");
     expect(html).toContain("Mark not helpful");
     expect(html).toContain("Expand response");
     expect(html).toContain("<time");
     expect(html.match(/Response actions/g)).toHaveLength(1);
+    expect(html.match(/Message actions/g)).toHaveLength(1);
+    expect(html).not.toContain("message-meta");
   });
 });

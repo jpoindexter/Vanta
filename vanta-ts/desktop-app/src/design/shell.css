@@ -345,6 +345,11 @@
   .session-sidebar,
   .app-shell.sidebar-collapsed .session-sidebar {
     inset-block: var(--titlebar-height) 56px;
+    box-shadow: none;
+  }
+
+  .app-shell.panel-sessions .session-sidebar {
+    box-shadow: 24px 0 60px color-mix(in srgb, var(--text) 28%, transparent);
   }
 
   .right-rail {

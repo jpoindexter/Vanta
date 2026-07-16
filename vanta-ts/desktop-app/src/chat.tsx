@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
-import { Activity, Archive, ArchiveRestore, ArrowUp, Bot, Check, CheckCircle2, ChevronRight, Copy, Cpu, FileText, FolderKanban, GitBranch, Keyboard, Laptop, ListPlus, Maximize2, MessageSquare, MoreHorizontal, Network, PackageOpen, Paperclip, Pencil, Plus, RotateCcw, Search, Settings2, ShieldCheck, Square, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
+import { Activity, Archive, ArchiveRestore, ArrowUp, Check, CheckCircle2, ChevronRight, Copy, FileText, FolderKanban, Keyboard, Laptop, ListPlus, Maximize2, MessageSquare, MoreHorizontal, Network, PackageOpen, Paperclip, Pencil, Plus, RotateCcw, Search, Settings2, ShieldCheck, Square, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
 import type { Approval, ApprovalDecision, DesktopRunReceipt, DesktopView, Message, PermissionSection, Session } from "./types.js";
+import { MessageMarkdown } from "./message-markdown.js";
 
 type SessionSidebarProps = {
   sessions: Session[];
@@ -283,7 +284,7 @@ export function ChatThread(props: { messages: Message[]; busy: boolean; streamTe
 
   return (
     <section className="chat-thread" aria-live="polite">
-      {rows.length === 0 ? <EmptyState onPrompt={props.onPrompt} /> : <div className="run-summary"><span><i />{props.busy ? "Live trace" : "Run record"}</span><time>{props.busy ? "working now" : "current session"}</time></div>}
+      {rows.length === 0 ? <EmptyState onPrompt={props.onPrompt} /> : null}
       {rows.map((message, index) => {
         if (message.role === "tool") return null;
         const key = messageFeedbackKey(message, index);
@@ -302,7 +303,7 @@ export function ChatThread(props: { messages: Message[]; busy: boolean; streamTe
         );
       })}
       {props.approval ? <ApprovalCheckpoint approval={props.approval} onAnswer={props.onApproval} /> : null}
-      {props.streamText ? <article className="message assistant streaming" aria-label="Vanta response streaming"><div className="message-content"><header><strong>Vanta</strong><time>now</time></header><p>{props.streamText}</p></div></article> : null}
+      {props.streamText ? <article className="message assistant streaming" aria-label="Vanta response streaming"><div className="message-content"><MessageMarkdown content={props.streamText} /></div></article> : null}
       {props.busy ? <div className="thinking"><i />Working...</div> : null}
       {props.events.length && props.events[0]?.label !== "No tool activity yet." ? <EventTimeline events={props.events.slice(-5)} /> : null}
       {recovery ? <RunRecovery receipt={recovery} onRetry={props.onRetry} onEdit={() => props.onPrompt(recovery.checkpoint?.instruction ?? "")} onCheckpoint={() => props.onPrompt(checkpointPrompt(recovery))} /> : null}
@@ -315,9 +316,9 @@ export function ChatThread(props: { messages: Message[]; busy: boolean; streamTe
 function MessageBubble(props: { message: Message; feedback?: MessageFeedback; feedbackReason?: string; onFeedback?: (value: MessageFeedback) => void; onFeedbackReason?: (reason: string) => void; onExpand?: (opener: HTMLButtonElement) => void }) {
   const { message } = props;
   const role = message.role === "user" ? "You" : message.role === "assistant" ? "Vanta" : message.name ?? message.role;
-  const showHeader = message.role !== "user";
   const [copyState, setCopyState] = useState<"idle" | "copying" | "copied" | "failed">("idle");
-  const canAct = message.role === "assistant" && !!message.content;
+  const canCopy = !!message.content;
+  const isAssistant = message.role === "assistant";
 
   async function copyMessage() {
     const text = message.content ?? "";
@@ -334,21 +335,21 @@ function MessageBubble(props: { message: Message; feedback?: MessageFeedback; fe
   return (
     <article className={`message ${message.role}`} aria-label={`${role} message`}>
       <div className="message-content">
-        {showHeader ? (
-          <header>
-            <span className="message-meta"><strong>{role}</strong><time dateTime={new Date(0).toISOString()}>now</time></span>
-            {canAct ? (
-              <span className="message-actions" role="toolbar" aria-label="Response actions">
-                <button type="button" aria-label="Copy response" title="Copy response" disabled={copyState === "copying"} data-state={copyState} onClick={() => void copyMessage()}><Copy size={14} /></button>
+        <MessageMarkdown content={message.content ?? ""} />
+        {canCopy ? (
+          <footer className="message-footer">
+            {message.role === "user" ? <time dateTime={new Date(0).toISOString()}>now</time> : null}
+            <span className="message-actions" role="toolbar" aria-label={isAssistant ? "Response actions" : "Message actions"}>
+              <button type="button" aria-label={isAssistant ? "Copy response" : "Copy message"} title={isAssistant ? "Copy response" : "Copy message"} disabled={copyState === "copying"} data-state={copyState} onClick={() => void copyMessage()}><Copy size={14} /></button>
+              {isAssistant ? <>
                 <button type="button" aria-label="Mark helpful" title="Helpful" aria-pressed={props.feedback === "helpful"} data-state={props.feedback === "helpful" ? "selected" : "idle"} onClick={() => props.onFeedback?.("helpful")}><ThumbsUp size={14} /></button>
                 <button type="button" aria-label="Mark not helpful" title="Not helpful" aria-pressed={props.feedback === "not_helpful"} data-state={props.feedback === "not_helpful" ? "selected" : "idle"} onClick={() => props.onFeedback?.("not_helpful")}><ThumbsDown size={14} /></button>
                 <button type="button" aria-label="Expand response" title="Expand response" onClick={(event) => props.onExpand?.(event.currentTarget)}><Maximize2 size={14} /></button>
-              </span>
-            ) : null}
-          </header>
+              </> : null}
+            </span>
+          </footer>
         ) : null}
-        <p>{message.content ?? ""}</p>
-        {copyState === "copied" ? <small className="message-action-feedback" role="status">Copied response</small> : null}
+        {copyState === "copied" ? <small className="message-action-feedback" role="status">{isAssistant ? "Copied response" : "Copied message"}</small> : null}
         {copyState === "failed" ? <small className="message-action-feedback bad" role="status">Copy failed</small> : null}
         {props.feedback === "not_helpful" ? <FeedbackReasonPicker selected={props.feedbackReason} onSelect={(reason) => props.onFeedbackReason?.(reason)} /> : null}
       </div>
@@ -494,13 +495,13 @@ export function Composer(props: { value: string; busy: boolean; model?: string; 
   }
   return (
     <form className="composer" onSubmit={send}>
-      <div className="task-context" aria-label="Task execution context"><span><Bot size={12} /><strong>Operator</strong></span><span><Laptop size={12} /><strong>Local Mac</strong></span><span><FolderKanban size={12} /><strong>{props.root?.split("/").filter(Boolean).at(-1) ?? "Project"}</strong></span><span><GitBranch size={12} /><strong>main</strong></span><span><Cpu size={12} /><strong>Session model</strong></span><span><Network size={12} /><strong>Tools {props.tools ?? 0}</strong></span><span><PackageOpen size={12} /><strong>Memory local</strong></span><span className="safe"><ShieldCheck size={12} />Ask before risk</span></div>
+      <div className="task-context" aria-label="Task execution context: Session model, project, host, tools, and local memory"><span><FolderKanban size={12} /><strong>{props.root?.split("/").filter(Boolean).at(-1) ?? "Project"}</strong></span><span><Laptop size={12} /><strong>Local Mac</strong></span><span><Network size={12} /><strong>Tools {props.tools ?? 0}</strong></span><span><PackageOpen size={12} /><strong>Memory local</strong></span></div>
       <label className="sr-only" htmlFor="vanta-composer">Message Vanta</label>
       <textarea id="vanta-composer" value={props.value} onChange={(e) => props.onChange(e.target.value)} onKeyDown={(event) => keyDown(event, props)} placeholder={props.busy ? "Queue the next instruction..." : "Ask Vanta to do something..."} />
       {props.attachments.length ? <div className="context-chips" aria-label="Attached project context">{props.attachments.map((file) => <span key={file}><span title={file}>{file}</span><button type="button" aria-label={`Remove ${file}`} title={`Remove ${file}`} onClick={() => props.onRemoveAttachment(file)}><X size={13} /></button></span>)}</div> : null}
       <div className="composer-footer">
-        <div className="composer-context-controls"><button className="composer-context-button" type="button" title="Attach project files" aria-label="Attach project files" onClick={props.onAttach}><Paperclip size={15} /><span>Context</span></button><button className="composer-command-button" type="button" title="Open commands" aria-label="Open commands" onClick={props.onCommand}><Plus size={15} /><span>Commands</span></button></div>
-        <div className="composer-actions"><button className="model-button" type="button" title="Change model" onClick={props.onModel}><Cpu size={14} /><span>{props.model ?? "Choose model"}</span></button><span className="approval-mode"><ShieldCheck size={12} />Ask</span>{props.busy ? <><button className="queue-button" type="submit" disabled={!props.value.trim()} title="Queue next instruction"><ListPlus size={15} /><span>Queue</span></button><button className="stop-button" type="button" title="Stop current run" aria-label="Stop current run" onClick={props.onStop}><Square size={14} /><span>Stop</span></button></> : <button className="send-button" type="submit" disabled={!props.value.trim()} aria-label="Send"><ArrowUp size={16} /></button>}</div>
+        <div className="composer-context-controls"><button className="composer-context-button" type="button" title="Attach project files" aria-label="Attach project files" onClick={props.onAttach}><Paperclip size={16} /><span className="sr-only">Context</span></button><button className="composer-command-button" type="button" title="Open commands" aria-label="Open commands" onClick={props.onCommand}><Plus size={16} /><span className="sr-only">Commands</span></button></div>
+        <div className="composer-actions"><button className="model-button" type="button" title="Change model" aria-label={`Change session model, currently ${props.model ?? "not selected"}`} onClick={props.onModel}><span>{props.model ?? "Choose model"}</span></button><span className="approval-mode"><ShieldCheck size={12} />Ask</span>{props.busy ? <><button className="queue-button" type="submit" disabled={!props.value.trim()} title="Queue next instruction"><ListPlus size={15} /><span>Queue</span></button><button className="stop-button" type="button" title="Stop current run" aria-label="Stop current run" onClick={props.onStop}><Square size={14} /><span>Stop</span></button></> : <button className="send-button" type="submit" disabled={!props.value.trim()} aria-label="Send"><ArrowUp size={16} /></button>}</div>
       </div>
     </form>
   );

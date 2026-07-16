@@ -23,7 +23,7 @@ try {
     updated: "2026-07-14T00:00:00.000Z",
     messages: [
       { role: "user", content: "Make the desktop shell feel like a serious operator workbench. Keep the conversation central and make the output easy to verify." },
-      { role: "assistant", content: "I am mapping the current shell against the project rail, run timeline, and Vanta kernel boundary.", toolCalls: [
+      { role: "assistant", content: "I am **mapping** the current shell against the project rail and Vanta kernel boundary.\n\n- Conversation stays central\n- Proof stays visible", toolCalls: [
         { id: "read-shell", name: "read_file", arguments: { path: "desktop-app/src/App.tsx" } },
         { id: "compare-demo", name: "browser_act", arguments: { target: "accepted convergence demo" } },
       ] },
@@ -139,8 +139,13 @@ try {
   await page.locator(".project-session-group .session-row").first().waitFor();
   await page.locator(".recent-session-group .session-row").first().waitFor();
   await page.locator(".message-content").first().waitFor();
+  const userMessage = page.locator(".message.user").first();
+  await userMessage.getByRole("toolbar", { name: "Message actions" }).waitFor();
+  await userMessage.getByRole("button", { name: "Copy message" }).click();
+  await userMessage.getByText("Copied message").waitFor();
   const assistantMessage = page.locator(".message.assistant").first();
   await assistantMessage.getByRole("toolbar", { name: "Response actions" }).waitFor();
+  await assistantMessage.locator(".message-markdown strong").getByText("mapping").waitFor();
   await assistantMessage.getByRole("button", { name: "Copy response" }).click();
   await assistantMessage.getByText("Copied response").waitFor();
   await assistantMessage.getByRole("button", { name: "Mark helpful" }).click();
@@ -149,6 +154,7 @@ try {
   await assistantMessage.getByRole("button", { name: "Wrong" }).waitFor();
   await assistantMessage.getByRole("button", { name: "Wrong" }).click();
   if (await assistantMessage.getByRole("button", { name: "Wrong" }).getAttribute("aria-pressed") !== "true") throw new Error("Not-helpful reason did not persist selected state");
+  await assistantMessage.getByRole("button", { name: "Mark helpful" }).click();
   await assistantMessage.getByRole("button", { name: "Expand response" }).click();
   await page.getByRole("dialog", { name: "Vanta transcript" }).waitFor();
   await page.getByRole("button", { name: "Close expanded response" }).click();
@@ -172,10 +178,10 @@ try {
   await page.locator(".conversation-stage").waitFor();
   await page.locator("#vanta-composer").waitFor();
   const taskContext = page.getByLabel("Task execution context");
-  await taskContext.getByText("Session model").waitFor();
   await taskContext.getByText(/Tools \d+/).waitFor();
   await taskContext.getByText("Memory local").waitFor();
-  await taskContext.getByText("Ask before risk").waitFor();
+  await page.getByRole("button", { name: /Change session model/ }).waitFor();
+  await page.locator(".approval-mode").getByText("Ask").waitFor();
   await page.getByRole("button", { name: "Open commands" }).waitFor();
   await page.getByRole("button", { name: "Open command palette" }).click();
   await page.getByRole("dialog", { name: "Command palette" }).waitFor();
@@ -245,6 +251,13 @@ try {
     if (metrics.scrollWidth > metrics.viewportWidth + 1) throw new Error(`Responsive shell overflows horizontally: ${JSON.stringify(metrics)}`);
     if ((metrics.shellBottom ?? 0) > metrics.viewportHeight + 1) throw new Error(`Responsive shell exceeds viewport: ${JSON.stringify(metrics)}`);
     if ((metrics.inspectorLeft ?? 0) < -1 || (metrics.inspectorRight ?? 0) > metrics.viewportWidth + 1) throw new Error(`Responsive inspector exceeds viewport: ${JSON.stringify(metrics)}`);
+    if (viewport.width === 760 && process.env.VANTA_DESKTOP_CONVERGENCE_COMPACT_SCREENSHOT) {
+      const closeInspector = page.getByRole("button", { name: "Close inspector" });
+      if (await closeInspector.isVisible().catch(() => false)) await closeInspector.click();
+      await page.locator(".right-rail").waitFor({ state: "detached" });
+      await page.waitForFunction(() => (document.querySelector(".session-sidebar")?.getBoundingClientRect().right ?? 0) <= 1);
+      await page.screenshot({ path: process.env.VANTA_DESKTOP_CONVERGENCE_COMPACT_SCREENSHOT, fullPage: false });
+    }
     responsive.push(metrics);
   }
 
@@ -264,6 +277,10 @@ try {
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.waitForFunction(() => window.innerWidth === 1440 && window.innerHeight === 960);
   await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  if (!await inspector.isVisible().catch(() => false)) {
+    await page.getByRole("button", { name: "Open contextual inspector" }).click();
+    await inspector.waitFor();
+  }
   await inspector.getByRole("tab", { name: "Activity", exact: true }).click();
   if (process.env.VANTA_DESKTOP_CONVERGENCE_SCREENSHOT) {
     await page.screenshot({ path: process.env.VANTA_DESKTOP_CONVERGENCE_SCREENSHOT, fullPage: false });
@@ -283,7 +300,8 @@ try {
       inspector: rect(".right-rail"),
       inspectorTabs: rect(".inspector-tabs"),
       composer: rect(".composer"),
-      message: rect(".message-content"),
+      assistantMessage: rect(".message.assistant .message-content"),
+      userMessage: rect(".message.user .message-markdown"),
       statusbar: rect(".desktop-statusbar"),
     };
   });
@@ -295,8 +313,10 @@ try {
   if (geometry.inspectorTabs.top - geometry.inspector.top > 4) throw new Error(`Inspector tabs do not own the tray top: ${JSON.stringify(geometry)}`);
   if (Math.abs(geometry.workToolbar.height - geometry.inspectorTabs.height) > 1) throw new Error(`Work toolbar and inspector tabs have different heights: ${JSON.stringify(geometry)}`);
   if (Math.abs(geometry.workToolbar.bottom - geometry.inspectorTabs.bottom) > 1) throw new Error(`Work toolbar and inspector tabs do not share a baseline: ${JSON.stringify(geometry)}`);
-  if (geometry.composer.width > 660 || geometry.composer.width < 480) throw new Error(`Composer width drifted from the accepted demo: ${JSON.stringify(geometry)}`);
-  if (geometry.message.width > 700) throw new Error(`Transcript reading column is too wide: ${JSON.stringify(geometry)}`);
+  if (geometry.composer.width > 780 || geometry.composer.width < 560) throw new Error(`Composer width drifted from the Codex-style work surface: ${JSON.stringify(geometry)}`);
+  if (geometry.assistantMessage.width > 780) throw new Error(`Transcript reading column is too wide: ${JSON.stringify(geometry)}`);
+  if (Math.abs(geometry.composer.left - geometry.assistantMessage.left) > 2) throw new Error(`Composer and transcript are not aligned: ${JSON.stringify(geometry)}`);
+  if (geometry.userMessage.right > geometry.assistantMessage.right + 1) throw new Error(`Operator message exceeds the transcript edge: ${JSON.stringify(geometry)}`);
   if (Math.abs(geometry.statusbar.height - 27) > 1) throw new Error(`Statusbar height drifted: ${JSON.stringify(geometry)}`);
   const visual = await page.evaluate(() => {
     const style = (selector) => {
@@ -305,11 +325,23 @@ try {
       const computed = getComputedStyle(element);
       return { background: computed.backgroundColor, color: computed.color, display: computed.display };
     };
-    return { shell: style(".app-shell"), sidebar: style(".session-sidebar"), workbench: style(".workbench"), inspector: style(".right-rail"), sheets: document.styleSheets.length };
+    return {
+      shell: style(".app-shell"),
+      sidebar: style(".session-sidebar"),
+      workbench: style(".workbench"),
+      inspector: style(".right-rail"),
+      assistantMessage: style(".message.assistant"),
+      userMessage: style(".message.user .message-markdown"),
+      assistantSpeakerLabels: document.querySelectorAll(".message.assistant .message-meta").length,
+      sheets: document.styleSheets.length,
+    };
   });
-  for (const [name, surface] of Object.entries(visual).filter(([name]) => name !== "sheets")) {
+  for (const [name, surface] of Object.entries(visual).filter(([name]) => !["sheets", "assistantSpeakerLabels", "assistantMessage"].includes(name))) {
     if (surface.background === "rgba(0, 0, 0, 0)") throw new Error(`${name} surface is transparent: ${JSON.stringify(visual)}`);
   }
+  if (visual.assistantMessage.background !== "rgba(0, 0, 0, 0)") throw new Error(`Assistant output regained a message box: ${JSON.stringify(visual)}`);
+  if (visual.userMessage.background === "rgba(0, 0, 0, 0)") throw new Error(`Operator message lost its compact bubble: ${JSON.stringify(visual)}`);
+  if (visual.assistantSpeakerLabels !== 0) throw new Error(`Redundant assistant speaker chrome returned: ${JSON.stringify(visual)}`);
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
   process.stdout.write(`${JSON.stringify({ destinations: true, newTask: true, operate: true, inlineApproval: approvalDecisions, inspector: true, modelPicker: true, responsive, compact: true, geometry, visual })}\n`);
 } finally {

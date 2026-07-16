@@ -6,6 +6,8 @@ import "./styles.css";
 import "./design/tokens.css";
 import "./design/shell.css";
 import "./design/workflows.css";
+import "./design/messages.css";
+import "./design/conversation.css";
 import { isNativeCompanion } from "./companion-client";
 
 const Root = window.location.pathname === "/companion" || isNativeCompanion() ? CompanionApp : AppShell;

@@ -18576,6 +18576,26 @@
       ]
     },
     {
+      "id": "DESKTOP-CODEX-CHAT-SURFACE",
+      "track": "Desktop App",
+      "title": "Desktop Codex-style chat surface — quiet transcript, receipts, and composer",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Refine the real Vanta Work conversation around the Codex desktop hierarchy: a centered readable transcript, unboxed assistant output, compact right-aligned operator messages, formatted Markdown, tool receipts, and a wide two-row composer. Preserve Vanta's Ghost palette, kernel approvals, context visibility, and contextual inspector instead of copying Codex branding.",
+      "done": "The Electron Work view renders assistant output without redundant speaker chrome, operator messages as compact right-aligned bubbles with copy feedback, safe Markdown with readable code and lists, receipt-like tool activity, and a centered composer aligned to the transcript. At desktop and 760px widths the transcript and composer remain visible without horizontal overflow or inspector overlap; keyboard focus, message actions, approvals, and compact controls still work; renderer tests, typecheck, Electron convergence smoke, and visual screenshots pass.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-sol",
+      "lens": "tui",
+      "updated": "2026-07-16",
+      "notes": "SHIPPED 2026-07-16 from the user-provided Codex Desktop chat screenshots. The real Electron Work view now uses a centered 760px transcript/composer axis, unboxed assistant output, compact right-aligned operator bubbles with copy feedback, post-response actions, safe rendered Markdown, and receipt-like tool activity while preserving Ghost tokens, context visibility, approvals, and the inspector. At 760px the smoke waits for drawer transitions before visual capture so hidden panes cannot obscure the transcript. Executed proof: 6 focused renderer tests passed; renderer typecheck passed; Electron convergence passed at 1440x960, 1024x700, 760x700, and 390x844 with aligned transcript/composer geometry, transparent assistant surface, tonal user surface, zero redundant assistant labels, and no horizontal overflow; native smoke reached renderer assets and packaged kernel. Evidence: docs/research/vanta-desktop-codex-chat-2026-07-16.md.",
+      "source": "user Codex Desktop screenshots 2026-07-16",
+      "after": [
+        "DESKTOP-ANTI-SLOP-DESIGN-PASS"
+      ]
+    },
+    {
       "id": "SCHEMA-TASK-ENVIRONMENT-CONTRACT",
       "track": "Harness",
       "title": "Schema task environment contract - typed observe, act, predict, and outcome boundary",
