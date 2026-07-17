@@ -18870,7 +18870,7 @@
       "id": "SCHEMA-MECHANISM-LIBRARY",
       "track": "Harness",
       "title": "Schema mechanism library - promote verified task rules without freezing bad abstractions",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "Convert repeatedly verified mechanisms into reusable, typed components only after evidence supports transfer. Preserve the causal abstraction across tasks while allowing structured revisions for new variables, and retain counterexamples so a coincidental rule is not promoted as general knowledge.",
       "done": "A mechanism can be proposed from a certified task model, must cite supporting transitions and counterexamples, passes held-out replay fixtures, and enters the existing self-learning adoption gate; later tasks can retrieve and adapt it; failed transfer supersedes or scopes the mechanism without deleting prior evidence; reuse and regression rates are measured.",
@@ -18879,7 +18879,8 @@
       "effort": "high",
       "codex": "gpt-5.6-sol",
       "lens": "memory",
-      "updated": "2026-07-16",
+      "updated": "2026-07-17",
+      "notes": "SHIPPED 2026-07-17: Added a typed immutable Schema mechanism library that accepts only a live complete-history-certified task model with model-owned supporting transitions, retained historical counterexamples, and exact held-out replay. Proposals pass through the existing learned-skill safety gate. Later tasks retrieve the active source, generated types, provenance, and evidence; a new certified proposal supersedes by creating another version. Failed transfer requires a pointed counterexample and creates a scoped revision without deleting prior versions or evidence. Append-only transfer receipts produce reuse and regression counts/rates. Executed proof: mechanism acceptance/rejection/retrieval/scoping/metrics 4/4, adjacent Schema and learning contracts 36/36, full suite 1,409 files / 13,363 tests passed / 3 skipped, typecheck and diff check passed. Receipt: docs/research/schema-mechanism-library-2026-07-17.md.",
       "source": "schema-harness-2026-07-15",
       "after": [
         "SCHEMA-PERSISTENT-WORKSPACE",
