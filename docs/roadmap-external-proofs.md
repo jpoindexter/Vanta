@@ -28,6 +28,33 @@ external work is available. `proof-status` remains the hard release gate.
 `proof-next` prints only the first non-ready leaf gate to clear next. It exits
 nonzero while work remains, so automation can use it as a focused wake target.
 
+## Current environment audit
+
+Audit date: 2026-07-17
+
+`vanta roadmap proof-status --json` reports `0/10` external gates ready. A fresh
+handoff packet was exported to
+`.vanta/external-proofs/proof-packet-2026-07-17/`; its `NEXT.md` points to
+`BACKEND-SERVERLESS-LIVE`.
+
+Current machine/account evidence:
+
+| Gate | Observed state | Smallest real unlock |
+| --- | --- | --- |
+| Modal/Telegram | Modal CLI authenticated; `vanta-gateway` secret and deployed endpoint exist; Telegram Desktop installed; stored token is an invalid placeholder | Create or supply a valid BotFather token, refresh the Modal secret, register the webhook, then run arm and prove |
+| Teams | No Teams app, Azure Bot credentials, public ingress receipt, or accepted channel proof | Configure and install a real Azure Bot/Teams app, then send one allowlisted round trip |
+| Termux | Current host is macOS ARM64; no ADB or attached Android/Termux device | Run the release-kernel proof on physical ARM64 Android/Termux hardware |
+| Spreadsheet | No Excel, Numbers, or equivalent spreadsheet host is installed | Install Excel or select a real Google Sheets host, then execute the add-in/API round trip |
+| Windows service | No Windows runtime or local virtualization host is installed | Run the native proof in a real logged-in Windows desktop session |
+| Payments | Stripe CLI is installed and has an account profile, but its API key is expired; no Link/MPP adapters are configured | Re-authenticate Stripe test mode and configure a bounded MPP test endpoint |
+| Shopify | No Shopify CLI, development-store token, vault alias, or external receipt | Create/configure a development store and execute one verified mutation |
+| Telephony | No Twilio CLI, test credential alias, callback host, or retention receipt | Configure a Twilio test account and run the consent/callback/retention proof |
+
+No secret values were printed or copied during this audit. Creating a Telegram
+bot, re-authenticating Stripe, creating provider accounts, installing external
+apps, or executing provider mutations requires an explicit operator action;
+local fixtures cannot satisfy these release gates.
+
 `proof-export` writes that same handoff packet to a local repo-bound folder:
 `proof-status.json`, `NEXT.md`, `checklist.md`, `README.md`, one
 `runbooks/<CARD>.md` file per external-proof gate, and acceptance-packet
