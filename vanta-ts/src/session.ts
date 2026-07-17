@@ -63,7 +63,12 @@ function resolveSessionProvider(instruction: string, env: NodeJS.ProcessEnv): LL
 async function bootstrapKernel(repoRoot: string): Promise<ReturnType<typeof createKernelClient>> {
   const configuredUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
   const kernelBin = kernelBinaryPath(repoRoot);
-  const baseUrl = await ensureKernel({ baseUrl: configuredUrl, kernelBin, root: repoRoot });
+  const baseUrl = await ensureKernel({
+    baseUrl: configuredUrl,
+    kernelBin,
+    root: repoRoot,
+    ephemeral: process.env.VANTA_KERNEL_EPHEMERAL === "1",
+  });
   process.env.VANTA_KERNEL_URL = baseUrl;
   return createKernelClient(baseUrl);
 }

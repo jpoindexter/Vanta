@@ -19071,7 +19071,7 @@
       "id": "DESKTOP-LONG-SESSION-NAVIGATION",
       "track": "Desktop App",
       "title": "Desktop long-session navigation - prompt markers, reading position, and Latest return",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Make long agent conversations navigable without fighting the operator during streaming. Show compact prompt-position markers, preserve each task's reading position, detach from auto-follow when the operator scrolls up, and offer an explicit Latest/New messages return.",
       "done": "Prompt markers jump to user turns and expose an accessible label; per-session scroll position and follow state survive task switches and relaunch; wheel, touch, keyboard, and streamed content do not snap a reader back to the bottom; Latest/New messages appears only when detached; virtualization and 500-turn fixtures remain stable; Electron proof covers streaming, resize, compact mode, keyboard, and reduced motion.",
@@ -19080,7 +19080,7 @@
       "effort": "medium",
       "codex": "gpt-5.6-terra",
       "lens": "tui",
-      "updated": "2026-07-16",
+      "updated": "2026-07-17",
       "source": "local-studio-vanta-extraction-2026-07-16",
       "after": [
         "DESKTOP-CODEX-CHAT-SURFACE",

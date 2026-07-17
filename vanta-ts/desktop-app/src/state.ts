@@ -151,6 +151,7 @@ type TurnCues = { prime?: () => void; complete?: () => unknown | Promise<unknown
 
 export function useConversation(refresh: () => Promise<void>, cues: TurnCues = {}) {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [sessionId, setSessionId] = useState("");
   const [activeTitle, setActiveTitle] = useState("New session");
   const [draft, setDraft] = useState("");
   const [events, setEvents] = useState<EventRow[]>([{ label: "No tool activity yet." }]);
@@ -171,8 +172,8 @@ export function useConversation(refresh: () => Promise<void>, cues: TurnCues = {
     };
     return () => stream.close();
   }, []);
-  const handlers = conversationHandlers({ refresh, setMessages, setActiveTitle, setEvents, setStreamText, setBusy, setDraft, setRecovery }, cues, lastFailedMessage);
-  return { messages, activeTitle, draft, setDraft, events, streamText, busy, recovery, stop: () => stopMessage(setEvents), ...handlers };
+  const handlers = conversationHandlers({ refresh, setMessages, setSessionId, setActiveTitle, setEvents, setStreamText, setBusy, setDraft, setRecovery }, cues, lastFailedMessage);
+  return { sessionId, messages, activeTitle, draft, setDraft, events, streamText, busy, recovery, stop: () => stopMessage(setEvents), ...handlers };
 }
 
 async function stopMessage(setEvents: (events: EventRow[]) => void): Promise<void> {
@@ -204,6 +205,7 @@ export function useApproval() {
 type ConversationState = {
   refresh: () => Promise<void>;
   setMessages: (updater: (messages: Message[]) => Message[]) => void;
+  setSessionId: (value: string) => void;
   setActiveTitle: (value: string) => void;
   setEvents: (events: EventRow[]) => void;
   setStreamText: (updater: (value: string) => string) => void;
@@ -215,13 +217,15 @@ type ConversationState = {
 function conversationHandlers(state: ConversationState, cues: TurnCues, lastFailedMessage: { current: string }) {
   async function openSession(id: string) {
     const opened = await api<{ title: string; messages: Message[] }>("/api/sessions/open", postJson({ id }));
+    state.setSessionId(id);
     state.setActiveTitle(opened.title);
     state.setMessages(() => opened.messages);
     state.setStreamText(() => "");
     await state.refresh();
   }
   async function newSession() {
-    await api<{ id: string }>("/api/sessions/new", { method: "POST" });
+    const created = await api<{ id: string }>("/api/sessions/new", { method: "POST" });
+    state.setSessionId(created.id);
     state.setActiveTitle("New session");
     state.setMessages(() => []);
     state.setEvents([{ label: "New session ready.", ok: true }]);

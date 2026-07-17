@@ -47,6 +47,41 @@ function localUrl(port: number): string {
   return `http://127.0.0.1:${port}`;
 }
 
+type RuntimeExitEmitter = {
+  once(event: string, listener: (...args: unknown[]) => void): unknown;
+  removeListener(event: string, listener: (...args: unknown[]) => void): unknown;
+  exit?(code?: number): unknown;
+};
+type ManagedKernelChild = {
+  exitCode: number | null;
+  killed: boolean;
+  kill(signal?: NodeJS.Signals | number): boolean;
+  once(event: string, listener: (...args: unknown[]) => void): unknown;
+};
+
+/** Tie test-owned kernels to the runtime that launched them. */
+export function registerKernelCleanup(
+  child: ManagedKernelChild,
+  runtime: RuntimeExitEmitter = process,
+): void {
+  const stop = () => {
+    if (child.exitCode === null && !child.killed) child.kill("SIGTERM");
+  };
+  const terminate = () => {
+    stop();
+    runtime.exit?.(0);
+  };
+  const release = () => {
+    runtime.removeListener("exit", stop);
+    runtime.removeListener("SIGINT", terminate);
+    runtime.removeListener("SIGTERM", terminate);
+  };
+  runtime.once("exit", stop);
+  runtime.once("SIGINT", terminate);
+  runtime.once("SIGTERM", terminate);
+  child.once("exit", release);
+}
+
 /**
  * Ensure a Rust kernel is running for the requested root and return its endpoint.
  * The default endpoint is shared only with the project it advertises; other projects
@@ -56,6 +91,7 @@ export async function ensureKernel(opts: {
   baseUrl: string;
   kernelBin: string;
   root: string;
+  ephemeral?: boolean;
 }): Promise<string> {
   const existing = await statusAt(opts.baseUrl);
   if (statusMatchesRoot(existing, opts.root)) return normalizedUrl(opts.baseUrl);
@@ -89,11 +125,12 @@ export async function ensureKernel(opts: {
 
   const port = new URL(baseUrl).port || "7788";
   const child = spawn(opts.kernelBin, ["serve", port], {
-    detached: true,
+    detached: !opts.ephemeral,
     stdio: "ignore",
     cwd: opts.root,
     env: { ...process.env, VANTA_ROOT: opts.root },
   });
+  if (opts.ephemeral) registerKernelCleanup(child);
   child.unref();
 
   for (let i = 0; i < 10; i++) {

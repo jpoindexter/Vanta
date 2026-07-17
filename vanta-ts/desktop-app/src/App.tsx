@@ -164,7 +164,7 @@ export function AppShell() {
           </div>
           <div className={`conversation-stage ${data.phase === "error" ? "has-error" : ""}`}>
             {data.phase === "error" ? <ConnectionError message={data.error} onRetry={() => { void data.refresh(); }} onSetup={data.openSetup} /> : null}
-            {data.phase === "loading" ? <LoadingState /> : <ChatThread messages={convo.messages} busy={convo.busy} streamText={convo.streamText} events={convo.events} recovery={convo.recovery} approval={approval.approval} onApproval={approval.answerApproval} onRetry={convo.retry} onPrompt={convo.setDraft} />}
+            {data.phase === "loading" ? <LoadingState /> : <ChatThread key={convo.sessionId || data.status?.sessionId} sessionId={convo.sessionId || data.status?.sessionId} messages={convo.messages} busy={convo.busy} streamText={convo.streamText} events={convo.events} recovery={convo.recovery} approval={approval.approval} onApproval={approval.answerApproval} onRetry={convo.retry} onPrompt={convo.setDraft} />}
           </div>
           <div className="composer-stack">
             <FullAccessWarning visible={accessWarning.visible} onClose={accessWarning.close} onAcknowledge={accessWarning.acknowledge} />

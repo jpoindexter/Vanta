@@ -9,6 +9,8 @@ import type { DesktopMcpSummary } from "./mcp-types.js";
 import { moveSessionMenuFocus, SessionNoticeToast, useSessionMenuDismiss, useSessionSafeOps, type SessionDeleteAction } from "./session-safe-ops.js";
 import { movePinnedSession, partitionSessions } from "./session-pinning.js";
 import { SessionPinMenuItems } from "./session-pinning-controls.js";
+import { LatestButton, preferredScrollBehavior, PromptMarkers, useLongSessionNavigation } from "./long-session-navigation.js";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 type SessionSidebarProps = {
   sessions: Session[];
@@ -276,10 +278,36 @@ function SessionButton(props: {
 type MessageFeedback = "helpful" | "not_helpful";
 type ExpandedMessage = { content: string; opener: HTMLButtonElement | null } | null;
 
-export function ChatThread(props: { messages: Message[]; busy: boolean; streamText: string; events: { label: string; ok?: boolean }[]; recovery: DesktopRunReceipt | null; approval: Approval | null; onApproval: (decision: ApprovalDecision) => void | Promise<void>; onRetry: () => void; onPrompt: (text: string) => void }) {
+export function ChatThread(props: { sessionId?: string; messages: Message[]; busy: boolean; streamText: string; events: { label: string; ok?: boolean }[]; recovery: DesktopRunReceipt | null; approval: Approval | null; onApproval: (decision: ApprovalDecision) => void | Promise<void>; onRetry: () => void; onPrompt: (text: string) => void }) {
   const rows = useMemo(() => props.messages.filter((m) => m.role !== "system"), [props.messages]);
+  const turns = useMemo(() => rows.flatMap((message, rowIndex) => message.role === "tool" ? [] : [{ message, rowIndex }]), [rows]);
   const recovery = props.recovery;
-  const endRef = useRef<HTMLDivElement>(null);
+  const anchorBridge = useRef<{ get: () => { index: number; offset: number } | null; restore: (anchor: { index: number; offset: number }) => boolean }>({ get: () => null, restore: () => false });
+  const navigation = useLongSessionNavigation({ sessionId: props.sessionId, contentVersion: `${rows.length}:${props.streamText.length}:${props.busy}`, getReadingAnchor: () => anchorBridge.current.get(), restoreReadingAnchor: (anchor) => anchorBridge.current.restore(anchor) });
+  const transcript = useVirtualizer({
+    count: turns.length,
+    getScrollElement: () => navigation.scrollerRef.current,
+    estimateSize: (index) => turns[index]?.message.role === "user" ? 72 : 112,
+    overscan: 8,
+    getItemKey: (index) => `${turns[index]?.message.role ?? "turn"}-${turns[index]?.rowIndex ?? index}`,
+  });
+  anchorBridge.current = {
+    get: () => {
+      const scroller = navigation.scrollerRef.current;
+      if (!scroller) return null;
+      const item = transcript.getVirtualItems().find((candidate) => candidate.end > scroller.scrollTop);
+      return item ? { index: item.index, offset: scroller.scrollTop - item.start } : null;
+    },
+    restore: (anchor) => {
+      const scroller = navigation.scrollerRef.current;
+      if (!scroller) return false;
+      transcript.scrollToIndex(anchor.index, { align: "start" });
+      const item = transcript.getVirtualItems().find((candidate) => candidate.index === anchor.index);
+      if (!item) return false;
+      scroller.scrollTop = item.start + anchor.offset;
+      return true;
+    },
+  };
   const [feedback, setFeedback] = useState<Record<string, MessageFeedback>>({});
   const [feedbackReasons, setFeedbackReasons] = useState<Record<string, string>>({});
   const [expanded, setExpanded] = useState<ExpandedMessage>(null);
@@ -299,7 +327,6 @@ export function ChatThread(props: { messages: Message[]; busy: boolean; streamTe
     setFeedback(next);
     setFeedbackReasons(reasons);
   }, [rows]);
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [rows.length, props.busy, props.streamText]);
 
   function setMessageFeedback(key: string, value: MessageFeedback) {
     setFeedback((current) => ({ ...current, [key]: value }));
@@ -314,15 +341,36 @@ export function ChatThread(props: { messages: Message[]; busy: boolean; streamTe
     setExpanded(null);
     window.requestAnimationFrame(() => opener?.focus());
   }
+  function jumpToPrompt(rowIndex: number) {
+    const turnIndex = turns.findIndex((turn) => turn.rowIndex === rowIndex);
+    if (turnIndex < 0) return;
+    navigation.detach();
+    transcript.scrollToIndex(turnIndex, { align: "center", behavior: preferredScrollBehavior() });
+  }
+
+  const virtualTurns = typeof window === "undefined"
+    ? turns.map((_, index) => ({ index, key: index, start: 0 }))
+    : transcript.getVirtualItems();
 
   return (
-    <section className="chat-thread" aria-live="polite">
+    <div className="chat-thread-frame">
+    <PromptMarkers messages={rows} onJump={jumpToPrompt} />
+    <section ref={navigation.scrollerRef} className="chat-thread" aria-label="Conversation history" aria-live="polite" tabIndex={0}>
       {rows.length === 0 ? <EmptyState onPrompt={props.onPrompt} /> : null}
-      {rows.map((message, index) => {
-        if (message.role === "tool") return null;
-        const key = messageFeedbackKey(message, index);
+      {turns.length ? <div className="transcript-window" style={typeof window === "undefined" ? undefined : { height: `${transcript.getTotalSize()}px` }}>
+      {virtualTurns.map((virtualTurn) => {
+        const turn = turns[virtualTurn.index]!;
+        const { message, rowIndex } = turn;
+        const key = messageFeedbackKey(message, rowIndex);
         return (
-          <div className="transcript-turn" key={`${message.role}-${index}`}>
+          <div
+            ref={typeof window === "undefined" ? undefined : transcript.measureElement}
+            className="transcript-turn"
+            data-index={virtualTurn.index}
+            data-turn-index={rowIndex}
+            key={virtualTurn.key}
+            style={typeof window === "undefined" ? undefined : { position: "absolute", top: 0, left: 0, width: "100%", transform: `translateY(${virtualTurn.start}px)` }}
+          >
             <MessageBubble
               message={message}
               feedback={feedback[key]}
@@ -335,14 +383,17 @@ export function ChatThread(props: { messages: Message[]; busy: boolean; streamTe
           </div>
         );
       })}
+      </div> : null}
       {props.approval ? <ApprovalCheckpoint approval={props.approval} onAnswer={props.onApproval} /> : null}
       {props.streamText ? <article className="message assistant streaming" aria-label="Vanta response streaming"><div className="message-content"><MessageMarkdown content={props.streamText} /></div></article> : null}
       {props.busy ? <div className="thinking"><i />Working...</div> : null}
       {props.events.length && props.events[0]?.label !== "No tool activity yet." ? <EventTimeline events={props.events.slice(-5)} /> : null}
       {recovery ? <RunRecovery receipt={recovery} onRetry={props.onRetry} onEdit={() => props.onPrompt(recovery.checkpoint?.instruction ?? "")} onCheckpoint={() => props.onPrompt(checkpointPrompt(recovery))} /> : null}
       {expanded ? <ExpandedResponseDialog content={expanded.content} onClose={closeExpanded} /> : null}
-      <div ref={endRef} />
+      <div ref={navigation.bottomRef} aria-hidden="true" />
     </section>
+    <LatestButton visible={navigation.detached && rows.length > 0} streaming={props.busy || !!props.streamText} onClick={navigation.goLatest} />
+    </div>
   );
 }
 

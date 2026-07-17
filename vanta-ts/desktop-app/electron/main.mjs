@@ -20,6 +20,7 @@ let mainWindow;
 let trayController;
 let projectRoot;
 let port = DEFAULT_DESKTOP_PORT;
+let automationKernelUrl;
 let shuttingDown = false;
 let serverReady;
 
@@ -37,7 +38,13 @@ function startServer() {
   const paths = runtimePaths();
   const executable = app.isPackaged ? process.execPath : (process.env.VANTA_NODE || "node");
   const childArgs = ["--import", pathToFileURL(paths.loader).href, paths.cli, "desktop", String(port), "--no-open", ...(companion ? ["--companion"] : [])];
-  const env = { ...process.env, VANTA_DESKTOP_DIST: paths.dist, VANTA_PROJECT_ROOT: projectRoot, VANTA_KERNEL_BIN: paths.kernel };
+  const env = {
+    ...process.env,
+    VANTA_DESKTOP_DIST: paths.dist,
+    VANTA_PROJECT_ROOT: projectRoot,
+    VANTA_KERNEL_BIN: paths.kernel,
+    ...(automationKernelUrl ? { VANTA_KERNEL_URL: automationKernelUrl, VANTA_KERNEL_EPHEMERAL: "1" } : {}),
+  };
   if (app.isPackaged) Object.assign(env, { ELECTRON_RUN_AS_NODE: "1" });
   const child = spawn(executable, childArgs, { cwd: projectRoot, env, stdio: ["ignore", "pipe", "pipe"] });
   serverProcess = child;
@@ -77,6 +84,10 @@ function stopServer() {
 async function loadProject() {
   stopServer();
   port = await findAvailablePort(Number(process.env.VANTA_DESKTOP_PORT) || DEFAULT_DESKTOP_PORT);
+  if (automation && !process.env.VANTA_KERNEL_URL) {
+    const preferredKernelPort = Number(process.env.VANTA_DESKTOP_KERNEL_PORT) || 22_000 + process.pid % 20_000;
+    automationKernelUrl = `http://127.0.0.1:${await findAvailablePort(preferredKernelPort)}`;
+  }
   startServer();
   const url = await waitForServer();
   if (smoke) console.log(`desktop smoke: renderer assets ready at ${url}`);
