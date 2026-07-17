@@ -12,6 +12,7 @@ import { SessionPinMenuItems } from "./session-pinning-controls.js";
 import { LatestButton, preferredScrollBehavior, PromptMarkers, useLongSessionNavigation } from "./long-session-navigation.js";
 import { SchemaTraceExplorer, schemaRetryReady } from "./schema-trace-explorer.js";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { compactTrace } from "../../src/trace/quiet-trace.js";
 
 type SessionSidebarProps = {
   sessions: Session[];
@@ -388,7 +389,7 @@ export function ChatThread(props: { sessionId?: string; messages: Message[]; bus
       {props.approval ? <ApprovalCheckpoint approval={props.approval} onAnswer={props.onApproval} /> : null}
       {props.streamText ? <article className="message assistant streaming" aria-label="Vanta response streaming"><div className="message-content"><MessageMarkdown content={props.streamText} /></div></article> : null}
       {props.busy ? <div className="thinking"><i />Working...</div> : null}
-      {props.events.length && props.events[0]?.label !== "No tool activity yet." ? <EventTimeline events={props.events.slice(-5)} /> : null}
+      {props.events.length && props.events[0]?.label !== "No tool activity yet." ? <EventTimeline events={props.events} /> : null}
       {recovery ? <RunRecovery receipt={recovery} onRetry={props.onRetry} onEdit={() => props.onPrompt(recovery.checkpoint?.instruction ?? "")} onCheckpoint={() => props.onPrompt(checkpointPrompt(recovery))} /> : null}
       {expanded ? <ExpandedResponseDialog content={expanded.content} onClose={closeExpanded} /> : null}
       <div ref={navigation.bottomRef} aria-hidden="true" />
@@ -503,8 +504,14 @@ function RunTimeline(props: { calls: NonNullable<Message["toolCalls"]>; messages
   })}</section>;
 }
 
-function EventTimeline(props: { events: { label: string; ok?: boolean }[] }) {
-  return <section className="run-timeline event-timeline" aria-label="Current run activity">{props.events.map((event, index) => <div className={`timeline-step ${event.ok === false ? "bad" : ""}`} key={`${event.label}-${index}`}><span><ChevronRight size={13} /></span><div><strong>{event.label}</strong></div><em>{event.ok === false ? "attention" : event.ok ? "done" : "active"}</em></div>)}</section>;
+function EventTimeline(props: { events: import("./types.js").EventRow[] }) {
+  const groups = compactTrace(props.events);
+  return <section className="run-timeline event-timeline quiet-trace" aria-label="Current run activity">{groups.map((group, index) => (
+    <details className={`timeline-step ${group.status === "attention" ? "bad" : ""}`} key={`${group.label}-${index}`}>
+      <summary><span><ChevronRight size={13} /></span><strong>{group.label}</strong><em>{group.status}</em></summary>
+      <div className="trace-evidence" aria-label="Tool evidence">{group.evidence.map((event, evidenceIndex) => <pre key={`${event.label}-${evidenceIndex}`}>{event.detail || event.label}</pre>)}</div>
+    </details>
+  ))}</section>;
 }
 
 function RunRecovery(props: { receipt: DesktopRunReceipt; onRetry: () => void; onEdit: () => void; onCheckpoint: () => void }) {

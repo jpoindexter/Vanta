@@ -20,7 +20,7 @@ import { providerOverrideEnv } from "../providers/override-env.js";
 import { upsertEnvMigratingLegacy, envPath } from "../setup.js";
 import { providerIdFor, resolveSessionModel } from "../sessions/model-scope.js";
 import { listRepoFiles } from "../term/at-context.js";
-import { resolveEventFormatter } from "../term/event-format.js";
+import { resolveEventFormatter, type EventLabel } from "../term/event-format.js";
 import { pushSseEvent, type SseClients } from "./session-state.js";
 import { approvalDecision, approvalPayload, requestWebApproval, resolveApproval, type PendingApproval } from "./approval.js";
 import { readCanvasArtifact } from "../canvas/artifact.js";
@@ -29,11 +29,12 @@ import { loadDesktopAccessMode, permissionModeForAccess, saveDesktopAccessMode, 
 import { desktopRuntimePayload, runDesktopRuntimeAction, selectDesktopRuntimeHost, type DesktopRuntimeAction } from "./runtime-controller.js";
 import { buildDesktopFileContext, isSafeProjectFile } from "./file-context.js";
 import { DesktopTurnQueue, QueueConflictError, desktopTurnQueuePath, fileTurnQueueDeps, type QueuedTurnTarget } from "./turn-queue.js";
+import { resolveTelegramSetupStatus } from "../setup/telegram-status.js";
 export { approvalDecision, type PendingApproval } from "./approval.js";
 
 const desktopTurnQueues = new Map<string, DesktopTurnQueue>();
 
-export type DesktopEvent = { label: string; ok?: boolean; delta?: string };
+export type DesktopEvent = EventLabel & { delta?: string };
 export type DesktopState = {
   setup?: RunSetup;
   _setupPromise?: Promise<RunSetup>;
@@ -129,6 +130,10 @@ export async function handleStatus(state: DesktopState, res: http.ServerResponse
   const live = await ensureDesktopConversation(state);
   const goals = await live.setup.safety.getGoals().catch(() => live.setup.goals);
   sendJson(res, 200, { kernel: "online", model: live.setup.provider.modelId(), provider: live.providerId ?? process.env.VANTA_PROVIDER ?? "openai", tools: live.setup.registry.list().length, sessionId: live.sessionId, root: state.root, goals: goals.filter((g) => g.status === "active"), accessMode: live.accessMode, accessScope: "project" });
+}
+
+export async function handleTelegramSetupStatus(state: DesktopState, res: http.ServerResponse): Promise<void> {
+  sendJson(res, 200, await resolveTelegramSetupStatus(process.env, join(state.root, ".vanta")));
 }
 
 export async function handleAccessMode(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
@@ -611,7 +616,7 @@ function buildRunReceipt(opts: {
   return {
     status: opts.status,
     ...(opts.failureKind ? { failureKind: opts.failureKind } : {}),
-    events: opts.events.map(({ label, ok }) => ({ label, ok })),
+    events: opts.events.map((event) => ({ ...event })),
     actions: recoveryActions(opts.status),
     checkpoint: opts.status === "done" ? undefined : { instruction: opts.instruction, ...(opts.partialText ? { partialText: opts.partialText } : {}) },
   };
@@ -646,7 +651,7 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
       if (live.sessionId) await checkpointSessionMessages(live.sessionId, [...live.convo.messages, { role: "user", content: instruction }], process.env);
       outcome = await live.convo.send(instruction, undefined, controller.signal);
       await writeRunMemory({ provider: live.setup.provider, goals: live.setup.goals, instruction, finalText: outcome.finalText });
-      events.push({ label: `${outcome.stoppedReason} · ${outcome.iterations} iteration(s)`, ok: outcome.stoppedReason === "done" });
+      events.push({ label: `${outcome.stoppedReason} · ${outcome.iterations} iteration(s)`, ok: outcome.stoppedReason === "done", kind: "summary" });
       const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events, instruction, partialText: outcome.finalText });
       attachDesktopRunReceipt(live.convo, receipt, outcome.finalText);
       if (claimedTurnId) {

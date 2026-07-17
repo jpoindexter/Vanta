@@ -4,6 +4,7 @@ import type { RunSetup } from "../session.js";
 import type { SessionWorkingMemory } from "../memory/working.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { SessionCost } from "../pricing.js";
+import type { SetupHandoff } from "../setup/handoff.js";
 
 export type BackgroundResponse = {
   id: string;
@@ -84,6 +85,8 @@ export type SlashResult = {
   composerAnchor?: "float" | "bottom";
   /** Composer vi-mode on/off (drives /vim) so the TUI toggles the composer live. */
   vimMode?: boolean;
+  /** Leave the interactive surface, run a setup wizard, then resume it. */
+  setupHandoff?: SetupHandoff;
 };
 
 /** One slash-command handler. `arg` is the text after the command word. */

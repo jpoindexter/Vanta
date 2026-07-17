@@ -151,7 +151,9 @@ export async function runMessagingSetup(
 
     const path = envPath(repoRoot);
     const existing = existsSync(path) ? await readFile(path, "utf8") : "";
-    await writeFile(path, upsertEnv(existing, buildMessagingEnv(platform, secret, extra)), { mode: 0o600 });
+    const updates = buildMessagingEnv(platform, secret, extra);
+    await writeFile(path, upsertEnv(existing, updates), { mode: 0o600 });
+    Object.assign(env, updates);
 
     log(`\n  Configured ${platform.label}. Run \`vanta gateway\` to go live, then send the bot a message.\n`);
     return true;

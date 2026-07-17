@@ -5,6 +5,7 @@ import { api } from "./api.js";
 import { CanvasPanel } from "./canvas.js";
 import type { Artifact, CanvasArtifact, EventRow, RailTab, Status, Tool } from "./types.js";
 import { fallbackProjectFileContext, groupProjectFiles, type ProjectFileContext } from "./file-context.js";
+import { compactTrace } from "../../src/trace/quiet-trace.js";
 
 export function RightRail(props: {
   status: Status | null;
@@ -110,7 +111,8 @@ function PreviewPanel(props: { status: Status | null; groups: Record<string, Too
 }
 
 function EventList(props: { events: EventRow[] }) {
-  return <ul className="event-list">{props.events.map((event, i) => <li key={i} className={event.ok === false ? "bad" : event.ok ? "ok" : ""}>{event.label}</li>)}</ul>;
+  const groups = compactTrace(props.events);
+  return <ul className="event-list">{groups.map((group, i) => <li key={i} className={group.status === "attention" ? "bad" : group.status === "done" ? "ok" : ""}>{group.label}</li>)}</ul>;
 }
 
 function ToolGroups(props: { groups: Record<string, Tool[]> }) {

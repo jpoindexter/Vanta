@@ -7,6 +7,7 @@ import { wrapText } from "../term/wrap.js";
 import { FOCUS, RISK } from "../term/palette.js";
 import type { Entry, ToolEntry } from "./types.js";
 import type { DiffLine } from "../util/diff.js";
+import { quietToolRows } from "./quiet-tool-group.js";
 
 // Pure renderers for one committed entry. Tools render Claude-style: each call is
 // a ⏺ Verb(detail) line over a dim ⎿ result line (+ inline diff for edits). Real
@@ -64,9 +65,12 @@ const cap = (s: string): string => (s ? s.charAt(0).toUpperCase() + s.slice(1) :
 /** A committed run of tools, Claude-style: each is a ⏺ Verb(detail) line over a
  * dim ⎿ result line (+ inline diff for edits) — sequential pairs, no group header. */
 function ToolGroupView(props: { tools: ToolEntry[] }): ReactElement {
+  const rows = quietToolRows(props.tools);
   return (
     <Box flexDirection="column" marginTop={1}>
-      {props.tools.map((tool, i) => <ToolCallView key={i} entry={tool} />)}
+      {rows.map((row, i) => row.kind === "reads"
+        ? <Text key={i}><Text color={FOCUS}>⏺ </Text>{row.label} <Text dimColor>· {row.tools.length} receipt{row.tools.length === 1 ? "" : "s"} · Ctrl+T evidence</Text></Text>
+        : <ToolCallView key={i} entry={row.tool} />)}
     </Box>
   );
 }
@@ -83,6 +87,7 @@ function ToolCallView(props: { entry: ToolEntry }): ReactElement {
         <Text>{head}</Text>
       </Box>
       {meta ? <Text color={ok ? undefined : RISK}>{"  ⎿  "}{clip(meta, 92)}</Text> : null}
+      {!ok ? <Text color={RISK}>{"  ↳  Recovery: review the failed input, then retry this step."}</Text> : null}
       {e.diff && e.diff.length > 0 ? <DiffView diff={e.diff} /> : null}
     </Box>
   );

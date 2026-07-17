@@ -21,6 +21,7 @@ export type ToolEntry = {
   summary?: string;
   diff?: DiffLine[];
   tokens?: number;
+  rawOutput?: string;
 };
 
 /** A run of consecutive tool calls, committed as one block with a header. */

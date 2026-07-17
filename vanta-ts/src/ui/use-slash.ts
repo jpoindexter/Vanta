@@ -6,6 +6,7 @@ import { fireHooks } from "../hooks/shell-hooks.js";
 import type { Conversation } from "../agent.js";
 import type { RunSetup } from "../session.js";
 import type { ReplCtx, ReplState, SlashResult } from "../repl/types.js";
+import type { SetupHandoff } from "../setup/handoff.js";
 import type { Action } from "./reducer.js";
 
 // Wires the full slash-command catalog into the v2 UI. Reuses the SAME executeSlash
@@ -21,6 +22,7 @@ export type SlashEffects = {
   exit: () => void;
   composerAnchor: (mode: "float" | "bottom") => void;
   vimMode: (on: boolean) => void;
+  setup: (request: SetupHandoff) => void;
 };
 
 /** Map a SlashResult onto the host. Restart sets exit code 75 (run.sh re-execs). */
@@ -34,6 +36,7 @@ export function applySlashResult(r: SlashResult, fx: SlashEffects): void {
   if (r.cleared) fx.clear(); // /clear → wipe committed TUI scrollback before the fresh-session note
   if (r.output) fx.note(r.output);
   if (r.resend) fx.send(r.resend, r.resendDisplay);
+  if (r.setupHandoff) fx.setup(r.setupHandoff);
 }
 
 export type SlashDeps = {
@@ -46,6 +49,7 @@ export type SlashDeps = {
   exit: () => void;
   setComposerAnchor: (mode: "float" | "bottom") => void;
   setVim: (on: boolean) => void;
+  requestSetup: (request: SetupHandoff) => void;
 };
 
 export function useSlash(deps: SlashDeps): { runSlash: (line: string) => void } {
@@ -64,6 +68,7 @@ export function useSlash(deps: SlashDeps): { runSlash: (line: string) => void } 
     exit: deps.exit,
     composerAnchor: deps.setComposerAnchor,
     vimMode: deps.setVim,
+    setup: deps.requestSetup,
   };
   const runSlash = (line: string): void => {
     if (!deps.convoRef.current) return;

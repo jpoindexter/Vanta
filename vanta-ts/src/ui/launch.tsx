@@ -6,11 +6,28 @@ import { RESTART_EXIT_CODE } from "../repl/restart-cmd.js";
 import { installResizeGhostFix } from "../term/resize-fix.js";
 import { enableBracketedPaste } from "../term/bracketed-paste.js";
 import { promptTrust } from "./trust-prompt.js";
+import { runSetupHandoff, type SetupHandoff } from "../setup/handoff.js";
 
 export type TuiSurface = "v1" | "v2";
 
 export function selectTuiSurface(env: { VANTA_TUI?: string }): TuiSurface {
   return env.VANTA_TUI?.trim().toLowerCase() === "v2" ? "v2" : "v1";
+}
+
+export async function runSetupResumeLoop<T>(deps: {
+  prepare: (firstRun: boolean) => Promise<T>;
+  runSurface: (setup: T, requestSetup: (request: SetupHandoff) => void) => Promise<void>;
+  runSetup: (request: SetupHandoff) => Promise<boolean>;
+}): Promise<void> {
+  let firstRun = true;
+  for (;;) {
+    let setupHandoff: SetupHandoff | undefined;
+    const setup = await deps.prepare(firstRun);
+    firstRun = false;
+    await deps.runSurface(setup, (request) => { setupHandoff = request; });
+    if (!setupHandoff) return;
+    await deps.runSetup(setupHandoff);
+  }
 }
 
 /**
@@ -19,23 +36,32 @@ export function selectTuiSurface(env: { VANTA_TUI?: string }): TuiSurface {
  */
 export async function runTuiV2(repoRoot: string): Promise<void> {
   const confirmTrust = process.stdin.isTTY ? promptTrust : undefined;
-  const setup = await prepareRun(repoRoot, "interactive session", undefined, { confirmTrust });
   await maybeCurate();
   const surface = selectTuiSurface(process.env);
+  await installResizeGhostFix(process.stdout); // force absolute clear on resize (kills rewrap ghosting)
   // Enable the kitty keyboard protocol so the Cmd (super) modifier reaches the
   // composer — it's the only way Cmd+Backspace etc. are delivered. mode "auto"
   // probes the terminal and is a no-op where unsupported (e.g. Terminal.app).
-  const instance = render(
-    surface === "v2" ? <AppV2 setup={setup} repoRoot={repoRoot} /> : <App setup={setup} repoRoot={repoRoot} />,
-    { kittyKeyboard: { mode: "auto" } },
-  );
-  await installResizeGhostFix(process.stdout); // force absolute clear on resize (kills rewrap ghosting)
-  // Own bracketed paste: Ink's usePaste-driven toggle proved unreliable (Terminal.app
-  // delivered multi-line pastes as raw keystrokes → a newline submitted mid-paste).
-  // Forcing the mode makes the terminal wrap pastes so Ink reassembles them as one unit.
-  const disableBracketedPaste = enableBracketedPaste(process.stdout);
-  process.once("exit", disableBracketedPaste);
-  await instance.waitUntilExit();
-  disableBracketedPaste();
-  if (process.exitCode === RESTART_EXIT_CODE) process.exit(RESTART_EXIT_CODE);
+  await runSetupResumeLoop({
+    prepare: (firstRun) => prepareRun(repoRoot, "interactive session", undefined, {
+      confirmTrust: firstRun ? confirmTrust : undefined,
+    }),
+    runSurface: async (setup, onSetupRequest) => {
+      const instance = render(
+        surface === "v2"
+          ? <AppV2 setup={setup} repoRoot={repoRoot} onSetupRequest={onSetupRequest} />
+          : <App setup={setup} repoRoot={repoRoot} onSetupRequest={onSetupRequest} />,
+        { kittyKeyboard: { mode: "auto" } },
+      );
+      // Own bracketed paste: Ink's usePaste-driven toggle proved unreliable (Terminal.app
+      // delivered multi-line pastes as raw keystrokes → a newline submitted mid-paste).
+      const disableBracketedPaste = enableBracketedPaste(process.stdout);
+      process.once("exit", disableBracketedPaste);
+      await instance.waitUntilExit();
+      process.removeListener("exit", disableBracketedPaste);
+      disableBracketedPaste();
+      if (process.exitCode === RESTART_EXIT_CODE) process.exit(RESTART_EXIT_CODE);
+    },
+    runSetup: (request) => runSetupHandoff(repoRoot, request),
+  });
 }

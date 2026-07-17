@@ -9,6 +9,12 @@ export type MessagingPlatform = {
 };
 export type ConnectStatus = "ready" | "needs_setup" | "unavailable";
 export type ConnectTestResult = { status: ConnectStatus; message: string };
+export type TelegramSetupStatus = {
+  state: "unconfigured" | "needs_repair" | "stopped" | "polling_live" | "webhook_live";
+  title: string;
+  detail: string;
+  action: { id: "configure" | "start_gateway" | "inspect_gateway"; label: string; command: string };
+};
 export type Artifact = { id: string; kind: "canvas" | "link" | "file"; label: string; value: string; sessionId?: string; sessionTitle?: string };
 export type Goal = { text: string };
 export type AccessMode = "ask" | "approve" | "full";
@@ -139,7 +145,7 @@ export type Provider = {
   signupUrl?: string;
   note?: string;
 };
-export type EventRow = { label: string; ok?: boolean };
+export type EventRow = { label: string; ok?: boolean; kind?: "tool_start" | "tool_end" | "note" | "summary"; name?: string; detail?: string };
 export type CanvasScalar = string | number | boolean | null;
 export type CanvasArtifact = {
   version: 1; id: string; title: string; subtitle?: string; createdAt: string; sessionId?: string;

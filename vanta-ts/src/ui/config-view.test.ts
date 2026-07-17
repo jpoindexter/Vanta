@@ -13,7 +13,7 @@ describe("config-view — effective state", () => {
     expect(s.effort).toBe("medium");
     expect(s.outputStyle).toBe("normal");
     expect(s.composerAnchor).toBe("float");
-    expect(s.promptSuggestions).toBe(true);
+    expect(s.promptSuggestions).toBe(false);
     expect(s.autoMode).toBe(false);
     expect(s.gates.antiSlop).toBe(true);
     expect(s.gates.stallUnblock).toBe(true);
@@ -74,7 +74,7 @@ describe("config-view — grouping + actions", () => {
   it("the prompt suggestions row toggles the setting", () => {
     const row = configRows(state).find((r) => r.label === "Prompt suggestions");
     expect(row?.action).toEqual({ kind: "togglePromptSuggestions" });
-    expect(row?.bool).toBe(true);
+    expect(row?.bool).toBe(false);
   });
 
   it("actionAt maps the first row to cycleEffort and clamps past the end", () => {

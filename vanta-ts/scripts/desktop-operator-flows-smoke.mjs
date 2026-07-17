@@ -59,7 +59,7 @@ process.stdin.on("data", (chunk) => {
     ...(executablePath ? { executablePath } : {}),
     args: executablePath ? ["--project", project] : ["desktop-app/electron/main.mjs", "--project", project],
     cwd: process.cwd(),
-    env: { ...process.env, HOME: home, VANTA_HOME: home, VANTA_PROJECT_ROOT: project, VANTA_DESKTOP_USER_DATA: userData, VANTA_DESKTOP_PORT: port, VANTA_DESKTOP_AUTOMATION: "1", VANTA_PROVIDER: "openai", VANTA_MODEL: "gpt-4o-mini", OPENAI_API_KEY: "vanta-desktop-smoke-key", ELECTRON_DISABLE_SECURITY_WARNINGS: "1" },
+    env: { ...process.env, HOME: home, VANTA_HOME: home, VANTA_PROJECT_ROOT: project, VANTA_DESKTOP_USER_DATA: userData, VANTA_DESKTOP_PORT: port, VANTA_DESKTOP_AUTOMATION: "1", VANTA_PROVIDER: "openai", VANTA_MODEL: "gpt-4o-mini", OPENAI_API_KEY: "vanta-desktop-smoke-key", VANTA_TELEGRAM_TOKEN: "", VANTA_TELEGRAM_WEBHOOK_SECRET: "", ELECTRON_DISABLE_SECURITY_WARNINGS: "1" },
   });
   const page = await app.firstWindow();
   page.on("pageerror", (error) => rendererErrors.push(`page error: ${error.message}`));
@@ -134,6 +134,42 @@ process.stdin.on("data", (chunk) => {
   await page.getByText("Next instruction queued.").last().waitFor();
   await page.getByRole("button", { name: "Stop current run" }).click();
   await page.getByText("Stopped by operator.").first().waitFor();
+  await page.unroute(/\/api\/chat$/);
+  let quietTraceTurn = 0;
+  await page.route(/\/api\/chat$/, async (route) => {
+    quietTraceTurn += 1;
+    const failed = quietTraceTurn === 2;
+    const events = failed
+      ? [{ label: "✗ shell_cmd: permission denied", ok: false, kind: "tool_end", name: "shell_cmd", detail: "permission denied: fixture command" }]
+      : [
+        { label: "✓ read_file: README", ok: true, kind: "tool_end", name: "read_file", detail: "README full output" },
+        { label: "✓ grep_files: routes", ok: true, kind: "tool_end", name: "grep_files", detail: "routes full output" },
+        { label: "✓ write_file: changed fixture.ts", ok: true, kind: "tool_end", name: "write_file", detail: "+ const quiet = true" },
+      ];
+    const receipt = {
+      status: failed ? "failed" : "done",
+      ...(failed ? { failureKind: "tool" } : {}),
+      events,
+      actions: failed ? ["retry_failed_step"] : [],
+      ...(failed ? { checkpoint: { instruction: "run the failing fixture" } } : {}),
+    };
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ finalText: failed ? "The fixture command failed." : "Updated fixture.ts.", events, receipt }) });
+  });
+  await page.locator("#vanta-composer").fill("make a quiet trace code change");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await page.getByText("make a quiet trace code change", { exact: true }).waitFor();
+  await page.waitForTimeout(500);
+  const quietTraceText = await page.locator(".conversation-stage").innerText();
+  if (!quietTraceText.includes("Read and searched 2 times")) throw new Error(`Quiet trace response was not rendered: ${quietTraceText}`);
+  await page.locator(".conversation-stage .quiet-trace").getByText(/changed fixture\.ts/).waitFor();
+  const quietDetails = page.locator(".quiet-trace details");
+  if (await quietDetails.count() !== 2) throw new Error(`Quiet trace rendered ${await quietDetails.count()} rows instead of 2`);
+  await quietDetails.first().locator("summary").click();
+  await page.getByText("README full output").waitFor();
+  await page.locator("#vanta-composer").fill("run the failing fixture");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await page.locator(".conversation-stage .quiet-trace strong").getByText("✗ shell_cmd: permission denied", { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Retry failed step" }).waitFor();
 
   await page.getByRole("button", { name: "Connect" }).click();
   await page.locator(".operator-view").getByRole("heading", { name: "Connect", exact: true }).waitFor();
@@ -212,7 +248,18 @@ process.stdin.on("data", (chunk) => {
 
   await page.locator("#vanta-composer").press("/");
   await page.getByRole("heading", { name: "Command palette" }).waitFor();
-  await page.getByRole("button", { name: "Close" }).click();
+  await page.getByRole("button", { name: "Set up Telegram" }).click();
+  await page.getByRole("heading", { name: "Telegram" }).waitFor();
+  await page.locator('.messaging-detail input[type="password"]').waitFor();
+  await page.getByRole("button", { name: "Work", exact: true }).click();
+  await page.locator("#vanta-composer").fill("how do i setup telgram i dont see the / command");
+  await page.getByRole("button", { name: "Send" }).click();
+  await page.getByRole("heading", { name: "Telegram" }).waitFor();
+  await page.getByRole("button", { name: "Work", exact: true }).click();
+  await page.locator(".conversation-stage").waitFor();
+  const telegramConversation = await page.locator(".conversation-stage").innerText();
+  const hasTelegramStatus = telegramConversation.includes("Telegram needs setup.") || telegramConversation.includes("Telegram needs repair.");
+  if (!hasTelegramStatus || !telegramConversation.includes("vanta setup messaging telegram")) throw new Error(`Telegram setup reply was not preserved in Work: ${telegramConversation}`);
 
   await page.keyboard.press("?");
   await page.getByRole("heading", { name: "Keyboard shortcuts" }).waitFor();
@@ -233,7 +280,7 @@ process.stdin.on("data", (chunk) => {
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
 
   if (process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT, fullPage: false });
-  process.stdout.write(`${JSON.stringify({ work: true, modelPicker: true, connect: true, modelTest: true, capabilities: true, mcpInstall: true, mcpImport: true, mcpTrust: true, mcpOAuthNeeded: true, mcpToolTest: true, mcpResourceRead: true, mcpReconnectFailure: true, mcpDisabled: true, mcpWorkContext: true, messaging: true, messagingTest: true, outputs: true, visibleContextChips: true, queue: true, stop: true, shortcuts: true, settings: true, providerSetup: true, lightTheme: true, resizablePanes: true, persistentPanes: true })}\n`);
+  process.stdout.write(`${JSON.stringify({ work: true, quietTrace: true, failedTraceRecovery: true, modelPicker: true, connect: true, modelTest: true, capabilities: true, mcpInstall: true, mcpImport: true, mcpTrust: true, mcpOAuthNeeded: true, mcpToolTest: true, mcpResourceRead: true, mcpReconnectFailure: true, mcpDisabled: true, mcpWorkContext: true, messaging: true, messagingTest: true, outputs: true, visibleContextChips: true, queue: true, stop: true, shortcuts: true, settings: true, providerSetup: true, lightTheme: true, resizablePanes: true, persistentPanes: true })}\n`);
   await new Promise((resolveDone) => setTimeout(resolveDone, 100));
 } finally {
   if (app) {

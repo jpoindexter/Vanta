@@ -1,15 +1,14 @@
-import { probeMessaging, type ProbeResult } from "../setup/assistant.js";
+import type { ProbeResult } from "../setup/assistant.js";
+import { isTelegramSetupQuestion } from "../setup/telegram-intent.js";
+import { renderTelegramSetupStatus, resolveTelegramSetupStatus, type TelegramSetupStatus } from "../setup/telegram-status.js";
 import type { ReplCtx, SlashHandler } from "./types.js";
 
 type SetupCommandDeps = {
   probe?: (env: NodeJS.ProcessEnv) => Promise<ProbeResult>;
+  status?: (env: NodeJS.ProcessEnv, dataDir: string) => Promise<TelegramSetupStatus>;
 };
 
-export function isTelegramSetupQuestion(text: string): boolean {
-  const normalized = text.toLowerCase().replace(/telgram/g, "telegram");
-  return /\btelegram\b/.test(normalized)
-    && /\b(set\s*up|setup|configure|connect|command|wizard)\b/.test(normalized);
-}
+export { isTelegramSetupQuestion } from "../setup/telegram-intent.js";
 
 function telegramAccess(env: NodeJS.ProcessEnv): string {
   return env.VANTA_TELEGRAM_ALLOW?.trim()
@@ -24,14 +23,13 @@ export function renderSetupHub(ctx: ReplCtx): string {
   return [
     "  Setup",
     `  Model      ${ctx.setup.provider.modelId()} · /model`,
-    `  Telegram   ${telegram} · /setup messaging`,
-    "  Voice      vanta setup tts",
+    `  Telegram   ${telegram} · /setup telegram`,
+    "  Voice      /setup tts",
     "  MCP        /mcp",
   ].join("\n");
 }
 
 export function createSetupCommand(deps: SetupCommandDeps = {}): SlashHandler {
-  const probe = deps.probe ?? probeMessaging;
   return async (arg, ctx) => {
     const [section = "", ...rest] = arg.trim().split(/\s+/).filter(Boolean);
     if (!section) return { output: renderSetupHub(ctx) };
@@ -44,40 +42,19 @@ export function createSetupCommand(deps: SetupCommandDeps = {}): SlashHandler {
     }
 
     if (section === "messaging" || section === "telegram") {
-      if (!ctx.env.VANTA_TELEGRAM_TOKEN?.trim()) {
-        return {
-          output: [
-            "  Telegram needs setup.",
-            "  Run: vanta setup messaging telegram",
-            "  Vanta will verify the bot token before saving it, then collect the owner allowlist.",
-          ].join("\n"),
-        };
-      }
-      const result = await probe(ctx.env);
-      if (!result.ok) {
-        return {
-          output: [
-            `  Telegram is configured but not usable: ${result.detail}.`,
-            "  Repair: vanta setup messaging telegram",
-            "  Your existing configuration is preserved until the replacement token passes verification.",
-          ].join("\n"),
-        };
-      }
-      return {
-        output: [
-          `  Telegram ready: ${result.detail}.`,
-          `  Access: ${telegramAccess(ctx.env)}.`,
-          `  Delivery: ${ctx.env.VANTA_TELEGRAM_WEBHOOK_SECRET?.trim() ? "webhook wake configured" : "local gateway polling"}.`,
-          "  Check: vanta gateway status",
-        ].join("\n"),
-      };
+      const resolveStatus = deps.status ?? ((env, dataDir) => resolveTelegramSetupStatus(env, dataDir, { probe: deps.probe }));
+      const output = renderTelegramSetupStatus(await resolveStatus(ctx.env, ctx.dataDir)).split("\n").map((line) => `  ${line}`).join("\n");
+      if (rest[0]?.toLowerCase() === "status") return { output };
+      return { output, setupHandoff: { section: "messaging", platformId: "telegram" } };
     }
 
     if (section === "tts" || section === "voice") {
-      return { output: "  Run: vanta setup tts" };
+      return { output: "  Opening voice setup…", setupHandoff: { section: "tts" } };
     }
 
-    return { output: "  usage: /setup [model|messaging|telegram|tts]" };
+    if (section === "mcp") return { output: "  Open MCP connections with /mcp." };
+
+    return { output: "  usage: /setup [model|messaging|telegram|tts|mcp]" };
   };
 }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sessionRows, skillRows, modelRows, PICKER_KINDS } from "./overlays.js";
+import { sessionRows, skillRows, modelRows, setupRows, PICKER_KINDS } from "./overlays.js";
 import type { SessionMeta } from "../sessions/store.js";
 import type { Skill } from "../skills/types.js";
 
@@ -28,6 +28,7 @@ describe("overlay row builders", () => {
   });
 
   it("PICKER_KINDS maps bare commands to overlay kinds", () => {
+    expect(PICKER_KINDS.setup).toBe("setup");
     expect(PICKER_KINDS.model).toBe("model");
     expect(PICKER_KINDS.cockpit).toBe("cockpit");
     expect(PICKER_KINDS.stats).toBe("stats");
@@ -37,5 +38,14 @@ describe("overlay row builders", () => {
     expect(PICKER_KINDS["workflow-select"]).toBe("workflowSelect");
     expect(PICKER_KINDS["plugin-panels"]).toBe("pluginPanels");
     expect(PICKER_KINDS.nope).toBeUndefined();
+  });
+
+  it("setupRows exposes setup outcomes instead of aliasing the model picker", () => {
+    expect(setupRows().map((row) => row.command)).toEqual([
+      "/model",
+      "/setup telegram",
+      "/setup tts",
+      "/mcp",
+    ]);
   });
 });

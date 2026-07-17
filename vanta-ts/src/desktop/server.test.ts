@@ -5,8 +5,8 @@ const args = {};
 
 describe("desktop event labels", () => {
   it("formats tool start and end events", () => {
-    expect(eventLabel({ type: "tool_start", name: "read_file", args })).toEqual({ label: "→ read_file" });
-    expect(eventLabel({ type: "tool_end", name: "read_file", ok: true, output: "done" })).toEqual({ label: "✓ read_file: done", ok: true });
+    expect(eventLabel({ type: "tool_start", name: "read_file", args })).toEqual({ label: "→ read_file", kind: "tool_start", name: "read_file" });
+    expect(eventLabel({ type: "tool_end", name: "read_file", ok: true, output: "done" })).toEqual({ label: "✓ read_file: done", ok: true, kind: "tool_end", name: "read_file", detail: "done" });
   });
 
   it("ignores raw text deltas", () => {

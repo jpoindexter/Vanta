@@ -705,6 +705,16 @@ button:focus, textarea:focus, input:focus, select:focus, summary:focus { outline
 .timeline-step small { color: var(--faint); font-size: 10px; }
 .timeline-step em { color: var(--faint); font-size: 10px; font-style: normal; }
 .timeline-step.bad > span, .timeline-step.bad em { color: var(--danger); }
+.quiet-trace details.timeline-step { display: block; min-height: 0; padding: 0; border-top: 0; }
+.quiet-trace details.timeline-step > summary { min-height: 36px; display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; align-items: center; gap: 8px; list-style: none; }
+.quiet-trace details.timeline-step > summary::-webkit-details-marker { display: none; }
+.quiet-trace details.timeline-step > summary > span { width: 18px; height: 18px; display: grid; place-items: center; margin-left: -33px; color: var(--ok); }
+.quiet-trace details.timeline-step[open] > summary svg { transform: rotate(90deg); }
+.quiet-trace details.timeline-step > summary strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.quiet-trace details.timeline-step > summary em { color: var(--faint); font-size: 10px; font-style: normal; }
+.quiet-trace details.timeline-step.bad > summary > span, .quiet-trace details.timeline-step.bad > summary em { color: var(--danger); }
+.trace-evidence { margin: 0 0 8px -8px; border-left: 1px solid var(--line); padding: 4px 0 4px 16px; }
+.trace-evidence pre { overflow: auto; margin: 4px 0; color: var(--muted); font: 10px/1.45 var(--font-mono); white-space: pre-wrap; }
 .inline-approval { display: grid; gap: 10px; margin-block: 8px 12px; border: 1px solid color-mix(in srgb, var(--amber) 55%, var(--line)); border-radius: 7px; background: color-mix(in srgb, var(--amber) 10%, var(--panel)); padding: 12px; }
 .inline-approval header { display: flex; align-items: flex-start; gap: 8px; color: var(--amber); }
 .inline-approval header > div { display: grid; gap: 1px; }

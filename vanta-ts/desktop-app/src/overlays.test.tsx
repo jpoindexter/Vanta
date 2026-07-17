@@ -1,7 +1,14 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { ApprovalOverlay, ModelPicker, SetupWizard } from "./overlays.js";
+import { ApprovalOverlay, CommandPalette, ModelPicker, SetupWizard } from "./overlays.js";
+
+describe("CommandPalette", () => {
+  it("exposes Telegram setup when slash opens quick actions", () => {
+    const html = renderToStaticMarkup(<CommandPalette open onClose={vi.fn()} onNew={vi.fn()} onModel={vi.fn()} onTelegram={vi.fn()} onSound={vi.fn()} onSettings={vi.fn()} onTab={vi.fn()} />);
+    expect(html).toContain("Set up Telegram");
+  });
+});
 
 describe("ApprovalOverlay", () => {
   it("renders dedicated request context and all four decisions", () => {

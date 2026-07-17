@@ -4,6 +4,7 @@ import { MissionControlFrame, type MissionControlFrameProps, type SafetyVerdict 
 import type { RunSetup } from "../../session.js";
 import { estimateTokens } from "../../term/tokens.js";
 import { formatElapsed } from "../busy.js";
+import type { SetupHandoff } from "../../setup/handoff.js";
 
 export type MissionState = Omit<MissionControlFrameProps, "children">;
 
@@ -53,7 +54,7 @@ export function buildMissionState(
   };
 }
 
-export function AppV2(props: { setup: RunSetup; repoRoot: string }): ReactElement {
+export function AppV2(props: { setup: RunSetup; repoRoot: string; onSetupRequest?: (request: SetupHandoff) => void }): ReactElement {
   const startedAt = useMemo(() => new Date(), []);
   const [now, setNow] = useState(startedAt);
   useEffect(() => {
@@ -65,7 +66,7 @@ export function AppV2(props: { setup: RunSetup; repoRoot: string }): ReactElemen
     <MissionControlFrame
       {...mission}
     >
-      <App setup={props.setup} repoRoot={props.repoRoot} />
+      <App setup={props.setup} repoRoot={props.repoRoot} onSetupRequest={props.onSetupRequest} />
     </MissionControlFrame>
   );
 }

@@ -10,6 +10,7 @@ describe("desktop operator routes", () => {
   const originalHome = process.env.VANTA_HOME;
   const originalOsHome = process.env.HOME;
   const originalTelegram = process.env.VANTA_TELEGRAM_TOKEN;
+  const originalProvider = process.env.VANTA_PROVIDER;
 
   beforeEach(async () => {
     home = await mkdtemp(join(tmpdir(), "vanta-operator-api-home-"));
@@ -23,7 +24,26 @@ describe("desktop operator routes", () => {
     if (originalHome === undefined) delete process.env.VANTA_HOME; else process.env.VANTA_HOME = originalHome;
     if (originalOsHome === undefined) delete process.env.HOME; else process.env.HOME = originalOsHome;
     if (originalTelegram === undefined) delete process.env.VANTA_TELEGRAM_TOKEN; else process.env.VANTA_TELEGRAM_TOKEN = originalTelegram;
+    if (originalProvider === undefined) delete process.env.VANTA_PROVIDER; else process.env.VANTA_PROVIDER = originalProvider;
     await Promise.all([rm(home, { recursive: true, force: true }), rm(root, { recursive: true, force: true })]);
+  });
+
+  it("answers Telegram setup without initializing a missing model provider", async () => {
+    process.env.VANTA_PROVIDER = "provider-that-does-not-exist";
+    const server = createDesktopServer(root);
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("desktop server did not bind");
+    try {
+      const response = await fetch(`http://127.0.0.1:${address.port}/api/setup/messaging/telegram`);
+      expect(response.status).toBe(200);
+      expect(await response.json()).toMatchObject({
+        state: "unconfigured",
+        action: { id: "configure", command: "vanta setup messaging telegram" },
+      });
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
   });
 
   it("lists real adapters and persists a selected adapter through the desktop API", async () => {

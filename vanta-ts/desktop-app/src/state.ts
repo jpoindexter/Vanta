@@ -7,7 +7,7 @@ import {
   type CompletionSoundPlayer,
   type CompletionSoundSettings,
 } from "./completion-sound.js";
-import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, ConnectTestResult, DesktopRunReceipt, DesktopRuntime, EventRow, Message, MessagingPlatform, Provider, RailTab, RuntimeAction, Session, Status, Tool } from "./types.js";
+import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, ConnectTestResult, DesktopRunReceipt, DesktopRuntime, EventRow, Message, MessagingPlatform, Provider, RailTab, RuntimeAction, Session, Status, TelegramSetupStatus, Tool } from "./types.js";
 import type { SessionDeleteAction } from "./session-safe-ops.js";
 import { sessionPinningHandlers } from "./session-pinning-api.js";
 
@@ -101,6 +101,7 @@ export function useDesktopData() {
     testConnection: (kind: "provider" | "messaging", id?: string) => api<ConnectTestResult>("/api/connect/test", {
       method: "POST", headers: jsonHeaders(), body: JSON.stringify({ kind, ...(id ? { id } : {}) }),
     }),
+    telegramSetupStatus: () => api<TelegramSetupStatus>("/api/setup/messaging/telegram"),
     saveSetup: async (provider: string, model: string, apiKey: string) => {
       await api("/api/setup", { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ provider, model, apiKey }) });
       overlays.closeSetup(); setPhase("loading"); await refresh();
@@ -165,7 +166,7 @@ export function useConversation(refresh: () => Promise<void>, cues: TurnCues = {
       try {
         const event = JSON.parse(message.data) as EventRow & { delta?: string };
         if (event.delta) setStreamText((current) => current + event.delta);
-        else if (event.label) setEvents((current) => [...current.filter((row) => row.label !== "thinking..."), event].slice(-10));
+        else if (event.label) setEvents((current) => [...current.filter((row) => row.label !== "thinking..."), event].slice(-200));
       } catch {
         // The final response remains authoritative if a transient SSE frame is malformed.
       }
@@ -252,6 +253,13 @@ function conversationHandlers(state: ConversationState, cues: TurnCues, lastFail
   async function submit(text: string) {
     await submitMessage(state, text, cues, (failed) => { lastFailedMessage.current = failed ? text : ""; });
   }
+  function localReply(text: string, content: string) {
+    state.setMessages((messages) => [...messages, { role: "user", content: text }, { role: "assistant", content }]);
+    state.setEvents([{ label: "Telegram setup status checked.", ok: true }]);
+    state.setStreamText(() => "");
+    state.setRecovery(null);
+    state.setDraft(() => "");
+  }
   async function queue(text: string) {
     const queued = text.trim();
     if (!queued) return;
@@ -264,7 +272,7 @@ function conversationHandlers(state: ConversationState, cues: TurnCues, lastFail
       state.setEvents([{ label: error instanceof Error ? error.message : String(error), ok: false }]);
     }
   }
-  return { openSession, newSession, renameSession, archiveSession, deleteSession, ...pinning, submit, queue, retry: () => lastFailedMessage.current ? submit(lastFailedMessage.current) : Promise.resolve(), insertFile };
+  return { openSession, newSession, renameSession, archiveSession, deleteSession, ...pinning, submit, localReply, queue, retry: () => lastFailedMessage.current ? submit(lastFailedMessage.current) : Promise.resolve(), insertFile };
 }
 
 export async function submitMessage(state: ConversationState, text: string, cues: TurnCues = {}, onRecovery: (failed: boolean) => void = () => {}) {

@@ -46,9 +46,10 @@ describe("Telegram setup validation", () => {
     const probe = vi.fn(async () => ({ ok: true, detail: "Telegram bot vanta_test responded" }));
     const lines: string[] = [];
 
+    const env: NodeJS.ProcessEnv = {};
     await expect(runMessagingSetup(root, rl as never, {
       platformId: "telegram",
-      env: {},
+      env,
       askSecret: async () => token,
       probe,
       log: (line) => lines.push(line),
@@ -58,6 +59,7 @@ describe("Telegram setup validation", () => {
     const written = await readFile(join(root, "vanta-ts", ".env"), "utf8");
     expect(written).toContain(`VANTA_TELEGRAM_TOKEN=${token}`);
     expect(written).toContain("VANTA_TELEGRAM_ALLOW=123456,-100987");
+    expect(env).toMatchObject({ VANTA_TELEGRAM_TOKEN: token, VANTA_TELEGRAM_ALLOW: "123456,-100987" });
     expect(lines.join("\n")).toContain("Verified Telegram bot vanta_test responded");
   });
 

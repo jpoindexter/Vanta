@@ -13,6 +13,7 @@ import { useApproval, useCompletionSound, useConversation, useDesktopData } from
 import { useDesktopMcp } from "./mcp-state.js";
 import { QueuedTurnDrawer, useQueuedTurns } from "./queued-turns.js";
 import type { DesktopTheme, DesktopView, RailTab } from "./types.js";
+import { isTelegramSetupCommand, isTelegramSetupQuestion } from "../../src/setup/telegram-intent.js";
 
 type DesktopData = ReturnType<typeof useDesktopData>;
 type CompletionSound = ReturnType<typeof useCompletionSound>;
@@ -51,6 +52,7 @@ export function AppShell() {
   const [mobilePanel, setMobilePanel] = useState<"sessions" | "work" | "inspect">("work");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [view, setView] = useState<DesktopView>("work");
+  const [connectTarget, setConnectTarget] = useState<{ key: number; section: "messaging"; messagingId: "telegram" } | null>(null);
   const [inspectorOpen, setInspectorOpen] = useState(() => window.innerWidth > 1080);
   const [theme, setTheme] = useState<DesktopTheme>(() => window.localStorage.getItem("vanta.desktop.theme") === "light" ? "light" : "dark");
   const [attachments, setAttachments] = useState<string[]>([]);
@@ -76,6 +78,24 @@ export function AppShell() {
   const sidebarMaximum = Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, window.innerWidth - MIN_WORK_WIDTH - (inspectorVisible ? railWidth : 0)));
   const railMaximum = Math.max(railMinimum, Math.min(MAX_RAIL_WIDTH, window.innerWidth - MIN_WORK_WIDTH - sidebarWidth));
   const mentionedFiles = mentionedProjectFiles(data.files, [...convo.messages.map((message) => message.content ?? ""), convo.draft]);
+  function openTelegramSetup() {
+    setConnectTarget({ key: Date.now(), section: "messaging", messagingId: "telegram" });
+    setView("connect");
+    setMobilePanel("work");
+  }
+  async function submitWork(text: string) {
+    if (!isTelegramSetupQuestion(text) && !isTelegramSetupCommand(text)) {
+      await convo.submit(text);
+      return;
+    }
+    try {
+      const status = await data.telegramSetupStatus();
+      convo.localReply(text, [status.title, status.detail, `${status.action.label}: ${status.action.command}`].join("\n"));
+      if (status.action.id === "configure") openTelegramSetup();
+    } catch (error) {
+      convo.localReply(text, `Telegram setup status is unavailable.\nRetry: ${(error as Error).message}`);
+    }
+  }
 
   useEffect(() => {
     function constrainPanes() {
@@ -172,9 +192,9 @@ export function AppShell() {
           </div>
           <div className="composer-stack">
             <FullAccessWarning visible={accessWarning.visible} onClose={accessWarning.close} onAcknowledge={accessWarning.acknowledge} />
-            <Composer value={convo.draft} busy={convo.busy} model={data.status?.model} root={data.status?.root} tools={data.status?.tools} mcp={mcp.summary} accessMode={data.status?.accessMode ?? "approve"} attachments={attachments} onChange={convo.setDraft} onSubmit={(text) => { void convo.submit(withAttachments(text, attachments)); setAttachments([]); }} onQueue={(text) => { void convo.queue(text).then(queued.refresh); }} onRemoveAttachment={(file) => setAttachments((current) => current.filter((entry) => entry !== file))} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onMcp={() => setView("connect")} onModel={data.openModelPicker} onAccessMode={data.setAccessMode} onCommand={data.openPalette} />
+            <Composer value={convo.draft} busy={convo.busy} model={data.status?.model} root={data.status?.root} tools={data.status?.tools} mcp={mcp.summary} accessMode={data.status?.accessMode ?? "approve"} attachments={attachments} onChange={convo.setDraft} onSubmit={(text) => { void submitWork(withAttachments(text, attachments)); setAttachments([]); }} onQueue={(text) => { void convo.queue(text).then(queued.refresh); }} onRemoveAttachment={(file) => setAttachments((current) => current.filter((entry) => entry !== file))} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onMcp={() => setView("connect")} onModel={data.openModelPicker} onAccessMode={data.setAccessMode} onCommand={data.openPalette} />
           </div>
-        </> : <OperatorWorkspace view={view} data={data} mcp={mcp} events={convo.events} onOpenSession={(id) => { setView("work"); void convo.openSession(id); }} />}
+        </> : <OperatorWorkspace view={view} data={data} mcp={mcp} events={convo.events} connectTarget={connectTarget} onOpenSession={(id) => { setView("work"); void convo.openSession(id); }} />}
       </main>
       <QueuedTurnDrawer open={queueOpen} items={queued.snapshot.items} error={queued.error} onClose={() => setQueueOpen(false)} onAction={queued.mutate} />
       {inspectorVisible ? <RightRail
@@ -206,7 +226,7 @@ export function AppShell() {
       <MobileNavigation view={view} onView={(next) => { setView(next); setMobilePanel("work"); }} onInspect={() => { setInspectorOpen(true); setMobilePanel("inspect"); }} />
       <DesktopStatusbar data={data} />
       <NewTaskDialog open={newTaskOpen} root={data.status?.root} model={data.status?.model} onClose={() => setNewTaskOpen(false)} onCreate={(draft) => { void createTask(draft, convo, () => { setNewTaskOpen(false); setView("work"); }); }} />
-      <DesktopOverlays data={data} sound={sound} convo={convo} theme={theme} accessWarning={accessWarning} onTheme={changeTheme} onNew={() => setNewTaskOpen(true)} onInspector={(tab) => { data.setTab(tab); setInspectorOpen(true); setMobilePanel("inspect"); }} />
+      <DesktopOverlays data={data} sound={sound} convo={convo} theme={theme} accessWarning={accessWarning} onTheme={changeTheme} onNew={() => setNewTaskOpen(true)} onTelegram={openTelegramSetup} onInspector={(tab) => { data.setTab(tab); setInspectorOpen(true); setMobilePanel("inspect"); }} />
     </div>
   );
 }
@@ -328,6 +348,7 @@ function DesktopOverlays(props: {
   accessWarning: ReturnType<typeof useFullAccessWarning>;
   onTheme: (theme: DesktopTheme) => void;
   onNew: () => void;
+  onTelegram: () => void;
   onInspector: (tab: RailTab) => void;
 }) {
   const { data, sound, convo } = props;
@@ -338,6 +359,7 @@ function DesktopOverlays(props: {
         onClose={data.closePalette}
         onNew={props.onNew}
         onModel={data.openModelPicker}
+        onTelegram={props.onTelegram}
         onSound={data.openSoundSettings}
         onSettings={data.openSettings}
         onTab={props.onInspector}
@@ -357,10 +379,10 @@ function DesktopOverlays(props: {
   );
 }
 
-function OperatorWorkspace(props: { view: DesktopView; data: DesktopData; mcp: DesktopMcp; events: ReturnType<typeof useConversation>["events"]; onOpenSession: (id: string) => void }) {
+function OperatorWorkspace(props: { view: DesktopView; data: DesktopData; mcp: DesktopMcp; events: ReturnType<typeof useConversation>["events"]; connectTarget: { key: number; section: "messaging"; messagingId: "telegram" } | null; onOpenSession: (id: string) => void }) {
   if (props.view === "operate") return <OperateView sessions={props.data.sessions} events={props.events} status={props.data.status} onOpenSession={props.onOpenSession} />;
   if (props.view === "outputs") return <ArtifactsView artifacts={props.data.artifacts} onOpenSession={props.onOpenSession} onRefresh={() => { void props.data.refresh(); }} />;
-  return <ConnectView capabilities={props.data.capabilities} platforms={props.data.messaging} models={props.data.models} status={props.data.status} mcp={props.mcp} onSaveMessaging={props.data.saveMessaging} onTest={props.data.testConnection} onOpenModel={props.data.openModelPicker} onOpenSetup={props.data.openSetup} />;
+  return <ConnectView key={props.connectTarget?.key ?? "connect"} capabilities={props.data.capabilities} platforms={props.data.messaging} models={props.data.models} status={props.data.status} mcp={props.mcp} initialSection={props.connectTarget?.section} messagingId={props.connectTarget?.messagingId} onSaveMessaging={props.data.saveMessaging} onTest={props.data.testConnection} onOpenModel={props.data.openModelPicker} onOpenSetup={props.data.openSetup} />;
 }
 
 function viewLabel(view: Exclude<DesktopView, "work">): string {

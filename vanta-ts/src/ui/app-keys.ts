@@ -41,6 +41,7 @@ type GlobalKeyDeps = {
   globalSearchOpen: boolean; openGlobalSearch: () => void;
   messageActionsOpen: boolean; openMessageActions: () => void;
   backgroundResponseAvailable: boolean; toggleBackgroundResponse: () => void;
+  traceOpen?: boolean; toggleTrace?: () => void;
   /** Set only while a teammate tree is live; cycles focus between agents. */
   cycleAgent?: (dir: 1 | -1) => void;
   /** Transcript text selection owns Shift+arrows / Ctrl+C only while useful. */
@@ -114,7 +115,7 @@ function noteChordState(pending: string | null, message: string, d: GlobalKeyDep
 
 // action → {guard, run}. `notBlocked` = no pending/overlay owns input. Keeping
 // this a table holds dispatchGlobalAction flat (one lookup, not a guard chain).
-const notBlocked = (d: GlobalKeyDeps): boolean => !d.quickOpenOpen && !d.globalSearchOpen && !d.messageActionsOpen && !d.pending && !d.overlayOpen;
+const notBlocked = (d: GlobalKeyDeps): boolean => !d.quickOpenOpen && !d.globalSearchOpen && !d.messageActionsOpen && !d.traceOpen && !d.pending && !d.overlayOpen;
 const GLOBAL_HANDLERS: Record<string, { guard: (d: GlobalKeyDeps) => boolean; run: (d: GlobalKeyDeps) => void }> = {
   [GLOBAL_ACTIONS.exitOrAbort]: { guard: () => true, run: (d) => void (d.busy ? d.abort() : d.exit()) },
   [GLOBAL_ACTIONS.quickOpen]: { guard: notBlocked, run: (d) => d.openQuickOpen() },
@@ -124,6 +125,7 @@ const GLOBAL_HANDLERS: Record<string, { guard: (d: GlobalKeyDeps) => boolean; ru
   [GLOBAL_ACTIONS.cycleAgentNext]: { guard: (d) => Boolean(d.cycleAgent), run: (d) => d.cycleAgent?.(1) },
   [GLOBAL_ACTIONS.cycleAgentPrev]: { guard: (d) => Boolean(d.cycleAgent), run: (d) => d.cycleAgent?.(-1) },
   [GLOBAL_ACTIONS.interrupt]: { guard: (d) => d.busy && !d.pending && !d.overlayOpen, run: (d) => d.abort() },
+  [GLOBAL_ACTIONS.toggleTrace]: { guard: (d) => !d.pending && !d.overlayOpen && Boolean(d.toggleTrace), run: (d) => d.toggleTrace?.() },
 };
 
 /** Run the bound global action if its guard permits; true when handled. */

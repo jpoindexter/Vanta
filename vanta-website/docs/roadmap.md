@@ -8,51 +8,39 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1195 capabilities shipped · 1 in flight · 5 on the horizon. Updated 2026-07-15._
+_1242 capabilities shipped · 0 in flight · 0 on the horizon. Updated 2026-07-17._
 
 ## In flight
 
 What we are actively building next.
 
-### Desktop run recovery timeline — retry failed step with receipts
-
-**Desktop App** · L-size
-
-Turn the desktop Work stream from request/response chat into a reliable agent-work surface: durable run timeline, visible partial output, classified failure state, and recovery actions in the place the failure occurred
+_Nothing in flight right now — see the horizon below._
 
 ## Recently shipped
 
-The latest of 1195+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1242+ capabilities. See the [changelog](./changelog) for curated milestones.
 
-- **Desktop user-flow reset - one dependable work loop** — Operator · 2026-07-14
-- **provider model selection — verify + document which model to use** — Harness · 2026-07-14
-- **Remote model-catalog manifest with fallback chain** — Extensibility · 2026-07-14
-- **External proof readiness - one release status for all parked gates** — Harness · 2026-07-14
-- **Desktop model picker UX — searchable grouped selector with current/default clarity** — Desktop App · 2026-07-14
-- **and Keelhouse desktop shell — dense project workbench with native pane behavior** — Desktop App · 2026-07-14
-- **Executive-function operating contract — profile-driven behavior in every session** — Operator · 2026-07-14
-- **Desktop shell convergence — port the accepted demo into production 1:1** — Desktop App · 2026-07-14
-- **Real use-case acceptance — prove Vanta completes operator outcomes** — Release · 2026-07-13
-- **Desktop operator flows v1 — capabilities, channels, artifacts, settings** — Operator · 2026-07-13
-- **Multi-channel LIVE — 5+ platforms from one gateway (Telegram · WhatsApp · Signal · Discord · Slack)** — Operator · 2026-07-13
-- **Desktop session management — rename, archive, restore, and delete conversations** — Operator · 2026-07-13
-- **Managed runtime installer — one command provisions CLI and optional desktop from the same Vanta home** — Operator · 2026-07-13
-- **Vanta public site v1 — product-first homepage, use cases, install, and proof** — Reach · 2026-07-12
-- **Interrupted tool effects - preserve unknown mutations and inspect before retry** — Harness · 2026-07-12
-- **Compaction real-headroom guard - stop when the prompt floor stays over threshold** — Harness · 2026-07-12
-- **Usage route ledger - attribute every model, fallback, and included call** — Operator · 2026-07-12
-- **Session-scoped model switching - change this conversation without changing the default** — Operator · 2026-07-12
-- **Remote context references - safe @file, @diff, and @git expansion through the gateway** — Operator · 2026-07-12
-- **Authenticated runtime readiness - bounded health for remote supervision** — Harness · 2026-07-12
+- **Desktop kernel port collision recovery - Retry finds a safe project endpoint** — Desktop App · 2026-07-17
+- **Desktop context attachments — files as searchable task context, not raw inventory** — Desktop App · 2026-07-17
+- **Desktop safe session operations — archive undo, recoverable trash, menu feedback** — Desktop App · 2026-07-17
+- **Desktop Connect setup status — outcome cards with test actions** — Desktop App · 2026-07-17
+- **First-class MCP connectors — one registry for Vanta CLI, TUI, and Desktop** — Extensibility · 2026-07-17
+- **Desktop MCP control center — install, approve, test, and use MCP servers** — Desktop App · 2026-07-17
+- **Desktop flow proof suite — cold start, work, recovery, attachments, outputs, resize** — Desktop App · 2026-07-17
+- **Schema task environment contract - typed observe, act, predict, and outcome boundary** — Harness · 2026-07-17
+- **Schema transition timeline - append-only ground truth for every real action** — Harness · 2026-07-17
+- **Schema executable-model sandbox - generated simulators cannot escape task scope** — Harness · 2026-07-17
+- **Schema state grounding - turn raw task observations into inspectable entities and variables** — Harness · 2026-07-17
+- **Schema executable task model - editable step() and isGoal() programs** — Harness · 2026-07-17
+- **Schema complete-history backtest - certify each model against recorded reality** — Harness · 2026-07-17
+- **Schema controlled commit gate - one channel from deliberation to side effects** — Harness · 2026-07-17
+- **Schema counterexample recovery - prediction errors void plans and revise the theory** — Harness · 2026-07-17
+- **Schema hypothesis and probe planner - choose actions that separate competing explanations** — Harness · 2026-07-17
+- **Schema model planner - search certified simulations before spending real actions** — Harness · 2026-07-17
+- **Schema persistent workspace - model, notes, hypotheses, and timeline survive compaction** — Harness · 2026-07-17
+- **Schema model quality ledger - measure prediction accuracy, coverage, and discovery cost** — Harness · 2026-07-17
+- **Schema mechanism library - promote verified task rules without freezing bad abstractions** — Harness · 2026-07-17
 
 ## On the horizon
 
 Directional, not committed — grouped by area, newest thinking first.
-
-### Desktop App — 5 planned
-
-- Desktop context attachments — files as searchable task context, not raw inventory
-- Desktop safe session operations — archive undo, recoverable trash, menu feedback
-- Desktop Connect setup status — outcome cards with test actions
-- Desktop context legibility — model scope, tools, memory, approvals inline
-- Desktop flow proof suite — cold start, work, recovery, attachments, outputs, resize

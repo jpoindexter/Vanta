@@ -47,7 +47,7 @@ export function useSubmit(deps: SubmitDeps): (text: string) => void {
   return (text: string): void => {
     if (text === "?") return deps.openOverlay("help");
     if (isSlashLine(text)) return routeSlash(text, deps);
-    if (isTelegramSetupQuestion(text)) return deps.runSlash("/setup messaging");
+    if (isTelegramSetupQuestion(text)) return deps.runSlash("/setup telegram");
     if (maybeRunShortcut(text, { safety: deps.safety, repoRoot: deps.repoRoot, note })) return;
     void submitMessage(text, deps, note);
   };

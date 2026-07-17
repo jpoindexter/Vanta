@@ -3,7 +3,7 @@ import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
 import { Bot, Check, Command, KeyRound, MonitorCog, RefreshCw, Search, ShieldCheck, Star, X } from "lucide-react";
 import type { Approval, ApprovalDecision, DesktopTheme, PermissionSection, Provider, RailTab, Status } from "./types.js";
 
-export function CommandPalette(props: { open: boolean; onClose: () => void; onNew: () => void; onModel: () => void; onSound: () => void; onSettings: () => void; onTab: (tab: RailTab) => void }) {
+export function CommandPalette(props: { open: boolean; onClose: () => void; onNew: () => void; onModel: () => void; onTelegram: () => void; onSound: () => void; onSettings: () => void; onTab: (tab: RailTab) => void }) {
   const [query, setQuery] = useState("");
   const actions = commandActions(props);
   const visible = useMemo(() => actions.filter(([label]) => label.toLowerCase().includes(query.toLowerCase())), [actions, query]);
@@ -47,10 +47,11 @@ export function NewTaskDialog(props: { open: boolean; root?: string; model?: str
   </form></div>;
 }
 
-function commandActions(props: { onNew: () => void; onModel: () => void; onSound: () => void; onSettings: () => void; onTab: (tab: RailTab) => void }) {
+function commandActions(props: { onNew: () => void; onModel: () => void; onTelegram: () => void; onSound: () => void; onSettings: () => void; onTab: (tab: RailTab) => void }) {
   return [
     ["New session", props.onNew],
     ["Model picker", props.onModel],
+    ["Set up Telegram", props.onTelegram],
     ["Completion sound", props.onSound],
     ["Settings", props.onSettings],
     ["Outputs", () => props.onTab("outputs")],

@@ -7,16 +7,25 @@ import type { Skill } from "../skills/types.js";
 // runSlash path the typed command uses, and the two can never diverge. cockpit
 // + help are read-only panels (no rows).
 
-export type OverlayKind = "model" | "sessions" | "skills" | "cockpit" | "help" | "loops" | "review" | "context" | "mcp" | "tasks" | "agentEditor" | "teams" | "memory" | "workflowSelect" | "outputStyle" | "export" | "sandbox" | "config" | "stats" | "hooks" | "pluginPanels";
+export type OverlayKind = "setup" | "model" | "sessions" | "skills" | "cockpit" | "help" | "loops" | "review" | "context" | "mcp" | "tasks" | "agentEditor" | "teams" | "memory" | "workflowSelect" | "outputStyle" | "export" | "sandbox" | "config" | "stats" | "hooks" | "pluginPanels";
 /** `mark` is an optional status glyph (● current) shown in its own column, left
  * of the label and distinct from the ❯ selection cursor. */
 export type OverlayRow = { label: string; hint?: string; command: string; mark?: string };
 
 /** Bare slash commands that open an inline overlay instead of printing text. */
 export const PICKER_KINDS: Readonly<Record<string, OverlayKind>> = {
-  model: "model", setup: "model", sessions: "sessions", skills: "skills", cockpit: "cockpit", help: "help",
+  model: "model", setup: "setup", sessions: "sessions", skills: "skills", cockpit: "cockpit", help: "help",
   loops: "loops", changes: "review", context: "context", mcp: "mcp", agents: "agentEditor", teams: "teams", memory: "memory", "workflow-select": "workflowSelect", "output-style": "outputStyle", export: "export", sandbox: "sandbox", config: "config", stats: "stats", hooks: "hooks", "plugin-panels": "pluginPanels",
 };
+
+export function setupRows(): OverlayRow[] {
+  return [
+    { label: "Model", hint: "Provider and model for this session", command: "/model" },
+    { label: "Telegram", hint: "Connect or repair messaging", command: "/setup telegram" },
+    { label: "Voice", hint: "Choose a spoken-reply provider", command: "/setup tts" },
+    { label: "MCP", hint: "Inspect tool-server connections", command: "/mcp" },
+  ];
+}
 
 export function sessionRows(sessions: SessionMeta[]): OverlayRow[] {
   return sessions.map((s) => ({ label: `${s.id}  ${s.turns} turn(s)`, hint: s.title, command: `/resume ${s.id}` }));

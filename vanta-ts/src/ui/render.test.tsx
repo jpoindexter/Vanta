@@ -128,6 +128,20 @@ describe("EntryView", () => {
     expect(out).not.toContain("actions"); // no grouped "N actions" header
     inst.unmount();
   });
+
+  it("collapses repeated reads into one quiet receipt with evidence shortcut", async () => {
+    const tools = [
+      { kind: "tool" as const, name: "read_file", verb: "read", detail: "a.ts", ok: true, summary: "20 lines" },
+      { kind: "tool" as const, name: "grep_files", verb: "searched", detail: "src", ok: true, summary: "4 matches" },
+    ];
+    const inst = renderUi(h(EntryView, { entry: { kind: "toolGroup", tools } }));
+    await tick();
+    const out = inst.lastFrame();
+    expect(out).toContain("Read and searched 2 times");
+    expect(out).toContain("Ctrl+T evidence");
+    expect(out).not.toContain("20 lines");
+    inst.unmount();
+  });
 });
 
 describe("SlashPalette", () => {

@@ -29,7 +29,7 @@ Every outbound action (send / draft / create / update) is approval-gated. Provis
 
 `vanta setup messaging` runs a registry-driven wizard. Pass a platform id to skip the long catalog, for example `vanta setup messaging telegram`. **22 messaging adapters are registered** (Telegram, Slack, Discord, Signal, WhatsApp, iMessage, Matrix, LINE, Mattermost, IRC, ntfy, Teams, Twitch, SMS, Zalo, Feishu, QQ, WeChat, WebChat, Nostr, Google Chat, Email). Every current catalog entry has a runtime adapter; real delivery still depends on that platform's credentials, webhook, device, or service.
 
-Telegram uses a long-poll `getUpdates` + `sendMessage` loop (no SDK). Its setup flow checks existing state, validates token syntax and calls Bot API `getMe` before persisting, then collects an optional numeric owner allowlist. The prior configuration remains intact when verification fails. In the interactive TUI, `/setup messaging` reports ready, needs-setup, or configured-but-unusable state with one next action.
+Telegram uses a long-poll `getUpdates` + `sendMessage` loop (no SDK). Its setup flow checks existing state, validates token syntax and calls Bot API `getMe` before persisting, then collects an optional numeric owner allowlist. The prior configuration remains intact when verification fails. The TUI and Desktop share deterministic unconfigured, repair-needed, gateway-stopped, polling-live, and webhook-live status rules with one next action. Desktop answers setup questions without requiring an active model provider; its `/` palette opens Telegram's existing Connect form directly.
 
 The `send_message` tool delivers an outbound message through a configured platform (approval-gated).
 

@@ -12,8 +12,8 @@ const MAX_PROMPT_CHARS = 120;
 
 export function promptSuggestionsEnabled(env: NodeJS.ProcessEnv): boolean {
   const raw = env.VANTA_PROMPT_SUGGESTIONS?.trim().toLowerCase();
-  if (!raw) return true;
-  return !["0", "false", "off", "no"].includes(raw);
+  if (!raw) return false;
+  return ["1", "true", "on", "yes"].includes(raw);
 }
 
 export async function generatePromptSuggestions(input: PromptSuggestionInput): Promise<string[]> {

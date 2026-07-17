@@ -31,7 +31,7 @@ vanta setup messaging telegram   # go directly to Telegram
 
 Each platform shows an `[available | configured | planned]` status with numbered steps. **22 messaging adapters are registered**; every current catalog entry has a runtime adapter, while real delivery still depends on that platform's credentials, webhook, device, or service. Telegram setup recognizes an existing configuration before changing it, validates the @BotFather token against `getMe` before writing, and optionally stores a numeric owner allowlist in `VANTA_TELEGRAM_ALLOW`. A rejected token leaves the prior `.env` untouched.
 
-Inside interactive Vanta, `/setup` is a setup-status hub rather than a model-picker alias. Use `/setup messaging` or ask “how do I set up Telegram?” for the current Telegram state and one exact repair action. See [Comms & gateway](./comms-and-gateway.md).
+Inside interactive Vanta, `/setup` opens a compact hub for Model, Telegram, Voice, and MCP rather than aliasing the model picker. Choose Telegram, run `/setup telegram`, or ask “how do I set up Telegram?” to see the current state and enter the targeted wizard. Vanta temporarily suspends the TUI, verifies the BotFather token before writing, and then starts a freshly prepared interactive session with the new configuration loaded. Use `/setup telegram status` for a read-only check. In Desktop, typing `/` exposes **Set up Telegram**, which opens Connect > Messaging > Telegram. These routes remain available when the model provider is missing. See [Comms & gateway](./comms-and-gateway.md).
 
 ## Other one-time setup
 

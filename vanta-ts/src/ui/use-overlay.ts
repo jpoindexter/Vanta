@@ -4,7 +4,7 @@ import { listSessions } from "../sessions/store.js";
 import { listSkills } from "../skills/store.js";
 import { gatherCockpitData, type CockpitData } from "../tui/mission-control/cockpit-data.js";
 import { gatherStats, type UsageStats } from "./stats-data.js";
-import { sessionRows, skillRows, modelRows, PICKER_KINDS, type OverlayKind, type OverlayRow } from "./overlays.js";
+import { sessionRows, skillRows, modelRows, setupRows, PICKER_KINDS, type OverlayKind, type OverlayRow } from "./overlays.js";
 import { listLoopSummaries, type LoopSummary } from "../loop/summary.js";
 import { listChangedFiles, type ChangedFile } from "../repl/changed-files.js";
 import { contextBreakdown, type CtxCategory } from "./context-breakdown.js";
@@ -55,6 +55,7 @@ export type OverlayView =
 
 /** The four picker kinds that resolve to a generic selectable list; null otherwise. */
 async function listOverlay(kind: OverlayKind, setup: RunSetup): Promise<OverlayView | null> {
+  if (kind === "setup") return { kind: "list", title: "Set up Vanta", rows: setupRows() };
   if (kind === "model") return { kind: "list", title: "Switch model for this session", rows: modelRows(setup.provider.routeInfo?.().provider ?? process.env.VANTA_PROVIDER ?? "openai", setup.provider.modelId()) };
   if (kind === "sessions") return { kind: "list", title: "Sessions", rows: sessionRows(await listSessions(process.env)) };
   if (kind === "skills") return { kind: "list", title: "Skills", rows: skillRows(await listSkills(process.env)) };

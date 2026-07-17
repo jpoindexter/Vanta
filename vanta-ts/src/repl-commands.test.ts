@@ -73,7 +73,7 @@ describe("runSlashCommand", () => {
     const out = log.mock.calls.flat().join("\n");
     expect(out).toContain("Setup");
     expect(out).toContain("Telegram");
-    expect(out).toContain("/setup messaging");
+    expect(out).toContain("/setup telegram");
   });
 
   it("/resume loads a saved session into the conversation", async () => {

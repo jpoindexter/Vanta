@@ -1,7 +1,13 @@
 import type { StreamEvent } from "../agent/agent-types.js";
 
 /** A formatted, surface-neutral label for a stream event. */
-export type EventLabel = { label: string; ok?: boolean };
+export type EventLabel = {
+  label: string;
+  ok?: boolean;
+  kind?: "tool_start" | "tool_end" | "note" | "summary";
+  name?: string;
+  detail?: string;
+};
 
 /**
  * The display-formatter PORT for STRING surfaces (desktop SSE, logs, future
@@ -17,11 +23,11 @@ export interface StreamEventFormatter {
 /** The default label formatter — the one string presentation, shared, swappable. */
 export const defaultEventFormatter: StreamEventFormatter = {
   format(event) {
-    if (event.type === "tool_start") return { label: `→ ${event.name}` };
+    if (event.type === "tool_start") return { label: `→ ${event.name}`, kind: "tool_start", name: event.name };
     if (event.type === "tool_end") {
-      return { label: `${event.ok ? "✓" : "✗"} ${event.name}: ${event.output.slice(0, 90)}`, ok: event.ok };
+      return { label: `${event.ok ? "✓" : "✗"} ${event.name}: ${event.output.slice(0, 90)}`, ok: event.ok, kind: "tool_end", name: event.name, detail: event.output };
     }
-    if (event.type === "note") return { label: `note: ${event.text.slice(0, 100)}` };
+    if (event.type === "note") return { label: `note: ${event.text.slice(0, 100)}`, kind: "note", detail: event.text };
     return null;
   },
 };

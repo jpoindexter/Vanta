@@ -25,6 +25,7 @@ export const GLOBAL_ACTIONS = {
   interrupt: "global.interrupt",
   cycleAgentNext: "global.cycleAgentNext",
   cycleAgentPrev: "global.cycleAgentPrev",
+  toggleTrace: "global.toggleTrace",
 } as const;
 
 /** Sensible defaults (global context) matching the pre-config hardcoded keys. */
@@ -37,6 +38,7 @@ export const DEFAULT_BINDINGS: KeyBinding[] = [
   { action: GLOBAL_ACTIONS.interrupt, chord: "escape", context: "global" },
   { action: GLOBAL_ACTIONS.cycleAgentNext, chord: "shift+right", context: "global" },
   { action: GLOBAL_ACTIONS.cycleAgentPrev, chord: "shift+left", context: "global" },
+  { action: GLOBAL_ACTIONS.toggleTrace, chord: "ctrl+t", context: "global" },
 ];
 
 const MOD_ORDER = ["ctrl", "alt", "shift", "meta"];

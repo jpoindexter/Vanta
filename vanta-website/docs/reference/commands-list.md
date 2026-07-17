@@ -46,7 +46,7 @@ Every slash command, generated from the command catalog — **146 commands**. Ty
 | `/model` | change provider & model — interactive picker |
 | `/models` | list available models for the active provider |
 | `/effort` | set model effort for this session |
-| `/setup` | configure the model backend — opens the provider/model picker |
+| `/setup` | open the setup hub for model, Telegram, voice, and MCP |
 | `/config` | interactive settings — view + change config (TUI) |
 | `/settings` | show/edit persisted settings |
 | `/usage` | token usage + context fill for this session |
@@ -208,4 +208,3 @@ Every slash command, generated from the command catalog — **146 commands**. Ty
 | `/wftasks` | workflow run task list — compose_workflow runs + their running/done/failed status |
 | `/what-can-i-do` | show concrete runnable workflows for this Vanta install |
 | `/workflow-select` | choose, skip, reorder, and run steps from .vanta/workflow-draft.json |
-

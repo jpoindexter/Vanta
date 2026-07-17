@@ -71,6 +71,33 @@ describe("ChatThread recovery", () => {
   });
 });
 
+describe("ChatThread quiet trace", () => {
+  it("collapses repeated reads and keeps full evidence keyboard-expandable", () => {
+    const html = renderToStaticMarkup(
+      <ChatThread
+        messages={[]}
+        busy={true}
+        streamText=""
+        events={[
+          { label: "✓ read_file: first", kind: "tool_end", name: "read_file", ok: true, detail: "first full output" },
+          { label: "✓ grep_files: second", kind: "tool_end", name: "grep_files", ok: true, detail: "second full output" },
+          { label: "note: internal policy narration", kind: "note", detail: "internal policy narration" },
+        ]}
+        recovery={null}
+        approval={null}
+        onApproval={vi.fn()}
+        onRetry={vi.fn()}
+        onPrompt={vi.fn()}
+      />,
+    );
+    expect(html).toContain("Read and searched 2 times");
+    expect(html.match(/<details/g)).toHaveLength(1);
+    expect(html).toContain("first full output");
+    expect(html).toContain("second full output");
+    expect(html).not.toContain("internal policy narration");
+  });
+});
+
 describe("ChatThread approval checkpoint", () => {
   it("renders action type, target, reason, preview, and approval controls", () => {
     const html = renderToStaticMarkup(

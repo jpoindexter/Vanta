@@ -12,9 +12,9 @@ const note: StreamEvent = { type: "note", text: "heads up" };
 
 describe("defaultEventFormatter", () => {
   it("labels tool_start / tool_end / note and drops unknowns", () => {
-    expect(defaultEventFormatter.format({ type: "tool_start", name: "grep", args: {} })).toEqual({ label: "→ grep" });
-    expect(defaultEventFormatter.format(toolEnd)).toEqual({ label: "✓ read_file: hello world", ok: true });
-    expect(defaultEventFormatter.format(note)).toEqual({ label: "note: heads up" });
+    expect(defaultEventFormatter.format({ type: "tool_start", name: "grep", args: {} })).toEqual({ label: "→ grep", kind: "tool_start", name: "grep" });
+    expect(defaultEventFormatter.format(toolEnd)).toEqual({ label: "✓ read_file: hello world", ok: true, kind: "tool_end", name: "read_file", detail: "hello world" });
+    expect(defaultEventFormatter.format(note)).toEqual({ label: "note: heads up", kind: "note", detail: "heads up" });
   });
 });
 

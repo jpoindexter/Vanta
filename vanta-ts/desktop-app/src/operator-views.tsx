@@ -58,8 +58,8 @@ export function MessagingView(props: { platforms: MessagingPlatform[]; onSave: (
   return <WorkspaceView title="Messaging" eyebrow="Reach Vanta elsewhere" description="Connect one of Vanta's gateway adapters. Credentials are saved locally and never displayed again."><MessagingPanel {...props} /></WorkspaceView>;
 }
 
-function MessagingPanel(props: { platforms: MessagingPlatform[]; onSave: (id: string, values: Record<string, string>) => Promise<void>; onTest: TestConnection }) {
-  const [selectedId, setSelectedId] = useState("");
+function MessagingPanel(props: { platforms: MessagingPlatform[]; initialId?: string; onSave: (id: string, values: Record<string, string>) => Promise<void>; onTest: TestConnection }) {
+  const [selectedId, setSelectedId] = useState(props.initialId ?? "");
   const selected = props.platforms.find((platform) => platform.id === selectedId) ?? props.platforms[0];
   useEffect(() => { if (!selectedId && props.platforms[0]) setSelectedId(props.platforms[0].id); }, [props.platforms, selectedId]);
   return <div className="messaging-layout">
@@ -121,8 +121,10 @@ export function ConnectView(props: {
   onTest: TestConnection;
   onOpenModel: () => void;
   onOpenSetup: () => void;
+  initialSection?: "overview" | "capabilities" | "mcp" | "messaging";
+  messagingId?: string;
 }) {
-  const [section, setSection] = useState<"overview" | "capabilities" | "mcp" | "messaging">("overview");
+  const [section, setSection] = useState<"overview" | "capabilities" | "mcp" | "messaging">(props.initialSection ?? "overview");
   const configured = props.platforms.filter((platform) => platform.configured).length;
   const providerStatus: ConnectStatus = props.status?.model ? "ready" : props.models.length ? "needs_setup" : "unavailable";
   useEffect(() => { if (section === "mcp") void props.mcp?.refresh(); }, [props.mcp?.refresh, section]);
@@ -141,7 +143,7 @@ export function ConnectView(props: {
     </div> : null}
     {section === "capabilities" ? <CapabilitiesPanel items={props.capabilities} /> : null}
     {section === "mcp" && props.mcp ? <McpConnectorsView payload={props.mcp.payload} loading={props.mcp.loading} pending={props.mcp.pending} error={props.mcp.error} onRefresh={props.mcp.refresh} onAction={props.mcp.act} /> : null}
-    {section === "messaging" ? <MessagingPanel platforms={props.platforms} onSave={props.onSaveMessaging} onTest={props.onTest} /> : null}
+    {section === "messaging" ? <MessagingPanel platforms={props.platforms} initialId={props.messagingId} onSave={props.onSaveMessaging} onTest={props.onTest} /> : null}
   </WorkspaceView>;
 }
 

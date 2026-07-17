@@ -13,7 +13,7 @@ export type Action =
   | { t: "delta"; d: string }
   | { t: "thinking"; text: string }
   | { t: "toolCall"; verb: string; name: string; detail: string }
-  | { t: "toolResult"; name: string; ok: boolean; errorLine?: string; summary?: string; diff?: DiffLine[]; tokens?: number }
+  | { t: "toolResult"; name: string; ok: boolean; errorLine?: string; summary?: string; diff?: DiffLine[]; tokens?: number; rawOutput?: string }
   | { t: "note"; text: string }
   | { t: "todos"; items: TodoItem[] }
   | { t: "enqueue"; text: string }
@@ -169,7 +169,7 @@ function completeTool(state: UiState, a: Extract<Action, { t: "toolResult" }>): 
   const activeTools = idx >= 0 ? state.activeTools.filter((_, i) => i !== idx) : state.activeTools;
   const entry: ToolEntry = {
     kind: "tool", name: a.name, verb: pend?.verb ?? a.name, detail: pend?.detail ?? "",
-    ok: a.ok, errorLine: a.errorLine, summary: a.summary, diff: a.diff, tokens: a.tokens,
+    ok: a.ok, errorLine: a.errorLine, summary: a.summary, diff: a.diff, tokens: a.tokens, rawOutput: a.rawOutput,
   };
   return { ...state, activeTools, pendingGroup: [...state.pendingGroup, entry] };
 }

@@ -12,6 +12,7 @@ The default interactive surface is a React + Ink terminal UI with inline renderi
 
 - **Composer** — a custom readline: emacs/readline chords, multiline (shift+enter), command history with typeahead, queue-while-busy, `^G` to open `$EDITOR`, image paste, `Esc` to interrupt.
 - **Transcript** — markdown + GFM tables, tool calls render as `⏺ Verb(detail)` over a dim result line with inline diffs, syntax-highlighted code.
+- **Quiet trace** — repeated reads and searches collapse into one completed receipt. `Ctrl+T` opens the complete stored tool evidence; failures keep the exact cause and one recovery action. Predicted next prompts are opt-in, so they do not compete with the operator's task by default.
 - **Status footer** — context gauge (`48k/200k [██░░] 24%`), live timer, the working-goal `◇` line, and prefix hints (`/` commands · `@` files · `!` shell · `#` memory).
 - **Approval prompt** — a per-tool numbered menu (Yes / Yes-don't-ask-again / No / Never); a kernel **block** is never offered as allowable.
 - **Focus** — Tab / Shift+Tab traversal across composer, overlays, and approval actions.

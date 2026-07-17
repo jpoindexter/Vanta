@@ -26,7 +26,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "effort", arg: "<low|medium|high|xhigh|max>", desc: "set model effort for this session" },
   { name: "env", arg: "[KEY=value|-KEY]", desc: "session-scoped env vars injected into shell_cmd/run_code child processes" },
   { name: "cd", arg: "[path]", desc: "change the session working directory for shell_cmd (no arg prints it)" },
-  { name: "setup", arg: "[model|messaging|telegram|tts]", desc: "show setup status or repair one setup area" },
+  { name: "setup", arg: "[model|messaging|telegram|tts|mcp] [status]", desc: "open setup or inspect one setup area" },
   { name: "tools", desc: "list available tools" },
   { name: "skills", arg: "[audit|pending|diff|approve|reject|approval]", desc: "list skills, audit injection flags, or review staged agent skill changes" },
   { name: "skillify", arg: "[name]", desc: "distill this session into a draft SKILL.md (write_skill saves it — not auto-written)" },

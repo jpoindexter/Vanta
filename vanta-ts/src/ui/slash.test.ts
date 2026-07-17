@@ -57,7 +57,7 @@ describe("applySlashResult", () => {
   const spyFx = (): SlashEffects & { notes: string[]; sends: string[]; anchors: string[]; vims: boolean[]; exits: number; clears: number } => {
     const notes: string[] = [], sends: string[] = [], anchors: string[] = [], vims: boolean[] = [];
     let exits = 0, clears = 0;
-    return { notes, sends, anchors, vims, get exits() { return exits; }, get clears() { return clears; }, clear: () => { clears += 1; }, note: (t) => notes.push(t), send: (t) => sends.push(t), composerAnchor: (m) => anchors.push(m), vimMode: (on) => vims.push(on), exit: () => { exits += 1; } };
+    return { notes, sends, anchors, vims, get exits() { return exits; }, get clears() { return clears; }, clear: () => { clears += 1; }, note: (t) => notes.push(t), send: (t) => sends.push(t), composerAnchor: (m) => anchors.push(m), vimMode: (on) => vims.push(on), setup: () => {}, exit: () => { exits += 1; } };
   };
   it("routes output to a note", () => {
     const fx = spyFx();
@@ -81,6 +81,14 @@ describe("applySlashResult", () => {
     const fx = spyFx();
     applySlashResult({ exit: true }, fx);
     expect(fx.exits).toBe(1);
+  });
+
+  it("routes setup handoffs to the interactive host", () => {
+    const fx = spyFx();
+    const requests: string[] = [];
+    fx.setup = (request) => requests.push(`${request.section}:${request.section === "messaging" ? request.platformId : ""}`);
+    applySlashResult({ setupHandoff: { section: "messaging", platformId: "telegram" } }, fx);
+    expect(requests).toEqual(["messaging:telegram"]);
   });
 
 

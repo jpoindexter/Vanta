@@ -37,7 +37,7 @@ Mirror `renderProviderMenu`/`runSetup`. No crashes on missing prereqs — explai
 
 ### Telegram setup contract
 
-The targeted command is `vanta setup messaging telegram`. It recognizes an existing configuration before replacing it, validates the BotFather token format, calls `getMe` before persisting, and then collects the numeric owner/chat allowlist. Failed validation preserves the existing `.env`. Interactive `/setup` is a status hub; `/setup messaging` reports one of needs setup, configured but unusable, or ready, then gives one exact command. Telegram's native command menu remains deferred until the gateway owns every command it advertises.
+The targeted CLI command is `vanta setup messaging telegram`. It recognizes an existing configuration before replacing it, validates the BotFather token format, calls `getMe` before persisting, and then collects the numeric owner/chat allowlist. Failed validation preserves the existing `.env`. Interactive `/setup` opens a hub for Model, Telegram, Voice, and MCP; `/setup telegram` reports unconfigured, repair-needed, configured-but-stopped, polling-live, or webhook-live state and then hands control to the targeted wizard. The TUI is unmounted while readline owns the terminal and is freshly prepared after the wizard returns, so hidden input and keyboard modes do not conflict. `/setup telegram status` is read-only. Desktop uses the same deterministic status model, so the Telegram setup question works even when no model provider can initialize. Typing `/` in Desktop exposes **Set up Telegram** and opens Connect > Messaging > Telegram directly. Telegram's native command menu remains deferred until the gateway owns every command it advertises.
 
 ## Reference patterns
 

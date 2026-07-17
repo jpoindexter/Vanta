@@ -7,8 +7,10 @@ import { fireHooks } from "./hooks/shell-hooks.js";
 import { drainAsyncReentry } from "./subagent/async-delegate.js";
 import type { UserCommand } from "./commands/loader.js";
 import type { RunSetup } from "./session.js";
+import { runSetupHandoff } from "./setup/handoff.js";
 
 type SlashCtx = Parameters<typeof executeSlash>[1];
+type ReplReadline = ReturnType<typeof createInterface>;
 type CpFn = (a: string, c: SlashCtx) => unknown;
 export type SlashResult = { exit?: boolean; restart?: boolean; editPrefill?: string; editMsgIdx?: number };
 
@@ -24,7 +26,7 @@ async function tryCheckpointCmd(o: { line: string; firstToken: string; ctx: Slas
   return null;
 }
 
-type SlashOpts = { line: string; firstToken: string; ctx: SlashCtx; cp: CpFn; rb: CpFn; rs: CpFn; userCommands: UserCommand[]; repoRoot: string; runUserTurn: (t: string) => Promise<void> };
+type SlashOpts = { line: string; firstToken: string; ctx: SlashCtx; cp: CpFn; rb: CpFn; rs: CpFn; userCommands: UserCommand[]; repoRoot: string; rl: ReplReadline; runUserTurn: (t: string) => Promise<void> };
 
 async function handleSlashLine(o: SlashOpts): Promise<SlashResult> {
   const cpResult = await tryCheckpointCmd({ line: o.line, firstToken: o.firstToken, ctx: o.ctx, cp: o.cp, rb: o.rb, rs: o.rs });
@@ -37,14 +39,15 @@ async function handleSlashLine(o: SlashOpts): Promise<SlashResult> {
     await o.runUserTurn(prompt);
     return {};
   }
-  return dispatchSlash(o.line, o.ctx, o.repoRoot, o.runUserTurn);
+  return dispatchSlash(o.line, o.ctx, o.repoRoot, o.rl, o.runUserTurn);
 }
 
-async function dispatchSlash(line: string, ctx: SlashCtx, repoRoot: string, runUserTurn: (t: string) => Promise<void>): Promise<SlashResult> {
+async function dispatchSlash(line: string, ctx: SlashCtx, repoRoot: string, rl: ReplReadline, runUserTurn: (t: string) => Promise<void>): Promise<SlashResult> {
   const result = await executeSlash(line, ctx);
   if (result.output) console.log(result.output);
   if (result.exit) return { exit: true };
   if (result.restart) return { restart: true };
+  if (result.setupHandoff) await runSetupHandoff(repoRoot, result.setupHandoff, { rl });
   if (result.resend) {
     const command = line.split(/\s/)[0]?.slice(1) ?? "";
     await fireHooks(ctx.dataDir, "UserPromptExpansion", { command, prompt: result.resend }, { cwd: repoRoot, matcherValue: command, promptProvider: ctx.setup.provider });
@@ -93,7 +96,7 @@ async function replIteration(
   if (applyEditMode(line, editState, d.convo)) return {};
   const firstToken = line.slice(1).split(/\s/)[0] ?? "";
   if (line.startsWith("/") && !firstToken.includes("/")) {
-    const r = await handleSlashLine({ line, firstToken, ctx: d.ctx, cp: d.cp, rb: d.rb, rs: d.rs, userCommands: d.userCommands, repoRoot: d.repoRoot, runUserTurn: d.runUserTurn });
+    const r = await handleSlashLine({ line, firstToken, ctx: d.ctx, cp: d.cp, rb: d.rb, rs: d.rs, userCommands: d.userCommands, repoRoot: d.repoRoot, rl: d.rl, runUserTurn: d.runUserTurn });
     if (r.exit) return { stop: true };
     if (r.restart) { process.exitCode = RESTART_EXIT_CODE; return { stop: true }; }
     if (r.editPrefill !== undefined) { editState.prefill = r.editPrefill; editState.msgIdx = r.editMsgIdx ?? -1; }

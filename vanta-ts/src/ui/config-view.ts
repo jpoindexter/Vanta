@@ -56,7 +56,7 @@ export function configState(settings: Settings, env: NodeJS.ProcessEnv): ConfigS
     effort: asEffort(env.VANTA_EFFORT_LEVEL, settings.effortLevel),
     outputStyle: asStyle(settings.ui?.outputStyle),
     composerAnchor: asAnchor(env.VANTA_COMPOSER_ANCHOR, settings.ui?.composerAnchor),
-    promptSuggestions: flagFrom(env.VANTA_PROMPT_SUGGESTIONS, settings.ui?.promptSuggestionsEnabled, true),
+    promptSuggestions: flagFrom(env.VANTA_PROMPT_SUGGESTIONS, settings.ui?.promptSuggestionsEnabled, false),
     autoMode: flagFrom(env.VANTA_AUTO_MODE, settings.autoMode?.enabled, false),
     sandbox: flagFrom(env.VANTA_SANDBOX, settings.sandbox?.enabled, false),
     sandboxShellOnly: flagFrom(env.VANTA_SHELL_SANDBOX, settings.sandbox?.shellOnly, false),

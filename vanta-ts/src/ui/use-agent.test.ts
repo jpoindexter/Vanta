@@ -149,12 +149,19 @@ describe("useAgent send — image attachments", () => {
       toolCalls: [],
       finishReason: "stop",
     });
-    const { send } = useAgent(deps as never);
-    await send("fix the bug");
-    await waitFor(() => actions.some((a) => a.t === "promptSuggestions"));
-    expect(actions.find((a) => a.t === "promptSuggestions")).toMatchObject({
-      suggestions: ["Verify this", "Commit this", "Show roadmap"],
-    });
+    const old = process.env.VANTA_PROMPT_SUGGESTIONS;
+    process.env.VANTA_PROMPT_SUGGESTIONS = "1";
+    try {
+      const { send } = useAgent(deps as never);
+      await send("fix the bug");
+      await waitFor(() => actions.some((a) => a.t === "promptSuggestions"));
+      expect(actions.find((a) => a.t === "promptSuggestions")).toMatchObject({
+        suggestions: ["Verify this", "Commit this", "Show roadmap"],
+      });
+    } finally {
+      if (old === undefined) delete process.env.VANTA_PROMPT_SUGGESTIONS;
+      else process.env.VANTA_PROMPT_SUGGESTIONS = old;
+    }
   });
 
   it("does not dispatch suggestions when the feature is disabled", async () => {

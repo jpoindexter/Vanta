@@ -29,4 +29,11 @@ describe("ConnectView", () => {
     expect(html).toContain("Unavailable");
     expect(html).toContain("Retry locally before opening setup");
   });
+
+  it("opens directly to the selected messaging adapter", () => {
+    const html = renderToStaticMarkup(<ConnectView capabilities={[]} platforms={platforms} models={[]} status={null} initialSection="messaging" messagingId="telegram" onSaveMessaging={async () => undefined} onTest={async () => ({ status: "ready", message: "ready" })} onOpenModel={() => undefined} onOpenSetup={() => undefined} />);
+    expect(html).toContain("Messaging platforms");
+    expect(html).toContain("Replace saved credentials");
+    expect(html).toContain("Telegram");
+  });
 });

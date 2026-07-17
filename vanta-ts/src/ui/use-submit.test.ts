@@ -124,7 +124,7 @@ describe("useSubmit routing", () => {
   it("routes a natural-language Telegram setup question to the setup status command", () => {
     const h = harness();
     h.onSubmit("how do i setup telgram i dont see the / command");
-    expect(h.runSlash).toHaveBeenCalledWith("/setup messaging");
+    expect(h.runSlash).toHaveBeenCalledWith("/setup telegram");
     expect(h.send).not.toHaveBeenCalled();
   });
 

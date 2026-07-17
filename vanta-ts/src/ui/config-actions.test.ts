@@ -63,14 +63,14 @@ describe("config-actions — persist + re-derive", () => {
   it("togglePromptSuggestions persists the ui setting and re-derives it", async () => {
     const seen: ConfigView[] = [];
     const view = await buildConfigOverlay(root, host(seen));
-    expect(view.state.promptSuggestions).toBe(true);
+    expect(view.state.promptSuggestions).toBe(false);
 
     view.onAction({ kind: "togglePromptSuggestions" });
     await waitFor(() => seen.length > 0);
 
     const persisted = await loadSettings(root, {} as NodeJS.ProcessEnv);
-    expect(persisted.ui?.promptSuggestionsEnabled).toBe(false);
-    expect(seen.at(-1)?.state.promptSuggestions).toBe(false);
+    expect(persisted.ui?.promptSuggestionsEnabled).toBe(true);
+    expect(seen.at(-1)?.state.promptSuggestions).toBe(true);
   });
 
 

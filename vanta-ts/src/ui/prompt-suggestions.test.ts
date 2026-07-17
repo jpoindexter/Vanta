@@ -7,10 +7,11 @@ import {
 } from "./prompt-suggestions.js";
 
 describe("prompt suggestions", () => {
-  it("is enabled by default and accepts common off values", () => {
-    expect(promptSuggestionsEnabled({} as NodeJS.ProcessEnv)).toBe(true);
+  it("is quiet by default and accepts explicit on values", () => {
+    expect(promptSuggestionsEnabled({} as NodeJS.ProcessEnv)).toBe(false);
     expect(promptSuggestionsEnabled({ VANTA_PROMPT_SUGGESTIONS: "0" } as NodeJS.ProcessEnv)).toBe(false);
     expect(promptSuggestionsEnabled({ VANTA_PROMPT_SUGGESTIONS: "off" } as NodeJS.ProcessEnv)).toBe(false);
+    expect(promptSuggestionsEnabled({ VANTA_PROMPT_SUGGESTIONS: "1" } as NodeJS.ProcessEnv)).toBe(true);
     expect(promptSuggestionsEnabled({ VANTA_PROMPT_SUGGESTIONS: "1" } as NodeJS.ProcessEnv)).toBe(true);
   });
 
