@@ -12,4 +12,4 @@ WORKDIR /workspace/vanta-ts
 COPY vanta-ts/package.json vanta-ts/package-lock.json ./
 RUN npm ci --omit=dev --no-audit --no-fund
 COPY vanta-ts/src ./src
-COPY --from=kernel /build/target/release/vanta-kernel /workspace/target/debug/vanta-kernel
+COPY --from=kernel /build/target/release/vanta-kernel /workspace/vanta-ts/target/debug/vanta-kernel

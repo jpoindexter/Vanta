@@ -19238,6 +19238,43 @@
       ]
     },
     {
+      "id": "INTERACTIVE-TELEGRAM-SETUP-DISCOVERY",
+      "track": "Operator",
+      "title": "Interactive Telegram setup discovery - answer the operator and expose the command",
+      "status": "next",
+      "size": "S",
+      "summary": "An operator asked, in natural language, how to set up Telegram and got an overlong command explanation plus exploratory tool chatter. The interactive harness must recognize this as a setup request, state the current Telegram status, give one exact next action, and make that action discoverable from the slash palette instead of requiring prior CLI knowledge.",
+      "done": "In the interactive TUI and Desktop, asking 'how do I set up Telegram?' returns a short state-aware answer with one primary action; typing `/` exposes a discoverable Telegram or Messaging setup entry that opens the existing setup flow; the response does not include raw read/grep activity, generic next-prompt menus, or commands unrelated to the operator's current runtime; tests cover unconfigured, configured-but-stopped, webhook-live, and provider-missing states.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "tui",
+      "updated": "2026-07-17",
+      "notes": "OPERATOR BUG 2026-07-17: the prompt 'how do i setup telgram i dont see the / command' received a long generic answer claiming there was no slash command, followed by visible grep/read churn and irrelevant next prompts. Hermes comparison (2026-07-17): its `setup gateway` checklist dispatches a Telegram-specific flow that validates the token, configures an allowlist/home channel, and only then offers service startup. It also registers Telegram's `/` menu after connect from one central command registry. Vanta already has the CLI `vanta setup messaging` and a live Bot API probe, but `/setup` is currently aliased to the model picker and the gateway does not own general slash-command dispatch. Build the local TUI/Desktop wizard and state-aware setup answer first; register a Telegram command menu only once each advertised command executes natively in the gateway.",
+      "source": "operator-interactive-transcript-2026-07-17"
+    },
+    {
+      "id": "INTERACTIVE-QUIET-TRACE",
+      "track": "Harness",
+      "title": "Interactive quiet trace - Claude Code-style concise progress with expandable evidence",
+      "status": "horizon",
+      "size": "M",
+      "summary": "The active interactive transcript is dominated by raw Read/Grep rows, internal self-talk, repeated verification narration, and generic next-prompt suggestions. Rework the harness into an outcome-first trace: one concise current-step line, compact completed receipts, and an explicit expandable details view for raw tool output.",
+      "done": "The TUI and Desktop show at most one concise active-progress sentence plus compact completed receipts by default; repeated reads/greps collapse into a single expandable activity group; internal policy narration and generic next-prompt menus never appear in the task transcript; failures preserve the exact cause and one recovery action; keyboard navigation exposes the complete raw tool trace on demand; snapshot and integration tests cover a setup question, a code change, a failed command, and a long-running task without transcript overflow.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "tui",
+      "updated": "2026-07-17",
+      "notes": "OPERATOR BUG 2026-07-17: screenshots show a noisy full-screen transcript of raw read/grep instrumentation and unrelated prompts. Desired contract: Claude Code-style quiet harness - useful progress remains visible, proof is inspectable, and incidental exploration stays out of the main reading flow.",
+      "source": "operator-interactive-transcript-2026-07-17",
+      "after": [
+        "INTERACTIVE-TELEGRAM-SETUP-DISCOVERY"
+      ]
+    },
+    {
       "id": "LOCAL-RUNTIME-V1-RELEASE-GATE",
       "track": "Infrastructure",
       "title": "Local runtime v1 release gate - one model, one task, one recoverable receipt",
