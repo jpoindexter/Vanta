@@ -41,7 +41,7 @@ Current machine/account evidence:
 
 | Gate | Observed state | Smallest real unlock |
 | --- | --- | --- |
-| Modal/Telegram | Modal CLI authenticated; `vanta-gateway` secret and deployed endpoint exist; Telegram Desktop installed; stored token is an invalid placeholder | Create or supply a valid BotFather token, refresh the Modal secret, register the webhook, then run arm and prove |
+| Modal/Telegram | Modal CLI authenticated; `vanta-gateway` secret and deployed endpoint exist; Telegram Desktop is logged in; the verified official BotFather chat has no prior bot history and remains at Start; stored token is an invalid placeholder | Confirm creation of a BotFather bot or supply a valid existing token, refresh the Modal secret, register the webhook, then run arm and prove |
 | Teams | No Teams app, Azure Bot credentials, public ingress receipt, or accepted channel proof | Configure and install a real Azure Bot/Teams app, then send one allowlisted round trip |
 | Termux | Current host is macOS ARM64; no ADB or attached Android/Termux device | Run the release-kernel proof on physical ARM64 Android/Termux hardware |
 | Spreadsheet | No Excel, Numbers, or equivalent spreadsheet host is installed | Install Excel or select a real Google Sheets host, then execute the add-in/API round trip |
