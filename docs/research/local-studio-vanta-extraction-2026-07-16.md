@@ -93,7 +93,7 @@ Visual receipts:
 
 ## Delivery Order
 
-1. Add the controller/runtime status contract to the Vanta desktop adapter.
+1. **Shipped 2026-07-17:** add the controller/runtime status contract to the Vanta desktop adapter foundation. See `local-runtime-controller-contract-2026-07-17.md`.
 2. Render the compact runtime strip and contextual Runtime tray in the existing shell.
 3. Add prompt markers, reading-position persistence, and the queued-turn editor to Work.
 4. Build the hardware-to-first-inference setup flow against one supported local backend.

@@ -18986,7 +18986,7 @@
       "id": "LOCAL-RUNTIME-CONTROLLER-CONTRACT",
       "track": "Infrastructure",
       "title": "Local runtime controller contract - discover, trust, and supervise local or remote inference hosts",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "Create one Vanta-owned controller boundary for local and remote inference hosts. It reports authenticated reachability, kernel readiness, engine and model state, resource telemetry, queue depth, and bounded event streams without treating a reachable endpoint as trusted.",
       "done": "A typed controller adapter discovers configured local and remote hosts; distinguishes offline, auth-required, idle, starting, running, stopping, failed, and degraded states; reports kernel policy readiness separately from transport health; streams redacted lifecycle/resource events with reconnect and stale-state handling; and passes contract tests against local, remote, auth failure, event loss, and controller restart fixtures.",
@@ -18997,6 +18997,7 @@
       "lens": "infra",
       "updated": "2026-07-16",
       "source": "local-studio-vanta-extraction-2026-07-16",
+      "notes": "SHIPPED 2026-07-17. Added a Vanta-owned transport-neutral runtime controller adapter for configured local and remote inference hosts. Snapshots keep transport reachability, kernel policy readiness, engine lifecycle, model/resource telemetry, queue depth, freshness, epoch, and sequence separate; reachable-but-untrusted and stale hosts degrade instead of appearing ready. Bounded redacted event streams report gaps, restarts, stale observations, and reconnect attempts while resuming from the last accepted cursor. Ten contract tests cover local, remote, every lifecycle, offline isolation, missing/rejected auth, event loss, controller restart, reconnect continuity, stale state, redaction, and caps; TypeScript passes. Specific Ollama/LM Studio/vLLM/cloud transports remain later adapter work. Evidence: `docs/research/local-runtime-controller-contract-2026-07-17.md`.",
       "after": [
         "HERMES-DELTA-AUTH-READINESS",
         "DESKTOP-CONTROL-BOUNDARY",
