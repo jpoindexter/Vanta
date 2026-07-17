@@ -5,10 +5,12 @@ export type DesktopView = "work" | "operate" | "outputs" | "connect";
 export type Capability = { id: string; kind: "tool" | "skill"; name: string; description: string; tags: string[] };
 export type MessagingPlatform = {
   id: string; label: string; status: ConnectStatus; configured: boolean; missing: string[]; prerequisite?: string; warning?: string;
-  setupSteps: string[]; signupUrl?: string; fields: { key: string; label: string; secret: boolean }[];
+  setupSteps: string[]; signupUrl?: string; accessMode?: "pairing" | "allowlist"; allowedCount?: number;
+  fields: { key: string; label: string; secret: boolean; required: boolean }[];
 };
 export type ConnectStatus = "ready" | "needs_setup" | "unavailable";
 export type ConnectTestResult = { status: ConnectStatus; message: string };
+export type GatewayStartResult = { state: "live" | "starting" | "failed"; message: string };
 export type TelegramSetupStatus = {
   state: "unconfigured" | "needs_repair" | "stopped" | "polling_live" | "webhook_live";
   title: string;

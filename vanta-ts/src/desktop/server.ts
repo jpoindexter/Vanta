@@ -11,6 +11,7 @@ import {
   handleRuntime,
   handleConnectTest,
   handleTelegramSetupStatus,
+  handleGatewayStart,
 } from "./handlers.js";
 export { approvalDecision, type PendingApproval, type DesktopEvent, type DesktopState, eventLabel } from "./handlers.js";
 import {
@@ -82,6 +83,7 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
     "/api/approval": () => handleApproval(state, req, res),
     "/api/access-mode": () => handleAccessMode(state, req, res),
     "/api/connect/test": () => handleConnectTest(state, req, res),
+    "/api/gateway/start": () => handleGatewayStart(state, res),
     "/api/connect/mcp": () => handleDesktopMcpAction(state, req, res),
     "/api/runtime": () => handleRuntime(state, req, res),
     "/api/runtime/profiles": () => handleRuntimeProfiles(state, req, res),

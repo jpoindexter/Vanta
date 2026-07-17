@@ -13,7 +13,7 @@ import { useApproval, useCompletionSound, useConversation, useDesktopData } from
 import { useDesktopMcp } from "./mcp-state.js";
 import { QueuedTurnDrawer, useQueuedTurns } from "./queued-turns.js";
 import type { DesktopTheme, DesktopView, RailTab } from "./types.js";
-import { isTelegramSetupCommand, isTelegramSetupQuestion } from "../../src/setup/telegram-intent.js";
+import { isTelegramSetupQuestion, parseDesktopSetupCommand } from "../../src/setup/telegram-intent.js";
 
 type DesktopData = ReturnType<typeof useDesktopData>;
 type CompletionSound = ReturnType<typeof useCompletionSound>;
@@ -52,7 +52,7 @@ export function AppShell() {
   const [mobilePanel, setMobilePanel] = useState<"sessions" | "work" | "inspect">("work");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [view, setView] = useState<DesktopView>("work");
-  const [connectTarget, setConnectTarget] = useState<{ key: number; section: "messaging"; messagingId: "telegram" } | null>(null);
+  const [connectTarget, setConnectTarget] = useState<ConnectTarget | null>(null);
   const [inspectorOpen, setInspectorOpen] = useState(() => window.innerWidth > 1080);
   const [theme, setTheme] = useState<DesktopTheme>(() => window.localStorage.getItem("vanta.desktop.theme") === "light" ? "light" : "dark");
   const [attachments, setAttachments] = useState<string[]>([]);
@@ -84,14 +84,29 @@ export function AppShell() {
     setMobilePanel("work");
   }
   async function submitWork(text: string) {
-    if (!isTelegramSetupQuestion(text) && !isTelegramSetupCommand(text)) {
+    const setupTarget = parseDesktopSetupCommand(text);
+    if (setupTarget) {
+      if (setupTarget.section === "model") data.openModelPicker();
+      else if (setupTarget.section === "unknown") convo.localReply(text, `Unknown setup section: ${setupTarget.value}.\nUse /setup, /setup model, /setup messaging, /setup telegram, or /setup mcp.`);
+      else {
+        setConnectTarget({
+          key: Date.now(),
+          section: setupTarget.section,
+          ...(setupTarget.section === "messaging" && setupTarget.platformId ? { messagingId: setupTarget.platformId } : {}),
+        });
+        setView("connect");
+        setMobilePanel("work");
+      }
+      return;
+    }
+    if (!isTelegramSetupQuestion(text)) {
       await convo.submit(text);
       return;
     }
     try {
       const status = await data.telegramSetupStatus();
       convo.localReply(text, [status.title, status.detail, `${status.action.label}: ${status.action.command}`].join("\n"));
-      if (status.action.id === "configure") openTelegramSetup();
+      openTelegramSetup();
     } catch (error) {
       convo.localReply(text, `Telegram setup status is unavailable.\nRetry: ${(error as Error).message}`);
     }
@@ -379,10 +394,12 @@ function DesktopOverlays(props: {
   );
 }
 
-function OperatorWorkspace(props: { view: DesktopView; data: DesktopData; mcp: DesktopMcp; events: ReturnType<typeof useConversation>["events"]; connectTarget: { key: number; section: "messaging"; messagingId: "telegram" } | null; onOpenSession: (id: string) => void }) {
+type ConnectTarget = { key: number; section: "overview" | "capabilities" | "mcp" | "messaging"; messagingId?: string };
+
+function OperatorWorkspace(props: { view: DesktopView; data: DesktopData; mcp: DesktopMcp; events: ReturnType<typeof useConversation>["events"]; connectTarget: ConnectTarget | null; onOpenSession: (id: string) => void }) {
   if (props.view === "operate") return <OperateView sessions={props.data.sessions} events={props.events} status={props.data.status} onOpenSession={props.onOpenSession} />;
   if (props.view === "outputs") return <ArtifactsView artifacts={props.data.artifacts} onOpenSession={props.onOpenSession} onRefresh={() => { void props.data.refresh(); }} />;
-  return <ConnectView key={props.connectTarget?.key ?? "connect"} capabilities={props.data.capabilities} platforms={props.data.messaging} models={props.data.models} status={props.data.status} mcp={props.mcp} initialSection={props.connectTarget?.section} messagingId={props.connectTarget?.messagingId} onSaveMessaging={props.data.saveMessaging} onTest={props.data.testConnection} onOpenModel={props.data.openModelPicker} onOpenSetup={props.data.openSetup} />;
+  return <ConnectView key={props.connectTarget?.key ?? "connect"} capabilities={props.data.capabilities} platforms={props.data.messaging} models={props.data.models} status={props.data.status} mcp={props.mcp} initialSection={props.connectTarget?.section} messagingId={props.connectTarget?.messagingId} onSaveMessaging={props.data.saveMessaging} onTest={props.data.testConnection} onStartGateway={props.data.startGateway} onOpenModel={props.data.openModelPicker} onOpenSetup={props.data.openSetup} />;
 }
 
 function viewLabel(view: Exclude<DesktopView, "work">): string {

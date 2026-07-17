@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { Activity, ArrowRight, Bot, Boxes, CheckCircle2, ExternalLink, FileText, Image, Link2, Network, PackageOpen, PauseCircle, RefreshCw, Search, ShieldAlert, Wrench } from "lucide-react";
-import type { Artifact, Capability, ConnectStatus, ConnectTestResult, EventRow, MessagingPlatform, Provider, Session, Status } from "./types.js";
+import type { Artifact, Capability, ConnectStatus, ConnectTestResult, EventRow, GatewayStartResult, MessagingPlatform, Provider, Session, Status } from "./types.js";
 import { McpConnectorsView } from "./mcp-connectors-view.js";
 import type { useDesktopMcp } from "./mcp-state.js";
 
@@ -54,11 +54,11 @@ function CapabilitiesPanel(props: { items: Capability[] }) {
   </>;
 }
 
-export function MessagingView(props: { platforms: MessagingPlatform[]; onSave: (id: string, values: Record<string, string>) => Promise<void>; onTest: TestConnection }) {
+export function MessagingView(props: { platforms: MessagingPlatform[]; onSave: (id: string, values: Record<string, string>) => Promise<void>; onTest: TestConnection; onStartGateway: () => Promise<GatewayStartResult> }) {
   return <WorkspaceView title="Messaging" eyebrow="Reach Vanta elsewhere" description="Connect one of Vanta's gateway adapters. Credentials are saved locally and never displayed again."><MessagingPanel {...props} /></WorkspaceView>;
 }
 
-function MessagingPanel(props: { platforms: MessagingPlatform[]; initialId?: string; onSave: (id: string, values: Record<string, string>) => Promise<void>; onTest: TestConnection }) {
+function MessagingPanel(props: { platforms: MessagingPlatform[]; initialId?: string; onSave: (id: string, values: Record<string, string>) => Promise<void>; onTest: TestConnection; onStartGateway: () => Promise<GatewayStartResult> }) {
   const [selectedId, setSelectedId] = useState(props.initialId ?? "");
   const selected = props.platforms.find((platform) => platform.id === selectedId) ?? props.platforms[0];
   useEffect(() => { if (!selectedId && props.platforms[0]) setSelectedId(props.platforms[0].id); }, [props.platforms, selectedId]);
@@ -66,14 +66,18 @@ function MessagingPanel(props: { platforms: MessagingPlatform[]; initialId?: str
       <aside className="platform-list" aria-label="Messaging platforms">
         {props.platforms.map((platform) => <button className={platform.id === selected?.id ? "active" : ""} type="button" key={platform.id} onClick={() => setSelectedId(platform.id)}><i className={platform.status} /><span>{platform.label}</span><small>{statusLabel(platform.status)}{platform.status === "needs_setup" ? ` · ${platform.missing.length} required` : ""}</small></button>)}
       </aside>
-      {selected ? <MessagingDetail key={selected.id} platform={selected} onSave={props.onSave} onTest={props.onTest} /> : <Empty message="No messaging adapters are available." />}
+      {selected ? <MessagingDetail key={selected.id} platform={selected} onSave={props.onSave} onTest={props.onTest} onStartGateway={props.onStartGateway} /> : <Empty message="No messaging adapters are available." />}
     </div>;
 }
 
-function MessagingDetail(props: { platform: MessagingPlatform; onSave: (id: string, values: Record<string, string>) => Promise<void>; onTest: TestConnection }) {
-  const [values, setValues] = useState<Record<string, string>>({});
+function MessagingDetail(props: { platform: MessagingPlatform; onSave: (id: string, values: Record<string, string>) => Promise<void>; onTest: TestConnection; onStartGateway: () => Promise<GatewayStartResult> }) {
+  const [values, setValues] = useState<Record<string, string>>(
+    props.platform.id === "telegram" ? { accessMode: props.platform.accessMode ?? "pairing" } : {},
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [gatewayMessage, setGatewayMessage] = useState("");
+  const [startingGateway, setStartingGateway] = useState(false);
   const test = useConnectTest(() => props.onTest("messaging", props.platform.id));
   async function submit(event: FormEvent) {
     event.preventDefault(); setSaving(true); setError("");
@@ -81,18 +85,35 @@ function MessagingDetail(props: { platform: MessagingPlatform; onSave: (id: stri
     catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
     finally { setSaving(false); }
   }
+  async function startGateway() {
+    setStartingGateway(true); setGatewayMessage(""); setError("");
+    try { const result = await props.onStartGateway(); setGatewayMessage(result.message); if (result.state === "failed") setError(result.message); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
+    finally { setStartingGateway(false); }
+  }
   return <form className="messaging-detail" onSubmit={(event) => { void submit(event); }}>
     <header><div><StatusBadge status={props.platform.status} /><h2>{props.platform.label}</h2></div>{props.platform.signupUrl ? <a href={props.platform.signupUrl} target="_blank" rel="noreferrer">Get credentials <ExternalLink size={14} /></a> : null}</header>
     {props.platform.prerequisite ? <p className="operator-note"><strong>Prerequisite</strong>{props.platform.prerequisite}</p> : null}
     {props.platform.warning ? <p className="operator-warning">{props.platform.warning}</p> : null}
     <ol className="setup-steps">{props.platform.setupSteps.map((step) => <li key={step}>{step}</li>)}</ol>
     <fieldset><legend>{props.platform.configured ? "Replace saved credentials" : "Required credentials"}</legend>
-      {props.platform.fields.map((field) => <label key={field.key}>{field.label}<input type={field.secret ? "password" : "text"} autoComplete="off" value={values[field.key] ?? ""} onChange={(event) => setValues((current) => ({ ...current, [field.key]: event.target.value }))} placeholder={field.secret ? "Paste credential" : `Enter ${field.label.toLowerCase()}`} required /></label>)}
+      {props.platform.fields.map((field) => <label key={field.key}>{field.label}<input type={field.secret ? "password" : "text"} autoComplete="off" value={values[field.key] ?? ""} onChange={(event) => setValues((current) => ({ ...current, [field.key]: event.target.value }))} placeholder={props.platform.configured ? "Leave blank to keep saved value" : field.secret ? "Paste credential" : `Enter ${field.label.toLowerCase()}`} required={field.required && !props.platform.configured} /></label>)}
     </fieldset>
+    {props.platform.id === "telegram" ? <TelegramAccessControl platform={props.platform} values={values} onChange={(patch) => setValues((current) => ({ ...current, ...patch }))} /> : null}
     {error ? <p className="setup-error" role="alert">{error}</p> : null}
     {test.message ? <p className={`connect-test-result ${test.status}`} role="status">{test.message}</p> : null}
-    <div className="form-footer"><p>{props.platform.status === "ready" ? "Credentials are saved locally. Start the gateway when you want delivery." : "Save the required settings locally; secrets are never displayed again."}</p><div><button type="button" disabled={test.testing || props.platform.status !== "ready"} onClick={() => void test.run()}>{test.testing ? "Testing..." : "Test setup"}</button><button type="submit" disabled={saving || props.platform.status === "unavailable"}>{saving ? "Saving..." : "Save credentials"}</button></div></div>
+    {gatewayMessage && !error ? <p className="connect-test-result ready" role="status">{gatewayMessage}</p> : null}
+    <div className="form-footer"><p>{props.platform.status === "ready" ? "Credentials are saved locally. Test the bot, then start the gateway for live delivery." : "Vanta verifies credentials before writing them. New Telegram chats use pairing unless you choose an allowlist."}</p><div><button type="button" disabled={test.testing || props.platform.status !== "ready"} onClick={() => void test.run()}>{test.testing ? "Testing..." : "Test bot"}</button>{props.platform.status === "ready" ? <button type="button" disabled={startingGateway} onClick={() => void startGateway()}>{startingGateway ? "Starting..." : "Start gateway"}</button> : null}<button type="submit" disabled={saving || props.platform.status === "unavailable"}>{saving ? "Verifying..." : "Save credentials"}</button></div></div>
   </form>;
+}
+
+function TelegramAccessControl(props: { platform: MessagingPlatform; values: Record<string, string>; onChange: (patch: Record<string, string>) => void }) {
+  const mode = props.values.accessMode === "allowlist" ? "allowlist" : "pairing";
+  return <fieldset className="telegram-access"><legend>Who can use this bot?</legend>
+    <label className="access-choice"><input type="radio" name="telegram-access" checked={mode === "pairing"} onChange={() => props.onChange({ accessMode: "pairing" })} /><span><strong>Pair new chats</strong><small>Recommended. Unknown chats receive a short-lived code before Vanta accepts instructions.</small></span></label>
+    <label className="access-choice"><input type="radio" name="telegram-access" checked={mode === "allowlist"} onChange={() => props.onChange({ accessMode: "allowlist" })} /><span><strong>Allow only specific chat IDs</strong><small>{props.platform.allowedCount ? `${props.platform.allowedCount} chat ID${props.platform.allowedCount === 1 ? "" : "s"} saved. Enter IDs only to replace them.` : "Use numeric IDs from Telegram, separated by commas."}</small></span></label>
+    {mode === "allowlist" ? <label>Telegram chat IDs<input type="text" inputMode="numeric" autoComplete="off" value={props.values.VANTA_TELEGRAM_ALLOW ?? ""} onChange={(event) => props.onChange({ VANTA_TELEGRAM_ALLOW: event.target.value })} placeholder={props.platform.allowedCount ? "Keep current allowlist" : "123456789, -100987654321"} required={!props.platform.allowedCount} /></label> : null}
+  </fieldset>;
 }
 
 export function ArtifactsView(props: { artifacts: Artifact[]; onOpenSession: (id: string) => void; onRefresh: () => void }) {
@@ -121,6 +142,7 @@ export function ConnectView(props: {
   onTest: TestConnection;
   onOpenModel: () => void;
   onOpenSetup: () => void;
+  onStartGateway: () => Promise<GatewayStartResult>;
   initialSection?: "overview" | "capabilities" | "mcp" | "messaging";
   messagingId?: string;
 }) {
@@ -143,7 +165,7 @@ export function ConnectView(props: {
     </div> : null}
     {section === "capabilities" ? <CapabilitiesPanel items={props.capabilities} /> : null}
     {section === "mcp" && props.mcp ? <McpConnectorsView payload={props.mcp.payload} loading={props.mcp.loading} pending={props.mcp.pending} error={props.mcp.error} onRefresh={props.mcp.refresh} onAction={props.mcp.act} /> : null}
-    {section === "messaging" ? <MessagingPanel platforms={props.platforms} initialId={props.messagingId} onSave={props.onSaveMessaging} onTest={props.onTest} /> : null}
+    {section === "messaging" ? <MessagingPanel platforms={props.platforms} initialId={props.messagingId} onSave={props.onSaveMessaging} onTest={props.onTest} onStartGateway={props.onStartGateway} /> : null}
   </WorkspaceView>;
 }
 

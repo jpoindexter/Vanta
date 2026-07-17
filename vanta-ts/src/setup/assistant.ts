@@ -120,7 +120,8 @@ export async function probeMessaging(
   const token = env.VANTA_TELEGRAM_TOKEN?.trim();
   if (!token) return { ok: false, detail: "no messaging platform configured" };
   try {
-    const raw = await (await fetchFn(`https://api.telegram.org/bot${token}/getMe`)).json();
+    const apiBase = (env.VANTA_TELEGRAM_API_BASE?.trim() || "https://api.telegram.org").replace(/\/$/, "");
+    const raw = await (await fetchFn(`${apiBase}/bot${token}/getMe`)).json();
     const parsed = TelegramGetMeSchema.safeParse(raw);
     if (!parsed.success || !parsed.data.ok) return { ok: false, detail: "Telegram token rejected" };
     const name = parsed.data.result?.username ?? "bot";

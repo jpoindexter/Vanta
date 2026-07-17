@@ -37,7 +37,7 @@ export async function resolveTelegramSetupStatus(
   deps: TelegramStatusDeps = {},
 ): Promise<TelegramSetupStatus> {
   if (!env.VANTA_TELEGRAM_TOKEN?.trim()) {
-    return status("unconfigured", "Telegram needs setup.", "Add a BotFather token and an owner allowlist.", {
+    return status("unconfigured", "Telegram needs setup.", "Add a BotFather token, then choose pairing or an owner allowlist.", {
       id: "configure",
       label: "Open Telegram setup",
       command: "vanta setup messaging telegram",

@@ -1,6 +1,7 @@
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { createServer } from "node:http";
 import { _electron as electron } from "playwright-core";
 
 const home = await mkdtemp(join(tmpdir(), "vanta-desktop-operator-home-"));
@@ -9,11 +10,24 @@ const project = await mkdtemp(join(tmpdir(), "vanta-desktop-operator-project-"))
 const port = process.env.VANTA_DESKTOP_SMOKE_PORT ?? "7823";
 const executablePath = process.env.VANTA_DESKTOP_APP;
 let app;
+let telegramApi;
 const rendererErrors = [];
 const expectedFirstRunFailures = new Set(["/api/status", "/api/tools"]);
 let expectedMcpConflict = false;
 
 try {
+  telegramApi = createServer((req, res) => {
+    res.writeHead(200, { "content-type": "application/json" });
+    if (req.url?.endsWith("/getMe")) res.end(JSON.stringify({ ok: true, result: { username: "vanta_smoke_bot" } }));
+    else res.end(JSON.stringify({ ok: true, result: [] }));
+  });
+  await new Promise((resolveListen, rejectListen) => {
+    telegramApi.once("error", rejectListen);
+    telegramApi.listen(0, "127.0.0.1", resolveListen);
+  });
+  const telegramAddress = telegramApi.address();
+  if (!telegramAddress || typeof telegramAddress === "string") throw new Error("Telegram API fixture did not bind");
+  const telegramApiBase = `http://127.0.0.1:${telegramAddress.port}`;
   await mkdir(join(home, "sessions"), { recursive: true });
   await mkdir(join(home, "skills", "operator-smoke"), { recursive: true });
   await mkdir(join(project, "docs"), { recursive: true });
@@ -59,7 +73,7 @@ process.stdin.on("data", (chunk) => {
     ...(executablePath ? { executablePath } : {}),
     args: executablePath ? ["--project", project] : ["desktop-app/electron/main.mjs", "--project", project],
     cwd: process.cwd(),
-    env: { ...process.env, HOME: home, VANTA_HOME: home, VANTA_PROJECT_ROOT: project, VANTA_DESKTOP_USER_DATA: userData, VANTA_DESKTOP_PORT: port, VANTA_DESKTOP_AUTOMATION: "1", VANTA_PROVIDER: "openai", VANTA_MODEL: "gpt-4o-mini", OPENAI_API_KEY: "vanta-desktop-smoke-key", VANTA_TELEGRAM_TOKEN: "", VANTA_TELEGRAM_WEBHOOK_SECRET: "", ELECTRON_DISABLE_SECURITY_WARNINGS: "1" },
+    env: { ...process.env, HOME: home, VANTA_HOME: home, VANTA_PROJECT_ROOT: project, VANTA_DESKTOP_USER_DATA: userData, VANTA_DESKTOP_PORT: port, VANTA_DESKTOP_AUTOMATION: "1", VANTA_PROVIDER: "openai", VANTA_MODEL: "gpt-4o-mini", OPENAI_API_KEY: "vanta-desktop-smoke-key", VANTA_TELEGRAM_TOKEN: "", VANTA_TELEGRAM_API_BASE: telegramApiBase, VANTA_TELEGRAM_WEBHOOK_SECRET: "", ELECTRON_DISABLE_SECURITY_WARNINGS: "1" },
   });
   const page = await app.firstWindow();
   page.on("pageerror", (error) => rendererErrors.push(`page error: ${error.message}`));
@@ -210,11 +224,12 @@ process.stdin.on("data", (chunk) => {
 
   await page.getByRole("tab", { name: "Messaging" }).click();
   await page.getByRole("button", { name: /Telegram/ }).click();
-  await page.getByLabel("Telegram Token").fill("operator-smoke-token");
+  await page.getByLabel("Telegram Token").fill(`123456:${"a".repeat(35)}`);
   await page.getByRole("button", { name: "Save credentials" }).click();
   await page.getByText("Ready", { exact: true }).first().waitFor();
-  await page.getByRole("button", { name: "Test setup" }).click();
-  await page.getByText(/credentials are saved locally and ready for the gateway/).waitFor();
+  await page.getByRole("button", { name: "Test bot" }).click();
+  await page.getByText(/Telegram bot vanta_smoke_bot responded/).waitFor();
+  await page.getByRole("button", { name: "Start gateway" }).waitFor();
 
   const artifactApi = await page.evaluate(() => fetch("/api/artifacts").then(async (response) => ({ status: response.status, body: await response.json() })));
   if (artifactApi.status !== 200 || !artifactApi.body.some((item) => item.value === "https://example.test/receipt")) throw new Error(`Artifact API fixture missing: ${JSON.stringify(artifactApi)}`);
@@ -246,6 +261,12 @@ process.stdin.on("data", (chunk) => {
   await page.locator(".right-rail").getByRole("button", { name: "Close inspector" }).click();
   await page.locator(".right-rail").waitFor({ state: "detached" });
 
+  await page.locator("#vanta-composer").fill("/setup");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await page.locator(".operator-view").getByRole("heading", { name: "Connect", exact: true }).waitFor();
+  await page.getByRole("tab", { name: "Overview", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Work", exact: true }).click();
+
   await page.locator("#vanta-composer").press("/");
   await page.getByRole("heading", { name: "Command palette" }).waitFor();
   await page.getByRole("button", { name: "Set up Telegram" }).click();
@@ -258,8 +279,8 @@ process.stdin.on("data", (chunk) => {
   await page.getByRole("button", { name: "Work", exact: true }).click();
   await page.locator(".conversation-stage").waitFor();
   const telegramConversation = await page.locator(".conversation-stage").innerText();
-  const hasTelegramStatus = telegramConversation.includes("Telegram needs setup.") || telegramConversation.includes("Telegram needs repair.");
-  if (!hasTelegramStatus || !telegramConversation.includes("vanta setup messaging telegram")) throw new Error(`Telegram setup reply was not preserved in Work: ${telegramConversation}`);
+  const hasTelegramStatus = telegramConversation.includes("Telegram is configured, but the gateway is stopped.");
+  if (!hasTelegramStatus || !telegramConversation.includes("Start the gateway: vanta gateway")) throw new Error(`Telegram setup reply was not preserved in Work: ${telegramConversation}`);
 
   await page.keyboard.press("?");
   await page.getByRole("heading", { name: "Keyboard shortcuts" }).waitFor();
@@ -288,5 +309,6 @@ process.stdin.on("data", (chunk) => {
     await Promise.race([app.close(), new Promise((resolveClose) => setTimeout(resolveClose, 3_000))]);
     if (electronProcess && !electronProcess.killed) electronProcess.kill("SIGKILL");
   }
+  if (telegramApi) await new Promise((resolveClose) => telegramApi.close(resolveClose));
   await Promise.all([rm(home, { recursive: true, force: true }), rm(userData, { recursive: true, force: true }), rm(project, { recursive: true, force: true })]);
 }

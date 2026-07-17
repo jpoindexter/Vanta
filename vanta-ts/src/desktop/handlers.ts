@@ -30,6 +30,7 @@ import { desktopRuntimePayload, runDesktopRuntimeAction, selectDesktopRuntimeHos
 import { buildDesktopFileContext, isSafeProjectFile } from "./file-context.js";
 import { DesktopTurnQueue, QueueConflictError, desktopTurnQueuePath, fileTurnQueueDeps, type QueuedTurnTarget } from "./turn-queue.js";
 import { resolveTelegramSetupStatus } from "../setup/telegram-status.js";
+import { startDesktopGateway } from "./gateway-control.js";
 export { approvalDecision, type PendingApproval } from "./approval.js";
 
 const desktopTurnQueues = new Map<string, DesktopTurnQueue>();
@@ -318,7 +319,7 @@ export async function handleSaveMessaging(state: DesktopState, req: http.Incomin
 export async function handleConnectTest(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const body = await readJson(req) as { kind?: unknown; id?: unknown };
   if (body.kind === "messaging" && typeof body.id === "string") {
-    return sendJson(res, 200, testDesktopMessagingPlatform(body.id));
+    return sendJson(res, 200, await testDesktopMessagingPlatform(body.id));
   }
   if (body.kind === "provider") {
     try {
@@ -330,6 +331,14 @@ export async function handleConnectTest(state: DesktopState, req: http.IncomingM
     }
   }
   sendJson(res, 400, { error: "kind must be provider or messaging" });
+}
+
+export async function handleGatewayStart(state: DesktopState, res: http.ServerResponse): Promise<void> {
+  try {
+    sendJson(res, 200, await startDesktopGateway(state.root));
+  } catch (error) {
+    sendJson(res, 500, { state: "failed", message: error instanceof Error ? error.message : String(error) });
+  }
 }
 
 export async function handleArtifacts(state: DesktopState, res: http.ServerResponse): Promise<void> {

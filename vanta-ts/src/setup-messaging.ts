@@ -139,14 +139,14 @@ export async function runMessagingSetup(
       const allow = (await ownRl.question(
         currentAllow
           ? `  Owner Telegram user/chat IDs [${currentAllow}]: `
-          : "  Owner Telegram user/chat IDs (comma-separated; empty allows anyone): ",
+          : "  Owner Telegram user/chat IDs (comma-separated; empty uses pairing): ",
       )).trim() || currentAllow;
       if (!validateTelegramAllowlist(allow)) {
         log("  Telegram owner IDs must be comma-separated numbers. Nothing written.");
         return false;
       }
       if (allow) extra.VANTA_TELEGRAM_ALLOW = allow;
-      else log("  Warning: no owner allowlist set; anyone who can reach the bot may ask Vanta to act.");
+      else log("  Pairing enabled: unknown chats receive a short-lived code before Vanta accepts instructions.");
     }
 
     const path = envPath(repoRoot);

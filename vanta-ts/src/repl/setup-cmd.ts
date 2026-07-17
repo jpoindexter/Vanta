@@ -13,7 +13,7 @@ export { isTelegramSetupQuestion } from "../setup/telegram-intent.js";
 function telegramAccess(env: NodeJS.ProcessEnv): string {
   return env.VANTA_TELEGRAM_ALLOW?.trim()
     ? "owner allowlist on"
-    : "open to anyone who can reach the bot";
+    : "pairing required for new chats";
 }
 
 export function renderSetupHub(ctx: ReplCtx): string {

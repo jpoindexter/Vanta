@@ -7,7 +7,7 @@ import {
   type CompletionSoundPlayer,
   type CompletionSoundSettings,
 } from "./completion-sound.js";
-import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, ConnectTestResult, DesktopRunReceipt, DesktopRuntime, EventRow, Message, MessagingPlatform, Provider, RailTab, RuntimeAction, Session, Status, TelegramSetupStatus, Tool } from "./types.js";
+import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, ConnectTestResult, DesktopRunReceipt, DesktopRuntime, EventRow, GatewayStartResult, Message, MessagingPlatform, Provider, RailTab, RuntimeAction, Session, Status, TelegramSetupStatus, Tool } from "./types.js";
 import type { SessionDeleteAction } from "./session-safe-ops.js";
 import { sessionPinningHandlers } from "./session-pinning-api.js";
 
@@ -101,6 +101,7 @@ export function useDesktopData() {
     testConnection: (kind: "provider" | "messaging", id?: string) => api<ConnectTestResult>("/api/connect/test", {
       method: "POST", headers: jsonHeaders(), body: JSON.stringify({ kind, ...(id ? { id } : {}) }),
     }),
+    startGateway: () => api<GatewayStartResult>("/api/gateway/start", { method: "POST" }),
     telegramSetupStatus: () => api<TelegramSetupStatus>("/api/setup/messaging/telegram"),
     saveSetup: async (provider: string, model: string, apiKey: string) => {
       await api("/api/setup", { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ provider, model, apiKey }) });

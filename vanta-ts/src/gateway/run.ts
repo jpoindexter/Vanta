@@ -179,9 +179,11 @@ async function sleepInterval(tickMs: number, stillRunning: () => boolean): Promi
 export { pollPlatformSession };
 
 /** GATEWAY-CHANNEL-SELFHEAL — read a composite platform's per-channel health, if any. */
-function readChannelHealth(platform: PlatformAdapter | undefined): ChannelHealth[] {
+export function readChannelHealth(platform: PlatformAdapter | undefined): ChannelHealth[] {
   const p = platform as { health?: () => ChannelHealth[] } | undefined;
-  return p?.health ? p.health() : [];
+  if (!platform) return [];
+  if (p?.health) return p.health();
+  return [{ id: platform.id, status: "up", failures: 0 }];
 }
 
 /** Log any channel that changed up/down since the last tick; return the new snapshot. */

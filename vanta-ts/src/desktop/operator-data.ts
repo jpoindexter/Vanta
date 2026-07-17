@@ -4,6 +4,8 @@ import { join, resolve } from "node:path";
 import { readCanvasArtifact } from "../canvas/artifact.js";
 import { MESSAGING_CATALOG, messagingPlatformById, platformAvailability } from "../gateway/platforms/registry.js";
 import { upsertEnvMigratingLegacy } from "../setup.js";
+import { probeMessaging } from "../setup/assistant.js";
+import { validateTelegramAllowlist, validateTelegramToken } from "../setup-messaging.js";
 import { listAllSessions, loadSession } from "../sessions/store.js";
 import { listSkills } from "../skills/store.js";
 
@@ -25,7 +27,9 @@ export type DesktopMessagingPlatform = {
   warning?: string;
   setupSteps: string[];
   signupUrl?: string;
-  fields: { key: string; label: string; secret: boolean }[];
+  accessMode?: "pairing" | "allowlist";
+  allowedCount?: number;
+  fields: { key: string; label: string; secret: boolean; required: boolean }[];
 };
 
 export type DesktopArtifact = {
@@ -58,20 +62,32 @@ export function desktopMessagingPlatforms(env: NodeJS.ProcessEnv = process.env):
       warning: platform.warning,
       setupSteps: platform.setupSteps,
       signupUrl: platform.signupUrl,
-      fields: platform.requiredEnv.map((key) => ({ key, label: labelForEnv(key), secret: key === platform.secretEnv })),
+      ...(platform.id === "telegram" ? {
+        accessMode: env.VANTA_TELEGRAM_ALLOW?.trim() ? "allowlist" as const : "pairing" as const,
+        allowedCount: env.VANTA_TELEGRAM_ALLOW?.split(",").filter((id) => id.trim()).length ?? 0,
+      } : {}),
+      fields: platform.requiredEnv.map((key) => ({ key, label: labelForEnv(key), secret: key === platform.secretEnv, required: true })),
     };
   });
 }
 
-export function testDesktopMessagingPlatform(id: string, env: NodeJS.ProcessEnv = process.env): { status: DesktopMessagingPlatform["status"]; message: string } {
+type MessagingProbeDeps = { probe?: typeof probeMessaging };
+
+export async function testDesktopMessagingPlatform(id: string, env: NodeJS.ProcessEnv = process.env, deps: MessagingProbeDeps = {}): Promise<{ status: DesktopMessagingPlatform["status"]; message: string }> {
   const platform = desktopMessagingPlatforms(env).find((item) => item.id === id);
   if (!platform) throw new Error("Messaging platform was not found.");
   if (platform.status === "unavailable") return { status: "unavailable", message: `${platform.label} is not available in this Vanta build.` };
   if (platform.status === "needs_setup") return { status: "needs_setup", message: `${platform.label} still needs ${platform.missing.length} required setting${platform.missing.length === 1 ? "" : "s"}.` };
+  if (id === "telegram") {
+    const check = await (deps.probe ?? probeMessaging)(env);
+    return check.ok
+      ? { status: "ready", message: `${check.detail}. The bot credential is live.` }
+      : { status: "needs_setup", message: `Telegram could not verify the saved bot: ${check.detail}` };
+  }
   return { status: "ready", message: `${platform.label} credentials are saved locally and ready for the gateway.` };
 }
 
-export async function saveDesktopMessagingPlatform(root: string, id: string, values: unknown): Promise<DesktopMessagingPlatform> {
+export async function saveDesktopMessagingPlatform(root: string, id: string, values: unknown, deps: MessagingProbeDeps = {}): Promise<DesktopMessagingPlatform> {
   const platform = messagingPlatformById(id);
   if (!platform?.implemented) throw new Error("Messaging platform is not available.");
   if (!values || typeof values !== "object" || Array.isArray(values)) throw new Error("Credential values are required.");
@@ -79,9 +95,29 @@ export async function saveDesktopMessagingPlatform(root: string, id: string, val
   const updates: Record<string, string> = { ...(platform.enableEnv ?? {}) };
   for (const key of platform.requiredEnv) {
     const value = supplied[key];
-    if (typeof value !== "string" || !value.trim()) throw new Error(`${labelForEnv(key)} is required.`);
-    if (value.length > 16_000) throw new Error(`${labelForEnv(key)} is too long.`);
-    updates[key] = value.trim();
+    if (typeof value === "string" && value.trim()) {
+      if (value.length > 16_000) throw new Error(`${labelForEnv(key)} is too long.`);
+      updates[key] = value.trim();
+    } else if (!process.env[key]?.trim()) {
+      throw new Error(`${labelForEnv(key)} is required.`);
+    }
+  }
+  if (id === "telegram") {
+    const accessMode = supplied.accessMode;
+    const allow = typeof supplied.VANTA_TELEGRAM_ALLOW === "string" ? supplied.VANTA_TELEGRAM_ALLOW.trim() : "";
+    if (accessMode !== "pairing" && accessMode !== "allowlist") throw new Error("Choose how new Telegram chats are authorized.");
+    if (accessMode === "allowlist") {
+      const effectiveAllow = allow || process.env.VANTA_TELEGRAM_ALLOW?.trim() || "";
+      if (!effectiveAllow) throw new Error("Enter at least one Telegram chat ID for allowlist access.");
+      if (!validateTelegramAllowlist(effectiveAllow)) throw new Error("Telegram chat IDs must be comma-separated numbers.");
+      if (allow) updates.VANTA_TELEGRAM_ALLOW = allow.replace(/\s+/g, "");
+    } else {
+      updates.VANTA_TELEGRAM_ALLOW = "";
+    }
+    const token = updates.VANTA_TELEGRAM_TOKEN ?? process.env.VANTA_TELEGRAM_TOKEN ?? "";
+    if (!validateTelegramToken(token)) throw new Error("Telegram token format is invalid. Paste the complete HTTP API token from @BotFather.");
+    const check = await (deps.probe ?? probeMessaging)({ ...process.env, ...updates });
+    if (!check.ok) throw new Error(`Telegram verification failed: ${check.detail}. Nothing was saved.`);
   }
   const path = join(root, ".vanta", ".env");
   await mkdir(join(root, ".vanta"), { recursive: true });

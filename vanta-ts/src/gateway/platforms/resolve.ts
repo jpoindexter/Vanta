@@ -14,6 +14,7 @@ export function resolvePlatform(env: NodeJS.ProcessEnv): PlatformAdapter | undef
   if (token) return new TelegramAdapter({
     token,
     allow: parseAllowlist(env.VANTA_TELEGRAM_ALLOW),
+    apiBase: env.VANTA_TELEGRAM_API_BASE?.trim(),
     webhookSecret: env.VANTA_TELEGRAM_WEBHOOK_SECRET,
   });
 
