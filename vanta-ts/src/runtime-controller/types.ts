@@ -21,6 +21,7 @@ export const RuntimeResourcesSchema = z.object({
   gpuUsedBytes: z.number().int().nonnegative().optional(),
   gpuTotalBytes: z.number().int().positive().optional(),
   utilizationPercent: z.number().min(0).max(100).optional(),
+  throughputPerSecond: z.number().nonnegative().optional(),
 });
 
 export const RuntimeObservationSchema = z.object({

@@ -11,6 +11,18 @@ export type Artifact = { id: string; kind: "canvas" | "link" | "file"; label: st
 export type Goal = { text: string };
 export type AccessMode = "ask" | "approve" | "full";
 export type Status = { kernel: string; model: string; provider?: string; tools: number; sessionId: string; root?: string; goals: Goal[]; accessMode?: AccessMode; accessScope?: "project" };
+export type RuntimeHostSnapshot = {
+  host: { id: string; label: string; kind: "local" | "remote" };
+  status: "offline" | "auth_required" | "idle" | "starting" | "running" | "stopping" | "failed" | "degraded";
+  transport: "reachable" | "offline" | "auth_required";
+  kernel: "ready" | "not_ready" | "unknown";
+  engine: { id?: string; lifecycle: "idle" | "starting" | "running" | "stopping" | "failed"; model?: string };
+  resources: { memoryUsedBytes?: number; memoryTotalBytes?: number; utilizationPercent?: number; throughputPerSecond?: number };
+  queueDepth: number;
+  observedAt: string;
+  stale: boolean;
+};
+export type DesktopRuntime = { selectedHostId: string; hosts: RuntimeHostSnapshot[] };
 export type DesktopRunFailureKind = "setup" | "tool" | "model" | "model_mismatch" | "user_denied" | "interrupted" | "unknown";
 export type DesktopRunReceipt = {
   status: "done" | "failed" | "interrupted";

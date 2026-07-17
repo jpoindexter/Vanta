@@ -8,6 +8,7 @@ import {
   handleFiles, handleCanvas, handleModels, handleSetModel,
   handleApproval, handleTerminal, handleChat, handleStopChat, handleQueueChat,
   handleAccessMode,
+  handleRuntime,
 } from "./handlers.js";
 export { approvalDecision, type PendingApproval, type DesktopEvent, type DesktopState, eventLabel } from "./handlers.js";
 import {
@@ -47,6 +48,7 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
     "/api/setup": () => handleDesktopSetup(state, req, res),
     "/api/approval": () => handleApproval(state, req, res),
     "/api/access-mode": () => handleAccessMode(state, req, res),
+    "/api/runtime": () => handleRuntime(state, req, res),
     "/api/wake": async () => sendJson(res, 200, await getWakeApi()),
   };
   if (handler[p]) { await handler[p](); return true; }
@@ -65,6 +67,7 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
   if (p === "/api/setup") { await handleDesktopSetup(state, req, res); return true; }
   if (p === "/api/approval") { await handleApproval(state, req, res); return true; }
   if (p === "/api/access-mode") { await handleAccessMode(state, req, res); return true; }
+  if (p === "/api/runtime") { await handleRuntime(state, req, res); return true; }
   if (p === "/api/terminal") { await handleTerminal(state, req, res); return true; }
   if (p === "/api/chat/stop") { await handleStopChat(state, res); return true; }
   if (p === "/api/chat/queue") { await handleQueueChat(state, req, res); return true; }

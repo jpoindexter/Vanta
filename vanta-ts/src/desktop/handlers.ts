@@ -25,6 +25,7 @@ import { approvalDecision, approvalPayload, requestWebApproval, resolveApproval,
 import { readCanvasArtifact } from "../canvas/artifact.js";
 import { desktopArtifacts, desktopCapabilities, desktopMessagingPlatforms, saveDesktopMessagingPlatform } from "./operator-data.js";
 import { loadDesktopAccessMode, permissionModeForAccess, saveDesktopAccessMode, type DesktopAccessMode } from "./access-mode.js";
+import { desktopRuntimePayload, selectDesktopRuntimeHost } from "./runtime-controller.js";
 export { approvalDecision, type PendingApproval } from "./approval.js";
 
 export type DesktopEvent = { label: string; ok?: boolean; delta?: string };
@@ -46,6 +47,7 @@ export type DesktopState = {
   currentEvents?: DesktopEvent[];
   pendingApproval?: PendingApproval;
   accessMode?: DesktopAccessMode;
+  runtimeHostBySession?: Record<string, string>;
   _sseSessionId?: string;
   _sseClients?: SseClients;
 };
@@ -138,6 +140,25 @@ export async function handleAccessMode(state: DesktopState, req: http.IncomingMe
   if (state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, event);
   await live.setup.safety.logEvent(JSON.stringify({ kind: "desktop_access_mode", mode: body.mode, scope: "project" })).catch(() => {});
   sendJson(res, 200, { mode: body.mode, scope: "project" });
+}
+
+export async function handleRuntime(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const runtimeState = {
+    root: state.root,
+    sessionId: state.sessionId,
+    queueDepth: state._queuedMessage ? 1 : 0,
+    runtimeHostBySession: state.runtimeHostBySession,
+  };
+  if (req.method === "GET") return sendJson(res, 200, await desktopRuntimePayload(runtimeState));
+  const body = await readJson(req) as { hostId?: unknown };
+  if (typeof body.hostId !== "string" || !body.hostId.trim()) return sendJson(res, 400, { error: "hostId is required" });
+  try {
+    const payload = await selectDesktopRuntimeHost(runtimeState, body.hostId);
+    state.runtimeHostBySession = runtimeState.runtimeHostBySession;
+    sendJson(res, 200, payload);
+  } catch (error) {
+    sendJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
+  }
 }
 
 export async function handleSessions(res: http.ServerResponse): Promise<void> {

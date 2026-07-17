@@ -7,7 +7,7 @@ import {
   type CompletionSoundPlayer,
   type CompletionSoundSettings,
 } from "./completion-sound.js";
-import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, DesktopRunReceipt, EventRow, Message, MessagingPlatform, Provider, RailTab, Session, Status, Tool } from "./types.js";
+import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, DesktopRunReceipt, DesktopRuntime, EventRow, Message, MessagingPlatform, Provider, RailTab, Session, Status, Tool } from "./types.js";
 
 export function useDesktopData() {
   const [status, setStatus] = useState<Status | null>(null);
@@ -19,15 +19,17 @@ export function useDesktopData() {
   const [capabilities, setCapabilities] = useState<Capability[]>([]);
   const [messaging, setMessaging] = useState<MessagingPlatform[]>([]);
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
+  const [runtime, setRuntime] = useState<DesktopRuntime>({ selectedHostId: "local", hosts: [] });
   const [tab, setTab] = useState<RailTab>("activity");
   const overlays = useDesktopOverlays();
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [error, setError] = useState("");
   const refresh = useCallback(async () => {
-    const [statusResult, sessionsResult, toolsResult, filesResult, modelsResult, canvasResult, capabilitiesResult, messagingResult, artifactsResult] = await Promise.allSettled([
+    const [statusResult, sessionsResult, toolsResult, filesResult, modelsResult, canvasResult, capabilitiesResult, messagingResult, artifactsResult, runtimeResult] = await Promise.allSettled([
         api<Status>("/api/status"), api<Session[]>("/api/sessions"), api<Tool[]>("/api/tools"),
         api<string[]>("/api/files"), api<Provider[]>("/api/models"), api<CanvasArtifact | null>("/api/canvas").catch(() => null),
         api<Capability[]>("/api/capabilities").catch(() => []), api<MessagingPlatform[]>("/api/messaging").catch(() => []), api<Artifact[]>("/api/artifacts").catch(() => []),
+        api<DesktopRuntime>("/api/runtime").catch(() => ({ selectedHostId: "local", hosts: [] })),
     ]);
     if (statusResult.status === "fulfilled") setStatus(statusResult.value);
     if (sessionsResult.status === "fulfilled") setSessions(sessionsResult.value);
@@ -38,6 +40,7 @@ export function useDesktopData() {
     setCapabilities(capabilitiesResult.status === "fulfilled" ? capabilitiesResult.value : []);
     setMessaging(messagingResult.status === "fulfilled" ? messagingResult.value : []);
     setArtifacts(artifactsResult.status === "fulfilled" ? artifactsResult.value : []);
+    setRuntime(runtimeResult.status === "fulfilled" ? runtimeResult.value : { selectedHostId: "local", hosts: [] });
 
     const failure = [statusResult, sessionsResult, toolsResult, filesResult, modelsResult]
       .find((result): result is PromiseRejectedResult => result.status === "rejected");
@@ -70,9 +73,18 @@ export function useDesktopData() {
     setStatus((current) => current ? { ...current, accessMode: saved.mode, accessScope: saved.scope } : current);
   }
 
+  async function setRuntimeHost(hostId: string) {
+    const saved = await api<DesktopRuntime>("/api/runtime", {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify({ hostId }),
+    });
+    setRuntime(saved);
+  }
+
   useEffect(() => { void refresh(); }, [refresh]);
   return {
-    status, sessions, tools, files, models, canvas, capabilities, messaging, artifacts, tab, setTab, phase, error, refresh, refreshProviderModels, setModel, setAccessMode, ...overlays,
+    status, sessions, tools, files, models, canvas, capabilities, messaging, artifacts, runtime, tab, setTab, phase, error, refresh, refreshProviderModels, setModel, setAccessMode, setRuntimeHost, ...overlays,
     saveMessaging: async (id: string, values: Record<string, string>) => {
       await api<MessagingPlatform>("/api/messaging", { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ id, values }) });
       await refresh();

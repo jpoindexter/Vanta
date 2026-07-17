@@ -14,7 +14,7 @@ function observation(overrides: Partial<RuntimeObservation> = {}): RuntimeObserv
   return {
     observedAt: "2026-07-17T12:00:00.000Z", epoch: "boot-a", sequence: 1,
     transport: "reachable", kernel: "ready", engine: { id: "ollama", lifecycle: "running", model: "qwen" },
-    resources: { memoryUsedBytes: 4, memoryTotalBytes: 8, utilizationPercent: 50 }, queueDepth: 2,
+    resources: { memoryUsedBytes: 4, memoryTotalBytes: 8, utilizationPercent: 50, throughputPerSecond: 10 }, queueDepth: 2,
     ...overrides,
   };
 }
@@ -51,7 +51,7 @@ describe("runtime controller contract", () => {
 
   it("marks old observations degraded and stale while preserving bounded telemetry", async () => {
     const adapter = createRuntimeControllerAdapter({ hosts: [hosts[0]!], now: () => now, staleAfterMs: 10_000, transport: transport(async () => observation({ observedAt: "2026-07-17T11:00:00.000Z" })) });
-    expect(await adapter.inspect("local")).toMatchObject({ status: "degraded", stale: true, resources: { memoryUsedBytes: 4, memoryTotalBytes: 8 } });
+    expect(await adapter.inspect("local")).toMatchObject({ status: "degraded", stale: true, resources: { memoryUsedBytes: 4, memoryTotalBytes: 8, throughputPerSecond: 10 } });
   });
 
   it("preserves an authenticated controller rejection as auth-required without exposing the credential", async () => {

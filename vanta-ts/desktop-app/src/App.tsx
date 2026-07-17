@@ -5,6 +5,7 @@ import { CommandPalette, KeyboardShortcuts, ModelPicker, NewTaskDialog, Settings
 import { ArtifactsView, ConnectView, OperateView } from "./operator-views.js";
 import { RightRail } from "./rail.js";
 import { CompletionSoundSettings } from "./sound-settings.js";
+import { RuntimeStrip } from "./runtime-strip.js";
 import { useApproval, useCompletionSound, useConversation, useDesktopData } from "./state.js";
 import type { DesktopTheme, DesktopView, RailTab } from "./types.js";
 
@@ -147,7 +148,10 @@ export function AppShell() {
       />
       <main className="workbench">
         {view === "work" ? <>
-          <WorkToolbar busy={convo.busy} onBackground={() => setView("operate")} onStop={() => { void convo.stop(); }} onReset={() => setNewTaskOpen(true)} />
+          <div className="work-controls">
+            <WorkToolbar busy={convo.busy} onBackground={() => setView("operate")} onStop={() => { void convo.stop(); }} onReset={() => setNewTaskOpen(true)} />
+            <RuntimeStrip runtime={data.runtime} onSelect={data.setRuntimeHost} />
+          </div>
           <div className={`conversation-stage ${data.phase === "error" ? "has-error" : ""}`}>
             {data.phase === "error" ? <ConnectionError message={data.error} onRetry={() => { void data.refresh(); }} onSetup={data.openSetup} /> : null}
             {data.phase === "loading" ? <LoadingState /> : <ChatThread messages={convo.messages} busy={convo.busy} streamText={convo.streamText} events={convo.events} recovery={convo.recovery} approval={approval.approval} onApproval={approval.answerApproval} onRetry={convo.retry} onPrompt={convo.setDraft} />}

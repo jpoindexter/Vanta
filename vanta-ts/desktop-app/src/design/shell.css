@@ -246,13 +246,199 @@
   background: var(--workspace);
 }
 
+.work-controls {
+  position: relative;
+  z-index: 4;
+  min-width: 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel-2);
+}
+
 .work-toolbar {
   height: 52px;
   min-height: 52px;
   justify-content: flex-end;
   border-color: var(--line);
+  border-bottom: 0;
   padding: 7px 11px;
 }
+
+.runtime-strip {
+  position: relative;
+  min-width: 0;
+  border-top: 1px solid var(--line);
+}
+
+.runtime-strip-trigger {
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  display: grid;
+  grid-template-columns: minmax(112px, 1.2fr) minmax(96px, 1.4fr) minmax(72px, .8fr) 108px 78px 42px 70px 18px;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 5px 12px;
+  text-align: start;
+  font-size: 10px;
+}
+
+.runtime-strip-trigger:hover,
+.runtime-strip-trigger[aria-expanded="true"] {
+  background: var(--raised);
+  color: var(--text);
+}
+
+.runtime-strip-trigger > span {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtime-host,
+.runtime-model {
+  color: var(--text);
+}
+
+.runtime-engine {
+  color: var(--faint);
+}
+
+.runtime-state {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 1px;
+  background: var(--faint);
+}
+
+.runtime-state.state-running { background: var(--ok); }
+.runtime-state.state-starting,
+.runtime-state.state-stopping { background: var(--amber); }
+.runtime-state.state-failed,
+.runtime-state.state-offline,
+.runtime-state.state-auth_required { background: var(--danger); }
+
+.runtime-pressure meter {
+  width: 46px;
+  height: 5px;
+  accent-color: var(--text);
+}
+
+.runtime-throughput,
+.runtime-queue,
+.runtime-trust {
+  font-family: var(--font-mono);
+}
+
+.runtime-trust.trust-ready { color: var(--text); }
+.runtime-trust:not(.trust-ready) { color: var(--danger); }
+.runtime-chevron { justify-self: end; transition: transform 120ms ease; }
+.runtime-strip-trigger[aria-expanded="true"] .runtime-chevron { transform: rotate(180deg); }
+
+.runtime-context-panel {
+  position: absolute;
+  z-index: 30;
+  inset-block-start: calc(100% + 1px);
+  inset-inline-end: 10px;
+  width: min(680px, calc(100% - 20px));
+  max-height: min(560px, calc(100dvh - 150px));
+  overflow: auto;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  box-shadow: 0 18px 48px color-mix(in srgb, var(--text) 20%, transparent);
+  padding: 14px;
+}
+
+.runtime-context-panel > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+}
+
+.runtime-context-panel > header div {
+  display: grid;
+  gap: 3px;
+}
+
+.runtime-context-panel > header span,
+.runtime-detail-grid span,
+.runtime-host-switcher > span {
+  color: var(--faint);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.runtime-context-panel > header strong { font-size: 13px; }
+.runtime-context-panel > header button {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--muted);
+}
+.runtime-context-panel > header button:hover { background: var(--raised); color: var(--text); }
+
+.runtime-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-block: 1px solid var(--line);
+}
+
+.runtime-detail-grid > div {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  border-inline-end: 1px solid var(--line);
+  padding: 10px;
+}
+
+.runtime-detail-grid > div:nth-child(4n) { border-inline-end: 0; }
+.runtime-detail-grid > div:nth-child(-n + 4) { border-bottom: 1px solid var(--line); }
+.runtime-detail-grid strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.runtime-detail-grid .tone-good strong { color: var(--ok); }
+.runtime-detail-grid .tone-bad strong { color: var(--danger); }
+
+.runtime-host-switcher {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding-top: 12px;
+}
+
+.runtime-host-switcher > span { grid-column: 1 / -1; }
+.runtime-host-switcher button {
+  min-width: 0;
+  min-height: 36px;
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text);
+  padding: 7px 9px;
+  text-align: start;
+}
+
+.runtime-host-switcher button[aria-pressed="true"] { border-color: var(--text); background: var(--raised); }
+.runtime-host-switcher button small { color: var(--faint); font-size: 9px; }
+.runtime-switch-error { margin: 10px 0 0; color: var(--danger); font-size: 10px; }
 
 .work-toolbar-title {
   margin-inline-end: auto;
@@ -334,6 +520,18 @@
   }
 }
 
+@media (max-width: 920px) {
+  .runtime-strip-trigger { grid-template-columns: minmax(112px, 1.2fr) minmax(96px, 1.4fr) 72px 42px 18px; }
+  .runtime-engine,
+  .runtime-pressure,
+  .runtime-throughput { display: none !important; }
+  .runtime-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .runtime-detail-grid > div,
+  .runtime-detail-grid > div:nth-child(4n) { border-inline-end: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .runtime-detail-grid > div:nth-child(2n) { border-inline-end: 0; }
+  .runtime-detail-grid > div:nth-last-child(-n + 2) { border-bottom: 0; }
+}
+
 @media (max-width: 760px) {
   .app-shell,
   .app-shell.sidebar-collapsed,
@@ -357,6 +555,11 @@
     bottom: 56px;
     height: calc(100dvh - var(--titlebar-height) - 56px);
   }
+
+  .runtime-strip-trigger { grid-template-columns: minmax(96px, 1fr) minmax(88px, 1fr) 42px 18px; padding-inline: 9px; }
+  .runtime-trust { display: none !important; }
+  .runtime-context-panel { inset-inline: 6px; width: auto; max-height: calc(100dvh - 170px); }
+  .runtime-host-switcher { grid-template-columns: 1fr; }
 
   .titlebar-identity {
     padding-right: 6px;
