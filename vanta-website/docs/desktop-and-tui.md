@@ -44,7 +44,10 @@ cd vanta-ts
 npm run desktop:native  # build and launch from source
 npm run desktop:dist    # signed ARM64 .app, .dmg, and .zip under release/
 npm run desktop:release # sign, notarize, staple, and Gatekeeper-check the DMG
+npm run desktop:flow:proof # source + signed packaged desktop acceptance matrix
 ```
+
+Run `npm run desktop:flow:proof` before a desktop release. It executes the same cold-start, work/approval, failed-run recovery, attachment, archive-Undo, Outputs, Connect, and responsive-layout flows against source Electron and the packaged `Vanta.app` at `1440x960`, `1024x640`, and `760x700`.
 
 The installed app asks for a working folder and remembers it. If that folder has no model configuration, **Configure model** writes a private `.vanta/.env` from inside the app; API keys are never rendered back into the interface. **Vanta → Open Project…** (`⌘O`) switches roots later.
 

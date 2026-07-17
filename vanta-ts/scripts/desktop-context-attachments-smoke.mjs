@@ -6,6 +6,7 @@ import { _electron as electron } from "playwright-core";
 
 const project = await mkdtemp(join(tmpdir(), "vanta-desktop-context-project-"));
 const userData = await mkdtemp(join(tmpdir(), "vanta-desktop-context-profile-"));
+const executablePath = process.env.VANTA_DESKTOP_APP;
 const longPath = "src/a-deeply-nested-feature/with-a-very-long-directory-name/context-implementation.ts";
 const files = ["README.md", "src/App.tsx", "src/chat.tsx", longPath];
 let app;
@@ -13,7 +14,8 @@ let submitted = "";
 
 try {
   app = await electron.launch({
-    args: ["desktop-app/electron/main.mjs"],
+    ...(executablePath ? { executablePath } : {}),
+    args: executablePath ? ["--project", project] : ["desktop-app/electron/main.mjs", "--project", project],
     cwd: process.cwd(),
     env: {
       ...process.env,
@@ -36,7 +38,7 @@ try {
     submitted = JSON.parse(route.request().postData() ?? "{}").message ?? "";
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ finalText: "Context received.", events: [] }) });
   });
-  await page.setViewportSize({ width: 760, height: 900 });
+  await page.setViewportSize({ width: 760, height: 700 });
   await page.reload({ waitUntil: "domcontentloaded" });
 
   const composer = page.getByPlaceholder("Ask Vanta to do something...");
@@ -74,7 +76,7 @@ try {
   assert.match(submitted, new RegExp(`@${longPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
   assert.doesNotMatch(submitted, /@src\/chat\.tsx/);
 
-  console.log(JSON.stringify({ groups: true, attach: true, remove: true, search: true, submitRefs: true, viewport: "760x900", geometry }));
+  console.log(JSON.stringify({ groups: true, attach: true, remove: true, search: true, submitRefs: true, viewport: "760x700", geometry }));
 } finally {
   await app?.close().catch(() => undefined);
   await Promise.all([rm(project, { recursive: true, force: true }), rm(userData, { recursive: true, force: true })]);

@@ -12,9 +12,12 @@ export function AccessModePicker(props: { mode: AccessMode; onChange: (mode: Acc
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const [selectedMode, setSelectedMode] = useState(props.mode);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
-  const current = OPTIONS.find((option) => option.mode === props.mode) ?? OPTIONS[1]!;
+  const current = OPTIONS.find((option) => option.mode === selectedMode) ?? OPTIONS[1]!;
+
+  useEffect(() => { setSelectedMode(props.mode); }, [props.mode]);
 
   useEffect(() => {
     if (!open) return;
@@ -26,13 +29,16 @@ export function AccessModePicker(props: { mode: AccessMode; onChange: (mode: Acc
   }, [open]);
 
   async function select(mode: AccessMode) {
-    if (mode === props.mode) { setOpen(false); return; }
+    if (mode === selectedMode) { setOpen(false); return; }
+    const previous = selectedMode;
+    setSelectedMode(mode);
     setPending(true); setError("");
     try {
       await props.onChange(mode);
       setOpen(false);
       trigger.current?.focus();
     } catch (reason) {
+      setSelectedMode(previous);
       setError(reason instanceof Error ? reason.message : String(reason));
     } finally {
       setPending(false);
@@ -42,10 +48,10 @@ export function AccessModePicker(props: { mode: AccessMode; onChange: (mode: Acc
   return <div className="access-mode-picker" ref={root} onKeyDown={(event) => {
     if (event.key === "Escape" && open) { event.stopPropagation(); setOpen(false); trigger.current?.focus(); }
   }}>
-    <button ref={trigger} className={`approval-mode mode-${props.mode}`} type="button" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
-      {props.mode === "full" ? <ShieldAlert size={13} /> : <ShieldCheck size={13} />}<span>{current.short}</span>
+    <button ref={trigger} className={`approval-mode mode-${selectedMode}`} type="button" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
+      {selectedMode === "full" ? <ShieldAlert size={13} /> : <ShieldCheck size={13} />}<span>{current.short}</span>
     </button>
-    {open ? <AccessModeMenu mode={props.mode} pending={pending} error={error} onSelect={(mode) => { void select(mode); }} onClose={() => { setOpen(false); trigger.current?.focus(); }} /> : null}
+    {open ? <AccessModeMenu mode={selectedMode} pending={pending} error={error} onSelect={(mode) => { void select(mode); }} onClose={() => { setOpen(false); trigger.current?.focus(); }} /> : null}
   </div>;
 }
 

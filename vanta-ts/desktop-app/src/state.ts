@@ -11,6 +11,7 @@ import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, 
 import type { SessionDeleteAction } from "./session-safe-ops.js";
 
 export function useDesktopData() {
+  const refreshVersion = useRef(0);
   const [status, setStatus] = useState<Status | null>(null);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [tools, setTools] = useState<Tool[]>([]);
@@ -26,12 +27,16 @@ export function useDesktopData() {
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [error, setError] = useState("");
   const refresh = useCallback(async () => {
+    const version = ++refreshVersion.current;
     const [statusResult, sessionsResult, toolsResult, filesResult, modelsResult, canvasResult, capabilitiesResult, messagingResult, artifactsResult, runtimeResult] = await Promise.allSettled([
         api<Status>("/api/status"), api<Session[]>("/api/sessions"), api<Tool[]>("/api/tools"),
         api<string[]>("/api/files"), api<Provider[]>("/api/models"), api<CanvasArtifact | null>("/api/canvas").catch(() => null),
         api<Capability[]>("/api/capabilities").catch(() => []), api<MessagingPlatform[]>("/api/messaging").catch(() => []), api<Artifact[]>("/api/artifacts").catch(() => []),
         api<DesktopRuntime>("/api/runtime").catch(() => ({ selectedHostId: "local", hosts: [] })),
     ]);
+    // A mutation can invalidate an older aggregate refresh while its requests
+    // are still in flight. Never let stale status overwrite the saved mode.
+    if (version !== refreshVersion.current) return;
     if (statusResult.status === "fulfilled") setStatus(statusResult.value);
     if (sessionsResult.status === "fulfilled") setSessions(sessionsResult.value);
     if (toolsResult.status === "fulfilled") setTools(toolsResult.value);
@@ -69,6 +74,7 @@ export function useDesktopData() {
       headers: jsonHeaders(),
       body: JSON.stringify({ mode }),
     });
+    refreshVersion.current += 1;
     setStatus((current) => current ? { ...current, accessMode: saved.mode, accessScope: saved.scope } : current);
   }
 

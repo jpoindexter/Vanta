@@ -245,7 +245,7 @@ try {
   await page.getByRole("button", { name: "Close model picker" }).click();
 
   const responsive = [];
-  for (const viewport of [{ width: 1024, height: 700 }, { width: 760, height: 700 }]) {
+  for (const viewport of [{ width: 1024, height: 640 }, { width: 760, height: 700 }]) {
     await page.setViewportSize(viewport);
     await page.waitForFunction(({ width, height }) => window.innerWidth === width && window.innerHeight === height, viewport);
     const metrics = await page.evaluate(() => {

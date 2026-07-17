@@ -13,6 +13,8 @@ Major capability milestones, newest first. This is a curated highlight reel — 
 - **Bulk session control** — Select chats supports Shift-click ranges, All visible, bulk archive/restore, bulk Trash Undo, and explicit bulk permanent deletion.
 - **Keyboard-safe menus** — session actions use menu semantics, arrow-key traversal, Escape focus return, and outside-click dismissal, verified in Electron against an isolated session store.
 - **Project context picker** — the composer now attaches safe project files through Changed, Mentioned, Recent, and Search groups; ignored/private paths stay hidden and selected files remain removable before send.
+- **Desktop release proof** — one command now builds and signs `Vanta.app`, then runs the complete cold-start, approval, recovery, attachment, session Undo, Outputs/Connect, and three-viewport matrix against both source and packaged Electron.
+- **Reliable access mode switching** — stale background refreshes can no longer overwrite a newly saved project mode; the picker updates immediately and rolls back if persistence fails.
 
 ## 2026-07-12 — Hermes delta and documentation release
 - **Executed product acceptance** — real model read/write/readback, corpus recall, delegation, packaged desktop chat and destructive-command blocking, clean-install launchd scheduling, cold-start capability reporting, and bounded cited research now have recorded behavioral evidence. The refreshed public artifact remains the final local acceptance boundary.
