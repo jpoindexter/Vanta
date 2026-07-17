@@ -13,11 +13,13 @@ import {
   forkSession,
   renameSession,
   setSessionArchived,
+  setSessionTrashed,
   createFsSessionStore,
   type Session,
   type SessionMeta,
   type SessionStore,
 } from "./store.js";
+import { reorderPinnedSessions, setSessionPinned } from "./pinning.js";
 import type { Message } from "../types.js";
 
 const TRANSCRIPT: Message[] = [
@@ -125,6 +127,31 @@ describe("session store", () => {
 
     await setSessionArchived("managed", false, env());
     expect(await listSessions(env())).toMatchObject([{ id: "managed", title: "Roadmap review", archived: undefined }]);
+  });
+
+  it("persists pinned order, preserves it through archive, and clears it on trash", async () => {
+    await saveSession("first", TRANSCRIPT, { env: env(), now: "2026-06-02T12:00:00.000Z" });
+    await saveSession("second", TRANSCRIPT, { env: env(), now: "2026-06-03T12:00:00.000Z" });
+    await setSessionPinned("first", true, env());
+    await setSessionPinned("second", true, env());
+
+    expect(await listAllSessions(env())).toMatchObject([
+      { id: "second", pinned: true, pinOrder: 1 },
+      { id: "first", pinned: true, pinOrder: 0 },
+    ]);
+    expect(await reorderPinnedSessions(["second", "first"], env())).not.toBeNull();
+    expect(await loadSession("second", env())).toMatchObject({ pinned: true, pinOrder: 0 });
+    expect(await loadSession("first", env())).toMatchObject({ pinned: true, pinOrder: 1 });
+
+    await setSessionArchived("second", true, env());
+    expect(await loadSession("second", env())).toMatchObject({ archived: true, pinned: true, pinOrder: 0 });
+    await setSessionArchived("second", false, env());
+    expect(await loadSession("second", env())).toMatchObject({ pinned: true, pinOrder: 0 });
+
+    await setSessionTrashed("second", true, env());
+    expect(await loadSession("second", env())).toMatchObject({ trashed: true });
+    expect((await loadSession("second", env()))?.pinned).toBeUndefined();
+    expect((await loadSession("second", env()))?.pinOrder).toBeUndefined();
   });
 
   it("recovers a started mutating call as unknown and persists the repair", async () => {

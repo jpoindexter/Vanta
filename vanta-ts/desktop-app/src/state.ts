@@ -9,6 +9,7 @@ import {
 } from "./completion-sound.js";
 import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, ConnectTestResult, DesktopRunReceipt, DesktopRuntime, EventRow, Message, MessagingPlatform, Provider, RailTab, RuntimeAction, Session, Status, Tool } from "./types.js";
 import type { SessionDeleteAction } from "./session-safe-ops.js";
+import { sessionPinningHandlers } from "./session-pinning-api.js";
 
 export function useDesktopData() {
   const refreshVersion = useRef(0);
@@ -242,6 +243,7 @@ function conversationHandlers(state: ConversationState, cues: TurnCues, lastFail
     if (active && action !== "restore") await newSession();
     else await state.refresh();
   }
+  const pinning = sessionPinningHandlers(state.refresh);
   function insertFile(file: string) { state.setDraft((value) => `${value} @${file}`.trimStart()); }
   async function submit(text: string) {
     await submitMessage(state, text, cues, (failed) => { lastFailedMessage.current = failed ? text : ""; });
@@ -258,7 +260,7 @@ function conversationHandlers(state: ConversationState, cues: TurnCues, lastFail
       state.setEvents([{ label: error instanceof Error ? error.message : String(error), ok: false }]);
     }
   }
-  return { openSession, newSession, renameSession, archiveSession, deleteSession, submit, queue, retry: () => lastFailedMessage.current ? submit(lastFailedMessage.current) : Promise.resolve(), insertFile };
+  return { openSession, newSession, renameSession, archiveSession, deleteSession, ...pinning, submit, queue, retry: () => lastFailedMessage.current ? submit(lastFailedMessage.current) : Promise.resolve(), insertFile };
 }
 
 export async function submitMessage(state: ConversationState, text: string, cues: TurnCues = {}, onRecovery: (failed: boolean) => void = () => {}) {

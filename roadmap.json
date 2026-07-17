@@ -19195,7 +19195,7 @@
       "id": "DESKTOP-PINNED-TASK-ORDER",
       "track": "Desktop App",
       "title": "Desktop pinned task order - explicit pinning and durable project session priority",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Complete the project rail with visible pin/unpin actions and a durable manual order for high-value tasks. Active, historical, and restored sessions keep one identity so pinning does not duplicate rows or lose activity state.",
       "done": "Task menus expose pin and unpin without hidden modifier gestures; pinned tasks can be reordered by keyboard and pointer; order persists across restart; active/history identity merges without duplicates; archived or deleted tasks leave predictable pinned state; compact drawer, focus, screen-reader, and optimistic error feedback are covered by Electron tests.",
@@ -19204,7 +19204,8 @@
       "effort": "low",
       "codex": "gpt-5.6-terra",
       "lens": "tui",
-      "updated": "2026-07-16",
+      "updated": "2026-07-17",
+      "notes": "Shipped durable session pin metadata and explicit Pin, Unpin, Move up, and Move down task-menu actions. Pinned sessions occupy one duplicate-free rail group; complete-list reorder requests reject stale state; archive preserves pin identity/position while Trash clears it. Pin actions use the existing pending, success/undo, and error notice channel. Dedicated Electron proof passed pointer pinning, keyboard reorder, app-process restart persistence, archive restore, trash reset, menu focus, screen-reader labels, and compact drawer behavior. Full source and locally signed packaged flow proofs passed at 1440x960, 1024x640, and 760x700; 1,390 test files / 13,298 tests passed / 3 skipped. Receipt: docs/research/desktop-pinned-task-order-2026-07-17.md.",
       "source": "local-studio-vanta-extraction-2026-07-16",
       "after": [
         "DESKTOP-SAFE-SESSION-OPS",

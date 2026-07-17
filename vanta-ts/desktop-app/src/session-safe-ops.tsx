@@ -8,6 +8,8 @@ type Callbacks = {
   rename: (id: string, title: string) => void | Promise<void>;
   archive: (id: string, archived: boolean) => void | Promise<void>;
   remove: (id: string, action: SessionDeleteAction) => void | Promise<void>;
+  pin: (id: string, pinned: boolean) => void | Promise<void>;
+  reorderPins: (orderedIds: string[]) => void | Promise<void>;
 };
 
 export function useSessionSafeOps(callbacks: Callbacks) {
@@ -45,7 +47,20 @@ export function useSessionSafeOps(callbacks: Callbacks) {
     return run({ targets, perform: (session) => callbacks.remove(session.id, action), message: `${label} ${count} session${count === 1 ? "" : "s"}.`, ...(undo ? { undo } : {}) });
   }
 
-  return { pending: (id: string) => pendingIds.has(id), notice, dismissNotice: () => setNotice(null), rename, archive, remove };
+  async function pin(session: Session, pinned: boolean): Promise<boolean> {
+    return run({
+      targets: [session],
+      perform: () => callbacks.pin(session.id, pinned),
+      message: `${pinned ? "Pinned" : "Unpinned"} “${session.title}”.`,
+      undo: () => pin(session, !pinned),
+    });
+  }
+
+  async function reorder(session: Session, orderedIds: string[], message: string): Promise<boolean> {
+    return run({ targets: [session], perform: () => callbacks.reorderPins(orderedIds), message });
+  }
+
+  return { pending: (id: string) => pendingIds.has(id), notice, dismissNotice: () => setNotice(null), rename, archive, remove, pin, reorder };
 }
 
 export function SessionNoticeToast(props: { notice: Notice | null; onDismiss: () => void }) {

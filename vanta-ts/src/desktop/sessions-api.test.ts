@@ -62,6 +62,30 @@ describe("desktop session management API", () => {
     }
   });
 
+  it("pins sessions and persists an explicit active pinned order", async () => {
+    await saveSession("pin-a", TRANSCRIPT, { env: process.env, title: "Pin A" });
+    await saveSession("pin-b", TRANSCRIPT, { env: process.env, title: "Pin B" });
+    const server = createDesktopServer(root);
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("desktop server did not bind");
+    const base = `http://127.0.0.1:${address.port}`;
+    const post = (path: string, body: unknown) => fetch(`${base}${path}`, {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body),
+    });
+
+    try {
+      expect((await post("/api/sessions/pin", { id: "pin-a", pinned: true })).status).toBe(200);
+      expect((await post("/api/sessions/pin", { id: "pin-b", pinned: true })).status).toBe(200);
+      expect((await post("/api/sessions/reorder-pins", { orderedIds: ["pin-b", "pin-a"] })).status).toBe(200);
+      expect(await loadSession("pin-b", process.env)).toMatchObject({ pinned: true, pinOrder: 0 });
+      expect(await loadSession("pin-a", process.env)).toMatchObject({ pinned: true, pinOrder: 1 });
+      expect((await post("/api/sessions/reorder-pins", { orderedIds: ["pin-a"] })).status).toBe(409);
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
+
   it("rejects malformed session mutation requests", async () => {
     const server = createDesktopServer(root);
     await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));

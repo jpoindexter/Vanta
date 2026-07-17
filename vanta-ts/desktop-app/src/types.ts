@@ -1,4 +1,4 @@
-export type Session = { id: string; title: string; turns: number; updated: string; archived?: boolean; trashed?: boolean };
+export type Session = { id: string; title: string; turns: number; updated: string; archived?: boolean; trashed?: boolean; pinned?: boolean; pinOrder?: number };
 export type Tool = { name: string; desc: string };
 export type DesktopTheme = "dark" | "light";
 export type DesktopView = "work" | "operate" | "outputs" | "connect";

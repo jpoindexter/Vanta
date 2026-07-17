@@ -605,16 +605,18 @@ button:focus, textarea:focus, input:focus, select:focus, summary:focus { outline
 .project-heading button:hover { background: var(--raised); color: var(--text); }
 .project-row { flex: 0 0 auto; margin-top: 2px; }
 .project-row b { color: var(--muted); font-size: 10px; font-weight: 500; }
-.project-session-group { flex: 0 0 auto; margin: 2px 0 4px 15px; border-left: 1px solid var(--line); overflow: visible; padding: 0 0 0 6px; }
+.project-session-group, .pinned-session-group { flex: 0 0 auto; margin: 2px 0 4px 15px; border-left: 1px solid var(--line); overflow: visible; padding: 0 0 0 6px; }
+.pinned-heading h2 { display: flex; align-items: center; gap: 5px; }
+.pinned-session-group { border-left-color: var(--accent); }
 .recent-heading { margin-top: 10px !important; }
 .recent-session-group { flex: 1 1 auto; margin: 0 -2px; padding: 0 2px 12px 0; }
-.project-session-group .session-row, .recent-session-group .session-row { min-height: 29px; border-radius: 5px; }
-.project-session-group .session, .recent-session-group .session { min-height: 29px; grid-template-columns: minmax(0, 1fr); align-content: center; padding: 5px 7px 5px 16px; }
-.project-session-group .session::before, .recent-session-group .session::before { position: absolute; left: 7px; width: 5px; height: 5px; border-radius: 50%; background: var(--faint); content: ""; }
-.project-session-group .session-row.active .session::before { background: var(--accent); }
-.project-session-group .session span, .recent-session-group .session span { display: none; }
-.project-session-group .session strong, .recent-session-group .session strong { color: var(--muted); font-size: 11px; font-weight: 500; }
-.project-session-group .session-row.active strong { color: var(--text); }
+.project-session-group .session-row, .pinned-session-group .session-row, .recent-session-group .session-row { min-height: 29px; border-radius: 5px; }
+.project-session-group .session, .pinned-session-group .session, .recent-session-group .session { min-height: 29px; grid-template-columns: minmax(0, 1fr); align-content: center; padding: 5px 7px 5px 16px; }
+.project-session-group .session::before, .pinned-session-group .session::before, .recent-session-group .session::before { position: absolute; left: 7px; width: 5px; height: 5px; border-radius: 50%; background: var(--faint); content: ""; }
+.project-session-group .session-row.active .session::before, .pinned-session-group .session::before { background: var(--accent); }
+.project-session-group .session span, .pinned-session-group .session span, .recent-session-group .session span { display: none; }
+.project-session-group .session strong, .pinned-session-group .session strong, .recent-session-group .session strong { color: var(--muted); font-size: 11px; font-weight: 500; }
+.project-session-group .session-row.active strong, .pinned-session-group .session-row.active strong { color: var(--text); }
 .session-row.active { background: color-mix(in srgb, var(--accent) 12%, var(--raised)); box-shadow: none; }
 .session-menu-button { width: 26px; height: 26px; }
 .session-search { flex: 0 0 auto; border-width: 0 0 1px; border-radius: 0; margin: 0 0 4px; background: transparent; padding: 0 7px; }

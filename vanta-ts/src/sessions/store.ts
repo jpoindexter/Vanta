@@ -62,21 +62,21 @@ const SessionSchema = z.object({
   archived: z.boolean().optional(),
   // Trashed sessions remain recoverable until the operator explicitly deletes forever.
   trashed: z.boolean().optional(),
+  pinned: z.boolean().optional(),
+  pinOrder: z.number().int().nonnegative().optional(),
   messages: z.array(MessageSchema),
 });
 
 export type Session = z.infer<typeof SessionSchema>;
-export type SessionMeta = Pick<Session, "id" | "title" | "started" | "updated" | "projectId" | "providerId" | "modelId" | "archived" | "trashed"> & {
+export type SessionMeta = Pick<Session, "id" | "title" | "started" | "updated" | "projectId" | "providerId" | "modelId" | "archived" | "trashed" | "pinned" | "pinOrder"> & {
   turns: number;
 };
-
 /** Options for writing a session. The store binds its own location, so `env` is not
  *  a per-call field here (the delegator saveSession accepts it and passes it through). */
 export type SaveSessionOpts = {
-  now?: string; started?: string; updated?: string;
-  title?: string; projectId?: string;
-  providerId?: string; modelId?: string;
-  archived?: boolean; trashed?: boolean;
+  now?: string; started?: string; updated?: string; title?: string; projectId?: string;
+  providerId?: string; modelId?: string; archived?: boolean; trashed?: boolean;
+  pinned?: boolean; pinOrder?: number;
 };
 
 /**
@@ -135,6 +135,8 @@ function toMeta(session: Session): SessionMeta {
     modelId: session.modelId,
     archived: session.archived,
     trashed: session.trashed,
+    pinned: session.pinned,
+    pinOrder: session.pinOrder,
     turns: session.messages.filter((m) => m.role === "user").length,
   };
 }
@@ -169,6 +171,7 @@ export function createFsSessionStore(env?: NodeJS.ProcessEnv): SessionStore {
       ...(opts.providerId ? { providerId: opts.providerId } : {}),
       ...(opts.modelId ? { modelId: opts.modelId } : {}),
       ...(opts.archived ? { archived: true } : {}), ...(opts.trashed ? { trashed: true } : {}),
+      ...(opts.pinned ? { pinned: true, pinOrder: opts.pinOrder ?? 0 } : {}),
       messages,
     };
     await writeFile(join(dir, `${id}.json`), JSON.stringify(session, null, 2), "utf8");
@@ -214,7 +217,7 @@ export async function checkpointSessionMessages(
   // tool call is valid while the turn is still running.
   const existing = await readRawSession(id, env);
   await store.save(id, messages, existing
-    ? { started: existing.started, title: existing.title, projectId: existing.projectId, providerId: existing.providerId, modelId: existing.modelId, archived: existing.archived, trashed: existing.trashed }
+    ? { started: existing.started, title: existing.title, projectId: existing.projectId, providerId: existing.providerId, modelId: existing.modelId, archived: existing.archived, trashed: existing.trashed, pinned: existing.pinned, pinOrder: existing.pinOrder }
     : undefined);
 }
 
@@ -238,7 +241,7 @@ export async function listAllSessions(env?: NodeJS.ProcessEnv): Promise<SessionM
   return createFsSessionStore(env).list();
 }
 
-function existingSaveOptions(session: Session, overrides: Pick<SaveSessionOpts, "title" | "archived" | "trashed" | "updated"> = {}): SaveSessionOpts {
+function existingSaveOptions(session: Session, overrides: Pick<SaveSessionOpts, "title" | "archived" | "trashed" | "pinned" | "pinOrder" | "updated"> = {}): SaveSessionOpts {
   return {
     started: session.started,
     updated: overrides.updated,
@@ -248,6 +251,8 @@ function existingSaveOptions(session: Session, overrides: Pick<SaveSessionOpts, 
     modelId: session.modelId,
     archived: overrides.archived ?? session.archived,
     trashed: overrides.trashed ?? session.trashed,
+    pinned: overrides.pinned ?? session.pinned,
+    pinOrder: overrides.pinOrder ?? session.pinOrder,
   };
 }
 
@@ -274,7 +279,8 @@ export async function setSessionTrashed(id: string, trashed: boolean, env?: Node
   const store = createFsSessionStore(env);
   const session = await store.load(id);
   if (!session) return null;
-  await store.save(id, session.messages, existingSaveOptions(session, { trashed, archived: trashed ? false : session.archived, updated: session.updated }));
+  await store.save(id, session.messages, existingSaveOptions(session, { trashed, archived: trashed ? false : session.archived,
+    pinned: trashed ? false : session.pinned, pinOrder: trashed ? undefined : session.pinOrder, updated: session.updated }));
   return store.load(id);
 }
 

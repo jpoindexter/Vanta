@@ -8,6 +8,7 @@ import type { DesktopRunFailureKind, DesktopRunReceipt } from "../types.js";
 import { buildSummarizer, prepareRun, writeRunMemory } from "../session.js";
 import type { RunSetup } from "../session.js";
 import { deleteSession, listAllSessions, loadSession, newSessionId, renameSession, saveSession, setSessionArchived, setSessionTrashed, checkpointSessionMessages } from "../sessions/store.js";
+import { reorderPinnedSessions, setSessionPinned } from "../sessions/pinning.js";
 import { PROVIDER_CATALOG, providerById, type ProviderEntry } from "../providers/catalog.js";
 import { diskCacheDeps, mergeProviderCatalog, resolveCatalog } from "../providers/catalog-manifest.js";
 import { resolveVantaHome } from "../store/home.js";
@@ -240,6 +241,26 @@ export async function handleArchiveSession(req: http.IncomingMessage, res: http.
   const session = await setSessionArchived(id, body.archived ?? true, process.env);
   if (!session) return sendJson(res, 404, { error: "session not found" });
   sendJson(res, 200, { id: session.id, archived: Boolean(session.archived) });
+}
+
+export async function handlePinSession(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const body = await readJson(req) as { id?: unknown; pinned?: unknown };
+  const id = sessionIdFromBody(body);
+  if (!id) return sendJson(res, 400, { error: "session id is required" });
+  if (typeof body.pinned !== "boolean") return sendJson(res, 400, { error: "pinned must be boolean" });
+  const session = await setSessionPinned(id, body.pinned, process.env);
+  if (!session) return sendJson(res, 404, { error: "active session not found" });
+  sendJson(res, 200, { id: session.id, pinned: Boolean(session.pinned), pinOrder: session.pinOrder });
+}
+
+export async function handleReorderPinnedSessions(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const body = await readJson(req) as { orderedIds?: unknown };
+  if (!Array.isArray(body.orderedIds) || body.orderedIds.some((id) => typeof id !== "string" || !id)) {
+    return sendJson(res, 400, { error: "orderedIds must be a list of session ids" });
+  }
+  const sessions = await reorderPinnedSessions(body.orderedIds as string[], process.env);
+  if (!sessions) return sendJson(res, 409, { error: "pinned session order is stale; refresh and retry" });
+  sendJson(res, 200, { orderedIds: sessions.filter((session) => !session.archived && !session.trashed).map((session) => session.id) });
 }
 
 export async function handleDeleteSession(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {

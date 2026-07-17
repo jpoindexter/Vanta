@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
-import { Activity, Archive, ArchiveRestore, ArrowUp, Check, CheckCircle2, ChevronRight, Copy, FileText, FolderKanban, Keyboard, Laptop, ListPlus, Maximize2, MessageSquare, MoreHorizontal, Network, PackageOpen, Paperclip, Pencil, Plug, Plus, RotateCcw, Search, Settings2, ShieldCheck, Square, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
+import { Activity, Archive, ArchiveRestore, ArrowUp, Check, CheckCircle2, ChevronRight, Copy, FileText, FolderKanban, Keyboard, Laptop, ListPlus, Maximize2, MessageSquare, MoreHorizontal, Network, PackageOpen, Paperclip, Pencil, Pin, Plug, Plus, RotateCcw, Search, Settings2, ShieldCheck, Square, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
 import type { Approval, ApprovalDecision, DesktopRunReceipt, DesktopView, Message, PermissionSection, Session } from "./types.js";
 import { MessageMarkdown } from "./message-markdown.js";
 import { AccessModePicker } from "./access-mode-picker.js";
 import type { AccessMode } from "./types.js";
 import type { DesktopMcpSummary } from "./mcp-types.js";
 import { moveSessionMenuFocus, SessionNoticeToast, useSessionMenuDismiss, useSessionSafeOps, type SessionDeleteAction } from "./session-safe-ops.js";
+import { movePinnedSession, partitionSessions } from "./session-pinning.js";
+import { SessionPinMenuItems } from "./session-pinning-controls.js";
 
 type SessionSidebarProps = {
   sessions: Session[];
@@ -17,6 +19,8 @@ type SessionSidebarProps = {
   onRename: (id: string, title: string) => void | Promise<void>;
   onArchive: (id: string, archived: boolean) => void | Promise<void>;
   onDelete: (id: string, action: SessionDeleteAction) => void | Promise<void>;
+  onPin: (id: string, pinned: boolean) => void | Promise<void>;
+  onReorderPins: (orderedIds: string[]) => void | Promise<void>;
   view: DesktopView;
   onView: (view: DesktopView) => void;
   onSettings: () => void;
@@ -32,15 +36,12 @@ export function SessionSidebar(props: SessionSidebarProps) {
   const [archivedOpen, setArchivedOpen] = useState(false);
   const [trashOpen, setTrashOpen] = useState(false);
   const sessions = useMemo(() => props.sessions.filter((session) => session.title.toLowerCase().includes(query.toLowerCase())), [props.sessions, query]);
-  const active = sessions.filter((session) => !session.archived && !session.trashed);
-  const archived = sessions.filter((session) => session.archived && !session.trashed);
-  const trashed = sessions.filter((session) => session.trashed);
-  const projectSessions = active.slice(0, 3);
-  const recentSessions = active.slice(3);
-  const visibleSessions = useMemo(() => [...projectSessions, ...recentSessions, ...(archivedOpen ? archived : []), ...(trashOpen ? trashed : [])], [projectSessions, recentSessions, archived, archivedOpen, trashOpen, trashed]);
+  const groups = useMemo(() => partitionSessions(sessions), [sessions]);
+  const { active, pinned, project: projectSessions, recent: recentSessions, archived, trashed } = groups;
+  const visibleSessions = useMemo(() => [...pinned, ...projectSessions, ...recentSessions, ...(archivedOpen ? archived : []), ...(trashOpen ? trashed : [])], [pinned, projectSessions, recentSessions, archived, archivedOpen, trashOpen, trashed]);
   const projectName = props.root?.split("/").filter(Boolean).at(-1) ?? "Current project";
   const selectedSessions = useMemo(() => props.sessions.filter((session) => selected.has(session.id)), [props.sessions, selected]);
-  const safe = useSessionSafeOps({ rename: props.onRename, archive: props.onArchive, remove: props.onDelete });
+  const safe = useSessionSafeOps({ rename: props.onRename, archive: props.onArchive, remove: props.onDelete, pin: props.onPin, reorderPins: props.onReorderPins });
 
   useEffect(() => {
     setSelected((current) => {
@@ -100,7 +101,9 @@ export function SessionSidebar(props: SessionSidebarProps) {
     if (allTrashed && !window.confirm(`Delete ${targets.length} selected session${targets.length === 1 ? "" : "s"} forever? This cannot be undone.`)) return;
     if (await safe.remove(targets, allTrashed ? "permanent" : "trash")) stopSelecting();
   }
-  const renderSession = (session: Session) => (
+  const renderSession = (session: Session) => {
+    const pinnedIndex = pinned.findIndex(({ id }) => id === session.id);
+    return (
     <SessionButton
       key={session.id}
       session={session}
@@ -113,8 +116,13 @@ export function SessionSidebar(props: SessionSidebarProps) {
       onRename={(title) => safe.rename(session, title)}
       onArchive={(archivedState) => safe.archive([session], archivedState)}
       onDelete={(action) => safe.remove([session], action)}
+      onPin={(pinnedState) => safe.pin(session, pinnedState)}
+      onMove={pinnedIndex < 0 ? undefined : async (delta) => safe.reorder(session, movePinnedSession(pinned, session.id, delta), `Moved “${session.title}” ${delta < 0 ? "up" : "down"}.`)}
+      canMoveUp={pinnedIndex > 0}
+      canMoveDown={pinnedIndex >= 0 && pinnedIndex < pinned.length - 1}
     />
-  );
+    );
+  };
 
   return (
     <aside className="session-sidebar">
@@ -127,7 +135,11 @@ export function SessionSidebar(props: SessionSidebarProps) {
       </nav>
       <section className="project-rail">
         <div className="section-heading project-heading"><h2>Projects</h2><button type="button" title="New task" aria-label="New task" onClick={props.onNew}><Plus size={14} /></button></div>
-        <div className="project-row active"><span><FolderKanban size={15} />{projectName}</span><b>{projectSessions.length}</b></div>
+        <div className="project-row active"><span><FolderKanban size={15} />{projectName}</span><b>{active.length}</b></div>
+        {pinned.length ? <>
+          <div className="section-heading pinned-heading"><h2><Pin size={12} />Pinned</h2><span>{pinned.length}</span></div>
+          <div className="session-list pinned-session-group">{pinned.map(renderSession)}</div>
+        </> : null}
         <div className="session-list project-session-group">
           {projectSessions.map(renderSession)}
         </div>
@@ -151,7 +163,7 @@ export function SessionSidebar(props: SessionSidebarProps) {
               <div>{trashed.map(renderSession)}</div>
             </details>
           ) : null}
-          {recentSessions.length === 0 && projectSessions.length === 0 ? <p className="muted">{query ? "No matching sessions." : "No saved sessions yet."}</p> : null}
+          {recentSessions.length === 0 && projectSessions.length === 0 && pinned.length === 0 ? <p className="muted">{query ? "No matching sessions." : "No saved sessions yet."}</p> : null}
         </div>
       </section>
       <footer className="session-sidebar-footer"><button type="button" onClick={props.onShortcuts}><Keyboard size={14} />Keyboard shortcuts <kbd>?</kbd></button><button type="button" onClick={props.onSettings}><Settings2 size={14} />Settings</button></footer>
@@ -186,6 +198,10 @@ function SessionButton(props: {
   onRename: (title: string) => Promise<boolean>;
   onArchive: (archived: boolean) => Promise<boolean>;
   onDelete: (action: SessionDeleteAction) => Promise<boolean>;
+  onPin: (pinned: boolean) => Promise<boolean>;
+  onMove?: (delta: -1 | 1) => Promise<boolean>;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -194,7 +210,7 @@ function SessionButton(props: {
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const className = `${props.active ? "session-row active" : "session-row"}${props.selecting ? " selecting" : ""}${props.selected ? " selected" : ""}${props.pending ? " pending" : ""}`;
+  const className = `${props.active ? "session-row active" : "session-row"}${props.session.pinned ? " pinned" : ""}${props.selecting ? " selecting" : ""}${props.selected ? " selected" : ""}${props.pending ? " pending" : ""}`;
 
   useEffect(() => { setTitle(props.session.title); }, [props.session.title]);
   useEffect(() => { if (editing) inputRef.current?.focus(); }, [editing]);
@@ -242,6 +258,7 @@ function SessionButton(props: {
               ) : (
                 <>
                   <button role="menuitem" type="button" onClick={startRename}><Pencil size={14} />Rename</button>
+                  <SessionPinMenuItems session={props.session} onPin={props.onPin} onMove={props.onMove} canMoveUp={props.canMoveUp} canMoveDown={props.canMoveDown} close={() => setMenuOpen(false)} />
                   <button role="menuitem" type="button" onClick={() => { setMenuOpen(false); void props.onArchive(!props.session.archived); }}>
                     {props.session.archived ? <ArchiveRestore size={14} /> : <Archive size={14} />}{props.session.archived ? "Restore" : "Archive"}
                   </button>
