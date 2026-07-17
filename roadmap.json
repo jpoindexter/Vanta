@@ -19091,7 +19091,7 @@
       "id": "DESKTOP-QUEUED-TURN-EDITOR",
       "track": "Desktop App",
       "title": "Desktop queued-turn editor - inspect, reorder, edit, steer, or cancel what runs next",
-      "status": "horizon",
+      "status": "building",
       "size": "M",
       "summary": "Expose Vanta's existing queued-input and gateway steering substrate in Desktop. The current turn remains primary while pending instructions show their execution order, dependency, target, and safe edit/cancel actions.",
       "done": "Work shows a compact queued count and an accessible drawer; queued instructions can be edited, reordered, removed, or sent as a steer action; target/controller/model/approval scope is visible per item; changes persist through restart and reconcile with gateway/background execution; races with a just-starting item resolve deterministically; Electron proof covers queue, steer, reorder, cancel, reconnect, and compact layout.",
