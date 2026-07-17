@@ -105,3 +105,20 @@ export async function importRuntimeProfile(root: string, input: unknown, replace
   await writeProfile(root, profile, replace);
   return profile;
 }
+
+export async function linkRuntimeProfileModel(
+  root: string,
+  id: string,
+  modelPath: string,
+  modelBytes: number,
+  now = () => new Date(),
+): Promise<RuntimeProfile> {
+  const profile = await readRuntimeProfile(root, id);
+  const linked = RuntimeProfileV2Schema.parse({
+    ...profile,
+    model: { path: modelPath, bytes: modelBytes },
+    updatedAt: now().toISOString(),
+  });
+  await writeProfile(root, linked, true);
+  return linked;
+}

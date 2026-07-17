@@ -99,6 +99,7 @@ const USAGE_LINES = [
       "       vanta audit                        npm + cargo dependency security scan",
       "       vanta lint [files|--staged]        code-size gate: file≤300 fn≤50 params≤4 complexity≤10",
       "       vanta model [list | <provider> [<model>]]  show or switch the active provider/model",
+      "       vanta local-model downloads list|add|run|pause|resume|retry|cleanup   manage verified local model artifacts",
       "       vanta pairing [list | approve <chatId>]  manage messaging platform pairings",
       "       vanta update [--rollback]              pull latest + rebuild; --rollback restores last snapshot",
       "       vanta open <file[:line]>           open a file:line in your editor",

@@ -8,7 +8,9 @@ import {
   createStoredRuntimeProfile,
   exportRuntimeProfile,
   importRuntimeProfile,
+  linkRuntimeProfileModel,
   listRuntimeProfiles,
+  readRuntimeProfile,
   readSelectedRuntimeProfile,
   selectRuntimeProfile,
 } from "./profile-store.js";
@@ -55,5 +57,12 @@ describe("runtime profile store", () => {
 
   it("rejects an invalid import with actionable recovery copy", async () => {
     await expect(importRuntimeProfile(root, { version: 2, id: "broken" })).rejects.toThrow("Fix the profile fields");
+  });
+
+  it("links a verified model artifact without changing the profile contract", async () => {
+    await createStoredRuntimeProfile(root, input("linked"));
+    const linked = await linkRuntimeProfileModel(root, "linked", "/models/verified.gguf", 42, () => new Date("2026-07-17T12:00:00.000Z"));
+    expect(linked.model).toEqual({ path: "/models/verified.gguf", bytes: 42 });
+    expect((await readRuntimeProfile(root, "linked")).model).toEqual(linked.model);
   });
 });

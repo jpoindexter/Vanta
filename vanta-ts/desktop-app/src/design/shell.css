@@ -482,6 +482,15 @@
 .runtime-profile-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; border-block: 1px solid var(--line); padding-block: 9px; }.runtime-profile-form label { min-width: 0; display: grid; gap: 4px; color: var(--faint); font-size: 9px; }.runtime-profile-form label input, .runtime-profile-form label select, .runtime-profile-form label textarea { width: 100%; }.runtime-profile-form label textarea { min-height: 56px; resize: vertical; }.runtime-profile-form > details, .runtime-profile-form > div { grid-column: 1 / -1; }.runtime-profile-form details > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; padding-top: 7px; }.runtime-profile-form fieldset { display: grid; gap: 5px; border: 1px solid var(--line); padding: 7px; }.runtime-profile-form fieldset label { grid-template-columns: auto minmax(0, 1fr); align-items: center; }.runtime-profile-form fieldset input { width: auto; min-height: 0; }
 .runtime-profile-import { justify-self: start; cursor: pointer; }.runtime-profile-import input { display: none; }
 
+.model-downloads-panel { border-bottom: 1px solid var(--line); }
+.model-downloads-panel > summary { min-height: 36px; display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--faint); padding: 8px 10px; font-size: 9px; text-transform: uppercase; }
+.model-downloads-panel > summary strong { margin-inline-start: auto; color: var(--text); font-size: 10px; text-transform: none; }
+.model-download-body { display: grid; gap: 8px; border-top: 1px solid var(--line); padding: 10px; }
+.model-download-body > header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }.model-download-body > header > div { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 10px; }
+.model-download-body button { min-height: 28px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; border: 1px solid var(--line); border-radius: var(--radius-xs); background: transparent; color: var(--text); padding: 4px 7px; font-size: 9px; }
+.model-download-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; border-block: 1px solid var(--line); padding-block: 9px; }.model-download-form label { min-width: 0; display: grid; gap: 4px; color: var(--faint); font-size: 9px; }.model-download-form input { width: 100%; min-width: 0; min-height: 30px; border: 1px solid var(--line); border-radius: var(--radius-xs); background: var(--bg); color: var(--text); padding: 5px 8px; font-size: 10px; }.model-download-form .wide { grid-column: 1 / -1; }.model-download-form details > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; padding-top: 7px; }.model-download-form > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; }.model-download-form .model-download-start { display: flex; grid-template-columns: auto minmax(0, 1fr); align-items: center; }.model-download-form .model-download-start input { width: auto; min-height: 0; }
+.model-download-list { max-height: 260px; display: grid; gap: 0; margin: 0; overflow: auto; padding: 0; list-style: none; }.model-download-list > li { display: grid; gap: 5px; border-bottom: 1px solid var(--line); padding: 8px 0; }.model-download-list > li:last-child { border-bottom: 0; }.model-download-list header { display: flex; align-items: start; justify-content: space-between; gap: 8px; }.model-download-list header > div { min-width: 0; display: flex; align-items: start; gap: 7px; }.model-download-list header span { min-width: 0; display: grid; gap: 1px; }.model-download-list header strong { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }.model-download-list header small, .model-download-list header code { color: var(--faint); font: 9px/1.4 var(--font-mono); }.model-download-list progress { width: 100%; height: 4px; accent-color: var(--text); }.model-download-list > li > p { margin: 0; overflow: hidden; color: var(--faint); font: 9px/1.4 var(--font-mono); text-overflow: ellipsis; white-space: nowrap; }.model-download-list .model-download-recovery { color: var(--danger); font-family: var(--font-ui); white-space: normal; }.model-download-list footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; }.model-download-list footer > span { color: var(--faint); font-size: 8px; }.model-download-list footer > div { display: flex; flex-wrap: wrap; justify-content: end; gap: 5px; }.model-download-empty { margin: 0; color: var(--faint); font-size: 10px; }
+
 .runtime-actions {
   display: flex;
   align-items: center;
@@ -643,6 +652,10 @@
   .runtime-profile-form details > div { grid-template-columns: minmax(0, 1fr); }
   .runtime-profile-body > header { grid-template-columns: minmax(0, 1fr); }
   .runtime-profile-body > header button { justify-self: start; }
+  .model-download-form,
+  .model-download-form details > div { grid-template-columns: minmax(0, 1fr); }
+  .model-download-list footer { align-items: start; flex-direction: column; }
+  .model-download-list footer > div { justify-content: start; }
 
   .titlebar-identity {
     padding-right: 6px;

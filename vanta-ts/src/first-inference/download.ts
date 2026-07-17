@@ -15,7 +15,9 @@ type DownloadOptions = {
   destination: string;
   fetch?: typeof globalThis.fetch;
   signal?: AbortSignal;
+  headers?: Record<string, string>;
   onProgress?: (downloadedBytes: number, resumedAt: number) => Promise<void> | void;
+  onVerifying?: () => Promise<void> | void;
 };
 
 async function fileSize(path: string): Promise<number> {
@@ -42,7 +44,7 @@ export async function downloadFirstInferenceModel(options: DownloadOptions): Pro
   let response: Response;
   try {
     response = await fetcher(options.model.url, {
-      headers: resumedAt > 0 ? { range: `bytes=${resumedAt}-` } : undefined,
+      headers: { ...options.headers, ...(resumedAt > 0 ? { range: `bytes=${resumedAt}-` } : {}) },
       signal: options.signal,
       redirect: "follow",
     });
@@ -59,10 +61,10 @@ export async function downloadFirstInferenceModel(options: DownloadOptions): Pro
 
   let downloaded = resumedAt;
   const progress = new TransformStream<Uint8Array, Uint8Array>({
-    transform(chunk, controller) {
+    async transform(chunk, controller) {
       downloaded += chunk.byteLength;
       controller.enqueue(chunk);
-      void options.onProgress?.(downloaded, resumedAt);
+      await options.onProgress?.(downloaded, resumedAt);
     },
   });
   try {
@@ -72,6 +74,7 @@ export async function downloadFirstInferenceModel(options: DownloadOptions): Pro
     throw new FirstInferenceFailure("download_interrupted");
   }
   if (await fileSize(partial) !== options.model.bytes) throw new FirstInferenceFailure("download_size_mismatch");
+  await options.onVerifying?.();
   if (await sha256File(partial) !== options.model.sha256) {
     await rm(partial, { force: true });
     throw new FirstInferenceFailure("checksum_mismatch");

@@ -71,6 +71,20 @@ export type RuntimeProfilePayload = {
   profiles: RuntimeProfileItem[];
   export?: string;
 };
+export type ModelDownloadJob = {
+  version: 1; id: string; label: string;
+  source: { kind: "hugging_face"; url: string; sha256: string; bytes: number; filename: string; authSecretRef?: string; manifestUrl?: string };
+  storageRoot: string; destination: string; profileId?: string;
+  status: "queued" | "downloading" | "paused" | "verifying" | "completed" | "failed";
+  downloadedBytes: number; resumedAt?: number; failureCode?: string; recovery?: string;
+  createdAt: string; updatedAt: string; completedAt?: string;
+};
+export type ModelDownloadReceipt = {
+  version: 1; jobId: string; at: string;
+  transition: ModelDownloadJob["status"] | "enqueued" | "duplicate" | "cleaned" | "profile_linked";
+  downloadedBytes: number; destination: string; code?: string; profileId?: string;
+};
+export type ModelDownloadPayload = { jobs: ModelDownloadJob[]; receipts: ModelDownloadReceipt[] };
 export type DesktopRunFailureKind = "setup" | "tool" | "model" | "model_mismatch" | "user_denied" | "interrupted" | "unknown";
 export type DesktopRunReceipt = {
   status: "done" | "failed" | "interrupted";

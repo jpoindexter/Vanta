@@ -26,6 +26,7 @@ import { handleDesktopSetup } from "./setup.js";
 import { ensureDesktopPermissionMode } from "./permission-mode.js";
 import { handleDesktopMcpAction, handleDesktopMcpList } from "./mcp-connectors.js";
 import { handleRuntimeProfiles } from "./runtime-profile-api.js";
+import { handleModelDownloads } from "./model-download-api.js";
 
 type RouteCtx = { req: http.IncomingMessage; res: http.ServerResponse; state: DesktopState; sid: string; sseClients: SseClients; pathname: string };
 
@@ -54,6 +55,7 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
     "/api/access-mode": () => handleAccessMode(state, req, res),
     "/api/runtime": () => handleRuntime(state, req, res),
     "/api/runtime/profiles": () => handleRuntimeProfiles(state, req, res),
+    "/api/runtime/downloads": () => handleModelDownloads(state, req, res),
     "/api/chat/queue": () => handleQueueList(state, res),
     "/api/connect/mcp": () => handleDesktopMcpList(state, res),
     "/api/wake": async () => sendJson(res, 200, await getWakeApi()),
@@ -81,6 +83,7 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
     "/api/connect/mcp": () => handleDesktopMcpAction(state, req, res),
     "/api/runtime": () => handleRuntime(state, req, res),
     "/api/runtime/profiles": () => handleRuntimeProfiles(state, req, res),
+    "/api/runtime/downloads": () => handleModelDownloads(state, req, res),
     "/api/terminal": () => handleTerminal(state, req, res),
     "/api/chat/stop": () => handleStopChat(state, res),
     "/api/chat/queue": () => handleQueueChat(state, req, res),

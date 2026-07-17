@@ -29,6 +29,10 @@ const runtimeProfiles = [
   runtimeProfile({ id: "daily", name: "Daily local", model: "/models/qwen.gguf", bytes: 8 * 1024 ** 3, estimated: 9 * 1024 ** 3 }),
   runtimeProfile({ id: "fast", name: "Fast draft", model: "/models/qwen-fast.gguf", bytes: 4 * 1024 ** 3, estimated: 5 * 1024 ** 3 }),
 ];
+let modelDownloads = [
+  modelDownload({ id: "qwen-local", label: "Qwen local", status: "paused", downloaded: 40, bytes: 100, profileId: "daily", recovery: "Resume to continue from the persisted partial artifact." }),
+  modelDownload({ id: "draft-local", label: "Draft local", status: "failed", downloaded: 25, bytes: 100, recovery: "Reconnect to the network, then resume from the partial artifact." }),
+];
 
 try {
   const page = await app.firstWindow();
@@ -54,6 +58,18 @@ try {
       if (body.action === "export") exported = JSON.stringify(runtimeProfiles.find((item) => item.profile.id === body.id)?.profile);
     }
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ selectedId: selectedProfileId, host: { platform: "darwin", architecture: "arm64", memoryBytes: 24 * 1024 ** 3 }, profiles: runtimeProfiles, ...(exported ? { export: exported } : {}) }) });
+  });
+  await page.route("**/api/runtime/downloads", async (route) => {
+    if (route.request().method() === "POST") {
+      const body = route.request().postDataJSON();
+      const index = modelDownloads.findIndex((job) => job.id === body.id);
+      if (body.action === "resume" && index >= 0) modelDownloads[index] = { ...modelDownloads[index], status: "completed", downloadedBytes: modelDownloads[index].source.bytes, completedAt: new Date().toISOString(), recovery: undefined };
+      if (body.action === "retry" && index >= 0) modelDownloads[index] = { ...modelDownloads[index], status: "downloading", recovery: undefined };
+      if (body.action === "pause" && index >= 0) modelDownloads[index] = { ...modelDownloads[index], status: "paused" };
+      if (body.action === "cleanup" && index >= 0) modelDownloads[index] = { ...modelDownloads[index], status: "queued", downloadedBytes: 0, recovery: undefined };
+      if (body.action === "enqueue") modelDownloads.push(modelDownload({ id: body.input.id, label: body.input.label, status: "queued", downloaded: 0, bytes: body.input.source.bytes, profileId: body.input.profileId }));
+    }
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ jobs: modelDownloads, receipts: modelDownloads.map((job) => ({ version: 1, jobId: job.id, at: "2026-07-17T12:01:00.000Z", transition: job.status, downloadedBytes: job.downloadedBytes, destination: job.destination })) }) });
   });
   await page.locator(".app-shell").waitFor({ timeout: 20_000 });
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -101,6 +117,25 @@ try {
   await profilePanel.getByLabel("Environment references").waitFor();
   await profilePanel.getByLabel("Unknown flags reviewed").waitFor();
   await profilePanel.getByRole("button", { name: "Cancel" }).click();
+  const downloads = dialog.locator("details.model-downloads-panel");
+  await downloads.locator(":scope > summary").click();
+  await downloads.getByText("Qwen local").waitFor();
+  await downloads.getByText("40%").waitFor();
+  await downloads.getByText("profile daily", { exact: false }).waitFor();
+  await downloads.getByRole("button", { name: "Resume" }).click();
+  await downloads.getByText("completed", { exact: false }).waitFor();
+  const failedDownload = downloads.locator("li").filter({ hasText: "Draft local" });
+  await failedDownload.getByRole("button", { name: "Remove partial" }).click();
+  await failedDownload.getByRole("button", { name: "Confirm remove" }).waitFor();
+  await failedDownload.getByRole("button", { name: "Confirm remove" }).click();
+  await failedDownload.getByText("queued", { exact: false }).waitFor();
+  await downloads.getByRole("button", { name: "Add" }).click();
+  await downloads.getByLabel("Hugging Face file URL").waitFor();
+  const downloadAdvanced = downloads.locator("details").filter({ hasText: "Storage, auth, and profile" });
+  if (await downloadAdvanced.getAttribute("open") !== null) throw new Error("advanced model download controls should start collapsed");
+  await downloadAdvanced.locator(":scope > summary").click();
+  await downloads.getByLabel("Auth reference").waitFor();
+  await downloads.getByRole("button", { name: "Cancel" }).click();
   const stop = dialog.getByRole("button", { name: "Stop" });
   await stop.click();
   await dialog.getByRole("alert").getByText("fixture stop failed").waitFor();
@@ -144,7 +179,7 @@ try {
   if (compactOverlay.scrollWidth > compactOverlay.clientWidth + 1) throw new Error(`compact runtime tray scrolls horizontally: ${JSON.stringify(compactOverlay)}`);
   if (process.env.VANTA_DESKTOP_RUNTIME_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_RUNTIME_SCREENSHOT });
 
-  console.log(JSON.stringify({ ok: true, dark, light, compact, compactOverlay, screenReader, launch: true, stop: true, failure: true, reconnect: true, profiles: { search: true, selected: selectedProfileId, evidence: true, progressiveDisclosure: true }, draftPreserved: true, keyboardClose: true }));
+  console.log(JSON.stringify({ ok: true, dark, light, compact, compactOverlay, screenReader, launch: true, stop: true, failure: true, reconnect: true, profiles: { search: true, selected: selectedProfileId, evidence: true, progressiveDisclosure: true }, downloads: { progress: true, resume: true, cleanupConfirmation: true, profileLink: true, progressiveDisclosure: true }, draftPreserved: true, keyboardClose: true }));
 } finally {
   await app.close();
   await rm(userData, { recursive: true, force: true });
@@ -184,6 +219,16 @@ function runtimeProfile(input) {
       resource: { estimatedMemoryBytes: input.estimated, availableMemoryBytes: 24 * 1024 ** 3, headroomBytes: 24 * 1024 ** 3 - input.estimated, fits: true },
     },
     roundTrip: true,
+  };
+}
+
+function modelDownload(input) {
+  return {
+    version: 1, id: input.id, label: input.label,
+    source: { kind: "hugging_face", url: `https://huggingface.co/vanta/${input.id}/resolve/main/model.gguf`, sha256: "a".repeat(64), bytes: input.bytes, filename: `${input.id}.gguf` },
+    storageRoot: "/models", destination: `/models/${input.id}.gguf`, profileId: input.profileId,
+    status: input.status, downloadedBytes: input.downloaded, resumedAt: 0, recovery: input.recovery,
+    createdAt: "2026-07-17T12:00:00.000Z", updatedAt: "2026-07-17T12:01:00.000Z",
   };
 }
 
