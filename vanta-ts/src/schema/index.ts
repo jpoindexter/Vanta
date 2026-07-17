@@ -9,3 +9,4 @@ export * from "./counterexample.js";
 export * from "./hypothesis.js";
 export * from "./model-planner.js";
 export * from "./workspace.js";
+export * from "./quality-ledger.js";

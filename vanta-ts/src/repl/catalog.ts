@@ -108,6 +108,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "explain", arg: "[off]", desc: "capability-preservation surface — what changed + why, with a comprehension probe on risky/large changes" },
   { name: "recover", desc: "classify trouble — targeted bug, polluted context, or wrong assumption" },
   { name: "schema-recovery", desc: "show the latest model counterexample and its safe next action" },
+  { name: "schema-quality", arg: "[summary]", desc: "show exact, partial, untested, and contradicted model quality" },
   { name: "wm", arg: "[note]", desc: "view or add to session working memory (cleared each session)" },
   { name: "restart", desc: "reload Vanta in place with fresh code (needs ./run.sh)" },
   { name: "bug", arg: "<what happened>", desc: "record a structured bug with session + git context" },
