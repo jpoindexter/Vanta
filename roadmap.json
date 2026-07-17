@@ -19008,7 +19008,7 @@
       "id": "DESKTOP-RUNTIME-CONTROLLER-STRIP",
       "track": "Desktop App",
       "title": "Desktop runtime strip - active controller, model, engine, pressure, and queue at a glance",
-      "status": "next",
+      "status": "building",
       "size": "M",
       "summary": "Add a compact runtime strip to the existing Work surface so the operator can see and switch the active host, model, engine, lifecycle state, memory pressure, throughput, and queued-turn count without opening a dashboard or losing the transcript.",
       "done": "The strip consumes the controller contract, preserves session scope, distinguishes controller transport health from kernel trust, switches controllers without dropping the active draft, opens contextual detail instead of navigating away, never causes horizontal page overflow, and passes desktop/compact/keyboard/screen-reader Electron proof in Ghost light and dark themes.",
@@ -19017,7 +19017,7 @@
       "effort": "medium",
       "codex": "gpt-5.6-terra",
       "lens": "tui",
-      "updated": "2026-07-16",
+      "updated": "2026-07-17",
       "source": "local-studio-vanta-extraction-2026-07-16",
       "after": [
         "LOCAL-RUNTIME-CONTROLLER-CONTRACT",
