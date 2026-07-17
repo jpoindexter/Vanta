@@ -23,4 +23,4 @@ npm run vanta -- lint src/mcp/registry.ts src/mcp/mount-config.ts src/mcp/mount.
 git diff --check
 ```
 
-The exact command outputs are represented by the committed tests and final validation run. Desktop's visual install/auth/inventory control center is the dependent `DESKTOP-MCP-CONTROL-CENTER` card; this slice ships its canonical storage, API, and safety boundary.
+The exact command outputs are represented by the committed tests and final validation run. The dependent `DESKTOP-MCP-CONTROL-CENTER` now ships the visual install/auth/inventory layer on this canonical storage, API, and safety boundary. See `desktop-mcp-control-center-2026-07-17.md` for its source and packaged Electron receipt.

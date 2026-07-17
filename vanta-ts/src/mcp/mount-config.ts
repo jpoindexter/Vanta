@@ -170,12 +170,37 @@ export function buildMcpChildEnv(
   processEnv: NodeJS.ProcessEnv,
   specEnv?: Record<string, string>,
 ): NodeJS.ProcessEnv {
-  if (processEnv.VANTA_MCP_FULL_ENV === "1") return { ...processEnv, ...specEnv };
+  const declared = resolveDeclaredMcpEnv(processEnv, specEnv);
+  if (processEnv.VANTA_MCP_FULL_ENV === "1") return { ...processEnv, ...declared };
   const allow = process.platform === "win32" ? [...SAFE_ENV_KEYS, ...WIN32_ENV_KEYS] : SAFE_ENV_KEYS;
   const out: NodeJS.ProcessEnv = {};
   for (const key of allow) {
     const val = processEnv[key];
     if (val !== undefined) out[key] = val;
   }
-  return { ...out, ...specEnv };
+  return { ...out, ...declared };
+}
+
+/** Resolve only credential variables explicitly named by this connector. */
+export function resolveDeclaredMcpEnv(
+  processEnv: NodeJS.ProcessEnv,
+  specEnv?: Record<string, string>,
+): Record<string, string> {
+  const resolved: Record<string, string> = {};
+  for (const [key, value] of Object.entries(specEnv ?? {})) {
+    const match = /^\$\{([A-Z_][A-Z0-9_]*)\}$/.exec(value);
+    if (!match) resolved[key] = value;
+    else if (processEnv[match[1]!] !== undefined) resolved[key] = processEnv[match[1]!]!;
+  }
+  return resolved;
+}
+
+export function missingDeclaredMcpEnv(
+  processEnv: NodeJS.ProcessEnv,
+  specEnv?: Record<string, string>,
+): string[] {
+  return Object.values(specEnv ?? {}).flatMap((value) => {
+    const match = /^\$\{([A-Z_][A-Z0-9_]*)\}$/.exec(value);
+    return match && !processEnv[match[1]!] ? [match[1]!] : [];
+  });
 }

@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { mirrorLegacyEnv } from "../env-compat.js";
 import { resolveProvider } from "../providers/index.js";
@@ -16,7 +16,9 @@ import { resolveIsolation, isolationLevel, isolationBanner } from "./isolation.j
 import { wantsDumpPrompt, stripDumpFlag, runDumpPrompt, defaultDumpDeps } from "./dump-prompt.js";
 import type { OutputFormat } from "./commands.js";
 
-export function findRepoRoot(): string {
+export function findRepoRoot(env: NodeJS.ProcessEnv = process.env): string {
+  const selectedProject = env.VANTA_PROJECT_ROOT?.trim();
+  if (selectedProject && existsSync(selectedProject)) return resolve(selectedProject);
   let dir = dirname(fileURLToPath(import.meta.url));
   for (let i = 0; i < 8; i++) {
     if (existsSync(join(dir, "Cargo.toml"))) return dir;

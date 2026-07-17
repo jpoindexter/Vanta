@@ -1,5 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { parseRunArgs } from "./startup.js";
+import { tmpdir } from "node:os";
+import { resolve } from "node:path";
+import { findRepoRoot, parseRunArgs } from "./startup.js";
+
+describe("findRepoRoot", () => {
+  it("honors the desktop shell's explicit project root", () => {
+    expect(findRepoRoot({ VANTA_PROJECT_ROOT: tmpdir() })).toBe(resolve(tmpdir()));
+  });
+});
 
 describe("parseRunArgs", () => {
   it("preserves a flagless instruction (regression: index-0 was being dropped)", () => {

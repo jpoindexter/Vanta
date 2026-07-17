@@ -7,6 +7,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { app, BrowserWindow, Tray, Menu, nativeImage, dialog, clipboard, shell } from "electron";
 import { createTrayController } from "./tray.mjs";
 import { findAvailablePort, projectArg, readProjectSetting, resolveProjectRoot, saveProjectSetting } from "./project-root.mjs";
+import { resolveRuntimePaths } from "./runtime-paths.mjs";
 
 const DEFAULT_DESKTOP_PORT = 7790;
 const args = process.argv.slice(app.isPackaged ? 1 : 2);
@@ -24,14 +25,7 @@ let serverReady;
 
 function runtimePaths() {
   const appPath = app.isPackaged ? app.getAppPath() : join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-  const loaderRoot = app.isPackaged ? join(process.resourcesPath, "app.asar.unpacked") : appPath;
-  return {
-    cli: join(appPath, "src", "cli.ts"),
-    loader: join(loaderRoot, "node_modules", "tsx", "dist", "loader.mjs"),
-    dist: join(appPath, "desktop-app", "dist"),
-    icon: join(appPath, "desktop-app", "build", "icon.png"),
-    kernel: join(process.resourcesPath, "kernel", process.platform === "win32" ? "vanta-kernel.exe" : "vanta-kernel"),
-  };
+  return resolveRuntimePaths({ appPath, packaged: app.isPackaged, resourcesPath: process.resourcesPath, platform: process.platform });
 }
 
 function desktopIconPath() {
@@ -43,8 +37,8 @@ function startServer() {
   const paths = runtimePaths();
   const executable = app.isPackaged ? process.execPath : (process.env.VANTA_NODE || "node");
   const childArgs = ["--import", pathToFileURL(paths.loader).href, paths.cli, "desktop", String(port), "--no-open", ...(companion ? ["--companion"] : [])];
-  const env = { ...process.env, VANTA_DESKTOP_DIST: paths.dist, VANTA_PROJECT_ROOT: projectRoot };
-  if (app.isPackaged) Object.assign(env, { ELECTRON_RUN_AS_NODE: "1", VANTA_KERNEL_BIN: paths.kernel });
+  const env = { ...process.env, VANTA_DESKTOP_DIST: paths.dist, VANTA_PROJECT_ROOT: projectRoot, VANTA_KERNEL_BIN: paths.kernel };
+  if (app.isPackaged) Object.assign(env, { ELECTRON_RUN_AS_NODE: "1" });
   const child = spawn(executable, childArgs, { cwd: projectRoot, env, stdio: ["ignore", "pipe", "pipe"] });
   serverProcess = child;
   serverReady = new Promise((resolve, reject) => {
@@ -177,7 +171,8 @@ function showFatal(message) {
 // Test and automation runs use an isolated profile so they never contend with
 // the operator's running Vanta instance or mutate its remembered project.
 if (process.env.VANTA_DESKTOP_USER_DATA) app.setPath("userData", process.env.VANTA_DESKTOP_USER_DATA);
-if (!app.requestSingleInstanceLock()) app.quit();
+const ownsInstance = automation || app.requestSingleInstanceLock();
+if (!ownsInstance) app.quit();
 else {
   app.on("second-instance", () => { mainWindow?.show(); mainWindow?.focus(); });
   app.on("before-quit", () => { shuttingDown = true; stopServer(); });

@@ -10,10 +10,12 @@ import { FullAccessWarning, fullAccessScope, useFullAccessWarning } from "./full
 import { mentionedProjectFiles } from "./file-context.js";
 import { connectionRecovery } from "./connection-recovery.js";
 import { useApproval, useCompletionSound, useConversation, useDesktopData } from "./state.js";
+import { useDesktopMcp } from "./mcp-state.js";
 import type { DesktopTheme, DesktopView, RailTab } from "./types.js";
 
 type DesktopData = ReturnType<typeof useDesktopData>;
 type CompletionSound = ReturnType<typeof useCompletionSound>;
+type DesktopMcp = ReturnType<typeof useDesktopMcp>;
 
 const SIDEBAR_STORAGE_KEY = "vanta.desktop.sidebar-width";
 const RAIL_STORAGE_KEY = "vanta.desktop.rail-width";
@@ -41,6 +43,7 @@ export function AppShell() {
   const sound = useCompletionSound();
   const convo = useConversation(data.refresh, { prime: sound.prime, complete: sound.play });
   const approval = useApproval();
+  const mcp = useDesktopMcp();
   const accessWarning = useFullAccessWarning(data.status?.accessMode ?? "approve", fullAccessScope(data.status?.root));
   const [mobilePanel, setMobilePanel] = useState<"sessions" | "work" | "inspect">("work");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -163,9 +166,9 @@ export function AppShell() {
           </div>
           <div className="composer-stack">
             <FullAccessWarning visible={accessWarning.visible} onClose={accessWarning.close} onAcknowledge={accessWarning.acknowledge} />
-            <Composer value={convo.draft} busy={convo.busy} model={data.status?.model} root={data.status?.root} tools={data.status?.tools} accessMode={data.status?.accessMode ?? "approve"} attachments={attachments} onChange={convo.setDraft} onSubmit={(text) => { void convo.submit(withAttachments(text, attachments)); setAttachments([]); }} onQueue={convo.queue} onRemoveAttachment={(file) => setAttachments((current) => current.filter((entry) => entry !== file))} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onModel={data.openModelPicker} onAccessMode={data.setAccessMode} onCommand={data.openPalette} />
+            <Composer value={convo.draft} busy={convo.busy} model={data.status?.model} root={data.status?.root} tools={data.status?.tools} mcp={mcp.summary} accessMode={data.status?.accessMode ?? "approve"} attachments={attachments} onChange={convo.setDraft} onSubmit={(text) => { void convo.submit(withAttachments(text, attachments)); setAttachments([]); }} onQueue={convo.queue} onRemoveAttachment={(file) => setAttachments((current) => current.filter((entry) => entry !== file))} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onMcp={() => setView("connect")} onModel={data.openModelPicker} onAccessMode={data.setAccessMode} onCommand={data.openPalette} />
           </div>
-        </> : <OperatorWorkspace view={view} data={data} events={convo.events} onOpenSession={(id) => { setView("work"); void convo.openSession(id); }} />}
+        </> : <OperatorWorkspace view={view} data={data} mcp={mcp} events={convo.events} onOpenSession={(id) => { setView("work"); void convo.openSession(id); }} />}
       </main>
       {inspectorVisible ? <RightRail
         status={data.status}
@@ -347,10 +350,10 @@ function DesktopOverlays(props: {
   );
 }
 
-function OperatorWorkspace(props: { view: DesktopView; data: DesktopData; events: ReturnType<typeof useConversation>["events"]; onOpenSession: (id: string) => void }) {
+function OperatorWorkspace(props: { view: DesktopView; data: DesktopData; mcp: DesktopMcp; events: ReturnType<typeof useConversation>["events"]; onOpenSession: (id: string) => void }) {
   if (props.view === "operate") return <OperateView sessions={props.data.sessions} events={props.events} status={props.data.status} onOpenSession={props.onOpenSession} />;
   if (props.view === "outputs") return <ArtifactsView artifacts={props.data.artifacts} onOpenSession={props.onOpenSession} onRefresh={() => { void props.data.refresh(); }} />;
-  return <ConnectView capabilities={props.data.capabilities} platforms={props.data.messaging} models={props.data.models} status={props.data.status} onSaveMessaging={props.data.saveMessaging} onTest={props.data.testConnection} onOpenModel={props.data.openModelPicker} onOpenSetup={props.data.openSetup} />;
+  return <ConnectView capabilities={props.data.capabilities} platforms={props.data.messaging} models={props.data.models} status={props.data.status} mcp={props.mcp} onSaveMessaging={props.data.saveMessaging} onTest={props.data.testConnection} onOpenModel={props.data.openModelPicker} onOpenSetup={props.data.openSetup} />;
 }
 
 function viewLabel(view: Exclude<DesktopView, "work">): string {

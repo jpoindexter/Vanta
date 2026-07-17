@@ -8,6 +8,7 @@ import { buildRegistry } from "./tools/index.js";
 import type { LLMProvider, CompletionResult } from "./providers/interface.js";
 
 const KERNEL_URL = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
+const KERNEL_ROOT = process.env.VANTA_ROOT ?? join(process.cwd(), "..");
 
 /** A provider that replays scripted turns — removes model nondeterminism. */
 class FakeProvider implements LLMProvider {
@@ -37,7 +38,7 @@ beforeAll(async () => {
   prevHome = process.env.VANTA_HOME;
   home = mkdtempSync(join(tmpdir(), "vanta-agent-test-"));
   process.env.VANTA_HOME = home;
-  kernelUp = await createKernelClient(KERNEL_URL).status();
+  kernelUp = await createKernelClient(KERNEL_URL, KERNEL_ROOT).status();
 }, 30_000);
 
 afterAll(() => {
@@ -48,9 +49,9 @@ afterAll(() => {
 
 describe("agent dispatch against the live kernel", () => {
   const baseDeps = () => ({
-    safety: createKernelClient(KERNEL_URL),
+    safety: createKernelClient(KERNEL_URL, KERNEL_ROOT),
     registry: buildRegistry(),
-    root: process.cwd(),
+    root: KERNEL_ROOT,
   });
 
   it("pauses for approval on an ask-risk action and respects denial", async () => {

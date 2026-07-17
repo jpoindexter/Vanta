@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { Activity, ArrowRight, Bot, Boxes, CheckCircle2, ExternalLink, FileText, Image, Link2, Network, PackageOpen, PauseCircle, RefreshCw, Search, ShieldAlert, Wrench } from "lucide-react";
 import type { Artifact, Capability, ConnectStatus, ConnectTestResult, EventRow, MessagingPlatform, Provider, Session, Status } from "./types.js";
+import { McpConnectorsView } from "./mcp-connectors-view.js";
+import type { useDesktopMcp } from "./mcp-state.js";
 
 type TestConnection = (kind: "provider" | "messaging", id?: string) => Promise<ConnectTestResult>;
 
@@ -114,26 +116,31 @@ export function ConnectView(props: {
   platforms: MessagingPlatform[];
   models: Provider[];
   status: Status | null;
+  mcp?: ReturnType<typeof useDesktopMcp>;
   onSaveMessaging: (id: string, values: Record<string, string>) => Promise<void>;
   onTest: TestConnection;
   onOpenModel: () => void;
   onOpenSetup: () => void;
 }) {
-  const [section, setSection] = useState<"overview" | "capabilities" | "messaging">("overview");
+  const [section, setSection] = useState<"overview" | "capabilities" | "mcp" | "messaging">("overview");
   const configured = props.platforms.filter((platform) => platform.configured).length;
   const providerStatus: ConnectStatus = props.status?.model ? "ready" : props.models.length ? "needs_setup" : "unavailable";
+  useEffect(() => { if (section === "mcp") void props.mcp?.refresh(); }, [props.mcp?.refresh, section]);
   return <WorkspaceView title="Connect" eyebrow="Setup when it is useful" description="Choose a model, inspect what Vanta can use, or connect the channels that let it reach you.">
     <div className="connect-tabs" role="tablist" aria-label="Connect sections">
       <button role="tab" aria-selected={section === "overview"} className={section === "overview" ? "active" : ""} type="button" onClick={() => setSection("overview")}>Overview</button>
       <button role="tab" aria-selected={section === "capabilities"} className={section === "capabilities" ? "active" : ""} type="button" onClick={() => setSection("capabilities")}>Capabilities</button>
+      <button role="tab" aria-selected={section === "mcp"} className={section === "mcp" ? "active" : ""} type="button" onClick={() => setSection("mcp")}>MCP</button>
       <button role="tab" aria-selected={section === "messaging"} className={section === "messaging" ? "active" : ""} type="button" onClick={() => setSection("messaging")}>Messaging</button>
     </div>
     {section === "overview" ? <div className="connect-grid">
       <ConnectCard icon={<Bot size={18} />} status={providerStatus} eyebrow="Model" title={props.status?.model ?? "Choose a model"} detail={props.models.length ? `${props.models.length} provider${props.models.length === 1 ? "" : "s"} available` : "Provider catalog unavailable. Retry locally before opening setup."} action={props.status?.model ? "Change model" : "Connect provider"} onAction={props.status?.model ? props.onOpenModel : props.onOpenSetup} onTest={providerStatus === "ready" ? () => props.onTest("provider") : undefined} />
       <ConnectCard icon={<Boxes size={18} />} status={props.capabilities.length ? "ready" : "needs_setup"} eyebrow="Capabilities" title={`${props.capabilities.length} available`} detail="Live registered tools and project skills that Vanta can use in this workspace." action="Browse capabilities" onAction={() => setSection("capabilities")} />
+      <ConnectCard icon={<Network size={18} />} status={props.mcp?.summary.servers ? "ready" : props.mcp?.payload.connectors.length ? "needs_setup" : "unavailable"} eyebrow="MCP" title={props.mcp?.summary.servers ? `${props.mcp.summary.servers} ready` : "No servers ready"} detail={`${props.mcp?.summary.tools ?? 0} tools and ${props.mcp?.summary.resources ?? 0} resources available to Work.`} action="Manage MCP" onAction={() => setSection("mcp")} />
       <ConnectCard icon={<Network size={18} />} status={configured ? "ready" : props.platforms.length ? "needs_setup" : "unavailable"} eyebrow="Messaging" title={configured ? `${configured} ready` : "No channels ready"} detail={`${props.platforms.length} available adapters. Credentials stay local to this project.`} action="Configure messaging" onAction={() => setSection("messaging")} />
     </div> : null}
     {section === "capabilities" ? <CapabilitiesPanel items={props.capabilities} /> : null}
+    {section === "mcp" && props.mcp ? <McpConnectorsView payload={props.mcp.payload} loading={props.mcp.loading} pending={props.mcp.pending} error={props.mcp.error} onRefresh={props.mcp.refresh} onAction={props.mcp.act} /> : null}
     {section === "messaging" ? <MessagingPanel platforms={props.platforms} onSave={props.onSaveMessaging} onTest={props.onTest} /> : null}
   </WorkspaceView>;
 }

@@ -11,14 +11,46 @@ const executablePath = process.env.VANTA_DESKTOP_APP;
 let app;
 const rendererErrors = [];
 const expectedFirstRunFailures = new Set(["/api/status", "/api/tools"]);
+let expectedMcpConflict = false;
 
 try {
   await mkdir(join(home, "sessions"), { recursive: true });
   await mkdir(join(home, "skills", "operator-smoke"), { recursive: true });
   await mkdir(join(project, "docs"), { recursive: true });
+  await mkdir(join(home, "Library", "Application Support", "Claude"), { recursive: true });
   await writeFile(join(home, "skills", "operator-smoke", "SKILL.md"), "---\nname: Operator smoke skill\ndescription: A real stored skill for the desktop smoke.\n---\nUse this fixture.", "utf8");
   await writeFile(join(project, "README.md"), "context fixture", "utf8");
   await writeFile(join(project, "docs", "output.md"), "artifact fixture", "utf8");
+  const mcpFixture = join(project, "mcp-fixture.mjs");
+  await writeFile(mcpFixture, `
+let buffer = "";
+process.stdin.on("data", (chunk) => {
+  buffer += chunk.toString();
+  for (;;) {
+    const index = buffer.indexOf("\\n");
+    if (index < 0) break;
+    const line = buffer.slice(0, index).trim();
+    buffer = buffer.slice(index + 1);
+    if (!line) continue;
+    const request = JSON.parse(line);
+    if (request.id === undefined) continue;
+    let result = {};
+    if (request.method === "initialize") result = { protocolVersion: "2024-11-05", capabilities: { tools: {}, resources: {} }, serverInfo: { name: "fixture", version: "1" } };
+    if (request.method === "tools/list") result = { tools: [{ name: "search_notes", description: "Search notes", inputSchema: { type: "object", properties: {} } }] };
+    if (request.method === "resources/list") result = { resources: [{ uri: "fixture://status", name: "Status" }] };
+    if (request.method === "resources/read") result = { contents: [{ uri: request.params.uri, text: "fixture ready" }] };
+    process.stdout.write(JSON.stringify({ jsonrpc: "2.0", id: request.id, result }) + "\\n");
+  }
+});
+`, "utf8");
+  await writeFile(join(project, ".mcp.json"), JSON.stringify({ servers: {
+    notes: { command: process.execPath, args: [mcpFixture] },
+    broken: { command: join(project, "missing-mcp-binary") },
+    oauth: { url: "http://127.0.0.1:9/mcp", authorizationUrl: "https://example.test/authorize", tokenUrl: "https://example.test/token", clientId: "desktop-smoke" },
+  } }), "utf8");
+  await writeFile(join(home, "Library", "Application Support", "Claude", "claude_desktop_config.json"), JSON.stringify({ mcpServers: {
+    imported: { command: process.execPath, args: [mcpFixture] },
+  } }), "utf8");
   await writeFile(join(home, "sessions", "operator-flow.json"), JSON.stringify({
     id: "operator-flow", title: "Operator flow fixture", started: "2026-07-13T00:00:00.000Z", updated: "2026-07-13T00:00:00.000Z",
     messages: [{ role: "assistant", content: "Produced docs/output.md and https://example.test/receipt" }],
@@ -27,7 +59,7 @@ try {
     ...(executablePath ? { executablePath } : {}),
     args: executablePath ? ["--project", project] : ["desktop-app/electron/main.mjs", "--project", project],
     cwd: process.cwd(),
-    env: { ...process.env, VANTA_HOME: home, VANTA_DESKTOP_USER_DATA: userData, VANTA_DESKTOP_PORT: port, VANTA_DESKTOP_AUTOMATION: "1", VANTA_PROVIDER: "openai", VANTA_MODEL: "gpt-4o-mini", OPENAI_API_KEY: "vanta-desktop-smoke-key", ELECTRON_DISABLE_SECURITY_WARNINGS: "1" },
+    env: { ...process.env, HOME: home, VANTA_HOME: home, VANTA_PROJECT_ROOT: project, VANTA_DESKTOP_USER_DATA: userData, VANTA_DESKTOP_PORT: port, VANTA_DESKTOP_AUTOMATION: "1", VANTA_PROVIDER: "openai", VANTA_MODEL: "gpt-4o-mini", OPENAI_API_KEY: "vanta-desktop-smoke-key", ELECTRON_DISABLE_SECURITY_WARNINGS: "1" },
   });
   const page = await app.firstWindow();
   page.on("pageerror", (error) => rendererErrors.push(`page error: ${error.message}`));
@@ -35,7 +67,8 @@ try {
     const text = message.text();
     // Network response handling below preserves the affected URL. Chromium's generic
     // 500 console line has no URL, so recording it would duplicate an actionable check.
-    if (message.type() === "error" && !text.includes("Failed to load resource: the server responded with a status of 500")) rendererErrors.push(`console error: ${text}`);
+    const expectedConflict = expectedMcpConflict && text.includes("Failed to load resource: the server responded with a status of 409");
+    if (message.type() === "error" && !expectedConflict && !text.includes("Failed to load resource: the server responded with a status of 500")) rendererErrors.push(`console error: ${text}`);
   });
   page.on("response", (response) => {
     const path = new URL(response.url()).pathname;
@@ -106,6 +139,36 @@ try {
   await page.getByRole("tab", { name: "Capabilities" }).click();
   await page.getByText("Operator smoke skill").waitFor();
 
+  await page.getByRole("tab", { name: "MCP", exact: true }).click();
+  const mcp = page.locator(".mcp-control-center");
+  await mcp.getByText("MCP connectors").waitFor();
+  const mcpApi = await page.evaluate(() => fetch("/api/connect/mcp").then(async (response) => ({ status: response.status, body: await response.json() })));
+  if (mcpApi.status !== 200 || !mcpApi.body.connectors?.some((item) => item.name === "oauth")) {
+    const statusApi = await page.evaluate(() => fetch("/api/status").then(async (response) => ({ status: response.status, body: await response.json() })));
+    throw new Error(`MCP fixture missing in Electron at ${page.url()}: ${JSON.stringify({ mcpApi, statusApi })}`);
+  }
+  await page.locator(".mcp-server-list").getByRole("button", { name: /oauth/ }).click();
+  await mcp.getByRole("button", { name: "Authorize" }).waitFor();
+  await page.locator(".mcp-server-list").getByRole("button", { name: /notes/ }).click();
+  await mcp.getByRole("button", { name: "Trust", exact: true }).click();
+  await mcp.getByRole("button", { name: "Test", exact: true }).click();
+  await mcp.getByText("search_notes", { exact: true }).waitFor();
+  await mcp.getByRole("button", { name: /fixture:\/\/status/ }).click();
+  await mcp.getByText(/fixture ready/).waitFor();
+  await page.locator(".mcp-server-list").getByRole("button", { name: /broken/ }).click();
+  await mcp.getByRole("button", { name: "Trust", exact: true }).click();
+  expectedMcpConflict = true;
+  await mcp.getByRole("button", { name: "Reconnect", exact: true }).click();
+  await mcp.locator(".mcp-error").waitFor();
+  await mcp.getByRole("button", { name: "Disable", exact: true }).click();
+  await mcp.getByText("Disabled", { exact: true }).first().waitFor();
+  await mcp.getByRole("button", { name: "Import Claude Desktop" }).click();
+  await page.locator(".mcp-server-list").getByRole("button", { name: /imported/ }).waitFor();
+  const fetchCatalog = mcp.locator(".mcp-catalog article").filter({ hasText: "fetch" }).first();
+  await fetchCatalog.getByRole("button", { name: "Install" }).click();
+  await page.locator(".mcp-server-list").getByRole("button", { name: /fetch/ }).waitFor();
+  await mcp.getByText("Recent receipts").waitFor();
+
   await page.getByRole("tab", { name: "Messaging" }).click();
   await page.getByRole("button", { name: /Telegram/ }).click();
   await page.getByLabel("Telegram Token").fill("operator-smoke-token");
@@ -121,6 +184,7 @@ try {
   await page.getByText("https://example.test/receipt").waitFor();
 
   await page.getByRole("button", { name: "Work" }).click();
+  await page.getByTitle("Manage MCP connectors").getByText(/MCP 1 · 1 tools/).waitFor();
   await page.locator(".composer").getByTitle("Change model").click();
   await page.getByRole("heading", { name: "Choose a model" }).waitFor();
   if (process.env.VANTA_DESKTOP_MODEL_PICKER_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_MODEL_PICKER_SCREENSHOT, fullPage: false });
@@ -166,7 +230,7 @@ try {
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
 
   if (process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT, fullPage: false });
-  process.stdout.write(`${JSON.stringify({ work: true, modelPicker: true, connect: true, modelTest: true, capabilities: true, messaging: true, messagingTest: true, outputs: true, visibleContextChips: true, queue: true, stop: true, shortcuts: true, settings: true, providerSetup: true, lightTheme: true, resizablePanes: true, persistentPanes: true })}\n`);
+  process.stdout.write(`${JSON.stringify({ work: true, modelPicker: true, connect: true, modelTest: true, capabilities: true, mcpInstall: true, mcpImport: true, mcpTrust: true, mcpOAuthNeeded: true, mcpToolTest: true, mcpResourceRead: true, mcpReconnectFailure: true, mcpDisabled: true, mcpWorkContext: true, messaging: true, messagingTest: true, outputs: true, visibleContextChips: true, queue: true, stop: true, shortcuts: true, settings: true, providerSetup: true, lightTheme: true, resizablePanes: true, persistentPanes: true })}\n`);
   await new Promise((resolveDone) => setTimeout(resolveDone, 100));
 } finally {
   if (app) {

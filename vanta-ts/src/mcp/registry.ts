@@ -4,6 +4,7 @@ import { z } from "zod";
 import { loadMcpToken } from "./auth-store.js";
 import {
   extractAuthConfig,
+  missingDeclaredMcpEnv,
   readMcpConfigWithSources,
   type McpConfigSource,
   type ServerSpec,
@@ -23,6 +24,8 @@ export type McpConnectorRecord = {
   enabled: boolean;
   trust: McpConnectorTrust;
   auth: McpConnectorAuth;
+  authMode: "oauth" | "environment" | "none";
+  missingEnv: string[];
   health: McpConnectorHealth;
   tools: string[];
   resources: string[];
@@ -44,7 +47,7 @@ const RegistryStateSchema = z.object({
 type Probe = z.infer<typeof ProbeSchema>;
 type RegistryState = z.infer<typeof RegistryStateSchema>;
 
-export type McpReceiptAction = "install" | "import" | "test" | "reconnect" | "enable" | "disable" | "trust";
+export type McpReceiptAction = "install" | "import" | "test" | "reconnect" | "enable" | "disable" | "trust" | "auth" | "resource" | "remove";
 export type McpConnectorReceipt = {
   version: 1;
   at: string;
@@ -71,9 +74,11 @@ async function readState(root: string): Promise<RegistryState> {
   }
 }
 
-function connectorAuth(spec: ServerSpec, token: Awaited<ReturnType<typeof loadMcpToken>>): McpConnectorAuth {
-  if (!extractAuthConfig(spec)) return "not_required";
-  return token?.access_token ? "ready" : "needs_auth";
+function connectorAuth(spec: ServerSpec, token: Awaited<ReturnType<typeof loadMcpToken>>, env: NodeJS.ProcessEnv) {
+  const missingEnv = missingDeclaredMcpEnv(env, spec.env);
+  if (missingEnv.length) return { auth: "needs_auth" as const, authMode: "environment" as const, missingEnv };
+  if (!extractAuthConfig(spec)) return { auth: "not_required" as const, authMode: "none" as const, missingEnv };
+  return { auth: token?.access_token ? "ready" as const : "needs_auth" as const, authMode: "oauth" as const, missingEnv };
 }
 
 function connectorHealth(input: {
@@ -103,7 +108,7 @@ export async function readMcpRegistry(
     const enabled = serverAccessDecision(name, settings.mcp ?? {}) === "allow";
     const trustValue = trustState.mcp?.[name];
     const trust: McpConnectorTrust = trustValue === true ? "trusted" : trustValue === false ? "denied" : "pending";
-    const auth = connectorAuth(spec, await loadMcpToken(name, env));
+    const authState = connectorAuth(spec, await loadMcpToken(name, env), env);
     const probe = state.servers[name];
     return {
       name,
@@ -111,8 +116,8 @@ export async function readMcpRegistry(
       transport: spec.url ? "http" : "stdio",
       enabled,
       trust,
-      auth,
-      health: connectorHealth({ enabled, trust, auth, probe }),
+      ...authState,
+      health: connectorHealth({ enabled, trust, auth: authState.auth, probe }),
       tools: probe?.tools ?? [],
       resources: probe?.resources ?? [],
       lastCheckedAt: probe?.lastCheckedAt,

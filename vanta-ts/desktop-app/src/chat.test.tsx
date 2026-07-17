@@ -131,6 +131,7 @@ describe("Composer context legibility", () => {
         onRemoveAttachment={vi.fn()}
         onStop={vi.fn()}
         onAttach={vi.fn()}
+        onMcp={vi.fn()}
         onModel={vi.fn()}
         onAccessMode={vi.fn(async () => undefined)}
         onCommand={vi.fn()}
@@ -139,6 +140,7 @@ describe("Composer context legibility", () => {
 
     expect(html).toContain("Session model");
     expect(html).toContain("Tools 42");
+    expect(html).toContain("MCP 0 · 0 tools");
     expect(html).toContain("Memory local");
     expect(html).toContain('class="approval-mode mode-ask"');
     expect(html).toContain('aria-haspopup="dialog"');

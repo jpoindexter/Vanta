@@ -158,6 +158,13 @@ describe("buildMcpChildEnv", () => {
     expect(out.OPENAI_API_KEY).toBeUndefined();
   });
 
+  it("resolves only explicitly declared credential placeholders", () => {
+    const out = buildMcpChildEnv({ ...base, GITHUB_TOKEN: "secret", OTHER_TOKEN: "hidden" }, { TOKEN: "${GITHUB_TOKEN}" });
+    expect(out.TOKEN).toBe("secret");
+    expect(out.GITHUB_TOKEN).toBeUndefined();
+    expect(out.OTHER_TOKEN).toBeUndefined();
+  });
+
   it("lets a server's declared env override a safe parent var", () => {
     const out = buildMcpChildEnv(base, { PATH: "/custom/bin" });
     expect(out.PATH).toBe("/custom/bin");

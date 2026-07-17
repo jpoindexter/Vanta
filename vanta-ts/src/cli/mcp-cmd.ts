@@ -1,5 +1,3 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
 import { kernelBinaryPath } from "../kernel/path.js";
 import { connectServer, reconnectServer, type McpConnection } from "../mcp/connect.js";
 import { readMcpConfig } from "../mcp/mount.js";
@@ -11,7 +9,7 @@ import {
   setMcpConnectorTrust,
   type McpConnectorRecord,
 } from "../mcp/registry.js";
-import { resolveVantaHome } from "../store/home.js";
+import { installCatalogMcp } from "../mcp/config-store.js";
 
 export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<void> {
   const sub = rest[0] ?? "list";
@@ -166,24 +164,10 @@ async function runMcpImportDesktop(repoRoot: string): Promise<void> {
 async function runMcpInstall(repoRoot: string, rest: string[]): Promise<void> {
   const name = rest[0];
   if (!name) { console.error("usage: vanta mcp install <name> [--with-tool <tool>]…"); return; }
-  const { catalogEntry, buildInstallSpec, installIntoConfig } = await import("../mcp/catalog.js");
-  const entry = catalogEntry(name);
-  if (!entry) { console.error(`unknown MCP connector "${name}"`); return; }
   const withTools: string[] = [];
   for (let i = 1; i < rest.length; i += 1) if (rest[i] === "--with-tool" && rest[i + 1]) withTools.push(rest[++i]!);
-  const built = buildInstallSpec(entry, withTools);
-  if (!built.ok) { console.error(built.error); return; }
-  const path = join(resolveVantaHome(process.env), "mcp.json");
-  const merged = installIntoConfig(await readMcpJson(path), name, built.spec);
-  await mkdir(dirname(path), { recursive: true });
-  await writeFile(path, `${JSON.stringify({ servers: merged.servers }, null, 2)}\n`, "utf8");
-  await appendMcpReceipt(repoRoot, { action: "install", server: name, outcome: "passed", detail: `${built.toolCount} read-mostly tools` });
-  console.log(`installed "${name}" → ${path} (${built.toolCount} tool(s), read-mostly)`);
-}
-
-async function readMcpJson(path: string): Promise<{ servers: Record<string, import("../mcp/mount-config.js").ServerSpec> }> {
-  try {
-    const raw = JSON.parse(await readFile(path, "utf8")) as { servers?: Record<string, never>; mcpServers?: Record<string, never> };
-    return { servers: { ...(raw.mcpServers ?? {}), ...(raw.servers ?? {}) } };
-  } catch { return { servers: {} }; }
+  const result = await installCatalogMcp(name, withTools, process.env);
+  await appendMcpReceipt(repoRoot, { action: "install", server: name, outcome: result.ok ? "passed" : "failed", detail: result.ok ? result.detail : result.error });
+  if (!result.ok) { console.error(result.error); return; }
+  console.log(`installed "${name}" → ${result.path} (${result.detail})`);
 }

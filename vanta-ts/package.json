@@ -19,7 +19,7 @@
     "desktop:native": "npm run desktop:build && electron desktop-app/electron/main.mjs",
     "desktop:native:smoke": "npm run desktop:build && electron desktop-app/electron/main.mjs --smoke",
     "desktop:devtools:smoke": "npm run desktop:build && node scripts/desktop-devtools-detached-smoke.mjs",
-    "desktop:host:test": "node --test desktop-app/electron/project-root.node-test.mjs && vitest run desktop-app/electron/tray.test.mjs",
+    "desktop:host:test": "node --test desktop-app/electron/project-root.node-test.mjs desktop-app/electron/runtime-paths.node-test.mjs && vitest run desktop-app/electron/tray.test.mjs",
     "desktop:kernel": "bash scripts/prepare-desktop-kernel.sh",
     "desktop:pack": "npm run desktop:build && npm run desktop:kernel && node scripts/package-desktop.mjs",
     "desktop:dist": "npm run desktop:build && npm run desktop:kernel && node scripts/package-desktop.mjs --dist",

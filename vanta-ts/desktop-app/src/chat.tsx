@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
-import { Activity, Archive, ArchiveRestore, ArrowUp, Check, CheckCircle2, ChevronRight, Copy, FileText, FolderKanban, Keyboard, Laptop, ListPlus, Maximize2, MessageSquare, MoreHorizontal, Network, PackageOpen, Paperclip, Pencil, Plus, RotateCcw, Search, Settings2, ShieldCheck, Square, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
+import { Activity, Archive, ArchiveRestore, ArrowUp, Check, CheckCircle2, ChevronRight, Copy, FileText, FolderKanban, Keyboard, Laptop, ListPlus, Maximize2, MessageSquare, MoreHorizontal, Network, PackageOpen, Paperclip, Pencil, Plug, Plus, RotateCcw, Search, Settings2, ShieldCheck, Square, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
 import type { Approval, ApprovalDecision, DesktopRunReceipt, DesktopView, Message, PermissionSection, Session } from "./types.js";
 import { MessageMarkdown } from "./message-markdown.js";
 import { AccessModePicker } from "./access-mode-picker.js";
 import type { AccessMode } from "./types.js";
+import type { DesktopMcpSummary } from "./mcp-types.js";
 import { moveSessionMenuFocus, SessionNoticeToast, useSessionMenuDismiss, useSessionSafeOps, type SessionDeleteAction } from "./session-safe-ops.js";
 
 type SessionSidebarProps = {
@@ -500,7 +501,7 @@ function humanizeTool(name: string): string {
   return name.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
 }
 
-export function Composer(props: { value: string; busy: boolean; model?: string; root?: string; tools?: number; accessMode: AccessMode; attachments: string[]; onChange: (value: string) => void; onSubmit: (text: string) => void; onQueue: (text: string) => void; onRemoveAttachment: (file: string) => void; onStop: () => void; onAttach: () => void; onModel: () => void; onAccessMode: (mode: AccessMode) => Promise<void>; onCommand: () => void }) {
+export function Composer(props: { value: string; busy: boolean; model?: string; root?: string; tools?: number; mcp?: DesktopMcpSummary; accessMode: AccessMode; attachments: string[]; onChange: (value: string) => void; onSubmit: (text: string) => void; onQueue: (text: string) => void; onRemoveAttachment: (file: string) => void; onStop: () => void; onAttach: () => void; onMcp: () => void; onModel: () => void; onAccessMode: (mode: AccessMode) => Promise<void>; onCommand: () => void }) {
   function send(event: FormEvent) {
     event.preventDefault();
     const value = props.value.trim();
@@ -511,7 +512,7 @@ export function Composer(props: { value: string; busy: boolean; model?: string; 
   }
   return (
     <form className="composer" onSubmit={send}>
-      <div className="task-context" aria-label="Task execution context: Session model, project, host, tools, and local memory"><span><FolderKanban size={12} /><strong>{props.root?.split("/").filter(Boolean).at(-1) ?? "Project"}</strong></span><span><Laptop size={12} /><strong>Local Mac</strong></span><span><Network size={12} /><strong>Tools {props.tools ?? 0}</strong></span><span><PackageOpen size={12} /><strong>Memory local</strong></span></div>
+      <div className="task-context" aria-label="Task execution context: Session model, project, host, tools, MCP, and local memory"><span><FolderKanban size={12} /><strong>{props.root?.split("/").filter(Boolean).at(-1) ?? "Project"}</strong></span><span><Laptop size={12} /><strong>Local Mac</strong></span><span><Network size={12} /><strong>Tools {props.tools ?? 0}</strong></span><button type="button" title="Manage MCP connectors" onClick={props.onMcp}><Plug size={12} /><strong>MCP {props.mcp?.servers ?? 0} · {props.mcp?.tools ?? 0} tools</strong></button><span><PackageOpen size={12} /><strong>Memory local</strong></span></div>
       <label className="sr-only" htmlFor="vanta-composer">Message Vanta</label>
       <textarea id="vanta-composer" value={props.value} onChange={(e) => props.onChange(e.target.value)} onKeyDown={(event) => keyDown(event, props)} placeholder={props.busy ? "Queue the next instruction..." : "Ask Vanta to do something..."} />
       {props.attachments.length ? <div className="context-chips" aria-label="Attached project context">{props.attachments.map((file) => <span key={file}><span title={file}>{file}</span><button type="button" aria-label={`Remove ${file}`} title={`Remove ${file}`} onClick={() => props.onRemoveAttachment(file)}><X size={13} /></button></span>)}</div> : null}

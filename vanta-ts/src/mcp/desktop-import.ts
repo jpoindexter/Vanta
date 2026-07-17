@@ -16,6 +16,7 @@ const ServerEntrySchema = z.record(z.unknown());
 /** The slice of Claude Desktop config we care about: its `mcpServers` map. */
 const DesktopConfigSchema = z.object({
   mcpServers: z.record(ServerEntrySchema).optional(),
+  servers: z.record(ServerEntrySchema).optional(),
 });
 
 export type DesktopMcpServers = Record<string, Record<string, unknown>>;
@@ -39,7 +40,7 @@ export function parseDesktopConfig(text: string): ParseResult {
   if (!parsed.success) {
     return { ok: false, error: `unexpected config shape: ${parsed.error.issues[0]?.message ?? "invalid"}` };
   }
-  return { ok: true, mcpServers: parsed.data.mcpServers ?? {} };
+  return { ok: true, mcpServers: { ...(parsed.data.mcpServers ?? {}), ...(parsed.data.servers ?? {}) } };
 }
 
 export type MergeResult = {

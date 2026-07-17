@@ -63,3 +63,15 @@ export async function saveMcpToken(server: string, token: McpToken, env: NodeJS.
     mode: 0o600,
   });
 }
+
+/** Remove one connector token when its stored configuration is deleted. */
+export async function deleteMcpToken(server: string, env: NodeJS.ProcessEnv): Promise<void> {
+  const store = await loadAllMcpTokens(env);
+  if (!store[server]) return;
+  delete store[server];
+  await ensureVantaStore(env);
+  await writeFile(storePath(env), JSON.stringify(store, null, 2), {
+    encoding: "utf8",
+    mode: 0o600,
+  });
+}

@@ -25,6 +25,12 @@ describe("parseDesktopConfig", () => {
     if (r.ok) expect(r.mcpServers).toEqual({});
   });
 
+  it("reads Vanta's servers key so imports preserve catalog installs", () => {
+    const r = parseDesktopConfig(JSON.stringify({ servers: { fetch: { command: "npx" } } }));
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.mcpServers.fetch).toEqual({ command: "npx" });
+  });
+
   it("preserves arbitrary server fields verbatim (env, url, etc.)", () => {
     const entry = { command: "node", args: ["s.mjs"], env: { KEY: "v" }, url: "https://x" };
     const r = parseDesktopConfig(JSON.stringify({ mcpServers: { s: entry } }));
@@ -142,6 +148,17 @@ describe("importDesktopMcp (IO wrapper, injected fs)", () => {
     const written = JSON.parse(files[targetPath]!);
     expect(written.mcpServers.keep).toEqual({ command: "VANTA-ORIGINAL" });
     expect(written.mcpServers.add).toEqual({ command: "new" });
+  });
+
+  it("preserves existing servers-key entries while importing", async () => {
+    const desktop = JSON.stringify({ mcpServers: { notes: { command: "notes" } } });
+    const existing = JSON.stringify({ servers: { fetch: { command: "fetch" } } });
+    const { fs, files } = fakeFs({ [desktopPath]: desktop, [targetPath]: existing });
+    const r = await importDesktopMcp({ env, platform: "darwin", home, fs });
+    expect(r.ok).toBe(true);
+    const written = JSON.parse(files[targetPath]!);
+    expect(written.mcpServers.fetch).toEqual({ command: "fetch" });
+    expect(written.mcpServers.notes).toEqual({ command: "notes" });
   });
 
   it("does not write the target file when nothing is imported", async () => {
