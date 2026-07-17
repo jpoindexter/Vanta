@@ -8,3 +8,4 @@ export * from "./controlled-commit.js";
 export * from "./counterexample.js";
 export * from "./hypothesis.js";
 export * from "./model-planner.js";
+export * from "./workspace.js";

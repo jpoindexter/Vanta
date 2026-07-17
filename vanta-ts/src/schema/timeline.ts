@@ -47,14 +47,14 @@ const MarkerRecordSchema = TimelineMetadataSchema.extend({
   reason: z.string().min(1),
 });
 
-const TimelineRecordSchema = z.discriminatedUnion("kind", [TransitionRecordSchema, MarkerRecordSchema]);
+export const TaskTimelineRecordSchema = z.discriminatedUnion("kind", [TransitionRecordSchema, MarkerRecordSchema]);
 const SECRET_KEY = /(^|[_-])(api[_-]?key|authorization|cookie|password|secret|token)($|[_-])/i;
 const REDACTED = "[REDACTED]";
 
 export type TaskTimelineMetadata = z.infer<typeof TimelineMetadataSchema>;
 export type TaskTransitionRecord = z.infer<typeof TransitionRecordSchema>;
 export type TaskMarkerRecord = z.infer<typeof MarkerRecordSchema>;
-export type TaskTimelineRecord = z.infer<typeof TimelineRecordSchema>;
+export type TaskTimelineRecord = z.infer<typeof TaskTimelineRecordSchema>;
 export type TaskTransitionInput = Omit<TaskTransitionRecord, "kind" | "version" | "runId" | "sequence">;
 export type TaskMarkerInput = Omit<TaskMarkerRecord, "kind" | "version" | "runId" | "sequence">;
 export type TaskAuditWriter = { logEvent(event: string): Promise<void> };
@@ -70,7 +70,7 @@ function redactValue(value: unknown, key?: string): unknown {
 
 function parseEvent(event: string): TaskTimelineRecord | undefined {
   try {
-    const parsed = TimelineRecordSchema.safeParse(JSON.parse(event));
+    const parsed = TaskTimelineRecordSchema.safeParse(JSON.parse(event));
     return parsed.success ? parsed.data : undefined;
   } catch {
     return undefined;
