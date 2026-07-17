@@ -19153,7 +19153,7 @@
       "id": "LOCAL-MODEL-DOWNLOAD-QUEUE",
       "track": "Infrastructure",
       "title": "Local model download queue - storage, progress, checksum, pause, retry, and cleanup",
-      "status": "horizon",
+      "status": "building",
       "size": "L",
       "summary": "Make large model acquisition a durable operator workflow rather than a blocking setup step. Downloads own target storage, expected size, progress, pause/resume, retry, integrity verification, partial-file cleanup, and model-to-profile linkage.",
       "done": "The queue supports at least one Hugging Face-compatible source, persists across restart, reports accurate bytes and storage destination, pauses/resumes without corruption, verifies checksum or trusted manifest, handles auth, offline, low-disk, moved storage, and duplicate requests, removes partial artifacts only with confirmation, and hands a verified model to the selected runtime profile with a receipt.",
