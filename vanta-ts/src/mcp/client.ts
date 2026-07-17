@@ -28,6 +28,13 @@ export type McpPromptDef = {
   arguments?: McpPromptArg[];
 };
 
+export type McpResourceDef = {
+  uri: string;
+  name?: string;
+  description?: string;
+  mimeType?: string;
+};
+
 type Pending = { resolve: (v: unknown) => void; reject: (e: Error) => void };
 export type McpClientEvents = {
   onNotification?: (method: string, params: unknown) => void | Promise<void>;
@@ -150,6 +157,17 @@ export class McpClient {
   async callTool(name: string, args: Record<string, unknown>): Promise<string> {
     const res = await this.request("tools/call", { name, arguments: args });
     return textFromContent(res);
+  }
+
+  /** List resources exposed by the server. Unsupported capability → caller may catch. */
+  async listResources(): Promise<McpResourceDef[]> {
+    const res = (await this.request("resources/list")) as { resources?: McpResourceDef[] };
+    return res.resources ?? [];
+  }
+
+  /** Read one resource through the same initialized client. */
+  async readResource(uri: string): Promise<unknown> {
+    return this.request("resources/read", { uri });
   }
 
   /** List the server's declared prompts (the MCP prompts capability). */

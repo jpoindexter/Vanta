@@ -16,6 +16,7 @@ Major capability milestones, newest first. This is a curated highlight reel — 
 - **Desktop release proof** — one command now builds and signs `Vanta.app`, then runs the complete cold-start, approval, recovery, attachment, session Undo, Outputs/Connect, and three-viewport matrix against both source and packaged Electron.
 - **Reliable access mode switching** — stale background refreshes can no longer overwrite a newly saved project mode; the picker updates immediately and rolls back if persistence fails.
 - **Outcome-oriented Connect** — models, capabilities, and messaging adapters now show Ready, Needs setup, or Unavailable with safe local test actions; project file/catalog failures no longer misdirect operators into model setup.
+- **First-class MCP connectors** — CLI, TUI, and Desktop now share one project connector registry for source, trust, OAuth, enablement, health, tools/resources, redacted errors, and lifecycle receipts; kernel Block remains immovable.
 
 ## 2026-07-12 — Hermes delta and documentation release
 - **Executed product acceptance** — real model read/write/readback, corpus recall, delegation, packaged desktop chat and destructive-command blocking, clean-install launchd scheduling, cold-start capability reporting, and bounded cited research now have recorded behavioral evidence. The refreshed public artifact remains the final local acceptance boundary.

@@ -24,6 +24,7 @@ import { resolveVantaHome } from "../store/home.js";
 import { getWakeApi, setWakeApi } from "./wake-api.js";
 import { handleDesktopSetup } from "./setup.js";
 import { ensureDesktopPermissionMode } from "./permission-mode.js";
+import { handleDesktopMcpAction, handleDesktopMcpList } from "./mcp-connectors.js";
 
 type RouteCtx = { req: http.IncomingMessage; res: http.ServerResponse; state: DesktopState; sid: string; sseClients: SseClients; pathname: string };
 
@@ -51,6 +52,7 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
     "/api/approval": () => handleApproval(state, req, res),
     "/api/access-mode": () => handleAccessMode(state, req, res),
     "/api/runtime": () => handleRuntime(state, req, res),
+    "/api/connect/mcp": () => handleDesktopMcpList(state, res),
     "/api/wake": async () => sendJson(res, 200, await getWakeApi()),
   };
   if (handler[p]) { await handler[p](); return true; }
@@ -59,21 +61,25 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
 
 async function routePost(ctx: RouteCtx): Promise<boolean> {
   const { req, res, state, sid, sseClients, pathname: p } = ctx;
-  if (p === "/api/sessions/new") { await handleNewSession(state, res); return true; }
-  if (p === "/api/sessions/open") { await handleOpenSession(state, req, res); return true; }
-  if (p === "/api/sessions/rename") { await handleRenameSession(req, res); return true; }
-  if (p === "/api/sessions/archive") { await handleArchiveSession(req, res); return true; }
-  if (p === "/api/sessions/delete") { await handleDeleteSession(state, req, res); return true; }
-  if (p === "/api/model") { await handleSetModel(state, req, res); return true; }
-  if (p === "/api/messaging") { await handleSaveMessaging(state, req, res); return true; }
-  if (p === "/api/setup") { await handleDesktopSetup(state, req, res); return true; }
-  if (p === "/api/approval") { await handleApproval(state, req, res); return true; }
-  if (p === "/api/access-mode") { await handleAccessMode(state, req, res); return true; }
-  if (p === "/api/connect/test") { await handleConnectTest(state, req, res); return true; }
-  if (p === "/api/runtime") { await handleRuntime(state, req, res); return true; }
-  if (p === "/api/terminal") { await handleTerminal(state, req, res); return true; }
-  if (p === "/api/chat/stop") { await handleStopChat(state, res); return true; }
-  if (p === "/api/chat/queue") { await handleQueueChat(state, req, res); return true; }
+  const handlers: Record<string, () => Promise<void>> = {
+    "/api/sessions/new": () => handleNewSession(state, res),
+    "/api/sessions/open": () => handleOpenSession(state, req, res),
+    "/api/sessions/rename": () => handleRenameSession(req, res),
+    "/api/sessions/archive": () => handleArchiveSession(req, res),
+    "/api/sessions/delete": () => handleDeleteSession(state, req, res),
+    "/api/model": () => handleSetModel(state, req, res),
+    "/api/messaging": () => handleSaveMessaging(state, req, res),
+    "/api/setup": () => handleDesktopSetup(state, req, res),
+    "/api/approval": () => handleApproval(state, req, res),
+    "/api/access-mode": () => handleAccessMode(state, req, res),
+    "/api/connect/test": () => handleConnectTest(state, req, res),
+    "/api/connect/mcp": () => handleDesktopMcpAction(state, req, res),
+    "/api/runtime": () => handleRuntime(state, req, res),
+    "/api/terminal": () => handleTerminal(state, req, res),
+    "/api/chat/stop": () => handleStopChat(state, res),
+    "/api/chat/queue": () => handleQueueChat(state, req, res),
+  };
+  if (handlers[p]) { await handlers[p](); return true; }
   if (p === "/api/wake") {
     const body = await readJson(req) as { enabled?: unknown };
     if (typeof body.enabled !== "boolean") sendJson(res, 400, { error: "enabled must be boolean" });

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createDesktopServer } from "./server.js";
@@ -39,6 +39,26 @@ describe("desktop operator routes", () => {
       expect(await saved.json()).toMatchObject({ id: "telegram", status: "ready", configured: true });
       const afterTest = await fetch(`${base}/api/connect/test`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind: "messaging", id: "telegram" }) });
       expect(await afterTest.json()).toMatchObject({ status: "ready", message: expect.stringContaining("saved locally") });
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
+
+  it("reads and updates the shared project MCP connector registry", async () => {
+    await writeFile(join(root, ".mcp.json"), JSON.stringify({ servers: { notes: { command: "node", args: ["server.mjs"] } } }));
+    const server = createDesktopServer(root);
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("desktop server did not bind");
+    const base = `http://127.0.0.1:${address.port}`;
+    try {
+      expect(await (await fetch(`${base}/api/connect/mcp`)).json()).toEqual([
+        expect.objectContaining({ name: "notes", source: "project", enabled: true, trust: "pending" }),
+      ]);
+      const disabled = await fetch(`${base}/api/connect/mcp`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "notes", action: "disable" }) });
+      expect(await disabled.json()).toMatchObject({ connectors: [expect.objectContaining({ name: "notes", enabled: false, health: "disabled" })] });
+      const trusted = await fetch(`${base}/api/connect/mcp`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "notes", action: "trust" }) });
+      expect(await trusted.json()).toMatchObject({ connectors: [expect.objectContaining({ name: "notes", trust: "trusted" })] });
     } finally {
       await new Promise<void>((resolve) => server.close(() => resolve()));
     }

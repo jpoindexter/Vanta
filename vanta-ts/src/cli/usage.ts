@@ -81,7 +81,7 @@ const USAGE_LINES = [
       "       vanta rooms | room <name> [\"<instruction>\"]   project rooms",
       "       vanta modes [list|install]         operator modes",
       "       vanta auth google [--client <json>] one-time Google OAuth (ingests client_secret.json)",
-      "       vanta mcp [list|serve]             list MCP servers Vanta consumes, or serve Vanta's tools over MCP stdio",
+      "       vanta mcp list|test|reconnect|enable|disable|trust|receipts|catalog|install|import-desktop|serve   manage shared MCP connectors",
       "       vanta roadmap                      build roadmap.html from roadmap.json and open it",
       "       vanta roadmap status [--json] [--open [--actionable]] [--require-drained|--require-complete]  print counts/open work; gates exit nonzero when unmet",
       "       vanta roadmap move <id> <status> [--force]   move an item (shipped|building|blocked|next|horizon|parked)",

@@ -1,11 +1,13 @@
-import type { McpToolDef } from "../mcp/client.js";
+import type { McpResourceDef, McpToolDef } from "../mcp/client.js";
+import type { McpConfigSource } from "../mcp/mount-config.js";
+import type { McpConnectorAuth, McpConnectorTrust } from "../mcp/registry.js";
 
 // Pure view-shaping for the MCP management panel. No IO — takes plain server/tool
 // data and produces display rows + status badges + a tool-detail block. Kept
 // separate from the panel component and the live gather layer so the shaping
 // logic is unit-testable without Ink or spawning MCP servers.
 
-export type McpServerStatus = "connected" | "error";
+export type McpServerStatus = "connected" | "error" | "disabled" | "needs_auth";
 
 /** One configured MCP server's connection result + discovered tools. */
 export type McpServerView = {
@@ -15,6 +17,10 @@ export type McpServerView = {
   /** Failure detail when status is "error". */
   error?: string;
   tools: McpToolDef[];
+  resources?: McpResourceDef[];
+  source?: McpConfigSource;
+  trust?: McpConnectorTrust;
+  auth?: McpConnectorAuth;
 };
 
 export type McpServerRow = {
@@ -28,11 +34,25 @@ export type McpServerRow = {
 export function serverRows(servers: McpServerView[]): McpServerRow[] {
   return servers.map((s) => {
     const ok = s.status === "connected";
-    const detail = ok
-      ? `${s.tools.length} tool${s.tools.length === 1 ? "" : "s"} · ${s.transport}`
-      : clip(s.error ?? "connection failed");
-    return { name: s.name, badge: ok ? "✓" : "✗", badgeOk: ok, detail };
+    return { name: s.name, badge: statusBadge(s.status), badgeOk: ok, detail: serverDetail(s) };
   });
+}
+
+function statusBadge(status: McpServerStatus): string {
+  if (status === "connected") return "✓";
+  if (status === "disabled") return "○";
+  if (status === "needs_auth") return "!";
+  return "✗";
+}
+
+function serverDetail(server: McpServerView): string {
+  if (server.status === "disabled") return "disabled for this project";
+  if (server.status === "needs_auth") return "needs authentication";
+  if (server.status === "error") return clip(server.error ?? "connection failed");
+  const tools = `${server.tools.length} tool${server.tools.length === 1 ? "" : "s"}`;
+  const resources = `${server.resources?.length ?? 0} resource${server.resources?.length === 1 ? "" : "s"}`;
+  const trust = server.trust && server.trust !== "trusted" ? ` · trust ${server.trust}` : "";
+  return `${tools} · ${resources} · ${server.transport}${trust}`;
 }
 
 export type McpToolRow = { name: string; desc: string };
@@ -57,7 +77,7 @@ export function toolDetail(tool: McpToolDef | undefined): McpToolDetail | null {
 
 /** Whether a server row can be reconnected (only errored servers offer it). */
 export function canReconnect(server: McpServerView | undefined): boolean {
-  return server?.status === "error";
+  return server?.status === "error" || server?.status === "needs_auth";
 }
 
 function formatSchema(schema: Record<string, unknown> | undefined): string {

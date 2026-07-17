@@ -39,6 +39,8 @@ Project context opens from the composer paperclip or an empty-draft `@`. The pic
 
 Connect reports models, capabilities, and messaging adapters as **Ready**, **Needs setup**, or **Unavailable**. Ready providers and adapters have safe local test actions; provider tests resolve the configured model without inference, and messaging tests verify required local settings without sending a message. Secrets remain write-only. Startup errors open model setup only for provider failures, while project file/catalog failures stay in scoped local recovery.
 
+MCP connectors use the same project registry in CLI, TUI, and Desktop. The TUI `/mcp` panel displays shared trust/auth/enablement and persisted tool/resource inventory while its reconnect action refreshes the registry and receipt ledger. Desktop exposes the same contract on loopback-only `GET/POST /api/connect/mcp`; the Connect control-center UI builds on that boundary rather than maintaining a second MCP store.
+
 The desktop app backlog lives in the single product roadmap, not in a separate side plan. Desktop cards include `DESKTOP-CODEX-KEELHOUSE-SHELL`, `DESKTOP-MODEL-PICKER-UX`, `DESKTOP-RUN-RECOVERY-TIMELINE`, `DESKTOP-CONTEXT-ATTACHMENTS`, `DESKTOP-SAFE-SESSION-OPS`, `DESKTOP-CONNECT-SETUP-STATUS`, `DESKTOP-CONTEXT-LEGIBILITY`, and `DESKTOP-FLOW-PROOF-SUITE`.
 
 ```bash

@@ -14,6 +14,8 @@ import {
   type ServerSpec,
   type McpTrust,
 } from "./mount-config.js";
+import { loadSettings, type Settings } from "../settings/store.js";
+import { serverAccessDecision } from "../settings/mcp-access.js";
 
 // Mount external MCP servers as Vanta tools. Config parsing + tool mapping are
 // pure helpers in mount-config.ts (re-exported below); this file owns the live
@@ -134,7 +136,12 @@ export async function mountMcpServers(
   const trust = opts.trust;
   const pending = opts.pending ?? authPending;
   const config = await readMcpConfig(env, cwd);
-  const names = Object.keys(config.servers);
+  const settings = await loadSettings(cwd, env).catch(() => ({} as Settings));
+  const configuredNames = Object.keys(config.servers);
+  const names = configuredNames.filter((name) => serverAccessDecision(name, settings.mcp ?? {}) === "allow");
+  for (const name of configuredNames) {
+    if (!names.includes(name)) log(`  · mcp: ${name} disabled for this project`);
+  }
   if (names.length === 0) return { servers: [], toolCount: 0, dispose: () => {} };
 
   const children: Array<{ kill: () => void }> = [];

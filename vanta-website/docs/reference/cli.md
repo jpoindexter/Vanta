@@ -60,5 +60,11 @@ Run from the repo with `./run.sh` (alias `./vanta`), or globally as `vanta` afte
 | `vanta roadmap proof-status\|proof-packet\|proof-accept` | Check, package, or accept parked external-proof gates |
 | `vanta open <file[:line]>` | Open in `$EDITOR` |
 | `vanta mcp serve` | Run Vanta as an MCP server |
+| `vanta mcp list` | Show project connector source, trust, auth, health, tools, and resources |
+| `vanta mcp test <server>` | Test one connector and record its redacted inventory receipt |
+| `vanta mcp reconnect <server>` | Reconnect, rediscover inventory, and record the outcome |
+| `vanta mcp enable\|disable <server>` | Change project-local connector enablement |
+| `vanta mcp trust <server> allow\|deny` | Record the project trust decision; kernel safety remains active |
+| `vanta mcp receipts` | Show recent credential-free connector lifecycle receipts |
 
 > Counts and exact flags evolve; `vanta help` is the live source of truth.

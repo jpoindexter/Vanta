@@ -50,6 +50,11 @@ const ConfigSchema = z
 
 export type McpConfig = { servers: Record<string, z.infer<typeof ServerSchema>> };
 export type ServerSpec = z.infer<typeof ServerSchema>;
+export type McpConfigSource = "environment" | "project" | "user";
+export type McpConfigResolution = {
+  config: McpConfig;
+  sources: Record<string, McpConfigSource>;
+};
 
 function parseOrEmpty(raw: string): McpConfig {
   try {
@@ -65,8 +70,22 @@ function parseOrEmpty(raw: string): McpConfig {
  * Project-level wins on conflict.
  */
 export async function readMcpConfig(env: NodeJS.ProcessEnv, cwd = process.cwd()): Promise<McpConfig> {
+  return (await readMcpConfigWithSources(env, cwd)).config;
+}
+
+/** Resolve the merged config plus the winning scope for each server. */
+export async function readMcpConfigWithSources(
+  env: NodeJS.ProcessEnv,
+  cwd = process.cwd(),
+): Promise<McpConfigResolution> {
   const inline = env.VANTA_MCP_SERVERS?.trim();
-  if (inline) return parseOrEmpty(inline);
+  if (inline) {
+    const config = parseOrEmpty(inline);
+    return {
+      config,
+      sources: Object.fromEntries(Object.keys(config.servers).map((name) => [name, "environment"])),
+    };
+  }
 
   const projectRaw = await readFile(join(cwd, ".mcp.json"), "utf8").catch(() => "");
   const userRaw = await readFile(join(resolveVantaHome(env), "mcp.json"), "utf8").catch(() => "");
@@ -74,7 +93,11 @@ export async function readMcpConfig(env: NodeJS.ProcessEnv, cwd = process.cwd())
   const project = projectRaw ? parseOrEmpty(projectRaw) : { servers: {} };
   const user = userRaw ? parseOrEmpty(userRaw) : { servers: {} };
   // user fills gaps; project wins on conflict
-  return { servers: { ...user.servers, ...project.servers } };
+  const config = { servers: { ...user.servers, ...project.servers } };
+  const sources: Record<string, McpConfigSource> = {};
+  for (const name of Object.keys(user.servers)) sources[name] = "user";
+  for (const name of Object.keys(project.servers)) sources[name] = "project";
+  return { config, sources };
 }
 
 /** Slugify a server+tool pair into an OpenAI-safe tool name (`[a-zA-Z0-9_-]`). */
