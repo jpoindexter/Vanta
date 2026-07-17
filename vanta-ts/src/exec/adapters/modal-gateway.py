@@ -12,6 +12,7 @@ import modal
 REPO_ROOT = Path(__file__).resolve().parents[4]
 APP_NAME = os.environ.get("VANTA_MODAL_GATEWAY_APP", "vanta-gateway")
 SECRET_NAME = os.environ.get("VANTA_MODAL_GATEWAY_SECRET", "vanta-gateway")
+TELEGRAM_SECRET_NAME = os.environ.get("VANTA_MODAL_GATEWAY_TELEGRAM_SECRET", "vanta-gateway-telegram")
 VOLUME_NAME = os.environ.get("VANTA_MODAL_GATEWAY_VOLUME", "vanta-gateway-data")
 SCALEDOWN_SEC = int(os.environ.get("VANTA_MODAL_GATEWAY_SCALEDOWN_SEC", "60"))
 
@@ -20,6 +21,8 @@ if SCALEDOWN_SEC < 60:
 
 app = modal.App(APP_NAME)
 secret = modal.Secret.from_name(SECRET_NAME)
+telegram_secret = modal.Secret.from_name(TELEGRAM_SECRET_NAME)
+gateway_secrets = [secret] if TELEGRAM_SECRET_NAME == SECRET_NAME else [secret, telegram_secret]
 volume = modal.Volume.from_name(VOLUME_NAME, create_if_missing=True)
 
 
@@ -56,7 +59,7 @@ image = modal.Image.from_dockerfile(
 
 @app.function(
     image=image,
-    secrets=[secret],
+    secrets=gateway_secrets,
     volumes={"/data": volume},
     min_containers=0,
     max_containers=1,
