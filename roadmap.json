@@ -18894,7 +18894,7 @@
       "id": "SCHEMA-HARNESS-EVAL-ABLATION",
       "track": "Harness",
       "title": "Schema harness eval and ablation - prove the process beats generic agent runs",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "Run controlled comparisons with the same provider, model, task, tools, and budgets while changing only the harness. Measure success, real actions, tool calls, cost, prediction accuracy, recovery rate, and transfer; use fresh sessions and held-out tasks so Vanta does not mistake memorized public fixtures for general capability.",
       "done": "The existing eval harness runs matched generic-versus-Schema trials over repo repair, browser workflow, and operator task fixtures with at least two fresh runs each; frozen configs and artifacts are replayable; results report variance, failures, and cost; ablations remove timeline backtest, commit gate, probe planning, and model search individually; no release claim is made from training/public fixtures alone.",
@@ -18904,7 +18904,7 @@
       "codex": "gpt-5.6-sol",
       "lens": "agent-loop",
       "updated": "2026-07-17",
-      "notes": "PROMOTED 2026-07-17 after the quality ledger completed the Schema substrate. Run matched, replayable generic-versus-Schema trials and component ablations before making a release or reliability claim.",
+      "notes": "SHIPPED 2026-07-17. `vanta eval schema <config.json>` composes the existing fresh-sandbox verifier into matched generic, full Schema, and four component-ablation trials. Frozen configs hold provider/model/tools/budgets constant across repo-repair, browser-workflow, and operator-task fixtures with at least two unique sessions each. Reports include deterministic failures, budget overruns, real actions, tool calls, cost, prediction coverage, recovery, transfer, means, and variance; immutable hash-linked evidence refuses conflicting rewrites. Public/training fixtures and missing live measurements block reviewability, and the harness never claims a release. Proof: 7 focused tests plus TypeScript typecheck; `docs/research/schema-harness-eval-ablation-2026-07-17.md` records the executed path and remaining live-evidence boundary.",
       "source": "schema-harness-2026-07-15",
       "after": [
         "SCHEMA-HYPOTHESIS-PROBE-PLANNER",

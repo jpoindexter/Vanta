@@ -55,6 +55,16 @@ already sandbox-rooted). Result: **3/3 tasks pass 2/2 reliably — pass@1 100%**
 first. Lesson: a leaked absolute path + an agent that thinks it's in the repo = silent
 mis-rooting.
 
+**Schema matched evaluation SHIPPED (2026-07-17).** `vanta eval schema <config.json>`
+extends the same sandbox and deterministic verifier with matched generic-versus-Schema
+trials. Provider, model, tools, task, and budgets are frozen; only the harness variant
+changes. The report covers repo repair, browser workflow, and operator-task fixtures over
+at least two fresh runs, plus four component ablations, variance, failures, real actions,
+tool calls, cost, prediction coverage, recovery, and transfer. Configs and reports are
+immutable and hash-linked under `.vanta/eval-runs/schema/`. The command never claims a
+release, and public/training fixtures or missing measurements block reviewability. See
+`docs/research/schema-harness-eval-ablation-2026-07-17.md` for the proof boundary.
+
 v0 scope still open: the corpus now SOLVES at 100% → too easy, zero headroom for evolve to
 improve → **needs harder tasks** (open item #3). Regression *detection* works but *foresight*
 (predict-before-edit) does not yet.

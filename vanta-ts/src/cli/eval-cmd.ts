@@ -74,6 +74,11 @@ async function runMemEvalCommand(repoRoot: string, rest: string[]): Promise<void
 
 export async function runEvalCommand(repoRoot: string, rest: string[] = []): Promise<void> {
   if (rest[0] === "mem") return runMemEvalCommand(repoRoot, rest);
+  if (rest[0] === "schema") {
+    const { runSchemaAblationCommand } = await import("./eval-schema-cmd.js");
+    await runSchemaAblationCommand(repoRoot, rest.slice(1));
+    return;
+  }
   if (rest[0] === "compress") {
     const { runEvalCompressCommand } = await import("./eval-compress-cmd.js");
     return runEvalCompressCommand(repoRoot, rest);

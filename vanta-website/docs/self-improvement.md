@@ -64,6 +64,16 @@ The deterministic reward signal behind both loops:
 vanta eval <dir>
 ```
 
+For controlled generic-versus-Schema comparisons, run a frozen matched configuration:
+
+```bash
+vanta eval schema path/to/config.json
+```
+
+The Schema report holds provider, model, tools, task, and budgets constant, runs the full
+harness plus four component ablations, and records immutable evidence. It does not make an
+automatic release claim; held-out live evidence still requires operator review.
+
 A task corpus (`instruction` + seed files + a deterministic `check` like `file_exists` / `file_contains` / `shell_ok`) is run as *k* rollouts in isolated sandboxes and scored **pass@1** (mean pass rate). Checks are deterministic, so the score can't be gamed.
 
 ## The critic (observability)
