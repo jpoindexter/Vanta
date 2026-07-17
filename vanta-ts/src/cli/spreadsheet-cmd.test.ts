@@ -40,4 +40,15 @@ describe("vanta spreadsheet", () => {
     expect(await runSpreadsheetCommand(root, ["model", "dcf.json", "--out", "dcf.xlsx", "--yes"], { log })).toBe(0);
     expect(log.mock.calls.flat().join("\n")).toContain("verified dcf.xlsx");
   });
+
+  it("records host proof only from a verified workbook receipt and explicit evidence", async () => {
+    const { root, log } = await setup();
+    await runSpreadsheetCommand(root, ["apply", "book.xlsx", "--plan", "plan.json", "--yes"], { log });
+    const receipt = /receipt ([^\n]+)/.exec(log.mock.calls.flat().join("\n"))?.[1] ?? "";
+    expect(receipt).not.toBe(""); const evidence = join(root, "sheets.png"); await writeFile(evidence, "google sheets host result");
+    const args = ["host-proof", "--host", "google_sheets", "--receipt", receipt, "--session", "google-sheets-proof", "--evidence", evidence];
+    expect(await runSpreadsheetCommand(root, args, { log })).toBe(1);
+    expect(await runSpreadsheetCommand(root, [...args, "--yes"], { log })).toBe(0);
+    expect(log.mock.calls.flat().join("\n")).toContain("recorded google_sheets host proof");
+  });
 });

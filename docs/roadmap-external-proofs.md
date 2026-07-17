@@ -30,22 +30,22 @@ nonzero while work remains, so automation can use it as a focused wake target.
 
 ## Current environment audit
 
-Audit date: 2026-07-17
+Audit date: 2026-07-18
 
-`vanta roadmap proof-status --json` reports `0/10` external gates ready. A fresh
-handoff packet was exported to
-`.vanta/external-proofs/proof-packet-2026-07-17/`; its `NEXT.md` points to
-`BACKEND-SERVERLESS-LIVE`.
+`vanta roadmap proof-status --json` reports `1/10` external gates ready.
+`BACKEND-SERVERLESS-LIVE` has an accepted real Modal/Telegram
+wake/reply/scaledown receipt. The remaining open roadmap cards are parked real
+service, device, or host proofs rather than unfinished local implementation.
 
 Current machine/account evidence:
 
 | Gate | Observed state | Smallest real unlock |
 | --- | --- | --- |
 | Repository automation | GitHub reports zero Actions secrets and zero deployment environments for `jpoindexter/Vanta` | Add only the provider secrets needed by an explicitly approved external proof, or run the proof from an authenticated operator machine |
-| Modal/Telegram | Modal CLI authenticated; `vanta-gateway` secret and deployed endpoint exist; Telegram Desktop is logged in; the verified official BotFather chat has no prior bot history and remains at Start; stored token is an invalid placeholder | Confirm creation of a BotFather bot or supply a valid existing token, refresh the Modal secret, register the webhook, then run arm and prove |
+| Modal/Telegram | Real Modal deployment, Telegram webhook registration, accepted provider-backed reply, and return-to-zero receipt accepted on 2026-07-17 | Complete; retained as the accepted `BACKEND-SERVERLESS-LIVE` proof |
 | Teams | No Teams app, Azure Bot credentials, public ingress receipt, or accepted channel proof | Configure and install a real Azure Bot/Teams app, then send one allowlisted round trip |
 | Termux | Current host is macOS ARM64; no ADB or attached Android/Termux device | Run the release-kernel proof on physical ARM64 Android/Termux hardware |
-| Spreadsheet | No Excel, Numbers, or equivalent spreadsheet host is installed | Install Excel or select a real Google Sheets host, then execute the add-in/API round trip |
+| Spreadsheet | Google Sheets sidecar, menu-only approval flow, strict host-proof packet, and local smoke are implemented; no real private Google Sheet host round trip is recorded | Unlock the Mac, load `examples/spreadsheet-sidecar/google-sheets/Code.gs` in a private Sheet, run one read and one approval-gated action, then record the host proof |
 | Windows service | No Windows runtime or local virtualization host is installed | Run the native proof in a real logged-in Windows desktop session |
 | Payments | Stripe CLI is installed and has an account profile, but its API key is expired; no Link/MPP adapters are configured | Re-authenticate Stripe test mode and configure a bounded MPP test endpoint |
 | Shopify | No Shopify CLI, development-store token, vault alias, or external receipt | Create/configure a development store and execute one verified mutation |

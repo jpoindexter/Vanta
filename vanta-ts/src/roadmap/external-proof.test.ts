@@ -46,7 +46,7 @@ describe("external proof readiness", () => {
   it("marks all gates ready only when every child receipt criterion is present", () => {
     const report = assessExternalProofReadiness({
       runAnywhere: remote(true),
-      spreadsheetHost: { ok: true, host: "excel", workbookReceipt: ".vanta/spreadsheet/receipts/action.json", approvalGatedAction: true, executedAt: "2026-07-11T00:00:00.000Z", apiSessionId: "excel-session", evidenceSha256: "b".repeat(64) },
+      spreadsheetHost: { version: 1, ok: true, host: "excel", workbookReceipt: ".vanta/spreadsheet/receipts/action.json", approvalGatedAction: true, executedAt: "2026-07-11T00:00:00.000Z", apiSessionId: "excel-session", evidenceSha256: "b".repeat(64), evidenceArtifact: ".vanta/spreadsheet/evidence/b.png" },
       spreadsheetWorkbookReceiptExists: true,
       windowsService: { ok: true, platform: "win32", logCaptured: true },
       payments: [payment(ids.link, "stripe_link", "authorized"), payment(ids.mpp, "mpp", "settled")],
@@ -84,7 +84,28 @@ describe("external proof readiness", () => {
     const packetPath = join(root, ".vanta", "spreadsheet", "host-proof.json");
     await mkdir(dirname(packetPath), { recursive: true });
     await writeFile(join(root, "..", "outside-receipt.json"), "{}\n");
-    await writeFile(packetPath, JSON.stringify({ ok: true, host: "excel", workbookReceipt: "../outside-receipt.json", approvalGatedAction: true, executedAt: "2026-07-11T00:00:00.000Z", apiSessionId: "excel", evidenceSha256: "c".repeat(64) }));
+    await writeFile(packetPath, JSON.stringify({ version: 1, ok: true, host: "excel", workbookReceipt: "../outside-receipt.json", approvalGatedAction: true, executedAt: "2026-07-11T00:00:00.000Z", apiSessionId: "excel", evidenceSha256: "c".repeat(64), evidenceArtifact: ".vanta/spreadsheet/evidence/c.png" }));
+    const report = await readExternalProofReadiness(root);
+    expect(report.gates.find((gate) => gate.roadmapCardId === "HERMES-SPREADSHEET-COPILOT")?.ready).toBe(false);
+  });
+
+  it("refuses spreadsheet host evidence whose bytes do not match the packet hash", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-external-proof-hash-"));
+    const receiptPath = join(root, ".vanta", "spreadsheet", "receipts", "action.json");
+    const evidencePath = join(root, ".vanta", "spreadsheet", "evidence", "proof.png");
+    const packetPath = join(root, ".vanta", "spreadsheet", "host-proof.json");
+    await mkdir(dirname(receiptPath), { recursive: true });
+    await mkdir(dirname(evidencePath), { recursive: true });
+    await writeFile(receiptPath, JSON.stringify({
+      workbook: "proof.xlsx", at: "2026-07-18T00:00:00.000Z", touched: ["Sheet1!A1"], preview: ["ok"],
+      beforeSha256: "a".repeat(64), afterSha256: "b".repeat(64), verified: true,
+    }));
+    await writeFile(evidencePath, "tampered evidence");
+    await writeFile(packetPath, JSON.stringify({
+      version: 1, ok: true, host: "google_sheets", workbookReceipt: ".vanta/spreadsheet/receipts/action.json",
+      approvalGatedAction: true, executedAt: "2026-07-18T00:00:00.000Z", apiSessionId: "google-sheets-test",
+      evidenceSha256: "c".repeat(64), evidenceArtifact: ".vanta/spreadsheet/evidence/proof.png",
+    }));
     const report = await readExternalProofReadiness(root);
     expect(report.gates.find((gate) => gate.roadmapCardId === "HERMES-SPREADSHEET-COPILOT")?.ready).toBe(false);
   });

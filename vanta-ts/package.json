@@ -51,7 +51,8 @@
     "mobile:sync": "npm run desktop:build && cap sync ios",
     "mobile:open": "cap open ios",
     "sdk:build": "npm --prefix packages/sdk run build",
-    "sdk:pack": "npm run sdk:build && mkdir -p .artifacts && npm pack ./packages/sdk --pack-destination .artifacts"
+    "sdk:pack": "npm run sdk:build && mkdir -p .artifacts && npm pack ./packages/sdk --pack-destination .artifacts",
+    "spreadsheet:sheets:smoke": "node scripts/google-sheets-sidecar-smoke.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",

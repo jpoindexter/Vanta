@@ -32,10 +32,10 @@ const KNOWN_ACTIONS: Record<string, string[]> = {
     "Ship RUN-ANYWHERE-TERMUX with a physical ARM64 release-kernel proof.",
   ],
   "HERMES-SPREADSHEET-COPILOT": [
-    "Install a real Excel host (or choose a Google Sheets host) and load `examples/spreadsheet-sidecar/excel-custom-functions.ts`.",
-    "Create a revocable API token, expose Vanta through HTTPS, and set `VANTA_PUBLIC_API_ALLOWED_ORIGINS` to the exact add-in origin.",
-    "Invoke the custom function with bounded workbook context, then execute one approval-gated workbook action through the same kernel session.",
-    "Keep parked until the host round trip and workbook receipt both exist; local XLSX/LibreOffice output is not host proof.",
+    "Open a private Google Sheet and load `examples/spreadsheet-sidecar/google-sheets/Code.gs` through Extensions > Apps Script.",
+    "Create a revocable API token, expose Vanta through HTTPS, and store only the URL/token in Apps Script Properties.",
+    "Invoke VANTA_ASK with bounded workbook context, then approve one exact pending workbook action from the Vanta menu.",
+    "Run `vanta spreadsheet host-proof --host google_sheets --receipt <receipt> --session <id> --evidence <host-file> --yes`, then revoke the token.",
   ],
   "MERCURY-CROSS-PLATFORM-SERVICE": [
     "Use a real logged-in Windows desktop session; GitHub-hosted runners do not provide the required InteractiveToken session.",

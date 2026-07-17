@@ -91,6 +91,31 @@ requests pass against a real Vanta HTTP server fixture. Spreadsheet requests
 therefore enter the normal Vanta session and kernel-gated tool boundary; the
 client does not write workbooks around `spreadsheet_workbook`.
 
-Current boundary: the client, CORS, auth, and kernel path are implemented, but
-the custom function has not run inside a real Excel host. Google Sheets host
-integration is also not claimed.
+The equivalent Google Sheets Apps Script template lives under
+`examples/spreadsheet-sidecar/google-sheets`. It stores the revocable URL/token
+in Script Properties, keeps one API session per spreadsheet, and exposes the
+current approval so a host-initiated workbook action can be reviewed before it
+continues. Approval and denial are menu commands, never cell functions: Sheets
+may recalculate a formula without a deliberate operator click.
+
+After the real host request and one approved workbook action, bind the screenshot
+or exported host result to the verified workbook receipt:
+
+```bash
+vanta spreadsheet host-proof \
+  --host google_sheets \
+  --receipt .vanta/spreadsheet/receipts/<receipt>.json \
+  --session google-sheets-<sheet-id> \
+  --evidence /path/to/google-sheets-result.png \
+  --yes
+vanta roadmap proof-status
+```
+
+The command validates the receipt, copies and hashes the external evidence, and
+writes `.vanta/spreadsheet/host-proof.json` atomically. It does not manufacture
+host evidence and cannot make this gate pass without the real Google Sheet run.
+
+Current boundary: the clients, CORS, auth, and kernel path are implemented, but
+neither template is considered shipped until one runs inside a real Excel or
+Google Sheets host and produces the external host packet plus its referenced
+workbook-action receipt.

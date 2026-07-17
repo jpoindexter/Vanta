@@ -1,10 +1,12 @@
-import { access, mkdir, readFile, writeFile } from "node:fs/promises";
-import { isAbsolute, join, normalize, relative, resolve } from "node:path";
+import { createHash } from "node:crypto";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { isAbsolute, join, normalize, relative, resolve, sep } from "node:path";
 import { loadPaymentReceipts, type PaymentReceipt } from "../payments/ledger.js";
 import { readRunAnywhereReadiness, type RunAnywhereReadiness } from "../run-anywhere/readiness.js";
 import { loadShopifyReceipts, type ShopifyReceipt } from "../shopify/receipts.js";
 import { loadTelephonyReceipts, type TelephonyReceipt } from "../telephony/receipts.js";
 import { knownUnblockActions } from "./unblock.js";
+import { SpreadsheetHostProofSchema, WorkbookReceiptSchema, type SpreadsheetHostProof } from "../spreadsheet/host-proof.js";
 
 export type ExternalProofGate = {
   roadmapCardId: string;
@@ -73,15 +75,8 @@ function runAnywhereGates(readiness: RunAnywhereReadiness): ExternalProofGate[] 
   }));
 }
 
-function validSpreadsheetHost(value: unknown): value is { ok: true; host: string; workbookReceipt: string; approvalGatedAction: true; executedAt: string; apiSessionId: string; evidenceSha256: string } {
-  if (!value || typeof value !== "object") return false;
-  const item = value as Record<string, unknown>;
-  return [
-    item.ok === true, ["excel", "google_sheets"].includes(String(item.host)), item.approvalGatedAction === true,
-    typeof item.workbookReceipt === "string", Boolean(item.workbookReceipt), typeof item.apiSessionId === "string",
-    Boolean(item.apiSessionId), typeof item.evidenceSha256 === "string", /^[a-f0-9]{64}$/.test(String(item.evidenceSha256)),
-    Number.isFinite(Date.parse(String(item.executedAt))),
-  ].every(Boolean);
+function validSpreadsheetHost(value: unknown): value is SpreadsheetHostProof {
+  return SpreadsheetHostProofSchema.safeParse(value).success;
 }
 
 function accepted(value: unknown, cardId: string, eventIds: string[]): boolean {
@@ -262,9 +257,20 @@ async function loaded<T>(load: () => Promise<T[]>): Promise<{ data: T[]; error?:
 async function spreadsheetEvidence(repoRoot: string): Promise<{ packet?: unknown; receiptExists: boolean }> {
   const packet = await json(join(repoRoot, ".vanta", "spreadsheet", "host-proof.json"));
   if (!validSpreadsheetHost(packet)) return { packet, receiptExists: false };
-  const relative = normalize(packet.workbookReceipt);
-  if (isAbsolute(relative) || relative.startsWith("..")) return { packet, receiptExists: false };
-  try { await access(join(repoRoot, relative)); return { packet, receiptExists: true }; } catch { return { packet, receiptExists: false }; }
+  const receipt = normalize(packet.workbookReceipt);
+  const evidence = normalize(packet.evidenceArtifact);
+  const receiptPrefix = join(".vanta", "spreadsheet", "receipts") + sep;
+  const evidencePrefix = join(".vanta", "spreadsheet", "evidence") + sep;
+  if ([receipt, evidence].some((path) => isAbsolute(path) || path.startsWith(".."))) return { packet, receiptExists: false };
+  if (!receipt.startsWith(receiptPrefix) || !evidence.startsWith(evidencePrefix)) return { packet, receiptExists: false };
+  try {
+    WorkbookReceiptSchema.parse(JSON.parse(await readFile(join(repoRoot, receipt), "utf8")));
+    const bytes = await readFile(join(repoRoot, evidence));
+    const digest = createHash("sha256").update(bytes).digest("hex");
+    return { packet, receiptExists: digest === packet.evidenceSha256 };
+  } catch {
+    return { packet, receiptExists: false };
+  }
 }
 
 export async function readExternalProofReadiness(repoRoot: string): Promise<ExternalProofReadiness> {

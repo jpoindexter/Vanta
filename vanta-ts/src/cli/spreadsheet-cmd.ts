@@ -4,10 +4,11 @@ import { resolveInScope } from "../scope.js";
 import { applyWorkbookPlan, explainWorkbookFormula, inspectWorkbook, previewWorkbookPlan, WorkbookPlanSchema } from "../spreadsheet/workbook.js";
 import { generateFinanceModel } from "../spreadsheet/finance.js";
 import { FinanceBriefSchema } from "../spreadsheet/finance-schema.js";
+import { formatSpreadsheetHostProof, recordSpreadsheetHostProof } from "../spreadsheet/host-proof.js";
 
 type Deps = { log?: (line: string) => void };
 type CommandContext = { root: string; action: "inspect" | "explain" | "preview" | "apply"; path: string; args: string[]; log: (line: string) => void };
-const USAGE = "usage: vanta spreadsheet inspect <book.xlsx> [--sheet Name --range A1:B10] | explain <book.xlsx> --sheet Name --cell B2 | preview|apply <book.xlsx> --plan plan.json [--yes] | model <brief.json> --out model.xlsx [--yes]";
+const USAGE = "usage: vanta spreadsheet inspect <book.xlsx> [--sheet Name --range A1:B10] | explain <book.xlsx> --sheet Name --cell B2 | preview|apply <book.xlsx> --plan plan.json [--yes] | model <brief.json> --out model.xlsx [--yes] | host-proof --host excel|google_sheets --receipt <path> --session <id> --evidence <file> --yes";
 
 function flag(args: string[], name: string): string | undefined {
   const index = args.indexOf(name);
@@ -34,10 +35,22 @@ export async function runSpreadsheetCommand(root: string, args: string[], deps: 
   const log = deps.log ?? console.log;
   const [action, path] = args;
   if (action === "model") return runModel(root, args, log);
+  if (action === "host-proof") return runHostProof(root, args, log);
   if (!action || !path || !["inspect", "explain", "preview", "apply"].includes(action)) { log(USAGE); return 1; }
   try {
     return await runAction({ root, action: action as CommandContext["action"], path, args, log });
   } catch (error) { log(`spreadsheet error: ${(error as Error).message}`); return 1; }
+}
+
+async function runHostProof(root: string, args: string[], log: (line: string) => void): Promise<number> {
+  try {
+    const host = flag(args, "--host"), workbookReceipt = flag(args, "--receipt"), apiSessionId = flag(args, "--session"), evidencePath = flag(args, "--evidence");
+    if (host !== "excel" && host !== "google_sheets") throw new Error("--host must be excel or google_sheets");
+    if (!workbookReceipt || !apiSessionId || !evidencePath) throw new Error("--receipt, --session, and --evidence are required");
+    if (!args.includes("--yes")) { log("not recorded; inspect the real host evidence and rerun with --yes"); return 1; }
+    const result = await recordSpreadsheetHostProof(root, { host, workbookReceipt, apiSessionId, evidencePath });
+    log(formatSpreadsheetHostProof(result, root)); return 0;
+  } catch (error) { log(`spreadsheet host proof error: ${(error as Error).message}`); return 1; }
 }
 
 async function runModel(root: string, args: string[], log: (line: string) => void): Promise<number> {
