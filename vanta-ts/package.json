@@ -32,6 +32,7 @@
     "desktop:runtime-strip:smoke": "npm run desktop:build && node scripts/desktop-runtime-strip-smoke.mjs",
     "desktop:full-access:smoke": "npm run desktop:build && node scripts/desktop-full-access-warning-smoke.mjs",
     "desktop:sessions:smoke": "npm run desktop:build && node scripts/desktop-session-management-smoke.mjs",
+    "desktop:context:smoke": "npm run desktop:build && node scripts/desktop-context-attachments-smoke.mjs",
     "desktop:operator-flows:smoke": "npm run desktop:build && node scripts/desktop-operator-flows-smoke.mjs",
     "desktop:shell-convergence:smoke": "npm run desktop:build && node scripts/desktop-shell-convergence-smoke.mjs",
     "desktop:live-turn:proof": "npm run desktop:build && node scripts/desktop-live-turn-proof.mjs",

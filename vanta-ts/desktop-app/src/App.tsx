@@ -7,6 +7,7 @@ import { RightRail } from "./rail.js";
 import { CompletionSoundSettings } from "./sound-settings.js";
 import { RuntimeStrip } from "./runtime-strip.js";
 import { FullAccessWarning, fullAccessScope, useFullAccessWarning } from "./full-access-warning.js";
+import { mentionedProjectFiles } from "./file-context.js";
 import { useApproval, useCompletionSound, useConversation, useDesktopData } from "./state.js";
 import type { DesktopTheme, DesktopView, RailTab } from "./types.js";
 
@@ -67,6 +68,7 @@ export function AppShell() {
   const railMinimum = data.tab === "canvas" ? CANVAS_MIN_RAIL_WIDTH : MIN_RAIL_WIDTH;
   const sidebarMaximum = Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, window.innerWidth - MIN_WORK_WIDTH - (inspectorVisible ? railWidth : 0)));
   const railMaximum = Math.max(railMinimum, Math.min(MAX_RAIL_WIDTH, window.innerWidth - MIN_WORK_WIDTH - sidebarWidth));
+  const mentionedFiles = mentionedProjectFiles(data.files, [...convo.messages.map((message) => message.content ?? ""), convo.draft]);
 
   useEffect(() => {
     function constrainPanes() {
@@ -168,6 +170,8 @@ export function AppShell() {
         status={data.status}
         tools={data.tools}
         files={data.files}
+        mentionedFiles={mentionedFiles}
+        selectedFiles={attachments}
         artifacts={data.artifacts}
         events={convo.events}
         canvas={data.canvas}

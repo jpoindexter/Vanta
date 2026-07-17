@@ -6,6 +6,7 @@ import { join, resolve } from "node:path";
 const port = process.env.VANTA_DESKTOP_SMOKE_PORT ?? "7821";
 const executablePath = process.env.VANTA_DESKTOP_APP;
 const userData = await mkdtemp(join(tmpdir(), "vanta-desktop-layout-profile-"));
+const vantaHome = await mkdtemp(join(tmpdir(), "vanta-desktop-layout-home-"));
 const app = await electron.launch({
   ...(executablePath ? { executablePath } : {}),
   args: executablePath ? ["--project", resolve(process.cwd(), "..")] : ["desktop-app/electron/main.mjs"],
@@ -14,6 +15,7 @@ const app = await electron.launch({
     ...process.env,
     VANTA_DESKTOP_PORT: port,
     VANTA_DESKTOP_USER_DATA: userData,
+    VANTA_HOME: vantaHome,
     VANTA_DESKTOP_AUTOMATION: "1",
     OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "vanta-desktop-smoke-key",
     ELECTRON_DISABLE_SECURITY_WARNINGS: "1",
@@ -105,7 +107,7 @@ try {
   console.log(JSON.stringify({ viewport: "1778x1136", emptyTypography, healthy, inspectorClosed, modelDesktop, recovery, files, modelCompact }));
 } finally {
   await app.close();
-  await rm(userData, { recursive: true, force: true });
+  await Promise.all([rm(userData, { recursive: true, force: true }), rm(vantaHome, { recursive: true, force: true })]);
 }
 
 async function measureModelPicker(page) {

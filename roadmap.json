@@ -18261,7 +18261,7 @@
       "id": "DESKTOP-CONTEXT-ATTACHMENTS",
       "track": "Desktop App",
       "title": "Desktop context attachments — files as searchable task context, not raw inventory",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Replace the raw project-files dump with an attachment flow opened from the composer: Recent, Mentioned in this task, Changed by Vanta, and Search project, with selected files shown as removable context chips.",
       "done": "The Files surface no longer defaults to a wall of raw paths. The composer attachment flow filters ignored/private metadata by default, supports search and recent/changed groupings, submits selected files through existing @file context syntax, and keeps long paths contained at 760px and desktop widths.",
@@ -18270,8 +18270,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "tui",
-      "updated": "2026-07-14",
-      "notes": "Consolidated from audit P1 and the user screenshot showing the Files panel as a broken wall of file names. DESKTOP-FILES-PANEL-RESPONSIVE-FIX fixed containment; this card tracks the remaining product behavior.",
+      "updated": "2026-07-17",
+      "notes": "Consolidated from audit P1. SHIPPED 2026-07-17: the composer paperclip and empty-draft @ open a safe project-context picker with Changed by Vanta from git status, Mentioned in this task from the active conversation, Recent from modification time, and project-wide search. The desktop API respects .gitignore and filters credential-like/private paths. Selected files show attached state plus removable composer chips and submit through the shared @path contract. Executed proof: core and renderer typechecks; 38 renderer tests; 34 backend context/server/@file tests; size gate for all new context modules; loopback API filtering; npm run desktop:context:smoke at 760 x 900; and the existing desktop layout smoke. Receipt: docs/research/desktop-context-attachments-2026-07-17.md.",
       "source": "desktop-userflow-audit-2026-07-13",
       "after": [
         "DESKTOP-FILES-PANEL-RESPONSIVE-FIX"

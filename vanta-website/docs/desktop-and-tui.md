@@ -35,6 +35,8 @@ The model picker searches by provider or model, marks the active and saved-defau
 
 Session management is recoverable by default. Archive and Trash actions show pending, success, or error feedback with Undo; deleting from the main rail moves a session to Trash without losing its transcript. Permanent deletion is available only from Trash and requires confirmation. **Select chats** supports Shift-click ranges and bulk archive, restore, Trash, or permanent-delete actions. Session menus close on outside click and support arrow-key traversal plus Escape focus return.
 
+Project context opens from the composer paperclip or an empty-draft `@`. The picker separates files changed in the working tree, files mentioned in the active task, and recently modified files, with project-wide search. Gitignored and credential-like paths are hidden by default. Selected files appear as removable chips and are submitted through the shared `@path` context expansion contract.
+
 The desktop app backlog lives in the single product roadmap, not in a separate side plan. Desktop cards include `DESKTOP-CODEX-KEELHOUSE-SHELL`, `DESKTOP-MODEL-PICKER-UX`, `DESKTOP-RUN-RECOVERY-TIMELINE`, `DESKTOP-CONTEXT-ATTACHMENTS`, `DESKTOP-SAFE-SESSION-OPS`, `DESKTOP-CONNECT-SETUP-STATUS`, `DESKTOP-CONTEXT-LEGIBILITY`, and `DESKTOP-FLOW-PROOF-SUITE`.
 
 ```bash

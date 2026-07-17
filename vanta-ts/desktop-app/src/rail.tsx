@@ -1,14 +1,17 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { Activity, AppWindow, ExternalLink, FileDiff, FileText, Image, Link2, ReceiptText, TerminalSquare, X } from "lucide-react";
+import { Activity, AppWindow, Check, ExternalLink, FileDiff, FileText, Image, Link2, ReceiptText, TerminalSquare, X } from "lucide-react";
 import { api } from "./api.js";
 import { CanvasPanel } from "./canvas.js";
 import type { Artifact, CanvasArtifact, EventRow, RailTab, Status, Tool } from "./types.js";
+import { fallbackProjectFileContext, groupProjectFiles, type ProjectFileContext } from "./file-context.js";
 
 export function RightRail(props: {
   status: Status | null;
   tools: Tool[];
   files: string[];
+  mentionedFiles: string[];
+  selectedFiles: string[];
   artifacts: Artifact[];
   events: EventRow[];
   canvas: CanvasArtifact | null;
@@ -35,7 +38,7 @@ export function RightRail(props: {
       </nav>
       {visibleTab === "activity" ? <ActivityPanel events={props.events} status={props.status} /> : null}
       {visibleTab === "preview" ? (props.tab === "canvas" ? <CanvasPanel artifact={props.canvas} onRefresh={props.onRefresh} /> : <PreviewPanel status={props.status} groups={groups} events={props.events} />) : null}
-      {visibleTab === "files" ? <FilesPanel files={props.files} onInsert={props.onInsertFile} /> : null}
+      {visibleTab === "files" ? <FilesPanel files={props.files} mentioned={props.mentionedFiles} selected={props.selectedFiles} onInsert={props.onInsertFile} /> : null}
       {visibleTab === "diff" ? <DiffPanel /> : null}
       {visibleTab === "receipts" ? <ReceiptsPanel artifacts={props.artifacts} events={props.events} onOpenSession={props.onOpenSession} /> : null}
       {visibleTab === "terminal" ? <TerminalPanel /> : null}
@@ -119,27 +122,37 @@ function ToolGroups(props: { groups: Record<string, Tool[]> }) {
   ));
 }
 
-function FilesPanel(props: { files: string[]; onInsert: (file: string) => void }) {
+export function FilesPanel(props: { files: string[]; mentioned: string[]; selected: string[]; onInsert: (file: string) => void }) {
   const [query, setQuery] = useState("");
-  const files = props.files.filter((file) => file.toLowerCase().includes(query.toLowerCase()));
-  const changed = files.filter((file) => /desktop-app|design-refs|roadmap\.json/i.test(file)).slice(0, 4);
-  const mentioned = files.filter((file) => /App\.tsx|chat\.tsx|rail\.tsx|styles\.css/i.test(file) && !changed.includes(file)).slice(0, 4);
-  const recent = files.filter((file) => !changed.includes(file) && !mentioned.includes(file)).slice(0, 10);
+  const [context, setContext] = useState<ProjectFileContext>(() => fallbackProjectFileContext(props.files));
+  useEffect(() => {
+    let current = true;
+    setContext(fallbackProjectFileContext(props.files));
+    void api<ProjectFileContext>("/api/file-context").then((result) => { if (current) setContext(result); }).catch(() => undefined);
+    return () => { current = false; };
+  }, [props.files]);
+  const groups = groupProjectFiles(context, props.mentioned, query);
+  const searching = query.trim().length > 0;
   return (
     <section className="rail-panel files-panel">
-      <div className="panel-heading"><h2>Project context</h2><span>{files.length} files</span></div>
+      <div className="panel-heading"><h2>Project context</h2><span>{props.selected.length ? `${props.selected.length} attached` : `${context.files.length} files`}</span></div>
       <label className="file-search"><span className="sr-only">Find a project file</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a project file" /></label>
-      <FileGroup label="Changed by Vanta" files={changed} onInsert={props.onInsert} />
-      <FileGroup label="Mentioned in this task" files={mentioned} onInsert={props.onInsert} />
-      <FileGroup label="Recent" files={recent} onInsert={props.onInsert} />
-      {files.length === 0 ? <p className="muted">No matching project files.</p> : null}
+      {searching ? <FileGroup label="Search project" files={groups.search} selected={props.selected} onInsert={props.onInsert} /> : <>
+        <FileGroup label="Changed by Vanta" files={groups.changed} selected={props.selected} onInsert={props.onInsert} />
+        <FileGroup label="Mentioned in this task" files={groups.mentioned} selected={props.selected} onInsert={props.onInsert} />
+        <FileGroup label="Recent" files={groups.recent} selected={props.selected} onInsert={props.onInsert} />
+      </>}
+      {(searching ? groups.search : [...groups.changed, ...groups.mentioned, ...groups.recent]).length === 0 ? <p className="muted">{searching ? "No matching project files." : "No safe project context found."}</p> : null}
     </section>
   );
 }
 
-function FileGroup(props: { label: string; files: string[]; onInsert: (file: string) => void }) {
+function FileGroup(props: { label: string; files: string[]; selected: string[]; onInsert: (file: string) => void }) {
   if (!props.files.length) return null;
-  return <section className="file-group"><h3>{props.label}</h3><div className="file-list">{props.files.map((file) => <button key={file} type="button" title={file} onClick={() => props.onInsert(file)}><FileText size={14} /><span>{file}</span><em>attach</em></button>)}</div></section>;
+  return <section className="file-group"><h3>{props.label}</h3><div className="file-list">{props.files.map((file) => {
+    const attached = props.selected.includes(file);
+    return <button key={file} className={attached ? "attached" : ""} type="button" disabled={attached} title={file} onClick={() => props.onInsert(file)}>{attached ? <Check size={14} /> : <FileText size={14} />}<span>{file}</span><em>{attached ? "attached" : "attach"}</em></button>;
+  })}</div></section>;
 }
 
 export function TerminalPanel() {

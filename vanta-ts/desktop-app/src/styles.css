@@ -283,6 +283,8 @@ summary span { color: var(--faint); }
 .file-list { min-width: 0; min-height: 0; width: 100%; display: grid; grid-auto-rows: 28px; align-content: start; gap: 2px; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }
 .file-list button { min-width: 0; width: 100%; height: 28px; display: block; border: 0; background: transparent; color: var(--muted); text-align: left; line-height: 18px; padding: 5px 4px; border-radius: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .file-list button:hover { background: var(--raised); color: var(--text); }
+.file-list button.attached, .file-list button.attached:hover { background: var(--surface-selected); color: var(--text); cursor: default; }
+.file-list button.attached em { color: var(--accent); }
 .rail-panel pre { min-height: 190px; margin: 0; white-space: pre-wrap; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--muted); padding: 10px; }
 .canvas-panel { min-height: 0; overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 12px; }
 .canvas-panel > :last-child { min-height: 0; overflow: auto; overscroll-behavior: contain; }

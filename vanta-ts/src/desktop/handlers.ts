@@ -26,6 +26,7 @@ import { readCanvasArtifact } from "../canvas/artifact.js";
 import { desktopArtifacts, desktopCapabilities, desktopMessagingPlatforms, saveDesktopMessagingPlatform } from "./operator-data.js";
 import { loadDesktopAccessMode, permissionModeForAccess, saveDesktopAccessMode, type DesktopAccessMode } from "./access-mode.js";
 import { desktopRuntimePayload, runDesktopRuntimeAction, selectDesktopRuntimeHost, type DesktopRuntimeAction } from "./runtime-controller.js";
+import { buildDesktopFileContext, isSafeProjectFile } from "./file-context.js";
 export { approvalDecision, type PendingApproval } from "./approval.js";
 
 export type DesktopEvent = { label: string; ok?: boolean; delta?: string };
@@ -288,8 +289,12 @@ export async function handleArtifacts(state: DesktopState, res: http.ServerRespo
 }
 
 export async function handleFiles(state: DesktopState, res: http.ServerResponse): Promise<void> {
-  const files = await listRepoFiles(state.root, 3);
-  sendJson(res, 200, files.slice(0, 400));
+  const files = await listRepoFiles(state.root, 3, true);
+  sendJson(res, 200, files.filter(isSafeProjectFile).slice(0, 400));
+}
+
+export async function handleFileContext(state: DesktopState, res: http.ServerResponse): Promise<void> {
+  sendJson(res, 200, await buildDesktopFileContext(state.root));
 }
 
 export async function handleCanvas(state: DesktopState, res: http.ServerResponse): Promise<void> {
