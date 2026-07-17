@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Activity, Bell, Command, Cpu, FolderKanban, MessageSquare, MessageSquarePlus, Network, PackageOpen, PanelLeft, PanelRight, Pause, RefreshCw, RotateCcw, Search, Settings2, ShieldCheck, Square } from "lucide-react";
+import { Activity, Bell, Command, Cpu, FolderKanban, ListOrdered, MessageSquare, MessageSquarePlus, Network, PackageOpen, PanelLeft, PanelRight, Pause, RefreshCw, RotateCcw, Search, Settings2, ShieldCheck, Square } from "lucide-react";
 import { ChatThread, Composer, SessionSidebar } from "./chat.js";
 import { CommandPalette, KeyboardShortcuts, ModelPicker, NewTaskDialog, SettingsDialog, SetupWizard, type NewTaskDraft } from "./overlays.js";
 import { ArtifactsView, ConnectView, OperateView } from "./operator-views.js";
@@ -11,6 +11,7 @@ import { mentionedProjectFiles } from "./file-context.js";
 import { connectionRecovery } from "./connection-recovery.js";
 import { useApproval, useCompletionSound, useConversation, useDesktopData } from "./state.js";
 import { useDesktopMcp } from "./mcp-state.js";
+import { QueuedTurnDrawer, useQueuedTurns } from "./queued-turns.js";
 import type { DesktopTheme, DesktopView, RailTab } from "./types.js";
 
 type DesktopData = ReturnType<typeof useDesktopData>;
@@ -42,6 +43,8 @@ export function AppShell() {
   const data = useDesktopData();
   const sound = useCompletionSound();
   const convo = useConversation(data.refresh, { prime: sound.prime, complete: sound.play });
+  const [queueOpen, setQueueOpen] = useState(false);
+  const queued = useQueuedTurns(convo.sessionId || data.status?.sessionId, convo.busy || queueOpen);
   const approval = useApproval();
   const mcp = useDesktopMcp();
   const accessWarning = useFullAccessWarning(data.status?.accessMode ?? "approve", fullAccessScope(data.status?.root));
@@ -159,7 +162,7 @@ export function AppShell() {
       <main className="workbench">
         {view === "work" ? <>
           <div className="work-controls">
-            <WorkToolbar busy={convo.busy} onBackground={() => setView("operate")} onStop={() => { void convo.stop(); }} onReset={() => setNewTaskOpen(true)} />
+            <WorkToolbar busy={convo.busy} queueCount={queued.snapshot.items.length} onQueue={() => setQueueOpen(true)} onBackground={() => setView("operate")} onStop={() => { void convo.stop(); }} onReset={() => setNewTaskOpen(true)} />
             <RuntimeStrip runtime={data.runtime} onSelect={data.setRuntimeHost} onAction={data.runRuntimeAction} />
           </div>
           <div className={`conversation-stage ${data.phase === "error" ? "has-error" : ""}`}>
@@ -168,10 +171,11 @@ export function AppShell() {
           </div>
           <div className="composer-stack">
             <FullAccessWarning visible={accessWarning.visible} onClose={accessWarning.close} onAcknowledge={accessWarning.acknowledge} />
-            <Composer value={convo.draft} busy={convo.busy} model={data.status?.model} root={data.status?.root} tools={data.status?.tools} mcp={mcp.summary} accessMode={data.status?.accessMode ?? "approve"} attachments={attachments} onChange={convo.setDraft} onSubmit={(text) => { void convo.submit(withAttachments(text, attachments)); setAttachments([]); }} onQueue={convo.queue} onRemoveAttachment={(file) => setAttachments((current) => current.filter((entry) => entry !== file))} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onMcp={() => setView("connect")} onModel={data.openModelPicker} onAccessMode={data.setAccessMode} onCommand={data.openPalette} />
+            <Composer value={convo.draft} busy={convo.busy} model={data.status?.model} root={data.status?.root} tools={data.status?.tools} mcp={mcp.summary} accessMode={data.status?.accessMode ?? "approve"} attachments={attachments} onChange={convo.setDraft} onSubmit={(text) => { void convo.submit(withAttachments(text, attachments)); setAttachments([]); }} onQueue={(text) => { void convo.queue(text).then(queued.refresh); }} onRemoveAttachment={(file) => setAttachments((current) => current.filter((entry) => entry !== file))} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onMcp={() => setView("connect")} onModel={data.openModelPicker} onAccessMode={data.setAccessMode} onCommand={data.openPalette} />
           </div>
         </> : <OperatorWorkspace view={view} data={data} mcp={mcp} events={convo.events} onOpenSession={(id) => { setView("work"); void convo.openSession(id); }} />}
       </main>
+      <QueuedTurnDrawer open={queueOpen} items={queued.snapshot.items} error={queued.error} onClose={() => setQueueOpen(false)} onAction={queued.mutate} />
       {inspectorVisible ? <RightRail
         status={data.status}
         tools={data.tools}
@@ -296,8 +300,8 @@ function DesktopHeader(props: { title: string; data: DesktopData; approvalPendin
   );
 }
 
-function WorkToolbar(props: { busy: boolean; onBackground: () => void; onStop: () => void; onReset: () => void }) {
-  return <section className="work-toolbar" data-busy={props.busy ? "true" : "false"} role="toolbar" aria-label="Task controls"><strong className="work-toolbar-title"><i />{props.busy ? "Run active" : "Run controls"}</strong><div><button type="button" onClick={props.onBackground}><Pause size={14} />Background</button><button className="danger" type="button" onClick={props.onStop} disabled={!props.busy}><Square size={13} />Stop</button><button type="button" onClick={props.onReset}><RotateCcw size={14} />New task</button></div></section>;
+function WorkToolbar(props: { busy: boolean; queueCount: number; onQueue: () => void; onBackground: () => void; onStop: () => void; onReset: () => void }) {
+  return <section className="work-toolbar" data-busy={props.busy ? "true" : "false"} role="toolbar" aria-label="Task controls"><strong className="work-toolbar-title"><i />{props.busy ? "Run active" : "Run controls"}</strong><div><button className="queued-turn-trigger" type="button" aria-label={`Open queued turns, ${props.queueCount} queued`} onClick={props.onQueue}><ListOrdered size={14} /><span>{props.queueCount} queued</span></button><button type="button" onClick={props.onBackground}><Pause size={14} />Background</button><button className="danger" type="button" onClick={props.onStop} disabled={!props.busy}><Square size={13} />Stop</button><button type="button" onClick={props.onReset}><RotateCcw size={14} />New task</button></div></section>;
 }
 
 function DesktopStatusbar(props: { data: DesktopData }) {

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { handleChat, handleQueueChat, handleStopChat, type DesktopState } from "./handlers.js";
+import { DesktopTurnQueue, type TurnQueueDeps } from "./turn-queue.js";
 
 function response() {
   let status = 0; let body = "";
@@ -13,6 +14,16 @@ function chatRequest(message: string) {
   const body = JSON.stringify({ message });
   const req = { on: (event: string, listener: (value?: Buffer) => void) => { if (event === "data") listener(Buffer.from(body)); if (event === "end") listener(); return req; } } as any;
   return req;
+}
+
+function queueForTest() {
+  let raw: string | null = null;
+  let id = 0;
+  const deps: TurnQueueDeps = {
+    read: async () => raw, write: async (value) => { raw = value; }, now: () => new Date("2026-07-17T12:00:00.000Z"),
+    id: () => `queued-${++id}`, pid: () => 1, isAlive: () => true,
+  };
+  return new DesktopTurnQueue(deps);
 }
 
 type FakeSend = NonNullable<DesktopState["convo"]>["send"];
@@ -50,17 +61,16 @@ describe("desktop chat concurrency", () => {
     expect(reply.result()).toEqual({ status: 409, body: { error: "no turn is running" } });
   });
 
-  it("keeps one bounded next instruction for the active turn", async () => {
-    const state: DesktopState = { root: "/repo", _chatActive: true };
+  it("persists multiple scoped instructions for the active turn", async () => {
+    const state: DesktopState = { root: "/repo", sessionId: "desktop-test", modelId: "gpt-test", accessMode: "approve", _chatActive: true, _turnQueue: queueForTest() };
     const first = response();
     const req = chatRequest("then summarize");
     await handleQueueChat(state, req, first.res);
-    expect(first.result()).toEqual({ status: 202, body: { queued: true } });
-    expect(state._queuedMessage).toBe("then summarize");
+    expect(first.result()).toMatchObject({ status: 202, body: { queued: true, item: { instruction: "then summarize", target: { sessionId: "desktop-test", model: "gpt-test", accessMode: "approve" } } } });
 
     const second = response();
     await handleQueueChat(state, req, second.res);
-    expect(second.result()).toEqual({ status: 409, body: { error: "one next instruction is already queued" } });
+    expect(second.result()).toMatchObject({ status: 202, body: { snapshot: { items: [{ instruction: "then summarize" }, { instruction: "then summarize" }] } } });
   });
 
   it("returns a classified recovery receipt with checkpoint after a failed run", async () => {
@@ -92,6 +102,22 @@ describe("desktop chat concurrency", () => {
       checkpoint: { instruction: "stop soon", partialText: "Interrupted." },
     });
     expect(state.convo?.messages.at(-1)).toMatchObject({ role: "assistant", desktopRun: { status: "interrupted" } });
+  });
+
+  it("returns a queued turn to the drawer after a non-throwing failure", async () => {
+    const queue = queueForTest();
+    await queue.enqueue({ instruction: "queued follow-up", target: { sessionId: "desktop-test", root: "/repo", controllerId: "local", model: "fake", accessMode: "approve" } });
+    const send = vi.fn()
+      .mockResolvedValueOnce({ finalText: "First done.", iterations: 1, stoppedReason: "done", toolIterations: 0 })
+      .mockResolvedValueOnce({ finalText: "Tool failed.", iterations: 1, stoppedReason: "repeated_failure", toolIterations: 1 });
+    const state = { ...recoveryState(send), _turnQueue: queue };
+    const reply = response();
+
+    await handleChat(state, chatRequest("do work"), reply.res);
+
+    expect(send).toHaveBeenCalledTimes(2);
+    expect((await queue.list("desktop-test")).items).toMatchObject([{ instruction: "queued follow-up", status: "queued" }]);
+    expect(reply.result().body.receipt).toMatchObject({ status: "failed", checkpoint: { instruction: "queued follow-up" } });
   });
 
   it.each([

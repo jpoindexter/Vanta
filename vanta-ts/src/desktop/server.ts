@@ -6,7 +6,7 @@ import {
   handleRenameSession, handleArchiveSession, handleDeleteSession, handlePinSession, handleReorderPinnedSessions,
   handleTools, handleCapabilities, handleMessaging, handleArtifacts, handleSaveMessaging,
   handleFiles, handleFileContext, handleCanvas, handleModels, handleSetModel,
-  handleApproval, handleTerminal, handleChat, handleStopChat, handleQueueChat,
+  handleApproval, handleTerminal, handleChat, handleStopChat, handleQueueChat, handleQueueList,
   handleAccessMode,
   handleRuntime,
   handleConnectTest,
@@ -52,6 +52,7 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
     "/api/approval": () => handleApproval(state, req, res),
     "/api/access-mode": () => handleAccessMode(state, req, res),
     "/api/runtime": () => handleRuntime(state, req, res),
+    "/api/chat/queue": () => handleQueueList(state, res),
     "/api/connect/mcp": () => handleDesktopMcpList(state, res),
     "/api/wake": async () => sendJson(res, 200, await getWakeApi()),
   };

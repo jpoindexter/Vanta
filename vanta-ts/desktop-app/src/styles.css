@@ -168,6 +168,8 @@ h2 { margin: 14px 0 8px; font-size: 11px; letter-spacing: .08em; text-transform:
 .work-toolbar > div:last-child { display: flex; align-items: center; gap: 5px; }
 .work-toolbar button, .task-state { min-height: 30px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--raised); color: var(--muted); padding: 5px 8px; font-size: 11px; white-space: nowrap; }
 .work-toolbar button:hover { border-color: var(--line-strong); color: var(--text); }.work-toolbar button.danger { color: var(--danger); }.work-toolbar button:disabled { opacity: .45; cursor: default; }
+.work-toolbar .queued-turn-trigger { border-color: transparent; background: transparent; }
+.work-toolbar .queued-turn-trigger span { font-variant-numeric: tabular-nums; }
 .task-state i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
 .conversation-stage { min-width: 0; min-height: 0; overflow: hidden; display: grid; grid-template-rows: minmax(0, 1fr); }
 .conversation-stage.has-error { grid-template-rows: auto minmax(0, 1fr); }
@@ -196,6 +198,26 @@ h2 { margin: 14px 0 8px; font-size: 11px; letter-spacing: .08em; text-transform:
 .prompt-markers button:hover span, .prompt-markers button:focus-visible span { width: 18px; background: var(--text); }
 .prompt-markers button[data-current="true"] span { width: 11px; background: var(--muted); }
 .latest-message-button { position: absolute; z-index: 5; left: 50%; bottom: 12px; min-height: 30px; display: inline-flex; align-items: center; gap: 6px; transform: translateX(-50%); border: 1px solid var(--line-strong); border-radius: 15px; background: var(--raised); color: var(--text); padding: 5px 10px; box-shadow: 0 8px 24px color-mix(in srgb, var(--text) 20%, transparent); font-size: 11px; }
+.queue-drawer-backdrop { position: fixed; z-index: 80; inset: 0; display: flex; justify-content: flex-end; background: color-mix(in srgb, var(--bg) 58%, transparent); }
+.queue-drawer { width: min(520px, calc(100vw - 24px)); height: 100%; display: grid; grid-template-rows: auto auto minmax(0, 1fr); border-inline-start: 1px solid var(--line-strong); background: var(--panel); box-shadow: -18px 0 48px color-mix(in srgb, #000 55%, transparent); }
+.queue-drawer > header { min-height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); padding: 14px 16px; }
+.queue-drawer > header span { display: block; color: var(--faint); font-size: 10px; text-transform: uppercase; }
+.queue-drawer > header h2 { display: flex; align-items: center; gap: 8px; margin: 5px 0 0; color: var(--text); font-size: 15px; letter-spacing: 0; text-transform: none; }
+.queue-drawer > header small { color: var(--faint); font: inherit; }
+.queue-error { margin: 0; border-bottom: 1px solid var(--line); color: var(--danger); padding: 10px 16px; font-size: 12px; }
+.queue-empty { align-self: center; display: grid; gap: 6px; color: var(--muted); padding: 32px; text-align: center; }
+.queue-empty strong { color: var(--text); }.queue-empty span { font-size: 12px; }
+.queued-turn-list { min-height: 0; overflow: auto; margin: 0; padding: 0; list-style: none; }
+.queued-turn-list li { min-height: 96px; display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: start; gap: 10px; border-bottom: 1px solid var(--line); padding: 14px 12px; }
+.queued-turn-list li[data-status="starting"] { background: var(--raised); }
+.queue-position { color: var(--faint); font: 11px/1.4 var(--font-mono); }
+.queue-copy { min-width: 0; display: grid; gap: 7px; }
+.queue-copy > strong { overflow: hidden; color: var(--text); text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.queue-copy > span { color: var(--faint); font-size: 10px; line-height: 1.45; }
+.queue-copy form { display: grid; gap: 7px; }.queue-copy form textarea { min-height: 72px; resize: vertical; }.queue-copy form div { display: flex; gap: 6px; }.queue-copy form button { min-height: 28px; }
+.queue-actions { display: flex; align-items: center; gap: 2px; }
+.queue-actions button { width: 30px; height: 30px; display: grid; place-items: center; border: 0; background: transparent; color: var(--muted); padding: 0; }
+.queue-actions button:hover:not(:disabled) { background: var(--raised); color: var(--text); }.queue-actions button:disabled { opacity: .25; }
 .empty-state { margin: auto; width: min(680px, 100%); display: grid; gap: 10px; text-align: center; color: var(--muted); }
 .empty-mark { width: 42px; height: 42px; margin: 0 auto 6px; border-radius: 8px; font-size: 19px; }
 .empty-state h2 { color: var(--text); font-size: 24px; line-height: 1.18; text-transform: none; letter-spacing: 0; }
@@ -750,6 +772,9 @@ button:focus, textarea:focus, input:focus, select:focus, summary:focus { outline
   .session-sidebar-footer { margin-top: auto; }
   .chat-thread { padding: 14px 14px 24px; }
   .prompt-markers { display: none; }
+  .queue-drawer { width: 100vw; }
+  .queued-turn-list li { grid-template-columns: 26px minmax(0, 1fr); }
+  .queue-actions { grid-column: 2; justify-content: flex-end; }
   .composer { width: calc(100% - 20px); margin: 0 10px 10px; }
   .composer-context-controls button span, .approval-mode { display: none; }
   .composer-actions .model-button { max-width: 122px; }

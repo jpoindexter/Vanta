@@ -8,6 +8,7 @@ const flows = [
   ["shell", "scripts/desktop-shell-convergence-smoke.mjs"],
   ["work-recovery", "scripts/desktop-run-recovery-smoke.mjs"],
   ["long-session", "scripts/desktop-long-session-navigation-smoke.mjs"],
+  ["queued-turns", "scripts/desktop-queued-turn-editor-smoke.mjs"],
   ["attachments", "scripts/desktop-context-attachments-smoke.mjs"],
   ["sessions", "scripts/desktop-session-management-smoke.mjs"],
   ["outputs-connect", "scripts/desktop-operator-flows-smoke.mjs"],

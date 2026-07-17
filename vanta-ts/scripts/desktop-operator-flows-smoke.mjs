@@ -121,7 +121,10 @@ process.stdin.on("data", (chunk) => {
     releaseChat?.();
   });
   await page.route(/\/api\/chat\/queue$/, async (route) => {
-    await route.fulfill({ status: 202, contentType: "application/json", body: JSON.stringify({ queued: true }) });
+    const body = route.request().method() === "GET"
+      ? { revision: 1, items: [] }
+      : { queued: true, snapshot: { revision: 1, items: [] } };
+    await route.fulfill({ status: route.request().method() === "GET" ? 200 : 202, contentType: "application/json", body: JSON.stringify(body) });
   });
   await page.locator("#vanta-composer").fill("start a cancellable fixture");
   await page.locator("#vanta-composer").press("Enter");

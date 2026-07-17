@@ -12,6 +12,19 @@ export type ConnectTestResult = { status: ConnectStatus; message: string };
 export type Artifact = { id: string; kind: "canvas" | "link" | "file"; label: string; value: string; sessionId?: string; sessionTitle?: string };
 export type Goal = { text: string };
 export type AccessMode = "ask" | "approve" | "full";
+export type QueuedTurn = {
+  id: string;
+  instruction: string;
+  intent: "next" | "steer";
+  status: "queued" | "starting";
+  target: { sessionId: string; root: string; controllerId: string; model: string; accessMode: AccessMode };
+  position: number;
+  revision: number;
+  createdAt: string;
+  updatedAt: string;
+  ownerPid?: number;
+};
+export type TurnQueueSnapshot = { revision: number; items: QueuedTurn[] };
 export type Status = { kernel: string; model: string; provider?: string; tools: number; sessionId: string; root?: string; goals: Goal[]; accessMode?: AccessMode; accessScope?: "project" };
 export type RuntimeHostSnapshot = {
   host: { id: string; label: string; kind: "local" | "remote" };

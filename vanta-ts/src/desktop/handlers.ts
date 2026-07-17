@@ -28,7 +28,10 @@ import { desktopArtifacts, desktopCapabilities, desktopMessagingPlatforms, saveD
 import { loadDesktopAccessMode, permissionModeForAccess, saveDesktopAccessMode, type DesktopAccessMode } from "./access-mode.js";
 import { desktopRuntimePayload, runDesktopRuntimeAction, selectDesktopRuntimeHost, type DesktopRuntimeAction } from "./runtime-controller.js";
 import { buildDesktopFileContext, isSafeProjectFile } from "./file-context.js";
+import { DesktopTurnQueue, QueueConflictError, desktopTurnQueuePath, fileTurnQueueDeps, type QueuedTurnTarget } from "./turn-queue.js";
 export { approvalDecision, type PendingApproval } from "./approval.js";
+
+const desktopTurnQueues = new Map<string, DesktopTurnQueue>();
 
 export type DesktopEvent = { label: string; ok?: boolean; delta?: string };
 export type DesktopState = {
@@ -38,7 +41,7 @@ export type DesktopState = {
   _chatActive?: boolean;
   _chatAbort?: AbortController;
   _chatDeltas?: string[];
-  _queuedMessage?: string;
+  _turnQueue?: DesktopTurnQueue;
   _streamTextDeltas?: boolean;
   convo?: Conversation;
   root: string;
@@ -153,10 +156,11 @@ function runtimeRequest(body: { hostId?: unknown; action?: unknown }): { hostId:
 }
 
 export async function handleRuntime(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const queueDepth = (await turnQueue(state).list(queueSessionId(state))).items.length;
   const runtimeState = {
     root: state.root,
     sessionId: state.sessionId,
-    queueDepth: state._queuedMessage ? 1 : 0,
+    queueDepth,
     runtimeHostBySession: state.runtimeHostBySession,
   };
   if (req.method === "GET") return sendJson(res, 200, await desktopRuntimePayload(runtimeState));
@@ -505,24 +509,71 @@ export async function handleStopChat(state: DesktopState, res: http.ServerRespon
   const controller = state._chatAbort;
   if (!state._chatActive || !controller) return sendJson(res, 409, { error: "no turn is running" });
   controller.abort();
-  state._queuedMessage = undefined;
   const event = { label: "Stop requested by operator.", ok: false };
   state.currentEvents?.push(event);
   if (state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, event);
   sendJson(res, 202, { stopping: true });
 }
 
+function turnQueue(state: DesktopState): DesktopTurnQueue {
+  if (state._turnQueue) return state._turnQueue;
+  const path = desktopTurnQueuePath(state.root);
+  let queue = desktopTurnQueues.get(path);
+  if (!queue) {
+    queue = new DesktopTurnQueue(fileTurnQueueDeps(path));
+    desktopTurnQueues.set(path, queue);
+  }
+  state._turnQueue = queue;
+  return state._turnQueue;
+}
+
+function queueSessionId(state: DesktopState): string {
+  return state.sessionId ?? state._sseSessionId ?? "default";
+}
+
+function queuedTurnTarget(state: DesktopState): QueuedTurnTarget {
+  const sessionId = queueSessionId(state);
+  return {
+    sessionId,
+    root: state.root,
+    controllerId: state.runtimeHostBySession?.[sessionId] ?? "local",
+    model: state.modelId ?? state.setup?.provider.modelId() ?? "default",
+    accessMode: state.accessMode ?? "approve",
+  };
+}
+
+export async function handleQueueList(state: DesktopState, res: http.ServerResponse): Promise<void> {
+  sendJson(res, 200, await turnQueue(state).list(queueSessionId(state)));
+}
+
 export async function handleQueueChat(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  if (!state._chatActive) return sendJson(res, 409, { error: "no turn is running" });
-  if (state._queuedMessage) return sendJson(res, 409, { error: "one next instruction is already queued" });
-  const body = await readJson(req) as { message?: unknown };
-  const message = typeof body.message === "string" ? body.message.trim() : "";
-  if (!message) return sendJson(res, 400, { error: "message is required" });
-  state._queuedMessage = message;
-  const event = { label: "Next instruction queued.", ok: true };
-  state.currentEvents?.push(event);
-  if (state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, event);
-  sendJson(res, 202, { queued: true });
+  const body = await readJson(req) as { action?: unknown; id?: unknown; revision?: unknown; message?: unknown; direction?: unknown };
+  const action = typeof body.action === "string" ? body.action : "enqueue";
+  const queue = turnQueue(state);
+  try {
+    if (action === "enqueue") {
+      if (!state._chatActive) return sendJson(res, 409, { error: "no turn is running" });
+      const message = typeof body.message === "string" ? body.message.trim() : "";
+      if (!message) return sendJson(res, 400, { error: "message is required" });
+      const item = await queue.enqueue({ instruction: message, target: queuedTurnTarget(state) });
+      const event = { label: "Next instruction queued.", ok: true };
+      state.currentEvents?.push(event);
+      if (state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, event);
+      return sendJson(res, 202, { queued: true, item, snapshot: await queue.list(queueSessionId(state)) });
+    }
+    const id = typeof body.id === "string" ? body.id : "";
+    const revision = typeof body.revision === "number" ? body.revision : -1;
+    if (!id || revision < 0) return sendJson(res, 400, { error: "id and revision are required" });
+    if (action === "edit") await queue.edit(id, revision, typeof body.message === "string" ? body.message : "");
+    else if (action === "move" && (body.direction === "up" || body.direction === "down")) await queue.move(id, revision, body.direction);
+    else if (action === "cancel") await queue.cancel(id, revision);
+    else if (action === "steer") await queue.steer(id, revision);
+    else return sendJson(res, 400, { error: "unsupported queue action" });
+    sendJson(res, 200, await queue.list(queueSessionId(state)));
+  } catch (error) {
+    if (error instanceof QueueConflictError) return sendJson(res, 409, { error: error.message, code: error.code, snapshot: await queue.list(queueSessionId(state)) });
+    sendJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
+  }
 }
 
 function interrupted(error: unknown, controller: AbortController): boolean {
@@ -580,11 +631,12 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
   state._chatActive = true;
   state._chatAbort = controller;
   state._chatDeltas = [];
-  state._queuedMessage = undefined;
   state._streamTextDeltas = true;
   const events: DesktopEvent[] = [];
   state.currentEvents = events;
   let live: Awaited<ReturnType<typeof ensureDesktopConversation>> | undefined;
+  const activeQueueSessionId = queueSessionId(state);
+  let claimedTurnId: string | undefined;
   try {
     live = await ensureDesktopConversation(state);
     let instruction = message;
@@ -596,11 +648,18 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
       events.push({ label: `${outcome.stoppedReason} · ${outcome.iterations} iteration(s)`, ok: outcome.stoppedReason === "done" });
       const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events, instruction, partialText: outcome.finalText });
       attachDesktopRunReceipt(live.convo, receipt, outcome.finalText);
-      const queued = state._queuedMessage;
-      state._queuedMessage = undefined;
-      if (!queued || controller.signal.aborted) break;
-      instruction = queued;
-      const event = { label: "Running queued instruction.", ok: true };
+      if (claimedTurnId) {
+        if (outcome.stoppedReason === "done") await turnQueue(state).complete(claimedTurnId);
+        else await turnQueue(state).release(claimedTurnId);
+        claimedTurnId = undefined;
+      }
+      if (outcome.stoppedReason !== "done") break;
+      if (controller.signal.aborted) break;
+      const queued = await turnQueue(state).claimNext(activeQueueSessionId);
+      if (!queued) break;
+      claimedTurnId = queued.id;
+      instruction = queued.instruction;
+      const event = { label: queued.intent === "steer" ? "Applying queued steer instruction." : "Running queued instruction.", ok: true };
       events.push(event);
       if (state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, event);
     }
@@ -608,6 +667,7 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
     const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events, instruction, partialText: outcome.finalText });
     sendJson(res, 200, { finalText: outcome.finalText, events, usage: outcome.usage, sessionId: state.sessionId, receipt });
   } catch (error) {
+    if (claimedTurnId) await turnQueue(state).release(claimedTurnId).catch(() => undefined);
     const wasInterrupted = interrupted(error, controller);
     const partial = state._chatDeltas?.join("").trim();
     const finalText = partial
@@ -629,7 +689,6 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
   } finally {
     state.currentEvents = undefined;
     state._chatDeltas = undefined;
-    state._queuedMessage = undefined;
     state._streamTextDeltas = false;
     state._chatActive = false;
     if (state._chatAbort === controller) state._chatAbort = undefined;
