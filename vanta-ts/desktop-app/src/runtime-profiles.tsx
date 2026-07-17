@@ -57,9 +57,9 @@ export function RuntimeProfilesView(props: { payload?: RuntimeProfilePayload; er
         <label>Model path<input name="modelPath" required /></label><label>Model bytes<input name="modelBytes" type="number" min="1" required /></label><label>Available memory<input name="availableMemoryBytes" type="number" min="1" defaultValue={props.payload?.host.memoryBytes} required /></label>
         <details><summary>Advanced controls</summary><div>
           <label>Host<input name="host" defaultValue="127.0.0.1" /></label><label>Port<input name="port" type="number" defaultValue="8129" /></label>
-          <label>Context<input name="contextTokens" type="number" defaultValue="8192" /></label><label>Threads<input name="threads" type="number" min="1" /></label>
+          <label>Context<input name="contextTokens" type="number" defaultValue="32768" /></label><label>Threads<input name="threads" type="number" min="1" /></label>
           <label>GPU layers<input name="gpuLayers" type="number" min="0" /></label><label>Batch size<input name="batchSize" type="number" min="1" /></label>
-          <label>Parallel slots<input name="parallel" type="number" min="1" /></label><label>Flash attention<select name="flashAttention" defaultValue=""><option value="">Engine default</option><option value="on">On</option><option value="off">Off</option></select></label>
+          <label>Parallel slots<input name="parallel" type="number" min="1" defaultValue="1" /></label><label>Flash attention<select name="flashAttention" defaultValue=""><option value="">Engine default</option><option value="on">On</option><option value="off">Off</option></select></label>
           <label>Environment references<textarea name="environment" placeholder="MODEL_TOKEN=secret://runtime/model-token" /></label><label>Extra arguments<textarea name="extraArgs" placeholder="--custom-kernel=1" /></label>
           <label>Compatible platforms<input name="platforms" placeholder="darwin, linux" /></label><label>Compatible architectures<input name="architectures" placeholder="arm64, x64" /></label>
           <label>Policy<select name="policyScope" defaultValue="ask"><option value="ask">Ask</option><option value="approve">Approve safe</option><option value="full">Full access</option></select></label>

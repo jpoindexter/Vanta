@@ -42,6 +42,7 @@
     "desktop:operator-flows:smoke": "npm run desktop:build && node scripts/desktop-operator-flows-smoke.mjs",
     "desktop:shell-convergence:smoke": "npm run desktop:build && node scripts/desktop-shell-convergence-smoke.mjs",
     "desktop:live-turn:proof": "npm run desktop:build && node scripts/desktop-live-turn-proof.mjs",
+    "local-runtime:v1:proof": "node --import tsx scripts/local-runtime-v1-release-proof.ts",
     "installer:managed:smoke": "bash ../scripts/managed-install-smoke.sh",
     "installer:managed:desktop:smoke": "bash ../scripts/managed-desktop-install-smoke.sh",
     "voice:wake:smoke": "node --import tsx scripts/voice-wake-smoke.ts",

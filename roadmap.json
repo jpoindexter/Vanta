@@ -19182,7 +19182,8 @@
       "effort": "high",
       "codex": "gpt-5.6-sol",
       "lens": "infra",
-      "updated": "2026-07-16",
+      "updated": "2026-07-17",
+      "notes": "SHIPPED 2026-07-17: Vanta completed a clean temporary-project Local Runtime v1 proof with a real 8,988,110,688-byte Qwen 2.5 14B GGUF artifact. The durable queue copied and SHA-256-verified the model, linked a selected 32K/single-parallel profile, launched it through the kernel-gated lifecycle manager, benchmarked it, and completed a real vanta run coding edit plus Node test. Route and runtime-resource receipts joined across four calls. Forced failure proved retain, stop, and retry-to-running policies. The signed packaged ARM64 app and source Electron target passed cold start, runtime state, queued turns, prompt navigation, restart recovery, compact and keyboard layouts, 200% zoom, Ghost light/dark, and offline/reconnect behavior. The dedicated collision smoke preserved the existing project kernel and selected a free endpoint for a second packaged project. Full verification: 1,408 test files / 13,359 tests passed / 3 skipped, both TypeScript checks passed, and git diff --check passed. Receipt: docs/research/local-runtime-v1-release-gate-2026-07-17.md.",
       "source": "local-studio-vanta-extraction-2026-07-16",
       "after": [
         "LOCAL-MODEL-FIRST-INFERENCE-WIZARD",
@@ -19237,7 +19238,7 @@
       "id": "LOCAL-RUNTIME-V1-RELEASE-GATE",
       "track": "Infrastructure",
       "title": "Local runtime v1 release gate - one model, one task, one recoverable receipt",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "Release the Local Studio-derived runtime slice only after Vanta can set up, supervise, and recover one real local model through its existing Work surface, kernel boundary, and receipt model without introducing a competing dashboard.",
       "done": "A clean supported Mac completes hardware detection, verified download, profile selection, approved launch, benchmark, and one real Vanta coding task; Work shows controller/model/resource/queue state; a forced downstream failure retains or stops the runtime per operator choice and retries in place; queued turns, prompt navigation, and restart recovery work; runtime telemetry joins the usage receipt; packaged Electron proof passes at desktop, compact, keyboard-only, 200% zoom, Ghost light/dark, and offline/reconnect paths.",

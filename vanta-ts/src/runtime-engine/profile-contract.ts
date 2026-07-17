@@ -66,14 +66,18 @@ function compatibilityFor(backend: RuntimeProfile["backend"]): RuntimeProfile["c
   return { platforms: ["linux"], architectures: ["arm64", "x64"] };
 }
 
+function defaultPerformance(backend: RuntimeProfile["backend"]): RuntimeProfile["performance"] {
+  return backend === "llama_cpp" ? { parallel: 1 } : {};
+}
+
 export function createRuntimeProfile(input: CreateRuntimeProfileInput, now = () => new Date()): RuntimeProfile {
   const stamp = now().toISOString();
   return RuntimeProfileV2Schema.parse({
     version: 2, id: input.id, name: input.name, backend: input.backend,
     model: { path: input.modelPath, bytes: input.modelBytes },
     endpoint: { host: orDefault(input.host, "127.0.0.1"), port: orDefault(input.port, 8129), reviewedRemoteBind: orDefault(input.reviewedRemoteBind, false) },
-    resources: { contextTokens: orDefault(input.contextTokens, 8192), availableMemoryBytes: input.availableMemoryBytes },
-    performance: orDefault(input.performance, {}), environment: orDefault(input.environment, []), extraArgs: orDefault(input.extraArgs, []),
+    resources: { contextTokens: orDefault(input.contextTokens, 32_768), availableMemoryBytes: input.availableMemoryBytes },
+    performance: orDefault(input.performance, defaultPerformance(input.backend)), environment: orDefault(input.environment, []), extraArgs: orDefault(input.extraArgs, []),
     policyScope: orDefault(input.policyScope, "ask"), compatibility: orDefault(input.compatibility, compatibilityFor(input.backend)),
     reviewedContractOnly: orDefault(input.reviewedContractOnly, false), createdAt: stamp, updatedAt: stamp, clonedFrom: input.clonedFrom,
   });

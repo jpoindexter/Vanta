@@ -1,7 +1,5 @@
 import type { Interface as Readline } from "node:readline/promises";
-import { createKernelClient, type KernelClient } from "./kernel/client.js";
-import { ensureKernel } from "./kernel-launcher.js";
-import { kernelBinaryPath } from "./kernel/path.js";
+import type { KernelClient } from "./kernel/client.js";
 import { buildRegistry } from "./tools/index.js";
 import { appendMemory } from "./memory/store.js";
 import { resolveRoutedProvider } from "./routing/model-router.js";
@@ -25,6 +23,8 @@ import {
   resolveLoadContext, fireInstructionsLoaded,
 } from "./session/prepare-helpers.js";
 import { type TrustConfirmer } from "./settings/trust-gate.js";
+import { bootstrapKernel } from "./session/bootstrap-kernel.js";
+import { applyLocalRuntimeLimits, resolveSessionSystemPrompt, resolveSessionToolInclude } from "./session/local-runtime-policy.js";
 export { loadRalphContinuity } from "./session/prepare-helpers.js";
 
 export * from "./session/after-turn.js";
@@ -59,20 +59,6 @@ function resolveSessionProvider(instruction: string, env: NodeJS.ProcessEnv): LL
   return buildFallbackChain(wrapCredentialPool(routed, env, owner), env);
 }
 
-/** Ensure the kernel is up and return a client to it. */
-async function bootstrapKernel(repoRoot: string): Promise<ReturnType<typeof createKernelClient>> {
-  const configuredUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
-  const kernelBin = kernelBinaryPath(repoRoot);
-  const baseUrl = await ensureKernel({
-    baseUrl: configuredUrl,
-    kernelBin,
-    root: repoRoot,
-    ephemeral: process.env.VANTA_KERNEL_EPHEMERAL === "1",
-  });
-  process.env.VANTA_KERNEL_URL = baseUrl;
-  return createKernelClient(baseUrl);
-}
-
 export async function prepareRun(
   repoRoot: string,
   instruction: string,
@@ -84,11 +70,12 @@ export async function prepareRun(
   // in settings.blockedTools is excluded from the live session registry. The
   // same settings object is reused by loadRuntimeExtensions (no second load).
   const settings = await loadRuntimeSettings(repoRoot);
-  const registry = buildRegistry({ exclude: settings.blockedTools ?? [], include: settings.allowedTools });
+  const provider = applyLocalRuntimeLimits(resolveSessionProvider(instruction, process.env), process.env);
+  const include = resolveSessionToolInclude(settings.allowedTools, provider.routeInfo?.(), process.env);
+  const registry = buildRegistry({ exclude: settings.blockedTools ?? [], include });
   const mcpTrust = { root: repoRoot, confirm: opts.confirmTrust };
   const { pluginCommands, pluginPanels, pluginWorkers, mcpSkills } = await loadRuntimeExtensions(repoRoot, registry, mcpTrust, settings);
   const effortLevel = resolveEffortLevel(process.env.VANTA_EFFORT_LEVEL ?? settings.effortLevel);
-  const provider = resolveSessionProvider(instruction, process.env);
   // VANTA-API-PRECONNECT: opt-in (VANTA_PRECONNECT) best-effort TCP+TLS pre-warm
   // to the provider's API host so the first request skips the handshake. Fire-
   // and-forget — never awaited, swallows its own failure, cannot affect startup.
@@ -106,7 +93,12 @@ export async function prepareRun(
   const loadContext = await resolveLoadContext(repoRoot, opts.confirmTrust, settings);
   const prompt = await buildRunPrompt({ repoRoot, instruction, goals, registry, activeIds, loadContext });
   await fireInstructionsLoaded(repoRoot, instruction, provider);
-  let systemPrompt = prompt.systemPrompt;
+  let systemPrompt = resolveSessionSystemPrompt(
+    prompt.systemPrompt,
+    repoRoot,
+    provider.routeInfo?.(),
+    process.env,
+  );
   if (skillBody) systemPrompt += `\n\nApply this skill:\n${skillBody}`;
   if (instruction === "interactive session") systemPrompt = await injectResume(systemPrompt, repoRoot);
   const advisorProvider = resolveAdvisorProvider(process.env) ?? undefined;

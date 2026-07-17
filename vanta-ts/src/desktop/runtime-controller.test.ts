@@ -123,6 +123,12 @@ describe("desktop runtime controller", () => {
     await runDesktopRuntimeAction({ root }, "local", "launch", { lifecycle, fetch: async () => new Response("{}", { status: 503 }) });
 
     expect(before.hosts[0]?.detail.actions).toContain("launch");
-    expect((lifecycle as { launch: ReturnType<typeof vi.fn> }).launch).toHaveBeenCalledWith(expect.objectContaining({ id: "daily", model: "/models/qwen.gguf", extraArgs: [], environment: {} }));
+    expect((lifecycle as { launch: ReturnType<typeof vi.fn> }).launch).toHaveBeenCalledWith(expect.objectContaining({
+      id: "daily",
+      model: "/models/qwen.gguf",
+      contextTokens: 32_768,
+      extraArgs: ["--parallel", "1"],
+      environment: {},
+    }));
   });
 });

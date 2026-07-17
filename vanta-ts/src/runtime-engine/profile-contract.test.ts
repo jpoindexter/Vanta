@@ -15,7 +15,7 @@ describe("runtime profile contract", () => {
     const contract = runtimeProfileLaunchContract(profile, host);
 
     expect(contract.validation).toMatchObject({ valid: true, compatible: true });
-    expect(contract.preview).toMatchObject({ command: "llama-server", args: expect.arrayContaining(["--model", "/models/qwen.gguf", "--ctx-size", "8192"]), resource: { fits: true } });
+    expect(contract.preview).toMatchObject({ command: "llama-server", args: expect.arrayContaining(["--model", "/models/qwen.gguf", "--ctx-size", "32768", "--parallel", "1"]), resource: { fits: true } });
     expect(contract.roundTrip).toBe(true);
   });
 

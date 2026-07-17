@@ -160,6 +160,14 @@ try {
   await page.locator(".app-shell.theme-light").waitFor();
   const light = await inspectRuntime(page, "light");
 
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.webContents.setZoomFactor(2));
+  await page.waitForTimeout(250);
+  const zoom200 = await inspectRuntime(page, "light-zoom-200");
+  if (zoom200.viewportWidth > 760) throw new Error(`200% zoom did not produce a compact layout viewport: ${JSON.stringify(zoom200)}`);
+  await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.webContents.setZoomFactor(1));
+  await page.waitForTimeout(250);
+
   const closeInspector = page.locator(".app-titlebar").getByRole("button", { name: "Close inspector" });
   if (await closeInspector.count()) await closeInspector.click();
   await page.setViewportSize({ width: 760, height: 900 });
@@ -180,7 +188,7 @@ try {
   if (compactOverlay.scrollWidth > compactOverlay.clientWidth + 1) throw new Error(`compact runtime tray scrolls horizontally: ${JSON.stringify(compactOverlay)}`);
   if (process.env.VANTA_DESKTOP_RUNTIME_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_RUNTIME_SCREENSHOT });
 
-  console.log(JSON.stringify({ ok: true, dark, light, compact, compactOverlay, screenReader, launch: true, stop: true, failure: true, reconnect: true, usage: { visible: true, calls: runtimeUsage.calls, missingExplicit: true }, profiles: { search: true, selected: selectedProfileId, evidence: true, progressiveDisclosure: true }, downloads: { progress: true, resume: true, cleanupConfirmation: true, profileLink: true, progressiveDisclosure: true }, draftPreserved: true, keyboardClose: true }));
+  console.log(JSON.stringify({ ok: true, dark, light, zoom200, compact, compactOverlay, screenReader, launch: true, stop: true, failure: true, reconnect: true, usage: { visible: true, calls: runtimeUsage.calls, missingExplicit: true }, profiles: { search: true, selected: selectedProfileId, evidence: true, progressiveDisclosure: true }, downloads: { progress: true, resume: true, cleanupConfirmation: true, profileLink: true, progressiveDisclosure: true }, draftPreserved: true, keyboardClose: true }));
 } finally {
   await app.close();
   await rm(userData, { recursive: true, force: true });
