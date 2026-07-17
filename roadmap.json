@@ -18281,7 +18281,7 @@
       "id": "DESKTOP-SAFE-SESSION-OPS",
       "track": "Desktop App",
       "title": "Desktop safe session operations — archive undo, recoverable trash, menu feedback",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Session rename/archive/delete mechanics exist, but desktop UX still needs safe feedback: archive undo, recoverable trash for delete, optimistic pending state, success/error toasts, outside-click close, and keyboard focus handling.",
       "done": "Rename stays inline; archive shows an Undo toast; delete moves to recoverable trash instead of irreversible removal; restore/delete/archive show pending, success, and error states; outside click and keyboard navigation are covered by renderer tests and desktop session-management smoke.",
@@ -18290,8 +18290,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "tui",
-      "updated": "2026-07-15",
-      "notes": "Consolidated from audit P2. DESKTOP-SESSION-MANAGEMENT shipped the mechanics; this card tracks the user-facing safety and feedback layer. SUBSLICE SHIPPED 2026-07-15: the left session rail now has a Select chats mode with checkboxes, selected count, Shift-click range selection, All visible, Clear, bulk Archive, Restore, Delete, and Done actions. Bulk delete uses one confirmation for the whole selection; shift range, all-visible selection, bulk archive, and bulk delete are covered by npm run desktop:sessions:smoke. Remaining work for full card completion: archive undo toast, recoverable trash instead of permanent delete, optimistic pending/error states, outside-click close, and keyboard menu traversal.",
+      "updated": "2026-07-17",
+      "notes": "Consolidated from audit P2. SHIPPED 2026-07-17: the session rail keeps rename inline; archive, restore, and Trash operations expose pending, success, and error states with Undo. Delete now moves sessions into durable recoverable Trash while preserving transcript and routing metadata; permanent deletion is available only from Trash with confirmation. Select chats supports Shift-click ranges, All visible, bulk archive/restore, bulk Trash Undo, and bulk permanent delete. Session menus use menu semantics, arrow-key traversal, Escape focus return, and outside-click dismissal. Executed proof: core and renderer typechecks; 36 renderer tests; 18 session store/API tests; and npm run desktop:sessions:smoke with 13 Electron acceptance signals. Receipt: docs/research/desktop-safe-session-ops-2026-07-17.md.",
       "source": "desktop-userflow-audit-2026-07-13",
       "after": [
         "DESKTOP-SESSION-MANAGEMENT"

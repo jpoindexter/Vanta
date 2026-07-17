@@ -8,6 +8,7 @@ import {
   type CompletionSoundSettings,
 } from "./completion-sound.js";
 import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, DesktopRunReceipt, DesktopRuntime, EventRow, Message, MessagingPlatform, Provider, RailTab, RuntimeAction, Session, Status, Tool } from "./types.js";
+import type { SessionDeleteAction } from "./session-safe-ops.js";
 
 export function useDesktopData() {
   const [status, setStatus] = useState<Status | null>(null);
@@ -227,14 +228,12 @@ function conversationHandlers(state: ConversationState, cues: TurnCues, lastFail
     if (active && archived) await newSession();
     else await state.refresh();
   }
-  async function deleteSession(id: string, active: boolean) {
-    await api("/api/sessions/delete", postJson({ id }));
-    if (active) await newSession();
+  async function deleteSession(id: string, active: boolean, action: SessionDeleteAction = "trash") {
+    await api("/api/sessions/delete", postJson(action === "permanent" ? { id, permanent: true } : { id, trashed: action === "trash" }));
+    if (active && action !== "restore") await newSession();
     else await state.refresh();
   }
-  function insertFile(file: string) {
-    state.setDraft((value) => `${value} @${file}`.trimStart());
-  }
+  function insertFile(file: string) { state.setDraft((value) => `${value} @${file}`.trimStart()); }
   async function submit(text: string) {
     await submitMessage(state, text, cues, (failed) => { lastFailedMessage.current = failed ? text : ""; });
   }
@@ -295,6 +294,4 @@ function postJson(body: unknown): RequestInit {
   return { method: "POST", headers: jsonHeaders(), body: JSON.stringify(body) };
 }
 
-function jsonHeaders(): Record<string, string> {
-  return { "content-type": "application/json" };
-}
+function jsonHeaders(): Record<string, string> { return { "content-type": "application/json" }; }

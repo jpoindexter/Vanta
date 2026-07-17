@@ -5,6 +5,7 @@ import type { Approval, ApprovalDecision, DesktopRunReceipt, DesktopView, Messag
 import { MessageMarkdown } from "./message-markdown.js";
 import { AccessModePicker } from "./access-mode-picker.js";
 import type { AccessMode } from "./types.js";
+import { moveSessionMenuFocus, SessionNoticeToast, useSessionMenuDismiss, useSessionSafeOps, type SessionDeleteAction } from "./session-safe-ops.js";
 
 type SessionSidebarProps = {
   sessions: Session[];
@@ -14,7 +15,7 @@ type SessionSidebarProps = {
   onOpen: (id: string) => void;
   onRename: (id: string, title: string) => void | Promise<void>;
   onArchive: (id: string, archived: boolean) => void | Promise<void>;
-  onDelete: (id: string) => void | Promise<void>;
+  onDelete: (id: string, action: SessionDeleteAction) => void | Promise<void>;
   view: DesktopView;
   onView: (view: DesktopView) => void;
   onSettings: () => void;
@@ -27,16 +28,18 @@ export function SessionSidebar(props: SessionSidebarProps) {
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
-  const [bulkStatus, setBulkStatus] = useState("");
   const [archivedOpen, setArchivedOpen] = useState(false);
+  const [trashOpen, setTrashOpen] = useState(false);
   const sessions = useMemo(() => props.sessions.filter((session) => session.title.toLowerCase().includes(query.toLowerCase())), [props.sessions, query]);
-  const active = sessions.filter((session) => !session.archived);
-  const archived = sessions.filter((session) => session.archived);
+  const active = sessions.filter((session) => !session.archived && !session.trashed);
+  const archived = sessions.filter((session) => session.archived && !session.trashed);
+  const trashed = sessions.filter((session) => session.trashed);
   const projectSessions = active.slice(0, 3);
   const recentSessions = active.slice(3);
-  const visibleSessions = useMemo(() => [...projectSessions, ...recentSessions, ...(archivedOpen ? archived : [])], [projectSessions, recentSessions, archived, archivedOpen]);
+  const visibleSessions = useMemo(() => [...projectSessions, ...recentSessions, ...(archivedOpen ? archived : []), ...(trashOpen ? trashed : [])], [projectSessions, recentSessions, archived, archivedOpen, trashOpen, trashed]);
   const projectName = props.root?.split("/").filter(Boolean).at(-1) ?? "Current project";
   const selectedSessions = useMemo(() => props.sessions.filter((session) => selected.has(session.id)), [props.sessions, selected]);
+  const safe = useSessionSafeOps({ rename: props.onRename, archive: props.onArchive, remove: props.onDelete });
 
   useEffect(() => {
     setSelected((current) => {
@@ -46,9 +49,9 @@ export function SessionSidebar(props: SessionSidebarProps) {
     });
   }, [props.sessions]);
   useEffect(() => { if (!archived.length) setArchivedOpen(false); }, [archived.length]);
+  useEffect(() => { if (!trashed.length) setTrashOpen(false); }, [trashed.length]);
 
   function toggleSelected(id: string, range = false) {
-    setBulkStatus("");
     setSelected((current) => {
       const next = new Set(current);
       if (range && lastSelectedId) {
@@ -68,7 +71,6 @@ export function SessionSidebar(props: SessionSidebarProps) {
   }
   function startSelecting() {
     setSelecting(true);
-    setBulkStatus("");
   }
   function stopSelecting() {
     setSelecting(false);
@@ -78,33 +80,24 @@ export function SessionSidebar(props: SessionSidebarProps) {
   function clearSelected() {
     setSelected(new Set());
     setLastSelectedId(null);
-    setBulkStatus("");
   }
   function selectAllVisible() {
     const ids = visibleSessions.map((session) => session.id);
     setSelecting(true);
     setSelected(new Set(ids));
     setLastSelectedId(ids.at(-1) ?? null);
-    setBulkStatus("");
   }
   async function archiveSelected(archivedState: boolean) {
-    const targets = [...selectedSessions];
+    const targets = selectedSessions.filter((session) => !session.trashed);
     if (!targets.length) return;
-    for (const session of targets) await props.onArchive(session.id, archivedState);
-    setBulkStatus(`${archivedState ? "Archived" : "Restored"} ${targets.length} session${targets.length === 1 ? "" : "s"}.`);
-    setSelected(new Set());
-    setLastSelectedId(null);
-    setSelecting(false);
+    if (await safe.archive(targets, archivedState)) stopSelecting();
   }
   async function deleteSelected() {
     const targets = [...selectedSessions];
     if (!targets.length) return;
-    if (!window.confirm(`Delete ${targets.length} selected session${targets.length === 1 ? "" : "s"} permanently? This cannot be undone.`)) return;
-    for (const session of targets) await props.onDelete(session.id);
-    setBulkStatus(`Deleted ${targets.length} session${targets.length === 1 ? "" : "s"}.`);
-    setSelected(new Set());
-    setLastSelectedId(null);
-    setSelecting(false);
+    const allTrashed = targets.every((session) => session.trashed);
+    if (allTrashed && !window.confirm(`Delete ${targets.length} selected session${targets.length === 1 ? "" : "s"} forever? This cannot be undone.`)) return;
+    if (await safe.remove(targets, allTrashed ? "permanent" : "trash")) stopSelecting();
   }
   const renderSession = (session: Session) => (
     <SessionButton
@@ -113,11 +106,12 @@ export function SessionSidebar(props: SessionSidebarProps) {
       active={session.id === props.activeId}
       selecting={selecting}
       selected={selected.has(session.id)}
+      pending={safe.pending(session.id)}
       onSelect={toggleSelected}
       onOpen={props.onOpen}
-      onRename={props.onRename}
-      onArchive={props.onArchive}
-      onDelete={props.onDelete}
+      onRename={(title) => safe.rename(session, title)}
+      onArchive={(archivedState) => safe.archive([session], archivedState)}
+      onDelete={(action) => safe.remove([session], action)}
     />
   );
 
@@ -142,7 +136,6 @@ export function SessionSidebar(props: SessionSidebarProps) {
         </div>
         <label className="session-search"><Search size={14} /><span className="sr-only">Search sessions</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search sessions" /></label>
         {selecting ? <BulkSessionActions count={selected.size} visibleCount={visibleSessions.length} onSelectAll={selectAllVisible} onClear={clearSelected} onArchive={() => void archiveSelected(true)} onRestore={() => void archiveSelected(false)} onDelete={() => void deleteSelected()} onCancel={stopSelecting} /> : null}
-        {bulkStatus ? <div className="session-bulk-status" role="status">{bulkStatus}</div> : null}
         <div className="session-list recent-session-group">
           {recentSessions.map(renderSession)}
           {archived.length > 0 ? (
@@ -151,10 +144,17 @@ export function SessionSidebar(props: SessionSidebarProps) {
               <div>{archived.map(renderSession)}</div>
             </details>
           ) : null}
+          {trashed.length > 0 ? (
+            <details className="trashed-sessions" open={trashOpen} onToggle={(event) => setTrashOpen(event.currentTarget.open)}>
+              <summary>Trash <span>{trashed.length}</span></summary>
+              <div>{trashed.map(renderSession)}</div>
+            </details>
+          ) : null}
           {recentSessions.length === 0 && projectSessions.length === 0 ? <p className="muted">{query ? "No matching sessions." : "No saved sessions yet."}</p> : null}
         </div>
       </section>
       <footer className="session-sidebar-footer"><button type="button" onClick={props.onShortcuts}><Keyboard size={14} />Keyboard shortcuts <kbd>?</kbd></button><button type="button" onClick={props.onSettings}><Settings2 size={14} />Settings</button></footer>
+      <SessionNoticeToast notice={safe.notice} onDismiss={safe.dismissNotice} />
     </aside>
   );
 }
@@ -179,20 +179,25 @@ function SessionButton(props: {
   active: boolean;
   selecting?: boolean;
   selected?: boolean;
+  pending?: boolean;
   onSelect?: (id: string, range?: boolean) => void;
   onOpen: (id: string) => void;
-  onRename: (id: string, title: string) => void | Promise<void>;
-  onArchive: (id: string, archived: boolean) => void | Promise<void>;
-  onDelete: (id: string) => void | Promise<void>;
+  onRename: (title: string) => Promise<boolean>;
+  onArchive: (archived: boolean) => Promise<boolean>;
+  onDelete: (action: SessionDeleteAction) => Promise<boolean>;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(props.session.title);
   const inputRef = useRef<HTMLInputElement>(null);
-  const className = `${props.active ? "session-row active" : "session-row"}${props.selecting ? " selecting" : ""}${props.selected ? " selected" : ""}`;
+  const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const className = `${props.active ? "session-row active" : "session-row"}${props.selecting ? " selecting" : ""}${props.selected ? " selected" : ""}${props.pending ? " pending" : ""}`;
 
   useEffect(() => { setTitle(props.session.title); }, [props.session.title]);
   useEffect(() => { if (editing) inputRef.current?.focus(); }, [editing]);
+  useSessionMenuDismiss({ open: menuOpen, setOpen: setMenuOpen, root: rootRef, trigger: triggerRef, menu: menuRef });
 
   function startRename() {
     setMenuOpen(false);
@@ -202,38 +207,46 @@ function SessionButton(props: {
   async function saveRename() {
     const next = title.trim().replace(/\s+/g, " ");
     if (!next || next === props.session.title) { setEditing(false); return; }
-    await props.onRename(props.session.id, next);
-    setEditing(false);
+    if (await props.onRename(next)) setEditing(false);
   }
-  function confirmDelete() {
+  function remove(action: SessionDeleteAction) {
     setMenuOpen(false);
-    if (window.confirm(`Delete \"${props.session.title}\" permanently? This cannot be undone.`)) void props.onDelete(props.session.id);
+    if (action !== "permanent" || window.confirm(`Delete \"${props.session.title}\" forever? This cannot be undone.`)) void props.onDelete(action);
   }
 
   return (
-    <div className={className}>
+    <div ref={rootRef} className={className} aria-busy={props.pending || undefined}>
       {editing ? (
         <form className="session-rename" onSubmit={(event) => { event.preventDefault(); void saveRename(); }}>
           <label className="sr-only" htmlFor={`session-title-${props.session.id}`}>Session title</label>
           <input id={`session-title-${props.session.id}`} ref={inputRef} value={title} maxLength={120} onChange={(event) => setTitle(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); setEditing(false); } }} />
-          <button type="submit" aria-label="Save session name" title="Save session name"><Check size={14} /></button>
-          <button type="button" aria-label="Cancel rename" title="Cancel rename" onClick={() => setEditing(false)}><X size={14} /></button>
+          <button type="submit" disabled={props.pending} aria-label="Save session name" title="Save session name"><Check size={14} /></button>
+          <button type="button" disabled={props.pending} aria-label="Cancel rename" title="Cancel rename" onClick={() => setEditing(false)}><X size={14} /></button>
         </form>
       ) : (
         <>
           {props.selecting ? <label className="session-select" title={`Select ${props.session.title}`}><input type="checkbox" checked={!!props.selected} onChange={() => undefined} onClick={(event) => props.onSelect?.(props.session.id, event.shiftKey)} /><span className="sr-only">Select {props.session.title}</span></label> : null}
-          <button className="session" type="button" onClick={(event) => props.selecting ? props.onSelect?.(props.session.id, event.shiftKey) : props.onOpen(props.session.id)}>
+          <button className="session" type="button" disabled={props.pending} onClick={(event) => props.selecting ? props.onSelect?.(props.session.id, event.shiftKey) : props.onOpen(props.session.id)}>
             <strong>{props.session.title}</strong>
             <span>{props.session.turns} turns</span>
           </button>
-          {props.selecting ? null : <button className="session-menu-button" type="button" aria-label={`Manage ${props.session.title}`} aria-expanded={menuOpen} title="Manage session" onClick={() => setMenuOpen((open) => !open)}><MoreHorizontal size={16} /></button>}
+          {props.selecting ? null : <button ref={triggerRef} className="session-menu-button" type="button" disabled={props.pending} aria-label={`Manage ${props.session.title}`} aria-haspopup="menu" aria-expanded={menuOpen} title="Manage session" onClick={() => setMenuOpen((open) => !open)}><MoreHorizontal size={16} /></button>}
           {menuOpen ? (
-            <div className="session-actions" onKeyDown={(event) => { if (event.key === "Escape") setMenuOpen(false); }}>
-              <button type="button" onClick={startRename}><Pencil size={14} />Rename</button>
-              <button type="button" onClick={() => { setMenuOpen(false); void props.onArchive(props.session.id, !props.session.archived); }}>
-                {props.session.archived ? <ArchiveRestore size={14} /> : <Archive size={14} />}{props.session.archived ? "Restore" : "Archive"}
-              </button>
-              <button className="danger" type="button" onClick={confirmDelete}><Trash2 size={14} />Delete</button>
+            <div ref={menuRef} className="session-actions" role="menu" aria-label={`Actions for ${props.session.title}`} onKeyDown={moveSessionMenuFocus}>
+              {props.session.trashed ? (
+                <>
+                  <button role="menuitem" type="button" onClick={() => remove("restore")}><ArchiveRestore size={14} />Restore from Trash</button>
+                  <button role="menuitem" className="danger" type="button" onClick={() => remove("permanent")}><Trash2 size={14} />Delete forever</button>
+                </>
+              ) : (
+                <>
+                  <button role="menuitem" type="button" onClick={startRename}><Pencil size={14} />Rename</button>
+                  <button role="menuitem" type="button" onClick={() => { setMenuOpen(false); void props.onArchive(!props.session.archived); }}>
+                    {props.session.archived ? <ArchiveRestore size={14} /> : <Archive size={14} />}{props.session.archived ? "Restore" : "Archive"}
+                  </button>
+                  <button role="menuitem" className="danger" type="button" onClick={() => remove("trash")}><Trash2 size={14} />Move to Trash</button>
+                </>
+              )}
             </div>
           ) : null}
         </>

@@ -33,6 +33,8 @@ The contextual inspector starts closed and opens for files, output review, Canva
 
 The model picker searches by provider or model, marks the active and saved-default models separately, accepts a typed model ID, and can refresh the authenticated provider's live model list. The generated catalog remains the offline fallback, so a temporary provider failure does not remove model selection.
 
+Session management is recoverable by default. Archive and Trash actions show pending, success, or error feedback with Undo; deleting from the main rail moves a session to Trash without losing its transcript. Permanent deletion is available only from Trash and requires confirmation. **Select chats** supports Shift-click ranges and bulk archive, restore, Trash, or permanent-delete actions. Session menus close on outside click and support arrow-key traversal plus Escape focus return.
+
 The desktop app backlog lives in the single product roadmap, not in a separate side plan. Desktop cards include `DESKTOP-CODEX-KEELHOUSE-SHELL`, `DESKTOP-MODEL-PICKER-UX`, `DESKTOP-RUN-RECOVERY-TIMELINE`, `DESKTOP-CONTEXT-ATTACHMENTS`, `DESKTOP-SAFE-SESSION-OPS`, `DESKTOP-CONNECT-SETUP-STATUS`, `DESKTOP-CONTEXT-LEGIBILITY`, and `DESKTOP-FLOW-PROOF-SUITE`.
 
 ```bash

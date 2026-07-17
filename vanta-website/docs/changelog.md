@@ -8,6 +8,11 @@ sidebar_position: 2
 
 Major capability milestones, newest first. This is a curated highlight reel — the full per-slice history lives in `roadmap.json`.
 
+## 2026-07-17 — desktop session safety
+- **Recoverable session operations** — archive and Trash now expose pending, success, error, and Undo states; permanent deletion is restricted to confirmed actions from Trash.
+- **Bulk session control** — Select chats supports Shift-click ranges, All visible, bulk archive/restore, bulk Trash Undo, and explicit bulk permanent deletion.
+- **Keyboard-safe menus** — session actions use menu semantics, arrow-key traversal, Escape focus return, and outside-click dismissal, verified in Electron against an isolated session store.
+
 ## 2026-07-12 — Hermes delta and documentation release
 - **Executed product acceptance** — real model read/write/readback, corpus recall, delegation, packaged desktop chat and destructive-command blocking, clean-install launchd scheduling, cold-start capability reporting, and bounded cited research now have recorded behavioral evidence. The refreshed public artifact remains the final local acceptance boundary.
 - **Session-scoped model switching** — `/model` and both model pickers now change only the current conversation by default, persist that route with the session, and reserve `.env` mutation for explicit **Set as default**/`--global` actions.

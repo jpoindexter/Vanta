@@ -132,7 +132,7 @@ export function AppShell() {
         onOpen={convo.openSession}
         onRename={(id, title) => convo.renameSession(id, title, id === data.status?.sessionId)}
         onArchive={(id, archived) => convo.archiveSession(id, archived, id === data.status?.sessionId)}
-        onDelete={(id) => convo.deleteSession(id, id === data.status?.sessionId)}
+        onDelete={(id, action) => convo.deleteSession(id, id === data.status?.sessionId, action)}
         view={view}
         onView={setView}
         onSettings={data.openSettings}

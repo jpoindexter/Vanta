@@ -5,13 +5,9 @@ import { resolveVantaHome } from "../store/home.js";
 import type { Message } from "../types.js";
 import { reconcileDanglingToolResults } from "../agent/effect-disposition.js";
 
-// Session persistence behind a SessionStore PORT (PORT-SESSION-STORE). The default
-// adapter (createFsSessionStore) writes one JSON file per session under
-// ~/.vanta/sessions/<id>.json — dependency-free, git-versionable, and consistent with
-// how skills/memory are stored; enough for a single-user CLI. An alternate store
-// (SQLite/remote/encrypted/in-memory) implements the same interface and replaces it
-// with no edits to any caller. The free saveSession/loadSession/listSessions/... fns
-// are thin delegators over the default fs store, so existing callers stay unchanged.
+// Session persistence sits behind the SessionStore port. The default adapter writes
+// JSON under ~/.vanta/sessions; alternate stores replace it without caller changes.
+// The exported convenience functions remain thin delegates for existing callers.
 
 const SESSIONS_SUBDIR = "sessions";
 
@@ -64,25 +60,23 @@ const SessionSchema = z.object({
   // Archived sessions stay in the same durable store so they can be restored
   // without losing transcript, model, or project metadata.
   archived: z.boolean().optional(),
+  // Trashed sessions remain recoverable until the operator explicitly deletes forever.
+  trashed: z.boolean().optional(),
   messages: z.array(MessageSchema),
 });
 
 export type Session = z.infer<typeof SessionSchema>;
-export type SessionMeta = Pick<Session, "id" | "title" | "started" | "updated" | "projectId" | "providerId" | "modelId" | "archived"> & {
+export type SessionMeta = Pick<Session, "id" | "title" | "started" | "updated" | "projectId" | "providerId" | "modelId" | "archived" | "trashed"> & {
   turns: number;
 };
 
 /** Options for writing a session. The store binds its own location, so `env` is not
  *  a per-call field here (the delegator saveSession accepts it and passes it through). */
 export type SaveSessionOpts = {
-  now?: string;
-  started?: string;
-  updated?: string;
-  title?: string;
-  projectId?: string;
-  providerId?: string;
-  modelId?: string;
-  archived?: boolean;
+  now?: string; started?: string; updated?: string;
+  title?: string; projectId?: string;
+  providerId?: string; modelId?: string;
+  archived?: boolean; trashed?: boolean;
 };
 
 /**
@@ -140,6 +134,7 @@ function toMeta(session: Session): SessionMeta {
     providerId: session.providerId,
     modelId: session.modelId,
     archived: session.archived,
+    trashed: session.trashed,
     turns: session.messages.filter((m) => m.role === "user").length,
   };
 }
@@ -150,7 +145,6 @@ function toMeta(session: Session): SessionMeta {
  */
 export function createFsSessionStore(env?: NodeJS.ProcessEnv): SessionStore {
   const dir = sessionsDir(env);
-
   const load: SessionStore["load"] = async (id) => {
     const session = await readRawSession(id, env);
     if (!session) return null;
@@ -161,7 +155,6 @@ export function createFsSessionStore(env?: NodeJS.ProcessEnv): SessionStore {
     }
     return session;
   };
-
   const save: SessionStore["save"] = async (id, messages, opts = {}) => {
     await mkdir(dir, { recursive: true });
     const now = opts.now ?? new Date().toISOString();
@@ -175,12 +168,11 @@ export function createFsSessionStore(env?: NodeJS.ProcessEnv): SessionStore {
       ...(opts.projectId ? { projectId: opts.projectId } : {}),
       ...(opts.providerId ? { providerId: opts.providerId } : {}),
       ...(opts.modelId ? { modelId: opts.modelId } : {}),
-      ...(opts.archived ? { archived: true } : {}),
+      ...(opts.archived ? { archived: true } : {}), ...(opts.trashed ? { trashed: true } : {}),
       messages,
     };
     await writeFile(join(dir, `${id}.json`), JSON.stringify(session, null, 2), "utf8");
   };
-
   const list: SessionStore["list"] = async () => {
     let files: string[];
     try {
@@ -195,11 +187,9 @@ export function createFsSessionStore(env?: NodeJS.ProcessEnv): SessionStore {
     }
     return metas.sort((a, b) => b.updated.localeCompare(a.updated));
   };
-
   const del: SessionStore["delete"] = async (id) => {
     await rm(join(dir, `${id}.json`), { force: true });
   };
-
   return { save, load, list, delete: del };
 }
 
@@ -224,7 +214,7 @@ export async function checkpointSessionMessages(
   // tool call is valid while the turn is still running.
   const existing = await readRawSession(id, env);
   await store.save(id, messages, existing
-    ? { started: existing.started, title: existing.title, projectId: existing.projectId, providerId: existing.providerId, modelId: existing.modelId, archived: existing.archived }
+    ? { started: existing.started, title: existing.title, projectId: existing.projectId, providerId: existing.providerId, modelId: existing.modelId, archived: existing.archived, trashed: existing.trashed }
     : undefined);
 }
 
@@ -240,7 +230,7 @@ export async function deleteSession(id: string, env?: NodeJS.ProcessEnv): Promis
 
 /** List active session metadata, newest first. Skips unparseable files. */
 export async function listSessions(env?: NodeJS.ProcessEnv): Promise<SessionMeta[]> {
-  return (await createFsSessionStore(env).list()).filter((session) => !session.archived);
+  return (await createFsSessionStore(env).list()).filter((session) => !session.archived && !session.trashed);
 }
 
 /** List active and archived session metadata, newest first. */
@@ -248,7 +238,7 @@ export async function listAllSessions(env?: NodeJS.ProcessEnv): Promise<SessionM
   return createFsSessionStore(env).list();
 }
 
-function existingSaveOptions(session: Session, overrides: Pick<SaveSessionOpts, "title" | "archived" | "updated"> = {}): SaveSessionOpts {
+function existingSaveOptions(session: Session, overrides: Pick<SaveSessionOpts, "title" | "archived" | "trashed" | "updated"> = {}): SaveSessionOpts {
   return {
     started: session.started,
     updated: overrides.updated,
@@ -257,6 +247,7 @@ function existingSaveOptions(session: Session, overrides: Pick<SaveSessionOpts, 
     providerId: session.providerId,
     modelId: session.modelId,
     archived: overrides.archived ?? session.archived,
+    trashed: overrides.trashed ?? session.trashed,
   };
 }
 
@@ -275,6 +266,15 @@ export async function setSessionArchived(id: string, archived: boolean, env?: No
   const session = await store.load(id);
   if (!session) return null;
   await store.save(id, session.messages, existingSaveOptions(session, { archived, updated: session.updated }));
+  return store.load(id);
+}
+
+/** Move a session into recoverable trash or restore it without changing its transcript. */
+export async function setSessionTrashed(id: string, trashed: boolean, env?: NodeJS.ProcessEnv): Promise<Session | null> {
+  const store = createFsSessionStore(env);
+  const session = await store.load(id);
+  if (!session) return null;
+  await store.save(id, session.messages, existingSaveOptions(session, { trashed, archived: trashed ? false : session.archived, updated: session.updated }));
   return store.load(id);
 }
 

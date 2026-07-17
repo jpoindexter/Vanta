@@ -7,7 +7,7 @@ import type { Conversation } from "../agent.js";
 import type { DesktopRunFailureKind, DesktopRunReceipt } from "../types.js";
 import { buildSummarizer, prepareRun, writeRunMemory } from "../session.js";
 import type { RunSetup } from "../session.js";
-import { deleteSession, listAllSessions, loadSession, newSessionId, renameSession, saveSession, setSessionArchived, checkpointSessionMessages } from "../sessions/store.js";
+import { deleteSession, listAllSessions, loadSession, newSessionId, renameSession, saveSession, setSessionArchived, setSessionTrashed, checkpointSessionMessages } from "../sessions/store.js";
 import { PROVIDER_CATALOG, providerById, type ProviderEntry } from "../providers/catalog.js";
 import { diskCacheDeps, mergeProviderCatalog, resolveCatalog } from "../providers/catalog-manifest.js";
 import { resolveVantaHome } from "../store/home.js";
@@ -203,6 +203,22 @@ function sessionIdFromBody(body: { id?: unknown }): string {
   return typeof body.id === "string" ? body.id.trim() : "";
 }
 
+type DeleteSessionRequest = { id: string; trashed: boolean; permanent: boolean };
+
+function parseDeleteSessionRequest(body: { id?: unknown; trashed?: unknown; permanent?: unknown }): DeleteSessionRequest | { error: string } {
+  const id = sessionIdFromBody(body);
+  if (!id) return { error: "session id is required" };
+  if (body.trashed !== undefined && typeof body.trashed !== "boolean") return { error: "trashed must be boolean" };
+  if (body.permanent !== undefined && typeof body.permanent !== "boolean") return { error: "permanent must be boolean" };
+  return { id, trashed: body.trashed ?? true, permanent: body.permanent === true };
+}
+
+function clearActiveSession(state: DesktopState, id: string, shouldClear: boolean): void {
+  if (state.sessionId !== id || !shouldClear) return;
+  state.convo = undefined; state.sessionId = undefined; state.sessionStarted = undefined;
+  state.providerId = undefined; state.modelId = undefined; state.currentEvents = undefined;
+}
+
 export async function handleRenameSession(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const body = await readJson(req) as { id?: unknown; title?: unknown };
   const id = sessionIdFromBody(body);
@@ -226,21 +242,16 @@ export async function handleArchiveSession(req: http.IncomingMessage, res: http.
 }
 
 export async function handleDeleteSession(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  const body = await readJson(req) as { id?: unknown };
-  const id = sessionIdFromBody(body);
-  if (!id) return sendJson(res, 400, { error: "session id is required" });
+  const body = await readJson(req) as { id?: unknown; trashed?: unknown; permanent?: unknown };
+  const parsed = parseDeleteSessionRequest(body);
+  if ("error" in parsed) return sendJson(res, 400, parsed);
+  const { id, permanent, trashed } = parsed;
   const session = await loadSession(id, process.env);
   if (!session) return sendJson(res, 404, { error: "session not found" });
-  await deleteSession(id, process.env);
-  if (state.sessionId === id) {
-    state.convo = undefined;
-    state.sessionId = undefined;
-    state.sessionStarted = undefined;
-    state.providerId = undefined;
-    state.modelId = undefined;
-    state.currentEvents = undefined;
-  }
-  sendJson(res, 200, { id });
+  if (permanent) await deleteSession(id, process.env);
+  else await setSessionTrashed(id, trashed, process.env);
+  clearActiveSession(state, id, permanent || trashed);
+  sendJson(res, 200, { id, trashed: permanent ? undefined : trashed, permanent });
 }
 
 export async function handleTools(state: DesktopState, res: http.ServerResponse): Promise<void> {

@@ -25,7 +25,7 @@ describe("desktop session management API", () => {
     await Promise.all([rm(home, { recursive: true, force: true }), rm(root, { recursive: true, force: true })]);
   });
 
-  it("renames, archives, restores, and deletes a persisted conversation", async () => {
+  it("renames, archives, restores, trashes, restores, and permanently deletes a persisted conversation", async () => {
     await saveSession("manage-me", TRANSCRIPT, { env: process.env, title: "Original title" });
     const server = createDesktopServer(root);
     await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
@@ -47,6 +47,15 @@ describe("desktop session management API", () => {
       expect((await loadSession("manage-me", process.env))?.messages).toEqual(TRANSCRIPT);
 
       expect((await post("/api/sessions/delete", { id: "manage-me" })).status).toBe(200);
+      const trashed = await (await fetch(`${base}/api/sessions`)).json() as Array<{ id: string; trashed?: boolean }>;
+      expect(trashed).toMatchObject([{ id: "manage-me", trashed: true }]);
+      const trashedSession = await loadSession("manage-me", process.env);
+      expect(trashedSession?.trashed).toBe(true);
+      expect(trashedSession?.archived).toBeUndefined();
+      expect(trashedSession?.messages).toEqual(TRANSCRIPT);
+      expect((await post("/api/sessions/delete", { id: "manage-me", trashed: false })).status).toBe(200);
+      expect((await loadSession("manage-me", process.env))?.trashed).toBeUndefined();
+      expect((await post("/api/sessions/delete", { id: "manage-me", permanent: true })).status).toBe(200);
       expect(await loadSession("manage-me", process.env)).toBeNull();
     } finally {
       await new Promise<void>((resolve) => server.close(() => resolve()));
@@ -59,16 +68,21 @@ describe("desktop session management API", () => {
     const address = server.address();
     if (!address || typeof address === "string") throw new Error("desktop server did not bind");
     try {
-      const response = await fetch(`http://127.0.0.1:${address.port}/api/sessions/rename`, {
+      const base = `http://127.0.0.1:${address.port}`;
+      const response = await fetch(`${base}/api/sessions/rename`, {
         method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: "x", title: "  " }),
       });
       expect(response.status).toBe(400);
+      const malformedTrash = await fetch(`${base}/api/sessions/delete`, {
+        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: "x", trashed: "yes" }),
+      });
+      expect(malformedTrash.status).toBe(400);
     } finally {
       await new Promise<void>((resolve) => server.close(() => resolve()));
     }
   });
 
-  it("clears the active desktop state when its persisted session is deleted", async () => {
+  it("clears the active desktop state when its persisted session moves to trash", async () => {
     await saveSession("active-delete", TRANSCRIPT, { env: process.env, title: "Active session" });
     const sessions = new Map([["active-browser", { root, sessionId: "active-delete", sessionStarted: "2026-07-13T00:00:00.000Z" }]]);
     const server = createDesktopServer(root, { sessions });
@@ -83,6 +97,7 @@ describe("desktop session management API", () => {
       });
       expect(response.status).toBe(200);
       expect(sessions.get("active-browser")).toMatchObject({ root, sessionId: undefined, sessionStarted: undefined });
+      expect(await loadSession("active-delete", process.env)).toMatchObject({ trashed: true, messages: TRANSCRIPT });
     } finally {
       await new Promise<void>((resolve) => server.close(() => resolve()));
     }
