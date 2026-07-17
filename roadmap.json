@@ -19173,7 +19173,7 @@
       "id": "RUNTIME-RESOURCE-USAGE-LEDGER",
       "track": "Infrastructure",
       "title": "Runtime resource usage ledger - local throughput and pressure beside provider cost",
-      "status": "horizon",
+      "status": "building",
       "size": "L",
       "summary": "Extend Vanta's existing usage ledger with controller, runtime, and model resource receipts: launch time, active minutes, prompt and generation throughput, memory/VRAM pressure, cache behavior, failures, and host attribution. Keep provider-reported token cost distinct from estimated local resource cost.",
       "done": "Each local or remote runtime turn records controller, engine, model/profile version, launch and request latency, tokens and throughput where reported, peak memory/VRAM, cache/context state, failure class, and active duration; aggregates can be filtered by task/model/host; missing telemetry is explicit; local estimates never masquerade as billed cost; redaction, retention, export, and performance-overhead tests pass.",
