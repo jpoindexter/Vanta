@@ -21,15 +21,19 @@ export async function promptSecret(rl: Readline, query: string): Promise<string>
   // the answer is typed hides the key. Typed-cast with a comment per house rules.
   const muted = rl as unknown as { _writeToOutput?: (s: string) => void };
   const original = muted._writeToOutput?.bind(rl);
+  const shouldUseRawMode = Boolean(process.stdin.isTTY && process.stdout.isTTY && process.stdin.setRawMode);
+  const wasRaw = process.stdin.isRaw;
   let hide = false;
   muted._writeToOutput = (s: string) => {
     if (!hide || s.includes("\n")) original?.(s);
   };
   hide = true;
   try {
+    if (shouldUseRawMode && !wasRaw) process.stdin.setRawMode(true);
     return (await rl.question(query)).trim();
   } finally {
     hide = false;
+    if (shouldUseRawMode && !wasRaw) process.stdin.setRawMode(false);
     if (original) muted._writeToOutput = original;
   }
 }

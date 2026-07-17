@@ -40,7 +40,7 @@ const USAGE_LINES = [
       "       vanta sessions | resume <id> [--fork-session]   list, resume, or fork a session",
       "       vanta setup                        complete guided wizard: model, messaging, MCP, personality, health",
       "       vanta setup model                  just the model/provider picker",
-      "       vanta setup messaging              configure a messaging gateway (Telegram, …)",
+      "       vanta setup messaging [platform]   configure a messaging gateway (for example: telegram)",
       "       vanta setup tts                    configure the voice/TTS provider (Edge keyless, OpenAI, ElevenLabs, local)",
       "       vanta voice wake [on|off|status|listen]   opt-in local Hey Vanta listener",
       "       vanta config <get|set|edit|check>  manage settings (~/.vanta/config.json; secrets → .env)",

@@ -1,9 +1,15 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+import { access, mkdtemp, mkdir, readFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { messagingPlatformById } from "./gateway/platforms/registry.js";
 import {
   buildMessagingEnv,
   renderMessagingMenu,
   renderSetupSteps,
+  runMessagingSetup,
+  validateTelegramAllowlist,
+  validateTelegramToken,
 } from "./setup-messaging.js";
 
 describe("buildMessagingEnv", () => {
@@ -20,6 +26,54 @@ describe("buildMessagingEnv", () => {
   it("omits the secret key when no secret is given", () => {
     const tg = messagingPlatformById("telegram")!;
     expect(buildMessagingEnv(tg)).toEqual({});
+  });
+});
+
+describe("Telegram setup validation", () => {
+  it("accepts BotFather token syntax and numeric owner allowlists", () => {
+    expect(validateTelegramToken(`123456:${"a".repeat(35)}`)).toBe(true);
+    expect(validateTelegramToken("123:abc")).toBe(false);
+    expect(validateTelegramAllowlist("123456,-100987")).toBe(true);
+    expect(validateTelegramAllowlist("@owner")).toBe(false);
+  });
+
+  it("verifies Telegram before writing the token and owner allowlist", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-telegram-setup-"));
+    await mkdir(join(root, "vanta-ts"), { recursive: true });
+    const token = `123456:${"a".repeat(35)}`;
+    const answers = ["123456,-100987"];
+    const rl = { question: vi.fn(async () => answers.shift() ?? ""), close: vi.fn() };
+    const probe = vi.fn(async () => ({ ok: true, detail: "Telegram bot vanta_test responded" }));
+    const lines: string[] = [];
+
+    await expect(runMessagingSetup(root, rl as never, {
+      platformId: "telegram",
+      env: {},
+      askSecret: async () => token,
+      probe,
+      log: (line) => lines.push(line),
+    })).resolves.toBe(true);
+
+    expect(probe).toHaveBeenCalledWith(expect.objectContaining({ VANTA_TELEGRAM_TOKEN: token }));
+    const written = await readFile(join(root, "vanta-ts", ".env"), "utf8");
+    expect(written).toContain(`VANTA_TELEGRAM_TOKEN=${token}`);
+    expect(written).toContain("VANTA_TELEGRAM_ALLOW=123456,-100987");
+    expect(lines.join("\n")).toContain("Verified Telegram bot vanta_test responded");
+  });
+
+  it("preserves disk state when Telegram verification fails", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-telegram-setup-fail-"));
+    await mkdir(join(root, "vanta-ts"), { recursive: true });
+    const rl = { question: vi.fn(), close: vi.fn() };
+
+    await expect(runMessagingSetup(root, rl as never, {
+      platformId: "telegram",
+      env: {},
+      askSecret: async () => `123456:${"b".repeat(35)}`,
+      probe: async () => ({ ok: false, detail: "Telegram token rejected" }),
+      log: () => {},
+    })).resolves.toBe(false);
+    await expect(access(join(root, "vanta-ts", ".env"))).rejects.toThrow();
   });
 });
 

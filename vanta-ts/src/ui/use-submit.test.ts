@@ -121,6 +121,13 @@ describe("useSubmit routing", () => {
     expect(h.send).toHaveBeenCalledWith("just a message");
   });
 
+  it("routes a natural-language Telegram setup question to the setup status command", () => {
+    const h = harness();
+    h.onSubmit("how do i setup telgram i dont see the / command");
+    expect(h.runSlash).toHaveBeenCalledWith("/setup messaging");
+    expect(h.send).not.toHaveBeenCalled();
+  });
+
   it("expands typed context refs and shows an expansion receipt", async () => {
     const h = harness();
     h.onSubmit("review @file:package.json:1-1");

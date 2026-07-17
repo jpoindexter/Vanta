@@ -25,10 +25,13 @@ The default is local **Ollama** (`qwen2.5:14b`) — no API key, runs offline.
 ## Messaging setup
 
 ```bash
-vanta setup messaging   # registry-driven wizard
+vanta setup messaging            # choose from the registry
+vanta setup messaging telegram   # go directly to Telegram
 ```
 
-Each platform shows an `[available | configured | planned]` status with numbered steps. **20 messaging adapters are wired** — five are live today (**Telegram · WhatsApp · Signal · Discord · Slack**), the rest are wired and configurable. For Telegram, paste a @BotFather token and it configures `VANTA_TELEGRAM_TOKEN` for you. See [Comms & gateway](./comms-and-gateway.md).
+Each platform shows an `[available | configured | planned]` status with numbered steps. **22 messaging adapters are registered**; every current catalog entry has a runtime adapter, while real delivery still depends on that platform's credentials, webhook, device, or service. Telegram setup recognizes an existing configuration before changing it, validates the @BotFather token against `getMe` before writing, and optionally stores a numeric owner allowlist in `VANTA_TELEGRAM_ALLOW`. A rejected token leaves the prior `.env` untouched.
+
+Inside interactive Vanta, `/setup` is a setup-status hub rather than a model-picker alias. Use `/setup messaging` or ask “how do I set up Telegram?” for the current Telegram state and one exact repair action. See [Comms & gateway](./comms-and-gateway.md).
 
 ## Other one-time setup
 

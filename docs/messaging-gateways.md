@@ -35,6 +35,10 @@ Extend with a messaging step / `vanta setup messaging`:
    link (Signal).
 Mirror `renderProviderMenu`/`runSetup`. No crashes on missing prereqs — explain them.
 
+### Telegram setup contract
+
+The targeted command is `vanta setup messaging telegram`. It recognizes an existing configuration before replacing it, validates the BotFather token format, calls `getMe` before persisting, and then collects the numeric owner/chat allowlist. Failed validation preserves the existing `.env`. Interactive `/setup` is a status hub; `/setup messaging` reports one of needs setup, configured but unusable, or ready, then gives one exact command. Telegram's native command menu remains deferred until the gateway owns every command it advertises.
+
 ## Reference patterns
 
 - **Code-based pairing (`MSG-PAIRING`).** Replace the static

@@ -171,7 +171,7 @@ export const COMMANDS: Record<string, CommandFn> = {
   autonomy: (root, rest) => runAutonomyCommand(root, rest),
   api: (root, rest) => runApiCommand(root, rest),
   home: (root) => runHomeCommand(dataDirFor(root)),
-  setup: async (root, rest) => { if (rest[0] === "messaging") await runMessagingSetup(root); else if (rest[0] === "tts") await runTtsSetup(root); else if (rest[0] === "model") await runSetup(root); else await runFullSetup(root); },
+  setup: async (root, rest) => { if (rest[0] === "messaging") await runMessagingSetup(root, undefined, { platformId: rest[1] }); else if (rest[0] === "tts") await runTtsSetup(root); else if (rest[0] === "model") await runSetup(root); else await runFullSetup(root); },
   status: async (root, rest) => {
     const serviceCode = await runServiceCommand(root, ["status"]);
     const healthCode = await runStatus(process.env, rest);

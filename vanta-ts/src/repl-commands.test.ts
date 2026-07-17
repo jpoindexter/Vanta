@@ -68,6 +68,14 @@ describe("runSlashCommand", () => {
     expect(out).toContain("gpt-4o-mini");
   });
 
+  it("/setup opens the setup hub rather than the model alias", async () => {
+    await runSlashCommand("/setup", makeCtx(home, []));
+    const out = log.mock.calls.flat().join("\n");
+    expect(out).toContain("Setup");
+    expect(out).toContain("Telegram");
+    expect(out).toContain("/setup messaging");
+  });
+
   it("/resume loads a saved session into the conversation", async () => {
     const saved: Message[] = [
       { role: "system", content: "old-sys" },
