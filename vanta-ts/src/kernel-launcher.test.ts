@@ -1,6 +1,10 @@
 import { EventEmitter } from "node:events";
 import { describe, expect, it, vi } from "vitest";
-import { registerKernelCleanup, rootScopedKernelPort } from "./kernel-launcher.js";
+import {
+  registerKernelCleanup,
+  resolveRootScopedKernelUrl,
+  rootScopedKernelPort,
+} from "./kernel-launcher.js";
 
 describe("rootScopedKernelPort", () => {
   it("is stable for one project and separates distinct projects from the default endpoint", () => {
@@ -10,6 +14,21 @@ describe("rootScopedKernelPort", () => {
     expect(first).toBeGreaterThanOrEqual(17_000);
     expect(first).toBeLessThan(21_000);
     expect(rootScopedKernelPort("/tmp/vanta-project-two")).not.toBe(first);
+  });
+
+  it("moves to the next scoped endpoint when the preferred port belongs to another project", async () => {
+    const root = "/tmp/vanta-current-project";
+    const preferred = rootScopedKernelPort(root);
+    const checked: string[] = [];
+    const resolved = await resolveRootScopedKernelUrl(root, async (url) => {
+      checked.push(url);
+      return url.endsWith(`:${preferred}`)
+        ? { status: "ready", root: "/tmp/vanta-other-project" }
+        : null;
+    });
+
+    expect(checked).toHaveLength(2);
+    expect(resolved).toBe(`http://127.0.0.1:${preferred + 1}`);
   });
 });
 

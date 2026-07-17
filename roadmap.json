@@ -18216,6 +18216,26 @@
       ]
     },
     {
+      "id": "DESKTOP-KERNEL-PORT-COLLISION-RECOVERY",
+      "track": "Desktop App",
+      "title": "Desktop kernel port collision recovery - Retry finds a safe project endpoint",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Prevent a temporary project or another valid Vanta workspace from blocking desktop startup when both roots hash to the same project-scoped kernel port.",
+      "done": "When the preferred scoped port advertises another project root, Vanta preserves that kernel, probes a bounded set of adjacent scoped endpoints, reuses an endpoint only when it advertises the requested root, starts the requested project on the first free endpoint, and Retry restores the desktop without a manual VANTA_KERNEL_URL override. Unit, live two-kernel, and packaged desktop startup proofs pass.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.6-terra",
+      "lens": "infra",
+      "updated": "2026-07-17",
+      "notes": "SHIPPED 2026-07-17: root cause reproduced in kernel-launcher.ts. The previous single SHA-256-derived endpoint aborted when another project advertised the same scoped port. Vanta now probes up to 20 deterministic scoped endpoints, reuses only a kernel advertising the requested root, and otherwise launches on the first endpoint without a Vanta owner. Executed proof: RED/GREEN collision unit test; 11 focused kernel/session tests; core and renderer typechecks; size gate; live two-kernel proof preserved the owner on 20259 and launched the requested root on 20260. The committed `npm run desktop:kernel-collision:smoke` rebuilt and Developer ID-signed Vanta.app, preserved the owner on 19066, launched the selected project on 19067, reached the renderer, and reported the packaged kernel online. All test-owned kernels were stopped afterward.",
+      "source": "desktop project-context startup failure 2026-07-17",
+      "after": [
+        "DESKTOP-FLOW-PROOF-SUITE"
+      ]
+    },
+    {
       "id": "DESKTOP-MODEL-PICKER-UX",
       "track": "Desktop App",
       "title": "Desktop model picker UX — searchable grouped selector with current/default clarity",

@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 
 type KernelStatus = { status?: string; root?: string };
+export type KernelStatusReader = (baseUrl: string) => Promise<KernelStatus | null>;
 
 const DEFAULT_KERNEL_URL = "http://127.0.0.1:7788";
 const ROOT_SCOPED_PORT_START = 17_000;
@@ -45,6 +46,44 @@ function statusMatchesRoot(status: KernelStatus | null, root: string): boolean {
 
 function localUrl(port: number): string {
   return `http://127.0.0.1:${port}`;
+}
+
+/** Resolve a bounded fallback endpoint without crossing another project's kernel. */
+export async function resolveRootScopedKernelUrl(
+  root: string,
+  readStatus: KernelStatusReader = statusAt,
+): Promise<string> {
+  const preferred = rootScopedKernelPort(root);
+  const attempts = 20;
+  for (let offset = 0; offset < attempts; offset++) {
+    const port = ROOT_SCOPED_PORT_START
+      + (preferred - ROOT_SCOPED_PORT_START + offset) % ROOT_SCOPED_PORT_RANGE;
+    const baseUrl = localUrl(port);
+    const status = await readStatus(baseUrl);
+    if (statusMatchesRoot(status, root) || !status) return baseUrl;
+  }
+  throw new Error(
+    `No free project-scoped kernel endpoint was found for ${normalizedRoot(root)} `
+      + `after checking ${attempts} candidates. Set VANTA_KERNEL_URL to a free endpoint for this project.`,
+  );
+}
+
+async function resolveKernelEndpoint(baseUrl: string, root: string): Promise<{
+  baseUrl: string;
+  ready: boolean;
+}> {
+  const normalizedBaseUrl = normalizedUrl(baseUrl);
+  const existing = await statusAt(normalizedBaseUrl);
+  if (statusMatchesRoot(existing, root)) return { baseUrl: normalizedBaseUrl, ready: true };
+  if (!existing) return { baseUrl: normalizedBaseUrl, ready: false };
+  if (!isDefaultKernelUrl(normalizedBaseUrl)) {
+    throw new Error(
+      `VANTA_KERNEL_URL points to a kernel for ${existing.root ?? "an unknown root"}, not ${normalizedRoot(root)}. `
+      + "Stop that kernel or set VANTA_KERNEL_URL to the kernel for this project.",
+    );
+  }
+  const scopedUrl = await resolveRootScopedKernelUrl(root);
+  return { baseUrl: scopedUrl, ready: statusMatchesRoot(await statusAt(scopedUrl), root) };
 }
 
 type RuntimeExitEmitter = {
@@ -93,29 +132,9 @@ export async function ensureKernel(opts: {
   root: string;
   ephemeral?: boolean;
 }): Promise<string> {
-  const existing = await statusAt(opts.baseUrl);
-  if (statusMatchesRoot(existing, opts.root)) return normalizedUrl(opts.baseUrl);
-
-  if (existing && !isDefaultKernelUrl(opts.baseUrl)) {
-    throw new Error(
-      `VANTA_KERNEL_URL points to a kernel for ${existing.root ?? "an unknown root"}, not ${normalizedRoot(opts.root)}. ` +
-      "Stop that kernel or set VANTA_KERNEL_URL to the kernel for this project.",
-    );
-  }
-
-  let baseUrl = normalizedUrl(opts.baseUrl);
-  if (existing) {
-    const port = rootScopedKernelPort(opts.root);
-    baseUrl = localUrl(port);
-    const scoped = await statusAt(baseUrl);
-    if (statusMatchesRoot(scoped, opts.root)) return baseUrl;
-    if (scoped) {
-      throw new Error(
-        `The project-scoped kernel port ${port} is already owned by ${scoped.root ?? "another process"}. ` +
-        "Set VANTA_KERNEL_URL to a free kernel endpoint for this project.",
-      );
-    }
-  }
+  const endpoint = await resolveKernelEndpoint(opts.baseUrl, opts.root);
+  if (endpoint.ready) return endpoint.baseUrl;
+  const baseUrl = endpoint.baseUrl;
 
   if (!existsSync(opts.kernelBin)) {
     throw new Error(

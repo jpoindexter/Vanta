@@ -18,6 +18,7 @@
     "desktop:build": "vite build --config desktop-app/vite.config.ts",
     "desktop:native": "npm run desktop:build && electron desktop-app/electron/main.mjs",
     "desktop:native:smoke": "npm run desktop:build && electron desktop-app/electron/main.mjs --smoke",
+    "desktop:kernel-collision:smoke": "npm run desktop:pack && node scripts/desktop-kernel-collision-smoke.mjs",
     "desktop:devtools:smoke": "npm run desktop:build && node scripts/desktop-devtools-detached-smoke.mjs",
     "desktop:host:test": "node --test desktop-app/electron/project-root.node-test.mjs desktop-app/electron/runtime-paths.node-test.mjs && vitest run desktop-app/electron/tray.test.mjs",
     "desktop:kernel": "bash scripts/prepare-desktop-kernel.sh",
