@@ -9,7 +9,15 @@ from pathlib import Path
 import modal
 
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
+def resolve_repo_root(source: Path) -> Path:
+    """Find the build root locally and retain a stable runtime fallback on Modal."""
+    for candidate in source.parents:
+        if (candidate / "Dockerfile.modal-gateway").is_file():
+            return candidate
+    return Path("/workspace")
+
+
+REPO_ROOT = resolve_repo_root(Path(__file__).resolve())
 APP_NAME = os.environ.get("VANTA_MODAL_GATEWAY_APP", "vanta-gateway")
 SECRET_NAME = os.environ.get("VANTA_MODAL_GATEWAY_SECRET", "vanta-gateway")
 TELEGRAM_SECRET_NAME = os.environ.get("VANTA_MODAL_GATEWAY_TELEGRAM_SECRET", "vanta-gateway-telegram")
@@ -72,7 +80,7 @@ def gateway() -> None:
     home_data = Path("/data/home")
     project_data.mkdir(parents=True, exist_ok=True)
     home_data.mkdir(parents=True, exist_ok=True)
-    project_link = Path("/workspace/.vanta")
+    project_link = Path("/workspace/vanta-ts/.vanta")
     if not project_link.exists():
         project_link.symlink_to(project_data, target_is_directory=True)
 
@@ -87,6 +95,15 @@ def gateway() -> None:
             "VANTA_NO_TUI": "1",
         }
     )
+    provider = env.get("VANTA_PROVIDER", "openai")
+    required_key = {
+        "openai": "OPENAI_API_KEY",
+        "anthropic": "ANTHROPIC_API_KEY",
+        "gemini": "GEMINI_API_KEY",
+        "openrouter": "OPENROUTER_API_KEY",
+    }.get(provider)
+    provider_state = "ready" if required_key is None or env.get(required_key) else f"missing {required_key}"
+    print(f"vanta gateway: provider {provider} {provider_state}", flush=True)
     subprocess.Popen(
         ["node", "--import", "tsx", "src/cli.ts", "gateway"],
         cwd="/workspace/vanta-ts",
