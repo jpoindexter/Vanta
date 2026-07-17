@@ -94,6 +94,21 @@ describe("runtime engine lifecycle", () => {
     expect((await readRuntimeLifecycleReceipts(root)).at(-1)?.transition).toBe("stale_process");
   });
 
+  it("resolves secret references only at process launch and reports unresolved secrets accurately", async () => {
+    const root = mkdtempSync(join(tmpdir(), "vanta-runtime-secret-")); roots.push(root);
+    const server = await proofServer();
+    const process = processPort();
+    const input = { ...spec("llama_cpp", server.port), environment: { MODEL_TOKEN: "secret://runtime/model-token" } };
+    await manager(root, process, { resolveSecret: async (reference: string) => reference === "secret://runtime/model-token" ? "resolved-token" : "" }).launch(input);
+    expect(process.start).toHaveBeenCalledWith("llama-server", expect.any(Array), { MODEL_TOKEN: "resolved-token" });
+
+    const missingRoot = mkdtempSync(join(tmpdir(), "vanta-runtime-secret-missing-")); roots.push(missingRoot);
+    const missingProcess = processPort();
+    await expect(manager(missingRoot, missingProcess).launch(input)).rejects.toThrow("secret_unresolved");
+    expect(missingProcess.start).not.toHaveBeenCalled();
+    expect((await readRuntimeLifecycleReceipts(missingRoot)).at(-1)).toMatchObject({ transition: "failed", code: "secret_unresolved" });
+  });
+
   it.each(["vllm", "sglang"] as const)("passes the same contract fixture for remote %s without marking it production-supported", async (backend) => {
     const root = mkdtempSync(join(tmpdir(), `vanta-runtime-${backend}-`)); roots.push(root);
     const server = await proofServer();

@@ -13,6 +13,8 @@ export const RuntimeLaunchSpecSchema = z.object({
   modelBytes: z.number().int().positive(),
   availableMemoryBytes: z.number().int().positive(),
   retainOnFailure: z.boolean().default(false),
+  extraArgs: z.array(z.string()).optional(),
+  environment: z.record(z.string(), z.string()).optional(),
 });
 export type RuntimeLaunchSpec = z.infer<typeof RuntimeLaunchSpecSchema>;
 
@@ -23,6 +25,7 @@ export const RuntimeLaunchPreviewSchema = z.object({
   support: z.enum(["supported", "contract_only"]),
   command: z.string().min(1),
   args: z.array(z.string()),
+  environment: z.record(z.string(), z.string()).optional(),
   endpoint: z.string().url(),
   commandHash: z.string().regex(/^[a-f0-9]{64}$/),
   resource: z.object({ estimatedMemoryBytes: z.number().int().positive(), availableMemoryBytes: z.number().int().positive(), headroomBytes: z.number().int(), fits: z.boolean() }),
@@ -41,6 +44,8 @@ export const RuntimeProcessStateSchema = z.object({
   modelBytes: z.number().int(),
   availableMemoryBytes: z.number().int(),
   retainOnFailure: z.boolean(),
+  extraArgs: z.array(z.string()).optional(),
+  environment: z.record(z.string(), z.string()).optional(),
   commandHash: z.string(),
   pid: z.number().int().positive().optional(),
   status: z.enum(["starting", "running", "failed", "stopping", "stopped"]),
@@ -58,7 +63,7 @@ export const RuntimeLifecycleReceiptSchema = z.object({
 export type RuntimeLifecycleReceipt = z.infer<typeof RuntimeLifecycleReceiptSchema>;
 
 export type RuntimeProcessPort = {
-  start(command: string, args: readonly string[]): Promise<{ pid: number }>;
+  start(command: string, args: readonly string[], environment?: Readonly<Record<string, string>>): Promise<{ pid: number }>;
   alive(pid: number): Promise<boolean>;
   stop(pid: number): Promise<void>;
 };

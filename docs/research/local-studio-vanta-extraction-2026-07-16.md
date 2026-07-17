@@ -98,5 +98,8 @@ Visual receipts:
 3. **Shipped 2026-07-17:** render the compact runtime strip in the existing shell. See `desktop-runtime-controller-strip-2026-07-17.md`.
 4. **Shipped 2026-07-17:** turn Runtime into an operational detail tray with lifecycle actions, resource fit, command evidence, and bounded logs. See `desktop-runtime-detail-tray-2026-07-17.md`.
 5. **Shipped 2026-07-17:** build the hardware-to-first-inference setup flow against one supported local backend. See `local-model-first-inference-wizard-2026-07-17.md`.
-6. Add prompt markers, reading-position persistence, and the queued-turn editor to Work.
-7. Join runtime telemetry to the existing usage ledger and release proof suite.
+6. **Shipped 2026-07-17:** add prompt markers, reading-position persistence, and measured transcript virtualization to Work. See `desktop-long-session-navigation-2026-07-17.md`.
+7. **Shipped 2026-07-17:** add the durable queued-turn editor with edit, reorder, steer, cancel, race, and restart recovery. See `desktop-queued-turn-editor-2026-07-17.md`.
+8. **Shipped 2026-07-17:** add versioned runtime profiles with host/resource validation, safe advanced controls, secret references, and command round-trip proof. See `local-runtime-profiles-2026-07-17.md`.
+9. Add the durable model download queue and storage controls.
+10. Join runtime telemetry to the existing usage ledger and release proof suite.

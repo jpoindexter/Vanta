@@ -49,6 +49,28 @@ export type RuntimeHostSnapshot = {
 };
 export type DesktopRuntime = { selectedHostId: string; hosts: RuntimeHostSnapshot[] };
 export type RuntimeAction = "launch" | "stop" | "retry" | "reconnect";
+export type RuntimeProfileRecord = {
+  version: 2; id: string; name: string; backend: "mlx" | "llama_cpp" | "vllm" | "sglang";
+  model: { path: string; bytes: number }; endpoint: { host: string; port: number; reviewedRemoteBind: boolean };
+  resources: { contextTokens: number; availableMemoryBytes: number };
+  performance: Record<string, number | boolean | undefined>;
+  environment: Array<{ name: string; value?: string; secretRef?: string }>;
+  extraArgs: Array<{ flag: string; value?: string; reviewed: boolean }>;
+  policyScope: AccessMode; compatibility: { platforms: string[]; architectures: string[] };
+};
+export type RuntimeProfileIssue = { code: string; severity: "error" | "review"; field: string; message: string; recovery: string };
+export type RuntimeProfileItem = {
+  profile: RuntimeProfileRecord;
+  validation: { valid: boolean; compatible: boolean; issues: RuntimeProfileIssue[]; resource?: RuntimeHostSnapshot["detail"]["resourceFit"] };
+  preview: { command: string; args: string[]; environment?: Record<string, string>; commandHash: string; resource: NonNullable<RuntimeHostSnapshot["detail"]["resourceFit"]> };
+  roundTrip: boolean;
+};
+export type RuntimeProfilePayload = {
+  selectedId: string | null;
+  host: { platform: string; architecture: string; memoryBytes: number };
+  profiles: RuntimeProfileItem[];
+  export?: string;
+};
 export type DesktopRunFailureKind = "setup" | "tool" | "model" | "model_mismatch" | "user_denied" | "interrupted" | "unknown";
 export type DesktopRunReceipt = {
   status: "done" | "failed" | "interrupted";

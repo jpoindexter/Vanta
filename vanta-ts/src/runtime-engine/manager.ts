@@ -26,6 +26,7 @@ type ManagerOptions = {
   healthAttempts?: number;
   healthIntervalMs?: number;
   enableContractOnly?: boolean;
+  resolveSecret?: (reference: string) => Promise<string>;
 };
 
 type Completion = { text: string; latencyMs: number; outputTokens: number };
@@ -37,8 +38,8 @@ const receiptPath = (root: string): string => join(stateDir(root), "receipts.jso
 
 function nodeProcessPort(): RuntimeProcessPort {
   return {
-    start: async (command, args) => {
-      const child = spawnChild(command, [...args], { detached: true, stdio: "ignore" });
+    start: async (command, args, environment) => {
+      const child = spawnChild(command, [...args], { detached: true, stdio: "ignore", ...(environment ? { env: { ...process.env, ...environment } } : {}) });
       if (!child.pid) throw new RuntimeFailure("spawn_failed");
       child.unref();
       return { pid: child.pid };
@@ -108,11 +109,20 @@ export function createRuntimeLifecycleManager(options: ManagerOptions): RuntimeL
   }
 
   function initialState(spec: RuntimeLaunchSpec, preview: RuntimeLaunchPreview, status: RuntimeProcessState["status"], pid?: number): RuntimeProcessState {
-    return RuntimeProcessStateSchema.parse({ version: 1, runtimeId: spec.id, backend: spec.backend, model: spec.model, host: spec.host, port: spec.port, contextTokens: spec.contextTokens, modelBytes: spec.modelBytes, availableMemoryBytes: spec.availableMemoryBytes, retainOnFailure: spec.retainOnFailure, commandHash: preview.commandHash, pid, status, updatedAt: now().toISOString() });
+    return RuntimeProcessStateSchema.parse({ version: 1, runtimeId: spec.id, backend: spec.backend, model: spec.model, host: spec.host, port: spec.port, contextTokens: spec.contextTokens, modelBytes: spec.modelBytes, availableMemoryBytes: spec.availableMemoryBytes, retainOnFailure: spec.retainOnFailure, extraArgs: spec.extraArgs ?? [], environment: spec.environment ?? {}, commandHash: preview.commandHash, pid, status, updatedAt: now().toISOString() });
   }
 
   function specFromState(state: RuntimeProcessState): RuntimeLaunchSpec {
-    return RuntimeLaunchSpecSchema.parse({ id: state.runtimeId, backend: state.backend, model: state.model, host: state.host, port: state.port, contextTokens: state.contextTokens, modelBytes: state.modelBytes, availableMemoryBytes: state.availableMemoryBytes, retainOnFailure: state.retainOnFailure });
+    return RuntimeLaunchSpecSchema.parse({ id: state.runtimeId, backend: state.backend, model: state.model, host: state.host, port: state.port, contextTokens: state.contextTokens, modelBytes: state.modelBytes, availableMemoryBytes: state.availableMemoryBytes, retainOnFailure: state.retainOnFailure, extraArgs: state.extraArgs, environment: state.environment });
+  }
+
+  async function resolveEnvironment(environment: Record<string, string>): Promise<Record<string, string>> {
+    const entries = await Promise.all(Object.entries(environment).map(async ([name, value]) => {
+      if (!value.startsWith("secret://")) return [name, value] as const;
+      if (!options.resolveSecret) throw new RuntimeFailure("secret_unresolved");
+      return [name, await options.resolveSecret(value)] as const;
+    }));
+    return Object.fromEntries(entries);
   }
 
   async function launch(input: RuntimeLaunchSpec) {
@@ -131,10 +141,17 @@ export function createRuntimeLifecycleManager(options: ManagerOptions): RuntimeL
     await receipt(preview, "starting");
     let state: RuntimeProcessState;
     try {
-      const started = await processPort.start(preview.command, preview.args);
+      const environment = await resolveEnvironment(spec.environment ?? {});
+      const started = Object.keys(environment).length
+        ? await processPort.start(preview.command, preview.args, environment)
+        : await processPort.start(preview.command, preview.args);
       state = initialState(spec, preview, "starting", started.pid);
       await atomicState(options.root, state);
-    } catch { await receipt(preview, "failed", "spawn_failed"); throw new RuntimeFailure("spawn_failed"); }
+    } catch (error) {
+      const code = error instanceof RuntimeFailure ? error.code : "spawn_failed";
+      await receipt(preview, "failed", code);
+      throw new RuntimeFailure(code);
+    }
 
     try {
       await waitHealthy(preview.endpoint);

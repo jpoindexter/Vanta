@@ -19133,7 +19133,7 @@
       "id": "LOCAL-RUNTIME-PROFILES",
       "track": "Infrastructure",
       "title": "Local runtime profiles - reusable backend, model, resource, and command contracts",
-      "status": "building",
+      "status": "shipped",
       "size": "L",
       "summary": "Represent local model launch configuration as versioned Vanta profiles with backend-aware safe defaults, resource estimates, environment and performance controls, command preview, portability, and policy scope.",
       "done": "Operators can create, clone, validate, export, import, and select profiles for supported engines; required and advanced fields are progressively disclosed; resource fit updates before launch; unsafe or unknown flags require explicit review; secrets are referenced rather than embedded; generated commands round-trip through the lifecycle adapter; profile migrations, invalid configs, and cross-host incompatibility have fixtures and recovery copy.",

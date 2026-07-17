@@ -1,12 +1,14 @@
 import { _electron as electron } from "playwright-core";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
-const port = process.env.VANTA_DESKTOP_RUNTIME_SMOKE_PORT ?? "7823";
+const port = process.env.VANTA_DESKTOP_SMOKE_PORT ?? process.env.VANTA_DESKTOP_RUNTIME_SMOKE_PORT ?? "7823";
 const userData = await mkdtemp(join(tmpdir(), "vanta-desktop-runtime-profile-"));
+const executablePath = process.env.VANTA_DESKTOP_APP;
 const app = await electron.launch({
-  args: ["desktop-app/electron/main.mjs"],
+  ...(executablePath ? { executablePath } : {}),
+  args: executablePath ? ["--project", resolve(process.cwd(), "..")] : ["desktop-app/electron/main.mjs"],
   cwd: process.cwd(),
   env: {
     ...process.env,
@@ -22,6 +24,11 @@ const local = runtimeHost({ id: "local", label: "Local Mac", kind: "local", engi
 const remote = runtimeHost({ id: "remote-fixture", label: "Remote Fixture", kind: "remote", engine: "vllm", model: "qwen-remote", kernel: "not_ready", status: "degraded", pressure: 72, throughput: 18.4, queue: 1 });
 let selectedHostId = "local";
 let failStopOnce = true;
+let selectedProfileId = "daily";
+const runtimeProfiles = [
+  runtimeProfile({ id: "daily", name: "Daily local", model: "/models/qwen.gguf", bytes: 8 * 1024 ** 3, estimated: 9 * 1024 ** 3 }),
+  runtimeProfile({ id: "fast", name: "Fast draft", model: "/models/qwen-fast.gguf", bytes: 4 * 1024 ** 3, estimated: 5 * 1024 ** 3 }),
+];
 
 try {
   const page = await app.firstWindow();
@@ -37,6 +44,16 @@ try {
       else selectedHostId = body.hostId;
     }
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ selectedHostId, hosts: [local, remote] }) });
+  });
+  await page.route("**/api/runtime/profiles", async (route) => {
+    let exported;
+    if (route.request().method() === "POST") {
+      const body = route.request().postDataJSON();
+      if (body.action === "select") selectedProfileId = body.id;
+      if (body.action === "clone") runtimeProfiles.push({ ...runtimeProfiles.find((item) => item.profile.id === body.id), profile: { ...runtimeProfiles.find((item) => item.profile.id === body.id).profile, id: body.newId, name: body.name } });
+      if (body.action === "export") exported = JSON.stringify(runtimeProfiles.find((item) => item.profile.id === body.id)?.profile);
+    }
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ selectedId: selectedProfileId, host: { platform: "darwin", architecture: "arm64", memoryBytes: 24 * 1024 ** 3 }, profiles: runtimeProfiles, ...(exported ? { export: exported } : {}) }) });
   });
   await page.locator(".app-shell").waitFor({ timeout: 20_000 });
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -64,6 +81,26 @@ try {
   for (const text of ["Launch command", "llama-server", "Resource fit", "Benchmark", "Recent lifecycle"]) {
     if (!await dialog.getByText(text, { exact: false }).count()) throw new Error(`runtime detail missing ${text}`);
   }
+  const profilePanel = dialog.locator("details.runtime-profiles-panel");
+  await profilePanel.locator(":scope > summary").click();
+  await profilePanel.getByPlaceholder("Search profiles").fill("Fast");
+  await profilePanel.getByRole("button", { name: /Fast draft/ }).click();
+  await profilePanel.getByText("llama-server --model /models/qwen-fast.gguf").waitFor();
+  await profilePanel.getByText("5.0 GB estimated").waitFor();
+  await profilePanel.getByRole("button", { name: "Use profile" }).click();
+  await profilePanel.getByText("Fast draft").first().waitFor();
+  await profilePanel.getByPlaceholder("Search profiles").fill("");
+  await profilePanel.getByRole("button", { name: /Daily local/ }).click();
+  await profilePanel.getByRole("button", { name: "New" }).click();
+  await profilePanel.getByLabel("Model path").waitFor();
+  const advanced = profilePanel.locator("details").filter({ hasText: "Advanced controls" });
+  if (await advanced.getAttribute("open") !== null) throw new Error("advanced runtime profile controls should start collapsed");
+  await advanced.locator(":scope > summary").click();
+  await profilePanel.getByLabel("Policy").waitFor();
+  await profilePanel.getByLabel("Threads").waitFor();
+  await profilePanel.getByLabel("Environment references").waitFor();
+  await profilePanel.getByLabel("Unknown flags reviewed").waitFor();
+  await profilePanel.getByRole("button", { name: "Cancel" }).click();
   const stop = dialog.getByRole("button", { name: "Stop" });
   await stop.click();
   await dialog.getByRole("alert").getByText("fixture stop failed").waitFor();
@@ -107,7 +144,7 @@ try {
   if (compactOverlay.scrollWidth > compactOverlay.clientWidth + 1) throw new Error(`compact runtime tray scrolls horizontally: ${JSON.stringify(compactOverlay)}`);
   if (process.env.VANTA_DESKTOP_RUNTIME_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_RUNTIME_SCREENSHOT });
 
-  console.log(JSON.stringify({ ok: true, dark, light, compact, compactOverlay, screenReader, launch: true, stop: true, failure: true, reconnect: true, draftPreserved: true, keyboardClose: true }));
+  console.log(JSON.stringify({ ok: true, dark, light, compact, compactOverlay, screenReader, launch: true, stop: true, failure: true, reconnect: true, profiles: { search: true, selected: selectedProfileId, evidence: true, progressiveDisclosure: true }, draftPreserved: true, keyboardClose: true }));
 } finally {
   await app.close();
   await rm(userData, { recursive: true, force: true });
@@ -132,6 +169,21 @@ function runtimeHost(input) {
       logs: [{ at: "2026-07-17T12:00:00.000Z", transition: input.status === "running" ? "running" : "degraded" }],
       actions: input.kind === "local" ? ["stop", "reconnect"] : ["reconnect"],
     },
+  };
+}
+
+function runtimeProfile(input) {
+  return {
+    profile: {
+      version: 2, id: input.id, name: input.name, backend: "llama_cpp", policyScope: "ask",
+      model: { path: input.model, bytes: input.bytes }, resources: { contextTokens: 8192, availableMemoryBytes: 24 * 1024 ** 3 },
+    },
+    validation: { valid: true, compatible: true, issues: [] },
+    preview: {
+      command: "llama-server", args: ["--model", input.model, "--ctx-size", "8192"],
+      resource: { estimatedMemoryBytes: input.estimated, availableMemoryBytes: 24 * 1024 ** 3, headroomBytes: 24 * 1024 ** 3 - input.estimated, fits: true },
+    },
+    roundTrip: true,
   };
 }
 

@@ -24,6 +24,7 @@ const USAGE_LINES = [
       "       vanta deep-plan create|revise|approve|start   revisionable plan docs with approval gate",
       "       vanta runtime start --fleet <id> --worker <id> --port <n> --command <cmd>   start a preview bound to a fleet worktree",
       "       vanta local-model setup|status [--yes] [--json]   detect hardware, download, launch, and verify a local model",
+      "       vanta local-model profiles <command>               create, validate, import, export, and select runtime profiles",
       "       vanta backend [status|verify|gateway]   inspect, deploy, or live-prove the selected execution backend",
       "       vanta run-anywhere status|proof-packet [--json] [--check-release]   aggregate or package Modal/Teams/Termux proof readiness",
       "       vanta a2a autonomous-status [--json]   check Docker/image/auth/proof readiness for boxed autonomous builds",

@@ -3,6 +3,7 @@ import { createFirstInferenceWizard, FirstInferenceModelSchema, QWEN_05B_Q4_K_M,
 import { createKernelClient, type KernelClient } from "../kernel/client.js";
 import { createRuntimeLifecycleManager } from "../runtime-engine/manager.js";
 import type { FirstInferenceModel } from "../first-inference/types.js";
+import { runRuntimeProfileCommand } from "./runtime-profile-cmd.js";
 
 type LocalModelDeps = {
   log?: (line: string) => void;
@@ -45,6 +46,7 @@ async function terminalConfirm(question: string): Promise<boolean> {
 function usage(log: (line: string) => void): number {
   log("Usage: vanta local-model setup [--yes] [--json] [--port <n>]");
   log("       vanta local-model status [--json]");
+  log("       vanta local-model profiles list|show|create|clone|validate|select|export|import");
   log("       Custom model: --model-id --model-url --sha256 --bytes --filename [--context]");
   return 1;
 }
@@ -130,6 +132,7 @@ async function runSetup(root: string, rest: string[], deps: LocalModelDeps, log:
 export async function runLocalModelCommand(root: string, rest: string[], deps: LocalModelDeps = {}): Promise<number> {
   const log = deps.log ?? console.log;
   const [command = "setup"] = rest;
+  if (command === "profiles") return runRuntimeProfileCommand(root, rest.slice(1), { log });
   if (command === "status") return runStatus(root, rest.includes("--json"), log);
   if (command !== "setup") return usage(log);
   return runSetup(root, rest, deps, log);

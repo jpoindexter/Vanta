@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Cpu, Gauge, HardDrive, ListTree, Play, RefreshCw, RotateCcw, Server, ShieldCheck, Square, X } from "lucide-react";
 import type { DesktopRuntime, RuntimeAction, RuntimeHostSnapshot } from "./types.js";
+import { RuntimeProfilesPanel } from "./runtime-profiles.js";
 
 export function RuntimeStrip(props: { runtime: DesktopRuntime; onSelect: (hostId: string) => Promise<void>; onAction: (hostId: string, action: RuntimeAction) => Promise<void> }) {
   const [open, setOpen] = useState(false);
@@ -107,6 +108,7 @@ export function RuntimeDetail(props: {
     <header><div><span>Session runtime</span><strong>{props.selected.host.label}</strong></div><button type="button" onClick={props.onClose} aria-label="Close runtime details"><X size={15} /></button></header>
     <RuntimeFacts runtime={props.selected} />
     <RuntimeEvidence runtime={props.selected} />
+    <RuntimeProfilesPanel />
     <RuntimeControls runtime={props.selected} pending={props.pending} lastAction={props.lastAction} onAction={props.onAction} />
     <div className="runtime-host-switcher" role="group" aria-label="Switch runtime host">
       <span>Run this session on</span>

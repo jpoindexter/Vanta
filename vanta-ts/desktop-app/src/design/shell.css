@@ -464,6 +464,24 @@
 .runtime-evidence .tone-good { color: var(--ok); }
 .runtime-evidence .tone-bad { color: var(--danger); }
 
+.runtime-profiles-panel { border-bottom: 1px solid var(--line); }
+.runtime-profiles-panel > summary { min-height: 36px; display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--faint); padding: 8px 10px; font-size: 9px; text-transform: uppercase; }
+.runtime-profiles-panel > summary strong { margin-inline-start: auto; color: var(--text); font-size: 10px; text-transform: none; }
+.runtime-profile-body { display: grid; gap: 8px; border-top: 1px solid var(--line); padding: 10px; }
+.runtime-profile-body > header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
+.runtime-profile-body input, .runtime-profile-body select, .runtime-profile-body textarea { min-width: 0; min-height: 30px; border: 1px solid var(--line); border-radius: var(--radius-xs); background: var(--bg); color: var(--text); padding: 5px 8px; font-size: 10px; }
+.runtime-profile-body button, .runtime-profile-import { min-height: 30px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; border: 1px solid var(--line); border-radius: var(--radius-xs); background: transparent; color: var(--text); padding: 5px 8px; font-size: 10px; }
+.runtime-profile-list { max-height: 126px; margin: 0; overflow: auto; padding: 0; list-style: none; }
+.runtime-profile-list button { width: 100%; justify-content: space-between; border-width: 0 0 1px; border-radius: 0; text-align: start; }
+.runtime-profile-list button[aria-pressed="true"] { background: var(--raised); }
+.runtime-profile-list button span { min-width: 0; display: grid; gap: 2px; }.runtime-profile-list small { overflow: hidden; color: var(--faint); text-overflow: ellipsis; white-space: nowrap; }
+.runtime-profile-evidence { display: grid; gap: 7px; border-top: 1px solid var(--line); padding-top: 9px; }
+.runtime-profile-evidence > div:first-child { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }.runtime-profile-evidence > div:first-child span { color: var(--faint); font-size: 9px; }
+.runtime-profile-evidence pre { max-height: 72px; margin: 0; overflow: auto; font: 9px/1.5 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; }.runtime-profile-evidence p { margin: 0; font-size: 9px; }.runtime-profile-evidence .runtime-profile-issue { color: var(--danger); }
+.runtime-profile-evidence > div:last-child, .runtime-profile-form > div { display: flex; flex-wrap: wrap; gap: 6px; }
+.runtime-profile-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; border-block: 1px solid var(--line); padding-block: 9px; }.runtime-profile-form label { min-width: 0; display: grid; gap: 4px; color: var(--faint); font-size: 9px; }.runtime-profile-form label input, .runtime-profile-form label select, .runtime-profile-form label textarea { width: 100%; }.runtime-profile-form label textarea { min-height: 56px; resize: vertical; }.runtime-profile-form > details, .runtime-profile-form > div { grid-column: 1 / -1; }.runtime-profile-form details > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; padding-top: 7px; }.runtime-profile-form fieldset { display: grid; gap: 5px; border: 1px solid var(--line); padding: 7px; }.runtime-profile-form fieldset label { grid-template-columns: auto minmax(0, 1fr); align-items: center; }.runtime-profile-form fieldset input { width: auto; min-height: 0; }
+.runtime-profile-import { justify-self: start; cursor: pointer; }.runtime-profile-import input { display: none; }
+
 .runtime-actions {
   display: flex;
   align-items: center;
@@ -621,6 +639,10 @@
   .runtime-host-switcher { grid-template-columns: 1fr; }
   .runtime-actions { flex-wrap: wrap; }
   .runtime-actions > span { flex-basis: 100%; }
+  .runtime-profile-form,
+  .runtime-profile-form details > div { grid-template-columns: minmax(0, 1fr); }
+  .runtime-profile-body > header { grid-template-columns: minmax(0, 1fr); }
+  .runtime-profile-body > header button { justify-self: start; }
 
   .titlebar-identity {
     padding-right: 6px;

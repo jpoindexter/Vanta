@@ -16,6 +16,9 @@ import type { RuntimeLifecycleManager, RuntimeLaunchSpec } from "../runtime-engi
 import { createRuntimeLifecycleManager } from "../runtime-engine/manager.js";
 import { runtimeLaunchPreview } from "../runtime-engine/profiles.js";
 import { createKernelClient } from "../kernel/client.js";
+import { runtimeProfileLaunchContract } from "../runtime-engine/profile-contract.js";
+import { readSelectedRuntimeProfile } from "../runtime-engine/profile-store.js";
+import { defaultExec, getScopedSecret } from "../secrets/provider.js";
 
 export type DesktopRuntimeSessionState = {
   root: string;
@@ -93,7 +96,7 @@ function lifecycleFor(state: RuntimeProcessState | null): RuntimeObservation["en
 }
 
 function launchSpec(state: RuntimeProcessState): RuntimeLaunchSpec {
-  return { id: state.runtimeId, backend: state.backend, model: state.model, host: state.host, port: state.port, contextTokens: state.contextTokens, modelBytes: state.modelBytes, availableMemoryBytes: state.availableMemoryBytes, retainOnFailure: state.retainOnFailure };
+  return { id: state.runtimeId, backend: state.backend, model: state.model, host: state.host, port: state.port, contextTokens: state.contextTokens, modelBytes: state.modelBytes, availableMemoryBytes: state.availableMemoryBytes, retainOnFailure: state.retainOnFailure, extraArgs: state.extraArgs, environment: state.environment };
 }
 
 function approvalState(receipts: Awaited<ReturnType<typeof readRuntimeLifecycleReceipts>>): DesktopRuntimeDetail["approval"] {
@@ -105,19 +108,25 @@ function approvalState(receipts: Awaited<ReturnType<typeof readRuntimeLifecycleR
   return "not_required";
 }
 
-function availableActions(state: RuntimeProcessState | null): DesktopRuntimeDetail["actions"] {
-  if (!state) return ["reconnect"];
+function availableActions(state: RuntimeProcessState | null, configured = false): DesktopRuntimeDetail["actions"] {
+  if (!state) return configured ? ["launch", "reconnect"] : ["reconnect"];
   if (state.status === "running") return ["stop", "reconnect"];
   if (state.status === "failed") return ["retry", "stop", "reconnect"];
   if (state.status === "stopped") return ["launch", "reconnect"];
   return ["reconnect"];
 }
 
+async function selectedProfileContract(root: string) {
+  const profile = await readSelectedRuntimeProfile(root);
+  return profile ? runtimeProfileLaunchContract(profile, { platform: process.platform, architecture: process.arch, memoryBytes: totalmem() }) : null;
+}
+
 async function localDetail(root: string, state: RuntimeProcessState | null, owner: string): Promise<DesktopRuntimeDetail> {
   const receipts = state ? (await readRuntimeLifecycleReceipts(root)).filter((entry) => entry.runtimeId === state.runtimeId) : [];
   const benchmark = [...receipts].reverse().find((entry) => entry.transition === "benchmarked");
   const provider = [...receipts].reverse().find((entry) => entry.transition === "provider_turn_verified");
-  const preview = state ? runtimeLaunchPreview(launchSpec(state)) : undefined;
+  const selected = state ? null : await selectedProfileContract(root);
+  const preview = state ? runtimeLaunchPreview(launchSpec(state)) : selected?.preview;
   return {
     controllerId: state?.runtimeId ?? "local-controller",
     requestOwner: owner,
@@ -125,7 +134,7 @@ async function localDetail(root: string, state: RuntimeProcessState | null, owne
     ...(preview ? { command: { executable: preview.command, args: preview.args.map((arg) => arg === state?.model ? basename(arg) : arg), hash: preview.commandHash }, resourceFit: preview.resource } : {}),
     ...(benchmark ? { benchmark: { latencyMs: benchmark.metrics?.latencyMs, outputTokens: benchmark.metrics?.outputTokens, providerLatencyMs: provider?.metrics?.latencyMs } } : {}),
     logs: receipts.slice(-12).map((entry) => ({ at: entry.at, transition: entry.transition, ...(entry.code ? { code: entry.code } : {}) })),
-    actions: availableActions(state),
+    actions: availableActions(state, Boolean(selected?.validation.valid)),
   };
 }
 
@@ -271,10 +280,20 @@ export async function selectDesktopRuntimeHost(state: DesktopRuntimeSessionState
   return desktopRuntimePayload(state, deps);
 }
 
-function runtimeManager(state: DesktopRuntimeSessionState, deps: DesktopRuntimeDeps): RuntimeLifecycleManager {
+function runtimeManager(state: DesktopRuntimeSessionState, deps: DesktopRuntimeDeps, profileId?: string): RuntimeLifecycleManager {
   if (deps.lifecycle) return deps.lifecycle;
-  const kernel = createKernelClient((deps.env ?? process.env).VANTA_KERNEL_URL ?? "http://127.0.0.1:7788", state.root);
-  return createRuntimeLifecycleManager({ root: state.root, assess: (value) => kernel.assess(value), requestApproval: async () => true });
+  const env = deps.env ?? process.env;
+  const kernel = createKernelClient(env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788", state.root);
+  return createRuntimeLifecycleManager({
+    root: state.root, assess: (value) => kernel.assess(value), requestApproval: async () => true,
+    resolveSecret: async (reference) => {
+      const name = reference.split("/").filter(Boolean).at(-1);
+      if (!name) throw new Error("invalid runtime profile secret reference");
+      const value = await getScopedSecret(name, env, defaultExec, { scope: `runtime-profile:${profileId ?? "unknown"}` });
+      if (value === null) throw new Error(`runtime profile secret is unavailable: ${name}`);
+      return value;
+    },
+  });
 }
 
 async function executeLocalAction(manager: RuntimeLifecycleManager, current: RuntimeProcessState, action: DesktopRuntimeAction): Promise<void> {
@@ -293,7 +312,15 @@ export async function runDesktopRuntimeAction(state: DesktopRuntimeSessionState,
     return desktopRuntimePayload(state, deps);
   }
   const current = await latestRuntimeState(state.root);
-  if (!current) throw new Error("local runtime is not configured");
+  if (!current) {
+    if (action === "reconnect") { await runtimeManager(state, deps).recover(); return desktopRuntimePayload(state, deps); }
+    if (action !== "launch") throw new Error("local runtime is not configured");
+    const selected = await selectedProfileContract(state.root);
+    if (!selected) throw new Error("select a local runtime profile before launch");
+    if (!selected.validation.valid) throw new Error(selected.validation.issues[0]?.recovery ?? "selected runtime profile is not valid on this host");
+    await runtimeManager(state, deps, selected.profile.id).launch(selected.spec);
+    return desktopRuntimePayload(state, deps);
+  }
   await executeLocalAction(runtimeManager(state, deps), current, action);
   return desktopRuntimePayload(state, deps);
 }

@@ -13,13 +13,14 @@ const PROFILES: Record<RuntimeEngineBackend, Profile> = {
 export function runtimeLaunchPreview(input: RuntimeLaunchSpec): RuntimeLaunchPreview {
   const spec = RuntimeLaunchSpecSchema.parse(input);
   const profile = PROFILES[spec.backend];
-  const args = profile.args(spec);
+  const args = [...profile.args(spec), ...(spec.extraArgs ?? [])];
   const contextBytes = spec.contextTokens * 2048;
   const estimatedMemoryBytes = Math.ceil(spec.modelBytes * profile.memoryMultiplier + contextBytes);
-  const commandHash = createHash("sha256").update(JSON.stringify([profile.command, args])).digest("hex");
+  const environment = Object.fromEntries(Object.entries(spec.environment ?? {}).sort(([a], [b]) => a.localeCompare(b)));
+  const commandHash = createHash("sha256").update(JSON.stringify([profile.command, args, environment])).digest("hex");
   return RuntimeLaunchPreviewSchema.parse({
     runtimeId: spec.id, backend: spec.backend, location: profile.location, support: profile.support,
-    command: profile.command, args, endpoint: `http://${spec.host}:${spec.port}`, commandHash,
+    command: profile.command, args, environment, endpoint: `http://${spec.host}:${spec.port}`, commandHash,
     resource: { estimatedMemoryBytes, availableMemoryBytes: spec.availableMemoryBytes, headroomBytes: spec.availableMemoryBytes - estimatedMemoryBytes, fits: estimatedMemoryBytes <= spec.availableMemoryBytes },
     approvalAction: `launch ${spec.backend} runtime ${spec.id} with command ${commandHash}`,
   });

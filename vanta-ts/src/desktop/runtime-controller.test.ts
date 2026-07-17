@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { desktopRuntimePayload, runDesktopRuntimeAction, selectDesktopRuntimeHost, type DesktopRuntimeSessionState } from "./runtime-controller.js";
+import { createStoredRuntimeProfile, selectRuntimeProfile } from "../runtime-engine/profile-store.js";
 
 describe("desktop runtime controller", () => {
   const roots: string[] = [];
@@ -100,5 +101,19 @@ describe("desktop runtime controller", () => {
     expect((lifecycle as { stop: ReturnType<typeof vi.fn> }).stop).toHaveBeenCalledTimes(2);
     expect((lifecycle as { launch: ReturnType<typeof vi.fn> }).launch).toHaveBeenCalledTimes(2);
     expect((lifecycle as { recover: ReturnType<typeof vi.fn> }).recover).toHaveBeenCalledOnce();
+  });
+
+  it("launches the selected compatible profile when no runtime state exists", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-desktop-runtime-profile-launch-"));
+    roots.push(root);
+    await createStoredRuntimeProfile(root, { id: "daily", name: "Daily", backend: "llama_cpp", modelPath: "/models/qwen.gguf", modelBytes: 1_000_000_000, availableMemoryBytes: 8_000_000_000 });
+    await selectRuntimeProfile(root, "daily");
+    const lifecycle = { preview: vi.fn(), launch: vi.fn(async () => ({})), stop: vi.fn(), recover: vi.fn(async () => []) } as never;
+
+    const before = await desktopRuntimePayload({ root }, { lifecycle, fetch: async () => new Response("{}", { status: 503 }) });
+    await runDesktopRuntimeAction({ root }, "local", "launch", { lifecycle, fetch: async () => new Response("{}", { status: 503 }) });
+
+    expect(before.hosts[0]?.detail.actions).toContain("launch");
+    expect((lifecycle as { launch: ReturnType<typeof vi.fn> }).launch).toHaveBeenCalledWith(expect.objectContaining({ id: "daily", model: "/models/qwen.gguf", extraArgs: [], environment: {} }));
   });
 });
