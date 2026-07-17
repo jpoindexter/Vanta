@@ -19112,7 +19112,7 @@
       "id": "LOCAL-MODEL-FIRST-INFERENCE-WIZARD",
       "track": "Infrastructure",
       "title": "Local model first-inference wizard - hardware to one verified Vanta result",
-      "status": "building",
+      "status": "shipped",
       "size": "L",
       "summary": "Guide a cold operator from hardware detection through one compatible runtime profile, model download, launch, benchmark, and a real Vanta task. The flow ends in Work with a receipt instead of ending at a green settings screen.",
       "done": "On a clean supported Mac, the wizard detects hardware without collecting unnecessary identifiers, explains the recommendation and storage impact, allows model/profile changes, verifies disk and checksum, previews the launch command and approval boundary, launches and benchmarks the model, runs one useful Vanta prompt, and produces a receipt; cancel, retry, low-disk, incompatible hardware, offline download, failed launch, and resume-after-restart paths are proven.",

@@ -64,6 +64,7 @@ First run downloads the prebuilt kernel (and a portable Node if needed) and inst
 ./run.sh modes install                     # the 6 operator modes
 ./run.sh rooms | room <name> "<instr>"     # per-project goal streams
 ./run.sh goals                             # kernel goals plus dependency graph state
+./run.sh local-model setup                 # hardware → verified download → useful local result
 ./run.sh schedule "<instr>" --cron "0 8 * * *" | schedule list | cron
 ./run.sh auth google                       # one-time Google OAuth (gmail/calendar/drive)
 ```
@@ -85,6 +86,7 @@ Vanta is a **general operator**, not a coding tool — one agent runs every cate
 
 - **`vanta doctor` says no provider** → run `vanta setup` and pick a backend (Ollama for free/local, or paste an API key).
 - **Local model "not responding"** → make sure Ollama is running (`ollama serve`) and the model is pulled (`ollama pull qwen2.5:14b`).
+- **First local model setup** → run `vanta local-model setup`; it reports hardware and storage impact, previews the exact `llama-server` launch, verifies the model checksum, and resumes the same command after interruption. Use `vanta local-model status` for the durable checkpoint and recent receipts.
 - **Kernel won't bind / "port 7788 in use"** → a stale kernel from a prior build: `lsof -nP -iTCP:7788 -sTCP:LISTEN`, kill the PID, re-run.
 - **macOS blocks the downloaded kernel** ("cannot be opened") → clear the Gatekeeper quarantine: `xattr -dr com.apple.quarantine ~/vanta` (or build from source: `cargo build`).
 - **Messaging / email / voice "didn't send"** → those *route* correctly but need the platform's credential (e.g. a Telegram bot token from @BotFather). The agent works fully with just a model backend; add tokens later in `vanta-ts/.env`.

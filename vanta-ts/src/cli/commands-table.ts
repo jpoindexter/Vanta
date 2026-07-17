@@ -125,6 +125,7 @@ import { runSecretsCommand } from "./secrets-vault-cmd.js";
 import { runAutomationCommand } from "./automation-cmd.js";
 import { runAuthPoolCommand } from "./auth-pool-cmd.js";
 import { runMaintenanceCommand } from "./maintenance-cmd.js";
+import { runLocalModelCommand } from "./local-model-cmd.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
@@ -132,6 +133,7 @@ export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | v
 // `vanta <cmd>` dispatch table. The interactive entry points (chat/resume/run)
 // parse flags, so they stay as explicit checks in cli.ts main(); everything else is here.
 export const COMMANDS: Record<string, CommandFn> = {
+  "local-model": (root, rest) => runLocalModelCommand(root, rest),
   maintenance: (root, rest) => runMaintenanceCommand(root, rest),
   automation: (root, rest) => runAutomationCommand(dataDirFor(root), rest),
   secrets: (_root, rest) => runSecretsCommand(rest),
