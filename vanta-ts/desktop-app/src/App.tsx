@@ -6,6 +6,7 @@ import { ArtifactsView, ConnectView, OperateView } from "./operator-views.js";
 import { RightRail } from "./rail.js";
 import { CompletionSoundSettings } from "./sound-settings.js";
 import { RuntimeStrip } from "./runtime-strip.js";
+import { FullAccessWarning, fullAccessScope, useFullAccessWarning } from "./full-access-warning.js";
 import { useApproval, useCompletionSound, useConversation, useDesktopData } from "./state.js";
 import type { DesktopTheme, DesktopView, RailTab } from "./types.js";
 
@@ -38,6 +39,7 @@ export function AppShell() {
   const sound = useCompletionSound();
   const convo = useConversation(data.refresh, { prime: sound.prime, complete: sound.play });
   const approval = useApproval();
+  const accessWarning = useFullAccessWarning(data.status?.accessMode ?? "approve", fullAccessScope(data.status?.root));
   const [mobilePanel, setMobilePanel] = useState<"sessions" | "work" | "inspect">("work");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [view, setView] = useState<DesktopView>("work");
@@ -156,7 +158,10 @@ export function AppShell() {
             {data.phase === "error" ? <ConnectionError message={data.error} onRetry={() => { void data.refresh(); }} onSetup={data.openSetup} /> : null}
             {data.phase === "loading" ? <LoadingState /> : <ChatThread messages={convo.messages} busy={convo.busy} streamText={convo.streamText} events={convo.events} recovery={convo.recovery} approval={approval.approval} onApproval={approval.answerApproval} onRetry={convo.retry} onPrompt={convo.setDraft} />}
           </div>
-          <Composer value={convo.draft} busy={convo.busy} model={data.status?.model} root={data.status?.root} tools={data.status?.tools} accessMode={data.status?.accessMode ?? "approve"} attachments={attachments} onChange={convo.setDraft} onSubmit={(text) => { void convo.submit(withAttachments(text, attachments)); setAttachments([]); }} onQueue={convo.queue} onRemoveAttachment={(file) => setAttachments((current) => current.filter((entry) => entry !== file))} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onModel={data.openModelPicker} onAccessMode={data.setAccessMode} onCommand={data.openPalette} />
+          <div className="composer-stack">
+            <FullAccessWarning visible={accessWarning.visible} onClose={accessWarning.close} onAcknowledge={accessWarning.acknowledge} />
+            <Composer value={convo.draft} busy={convo.busy} model={data.status?.model} root={data.status?.root} tools={data.status?.tools} accessMode={data.status?.accessMode ?? "approve"} attachments={attachments} onChange={convo.setDraft} onSubmit={(text) => { void convo.submit(withAttachments(text, attachments)); setAttachments([]); }} onQueue={convo.queue} onRemoveAttachment={(file) => setAttachments((current) => current.filter((entry) => entry !== file))} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onModel={data.openModelPicker} onAccessMode={data.setAccessMode} onCommand={data.openPalette} />
+          </div>
         </> : <OperatorWorkspace view={view} data={data} events={convo.events} onOpenSession={(id) => { setView("work"); void convo.openSession(id); }} />}
       </main>
       {inspectorVisible ? <RightRail
@@ -186,7 +191,7 @@ export function AppShell() {
       <MobileNavigation view={view} onView={(next) => { setView(next); setMobilePanel("work"); }} onInspect={() => { setInspectorOpen(true); setMobilePanel("inspect"); }} />
       <DesktopStatusbar data={data} />
       <NewTaskDialog open={newTaskOpen} root={data.status?.root} model={data.status?.model} onClose={() => setNewTaskOpen(false)} onCreate={(draft) => { void createTask(draft, convo, () => { setNewTaskOpen(false); setView("work"); }); }} />
-      <DesktopOverlays data={data} sound={sound} convo={convo} theme={theme} onTheme={changeTheme} onNew={() => setNewTaskOpen(true)} onInspector={(tab) => { data.setTab(tab); setInspectorOpen(true); setMobilePanel("inspect"); }} />
+      <DesktopOverlays data={data} sound={sound} convo={convo} theme={theme} accessWarning={accessWarning} onTheme={changeTheme} onNew={() => setNewTaskOpen(true)} onInspector={(tab) => { data.setTab(tab); setInspectorOpen(true); setMobilePanel("inspect"); }} />
     </div>
   );
 }
@@ -303,6 +308,7 @@ function DesktopOverlays(props: {
   sound: CompletionSound;
   convo: ReturnType<typeof useConversation>;
   theme: DesktopTheme;
+  accessWarning: ReturnType<typeof useFullAccessWarning>;
   onTheme: (theme: DesktopTheme) => void;
   onNew: () => void;
   onInspector: (tab: RailTab) => void;
@@ -320,7 +326,7 @@ function DesktopOverlays(props: {
         onTab={props.onInspector}
       />
       <ModelPicker open={data.modelOpen} models={data.models} status={data.status} onClose={data.closeModelPicker} onRefresh={data.refreshProviderModels} onSelect={data.setModel} />
-      <SettingsDialog open={data.settingsOpen} models={data.models} status={data.status} theme={props.theme} onTheme={props.onTheme} onClose={data.closeSettings} onModel={data.openModelPicker} onSetup={data.openSetup} />
+      <SettingsDialog open={data.settingsOpen} models={data.models} status={data.status} theme={props.theme} fullAccessWarningAcknowledged={props.accessWarning.acknowledged} onResetFullAccessWarning={props.accessWarning.reset} onTheme={props.onTheme} onClose={data.closeSettings} onModel={data.openModelPicker} onSetup={data.openSetup} />
       <KeyboardShortcuts open={data.shortcutsOpen} onClose={data.closeShortcuts} />
       <SetupWizard open={data.setupOpen} models={data.models} onClose={data.closeSetup} onSave={data.saveSetup} />
       <CompletionSoundSettings

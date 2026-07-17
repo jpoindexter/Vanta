@@ -72,7 +72,7 @@ export function KeyboardShortcuts(props: { open: boolean; onClose: () => void })
   </section></div>;
 }
 
-export function SettingsDialog(props: { open: boolean; models: Provider[]; status: Status | null; theme: DesktopTheme; onTheme: (theme: DesktopTheme) => void; onClose: () => void; onModel: () => void; onSetup: () => void }) {
+export function SettingsDialog(props: { open: boolean; models: Provider[]; status: Status | null; theme: DesktopTheme; fullAccessWarningAcknowledged: boolean; onResetFullAccessWarning: () => void; onTheme: (theme: DesktopTheme) => void; onClose: () => void; onModel: () => void; onSetup: () => void }) {
   const [section, setSection] = useState<"model" | "appearance" | "safety" | "workspace">("model");
   if (!props.open) return null;
   const current = props.models.find((provider) => provider.id === props.status?.provider);
@@ -82,10 +82,16 @@ export function SettingsDialog(props: { open: boolean; models: Provider[]; statu
     <div className="settings-content">
       {section === "model" ? <><section><p className="eyebrow">Model</p><h3>{props.status?.model ?? "No model selected"}</h3><p>{current?.label ?? "Choose a provider"} · applies to the active session unless you set a default in the picker.</p><button type="button" onClick={props.onModel}>Change model</button></section><section><p className="eyebrow">Providers</p><h3>{props.models.length} available providers</h3><p>Connect or change a provider through Vanta’s local setup flow. Keys are stored in the project’s local configuration.</p><button type="button" onClick={props.onSetup}>Connect provider</button></section></> : null}
       {section === "appearance" ? <section><p className="eyebrow">Appearance</p><h3>Desktop theme</h3><p>Use Vanta's ghost palette: black, bone white, and neutral gray. Color appears only when a status needs attention.</p><div className="theme-picker" role="group" aria-label="Desktop theme"><button className={props.theme === "dark" ? "active" : ""} type="button" onClick={() => props.onTheme("dark")}>Ghost dark</button><button className={props.theme === "light" ? "active" : ""} type="button" onClick={() => props.onTheme("light")}>Ghost light</button></div></section> : null}
-      {section === "safety" ? <section><p className="eyebrow">Safety</p><h3>Kernel {props.status?.kernel ?? "checking"}</h3><p>Requests that cross Vanta’s kernel boundary still require the configured approval policy.</p></section> : null}
+      {section === "safety" ? <SafetySettings status={props.status} warningAcknowledged={props.fullAccessWarningAcknowledged} onResetWarning={props.onResetFullAccessWarning} /> : null}
       {section === "workspace" ? <section><p className="eyebrow">Workspace</p><h3>{props.status?.root?.split("/").filter(Boolean).at(-1) ?? "Current project"}</h3><p>{props.status?.root ?? "Project path unavailable"}</p></section> : null}
     </div>
   </section></div>;
+}
+
+function SafetySettings(props: { status: Status | null; warningAcknowledged: boolean; onResetWarning: () => void }) {
+  return <section><p className="eyebrow">Safety</p><h3>Kernel {props.status?.kernel ?? "checking"}</h3><p>Requests that cross Vanta’s kernel boundary still require the configured approval policy.</p>
+    <div className="safety-warning-control"><strong>Full access warning</strong><p>{props.warningAcknowledged ? "Acknowledged for this project and risk version." : "Shown when Full access is selected."}</p>{props.warningAcknowledged ? <button type="button" onClick={props.onResetWarning}>Show warning again</button> : null}</div>
+  </section>;
 }
 
 export function ModelPicker(props: { open: boolean; models: Provider[]; status: Status | null; onClose: () => void; onRefresh: (provider: string) => Promise<void>; onSelect: (provider: string, model: string, scope?: "session" | "global") => void }) {

@@ -30,6 +30,7 @@
     "desktop:presence:smoke": "npm run desktop:build && node scripts/desktop-presence-smoke.mjs",
     "desktop:layout:smoke": "npm run desktop:build && node scripts/desktop-layout-smoke.mjs",
     "desktop:runtime-strip:smoke": "npm run desktop:build && node scripts/desktop-runtime-strip-smoke.mjs",
+    "desktop:full-access:smoke": "npm run desktop:build && node scripts/desktop-full-access-warning-smoke.mjs",
     "desktop:sessions:smoke": "npm run desktop:build && node scripts/desktop-session-management-smoke.mjs",
     "desktop:operator-flows:smoke": "npm run desktop:build && node scripts/desktop-operator-flows-smoke.mjs",
     "desktop:shell-convergence:smoke": "npm run desktop:build && node scripts/desktop-shell-convergence-smoke.mjs",

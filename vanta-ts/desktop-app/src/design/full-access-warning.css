@@ -1,0 +1,93 @@
+.composer-stack {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+}
+
+.composer-stack .composer {
+  justify-self: auto;
+}
+
+.full-access-warning {
+  width: min(790px, calc(100% - 32px));
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 11px;
+  border: 1px solid color-mix(in srgb, var(--danger) 72%, var(--line));
+  border-left-width: 3px;
+  border-radius: var(--radius-md);
+  margin: 0 16px 10px;
+  background: var(--surface-danger);
+  color: var(--danger);
+  padding: 11px 12px;
+}
+
+.full-access-warning > svg {
+  margin-top: 1px;
+}
+
+.full-access-warning > div:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.full-access-warning strong {
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.full-access-warning p {
+  max-width: 78ch;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.full-access-warning-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.full-access-warning-actions button {
+  min-height: 30px;
+  border: 1px solid color-mix(in srgb, var(--danger) 48%, var(--line));
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--danger);
+  padding: 5px 8px;
+}
+
+.full-access-warning-actions button:hover {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+
+.full-access-warning-actions .full-access-warning-close {
+  width: 30px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.safety-warning-control {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+  margin-top: 12px;
+  padding-top: 12px;
+}
+
+@media (max-width: 760px) {
+  .full-access-warning {
+    width: calc(100% - 28px);
+    grid-template-columns: auto minmax(0, 1fr);
+    margin: 0 14px 8px;
+  }
+
+  .full-access-warning-actions {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+}
