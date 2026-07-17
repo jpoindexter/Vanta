@@ -82,6 +82,7 @@ function attachConversation(state: DesktopState, setup: RunSetup, history?: Para
     provider: setup.provider, safety: setup.safety, registry: setup.registry, root: state.root,
     sessionId: state.sessionId,
     usageAgent: "desktop",
+    usageTaskId: setup.goals.find((g) => g.status === "active")?.id?.toString(),
     requestApproval: (action, reason, toolName, detail) => requestWebApproval(state, action, reason, toolName, detail),
     permissionMode: () => permissionModeForAccess(state.accessMode ?? "approve"),
     maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,

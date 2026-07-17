@@ -102,4 +102,4 @@ Visual receipts:
 7. **Shipped 2026-07-17:** add the durable queued-turn editor with edit, reorder, steer, cancel, race, and restart recovery. See `desktop-queued-turn-editor-2026-07-17.md`.
 8. **Shipped 2026-07-17:** add versioned runtime profiles with host/resource validation, safe advanced controls, secret references, and command round-trip proof. See `local-runtime-profiles-2026-07-17.md`.
 9. **Shipped 2026-07-17:** add the durable model download queue with resumable verified artifacts, storage recovery, vault auth references, confirmation-gated cleanup, and runtime-profile handoff. See `local-model-download-queue-2026-07-17.md`.
-10. Join runtime telemetry to the existing usage ledger and release proof suite.
+10. **Shipped 2026-07-17:** join runtime telemetry to the existing usage ledger, CLI filters/export/retention, desktop Runtime tray, and source plus packaged proof suite. See `runtime-resource-usage-ledger-2026-07-17.md`.

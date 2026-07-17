@@ -13,7 +13,7 @@ import type { DispatchOutcome } from "./dispatch-tool.js";
 import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
 import { scopeToolSchemas, toolScopeContext } from "./tool-scope.js";
-import { getCompletionWithContextRetry } from "./provider-call.js";
+import { completeAndRecordUsage } from "./provider-usage.js";
 import { maybeStructuredOutput, schemasWithStructuredOutput, structuredOutcome } from "./structured-output.js";
 import { buildStructuredOutputInstruction } from "../tools/structured-output.js";
 import { runAdvisor } from "./advisor.js";
@@ -28,7 +28,6 @@ import { buildContextInspection } from "../tools/inspect-context.js";
 import { requiredToolNudge } from "./tool-use-contract.js";
 import { interruptedDisposition, interruptedToolResult } from "./effect-disposition.js";
 import { checkpointToolTranscript, persistEffectTransition } from "./effect-persistence.js";
-import { recordProviderCall } from "../cost/route-ledger.js";
 
 export type TurnOpts = {
   messages: Message[];
@@ -55,6 +54,14 @@ async function logToolOutcome(deps: AgentDeps, name: string, ok: boolean, chars:
 }
 
 type ProcessToolCallsArgs = { calls: ToolCall[]; deps: AgentDeps; ctx: ToolContext; state: TurnState; messages: Message[]; prefetched?: Map<string, Promise<DispatchOutcome>> };
+
+function maybeRunAdvisor(messages: Message[], deps: AgentDeps, state: TurnState): void {
+  const threshold = DEFAULT_ERRORDETECT_THRESHOLD;
+  if (!deps.advisorProvider || state.consecutiveErrorResults < threshold || state.consecutiveErrorResults % threshold !== 0) return;
+  void runAdvisor(messages, deps.advisorProvider, state.consecutiveErrorResults)
+    .then((text) => { deps.onText?.(`\n🔍 Advisor (${state.consecutiveErrorResults} consecutive failures):\n${text}`); })
+    .catch(() => { /* best-effort */ });
+}
 
 async function processToolCalls(args: ProcessToolCallsArgs): Promise<string | null> {
   const { calls, deps, ctx, state, messages, prefetched } = args;
@@ -91,12 +98,7 @@ async function processToolCalls(args: ProcessToolCallsArgs): Promise<string | nu
     await checkpointToolTranscript(deps.sessionId, messages);
     await logToolOutcome(deps, call.name, outcome.ok, reactive.output.length);
     const stuck = recordToolOutcome(state, call, outcome, deps);
-    const t = DEFAULT_ERRORDETECT_THRESHOLD;
-    if (deps.advisorProvider && state.consecutiveErrorResults >= t && state.consecutiveErrorResults % t === 0) {
-      void runAdvisor(messages, deps.advisorProvider, state.consecutiveErrorResults)
-        .then((text) => { deps.onText?.(`\n🔍 Advisor (${state.consecutiveErrorResults} consecutive failures):\n${text}`); })
-        .catch(() => { /* best-effort */ });
-    }
+    maybeRunAdvisor(messages, deps, state);
     if (stuck) {
       stuckTool = stuck;
       break;
@@ -186,41 +188,19 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
   globalFileCheckpointStore.beginTurn();
   const turnCtx = beginTurnContext(messages, deps);
   for (let iter = 1; iter <= maxIter; iter++) {
-    if (effectiveSignal?.aborted)
-      return { finalText: "Interrupted.", iterations: iter - 1, stoppedReason: "interrupted", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
+    if (effectiveSignal?.aborted) return interruptedOutcome(state, iter);
     // Scope schemas once per iteration so countTokens and getCompletion use the same set.
     const scoped = scopeToolSchemas(deps.registry.schemas(), toolScopeContext(messages, deps.activeGoalText), { env: process.env });
     const schemas = schemasWithStructuredOutput(scoped, deps.outputSchema);
     const depsWithTools = { ...deps, currentTools: schemas };
     const trimmed = await prepareCallMessages(messages, depsWithTools, iter, turnCtx);
     const prefetched = new Map<string, Promise<DispatchOutcome>>();
-    const completion = await getCompletionWithContextRetry({
-      deps,
-      depsWithTools,
-      messages: trimmed,
-      turnCtx,
-      signal: effectiveSignal,
-      providerCall: { ctx, prefetched, schemas },
-    });
+    const completion = await completeAndRecordUsage({ deps, depsWithTools, messages: trimmed, turnCtx, signal: effectiveSignal, providerCall: { ctx, prefetched, schemas } });
     if (!completion.ok)
       return { finalText: completion.error, iterations: iter, stoppedReason: "repeated_failure", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
     const result = completion.result;
     recordUsage(state, result);
-    if (result.usage) recordRealPromptCount(messages, result.usage.inputTokens, deps.provider.contextWindow());
-    const route = result.servedRoute ?? deps.provider.routeInfo?.() ?? {
-      provider: "unknown",
-      model: deps.provider.modelId(),
-      baseRoute: "provider://unknown",
-      billingMode: "unknown" as const,
-    };
-    if (deps.sessionId || deps.usageAgent) {
-      await recordProviderCall(join(ctx.root, ".vanta"), {
-        sessionId: deps.sessionId ?? "one-shot",
-        agent: deps.usageAgent ?? "agent",
-        route,
-        usage: result.usage,
-      });
-    }
+    recordPromptUsage(result, messages, deps);
     if (result.toolCalls.length === 0) {
       const outcome = await handleNoToolCalls({ result, messages, deps, iter, state, userText, schemas });
       if (outcome) return outcome;
@@ -234,6 +214,22 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
     if (earlyExit) return earlyExit;
   }
   return { finalText: `Reached the ${maxIter}-iteration limit before completing.`, iterations: maxIter, stoppedReason: "max_iterations", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
+}
+
+function interruptedOutcome(state: TurnState, iteration: number): AgentOutcome {
+  return {
+    finalText: "Interrupted.",
+    iterations: iteration - 1,
+    stoppedReason: "interrupted",
+    toolIterations: state.toolIterations,
+    usage: state.sawUsage ? { ...state.turnUsage } : undefined,
+    tokensSaved: state.tokensSaved > 0 ? state.tokensSaved : undefined,
+  };
+}
+
+function recordPromptUsage(result: CompletionResult, messages: Message[], deps: AgentDeps): void {
+  if (!result.usage) return;
+  recordRealPromptCount(messages, result.usage.inputTokens, deps.provider.contextWindow());
 }
 
 async function displayText(deps: AgentDeps, text: string): Promise<string> {

@@ -19015,7 +19015,7 @@
       "effort": "high",
       "codex": "gpt-5.6-sol",
       "lens": "infra",
-      "updated": "2026-07-16",
+      "updated": "2026-07-17",
       "source": "local-studio-vanta-extraction-2026-07-16",
       "notes": "SHIPPED 2026-07-17. Added a Vanta-owned transport-neutral runtime controller adapter for configured local and remote inference hosts. Snapshots keep transport reachability, kernel policy readiness, engine lifecycle, model/resource telemetry, queue depth, freshness, epoch, and sequence separate; reachable-but-untrusted and stale hosts degrade instead of appearing ready. Bounded redacted event streams report gaps, restarts, stale observations, and reconnect attempts while resuming from the last accepted cursor. Ten contract tests cover local, remote, every lifecycle, offline isolation, missing/rejected auth, event loss, controller restart, reconnect continuity, stale state, redaction, and caps; TypeScript passes. Specific Ollama/LM Studio/vLLM/cloud transports remain later adapter work. Evidence: `docs/research/local-runtime-controller-contract-2026-07-17.md`.",
       "after": [
@@ -19162,7 +19162,7 @@
       "effort": "high",
       "codex": "gpt-5.6-sol",
       "lens": "infra",
-      "updated": "2026-07-16",
+      "updated": "2026-07-17",
       "source": "local-studio-vanta-extraction-2026-07-16",
       "after": [
         "LOCAL-RUNTIME-ENGINE-LIFECYCLE",
@@ -19193,7 +19193,7 @@
       "id": "RUNTIME-RESOURCE-USAGE-LEDGER",
       "track": "Infrastructure",
       "title": "Runtime resource usage ledger - local throughput and pressure beside provider cost",
-      "status": "building",
+      "status": "shipped",
       "size": "L",
       "summary": "Extend Vanta's existing usage ledger with controller, runtime, and model resource receipts: launch time, active minutes, prompt and generation throughput, memory/VRAM pressure, cache behavior, failures, and host attribution. Keep provider-reported token cost distinct from estimated local resource cost.",
       "done": "Each local or remote runtime turn records controller, engine, model/profile version, launch and request latency, tokens and throughput where reported, peak memory/VRAM, cache/context state, failure class, and active duration; aggregates can be filtered by task/model/host; missing telemetry is explicit; local estimates never masquerade as billed cost; redaction, retention, export, and performance-overhead tests pass.",
@@ -19202,7 +19202,8 @@
       "effort": "high",
       "codex": "gpt-5.6-sol",
       "lens": "infra",
-      "updated": "2026-07-16",
+      "updated": "2026-07-17",
+      "notes": "Shipped a mode-0600 resource receipt ledger joined to provider route calls through one call ID. Local and remote runtime turns record controller, host, engine, model/profile/artifact, launch/request/active timing, tokens/throughput, memory/VRAM, cache/context, failure class, and explicit missing telemetry. `vanta local-model usage` supports task/model/host/session filters, summaries, redacted JSON/CSV export, and confirmation-gated retention pruning; local resource rows have no billed-cost field. Desktop Runtime shows compact recorded call/token/active/failure/missing state. Executed: real CLI filter/export/redaction/prune proof; 28 focused tests; both typechecks; 8-module size gate; Runtime strip smoke; complete source and Developer ID-signed packaged flow matrix; full suite 1,406 files / 13,351 passed / 3 skipped. Receipt: docs/research/runtime-resource-usage-ledger-2026-07-17.md.",
       "source": "local-studio-vanta-extraction-2026-07-16",
       "after": [
         "LOCAL-RUNTIME-ENGINE-LIFECYCLE",

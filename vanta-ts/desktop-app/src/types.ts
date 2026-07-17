@@ -47,7 +47,8 @@ export type RuntimeHostSnapshot = {
     actions: RuntimeAction[];
   };
 };
-export type DesktopRuntime = { selectedHostId: string; hosts: RuntimeHostSnapshot[] };
+export type RuntimeUsageSummary = { calls: number; inputTokens: number; outputTokens: number; activeDurationMs: number; requestLatencyMs: number; failures: number; missingTelemetryCalls: number };
+export type DesktopRuntime = { selectedHostId: string; hosts: RuntimeHostSnapshot[]; usage?: RuntimeUsageSummary };
 export type RuntimeAction = "launch" | "stop" | "retry" | "reconnect";
 export type RuntimeProfileRecord = {
   version: 2; id: string; name: string; backend: "mlx" | "llama_cpp" | "vllm" | "sglang";

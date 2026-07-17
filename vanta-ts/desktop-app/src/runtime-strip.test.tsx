@@ -23,7 +23,7 @@ const remote: RuntimeHostSnapshot = {
   host: { id: "remote", label: "Remote GPU", kind: "remote" },
   status: "degraded", kernel: "not_ready", engine: { id: "vllm", lifecycle: "idle", model: "qwen-remote" },
 };
-const runtime: DesktopRuntime = { selectedHostId: "local", hosts: [local, remote] };
+const runtime: DesktopRuntime = { selectedHostId: "local", hosts: [local, remote], usage: { calls: 1, inputTokens: 20, outputTokens: 5, activeDurationMs: 1_000, requestLatencyMs: 500, failures: 0, missingTelemetryCalls: 1 } };
 
 describe("RuntimeStrip", () => {
   it("keeps the active runtime legible in one compact control", () => {
@@ -53,5 +53,9 @@ describe("RuntimeStrip", () => {
     expect(html).toContain("Benchmark");
     expect(html).toContain("Runtime lifecycle actions");
     expect(html).toContain("Recent lifecycle");
+    expect(html).toContain("Recorded usage");
+    expect(html).toContain("1 call");
+    expect(html).toContain("20 in / 5 out");
+    expect(html).toContain("1 call incomplete");
   });
 });

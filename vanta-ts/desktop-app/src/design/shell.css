@@ -464,6 +464,14 @@
 .runtime-evidence .tone-good { color: var(--ok); }
 .runtime-evidence .tone-bad { color: var(--danger); }
 
+.runtime-usage { border-bottom: 1px solid var(--line); padding: 10px; }
+.runtime-usage h3 { margin: 0 0 7px; color: var(--faint); font-size: 9px; font-weight: 500; text-transform: uppercase; }
+.runtime-usage dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; }
+.runtime-usage dl > div { min-width: 0; display: grid; gap: 3px; border-inline-end: 1px solid var(--line); padding: 2px 9px; }
+.runtime-usage dl > div:nth-child(3n) { border-inline-end: 0; }
+.runtime-usage dt { color: var(--faint); font-size: 8px; text-transform: uppercase; }
+.runtime-usage dd { margin: 0; overflow: hidden; color: var(--text); font: 9px/1.4 var(--font-mono); text-overflow: ellipsis; white-space: nowrap; }
+
 .runtime-profiles-panel { border-bottom: 1px solid var(--line); }
 .runtime-profiles-panel > summary { min-height: 36px; display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--faint); padding: 8px 10px; font-size: 9px; text-transform: uppercase; }
 .runtime-profiles-panel > summary strong { margin-inline-start: auto; color: var(--text); font-size: 10px; text-transform: none; }
@@ -616,6 +624,10 @@
   .runtime-evidence { grid-template-columns: 1fr; }
   .runtime-evidence section { border-inline-end: 0; border-bottom: 1px solid var(--line); }
   .runtime-evidence section:last-child { border-bottom: 0; }
+  .runtime-usage dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .runtime-usage dl > div,
+  .runtime-usage dl > div:nth-child(3n) { border-inline-end: 1px solid var(--line); }
+  .runtime-usage dl > div:nth-child(2n) { border-inline-end: 0; }
 }
 
 @media (max-width: 760px) {

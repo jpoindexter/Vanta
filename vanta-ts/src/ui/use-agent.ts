@@ -82,6 +82,7 @@ function convoConfig(deps: AgentDeps, scope?: TurnScope): Parameters<typeof crea
     root: deps.repoRoot,
     sessionId: deps.replStateRef.current.sessionId,
     usageAgent: "tui",
+    usageTaskId: deps.setup.goals?.find((g) => g.status === "active")?.id?.toString(),
     maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(deps.setup.provider),
     getEffortLevel: () => deps.replStateRef.current.effortLevel ?? deps.setup.effortLevel,

@@ -4,6 +4,7 @@ import { basename, join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { desktopRuntimePayload, runDesktopRuntimeAction, selectDesktopRuntimeHost, type DesktopRuntimeSessionState } from "./runtime-controller.js";
 import { createStoredRuntimeProfile, selectRuntimeProfile } from "../runtime-engine/profile-store.js";
+import { appendRuntimeResourceUsage } from "../cost/resource-ledger.js";
 
 describe("desktop runtime controller", () => {
   const roots: string[] = [];
@@ -40,6 +41,13 @@ describe("desktop runtime controller", () => {
       commandHash: "a".repeat(64),
       metrics: { latencyMs: 500, outputTokens: 5 },
     })}\n`);
+    await appendRuntimeResourceUsage(join(root, ".vanta"), {
+      callId: "resource-1", sessionId: "session-a", taskId: "goal-a", agent: "desktop", provider: "ollama", billingMode: "local",
+      baseRoute: "http://127.0.0.1:8899/v1", controllerId: "local", hostId: "127.0.0.1:8899", hostKind: "local", engine: "llama_cpp", model: "qwen.gguf",
+      profileId: null, profileVersion: null, artifactSha256: null, launchLatencyMs: 100, requestLatencyMs: 500, activeDurationMs: 1_000,
+      inputTokens: 20, outputTokens: 5, throughputTokensPerSecond: 10, peakMemoryBytes: null, peakVramBytes: null, cacheTokens: null,
+      contextTokens: 2_048, contextWindowTokens: 2_048, failureClass: null, missingTelemetry: ["peak_memory_bytes", "peak_vram_bytes", "cache_tokens"],
+    });
     return { root, model };
   }
 
@@ -53,6 +61,7 @@ describe("desktop runtime controller", () => {
     });
 
     expect(payload.selectedHostId).toBe("local");
+    expect(payload.usage).toMatchObject({ calls: 1, inputTokens: 20, outputTokens: 5, activeDurationMs: 1_000, missingTelemetryCalls: 1 });
     expect(payload.hosts[0]).toMatchObject({
       host: { id: "local", label: "Local Mac", kind: "local" },
       status: "running",

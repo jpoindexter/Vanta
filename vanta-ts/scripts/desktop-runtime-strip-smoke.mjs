@@ -25,6 +25,7 @@ const remote = runtimeHost({ id: "remote-fixture", label: "Remote Fixture", kind
 let selectedHostId = "local";
 let failStopOnce = true;
 let selectedProfileId = "daily";
+const runtimeUsage = { calls: 2, inputTokens: 40, outputTokens: 15, activeDurationMs: 4_000, requestLatencyMs: 700, failures: 1, missingTelemetryCalls: 1 };
 const runtimeProfiles = [
   runtimeProfile({ id: "daily", name: "Daily local", model: "/models/qwen.gguf", bytes: 8 * 1024 ** 3, estimated: 9 * 1024 ** 3 }),
   runtimeProfile({ id: "fast", name: "Fast draft", model: "/models/qwen-fast.gguf", bytes: 4 * 1024 ** 3, estimated: 5 * 1024 ** 3 }),
@@ -47,7 +48,7 @@ try {
       if (body.action) applyAction(body.hostId, body.action);
       else selectedHostId = body.hostId;
     }
-    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ selectedHostId, hosts: [local, remote] }) });
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ selectedHostId, hosts: [local, remote], usage: runtimeUsage }) });
   });
   await page.route("**/api/runtime/profiles", async (route) => {
     let exported;
@@ -94,7 +95,7 @@ try {
   if (screenReader.role !== "dialog" || screenReader.label !== "Runtime details" || screenReader.modal !== "false" || screenReader.switcher !== "Switch runtime host") {
     throw new Error(`runtime screen-reader contract is incomplete: ${JSON.stringify(screenReader)}`);
   }
-  for (const text of ["Launch command", "llama-server", "Resource fit", "Benchmark", "Recent lifecycle"]) {
+  for (const text of ["Launch command", "llama-server", "Resource fit", "Benchmark", "Recorded usage", "40 in / 15 out", "1 call incomplete", "Recent lifecycle"]) {
     if (!await dialog.getByText(text, { exact: false }).count()) throw new Error(`runtime detail missing ${text}`);
   }
   const profilePanel = dialog.locator("details.runtime-profiles-panel");
@@ -179,7 +180,7 @@ try {
   if (compactOverlay.scrollWidth > compactOverlay.clientWidth + 1) throw new Error(`compact runtime tray scrolls horizontally: ${JSON.stringify(compactOverlay)}`);
   if (process.env.VANTA_DESKTOP_RUNTIME_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_RUNTIME_SCREENSHOT });
 
-  console.log(JSON.stringify({ ok: true, dark, light, compact, compactOverlay, screenReader, launch: true, stop: true, failure: true, reconnect: true, profiles: { search: true, selected: selectedProfileId, evidence: true, progressiveDisclosure: true }, downloads: { progress: true, resume: true, cleanupConfirmation: true, profileLink: true, progressiveDisclosure: true }, draftPreserved: true, keyboardClose: true }));
+  console.log(JSON.stringify({ ok: true, dark, light, compact, compactOverlay, screenReader, launch: true, stop: true, failure: true, reconnect: true, usage: { visible: true, calls: runtimeUsage.calls, missingExplicit: true }, profiles: { search: true, selected: selectedProfileId, evidence: true, progressiveDisclosure: true }, downloads: { progress: true, resume: true, cleanupConfirmation: true, profileLink: true, progressiveDisclosure: true }, draftPreserved: true, keyboardClose: true }));
 } finally {
   await app.close();
   await rm(userData, { recursive: true, force: true });

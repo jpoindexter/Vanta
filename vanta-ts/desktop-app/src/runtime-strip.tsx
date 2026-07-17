@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Cpu, Gauge, HardDrive, ListTree, Play, RefreshCw, RotateCcw, Server, ShieldCheck, Square, X } from "lucide-react";
-import type { DesktopRuntime, RuntimeAction, RuntimeHostSnapshot } from "./types.js";
+import type { DesktopRuntime, RuntimeAction, RuntimeHostSnapshot, RuntimeUsageSummary } from "./types.js";
 import { RuntimeProfilesPanel } from "./runtime-profiles.js";
 import { ModelDownloadsPanel } from "./model-downloads.js";
 
@@ -109,6 +109,7 @@ export function RuntimeDetail(props: {
     <header><div><span>Session runtime</span><strong>{props.selected.host.label}</strong></div><button type="button" onClick={props.onClose} aria-label="Close runtime details"><X size={15} /></button></header>
     <RuntimeFacts runtime={props.selected} />
     <RuntimeEvidence runtime={props.selected} />
+    <RuntimeUsageEvidence usage={props.runtime.usage} />
     <ModelDownloadsPanel />
     <RuntimeProfilesPanel />
     <RuntimeControls runtime={props.selected} pending={props.pending} lastAction={props.lastAction} onAction={props.onAction} />
@@ -124,6 +125,24 @@ export function RuntimeDetail(props: {
     </div>
     <RuntimeLogs runtime={props.selected} />
     {props.error ? <p className="runtime-switch-error" role="alert">{props.error}</p> : null}
+  </section>;
+}
+
+function RuntimeUsageEvidence(props: { usage?: RuntimeUsageSummary }) {
+  const usage = props.usage;
+  if (!usage) return null;
+  const calls = `${usage.calls} call${usage.calls === 1 ? "" : "s"}`;
+  const incomplete = `${usage.missingTelemetryCalls} call${usage.missingTelemetryCalls === 1 ? "" : "s"} incomplete`;
+  return <section className="runtime-usage" aria-label="Recorded runtime usage">
+    <h3>Recorded usage</h3>
+    <dl>
+      <div><dt>Calls</dt><dd>{calls}</dd></div>
+      <div><dt>Tokens</dt><dd>{usage.inputTokens} in / {usage.outputTokens} out</dd></div>
+      <div><dt>Request time</dt><dd>{formatDuration(usage.requestLatencyMs)}</dd></div>
+      <div><dt>Active time</dt><dd>{formatDuration(usage.activeDurationMs)}</dd></div>
+      <div><dt>Failures</dt><dd>{usage.failures}</dd></div>
+      <div><dt>Telemetry</dt><dd>{incomplete}</dd></div>
+    </dl>
   </section>;
 }
 
@@ -205,6 +224,10 @@ function formatThroughput(value?: number): string {
 
 function formatBytes(value: number): string {
   return `${(value / 1024 ** 3).toFixed(1)} GB`;
+}
+
+function formatDuration(value: number): string {
+  return value < 1_000 ? `${Math.round(value)} ms` : `${(value / 1_000).toFixed(1)} s`;
 }
 
 function approvalLabel(value: RuntimeHostSnapshot["detail"]["approval"]): string {

@@ -192,6 +192,7 @@ function buildConversation(o: ConvoOpts): { convo: ReturnType<typeof createConve
     provider: setup.provider, advisorProvider: setup.advisorProvider, safety: setup.safety, registry: setup.registry, root: repoRoot,
     sessionId: state.sessionId,
     usageAgent: "interactive",
+    usageTaskId: setup.goals.find((g) => g.status === "active")?.id?.toString(),
     requestApproval: approver(rl), maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(setup.provider), activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
     getEffortLevel: () => state.effortLevel ?? setup.effortLevel,
