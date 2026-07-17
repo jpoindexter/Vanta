@@ -79,6 +79,7 @@ export function AppShell() {
 
   useEffect(() => {
     function constrainPanes() {
+      if (window.innerWidth <= 760 && mobilePanel !== "inspect") setInspectorOpen(false);
       let nextSidebar = preferredSidebarWidth.current;
       let nextRail = preferredRailWidth.current;
       if (inspectorVisible) {
@@ -94,7 +95,7 @@ export function AppShell() {
     constrainPanes();
     window.addEventListener("resize", constrainPanes);
     return () => window.removeEventListener("resize", constrainPanes);
-  }, [inspectorVisible, railMinimum]);
+  }, [inspectorVisible, mobilePanel, railMinimum]);
 
   useEffect(() => {
     if (data.phase !== "ready" || bootSession.current || !data.sessions.length) return;

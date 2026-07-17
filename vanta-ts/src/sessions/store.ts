@@ -35,6 +35,31 @@ const MessageSchema: z.ZodType<Message> = z.lazy(() =>
           modelVersion: z.number().int().positive(), transition: z.string(), path: z.string(),
           predicted: z.string(), observed: z.string(), safeNextAction: z.string(),
         }).optional(),
+        schemaTrace: z.object({
+          planId: z.string(),
+          runId: z.string(),
+          queue: z.object({
+            status: z.enum(["running", "stopped", "resumed"]),
+            reason: z.string().optional(),
+          }),
+          certification: z.object({
+            certified: z.boolean(), modelVersion: z.number().int().positive(), coverage: z.string(),
+          }),
+          transitions: z.array(z.object({
+            id: z.string(), sequence: z.number().int().nonnegative(), label: z.string(),
+            actionMode: z.enum(["simulated", "real"]),
+            status: z.enum(["match", "mismatch", "revised"]),
+            modelVersion: z.number().int().positive(), path: z.string().optional(),
+            predicted: z.string(), observed: z.string(),
+            modelDiff: z.object({
+              fromVersion: z.number().int().positive(), toVersion: z.number().int().positive(), summary: z.array(z.string()),
+            }).optional(),
+            backtest: z.object({
+              certified: z.boolean(), matchedTransitions: z.number().int().nonnegative(),
+              totalTransitions: z.number().int().nonnegative(), timelineHash: z.string(),
+            }).optional(),
+          })),
+        }).optional(),
       }).optional(),
     }),
     z.object({

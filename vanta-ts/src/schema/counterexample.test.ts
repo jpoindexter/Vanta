@@ -146,6 +146,21 @@ describe.skipIf(!canRunSeatbelt)("counterexample revision and recertification", 
     expect(recovered).toMatchObject({ episode: { status: "recertified", revisionKind: "model", newModelVersion: 2, safeNextAction: "resume_plan" }, report: { certified: true } });
     expect(canResumeCounterexample(recovered.episode, artifact(), recovered.report!, history)).toBe(false);
     expect(canResumeCounterexample(recovered.episode, recovered.artifact!, recovered.report!, history)).toBe(true);
+    expect(counterexampleDesktopReceipt(recovered.episode, {
+      report: recovered.report,
+      modelDiffSummary: ["Updated the step transition from the retained counterexample"],
+    })).toMatchObject({
+      actions: ["retry_failed_step", "edit_request", "start_from_checkpoint"],
+      schemaTrace: {
+        queue: { status: "resumed" },
+        certification: { certified: true, modelVersion: 2 },
+        transitions: [{
+          status: "revised",
+          modelDiff: { fromVersion: 1, toVersion: 2, summary: ["Updated the step transition from the retained counterexample"] },
+          backtest: { certified: true, matchedTransitions: 2, totalTransitions: 2 },
+        }],
+      },
+    });
   });
 
   it("accepts a revised grounded-state interpretation only after full recertification", async () => {

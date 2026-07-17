@@ -35,6 +35,7 @@
     "desktop:sessions:smoke": "npm run desktop:build && node scripts/desktop-session-management-smoke.mjs",
     "desktop:context:smoke": "npm run desktop:build && node scripts/desktop-context-attachments-smoke.mjs",
     "desktop:recovery:smoke": "npm run desktop:build && node scripts/desktop-run-recovery-smoke.mjs",
+    "desktop:schema-trace:smoke": "npm run desktop:build && node scripts/desktop-schema-trace-smoke.mjs",
     "desktop:long-session:smoke": "npm run desktop:build && node scripts/desktop-long-session-navigation-smoke.mjs",
     "desktop:queue:smoke": "npm run desktop:build && node scripts/desktop-queued-turn-editor-smoke.mjs",
     "desktop:flow:proof:source": "npm run desktop:build && node scripts/desktop-flow-proof-suite.mjs --source-only",

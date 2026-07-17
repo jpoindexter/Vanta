@@ -18892,7 +18892,7 @@
       "id": "SCHEMA-DESKTOP-TRACE-EXPLORER",
       "track": "Desktop App",
       "title": "Schema desktop trace explorer - inspect theory, predictions, mismatches, and recovery",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "Bring Schema's interpretable loop into Vanta Desktop without a new dashboard maze. The existing run timeline can reveal the active model version, certification coverage, simulated plan, committed actions, prediction-versus-observation diffs, plan abort point, counterexample, and revised model in the place work happened.",
       "done": "A desktop fixture run lets the operator open any transition, compare predicted and observed state, inspect the model diff and backtest receipt, distinguish simulated from real actions, see why a queue stopped, and retry only after recertification; the panel remains optional, keyboard accessible, and usable at 760px and desktop widths; Electron proof covers match, mismatch, revision, and resumed run.",
@@ -18901,7 +18901,8 @@
       "effort": "high",
       "codex": "gpt-5.6-sol",
       "lens": "tui",
-      "updated": "2026-07-16",
+      "updated": "2026-07-17",
+      "notes": "SHIPPED 2026-07-17: Extended durable desktop run receipts with typed Schema plan/run, queue, certification, transition, model-diff, and backtest evidence. The existing recovery surface now exposes an optional keyboard-native trace disclosure; each transition distinguishes simulated from real actions and shows predicted versus observed state. Retry is disabled after a mismatch and enabled only for a recertified resumed queue. Fixed the compact resize path so an open desktop inspector cannot cover the composer at 760px. Executed proof: 28 focused tests, core and renderer typechecks, source Electron fixture, and the full source plus signed-packaged nine-flow desktop matrix passed; full suite 1,410 files / 13,367 passed / 3 skipped. Receipt: docs/research/schema-desktop-trace-explorer-2026-07-17.md.",
       "source": "schema-harness-2026-07-15",
       "after": [
         "SCHEMA-TRANSITION-TIMELINE",

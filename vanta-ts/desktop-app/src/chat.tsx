@@ -10,6 +10,7 @@ import { moveSessionMenuFocus, SessionNoticeToast, useSessionMenuDismiss, useSes
 import { movePinnedSession, partitionSessions } from "./session-pinning.js";
 import { SessionPinMenuItems } from "./session-pinning-controls.js";
 import { LatestButton, preferredScrollBehavior, PromptMarkers, useLongSessionNavigation } from "./long-session-navigation.js";
+import { SchemaTraceExplorer, schemaRetryReady } from "./schema-trace-explorer.js";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
 type SessionSidebarProps = {
@@ -509,14 +510,18 @@ function EventTimeline(props: { events: { label: string; ok?: boolean }[] }) {
 function RunRecovery(props: { receipt: DesktopRunReceipt; onRetry: () => void; onEdit: () => void; onCheckpoint: () => void }) {
   const label = props.receipt.status === "interrupted" ? "Run stopped" : "Run needs attention";
   const reason = props.receipt.failureKind ? props.receipt.failureKind.replaceAll("_", " ") : "unknown";
+  const hasRetryAction = props.receipt.actions.includes("retry_failed_step");
+  const retryReady = hasRetryAction && schemaRetryReady(props.receipt.schemaTrace);
+  const showRetry = hasRetryAction || Boolean(props.receipt.schemaTrace);
   return (
     <section className="run-recovery" role="status">
       <div><strong>{label}</strong><span>Partial output and timeline were saved. Failure: {reason}.</span></div>
       {props.receipt.counterexample ? <div className="run-counterexample"><strong>{props.receipt.counterexample.path}</strong><span>Predicted {props.receipt.counterexample.predicted}; observed {props.receipt.counterexample.observed}.</span><span>Safe next: {props.receipt.counterexample.safeNextAction}.</span></div> : null}
+      {props.receipt.schemaTrace ? <SchemaTraceExplorer trace={props.receipt.schemaTrace} /> : null}
       <div className="run-recovery-actions">
-        <button type="button" onClick={props.onRetry}><RotateCcw size={15} />Retry failed step</button>
-        <button type="button" onClick={props.onEdit}>Edit request</button>
-        <button type="button" onClick={props.onCheckpoint}>Start from checkpoint</button>
+        {showRetry ? <button type="button" disabled={!retryReady} title={!retryReady && props.receipt.schemaTrace ? "Recertify the Schema model before retrying" : undefined} onClick={props.onRetry}><RotateCcw size={15} />Retry failed step</button> : null}
+        {props.receipt.actions.includes("edit_request") ? <button type="button" onClick={props.onEdit}>Edit request</button> : null}
+        {props.receipt.actions.includes("start_from_checkpoint") ? <button type="button" onClick={props.onCheckpoint}>Start from checkpoint</button> : null}
       </div>
     </section>
   );

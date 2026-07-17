@@ -14,6 +14,26 @@ export type ToolCall = {
 };
 
 export type DesktopRunFailureKind = "setup" | "tool" | "model" | "model_mismatch" | "user_denied" | "interrupted" | "unknown";
+export type DesktopSchemaTransitionTrace = {
+  id: string;
+  sequence: number;
+  label: string;
+  actionMode: "simulated" | "real";
+  status: "match" | "mismatch" | "revised";
+  modelVersion: number;
+  path?: string;
+  predicted: string;
+  observed: string;
+  modelDiff?: { fromVersion: number; toVersion: number; summary: string[] };
+  backtest?: { certified: boolean; matchedTransitions: number; totalTransitions: number; timelineHash: string };
+};
+export type DesktopSchemaTrace = {
+  planId: string;
+  runId: string;
+  queue: { status: "running" | "stopped" | "resumed"; reason?: string };
+  certification: { certified: boolean; modelVersion: number; coverage: string };
+  transitions: DesktopSchemaTransitionTrace[];
+};
 export type DesktopRunReceipt = {
   status: "done" | "failed" | "interrupted";
   failureKind?: DesktopRunFailureKind;
@@ -21,6 +41,7 @@ export type DesktopRunReceipt = {
   actions: ("retry_failed_step" | "edit_request" | "start_from_checkpoint")[];
   checkpoint?: { instruction: string; partialText?: string };
   counterexample?: { modelVersion: number; transition: string; path: string; predicted: string; observed: string; safeNextAction: string };
+  schemaTrace?: DesktopSchemaTrace;
 };
 
 export type EffectDisposition = "none" | "confirmed" | "unknown";

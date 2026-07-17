@@ -7,6 +7,7 @@ const sourceOnly = process.argv.includes("--source-only");
 const flows = [
   ["shell", "scripts/desktop-shell-convergence-smoke.mjs"],
   ["work-recovery", "scripts/desktop-run-recovery-smoke.mjs"],
+  ["schema-trace", "scripts/desktop-schema-trace-smoke.mjs"],
   ["long-session", "scripts/desktop-long-session-navigation-smoke.mjs"],
   ["queued-turns", "scripts/desktop-queued-turn-editor-smoke.mjs"],
   ["runtime-profiles", "scripts/desktop-runtime-strip-smoke.mjs"],

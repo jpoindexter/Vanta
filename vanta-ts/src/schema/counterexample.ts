@@ -178,12 +178,17 @@ export function formatCounterexampleForCli(episode: CounterexampleEpisode): stri
   ].join("\n");
 }
 
-export function counterexampleDesktopReceipt(episode: CounterexampleEpisode): DesktopRunReceipt {
+export function counterexampleDesktopReceipt(episode: CounterexampleEpisode, evidence: {
+  report?: BacktestReport;
+  modelDiffSummary?: string[];
+} = {}): DesktopRunReceipt {
   return {
     status: "failed",
     failureKind: "model_mismatch",
     events: [{ label: `Model diverged at ${episode.counterexample.path}`, ok: false }],
-    actions: ["edit_request", "start_from_checkpoint"],
+    actions: episode.status === "recertified"
+      ? ["retry_failed_step", "edit_request", "start_from_checkpoint"]
+      : ["edit_request", "start_from_checkpoint"],
     checkpoint: { instruction: `Recover plan ${episode.planId} from counterexample ${episode.id}` },
     counterexample: {
       modelVersion: episode.failedModelVersion,
@@ -192,6 +197,47 @@ export function counterexampleDesktopReceipt(episode: CounterexampleEpisode): De
       predicted: display(episode.counterexample.predicted),
       observed: display(episode.counterexample.observed),
       safeNextAction: episode.safeNextAction.replaceAll("_", " "),
+    },
+    schemaTrace: {
+      planId: episode.planId,
+      runId: episode.counterexample.runId,
+      queue: {
+        status: episode.status === "recertified" ? "resumed" : "stopped",
+        reason: episode.status === "recertified"
+          ? `Model v${episode.newModelVersion} recertified; remaining actions may resume.`
+          : `Prediction mismatch at ${episode.counterexample.path}; remaining actions discarded.`,
+      },
+      certification: {
+        certified: episode.status === "recertified",
+        modelVersion: episode.newModelVersion ?? episode.failedModelVersion,
+        coverage: episode.status === "recertified" ? "Complete history recertified" : "Certification invalidated by counterexample",
+      },
+      transitions: [{
+        id: `${episode.counterexample.runId}:${episode.counterexample.sequence}`,
+        sequence: episode.counterexample.sequence,
+        label: episode.status === "recertified" ? "Recovered transition" : "Prediction mismatch",
+        actionMode: "real",
+        status: episode.status === "recertified" ? "revised" : "mismatch",
+        modelVersion: episode.newModelVersion ?? episode.failedModelVersion,
+        path: episode.counterexample.path,
+        predicted: display(episode.counterexample.predicted),
+        observed: display(episode.counterexample.observed),
+        ...(episode.status === "recertified" && episode.newModelVersion ? {
+          modelDiff: {
+            fromVersion: episode.failedModelVersion,
+            toVersion: episode.newModelVersion,
+            summary: evidence.modelDiffSummary ?? [`${episode.revisionKind ?? "model"} revision incorporated the retained counterexample`],
+          },
+        } : {}),
+        ...(evidence.report ? {
+          backtest: {
+            certified: evidence.report.certified,
+            matchedTransitions: evidence.report.coverage.exact,
+            totalTransitions: evidence.report.coverage.transitions,
+            timelineHash: evidence.report.timelineHash,
+          },
+        } : {}),
+      }],
     },
   };
 }

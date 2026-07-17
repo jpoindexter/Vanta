@@ -52,6 +52,35 @@ describe("session store", () => {
     expect(loaded?.title).toBe("summarize the readme");
   });
 
+  it("round-trips the optional desktop Schema trace receipt", async () => {
+    const messages: Message[] = [...TRANSCRIPT, {
+      role: "assistant",
+      content: "The model diverged.",
+      desktopRun: {
+        status: "failed",
+        failureKind: "model_mismatch",
+        events: [{ label: "Prediction mismatch", ok: false }],
+        actions: ["edit_request", "start_from_checkpoint"],
+        schemaTrace: {
+          planId: "plan-42",
+          runId: "run-7",
+          queue: { status: "stopped", reason: "Remaining actions discarded." },
+          certification: { certified: false, modelVersion: 4, coverage: "Invalidated" },
+          transitions: [{
+            id: "run-7:2", sequence: 2, label: "Prediction mismatch", actionMode: "real", status: "mismatch",
+            modelVersion: 4, path: "$.dialog.open", predicted: "true", observed: "false",
+            backtest: { certified: false, matchedTransitions: 11, totalTransitions: 12, timelineHash: "sha256:trace" },
+          }],
+        },
+      },
+    }];
+    await saveSession("schema-trace", messages, { env: env() });
+    const loaded = await loadSession("schema-trace", env());
+    expect(loaded?.messages.at(-1)).toMatchObject({
+      desktopRun: { schemaTrace: { planId: "plan-42", transitions: [{ status: "mismatch", path: "$.dialog.open" }] } },
+    });
+  });
+
   it("returns null for a missing session", async () => {
     expect(await loadSession("nope", env())).toBeNull();
   });
