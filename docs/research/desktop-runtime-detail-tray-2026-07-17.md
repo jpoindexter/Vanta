@@ -1,6 +1,6 @@
 # Desktop runtime detail tray
 
-**Roadmap:** `DESKTOP-RUNTIME-DETAIL-TRAY`  
+**Roadmap:** `DESKTOP-RUNTIME-DETAIL-TRAY`
 **Implemented:** 2026-07-17
 
 ## Outcome
