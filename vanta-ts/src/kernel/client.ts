@@ -27,8 +27,8 @@ export type KernelClient = {
  * nearest ancestor holding `.vanta/api-token` (the client's cwd often differs from the
  * kernel's root — e.g. tests run in vanta-ts while the kernel is rooted at the repo).
  * Undefined if not found — the client then sends no token (older kernel won't require it). */
-function readApiToken(): string | undefined {
-  let dir = process.env.VANTA_ROOT ?? process.cwd();
+function readApiToken(root?: string): string | undefined {
+  let dir = root ?? process.env.VANTA_ROOT ?? process.cwd();
   for (let i = 0; i < 20; i++) {
     try {
       const t = readFileSync(join(dir, ".vanta", "api-token"), "utf8").trim();
@@ -44,6 +44,6 @@ function readApiToken(): string | undefined {
 }
 
 /** Build the default kernel client (HTTP adapter → the Rust sidecar). */
-export function createKernelClient(baseUrl: string): KernelClient {
-  return new SafetyClient(baseUrl, readApiToken());
+export function createKernelClient(baseUrl: string, root?: string): KernelClient {
+  return new SafetyClient(baseUrl, readApiToken(root));
 }
