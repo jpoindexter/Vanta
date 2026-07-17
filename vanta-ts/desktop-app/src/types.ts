@@ -4,9 +4,11 @@ export type DesktopTheme = "dark" | "light";
 export type DesktopView = "work" | "operate" | "outputs" | "connect";
 export type Capability = { id: string; kind: "tool" | "skill"; name: string; description: string; tags: string[] };
 export type MessagingPlatform = {
-  id: string; label: string; configured: boolean; missing: string[]; prerequisite?: string; warning?: string;
+  id: string; label: string; status: ConnectStatus; configured: boolean; missing: string[]; prerequisite?: string; warning?: string;
   setupSteps: string[]; signupUrl?: string; fields: { key: string; label: string; secret: boolean }[];
 };
+export type ConnectStatus = "ready" | "needs_setup" | "unavailable";
+export type ConnectTestResult = { status: ConnectStatus; message: string };
 export type Artifact = { id: string; kind: "canvas" | "link" | "file"; label: string; value: string; sessionId?: string; sessionTitle?: string };
 export type Goal = { text: string };
 export type AccessMode = "ask" | "approve" | "full";

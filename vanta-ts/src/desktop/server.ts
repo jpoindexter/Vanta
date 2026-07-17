@@ -9,6 +9,7 @@ import {
   handleApproval, handleTerminal, handleChat, handleStopChat, handleQueueChat,
   handleAccessMode,
   handleRuntime,
+  handleConnectTest,
 } from "./handlers.js";
 export { approvalDecision, type PendingApproval, type DesktopEvent, type DesktopState, eventLabel } from "./handlers.js";
 import {
@@ -68,6 +69,7 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
   if (p === "/api/setup") { await handleDesktopSetup(state, req, res); return true; }
   if (p === "/api/approval") { await handleApproval(state, req, res); return true; }
   if (p === "/api/access-mode") { await handleAccessMode(state, req, res); return true; }
+  if (p === "/api/connect/test") { await handleConnectTest(state, req, res); return true; }
   if (p === "/api/runtime") { await handleRuntime(state, req, res); return true; }
   if (p === "/api/terminal") { await handleTerminal(state, req, res); return true; }
   if (p === "/api/chat/stop") { await handleStopChat(state, res); return true; }

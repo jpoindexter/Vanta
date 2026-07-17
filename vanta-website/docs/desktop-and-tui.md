@@ -37,6 +37,8 @@ Session management is recoverable by default. Archive and Trash actions show pen
 
 Project context opens from the composer paperclip or an empty-draft `@`. The picker separates files changed in the working tree, files mentioned in the active task, and recently modified files, with project-wide search. Gitignored and credential-like paths are hidden by default. Selected files appear as removable chips and are submitted through the shared `@path` context expansion contract.
 
+Connect reports models, capabilities, and messaging adapters as **Ready**, **Needs setup**, or **Unavailable**. Ready providers and adapters have safe local test actions; provider tests resolve the configured model without inference, and messaging tests verify required local settings without sending a message. Secrets remain write-only. Startup errors open model setup only for provider failures, while project file/catalog failures stay in scoped local recovery.
+
 The desktop app backlog lives in the single product roadmap, not in a separate side plan. Desktop cards include `DESKTOP-CODEX-KEELHOUSE-SHELL`, `DESKTOP-MODEL-PICKER-UX`, `DESKTOP-RUN-RECOVERY-TIMELINE`, `DESKTOP-CONTEXT-ATTACHMENTS`, `DESKTOP-SAFE-SESSION-OPS`, `DESKTOP-CONNECT-SETUP-STATUS`, `DESKTOP-CONTEXT-LEGIBILITY`, and `DESKTOP-FLOW-PROOF-SUITE`.
 
 ```bash

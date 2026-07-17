@@ -23,7 +23,7 @@ import { resolveEventFormatter } from "../term/event-format.js";
 import { pushSseEvent, type SseClients } from "./session-state.js";
 import { approvalDecision, approvalPayload, requestWebApproval, resolveApproval, type PendingApproval } from "./approval.js";
 import { readCanvasArtifact } from "../canvas/artifact.js";
-import { desktopArtifacts, desktopCapabilities, desktopMessagingPlatforms, saveDesktopMessagingPlatform } from "./operator-data.js";
+import { desktopArtifacts, desktopCapabilities, desktopMessagingPlatforms, saveDesktopMessagingPlatform, testDesktopMessagingPlatform } from "./operator-data.js";
 import { loadDesktopAccessMode, permissionModeForAccess, saveDesktopAccessMode, type DesktopAccessMode } from "./access-mode.js";
 import { desktopRuntimePayload, runDesktopRuntimeAction, selectDesktopRuntimeHost, type DesktopRuntimeAction } from "./runtime-controller.js";
 import { buildDesktopFileContext, isSafeProjectFile } from "./file-context.js";
@@ -282,6 +282,23 @@ export async function handleSaveMessaging(state: DesktopState, req: http.Incomin
   } catch (error) {
     sendJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
   }
+}
+
+export async function handleConnectTest(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const body = await readJson(req) as { kind?: unknown; id?: unknown };
+  if (body.kind === "messaging" && typeof body.id === "string") {
+    return sendJson(res, 200, testDesktopMessagingPlatform(body.id));
+  }
+  if (body.kind === "provider") {
+    try {
+      const live = await ensureDesktopConversation(state);
+      const label = providerById(live.providerId ?? "")?.label ?? live.providerId ?? "Current provider";
+      return sendJson(res, 200, { status: "ready", message: `${label} is resolved with model ${live.modelId}.` });
+    } catch (error) {
+      return sendJson(res, 200, { status: "needs_setup", message: (error as Error).message.split("\n")[0] });
+    }
+  }
+  sendJson(res, 400, { error: "kind must be provider or messaging" });
 }
 
 export async function handleArtifacts(state: DesktopState, res: http.ServerResponse): Promise<void> {

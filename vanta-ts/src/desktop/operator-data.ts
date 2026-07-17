@@ -18,6 +18,7 @@ export type DesktopCapability = {
 export type DesktopMessagingPlatform = {
   id: string;
   label: string;
+  status: "ready" | "needs_setup" | "unavailable";
   configured: boolean;
   missing: string[];
   prerequisite?: string;
@@ -50,6 +51,7 @@ export function desktopMessagingPlatforms(env: NodeJS.ProcessEnv = process.env):
     return {
       id: platform.id,
       label: platform.label,
+      status: !platform.implemented ? "unavailable" : availability.configured ? "ready" : "needs_setup",
       configured: availability.configured,
       missing: availability.missing,
       prerequisite: platform.prerequisite,
@@ -59,6 +61,14 @@ export function desktopMessagingPlatforms(env: NodeJS.ProcessEnv = process.env):
       fields: platform.requiredEnv.map((key) => ({ key, label: labelForEnv(key), secret: key === platform.secretEnv })),
     };
   });
+}
+
+export function testDesktopMessagingPlatform(id: string, env: NodeJS.ProcessEnv = process.env): { status: DesktopMessagingPlatform["status"]; message: string } {
+  const platform = desktopMessagingPlatforms(env).find((item) => item.id === id);
+  if (!platform) throw new Error("Messaging platform was not found.");
+  if (platform.status === "unavailable") return { status: "unavailable", message: `${platform.label} is not available in this Vanta build.` };
+  if (platform.status === "needs_setup") return { status: "needs_setup", message: `${platform.label} still needs ${platform.missing.length} required setting${platform.missing.length === 1 ? "" : "s"}.` };
+  return { status: "ready", message: `${platform.label} credentials are saved locally and ready for the gateway.` };
 }
 
 export async function saveDesktopMessagingPlatform(root: string, id: string, values: unknown): Promise<DesktopMessagingPlatform> {

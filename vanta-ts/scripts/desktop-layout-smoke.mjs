@@ -76,9 +76,20 @@ try {
   }));
   await page.reload({ waitUntil: "domcontentloaded" });
   await page.getByRole("alert").waitFor();
+  if (await page.getByRole("button", { name: "Configure model" }).isVisible().catch(() => false)) throw new Error("Service recovery incorrectly opened provider setup");
   const recovery = await measure(page);
   assertLayout(recovery, "recovery");
 
+  await page.unroute("**/api/status");
+  await page.route("**/api/status", (route) => route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "Project file permission denied" }) }));
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.getByText("Project context needs attention").waitFor();
+  if (await page.getByRole("button", { name: "Configure model" }).isVisible().catch(() => false)) throw new Error("Project recovery incorrectly opened provider setup");
+  await page.unroute("**/api/status");
+  await page.route("**/api/status", (route) => route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "No provider API key configured" }) }));
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.getByText("Model setup needed").waitFor();
+  await page.getByRole("button", { name: "Configure model" }).waitFor();
   await page.unroute("**/api/status");
   await page.route("**/api/files", (route) => route.fulfill({
     status: 200,

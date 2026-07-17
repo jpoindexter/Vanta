@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { Activity, ArrowRight, Bot, Boxes, CheckCircle2, ExternalLink, FileText, Image, Link2, Network, PackageOpen, PauseCircle, RefreshCw, Search, ShieldAlert, Wrench } from "lucide-react";
-import type { Artifact, Capability, EventRow, MessagingPlatform, Provider, Session, Status } from "./types.js";
+import type { Artifact, Capability, ConnectStatus, ConnectTestResult, EventRow, MessagingPlatform, Provider, Session, Status } from "./types.js";
+
+type TestConnection = (kind: "provider" | "messaging", id?: string) => Promise<ConnectTestResult>;
 
 export function OperateView(props: { sessions: Session[]; events: EventRow[]; status: Status | null; onOpenSession: (id: string) => void }) {
   const active = props.sessions.filter((session) => !session.archived).slice(0, 6);
@@ -50,26 +52,27 @@ function CapabilitiesPanel(props: { items: Capability[] }) {
   </>;
 }
 
-export function MessagingView(props: { platforms: MessagingPlatform[]; onSave: (id: string, values: Record<string, string>) => Promise<void> }) {
+export function MessagingView(props: { platforms: MessagingPlatform[]; onSave: (id: string, values: Record<string, string>) => Promise<void>; onTest: TestConnection }) {
   return <WorkspaceView title="Messaging" eyebrow="Reach Vanta elsewhere" description="Connect one of Vanta's gateway adapters. Credentials are saved locally and never displayed again."><MessagingPanel {...props} /></WorkspaceView>;
 }
 
-function MessagingPanel(props: { platforms: MessagingPlatform[]; onSave: (id: string, values: Record<string, string>) => Promise<void> }) {
+function MessagingPanel(props: { platforms: MessagingPlatform[]; onSave: (id: string, values: Record<string, string>) => Promise<void>; onTest: TestConnection }) {
   const [selectedId, setSelectedId] = useState("");
   const selected = props.platforms.find((platform) => platform.id === selectedId) ?? props.platforms[0];
   useEffect(() => { if (!selectedId && props.platforms[0]) setSelectedId(props.platforms[0].id); }, [props.platforms, selectedId]);
   return <div className="messaging-layout">
       <aside className="platform-list" aria-label="Messaging platforms">
-        {props.platforms.map((platform) => <button className={platform.id === selected?.id ? "active" : ""} type="button" key={platform.id} onClick={() => setSelectedId(platform.id)}><i className={platform.configured ? "ready" : ""} /><span>{platform.label}</span><small>{platform.configured ? "Connected" : `${platform.missing.length} required`}</small></button>)}
+        {props.platforms.map((platform) => <button className={platform.id === selected?.id ? "active" : ""} type="button" key={platform.id} onClick={() => setSelectedId(platform.id)}><i className={platform.status} /><span>{platform.label}</span><small>{statusLabel(platform.status)}{platform.status === "needs_setup" ? ` · ${platform.missing.length} required` : ""}</small></button>)}
       </aside>
-      {selected ? <MessagingDetail key={selected.id} platform={selected} onSave={props.onSave} /> : <Empty message="No messaging adapters are available." />}
+      {selected ? <MessagingDetail key={selected.id} platform={selected} onSave={props.onSave} onTest={props.onTest} /> : <Empty message="No messaging adapters are available." />}
     </div>;
 }
 
-function MessagingDetail(props: { platform: MessagingPlatform; onSave: (id: string, values: Record<string, string>) => Promise<void> }) {
+function MessagingDetail(props: { platform: MessagingPlatform; onSave: (id: string, values: Record<string, string>) => Promise<void>; onTest: TestConnection }) {
   const [values, setValues] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const test = useConnectTest(() => props.onTest("messaging", props.platform.id));
   async function submit(event: FormEvent) {
     event.preventDefault(); setSaving(true); setError("");
     try { await props.onSave(props.platform.id, values); setValues({}); }
@@ -77,7 +80,7 @@ function MessagingDetail(props: { platform: MessagingPlatform; onSave: (id: stri
     finally { setSaving(false); }
   }
   return <form className="messaging-detail" onSubmit={(event) => { void submit(event); }}>
-    <header><div><p className="eyebrow">{props.platform.configured ? "Configured" : "Setup required"}</p><h2>{props.platform.label}</h2></div>{props.platform.signupUrl ? <a href={props.platform.signupUrl} target="_blank" rel="noreferrer">Get credentials <ExternalLink size={14} /></a> : null}</header>
+    <header><div><StatusBadge status={props.platform.status} /><h2>{props.platform.label}</h2></div>{props.platform.signupUrl ? <a href={props.platform.signupUrl} target="_blank" rel="noreferrer">Get credentials <ExternalLink size={14} /></a> : null}</header>
     {props.platform.prerequisite ? <p className="operator-note"><strong>Prerequisite</strong>{props.platform.prerequisite}</p> : null}
     {props.platform.warning ? <p className="operator-warning">{props.platform.warning}</p> : null}
     <ol className="setup-steps">{props.platform.setupSteps.map((step) => <li key={step}>{step}</li>)}</ol>
@@ -85,7 +88,8 @@ function MessagingDetail(props: { platform: MessagingPlatform; onSave: (id: stri
       {props.platform.fields.map((field) => <label key={field.key}>{field.label}<input type={field.secret ? "password" : "text"} autoComplete="off" value={values[field.key] ?? ""} onChange={(event) => setValues((current) => ({ ...current, [field.key]: event.target.value }))} placeholder={field.secret ? "Paste credential" : `Enter ${field.label.toLowerCase()}`} required /></label>)}
     </fieldset>
     {error ? <p className="setup-error" role="alert">{error}</p> : null}
-    <div className="form-footer"><p>Start or restart <code>vanta gateway</code> after saving to connect this adapter.</p><button type="submit" disabled={saving}>{saving ? "Saving..." : "Save credentials"}</button></div>
+    {test.message ? <p className={`connect-test-result ${test.status}`} role="status">{test.message}</p> : null}
+    <div className="form-footer"><p>{props.platform.status === "ready" ? "Credentials are saved locally. Start the gateway when you want delivery." : "Save the required settings locally; secrets are never displayed again."}</p><div><button type="button" disabled={test.testing || props.platform.status !== "ready"} onClick={() => void test.run()}>{test.testing ? "Testing..." : "Test setup"}</button><button type="submit" disabled={saving || props.platform.status === "unavailable"}>{saving ? "Saving..." : "Save credentials"}</button></div></div>
   </form>;
 }
 
@@ -111,11 +115,13 @@ export function ConnectView(props: {
   models: Provider[];
   status: Status | null;
   onSaveMessaging: (id: string, values: Record<string, string>) => Promise<void>;
+  onTest: TestConnection;
   onOpenModel: () => void;
   onOpenSetup: () => void;
 }) {
   const [section, setSection] = useState<"overview" | "capabilities" | "messaging">("overview");
   const configured = props.platforms.filter((platform) => platform.configured).length;
+  const providerStatus: ConnectStatus = props.status?.model ? "ready" : props.models.length ? "needs_setup" : "unavailable";
   return <WorkspaceView title="Connect" eyebrow="Setup when it is useful" description="Choose a model, inspect what Vanta can use, or connect the channels that let it reach you.">
     <div className="connect-tabs" role="tablist" aria-label="Connect sections">
       <button role="tab" aria-selected={section === "overview"} className={section === "overview" ? "active" : ""} type="button" onClick={() => setSection("overview")}>Overview</button>
@@ -123,17 +129,40 @@ export function ConnectView(props: {
       <button role="tab" aria-selected={section === "messaging"} className={section === "messaging" ? "active" : ""} type="button" onClick={() => setSection("messaging")}>Messaging</button>
     </div>
     {section === "overview" ? <div className="connect-grid">
-      <ConnectCard icon={<Bot size={18} />} eyebrow="Model" title={props.status?.model ?? "Choose a model"} detail={props.models.length ? `${props.models.length} provider${props.models.length === 1 ? "" : "s"} available` : "No providers are available yet"} action={props.status?.model ? "Change model" : "Connect provider"} onAction={props.status?.model ? props.onOpenModel : props.onOpenSetup} />
-      <ConnectCard icon={<Boxes size={18} />} eyebrow="Capability" title={`${props.capabilities.length} available`} detail="Live registered tools and project skills that Vanta can use in this workspace." action="Browse capabilities" onAction={() => setSection("capabilities")} />
-      <ConnectCard icon={<Network size={18} />} eyebrow="Messaging" title={configured ? `${configured} connected` : "No channels connected"} detail={`${props.platforms.length} available adapters. Credentials stay local to this project.`} action="Configure messaging" onAction={() => setSection("messaging")} />
+      <ConnectCard icon={<Bot size={18} />} status={providerStatus} eyebrow="Model" title={props.status?.model ?? "Choose a model"} detail={props.models.length ? `${props.models.length} provider${props.models.length === 1 ? "" : "s"} available` : "Provider catalog unavailable. Retry locally before opening setup."} action={props.status?.model ? "Change model" : "Connect provider"} onAction={props.status?.model ? props.onOpenModel : props.onOpenSetup} onTest={providerStatus === "ready" ? () => props.onTest("provider") : undefined} />
+      <ConnectCard icon={<Boxes size={18} />} status={props.capabilities.length ? "ready" : "needs_setup"} eyebrow="Capabilities" title={`${props.capabilities.length} available`} detail="Live registered tools and project skills that Vanta can use in this workspace." action="Browse capabilities" onAction={() => setSection("capabilities")} />
+      <ConnectCard icon={<Network size={18} />} status={configured ? "ready" : props.platforms.length ? "needs_setup" : "unavailable"} eyebrow="Messaging" title={configured ? `${configured} ready` : "No channels ready"} detail={`${props.platforms.length} available adapters. Credentials stay local to this project.`} action="Configure messaging" onAction={() => setSection("messaging")} />
     </div> : null}
     {section === "capabilities" ? <CapabilitiesPanel items={props.capabilities} /> : null}
-    {section === "messaging" ? <MessagingPanel platforms={props.platforms} onSave={props.onSaveMessaging} /> : null}
+    {section === "messaging" ? <MessagingPanel platforms={props.platforms} onSave={props.onSaveMessaging} onTest={props.onTest} /> : null}
   </WorkspaceView>;
 }
 
-function ConnectCard(props: { icon: ReactNode; eyebrow: string; title: string; detail: string; action: string; onAction: () => void }) {
-  return <article className="connect-card"><span>{props.icon}</span><p className="eyebrow">{props.eyebrow}</p><h2>{props.title}</h2><p>{props.detail}</p><button type="button" onClick={props.onAction}>{props.action}<ArrowRight size={15} /></button></article>;
+function ConnectCard(props: { icon: ReactNode; status: ConnectStatus; eyebrow: string; title: string; detail: string; action: string; onAction: () => void; onTest?: () => Promise<ConnectTestResult> }) {
+  const test = useConnectTest(props.onTest);
+  return <article className="connect-card"><span>{props.icon}</span><StatusBadge status={props.status} /><p className="eyebrow">{props.eyebrow}</p><h2>{props.title}</h2><p>{props.detail}</p>{test.message ? <p className={`connect-test-result ${test.status}`} role="status">{test.message}</p> : null}<div className="connect-card-actions"><button type="button" onClick={props.onAction}>{props.action}<ArrowRight size={15} /></button>{props.onTest ? <button type="button" disabled={test.testing} onClick={() => void test.run()}>{test.testing ? "Testing..." : "Test model"}</button> : null}</div></article>;
+}
+
+function StatusBadge(props: { status: ConnectStatus }) {
+  return <span className={`connect-status ${props.status}`}>{statusLabel(props.status)}</span>;
+}
+
+function statusLabel(status: ConnectStatus): string {
+  return status === "ready" ? "Ready" : status === "needs_setup" ? "Needs setup" : "Unavailable";
+}
+
+function useConnectTest(runTest?: () => Promise<ConnectTestResult>) {
+  const [testing, setTesting] = useState(false);
+  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState<ConnectStatus | "">("");
+  async function run() {
+    if (!runTest) return;
+    setTesting(true); setMessage(""); setStatus("");
+    try { const result = await runTest(); setStatus(result.status); setMessage(result.message); }
+    catch (error) { setStatus("unavailable"); setMessage(error instanceof Error ? error.message : String(error)); }
+    finally { setTesting(false); }
+  }
+  return { testing, message, status, run };
 }
 
 function ArtifactCard(props: { artifact: Artifact; onOpenSession: (id: string) => void }) {

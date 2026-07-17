@@ -27,7 +27,7 @@ try {
     ...(executablePath ? { executablePath } : {}),
     args: executablePath ? ["--project", project] : ["desktop-app/electron/main.mjs", "--project", project],
     cwd: process.cwd(),
-    env: { ...process.env, VANTA_HOME: home, VANTA_DESKTOP_USER_DATA: userData, VANTA_DESKTOP_PORT: port, VANTA_DESKTOP_AUTOMATION: "1", ELECTRON_DISABLE_SECURITY_WARNINGS: "1" },
+    env: { ...process.env, VANTA_HOME: home, VANTA_DESKTOP_USER_DATA: userData, VANTA_DESKTOP_PORT: port, VANTA_DESKTOP_AUTOMATION: "1", VANTA_PROVIDER: "openai", VANTA_MODEL: "gpt-4o-mini", OPENAI_API_KEY: "vanta-desktop-smoke-key", ELECTRON_DISABLE_SECURITY_WARNINGS: "1" },
   });
   const page = await app.firstWindow();
   page.on("pageerror", (error) => rendererErrors.push(`page error: ${error.message}`));
@@ -101,6 +101,8 @@ try {
 
   await page.getByRole("button", { name: "Connect" }).click();
   await page.locator(".operator-view").getByRole("heading", { name: "Connect", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Test model" }).click();
+  await page.getByText(/is resolved with model/).waitFor();
   await page.getByRole("tab", { name: "Capabilities" }).click();
   await page.getByText("Operator smoke skill").waitFor();
 
@@ -108,7 +110,9 @@ try {
   await page.getByRole("button", { name: /Telegram/ }).click();
   await page.getByLabel("Telegram Token").fill("operator-smoke-token");
   await page.getByRole("button", { name: "Save credentials" }).click();
-  await page.getByText("Configured").first().waitFor();
+  await page.getByText("Ready", { exact: true }).first().waitFor();
+  await page.getByRole("button", { name: "Test setup" }).click();
+  await page.getByText(/credentials are saved locally and ready for the gateway/).waitFor();
 
   const artifactApi = await page.evaluate(() => fetch("/api/artifacts").then(async (response) => ({ status: response.status, body: await response.json() })));
   if (artifactApi.status !== 200 || !artifactApi.body.some((item) => item.value === "https://example.test/receipt")) throw new Error(`Artifact API fixture missing: ${JSON.stringify(artifactApi)}`);
@@ -162,7 +166,7 @@ try {
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
 
   if (process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT, fullPage: false });
-  process.stdout.write(`${JSON.stringify({ work: true, modelPicker: true, connect: true, capabilities: true, messaging: true, outputs: true, visibleContextChips: true, queue: true, stop: true, shortcuts: true, settings: true, providerSetup: true, lightTheme: true, resizablePanes: true, persistentPanes: true })}\n`);
+  process.stdout.write(`${JSON.stringify({ work: true, modelPicker: true, connect: true, modelTest: true, capabilities: true, messaging: true, messagingTest: true, outputs: true, visibleContextChips: true, queue: true, stop: true, shortcuts: true, settings: true, providerSetup: true, lightTheme: true, resizablePanes: true, persistentPanes: true })}\n`);
   await new Promise((resolveDone) => setTimeout(resolveDone, 100));
 } finally {
   if (app) {

@@ -8,6 +8,7 @@ import { CompletionSoundSettings } from "./sound-settings.js";
 import { RuntimeStrip } from "./runtime-strip.js";
 import { FullAccessWarning, fullAccessScope, useFullAccessWarning } from "./full-access-warning.js";
 import { mentionedProjectFiles } from "./file-context.js";
+import { connectionRecovery } from "./connection-recovery.js";
 import { useApproval, useCompletionSound, useConversation, useDesktopData } from "./state.js";
 import type { DesktopTheme, DesktopView, RailTab } from "./types.js";
 
@@ -304,7 +305,9 @@ function LoadingState() {
 }
 
 function ConnectionError(props: { message: string; onRetry: () => void; onSetup: () => void }) {
-  return <section className="connection-error" role="alert"><Bell size={18} /><div><strong>Vanta needs attention</strong><p>{props.message}</p></div><div><button type="button" onClick={props.onSetup}>Configure model</button><button type="button" onClick={props.onRetry}><RefreshCw size={15} />Retry</button></div></section>;
+  const recovery = connectionRecovery(props.message);
+  const guidance = recovery === "project" ? "Check the project path, file permissions, or local catalog, then retry." : recovery === "service" ? "Retry the local runtime without changing provider credentials." : "Connect or repair the model provider for this project.";
+  return <section className="connection-error" role="alert"><Bell size={18} /><div><strong>{recovery === "provider" ? "Model setup needed" : recovery === "project" ? "Project context needs attention" : "Vanta needs attention"}</strong><p>{props.message}</p><p>{guidance}</p></div><div>{recovery === "provider" ? <button type="button" onClick={props.onSetup}>Configure model</button> : null}<button type="button" onClick={props.onRetry}><RefreshCw size={15} />Retry</button></div></section>;
 }
 
 function DesktopOverlays(props: {
@@ -347,7 +350,7 @@ function DesktopOverlays(props: {
 function OperatorWorkspace(props: { view: DesktopView; data: DesktopData; events: ReturnType<typeof useConversation>["events"]; onOpenSession: (id: string) => void }) {
   if (props.view === "operate") return <OperateView sessions={props.data.sessions} events={props.events} status={props.data.status} onOpenSession={props.onOpenSession} />;
   if (props.view === "outputs") return <ArtifactsView artifacts={props.data.artifacts} onOpenSession={props.onOpenSession} onRefresh={() => { void props.data.refresh(); }} />;
-  return <ConnectView capabilities={props.data.capabilities} platforms={props.data.messaging} models={props.data.models} status={props.data.status} onSaveMessaging={props.data.saveMessaging} onOpenModel={props.data.openModelPicker} onOpenSetup={props.data.openSetup} />;
+  return <ConnectView capabilities={props.data.capabilities} platforms={props.data.messaging} models={props.data.models} status={props.data.status} onSaveMessaging={props.data.saveMessaging} onTest={props.data.testConnection} onOpenModel={props.data.openModelPicker} onOpenSetup={props.data.openSetup} />;
 }
 
 function viewLabel(view: Exclude<DesktopView, "work">): string {

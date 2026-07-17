@@ -7,7 +7,7 @@ import {
   type CompletionSoundPlayer,
   type CompletionSoundSettings,
 } from "./completion-sound.js";
-import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, DesktopRunReceipt, DesktopRuntime, EventRow, Message, MessagingPlatform, Provider, RailTab, RuntimeAction, Session, Status, Tool } from "./types.js";
+import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, ConnectTestResult, DesktopRunReceipt, DesktopRuntime, EventRow, Message, MessagingPlatform, Provider, RailTab, RuntimeAction, Session, Status, Tool } from "./types.js";
 import type { SessionDeleteAction } from "./session-safe-ops.js";
 
 export function useDesktopData() {
@@ -97,6 +97,9 @@ export function useDesktopData() {
       await api<MessagingPlatform>("/api/messaging", { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ id, values }) });
       await refresh();
     },
+    testConnection: (kind: "provider" | "messaging", id?: string) => api<ConnectTestResult>("/api/connect/test", {
+      method: "POST", headers: jsonHeaders(), body: JSON.stringify({ kind, ...(id ? { id } : {}) }),
+    }),
     saveSetup: async (provider: string, model: string, apiKey: string) => {
       await api("/api/setup", { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ provider, model, apiKey }) });
       overlays.closeSetup(); setPhase("loading"); await refresh();

@@ -30,11 +30,15 @@ describe("desktop operator routes", () => {
     if (!address || typeof address === "string") throw new Error("desktop server did not bind");
     const base = `http://127.0.0.1:${address.port}`;
     try {
-      const adapters = await (await fetch(`${base}/api/messaging`)).json() as Array<{ id: string; configured: boolean }>;
-      expect(adapters.find((adapter) => adapter.id === "telegram")).toMatchObject({ configured: false });
+      const adapters = await (await fetch(`${base}/api/messaging`)).json() as Array<{ id: string; status: string; configured: boolean }>;
+      expect(adapters.find((adapter) => adapter.id === "telegram")).toMatchObject({ status: "needs_setup", configured: false });
+      const beforeTest = await fetch(`${base}/api/connect/test`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind: "messaging", id: "telegram" }) });
+      expect(await beforeTest.json()).toMatchObject({ status: "needs_setup" });
       const saved = await fetch(`${base}/api/messaging`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: "telegram", values: { VANTA_TELEGRAM_TOKEN: "desktop-token" } }) });
       expect(saved.status).toBe(200);
-      expect(await saved.json()).toMatchObject({ id: "telegram", configured: true });
+      expect(await saved.json()).toMatchObject({ id: "telegram", status: "ready", configured: true });
+      const afterTest = await fetch(`${base}/api/connect/test`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind: "messaging", id: "telegram" }) });
+      expect(await afterTest.json()).toMatchObject({ status: "ready", message: expect.stringContaining("saved locally") });
     } finally {
       await new Promise<void>((resolve) => server.close(() => resolve()));
     }
