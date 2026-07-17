@@ -18940,7 +18940,7 @@
       "id": "SCHEMA-V1-RELEASE-GATE",
       "track": "Harness",
       "title": "Schema v1 release gate - verified-model execution on real Vanta work",
-      "status": "building",
+      "status": "shipped",
       "size": "L",
       "summary": "Ship Schema mode only after the full observe-deliberate-execute-record loop works on real Vanta tasks, prediction errors stop side effects, state and mechanism revisions recover correctly, and controlled evaluation shows a reliability or action-efficiency gain worth the added harness complexity.",
       "done": "A real repo task and a real browser/operator task each produce an append-only timeline, grounded state, executable model, complete-history backtest, simulated plan, controlled commit, and replayable receipts; an injected mismatch proves remaining actions are discarded; resume works after restart; the matched eval shows non-regression in success and a documented gain in reliability, recovery, or real-action efficiency; desktop trace proof passes before release.",
@@ -18949,7 +18949,8 @@
       "effort": "high",
       "codex": "gpt-5.6-sol",
       "lens": "agent-loop",
-      "updated": "2026-07-16",
+      "updated": "2026-07-17",
+      "notes": "SHIPPED 2026-07-17: Added `npm run schema:v1:proof`, which executes one real repository file task and one real system-Chrome task through hash-chained timelines, grounded state, immutable executable models, complete-history backtests, simulated plans, restart-restored workspaces, controlled commits, and replay verification. An injected unexpected action stopped the batch after one real action, retained one queued action, opened a counterexample, installed model version 2, recertified against complete history, and resumed successfully. The matched deterministic evaluation held generic and full-schema success at 100% while reducing average real actions from 1.33 to 1.00. `npm run desktop:schema-trace:smoke` passed match, mismatch, model diff, backtest, recertification, resume, and compact-layout states. Typechecks, Vanta's 300/50 size gate, and the full 1,411-file / 13,368-test suite passed. Evidence and boundaries are recorded in `docs/research/schema-v1-release-gate-2026-07-17.md`.",
       "source": "schema-harness-2026-07-15",
       "after": [
         "SCHEMA-COUNTEREXAMPLE-REVISION",
