@@ -68,6 +68,19 @@ describe("external proof readiness", () => {
     expect(formatExternalProofNext(nextExternalProofGate(report))).toContain("runbooks/BACKEND-SERVERLESS-LIVE.md");
   });
 
+  it("does not repeat actions from ready children in an aggregate gate", () => {
+    const runAnywhere = remote(false);
+    runAnywhere.gates = runAnywhere.gates.map((child, index) => {
+      if (index === 0) return { ...child, ready: true, evidence: "accepted", nextActions: [] };
+      if (index === 1) return { ...child, nextActions: ["configure Teams now"] };
+      return { ...child, nextActions: ["attach physical Termux device"] };
+    });
+    const report = assessExternalProofReadiness({ runAnywhere, payments: [], shopify: [], telephony: [] });
+    const aggregateGate = report.gates.find((gate) => gate.roadmapCardId === "RUN-ANYWHERE-V1-RELEASE-GATE");
+    expect(aggregateGate?.nextActions).toEqual(["configure Teams now", "attach physical Termux device"]);
+    expect(aggregateGate?.evidence).not.toContain("BACKEND-SERVERLESS-LIVE");
+  });
+
   it("does not promote provider fixture candidates without external packets", () => {
     const report = assessExternalProofReadiness({
       runAnywhere: remote(false),

@@ -63,8 +63,12 @@ function gate(cardId: string, label: string, ready: boolean, detail: { receiptPa
 }
 
 function aggregate(cardId: string, label: string, children: ExternalProofGate[]): ExternalProofGate {
-  const missing = children.filter((item) => !item.ready).map((item) => item.roadmapCardId);
-  return gate(cardId, label, missing.length === 0, { receiptPath: "dependent proof receipts", evidence: missing.length ? `waiting on ${missing.join(", ")}` : "all dependent proof receipts are ready" });
+  const missing = children.filter((item) => !item.ready);
+  return gate(cardId, label, missing.length === 0, {
+    receiptPath: "dependent proof receipts",
+    evidence: missing.length ? `waiting on ${missing.map((item) => item.roadmapCardId).join(", ")}` : "all dependent proof receipts are ready",
+    nextActions: missing.flatMap((item) => item.nextActions.length ? item.nextActions : [`Complete ${item.roadmapCardId}.`]),
+  });
 }
 
 function runAnywhereGates(readiness: RunAnywhereReadiness): ExternalProofGate[] {
