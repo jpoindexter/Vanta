@@ -21,13 +21,20 @@ const app = await electron.launch({
 const local = runtimeHost({ id: "local", label: "Local Mac", kind: "local", engine: "llama_cpp", model: "qwen.gguf", kernel: "ready", status: "running", pressure: 38, throughput: 10, queue: 2 });
 const remote = runtimeHost({ id: "remote-fixture", label: "Remote Fixture", kind: "remote", engine: "vllm", model: "qwen-remote", kernel: "not_ready", status: "degraded", pressure: 72, throughput: 18.4, queue: 1 });
 let selectedHostId = "local";
+let failStopOnce = true;
 
 try {
   const page = await app.firstWindow();
   await page.route("**/api/runtime", async (route) => {
     if (route.request().method() === "POST") {
       const body = route.request().postDataJSON();
-      selectedHostId = body.hostId;
+      if (body.action === "stop" && failStopOnce) {
+        failStopOnce = false;
+        await route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "fixture stop failed" }) });
+        return;
+      }
+      if (body.action) applyAction(body.hostId, body.action);
+      else selectedHostId = body.hostId;
     }
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ selectedHostId, hosts: [local, remote] }) });
   });
@@ -48,15 +55,28 @@ try {
     role: element.getAttribute("role"),
     label: element.getAttribute("aria-label"),
     modal: element.getAttribute("aria-modal"),
-    switcher: element.querySelector('[role="group"]')?.getAttribute("aria-label"),
+    switcher: element.querySelector('[role="group"][aria-label="Switch runtime host"]')?.getAttribute("aria-label"),
     pressed: [...element.querySelectorAll("button[aria-pressed]")].map((button) => button.getAttribute("aria-pressed")),
   }));
   if (screenReader.role !== "dialog" || screenReader.label !== "Runtime details" || screenReader.modal !== "false" || screenReader.switcher !== "Switch runtime host") {
     throw new Error(`runtime screen-reader contract is incomplete: ${JSON.stringify(screenReader)}`);
   }
+  for (const text of ["Launch command", "llama-server", "Resource fit", "Benchmark", "Recent lifecycle"]) {
+    if (!await dialog.getByText(text, { exact: false }).count()) throw new Error(`runtime detail missing ${text}`);
+  }
+  const stop = dialog.getByRole("button", { name: "Stop" });
+  await stop.click();
+  await dialog.getByRole("alert").getByText("fixture stop failed").waitFor();
+  await stop.click();
+  const undo = dialog.getByRole("button", { name: "Undo stop" });
+  await undo.waitFor();
+  await undo.click();
+  await dialog.getByRole("button", { name: "Stop" }).waitFor();
 
   await dialog.getByRole("button", { name: /Remote Fixture/ }).click();
   await trigger.getByText("Remote Fixture").waitFor();
+  await dialog.getByRole("button", { name: "Reconnect" }).click();
+  await dialog.getByText("reconnected").waitFor();
   if (await composer.inputValue() !== "Draft survives runtime switching") throw new Error("runtime host switch dropped the active draft");
   await page.keyboard.press("Escape");
   await dialog.waitFor({ state: "detached" });
@@ -74,9 +94,20 @@ try {
   const work = page.locator(".mobile-nav").getByRole("button", { name: "Work" });
   if (await work.count()) await work.click();
   const compact = await inspectRuntime(page, "light-compact");
+  const compactTrigger = page.locator(".runtime-strip-trigger");
+  await compactTrigger.click();
+  const compactDialog = page.getByRole("dialog", { name: "Runtime details" });
+  await compactDialog.waitFor();
+  const compactOverlay = await compactDialog.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, width: rect.width, scrollWidth: element.scrollWidth, clientWidth: element.clientWidth, viewportWidth: window.innerWidth, viewportHeight: window.innerHeight };
+  });
+  if (compactOverlay.left < 0 || compactOverlay.right > compactOverlay.viewportWidth + 1 || compactOverlay.top < 0 || compactOverlay.bottom > compactOverlay.viewportHeight + 1) throw new Error(`compact runtime tray is outside the viewport: ${JSON.stringify(compactOverlay)}`);
+  if (compactOverlay.bottom > compactOverlay.viewportHeight - 56) throw new Error(`compact runtime tray overlaps mobile navigation: ${JSON.stringify(compactOverlay)}`);
+  if (compactOverlay.scrollWidth > compactOverlay.clientWidth + 1) throw new Error(`compact runtime tray scrolls horizontally: ${JSON.stringify(compactOverlay)}`);
   if (process.env.VANTA_DESKTOP_RUNTIME_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_RUNTIME_SCREENSHOT });
 
-  console.log(JSON.stringify({ ok: true, dark, light, compact, screenReader, draftPreserved: true, keyboardClose: true }));
+  console.log(JSON.stringify({ ok: true, dark, light, compact, compactOverlay, screenReader, launch: true, stop: true, failure: true, reconnect: true, draftPreserved: true, keyboardClose: true }));
 } finally {
   await app.close();
   await rm(userData, { recursive: true, force: true });
@@ -93,7 +124,27 @@ function runtimeHost(input) {
     queueDepth: input.queue,
     observedAt: "2026-07-17T12:00:00.000Z",
     stale: false,
+    detail: {
+      controllerId: `${input.id}-controller`, requestOwner: "session:runtime-smoke", approval: input.kernel === "ready" ? "approved" : "not_required",
+      command: { executable: input.engine === "llama_cpp" ? "llama-server" : "python3", args: ["--model", input.model], hash: "a".repeat(64) },
+      resourceFit: { estimatedMemoryBytes: input.pressure, availableMemoryBytes: 100, headroomBytes: 100 - input.pressure, fits: true },
+      benchmark: { latencyMs: 220, outputTokens: 5, providerLatencyMs: 130 },
+      logs: [{ at: "2026-07-17T12:00:00.000Z", transition: input.status === "running" ? "running" : "degraded" }],
+      actions: input.kind === "local" ? ["stop", "reconnect"] : ["reconnect"],
+    },
   };
+}
+
+function applyAction(hostId, action) {
+  const host = hostId === "local" ? local : remote;
+  if (action === "stop") {
+    host.status = "idle"; host.engine.lifecycle = "idle"; host.detail.actions = ["launch", "reconnect"];
+  } else if (action === "launch" || action === "retry") {
+    host.status = "running"; host.engine.lifecycle = "running"; host.detail.actions = ["stop", "reconnect"];
+  } else if (action === "reconnect") {
+    host.transport = "reachable";
+  }
+  host.detail.logs.push({ at: new Date().toISOString(), transition: action === "reconnect" ? "reconnected" : action === "stop" ? "stopped" : "running" });
 }
 
 async function inspectRuntime(page, expectedTheme) {

@@ -12,6 +12,10 @@ import {
 } from "../runtime-controller/types.js";
 import { readRuntimeLifecycleReceipts } from "../runtime-engine/manager.js";
 import { RuntimeProcessStateSchema, type RuntimeProcessState } from "../runtime-engine/types.js";
+import type { RuntimeLifecycleManager, RuntimeLaunchSpec } from "../runtime-engine/types.js";
+import { createRuntimeLifecycleManager } from "../runtime-engine/manager.js";
+import { runtimeLaunchPreview } from "../runtime-engine/profiles.js";
+import { createKernelClient } from "../kernel/client.js";
 
 export type DesktopRuntimeSessionState = {
   root: string;
@@ -22,14 +26,28 @@ export type DesktopRuntimeSessionState = {
 
 export type DesktopRuntimePayload = {
   selectedHostId: string;
-  hosts: RuntimeControllerSnapshot[];
+  hosts: DesktopRuntimeHostSnapshot[];
 };
+
+export type DesktopRuntimeDetail = {
+  controllerId: string;
+  requestOwner: string;
+  approval: "not_required" | "requested" | "approved" | "denied" | "blocked";
+  command?: { executable: string; args: string[]; hash: string };
+  resourceFit?: { estimatedMemoryBytes: number; availableMemoryBytes: number; headroomBytes: number; fits: boolean };
+  benchmark?: { latencyMs?: number; outputTokens?: number; providerLatencyMs?: number };
+  logs: Array<{ at: string; transition: string; code?: string }>;
+  actions: Array<"launch" | "stop" | "retry" | "reconnect">;
+};
+export type DesktopRuntimeHostSnapshot = RuntimeControllerSnapshot & { detail: DesktopRuntimeDetail };
+export type DesktopRuntimeAction = "launch" | "stop" | "retry" | "reconnect";
 
 type DesktopRuntimeDeps = {
   env?: Record<string, string | undefined>;
   fetch?: typeof globalThis.fetch;
   memory?: () => { used: number; total: number };
   now?: () => Date;
+  lifecycle?: RuntimeLifecycleManager;
 };
 
 const LOCAL_HOST: RuntimeHostConfig = {
@@ -72,6 +90,53 @@ async function latestRuntimeState(root: string): Promise<RuntimeProcessState | n
 function lifecycleFor(state: RuntimeProcessState | null): RuntimeObservation["engine"]["lifecycle"] {
   if (!state || state.status === "stopped") return "idle";
   return state.status;
+}
+
+function launchSpec(state: RuntimeProcessState): RuntimeLaunchSpec {
+  return { id: state.runtimeId, backend: state.backend, model: state.model, host: state.host, port: state.port, contextTokens: state.contextTokens, modelBytes: state.modelBytes, availableMemoryBytes: state.availableMemoryBytes, retainOnFailure: state.retainOnFailure };
+}
+
+function approvalState(receipts: Awaited<ReturnType<typeof readRuntimeLifecycleReceipts>>): DesktopRuntimeDetail["approval"] {
+  const latest = receipts.at(-1)?.transition;
+  if (latest === "kernel_blocked") return "blocked";
+  if (latest === "approval_denied") return "denied";
+  if (receipts.some((entry) => entry.transition === "approved")) return "approved";
+  if (receipts.some((entry) => entry.transition === "approval_requested")) return "requested";
+  return "not_required";
+}
+
+function availableActions(state: RuntimeProcessState | null): DesktopRuntimeDetail["actions"] {
+  if (!state) return ["reconnect"];
+  if (state.status === "running") return ["stop", "reconnect"];
+  if (state.status === "failed") return ["retry", "stop", "reconnect"];
+  if (state.status === "stopped") return ["launch", "reconnect"];
+  return ["reconnect"];
+}
+
+async function localDetail(root: string, state: RuntimeProcessState | null, owner: string): Promise<DesktopRuntimeDetail> {
+  const receipts = state ? (await readRuntimeLifecycleReceipts(root)).filter((entry) => entry.runtimeId === state.runtimeId) : [];
+  const benchmark = [...receipts].reverse().find((entry) => entry.transition === "benchmarked");
+  const provider = [...receipts].reverse().find((entry) => entry.transition === "provider_turn_verified");
+  const preview = state ? runtimeLaunchPreview(launchSpec(state)) : undefined;
+  return {
+    controllerId: state?.runtimeId ?? "local-controller",
+    requestOwner: owner,
+    approval: approvalState(receipts),
+    ...(preview ? { command: { executable: preview.command, args: preview.args.map((arg) => arg === state?.model ? basename(arg) : arg), hash: preview.commandHash }, resourceFit: preview.resource } : {}),
+    ...(benchmark ? { benchmark: { latencyMs: benchmark.metrics?.latencyMs, outputTokens: benchmark.metrics?.outputTokens, providerLatencyMs: provider?.metrics?.latencyMs } } : {}),
+    logs: receipts.slice(-12).map((entry) => ({ at: entry.at, transition: entry.transition, ...(entry.code ? { code: entry.code } : {}) })),
+    actions: availableActions(state),
+  };
+}
+
+function remoteDetail(snapshot: RuntimeControllerSnapshot, owner: string): DesktopRuntimeDetail {
+  return {
+    controllerId: snapshot.host.id,
+    requestOwner: owner,
+    approval: snapshot.kernel === "ready" ? "approved" : "not_required",
+    logs: [{ at: snapshot.observedAt, transition: snapshot.transport === "reachable" ? "reconnected" : snapshot.transport }],
+    actions: ["reconnect"],
+  };
 }
 
 async function kernelReady(root: string, env: Record<string, string | undefined>, fetcher: typeof globalThis.fetch): Promise<boolean> {
@@ -189,7 +254,13 @@ export async function desktopRuntimePayload(state: DesktopRuntimeSessionState, d
   const session = state.sessionId ?? "default";
   const requested = state.runtimeHostBySession?.[session];
   const selectedHostId = hosts.some((host) => host.id === requested) ? requested! : LOCAL_HOST.id;
-  return { selectedHostId, hosts: snapshots };
+  const local = await latestRuntimeState(state.root);
+  const owner = state.sessionId ? `session:${state.sessionId}` : "desktop:default";
+  const detailed = await Promise.all(snapshots.map(async (snapshot) => ({
+    ...snapshot,
+    detail: snapshot.host.kind === "local" ? await localDetail(state.root, local, owner) : remoteDetail(snapshot, owner),
+  })));
+  return { selectedHostId, hosts: detailed };
 }
 
 export async function selectDesktopRuntimeHost(state: DesktopRuntimeSessionState, hostId: string, deps: DesktopRuntimeDeps = {}): Promise<DesktopRuntimePayload> {
@@ -197,5 +268,32 @@ export async function selectDesktopRuntimeHost(state: DesktopRuntimeSessionState
   if (!hosts.some((host) => host.id === hostId)) throw new Error(`unknown runtime host: ${hostId}`);
   const session = state.sessionId ?? "default";
   state.runtimeHostBySession = { ...state.runtimeHostBySession, [session]: hostId };
+  return desktopRuntimePayload(state, deps);
+}
+
+function runtimeManager(state: DesktopRuntimeSessionState, deps: DesktopRuntimeDeps): RuntimeLifecycleManager {
+  if (deps.lifecycle) return deps.lifecycle;
+  const kernel = createKernelClient((deps.env ?? process.env).VANTA_KERNEL_URL ?? "http://127.0.0.1:7788", state.root);
+  return createRuntimeLifecycleManager({ root: state.root, assess: (value) => kernel.assess(value), requestApproval: async () => true });
+}
+
+async function executeLocalAction(manager: RuntimeLifecycleManager, current: RuntimeProcessState, action: DesktopRuntimeAction): Promise<void> {
+  if (action === "stop") return void await manager.stop(current.runtimeId);
+  if (action === "reconnect") return void await manager.recover();
+  if (action === "retry") await manager.stop(current.runtimeId).catch(() => undefined);
+  await manager.launch(launchSpec(current));
+}
+
+export async function runDesktopRuntimeAction(state: DesktopRuntimeSessionState, hostId: string, action: DesktopRuntimeAction, deps: DesktopRuntimeDeps = {}): Promise<DesktopRuntimePayload> {
+  const { hosts } = runtimeAdapter(state, deps);
+  const host = hosts.find((entry) => entry.id === hostId);
+  if (!host) throw new Error(`unknown runtime host: ${hostId}`);
+  if (host.kind === "remote") {
+    if (action !== "reconnect") throw new Error("remote runtime only supports reconnect");
+    return desktopRuntimePayload(state, deps);
+  }
+  const current = await latestRuntimeState(state.root);
+  if (!current) throw new Error("local runtime is not configured");
+  await executeLocalAction(runtimeManager(state, deps), current, action);
   return desktopRuntimePayload(state, deps);
 }

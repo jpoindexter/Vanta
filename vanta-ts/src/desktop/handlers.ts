@@ -25,7 +25,7 @@ import { approvalDecision, approvalPayload, requestWebApproval, resolveApproval,
 import { readCanvasArtifact } from "../canvas/artifact.js";
 import { desktopArtifacts, desktopCapabilities, desktopMessagingPlatforms, saveDesktopMessagingPlatform } from "./operator-data.js";
 import { loadDesktopAccessMode, permissionModeForAccess, saveDesktopAccessMode, type DesktopAccessMode } from "./access-mode.js";
-import { desktopRuntimePayload, selectDesktopRuntimeHost } from "./runtime-controller.js";
+import { desktopRuntimePayload, runDesktopRuntimeAction, selectDesktopRuntimeHost, type DesktopRuntimeAction } from "./runtime-controller.js";
 export { approvalDecision, type PendingApproval } from "./approval.js";
 
 export type DesktopEvent = { label: string; ok?: boolean; delta?: string };
@@ -142,6 +142,14 @@ export async function handleAccessMode(state: DesktopState, req: http.IncomingMe
   sendJson(res, 200, { mode: body.mode, scope: "project" });
 }
 
+function runtimeRequest(body: { hostId?: unknown; action?: unknown }): { hostId: string; action?: DesktopRuntimeAction } {
+  if (typeof body.hostId !== "string" || !body.hostId.trim()) throw new Error("hostId is required");
+  const actions: DesktopRuntimeAction[] = ["launch", "stop", "retry", "reconnect"];
+  if (body.action === undefined) return { hostId: body.hostId };
+  if (typeof body.action !== "string" || !actions.includes(body.action as DesktopRuntimeAction)) throw new Error("invalid runtime action");
+  return { hostId: body.hostId, action: body.action as DesktopRuntimeAction };
+}
+
 export async function handleRuntime(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const runtimeState = {
     root: state.root,
@@ -150,10 +158,10 @@ export async function handleRuntime(state: DesktopState, req: http.IncomingMessa
     runtimeHostBySession: state.runtimeHostBySession,
   };
   if (req.method === "GET") return sendJson(res, 200, await desktopRuntimePayload(runtimeState));
-  const body = await readJson(req) as { hostId?: unknown };
-  if (typeof body.hostId !== "string" || !body.hostId.trim()) return sendJson(res, 400, { error: "hostId is required" });
+  const body = await readJson(req) as { hostId?: unknown; action?: unknown };
   try {
-    const payload = await selectDesktopRuntimeHost(runtimeState, body.hostId);
+    const parsed = runtimeRequest(body);
+    const payload = parsed.action ? await runDesktopRuntimeAction(runtimeState, parsed.hostId, parsed.action) : await selectDesktopRuntimeHost(runtimeState, parsed.hostId);
     state.runtimeHostBySession = runtimeState.runtimeHostBySession;
     sendJson(res, 200, payload);
   } catch (error) {

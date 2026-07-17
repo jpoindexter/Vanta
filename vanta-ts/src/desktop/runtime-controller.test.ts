@@ -1,8 +1,8 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
-import { desktopRuntimePayload, selectDesktopRuntimeHost, type DesktopRuntimeSessionState } from "./runtime-controller.js";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { desktopRuntimePayload, runDesktopRuntimeAction, selectDesktopRuntimeHost, type DesktopRuntimeSessionState } from "./runtime-controller.js";
 
 describe("desktop runtime controller", () => {
   const roots: string[] = [];
@@ -85,5 +85,20 @@ describe("desktop runtime controller", () => {
     state.sessionId = "session-a";
     expect((await desktopRuntimePayload(state, { env, fetch })).selectedHostId).toBe("remote-a");
     await expect(selectDesktopRuntimeHost(state, "missing", { env, fetch })).rejects.toThrow("unknown runtime host");
+  });
+
+  it("routes local lifecycle actions through the managed runtime and refreshes in place", async () => {
+    const { root } = await fixture();
+    const state: DesktopRuntimeSessionState = { root, sessionId: "session-actions" };
+    const lifecycle = {
+      preview: vi.fn(), launch: vi.fn(async () => ({})), stop: vi.fn(async () => ({})), recover: vi.fn(async () => []),
+    } as never;
+    await runDesktopRuntimeAction(state, "local", "stop", { lifecycle, fetch: async () => new Response("{}", { status: 503 }) });
+    await runDesktopRuntimeAction(state, "local", "launch", { lifecycle, fetch: async () => new Response("{}", { status: 503 }) });
+    await runDesktopRuntimeAction(state, "local", "retry", { lifecycle, fetch: async () => new Response("{}", { status: 503 }) });
+    await runDesktopRuntimeAction(state, "local", "reconnect", { lifecycle, fetch: async () => new Response("{}", { status: 503 }) });
+    expect((lifecycle as { stop: ReturnType<typeof vi.fn> }).stop).toHaveBeenCalledTimes(2);
+    expect((lifecycle as { launch: ReturnType<typeof vi.fn> }).launch).toHaveBeenCalledTimes(2);
+    expect((lifecycle as { recover: ReturnType<typeof vi.fn> }).recover).toHaveBeenCalledOnce();
   });
 });

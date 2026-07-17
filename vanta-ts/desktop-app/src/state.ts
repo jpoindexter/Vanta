@@ -7,7 +7,7 @@ import {
   type CompletionSoundPlayer,
   type CompletionSoundSettings,
 } from "./completion-sound.js";
-import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, DesktopRunReceipt, DesktopRuntime, EventRow, Message, MessagingPlatform, Provider, RailTab, Session, Status, Tool } from "./types.js";
+import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, DesktopRunReceipt, DesktopRuntime, EventRow, Message, MessagingPlatform, Provider, RailTab, RuntimeAction, Session, Status, Tool } from "./types.js";
 
 export function useDesktopData() {
   const [status, setStatus] = useState<Status | null>(null);
@@ -58,12 +58,10 @@ export function useDesktopData() {
     overlays.closeModelPicker();
     await refresh();
   }
-
   async function refreshProviderModels(providerId: string) {
     const refreshed = await api<Provider[]>(`/api/models/${encodeURIComponent(providerId)}`);
     setModels(refreshed);
   }
-
   async function setAccessMode(mode: AccessMode) {
     const saved = await api<{ mode: AccessMode; scope: "project" }>("/api/access-mode", {
       method: "POST",
@@ -73,18 +71,21 @@ export function useDesktopData() {
     setStatus((current) => current ? { ...current, accessMode: saved.mode, accessScope: saved.scope } : current);
   }
 
-  async function setRuntimeHost(hostId: string) {
+  async function updateRuntime(hostId: string, action?: RuntimeAction) {
     const saved = await api<DesktopRuntime>("/api/runtime", {
       method: "POST",
       headers: jsonHeaders(),
-      body: JSON.stringify({ hostId }),
+      body: JSON.stringify({ hostId, ...(action ? { action } : {}) }),
     });
     setRuntime(saved);
   }
 
   useEffect(() => { void refresh(); }, [refresh]);
   return {
-    status, sessions, tools, files, models, canvas, capabilities, messaging, artifacts, runtime, tab, setTab, phase, error, refresh, refreshProviderModels, setModel, setAccessMode, setRuntimeHost, ...overlays,
+    status, sessions, tools, files, models, canvas, capabilities, messaging, artifacts, runtime, tab, setTab, phase, error, refresh, refreshProviderModels, setModel, setAccessMode,
+    setRuntimeHost: (hostId: string) => updateRuntime(hostId),
+    runRuntimeAction: (hostId: string, action: RuntimeAction) => updateRuntime(hostId, action),
+    ...overlays,
     saveMessaging: async (id: string, values: Record<string, string>) => {
       await api<MessagingPlatform>("/api/messaging", { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ id, values }) });
       await refresh();

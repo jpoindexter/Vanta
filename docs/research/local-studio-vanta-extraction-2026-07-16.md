@@ -95,8 +95,8 @@ Visual receipts:
 
 1. **Shipped 2026-07-17:** add the controller/runtime status contract to the Vanta desktop adapter foundation. See `local-runtime-controller-contract-2026-07-17.md`.
 2. **Shipped 2026-07-17:** own the kernel-gated local inference process lifecycle and prove one direct llama.cpp model end to end. See `local-runtime-engine-lifecycle-2026-07-17.md`.
-3. **Shipped 2026-07-17:** render the compact runtime strip and contextual Runtime detail in the existing shell. See `desktop-runtime-controller-strip-2026-07-17.md`.
-4. Add prompt markers, reading-position persistence, and the queued-turn editor to Work.
-5. Build the hardware-to-first-inference setup flow against one supported local backend.
-6. Add runtime profiles and downloads only after lifecycle receipts are proven.
+3. **Shipped 2026-07-17:** render the compact runtime strip in the existing shell. See `desktop-runtime-controller-strip-2026-07-17.md`.
+4. **Shipped 2026-07-17:** turn Runtime into an operational detail tray with lifecycle actions, resource fit, command evidence, and bounded logs. See `desktop-runtime-detail-tray-2026-07-17.md`.
+5. **Shipped 2026-07-17:** build the hardware-to-first-inference setup flow against one supported local backend. See `local-model-first-inference-wizard-2026-07-17.md`.
+6. Add prompt markers, reading-position persistence, and the queued-turn editor to Work.
 7. Join runtime telemetry to the existing usage ledger and release proof suite.

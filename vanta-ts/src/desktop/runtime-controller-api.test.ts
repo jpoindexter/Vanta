@@ -34,6 +34,13 @@ describe("desktop runtime controller API", () => {
       expect(await savedResponse.json()).toMatchObject({ selectedHostId: "remote-a" });
       expect(await fetch(`${base}/api/runtime`, { headers }).then((response) => response.json())).toMatchObject({ selectedHostId: "remote-a" });
 
+      const reconnected = await fetch(`${base}/api/runtime`, { method: "POST", headers, body: JSON.stringify({ hostId: "remote-a", action: "reconnect" }) });
+      expect(reconnected.status).toBe(200);
+      expect(await reconnected.json()).toMatchObject({ selectedHostId: "remote-a" });
+
+      const invalidAction = await fetch(`${base}/api/runtime`, { method: "POST", headers, body: JSON.stringify({ hostId: "remote-a", action: "destroy" }) });
+      expect(invalidAction.status).toBe(400);
+
       const rejected = await fetch(`${base}/api/runtime`, { method: "POST", headers, body: JSON.stringify({ hostId: "missing" }) });
       expect(rejected.status).toBe(400);
     } finally {

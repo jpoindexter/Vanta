@@ -19050,7 +19050,7 @@
       "id": "DESKTOP-RUNTIME-DETAIL-TRAY",
       "track": "Desktop App",
       "title": "Desktop runtime detail tray - lifecycle, resource fit, command, and failure logs in context",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Add Runtime to the existing contextual workbench tray. It exposes lifecycle actions, resource fit, the exact launch command, current request ownership, and bounded logs for the active controller while keeping Work as the home surface.",
       "done": "Opening Runtime from the strip or a failure receipt shows controller identity, model/engine state, resource estimate and live pressure, command preview, approval state, lifecycle controls, benchmark result, and filtered logs; actions update in place, preserve transcript focus, provide undo/recovery where possible, and pass Electron proof for launch, stop, failure, reconnect, compact overlay, keyboard navigation, and both themes.",

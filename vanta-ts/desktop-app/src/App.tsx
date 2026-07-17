@@ -150,7 +150,7 @@ export function AppShell() {
         {view === "work" ? <>
           <div className="work-controls">
             <WorkToolbar busy={convo.busy} onBackground={() => setView("operate")} onStop={() => { void convo.stop(); }} onReset={() => setNewTaskOpen(true)} />
-            <RuntimeStrip runtime={data.runtime} onSelect={data.setRuntimeHost} />
+            <RuntimeStrip runtime={data.runtime} onSelect={data.setRuntimeHost} onAction={data.runRuntimeAction} />
           </div>
           <div className={`conversation-stage ${data.phase === "error" ? "has-error" : ""}`}>
             {data.phase === "error" ? <ConnectionError message={data.error} onRetry={() => { void data.refresh(); }} onSetup={data.openSetup} /> : null}

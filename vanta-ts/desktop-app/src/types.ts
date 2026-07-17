@@ -21,8 +21,19 @@ export type RuntimeHostSnapshot = {
   queueDepth: number;
   observedAt: string;
   stale: boolean;
+  detail: {
+    controllerId: string;
+    requestOwner: string;
+    approval: "not_required" | "requested" | "approved" | "denied" | "blocked";
+    command?: { executable: string; args: string[]; hash: string };
+    resourceFit?: { estimatedMemoryBytes: number; availableMemoryBytes: number; headroomBytes: number; fits: boolean };
+    benchmark?: { latencyMs?: number; outputTokens?: number; providerLatencyMs?: number };
+    logs: Array<{ at: string; transition: string; code?: string }>;
+    actions: RuntimeAction[];
+  };
 };
 export type DesktopRuntime = { selectedHostId: string; hosts: RuntimeHostSnapshot[] };
+export type RuntimeAction = "launch" | "stop" | "retry" | "reconnect";
 export type DesktopRunFailureKind = "setup" | "tool" | "model" | "model_mismatch" | "user_denied" | "interrupted" | "unknown";
 export type DesktopRunReceipt = {
   status: "done" | "failed" | "interrupted";
