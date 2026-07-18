@@ -47,6 +47,7 @@ export type ExternalProofInputs = {
   windowsService?: unknown;
   payments: PaymentReceipt[];
   paymentAcceptance?: unknown;
+  adyenAcceptance?: unknown;
   shopify: ShopifyReceipt[];
   shopifyAcceptance?: unknown;
   telephony: TelephonyReceipt[];
@@ -87,6 +88,7 @@ function accepted(value: unknown, cardId: string, eventIds: string[]): boolean {
 }
 
 const ACCEPTANCE_PACKET_CARDS = new Set([
+  "PAYMENT-ADYEN-AGENTIC-DELEGATED",
   "HERMES-PAYMENT-SKILL-PACK",
   "HERMES-SHOPIFY-OPERATIONS",
   "HERMES-TELEPHONY-CONSENT-LIFECYCLE",
@@ -139,17 +141,47 @@ function windowsServiceGate(value: unknown): ExternalProofGate {
   return gate("MERCURY-CROSS-PLATFORM-SERVICE", "Windows native service lifecycle", ready, { receiptPath: "vanta-ts/.artifacts/service-proof-win32.json", evidence: ready ? "Windows lifecycle receipt is ok:true with log capture" : "no valid Windows lifecycle receipt" });
 }
 
-function paymentGate(input: ExternalProofInputs): ExternalProofGate {
-  const capability = (item: PaymentReceipt): PaymentReceipt["capability"] => item.capability
+function paymentCapability(item: PaymentReceipt): PaymentReceipt["capability"] {
+  return item.capability
     ?? (item.provider === "stripe_link" ? "delegated_fiat" : item.provider === "mpp" ? "http_402" : "saas_provisioning");
-  const fiat = input.payments.find((item) => capability(item) === "delegated_fiat"
+}
+
+function adyenGate(input: ExternalProofInputs): ExternalProofGate {
+  const candidates = input.payments.filter((item) => item.provider === "adyen_agentic"
+    && paymentCapability(item) === "delegated_fiat"
     && item.status === "authorized" && item.approval.external === "approved");
-  const http402 = input.payments.find((item) => capability(item) === "http_402"
+  const receipt = candidates.find((item) => accepted(
+    input.adyenAcceptance,
+    "PAYMENT-ADYEN-AGENTIC-DELEGATED",
+    [item.eventId],
+  )) ?? candidates[0];
+  const packet = receipt
+    ? accepted(input.adyenAcceptance, "PAYMENT-ADYEN-AGENTIC-DELEGATED", [receipt.eventId])
+    : false;
+  const ready = Boolean(receipt && packet) && !input.loadErrors?.payments;
+  const evidence = input.loadErrors?.payments
+    ?? `Adyen delegated-fiat ${receipt ? "candidate" : "missing"}; external packet ${packet ? "ready" : "missing"}`;
+  return gate("PAYMENT-ADYEN-AGENTIC-DELEGATED", "Adyen Agentic approved test-account round trip", ready, {
+    receiptPath: ".vanta/external-proofs/PAYMENT-ADYEN-AGENTIC-DELEGATED.json",
+    evidence,
+  });
+}
+
+function paymentGate(input: ExternalProofInputs): ExternalProofGate {
+  const fiatCandidates = input.payments.filter((item) => paymentCapability(item) === "delegated_fiat"
+    && item.status === "authorized" && item.approval.external === "approved");
+  const http402Candidates = input.payments.filter((item) => paymentCapability(item) === "http_402"
     && item.status === "settled" && item.approval.external === "approved"
     && (item.providerResult.httpStatus ?? 0) >= 200 && (item.providerResult.httpStatus ?? 0) < 300);
-  const packet = fiat && http402
-    ? accepted(input.paymentAcceptance, "HERMES-PAYMENT-SKILL-PACK", [fiat.eventId, http402.eventId])
-    : false;
+  const acceptedPair = fiatCandidates.flatMap((fiat) => http402Candidates.map((http402) => ({ fiat, http402 })))
+    .find(({ fiat, http402 }) => accepted(
+      input.paymentAcceptance,
+      "HERMES-PAYMENT-SKILL-PACK",
+      [fiat.eventId, http402.eventId],
+    ));
+  const fiat = acceptedPair?.fiat ?? fiatCandidates[0];
+  const http402 = acceptedPair?.http402 ?? http402Candidates[0];
+  const packet = Boolean(acceptedPair);
   const ready = Boolean(fiat && http402 && packet) && !input.loadErrors?.payments;
   const evidence = input.loadErrors?.payments
     ?? `delegated fiat ${fiat ? `${fiat.provider} candidate` : "missing"}; HTTP 402 ${http402 ? `${http402.provider} candidate` : "missing"}; external packet ${packet ? "ready" : "missing"}`;
@@ -180,9 +212,9 @@ function telephonyGate(input: ExternalProofInputs): ExternalProofGate {
 export function assessExternalProofReadiness(input: ExternalProofInputs): ExternalProofReadiness {
   const remote = runAnywhereGates(input.runAnywhere), reach = aggregate("RUN-ANYWHERE-V1-RELEASE-GATE", "Run Anywhere v1 release gate", remote);
   const spreadsheet = spreadsheetGate(input), windows = windowsServiceGate(input.windowsService);
-  const payments = paymentGate(input), shopify = shopifyGate(input), telephony = telephonyGate(input);
+  const adyen = adyenGate(input), payments = paymentGate(input), shopify = shopifyGate(input), telephony = telephonyGate(input);
   const commerce = aggregate("HERMES-COMMERCE-TELEPHONY-SKILL-PACK", "Commerce and telephony release gate", [payments, shopify, telephony]);
-  const gates = [...remote, reach, spreadsheet, windows, payments, shopify, telephony, commerce];
+  const gates = [...remote, reach, spreadsheet, windows, adyen, payments, shopify, telephony, commerce];
   const passed = gates.filter((item) => item.ready).length;
   return { ready: passed === gates.length, passed, total: gates.length, gates };
 }
@@ -216,15 +248,15 @@ async function spreadsheetEvidence(repoRoot: string): Promise<{ packet?: unknown
 
 export async function readExternalProofReadiness(repoRoot: string): Promise<ExternalProofReadiness> {
   const proof = (id: string) => readVerifiedExternalAcceptance(repoRoot, id);
-  const [runAnywhere, spreadsheet, windowsService, payments, paymentAcceptance, shopify, shopifyAcceptance, telephony, telephonyAcceptance] = await Promise.all([
+  const [runAnywhere, spreadsheet, windowsService, payments, paymentAcceptance, adyenAcceptance, shopify, shopifyAcceptance, telephony, telephonyAcceptance] = await Promise.all([
     readRunAnywhereReadiness(repoRoot), spreadsheetEvidence(repoRoot), json(join(repoRoot, "vanta-ts", ".artifacts", "service-proof-win32.json")),
-    loaded(() => loadPaymentReceipts(repoRoot)), proof("HERMES-PAYMENT-SKILL-PACK"),
+    loaded(() => loadPaymentReceipts(repoRoot)), proof("HERMES-PAYMENT-SKILL-PACK"), proof("PAYMENT-ADYEN-AGENTIC-DELEGATED"),
     loaded(() => loadShopifyReceipts(repoRoot)), proof("HERMES-SHOPIFY-OPERATIONS"),
     loaded(() => loadTelephonyReceipts(repoRoot)), proof("HERMES-TELEPHONY-CONSENT-LIFECYCLE"),
   ]);
   return assessExternalProofReadiness({
     runAnywhere, spreadsheetHost: spreadsheet.packet, spreadsheetWorkbookReceiptExists: spreadsheet.receiptExists,
-    windowsService, payments: payments.data, paymentAcceptance, shopify: shopify.data, shopifyAcceptance,
+    windowsService, payments: payments.data, paymentAcceptance, adyenAcceptance, shopify: shopify.data, shopifyAcceptance,
     telephony: telephony.data, telephonyAcceptance,
     loadErrors: { payments: payments.error, shopify: shopify.error, telephony: telephony.error },
   });

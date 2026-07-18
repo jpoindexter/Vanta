@@ -29,6 +29,7 @@ describe("roadmap unblock plans", () => {
     const out = formatUnblockPlans(buildUnblockPlans([
       card("HERMES-SPREADSHEET-COPILOT", "parked", "Spreadsheet", "external proof"),
       card("MERCURY-CROSS-PLATFORM-SERVICE", "parked", "Service", "external proof"),
+      card("PAYMENT-ADYEN-AGENTIC-DELEGATED", "parked", "Adyen", "external proof"),
       card("HERMES-PAYMENT-SKILL-PACK", "parked", "Payments", "external proof"),
       card("HERMES-SHOPIFY-OPERATIONS", "parked", "Shopify", "external proof"),
       card("HERMES-TELEPHONY-CONSENT-LIFECYCLE", "parked", "Telephony", "external proof"),
@@ -36,7 +37,8 @@ describe("roadmap unblock plans", () => {
     ]));
     expect(out).toContain("examples/spreadsheet-sidecar/excel-custom-functions.ts");
     expect(out).toContain("service-proof-win32.json");
-    expect(out).toContain("VANTA_PAYMENT_TEST_LINK_CLI");
+    expect(out).toContain("Stripe Link in a supported region or an approved Adyen Agentic test account");
+    expect(out).toContain("Request Adyen Agentic test-program access");
     expect(out).toContain("vanta shopify read");
     expect(out).toContain("vanta telephony ingress");
     expect(out).toContain("Only then execute and ship this aggregate release gate");

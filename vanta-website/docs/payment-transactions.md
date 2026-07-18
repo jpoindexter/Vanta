@@ -46,6 +46,12 @@ testnet adapter and Visa has a local conformance lab. Adyen remains a limited-
 access provider candidate, not an implemented adapter or a currently available
 European substitute for Stripe Link.
 
+The external-proof verifier tracks Adyen separately. It requires an authorized
+`adyen_agentic` delegated-fiat receipt plus hash-verified provider evidence bound
+to that exact event ID. The aggregate payment gate accepts Link or Adyen for
+delegated fiat and MPP or x402 for HTTP 402, but only when its acceptance packet
+binds the exact selected pair. Candidate receipts alone never ship a card.
+
 The x402 adapter accepts only `exact` payments on Base Sepolia or Solana
 Devnet through the no-key `x402.org` test facilitator. It validates resource,
 network, asset, atomic amount, and onchain payee before calling an injected
