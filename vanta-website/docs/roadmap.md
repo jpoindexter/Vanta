@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1248 capabilities shipped · 0 in flight · 1 on the horizon. Updated 2026-07-18._
+_1248 capabilities shipped · 0 in flight · 0 on the horizon. Updated 2026-07-18._
 
 ## In flight
 
@@ -44,7 +44,3 @@ The latest of 1248+ capabilities. See the [changelog](./changelog) for curated m
 ## On the horizon
 
 Directional, not committed — grouped by area, newest thinking first.
-
-### Operator — 1 planned
-
-- Adyen Agentic delegated payments - EU-capable ACP/UCP token route

@@ -42,8 +42,9 @@ exposing provider output or retrying indefinitely.
 `vanta payments readiness` reports region support, test/live availability,
 external enrollment, credential custody, challenge type, and terminal state
 for Stripe Link, MPP, Adyen Agentic, x402, and Visa TAP. x402 has a guarded v2
-testnet adapter; Adyen and Visa remain named future rails, not falsely reported
-as implemented adapters.
+testnet adapter and Visa has a local conformance lab. Adyen remains a limited-
+access provider candidate, not an implemented adapter or a currently available
+European substitute for Stripe Link.
 
 The x402 adapter accepts only `exact` payments on Base Sepolia or Solana
 Devnet through the no-key `x402.org` test facilitator. It validates resource,

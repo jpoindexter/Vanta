@@ -17741,22 +17741,23 @@
     {
       "id": "PAYMENT-ADYEN-AGENTIC-DELEGATED",
       "track": "Operator",
-      "title": "Adyen Agentic delegated payments - EU-capable ACP/UCP token route",
-      "status": "horizon",
+      "title": "Adyen Agentic delegated payments - limited-access provider integration",
+      "status": "parked",
       "size": "L",
-      "summary": "Adyen Agentic is a real June 2026 API suite with Agentic Feed, Cart, and Payments plus documented agent-platform paths for Agentic Commerce Protocol and Universal Commerce Protocol. It is a plausible European fiat alternative to Link, but it is not open self-service: agent platforms need PCI DSS Level 1, Adyen security review, dedicated access, and enabled merchant accounts.",
-      "done": "The adapter uses an explicit `adyen_agentic` provider namespace so it cannot be confused with Vanta's Agent Client Protocol; it maps the Vanta transaction contract to Adyen's one-time allowance fields for maximum amount, currency, checkout session, merchant, and expiry; requests use a dedicated agentic token, timestamp, request ID, idempotency key, and HMAC signature from vault-backed material; the default Vanta runtime refuses PAN/CVC input and accepts only provider-hosted or network-tokenized credentials unless a separately attested PCI Level 1 boundary is active; blocked/manual-review risk results stop before tokenization; merchant-scoped tokens never enter model context; test authorization, denial, expiry, idempotent replay, SCA/3DS handoff, merchant charge, and redacted readback receipts pass against an approved Adyen test account before this can satisfy the fiat external proof gate.",
+      "summary": "Adyen Agentic is a real June 2026 suite spanning Agentic Feed, Cart, and Payments, with support for evolving commerce protocols. At launch it is limited to selected enterprise merchants operating in the United States, with global expansion planned. Vanta must wait for approved program access and the provider's integration contract instead of treating it as a currently available European alternative to Stripe Link.",
+      "done": "Adyen grants Vanta or an approved integration partner test-program access and supplies the current Agentic Payments contract; Vanta maps only documented provider fields into the existing `adyen_agentic` transaction boundary; the runtime refuses PAN/CVC input and accepts only provider-hosted or network-tokenized credentials unless a separately attested PCI Level 1 boundary is active; provider tokens never enter model context, logs, or receipts; authorization, denial, expiry, replay, required customer-authentication handoff, merchant charge, and redacted receipt paths execute against an approved Adyen test account; the result is accepted through Vanta's external-proof gate before this card or the delegated-fiat parent can ship.",
       "tier": "pebble",
       "model": "opus",
       "effort": "high",
       "codex": "gpt-5.6-sol",
       "lens": "infra",
       "updated": "2026-07-18",
-      "notes": "Official Adyen docs require the `Agentic Commerce` role, PCI DSS Level 1 compliance, a security review, Delegated Payment access, a dedicated Agentic Commerce token, and merchant enablement. This card can build the typed boundary and fixture locally, but live proof remains external until Adyen approves the platform. Do not store raw payment credentials in Vanta to make the test pass.",
-      "source": "Adyen Agentic announcement and agent-platform delegated payment docs - researched 2026-07-18",
+      "notes": "PARKED EXTERNAL PROOF 2026-07-18. Adyen's official launch announcement says Agentic is initially limited to selected enterprise merchants operating in the United States and that broader availability is planned. Public material describes Feed, Cart, Payments, token portability, authentication, risk management, merchant-of-record preservation, and protocol support, but does not publish a self-service request schema that Vanta can implement faithfully. Earlier roadmap wording that called this an EU-capable route and prescribed one-time-allowance/HMAC fields was not supported by the public source and has been removed. Resume only after Adyen grants program/test access and provides the current integration contract. Do not invent provider fields or store raw payment credentials to make a fixture pass.",
+      "source": "Adyen Agentic launch announcement and pilot readiness guide - verified 2026-07-18",
       "after": [
         "PAYMENT-REGIONAL-AUTHORIZATION-BROKER"
-      ]
+      ],
+      "parkedReason": "external proof"
     },
     {
       "id": "PAYMENT-VISA-TAP-CONFORMANCE",
