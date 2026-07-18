@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PaymentContractSchema, assessPaymentContract, formatPaymentPreview } from "./contract.js";
+import { PaymentContractSchema, assessPaymentContract, formatPaymentPreview, paymentBinding, paymentCapability } from "./contract.js";
 
 const raw = {
   version: 1 as const,
@@ -22,6 +22,8 @@ describe("payment contract", () => {
     const assessment = assessPaymentContract(contract, [], new Date("2026-07-11T12:00:00Z"));
     expect(assessment).toEqual({ ok: true, issues: [], periodSpentMinor: 0 });
     expect(formatPaymentPreview(contract, assessment)).toContain("exact total: 2500 usd minor units");
+    expect(paymentCapability(contract)).toBe("delegated_fiat");
+    expect(paymentBinding(contract)).toMatchObject({ payee: "https://merchant.example", network: "stripe_link", resource: "https://merchant.example" });
   });
 
   it("rejects secret-shaped extra fields and non-HTTPS merchant URLs", () => {
@@ -59,6 +61,32 @@ describe("payment contract", () => {
       provider: "stripe_projects",
       credential: { type: "stripe_cli", storage: "provider_cli" },
       provisioning: { service: "neon/postgres", credentialVaultRefs: ["postgres://plaintext"] },
+    }).success).toBe(false);
+  });
+
+  it("represents every provider-neutral capability without accepting credential material", () => {
+    const adyen = PaymentContractSchema.parse({
+      ...raw, provider: "adyen_agentic", capability: "delegated_fiat",
+      credential: { type: "adyen_agentic_token", storage: "vault", ref: "ADYEN_AGENT_TOKEN" },
+    });
+    const x402 = PaymentContractSchema.parse({
+      ...raw, provider: "x402", capability: "http_402",
+      credential: { type: "wallet_signer", storage: "vault", ref: "X402_TEST_SIGNER" },
+      request: { url: "https://api.example/paid", method: "GET", network: "eip155:84532" },
+    });
+    const tap = PaymentContractSchema.parse({
+      ...raw, provider: "visa_tap", capability: "merchant_recognition",
+      credential: { type: "scheme_registry", storage: "provider_registry", keyId: "vanta-test-key" },
+      request: { url: "https://merchant.example/agent", network: "visa_tap" },
+    });
+    expect([paymentCapability(adyen), paymentCapability(x402), paymentCapability(tap)]).toEqual([
+      "delegated_fiat", "http_402", "merchant_recognition",
+    ]);
+    expect(paymentBinding(x402)).toMatchObject({ network: "eip155:84532", resource: "https://api.example/paid" });
+    expect(PaymentContractSchema.safeParse({
+      ...raw, provider: "x402", capability: "http_402",
+      credential: { type: "wallet_signer", storage: "vault", ref: "X402_TEST_SIGNER", privateKey: "0xsecret" },
+      request: { url: "https://api.example/paid", network: "eip155:84532" },
     }).success).toBe(false);
   });
 });

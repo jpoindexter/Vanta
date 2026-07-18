@@ -5,8 +5,13 @@ const SafeText = z.string().trim().min(1).max(160).refine(
   "control characters are not allowed",
 ).refine((value) => !value.includes(","), "commas are not allowed in payment labels");
 const Currency = z.string().regex(/^[a-z][a-z0-9]{1,11}$/, "currency must be lowercase");
+const Network = z.string().regex(/^[a-z][a-z0-9_.:-]{1,63}$/, "invalid payment network");
 const VaultAlias = z.string().regex(/^[A-Z][A-Z0-9_]{2,63}$/, "invalid vault alias");
 const HttpsUrl = z.string().url().refine((value) => new URL(value).protocol === "https:", "URL must use HTTPS");
+
+export const PaymentCapabilitySchema = z.enum(["delegated_fiat", "http_402", "merchant_recognition"]);
+export type PaymentCapability = z.infer<typeof PaymentCapabilitySchema>;
+export type PaymentOperationCapability = PaymentCapability | "saas_provisioning";
 
 const CapsSchema = z.object({
   perPurchaseMinor: z.number().int().nonnegative(),
@@ -29,17 +34,50 @@ const BaseSchema = z.object({
 
 const StripeLinkSchema = BaseSchema.extend({
   provider: z.literal("stripe_link"),
+  capability: z.literal("delegated_fiat").default("delegated_fiat"),
   credential: z.object({ type: z.literal("link_cli"), storage: z.literal("provider_cli") }).strict(),
 }).strict();
 
 const MppSchema = BaseSchema.extend({
   provider: z.literal("mpp"),
+  capability: z.literal("http_402").default("http_402"),
   credential: z.object({ type: z.literal("link_cli"), storage: z.literal("provider_cli") }).strict(),
   request: z.object({
     url: HttpsUrl,
     method: z.enum(["GET", "POST"]).default("GET"),
+    network: Network.default("stripe"),
     body: z.string().max(16_384).optional(),
   }).strict(),
+}).strict();
+
+const VaultCredentialSchema = z.object({
+  storage: z.literal("vault"),
+  ref: VaultAlias,
+}).strict();
+
+const AdyenAgenticSchema = BaseSchema.extend({
+  provider: z.literal("adyen_agentic"),
+  capability: z.literal("delegated_fiat"),
+  credential: VaultCredentialSchema.extend({ type: z.literal("adyen_agentic_token") }).strict(),
+}).strict();
+
+const X402Schema = BaseSchema.extend({
+  provider: z.literal("x402"),
+  capability: z.literal("http_402"),
+  credential: VaultCredentialSchema.extend({ type: z.literal("wallet_signer") }).strict(),
+  request: z.object({
+    url: HttpsUrl,
+    method: z.enum(["GET", "POST"]).default("GET"),
+    network: Network,
+    body: z.string().max(16_384).optional(),
+  }).strict(),
+}).strict();
+
+const VisaTapSchema = BaseSchema.extend({
+  provider: z.literal("visa_tap"),
+  capability: z.literal("merchant_recognition"),
+  credential: z.object({ type: z.literal("scheme_registry"), storage: z.literal("provider_registry"), keyId: SafeText }).strict(),
+  request: z.object({ url: HttpsUrl, network: Network.default("visa_tap") }).strict(),
 }).strict();
 
 const ProvisionSchema = BaseSchema.extend({
@@ -51,9 +89,41 @@ const ProvisionSchema = BaseSchema.extend({
 export const PaymentContractSchema = z.discriminatedUnion("provider", [
   StripeLinkSchema,
   MppSchema,
+  AdyenAgenticSchema,
+  X402Schema,
+  VisaTapSchema,
   ProvisionSchema,
 ]);
 export type PaymentContract = z.infer<typeof PaymentContractSchema>;
+
+export type PaymentBinding = {
+  amountMinor: number;
+  currency: string;
+  expiresAt: string;
+  item: string;
+  network: string;
+  payee: string;
+  resource: string;
+};
+
+export function paymentCapability(contract: PaymentContract): PaymentOperationCapability {
+  return contract.provider === "stripe_projects" ? "saas_provisioning" : contract.capability;
+}
+
+export function paymentBinding(contract: PaymentContract): PaymentBinding {
+  const request = contract.provider === "mpp" || contract.provider === "x402" || contract.provider === "visa_tap"
+    ? contract.request
+    : null;
+  return {
+    amountMinor: contract.amountMinor,
+    currency: contract.currency,
+    expiresAt: contract.expiresAt,
+    item: contract.item.name,
+    network: request?.network ?? contract.provider,
+    payee: contract.merchant.url,
+    resource: request?.url ?? contract.merchant.url,
+  };
+}
 
 export type PaymentReceiptSummary = {
   transactionId: string;
@@ -93,10 +163,15 @@ export function assessPaymentContract(
 
 export function formatPaymentPreview(contract: PaymentContract, assessment: ContractAssessment): string {
   const amount = `${contract.amountMinor} ${contract.currency} minor units`;
+  const binding = paymentBinding(contract);
   return [
     `${contract.provider}: ${contract.merchant.name}`,
+    `capability: ${paymentCapability(contract)}`,
     `${contract.item.name} x1`,
     `exact total: ${amount}`,
+    `payee: ${binding.payee}`,
+    `network: ${binding.network}`,
+    `resource: ${binding.resource}`,
     `per-purchase cap: ${contract.caps.perPurchaseMinor}`,
     `${contract.caps.period} cap: ${assessment.periodSpentMinor + contract.amountMinor}/${contract.caps.periodMinor}`,
     `expires: ${contract.expiresAt}`,

@@ -26,8 +26,14 @@ const ids = {
   shopify: "00000000-0000-4000-8000-000000000003", number: "00000000-0000-4000-8000-000000000004",
   sms: "00000000-0000-4000-8000-000000000005", call: "00000000-0000-4000-8000-000000000006",
   deletion: "00000000-0000-4000-8000-000000000007",
+  adyen: "00000000-0000-4000-8000-000000000008", x402: "00000000-0000-4000-8000-000000000009",
 };
-const payment = (eventId: string, provider: "stripe_link" | "mpp", status: "authorized" | "settled") => ({ eventId, provider, status, approval: { external: "approved" }, providerResult: { httpStatus: 200 } }) as PaymentReceipt;
+const payment = (
+  eventId: string,
+  provider: PaymentReceipt["provider"],
+  status: "authorized" | "settled",
+  capability?: PaymentReceipt["capability"],
+) => ({ eventId, provider, status, capability, approval: { external: "approved" }, providerResult: { httpStatus: 200 } }) as PaymentReceipt;
 const shopify = { eventId: ids.shopify, status: "verified", verified: true, userErrorCount: 0, operation: "product_update", store: "dev.myshopify.com" } as ShopifyReceipt;
 const phone = (eventId: string, action: "number_provision" | "sms" | "call", status: "accepted" | "callback", extra = {}) => ({ eventId, action, status, ...extra }) as TelephonyReceipt;
 const acceptance = (roadmapCardId: string, receiptEventIds: string[]) => ({
@@ -94,6 +100,23 @@ describe("external proof readiness", () => {
     });
     expect(report.gates.find((gate) => gate.roadmapCardId === "HERMES-PAYMENT-SKILL-PACK")).toMatchObject({ ready: false, evidence: expect.stringContaining("external packet missing") });
     expect(report.gates.find((gate) => gate.roadmapCardId === "HERMES-SHOPIFY-OPERATIONS")?.ready).toBe(false);
+  });
+
+  it("accepts named non-Link fiat and HTTP 402 rails without weakening the evidence packet", () => {
+    const report = assessExternalProofReadiness({
+      runAnywhere: remote(false),
+      payments: [
+        payment(ids.adyen, "adyen_agentic", "authorized", "delegated_fiat"),
+        payment(ids.x402, "x402", "settled", "http_402"),
+      ],
+      paymentAcceptance: acceptance("HERMES-PAYMENT-SKILL-PACK", [ids.adyen, ids.x402]),
+      shopify: [], telephony: [],
+    });
+    expect(report.gates.find((gate) => gate.roadmapCardId === "HERMES-PAYMENT-SKILL-PACK")).toMatchObject({
+      ready: true,
+      evidence: expect.stringContaining("adyen_agentic candidate"),
+    });
+    expect(report.gates.find((gate) => gate.roadmapCardId === "HERMES-PAYMENT-SKILL-PACK")?.evidence).toContain("x402 candidate");
   });
 
   it("refuses a spreadsheet host packet whose workbook receipt escapes the repo", async () => {

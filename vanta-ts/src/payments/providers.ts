@@ -3,6 +3,7 @@ import { promisify } from "node:util";
 import type { PaymentContract } from "./contract.js";
 import { hashChallenge } from "./ledger.js";
 import { parsePaymentChallenge, validatePaymentChallenge } from "./challenge.js";
+import type { PaymentChallengeType } from "./readiness.js";
 
 export type PaymentCommandResult = { code: number; stdout: string; stderr: string };
 export type PaymentCommandRunner = (command: string, args: string[], timeoutMs: number) => Promise<PaymentCommandResult>;
@@ -10,6 +11,11 @@ export type PaymentFetch = (input: string, init: RequestInit) => Promise<Respons
 export type ProviderOutcome = {
   ok: boolean; state: string; external: "approved" | "denied" | "timeout" | "not_available";
   providerId?: string; httpStatus?: number; challengeHash?: string;
+  authorization?: {
+    challengeType?: PaymentChallengeType;
+    scopedTokenIssued?: boolean;
+    executionAttempted?: boolean;
+  };
 };
 
 export function paymentCommandEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
@@ -76,13 +82,17 @@ async function createLinkSpend(
     "--credential-type", type, "--request-approval", "--format", "json",
   ];
   const result = await run("link-cli", args, 310_000);
-  if (result.code !== 0) return { ok: false, ...deniedState(result.stderr) };
+  const authorization = { challengeType: "provider_step_up" as const };
+  if (result.code !== 0) return { ok: false, ...deniedState(result.stderr), authorization };
   const data = parseJson(result.stdout);
   const id = findString(data, new Set(["id", "spend_request_id"]));
   const status = findString(data, new Set(["status", "approval_status"]))?.toLowerCase();
   const approved = ["approved", "authorized", "complete", "completed"].includes(status ?? "");
-  if (!id?.startsWith("lsrq_") || !approved) return { ok: false, state: "invalid_provider_result", external: status === "denied" ? "denied" : "not_available" };
-  return { ok: true, state: "spend_approved", external: "approved", providerId: id };
+  if (!id?.startsWith("lsrq_") || !approved) return { ok: false, state: "invalid_provider_result", external: status === "denied" ? "denied" : "not_available", authorization };
+  return {
+    ok: true, state: "spend_approved", external: "approved", providerId: id,
+    authorization: { ...authorization, scopedTokenIssued: true, executionAttempted: true },
+  };
 }
 
 export function executeStripeLink(
@@ -108,9 +118,10 @@ async function payMpp(
   const args = ["mpp", "pay", contract.request.url, "--spend-request-id", spend.providerId!, "--method", contract.request.method, "--format", "json"];
   if (contract.request.body !== undefined) args.push("--data", contract.request.body);
   const result = await run("link-cli", args, 60_000);
-  if (result.code !== 0) return { ok: false, state: "mpp_payment_failed", external: "approved", providerId: spend.providerId };
+  const authorization = { challengeType: "http_402" as const, scopedTokenIssued: true, executionAttempted: true };
+  if (result.code !== 0) return { ok: false, state: "mpp_payment_failed", external: "approved", providerId: spend.providerId, authorization };
   const status = Number(findString(parseJson(result.stdout), new Set(["status_code", "http_status", "status"])) ?? 200);
-  return { ok: status >= 200 && status < 300, state: status >= 200 && status < 300 ? "mpp_settled" : "mpp_response_failed", external: "approved", providerId: spend.providerId, httpStatus: status };
+  return { ok: status >= 200 && status < 300, state: status >= 200 && status < 300 ? "mpp_settled" : "mpp_response_failed", external: "approved", providerId: spend.providerId, httpStatus: status, authorization };
 }
 
 export async function executeMpp(
@@ -123,9 +134,10 @@ export async function executeMpp(
   const body = await boundedBody(response);
   const header = response.headers.get("www-authenticate") ?? "";
   const parsed = parsePaymentChallenge(response.status, response.headers, body, contract.currencyExponent);
-  if (!parsed.ok) return { ok: false, state: "challenge_rejected", external: "not_available", httpStatus: response.status, challengeHash: hashChallenge(header) };
-  if (validatePaymentChallenge(contract, parsed.challenge, now).length > 0) return { ok: false, state: "challenge_mismatch", external: "not_available", httpStatus: response.status, challengeHash: hashChallenge(header) };
+  const challenged = { challengeType: "http_402" as const };
+  if (!parsed.ok) return { ok: false, state: "challenge_rejected", external: "not_available", httpStatus: response.status, challengeHash: hashChallenge(header), authorization: challenged };
+  if (validatePaymentChallenge(contract, parsed.challenge, now).length > 0) return { ok: false, state: "challenge_mismatch", external: "not_available", httpStatus: response.status, challengeHash: hashChallenge(header), authorization: challenged };
   const spend = await createLinkSpend(contract, "shared_payment_token", run);
-  if (!spend.ok) return { ...spend, challengeHash: hashChallenge(header), httpStatus: response.status };
+  if (!spend.ok) return { ...spend, challengeHash: hashChallenge(header), httpStatus: response.status, authorization: challenged };
   return { ...(await payMpp(contract, spend, run)), challengeHash: hashChallenge(header) };
 }

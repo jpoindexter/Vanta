@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, stat, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -48,5 +48,15 @@ describe("payment receipt ledger", () => {
   it("redacts short and long provider identifiers", () => {
     expect(redactProviderId("short")).toBe("[redacted]");
     expect(redactProviderId("identifier-123456")).toBe("iden...3456");
+  });
+
+  it("loads legacy Link receipts with their original delegated-fiat meaning", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-payments-legacy-"));
+    const receipt = buildReceipt(contract, { at: "2026-07-11T12:00:00Z", status: "authorized", operator: "approved", external: "approved", providerState: "approved" });
+    const legacy = { ...receipt } as Partial<typeof receipt>;
+    delete legacy.capability;
+    await mkdir(join(root, ".vanta", "payments"), { recursive: true });
+    await writeFile(paymentLedgerPath(root), `${JSON.stringify(legacy)}\n`, "utf8");
+    expect((await loadPaymentReceipts(root))[0]).toMatchObject({ provider: "stripe_link", capability: "delegated_fiat", status: "authorized" });
   });
 });

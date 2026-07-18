@@ -43,4 +43,15 @@ describe("MPP challenge validation", () => {
   it("rejects decimal precision that cannot map exactly to minor units", () => {
     expect(parsePaymentChallenge(402, { "www-authenticate": "Payment amount=0.001 currency=usd method=stripe" }, undefined, 2)).toEqual({ ok: false, error: "payment challenge has invalid amount" });
   });
+
+  it("binds the challenge to the contract network instead of hard-coding Stripe", () => {
+    if (contract.provider !== "mpp") throw new Error("fixture mismatch");
+    const tempo = PaymentContractSchema.parse({ ...contract, request: { ...contract.request, network: "tempo" } });
+    if (tempo.provider !== "mpp") throw new Error("fixture mismatch");
+    const parsed = parsePaymentChallenge(402, {
+      "www-authenticate": 'Payment amount="0.10" currency="usd" method="tempo" resource="https://api.example/report"',
+    }, undefined, tempo.currencyExponent);
+    if (!parsed.ok) throw new Error(parsed.error);
+    expect(validatePaymentChallenge(tempo, parsed.challenge, new Date("2026-07-11T12:00:00Z"))).toEqual([]);
+  });
 });

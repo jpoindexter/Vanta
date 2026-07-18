@@ -1,15 +1,19 @@
 import type { PaymentContract, ContractAssessment } from "./contract.js";
-import { assessPaymentContract, formatPaymentPreview } from "./contract.js";
+import { assessPaymentContract, formatPaymentPreview, paymentCapability } from "./contract.js";
+import { recordPaymentAuthorizationEvent } from "./authorization.js";
 import { appendPaymentReceipt, buildReceipt, loadPaymentReceipts, summarizePaymentReceipts, withPaymentLedgerLock } from "./ledger.js";
 import { executeMpp, executeStripeLink, type PaymentCommandRunner, type PaymentFetch, type ProviderOutcome } from "./providers.js";
 import { executeStripeProjects, type StripeProjectsDeps, type StripeProjectsRunner } from "./projects.js";
+import { readinessForContract, type PaymentProviderReadiness } from "./readiness.js";
 
 export type PaymentApproval = (preview: string) => Promise<boolean>;
 export type PaymentProvider = (contract: PaymentContract) => Promise<ProviderOutcome>;
+export type PaymentReadinessResolver = (contract: PaymentContract) => PaymentProviderReadiness | null | Promise<PaymentProviderReadiness | null>;
 export type PaymentExecutionDeps = {
   approve: PaymentApproval;
   now?: () => Date;
   provider?: PaymentProvider;
+  readiness?: PaymentReadinessResolver;
   run?: PaymentCommandRunner;
   fetch?: PaymentFetch;
   projectsRun?: StripeProjectsRunner;
@@ -28,7 +32,8 @@ export async function previewPayment(root: string, contract: PaymentContract, no
 async function defaultProvider(root: string, contract: PaymentContract, deps: PaymentExecutionDeps): Promise<ProviderOutcome> {
   if (contract.provider === "stripe_link") return executeStripeLink(contract, deps.run);
   if (contract.provider === "mpp") return executeMpp(contract, deps.run, deps.fetch, (deps.now ?? (() => new Date()))());
-  return executeStripeProjects(root, contract, { ...deps, run: deps.projectsRun });
+  if (contract.provider === "stripe_projects") return executeStripeProjects(root, contract, { ...deps, run: deps.projectsRun });
+  return { ok: false, state: "provider_unavailable", external: "not_available" };
 }
 
 async function recordDecision(root: string, contract: PaymentContract, now: Date): Promise<void> {
@@ -51,7 +56,7 @@ async function reserve(root: string, contract: PaymentContract, now: Date): Prom
 
 function finalStatus(contract: PaymentContract, outcome: ProviderOutcome): "authorized" | "settled" | "failed" {
   if (!outcome.ok) return "failed";
-  return contract.provider === "mpp" ? "settled" : "authorized";
+  return paymentCapability(contract) === "http_402" ? "settled" : "authorized";
 }
 
 async function finalize(root: string, contract: PaymentContract, outcome: ProviderOutcome, now: Date): Promise<void> {
@@ -66,16 +71,55 @@ async function finalize(root: string, contract: PaymentContract, outcome: Provid
 export async function executePayment(root: string, contract: PaymentContract, deps: PaymentExecutionDeps): Promise<PaymentExecution> {
   const clock = deps.now ?? (() => new Date());
   const initial = await previewPayment(root, contract, clock());
-  if (!initial.assessment.ok) return { ok: false, state: "contract_rejected", receiptRecorded: false, ...initial };
+  await recordPaymentAuthorizationEvent(root, contract, "previewed", "preview_ready", { at: clock() });
+  if (!initial.assessment.ok) {
+    await recordPaymentAuthorizationEvent(root, contract, "stopped", "contract_rejected", { at: clock() });
+    return { ok: false, state: "contract_rejected", receiptRecorded: false, ...initial };
+  }
   if (!await deps.approve(initial.preview)) {
+    await recordPaymentAuthorizationEvent(root, contract, "stopped", "operator_denied", { at: clock() });
     await recordDecision(root, contract, clock());
+    await recordPaymentAuthorizationEvent(root, contract, "receipt_recorded", "receipt_recorded", { at: clock() });
     return { ok: false, state: "operator_denied", preview: initial.preview, receiptRecorded: true };
   }
+  await recordPaymentAuthorizationEvent(root, contract, "operator_approved", "operator_approved", { at: clock() });
   const assessment = await reserve(root, contract, clock());
-  if (!assessment.ok) return { ok: false, state: "contract_rejected_after_approval", preview: initial.preview, receiptRecorded: false, assessment };
+  if (!assessment.ok) {
+    await recordPaymentAuthorizationEvent(root, contract, "stopped", "contract_rejected", { at: clock() });
+    return { ok: false, state: "contract_rejected_after_approval", preview: initial.preview, receiptRecorded: false, assessment };
+  }
+
+  const readiness = await (deps.readiness
+    ? deps.readiness(contract)
+    : deps.provider ? null : readinessForContract(contract));
+  if (readiness && readiness.state !== "ready") {
+    const state = readiness.state;
+    await recordPaymentAuthorizationEvent(root, contract, "stopped", state === "unsupported_region" ? "unsupported_region" : state === "enrollment_required" ? "enrollment_required" : "provider_unavailable", { at: clock() });
+    const outcome: ProviderOutcome = { ok: false, state, external: "not_available" };
+    await finalize(root, contract, outcome, clock());
+    await recordPaymentAuthorizationEvent(root, contract, "receipt_recorded", "receipt_recorded", { at: clock() });
+    return { ok: false, state, preview: initial.preview, receiptRecorded: true };
+  }
+
   let outcome: ProviderOutcome;
   try { outcome = await (deps.provider ?? ((value) => defaultProvider(root, value, deps)))(contract); }
-  catch { outcome = { ok: false, state: "provider_error", external: "not_available" }; }
+  catch { outcome = { ok: false, state: "provider_error", external: "not_available", authorization: { executionAttempted: true } }; }
+  if (outcome.authorization?.challengeType) {
+    await recordPaymentAuthorizationEvent(root, contract, "provider_challenge", "external_step_up", { at: clock(), challengeType: outcome.authorization.challengeType });
+  }
+  if (outcome.authorization?.scopedTokenIssued) {
+    await recordPaymentAuthorizationEvent(root, contract, "scoped_token", "scoped_credential_issued", { at: clock() });
+  }
+  const executionAttempted = outcome.authorization
+    ? outcome.authorization.executionAttempted === true
+    : true;
+  if (executionAttempted) {
+    await recordPaymentAuthorizationEvent(root, contract, "executing", "provider_execution", { at: clock() });
+  }
+  if (!outcome.ok) {
+    await recordPaymentAuthorizationEvent(root, contract, "stopped", "provider_failed", { at: clock() });
+  }
   await finalize(root, contract, outcome, clock());
+  await recordPaymentAuthorizationEvent(root, contract, "receipt_recorded", "receipt_recorded", { at: clock() });
   return { ok: outcome.ok, state: outcome.state, preview: initial.preview, receiptRecorded: true };
 }

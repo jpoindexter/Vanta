@@ -2,12 +2,13 @@ import { chmod, mkdir, open, readFile, rm, stat } from "node:fs/promises";
 import { createHash, randomUUID } from "node:crypto";
 import { dirname, join } from "node:path";
 import { z } from "zod";
-import type { PaymentContract, PaymentReceiptSummary } from "./contract.js";
+import { paymentCapability, type PaymentContract, type PaymentReceiptSummary } from "./contract.js";
 
 const StatusSchema = z.enum(["denied", "reserved", "authorized", "settled", "failed"]);
-const ReceiptSchema = z.object({
+const ReceiptBodySchema = z.object({
   version: z.literal(1), eventId: z.string().uuid(), transactionId: z.string(), at: z.string().datetime(),
-  provider: z.enum(["stripe_link", "mpp", "stripe_projects"]),
+  provider: z.enum(["stripe_link", "mpp", "stripe_projects", "adyen_agentic", "x402", "visa_tap"]),
+  capability: z.enum(["delegated_fiat", "http_402", "merchant_recognition", "saas_provisioning"]),
   merchant: z.string(), item: z.string(), currency: z.string(), amountMinor: z.number().int().nonnegative(),
   status: StatusSchema,
   approval: z.object({ operator: z.enum(["approved", "denied"]), operatorAt: z.string().datetime(), external: z.enum(["required", "approved", "not_available", "denied", "timeout"]) }).strict(),
@@ -15,6 +16,15 @@ const ReceiptSchema = z.object({
   vaultRefs: z.array(z.string().regex(/^[A-Z][A-Z0-9_]{2,63}$/)).optional(),
   cleanup: z.object({ transientCredentialsRemoved: z.boolean(), plaintextPersisted: z.literal(false), environmentWritten: z.literal(false) }).strict(),
 }).strict();
+const ReceiptSchema = z.preprocess((value) => {
+  if (!value || typeof value !== "object" || Array.isArray(value) || "capability" in value) return value;
+  const legacy = value as Record<string, unknown>;
+  const capability = legacy.provider === "stripe_link" ? "delegated_fiat"
+    : legacy.provider === "mpp" ? "http_402"
+    : legacy.provider === "stripe_projects" ? "saas_provisioning"
+    : undefined;
+  return capability ? { ...legacy, capability } : value;
+}, ReceiptBodySchema);
 export type PaymentReceipt = z.infer<typeof ReceiptSchema>;
 
 export function paymentLedgerPath(root: string): string {
@@ -60,7 +70,7 @@ export function buildReceipt(contract: PaymentContract, input: {
 }): PaymentReceipt {
   return ReceiptSchema.parse({
     version: 1, eventId: randomUUID(), transactionId: contract.id, at: input.at,
-    provider: contract.provider, merchant: contract.merchant.name, item: contract.item.name,
+    provider: contract.provider, capability: paymentCapability(contract), merchant: contract.merchant.name, item: contract.item.name,
     currency: contract.currency, amountMinor: contract.amountMinor, status: input.status,
     approval: { operator: input.operator, operatorAt: input.at, external: input.external },
     providerResult: { redactedId: redactProviderId(input.providerId), state: input.providerState, httpStatus: input.httpStatus, challengeHash: input.challengeHash },

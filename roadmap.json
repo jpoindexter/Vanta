@@ -17702,7 +17702,7 @@
       "id": "PAYMENT-REGIONAL-AUTHORIZATION-BROKER",
       "track": "Harness",
       "title": "Regional payment authorization broker - route by capability, regulation, and provider availability",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "Vanta's payment contract is sound, but the live provider layer is hard-coded to Stripe Link and Stripe-flavored MPP. Link agent access is U.S.-only for the current operator, while EU rails require provider-mediated SCA, delegated tokens, or onchain authorization. Introduce one provider-neutral authorization boundary before adding more payment adapters.",
       "done": "Payment contracts select a capability (`delegated_fiat`, `http_402`, or `merchant_recognition`) instead of assuming Link; provider readiness reports supported regions, test/live availability, required external enrollment, credential custody, and challenge type; the authorization state machine persists preview -> exact operator approval -> provider challenge/step-up -> scoped token -> execute -> receipt; amount, payee, currency, item, expiry, network, and resource remain dynamically bound; unsupported-region and enrollment-required outcomes stop without retry loops; PAN, CVC, passkey material, wallet private keys, and provider tokens never enter model context or receipts; the external proof gate accepts a named approved fiat rail plus a named HTTP 402 rail without weakening per-provider evidence; existing Stripe Link/MPP receipts migrate without changing their meaning.",
@@ -17712,7 +17712,7 @@
       "codex": "gpt-5.6-sol",
       "lens": "infra",
       "updated": "2026-07-18",
-      "notes": "Primary-source correction to Gemini research. PSD2 SCA is not a blanket ban on agent payments: payer-initiated remote payments generally require authentication dynamically linked to amount and payee, while provider exemptions and payee-initiated arrangements have separate rules. Vanta must model the provider challenge and liability boundary rather than claim it can bypass SCA. The first implementation should remove the current `method=stripe` and Link CLI assumptions from the generic HTTP 402 validator while preserving fail-closed transaction gates.",
+      "notes": "Shipped 2026-07-18. Payment contracts now select delegated_fiat, http_402, or merchant_recognition capabilities; readiness reports region, test/live availability, enrollment, custody, and challenge type; the mode-0600 authorization journal binds preview through receipt to amount, payee, currency, item, expiry, network, and resource; unsupported regions and missing enrollment stop before provider invocation; receipts and model-visible output contain no payment secrets; the external gate accepts named fiat plus HTTP 402 rails; and legacy Stripe Link/MPP receipts retain their meaning through in-memory migration. Executed evidence: PAYMENT_AUTHORIZATION_BROKER_SMOKE_OK through the real CLI child process, typecheck green, 59 focused tests green, full suite 1,422 files / 13,427 passed / 3 skipped / 0 failed, and Docusaurus production build green. Real-money execution remains disabled; Adyen, x402, and Visa adapters remain separate dependent roadmap cards.",
       "source": "EBA PSD2/SCA Q&A 2020_5133 and 2018_4131; Adyen Agentic docs; Visa TAP docs; Coinbase x402 docs - researched 2026-07-18",
       "after": [
         "HERMES-VAULT-SECRETS-ROTATION"

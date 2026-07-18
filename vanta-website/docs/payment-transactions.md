@@ -6,38 +6,52 @@ sidebar_position: 8
 
 # Payment transactions
 
-Vanta has a test-only payment boundary for Stripe Link, HTTP 402 Machine
-Payments Protocol, and Stripe Projects provisioning. Real-money execution
-remains disabled.
+Vanta has a provider-neutral, test-only authorization boundary for delegated
+fiat, HTTP 402, merchant recognition, and Stripe Projects provisioning.
+Real-money execution remains disabled.
 
 ```bash
 vanta payments preview contracts/purchase.json
 vanta payments execute contracts/purchase.json --approve pay_purchase_20260711
 vanta payments receipts
+vanta payments authorization
+vanta payments readiness --json
 ```
 
-Every version-1 contract fixes the merchant, item, currency, exact minor-unit
-amount, per-purchase and period caps, credential type, expiry, and a unique
+Every version-1 transaction contract selects `delegated_fiat` or `http_402`
+and fixes the merchant, item, currency, exact minor-unit amount, payee, network,
+resource, per-purchase and period caps, credential type, expiry, and a unique
 transaction ID. Execution requires that exact ID, then rechecks the ledger
 under a lock before reserving the amount. Replays and concurrent cap overruns
 are refused.
 
 Agent-triggered payments use a fresh approval prompt. Auto mode cannot answer
 it and “don't ask again” is unavailable. Stripe Link also requires its external
-approval. Credentials remain inside the provider CLI; Vanta passes a scrubbed
-process environment and stores only mode-0600 redacted receipts.
+approval. Credentials remain inside the provider CLI or vault signer; Vanta
+passes a scrubbed process environment and stores only mode-0600 redacted
+receipts. A separate authorization journal records preview, approval, provider
+challenge, scoped-credential issuance, execution, and receipt phases against
+one immutable binding hash. It never stores the credential.
 
 HTTP 402 responses are bounded and validated before payment. Amount, currency,
-Stripe method, resource, merchant, item, and expiry must match the approved
-contract. A denial, timeout, mismatch, malformed result, corrupt ledger, or
-replay stops without exposing provider output.
+contract-selected network, resource, merchant, item, and expiry must match the
+approved contract. A denial, timeout, mismatch, malformed result, corrupt
+ledger, unsupported region, missing enrollment, or replay stops without
+exposing provider output or retrying indefinitely.
+
+`vanta payments readiness` reports region support, test/live availability,
+external enrollment, credential custody, challenge type, and terminal state
+for Stripe Link, MPP, Adyen Agentic, x402, and Visa TAP. Adyen, x402, and Visa
+are named future rails, not falsely reported as implemented adapters.
 
 Stripe Projects runs in a private temporary workspace, accepts only the exact
 generated aliases named in the approved contract, pipes values into macOS
 Keychain, registers only vault references, and removes plaintext before
-success. A real child-process fixture passed this path. Live Stripe Link, a
-live paid MPP endpoint, and a live Stripe Projects account have not run; the
-production payment paths remain unreachable until the release receipts exist.
+success. A real child-process fixture passed this path. Stripe Link agent access
+rejected the current Spain-based account as an unsupported region. A live
+approved fiat rail, live paid HTTP 402 endpoint, and live Stripe Projects
+account have not all run; production payment paths remain unreachable until
+their exact release receipts exist.
 
 See the repository's
 [`docs/payment-transactions.md`](https://github.com/jpoindexter/vanta/blob/main/docs/payment-transactions.md)

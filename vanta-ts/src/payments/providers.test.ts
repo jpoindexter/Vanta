@@ -24,7 +24,10 @@ describe("payment provider adapters", () => {
     const contract = PaymentContractSchema.parse({ ...base, provider: "stripe_link", credential: { type: "link_cli", storage: "provider_cli" } });
     if (contract.provider !== "stripe_link") throw new Error("fixture mismatch");
     const result = await executeStripeLink(contract, successfulRunner(calls));
-    expect(result).toEqual({ ok: true, state: "spend_approved", external: "approved", providerId: "lsrq_test_12345678" });
+    expect(result).toEqual({
+      ok: true, state: "spend_approved", external: "approved", providerId: "lsrq_test_12345678",
+      authorization: { challengeType: "provider_step_up", scopedTokenIssued: true, executionAttempted: true },
+    });
     expect(calls[1]).toEqual(expect.arrayContaining(["--amount", "10", "--request-approval", "--credential-type", "card"]));
     expect(JSON.stringify(calls)).not.toMatch(/sk_(?:test|live)|card_number/i);
   });
@@ -35,7 +38,10 @@ describe("payment provider adapters", () => {
     const run: PaymentCommandRunner = async (_command, args) => args[0] === "payment-methods"
       ? { code: 0, stdout: '{"id":"pm_test_123"}', stderr: "" }
       : { code: 1, stdout: "PAN 4242424242424242", stderr: "approval timed out with sk_test_hidden" };
-    expect(await executeStripeLink(contract, run)).toEqual({ ok: false, state: "external_approval_timeout", external: "timeout" });
+    expect(await executeStripeLink(contract, run)).toEqual({
+      ok: false, state: "external_approval_timeout", external: "timeout",
+      authorization: { challengeType: "provider_step_up" },
+    });
   });
 
   it("does not treat a pending spend request as external approval", async () => {
@@ -44,7 +50,10 @@ describe("payment provider adapters", () => {
     const run: PaymentCommandRunner = async (_command, args) => args[0] === "payment-methods"
       ? { code: 0, stdout: '{"id":"pm_test_123"}', stderr: "" }
       : { code: 0, stdout: '{"id":"lsrq_test_12345678","status":"pending"}', stderr: "" };
-    expect(await executeStripeLink(contract, run)).toEqual({ ok: false, state: "invalid_provider_result", external: "not_available" });
+    expect(await executeStripeLink(contract, run)).toEqual({
+      ok: false, state: "invalid_provider_result", external: "not_available",
+      authorization: { challengeType: "provider_step_up" },
+    });
   });
 
   it("validates a 402 before creating and settling a bounded MPP spend", async () => {
@@ -54,6 +63,7 @@ describe("payment provider adapters", () => {
     const fetchFn = vi.fn(async () => new Response("", { status: 402, headers: { "www-authenticate": 'Payment amount="0.10" currency="usd" method="stripe" resource="https://api.example/report"' } }));
     const result = await executeMpp(contract, successfulRunner(calls), fetchFn, new Date("2026-07-11T12:00:00Z"));
     expect(result).toMatchObject({ ok: true, state: "mpp_settled", external: "approved", httpStatus: 200 });
+    expect(result.authorization).toEqual({ challengeType: "http_402", scopedTokenIssued: true, executionAttempted: true });
     expect(result.challengeHash).toMatch(/^[a-f0-9]{64}$/);
     expect(calls[1]).toEqual(expect.arrayContaining(["--credential-type", "shared_payment_token", "--request-approval"]));
     expect(calls[2]?.slice(0, 3)).toEqual(["mpp", "pay", "https://api.example/report"]);

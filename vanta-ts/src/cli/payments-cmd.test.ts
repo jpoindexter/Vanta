@@ -37,9 +37,23 @@ describe("vanta payments", () => {
     expect(await runPaymentsCommand(root, ["execute", "payment.json", "--approve", contract.id], { log: (line) => lines.push(line), now, provider })).toBe(0);
     lines = [];
     expect(await runPaymentsCommand(root, ["receipts"], { log: (line) => lines.push(line) })).toBe(0);
-    expect(lines.join("\n")).toContain("authorized\t100 usd\tspend_approved");
+    expect(lines.join("\n")).toContain("authorized\t100 usd\tstripe_link\tdelegated_fiat\tspend_approved");
     expect(lines.join("\n")).not.toContain("private");
+    lines = [];
+    expect(await runPaymentsCommand(root, ["authorization"], { log: (line) => lines.push(line) })).toBe(0);
+    expect(lines.join("\n")).toContain("receipt_recorded");
+    expect(lines.join("\n")).toMatch(/[a-f0-9]{64}/);
     expect(await runPaymentsCommand(root, ["execute", "payment.json", "--approve", contract.id], { log: (line) => lines.push(line), now, provider })).toBe(1);
+  });
+
+  it("reports provider readiness as structured data", async () => {
+    expect(await runPaymentsCommand(root, ["readiness", "--json"], {
+      log: (line) => lines.push(line),
+      env: { VANTA_PAYMENT_REGION: "ES", VANTA_PAYMENT_TEST_LINK_CLI: "/tmp/link-fixture" },
+    })).toBe(0);
+    const readiness = JSON.parse(lines.join("\n")) as Array<{ provider: string; state: string }>;
+    expect(readiness.find((item) => item.provider === "stripe_link")?.state).toBe("unsupported_region");
+    expect(readiness.find((item) => item.provider === "x402")?.state).toBe("unavailable");
   });
 
   it("fails closed without echoing invalid contract contents", async () => {

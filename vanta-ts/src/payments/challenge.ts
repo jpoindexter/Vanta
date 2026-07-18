@@ -87,7 +87,7 @@ export function validatePaymentChallenge(
   const checks: Array<[boolean, string]> = [
     [challenge.amountMinor !== contract.amountMinor, "challenge amount does not match exact total"],
     [challenge.currency !== contract.currency, "challenge currency does not match contract"],
-    [challenge.method !== "stripe", "challenge does not authorize Stripe Link"],
+    [challenge.method !== contract.request.network, "challenge network does not match contract"],
     [Boolean(challenge.resource && challenge.resource !== contract.request.url), "challenge resource does not match request URL"],
     [Boolean(challenge.merchant && challenge.merchant !== contract.merchant.name), "challenge merchant does not match contract"],
     [Boolean(challenge.item && challenge.item !== contract.item.name), "challenge item does not match contract"],

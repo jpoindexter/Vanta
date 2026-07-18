@@ -140,12 +140,20 @@ function windowsServiceGate(value: unknown): ExternalProofGate {
 }
 
 function paymentGate(input: ExternalProofInputs): ExternalProofGate {
-  const link = input.payments.find((item) => item.provider === "stripe_link" && item.status === "authorized" && item.approval.external === "approved");
-  const mpp = input.payments.find((item) => item.provider === "mpp" && item.status === "settled" && item.approval.external === "approved" && item.providerResult.httpStatus !== 402);
-  const packet = link && mpp ? accepted(input.paymentAcceptance, "HERMES-PAYMENT-SKILL-PACK", [link.eventId, mpp.eventId]) : false;
-  const ready = Boolean(link && mpp && packet) && !input.loadErrors?.payments;
-  const evidence = input.loadErrors?.payments ?? `Stripe Link ${link ? "candidate" : "missing"}; MPP ${mpp ? "candidate" : "missing"}; external packet ${packet ? "ready" : "missing"}`;
-  return gate("HERMES-PAYMENT-SKILL-PACK", "Stripe Link and MPP sandbox acceptance", ready, { receiptPath: ".vanta/external-proofs/HERMES-PAYMENT-SKILL-PACK.json", evidence });
+  const capability = (item: PaymentReceipt): PaymentReceipt["capability"] => item.capability
+    ?? (item.provider === "stripe_link" ? "delegated_fiat" : item.provider === "mpp" ? "http_402" : "saas_provisioning");
+  const fiat = input.payments.find((item) => capability(item) === "delegated_fiat"
+    && item.status === "authorized" && item.approval.external === "approved");
+  const http402 = input.payments.find((item) => capability(item) === "http_402"
+    && item.status === "settled" && item.approval.external === "approved"
+    && (item.providerResult.httpStatus ?? 0) >= 200 && (item.providerResult.httpStatus ?? 0) < 300);
+  const packet = fiat && http402
+    ? accepted(input.paymentAcceptance, "HERMES-PAYMENT-SKILL-PACK", [fiat.eventId, http402.eventId])
+    : false;
+  const ready = Boolean(fiat && http402 && packet) && !input.loadErrors?.payments;
+  const evidence = input.loadErrors?.payments
+    ?? `delegated fiat ${fiat ? `${fiat.provider} candidate` : "missing"}; HTTP 402 ${http402 ? `${http402.provider} candidate` : "missing"}; external packet ${packet ? "ready" : "missing"}`;
+  return gate("HERMES-PAYMENT-SKILL-PACK", "Approved fiat and HTTP 402 test-rail acceptance", ready, { receiptPath: ".vanta/external-proofs/HERMES-PAYMENT-SKILL-PACK.json", evidence });
 }
 
 function shopifyGate(input: ExternalProofInputs): ExternalProofGate {
