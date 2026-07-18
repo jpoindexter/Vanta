@@ -183,7 +183,7 @@ Agent-authored skill changes can be staged with `vanta skills approval on`. Crea
 
 The current Hermes catalog comparison, including Stripe/payment, video/media, commerce, telephony, and finance packs, is tracked in [`docs/research/hermes-skill-catalog-gap-audit-2026-07-11.md`](docs/research/hermes-skill-catalog-gap-audit-2026-07-11.md). The roadmap orders package safety and discovery before high-side-effect outcome packs.
 
-Test-only payment contracts now enforce exact totals, purchase/period caps, expiry, replay protection, non-cacheable operator approval, provider approval, HTTP 402 validation, and mode-0600 redacted receipts. Real-money Link execution, live MPP, and Stripe Projects remain disabled pending live acceptance receipts. See [`docs/payment-transactions.md`](docs/payment-transactions.md).
+Test-only payment contracts now enforce exact totals, purchase/period caps, expiry, replay protection, non-cacheable operator approval, provider approval, and mode-0600 redacted receipts. Required product proof is delegated-fiat only; crypto/x402 is explicitly declined and dormant. Real-money Link execution and Stripe Projects remain disabled pending live acceptance receipts. See [`docs/payment-transactions.md`](docs/payment-transactions.md).
 
 Shopify operations now provide vault-scoped, bounded product/order/inventory reads plus fresh-approval-gated product and inventory mutations with idempotency, `userErrors` handling, readback verification, and credential-free receipts. Live development-store acceptance remains before release. See [`docs/shopify-operations.md`](docs/shopify-operations.md).
 

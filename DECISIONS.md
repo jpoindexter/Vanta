@@ -183,3 +183,9 @@ Append-only. Locked choices. Don't re-litigate without new info.
 **Alternatives:** (a) rewrite the REPL to consume piped stdin as sequential turns — rejected: high-risk change to the daily-driver interactive loop for a muddy use case with existing alternatives. (b) leave the silent line-drop undocumented — rejected: it reads as a bug; this entry + the harness probe reframe make the boundary explicit.
 **Consequence:** `scripts/reliability-longhorizon.sh`'s multi-turn probe is reframed to assert the REPL **exits cleanly on piped EOF** (a real regression check for `79fce703`), not that it carries context across piped turns.
 **Reversible?** Yes — it's a boundary doc; the REPL input rewrite remains possible if a real headless-multi-turn need appears.
+
+## 2026-07-18 — Crypto is not a Vanta product direction
+**Choice:** Vanta does not require, promote, or ask the operator to fund crypto wallets. `PAYMENT-X402-TESTNET-RAIL` is terminal `declined/n-a`, excluded from the external-proof ledger, and removed from parent payment dependencies. Required payment acceptance is delegated fiat only. Existing x402 test-only compatibility code may remain dormant with mainnet code-disabled; it is not an operator workflow or release proof.
+**Why:** Jason explicitly said, "I don't use crypto." A technically available rail that the operator will not use is product noise and must not block roadmap completion. Preserving the isolated code avoids an unrelated deletion while the terminal roadmap classification prevents it from returning as mandatory work.
+**Consequences:** Do not open a faucet, request wallet funding, or count an HTTP 402/crypto receipt toward a required payment gate. The unfunded `X402_TEST_SIGNER` Keychain reference is not deleted automatically because credential deletion requires a separate explicit action.
+**Reversible?** Yes, but only through an explicit operator decision that rewrites the roadmap and proof criteria first.

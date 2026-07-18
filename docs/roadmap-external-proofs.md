@@ -1,7 +1,7 @@
 # Roadmap external proof status
 
 `vanta roadmap proof-status` evaluates every parked external-proof card from
-durable evidence. It exits `0` only when all ten gates pass and exits `1` while
+durable evidence. It exits `0` only when all eleven gates pass and exits `1` while
 any receipt is absent or invalid. Use `--json` for release automation:
 
 ```bash
@@ -32,7 +32,7 @@ nonzero while work remains, so automation can use it as a focused wake target.
 
 Audit date: 2026-07-18
 
-`vanta roadmap proof-status --json` reports `1/10` external gates ready.
+`vanta roadmap proof-status --json` reports `1/11` external gates ready.
 `BACKEND-SERVERLESS-LIVE` has an accepted real Modal/Telegram
 wake/reply/scaledown receipt. The remaining open roadmap cards are parked real
 service, device, or host proofs rather than unfinished local implementation.
@@ -47,7 +47,7 @@ Current machine/account evidence:
 | Termux | Current host is macOS ARM64; no ADB or attached Android/Termux device | Run the release-kernel proof on physical ARM64 Android/Termux hardware |
 | Spreadsheet | Google Sheets sidecar, menu-only approval flow, strict host-proof packet, and local smoke are implemented; no real private Google Sheet host round trip is recorded | Unlock the Mac, load `examples/spreadsheet-sidecar/google-sheets/Code.gs` in a private Sheet, run one read and one approval-gated action, then record the host proof |
 | Windows service | No Windows runtime or local virtualization host is installed | Run the native proof in a real logged-in Windows desktop session |
-| Payments | Stripe CLI is installed and has an account profile, but its API key is expired; no Link/MPP adapters are configured | Re-authenticate Stripe test mode and configure a bounded MPP test endpoint |
+| Payments | Stripe Link agent access rejected the current Spain-based account; crypto/x402 is explicitly declined | Use an approved delegated-fiat sandbox/test provider when one is available in-region |
 | Shopify | No Shopify CLI, development-store token, vault alias, or external receipt | Create/configure a development store and execute one verified mutation |
 | Telephony | No Twilio CLI, test credential alias, callback host, or retention receipt | Configure a Twilio test account and run the consent/callback/retention proof |
 
@@ -97,7 +97,7 @@ receipts, then checks these additional gates:
 | `RUN-ANYWHERE-V1-RELEASE-GATE` | All three Run Anywhere child receipts |
 | `HERMES-SPREADSHEET-COPILOT` | `.vanta/spreadsheet/host-proof.json` plus its referenced workbook-action receipt |
 | `MERCURY-CROSS-PLATFORM-SERVICE` | `vanta-ts/.artifacts/service-proof-win32.json` with `platform: "win32"`, `ok: true`, and log capture |
-| `HERMES-PAYMENT-SKILL-PACK` | Final Stripe Link and MPP ledger events plus a matching external-acceptance packet |
+| `HERMES-PAYMENT-SKILL-PACK` | One approved delegated-fiat ledger event plus a matching external-acceptance packet |
 | `HERMES-SHOPIFY-OPERATIONS` | Verified mutation ledger event plus a matching external-acceptance packet |
 | `HERMES-TELEPHONY-CONSENT-LIFECYCLE` | Number, SMS, call, callback, and recording-deletion events plus a matching external-acceptance packet |
 | `HERMES-COMMERCE-TELEPHONY-SKILL-PACK` | All three commerce/telephony child gates |

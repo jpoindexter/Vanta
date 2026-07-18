@@ -26,7 +26,7 @@ const ids = {
   shopify: "00000000-0000-4000-8000-000000000003", number: "00000000-0000-4000-8000-000000000004",
   sms: "00000000-0000-4000-8000-000000000005", call: "00000000-0000-4000-8000-000000000006",
   deletion: "00000000-0000-4000-8000-000000000007",
-  adyen: "00000000-0000-4000-8000-000000000008", x402: "00000000-0000-4000-8000-000000000009",
+  adyen: "00000000-0000-4000-8000-000000000008",
 };
 const payment = (
   eventId: string,
@@ -42,10 +42,10 @@ const acceptance = (roadmapCardId: string, receiptEventIds: string[]) => ({
 });
 
 describe("external proof readiness", () => {
-  it("reports all twelve gates with concrete next actions when evidence is absent", () => {
+  it("reports all eleven required gates with concrete next actions when evidence is absent", () => {
     const report = assessExternalProofReadiness({ runAnywhere: remote(false), payments: [], shopify: [], telephony: [] });
-    expect(report).toMatchObject({ ready: false, passed: 0, total: 12 });
-    expect(report.gates.map((gate) => gate.roadmapCardId)).toContain("PAYMENT-X402-TESTNET-RAIL");
+    expect(report).toMatchObject({ ready: false, passed: 0, total: 11 });
+    expect(report.gates.map((gate) => gate.roadmapCardId)).not.toContain("PAYMENT-X402-TESTNET-RAIL");
     expect(report.gates.map((gate) => gate.roadmapCardId)).toContain("PAYMENT-ADYEN-AGENTIC-DELEGATED");
     expect(report.gates.map((gate) => gate.roadmapCardId)).toContain("HERMES-COMMERCE-TELEPHONY-SKILL-PACK");
     expect(report.gates.find((gate) => gate.roadmapCardId === "BACKEND-SERVERLESS-LIVE")?.nextActions).toEqual(["next"]);
@@ -63,12 +63,9 @@ describe("external proof readiness", () => {
       windowsService: { ok: true, platform: "win32", logCaptured: true },
       payments: [
         payment(ids.link, "stripe_link", "authorized"),
-        payment(ids.mpp, "mpp", "settled"),
-        payment(ids.x402, "x402", "settled", "http_402"),
         payment(ids.adyen, "adyen_agentic", "authorized", "delegated_fiat"),
       ],
-      paymentAcceptance: acceptance("HERMES-PAYMENT-SKILL-PACK", [ids.link, ids.mpp]),
-      x402Acceptance: acceptance("PAYMENT-X402-TESTNET-RAIL", [ids.x402]),
+      paymentAcceptance: acceptance("HERMES-PAYMENT-SKILL-PACK", [ids.link]),
       adyenAcceptance: acceptance("PAYMENT-ADYEN-AGENTIC-DELEGATED", [ids.adyen]),
       shopify: [shopify], shopifyAcceptance: acceptance("HERMES-SHOPIFY-OPERATIONS", [ids.shopify]),
       telephony: [
@@ -77,7 +74,7 @@ describe("external proof readiness", () => {
       ],
       telephonyAcceptance: acceptance("HERMES-TELEPHONY-CONSENT-LIFECYCLE", [ids.number, ids.sms, ids.call, ids.deletion]),
     });
-    expect(report).toMatchObject({ ready: true, passed: 12, total: 12 });
+    expect(report).toMatchObject({ ready: true, passed: 11, total: 11 });
     expect(report.gates.every((gate) => gate.nextActions.length === 0)).toBe(true);
   });
 
@@ -103,7 +100,7 @@ describe("external proof readiness", () => {
   it("does not promote provider fixture candidates without external packets", () => {
     const report = assessExternalProofReadiness({
       runAnywhere: remote(false),
-      payments: [payment(ids.link, "stripe_link", "authorized"), payment(ids.mpp, "mpp", "settled")],
+      payments: [payment(ids.link, "stripe_link", "authorized")],
       shopify: [shopify],
       telephony: [],
     });
@@ -111,21 +108,37 @@ describe("external proof readiness", () => {
     expect(report.gates.find((gate) => gate.roadmapCardId === "HERMES-SHOPIFY-OPERATIONS")?.ready).toBe(false);
   });
 
-  it("accepts named non-Link fiat and HTTP 402 rails without weakening the evidence packet", () => {
+  it("accepts a named non-Link delegated-fiat rail without weakening the evidence packet", () => {
     const report = assessExternalProofReadiness({
       runAnywhere: remote(false),
       payments: [
         payment(ids.adyen, "adyen_agentic", "authorized", "delegated_fiat"),
-        payment(ids.x402, "x402", "settled", "http_402"),
       ],
-      paymentAcceptance: acceptance("HERMES-PAYMENT-SKILL-PACK", [ids.adyen, ids.x402]),
+      paymentAcceptance: acceptance("HERMES-PAYMENT-SKILL-PACK", [ids.adyen]),
       shopify: [], telephony: [],
     });
     expect(report.gates.find((gate) => gate.roadmapCardId === "HERMES-PAYMENT-SKILL-PACK")).toMatchObject({
       ready: true,
       evidence: expect.stringContaining("adyen_agentic candidate"),
     });
-    expect(report.gates.find((gate) => gate.roadmapCardId === "HERMES-PAYMENT-SKILL-PACK")?.evidence).toContain("x402 candidate");
+    expect(report.gates.find((gate) => gate.roadmapCardId === "HERMES-PAYMENT-SKILL-PACK")?.evidence).not.toContain("HTTP 402");
+  });
+
+  it("refuses a fiat acceptance packet that includes an extra crypto receipt", () => {
+    const cryptoId = "00000000-0000-4000-8000-000000000009";
+    const report = assessExternalProofReadiness({
+      runAnywhere: remote(false),
+      payments: [
+        payment(ids.adyen, "adyen_agentic", "authorized", "delegated_fiat"),
+        payment(cryptoId, "x402", "settled", "http_402"),
+      ],
+      paymentAcceptance: acceptance("HERMES-PAYMENT-SKILL-PACK", [ids.adyen, cryptoId]),
+      shopify: [], telephony: [],
+    });
+    expect(report.gates.find((gate) => gate.roadmapCardId === "HERMES-PAYMENT-SKILL-PACK")).toMatchObject({
+      ready: false,
+      evidence: expect.stringContaining("external packet missing"),
+    });
   });
 
   it("selects the provider candidates bound by the acceptance packet when older candidates exist", () => {
@@ -133,11 +146,9 @@ describe("external proof readiness", () => {
       runAnywhere: remote(false),
       payments: [
         payment(ids.link, "stripe_link", "authorized"),
-        payment(ids.mpp, "mpp", "settled"),
         payment(ids.adyen, "adyen_agentic", "authorized", "delegated_fiat"),
-        payment(ids.x402, "x402", "settled", "http_402"),
       ],
-      paymentAcceptance: acceptance("HERMES-PAYMENT-SKILL-PACK", [ids.adyen, ids.x402]),
+      paymentAcceptance: acceptance("HERMES-PAYMENT-SKILL-PACK", [ids.adyen]),
       adyenAcceptance: acceptance("PAYMENT-ADYEN-AGENTIC-DELEGATED", [ids.adyen]),
       shopify: [], telephony: [],
     });
@@ -202,8 +213,7 @@ describe("external proof readiness", () => {
     expect(externalProofAcceptanceTemplate("BACKEND-SERVERLESS-LIVE")).toBeNull();
     expect(externalProofAcceptanceTemplate("PAYMENT-ADYEN-AGENTIC-DELEGATED")?.receiptPath)
       .toBe(".vanta/external-proofs/PAYMENT-ADYEN-AGENTIC-DELEGATED.json");
-    expect(externalProofAcceptanceTemplate("PAYMENT-X402-TESTNET-RAIL")?.receiptPath)
-      .toBe(".vanta/external-proofs/PAYMENT-X402-TESTNET-RAIL.json");
+    expect(externalProofAcceptanceTemplate("PAYMENT-X402-TESTNET-RAIL")).toBeNull();
   });
 
   it("writes a local external proof packet folder with status, checklist, and templates", async () => {
@@ -223,17 +233,15 @@ describe("external proof readiness", () => {
       "runbooks/MERCURY-CROSS-PLATFORM-SERVICE.md",
       "runbooks/MSG-ADAPTER-TEAMS.md",
       "runbooks/PAYMENT-ADYEN-AGENTIC-DELEGATED.md",
-      "runbooks/PAYMENT-X402-TESTNET-RAIL.md",
       "runbooks/RUN-ANYWHERE-TERMUX.md",
       "runbooks/RUN-ANYWHERE-V1-RELEASE-GATE.md",
       "templates/HERMES-PAYMENT-SKILL-PACK.json",
       "templates/HERMES-SHOPIFY-OPERATIONS.json",
       "templates/HERMES-TELEPHONY-CONSENT-LIFECYCLE.json",
       "templates/PAYMENT-ADYEN-AGENTIC-DELEGATED.json",
-      "templates/PAYMENT-X402-TESTNET-RAIL.json",
     ]);
     const status = JSON.parse(await readFile(join(result.dir, "proof-status.json"), "utf8")) as { total: number; ready: boolean };
-    expect(status).toMatchObject({ ready: false, total: 12 });
+    expect(status).toMatchObject({ ready: false, total: 11 });
     expect(await readFile(join(result.dir, "NEXT.md"), "utf8")).toContain("BACKEND-SERVERLESS-LIVE");
     expect(await readFile(join(result.dir, "templates", "HERMES-SHOPIFY-OPERATIONS.json"), "utf8")).toContain("\"roadmapCardId\": \"HERMES-SHOPIFY-OPERATIONS\"");
     expect(await readFile(join(result.dir, "runbooks", "HERMES-SHOPIFY-OPERATIONS.md"), "utf8")).toContain("vanta roadmap proof-accept HERMES-SHOPIFY-OPERATIONS");

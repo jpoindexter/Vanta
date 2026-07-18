@@ -12,8 +12,6 @@ vanta payments execute contracts/api-credit.json --approve pay_api_credit_202607
 vanta payments receipts
 vanta payments authorization
 vanta payments readiness --json
-vanta payments x402-wallet create --yes
-vanta payments x402-wallet status --json
 ```
 
 ```json
@@ -62,7 +60,7 @@ a changed binding fail closed.
 | MPP over HTTP 402 | `http_402` | Bounded probe; exact amount/currency/network/resource/merchant/item/expiry validation; scoped-token request; paid retry | Deterministic adapter tests passed; no live paid endpoint receipt |
 | Stripe Projects | `saas_provisioning` | Runs the plugin in a private temporary workspace, requires generated keys to exactly match approved aliases, moves values into native Keychain storage, registers only vault references, and removes plaintext before success | Real child-process fixture passed; live Stripe Projects account not run |
 | Adyen Agentic | `delegated_fiat` | Typed readiness entry only | External enrollment and adapter required |
-| x402 | `http_402` | Current v2 `PAYMENT-REQUIRED`, `PAYMENT-SIGNATURE`, and `PAYMENT-RESPONSE` flow; exact contract match before a scoped native-Keychain signer; one paid retry; settlement validation | Real wallet creation and scoped resolution passed; Base Sepolia and Solana Devnet fixtures passed; the live facilitator advertised both networks; funded settlement remains external |
+| x402 | `http_402` | Dormant compatibility code only; current v2 parsing and signing remain isolated from operator workflows | Declined / not applicable by operator decision; excluded from roadmap completion and external proof |
 | Visa TAP | `merchant_recognition` | Local RFC 9421/Ed25519 conformance signer, pinned-registry verifier, replay guard, operation binding, content-digest binding, and consented identifier filter | Public sample topology passes locally; production agent signing remains disabled pending Visa onboarding |
 
 `vanta payments readiness` reports the current region, supported regions,
@@ -79,8 +77,8 @@ those variables, provider execution stops before spawning a process. Stripe
 Projects also requires macOS and `VANTA_KEYCHAIN=1`. Its contract names every
 generated alias in `provisioning.credentialVaultRefs`; extra, missing, empty,
 or duplicate aliases fail before vault registration. Enabling real money
-requires a separate release decision after live sandbox/test-mode Stripe Link
-and MPP receipts.
+requires a separate release decision after one approved delegated-fiat
+sandbox/test receipt.
 
 ```json
 {
@@ -109,6 +107,13 @@ currency, contract-network mismatch, resource, merchant, item, excessive precisi
 expired challenge stops before a spend request is created. Denial, timeout,
 malformed output, corrupt ledger data, and replay all fail closed with redacted
 operator output.
+
+## Dormant x402 compatibility
+
+The operator does not use crypto. x402 is therefore not a Vanta workflow,
+release dependency, or external-proof requirement. The pre-existing test-only
+compatibility module remains documented here solely so its security boundary
+does not become ambiguous.
 
 x402 contracts use the current v2 header protocol and are narrower than MPP.
 Only `exact` payments on Base Sepolia (`eip155:84532`) or Solana Devnet
@@ -150,9 +155,9 @@ address and reads the official Base Sepolia USDC contract balance through the
 configured RPC, returning the Circle public faucet URL while unfunded. Mainnet
 network IDs are rejected by the schema. The real Keychain
 lifecycle and scoped CLI resolution passed on 2026-07-18. The generated wallet
-was unfunded, so a live facilitator settlement and paid-resource receipt remain
-an external proof gate. Any future real-money enablement is a separate operator
-decision.
+was unfunded and no settlement was attempted. The roadmap card is terminal
+`declined/n-a`; Vanta must not ask the operator to fund a wallet. Any revival is
+a separate explicit product decision.
 
 ## Visa TAP conformance
 
@@ -178,8 +183,7 @@ payment provider. Visa certification and restricted client material remain an
 external release prerequisite.
 
 External release acceptance is capability-based but still evidence-bound. It
-requires one named `delegated_fiat` authorization receipt, one named `http_402`
-settlement receipt with a successful paid-resource response, and an acceptance
-packet containing both exact event IDs. Existing Link and MPP version-1
-receipts are read as `delegated_fiat` and `http_402` respectively without
-rewriting or changing their original meaning.
+requires one named `delegated_fiat` authorization receipt and an acceptance
+packet containing that exact event ID. Existing Link and MPP version-1 receipts
+remain readable without changing their historical meaning, but HTTP 402 and
+crypto receipts do not satisfy the required fiat gate.

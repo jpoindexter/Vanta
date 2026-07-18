@@ -52,15 +52,8 @@ const KNOWN_ACTIONS: Record<string, string[]> = {
   "HERMES-PAYMENT-SKILL-PACK": [
     "Configure one approved delegated-fiat test rail: Stripe Link in a supported region or an approved Adyen Agentic test account.",
     "Execute `vanta payments preview` and `vanta payments execute ... --approve <exact-id>`, then require an authorized redacted receipt.",
-    "Execute one bounded HTTP 402 test rail, MPP or x402 testnet, and require the paid retry to settle with the exact amount, currency, merchant, item, network, and resource.",
-    "Bind the two exact receipt event IDs and redacted provider evidence with `vanta roadmap proof-record HERMES-PAYMENT-SKILL-PACK <fiat-event-id> <http402-event-id> --evidence <file> --yes`.",
+    "Bind the exact delegated-fiat receipt event ID and redacted provider evidence with `vanta roadmap proof-record HERMES-PAYMENT-SKILL-PACK <fiat-event-id> --evidence <file> --yes`.",
     "Keep real-money mode disabled; only externally executed sandbox/test receipts satisfy this gate.",
-  ],
-  "PAYMENT-X402-TESTNET-RAIL": [
-    "Run `vanta payments x402-wallet status`; if the balance is zero, send the displayed public address 20 Base Sepolia USDC through Circle's official interactive faucet, then rerun status.",
-    "Execute one exact approved x402 contract against a real paid test endpoint and require a successful 2xx paid retry plus settlement transaction ID.",
-    "Bind the redacted settlement evidence with `vanta roadmap proof-record PAYMENT-X402-TESTNET-RAIL <event-id> --evidence <file> --yes`.",
-    "Keep mainnet network IDs and real-money execution disabled.",
   ],
   "HERMES-SHOPIFY-OPERATIONS": [
     "Create a Shopify development store and register `SHOPIFY_DEV_TOKEN` as a scoped Vanta vault alias for that exact store.",
@@ -75,7 +68,7 @@ const KNOWN_ACTIONS: Record<string, string[]> = {
     "Bind the redacted lifecycle evidence with `vanta roadmap proof-record HERMES-TELEPHONY-CONSENT-LIFECYCLE <event-id...> --evidence <file> --yes`.",
   ],
   "HERMES-COMMERCE-TELEPHONY-SKILL-PACK": [
-    "Ship HERMES-PAYMENT-SKILL-PACK with live sandbox Link and MPP receipts.",
+    "Ship HERMES-PAYMENT-SKILL-PACK with one approved delegated-fiat sandbox/test receipt.",
     "Ship HERMES-SHOPIFY-OPERATIONS with a verified development-store mutation receipt.",
     "Ship HERMES-TELEPHONY-CONSENT-LIFECYCLE with live Twilio callback and retention receipts.",
     "Only then execute and ship this aggregate release gate.",

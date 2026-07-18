@@ -47,15 +47,4 @@ describe("external acceptance evidence", () => {
     expect(packet.receiptEventIds).toEqual([eventId]);
   });
 
-  it("records and verifies the standalone x402 settlement gate", async () => {
-    const root = await mkdtemp(join(tmpdir(), "vanta-external-x402-"));
-    const evidencePath = join(root, "x402-redacted.json");
-    await writeFile(evidencePath, '{"network":"eip155:84532","status":"settled"}\n');
-    const result = await recordExternalAcceptance(root, {
-      roadmapCardId: "PAYMENT-X402-TESTNET-RAIL",
-      receiptEventIds: [eventId],
-      evidencePath,
-    });
-    expect(await readVerifiedExternalAcceptance(root, "PAYMENT-X402-TESTNET-RAIL")).toEqual(result.packet);
-  });
 });

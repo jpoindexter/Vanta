@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1247 capabilities shipped · 0 in flight · 11 external proof gates · 0 on the horizon. Updated 2026-07-18._
+_1247 capabilities shipped · 0 in flight · 10 external proof gates · 0 on the horizon. Updated 2026-07-18._
 
 ## In flight
 
@@ -50,9 +50,8 @@ Implemented locally, but not called shipped until the real provider, device, or 
 - **Termux / Android runtime (run-anywhere North Star gap)** — Operator
 - **Spreadsheet copilot — Excel/Sheets agent surface with charts and custom functions** — Operator
 - **Cross-platform service supervisor — one `vanta up` on macOS, Linux, and Windows** — Reach
-- **x402 testnet rail - region-independent HTTP 402 payments under Vanta transaction gates** — Operator
 - **Adyen Agentic delegated payments - limited-access provider integration** — Operator
-- **Payment skill pack - delegated fiat, HTTP 402, and SaaS provisioning under transaction gates** — Operator
+- **Payment skill pack - delegated fiat and SaaS provisioning under transaction gates** — Operator
 - **Shopify operations - scoped catalog, orders, inventory, and verified mutations** — Operator
 - **Telephony consent lifecycle - provision numbers, SMS, calls, callbacks, and retention** — Reach
 - **Commerce and telephony skill pack - Shopify, shopping, returns, SMS, and calls** — Reach
