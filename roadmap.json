@@ -17699,24 +17699,107 @@
       ]
     },
     {
-      "id": "HERMES-PAYMENT-SKILL-PACK",
-      "track": "Operator",
-      "title": "Payment skill pack - Stripe Link, MPP, and SaaS provisioning under transaction gates",
-      "status": "parked",
+      "id": "PAYMENT-REGIONAL-AUTHORIZATION-BROKER",
+      "track": "Harness",
+      "title": "Regional payment authorization broker - route by capability, regulation, and provider availability",
+      "status": "next",
       "size": "L",
-      "summary": "Hermes offers Stripe Link checkout, Machine Payments Protocol, and Stripe Projects provisioning. Vanta's browser and MCP layers can reach payment surfaces, but model-token budgets do not authorize purchases and generic approvals do not protect card material or merchant totals.",
-      "done": "Payment actions use a dedicated transaction contract with merchant, item, currency, exact total, per-purchase and period caps, credential type, and expiry; every spend requires a fresh operator approval plus the provider's external approval when available; payment credentials never enter model context, logs, receipts, or durable environment files; HTTP 402 challenges are validated; denials/timeouts stop cleanly; SaaS provisioning stores only vault references; receipts prove authorization, redacted provider result, amount, and cleanup; live sandbox/test-mode Stripe and MPP paths pass before any real-money enablement.",
+      "summary": "Vanta's payment contract is sound, but the live provider layer is hard-coded to Stripe Link and Stripe-flavored MPP. Link agent access is U.S.-only for the current operator, while EU rails require provider-mediated SCA, delegated tokens, or onchain authorization. Introduce one provider-neutral authorization boundary before adding more payment adapters.",
+      "done": "Payment contracts select a capability (`delegated_fiat`, `http_402`, or `merchant_recognition`) instead of assuming Link; provider readiness reports supported regions, test/live availability, required external enrollment, credential custody, and challenge type; the authorization state machine persists preview -> exact operator approval -> provider challenge/step-up -> scoped token -> execute -> receipt; amount, payee, currency, item, expiry, network, and resource remain dynamically bound; unsupported-region and enrollment-required outcomes stop without retry loops; PAN, CVC, passkey material, wallet private keys, and provider tokens never enter model context or receipts; the external proof gate accepts a named approved fiat rail plus a named HTTP 402 rail without weakening per-provider evidence; existing Stripe Link/MPP receipts migrate without changing their meaning.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "updated": "2026-07-18",
+      "notes": "Primary-source correction to Gemini research. PSD2 SCA is not a blanket ban on agent payments: payer-initiated remote payments generally require authentication dynamically linked to amount and payee, while provider exemptions and payee-initiated arrangements have separate rules. Vanta must model the provider challenge and liability boundary rather than claim it can bypass SCA. The first implementation should remove the current `method=stripe` and Link CLI assumptions from the generic HTTP 402 validator while preserving fail-closed transaction gates.",
+      "source": "EBA PSD2/SCA Q&A 2020_5133 and 2018_4131; Adyen Agentic docs; Visa TAP docs; Coinbase x402 docs - researched 2026-07-18",
+      "after": [
+        "HERMES-VAULT-SECRETS-ROTATION"
+      ]
+    },
+    {
+      "id": "PAYMENT-X402-TESTNET-RAIL",
+      "track": "Operator",
+      "title": "x402 testnet rail - region-independent HTTP 402 payments under Vanta transaction gates",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Coinbase's official x402 stack exposes a no-signup testnet facilitator for Base Sepolia and Solana Devnet. This is the fastest executable alternative to Stripe Link for proving machine-paid HTTP resources, but it is an irreversible onchain rail on mainnet and must not be treated as a regulatory bypass.",
+      "done": "A strict `x402` test contract supports only allowlisted CAIP-2 test networks, assets, schemes, facilitator origins, exact maximum amount, payee, resource, and expiry; Vanta parses the current x402 v2 payment requirements and response headers, rejects network/asset/payee/resource/amount mismatches before signing, and keeps wallet keys behind an injected signer or vault adapter; a fresh exact approval is required before each signature; settlement verifies the facilitator response and paid resource retry; replay and cross-network reuse fail; Base Sepolia and Solana Devnet fixtures pass against `https://x402.org/facilitator` with redacted receipts; mainnet remains code-disabled until a separate operator decision and real-money review.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "reach",
+      "updated": "2026-07-18",
+      "notes": "Official docs confirm the x402.org facilitator is testnet-only, needs no API key, and supports Base Sepolia plus Solana Devnet. CDP mainnet requires credentials and funded wallets. x402 supports USDC but is not limited to USDC across every network, and it does not automatically satisfy or bypass EU financial, tax, custody, or consumer-protection obligations. Build the testnet proof first; do not add a mainnet toggle to this card.",
+      "source": "Coinbase x402 Network Support and Seller Quickstart - researched 2026-07-18",
+      "after": [
+        "PAYMENT-REGIONAL-AUTHORIZATION-BROKER"
+      ]
+    },
+    {
+      "id": "PAYMENT-ADYEN-AGENTIC-DELEGATED",
+      "track": "Operator",
+      "title": "Adyen Agentic delegated payments - EU-capable ACP/UCP token route",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Adyen Agentic is a real June 2026 API suite with Agentic Feed, Cart, and Payments plus documented agent-platform paths for Agentic Commerce Protocol and Universal Commerce Protocol. It is a plausible European fiat alternative to Link, but it is not open self-service: agent platforms need PCI DSS Level 1, Adyen security review, dedicated access, and enabled merchant accounts.",
+      "done": "The adapter uses an explicit `adyen_agentic` provider namespace so it cannot be confused with Vanta's Agent Client Protocol; it maps the Vanta transaction contract to Adyen's one-time allowance fields for maximum amount, currency, checkout session, merchant, and expiry; requests use a dedicated agentic token, timestamp, request ID, idempotency key, and HMAC signature from vault-backed material; the default Vanta runtime refuses PAN/CVC input and accepts only provider-hosted or network-tokenized credentials unless a separately attested PCI Level 1 boundary is active; blocked/manual-review risk results stop before tokenization; merchant-scoped tokens never enter model context; test authorization, denial, expiry, idempotent replay, SCA/3DS handoff, merchant charge, and redacted readback receipts pass against an approved Adyen test account before this can satisfy the fiat external proof gate.",
       "tier": "pebble",
       "model": "opus",
       "effort": "high",
       "codex": "gpt-5.6-sol",
       "lens": "infra",
       "updated": "2026-07-18",
-      "notes": "PARKED EXTERNAL PROOF 2026-07-11 only on external payment acceptance. Implemented strict environment:test transaction contracts, exact minor-unit totals, per-purchase/day/month caps, expiry, replay refusal, concurrent ledger reservations, mode-0600 redacted receipts, provider-output allowlisting, scrubbed child environments, Stripe Link external-approval enforcement, bounded HTTP 402 parsing/validation, payment_transaction tool, and vanta payments preview|execute|receipts. Fresh approvals cannot be auto-approved or persisted; CLI approval must equal the transaction ID. Production payment CLIs are unreachable unless explicit test wrappers are configured. Stripe Projects now runs in a mode-0700 temporary workspace, requires the generated .env key set to exactly equal approved vault aliases, removes plaintext before success, pipes values into macOS Keychain through stdin, atomically registers only Keychain references, and rolls back writes on failure. A real child-process fixture executed init/add, generated two credentials, vaulted both without argv/manifest leakage, and removed the workspace. The real Vanta Link CLI fixture also passed exact-ID approval -> reserved -> spend_approved -> authorized receipt with replay refusal. Full suite: 12,967 passed, 3 skipped, 0 failed across 4,737 suites; TypeScript, 4-file size gate, npm audit (0 vulnerabilities), 30-scenario use-case validation, and Docusaurus production build pass. This proves Vanta orchestration, vault-only provisioning, and test-adapter isolation, NOT live payment. Read-only host check: Stripe CLI 1.31.1 is installed, but its Projects plugin is absent; link-cli, Keychain opt-in, test wrappers, and an MPP test URL are unconfigured. Remaining done-criterion blockers: live Stripe Link sandbox/test receipt and live paid MPP endpoint receipt; a live Stripe Projects account is also unverified but no longer a local implementation blocker. Real money stays disabled.\n\nPROOF INTEGRITY 2026-07-18: `vanta roadmap proof-record` now copies and hashes the redacted external evidence, binds exact ledger event IDs, and writes the acceptance packet atomically with mode 0600. Readiness re-hashes the named artifact before this card can ship.\n\nLIVE ACCOUNT CHECK 2026-07-18: `stripe login` completed for the Theft B.V. Stripe account, and official `@stripe/link-cli` 0.9.0 was installed. Two Link device-login attempts reached the provider but did not issue credentials. The provider UI returned `Connecting agents to your account is currently only supported in the U.S.` for the operator in Spain. This is a verified provider-region blocker, not a Vanta credential failure. Do not retry Link authentication from this region. Resume the Link receipt only with a supported U.S. Link account/region or when Stripe expands availability; the independent MPP sandbox receipt can still be pursued. Real money stays disabled.",
-      "source": "Hermes optional payments catalog 2026-07-11",
+      "notes": "Official Adyen docs require the `Agentic Commerce` role, PCI DSS Level 1 compliance, a security review, Delegated Payment access, a dedicated Agentic Commerce token, and merchant enablement. This card can build the typed boundary and fixture locally, but live proof remains external until Adyen approves the platform. Do not store raw payment credentials in Vanta to make the test pass.",
+      "source": "Adyen Agentic announcement and agent-platform delegated payment docs - researched 2026-07-18",
+      "after": [
+        "PAYMENT-REGIONAL-AUTHORIZATION-BROKER"
+      ]
+    },
+    {
+      "id": "PAYMENT-VISA-TAP-CONFORMANCE",
+      "track": "Harness",
+      "title": "Visa TAP conformance lab - signed agent intent and merchant recognition",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Visa's Trusted Agent Protocol is public, lists Europe, and ships a reference implementation for merchant recognition of approved agents. It is not itself a consumer wallet or a drop-in Visa Payment Passkey. Vanta should prove protocol conformance without claiming production Visa agent status.",
+      "done": "A local conformance harness generates and verifies RFC 9421/Ed25519 agent-recognition and payer-intent signatures bound to authority, path, created/expires, nonce, key ID, and operation tag; replay, wrong-domain, expired, altered-body, unknown-key, and cross-operation signatures fail; the merchant fixture retrieves keys from a pinned test registry and receives only consented recognition/payment identifiers; the harness passes against Visa's public sample topology; production signing stays disabled unless Visa certifies/onboards Vanta and supplies the restricted client implementation material; Visa Payment Passkey remains an external issuer/merchant authentication challenge handled by the regional authorization broker, not a credential Vanta stores.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "infra",
+      "updated": "2026-07-18",
+      "notes": "Gemini overstated this as a direct consumer equivalent to Link. Public Visa material describes TAP primarily as merchant/infrastructure recognition for approved, scheme-onboarded agents. Visa Payment Passkey is a separate issuer/merchant API suite that supports PSD2 authentication. Official sources reviewed did not substantiate the claimed July 2026 launch at 30 issuers or the named lastminute.com/Cleverbridge rollout, so those claims are not encoded into Vanta.",
+      "source": "Visa Trusted Agent Protocol specification, developer overview, GitHub sample, and Visa Payment Passkey docs - researched 2026-07-18",
+      "after": [
+        "PAYMENT-REGIONAL-AUTHORIZATION-BROKER"
+      ]
+    },
+    {
+      "id": "HERMES-PAYMENT-SKILL-PACK",
+      "track": "Operator",
+      "title": "Payment skill pack - delegated fiat, HTTP 402, and SaaS provisioning under transaction gates",
+      "status": "parked",
+      "size": "L",
+      "summary": "Hermes offers Stripe Link checkout, Machine Payments Protocol, and Stripe Projects provisioning. Vanta now needs a region-aware payment surface because the current operator cannot access Link agent credentials in Spain, while Adyen delegated payments and x402 expose different authorization and custody boundaries.",
+      "done": "Payment actions use a dedicated transaction contract with merchant, item, currency, exact total, per-purchase and period caps, credential type, and expiry; every spend requires a fresh operator approval plus the provider's external approval or SCA challenge when available; payment credentials never enter model context, logs, receipts, or durable environment files; HTTP 402 challenges are validated; denials/timeouts stop cleanly; SaaS provisioning stores only vault references; receipts prove authorization, redacted provider result, amount, and cleanup; one approved sandbox/test delegated-fiat rail (Stripe Link or Adyen Agentic) and one sandbox/test HTTP 402 rail (MPP or x402) pass before any real-money enablement.",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "updated": "2026-07-18",
+      "notes": "PARKED EXTERNAL PROOF 2026-07-11 only on external payment acceptance. Implemented strict environment:test transaction contracts, exact minor-unit totals, per-purchase/day/month caps, expiry, replay refusal, concurrent ledger reservations, mode-0600 redacted receipts, provider-output allowlisting, scrubbed child environments, Stripe Link external-approval enforcement, bounded HTTP 402 parsing/validation, payment_transaction tool, and vanta payments preview|execute|receipts. Fresh approvals cannot be auto-approved or persisted; CLI approval must equal the transaction ID. Production payment CLIs are unreachable unless explicit test wrappers are configured. Stripe Projects now runs in a mode-0700 temporary workspace, requires the generated .env key set to exactly equal approved vault aliases, removes plaintext before success, pipes values into macOS Keychain through stdin, atomically registers only Keychain references, and rolls back writes on failure. A real child-process fixture executed init/add, generated two credentials, vaulted both without argv/manifest leakage, and removed the workspace. The real Vanta Link CLI fixture also passed exact-ID approval -> reserved -> spend_approved -> authorized receipt with replay refusal. Full suite: 12,967 passed, 3 skipped, 0 failed across 4,737 suites; TypeScript, 4-file size gate, npm audit (0 vulnerabilities), 30-scenario use-case validation, and Docusaurus production build pass. This proves Vanta orchestration, vault-only provisioning, and test-adapter isolation, NOT live payment. Read-only host check: Stripe CLI 1.31.1 is installed, but its Projects plugin is absent; link-cli, Keychain opt-in, test wrappers, and an MPP test URL are unconfigured. Remaining done-criterion blockers at that point were a live Stripe Link sandbox/test receipt and live paid MPP endpoint receipt; a live Stripe Projects account was also unverified but no longer a local implementation blocker. Real money stays disabled.\n\nPROOF INTEGRITY 2026-07-18: `vanta roadmap proof-record` now copies and hashes the redacted external evidence, binds exact ledger event IDs, and writes the acceptance packet atomically with mode 0600. Readiness re-hashes the named artifact before this card can ship.\n\nLIVE ACCOUNT CHECK 2026-07-18: `stripe login` completed for the Theft B.V. Stripe account, and official `@stripe/link-cli` 0.9.0 was installed. Two Link device-login attempts reached the provider but did not issue credentials. The provider UI returned `Connecting agents to your account is currently only supported in the U.S.` for the operator in Spain. This is a verified provider-region blocker, not a Vanta credential failure. Do not retry Link authentication from this region. Resume the Link receipt only with a supported U.S. Link account/region or when Stripe expands availability. Real money stays disabled.\n\nEU RAIL REFRAME 2026-07-18: primary-source research added PAYMENT-REGIONAL-AUTHORIZATION-BROKER, PAYMENT-X402-TESTNET-RAIL, PAYMENT-ADYEN-AGENTIC-DELEGATED, and PAYMENT-VISA-TAP-CONFORMANCE. This parent now accepts one externally approved delegated-fiat test rail (Link or Adyen) plus one verified HTTP 402 test rail (MPP or x402). The current proof evaluator remains Link/MPP-specific until the regional broker card ships; roadmap wording does not itself satisfy or weaken the external proof gate.",
+      "source": "Hermes optional payments catalog 2026-07-11; Visa, Adyen, Coinbase, and EBA primary-source follow-up 2026-07-18",
       "after": [
         "HERMES-PORTABLE-SKILL-PACKAGES",
-        "HERMES-VAULT-SECRETS-ROTATION"
+        "HERMES-VAULT-SECRETS-ROTATION",
+        "PAYMENT-REGIONAL-AUTHORIZATION-BROKER",
+        "PAYMENT-X402-TESTNET-RAIL",
+        "PAYMENT-ADYEN-AGENTIC-DELEGATED"
       ],
       "parkedReason": "external proof"
     },
