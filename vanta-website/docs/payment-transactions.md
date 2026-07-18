@@ -16,6 +16,7 @@ vanta payments execute contracts/purchase.json --approve pay_purchase_20260711
 vanta payments receipts
 vanta payments authorization
 vanta payments readiness --json
+vanta payments x402-wallet create --yes
 ```
 
 Every version-1 transaction contract selects `delegated_fiat` or `http_402`
@@ -54,11 +55,16 @@ binds the exact selected pair. Candidate receipts alone never ship a card.
 
 The x402 adapter accepts only `exact` payments on Base Sepolia or Solana
 Devnet through the no-key `x402.org` test facilitator. It validates resource,
-network, asset, atomic amount, and onchain payee before calling an injected
-vault signer, retries the protected request once with `PAYMENT-SIGNATURE`, and
-validates `PAYMENT-RESPONSE`. Mainnet IDs and plaintext wallet keys are rejected.
-Both fixture networks and the facilitator's live support response passed on
-2026-07-18; this is not evidence of a funded wallet or real-money settlement.
+network, asset, atomic amount, and onchain payee before calling a scoped vault
+signer, retries the protected request once with `PAYMENT-SIGNATURE`, and
+validates `PAYMENT-RESPONSE`. `vanta payments x402-wallet create --yes` creates
+the test wallet through a native macOS Keychain adapter and registers only the
+`X402_TEST_SIGNER` alias for `payment:x402`; no key enters argv, logs, contracts,
+or receipts. Mainnet IDs and plaintext wallet keys are rejected. Both fixture
+networks, a real Keychain lifecycle, scoped CLI resolution, and the
+facilitator's live support response passed on 2026-07-18. The generated wallet
+was unfunded, so a live settlement and paid-resource receipt remain an external
+proof gate; this is not evidence of real-money settlement.
 
 Visa TAP is implemented only as a local public-protocol conformance lab. Its
 RFC 9421/Ed25519 signatures bind merchant authority, path, time window, nonce,
@@ -68,8 +74,8 @@ the merchant receives only consented identifiers. Production Visa signing and
 payment credentials remain disabled until formal scheme onboarding.
 
 Stripe Projects runs in a private temporary workspace, accepts only the exact
-generated aliases named in the approved contract, pipes values into macOS
-Keychain, registers only vault references, and removes plaintext before
+generated aliases named in the approved contract, writes values through the
+native macOS Keychain adapter, registers only vault references, and removes plaintext before
 success. A real child-process fixture passed this path. Stripe Link agent access
 rejected the current Spain-based account as an unsupported region. A live
 approved fiat rail, live paid HTTP 402 endpoint, and live Stripe Projects

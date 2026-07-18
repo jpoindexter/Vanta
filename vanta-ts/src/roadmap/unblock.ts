@@ -56,6 +56,12 @@ const KNOWN_ACTIONS: Record<string, string[]> = {
     "Bind the two exact receipt event IDs and redacted provider evidence with `vanta roadmap proof-record HERMES-PAYMENT-SKILL-PACK <fiat-event-id> <http402-event-id> --evidence <file> --yes`.",
     "Keep real-money mode disabled; only externally executed sandbox/test receipts satisfy this gate.",
   ],
+  "PAYMENT-X402-TESTNET-RAIL": [
+    "Fund `X402_TEST_SIGNER` with Base Sepolia USDC through an official interactive faucet or authenticated test account.",
+    "Execute one exact approved x402 contract against a real paid test endpoint and require a successful 2xx paid retry plus settlement transaction ID.",
+    "Bind the redacted settlement evidence with `vanta roadmap proof-record PAYMENT-X402-TESTNET-RAIL <event-id> --evidence <file> --yes`.",
+    "Keep mainnet network IDs and real-money execution disabled.",
+  ],
   "HERMES-SHOPIFY-OPERATIONS": [
     "Create a Shopify development store and register `SHOPIFY_DEV_TOKEN` as a scoped Vanta vault alias for that exact store.",
     "Run `vanta shopify read <profile> products`, then preview and apply one typed development-store mutation with its exact approval id.",

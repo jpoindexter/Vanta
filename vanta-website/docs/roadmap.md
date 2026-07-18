@@ -8,21 +8,20 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1248 capabilities shipped · 0 in flight · 0 on the horizon. Updated 2026-07-18._
+_1247 capabilities shipped · 0 in flight · 11 external proof gates · 0 on the horizon. Updated 2026-07-18._
 
 ## In flight
 
 What we are actively building next.
 
-_Nothing in flight right now — see the horizon below._
+_Nothing in flight right now — the remaining accepted work is listed under external proof gates._
 
 ## Recently shipped
 
-The latest of 1248+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1247+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Terminal panel + TerminalCaptureTool — agent captures terminal content, Meta+J toggle** — Operator · 2026-07-18
 - **Regional payment authorization broker - route by capability, regulation, and provider availability** — Harness · 2026-07-18
-- **x402 testnet rail - region-independent HTTP 402 payments under Vanta transaction gates** — Operator · 2026-07-18
 - **Visa TAP conformance lab - signed agent intent and merchant recognition** — Harness · 2026-07-18
 - **Interactive Telegram setup discovery - answer the operator and expose the command** — Operator · 2026-07-18
 - **Desktop setup hub + Telegram lifecycle — route, verify, secure, and start** — Desktop App · 2026-07-18
@@ -40,6 +39,23 @@ The latest of 1248+ capabilities. See the [changelog](./changelog) for curated m
 - **Schema state grounding - turn raw task observations into inspectable entities and variables** — Harness · 2026-07-17
 - **Schema executable task model - editable step() and isGoal() programs** — Harness · 2026-07-17
 - **Schema complete-history backtest - certify each model against recorded reality** — Harness · 2026-07-17
+- **Schema controlled commit gate - one channel from deliberation to side effects** — Harness · 2026-07-17
+
+## External proof gates
+
+Implemented locally, but not called shipped until the real provider, device, or hosted environment produces an accepted receipt.
+
+- **Run Anywhere v1 release gate — reach, wake, and execute on controlled infrastructure** — Operator
+- **Messaging adapter — Microsoft Teams** — Operator
+- **Termux / Android runtime (run-anywhere North Star gap)** — Operator
+- **Spreadsheet copilot — Excel/Sheets agent surface with charts and custom functions** — Operator
+- **Cross-platform service supervisor — one `vanta up` on macOS, Linux, and Windows** — Reach
+- **x402 testnet rail - region-independent HTTP 402 payments under Vanta transaction gates** — Operator
+- **Adyen Agentic delegated payments - limited-access provider integration** — Operator
+- **Payment skill pack - delegated fiat, HTTP 402, and SaaS provisioning under transaction gates** — Operator
+- **Shopify operations - scoped catalog, orders, inventory, and verified mutations** — Operator
+- **Telephony consent lifecycle - provision numbers, SMS, calls, callbacks, and retention** — Reach
+- **Commerce and telephony skill pack - Shopify, shopping, returns, SMS, and calls** — Reach
 
 ## On the horizon
 

@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
-  activateVaultEnvironment, addVaultSecret, addVaultSecrets, auditPath, injectVaultSecrets, listVaultSecrets, rotateVaultSecret, vaultSecretStatus,
+  activateVaultEnvironment, addVaultSecret, addVaultSecrets, auditPath, injectVaultSecrets, listVaultSecrets, removeVaultSecret, rotateVaultSecret, vaultSecretStatus,
 } from "./vault-manager.js";
 
 let home = "";
@@ -59,6 +59,19 @@ describe("vault secret manager", () => {
     expect(audit).not.toContain("item-old");
     expect(audit).not.toContain("item-new");
     expect(audit).not.toContain("new-secret-value");
+  });
+
+  it("removes an alias only after confirmation and audits a hash instead of its reference", async () => {
+    home = await mkdtemp(join(tmpdir(), "vanta-vault-manager-"));
+    await addVaultSecret({ name: "X402_TEST_SIGNER", backend: "keychain", ref: "private-service-ref", scopes: ["payment:x402"] }, env());
+    await expect(removeVaultSecret("X402_TEST_SIGNER", { env: env(), confirmed: false })).rejects.toThrow(/confirmation/i);
+    const removed = await removeVaultSecret("X402_TEST_SIGNER", { env: env(), confirmed: true, now: new Date("2026-07-18T00:00:00.000Z") });
+    expect(removed.name).toBe("X402_TEST_SIGNER");
+    expect(await listVaultSecrets(env())).toEqual([]);
+    const audit = await readFile(auditPath(env()), "utf8");
+    expect(audit).toContain('\"action\":\"remove\"');
+    expect(audit).toContain("refHash");
+    expect(audit).not.toContain("private-service-ref");
   });
 
   it("activates scoped vault aliases from the base home for an active profile", async () => {

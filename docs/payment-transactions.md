@@ -12,6 +12,7 @@ vanta payments execute contracts/api-credit.json --approve pay_api_credit_202607
 vanta payments receipts
 vanta payments authorization
 vanta payments readiness --json
+vanta payments x402-wallet create --yes
 ```
 
 ```json
@@ -58,9 +59,9 @@ a changed binding fail closed.
 | --- | --- | --- | --- |
 | Stripe Link | `delegated_fiat` | Exact spend request with `--request-approval`; only allowlisted IDs/status leave the adapter | Real Vanta process plus executable test fixture passed; Spain is currently rejected by Link agent access |
 | MPP over HTTP 402 | `http_402` | Bounded probe; exact amount/currency/network/resource/merchant/item/expiry validation; scoped-token request; paid retry | Deterministic adapter tests passed; no live paid endpoint receipt |
-| Stripe Projects | `saas_provisioning` | Runs the plugin in a private temporary workspace, requires generated keys to exactly match approved aliases, moves values into Keychain through stdin, registers only vault references, and removes plaintext before success | Real child-process fixture passed; live Stripe Projects account not run |
+| Stripe Projects | `saas_provisioning` | Runs the plugin in a private temporary workspace, requires generated keys to exactly match approved aliases, moves values into native Keychain storage, registers only vault references, and removes plaintext before success | Real child-process fixture passed; live Stripe Projects account not run |
 | Adyen Agentic | `delegated_fiat` | Typed readiness entry only | External enrollment and adapter required |
-| x402 | `http_402` | Current v2 `PAYMENT-REQUIRED`, `PAYMENT-SIGNATURE`, and `PAYMENT-RESPONSE` flow; exact contract match before an injected vault signer; one paid retry; settlement validation | Base Sepolia and Solana Devnet fixtures passed; the live no-key `x402.org` facilitator advertised both exact networks on 2026-07-18 |
+| x402 | `http_402` | Current v2 `PAYMENT-REQUIRED`, `PAYMENT-SIGNATURE`, and `PAYMENT-RESPONSE` flow; exact contract match before a scoped native-Keychain signer; one paid retry; settlement validation | Real wallet creation and scoped resolution passed; Base Sepolia and Solana Devnet fixtures passed; the live facilitator advertised both networks; funded settlement remains external |
 | Visa TAP | `merchant_recognition` | Local RFC 9421/Ed25519 conformance signer, pinned-registry verifier, replay guard, operation binding, content-digest binding, and consented identifier filter | Public sample topology passes locally; production agent signing remains disabled pending Visa onboarding |
 
 `vanta payments readiness` reports the current region, supported regions,
@@ -135,12 +136,19 @@ and vault signer alias before the first request:
 ```
 
 Vanta rejects a resource, network, asset, payee, or amount mismatch before the
-signer is called. The signer is injected and receives only the vault alias and
-validated requirement; private keys never enter the contract, receipt, or
-logs. A signed payload must repeat the same binding, and the paid response must
-carry a successful settlement on that network. Mainnet network IDs are rejected
-by the schema. A funded test-wallet transaction and any future real-money
-enablement remain separate operator decisions.
+signer is called. Run `vanta payments x402-wallet create --yes` once on macOS to
+generate a test wallet. Vanta stores the private key through the native
+Keychain adapter and registers only `X402_TEST_SIGNER` for the `payment:x402`
+scope. The command repairs that alias when its backing credential is missing,
+but never replaces a valid configured wallet. The signer receives only the
+vault alias and validated requirement; private keys never enter the contract,
+receipt, process arguments, or logs. A signed payload must repeat the same
+binding, and the paid response must carry a successful settlement on that
+network. Mainnet network IDs are rejected by the schema. The real Keychain
+lifecycle and scoped CLI resolution passed on 2026-07-18. The generated wallet
+was unfunded, so a live facilitator settlement and paid-resource receipt remain
+an external proof gate. Any future real-money enablement is a separate operator
+decision.
 
 ## Visa TAP conformance
 

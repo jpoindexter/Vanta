@@ -47,6 +47,8 @@ const building = byStatus('building');
 const inFlight = [...building, ...next];
 const shipped = byStatus('shipped');
 const horizon = byStatus('horizon');
+const externalProof = items.filter((c) =>
+  (c.status || '').toLowerCase() === 'parked' && c.parkedReason === 'external proof');
 
 const recent = [...shipped]
   .sort((a, b) => String(b.updated || '').localeCompare(String(a.updated || '')))
@@ -62,13 +64,13 @@ out.push(
   '',
 );
 out.push(
-  `_${shipped.length} capabilities shipped · ${inFlight.length} in flight · ${horizon.length} on the horizon. Updated ${roadmap.updated || 'recently'}._`,
+  `_${shipped.length} capabilities shipped · ${inFlight.length} in flight · ${externalProof.length} external proof gates · ${horizon.length} on the horizon. Updated ${roadmap.updated || 'recently'}._`,
   '',
 );
 
 out.push('## In flight', '');
 out.push('What we are actively building next.', '');
-if (inFlight.length === 0) out.push('_Nothing in flight right now — see the horizon below._', '');
+if (inFlight.length === 0) out.push('_Nothing in flight right now — the remaining accepted work is listed under external proof gates._', '');
 for (const c of inFlight) {
   out.push(`### ${clean(c.title)}`, '');
   out.push(`**${c.track}** · ${c.size || 'M'}-size`, '');
@@ -83,6 +85,14 @@ for (const c of recent) {
 }
 out.push('');
 
+out.push('## External proof gates', '');
+out.push('Implemented locally, but not called shipped until the real provider, device, or hosted environment produces an accepted receipt.', '');
+for (const c of externalProof) {
+  out.push(`- **${clean(c.title)}** — ${c.track}`);
+}
+if (externalProof.length === 0) out.push('_No external proof gates remain._');
+out.push('');
+
 out.push('## On the horizon', '');
 out.push('Directional, not committed — grouped by area, newest thinking first.', '');
 for (const track of tracks) {
@@ -95,4 +105,4 @@ for (const track of tracks) {
 }
 
 writeFileSync(join(here, '..', 'docs', 'roadmap.md'), out.join('\n'));
-console.log(`gen-roadmap: wrote docs/roadmap.md (${building.length} building, ${next.length} next, ${recent.length} recent, ${horizon.length} horizon across ${tracks.length} tracks)`);
+console.log(`gen-roadmap: wrote docs/roadmap.md (${building.length} building, ${next.length} next, ${recent.length} recent, ${externalProof.length} external proof, ${horizon.length} horizon across ${tracks.length} tracks)`);

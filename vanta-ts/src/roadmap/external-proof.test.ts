@@ -42,9 +42,10 @@ const acceptance = (roadmapCardId: string, receiptEventIds: string[]) => ({
 });
 
 describe("external proof readiness", () => {
-  it("reports all eleven gates with concrete next actions when evidence is absent", () => {
+  it("reports all twelve gates with concrete next actions when evidence is absent", () => {
     const report = assessExternalProofReadiness({ runAnywhere: remote(false), payments: [], shopify: [], telephony: [] });
-    expect(report).toMatchObject({ ready: false, passed: 0, total: 11 });
+    expect(report).toMatchObject({ ready: false, passed: 0, total: 12 });
+    expect(report.gates.map((gate) => gate.roadmapCardId)).toContain("PAYMENT-X402-TESTNET-RAIL");
     expect(report.gates.map((gate) => gate.roadmapCardId)).toContain("PAYMENT-ADYEN-AGENTIC-DELEGATED");
     expect(report.gates.map((gate) => gate.roadmapCardId)).toContain("HERMES-COMMERCE-TELEPHONY-SKILL-PACK");
     expect(report.gates.find((gate) => gate.roadmapCardId === "BACKEND-SERVERLESS-LIVE")?.nextActions).toEqual(["next"]);
@@ -63,9 +64,11 @@ describe("external proof readiness", () => {
       payments: [
         payment(ids.link, "stripe_link", "authorized"),
         payment(ids.mpp, "mpp", "settled"),
+        payment(ids.x402, "x402", "settled", "http_402"),
         payment(ids.adyen, "adyen_agentic", "authorized", "delegated_fiat"),
       ],
       paymentAcceptance: acceptance("HERMES-PAYMENT-SKILL-PACK", [ids.link, ids.mpp]),
+      x402Acceptance: acceptance("PAYMENT-X402-TESTNET-RAIL", [ids.x402]),
       adyenAcceptance: acceptance("PAYMENT-ADYEN-AGENTIC-DELEGATED", [ids.adyen]),
       shopify: [shopify], shopifyAcceptance: acceptance("HERMES-SHOPIFY-OPERATIONS", [ids.shopify]),
       telephony: [
@@ -74,7 +77,7 @@ describe("external proof readiness", () => {
       ],
       telephonyAcceptance: acceptance("HERMES-TELEPHONY-CONSENT-LIFECYCLE", [ids.number, ids.sms, ids.call, ids.deletion]),
     });
-    expect(report).toMatchObject({ ready: true, passed: 11, total: 11 });
+    expect(report).toMatchObject({ ready: true, passed: 12, total: 12 });
     expect(report.gates.every((gate) => gate.nextActions.length === 0)).toBe(true);
   });
 
@@ -199,6 +202,8 @@ describe("external proof readiness", () => {
     expect(externalProofAcceptanceTemplate("BACKEND-SERVERLESS-LIVE")).toBeNull();
     expect(externalProofAcceptanceTemplate("PAYMENT-ADYEN-AGENTIC-DELEGATED")?.receiptPath)
       .toBe(".vanta/external-proofs/PAYMENT-ADYEN-AGENTIC-DELEGATED.json");
+    expect(externalProofAcceptanceTemplate("PAYMENT-X402-TESTNET-RAIL")?.receiptPath)
+      .toBe(".vanta/external-proofs/PAYMENT-X402-TESTNET-RAIL.json");
   });
 
   it("writes a local external proof packet folder with status, checklist, and templates", async () => {
@@ -218,15 +223,17 @@ describe("external proof readiness", () => {
       "runbooks/MERCURY-CROSS-PLATFORM-SERVICE.md",
       "runbooks/MSG-ADAPTER-TEAMS.md",
       "runbooks/PAYMENT-ADYEN-AGENTIC-DELEGATED.md",
+      "runbooks/PAYMENT-X402-TESTNET-RAIL.md",
       "runbooks/RUN-ANYWHERE-TERMUX.md",
       "runbooks/RUN-ANYWHERE-V1-RELEASE-GATE.md",
       "templates/HERMES-PAYMENT-SKILL-PACK.json",
       "templates/HERMES-SHOPIFY-OPERATIONS.json",
       "templates/HERMES-TELEPHONY-CONSENT-LIFECYCLE.json",
       "templates/PAYMENT-ADYEN-AGENTIC-DELEGATED.json",
+      "templates/PAYMENT-X402-TESTNET-RAIL.json",
     ]);
     const status = JSON.parse(await readFile(join(result.dir, "proof-status.json"), "utf8")) as { total: number; ready: boolean };
-    expect(status).toMatchObject({ ready: false, total: 11 });
+    expect(status).toMatchObject({ ready: false, total: 12 });
     expect(await readFile(join(result.dir, "NEXT.md"), "utf8")).toContain("BACKEND-SERVERLESS-LIVE");
     expect(await readFile(join(result.dir, "templates", "HERMES-SHOPIFY-OPERATIONS.json"), "utf8")).toContain("\"roadmapCardId\": \"HERMES-SHOPIFY-OPERATIONS\"");
     expect(await readFile(join(result.dir, "runbooks", "HERMES-SHOPIFY-OPERATIONS.md"), "utf8")).toContain("vanta roadmap proof-accept HERMES-SHOPIFY-OPERATIONS");

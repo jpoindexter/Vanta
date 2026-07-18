@@ -119,7 +119,7 @@ describe("runRoadmapCommand proof-status", () => {
     const code = await runRoadmapCommand(root, ["proof-status", "--json"]);
     const report = JSON.parse(lines.join("\n")) as { ready: boolean; passed: number; total: number; gates: Array<{ roadmapCardId: string }> };
     expect(code).toBe(1);
-    expect(report).toMatchObject({ ready: false, passed: 0, total: 11 });
+    expect(report).toMatchObject({ ready: false, passed: 0, total: 12 });
     expect(report.gates.map((gate) => gate.roadmapCardId)).toContain("MERCURY-CROSS-PLATFORM-SERVICE");
   });
 });
@@ -132,7 +132,7 @@ describe("runRoadmapCommand proof-packet", () => {
     const code = await runRoadmapCommand(root, ["proof-packet", "--json"]);
     const report = JSON.parse(lines.join("\n")) as { ready: boolean; passed: number; total: number; gates: Array<{ roadmapCardId: string }> };
     expect(code).toBe(0);
-    expect(report).toMatchObject({ ready: false, passed: 0, total: 11 });
+    expect(report).toMatchObject({ ready: false, passed: 0, total: 12 });
     expect(report.gates.map((gate) => gate.roadmapCardId)).toContain("HERMES-COMMERCE-TELEPHONY-SKILL-PACK");
   });
 
@@ -143,7 +143,7 @@ describe("runRoadmapCommand proof-packet", () => {
     const code = await runRoadmapCommand(root, ["proof-packet"]);
     const out = lines.join("\n");
     expect(code).toBe(0);
-    expect(out).toContain("External proof packet: not ready (0/11)");
+    expect(out).toContain("External proof packet: not ready (0/12)");
     expect(out).toContain("This is a handoff packet, not a release gate");
     expect(out).toContain("vanta roadmap proof-status");
   });
@@ -273,7 +273,7 @@ describe("runRoadmapCommand proof-accept", () => {
     const result = JSON.parse(lines.join("\n")) as { accepted: Array<{ id: string }>; pending: unknown[] };
     expect(code).toBe(0);
     expect(result.accepted.map((item) => item.id)).toEqual(["BACKEND-SERVERLESS-LIVE"]);
-    expect(result.pending).toHaveLength(10);
+    expect(result.pending).toHaveLength(11);
   });
 
   it("requires either one card id or --all-ready", async () => {

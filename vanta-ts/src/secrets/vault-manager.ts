@@ -62,6 +62,25 @@ export async function addVaultSecrets(inputs: readonly AddVaultSecretInput[], en
   return added;
 }
 
+export async function removeVaultSecret(
+  name: string,
+  options: { env?: NodeJS.ProcessEnv; confirmed: boolean; now?: Date },
+): Promise<VaultSecretRecord> {
+  if (!options.confirmed) throw new Error("vault secret removal needs operator confirmation");
+  const env = options.env ?? process.env;
+  const records = await listVaultSecrets(env);
+  const index = records.findIndex((record) => record.name === name);
+  if (index < 0) throw new Error(`vault secret not found: ${name}`);
+  const [removed] = records.splice(index, 1);
+  await saveRecords(records, env);
+  await appendAudit(env, {
+    action: "remove", name: removed!.name, backend: removed!.backend,
+    scopes: removed!.scopes, at: (options.now ?? new Date()).toISOString(),
+    refHash: hash(removed!.ref),
+  });
+  return removed!;
+}
+
 async function saveRecords(records: VaultSecretRecord[], env: NodeJS.ProcessEnv): Promise<void> {
   const home = resolveVantaHome(storageEnv(env)), path = manifestPath(env), temp = `${path}.tmp`;
   await mkdir(home, { recursive: true });

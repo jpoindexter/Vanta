@@ -2,6 +2,7 @@ import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { KeychainRunner } from "../store/keychain.js";
 import { runPaymentsCommand } from "./payments-cmd.js";
 
 let root: string, lines: string[], path: string;
@@ -53,7 +54,22 @@ describe("vanta payments", () => {
     })).toBe(0);
     const readiness = JSON.parse(lines.join("\n")) as Array<{ provider: string; state: string }>;
     expect(readiness.find((item) => item.provider === "stripe_link")?.state).toBe("unsupported_region");
-    expect(readiness.find((item) => item.provider === "x402")?.state).toBe("unavailable");
+    expect(readiness.find((item) => item.provider === "x402")?.state).toBe("ready");
+  });
+
+  it("previews then creates a Keychain-only x402 test wallet", async () => {
+    const keychainRun = vi.fn<KeychainRunner>(async () => ({ ok: true, stdout: "" }));
+    const privateKey = `0x${"11".repeat(32)}` as `0x${string}`;
+    const deps = {
+      log: (line: string) => lines.push(line),
+      env: { VANTA_HOME: join(root, "home") },
+      wallet: { platform: "darwin" as const, keychainRun, generateKey: () => privateKey },
+    };
+    expect(await runPaymentsCommand(root, ["x402-wallet", "create"], deps)).toBe(2);
+    expect(keychainRun).not.toHaveBeenCalled();
+    expect(await runPaymentsCommand(root, ["x402-wallet", "create", "--yes"], deps)).toBe(0);
+    expect(lines.join("\n")).toContain("alias X402_TEST_SIGNER");
+    expect(lines.join("\n")).not.toContain(privateKey);
   });
 
   it("fails closed without echoing invalid contract contents", async () => {

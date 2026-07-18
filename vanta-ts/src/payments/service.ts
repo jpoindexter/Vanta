@@ -6,6 +6,7 @@ import { executeMpp, executeStripeLink, type PaymentCommandRunner, type PaymentF
 import { executeStripeProjects, type StripeProjectsDeps, type StripeProjectsRunner } from "./projects.js";
 import { readinessForContract, type PaymentProviderReadiness } from "./readiness.js";
 import { executeX402, type X402Signer } from "./x402.js";
+import { createVaultX402Signer } from "./x402-signer.js";
 
 export type PaymentApproval = (preview: string) => Promise<boolean>;
 export type PaymentProvider = (contract: PaymentContract) => Promise<ProviderOutcome>;
@@ -18,6 +19,7 @@ export type PaymentExecutionDeps = {
   run?: PaymentCommandRunner;
   fetch?: PaymentFetch;
   x402Signer?: X402Signer;
+  env?: NodeJS.ProcessEnv;
   projectsRun?: StripeProjectsRunner;
 } & Omit<StripeProjectsDeps, "run">;
 export type PaymentExecution = {
@@ -34,7 +36,10 @@ export async function previewPayment(root: string, contract: PaymentContract, no
 async function defaultProvider(root: string, contract: PaymentContract, deps: PaymentExecutionDeps): Promise<ProviderOutcome> {
   if (contract.provider === "stripe_link") return executeStripeLink(contract, deps.run);
   if (contract.provider === "mpp") return executeMpp(contract, deps.run, deps.fetch, (deps.now ?? (() => new Date()))());
-  if (contract.provider === "x402") return executeX402(contract, deps.x402Signer, deps.fetch);
+  if (contract.provider === "x402") {
+    const signer = deps.x402Signer ?? createVaultX402Signer({ env: deps.env });
+    return executeX402(contract, signer, deps.fetch);
+  }
   if (contract.provider === "stripe_projects") return executeStripeProjects(root, contract, { ...deps, run: deps.projectsRun });
   return { ok: false, state: "provider_unavailable", external: "not_available" };
 }
