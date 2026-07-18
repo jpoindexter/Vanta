@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatHealth, googleCap, visionCap, type Cap } from "./health-cmd.js";
+import { formatHealth, googleCap, searchCap, visionCap, type Cap } from "./health-cmd.js";
 
 describe("formatHealth", () => {
   it("renders ✓/✗ per capability + the fix only for the missing ones", () => {
@@ -34,6 +34,22 @@ describe("googleCap", () => {
     const c = googleCap({ VANTA_GOOGLE_CLIENT_ID: "x", VANTA_GOOGLE_CLIENT_SECRET: "y" } as unknown as NodeJS.ProcessEnv, home);
     expect(c.ok).toBe(false);
     expect(c.fix).toBe("run: vanta auth google");
+  });
+});
+
+describe("searchCap", () => {
+  it("labels zero-config automatic routing as best effort", () => {
+    expect(searchCap({} as NodeJS.ProcessEnv)).toMatchObject({ ok: true, detail: expect.stringMatching(/best-effort.*Brave browser.*Bing/i) });
+  });
+
+  it("marks an explicit DDG-derived selection degraded with an actionable fix", () => {
+    const cap = searchCap({ VANTA_SEARCH_PROVIDER: "ddg" } as NodeJS.ProcessEnv);
+    expect(cap).toMatchObject({ ok: false, detail: expect.stringMatching(/bot-blocked/i), fix: expect.stringContaining("auto") });
+  });
+
+  it("recognizes a configured managed provider", () => {
+    expect(searchCap({ VANTA_SEARCH_PROVIDER: "brave", BRAVE_KEY: "key" } as NodeJS.ProcessEnv))
+      .toMatchObject({ ok: true, detail: expect.stringMatching(/configured provider/i) });
   });
 });
 

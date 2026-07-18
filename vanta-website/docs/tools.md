@@ -16,7 +16,7 @@ Vanta ships **119 built-in tools** (122 registered, including the factory-built 
 `write_file` writes freely in-repo and only into a configured writable zone out-of-repo; it runs the size gate on every TS write and reports violations so the agent self-corrects.
 
 ### Web & search
-`web_search` (DuckDuckGo / Searxng / SerpAPI / Brave) · `web_fetch` (readable-content extraction) · `rss_read` · `reddit_read` · `cookie_import` (kernel-gated credential store, never echoed).
+`web_search` (automatic managed-provider routing with Brave-browser/Bing keyless fallback) · `web_fetch` (readable-content extraction) · `rss_read` · `reddit_read` · `cookie_import` (kernel-gated credential store, never echoed). DuckDuckGo adapters are explicit legacy options because they frequently bot-block agents.
 
 ### Browser, vision & voice
 `screenshot` · `browser_navigate` · `browser_extract` · `browser_act` (navigate/click/type/press/scroll with an approval-gated, masked dry-run preview for irreversible controls) · `describe_image` · `compare_vision` · `look_at_screen` · `look_at_camera` · `watch_video` · `transcribe` (audio → text) · `speak` (text → speech). Vision and voice route through a dedicated model when configured (`VANTA_VISION_MODEL`), so a text-only main model still has eyes and ears.

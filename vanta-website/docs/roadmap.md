@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1245 capabilities shipped · 0 in flight · 3 on the horizon. Updated 2026-07-18._
+_1246 capabilities shipped · 0 in flight · 3 on the horizon. Updated 2026-07-18._
 
 ## In flight
 
@@ -18,12 +18,13 @@ _Nothing in flight right now — see the horizon below._
 
 ## Recently shipped
 
-The latest of 1245+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1246+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Terminal panel + TerminalCaptureTool — agent captures terminal content, Meta+J toggle** — Operator · 2026-07-18
 - **Regional payment authorization broker - route by capability, regulation, and provider availability** — Harness · 2026-07-18
 - **Interactive Telegram setup discovery - answer the operator and expose the command** — Operator · 2026-07-18
 - **Desktop setup hub + Telegram lifecycle — route, verify, secure, and start** — Desktop App · 2026-07-18
+- **Demote DuckDuckGo - bot-blocked search is explicit legacy fallback, never the default** — Harness · 2026-07-18
 - **Desktop kernel port collision recovery - Retry finds a safe project endpoint** — Desktop App · 2026-07-17
 - **Desktop context attachments — files as searchable task context, not raw inventory** — Desktop App · 2026-07-17
 - **Desktop safe session operations — archive undo, recoverable trash, menu feedback** — Desktop App · 2026-07-17
@@ -39,7 +40,6 @@ The latest of 1245+ capabilities. See the [changelog](./changelog) for curated m
 - **Schema complete-history backtest - certify each model against recorded reality** — Harness · 2026-07-17
 - **Schema controlled commit gate - one channel from deliberation to side effects** — Harness · 2026-07-17
 - **Schema counterexample recovery - prediction errors void plans and revise the theory** — Harness · 2026-07-17
-- **Schema hypothesis and probe planner - choose actions that separate competing explanations** — Harness · 2026-07-17
 
 ## On the horizon
 

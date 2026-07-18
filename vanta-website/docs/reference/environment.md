@@ -31,10 +31,11 @@ Agent-layer config lives in `vanta-ts/.env` (gitignored; `.env.example` document
 ## Search & web
 | Variable | Purpose |
 |----------|---------|
-| `VANTA_SEARCH_PROVIDER` | `ddg` · `searxng` · `serpapi` · `brave` |
+| `VANTA_SEARCH_PROVIDER` | `auto` (default) · managed providers · `brave_browser` · `bing`; DDG variants are explicit legacy options |
 | `VANTA_SEARCH_URL` | Self-hosted Searxng |
 | `SERPAPI_KEY` / `BRAVE_KEY` | Search API keys |
 | `VANTA_ALLOWED_DOMAINS` | Browser-tool domain allowlist |
+| `VANTA_BROWSER_EXECUTABLE` | Optional Chrome/Brave/Edge/Chromium executable override; system installs are auto-detected when Playwright's bundle is absent |
 | `VANTA_EMBED_MODEL` | Local embedding model (life-search semantic) |
 
 ## Continuity & behavior

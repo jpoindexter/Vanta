@@ -30,7 +30,7 @@ export type SearchConfig = {
  * crashes on a failed search.
  */
 export interface SearchProvider {
-  /** Stable id: "ddg" | "bing" | "jina_ddg" | "searxng" | "serpapi" | "brave". */
+  /** Stable provider id. DDG-derived ids are explicit legacy selections, never automatic. */
   readonly id: string;
   /**
    * WEB-DOMAIN-SCOPING: true when the provider applies config.allowedDomains /

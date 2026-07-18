@@ -26,7 +26,7 @@ The kernel is the boundary — its `assess()` is a gate, not a suggestion. The T
 - **Skills & memory** — learned skills and per-goal memory in `~/.vanta`, git-versioned for free history.
 - **Profiles & work routing** — persistent specialist profiles with isolated state, installable distributions, and a durable Kanban router with evidence receipts.
 - **Corpus & ecosystem** — searchable notes/transcript ingestion with source freshness, plus approval-gated discovery and installation from public skill registries.
-- **Web, browser & vision** — search (DuckDuckGo/Searxng/SerpAPI/Brave), readable page fetch, Playwright navigate/click/extract, and image understanding.
+- **Web, browser & vision** — automatic search routing across managed and browser-backed providers, readable page fetch, Playwright navigate/click/extract, and image understanding.
 - **Code & dev** — scoped file editing, grep/glob, sandboxed code execution, TypeScript LSP diagnostics, git tools, regression locks.
 - **Autonomous & multi-agent** — runs unattended on a schedule and fans out a team of sub-agents (delegate · background workers · A2A bus · worktree fleet), every spawned action still kernel-gated. Not just one agent: one owner, one kernel, a team.
 - **Operator systems** — world model, opportunity radar, life-wide search, self-repair compartments.

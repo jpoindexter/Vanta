@@ -19399,6 +19399,26 @@
       "updated": "2026-07-18",
       "notes": "SHIPPED PROOF 2026-07-18: the desktop API end-to-end test uses a valid BotFather-shaped token, a local Telegram getMe transport fixture, and an explicit pairing access choice. It proves invalid or unverifiable credentials cannot silently satisfy setup, while keeping the test deterministic and restoring the process environment afterward.",
       "source": "Hermes setup-flow audit 2026-07-17"
+    },
+    {
+      "id": "WEB-SEARCH-DDG-DEMOTION",
+      "track": "Harness",
+      "title": "Demote DuckDuckGo - bot-blocked search is explicit legacy fallback, never the default",
+      "status": "shipped",
+      "size": "S",
+      "summary": "DuckDuckGo HTML search regularly blocks automated clients, but Vanta setup and docs still present DDG as the keyless default. Align the product with the runtime reliability contract: automatic routing first, browser-backed/keyed providers before raw scrapers, and DDG only when an operator explicitly selects it.",
+      "done": "Setup and documentation select auto rather than DDG by default; the auto provider chain never calls direct DDG or Jina-over-DDG; browser-backed Brave and Bing remain the keyless fallback path; explicit ddg and jina_ddg selections remain available but are labeled unreliable/legacy; health output reports the real fallback chain; regression tests prove default/auto resolution excludes both DDG-derived providers while explicit selection still works.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "updated": "2026-07-18",
+      "notes": "Shipped 2026-07-18. `auto` now resolves configured providers followed by Brave browser and Bing, with no DDG or Jina-DDG route. Both setup catalogs put Automatic first and label DDG-derived choices as legacy; health reports configured search, best-effort keyless search, or an explicit degraded DDG selection accurately. The browser launcher falls back from a missing Playwright bundle to installed Chrome/Brave/Edge/Chromium, and the Brave extractor supports current and prior result containers with a rendered-result wait. Executed evidence: 99 focused tests green, typecheck green, Docusaurus production build green, installed Brave launched and rendered 14 current result containers. Repeated public Brave queries later throttled, so zero-key search is intentionally documented as best effort; reliable operation requires a managed provider or self-hosted SearXNG.",
+      "source": "Operator report 2026-07-18; existing Vanta FAQ and search adapter 403 handling",
+      "after": [
+        "NET-KEYLESS-SEARCH"
+      ]
     }
   ]
 }

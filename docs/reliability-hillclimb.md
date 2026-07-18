@@ -42,7 +42,7 @@ Stop at 0, or after 3 consecutive wakes with zero delta.
 Surface test (`scripts/usecase-surfaces.sh`): **12/12 surfaces engage a genuine `→ tool(` call** on a real run (cron, write_skill, brain, web_search, delegate, todo, run_code, obsidian-MCP, + live-gated calendar_create/gmail_draft/speak/browser_read route then approval-gate). The 4 named "gaps", triaged:
 
 1. **Live completion needs creds** — NOT a code defect. Routing is proven; live send needs a token (same bar Hermes requires). **Telegram + ntfy live-verified** (real round-trips); the other 18 await their platform tokens.
-2. **Web search / DDG 403** — **RESOLVED + was partly stale.** Default is `auto` (keyless `bing`/`jina_ddg` ahead of DDG; fails only if all error). Verified live: `web_search "Hermes agent Nous Research"` → 3 correct results w/ URLs. Stale CLAUDE.md gotcha corrected.
+2. **Web search / DDG 403** — **RESOLVED, then hardened after recurrence.** Default is `auto`; DDG and Jina-over-DDG are excluded from the automatic chain because bot gates remained unreliable. Auto now uses configured providers followed by browser-backed Brave and Bing. Direct DDG adapters remain explicit legacy compatibility options only.
 3. **Niche adapters** — partly wrong: **LINE, Feishu, Zalo already wired**; only **QQ + WeChat** missing → card `REACH-QQ-WECHAT` (China API + creds to verify). **Mobile app** → `SURFACE-MOBILE-APP` (real reach gap; thin client over the API/gateway). **Termux/Android** → `RUN-ANYWHERE-TERMUX` (kernel needs aarch64-android).
 4. **Trading/health "buildable-not-native"** — NOT a defect. Same as Hermes users: built as skills over `run_code` + web + schedule + MCP + the skill-writing loop. The primitives are present and execution-verified.
 

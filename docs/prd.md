@@ -89,7 +89,7 @@ Risky operations enter the approval queue before execution. Jason approves inter
 After completing complex tasks, Vanta creates skill files that encode what worked. Skills are plain markdown — readable, editable, git-versioned. Skills are version-controlled by design: no extra backup step needed.
 
 ### 7. Privacy-first by default
-Web search defaults to DuckDuckGo (no API key, no tracking). Self-hosted Searxng is the recommended power-user option. Cloud providers (SerpAPI, Brave) are opt-in.
+Web search defaults to automatic routing: configured providers first, then browser-backed Brave and Bing without a key. DuckDuckGo is retained only as an explicit legacy option because its bot gates are unreliable. Self-hosted Searxng is the recommended private power-user option.
 
 ### 8. Honest about limits
 When a task is outside scope, unsupported, or uncertain — Vanta stops and says so. Stopping is always better than faking.
@@ -107,7 +107,7 @@ Rust safety kernel (vanta-kernel)
 TypeScript agent layer (vanta-ts)
   → agent loop: goal-inject → plan → assess → execute → verify
   → LLM providers: OpenAI, Ollama, Anthropic (typed interface, swappable)
-  → search providers: DuckDuckGo, Searxng, SerpAPI, Brave (typed interface, swappable)
+  → search providers: automatic routing, Searxng, managed APIs, browser-backed Brave/Bing, explicit legacy DDG (typed interface, swappable)
   → tool registry: every tool defined, typed, scoped
   → skills: ~/.vanta/skills/ (markdown + YAML, git-versioned)
   → memory: ~/.vanta/memories/ (per-goal summaries, git-versioned)
@@ -167,7 +167,7 @@ This moved up because it's the most requested feature (95 combined reactions acr
 
 Delivers:
 - **SearchProvider interface** — same pattern as LLMProvider: `search(query, config) → SearchResult[]`
-- **DuckDuckGo adapter** — no API key, no tracking, works out of the box (default)
+- **Automatic search routing** — configured providers first, then keyless Brave browser/Bing; DDG adapter is explicit legacy compatibility only
 - **Searxng adapter** — self-hosted, `VANTA_SEARCH_URL=http://localhost:8080` (recommended for privacy)
 - **SerpAPI adapter** — opt-in, `VANTA_SEARCH_PROVIDER=serpapi` + key
 - **Brave Search adapter** — opt-in, privacy-focused, citations, `VANTA_SEARCH_PROVIDER=brave`
@@ -177,7 +177,7 @@ Delivers:
 - Research skill templates: `~/.vanta/skills/research/` bundled with install
 
 ```
-VANTA_SEARCH_PROVIDER=ddg          → DuckDuckGo (default, no key)
+VANTA_SEARCH_PROVIDER=auto         → reliable configured providers + keyless browser fallback (default)
 VANTA_SEARCH_PROVIDER=searxng      → self-hosted Searxng (VANTA_SEARCH_URL required)
 VANTA_SEARCH_PROVIDER=serpapi      → SerpAPI (SERPAPI_KEY required)
 VANTA_SEARCH_PROVIDER=brave        → Brave Search (BRAVE_KEY required)
@@ -309,7 +309,7 @@ backend without editing files → it remembers conversations → it learns from 
 | Scope enforcement | Always on — every action gated |
 | Verification | Runtime check — empty = not done |
 | Fake progress | Blocked by design |
-| Web search | DDG (default) + Searxng + SerpAPI + Brave |
+| Web search | Auto routing + managed providers + Brave-browser/Bing keyless fallback; DDG explicit legacy only |
 | Privacy-first search | Yes — Searxng self-hosted is the recommended option |
 | Skills | Markdown files — portable format, git-versioned |
 | Skill backups | Git-versioned by default — no extra work |

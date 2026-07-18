@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { resolveSearchProvider, resolveSearchProviders, backendIdFor } from "./index.js";
 
 describe("search provider resolution", () => {
-  it("auto leads with keyless brave_browser (the one that works), then the fetch scrapers", () => {
+  it("auto uses browser-backed Brave and Bing without DDG-derived providers", () => {
     const providers = resolveSearchProviders({} as NodeJS.ProcessEnv);
-    expect(providers.map((p) => p.id)).toEqual(["brave_browser", "bing", "jina_ddg", "ddg"]);
+    expect(providers.map((p) => p.id)).toEqual(["brave_browser", "bing"]);
   });
 
   it("auto prefers configured API providers, then keyless engines as final fallbacks", () => {
@@ -14,7 +14,7 @@ describe("search provider resolution", () => {
       VANTA_SEARCH_URL: "http://localhost:8080",
     } as NodeJS.ProcessEnv);
 
-    expect(providers.map((p) => p.id)).toEqual(["brave", "serpapi", "searxng", "brave_browser", "bing", "jina_ddg", "ddg"]);
+    expect(providers.map((p) => p.id)).toEqual(["brave", "serpapi", "searxng", "brave_browser", "bing"]);
   });
 
   it("uses only DuckDuckGo when explicitly requested", () => {
@@ -79,7 +79,7 @@ describe("search provider resolution", () => {
     const providers = resolveSearchProviders({
       EXA_API_KEY: "e", XAI_API_KEY: "x", BRAVE_KEY: "b",
     } as NodeJS.ProcessEnv);
-    expect(providers.map((p) => p.id)).toEqual(["exa", "xai", "brave", "brave_browser", "bing", "jina_ddg", "ddg"]);
+    expect(providers.map((p) => p.id)).toEqual(["exa", "xai", "brave", "brave_browser", "bing"]);
   });
 });
 

@@ -57,10 +57,13 @@ export const TOOL_PROVIDERS: ToolProvider[] = [
   {
     id: "search", label: "Search provider", env: "VANTA_SEARCH_PROVIDER",
     options: [
-      { label: "DuckDuckGo — keyless", value: "ddg" },
+      { label: "Automatic — reliable providers + browser fallback [default]", value: "auto" },
+      { label: "Brave browser — keyless", value: "brave_browser" },
       { label: "SearXNG — self-hosted", value: "searxng" },
       { label: "SerpAPI — key", value: "serpapi" },
       { label: "Brave — key", value: "brave" },
+      { label: "DuckDuckGo — legacy, often bot-blocked", value: "ddg" },
+      { label: "Jina over DuckDuckGo — legacy", value: "jina_ddg" },
     ],
   },
 ];

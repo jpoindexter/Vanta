@@ -37,7 +37,7 @@ lsof -nP -iTCP:7788 -sTCP:LISTEN     # note the PID, then: kill <pid>
 ```
 
 **Web search returns nothing / 403.**
-DuckDuckGo's HTML endpoint blocks datacenter IPs. On a flagged network, self-host Searxng or use Brave/SerpAPI (`VANTA_SEARCH_PROVIDER`). `web_fetch` is unaffected. See [Configuration](./configuration.md).
+Leave `VANTA_SEARCH_PROVIDER=auto` so Vanta can fall through configured providers, Brave browser, and Bing. DuckDuckGo adapters are legacy explicit options and are not used automatically because their bot gates frequently return 403. For stronger coverage, self-host Searxng or configure a managed provider. `web_fetch` is unaffected. See [Configuration](./configuration.md).
 
 **Local model errors / "provider unreachable".**
 Make sure `ollama serve` is running and the model is pulled (`ollama pull qwen2.5:14b`). Check `VANTA_OLLAMA_URL`.

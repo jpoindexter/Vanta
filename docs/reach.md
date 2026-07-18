@@ -89,7 +89,7 @@ Channels like Reddit and Twitter need a logged-in session. The shared path (`rea
 | Channel | Status | Backends | Notes |
 |---------|--------|----------|-------|
 | `web` | ✅ | web_fetch (Readability) | zero-config, built-in |
-| `search` | ✅ | auto ▸ ddg ▸ searxng ▸ serpapi ▸ brave ▸ bing ▸ jina | provider via `VANTA_SEARCH_PROVIDER` |
+| `search` | ✅ | auto: configured managed providers ▸ Brave browser ▸ Bing | DDG/Jina-DDG are explicit legacy selections, never automatic |
 | `rss` | ✅ | `rss_read` (pure-TS RSS/Atom parser) | zero-config; `rss_read` tool — `reach/rss-parse.ts` |
 | `reddit` | ✅ | reddit.json + cookie ▸ rdt-cli | `reddit_read` (search/read) — needs a cookie via `cookie_import`; anonymous is blocked |
 | `linkedin` | ✅ | browser-session | `linkedin_read {url, browser?}` — reads profiles/companies/posts via the headless browser session (login-walled + JS); `browser:"brave"` auto-uses your LinkedIn login |

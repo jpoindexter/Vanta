@@ -37,12 +37,15 @@ Config is validated at startup — a missing or malformed value fails fast with 
 ## Search backend (optional)
 
 ```bash
-VANTA_SEARCH_PROVIDER=ddg     # ddg | searxng | serpapi | brave  (default ddg)
+VANTA_SEARCH_PROVIDER=auto    # default: configured providers, then Brave browser and Bing
 VANTA_SEARCH_URL=...          # for self-hosted Searxng
 SERPAPI_KEY=... / BRAVE_KEY=...
 ```
 
-> DuckDuckGo's HTML endpoint blocks datacenter IPs — for reliable search off a residential IP, self-host Searxng or use Brave/SerpAPI.
+`ddg` and `jina_ddg` remain explicit legacy options, but automatic routing never
+uses them because DuckDuckGo frequently bot-blocks agent traffic. For stronger
+coverage, self-host Searxng or configure Brave, SerpAPI, Exa, Tavily, Parallel,
+Firecrawl, or xAI search.
 
 ## Where state lives
 

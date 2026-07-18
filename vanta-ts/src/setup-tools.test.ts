@@ -19,6 +19,16 @@ describe("TOOLSETS catalog", () => {
     expect(byId.vision).toBe("VANTA_VISION_PROVIDER");
     expect(byId.search).toBe("VANTA_SEARCH_PROVIDER");
   });
+
+  it("presents auto first and labels DDG-derived providers as legacy", () => {
+    const options = TOOL_PROVIDERS.find((provider) => provider.id === "search")!.options;
+    expect(options[0]).toMatchObject({ value: "auto" });
+    expect(options.filter((option) => ["ddg", "jina_ddg"].includes(option.value ?? "")))
+      .toEqual(expect.arrayContaining([
+        expect.objectContaining({ label: expect.stringMatching(/legacy/i), value: "ddg" }),
+        expect.objectContaining({ label: expect.stringMatching(/legacy/i), value: "jina_ddg" }),
+      ]));
+  });
 });
 
 describe("buildToolsUpdates — defaults preserve current behavior", () => {

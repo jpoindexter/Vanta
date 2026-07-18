@@ -53,10 +53,13 @@ export const SETTINGS: SettingSection[] = [
     key: "VANTA_SEARCH_PROVIDER",
     intro: "  How Vanta searches the web.",
     choices: [
-      { label: "DuckDuckGo — keyless [default]", value: "ddg" },
+      { label: "Automatic — reliable providers + browser fallback [default]", value: "auto" },
+      { label: "Brave browser — keyless", value: "brave_browser" },
       { label: "SearXNG — self-hosted, private", value: "searxng", urlEnv: "VANTA_SEARCH_URL", urlHint: "Your SearXNG instance URL" },
       { label: "SerpAPI — key", value: "serpapi", keyEnv: "SERPAPI_KEY", keyUrl: "https://serpapi.com/manage-api-key" },
       { label: "Brave Search — key", value: "brave", keyEnv: "BRAVE_KEY", keyUrl: "https://brave.com/search/api/" },
+      { label: "DuckDuckGo — legacy, often bot-blocked", value: "ddg" },
+      { label: "Jina over DuckDuckGo — legacy", value: "jina_ddg" },
     ],
   },
   {

@@ -3,27 +3,28 @@ import type { SearchProvider, SearchResult, SearchConfig } from "./interface.js"
 import { DEFAULT_MAX_RESULTS } from "./interface.js";
 
 // KEYLESS web search by driving the REAL browser to Brave Search and reading the
-// results page. The raw-HTTP scrapers (DuckDuckGo) get 403'd by IP; a real chromium
-// page is not blocked (verified: Brave returns full results, DDG blocks even a
-// browser, Bing serves a stub). Needs the playwright chromium binary. No API key.
+// results page. The raw-HTTP scrapers (DuckDuckGo) get 403'd by IP; a real Chromium
+// page is not blocked. It uses Playwright's browser when installed and otherwise
+// the system Chrome/Brave/Edge/Chromium resolved by acquirePage. No API key.
 
 const BRAVE_URL = "https://search.brave.com/search?q=";
 // A real desktop UA — the default headless UA gets bot-blocked (returns 0 results).
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
 // Runs IN the page (passed as a string so the Node tsconfig's missing DOM lib is a
-// non-issue). Pulls each `.snippet` result's title, external url, and description.
+// non-issue). Brave has used both `.snippet` and `.result-wrapper` containers;
+// support both so a class-name rollout does not silently produce an empty search.
 const EXTRACT_JS = `(() => {
   const out = [];
-  for (const el of document.querySelectorAll('.snippet')) {
-    const a = el.querySelector('a[href^="http"]');
+  for (const el of document.querySelectorAll('.snippet, .result-wrapper')) {
+    const a = el.querySelector('a.l1[href^="http"], a[href^="http"]');
     if (!a) continue;
     const url = a.href;
     if (!url || url.indexOf('brave.com') !== -1) continue;
-    const titleEl = el.querySelector('.title') || a;
+    const titleEl = el.querySelector('.search-snippet-title, .title') || a;
     const title = (titleEl.textContent || '').replace(/\\s+/g, ' ').trim();
     if (!title) continue;
-    const descEl = el.querySelector('.snippet-description, .snippet-content');
+    const descEl = el.querySelector('.generic-snippet .content, .snippet-description, .snippet-content');
     let snippet = (descEl ? descEl.textContent : '') || '';
     if (!snippet) snippet = (el.textContent || '').split(title).join(' ');
     out.push({ title, url, snippet: snippet.replace(/\\s+/g, ' ').trim().slice(0, 240) });
@@ -60,6 +61,7 @@ export function mapBraveResults(raw: unknown, max: number): SearchResult[] {
 /** The minimal page surface this provider drives (goto + evaluate-a-string). */
 type SearchPage = {
   goto: (url: string, opts?: { timeout?: number; waitUntil?: "domcontentloaded" }) => Promise<unknown>;
+  waitForSelector?: (selector: string, opts?: { timeout?: number }) => Promise<unknown>;
   waitForTimeout?: (ms: number) => Promise<void>;
   evaluate: (script: string) => Promise<unknown>;
 };
@@ -77,7 +79,8 @@ export class BraveBrowserProvider implements SearchProvider {
     try {
       const pg = page as unknown as SearchPage;
       await pg.goto(`${BRAVE_URL}${encodeURIComponent(query)}`, { timeout: 20000, waitUntil: "domcontentloaded" });
-      await pg.waitForTimeout?.(1200); // let result blocks render
+      await pg.waitForSelector?.(".result-wrapper, .snippet", { timeout: 8000 });
+      await pg.waitForTimeout?.(200);
       return mapBraveResults(await pg.evaluate(EXTRACT_JS), max);
     } finally {
       await close();

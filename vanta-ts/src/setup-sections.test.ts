@@ -30,6 +30,13 @@ describe("SETTINGS catalog", () => {
     expect(blob).not.toContain("spotify");
     expect(blob).not.toContain("text-to-speech");
   });
+
+  it("defaults search setup to auto and labels DDG choices as legacy", () => {
+    expect(search.choices[0]).toMatchObject({ value: "auto" });
+    const legacy = search.choices.filter((choice) => ["ddg", "jina_ddg"].includes(choice.value ?? ""));
+    expect(legacy).toHaveLength(2);
+    expect(legacy.every((choice) => /legacy/i.test(choice.label))).toBe(true);
+  });
 });
 
 describe("runSettingSection", () => {
@@ -52,7 +59,7 @@ describe("runSettingSection", () => {
   });
 
   it("a key-requiring choice collects the secret too", async () => {
-    mSelect.mockResolvedValue(2); // search[2] = serpapi (keyEnv SERPAPI_KEY)
+    mSelect.mockResolvedValue(3); // search[3] = serpapi (keyEnv SERPAPI_KEY)
     mAskSecret.mockResolvedValue("sk-serp");
     await runSettingSection("/repo", search);
     expect(mSet).toHaveBeenCalledWith("/repo", { VANTA_SEARCH_PROVIDER: "serpapi", SERPAPI_KEY: "sk-serp" });

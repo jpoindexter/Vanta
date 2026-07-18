@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { join } from "node:path";
-import { acquirePage } from "./launch.js";
+import { acquirePage, resolveChromiumExecutable } from "./launch.js";
 
 // acquirePage is the core wiring: it branches persistent vs ephemeral. We inject
 // a fake chromium so the contract is locked WITHOUT a real browser binary.
@@ -22,11 +22,31 @@ function fakeChromium() {
     close: vi.fn(async () => {}),
   };
   const chromium = {
+    executablePath: vi.fn(() => "/bin/sh"),
     launchPersistentContext: vi.fn(async () => context),
     launch: vi.fn(async () => browser),
   } as unknown as Chromium;
   return { chromium, context, browser, persistentPage, ephemeralPage };
 }
+
+describe("resolveChromiumExecutable", () => {
+  const chromium = { executablePath: () => "/playwright/missing" } as Pick<Chromium, "executablePath">;
+
+  it("uses an explicit operator override first", () => {
+    expect(resolveChromiumExecutable(chromium, { VANTA_BROWSER_EXECUTABLE: "/custom/chrome" }, () => false, "darwin"))
+      .toBe("/custom/chrome");
+  });
+
+  it("keeps Playwright defaults when its bundled executable exists", () => {
+    expect(resolveChromiumExecutable(chromium, {}, (path) => path === "/playwright/missing", "darwin"))
+      .toBeUndefined();
+  });
+
+  it("falls back to an installed system browser when the bundle is missing", () => {
+    expect(resolveChromiumExecutable(chromium, {}, (path) => path.includes("Brave Browser"), "darwin"))
+      .toContain("Brave Browser");
+  });
+});
 
 describe("acquirePage — persistent branch", () => {
   it("launches a persistent context at the profile dir and reuses its open page", async () => {

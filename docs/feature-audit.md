@@ -12,7 +12,7 @@ Reference: Jason's customized install of the prior agent. Verdicts traced to cod
 | 4 | Approval before risk | `agent.ts:240` `requestApproval` + `proposeApproval` (kernel queue) | ✅ |
 | 5 | Honest about limits | `prompt.ts` rule 7 | ✅ |
 | 6 | Learns, and keeps what it learns | `commitInHome` git-versions skills+memory; curator archives, never deletes | ✅ |
-| 7 | Privacy-first by default | `search/index.ts` — DuckDuckGo is the keyless default | ✅ |
+| 7 | Privacy-first by default | `search/index.ts` — automatic routing prefers configured providers, then keyless browser-backed search; DDG is explicit legacy only | ✅ |
 | 8 | Ship, don't drift | process — one slice end-to-end, committed+pushed (this session: 7 commits) | ✅ |
 
 ## Capability parity vs prior agent

@@ -22,7 +22,27 @@ const modelCap = (st: StatusReport): Cap => ({
   fix: st.provider.ok ? undefined : "/setup — pick a backend + set its key",
 });
 
-const searchCap = (): Cap => ({ name: "web search", ok: true, detail: "keyless fallbacks (bing · jina · ddg)" });
+const RELIABLE_SEARCH_ENV = ["FIRECRAWL_API_KEY", "PARALLEL_API_KEY", "TAVILY_API_KEY", "EXA_API_KEY", "XAI_API_KEY", "BRAVE_KEY", "SERPAPI_KEY", "VANTA_SEARCH_URL"];
+
+export function searchCap(env: NodeJS.ProcessEnv): Cap {
+  const selected = (env.VANTA_SEARCH_BACKEND ?? env.VANTA_SEARCH_PROVIDER ?? "auto").toLowerCase();
+  if (selected === "ddg" || selected === "jina_ddg") {
+    return {
+      name: "web search",
+      ok: false,
+      detail: `${selected} is legacy and frequently bot-blocked`,
+      fix: "set VANTA_SEARCH_PROVIDER=auto or configure SearXNG/a managed provider",
+    };
+  }
+  const configured = RELIABLE_SEARCH_ENV.some((key) => Boolean(env[key]?.trim()));
+  return {
+    name: "web search",
+    ok: true,
+    detail: configured
+      ? `${selected} routing with configured provider`
+      : "best-effort keyless (Brave browser · Bing); configure a provider for reliability",
+  };
+}
 
 export function googleCap(env: NodeJS.ProcessEnv, home: string): Cap {
   const creds = Boolean(env.VANTA_GOOGLE_CLIENT_ID?.trim() && env.VANTA_GOOGLE_CLIENT_SECRET?.trim());
@@ -60,7 +80,7 @@ async function mcpCap(env: NodeJS.ProcessEnv): Promise<Cap> {
 export async function gatherCapabilities(env: NodeJS.ProcessEnv): Promise<Cap[]> {
   const st = await gatherStatus(env);
   const home = resolveVantaHome(env);
-  return [kernelCap(st), modelCap(st), searchCap(), googleCap(env, home), visionCap(env), await browserCap(), await mcpCap(env)];
+  return [kernelCap(st), modelCap(st), searchCap(env), googleCap(env, home), visionCap(env), await browserCap(), await mcpCap(env)];
 }
 
 /** Pure: render the capability list with ✓/✗ + the fix for each missing one. */

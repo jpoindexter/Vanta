@@ -20,7 +20,7 @@ import type { SearchProvider } from "./interface.js";
  *   VANTA_SEARCH_PROVIDER=brave   → Brave Search API (needs BRAVE_KEY)
  *   VANTA_SEARCH_PROVIDER=xai     → xAI/Grok native live search (needs XAI_API_KEY)
  *   VANTA_SEARCH_PROVIDER=bing    → Bing HTML scrape (keyless fallback)
- *   VANTA_SEARCH_PROVIDER=jina_ddg → Jina Reader over DuckDuckGo HTML (keyless fallback)
+ *   VANTA_SEARCH_PROVIDER=jina_ddg → Jina Reader over DuckDuckGo HTML (explicit legacy fallback)
  *   VANTA_SEARCH_PROVIDER=ddg     → DuckDuckGo HTML scrape (explicit fallback only)
  */
 /** WEB-BACKEND-SPLIT — a web capability can target its OWN backend. */
@@ -54,9 +54,9 @@ export function resolveSearchProvider(env: NodeJS.ProcessEnv, capability: WebCap
 }
 
 function resolveAutoProviders(env: NodeJS.ProcessEnv): SearchProvider[] {
-  // Keyed providers first (more reliable), then keyless DDG as the always-present
-  // fallback so search works out-of-the-box with zero config. web_search tries each
-  // in order and only fails if ALL error — so a flaky DDG day degrades, not breaks.
+  // Keyed providers first, then browser-backed/keyless engines. DDG-derived
+  // providers are intentionally absent: their bot gates make them unsuitable
+  // for automatic agent routing. They remain available by explicit name only.
   const providers: SearchProvider[] = [];
   // Managed keyed backends first (highest-quality titled results + native domain
   // filtering / semantic recall), in the documented priority: Firecrawl → Parallel
@@ -69,13 +69,10 @@ function resolveAutoProviders(env: NodeJS.ProcessEnv): SearchProvider[] {
   if (env.BRAVE_KEY) providers.push(new BraveProvider({ apiKey: env.BRAVE_KEY }));
   if (env.SERPAPI_KEY) providers.push(new SerpapiProvider({ apiKey: env.SERPAPI_KEY }));
   if (env.VANTA_SEARCH_URL) providers.push(new SearxngProvider({ baseUrl: env.VANTA_SEARCH_URL }));
-  // brave_browser is the keyless workhorse: a real chromium page reads Brave's
-  // results where the raw-HTTP scrapers (DDG) get IP-403'd. Tried before the
-  // (now mostly-broken) fetch scrapers, which stay as last-ditch fallbacks.
+  // brave_browser is the keyless workhorse: a real Chromium page reads Brave's
+  // results where raw-HTTP scrapers are commonly blocked.
   providers.push(new BraveBrowserProvider());
   providers.push(new BingProvider());
-  providers.push(new JinaDdgProvider());
-  providers.push(new DuckDuckGoProvider());
   return providers;
 }
 

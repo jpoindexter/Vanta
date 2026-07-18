@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { browserProfileDir, usesPersistentProfile } from "./profile.js";
 
 type Chromium = typeof import("playwright-core").chromium;
@@ -17,6 +18,35 @@ export type AcquiredPage = {
 
 /** A live page plus a teardown that flushes the persistent profile to disk. */
 export type Acquired = { page: AcquiredPage; close: () => Promise<void> };
+
+const SYSTEM_CHROMIUM: Partial<Record<NodeJS.Platform, string[]>> = {
+  darwin: [
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+    "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+  ],
+  linux: [
+    "/usr/bin/google-chrome",
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/brave-browser",
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+  ],
+};
+
+/** Return a system browser only when Playwright's bundled executable is absent. */
+export function resolveChromiumExecutable(
+  chromium: Pick<Chromium, "executablePath">,
+  env: NodeJS.ProcessEnv,
+  exists: (path: string) => boolean = existsSync,
+  platform: NodeJS.Platform = process.platform,
+): string | undefined {
+  const explicit = env.VANTA_BROWSER_EXECUTABLE?.trim();
+  if (explicit) return explicit;
+  const bundled = chromium.executablePath();
+  if (bundled && exists(bundled)) return undefined;
+  return SYSTEM_CHROMIUM[platform]?.find(exists);
+}
 
 /**
  * Acquire a browser page, branching on whether Vanta should reuse its persistent
@@ -38,11 +68,13 @@ export async function acquirePage(
   // A real UA dodges bot-detection (Brave/search/anti-automation). Only included
   // when provided, so callers that pass none get byte-identical launch options.
   const ua = opts.userAgent;
+  const executablePath = resolveChromiumExecutable(chromium, env);
+  const launch = executablePath ? { headless, executablePath } : { headless };
 
   if (usesPersistentProfile(env)) {
     const context = await chromium.launchPersistentContext(
       browserProfileDir(env),
-      ua ? { headless, userAgent: ua } : { headless },
+      ua ? { ...launch, userAgent: ua } : launch,
     );
     // A persistent context opens with one page already; reuse it.
     const pages = context.pages();
@@ -50,7 +82,7 @@ export async function acquirePage(
     return { page, close: () => context.close() };
   }
 
-  const browser = await chromium.launch({ headless });
+  const browser = await chromium.launch(launch);
   const page = (await browser.newPage(ua ? { userAgent: ua } : undefined)) as AcquiredPage;
   return { page, close: () => browser.close() };
 }

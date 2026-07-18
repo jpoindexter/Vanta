@@ -32,8 +32,10 @@ describe("BraveBrowserProvider (injected page)", () => {
   it("navigates Brave and maps the page's extracted rows, then closes the browser", async () => {
     let gotoUrl = "";
     let closed = false;
+    let waitedFor = "";
     const fakePage = {
       goto: async (url: string) => { gotoUrl = url; },
+      waitForSelector: async (selector: string) => { waitedFor = selector; },
       waitForTimeout: async () => {},
       evaluate: async () => [
         { title: "Result One", url: "https://one.com", snippet: "first" },
@@ -46,6 +48,7 @@ describe("BraveBrowserProvider (injected page)", () => {
 
     expect(p.id).toBe("brave_browser");
     expect(gotoUrl).toContain("search.brave.com/search?q=anthropic%20news");
+    expect(waitedFor).toContain(".result-wrapper");
     expect(out).toEqual([
       { title: "Result One", url: "https://one.com", snippet: "first" },
       { title: "Result Two", url: "https://two.com", snippet: "second" },
