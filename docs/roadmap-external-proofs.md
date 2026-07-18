@@ -130,11 +130,23 @@ to exact receipt event IDs:
   "environment": "external-test",
   "executedAt": "2026-07-11T00:00:00.000Z",
   "evidenceSha256": "64-lowercase-hex-characters",
+  "evidenceArtifact": ".vanta/external-proofs/evidence/HERMES-SHOPIFY-OPERATIONS/redacted-proof.json",
   "receiptEventIds": ["00000000-0000-4000-8000-000000000000"]
 }
 ```
 
-The evidence file itself must be redacted before hashing and must never contain
+Create this packet through the recorder rather than writing JSON by hand:
+
+```bash
+vanta roadmap proof-record HERMES-SHOPIFY-OPERATIONS \
+  00000000-0000-4000-8000-000000000000 \
+  --evidence /path/to/redacted-provider-proof.json \
+  --yes
+```
+
+The recorder copies the evidence into the repository, hashes the copied bytes,
+and writes the packet with mode `0600`. Readiness re-hashes that artifact before
+accepting the packet. The evidence file must be redacted and must never contain
 tokens, card data, customer data, phone numbers, message content, or provider
 response bodies. A packet does not authorize an operation; it records an
 already approved and executed test-account acceptance path.

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createDesktopServer } from "./server.js";
@@ -10,6 +11,8 @@ describe("desktop operator routes", () => {
   const originalHome = process.env.VANTA_HOME;
   const originalOsHome = process.env.HOME;
   const originalTelegram = process.env.VANTA_TELEGRAM_TOKEN;
+  const originalTelegramAllow = process.env.VANTA_TELEGRAM_ALLOW;
+  const originalTelegramApiBase = process.env.VANTA_TELEGRAM_API_BASE;
   const originalProvider = process.env.VANTA_PROVIDER;
 
   beforeEach(async () => {
@@ -18,12 +21,16 @@ describe("desktop operator routes", () => {
     process.env.VANTA_HOME = home;
     process.env.HOME = home;
     delete process.env.VANTA_TELEGRAM_TOKEN;
+    delete process.env.VANTA_TELEGRAM_ALLOW;
+    delete process.env.VANTA_TELEGRAM_API_BASE;
   });
 
   afterEach(async () => {
     if (originalHome === undefined) delete process.env.VANTA_HOME; else process.env.VANTA_HOME = originalHome;
     if (originalOsHome === undefined) delete process.env.HOME; else process.env.HOME = originalOsHome;
     if (originalTelegram === undefined) delete process.env.VANTA_TELEGRAM_TOKEN; else process.env.VANTA_TELEGRAM_TOKEN = originalTelegram;
+    if (originalTelegramAllow === undefined) delete process.env.VANTA_TELEGRAM_ALLOW; else process.env.VANTA_TELEGRAM_ALLOW = originalTelegramAllow;
+    if (originalTelegramApiBase === undefined) delete process.env.VANTA_TELEGRAM_API_BASE; else process.env.VANTA_TELEGRAM_API_BASE = originalTelegramApiBase;
     if (originalProvider === undefined) delete process.env.VANTA_PROVIDER; else process.env.VANTA_PROVIDER = originalProvider;
     await Promise.all([rm(home, { recursive: true, force: true }), rm(root, { recursive: true, force: true })]);
   });
@@ -47,6 +54,14 @@ describe("desktop operator routes", () => {
   });
 
   it("lists real adapters and persists a selected adapter through the desktop API", async () => {
+    const telegram = createServer((_req, res) => {
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(JSON.stringify({ ok: true, result: { username: "vanta_test" } }));
+    });
+    await new Promise<void>((resolve) => telegram.listen(0, "127.0.0.1", resolve));
+    const telegramAddress = telegram.address();
+    if (!telegramAddress || typeof telegramAddress === "string") throw new Error("Telegram fixture did not bind");
+    process.env.VANTA_TELEGRAM_API_BASE = `http://127.0.0.1:${telegramAddress.port}`;
     const server = createDesktopServer(root);
     await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
     const address = server.address();
@@ -57,13 +72,17 @@ describe("desktop operator routes", () => {
       expect(adapters.find((adapter) => adapter.id === "telegram")).toMatchObject({ status: "needs_setup", configured: false });
       const beforeTest = await fetch(`${base}/api/connect/test`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind: "messaging", id: "telegram" }) });
       expect(await beforeTest.json()).toMatchObject({ status: "needs_setup" });
-      const saved = await fetch(`${base}/api/messaging`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: "telegram", values: { VANTA_TELEGRAM_TOKEN: "desktop-token" } }) });
+      const token = `123456:${"a".repeat(35)}`;
+      const saved = await fetch(`${base}/api/messaging`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: "telegram", values: { VANTA_TELEGRAM_TOKEN: token, accessMode: "pairing" } }) });
       expect(saved.status).toBe(200);
       expect(await saved.json()).toMatchObject({ id: "telegram", status: "ready", configured: true });
       const afterTest = await fetch(`${base}/api/connect/test`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind: "messaging", id: "telegram" }) });
-      expect(await afterTest.json()).toMatchObject({ status: "ready", message: expect.stringContaining("saved locally") });
+      expect(await afterTest.json()).toMatchObject({ status: "ready", message: expect.stringContaining("credential is live") });
     } finally {
-      await new Promise<void>((resolve) => server.close(() => resolve()));
+      await Promise.all([
+        new Promise<void>((resolve) => server.close(() => resolve())),
+        new Promise<void>((resolve) => telegram.close(() => resolve())),
+      ]);
     }
   });
 

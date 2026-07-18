@@ -14,6 +14,7 @@
 // `describeForSafety` surfaces the command to `assess()` exactly like a shell
 // command — tmux is the WHERE, the kernel is the WHETHER.
 
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { processCapture } from "../term/terminal-capture.js";
@@ -49,15 +50,18 @@ function preClean(run: TmuxRunner, session: string): void {
   }
 }
 
-/** Run the command in the pane and BLOCK until it completes using tmux's own
- * `wait-for` signal — robust, because (unlike a text sentinel) the channel name
- * is never confused with the typed command. Returns the captured pane buffer.
- * `marker` is the unique wait-for channel, also used to drop the command-echo
- * line. The blocking `wait-for` is capped by the runner's exec timeout. */
-function runAndWait(run: TmuxRunner, pane: string, command: string, marker: string): string {
-  run(["send-keys", "-t", pane, `${command}; tmux wait-for -S ${marker}`, "Enter"]);
-  run(["wait-for", marker]); // blocks until the command signals completion
-  return run(["capture-pane", "-t", pane, "-p"]);
+/** Run the command and poll for an exact random completion marker. Polling
+ * avoids tmux wait-for's lost-signal race when a short command finishes before
+ * the blocking waiter starts. */
+async function runAndWait(run: TmuxRunner, pane: string, command: string, marker: string): Promise<string> {
+  run(["send-keys", "-t", pane, `${command}; printf '\\n%s\\n' ${marker}`, "Enter"]);
+  const deadline = Date.now() + 10_000;
+  while (Date.now() < deadline) {
+    const raw = run(["capture-pane", "-t", pane, "-p"]);
+    if (raw.split("\n").some((line) => line.trim() === marker)) return raw;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error("terminal capture command timed out after 10s");
 }
 
 /**
@@ -69,14 +73,15 @@ function runAndWait(run: TmuxRunner, pane: string, command: string, marker: stri
 export async function captureViaTmux(command: string, deps: CaptureDeps = {}): Promise<CaptureResult> {
   const run = deps.run ?? realTmuxRunner;
   const session = deps.session ?? `vanta_cap_${process.pid}`;
-  const marker = `${session}_wait`;
+  const marker = `VANTA_CAPTURE_DONE_${randomUUID().replaceAll("-", "")}`;
   if (!tmuxAvailable(run)) return { ok: false, error: "tmux not available for terminal capture" };
   preClean(run, session);
   try {
-    run(["new-session", "-d", "-s", session, "-x", "200", "-y", "60"]);
+    // A non-interactive shell avoids blocking on the operator's zsh/bash startup hooks.
+    run(["new-session", "-d", "-s", session, "-x", "200", "-y", "60", "/bin/sh"]);
     const pane = run(["list-panes", "-t", session, "-F", "#{pane_id}"]).split("\n").filter(Boolean)[0];
     if (pane === undefined) return { ok: false, error: "tmux created no pane" };
-    const raw = runAndWait(run, pane, command, marker);
+    const raw = await runAndWait(run, pane, command, marker);
     const snapshot = processCapture(stripCommandEcho(raw, marker), { maxLines: deps.maxLines });
     return { ok: true, snapshot, lineCount: snapshot ? snapshot.split("\n").length : 0 };
   } catch (e) {

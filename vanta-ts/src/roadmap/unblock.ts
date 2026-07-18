@@ -32,6 +32,7 @@ const KNOWN_ACTIONS: Record<string, string[]> = {
     "Ship RUN-ANYWHERE-TERMUX with a physical ARM64 release-kernel proof.",
   ],
   "HERMES-SPREADSHEET-COPILOT": [
+    "Use the Excel host adapter in `examples/spreadsheet-sidecar/excel-custom-functions.ts`, or follow the Google Sheets host path below.",
     "Open a private Google Sheet and load `examples/spreadsheet-sidecar/google-sheets/Code.gs` through Extensions > Apps Script.",
     "Create a revocable API token, expose Vanta through HTTPS, and store only the URL/token in Apps Script Properties.",
     "Invoke VANTA_ASK with bounded workbook context, then approve one exact pending workbook action from the Vanta menu.",
@@ -46,17 +47,20 @@ const KNOWN_ACTIONS: Record<string, string[]> = {
     "Configure a real Stripe Link sandbox/test account behind the isolated `VANTA_PAYMENT_TEST_LINK_CLI` adapter.",
     "Execute `vanta payments preview` and `vanta payments execute ... --approve <exact-id>`, then require an authorized redacted receipt.",
     "Run a bounded live MPP HTTP 402 test contract and require the paid-retry receipt with the exact amount, currency, merchant, item, and resource.",
+    "Bind the redacted provider evidence with `vanta roadmap proof-record HERMES-PAYMENT-SKILL-PACK <link-event-id> <mpp-event-id> --evidence <file> --yes`.",
     "Keep real-money mode disabled; sandbox Link and MPP receipts are the release proof.",
   ],
   "HERMES-SHOPIFY-OPERATIONS": [
     "Create a Shopify development store and register `SHOPIFY_DEV_TOKEN` as a scoped Vanta vault alias for that exact store.",
     "Run `vanta shopify read <profile> products`, then preview and apply one typed development-store mutation with its exact approval id.",
     "Require the mutation receipt and separate readback verification before moving the card out of parked.",
+    "Bind the redacted readback evidence with `vanta roadmap proof-record HERMES-SHOPIFY-OPERATIONS <event-id> --evidence <file> --yes`.",
   ],
   "HERMES-TELEPHONY-CONSENT-LIFECYCLE": [
     "Configure a Twilio test account, scoped `TWILIO_TEST_TOKEN` vault alias, and explicit `VANTA_TELEPHONY_TEST_API_BASE`.",
     "Expose `vanta telephony ingress <profile> --public-url https://<host>/twilio` through HTTPS and verify signed callbacks.",
     "Execute consented test SMS and call contracts with exact approval ids, then prove callback correlation and recording-retention deletion receipts.",
+    "Bind the redacted lifecycle evidence with `vanta roadmap proof-record HERMES-TELEPHONY-CONSENT-LIFECYCLE <event-id...> --evidence <file> --yes`.",
   ],
   "HERMES-COMMERCE-TELEPHONY-SKILL-PACK": [
     "Ship HERMES-PAYMENT-SKILL-PACK with live sandbox Link and MPP receipts.",

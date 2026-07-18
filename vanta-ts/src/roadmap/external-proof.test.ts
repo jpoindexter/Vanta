@@ -6,7 +6,8 @@ import type { PaymentReceipt } from "../payments/ledger.js";
 import type { RunAnywhereReadiness } from "../run-anywhere/readiness.js";
 import type { ShopifyReceipt } from "../shopify/receipts.js";
 import type { TelephonyReceipt } from "../telephony/receipts.js";
-import { assessExternalProofReadiness, externalProofAcceptanceTemplate, formatExternalProofAcceptanceTemplate, formatExternalProofNext, formatExternalProofReadiness, nextExternalProofGate, readExternalProofReadiness, writeExternalProofPacket } from "./external-proof.js";
+import { assessExternalProofReadiness, externalProofAcceptanceTemplate, formatExternalProofAcceptanceTemplate, readExternalProofReadiness } from "./external-proof.js";
+import { formatExternalProofNext, formatExternalProofReadiness, nextExternalProofGate, writeExternalProofPacket } from "./external-proof-packet.js";
 
 function remote(ready: boolean): RunAnywhereReadiness {
   const ids = [
@@ -29,7 +30,10 @@ const ids = {
 const payment = (eventId: string, provider: "stripe_link" | "mpp", status: "authorized" | "settled") => ({ eventId, provider, status, approval: { external: "approved" }, providerResult: { httpStatus: 200 } }) as PaymentReceipt;
 const shopify = { eventId: ids.shopify, status: "verified", verified: true, userErrorCount: 0, operation: "product_update", store: "dev.myshopify.com" } as ShopifyReceipt;
 const phone = (eventId: string, action: "number_provision" | "sms" | "call", status: "accepted" | "callback", extra = {}) => ({ eventId, action, status, ...extra }) as TelephonyReceipt;
-const acceptance = (roadmapCardId: string, receiptEventIds: string[]) => ({ version: 1, ok: true, roadmapCardId, environment: "external-test", executedAt: "2026-07-11T00:00:00.000Z", evidenceSha256: "a".repeat(64), receiptEventIds });
+const acceptance = (roadmapCardId: string, receiptEventIds: string[]) => ({
+  version: 1, ok: true, roadmapCardId, environment: "external-test", executedAt: "2026-07-11T00:00:00.000Z",
+  evidenceSha256: "a".repeat(64), evidenceArtifact: `.vanta/external-proofs/evidence/${roadmapCardId}/a.txt`, receiptEventIds,
+});
 
 describe("external proof readiness", () => {
   it("reports all ten gates with concrete next actions when evidence is absent", () => {
@@ -135,6 +139,7 @@ describe("external proof readiness", () => {
         environment: "external-test",
         executedAt: "2026-07-14T00:00:00.000Z",
         evidenceSha256: "<64-lowercase-hex-redacted-evidence-sha256>",
+        evidenceArtifact: ".vanta/external-proofs/evidence/HERMES-SHOPIFY-OPERATIONS/<redacted-evidence-file>",
         receiptEventIds: [ids.shopify],
       },
     });

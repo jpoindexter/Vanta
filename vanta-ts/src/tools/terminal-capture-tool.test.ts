@@ -6,14 +6,13 @@ const ESC = String.fromCharCode(27); // \x1b — written this way so the byte is
 
 describe("captureViaTmux (injected tmux)", () => {
   it("drops the command-echo line + control sequences, returns a clean snapshot", async () => {
-    // session "t" → wait-for channel "t_wait"; capture-pane returns the typed
-    // command line (carrying the marker) + the command's real ANSI output.
-    const captured = `$ run; tmux wait-for -S t_wait\n${ESC}[31mHELLO${ESC}[0m world`;
+    let marker = "";
     const run: TmuxRunner = (argv) => {
       if (argv[0] === "-V") return "tmux 3.5";
       if (argv[0] === "list-panes") return "%0";
-      if (argv[0] === "capture-pane") return captured;
-      return ""; // send-keys / wait-for / new-session / kill-session
+      if (argv[0] === "send-keys") marker = String(argv[3]).match(/VANTA_CAPTURE_DONE_[a-f0-9]+/)?.[0] ?? "";
+      if (argv[0] === "capture-pane") return `$ run; printf marker ${marker}\n${ESC}[31mHELLO${ESC}[0m world\n${marker}`;
+      return ""; // send-keys / new-session / kill-session
     };
     const res = await captureViaTmux("run", { run, session: "t" });
     expect(res.ok).toBe(true);

@@ -79,21 +79,30 @@ async function handleRoadmapUnblock(repoRoot: string, args: string[]): Promise<v
 }
 
 async function handleExternalProofStatus(repoRoot: string, args: string[]): Promise<number> {
-  const { readExternalProofReadiness, formatExternalProofReadiness } = await import("../roadmap/external-proof.js");
+  const [{ readExternalProofReadiness }, { formatExternalProofReadiness }] = await Promise.all([
+    import("../roadmap/external-proof.js"),
+    import("../roadmap/external-proof-packet.js"),
+  ]);
   const report = await readExternalProofReadiness(repoRoot);
   console.log(args.includes("--json") ? JSON.stringify(report, null, 2) : formatExternalProofReadiness(report));
   return report.ready ? 0 : 1;
 }
 
 async function handleExternalProofPacket(repoRoot: string, args: string[]): Promise<number> {
-  const { readExternalProofReadiness, formatExternalProofPacket } = await import("../roadmap/external-proof.js");
+  const [{ readExternalProofReadiness }, { formatExternalProofPacket }] = await Promise.all([
+    import("../roadmap/external-proof.js"),
+    import("../roadmap/external-proof-packet.js"),
+  ]);
   const report = await readExternalProofReadiness(repoRoot);
   console.log(args.includes("--json") ? JSON.stringify(report, null, 2) : formatExternalProofPacket(report));
   return 0;
 }
 
 async function handleExternalProofNext(repoRoot: string, args: string[]): Promise<number> {
-  const { readExternalProofReadiness, nextExternalProofGate, formatExternalProofNext } = await import("../roadmap/external-proof.js");
+  const [{ readExternalProofReadiness }, { nextExternalProofGate, formatExternalProofNext }] = await Promise.all([
+    import("../roadmap/external-proof.js"),
+    import("../roadmap/external-proof-packet.js"),
+  ]);
   const report = await readExternalProofReadiness(repoRoot);
   const next = nextExternalProofGate(report);
   console.log(args.includes("--json") ? JSON.stringify({ ready: report.ready, next }, null, 2) : formatExternalProofNext(next));
@@ -117,13 +126,45 @@ async function handleExternalProofTemplate(args: string[]): Promise<number> {
   return 0;
 }
 
+function parseExternalProofRecordArgs(args: string[]): { cardId: string; evidencePath: string; receiptEventIds: string[] } | undefined {
+  const cardId = args[1];
+  const evidenceIndex = args.indexOf("--evidence");
+  const evidencePath = evidenceIndex >= 0 ? args[evidenceIndex + 1] : undefined;
+  const receiptEventIds = args.slice(2, evidenceIndex >= 0 ? evidenceIndex : args.length).filter((arg) => !arg.startsWith("--"));
+  return cardId && evidencePath && receiptEventIds.length > 0 && args.includes("--yes")
+    ? { cardId, evidencePath, receiptEventIds }
+    : undefined;
+}
+
+async function handleExternalProofRecord(repoRoot: string, args: string[]): Promise<number> {
+  const parsed = parseExternalProofRecordArgs(args);
+  if (!parsed) {
+    console.error("Usage: vanta roadmap proof-record <card-id> <receipt-event-id...> --evidence <file> --yes [--json]");
+    return 1;
+  }
+  const { cardId, evidencePath, receiptEventIds } = parsed;
+  const { formatExternalAcceptance, isExternalAcceptanceCardId, recordExternalAcceptance } = await import("../roadmap/external-acceptance.js");
+  if (!isExternalAcceptanceCardId(cardId)) {
+    console.error(`${cardId} does not use an external acceptance packet`);
+    return 1;
+  }
+  try {
+    const result = await recordExternalAcceptance(repoRoot, { roadmapCardId: cardId, receiptEventIds, evidencePath });
+    console.log(args.includes("--json") ? JSON.stringify(result, null, 2) : formatExternalAcceptance(result, repoRoot));
+    return 0;
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    return 1;
+  }
+}
+
 function valueAfter(args: string[], flag: string): string | undefined {
   const index = args.indexOf(flag);
   return index >= 0 ? args[index + 1] : undefined;
 }
 
 async function handleExternalProofExport(repoRoot: string, args: string[]): Promise<number> {
-  const { writeExternalProofPacket } = await import("../roadmap/external-proof.js");
+  const { writeExternalProofPacket } = await import("../roadmap/external-proof-packet.js");
   const outDir = valueAfter(args, "--out");
   try {
     const result = await writeExternalProofPacket(repoRoot, outDir);
@@ -199,16 +240,23 @@ async function handleRoadmapStatus(repoRoot: string, args: string[]): Promise<nu
   return statusExitCode(summary, args, openOnly);
 }
 
-export async function runRoadmapCommand(repoRoot: string, args: string[] = []): Promise<number | void> {
-  if (args[0] === "serve") return handleRoadmapServe(repoRoot);
-  if (args[0] === "move") return handleRoadmapMove(repoRoot, args);
-  if (args[0] === "unblock") return handleRoadmapUnblock(repoRoot, args);
+async function handleExternalProofCommand(repoRoot: string, args: string[]): Promise<number | undefined> {
   if (args[0] === "proof-status") return handleExternalProofStatus(repoRoot, args);
   if (args[0] === "proof-packet") return handleExternalProofPacket(repoRoot, args);
   if (args[0] === "proof-next") return handleExternalProofNext(repoRoot, args);
   if (args[0] === "proof-template") return handleExternalProofTemplate(args);
+  if (args[0] === "proof-record") return handleExternalProofRecord(repoRoot, args);
   if (args[0] === "proof-export") return handleExternalProofExport(repoRoot, args);
   if (args[0] === "proof-accept") return handleExternalProofAccept(repoRoot, args);
+  return undefined;
+}
+
+export async function runRoadmapCommand(repoRoot: string, args: string[] = []): Promise<number | void> {
+  if (args[0] === "serve") return handleRoadmapServe(repoRoot);
+  if (args[0] === "move") return handleRoadmapMove(repoRoot, args);
+  if (args[0] === "unblock") return handleRoadmapUnblock(repoRoot, args);
+  const proofResult = await handleExternalProofCommand(repoRoot, args);
+  if (proofResult !== undefined) return proofResult;
   if (args[0] === "status") return handleRoadmapStatus(repoRoot, args);
   if (args[1] === "decompose") return handleRoadmapDecompose(repoRoot, args);
 

@@ -198,6 +198,32 @@ describe("runRoadmapCommand proof-template", () => {
   });
 });
 
+describe("runRoadmapCommand proof-record", () => {
+  it("records a hashed external evidence packet only with explicit confirmation", async () => {
+    const root = await workspace();
+    const evidencePath = join(root, "redacted-shopify-proof.json");
+    await writeFile(evidencePath, '{"verified":true}\n');
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line = "") => lines.push(String(line)));
+    const code = await runRoadmapCommand(root, [
+      "proof-record", "HERMES-SHOPIFY-OPERATIONS", "00000000-0000-4000-8000-000000000003",
+      "--evidence", evidencePath, "--yes", "--json",
+    ]);
+    const result = JSON.parse(lines.join("\n")) as { packet: { evidenceArtifact: string; receiptEventIds: string[] } };
+    expect(code).toBe(0);
+    expect(result.packet.evidenceArtifact).toContain(".vanta/external-proofs/evidence/HERMES-SHOPIFY-OPERATIONS/");
+    expect(result.packet.receiptEventIds).toEqual(["00000000-0000-4000-8000-000000000003"]);
+  });
+
+  it("refuses to record without --yes", async () => {
+    const root = await workspace();
+    const errors: string[] = [];
+    vi.spyOn(console, "error").mockImplementation((line = "") => errors.push(String(line)));
+    expect(await runRoadmapCommand(root, ["proof-record", "HERMES-SHOPIFY-OPERATIONS"])).toBe(1);
+    expect(errors.join("\n")).toContain("Usage: vanta roadmap proof-record");
+  });
+});
+
 describe("runRoadmapCommand proof-export", () => {
   it("writes a local proof packet folder and reports its files as json", async () => {
     const root = await workspace();

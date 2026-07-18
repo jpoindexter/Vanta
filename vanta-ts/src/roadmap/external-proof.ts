@@ -1,10 +1,11 @@
 import { createHash } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { isAbsolute, join, normalize, relative, resolve, sep } from "node:path";
+import { readFile } from "node:fs/promises";
+import { isAbsolute, join, normalize, sep } from "node:path";
 import { loadPaymentReceipts, type PaymentReceipt } from "../payments/ledger.js";
 import { readRunAnywhereReadiness, type RunAnywhereReadiness } from "../run-anywhere/readiness.js";
 import { loadShopifyReceipts, type ShopifyReceipt } from "../shopify/receipts.js";
 import { loadTelephonyReceipts, type TelephonyReceipt } from "../telephony/receipts.js";
+import { ExternalAcceptancePacketSchema, readVerifiedExternalAcceptance } from "./external-acceptance.js";
 import { knownUnblockActions } from "./unblock.js";
 import { SpreadsheetHostProofSchema, WorkbookReceiptSchema, type SpreadsheetHostProof } from "../spreadsheet/host-proof.js";
 
@@ -34,13 +35,9 @@ export type ExternalProofAcceptanceTemplate = {
     environment: "external-test";
     executedAt: string;
     evidenceSha256: string;
+    evidenceArtifact: string;
     receiptEventIds: string[];
   };
-};
-
-export type ExternalProofPacketExport = {
-  dir: string;
-  files: string[];
 };
 
 export type ExternalProofInputs = {
@@ -84,13 +81,9 @@ function validSpreadsheetHost(value: unknown): value is SpreadsheetHostProof {
 }
 
 function accepted(value: unknown, cardId: string, eventIds: string[]): boolean {
-  if (!value || typeof value !== "object") return false;
-  const item = value as Record<string, unknown>, ids = Array.isArray(item.receiptEventIds) ? item.receiptEventIds : [];
-  return [
-    item.version === 1, item.ok === true, item.roadmapCardId === cardId, item.environment === "external-test",
-    Number.isFinite(Date.parse(String(item.executedAt))), typeof item.evidenceSha256 === "string",
-    /^[a-f0-9]{64}$/.test(String(item.evidenceSha256)), eventIds.length > 0, eventIds.every((id) => ids.includes(id)),
-  ].every(Boolean);
+  const parsed = ExternalAcceptancePacketSchema.safeParse(value);
+  return parsed.success && parsed.data.roadmapCardId === cardId
+    && eventIds.length > 0 && eventIds.every((id) => parsed.data.receiptEventIds.includes(id));
 }
 
 const ACCEPTANCE_PACKET_CARDS = new Set([
@@ -115,6 +108,7 @@ export function externalProofAcceptanceTemplate(
       environment: "external-test",
       executedAt,
       evidenceSha256: "<64-lowercase-hex-redacted-evidence-sha256>",
+      evidenceArtifact: `.vanta/external-proofs/evidence/${roadmapCardId}/<redacted-evidence-file>`,
       receiptEventIds: receiptEventIds.length ? receiptEventIds : ["<receipt-event-id>"],
     },
   };
@@ -125,71 +119,6 @@ export function formatExternalProofAcceptanceTemplate(template: ExternalProofAcc
     `External proof acceptance template: ${template.roadmapCardId}`,
     `write to: ${template.receiptPath}`,
     JSON.stringify(template.template, null, 2),
-  ].join("\n");
-}
-
-function proofExportDir(repoRoot: string, outDir = ".vanta/external-proofs/proof-packet"): string {
-  const root = resolve(repoRoot);
-  const target = resolve(isAbsolute(outDir) ? outDir : join(root, outDir));
-  const rel = relative(root, target);
-  if (rel === "" || rel.startsWith("..") || isAbsolute(rel)) throw new Error(`proof packet export must stay inside the repo: ${outDir}`);
-  return target;
-}
-
-function gateRunbook(gate: ExternalProofGate): string {
-  return [
-    `# ${gate.roadmapCardId}`,
-    "",
-    gate.label,
-    "",
-    `Status: ${gate.ready ? "ready" : "not ready"}`,
-    `Receipt: \`${gate.receiptPath}\``,
-    "",
-    "## Current Evidence",
-    "",
-    gate.evidence,
-    "",
-    "## Next Actions",
-    "",
-    ...(gate.nextActions.length ? gate.nextActions.map((action, index) => `${index + 1}. ${action}`) : ["No next actions; this gate is ready."]),
-    "",
-    "## Acceptance",
-    "",
-    "After the receipt exists and `vanta roadmap proof-status` reports this gate ready, run:",
-    "",
-    "```bash",
-    `vanta roadmap proof-accept ${gate.roadmapCardId}`,
-    "```",
-  ].join("\n");
-}
-
-const AGGREGATE_GATE_IDS = new Set(["RUN-ANYWHERE-V1-RELEASE-GATE", "HERMES-COMMERCE-TELEPHONY-SKILL-PACK"]);
-
-export function nextExternalProofGate(report: ExternalProofReadiness): ExternalProofGate | undefined {
-  return report.gates.find((gate) => !gate.ready && !AGGREGATE_GATE_IDS.has(gate.roadmapCardId))
-    ?? report.gates.find((gate) => !gate.ready);
-}
-
-export function formatExternalProofNext(gate: ExternalProofGate | undefined): string {
-  if (!gate) return "# Next External Proof\n\nAll external proof gates are ready. Run `vanta roadmap proof-accept --all-ready`.\n";
-  return [
-    "# Next External Proof",
-    "",
-    `${gate.roadmapCardId} — ${gate.label}`,
-    "",
-    `Receipt: \`${gate.receiptPath}\``,
-    "",
-    "## Why This Is Next",
-    "",
-    gate.evidence,
-    "",
-    "## Do This",
-    "",
-    ...gate.nextActions.map((action, index) => `${index + 1}. ${action}`),
-    "",
-    "## Runbook",
-    "",
-    `See \`runbooks/${gate.roadmapCardId}.md\`.`,
   ].join("\n");
 }
 
@@ -278,7 +207,7 @@ async function spreadsheetEvidence(repoRoot: string): Promise<{ packet?: unknown
 }
 
 export async function readExternalProofReadiness(repoRoot: string): Promise<ExternalProofReadiness> {
-  const proof = (id: string) => json(join(repoRoot, ".vanta", "external-proofs", `${id}.json`));
+  const proof = (id: string) => readVerifiedExternalAcceptance(repoRoot, id);
   const [runAnywhere, spreadsheet, windowsService, payments, paymentAcceptance, shopify, shopifyAcceptance, telephony, telephonyAcceptance] = await Promise.all([
     readRunAnywhereReadiness(repoRoot), spreadsheetEvidence(repoRoot), json(join(repoRoot, "vanta-ts", ".artifacts", "service-proof-win32.json")),
     loaded(() => loadPaymentReceipts(repoRoot)), proof("HERMES-PAYMENT-SKILL-PACK"),
@@ -291,70 +220,4 @@ export async function readExternalProofReadiness(repoRoot: string): Promise<Exte
     telephony: telephony.data, telephonyAcceptance,
     loadErrors: { payments: payments.error, shopify: shopify.error, telephony: telephony.error },
   });
-}
-
-export function formatExternalProofReadiness(report: ExternalProofReadiness): string {
-  const lines = [`External proof readiness: ${report.ready ? "ready" : "not ready"} (${report.passed}/${report.total})`];
-  for (const item of report.gates) {
-    lines.push(`${item.ready ? "✓" : "✘"} ${item.roadmapCardId} — ${item.label}`);
-    lines.push(`  receipt: ${item.receiptPath}`, `  evidence: ${item.evidence}`);
-    if (!item.ready) lines.push(...item.nextActions.map((action, index) => `  ${index + 1}. ${action}`));
-  }
-  if (!report.ready) lines.push("Roadmap cards stay parked until their canonical receipts are ready.");
-  return lines.join("\n");
-}
-
-export function formatExternalProofPacket(report: ExternalProofReadiness): string {
-  const lines = [`External proof packet: ${report.ready ? "ready" : "not ready"} (${report.passed}/${report.total})`];
-  lines.push("This is a handoff packet, not a release gate. Use `vanta roadmap proof-status` when you need a failing readiness check.");
-  for (const item of report.gates) {
-    lines.push("", `${item.ready ? "✓" : "○"} ${item.roadmapCardId} — ${item.label}`);
-    lines.push(`  receipt: ${item.receiptPath}`, `  evidence: ${item.evidence}`);
-    if (!item.ready) lines.push(...item.nextActions.map((action, index) => `  next ${index + 1}: ${action}`));
-  }
-  lines.push("", "Acceptance path: create the missing receipts, then run `vanta roadmap proof-accept <card-id>` or `vanta roadmap proof-accept --all-ready`.");
-  return lines.join("\n");
-}
-
-export async function writeExternalProofPacket(repoRoot: string, outDir?: string): Promise<ExternalProofPacketExport> {
-  const report = await readExternalProofReadiness(repoRoot);
-  const dir = proofExportDir(repoRoot, outDir);
-  const templatesDir = join(dir, "templates");
-  await mkdir(templatesDir, { recursive: true });
-
-  const files: string[] = [];
-  async function write(relativePath: string, content: string): Promise<void> {
-    const path = join(dir, relativePath);
-    await mkdir(resolve(path, ".."), { recursive: true });
-    await writeFile(path, content.endsWith("\n") ? content : `${content}\n`, "utf8");
-    files.push(path);
-  }
-
-  await write("proof-status.json", JSON.stringify(report, null, 2));
-  await write("checklist.md", formatExternalProofPacket(report));
-  await write("NEXT.md", formatExternalProofNext(nextExternalProofGate(report)));
-  for (const gate of report.gates) await write(join("runbooks", `${gate.roadmapCardId}.md`), gateRunbook(gate));
-  for (const cardId of ACCEPTANCE_PACKET_CARDS) {
-    const template = externalProofAcceptanceTemplate(cardId);
-    if (template) await write(join("templates", `${cardId}.json`), JSON.stringify(template.template, null, 2));
-  }
-  await write("README.md", [
-    "# Vanta external proof packet",
-    "",
-    "This folder is a local handoff packet for the remaining parked external-proof roadmap cards.",
-    "",
-    "- `proof-status.json` is the machine-readable current state.",
-    "- `NEXT.md` names the first external gate to clear and its immediate actions.",
-    "- `checklist.md` is the operator checklist with receipt paths and next actions.",
-    "- `runbooks/*.md` contains one executable handoff per external-proof gate.",
-    "- `templates/*.json` are acceptance-packet skeletons for provider-backed commerce and telephony gates.",
-    "",
-    "After creating real external receipts, run:",
-    "",
-    "```bash",
-    "vanta roadmap proof-status",
-    "vanta roadmap proof-accept <card-id>",
-    "```",
-  ].join("\n"));
-  return { dir, files };
 }

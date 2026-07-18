@@ -92,6 +92,7 @@ const USAGE_LINES = [
       "       vanta roadmap proof-next [--json]  print the first external proof gate to clear next",
       "       vanta roadmap proof-export [--out <dir>] [--json]  write the external proof packet folder locally",
       "       vanta roadmap proof-template <card-id> [receipt-event-id...] [--json]  print an external acceptance packet skeleton",
+      "       vanta roadmap proof-record <card-id> <receipt-event-id...> --evidence <file> --yes [--json]  hash and record real external evidence",
       "       vanta roadmap proof-accept <card-id> | --all-ready [--json]  ship only externally proven parked cards",
       "       vanta roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
       "       vanta now [--apply]                propose/fill the next 1-2 Now cards without exceeding WIP",
