@@ -61,7 +61,7 @@ a changed binding fail closed.
 | Stripe Projects | `saas_provisioning` | Runs the plugin in a private temporary workspace, requires generated keys to exactly match approved aliases, moves values into Keychain through stdin, registers only vault references, and removes plaintext before success | Real child-process fixture passed; live Stripe Projects account not run |
 | Adyen Agentic | `delegated_fiat` | Typed readiness entry only | External enrollment and adapter required |
 | x402 | `http_402` | Current v2 `PAYMENT-REQUIRED`, `PAYMENT-SIGNATURE`, and `PAYMENT-RESPONSE` flow; exact contract match before an injected vault signer; one paid retry; settlement validation | Base Sepolia and Solana Devnet fixtures passed; the live no-key `x402.org` facilitator advertised both exact networks on 2026-07-18 |
-| Visa TAP | `merchant_recognition` | Typed readiness entry only | Conformance harness and scheme onboarding remain separate |
+| Visa TAP | `merchant_recognition` | Local RFC 9421/Ed25519 conformance signer, pinned-registry verifier, replay guard, operation binding, content-digest binding, and consented identifier filter | Public sample topology passes locally; production agent signing remains disabled pending Visa onboarding |
 
 `vanta payments readiness` reports the current region, supported regions,
 test/live availability, required enrollment, credential custody, challenge
@@ -141,6 +141,29 @@ logs. A signed payload must repeat the same binding, and the paid response must
 carry a successful settlement on that network. Mainnet network IDs are rejected
 by the schema. A funded test-wallet transaction and any future real-money
 enablement remain separate operator decisions.
+
+## Visa TAP conformance
+
+Run the public-protocol compatibility lab with:
+
+```bash
+npm run payment:visa-tap:conformance
+```
+
+The lab follows Visa's published agent → registry → CDN verifier → merchant
+topology. It creates RFC 9421-style `Signature-Input` and `Signature` headers
+with Ed25519, binding `@authority`, `@path`, `created`, `expires`, `keyId`,
+`nonce`, and either `agent-browser-auth` or `agent-payer-auth`. Vanta also
+covers `content-digest` when a body exists so an altered checkout payload fails
+verification. Wrong domain/path, expiry, replay, unknown or changed keys,
+unpinned registries, and cross-operation signatures all fail.
+
+The merchant helper retrieves only the public key from a pinned registry and
+returns only identifiers covered by explicit consumer consent. The lab does
+not store a Visa credential, PAN, CVC, or Payment Passkey, and it is not proof
+that Vanta is a Visa-approved agent. Production signing is not wired into the
+payment provider. Visa certification and restricted client material remain an
+external release prerequisite.
 
 External release acceptance is capability-based but still evidence-bound. It
 requires one named `delegated_fiat` authorization receipt, one named `http_402`

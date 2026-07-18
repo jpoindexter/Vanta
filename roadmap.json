@@ -17762,7 +17762,7 @@
       "id": "PAYMENT-VISA-TAP-CONFORMANCE",
       "track": "Harness",
       "title": "Visa TAP conformance lab - signed agent intent and merchant recognition",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Visa's Trusted Agent Protocol is public, lists Europe, and ships a reference implementation for merchant recognition of approved agents. It is not itself a consumer wallet or a drop-in Visa Payment Passkey. Vanta should prove protocol conformance without claiming production Visa agent status.",
       "done": "A local conformance harness generates and verifies RFC 9421/Ed25519 agent-recognition and payer-intent signatures bound to authority, path, created/expires, nonce, key ID, and operation tag; replay, wrong-domain, expired, altered-body, unknown-key, and cross-operation signatures fail; the merchant fixture retrieves keys from a pinned test registry and receives only consented recognition/payment identifiers; the harness passes against Visa's public sample topology; production signing stays disabled unless Visa certifies/onboards Vanta and supplies the restricted client implementation material; Visa Payment Passkey remains an external issuer/merchant authentication challenge handled by the regional authorization broker, not a credential Vanta stores.",
@@ -17772,7 +17772,7 @@
       "codex": "gpt-5.6-terra",
       "lens": "infra",
       "updated": "2026-07-18",
-      "notes": "Gemini overstated this as a direct consumer equivalent to Link. Public Visa material describes TAP primarily as merchant/infrastructure recognition for approved, scheme-onboarded agents. Visa Payment Passkey is a separate issuer/merchant API suite that supports PSD2 authentication. Official sources reviewed did not substantiate the claimed July 2026 launch at 30 issuers or the named lastminute.com/Cleverbridge rollout, so those claims are not encoded into Vanta.",
+      "notes": "Gemini overstated this as a direct consumer equivalent to Link. Public Visa material describes TAP primarily as merchant/infrastructure recognition for approved, scheme-onboarded agents. Visa Payment Passkey is a separate issuer/merchant API suite that supports PSD2 authentication. Official sources reviewed did not substantiate the claimed July 2026 launch at 30 issuers or the named lastminute.com/Cleverbridge rollout, so those claims are not encoded into Vanta.\n\nIMPLEMENTED 2026-07-18: added a local conformance module and dedicated `npm run payment:visa-tap:conformance` gate based on Visa's public agent -> registry -> CDN verifier -> merchant sample topology. Ed25519 signatures bind authority, path, created/expires, nonce, key ID, and browser/payment operation tags; requests with bodies also bind content-digest. Verification requires an exact pinned registry origin, retrieves only a public key, verifies before claiming the nonce, and releases only consumer-consented identifiers. Eleven tests prove the reference topology plus replay, wrong authority/path, altered body, expiry, unknown/wrong keys, unpinned registry, and cross-operation failure. Production provider wiring, Visa credentials, PAN/CVC, and Payment Passkeys remain absent and disabled; this does not claim Visa certification.",
       "source": "Visa Trusted Agent Protocol specification, developer overview, GitHub sample, and Visa Payment Passkey docs - researched 2026-07-18",
       "after": [
         "PAYMENT-REGIONAL-AUTHORIZATION-BROKER"

@@ -53,6 +53,13 @@ validates `PAYMENT-RESPONSE`. Mainnet IDs and plaintext wallet keys are rejected
 Both fixture networks and the facilitator's live support response passed on
 2026-07-18; this is not evidence of a funded wallet or real-money settlement.
 
+Visa TAP is implemented only as a local public-protocol conformance lab. Its
+RFC 9421/Ed25519 signatures bind merchant authority, path, time window, nonce,
+key ID, operation tag, and checkout body digest. A pinned registry supplies the
+public key; replay, mutation, unknown key, and cross-operation attempts fail;
+the merchant receives only consented identifiers. Production Visa signing and
+payment credentials remain disabled until formal scheme onboarding.
+
 Stripe Projects runs in a private temporary workspace, accepts only the exact
 generated aliases named in the approved contract, pipes values into macOS
 Keychain, registers only vault references, and removes plaintext before

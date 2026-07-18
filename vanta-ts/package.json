@@ -48,6 +48,7 @@
     "installer:managed:smoke": "bash ../scripts/managed-install-smoke.sh",
     "installer:managed:desktop:smoke": "bash ../scripts/managed-desktop-install-smoke.sh",
     "voice:wake:smoke": "node --import tsx scripts/voice-wake-smoke.ts",
+    "payment:visa-tap:conformance": "vitest run src/payments/visa-tap.test.ts",
     "mobile:sync": "npm run desktop:build && cap sync ios",
     "mobile:open": "cap open ios",
     "sdk:build": "npm --prefix packages/sdk run build",

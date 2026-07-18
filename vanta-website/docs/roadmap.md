@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1247 capabilities shipped · 0 in flight · 2 on the horizon. Updated 2026-07-18._
+_1248 capabilities shipped · 0 in flight · 1 on the horizon. Updated 2026-07-18._
 
 ## In flight
 
@@ -18,11 +18,12 @@ _Nothing in flight right now — see the horizon below._
 
 ## Recently shipped
 
-The latest of 1247+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1248+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Terminal panel + TerminalCaptureTool — agent captures terminal content, Meta+J toggle** — Operator · 2026-07-18
 - **Regional payment authorization broker - route by capability, regulation, and provider availability** — Harness · 2026-07-18
 - **x402 testnet rail - region-independent HTTP 402 payments under Vanta transaction gates** — Operator · 2026-07-18
+- **Visa TAP conformance lab - signed agent intent and merchant recognition** — Harness · 2026-07-18
 - **Interactive Telegram setup discovery - answer the operator and expose the command** — Operator · 2026-07-18
 - **Desktop setup hub + Telegram lifecycle — route, verify, secure, and start** — Desktop App · 2026-07-18
 - **Demote DuckDuckGo - bot-blocked search is explicit legacy fallback, never the default** — Harness · 2026-07-18
@@ -39,15 +40,10 @@ The latest of 1247+ capabilities. See the [changelog](./changelog) for curated m
 - **Schema state grounding - turn raw task observations into inspectable entities and variables** — Harness · 2026-07-17
 - **Schema executable task model - editable step() and isGoal() programs** — Harness · 2026-07-17
 - **Schema complete-history backtest - certify each model against recorded reality** — Harness · 2026-07-17
-- **Schema controlled commit gate - one channel from deliberation to side effects** — Harness · 2026-07-17
 
 ## On the horizon
 
 Directional, not committed — grouped by area, newest thinking first.
-
-### Harness — 1 planned
-
-- Visa TAP conformance lab - signed agent intent and merchant recognition
 
 ### Operator — 1 planned
 
