@@ -41,8 +41,17 @@ exposing provider output or retrying indefinitely.
 
 `vanta payments readiness` reports region support, test/live availability,
 external enrollment, credential custody, challenge type, and terminal state
-for Stripe Link, MPP, Adyen Agentic, x402, and Visa TAP. Adyen, x402, and Visa
-are named future rails, not falsely reported as implemented adapters.
+for Stripe Link, MPP, Adyen Agentic, x402, and Visa TAP. x402 has a guarded v2
+testnet adapter; Adyen and Visa remain named future rails, not falsely reported
+as implemented adapters.
+
+The x402 adapter accepts only `exact` payments on Base Sepolia or Solana
+Devnet through the no-key `x402.org` test facilitator. It validates resource,
+network, asset, atomic amount, and onchain payee before calling an injected
+vault signer, retries the protected request once with `PAYMENT-SIGNATURE`, and
+validates `PAYMENT-RESPONSE`. Mainnet IDs and plaintext wallet keys are rejected.
+Both fixture networks and the facilitator's live support response passed on
+2026-07-18; this is not evidence of a funded wallet or real-money settlement.
 
 Stripe Projects runs in a private temporary workspace, accepts only the exact
 generated aliases named in the approved contract, pipes values into macOS

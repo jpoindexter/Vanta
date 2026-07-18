@@ -14,7 +14,7 @@ export function buildPaymentTransactionTool(provider?: PaymentProvider): Tool {
         type: "object", required: ["action", "contract"],
         properties: {
           action: { type: "string", enum: ["preview", "execute"] },
-          contract: { type: "object", description: "Strict version-1 payment contract. Use minor units and provider_cli credential storage only." },
+          contract: { type: "object", description: "Strict version-1 payment contract. Use minor units and an approved provider CLI or vault signer reference; plaintext credentials are rejected." },
         },
       },
     },

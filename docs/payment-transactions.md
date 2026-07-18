@@ -60,7 +60,7 @@ a changed binding fail closed.
 | MPP over HTTP 402 | `http_402` | Bounded probe; exact amount/currency/network/resource/merchant/item/expiry validation; scoped-token request; paid retry | Deterministic adapter tests passed; no live paid endpoint receipt |
 | Stripe Projects | `saas_provisioning` | Runs the plugin in a private temporary workspace, requires generated keys to exactly match approved aliases, moves values into Keychain through stdin, registers only vault references, and removes plaintext before success | Real child-process fixture passed; live Stripe Projects account not run |
 | Adyen Agentic | `delegated_fiat` | Typed readiness entry only | External enrollment and adapter required |
-| x402 | `http_402` | Typed readiness entry only | Testnet adapter is the next dependent card |
+| x402 | `http_402` | Current v2 `PAYMENT-REQUIRED`, `PAYMENT-SIGNATURE`, and `PAYMENT-RESPONSE` flow; exact contract match before an injected vault signer; one paid retry; settlement validation | Base Sepolia and Solana Devnet fixtures passed; the live no-key `x402.org` facilitator advertised both exact networks on 2026-07-18 |
 | Visa TAP | `merchant_recognition` | Typed readiness entry only | Conformance harness and scheme onboarding remain separate |
 
 `vanta payments readiness` reports the current region, supported regions,
@@ -107,6 +107,40 @@ currency, contract-network mismatch, resource, merchant, item, excessive precisi
 expired challenge stops before a spend request is created. Denial, timeout,
 malformed output, corrupt ledger data, and replay all fail closed with redacted
 operator output.
+
+x402 contracts use the current v2 header protocol and are narrower than MPP.
+Only `exact` payments on Base Sepolia (`eip155:84532`) or Solana Devnet
+(`solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1`) are accepted. The contract binds
+the test facilitator, asset, onchain payee, atomic amount, protected resource,
+and vault signer alias before the first request:
+
+```json
+{
+  "provider": "x402",
+  "capability": "http_402",
+  "currency": "usdc",
+  "currencyExponent": 6,
+  "amountMinor": 1000,
+  "credential": { "type": "wallet_signer", "storage": "vault", "ref": "X402_TEST_SIGNER" },
+  "request": {
+    "url": "https://api.example/paid",
+    "method": "GET",
+    "network": "eip155:84532",
+    "scheme": "exact",
+    "asset": "0x...",
+    "payTo": "0x...",
+    "facilitator": "https://x402.org/facilitator"
+  }
+}
+```
+
+Vanta rejects a resource, network, asset, payee, or amount mismatch before the
+signer is called. The signer is injected and receives only the vault alias and
+validated requirement; private keys never enter the contract, receipt, or
+logs. A signed payload must repeat the same binding, and the paid response must
+carry a successful settlement on that network. Mainnet network IDs are rejected
+by the schema. A funded test-wallet transaction and any future real-money
+enablement remain separate operator decisions.
 
 External release acceptance is capability-based but still evidence-bound. It
 requires one named `delegated_fiat` authorization receipt, one named `http_402`

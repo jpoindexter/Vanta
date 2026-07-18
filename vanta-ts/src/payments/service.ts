@@ -5,6 +5,7 @@ import { appendPaymentReceipt, buildReceipt, loadPaymentReceipts, summarizePayme
 import { executeMpp, executeStripeLink, type PaymentCommandRunner, type PaymentFetch, type ProviderOutcome } from "./providers.js";
 import { executeStripeProjects, type StripeProjectsDeps, type StripeProjectsRunner } from "./projects.js";
 import { readinessForContract, type PaymentProviderReadiness } from "./readiness.js";
+import { executeX402, type X402Signer } from "./x402.js";
 
 export type PaymentApproval = (preview: string) => Promise<boolean>;
 export type PaymentProvider = (contract: PaymentContract) => Promise<ProviderOutcome>;
@@ -16,6 +17,7 @@ export type PaymentExecutionDeps = {
   readiness?: PaymentReadinessResolver;
   run?: PaymentCommandRunner;
   fetch?: PaymentFetch;
+  x402Signer?: X402Signer;
   projectsRun?: StripeProjectsRunner;
 } & Omit<StripeProjectsDeps, "run">;
 export type PaymentExecution = {
@@ -32,6 +34,7 @@ export async function previewPayment(root: string, contract: PaymentContract, no
 async function defaultProvider(root: string, contract: PaymentContract, deps: PaymentExecutionDeps): Promise<ProviderOutcome> {
   if (contract.provider === "stripe_link") return executeStripeLink(contract, deps.run);
   if (contract.provider === "mpp") return executeMpp(contract, deps.run, deps.fetch, (deps.now ?? (() => new Date()))());
+  if (contract.provider === "x402") return executeX402(contract, deps.x402Signer, deps.fetch);
   if (contract.provider === "stripe_projects") return executeStripeProjects(root, contract, { ...deps, run: deps.projectsRun });
   return { ok: false, state: "provider_unavailable", external: "not_available" };
 }
@@ -91,7 +94,7 @@ export async function executePayment(root: string, contract: PaymentContract, de
 
   const readiness = await (deps.readiness
     ? deps.readiness(contract)
-    : deps.provider ? null : readinessForContract(contract));
+    : deps.provider || (contract.provider === "x402" && deps.x402Signer) ? null : readinessForContract(contract));
   if (readiness && readiness.state !== "ready") {
     const state = readiness.state;
     await recordPaymentAuthorizationEvent(root, contract, "stopped", state === "unsupported_region" ? "unsupported_region" : state === "enrollment_required" ? "enrollment_required" : "provider_unavailable", { at: clock() });

@@ -1,6 +1,7 @@
 import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { encodePaymentRequiredHeader, encodePaymentResponseHeader } from "@x402/core/http";
 import { describe, expect, it, vi } from "vitest";
 import { PaymentContractSchema } from "./contract.js";
 import { loadPaymentAuthorizationEvents } from "./authorization.js";
@@ -17,6 +18,21 @@ function contract(id = "pay_service_1234", amountMinor = 100) {
     credential: { type: "link_cli", storage: "provider_cli" }, expiresAt: "2026-07-12T00:00:00Z",
   });
 }
+function x402Contract(id = "pay_x402_service_1234") {
+  return PaymentContractSchema.parse({
+    version: 1, environment: "test", id, provider: "x402", capability: "http_402",
+    merchant: { name: "Fixture API", url: "https://api.example" }, item: { name: "Protected response", quantity: 1 },
+    currency: "usdc", currencyExponent: 6, amountMinor: 1000,
+    caps: { perPurchaseMinor: 1000, periodMinor: 5000, period: "day" },
+    credential: { type: "wallet_signer", storage: "vault", ref: "X402_TEST_SIGNER" },
+    expiresAt: "2026-07-12T00:00:00Z",
+    request: {
+      url: "https://api.example/paid", method: "GET", network: "eip155:84532", scheme: "exact",
+      asset: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", payTo: "0x1111111111111111111111111111111111111111",
+      facilitator: "https://x402.org/facilitator",
+    },
+  });
+}
 const now = () => new Date("2026-07-11T12:00:00Z");
 
 describe("payment execution service", () => {
@@ -26,6 +42,60 @@ describe("payment execution service", () => {
     expect(await executePayment(root, contract(), { approve: async () => false, provider, now })).toMatchObject({ ok: false, state: "operator_denied", receiptRecorded: true });
     expect(provider).not.toHaveBeenCalled();
     expect((await loadPaymentReceipts(root))[0]?.status).toBe("denied");
+  });
+
+  it("requires a fresh operator approval before an x402 challenge can reach the signer", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-payment-x402-service-"));
+    const signer = vi.fn();
+    const fetchFn = vi.fn();
+    expect(await executePayment(root, x402Contract(), {
+      approve: async () => false,
+      x402Signer: signer,
+      fetch: fetchFn,
+      now,
+    })).toMatchObject({ ok: false, state: "operator_denied", receiptRecorded: true });
+    expect(fetchFn).not.toHaveBeenCalled();
+    expect(signer).not.toHaveBeenCalled();
+  });
+
+  it("records a settled, redacted x402 receipt after the approved paid retry", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-payment-x402-service-"));
+    const contract = x402Contract("pay_x402_settle_1234");
+    if (contract.provider !== "x402") throw new Error("fixture mismatch");
+    const requirement = {
+      scheme: "exact", network: contract.request.network, asset: contract.request.asset,
+      amount: String(contract.amountMinor), payTo: contract.request.payTo, maxTimeoutSeconds: 60, extra: {},
+    };
+    const fetchFn = vi.fn()
+      .mockResolvedValueOnce(new Response("", { status: 402, headers: {
+        "payment-required": encodePaymentRequiredHeader({
+          x402Version: 2, resource: { url: contract.request.url }, accepts: [requirement],
+        }),
+      } }))
+      .mockResolvedValueOnce(new Response("", { status: 200, headers: {
+        "payment-response": encodePaymentResponseHeader({
+          success: true, transaction: "0xprivate_transaction_12345678", network: contract.request.network, amount: "1000",
+        }),
+      } }));
+    const signer = vi.fn(async () => ({
+      x402Version: 2 as const,
+      resource: { url: contract.request.url },
+      accepted: requirement,
+      payload: { signature: "not-persisted" },
+    }));
+
+    await expect(executePayment(root, contract, {
+      approve: async () => true,
+      x402Signer: signer,
+      fetch: fetchFn,
+      now,
+    })).resolves.toMatchObject({ ok: true, state: "x402_settled", receiptRecorded: true });
+    const receipts = await loadPaymentReceipts(root);
+    expect(receipts.map((receipt) => receipt.status)).toEqual(["reserved", "settled"]);
+    expect(receipts.at(-1)?.providerResult.redactedId).toBe("0xpr...5678");
+    const raw = await readFile(paymentLedgerPath(root), "utf8");
+    expect(raw).not.toContain("private_transaction");
+    expect(raw).not.toContain("not-persisted");
   });
 
   it("reserves before provider execution and stores only a redacted result", async () => {

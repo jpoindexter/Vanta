@@ -72,7 +72,10 @@ describe("payment contract", () => {
     const x402 = PaymentContractSchema.parse({
       ...raw, provider: "x402", capability: "http_402",
       credential: { type: "wallet_signer", storage: "vault", ref: "X402_TEST_SIGNER" },
-      request: { url: "https://api.example/paid", method: "GET", network: "eip155:84532" },
+      request: {
+        url: "https://api.example/paid", method: "GET", network: "eip155:84532", scheme: "exact",
+        asset: "0x1234567890abcdef", payTo: "0xabcdef1234567890", facilitator: "https://x402.org/facilitator",
+      },
     });
     const tap = PaymentContractSchema.parse({
       ...raw, provider: "visa_tap", capability: "merchant_recognition",
@@ -82,11 +85,22 @@ describe("payment contract", () => {
     expect([paymentCapability(adyen), paymentCapability(x402), paymentCapability(tap)]).toEqual([
       "delegated_fiat", "http_402", "merchant_recognition",
     ]);
-    expect(paymentBinding(x402)).toMatchObject({ network: "eip155:84532", resource: "https://api.example/paid" });
+    expect(paymentBinding(x402)).toMatchObject({ network: "eip155:84532", payee: "0xabcdef1234567890", resource: "https://api.example/paid" });
     expect(PaymentContractSchema.safeParse({
       ...raw, provider: "x402", capability: "http_402",
       credential: { type: "wallet_signer", storage: "vault", ref: "X402_TEST_SIGNER", privateKey: "0xsecret" },
-      request: { url: "https://api.example/paid", network: "eip155:84532" },
+      request: {
+        url: "https://api.example/paid", network: "eip155:84532", scheme: "exact",
+        asset: "0x1234567890abcdef", payTo: "0xabcdef1234567890", facilitator: "https://x402.org/facilitator",
+      },
+    }).success).toBe(false);
+    expect(PaymentContractSchema.safeParse({
+      ...raw, provider: "x402", capability: "http_402",
+      credential: { type: "wallet_signer", storage: "vault", ref: "X402_TEST_SIGNER" },
+      request: {
+        url: "https://api.example/paid", network: "eip155:8453", scheme: "exact",
+        asset: "0x1234567890abcdef", payTo: "0xabcdef1234567890", facilitator: "https://x402.org/facilitator",
+      },
     }).success).toBe(false);
   });
 });

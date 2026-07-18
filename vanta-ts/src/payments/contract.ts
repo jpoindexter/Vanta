@@ -8,6 +8,16 @@ const Currency = z.string().regex(/^[a-z][a-z0-9]{1,11}$/, "currency must be low
 const Network = z.string().regex(/^[a-z][a-z0-9_.:-]{1,63}$/, "invalid payment network");
 const VaultAlias = z.string().regex(/^[A-Z][A-Z0-9_]{2,63}$/, "invalid vault alias");
 const HttpsUrl = z.string().url().refine((value) => new URL(value).protocol === "https:", "URL must use HTTPS");
+const ChainIdentifier = z.string().trim().min(1).max(192).refine(
+  (value) => !/[\s\u0000-\u001f\u007f]/.test(value),
+  "chain identifiers cannot contain whitespace or control characters",
+);
+
+export const X402_TEST_NETWORKS = [
+  "eip155:84532",
+  "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
+] as const;
+export const X402_TEST_FACILITATOR = "https://x402.org/facilitator" as const;
 
 export const PaymentCapabilitySchema = z.enum(["delegated_fiat", "http_402", "merchant_recognition"]);
 export type PaymentCapability = z.infer<typeof PaymentCapabilitySchema>;
@@ -68,9 +78,17 @@ const X402Schema = BaseSchema.extend({
   request: z.object({
     url: HttpsUrl,
     method: z.enum(["GET", "POST"]).default("GET"),
-    network: Network,
+    network: z.enum(X402_TEST_NETWORKS),
+    scheme: z.literal("exact"),
+    asset: ChainIdentifier,
+    payTo: ChainIdentifier,
+    facilitator: z.literal(X402_TEST_FACILITATOR),
     body: z.string().max(16_384).optional(),
-  }).strict(),
+  }).strict().superRefine((request, context) => {
+    if (request.method === "GET" && request.body !== undefined) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ["body"], message: "GET x402 requests cannot include a body" });
+    }
+  }),
 }).strict();
 
 const VisaTapSchema = BaseSchema.extend({
@@ -120,7 +138,7 @@ export function paymentBinding(contract: PaymentContract): PaymentBinding {
     expiresAt: contract.expiresAt,
     item: contract.item.name,
     network: request?.network ?? contract.provider,
-    payee: contract.merchant.url,
+    payee: contract.provider === "x402" ? contract.request.payTo : contract.merchant.url,
     resource: request?.url ?? contract.merchant.url,
   };
 }

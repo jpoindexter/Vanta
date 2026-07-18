@@ -13,9 +13,13 @@ const StateSchema = z.enum([
   "provider_failed", "receipt_recorded",
 ]);
 const ChallengeTypeSchema = z.enum(["provider_step_up", "http_402", "sca_3ds", "wallet_signature", "signed_agent_intent"]);
+const PayeeSchema = z.string().trim().min(1).max(192).refine(
+  (value) => !/[\s\u0000-\u001f\u007f]/.test(value),
+  "payment payee cannot contain whitespace or control characters",
+);
 const BindingSchema = z.object({
   amountMinor: z.number().int().nonnegative(), currency: z.string(), expiresAt: z.string().datetime({ offset: true }),
-  item: z.string(), network: z.string(), payee: z.string().url(), resource: z.string().url(),
+  item: z.string(), network: z.string(), payee: PayeeSchema, resource: z.string().url(),
 }).strict();
 
 const AuthorizationEventSchema = z.object({
