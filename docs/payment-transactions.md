@@ -13,6 +13,7 @@ vanta payments receipts
 vanta payments authorization
 vanta payments readiness --json
 vanta payments x402-wallet create --yes
+vanta payments x402-wallet status --json
 ```
 
 ```json
@@ -144,7 +145,10 @@ but never replaces a valid configured wallet. The signer receives only the
 vault alias and validated requirement; private keys never enter the contract,
 receipt, process arguments, or logs. A signed payload must repeat the same
 binding, and the paid response must carry a successful settlement on that
-network. Mainnet network IDs are rejected by the schema. The real Keychain
+network. `vanta payments x402-wallet status --json` derives only the public
+address and reads the official Base Sepolia USDC contract balance through the
+configured RPC, returning the Circle public faucet URL while unfunded. Mainnet
+network IDs are rejected by the schema. The real Keychain
 lifecycle and scoped CLI resolution passed on 2026-07-18. The generated wallet
 was unfunded, so a live facilitator settlement and paid-resource receipt remain
 an external proof gate. Any future real-money enablement is a separate operator

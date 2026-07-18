@@ -57,7 +57,7 @@ const KNOWN_ACTIONS: Record<string, string[]> = {
     "Keep real-money mode disabled; only externally executed sandbox/test receipts satisfy this gate.",
   ],
   "PAYMENT-X402-TESTNET-RAIL": [
-    "Fund `X402_TEST_SIGNER` with Base Sepolia USDC through an official interactive faucet or authenticated test account.",
+    "Run `vanta payments x402-wallet status`; if the balance is zero, send the displayed public address 20 Base Sepolia USDC through Circle's official interactive faucet, then rerun status.",
     "Execute one exact approved x402 contract against a real paid test endpoint and require a successful 2xx paid retry plus settlement transaction ID.",
     "Bind the redacted settlement evidence with `vanta roadmap proof-record PAYMENT-X402-TESTNET-RAIL <event-id> --evidence <file> --yes`.",
     "Keep mainnet network IDs and real-money execution disabled.",

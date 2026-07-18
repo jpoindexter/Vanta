@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { addVaultSecret, listVaultSecrets } from "../secrets/vault-manager.js";
 import type { KeychainRunner } from "../store/keychain.js";
-import { createX402TestWallet } from "./x402-wallet.js";
+import { createX402TestWallet, inspectX402TestWallet } from "./x402-wallet.js";
 
 const PRIVATE_KEY = `0x${"11".repeat(32)}` as `0x${string}`;
 
@@ -84,5 +84,35 @@ describe("x402 test wallet setup", () => {
       env: { VANTA_HOME: home }, platform: "darwin", keychainRun: run, generateKey: () => PRIVATE_KEY,
     })).toEqual({ ok: false, state: "keychain_write_failed" });
     await expect(readFile(join(home, "vault-secrets.json"), "utf8")).rejects.toThrow();
+  });
+
+  it("reports the public address and exact Base Sepolia USDC balance without exposing the key", async () => {
+    const readBalance = vi.fn(async () => 20_000_000n);
+    const result = await inspectX402TestWallet({
+      resolveSecret: async () => PRIVATE_KEY,
+      readBalance,
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      state: "funded",
+      network: "eip155:84532",
+      balanceAtomic: "20000000",
+      balanceUsdc: "20",
+      faucetUrl: "https://faucet.circle.com/?allow=true",
+    });
+    expect(JSON.stringify(result)).not.toContain(PRIVATE_KEY);
+    expect(readBalance).toHaveBeenCalledWith(expect.stringMatching(/^0x[0-9A-Fa-f]{40}$/));
+  });
+
+  it("keeps the public address usable when the RPC balance check fails", async () => {
+    expect(await inspectX402TestWallet({
+      resolveSecret: async () => PRIVATE_KEY,
+      readBalance: async () => { throw new Error("rpc unavailable"); },
+    })).toMatchObject({ ok: true, state: "balance_unavailable", balanceAtomic: null });
+  });
+
+  it("fails closed when the scoped wallet alias cannot be resolved", async () => {
+    expect(await inspectX402TestWallet({ resolveSecret: async () => null }))
+      .toEqual({ ok: false, state: "wallet_unavailable" });
   });
 });

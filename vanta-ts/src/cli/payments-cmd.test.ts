@@ -72,6 +72,18 @@ describe("vanta payments", () => {
     expect(lines.join("\n")).not.toContain(privateKey);
   });
 
+  it("reports x402 wallet funding status as structured data", async () => {
+    const privateKey = `0x${"11".repeat(32)}` as `0x${string}`;
+    expect(await runPaymentsCommand(root, ["x402-wallet", "status", "--json"], {
+      log: (line) => lines.push(line),
+      wallet: { resolveSecret: async () => privateKey, readBalance: async () => 20_000_000n },
+    })).toBe(0);
+    const status = JSON.parse(lines.join("\n")) as { state: string; balanceUsdc: string; address: string };
+    expect(status).toMatchObject({ state: "funded", balanceUsdc: "20" });
+    expect(status.address).toMatch(/^0x[0-9A-Fa-f]{40}$/);
+    expect(lines.join("\n")).not.toContain(privateKey);
+  });
+
   it("fails closed without echoing invalid contract contents", async () => {
     await writeFile(path, JSON.stringify({ ...contract, apiKey: "sk_live_never_echo" }), "utf8");
     expect(await runPaymentsCommand(root, ["preview", "payment.json"], { log: (line) => lines.push(line), now })).toBe(1);

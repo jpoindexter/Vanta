@@ -17,6 +17,7 @@ vanta payments receipts
 vanta payments authorization
 vanta payments readiness --json
 vanta payments x402-wallet create --yes
+vanta payments x402-wallet status --json
 ```
 
 Every version-1 transaction contract selects `delegated_fiat` or `http_402`
@@ -60,7 +61,9 @@ signer, retries the protected request once with `PAYMENT-SIGNATURE`, and
 validates `PAYMENT-RESPONSE`. `vanta payments x402-wallet create --yes` creates
 the test wallet through a native macOS Keychain adapter and registers only the
 `X402_TEST_SIGNER` alias for `payment:x402`; no key enters argv, logs, contracts,
-or receipts. Mainnet IDs and plaintext wallet keys are rejected. Both fixture
+or receipts. `vanta payments x402-wallet status --json` exposes only the public
+address and live Base Sepolia USDC balance, plus Circle's public faucet URL when
+unfunded. Mainnet IDs and plaintext wallet keys are rejected. Both fixture
 networks, a real Keychain lifecycle, scoped CLI resolution, and the
 facilitator's live support response passed on 2026-07-18. The generated wallet
 was unfunded, so a live settlement and paid-resource receipt remain an external
