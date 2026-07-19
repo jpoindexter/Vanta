@@ -1,212 +1,262 @@
-import type {ReactNode} from 'react';
-import Link from '@docusaurus/Link';
-import Layout from '@theme/Layout';
-import styles from './index.module.css';
+import type {ReactNode} from "react";
+import {useState} from "react";
+import Link from "@docusaurus/Link";
+import Layout from "@theme/Layout";
+import styles from "./index.module.css";
 
-const workflow = [
-  ['01', 'Ask', 'Give Vanta the outcome in your own words.'],
-  ['02', 'Gate', 'The Rust kernel checks scope and risk before every action.'],
-  ['03', 'Work', 'Tools, models, memory, and agents execute inside that boundary.'],
-  ['04', 'Verify', 'Tests, artifacts, and receipts show what actually happened.'],
-];
+const desktopRelease =
+  "https://github.com/jpoindexter/Vanta/releases/download/v0.9.4/Vanta-0.9.4-arm64.dmg";
+
+const screens = [
+  {
+    id: "work",
+    label: "Work",
+    title: "The task stays central.",
+    copy: "Conversation, tools, approvals, model scope, and run proof share one operator surface.",
+    image: "/img/vanta-desktop-work-dark.webp",
+    mobileImage: "/img/vanta-desktop-work-dark-mobile.webp",
+    alt: "Vanta Desktop Work view showing projects, conversation, tool receipts, model scope, and approval controls",
+  },
+  {
+    id: "connect",
+    label: "Connect",
+    title: "Setup has a visible next action.",
+    copy: "Models, capabilities, MCP, messaging, and Google show ready, unavailable, or needs-setup states.",
+    image: "/img/vanta-desktop-connect-light.webp",
+    mobileImage: "/img/vanta-desktop-connect-light-mobile.webp",
+    alt: "Vanta Desktop Connect view showing model, capability, MCP, messaging, and Google readiness",
+  },
+  {
+    id: "models",
+    label: "Models",
+    title: "Choose the model for the task.",
+    copy: "Search the live catalog, set a default, or keep a one-task override without leaving the work surface.",
+    image: "/img/vanta-desktop-models-dark.webp",
+    mobileImage: "/img/vanta-desktop-models-dark-mobile.webp",
+    alt: "Vanta Desktop model picker showing current OpenAI models and task-specific selection",
+  },
+  {
+    id: "approval",
+    label: "Approvals",
+    title: "Risk appears where the action happens.",
+    copy: "The proposed change, target file, preview, and decision remain attached to the run that requested them.",
+    image: "/img/vanta-desktop-approval-dark.webp",
+    mobileImage: "/img/vanta-desktop-approval-dark-mobile.webp",
+    alt: "Vanta Desktop approval request showing the target file, preview, allow once, and reject actions",
+  },
+] as const;
 
 const capabilities = [
-  {
-    number: '01', verb: 'Reach', title: 'One operator. Every approved surface.',
-    copy: 'Start in the terminal or desktop, then add configured messaging channels. The gateway routes the request; the execution boundary does not change.',
-    signals: ['Terminal and desktop', 'Gateway-routed channels', 'Shared session continuity'],
-    to: '/comms-and-gateway', link: 'See communication paths',
-  },
-  {
-    number: '02', verb: 'Remember', title: 'Context that survives the conversation.',
-    copy: 'Vanta preserves durable project memory, recalls prior work, and can bridge approved knowledge into Obsidian without making the model the source of truth.',
-    signals: ['Durable brain memory', 'Recall across sessions', 'Optional Obsidian bridge'],
-    to: '/skills-and-memory', link: 'Inspect memory controls',
-  },
-  {
-    number: '03', verb: 'Schedule', title: 'Standing work with explicit wake rules.',
-    copy: 'Goals, schedules, cron jobs, heartbeats, and sentinels keep recurring work moving while autonomy contracts define when Vanta acts, queues, or wakes you.',
-    signals: ['Natural-language schedules', 'Goal sentinels', 'Acts / queues / wakes'],
-    to: '/autonomy', link: 'Review autonomy contracts',
-  },
-  {
-    number: '04', verb: 'Delegate', title: 'Focused agents, not one swollen context.',
-    copy: 'Spawn agents with task-specific system prompts and model routes. Each worker gets a bounded job while the parent keeps the plan, evidence, and approval state.',
-    signals: ['Prompt presets', 'Model-aware routing', 'Bounded worker scopes'],
-    to: '/prompt-presets-and-agents', link: 'Configure agents',
-  },
-  {
-    number: '05', verb: 'Research', title: 'Answers that retain their receipts.',
-    copy: 'Decompose a question, search across sources, challenge the first answer, and preserve source, date, freshness, and uncertainty with the result.',
-    signals: ['Question decomposition', 'Source-aware synthesis', 'Freshness and uncertainty'],
-    to: '/tools', link: 'Explore research tools',
-  },
-  {
-    number: '06', verb: 'Enforce', title: 'A model cannot approve itself.',
-    copy: 'Every proposed action crosses a separate Rust kernel. Safe work proceeds, consequential work waits, and hard boundaries remain blocked.',
-    signals: ['Allow safe work', 'Ask before consequence', 'Block hard boundaries'],
-    to: '/safety-model', link: 'Read the safety model',
-  },
-];
+  ["Reach", "Desktop, terminal, Telegram, and approved gateway channels share one execution boundary.", "/comms-and-gateway"],
+  ["Remember", "Durable project memory and optional Obsidian recall survive a single conversation.", "/skills-and-memory"],
+  ["Schedule", "Goals, cron, heartbeats, and sentinels keep standing work visible and bounded.", "/autonomy"],
+  ["Delegate", "Prompt presets and model routes give spawned agents focused jobs instead of swollen context.", "/prompt-presets-and-agents"],
+  ["Research", "Source-aware research retains dates, freshness, uncertainty, and receipts.", "/tools"],
+  ["Enforce", "A separate Rust kernel allows safe work, asks before consequence, and blocks hard boundaries.", "/safety-model"],
+] as const;
 
-const boundaries = [
-  ['Allow', 'Safe, in-scope work continues.'],
-  ['Ask', 'Consequential work waits for your approval.'],
-  ['Block', 'Hard boundaries do not move, even when the model asks.'],
-];
+const executionLayers = [
+  ["Prompt", "The instruction for one call.", "Shipped"],
+  ["Context", "Project rules, memory, retrieved files, and token discipline.", "Shipped"],
+  ["Harness", "Tools, permissions, retries, hooks, and structured receipts.", "Shipped"],
+  ["Loop", "Tests and external signals decide when work stops.", "Shipped"],
+  ["Graph", "Multiple loops coordinate through typed state, routing, and human gates.", "Roadmap"],
+] as const;
 
-function SectionIntro({label, title, copy}: {label: string; title: string; copy: string}) {
-  return (
-    <div className={styles.sectionIntro}>
-      <div><p className={styles.eyebrow}>{label}</p><h2>{title}</h2></div>
-      <p>{copy}</p>
-    </div>
-  );
-}
+const executionContract = [
+  ["Ask", "Name the outcome in your own words."],
+  ["Gate", "The kernel checks scope and risk."],
+  ["Work", "Tools and agents execute inside that boundary."],
+  ["Verify", "Tests, artifacts, and receipts decide what is real."],
+] as const;
 
 export default function Home(): ReactNode {
+  const [activeScreen, setActiveScreen] = useState<(typeof screens)[number]["id"]>("work");
+  const currentScreen = screens.find((screen) => screen.id === activeScreen) ?? screens[0];
+
   return (
     <Layout
       title="Local operator for work that has to finish"
-      description="Vanta is an open-source local operator with an enforced Rust safety kernel, durable memory, automation, agents, and verified work receipts."
+      description="Vanta is an open-source local operator with a macOS desktop app, durable memory, automation, agents, and a separate Rust safety kernel."
     >
       <main className={styles.page}>
         <header className={styles.hero}>
-          <div className={styles.heroInner}>
-            <p className={styles.eyebrow}>Open source / local first / kernel gated</p>
+          <picture>
+            <source media="(max-width: 680px)" srcSet="/img/vanta-operator-mobile.webp" />
+            <img
+              className={styles.heroImage}
+              src="/img/vanta-operator.webp"
+              alt=""
+              width="1198"
+              height="1800"
+              fetchPriority="high"
+            />
+          </picture>
+          <div className={styles.heroContent}>
+            <p className={styles.releaseLine}>Desktop v0.9.4 / notarized for Apple silicon / open source</p>
             <h1>Vanta</h1>
-            <p className={styles.heroTitle}>A local operator for work that has to finish.</p>
+            <p className={styles.heroStatement}>Local intelligence. Real boundaries. Work that finishes.</p>
             <p className={styles.heroCopy}>
-              Vanta plans, uses tools, remembers context, and wakes for standing work. A separate Rust kernel checks every action before it runs.
+              Give Vanta an outcome. It plans, uses tools, remembers context, and keeps standing work moving while a separate Rust kernel checks every action.
             </p>
-            <div className={styles.actions}>
-              <Link className={styles.primaryAction} to="/quickstart">Install Vanta</Link>
-              <Link className={styles.secondaryAction} to="/use-cases">Explore workflows</Link>
-            </div>
-            <div className={styles.installLine} aria-label="Terminal install command">
+            <a className={styles.downloadAction} href={desktopRelease}>Download Vanta for macOS</a>
+            <div className={styles.terminalInstall} aria-label="Terminal install command">
               <span aria-hidden="true">$</span>
               <code>curl -fsSL https://vanta.theft.studio/install.sh | bash</code>
             </div>
-            <ul className={styles.heroFacts} aria-label="Vanta fundamentals">
-              <li>Local state</li><li>Separate Rust kernel</li><li>Inspect every run</li>
-            </ul>
           </div>
-          <p className={styles.captureLabel}>Vanta operator / local by design</p>
+          <p className={styles.heroIndex}>VNT-A / trusted local operator</p>
         </header>
 
-        <section className={styles.product} id="product" aria-labelledby="product-title">
-          <div className={styles.inner}>
-            <SectionIntro
-              label="The operator surface"
-              title="Give it the outcome. Keep the controls."
-              copy="Sessions, approvals, tools, files, terminal output, and live artifacts stay visible in one working surface."
-            />
-            <figure className={styles.productFigure}>
-              <img src="/img/vanta-desktop.png" alt="Vanta desktop showing sessions, operator chat, canvas, files, and terminal views" />
-              <figcaption>Desktop operator surface. The terminal, TUI, and approved messaging channels use the same execution boundary.</figcaption>
-            </figure>
+        <section className={styles.releaseProof} aria-label="Release verification">
+          <div className={styles.releaseProofInner}>
+            <p><strong>v0.9.4</strong><span>current desktop release</span></p>
+            <p><strong>36</strong><span>Ghost visual gates</span></p>
+            <p><strong>10 sec</strong><span>packaged-start ceiling</span></p>
+            <p><strong>Accepted</strong><span>Apple notarization</span></p>
           </div>
         </section>
 
-        <section className={styles.liveDemo} aria-labelledby="demo-title">
-          <div className={`${styles.inner} ${styles.demoGrid}`}>
-            <div className={styles.demoCopy}>
-              <p className={styles.eyebrow}>A real run</p>
-              <h2 id="demo-title">Watch the work, not a montage.</h2>
-              <p>This terminal capture shows Vanta taking an instruction through the actual operator loop. The recording is product evidence, not a concept render.</p>
+        <section className={styles.product} aria-labelledby="product-title">
+          <div className={styles.sectionFrame}>
+            <div className={styles.productHeading}>
+              <h2 id="product-title">One place to run the work and inspect the proof.</h2>
+              <p>Vanta Desktop is the daily operator surface. The terminal and approved messaging channels use the same project state and kernel boundary.</p>
             </div>
-            <figure className={styles.demoFigure}>
-              <video autoPlay muted loop playsInline controls preload="metadata" poster="/img/vanta-terminal-demo-poster.jpg" aria-label="Vanta executing a task in the terminal">
-                <source src="/img/vanta-terminal-demo.mp4" type="video/mp4" />
-              </video>
-              <figcaption>Terminal operator loop / recorded product path</figcaption>
+
+            <div className={styles.screenTabs} role="tablist" aria-label="Vanta Desktop views">
+              {screens.map((screen) => (
+                <button
+                  key={screen.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeScreen === screen.id}
+                  aria-controls="desktop-screen"
+                  id={`screen-tab-${screen.id}`}
+                  onClick={() => setActiveScreen(screen.id)}
+                >
+                  {screen.label}
+                </button>
+              ))}
+            </div>
+
+            <figure
+              className={styles.productFigure}
+              id="desktop-screen"
+              role="tabpanel"
+              aria-labelledby={`screen-tab-${currentScreen.id}`}
+            >
+              <picture key={currentScreen.id}>
+                <source media="(max-width: 680px)" srcSet={currentScreen.mobileImage} />
+                <img
+                  src={currentScreen.image}
+                  alt={currentScreen.alt}
+                  width="1440"
+                  height="960"
+                />
+              </picture>
+              <figcaption>
+                <strong>{currentScreen.title}</strong>
+                <span>{currentScreen.copy}</span>
+              </figcaption>
             </figure>
           </div>
         </section>
 
-        <section className={styles.capabilities} aria-labelledby="capabilities-title">
-          <div className={styles.inner}>
-            <SectionIntro
-              label="Six operating surfaces"
-              title="One Vanta. A longer reach."
-              copy="Each surface adds capability without replacing the execution contract underneath it."
-            />
+        <section className={styles.capabilitySection} aria-labelledby="capability-title">
+          <div className={styles.sectionFrame}>
+            <h2 id="capability-title">The operator gets broader. The boundary stays put.</h2>
+            <div className={styles.capabilityRows}>
+              {capabilities.map(([name, copy, to], index) => (
+                <article key={name}>
+                  <span aria-hidden="true">0{index + 1}</span>
+                  <h3>{name}</h3>
+                  <p>{copy}</p>
+                  <Link to={to} aria-label={`Read about ${name}`}>Read</Link>
+                </article>
+              ))}
+            </div>
           </div>
-          <ol className={styles.capabilityList}>
-            {capabilities.map((capability, index) => (
-              <li className={styles.capabilityBand} key={capability.number}>
-                <div className={`${styles.inner} ${styles.capabilityInner} ${index % 2 ? styles.capabilityReverse : ''}`}>
-                  <div className={styles.capabilityCopy}>
-                    <p className={styles.eyebrow}>#{capability.number} / {capability.verb}</p>
-                    <h3>{capability.title}</h3>
-                    <p>{capability.copy}</p>
-                    <Link className={styles.textLink} to={capability.to}>{capability.link} <span aria-hidden="true">-&gt;</span></Link>
-                  </div>
-                  <div className={styles.capabilityVisual} aria-hidden="true">
-                    <p>{capability.verb.toUpperCase()} / OPERATOR SURFACE</p>
-                    <ul>{capability.signals.map(signal => <li key={signal}><span />{signal}</li>)}</ul>
-                    <strong>VNT-{capability.number}</strong>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ol>
         </section>
 
-        <section className={styles.flow} aria-labelledby="flow-title">
-          <div className={styles.inner}>
-            <p className={styles.eyebrow}>One execution contract</p>
-            <h2 id="flow-title">Ask. Gate. Work. Verify.</h2>
-            <ol className={styles.flowGrid}>
-              {workflow.map(([number, title, copy]) => (
-                <li key={number}><span>{number}</span><h3>{title}</h3><p>{copy}</p></li>
+        <section className={styles.executionSection} aria-labelledby="execution-title">
+          <div className={styles.sectionFrame}>
+            <div className={styles.executionHeading}>
+              <h2 id="execution-title">From one instruction to an operating system for work.</h2>
+              <p>Vanta already handles the prompt, context, harness, and loop. Typed multi-agent graph orchestration is the next layer, and it remains marked as roadmap work until its real gates pass.</p>
+            </div>
+            <ol className={styles.executionLayers}>
+              {executionLayers.map(([name, copy, status]) => (
+                <li key={name}>
+                  <div><strong>{name}</strong><span>{status}</span></div>
+                  <p>{copy}</p>
+                </li>
               ))}
             </ol>
+            <Link className={styles.roadmapLink} to="/roadmap">Inspect shipped and open work</Link>
           </div>
         </section>
 
-        <section className={styles.safety} id="safety" aria-labelledby="safety-title">
-          <div className={styles.inner}>
-            <div className={styles.safetyGrid}>
+        <section className={styles.contractSection} aria-labelledby="contract-title">
+          <div className={styles.sectionFrame}>
+            <h2 id="contract-title">The model does not approve itself.</h2>
+            <p className={styles.contractLead}>Every proposed action crosses a deterministic kernel before execution. Safe work proceeds, consequential work waits, and hard boundaries remain blocked.</p>
+            <ol className={styles.contractFlow}>
+              {executionContract.map(([name, copy], index) => (
+                <li key={name}>
+                  <span aria-hidden="true">0{index + 1}</span>
+                  <h3>{name}</h3>
+                  <p>{copy}</p>
+                </li>
+              ))}
+            </ol>
+            <Link className={styles.inverseLink} to="/safety-model">Read the safety model</Link>
+          </div>
+        </section>
+
+        <section className={styles.realRun} aria-labelledby="run-title">
+          <div className={styles.sectionFrame}>
+            <div className={styles.runHeading}>
+              <h2 id="run-title">Watch a real operator run.</h2>
+              <p>No concept render and no montage. This is Vanta taking an instruction through the terminal loop.</p>
+            </div>
+            <figure className={styles.demoFigure}>
+              <video
+                autoPlay
+                muted
+                loop
+                playsInline
+                controls
+                preload="metadata"
+                poster="/img/vanta-terminal-demo-poster.webp"
+                aria-label="Vanta executing a task in the terminal"
+              >
+                <source src="/img/vanta-terminal-demo.mp4" type="video/mp4" />
+              </video>
+              <figcaption>Recorded product path / terminal operator loop</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section className={styles.installSection} aria-labelledby="install-title">
+          <div className={styles.sectionFrame}>
+            <h2 id="install-title">Give it one real task.</h2>
+            <div className={styles.installMethods}>
               <div>
-                <p className={styles.eyebrow}>The structural difference</p>
-                <h2 id="safety-title">Power without a blank check.</h2>
-                <p className={styles.safetyCopy}>
-                  The model does not grade its own safety. Vanta sends each proposed action to a separate, deterministic kernel before execution.
-                </p>
-                <Link className={styles.lightLink} to="/safety-model">Read the safety model <span aria-hidden="true">-&gt;</span></Link>
+                <h3>Vanta Desktop</h3>
+                <p>Signed, notarized, and stapled for Apple silicon.</p>
+                <a href={desktopRelease}>Download v0.9.4 DMG</a>
               </div>
-              <ol className={styles.boundaryList}>
-                {boundaries.map(([title, copy], index) => (
-                  <li key={title}><span>0{index + 1}</span><div><h3>{title}</h3><p>{copy}</p></div></li>
-                ))}
-              </ol>
-            </div>
-          </div>
-        </section>
-
-        <section className={styles.proof} aria-labelledby="proof-title">
-          <div className={styles.inner}>
-            <SectionIntro
-              label="Proof over promises"
-              title="The roadmap says what is real."
-              copy="Shipped work, active work, and external proof gates stay visible. Vanta does not turn a passing lower layer into a completion claim."
-            />
-            <div className={styles.proofActions}>
-              <Link className={styles.primaryAction} to="/roadmap">Inspect the roadmap</Link>
-              <Link className={styles.secondaryAction} to="/comparison">Compare Vanta</Link>
-            </div>
-          </div>
-        </section>
-
-        <section className={styles.finalCta} aria-labelledby="install-title">
-          <div className={styles.inner}>
-            <p className={styles.eyebrow}>Run it on your machine</p>
-            <h2 id="install-title">Install Vanta. Give it one real task.</h2>
-            <p>Start in the terminal, then add desktop, messaging, schedules, and agents when the work calls for them.</p>
-            <div className={styles.actions}>
-              <Link className={styles.primaryAction} to="/quickstart">Open quickstart</Link>
-              <a className={styles.secondaryAction} href="https://github.com/jpoindexter/Vanta">View on GitHub</a>
+              <div>
+                <h3>Terminal</h3>
+                <p>Install the operator and kernel from the command line.</p>
+                <code>curl -fsSL https://vanta.theft.studio/install.sh | bash</code>
+              </div>
+              <div>
+                <h3>Source</h3>
+                <p>Inspect the code, release evidence, and open roadmap.</p>
+                <a href="https://github.com/jpoindexter/Vanta">Open GitHub</a>
+              </div>
             </div>
           </div>
         </section>

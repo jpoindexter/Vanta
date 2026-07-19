@@ -75,7 +75,9 @@ const config: Config = {
       title: 'Vanta',
       logo: {
         alt: 'Vanta',
-        src: 'img/vanta-mark.webp',
+        src: 'img/vanta-mark-64.webp',
+        width: 32,
+        height: 32,
       },
       items: [
         {to: '/docs', label: 'Docs', position: 'left'},

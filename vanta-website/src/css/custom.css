@@ -1,85 +1,81 @@
-/* Vanta docs theme — Mintlify-style layout in Vanta's palette.
-   Vanta accents: focus #6bdcff · health #83f2b0 · activity #ffb86b · goal #b7a4ff · risk #ff6b7a */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* Vanta Ghost system: neutral ink, paper, and restrained semantic signals. */
 
 :root {
   /* Vanta accent palette */
-  --vanta-focus: #6bdcff;
-  --vanta-health: #83f2b0;
-  --vanta-activity: #ffb86b;
-  --vanta-goal: #b7a4ff;
-  --vanta-risk: #ff6b7a;
+  --vanta-focus: #20201d;
+  --vanta-health: #2d7048;
+  --vanta-activity: #9a6d1e;
+  --vanta-goal: #5d5d57;
+  --vanta-risk: #a33a3a;
 
-  /* Primary = a readable deep cyan in light mode */
-  --ifm-color-primary: #0b86a3;
-  --ifm-color-primary-dark: #0a7992;
-  --ifm-color-primary-darker: #097189;
-  --ifm-color-primary-darkest: #075d71;
-  --ifm-color-primary-light: #0d93b3;
-  --ifm-color-primary-lighter: #0f9ec1;
-  --ifm-color-primary-lightest: #16b6dd;
+  /* Primary = Ghost ink in light mode */
+  --ifm-color-primary: #20201d;
+  --ifm-color-primary-dark: #151513;
+  --ifm-color-primary-darker: #0f0f0e;
+  --ifm-color-primary-darkest: #080808;
+  --ifm-color-primary-light: #383834;
+  --ifm-color-primary-lighter: #464640;
+  --ifm-color-primary-lightest: #5f5f58;
 
-  --ifm-font-family-base: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --ifm-font-family-monospace: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --ifm-font-family-base: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  --ifm-font-family-monospace: "SFMono-Regular", ui-monospace, Menlo, Monaco, Consolas, monospace;
   --ifm-heading-font-weight: 700;
   --ifm-font-size-base: 16px;
   --ifm-line-height-base: 1.7;
   --ifm-code-font-size: 90%;
 
-  --ifm-background-color: #ffffff;
+  --ifm-background-color: #f7f7f4;
   --ifm-background-surface-color: #ffffff;
-  --ifm-navbar-background-color: rgba(255, 255, 255, 0.8);
+  --ifm-navbar-background-color: #f7f7f4;
   --ifm-navbar-height: 4rem;
   --ifm-navbar-shadow: none;
   --ifm-toc-border-color: transparent;
-  --ifm-color-emphasis-200: #eceef1;
-  --ifm-color-emphasis-300: #e2e5ea;
+  --ifm-color-emphasis-200: #dfdfda;
+  --ifm-color-emphasis-300: #cecec8;
 
-  --ifm-menu-color: #5b6675;
+  --ifm-menu-color: #5a5a55;
   --ifm-menu-color-active: var(--ifm-color-primary);
-  --ifm-menu-color-background-active: rgba(11, 134, 163, 0.08);
-  --ifm-menu-color-background-hover: rgba(11, 134, 163, 0.06);
+  --ifm-menu-color-background-active: rgba(0, 0, 0, 0.07);
+  --ifm-menu-color-background-hover: rgba(0, 0, 0, 0.04);
 
   --ifm-link-color: var(--ifm-color-primary);
   --ifm-link-hover-decoration: none;
-  --vanta-border: #e7e9ee;
+  --vanta-border: #d1d1cb;
   --vanta-card-bg: #ffffff;
   --vanta-eyebrow: var(--ifm-color-primary);
 
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.07);
-  --ifm-global-radius: 0.65rem;
+  --ifm-global-radius: 0.25rem;
 }
 
-/* Dark mode — Vanta terminal vibe: near-black surfaces, bright accents */
+/* Dark mode: warm black surfaces and neutral type. */
 [data-theme='dark'] {
-  --ifm-color-primary: #6bdcff;
-  --ifm-color-primary-dark: #4fd2ff;
-  --ifm-color-primary-darker: #3fcdff;
-  --ifm-color-primary-darkest: #12bdff;
-  --ifm-color-primary-light: #87e4ff;
-  --ifm-color-primary-lighter: #97e8ff;
-  --ifm-color-primary-lightest: #c2f2ff;
+  --ifm-color-primary: #f2f2ed;
+  --ifm-color-primary-dark: #ddddd7;
+  --ifm-color-primary-darker: #c8c8c1;
+  --ifm-color-primary-darkest: #a8a89f;
+  --ifm-color-primary-light: #ffffff;
+  --ifm-color-primary-lighter: #ffffff;
+  --ifm-color-primary-lightest: #ffffff;
 
-  --ifm-background-color: #0c0e13;
-  --ifm-background-surface-color: #11141b;
-  --ifm-navbar-background-color: rgba(12, 14, 19, 0.8);
-  --ifm-color-emphasis-200: #20242d;
-  --ifm-color-emphasis-300: #2a2f3a;
+  --ifm-background-color: #10100e;
+  --ifm-background-surface-color: #171714;
+  --ifm-navbar-background-color: #10100e;
+  --ifm-color-emphasis-200: #292925;
+  --ifm-color-emphasis-300: #383833;
 
-  --ifm-menu-color: #9aa4b2;
-  --ifm-menu-color-background-active: rgba(107, 220, 255, 0.12);
-  --ifm-menu-color-background-hover: rgba(107, 220, 255, 0.08);
+  --ifm-menu-color: #adada6;
+  --ifm-menu-color-background-active: rgba(255, 255, 255, 0.1);
+  --ifm-menu-color-background-hover: rgba(255, 255, 255, 0.06);
 
-  --vanta-border: #22262f;
-  --vanta-card-bg: #11141b;
-  --vanta-eyebrow: var(--vanta-focus);
-  --docusaurus-highlighted-code-line-bg: rgba(107, 220, 255, 0.12);
+  --vanta-border: #3c3c37;
+  --vanta-card-bg: #171714;
+  --vanta-eyebrow: #d6d6d0;
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.1);
 }
 
-/* ---------- Navbar: clean, blurred, hairline border ---------- */
+/* ---------- Navbar ---------- */
 .navbar {
-  backdrop-filter: saturate(180%) blur(12px);
   border-bottom: 1px solid var(--vanta-border);
 }
 .navbar__title { font-weight: 800; letter-spacing: 0; }
@@ -150,17 +146,15 @@ article a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .theme-admonition-caution { border-left-color: var(--vanta-activity); background: rgba(255, 184, 107, 0.09); }
 .theme-admonition-danger { border-left-color: var(--vanta-risk); background: rgba(255, 107, 122, 0.08); }
 
-/* ---------- Cards: bordered, hover-lift (Mintlify card grid) ---------- */
+/* ---------- Cards: compact and grounded ---------- */
 .card {
   border: 1px solid var(--vanta-border);
-  border-radius: 0.9rem;
+  border-radius: 0.25rem;
   background: var(--vanta-card-bg);
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease;
 }
 .card:hover {
-  transform: translateY(-2px);
   border-color: var(--ifm-color-primary);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.07);
 }
 
 /* ---------- Code ---------- */
@@ -197,33 +191,26 @@ code { border-radius: 0.4rem; }
 }
 .uc-card {
   border: 1px solid var(--vanta-border);
-  border-top-width: 3px;
-  border-radius: 0.9rem;
+  border-radius: 0.25rem;
   padding: 1rem 1.1rem 1.1rem;
   background: var(--vanta-card-bg);
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease;
 }
 .uc-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.07);
+  border-color: var(--ifm-color-primary);
 }
 .uc-card h3 { margin: 0.55rem 0 0.4rem; font-size: 1.02rem; line-height: 1.3; }
 .uc-card p { font-size: 0.86rem; color: var(--ifm-color-emphasis-700); margin: 0; line-height: 1.55; }
 .uc-tag {
   display: inline-block; font-size: 0.64rem; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.05em;
-  padding: 0.16rem 0.5rem; border-radius: 0.4rem;
+  padding: 0;
 }
-.uc-card.dev      { border-top-color: var(--vanta-focus); }
-.uc-card.dev .uc-tag      { background: rgba(107,220,255,0.14); color: #0b86a3; }
-.uc-card.assistant{ border-top-color: var(--vanta-health); }
-.uc-card.assistant .uc-tag{ background: rgba(131,242,176,0.16); color: #1f9d57; }
-.uc-card.ops      { border-top-color: var(--vanta-activity); }
-.uc-card.ops .uc-tag      { background: rgba(255,184,107,0.16); color: #b9701a; }
-.uc-card.research { border-top-color: var(--vanta-goal); }
-.uc-card.research .uc-tag { background: rgba(183,164,255,0.16); color: #6a55c7; }
-.uc-card.auto     { border-top-color: var(--vanta-risk); }
-.uc-card.auto .uc-tag     { background: rgba(255,107,122,0.14); color: #c8475a; }
+.uc-card.dev .uc-tag { color: var(--vanta-focus); }
+.uc-card.assistant .uc-tag { color: var(--vanta-health); }
+.uc-card.ops .uc-tag { color: var(--vanta-activity); }
+.uc-card.research .uc-tag { color: var(--vanta-goal); }
+.uc-card.auto .uc-tag { color: var(--vanta-risk); }
 [data-theme='dark'] .uc-card.dev .uc-tag      { color: var(--vanta-focus); }
 [data-theme='dark'] .uc-card.assistant .uc-tag{ color: var(--vanta-health); }
 [data-theme='dark'] .uc-card.ops .uc-tag      { color: var(--vanta-activity); }
@@ -242,23 +229,6 @@ code { border-radius: 0.4rem; }
 /* Let horizontal diagrams breathe to the full content width instead of mermaid's
    narrow default cap — keeps multi-node LR timelines readable. */
 .docusaurus-mermaid-container svg { max-width: 100%; height: auto; }
-
-/* ---------- Landing hero: Vanta gradient ---------- */
-.heroBanner_src-pages-index-module,
-header.hero {
-  background: radial-gradient(1200px 400px at 50% -10%, rgba(107, 220, 255, 0.16), transparent 60%),
-              linear-gradient(180deg, #0c0e13 0%, #11141b 100%);
-  color: #f2f5f8;
-}
-header.hero .hero__title { color: #ffffff; font-weight: 800; letter-spacing: 0; }
-header.hero .hero__subtitle { color: #aeb6c2; }
-header.hero .button--secondary {
-  background: var(--vanta-focus);
-  border-color: var(--vanta-focus);
-  color: #06222b;
-  font-weight: 600;
-}
-header.hero .button--secondary:hover { background: #87e4ff; border-color: #87e4ff; }
 
 /* ============================================================
    Detail polish (make-interfaces-feel-better)
@@ -285,25 +255,10 @@ html, body {
 }
 [data-theme='dark'] .markdown img { outline-color: rgba(255, 255, 255, 0.1); }
 
-/* Layered shadows over a single flat one — natural depth on hover */
-.card:hover, .uc-card:hover {
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.04),
-    0 4px 12px rgba(0, 0, 0, 0.06),
-    0 12px 32px rgba(0, 0, 0, 0.05);
-}
-[data-theme='dark'] .card:hover, [data-theme='dark'] .uc-card:hover {
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.4),
-    0 10px 30px rgba(0, 0, 0, 0.55);
-}
-
-/* Scale on press — tactile feedback on buttons (never below 0.95) */
 .button {
-  transition-property: scale, background-color, color, border-color, box-shadow;
+  transition-property: background-color, color, border-color;
   transition-duration: 0.15s;
 }
-.button:active { scale: 0.96; }
 
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
@@ -328,4 +283,5 @@ html, body {
 .footer__item { padding: 0; }
 .footer__link-item { font-size: 0.82rem; opacity: 0.85; }
 .footer__bottom { margin-top: 0; text-align: right; flex: 0 0 auto; }
-.footer__copyright { font-size: 0.78rem; opacity: 0.55; }
+.footer { background: #0f0f0e; }
+.footer__copyright { font-size: 0.78rem; opacity: 0.78; }
