@@ -27,3 +27,19 @@ test("an intentional visual mutation fails with a useful diff", () => {
   assert.match(result.reason, /1 pixels changed/);
   assert.ok(result.diff?.length);
 });
+
+test("the default visual tolerance still rejects changes beyond hosted-runner noise", () => {
+  const expected = new PNG({ width: 100, height: 100 });
+  expected.data.fill(255);
+  const actual = PNG.sync.read(PNG.sync.write(expected));
+  for (let index = 0; index < 120; index += 1) {
+    const offset = index * 4;
+    actual.data[offset] = 0;
+    actual.data[offset + 1] = 0;
+    actual.data[offset + 2] = 0;
+  }
+  const result = comparePng(PNG.sync.write(actual), PNG.sync.write(expected));
+  assert.equal(result.passed, false);
+  assert.equal(result.mismatchPixels, 120);
+  assert.match(result.reason, /1\.200%/);
+});
