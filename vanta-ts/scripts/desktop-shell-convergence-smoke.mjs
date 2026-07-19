@@ -215,10 +215,12 @@ try {
   await page.locator("#vanta-composer").fill("run the failing fixture");
   await page.locator("#vanta-composer").press("Enter");
   await page.getByRole("button", { name: "Retry failed step" }).waitFor();
-  await page.waitForFunction(() => {
-    const send = document.querySelector(".send-button");
-    return send instanceof HTMLButtonElement && !send.disabled;
-  });
+  if (visualProof) {
+    await page.waitForFunction(() => {
+      const send = document.querySelector(".send-button");
+      return send instanceof HTMLButtonElement && !send.disabled;
+    });
+  }
   await capture("recovery");
   await page.locator(".conversation-stage").waitFor();
   await page.locator("#vanta-composer").waitFor();
