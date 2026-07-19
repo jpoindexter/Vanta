@@ -19665,7 +19665,7 @@
       "status": "horizon",
       "size": "L",
       "summary": "Vanta already has executable workflow graphs, webhook templates, approval stages, dynamic orchestration, and a canvas. The missing product layer is a compact, local-first composer that lets one operator assemble those existing primitives into a reviewable workflow before it runs, without importing multi-tenant SaaS, billing, or a generic automation-platform clone.",
-      "done": "An operator can create, save, reopen, diff, validate, and launch a versioned workflow made from one trigger plus existing Vanta action, agent, browser, and human-approval nodes. Validation requires exactly one trigger, a connected acyclic graph, declared side effects and approval requirements, and typed node inputs and outputs. The launched run uses the existing workflow/kernel path and emits the existing receipts; a focused fixture proves create, invalid-graph rejection, approval pause, resume, and reopen/diff.",
+      "done": "An operator can create, save, reopen, diff, validate, and launch a versioned workflow made from one trigger plus existing Vanta action, agent, browser, and human-approval nodes. Validation requires exactly one trigger, a connected graph, declared side effects and approval requirements, typed node inputs and outputs, and an explicit iteration cap plus terminal escalation for every feedback cycle. The launched run uses the existing workflow/kernel path and emits the existing receipts; a focused fixture proves create, invalid-graph rejection, bounded reviewer-to-builder revision, approval pause, resume, and reopen/diff.",
       "tier": "rock",
       "model": "opus",
       "effort": "high",
@@ -19676,7 +19676,9 @@
         "DESKTOP-RELEASE-CANDIDATE-PROVENANCE",
         "FABRO-WORKFLOW-GRAPH",
         "WORKFLOW-ACCEPTANCE-EVIDENCE-CONTRACT",
-        "PCLIP-APPROVAL-STAGES"
+        "PCLIP-APPROVAL-STAGES",
+        "GRAPH-SHARED-RUN-STATE",
+        "GRAPH-EVIDENCE-STOP-CONTRACTS"
       ]
     },
     {
@@ -19695,8 +19697,137 @@
       "source": "workflow-builder-transcript-2026-07-19",
       "after": [
         "WORKFLOW-COMPOSER-V1",
+        "GRAPH-SHARED-RUN-STATE",
         "SCHEMA-TASK-ENVIRONMENT-CONTRACT",
         "SCHEMA-TRANSITION-TIMELINE"
+      ]
+    },
+    {
+      "id": "GRAPH-SHARED-RUN-STATE",
+      "track": "Harness",
+      "title": "Graph shared run state — typed coordination without one giant conversation",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Vanta's graph runner already branches, loops, and fans out, but its state is an in-memory results map and each agent node receives only its own instruction. Replace transcript-shaped coordination with a durable, typed run state that workers can read and update through declared fields and artifact references while preserving provenance, redaction, and kernel scope.",
+      "done": "A versioned graph run persists graph revision, node attempts, typed outputs, artifact references, decisions, budgets, approvals, and state mutations atomically under the project; each node declares the state fields it may read and write; concurrent writes are deterministic or rejected as conflicts; secrets are references rather than values; restart resumes from the last committed transition without rerunning confirmed side effects; fixtures prove fan-out/fan-in, conflict handling, redaction, crash recovery, and state-schema migration.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "agent-loop",
+      "source": "graph-engineering-extraction-2026-07-19",
+      "after": [
+        "FABRO-WORKFLOW-GRAPH",
+        "LOOP-STATE",
+        "SCHEMA-TASK-ENVIRONMENT-CONTRACT",
+        "SCHEMA-TRANSITION-TIMELINE"
+      ]
+    },
+    {
+      "id": "GRAPH-EVIDENCE-STOP-CONTRACTS",
+      "track": "Harness",
+      "title": "Graph completion contracts — stop on evidence, budget, or escalation",
+      "status": "horizon",
+      "size": "M",
+      "summary": "A node saying it is done is not a graph stop condition. Bind node and graph completion to executable evidence such as tests, artifact checks, rubric verdicts, approvals, no-progress detection, and hard budgets, with an explicit unmet or exhausted outcome instead of silently treating a loop cap as success.",
+      "done": "Every executable graph declares success, failure, pause, exhausted, and cancelled conditions using typed checks over receipts and shared state; model prose alone cannot satisfy a verifiable condition; loop exhaustion returns exhausted with the unmet condition and recovery action rather than done; wall-clock, step, token, cost, and no-progress budgets halt deterministically; fixtures prove false self-completion rejection, passing and failing tests, reviewer approval, budget exhaustion, cancellation, and restart-stable stop reasons.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "agent-loop",
+      "source": "graph-engineering-extraction-2026-07-19",
+      "after": [
+        "GRAPH-SHARED-RUN-STATE",
+        "LOOP-GATES-BUDGETS",
+        "LOOP-VERIFY",
+        "STEP-VERIFY",
+        "WORKFLOW-ACCEPTANCE-EVIDENCE-CONTRACT"
+      ]
+    },
+    {
+      "id": "GRAPH-REVIEW-REWORK-CYCLE",
+      "track": "Harness",
+      "title": "Graph review/rework cycle — reviewer findings route back to the builder",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Vanta has review stages and loop transitions, but the graph does not yet hand structured reviewer findings back to the builder. Make rejection a first-class bounded feedback edge: an independent reviewer writes findings to shared state, the builder receives those findings, and the next review checks the revised artifact rather than starting a disconnected chat.",
+      "done": "A graph can declare a builder, independent reviewer, revision edge, acceptance edge, maximum attempts, and terminal human escalation; rejection writes rubric item, evidence, affected artifact, severity, and requested change into shared state; the builder's next attempt receives that exact packet; acceptance requires current-artifact evidence; fixtures prove reject-revise-accept, repeated rejection escalation, stale-review rejection, maker/reviewer isolation, cancellation, and kernel-gated side effects.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "agent-loop",
+      "source": "graph-engineering-extraction-2026-07-19",
+      "after": [
+        "WORKFLOW-DATA-HANDOFF-CONTRACTS",
+        "GRAPH-EVIDENCE-STOP-CONTRACTS",
+        "PCLIP-APPROVAL-STAGES",
+        "CRITIQUE-REUSE"
+      ]
+    },
+    {
+      "id": "GRAPH-ADAPTIVE-TOPOLOGY-POLICY",
+      "track": "Harness",
+      "title": "Adaptive graph policy — spawn, collapse, and route within hard bounds",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Let a run adapt its organization without letting model prose rewrite the harness. A deterministic policy may add a scoped researcher when evidence confidence is low, collapse trivial work to one node, choose a cheaper eligible model when budget is tight, or escalate to a human when risk or uncertainty crosses a declared threshold.",
+      "done": "A graph declares allowed node templates, provider/model classes, fan-out cap, depth cap, token/cost/time budgets, confidence thresholds, and escalation routes before execution; the scheduler can propose and apply only policy-valid topology changes; every change records trigger evidence, before/after graph revision, budget impact, and kernel verdict; untrusted node output cannot grant tools or scope; fixtures prove low-confidence fan-out, trivial-task collapse, budget routing, risk escalation, denied mutation, replay, and no unbounded spawn or livelock.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "agent-loop",
+      "source": "graph-engineering-extraction-2026-07-19",
+      "after": [
+        "GRAPH-REVIEW-REWORK-CYCLE",
+        "GRAPH-EVIDENCE-STOP-CONTRACTS",
+        "TRUST-LEDGER-AUTONOMY",
+        "RUBRIC-ENGINE"
+      ]
+    },
+    {
+      "id": "GRAPH-OPERATOR-REPLAY-HANDOFF",
+      "track": "Operator",
+      "title": "Graph operator replay — inspect decisions, state diffs, and handoffs",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Move parallel-session coordination out of the operator's working memory. Give each run an inspectable timeline showing which node acted, what state changed, why an edge was selected, what evidence satisfied or failed a gate, what it cost, and where a human intervened, without dumping every private worker transcript into the main chat.",
+      "done": "CLI and Desktop can open a graph run, follow live node status, inspect redacted state diffs and artifact references, see edge-selection and stop-condition receipts, pause/cancel/retry from a safe checkpoint, and export a compact handoff packet; replay distinguishes deterministic recorded decisions from non-deterministic model calls and never replays side effects by default; compact and failure fixtures prove parallel work, review/rework, approval, crash recovery, and operator takeover.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "tui",
+      "source": "graph-engineering-extraction-2026-07-19",
+      "after": [
+        "GRAPH-SHARED-RUN-STATE",
+        "GRAPH-REVIEW-REWORK-CYCLE",
+        "SCHEMA-DESKTOP-TRACE-EXPLORER",
+        "HANDOFF-PACKET"
+      ]
+    },
+    {
+      "id": "GRAPH-ENGINEERING-V1-RELEASE-GATE",
+      "track": "Harness",
+      "title": "Graph engineering v1 release gate — organization executes and explains itself",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Prove the complete organizational layer rather than shipping isolated graph plumbing. One real task must move through planning, parallel evidence gathering, building, independent review, bounded rework, human approval, and verified completion using shared state and recoverable receipts.",
+      "done": "A fresh project runs one real workflow with planner, at least two parallel researchers, builder, independent reviewer, reviewer-to-builder rejection edge, human approval, and executable final gate; the run survives a forced restart, resumes without duplicating confirmed effects, stays within declared budgets, produces an operator replay and handoff packet, and ends only when the real acceptance check passes; a low-confidence fixture proves bounded adaptive fan-out and a failed fixture proves exhausted/escalated rather than false done.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "agent-loop",
+      "source": "graph-engineering-extraction-2026-07-19",
+      "after": [
+        "WORKFLOW-COMPOSER-V1",
+        "WORKFLOW-DATA-HANDOFF-CONTRACTS",
+        "GRAPH-REVIEW-REWORK-CYCLE",
+        "GRAPH-ADAPTIVE-TOPOLOGY-POLICY",
+        "GRAPH-OPERATOR-REPLAY-HANDOFF"
       ]
     },
     {

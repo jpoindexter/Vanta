@@ -81,3 +81,7 @@ Before any tool call the agent knows internally which active goal the action ser
 ## Provider-agnostic
 
 The loop only sees the `LLMProvider` interface (`complete` / `modelId` / `contextWindow`). Swapping OpenAI for a local Ollama model, or routing cheap vs expensive tasks to different models, never touches the loop. See [Providers](./providers.md).
+
+## From loops to graphs
+
+A loop decides what happens next inside one bounded worker. A graph coordinates several workers, tools, and people through typed shared state and conditional transitions. Vanta already supports declarative branches, bounded loops, parallel nodes, and approval gates; the remaining product work is durable state handoff, structured review/rework edges, evidence-based graph completion, bounded adaptive topology, and operator replay. See [Graph engineering](./graph-engineering.md).

@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1258 capabilities shipped · 0 in flight · 10 external proof gates · 5 on the horizon. Updated 2026-07-19._
+_1258 capabilities shipped · 0 in flight · 10 external proof gates · 11 on the horizon. Updated 2026-07-19._
 
 ## In flight
 
@@ -65,11 +65,17 @@ Directional, not committed — grouped by area, newest thinking first.
 - Desktop cold-operator release proof — one useful task without repo knowledge
 - Desktop release-candidate provenance — notarize and bind the exact commit
 
-### Harness — 1 planned
+### Harness — 6 planned
 
 - Workflow data handoffs — typed references with preflight and redaction
+- Graph shared run state — typed coordination without one giant conversation
+- Graph completion contracts — stop on evidence, budget, or escalation
+- Graph review/rework cycle — reviewer findings route back to the builder
+- Adaptive graph policy — spawn, collapse, and route within hard bounds
+- Graph engineering v1 release gate — organization executes and explains itself
 
-### Operator — 2 planned
+### Operator — 3 planned
 
 - Workflow composer v1 — compose Vanta primitives without rebuilding n8n
+- Graph operator replay — inspect decisions, state diffs, and handoffs
 - Browser workflow boundary — observe, extract, and act under explicit policy
