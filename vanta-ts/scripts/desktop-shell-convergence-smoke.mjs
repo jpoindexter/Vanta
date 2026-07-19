@@ -76,6 +76,35 @@ try {
     const text = message.text();
     if (message.type() === "error" && !text.includes("Failed to load resource")) rendererErrors.push(`console error: ${text}`);
   });
+  const visualApiFixtures = new Map([
+    ["/api/capabilities", [
+      { id: "read-file", kind: "tool", name: "Read file", description: "Read project files inside the kernel boundary.", tags: ["project"] },
+      { id: "release-proof", kind: "skill", name: "Release proof", description: "Verify signed release evidence.", tags: ["release"] },
+    ]],
+    ["/api/messaging", [{
+      id: "telegram", label: "Telegram", status: "needs_setup", configured: false, missing: ["token"],
+      setupSteps: ["Create a bot token."], accessMode: "allowlist", allowedCount: 0,
+      fields: [{ key: "token", label: "Bot token", secret: true, required: true }],
+    }]],
+    ["/api/connect/google", { status: "needs_setup", clientConfigured: false, authorized: false, message: "Add a Google Desktop app client JSON when Google Workspace is useful." }],
+    ["/api/release-proofs", {
+      commit: "visual-proof", ready: false,
+      accounts: [
+        { id: "codex", label: "Codex", kind: "model_provider", requiredAction: "turn", stage: "tested" },
+        { id: "google-workspace", label: "Google Workspace", kind: "workspace", requiredAction: "read", stage: "configured" },
+        { id: "telegram", label: "Telegram", kind: "messaging_channel", requiredAction: "reply", stage: "catalog" },
+      ],
+    }],
+  ]);
+  for (const [pathname, body] of visualApiFixtures) {
+    await page.route(`**${pathname}`, async (route) => {
+      if (route.request().method() !== "GET") {
+        await route.continue();
+        return;
+      }
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
+    });
+  }
   async function capture(surface) {
     if (visualProof) {
       visualResults.push(...await captureVisualMatrix(page, surface, {
@@ -136,6 +165,7 @@ try {
     approvalIndex += 1;
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
   });
+  await page.reload();
 
   await page.locator(".app-shell").waitFor();
   try {
@@ -283,6 +313,8 @@ try {
 
   await page.getByRole("button", { name: "Connect", exact: true }).click();
   await page.locator(".operator-view").getByRole("heading", { name: "Connect", exact: true }).waitFor();
+  await page.locator(".connect-card").filter({ hasText: "Capabilities" }).getByText("2 available", { exact: true }).waitFor();
+  await page.locator(".connect-card").filter({ hasText: "Messaging" }).getByText(/1 available adapters\./).waitFor();
   await capture("setup");
 
   await page.getByRole("button", { name: "Work", exact: true }).click();
