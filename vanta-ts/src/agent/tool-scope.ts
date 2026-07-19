@@ -17,7 +17,7 @@ const GROUPS: Record<string, string[]> = {
   research: ["web_search", "web_fetch", "browser_read", "browser_navigate", "screenshot", "life_search", "ref_search", "ref_ingest"],
   comms: ["gmail_search", "gmail_read", "gmail_draft", "calendar_read", "send_message"],
   business: ["money", "radar", "world", "life_search", "graph_query"],
-  ops: ["todo", "loop", "team", "regression_lock", "roadmap_move", "roadmap_add"],
+  ops: ["todo", "loop", "team", "regression_lock", "roadmap_status", "roadmap_move", "roadmap_add"],
   media: ["describe_image", "compare_vision", "look_at_screen", "look_at_camera", "transcribe", "speak"],
   // VANTA-AGENT-ROUTING-DISCOVERY: any cross-agent mention must keep call_agent's
   // schema callable (under scoping it was hidden → the model shelled out instead).

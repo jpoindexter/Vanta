@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { roadmapAddTool } from "./roadmap-add.js";
 import { roadmapMoveTool } from "./roadmap-move.js";
+import { roadmapStatusTool } from "./roadmap-status.js";
 import type { ToolContext } from "./types.js";
 
 let root = "";
@@ -60,5 +61,23 @@ describe("roadmap_move tool", () => {
     };
     const status = parameters.properties.status;
     expect(status.enum).toEqual(["shipped", "building", "blocked", "next", "horizon", "parked"]);
+  });
+});
+
+describe("roadmap_status tool", () => {
+  it("reports roadmap work rather than the unrelated active-goal ledger", async () => {
+    await workspace();
+    const res = await roadmapStatusTool.execute({}, ctx());
+    expect(res).toMatchObject({ ok: true });
+    expect(res.output).toContain("total: 1");
+    expect(res.output).toContain("actionable open roadmap work: 1");
+    expect(res.output).toContain("EXISTING (next)");
+  });
+
+  it("can return only actionable roadmap cards", async () => {
+    await workspace();
+    const res = await roadmapStatusTool.execute({ view: "actionable" }, ctx());
+    expect(res).toMatchObject({ ok: true });
+    expect(res.output).toContain("EXISTING (next)");
   });
 });

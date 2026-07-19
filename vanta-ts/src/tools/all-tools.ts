@@ -13,6 +13,7 @@ import { terminalCaptureTool } from "./terminal-capture-tool.js";
 import { voiceInputTool } from "./voice-input-tool.js";
 import { roadmapMoveTool } from "./roadmap-move.js";
 import { roadmapAddTool } from "./roadmap-add.js";
+import { roadmapStatusTool } from "./roadmap-status.js";
 import { webSearchTool } from "./web-search.js";
 import { webFetchTool } from "./web-fetch.js";
 import { writeSkillTool } from "./write-skill.js";
@@ -171,6 +172,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   sleepTool,
   roadmapMoveTool,
   roadmapAddTool,
+  roadmapStatusTool,
   webSearchTool,
   webFetchTool,
   writeSkillTool,

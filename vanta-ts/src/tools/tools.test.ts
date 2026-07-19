@@ -140,6 +140,7 @@ describe("registry", () => {
       "review_artifact",
       "roadmap_add",
       "roadmap_move",
+      "roadmap_status",
       "rss_read",
       "run_code",
       "run_maximizer",
