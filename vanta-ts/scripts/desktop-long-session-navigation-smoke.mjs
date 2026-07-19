@@ -63,7 +63,9 @@ try {
 
   const streamView = await detachAndPersist(page, 0.52);
   let eventRequests = 0;
-  await page.route("**/api/events", async (route) => {
+  // The Electron preload boundary appends ?boundary=<token> to SSE requests.
+  // Match the full URL so this proof intercepts the live secured endpoint.
+  await page.route("**/api/events**", async (route) => {
     eventRequests += 1;
     if (eventRequests === 1) await delay(2500);
     await route.fulfill({ status: 200, contentType: "text/event-stream", body: eventRequests === 1 ? `data: ${JSON.stringify({ label: "", delta: "streamed while reading" })}\n\n` : "" });
