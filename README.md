@@ -1,20 +1,47 @@
 # Vanta
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md) [![Docs](https://img.shields.io/badge/docs-vanta.theft.studio-6d28d9.svg)](https://docs.vanta.theft.studio)
+[![Release](https://img.shields.io/github/v/release/jpoindexter/Vanta?display_name=tag&label=desktop%20release)](https://github.com/jpoindexter/Vanta/releases/latest) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Docs](https://img.shields.io/badge/docs-vanta.theft.studio-111111.svg)](https://docs.vanta.theft.studio) [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
+**Local intelligence. Real boundaries. Work that finishes.**
+
+Vanta is an open-source local AI operator for work that crosses tools, files, research, automation, and messaging. Give it an outcome; it plans, acts, remembers context, and verifies the result. A separate Rust kernel gates every action so the model does not approve itself.
 
 <p align="center">
-  <img src="assets/vanta-demo.gif" alt="Vanta TUI: a goal in, a kernel-gated shell tool call, a verified answer out" width="820">
+  <img src="https://raw.githubusercontent.com/jpoindexter/Vanta/main/vanta-website/static/img/vanta-desktop-work-dark.webp" alt="Vanta Desktop Work view showing an agent task, tool activity, approvals, and model scope" width="960">
 </p>
 
-A local trusted-operator agent runtime. The agent that knows the goal, knows the boundary, acts verified.
+## Start here
 
-Goal-aware, boundary-enforced operation with visible decisions before action.
+- **[Download Vanta Desktop for macOS](https://github.com/jpoindexter/Vanta/releases/download/v0.9.4/Vanta-0.9.4-arm64.dmg)** — signed, notarized, and stapled for Apple Silicon.
+- **[Read the release notes and see the product screens](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.4)** — Work, Connect, Models, Approvals, checksums, and release proof.
+- **[Read the docs](https://docs.vanta.theft.studio/)** — setup, safety model, agents, memory, MCP, messaging, and the live roadmap.
 
-Two layers:
-- **`src/` — Rust safety kernel** (`vanta-kernel`): the enforced security boundary — risk classifier, approval queue, goal ledger, event log, HTTP sidecar.
-- **`vanta-ts/` — TypeScript agent layer** (`vanta`): the agent loop — LLM providers, tools, three-tier prompt, goal-aware execution that gates every action through the kernel.
+## What ships in Desktop v0.9.4
 
-See `docs/prd.md` for the full roadmap.
+Vanta Desktop is the native macOS surface for the same Vanta agent that runs in the terminal and approved messaging channels. It includes:
+
+- **Work** — chat, live tool activity, run receipts, files, model scope, approvals, and recovery in one task surface.
+- **Connect** — setup states for model providers, skills, MCP servers, messaging channels, and Google services.
+- **Models** — a live catalog with default and one-task model selection.
+- **Outputs** — generated files, previews, diffs, receipts, and other run artifacts.
+- **Kernel-gated execution** — safe work proceeds; consequential work asks; blocked work stays blocked.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/jpoindexter/Vanta/main/vanta-website/static/img/vanta-desktop-connect-light.webp" alt="Vanta Desktop Connect view with provider, capability, MCP, messaging, and Google setup states" width="960">
+</p>
+
+The public `v0.9.4` artifact includes the notarized ARM64 DMG and ZIP, checksum, plus checksum-paired kernel binaries for macOS, Linux, Android/Termux, and Windows. Its exact-tag proof covers 36 Ghost light/dark visual captures, packaged startup under a 10-second hard ceiling, Gatekeeper on a clean Mac, and native Windows coverage.
+
+<details>
+<summary>Architecture</summary>
+
+- **`src/` — Rust safety kernel** (`vanta-kernel`): the enforced boundary for risk classification, approvals, goal state, and audit events.
+- **`vanta-ts/` — TypeScript agent layer** (`vanta`): model providers, tools, durable context, and the goal-aware agent loop.
+- **`vanta-ts/desktop-app/` — React/Electron desktop app**: the native operator surface; it does not duplicate the agent runtime.
+
+</details>
+
+See [the full product roadmap](https://docs.vanta.theft.studio/roadmap) for shipped work, live proof, and remaining external gates.
 
 ## Install
 
