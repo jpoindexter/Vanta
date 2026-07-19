@@ -19634,7 +19634,7 @@
       "title": "Desktop release-candidate provenance — notarize and bind the exact commit",
       "status": "horizon",
       "size": "M",
-      "summary": "The v0.9.4 candidate binds the desktop cold-start repair, 36-capture Ghost visual proof, signed app, notarized DMG, checksum, and clean-Mac Gatekeeper workflow to one tagged commit. Apple accepted submission 374f7536-59ba-4657-a437-b6d151d81445 and the stapled local DMG passed Gatekeeper; the card remains gated by the exact public-artifact clean-Mac run and separate fresh non-developer cold-operator proof.",
+      "summary": "The v0.9.4 release binds the desktop cold-start repair, 36-capture Ghost visual proof, signed app, notarized DMG, checksum, and clean-Mac Gatekeeper workflow to tag commit d8b30e1f. Apple accepted submission 374f7536-59ba-4657-a437-b6d151d81445, and the exact public artifact passed checksum, staple, quarantine, signature, and Gatekeeper verification in run 29691840769. The card remains gated only by the separate fresh non-developer cold-operator proof.",
       "done": "The exact commit proposed for release runs the full desktop release gate, receives Apple notary acceptance, staples and validates the DMG, passes Gatekeeper after quarantine on a clean macOS account or machine, and publishes a receipt containing commit, version, artifact checksum, signing identity, notarization submission, proof-packet IDs, and test results; changing any packaged source invalidates the receipt.",
       "tier": "rock",
       "model": "sonnet",
@@ -19642,6 +19642,8 @@
       "codex": "gpt-5.6-terra",
       "lens": "infra",
       "source": "blind-audit-vanta-desktop-2026-07-18",
+      "updated": "2026-07-19",
+      "notes": "PUBLIC ARTIFACT PROVEN 2026-07-19: v0.9.4 is tagged at d8b30e1f; Apple notarization submission 374f7536-59ba-4657-a437-b6d151d81445 was accepted; Vanta-0.9.4-arm64.dmg SHA-256 is f9556698e3a5bc5b2b5679f919238f924c19b366c366b2122aa8324a9eb301a3. Clean hosted-Mac run https://github.com/jpoindexter/Vanta/actions/runs/29691840769 downloaded the public DMG and passed checksum, staple, DMG signature, quarantined app signature, and Gatekeeper assessment. Exact-tag desktop visual/performance run https://github.com/jpoindexter/Vanta/actions/runs/29691598089 passed. This card remains horizon because DESKTOP-COLD-OPERATOR-RELEASE-PROOF still requires a fresh non-developer usability run.",
       "after": [
         "DESKTOP-MESSAGE-FIDELITY-INTRAWORD-UNDERSCORES",
         "DESKTOP-SESSION-DRAFT-OWNERSHIP",

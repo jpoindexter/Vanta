@@ -31,7 +31,7 @@ The use-case catalog currently records 6 executed and 6 passed scenarios across 
 
 ## Release boundary
 
-The public [v0.9.4 desktop artifact](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.4) binds the desktop cold-start repair to one tagged commit and checksum. Apple accepted notarization submission `374f7536-59ba-4657-a437-b6d151d81445`; the stapled DMG passed local Gatekeeper as `Notarized Developer ID` and has SHA-256 `f9556698e3a5bc5b2b5679f919238f924c19b366c366b2122aa8324a9eb301a3`. The exact public artifact is submitted to the clean-Mac Gatekeeper workflow after publication. The previous public v0.9.2 artifact passed that same independent download-and-quarantine gate in [run 29249460403](https://github.com/jpoindexter/Vanta/actions/runs/29249460403).
+The public [v0.9.4 desktop artifact](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.4) binds the desktop cold-start repair to tag commit `d8b30e1f` and one checksum. Apple accepted notarization submission `374f7536-59ba-4657-a437-b6d151d81445`; the DMG has SHA-256 `f9556698e3a5bc5b2b5679f919238f924c19b366c366b2122aa8324a9eb301a3`. The exact GitHub-downloaded artifact passed checksum, staple, DMG signature, quarantined app signature, and Gatekeeper verification on a clean hosted Mac in [run 29691840769](https://github.com/jpoindexter/Vanta/actions/runs/29691840769).
 
 Provider credentials, physical devices, and third-party accounts remain separate external gates. Run `vanta roadmap proof-status` for the exact ten parked proofs.
 

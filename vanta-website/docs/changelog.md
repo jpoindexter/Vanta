@@ -8,6 +8,12 @@ sidebar_position: 2
 
 Major capability milestones, newest first. This is a curated highlight reel — the full per-slice history lives in `roadmap.json`.
 
+## 2026-07-19 — v0.9.4 desktop release
+- **Notarized public desktop build** — the Apple Silicon DMG and ZIP are published with checksum and Apple submission `374f7536-59ba-4657-a437-b6d151d81445`.
+- **Independent Gatekeeper proof** — a clean hosted Mac downloaded the public DMG, verified its checksum and staple, quarantined the extracted app, and passed signature and Gatekeeper assessment.
+- **Release regression boundary** — 36 Ghost light/dark captures, three fresh-profile startup samples, first-use latency, memory, CPU, and package-size budgets run in CI against the tagged source.
+- **Cold-start repair** — critical Work data enables the composer without waiting for optional Connect, Outputs, Canvas, messaging, or release-proof data.
+
 ## 2026-07-17 — desktop session safety
 - **Recoverable session operations** — archive and Trash now expose pending, success, error, and Undo states; permanent deletion is restricted to confirmed actions from Trash.
 - **Bulk session control** — Select chats supports Shift-click ranges, All visible, bulk archive/restore, bulk Trash Undo, and explicit bulk permanent deletion.

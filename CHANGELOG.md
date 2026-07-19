@@ -12,6 +12,7 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - Added actionable boot-state diagnostics to the Electron convergence proof and made feedback/recovery assertions wait for committed UI state instead of racing React updates.
 - Refreshed the 36-capture Ghost light/dark visual baseline against the current 142-tool release UI, including setup, recovery, approvals, model selection, bulk sessions, and responsive layouts.
 - Calibrated the signed-package cold-start budget against fresh local and hosted macOS ARM64 measurements: the regression boundary uses the median of three fresh-profile launches, and every sample retains a 10-second hard ceiling.
+- Published the notarized Apple Silicon DMG and ZIP; the exact public download passed checksum, staple, quarantine, signature, and Gatekeeper verification on a clean hosted Mac.
 
 ## v0.9.3 — 2026-07-19
 

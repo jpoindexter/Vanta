@@ -27,6 +27,6 @@ The versioned catalog currently has **6 executed, 6 passed, 0 failed** scenarios
 - The 36-capture Ghost visual matrix passed at three viewport widths in light and dark mode.
 - Packaged cold-start regression uses the median of three fresh-profile launches; every launch must also remain below the independent 10-second hard ceiling.
 
-The public [notarized v0.9.4 desktop build](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.4) includes the desktop cold-start repair and its current Ghost visual proof. Its tagged DMG, checksum, notarization receipt, and clean-Mac Gatekeeper run form one release record. Third-party credentials, physical devices, provider accounts, and the fresh non-developer desktop study remain separate [external acceptance gates](./roadmap).
+The public [notarized v0.9.4 desktop build](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.4) includes the desktop cold-start repair and its current Ghost visual proof. Its tagged DMG, checksum, notarization receipt, and [clean-Mac Gatekeeper run](https://github.com/jpoindexter/Vanta/actions/runs/29691840769) form one release record. Third-party credentials, physical devices, provider accounts, and the fresh non-developer desktop study remain separate [external acceptance gates](./roadmap).
 
 Repository details and reproduction commands live in `docs/product-acceptance.md`.
