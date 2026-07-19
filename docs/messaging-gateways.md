@@ -8,7 +8,9 @@
 The abstraction is done. `gateway/platforms/base.ts` defines `PlatformAdapter`:
 `{ id, connect(), disconnect(), send(OutboundMessage), poll(): InboundMessage[] }`.
 **Telegram ships on it** (`gateway/platforms/telegram.ts`, pure-fetch Bot API long-poll).
-`gateway/run.ts` polls `deps.platform` each tick. So every new platform is **one adapter
+`gateway/run.ts` polls `deps.platform` on the fast channel cadence (1 second by
+default, configurable with `VANTA_CHANNEL_POLL_MS`) while cron, sentinels, loops,
+and watchdog maintenance stay on `VANTA_GATEWAY_TICK_MS`. So every new platform is **one adapter
 file + registration** — no core changes.
 
 ## Per-platform approach for a local macOS operator

@@ -41,11 +41,15 @@ import type { ExpandDeps } from "../context/ref-expand.js";
 import { writeGatewayReadiness } from "./readiness-state.js";
 
 const DEFAULT_TICK_MS = 60_000;
+const DEFAULT_CHANNEL_POLL_MS = 1_000;
 
 export type GatewayDeps = {
   dataDir: string;
   run: RunTask;
+  /** Maintenance cadence for cron, sentinels, loops, and watchdog work. */
   tickMs?: number;
+  /** Inbound channel polling cadence. Kept separate so chat stays responsive. */
+  channelPollMs?: number;
   now?: () => Date;
   log?: (msg: string) => void;
   load?: (dataDir: string) => Promise<CronEntry[]>;
@@ -200,8 +204,11 @@ function logChannelHealth(
 type GatewayLoopArgs = {
   deps: GatewayDeps;
   tickMs: number;
+  channelPollMs: number;
   log: (msg: string) => void;
   isRunning: () => boolean;
+  /** Deterministic smoke/test bound; production leaves the loop unbounded. */
+  maxCycles?: number;
 };
 
 /** Start the push-channel ingress owned by the configured adapter, if any. */
@@ -243,15 +250,22 @@ export async function startWorkflowWebhooks(
   });
 }
 
-/** The gateway's tick→poll→sleep loop, run for as long as `isRunning()`. */
-async function runGatewayLoop(args: GatewayLoopArgs): Promise<void> {
-  const { deps, tickMs, log, isRunning } = args;
+/** The gateway's maintenance→poll→sleep loop, run for as long as `isRunning()`. */
+export async function runGatewayLoop(args: GatewayLoopArgs): Promise<void> {
+  const { deps, tickMs, channelPollMs, log, isRunning, maxCycles } = args;
   let session: SessionState = initialState();
   let seen: SeenIds = newSeenIds();
   let health: ChannelHealth[] = [];
-  while (isRunning()) {
+  let nextMaintenanceAt = 0;
+  let cycles = 0;
+  while (isRunning() && (maxCycles === undefined || cycles < maxCycles)) {
+    cycles += 1;
     try {
-      await gatewayTick(deps);
+      const now = Date.now();
+      if (now >= nextMaintenanceAt) {
+        nextMaintenanceAt = now + tickMs;
+        await gatewayTick(deps);
+      }
       const polled = await pollPlatformSession(deps, session, seen);
       session = polled.state;
       seen = polled.seen;
@@ -260,12 +274,20 @@ async function runGatewayLoop(args: GatewayLoopArgs): Promise<void> {
     } catch (err) {
       log(`vanta gateway: tick error — ${err instanceof Error ? err.message : String(err)}`);
     }
-    await sleepInterval(tickMs, isRunning);
+    const untilMaintenance = Math.max(0, nextMaintenanceAt - Date.now());
+    const waitMs = deps.platform
+      ? Math.min(channelPollMs, untilMaintenance)
+      : untilMaintenance;
+    const finishedBoundedRun = maxCycles !== undefined && cycles >= maxCycles;
+    if (waitMs > 0 && !finishedBoundedRun) await sleepInterval(waitMs, isRunning);
   }
 }
 
 export async function runGateway(deps: GatewayDeps): Promise<void> {
-  const tickMs = deps.tickMs ?? DEFAULT_TICK_MS;
+  const tickMs = deps.tickMs !== undefined && deps.tickMs > 0 ? deps.tickMs : DEFAULT_TICK_MS;
+  const channelPollMs = deps.channelPollMs !== undefined && deps.channelPollMs > 0
+    ? deps.channelPollMs
+    : DEFAULT_CHANNEL_POLL_MS;
   const log = deps.log ?? ((m: string) => console.log(m));
   let running = true;
   const stop = (): void => { running = false; };
@@ -276,14 +298,14 @@ export async function runGateway(deps: GatewayDeps): Promise<void> {
   const workflowWebhookServer = await startWorkflowWebhooks(deps, log);
   const platformWebhookServer = await startMessagingWebhook(deps, log);
   log(
-    `vanta gateway: ticking every ${Math.round(tickMs / 1000)}s` +
-      (deps.platform ? ` · ${deps.platform.id} gateway live` : "") +
+    `vanta gateway: maintenance every ${Math.round(tickMs / 1000)}s` +
+      (deps.platform ? ` · channel polling every ${Math.round(channelPollMs / 100) / 10}s · ${deps.platform.id} gateway live` : "") +
       " — Ctrl+C to stop.",
   );
   // VANTA-PREVENT-SLEEP: the gateway is a long-running operation; keep macOS
   // awake for its lifetime when opted in (off by default / no-op off-macOS).
   await withCaffeinate(
-    () => runGatewayLoop({ deps, tickMs, log, isRunning: () => running }),
+    () => runGatewayLoop({ deps, tickMs, channelPollMs, log, isRunning: () => running }),
     { enabled: resolveCaffeinate(process.env) },
   );
   if (deps.platform) await deps.platform.disconnect().catch(() => {});

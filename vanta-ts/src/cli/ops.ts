@@ -161,6 +161,7 @@ export async function runGatewayCommand(repoRoot: string, rest: string[] = []): 
     },
     home: resolveVantaHome(),
     tickMs: Number(process.env.VANTA_GATEWAY_TICK_MS) || undefined,
+    channelPollMs: Number(process.env.VANTA_CHANNEL_POLL_MS) || undefined,
   });
 }
 

@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { gatewayTick, pollPlatform, pollPlatformSession } from "./run.js";
+import { gatewayTick, pollPlatform, pollPlatformSession, runGatewayLoop } from "./run.js";
 import { initialState } from "./session-manager.js";
 import type { CronEntry } from "../schedule/cron.js";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./platforms/base.js";
@@ -138,6 +138,40 @@ describe("gatewayTick", () => {
     } finally {
       await rm(dataDir, { recursive: true, force: true });
     }
+  });
+});
+
+describe("runGatewayLoop", () => {
+  it("polls channels repeatedly without rerunning minute-level maintenance", async () => {
+    let maintenanceRuns = 0;
+    let polls = 0;
+    const adapter = new FakeAdapter([]);
+    adapter.poll = async () => {
+      polls += 1;
+      return [];
+    };
+
+    await runGatewayLoop({
+      deps: {
+        dataDir: "/x",
+        run: async () => ({ finalText: "" }),
+        load: async () => {
+          maintenanceRuns += 1;
+          return [];
+        },
+        handle: async () => "ok",
+        log: () => {},
+        platform: adapter,
+      },
+      tickMs: 60_000,
+      channelPollMs: 1,
+      log: () => {},
+      isRunning: () => true,
+      maxCycles: 3,
+    });
+
+    expect(polls).toBe(3);
+    expect(maintenanceRuns).toBe(1);
   });
 });
 
