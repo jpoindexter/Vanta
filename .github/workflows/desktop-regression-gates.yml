@@ -42,7 +42,10 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: vanta-ts/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
       - run: npm ci
+      - name: Build native kernel
+        run: cargo build --manifest-path ../Cargo.toml --bin vanta-kernel
       - name: Verify Ghost visual baselines
         run: npm run desktop:visual:proof
       - name: Verify packaged performance and size budgets
