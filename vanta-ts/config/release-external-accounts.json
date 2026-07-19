@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "accounts": [
+    {
+      "id": "codex",
+      "label": "OpenAI Codex via ChatGPT",
+      "kind": "model_provider",
+      "requiredAction": "account-entitled model completion"
+    },
+    {
+      "id": "google-workspace",
+      "label": "Google Workspace",
+      "kind": "data_provider",
+      "requiredAction": "read-only Gmail search"
+    },
+    {
+      "id": "telegram",
+      "label": "Telegram",
+      "kind": "messaging_channel",
+      "requiredAction": "real inbound message and accepted reply"
+    }
+  ]
+}

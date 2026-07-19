@@ -1,4 +1,7 @@
 import { providerModelDiscoveryTarget } from "./index.js";
+import { readFile } from "node:fs/promises";
+import { homedir } from "node:os";
+import { join } from "node:path";
 
 export type ModelDiscoveryResult = {
   models: string[];
@@ -44,11 +47,34 @@ function safeError(error: unknown): string {
   return "Live model discovery is temporarily unavailable.";
 }
 
+async function discoverCodexSubscriptionModels(env: NodeJS.ProcessEnv): Promise<ModelDiscoveryResult> {
+  const cachePath = join(env.CODEX_HOME?.trim() || join(homedir(), ".codex"), "models_cache.json");
+  try {
+    const payload = JSON.parse(await readFile(cachePath, "utf8")) as JsonObject;
+    const models = records(payload.models)
+      .filter((model) => model.visibility !== "hide")
+      .map((model) => typeof model.slug === "string" ? model.slug.trim() : "")
+      .filter(Boolean);
+    if (models.length === 0) {
+      return { models: [], source: "catalog", available: true, error: "The connected Codex account returned no selectable models." };
+    }
+    return { models: [...new Set(models)], source: "live", available: true };
+  } catch {
+    return {
+      models: [],
+      source: "catalog",
+      available: true,
+      error: "Connected Codex model entitlements are unavailable. Run `codex login status`, then refresh models.",
+    };
+  }
+}
+
 export async function discoverProviderModels(
   providerId: string,
   env: NodeJS.ProcessEnv,
   fetcher: Fetcher = fetch,
 ): Promise<ModelDiscoveryResult> {
+  if (providerId.trim().toLowerCase() === "codex") return discoverCodexSubscriptionModels(env);
   const target = providerModelDiscoveryTarget(env, providerId);
   if (!target) return { models: [], source: "catalog", available: false };
 

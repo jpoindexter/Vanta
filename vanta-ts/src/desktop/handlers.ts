@@ -417,7 +417,7 @@ export function desktopProviderOptions(env: NodeJS.ProcessEnv, catalog: Provider
       current: isDefaultProvider,
       savedDefaultModel: isDefaultProvider ? env.VANTA_MODEL ?? provider.defaultModel : undefined,
       modelSource: "catalog",
-      discoveryAvailable: Boolean(providerModelDiscoveryTarget(env, provider.id)),
+      discoveryAvailable: provider.id === "codex" || Boolean(providerModelDiscoveryTarget(env, provider.id)),
     });
   }
   for (const [id, provider] of Object.entries(loadUserProviders(env))) {
@@ -469,7 +469,9 @@ export async function desktopProviderOptionsLive(
   const result = await discover(id, env);
   return options.map((option) => option.id !== id ? option : {
     ...option,
-    models: [...new Set([...result.models, ...option.models])],
+    models: id === "codex" && result.source === "live"
+      ? result.models
+      : [...new Set([...result.models, ...option.models])],
     modelSource: result.source,
     discoveryAvailable: result.available,
     discoveryError: result.error,

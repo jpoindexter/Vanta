@@ -94,6 +94,7 @@ const USAGE_LINES = [
       "       vanta roadmap proof-template <card-id> [receipt-event-id...] [--json]  print an external acceptance packet skeleton",
       "       vanta roadmap proof-record <card-id> <receipt-event-id...> --evidence <file> --yes [--json]  hash and record real external evidence",
       "       vanta roadmap proof-accept <card-id> | --all-ready [--json]  ship only externally proven parked cards",
+      "       vanta release-proofs status [--json] | capture codex|google-workspace|telegram|all --yes [--json]  bind required live accounts to the current commit",
       "       vanta roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
       "       vanta now [--apply]                propose/fill the next 1-2 Now cards without exceeding WIP",
       "       vanta desktop [port] [--companion]  start desktop; opt into token-paired LAN companion access",

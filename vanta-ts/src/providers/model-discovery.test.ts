@@ -1,5 +1,14 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 import { discoverProviderModels } from "./model-discovery.js";
+
+const homes: string[] = [];
+
+afterEach(async () => {
+  await Promise.all(homes.splice(0).map((home) => rm(home, { recursive: true, force: true })));
+});
 
 function response(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload), { status, headers: { "content-type": "application/json" } });
@@ -14,6 +23,23 @@ describe("discoverProviderModels", () => {
 
     await expect(discoverProviderModels("openai", { OPENAI_API_KEY: "secret-openai-key" }, fetcher)).resolves.toEqual({
       models: ["gpt-5.6-sol", "gpt-5.5"], source: "live", available: true,
+    });
+  });
+
+  it("loads only selectable Codex models from the connected account cache", async () => {
+    const home = await mkdtemp(join(tmpdir(), "vanta-codex-models-"));
+    homes.push(home);
+    await writeFile(join(home, "models_cache.json"), JSON.stringify({
+      fetched_at: "2026-07-19T08:23:30.767632Z",
+      models: [
+        { slug: "gpt-5.6-sol", visibility: "list" },
+        { slug: "gpt-5.6-terra", visibility: "list" },
+        { slug: "gpt-5.4", visibility: "hide" },
+      ],
+    }));
+
+    await expect(discoverProviderModels("codex", { CODEX_HOME: home })).resolves.toEqual({
+      models: ["gpt-5.6-sol", "gpt-5.6-terra"], source: "live", available: true,
     });
   });
 

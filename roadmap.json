@@ -19545,7 +19545,7 @@
       "id": "RELEASE-EXTERNAL-ACCOUNT-PROOF-PACKETS",
       "track": "Infrastructure",
       "title": "Release external-account proof packets — real inbound, action, outbound, and recovery",
-      "status": "horizon",
+      "status": "building",
       "size": "M",
       "summary": "Fixture-backed provider and channel breadth is stronger than live external-account evidence. Catalog readiness must not be presented as product readiness when only a subset of release-required accounts has completed a real round trip.",
       "done": "The release manifest names its required external providers and channels; each has one redacted packet bound to the exact commit showing configured identity, real inbound event or read request, Vanta action, outbound result or returned data, and one recoverable failure; Desktop and roadmap status distinguish catalog, configured, tested, and release-proven states; current model entitlements are read from the connected account rather than inferred from a static catalog.",

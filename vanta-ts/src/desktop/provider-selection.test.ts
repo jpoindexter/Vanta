@@ -119,6 +119,22 @@ describe("desktop provider aliases", () => {
     }));
   });
 
+  it("replaces Codex catalog guesses with connected-account entitlements", async () => {
+    const discover = async () => ({ models: ["gpt-5.6-sol", "gpt-5.6-terra"], source: "live" as const, available: true });
+    const options = await desktopProviderOptionsLive(
+      { VANTA_HOME: home, VANTA_PROVIDER: "codex", VANTA_MODEL: "gpt-5.6-sol" },
+      async () => [],
+      "codex",
+      discover,
+    );
+    expect(options.find((option) => option.id === "codex")).toEqual(expect.objectContaining({
+      models: ["gpt-5.6-sol", "gpt-5.6-terra"],
+      savedDefaultModel: "gpt-5.6-sol",
+      modelSource: "live",
+      discoveryAvailable: true,
+    }));
+  });
+
   it("provider-only selection uses the alias model and credential instead of the parent model", () => {
     const selected = resolveDesktopProviderSelection({
       VANTA_HOME: home,
