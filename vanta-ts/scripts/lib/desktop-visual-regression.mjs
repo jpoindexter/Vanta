@@ -100,11 +100,37 @@ async function settle(page) {
     await document.fonts.ready;
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
     document.documentElement.style.caretColor = "transparent";
-    window.scrollTo(0, 0);
-    for (const element of document.querySelectorAll("*")) {
-      if (element.scrollTop) element.scrollTop = 0;
-      if (element.scrollLeft) element.scrollLeft = 0;
+    const resetScroll = () => {
+      window.scrollTo(0, 0);
+      for (const element of document.querySelectorAll("*")) {
+        if (element.scrollTop) element.scrollTop = 0;
+        if (element.scrollLeft) element.scrollLeft = 0;
+      }
+    };
+    const geometry = () => Array.from(document.querySelectorAll([
+      ".app-shell",
+      ".transcript-window",
+      ".inline-approval",
+      ".run-recovery",
+      ".model-dialog",
+      ".operator-view",
+      ".session-sidebar",
+      ".right-rail",
+    ].join(","))).map((element) => {
+      const rect = element.getBoundingClientRect();
+      return `${rect.x}:${rect.y}:${rect.width}:${rect.height}`;
+    }).join("|");
+
+    let previous = "";
+    let stableFrames = 0;
+    for (let frame = 0; frame < 16 && stableFrames < 4; frame += 1) {
+      resetScroll();
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      const current = geometry();
+      stableFrames = current === previous ? stableFrames + 1 : 0;
+      previous = current;
     }
+    resetScroll();
   });
   await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 }
