@@ -18,6 +18,20 @@ export type GoogleConnectStatus = {
   authUrl?: string;
 };
 export type GatewayStartResult = { state: "live" | "starting" | "failed"; message: string };
+export type ReleaseProofStage = "catalog" | "configured" | "tested" | "release_proven";
+export type ReleaseProofReport = {
+  commit: string;
+  ready: boolean;
+  accounts: Array<{
+    id: "codex" | "google-workspace" | "telegram";
+    label: string;
+    kind: string;
+    requiredAction: string;
+    stage: ReleaseProofStage;
+    proofCommit?: string;
+    executedAt?: string;
+  }>;
+};
 export type TelegramSetupStatus = {
   state: "unconfigured" | "needs_repair" | "stopped" | "polling_live" | "webhook_live";
   title: string;

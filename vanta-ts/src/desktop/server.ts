@@ -32,6 +32,7 @@ import { handleDesktopMcpAction, handleDesktopMcpList } from "./mcp-connectors.j
 import { handleRuntimeProfiles } from "./runtime-profile-api.js";
 import { handleModelDownloads } from "./model-download-api.js";
 import { handleGoogleConnectAction, handleGoogleConnectStatus } from "./google-connect.js";
+import { handleDesktopReleaseProofs } from "./release-proofs.js";
 
 type RouteCtx = { req: http.IncomingMessage; res: http.ServerResponse; state: DesktopState; sid: string; sseClients: SseClients; pathname: string };
 
@@ -65,6 +66,7 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
     "/api/chat/queue": () => handleQueueList(state, res),
     "/api/connect/mcp": () => handleDesktopMcpList(state, res),
     "/api/connect/google": () => handleGoogleConnectStatus(res),
+    "/api/release-proofs": () => handleDesktopReleaseProofs(state.root, res),
     "/api/wake": async () => sendJson(res, 200, await getWakeApi()),
   };
   if (handler[p]) { await handler[p](); return true; }

@@ -12,10 +12,18 @@ const startGateway = async () => ({ state: "live" as const, message: "Gateway is
 
 describe("ConnectView", () => {
   it("shows outcome states and provider test action without exposing credentials", () => {
-    const html = renderToStaticMarkup(<ConnectView capabilities={[]} platforms={platforms} models={[]} status={{ kernel: "online", model: "gpt-5.5", provider: "openai", tools: 1, sessionId: "s1", goals: [] }} onSaveMessaging={async () => undefined} onTest={async () => ({ status: "ready", message: "ready" })} onStartGateway={startGateway} onOpenModel={() => undefined} onOpenSetup={() => undefined} />);
+    const releaseProofs = { commit: "a".repeat(40), ready: false, accounts: [
+      { id: "codex" as const, label: "OpenAI Codex via ChatGPT", kind: "model_provider", requiredAction: "completion", stage: "release_proven" as const },
+      { id: "google-workspace" as const, label: "Google Workspace", kind: "data_provider", requiredAction: "search", stage: "tested" as const },
+      { id: "telegram" as const, label: "Telegram", kind: "messaging_channel", requiredAction: "reply", stage: "configured" as const },
+    ] };
+    const html = renderToStaticMarkup(<ConnectView capabilities={[]} platforms={platforms} models={[]} status={{ kernel: "online", model: "gpt-5.5", provider: "openai", tools: 1, sessionId: "s1", goals: [] }} releaseProofs={releaseProofs} onSaveMessaging={async () => undefined} onTest={async () => ({ status: "ready", message: "ready" })} onStartGateway={startGateway} onOpenModel={() => undefined} onOpenSetup={() => undefined} />);
     expect(html).toContain("Ready");
     expect(html).toContain("Needs setup");
     expect(html).toContain("Test model");
+    expect(html).toContain("Release proven");
+    expect(html).toContain("Tested");
+    expect(html).toContain("Configured");
     expect(html).not.toContain("Paste credential");
   });
 

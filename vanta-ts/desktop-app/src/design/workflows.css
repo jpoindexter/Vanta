@@ -574,6 +574,26 @@
   border-top: 1px solid var(--line);
 }
 
+.release-proof-summary {
+  display: grid;
+  grid-template-columns: minmax(190px, .7fr) minmax(320px, 1.3fr);
+  gap: 20px;
+  align-items: end;
+  margin-bottom: 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.release-proof-summary h2 { margin: 2px 0 4px; font-size: 15px; }
+.release-proof-summary code { color: var(--muted); font-size: 11px; }
+.release-proof-summary ul { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
+.release-proof-summary li { display: flex; justify-content: space-between; gap: 16px; color: var(--muted); font-size: 12px; }
+.release-proof-summary strong { color: var(--muted); font-size: 10px; text-transform: uppercase; }
+.release-proof-summary strong.release_proven { color: var(--ok); }
+.release-proof-summary strong.configured { color: var(--amber); }
+.release-proof-summary strong.tested { color: var(--accent); }
+
 .connect-card {
   grid-template-columns: 30px minmax(110px, .35fr) minmax(0, 1fr) auto;
   align-items: center;
@@ -901,6 +921,11 @@
 }
 
 @media (max-width: 760px) {
+  .release-proof-summary {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
   .message,
   .message.user {
     grid-template-columns: 40px minmax(0, 1fr);

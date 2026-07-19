@@ -1,7 +1,10 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
+import { hasGoogleAuth, hasGoogleClient } from "../google/auth.js";
+import { discoverProviderModels } from "../providers/model-discovery.js";
 
 export const ReleaseAccountIdSchema = z.enum(["codex", "google-workspace", "telegram"]);
 export type ReleaseAccountId = z.infer<typeof ReleaseAccountIdSchema>;
@@ -48,6 +51,21 @@ export function proofHash(value: string): string {
 
 export function externalAccountProofDir(repoRoot: string): string {
   return join(repoRoot, ".vanta", "release-proofs", "external-accounts");
+}
+
+export function currentReleaseCommit(repoRoot: string): string {
+  return execFileSync("git", ["rev-parse", "HEAD"], { cwd: repoRoot, encoding: "utf8" }).trim();
+}
+
+export async function configuredReleaseAccounts(
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<Partial<Record<ReleaseAccountId, boolean>>> {
+  const codex = await discoverProviderModels("codex", env);
+  return {
+    codex: codex.source === "live" && codex.models.length > 0,
+    "google-workspace": await hasGoogleClient(env) && await hasGoogleAuth(env),
+    telegram: Boolean(env.VANTA_TELEGRAM_TOKEN?.trim()),
+  };
 }
 
 export async function readReleaseAccountManifest(repoRoot: string) {

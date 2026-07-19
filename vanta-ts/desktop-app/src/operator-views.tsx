@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { Activity, ArrowRight, Bot, Boxes, CheckCircle2, ExternalLink, FileText, Image, Link2, Mail, Network, PackageOpen, PauseCircle, RefreshCw, Search, ShieldAlert, Wrench } from "lucide-react";
-import type { Artifact, Capability, ConnectStatus, ConnectTestResult, EventRow, GatewayStartResult, GoogleConnectStatus, MessagingPlatform, Provider, Session, Status } from "./types.js";
+import type { Artifact, Capability, ConnectStatus, ConnectTestResult, EventRow, GatewayStartResult, GoogleConnectStatus, MessagingPlatform, Provider, ReleaseProofReport, ReleaseProofStage, Session, Status } from "./types.js";
 import { McpConnectorsView } from "./mcp-connectors-view.js";
 import type { useDesktopMcp } from "./mcp-state.js";
 
@@ -138,6 +138,7 @@ export function ConnectView(props: {
   models: Provider[];
   status: Status | null;
   google?: GoogleConnectStatus;
+  releaseProofs?: ReleaseProofReport | null;
   mcp?: ReturnType<typeof useDesktopMcp>;
   onSaveMessaging: (id: string, values: Record<string, string>) => Promise<void>;
   onTest: TestConnection;
@@ -160,6 +161,7 @@ export function ConnectView(props: {
       <button role="tab" aria-selected={section === "messaging"} className={section === "messaging" ? "active" : ""} type="button" onClick={() => setSection("messaging")}>Messaging</button>
       <button role="tab" aria-selected={section === "google"} className={section === "google" ? "active" : ""} type="button" onClick={() => setSection("google")}>Google</button>
     </div>
+    {section === "overview" && props.releaseProofs ? <ReleaseProofSummary report={props.releaseProofs} /> : null}
     {section === "overview" ? <div className="connect-grid">
       <ConnectCard icon={<Bot size={18} />} status={providerStatus} eyebrow="Model" title={props.status?.model ?? "Choose a model"} detail={props.models.length ? `${props.models.length} provider${props.models.length === 1 ? "" : "s"} available` : "Provider catalog unavailable. Retry locally before opening setup."} action={props.status?.model ? "Change model" : "Connect provider"} onAction={props.status?.model ? props.onOpenModel : props.onOpenSetup} onTest={providerStatus === "ready" ? () => props.onTest("provider") : undefined} />
       <ConnectCard icon={<Boxes size={18} />} status={props.capabilities.length ? "ready" : "needs_setup"} eyebrow="Capabilities" title={`${props.capabilities.length} available`} detail="Live registered tools and project skills that Vanta can use in this workspace." action="Browse capabilities" onAction={() => setSection("capabilities")} />
@@ -172,6 +174,18 @@ export function ConnectView(props: {
     {section === "messaging" ? <MessagingPanel platforms={props.platforms} initialId={props.messagingId} onSave={props.onSaveMessaging} onTest={props.onTest} onStartGateway={props.onStartGateway} /> : null}
     {section === "google" ? <GoogleConnectPanel status={props.google} onAction={props.onGoogleConnect} /> : null}
   </WorkspaceView>;
+}
+
+function ReleaseProofSummary(props: { report: ReleaseProofReport }) {
+  return <section className="release-proof-summary" aria-labelledby="release-proof-title">
+    <div><p className="eyebrow">Release accounts</p><h2 id="release-proof-title">{props.report.ready ? "All live paths proven" : "Live proof in progress"}</h2><code>{props.report.commit.slice(0, 8)}</code></div>
+    <ul>{props.report.accounts.map((account) => <li key={account.id}><span>{account.label}</span><strong className={account.stage}>{releaseProofLabel(account.stage)}</strong></li>)}</ul>
+  </section>;
+}
+
+function releaseProofLabel(stage: ReleaseProofStage): string {
+  if (stage === "release_proven") return "Release proven";
+  return stage.charAt(0).toUpperCase() + stage.slice(1);
 }
 
 function GoogleConnectPanel(props: { status?: GoogleConnectStatus; onAction?: (action: "ingest_client" | "start" | "complete", clientPath?: string) => Promise<GoogleConnectStatus> }) {

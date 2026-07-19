@@ -5,13 +5,15 @@ import { join } from "node:path";
 import { CodexProvider } from "../providers/codex.js";
 import { loadCodexCreds } from "../providers/codex-auth.js";
 import { discoverProviderModels } from "../providers/model-discovery.js";
-import { hasGoogleAuth, hasGoogleClient, getAccessToken } from "../google/auth.js";
+import { getAccessToken } from "../google/auth.js";
 import { gmailSearchTool } from "../tools/gmail.js";
 import { probeMessaging } from "../setup/assistant.js";
 import { resolveTelegramSetupStatus } from "../setup/telegram-status.js";
 import { readChannelProofs } from "../gateway/channel-proof.js";
 import {
   externalAccountStatus,
+  configuredReleaseAccounts,
+  currentReleaseCommit,
   proofHash,
   ReleaseAccountIdSchema,
   writeExternalAccountProof,
@@ -22,21 +24,8 @@ import {
 export const RELEASE_PROOFS_USAGE = "usage: vanta release-proofs status [--json] | capture codex|google-workspace|telegram|all --yes [--json]";
 const PROOF_MARKER = "VANTA_EXTERNAL_ACCOUNT_PROOF_OK";
 
-function currentCommit(repoRoot: string): string {
-  return execFileSync("git", ["rev-parse", "HEAD"], { cwd: repoRoot, encoding: "utf8" }).trim();
-}
-
-async function configuredAccounts(): Promise<Partial<Record<ReleaseAccountId, boolean>>> {
-  const codex = await discoverProviderModels("codex", process.env);
-  return {
-    codex: codex.source === "live" && codex.models.length > 0,
-    "google-workspace": await hasGoogleClient(process.env) && await hasGoogleAuth(process.env),
-    telegram: Boolean(process.env.VANTA_TELEGRAM_TOKEN?.trim()),
-  };
-}
-
 async function status(repoRoot: string, json: boolean): Promise<number> {
-  const report = await externalAccountStatus(repoRoot, currentCommit(repoRoot), await configuredAccounts());
+  const report = await externalAccountStatus(repoRoot, currentReleaseCommit(repoRoot), await configuredReleaseAccounts());
   if (json) console.log(JSON.stringify(report, null, 2));
   else {
     console.log(`External account release proof: ${report.ready ? "ready" : "not ready"}`);
@@ -145,7 +134,7 @@ async function captureTelegram(repoRoot: string, commit: string): Promise<Extern
 }
 
 async function capture(repoRoot: string, id: ReleaseAccountId): Promise<ExternalAccountProof> {
-  const commit = currentCommit(repoRoot);
+  const commit = currentReleaseCommit(repoRoot);
   if (id === "codex") return captureCodex(repoRoot, commit);
   if (id === "google-workspace") return captureGoogle(commit);
   return captureTelegram(repoRoot, commit);

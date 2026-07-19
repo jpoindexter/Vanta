@@ -7,7 +7,7 @@ import {
   type CompletionSoundPlayer,
   type CompletionSoundSettings,
 } from "./completion-sound.js";
-import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, ConnectTestResult, DesktopRunReceipt, DesktopRuntime, EventRow, GatewayStartResult, GoogleConnectStatus, Message, MessagingPlatform, Provider, RailTab, RuntimeAction, Session, Status, TelegramSetupStatus, Tool } from "./types.js";
+import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, ConnectTestResult, DesktopRunReceipt, DesktopRuntime, EventRow, GatewayStartResult, GoogleConnectStatus, Message, MessagingPlatform, Provider, RailTab, ReleaseProofReport, RuntimeAction, Session, Status, TelegramSetupStatus, Tool } from "./types.js";
 import type { SessionDeleteAction } from "./session-safe-ops.js";
 import { sessionPinningHandlers } from "./session-pinning-api.js";
 import { createSessionDraftController, hasPersistableSessionDraftContext } from "./session-drafts.js";
@@ -23,6 +23,7 @@ export function useDesktopData() {
   const [capabilities, setCapabilities] = useState<Capability[]>([]);
   const [messaging, setMessaging] = useState<MessagingPlatform[]>([]);
   const [google, setGoogle] = useState<GoogleConnectStatus>({ status: "needs_setup", clientConfigured: false, authorized: false, message: "Checking Google Workspace..." });
+  const [releaseProofs, setReleaseProofs] = useState<ReleaseProofReport | null>(null);
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
   const [runtime, setRuntime] = useState<DesktopRuntime>({ selectedHostId: "local", hosts: [] });
   const [tab, setTab] = useState<RailTab>("activity");
@@ -31,12 +32,13 @@ export function useDesktopData() {
   const [error, setError] = useState("");
   const refresh = useCallback(async () => {
     const version = ++refreshVersion.current;
-    const [statusResult, sessionsResult, toolsResult, filesResult, modelsResult, canvasResult, capabilitiesResult, messagingResult, artifactsResult, runtimeResult, googleResult] = await Promise.allSettled([
+    const [statusResult, sessionsResult, toolsResult, filesResult, modelsResult, canvasResult, capabilitiesResult, messagingResult, artifactsResult, runtimeResult, googleResult, releaseProofsResult] = await Promise.allSettled([
         api<Status>("/api/status"), api<Session[]>("/api/sessions"), api<Tool[]>("/api/tools"),
         api<string[]>("/api/files"), api<Provider[]>("/api/models"), api<CanvasArtifact | null>("/api/canvas").catch(() => null),
         api<Capability[]>("/api/capabilities").catch(() => []), api<MessagingPlatform[]>("/api/messaging").catch(() => []), api<Artifact[]>("/api/artifacts").catch(() => []),
         api<DesktopRuntime>("/api/runtime").catch(() => ({ selectedHostId: "local", hosts: [] })),
         api<GoogleConnectStatus>("/api/connect/google").catch(() => ({ status: "needs_setup", clientConfigured: false, authorized: false, message: "Google Workspace status is unavailable." } as GoogleConnectStatus)),
+        api<ReleaseProofReport>("/api/release-proofs").catch(() => null),
     ]);
     // A mutation can invalidate an older aggregate refresh while its requests
     // are still in flight. Never let stale status overwrite the saved mode.
@@ -52,6 +54,7 @@ export function useDesktopData() {
     setArtifacts(artifactsResult.status === "fulfilled" ? artifactsResult.value : []);
     setRuntime(runtimeResult.status === "fulfilled" ? runtimeResult.value : { selectedHostId: "local", hosts: [] });
     setGoogle(googleResult.status === "fulfilled" ? googleResult.value : { status: "needs_setup", clientConfigured: false, authorized: false, message: "Google Workspace status is unavailable." });
+    setReleaseProofs(releaseProofsResult.status === "fulfilled" ? releaseProofsResult.value : null);
 
     const failure = [statusResult, sessionsResult, toolsResult, filesResult, modelsResult]
       .find((result): result is PromiseRejectedResult => result.status === "rejected");
@@ -94,7 +97,7 @@ export function useDesktopData() {
 
   useEffect(() => { void refresh(); }, [refresh]);
   return {
-    status, sessions, tools, files, models, canvas, capabilities, messaging, google, artifacts, runtime, tab, setTab, phase, error, refresh, refreshProviderModels, setModel, setAccessMode,
+    status, sessions, tools, files, models, canvas, capabilities, messaging, google, releaseProofs, artifacts, runtime, tab, setTab, phase, error, refresh, refreshProviderModels, setModel, setAccessMode,
     setRuntimeHost: (hostId: string) => updateRuntime(hostId),
     runRuntimeAction: (hostId: string, action: RuntimeAction) => updateRuntime(hostId, action),
     ...overlays,
