@@ -59,7 +59,7 @@ describe("Modal gateway command", () => {
       VANTA_TELEGRAM_WEBHOOK_SECRET: "private-hook",
     }, deps)).toBe(1);
     expect(deps.lines.join("\n")).toContain("deployed · 0 task(s)");
-    expect(deps.lines.join("\n")).toContain("Telegram endpoint https://team--vanta-gateway.modal.run · not registered · token valid-format · webhook secret present");
+    expect(deps.lines.join("\n")).toContain("Telegram endpoint https://team--vanta-gateway.modal.run/telegram/webhook · not registered · token valid-format · webhook secret present");
     expect(deps.lines.join("\n")).not.toContain(VALID_TOKEN);
     expect(deps.lines.join("\n")).not.toContain("private-hook");
     expect(deps.lines.join("\n")).toContain("min 0 · scaledown 60s");
@@ -146,7 +146,7 @@ describe("Modal gateway command", () => {
     expect(await runModalGatewayCommand(root, ["deploy"], {}, deps)).toBe(0);
     expect(run.mock.calls.some(([, args]) => args.slice(0, 3).join(" ") === "deploy /vanta/modal-gateway.py --name")).toBe(true);
     const receipt = await readFile(join(root, ".vanta", "serverless-gateway.json"), "utf8");
-    expect(receipt).toContain("https://team--vanta-gateway.modal.run");
+    expect(receipt).toContain("https://team--vanta-gateway.modal.run/telegram/webhook");
     expect(receipt).not.toContain("token");
   });
 

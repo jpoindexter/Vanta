@@ -136,7 +136,8 @@ async function deploy(
       VANTA_MODAL_GATEWAY_MIN_CONTAINERS: String(cfg.minContainers),
     },
   });
-  const endpoint = modalEndpointFrom(`${result.stdout}\n${result.stderr}`);
+  const deployedBaseUrl = modalEndpointFrom(`${result.stdout}\n${result.stderr}`);
+  const endpoint = deployedBaseUrl ? telegramWebhookEndpoint(deployedBaseUrl) : undefined;
   await writeGatewayReceipt(repoRoot, {
     ...(await readGatewayReceipt(repoRoot)),
     app: cfg.app,
