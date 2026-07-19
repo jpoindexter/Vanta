@@ -116,6 +116,22 @@ describe("CodexProvider.stream", () => {
     expect(result.toolCalls[0]?.name).toBe("get_weather");
   });
 
+  it("does not send the unsupported max_output_tokens parameter", async () => {
+    let requestBody: Record<string, unknown> = {};
+    const p = new CodexProvider({
+      model: "gpt-5.5",
+      loadCreds: async () => ({ accessToken: "tok", accountId: "acc" }),
+      fetchImpl: (async (_url, init) => {
+        requestBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+        return new Response(SSE, { status: 200, headers: { "content-type": "text/event-stream" } });
+      }) as typeof fetch,
+    });
+
+    await p.complete([{ role: "user", content: "short answer" }], [], { maxTokens: 40 });
+
+    expect(requestBody).not.toHaveProperty("max_output_tokens");
+  });
+
   it("throws an actionable error on a non-OK response", async () => {
     const p = new CodexProvider({
       model: "gpt-5.5",

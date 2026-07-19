@@ -112,7 +112,6 @@ function buildCodexBody(model: string, messages: Message[], tools: ToolSchema[],
     tool_choice: tools.length ? "auto" : undefined,
     stream: true,
     store: false,
-    ...(config?.maxTokens ? { max_output_tokens: config.maxTokens } : {}),
   };
 }
 
