@@ -10,6 +10,8 @@ import { gmailSearchTool } from "../tools/gmail.js";
 import { probeMessaging } from "../setup/assistant.js";
 import { resolveTelegramSetupStatus } from "../setup/telegram-status.js";
 import { readChannelProofs } from "../gateway/channel-proof.js";
+import type { ChannelRoundTripProof } from "../gateway/channel-proof.js";
+import { readGatewayReceipt, type GatewayReceipt } from "../exec/modal-gateway-state.js";
 import {
   externalAccountStatus,
   configuredReleaseAccounts,
@@ -23,6 +25,37 @@ import {
 
 export const RELEASE_PROOFS_USAGE = "usage: vanta release-proofs status [--json] | capture codex|google-workspace|telegram|all --yes [--json]";
 const PROOF_MARKER = "VANTA_EXTERNAL_ACCOUNT_PROOF_OK";
+
+type TelegramReceipt = {
+  acceptedAt: string;
+  parts: number;
+  requestHash: string;
+};
+
+/** Choose the newest accepted Telegram round trip across local and deployed gateways. */
+export function latestTelegramReceipt(
+  localProofs: ChannelRoundTripProof[],
+  serverless: GatewayReceipt | undefined,
+): TelegramReceipt | undefined {
+  const local = localProofs
+    .filter((proof) => proof.platform === "telegram")
+    .at(-1);
+  const remote = serverless?.telegramAcceptedAt && serverless.provedAt
+    ? {
+      acceptedAt: serverless.telegramAcceptedAt,
+      parts: serverless.telegramParts ?? 1,
+      requestHash: proofHash(`${serverless.endpoint ?? serverless.app}:${serverless.telegramAcceptedAt}`),
+    }
+    : undefined;
+  if (!local) return remote;
+  const localReceipt: TelegramReceipt = {
+    acceptedAt: local.acceptedAt,
+    parts: local.parts,
+    requestHash: proofHash(local.inboundHash ?? local.conversationHash),
+  };
+  if (!remote || Date.parse(localReceipt.acceptedAt) >= Date.parse(remote.acceptedAt)) return localReceipt;
+  return remote;
+}
 
 async function status(repoRoot: string, json: boolean): Promise<number> {
   const report = await externalAccountStatus(repoRoot, currentReleaseCommit(repoRoot), await configuredReleaseAccounts());
@@ -110,9 +143,11 @@ async function captureTelegram(repoRoot: string, commit: string): Promise<Extern
   const probe = await probeMessaging(process.env);
   if (!probe.ok) throw new Error(probe.detail);
   const live = await resolveTelegramSetupStatus(process.env, dataDir);
-  if (live.state !== "polling_live" && live.state !== "webhook_live") throw new Error(`${live.title} ${live.action.command}`);
-  const proofs = (await readChannelProofs(dataDir)).filter((proof) => proof.platform === "telegram");
-  const latest = proofs.at(-1);
+  const latest = latestTelegramReceipt(await readChannelProofs(dataDir), await readGatewayReceipt(repoRoot));
+  const hasServerlessProof = latest !== undefined && live.state !== "polling_live" && live.state !== "webhook_live";
+  if (!hasServerlessProof && live.state !== "polling_live" && live.state !== "webhook_live") {
+    throw new Error(`${live.title} ${live.action.command}`);
+  }
   const committedAt = Date.parse(execFileSync("git", ["show", "-s", "--format=%cI", commit], { cwd: repoRoot, encoding: "utf8" }).trim());
   if (!latest || Date.parse(latest.acceptedAt) < committedAt) {
     throw new Error(`No Telegram inbound-to-reply receipt exists after commit ${commit.slice(0, 8)}. Send a new message to the configured bot, then retry.`);
@@ -125,9 +160,9 @@ async function captureTelegram(repoRoot: string, commit: string): Promise<Extern
     commit,
     executedAt: new Date().toISOString(),
     configuredIdentityHash: proofHash(probe.detail),
-    request: { kind: "real_inbound_message", hash: proofHash(latest.inboundHash ?? latest.conversationHash) },
+    request: { kind: "real_inbound_message", hash: latest.requestHash },
     action: { kind: "gateway_inbound_to_reply", ok: true },
-    result: { kind: `accepted_${latest.parts}_part_reply`, hash: proofHash(latest.conversationHash) },
+    result: { kind: `accepted_${latest.parts}_part_reply`, hash: proofHash(`accepted:${latest.requestHash}:${latest.parts}`) },
     recovery: { kind: "missing_bot_token", ok: true, nextAction: recovery.action.command },
     sourceAcceptedAt: latest.acceptedAt,
   };
