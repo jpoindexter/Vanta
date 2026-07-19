@@ -12,4 +12,7 @@ WORKDIR /workspace/vanta-ts
 COPY vanta-ts/package.json vanta-ts/package-lock.json ./
 RUN npm ci --omit=dev --no-audit --no-fund
 COPY vanta-ts/src ./src
+# The remote gateway is a source snapshot, not a Git checkout. Keep the
+# authoritative roadmap available for channel-native status and planning work.
+COPY roadmap.json ./roadmap.json
 COPY --from=kernel /build/target/release/vanta-kernel /workspace/vanta-ts/target/debug/vanta-kernel

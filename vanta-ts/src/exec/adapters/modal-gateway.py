@@ -47,7 +47,7 @@ def _ignore_context(path: Path) -> bool:
     parts = relative.parts
     if not parts:
         return False
-    if len(parts) == 1 and parts[0] in {"Cargo.toml", "Cargo.lock", "Dockerfile.modal-gateway"}:
+    if len(parts) == 1 and parts[0] in {"Cargo.toml", "Cargo.lock", "Dockerfile.modal-gateway", "roadmap.json"}:
         return False
     if parts[0] == "src":
         return False
