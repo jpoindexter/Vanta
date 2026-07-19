@@ -21,6 +21,7 @@ _Nothing in flight right now — the remaining accepted work is listed under ext
 The latest of 1258+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Remote context references - safe @file, @diff, and @git expansion through the gateway** — Operator · 2026-07-19
+- **Desktop live-proof diagnostics — separate API truth, rendered truth, and startup context** — Desktop App · 2026-07-19
 - **Desktop assistive-technology proof — automate accessibility and complete one VoiceOver task** — Desktop App · 2026-07-19
 - **Terminal panel + TerminalCaptureTool — agent captures terminal content, Meta+J toggle** — Operator · 2026-07-18
 - **Regional payment authorization broker - route by capability, regulation, and provider availability** — Harness · 2026-07-18
@@ -39,7 +40,6 @@ The latest of 1258+ capabilities. See the [changelog](./changelog) for curated m
 - **Desktop flow proof suite — cold start, work, recovery, attachments, outputs, resize** — Desktop App · 2026-07-17
 - **Schema task environment contract - typed observe, act, predict, and outcome boundary** — Harness · 2026-07-17
 - **Schema transition timeline - append-only ground truth for every real action** — Harness · 2026-07-17
-- **Schema executable-model sandbox - generated simulators cannot escape task scope** — Harness · 2026-07-17
 
 ## External proof gates
 
