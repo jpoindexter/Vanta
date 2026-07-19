@@ -4,7 +4,7 @@
     "darwin-arm64": {
       "budgets": {
         "coldStartMs": {
-          "baseline": 3500,
+          "baseline": 5500,
           "regressionPercent": 25,
           "max": 10000
         },

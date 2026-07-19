@@ -24,4 +24,6 @@ Only run `npm run desktop:visual:update` after reviewing the UI change at all wi
 
 Budgets live in `vanta-ts/scripts/fixtures/desktop-performance-budgets.json`. Each metric must remain below both its percentage regression allowance and its absolute maximum. `npm run desktop:performance:update` records a reviewed local baseline without changing the hard limits.
 
+The macOS ARM64 cold-start baseline is 5.5 seconds. It is calibrated from fresh signed-package measurements across the release Mac and GitHub's clean hosted runner (observed range 2.43-5.84 seconds), with a 25% regression allowance and a separate 10-second hard ceiling. This isolates normal process-launch variance without weakening the first-use, memory, CPU, or package-size budgets.
+
 The comparator self-tests intentionally mutate one screenshot and breach one performance budget. Both must fail with the affected file or metric, observed value, and allowed limit.

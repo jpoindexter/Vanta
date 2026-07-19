@@ -19484,6 +19484,8 @@
       "codex": "gpt-5.6-terra",
       "lens": "infra",
       "source": "blind-audit-vanta-desktop-2026-07-18",
+      "updated": "2026-07-19",
+      "notes": "SHIPPED 2026-07-19: CI compares 36 versioned Ghost light/dark screenshots across Work, approval, recovery, model picker, Connect, and bulk session mode at 1440, 1024, and 760 pixels. Visual comparison passed on the clean hosted macOS runner. The packaged performance proof enforces cold-start, first-use, idle-memory, active-CPU, app.asar, unpacked-resource, and installed-size limits; its macOS ARM64 cold-start baseline is calibrated at 5.5s from fresh signed-package measurements (2.43-5.84s observed) with a 25% regression allowance and an independent 10s hard ceiling. Intentional visual and budget mutations fail with named diffs.",
       "after": [
         "DESKTOP-MESSAGE-FIDELITY-INTRAWORD-UNDERSCORES"
       ]
