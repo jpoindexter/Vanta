@@ -31,6 +31,21 @@ export function performanceFailureMessage(result) {
   return result.results.filter((entry) => !entry.passed).map((entry) => entry.reason).join("\n");
 }
 
+export function median(values) {
+  if (!Array.isArray(values) || values.length === 0 || values.some((value) => !Number.isFinite(value))) {
+    throw new TypeError("median requires at least one finite number");
+  }
+  const ordered = [...values].sort((left, right) => left - right);
+  const middle = Math.floor(ordered.length / 2);
+  return ordered.length % 2 ? ordered[middle] : (ordered[middle - 1] + ordered[middle]) / 2;
+}
+
+export function evaluateSampleHardMax(samples, max) {
+  if (!Number.isFinite(max)) throw new TypeError("sample hard max must be finite");
+  const worst = Math.max(...samples);
+  return { passed: worst <= max, worst, max, samples: [...samples] };
+}
+
 function format(value) {
   return Number.isInteger(value) ? String(value) : value.toFixed(2);
 }
