@@ -80,6 +80,14 @@ try {
     if (message.type() === "error" && !text.includes("Failed to load resource")) rendererErrors.push(`console error: ${text}`);
   });
   const visualApiFixtures = new Map([
+    ["/api/models", [
+      { id: "openai", label: "OpenAI", short: "OpenAI", models: ["gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.5-2026-04-23", "gpt-5.5-pro", "gpt-5.4"], current: true, savedDefaultModel: "gpt-5.6-sol", modelSource: "catalog", discoveryAvailable: true },
+      { id: "openrouter", label: "OpenRouter", short: "OpenRouter", models: ["openai/gpt-5.6"], modelSource: "catalog", discoveryAvailable: true },
+      { id: "codex", label: "Codex subscription", short: "Codex (sub)", models: ["gpt-5.6-sol", "gpt-5.5", "gpt-5.4"], modelSource: "catalog", discoveryAvailable: false },
+      { id: "nvidia", label: "NVIDIA", short: "NVIDIA", models: ["nemotron-4", "nemotron-mini"], modelSource: "catalog", discoveryAvailable: true },
+      { id: "azure", label: "Azure OpenAI", short: "Azure", models: ["gpt-5.6", "gpt-5.5"], modelSource: "catalog", discoveryAvailable: true },
+      { id: "custom", label: "Custom endpoint", short: "Custom", models: ["custom-model"], modelSource: "catalog", discoveryAvailable: false },
+    ]],
     ["/api/capabilities", [
       { id: "read-file", kind: "tool", name: "Read file", description: "Read project files inside the kernel boundary.", tags: ["project"] },
       { id: "release-proof", kind: "skill", name: "Release proof", description: "Verify signed release evidence.", tags: ["release"] },
@@ -108,6 +116,13 @@ try {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
     });
   }
+  await page.route("**/api/models/*", async (route) => {
+    if (route.request().method() !== "GET") {
+      await route.continue();
+      return;
+    }
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(visualApiFixtures.get("/api/models")) });
+  });
   async function capture(surface) {
     if (visualProof) {
       visualResults.push(...await captureVisualMatrix(page, surface, {

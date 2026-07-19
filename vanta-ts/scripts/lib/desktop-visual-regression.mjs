@@ -100,6 +100,11 @@ async function settle(page) {
     await document.fonts.ready;
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
     document.documentElement.style.caretColor = "transparent";
+    window.scrollTo(0, 0);
+    for (const element of document.querySelectorAll("*")) {
+      if (element.scrollTop) element.scrollTop = 0;
+      if (element.scrollLeft) element.scrollLeft = 0;
+    }
   });
   await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 }
