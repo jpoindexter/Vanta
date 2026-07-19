@@ -20,10 +20,12 @@ The use-case catalog currently records 6 executed and 6 passed scenarios across 
 
 ## Regression gates
 
-- TypeScript: 1,340 test files; 13,066 passed and 3 skipped.
+- TypeScript: 1,434 test files; 13,505 passed and 3 skipped.
 - Rust kernel: 70 passed.
 - TypeScript typecheck and architectural boundaries: passed.
 - Production desktop renderer build: passed.
+- Desktop visual proof: 36 Ghost light/dark captures passed across three supported widths.
+- Packaged performance proof: cold-start median plus per-sample hard ceiling, first-use, memory, CPU, and package-size budgets passed.
 - Production npm audit: 0 vulnerabilities.
 - External `terminal-love` MCP: 94 tests passed and 0 production vulnerabilities after its Undici update.
 

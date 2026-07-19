@@ -54,6 +54,8 @@ npm run desktop:flow:proof # source + signed packaged desktop acceptance matrix
 
 Run `npm run desktop:flow:proof` before a desktop release. It executes the same cold-start, work/approval, failed-run recovery, attachment, archive-Undo, Outputs, Connect, and responsive-layout flows against source Electron and the packaged `Vanta.app` at `1440x960`, `1024x640`, and `760x700`.
 
+Run `npm run desktop:visual:proof` and `npm run desktop:performance:proof` for the release regression boundary. The visual proof compares 36 Ghost light/dark captures. The packaged performance proof measures startup, first visible result, memory, CPU, and package size; startup regression uses the median of three fresh-profile launches, and every sample must remain below the 10-second hard ceiling.
+
 The installed app asks for a working folder and remembers it. If that folder has no model configuration, **Configure model** writes a private `.vanta/.env` from inside the app; API keys are never rendered back into the interface. **Vanta → Open Project…** (`⌘O`) switches roots later.
 
 The macOS build bundles the renderer, TypeScript runtime, and Rust safety kernel, so it does not need a Vanta checkout. `npm run desktop:dist` uses an available Developer ID certificate by unique hash and leaves a clearly labelled unsigned local build when none exists. For public distribution, first store credentials with `xcrun notarytool store-credentials vanta`, then run `npm run desktop:release`. The release command signs the DMG container, waits for Apple acceptance, staples and validates the ticket, and requires Gatekeeper to report `Notarized Developer ID`. Set `VANTA_DESKTOP_NOTARY_PROFILE` to use a profile name other than `vanta`.
