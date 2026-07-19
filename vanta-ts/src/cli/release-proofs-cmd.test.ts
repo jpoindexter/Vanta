@@ -52,4 +52,24 @@ describe("release-proofs command", () => {
 
     expect(result).toMatchObject({ acceptedAt: "2026-07-19T10:01:00.000Z", parts: 3 });
   });
+
+  it("uses the newest receipt from the deployed Modal volume without requiring scale-down", () => {
+    const result = latestTelegramReceipt([], {
+      app: "vanta-gateway",
+      volume: "vanta-gateway-data",
+      telegramAcceptedAt: "2026-07-19T10:00:00.000Z",
+      provedAt: "2026-07-19T10:00:05.000Z",
+      telegramParts: 1,
+    }, [{
+      kind: "channel-round-trip",
+      platform: "telegram",
+      transport: "bot-api",
+      conversationHash: "deployed-conversation",
+      inboundHash: "deployed-inbound",
+      parts: 1,
+      acceptedAt: "2026-07-19T10:02:00.000Z",
+    }]);
+
+    expect(result).toMatchObject({ acceptedAt: "2026-07-19T10:02:00.000Z", parts: 1 });
+  });
 });

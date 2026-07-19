@@ -1,7 +1,8 @@
-import { execFileSync } from "node:child_process";
+import { execFile, execFileSync } from "node:child_process";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { promisify } from "node:util";
 import { CodexProvider } from "../providers/codex.js";
 import { loadCodexCreds } from "../providers/codex-auth.js";
 import { discoverProviderModels } from "../providers/model-discovery.js";
@@ -11,7 +12,12 @@ import { probeMessaging } from "../setup/assistant.js";
 import { resolveTelegramSetupStatus } from "../setup/telegram-status.js";
 import { readChannelProofs } from "../gateway/channel-proof.js";
 import type { ChannelRoundTripProof } from "../gateway/channel-proof.js";
-import { readGatewayReceipt, type GatewayReceipt } from "../exec/modal-gateway-state.js";
+import {
+  parseTelegramProofs,
+  readGatewayReceipt,
+  resolveModalGatewayConfig,
+  type GatewayReceipt,
+} from "../exec/modal-gateway-state.js";
 import {
   externalAccountStatus,
   configuredReleaseAccounts,
@@ -25,6 +31,7 @@ import {
 
 export const RELEASE_PROOFS_USAGE = "usage: vanta release-proofs status [--json] | capture codex|google-workspace|telegram|all --yes [--json]";
 const PROOF_MARKER = "VANTA_EXTERNAL_ACCOUNT_PROOF_OK";
+const runChild = promisify(execFile);
 
 type TelegramReceipt = {
   acceptedAt: string;
@@ -36,10 +43,16 @@ type TelegramReceipt = {
 export function latestTelegramReceipt(
   localProofs: ChannelRoundTripProof[],
   serverless: GatewayReceipt | undefined,
+  deployedProofs: ChannelRoundTripProof[] = [],
 ): TelegramReceipt | undefined {
-  const local = localProofs
+  const direct = [...localProofs, ...deployedProofs]
     .filter((proof) => proof.platform === "telegram")
-    .at(-1);
+    .map((proof) => ({
+      acceptedAt: proof.acceptedAt,
+      parts: proof.parts,
+      requestHash: proofHash(proof.inboundHash ?? proof.conversationHash),
+    }))
+    .sort((a, b) => Date.parse(b.acceptedAt) - Date.parse(a.acceptedAt))[0];
   const remote = serverless?.telegramAcceptedAt && serverless.provedAt
     ? {
       acceptedAt: serverless.telegramAcceptedAt,
@@ -47,14 +60,24 @@ export function latestTelegramReceipt(
       requestHash: proofHash(`${serverless.endpoint ?? serverless.app}:${serverless.telegramAcceptedAt}`),
     }
     : undefined;
-  if (!local) return remote;
-  const localReceipt: TelegramReceipt = {
-    acceptedAt: local.acceptedAt,
-    parts: local.parts,
-    requestHash: proofHash(local.inboundHash ?? local.conversationHash),
-  };
-  if (!remote || Date.parse(localReceipt.acceptedAt) >= Date.parse(remote.acceptedAt)) return localReceipt;
+  if (!direct) return remote;
+  if (!remote || Date.parse(direct.acceptedAt) >= Date.parse(remote.acceptedAt)) return direct;
   return remote;
+}
+
+/** Read append-only Telegram receipts written by the deployed Modal gateway. */
+async function readDeployedTelegramProofs(repoRoot: string): Promise<ChannelRoundTripProof[]> {
+  const cfg = resolveModalGatewayConfig(process.env);
+  try {
+    const { stdout } = await runChild(
+      "modal",
+      ["volume", "get", cfg.volume, "project/channel-proofs.jsonl", "-"],
+      { cwd: repoRoot, timeout: 30_000, maxBuffer: 4_000_000, encoding: "utf8" },
+    );
+    return parseTelegramProofs(String(stdout));
+  } catch {
+    return [];
+  }
 }
 
 async function status(repoRoot: string, json: boolean): Promise<number> {
@@ -143,7 +166,12 @@ async function captureTelegram(repoRoot: string, commit: string): Promise<Extern
   const probe = await probeMessaging(process.env);
   if (!probe.ok) throw new Error(probe.detail);
   const live = await resolveTelegramSetupStatus(process.env, dataDir);
-  const latest = latestTelegramReceipt(await readChannelProofs(dataDir), await readGatewayReceipt(repoRoot));
+  const [localProofs, deployedProofs, gatewayReceipt] = await Promise.all([
+    readChannelProofs(dataDir),
+    readDeployedTelegramProofs(repoRoot),
+    readGatewayReceipt(repoRoot),
+  ]);
+  const latest = latestTelegramReceipt(localProofs, gatewayReceipt, deployedProofs);
   const hasServerlessProof = latest !== undefined && live.state !== "polling_live" && live.state !== "webhook_live";
   if (!hasServerlessProof && live.state !== "polling_live" && live.state !== "webhook_live") {
     throw new Error(`${live.title} ${live.action.command}`);
