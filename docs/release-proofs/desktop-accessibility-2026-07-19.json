@@ -1,0 +1,52 @@
+{
+  "proof": "desktop accessibility and assistive technology",
+  "generatedAt": "2026-07-19T08:11:50.630Z",
+  "testedCommit": "77182aed30a825bf75fd3159c6c3bdf24c668e50",
+  "packagedSourceClean": true,
+  "packagedApp": "vanta-ts/release/mac-arm64/Vanta.app",
+  "codesign": {
+    "validOnDisk": true,
+    "satisfiesDesignatedRequirement": true
+  },
+  "automatedAccessibility": {
+    "command": "npm run desktop:accessibility:proof",
+    "targets": [
+      "source",
+      "packaged"
+    ],
+    "surfaces": [
+      "work",
+      "approval",
+      "setup",
+      "queue",
+      "model-picker",
+      "bulk-sessions",
+      "recovery"
+    ],
+    "seriousViolations": 0,
+    "passed": true
+  },
+  "voiceOver": {
+    "command": "npm run desktop:voiceover:proof",
+    "runningDuringProof": true,
+    "pointerDowns": 0,
+    "attached": [
+      "README.md"
+    ],
+    "approvalDecision": "allow",
+    "resultReached": true,
+    "video": "vanta-ts/.vanta/accessibility-proof/desktop-voiceover-proof.mov",
+    "videoSha256": "14110d03a3ae74301a0ff1753d90cdb79d6eff439876142abe5cbee4c0c65495"
+  },
+  "regression": {
+    "typecheck": "passed",
+    "rendererTypecheck": "passed",
+    "desktopVisualProof": "passed",
+    "fullSuite": {
+      "passed": 13485,
+      "skipped": 3,
+      "loadSensitiveTimeouts": 2,
+      "isolatedRerun": "14 passed"
+    }
+  }
+}

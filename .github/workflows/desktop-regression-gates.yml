@@ -1,0 +1,56 @@
+name: desktop regression gates
+
+on:
+  pull_request:
+    paths:
+      - "vanta-ts/desktop-app/**"
+      - "vanta-ts/src/desktop/**"
+      - "vanta-ts/scripts/desktop-**"
+      - "vanta-ts/scripts/lib/desktop-**"
+      - "vanta-ts/scripts/fixtures/desktop-**"
+      - "vanta-ts/package.json"
+      - "vanta-ts/package-lock.json"
+      - ".github/workflows/desktop-regression-gates.yml"
+  push:
+    branches: [main]
+    paths:
+      - "vanta-ts/desktop-app/**"
+      - "vanta-ts/src/desktop/**"
+      - "vanta-ts/scripts/desktop-**"
+      - "vanta-ts/scripts/lib/desktop-**"
+      - "vanta-ts/scripts/fixtures/desktop-**"
+      - "vanta-ts/package.json"
+      - "vanta-ts/package-lock.json"
+      - ".github/workflows/desktop-regression-gates.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visual-and-performance:
+    name: Ghost visuals and packaged budgets
+    runs-on: macos-14
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: vanta-ts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: vanta-ts/package-lock.json
+      - run: npm ci
+      - name: Verify Ghost visual baselines
+        run: npm run desktop:visual:proof
+      - name: Verify packaged performance and size budgets
+        run: npm run desktop:performance:proof
+      - name: Upload visual diffs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-visual-diffs
+          path: vanta-ts/.vanta/desktop-visual-diffs
+          if-no-files-found: ignore
