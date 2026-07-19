@@ -19,6 +19,10 @@ let recording;
 
 try {
   await mkdir(artifactRoot, { recursive: true });
+  await Promise.all([
+    rm(videoPath, { force: true }),
+    rm(receiptPath, { force: true }),
+  ]);
   await mkdir(join(home, "sessions"), { recursive: true });
   await writeFile(join(project, "README.md"), "# VoiceOver proof\n\nKeyboard-only context fixture.\n", "utf8");
   await writeFile(join(home, "sessions", "voiceover-proof.json"), JSON.stringify({
