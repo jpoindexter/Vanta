@@ -192,8 +192,8 @@ h2 { margin: 14px 0 8px; font-size: 11px; letter-spacing: .08em; text-transform:
 .chat-thread { min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; display: flex; flex-direction: column; gap: 14px; padding: 30px clamp(24px, 7vw, 92px); }
 .chat-thread:focus { outline: 0; }
 .chat-thread:focus-visible { outline: 1px solid var(--line-strong); outline-offset: -1px; }
-.prompt-markers { position: absolute; z-index: 4; left: 10px; top: 50%; width: 22px; max-height: 60%; display: flex; flex-direction: column; justify-content: center; gap: 4px; transform: translateY(-50%); pointer-events: none; }
-.prompt-markers button { width: 22px; height: 8px; display: grid; align-items: center; border: 0; background: transparent; padding: 0; pointer-events: auto; }
+.prompt-markers { position: absolute; z-index: 4; left: 10px; top: 50%; width: 24px; max-height: 60%; display: flex; flex-direction: column; justify-content: center; gap: 0; transform: translateY(-50%); pointer-events: none; }
+.prompt-markers button { width: 24px; height: 24px; display: grid; align-items: center; border: 0; background: transparent; padding: 0; pointer-events: auto; }
 .prompt-markers button span { width: 7px; height: 2px; display: block; background: var(--faint); transition: width .12s ease, background-color .12s ease; }
 .prompt-markers button:hover span, .prompt-markers button:focus-visible span { width: 18px; background: var(--text); }
 .prompt-markers button[data-current="true"] span { width: 11px; background: var(--muted); }
@@ -498,6 +498,7 @@ button:focus, textarea:focus, input:focus, select:focus, summary:focus { outline
   .right-rail { position: fixed; z-index: 8; top: 44px; right: 0; bottom: 0; height: calc(100dvh - 44px); width: min(420px, 88vw); margin: 0; border-radius: 0; transform: translateX(100%); transition: transform .18s ease; box-shadow: -24px 0 60px color-mix(in srgb, var(--text) 28%, transparent); }
   .app-shell.inspector-open .right-rail { display: grid; transform: translateX(0); }
   .right-rail .panel-dismiss { display: grid; }
+  .right-rail .inspector-tabs { padding-right: 46px; }
   .pane-resize-handle { display: none; }
 }
 
@@ -753,7 +754,7 @@ button:focus, textarea:focus, input:focus, select:focus, summary:focus { outline
 .inspector-tabs { height: 52px; align-items: center; border-bottom: 1px solid var(--line); padding: 7px 8px; }
 .inspector-tabs button { min-height: 32px; }
 .right-rail > .rail-panel { min-height: 0; overflow: auto; padding: 12px; }
-.inspector-dismiss { margin-left: auto; }
+.inspector-dismiss { position: absolute; z-index: 3; top: 10px; right: 8px; margin: 0; }
 .panel-heading { min-height: 34px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--line); margin-bottom: 10px; }
 .panel-heading h2 { margin: 0; color: var(--text); font-size: 12px; letter-spacing: 0; text-transform: none; }
 .panel-heading span { color: var(--faint); font-size: 10px; }

@@ -67,19 +67,17 @@ export function paymentProviderReadiness(
     && region !== "unknown"
     && !definition.supportedRegions.includes(region);
   const configured = Boolean(configuredBy && env[configuredBy]);
-  const implemented = provider === "stripe_link" || provider === "mpp" || provider === "x402";
+  const implemented = provider === "stripe_link" || provider === "mpp";
 
   let state: PaymentProviderState = "ready";
-  let reason = provider === "x402"
-    ? "testnet adapter is available; execution requires a payment:x402 vault signer"
-    : "test rail is configured";
+  let reason = "test rail is configured";
   if (regionBlocked) {
     state = "unsupported_region";
     reason = `${provider} is not available in region ${region}`;
   } else if (!implemented) {
     state = "unavailable";
     reason = `${provider} adapter is not implemented`;
-  } else if (!configured && provider !== "x402") {
+  } else if (!configured) {
     state = "enrollment_required";
     reason = `${configuredBy} is not configured`;
   }

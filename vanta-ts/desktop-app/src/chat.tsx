@@ -280,7 +280,7 @@ function SessionButton(props: {
 type MessageFeedback = "helpful" | "not_helpful";
 type ExpandedMessage = { content: string; opener: HTMLButtonElement | null } | null;
 
-export function ChatThread(props: { sessionId?: string; messages: Message[]; busy: boolean; streamText: string; events: { label: string; ok?: boolean }[]; recovery: DesktopRunReceipt | null; approval: Approval | null; onApproval: (decision: ApprovalDecision) => void | Promise<void>; onRetry: () => void; onPrompt: (text: string) => void }) {
+export function ChatThread(props: { sessionId?: string; messages: Message[]; busy: boolean; streamText: string; events: { label: string; ok?: boolean }[]; recovery: DesktopRunReceipt | null; approval: Approval | null; onApproval: (decision: ApprovalDecision) => void | Promise<void>; onRetry: () => void; onReconnect?: () => void; onPrompt: (text: string) => void }) {
   const rows = useMemo(() => props.messages.filter((m) => m.role !== "system"), [props.messages]);
   const turns = useMemo(() => rows.flatMap((message, rowIndex) => message.role === "tool" ? [] : [{ message, rowIndex }]), [rows]);
   const recovery = props.recovery;
@@ -390,7 +390,7 @@ export function ChatThread(props: { sessionId?: string; messages: Message[]; bus
       {props.streamText ? <article className="message assistant streaming" aria-label="Vanta response streaming"><div className="message-content"><MessageMarkdown content={props.streamText} /></div></article> : null}
       {props.busy ? <div className="thinking"><i />Working...</div> : null}
       {props.events.length && props.events[0]?.label !== "No tool activity yet." ? <EventTimeline events={props.events} /> : null}
-      {recovery ? <RunRecovery receipt={recovery} onRetry={props.onRetry} onEdit={() => props.onPrompt(recovery.checkpoint?.instruction ?? "")} onCheckpoint={() => props.onPrompt(checkpointPrompt(recovery))} /> : null}
+      {recovery ? <RunRecovery receipt={recovery} onRetry={props.onRetry} onReconnect={() => props.onReconnect?.()} onEdit={() => props.onPrompt(recovery.checkpoint?.instruction ?? "")} onCheckpoint={() => props.onPrompt(checkpointPrompt(recovery))} /> : null}
       {expanded ? <ExpandedResponseDialog content={expanded.content} onClose={closeExpanded} /> : null}
       <div ref={navigation.bottomRef} aria-hidden="true" />
     </section>
@@ -514,18 +514,20 @@ function EventTimeline(props: { events: import("./types.js").EventRow[] }) {
   ))}</section>;
 }
 
-function RunRecovery(props: { receipt: DesktopRunReceipt; onRetry: () => void; onEdit: () => void; onCheckpoint: () => void }) {
-  const label = props.receipt.status === "interrupted" ? "Run stopped" : "Run needs attention";
+function RunRecovery(props: { receipt: DesktopRunReceipt; onRetry: () => void; onReconnect: () => void; onEdit: () => void; onCheckpoint: () => void }) {
+  const providerAuth = props.receipt.failureKind === "provider_auth";
+  const label = providerAuth ? "Provider authentication required" : props.receipt.status === "interrupted" ? "Run stopped" : "Run needs attention";
   const reason = props.receipt.failureKind ? props.receipt.failureKind.replaceAll("_", " ") : "unknown";
   const hasRetryAction = props.receipt.actions.includes("retry_failed_step");
   const retryReady = hasRetryAction && schemaRetryReady(props.receipt.schemaTrace);
   const showRetry = hasRetryAction || Boolean(props.receipt.schemaTrace);
   return (
     <section className="run-recovery" role="status">
-      <div><strong>{label}</strong><span>Partial output and timeline were saved. Failure: {reason}.</span></div>
+      <div><strong>{label}</strong><span>{providerAuth ? "Your request is saved. Reconnect the selected model before Vanta resumes it." : `Partial output and timeline were saved. Failure: ${reason}.`}</span></div>
       {props.receipt.counterexample ? <div className="run-counterexample"><strong>{props.receipt.counterexample.path}</strong><span>Predicted {props.receipt.counterexample.predicted}; observed {props.receipt.counterexample.observed}.</span><span>Safe next: {props.receipt.counterexample.safeNextAction}.</span></div> : null}
       {props.receipt.schemaTrace ? <SchemaTraceExplorer trace={props.receipt.schemaTrace} /> : null}
       <div className="run-recovery-actions">
+        {providerAuth ? <button type="button" onClick={props.onReconnect}><Plug size={15} />Reconnect model</button> : null}
         {showRetry ? <button type="button" disabled={!retryReady} title={!retryReady && props.receipt.schemaTrace ? "Recertify the Schema model before retrying" : undefined} onClick={props.onRetry}><RotateCcw size={15} />Retry failed step</button> : null}
         {props.receipt.actions.includes("edit_request") ? <button type="button" onClick={props.onEdit}>Edit request</button> : null}
         {props.receipt.actions.includes("start_from_checkpoint") ? <button type="button" onClick={props.onCheckpoint}>Start from checkpoint</button> : null}
@@ -598,7 +600,7 @@ export function Composer(props: { value: string; busy: boolean; model?: string; 
       {props.attachments.length ? <div className="context-chips" aria-label="Attached project context">{props.attachments.map((file) => <span key={file}><span title={file}>{file}</span><button type="button" aria-label={`Remove ${file}`} title={`Remove ${file}`} onClick={() => props.onRemoveAttachment(file)}><X size={13} /></button></span>)}</div> : null}
       <div className="composer-footer">
         <div className="composer-context-controls"><button className="composer-context-button" type="button" title="Attach project files" aria-label="Attach project files" onClick={props.onAttach}><Paperclip size={16} /><span className="sr-only">Context</span></button><button className="composer-command-button" type="button" title="Open commands" aria-label="Open commands" onClick={props.onCommand}><Plus size={16} /><span className="sr-only">Commands</span></button></div>
-        <div className="composer-actions"><button className="model-button" type="button" title="Change model" aria-label={`Change session model, currently ${props.model ?? "not selected"}`} onClick={props.onModel}><span>{props.model ?? "Choose model"}</span></button><AccessModePicker mode={props.accessMode} onChange={props.onAccessMode} />{props.busy ? <><button className="queue-button" type="submit" disabled={!props.value.trim()} title="Queue next instruction"><ListPlus size={15} /><span>Queue</span></button><button className="stop-button" type="button" title="Stop current run" aria-label="Stop current run" onClick={props.onStop}><Square size={14} /><span>Stop</span></button></> : <button className="send-button" type="submit" disabled={!props.value.trim()} aria-label="Send"><ArrowUp size={16} /></button>}</div>
+        <div className="composer-actions"><button className="model-button" type="button" title="Change agent model" aria-label={`Agent model: ${props.model ?? "not selected"}. Change model`} onClick={props.onModel}><small>Agent model</small><span>{props.model ?? "Choose model"}</span></button><AccessModePicker mode={props.accessMode} onChange={props.onAccessMode} />{props.busy ? <><button className="queue-button" type="submit" disabled={!props.value.trim()} title="Queue next instruction"><ListPlus size={15} /><span>Queue</span></button><button className="stop-button" type="button" title="Stop current run" aria-label="Stop current run" onClick={props.onStop}><Square size={14} /><span>Stop</span></button></> : <button className="send-button" type="submit" disabled={!props.value.trim()} aria-label="Send"><ArrowUp size={16} /></button>}</div>
       </div>
     </form>
   );

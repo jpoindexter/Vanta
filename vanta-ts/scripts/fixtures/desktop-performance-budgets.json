@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "targets": {
+    "darwin-arm64": {
+      "budgets": {
+        "coldStartMs": {
+          "baseline": 3500,
+          "regressionPercent": 25,
+          "max": 10000
+        },
+        "firstUseMs": {
+          "baseline": 888.69,
+          "regressionPercent": 25,
+          "max": 5000
+        },
+        "idleMemoryMb": {
+          "baseline": 798.72,
+          "regressionPercent": 20,
+          "max": 1000
+        },
+        "activeCpuPercent": {
+          "baseline": 44.9,
+          "regressionPercent": 20,
+          "max": 300
+        },
+        "appAsarBytes": {
+          "baseline": 166244156,
+          "regressionPercent": 10,
+          "max": 190000000
+        },
+        "unpackedResourceBytes": {
+          "baseline": 65716052,
+          "regressionPercent": 15,
+          "max": 80000000
+        },
+        "installedSizeBytes": {
+          "baseline": 521994240,
+          "regressionPercent": 10,
+          "max": 600000000
+        }
+      }
+    }
+  }
+}

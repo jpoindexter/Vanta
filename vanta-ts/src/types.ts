@@ -13,7 +13,7 @@ export type ToolCall = {
   effectState?: "pending" | "started";
 };
 
-export type DesktopRunFailureKind = "setup" | "tool" | "model" | "model_mismatch" | "user_denied" | "interrupted" | "unknown";
+export type DesktopRunFailureKind = "setup" | "provider_auth" | "tool" | "model" | "model_mismatch" | "user_denied" | "interrupted" | "unknown";
 export type DesktopSchemaTransitionTrace = {
   id: string;
   sequence: number;

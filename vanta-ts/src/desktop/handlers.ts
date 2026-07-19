@@ -30,7 +30,10 @@ import { desktopRuntimePayload, runDesktopRuntimeAction, selectDesktopRuntimeHos
 import { buildDesktopFileContext, isSafeProjectFile } from "./file-context.js";
 import { DesktopTurnQueue, QueueConflictError, desktopTurnQueuePath, fileTurnQueueDeps, type QueuedTurnTarget } from "./turn-queue.js";
 import { resolveTelegramSetupStatus } from "../setup/telegram-status.js";
+import { loadDesktopSessionDraft, saveDesktopSessionDraft } from "./session-draft-store.js";
 import { startDesktopGateway } from "./gateway-control.js";
+import { redactForLog } from "../store/redact-structural.js";
+import { loadProviderAuthRequired, saveProviderAuthRequired, type ProviderAuthRequired } from "./provider-auth-store.js";
 export { approvalDecision, type PendingApproval } from "./approval.js";
 
 const desktopTurnQueues = new Map<string, DesktopTurnQueue>();
@@ -40,6 +43,7 @@ export type DesktopState = {
   setup?: RunSetup;
   _setupPromise?: Promise<RunSetup>;
   _setupError?: { message: string; at: number };
+  _providerAuthRequired?: ProviderAuthRequired;
   _chatActive?: boolean;
   _chatAbort?: AbortController;
   _chatDeltas?: string[];
@@ -63,6 +67,29 @@ export function eventLabel(event: StreamEvent): DesktopEvent | null {
   // Delegates to the shared StreamEventFormatter port (term/event-format) so the
   // label presentation lives in one swappable place, not inline per surface.
   return resolveEventFormatter().format(event);
+}
+
+function providerRouteStatus(state: DesktopState, provider: LLMProvider): {
+  provider: string;
+  model: string;
+  baseRoute: string;
+  billingMode: "included" | "metered" | "local" | "unknown";
+  authMethod: "subscription" | "api_key" | "local" | "unknown";
+  authState: "ready" | "required";
+} {
+  const route = provider.routeInfo?.();
+  const providerId = route?.provider ?? state.providerId ?? process.env.VANTA_PROVIDER ?? "unknown";
+  const authMethod: "subscription" | "api_key" | "local" | "unknown" = route?.billingMode === "included" ? "subscription"
+    : route?.billingMode === "local" ? "local"
+      : providerById(providerId)?.envVar ? "api_key" : "unknown";
+  return {
+    provider: providerId,
+    model: route?.model ?? provider.modelId(),
+    baseRoute: redactForLog(route?.baseRoute ?? `provider://${providerId}`),
+    billingMode: route?.billingMode ?? "unknown",
+    authMethod,
+    authState: state._providerAuthRequired ? "required" as const : "ready" as const,
+  };
 }
 
 export function readJson(req: http.IncomingMessage): Promise<unknown> {
@@ -128,9 +155,10 @@ async function persistActiveSession(state: DesktopState): Promise<void> {
 }
 
 export async function handleStatus(state: DesktopState, res: http.ServerResponse): Promise<void> {
+  state._providerAuthRequired ??= await loadProviderAuthRequired(state.root);
   const live = await ensureDesktopConversation(state);
   const goals = await live.setup.safety.getGoals().catch(() => live.setup.goals);
-  sendJson(res, 200, { kernel: "online", model: live.setup.provider.modelId(), provider: live.providerId ?? process.env.VANTA_PROVIDER ?? "openai", tools: live.setup.registry.list().length, sessionId: live.sessionId, root: state.root, goals: goals.filter((g) => g.status === "active"), accessMode: live.accessMode, accessScope: "project" });
+  sendJson(res, 200, { kernel: "online", model: live.setup.provider.modelId(), provider: live.providerId ?? process.env.VANTA_PROVIDER ?? "openai", providerRoute: providerRouteStatus(state, live.setup.provider), tools: live.setup.registry.list().length, sessionId: live.sessionId, root: state.root, goals: goals.filter((g) => g.status === "active"), accessMode: live.accessMode, accessScope: "project" });
 }
 
 export async function handleTelegramSetupStatus(state: DesktopState, res: http.ServerResponse): Promise<void> {
@@ -561,6 +589,18 @@ export async function handleQueueList(state: DesktopState, res: http.ServerRespo
   sendJson(res, 200, await turnQueue(state).list(queueSessionId(state)));
 }
 
+export async function handleSessionDraft(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const body = await readJson(req) as { action?: unknown; id?: unknown; value?: unknown };
+  const id = typeof body.id === "string" ? body.id : "";
+  if (!id) return sendJson(res, 400, { error: "session id is required" });
+  if (body.action === "load") return sendJson(res, 200, await loadDesktopSessionDraft(state.root, id));
+  if (body.action === "save" && typeof body.value === "string") {
+    await saveDesktopSessionDraft(state.root, id, body.value);
+    return sendJson(res, 200, { saved: true });
+  }
+  sendJson(res, 400, { error: "unsupported draft action" });
+}
+
 export async function handleQueueChat(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const body = await readJson(req) as { action?: unknown; id?: unknown; revision?: unknown; message?: unknown; direction?: unknown };
   const action = typeof body.action === "string" ? body.action : "enqueue";
@@ -598,6 +638,7 @@ function interrupted(error: unknown, controller: AbortController): boolean {
 function classifyDesktopFailure(error: unknown, wasInterrupted: boolean, events: DesktopEvent[]): DesktopRunFailureKind {
   if (wasInterrupted) return "interrupted";
   const text = `${error instanceof Error ? `${error.name} ${error.message}` : String(error)} ${events.map((event) => event.label).join(" ")}`.toLowerCase();
+  if (/\b401\b|incorrect api key|invalid api key|authentication|unauthorized|oauth|credential|token (?:expired|revoked|refresh)|login required|not authorized/.test(text)) return "provider_auth";
   if (/setup|api key|provider is required|no provider|configure/.test(text)) return "setup";
   if (/denied|rejected|not approved|approval/.test(text)) return "user_denied";
   if (/tool|shell_cmd|web_fetch|file_|execute/.test(text)) return "tool";
@@ -642,6 +683,16 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
   const body = await readJson(req) as { message?: unknown };
   const message = typeof body.message === "string" ? body.message.trim() : "";
   if (!message) return sendJson(res, 400, { error: "message is required" });
+  state._providerAuthRequired ??= await loadProviderAuthRequired(state.root);
+  if (state._providerAuthRequired) {
+    const finalText = `Provider authentication required for ${state._providerAuthRequired.provider} · ${state._providerAuthRequired.model}. Reconnect this model in Connect before retrying.`;
+    const receipt = buildRunReceipt({ status: "failed", failureKind: "provider_auth", events: [{ label: "Provider authentication required.", ok: false }], instruction: message });
+    receipt.actions = ["edit_request", "start_from_checkpoint"];
+    const live = await ensureDesktopConversation(state);
+    live.convo.messages.push({ role: "user", content: message }, { role: "assistant", content: finalText, desktopRun: receipt });
+    await persistActiveSession(state);
+    return sendJson(res, 200, { finalText, events: receipt.events, sessionId: state.sessionId, receipt });
+  }
   const controller = new AbortController();
   state._chatActive = true;
   state._chatAbort = controller;
@@ -685,17 +736,34 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
     if (claimedTurnId) await turnQueue(state).release(claimedTurnId).catch(() => undefined);
     const wasInterrupted = interrupted(error, controller);
     const partial = state._chatDeltas?.join("").trim();
+    const failureKind = classifyDesktopFailure(error, wasInterrupted, events);
+    if (failureKind === "provider_auth" && live) {
+      const route = providerRouteStatus(state, live.setup.provider);
+      state._providerAuthRequired = {
+        provider: route.provider,
+        model: route.model,
+        baseRoute: route.baseRoute,
+        billingMode: route.billingMode,
+        authMethod: route.authMethod,
+      };
+      await saveProviderAuthRequired(state.root, state._providerAuthRequired);
+    }
+    const safeError = redactForLog(error instanceof Error ? error.message : String(error));
     const finalText = partial
       ? `${partial}\n\n${wasInterrupted ? "Stopped by operator." : "The run stopped before completing."}`
-      : wasInterrupted ? "Stopped by operator." : error instanceof Error ? error.message : String(error);
-    events.push({ label: wasInterrupted ? "Stopped by operator." : "Run failed before completion.", ok: false });
+      : wasInterrupted ? "Stopped by operator."
+        : failureKind === "provider_auth" && state._providerAuthRequired
+          ? `Provider authentication required for ${state._providerAuthRequired.provider} · ${state._providerAuthRequired.model}. Reconnect this model in Connect before retrying.`
+          : safeError;
+    events.push({ label: wasInterrupted ? "Stopped by operator." : failureKind === "provider_auth" ? "Provider authentication required." : "Run failed before completion.", ok: false });
     const receipt = buildRunReceipt({
       status: wasInterrupted ? "interrupted" : "failed",
       events,
       instruction: message,
       partialText: partial || undefined,
-      failureKind: classifyDesktopFailure(error, wasInterrupted, events),
+      failureKind,
     });
+    if (failureKind === "provider_auth") receipt.actions = ["edit_request", "start_from_checkpoint"];
     if (live) {
       live.convo.messages.push({ role: "assistant", content: finalText, desktopRun: receipt });
       await persistActiveSession(state);

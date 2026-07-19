@@ -723,8 +723,12 @@
 }
 
 .model-provider-nav small {
-  color: var(--faint);
+  color: var(--muted);
   font-size: 10px;
+}
+
+.model-provider-nav b {
+  color: var(--muted);
 }
 
 .model-detail-heading {

@@ -1,6 +1,10 @@
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { handleChat, handleQueueChat, handleStopChat, type DesktopState } from "./handlers.js";
 import { DesktopTurnQueue, type TurnQueueDeps } from "./turn-queue.js";
+import { providerAuthRequiredPath } from "./provider-auth-store.js";
 
 function response() {
   let status = 0; let body = "";
@@ -28,9 +32,9 @@ function queueForTest() {
 
 type FakeSend = NonNullable<DesktopState["convo"]>["send"];
 
-function recoveryState(send: FakeSend): DesktopState {
+function recoveryState(send: FakeSend, root = "/repo"): DesktopState {
   return {
-    root: "/repo",
+    root,
     sessionId: "desktop-test",
     sessionStarted: "2026-01-01T00:00:00.000Z",
     setup: { provider: { modelId: () => "fake" } as any, goals: [], registry: {} as any, safety: {} as any, systemPrompt: "" } as any,
@@ -136,5 +140,39 @@ describe("desktop chat concurrency", () => {
       actions: ["retry_failed_step", "edit_request", "start_from_checkpoint"],
       checkpoint: { instruction: "continue" },
     });
+  });
+
+  it.each([
+    "401 Incorrect API key provided: sk-live-super-secret-value",
+    "OAuth token revoked; login required",
+  ])("classifies provider authentication, redacts it, and blocks same-credential retries: %s", async (message) => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-auth-restart-"));
+    const send = vi.fn(async () => { throw new Error(message); });
+    try {
+      const state = recoveryState(send, root);
+      const first = response();
+
+      await handleChat(state, chatRequest("check my email"), first.res);
+
+      const firstResult = first.result();
+      expect(firstResult.body.receipt).toMatchObject({
+        status: "failed",
+        failureKind: "provider_auth",
+        actions: ["edit_request", "start_from_checkpoint"],
+        checkpoint: { instruction: "check my email" },
+      });
+      expect(firstResult.body.finalText).toContain("Provider authentication required");
+      expect(JSON.stringify(firstResult.body)).not.toContain("sk-live-super-secret-value");
+      expect(JSON.stringify(state.convo?.messages)).not.toContain("sk-live-super-secret-value");
+      expect(await readFile(providerAuthRequiredPath(root), "utf8")).not.toContain("sk-live-super-secret-value");
+
+      const restarted = recoveryState(send, root);
+      const second = response();
+      await handleChat(restarted, chatRequest("check my email"), second.res);
+      expect(send).toHaveBeenCalledOnce();
+      expect(second.result().body.receipt).toMatchObject({ failureKind: "provider_auth", actions: ["edit_request", "start_from_checkpoint"] });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 });

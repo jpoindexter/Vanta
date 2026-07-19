@@ -50,7 +50,12 @@ export async function writeDesktopAsset(repoRoot: string, pathname: string, res:
   if (pathname !== "/" && pathname !== "/companion" && !pathname.startsWith("/assets/")) return false;
   const asset = await resolveDesktopAsset(repoRoot, pathname);
   if (asset.kind === "missing") return false;
-  res.writeHead(200, { "content-type": asset.contentType });
+  res.writeHead(200, {
+    "content-type": asset.contentType,
+    "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' http: https: capacitor:; media-src 'self' data: blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+    "x-content-type-options": "nosniff",
+    "referrer-policy": "no-referrer",
+  });
   res.end(asset.body);
   return true;
 }

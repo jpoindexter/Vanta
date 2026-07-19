@@ -1,18 +1,28 @@
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { arch, platform, tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { _electron as electron } from "playwright-core";
+import { scanAccessibility } from "./lib/desktop-accessibility-proof.mjs";
+import { captureVisualMatrix } from "./lib/desktop-visual-regression.mjs";
 
 const home = await mkdtemp(join(tmpdir(), "vanta-desktop-convergence-home-"));
 const userData = await mkdtemp(join(tmpdir(), "vanta-desktop-convergence-profile-"));
-const project = await mkdtemp(join(tmpdir(), "vanta-desktop-convergence-project-"));
+const projectContainer = await mkdtemp(join(tmpdir(), "vanta-desktop-convergence-"));
+const project = join(projectContainer, "visual-proof-project");
 const port = process.env.VANTA_DESKTOP_SMOKE_PORT ?? "7826";
 const executablePath = process.env.VANTA_DESKTOP_APP;
+const visualProof = process.env.VANTA_DESKTOP_VISUAL_PROOF === "1";
+const visualUpdate = process.env.VANTA_DESKTOP_VISUAL_UPDATE === "1";
+const accessibilityProof = process.env.VANTA_DESKTOP_ACCESSIBILITY_PROOF === "1";
+const visualBaselineRoot = resolve("scripts", "fixtures", "desktop-visual-baselines", `${platform()}-${arch()}`);
+const visualResults = [];
+const accessibilityResults = [];
 let app;
 const rendererErrors = [];
 
 try {
   await mkdir(join(home, "sessions"), { recursive: true });
+  await mkdir(project, { recursive: true });
   await mkdir(join(project, "docs"), { recursive: true });
   await writeFile(join(project, "README.md"), "# Vanta convergence fixture\n", "utf8");
   await writeFile(join(project, "docs", "result.md"), "verified output\n", "utf8");
@@ -66,6 +76,16 @@ try {
     const text = message.text();
     if (message.type() === "error" && !text.includes("Failed to load resource")) rendererErrors.push(`console error: ${text}`);
   });
+  async function capture(surface) {
+    if (visualProof) {
+      visualResults.push(...await captureVisualMatrix(page, surface, {
+        baselineRoot: visualBaselineRoot,
+        artifactRoot: resolve(".vanta", "desktop-visual-diffs"),
+        update: visualUpdate,
+      }));
+    }
+    if (accessibilityProof) accessibilityResults.push(await scanAccessibility(page, surface));
+  }
   const approvalDecisions = [];
   let approvalIndex = 0;
   const smokeApprovals = [
@@ -166,8 +186,9 @@ try {
   await inlineApproval.getByText("Target file").waitFor();
   await inlineApproval.getByText("Preview").waitFor();
   await inlineApproval.getByText("- old shell").waitFor();
+  await capture("approval");
   await inlineApproval.getByRole("button", { name: "Allow once" }).click();
-  await inlineApproval.waitFor({ state: "detached" });
+  await inlineApproval.getByText("File edit permission request").waitFor({ state: "detached" });
   if (approvalDecisions[0]?.decision !== "allow") throw new Error(`Inline approval did not post allow: ${JSON.stringify(approvalDecisions)}`);
   await inlineApproval.waitFor();
   await inlineApproval.getByText("Bash permission request").waitFor();
@@ -175,13 +196,37 @@ try {
   await inlineApproval.getByRole("button", { name: "Reject" }).click();
   await inlineApproval.waitFor({ state: "detached" });
   if (approvalDecisions[1]?.decision !== "deny") throw new Error(`Inline approval did not post reject: ${JSON.stringify(approvalDecisions)}`);
+  await capture("work");
+
+  await page.route(/\/api\/chat$/, async (route) => {
+    const events = [{ label: "✗ shell_cmd: permission denied", ok: false, kind: "tool_end", name: "shell_cmd", detail: "permission denied: fixture command" }];
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({
+      finalText: "The fixture command failed.",
+      events,
+      receipt: {
+        status: "failed",
+        failureKind: "tool",
+        events,
+        actions: ["retry_failed_step", "edit_request", "start_from_checkpoint"],
+        checkpoint: { instruction: "run the failing fixture" },
+      },
+    }) });
+  });
+  await page.locator("#vanta-composer").fill("run the failing fixture");
+  await page.locator("#vanta-composer").press("Enter");
+  await page.getByRole("button", { name: "Retry failed step" }).waitFor();
+  await page.waitForFunction(() => {
+    const send = document.querySelector(".send-button");
+    return send instanceof HTMLButtonElement && !send.disabled;
+  });
+  await capture("recovery");
   await page.locator(".conversation-stage").waitFor();
   await page.locator("#vanta-composer").waitFor();
   const taskContext = page.getByLabel("Task execution context");
   await taskContext.getByText(/Tools \d+/).waitFor();
   await taskContext.getByText("Memory local").waitFor();
-  await page.getByRole("button", { name: /Change session model/ }).waitFor();
-  await page.evaluate(async () => fetch("/api/access-mode", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode: "ask" }) }));
+  await page.getByRole("button", { name: /Agent model: .*Change model/ }).first().waitFor();
+  await page.evaluate(async () => fetch("/api/access-mode", { method: "POST", headers: { "content-type": "application/json", "x-vanta-desktop-boundary": window.vantaDesktop?.boundaryToken ?? "" }, body: JSON.stringify({ mode: "ask" }) }));
   await page.reload();
   await page.locator(".app-shell").waitFor();
   const accessTrigger = page.locator(".approval-mode");
@@ -191,7 +236,7 @@ try {
   await page.reload();
   await page.locator(".app-shell").waitFor();
   await page.locator(".approval-mode").getByText("Full access").waitFor();
-  const persistedAccess = await page.evaluate(async () => (await fetch("/api/access-mode")).json());
+  const persistedAccess = await page.evaluate(async () => (await fetch("/api/access-mode", { headers: { "x-vanta-desktop-boundary": window.vantaDesktop?.boundaryToken ?? "" } })).json());
   if (persistedAccess.mode !== "full" || persistedAccess.scope !== "project") throw new Error(`Full access did not persist at project scope: ${JSON.stringify(persistedAccess)}`);
   await selectAccessMode(page, page.locator(".approval-mode"), "Ask for approval", "ask", "Ask");
   await page.getByRole("button", { name: "Open commands" }).waitFor();
@@ -219,6 +264,10 @@ try {
   await page.locator(".operator-view").getByRole("heading", { name: "Operate", exact: true }).waitFor();
   await page.getByText("active tasks", { exact: true }).waitFor();
 
+  await page.getByRole("button", { name: "Connect", exact: true }).click();
+  await page.locator(".operator-view").getByRole("heading", { name: "Connect", exact: true }).waitFor();
+  await capture("setup");
+
   await page.getByRole("button", { name: "Work", exact: true }).click();
   const inspectorToggle = page.getByRole("button", { name: "Open contextual inspector" });
   if (await inspectorToggle.isVisible().catch(() => false)) await inspectorToggle.click();
@@ -233,7 +282,7 @@ try {
   await fileSearch.fill("");
   await inspector.locator(".file-list button").first().waitFor();
 
-  await page.locator(".composer").getByTitle("Change model").click();
+  await page.locator(".composer").getByRole("button", { name: /Agent model: .*Change model/ }).click();
   await page.getByRole("heading", { name: "Choose a model" }).waitFor();
   await page.getByPlaceholder("Search models and providers").fill("openai");
   const pointerModelFocus = await focusState(page);
@@ -242,7 +291,14 @@ try {
   const keyboardModelFocus = await focusState(page);
   if (keyboardModelFocus.modality !== "keyboard" || keyboardModelFocus.outlineWidth < 1) throw new Error(`Keyboard navigation in model picker lost its focus ring: ${JSON.stringify(keyboardModelFocus)}`);
   await page.locator(".model-row").first().waitFor();
+  await capture("model-picker");
   await page.getByRole("button", { name: "Close model picker" }).click();
+
+  await page.getByRole("button", { name: "Select chats" }).click();
+  await page.getByRole("toolbar", { name: "Selected session actions" }).getByRole("button", { name: "All visible" }).click();
+  await page.getByRole("toolbar", { name: "Selected session actions" }).getByText(/selected/).waitFor();
+  await capture("bulk-sessions");
+  await page.getByRole("toolbar", { name: "Selected session actions" }).getByRole("button", { name: "Done" }).click();
 
   const responsive = [];
   for (const viewport of [{ width: 1024, height: 640 }, { width: 760, height: 700 }]) {
@@ -355,13 +411,13 @@ try {
   if (visual.userMessage.background === "rgba(0, 0, 0, 0)") throw new Error(`Operator message lost its compact bubble: ${JSON.stringify(visual)}`);
   if (visual.assistantSpeakerLabels !== 0) throw new Error(`Redundant assistant speaker chrome returned: ${JSON.stringify(visual)}`);
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
-  process.stdout.write(`${JSON.stringify({ destinations: true, newTask: true, operate: true, accessModes: ["approve", "full", "ask"], inlineApproval: approvalDecisions, inspector: true, modelPicker: true, responsive, compact: true, geometry, visual })}\n`);
+  process.stdout.write(`${JSON.stringify({ destinations: true, newTask: true, operate: true, accessModes: ["approve", "full", "ask"], inlineApproval: approvalDecisions, inspector: true, modelPicker: true, responsive, compact: true, geometry, visual, visualProof: visualProof ? { updated: visualUpdate, captures: visualResults.length, baselineRoot: visualBaselineRoot } : undefined, accessibilityProof: accessibilityProof ? accessibilityResults : undefined })}\n`);
 } finally {
   await app?.close().catch(() => undefined);
   await Promise.all([
     rm(home, { recursive: true, force: true }),
     rm(userData, { recursive: true, force: true }),
-    rm(project, { recursive: true, force: true }),
+    rm(projectContainer, { recursive: true, force: true }),
   ]);
 }
 

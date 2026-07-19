@@ -1,5 +1,6 @@
 export function createTrayController(deps) {
-  const { Tray, Menu, nativeImage, dialog, clipboard, BrowserWindow, app, baseUrl, fetchImpl = fetch } = deps;
+  const { Tray, Menu, nativeImage, dialog, clipboard, BrowserWindow, app, baseUrl, boundaryToken = "", preload, fetchImpl = fetch } = deps;
+  const desktopHeaders = boundaryToken ? { "x-vanta-desktop-boundary": boundaryToken } : {};
   // NSActionTemplate is a fixed, visually heavy circled glyph on current macOS and
   // ignores pointSize. Use the scalable SF Symbol so the status item stays compact.
   const icon = process.platform === "darwin"
@@ -22,7 +23,7 @@ export function createTrayController(deps) {
 
   async function openQuick() {
     if (!quickWindow || quickWindow.isDestroyed()) {
-      quickWindow = new BrowserWindow({ width: 420, height: 720, minWidth: 360, minHeight: 560, title: "Vanta Companion", backgroundColor: "#090d13", webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true } });
+      quickWindow = new BrowserWindow({ width: 420, height: 720, minWidth: 360, minHeight: 560, title: "Vanta Companion", backgroundColor: "#090d13", webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, ...(preload ? { preload, additionalArguments: [`--vanta-desktop-boundary=${boundaryToken}`] } : {}) } });
       quickWindow.on("closed", () => { quickWindow = undefined; });
       await quickWindow.loadURL(`${baseUrl}/companion`);
     }
@@ -44,7 +45,7 @@ export function createTrayController(deps) {
 
   async function toggleWake() {
     try {
-      const response = await fetchImpl(`${baseUrl}/api/wake`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ enabled: !wakeEnabled }) });
+      const response = await fetchImpl(`${baseUrl}/api/wake`, { method: "POST", headers: { "content-type": "application/json", ...desktopHeaders }, body: JSON.stringify({ enabled: !wakeEnabled }) });
       const wake = await response.json();
       if (!response.ok) throw new Error(wake.error ?? "wake-word update failed");
       wakeEnabled = wake.enabled && wake.running;
@@ -73,7 +74,7 @@ export function createTrayController(deps) {
   async function refresh() {
     try {
       const [statusResponse, approvalResponse, infoResponse, wakeResponse] = await Promise.all([
-        fetchImpl(`${baseUrl}/api/status`), fetchImpl(`${baseUrl}/api/approval`), fetchImpl(`${baseUrl}/api/companion/info`), fetchImpl(`${baseUrl}/api/wake`),
+        fetchImpl(`${baseUrl}/api/status`, { headers: desktopHeaders }), fetchImpl(`${baseUrl}/api/approval`, { headers: desktopHeaders }), fetchImpl(`${baseUrl}/api/companion/info`), fetchImpl(`${baseUrl}/api/wake`, { headers: desktopHeaders }),
       ]);
       const [nextStatus, approval, info, wake] = await Promise.all([statusResponse.json(), approvalResponse.json(), infoResponse.json(), wakeResponse.json()]);
       status = nextStatus.kernel === "online" ? "online" : "offline"; pending = !!approval; deviceCount = info.devices?.length ?? 0; wakeEnabled = wake.enabled && wake.running;

@@ -24,4 +24,15 @@ describe("MessageMarkdown", () => {
     expect(html).toContain('href="https://example.com"');
     expect(html).toContain('rel="noreferrer"');
   });
+
+  it("renders streamed and restored exact identifiers byte-for-byte", () => {
+    const marker = "VANTA_DESKTOP_LIVE_READ_123 client_secret.json GOOGLE_CLIENT_ID";
+    const streamed = renderToStaticMarkup(<MessageMarkdown content={marker} />);
+    const restored = safeMessageHtml(marker);
+
+    expect(streamed).toContain(marker);
+    expect(restored).toContain(marker);
+    expect(streamed).not.toContain("<em>");
+    expect(restored).not.toContain("<em>");
+  });
 });

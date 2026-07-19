@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { readFile, writeFile } from "node:fs/promises";
+import { chmod, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { platform as osPlatform } from "node:process";
 import { z } from "zod";
@@ -10,16 +10,22 @@ import {
   getSecret,
   type KeychainKey,
 } from "../store/keychain.js";
+import type { ClientCreds } from "./client-json.js";
 
 // Token storage for Google OAuth. Extracted from auth.ts (size gate).
 // Persistence is keychain-backed when opt-in (macOS + VANTA_KEYCHAIN=1),
 // else the default 0600 JSON file — identical file behavior when off.
 
 const TOKEN_FILE = "google-tokens.json";
+const CLIENT_FILE = "google-client.json";
 
 /** macOS Keychain item the Google token JSON is stored under when opt-in. */
 const KEYCHAIN_KEY: KeychainKey = {
   service: "vanta-google-tokens",
+  account: "default",
+};
+const CLIENT_KEYCHAIN_KEY: KeychainKey = {
+  service: "vanta-google-client",
   account: "default",
 };
 
@@ -33,9 +39,14 @@ const TokenSchema = z
   .passthrough();
 
 export type StoredTokens = z.infer<typeof TokenSchema>;
+const ClientCredsSchema = z.object({ clientId: z.string().min(1), clientSecret: z.string().min(1) });
 
 function tokenPath(env: NodeJS.ProcessEnv): string {
   return join(resolveVantaHome(env), TOKEN_FILE);
+}
+
+function clientPath(env: NodeJS.ProcessEnv): string {
+  return join(resolveVantaHome(env), CLIENT_FILE);
 }
 
 /**
@@ -78,4 +89,34 @@ export async function saveTokens(tokens: StoredTokens, env: NodeJS.ProcessEnv): 
     encoding: "utf8",
     mode: 0o600,
   });
+}
+
+export async function loadClientCreds(env: NodeJS.ProcessEnv): Promise<ClientCreds | null> {
+  let raw: string | null = null;
+  if (keychainAvailable(env, osPlatform)) {
+    const got = await getSecret(CLIENT_KEYCHAIN_KEY);
+    raw = got.ok ? got.value : null;
+  } else if (existsSync(clientPath(env))) {
+    raw = await readFile(clientPath(env), "utf8").catch(() => null);
+  }
+  if (!raw) return null;
+  try {
+    const parsed = ClientCredsSchema.safeParse(JSON.parse(raw));
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveClientCreds(creds: ClientCreds, env: NodeJS.ProcessEnv): Promise<void> {
+  const payload = JSON.stringify(ClientCredsSchema.parse(creds));
+  if (keychainAvailable(env, osPlatform)) {
+    const saved = await setSecret(CLIENT_KEYCHAIN_KEY, payload);
+    if (!saved.ok) throw new Error("Could not save Google OAuth client credentials in the system keychain.");
+    return;
+  }
+  await ensureVantaStore(env);
+  const file = clientPath(env);
+  await writeFile(file, payload, { encoding: "utf8", mode: 0o600 });
+  await chmod(file, 0o600);
 }

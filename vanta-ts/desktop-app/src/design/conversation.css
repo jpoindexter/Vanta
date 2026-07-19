@@ -84,7 +84,12 @@
 
 .composer-actions .model-button {
   max-width: 220px;
+  gap: 6px;
   padding-inline: 8px;
+}
+
+.composer-actions .model-button small {
+  flex: 0 0 auto;
 }
 
 .composer-actions .model-button:hover,

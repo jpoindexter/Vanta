@@ -35,8 +35,8 @@ export function RightRail(props: {
         <InspectorTab tab="preview" current={visibleTab} icon={AppWindow} onTab={props.onTab}>Preview</InspectorTab>
         <InspectorTab tab="receipts" current={visibleTab} icon={ReceiptText} onTab={props.onTab}>Receipts</InspectorTab>
         <InspectorTab tab="terminal" current={visibleTab} icon={TerminalSquare} onTab={props.onTab}>Terminal</InspectorTab>
-        <button className="panel-dismiss inspector-dismiss" type="button" aria-label="Close inspector" onClick={props.onDismiss}><X size={15} /></button>
       </nav>
+      <button className="panel-dismiss inspector-dismiss" type="button" aria-label="Close inspector" onClick={props.onDismiss}><X size={15} /></button>
       {visibleTab === "activity" ? <ActivityPanel events={props.events} status={props.status} /> : null}
       {visibleTab === "preview" ? (props.tab === "canvas" ? <CanvasPanel artifact={props.canvas} onRefresh={props.onRefresh} /> : <PreviewPanel status={props.status} groups={groups} events={props.events} />) : null}
       {visibleTab === "files" ? <FilesPanel files={props.files} mentioned={props.mentionedFiles} selected={props.selectedFiles} onInsert={props.onInsertFile} /> : null}

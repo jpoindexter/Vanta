@@ -5,17 +5,9 @@ import { loadPaymentAuthorizationEvents } from "../payments/authorization.js";
 import { loadPaymentReceipts } from "../payments/ledger.js";
 import { listPaymentProviderReadiness } from "../payments/readiness.js";
 import { executePayment, previewPayment, type PaymentProvider } from "../payments/service.js";
-import {
-  createX402TestWallet,
-  inspectX402TestWallet,
-  type X402WalletSetupDeps,
-  type X402WalletStatusDeps,
-} from "../payments/x402-wallet.js";
-
-const USAGE = "usage: vanta payments preview <contract.json> | execute <contract.json> --approve <transaction-id> | receipts | authorization | readiness [--json] | x402-wallet create --yes | x402-wallet status [--json]";
+const USAGE = "usage: vanta payments preview <contract.json> | execute <contract.json> --approve <transaction-id> | receipts | authorization | readiness [--json]";
 type Deps = {
   log?: (line: string) => void; now?: () => Date; provider?: PaymentProvider; env?: NodeJS.ProcessEnv;
-  wallet?: X402WalletSetupDeps & X402WalletStatusDeps;
 };
 
 async function readContract(root: string, path: string) {
@@ -52,29 +44,6 @@ function showReadiness(args: string[], deps: Deps, log: (line: string) => void):
   return 0;
 }
 
-async function setupX402Wallet(root: string, args: string[], deps: Deps, log: (line: string) => void): Promise<number> {
-  if (args[1] === "status") {
-    const status = await inspectX402TestWallet({ ...deps.wallet, env: deps.env ?? deps.wallet?.env });
-    if (args.includes("--json")) log(JSON.stringify(status, null, 2));
-    else if (!status.ok) log("x402 test wallet unavailable; run `vanta payments x402-wallet create --yes`");
-    else {
-      log(`x402 test wallet: ${status.address}`);
-      log(`Base Sepolia USDC: ${status.balanceUsdc ?? "unavailable"} · ${status.state}`);
-      if (status.state !== "funded") log(`faucet: ${status.faucetUrl}`);
-    }
-    return status.ok ? 0 : 1;
-  }
-  if (args[1] !== "create") { log(USAGE); return 1; }
-  if (!args.includes("--yes")) {
-    log("x402 wallet preview: create a Base Sepolia test-only key in macOS Keychain and register X402_TEST_SIGNER for payment:x402; rerun with --yes");
-    return 2;
-  }
-  const result = await createX402TestWallet(root, { ...deps.wallet, env: deps.env ?? deps.wallet?.env });
-  if (!result.ok) { log(`x402 wallet not created: ${result.state}`); return 1; }
-  log(`x402 test wallet created: ${result.address} · alias ${result.alias} · private key retained in Keychain`);
-  return 0;
-}
-
 async function runContractAction(root: string, path: string, options: {
   action: "preview" | "execute"; args: string[]; deps: Deps; log: (line: string) => void;
 }): Promise<number> {
@@ -103,7 +72,6 @@ export async function runPaymentsCommand(root: string, args: string[], deps: Dep
     if (action === "receipts") return await listReceipts(root, log);
     if (action === "authorization") return await listAuthorization(root, log);
     if (action === "readiness") return showReadiness(args, deps, log);
-    if (action === "x402-wallet") return await setupX402Wallet(root, args, deps, log);
     if (!path || !["preview", "execute"].includes(action ?? "")) { log(USAGE); return 1; }
     return await runContractAction(root, path, { action: action as "preview" | "execute", args, deps, log });
   } catch { log("payment error: invalid contract, secure ledger, or provider state"); return 1; }

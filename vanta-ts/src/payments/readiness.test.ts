@@ -22,7 +22,7 @@ describe("payment provider readiness", () => {
     const readiness = listPaymentProviderReadiness({ VANTA_PAYMENT_REGION: "ES" });
     expect(readiness.map((item) => item.provider)).toEqual(["stripe_link", "mpp", "adyen_agentic", "x402", "visa_tap"]);
     expect(readiness.find((item) => item.provider === "x402")).toMatchObject({
-      capability: "http_402", state: "ready", supportedRegions: "testnet", testAvailability: "available",
+      capability: "http_402", state: "unavailable", supportedRegions: "testnet", testAvailability: "unavailable",
     });
   });
 });

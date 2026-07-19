@@ -76,6 +76,27 @@ try {
   await Promise.all(pinSessions.map((entry) => writeFile(join(home, "sessions", `${entry.id}.json`), JSON.stringify(entry), "utf8")));
   await launchApp();
 
+  let composer = page.getByPlaceholder("Ask Vanta to do something...");
+  await page.getByRole("button", { name: session.title, exact: true }).click();
+  await composer.fill("draft owned by original session");
+  await page.getByRole("button", { name: "Bulk target one", exact: true }).click();
+  assert.equal(await composer.inputValue(), "", "a draft must not follow the operator into another session");
+  await composer.fill("draft owned by bulk one");
+  await page.getByRole("button", { name: session.title, exact: true }).click();
+  assert.equal(await composer.inputValue(), "draft owned by original session", "switching back should restore the owning session draft");
+
+  await app.close();
+  app = undefined;
+  await launchApp();
+  composer = page.getByPlaceholder("Ask Vanta to do something...");
+  await page.getByRole("button", { name: session.title, exact: true }).click();
+  assert.equal(await composer.inputValue(), "draft owned by original session", "a session draft should survive an Electron process restart");
+  await page.getByRole("button", { name: "Bulk target one", exact: true }).click();
+  assert.equal(await composer.inputValue(), "draft owned by bulk one", "the second session draft should survive without crossing ownership");
+  await composer.fill("");
+  await page.getByRole("button", { name: session.title, exact: true }).click();
+  await composer.fill("");
+
   await manage(session.title).waitFor();
   await manage(session.title).click();
   const renameAction = menu().getByRole("menuitem", { name: "Rename" });
@@ -226,7 +247,7 @@ try {
   await page.getByRole("button", { name: "Delete", exact: true }).click();
   await trash.waitFor({ state: "detached" });
 
-  console.log(JSON.stringify({ rename: true, menuKeyboard: true, outsideDismiss: true, pending: true, error: true, pinPointer: true, pinKeyboardReorder: true, pinRestartPersistence: true, pinArchiveRestore: true, pinTrashReset: true, compactDrawer: true, archiveUndo: true, trashRestore: true, permanentDelete: true, shiftRange: true, selectAllVisible: true, bulkArchiveUndo: true, bulkTrashUndo: true, bulkPermanentDelete: true }));
+  console.log(JSON.stringify({ draftSessionIsolation: true, draftRestartPersistence: true, rename: true, menuKeyboard: true, outsideDismiss: true, pending: true, error: true, pinPointer: true, pinKeyboardReorder: true, pinRestartPersistence: true, pinArchiveRestore: true, pinTrashReset: true, compactDrawer: true, archiveUndo: true, trashRestore: true, permanentDelete: true, shiftRange: true, selectAllVisible: true, bulkArchiveUndo: true, bulkTrashUndo: true, bulkPermanentDelete: true }));
 } finally {
   await app?.close().catch(() => undefined);
   await Promise.all([rm(home, { recursive: true, force: true }), rm(userData, { recursive: true, force: true })]);

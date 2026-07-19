@@ -10,6 +10,13 @@ export type MessagingPlatform = {
 };
 export type ConnectStatus = "ready" | "needs_setup" | "unavailable";
 export type ConnectTestResult = { status: ConnectStatus; message: string };
+export type GoogleConnectStatus = {
+  status: "ready" | "needs_setup";
+  clientConfigured: boolean;
+  authorized: boolean;
+  message: string;
+  authUrl?: string;
+};
 export type GatewayStartResult = { state: "live" | "starting" | "failed"; message: string };
 export type TelegramSetupStatus = {
   state: "unconfigured" | "needs_repair" | "stopped" | "polling_live" | "webhook_live";
@@ -33,7 +40,15 @@ export type QueuedTurn = {
   ownerPid?: number;
 };
 export type TurnQueueSnapshot = { revision: number; items: QueuedTurn[] };
-export type Status = { kernel: string; model: string; provider?: string; tools: number; sessionId: string; root?: string; goals: Goal[]; accessMode?: AccessMode; accessScope?: "project" };
+export type ProviderRouteStatus = {
+  provider: string;
+  model: string;
+  baseRoute: string;
+  billingMode: "included" | "metered" | "local" | "unknown";
+  authMethod: "subscription" | "api_key" | "local" | "unknown";
+  authState: "ready" | "required";
+};
+export type Status = { kernel: string; model: string; provider?: string; providerRoute?: ProviderRouteStatus; tools: number; sessionId: string; root?: string; goals: Goal[]; accessMode?: AccessMode; accessScope?: "project" };
 export type RuntimeHostSnapshot = {
   host: { id: string; label: string; kind: "local" | "remote" };
   status: "offline" | "auth_required" | "idle" | "starting" | "running" | "stopping" | "failed" | "degraded";
@@ -94,7 +109,7 @@ export type ModelDownloadReceipt = {
   downloadedBytes: number; destination: string; code?: string; profileId?: string;
 };
 export type ModelDownloadPayload = { jobs: ModelDownloadJob[]; receipts: ModelDownloadReceipt[] };
-export type DesktopRunFailureKind = "setup" | "tool" | "model" | "model_mismatch" | "user_denied" | "interrupted" | "unknown";
+export type DesktopRunFailureKind = "setup" | "provider_auth" | "tool" | "model" | "model_mismatch" | "user_denied" | "interrupted" | "unknown";
 export type DesktopSchemaTransitionTrace = {
   id: string;
   sequence: number;

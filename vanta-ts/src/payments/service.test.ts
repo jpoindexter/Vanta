@@ -1,7 +1,6 @@
 import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { encodePaymentRequiredHeader, encodePaymentResponseHeader } from "@x402/core/http";
 import { describe, expect, it, vi } from "vitest";
 import { PaymentContractSchema } from "./contract.js";
 import { loadPaymentAuthorizationEvents } from "./authorization.js";
@@ -44,58 +43,16 @@ describe("payment execution service", () => {
     expect((await loadPaymentReceipts(root))[0]?.status).toBe("denied");
   });
 
-  it("requires a fresh operator approval before an x402 challenge can reach the signer", async () => {
+  it("rejects unavailable x402 without network or dynamic-install side effects", async () => {
     const root = await mkdtemp(join(tmpdir(), "vanta-payment-x402-service-"));
-    const signer = vi.fn();
     const fetchFn = vi.fn();
     expect(await executePayment(root, x402Contract(), {
-      approve: async () => false,
-      x402Signer: signer,
-      fetch: fetchFn,
-      now,
-    })).toMatchObject({ ok: false, state: "operator_denied", receiptRecorded: true });
-    expect(fetchFn).not.toHaveBeenCalled();
-    expect(signer).not.toHaveBeenCalled();
-  });
-
-  it("records a settled, redacted x402 receipt after the approved paid retry", async () => {
-    const root = await mkdtemp(join(tmpdir(), "vanta-payment-x402-service-"));
-    const contract = x402Contract("pay_x402_settle_1234");
-    if (contract.provider !== "x402") throw new Error("fixture mismatch");
-    const requirement = {
-      scheme: "exact", network: contract.request.network, asset: contract.request.asset,
-      amount: String(contract.amountMinor), payTo: contract.request.payTo, maxTimeoutSeconds: 60, extra: {},
-    };
-    const fetchFn = vi.fn()
-      .mockResolvedValueOnce(new Response("", { status: 402, headers: {
-        "payment-required": encodePaymentRequiredHeader({
-          x402Version: 2, resource: { url: contract.request.url }, accepts: [requirement],
-        }),
-      } }))
-      .mockResolvedValueOnce(new Response("", { status: 200, headers: {
-        "payment-response": encodePaymentResponseHeader({
-          success: true, transaction: "0xprivate_transaction_12345678", network: contract.request.network, amount: "1000",
-        }),
-      } }));
-    const signer = vi.fn(async () => ({
-      x402Version: 2 as const,
-      resource: { url: contract.request.url },
-      accepted: requirement,
-      payload: { signature: "not-persisted" },
-    }));
-
-    await expect(executePayment(root, contract, {
       approve: async () => true,
-      x402Signer: signer,
       fetch: fetchFn,
       now,
-    })).resolves.toMatchObject({ ok: true, state: "x402_settled", receiptRecorded: true });
-    const receipts = await loadPaymentReceipts(root);
-    expect(receipts.map((receipt) => receipt.status)).toEqual(["reserved", "settled"]);
-    expect(receipts.at(-1)?.providerResult.redactedId).toBe("0xpr...5678");
-    const raw = await readFile(paymentLedgerPath(root), "utf8");
-    expect(raw).not.toContain("private_transaction");
-    expect(raw).not.toContain("not-persisted");
+    })).toMatchObject({ ok: false, state: "unavailable", receiptRecorded: true });
+    expect(fetchFn).not.toHaveBeenCalled();
+    expect((await loadPaymentReceipts(root)).at(-1)).toMatchObject({ status: "failed", providerResult: { state: "unavailable" } });
   });
 
   it("reserves before provider execution and stores only a redacted result", async () => {

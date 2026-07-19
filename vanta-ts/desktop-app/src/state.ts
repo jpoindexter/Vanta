@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { api } from "./api.js";
+import { api, desktopEventSourceUrl } from "./api.js";
 import {
   createCompletionSoundPlayer,
   loadCompletionSoundSettings,
@@ -7,9 +7,10 @@ import {
   type CompletionSoundPlayer,
   type CompletionSoundSettings,
 } from "./completion-sound.js";
-import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, ConnectTestResult, DesktopRunReceipt, DesktopRuntime, EventRow, GatewayStartResult, Message, MessagingPlatform, Provider, RailTab, RuntimeAction, Session, Status, TelegramSetupStatus, Tool } from "./types.js";
+import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, ConnectTestResult, DesktopRunReceipt, DesktopRuntime, EventRow, GatewayStartResult, GoogleConnectStatus, Message, MessagingPlatform, Provider, RailTab, RuntimeAction, Session, Status, TelegramSetupStatus, Tool } from "./types.js";
 import type { SessionDeleteAction } from "./session-safe-ops.js";
 import { sessionPinningHandlers } from "./session-pinning-api.js";
+import { createSessionDraftController, hasPersistableSessionDraftContext } from "./session-drafts.js";
 
 export function useDesktopData() {
   const refreshVersion = useRef(0);
@@ -21,6 +22,7 @@ export function useDesktopData() {
   const [canvas, setCanvas] = useState<CanvasArtifact | null>(null);
   const [capabilities, setCapabilities] = useState<Capability[]>([]);
   const [messaging, setMessaging] = useState<MessagingPlatform[]>([]);
+  const [google, setGoogle] = useState<GoogleConnectStatus>({ status: "needs_setup", clientConfigured: false, authorized: false, message: "Checking Google Workspace..." });
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
   const [runtime, setRuntime] = useState<DesktopRuntime>({ selectedHostId: "local", hosts: [] });
   const [tab, setTab] = useState<RailTab>("activity");
@@ -29,11 +31,12 @@ export function useDesktopData() {
   const [error, setError] = useState("");
   const refresh = useCallback(async () => {
     const version = ++refreshVersion.current;
-    const [statusResult, sessionsResult, toolsResult, filesResult, modelsResult, canvasResult, capabilitiesResult, messagingResult, artifactsResult, runtimeResult] = await Promise.allSettled([
+    const [statusResult, sessionsResult, toolsResult, filesResult, modelsResult, canvasResult, capabilitiesResult, messagingResult, artifactsResult, runtimeResult, googleResult] = await Promise.allSettled([
         api<Status>("/api/status"), api<Session[]>("/api/sessions"), api<Tool[]>("/api/tools"),
         api<string[]>("/api/files"), api<Provider[]>("/api/models"), api<CanvasArtifact | null>("/api/canvas").catch(() => null),
         api<Capability[]>("/api/capabilities").catch(() => []), api<MessagingPlatform[]>("/api/messaging").catch(() => []), api<Artifact[]>("/api/artifacts").catch(() => []),
         api<DesktopRuntime>("/api/runtime").catch(() => ({ selectedHostId: "local", hosts: [] })),
+        api<GoogleConnectStatus>("/api/connect/google").catch(() => ({ status: "needs_setup", clientConfigured: false, authorized: false, message: "Google Workspace status is unavailable." } as GoogleConnectStatus)),
     ]);
     // A mutation can invalidate an older aggregate refresh while its requests
     // are still in flight. Never let stale status overwrite the saved mode.
@@ -48,6 +51,7 @@ export function useDesktopData() {
     setMessaging(messagingResult.status === "fulfilled" ? messagingResult.value : []);
     setArtifacts(artifactsResult.status === "fulfilled" ? artifactsResult.value : []);
     setRuntime(runtimeResult.status === "fulfilled" ? runtimeResult.value : { selectedHostId: "local", hosts: [] });
+    setGoogle(googleResult.status === "fulfilled" ? googleResult.value : { status: "needs_setup", clientConfigured: false, authorized: false, message: "Google Workspace status is unavailable." });
 
     const failure = [statusResult, sessionsResult, toolsResult, filesResult, modelsResult]
       .find((result): result is PromiseRejectedResult => result.status === "rejected");
@@ -90,7 +94,7 @@ export function useDesktopData() {
 
   useEffect(() => { void refresh(); }, [refresh]);
   return {
-    status, sessions, tools, files, models, canvas, capabilities, messaging, artifacts, runtime, tab, setTab, phase, error, refresh, refreshProviderModels, setModel, setAccessMode,
+    status, sessions, tools, files, models, canvas, capabilities, messaging, google, artifacts, runtime, tab, setTab, phase, error, refresh, refreshProviderModels, setModel, setAccessMode,
     setRuntimeHost: (hostId: string) => updateRuntime(hostId),
     runRuntimeAction: (hostId: string, action: RuntimeAction) => updateRuntime(hostId, action),
     ...overlays,
@@ -102,6 +106,15 @@ export function useDesktopData() {
       method: "POST", headers: jsonHeaders(), body: JSON.stringify({ kind, ...(id ? { id } : {}) }),
     }),
     startGateway: () => api<GatewayStartResult>("/api/gateway/start", { method: "POST" }),
+    googleConnect: async (action: "ingest_client" | "start" | "complete", clientPath?: string) => {
+      const result = await api<GoogleConnectStatus>("/api/connect/google", {
+        method: "POST",
+        headers: jsonHeaders(),
+        body: JSON.stringify({ action, ...(clientPath ? { clientPath } : {}) }),
+      });
+      setGoogle(result);
+      return result;
+    },
     telegramSetupStatus: () => api<TelegramSetupStatus>("/api/setup/messaging/telegram"),
     saveSetup: async (provider: string, model: string, apiKey: string) => {
       await api("/api/setup", { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ provider, model, apiKey }) });
@@ -151,18 +164,20 @@ export function useCompletionSound() {
 
 type TurnCues = { prime?: () => void; complete?: () => unknown | Promise<unknown> };
 
-export function useConversation(refresh: () => Promise<void>, cues: TurnCues = {}) {
+export function useConversation(refresh: () => Promise<void>, cues: TurnCues = {}, projectRoot = "") {
   const [messages, setMessages] = useState<Message[]>([]);
   const [sessionId, setSessionId] = useState("");
   const [activeTitle, setActiveTitle] = useState("New session");
-  const [draft, setDraft] = useState("");
+  const draftController = useRef(createSessionDraftController(window.localStorage, projectRoot, ""));
+  const [draft, setDraftState] = useState(() => draftController.current.value());
+  const draftSaveQueue = useRef<Promise<unknown>>(Promise.resolve());
   const [events, setEvents] = useState<EventRow[]>([{ label: "No tool activity yet." }]);
   const [streamText, setStreamText] = useState("");
   const [busy, setBusy] = useState(false);
   const [recovery, setRecovery] = useState<DesktopRunReceipt | null>(null);
   const lastFailedMessage = useRef("");
   useEffect(() => {
-    const stream = new EventSource("/api/events");
+    const stream = new EventSource(desktopEventSourceUrl("/api/events"));
     stream.onmessage = (message) => {
       try {
         const event = JSON.parse(message.data) as EventRow & { delta?: string };
@@ -174,7 +189,42 @@ export function useConversation(refresh: () => Promise<void>, cues: TurnCues = {
     };
     return () => stream.close();
   }, []);
-  const handlers = conversationHandlers({ refresh, setMessages, setSessionId, setActiveTitle, setEvents, setStreamText, setBusy, setDraft, setRecovery }, cues, lastFailedMessage);
+  const persistDraft = useCallback((id: string, value: string) => {
+    draftSaveQueue.current = draftSaveQueue.current
+      .catch(() => undefined)
+      .then(() => api("/api/sessions/draft", postJson({ action: "save", id, value })))
+      .catch(() => undefined);
+    return draftSaveQueue.current;
+  }, []);
+  const activateDraft = useCallback(async (nextSessionId: string) => {
+    const local = draftController.current.activate(projectRoot, nextSessionId);
+    setDraftState(local);
+    if (!hasPersistableSessionDraftContext(nextSessionId)) return;
+    await draftSaveQueue.current.catch(() => undefined);
+    const stored = await api<{ exists: boolean; value: string }>("/api/sessions/draft", postJson({ action: "load", id: nextSessionId })).catch(() => null);
+    const context = draftController.current.context();
+    if (!stored || context.root !== projectRoot || context.sessionId !== nextSessionId) return;
+    if (!stored.exists && local) {
+      await persistDraft(nextSessionId, local);
+      return;
+    }
+    draftController.current.update(stored.value);
+    setDraftState(stored.value);
+  }, [projectRoot]);
+  const setDraft = useCallback((updater: string | ((value: string) => string)) => {
+    const value = draftController.current.update(updater);
+    setDraftState(value);
+    const id = draftController.current.context().sessionId;
+    if (id) void persistDraft(id, value);
+  }, [persistDraft]);
+  const clearDraftFor = useCallback(async (id: string) => {
+    draftController.current.clear(projectRoot, id);
+    await persistDraft(id, "");
+  }, [persistDraft, projectRoot]);
+  useEffect(() => {
+    void activateDraft(sessionId);
+  }, [projectRoot]);
+  const handlers = conversationHandlers({ refresh, setMessages, setSessionId, setActiveTitle, setEvents, setStreamText, setBusy, setDraft, activateDraft, clearDraftFor, setRecovery }, cues, lastFailedMessage);
   return { sessionId, messages, activeTitle, draft, setDraft, events, streamText, busy, recovery, stop: () => stopMessage(setEvents), ...handlers };
 }
 
@@ -212,24 +262,33 @@ type ConversationState = {
   setEvents: (events: EventRow[]) => void;
   setStreamText: (updater: (value: string) => string) => void;
   setBusy: (value: boolean) => void;
-  setDraft: (updater: (value: string) => string) => void;
+  setDraft: (updater: string | ((value: string) => string)) => void;
+  activateDraft: (sessionId: string) => Promise<void>;
+  clearDraftFor: (sessionId: string) => Promise<void>;
   setRecovery: (value: DesktopRunReceipt | null) => void;
 };
 
 function conversationHandlers(state: ConversationState, cues: TurnCues, lastFailedMessage: { current: string }) {
   async function openSession(id: string) {
     const opened = await api<{ title: string; messages: Message[] }>("/api/sessions/open", postJson({ id }));
+    const recoverable = latestRecoverableRun(opened.messages);
     state.setSessionId(id);
+    await state.activateDraft(id);
     state.setActiveTitle(opened.title);
     state.setMessages(() => opened.messages);
+    state.setRecovery(recoverable?.receipt ?? null);
+    lastFailedMessage.current = recoverable?.instruction ?? "";
     state.setStreamText(() => "");
     await state.refresh();
   }
   async function newSession() {
     const created = await api<{ id: string }>("/api/sessions/new", { method: "POST" });
     state.setSessionId(created.id);
+    await state.activateDraft(created.id);
     state.setActiveTitle("New session");
     state.setMessages(() => []);
+    state.setRecovery(null);
+    lastFailedMessage.current = "";
     state.setEvents([{ label: "New session ready.", ok: true }]);
     state.setStreamText(() => "");
     await state.refresh();
@@ -246,6 +305,7 @@ function conversationHandlers(state: ConversationState, cues: TurnCues, lastFail
   }
   async function deleteSession(id: string, active: boolean, action: SessionDeleteAction = "trash") {
     await api("/api/sessions/delete", postJson(action === "permanent" ? { id, permanent: true } : { id, trashed: action === "trash" }));
+    if (action === "permanent") await state.clearDraftFor(id);
     if (active && action !== "restore") await newSession();
     else await state.refresh();
   }
@@ -259,6 +319,7 @@ function conversationHandlers(state: ConversationState, cues: TurnCues, lastFail
     state.setEvents([{ label: "Telegram setup status checked.", ok: true }]);
     state.setStreamText(() => "");
     state.setRecovery(null);
+    lastFailedMessage.current = "";
     state.setDraft(() => "");
   }
   async function queue(text: string) {
@@ -274,6 +335,15 @@ function conversationHandlers(state: ConversationState, cues: TurnCues, lastFail
     }
   }
   return { openSession, newSession, renameSession, archiveSession, deleteSession, ...pinning, submit, localReply, queue, retry: () => lastFailedMessage.current ? submit(lastFailedMessage.current) : Promise.resolve(), insertFile };
+}
+
+export function latestRecoverableRun(messages: Message[]): { receipt: DesktopRunReceipt; instruction: string } | null {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const receipt = messages[index]?.desktopRun;
+    if (!receipt || receipt.status === "done") continue;
+    return { receipt, instruction: receipt.checkpoint?.instruction?.trim() ?? "" };
+  }
+  return null;
 }
 
 export async function submitMessage(state: ConversationState, text: string, cues: TurnCues = {}, onRecovery: (failed: boolean) => void = () => {}) {

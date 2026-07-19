@@ -4,6 +4,7 @@ import { basename, dirname, join } from "node:path";
 import { homedir } from "node:os";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
+import { randomBytes } from "node:crypto";
 import { app, BrowserWindow, Tray, Menu, nativeImage, dialog, clipboard, shell } from "electron";
 import { createTrayController } from "./tray.mjs";
 import { findAvailablePort, projectArg, readProjectSetting, resolveProjectRoot, saveProjectSetting } from "./project-root.mjs";
@@ -23,6 +24,8 @@ let port = DEFAULT_DESKTOP_PORT;
 let automationKernelUrl;
 let shuttingDown = false;
 let serverReady;
+const boundaryToken = randomBytes(32).toString("hex");
+process.env.VANTA_DESKTOP_BOUNDARY_TOKEN = boundaryToken;
 
 function runtimePaths() {
   const appPath = app.isPackaged ? app.getAppPath() : join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -43,6 +46,7 @@ function startServer() {
     VANTA_DESKTOP_DIST: paths.dist,
     VANTA_PROJECT_ROOT: projectRoot,
     VANTA_KERNEL_BIN: paths.kernel,
+    VANTA_DESKTOP_BOUNDARY_TOKEN: boundaryToken,
     ...(automationKernelUrl ? { VANTA_KERNEL_URL: automationKernelUrl, VANTA_KERNEL_EPHEMERAL: "1" } : {}),
   };
   if (app.isPackaged) Object.assign(env, { ELECTRON_RUN_AS_NODE: "1" });
@@ -95,17 +99,18 @@ async function loadProject() {
   if (!smoke) void mainWindow.loadURL(url).catch((error) => showFatal(`Desktop renderer failed: ${error.message}`));
   if (smoke) await waitForKernel(url);
   if (smoke) console.log("desktop smoke: packaged kernel online");
-  if (!smoke) trayController = createTrayController({ Tray, Menu, nativeImage, dialog, clipboard, BrowserWindow, app, baseUrl: url });
+  if (!smoke) trayController = createTrayController({ Tray, Menu, nativeImage, dialog, clipboard, BrowserWindow, app, baseUrl: url, boundaryToken, preload: join(dirname(fileURLToPath(import.meta.url)), "preload.cjs") });
 }
 
 async function waitForKernel(url) {
-  const root = execFileSync("/usr/bin/curl", ["--fail", "--silent", "--max-time", "60", url], { encoding: "utf8" });
+  const boundaryHeader = ["--header", `x-vanta-desktop-boundary: ${boundaryToken}`];
+  const root = execFileSync("/usr/bin/curl", ["--fail", "--silent", "--max-time", "60", ...boundaryHeader, url], { encoding: "utf8" });
   if (!root.includes('id="root"')) throw new Error("Packaged renderer asset did not contain the Vanta root.");
   try {
-    const status = JSON.parse(execFileSync("/usr/bin/curl", ["--fail", "--silent", "--max-time", "60", `${url}/api/status`], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }));
+    const status = JSON.parse(execFileSync("/usr/bin/curl", ["--fail", "--silent", "--max-time", "60", ...boundaryHeader, `${url}/api/status`], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }));
     if (status.kernel !== "online") throw new Error(`Packaged kernel reported ${status.kernel ?? "unknown"}.`);
   } catch {
-    const setup = JSON.parse(execFileSync("/usr/bin/curl", ["--fail", "--silent", "--max-time", "10", `${url}/api/setup`], { encoding: "utf8" }));
+    const setup = JSON.parse(execFileSync("/usr/bin/curl", ["--fail", "--silent", "--max-time", "10", ...boundaryHeader, `${url}/api/setup`], { encoding: "utf8" }));
     if (!Array.isArray(setup) || setup.length === 0) throw new Error("Packaged first-run setup is unavailable.");
     console.log("desktop smoke: first-run model setup ready");
   }
@@ -151,12 +156,32 @@ async function createWindow() {
       titleBarStyle: "hiddenInset",
       trafficLightPosition: { x: 14, y: 18 },
     } : {}),
-    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      preload: join(dirname(fileURLToPath(import.meta.url)), "preload.cjs"),
+      additionalArguments: [`--vanta-desktop-boundary=${boundaryToken}`],
+    },
   });
   mainWindow.once("ready-to-show", () => { if (!smoke) mainWindow.show(); });
   mainWindow.webContents.setWindowOpenHandler(({ url }) => { if (/^https?:/.test(url)) void shell.openExternal(url); return { action: "deny" }; });
+  mainWindow.webContents.on("will-navigate", (event, target) => {
+    if (trustedRendererNavigation(target)) return;
+    event.preventDefault();
+  });
   mainWindow.on("close", (event) => { if (!shuttingDown && !smoke && !automation) { event.preventDefault(); mainWindow.hide(); } });
   if (!smoke) await mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(splashHtml())}`);
+}
+
+function trustedRendererNavigation(target) {
+  if (target.startsWith("data:text/html")) return true;
+  try {
+    const url = new URL(target);
+    return url.protocol === "http:" && url.hostname === "127.0.0.1" && Number(url.port) === port;
+  } catch {
+    return false;
+  }
 }
 
 function splashHtml() {

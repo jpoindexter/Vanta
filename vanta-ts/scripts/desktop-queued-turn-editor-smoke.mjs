@@ -4,12 +4,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { _electron as electron } from "playwright-core";
+import { scanAccessibility } from "./lib/desktop-accessibility-proof.mjs";
 
 const home = await mkdtemp(join(tmpdir(), "vanta-desktop-queue-home-"));
 const userData = await mkdtemp(join(tmpdir(), "vanta-desktop-queue-profile-"));
 const project = await mkdtemp(join(tmpdir(), "vanta-desktop-queue-project-"));
 const port = process.env.VANTA_DESKTOP_SMOKE_PORT ?? "7957";
 const executablePath = process.env.VANTA_DESKTOP_APP;
+const accessibilityProof = process.env.VANTA_DESKTOP_ACCESSIBILITY_PROOF === "1";
+const accessibilityResults = [];
 const rendererErrors = [];
 const queue = [];
 let revision = 0;
@@ -37,6 +40,7 @@ try {
   await page.getByRole("button", { name: "Open queued turns, 2 queued" }).click();
   await page.getByRole("dialog", { name: "Queued turns 2" }).waitFor();
   assert.equal(await page.locator(".queued-turn-list li").count(), 2);
+  if (accessibilityProof) accessibilityResults.push(await scanAccessibility(page, "queue"));
   await editFirst(page, "Run source proof with receipts");
   await page.locator(".queued-turn-list li").nth(1).getByRole("button", { name: "Move queued turn up" }).click();
   await expectFirst(page, "Run packaged proof");
@@ -74,7 +78,7 @@ try {
   await page.getByText("Run packaged proof").waitFor();
   await page.getByText("Starting now").waitFor();
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
-  process.stdout.write(`${JSON.stringify({ ok: true, target: executablePath ? "packaged" : "source", enqueue: true, edit: true, reorder: true, steer: true, cancel: true, startingRace: true, reconnect: true, relaunch: true, compact: "760x700", persistedScope: ["controller", "model", "approval"] })}\n`);
+  process.stdout.write(`${JSON.stringify({ ok: true, target: executablePath ? "packaged" : "source", enqueue: true, edit: true, reorder: true, steer: true, cancel: true, startingRace: true, reconnect: true, relaunch: true, compact: "760x700", persistedScope: ["controller", "model", "approval"], accessibilityProof: accessibilityProof ? accessibilityResults : undefined })}\n`);
 } finally {
   releaseChat();
   await app?.close().catch(() => undefined);

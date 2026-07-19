@@ -1,7 +1,7 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
-import { RuntimeDetail, RuntimeStrip } from "./runtime-strip.js";
+import { RuntimeDetail, RuntimeStrip, RuntimeSummary } from "./runtime-strip.js";
 import type { DesktopRuntime, RuntimeHostSnapshot } from "./types.js";
 
 const local: RuntimeHostSnapshot = {
@@ -27,8 +27,10 @@ const runtime: DesktopRuntime = { selectedHostId: "local", hosts: [local, remote
 
 describe("RuntimeStrip", () => {
   it("keeps the active runtime legible in one compact control", () => {
-    const html = renderToStaticMarkup(<RuntimeStrip runtime={runtime} onSelect={vi.fn(async () => undefined)} onAction={vi.fn(async () => undefined)} />);
-    expect(html).toContain("Local Mac");
+    const html = renderToStaticMarkup(<RuntimeStrip runtime={runtime} agentModel="gpt-5.6-sol" agentProvider="openai" phase="ready" onSelect={vi.fn(async () => undefined)} onAction={vi.fn(async () => undefined)} />);
+    expect(html).toContain("Agent model");
+    expect(html).toContain("openai · gpt-5.6-sol");
+    expect(html).toContain("Local runtime");
     expect(html).toContain("qwen.gguf");
     expect(html).toContain("llama_cpp");
     expect(html).toContain("Memory pressure 38%");
@@ -38,7 +40,7 @@ describe("RuntimeStrip", () => {
   });
 
   it("exposes transport and kernel separately with accessible host switching", () => {
-    const html = renderToStaticMarkup(<RuntimeDetail runtime={runtime} selected={remote} onSelect={vi.fn()} onAction={vi.fn()} onClose={vi.fn()} />);
+    const html = renderToStaticMarkup(<RuntimeDetail runtime={runtime} selected={remote} agentModel="gpt-5.6-sol" agentProvider="openai" agentRoute={{ provider: "openai", model: "gpt-5.6-sol", baseRoute: "https://api.openai.com/v1", billingMode: "metered", authMethod: "api_key", authState: "required" }} phase="ready" onSelect={vi.fn()} onAction={vi.fn()} onClose={vi.fn()} />);
     expect(html).toContain('role="dialog"');
     expect(html).toContain('aria-label="Runtime details"');
     expect(html).toContain("Transport");
@@ -57,5 +59,57 @@ describe("RuntimeStrip", () => {
     expect(html).toContain("1 call");
     expect(html).toContain("20 in / 5 out");
     expect(html).toContain("1 call incomplete");
+    expect(html).toContain("Agent model");
+    expect(html).toContain("Local runtime model");
+    expect(html).toContain("Agent authentication");
+    expect(html).toContain("API key · Required");
+    expect(html).toContain("Agent route");
+    expect(html).toContain("https://api.openai.com/v1");
+  });
+
+  it.each([
+    {
+      state: "remote-only",
+      phase: "ready" as const,
+      agentModel: "gpt-5.6-sol",
+      agentProvider: "openai",
+      runtime: { ...local, status: "idle" as const, engine: { lifecycle: "idle" as const } },
+      expected: ["Agent model", "openai · gpt-5.6-sol", "Local runtime", "Local Mac · Inactive"],
+    },
+    {
+      state: "local-only",
+      phase: "ready" as const,
+      agentModel: "qwen.gguf",
+      agentProvider: "ollama",
+      runtime: local,
+      expected: ["Agent model", "ollama · qwen.gguf", "Local runtime", "Local Mac · qwen.gguf"],
+    },
+    {
+      state: "mixed",
+      phase: "ready" as const,
+      agentModel: "gpt-5.6-sol",
+      agentProvider: "openai",
+      runtime: local,
+      expected: ["Agent model", "openai · gpt-5.6-sol", "Local runtime", "Local Mac · qwen.gguf"],
+    },
+    {
+      state: "loading",
+      phase: "loading" as const,
+      agentModel: undefined,
+      agentProvider: undefined,
+      runtime: undefined,
+      expected: ["Agent model", "Loading", "Local runtime", "Unavailable"],
+    },
+    {
+      state: "unavailable",
+      phase: "error" as const,
+      agentModel: undefined,
+      agentProvider: undefined,
+      runtime: undefined,
+      expected: ["Agent model", "Unavailable", "Local runtime"],
+    },
+  ])("names the answering layers in the $state state", ({ phase, agentModel, agentProvider, runtime: snapshot, expected }) => {
+    const html = renderToStaticMarkup(<RuntimeSummary runtime={snapshot} agentModel={agentModel} agentProvider={agentProvider} phase={phase} />);
+    for (const value of expected) expect(html).toContain(value);
   });
 });

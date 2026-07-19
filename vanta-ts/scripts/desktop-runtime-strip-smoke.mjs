@@ -37,6 +37,12 @@ let modelDownloads = [
 
 try {
   const page = await app.firstWindow();
+  await page.route("**/api/sessions", async (route) => {
+    await route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
+  });
+  await page.route("**/api/sessions/draft", async (route) => {
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ exists: false, value: "" }) });
+  });
   await page.route("**/api/runtime", async (route) => {
     if (route.request().method() === "POST") {
       const body = route.request().postDataJSON();
@@ -73,18 +79,23 @@ try {
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ jobs: modelDownloads, receipts: modelDownloads.map((job) => ({ version: 1, jobId: job.id, at: "2026-07-17T12:01:00.000Z", transition: job.status, downloadedBytes: job.downloadedBytes, destination: job.destination })) }) });
   });
   await page.locator(".app-shell").waitFor({ timeout: 20_000 });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.locator(".app-shell").waitFor({ timeout: 20_000 });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.locator(".app-shell.theme-dark").waitFor({ timeout: 15_000 });
   await page.locator("[data-runtime-strip]").waitFor();
+  await page.locator("[data-runtime-strip]").getByText("qwen.gguf").first().waitFor();
 
   const composer = page.getByPlaceholder("Ask Vanta to do something...");
   await composer.fill("Draft survives runtime switching");
+  await assertDraft(composer, "after fill");
   const dark = await inspectRuntime(page, "dark");
 
   const trigger = page.locator(".runtime-strip-trigger");
   await trigger.click();
   const dialog = page.getByRole("dialog", { name: "Runtime details" });
   await dialog.waitFor();
+  await assertDraft(composer, "after opening runtime details");
   const screenReader = await dialog.evaluate((element) => ({
     role: element.getAttribute("role"),
     label: element.getAttribute("aria-label"),
@@ -118,6 +129,7 @@ try {
   await profilePanel.getByLabel("Environment references").waitFor();
   await profilePanel.getByLabel("Unknown flags reviewed").waitFor();
   await profilePanel.getByRole("button", { name: "Cancel" }).click();
+  await assertDraft(composer, "after runtime profile controls");
   const downloads = dialog.locator("details.model-downloads-panel");
   await downloads.locator(":scope > summary").click();
   await downloads.getByText("Qwen local").waitFor();
@@ -137,6 +149,7 @@ try {
   await downloadAdvanced.locator(":scope > summary").click();
   await downloads.getByLabel("Auth reference").waitFor();
   await downloads.getByRole("button", { name: "Cancel" }).click();
+  await assertDraft(composer, "after model download controls");
   const stop = dialog.getByRole("button", { name: "Stop" });
   await stop.click();
   await dialog.getByRole("alert").getByText("fixture stop failed").waitFor();
@@ -145,12 +158,14 @@ try {
   await undo.waitFor();
   await undo.click();
   await dialog.getByRole("button", { name: "Stop" }).waitFor();
+  await assertDraft(composer, "after runtime lifecycle actions");
 
   await dialog.getByRole("button", { name: /Remote Fixture/ }).click();
   await trigger.getByText("Remote Fixture").waitFor();
   await dialog.getByRole("button", { name: "Reconnect" }).click();
   await dialog.getByText("reconnected").waitFor();
-  if (await composer.inputValue() !== "Draft survives runtime switching") throw new Error("runtime host switch dropped the active draft");
+  const draftAfterSwitch = await composer.inputValue();
+  if (draftAfterSwitch !== "Draft survives runtime switching") throw new Error(`runtime host switch dropped the active draft: ${JSON.stringify(draftAfterSwitch)}`);
   await page.keyboard.press("Escape");
   await dialog.waitFor({ state: "detached" });
   if (!await trigger.evaluate((element) => element === document.activeElement)) throw new Error("runtime trigger did not regain focus after Escape");
@@ -284,4 +299,9 @@ async function inspectRuntime(page, expectedTheme) {
   if (result.expanded !== "false" || result.controls !== "runtime-context-panel") throw new Error(`${expectedTheme}: runtime disclosure semantics are invalid`);
   if (!result.color || !result.background) throw new Error(`${expectedTheme}: runtime theme styles were not applied`);
   return result;
+}
+
+async function assertDraft(composer, checkpoint) {
+  const value = await composer.inputValue();
+  if (value !== "Draft survives runtime switching") throw new Error(`runtime draft changed ${checkpoint}: ${JSON.stringify(value)}`);
 }

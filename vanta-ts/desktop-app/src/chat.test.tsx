@@ -69,6 +69,23 @@ describe("ChatThread recovery", () => {
     expect(html).toContain("Predicted 2; observed 6");
     expect(html).toContain("Safe next: revise state or model");
   });
+
+  it("shows provider reconnection instead of approval or blind retry", () => {
+    const recovery: DesktopRunReceipt = {
+      status: "failed",
+      failureKind: "provider_auth",
+      events: [{ label: "Provider authentication required.", ok: false }],
+      actions: ["edit_request", "start_from_checkpoint"],
+      checkpoint: { instruction: "check my email" },
+    };
+    const html = renderToStaticMarkup(
+      <ChatThread messages={[]} busy={false} streamText="" events={[]} recovery={recovery} approval={null} onApproval={vi.fn()} onRetry={vi.fn()} onReconnect={vi.fn()} onPrompt={vi.fn()} />,
+    );
+    expect(html).toContain("Provider authentication required");
+    expect(html).toContain("Reconnect model");
+    expect(html).not.toContain("Retry failed step");
+    expect(html).not.toContain("approval denied");
+  });
 });
 
 describe("ChatThread quiet trace", () => {
@@ -173,6 +190,8 @@ describe("Composer context legibility", () => {
     expect(html).toContain('aria-haspopup="dialog"');
     expect(html).toContain(">Ask</span>");
     expect(html).toContain("gpt-5.5");
+    expect(html).toContain("Agent model");
+    expect(html).toContain("Agent model: gpt-5.5. Change model");
     expect(html).toContain("desktop-app/src/App.tsx");
     expect(html).toContain("Remove desktop-app/src/App.tsx");
   });

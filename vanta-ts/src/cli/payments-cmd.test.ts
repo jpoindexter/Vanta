@@ -2,7 +2,6 @@ import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { KeychainRunner } from "../store/keychain.js";
 import { runPaymentsCommand } from "./payments-cmd.js";
 
 let root: string, lines: string[], path: string;
@@ -54,34 +53,7 @@ describe("vanta payments", () => {
     })).toBe(0);
     const readiness = JSON.parse(lines.join("\n")) as Array<{ provider: string; state: string }>;
     expect(readiness.find((item) => item.provider === "stripe_link")?.state).toBe("unsupported_region");
-    expect(readiness.find((item) => item.provider === "x402")?.state).toBe("ready");
-  });
-
-  it("previews then creates a Keychain-only x402 test wallet", async () => {
-    const keychainRun = vi.fn<KeychainRunner>(async () => ({ ok: true, stdout: "" }));
-    const privateKey = `0x${"11".repeat(32)}` as `0x${string}`;
-    const deps = {
-      log: (line: string) => lines.push(line),
-      env: { VANTA_HOME: join(root, "home") },
-      wallet: { platform: "darwin" as const, keychainRun, generateKey: () => privateKey },
-    };
-    expect(await runPaymentsCommand(root, ["x402-wallet", "create"], deps)).toBe(2);
-    expect(keychainRun).not.toHaveBeenCalled();
-    expect(await runPaymentsCommand(root, ["x402-wallet", "create", "--yes"], deps)).toBe(0);
-    expect(lines.join("\n")).toContain("alias X402_TEST_SIGNER");
-    expect(lines.join("\n")).not.toContain(privateKey);
-  });
-
-  it("reports x402 wallet funding status as structured data", async () => {
-    const privateKey = `0x${"11".repeat(32)}` as `0x${string}`;
-    expect(await runPaymentsCommand(root, ["x402-wallet", "status", "--json"], {
-      log: (line) => lines.push(line),
-      wallet: { resolveSecret: async () => privateKey, readBalance: async () => 20_000_000n },
-    })).toBe(0);
-    const status = JSON.parse(lines.join("\n")) as { state: string; balanceUsdc: string; address: string };
-    expect(status).toMatchObject({ state: "funded", balanceUsdc: "20" });
-    expect(status.address).toMatch(/^0x[0-9A-Fa-f]{40}$/);
-    expect(lines.join("\n")).not.toContain(privateKey);
+    expect(readiness.find((item) => item.provider === "x402")?.state).toBe("unavailable");
   });
 
   it("fails closed without echoing invalid contract contents", async () => {

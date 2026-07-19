@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import type { OAuth2Client, Credentials } from "google-auth-library";
-import { parseTokenFile, loadTokens, saveTokens, type StoredTokens } from "./auth-store.js";
+import { parseTokenFile, loadClientCreds, loadTokens, saveClientCreds, saveTokens, type StoredTokens } from "./auth-store.js";
 import { parseClientJson, publishStateWarning, type ClientCreds } from "./client-json.js";
 import { awaitLoopbackCode, awaitCodeViaKernelRelay } from "./auth-callback.js";
 export { parseTokenFile } from "./auth-store.js";
@@ -19,19 +19,16 @@ const SCOPES = [
   "https://www.googleapis.com/auth/drive",
 ];
 
-function readClientCreds(env: NodeJS.ProcessEnv): ClientCreds {
+function envClientCreds(env: NodeJS.ProcessEnv): ClientCreds | null {
   const clientId = env.VANTA_GOOGLE_CLIENT_ID?.trim();
   const clientSecret = env.VANTA_GOOGLE_CLIENT_SECRET?.trim();
-  if (!clientId || !clientSecret) {
-    throw new Error(
-      "Google client credentials missing. One-time setup: download the OAuth " +
-        "client JSON (type: Desktop app) from Google Cloud Console and run: " +
-        "vanta auth google --client <client_secret.json> (no copy-paste). " +
-        "Or set VANTA_GOOGLE_CLIENT_ID and VANTA_GOOGLE_CLIENT_SECRET in your env.",
-    );
-  }
-  return { clientId, clientSecret };
+  return clientId && clientSecret ? { clientId, clientSecret } : null;
 }
+
+const MISSING_CLIENT =
+  "Google client credentials missing. One-time setup: download the OAuth client JSON " +
+  "(type: Desktop app) from Google Cloud Console and run: vanta auth google --client " +
+  "<client_secret.json> (no copy-paste). Or connect Google from Vanta Desktop.";
 
 /**
  * Read + parse Google's downloaded client_secret.json. Throws an actionable
@@ -57,7 +54,20 @@ export async function resolveClientCreds(
   clientPath: string | undefined,
   env: NodeJS.ProcessEnv,
 ): Promise<ClientCreds> {
-  return clientPath ? readClientFile(clientPath) : readClientCreds(env);
+  if (clientPath) {
+    const creds = await readClientFile(clientPath);
+    await saveClientCreds(creds, env);
+    return creds;
+  }
+  const fromEnv = envClientCreds(env);
+  if (fromEnv) return fromEnv;
+  const stored = await loadClientCreds(env);
+  if (stored) return stored;
+  throw new Error(MISSING_CLIENT);
+}
+
+export async function hasGoogleClient(env: NodeJS.ProcessEnv = process.env): Promise<boolean> {
+  return Boolean(envClientCreds(env) ?? await loadClientCreds(env));
 }
 
 export async function buildClient(
@@ -134,12 +144,13 @@ export async function runGoogleAuth(
  */
 export async function getAccessToken(
   env: NodeJS.ProcessEnv = process.env,
+  clientFactory: typeof buildClient = buildClient,
 ): Promise<string> {
   const stored = await loadTokens(env);
   if (!stored?.refresh_token) {
     throw new Error("Google not authorized — run: vanta auth google");
   }
-  const client = await buildClient(undefined, readClientCreds(env));
+  const client = await clientFactory(undefined, await resolveClientCreds(undefined, env));
   client.setCredentials({ refresh_token: stored.refresh_token });
 
   const { token } = await client.getAccessToken();

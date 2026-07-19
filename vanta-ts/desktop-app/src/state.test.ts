@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { submitMessage } from "./state.js";
+import { latestRecoverableRun, submitMessage } from "./state.js";
 import type { DesktopRunReceipt, EventRow, Message } from "./types.js";
 
 function conversationState(order: string[]) {
@@ -80,5 +80,30 @@ describe("desktop turn completion", () => {
       status: "failed",
       checkpoint: { instruction: "do the task", partialText: "Partial work" },
     });
+  });
+});
+
+describe("saved run recovery", () => {
+  const failed: DesktopRunReceipt = {
+    status: "failed",
+    failureKind: "setup",
+    events: [{ label: "Provider authentication required", ok: false }],
+    actions: ["retry_failed_step", "edit_request", "start_from_checkpoint"],
+    checkpoint: { instruction: "check my email", partialText: "401 Unauthorized" },
+  };
+
+  it("restores the latest unfinished instruction after session reload", () => {
+    expect(latestRecoverableRun([
+      { role: "assistant", content: "older", desktopRun: { ...failed, checkpoint: { instruction: "older request" } } },
+      { role: "assistant", content: "auth failed", desktopRun: failed },
+    ])).toEqual({ receipt: failed, instruction: "check my email" });
+  });
+
+  it("does not revive completed work", () => {
+    expect(latestRecoverableRun([{
+      role: "assistant",
+      content: "done",
+      desktopRun: { status: "done", events: [], actions: [] },
+    }])).toBeNull();
   });
 });

@@ -6,7 +6,7 @@
 // code is matched first so emphasis markers inside backticks stay literal. The
 // grammar lives in this import-leaf module so both renderers share it without a
 // circular import; the HTML path (copy-format.ts) imports INLINE_RE from here.
-export const INLINE_RE = /(`[^`\n]+`|\*\*[^*\n]+\*\*|\*[^*\n]+\*|_[^_\n]+_|\[[^\]\n]+\]\([^)\n]+\))/g;
+export const INLINE_RE = /(`[^`\n]+`|\*\*[^*\n]+\*\*|\*[^*\n]+\*|(?<![\p{L}\p{N}_])_[^_\n]+_(?![\p{L}\p{N}_])|\[[^\]\n]+\]\([^)\n]+\))/gu;
 
 /** Escape RTF control characters so literal text can't break the RTF structure. */
 function escapeRtf(text: string): string {

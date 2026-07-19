@@ -1,0 +1,9 @@
+{
+  "capturedAt": "2026-07-18T20:06:00+02:00",
+  "appAsarBytes": 206448478,
+  "directCryptoPackages": [
+    "@x402/core",
+    "@x402/evm",
+    "viem"
+  ]
+}

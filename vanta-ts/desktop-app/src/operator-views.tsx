@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
-import { Activity, ArrowRight, Bot, Boxes, CheckCircle2, ExternalLink, FileText, Image, Link2, Network, PackageOpen, PauseCircle, RefreshCw, Search, ShieldAlert, Wrench } from "lucide-react";
-import type { Artifact, Capability, ConnectStatus, ConnectTestResult, EventRow, GatewayStartResult, MessagingPlatform, Provider, Session, Status } from "./types.js";
+import { Activity, ArrowRight, Bot, Boxes, CheckCircle2, ExternalLink, FileText, Image, Link2, Mail, Network, PackageOpen, PauseCircle, RefreshCw, Search, ShieldAlert, Wrench } from "lucide-react";
+import type { Artifact, Capability, ConnectStatus, ConnectTestResult, EventRow, GatewayStartResult, GoogleConnectStatus, MessagingPlatform, Provider, Session, Status } from "./types.js";
 import { McpConnectorsView } from "./mcp-connectors-view.js";
 import type { useDesktopMcp } from "./mcp-state.js";
 
@@ -137,16 +137,18 @@ export function ConnectView(props: {
   platforms: MessagingPlatform[];
   models: Provider[];
   status: Status | null;
+  google?: GoogleConnectStatus;
   mcp?: ReturnType<typeof useDesktopMcp>;
   onSaveMessaging: (id: string, values: Record<string, string>) => Promise<void>;
   onTest: TestConnection;
   onOpenModel: () => void;
   onOpenSetup: () => void;
   onStartGateway: () => Promise<GatewayStartResult>;
-  initialSection?: "overview" | "capabilities" | "mcp" | "messaging";
+  onGoogleConnect?: (action: "ingest_client" | "start" | "complete", clientPath?: string) => Promise<GoogleConnectStatus>;
+  initialSection?: "overview" | "capabilities" | "mcp" | "messaging" | "google";
   messagingId?: string;
 }) {
-  const [section, setSection] = useState<"overview" | "capabilities" | "mcp" | "messaging">(props.initialSection ?? "overview");
+  const [section, setSection] = useState<"overview" | "capabilities" | "mcp" | "messaging" | "google">(props.initialSection ?? "overview");
   const configured = props.platforms.filter((platform) => platform.configured).length;
   const providerStatus: ConnectStatus = props.status?.model ? "ready" : props.models.length ? "needs_setup" : "unavailable";
   useEffect(() => { if (section === "mcp") void props.mcp?.refresh(); }, [props.mcp?.refresh, section]);
@@ -156,17 +158,49 @@ export function ConnectView(props: {
       <button role="tab" aria-selected={section === "capabilities"} className={section === "capabilities" ? "active" : ""} type="button" onClick={() => setSection("capabilities")}>Capabilities</button>
       <button role="tab" aria-selected={section === "mcp"} className={section === "mcp" ? "active" : ""} type="button" onClick={() => setSection("mcp")}>MCP</button>
       <button role="tab" aria-selected={section === "messaging"} className={section === "messaging" ? "active" : ""} type="button" onClick={() => setSection("messaging")}>Messaging</button>
+      <button role="tab" aria-selected={section === "google"} className={section === "google" ? "active" : ""} type="button" onClick={() => setSection("google")}>Google</button>
     </div>
     {section === "overview" ? <div className="connect-grid">
       <ConnectCard icon={<Bot size={18} />} status={providerStatus} eyebrow="Model" title={props.status?.model ?? "Choose a model"} detail={props.models.length ? `${props.models.length} provider${props.models.length === 1 ? "" : "s"} available` : "Provider catalog unavailable. Retry locally before opening setup."} action={props.status?.model ? "Change model" : "Connect provider"} onAction={props.status?.model ? props.onOpenModel : props.onOpenSetup} onTest={providerStatus === "ready" ? () => props.onTest("provider") : undefined} />
       <ConnectCard icon={<Boxes size={18} />} status={props.capabilities.length ? "ready" : "needs_setup"} eyebrow="Capabilities" title={`${props.capabilities.length} available`} detail="Live registered tools and project skills that Vanta can use in this workspace." action="Browse capabilities" onAction={() => setSection("capabilities")} />
       <ConnectCard icon={<Network size={18} />} status={props.mcp?.summary.servers ? "ready" : props.mcp?.payload.connectors.length ? "needs_setup" : "unavailable"} eyebrow="MCP" title={props.mcp?.summary.servers ? `${props.mcp.summary.servers} ready` : "No servers ready"} detail={`${props.mcp?.summary.tools ?? 0} tools and ${props.mcp?.summary.resources ?? 0} resources available to Work.`} action="Manage MCP" onAction={() => setSection("mcp")} />
       <ConnectCard icon={<Network size={18} />} status={configured ? "ready" : props.platforms.length ? "needs_setup" : "unavailable"} eyebrow="Messaging" title={configured ? `${configured} ready` : "No channels ready"} detail={`${props.platforms.length} available adapters. Credentials stay local to this project.`} action="Configure messaging" onAction={() => setSection("messaging")} />
+      <ConnectCard icon={<Mail size={18} />} status={props.google?.status ?? "needs_setup"} eyebrow="Google Workspace" title={props.google?.authorized ? "Gmail, Calendar, and Drive" : "Connect Google"} detail={props.google?.message ?? "Connect Gmail, Calendar, and Drive from the desktop."} action={props.google?.authorized ? "Review Google" : "Connect Google"} onAction={() => setSection("google")} />
     </div> : null}
     {section === "capabilities" ? <CapabilitiesPanel items={props.capabilities} /> : null}
     {section === "mcp" && props.mcp ? <McpConnectorsView payload={props.mcp.payload} loading={props.mcp.loading} pending={props.mcp.pending} error={props.mcp.error} onRefresh={props.mcp.refresh} onAction={props.mcp.act} /> : null}
     {section === "messaging" ? <MessagingPanel platforms={props.platforms} initialId={props.messagingId} onSave={props.onSaveMessaging} onTest={props.onTest} onStartGateway={props.onStartGateway} /> : null}
+    {section === "google" ? <GoogleConnectPanel status={props.google} onAction={props.onGoogleConnect} /> : null}
   </WorkspaceView>;
+}
+
+function GoogleConnectPanel(props: { status?: GoogleConnectStatus; onAction?: (action: "ingest_client" | "start" | "complete", clientPath?: string) => Promise<GoogleConnectStatus> }) {
+  const [clientPath, setClientPath] = useState("");
+  const [current, setCurrent] = useState(props.status);
+  const [busy, setBusy] = useState("");
+  const [error, setError] = useState("");
+  useEffect(() => { setCurrent(props.status); }, [props.status]);
+  async function run(action: "ingest_client" | "start" | "complete") {
+    if (!props.onAction) return;
+    setBusy(action); setError("");
+    try { setCurrent(await props.onAction(action, action === "ingest_client" ? clientPath : undefined)); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
+    finally { setBusy(""); }
+  }
+  const status = current ?? { status: "needs_setup" as const, clientConfigured: false, authorized: false, message: "Google Workspace status is unavailable." };
+  return <section className="messaging-detail google-connect-detail" aria-labelledby="google-connect-title">
+    <header><div><StatusBadge status={status.status} /><h2 id="google-connect-title">Google Workspace</h2></div><a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer">Google Cloud credentials <ExternalLink size={14} /></a></header>
+    <p>{status.message}</p>
+    <ol className="setup-steps"><li>Download an OAuth client JSON with application type Desktop app.</li><li>Add it once; Vanta stores the client privately and does not depend on the download path.</li><li>Open Google consent, approve access, then finish the connection here.</li></ol>
+    {!status.clientConfigured ? <label>Downloaded client JSON path<input type="text" value={clientPath} onChange={(event) => setClientPath(event.target.value)} placeholder="/Users/you/Downloads/client_secret.json" autoComplete="off" /></label> : null}
+    {error ? <p className="setup-error" role="alert">{error}</p> : null}
+    {current?.authUrl ? <p className="connect-test-result needs_setup" role="status"><a href={current.authUrl} target="_blank" rel="noreferrer">Open Google consent <ExternalLink size={14} /></a></p> : null}
+    <div className="form-footer"><p>Credentials and refresh tokens remain in Vanta's private local store or your system keychain.</p><div>
+      {!status.clientConfigured ? <button type="button" disabled={!clientPath.trim() || !!busy} onClick={() => void run("ingest_client")}>{busy === "ingest_client" ? "Saving..." : "Save client file"}</button> : null}
+      {status.clientConfigured ? <button type="button" disabled={!!busy} onClick={() => void run("start")}>{busy === "start" ? "Preparing..." : status.authorized ? "Reconnect Google" : "Start Google consent"}</button> : null}
+      {status.clientConfigured && !status.authorized ? <button type="button" disabled={!!busy} onClick={() => void run("complete")}>{busy === "complete" ? "Checking..." : "Finish connection"}</button> : null}
+    </div></div>
+  </section>;
 }
 
 function ConnectCard(props: { icon: ReactNode; status: ConnectStatus; eyebrow: string; title: string; detail: string; action: string; onAction: () => void; onTest?: () => Promise<ConnectTestResult> }) {

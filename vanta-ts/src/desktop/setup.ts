@@ -7,8 +7,16 @@ import type { DesktopState } from "./handlers.js";
 import { readJson, sendJson } from "./handlers.js";
 import type http from "node:http";
 import type { ProviderEntry } from "../providers/catalog.js";
+import { resolveProvider } from "../providers/index.js";
+import type { LLMProvider } from "../providers/interface.js";
+import { redactForLog } from "../store/redact-structural.js";
+import { clearProviderAuthRequired } from "./provider-auth-store.js";
 
-type SetupInput = { provider: ProviderEntry; model: string; apiKey: string } | { error: string };
+export type DesktopSetupConfiguration = { provider: ProviderEntry; model: string; apiKey: string };
+type SetupInput = DesktopSetupConfiguration | { error: string };
+type SetupValidationDeps = { resolveProvider: (env: NodeJS.ProcessEnv) => LLMProvider };
+const PLACEHOLDER_KEY = /^(?:sk[-_]?secret|your[-_ ]?api[-_ ]?key|api[-_ ]?key|test|secret|placeholder|change[-_ ]?me|replace[-_ ]?me|x{3,})$/i;
+const LOCAL_PROVIDERS = new Set(["ollama", "lmstudio"]);
 
 export function desktopSetupOptions() {
   return PROVIDER_CATALOG.map((provider) => ({
@@ -22,8 +30,13 @@ export async function handleDesktopSetup(state: DesktopState, req: http.Incoming
   if (req.method === "GET") return sendJson(res, 200, desktopSetupOptions());
   const input = setupInput(await readJson(req));
   if ("error" in input) return sendJson(res, 400, { error: input.error });
-  await persistSetup(state, input);
-  sendJson(res, 200, { ok: true, provider: input.provider.id, model: input.model });
+  try {
+    await validateDesktopProviderSetup(input);
+    await persistSetup(state, input);
+    sendJson(res, 200, { ok: true, provider: input.provider.id, model: input.model });
+  } catch (error) {
+    sendJson(res, 400, { error: redactForLog(error instanceof Error ? error.message : String(error)) });
+  }
 }
 
 function setupInput(raw: unknown): SetupInput {
@@ -36,6 +49,37 @@ function setupInput(raw: unknown): SetupInput {
   return { provider, model, apiKey };
 }
 
+export async function validateDesktopProviderSetup(
+  input: DesktopSetupConfiguration,
+  env: NodeJS.ProcessEnv = process.env,
+  deps: SetupValidationDeps = { resolveProvider },
+): Promise<void> {
+  const key = input.apiKey || (input.provider.envVar ? env[input.provider.envVar] : "") || "";
+  if (input.provider.envVar && !key) throw new Error(`${input.provider.envVar} is required.`);
+  if (input.provider.envVar && PLACEHOLDER_KEY.test(key.trim())) {
+    throw new Error(`${input.provider.label} credential looks like a placeholder. Add a real credential and test again.`);
+  }
+  if (LOCAL_PROVIDERS.has(input.provider.id)) return;
+
+  const probeEnv = { ...env, ...buildEnvUpdates(input.provider, key, input.model) };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
+  try {
+    const provider = deps.resolveProvider(probeEnv);
+    await provider.complete(
+      [{ role: "user", content: "Reply with OK." }],
+      [],
+      { maxTokens: 1, signal: controller.signal },
+    );
+  } catch (error) {
+    const raw = error instanceof Error ? error.message : String(error);
+    const detail = redactForLog(raw.replaceAll(key, "[redacted]")).split("\n")[0];
+    throw new Error(`Could not verify ${input.provider.label} credentials: ${detail}`);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function persistSetup(state: DesktopState, input: Exclude<SetupInput, { error: string }>): Promise<void> {
   const updates = buildEnvUpdates(input.provider, input.apiKey || undefined, input.model);
   const path = join(state.root, ".vanta", ".env");
@@ -43,5 +87,6 @@ async function persistSetup(state: DesktopState, input: Exclude<SetupInput, { er
   const existing = existsSync(path) ? await readFile(path, "utf8") : "";
   await writeFile(path, upsertEnvMigratingLegacy(existing, updates), { mode: 0o600 });
   Object.assign(process.env, updates);
-  state.setup = undefined; state.convo = undefined; state._setupError = undefined;
+  await clearProviderAuthRequired(state.root);
+  state.setup = undefined; state.convo = undefined; state._setupError = undefined; state._providerAuthRequired = undefined;
 }

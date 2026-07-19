@@ -46,6 +46,24 @@ describe("markdownToHtml", () => {
     expect(markdownToHtml("_hi_")).toBe("<p><em>hi</em></p>");
   });
 
+  it("preserves intraword underscores and exact identifiers", () => {
+    const identifiers = [
+      "VANTA_DESKTOP_LIVE_READ_123",
+      "GOOGLE_CLIENT_ID",
+      "client_secret.json",
+      "_private",
+      "private_",
+      "__dunder__",
+      "café_crème_test",
+    ];
+    for (const identifier of identifiers) {
+      expect(markdownToHtml(identifier)).toBe(`<p>${identifier}</p>`);
+    }
+    expect(markdownToHtml("Keep _real emphasis_ beside FOO_BAR.")).toBe(
+      "<p>Keep <em>real emphasis</em> beside FOO_BAR.</p>",
+    );
+  });
+
   it("renders inline code as <code>", () => {
     expect(markdownToHtml("`x = 1`")).toBe("<p><code>x = 1</code></p>");
   });
@@ -113,6 +131,12 @@ describe("markdownToRtf", () => {
   it("renders italic runs for * and _", () => {
     expect(markdownToRtf("*hi*")).toContain("{\\i hi}");
     expect(markdownToRtf("_hi_")).toContain("{\\i hi}");
+  });
+
+  it("preserves identifier underscores in rich-text copy", () => {
+    const out = markdownToRtf("VANTA_DESKTOP_LIVE_READ_123 client_secret.json __dunder__");
+    expect(out).toContain("VANTA_DESKTOP_LIVE_READ_123 client_secret.json __dunder__");
+    expect(out).not.toContain("{\\i DESKTOP}");
   });
 
   it("renders inline code as a monospace run", () => {

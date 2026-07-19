@@ -5,6 +5,8 @@ describe("connectionRecovery", () => {
   it("opens provider setup only for provider failures", () => {
     expect(connectionRecovery("No provider API key configured")).toBe("provider");
     expect(connectionRecovery("Provider model is unavailable")).toBe("provider");
+    expect(connectionRecovery("401 Incorrect API key provided")).toBe("provider");
+    expect(connectionRecovery("OAuth token expired; login required")).toBe("provider");
   });
 
   it("keeps file and catalog failures in local recovery", () => {

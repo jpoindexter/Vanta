@@ -63,7 +63,7 @@ const USAGE_LINES = [
       "       vanta service [install|restart|stop|logs|status|uninstall]   full service lifecycle",
       "       vanta spreadsheet inspect|explain|preview|apply|model|host-proof   inspect, edit, model, and bind real host evidence",
       "       vanta media-studio preview|render|stages  render and verify scoped local MP4 briefs",
-      "       vanta payments preview|execute|receipts|authorization|readiness|x402-wallet   provider-neutral payment authorization",
+      "       vanta payments preview|execute|receipts|authorization|readiness   provider-neutral payment authorization",
       "       vanta shopify read|preview|apply|receipts   scoped Shopify operations with verified writes",
       "       vanta telephony search|preview|execute|receipts|prune|ingress   consented test SMS/calls/numbers",
       "       vanta agents [list|logs|attach|stop|rm|respawn]   manage background agent sessions",

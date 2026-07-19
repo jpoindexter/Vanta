@@ -5,7 +5,7 @@ import { CommandPalette, KeyboardShortcuts, ModelPicker, NewTaskDialog, Settings
 import { ArtifactsView, ConnectView, OperateView } from "./operator-views.js";
 import { RightRail } from "./rail.js";
 import { CompletionSoundSettings } from "./sound-settings.js";
-import { RuntimeStrip } from "./runtime-strip.js";
+import { agentModelPresentation, RuntimeStrip } from "./runtime-strip.js";
 import { FullAccessWarning, fullAccessScope, useFullAccessWarning } from "./full-access-warning.js";
 import { mentionedProjectFiles } from "./file-context.js";
 import { connectionRecovery } from "./connection-recovery.js";
@@ -14,6 +14,7 @@ import { useDesktopMcp } from "./mcp-state.js";
 import { QueuedTurnDrawer, useQueuedTurns } from "./queued-turns.js";
 import type { DesktopTheme, DesktopView, RailTab } from "./types.js";
 import { isTelegramSetupQuestion, parseDesktopSetupCommand } from "../../src/setup/telegram-intent.js";
+import { reconnectProviderAndResume } from "./provider-auth-recovery.js";
 
 type DesktopData = ReturnType<typeof useDesktopData>;
 type CompletionSound = ReturnType<typeof useCompletionSound>;
@@ -43,7 +44,7 @@ export function AppShell() {
   useInputModality();
   const data = useDesktopData();
   const sound = useCompletionSound();
-  const convo = useConversation(data.refresh, { prime: sound.prime, complete: sound.play });
+  const convo = useConversation(data.refresh, { prime: sound.prime, complete: sound.play }, data.status?.root ?? "");
   const [queueOpen, setQueueOpen] = useState(false);
   const queued = useQueuedTurns(convo.sessionId || data.status?.sessionId, convo.busy || queueOpen);
   const approval = useApproval();
@@ -199,11 +200,11 @@ export function AppShell() {
         {view === "work" ? <>
           <div className="work-controls">
             <WorkToolbar busy={convo.busy} queueCount={queued.snapshot.items.length} onQueue={() => setQueueOpen(true)} onBackground={() => setView("operate")} onStop={() => { void convo.stop(); }} onReset={() => setNewTaskOpen(true)} />
-            <RuntimeStrip runtime={data.runtime} onSelect={data.setRuntimeHost} onAction={data.runRuntimeAction} />
+            <RuntimeStrip runtime={data.runtime} agentModel={data.status?.model} agentProvider={data.status?.provider} agentRoute={data.status?.providerRoute} phase={data.phase} onSelect={data.setRuntimeHost} onAction={data.runRuntimeAction} />
           </div>
           <div className={`conversation-stage ${data.phase === "error" ? "has-error" : ""}`}>
             {data.phase === "error" ? <ConnectionError message={data.error} onRetry={() => { void data.refresh(); }} onSetup={data.openSetup} /> : null}
-            {data.phase === "loading" ? <LoadingState /> : <ChatThread key={convo.sessionId || data.status?.sessionId} sessionId={convo.sessionId || data.status?.sessionId} messages={convo.messages} busy={convo.busy} streamText={convo.streamText} events={convo.events} recovery={convo.recovery} approval={approval.approval} onApproval={approval.answerApproval} onRetry={convo.retry} onPrompt={convo.setDraft} />}
+            {data.phase === "loading" ? <LoadingState /> : <ChatThread key={convo.sessionId || data.status?.sessionId} sessionId={convo.sessionId || data.status?.sessionId} messages={convo.messages} busy={convo.busy} streamText={convo.streamText} events={convo.events} recovery={convo.recovery} approval={approval.approval} onApproval={approval.answerApproval} onRetry={convo.retry} onReconnect={data.openSetup} onPrompt={convo.setDraft} />}
           </div>
           <div className="composer-stack">
             <FullAccessWarning visible={accessWarning.visible} onClose={accessWarning.close} onAcknowledge={accessWarning.acknowledge} />
@@ -320,12 +321,13 @@ function PaneResizeHandle(props: {
 function DesktopHeader(props: { title: string; data: DesktopData; approvalPending: boolean; inspectorOpen: boolean; sidebarCollapsed: boolean; onNew: () => void; onSidebar: () => void; onInspector: () => void }) {
   const { data } = props;
   const root = data.status?.root?.split("/").filter(Boolean).at(-1) ?? "Project";
+  const agent = agentModelPresentation(data.phase, data.status?.model, data.status?.provider);
   return (
     <header className="app-titlebar" aria-label="Application chrome">
       <div className="titlebar-identity">
         <div className="titlebar-leading-actions"><button className={props.sidebarCollapsed ? "" : "active"} type="button" title="Toggle threads" aria-label="Toggle threads" aria-pressed={!props.sidebarCollapsed} onClick={props.onSidebar}><PanelLeft size={16} /></button><button type="button" title="New task" aria-label="New task" onClick={props.onNew}><MessageSquarePlus size={16} /></button></div>
       </div>
-      <div className="titlebar-agent-context"><div className="titlebar-task"><FolderKanban size={14} /><div className="title-block"><p>{root}</p><h1>{props.title}</h1></div></div><div className="titlebar-runtime"><span className={`kernel-status ${data.phase}`}><i />{data.phase === "ready" ? "online" : data.phase}</span><button type="button" title="Change model" onClick={data.openModelPicker}><Cpu size={14} /><span>{data.status?.model ?? "model"}</span></button></div></div>
+      <div className="titlebar-agent-context"><div className="titlebar-task"><FolderKanban size={14} /><div className="title-block"><p>{root}</p><h1>{props.title}</h1></div></div><div className="titlebar-runtime"><span className={`kernel-status ${data.phase}`}><i />{data.phase === "ready" ? "online" : data.phase}</span><button type="button" title={`Agent model: ${agent.value}. Change model`} aria-label={`Agent model: ${agent.value}. Change model`} onClick={data.openModelPicker}><Cpu size={14} /><span className="agent-model-label"><small>Agent model</small><strong>{agent.value}</strong></span></button></div></div>
       <div className="status-strip titlebar-actions">
         <span className={`approval-status ${props.approvalPending ? "pending" : ""}`}><i />{props.approvalPending ? "approve" : "ask"}</span>
         <button className="icon-button" type="button" title={props.inspectorOpen ? "Close inspector" : "Open contextual inspector"} onClick={props.onInspector} aria-label={props.inspectorOpen ? "Close inspector" : "Open contextual inspector"}><PanelRight size={16} /></button>
@@ -382,7 +384,10 @@ function DesktopOverlays(props: {
       <ModelPicker open={data.modelOpen} models={data.models} status={data.status} onClose={data.closeModelPicker} onRefresh={data.refreshProviderModels} onSelect={data.setModel} />
       <SettingsDialog open={data.settingsOpen} models={data.models} status={data.status} theme={props.theme} fullAccessWarningAcknowledged={props.accessWarning.acknowledged} onResetFullAccessWarning={props.accessWarning.reset} onTheme={props.onTheme} onClose={data.closeSettings} onModel={data.openModelPicker} onSetup={data.openSetup} />
       <KeyboardShortcuts open={data.shortcutsOpen} onClose={data.closeShortcuts} />
-      <SetupWizard open={data.setupOpen} models={data.models} onClose={data.closeSetup} onSave={data.saveSetup} />
+      <SetupWizard open={data.setupOpen} models={data.models} onClose={data.closeSetup} onSave={async (provider, model, apiKey) => {
+        const resume = convo.recovery?.failureKind === "provider_auth";
+        await reconnectProviderAndResume(data.saveSetup, convo.retry, { provider, model, apiKey, resume });
+      }} />
       <CompletionSoundSettings
         open={data.soundOpen}
         settings={sound.settings}
@@ -394,12 +399,12 @@ function DesktopOverlays(props: {
   );
 }
 
-type ConnectTarget = { key: number; section: "overview" | "capabilities" | "mcp" | "messaging"; messagingId?: string };
+type ConnectTarget = { key: number; section: "overview" | "capabilities" | "mcp" | "messaging" | "google"; messagingId?: string };
 
 function OperatorWorkspace(props: { view: DesktopView; data: DesktopData; mcp: DesktopMcp; events: ReturnType<typeof useConversation>["events"]; connectTarget: ConnectTarget | null; onOpenSession: (id: string) => void }) {
   if (props.view === "operate") return <OperateView sessions={props.data.sessions} events={props.events} status={props.data.status} onOpenSession={props.onOpenSession} />;
   if (props.view === "outputs") return <ArtifactsView artifacts={props.data.artifacts} onOpenSession={props.onOpenSession} onRefresh={() => { void props.data.refresh(); }} />;
-  return <ConnectView key={props.connectTarget?.key ?? "connect"} capabilities={props.data.capabilities} platforms={props.data.messaging} models={props.data.models} status={props.data.status} mcp={props.mcp} initialSection={props.connectTarget?.section} messagingId={props.connectTarget?.messagingId} onSaveMessaging={props.data.saveMessaging} onTest={props.data.testConnection} onStartGateway={props.data.startGateway} onOpenModel={props.data.openModelPicker} onOpenSetup={props.data.openSetup} />;
+  return <ConnectView key={props.connectTarget?.key ?? "connect"} capabilities={props.data.capabilities} platforms={props.data.messaging} models={props.data.models} status={props.data.status} google={props.data.google} mcp={props.mcp} initialSection={props.connectTarget?.section} messagingId={props.connectTarget?.messagingId} onSaveMessaging={props.data.saveMessaging} onTest={props.data.testConnection} onStartGateway={props.data.startGateway} onGoogleConnect={props.data.googleConnect} onOpenModel={props.data.openModelPicker} onOpenSetup={props.data.openSetup} />;
 }
 
 function viewLabel(view: Exclude<DesktopView, "work">): string {

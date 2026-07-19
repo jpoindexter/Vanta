@@ -1,12 +1,15 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdtemp, rm, writeFile, mkdir } from "node:fs/promises";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { mkdtemp, readFile, rm, stat, writeFile, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   parseTokenFile,
   hasGoogleAuth,
   getAccessToken,
+  hasGoogleClient,
   readApiToken,
+  resolveClientCreds,
+  type buildClient,
 } from "./auth.js";
 import { runAuthCommand } from "./commands.js";
 
@@ -91,6 +94,73 @@ describe("token file persistence", () => {
     await writeTokens({ access_token: "a" });
     await expect(getAccessToken(env)).rejects.toThrow(NOT_AUTH);
   });
+
+  it("ingests the client JSON once and reloads it after the download is removed", async () => {
+    const download = join(home, "client_secret.json");
+    await writeFile(download, JSON.stringify({
+      installed: {
+        client_id: "desktop-client-id",
+        client_secret: "desktop-client-secret",
+      },
+    }));
+
+    await expect(resolveClientCreds(download, env)).resolves.toEqual({
+      clientId: "desktop-client-id",
+      clientSecret: "desktop-client-secret",
+    });
+    await rm(download);
+
+    await expect(resolveClientCreds(undefined, env)).resolves.toEqual({
+      clientId: "desktop-client-id",
+      clientSecret: "desktop-client-secret",
+    });
+    expect(await hasGoogleClient(env)).toBe(true);
+    expect((await stat(join(home, "google-client.json"))).mode & 0o777).toBe(0o600);
+  });
+
+  it("refreshes with persisted client credentials and retains the refresh token", async () => {
+    await writeTokens({ refresh_token: "refresh-token" });
+    const download = join(home, "client_secret.json");
+    await writeFile(download, JSON.stringify({
+      installed: {
+        client_id: "desktop-client-id",
+        client_secret: "desktop-client-secret",
+      },
+    }));
+    await resolveClientCreds(download, env);
+    await rm(download);
+
+    const credentials: Record<string, unknown> = {};
+    const client = {
+      credentials,
+      setCredentials: vi.fn((next: Record<string, unknown>) => Object.assign(credentials, next)),
+      getAccessToken: vi.fn(async () => {
+        Object.assign(credentials, { access_token: "fresh-access", expiry_date: 456 });
+        return { token: "fresh-access" };
+      }),
+    };
+    const clientFactory = vi.fn(async (_redirectUri, creds) => {
+      expect(creds).toEqual({
+        clientId: "desktop-client-id",
+        clientSecret: "desktop-client-secret",
+      });
+      return client;
+    }) as unknown as typeof buildClient;
+
+    await expect(getAccessToken(env, clientFactory)).resolves.toBe("fresh-access");
+    expect(client.setCredentials).toHaveBeenCalledWith({ refresh_token: "refresh-token" });
+    expect(JSON.parse(await readFile(join(home, "google-tokens.json"), "utf8"))).toMatchObject({
+      refresh_token: "refresh-token",
+      access_token: "fresh-access",
+      expiry_date: 456,
+    });
+  });
+
+  it("names both setup routes when authorization exists but client credentials do not", async () => {
+    await writeTokens({ refresh_token: "refresh-token" });
+    await expect(getAccessToken(env)).rejects.toThrow("vanta auth google --client <client_secret.json>");
+    await expect(getAccessToken(env)).rejects.toThrow("connect Google from Vanta Desktop");
+  });
 });
 
 describe("runAuthCommand", () => {
@@ -100,10 +170,13 @@ describe("runAuthCommand", () => {
   });
 
   it("exits 1 when client credentials are missing (throws before opening loopback)", async () => {
-    // Empty env = no VANTA_GOOGLE_CLIENT_ID/SECRET → credential check fires
-    // before awaitLoopbackCode() is reached, so no localhost TCP bind needed.
-    const code = await runAuthCommand(["google"], {});
-    expect(code).toBe(1);
+    const home = await mkdtemp(join(tmpdir(), "vanta-auth-command-"));
+    try {
+      const code = await runAuthCommand(["google"], { VANTA_HOME: home });
+      expect(code).toBe(1);
+    } finally {
+      await rm(home, { recursive: true, force: true });
+    }
   });
 });
 

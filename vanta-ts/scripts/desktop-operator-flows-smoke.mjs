@@ -35,6 +35,11 @@ try {
   await writeFile(join(home, "skills", "operator-smoke", "SKILL.md"), "---\nname: Operator smoke skill\ndescription: A real stored skill for the desktop smoke.\n---\nUse this fixture.", "utf8");
   await writeFile(join(project, "README.md"), "context fixture", "utf8");
   await writeFile(join(project, "docs", "output.md"), "artifact fixture", "utf8");
+  const googleClient = join(project, "google-client.json");
+  await writeFile(googleClient, JSON.stringify({ installed: {
+    client_id: "desktop-smoke-client-id",
+    client_secret: "desktop-smoke-client-secret",
+  } }), "utf8");
   const mcpFixture = join(project, "mcp-fixture.mjs");
   await writeFile(mcpFixture, `
 let buffer = "";
@@ -82,10 +87,13 @@ process.stdin.on("data", (chunk) => {
     // Network response handling below preserves the affected URL. Chromium's generic
     // 500 console line has no URL, so recording it would duplicate an actionable check.
     const expectedConflict = expectedMcpConflict && text.includes("Failed to load resource: the server responded with a status of 409");
-    if (message.type() === "error" && !expectedConflict && !text.includes("Failed to load resource: the server responded with a status of 500")) rendererErrors.push(`console error: ${text}`);
+    const genericHttpError = text.includes("Failed to load resource: the server responded with a status of 400")
+      || text.includes("Failed to load resource: the server responded with a status of 500");
+    if (message.type() === "error" && !expectedConflict && !genericHttpError) rendererErrors.push(`console error: ${text}`);
   });
   page.on("response", (response) => {
     const path = new URL(response.url()).pathname;
+    if (response.status() === 400) rendererErrors.push(`HTTP 400: ${path}`);
     if (response.status() >= 500 && !expectedFirstRunFailures.has(path)) rendererErrors.push(`HTTP ${response.status()}: ${response.url()}`);
   });
   page.setDefaultTimeout(30_000);
@@ -170,6 +178,10 @@ process.stdin.on("data", (chunk) => {
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ finalText: failed ? "The fixture command failed." : "Updated fixture.ts.", events, receipt }) });
   });
   await page.locator("#vanta-composer").fill("make a quiet trace code change");
+  await page.waitForFunction(() => {
+    const button = document.querySelector(".send-button");
+    return button instanceof HTMLButtonElement && !button.disabled;
+  });
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await page.getByText("make a quiet trace code change", { exact: true }).waitFor();
   await page.waitForTimeout(500);
@@ -195,9 +207,9 @@ process.stdin.on("data", (chunk) => {
   await page.getByRole("tab", { name: "MCP", exact: true }).click();
   const mcp = page.locator(".mcp-control-center");
   await mcp.getByText("MCP connectors").waitFor();
-  const mcpApi = await page.evaluate(() => fetch("/api/connect/mcp").then(async (response) => ({ status: response.status, body: await response.json() })));
+  const mcpApi = await page.evaluate(() => fetch("/api/connect/mcp", { headers: { "x-vanta-desktop-boundary": window.vantaDesktop?.boundaryToken ?? "" } }).then(async (response) => ({ status: response.status, body: await response.json() })));
   if (mcpApi.status !== 200 || !mcpApi.body.connectors?.some((item) => item.name === "oauth")) {
-    const statusApi = await page.evaluate(() => fetch("/api/status").then(async (response) => ({ status: response.status, body: await response.json() })));
+    const statusApi = await page.evaluate(() => fetch("/api/status", { headers: { "x-vanta-desktop-boundary": window.vantaDesktop?.boundaryToken ?? "" } }).then(async (response) => ({ status: response.status, body: await response.json() })));
     throw new Error(`MCP fixture missing in Electron at ${page.url()}: ${JSON.stringify({ mcpApi, statusApi })}`);
   }
   await page.locator(".mcp-server-list").getByRole("button", { name: /oauth/ }).click();
@@ -231,7 +243,14 @@ process.stdin.on("data", (chunk) => {
   await page.getByText(/Telegram bot vanta_smoke_bot responded/).waitFor();
   await page.getByRole("button", { name: "Start gateway" }).waitFor();
 
-  const artifactApi = await page.evaluate(() => fetch("/api/artifacts").then(async (response) => ({ status: response.status, body: await response.json() })));
+  await page.getByRole("tab", { name: "Google", exact: true }).click();
+  await page.getByRole("heading", { name: "Google Workspace" }).waitFor();
+  await page.getByLabel("Downloaded client JSON path").fill(googleClient);
+  await page.getByRole("button", { name: "Save client file" }).click();
+  await page.getByText("Client saved. Complete Google consent to use Gmail, Calendar, and Drive.").waitFor();
+  await page.getByRole("button", { name: "Start Google consent" }).waitFor();
+
+  const artifactApi = await page.evaluate(() => fetch("/api/artifacts", { headers: { "x-vanta-desktop-boundary": window.vantaDesktop?.boundaryToken ?? "" } }).then(async (response) => ({ status: response.status, body: await response.json() })));
   if (artifactApi.status !== 200 || !artifactApi.body.some((item) => item.value === "https://example.test/receipt")) throw new Error(`Artifact API fixture missing: ${JSON.stringify(artifactApi)}`);
   await page.getByRole("button", { name: "Outputs" }).click();
   await page.locator(".operator-view").getByRole("heading", { name: "Outputs", exact: true }).waitFor();
@@ -301,7 +320,7 @@ process.stdin.on("data", (chunk) => {
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
 
   if (process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT, fullPage: false });
-  process.stdout.write(`${JSON.stringify({ work: true, quietTrace: true, failedTraceRecovery: true, modelPicker: true, connect: true, modelTest: true, capabilities: true, mcpInstall: true, mcpImport: true, mcpTrust: true, mcpOAuthNeeded: true, mcpToolTest: true, mcpResourceRead: true, mcpReconnectFailure: true, mcpDisabled: true, mcpWorkContext: true, messaging: true, messagingTest: true, outputs: true, visibleContextChips: true, queue: true, stop: true, shortcuts: true, settings: true, providerSetup: true, lightTheme: true, resizablePanes: true, persistentPanes: true })}\n`);
+  process.stdout.write(`${JSON.stringify({ work: true, quietTrace: true, failedTraceRecovery: true, modelPicker: true, connect: true, modelTest: true, capabilities: true, mcpInstall: true, mcpImport: true, mcpTrust: true, mcpOAuthNeeded: true, mcpToolTest: true, mcpResourceRead: true, mcpReconnectFailure: true, mcpDisabled: true, mcpWorkContext: true, messaging: true, messagingTest: true, googleClientPersistence: true, outputs: true, visibleContextChips: true, queue: true, stop: true, shortcuts: true, settings: true, providerSetup: true, lightTheme: true, resizablePanes: true, persistentPanes: true })}\n`);
   await new Promise((resolveDone) => setTimeout(resolveDone, 100));
 } finally {
   if (app) {

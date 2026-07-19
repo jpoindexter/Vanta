@@ -1,22 +1,9 @@
 import { execFile } from "node:child_process";
 import {
-  resolveClientCreds,
-  buildClient,
-  readApiToken,
-  pollKernelForCode,
-} from "../google/auth.js";
-import { parseTokenFile, saveTokens } from "../google/auth-store.js";
+  beginGoogleKernelAuth,
+  completeGoogleKernelAuth,
+} from "../google/kernel-auth.js";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
-
-const GOOGLE_SCOPES = [
-  "https://www.googleapis.com/auth/gmail.modify",
-  "https://www.googleapis.com/auth/calendar",
-  "https://www.googleapis.com/auth/drive",
-];
-
-function kernelBase(): string {
-  return (process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788").replace(/\/$/, "");
-}
 
 /** Best-effort open of the consent page in the user's default browser. A plain
  *  spawn (no IPC pipe), so it survives the sandbox that blocks tsx's pipe. */
@@ -31,23 +18,7 @@ function openBrowser(url: string): Promise<boolean> {
 }
 
 async function startAuth(env: NodeJS.ProcessEnv): Promise<ToolResult> {
-  const creds = await resolveClientCreds(undefined, env);
-  const redirectUri = `${kernelBase()}/oauth/callback`;
-  const client = await buildClient(redirectUri, creds);
-  const authUrl = client.generateAuthUrl({
-    access_type: "offline",
-    prompt: "consent",
-    scope: GOOGLE_SCOPES,
-    redirect_uri: redirectUri,
-  });
-  // Clear any stale code from a prior aborted attempt BEFORE the user can
-  // approve, so complete's poll only accepts the code from this consent.
-  // Safe to drain here (no approval yet); draining in complete would race a
-  // fast approval. Best-effort — pure hygiene.
-  const token = await readApiToken(env);
-  if (token) {
-    await fetch(`${kernelBase()}/api/oauth/poll`, { headers: { "X-Vanta-Token": token } }).catch(() => null);
-  }
+  const { authUrl } = await beginGoogleKernelAuth(env);
   const opened = await openBrowser(authUrl);
   return {
     ok: true,
@@ -59,24 +30,7 @@ async function startAuth(env: NodeJS.ProcessEnv): Promise<ToolResult> {
 }
 
 async function completeAuth(env: NodeJS.ProcessEnv): Promise<ToolResult> {
-  const apiToken = await readApiToken(env);
-  if (!apiToken) {
-    return { ok: false, output: "Kernel API token not found — run `vanta doctor` to check kernel health." };
-  }
-  const code = await pollKernelForCode(kernelBase(), apiToken);
-  const creds = await resolveClientCreds(undefined, env);
-  const client = await buildClient(`${kernelBase()}/oauth/callback`, creds);
-  const { tokens } = await client.getToken(code);
-  const parsed = parseTokenFile(tokens as unknown);
-  if (!parsed?.refresh_token) {
-    return {
-      ok: false,
-      output:
-        "Google did not return a refresh_token. Revoke Vanta's access at " +
-        "myaccount.google.com/permissions then call google_auth start again.",
-    };
-  }
-  await saveTokens(parsed, env);
+  await completeGoogleKernelAuth(env);
   return { ok: true, output: "Google authorization complete. Tokens saved to ~/.vanta/google-tokens.json." };
 }
 

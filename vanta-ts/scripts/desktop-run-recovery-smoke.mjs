@@ -10,6 +10,7 @@ const userData = await mkdtemp(join(tmpdir(), "vanta-desktop-recovery-profile-")
 const executablePath = process.env.VANTA_DESKTOP_APP;
 let app;
 let attempts = 0;
+const fidelityMarker = "VANTA_DESKTOP_LIVE_READ_123__client_secret.json__caf\u00e9_cr\u00e8me_test";
 
 try {
   app = await electron.launch({
@@ -37,6 +38,18 @@ try {
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
+          finalText: fidelityMarker,
+          events: [],
+          receipt: { status: "done", events: [], actions: [] },
+        }),
+      });
+      return;
+    }
+    if (attempts === 2) {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
           finalText: "Created docs/desktop-proof.md and preserved the partial result.",
           events: [{ label: "Wrote docs/desktop-proof.md", ok: true }],
           receipt: { status: "done", events: [{ label: "Wrote docs/desktop-proof.md", ok: true }], actions: [] },
@@ -44,7 +57,7 @@ try {
       });
       return;
     }
-    if (attempts === 2) {
+    if (attempts === 3) {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -81,11 +94,32 @@ try {
 
   await page.locator(".app-shell").waitFor();
   const composer = page.getByPlaceholder("Ask Vanta to do something...");
-  await composer.fill("Create and verify a desktop proof note");
+  async function setComposer(value) {
+    await composer.click();
+    await composer.press(process.platform === "darwin" ? "Meta+A" : "Control+A");
+    await composer.press("Backspace");
+    await composer.pressSequentially(value, { delay: 1 });
+    await page.waitForFunction(() => {
+      const button = document.querySelector(".send-button");
+      return button instanceof HTMLButtonElement && !button.disabled;
+    });
+  }
+  await setComposer(fidelityMarker);
+  await page.getByRole("button", { name: "Send" }).click();
+  const exactUser = page.locator(".message.user").filter({ hasText: fidelityMarker }).last();
+  const exactAssistant = page.locator(".message.assistant").filter({ hasText: fidelityMarker }).last();
+  await exactUser.waitFor();
+  await exactAssistant.waitFor();
+  assert.equal((await exactUser.textContent())?.includes(fidelityMarker), true, "user text should preserve exact intraword underscores");
+  assert.equal((await exactAssistant.textContent())?.includes(fidelityMarker), true, "assistant text should preserve exact intraword underscores");
+  assert.equal(await exactUser.locator("em").count(), 0, "identifier underscores should not become emphasis in user text");
+  assert.equal(await exactAssistant.locator("em").count(), 0, "identifier underscores should not become emphasis in assistant text");
+
+  await setComposer("Create and verify a desktop proof note");
   await page.getByRole("button", { name: "Send" }).click();
   await page.getByText("Created docs/desktop-proof.md and preserved the partial result.").waitFor();
 
-  await composer.fill("Run a verification that can recover safely");
+  await setComposer("Run a verification that can recover safely");
   await page.getByRole("button", { name: "Send" }).click();
   const recovery = page.locator(".run-recovery");
   await recovery.getByText("Run needs attention").waitFor();
@@ -97,9 +131,9 @@ try {
   await recovery.getByRole("button", { name: "Retry failed step" }).click();
   await page.getByText("Verification passed without repeating the completed write.").waitFor();
   await recovery.waitFor({ state: "detached" });
-  assert.equal(attempts, 3);
+  assert.equal(attempts, 4);
 
-  console.log(JSON.stringify({ coldStart: true, usefulTask: true, failedRun: true, partialOutput: true, editRequest: true, checkpoint: true, retry: true, attempts }));
+  console.log(JSON.stringify({ coldStart: true, exactMessageFidelity: true, usefulTask: true, failedRun: true, partialOutput: true, editRequest: true, checkpoint: true, retry: true, attempts }));
 } finally {
   await app?.close().catch(() => undefined);
   await Promise.all([
