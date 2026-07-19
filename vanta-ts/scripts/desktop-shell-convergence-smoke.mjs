@@ -56,7 +56,10 @@ try {
 
   app = await electron.launch({
     ...(executablePath ? { executablePath } : {}),
-    args: executablePath ? ["--project", project] : ["desktop-app/electron/main.mjs", "--project", project],
+    args: [
+      ...(visualProof ? ["--hide-scrollbars"] : []),
+      ...(executablePath ? ["--project", project] : ["desktop-app/electron/main.mjs", "--project", project]),
+    ],
     cwd: process.cwd(),
     env: {
       ...process.env,
