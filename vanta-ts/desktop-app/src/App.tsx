@@ -58,6 +58,7 @@ export function AppShell() {
   const [theme, setTheme] = useState<DesktopTheme>(() => window.localStorage.getItem("vanta.desktop.theme") === "light" ? "light" : "dark");
   const [attachments, setAttachments] = useState<string[]>([]);
   const [newTaskOpen, setNewTaskOpen] = useState(false);
+  const [conversationReady, setConversationReady] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(() => storedPaneWidth(SIDEBAR_STORAGE_KEY, 268));
   const [railWidth, setRailWidth] = useState(() => storedPaneWidth(RAIL_STORAGE_KEY, 352));
   const preferredSidebarWidth = useRef(sidebarWidth);
@@ -84,7 +85,12 @@ export function AppShell() {
     setView("connect");
     setMobilePanel("work");
   }
+  function openNewTask() {
+    if (!conversationReady) return;
+    setNewTaskOpen(true);
+  }
   async function submitWork(text: string) {
+    if (!conversationReady) return;
     const setupTarget = parseDesktopSetupCommand(text);
     if (setupTarget) {
       if (setupTarget.section === "model") data.openModelPicker();
@@ -134,17 +140,26 @@ export function AppShell() {
   }, [inspectorVisible, mobilePanel, railMinimum]);
 
   useEffect(() => {
-    if (data.phase !== "ready" || bootSession.current || !data.sessions.length) return;
+    if (data.phase !== "ready") {
+      setConversationReady(false);
+      return;
+    }
+    if (bootSession.current) return;
     const id = data.sessions.find((session) => session.id === data.status?.sessionId)?.id ?? data.sessions.find((session) => !session.archived)?.id;
-    if (!id) return;
+    if (!id) {
+      setConversationReady(true);
+      return;
+    }
     bootSession.current = id;
-    void convo.openSession(id).catch(() => { bootSession.current = ""; });
+    void convo.openSession(id)
+      .catch(() => { bootSession.current = ""; })
+      .finally(() => setConversationReady(true));
   }, [convo.openSession, data.phase, data.sessions, data.status?.sessionId]);
 
   useEffect(() => {
     function shortcut(event: KeyboardEvent) {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); data.openPalette(); }
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "n") { event.preventDefault(); setNewTaskOpen(true); }
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "n") { event.preventDefault(); openNewTask(); }
       if (event.key === "?") { const target = event.target as HTMLElement | null; if (target?.tagName !== "INPUT" && target?.tagName !== "TEXTAREA") data.openShortcuts(); }
       if (event.key === "Escape") { data.closePalette(); data.closeModelPicker(); data.closeSoundSettings(); data.closeSettings(); data.closeShortcuts(); }
     }
@@ -163,7 +178,7 @@ export function AppShell() {
         approvalPending={!!approval.approval}
         inspectorOpen={inspectorOpen}
         sidebarCollapsed={sidebarCollapsed}
-        onNew={() => setNewTaskOpen(true)}
+        onNew={openNewTask}
         onSidebar={() => {
           if (window.innerWidth <= 760) setMobilePanel((panel) => panel === "sessions" ? "work" : "sessions");
           else setSidebarCollapsed((collapsed) => !collapsed);
@@ -174,7 +189,7 @@ export function AppShell() {
         sessions={data.sessions}
         root={data.status?.root}
         activeId={data.status?.sessionId}
-        onNew={() => setNewTaskOpen(true)}
+        onNew={openNewTask}
         onOpen={convo.openSession}
         onRename={(id, title) => convo.renameSession(id, title, id === data.status?.sessionId)}
         onArchive={(id, archived) => convo.archiveSession(id, archived, id === data.status?.sessionId)}
@@ -199,7 +214,7 @@ export function AppShell() {
       <main className="workbench">
         {view === "work" ? <>
           <div className="work-controls">
-            <WorkToolbar busy={convo.busy} queueCount={queued.snapshot.items.length} onQueue={() => setQueueOpen(true)} onBackground={() => setView("operate")} onStop={() => { void convo.stop(); }} onReset={() => setNewTaskOpen(true)} />
+            <WorkToolbar busy={convo.busy} queueCount={queued.snapshot.items.length} onQueue={() => setQueueOpen(true)} onBackground={() => setView("operate")} onStop={() => { void convo.stop(); }} onReset={openNewTask} />
             <RuntimeStrip runtime={data.runtime} agentModel={data.status?.model} agentProvider={data.status?.provider} agentRoute={data.status?.providerRoute} phase={data.phase} onSelect={data.setRuntimeHost} onAction={data.runRuntimeAction} />
           </div>
           <div className={`conversation-stage ${data.phase === "error" ? "has-error" : ""}`}>
@@ -208,7 +223,7 @@ export function AppShell() {
           </div>
           <div className="composer-stack">
             <FullAccessWarning visible={accessWarning.visible} onClose={accessWarning.close} onAcknowledge={accessWarning.acknowledge} />
-            <Composer value={convo.draft} busy={convo.busy} model={data.status?.model} root={data.status?.root} tools={data.status?.tools} mcp={mcp.summary} accessMode={data.status?.accessMode ?? "approve"} attachments={attachments} onChange={convo.setDraft} onSubmit={(text) => { void submitWork(withAttachments(text, attachments)); setAttachments([]); }} onQueue={(text) => { void convo.queue(text).then(queued.refresh); }} onRemoveAttachment={(file) => setAttachments((current) => current.filter((entry) => entry !== file))} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onMcp={() => setView("connect")} onModel={data.openModelPicker} onAccessMode={data.setAccessMode} onCommand={data.openPalette} />
+            <Composer value={convo.draft} busy={convo.busy} ready={conversationReady} model={data.status?.model} root={data.status?.root} tools={data.status?.tools} mcp={mcp.summary} accessMode={data.status?.accessMode ?? "approve"} attachments={attachments} onChange={convo.setDraft} onSubmit={(text) => { void submitWork(withAttachments(text, attachments)); setAttachments([]); }} onQueue={(text) => { void convo.queue(text).then(queued.refresh); }} onRemoveAttachment={(file) => setAttachments((current) => current.filter((entry) => entry !== file))} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onMcp={() => setView("connect")} onModel={data.openModelPicker} onAccessMode={data.setAccessMode} onCommand={data.openPalette} />
           </div>
         </> : <OperatorWorkspace view={view} data={data} mcp={mcp} events={convo.events} connectTarget={connectTarget} onOpenSession={(id) => { setView("work"); void convo.openSession(id); }} />}
       </main>
@@ -241,8 +256,8 @@ export function AppShell() {
       /> : null}
       <MobileNavigation view={view} onView={(next) => { setView(next); setMobilePanel("work"); }} onInspect={() => { setInspectorOpen(true); setMobilePanel("inspect"); }} />
       <DesktopStatusbar data={data} />
-      <NewTaskDialog open={newTaskOpen} root={data.status?.root} model={data.status?.model} onClose={() => setNewTaskOpen(false)} onCreate={(draft) => { void createTask(draft, convo, () => { setNewTaskOpen(false); setView("work"); }); }} />
-      <DesktopOverlays data={data} sound={sound} convo={convo} theme={theme} accessWarning={accessWarning} onTheme={changeTheme} onNew={() => setNewTaskOpen(true)} onTelegram={openTelegramSetup} onInspector={(tab) => { data.setTab(tab); setInspectorOpen(true); setMobilePanel("inspect"); }} />
+      <NewTaskDialog open={newTaskOpen} root={data.status?.root} model={data.status?.model} onClose={() => setNewTaskOpen(false)} onCreate={(draft) => { if (conversationReady) void createTask(draft, convo, () => { setNewTaskOpen(false); setView("work"); }); }} />
+      <DesktopOverlays data={data} sound={sound} convo={convo} theme={theme} accessWarning={accessWarning} onTheme={changeTheme} onNew={openNewTask} onTelegram={openTelegramSetup} onInspector={(tab) => { data.setTab(tab); setInspectorOpen(true); setMobilePanel("inspect"); }} />
     </div>
   );
 }

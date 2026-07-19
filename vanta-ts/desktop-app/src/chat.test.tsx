@@ -88,6 +88,33 @@ describe("ChatThread recovery", () => {
   });
 });
 
+describe("Composer hydration", () => {
+  it("blocks task entry until the saved session has loaded", () => {
+    const html = renderToStaticMarkup(
+      <Composer
+        value=""
+        busy={false}
+        ready={false}
+        accessMode="approve"
+        attachments={[]}
+        onChange={vi.fn()}
+        onSubmit={vi.fn()}
+        onQueue={vi.fn()}
+        onRemoveAttachment={vi.fn()}
+        onStop={vi.fn()}
+        onAttach={vi.fn()}
+        onMcp={vi.fn()}
+        onModel={vi.fn()}
+        onAccessMode={vi.fn(async () => undefined)}
+        onCommand={vi.fn()}
+      />,
+    );
+
+    expect(html).toContain('placeholder="Loading this project..."');
+    expect(html).toContain('disabled=""');
+  });
+});
+
 describe("ChatThread quiet trace", () => {
   it("collapses repeated reads and keeps full evidence keyboard-expandable", () => {
     const html = renderToStaticMarkup(
