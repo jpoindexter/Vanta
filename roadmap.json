@@ -302,7 +302,7 @@
       "effort": "low",
       "codex": "gpt-5.6-luna",
       "lens": "reach",
-      "updated": "2026-07-18",
+  "updated": "2026-07-19",
       "notes": "LAUNCH-PAD PHASE 2026-07-10: Activation v1 and the autonomy/memory foundation are shipped. This gate makes the remaining Hermes/OpenClaw-style reach outcome explicit and keeps all four external proofs honest. Current blockers are environmental, not missing local scaffolding: Azure Bot credentials/public Teams install, Modal or Daytona authentication, a real hibernate/wake deployment, and physical ARM64 Android/Termux hardware. Do not mark this gate shipped from mocks, emulators, static inspection, or lower-layer tests.\n\nRECHECK 2026-07-10: Aggregate release gate remains blocked by the same external proofs: remote Modal/Daytona wake-on-message, real messaging credentials, a physical ARM64 Termux release-kernel run, and a live Teams/Azure proof. Local scaffolding is not the blocker.\n\nUNBLOCKED/PARKED 2026-07-10: operator chose to remove Run Anywhere external proofs from the active launch board for now. This gate is no longer a board blocker, but it is not shipped; resume after the serverless live, Teams, and Termux proof cards are reactivated and executed.\n\nRELEASE-ASSET UPDATE 2026-07-10: tagged release v0.9.0 published the Android/Bionic kernel and checksum, and `vanta run-anywhere status --check-release` now reports the release asset check ready. The aggregate gate remains parked, not shipped, because its actual done criteria still require live Modal/Telegram wake proof, a real Teams channel proof, and physical ARM64 Termux release-kernel execution.\n\nPROOF AUDIT 2026-07-18: BACKEND-SERVERLESS-LIVE is accepted from its real Modal/Telegram wake, provider reply, and return-to-zero receipt. Aggregate proof guidance now inherits actions only from non-ready children, so it no longer asks the operator to repeat that proof. The remaining gate is exactly MSG-ADAPTER-TEAMS plus RUN-ANYWHERE-TERMUX on physical ARM64 Android hardware.",
       "source": "operator-roadmap-phase-2026-07-10",
       "after": [
@@ -19652,6 +19652,69 @@
         "DESKTOP-X402-DEFAULT-PACKAGE-ISOLATION",
         "DESKTOP-LOCAL-ORIGIN-SECURITY-PROOF",
         "DESKTOP-COLD-OPERATOR-RELEASE-PROOF"
+      ]
+    },
+    {
+      "id": "WORKFLOW-COMPOSER-V1",
+      "track": "Operator",
+      "title": "Workflow composer v1 — compose Vanta primitives without rebuilding n8n",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Vanta already has executable workflow graphs, webhook templates, approval stages, dynamic orchestration, and a canvas. The missing product layer is a compact, local-first composer that lets one operator assemble those existing primitives into a reviewable workflow before it runs, without importing multi-tenant SaaS, billing, or a generic automation-platform clone.",
+      "done": "An operator can create, save, reopen, diff, validate, and launch a versioned workflow made from one trigger plus existing Vanta action, agent, browser, and human-approval nodes. Validation requires exactly one trigger, a connected acyclic graph, declared side effects and approval requirements, and typed node inputs and outputs. The launched run uses the existing workflow/kernel path and emits the existing receipts; a focused fixture proves create, invalid-graph rejection, approval pause, resume, and reopen/diff.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "agent-loop",
+      "source": "workflow-builder-transcript-2026-07-19",
+      "after": [
+        "DESKTOP-RELEASE-CANDIDATE-PROVENANCE",
+        "FABRO-WORKFLOW-GRAPH",
+        "WORKFLOW-ACCEPTANCE-EVIDENCE-CONTRACT",
+        "PCLIP-APPROVAL-STAGES"
+      ]
+    },
+    {
+      "id": "WORKFLOW-DATA-HANDOFF-CONTRACTS",
+      "track": "Harness",
+      "title": "Workflow data handoffs — typed references with preflight and redaction",
+      "status": "horizon",
+      "size": "M",
+      "summary": "A composed workflow needs safe downstream data use, not brittle string interpolation. Add explicit references from a node field to an earlier typed output, with design-time and run-time validation, schema-aware selection, and secret-safe receipts.",
+      "done": "The composer can select a prior node output through an explicit typed reference rather than a free-form template string; a preflight rejects missing, cyclic, out-of-order, type-incompatible, and secret-exposing references before any real action. Runtime resolves the same reference deterministically, carries redaction metadata into logs and receipts, and a fixture proves valid extraction, invalid reference rejection, redacted secret propagation, restart, and replay.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "agent-loop",
+      "source": "workflow-builder-transcript-2026-07-19",
+      "after": [
+        "WORKFLOW-COMPOSER-V1",
+        "SCHEMA-TASK-ENVIRONMENT-CONTRACT",
+        "SCHEMA-TRANSITION-TIMELINE"
+      ]
+    },
+    {
+      "id": "BROWSER-WORKFLOW-ACTION-BOUNDARY",
+      "track": "Operator",
+      "title": "Browser workflow boundary — observe, extract, and act under explicit policy",
+      "status": "horizon",
+      "size": "L",
+      "summary": "The transcript's browser nodes are useful only if Vanta preserves its safety model. Expose bounded Open, Observe, Extract, Act, and Agent-browser workflow steps, while making domains, budgets, credentials, approvals, and evidence explicit instead of granting a workflow a blank browser cheque.",
+      "done": "A workflow can declare browser Open, Observe, Extract, Act, and Agent-browser steps with allowed domains, action budget, credential/profile scope, and expected evidence. Observe and Extract remain read-only by default; login, submission, purchase, upload, email, and other irreversible effects route through the kernel and required approval stage. Dry run explains each planned browser effect; executed fixtures produce redacted DOM/screenshot/receipt evidence and prove blocked-domain, budget, credential, cancellation, and approved-action behavior.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "reach",
+      "source": "workflow-builder-transcript-2026-07-19",
+      "after": [
+        "WORKFLOW-COMPOSER-V1",
+        "WORKFLOW-DATA-HANDOFF-CONTRACTS",
+        "AUTH-BROWSER",
+        "SCHEMA-TASK-ENVIRONMENT-CONTRACT",
+        "PCLIP-APPROVAL-STAGES"
       ]
     }
   ]
