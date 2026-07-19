@@ -6,6 +6,8 @@ import styles from "./index.module.css";
 
 const desktopRelease =
   "https://github.com/jpoindexter/Vanta/releases/download/v0.9.4/Vanta-0.9.4-arm64.dmg";
+const desktopReleaseNotes =
+  "https://github.com/jpoindexter/Vanta/releases/tag/v0.9.4";
 
 const screens = [
   {
@@ -99,7 +101,10 @@ export default function Home(): ReactNode {
             <p className={styles.heroCopy}>
               Give Vanta an outcome. It plans, uses tools, remembers context, and keeps standing work moving while a separate Rust kernel checks every action.
             </p>
-            <a className={styles.downloadAction} href={desktopRelease}>Download Vanta for macOS</a>
+            <div className={styles.heroActions}>
+              <a className={styles.downloadAction} href={desktopRelease}>Download Vanta for macOS</a>
+              <a className={styles.releaseAction} href={desktopReleaseNotes}>View release + screenshots</a>
+            </div>
             <div className={styles.terminalInstall} aria-label="Terminal install command">
               <span aria-hidden="true">$</span>
               <code>curl -fsSL https://vanta.theft.studio/install.sh | bash</code>
@@ -255,7 +260,7 @@ export default function Home(): ReactNode {
               <div>
                 <h3>Source</h3>
                 <p>Inspect the code, release evidence, and open roadmap.</p>
-                <a href="https://github.com/jpoindexter/Vanta">Open GitHub</a>
+                <a href={desktopReleaseNotes}>Open release + screenshots</a>
               </div>
             </div>
           </div>

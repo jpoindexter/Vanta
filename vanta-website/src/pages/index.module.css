@@ -79,11 +79,18 @@
   line-height: 1.65;
 }
 
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-top: 28px;
+}
+
 .downloadAction {
   display: inline-flex;
   min-height: 48px;
   align-items: center;
-  margin-top: 28px;
   border: 1px solid #090909;
   border-radius: 2px;
   padding: 0 18px;
@@ -91,6 +98,20 @@
   color: #ffffff;
   font-weight: 680;
   text-decoration: none;
+}
+
+.releaseAction {
+  color: #20201d;
+  font-size: 14px;
+  font-weight: 680;
+  text-decoration: underline;
+  text-decoration-color: #777772;
+  text-underline-offset: 4px;
+}
+
+.releaseAction:hover {
+  color: #000000;
+  text-decoration-color: #000000;
 }
 
 .downloadAction:hover {
@@ -241,6 +262,7 @@
 
 .screenTabs button:focus-visible,
 .downloadAction:focus-visible,
+.releaseAction:focus-visible,
 .capabilityRows a:focus-visible,
 .roadmapLink:focus-visible,
 .inverseLink:focus-visible,
