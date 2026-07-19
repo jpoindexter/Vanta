@@ -138,10 +138,20 @@ try {
   });
 
   await page.locator(".app-shell").waitFor();
-  await page.waitForFunction(() => {
-    const composer = document.querySelector("#vanta-composer");
-    return composer instanceof HTMLTextAreaElement && !composer.disabled;
-  });
+  try {
+    await page.waitForFunction(() => {
+      const composer = document.querySelector("#vanta-composer");
+      return composer instanceof HTMLTextAreaElement && !composer.disabled;
+    });
+  } catch (error) {
+    const bootState = await page.evaluate(() => ({
+      composer: document.querySelector("#vanta-composer")?.getAttribute("placeholder") ?? "missing",
+      status: document.querySelector("[role=status]")?.textContent?.trim() ?? "",
+      alert: document.querySelector("[role=alert]")?.textContent?.trim() ?? "",
+      body: document.body.innerText.slice(0, 1_000),
+    }));
+    throw new Error(`Desktop composer did not become ready: ${JSON.stringify(bootState)}`, { cause: error });
+  }
   await page.locator(".titlebar-leading-actions").waitFor();
   for (const destination of ["Work", "Operate", "Outputs", "Connect"]) {
     await page.getByRole("button", { name: destination, exact: true }).waitFor();
@@ -172,13 +182,14 @@ try {
   await assistantMessage.locator(".message-markdown strong").getByText("mapping").waitFor();
   await assistantMessage.getByRole("button", { name: "Copy response" }).click();
   await assistantMessage.getByText("Copied response").waitFor();
-  await assistantMessage.getByRole("button", { name: "Mark helpful" }).click();
-  if (await assistantMessage.getByRole("button", { name: "Mark helpful" }).getAttribute("aria-pressed") !== "true") throw new Error("Helpful response feedback did not persist selected state");
+  const helpfulButton = assistantMessage.getByRole("button", { name: "Mark helpful" });
+  await helpfulButton.click();
+  await page.waitForFunction(() => document.querySelector('.message.assistant button[aria-label="Mark helpful"]')?.getAttribute("aria-pressed") === "true");
   await assistantMessage.getByRole("button", { name: "Mark not helpful" }).click();
   await assistantMessage.getByRole("button", { name: "Wrong" }).waitFor();
   await assistantMessage.getByRole("button", { name: "Wrong" }).click();
-  if (await assistantMessage.getByRole("button", { name: "Wrong" }).getAttribute("aria-pressed") !== "true") throw new Error("Not-helpful reason did not persist selected state");
-  await assistantMessage.getByRole("button", { name: "Mark helpful" }).click();
+  await assistantMessage.locator('.feedback-reasons button[aria-pressed="true"]').filter({ hasText: "Wrong" }).waitFor();
+  await helpfulButton.click();
   await assistantMessage.getByRole("button", { name: "Expand response" }).click();
   await page.getByRole("dialog", { name: "Vanta transcript" }).waitFor();
   await page.getByRole("button", { name: "Close expanded response" }).click();
@@ -221,8 +232,8 @@ try {
   await page.getByRole("button", { name: "Retry failed step" }).waitFor();
   if (visualProof) {
     await page.waitForFunction(() => {
-      const send = document.querySelector(".send-button");
-      return send instanceof HTMLButtonElement && !send.disabled;
+      const composer = document.querySelector("#vanta-composer");
+      return composer instanceof HTMLTextAreaElement && !composer.disabled;
     });
   }
   await capture("recovery");

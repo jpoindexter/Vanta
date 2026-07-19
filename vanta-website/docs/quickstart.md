@@ -10,6 +10,10 @@ sidebar_position: 2
 
 ## Install
 
+### Desktop app for macOS
+
+[Download the signed and notarized Vanta v0.9.4 DMG](https://github.com/jpoindexter/Vanta/releases/download/v0.9.4/Vanta-0.9.4-arm64.dmg), open it, and drag Vanta into Applications. This build targets Apple Silicon Macs and shares `~/.vanta` configuration and sessions with the CLI.
+
 ### macOS and Linux
 
 One command on a fresh machine clones Vanta, downloads the prebuilt kernel, and puts a global `vanta` on your PATH:

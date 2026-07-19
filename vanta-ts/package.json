@@ -1,6 +1,6 @@
 {
   "name": "vanta",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "type": "module",
   "private": true,
   "description": "Vanta agent layer — goal-aware, scope-enforced operator runtime",

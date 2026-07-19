@@ -24,7 +24,7 @@ cd vanta-ts && npx vitest run && npx tsc --noEmit  # TS agent (last recorded ful
 vanta                                          # launch TUI (TTY) or readline REPL
 ```
 
-> **Status (2026-07-12):** v0.8.0 roadmap-grind continues on `main`. Current source registers **137 built-in tools** (141 with factory `mount_mcp`/`tool_search`/`mcp_auth`/`run_pipeline`) and **146 slash commands**; last recorded full verify is **11979 TS tests green** (1070 files), `tsc` clean, size gate clean, plus **67 kernel tests**. Current direction and per-card status live in `roadmap.json`; the human launch-pad view is generated as `roadmap.html`. The local codegraph index lives in ignored `.codegraph/`; refresh it with `codegraph index -f .` and verify with `codegraph status .` before relying on code-intel results.
+> **Status (2026-07-19):** v0.9.4 is the current desktop release line. The release workbench exposes **142 registered tools** and uses one authoritative `roadmap.json`; the human launch-pad view is generated as `roadmap.html`. Release claims and executed boundaries live in `CHANGELOG.md` and `docs/product-acceptance.md`. The local codegraph index lives in ignored `.codegraph/`; refresh it with `codegraph index -f .` and verify with `codegraph status .` before relying on code-intel results.
 
 ## Key files
 

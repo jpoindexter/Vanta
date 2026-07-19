@@ -32,14 +32,18 @@ export function useDesktopData() {
   const [error, setError] = useState("");
   const refresh = useCallback(async () => {
     const version = ++refreshVersion.current;
-    const [statusResult, sessionsResult, toolsResult, filesResult, modelsResult, canvasResult, capabilitiesResult, messagingResult, artifactsResult, runtimeResult, googleResult, releaseProofsResult] = await Promise.allSettled([
-        api<Status>("/api/status"), api<Session[]>("/api/sessions"), api<Tool[]>("/api/tools"),
-        api<string[]>("/api/files"), api<Provider[]>("/api/models"), api<CanvasArtifact | null>("/api/canvas").catch(() => null),
-        api<Capability[]>("/api/capabilities").catch(() => []), api<MessagingPlatform[]>("/api/messaging").catch(() => []), api<Artifact[]>("/api/artifacts").catch(() => []),
-        api<DesktopRuntime>("/api/runtime").catch(() => ({ selectedHostId: "local", hosts: [] })),
-        api<GoogleConnectStatus>("/api/connect/google").catch(() => ({ status: "needs_setup", clientConfigured: false, authorized: false, message: "Google Workspace status is unavailable." } as GoogleConnectStatus)),
-        api<ReleaseProofReport>("/api/release-proofs").catch(() => null),
+    const critical = Promise.allSettled([
+      api<Status>("/api/status"), api<Session[]>("/api/sessions"), api<Tool[]>("/api/tools"),
+      api<string[]>("/api/files"), api<Provider[]>("/api/models"),
     ]);
+    const optional = Promise.allSettled([
+      api<CanvasArtifact | null>("/api/canvas").catch(() => null),
+      api<Capability[]>("/api/capabilities").catch(() => []), api<MessagingPlatform[]>("/api/messaging").catch(() => []), api<Artifact[]>("/api/artifacts").catch(() => []),
+      api<DesktopRuntime>("/api/runtime").catch(() => ({ selectedHostId: "local", hosts: [] })),
+      api<GoogleConnectStatus>("/api/connect/google").catch(() => ({ status: "needs_setup", clientConfigured: false, authorized: false, message: "Google Workspace status is unavailable." } as GoogleConnectStatus)),
+      api<ReleaseProofReport>("/api/release-proofs").catch(() => null),
+    ]);
+    const [statusResult, sessionsResult, toolsResult, filesResult, modelsResult] = await critical;
     // A mutation can invalidate an older aggregate refresh while its requests
     // are still in flight. Never let stale status overwrite the saved mode.
     if (version !== refreshVersion.current) return;
@@ -48,13 +52,6 @@ export function useDesktopData() {
     if (toolsResult.status === "fulfilled") setTools(toolsResult.value);
     if (filesResult.status === "fulfilled") setFiles(filesResult.value);
     if (modelsResult.status === "fulfilled") setModels(modelsResult.value);
-    setCanvas(canvasResult.status === "fulfilled" ? canvasResult.value : null);
-    setCapabilities(capabilitiesResult.status === "fulfilled" ? capabilitiesResult.value : []);
-    setMessaging(messagingResult.status === "fulfilled" ? messagingResult.value : []);
-    setArtifacts(artifactsResult.status === "fulfilled" ? artifactsResult.value : []);
-    setRuntime(runtimeResult.status === "fulfilled" ? runtimeResult.value : { selectedHostId: "local", hosts: [] });
-    setGoogle(googleResult.status === "fulfilled" ? googleResult.value : { status: "needs_setup", clientConfigured: false, authorized: false, message: "Google Workspace status is unavailable." });
-    setReleaseProofs(releaseProofsResult.status === "fulfilled" ? releaseProofsResult.value : null);
 
     const failure = [statusResult, sessionsResult, toolsResult, filesResult, modelsResult]
       .find((result): result is PromiseRejectedResult => result.status === "rejected");
@@ -65,6 +62,16 @@ export function useDesktopData() {
       return;
     }
     setError(""); setPhase("ready");
+
+    const [canvasResult, capabilitiesResult, messagingResult, artifactsResult, runtimeResult, googleResult, releaseProofsResult] = await optional;
+    if (version !== refreshVersion.current) return;
+    setCanvas(canvasResult.status === "fulfilled" ? canvasResult.value : null);
+    setCapabilities(capabilitiesResult.status === "fulfilled" ? capabilitiesResult.value : []);
+    setMessaging(messagingResult.status === "fulfilled" ? messagingResult.value : []);
+    setArtifacts(artifactsResult.status === "fulfilled" ? artifactsResult.value : []);
+    setRuntime(runtimeResult.status === "fulfilled" ? runtimeResult.value : { selectedHostId: "local", hosts: [] });
+    setGoogle(googleResult.status === "fulfilled" ? googleResult.value : { status: "needs_setup", clientConfigured: false, authorized: false, message: "Google Workspace status is unavailable." });
+    setReleaseProofs(releaseProofsResult.status === "fulfilled" ? releaseProofsResult.value : null);
   }, []);
 
   async function setModel(provider: string, model: string, scope: "session" | "global" = "session") {

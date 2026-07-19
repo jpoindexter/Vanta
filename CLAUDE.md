@@ -80,7 +80,7 @@ scripts/reliability-reach-staleness.sh    # deterministic: stale-qid → auto-he
 
 ## Status
 
-**v0.8.0 — roadmap-grind in progress.** Current source counts, latest verification numbers, release details, and slice history live in `roadmap.json`, `CHANGELOG.md`, `STRATEGY.md`, `docs/reliability-results.md`, and `handoff-2026-07-07-roadmap-grind.md`. Keep this prompt-loaded status section short; use `vanta harness-thickness` before adding long release history here.
+**v0.9.4 — desktop release line.** Current source counts, verification results, release details, and remaining proof gates live in `roadmap.json`, `CHANGELOG.md`, `STRATEGY.md`, and `docs/product-acceptance.md`. Keep this prompt-loaded status section short; use `vanta harness-thickness` before adding long release history here.
 
 **Direction:** `STRATEGY.md` — 5 pillars (**Harness > Operator > Solutioning > Extensibility > Cofounder engine**); external-agent parity is a reference, not a goal (DECISIONS 2026-06-11; 166 cards parked, see PARKED.md). Top open rocks now move past solutioning/plugin v1 into the remaining keyboard, preference, and want-engine slices; build-order export: `node scripts/build-order.mjs`.
 

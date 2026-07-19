@@ -19632,7 +19632,7 @@
       "title": "Desktop release-candidate provenance — notarize and bind the exact commit",
       "status": "horizon",
       "size": "M",
-      "summary": "An earlier public v0.9.2 artifact was notarized, but the changed local Vanta.app and DMG audited on 2026-07-18 are signed yet rejected by Gatekeeper as unnotarized. Release evidence must follow the exact candidate rather than the version label.",
+      "summary": "The v0.9.4 candidate binds the desktop cold-start repair, 36-capture Ghost visual proof, signed app, notarized DMG, checksum, and clean-Mac Gatekeeper workflow to one tagged commit. Apple accepted submission 374f7536-59ba-4657-a437-b6d151d81445 and the stapled local DMG passed Gatekeeper; the card remains gated by the exact public-artifact clean-Mac run and separate fresh non-developer cold-operator proof.",
       "done": "The exact commit proposed for release runs the full desktop release gate, receives Apple notary acceptance, staples and validates the DMG, passes Gatekeeper after quarantine on a clean macOS account or machine, and publishes a receipt containing commit, version, artifact checksum, signing identity, notarization submission, proof-packet IDs, and test results; changing any packaged source invalidates the receipt.",
       "tier": "rock",
       "model": "sonnet",

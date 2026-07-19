@@ -370,8 +370,9 @@ describe("pollPlatformSession (concurrent inbound routing)", () => {
       initialState(),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 10));
-    expect(adapter.typing).toEqual([{ chatId: "telegram-user", threadId: undefined }]);
+    await vi.waitFor(() => {
+      expect(adapter.typing).toEqual([{ chatId: "telegram-user", threadId: undefined }]);
+    });
     finish();
     await run;
     expect(adapter.sent).toEqual([{ chatId: "telegram-user", text: "final answer" }]);

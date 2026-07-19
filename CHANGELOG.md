@@ -3,6 +3,15 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## v0.9.4 — 2026-07-19
+
+**Desktop cold-start reliability.** The desktop work surface now becomes usable as soon as its critical project, session, model, tool, and file state is ready; optional Connect, Outputs, Canvas, messaging, and release-proof data finish loading without holding the composer closed.
+
+### Fixed
+- Split desktop boot into critical and optional data phases so an unavailable secondary integration cannot leave the primary task composer disabled.
+- Added actionable boot-state diagnostics to the Electron convergence proof and made feedback/recovery assertions wait for committed UI state instead of racing React updates.
+- Refreshed the 36-capture Ghost light/dark visual baseline against the current 142-tool release UI, including setup, recovery, approvals, model selection, bulk sessions, and responsive layouts.
+
 ## v0.9.3 — 2026-07-19
 
 **Signed desktop release.** This build packages the current Vanta desktop operator surface as an Apple Silicon macOS app, with the safety kernel embedded inside the app bundle.

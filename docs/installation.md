@@ -2,8 +2,13 @@
 
 Vanta supports two installation paths that share the same `VANTA_HOME` data directory (`~/.vanta` by default):
 
+- **Desktop app:** download the signed and notarized Apple Silicon macOS release when you want the native operator workbench without a source checkout.
 - **Managed runtime:** for normal use, the public installer clones Vanta into `~/.vanta/app`, installs the global `vanta` command, and keeps the runtime separate from your projects.
 - **Source checkout:** for development, clone the repository and run `./install.sh`. It continues to install from the checkout you are editing.
+
+## Desktop App
+
+[Download Vanta v0.9.4 for Apple Silicon macOS](https://github.com/jpoindexter/Vanta/releases/download/v0.9.4/Vanta-0.9.4-arm64.dmg). The DMG is Developer ID signed, Apple notarized, stapled, and distributed with SHA-256 `f9556698e3a5bc5b2b5679f919238f924c19b366c366b2122aa8324a9eb301a3` on the [v0.9.4 release](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.4). Open the DMG and drag Vanta into Applications.
 
 ## Managed Runtime
 

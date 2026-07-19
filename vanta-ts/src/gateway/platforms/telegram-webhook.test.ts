@@ -93,10 +93,16 @@ describe("Telegram messaging webhook", () => {
     }, initialState());
 
     expect(result.count).toBe(1);
-    expect(requests).toEqual([{
-      path: "/botT/sendMessage",
-      body: expect.objectContaining({ chat_id: "42", text: expect.stringContaining("agent reply to") }),
-    }]);
+    expect(requests).toEqual([
+      {
+        path: "/botT/sendChatAction",
+        body: { chat_id: "42", action: "typing" },
+      },
+      {
+        path: "/botT/sendMessage",
+        body: expect.objectContaining({ chat_id: "42", text: expect.stringContaining("agent reply to") }),
+      },
+    ]);
     expect(requests.some((request) => request.path.includes("getUpdates"))).toBe(false);
     expect(await readChannelProofs(dataDir)).toEqual([
       expect.objectContaining({
