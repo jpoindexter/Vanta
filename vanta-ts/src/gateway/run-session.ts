@@ -26,6 +26,13 @@ import { readWorkProducts } from "../cofounder/work-products.js";
 import { planDeliverables } from "./deliverables.js";
 import { sendDeliverables } from "./deliverable-send.js";
 import { formatContextRefReceipt, preprocessContextRefs } from "../context/ref-preprocess.js";
+import {
+  DEFAULT_TYPING_INTERVAL_MS,
+  nextTypingTick,
+  startTyping,
+  stopTyping,
+  typingHeartbeatEnabled,
+} from "./typing-heartbeat.js";
 
 function firstLine(text: string): string {
   const line = text.split("\n")[0] ?? "";
@@ -65,14 +72,37 @@ function scheduleProgressBubble(ctx: SessionRun, m: InboundMessage): () => void 
   };
 }
 
+/** Keep a supported chat surface visibly active while the agent is handling it. */
+function scheduleTypingHeartbeat(ctx: SessionRun, m: InboundMessage): () => void {
+  if (!typingHeartbeatEnabled(process.env) || !ctx.platform.sendTyping) return () => {};
+  let state = startTyping(Date.now());
+  const send = (): void => {
+    void ctx.platform.sendTyping?.({ chatId: m.chatId, threadId: m.threadId })
+      .catch((err) => ctx.log(`  typing indicator failed: ${err instanceof Error ? err.message : String(err)}`));
+  };
+  send();
+  const timer = setInterval(() => {
+    const tick = nextTypingTick(state, Date.now());
+    state = tick.state;
+    if (tick.shouldSend) send();
+  }, DEFAULT_TYPING_INTERVAL_MS);
+  timer.unref?.();
+  return () => {
+    clearInterval(timer);
+    state = stopTyping(state);
+  };
+}
+
 /** Run one inbound message to completion and send the reply (errors → reply). */
 async function runOne(ctx: SessionRun, m: InboundMessage): Promise<void> {
+  const startedAt = Date.now();
   ctx.log(`  ✉ ${ctx.platform.id} ${m.from ?? m.chatId}: ${firstLine(m.text)}`);
   const mobileRun = await startMobileRun(ctx.dataDir, m).catch(() => undefined);
   // The agent sees the LLM-enriched rendering (timestamp + quote) when the
   // inbound pipeline produced one; otherwise the raw text (unchanged behavior).
   const { forAgent, images } = await resolveInbound(m, ctx.media ?? {}); // MSG-MEDIA-IMAGES
   const cancelProgress = scheduleProgressBubble(ctx, m);
+  const cancelTyping = scheduleTypingHeartbeat(ctx, m);
   const sink = createGatewayStreamSink({
     platform: ctx.platform,
     target: { chatId: m.chatId, threadId: m.threadId },
@@ -84,7 +114,11 @@ async function runOne(ctx: SessionRun, m: InboundMessage): Promise<void> {
   let reply: string;
   try { reply = await ctx.handle(forAgent, images, (event) => { void sink.emit(event); }); }
   catch (err) { reply = `error: ${err instanceof Error ? err.message : String(err)}`; }
-  finally { cancelProgress(); }
+  finally {
+    cancelProgress();
+    cancelTyping();
+  }
+  ctx.log(`  ◷ ${ctx.platform.id} agent response in ${Date.now() - startedAt}ms`);
   if (mobileRun) await finishMobileRun(ctx.dataDir, mobileRun.id, reply).catch(() => {});
   // MSG-NO-REPLY-TOKEN: an exact whole-response silence marker suppresses delivery
   // (group/channel surfaces); prose mentioning the marker still sends.
@@ -92,6 +126,7 @@ async function runOne(ctx: SessionRun, m: InboundMessage): Promise<void> {
   // MessageStop is the only deliverable/history-bearing event. Buffered chunks
   // and commentary are transient, so platform text and reply context cannot race.
   await deliverFinalReply(ctx, m, sink.emit, reply);
+  ctx.log(`  ✓ ${ctx.platform.id} reply delivered in ${Date.now() - startedAt}ms`);
 }
 
 async function deliverFinalReply(ctx: SessionRun, m: InboundMessage, emit: (event: { type: "MessageStop"; text: string }) => Promise<void>, reply: string): Promise<void> {

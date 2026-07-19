@@ -15,6 +15,7 @@ import { createGoalSentinel } from "../goals/sentinel.js";
 
 class FakeAdapter implements PlatformAdapter {
   sent: OutboundMessage[] = [];
+  typing: Array<{ chatId: string; threadId?: string }> = [];
   constructor(private inbox: InboundMessage[], readonly id = "fake") {}
   async connect(): Promise<void> {}
   async disconnect(): Promise<void> {}
@@ -25,6 +26,9 @@ class FakeAdapter implements PlatformAdapter {
   }
   async send(msg: OutboundMessage): Promise<void> {
     this.sent.push(msg);
+  }
+  async sendTyping(target: { chatId: string; threadId?: string }): Promise<void> {
+    this.typing.push(target);
   }
 }
 
@@ -348,5 +352,28 @@ describe("pollPlatformSession (concurrent inbound routing)", () => {
       { chatId: "line-user", text: expect.stringContaining("Still working") },
       { chatId: "line-user", text: "final answer" },
     ]);
+  });
+
+  it("starts a typing heartbeat immediately while a Telegram turn is running", async () => {
+    const adapter = new FakeAdapter([{ chatId: "telegram-user", text: "slow task" }], "telegram");
+    let finish!: () => void;
+    const done = new Promise<void>((resolve) => { finish = resolve; });
+    const run = pollPlatformSession(
+      {
+        ...noCron,
+        platform: adapter,
+        handle: async () => {
+          await done;
+          return "final answer";
+        },
+      },
+      initialState(),
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(adapter.typing).toEqual([{ chatId: "telegram-user", threadId: undefined }]);
+    finish();
+    await run;
+    expect(adapter.sent).toEqual([{ chatId: "telegram-user", text: "final answer" }]);
   });
 });

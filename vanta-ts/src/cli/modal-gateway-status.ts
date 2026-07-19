@@ -24,7 +24,7 @@ export type GatewayStatusReport = {
     tokenDiagnostic: TelegramTokenDiagnostic;
     webhookSecret: "present" | "missing";
   };
-  policy: { minContainers: 0; scaledownSec: number; volume: string };
+  policy: { minContainers: 0 | 1; scaledownSec: number; volume: string };
   next: string[];
 };
 
@@ -98,7 +98,7 @@ export function buildGatewayStatus(
       tokenDiagnostic,
       webhookSecret,
     },
-    policy: { minContainers: 0, scaledownSec: cfg.scaledownSec, volume: cfg.volume },
+    policy: { minContainers: cfg.minContainers, scaledownSec: cfg.scaledownSec, volume: cfg.volume },
     next: statusNextLines(cfg, state, receipt, env).map((line) => line.replace(/^next: /, "")),
   };
 }

@@ -23,9 +23,12 @@ SECRET_NAME = os.environ.get("VANTA_MODAL_GATEWAY_SECRET", "vanta-gateway")
 TELEGRAM_SECRET_NAME = os.environ.get("VANTA_MODAL_GATEWAY_TELEGRAM_SECRET", "vanta-gateway-telegram")
 VOLUME_NAME = os.environ.get("VANTA_MODAL_GATEWAY_VOLUME", "vanta-gateway-data")
 SCALEDOWN_SEC = int(os.environ.get("VANTA_MODAL_GATEWAY_SCALEDOWN_SEC", "60"))
+MIN_CONTAINERS = int(os.environ.get("VANTA_MODAL_GATEWAY_MIN_CONTAINERS", "0"))
 
 if SCALEDOWN_SEC < 60:
     raise ValueError("VANTA_MODAL_GATEWAY_SCALEDOWN_SEC must be at least 60")
+if MIN_CONTAINERS not in {0, 1}:
+    raise ValueError("VANTA_MODAL_GATEWAY_MIN_CONTAINERS must be 0 or 1")
 
 app = modal.App(APP_NAME)
 secret = modal.Secret.from_name(SECRET_NAME)
@@ -69,7 +72,7 @@ image = modal.Image.from_dockerfile(
     image=image,
     secrets=gateway_secrets,
     volumes={"/data": volume},
-    min_containers=0,
+    min_containers=MIN_CONTAINERS,
     max_containers=1,
     scaledown_window=SCALEDOWN_SEC,
     timeout=86_400,

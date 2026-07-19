@@ -110,6 +110,8 @@ export interface PlatformAdapter {
   send(msg: OutboundMessage): Promise<void | OutboundDeliveryReceipt>;
   /** Native file upload. Absence means this channel is text/image-only. */
   sendFile?(file: OutboundFile): Promise<void | OutboundFileDeliveryReceipt>;
+  /** Best-effort visible activity signal while a turn is running. */
+  sendTyping?(target: { chatId: string; threadId?: string }): Promise<void>;
   /** Fetch inbound messages received since the last poll. */
   poll(): Promise<InboundMessage[]>;
   /** Push-channel HTTP handlers, when this adapter receives webhook events. */

@@ -104,7 +104,7 @@ async function status(input: StatusInput): Promise<number> {
   const registration = receipt?.telegramRegisteredAt ? `registered ${receipt.telegramRegisteredAt}` : "not registered";
   const diagnostic = telegramToken === "invalid-format" ? ` (${tokenDiagnostic})` : "";
   log(`serverless gateway: Telegram endpoint ${receipt?.endpoint ?? "missing"} · ${registration} · token ${telegramToken}${diagnostic} · webhook secret ${webhookSecret}`);
-  log(`serverless gateway: min 0 · scaledown ${cfg.scaledownSec}s · volume ${cfg.volume}`);
+  log(`serverless gateway: min ${cfg.minContainers} · scaledown ${cfg.scaledownSec}s · volume ${cfg.volume}`);
   for (const line of statusNextLines(cfg, state, receipt, env)) log(`serverless gateway: ${line}`);
   return report.ready ? 0 : 1;
 }
@@ -128,7 +128,13 @@ async function deploy(
     cwd: repoRoot,
     timeout: 1_200_000,
     maxBuffer: 16_000_000,
-    env: { ...env, VANTA_MODAL_GATEWAY_APP: cfg.app, VANTA_MODAL_GATEWAY_SECRET: cfg.secret, VANTA_MODAL_GATEWAY_VOLUME: cfg.volume },
+    env: {
+      ...env,
+      VANTA_MODAL_GATEWAY_APP: cfg.app,
+      VANTA_MODAL_GATEWAY_SECRET: cfg.secret,
+      VANTA_MODAL_GATEWAY_VOLUME: cfg.volume,
+      VANTA_MODAL_GATEWAY_MIN_CONTAINERS: String(cfg.minContainers),
+    },
   });
   const endpoint = modalEndpointFrom(`${result.stdout}\n${result.stderr}`);
   await writeGatewayReceipt(repoRoot, {
@@ -138,7 +144,7 @@ async function deploy(
     endpoint,
     deployedAt: (deps.now ?? (() => new Date()))().toISOString(),
   });
-  log(`gateway deployed: ${cfg.app} · min 0 · scaledown ${cfg.scaledownSec}s${endpoint ? ` · ${endpoint}` : ""}`);
+  log(`gateway deployed: ${cfg.app} · min ${cfg.minContainers} · scaledown ${cfg.scaledownSec}s${endpoint ? ` · ${endpoint}` : ""}`);
   return 0;
 }
 

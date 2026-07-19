@@ -175,6 +175,19 @@ export class TelegramAdapter implements PlatformAdapter {
       : undefined;
   }
 
+  /** Tell Telegram that the agent is working before its final reply is ready. */
+  async sendTyping(target: { chatId: string; threadId?: string }): Promise<void> {
+    await fetch(`${this.base}/sendChatAction`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        chat_id: target.chatId,
+        action: "typing",
+        ...(target.threadId !== undefined ? { message_thread_id: Number(target.threadId) } : {}),
+      }),
+    });
+  }
+
   async sendFile(file: OutboundFile): Promise<OutboundFileDeliveryReceipt | undefined> {
     const body = new FormData();
     body.set("chat_id", file.chatId);

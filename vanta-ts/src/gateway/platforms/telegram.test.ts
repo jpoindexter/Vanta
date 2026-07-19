@@ -180,6 +180,13 @@ describe("MSG-TELEGRAM-ROBUST send behavior", () => {
     });
   });
 
+  it("sends a Telegram typing action while a turn is running", async () => {
+    await withFetch([OK], async (a, sent) => {
+      await a.sendTyping({ chatId: "42", threadId: "7" });
+      expect(sent).toEqual([{ body: { chat_id: "42", action: "typing", message_thread_id: 7 } }]);
+    });
+  });
+
   it("routes a threaded reply back to its forum topic", async () => {
     await withFetch([OK], async (a, sent) => {
       await a.send({ chatId: "5", threadId: "42", text: "hi" });

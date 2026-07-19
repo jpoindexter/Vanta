@@ -29,7 +29,11 @@ function fixture(overrides: Partial<ModalGatewayDeps> = {}): ModalGatewayDeps & 
 }
 
 function control(opts: { secret?: boolean; tasks?: string; proof?: string; deploy?: string } = {}) {
-  return vi.fn(async (_command: string, args: string[]) => {
+  return vi.fn(async (
+    _command: string,
+    args: string[],
+    _options?: { cwd: string; timeout: number; maxBuffer: number; env?: NodeJS.ProcessEnv },
+  ) => {
     if (args[0] === "app") return {
       stdout: JSON.stringify([{ description: "vanta-gateway", state: "deployed", tasks: opts.tasks ?? "0" }]),
       stderr: "",
@@ -144,6 +148,16 @@ describe("Modal gateway command", () => {
     const receipt = await readFile(join(root, ".vanta", "serverless-gateway.json"), "utf8");
     expect(receipt).toContain("https://team--vanta-gateway.modal.run");
     expect(receipt).not.toContain("token");
+  });
+
+  it("passes an explicit warm-container policy to the Modal helper", async () => {
+    const root = await workspace();
+    const run = control();
+    const deps = fixture({ run, helper: "/vanta/modal-gateway.py" });
+    expect(await runModalGatewayCommand(root, ["deploy"], { VANTA_MODAL_GATEWAY_MIN_CONTAINERS: "1" }, deps)).toBe(0);
+    const deployCall = run.mock.calls.find(([, args]) => args[0] === "deploy");
+    expect(deployCall?.[2]?.env?.VANTA_MODAL_GATEWAY_MIN_CONTAINERS).toBe("1");
+    expect(deps.lines.join("\n")).toContain("min 1 · scaledown 60s");
   });
 
   it("registers the authenticated Telegram webhook without logging credentials", async () => {

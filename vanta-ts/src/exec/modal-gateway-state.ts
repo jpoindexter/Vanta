@@ -8,6 +8,7 @@ export type GatewayConfig = {
   app: string;
   secret: string;
   volume: string;
+  minContainers: 0 | 1;
   scaledownSec: number;
 };
 
@@ -26,10 +27,12 @@ export type GatewayReceipt = {
 
 export function resolveModalGatewayConfig(env: NodeJS.ProcessEnv): GatewayConfig {
   const scaledownSec = Number(env.VANTA_MODAL_GATEWAY_SCALEDOWN_SEC ?? 60);
+  const minContainers = env.VANTA_MODAL_GATEWAY_MIN_CONTAINERS?.trim() === "1" ? 1 : 0;
   return {
     app: env.VANTA_MODAL_GATEWAY_APP?.trim() || "vanta-gateway",
     secret: env.VANTA_MODAL_GATEWAY_SECRET?.trim() || "vanta-gateway",
     volume: env.VANTA_MODAL_GATEWAY_VOLUME?.trim() || "vanta-gateway-data",
+    minContainers,
     scaledownSec: Number.isInteger(scaledownSec) && scaledownSec >= 60 ? scaledownSec : 60,
   };
 }
