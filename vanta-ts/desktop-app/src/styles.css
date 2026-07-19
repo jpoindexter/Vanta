@@ -660,11 +660,12 @@ button:focus, textarea:focus, input:focus, select:focus, summary:focus { outline
 
 .chat-thread { gap: 0; padding: 22px clamp(18px, 5vw, 72px) 32px; }
 .run-summary, .transcript-turn, .run-timeline, .inline-approval, .thinking, .run-recovery, .event-timeline { width: min(640px, 100%); margin-inline: auto; }
+.event-timeline { flex: 0 0 auto; }
 .run-summary { min-height: 34px; display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--faint); font-size: 10px; }
 .run-summary span { display: inline-flex; align-items: center; gap: 7px; color: var(--ok); }
 .run-summary i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
 .run-summary time { font-style: normal; }
-.transcript-window { position: relative; flex: 0 0 auto; width: min(790px, 100%); margin-inline: auto; contain: strict; }
+.transcript-window { position: relative; flex: 0 0 auto; width: min(790px, 100%); margin-inline: auto; overflow: hidden; contain: strict; }
 .transcript-turn { display: grid; }
 .message { width: 100%; display: block; border: 0; border-radius: 0; background: transparent; padding: 12px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .message.user { width: fit-content; max-width: min(74ch, 78%); justify-self: end; border: 1px solid var(--line); border-radius: 18px; background: var(--raised); padding: 10px 13px; }
@@ -707,7 +708,7 @@ button:focus, textarea:focus, input:focus, select:focus, summary:focus { outline
 .timeline-step small { color: var(--faint); font-size: 10px; }
 .timeline-step em { color: var(--faint); font-size: 10px; font-style: normal; }
 .timeline-step.bad > span, .timeline-step.bad em { color: var(--danger); }
-.quiet-trace details.timeline-step { display: block; min-height: 0; padding: 0; border-top: 0; }
+.quiet-trace details.timeline-step { display: block; min-height: 36px; padding: 0; border-top: 0; }
 .quiet-trace details.timeline-step > summary { min-height: 36px; display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; align-items: center; gap: 8px; list-style: none; }
 .quiet-trace details.timeline-step > summary::-webkit-details-marker { display: none; }
 .quiet-trace details.timeline-step > summary > span { width: 18px; height: 18px; display: grid; place-items: center; margin-left: -33px; color: var(--ok); }

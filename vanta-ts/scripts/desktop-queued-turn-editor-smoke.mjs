@@ -101,6 +101,11 @@ async function readyPage(instance) {
   page.on("pageerror", (error) => rendererErrors.push(`page error: ${error.message}`));
   page.on("console", (message) => { if (message.type() === "error" && !message.text().includes("Failed to load resource")) rendererErrors.push(`console error: ${message.text()}`); });
   await page.locator(".app-shell").waitFor();
+  await page.getByLabel("Message Vanta").waitFor({ state: "visible" });
+  await page.waitForFunction(() => {
+    const composer = document.querySelector("#vanta-composer");
+    return composer instanceof HTMLTextAreaElement && !composer.disabled;
+  });
   return page;
 }
 

@@ -85,6 +85,10 @@ try {
   await page.locator(".app-shell.theme-dark").waitFor({ timeout: 15_000 });
   await page.locator("[data-runtime-strip]").waitFor();
   await page.locator("[data-runtime-strip]").getByText("qwen.gguf").first().waitFor();
+  await page.waitForFunction(() => {
+    const composer = document.querySelector("#vanta-composer");
+    return composer instanceof HTMLTextAreaElement && !composer.disabled;
+  });
 
   const composer = page.getByPlaceholder("Ask Vanta to do something...");
   await composer.fill("Draft survives runtime switching");

@@ -97,6 +97,10 @@ try {
   });
 
   await page.locator(".app-shell").waitFor();
+  await page.waitForFunction(() => {
+    const composer = document.querySelector("#vanta-composer");
+    return composer instanceof HTMLTextAreaElement && !composer.disabled;
+  });
   const composer = page.getByPlaceholder("Ask Vanta to do something...");
   await composer.fill("Run the settings workflow");
   await page.getByRole("button", { name: "Send" }).click();

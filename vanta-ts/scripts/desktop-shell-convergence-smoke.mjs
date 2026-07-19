@@ -138,6 +138,10 @@ try {
   });
 
   await page.locator(".app-shell").waitFor();
+  await page.waitForFunction(() => {
+    const composer = document.querySelector("#vanta-composer");
+    return composer instanceof HTMLTextAreaElement && !composer.disabled;
+  });
   await page.locator(".titlebar-leading-actions").waitFor();
   for (const destination of ["Work", "Operate", "Outputs", "Connect"]) {
     await page.getByRole("button", { name: destination, exact: true }).waitFor();

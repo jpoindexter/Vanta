@@ -98,6 +98,10 @@ process.stdin.on("data", (chunk) => {
   });
   page.setDefaultTimeout(30_000);
   await page.locator(".app-shell").waitFor();
+  await page.waitForFunction(() => {
+    const composer = document.querySelector("#vanta-composer");
+    return composer instanceof HTMLTextAreaElement && !composer.disabled;
+  });
   await page.getByRole("button", { name: "Work" }).waitFor();
   const inspectorToggle = page.getByRole("button", { name: "Open contextual inspector" });
   if (await inspectorToggle.isVisible().catch(() => false)) await inspectorToggle.click();
@@ -258,7 +262,7 @@ process.stdin.on("data", (chunk) => {
 
   await page.getByRole("button", { name: "Work" }).click();
   await page.getByTitle("Manage MCP connectors").getByText(/MCP 1 · 1 tools/).waitFor();
-  await page.locator(".composer").getByTitle("Change model").click();
+  await page.locator(".composer").getByTitle("Change agent model").click();
   await page.getByRole("heading", { name: "Choose a model" }).waitFor();
   if (process.env.VANTA_DESKTOP_MODEL_PICKER_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_MODEL_PICKER_SCREENSHOT, fullPage: false });
   await page.getByPlaceholder("Search models and providers").fill("__missing_model__");
@@ -277,7 +281,7 @@ process.stdin.on("data", (chunk) => {
   await page.getByRole("button", { name: `Remove ${file}` }).waitFor();
   await page.getByRole("button", { name: `Remove ${file}` }).click();
   await page.locator(".context-chips").waitFor({ state: "detached" });
-  await page.locator(".right-rail").getByRole("button", { name: "Close inspector" }).click();
+  await page.getByRole("button", { name: "Close inspector" }).click();
   await page.locator(".right-rail").waitFor({ state: "detached" });
 
   await page.locator("#vanta-composer").fill("/setup");

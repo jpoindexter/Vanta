@@ -174,6 +174,7 @@ export function useConversation(refresh: () => Promise<void>, cues: TurnCues = {
   const draftController = useRef(createSessionDraftController(window.localStorage, projectRoot, ""));
   const [draft, setDraftState] = useState(() => draftController.current.value());
   const draftSaveQueue = useRef<Promise<unknown>>(Promise.resolve());
+  const sessionOpenRequest = useRef(0);
   const [events, setEvents] = useState<EventRow[]>([{ label: "No tool activity yet." }]);
   const [streamText, setStreamText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -199,14 +200,16 @@ export function useConversation(refresh: () => Promise<void>, cues: TurnCues = {
       .catch(() => undefined);
     return draftSaveQueue.current;
   }, []);
-  const activateDraft = useCallback(async (nextSessionId: string) => {
+  const activateDraft = useCallback(async (nextSessionId: string, isCurrent: () => boolean = () => true) => {
+    if (!isCurrent()) return;
     const local = draftController.current.activate(projectRoot, nextSessionId);
     setDraftState(local);
     if (!hasPersistableSessionDraftContext(nextSessionId)) return;
     await draftSaveQueue.current.catch(() => undefined);
+    if (!isCurrent()) return;
     const stored = await api<{ exists: boolean; value: string }>("/api/sessions/draft", postJson({ action: "load", id: nextSessionId })).catch(() => null);
     const context = draftController.current.context();
-    if (!stored || context.root !== projectRoot || context.sessionId !== nextSessionId) return;
+    if (!stored || !isCurrent() || context.root !== projectRoot || context.sessionId !== nextSessionId) return;
     if (!stored.exists && local) {
       await persistDraft(nextSessionId, local);
       return;
@@ -227,7 +230,7 @@ export function useConversation(refresh: () => Promise<void>, cues: TurnCues = {
   useEffect(() => {
     void activateDraft(sessionId);
   }, [projectRoot]);
-  const handlers = conversationHandlers({ refresh, setMessages, setSessionId, setActiveTitle, setEvents, setStreamText, setBusy, setDraft, activateDraft, clearDraftFor, setRecovery }, cues, lastFailedMessage);
+  const handlers = conversationHandlers({ refresh, setMessages, setSessionId, setActiveTitle, setEvents, setStreamText, setBusy, setDraft, activateDraft, clearDraftFor, setRecovery, sessionOpenRequest }, cues, lastFailedMessage);
   return { sessionId, messages, activeTitle, draft, setDraft, events, streamText, busy, recovery, stop: () => stopMessage(setEvents), ...handlers };
 }
 
@@ -266,17 +269,23 @@ type ConversationState = {
   setStreamText: (updater: (value: string) => string) => void;
   setBusy: (value: boolean) => void;
   setDraft: (updater: string | ((value: string) => string)) => void;
-  activateDraft: (sessionId: string) => Promise<void>;
+  activateDraft: (sessionId: string, isCurrent?: () => boolean) => Promise<void>;
   clearDraftFor: (sessionId: string) => Promise<void>;
   setRecovery: (value: DesktopRunReceipt | null) => void;
+  sessionOpenRequest: { current: number };
 };
 
 function conversationHandlers(state: ConversationState, cues: TurnCues, lastFailedMessage: { current: string }) {
   async function openSession(id: string) {
-    const opened = await api<{ title: string; messages: Message[] }>("/api/sessions/open", postJson({ id }));
-    const recoverable = latestRecoverableRun(opened.messages);
+    const request = ++state.sessionOpenRequest.current;
+    const isCurrent = () => state.sessionOpenRequest.current === request;
+    // Change draft ownership at selection time; the network response must not keep a prior draft visible.
     state.setSessionId(id);
-    await state.activateDraft(id);
+    await state.activateDraft(id, isCurrent);
+    if (!isCurrent()) return;
+    const opened = await api<{ title: string; messages: Message[] }>("/api/sessions/open", postJson({ id }));
+    if (!isCurrent()) return;
+    const recoverable = latestRecoverableRun(opened.messages);
     state.setActiveTitle(opened.title);
     state.setMessages(() => opened.messages);
     state.setRecovery(recoverable?.receipt ?? null);
@@ -285,9 +294,13 @@ function conversationHandlers(state: ConversationState, cues: TurnCues, lastFail
     await state.refresh();
   }
   async function newSession() {
+    const request = ++state.sessionOpenRequest.current;
+    const isCurrent = () => state.sessionOpenRequest.current === request;
     const created = await api<{ id: string }>("/api/sessions/new", { method: "POST" });
+    if (!isCurrent()) return;
     state.setSessionId(created.id);
-    await state.activateDraft(created.id);
+    await state.activateDraft(created.id, isCurrent);
+    if (!isCurrent()) return;
     state.setActiveTitle("New session");
     state.setMessages(() => []);
     state.setRecovery(null);

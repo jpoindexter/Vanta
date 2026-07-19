@@ -40,6 +40,10 @@ try {
   });
   await page.setViewportSize({ width: 760, height: 700 });
   await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => {
+    const composer = document.querySelector("#vanta-composer");
+    return composer instanceof HTMLTextAreaElement && !composer.disabled;
+  });
 
   const composer = page.getByPlaceholder("Ask Vanta to do something...");
   await composer.fill("Review src/chat.tsx");
