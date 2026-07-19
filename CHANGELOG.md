@@ -3,6 +3,15 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## v0.9.3 — 2026-07-19
+
+**Signed desktop release.** This build packages the current Vanta desktop operator surface as an Apple Silicon macOS app, with the safety kernel embedded inside the app bundle.
+
+### Included
+- The current desktop work surface: task timeline and recovery, context attachments, model routing, access modes, MCP controls, safe session operations, outputs, and connect readiness.
+- Gateway reliability repairs: live Telegram message handling, compact roadmap status, and remote context references bound to the received project's scope.
+- A Developer ID-signed, Apple-notarized ARM64 DMG and ZIP with a SHA-256 checksum.
+
 ## Unreleased — 2026-07-12
 
 ### Documentation
