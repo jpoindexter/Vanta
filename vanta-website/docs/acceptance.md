@@ -29,7 +29,7 @@ The versioned catalog currently has **6 executed, 6 passed, 0 failed** scenarios
 - The 36-capture Ghost visual matrix passed at three viewport widths in light and dark mode.
 - Packaged cold-start regression uses the median of three fresh-profile launches; every launch must also remain below the independent 10-second hard ceiling.
 
-The notarized v0.9.5 desktop build adds Sight, native image clipboard context, graph engineering v1, and the current source-plus-packaged flow proof. Its DMG checksum is `b1c97ecd59bc8c37a6d2c843e81d4a74f44c75cf4a7f9bdb8a0e46594554f122`; Apple accepted notarization submission `efcb15b4-60f0-4d0f-b5e6-a4d602d796e2`, and local Gatekeeper verification passed.
+The public [notarized v0.9.5 desktop build](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.5) adds Sight, native image clipboard context, graph engineering v1, and the current source-plus-packaged flow proof. Its DMG checksum is `b1c97ecd59bc8c37a6d2c843e81d4a74f44c75cf4a7f9bdb8a0e46594554f122`; Apple accepted notarization submission `efcb15b4-60f0-4d0f-b5e6-a4d602d796e2`, and the exact public download passed checksum, staple, signature, quarantine, and Gatekeeper verification on a clean hosted Mac in [run 29777875809](https://github.com/jpoindexter/Vanta/actions/runs/29777875809).
 
 The signed app's capture contracts are automated, but a successful visual-model answer from the packaged bundle remains an external proof until macOS Screen Recording access is granted to `studio.theft.vanta`. The clipboard proof covers the native bridge and renderer paste path, not operating-system Command-V delivery. Third-party credentials, physical devices, provider accounts, and the fresh non-developer desktop study remain separate [external acceptance gates](./roadmap).
 

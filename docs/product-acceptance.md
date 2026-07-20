@@ -33,7 +33,7 @@ The use-case catalog currently records 6 executed and 6 passed scenarios across 
 
 ## Release boundary
 
-The v0.9.5 desktop artifact binds Sight, image clipboard context, graph engineering v1, and the current desktop flow suite to one notarized build. Apple accepted notarization submission `efcb15b4-60f0-4d0f-b5e6-a4d602d796e2`; the DMG has SHA-256 `b1c97ecd59bc8c37a6d2c843e81d4a74f44c75cf4a7f9bdb8a0e46594554f122`. Local verification passed checksum, staple, DMG signature, mounted app signature, embedded-kernel signature, and Gatekeeper assessment.
+The public [v0.9.5 desktop artifact](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.5) binds Sight, image clipboard context, graph engineering v1, and the current desktop flow suite to tag commit `4018dd64`. Apple accepted notarization submission `efcb15b4-60f0-4d0f-b5e6-a4d602d796e2`; the DMG has SHA-256 `b1c97ecd59bc8c37a6d2c843e81d4a74f44c75cf4a7f9bdb8a0e46594554f122`. Local verification passed checksum, staple, DMG signature, mounted app signature, embedded-kernel signature, and Gatekeeper assessment. The exact GitHub-downloaded artifact then passed checksum, staple, signature, quarantine, and Gatekeeper verification on a clean hosted Mac in [run 29777875809](https://github.com/jpoindexter/Vanta/actions/runs/29777875809).
 
 The CLI/TUI visual answer is executed. The signed app's capture contracts are executed under automation, but a successful visual-model answer from that packaged bundle remains an external proof until macOS Screen Recording permission is granted to `studio.theft.vanta`. The clipboard proof exercises Electron's native clipboard bridge and the renderer paste path; it does not establish macOS Command-V keyboard delivery.
 
