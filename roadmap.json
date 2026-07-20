@@ -19758,7 +19758,7 @@
       "id": "GRAPH-REVIEW-REWORK-CYCLE",
       "track": "Harness",
       "title": "Graph review/rework cycle — reviewer findings route back to the builder",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Vanta has review stages and loop transitions, but the graph does not yet hand structured reviewer findings back to the builder. Make rejection a first-class bounded feedback edge: an independent reviewer writes findings to shared state, the builder receives those findings, and the next review checks the revised artifact rather than starting a disconnected chat.",
       "done": "A graph can declare a builder, independent reviewer, revision edge, acceptance edge, maximum attempts, and terminal human escalation; rejection writes rubric item, evidence, affected artifact, severity, and requested change into shared state; the builder's next attempt receives that exact packet; acceptance requires current-artifact evidence; fixtures prove reject-revise-accept, repeated rejection escalation, stale-review rejection, maker/reviewer isolation, cancellation, and kernel-gated side effects.",

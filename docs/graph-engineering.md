@@ -28,6 +28,7 @@ The product opportunity is to compose the shipped layers into a durable organiza
 - `GRAPH-EVIDENCE-STOP-CONTRACTS` gives every parsed graph typed terminal, evidence, recovery, cancellation, and budget contracts. Loop caps are exhausted outcomes, not success.
 - `WORKFLOW-COMPOSER-V1` adds strict save, reopen, list, diff, and launch operations over immutable project-scoped workflow revisions. Trigger, action, browser, agent, approval, typed-port, side-effect, and bounded-feedback rules validate before execution; launches reuse the kernel-gated workflow runner and durable receipts.
 - `WORKFLOW-DATA-HANDOFF-CONTRACTS` maps typed consumer inputs to prior persisted outputs without template interpolation. Static preflight enforces order and type safety; runtime receipts retain provenance and redaction while secret values remain opaque references. This contract is shipped.
+- `GRAPH-REVIEW-REWORK-CYCLE` adds independent review nodes and bounded revision edges. Rejection persists a typed packet tied to an exact artifact revision, feeds that packet into the maker's next attempt, rejects stale review evidence, and escalates to a named human gate after the attempt cap.
 
 This is enough foundation to avoid adopting LangGraph, CrewAI, or another runtime. Vanta should extend its own typed graph boundary.
 
@@ -39,11 +40,11 @@ The current workflow runner keeps a `Map` of the latest node results and a trans
 
 Implemented: graph specs may declare a versioned typed state schema and per-node read/write access. Atomic temp-file replacement and an exclusive run lock protect each project-scoped state file. Disjoint concurrent writes merge; stale writes to the same field fail with a conflict. Secret fields accept opaque `{secretRef}` values only. A stable `run_id` reopens the last committed revision and skips confirmed successful nodes while retrying failed nodes.
 
-### 2. A real review back-edge
+### 2. A real review back-edge — shipped
 
-Vanta can loop and can require review, but it does not yet guarantee that a reviewer's structured findings become the builder's next input. The edge must carry a finding packet tied to the reviewed artifact and revision.
+Review nodes declare a separate maker, artifact input, and JSON review output. A revision edge maps that output to a typed maker input and permits only a rejected result to route backward. Every finding carries the rubric item, evidence, affected artifact and revision, severity, and requested change.
 
-Target: reject -> record findings -> revise the current artifact -> independently review the new revision -> accept or escalate after a hard attempt cap.
+Acceptance is valid only when the packet references the artifact revision supplied to the reviewer. Repeated rejection runs the declared human escalation node and terminates as exhausted after the hard attempt cap. Cancellation stops before another node executes, and side effects reached after acceptance still pass through the safety kernel and approval policy.
 
 ### 3. Evidence-based stop conditions — shipped
 
@@ -85,7 +86,7 @@ Each node may run an internal loop. The graph owns cross-node state, routing, bu
 
 1. `GRAPH-SHARED-RUN-STATE`
 2. `GRAPH-EVIDENCE-STOP-CONTRACTS` — shipped
-3. `GRAPH-REVIEW-REWORK-CYCLE`
+3. `GRAPH-REVIEW-REWORK-CYCLE` — shipped
 4. `WORKFLOW-COMPOSER-V1` and `WORKFLOW-DATA-HANDOFF-CONTRACTS` — shipped
 5. `GRAPH-OPERATOR-REPLAY-HANDOFF`
 6. `GRAPH-ADAPTIVE-TOPOLOGY-POLICY`

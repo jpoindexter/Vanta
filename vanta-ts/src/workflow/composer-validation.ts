@@ -1,5 +1,6 @@
 import type { WorkflowGraph, WorkflowNode } from "./schema.js";
 import { validateHandoffReferences } from "./handoff.js";
+import { validateReviewCycles } from "./review-cycle.js";
 
 export function validateComposableWorkflow(graph: WorkflowGraph): string[] {
   const errors: string[] = [];
@@ -12,6 +13,7 @@ export function validateComposableWorkflow(graph: WorkflowGraph): string[] {
   errors.push(...feedbackErrors(graph));
   errors.push(...connectivityErrors(graph));
   errors.push(...validateHandoffReferences(graph));
+  errors.push(...validateReviewCycles(graph));
   return errors;
 }
 
@@ -50,7 +52,7 @@ function connectivityErrors(graph: WorkflowGraph): string[] {
 function targetsFrom(id: string, graph: WorkflowGraph): string[] {
   return graph.transitions.filter((transition) => transition.from === id).flatMap((transition) => {
     if (transition.type === "parallel") return transition.to;
-    if (transition.type === "loop" && transition.onExhausted) return [transition.to, transition.onExhausted];
+    if ((transition.type === "loop" || transition.type === "revision") && transition.onExhausted) return [transition.to, transition.onExhausted];
     return [transition.to];
   });
 }

@@ -26,6 +26,7 @@ A saved workflow must have:
 4. Browser tools whose names use the `browser_` boundary.
 5. A hard iteration cap and terminal `onExhausted` escalation for every feedback loop.
 6. A positive revision and a completion contract materialized by the graph parser.
+7. A separate maker and reviewer, current artifact binding, accepted branch, bounded rejected revision edge, typed feedback mapping, and terminal escalation for every review cycle.
 
 Action and browser nodes resolve existing Vanta tools. Their exact tool and arguments are assessed by the safety kernel before execution. `approval: always` adds an explicit human gate even when the kernel permits the action.
 
@@ -43,6 +44,14 @@ A consumer node maps an input port to a prior output with `bindings`:
 Preflight rejects missing ports or nodes, reversed and cyclic references, disconnected or out-of-order producers, incompatible types, and any attempt to coerce a `secret-ref` into a non-secret input. Runtime resolves the same binding from the persisted producer receipt. Tool bindings override static args and the resolved arguments are included in kernel assessment.
 
 Node receipts preserve typed outputs and a handoff ledger containing the input, producer, output, type, and redaction flag. Secret values remain opaque `{ "secretRef": "..." }` references; handoff receipts never contain the value or reference identifier.
+
+## Review and rework
+
+A `review` node receives an `artifact-ref` directly from its declared maker and returns one review packet. Rejected packets must include at least one structured finding with a rubric item, executed evidence, affected artifact revision, severity, and requested change.
+
+A `revision` transition maps the persisted review output to a typed maker input. The maker receives the exact rejected packet on its next attempt rather than a prose summary or disconnected chat. The reviewer then receives the maker's new artifact revision. Stale packets and findings that name another revision fail before any acceptance side effect can run.
+
+The revision edge declares `maxAttempts` and `onExhausted`. At the cap, Vanta executes the named human escalation node and records an exhausted terminal receipt. An accepted branch may advance only from the current review packet; subsequent actions remain kernel-gated and follow their declared approval policy.
 
 ## Recovery and truth
 

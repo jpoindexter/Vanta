@@ -1,4 +1,5 @@
 import type { GraphNodeResult } from "./run-state.js";
+import type { MatchRule } from "./schema.js";
 
 export type WorkflowControlStatus = "done" | "paused" | "blocked" | "error" | "exhausted" | "cancelled";
 
@@ -15,4 +16,11 @@ export function resultControl(result: GraphNodeResult): WorkflowControlStatus | 
   if (result.status === "blocked") return "blocked";
   if (result.status === "denied") return "paused";
   return result.status === "error" ? "error" : null;
+}
+
+export function matchesResult(rule: MatchRule, result: GraphNodeResult | undefined): boolean {
+  if (!result) return false;
+  if (rule.status && result.status !== rule.status) return false;
+  if (rule.review && (result.review?.accepted ? "accepted" : "rejected") !== rule.review) return false;
+  return rule.contains ? result.output.includes(rule.contains) : true;
 }

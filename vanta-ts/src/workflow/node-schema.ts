@@ -23,12 +23,20 @@ const BaseNode = z.object({
   }).optional(),
 });
 
-export const AgentNodeSchema = BaseNode.extend({
-  type: z.literal("agent"),
+const WorkerNode = BaseNode.extend({
   instruction: z.string().min(1),
   goal: z.string().min(1).optional(),
   maxIterations: z.number().int().min(1).max(50).optional(),
   evidence: z.array(GraphEvidenceKindSchema).max(10).optional(),
+});
+
+export const AgentNodeSchema = WorkerNode.extend({ type: z.literal("agent") });
+
+export const ReviewNodeSchema = WorkerNode.extend({
+  type: z.literal("review"),
+  maker: WorkflowIdSchema,
+  artifactInput: WorkflowIdSchema,
+  reviewOutput: WorkflowIdSchema,
 });
 
 export const ApprovalNodeSchema = BaseNode.extend({
@@ -61,6 +69,7 @@ export const BrowserNodeSchema = ExecutableNode.extend({ type: z.literal("browse
 
 export const WorkflowNodeSchema = z.discriminatedUnion("type", [
   AgentNodeSchema,
+  ReviewNodeSchema,
   ApprovalNodeSchema,
   InterviewNodeSchema,
   TriggerNodeSchema,

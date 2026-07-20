@@ -3,14 +3,16 @@ import type { WorkflowGraph, WorkflowNode } from "./schema.js";
 import { GraphEvidenceKindSchema } from "./completion-contract.js";
 import { WorkflowPortTypeSchema } from "./node-schema.js";
 import { validWorkflowValue } from "./typed-value.js";
+import { ReviewPacketSchema, type ReviewPacket } from "./review-contract.js";
 
 const NodeStatus = z.enum(["ok", "denied", "blocked", "error"]);
 const ArtifactRefSchema = z.object({ id: z.string().min(1), uri: z.string().min(1), revision: z.string().min(1), mime: z.string().min(1).optional() });
 const TypedOutputSchema = z.object({ type: WorkflowPortTypeSchema, value: z.unknown(), redacted: z.boolean() });
 const HandoffReceiptSchema = z.object({ input: z.string(), fromNode: z.string(), output: z.string(), type: WorkflowPortTypeSchema, redacted: z.boolean() });
 const NodeResultSchema = z.object({
-  nodeId: z.string().min(1), type: z.enum(["agent", "approval", "interview", "trigger", "action", "browser"]), status: NodeStatus, output: z.string(),
+  nodeId: z.string().min(1), type: z.enum(["agent", "review", "approval", "interview", "trigger", "action", "browser"]), status: NodeStatus, output: z.string(),
   outputs: z.record(z.string(), TypedOutputSchema).default({}), handoffs: z.array(HandoffReceiptSchema).default([]),
+  review: ReviewPacketSchema.optional(),
 });
 const AttemptSchema = z.object({ nodeId: z.string().min(1), attempt: z.number().int().positive(), startedAt: z.string(), finishedAt: z.string(), status: NodeStatus });
 const MutationSchema = z.object({ nodeId: z.string().min(1), attempt: z.number().int().positive(), revision: z.number().int().positive(), fields: z.array(z.string()), at: z.string() });
@@ -57,7 +59,7 @@ export type GraphEvidence = z.infer<typeof EvidenceSchema>;
 export type GraphTerminal = z.infer<typeof TerminalSchema>;
 export type GraphAgentEvidence = Omit<GraphEvidence, "nodeId" | "at">;
 export type GraphAgentOutcome = {
-  output: string; outputs?: Record<string, unknown>; writes?: Record<string, unknown>; artifacts?: GraphArtifactRef[];
+  output: string; outputs?: Record<string, unknown>; review?: ReviewPacket; writes?: Record<string, unknown>; artifacts?: GraphArtifactRef[];
   evidence?: GraphAgentEvidence[]; usage?: { tokens?: number; costUsd?: number };
 };
 

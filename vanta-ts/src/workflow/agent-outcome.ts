@@ -2,12 +2,12 @@ import type { WorkflowNode } from "./schema.js";
 import type { GraphAgentOutcome } from "./run-state.js";
 import type { WorkflowNodeContext } from "./execute.js";
 
-type AgentNode = Extract<WorkflowNode, { type: "agent" }>;
+type AgentNode = Extract<WorkflowNode, { type: "agent" | "review" }>;
 
 export function buildStatefulAgentInstruction(node: AgentNode, context: WorkflowNodeContext): string {
   if (!needsEnvelope(node)) return node.instruction;
   const allowedWrites = node.state?.write ?? [];
-  const outputs = Object.keys(node.io?.outputs ?? {});
+  const outputs = Object.keys(node.io?.outputs ?? {}).filter((name) => node.type !== "review" || name !== node.reviewOutput);
   const evidenceKinds = node.evidence ?? [];
   const evidence = evidenceKinds.map((kind) => `{"id":"...","kind":"${kind}","passed":true,"detail":"..."}`).join(",");
   return [
@@ -18,7 +18,7 @@ export function buildStatefulAgentInstruction(node: AgentNode, context: Workflow
     `Input receipts: ${JSON.stringify(context.receipts)}`,
     `Run: ${context.runId} · attempt ${context.attempt}`,
     "Return only JSON with shape:",
-    `{"output":"summary","outputs":{${outputs.map((name) => `"${name}":<typed value>`).join(",")}},"writes":{${allowedWrites.map((field) => `"${field}":<typed value>`).join(",")}},"artifacts":[{"id":"...","uri":"...","revision":"..."}],"evidence":[${evidence}],"usage":{"tokens":0,"costUsd":0}}`,
+    envelopeShape(node, outputs, allowedWrites, evidence),
     `Only report evidence kinds declared for this node: ${evidenceKinds.join(", ") || "none"}. Evidence must describe an executed check, not your own completion claim.`,
     "Do not include undeclared state fields or raw credentials; secret values must remain opaque references.",
   ].join("\n");
@@ -41,7 +41,8 @@ function parseEnvelope(node: AgentNode, source: string): Record<string, unknown>
 
 function validateEnvelope(node: AgentNode, item: Record<string, unknown>): void {
   const missingWrites = node.state?.write.length && (!item.writes || typeof item.writes !== "object");
-  const missingOutputs = Object.keys(node.io?.outputs ?? {}).length && (!item.outputs || typeof item.outputs !== "object");
+  const requiredOutputs = Object.keys(node.io?.outputs ?? {}).filter((name) => node.type !== "review" || name !== node.reviewOutput);
+  const missingOutputs = requiredOutputs.length && (!item.outputs || typeof item.outputs !== "object");
   if (typeof item.output !== "string" || missingWrites || missingOutputs) {
     throw new Error(`node ${node.id} returned an invalid shared-state envelope`);
   }
@@ -51,6 +52,7 @@ function outcomeFrom(item: Record<string, unknown>): GraphAgentOutcome {
   return {
     output: item.output as string,
     outputs: item.outputs as Record<string, unknown> | undefined,
+    review: item.review as GraphAgentOutcome["review"],
     writes: item.writes as Record<string, unknown> | undefined,
     artifacts: Array.isArray(item.artifacts) ? item.artifacts as GraphAgentOutcome["artifacts"] : undefined,
     evidence: Array.isArray(item.evidence) ? item.evidence as GraphAgentOutcome["evidence"] : undefined,
@@ -59,5 +61,10 @@ function outcomeFrom(item: Record<string, unknown>): GraphAgentOutcome {
 }
 
 function needsEnvelope(node: AgentNode): boolean {
-  return Boolean(node.state?.read.length || node.state?.write.length || node.evidence?.length || node.bindings && Object.keys(node.bindings).length || Object.keys(node.io?.outputs ?? {}).length);
+  return node.type === "review" || Boolean(node.state?.read.length || node.state?.write.length || node.evidence?.length || node.bindings && Object.keys(node.bindings).length || Object.keys(node.io?.outputs ?? {}).length);
+}
+
+function envelopeShape(node: AgentNode, outputs: string[], writes: string[], evidence: string): string {
+  const review = node.type === "review" ? ',"review":{"accepted":false,"artifact":{"artifactRef":"...","revision":"..."},"findings":[{"rubricItem":"...","evidence":"...","affectedArtifact":{"artifactRef":"...","revision":"..."},"severity":"high","requestedChange":"..."}]}' : "";
+  return `{"output":"summary","outputs":{${outputs.map((name) => `"${name}":<typed value>`).join(",")}},"writes":{${writes.map((field) => `"${field}":<typed value>`).join(",")}}${review},"artifacts":[{"id":"...","uri":"...","revision":"..."}],"evidence":[${evidence}],"usage":{"tokens":0,"costUsd":0}}`;
 }

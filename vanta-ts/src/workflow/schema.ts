@@ -14,7 +14,8 @@ const MatchSchema = z.object({
   node: Id,
   contains: z.string().min(1).optional(),
   status: z.enum(["ok", "denied", "blocked", "error"]).optional(),
-}).refine((v) => v.contains || v.status, "match needs contains or status");
+  review: z.enum(["accepted", "rejected"]).optional(),
+}).refine((v) => v.contains || v.status || v.review, "match needs contains, status, or review");
 
 const SingleTarget = z.object({ from: Id, to: Id });
 export const NextTransitionSchema = SingleTarget.extend({ type: z.literal("next") });
@@ -31,6 +32,14 @@ export const LoopTransitionSchema = SingleTarget.extend({
   onExhausted: Id.optional(),
 });
 
+export const RevisionTransitionSchema = SingleTarget.extend({
+  type: z.literal("revision"),
+  when: MatchSchema,
+  maxAttempts: z.number().int().min(1).max(20),
+  onExhausted: Id,
+  feedback: z.record(Id, Id).refine((value) => Object.keys(value).length > 0, "revision needs feedback mappings"),
+});
+
 export const ParallelTransitionSchema = z.object({
   type: z.literal("parallel"),
   from: Id,
@@ -41,6 +50,7 @@ export const WorkflowTransitionSchema = z.discriminatedUnion("type", [
   NextTransitionSchema,
   BranchTransitionSchema,
   LoopTransitionSchema,
+  RevisionTransitionSchema,
   ParallelTransitionSchema,
 ]);
 
@@ -129,12 +139,13 @@ function transitionReferenceErrors(t: WorkflowTransition, ids: Set<string>): str
 function missingMatchRef(t: WorkflowTransition, ids: Set<string>): string | null {
   if (t.type === "branch" && !ids.has(t.when.node)) return `branch match missing node: ${t.when.node}`;
   if (t.type === "loop" && !ids.has(t.while.node)) return `loop match missing node: ${t.while.node}`;
+  if (t.type === "revision" && !ids.has(t.when.node)) return `revision match missing node: ${t.when.node}`;
   return null;
 }
 
 function targetsFor(t: WorkflowTransition): string[] {
   if (t.type === "parallel") return t.to;
-  return t.type === "loop" && t.onExhausted ? [t.to, t.onExhausted] : [t.to];
+  return (t.type === "loop" || t.type === "revision") && t.onExhausted ? [t.to, t.onExhausted] : [t.to];
 }
 
 function issueText(issue: z.ZodIssue): string {
