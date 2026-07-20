@@ -22,6 +22,8 @@ const TerminalSchema = z.object({
   state: z.enum(["succeeded", "failed", "paused", "exhausted", "cancelled"]),
   reason: z.string().min(1), recoveryAction: z.string().optional(), unmet: z.array(z.string()).optional(), at: z.string(),
 });
+const OperatorControlSchema = z.object({ action: z.enum(["pause", "cancel"]), requestedAt: z.string() });
+const OperatorEventSchema = z.object({ action: z.enum(["pause", "cancel", "retry"]), at: z.string(), checkpointRevision: z.number().int().nonnegative() });
 
 export const GraphRunStateSchema = z.object({
   version: z.literal(1),
@@ -48,6 +50,8 @@ export const GraphRunStateSchema = z.object({
   mutations: z.array(MutationSchema),
   topologyRevision: z.number().int().positive(),
   topologyChanges: z.array(AdaptiveReceiptSchema),
+  operatorControl: OperatorControlSchema.optional(),
+  operatorEvents: z.array(OperatorEventSchema).default([]),
   loopCounts: z.record(z.string(), z.number().int().nonnegative()),
   terminal: TerminalSchema.optional(),
 });
@@ -73,6 +77,7 @@ export function newGraphRunState(graph: WorkflowGraph, runId: string, at: string
     results: {}, transcript: [], attempts: [], artifacts: [], evidence: [], decisions: [],
     budget: { limitUsd, usedUsd: 0, usedTokens: 0, noProgressSteps: 0 }, approvals: [], mutations: [],
     topologyRevision: graph.revision ?? 1, topologyChanges: [], loopCounts: {},
+    operatorEvents: [],
   });
 }
 
@@ -97,6 +102,7 @@ export function migrateGraphRunState(value: unknown): GraphRunState {
   return GraphRunStateSchema.parse({
     ...legacy, version: 1, fieldRevisions: legacy.fieldRevisions ?? {}, mutations: legacy.mutations ?? [],
     topologyRevision: legacy.topologyRevision ?? legacy.graphRevision ?? 1, topologyChanges: legacy.topologyChanges ?? [],
+    operatorEvents: legacy.operatorEvents ?? [],
   });
 }
 

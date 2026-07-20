@@ -4,6 +4,7 @@ import { Activity, ArrowRight, Bot, Boxes, CheckCircle2, ExternalLink, FileText,
 import type { Artifact, Capability, ConnectStatus, ConnectTestResult, EventRow, GatewayStartResult, GoogleConnectStatus, MessagingPlatform, Provider, ReleaseProofReport, ReleaseProofStage, Session, Status } from "./types.js";
 import { McpConnectorsView } from "./mcp-connectors-view.js";
 import type { useDesktopMcp } from "./mcp-state.js";
+import { WorkflowRunLedger } from "./workflow-runs.js";
 
 type TestConnection = (kind: "provider" | "messaging", id?: string) => Promise<ConnectTestResult>;
 
@@ -25,6 +26,7 @@ export function OperateView(props: { sessions: Session[]; events: EventRow[]; st
       {active.length === 0 ? <Empty message="No active tasks. Start one from Work when there is an outcome for Vanta to handle." /> : null}
     </div>
     <section className="operate-policy"><div><p className="eyebrow">Execution contract</p><h2>Kernel {props.status?.kernel ?? "checking"}</h2></div><p>Vanta can continue routine work in the background. Consequential commands and file changes still surface an exact approval.</p></section>
+    <WorkflowRunLedger />
   </WorkspaceView>;
 }
 

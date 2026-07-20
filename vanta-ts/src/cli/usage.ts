@@ -13,6 +13,7 @@ const USAGE_LINES = [
       "       vanta corpus ingest <folder|url> | recall <query> | status | refresh <id|all> | vault-export --vault <dir> [--apply]",
       "       vanta story-eval --manifest <json> --id <scenario> --out <receipt>   run scripted turns in one session",
       "       vanta tools why <tool>            explain role visibility, risk, setup, and repair",
+      "       vanta workflow-run list|inspect|pause|cancel|retry|export <id>   inspect and control durable graph runs",
       "       vanta intent extract <target> --out <spec.json> | intent check <target> <spec.json>",
       "       vanta auto-watch [list|run|add]   watch repos/issues/email/calendar via gated commands",
       "       vanta marketing read <amplitude|customerio> [--fixture <json>]   read marketing connector data",

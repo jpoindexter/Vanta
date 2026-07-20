@@ -1,13 +1,14 @@
 import type { Verdict } from "../types.js";
 import type { WorkflowGraph, WorkflowNode, WorkflowTransition } from "./schema.js";
 import { nodeStateView, validateNodeWrites, type GraphAgentOutcome, type GraphNodeResult } from "./run-state.js";
-import { commitWorkflowNode, finishWorkflowRuntime, initializeWorkflowRuntime, recordWorkflowApproval, recordWorkflowDecision, type WorkflowRunOptions, type WorkflowRuntime } from "./execute-state.js";
+import { checkpointWorkflowControl, commitWorkflowNode, finishWorkflowRuntime, initializeWorkflowRuntime, recordWorkflowApproval, recordWorkflowDecision, type WorkflowRunOptions, type WorkflowRuntime } from "./execute-state.js";
 import { budgetStop, persistedRunStatus, terminalForControl, type BudgetStop } from "./completion.js";
 import { describeNodeAction, nodeResult, normalizeNodeOutcome, requiredToolRunner, validateNodeEvidence } from "./node-execution.js";
 import { materializeNodeOutputs, resolveNodeHandoffs, type ResolvedHandoffs } from "./handoff.js";
 import { matchesResult, resultControl, resumeDecision } from "./execute-control.js";
 import { validateReviewOutcome } from "./review-cycle.js";
 import { applyNodeAdaptation, replayRuntimeGraph } from "./execute-adaptation.js";
+import { operatorTerminal } from "./run-control.js";
 export type WorkflowNodeStatus = "ok" | "denied" | "blocked" | "error";
 export type WorkflowNodeResult = GraphNodeResult;
 export type WorkflowRunResult = {
@@ -44,11 +45,14 @@ export async function runWorkflowGraph(graph: WorkflowGraph, deps: WorkflowRunDe
   const resumablePause = runtime.run.terminal?.state === "paused" && state.resumePaused;
   if (runtime.run.terminal && runtime.run.terminal.state !== "failed" && !resumablePause) return workflowResult(runtime, transcript);
   const control = await runNode(activeGraph.start, state, false);
-  const terminal = terminalForControl(activeGraph.completion, runtime.run, control, state.stop, runtime.now().toISOString());
+  const at = runtime.now().toISOString();
+  const terminal = operatorTerminal(runtime.run, control, at) ?? terminalForControl(activeGraph.completion, runtime.run, control, state.stop, at);
   await finishWorkflowRuntime(runtime, persistedRunStatus(control, terminal.state), state.loopCounts, terminal);
   return workflowResult(runtime, state.transcript);
 }
 async function runNode(nodeId: string, state: RunState, rerun: boolean): Promise<WorkflowRunResult["status"]> {
+  const operatorControl = await checkpointWorkflowControl(state.runtime);
+  if (operatorControl) return operatorControl;
   const stopped = currentStop(state);
   if (stopped) return stopped.state;
   const resume = resumeDecision(state.results.get(nodeId), state.resumePaused, rerun);
@@ -69,7 +73,6 @@ async function executeNode(node: WorkflowNode, state: RunState): Promise<NodeExe
   try { return await executePreparedNode(node, state, base); }
   catch (err) { return { ...base, result: nodeResult(node, "error", (err as Error).message) }; }
 }
-
 async function executePreparedNode(node: WorkflowNode, state: RunState, base: Omit<NodeExecution, "result">): Promise<NodeExecution> {
   const deps = state.deps;
   const handoffs = resolveNodeHandoffs(state.graph, node, state.runtime.run);
@@ -117,7 +120,7 @@ function triggerExecution(node: Extract<WorkflowNode, { type: "trigger" }>, base
 
 async function followTransitions(nodeId: string, state: RunState, rerun: boolean): Promise<WorkflowRunResult["status"]> {
   const transitions = state.graph.transitions.filter((t) => t.from === nodeId);
-  const parallel = transitions.find(isParallel);
+  const parallel = transitions.find((t): t is Extract<WorkflowTransition, { type: "parallel" }> => t.type === "parallel");
   if (parallel) { await recordWorkflowDecision(state.runtime, nodeId, parallel.to.join(","), "parallel"); return runParallel(parallel, state, rerun); }
   const revision = transitions.find((t): t is Extract<WorkflowTransition, { type: "revision" }> => t.type === "revision" && matchesResult(t.when, state.results.get(t.when.node)));
   if (revision) { await recordWorkflowDecision(state.runtime, nodeId, revision.to, "revision"); return runRevision(revision, state); }
@@ -129,15 +132,12 @@ async function followTransitions(nodeId: string, state: RunState, rerun: boolean
   await recordWorkflowDecision(state.runtime, nodeId, next?.to, next ? "next" : "terminal");
   return next ? runNode(next.to, state, rerun) : "done";
 }
-
-function isParallel(t: WorkflowTransition): t is Extract<WorkflowTransition, { type: "parallel" }> {
-  return t.type === "parallel";
-}
-
 async function runParallel(t: Extract<WorkflowTransition, { type: "parallel" }>, state: RunState, rerun: boolean): Promise<WorkflowRunResult["status"]> {
   const statuses = await Promise.all(t.to.map((id) => runNode(id, state, rerun)));
   const failed = statuses.find((s) => s !== "done");
-  return failed ?? "done";
+  if (failed || !t.join) return failed ?? "done";
+  await recordWorkflowDecision(state.runtime, t.from, t.join, "parallel-join");
+  return runNode(t.join, state, rerun);
 }
 
 async function runLoop(t: Extract<WorkflowTransition, { type: "loop" }>, state: RunState): Promise<WorkflowRunResult["status"]> {
@@ -167,7 +167,6 @@ async function runRevision(t: Extract<WorkflowTransition, { type: "revision" }>,
   state.loopCounts.set(key, count + 1);
   return runNode(t.to, state, true);
 }
-
 async function recordResult(state: RunState, execution: NodeExecution): Promise<WorkflowNodeResult> {
   const finishedAt = state.runtime.now().toISOString();
   await commitWorkflowNode(state.runtime, {
@@ -180,7 +179,6 @@ async function recordResult(state: RunState, execution: NodeExecution): Promise<
   state.transcript.push(execution.result);
   return execution.result;
 }
-
 function executionBase(node: WorkflowNode, state: RunState): Omit<NodeExecution, "result"> {
   const attempt = state.runtime.run.attempts.filter((item) => item.nodeId === node.id).length + 1;
   return { baseRevision: state.runtime.run.revision, attempt, startedAt: state.runtime.now().toISOString() };

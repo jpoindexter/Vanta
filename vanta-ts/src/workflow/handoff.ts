@@ -79,5 +79,8 @@ function reachable(from: string, to: string, transitions: WorkflowTransition[]):
 }
 
 function forwardTargets(from: string, transitions: WorkflowTransition[]): string[] {
-  return transitions.filter((item) => item.from === from && item.type !== "loop" && item.type !== "revision").flatMap((item) => item.type === "parallel" ? item.to : [item.to]);
+  const direct = transitions.filter((item) => item.from === from && item.type !== "loop" && item.type !== "revision")
+    .flatMap((item) => item.type === "parallel" ? [...item.to, ...(item.join ? [item.join] : [])] : [item.to]);
+  const joins = transitions.flatMap((item) => item.type === "parallel" && item.join && item.to.includes(from) ? [item.join] : []);
+  return [...direct, ...joins];
 }

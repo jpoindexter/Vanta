@@ -45,6 +45,7 @@ export const ParallelTransitionSchema = z.object({
   type: z.literal("parallel"),
   from: Id,
   to: z.array(Id).min(2).max(8),
+  join: Id.optional(),
 });
 
 export const WorkflowTransitionSchema = z.discriminatedUnion("type", [
@@ -164,7 +165,7 @@ function missingMatchRef(t: WorkflowTransition, ids: Set<string>): string | null
 }
 
 function targetsFor(t: WorkflowTransition): string[] {
-  if (t.type === "parallel") return t.to;
+  if (t.type === "parallel") return [...t.to, ...(t.join ? [t.join] : [])];
   return (t.type === "loop" || t.type === "revision") && t.onExhausted ? [t.to, t.onExhausted] : [t.to];
 }
 

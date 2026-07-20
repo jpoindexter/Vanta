@@ -34,6 +34,7 @@ import { handleModelDownloads } from "./model-download-api.js";
 import { handleGoogleConnectAction, handleGoogleConnectStatus } from "./google-connect.js";
 import { handleDesktopReleaseProofs } from "./release-proofs.js";
 import { handleDesktopLookCapture } from "./look-capture-api.js";
+import { handleWorkflowRunRoute } from "./workflow-run-api.js";
 
 type RouteCtx = { req: http.IncomingMessage; res: http.ServerResponse; state: DesktopState; sid: string; sseClients: SseClients; pathname: string };
 
@@ -149,6 +150,7 @@ function remoteDesktopBlocked(local: boolean, pathname: string): boolean {
 }
 
 async function routeByMethod(ctx: RouteCtx): Promise<boolean> {
+  if (await handleWorkflowRunRoute(ctx.state, ctx.req, ctx.res, ctx.pathname)) return true;
   if (ctx.req.method === "GET") return routeGet(ctx);
   if (ctx.req.method === "POST") return routePost(ctx);
   return false;

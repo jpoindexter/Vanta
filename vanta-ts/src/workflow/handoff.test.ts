@@ -18,6 +18,10 @@ describe("workflow typed handoffs", () => {
     unordered.transitions = [{ type: "parallel", from: "trigger", to: ["consume", "sibling"] }];
     expect(validateComposableWorkflow(unordered).join("\n")).toContain("references out-of-order node sibling");
 
+    const joined = withBinding({ node: "sibling", output: "value" });
+    joined.transitions = [{ type: "parallel", from: "trigger", to: ["later", "sibling"], join: "consume" }];
+    expect(validateComposableWorkflow(joined).join("\n")).not.toContain("references out-of-order node sibling");
+
     const incompatible = withBinding({ node: "trigger", output: "count" });
     expect(validateComposableWorkflow(incompatible).join("\n")).toContain("expects string, got number");
 

@@ -10,6 +10,7 @@ import {
   updateGraphRun,
   type GraphRunCommit,
 } from "./run-state-store.js";
+import type { WorkflowControlStatus } from "./execute-control.js";
 
 export type WorkflowRunOptions = {
   dataDir?: string;
@@ -70,6 +71,15 @@ export async function recordWorkflowTopologyChange(runtime: WorkflowRuntime, rec
 
 export async function finishWorkflowRuntime(runtime: WorkflowRuntime, status: GraphRunState["status"], loopCounts: Map<string, number>, terminal?: GraphTerminal): Promise<void> {
   await mutateRuntime(runtime, (run) => ({ ...run, status, terminal, loopCounts: Object.fromEntries(loopCounts) }));
+}
+
+export async function checkpointWorkflowControl(runtime: WorkflowRuntime): Promise<WorkflowControlStatus | null> {
+  if (runtime.dataDir) {
+    const latest = await loadGraphRunState(runtime.dataDir, runtime.run.runId);
+    if (latest) adoptLatest(runtime, latest);
+  }
+  const action = runtime.run.operatorControl?.action;
+  return action === "pause" ? "paused" : action === "cancel" ? "cancelled" : null;
 }
 
 async function mutateRuntime(runtime: WorkflowRuntime, mutate: (state: GraphRunState, at: string) => GraphRunState): Promise<void> {

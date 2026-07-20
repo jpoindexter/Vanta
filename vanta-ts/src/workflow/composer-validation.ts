@@ -52,9 +52,11 @@ function connectivityErrors(graph: WorkflowGraph): string[] {
 }
 
 function targetsFrom(id: string, graph: WorkflowGraph): string[] {
-  return graph.transitions.filter((transition) => transition.from === id).flatMap((transition) => {
-    if (transition.type === "parallel") return transition.to;
+  const direct = graph.transitions.filter((transition) => transition.from === id).flatMap((transition) => {
+    if (transition.type === "parallel") return [...transition.to, ...(transition.join ? [transition.join] : [])];
     if ((transition.type === "loop" || transition.type === "revision") && transition.onExhausted) return [transition.to, transition.onExhausted];
     return [transition.to];
   });
+  const joins = graph.transitions.flatMap((transition) => transition.type === "parallel" && transition.join && transition.to.includes(id) ? [transition.join] : []);
+  return [...direct, ...joins];
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { runWorkflowGraph, type WorkflowRunDeps } from "./execute.js";
+import { runWorkflowGraph, type WorkflowNodeContext, type WorkflowRunDeps } from "./execute.js";
 import type { WorkflowGraph, WorkflowNode } from "./schema.js";
 import type { Verdict } from "../types.js";
 
@@ -53,6 +53,22 @@ describe("runWorkflowGraph", () => {
     expect(result.status).toBe("done");
     expect(result.transcript.map((r) => r.nodeId).sort()).toEqual(["a", "b", "c"]);
   });
+
+  it("joins parallel outputs before continuing", async () => {
+    const builders: WorkflowNodeContext[] = [];
+    const spec = parallelJoinGraph();
+    const result = await runWorkflowGraph(spec, {
+      assess: async () => allow,
+      requestApproval: async () => true,
+      runAgent: async (node, context) => {
+        if (node.id === "left" || node.id === "right") return { output: node.id, outputs: { finding: node.id } };
+        if (node.id === "build") builders.push(context);
+        return node.id;
+      },
+    });
+    expect(result.status).toBe("done");
+    expect(builders[0]?.values).toEqual({ left: "left", right: "right" });
+  });
 });
 
 function chainGraph(): WorkflowGraph {
@@ -88,6 +104,18 @@ function parallelGraph(): WorkflowGraph {
   ], [{ type: "parallel", from: "a", to: ["b", "c"] }]);
 }
 
+function parallelJoinGraph(): WorkflowGraph {
+  return graph([
+    { id: "plan", type: "agent", instruction: "Plan" },
+    { id: "left", type: "agent", instruction: "Research left", io: { inputs: {}, outputs: { finding: "string" } } },
+    { id: "right", type: "agent", instruction: "Research right", io: { inputs: {}, outputs: { finding: "string" } } },
+    {
+      id: "build", type: "agent", instruction: "Build", io: { inputs: { left: "string", right: "string" }, outputs: {} },
+      bindings: { left: { node: "left", output: "finding" }, right: { node: "right", output: "finding" } },
+    },
+  ], [{ type: "parallel", from: "plan", to: ["left", "right"], join: "build" }]);
+}
+
 function graph(nodes: WorkflowNode[], transitions: WorkflowGraph["transitions"]): WorkflowGraph {
-  return { id: "flow", title: "Flow", start: "a", nodes, transitions };
+  return { id: "flow", title: "Flow", start: nodes[0]!.id, nodes, transitions };
 }

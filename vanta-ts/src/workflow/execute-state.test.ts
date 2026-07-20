@@ -6,6 +6,7 @@ import type { Verdict } from "../types.js";
 import { runWorkflowGraph, type WorkflowRunDeps } from "./execute.js";
 import { GraphRunConflictError, graphRunStatePath, loadGraphRunState } from "./run-state-store.js";
 import type { WorkflowGraph, WorkflowStateField } from "./schema.js";
+import { requestGraphRunControl } from "./run-control.js";
 
 const roots: string[] = [];
 const allow: Verdict = { risk: "allow", needsHuman: false, reason: "ok" };
@@ -68,6 +69,23 @@ describe("durable workflow execution", () => {
     expect(run?.approvals).toEqual([expect.objectContaining({ nodeId: "review", approved: true, reason: "release gate" })]);
     expect(run?.decisions.map((decision) => decision.kind)).toEqual(["next", "terminal"]);
     expect(run?.budget).toMatchObject({ limitUsd: 4, usedUsd: 0, usedTokens: 0 });
+  });
+
+  it("honors an operator pause at the next durable node checkpoint", async () => {
+    const dataDir = await fixtureRoot();
+    let release!: () => void;
+    let started!: () => void;
+    const waiting = new Promise<void>((resolve) => { release = resolve; });
+    const entered = new Promise<void>((resolve) => { started = resolve; });
+    const running = runWorkflowGraph(chainGraph(), deps(async (node) => {
+      if (node.id === "write") { started(); await waiting; return { output: "saved", writes: { draft: "v1" } }; }
+      return "should not run";
+    }), { dataDir, runId: "operator-pause" });
+    await entered;
+    await requestGraphRunControl(dataDir, "operator-pause", "pause", "2026-07-20T12:00:00.000Z");
+    release();
+    await expect(running).resolves.toMatchObject({ status: "paused", reason: "operator pause requested" });
+    expect((await loadGraphRunState(dataDir, "operator-pause"))?.attempts.map((item) => item.nodeId)).toEqual(["write"]);
   });
 });
 

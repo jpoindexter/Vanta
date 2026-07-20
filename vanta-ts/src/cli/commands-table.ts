@@ -1,8 +1,4 @@
-// The `vanta <cmd>` dispatch table, split out of cli.ts for the size gate.
-// cli.ts owns bootstrap + the interactive entry points (chat/resume/run) that
-// parse global flags; everything else maps through this table (a returned
-// number = process exit code). Adding a command = one entry here. Do NOT change
-// which command maps to what — cli.ts dispatches this table verbatim.
+// The `vanta <cmd>` dispatch table; interactive entry points stay in cli.ts.
 import { runScheduleCommand, runCron } from "../schedule/commands.js";
 import { runRoomsList, runModes } from "../projects/commands.js";
 import { runAuthCommand } from "../google/commands.js";
@@ -127,6 +123,7 @@ import { runAuthPoolCommand } from "./auth-pool-cmd.js";
 import { runMaintenanceCommand } from "./maintenance-cmd.js";
 import { runLocalModelCommand } from "./local-model-cmd.js";
 import { runReleaseProofsCommand } from "./release-proofs-cmd.js";
+import { runWorkflowRunCommand } from "./workflow-run-cmd.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
@@ -134,6 +131,7 @@ export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | v
 // `vanta <cmd>` dispatch table. The interactive entry points (chat/resume/run)
 // parse flags, so they stay as explicit checks in cli.ts main(); everything else is here.
 export const COMMANDS: Record<string, CommandFn> = {
+  "workflow-run": (root, rest) => runWorkflowRunCommand(root, rest),
   "release-proofs": (root, rest) => runReleaseProofsCommand(root, rest),
   "local-model": (root, rest) => runLocalModelCommand(root, rest),
   maintenance: (root, rest) => runMaintenanceCommand(root, rest),

@@ -1,6 +1,6 @@
 # Graph engineering for Vanta
 
-Updated 2026-07-19.
+Updated 2026-07-20.
 
 ## Decision
 
@@ -30,6 +30,7 @@ The product opportunity is to compose the shipped layers into a durable organiza
 - `WORKFLOW-DATA-HANDOFF-CONTRACTS` maps typed consumer inputs to prior persisted outputs without template interpolation. Static preflight enforces order and type safety; runtime receipts retain provenance and redaction while secret values remain opaque references. This contract is shipped.
 - `GRAPH-REVIEW-REWORK-CYCLE` adds independent review nodes and bounded revision edges. Rejection persists a typed packet tied to an exact artifact revision, feeds that packet into the maker's next attempt, rejects stale review evidence, and escalates to a named human gate after the attempt cap.
 - `GRAPH-ADAPTIVE-TOPOLOGY-POLICY` permits four predeclared revisions only: low-confidence fan-out, trivial-work collapse, budget model routing, and risk escalation. Strict proposal parsing, template/model allowlists, hard topology and execution budgets, kernel assessment, and durable before/after receipts prevent model output from granting itself tools or scope.
+- `GRAPH-ENGINEERING-V1-RELEASE-GATE` adds an explicit parallel `join` continuation so typed branch outputs fan into one downstream node only after every branch succeeds. Its executable proof runs the complete organization across two fresh Node processes and rejects false completion fixtures.
 
 This is enough foundation to avoid adopting LangGraph, CrewAI, or another runtime. Vanta should extend its own typed graph boundary.
 
@@ -63,9 +64,21 @@ Only nodes marked `proposeAdaptation` can return the strict adaptive JSON envelo
 
 Spawned nodes come from stored templates and receive only their declared tool registry and provider/model route. Proposal JSON rejects extra fields, and templates cannot request recursive orchestration tools. Fixtures execute low-confidence fan-out, trivial collapse, cheaper-model routing, risk escalation, kernel denial, crash replay, strict scope rejection, and hard spawn limits.
 
-### 5. Operator replay and handoff
+### 5. Operator replay and handoff — shipped
 
 The operator should not carry the graph in working memory. The UI needs a compact timeline of node status, state diffs, edge decisions, evidence, cost, stop reason, and intervention points. Raw worker transcripts remain isolated unless explicitly opened.
+
+Implemented: every durable graph run now projects a compact replay packet from its persisted receipts. The packet exposes live node status, attempt counts, changed field names, artifact references, edge and topology decisions, approvals, operator controls, budget use, and terminal reasons without exposing shared-state values or worker output. Events explicitly identify recorded deterministic decisions, non-replayed model calls, and side effects that are never replayed by default.
+
+Desktop Operate polls these packets, opens individual runs, and offers checkpoint-safe pause, cancel, retry, and text handoff export. The same boundary is available through `vanta workflow-run list|inspect|pause|cancel|retry|export <run-id>`. Pause and cancel intent is persisted before the runner honors it between nodes; retry clears only the terminal/control receipt, so confirmed successful nodes remain committed and failed work can resume without repeating successful side effects.
+
+The proof suite covers parallel state, review/rework decisions, approvals, crash recovery, operator takeover, redaction, CLI/HTTP export, and a real Electron Operate flow.
+
+### 6. Graph engineering v1 release gate — shipped
+
+Run `npm run graph:v1:proof` from `vanta-ts/`. The command creates a fresh temporary project, starts the workflow in one Node process, forces the independent reviewer to fail after the first confirmed builder effect, and resumes the same durable run in a second process.
+
+The executed 2026-07-20 receipt proved two parallel researchers, typed fan-in, exactly two required builder writes with no restart duplicate, reviewer rejection and rework, human approval, an executable acceptance receipt, 80 tokens, $0.07 cost, and a 30-event replay/handoff packet. Separate fixtures proved one bounded low-confidence fan-out and an exhausted review path that escalated instead of reporting done.
 
 ## Target runtime
 
@@ -94,8 +107,8 @@ Each node may run an internal loop. The graph owns cross-node state, routing, bu
 3. `GRAPH-REVIEW-REWORK-CYCLE` — shipped
 4. `WORKFLOW-COMPOSER-V1` and `WORKFLOW-DATA-HANDOFF-CONTRACTS` — shipped
 5. `GRAPH-ADAPTIVE-TOPOLOGY-POLICY` — shipped
-6. `GRAPH-OPERATOR-REPLAY-HANDOFF`
-7. `GRAPH-ENGINEERING-V1-RELEASE-GATE`
+6. `GRAPH-OPERATOR-REPLAY-HANDOFF` — shipped
+7. `GRAPH-ENGINEERING-V1-RELEASE-GATE` — shipped
 
 ## Failure modes to design out
 
