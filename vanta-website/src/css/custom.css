@@ -305,6 +305,23 @@ html, body {
 }
 [data-theme='dark'] .markdown img { outline-color: rgba(255, 255, 255, 0.1); }
 
+.docs-demo { margin: 1.5rem 0 2rem; }
+.docs-demo video {
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: 20 / 13;
+  object-fit: contain;
+  background: var(--vanta-black);
+  border: 1px solid var(--vanta-border);
+  border-radius: 0.5rem;
+}
+.docs-demo figcaption {
+  margin-top: 0.6rem;
+  color: var(--ifm-color-emphasis-700);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
 .button {
   transition-property: background-color, color, border-color;
   transition-duration: 0.15s;

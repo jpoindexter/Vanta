@@ -8,6 +8,17 @@ sidebar_position: 9
 
 Sight lets Vanta inspect exactly what you choose on your Mac. It is an explicit capture, not continuous screen recording: select an area, one window, or all displays, then ask a question about the attached image.
 
+## Watch Sight work
+
+<figure className="docs-demo">
+  <video controls playsInline preload="metadata" poster="/img/vanta-sight-demo-poster.jpg" aria-label="Vanta Sight capturing the Mac screen and answering questions about the visible design references">
+    <source src="/video/vanta-sight-demo.mp4" type="video/mp4" />
+  </video>
+  <figcaption>Real CLI/TUI capture and visual answers · 79 seconds · no audio</figcaption>
+</figure>
+
+The recording shows `/look screen` attaching a Retina capture, Vanta describing the visible design board, and a follow-up capture producing a new visual answer. The screenshot stays pending until the operator asks a question.
+
 ## Use it in the CLI or TUI
 
 | Command | Captures |
