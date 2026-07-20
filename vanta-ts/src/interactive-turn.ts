@@ -5,6 +5,7 @@
 import { join } from "node:path";
 import { maybeDroppedImage, maybeDroppedVideo, splitPastedImagePaths, looksLikeTempImagePath } from "./repl-commands.js";
 import { readClipboardImage } from "./term/clipboard-image.js";
+import { activeImageAttachments } from "./vision/capture-expiry.js";
 import { buildModeHint } from "./repl/mode-detect.js";
 import { buildAgentRouteHint } from "./repl/agent-route.js";
 import { maybeAugmentPrompt } from "./templates/templates.js";
@@ -68,7 +69,7 @@ export async function resolveDroppedMedia(
     const videoPath = await maybeDroppedVideo(text);
     if (videoPath) text = `Watch this video and describe what you see: ${videoPath}`;
   }
-  const images = state.pendingImages;
+  const images = activeImageAttachments(state.pendingImages);
   state.pendingImages = undefined;
   return { text, images };
 }

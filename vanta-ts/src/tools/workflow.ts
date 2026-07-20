@@ -5,6 +5,7 @@ import { canonicalWorkflow, diffWorkflows } from "../workflow/diff.js";
 import { runWorkflowGraph } from "../workflow/execute.js";
 import { parseWorkflowGraph, validateWorkflowGraph, type WorkflowGraph } from "../workflow/schema.js";
 import { createWorkflowTask, markWorkflowTask } from "../workflow/task-store.js";
+import { buildStatefulAgentInstruction, parseStatefulAgentOutcome } from "../workflow/agent-outcome.js";
 import { validateWorkflow, runLegacyWorkflow, type WorkflowSpec } from "./workflow-legacy.js";
 
 // WORKFLOWS: Dynamic multi-agent orchestration harness. Vanta composes and runs
@@ -17,6 +18,7 @@ export type { WorkflowStep, WorkflowSpec, WorkflowResult } from "./workflow-lega
 const Args = z.object({
   spec: z.unknown(),
   previous_spec: z.unknown().optional(),
+  run_id: z.string().min(1).regex(/^[a-zA-Z0-9_.:-]+$/).optional(),
   mode: z.enum(["validate", "diff", "run"]).optional(),
 });
 
@@ -31,6 +33,7 @@ export const workflowTool: Tool = {
       properties: {
         mode: { type: "string", enum: ["validate", "diff", "run"], description: "Default run. Use diff with previous_spec." },
         previous_spec: { type: "object", description: "Previous graph spec for stable diff output." },
+        run_id: { type: "string", description: "Stable run ID used to resume an interrupted graph without replaying confirmed nodes." },
         spec: {
           type: "object",
           description: "Workflow graph {id,title,start,nodes,transitions} or legacy {name,description,steps}.",
@@ -65,7 +68,7 @@ async function runGraphMode(args: z.infer<typeof Args>, ctx: ToolContext) {
   const graph = parseWorkflowGraph(args.spec);
   if (args.mode === "validate") return { ok: true, output: canonicalWorkflow(graph) };
   if (args.mode === "diff") return diffGraph(args.previous_spec, graph);
-  return executeGraph(graph, ctx);
+  return executeGraph(graph, ctx, args.run_id);
 }
 
 function diffGraph(previous: unknown, graph: WorkflowGraph) {
@@ -75,7 +78,7 @@ function diffGraph(previous: unknown, graph: WorkflowGraph) {
   return { ok: true, output: JSON.stringify({ changed: diff.length > 0, diff }) };
 }
 
-async function executeGraph(graph: WorkflowGraph, ctx: ToolContext) {
+async function executeGraph(graph: WorkflowGraph, ctx: ToolContext, runId?: string) {
   const { buildRegistry } = await import("./index.js");
   const { resolveProvider } = await import("../providers/index.js");
   const { spawnSubagent } = await import("../subagent/spawn.js");
@@ -83,16 +86,16 @@ async function executeGraph(graph: WorkflowGraph, ctx: ToolContext) {
   const result = await runWorkflowGraph(graph, {
     assess: (action) => ctx.safety.assess(action),
     requestApproval: (action, reason) => ctx.requestApproval(action, reason, "compose_workflow"),
-    runAgent: async (node) => {
+    runAgent: async (node, graphContext) => {
       const outcome = await spawnSubagent({
         goal: node.goal ?? graph.title,
-        instruction: node.instruction,
+        instruction: buildStatefulAgentInstruction(node, graphContext),
         deps: { provider: resolveProvider(process.env), safety: ctx.safety, registry, root: ctx.root, requestApproval: ctx.requestApproval },
         maxIterations: node.maxIterations,
       });
-      return outcome.finalText;
+      return parseStatefulAgentOutcome(node, outcome.finalText);
     },
-  });
+  }, { dataDir: join(ctx.root, ".vanta"), runId });
   return { ok: result.ok, output: JSON.stringify(result, null, 2) };
 }
 

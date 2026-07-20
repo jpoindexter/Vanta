@@ -39,12 +39,25 @@ export type TelegramSetupStatus = {
   action: { id: "configure" | "start_gateway" | "inspect_gateway"; label: string; command: string };
 };
 export type Artifact = { id: string; kind: "canvas" | "link" | "file"; label: string; value: string; sessionId?: string; sessionTitle?: string };
+export type DesktopLookMode = "screen" | "window" | "marquee";
+export type DesktopCaptureReceipt = {
+  source: "macos-screencapture";
+  capturedAt: string;
+  expiresAt: string;
+  scope: string;
+  mode: DesktopLookMode;
+  display: number;
+  bytes: number;
+  pixelWidth?: number;
+  pixelHeight?: number;
+};
 export type DesktopImageAttachment = {
   id: string;
   name: string;
   mime: "image/png" | "image/jpeg" | "image/tiff";
   dataBase64: string;
   bytes: number;
+  capture?: DesktopCaptureReceipt;
 };
 export type Goal = { text: string };
 export type AccessMode = "ask" | "approve" | "full";

@@ -65,6 +65,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "proactive", desc: "proactive-autonomy mode (KAIROS) — whether idle ticking is enabled, the throttle, and would-it-tick-now (read-only)" },
   { name: "image", arg: "<path>", desc: "attach an image for your next message" },
   { name: "paste", desc: "attach an image from the clipboard (macOS)" },
+  { name: "look", arg: "[marquee|window|screen]", desc: "capture native macOS screen context for the next message" },
   { name: "attachments", arg: "[clear]", desc: "show or clear pending image attachments" },
   { name: "branch", arg: "<name>", desc: "create or switch git branch (kernel-gated)" },
   { name: "context", desc: "visual context-budget breakdown" },

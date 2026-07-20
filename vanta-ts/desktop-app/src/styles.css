@@ -245,12 +245,20 @@ h2 { margin: 14px 0 8px; font-size: 11px; letter-spacing: .08em; text-transform:
 .composer-attachment-error { width: 100%; margin: 0; color: var(--danger); font-size: 11px; line-height: 1.4; }
 .composer textarea { width: 100%; justify-self: center; resize: none; min-height: 52px; max-height: 140px; border: 0; border-radius: 6px; background: transparent; color: var(--text); padding: 7px 8px; outline: none; }
 .composer-footer { width: 100%; min-width: 0; justify-self: center; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-top: 1px solid var(--line); color: var(--faint); padding: 7px 0 0 5px; }
-.composer-context-controls { min-width: 0; display: flex; align-items: center; gap: 5px; overflow: hidden; }
+.composer-context-controls { min-width: 0; display: flex; align-items: center; gap: 5px; overflow: visible; }
 .composer-actions { display: flex; align-items: center; gap: 7px; }
 .composer-context-controls .attach-button { width: 28px; height: 28px; flex: 0 0 auto; display: grid; place-items: center; border-color: transparent; background: transparent; padding: 0; }
 .composer-context-controls .model-button { min-width: 0; max-width: min(300px, 42vw); display: flex; align-items: center; gap: 6px; border-color: transparent; background: transparent; color: var(--muted); padding: 5px 7px; }
 .composer-context-controls .model-button:hover { background: var(--raised); color: var(--text); }
 .composer-context-controls .model-button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.look-capture-control { position: relative; flex: 0 0 auto; }
+.look-capture-control > button { width: 28px; height: 28px; display: grid; place-items: center; border-color: transparent; background: transparent; color: var(--faint); padding: 0; }
+.look-capture-menu { position: absolute; z-index: 30; bottom: calc(100% + 8px); left: 0; width: 220px; border: 1px solid var(--line-strong); border-radius: 7px; background: var(--panel); box-shadow: 0 12px 30px color-mix(in srgb, var(--text) 18%, transparent); padding: 4px; }
+.look-capture-menu > button { width: 100%; display: grid; grid-template-columns: 20px minmax(0, 1fr); align-items: center; gap: 8px; border: 0; background: transparent; color: var(--muted); padding: 7px 8px; text-align: left; }
+.look-capture-menu > button:hover, .look-capture-menu > button:focus-visible { background: var(--raised); color: var(--text); }
+.look-capture-menu span, .look-capture-menu strong, .look-capture-menu small { display: block; min-width: 0; }
+.look-capture-menu strong { color: inherit; font-size: 12px; }
+.look-capture-menu small { margin-top: 2px; color: var(--faint); font-size: 10px; }
 .composer kbd { border: 1px solid var(--line); border-bottom-color: var(--line-strong); border-radius: 4px; background: var(--raised); padding: 1px 4px; font: 10px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
 .send-button { width: 28px; height: 28px; display: grid; place-items: center; border-color: var(--accent) !important; background: var(--accent) !important; color: var(--bg); padding: 0 !important; }
 .stop-button { display: inline-flex; align-items: center; gap: 7px; border-color: var(--danger) !important; color: var(--danger); }
@@ -792,7 +800,7 @@ button:focus, textarea:focus, input:focus, select:focus, summary:focus { outline
   .queued-turn-list li { grid-template-columns: 26px minmax(0, 1fr); }
   .queue-actions { grid-column: 2; justify-content: flex-end; }
   .composer { width: calc(100% - 20px); margin: 0 10px 10px; }
-  .composer-context-controls button span, .approval-mode { display: none; }
+  .composer-context-controls > button span, .approval-mode { display: none; }
   .composer-actions .model-button { max-width: 122px; }
   .message-content p { font-size: 13px; }
   .message-content header { align-items: flex-start; }

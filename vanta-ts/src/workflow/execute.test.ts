@@ -43,7 +43,8 @@ describe("runWorkflowGraph", () => {
 
   it("reruns a loop target up to its max iteration count", async () => {
     const result = await runWorkflowGraph(loopGraph(), deps({ a: "retry" }));
-    expect(result.status).toBe("done");
+    expect(result.status).toBe("exhausted");
+    expect(result.terminalState).toBe("exhausted");
     expect(result.transcript.map((r) => r.nodeId)).toEqual(["a", "a", "a"]);
   });
 

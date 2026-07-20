@@ -19613,7 +19613,7 @@
       "id": "DESKTOP-COLD-OPERATOR-RELEASE-PROOF",
       "track": "Desktop App",
       "title": "Desktop cold-operator release proof — one useful task without repo knowledge",
-      "status": "horizon",
+      "status": "parked",
       "size": "S",
       "summary": "The earlier fresh-context review covered the CLI activation gallery, and the desktop shell has scripted acceptance, but no non-developer has completed the current packaged desktop work loop without Vanta repo context.",
       "done": "A fresh non-developer operator launches the exact packaged release candidate with no Vanta repo context, identifies the model and access boundary, starts one useful task in their own words, handles one approval or recoverable failure, and finds the resulting output; the run records time to first useful result, every confusion point, assistance requested, and the fixes or explicit release waivers, then repeats after blocking fixes with no coaching beyond the in-product UI.",
@@ -19626,13 +19626,14 @@
       "after": [
         "DESKTOP-MODEL-RUNTIME-STATUS-CLARITY",
         "DESKTOP-PROVIDER-AUTH-VALIDATION-RECOVERY"
-      ]
+      ],
+      "parkedReason": "external proof"
     },
     {
       "id": "DESKTOP-RELEASE-CANDIDATE-PROVENANCE",
       "track": "Desktop App",
       "title": "Desktop release-candidate provenance — notarize and bind the exact commit",
-      "status": "horizon",
+      "status": "parked",
       "size": "M",
       "summary": "The v0.9.4 release binds the desktop cold-start repair, 36-capture Ghost visual proof, signed app, notarized DMG, checksum, and clean-Mac Gatekeeper workflow to tag commit d8b30e1f. Apple accepted submission 374f7536-59ba-4657-a437-b6d151d81445, and the exact public artifact passed checksum, staple, quarantine, signature, and Gatekeeper verification in run 29691840769. The card remains gated only by the separate fresh non-developer cold-operator proof.",
       "done": "The exact commit proposed for release runs the full desktop release gate, receives Apple notary acceptance, staples and validates the DMG, passes Gatekeeper after quarantine on a clean macOS account or machine, and publishes a receipt containing commit, version, artifact checksum, signing identity, notarization submission, proof-packet IDs, and test results; changing any packaged source invalidates the receipt.",
@@ -19656,13 +19657,14 @@
         "DESKTOP-X402-DEFAULT-PACKAGE-ISOLATION",
         "DESKTOP-LOCAL-ORIGIN-SECURITY-PROOF",
         "DESKTOP-COLD-OPERATOR-RELEASE-PROOF"
-      ]
+      ],
+      "parkedReason": "external proof"
     },
     {
       "id": "WORKFLOW-COMPOSER-V1",
       "track": "Operator",
       "title": "Workflow composer v1 — compose Vanta primitives without rebuilding n8n",
-      "status": "horizon",
+      "status": "building",
       "size": "L",
       "summary": "Vanta already has executable workflow graphs, webhook templates, approval stages, dynamic orchestration, and a canvas. The missing product layer is a compact, local-first composer that lets one operator assemble those existing primitives into a reviewable workflow before it runs, without importing multi-tenant SaaS, billing, or a generic automation-platform clone.",
       "done": "An operator can create, save, reopen, diff, validate, and launch a versioned workflow made from one trigger plus existing Vanta action, agent, browser, and human-approval nodes. Validation requires exactly one trigger, a connected graph, declared side effects and approval requirements, typed node inputs and outputs, and an explicit iteration cap plus terminal escalation for every feedback cycle. The launched run uses the existing workflow/kernel path and emits the existing receipts; a focused fixture proves create, invalid-graph rejection, bounded reviewer-to-builder revision, approval pause, resume, and reopen/diff.",
@@ -19673,7 +19675,6 @@
       "lens": "agent-loop",
       "source": "workflow-builder-transcript-2026-07-19",
       "after": [
-        "DESKTOP-RELEASE-CANDIDATE-PROVENANCE",
         "FABRO-WORKFLOW-GRAPH",
         "WORKFLOW-ACCEPTANCE-EVIDENCE-CONTRACT",
         "PCLIP-APPROVAL-STAGES",
@@ -19706,7 +19707,7 @@
       "id": "GRAPH-SHARED-RUN-STATE",
       "track": "Harness",
       "title": "Graph shared run state — typed coordination without one giant conversation",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Vanta's graph runner already branches, loops, and fans out, but its state is an in-memory results map and each agent node receives only its own instruction. Replace transcript-shaped coordination with a durable, typed run state that workers can read and update through declared fields and artifact references while preserving provenance, redaction, and kernel scope.",
       "done": "A versioned graph run persists graph revision, node attempts, typed outputs, artifact references, decisions, budgets, approvals, and state mutations atomically under the project; each node declares the state fields it may read and write; concurrent writes are deterministic or rejected as conflicts; secrets are references rather than values; restart resumes from the last committed transition without rerunning confirmed side effects; fixtures prove fan-out/fan-in, conflict handling, redaction, crash recovery, and state-schema migration.",
@@ -19716,6 +19717,8 @@
       "codex": "gpt-5.6-sol",
       "lens": "agent-loop",
       "source": "graph-engineering-extraction-2026-07-19",
+      "updated": "2026-07-20",
+      "notes": "SHIPPED 2026-07-20: versioned project-scoped graph state now persists graph revisions, typed values, field revisions, attempts, outputs, artifact references, decisions, budgets, approvals, mutations, loop counts, and terminal status under .vanta/workflow-runs. Nodes declare read/write fields; stale same-field writes raise GraphRunConflictError while disjoint fan-out writes merge. Secret fields accept opaque secretRef objects only. Stable run_id restart fixtures prove confirmed successful nodes are not replayed while failed work resumes. Evidence: 16 focused graph/desktop tests passed; full suite 1,445/1,445 files and 13,547 tests passed with 3 intentional skips; core and desktop renderer typechecks passed; current vision/graph slice has zero 300/200/50 violations and the legacy repository count fell from 147 to 145.",
       "after": [
         "FABRO-WORKFLOW-GRAPH",
         "LOOP-STATE",
@@ -19727,7 +19730,7 @@
       "id": "GRAPH-EVIDENCE-STOP-CONTRACTS",
       "track": "Harness",
       "title": "Graph completion contracts — stop on evidence, budget, or escalation",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "A node saying it is done is not a graph stop condition. Bind node and graph completion to executable evidence such as tests, artifact checks, rubric verdicts, approvals, no-progress detection, and hard budgets, with an explicit unmet or exhausted outcome instead of silently treating a loop cap as success.",
       "done": "Every executable graph declares success, failure, pause, exhausted, and cancelled conditions using typed checks over receipts and shared state; model prose alone cannot satisfy a verifiable condition; loop exhaustion returns exhausted with the unmet condition and recovery action rather than done; wall-clock, step, token, cost, and no-progress budgets halt deterministically; fixtures prove false self-completion rejection, passing and failing tests, reviewer approval, budget exhaustion, cancellation, and restart-stable stop reasons.",
@@ -19737,6 +19740,8 @@
       "codex": "gpt-5.6-sol",
       "lens": "agent-loop",
       "source": "graph-engineering-extraction-2026-07-19",
+      "updated": "2026-07-20",
+      "notes": "SHIPPED 2026-07-20: parsed production graphs materialize typed success, failure, pause, exhausted, cancelled, recovery, and hard-budget contracts. Completion checks can inspect executed test/artifact/rubric/receipt evidence, node status, typed state, and approvals; agent prose is never evidence. Persisted terminal receipts include reason, unmet conditions, recovery action, and timestamp. Loop caps now return exhausted. Step, wall-clock, token, cost, no-progress, and AbortSignal cancellation budgets halt deterministically, and exhausted/cancelled runs reopen without replay. Evidence: 9 dedicated completion fixtures and 35 focused workflow/tool tests passed; full suite 1,446/1,446 files and 13,556 tests passed with 3 intentional skips; typecheck passed; execute.ts is 200 lines, all new functions are under 50 lines, and the workflow slice adds zero 300/200/50 violations.",
       "after": [
         "GRAPH-SHARED-RUN-STATE",
         "LOOP-GATES-BUDGETS",
@@ -19844,6 +19849,7 @@
       "codex": "gpt-5.6-terra",
       "lens": "tui",
       "source": "operator-request-2026-07-20",
+      "notes": "IMPLEMENTED 2026-07-20; PARKED ONLY FOR EXTERNAL MACOS PROOF. Shared native capture service, `/look` TUI command, Desktop capture menu, removable image context, scoped receipts, five-minute send expiry, immediate native-file deletion, black/TCC capture detection, and one-action Screen Recording recovery are wired. EXECUTED: 25 focused tests passed; capture fixtures cover screen/window/marquee args, cancel, denial, multiple displays, Retina dimensions, oversize recovery, TTL, and black PNG denial; TypeScript and source/signed-package Desktop smokes passed; signed app satisfies its Designated Requirement; real Vanta TUI captured 3024x1964 and answered a visual question correctly. PACKAGED GAP: the signed `studio.theft.vanta` app correctly returned `status: denied` because macOS Screen Recording is not granted. Grant Vanta in Privacy & Security > Screen Recording, relaunch, then run `VANTA_DESKTOP_LIVE_PROOF=1 npm run desktop:look:live-proof`; only that successful packaged visual turn remains before shipped.",
       "after": [
         "DESKTOP-CONTEXT-ATTACHMENTS",
         "TUI-IMAGE-CLICKABLE"
@@ -19853,7 +19859,7 @@
       "id": "VISION-LOOK-CAPTURE",
       "track": "Operator",
       "title": "Look capture — native macOS screen, window, or marquee vision from CLI and Desktop",
-      "status": "next",
+      "status": "parked",
       "size": "M",
       "summary": "Give Vanta one explicit on-demand computer-vision gesture shared by the CLI/TUI and Desktop. `/look`, the Desktop capture action, or an unambiguous request such as ‘look at this screen’ should invoke a native macOS full-screen, window, or drag-to-select marquee capture like Cmd+Shift+3/4, attach the chosen image to the active turn, and route it through Vanta's existing vision model and safety boundary without enabling continuous recording by default.",
       "done": "From both the real `vanta` CLI/TUI and packaged Vanta Desktop, `/look` or an explicit look action invokes the native macOS screen, window, or marquee selector, can cancel without sending, shows the selected capture as removable task context, and submits it to the routed vision model; Screen Recording denial offers one concrete recovery action, captures live only in a scoped TTL temporary store, receipts identify capture source, time, and scope, and executed proofs cover full screen, window, marquee, cancel, denial, multiple displays, Retina scaling, oversized-image recovery, and one successful visual question in each client.",
@@ -19868,7 +19874,8 @@
         "HP-COMPUTER-USE",
         "AUX-VISION",
         "AMBIENT-SCREEN-CONTEXT"
-      ]
+      ],
+      "parkedReason": "external proof"
     },
     {
       "id": "BROWSER-WORKFLOW-ACTION-BOUNDARY",

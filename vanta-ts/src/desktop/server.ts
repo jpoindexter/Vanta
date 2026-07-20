@@ -33,6 +33,7 @@ import { handleRuntimeProfiles } from "./runtime-profile-api.js";
 import { handleModelDownloads } from "./model-download-api.js";
 import { handleGoogleConnectAction, handleGoogleConnectStatus } from "./google-connect.js";
 import { handleDesktopReleaseProofs } from "./release-proofs.js";
+import { handleDesktopLookCapture } from "./look-capture-api.js";
 
 type RouteCtx = { req: http.IncomingMessage; res: http.ServerResponse; state: DesktopState; sid: string; sseClients: SseClients; pathname: string };
 
@@ -99,6 +100,7 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
     "/api/terminal": () => handleTerminal(state, req, res),
     "/api/chat/stop": () => handleStopChat(state, res),
     "/api/chat/queue": () => handleQueueChat(state, req, res),
+    "/api/look": () => handleDesktopLookCapture(state, req, res),
   };
   if (handlers[p]) { await handlers[p](); return true; }
   if (p === "/api/wake") {
@@ -157,19 +159,28 @@ type DesktopBoundaryDecision = { allowed: true } | { allowed: false; status: 403
 export function desktopBoundaryDecision(req: http.IncomingMessage, url: URL, boundaryToken?: string): DesktopBoundaryDecision {
   if (!url.pathname.startsWith("/api/") || !boundaryToken) return { allowed: true };
   if (req.method !== "GET" && req.method !== "POST") return { allowed: false, status: 405, error: "method not allowed" };
-  const supplied = req.headers["x-vanta-desktop-boundary"] ?? (url.pathname === "/api/events" ? url.searchParams.get("boundary") : undefined);
+  const supplied = desktopBoundaryCredential(req, url);
   if (typeof supplied !== "string" || !sameToken(supplied, boundaryToken)) return { allowed: false, status: 403, error: "trusted desktop renderer required" };
-
-  const origin = req.headers.origin;
-  if (typeof origin === "string") {
-    const host = req.headers.host;
-    if (!host || origin !== `http://${host}`) return { allowed: false, status: 403, error: "cross-origin desktop request denied" };
-  }
-  const fetchSite = req.headers["sec-fetch-site"];
-  if (typeof fetchSite === "string" && fetchSite !== "same-origin" && fetchSite !== "none") {
-    return { allowed: false, status: 403, error: "cross-origin desktop request denied" };
-  }
+  if (!desktopRequestOriginAllowed(req) || !desktopFetchSiteAllowed(req)) return { allowed: false, status: 403, error: "cross-origin desktop request denied" };
   return { allowed: true };
+}
+
+function desktopBoundaryCredential(req: http.IncomingMessage, url: URL): string | string[] | null | undefined {
+  const header = req.headers["x-vanta-desktop-boundary"];
+  if (header !== undefined) return header;
+  return url.pathname === "/api/events" ? url.searchParams.get("boundary") : undefined;
+}
+
+function desktopRequestOriginAllowed(req: http.IncomingMessage): boolean {
+  const origin = req.headers.origin;
+  if (typeof origin !== "string") return true;
+  const host = req.headers.host;
+  return Boolean(host && origin === `http://${host}`);
+}
+
+function desktopFetchSiteAllowed(req: http.IncomingMessage): boolean {
+  const fetchSite = req.headers["sec-fetch-site"];
+  return typeof fetchSite !== "string" || fetchSite === "same-origin" || fetchSite === "none";
 }
 
 function sameToken(supplied: string, expected: string): boolean {
@@ -214,15 +225,28 @@ type DesktopServerOptions = Partial<CompanionRouteOptions> & {
 
 export function createDesktopServer(repoRoot: string, options: DesktopServerOptions = {}): http.Server {
   ensureDesktopPermissionMode();
-  const sessions: SessionMap = options.sessions ?? new Map();
-  const sseClients: SseClients = options.sseClients ?? new Map();
-  const companion = { enabled: options.enabled ?? false, home: options.home ?? resolveVantaHome(), port: options.port ?? 7790 };
-  const publicApi = { enabled: options.publicApi ?? false, home: options.home ?? resolveVantaHome(), allowedOrigins: new Set(options.publicApiAllowedOrigins ?? []), readinessDeps: options.readinessDeps };
-  const opts: ServerOpts = { sessions, sseClients, repoRoot, companion, publicApi, isLoopback: options.isLoopback ?? isLoopbackRequest, boundaryToken: options.boundaryToken ?? process.env.VANTA_DESKTOP_BOUNDARY_TOKEN };
+  const opts = desktopServerOptions(repoRoot, options);
   return http.createServer((req, res) => {
     void routeRequest(req, res, opts)
-      .catch((err: unknown) => sendJson(res, 500, { error: err instanceof Error ? err.message : String(err) }));
+      .catch((err: unknown) => sendJson(res, 500, { error: errorMessage(err) }));
   });
+}
+
+function desktopServerOptions(repoRoot: string, options: DesktopServerOptions): ServerOpts {
+  const home = options.home ?? resolveVantaHome();
+  return {
+    sessions: options.sessions ?? new Map(),
+    sseClients: options.sseClients ?? new Map(),
+    repoRoot,
+    companion: { enabled: options.enabled ?? false, home, port: options.port ?? 7790 },
+    publicApi: { enabled: options.publicApi ?? false, home, allowedOrigins: new Set(options.publicApiAllowedOrigins ?? []), readinessDeps: options.readinessDeps },
+    isLoopback: options.isLoopback ?? isLoopbackRequest,
+    boundaryToken: options.boundaryToken ?? process.env.VANTA_DESKTOP_BOUNDARY_TOKEN,
+  };
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 export async function serveDesktop(repoRoot: string, port = 7790, companion = false): Promise<void> {

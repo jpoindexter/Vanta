@@ -37,6 +37,8 @@
     "desktop:sessions:smoke": "npm run desktop:build && node scripts/desktop-session-management-smoke.mjs",
     "desktop:context:smoke": "npm run desktop:build && node scripts/desktop-context-attachments-smoke.mjs",
     "desktop:clipboard:smoke": "npm run desktop:build && node scripts/desktop-clipboard-paste-smoke.mjs",
+    "desktop:look:smoke": "npm run desktop:build && node scripts/desktop-look-capture-smoke.mjs",
+    "desktop:look:live-proof": "node scripts/desktop-look-capture-live-proof.mjs",
     "desktop:recovery:smoke": "npm run desktop:build && node scripts/desktop-run-recovery-smoke.mjs",
     "desktop:provider-auth:smoke": "npm run desktop:build && node scripts/desktop-provider-auth-recovery-smoke.mjs",
     "desktop:local-origin:smoke": "npm run desktop:build && node scripts/desktop-local-origin-security-smoke.mjs",

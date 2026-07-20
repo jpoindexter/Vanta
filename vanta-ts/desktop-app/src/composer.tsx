@@ -3,8 +3,9 @@ import { ArrowUp, FolderKanban, Laptop, ListPlus, Network, PackageOpen, Papercli
 import { AccessModePicker } from "./access-mode-picker.js";
 import { clipboardImageFiles, imagePreviewUrl, insertClipboardText } from "./clipboard-paste.js";
 import { nativeClipboardAvailable, readNativeClipboard } from "./desktop-clipboard.js";
+import { desktopLookCommand, LookCaptureButton } from "./look-capture-button.js";
 import type { DesktopMcpSummary } from "./mcp-types.js";
-import type { AccessMode, DesktopImageAttachment } from "./types.js";
+import type { AccessMode, DesktopImageAttachment, DesktopLookMode } from "./types.js";
 
 export type ComposerProps = {
   value: string;
@@ -18,12 +19,14 @@ export type ComposerProps = {
   attachments: string[];
   images?: DesktopImageAttachment[];
   attachmentError?: string;
+  lookBusy?: boolean;
   onChange: (value: string) => void;
   onSubmit: (text: string) => void;
   onQueue: (text: string) => void;
   onRemoveAttachment: (file: string) => void;
   onRemoveImage?: (id: string) => void;
   onPasteImages?: (files: File[]) => void | Promise<void>;
+  onLookCapture: (mode: DesktopLookMode) => unknown | Promise<unknown>;
   onStop: () => void;
   onAttach: () => void;
   onMcp: () => void;
@@ -38,6 +41,8 @@ export function Composer(props: ComposerProps) {
   const canSend = Boolean(props.value.trim() || images.length);
   function send(event: FormEvent) {
     event.preventDefault();
+    const lookMode = desktopLookCommand(props.value);
+    if (lookMode) { props.onChange(""); void props.onLookCapture(lookMode); return; }
     const value = props.value.trim() || (images.length ? "Describe the attached image." : "");
     if (!value) return;
     if (props.busy) props.onQueue(value);
@@ -61,7 +66,7 @@ function AttachmentChips(props: { files: string[]; images: DesktopImageAttachmen
   if (!props.files.length && !props.images.length) return null;
   return <div className="context-chips" aria-label="Attached project context">
     {props.files.map((file) => <span key={file}><span title={file}>{file}</span><RemoveButton label={`Remove ${file}`} onClick={() => props.onRemoveFile(file)} /></span>)}
-    {props.images.map((image) => <span className="image-context-chip" key={image.id}><img src={imagePreviewUrl(image)} alt="" /><span title={image.name}>{image.name}</span><RemoveButton label={`Remove ${image.name}`} onClick={() => props.onRemoveImage?.(image.id)} /></span>)}
+    {props.images.map((image) => <span className="image-context-chip" key={image.id}><img src={imagePreviewUrl(image)} alt="" /><span title={image.name}>{image.capture ? `LOOK · ${image.capture.mode}` : image.name}</span><RemoveButton label={`Remove ${image.name}`} onClick={() => props.onRemoveImage?.(image.id)} /></span>)}
   </div>;
 }
 
@@ -71,7 +76,7 @@ function RemoveButton(props: { label: string; onClick: () => void }) {
 
 function ComposerFooter(props: ComposerProps & { ready: boolean; canSend: boolean; hasImages: boolean }) {
   const queueDisabled = !props.ready || !props.value.trim() || props.hasImages;
-  return <div className="composer-footer"><div className="composer-context-controls"><button className="composer-context-button" type="button" title="Attach project files" aria-label="Attach project files" onClick={props.onAttach}><Paperclip size={16} /><span className="sr-only">Context</span></button><button className="composer-command-button" type="button" title="Open commands" aria-label="Open commands" onClick={props.onCommand}><Plus size={16} /><span className="sr-only">Commands</span></button></div><div className="composer-actions"><button className="model-button" type="button" title="Change agent model" aria-label={`Agent model: ${props.model ?? "not selected"}. Change model`} onClick={props.onModel}><small>Agent model</small><span>{props.model ?? "Choose model"}</span></button><AccessModePicker mode={props.accessMode} onChange={props.onAccessMode} />{props.busy ? <><button className="queue-button" type="submit" disabled={queueDisabled} title={props.hasImages ? "Wait for the active run before sending image context" : "Queue next instruction"}><ListPlus size={15} /><span>Queue</span></button><button className="stop-button" type="button" title="Stop current run" aria-label="Stop current run" onClick={props.onStop}><Square size={14} /><span>Stop</span></button></> : <button className="send-button" type="submit" disabled={!props.ready || !props.canSend} aria-label="Send"><ArrowUp size={16} /></button>}</div></div>;
+  return <div className="composer-footer"><div className="composer-context-controls"><button className="composer-context-button" type="button" title="Attach project files" aria-label="Attach project files" onClick={props.onAttach}><Paperclip size={16} /><span className="sr-only">Context</span></button><LookCaptureButton busy={props.lookBusy} onCapture={props.onLookCapture} /><button className="composer-command-button" type="button" title="Open commands" aria-label="Open commands" onClick={props.onCommand}><Plus size={16} /><span className="sr-only">Commands</span></button></div><div className="composer-actions"><button className="model-button" type="button" title="Change agent model" aria-label={`Agent model: ${props.model ?? "not selected"}. Change model`} onClick={props.onModel}><small>Agent model</small><span>{props.model ?? "Choose model"}</span></button><AccessModePicker mode={props.accessMode} onChange={props.onAccessMode} />{props.busy ? <><button className="queue-button" type="submit" disabled={queueDisabled} title={props.hasImages ? "Wait for the active run before sending image context" : "Queue next instruction"}><ListPlus size={15} /><span>Queue</span></button><button className="stop-button" type="button" title="Stop current run" aria-label="Stop current run" onClick={props.onStop}><Square size={14} /><span>Stop</span></button></> : <button className="send-button" type="submit" disabled={!props.ready || !props.canSend} aria-label="Send"><ArrowUp size={16} /></button>}</div></div>;
 }
 
 async function pasteImages(event: ClipboardEvent<HTMLTextAreaElement>, props: ComposerProps): Promise<void> {

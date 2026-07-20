@@ -9,6 +9,16 @@ describe("desktop image input", () => {
     });
   });
 
+  it("preserves a validated native capture receipt", () => {
+    const capture = { source: "macos-screencapture", capturedAt: "2026-07-20T12:00:00.000Z", expiresAt: "2026-07-20T12:05:00.000Z", scope: "abcdef123456", mode: "marquee", display: 1, bytes: 3, pixelWidth: 800, pixelHeight: 600 };
+    expect(parseDesktopImageInput([{ mime: "image/png", dataBase64: "AQID", capture }], Date.parse("2026-07-20T12:01:00.000Z"))).toEqual({ ok: true, images: [{ mime: "image/png", dataBase64: "AQID", capture }] });
+    expect(parseDesktopImageInput([{ mime: "image/png", dataBase64: "AQID", capture }], Date.parse("2026-07-20T12:05:00.000Z"))).toEqual({ ok: false, error: "image capture receipt is invalid" });
+  });
+
+  it("rejects forged capture metadata", () => {
+    expect(parseDesktopImageInput([{ mime: "image/png", dataBase64: "AQID", capture: { source: "browser" } }])).toEqual({ ok: false, error: "image capture receipt is invalid" });
+  });
+
   it("accepts a missing image collection", () => {
     expect(parseDesktopImageInput(undefined)).toEqual({ ok: true, images: [] });
   });

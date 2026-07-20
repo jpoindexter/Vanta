@@ -46,8 +46,20 @@ export type DesktopRunReceipt = {
 
 export type EffectDisposition = "none" | "confirmed" | "unknown";
 
+export type ImageCaptureReceipt = {
+  source: "macos-screencapture";
+  capturedAt: string;
+  expiresAt: string;
+  scope: string;
+  mode: "screen" | "window" | "marquee";
+  display: number;
+  bytes: number;
+  pixelWidth?: number;
+  pixelHeight?: number;
+};
+
 /** An image attached to a user turn — sent natively to the model (no file tool). */
-export type ImageAttachment = { mime: string; dataBase64: string };
+export type ImageAttachment = { mime: string; dataBase64: string; capture?: ImageCaptureReceipt };
 
 export type Message =
   | { role: "system"; content: string }

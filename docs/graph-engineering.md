@@ -24,16 +24,18 @@ The product opportunity is to compose the shipped layers into a durable organiza
 - `PCLIP-APPROVAL-STAGES` provides named review stages.
 - `CRITIQUE-REUSE` carries structured critique into an improvement stage.
 - `SCHEMA-TRANSITION-TIMELINE` and Desktop recovery work provide adjacent receipt and replay primitives.
+- `GRAPH-SHARED-RUN-STATE` persists versioned graph revisions, node attempts, typed state, artifact references, decisions, budgets, approvals, and mutations under `.vanta/workflow-runs/`. Nodes declare read/write fields; a stable `run_id` resumes confirmed work without replay.
+- `GRAPH-EVIDENCE-STOP-CONTRACTS` gives every parsed graph typed terminal, evidence, recovery, cancellation, and budget contracts. Loop caps are exhausted outcomes, not success.
 
 This is enough foundation to avoid adopting LangGraph, CrewAI, or another runtime. Vanta should extend its own typed graph boundary.
 
 ## The actual gaps
 
-### 1. Shared run state
+### 1. Shared run state — shipped
 
 The current workflow runner keeps a `Map` of the latest node results and a transcript in memory. Agent nodes receive their own instruction, not a typed view of prior outputs. Parallel work therefore coordinates through prose or external operator effort rather than a durable shared contract.
 
-Target: a versioned run state with declared read/write fields, artifact references, provenance, redaction, atomic transitions, conflict handling, and restart recovery.
+Implemented: graph specs may declare a versioned typed state schema and per-node read/write access. Atomic temp-file replacement and an exclusive run lock protect each project-scoped state file. Disjoint concurrent writes merge; stale writes to the same field fail with a conflict. Secret fields accept opaque `{secretRef}` values only. A stable `run_id` reopens the last committed revision and skips confirmed successful nodes while retrying failed nodes.
 
 ### 2. A real review back-edge
 
@@ -41,11 +43,11 @@ Vanta can loop and can require review, but it does not yet guarantee that a revi
 
 Target: reject -> record findings -> revise the current artifact -> independently review the new revision -> accept or escalate after a hard attempt cap.
 
-### 3. Evidence-based stop conditions
+### 3. Evidence-based stop conditions — shipped
 
-The current graph runner can match status or an output substring and returns `done` when a loop reaches its iteration cap. Exhausting retries is not success, and model prose is not proof.
+Completion is evaluated over persisted test, artifact, rubric, receipt, node-status, shared-state, and approval evidence. Agent prose is never promoted to evidence. Runs persist succeeded, failed, paused, exhausted, or cancelled terminal receipts with a reason, unmet checks, and recovery action.
 
-Target: typed terminal states (`succeeded`, `failed`, `paused`, `exhausted`, `cancelled`) bound to test results, artifact checks, rubric verdicts, approvals, budgets, and no-progress signals.
+Step, wall-clock, token, cost, no-progress, and cancellation budgets halt deterministically. Reopening an exhausted or cancelled run returns the same stop receipt without replaying confirmed work.
 
 ### 4. Bounded adaptation
 
@@ -80,9 +82,9 @@ Each node may run an internal loop. The graph owns cross-node state, routing, bu
 ## Build order
 
 1. `GRAPH-SHARED-RUN-STATE`
-2. `GRAPH-EVIDENCE-STOP-CONTRACTS`
-3. `WORKFLOW-COMPOSER-V1` and `WORKFLOW-DATA-HANDOFF-CONTRACTS`
-4. `GRAPH-REVIEW-REWORK-CYCLE`
+2. `GRAPH-EVIDENCE-STOP-CONTRACTS` — shipped
+3. `GRAPH-REVIEW-REWORK-CYCLE`
+4. `WORKFLOW-COMPOSER-V1` and `WORKFLOW-DATA-HANDOFF-CONTRACTS`
 5. `GRAPH-OPERATOR-REPLAY-HANDOFF`
 6. `GRAPH-ADAPTIVE-TOPOLOGY-POLICY`
 7. `GRAPH-ENGINEERING-V1-RELEASE-GATE`
