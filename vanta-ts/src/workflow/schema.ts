@@ -1,16 +1,7 @@
 import { z } from "zod";
-import { defaultCompletionContract, GraphEvidenceKindSchema, WorkflowCompletionSchema } from "./completion-contract.js";
-
-const Id = z.string().min(1).regex(/^[a-zA-Z0-9_.:-]+$/);
-
-const BaseNode = z.object({
-  id: Id,
-  label: z.string().min(1).optional(),
-  state: z.object({
-    read: z.array(Id).max(50).default([]),
-    write: z.array(Id).max(50).default([]),
-  }).optional(),
-});
+import { defaultCompletionContract, WorkflowCompletionSchema } from "./completion-contract.js";
+import { WorkflowIdSchema as Id, WorkflowNodeSchema } from "./node-schema.js";
+export * from "./node-schema.js";
 
 export const WorkflowStateFieldSchema = z.object({
   type: z.enum(["string", "number", "boolean", "json", "artifact-ref", "secret-ref"]),
@@ -19,32 +10,6 @@ export const WorkflowStateFieldSchema = z.object({
   redact: z.boolean().optional(),
 });
 
-export const AgentNodeSchema = BaseNode.extend({
-  type: z.literal("agent"),
-  instruction: z.string().min(1),
-  goal: z.string().min(1).optional(),
-  maxIterations: z.number().int().min(1).max(50).optional(),
-  evidence: z.array(GraphEvidenceKindSchema).max(10).optional(),
-});
-
-export const ApprovalNodeSchema = BaseNode.extend({
-  type: z.literal("approval"),
-  prompt: z.string().min(1),
-  reason: z.string().min(1).optional(),
-});
-
-export const InterviewNodeSchema = BaseNode.extend({
-  type: z.literal("interview"),
-  question: z.string().min(1),
-  reason: z.string().min(1).optional(),
-});
-
-export const WorkflowNodeSchema = z.discriminatedUnion("type", [
-  AgentNodeSchema,
-  ApprovalNodeSchema,
-  InterviewNodeSchema,
-]);
-
 const MatchSchema = z.object({
   node: Id,
   contains: z.string().min(1).optional(),
@@ -52,10 +17,7 @@ const MatchSchema = z.object({
 }).refine((v) => v.contains || v.status, "match needs contains or status");
 
 const SingleTarget = z.object({ from: Id, to: Id });
-
-export const NextTransitionSchema = SingleTarget.extend({
-  type: z.literal("next"),
-});
+export const NextTransitionSchema = SingleTarget.extend({ type: z.literal("next") });
 
 export const BranchTransitionSchema = SingleTarget.extend({
   type: z.literal("branch"),
@@ -66,6 +28,7 @@ export const LoopTransitionSchema = SingleTarget.extend({
   type: z.literal("loop"),
   while: MatchSchema,
   maxIterations: z.number().int().min(1).max(20),
+  onExhausted: Id.optional(),
 });
 
 export const ParallelTransitionSchema = z.object({
@@ -170,10 +133,10 @@ function missingMatchRef(t: WorkflowTransition, ids: Set<string>): string | null
 }
 
 function targetsFor(t: WorkflowTransition): string[] {
-  return t.type === "parallel" ? t.to : [t.to];
+  if (t.type === "parallel") return t.to;
+  return t.type === "loop" && t.onExhausted ? [t.to, t.onExhausted] : [t.to];
 }
 
 function issueText(issue: z.ZodIssue): string {
-  const path = issue.path.join(".") || "spec";
-  return `${path}: ${issue.message}`;
+  return `${issue.path.join(".") || "spec"}: ${issue.message}`;
 }

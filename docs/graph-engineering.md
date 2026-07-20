@@ -26,6 +26,8 @@ The product opportunity is to compose the shipped layers into a durable organiza
 - `SCHEMA-TRANSITION-TIMELINE` and Desktop recovery work provide adjacent receipt and replay primitives.
 - `GRAPH-SHARED-RUN-STATE` persists versioned graph revisions, node attempts, typed state, artifact references, decisions, budgets, approvals, and mutations under `.vanta/workflow-runs/`. Nodes declare read/write fields; a stable `run_id` resumes confirmed work without replay.
 - `GRAPH-EVIDENCE-STOP-CONTRACTS` gives every parsed graph typed terminal, evidence, recovery, cancellation, and budget contracts. Loop caps are exhausted outcomes, not success.
+- `WORKFLOW-COMPOSER-V1` adds strict save, reopen, list, diff, and launch operations over immutable project-scoped workflow revisions. Trigger, action, browser, agent, approval, typed-port, side-effect, and bounded-feedback rules validate before execution; launches reuse the kernel-gated workflow runner and durable receipts.
+- `WORKFLOW-DATA-HANDOFF-CONTRACTS` maps typed consumer inputs to prior persisted outputs without template interpolation. Static preflight enforces order and type safety; runtime receipts retain provenance and redaction while secret values remain opaque references. This contract is shipped.
 
 This is enough foundation to avoid adopting LangGraph, CrewAI, or another runtime. Vanta should extend its own typed graph boundary.
 
@@ -84,7 +86,7 @@ Each node may run an internal loop. The graph owns cross-node state, routing, bu
 1. `GRAPH-SHARED-RUN-STATE`
 2. `GRAPH-EVIDENCE-STOP-CONTRACTS` — shipped
 3. `GRAPH-REVIEW-REWORK-CYCLE`
-4. `WORKFLOW-COMPOSER-V1` and `WORKFLOW-DATA-HANDOFF-CONTRACTS`
+4. `WORKFLOW-COMPOSER-V1` and `WORKFLOW-DATA-HANDOFF-CONTRACTS` — shipped
 5. `GRAPH-OPERATOR-REPLAY-HANDOFF`
 6. `GRAPH-ADAPTIVE-TOPOLOGY-POLICY`
 7. `GRAPH-ENGINEERING-V1-RELEASE-GATE`

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { diffWorkflows } from "./diff.js";
+import { canonicalWorkflow, diffWorkflows } from "./diff.js";
 import type { WorkflowGraph } from "./schema.js";
 
 const base: WorkflowGraph = {
@@ -26,5 +26,11 @@ describe("diffWorkflows", () => {
     };
     const diff = diffWorkflows(base, changed);
     expect(diff.some((line) => line.type === "add" && line.text.includes("changed"))).toBe(true);
+  });
+
+  it("preserves typed state and completion contracts", () => {
+    const graph: WorkflowGraph = { ...base, revision: 2, state: { version: 1, fields: { draft: { type: "string" } } } };
+    const parsed = JSON.parse(canonicalWorkflow(graph));
+    expect(parsed).toMatchObject({ revision: 2, state: { fields: { draft: { type: "string" } } } });
   });
 });

@@ -16,6 +16,7 @@ export type WorkflowRunOptions = {
   budgetLimitUsd?: number;
   now?: () => Date;
   signal?: AbortSignal;
+  resumePaused?: boolean;
 };
 
 export type WorkflowRuntime = {

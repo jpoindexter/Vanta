@@ -1,10 +1,17 @@
 import { z } from "zod";
-import type { WorkflowGraph, WorkflowNode, WorkflowStateField } from "./schema.js";
+import type { WorkflowGraph, WorkflowNode } from "./schema.js";
 import { GraphEvidenceKindSchema } from "./completion-contract.js";
+import { WorkflowPortTypeSchema } from "./node-schema.js";
+import { validWorkflowValue } from "./typed-value.js";
 
 const NodeStatus = z.enum(["ok", "denied", "blocked", "error"]);
 const ArtifactRefSchema = z.object({ id: z.string().min(1), uri: z.string().min(1), revision: z.string().min(1), mime: z.string().min(1).optional() });
-const NodeResultSchema = z.object({ nodeId: z.string().min(1), type: z.enum(["agent", "approval", "interview"]), status: NodeStatus, output: z.string() });
+const TypedOutputSchema = z.object({ type: WorkflowPortTypeSchema, value: z.unknown(), redacted: z.boolean() });
+const HandoffReceiptSchema = z.object({ input: z.string(), fromNode: z.string(), output: z.string(), type: WorkflowPortTypeSchema, redacted: z.boolean() });
+const NodeResultSchema = z.object({
+  nodeId: z.string().min(1), type: z.enum(["agent", "approval", "interview", "trigger", "action", "browser"]), status: NodeStatus, output: z.string(),
+  outputs: z.record(z.string(), TypedOutputSchema).default({}), handoffs: z.array(HandoffReceiptSchema).default([]),
+});
 const AttemptSchema = z.object({ nodeId: z.string().min(1), attempt: z.number().int().positive(), startedAt: z.string(), finishedAt: z.string(), status: NodeStatus });
 const MutationSchema = z.object({ nodeId: z.string().min(1), attempt: z.number().int().positive(), revision: z.number().int().positive(), fields: z.array(z.string()), at: z.string() });
 const EvidenceSchema = z.object({ nodeId: z.string().min(1), id: z.string().min(1), kind: GraphEvidenceKindSchema, passed: z.boolean(), detail: z.string().optional(), at: z.string() });
@@ -42,12 +49,15 @@ export const GraphRunStateSchema = z.object({
 
 export type GraphRunState = z.infer<typeof GraphRunStateSchema>;
 export type GraphArtifactRef = z.infer<typeof ArtifactRefSchema>;
-export type GraphNodeResult = z.infer<typeof NodeResultSchema>;
+type ParsedGraphNodeResult = z.infer<typeof NodeResultSchema>;
+export type GraphNodeResult = Omit<ParsedGraphNodeResult, "outputs" | "handoffs"> & Partial<Pick<ParsedGraphNodeResult, "outputs" | "handoffs">>;
+export type GraphTypedOutput = z.infer<typeof TypedOutputSchema>;
+export type GraphHandoffReceipt = z.infer<typeof HandoffReceiptSchema>;
 export type GraphEvidence = z.infer<typeof EvidenceSchema>;
 export type GraphTerminal = z.infer<typeof TerminalSchema>;
 export type GraphAgentEvidence = Omit<GraphEvidence, "nodeId" | "at">;
 export type GraphAgentOutcome = {
-  output: string; writes?: Record<string, unknown>; artifacts?: GraphArtifactRef[];
+  output: string; outputs?: Record<string, unknown>; writes?: Record<string, unknown>; artifacts?: GraphArtifactRef[];
   evidence?: GraphAgentEvidence[]; usage?: { tokens?: number; costUsd?: number };
 };
 
@@ -69,7 +79,7 @@ export function validateNodeWrites(graph: WorkflowGraph, node: WorkflowNode, wri
   for (const [field, value] of Object.entries(writes)) {
     if (!allowed.has(field)) throw new Error(`node ${node.id} cannot write state field ${field}`);
     const definition = graph.state?.fields[field];
-    if (!definition || !validFieldValue(definition, value)) throw new Error(`node ${node.id} wrote invalid ${definition?.type ?? "unknown"} state field ${field}`);
+    if (!definition || !validWorkflowValue(definition.type, value)) throw new Error(`node ${node.id} wrote invalid ${definition?.type ?? "unknown"} state field ${field}`);
   }
 }
 
@@ -83,21 +93,4 @@ export function migrateGraphRunState(value: unknown): GraphRunState {
 
 function initialValues(graph: WorkflowGraph): Record<string, unknown> {
   return Object.fromEntries(Object.entries(graph.state?.fields ?? {}).flatMap(([key, field]) => field.initial === undefined ? [] : [[key, field.initial]]));
-}
-
-function validFieldValue(field: WorkflowStateField, value: unknown): boolean {
-  if (field.type === "string") return typeof value === "string";
-  if (field.type === "number") return typeof value === "number" && Number.isFinite(value);
-  if (field.type === "boolean") return typeof value === "boolean";
-  if (field.type === "artifact-ref") return referenceValue(value, "artifactRef");
-  if (field.type === "secret-ref") return referenceValue(value, "secretRef");
-  return jsonValue(value);
-}
-
-function referenceValue(value: unknown, key: "artifactRef" | "secretRef"): boolean {
-  return !!value && typeof value === "object" && typeof (value as Record<string, unknown>)[key] === "string";
-}
-
-function jsonValue(value: unknown): boolean {
-  try { JSON.stringify(value); return value !== undefined; } catch { return false; }
 }

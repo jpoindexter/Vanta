@@ -1,8 +1,11 @@
 import type { Verdict } from "../types.js";
 import type { MatchRule, WorkflowGraph, WorkflowNode, WorkflowTransition } from "./schema.js";
-import { nodeStateView, validateNodeWrites, type GraphAgentOutcome, type GraphArtifactRef, type GraphNodeResult } from "./run-state.js";
+import { nodeStateView, validateNodeWrites, type GraphAgentOutcome, type GraphNodeResult } from "./run-state.js";
 import { commitWorkflowNode, finishWorkflowRuntime, initializeWorkflowRuntime, recordWorkflowApproval, recordWorkflowDecision, type WorkflowRunOptions, type WorkflowRuntime } from "./execute-state.js";
-import { budgetStop, persistedRunStatus, terminalForControl, type BudgetStop, type ControlStatus } from "./completion.js";
+import { budgetStop, persistedRunStatus, terminalForControl, type BudgetStop } from "./completion.js";
+import { describeNodeAction, nodeResult, normalizeNodeOutcome, requiredToolRunner, validateNodeEvidence } from "./node-execution.js";
+import { materializeNodeOutputs, resolveNodeHandoffs, type ResolvedHandoffs } from "./handoff.js";
+import { resultControl, resumeDecision } from "./execute-control.js";
 
 export type WorkflowNodeStatus = "ok" | "denied" | "blocked" | "error";
 export type WorkflowNodeResult = GraphNodeResult;
@@ -18,9 +21,10 @@ export type WorkflowRunDeps = {
   assess: (action: string) => Promise<Verdict>;
   requestApproval: (action: string, reason: string) => Promise<boolean>;
   runAgent: (node: Extract<WorkflowNode, { type: "agent" }>, context: WorkflowNodeContext) => Promise<string | GraphAgentOutcome>;
+  runTool?: (node: Extract<WorkflowNode, { type: "action" | "browser" }>, context: WorkflowNodeContext) => Promise<string | GraphAgentOutcome>;
 };
 
-export type WorkflowNodeContext = { runId: string; attempt: number; state: Record<string, unknown> };
+export type WorkflowNodeContext = Partial<ResolvedHandoffs> & { runId: string; attempt: number; state: Record<string, unknown> };
 
 type RunState = {
   graph: WorkflowGraph;
@@ -30,6 +34,7 @@ type RunState = {
   loopCounts: Map<string, number>;
   runtime: WorkflowRuntime;
   stop?: BudgetStop;
+  resumePaused: boolean;
 };
 
 type NodeExecution = { result: WorkflowNodeResult; baseRevision: number; attempt: number; startedAt: string; outcome?: GraphAgentOutcome; approval?: { approved: boolean; reason: string } };
@@ -37,8 +42,9 @@ type NodeExecution = { result: WorkflowNodeResult; baseRevision: number; attempt
 export async function runWorkflowGraph(graph: WorkflowGraph, deps: WorkflowRunDeps, options: WorkflowRunOptions = {}): Promise<WorkflowRunResult> {
   const runtime = await initializeWorkflowRuntime(graph, options);
   const transcript = [...runtime.run.transcript];
-  const state: RunState = { graph, deps, runtime, results: new Map(Object.entries(runtime.run.results)), transcript, loopCounts: new Map(Object.entries(runtime.run.loopCounts)) };
-  if (runtime.run.terminal && runtime.run.terminal.state !== "failed") return workflowResult(runtime, transcript);
+  const state: RunState = { graph, deps, runtime, results: new Map(Object.entries(runtime.run.results)), transcript, loopCounts: new Map(Object.entries(runtime.run.loopCounts)), resumePaused: options.resumePaused ?? false };
+  const resumablePause = runtime.run.terminal?.state === "paused" && state.resumePaused;
+  if (runtime.run.terminal && runtime.run.terminal.state !== "failed" && !resumablePause) return workflowResult(runtime, transcript);
   const control = await runNode(graph.start, state, false);
   const terminal = terminalForControl(graph.completion, runtime.run, control, state.stop, runtime.now().toISOString());
   await finishWorkflowRuntime(runtime, persistedRunStatus(control, terminal.state), state.loopCounts, terminal);
@@ -48,83 +54,88 @@ export async function runWorkflowGraph(graph: WorkflowGraph, deps: WorkflowRunDe
 async function runNode(nodeId: string, state: RunState, rerun: boolean): Promise<WorkflowRunResult["status"]> {
   const stopped = currentStop(state);
   if (stopped) return stopped.state;
-  const prior = state.results.get(nodeId);
-  if (!rerun) {
-    const resumed = resumedNodeStatus(prior);
-    if (resumed === "done") return followTransitions(nodeId, state);
-    if (resumed) return resumed;
-  }
+  const resume = resumeDecision(state.results.get(nodeId), state.resumePaused, rerun);
+  if (resume.control === "done") return followTransitions(nodeId, state, false);
+  if (resume.control) return resume.control;
   const node = state.graph.nodes.find((n) => n.id === nodeId);
   if (!node) return "error";
   const execution = await executeNode(node, state);
   const result = await recordResult(state, execution);
   const afterExecution = currentStop(state, false);
   if (afterExecution) return afterExecution.state;
-  if (result.status === "blocked") return "blocked";
-  if (result.status === "denied") return "paused";
-  if (result.status === "error") return "error";
-  return followTransitions(node.id, state);
-}
-
-function resumedNodeStatus(result: WorkflowNodeResult | undefined): WorkflowRunResult["status"] | null {
-  if (result?.status === "ok") return "done";
-  if (result?.status === "blocked") return "blocked";
-  if (result?.status === "denied") return "paused";
-  return null;
+  const control = resultControl(result);
+  return control ?? followTransitions(node.id, state, resume.rerun);
 }
 
 async function executeNode(node: WorkflowNode, state: RunState): Promise<NodeExecution> {
-  const deps = state.deps;
   const base = executionBase(node, state);
-  const verdict = await deps.assess(describeNodeAction(node));
-  if (verdict.risk === "block") return { ...base, result: nodeResult(node, "blocked", verdict.reason) };
-  if (verdict.risk === "ask" && !await deps.requestApproval(describeNodeAction(node), verdict.reason)) {
-    return { ...base, result: nodeResult(node, "denied", verdict.reason), approval: { approved: false, reason: verdict.reason } };
-  }
-  if (node.type === "approval") return runApproval(node, state, base);
-  if (node.type === "interview") return runInterview(node, state, base);
-  try {
-    const raw = await deps.runAgent(node, { runId: state.runtime.run.runId, attempt: base.attempt, state: nodeStateView(state.graph, node, state.runtime.run) });
-    const outcome = normalizeAgentOutcome(raw);
-    validateNodeWrites(state.graph, node, outcome.writes ?? {});
-    validateAgentEvidence(node, outcome);
-    return { ...base, result: nodeResult(node, "ok", outcome.output), outcome };
-  } catch (err) {
-    return { ...base, result: nodeResult(node, "error", (err as Error).message) };
-  }
+  try { return await executePreparedNode(node, state, base); }
+  catch (err) { return { ...base, result: nodeResult(node, "error", (err as Error).message) }; }
 }
 
-async function runApproval(node: Extract<WorkflowNode, { type: "approval" }>, state: RunState, base: Omit<NodeExecution, "result">): Promise<NodeExecution> {
+async function executePreparedNode(node: WorkflowNode, state: RunState, base: Omit<NodeExecution, "result">): Promise<NodeExecution> {
+  const deps = state.deps;
+  const handoffs = resolveNodeHandoffs(node, state.runtime.run);
+  const guard = await guardNode(node, state, base, handoffs);
+  if (guard) return guard;
+  if (node.type === "approval") return runApproval(node, state, base, handoffs);
+  if (node.type === "interview") return runInterview(node, state, base, handoffs);
+  if (node.type === "trigger") return triggerExecution(node, base, handoffs);
+  const context = { ...handoffs, runId: state.runtime.run.runId, attempt: base.attempt, state: nodeStateView(state.graph, node, state.runtime.run) };
+  const raw = node.type === "agent" ? await deps.runAgent(node, context) : await requiredToolRunner(deps)(node, context);
+  const outcome = normalizeNodeOutcome(raw);
+  validateNodeWrites(state.graph, node, outcome.writes ?? {});
+  validateNodeEvidence(node, outcome);
+  const outputs = materializeNodeOutputs(node, outcome.outputs);
+  return { ...base, result: nodeResult(node, "ok", outcome.output, { outputs, handoffs: handoffs.receipts }), outcome };
+}
+
+async function guardNode(node: WorkflowNode, state: RunState, base: Omit<NodeExecution, "result">, handoffs: ResolvedHandoffs): Promise<NodeExecution | null> {
+  const action = describeNodeAction(node, handoffs.values);
+  const verdict = await state.deps.assess(action);
+  if (verdict.risk === "block") return { ...base, result: nodeResult(node, "blocked", verdict.reason) };
+  const explicit = (node.type === "action" || node.type === "browser") && node.approval === "always";
+  if (verdict.risk !== "ask" && !explicit) return null;
+  const approved = await state.deps.requestApproval(action, verdict.reason);
+  return approved ? null : { ...base, result: nodeResult(node, "denied", verdict.reason), approval: { approved, reason: verdict.reason } };
+}
+
+async function runApproval(node: Extract<WorkflowNode, { type: "approval" }>, state: RunState, base: Omit<NodeExecution, "result">, handoffs: ResolvedHandoffs): Promise<NodeExecution> {
   const reason = node.reason ?? "workflow approval gate";
   const approved = await state.deps.requestApproval(node.prompt, reason);
-  return { ...base, result: nodeResult(node, approved ? "ok" : "denied", approved ? "approved" : "denied"), approval: { approved, reason } };
+  return { ...base, result: nodeResult(node, approved ? "ok" : "denied", approved ? "approved" : "denied", { handoffs: handoffs.receipts }), approval: { approved, reason } };
 }
 
-async function runInterview(node: Extract<WorkflowNode, { type: "interview" }>, state: RunState, base: Omit<NodeExecution, "result">): Promise<NodeExecution> {
+async function runInterview(node: Extract<WorkflowNode, { type: "interview" }>, state: RunState, base: Omit<NodeExecution, "result">, handoffs: ResolvedHandoffs): Promise<NodeExecution> {
   const reason = node.reason ?? "workflow interview gate";
   const approved = await state.deps.requestApproval(node.question, reason);
-  return { ...base, result: nodeResult(node, approved ? "ok" : "denied", approved ? "acknowledged" : "denied"), approval: { approved, reason } };
+  return { ...base, result: nodeResult(node, approved ? "ok" : "denied", approved ? "acknowledged" : "denied", { handoffs: handoffs.receipts }), approval: { approved, reason } };
 }
 
-async function followTransitions(nodeId: string, state: RunState): Promise<WorkflowRunResult["status"]> {
+function triggerExecution(node: Extract<WorkflowNode, { type: "trigger" }>, base: Omit<NodeExecution, "result">, handoffs: ResolvedHandoffs): NodeExecution {
+  const outputs = materializeNodeOutputs(node, node.input);
+  return { ...base, result: nodeResult(node, "ok", JSON.stringify(node.input), { outputs, handoffs: handoffs.receipts }) };
+}
+
+async function followTransitions(nodeId: string, state: RunState, rerun: boolean): Promise<WorkflowRunResult["status"]> {
   const transitions = state.graph.transitions.filter((t) => t.from === nodeId);
   const parallel = transitions.find(isParallel);
-  if (parallel) { await recordWorkflowDecision(state.runtime, nodeId, parallel.to.join(","), "parallel"); return runParallel(parallel, state); }
+  if (parallel) { await recordWorkflowDecision(state.runtime, nodeId, parallel.to.join(","), "parallel"); return runParallel(parallel, state, rerun); }
   const loop = transitions.find((t): t is Extract<WorkflowTransition, { type: "loop" }> => t.type === "loop" && matches(t.while, state));
   if (loop) { await recordWorkflowDecision(state.runtime, nodeId, loop.to, "loop"); return runLoop(loop, state); }
   const branch = transitions.find((t): t is Extract<WorkflowTransition, { type: "branch" }> => t.type === "branch" && matches(t.when, state));
-  if (branch) { await recordWorkflowDecision(state.runtime, nodeId, branch.to, "branch"); return runNode(branch.to, state, false); }
+  if (branch) { await recordWorkflowDecision(state.runtime, nodeId, branch.to, "branch"); return runNode(branch.to, state, rerun); }
   const next = transitions.find((t): t is Extract<WorkflowTransition, { type: "next" }> => t.type === "next");
   await recordWorkflowDecision(state.runtime, nodeId, next?.to, next ? "next" : "terminal");
-  return next ? runNode(next.to, state, false) : "done";
+  return next ? runNode(next.to, state, rerun) : "done";
 }
 
 function isParallel(t: WorkflowTransition): t is Extract<WorkflowTransition, { type: "parallel" }> {
   return t.type === "parallel";
 }
 
-async function runParallel(t: Extract<WorkflowTransition, { type: "parallel" }>, state: RunState): Promise<WorkflowRunResult["status"]> {
-  const statuses = await Promise.all(t.to.map((id) => runNode(id, state, false)));
+async function runParallel(t: Extract<WorkflowTransition, { type: "parallel" }>, state: RunState, rerun: boolean): Promise<WorkflowRunResult["status"]> {
+  const statuses = await Promise.all(t.to.map((id) => runNode(id, state, rerun)));
   const failed = statuses.find((s) => s !== "done");
   return failed ?? "done";
 }
@@ -133,6 +144,10 @@ async function runLoop(t: Extract<WorkflowTransition, { type: "loop" }>, state: 
   const key = `${t.from}->${t.to}`;
   const count = state.loopCounts.get(key) ?? 0;
   if (count >= t.maxIterations) {
+    if (t.onExhausted) {
+      await recordWorkflowDecision(state.runtime, t.from, t.onExhausted, "loop-exhausted");
+      await runNode(t.onExhausted, state, false);
+    }
     state.stop = { state: "exhausted", reason: `loop budget reached (${t.maxIterations})`, recoveryAction: state.graph.completion?.exhausted.recoveryAction ?? "Review the unmet loop condition and retry." };
     return "exhausted";
   }
@@ -165,17 +180,6 @@ function executionBase(node: WorkflowNode, state: RunState): Omit<NodeExecution,
   return { baseRevision: state.runtime.run.revision, attempt, startedAt: state.runtime.now().toISOString() };
 }
 
-function normalizeAgentOutcome(value: string | GraphAgentOutcome): GraphAgentOutcome {
-  return typeof value === "string" ? { output: value } : value;
-}
-
-function validateAgentEvidence(node: WorkflowNode, outcome: GraphAgentOutcome): void {
-  const allowed = new Set(node.type === "agent" ? node.evidence ?? [] : []);
-  for (const evidence of outcome.evidence ?? []) {
-    if (!allowed.has(evidence.kind)) throw new Error(`node ${node.id} cannot report ${evidence.kind} evidence`);
-  }
-}
-
 function currentStop(state: RunState, includeStep = true): BudgetStop | null {
   if (state.stop) return state.stop;
   const stop = budgetStop(state.graph.completion, state.runtime.run, state.runtime.now(), state.runtime.signal?.aborted ?? false, includeStep);
@@ -187,14 +191,4 @@ function workflowResult(runtime: WorkflowRuntime, transcript: WorkflowNodeResult
   const terminal = runtime.run.terminal ?? { state: "failed" as const, reason: "missing terminal receipt", at: runtime.now().toISOString() };
   const status = runtime.run.status === "running" ? "error" : runtime.run.status;
   return { ok: terminal.state === "succeeded", status, terminalState: terminal.state, reason: terminal.reason, recoveryAction: terminal.recoveryAction, transcript };
-}
-
-function nodeResult(node: WorkflowNode, status: WorkflowNodeStatus, output?: string): WorkflowNodeResult {
-  return { nodeId: node.id, type: node.type, status, output: output ?? "" };
-}
-
-function describeNodeAction(node: WorkflowNode): string {
-  if (node.type === "agent") return `workflow agent node ${node.id}: ${node.instruction}`;
-  if (node.type === "approval") return `workflow approval node ${node.id}: ${node.prompt}`;
-  return `workflow interview node ${node.id}: ${node.question}`;
 }

@@ -7,6 +7,10 @@ import { parseWorkflowGraph, validateWorkflowGraph, type WorkflowGraph } from ".
 import { createWorkflowTask, markWorkflowTask } from "../workflow/task-store.js";
 import { buildStatefulAgentInstruction, parseStatefulAgentOutcome } from "../workflow/agent-outcome.js";
 import { validateWorkflow, runLegacyWorkflow, type WorkflowSpec } from "./workflow-legacy.js";
+import { workflowComposerAction } from "./workflow-composer-actions.js";
+import type { WorkflowNodeContext } from "../workflow/execute.js";
+import type { WorkflowNode } from "../workflow/schema.js";
+import type { ToolRegistry } from "./registry.js";
 
 // WORKFLOWS: Dynamic multi-agent orchestration harness. Vanta composes and runs
 // structured multi-agent workflows on the fly — fan-out/synthesize, adversarial-
@@ -16,27 +20,34 @@ export { validateWorkflow, describeStep } from "./workflow-legacy.js";
 export type { WorkflowStep, WorkflowSpec, WorkflowResult } from "./workflow-legacy.js";
 
 const Args = z.object({
-  spec: z.unknown(),
+  spec: z.unknown().optional(),
   previous_spec: z.unknown().optional(),
   run_id: z.string().min(1).regex(/^[a-zA-Z0-9_.:-]+$/).optional(),
-  mode: z.enum(["validate", "diff", "run"]).optional(),
+  workflow_id: z.string().min(1).regex(/^[a-zA-Z0-9_.:-]+$/).optional(),
+  revision: z.number().int().positive().optional(),
+  previous_revision: z.number().int().positive().optional(),
+  resume: z.boolean().optional(),
+  mode: z.enum(["validate", "diff", "run", "save", "open", "list", "launch"]).optional(),
 });
 
 export const workflowTool: Tool = {
   schema: {
     name: "compose_workflow",
     description:
-      "Compose, diff, and run declarative agent workflow graphs. Supports agent, approval, and interview nodes plus next, branch, loop, and parallel transitions. Also accepts the legacy typed step sequence.",
+      "Create, save, reopen, diff, validate, and launch versioned local workflow graphs with trigger, action, browser, agent, and approval nodes.",
     parameters: {
       type: "object",
-      required: ["spec"],
       properties: {
-        mode: { type: "string", enum: ["validate", "diff", "run"], description: "Default run. Use diff with previous_spec." },
+        mode: { type: "string", enum: ["validate", "diff", "run", "save", "open", "list", "launch"], description: "Default run. Stored modes use workflow_id." },
+        workflow_id: { type: "string", description: "Stored workflow ID for open, diff, or launch." },
+        revision: { type: "number", description: "Optional stored revision; defaults to current." },
+        previous_revision: { type: "number", description: "Earlier stored revision for diff." },
+        resume: { type: "boolean", description: "Resume a paused approval gate without replaying confirmed nodes." },
         previous_spec: { type: "object", description: "Previous graph spec for stable diff output." },
         run_id: { type: "string", description: "Stable run ID used to resume an interrupted graph without replaying confirmed nodes." },
         spec: {
           type: "object",
-          description: "Workflow graph {id,title,start,nodes,transitions} or legacy {name,description,steps}.",
+          description: "Workflow graph or legacy typed step sequence. Required for save, validate, and direct run.",
         },
       },
     },
@@ -44,13 +55,17 @@ export const workflowTool: Tool = {
   describeForSafety: () => "compose and run multi-agent workflow (delegate sub-agents)",
   async execute(args, ctx: ToolContext) {
     const parsed = Args.safeParse(args);
-    if (!parsed.success) return { ok: false, output: "compose_workflow needs {spec, mode?, previous_spec?}" };
-    return trackWorkflowRun(parsed.data, ctx, () => runWorkflow(parsed.data, ctx));
+    if (!parsed.success) return { ok: false, output: "invalid compose_workflow arguments" };
+    try { return await trackWorkflowRun(parsed.data, ctx, () => runWorkflow(parsed.data, ctx)); }
+    catch (error) { return { ok: false, output: error instanceof Error ? error.message : String(error) }; }
   },
 };
 
 /** Run a workflow spec (graph or legacy). Pure dispatch; task tracking is the wrapper. */
 async function runWorkflow(args: z.infer<typeof Args>, ctx: ToolContext): Promise<ToolResult> {
+  const composer = await workflowComposerAction(args, ctx.root);
+  if (composer.handled) return "result" in composer ? composer.result : executeGraph(composer.launch, ctx, args.run_id, args.resume);
+  if (!args.spec) return { ok: false, output: `${args.mode ?? "run"} needs spec` };
   if (looksLikeGraph(args.spec)) return runGraphMode(args, ctx);
 
   const err = validateWorkflow(args.spec);
@@ -68,7 +83,7 @@ async function runGraphMode(args: z.infer<typeof Args>, ctx: ToolContext) {
   const graph = parseWorkflowGraph(args.spec);
   if (args.mode === "validate") return { ok: true, output: canonicalWorkflow(graph) };
   if (args.mode === "diff") return diffGraph(args.previous_spec, graph);
-  return executeGraph(graph, ctx, args.run_id);
+  return executeGraph(graph, ctx, args.run_id, args.resume);
 }
 
 function diffGraph(previous: unknown, graph: WorkflowGraph) {
@@ -78,7 +93,7 @@ function diffGraph(previous: unknown, graph: WorkflowGraph) {
   return { ok: true, output: JSON.stringify({ changed: diff.length > 0, diff }) };
 }
 
-async function executeGraph(graph: WorkflowGraph, ctx: ToolContext, runId?: string) {
+async function executeGraph(graph: WorkflowGraph, ctx: ToolContext, runId?: string, resumePaused?: boolean) {
   const { buildRegistry } = await import("./index.js");
   const { resolveProvider } = await import("../providers/index.js");
   const { spawnSubagent } = await import("../subagent/spawn.js");
@@ -95,8 +110,30 @@ async function executeGraph(graph: WorkflowGraph, ctx: ToolContext, runId?: stri
       });
       return parseStatefulAgentOutcome(node, outcome.finalText);
     },
-  }, { dataDir: join(ctx.root, ".vanta"), runId });
+    runTool: (node, graphContext) => executeWorkflowToolNode(node, graphContext, registry, ctx),
+  }, { dataDir: join(ctx.root, ".vanta"), runId, resumePaused });
   return { ok: result.ok, output: JSON.stringify(result, null, 2) };
+}
+
+async function executeWorkflowToolNode(node: Extract<WorkflowNode, { type: "action" | "browser" }>, graphContext: WorkflowNodeContext, registry: ToolRegistry, ctx: ToolContext) {
+  const tool = registry.get(node.tool);
+  if (!tool) throw new Error(`unknown workflow tool: ${node.tool}`);
+  const result = await tool.execute({ ...node.args, ...(graphContext.values ?? {}) }, ctx);
+  if (!result.ok) throw new Error(result.output);
+  return {
+    output: result.output,
+    outputs: toolNodeOutputs(node, result.output),
+    evidence: [{ id: `${node.id}-${graphContext.attempt}`, kind: "receipt" as const, passed: true, detail: node.tool }],
+  };
+}
+
+function toolNodeOutputs(node: Extract<WorkflowNode, { type: "action" | "browser" }>, output: string): Record<string, unknown> {
+  const ports = Object.entries(node.io?.outputs ?? {});
+  if (ports.length !== 1) return {};
+  const [name, type] = ports[0]!;
+  if (type === "string") return { [name]: output };
+  if (type === "json") return { [name]: JSON.parse(output) };
+  return {};
 }
 
 const RESULT_PREVIEW = 280;
@@ -131,7 +168,7 @@ async function trackWorkflowRun(
 
 /** An actual run = default mode or "run" (validate/diff never execute the workflow). */
 function isRunAction(args: z.infer<typeof Args>): boolean {
-  return args.mode === undefined || args.mode === "run";
+  return args.mode === undefined || args.mode === "run" || args.mode === "launch";
 }
 
 /** Best-effort name for the run from either spec shape; falls back to a label. */
