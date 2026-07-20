@@ -1,6 +1,7 @@
 import type {ReactNode} from "react";
 import {useState} from "react";
 import Link from "@docusaurus/Link";
+import Head from "@docusaurus/Head";
 import Layout from "@theme/Layout";
 import styles from "./index.module.css";
 
@@ -80,51 +81,74 @@ export default function Home(): ReactNode {
     <Layout
       title="Local operator for work that has to finish"
       description="Vanta is an open-source local operator with a macOS desktop app, durable memory, automation, agents, and a separate Rust safety kernel."
+      noFooter
     >
+      <Head>
+        <link
+          rel="preload"
+          as="image"
+          href="/img/vanta-raven-brand-900.webp"
+          imageSrcSet="/img/vanta-raven-brand-600.webp 600w, /img/vanta-raven-brand-900.webp 900w, /img/vanta-raven-brand.webp 1086w"
+          imageSizes="(max-width: 680px) 100vw, 70vw"
+          fetchPriority="high"
+        />
+      </Head>
       <main className={styles.page}>
         <header className={styles.hero}>
-          <picture>
-            <source media="(max-width: 680px)" srcSet="/img/vanta-operator-mobile.webp" />
+          <picture className={styles.heroArtwork}>
             <img
               className={styles.heroImage}
-              src="/img/vanta-operator.webp"
-              alt=""
-              width="1198"
-              height="1800"
+              src="/img/vanta-raven-brand-900.webp"
+              srcSet="/img/vanta-raven-brand-600.webp 600w, /img/vanta-raven-brand-900.webp 900w, /img/vanta-raven-brand.webp 1086w"
+              sizes="(max-width: 680px) 100vw, 70vw"
+              alt="A bone-white engraved raven with a violet eye, the Vanta local AI operator brand mark"
+              width="1086"
+              height="1448"
               fetchPriority="high"
             />
           </picture>
-          <div className={styles.heroContent}>
-            <p className={styles.releaseLine}>Desktop v0.9.4 / notarized for Apple silicon / open source</p>
+          <div className={styles.heroMeta}>
             <h1>Vanta</h1>
-            <p className={styles.heroStatement}>Local intelligence. Real boundaries. Work that finishes.</p>
-            <p className={styles.heroCopy}>
-              Give Vanta an outcome. It plans, uses tools, remembers context, and keeps standing work moving while a separate Rust kernel checks every action.
-            </p>
-            <div className={styles.heroActions}>
-              <a className={styles.downloadAction} href={desktopRelease}>Download Vanta for macOS</a>
-              <a className={styles.releaseAction} href={desktopReleaseNotes}>View release + screenshots</a>
-            </div>
-            <div className={styles.terminalInstall} aria-label="Terminal install command">
-              <span aria-hidden="true">$</span>
-              <code>curl -fsSL https://vanta.theft.studio/install.sh | bash</code>
-            </div>
+            <p>Local AI operator / 001</p>
           </div>
-          <p className={styles.heroIndex}>VNT-A / trusted local operator</p>
+          <a className={styles.heroAction} href={desktopRelease}>Download desktop v0.9.4</a>
         </header>
 
+        <section className={styles.intro} aria-labelledby="intro-title">
+          <div className={styles.sectionFrame}>
+            <p className={styles.kicker}>Trusted local operator</p>
+            <div className={styles.introGrid}>
+              <h2 id="intro-title">Local intelligence.<br />Real boundaries.<br />Work that finishes.</h2>
+              <div className={styles.introBody}>
+                <p>Give Vanta an outcome. It plans, uses tools, remembers context, and keeps standing work moving while a separate Rust kernel checks every action.</p>
+                <div className={styles.primaryActions}>
+                  <a className={styles.primaryAction} href={desktopRelease}>Download for macOS</a>
+                  <a className={styles.textAction} href={desktopReleaseNotes}>Release notes and screenshots</a>
+                </div>
+                <div className={styles.terminalInstall} aria-label="Terminal install command">
+                  <span aria-hidden="true">$</span>
+                  <code>curl -fsSL https://vanta.theft.studio/install.sh | bash</code>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section className={styles.releaseProof} aria-label="Release verification">
-          <div className={styles.releaseProofInner}>
-            <p><strong>v0.9.4</strong><span>current desktop release</span></p>
-            <p><strong>36</strong><span>Ghost visual gates</span></p>
-            <p><strong>10 sec</strong><span>packaged-start ceiling</span></p>
-            <p><strong>Accepted</strong><span>Apple notarization</span></p>
+          <div className={styles.sectionFrame}>
+            <dl>
+              <div><dt>Release</dt><dd>v0.9.4</dd><dd className={styles.proofNote}>current desktop build</dd></div>
+              <div><dt>Visual gates</dt><dd>36</dd><dd className={styles.proofNote}>Ghost system checks</dd></div>
+              <div><dt>Startup gate</dt><dd>10 sec</dd><dd className={styles.proofNote}>packaged-app ceiling</dd></div>
+              <div><dt>Notarization</dt><dd>Accepted</dd><dd className={styles.proofNote}>Apple verified</dd></div>
+            </dl>
           </div>
         </section>
 
         <section className={styles.product} aria-labelledby="product-title">
           <div className={styles.sectionFrame}>
-            <div className={styles.productHeading}>
+            <p className={styles.kicker}>Desktop operator</p>
+            <div className={styles.sectionHeading}>
               <h2 id="product-title">One place to run the work and inspect the proof.</h2>
               <p>Vanta Desktop is the daily operator surface. The terminal and approved messaging channels use the same project state and kernel boundary.</p>
             </div>
@@ -153,12 +177,7 @@ export default function Home(): ReactNode {
             >
               <picture key={currentScreen.id}>
                 <source media="(max-width: 680px)" srcSet={currentScreen.mobileImage} />
-                <img
-                  src={currentScreen.image}
-                  alt={currentScreen.alt}
-                  width="1440"
-                  height="960"
-                />
+                <img src={currentScreen.image} alt={currentScreen.alt} width="1440" height="960" />
               </picture>
               <figcaption>
                 <strong>{currentScreen.title}</strong>
@@ -170,11 +189,13 @@ export default function Home(): ReactNode {
 
         <section className={styles.capabilitySection} aria-labelledby="capability-title">
           <div className={styles.sectionFrame}>
-            <h2 id="capability-title">The operator gets broader. The boundary stays put.</h2>
+            <p className={styles.kicker}>Operating range</p>
+            <div className={styles.sectionHeading}>
+              <h2 id="capability-title">The operator gets broader. The boundary stays put.</h2>
+            </div>
             <div className={styles.capabilityRows}>
-              {capabilities.map(([name, copy, to], index) => (
+              {capabilities.map(([name, copy, to]) => (
                 <article key={name}>
-                  <span aria-hidden="true">0{index + 1}</span>
                   <h3>{name}</h3>
                   <p>{copy}</p>
                   <Link to={to} aria-label={`Read about ${name}`}>Read</Link>
@@ -186,9 +207,10 @@ export default function Home(): ReactNode {
 
         <section className={styles.executionSection} aria-labelledby="execution-title">
           <div className={styles.sectionFrame}>
-            <div className={styles.executionHeading}>
+            <p className={styles.kicker}>Execution stack</p>
+            <div className={styles.sectionHeading}>
               <h2 id="execution-title">From one instruction to an operating system for work.</h2>
-              <p>Vanta already handles the prompt, context, harness, and loop. Typed multi-agent graph orchestration is the next layer, and it remains marked as roadmap work until its real gates pass.</p>
+              <p>Vanta already handles the prompt, context, harness, and loop. Typed multi-agent graph orchestration remains roadmap work until its real gates pass.</p>
             </div>
             <ol className={styles.executionLayers}>
               {executionLayers.map(([name, copy, status]) => (
@@ -198,73 +220,68 @@ export default function Home(): ReactNode {
                 </li>
               ))}
             </ol>
-            <Link className={styles.roadmapLink} to="/roadmap">Inspect shipped and open work</Link>
+            <Link className={styles.textAction} to="/roadmap">Inspect shipped and open work</Link>
           </div>
         </section>
 
         <section className={styles.contractSection} aria-labelledby="contract-title">
           <div className={styles.sectionFrame}>
-            <h2 id="contract-title">The model does not approve itself.</h2>
-            <p className={styles.contractLead}>Every proposed action crosses a deterministic kernel before execution. Safe work proceeds, consequential work waits, and hard boundaries remain blocked.</p>
+            <p className={styles.kicker}>Kernel contract</p>
+            <div className={styles.sectionHeading}>
+              <h2 id="contract-title">The model does not approve itself.</h2>
+              <p>Every proposed action crosses a deterministic kernel before execution. Safe work proceeds, consequential work waits, and hard boundaries remain blocked.</p>
+            </div>
             <ol className={styles.contractFlow}>
-              {executionContract.map(([name, copy], index) => (
+              {executionContract.map(([name, copy]) => (
                 <li key={name}>
-                  <span aria-hidden="true">0{index + 1}</span>
                   <h3>{name}</h3>
                   <p>{copy}</p>
                 </li>
               ))}
             </ol>
-            <Link className={styles.inverseLink} to="/safety-model">Read the safety model</Link>
+            <Link className={styles.textAction} to="/safety-model">Read the safety model</Link>
           </div>
         </section>
 
         <section className={styles.realRun} aria-labelledby="run-title">
           <div className={styles.sectionFrame}>
-            <div className={styles.runHeading}>
+            <p className={styles.kicker}>Recorded product path</p>
+            <div className={styles.sectionHeading}>
               <h2 id="run-title">Watch a real operator run.</h2>
               <p>No concept render and no montage. This is Vanta taking an instruction through the terminal loop.</p>
             </div>
             <figure className={styles.demoFigure}>
-              <video
-                autoPlay
-                muted
-                loop
-                playsInline
-                controls
-                preload="metadata"
-                poster="/img/vanta-terminal-demo-poster.webp"
-                aria-label="Vanta executing a task in the terminal"
-              >
+              <video autoPlay muted loop playsInline controls preload="metadata" poster="/img/vanta-terminal-demo-poster.webp" aria-label="Vanta executing a task in the terminal">
                 <source src="/img/vanta-terminal-demo.mp4" type="video/mp4" />
               </video>
-              <figcaption>Recorded product path / terminal operator loop</figcaption>
+              <figcaption>Terminal operator loop / captured from the product</figcaption>
             </figure>
           </div>
         </section>
 
         <section className={styles.installSection} aria-labelledby="install-title">
           <div className={styles.sectionFrame}>
+            <p className={styles.kicker}>Start here</p>
             <h2 id="install-title">Give it one real task.</h2>
             <div className={styles.installMethods}>
-              <div>
-                <h3>Vanta Desktop</h3>
-                <p>Signed, notarized, and stapled for Apple silicon.</p>
-                <a href={desktopRelease}>Download v0.9.4 DMG</a>
-              </div>
-              <div>
-                <h3>Terminal</h3>
-                <p>Install the operator and kernel from the command line.</p>
-                <code>curl -fsSL https://vanta.theft.studio/install.sh | bash</code>
-              </div>
-              <div>
-                <h3>Source</h3>
-                <p>Inspect the code, release evidence, and open roadmap.</p>
-                <a href={desktopReleaseNotes}>Open release + screenshots</a>
-              </div>
+              <div><h3>Desktop</h3><p>Signed, notarized, and stapled for Apple silicon.</p><a href={desktopRelease}>Download v0.9.4 DMG</a></div>
+              <div><h3>Terminal</h3><p>Install the operator and kernel from the command line.</p><code>curl -fsSL https://vanta.theft.studio/install.sh | bash</code></div>
+              <div><h3>Source</h3><p>Inspect the code, release evidence, and open roadmap.</p><a href={desktopReleaseNotes}>Open the release</a></div>
             </div>
           </div>
         </section>
+
+        <footer className={styles.footer}>
+          <div className={styles.sectionFrame}>
+            <p>The model proposes.<br />The kernel decides.</p>
+            <nav aria-label="Footer">
+              <Link to="/docs">Documentation</Link>
+              <Link to="/roadmap">Roadmap</Link>
+              <a href="https://github.com/jpoindexter/Vanta">GitHub</a>
+            </nav>
+            <small>Vanta / Theft Studio / local first by design</small>
+          </div>
+        </footer>
       </main>
     </Layout>
   );

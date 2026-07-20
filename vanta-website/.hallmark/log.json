@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "date": "2026-07-20",
+      "verb": "redesign",
+      "surface": "vanta.theft.studio",
+      "macrostructure": "Photographic Fold",
+      "theme": "studied-DNA",
+      "source": "vanta brand.png",
+      "navigation": "N9",
+      "footer": "Ft5",
+      "palette": ["#050507", "#F4EFE3", "#7C3AED"],
+      "fonts": ["Sentient", "Switzer", "SF Mono"],
+      "critique": {"philosophy": 5, "hierarchy": 5, "execution": 4, "specificity": 5, "restraint": 5, "variety": 5},
+      "slopTest": "pass",
+      "mobile": [320, 375, 414, 768]
+    }
+  ]
+}

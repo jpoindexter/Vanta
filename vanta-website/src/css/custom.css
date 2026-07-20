@@ -1,85 +1,134 @@
-/* Vanta Ghost system: neutral ink, paper, and restrained semantic signals. */
+/* designed-as-app | surface: docs | brand: raven / bone / signal */
+@import "../../tokens.css";
+
+@font-face {
+  font-family: "Sentient";
+  src: url("/fonts/sentient-400.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "Sentient";
+  src: url("/fonts/sentient-500.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: "Switzer";
+  src: url("/fonts/switzer-400.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "Switzer";
+  src: url("/fonts/switzer-500.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: "Switzer";
+  src: url("/fonts/switzer-600.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 600;
+}
 
 :root {
-  /* Vanta accent palette */
-  --vanta-focus: #20201d;
-  --vanta-health: #2d7048;
-  --vanta-activity: #9a6d1e;
-  --vanta-goal: #5d5d57;
-  --vanta-risk: #a33a3a;
+  --vanta-focus: var(--signal-violet);
+  --vanta-health: var(--status-success);
+  --vanta-activity: var(--status-warning);
+  --vanta-goal: var(--bone-dim);
+  --vanta-risk: var(--status-danger);
 
-  /* Primary = Ghost ink in light mode */
-  --ifm-color-primary: #20201d;
-  --ifm-color-primary-dark: #151513;
-  --ifm-color-primary-darker: #0f0f0e;
-  --ifm-color-primary-darkest: #080808;
-  --ifm-color-primary-light: #383834;
-  --ifm-color-primary-lighter: #464640;
-  --ifm-color-primary-lightest: #5f5f58;
+  --ifm-color-primary: var(--signal-violet);
+  --ifm-color-primary-dark: var(--signal-violet);
+  --ifm-color-primary-darker: var(--signal-violet);
+  --ifm-color-primary-darkest: var(--signal-violet);
+  --ifm-color-primary-light: var(--signal-violet);
+  --ifm-color-primary-lighter: var(--signal-violet);
+  --ifm-color-primary-lightest: var(--signal-violet);
 
-  --ifm-font-family-base: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-  --ifm-font-family-monospace: "SFMono-Regular", ui-monospace, Menlo, Monaco, Consolas, monospace;
-  --ifm-heading-font-weight: 700;
+  --ifm-font-family-base: var(--font-body);
+  --ifm-font-family-monospace: var(--font-mono);
+  --ifm-heading-font-family: var(--font-display);
+  --ifm-heading-font-weight: 500;
   --ifm-font-size-base: 16px;
   --ifm-line-height-base: 1.7;
   --ifm-code-font-size: 90%;
 
-  --ifm-background-color: #f7f7f4;
-  --ifm-background-surface-color: #ffffff;
-  --ifm-navbar-background-color: #f7f7f4;
+  --ifm-background-color: var(--vanta-bone);
+  --ifm-background-surface-color: var(--vanta-bone);
+  --ifm-navbar-background-color: var(--vanta-bone);
   --ifm-navbar-height: 4rem;
   --ifm-navbar-shadow: none;
   --ifm-toc-border-color: transparent;
-  --ifm-color-emphasis-200: #dfdfda;
-  --ifm-color-emphasis-300: #cecec8;
+  --ifm-font-color-base: var(--vanta-black);
+  --ifm-color-emphasis-100: oklch(11.6334% 0.00616 285.403 / 0.04);
+  --ifm-color-emphasis-200: oklch(11.6334% 0.00616 285.403 / 0.1);
+  --ifm-color-emphasis-300: oklch(11.6334% 0.00616 285.403 / 0.18);
 
-  --ifm-menu-color: #5a5a55;
+  --ifm-menu-color: oklch(32% 0.008 285);
   --ifm-menu-color-active: var(--ifm-color-primary);
-  --ifm-menu-color-background-active: rgba(0, 0, 0, 0.07);
-  --ifm-menu-color-background-hover: rgba(0, 0, 0, 0.04);
+  --ifm-menu-color-background-active: oklch(54.1337% 0.24659 293.009 / 0.1);
+  --ifm-menu-color-background-hover: oklch(11.6334% 0.00616 285.403 / 0.04);
 
   --ifm-link-color: var(--ifm-color-primary);
   --ifm-link-hover-decoration: none;
-  --vanta-border: #d1d1cb;
-  --vanta-card-bg: #ffffff;
+  --vanta-border: oklch(11.6334% 0.00616 285.403 / 0.18);
+  --vanta-card-bg: var(--vanta-bone);
   --vanta-eyebrow: var(--ifm-color-primary);
 
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.07);
-  --ifm-global-radius: 0.25rem;
+  --docusaurus-highlighted-code-line-bg: oklch(54.1337% 0.24659 293.009 / 0.1);
+  --ifm-global-radius: var(--radius-figure);
 }
 
-/* Dark mode: warm black surfaces and neutral type. */
+/* Dark mode is the canonical Vanta field. */
 [data-theme='dark'] {
-  --ifm-color-primary: #f2f2ed;
-  --ifm-color-primary-dark: #ddddd7;
-  --ifm-color-primary-darker: #c8c8c1;
-  --ifm-color-primary-darkest: #a8a89f;
-  --ifm-color-primary-light: #ffffff;
-  --ifm-color-primary-lighter: #ffffff;
-  --ifm-color-primary-lightest: #ffffff;
+  --ifm-color-primary: var(--signal-violet);
+  --ifm-color-primary-dark: var(--signal-violet);
+  --ifm-color-primary-darker: var(--signal-violet);
+  --ifm-color-primary-darkest: var(--signal-violet);
+  --ifm-color-primary-light: var(--signal-violet);
+  --ifm-color-primary-lighter: var(--signal-violet);
+  --ifm-color-primary-lightest: var(--signal-violet);
 
-  --ifm-background-color: #10100e;
-  --ifm-background-surface-color: #171714;
-  --ifm-navbar-background-color: #10100e;
-  --ifm-color-emphasis-200: #292925;
-  --ifm-color-emphasis-300: #383833;
+  --ifm-background-color: var(--vanta-black);
+  --ifm-background-surface-color: var(--surface-raised);
+  --ifm-navbar-background-color: var(--vanta-black);
+  --ifm-font-color-base: var(--vanta-bone);
+  --ifm-color-emphasis-100: oklch(95.2747% 0.0168 88 / 0.05);
+  --ifm-color-emphasis-200: oklch(95.2747% 0.0168 88 / 0.1);
+  --ifm-color-emphasis-300: oklch(95.2747% 0.0168 88 / 0.18);
 
-  --ifm-menu-color: #adada6;
-  --ifm-menu-color-background-active: rgba(255, 255, 255, 0.1);
-  --ifm-menu-color-background-hover: rgba(255, 255, 255, 0.06);
+  --ifm-menu-color: var(--bone-muted);
+  --ifm-menu-color-background-active: oklch(54.1337% 0.24659 293.009 / 0.14);
+  --ifm-menu-color-background-hover: oklch(95.2747% 0.0168 88 / 0.06);
 
-  --vanta-border: #3c3c37;
-  --vanta-card-bg: #171714;
-  --vanta-eyebrow: #d6d6d0;
-  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.1);
+  --vanta-border: var(--bone-line);
+  --vanta-card-bg: var(--surface-raised);
+  --vanta-eyebrow: var(--signal-violet);
+  --docusaurus-highlighted-code-line-bg: oklch(54.1337% 0.24659 293.009 / 0.14);
 }
 
 /* ---------- Navbar ---------- */
 .navbar {
-  border-bottom: 1px solid var(--vanta-border);
+  --ifm-navbar-background-color: var(--vanta-black);
+  --ifm-navbar-link-color: var(--bone-muted);
+  border-bottom: 1px solid var(--bone-line);
+  color: var(--vanta-bone);
 }
-.navbar__title { font-weight: 800; letter-spacing: 0; }
-.navbar__link { font-weight: 500; font-size: 0.92rem; }
+.navbar__brand { gap: 0.65rem; }
+.navbar__logo { height: 2rem; width: 2rem; }
+.navbar__title { color: var(--vanta-bone); font-family: var(--font-display); font-size: 1.2rem; font-weight: 500; letter-spacing: 0; }
+.navbar__link { font-weight: 600; font-size: 0.875rem; }
 .navbar__link--active { color: var(--ifm-color-primary); }
 
 /* ---------- Sidebar: grouped, Mintlify-style ---------- */
@@ -140,11 +189,11 @@ article a:hover { text-decoration: underline; text-underline-offset: 3px; }
   box-shadow: none;
 }
 .theme-admonition-note,
-.theme-admonition-info { border-left-color: var(--vanta-focus); background: rgba(107, 220, 255, 0.07); }
-.theme-admonition-tip { border-left-color: var(--vanta-health); background: rgba(131, 242, 176, 0.08); }
+.theme-admonition-info { border-left-color: var(--vanta-focus); background: oklch(54.1337% 0.24659 293.009 / 0.08); }
+.theme-admonition-tip { border-left-color: var(--vanta-health); background: oklch(70% 0.16 145 / 0.08); }
 .theme-admonition-warning,
-.theme-admonition-caution { border-left-color: var(--vanta-activity); background: rgba(255, 184, 107, 0.09); }
-.theme-admonition-danger { border-left-color: var(--vanta-risk); background: rgba(255, 107, 122, 0.08); }
+.theme-admonition-caution { border-left-color: var(--vanta-activity); background: oklch(76% 0.15 80 / 0.08); }
+.theme-admonition-danger { border-left-color: var(--vanta-risk); background: oklch(62% 0.21 25 / 0.08); }
 
 /* ---------- Cards: compact and grounded ---------- */
 .card {
@@ -236,6 +285,7 @@ code { border-radius: 0.4rem; }
 
 /* Font smoothing — crisper text on macOS */
 html, body {
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -283,5 +333,5 @@ html, body {
 .footer__item { padding: 0; }
 .footer__link-item { font-size: 0.82rem; opacity: 0.85; }
 .footer__bottom { margin-top: 0; text-align: right; flex: 0 0 auto; }
-.footer { background: #0f0f0e; }
+.footer { background: var(--vanta-black); }
 .footer__copyright { font-size: 0.78rem; opacity: 0.78; }

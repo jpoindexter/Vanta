@@ -1,0 +1,24 @@
+{
+  "date": "2026-07-20",
+  "surface": "vanta.theft.studio",
+  "framework": "Docusaurus 3.10 / React 19 / CSS Modules",
+  "audience": "One owner evaluating, installing, and operating Vanta",
+  "job": "Understand the product boundary, inspect real evidence, and start one real task",
+  "tone": "Austere, atmospheric, technical, local-first",
+  "sourceArtifact": "/Users/jasonpoindexter/Desktop/vanta brand.png",
+  "macrostructure": "Photographic Fold",
+  "navigation": "N9 edge-aligned minimal",
+  "footer": "Ft5 statement",
+  "themeAxes": {
+    "surface": "dark",
+    "type": "roman serif plus neutral interface sans",
+    "temperature": "cool signal on warm bone ink"
+  },
+  "constraints": [
+    "One continuous #050507 landing-page substrate",
+    "#F4EFE3 for primary ink",
+    "#7C3AED as the only brand accent",
+    "No gradients, glow, alternating section colors, decorative cards, or fabricated metrics",
+    "Green, amber, and red remain semantic status colors only"
+  ]
+}

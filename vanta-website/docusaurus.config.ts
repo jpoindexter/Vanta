@@ -7,7 +7,24 @@ import type * as Preset from '@docusaurus/preset-classic';
 const config: Config = {
   title: 'Vanta',
   tagline: 'A local trusted operator — knows the goal before it picks a tool',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/vanta-v-mark.svg',
+
+  headTags: [
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'theme-color',
+        content: '#050507',
+      },
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'apple-touch-icon',
+        href: '/img/apple-touch-icon.png',
+      },
+    },
+  ],
 
   future: {
     v4: true, // Improve compatibility with the upcoming Docusaurus v4
@@ -66,28 +83,21 @@ const config: Config = {
   ],
 
   themeConfig: {
-    image: 'img/vanta-social-card.png',
+    image: 'img/vanta-raven-social.jpg',
     colorMode: {
-      defaultMode: 'light',
+      defaultMode: 'dark',
       respectPrefersColorScheme: false,
     },
     navbar: {
       title: 'Vanta',
       logo: {
         alt: 'Vanta',
-        src: 'img/vanta-mark-64.webp',
+        src: 'img/vanta-v-mark.svg',
         width: 32,
         height: 32,
       },
       items: [
-        {to: '/docs', label: 'Docs', position: 'left'},
-        {to: '/use-cases', label: 'Use cases', position: 'left'},
-        {to: '/roadmap', label: 'Roadmap', position: 'left'},
-        {
-          href: 'https://github.com/jpoindexter/Vanta',
-          label: 'GitHub',
-          position: 'right',
-        },
+        {to: '/docs', label: 'Read docs', position: 'right'},
       ],
     },
     footer: {
