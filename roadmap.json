@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-19",
+  "updated": "2026-07-20",
   "items": [
     {
       "id": "WHAT-CAN-I-DO-GALLERY",
@@ -19828,6 +19828,46 @@
         "GRAPH-REVIEW-REWORK-CYCLE",
         "GRAPH-ADAPTIVE-TOPOLOGY-POLICY",
         "GRAPH-OPERATOR-REPLAY-HANDOFF"
+      ]
+    },
+    {
+      "id": "DESKTOP-RICH-CLIPBOARD-PASTE",
+      "track": "Desktop App",
+      "title": "Desktop rich clipboard paste — text and images become task context",
+      "status": "next",
+      "size": "M",
+      "summary": "Make normal macOS paste work in the Vanta Desktop composer. Plain and rich text should paste at the caret, while clipboard PNG, TIFF, and JPEG data should enter the existing attachment and vision pipeline as a visible, removable context item instead of being ignored or flattened into an unusable project-file dump.",
+      "done": "In the packaged macOS app, Cmd+V pastes multiline text at the caret or replaces the current selection and pastes clipboard PNG, TIFF, or JPEG data as a keyboard-removable composer attachment with a visible thumbnail and accessible label; submitting text plus image reaches a vision-capable model with the image, cancellation or validation failure preserves the draft, and focused unit plus Electron proofs cover text, image, mixed clipboard, oversized and unsupported media, duplicate paste events, removal, and desktop and 760px layouts.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "tui",
+      "source": "operator-request-2026-07-20",
+      "after": [
+        "DESKTOP-CONTEXT-ATTACHMENTS",
+        "TUI-IMAGE-CLICKABLE"
+      ]
+    },
+    {
+      "id": "VISION-LOOK-CAPTURE",
+      "track": "Operator",
+      "title": "Look capture — native macOS screen, window, or marquee vision from CLI and Desktop",
+      "status": "next",
+      "size": "M",
+      "summary": "Give Vanta one explicit on-demand computer-vision gesture shared by the CLI/TUI and Desktop. `/look`, the Desktop capture action, or an unambiguous request such as ‘look at this screen’ should invoke a native macOS full-screen, window, or drag-to-select marquee capture like Cmd+Shift+3/4, attach the chosen image to the active turn, and route it through Vanta's existing vision model and safety boundary without enabling continuous recording by default.",
+      "done": "From both the real `vanta` CLI/TUI and packaged Vanta Desktop, `/look` or an explicit look action invokes the native macOS screen, window, or marquee selector, can cancel without sending, shows the selected capture as removable task context, and submits it to the routed vision model; Screen Recording denial offers one concrete recovery action, captures live only in a scoped TTL temporary store, receipts identify capture source, time, and scope, and executed proofs cover full screen, window, marquee, cancel, denial, multiple displays, Retina scaling, oversized-image recovery, and one successful visual question in each client.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "tui",
+      "source": "operator-request-2026-07-20",
+      "after": [
+        "DESKTOP-RICH-CLIPBOARD-PASTE",
+        "HP-COMPUTER-USE",
+        "AUX-VISION",
+        "AMBIENT-SCREEN-CONTEXT"
       ]
     },
     {

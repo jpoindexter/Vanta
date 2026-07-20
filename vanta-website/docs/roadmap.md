@@ -8,13 +8,23 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1258 capabilities shipped · 0 in flight · 10 external proof gates · 11 on the horizon. Updated 2026-07-19._
+_1258 capabilities shipped · 2 in flight · 10 external proof gates · 11 on the horizon. Updated 2026-07-20._
 
 ## In flight
 
 What we are actively building next.
 
-_Nothing in flight right now — the remaining accepted work is listed under external proof gates._
+### Desktop rich clipboard paste — text and images become task context
+
+**Desktop App** · M-size
+
+Make normal macOS paste work in the Vanta Desktop composer. Plain and rich text should paste at the caret, while clipboard PNG, TIFF, and JPEG data should enter the existing attachment and vision pipeline as a visible, removable context item instead of being ignored or flattened into an unusable project-file dump
+
+### Look capture — native macOS screen, window, or marquee vision from CLI and Desktop
+
+**Operator** · M-size
+
+Give Vanta one explicit on-demand computer-vision gesture shared by the CLI/TUI and Desktop. `/look`, the Desktop capture action, or an unambiguous request such as ‘look at this screen’ should invoke a native macOS full-screen, window, or drag-to-select marquee capture like Cmd+Shift+3/4, attach the chosen image to the active turn, and route it through Vanta's existing vision model and safety boundary without enabling continuous recording by default
 
 ## Recently shipped
 
