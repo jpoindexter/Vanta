@@ -29,7 +29,7 @@ const COMMAND_CATEGORIES = [
   ['Tools, skills & knowledge', ['tools','skills','recall','memory','moim','context','compress','compact','hooks','mcp','permissions','preferences']],
   ['Deep work', ['ultrathink','ultracode','deep-research','skeptic','brief','review','simplify','auto','verify','repro','summary','audit']],
   ['Operator views', ['world','money','radar','team','lifesearch','compartments','locks','reach','cookie','dashboard','health','today']],
-  ['Files, edits & input', ['files','open','edit','diff','changes','search','image','paste','attachments','add-dir','import']],
+  ['Files, edits & input', ['files','open','edit','diff','changes','search','image','look','paste','attachments','add-dir','import']],
   ['Project & lifecycle', ['init','roadmap','loops','cron','tasks','branch','routes','rename','lint']],
   ['Sessions & continuity', ['sessions','resume','handoff','bug','copy']],
   ['UI', ['cockpit','tui','focus','composer','output-style']],
@@ -96,7 +96,7 @@ for (const [label, rows] of toolGroups) {
     tools += t.hasSafety ? `_Safety-checked: sends a descriptor to the kernel for classification._\n\n` : `\n`;
   }
 }
-writeFileSync(join(docs, 'tools-list.md'), tools);
+writeFileSync(join(docs, 'tools-list.md'), tools.trimEnd() + '\n');
 
 // ---- commands page ----
 const cmdGroups = categorize(data.commands, COMMAND_CATEGORIES, 'name');
@@ -116,6 +116,6 @@ for (const [label, rows] of cmdGroups) {
   for (const c of rows) cmds += `| \`/${c.name}\` | ${esc(c.desc) || '—'} |\n`;
   cmds += '\n';
 }
-writeFileSync(join(docs, 'commands-list.md'), cmds);
+writeFileSync(join(docs, 'commands-list.md'), cmds.trimEnd() + '\n');
 
 console.log(`generated tools-list.md (${data.tools.length} tools) + commands-list.md (${data.commands.length} commands)`);

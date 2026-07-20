@@ -12,15 +12,16 @@ Vanta is an open-source local AI operator for work that crosses tools, files, re
 
 ## Start here
 
-- **[Download Vanta Desktop for macOS](https://github.com/jpoindexter/Vanta/releases/download/v0.9.4/Vanta-0.9.4-arm64.dmg)** — signed, notarized, and stapled for Apple Silicon.
-- **[Read the release notes and see the product screens](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.4)** — Work, Connect, Models, Approvals, checksums, and release proof.
+- **[Download Vanta Desktop for macOS](https://github.com/jpoindexter/Vanta/releases/download/v0.9.5/Vanta-0.9.5-arm64.dmg)** — signed, notarized, and stapled for Apple Silicon.
+- **[Read the release notes and see the product screens](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.5)** — Sight, clipboard context, workflow graphs, checksums, and release proof.
 - **[Read the docs](https://docs.vanta.theft.studio/)** — setup, safety model, agents, memory, MCP, messaging, and the live roadmap.
 
-## What ships in Desktop v0.9.4
+## What ships in Desktop v0.9.5
 
 Vanta Desktop is the native macOS surface for the same Vanta agent that runs in the terminal and approved messaging channels. It includes:
 
 - **Work** — chat, live tool activity, run receipts, files, model scope, approvals, and recovery in one task surface.
+- **Sight** — capture a macOS area, window, or all displays into removable task context; pasted images use the same vision path.
 - **Connect** — setup states for model providers, skills, MCP servers, messaging channels, and Google services.
 - **Models** — a live catalog with default and one-task model selection.
 - **Outputs** — generated files, previews, diffs, receipts, and other run artifacts.
@@ -30,7 +31,7 @@ Vanta Desktop is the native macOS surface for the same Vanta agent that runs in 
   <img src="https://raw.githubusercontent.com/jpoindexter/Vanta/main/vanta-website/static/img/vanta-desktop-connect-light.webp" alt="Vanta Desktop Connect view with provider, capability, MCP, messaging, and Google setup states" width="960">
 </p>
 
-The public `v0.9.4` artifact includes the notarized ARM64 DMG and ZIP, checksum, plus checksum-paired kernel binaries for macOS, Linux, Android/Termux, and Windows. Its exact-tag proof covers 36 Ghost light/dark visual captures, packaged startup under a 10-second hard ceiling, Gatekeeper on a clean Mac, and native Windows coverage.
+The public `v0.9.5` artifact includes the notarized ARM64 DMG and ZIP, checksum, plus checksum-paired kernel binaries for macOS, Linux, Android/Termux, and Windows. Sight and clipboard context have focused source and packaged-app proof; the exact public artifact is independently checked for checksum, staple, signature, and Gatekeeper acceptance.
 
 <details>
 <summary>Architecture</summary>
@@ -96,6 +97,8 @@ First run downloads the prebuilt kernel (and a portable Node if needed) and inst
 ./run.sh auth google                       # one-time Google OAuth (gmail/calendar/drive)
 ```
 
+Inside an interactive session, use `/look` to drag-select an area, `/look window` to choose a window, or `/look screen` to capture every display. The capture is attached to the next message rather than sent immediately, so you can ask a specific question or remove it with `/attachments clear`. On macOS, allow Vanta under **System Settings → Privacy & Security → Screen Recording** when prompted. See [Sight: screen context](vanta-website/docs/sight.md).
+
 (`./vanta` is an alias for `./run.sh`. Only `git` is needed — the kernel and Node are fetched automatically.)
 
 ## What you can build
@@ -123,16 +126,16 @@ Vanta is a **general operator**, not a coding tool — one agent runs every cate
 **Kernel (Rust):** enforced risk classifier (allow/ask/block), approval queue, goal ledger, event log, HTTP cockpit + JSON API, `VANTA_ROOT` scoping.
 
 **Agent (TypeScript):**
-- Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 141 registered tools and 146 commands
+- Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 142 registered tools and 149 commands
 - **Goals** — kernel goal ledger plus TS dependency graph (`/goal blocks`, `/goal blocked_by`, `vanta goals`)
 - **Skills & memory** — learned `~/.vanta/skills`, `/skills audit` for local skill injection-scan findings, a configurable public registry client with quarantine/approval/update rollback, per-goal memory, curator, LLM context compression with [settled local Git versioning](docs/local-store-versioning.md)
 - **Web search** — keyless (DuckDuckGo/SearXNG) + keyed (Brave/SerpAPI/Exa/Firecrawl/Tavily/Parallel/xAI Grok grounded search) with domain scoping; `web_fetch` readable extraction routes large pages through a size-tiered summarize/chunk/synthesize pipeline (configurable aux model)
 - **Governance & cost** — `vanta governance export` (auditable report of every gated action), versioned `.env` + `vanta config rollback`, persisted spend ledger via `/usage breakdown`
-- **Browser & vision** — screenshot / navigate / extract / read / act (Playwright) + image/video understanding
+- **Browser & vision** — screenshot / navigate / extract / read / act (Playwright), image/video understanding, and explicit `/look` capture for a macOS area, window, or all displays
 - **Voice & terminal** — push-to-talk voice input (local whisper STT), live terminal capture (tmux-backed), Slack `#channel` autocomplete in the composer
 - **Desktop control** — native screen control (screencapture → vision grounding → cliclick, or the CHICAGO computer-use MCP); `vanta control setup` grants OS permissions
 - **Ambient companion** — native Electron menu-bar presence with Quick Ask and approval status; `vanta desktop --companion` exposes a token-paired mobile status/chat/approval surface while terminal, files, tools, and model settings remain loopback-only
-- **Native desktop app** — one-viewport React/Electron workspace with persisted project selection, in-app model setup, sessions/chat/canvas/files/terminal, actionable startup recovery, and a [notarized ARM64 macOS DMG](https://github.com/jpoindexter/Vanta/releases/download/v0.9.4/Vanta-0.9.4-arm64.dmg) verified by an independent [clean-Mac Gatekeeper proof](https://github.com/jpoindexter/Vanta/actions/runs/29691840769)
+- **Native desktop app** — one-viewport React/Electron workspace with persisted project selection, in-app model setup, sessions/chat/canvas/files/terminal, image clipboard paste, explicit screen capture, actionable startup recovery, and a [notarized ARM64 macOS DMG](https://github.com/jpoindexter/Vanta/releases/download/v0.9.5/Vanta-0.9.5-arm64.dmg)
 - **Personal tuning** — `vanta tune lora` trains a local LoRA adapter from your accepted/rejected operator decisions (real MPS/CUDA/CPU training)
 - **Code & dev** — scoped file editing, grep/glob, `run_code`, LSP diagnostics/definition (TS), git tools, regression locks
 - **Autonomous** — cron scheduler, background tasks, subagent delegation, swarm/workflow, A2A bus, team workers

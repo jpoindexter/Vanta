@@ -794,29 +794,50 @@
     },
     {
       "name": "compose_workflow",
-      "description": "Compose, diff, and run declarative agent workflow graphs. Supports agent, approval, and interview nodes plus next, branch, loop, and parallel transitions. Also accepts the legacy typed step sequence.",
+      "description": "Create, save, reopen, diff, validate, and launch versioned local workflow graphs with trigger, action, browser, agent, and approval nodes.",
       "parameters": {
         "type": "object",
-        "required": [
-          "spec"
-        ],
         "properties": {
           "mode": {
             "type": "string",
             "enum": [
               "validate",
               "diff",
-              "run"
+              "run",
+              "save",
+              "open",
+              "list",
+              "launch"
             ],
-            "description": "Default run. Use diff with previous_spec."
+            "description": "Default run. Stored modes use workflow_id."
+          },
+          "workflow_id": {
+            "type": "string",
+            "description": "Stored workflow ID for open, diff, or launch."
+          },
+          "revision": {
+            "type": "number",
+            "description": "Optional stored revision; defaults to current."
+          },
+          "previous_revision": {
+            "type": "number",
+            "description": "Earlier stored revision for diff."
+          },
+          "resume": {
+            "type": "boolean",
+            "description": "Resume a paused approval gate without replaying confirmed nodes."
           },
           "previous_spec": {
             "type": "object",
             "description": "Previous graph spec for stable diff output."
           },
+          "run_id": {
+            "type": "string",
+            "description": "Stable run ID used to resume an interrupted graph without replaying confirmed nodes."
+          },
           "spec": {
             "type": "object",
-            "description": "Workflow graph {id,title,start,nodes,transitions} or legacy {name,description,steps}."
+            "description": "Workflow graph or legacy typed step sequence. Required for save, validate, and direct run."
           }
         }
       },
@@ -1836,13 +1857,13 @@
     },
     {
       "name": "look_at_screen",
-      "description": "Capture the user's current screen and describe it with a vision model — Vanta's eyes. Use to see what the user is looking at, read on-screen content, or check the state of an app or UI.",
+      "description": "Capture the current macOS screen and describe it with Vanta's routed vision model.",
       "parameters": {
         "type": "object",
         "properties": {
           "prompt": {
             "type": "string",
-            "description": "What to look for (defaults to a general description)"
+            "description": "What to look for"
           }
         }
       },
@@ -2326,7 +2347,7 @@
           },
           "contract": {
             "type": "object",
-            "description": "Strict version-1 payment contract. Use minor units and provider_cli credential storage only."
+            "description": "Strict version-1 payment contract. Use minor units and an approved provider CLI or vault signer reference; plaintext credentials are rejected."
           }
         }
       },
@@ -3096,6 +3117,25 @@
               "parked"
             ],
             "description": "The target status."
+          }
+        }
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "roadmap_status",
+      "description": "Read the authoritative project roadmap and its open work. Use this for EVERY roadmap, backlog, or what-is-left question. Do not use inspect_state for roadmap questions: it reports only session goals. This is read-only and does not open the roadmap board.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "view": {
+            "type": "string",
+            "enum": [
+              "summary",
+              "open",
+              "actionable"
+            ],
+            "description": "summary = counts plus actionable work; open = every open card; actionable = only unblocked work."
           }
         }
       },
@@ -4726,6 +4766,10 @@
       "desc": "regression locks — verified behaviors + passing/regressed status (verification organ)"
     },
     {
+      "name": "look",
+      "desc": "capture native macOS screen context for the next message"
+    },
+    {
       "name": "loop",
       "desc": "schedule a recurring task from a natural-language interval (e.g. every 2 hours <task>, daily, every monday)"
     },
@@ -4898,6 +4942,14 @@
       "desc": "sandbox settings — config, dependencies, doctor, per-tool overrides (TUI)"
     },
     {
+      "name": "schema-quality",
+      "desc": "show exact, partial, untested, and contradicted model quality"
+    },
+    {
+      "name": "schema-recovery",
+      "desc": "show the latest model counterexample and its safe next action"
+    },
+    {
       "name": "screenshot",
       "desc": "copy the current Vanta transcript to clipboard as a PNG image"
     },
@@ -4923,7 +4975,7 @@
     },
     {
       "name": "setup",
-      "desc": "configure the model backend — opens the provider/model picker"
+      "desc": "open setup or inspect one setup area"
     },
     {
       "name": "simplify",

@@ -6,7 +6,7 @@ sidebar_position: 1
 
 # Tools
 
-Vanta ships **119 built-in tools** (122 registered, including the factory-built `mount_mcp`, `tool_search`, and `mcp_auth`). Every tool call is gated by the kernel before it runs. The model sees a per-turn scoped subset of the catalog; `tool_search` is always reachable to pull in the rest on demand.
+Vanta ships **139 built-in tools** (142 registered, including the factory-built `mount_mcp`, `tool_search`, and `mcp_auth`). Every tool call is gated by the kernel before it runs. The model sees a per-turn scoped subset of the catalog; `tool_search` is always reachable to pull in the rest on demand.
 
 ## By category
 
@@ -19,7 +19,7 @@ Vanta ships **119 built-in tools** (122 registered, including the factory-built 
 `web_search` (automatic managed-provider routing with Brave-browser/Bing keyless fallback) · `web_fetch` (readable-content extraction) · `rss_read` · `reddit_read` · `cookie_import` (kernel-gated credential store, never echoed). DuckDuckGo adapters are explicit legacy options because they frequently bot-block agents.
 
 ### Browser, vision & voice
-`screenshot` · `browser_navigate` · `browser_extract` · `browser_act` (navigate/click/type/press/scroll with an approval-gated, masked dry-run preview for irreversible controls) · `describe_image` · `compare_vision` · `look_at_screen` · `look_at_camera` · `watch_video` · `transcribe` (audio → text) · `speak` (text → speech). Vision and voice route through a dedicated model when configured (`VANTA_VISION_MODEL`), so a text-only main model still has eyes and ears.
+`screenshot` · `browser_navigate` · `browser_extract` · `browser_act` (navigate/click/type/press/scroll with an approval-gated, masked dry-run preview for irreversible controls) · `describe_image` · `compare_vision` · `look_at_screen` · `look_at_camera` · `watch_video` · `transcribe` (audio → text) · `speak` (text → speech). `look_at_screen` gives the agent an explicit kernel-gated view of the current display; `/look` and the Desktop capture control add operator-selected area/window/display images to the next turn. Vision and voice route through a dedicated model when configured (`VANTA_VISION_MODEL`), so a text-only main model still has eyes and ears. See [Sight & screen context](./sight.md).
 
 ### Output compression
 Large tool outputs are optionally compressed before they hit the context window (JSON crush, log squash) and stashed so the agent can retrieve the full text later (`retrieve_original`). Enable per the `compress/*` settings; only allowlisted tools compress.

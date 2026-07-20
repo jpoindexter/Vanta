@@ -35,6 +35,7 @@ const sidebars: SidebarsConfig = {
         'prompt-presets-and-agents',
         'comms-and-gateway',
         'executive-function',
+        'sight',
         'desktop-and-tui',
         'payment-transactions',
         'shopify-operations',

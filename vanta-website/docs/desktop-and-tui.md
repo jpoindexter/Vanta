@@ -38,6 +38,8 @@ Session management is recoverable by default. Archive and Trash actions show pen
 
 Project context opens from the composer paperclip or an empty-draft `@`. The picker separates files changed in the working tree, files mentioned in the active task, and recently modified files, with project-wide search. Gitignored and credential-like paths are hidden by default. Selected files appear as removable chips and are submitted through the shared `@path` context expansion contract.
 
+Sight uses the capture control beside the composer. **Select area**, **Select window**, or **All displays** attaches an explicit macOS capture to the current draft without sending it. Clipboard PNG, TIFF, and JPEG data follows the same removable image-context path through normal `Cmd+V`; multiline text still pastes at the caret. Captures expire from unsent context after five minutes and include source, scope, dimensions, capture time, and expiry receipts. See [Sight & screen context](./sight.md).
+
 Connect reports models, capabilities, and messaging adapters as **Ready**, **Needs setup**, or **Unavailable**. Ready providers and adapters have safe local test actions; provider tests resolve the configured model without inference, and messaging tests verify required local settings without sending a message. Secrets remain write-only. Startup errors open model setup only for provider failures, while project file/catalog failures stay in scoped local recovery.
 
 MCP connectors use the same project registry in CLI, TUI, and Desktop. The TUI `/mcp` panel displays shared trust/auth/enablement and persisted tool/resource inventory while its reconnect action refreshes the registry and receipt ledger. Desktop exposes the same contract on loopback-only `GET/POST /api/connect/mcp`; the Connect control-center UI builds on that boundary rather than maintaining a second MCP store.
@@ -60,13 +62,14 @@ The installed app asks for a working folder and remembers it. If that folder has
 
 The macOS build bundles the renderer, TypeScript runtime, and Rust safety kernel, so it does not need a Vanta checkout. `npm run desktop:dist` uses an available Developer ID certificate by unique hash and leaves a clearly labelled unsigned local build when none exists. For public distribution, first store credentials with `xcrun notarytool store-credentials vanta`, then run `npm run desktop:release`. The release command signs the DMG container, waits for Apple acceptance, staples and validates the ticket, and requires Gatekeeper to report `Notarized Developer ID`. Set `VANTA_DESKTOP_NOTARY_PROFILE` to use a profile name other than `vanta`.
 
-[Download the notarized Vanta v0.9.4 DMG](https://github.com/jpoindexter/Vanta/releases/download/v0.9.4/Vanta-0.9.4-arm64.dmg). SHA-256: `f9556698e3a5bc5b2b5679f919238f924c19b366c366b2122aa8324a9eb301a3`. Apple accepted submission `374f7536-59ba-4657-a437-b6d151d81445`; the exact public download passed checksum, staple, signature, quarantine, and Gatekeeper verification in [clean-Mac run 29691840769](https://github.com/jpoindexter/Vanta/actions/runs/29691840769).
+[Download the notarized Vanta v0.9.5 DMG](https://github.com/jpoindexter/Vanta/releases/download/v0.9.5/Vanta-0.9.5-arm64.dmg). The release includes its SHA-256 checksum beside the DMG; the exact public artifact is rechecked on a clean hosted Mac for checksum, staple, signature, quarantine, and Gatekeeper acceptance.
 
 ## Voice, sight & desktop control
 
 Beyond text, Vanta can take voice in and act on the screen. Each is opt-in and configured by the setup wizard, which also walks you through the one-time macOS permissions.
 
 - **Voice input** — hold-to-talk in the composer; speech is transcribed locally on your machine (no audio leaves the device).
+- **Sight** — `/look` or the Desktop capture control selects a macOS area, window, or all displays, attaches it to the next turn, and can be cancelled or removed before anything is sent.
 - **Native desktop control** — Vanta can see the screen and click / type / scroll to drive native apps, not just the browser. It works by capturing the screen, grounding the target on-screen, and actuating — or by routing through an external computer-use server.
 - **Terminal capture** — read a live terminal pane's contents into context, so Vanta can act on what a long-running command is printing.
 - **Channel autocomplete** — type `#` in the composer to pick a Slack channel.

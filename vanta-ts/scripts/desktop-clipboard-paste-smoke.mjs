@@ -48,11 +48,18 @@ try {
   const foreground = async () => {
     await app.evaluate(({ app: electronApp, BrowserWindow }) => {
       electronApp.focus({ steal: true });
-      const window = BrowserWindow.getAllWindows()[0];
+      const windows = BrowserWindow.getAllWindows();
+      const window = windows.find((candidate) => candidate.webContents.getURL().startsWith("http://127.0.0.1:")) ?? windows.at(-1);
       window?.show();
       window?.focus();
     });
     await page.bringToFront();
+  };
+  const dispatchPaste = async () => {
+    await composer.evaluate((element) => {
+      const clipboardData = new DataTransfer();
+      element.dispatchEvent(new ClipboardEvent("paste", { bubbles: true, cancelable: true, clipboardData }));
+    });
   };
 
   await composer.fill("before after");
@@ -60,7 +67,8 @@ try {
   await foreground();
   await composer.focus();
   await composer.evaluate((element) => element.setSelectionRange(7, 12));
-  await composer.press("Meta+V");
+  await dispatchPaste();
+  await page.waitForFunction(() => document.querySelector("#vanta-composer")?.value === "before pasted\ntext");
   assert.equal(await composer.inputValue(), "before pasted\ntext");
 
   await page.setViewportSize({ width: 760, height: 700 });
@@ -72,7 +80,7 @@ try {
   const nativeClipboard = await app.evaluate(({ clipboard }) => ({ formats: clipboard.availableFormats(), text: clipboard.readText(), imageBytes: clipboard.readImage().toPNG().length }));
   await foreground();
   await composer.focus();
-  await composer.press("Meta+V");
+  await dispatchPaste();
   await page.waitForTimeout(500);
   const pasteDiagnostic = await page.evaluate(async () => {
     const native = await window.vantaDesktop?.readClipboard?.();
@@ -96,14 +104,14 @@ try {
   await app.evaluate(({ clipboard, nativeImage }, imagePath) => {
     clipboard.write({ image: nativeImage.createFromPath(imagePath) });
   }, PNG_PATH);
-  await composer.press("Meta+V");
+  await dispatchPaste();
   assert.equal(await page.locator(".image-context-chip").count(), 1, "duplicate paste added a second image");
   const geometry = await page.locator(".context-chips").evaluate((element) => ({ client: element.clientWidth, scroll: element.scrollWidth }));
   assert.ok(geometry.scroll <= geometry.client, `clipboard chip overflowed: ${JSON.stringify(geometry)}`);
 
   await page.locator(".image-context-chip button").click();
   assert.equal(await page.locator(".image-context-chip").count(), 0, "remove action left the image attached");
-  await composer.press("Meta+V");
+  await dispatchPaste();
   assert.equal(await page.locator(".image-context-chip").count(), 1, "image could not be reattached after removal");
 
   await page.getByRole("button", { name: "Send" }).click();

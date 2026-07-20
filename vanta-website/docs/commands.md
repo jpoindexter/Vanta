@@ -6,7 +6,7 @@ sidebar_position: 4
 
 # Slash commands
 
-An interactive session exposes **125 slash commands**. `/help` lists them all; below are the most useful, grouped. The composer also takes `@file` (inline file as context), `!` (shell), and `#` (memory).
+An interactive session exposes **149 slash commands**. `/help` lists them all; below are the most useful, grouped. The composer also takes `@file` (inline file as context), `!` (shell), and `#` (memory).
 
 ## Session & goals
 | Command | Does |
@@ -37,5 +37,8 @@ An interactive session exposes **125 slash commands**. `/help` lists them all; b
 
 ## Project & lifecycle
 `/init` (generate a project context/instructions file) · `/roadmap` · `/changes` (interactive edit review) · `/loops` · `/open <file:line>`.
+
+## Sight & attachments
+`/look [marquee|window|screen]` captures explicit macOS screen context for the next message. `/attachments` lists pending image context; `/attachments clear` removes it without sending. See [Sight & screen context](./sight.md).
 
 > Counts are current as of the latest source sync; `/help` is always the authoritative, live list.

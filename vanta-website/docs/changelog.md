@@ -8,6 +8,13 @@ sidebar_position: 2
 
 Major capability milestones, newest first. This is a curated highlight reel — the full per-slice history lives in `roadmap.json`.
 
+## 2026-07-20 — v0.9.5 Sight and workflow graphs
+- **Explicit screen context** — `/look`, `/look window`, and `/look screen` attach a selected macOS area, window, or all displays to the next task turn with scoped capture receipts.
+- **Desktop image context** — the composer exposes the same capture modes and accepts clipboard PNG, TIFF, and JPEG images as visible, removable attachments.
+- **Privacy-bound capture** — capture is operator-initiated, native temporary files are removed after ingestion, unsent context expires after five minutes, and permission denial opens one concrete Screen Recording recovery path.
+- **Graph engineering v1** — durable shared state, typed handoffs, review/rework cycles, adaptive topology policy, and replayable operator receipts coordinate existing Vanta loops.
+- **Honest proof boundary** — the CLI visual-question path and source/signed-package Desktop smokes are executed; one successful visual question from the signed app remains gated on macOS Screen Recording permission.
+
 ## 2026-07-19 — v0.9.4 desktop release
 - **Notarized public desktop build** — the Apple Silicon DMG and ZIP are published with checksum and Apple submission `374f7536-59ba-4657-a437-b6d151d81445`.
 - **Independent Gatekeeper proof** — a clean hosted Mac downloaded the public DMG, verified its checksum and staple, quarantined the extracted app, and passed signature and Gatekeeper assessment.
@@ -66,7 +73,7 @@ Major capability milestones, newest first. This is a curated highlight reel — 
 
 ## Interface
 - **Terminal UI rebuild** on real Ink — inline render + committed scrollback, markdown, diffs, approvals menu, cockpit, ⌘-style overlays; mission-control shell (`VANTA_TUI=v2`); desktop renderer.
-- Slash-command surface grew to **125 commands**; per-turn tool scoping over **119 tools**.
+- Slash-command surface grew to **149 commands**; per-turn tool scoping over **142 registered tools**.
 
 ## Selfhood & knowledge
 - **Brain** — one cohesive memory unit (markdown regions + structured, decaying entries) with recall guardrails.

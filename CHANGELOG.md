@@ -3,6 +3,19 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## v0.9.5 — 2026-07-20
+
+**Sight and structured workflow execution.** Vanta can capture explicit macOS screen context into a task, paste image context into Desktop, and execute durable review/rework graphs over shared state.
+
+### Added
+- **Sight screen context** — `/look`, `/look window`, and `/look screen` capture a native macOS area, window, or all displays and attach the result to the next turn with a scoped receipt. Desktop exposes the same modes beside the composer.
+- **Rich Desktop clipboard** — normal `Cmd+V` pastes text at the caret and turns PNG, TIFF, or JPEG clipboard data into visible, removable vision context.
+- **Graph engineering v1** — durable graph state, typed handoffs, conditional review/rework edges, adaptive topology within policy, and replayable operator receipts compose existing Vanta workers without replacing the kernel boundary.
+
+### Verified boundary
+- The real CLI/TUI captured a Retina display and completed a visual question; focused capture tests and source/signed-package Desktop smokes pass.
+- The final live signed-app visual question still requires Screen Recording permission for `studio.theft.vanta` and remains an explicit external proof gate.
+
 ## v0.9.4 — 2026-07-19
 
 **Desktop cold-start reliability.** The desktop work surface now becomes usable as soon as its critical project, session, model, tool, and file state is ready; optional Connect, Outputs, Canvas, messaging, and release-proof data finish loading without holding the composer closed.

@@ -6,7 +6,7 @@ sidebar_position: 3
 
 # Tool reference
 
-Every built-in tool, generated directly from the source registry — **141 tools**. Each call is gated by the kernel before it runs (tools marked _safety-checked_ send a safety descriptor to the kernel). The model sees a per-turn scoped subset; `tool_search` pulls in the rest on demand.
+Every built-in tool, generated directly from the source registry — **142 tools**. Each call is gated by the kernel before it runs (tools marked _safety-checked_ send a safety descriptor to the kernel). The model sees a per-turn scoped subset; `tool_search` pulls in the rest on demand.
 
 ## Files & code
 
@@ -426,11 +426,11 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 
 ### `look_at_screen`
 
-Capture the user's current screen and describe it with a vision model — Vanta's eyes. Use to see what the user is looking at, read on-screen content, or check the state of an app or UI.
+Capture the current macOS screen and describe it with Vanta's routed vision model.
 
 | Param | Type | Required | Description |
 |---|---|---|---|
-| `prompt` | string | no | What to look for (defaults to a general description) |
+| `prompt` | string | no | What to look for |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
@@ -629,13 +629,18 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 
 ### `compose_workflow`
 
-Compose, diff, and run declarative agent workflow graphs. Supports agent, approval, and interview nodes plus next, branch, loop, and parallel transitions. Also accepts the legacy typed step sequence.
+Create, save, reopen, diff, validate, and launch versioned local workflow graphs with trigger, action, browser, agent, and approval nodes.
 
 | Param | Type | Required | Description |
 |---|---|---|---|
-| `mode` | string | no | Default run. Use diff with previous_spec. |
+| `mode` | string | no | Default run. Stored modes use workflow_id. |
+| `workflow_id` | string | no | Stored workflow ID for open, diff, or launch. |
+| `revision` | number | no | Optional stored revision; defaults to current. |
+| `previous_revision` | number | no | Earlier stored revision for diff. |
+| `resume` | boolean | no | Resume a paused approval gate without replaying confirmed nodes. |
 | `previous_spec` | object | no | Previous graph spec for stable diff output. |
-| `spec` | object | yes | Workflow graph &#123;id,title,start,nodes,transitions&#125; or legacy &#123;name,description,steps&#125;. |
+| `run_id` | string | no | Stable run ID used to resume an interrupted graph without replaying confirmed nodes. |
+| `spec` | object | no | Workflow graph or legacy typed step sequence. Required for save, validate, and direct run. |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
@@ -1454,7 +1459,7 @@ Preview or execute a strict test-gated payment contract. Exact totals, caps, exp
 | Param | Type | Required | Description |
 |---|---|---|---|
 | `action` | string | yes |  |
-| `contract` | object | yes | Strict version-1 payment contract. Use minor units and provider_cli credential storage only. |
+| `contract` | object | yes | Strict version-1 payment contract. Use minor units and an approved provider CLI or vault signer reference; plaintext credentials are rejected. |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
@@ -1514,6 +1519,16 @@ Present a generated file artifact (its full proposed content) for human review b
 |---|---|---|---|
 | `path` | string | yes | Path (relative to the project root, or a writable-zone path) to review and write. |
 | `content` | string | yes | Full proposed file contents to review. |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `roadmap_status`
+
+Read the authoritative project roadmap and its open work. Use this for EVERY roadmap, backlog, or what-is-left question. Do not use inspect_state for roadmap questions: it reports only session goals. This is read-only and does not open the roadmap board.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `view` | string | no | summary = counts plus actionable work; open = every open card; actionable = only unblocked work. |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
@@ -1742,4 +1757,3 @@ Read Xueqiu stock quotes, stock search, hot posts, and hot-stock ranking using a
 | `type` | integer | no | hot_stocks ranking type; 10 popularity, 12 watchlist |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
-

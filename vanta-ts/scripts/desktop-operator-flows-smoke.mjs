@@ -187,7 +187,7 @@ process.stdin.on("data", (chunk) => {
     return button instanceof HTMLButtonElement && !button.disabled;
   });
   await page.getByRole("button", { name: "Send", exact: true }).click();
-  await page.getByText("make a quiet trace code change", { exact: true }).waitFor();
+  await page.getByLabel("Conversation history").getByText("make a quiet trace code change", { exact: true }).waitFor();
   await page.waitForTimeout(500);
   const quietTraceText = await page.locator(".conversation-stage").innerText();
   if (!quietTraceText.includes("Read and searched 2 times")) throw new Error(`Quiet trace response was not rendered: ${quietTraceText}`);
@@ -270,7 +270,7 @@ process.stdin.on("data", (chunk) => {
   await page.getByPlaceholder("Search models and providers").fill("");
   await page.locator(".model-provider-nav button").first().waitFor();
   await page.locator(".model-picker").getByRole("button", { name: "Close model picker" }).click();
-  await page.locator("#vanta-composer").press("@");
+  await page.getByRole("button", { name: "Attach project files" }).click();
   await page.locator(".right-rail").waitFor();
   await page.locator(".files-panel").waitFor();
   const fileButton = page.locator(".file-list button").first();
@@ -290,7 +290,7 @@ process.stdin.on("data", (chunk) => {
   await page.getByRole("tab", { name: "Overview", exact: true }).waitFor();
   await page.getByRole("button", { name: "Work", exact: true }).click();
 
-  await page.locator("#vanta-composer").press("/");
+  await page.getByRole("button", { name: "Open commands" }).click();
   await page.getByRole("heading", { name: "Command palette" }).waitFor();
   await page.getByRole("button", { name: "Set up Telegram" }).click();
   await page.getByRole("heading", { name: "Telegram" }).waitFor();

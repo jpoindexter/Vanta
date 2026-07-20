@@ -1,6 +1,6 @@
 # Product acceptance
 
-Updated 2026-07-19. This record separates executed behavior from static tests and external setup gates.
+Updated 2026-07-20. This record separates executed behavior from static tests and external setup gates.
 
 ## Executed operator paths
 
@@ -10,17 +10,19 @@ Updated 2026-07-19. This record separates executed behavior from static tests an
 | Write and read back a file | Pass | The model wrote `.vanta/eval-runs/product-acceptance/model-write.txt`, read it back, and returned the exact marker in 3 iterations. |
 | Recall an ingested project artifact | Pass | Corpus ingest and keyword/semantic recall returned the written marker with its project-root source path. |
 | Delegate bounded work | Pass | One parent call spawned one worker; the worker read the README and returned the required result in 2 parent iterations. |
-| Use the packaged desktop chat | Pass | The notarized v0.8.0 app called `read_file` and returned `VANTA_DESKTOP_CHAT_OK` in 2 iterations; the notarized v0.9.3 package completed the current packaged work flow, and v0.9.4 adds a cold-start regression gate over the same desktop surface. |
+| Use the packaged desktop chat | Pass | The notarized v0.8.0 app called `read_file` and returned `VANTA_DESKTOP_CHAT_OK` in 2 iterations; v0.9.5 passes the current source-plus-packaged work, recovery, Connect, attachments, long-session, queue, and responsive flow suite. |
 | Block a destructive desktop command | Pass | The packaged desktop rejected `rm -rf / --no-preserve-root` at the kernel boundary. |
 | Run an unattended schedule | Pass | A clean `~/vanta` install launched through launchd, fired a provider-free task (`VANTA_SCHEDULE_OK`), then completed a real Codex agent task (`VANTA_SERVICE_AGENT_OK`). Temporary tasks were removed; the service and 9 AM greeting remain active. |
 | Report cold-start capabilities | Pass | `general-capability-start` inspected doctor, activation, backend, channels, keybindings, Run Anywhere, and A2A state; it separated ready and setup-required workflows before action. |
 | Produce cited research | Pass | `research-cited-synthesis` used two bounded decomposition workers, search, and three primary-source fetches; it returned a cited skeptic pass with explicit uncertainty in 176 seconds. |
+| Capture and inspect the screen | Pass | The CLI/TUI captured a real 3024x1964 Retina screen and a visual model returned the required `SIGHT_OK landscape` marker. Area, window, and all-display capture contracts also passed focused Desktop smoke coverage. |
+| Paste image context into Desktop | Pass | The Electron native clipboard bridge ingested text, PNG, and mixed clipboard content; Desktop rendered a removable chip, retained it after failed send, submitted it on success, and then cleared it. |
 
 The use-case catalog currently records 6 executed and 6 passed scenarios across 6 of 15 categories. The remaining categories are coverage gaps, not failures.
 
 ## Regression gates
 
-- TypeScript: 1,434 test files; 13,505 passed and 3 skipped.
+- TypeScript: 1,456 test files; 13,584 passed and 3 skipped.
 - Rust kernel: 70 passed.
 - TypeScript typecheck and architectural boundaries: passed.
 - Production desktop renderer build: passed.
@@ -31,7 +33,9 @@ The use-case catalog currently records 6 executed and 6 passed scenarios across 
 
 ## Release boundary
 
-The public [v0.9.4 desktop artifact](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.4) binds the desktop cold-start repair to tag commit `d8b30e1f` and one checksum. Apple accepted notarization submission `374f7536-59ba-4657-a437-b6d151d81445`; the DMG has SHA-256 `f9556698e3a5bc5b2b5679f919238f924c19b366c366b2122aa8324a9eb301a3`. The exact GitHub-downloaded artifact passed checksum, staple, DMG signature, quarantined app signature, and Gatekeeper verification on a clean hosted Mac in [run 29691840769](https://github.com/jpoindexter/Vanta/actions/runs/29691840769).
+The v0.9.5 desktop artifact binds Sight, image clipboard context, graph engineering v1, and the current desktop flow suite to one notarized build. Apple accepted notarization submission `efcb15b4-60f0-4d0f-b5e6-a4d602d796e2`; the DMG has SHA-256 `b1c97ecd59bc8c37a6d2c843e81d4a74f44c75cf4a7f9bdb8a0e46594554f122`. Local verification passed checksum, staple, DMG signature, mounted app signature, embedded-kernel signature, and Gatekeeper assessment.
+
+The CLI/TUI visual answer is executed. The signed app's capture contracts are executed under automation, but a successful visual-model answer from that packaged bundle remains an external proof until macOS Screen Recording permission is granted to `studio.theft.vanta`. The clipboard proof exercises Electron's native clipboard bridge and the renderer paste path; it does not establish macOS Command-V keyboard delivery.
 
 Provider credentials, physical devices, and third-party accounts remain separate external gates. Run `vanta roadmap proof-status` for the exact ten parked proofs.
 

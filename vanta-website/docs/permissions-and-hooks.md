@@ -36,6 +36,10 @@ flowchart LR
 
 Resolution order for an `ask` action: kernel verdict → permission rules → auto-mode → **operator-profile preferences** (which can only *preserve or tighten*, never loosen). Persisted tool-scoped allow/deny rules come from the approval prompt's "always / never" choices.
 
+## macOS privacy permissions
+
+OS privacy grants are separate from Vanta's kernel approvals. Sight requires **Screen Recording** for the host application performing the capture: enable your terminal for CLI/TUI use or enable Vanta for Desktop under **System Settings → Privacy & Security → Screen Recording**, then quit and relaunch it. Vanta detects blank permission-denied captures and offers that recovery path; it does not weaken the kernel boundary or enable continuous recording. See [Sight & screen context](./sight.md).
+
 ## Operator profile & preference signals
 
 `~/.vanta/operator-profile.json` holds declared vs inferred preferences (autonomy, scope, detail, risk) and tighten-only approval preferences. Human approve/deny decisions are appended to `~/.vanta/preferences.jsonl` (chosen-vs-rejected), which the profile can read to infer more conservative behavior. `/preferences export` prints them.

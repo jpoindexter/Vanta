@@ -12,7 +12,7 @@ sidebar_position: 2
 
 ### Desktop app for macOS
 
-[Download the signed and notarized Vanta v0.9.4 DMG](https://github.com/jpoindexter/Vanta/releases/download/v0.9.4/Vanta-0.9.4-arm64.dmg), open it, and drag Vanta into Applications. This build targets Apple Silicon Macs and shares `~/.vanta` configuration and sessions with the CLI.
+[Download the signed and notarized Vanta v0.9.5 DMG](https://github.com/jpoindexter/Vanta/releases/download/v0.9.5/Vanta-0.9.5-arm64.dmg), open it, and drag Vanta into Applications. This build targets Apple Silicon Macs and shares `~/.vanta` configuration and sessions with the CLI.
 
 ### macOS and Linux
 
@@ -76,3 +76,15 @@ vanta goals add "ship the v1 docs site"
 ```
 
 Inside a session, `/goal <text>` sets the working goal, `/goal resume` picks up a carried goal from a previous session, and `/goal clear` drops it.
+
+## Let Vanta see the screen
+
+On macOS, capture only the context you want Vanta to inspect:
+
+```text
+/look          # drag-select an area
+/look window   # choose one window
+/look screen   # capture every display
+```
+
+The image is attached to the next message and can be removed before sending. The first capture may ask for **System Settings → Privacy & Security → Screen Recording** permission; relaunch the terminal or Desktop app after granting it. See [Sight & screen context](./sight.md).

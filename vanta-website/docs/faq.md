@@ -48,8 +48,14 @@ Resume is age-gated (`VANTA_RESUME_MAX_AGE_MIN`, default 120; `0` = always fresh
 **A tool keeps asking for approval.**
 That's the kernel escalating an `ask` action. Choose "Yes, don't ask again" to persist a tool-scoped rule, or configure auto-mode. A kernel **block** can never be allowed. See [Permissions & hooks](./permissions-and-hooks.md).
 
-**Browser/vision tools fail.**
-Live browser use needs `npx playwright install chromium`. Vision needs a vision-capable model (`VANTA_VISION_MODEL`).
+**Browser tools fail.**
+Live browser use needs `npx playwright install chromium`.
+
+**`/look` returns a blank image or says Screen Recording is denied.**
+Open **System Settings → Privacy & Security → Screen Recording**, enable the terminal application running Vanta or enable Vanta Desktop, then quit and relaunch that application. Vision also needs a vision-capable model (`VANTA_VISION_MODEL`). See [Sight & screen context](./sight.md).
+
+**I captured the wrong area. Did Vanta send it?**
+No. `/look` attaches the image to the next turn but does not send a message. Run `/attachments clear`, or remove the attachment in Desktop. Cancelling the macOS selector attaches nothing.
 
 **Commit blocked by the size gate.**
 A file/function exceeded the limits. Split it, or set `VANTA_LINT_BLOCK=0` to warn-only. See [Modularity](./modularity.md).

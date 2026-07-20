@@ -6,7 +6,7 @@ sidebar_position: 4
 
 # Command reference
 
-Every slash command, generated from the command catalog — **146 commands**. Type any of these in an interactive session; `/help` prints the live list.
+Every slash command, generated from the command catalog — **149 commands**. Type any of these in an interactive session; `/help` prints the live list.
 
 ## Session & history
 
@@ -46,7 +46,7 @@ Every slash command, generated from the command catalog — **146 commands**. Ty
 | `/model` | change provider & model — interactive picker |
 | `/models` | list available models for the active provider |
 | `/effort` | set model effort for this session |
-| `/setup` | open the setup hub for model, Telegram, voice, and MCP |
+| `/setup` | open setup or inspect one setup area |
 | `/config` | interactive settings — view + change config (TUI) |
 | `/settings` | show/edit persisted settings |
 | `/usage` | token usage + context fill for this session |
@@ -113,6 +113,7 @@ Every slash command, generated from the command catalog — **146 commands**. Ty
 | `/changes` | review changed files — per-file keep/undo (TUI) |
 | `/search` | full-text search this session's transcript — ranked matches + highlighted snippets |
 | `/image` | attach an image for your next message |
+| `/look` | capture native macOS screen context for the next message |
 | `/paste` | attach an image from the clipboard (macOS) |
 | `/attachments` | show or clear pending image attachments |
 | `/add-dir` | add a directory to this session's readable/writable scope |
@@ -191,6 +192,8 @@ Every slash command, generated from the command catalog — **146 commands**. Ty
 | `/restore` | restore a checkpoint in place, or branch it into a new session |
 | `/run` | launch and drive this project's app |
 | `/sandbox` | sandbox settings — config, dependencies, doctor, per-tool overrides (TUI) |
+| `/schema-quality` | show exact, partial, untested, and contradicted model quality |
+| `/schema-recovery` | show the latest model counterexample and its safe next action |
 | `/screenshot` | copy the current Vanta transcript to clipboard as a PNG image |
 | `/searchall` | search across all saved sessions (TUI) |
 | `/security-review` | security audit of the current branch's diff vs base (injection/secret/authz/traversal/exec/SSRF) |

@@ -8,7 +8,7 @@ Vanta supports two installation paths that share the same `VANTA_HOME` data dire
 
 ## Desktop App
 
-[Download Vanta v0.9.4 for Apple Silicon macOS](https://github.com/jpoindexter/Vanta/releases/download/v0.9.4/Vanta-0.9.4-arm64.dmg). The DMG is Developer ID signed, Apple notarized, stapled, and distributed with SHA-256 `f9556698e3a5bc5b2b5679f919238f924c19b366c366b2122aa8324a9eb301a3` on the [v0.9.4 release](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.4). Open the DMG and drag Vanta into Applications.
+[Download Vanta v0.9.5 for Apple Silicon macOS](https://github.com/jpoindexter/Vanta/releases/download/v0.9.5/Vanta-0.9.5-arm64.dmg). The DMG is Developer ID signed, Apple notarized, stapled, and distributed with SHA-256 `b1c97ecd59bc8c37a6d2c843e81d4a74f44c75cf4a7f9bdb8a0e46594554f122` on the [v0.9.5 release](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.5). Open the DMG and drag Vanta into Applications.
 
 ## Managed Runtime
 
