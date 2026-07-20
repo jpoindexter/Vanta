@@ -26,6 +26,11 @@ const BaseNode = z.object({
 const WorkerNode = BaseNode.extend({
   instruction: z.string().min(1),
   goal: z.string().min(1).optional(),
+  provider: WorkflowIdSchema.optional(),
+  model: z.string().min(1).optional(),
+  modelClass: WorkflowIdSchema.optional(),
+  tools: z.array(WorkflowIdSchema).max(50).optional(),
+  proposeAdaptation: z.boolean().optional(),
   maxIterations: z.number().int().min(1).max(50).optional(),
   evidence: z.array(GraphEvidenceKindSchema).max(10).optional(),
 });

@@ -102,10 +102,16 @@ async function executeGraph(graph: WorkflowGraph, ctx: ToolContext, runId?: stri
     assess: (action) => ctx.safety.assess(action),
     requestApproval: (action, reason) => ctx.requestApproval(action, reason, "compose_workflow"),
     runAgent: async (node, graphContext) => {
+      const workerRegistry = node.tools?.length ? buildRegistry({ include: node.tools }) : registry;
+      const workerEnv = {
+        ...process.env,
+        ...(node.provider ? { VANTA_PROVIDER: node.provider } : {}),
+        ...(node.model ? { VANTA_MODEL: node.model } : {}),
+      };
       const outcome = await spawnSubagent({
         goal: node.goal ?? graph.title,
         instruction: buildStatefulAgentInstruction(node, graphContext),
-        deps: { provider: resolveProvider(process.env), safety: ctx.safety, registry, root: ctx.root, requestApproval: ctx.requestApproval },
+        deps: { provider: resolveProvider(workerEnv), safety: ctx.safety, registry: workerRegistry, root: ctx.root, requestApproval: ctx.requestApproval },
         maxIterations: node.maxIterations,
       });
       return parseStatefulAgentOutcome(node, outcome.finalText);

@@ -1,6 +1,7 @@
 import type { WorkflowNode } from "./schema.js";
 import type { GraphAgentOutcome } from "./run-state.js";
 import type { WorkflowNodeContext } from "./execute.js";
+import { AdaptiveProposalSchema } from "./adaptive-contract.js";
 
 type AgentNode = Extract<WorkflowNode, { type: "agent" | "review" }>;
 
@@ -57,14 +58,16 @@ function outcomeFrom(item: Record<string, unknown>): GraphAgentOutcome {
     artifacts: Array.isArray(item.artifacts) ? item.artifacts as GraphAgentOutcome["artifacts"] : undefined,
     evidence: Array.isArray(item.evidence) ? item.evidence as GraphAgentOutcome["evidence"] : undefined,
     usage: item.usage && typeof item.usage === "object" ? item.usage as GraphAgentOutcome["usage"] : undefined,
+    adaptation: item.adaptation === undefined ? undefined : AdaptiveProposalSchema.parse(item.adaptation),
   };
 }
 
 function needsEnvelope(node: AgentNode): boolean {
-  return node.type === "review" || Boolean(node.state?.read.length || node.state?.write.length || node.evidence?.length || node.bindings && Object.keys(node.bindings).length || Object.keys(node.io?.outputs ?? {}).length);
+  return node.type === "review" || Boolean(node.proposeAdaptation || node.state?.read.length || node.state?.write.length || node.evidence?.length || node.bindings && Object.keys(node.bindings).length || Object.keys(node.io?.outputs ?? {}).length);
 }
 
 function envelopeShape(node: AgentNode, outputs: string[], writes: string[], evidence: string): string {
   const review = node.type === "review" ? ',"review":{"accepted":false,"artifact":{"artifactRef":"...","revision":"..."},"findings":[{"rubricItem":"...","evidence":"...","affectedArtifact":{"artifactRef":"...","revision":"..."},"severity":"high","requestedChange":"..."}]}' : "";
-  return `{"output":"summary","outputs":{${outputs.map((name) => `"${name}":<typed value>`).join(",")}},"writes":{${writes.map((field) => `"${field}":<typed value>`).join(",")}}${review},"artifacts":[{"id":"...","uri":"...","revision":"..."}],"evidence":[${evidence}],"usage":{"tokens":0,"costUsd":0}}`;
+  const adaptation = node.proposeAdaptation ? ',"adaptation":{"confidence":0.8,"complexity":0.5,"remainingCostUsd":1,"risk":0.1,"evidence":"observed reason"}' : "";
+  return `{"output":"summary","outputs":{${outputs.map((name) => `"${name}":<typed value>`).join(",")}},"writes":{${writes.map((field) => `"${field}":<typed value>`).join(",")}}${review}${adaptation},"artifacts":[{"id":"...","uri":"...","revision":"..."}],"evidence":[${evidence}],"usage":{"tokens":0,"costUsd":0}}`;
 }

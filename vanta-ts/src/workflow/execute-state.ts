@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { WorkflowGraph } from "./schema.js";
+import type { AdaptiveReceipt } from "./adaptive-contract.js";
 import { newGraphRunState, type GraphRunState, type GraphTerminal } from "./run-state.js";
 import {
   applyGraphRunCommit,
@@ -56,6 +57,14 @@ export async function recordWorkflowApproval(runtime: WorkflowRuntime, nodeId: s
   await mutateRuntime(runtime, (run, at) => ({
     ...run,
     approvals: [...run.approvals, { nodeId, approved, reason, at }],
+  }));
+}
+
+export async function recordWorkflowTopologyChange(runtime: WorkflowRuntime, receipt: AdaptiveReceipt): Promise<void> {
+  await mutateRuntime(runtime, (run) => ({
+    ...run,
+    topologyRevision: receipt.afterRevision,
+    topologyChanges: [...run.topologyChanges, receipt],
   }));
 }
 

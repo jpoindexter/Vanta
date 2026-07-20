@@ -19779,7 +19779,7 @@
       "id": "GRAPH-ADAPTIVE-TOPOLOGY-POLICY",
       "track": "Harness",
       "title": "Adaptive graph policy — spawn, collapse, and route within hard bounds",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "Let a run adapt its organization without letting model prose rewrite the harness. A deterministic policy may add a scoped researcher when evidence confidence is low, collapse trivial work to one node, choose a cheaper eligible model when budget is tight, or escalate to a human when risk or uncertainty crosses a declared threshold.",
       "done": "A graph declares allowed node templates, provider/model classes, fan-out cap, depth cap, token/cost/time budgets, confidence thresholds, and escalation routes before execution; the scheduler can propose and apply only policy-valid topology changes; every change records trigger evidence, before/after graph revision, budget impact, and kernel verdict; untrusted node output cannot grant tools or scope; fixtures prove low-confidence fan-out, trivial-task collapse, budget routing, risk escalation, denied mutation, replay, and no unbounded spawn or livelock.",

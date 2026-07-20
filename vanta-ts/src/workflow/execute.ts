@@ -7,6 +7,7 @@ import { describeNodeAction, nodeResult, normalizeNodeOutcome, requiredToolRunne
 import { materializeNodeOutputs, resolveNodeHandoffs, type ResolvedHandoffs } from "./handoff.js";
 import { matchesResult, resultControl, resumeDecision } from "./execute-control.js";
 import { validateReviewOutcome } from "./review-cycle.js";
+import { applyNodeAdaptation, replayRuntimeGraph } from "./execute-adaptation.js";
 export type WorkflowNodeStatus = "ok" | "denied" | "blocked" | "error";
 export type WorkflowNodeResult = GraphNodeResult;
 export type WorkflowRunResult = {
@@ -35,19 +36,18 @@ type RunState = {
   resumePaused: boolean;
 };
 type NodeExecution = { result: WorkflowNodeResult; baseRevision: number; attempt: number; startedAt: string; outcome?: GraphAgentOutcome; approval?: { approved: boolean; reason: string } };
-
 export async function runWorkflowGraph(graph: WorkflowGraph, deps: WorkflowRunDeps, options: WorkflowRunOptions = {}): Promise<WorkflowRunResult> {
   const runtime = await initializeWorkflowRuntime(graph, options);
+  const activeGraph = replayRuntimeGraph(graph, runtime);
   const transcript = [...runtime.run.transcript];
-  const state: RunState = { graph, deps, runtime, results: new Map(Object.entries(runtime.run.results)), transcript, loopCounts: new Map(Object.entries(runtime.run.loopCounts)), resumePaused: options.resumePaused ?? false };
+  const state: RunState = { graph: activeGraph, deps, runtime, results: new Map(Object.entries(runtime.run.results)), transcript, loopCounts: new Map(Object.entries(runtime.run.loopCounts)), resumePaused: options.resumePaused ?? false };
   const resumablePause = runtime.run.terminal?.state === "paused" && state.resumePaused;
   if (runtime.run.terminal && runtime.run.terminal.state !== "failed" && !resumablePause) return workflowResult(runtime, transcript);
-  const control = await runNode(graph.start, state, false);
-  const terminal = terminalForControl(graph.completion, runtime.run, control, state.stop, runtime.now().toISOString());
+  const control = await runNode(activeGraph.start, state, false);
+  const terminal = terminalForControl(activeGraph.completion, runtime.run, control, state.stop, runtime.now().toISOString());
   await finishWorkflowRuntime(runtime, persistedRunStatus(control, terminal.state), state.loopCounts, terminal);
   return workflowResult(runtime, state.transcript);
 }
-
 async function runNode(nodeId: string, state: RunState, rerun: boolean): Promise<WorkflowRunResult["status"]> {
   const stopped = currentStop(state);
   if (stopped) return stopped.state;
@@ -58,12 +58,12 @@ async function runNode(nodeId: string, state: RunState, rerun: boolean): Promise
   if (!node) return "error";
   const execution = await executeNode(node, state);
   const result = await recordResult(state, execution);
+  if (execution.outcome?.adaptation) state.graph = await applyNodeAdaptation({ graph: state.graph, runtime: state.runtime, deps: state.deps, nodeId, proposal: execution.outcome.adaptation });
   const afterExecution = currentStop(state, false);
   if (afterExecution) return afterExecution.state;
   const control = resultControl(result);
   return control ?? followTransitions(node.id, state, resume.rerun);
 }
-
 async function executeNode(node: WorkflowNode, state: RunState): Promise<NodeExecution> {
   const base = executionBase(node, state);
   try { return await executePreparedNode(node, state, base); }

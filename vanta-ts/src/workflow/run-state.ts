@@ -4,6 +4,7 @@ import { GraphEvidenceKindSchema } from "./completion-contract.js";
 import { WorkflowPortTypeSchema } from "./node-schema.js";
 import { validWorkflowValue } from "./typed-value.js";
 import { ReviewPacketSchema, type ReviewPacket } from "./review-contract.js";
+import { AdaptiveReceiptSchema, type AdaptiveProposal } from "./adaptive-contract.js";
 
 const NodeStatus = z.enum(["ok", "denied", "blocked", "error"]);
 const ArtifactRefSchema = z.object({ id: z.string().min(1), uri: z.string().min(1), revision: z.string().min(1), mime: z.string().min(1).optional() });
@@ -45,6 +46,8 @@ export const GraphRunStateSchema = z.object({
   }),
   approvals: z.array(z.object({ nodeId: z.string(), approved: z.boolean(), reason: z.string(), at: z.string() })),
   mutations: z.array(MutationSchema),
+  topologyRevision: z.number().int().positive(),
+  topologyChanges: z.array(AdaptiveReceiptSchema),
   loopCounts: z.record(z.string(), z.number().int().nonnegative()),
   terminal: TerminalSchema.optional(),
 });
@@ -60,7 +63,7 @@ export type GraphTerminal = z.infer<typeof TerminalSchema>;
 export type GraphAgentEvidence = Omit<GraphEvidence, "nodeId" | "at">;
 export type GraphAgentOutcome = {
   output: string; outputs?: Record<string, unknown>; review?: ReviewPacket; writes?: Record<string, unknown>; artifacts?: GraphArtifactRef[];
-  evidence?: GraphAgentEvidence[]; usage?: { tokens?: number; costUsd?: number };
+  evidence?: GraphAgentEvidence[]; usage?: { tokens?: number; costUsd?: number }; adaptation?: AdaptiveProposal;
 };
 
 export function newGraphRunState(graph: WorkflowGraph, runId: string, at: string, limitUsd?: number): GraphRunState {
@@ -68,7 +71,8 @@ export function newGraphRunState(graph: WorkflowGraph, runId: string, at: string
     version: 1, runId, graphId: graph.id, graphRevision: graph.revision ?? 1, revision: 0,
     status: "running", createdAt: at, updatedAt: at, values: initialValues(graph), fieldRevisions: {},
     results: {}, transcript: [], attempts: [], artifacts: [], evidence: [], decisions: [],
-    budget: { limitUsd, usedUsd: 0, usedTokens: 0, noProgressSteps: 0 }, approvals: [], mutations: [], loopCounts: {},
+    budget: { limitUsd, usedUsd: 0, usedTokens: 0, noProgressSteps: 0 }, approvals: [], mutations: [],
+    topologyRevision: graph.revision ?? 1, topologyChanges: [], loopCounts: {},
   });
 }
 
@@ -89,8 +93,11 @@ export function migrateGraphRunState(value: unknown): GraphRunState {
   const current = GraphRunStateSchema.safeParse(value);
   if (current.success) return current.data;
   const legacy = value as Record<string, unknown> | null;
-  if (legacy?.version !== 0) throw new Error("unsupported graph run state version");
-  return GraphRunStateSchema.parse({ ...legacy, version: 1, fieldRevisions: legacy.fieldRevisions ?? {}, mutations: legacy.mutations ?? [] });
+  if (legacy?.version !== 0 && legacy?.version !== 1) throw new Error("unsupported graph run state version");
+  return GraphRunStateSchema.parse({
+    ...legacy, version: 1, fieldRevisions: legacy.fieldRevisions ?? {}, mutations: legacy.mutations ?? [],
+    topologyRevision: legacy.topologyRevision ?? legacy.graphRevision ?? 1, topologyChanges: legacy.topologyChanges ?? [],
+  });
 }
 
 function initialValues(graph: WorkflowGraph): Record<string, unknown> {

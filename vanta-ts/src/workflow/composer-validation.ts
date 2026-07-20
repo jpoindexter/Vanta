@@ -1,6 +1,7 @@
 import type { WorkflowGraph, WorkflowNode } from "./schema.js";
 import { validateHandoffReferences } from "./handoff.js";
 import { validateReviewCycles } from "./review-cycle.js";
+import { validateAdaptivePolicy } from "./adaptive-policy.js";
 
 export function validateComposableWorkflow(graph: WorkflowGraph): string[] {
   const errors: string[] = [];
@@ -14,6 +15,7 @@ export function validateComposableWorkflow(graph: WorkflowGraph): string[] {
   errors.push(...connectivityErrors(graph));
   errors.push(...validateHandoffReferences(graph));
   errors.push(...validateReviewCycles(graph));
+  errors.push(...validateAdaptivePolicy(graph));
   return errors;
 }
 

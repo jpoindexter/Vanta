@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { defaultCompletionContract, WorkflowCompletionSchema } from "./completion-contract.js";
 import { WorkflowIdSchema as Id, WorkflowNodeSchema } from "./node-schema.js";
+import { AdaptivePolicySchema } from "./adaptive-contract.js";
 export * from "./node-schema.js";
 
 export const WorkflowStateFieldSchema = z.object({
@@ -67,6 +68,7 @@ export const WorkflowGraphSchema = z.object({
     fields: z.record(Id, WorkflowStateFieldSchema).default({}),
   }).optional(),
   completion: WorkflowCompletionSchema.optional(),
+  adaptation: AdaptivePolicySchema.optional(),
 });
 
 export type WorkflowGraph = z.infer<typeof WorkflowGraphSchema>;
@@ -90,7 +92,25 @@ export function validateWorkflowGraph(value: unknown): string | null {
 }
 
 function withCompletionContract(graph: WorkflowGraph): WorkflowGraph {
-  return graph.completion ? graph : { ...graph, completion: defaultCompletionContract() };
+  const completion = graph.completion ?? defaultCompletionContract();
+  const limits = graph.adaptation?.limits;
+  if (!limits) return { ...graph, completion };
+  return {
+    ...graph,
+    completion: {
+      ...completion,
+      budgets: {
+        ...completion.budgets,
+        maxWallClockMs: Math.min(completion.budgets.maxWallClockMs, limits.maxWallClockMs),
+        maxTokens: minimumLimit(completion.budgets.maxTokens, limits.maxTokens),
+        maxCostUsd: minimumLimit(completion.budgets.maxCostUsd, limits.maxCostUsd),
+      },
+    },
+  };
+}
+
+function minimumLimit(current: number | undefined, adaptive: number): number {
+  return current === undefined ? adaptive : Math.min(current, adaptive);
 }
 
 function graphReferenceErrors(graph: WorkflowGraph): string[] {

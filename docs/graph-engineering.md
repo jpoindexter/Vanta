@@ -29,6 +29,7 @@ The product opportunity is to compose the shipped layers into a durable organiza
 - `WORKFLOW-COMPOSER-V1` adds strict save, reopen, list, diff, and launch operations over immutable project-scoped workflow revisions. Trigger, action, browser, agent, approval, typed-port, side-effect, and bounded-feedback rules validate before execution; launches reuse the kernel-gated workflow runner and durable receipts.
 - `WORKFLOW-DATA-HANDOFF-CONTRACTS` maps typed consumer inputs to prior persisted outputs without template interpolation. Static preflight enforces order and type safety; runtime receipts retain provenance and redaction while secret values remain opaque references. This contract is shipped.
 - `GRAPH-REVIEW-REWORK-CYCLE` adds independent review nodes and bounded revision edges. Rejection persists a typed packet tied to an exact artifact revision, feeds that packet into the maker's next attempt, rejects stale review evidence, and escalates to a named human gate after the attempt cap.
+- `GRAPH-ADAPTIVE-TOPOLOGY-POLICY` permits four predeclared revisions only: low-confidence fan-out, trivial-work collapse, budget model routing, and risk escalation. Strict proposal parsing, template/model allowlists, hard topology and execution budgets, kernel assessment, and durable before/after receipts prevent model output from granting itself tools or scope.
 
 This is enough foundation to avoid adopting LangGraph, CrewAI, or another runtime. Vanta should extend its own typed graph boundary.
 
@@ -52,11 +53,15 @@ Completion is evaluated over persisted test, artifact, rubric, receipt, node-sta
 
 Step, wall-clock, token, cost, no-progress, and cancellation budgets halt deterministically. Reopening an exhausted or cancelled run returns the same stop receipt without replaying confirmed work.
 
-### 4. Bounded adaptation
+### 4. Bounded adaptation — shipped
 
 Dynamic organization is useful only under a deterministic policy. The model may propose more research, a smaller topology, a cheaper model class, or human escalation, but it may not grant itself tools, scope, budget, or arbitrary graph mutation.
 
-Target: predeclared node templates, fan-out/depth limits, eligible model classes, confidence thresholds, budgets, and escalation routes. Every topology revision gets a receipt.
+Implemented: a graph declares node templates, eligible provider/model classes, route sources and targets, confidence/complexity/cost/risk thresholds, fan-out/depth/change limits, and token/cost/time budgets before launch. Adaptive execution budgets are merged with the normal completion contract using the stricter limit.
+
+Only nodes marked `proposeAdaptation` can return the strict adaptive JSON envelope. The deterministic scheduler selects at most one policy route, then asks the Rust-backed safety boundary before applying it. Denied and applied changes persist trigger evidence, budget impact, kernel verdict, and before/after topology revisions. Resume reconstructs the effective graph exclusively from applied receipts.
+
+Spawned nodes come from stored templates and receive only their declared tool registry and provider/model route. Proposal JSON rejects extra fields, and templates cannot request recursive orchestration tools. Fixtures execute low-confidence fan-out, trivial collapse, cheaper-model routing, risk escalation, kernel denial, crash replay, strict scope rejection, and hard spawn limits.
 
 ### 5. Operator replay and handoff
 
@@ -88,8 +93,8 @@ Each node may run an internal loop. The graph owns cross-node state, routing, bu
 2. `GRAPH-EVIDENCE-STOP-CONTRACTS` — shipped
 3. `GRAPH-REVIEW-REWORK-CYCLE` — shipped
 4. `WORKFLOW-COMPOSER-V1` and `WORKFLOW-DATA-HANDOFF-CONTRACTS` — shipped
-5. `GRAPH-OPERATOR-REPLAY-HANDOFF`
-6. `GRAPH-ADAPTIVE-TOPOLOGY-POLICY`
+5. `GRAPH-ADAPTIVE-TOPOLOGY-POLICY` — shipped
+6. `GRAPH-OPERATOR-REPLAY-HANDOFF`
 7. `GRAPH-ENGINEERING-V1-RELEASE-GATE`
 
 ## Failure modes to design out

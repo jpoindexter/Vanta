@@ -27,6 +27,7 @@ A saved workflow must have:
 5. A hard iteration cap and terminal `onExhausted` escalation for every feedback loop.
 6. A positive revision and a completion contract materialized by the graph parser.
 7. A separate maker and reviewer, current artifact binding, accepted branch, bounded rejected revision edge, typed feedback mapping, and terminal escalation for every review cycle.
+8. For adaptation, predeclared worker templates, provider/model classes, route sources, thresholds, topology caps, and token/cost/time budgets. Every route source must be an agent with `proposeAdaptation` enabled.
 
 Action and browser nodes resolve existing Vanta tools. Their exact tool and arguments are assessed by the safety kernel before execution. `approval: always` adds an explicit human gate even when the kernel permits the action.
 
@@ -52,6 +53,12 @@ A `review` node receives an `artifact-ref` directly from its declared maker and 
 A `revision` transition maps the persisted review output to a typed maker input. The maker receives the exact rejected packet on its next attempt rather than a prose summary or disconnected chat. The reviewer then receives the maker's new artifact revision. Stale packets and findings that name another revision fail before any acceptance side effect can run.
 
 The revision edge declares `maxAttempts` and `onExhausted`. At the cap, Vanta executes the named human escalation node and records an exhausted terminal receipt. An accepted branch may advance only from the current review packet; subsequent actions remain kernel-gated and follow their declared approval policy.
+
+## Bounded adaptation
+
+An adaptive agent may report only confidence, complexity, remaining cost, risk, and trigger evidence. A deterministic policy maps those values to one of four declared changes: fan out to a stored worker template, collapse to a named node, route a named worker to the cheapest eligible provider/model class, or escalate to a named approval node.
+
+Model output cannot name tools, nodes, providers, or graph edges. Spawned workers inherit their scope from the stored template, recursive orchestration tools are forbidden, and each mutation is independently kernel-assessed. Applied and denied mutations persist as topology receipts with evidence, graph revisions, budget impact, and verdict. Reopening a failed run replays applied receipts before continuing, so confirmed work and effects are not repeated.
 
 ## Recovery and truth
 
