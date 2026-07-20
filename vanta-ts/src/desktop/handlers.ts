@@ -34,6 +34,7 @@ import { loadDesktopSessionDraft, saveDesktopSessionDraft } from "./session-draf
 import { startDesktopGateway } from "./gateway-control.js";
 import { redactForLog } from "../store/redact-structural.js";
 import { loadProviderAuthRequired, saveProviderAuthRequired, type ProviderAuthRequired } from "./provider-auth-store.js";
+import { parseDesktopImageInput } from "./image-input.js";
 export { approvalDecision, type PendingApproval } from "./approval.js";
 
 const desktopTurnQueues = new Map<string, DesktopTurnQueue>();
@@ -682,16 +683,20 @@ function attachDesktopRunReceipt(convo: Conversation, receipt: DesktopRunReceipt
 
 export async function handleChat(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   if (state._chatActive) return sendJson(res, 409, { error: "a turn is already running" });
-  const body = await readJson(req) as { message?: unknown };
+  const body = await readJson(req) as { message?: unknown; images?: unknown };
+  const parsedImages = parseDesktopImageInput(body.images);
+  if (!parsedImages.ok) return sendJson(res, 400, { error: parsedImages.error });
+  const images = parsedImages.images;
   const message = typeof body.message === "string" ? body.message.trim() : "";
-  if (!message) return sendJson(res, 400, { error: "message is required" });
+  const instructionText = message || (images.length ? "Describe the attached image." : "");
+  if (!instructionText) return sendJson(res, 400, { error: "message or image is required" });
   state._providerAuthRequired ??= await loadProviderAuthRequired(state.root);
   if (state._providerAuthRequired) {
     const finalText = `Provider authentication required for ${state._providerAuthRequired.provider} · ${state._providerAuthRequired.model}. Reconnect this model in Connect before retrying.`;
-    const receipt = buildRunReceipt({ status: "failed", failureKind: "provider_auth", events: [{ label: "Provider authentication required.", ok: false }], instruction: message });
+    const receipt = buildRunReceipt({ status: "failed", failureKind: "provider_auth", events: [{ label: "Provider authentication required.", ok: false }], instruction: instructionText });
     receipt.actions = ["edit_request", "start_from_checkpoint"];
     const live = await ensureDesktopConversation(state);
-    live.convo.messages.push({ role: "user", content: message }, { role: "assistant", content: finalText, desktopRun: receipt });
+    live.convo.messages.push({ role: "user", content: instructionText, ...(images.length ? { images } : {}) }, { role: "assistant", content: finalText, desktopRun: receipt });
     await persistActiveSession(state);
     return sendJson(res, 200, { finalText, events: receipt.events, sessionId: state.sessionId, receipt });
   }
@@ -707,11 +712,13 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
   let claimedTurnId: string | undefined;
   try {
     live = await ensureDesktopConversation(state);
-    let instruction = message;
+    let instruction = instructionText;
+    let instructionImages = images.length ? images : undefined;
     let outcome: Awaited<ReturnType<typeof live.convo.send>>;
     while (true) {
-      if (live.sessionId) await checkpointSessionMessages(live.sessionId, [...live.convo.messages, { role: "user", content: instruction }], process.env);
-      outcome = await live.convo.send(instruction, undefined, controller.signal);
+      if (live.sessionId) await checkpointSessionMessages(live.sessionId, [...live.convo.messages, { role: "user", content: instruction, ...(instructionImages ? { images: instructionImages } : {}) }], process.env);
+      outcome = await live.convo.send(instruction, instructionImages, controller.signal);
+      instructionImages = undefined;
       await writeRunMemory({ provider: live.setup.provider, goals: live.setup.goals, instruction, finalText: outcome.finalText });
       events.push({ label: `${outcome.stoppedReason} · ${outcome.iterations} iteration(s)`, ok: outcome.stoppedReason === "done", kind: "summary" });
       const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events, instruction, partialText: outcome.finalText });
@@ -761,7 +768,7 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
     const receipt = buildRunReceipt({
       status: wasInterrupted ? "interrupted" : "failed",
       events,
-      instruction: message,
+      instruction: instructionText,
       partialText: partial || undefined,
       failureKind,
     });

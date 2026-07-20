@@ -14,8 +14,8 @@ function response() {
   };
 }
 
-function chatRequest(message: string) {
-  const body = JSON.stringify({ message });
+function chatRequest(message: string, images?: Array<{ mime: string; dataBase64: string }>) {
+  const body = JSON.stringify({ message, ...(images ? { images } : {}) });
   const req = { on: (event: string, listener: (value?: Buffer) => void) => { if (event === "data") listener(Buffer.from(body)); if (event === "end") listener(); return req; } } as any;
   return req;
 }
@@ -92,6 +92,18 @@ describe("desktop chat concurrency", () => {
     });
     expect(reply.result().body.finalText).toContain("Partial result.");
     expect(state.convo?.messages.at(-1)).toMatchObject({ role: "assistant", desktopRun: { status: "failed" } });
+  });
+
+  it("passes validated desktop image attachments into the agent turn", async () => {
+    const send = vi.fn(async () => ({ finalText: "I can see it.", iterations: 1, stoppedReason: "done" as const, toolIterations: 0 }));
+    const state = recoveryState(send);
+    const reply = response();
+    const images = [{ mime: "image/png", dataBase64: "AQID" }];
+
+    await handleChat(state, chatRequest("What is shown?", images), reply.res);
+
+    expect(reply.result().status).toBe(200);
+    expect(send).toHaveBeenCalledWith("What is shown?", images, expect.any(AbortSignal));
   });
 
   it("returns an interrupted recovery receipt when the run stops cleanly", async () => {

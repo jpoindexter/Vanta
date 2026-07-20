@@ -240,6 +240,9 @@ h2 { margin: 14px 0 8px; font-size: 11px; letter-spacing: .08em; text-transform:
 .context-chips { width: 100%; justify-self: center; display: flex; flex-wrap: wrap; gap: 6px; }
 .context-chips > span { min-width: 0; max-width: 100%; display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--raised); color: var(--muted); padding: 4px 5px 4px 8px; font-size: 12px; }
 .context-chips > span > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.context-chips button { display: grid; place-items: center; flex: 0 0 auto; width: 20px; height: 20px; border: 0 !important; border-radius: 4px; background: transparent !important; color: var(--faint); padding: 0 !important; }.context-chips button:hover { color: var(--text); background: var(--panel) !important; }
+.context-chips .image-context-chip { padding-left: 4px; }
+.image-context-chip img { width: 26px; height: 26px; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 4px; object-fit: cover; }
+.composer-attachment-error { width: 100%; margin: 0; color: var(--danger); font-size: 11px; line-height: 1.4; }
 .composer textarea { width: 100%; justify-self: center; resize: none; min-height: 52px; max-height: 140px; border: 0; border-radius: 6px; background: transparent; color: var(--text); padding: 7px 8px; outline: none; }
 .composer-footer { width: 100%; min-width: 0; justify-self: center; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-top: 1px solid var(--line); color: var(--faint); padding: 7px 0 0 5px; }
 .composer-context-controls { min-width: 0; display: flex; align-items: center; gap: 5px; overflow: hidden; }

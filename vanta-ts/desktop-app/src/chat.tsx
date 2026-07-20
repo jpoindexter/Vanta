@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { FormEvent, KeyboardEvent } from "react";
-import { Activity, Archive, ArchiveRestore, ArrowUp, Check, CheckCircle2, ChevronRight, Copy, FileText, FolderKanban, Keyboard, Laptop, ListPlus, Maximize2, MessageSquare, MoreHorizontal, Network, PackageOpen, Paperclip, Pencil, Pin, Plug, Plus, RotateCcw, Search, Settings2, ShieldCheck, Square, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
+import { Activity, Archive, ArchiveRestore, Check, CheckCircle2, ChevronRight, Copy, FileText, FolderKanban, Keyboard, Maximize2, MessageSquare, MoreHorizontal, Network, PackageOpen, Pencil, Pin, Plug, Plus, RotateCcw, Search, Settings2, ShieldCheck, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
 import type { Approval, ApprovalDecision, DesktopRunReceipt, DesktopView, Message, PermissionSection, Session } from "./types.js";
 import { MessageMarkdown } from "./message-markdown.js";
-import { AccessModePicker } from "./access-mode-picker.js";
-import type { AccessMode } from "./types.js";
-import type { DesktopMcpSummary } from "./mcp-types.js";
 import { moveSessionMenuFocus, SessionNoticeToast, useSessionMenuDismiss, useSessionSafeOps, type SessionDeleteAction } from "./session-safe-ops.js";
 import { movePinnedSession, partitionSessions } from "./session-pinning.js";
 import { SessionPinMenuItems } from "./session-pinning-controls.js";
@@ -13,6 +9,8 @@ import { LatestButton, preferredScrollBehavior, PromptMarkers, useLongSessionNav
 import { SchemaTraceExplorer, schemaRetryReady } from "./schema-trace-explorer.js";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { compactTrace } from "../../src/trace/quiet-trace.js";
+
+export { Composer } from "./composer.js";
 
 type SessionSidebarProps = {
   sessions: Session[];
@@ -581,47 +579,6 @@ function ApprovalSection({ section }: { section: PermissionSection }) {
 
 function humanizeTool(name: string): string {
   return name.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
-}
-
-export function Composer(props: { value: string; busy: boolean; ready?: boolean; model?: string; root?: string; tools?: number; mcp?: DesktopMcpSummary; accessMode: AccessMode; attachments: string[]; onChange: (value: string) => void; onSubmit: (text: string) => void; onQueue: (text: string) => void; onRemoveAttachment: (file: string) => void; onStop: () => void; onAttach: () => void; onMcp: () => void; onModel: () => void; onAccessMode: (mode: AccessMode) => Promise<void>; onCommand: () => void }) {
-  const ready = props.ready ?? true;
-  function send(event: FormEvent) {
-    event.preventDefault();
-    const value = props.value.trim();
-    if (!value) return;
-    props.onChange("");
-    if (props.busy) props.onQueue(value);
-    else props.onSubmit(value);
-  }
-  return (
-    <form className="composer" onSubmit={send}>
-      <div className="task-context" aria-label="Task execution context: Session model, project, host, tools, MCP, and local memory"><span><FolderKanban size={12} /><strong>{props.root?.split("/").filter(Boolean).at(-1) ?? "Project"}</strong></span><span><Laptop size={12} /><strong>Local Mac</strong></span><span><Network size={12} /><strong>Tools {props.tools ?? 0}</strong></span><button type="button" title="Manage MCP connectors" onClick={props.onMcp}><Plug size={12} /><strong>MCP {props.mcp?.servers ?? 0} · {props.mcp?.tools ?? 0} tools</strong></button><span><PackageOpen size={12} /><strong>Memory local</strong></span></div>
-      <label className="sr-only" htmlFor="vanta-composer">Message Vanta</label>
-      <textarea id="vanta-composer" value={props.value} disabled={!ready} onChange={(e) => props.onChange(e.target.value)} onKeyDown={(event) => keyDown(event, props)} placeholder={!ready ? "Loading this project..." : props.busy ? "Queue the next instruction..." : "Ask Vanta to do something..."} />
-      {props.attachments.length ? <div className="context-chips" aria-label="Attached project context">{props.attachments.map((file) => <span key={file}><span title={file}>{file}</span><button type="button" aria-label={`Remove ${file}`} title={`Remove ${file}`} onClick={() => props.onRemoveAttachment(file)}><X size={13} /></button></span>)}</div> : null}
-      <div className="composer-footer">
-        <div className="composer-context-controls"><button className="composer-context-button" type="button" title="Attach project files" aria-label="Attach project files" onClick={props.onAttach}><Paperclip size={16} /><span className="sr-only">Context</span></button><button className="composer-command-button" type="button" title="Open commands" aria-label="Open commands" onClick={props.onCommand}><Plus size={16} /><span className="sr-only">Commands</span></button></div>
-        <div className="composer-actions"><button className="model-button" type="button" title="Change agent model" aria-label={`Agent model: ${props.model ?? "not selected"}. Change model`} onClick={props.onModel}><small>Agent model</small><span>{props.model ?? "Choose model"}</span></button><AccessModePicker mode={props.accessMode} onChange={props.onAccessMode} />{props.busy ? <><button className="queue-button" type="submit" disabled={!ready || !props.value.trim()} title="Queue next instruction"><ListPlus size={15} /><span>Queue</span></button><button className="stop-button" type="button" title="Stop current run" aria-label="Stop current run" onClick={props.onStop}><Square size={14} /><span>Stop</span></button></> : <button className="send-button" type="submit" disabled={!ready || !props.value.trim()} aria-label="Send"><ArrowUp size={16} /></button>}</div>
-      </div>
-    </form>
-  );
-}
-
-function keyDown(event: KeyboardEvent<HTMLTextAreaElement>, props: Pick<Parameters<typeof Composer>[0], "value" | "onAttach" | "onCommand">) {
-  if (!props.value && event.key === "@") {
-    event.preventDefault();
-    props.onAttach();
-    return;
-  }
-  if (!props.value && event.key === "/") {
-    event.preventDefault();
-    props.onCommand();
-    return;
-  }
-  if (event.key === "Enter" && !event.shiftKey) {
-    event.preventDefault();
-    event.currentTarget.form?.requestSubmit();
-  }
 }
 
 function EmptyState(props: { onPrompt: (text: string) => void }) {

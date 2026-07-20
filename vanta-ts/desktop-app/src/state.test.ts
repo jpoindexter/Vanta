@@ -36,10 +36,10 @@ describe("desktop turn completion", () => {
     }));
     const harness = conversationState(order);
 
-    await submitMessage(harness.state, "do the task", {
+    await submitMessage(harness.state, "do the task", { cues: {
       prime: () => { order.push("prime"); },
       complete: () => { order.push("completion-sound"); },
-    });
+    } });
 
     expect(order).toEqual(["prime", "request", "completion-sound", "refresh"]);
     expect(harness.snapshot()).toEqual({
@@ -58,7 +58,7 @@ describe("desktop turn completion", () => {
     const complete = vi.fn();
     const harness = conversationState([]);
 
-    await submitMessage(harness.state, "do the task", { complete });
+    await submitMessage(harness.state, "do the task", { cues: { complete } });
 
     expect(complete).not.toHaveBeenCalled();
     expect(harness.snapshot().messages.at(-1)).toEqual({ role: "assistant", content: "offline" });

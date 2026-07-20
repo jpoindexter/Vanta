@@ -15,6 +15,7 @@ import { QueuedTurnDrawer, useQueuedTurns } from "./queued-turns.js";
 import type { DesktopTheme, DesktopView, RailTab } from "./types.js";
 import { isTelegramSetupQuestion, parseDesktopSetupCommand } from "../../src/setup/telegram-intent.js";
 import { reconnectProviderAndResume } from "./provider-auth-recovery.js";
+import { useComposerAttachments, withProjectAttachments } from "./use-composer-attachments.js";
 
 type DesktopData = ReturnType<typeof useDesktopData>;
 type CompletionSound = ReturnType<typeof useCompletionSound>;
@@ -56,7 +57,7 @@ export function AppShell() {
   const [connectTarget, setConnectTarget] = useState<ConnectTarget | null>(null);
   const [inspectorOpen, setInspectorOpen] = useState(() => window.innerWidth > 1080);
   const [theme, setTheme] = useState<DesktopTheme>(() => window.localStorage.getItem("vanta.desktop.theme") === "light" ? "light" : "dark");
-  const [attachments, setAttachments] = useState<string[]>([]);
+  const attachments = useComposerAttachments();
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [conversationReady, setConversationReady] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(() => storedPaneWidth(SIDEBAR_STORAGE_KEY, 268));
@@ -107,7 +108,8 @@ export function AppShell() {
       return;
     }
     if (!isTelegramSetupQuestion(text)) {
-      await convo.submit(text);
+      const sent = await convo.submit(withProjectAttachments(text, attachments.files), attachments.images);
+      if (sent) attachments.clear();
       return;
     }
     try {
@@ -223,7 +225,7 @@ export function AppShell() {
           </div>
           <div className="composer-stack">
             <FullAccessWarning visible={accessWarning.visible} onClose={accessWarning.close} onAcknowledge={accessWarning.acknowledge} />
-            <Composer value={convo.draft} busy={convo.busy} ready={conversationReady} model={data.status?.model} root={data.status?.root} tools={data.status?.tools} mcp={mcp.summary} accessMode={data.status?.accessMode ?? "approve"} attachments={attachments} onChange={convo.setDraft} onSubmit={(text) => { void submitWork(withAttachments(text, attachments)); setAttachments([]); }} onQueue={(text) => { void convo.queue(text).then(queued.refresh); }} onRemoveAttachment={(file) => setAttachments((current) => current.filter((entry) => entry !== file))} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onMcp={() => setView("connect")} onModel={data.openModelPicker} onAccessMode={data.setAccessMode} onCommand={data.openPalette} />
+            <Composer value={convo.draft} busy={convo.busy} ready={conversationReady} model={data.status?.model} root={data.status?.root} tools={data.status?.tools} mcp={mcp.summary} accessMode={data.status?.accessMode ?? "approve"} attachments={attachments.files} images={attachments.images} attachmentError={attachments.error} onChange={convo.setDraft} onSubmit={(text) => { void submitWork(text); }} onQueue={(text) => { void convo.queue(text).then(queued.refresh); }} onRemoveAttachment={attachments.removeFile} onRemoveImage={attachments.removeImage} onPasteImages={attachments.pasteImages} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onMcp={() => setView("connect")} onModel={data.openModelPicker} onAccessMode={data.setAccessMode} onCommand={data.openPalette} />
           </div>
         </> : <OperatorWorkspace view={view} data={data} mcp={mcp} events={convo.events} connectTarget={connectTarget} onOpenSession={(id) => { setView("work"); void convo.openSession(id); }} />}
       </main>
@@ -233,14 +235,14 @@ export function AppShell() {
         tools={data.tools}
         files={data.files}
         mentionedFiles={mentionedFiles}
-        selectedFiles={attachments}
+        selectedFiles={attachments.files}
         artifacts={data.artifacts}
         events={convo.events}
         canvas={data.canvas}
         onRefresh={() => { void data.refresh(); }}
         tab={data.tab}
         onTab={data.setTab}
-        onInsertFile={(file) => setAttachments((current) => current.includes(file) ? current : [...current, file])}
+        onInsertFile={attachments.addFile}
         onOpenOutputs={() => { setInspectorOpen(false); setView("outputs"); }}
         onOpenSession={(id) => { setInspectorOpen(false); void convo.openSession(id); }}
         onDismiss={() => { setInspectorOpen(false); setMobilePanel("work"); }}
@@ -401,7 +403,7 @@ function DesktopOverlays(props: {
       <KeyboardShortcuts open={data.shortcutsOpen} onClose={data.closeShortcuts} />
       <SetupWizard open={data.setupOpen} models={data.models} onClose={data.closeSetup} onSave={async (provider, model, apiKey) => {
         const resume = convo.recovery?.failureKind === "provider_auth";
-        await reconnectProviderAndResume(data.saveSetup, convo.retry, { provider, model, apiKey, resume });
+        await reconnectProviderAndResume(data.saveSetup, async () => { await convo.retry(); }, { provider, model, apiKey, resume });
       }} />
       <CompletionSoundSettings
         open={data.soundOpen}
@@ -436,8 +438,4 @@ async function createTask(draft: NewTaskDraft, convo: ReturnType<typeof useConve
 function MobileNavigation(props: { view: DesktopView; onView: (view: DesktopView) => void; onInspect: () => void }) {
   const destinations: Array<[DesktopView, typeof MessageSquare, string]> = [["work", MessageSquare, "Work"], ["operate", Activity, "Operate"], ["outputs", PackageOpen, "Outputs"], ["connect", Network, "Connect"]];
   return <nav className="mobile-nav" aria-label="Mobile workspace">{destinations.map(([view, Icon, label]) => <button key={view} className={props.view === view ? "active" : ""} type="button" onClick={() => props.onView(view)}><Icon size={17} /><span>{label}</span></button>)}<button type="button" onClick={props.onInspect}><PanelRight size={17} /><span>Inspect</span></button></nav>;
-}
-
-function withAttachments(text: string, attachments: string[]): string {
-  return [text.trim(), ...attachments.map((file) => `@${file}`)].filter(Boolean).join("\n");
 }

@@ -19834,7 +19834,7 @@
       "id": "DESKTOP-RICH-CLIPBOARD-PASTE",
       "track": "Desktop App",
       "title": "Desktop rich clipboard paste — text and images become task context",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Make normal macOS paste work in the Vanta Desktop composer. Plain and rich text should paste at the caret, while clipboard PNG, TIFF, and JPEG data should enter the existing attachment and vision pipeline as a visible, removable context item instead of being ignored or flattened into an unusable project-file dump.",
       "done": "In the packaged macOS app, Cmd+V pastes multiline text at the caret or replaces the current selection and pastes clipboard PNG, TIFF, or JPEG data as a keyboard-removable composer attachment with a visible thumbnail and accessible label; submitting text plus image reaches a vision-capable model with the image, cancellation or validation failure preserves the draft, and focused unit plus Electron proofs cover text, image, mixed clipboard, oversized and unsupported media, duplicate paste events, removal, and desktop and 760px layouts.",

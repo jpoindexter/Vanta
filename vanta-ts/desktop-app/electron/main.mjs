@@ -5,7 +5,7 @@ import { homedir } from "node:os";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
 import { randomBytes } from "node:crypto";
-import { app, BrowserWindow, Tray, Menu, nativeImage, dialog, clipboard, shell } from "electron";
+import { app, BrowserWindow, Tray, Menu, nativeImage, dialog, clipboard, shell, ipcMain } from "electron";
 import { createTrayController } from "./tray.mjs";
 import { findAvailablePort, projectArg, readProjectSetting, resolveProjectRoot, saveProjectSetting } from "./project-root.mjs";
 import { resolveRuntimePaths } from "./runtime-paths.mjs";
@@ -26,6 +26,15 @@ let shuttingDown = false;
 let serverReady;
 const boundaryToken = randomBytes(32).toString("hex");
 process.env.VANTA_DESKTOP_BOUNDARY_TOKEN = boundaryToken;
+
+ipcMain.handle("vanta:read-clipboard", () => {
+  const image = clipboard.readImage();
+  const png = image.isEmpty() ? null : image.toPNG();
+  return {
+    text: clipboard.readText(),
+    image: png?.length ? { mime: "image/png", dataBase64: png.toString("base64"), bytes: png.length } : undefined,
+  };
+});
 
 function runtimePaths() {
   const appPath = app.isPackaged ? app.getAppPath() : join(dirname(fileURLToPath(import.meta.url)), "..", "..");

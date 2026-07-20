@@ -39,6 +39,13 @@ export type TelegramSetupStatus = {
   action: { id: "configure" | "start_gateway" | "inspect_gateway"; label: string; command: string };
 };
 export type Artifact = { id: string; kind: "canvas" | "link" | "file"; label: string; value: string; sessionId?: string; sessionTitle?: string };
+export type DesktopImageAttachment = {
+  id: string;
+  name: string;
+  mime: "image/png" | "image/jpeg" | "image/tiff";
+  dataBase64: string;
+  bytes: number;
+};
 export type Goal = { text: string };
 export type AccessMode = "ask" | "approve" | "full";
 export type QueuedTurn = {

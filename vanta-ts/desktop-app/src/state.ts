@@ -11,6 +11,7 @@ import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, 
 import type { SessionDeleteAction } from "./session-safe-ops.js";
 import { sessionPinningHandlers } from "./session-pinning-api.js";
 import { createSessionDraftController, hasPersistableSessionDraftContext } from "./session-drafts.js";
+import type { ImageAttachment } from "../../src/types.js";
 
 export function useDesktopData() {
   const refreshVersion = useRef(0);
@@ -334,8 +335,12 @@ function conversationHandlers(state: ConversationState, cues: TurnCues, lastFail
   }
   const pinning = sessionPinningHandlers(state.refresh);
   function insertFile(file: string) { state.setDraft((value) => `${value} @${file}`.trimStart()); }
-  async function submit(text: string) {
-    await submitMessage(state, text, cues, (failed) => { lastFailedMessage.current = failed ? text : ""; });
+  async function submit(text: string, images?: ImageAttachment[]): Promise<boolean> {
+    return submitMessage(state, text, {
+      cues,
+      images,
+      onRecovery: (failed) => { lastFailedMessage.current = failed ? text : ""; },
+    });
   }
   function localReply(text: string, content: string) {
     state.setMessages((messages) => [...messages, { role: "user", content: text }, { role: "assistant", content }]);
@@ -369,7 +374,15 @@ export function latestRecoverableRun(messages: Message[]): { receipt: DesktopRun
   return null;
 }
 
-export async function submitMessage(state: ConversationState, text: string, cues: TurnCues = {}, onRecovery: (failed: boolean) => void = () => {}) {
+type SubmitMessageOptions = {
+  cues?: TurnCues;
+  images?: ImageAttachment[];
+  onRecovery?: (failed: boolean) => void;
+};
+
+export async function submitMessage(state: ConversationState, text: string, options: SubmitMessageOptions = {}): Promise<boolean> {
+  const cues = options.cues ?? {};
+  const onRecovery = options.onRecovery ?? (() => {});
   cues.prime?.();
   state.setMessages((m) => [...m, { role: "user", content: text }]);
   state.setEvents([{ label: "thinking..." }]);
@@ -377,24 +390,31 @@ export async function submitMessage(state: ConversationState, text: string, cues
   state.setRecovery(null);
   state.setBusy(true);
   try {
-    const result = await api<{ finalText: string; events?: EventRow[]; interrupted?: boolean; receipt?: DesktopRunReceipt }>("/api/chat", postJson({ message: text }));
+    const result = await api<{ finalText: string; events?: EventRow[]; interrupted?: boolean; receipt?: DesktopRunReceipt }>("/api/chat", postJson(chatPayload(text, options.images)));
     const failed = result.receipt ? result.receipt.status !== "done" : !result.interrupted && Boolean(result.events?.some((event) => event.ok === false));
     state.setMessages((m) => [...m, { role: "assistant", content: result.finalText || "(no text)", ...(result.receipt ? { desktopRun: result.receipt } : {}) }]);
     state.setStreamText(() => "");
     state.setEvents(result.events?.length ? result.events : [{ label: "No tool events returned." }]);
     state.setRecovery(failed ? result.receipt ?? fallbackReceipt(text, result.finalText, result.events) : null);
     onRecovery(failed);
+    if (!failed) state.setDraft(() => "");
     await Promise.resolve(cues.complete?.()).catch(() => undefined);
     await state.refresh();
+    return !failed;
   } catch (err) {
     state.setMessages((m) => [...m, { role: "assistant", content: (err as Error).message }]);
     state.setStreamText(() => "");
     state.setEvents([{ label: (err as Error).message, ok: false }]);
     state.setRecovery(fallbackReceipt(text, (err as Error).message, [{ label: (err as Error).message, ok: false }]));
     onRecovery(true);
+    return false;
   } finally {
     state.setBusy(false);
   }
+}
+
+function chatPayload(message: string, images?: ImageAttachment[]): { message: string; images?: ImageAttachment[] } {
+  return images?.length ? { message, images } : { message };
 }
 
 function fallbackReceipt(instruction: string, partialText: string, events: EventRow[] = []): DesktopRunReceipt {
