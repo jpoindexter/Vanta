@@ -8,13 +8,17 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1267 capabilities shipped · 0 in flight · 13 external proof gates · 1 on the horizon. Updated 2026-07-20._
+_1267 capabilities shipped · 1 in flight · 13 external proof gates · 1 on the horizon. Updated 2026-07-20._
 
 ## In flight
 
 What we are actively building next.
 
-_Nothing in flight right now — the remaining accepted work is listed under external proof gates._
+### TUI resize repaint regression — one clean frame after every terminal resize
+
+**Operator** · M-size
+
+Reopen the terminal-resize reliability work after a real 78x25 session on 2026-07-20 left repeated composer borders, prompt text, and orphaned line glyphs across the viewport. Treat SIGWINCH as a complete layout invalidation: clear the prior physical frame, recompute the transcript/composer/footer geometry, and draw one coherent current frame without losing the active draft or turn
 
 ## Recently shipped
 

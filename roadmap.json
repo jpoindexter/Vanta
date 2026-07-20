@@ -19902,6 +19902,27 @@
         "SCHEMA-TASK-ENVIRONMENT-CONTRACT",
         "PCLIP-APPROVAL-STAGES"
       ]
+    },
+    {
+      "id": "TUI-RESIZE-GHOST-REGRESSION",
+      "track": "Operator",
+      "title": "TUI resize repaint regression — one clean frame after every terminal resize",
+      "status": "next",
+      "size": "M",
+      "summary": "Reopen the terminal-resize reliability work after a real 78x25 session on 2026-07-20 left repeated composer borders, prompt text, and orphaned line glyphs across the viewport. Treat SIGWINCH as a complete layout invalidation: clear the prior physical frame, recompute the transcript/composer/footer geometry, and draw one coherent current frame without losing the active draft or turn.",
+      "done": "A real PTY resize-storm proof repeatedly shrinks and grows an active Vanta TUI through 60x20, 78x25, 100x30, and 140x45 while idle and streaming; after every SIGWINCH the captured terminal grid contains exactly one in-bounds composer, one footer, no stale borders or duplicate prompt text, and preserves the draft, transcript, scroll position, and active run. The proof runs against the shipped entry point, covers width-only and height-only changes plus rapid alternating resizes, and stores before/after terminal captures as the regression receipt.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "tui",
+      "source": "operator-screenshot-2026-07-20",
+      "updated": "2026-07-20",
+      "notes": "REGRESSION: VANTA-ALT-SCREEN recorded resize ghosting as shipped on 2026-06-10, but the current real TUI visibly reproduces stacked historical composer frames at 78x25. Existing resize-fix unit coverage proves only the repaint hook mechanism; this card stays open until the real PTY output is clean under repeated resize events.",
+      "after": [
+        "VANTA-ALT-SCREEN",
+        "TUI-LINE-SCROLL"
+      ]
     }
   ]
 }
