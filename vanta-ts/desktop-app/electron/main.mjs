@@ -10,6 +10,8 @@ import { createTrayController } from "./tray.mjs";
 import { findAvailablePort, projectArg, readProjectSetting, resolveProjectRoot, saveProjectSetting } from "./project-root.mjs";
 import { resolveRuntimePaths } from "./runtime-paths.mjs";
 
+app.setName("Vanta");
+
 const DEFAULT_DESKTOP_PORT = 7790;
 const args = process.argv.slice(app.isPackaged ? 1 : 2);
 const smoke = args.includes("--smoke");

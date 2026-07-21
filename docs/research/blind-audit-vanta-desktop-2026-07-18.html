@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blind Audit - Vanta Desktop</title>
+<style>
+:root{--bg:#f4f3ef;--paper:#fff;--ink:#111;--muted:#666;--line:#d7d5cf;--critical:#a61b1b;--high:#a44a00;--medium:#5a5a5a;--ok:#08752d}
+*{box-sizing:border-box}body{max-width:1000px;margin:auto;padding:48px 24px;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+h1{font-size:30px;margin:0}h2{margin:44px 0 12px;border-top:1px solid var(--line);padding-top:22px;font-size:20px}h3{margin:0 0 6px;font-size:16px}.meta{color:var(--muted)}
+.summary{margin:22px 0;background:var(--paper);border:1px solid var(--line);padding:18px}.finding{display:grid;grid-template-columns:88px 1fr;gap:16px;background:var(--paper);border:1px solid var(--line);padding:16px}.finding+.finding{margin-top:10px}
+.severity{font:700 12px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase}.critical{color:var(--critical)}.high{color:var(--high)}.medium{color:var(--medium)}
+code{font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;background:#ecebe7;padding:1px 5px;border-radius:3px}p{margin:6px 0}table{width:100%;border-collapse:collapse;background:var(--paper);font-size:14px}th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}th{background:#ecebe7}ul,ol{padding-left:22px}li+li{margin-top:6px}.ok{color:var(--ok);font-weight:700}a{color:#174ea6}@media(max-width:680px){.finding{grid-template-columns:1fr}.severity{margin-bottom:-8px}}
+</style>
+</head>
+<body>
+<h1>Blind Audit: Vanta Desktop</h1>
+<p class="meta">2026-07-18 - Full 16-framework sweep - audit only, no automatic product or roadmap mutation</p>
+<div class="summary"><strong>Verdict:</strong> the app is substantially functional and does not need another wholesale shell rewrite. It is not release-clean because exact text is corrupted, the live proof hides that defect behind a timeout, drafts cross task boundaries, and several release claims remain fixture- or environment-limited.</div>
+
+<h2>Priority findings</h2>
+<article class="finding"><div class="severity critical">Critical</div><div><h3>Exact chat text is mutated</h3><p><code>VANTA_DESKTOP_AUDIT_...</code> renders as <code>VANTADESKTOPAUDIT_...</code>. The shared underscore-emphasis regex affects user and assistant bubbles, threatening file names, environment variables, IDs, hashes, and exact-output work.</p></div></article>
+<article class="finding"><div class="severity high">High</div><div><h3>The live proof fails opaquely</h3><p>The official proof waits 150 seconds for already-corrupted rendered text and does not dump raw response, rendered messages, provider, root, approval, or errors. A separate diagnostic proved the provider and isolated root work.</p></div></article>
+<article class="finding"><div class="severity high">High</div><div><h3>Draft ownership is unsafe</h3><p>One volatile React draft follows session changes and disappears on reload. Drafts need project + session scope, persistence, and explicit keep/discard/move behavior.</p></div></article>
+<article class="finding"><div class="severity high">High</div><div><h3>The current local candidate is unnotarized</h3><p>The app is validly signed but Gatekeeper rejects it as <code>Unnotarized Developer ID</code>. The published notarized 0.9.2 CI artifact is separate from the changed local candidate.</p></div></article>
+<article class="finding"><div class="severity medium">Medium-high</div><div><h3>Provider model and local runtime model conflict in copy</h3><p>The same screen can show <code>gpt-5.5</code> and <code>No model</code>. Both can be technically true, but the interface does not explain the two layers.</p></div></article>
+<article class="finding"><div class="severity medium">Medium-high</div><div><h3>Accessibility is structured, not fully proven</h3><p>Keyboard, roles, focus, contrast, zoom, and reduced motion have coverage. Automated axe scans and a physical VoiceOver flow do not.</p></div></article>
+<article class="finding"><div class="severity medium">Medium</div><div><h3>No pixel or performance release budget</h3><p>Geometry tests do not catch every visual regression. The app is about 548 MB on disk, and no cold-start, memory, CPU, or package-size threshold is enforced.</p></div></article>
+<article class="finding"><div class="severity medium">Medium</div><div><h3>External coverage is narrow</h3><p>Telegram passed live connect/poll/disconnect, but no complete inbound-message to agent-response round trip was executed. Twenty-one other channels correctly report not configured.</p></div></article>
+<article class="finding"><div class="severity medium">Medium</div><div><h3>Declined crypto code ships in the default app</h3><p>The operator explicitly parked x402, yet <code>@x402/core</code> and <code>@x402/evm</code> remain direct dependencies and are present in the packaged app.</p></div></article>
+<article class="finding"><div class="severity medium">Medium</div><div><h3>The roadmap has no intake for the new defects</h3><p>The roadmap reports 1,247 shipped and 11 parked cards. None currently represents message fidelity, draft ownership, or live-proof diagnostics.</p></div></article>
+
+<h2>What passed</h2>
+<ul>
+<li><span class="ok">Executed:</span> 24 desktop test files / 64 tests and renderer typecheck.</li>
+<li><span class="ok">Executed:</span> source and packaged flow suites across three viewports, both themes, 200% zoom, recovery, 500-turn sessions, queues, attachments, session operations, Outputs, and Connect.</li>
+<li><span class="ok">Executed:</span> real Codex read in the correct isolated desktop project.</li>
+<li><span class="ok">Executed:</span> real Ask-mode destructive overwrite, approved through the desktop UI and verified on disk.</li>
+<li><span class="ok">Executed:</span> Telegram live transport probe and valid deep app signature.</li>
+</ul>
+
+<h2>All 16 lenses</h2>
+<table><tr><th>Framework</th><th>Result</th></tr>
+<tr><td>Bias blind spot</td><td>Roadmap completion creates an incentive to confuse shipped cards with current defect absence.</td></tr>
+<tr><td>Calibration</td><td>Executed, fixture/code-path, and unverified claims were separated.</td></tr>
+<tr><td>Chesterton's fence</td><td>Preserve the documented purpose of runtime, inspector, and dormant boundaries before removing them.</td></tr>
+<tr><td>Consider the opposite</td><td>The core app is coherent; targeted trust repairs beat another shell rewrite.</td></tr>
+<tr><td>Curse of knowledge</td><td><code>Tools 141</code>, <code>MCP 0</code>, gateway, kernel, provider model, and runtime model assume internal vocabulary.</td></tr>
+<tr><td>Dunning-Kruger</td><td>No unexecuted claim is made for screen readers, all providers, or every connector.</td></tr>
+<tr><td>Falsification</td><td>The underscore marker disproved exact-render fidelity.</td></tr>
+<tr><td>Inversion</td><td>Trust fails through text mutation, wrong-task drafts, ambiguous model state, and blocked releases.</td></tr>
+<tr><td>Johari window</td><td>Fresh-context human and physical assistive-technology feedback remain absent.</td></tr>
+<tr><td>Ladder of inference</td><td>Old broken-shell screenshots were not treated as current behavior; a fresh launch replaced that assumption with direct evidence.</td></tr>
+<tr><td>Outside view</td><td>Packaging, auth drift, external setup, and state recovery are typical late failures and remain priority proof areas.</td></tr>
+<tr><td>Premortem</td><td>Likely launch incidents are corrupted identifiers, wrong-task execution, Gatekeeper rejection, and connector delivery failure.</td></tr>
+<tr><td>Red team</td><td>Electron isolation is strong; package/dependency surface and proof gaps remain.</td></tr>
+<tr><td>Steelman</td><td>The requested Codex/Hermes foundations already exist and should be preserved.</td></tr>
+<tr><td>Survivorship bias</td><td>Fixtures and configured Telegram are visible; unconfigured accounts, offline drafts, AT, and changed release candidates are not.</td></tr>
+<tr><td>Unknown unknowns</td><td>Draft scope, dual-model terms, package composition, release binding, budgets, and provider drift surfaced.</td></tr></table>
+
+<h2>Sequence</h2>
+<ol><li>Fix message fidelity and split raw/rendered live-proof assertions.</li><li>Persist drafts by project and session.</li><li>Clarify agent model versus local runtime; run one cold-user task.</li><li>Add axe, VoiceOver, and pixel-regression gates.</li><li>Bind notarization and real connector packets to the exact release commit.</li><li>Decide whether dormant x402 belongs in the default desktop package.</li></ol>
+
+<h2>Artifacts</h2>
+<p><a href="../../flow-report.html">User-flow report</a> - <a href="blind-audit-vanta-desktop-2026-07-18.md">Detailed Markdown blind audit</a></p>
+</body>
+</html>

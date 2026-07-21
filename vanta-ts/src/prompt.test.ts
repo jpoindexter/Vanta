@@ -271,8 +271,10 @@ describe("buildSystemPrompt", () => {
     });
     expect(prompt).toContain("personal operator");
     expect(prompt).toMatch(/digital life/i);
-    // File work is scoped (safety), but the agent is not described as confined.
-    expect(prompt).toContain("File writes stay within /tmp/vanta");
+    // File work defaults to the root, while a named outside target uses approval.
+    expect(prompt).toContain("File writes default to /tmp/vanta");
+    expect(prompt).toContain("use the exact absolute path");
+    expect(prompt).toContain("scoped approval");
     expect(prompt).not.toContain("Never write outside"); // old coding-confinement wording is gone
     expect(prompt).toMatch(/honest about limits/i);
   });

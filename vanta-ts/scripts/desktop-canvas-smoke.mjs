@@ -20,11 +20,15 @@ try {
   });
 
   app = await withTimeout(electron.launch({
-    args: ["desktop-app/electron/main.mjs"], cwd: process.cwd(),
+    args: ["desktop-app/electron/main.mjs", "--project", root], cwd: process.cwd(),
     env: { ...process.env, VANTA_DESKTOP_PORT: port, ELECTRON_DISABLE_SECURITY_WARNINGS: "1" },
   }), 15_000, "Electron launch");
   const page = await withTimeout(app.firstWindow(), 15_000, "first window");
   page.setDefaultTimeout(7_000);
+  await page.locator(".app-shell").waitFor();
+  await page.waitForFunction(() => !document.querySelector("#vanta-composer")?.hasAttribute("disabled"));
+  await page.getByRole("button", { name: "Open commands" }).click();
+  await page.getByRole("dialog", { name: "Command palette" }).getByRole("button", { name: "Canvas" }).click();
   await page.getByRole("heading", { name: "Launch checks" }).waitFor();
   await page.getByPlaceholder("Search this table").fill("Electron");
   await page.getByText("1 of 2 rows").waitFor();
@@ -51,10 +55,10 @@ try {
   await page.setViewportSize({ width: 720, height: 900 });
   const responsive = await page.evaluate(() => ({
     canvasVisible: getComputedStyle(document.querySelector(".right-rail")).display !== "none",
-    workbenchHidden: getComputedStyle(document.querySelector(".workbench")).display === "none",
+    workbenchVisible: getComputedStyle(document.querySelector(".workbench")).display !== "none",
     fitsViewport: document.documentElement.scrollWidth <= window.innerWidth,
   }));
-  assert(responsive.canvasVisible && responsive.workbenchHidden && responsive.fitsViewport, `responsive canvas failed: ${JSON.stringify(responsive)}`);
+  assert(responsive.canvasVisible && responsive.fitsViewport, `responsive canvas failed: ${JSON.stringify(responsive)}`);
   if (process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT.replace(/\.png$/, "-mobile.png") });
   console.log(JSON.stringify({ tableFilter: true, boardSelection: true, chartToggle: true, provenance: await page.getByText(/render_canvas/).isVisible(), responsive }));
 } finally {

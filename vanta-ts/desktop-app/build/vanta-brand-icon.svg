@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Vanta</title>
+  <desc id="desc">A bone-white V held inside four field brackets with a violet signal point.</desc>
+  <rect width="64" height="64" fill="#050507"/>
+  <g fill="none" stroke="#F4EFE3" stroke-linecap="square" stroke-width="3">
+    <path d="M10 22V10h12M42 10h12v12M54 42v12H42M22 54H10V42"/>
+  </g>
+  <path d="M20 21h7l5 14 5-14h7L35 45h-6L20 21Z" fill="#F4EFE3"/>
+  <circle cx="47" cy="17" r="2.5" fill="#7C3AED"/>
+</svg>

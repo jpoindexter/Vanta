@@ -45,6 +45,7 @@ describe("desktop-app package surface", () => {
     expect(main).toContain("createRoot");
     expect(main).toContain("CompanionApp");
     expect(native).toContain("createTrayController");
+    expect(native).toContain('app.setName("Vanta")');
     expect(tray).toContain("Quick Ask");
     expect(tray).toContain("Approval waiting");
     expect(tray).toContain("Pair mobile");

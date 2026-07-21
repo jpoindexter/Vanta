@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { buildRegistry } from "./index.js";
 import { readFileTool } from "./read-file.js";
 import { writeFileTool } from "./write-file.js";
-import { approvedMkdirWritableDirs, shellCmdTool, classifyExitCode, lastCommandWord, shellSandboxEnv, shouldSandboxShell } from "./shell-cmd.js";
+import { approvedMkdirWritableDirs, directMkdirTarget, externalDirectMkdirTarget, shellCmdTool, shellCommandSafetyAction, classifyExitCode, lastCommandWord, shellSandboxEnv, shouldSandboxShell } from "./shell-cmd.js";
 import { configSandboxTool, buildScopedRegistry } from "./config-sandbox.js";
 import { enterWorktreeTool, exitWorktreeTool } from "./worktree.js";
 import { openDeepLinkTool } from "./deep-link.js";
@@ -359,6 +359,14 @@ describe("write_file", () => {
 describe("shell_cmd", () => {
   it("derives only the existing parent for an approved direct mkdir", () => {
     expect(approvedMkdirWritableDirs("mkdir -p ../newsletter && echo CREATED", root)).toEqual([canonicalPath(dirname(root))]);
+  });
+
+  it("shows the canonical target of a relative mkdir before approval", () => {
+    const target = canonicalPath(join(dirname(root), "newsletter"));
+    expect(directMkdirTarget("mkdir ../newsletter && echo CREATED", root)).toBe(target);
+    expect(externalDirectMkdirTarget("mkdir ../newsletter && echo CREATED", root, root)).toBe(target);
+    expect(externalDirectMkdirTarget("mkdir newsletter && echo CREATED", root, root)).toBeNull();
+    expect(shellCommandSafetyAction("mkdir ../newsletter && echo CREATED", root)).toContain(`resolved mkdir target: ${target}`);
   });
 
   it("does not widen the sandbox for arbitrary or protected shell paths", () => {

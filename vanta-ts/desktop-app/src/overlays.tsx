@@ -229,16 +229,14 @@ export function ApprovalOverlay(props: { approval: Approval | null; onAnswer: (d
   const request = props.approval.request;
   return (
     <div className="overlay">
-      <div className={`approval ${request?.kind ?? "generic"}`}>
-        <h2>{request?.title ?? "Approval Needed"}</h2>
+      <div className={`approval ${request?.kind ?? "generic"}`} role="dialog" aria-modal="true" aria-labelledby={`approval-overlay-${props.approval.id}`}>
+        <h2 id={`approval-overlay-${props.approval.id}`}>{request?.title ?? "Approval Needed"}</h2>
         <p className="approval-subject">{request?.subject ?? props.approval.action}</p>
         <p>{request?.reason ?? props.approval.reason}</p>
         {(request?.sections ?? fallbackSections(props.approval)).map((section) => <ApprovalSection key={section.label} section={section} />)}
         <div>
-          <button type="button" onClick={() => props.onAnswer("deny")}>Deny</button>
           <button type="button" onClick={() => props.onAnswer("allow")}>Allow once</button>
-          <button type="button" className="secondary-risk" onClick={() => props.onAnswer("never")}>Never allow</button>
-          <button type="button" className="secondary-risk" onClick={() => props.onAnswer("always")}>Always allow</button>
+          <button type="button" onClick={() => props.onAnswer("deny")}>Reject</button>
         </div>
       </div>
     </div>

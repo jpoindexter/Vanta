@@ -36,6 +36,8 @@ describe("local runtime session policy", () => {
     expect(compact).toContain("/project");
     expect(compact).toContain("Ship the local runtime");
     expect(compact).toContain("read AGENTS.md");
+    expect(compact).toContain("exact absolute path");
+    expect(compact).toContain("scoped approval");
     expect(compact).not.toContain("repository detail");
     expect(compact.length).toBeLessThan(3_000);
   });

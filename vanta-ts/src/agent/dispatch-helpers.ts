@@ -18,7 +18,7 @@ import { fireHooks } from "../hooks/shell-hooks.js";
 import { buildPermDeniedPayload, shouldFirePermDenied } from "../hooks/perm-denied.js";
 import { gateAuditEvent, type GateResolution } from "../governance/audit.js";
 import { join } from "node:path";
-import { approvedMkdirWritableDirs } from "../tools/shell-cmd.js";
+import { approvedMkdirWritableDirs, externalDirectMkdirTarget, shellCommandCwd, shellCommandSafetyAction } from "../tools/shell-cmd.js";
 
 export type SafetyGateResult = { approved: boolean; reason?: string; sandboxWritableDirs?: string[] };
 
@@ -50,7 +50,13 @@ export async function applySafetyGate(
     return { approved: false, reason: `unknown tool: ${call.name}` };
   }
 
-  const action = tool.describeForSafety ? tool.describeForSafety(call.arguments) : `${call.name} ${JSON.stringify(call.arguments)}`;
+  const described = tool.describeForSafety ? tool.describeForSafety(call.arguments) : `${call.name} ${JSON.stringify(call.arguments)}`;
+  const hasShellCommand = typeof call.arguments.command === "string";
+  const localShell = call.name === "shell_cmd" && hasShellCommand && !call.arguments.ssh && !process.env.VANTA_SSH_SESSION;
+  const shellCwd = localShell ? shellCommandCwd(ctx.root) : ctx.root;
+  const action = localShell
+    ? shellCommandSafetyAction(String(call.arguments.command ?? ""), shellCwd)
+    : described;
   // The kernel is THE boundary: if it is unreachable, fail CLOSED — but gracefully,
   // as a blocked tool result. Throwing here aborts the turn mid-dispatch and leaves
   // a dangling assistant tool_call that 400s every later request in the session.
@@ -66,21 +72,25 @@ export async function applySafetyGate(
   }
 
   const decision = await resolveLayeredDecision(verdict, call, action, ctx);
+  const externalMkdir = localShell ? externalDirectMkdirTarget(String(call.arguments.command), shellCwd, ctx.root) : null;
+  const effectiveDecision = decision.decision === "allow" && externalMkdir
+    ? { decision: "ask" as const, reason: `create a directory outside the project root at ${externalMkdir}` }
+    : decision;
   const permissionMode = ctx.permissionMode?.() ?? resolvePermissionMode(process.env);
 
-  if (decision.decision === "block") {
-    return handleBlockDecision({ call, action, verdict, decision, deps, root: ctx.root });
+  if (effectiveDecision.decision === "block") {
+    return handleBlockDecision({ call, action, verdict, decision: effectiveDecision, deps, root: ctx.root });
   }
 
-  if (decision.decision === "ask") {
+  if (effectiveDecision.decision === "ask") {
     if (permissionMode === "fullAccess") {
       recordAutoDecision(action, deps.activeGoalText);
       await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "full-access-auto" });
       return { approved: true, reason: "full access (kernel and explicit blocks remain enforced)" };
     }
-    const result = await handleAskDecision({ call, action, verdict, decision, deps, root: ctx.root, tool, permissionMode });
+    const result = await handleAskDecision({ call, action, verdict, decision: effectiveDecision, deps, root: ctx.root, tool, permissionMode });
     return result.approved && call.name === "shell_cmd"
-      ? { ...result, sandboxWritableDirs: approvedMkdirWritableDirs(String(call.arguments.command ?? ""), ctx.root) }
+      ? { ...result, sandboxWritableDirs: approvedMkdirWritableDirs(String(call.arguments.command ?? ""), shellCwd) }
       : result;
   }
 

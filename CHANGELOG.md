@@ -3,6 +3,22 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## v0.9.7 — 2026-07-21
+
+**Resolved-path approvals.** Relative sibling-directory creation is canonicalized before safety assessment, so the approval and one-run sandbox scope agree on the exact destination.
+
+### Fixed
+- Direct local `mkdir` actions show their canonical target to the kernel and operator before execution, including paths relative to a session changed with `/cd`.
+- Agent prompts now distinguish the default project root from explicitly approved outside-root paths and require an exact absolute path when the user names a destination.
+- Desktop approval checkpoints expose only `Allow once` and `Reject`; standing access changes remain in the project access-mode selector.
+
+### Changed
+- The packaged Desktop app icon now uses the current Vanta V-in-field brandmark with the violet signal point.
+
+### Verified boundary
+- Focused filesystem, permission, prompt, and Desktop renderer suites pass (144 tests); core and renderer TypeScript checks pass.
+- Full-suite, real default-sandbox sibling creation, packaged icon inspection, and release asset proof are required before publication.
+
 ## v0.9.6 — 2026-07-21
 
 **Approved filesystem scope.** A one-time approval for a direct project-directory creation now reaches the OS sandbox instead of failing after Vanta has already asked the operator.

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vanta Desktop - User Flow Report</title>
+<style>
+  :root{--ink:#111;--muted:#626262;--line:#d8d8d8;--accent:#0b5fff;--ok:#087a32;--warn:#a84b08;--bad:#b42318;--bg:#f7f7f5;--card:#fff}
+  *{box-sizing:border-box;margin:0}
+  body{font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg);padding:48px 24px;max-width:960px;margin:0 auto}
+  h1{font-size:30px;letter-spacing:0} h2{font-size:20px;margin:48px 0 8px;padding-top:24px;border-top:1px solid var(--line)}
+  h3{font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:28px 0 12px}
+  p+p{margin-top:10px}.meta{color:var(--muted);font-size:14px;margin:6px 0 4px}.skills{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 0}
+  .chip{font-size:13px;padding:3px 10px;border:1px solid var(--line);border-radius:999px;background:var(--card)}
+  .callout{margin-top:18px;border-left:4px solid var(--bad);background:#fff5f4;padding:14px 16px}.callout strong{color:var(--bad)}
+  .flow{list-style:none;padding:0;margin:16px 0}.flow>li{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px 18px;position:relative}
+  .flow>li+li{margin-top:34px}.flow>li+li::before{content:"";position:absolute;top:-27px;left:32px;width:2px;height:20px;background:var(--accent)}
+  .flow>li+li::after{content:"";position:absolute;top:-12px;left:28px;border:5px solid transparent;border-top-color:var(--accent)}
+  .step-n{display:inline-block;font-size:12px;font-weight:700;color:var(--accent);border:1.5px solid var(--accent);border-radius:999px;padding:1px 9px;margin-right:8px;vertical-align:1px}
+  .step-t{font-weight:650}.step-d{color:var(--muted);font-size:14px;margin-top:6px}.cta{font-size:13px;margin-top:8px}.cta b{color:var(--ok)}
+  .branch{font-size:13px;margin-top:8px;padding:8px 12px;background:#f1f5ff;border-left:3px solid var(--accent)}
+  table{border-collapse:collapse;width:100%;font-size:14px;background:var(--card)}th,td{text-align:left;padding:9px 12px;border:1px solid var(--line);vertical-align:top}
+  th{background:var(--bg);font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}.pass{color:var(--ok);font-weight:650}.warn{color:var(--warn);font-weight:650}.fail{color:var(--bad);font-weight:650}.overflow{overflow-x:auto}
+  code{font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;background:#ececea;padding:1px 5px;border-radius:4px}
+  ul{padding-left:22px}li+li{margin-top:7px}footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+  @media print{body{background:#fff;padding:0}.flow>li{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<h1>Vanta Desktop - User Flow Report</h1>
+<p class="meta">2026-07-18 - Full native desktop audit from cold start through work, approval, recovery, setup, and release</p>
+<div class="skills"><span class="chip">flow-app-shell</span><span class="chip">flow-navigation</span><span class="chip">flow-ai-chat</span><span class="chip">flow-errors</span></div>
+
+<h2>Summary</h2>
+<p>The current desktop is no longer the broken prototype shown in earlier screenshots. Source and signed-package flow suites pass across desktop, compact, light, dark, 200% zoom, 500-turn sessions, queues, recovery, attachments, session operations, Outputs, and Connect. A real Codex turn read the correct isolated project, and a real Ask-mode overwrite displayed an approval and changed the file only after <strong>Allow once</strong>.</p>
+<p>The primary contract is still not release-clean. The shared Markdown renderer removes intraword underscores from both user and assistant messages, the official live proof times out on that corruption, drafts are global and volatile rather than session-scoped, and the current local 0.9.2 artifact is signed but rejected by Gatekeeper as unnotarized. Accessibility, visual regression, cold-user success, and external-account coverage remain proof gaps.</p>
+<div class="callout"><strong>Highest-impact defect:</strong> exact text is not preserved. <code>VANTA_DESKTOP_AUDIT_...</code> renders as <code>VANTADESKTOPAUDIT_...</code>. This can corrupt file names, environment variables, IDs, hashes, and exact-output tasks.</div>
+
+<h2>Flow: Start or resume work</h2>
+<p class="meta">Pattern source: flow-app-shell + flow-navigation - Entry point: native launch or an existing task</p>
+<h3>Steps</h3>
+<ol class="flow">
+  <li><span class="step-n">1</span><span class="step-t">Open Work</span><p class="step-d">The shell restores the project, active task, session rail, provider model, runtime state, and contextual inspector state.</p><p class="cta">Primary action: <b>Select a task or New task</b> - opens the central work stream.</p><div class="branch">If the inspector is opened below 1080px - it overlays instead of shrinking Work.</div></li>
+  <li><span class="step-n">2</span><span class="step-t">Name the outcome</span><p class="step-d">The composer exposes project, host, registered tools, MCP, memory, model, access mode, and attached-file chips.</p><p class="cta">Primary action: <b>Send</b> - begins a kernel-gated turn.</p><div class="branch">If a draft belongs to another task - there is currently no session-scoped draft guard.</div></li>
+  <li><span class="step-n">3</span><span class="step-t">Follow the run</span><p class="step-d">Partial text, tool activity, runtime state, Stop, Background, and queued turns stay visible.</p><p class="cta">Primary action: <b>Stop, queue, or wait</b> - controls the active run.</p></li>
+  <li><span class="step-n">4</span><span class="step-t">Approve consequential work</span><p class="step-d">Ask mode shows the exact action and reason. A real overwrite was blocked until Allow once and then verified on disk.</p><p class="cta">Primary action: <b>Allow once or Reject</b> - resolves the pending kernel action.</p></li>
+  <li><span class="step-n">5</span><span class="step-t">Review the result</span><p class="step-d">The transcript, tool receipts, changed-file evidence, Outputs, and contextual inspector preserve the work.</p><p class="cta">Primary action: <b>Open output or continue</b> - keeps the task context.</p><div class="branch">If the response contains intraword underscores - the current renderer changes the visible text.</div></li>
+</ol>
+<h3>Screen inventory</h3>
+<div class="overflow"><table><tr><th>Screen</th><th>Purpose</th><th>Primary action</th><th>States</th></tr>
+<tr><td>Work shell</td><td>Resume a project/task</td><td>Select task</td><td>loading, ready, project/provider error</td></tr>
+<tr><td>Conversation</td><td>Understand request, progress, and result</td><td>Send/Stop</td><td>empty, streaming, approval, failed, recovered</td></tr>
+<tr><td>Composer</td><td>Submit outcome and context</td><td>Send/Queue</td><td>idle, busy, attached files, full-access warning</td></tr>
+<tr><td>Inspector</td><td>Review activity, files, diff, preview, receipts</td><td>Open evidence</td><td>empty, populated, narrow drawer</td></tr></table></div>
+<h3>Anti-pattern audit</h3>
+<div class="overflow"><table><tr><th>Check</th><th>Verdict</th><th>Note</th></tr>
+<tr><td>One dominant work surface</td><td class="pass">PASS</td><td>Central transcript remains the primary surface; inspector is contextual.</td></tr>
+<tr><td>Visible agent state and control</td><td class="pass">PASS</td><td>Streaming, tools, Stop, Queue, approvals, receipts, and recovery are visible.</td></tr>
+<tr><td>Preserve user input and exact output</td><td class="fail">FAIL</td><td>Drafts are not per-session/persistent, and intraword underscores are removed by rendering.</td></tr>
+<tr><td>Explain model/runtime scope</td><td class="warn">WARN</td><td>The header can show <code>gpt-5.5</code> while the runtime strip says <code>No model</code>; the two model layers are not named.</td></tr></table></div>
+
+<h2>Flow: Navigate and manage tasks</h2>
+<p class="meta">Pattern source: flow-navigation - Entry point: sidebar project/task rail</p>
+<h3>Steps</h3>
+<ol class="flow">
+  <li><span class="step-n">1</span><span class="step-t">Choose a stable destination</span><p class="step-d">Work, Operate, Outputs, and Connect remain in a fixed sidebar.</p><p class="cta">Primary action: <b>Select destination</b> - changes the main surface without changing project context.</p></li>
+  <li><span class="step-n">2</span><span class="step-t">Find a task</span><p class="step-d">Pinned project tasks and searchable recent sessions are separated.</p><p class="cta">Primary action: <b>Open task</b> - restores messages and view position.</p></li>
+  <li><span class="step-n">3</span><span class="step-t">Manage safely</span><p class="step-d">Rename, pin, archive with Undo, recoverable Trash, bulk selection, and Shift-range selection are implemented.</p><p class="cta">Primary action: <b>Archive, restore, or delete</b> - updates the session store with feedback.</p></li>
+</ol>
+<h3>Screen inventory</h3>
+<div class="overflow"><table><tr><th>Screen</th><th>Purpose</th><th>Primary action</th><th>States</th></tr><tr><td>Sidebar</td><td>Project and task navigation</td><td>Open task</td><td>pinned, recent, search, bulk mode, trash</td></tr><tr><td>Operate</td><td>Standing work and runtime oversight</td><td>Inspect run</td><td>idle, active, failed</td></tr><tr><td>Outputs</td><td>Review artifacts across tasks</td><td>Open artifact/source task</td><td>empty, filtered, populated</td></tr></table></div>
+<h3>Anti-pattern audit</h3>
+<div class="overflow"><table><tr><th>Check</th><th>Verdict</th><th>Note</th></tr><tr><td>Command palette is not the only navigation</td><td class="pass">PASS</td><td>Every primary destination has a persistent visible entry.</td></tr><tr><td>Destructive actions are recoverable</td><td class="pass">PASS</td><td>Archive Undo and recoverable Trash are covered by source and packaged flows.</td></tr><tr><td>Task context is stable while switching</td><td class="warn">WARN</td><td>The global composer draft can follow the operator into another session.</td></tr></table></div>
+
+<h2>Flow: Connect a provider, tool, MCP server, or channel</h2>
+<p class="meta">Pattern source: flow-navigation + flow-errors - Entry point: Connect or <code>/setup</code></p>
+<h3>Steps</h3>
+<ol class="flow">
+  <li><span class="step-n">1</span><span class="step-t">Open Connect</span><p class="step-d">Outcome cards summarize providers, capabilities, MCP, and messaging as ready, needs setup, or unavailable.</p><p class="cta">Primary action: <b>Choose one connection</b> - opens only the relevant setup.</p></li>
+  <li><span class="step-n">2</span><span class="step-t">Enter and validate configuration</span><p class="step-d">Secrets remain private; Telegram validates against the API before saving and exposes pairing versus allowlist.</p><p class="cta">Primary action: <b>Save and test</b> - returns a readiness result.</p></li>
+  <li><span class="step-n">3</span><span class="step-t">Start or inspect the gateway</span><p class="step-d">The project gateway can start from Connect, while status and channel verification provide redacted evidence.</p><p class="cta">Primary action: <b>Start gateway</b> - enables channel delivery.</p></li>
+</ol>
+<h3>Screen inventory</h3>
+<div class="overflow"><table><tr><th>Screen</th><th>Purpose</th><th>Primary action</th><th>States</th></tr><tr><td>Connect overview</td><td>Select an outcome</td><td>Browse/setup</td><td>ready, needs setup, unavailable</td></tr><tr><td>Model picker</td><td>Select provider and model scope</td><td>Use model</td><td>discovered, offline catalog, discovery error</td></tr><tr><td>MCP control</td><td>Authorize and inspect servers/tools</td><td>Connect/test</td><td>ready, unhealthy, auth required</td></tr><tr><td>Messaging setup</td><td>Configure a channel</td><td>Save/test/start</td><td>not configured, ready, failed</td></tr></table></div>
+<h3>Anti-pattern audit</h3>
+<div class="overflow"><table><tr><th>Check</th><th>Verdict</th><th>Note</th></tr><tr><td>Setup is outcome-oriented</td><td class="pass">PASS</td><td>Connect avoids a single long settings maze and <code>/setup telegram</code> routes directly.</td></tr><tr><td>Real channel evidence</td><td class="warn">WARN</td><td>Telegram connect/poll/disconnect is live now, but no audited inbound-message to Vanta-response round trip was executed in this audit.</td></tr><tr><td>Broad connector claims</td><td class="pass">PASS</td><td>Verification reports one live channel and 21 not configured rather than calling the catalog ready.</td></tr></table></div>
+
+<h2>Flow: Recover from failure</h2>
+<p class="meta">Pattern source: flow-errors + flow-ai-chat - Entry point: startup, provider, tool, queue, or run failure</p>
+<h3>Steps</h3>
+<ol class="flow">
+  <li><span class="step-n">1</span><span class="step-t">Keep context visible</span><p class="step-d">The shell classifies project, provider, and service setup failures instead of replacing the app with a blank page.</p><p class="cta">Primary action: <b>Retry or configure the affected dependency</b> - stays in place.</p></li>
+  <li><span class="step-n">2</span><span class="step-t">Preserve partial work</span><p class="step-d">Failed runs retain partial output, checkpoint data, and classified failure details.</p><p class="cta">Primary action: <b>Retry failed step or edit request</b> - resumes from evidence.</p></li>
+  <li><span class="step-n">3</span><span class="step-t">Verify the recovery</span><p class="step-d">Receipts show whether the retried action actually completed.</p><p class="cta">Primary action: <b>Review receipt</b> - closes the trust loop.</p><div class="branch">If the proof itself fails - it must dump raw response, rendered text, root, provider, and errors; the current live proof does not.</div></li>
+</ol>
+<h3>Screen inventory</h3>
+<div class="overflow"><table><tr><th>Screen</th><th>Purpose</th><th>Primary action</th><th>States</th></tr><tr><td>Startup error</td><td>Repair project/provider/runtime</td><td>Retry/configure</td><td>project, service, provider</td></tr><tr><td>Run recovery card</td><td>Resume interrupted work</td><td>Retry/edit</td><td>partial, failed, retrying, recovered</td></tr><tr><td>Approval card</td><td>Resolve blocked consequential action</td><td>Allow/reject</td><td>pending, accepted, rejected</td></tr></table></div>
+<h3>Anti-pattern audit</h3>
+<div class="overflow"><table><tr><th>Check</th><th>Verdict</th><th>Note</th></tr><tr><td>Error names cause and action</td><td class="pass">PASS</td><td>Startup and run errors are scoped and actionable.</td></tr><tr><td>Failure preserves partial work</td><td class="pass">PASS</td><td>Recovery fixtures pass in source and packaged applications.</td></tr><tr><td>Release proof fails diagnostically</td><td class="fail">FAIL</td><td><code>desktop:live-turn:proof</code> waits 150 seconds for corrupted rendered text and emits no useful failure state.</td></tr><tr><td>Offline draft recovery</td><td class="fail">FAIL</td><td>The composer draft is React state only; reload/crash loses it.</td></tr></table></div>
+
+<h2>Executed evidence</h2>
+<div class="overflow"><table><tr><th>Check</th><th>Result</th><th>What it does not establish</th></tr>
+<tr><td>24 Vitest files / 64 desktop tests</td><td class="pass">PASS</td><td>Does not prove Electron, real providers, or physical assistive technology.</td></tr>
+<tr><td><code>desktop:renderer:typecheck</code></td><td class="pass">PASS</td><td>Does not prove runtime behavior.</td></tr>
+<tr><td>Source and packaged flow suites</td><td class="pass">PASS</td><td>Most flows use deterministic local fixtures; no notarization or paid external accounts.</td></tr>
+<tr><td>Real Codex read in isolated desktop project</td><td class="warn">PARTIAL</td><td>Provider/root/tool path works; rendered output corrupts underscores.</td></tr>
+<tr><td>Real Ask-mode overwrite</td><td class="pass">PASS</td><td>Proves one file-edit approval, not every tool/risk class.</td></tr>
+<tr><td>Telegram verification</td><td class="pass">PASS</td><td>Proves connect/poll/disconnect, not a full inbound/outbound conversation.</td></tr>
+<tr><td>Current local app signature</td><td class="warn">PARTIAL</td><td>Code signature is valid; Gatekeeper rejects the local candidate as unnotarized. The published CI 0.9.2 proof is separate.</td></tr>
+</table></div>
+
+<h2>Open questions &amp; parked items</h2>
+<ul>
+  <li>Should drafts be stored per project + session, with explicit discard/move behavior when switching tasks?</li>
+  <li>Should the runtime strip be hidden when no local runtime model is active, or relabeled to distinguish it from the agent provider model?</li>
+  <li>What is the release target for cold start, memory, CPU, and package size? The current app bundle is about 548 MB and no budget is enforced.</li>
+  <li>Should dormant x402/crypto compatibility remain in the shipped desktop dependency graph after the operator explicitly declined crypto?</li>
+  <li>Which external connectors are release requirements beyond Telegram, and which are catalog-only?</li>
+  <li>A fresh-context human test, VoiceOver pass, automated accessibility scan, and pixel-diff suite are still needed.</li>
+  <li>The product roadmap currently has 1,247 shipped and 11 parked cards, with no active card representing the newly observed fidelity, draft, or live-proof defects.</li>
+</ul>
+
+<footer>Generated from the current Vanta checkout using the userflow skill and flow-app-shell, flow-navigation, flow-ai-chat, and flow-errors patterns. Findings distinguish executed behavior from code-path and fixture evidence.</footer>
+</body>
+</html>

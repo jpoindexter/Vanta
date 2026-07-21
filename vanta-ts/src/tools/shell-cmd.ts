@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import { promisify } from "node:util";
-import { dirname, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { spawnBackground } from "./bg-tasks.js";
@@ -144,8 +144,33 @@ export function sandboxServeRefusal(command: string, root = process.cwd()): Tool
 /** The cwd a child spawn runs in: the session dir if `/cd` changed it this
  *  session, else the tool's root. Until a `/cd` happens this is exactly `root`,
  *  so the spawn is byte-identical to today's. (VANTA-CD-CMD) */
-function spawnCwd(root: string): string {
+export function shellCommandCwd(root: string): string {
   return isCwdChanged() ? sessionCwd() : root;
+}
+
+const DIRECT_MKDIR = /^\s*mkdir(?:\s+(?:-[A-Za-z]+|--))*\s+([^\s;&|`$<>(){}\[\]*?]+)(?=\s*(?:&&|;|$))/;
+
+/** Resolve the one direct mkdir shape eligible for a one-run sandbox grant. */
+export function directMkdirTarget(command: string, cwd: string): string | null {
+  const raw = DIRECT_MKDIR.exec(command)?.[1];
+  if (!raw || raw.startsWith("~")) return null;
+  const target = canonicalPath(resolve(cwd, raw));
+  return isDangerousPath(target).dangerous ? null : target;
+}
+
+/** Show the kernel and operator where a relative mkdir will actually land. */
+export function shellCommandSafetyAction(command: string, cwd: string): string {
+  const target = directMkdirTarget(command, cwd);
+  const resolved = target ? ` (resolved mkdir target: ${target})` : "";
+  return `run shell command: ${command}${resolved}`;
+}
+
+/** Return the resolved target only when it leaves the canonical project root. */
+export function externalDirectMkdirTarget(command: string, cwd: string, root: string): string | null {
+  const target = directMkdirTarget(command, cwd);
+  if (!target) return null;
+  const fromRoot = relative(canonicalPath(resolve(root)), target);
+  return fromRoot.startsWith("..") || isAbsolute(fromRoot) ? target : null;
 }
 
 /**
@@ -155,11 +180,8 @@ function spawnCwd(root: string): string {
  * this only after the kernel has asked and the operator has approved.
  */
 export function approvedMkdirWritableDirs(command: string, cwd: string): string[] {
-  const match = /^\s*mkdir(?:\s+(?:-[A-Za-z]+|--))*\s+([^\s;&|`$<>(){}\[\]*?]+)(?=\s*(?:&&|;|$))/.exec(command);
-  if (!match?.[1]) return [];
-  if (match[1].startsWith("~")) return [];
-  const target = canonicalPath(resolve(cwd, match[1]));
-  if (isDangerousPath(target).dangerous) return [];
+  const target = directMkdirTarget(command, cwd);
+  if (!target) return [];
   let parent = dirname(target);
   while (!existsSync(parent)) {
     const next = dirname(parent);
@@ -174,7 +196,7 @@ export function approvedMkdirWritableDirs(command: string, cwd: string): string[
  *  the `env` field is omitted and the spawn is byte-identical to today's. */
 function childRunOpts(root: string): { cwd: string; timeout: number; maxBuffer: number; env?: NodeJS.ProcessEnv } {
   const childEnv = applySessionEnv(process.env, sessionEnvStore.snapshot());
-  const base = { cwd: spawnCwd(root), timeout: TIMEOUT_MS, maxBuffer: MAX_OUTPUT };
+  const base = { cwd: shellCommandCwd(root), timeout: TIMEOUT_MS, maxBuffer: MAX_OUTPUT };
   return childEnv === process.env ? base : { ...base, env: childEnv };
 }
 
@@ -195,7 +217,7 @@ async function runLocal(command: string, root: string, pfx: string, sandboxWrita
   const local = resolveExecBackend(process.env) === "docker"
     ? { cmd: "sh", args: ["-c", command] }
     : resolveShellInvocation(command);
-  const workdir = spawnCwd(root);
+  const workdir = shellCommandCwd(root);
   const sb = await wrapExec({ env: shellSandboxEnv(process.env), root, workdir, baseCmd: local.cmd, baseArgs: local.args, additionalWritableDirs: sandboxWritableDirs });
   if (isSandboxError(sb)) return { ok: false, output: pfx + sb.error };
   const startedAt = Date.now();
@@ -214,7 +236,7 @@ export const shellCmdTool: Tool = {
   schema: {
     name: "shell_cmd",
     description:
-      "Run a shell command inside the project scope. Returns combined stdout/stderr. Destructive commands are blocked. Set background=true for long-running commands — returns a task id immediately. Set ssh to a settings.sshConfigs profile name or user@host to run the command on that host. In an SSH session (`vanta ssh user@host`) commands default to the remote host.",
+      "Run a shell command from the active working directory. Relative paths resolve there; use the exact absolute path when the user names a destination outside it. Returns combined stdout/stderr. Destructive commands are blocked. Set background=true for long-running commands — returns a task id immediately. Set ssh to a settings.sshConfigs profile name or user@host to run the command on that host. In an SSH session (`vanta ssh user@host`) commands default to the remote host.",
     parameters: {
       type: "object",
       properties: {

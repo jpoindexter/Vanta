@@ -35,7 +35,7 @@ import { startDesktopGateway } from "./gateway-control.js";
 import { redactForLog } from "../store/redact-structural.js";
 import { loadProviderAuthRequired, saveProviderAuthRequired, type ProviderAuthRequired } from "./provider-auth-store.js";
 import { parseDesktopImageInput } from "./image-input.js";
-import { approvedMkdirWritableDirs } from "../tools/shell-cmd.js";
+import { approvedMkdirWritableDirs, externalDirectMkdirTarget, shellCommandCwd, shellCommandSafetyAction } from "../tools/shell-cmd.js";
 export { approvalDecision, type PendingApproval } from "./approval.js";
 
 const desktopTurnQueues = new Map<string, DesktopTurnQueue>();
@@ -542,11 +542,16 @@ export async function handleTerminal(state: DesktopState, req: http.IncomingMess
   const live = await ensureDesktopConversation(state);
   const tool = live.setup.registry.get("shell_cmd");
   if (!tool) return sendJson(res, 200, { ok: false, output: "unknown tool: shell_cmd" });
-  const verdict = await live.setup.safety.assess(`shell_cmd ${command}`);
+  const commandCwd = shellCommandCwd(state.root);
+  const action = shellCommandSafetyAction(command, commandCwd);
+  const verdict = await live.setup.safety.assess(action);
   if (verdict.risk === "block") return sendJson(res, 200, { ok: false, output: `blocked: ${verdict.reason}` });
-  if (verdict.risk === "ask") {
-    const approved = await requestWebApproval(state, `shell_cmd ${command}`, verdict.reason, "shell_cmd");
-    if (!approved) return sendJson(res, 200, { ok: false, output: `denied: ${verdict.reason}` });
+  const externalMkdir = externalDirectMkdirTarget(command, commandCwd, state.root);
+  const needsApproval = verdict.risk === "ask" || Boolean(externalMkdir);
+  const reason = externalMkdir ? `create a directory outside the project root at ${externalMkdir}` : verdict.reason;
+  if (needsApproval) {
+    const approved = await requestWebApproval(state, action, reason, "shell_cmd");
+    if (!approved) return sendJson(res, 200, { ok: false, output: `denied: ${reason}` });
   }
   const result = await tool.execute({
     command,
@@ -555,7 +560,7 @@ export async function handleTerminal(state: DesktopState, req: http.IncomingMess
     sessionId: state.sessionId,
     safety: live.setup.safety,
     requestApproval: (action: string, reason: string) => requestWebApproval(state, action, reason, "shell_cmd"),
-    sandboxWritableDirs: verdict.risk === "ask" ? approvedMkdirWritableDirs(command, state.root) : undefined,
+    sandboxWritableDirs: needsApproval ? approvedMkdirWritableDirs(command, commandCwd) : undefined,
   });
   sendJson(res, 200, result);
 }

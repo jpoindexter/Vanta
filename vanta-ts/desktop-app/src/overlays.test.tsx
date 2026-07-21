@@ -11,7 +11,7 @@ describe("CommandPalette", () => {
 });
 
 describe("ApprovalOverlay", () => {
-  it("renders dedicated request context and all four decisions", () => {
+  it("renders request context with one-time approval only", () => {
     const html = renderToStaticMarkup(
       <ApprovalOverlay
         approval={{
@@ -35,9 +35,10 @@ describe("ApprovalOverlay", () => {
     expect(html).toContain("Command");
     expect(html).toContain("git status --short");
     expect(html).toContain("Allow once");
-    expect(html).toContain("Always allow");
-    expect(html).toContain("Deny");
-    expect(html).toContain("Never allow");
+    expect(html).toContain("Reject");
+    expect(html).not.toContain("Always allow");
+    expect(html).not.toContain("Never allow");
+    expect(html).toContain('role="dialog"');
   });
 });
 

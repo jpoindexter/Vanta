@@ -117,6 +117,29 @@ describe("applySafetyGate + permissions", () => {
     }
   });
 
+  it("canonicalizes a relative mkdir before the kernel verdict", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-relative-mkdir-"));
+    let assessed = "";
+    let prompted = false;
+    try {
+      const deps = makeDeps({ risk: "allow", approve: true, onAsk: () => { prompted = true; } });
+      deps.safety.assess = async (action: string) => {
+        assessed = action;
+        return { risk: "allow", needsHuman: false, reason: "kernel treated the relative path as inside" };
+      };
+      const res = await applySafetyGate(
+        { id: "relative-mkdir", name: "shell_cmd", arguments: { command: "mkdir ../new-project && echo CREATED" } },
+        deps,
+        { root } as ToolContext,
+      );
+      expect(assessed).toContain(`resolved mkdir target: ${canonicalPath(join(dirname(root), "new-project"))}`);
+      expect(prompted).toBe(true);
+      expect(res.sandboxWritableDirs).toEqual([canonicalPath(dirname(root))]);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   it("fires PermissionRequest and PermissionDenied hooks around user approval", async () => {
     const marker = join(home, "permission-hooks");
     await writeHookConfig(home, {
