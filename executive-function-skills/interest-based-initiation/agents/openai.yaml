@@ -1,0 +1,5 @@
+interface:
+  display_name: "Interest-Based Initiation"
+  short_description: "Create a safe bridge into low-interest work."
+  brand_color: "#7C3AED"
+  default_prompt: "Use $interest-based-initiation to create a non-manipulative starting bridge for this task."

@@ -122,6 +122,10 @@ describe("buildSystemPrompt", () => {
           outputDensity: "minimal",
           sensoryLoad: "low",
           timeSupport: "ranges",
+          capacity: "low",
+          memoryLoad: "high",
+          activation: "stuck",
+          motivation: "low",
         },
       });
 
@@ -133,6 +137,10 @@ describe("buildSystemPrompt", () => {
       expect(prompt).toContain("sensory=low");
       expect(prompt).toContain("time=ranges");
       expect(prompt).toContain("best / realistic / worst");
+      expect(prompt).toContain("Capacity is low");
+      expect(prompt).toContain("Memory load is high");
+      expect(prompt).toContain("Activation support is on");
+      expect(prompt).toContain("never invent urgency");
       expect(prompt).toContain("Do not turn a simple request into a coaching ritual");
     } finally {
       await rm(root, { recursive: true, force: true });

@@ -87,6 +87,7 @@ describe("installSkillLibrary", () => {
     expect(all).toContain("atomic-design"); // design-system-skills
     expect(all).toContain("usability-heuristics"); // design-system-skills
     expect(all).toContain("rag-architecture"); // ai-engineering-skills
+    expect(all).toContain("functional-minimums"); // executive-function-skills
   }, 60_000);
 
   it("librarySources lists the bundled library + design + ai-engineering skills", () => {
@@ -94,5 +95,6 @@ describe("installSkillLibrary", () => {
     expect(srcs.some((s) => s.endsWith("skills-library"))).toBe(true);
     expect(srcs.some((s) => s.endsWith("design-system-skills"))).toBe(true);
     expect(srcs.some((s) => s.endsWith("ai-engineering-skills"))).toBe(true);
+    expect(srcs.some((s) => s.endsWith("executive-function-skills"))).toBe(true);
   });
 });

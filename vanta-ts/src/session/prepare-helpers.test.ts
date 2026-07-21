@@ -154,6 +154,10 @@ describe("loadRuntimeSettings → blockedTools registry exclusion", () => {
       outputDensity: "minimal",
       sensoryLoad: "low",
       timeSupport: "points",
+      capacity: "auto",
+      memoryLoad: "auto",
+      activation: "auto",
+      motivation: "auto",
     });
   });
 

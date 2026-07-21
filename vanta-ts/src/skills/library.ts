@@ -18,8 +18,7 @@ export function libraryDir(): string {
 
 /**
  * All bundled skill sources, in install order. `skills-library/` (curated + nd-*
- * skills) plus the repo-root `design-system-skills/` (the 17 design
- * skills) — kept in their showcase folder (with its HTML viewer) and installed
+ * skills) plus the repo-root focused skill packs — kept in their source folders and installed
  * from there rather than duplicated. Later sources don't override earlier ones;
  * each slug installs once (existing slugs are skipped).
  */
@@ -30,6 +29,7 @@ export function librarySources(): string[] {
     join(base, "..", "..", "..", "design-system-skills"),
     join(base, "..", "..", "..", "ai-engineering-skills"),
     join(base, "..", "..", "..", "security-skills"),
+    join(base, "..", "..", "..", "executive-function-skills"),
   ];
 }
 

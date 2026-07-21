@@ -75,7 +75,7 @@ import { readGoalDeps } from "../goals/deps.js";
 import { ultrathink, ultracode, deepResearch, skeptic } from "./think-cmd.js";
 import { health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie } from "./operator-cmds.js";
 import { peers } from "./peers-cmd.js";
-import { nd } from "./nd-cmd.js";
+import { nd, support } from "./nd-cmd.js";
 import { sessions, resume, title, fork } from "./session-cmds.js";
 import { image, paste, copy, update } from "./media-cmds.js";
 import { look } from "./look-cmd.js";
@@ -210,7 +210,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
   mcp, usage, copy, screenshot, update, image, paste, look, cron, loop: loopSchedule, proactive, moim, record, next, now, planmode: planMode, planv2: planV2, boundary, where, explain, recover, "schema-recovery": schemaRecovery, "schema-quality": schemaQuality, wm, restart, bug, feedback, learning, handoff, open, edit, tasks, bgtasks, wftasks, btw, describe: describeCmd, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto, suggest, time,
   routes, files, composer, vim, cockpit, agents, sandbox, rename, branch, summary, "output-style": outputStyle, permissions, "less-permission-prompts": lessPerms, "reload-plugins": reloadPlugins, "reload-skills": reloadSkills,
   tui: tuiCommand, focus: focusCommand, "terminal-setup": terminalSetup, preferences: async (arg, ctx) => (await import("./preferences-cmd.js")).preferences(arg, ctx),
-  ultrathink, ultracode, "deep-research": deepResearch, skeptic, "security-review": securityReview, health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie, nd, peers, tickets, outreach, activity,
+  ultrathink, ultracode, "deep-research": deepResearch, skeptic, "security-review": securityReview, health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie, nd, support, peers, tickets, outreach, activity,
   "add-dir": addDir, ...CLI_PASSTHROUGH,
 };
 

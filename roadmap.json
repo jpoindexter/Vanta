@@ -20037,6 +20037,85 @@
         "PORT-DELIVERY-REGISTRY",
         "HARNESS-EVENTS-WAIT"
       ]
+    },
+    {
+      "id": "EF-CAPACITY-SUPPORT-ROUTER",
+      "track": "Operator",
+      "title": "Capacity-aware support router — minimums, externalization, and activation",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Generalize Vanta's neurodivergent-first executive-function support for any operator. Explicit current capacity, working-memory load, activation, and motivation route the same task toward a functional minimum, durable externalization, or one truthful initiation bridge. Auto mode makes no diagnosis or state inference, and private biography never becomes a public product default.",
+      "done": "Seven reusable skills validate and install from a dedicated repository folder; /support persists and resets current state while old profiles default to auto; the assembled system prompt changes behavior for low capacity, high memory load, and stuck/low-motivation states; identity seeds contain no named person or diagnosis; focused tests, typecheck, and a real command-to-prompt proof pass; public and repository docs describe behavior and boundaries.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "selfhood",
+      "source": "executive-function source synthesis 2026-07-21",
+      "updated": "2026-07-21",
+      "notes": "SHIPPED 2026-07-21: Added seven validated standalone skills in executive-function-skills and wired the pack into vanta skills install. The existing ND profile now carries explicit capacity, memory-load, activation, and motivation state with Auto defaults and legacy-profile migration. /support is the diagnosis-free command surface and /nd remains compatible. Prompt routing implements functional minimums, working-memory externalization, and one truthful activation bridge. Removed named-person and diagnosis text from public brain seeds, and replaced the Jason-specific memory evaluation biography with a synthetic operator corpus. Executed evidence: all seven skill validators passed; 86 focused profile, command, prompt, session, library, and brain tests passed; the command-to-prompt integration test passed; 58 memory-eval, routing, and brain privacy tests passed after anonymization; TypeScript typecheck passed; and the Docusaurus production build completed. Desktop controls, temporary-state expiry, and non-overreach evals remain separate open cards.",
+      "after": [
+        "VANTA-EF-OPERATING-CONTRACT",
+        "ND-PROFILE",
+        "ND-PREFS-WIRE"
+      ]
+    },
+    {
+      "id": "EF-SUPPORT-DESKTOP-CONTROLS",
+      "track": "Desktop App",
+      "title": "Desktop support controls — set current capacity without leaving Work",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Expose the same diagnosis-free current-state contract in Desktop. A compact Work control should show Auto/Low/Steady/High capacity plus memory-load and activation overrides, explain the immediate behavior change, and avoid a medicalized settings maze.",
+      "done": "Desktop reads and writes the same profile as /support; the active state is visible in Work; keyboard and screen-reader paths work; Auto is the default; changes affect the next real turn; reset is one action; packaged macOS tests cover persistence, project switching, and narrow resize without duplicating runtime state.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "tui",
+      "source": "executive-function source synthesis 2026-07-21",
+      "updated": "2026-07-21",
+      "after": [
+        "EF-CAPACITY-SUPPORT-ROUTER"
+      ]
+    },
+    {
+      "id": "EF-SUPPORT-STATE-EXPIRY",
+      "track": "Operator",
+      "title": "Current support-state expiry — temporary means temporary",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Capacity, memory load, activation, and motivation are current conditions, not durable identity. Add session scope or an explicit expiry so a low-capacity setting cannot silently follow the operator forever while communication preferences remain durable.",
+      "done": "Each current-state field supports session-only and bounded expiry; restart and expiry return it to Auto without resetting communication preferences; active expiry is visible; Desktop, TUI, CLI, and gateway use one contract; clock, restart, migration, and stale-profile tests pass.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.6-luna",
+      "lens": "selfhood",
+      "source": "executive-function source synthesis 2026-07-21",
+      "updated": "2026-07-21",
+      "after": [
+        "EF-CAPACITY-SUPPORT-ROUTER"
+      ]
+    },
+    {
+      "id": "EF-SUPPORT-NONOVERREACH-EVALS",
+      "track": "Harness",
+      "title": "Executive-function support evals — useful without overreach",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Measure the failure modes a green unit test cannot catch: unwanted coaching, diagnosis inference, excessive decomposition, lost safety at low capacity, fabricated urgency, and supports that create more maintenance than the original task.",
+      "done": "A versioned eval corpus includes neurodivergent and non-neurodivergent operator scenarios, explicit and Auto states, simple and complex tasks, and adversarial profile text; graders measure outcome completion, intervention relevance, cognitive load, privacy, autonomy, and safety preservation; Auto does not trigger unsupported diagnostic language; regressions block release with inspectable transcripts.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "selfhood",
+      "source": "executive-function source synthesis 2026-07-21",
+      "updated": "2026-07-21",
+      "after": [
+        "EF-CAPACITY-SUPPORT-ROUTER"
+      ]
     }
   ]
 }

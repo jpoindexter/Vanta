@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { nd } from "./nd-cmd.js";
+import { nd, support } from "./nd-cmd.js";
 import { loadNdConfig, loadNdProfile, invalidateNdConfig } from "../nd/profile.js";
 import type { ReplCtx } from "./types.js";
 
@@ -81,5 +81,35 @@ describe("/nd command", () => {
     const r = await nd("density loud", ctxWith({} as NodeJS.ProcessEnv));
     expect(r.output).toContain("usage: /nd density");
     expect(r.output).toContain("minimal|balanced|rich");
+  });
+
+  it("sets current support state through the diagnosis-free alias", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "vanta-supportcmd-"));
+    const env = { VANTA_HOME: dir } as NodeJS.ProcessEnv;
+    try {
+      expect((await support("capacity low", ctxWith(env))).output).toContain("capacity = low");
+      expect((await support("load high", ctxWith(env))).output).toContain("load = high");
+      expect((await support("activation stuck", ctxWith(env))).output).toContain("activation = stuck");
+      expect((await support("motivation low", ctxWith(env))).output).toContain("motivation = low");
+      const prefs = (await loadNdProfile(env)).prefs;
+      expect(prefs).toMatchObject({ capacity: "low", memoryLoad: "high", activation: "stuck", motivation: "low" });
+    } finally {
+      invalidateNdConfig();
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("resets only current support state to auto", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "vanta-supportcmd-"));
+    const env = { VANTA_HOME: dir } as NodeJS.ProcessEnv;
+    try {
+      await support("density minimal", ctxWith(env));
+      await support("capacity low", ctxWith(env));
+      await support("reset", ctxWith(env));
+      expect((await loadNdProfile(env)).prefs).toMatchObject({ outputDensity: "minimal", capacity: "auto" });
+    } finally {
+      invalidateNdConfig();
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 });

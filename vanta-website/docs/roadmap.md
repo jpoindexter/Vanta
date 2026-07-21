@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1269 capabilities shipped · 1 in flight · 13 external proof gates · 1 on the horizon. Updated 2026-07-21._
+_1270 capabilities shipped · 2 in flight · 13 external proof gates · 7 on the horizon. Updated 2026-07-21._
 
 ## In flight
 
@@ -20,12 +20,19 @@ What we are actively building next.
 
 Reopen the terminal-resize reliability work after a real 78x25 session on 2026-07-20 left repeated composer borders, prompt text, and orphaned line glyphs across the viewport. Treat SIGWINCH as a complete layout invalidation: clear the prior physical frame, recompute the transcript/composer/footer geometry, and draw one coherent current frame without losing the active draft or turn
 
+### True first-token performance harness — measure cold start through painted output
+
+**Harness** · M-size
+
+Vanta's packaged desktop budget measures process-to-shell well, but its first-use path uses a mocked chat response and cannot prove submit-to-dispatch, provider first delta, or first painted token. Establish truthful CLI, TUI, gateway, and packaged-desktop timing before optimizing the critical path
+
 ## Recently shipped
 
-The latest of 1269+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1270+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Desktop Ollama MiniCPM response — visible text instead of endless Thinking** — Desktop App · 2026-07-21
 - **TUI Ollama model drill-down — choose an installed local model** — Operator · 2026-07-21
+- **Capacity-aware support router — minimums, externalization, and activation** — Operator · 2026-07-21
 - **Workflow composer v1 — compose Vanta primitives without rebuilding n8n** — Operator · 2026-07-20
 - **Workflow data handoffs — typed references with preflight and redaction** — Harness · 2026-07-20
 - **Graph shared run state — typed coordination without one giant conversation** — Harness · 2026-07-20
@@ -43,7 +50,6 @@ The latest of 1269+ capabilities. See the [changelog](./changelog) for curated m
 - **Desktop session draft ownership — drafts stay with the correct task** — Desktop App · 2026-07-18
 - **Desktop kernel port collision recovery - Retry finds a safe project endpoint** — Desktop App · 2026-07-17
 - **Desktop context attachments — files as searchable task context, not raw inventory** — Desktop App · 2026-07-17
-- **Desktop safe session operations — archive undo, recoverable trash, menu feedback** — Desktop App · 2026-07-17
 
 ## External proof gates
 
@@ -67,6 +73,18 @@ Implemented locally, but not called shipped until the real provider, device, or 
 
 Directional, not committed — grouped by area, newest thinking first.
 
-### Operator — 1 planned
+### Desktop App — 2 planned
+
+- Desktop stream performance — incremental markdown and scoped token updates
+- Desktop support controls — set current capacity without leaving Work
+
+### Harness — 3 planned
+
+- Startup critical-path collapse — cache, defer, and prewarm first-turn work
+- Gateway delivery-obligation ledger — never lose a finished remote answer
+- Executive-function support evals — useful without overreach
+
+### Operator — 2 planned
 
 - Browser workflow boundary — observe, extract, and act under explicit policy
+- Current support-state expiry — temporary means temporary

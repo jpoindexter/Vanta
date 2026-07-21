@@ -25,7 +25,10 @@ describe("brain store", () => {
 
   it("identity seed carries the neurodivergent-first value", async () => {
     await ensureBrain(env);
-    expect((await readRegion("identity", env)) ?? "").toMatch(/neurodivergent/i);
+    const identity = (await readRegion("identity", env)) ?? "";
+    expect(identity).toMatch(/neurodivergent/i);
+    expect(identity).not.toMatch(/Jason|is autistic|has ADHD|has dyslexia/i);
+    expect(identity).toMatch(/without requiring a diagnosis/i);
   });
 
   it("append adds to a region without clobbering", async () => {

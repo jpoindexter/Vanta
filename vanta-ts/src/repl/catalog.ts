@@ -45,6 +45,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "security-review", arg: "[base]", desc: "security audit of the current branch's diff vs base (injection/secret/authz/traversal/exec/SSRF)" },
   { name: "locks", desc: "regression locks — verified behaviors + passing/regressed status (verification organ)" },
   { name: "nd", arg: "[<gate> on|off|<n>]", desc: "executive-function support gates — view/toggle/tune the ND gate set" },
+  { name: "support", arg: "[capacity|load|activation|motivation <value>]", desc: "set current capacity and task support without diagnostic labels" },
   { name: "reach", desc: "internet-reach doctor — each channel's active backend + status + the exact fix per gap" },
   { name: "cookie", desc: "show login-walled reach channels with a stored cookie + the export guide" },
   { name: "goals", desc: "active goals from the kernel" },

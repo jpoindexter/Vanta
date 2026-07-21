@@ -6,7 +6,7 @@ sidebar_position: 4
 
 # Command reference
 
-Every slash command, generated from the command catalog — **149 commands**. Type any of these in an interactive session; `/help` prints the live list.
+Every slash command, generated from the command catalog — **150 commands**. Type any of these in an interactive session; `/help` prints the live list.
 
 ## Session & history
 
@@ -203,6 +203,7 @@ Every slash command, generated from the command catalog — **149 commands**. Ty
 | `/status` | kernel, provider, keys, store health |
 | `/stop` | graceful soft-stop — finish the current tool call, then end the turn with a summary |
 | `/suggest` | recap + ranked next-step (top 3); '/suggest all' for the full backlog |
+| `/support` | set current capacity and task support without diagnostic labels |
 | `/teams` | interactive team roster — create workers, manage status, inspect assigned tasks |
 | `/terminal-setup` | print the steps to bind Shift+Enter → newline for your detected terminal (iTerm2/Apple Terminal/VS Code/WezTerm) |
 | `/tickets` | issue board — first-class tickets grouped by status, with goal/parent links + inbox state |

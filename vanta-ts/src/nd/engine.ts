@@ -19,9 +19,17 @@ export function defaultNdConfig(): NdConfig {
   return cfg;
 }
 
-/** Default non-gate preferences for a brand-new user: balanced, medium noise, ranges. */
+/** Defaults avoid inferring current state; support activates only from explicit settings. */
 export function defaultNdPreferences(): NdPreferences {
-  return { outputDensity: "balanced", sensoryLoad: "medium", timeSupport: "ranges" };
+  return {
+    outputDensity: "balanced",
+    sensoryLoad: "medium",
+    timeSupport: "ranges",
+    capacity: "auto",
+    memoryLoad: "auto",
+    activation: "auto",
+    motivation: "auto",
+  };
 }
 
 /** Default whole profile: default gates + default preferences. */

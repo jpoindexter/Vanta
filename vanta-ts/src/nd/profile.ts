@@ -6,6 +6,10 @@ import { resolveIsolation, skipSettings } from "../cli/isolation.js";
 import { defaultNdConfig, defaultNdPreferences, defaultNdProfile } from "./engine.js";
 import { GATES } from "./gates.js";
 import {
+  ACTIVATION_STATES,
+  CAPACITY_LEVELS,
+  MEMORY_LOADS,
+  MOTIVATION_STATES,
   OUTPUT_DENSITIES,
   SENSORY_LOADS,
   TIME_SUPPORT_STYLES,
@@ -32,6 +36,10 @@ const PreferencesSchema = z
     outputDensity: z.enum(OUTPUT_DENSITIES),
     sensoryLoad: z.enum(SENSORY_LOADS),
     timeSupport: z.enum(TIME_SUPPORT_STYLES),
+    capacity: z.enum(CAPACITY_LEVELS),
+    memoryLoad: z.enum(MEMORY_LOADS),
+    activation: z.enum(ACTIVATION_STATES),
+    motivation: z.enum(MOTIVATION_STATES),
   })
   .partial();
 // The file is the full profile, but stays tolerant of the legacy shape where the

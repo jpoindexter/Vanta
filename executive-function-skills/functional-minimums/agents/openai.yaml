@@ -1,0 +1,5 @@
+interface:
+  display_name: "Functional Minimums"
+  short_description: "Reduce scope safely when capacity is low."
+  brand_color: "#7C3AED"
+  default_prompt: "Use $functional-minimums to define the smallest functional version of this task."

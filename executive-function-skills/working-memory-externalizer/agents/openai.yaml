@@ -1,0 +1,5 @@
+interface:
+  display_name: "Working Memory Externalizer"
+  short_description: "Move active task state into a durable surface."
+  brand_color: "#7C3AED"
+  default_prompt: "Use $working-memory-externalizer to externalize the active task state and leave a verified re-entry point."

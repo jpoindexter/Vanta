@@ -5018,6 +5018,10 @@
       "desc": "summarize this session (what was done, what remains)"
     },
     {
+      "name": "support",
+      "desc": "set current capacity and task support without diagnostic labels"
+    },
+    {
       "name": "tasks",
       "desc": "operator task stack — /tasks next for the best move"
     },

@@ -123,6 +123,8 @@ describe("nd profile — preferences", () => {
       expect(prefs.sensoryLoad).toBe("low"); // from file
       expect(prefs.outputDensity).toBe("balanced"); // default preserved
       expect(prefs.timeSupport).toBe("ranges"); // default preserved
+      expect(prefs.capacity).toBe("auto"); // no state inferred for an old profile
+      expect(prefs.memoryLoad).toBe("auto");
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
@@ -165,6 +167,7 @@ describe("nd profile — preferences", () => {
       expect(raw).toHaveProperty("gates");
       expect(raw).toHaveProperty("prefs");
       expect(raw.prefs.outputDensity).toBe("balanced");
+      expect(raw.prefs.capacity).toBe("auto");
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

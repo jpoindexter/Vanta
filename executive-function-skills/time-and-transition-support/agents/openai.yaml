@@ -1,0 +1,5 @@
+interface:
+  display_name: "Time and Transition Support"
+  short_description: "Make time, stopping, and task shifts explicit."
+  brand_color: "#7C3AED"
+  default_prompt: "Use $time-and-transition-support to add realistic timing and a clean transition plan."

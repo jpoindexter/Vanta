@@ -1,5 +1,5 @@
 // ENERGY-PLAN: when executive function is the bottleneck, offer next actions
-// binned by cognitive load so Jason can always pick an entry point.
+// binned by cognitive load so any operator can pick an entry point.
 // Each tier is a concrete, named step — not vague guidance.
 
 import type { OperatorTask } from "../task-stack/types.js";

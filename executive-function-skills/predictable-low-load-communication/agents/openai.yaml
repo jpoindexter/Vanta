@@ -1,0 +1,5 @@
+interface:
+  display_name: "Predictable Low-Load Communication"
+  short_description: "Make information direct, scannable, and controllable."
+  brand_color: "#7C3AED"
+  default_prompt: "Use $predictable-low-load-communication to rewrite this interaction for lower cognitive load."

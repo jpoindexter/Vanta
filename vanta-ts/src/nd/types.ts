@@ -80,10 +80,26 @@ export type SensoryLoad = "low" | "medium" | "high";
 /** How time support is surfaced (ranges vs single points; explicit checkpoints). */
 export type TimeSupportStyle = "ranges" | "points" | "off";
 
+/** Current capacity, explicitly set by the user; auto makes no inference. */
+export type CapacityLevel = "auto" | "low" | "steady" | "high";
+
+/** Current working-memory pressure, explicitly set by the user. */
+export type MemoryLoad = "auto" | "low" | "high";
+
+/** Whether starting the current work needs an activation bridge. */
+export type ActivationState = "auto" | "ready" | "stuck";
+
+/** Current task engagement, never inferred as a stable personal trait. */
+export type MotivationState = "auto" | "engaged" | "low";
+
 /** All valid values per preference, for parse/validate at the command + persistence boundary. */
 export const OUTPUT_DENSITIES = ["minimal", "balanced", "rich"] as const;
 export const SENSORY_LOADS = ["low", "medium", "high"] as const;
 export const TIME_SUPPORT_STYLES = ["ranges", "points", "off"] as const;
+export const CAPACITY_LEVELS = ["auto", "low", "steady", "high"] as const;
+export const MEMORY_LOADS = ["auto", "low", "high"] as const;
+export const ACTIVATION_STATES = ["auto", "ready", "stuck"] as const;
+export const MOTIVATION_STATES = ["auto", "engaged", "low"] as const;
 
 /**
  * Non-gate per-user ND preferences. These are not executive-function gates —
@@ -95,6 +111,10 @@ export type NdPreferences = {
   outputDensity: OutputDensity;
   sensoryLoad: SensoryLoad;
   timeSupport: TimeSupportStyle;
+  capacity: CapacityLevel;
+  memoryLoad: MemoryLoad;
+  activation: ActivationState;
+  motivation: MotivationState;
 };
 
 /**

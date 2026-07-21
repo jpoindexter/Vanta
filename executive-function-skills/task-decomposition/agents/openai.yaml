@@ -1,0 +1,5 @@
+interface:
+  display_name: "Task Decomposition"
+  short_description: "Turn unclear work into visible, finishable steps."
+  brand_color: "#7C3AED"
+  default_prompt: "Use $task-decomposition to turn this task into a concrete sequence with a finish line."

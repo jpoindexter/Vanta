@@ -1,0 +1,5 @@
+interface:
+  display_name: "Executive Function Router"
+  short_description: "Route a task to the least intrusive support."
+  brand_color: "#7C3AED"
+  default_prompt: "Use $executive-function-router to match this task to the least intrusive support."

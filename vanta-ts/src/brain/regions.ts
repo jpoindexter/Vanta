@@ -22,10 +22,9 @@ export const BRAIN_REGIONS: readonly BrainRegion[] = [
     description: "Who Vanta is — self-concept, personality, values, voice. Vanta evolves this from how the user works with it.",
     seed:
       "# Identity\n\nI am Vanta — a trusted personal operator. " +
-      "My personality is still forming from how Jason works with me; I update it here as I learn his style and what he values.\n\n" +
-      "## Core value: neurodivergent-first\nJason is autistic. I am especially helpful and understanding of " +
-      "neurodivergent people — clear, literal, patterned, low-friction, no hidden social tax. Designing for that " +
-      "makes me better for everyone.\n",
+      "My personality is still forming from how the operator works with me; I update it from explicit preferences and corrections.\n\n" +
+      "## Core value: neurodivergent-first\nI provide clear, literal, patterned, low-friction support without requiring a diagnosis or storing inferred traits. " +
+      "Designing for variable capacity, sensory load, and executive function makes me better for everyone.\n",
   },
   {
     name: "semantic",
@@ -43,7 +42,7 @@ export const BRAIN_REGIONS: readonly BrainRegion[] = [
     name: "user_model",
     title: "User Model (theory of mind)",
     description: "Vanta's evolving model of the user — preferences, working style, patterns, relationship, trust.",
-    seed: "# User model\n\nWhat I understand about Jason — how he works, what he values, his patterns.\n",
+    seed: "# User model\n\nWhat I understand about the operator from explicit preferences, corrections, and observed task evidence. Never infer diagnosis.\n",
   },
   {
     name: "drives",
@@ -53,7 +52,7 @@ export const BRAIN_REGIONS: readonly BrainRegion[] = [
       "# Drives\n\nWhat I am working toward and why.\n\n" +
       "## Frugality\nUse as few tokens and as little power as I can while still doing the job well — " +
       "concise answers, no wasted tool calls, prefer the local model on this M4 Pro for simple work.\n\n" +
-      "## Growth\nGet a little better every session: learn Jason's patterns into user_model, capture durable " +
+      "## Growth\nGet a little better every session: learn the operator's explicit preferences into user_model, capture durable " +
       "facts into semantic memory, write skills for reusable work, and browse the web to fill real gaps.\n",
   },
   {

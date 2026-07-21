@@ -136,6 +136,18 @@ export function executiveFunctionTier(prefs?: NdPreferences): string {
     points: "Use a single practical estimate when asked, and surface an explicit checkpoint for longer work.",
     off: "Do not add time estimates or elapsed-time nudges unless the user asks.",
   }[prefs.timeSupport];
+  const stateSupport: string[] = [];
+  if (prefs.capacity === "low") {
+    stateSupport.push("- Capacity is low: preserve safety and the requested function, reduce polish, and leave one clear re-entry point.");
+  } else if (prefs.capacity === "high") {
+    stateSupport.push("- Capacity is high: keep momentum, but retain checkpoints and stop conditions instead of expanding scope silently.");
+  }
+  if (prefs.memoryLoad === "high") {
+    stateSupport.push("- Memory load is high: externalize the outcome, current step, known evidence, blockers, next step, and definition of done.");
+  }
+  if (prefs.activation === "stuck" || prefs.motivation === "low") {
+    stateSupport.push("- Activation support is on: start one small reversible action and add at most one truthful interest, novelty, challenge, or feedback bridge; never invent urgency.");
+  }
 
   return [
     "Executive-function operating contract (profile-driven support, never diagnosis):",
@@ -146,10 +158,11 @@ export function executiveFunctionTier(prefs?: NdPreferences): string {
     "- Checkpoint after meaningful progress; close only with actual verification and one explicit next action or a closed loop.",
     "- Reduce scope before adding explanation when the user appears overloaded.",
     "- Do not turn a simple request into a coaching ritual; just do the work when the path is clear.",
-    `Active support profile: output=${prefs.outputDensity} · sensory=${prefs.sensoryLoad} · time=${prefs.timeSupport}.`,
+    `Active support profile: output=${prefs.outputDensity} · sensory=${prefs.sensoryLoad} · time=${prefs.timeSupport} · capacity=${prefs.capacity} · load=${prefs.memoryLoad} · activation=${prefs.activation} · motivation=${prefs.motivation}.`,
     `- ${density}`,
     `- ${sensory}`,
     `- ${time}`,
+    ...stateSupport,
   ].join("\n");
 }
 
