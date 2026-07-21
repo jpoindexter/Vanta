@@ -28,6 +28,7 @@ import { buildContextInspection } from "../tools/inspect-context.js";
 import { requiredToolNudge } from "./tool-use-contract.js";
 import { interruptedDisposition, interruptedToolResult } from "./effect-disposition.js";
 import { checkpointToolTranscript, persistEffectTransition } from "./effect-persistence.js";
+import { detectAdaptiveRedirect, detectAdaptiveSupport, injectAdaptiveSupport, type AdaptiveSupportPlan } from "./adaptive-support.js";
 
 export type TurnOpts = {
   messages: Message[];
@@ -140,10 +141,10 @@ async function handleNoToolCalls(args: NoToolCallsArgs): Promise<AgentOutcome | 
   return null;
 }
 
-type ToolCallIterArgs = { result: CompletionResult; messages: Message[]; deps: AgentDeps; ctx: ToolContext; state: TurnState; prefetched: Map<string, Promise<DispatchOutcome>>; iter: number };
+type ToolCallIterArgs = { result: CompletionResult; messages: Message[]; deps: AgentDeps; ctx: ToolContext; state: TurnState; prefetched: Map<string, Promise<DispatchOutcome>>; iter: number; support: AdaptiveSupportPlan };
 
 async function handleToolCallsPresent(args: ToolCallIterArgs): Promise<AgentOutcome | null> {
-  const { result, messages, deps, ctx, state, prefetched, iter } = args;
+  const { result, messages, deps, ctx, state, prefetched, iter, support } = args;
   const usage = () => (state.sawUsage ? { ...state.turnUsage } : undefined);
   const ti = () => state.toolIterations;
   const ts = () => (state.tokensSaved > 0 ? state.tokensSaved : undefined);
@@ -166,6 +167,11 @@ async function handleToolCallsPresent(args: ToolCallIterArgs): Promise<AgentOutc
     return { finalText: `Stopped: called ${stuckTool} with identical arguments ${MAX_IDENTICAL_CALLS} times without progress.`, iterations: iter, stoppedReason: "repeated_failure", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
   if (state.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES)
     return { finalText: `Stopped: ${MAX_CONSECUTIVE_FAILURES} consecutive tool calls produced no useful output.`, iterations: iter, stoppedReason: "repeated_failure", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
+  const redirect = detectAdaptiveRedirect(support, state);
+  if (redirect) {
+    state.adaptiveRedirect = redirect;
+    state.adaptiveRedirects++;
+  }
   // VANTA-STOP-CMD: the in-flight tool batch finished — honour a pending soft-stop
   // here (clean post-tool boundary), before the next provider call begins.
   if (deps.shouldSoftStop?.()) {
@@ -179,6 +185,7 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
   const { messages, ctx, deps, userText, images, signal } = opts;
   const effectiveSignal = signal ?? deps.signal;
   const maxIter = deps.maxIterations ?? 50;
+  const adaptiveSupport = detectAdaptiveSupport(userText, messages);
   messages.push(images?.length ? { role: "user", content: userText, images } : { role: "user", content: userText });
   const state = makeInitialState();
   const usage = () => (state.sawUsage ? { ...state.turnUsage } : undefined);
@@ -193,7 +200,10 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
     const scoped = scopeToolSchemas(deps.registry.schemas(), toolScopeContext(messages, deps.activeGoalText), { env: process.env });
     const schemas = schemasWithStructuredOutput(scoped, deps.outputSchema);
     const depsWithTools = { ...deps, currentTools: schemas };
-    const trimmed = await prepareCallMessages(messages, depsWithTools, iter, turnCtx);
+    const prepared = await prepareCallMessages(messages, depsWithTools, iter, turnCtx);
+    const redirectForCall = state.adaptiveRedirect;
+    state.adaptiveRedirect = "";
+    const trimmed = injectAdaptiveSupport(prepared, [adaptiveSupport.directive, redirectForCall]);
     const prefetched = new Map<string, Promise<DispatchOutcome>>();
     const completion = await completeAndRecordUsage({ deps, depsWithTools, messages: trimmed, turnCtx, signal: effectiveSignal, providerCall: { ctx, prefetched, schemas } });
     if (!completion.ok)
@@ -210,7 +220,7 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
       ...ctx,
       inspectContext: () => buildContextInspection(messages, schemas, deps.provider.contextWindow()),
     };
-    const earlyExit = await handleToolCallsPresent({ result, messages, deps, ctx: liveCtx, state, prefetched, iter });
+    const earlyExit = await handleToolCallsPresent({ result, messages, deps, ctx: liveCtx, state, prefetched, iter, support: adaptiveSupport });
     if (earlyExit) return earlyExit;
   }
   return { finalText: `Reached the ${maxIter}-iteration limit before completing.`, iterations: maxIter, stoppedReason: "max_iterations", toolIterations: ti(), usage: usage(), tokensSaved: ts() };

@@ -8,7 +8,9 @@ sidebar_position: 7
 
 Vanta is neurodivergent-first without requiring a diagnosis or a personal biography. Executive-function support is part of the core system prompt and works automatically in every normal session; it is not something you must install or invoke.
 
-In Auto mode, Vanta responds to explicit situational language and observable task friction. Saying “I'm stuck,” “this is too much,” “what's next,” or “I can't start” makes it reduce choices, externalize the current state, and begin or identify one safe reversible action. That adaptation is turn-local: Vanta does not infer or store a diagnosis, personality, or durable capacity from how you write.
+In Auto mode, a deterministic per-turn router responds to explicit situational language and observable task friction. Saying “I'm stuck,” “this is too much,” “what's next,” “I can't start,” or correcting a missed instruction makes Vanta reduce choices, externalize the current state, and begin or identify one safe reversible action. Broad multi-step tasks automatically receive one active step instead of an expanding plan.
+
+Vanta also monitors its own tool loop. If an action request produces six research-only calls, or a tool approach starts repeating or failing, the harness privately redirects the model toward a materially different executable step. The directive is bounded to one redirect and is not added to the visible or saved conversation. These adaptations are turn-local: Vanta does not infer or store a diagnosis, personality, or durable capacity from how you write.
 
 ## Set current support
 

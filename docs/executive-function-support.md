@@ -2,13 +2,18 @@
 
 Vanta is neurodivergent-first without being diagnosis-gated or person-specific. The operating contract is built directly into Vanta's core system prompt and applies in every normal session. It does not depend on skill discovery or a slash command.
 
-With every current-state field on `auto`, Vanta adapts only to explicit situational language and observable task friction. If the operator says they are stuck, overwhelmed, low on energy, cannot start, or asks what comes next, Vanta reduces choices, externalizes the current state, and starts or identifies one safe reversible action. It does not infer autism, ADHD, burnout, personality, or durable capacity from writing style, and it does not save automatic adaptations as profile facts.
+With every current-state field on `auto`, Vanta adapts only to explicit situational language and observable task friction. A deterministic pre-turn router recognizes activation friction, low bandwidth, reorientation requests, corrections, and broad multi-step tasks. It injects a private turn directive without modifying the saved transcript. If the operator says they are stuck, overwhelmed, low on energy, cannot start, or asks what comes next, Vanta reduces choices, externalizes the current state, and starts or identifies one safe reversible action.
+
+The harness also monitors Vanta's own tool loop. An action task that accumulates six read-only calls receives one bounded self-redirect toward execution; repeated or failing calls receive a different-approach directive before the existing hard stop. These checks do not infer autism, ADHD, burnout, personality, or durable capacity from writing style, and automatic adaptations are not saved as profile facts.
 
 ## Runtime flow
 
 ```mermaid
 flowchart TD
-  A[Incoming task] --> B{Explicit current capacity}
+  A[Incoming task] --> R{Observable interaction and task signals}
+  R -->|Friction detected| S[Inject private turn-local support]
+  R -->|No signal| B
+  S --> B{Explicit current capacity override}
   B -->|Low| C[Preserve a safe functional minimum]
   B -->|Auto, steady, or high| D{Working-memory load}
   D -->|High| E[Externalize outcome, state, blockers, next, and done]
@@ -19,6 +24,10 @@ flowchart TD
   C --> I[Checkpoint and leave a re-entry point]
   G --> I
   H --> I
+  I --> L{Tool loop drifting?}
+  L -->|Research-only or repeating| X[Inject one private self-redirect]
+  L -->|No| J[Continue or finish]
+  X --> J
 ```
 
 `auto` means no durable claim. The universal operating contract remains active, while situational adaptations are turn-local. Explicit `/support` values override Auto when the operator wants deterministic behavior. Supports modify the task or environment before demanding more effort from the operator.

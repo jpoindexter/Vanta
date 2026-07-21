@@ -31,10 +31,14 @@ export type TurnState = {
   autoContinues: number;
   /** Bounded retries that enforce an explicit specialized-tool contract. */
   toolContractNudges: number;
+  /** Bounded private harness redirects applied after observable loop drift. */
+  adaptiveRedirects: number;
+  /** Current private redirect, injected per call but not persisted in history. */
+  adaptiveRedirect: string;
 };
 
 export function makeInitialState(): TurnState {
-  return { consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map(), tokensSaved: 0, toolNames: [], autoContinues: 0, toolContractNudges: 0 };
+  return { consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map(), tokensSaved: 0, toolNames: [], autoContinues: 0, toolContractNudges: 0, adaptiveRedirects: 0, adaptiveRedirect: "" };
 }
 
 export function recordUsage(state: TurnState, result: CompletionResult): void {

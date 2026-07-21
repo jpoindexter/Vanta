@@ -114,6 +114,73 @@ describe("specialized tool-use contract", () => {
   });
 });
 
+describe("automatic executive support", () => {
+  it("injects activation support privately on the first provider call", async () => {
+    const seen: Message[][] = [];
+    const provider: LLMProvider = {
+      modelId: () => "fake",
+      contextWindow: () => 100_000,
+      complete: vi.fn(async (messages): Promise<CompletionResult> => {
+        seen.push(messages);
+        return { text: "Starting with one safe step.", toolCalls: [], finishReason: "stop" };
+      }),
+    };
+    const transcript: Message[] = [{ role: "system", content: "sys" }];
+    await runTurn({
+      messages: transcript,
+      ctx: { root: "/tmp", safety: {} as AgentDeps["safety"], requestApproval: async () => true },
+      deps: deps(provider),
+      userText: "I'm stuck and can't start",
+    });
+
+    expect(seen[0]?.some((message) => message.role === "system" && message.content.includes("VANTA AUTOMATIC SUPPORT"))).toBe(true);
+    expect(transcript.filter((message) => message.role === "system")).toHaveLength(1);
+  });
+
+  it("self-redirects a research-only loop before continuing an action task", async () => {
+    const registry = new InMemoryToolRegistry();
+    registry.register({
+      schema: { name: "read_file", description: "read", parameters: { type: "object", properties: {} } },
+      describeForSafety: (args) => `read ${String(args.path)}`,
+      execute: async (args) => ({ ok: true, output: `contents of ${String(args.path)}` }),
+    });
+    const seen: Message[][] = [];
+    let call = 0;
+    const provider: LLMProvider = {
+      modelId: () => "fake",
+      contextWindow: () => 100_000,
+      complete: vi.fn(async (messages): Promise<CompletionResult> => {
+        seen.push(messages);
+        call++;
+        if (call === 1) {
+          return {
+            text: "",
+            toolCalls: Array.from({ length: 6 }, (_, index) => ({
+              id: `read-${index}`,
+              name: "read_file",
+              arguments: { path: `file-${index}.ts` },
+            })),
+            finishReason: "tool_calls",
+          };
+        }
+        return { text: "I stopped researching and made the smallest useful fix.", toolCalls: [], finishReason: "stop" };
+      }),
+    };
+    const { safety } = spySafety();
+    const transcript: Message[] = [{ role: "system", content: "sys" }];
+    const outcome = await runTurn({
+      messages: transcript,
+      ctx: { root: "/tmp", safety, requestApproval: async () => true },
+      deps: { provider, safety, registry, root: "/tmp", requestApproval: async () => true },
+      userText: "Fix the broken setup flow",
+    });
+
+    expect(outcome.finalText).toContain("smallest useful fix");
+    expect(seen[1]?.some((message) => message.role === "system" && message.content.includes("VANTA SELF-REDIRECT"))).toBe(true);
+    expect(transcript.some((message) => message.content.includes("VANTA SELF-REDIRECT"))).toBe(false);
+  });
+});
+
 // A tool whose output is a secret-shaped string. describeForSafety returns a
 // benign, kernel-allowable string (never the output) so the gate approves.
 function secretLeakTool(secret: string): Tool {
