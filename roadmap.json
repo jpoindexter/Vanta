@@ -19957,6 +19957,86 @@
         "VANTA-ALT-SCREEN",
         "TUI-LINE-SCROLL"
       ]
+    },
+    {
+      "id": "QUICKSILVER-TTFT-PERF-HARNESS",
+      "track": "Harness",
+      "title": "True first-token performance harness — measure cold start through painted output",
+      "status": "next",
+      "size": "M",
+      "summary": "Hermes v0.19 cut agent initialization from about 4.3s to 0.9s by first replacing one-off timing scripts with a production benchmark harness. Vanta's packaged desktop budget measures process-to-shell well, but its first-use path uses a mocked chat response and cannot prove submit-to-dispatch, provider first delta, or first painted token. Establish truthful CLI, TUI, gateway, and packaged-desktop timing before optimizing the critical path.",
+      "done": "A versioned production harness runs at least five isolated samples for CLI, TUI, gateway, and signed packaged Desktop with separate fresh-profile and warm-profile modes; records process-to-interactive, submit-to-dispatch, provider-first-delta, and first-painted-token timestamps; reports median, p95, and worst sample with machine/build metadata; never counts a mocked provider as TTFT; stores a baseline receipt; and fails CI on explicit regression budgets while explaining which stage regressed.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "infra",
+      "source": "https://github.com/NousResearch/hermes-agent/releases/tag/v2026.7.20",
+      "updated": "2026-07-21",
+      "after": [
+        "DESKTOP-VISUAL-PERFORMANCE-REGRESSION-GATES"
+      ]
+    },
+    {
+      "id": "QUICKSILVER-STARTUP-CRITICAL-PATH",
+      "track": "Harness",
+      "title": "Startup critical-path collapse — cache, defer, and prewarm first-turn work",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Apply the useful Hermes Quicksilver pattern to Vanta's measured startup path: cache skill discovery and prompt artifacts by scan signature, use mtime/size manifests for invalidation, move capability and environment probes off the blocking path, defer nonessential panes and extensions, and prewarm the kernel socket and selected provider while the operator is reading or typing. Preserve correctness with bounded waits and fail-open optional probes instead of hiding work behind an unbounded background task.",
+      "done": "The TTFT harness identifies the blocking stages before changes; skill/config/prompt caches invalidate on file metadata changes and survive restart; optional probes, hidden Desktop panes, and nonessential extension work do not block the first interactive frame; kernel/provider prewarm respects proxy, credential, and project scope; stuck prewarm tasks cannot block a turn; cold process-to-interactive and local submit-to-dispatch medians improve by at least 40% from the captured Vanta baseline; and fresh-profile, changed-config, offline, invalid-cache, and crash-recovery fixtures preserve correct behavior.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "source": "https://github.com/NousResearch/hermes-agent/releases/tag/v2026.7.20",
+      "updated": "2026-07-21",
+      "after": [
+        "QUICKSILVER-TTFT-PERF-HARNESS",
+        "VANTA-API-PRECONNECT",
+        "VANTA-DEFERRED-SESSION-HOOKS"
+      ]
+    },
+    {
+      "id": "QUICKSILVER-DESKTOP-STREAM-PERF",
+      "track": "Desktop App",
+      "title": "Desktop stream performance — incremental markdown and scoped token updates",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Vanta virtualizes completed turns, but every streamed delta still appends React state and reparses the full in-progress Markdown response. Copy the principle behind Hermes v0.19's desktop speed wave: coalesce deltas to animation frames, incrementally parse stable Markdown blocks, isolate streaming subscriptions from the sidebar and tool surfaces, and virtualize oversized diffs without changing transcript fidelity.",
+      "done": "A production benchmark streams long Markdown, code, tool activity, and a large diff while recording first paint, frame time, render counts, CPU, and memory; streamed text remains byte-identical after persistence; delta updates are frame-coalesced; stable Markdown blocks are not reparsed; sidebar, session rows, and unrelated tool controls do not rerender per token; large diffs remain scrollable and interactive; accessibility announcements are rate-limited but complete; and the measured fixture passes explicit regression budgets on the signed packaged app.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "tui",
+      "source": "https://github.com/NousResearch/hermes-agent/releases/tag/v2026.7.20",
+      "updated": "2026-07-21",
+      "after": [
+        "QUICKSILVER-TTFT-PERF-HARNESS",
+        "DESKTOP-CODEX-CHAT-SURFACE"
+      ]
+    },
+    {
+      "id": "GATEWAY-DELIVERY-OBLIGATION-LEDGER",
+      "track": "Harness",
+      "title": "Gateway delivery-obligation ledger — never lose a finished remote answer",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Hermes v0.19 closes a real messaging failure window: a response can finish after the model charge but disappear if the gateway dies before the platform confirms delivery. Vanta records transport receipts but does not persist a send obligation around final Telegram and other channel delivery. Add a durable outbox contract rather than retrying from transient process memory.",
+      "done": "Before sending a final gateway response, Vanta writes a mode-0600 delivery obligation keyed by profile, channel, conversation, turn, content hash, and idempotency key; a confirmed platform receipt atomically closes it; restart redelivers unresolved obligations without rerunning the model; duplicate acknowledgements and reconnect races cannot double-send; expired or permanently rejected deliveries become visible operator actions rather than silent loss; payloads and logs are redacted; and crash-before-send, crash-after-send-before-ack, retry, duplicate, multi-profile isolation, and Telegram end-to-end fixtures pass.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "reach",
+      "source": "https://github.com/NousResearch/hermes-agent/releases/tag/v2026.7.20",
+      "updated": "2026-07-21",
+      "after": [
+        "PORT-DELIVERY-REGISTRY",
+        "HARNESS-EVENTS-WAIT"
+      ]
     }
   ]
 }
