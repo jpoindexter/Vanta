@@ -12,6 +12,12 @@
 set -e
 DIR="$(cd "$(dirname "$0")" && pwd)"
 
+# The TypeScript CLI starts from vanta-ts/, where an ignored nested .vanta/
+# directory can otherwise shadow this installation's kernel token. Keep the
+# kernel client rooted at the checkout that launched it; respect an explicit
+# caller override for embedded or multi-checkout use.
+export VANTA_ROOT="${VANTA_ROOT:-$DIR}"
+
 # --- self-register this location ---------------------------------------------
 # Record where the repo lives so the global `vanta` launcher always finds us —
 # even after the repo is moved. Running `./run.sh` (or `vanta`) once from the new
