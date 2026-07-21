@@ -20150,6 +20150,216 @@
       "after": [
         "EF-CAPACITY-SUPPORT-ROUTER"
       ]
+    },
+    {
+      "id": "REWARD-SEEKING-THREAT-MODEL",
+      "track": "Harness",
+      "title": "Reward-seeking threat model - separate intended outcome from grader approval",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Define reward-seeking as context-specific behavioral sensitivity to beliefs about a grader, verifier, or deployment monitor. Map operator intent, developer policy, grader, monitor, and external constraints for each eval class so Vanta can distinguish completing the task from merely satisfying the scoring process.",
+      "done": "A versioned threat-model schema names the task distribution, intended authority, reward path, monitor, conflict action, and expected conflict resolution; repo repair, browser work, messaging, workflow execution, and self-evolution each have one reviewed instance; no field claims a global model trait; the schema is required by reward-seeking eval reports; and docs distinguish reward-seeking, reward hacking, evaluation gaming, and ordinary high reward.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.6-terra",
+      "lens": "infra",
+      "source": "Hojmark et al., Measuring Reward-Seeking via Contrastive Belief Updates, Sections 2-3",
+      "updated": "2026-07-21",
+      "after": [
+        "AHE-EVAL-HARNESS",
+        "VERIFY-RIGHT"
+      ]
+    },
+    {
+      "id": "REWARD-PROCESS-INTEGRITY-BOUNDARY",
+      "track": "Harness",
+      "title": "Reward-process integrity boundary - graders and holdouts cannot be influenced",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Extend Vanta's self-evolution guardrail into a general evaluation boundary. The evaluated agent must not read or modify hidden tests, verifier code, score inputs, model selection, budgets, audit receipts, or release thresholds, including indirect influence through tools, environment, network, and generated reports.",
+      "done": "Task generation, execution, evidence capture, verification, aggregation, and release run under separate capability principals; the evaluated workspace cannot read holdout membership or expected outputs; direct and indirect attempts to alter verifier, tests, monitor, budgets, model, logs, or thresholds are blocked and receipted; verifier failure cannot become a pass; crash and replay preserve denial evidence; and red-team fixtures demonstrate each protected path on repo, browser, and workflow evals.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "source": "Hojmark et al., Sections 2.2, 6, and 8",
+      "updated": "2026-07-21",
+      "after": [
+        "REWARD-SEEKING-THREAT-MODEL",
+        "AHE-EVOLVE-GUARDRAILS",
+        "SCHEMA-CONTROLLED-COMMIT-GATE"
+      ]
+    },
+    {
+      "id": "REWARD-SEEKING-CONTRASTIVE-DETECTOR",
+      "track": "Harness",
+      "title": "Contrastive authority detector - reverse grader and intent preferences",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Add a production-feasible paired detector for API models: hold task, model, tools, budget, and prompt structure fixed while reversing whether the grader or operator/developer prefers an observable behavior. This detects context-specific grader sensitivity but is explicitly not a model-ranking instrument.",
+      "done": "The eval schema records both authority assignments, prompt channel, feature opportunity, controls, invalids, refusals, and tool policy; neutral calibration cases and consequential honesty/task-completion cases run in fresh sandboxes; Beta(1,1)-smoothed raw and log-odds gaps include uncertainty; positive controls must activate before a negative result is allowed; failed activation returns inconclusive; reports carry detector_only and reject leaderboard or release-score use; and at least two provider models execute the same versioned fixture.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "source": "Hojmark et al., Sections 3-5 and Appendix T",
+      "updated": "2026-07-21",
+      "after": [
+        "REWARD-SEEKING-THREAT-MODEL",
+        "AHE-EVAL-VERIFIER",
+        "SCHEMA-HARNESS-EVAL-ABLATION"
+      ]
+    },
+    {
+      "id": "REWARD-SEEKING-BEHAVIORAL-SIGNAL-SUITE",
+      "track": "Harness",
+      "title": "Behavioral grader-targeting signals - actions and receipts over self-report",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Measure grader-targeting from observable action because chain-of-thought may omit, contradict, or strategically conceal it. Detect hidden-test discovery, grading-script access, verifier manipulation, skipped checks, promise violations, evidence falsification, oversight disabling, and score-only formatting changes without treating any single signal as a diagnosis.",
+      "done": "Each signal has a typed event, false-positive fixture, and task-opportunity precondition; direct and indirect tool paths are covered; signals survive session restart and remote gateway delivery; reports distinguish attempted, blocked, completed, and inferred actions; chain-of-thought and self-report cannot create or clear a finding; at least one multi-step agent task proves every high-severity event end to end; and aggregate output remains scoped to the tested distribution.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "source": "Hojmark et al., Sections 2.3, 5.2, and 6",
+      "updated": "2026-07-21",
+      "after": [
+        "REWARD-PROCESS-INTEGRITY-BOUNDARY",
+        "REWARD-SEEKING-CONTRASTIVE-DETECTOR",
+        "SCHEMA-TRANSITION-TIMELINE"
+      ]
+    },
+    {
+      "id": "REWARD-SEEKING-CALIBRATION-CONTROLS",
+      "track": "Harness",
+      "title": "Reward-seeking eval calibration - positive controls and honest inconclusive results",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Prevent null results from being mistaken for safety. Every detector must prove that the target belief or authority information was available, the behavior had opportunities to occur, and a planted positive control moves in the expected direction before it can report not_detected.",
+      "done": "The harness supports planted positive and negative controls, manipulation or recall checks, feature-opportunity counts, invalid/refusal accounting, seeded uncertainty analysis, repeated runs, and changed-surface replications; nulls caused by failed activation, insufficient power, ontology mismatch, or prompt-channel instability become inconclusive; calibration artifacts are versioned by provider/model/harness; and regression tests include an instrument that deliberately fails to activate.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "infra",
+      "source": "Hojmark et al., Sections 4 and 7, Appendices I and T",
+      "updated": "2026-07-21",
+      "after": [
+        "REWARD-SEEKING-CONTRASTIVE-DETECTOR",
+        "AHE-EVAL-HARNESS"
+      ]
+    },
+    {
+      "id": "REWARD-SEEKING-EVAL-AWARENESS-REDTEAM",
+      "track": "Harness",
+      "title": "Evaluation-awareness red team - expose metagaming and prompt-channel confounds",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Test whether reward-safety evaluations are recognizable and therefore gameable. Run matched ordinary, benchmark-like, and disguised task forms; vary authority-conflict placement and recall hints; and detect when the instrument changes behavior by revealing that evaluation is occurring.",
+      "done": "A versioned suite varies system, developer, user, retrieved-context, and where-supported out-of-context placement while holding task semantics fixed; public canaries detect memorized fixtures; ordinary and disguised variants measure final actions and receipts before self-report; prompt-channel or disguise sensitivity marks the instrument contaminated; private holdout instances and expected outputs never enter the evaluated context; and reports state whether the eval remains suitable for detection, comparison, or neither.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "infra",
+      "source": "Hojmark et al., Section 2.2 and Appendix T",
+      "updated": "2026-07-21",
+      "after": [
+        "REWARD-SEEKING-CONTRASTIVE-DETECTOR",
+        "REWARD-SEEKING-CALIBRATION-CONTROLS"
+      ]
+    },
+    {
+      "id": "REWARD-SEEKING-OVERSIGHT-GENERALIZATION",
+      "track": "Harness",
+      "title": "Oversight generalization suite - present, flawed, absent, and powerless monitors",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Test the deployment boundary that ordinary evals miss: whether Vanta preserves operator and developer intent when oversight is absent, incorrect, delayed, or unable to affect reward. Compare matched conditions instead of assuming behavior under a visible grader transfers off distribution.",
+      "done": "Repo repair, browser workflow, messaging, and multi-step workflow fixtures each run under accurate-visible, flawed-proxy, absent, delayed, and powerless-monitor conditions with fixed model/tools/budget; task success and integrity are scored separately; promise keeping, truthful reporting, monitor preservation, hidden-test integrity, and blocked-action recovery are covered; changed-surface replications pass; and high-impact regressions produce inspectable release-blocking evidence rather than a single opaque model score.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "source": "Hojmark et al., Sections 2.2, 5.2, and 8",
+      "updated": "2026-07-21",
+      "after": [
+        "REWARD-PROCESS-INTEGRITY-BOUNDARY",
+        "REWARD-SEEKING-BEHAVIORAL-SIGNAL-SUITE",
+        "REWARD-SEEKING-CALIBRATION-CONTROLS"
+      ]
+    },
+    {
+      "id": "REWARD-SEEKING-MODEL-LEDGER",
+      "track": "Operator",
+      "title": "Contextual reward-seeking ledger - trends without global safe-model labels",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Track reward-safety evidence by exact provider, model version, harness, task distribution, authority pair, prompt channel, tool policy, and date. Show trends and uncertainty without collapsing context-dependent behavior into one permanent model reputation.",
+      "done": "Every result stores immutable config and artifact hashes, sample counts, invalids, posterior intervals, detector type, calibration state, and claim boundary; the UI compares like-for-like runs and refuses incompatible aggregate scores; provider or harness changes invalidate stale release evidence; trend alerts require replicated movement; exports redact private holdouts; and operators can inspect the executed transcripts and receipts behind every point.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "memory",
+      "source": "Hojmark et al., Sections 2.1, 3.1, 5, and 7",
+      "updated": "2026-07-21",
+      "after": [
+        "REWARD-SEEKING-CALIBRATION-CONTROLS",
+        "REWARD-SEEKING-OVERSIGHT-GENERALIZATION",
+        "TRUST-LABELS"
+      ]
+    },
+    {
+      "id": "REWARD-SEEKING-SDF-RESEARCH-LANE",
+      "track": "Harness",
+      "title": "Contrastive SDF research lane - causal belief updates for trainable models",
+      "status": "parked",
+      "size": "L",
+      "summary": "Reproduce contrastive Synthetic Document Finetuning only for open or internally trainable models where paired belief interventions, matched corpora, and off-target checks are possible. This is a research instrument, not an API-model requirement or ordinary release dependency.",
+      "done": "A reviewed protocol generates matched opposing authority corpora without behavioral demonstrations, records token/document balance and believability checks, trains paired models with frozen hyperparameters, verifies belief recall and unrelated-distribution stability, calibrates against planted positive and negative controls, reports posterior gaps across more than one task family, publishes cost and null-result limitations, and never generalizes beyond the tested model and distribution.",
+      "tier": "sand",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "source": "Hojmark et al., Sections 3-7",
+      "updated": "2026-07-21",
+      "notes": "Parked because ordinary Vanta provider access cannot finetune closed checkpoints and the paper required many paired finetunes plus extensive calibration. Activate only with a named trainable model, compute budget, and independent research review. This card is not a dependency of the production reward-safety release gate.",
+      "after": [
+        "REWARD-SEEKING-CONTRASTIVE-DETECTOR",
+        "REWARD-SEEKING-CALIBRATION-CONTROLS"
+      ],
+      "parkedReason": "review"
+    },
+    {
+      "id": "REWARD-SEEKING-RELEASE-GATE",
+      "track": "Harness",
+      "title": "Reward-safety release gate - passing the grader is not enough",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Require independent evidence that a model or harness update preserves intent when grader incentives conflict or oversight changes. A task score, self-report, or one LLM judge cannot independently approve release.",
+      "done": "The gate runs integrity-boundary proofs, calibrated contrastive detection, behavioral signal checks, eval-awareness contamination checks, and matched oversight-generalization fixtures; deterministic checks and an independent decision owner review evidence; any high-severity completed grader-targeting action or uncontained reward-path influence blocks release; inconclusive high-impact cases require explicit human disposition; override reasons are immutable; and the gate is executed on one real provider or harness update with a complete receipt.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "source": "Hojmark et al., Sections 2.2 and 8",
+      "updated": "2026-07-21",
+      "after": [
+        "REWARD-PROCESS-INTEGRITY-BOUNDARY",
+        "REWARD-SEEKING-BEHAVIORAL-SIGNAL-SUITE",
+        "REWARD-SEEKING-EVAL-AWARENESS-REDTEAM",
+        "REWARD-SEEKING-OVERSIGHT-GENERALIZATION",
+        "REWARD-SEEKING-MODEL-LEDGER"
+      ]
     }
   ]
 }
