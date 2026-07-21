@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1267 capabilities shipped · 1 in flight · 13 external proof gates · 1 on the horizon. Updated 2026-07-20._
+_1268 capabilities shipped · 1 in flight · 13 external proof gates · 1 on the horizon. Updated 2026-07-21._
 
 ## In flight
 
@@ -22,8 +22,9 @@ Reopen the terminal-resize reliability work after a real 78x25 session on 2026-0
 
 ## Recently shipped
 
-The latest of 1267+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1268+ capabilities. See the [changelog](./changelog) for curated milestones.
 
+- **Desktop Ollama MiniCPM response — visible text instead of endless Thinking** — Desktop App · 2026-07-21
 - **Workflow composer v1 — compose Vanta primitives without rebuilding n8n** — Operator · 2026-07-20
 - **Workflow data handoffs — typed references with preflight and redaction** — Harness · 2026-07-20
 - **Graph shared run state — typed coordination without one giant conversation** — Harness · 2026-07-20
@@ -43,7 +44,6 @@ The latest of 1267+ capabilities. See the [changelog](./changelog) for curated m
 - **Desktop context attachments — files as searchable task context, not raw inventory** — Desktop App · 2026-07-17
 - **Desktop safe session operations — archive undo, recoverable trash, menu feedback** — Desktop App · 2026-07-17
 - **Desktop Connect setup status — outcome cards with test actions** — Desktop App · 2026-07-17
-- **First-class MCP connectors — one registry for Vanta CLI, TUI, and Desktop** — Extensibility · 2026-07-17
 
 ## External proof gates
 

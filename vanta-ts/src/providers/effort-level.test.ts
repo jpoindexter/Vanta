@@ -27,6 +27,12 @@ describe("OpenAI effort mapping", () => {
     expect(result).toEqual({});
     expect(logs[0]).toContain("does not support reasoning_effort");
   });
+
+  it("disables hidden MiniCPM5 reasoning so local turns return visible text", () => {
+    expect(buildOpenAIEffortParams("hf.co/openbmb/MiniCPM5-1B-GGUF:q4_k_m")).toEqual({
+      reasoning_effort: "none",
+    });
+  });
 });
 
 describe("Anthropic effort mapping", () => {

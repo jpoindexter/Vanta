@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-20",
+  "updated": "2026-07-21",
   "items": [
     {
       "id": "WHAT-CAN-I-DO-GALLERY",
@@ -19902,6 +19902,23 @@
         "SCHEMA-TASK-ENVIRONMENT-CONTRACT",
         "PCLIP-APPROVAL-STAGES"
       ]
+    },
+    {
+      "id": "DESKTOP-OLLAMA-MINICPM-VISIBLE-RESPONSE",
+      "track": "Desktop App",
+      "title": "Desktop Ollama MiniCPM response — visible text instead of endless Thinking",
+      "status": "shipped",
+      "size": "S",
+      "summary": "MiniCPM5 under Ollama could spend Vanta's complete local token allowance on hidden reasoning, return no visible text or tool call, and re-enter the agent loop while Desktop remained on Thinking. Force MiniCPM5's OpenAI-compatible requests into visible-answer mode while preserving the normal effort policy for every other model.",
+      "done": "Selecting the exact MiniCPM5 Ollama model and sending a turn through the packaged Desktop runtime returns visible text, produces a done receipt in one iteration, and clears the busy state; the same model also completes through the CLI, and focused provider and local-runtime tests plus the core typecheck pass.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.6-terra",
+      "lens": "tui",
+      "source": "operator-report-2026-07-21",
+      "updated": "2026-07-21",
+      "notes": "SHIPPED 2026-07-21. Root cause reproduced against Ollama: MiniCPM5 returned hidden reasoning until Vanta's local token cap was exhausted, leaving content empty and starting another iteration. The provider now sends reasoning_effort=none for MiniCPM5. EXECUTED: 26 focused tests passed; core TypeScript typecheck passed; the real CLI returned MINICPM_VANTA_OK in one iteration; the source Desktop API returned MINICPM_DESKTOP_OK with a done receipt in one iteration; the signed packaged runtime returned MINICPM_PACKAGED_OK with a done receipt in one iteration; the rebuilt Vanta.app is valid on disk and satisfies its Designated Requirement."
     },
     {
       "id": "TUI-RESIZE-GHOST-REGRESSION",

@@ -17,6 +17,10 @@ export function buildOpenAIEffortParams(
   config?: CompletionConfig,
   debug?: DebugLog,
 ): Record<string, unknown> {
+  // Ollama exposes MiniCPM5's internal reasoning through the OpenAI-compatible
+  // endpoint. Without this override it can spend the complete local token cap
+  // on hidden reasoning, return no text, and send the agent into another turn.
+  if (/minicpm5/i.test(model)) return { reasoning_effort: "none" };
   const effort = config?.effortLevel ?? "medium";
   if (effort === "medium") return {};
   if (!modelSupports(model, "reasoning_effort")) {
