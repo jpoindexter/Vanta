@@ -5,7 +5,7 @@
       "id": "SANDBOX-RELATIVE-MKDIR-APPROVAL",
       "track": "Harness",
       "title": "Relative sibling mkdir approval — resolve the real target before the kernel and sandbox",
-      "status": "building",
+      "status": "shipped",
       "size": "S",
       "summary": "The agent-only-newsletter transcript exposed the remaining v0.9.6 gap: an absolute sibling mkdir was classified Ask, but the equivalent relative `mkdir ../…` was classified Allow. The one-run sandbox grant was therefore never attached, and the command failed after the operator had already approved the intent. The same transcript then checked the wrong parent (`docs/agent-only-newsletter` instead of the named GitHub-level folder) and misreported an existing directory as missing.",
       "done": "Before safety assessment, a direct local mkdir resolves relative to the actual shell working directory and the canonical target appears in the action shown to the kernel and operator; approved execution grants only the nearest safe existing parent for that run; prompts instruct agents to use an exact absolute path for user-named outside-root destinations; a real default-macOS-sandbox dispatch creates and verifies a sibling directory through one approval; protected paths, remote commands, arbitrary shell syntax, and unapproved writes remain closed.",
@@ -15,14 +15,14 @@
       "codex": "gpt-5.6-sol",
       "lens": "agent-loop",
       "updated": "2026-07-21",
-      "notes": "Captured from the 2026-07-21 agent-only-newsletter transcript. Live kernel evidence before the fix: absolute `/Users/jasonpoindexter/Documents/GitHub/agent-only-newsletter-test` returned Ask for an outside approved folder, while `mkdir ../agent-only-newsletter` returned Allow. Path evidence: from `/Users/jasonpoindexter/Documents/GitHub/docs/Vanta`, `../agent-only-newsletter` resolves to `/Users/jasonpoindexter/Documents/GitHub/docs/agent-only-newsletter`; the operator-created `/Users/jasonpoindexter/Documents/GitHub/agent-only-newsletter` already existed. Implementation canonicalizes the direct mkdir target before assessment, uses the actual `/cd`-aware shell cwd for both approval and sandbox handoff, and aligns remote/local prompts with scoped outside-root approval. Verification and release proof pending before this card moves to shipped.",
+      "notes": "Captured from the 2026-07-21 agent-only-newsletter transcript. Live kernel evidence before the fix: absolute `/Users/jasonpoindexter/Documents/GitHub/agent-only-newsletter-test` returned Ask for an outside approved folder, while `mkdir ../agent-only-newsletter` returned Allow. Path evidence: from `/Users/jasonpoindexter/Documents/GitHub/docs/Vanta`, `../agent-only-newsletter` resolves to `/Users/jasonpoindexter/Documents/GitHub/docs/agent-only-newsletter`; the operator-created `/Users/jasonpoindexter/Documents/GitHub/agent-only-newsletter` already existed. Implementation canonicalizes the direct mkdir target before assessment, uses the actual `/cd`-aware shell cwd for both approval and sandbox handoff, and aligns remote/local prompts with scoped outside-root approval. Executed proof: a real default-macOS-sandbox dispatch approved, created, and verified a GitHub-level sibling directory; 144 focused tests, both TypeScript checks, and the 13,616-test full suite passed.",
       "source": "agent-only-newsletter-filesystem-transcript-2026-07-21"
     },
     {
       "id": "DESKTOP-ALLOW-ONCE-BRAND-ICON",
       "track": "Desktop",
       "title": "Desktop one-time approvals and current Vanta app icon",
-      "status": "building",
+      "status": "shipped",
       "size": "S",
       "summary": "Approval checkpoints must make the temporary trust boundary explicit. Desktop should offer only `Allow once` and `Reject` for an individual action; persistent Ask/Approve/Full access changes belong in the separate project access-mode selector. The packaged app icon should use the current Vanta V-in-field mark with its violet signal point rather than the retired Ghost boundary glyph.",
       "done": "Every Desktop approval surface exposes exactly Allow once and Reject, posts only one-time allow/deny decisions, has a labelled keyboard-operable dialog/checkpoint, and leaves standing access changes in the access-mode picker; the renderer tests and packaged Electron proof find no Always/Never action on a checkpoint; the Electron package consumes a 1024px PNG generated from the canonical current Vanta brandmark and packaged asset inspection confirms it.",
@@ -32,7 +32,7 @@
       "codex": "gpt-5.6-sol",
       "lens": "selfhood",
       "updated": "2026-07-21",
-      "notes": "Added from the operator's Codex access-mode reference and Vanta approval-card screenshot on 2026-07-21. Applied human-in-the-loop separation, recognition over recall, explicit signifiers, user control, native button semantics, and the current website brandmark as the touchpoint source of truth. Focused renderer proof and package inspection remain required before shipping.",
+      "notes": "Added from the operator's Codex access-mode reference and Vanta approval-card screenshot on 2026-07-21. Applied human-in-the-loop separation, recognition over recall, explicit signifiers, user control, native button semantics, and the current website brandmark as the touchpoint source of truth. Executed proof: focused renderer tests passed; the production bundle contains no Always/Never checkpoint action; the signed 0.9.7 macOS package contains the visually inspected 1024 px Vanta V-in-field icon with violet signal point.",
       "source": "desktop-approval-and-icon-feedback-2026-07-21"
     },
     {

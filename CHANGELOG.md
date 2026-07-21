@@ -17,7 +17,9 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 
 ### Verified boundary
 - Focused filesystem, permission, prompt, and Desktop renderer suites pass (144 tests); core and renderer TypeScript checks pass.
-- Full-suite, real default-sandbox sibling creation, packaged icon inspection, and release asset proof are required before publication.
+- The full suite passes: 1,458 test files and 13,616 tests, with 3 intentional skips.
+- A real default-macOS-sandbox dispatch created and verified a GitHub-level sibling directory through one approval, then removed only the empty proof directory.
+- The production renderer contains no persistent checkpoint actions, and the Developer ID-signed macOS package carries the inspected 1024 px Vanta brand icon. Apple notarization and public asset checks remain the release-workflow boundary.
 
 ## v0.9.6 — 2026-07-21
 
