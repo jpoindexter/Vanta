@@ -1,6 +1,8 @@
 # Capacity-aware executive-function support
 
-Vanta is neurodivergent-first without being diagnosis-gated or person-specific. The operator controls current support state; Vanta does not infer autism, ADHD, burnout, motivation, or capacity from writing style.
+Vanta is neurodivergent-first without being diagnosis-gated or person-specific. The operating contract is built directly into Vanta's core system prompt and applies in every normal session. It does not depend on skill discovery or a slash command.
+
+With every current-state field on `auto`, Vanta adapts only to explicit situational language and observable task friction. If the operator says they are stuck, overwhelmed, low on energy, cannot start, or asks what comes next, Vanta reduces choices, externalizes the current state, and starts or identifies one safe reversible action. It does not infer autism, ADHD, burnout, personality, or durable capacity from writing style, and it does not save automatic adaptations as profile facts.
 
 ## Runtime flow
 
@@ -19,7 +21,7 @@ flowchart TD
   H --> I
 ```
 
-`auto` means no claim and no special route. Supports modify the task or environment before demanding more effort from the operator.
+`auto` means no durable claim. The universal operating contract remains active, while situational adaptations are turn-local. Explicit `/support` values override Auto when the operator wants deterministic behavior. Supports modify the task or environment before demanding more effort from the operator.
 
 ## Commands
 
@@ -44,7 +46,9 @@ Communication preferences remain available through either command:
 
 The profile persists in `~/.vanta/nd-profile.json`. Older profiles load with all new current-state fields set to `auto`.
 
-## Skill pack
+## Reusable skill pack
+
+The skill pack is an export surface for other compatible agents. Vanta's core behavior does not require these skills to be installed, selected, recalled, or invoked.
 
 [`executive-function-skills/`](../executive-function-skills/) contains seven independently installable skills:
 
@@ -56,7 +60,7 @@ The profile persists in `~/.vanta/nd-profile.json`. Older profiles load with all
 6. `predictable-low-load-communication`
 7. `time-and-transition-support`
 
-`vanta skills install` includes this source alongside the existing design, AI-engineering, security, and bundled skill libraries. Existing local skills still win unless force installation is requested.
+Vanta deliberately does not self-install this pack through `vanta skills install`; doing so would duplicate its core prompt contract. The folder remains a distributable source for other compatible agents.
 
 ## Source synthesis
 

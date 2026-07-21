@@ -147,6 +147,32 @@ describe("buildSystemPrompt", () => {
     }
   });
 
+  it("builds automatic core support in Auto mode without requiring a skill invocation", async () => {
+    const prompt = await buildSystemPrompt({
+      root: "/tmp/vanta",
+      soulPath: "/nonexistent/SOUL.md",
+      goals: [],
+      tools,
+      now: "2026-07-21T00:00:00Z",
+      ndPreferences: {
+        outputDensity: "balanced",
+        sensoryLoad: "medium",
+        timeSupport: "ranges",
+        capacity: "auto",
+        memoryLoad: "auto",
+        activation: "auto",
+        motivation: "auto",
+      },
+    });
+
+    expect(prompt).toContain("built-in automatic support");
+    expect(prompt).toContain("core Vanta behavior, not a skill");
+    expect(prompt).toContain("stuck, overwhelmed, low on energy, cannot start");
+    expect(prompt).toContain("Outcome / Now / Next / Blocker / Done");
+    expect(prompt).toContain("Automatic adaptations are turn-local");
+    expect(prompt).toContain("never infer diagnosis, identity, personality");
+  });
+
   it("omits the user support contract when the profile is intentionally unavailable", async () => {
     const prompt = await buildSystemPrompt({
       root: "/tmp/vanta",

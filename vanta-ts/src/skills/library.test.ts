@@ -80,14 +80,14 @@ describe("installSkillLibrary", () => {
     expect([...r.installed, ...r.skipped]).toContain("ideation-methods");
   }, 60_000);
 
-  it("installs the design + ai-engineering sources too (multi-source)", async () => {
+  it("installs the design + ai-engineering sources without duplicating core EF behavior", async () => {
     const r = await installSkillLibrary();
     const all = [...r.installed, ...r.skipped];
     // skills that only exist in the extra sources, not skills-library/
     expect(all).toContain("atomic-design"); // design-system-skills
     expect(all).toContain("usability-heuristics"); // design-system-skills
     expect(all).toContain("rag-architecture"); // ai-engineering-skills
-    expect(all).toContain("functional-minimums"); // executive-function-skills
+    expect(all).not.toContain("functional-minimums"); // exported pack; Vanta uses its core prompt
   }, 60_000);
 
   it("librarySources lists the bundled library + design + ai-engineering skills", () => {
@@ -95,6 +95,6 @@ describe("installSkillLibrary", () => {
     expect(srcs.some((s) => s.endsWith("skills-library"))).toBe(true);
     expect(srcs.some((s) => s.endsWith("design-system-skills"))).toBe(true);
     expect(srcs.some((s) => s.endsWith("ai-engineering-skills"))).toBe(true);
-    expect(srcs.some((s) => s.endsWith("executive-function-skills"))).toBe(true);
+    expect(srcs.some((s) => s.endsWith("executive-function-skills"))).toBe(false);
   });
 });

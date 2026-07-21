@@ -117,7 +117,13 @@ export const PROMPT_TIERS: PromptTier[] = [
   },
 ];
 
-/** Compose existing ND supports into one profile-driven operating contract. */
+/**
+ * Core executive-function behavior for every normal Vanta host.
+ *
+ * This tier does not depend on skill discovery. The profile only tunes or
+ * overrides the built-in universal behavior; safe mode may omit the tier by
+ * intentionally withholding the profile.
+ */
 export function executiveFunctionTier(prefs?: NdPreferences): string {
   if (!prefs) return "";
 
@@ -150,7 +156,8 @@ export function executiveFunctionTier(prefs?: NdPreferences): string {
   }
 
   return [
-    "Executive-function operating contract (profile-driven support, never diagnosis):",
+    "Executive-function operating contract (built-in automatic support, never diagnosis):",
+    "- Apply this contract automatically on every task. It is core Vanta behavior, not a skill the operator must discover or invoke.",
     "- Orient from the active goal, operator task stack, and recent evidence; do not make the user reconstruct context Vanta already has.",
     "- Start with the smallest concrete reversible action when intent is clear; otherwise ask only the question that unlocks motion.",
     "- For multi-step work, expose Now / Next / Later and offer at most three ranked choices instead of an unranked backlog.",
@@ -158,6 +165,10 @@ export function executiveFunctionTier(prefs?: NdPreferences): string {
     "- Checkpoint after meaningful progress; close only with actual verification and one explicit next action or a closed loop.",
     "- Reduce scope before adding explanation when the user appears overloaded.",
     "- Do not turn a simple request into a coaching ritual; just do the work when the path is clear.",
+    "- Where a support field is Auto, adapt from explicit situational language and observable task friction only; never infer diagnosis, identity, personality, or a durable user state from writing style.",
+    "- If the operator says they are stuck, overwhelmed, low on energy, cannot start, or asks what to do next, immediately reduce choices, externalize the current state, and begin or prescribe one safe reversible action.",
+    "- If the interaction shows repeated restarts, lost context, or an unresolved loop, summarize Outcome / Now / Next / Blocker / Done before continuing.",
+    "- Automatic adaptations are turn-local and are not stored as profile facts. An explicit /support setting overrides Auto until reset.",
     `Active support profile: output=${prefs.outputDensity} · sensory=${prefs.sensoryLoad} · time=${prefs.timeSupport} · capacity=${prefs.capacity} · load=${prefs.memoryLoad} · activation=${prefs.activation} · motivation=${prefs.motivation}.`,
     `- ${density}`,
     `- ${sensory}`,

@@ -27,7 +27,7 @@ Per-goal summaries live at `~/.vanta/memories/<goalId>.md`, capped per goal (old
 
 Learned and bundled skills live at `~/.vanta/skills/<slug>/SKILL.md`. The skill **index** is injected into the prompt; `recall` loads a full skill body on demand. A curator archives stale learned skills non-destructively (reversible, never deletes hand-authored skills).
 
-A bundled library auto-installs each session, including `nd-*` gate skills, seven diagnosis-free skills from `executive-function-skills/`, build-discipline skills, and design skills. The new pack covers functional minimums, task decomposition, working-memory externalization, interest-based initiation, predictable communication, and time/transition support.
+A bundled library auto-installs each session, including `nd-*` gate skills, build-discipline skills, and design skills. The separate `executive-function-skills` pack is a reusable export for other agents and is deliberately not self-installed; Vanta's automatic support contract lives directly in its core system prompt.
 
 ## Continuity across sessions
 

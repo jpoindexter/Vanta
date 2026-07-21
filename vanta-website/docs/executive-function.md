@@ -6,7 +6,9 @@ sidebar_position: 7
 
 # Executive-function support
 
-Vanta is neurodivergent-first without requiring a diagnosis or a personal biography. You explicitly set current support state; Vanta does not infer autism, ADHD, burnout, capacity, or motivation from how you write.
+Vanta is neurodivergent-first without requiring a diagnosis or a personal biography. Executive-function support is part of the core system prompt and works automatically in every normal session; it is not something you must install or invoke.
+
+In Auto mode, Vanta responds to explicit situational language and observable task friction. Saying “I'm stuck,” “this is too much,” “what's next,” or “I can't start” makes it reduce choices, externalize the current state, and begin or identify one safe reversible action. That adaptation is turn-local: Vanta does not infer or store a diagnosis, personality, or durable capacity from how you write.
 
 ## Set current support
 
@@ -20,7 +22,7 @@ Use `/support` in the terminal or TUI:
 /support reset
 ```
 
-`auto` makes no claim and keeps the normal task flow. `/nd` remains an alias for the complete gate and preference surface.
+`auto` makes no durable claim and keeps the built-in adaptive task flow. `/support` is an optional override when you want deterministic behavior. `/nd` remains an alias for the complete gate and preference surface.
 
 When capacity is low, Vanta keeps safety and the requested function, defers optional polish, and leaves a re-entry point. High memory load makes it externalize the outcome, current step, evidence, blockers, next step, and definition of done. A stuck or low-motivation state starts one reversible action and adds at most one truthful interest, novelty, challenge, or feedback bridge. It never invents urgency.
 
@@ -52,7 +54,7 @@ Each gate is best-effort and isolated so a support failure never breaks the task
 
 ## Reusable skills
 
-Vanta bundles seven diagnosis-free skills covering support routing, functional minimums, task decomposition, working-memory externalization, interest-based initiation, predictable communication, and time/transition support. They are installed by `vanta skills install` and can be used independently in other compatible agents.
+Vanta also exports seven diagnosis-free skills covering support routing, functional minimums, task decomposition, working-memory externalization, interest-based initiation, predictable communication, and time/transition support. They can be installed independently in other compatible agents; Vanta's own automatic behavior does not depend on the skill pack.
 
 The methods synthesize work by Dawson and Guare, Kolberg and Nadeau, KC Davis, Tamara Rosier, Megan Anna Neff, Devon Price, and Oxford's NESTL toolkit. The source books and personal profile used during product research are not bundled.
 

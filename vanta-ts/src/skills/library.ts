@@ -18,9 +18,13 @@ export function libraryDir(): string {
 
 /**
  * All bundled skill sources, in install order. `skills-library/` (curated + nd-*
- * skills) plus the repo-root focused skill packs — kept in their source folders and installed
+ * skills) plus the repo-root focused technical packs — kept in their source folders and installed
  * from there rather than duplicated. Later sources don't override earlier ones;
  * each slug installs once (existing slugs are skipped).
+ *
+ * `executive-function-skills/` is deliberately not installed here. Vanta owns
+ * that behavior in its core prompt; the standalone pack is an export for other
+ * compatible agents and would duplicate the runtime contract if self-installed.
  */
 export function librarySources(): string[] {
   const base = dirname(fileURLToPath(import.meta.url));
@@ -29,7 +33,6 @@ export function librarySources(): string[] {
     join(base, "..", "..", "..", "design-system-skills"),
     join(base, "..", "..", "..", "ai-engineering-skills"),
     join(base, "..", "..", "..", "security-skills"),
-    join(base, "..", "..", "..", "executive-function-skills"),
   ];
 }
 
