@@ -18,8 +18,9 @@ import { fireHooks } from "../hooks/shell-hooks.js";
 import { buildPermDeniedPayload, shouldFirePermDenied } from "../hooks/perm-denied.js";
 import { gateAuditEvent, type GateResolution } from "../governance/audit.js";
 import { join } from "node:path";
+import { approvedMkdirWritableDirs } from "../tools/shell-cmd.js";
 
-export type SafetyGateResult = { approved: boolean; reason?: string };
+export type SafetyGateResult = { approved: boolean; reason?: string; sandboxWritableDirs?: string[] };
 
 /** PAPER-GOVERNANCE-AUDIT: log one durable, tamper-evident `gate` event per
  *  applySafetyGate exit — the kernel's raw verdict plus how it was finally
@@ -77,7 +78,10 @@ export async function applySafetyGate(
       await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "full-access-auto" });
       return { approved: true, reason: "full access (kernel and explicit blocks remain enforced)" };
     }
-    return handleAskDecision({ call, action, verdict, decision, deps, root: ctx.root, tool, permissionMode });
+    const result = await handleAskDecision({ call, action, verdict, decision, deps, root: ctx.root, tool, permissionMode });
+    return result.approved && call.name === "shell_cmd"
+      ? { ...result, sandboxWritableDirs: approvedMkdirWritableDirs(String(call.arguments.command ?? ""), ctx.root) }
+      : result;
   }
 
   await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "allow" });

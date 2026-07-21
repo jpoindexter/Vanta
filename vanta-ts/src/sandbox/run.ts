@@ -1,8 +1,8 @@
 import { existsSync, realpathSync } from "node:fs";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
-import { DANGEROUS_DIRS, expandHome, resolveWritableZones } from "../tools/writable-zones.js";
+import { join, relative, resolve } from "node:path";
+import { DANGEROUS_DIRS, canonicalPath, expandHome, isDangerousPath, resolveWritableZones } from "../tools/writable-zones.js";
 import {
   buildBwrapArgs,
   buildSeatbeltProfile,
@@ -20,6 +20,8 @@ export interface MaybeSandboxArgs {
   root: string;
   /** Actual child cwd. Remote adapters use this as the workspace upload root. */
   workdir?: string;
+  /** Extra host directories bound writable for this one already-approved run. */
+  additionalWritableDirs?: readonly string[];
   baseCmd: string;
   baseArgs: string[];
 }
@@ -61,11 +63,20 @@ function systemTmp(): string | null {
  * default-on shell sandbox surprised real workflows with EPERM. Safe — /tmp is scratch,
  * not a credential dir; the DANGEROUS_DIRS denies still override for anything sensitive.
  */
-function writableZonesFor(env: NodeJS.ProcessEnv): string[] {
+function isSafeAdditionalZone(path: string): boolean {
+  const abs = canonicalPath(resolve(path));
+  if (isDangerousPath(abs).dangerous) return false;
+  return !DANGEROUS_DIRS
+    .map((danger) => canonicalPath(resolve(expandHome(danger))))
+    .some((danger) => relative(abs, danger) && !relative(abs, danger).startsWith(".."));
+}
+
+function writableZonesFor(env: NodeJS.ProcessEnv, additional: readonly string[] = []): string[] {
   const tmp = realpathSync(tmpdir());
   const sys = systemTmp();
   const temps = sys && sys !== tmp ? [tmp, sys] : [tmp];
-  return [...resolveWritableZones(env).map((z) => resolve(z)), ...temps];
+  const approved = additional.filter(isSafeAdditionalZone).map((zone) => canonicalPath(resolve(zone)));
+  return [...new Set([...resolveWritableZones(env).map((z) => resolve(z)), ...approved, ...temps])];
 }
 
 /**
@@ -89,7 +100,7 @@ export async function maybeSandbox(a: MaybeSandboxArgs): Promise<MaybeSandboxRes
     };
   }
   const root = resolve(a.root);
-  const zones = writableZonesFor(a.env);
+  const zones = writableZonesFor(a.env, a.additionalWritableDirs);
   const opts = { net: netAllowed(a.env) };
   const argv = [a.baseCmd, ...a.baseArgs];
 

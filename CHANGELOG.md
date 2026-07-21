@@ -3,6 +3,18 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## v0.9.6 — 2026-07-21
+
+**Approved filesystem scope.** A one-time approval for a direct project-directory creation now reaches the OS sandbox instead of failing after Vanta has already asked the operator.
+
+### Fixed
+- An approved leading `mkdir` command can bind its nearest existing, non-sensitive parent directory writable for that command only. This makes approved sibling-project creation work under the default macOS shell sandbox.
+- The sandbox rejects arbitrary shell syntax, `~` expansion, protected paths, and any extra directory that would include a credential directory; unapproved actions retain the existing deny-default filesystem policy.
+
+### Verified boundary
+- Focused permission-gate, shell-tool, and sandbox tests pass (90 tests), and TypeScript typecheck passes.
+- A real default-sandbox command created and verified an approved sibling directory outside the project root, then removed the empty proof directory.
+
 ## v0.9.5 — 2026-07-20
 
 **Sight and structured workflow execution.** Vanta can capture explicit macOS screen context into a task, paste image context into Desktop, and execute durable review/rework graphs over shared state.

@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { realpathSync, writeFileSync, rmSync, mkdtempSync, existsSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { readFile, stat } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import { buildSeatbeltProfile } from "./profile.js";
@@ -79,6 +79,22 @@ describe("maybeSandbox — seatbelt (darwin)", () => {
     if (netProfilePath === undefined) throw new Error("missing profile path");
     const profile = await readFile(netProfilePath, "utf8");
     expect(profile).not.toContain("(deny network*)");
+    await r.cleanup?.();
+  });
+
+  it("binds an approved non-sensitive directory for this one run", async () => {
+    setPlatform("darwin");
+    const approved = resolve(realpathSync(tmpdir()), "vanta-approved-scope");
+    const r = await maybeSandbox({
+      env: envWith({ VANTA_SANDBOX: "1" }), root: ROOT, baseCmd: "sh", baseArgs: ["-c", "mkdir approved"],
+      additionalWritableDirs: [approved, homedir()],
+    });
+    if (isSandboxError(r)) throw new Error("unexpected sentinel");
+    const profilePath = r.args[1];
+    if (profilePath === undefined) throw new Error("missing profile path");
+    const profile = await readFile(profilePath, "utf8");
+    expect(profile).toContain(`(allow file-write* (subpath "${approved}"))`);
+    expect(profile).not.toContain(`(allow file-write* (subpath "${homedir()}"))`);
     await r.cleanup?.();
   });
 });

@@ -20,6 +20,9 @@ export type ToolContext = {
   /** Host-owned live permission mode. Desktop uses this instead of mutating the
    * process-wide mode when the operator changes a project setting. */
   permissionMode?: () => PermissionMode;
+  /** Writable directories granted for this one approved tool execution. The
+   * OS sandbox receives these as additional bindings; they are never persisted. */
+  sandboxWritableDirs?: readonly string[];
   /** Surface incremental progress mid-execution (a long tool can stream a line or
    *  heartbeat to the transcript before it returns). Wired to the StreamEvent
    *  `note` surface by the dispatcher; absent in non-streaming contexts. */

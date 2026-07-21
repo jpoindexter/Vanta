@@ -35,6 +35,7 @@ import { startDesktopGateway } from "./gateway-control.js";
 import { redactForLog } from "../store/redact-structural.js";
 import { loadProviderAuthRequired, saveProviderAuthRequired, type ProviderAuthRequired } from "./provider-auth-store.js";
 import { parseDesktopImageInput } from "./image-input.js";
+import { approvedMkdirWritableDirs } from "../tools/shell-cmd.js";
 export { approvalDecision, type PendingApproval } from "./approval.js";
 
 const desktopTurnQueues = new Map<string, DesktopTurnQueue>();
@@ -547,7 +548,15 @@ export async function handleTerminal(state: DesktopState, req: http.IncomingMess
     const approved = await requestWebApproval(state, `shell_cmd ${command}`, verdict.reason, "shell_cmd");
     if (!approved) return sendJson(res, 200, { ok: false, output: `denied: ${verdict.reason}` });
   }
-  const result = await tool.execute({ command }, { root: state.root, sessionId: state.sessionId, safety: live.setup.safety, requestApproval: (action: string, reason: string) => requestWebApproval(state, action, reason, "shell_cmd") });
+  const result = await tool.execute({
+    command,
+  }, {
+    root: state.root,
+    sessionId: state.sessionId,
+    safety: live.setup.safety,
+    requestApproval: (action: string, reason: string) => requestWebApproval(state, action, reason, "shell_cmd"),
+    sandboxWritableDirs: verdict.risk === "ask" ? approvedMkdirWritableDirs(command, state.root) : undefined,
+  });
   sendJson(res, 200, result);
 }
 

@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtemp, rm, writeFile, mkdir, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { canonicalPath } from "../tools/writable-zones.js";
 import { applySafetyGate } from "./dispatch-helpers.js";
 import { dispatchTool } from "./dispatch-tool.js";
 import { defaultOperatorProfile, writeOperatorProfile } from "../operator-profile/profile.js";
@@ -99,6 +100,21 @@ describe("applySafetyGate + permissions", () => {
     const res = await applySafetyGate(call, makeDeps({ risk: "ask", approve: true, onAsk: () => { prompted = true; } }), ctx);
     expect(res.approved).toBe(true);
     expect(prompted).toBe(true);
+  });
+
+  it("passes a human-approved direct mkdir parent into the one-run sandbox scope", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-approved-mkdir-"));
+    try {
+      const res = await applySafetyGate(
+        { id: "mkdir", name: "shell_cmd", arguments: { command: "mkdir ../new-project && echo CREATED" } },
+        makeDeps({ risk: "ask", approve: true }),
+        { root } as ToolContext,
+      );
+      expect(res.approved).toBe(true);
+      expect(res.sandboxWritableDirs).toEqual([canonicalPath(dirname(root))]);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 
   it("fires PermissionRequest and PermissionDenied hooks around user approval", async () => {

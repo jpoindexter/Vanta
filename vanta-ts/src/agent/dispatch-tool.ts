@@ -54,7 +54,11 @@ export async function dispatchTool(
 
   // CALL-AGENT-STREAM: give the tool a progress channel wired to the `note`
   // StreamEvent, so a long external call streams output/heartbeats mid-execution.
-  const execCtx: ToolContext = { ...executionContext(call.name, ctx), onProgress: (text) => deps.onEvent?.({ type: "note", text }) };
+  const execCtx: ToolContext = {
+    ...executionContext(call.name, ctx),
+    sandboxWritableDirs: gateResult.sandboxWritableDirs,
+    onProgress: (text) => deps.onEvent?.({ type: "note", text }),
+  };
   await ctx.onToolExecutionStart?.(call);
   const res = await executeWithRetry(call, deps, execCtx, tool);
   if (!res.ok) res.output = await addRepairPath(call.name, res.output, deps, ctx.root);

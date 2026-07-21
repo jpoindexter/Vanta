@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import { promisify } from "node:util";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { spawnBackground } from "./bg-tasks.js";
@@ -17,6 +17,7 @@ import { sessionCwd, isCwdChanged } from "../repl/session-cwd.js";
 import { combineOutput, formatRunFailure, withTimingNote, type RunError } from "./shell-output.js";
 import { sandboxBackgroundRecovery, sandboxServeRecovery } from "./sandbox-recovery.js";
 import { resolveShellInvocation } from "../platform/shell.js";
+import { canonicalPath, isDangerousPath } from "./writable-zones.js";
 
 export { lastCommandWord, classifyExitCode } from "./shell-output.js";
 
@@ -147,6 +148,27 @@ function spawnCwd(root: string): string {
   return isCwdChanged() ? sessionCwd() : root;
 }
 
+/**
+ * Return the existing parent that a directly invoked mkdir needs writable. This
+ * intentionally recognizes only a single plain mkdir target at command start;
+ * arbitrary shell syntax never widens a sandbox binding. The caller supplies
+ * this only after the kernel has asked and the operator has approved.
+ */
+export function approvedMkdirWritableDirs(command: string, cwd: string): string[] {
+  const match = /^\s*mkdir(?:\s+(?:-[A-Za-z]+|--))*\s+([^\s;&|`$<>(){}\[\]*?]+)(?=\s*(?:&&|;|$))/.exec(command);
+  if (!match?.[1]) return [];
+  if (match[1].startsWith("~")) return [];
+  const target = canonicalPath(resolve(cwd, match[1]));
+  if (isDangerousPath(target).dangerous) return [];
+  let parent = dirname(target);
+  while (!existsSync(parent)) {
+    const next = dirname(parent);
+    if (next === parent) return [];
+    parent = next;
+  }
+  return [canonicalPath(parent)];
+}
+
 /** Spawn options for the child. Session env (VANTA-SESSION-ENV) is merged over
  *  process.env; with NO session vars the merge returns process.env unchanged, so
  *  the `env` field is omitted and the spawn is byte-identical to today's. */
@@ -169,12 +191,12 @@ async function runBackground(command: string, root: string): Promise<ToolResult>
 }
 
 /** Run the command on the active execution backend (local / OS sandbox / docker). */
-async function runLocal(command: string, root: string, pfx: string): Promise<ToolResult> {
+async function runLocal(command: string, root: string, pfx: string, sandboxWritableDirs: readonly string[] = []): Promise<ToolResult> {
   const local = resolveExecBackend(process.env) === "docker"
     ? { cmd: "sh", args: ["-c", command] }
     : resolveShellInvocation(command);
   const workdir = spawnCwd(root);
-  const sb = await wrapExec({ env: shellSandboxEnv(process.env), root, workdir, baseCmd: local.cmd, baseArgs: local.args });
+  const sb = await wrapExec({ env: shellSandboxEnv(process.env), root, workdir, baseCmd: local.cmd, baseArgs: local.args, additionalWritableDirs: sandboxWritableDirs });
   if (isSandboxError(sb)) return { ok: false, output: pfx + sb.error };
   const startedAt = Date.now();
   try {
@@ -239,6 +261,6 @@ export const shellCmdTool: Tool = {
       };
     }
     // Sandbox: opt-in OS isolation (VANTA_SANDBOX=1 or shell-only VANTA_SHELL_SANDBOX=1). Off → base unchanged.
-    return runLocal(command, ctx.root, pfx);
+    return runLocal(command, ctx.root, pfx, ctx.sandboxWritableDirs);
   },
 };

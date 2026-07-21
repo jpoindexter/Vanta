@@ -1,17 +1,18 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtemp, rm, writeFile, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { buildRegistry } from "./index.js";
 import { readFileTool } from "./read-file.js";
 import { writeFileTool } from "./write-file.js";
-import { shellCmdTool, classifyExitCode, lastCommandWord, shellSandboxEnv, shouldSandboxShell } from "./shell-cmd.js";
+import { approvedMkdirWritableDirs, shellCmdTool, classifyExitCode, lastCommandWord, shellSandboxEnv, shouldSandboxShell } from "./shell-cmd.js";
 import { configSandboxTool, buildScopedRegistry } from "./config-sandbox.js";
 import { enterWorktreeTool, exitWorktreeTool } from "./worktree.js";
 import { openDeepLinkTool } from "./deep-link.js";
 import { maximizerTool } from "./maximizer.js";
 import { askUserTool } from "./ask-user.js";
 import type { ToolContext } from "./types.js";
+import { canonicalPath } from "./writable-zones.js";
 
 let root: string;
 
@@ -356,6 +357,15 @@ describe("write_file", () => {
 });
 
 describe("shell_cmd", () => {
+  it("derives only the existing parent for an approved direct mkdir", () => {
+    expect(approvedMkdirWritableDirs("mkdir -p ../newsletter && echo CREATED", root)).toEqual([canonicalPath(dirname(root))]);
+  });
+
+  it("does not widen the sandbox for arbitrary or protected shell paths", () => {
+    expect(approvedMkdirWritableDirs("touch ../newsletter/README.md", root)).toEqual([]);
+    expect(approvedMkdirWritableDirs("mkdir ~/.ssh/new-key", root)).toEqual([]);
+  });
+
   it("runs a command and returns output", async () => {
     const res = await shellCmdTool.execute({ command: "echo hi" }, ctx());
     expect(res.ok).toBe(true);
