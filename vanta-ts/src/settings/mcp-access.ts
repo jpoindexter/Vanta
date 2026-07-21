@@ -6,8 +6,9 @@ import { z } from "zod";
 // store.ts) so store.ts can fold it into SettingsSchema without a circular
 // import. DENY ALWAYS WINS over allow (default-deny posture for a denied name);
 // an allowlist (when present) RESTRICTS to only the listed servers. With neither
-// list set the decision is "allow" for every server — byte-identical to today's
-// behavior where every configured server mounts. Pure — no I/O, no spawn.
+// list set the decision is "allow" for every server when an explicit mount is
+// requested. Startup mounting is a separate opt-in (`autoMount`). Pure — no I/O,
+// no spawn.
 //
 // This is an ADDED operator gate; the existing MCP trust dialog + the kernel
 // `assess()` still gate every tool a mounted server exposes.
@@ -15,6 +16,8 @@ import { z } from "zod";
 /** Operator-configurable MCP access block on settings.json. */
 export const McpAccessSchema = z
   .object({
+    /** Start enabled connectors with every Vanta session. Default false. */
+    autoMount: z.boolean().optional(),
     /** When present, ONLY these server names may mount (allowlist restricts). */
     allow: z.array(z.string()).optional(),
     /** Server names that may never mount. Deny ALWAYS wins over allow. */
@@ -25,6 +28,18 @@ export const McpAccessSchema = z
 export type McpAccess = z.infer<typeof McpAccessSchema>;
 
 export type McpAccessDecision = "allow" | "deny";
+
+const TRUTHY = new Set(["1", "true", "yes", "on"]);
+
+/** Configured MCP connectors stay dormant unless startup mounting is explicit. */
+export function mcpAutoMountEnabled(
+  access: McpAccess,
+  env: NodeJS.ProcessEnv,
+): boolean {
+  const override = env.VANTA_MCP_AUTO_MOUNT;
+  if (override !== undefined) return TRUTHY.has(override.trim().toLowerCase());
+  return access.autoMount === true;
+}
 
 /** Normalize a server name for matching: trimmed (names are case-sensitive). */
 function normalizeName(name: string): string {

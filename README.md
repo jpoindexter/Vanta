@@ -297,6 +297,11 @@ vanta profiles tools research-lead --allow read_file,grep_files,web_search,ref_s
 vanta tools why gmail_send
 ```
 
+Configured MCP connectors stay dormant during normal startup, so they do not spawn child
+processes or inflate every model call's tool schema. Open `/mcp`, use `vanta mcp test` or
+`reconnect`, or call `mount_mcp` when needed. Persistent startup mounting is an explicit
+opt-in through `mcp.autoMount` or `VANTA_MCP_AUTO_MOUNT=1`.
+
 Delegated workers return compact summaries to the parent while retaining an inspectable
 evidence tree and raw sidechain:
 

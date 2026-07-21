@@ -12,6 +12,7 @@ Major capability milestones, newest first. This is a curated highlight reel — 
 - **Automatic task adaptation** — a deterministic private router detects observable activation, correction, load, reorientation, and task-complexity cues before each model call; no diagnosis or durable personal claim is inferred.
 - **Harness self-redirect** — action turns that accumulate six read-only calls or repeat the same failing call receive one bounded change-of-approach directive before the existing hard stop.
 - **Transcript privacy** — automatic support directives exist only in the prepared provider call and are never written into the session transcript; `/support` remains an explicit override.
+- **Quiet MCP startup** — configured connectors are dormant by default and no longer spawn or add tool schemas to every session; explicit panels, commands, runtime mounts, and an opt-in auto-mount setting preserve the extension path.
 
 ## 2026-07-20 — v0.9.5 Sight and workflow graphs
 - **Explicit screen context** — `/look`, `/look window`, and `/look screen` attach a selected macOS area, window, or all displays to the next task turn with scoped capture receipts.

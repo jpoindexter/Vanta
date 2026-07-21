@@ -6,6 +6,7 @@ import { PluginCommandRegistry } from "../plugins/commands.js";
 import { PluginPanelRegistry } from "../plugins/panels.js";
 import type { PluginWorkerHandle } from "../plugins/worker.js";
 import type { buildRegistry } from "../tools/index.js";
+import { mcpAutoMountEnabled } from "../settings/mcp-access.js";
 
 /** SETTINGS-BLOCKEDTOOLS-ENFORCE: load + apply settings once. prepareRun calls
  *  this BEFORE buildRegistry so it can exclude `settings.blockedTools`. Failure
@@ -28,11 +29,11 @@ export async function loadRuntimeExtensions(
   preloaded?: Settings,
 ): Promise<{ settings: Settings; pluginCommands: PluginCommandRegistry; pluginPanels: PluginPanelRegistry; pluginWorkers: PluginWorkerHandle[]; mcpSkills: RegisteredMcpSkill[] }> {
   const settings = preloaded ?? await loadRuntimeSettings(repoRoot);
-  // VANTA-SAFE-MODE: safe-mode + bare skip MCP mounting (discovery); only
-  // safe-mode skips plugins. Skipped → no servers/plugins register, the command
-  // registry stays empty, byte-identical to a config with none enabled.
+  // Configured connectors stay dormant by default. Explicit MCP commands and
+  // the Desktop Connect surface remain available; startup mounting requires
+  // settings.mcp.autoMount=true or VANTA_MCP_AUTO_MOUNT=1.
   const iso = resolveIsolation(process.env);
-  if (!skipMcp(iso))
+  if (!skipMcp(iso) && mcpAutoMountEnabled(settings.mcp ?? {}, process.env))
     await mountMcpServers(registry, process.env, (m) => console.log(m), { cwd: repoRoot, trust: mcpTrust });
   const { SLASH_COMMANDS } = await import("../repl/catalog.js");
   const pluginCommands = new PluginCommandRegistry(new Set(SLASH_COMMANDS.map((c) => c.name)));

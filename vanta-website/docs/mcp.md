@@ -10,7 +10,7 @@ Vanta speaks the Model Context Protocol both directions — it mounts other MCP 
 
 ## Connector lifecycle
 
-Vanta resolves project `.mcp.json`, user `~/.vanta/mcp.json`, and the explicit `VANTA_MCP_SERVERS` override into one project-scoped connector registry. CLI, TUI, and Desktop use that registry for transport, source, trust, OAuth state, project enablement, discovered tools/resources, health, and the last redacted error.
+Vanta resolves project `.mcp.json`, user `~/.vanta/mcp.json`, and the explicit `VANTA_MCP_SERVERS` override into one project-scoped connector registry. Configured connectors stay dormant during normal startup: they do not spawn processes, print mount noise, or add their schemas to every model call. CLI, TUI, and Desktop use the registry on demand for transport, source, trust, OAuth state, project enablement, discovered tools/resources, health, and the last redacted error.
 
 ```bash
 vanta mcp list
@@ -26,9 +26,14 @@ A connector is not **Ready** until its transport test passes and project trust i
 
 The registry does not weaken execution safety. Trust decides whether a connector may mount; every MCP tool call still passes through the kernel, and a kernel `Block` cannot be overridden by connector settings.
 
+To deliberately mount enabled connectors at every session start, set
+`mcp.autoMount` to `true` in Vanta settings or export
+`VANTA_MCP_AUTO_MOUNT=1`. The environment override can also force it off with
+`VANTA_MCP_AUTO_MOUNT=0`.
+
 ## As a client — mount external servers
 
-List servers in `.mcp.json` (project-level) or `~/.vanta/mcp.json` (user-level); project config merges over user config. Each server's tools are discovered and registered as normal Vanta tools, gated by `assess()`.
+List servers in `.mcp.json` (project-level) or `~/.vanta/mcp.json` (user-level); project config merges over user config. Configuration alone does not start a server. Use the MCP panel, `vanta mcp test/reconnect`, the `mount_mcp` tool, or the explicit auto-mount setting when its tools are needed. Registered tools remain gated by `assess()`.
 
 ```json
 {

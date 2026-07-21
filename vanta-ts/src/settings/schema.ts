@@ -137,14 +137,11 @@ export const SettingsSchema = z.object({
    *  memory layer must not capture; `plansDir` is where plan docs live. Unset =
    *  today's behavior (autoMemory off). */
   memory: MemorySettingsSchema.optional(),
-  /** VANTA-SETTINGS-MCP — per-session MCP server access control (resolvers in
-   *  `mcp-access.ts`). An `allow`/`deny` list of server names decides which
-   *  `.mcp.json` servers may mount this session: deny ALWAYS wins over allow, an
-   *  allowlist (when present) restricts to only the listed servers. Unset = all
-   *  configured servers mount (today's behavior). The named mount-filter point is
-   *  `mcp/mount.ts mountMcpServers` (`names = Object.keys(config.servers)`), where
-   *  `filterMountableServers(names, settings.mcp)` would gate the mount loop — NOT
-   *  wired this round. The MCP trust dialog + kernel still gate every mounted tool. */
+  /** VANTA-SETTINGS-MCP — connector startup and per-server access control.
+   *  Configured servers stay dormant unless `autoMount` is true (or the
+   *  VANTA_MCP_AUTO_MOUNT env override enables it). An `allow`/`deny` list then
+   *  restricts which servers may mount; deny always wins. Explicit CLI, TUI, and
+   *  Desktop connector actions remain available while startup mounting is off. */
   mcp: McpAccessSchema.optional(),
   /** VANTA-SKILL-OVERRIDE-SETTING — per-skill-name visibility overrides
    *  (resolvers in `skills/overrides.ts`). A map from skill name to

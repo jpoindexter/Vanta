@@ -11,6 +11,7 @@ import { estimateCostUsd } from "../pricing.js";
 import { agentToolFilter } from "../subagent/builtin-agents.js";
 import { isCustomAgentDef, loadAgentDefs, resolveAgentType, type CustomAgentDef, type ResolvedAgentType } from "../subagent/agent-defs.js";
 import { validatePromptPreset, type PromptPreset } from "../prompt/presets.js";
+import type { Settings } from "../settings/store.js";
 
 const Args = z.object({
   goal: z.string().min(1),
@@ -114,8 +115,14 @@ async function runDelegate(
   const wt = await resolveWorktree(ctx.root, isolation);
   if ("ok" in wt && !wt.ok) return wt;
   const { handle: worktreeHandle, workerRoot } = wt as { handle: import("../worktree/manager.js").WorktreeHandle | undefined; workerRoot: string };
-  const { mountMcpServers } = await import("../mcp/mount.js");
-  await mountMcpServers(registry, process.env, () => {}, { cwd: workerRoot });
+  const [{ mountMcpServers }, { loadSettings }, { mcpAutoMountEnabled }] = await Promise.all([
+    import("../mcp/mount.js"),
+    import("../settings/store.js"),
+    import("../settings/mcp-access.js"),
+  ]);
+  const workerSettings: Settings = await loadSettings(workerRoot, process.env).catch(() => ({}));
+  if (mcpAutoMountEnabled(workerSettings.mcp ?? {}, process.env))
+    await mountMcpServers(registry, process.env, () => {}, { cwd: workerRoot });
 
   try {
     const outcome = await spawnSubagent({

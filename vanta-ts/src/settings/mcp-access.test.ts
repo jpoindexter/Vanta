@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   McpAccessSchema,
+  mcpAutoMountEnabled,
   serverAccessDecision,
   filterMountableServers,
 } from "./mcp-access.js";
@@ -21,12 +22,31 @@ describe("McpAccessSchema — shape", () => {
     expect(parsed.success).toBe(true);
   });
 
+  it("accepts the explicit startup-mount switch", () => {
+    expect(McpAccessSchema.safeParse({ autoMount: true }).success).toBe(true);
+  });
+
   it("accepts an empty object (absent → all mount)", () => {
     expect(McpAccessSchema.safeParse({}).success).toBe(true);
   });
 
   it("rejects unknown keys (strict)", () => {
     expect(McpAccessSchema.safeParse({ allowed: ["fs"] }).success).toBe(false);
+  });
+});
+
+describe("mcpAutoMountEnabled — startup is opt-in", () => {
+  it("keeps configured connectors dormant by default", () => {
+    expect(mcpAutoMountEnabled({}, {})).toBe(false);
+  });
+
+  it("accepts a settings opt-in", () => {
+    expect(mcpAutoMountEnabled({ autoMount: true }, {})).toBe(true);
+  });
+
+  it("lets the environment explicitly enable or disable settings", () => {
+    expect(mcpAutoMountEnabled({}, { VANTA_MCP_AUTO_MOUNT: "on" })).toBe(true);
+    expect(mcpAutoMountEnabled({ autoMount: true }, { VANTA_MCP_AUTO_MOUNT: "0" })).toBe(false);
   });
 });
 

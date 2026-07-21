@@ -57,3 +57,48 @@ describe("loadRuntimeExtensions — safe mode", () => {
     await expect(access(marker, constants.F_OK)).rejects.toThrow();
   });
 });
+
+describe("loadRuntimeExtensions — MCP startup is opt-in", () => {
+  let root: string;
+  let home: string;
+  let marker: string;
+  const previous: Record<string, string | undefined> = {};
+
+  beforeEach(async () => {
+    root = await mkdtemp(join(TMP_BASE, "mcp-opt-in-root-"));
+    home = await mkdtemp(join(TMP_BASE, "mcp-opt-in-home-"));
+    marker = join(root, "mcp-spawned");
+    for (const key of ["VANTA_SAFE_MODE", "VANTA_BARE", "VANTA_HOME", "VANTA_MCP_SERVERS", "VANTA_MCP_AUTO_MOUNT"])
+      previous[key] = process.env[key];
+    delete process.env.VANTA_SAFE_MODE;
+    delete process.env.VANTA_BARE;
+    delete process.env.VANTA_MCP_AUTO_MOUNT;
+    process.env.VANTA_HOME = home;
+    process.env.VANTA_MCP_SERVERS = JSON.stringify({
+      servers: {
+        fixture: {
+          command: process.execPath,
+          args: ["-e", `require('fs').writeFileSync(${JSON.stringify(marker)}, 'spawned'); process.exit(1)`],
+        },
+      },
+    });
+  });
+
+  afterEach(async () => {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+    await Promise.all([rm(root, { recursive: true, force: true }), rm(home, { recursive: true, force: true })]);
+  });
+
+  it("does not spawn configured servers during a normal startup", async () => {
+    await loadRuntimeExtensions(root, new ToolRegistry() as never, undefined, {});
+    await expect(access(marker, constants.F_OK)).rejects.toThrow();
+  });
+
+  it("mounts at startup only after an explicit settings opt-in", async () => {
+    await loadRuntimeExtensions(root, new ToolRegistry() as never, undefined, { mcp: { autoMount: true } });
+    await expect(access(marker, constants.F_OK)).resolves.toBeUndefined();
+  });
+});
