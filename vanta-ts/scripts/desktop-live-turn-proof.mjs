@@ -17,6 +17,9 @@ const port = process.env.VANTA_DESKTOP_SMOKE_PORT ?? "7834";
 const executablePath = process.env.VANTA_DESKTOP_APP;
 const started = Date.now();
 const marker = `VANTA_DESKTOP_LIVE_READ_${randomUUID()}`;
+const expectedText = process.env.VANTA_DESKTOP_LIVE_EXPECTED ?? marker;
+const prompt = process.env.VANTA_DESKTOP_LIVE_PROMPT
+  ?? "Use read_file to read README.md. Reply with exactly the marker found in that file and nothing else.";
 let app;
 let page;
 let rawResponse;
@@ -71,7 +74,7 @@ try {
 
   await page.locator(".app-shell").waitFor();
   initialStatus = await fetchJson(page, "/api/status");
-  await page.locator("#vanta-composer").fill("Use read_file to read README.md. Reply with exactly the marker found in that file and nothing else.");
+  await page.locator("#vanta-composer").fill(prompt);
   await page.locator("#vanta-composer").press("Enter");
   approvalState = await page.waitForFunction(async () => {
     const response = await fetch("/api/approval", { headers: { "x-vanta-desktop-boundary": window.vantaDesktop?.boundaryToken ?? "" } });
@@ -83,9 +86,10 @@ try {
   }, approvalState.id);
   await chatResponsePromise;
   await page.waitForFunction(() => document.querySelectorAll(".message.assistant").length > 0);
-  const persistedSession = await waitForPersistedSession(home, marker);
-  const assistant = page.locator(".message.assistant").filter({ hasText: marker }).last();
+  const persistedSession = await waitForPersistedSession(home, expectedText);
+  const assistant = page.locator(".message.assistant").filter({ hasText: expectedText }).last();
   const renderedText = await assistant.innerText();
+  await page.locator(".thinking").waitFor({ state: "detached", timeout: 10_000 });
   const finalStatus = await fetchJson(page, "/api/status");
   const evidence = {
     rawResponse,
@@ -100,7 +104,7 @@ try {
     clientErrors,
     serverErrors,
   };
-  assertLiveProof(evidence, marker);
+  assertLiveProof(evidence, expectedText);
   if (serverErrors.length) throw new Error(`Server errors: ${serverErrors.join(" | ")}`);
   if (clientErrors.length) throw new Error(`Client errors: ${clientErrors.join(" | ")}`);
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
@@ -112,7 +116,7 @@ try {
   const mutatedEvidence = { ...evidence, renderedText: mutatedRenderedText };
   let mutationBundle;
   try {
-    assertLiveProof(mutatedEvidence, marker);
+    assertLiveProof(mutatedEvidence, expectedText);
     throw new Error("Deliberate render mutation was not detected");
   } catch (error) {
     if (!String(error).includes("rendered DOM does not contain marker")) throw error;
@@ -131,6 +135,7 @@ try {
     rawResponse: true,
     persistedSession: true,
     renderedDom: true,
+    thinkingCleared: true,
     provider: finalStatus.provider,
     model: finalStatus.model,
     projectRoot: finalStatus.root,
@@ -144,7 +149,7 @@ try {
   if (page) {
     const failureEvidence = {
       rawResponse,
-      persistedSession: await findPersistedSession(home, marker),
+      persistedSession: await findPersistedSession(home, expectedText),
       renderedText: await page.locator("body").innerText().catch(() => ""),
       status: await fetchJson(page, "/api/status").catch(() => null),
       initialStatus,
@@ -176,7 +181,9 @@ try {
 
 async function fetchJson(targetPage, path) {
   return targetPage.evaluate(async (targetPath) => {
-    const response = await fetch(targetPath);
+    const response = await fetch(targetPath, {
+      headers: { "x-vanta-desktop-boundary": window.vantaDesktop?.boundaryToken ?? "" },
+    });
     if (!response.ok) throw new Error(`${targetPath} failed (${response.status})`);
     return response.json();
   }, path);

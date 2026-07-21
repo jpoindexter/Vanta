@@ -19918,7 +19918,7 @@
       "lens": "tui",
       "source": "operator-report-2026-07-21",
       "updated": "2026-07-21",
-      "notes": "SHIPPED 2026-07-21. Root cause reproduced against Ollama: MiniCPM5 returned hidden reasoning until Vanta's local token cap was exhausted, leaving content empty and starting another iteration. The provider now sends reasoning_effort=none for MiniCPM5. EXECUTED: 26 focused tests passed; core TypeScript typecheck passed; the real CLI returned MINICPM_VANTA_OK in one iteration; the source Desktop API returned MINICPM_DESKTOP_OK with a done receipt in one iteration; the signed packaged runtime returned MINICPM_PACKAGED_OK with a done receipt in one iteration; the rebuilt Vanta.app is valid on disk and satisfies its Designated Requirement."
+      "notes": "SHIPPED 2026-07-21. Root cause reproduced against Ollama: MiniCPM5 returned hidden reasoning until Vanta's local token cap was exhausted, leaving content empty and starting another iteration. The provider now sends reasoning_effort=none for MiniCPM5. EXECUTED: 26 focused tests passed; core TypeScript typecheck passed; the real CLI returned MINICPM_VANTA_OK in one iteration; the source Desktop API returned MINICPM_DESKTOP_OK with a done receipt in one iteration; the signed packaged runtime returned MINICPM_PACKAGED_OK with a done receipt in one iteration; the real signed Electron UI rendered and persisted MINICPM_UI_OK, produced a done receipt, and removed the Thinking indicator in 4.1 seconds; the rebuilt Vanta.app is valid on disk and satisfies its Designated Requirement."
     },
     {
       "id": "TUI-RESIZE-GHOST-REGRESSION",
