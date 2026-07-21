@@ -50,6 +50,7 @@ const screens = [
 ] as const;
 
 const capabilities = [
+  ["Adapt", "Live task cues reshape the next step, while repeated or research-only loops trigger a private self-redirect.", "/executive-function"],
   ["Reach", "Desktop, terminal, Telegram, and approved gateway channels share one execution boundary.", "/comms-and-gateway"],
   ["Remember", "Durable project memory and optional Obsidian recall survive a single conversation.", "/skills-and-memory"],
   ["Schedule", "Goals, cron, heartbeats, and sentinels keep standing work visible and bounded.", "/autonomy"],

@@ -8,6 +8,11 @@ sidebar_position: 2
 
 Major capability milestones, newest first. This is a curated highlight reel — the full per-slice history lives in `roadmap.json`.
 
+## 2026-07-21 — adaptive executive support
+- **Automatic task adaptation** — a deterministic private router detects observable activation, correction, load, reorientation, and task-complexity cues before each model call; no diagnosis or durable personal claim is inferred.
+- **Harness self-redirect** — action turns that accumulate six read-only calls or repeat the same failing call receive one bounded change-of-approach directive before the existing hard stop.
+- **Transcript privacy** — automatic support directives exist only in the prepared provider call and are never written into the session transcript; `/support` remains an explicit override.
+
 ## 2026-07-20 — v0.9.5 Sight and workflow graphs
 - **Explicit screen context** — `/look`, `/look window`, and `/look screen` attach a selected macOS area, window, or all displays to the next task turn with scoped capture receipts.
 - **Desktop image context** — the composer exposes the same capture modes and accepts clipboard PNG, TIFF, and JPEG images as visible, removable attachments.
