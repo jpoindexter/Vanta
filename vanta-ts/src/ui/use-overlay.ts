@@ -4,7 +4,9 @@ import { listSessions } from "../sessions/store.js";
 import { listSkills } from "../skills/store.js";
 import { gatherCockpitData, type CockpitData } from "../tui/mission-control/cockpit-data.js";
 import { gatherStats, type UsageStats } from "./stats-data.js";
-import { sessionRows, skillRows, modelRows, setupRows, PICKER_KINDS, type OverlayKind, type OverlayRow } from "./overlays.js";
+import { sessionRows, skillRows, modelRows, providerModelRows, setupRows, PICKER_KINDS, type OverlayKind, type OverlayRow } from "./overlays.js";
+import { providerById } from "../providers/catalog.js";
+import { discoverProviderModels } from "../providers/model-discovery.js";
 import { listLoopSummaries, type LoopSummary } from "../loop/summary.js";
 import { listChangedFiles, type ChangedFile } from "../repl/changed-files.js";
 import { contextBreakdown, type CtxCategory } from "./context-breakdown.js";
@@ -33,7 +35,7 @@ export type CtxSnapshot = { messages: import("../types.js").Message[]; contextWi
 // TUI's use-overlays, but renders inline instead of fullscreen.
 
 export type OverlayView =
-  | { kind: "list"; title: string; rows: OverlayRow[] }
+  | { kind: "list"; title: string; rows: OverlayRow[]; modelProviderId?: string }
   | { kind: "cockpit"; data: CockpitData }
   | { kind: "stats"; stats: UsageStats }
   | { kind: "loops"; loops: LoopSummary[] }
@@ -162,6 +164,37 @@ export function useOverlay(deps: { setup: RunSetup; repoRoot: string; runSlash: 
   selectRow: (row: OverlayRow) => void;
 } {
   const [overlay, setOverlay] = useState<OverlayView | null>(null);
+  const activeProviderId = (): string => deps.setup.provider.routeInfo?.().provider ?? process.env.VANTA_PROVIDER ?? "openai";
+  const showModelProviders = (): void => setOverlay({
+    kind: "list",
+    title: "Switch model for this session",
+    rows: modelRows(activeProviderId(), deps.setup.provider.modelId()),
+  });
+  const showProviderModels = (providerId: string): void => {
+    const entry = providerById(providerId);
+    if (!entry) return;
+    const currentProviderId = activeProviderId();
+    const currentModel = deps.setup.provider.modelId();
+    const publish = (models: string[]): void => setOverlay((previous) => {
+      if (previous?.kind !== "list" || previous.modelProviderId !== providerId) return previous;
+      return {
+        kind: "list",
+        title: `${entry.short} models`,
+        modelProviderId: providerId,
+        rows: providerModelRows(providerId, models, currentProviderId, currentModel),
+      };
+    });
+    setOverlay({
+      kind: "list",
+      title: `${entry.short} models`,
+      modelProviderId: providerId,
+      rows: providerModelRows(providerId, entry.models, currentProviderId, currentModel),
+    });
+    void discoverProviderModels(providerId, process.env).then((result) => {
+      const liveOnly = providerId === "ollama" && result.source === "live" && result.models.length > 0;
+      publish(liveOnly ? result.models : [...result.models, ...entry.models]);
+    }).catch(() => publish(entry.models));
+  };
   const openOverlay = (kind: OverlayKind): void => {
     if (kind === "mcp") return void buildMcpOverlay(deps.repoRoot, setOverlay).then(setOverlay).catch(() => {});
     if (kind === "sandbox") {
@@ -187,6 +220,14 @@ export function useOverlay(deps: { setup: RunSetup; repoRoot: string; runSlash: 
     return null;
   });
   const selectRow = (row: OverlayRow): void => {
+    if (row.next?.kind === "modelProviders") {
+      showModelProviders();
+      return;
+    }
+    if (row.next?.kind === "modelProvider") {
+      showProviderModels(row.next.providerId);
+      return;
+    }
     if (row.command.startsWith("plugin-panel:")) {
       const panel = deps.setup.pluginPanels?.get(row.command.slice("plugin-panel:".length));
       setOverlay(panel ? { kind: "pluginPanel", panel } : null);

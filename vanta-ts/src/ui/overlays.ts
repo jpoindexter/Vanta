@@ -1,4 +1,4 @@
-import { PROVIDER_CATALOG } from "../providers/catalog.js";
+import { PROVIDER_CATALOG, providerById } from "../providers/catalog.js";
 import type { SessionMeta } from "../sessions/store.js";
 import type { Skill } from "../skills/types.js";
 
@@ -10,7 +10,10 @@ import type { Skill } from "../skills/types.js";
 export type OverlayKind = "setup" | "model" | "sessions" | "skills" | "cockpit" | "help" | "loops" | "review" | "context" | "mcp" | "tasks" | "agentEditor" | "teams" | "memory" | "workflowSelect" | "outputStyle" | "export" | "sandbox" | "config" | "stats" | "hooks" | "pluginPanels";
 /** `mark` is an optional status glyph (● current) shown in its own column, left
  * of the label and distinct from the ❯ selection cursor. */
-export type OverlayRow = { label: string; hint?: string; command: string; mark?: string };
+export type OverlayNext =
+  | { kind: "modelProvider"; providerId: string }
+  | { kind: "modelProviders" };
+export type OverlayRow = { label: string; hint?: string; command: string; mark?: string; next?: OverlayNext };
 
 /** Bare slash commands that open an inline overlay instead of printing text. */
 export const PICKER_KINDS: Readonly<Record<string, OverlayKind>> = {
@@ -41,6 +44,7 @@ export function modelRows(currentProviderId: string, currentModel?: string): Ove
     label: p.short,
     hint: p.defaultModel,
     command: `/model ${p.id}`,
+    next: { kind: "modelProvider", providerId: p.id },
   }));
   if (currentModel) rows.push({
     label: "Set current as default",
@@ -48,4 +52,23 @@ export function modelRows(currentProviderId: string, currentModel?: string): Ove
     command: `/model --global ${currentProviderId} ${currentModel}`,
   });
   return rows;
+}
+
+export function providerModelRows(
+  providerId: string,
+  models: string[],
+  currentProviderId: string,
+  currentModel?: string,
+): OverlayRow[] {
+  const provider = providerById(providerId);
+  const unique = [...new Set(models.map((model) => model.trim()).filter(Boolean))];
+  return [
+    { label: "Back to providers", hint: "Choose another provider", command: "/model", next: { kind: "modelProviders" } },
+    ...unique.map((model) => ({
+      mark: providerId === currentProviderId && model === currentModel ? "●" : undefined,
+      label: model,
+      hint: provider?.short ?? providerId,
+      command: `/model ${providerId} ${model}`,
+    })),
+  ];
 }

@@ -19921,6 +19921,23 @@
       "notes": "SHIPPED 2026-07-21. Root cause reproduced against Ollama: MiniCPM5 returned hidden reasoning until Vanta's local token cap was exhausted, leaving content empty and starting another iteration. The provider now sends reasoning_effort=none for MiniCPM5. EXECUTED: 26 focused tests passed; core TypeScript typecheck passed; the real CLI returned MINICPM_VANTA_OK in one iteration; the source Desktop API returned MINICPM_DESKTOP_OK with a done receipt in one iteration; the signed packaged runtime returned MINICPM_PACKAGED_OK with a done receipt in one iteration; the real signed Electron UI rendered and persisted MINICPM_UI_OK, produced a done receipt, and removed the Thinking indicator in 4.1 seconds; the rebuilt Vanta.app is valid on disk and satisfies its Designated Requirement."
     },
     {
+      "id": "TUI-OLLAMA-MODEL-DRILLDOWN",
+      "track": "Operator",
+      "title": "TUI Ollama model drill-down — choose an installed local model",
+      "status": "shipped",
+      "size": "S",
+      "summary": "The TUI `/model` picker previously stopped at the provider level. Choosing Ollama immediately applied its catalog default (`qwen2.5:14b`), so operators could not select another installed Ollama model without knowing the full typed command. Add a second picker level backed by Ollama's live model inventory.",
+      "done": "In the real TUI, `/model` then Ollama lists the locally installed completion-capable models, excludes embedding-only models, and selecting MiniCPM updates the active model for the current session without changing the global default; focused model-picker/discovery/command tests and the core typecheck pass.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.6-terra",
+      "lens": "tui",
+      "source": "operator-screenshot-2026-07-21",
+      "updated": "2026-07-21",
+      "notes": "SHIPPED 2026-07-21. `/model` now opens providers first and drills into explicit model rows. Ollama discovery uses its native `/api/tags` endpoint and filters by the completion capability, so `nomic-embed-text` is not offered as a chat model. The selection resets when navigation changes lists instead of carrying the provider cursor into an unrelated model row. EXECUTED: the live endpoint returned qwen2.5:14b, MiniCPM5, gemma3:12b, and aether-qwen; 59 focused tests passed; core TypeScript typecheck passed; after the cursor-reset fix, a fresh real PTY run navigated `/model` → Ollama → MiniCPM and displayed `model → hf.co/openbmb/MiniCPM5-1B-GGUF:q4_k_m (this session)` in the TUI footer."
+    },
+    {
       "id": "TUI-RESIZE-GHOST-REGRESSION",
       "track": "Operator",
       "title": "TUI resize repaint regression — one clean frame after every terminal resize",

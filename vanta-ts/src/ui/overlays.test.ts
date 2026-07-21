@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sessionRows, skillRows, modelRows, setupRows, PICKER_KINDS } from "./overlays.js";
+import { sessionRows, skillRows, modelRows, providerModelRows, setupRows, PICKER_KINDS } from "./overlays.js";
 import type { SessionMeta } from "../sessions/store.js";
 import type { Skill } from "../skills/types.js";
 
@@ -22,9 +22,22 @@ describe("overlay row builders", () => {
     const openai = rows.find((r) => r.command === "/model openai");
     expect(openai).toBeTruthy();
     expect(openai!.mark).toBe("●"); // current marker, its own column
+    expect(openai!.next).toEqual({ kind: "modelProvider", providerId: "openai" });
     const other = rows.find((r) => r.command !== "/model openai");
     expect(other!.mark).toBeUndefined(); // non-current rows carry no mark
     expect(rows.at(-1)).toMatchObject({ label: "Set current as default", command: "/model --global openai gpt-5" });
+  });
+
+  it("providerModelRows exposes every discovered Ollama model through the existing hot-swap command", () => {
+    const rows = providerModelRows("ollama", [
+      "qwen2.5:14b",
+      "hf.co/openbmb/MiniCPM5-1B-GGUF:q4_k_m",
+    ], "ollama", "hf.co/openbmb/MiniCPM5-1B-GGUF:q4_k_m");
+    expect(rows[0]).toMatchObject({ label: "Back to providers", next: { kind: "modelProviders" } });
+    expect(rows.find((row) => row.command.includes("MiniCPM5"))).toMatchObject({
+      mark: "●",
+      command: "/model ollama hf.co/openbmb/MiniCPM5-1B-GGUF:q4_k_m",
+    });
   });
 
   it("PICKER_KINDS maps bare commands to overlay kinds", () => {

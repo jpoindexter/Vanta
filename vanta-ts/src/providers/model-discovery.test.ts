@@ -43,6 +43,25 @@ describe("discoverProviderModels", () => {
     });
   });
 
+  it("lists installed Ollama completion models and excludes embedding-only models", async () => {
+    const fetcher = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+      expect(String(url)).toBe("http://localhost:11434/api/tags");
+      expect(init?.headers).toEqual({});
+      return response({ models: [
+        { name: "hf.co/openbmb/MiniCPM5-1B-GGUF:q4_k_m", capabilities: ["completion"] },
+        { name: "qwen2.5:14b", capabilities: ["completion", "tools"] },
+        { name: "nomic-embed-text:latest", capabilities: ["embedding"] },
+      ] });
+    }) as typeof fetch;
+
+    const result = await discoverProviderModels("ollama", {}, fetcher);
+    expect(result).toEqual({
+      models: ["qwen2.5:14b", "hf.co/openbmb/MiniCPM5-1B-GGUF:q4_k_m"],
+      source: "live",
+      available: true,
+    });
+  });
+
   it("filters Gemini entries to generateContent-capable models and follows pagination", async () => {
     const fetcher = vi.fn()
       .mockResolvedValueOnce(response({

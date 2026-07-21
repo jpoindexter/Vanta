@@ -1,6 +1,6 @@
-import { createElement as h } from "react";
-import { afterEach, describe, it, expect } from "vitest";
-import { renderUi, tick } from "./test-render.js";
+import { createElement as h, useState } from "react";
+import { afterEach, describe, it, expect, vi } from "vitest";
+import { renderUi, tick, waitForFrame, waitUntil } from "./test-render.js";
 import { Banner } from "./banner.js";
 import { EntryView } from "./transcript.js";
 import { SlashPalette } from "./slash-palette.js";
@@ -190,6 +190,34 @@ describe("inline overlays", () => {
     const out = inst.lastFrame();
     expect(out).toContain("●");
     expect(out).toContain("openai");
+    inst.unmount();
+  });
+
+  it("OverlayList resets selection when navigating to a new titled list", async () => {
+    const chosen = vi.fn();
+    function StagedPicker() {
+      const [models, setModels] = useState(false);
+      const rows = models
+        ? [{ label: "Back", command: "/back" }, { label: "Model A", command: "/model-a" }, { label: "Model B", command: "/model-b" }]
+        : [{ label: "Provider A", command: "/a" }, { label: "Provider B", command: "/b" }, { label: "Ollama", command: "/ollama" }];
+      return h(OverlayList, {
+        title: models ? "Ollama models" : "Providers",
+        rows,
+        onClose: noop,
+        onSelect: (row) => models ? chosen(row.command) : setModels(true),
+      });
+    }
+    const inst = renderUi(h(StagedPicker));
+    await tick();
+    inst.input("\u001b[B");
+    await tick();
+    inst.input("\u001b[B");
+    await tick();
+    inst.input("\r");
+    await waitForFrame(inst, "Ollama models");
+    inst.input("\r");
+    await waitUntil(() => chosen.mock.calls.length > 0);
+    expect(chosen).toHaveBeenCalledWith("/back");
     inst.unmount();
   });
 

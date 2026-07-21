@@ -1,4 +1,4 @@
-import { useState, type ReactElement } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
 import { focusIndicator } from "./focus.js";
 import { planColumns, clipTo, termWidth } from "../term/width.js";
@@ -25,6 +25,7 @@ export function OverlayList(props: {
 }): ReactElement {
   const [sel, setSel] = useState(0);
   const clamped = Math.min(sel, Math.max(0, props.rows.length - 1));
+  useEffect(() => setSel(0), [props.title]);
   useInput((_input, key) => {
     if (key.escape) return void props.onClose();
     if (key.upArrow) return void setSel(Math.max(0, clamped - 1));

@@ -107,13 +107,18 @@ const OPENAI_COMPAT: Record<string, { url: string; key: string; model: string }>
 };
 
 export type ProviderModelDiscoveryTarget = {
-  kind: "openai" | "anthropic" | "gemini";
+  kind: "openai" | "anthropic" | "gemini" | "ollama";
   url: string;
   headers: Record<string, string>;
 };
 
 function openAiModelsUrl(baseURL: string): string {
   return `${baseURL.replace(/\/$/, "")}/models`;
+}
+
+function ollamaTagsUrl(baseURL: string): string {
+  const normalized = baseURL.endsWith("/") ? baseURL : `${baseURL}/`;
+  return new URL("../api/tags", normalized).toString();
 }
 
 function userDiscoveryTarget(env: NodeJS.ProcessEnv, provider: UserProvider): ProviderModelDiscoveryTarget | null {
@@ -149,7 +154,7 @@ export function providerModelDiscoveryTarget(env: NodeJS.ProcessEnv, providerId:
     } : null;
   }
   if (id === "ollama") {
-    return { kind: "openai", url: openAiModelsUrl(env.VANTA_OLLAMA_URL ?? DEFAULT_OLLAMA_URL), headers: { authorization: "Bearer ollama" } };
+    return { kind: "ollama", url: ollamaTagsUrl(env.VANTA_OLLAMA_URL ?? DEFAULT_OLLAMA_URL), headers: {} };
   }
   if (id === "openrouter") {
     const apiKey = env.OPENROUTER_API_KEY;

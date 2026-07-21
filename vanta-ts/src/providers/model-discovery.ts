@@ -17,8 +17,16 @@ function records(value: unknown): JsonObject[] {
   return Array.isArray(value) ? value.filter((entry): entry is JsonObject => Boolean(entry) && typeof entry === "object") : [];
 }
 
-function modelIds(payload: unknown, kind: "openai" | "anthropic" | "gemini"): string[] {
+type DiscoveryKind = "openai" | "anthropic" | "gemini" | "ollama";
+
+function modelIds(payload: unknown, kind: DiscoveryKind): string[] {
   const object = payload && typeof payload === "object" ? payload as JsonObject : {};
+  if (kind === "ollama") {
+    return records(object.models)
+      .filter((model) => !Array.isArray(model.capabilities) || model.capabilities.includes("completion"))
+      .map((model) => typeof model.name === "string" ? model.name : typeof model.model === "string" ? model.model : "")
+      .filter(Boolean);
+  }
   if (kind === "gemini") {
     return records(object.models)
       .filter((model) => !Array.isArray(model.supportedGenerationMethods) || model.supportedGenerationMethods.includes("generateContent"))
@@ -28,14 +36,14 @@ function modelIds(payload: unknown, kind: "openai" | "anthropic" | "gemini"): st
   return records(object.data).map((model) => typeof model.id === "string" ? model.id : "").filter(Boolean);
 }
 
-function nextPage(payload: unknown, kind: "openai" | "anthropic" | "gemini"): string | null {
+function nextPage(payload: unknown, kind: DiscoveryKind): string | null {
   const object = payload && typeof payload === "object" ? payload as JsonObject : {};
   if (kind === "gemini") return typeof object.nextPageToken === "string" ? object.nextPageToken : null;
   if (kind === "anthropic" && object.has_more === true && typeof object.last_id === "string") return object.last_id;
   return null;
 }
 
-function pageUrl(url: string, kind: "openai" | "anthropic" | "gemini", cursor: string): string {
+function pageUrl(url: string, kind: DiscoveryKind, cursor: string): string {
   const parsed = new URL(url);
   parsed.searchParams.set(kind === "gemini" ? "pageToken" : "after_id", cursor);
   return parsed.toString();
