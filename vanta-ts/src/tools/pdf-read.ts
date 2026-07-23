@@ -94,7 +94,15 @@ function cap(text: string): string {
  */
 async function pdfjsExtractor(bytes: Uint8Array): Promise<string[]> {
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  const task = pdfjs.getDocument({ data: bytes, useSystemFonts: true });
+  // pdf.js rejects a Node Buffer (`Please provide binary data as Uint8Array,
+  // rather than Buffer`) even though Buffer extends Uint8Array. Hand it a plain
+  // Uint8Array view over the same bytes (no copy) so both the real read path
+  // and any Buffer-passing caller work.
+  const data =
+    Buffer.isBuffer(bytes)
+      ? new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+      : bytes;
+  const task = pdfjs.getDocument({ data, useSystemFonts: true });
   const doc = await task.promise;
   try {
     const pages: string[] = [];
