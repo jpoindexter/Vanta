@@ -35,9 +35,16 @@ function liveDispatch(deps: AgentDeps, action: Action, scope?: TurnScope): void 
   if (scope?.forceLive || !isBackgroundResponseRunning(deps.replStateRef.current)) deps.dispatch(action);
 }
 
-/** First non-empty line of a failed result, trimmed — used for the error tail. */
-function firstLine(t: string): string {
-  const l = (t.split("\n")[0] ?? "").trim();
+const STRONG_FAILURE = /(?:\b(?:[a-z]*error|fatal)\b|operation not permitted|permission denied|\b(?:eperm|eacces|enoent|eaddrinuse)\b)/i;
+const WEAK_FAILURE = /\b(?:failed|failure|blocked|denied|refused|unsupported)\b/i;
+
+/** Prefer the actionable diagnostic in noisy command output, then clip it. */
+export function failureSummary(t: string): string {
+  const lines = t.split("\n").map((line) => line.trim()).filter(Boolean);
+  const l = lines.find((line) => STRONG_FAILURE.test(line))
+    ?? lines.find((line) => WEAK_FAILURE.test(line))
+    ?? lines[0]
+    ?? "Command failed";
   return l.length > 80 ? `${l.slice(0, 77)}...` : l;
 }
 
@@ -96,7 +103,7 @@ function convoConfig(deps: AgentDeps, scope?: TurnScope): Parameters<typeof crea
     },
     onToolResult: (name, ok, output, diff) => {
       const tokens = Math.round((output?.length ?? 0) / 4);
-      liveDispatch(deps, { t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output, name), diff, tokens, rawOutput: output }, scope);
+      liveDispatch(deps, { t: "toolResult", name, ok, errorLine: ok ? undefined : failureSummary(output), summary: summarizeResult(output, name), diff, tokens, rawOutput: output }, scope);
       if (name === "todo") void refreshTodos(deps.dispatch); // reflect plan edits live
     },
     requestApproval: (action, reason, toolName, detail) =>

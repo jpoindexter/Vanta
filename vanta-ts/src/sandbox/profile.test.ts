@@ -48,7 +48,14 @@ describe("buildSeatbeltProfile", () => {
 
   it("denies network unless opts.net", () => {
     expect(buildSeatbeltProfile(ROOT, ZONES, { net: false })).toContain("(deny network*)");
-    expect(buildSeatbeltProfile(ROOT, ZONES, { net: true })).not.toContain("(deny network*)");
+    const allowed = buildSeatbeltProfile(ROOT, ZONES, { net: true });
+    expect(allowed).not.toContain("(deny network*)");
+    expect(allowed).toContain("(allow network*)");
+  });
+
+  it("allows a sandboxed parent to signal a child in the same sandbox", () => {
+    const p = buildSeatbeltProfile(ROOT, ZONES, { net: false });
+    expect(p).toContain("(allow signal (target same-sandbox))");
   });
 
   it("INVARIANT: the only file-write allows are root + zones — nothing else", () => {

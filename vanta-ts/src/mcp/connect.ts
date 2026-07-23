@@ -26,7 +26,11 @@ async function resolveTransport(name: string, spec: ServerSpec, env: NodeJS.Proc
     // A stored OAuth access token (from the mcp_auth flow) wins over a static one.
     const stored = await loadMcpToken(name, env);
     const token = stored?.access_token ?? resolveToken(name, spec.token, env);
-    return { transport: httpTransport(spec.url, { token, headers: spec.headers }), kind: "http" };
+    const headers = Object.fromEntries(Object.entries(spec.headers ?? {}).flatMap(([key, value]) => {
+      const resolved = resolveToken(name, value, env);
+      return resolved ? [[key, resolved]] : [];
+    }));
+    return { transport: httpTransport(spec.url, { token, headers }), kind: "http" };
   }
   if (spec.command) {
     const t = stdioTransport(spec.command, spec.args ?? [], buildMcpChildEnv(env, spec.env));

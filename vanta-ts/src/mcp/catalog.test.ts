@@ -25,6 +25,11 @@ describe("catalog", () => {
     expect(ha?.optInTools).toContain("HassTurnOn");
     expect(ha?.authEnv).toEqual(["API_ACCESS_TOKEN"]);
   });
+
+  it("declares the official hosted Box and Atlassian Rovo MCP packs", () => {
+    expect(catalogEntry("box-remote-mcp")).toMatchObject({ url: "https://mcp.box.com", tokenEnv: "VANTA_BOX_MCP_TOKEN" });
+    expect(catalogEntry("atlassian-rovo-mcp")).toMatchObject({ url: "https://mcp.atlassian.com/v1/mcp/authv2", tokenEnv: "VANTA_ATLASSIAN_ROVO_MCP_TOKEN" });
+  });
 });
 
 describe("buildInstallSpec", () => {
@@ -61,6 +66,12 @@ describe("buildInstallSpec", () => {
       expect(r.spec.url).toBe("https://mcp.example.com");
       expect(r.spec.command).toBeUndefined();
     }
+  });
+
+  it("preserves auth placeholders for a hosted remote pack", () => {
+    const r = buildInstallSpec(catalogEntry("box-remote-mcp")!);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.spec).toMatchObject({ env: { VANTA_BOX_MCP_TOKEN: "${VANTA_BOX_MCP_TOKEN}" }, token: "${VANTA_BOX_MCP_TOKEN}" });
   });
 });
 

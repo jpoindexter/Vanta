@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { mkdtemp, rm, mkdir, appendFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { compress, usage } from "./context-cmds.js";
+import { compress, integrations, usage } from "./context-cmds.js";
 import type { ReplCtx } from "./types.js";
 import type { Message } from "../types.js";
 import type { LLMProvider } from "../providers/interface.js";
@@ -81,6 +81,14 @@ describe("/usage", () => {
   it("/usage breakdown rejects an unparseable --since date", async () => {
     const r = await usage("breakdown --since not-a-date", ctx());
     expect(r.output).toContain("invalid --since date");
+  });
+});
+
+describe("/integrations", () => {
+  it("shows actionable catalog entries from the shared registry", async () => {
+    const result = await integrations("", { dataDir: "/tmp/vanta-integrations/.vanta", env: {} } as ReplCtx);
+    expect(result.output).toContain("Trello — Needs setup");
+    expect(result.output).toContain("Actions: configure");
   });
 });
 

@@ -49,10 +49,13 @@ export function forceFullRepaint(ink: InkInternals): void {
  * re-render in place (it keeps content naturally bottom-anchored; force-clearing
  * would jump it to the top with a gap below). Appended (not replacing) so Ink's
  * own `resized()` and use-window-size's listener still run; ours runs last and
- * overwrites any ghost with a clean absolute repaint. Returns the listener so
- * callers can detach it in tests.
+ * overwrites any ghost with a clean absolute repaint. Returns a cleanup so a
+ * restarted TUI surface cannot retain a listener for an unmounted Ink instance.
  */
-export function attachResizeRepaint(stdout: Pick<NodeJS.WriteStream, "on" | "columns">, ink: InkInternals): () => void {
+export function attachResizeRepaint(
+  stdout: Pick<NodeJS.WriteStream, "on" | "off" | "columns">,
+  ink: InkInternals,
+): () => void {
   let lastWidth = stdout.columns;
   const listener = (): void => {
     const width = stdout.columns;
@@ -61,7 +64,7 @@ export function attachResizeRepaint(stdout: Pick<NodeJS.WriteStream, "on" | "col
     forceFullRepaint(ink);
   };
   stdout.on("resize", listener);
-  return listener;
+  return () => stdout.off("resize", listener);
 }
 
 /** Resolve Ink's live instance for a stdout via its internal (non-exported) map. */
@@ -78,14 +81,17 @@ async function resolveInkInstance(stdout: NodeJS.WriteStream): Promise<InkIntern
 
 /**
  * Install the resize ghost fix on a TTY stdout after Ink has rendered into it.
- * No-op on non-TTY streams or if Ink's internals are unavailable.
+ * Returns a cleanup; it is a no-op on non-TTY streams or when Ink's internals
+ * are unavailable.
  */
-export async function installResizeGhostFix(stdout: NodeJS.WriteStream): Promise<void> {
-  if (!stdout.isTTY) return;
+export async function installResizeGhostFix(stdout: NodeJS.WriteStream): Promise<() => void> {
+  const noop = (): void => {};
+  if (!stdout.isTTY) return noop;
   try {
     const ink = await resolveInkInstance(stdout);
-    if (ink) attachResizeRepaint(stdout, ink);
+    return ink ? attachResizeRepaint(stdout, ink) : noop;
   } catch {
     /* Ink internals unavailable — leave Ink's default resize behavior in place. */
+    return noop;
   }
 }

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { mkdtemp, rm, readFile } from "node:fs/promises";
+import { chmod, mkdtemp, rm, readFile, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -204,6 +204,26 @@ describe("session store", () => {
       await readFile(join(home, "sessions", "interrupted.json"), "utf8"),
     ) as Session;
     expect(raw.messages.at(-1)).toEqual(result);
+  });
+
+  it("lists interrupted sessions without rewriting them", async () => {
+    const interrupted: Message[] = [
+      { role: "system", content: "sys" },
+      { role: "user", content: "publish it" },
+      { role: "assistant", content: "", toolCalls: [{ id: "mutate-list", name: "publish_release", arguments: {}, effectState: "started" }] },
+    ];
+    await saveSession("interrupted-list", interrupted, { env: env(), now: "2026-06-03T09:00:00.000Z" });
+    const path = join(home, "sessions", "interrupted-list.json");
+    await chmod(path, 0o444);
+    const before = await stat(path);
+
+    const list = await listSessions(env());
+
+    const after = await stat(path);
+    expect(list.map((session) => session.id)).toContain("interrupted-list");
+    expect(after.mtimeMs).toBe(before.mtimeMs);
+    expect(after.size).toBe(before.size);
+    await chmod(path, 0o644);
   });
 
   it("does not reconcile a pending call during a live checkpoint", async () => {

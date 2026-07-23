@@ -14,6 +14,11 @@ describe("desktop operator routes", () => {
   const originalTelegramAllow = process.env.VANTA_TELEGRAM_ALLOW;
   const originalTelegramApiBase = process.env.VANTA_TELEGRAM_API_BASE;
   const originalProvider = process.env.VANTA_PROVIDER;
+  const originalTrelloKey = process.env.VANTA_TRELLO_KEY;
+  const originalTrelloToken = process.env.VANTA_TRELLO_TOKEN;
+  const originalDropboxToken = process.env.VANTA_DROPBOX_TOKEN;
+  const originalTrelloApiBase = process.env.VANTA_TRELLO_API_BASE;
+  const originalDropboxApiBase = process.env.VANTA_DROPBOX_API_BASE;
 
   beforeEach(async () => {
     home = await mkdtemp(join(tmpdir(), "vanta-operator-api-home-"));
@@ -23,6 +28,11 @@ describe("desktop operator routes", () => {
     delete process.env.VANTA_TELEGRAM_TOKEN;
     delete process.env.VANTA_TELEGRAM_ALLOW;
     delete process.env.VANTA_TELEGRAM_API_BASE;
+    delete process.env.VANTA_TRELLO_KEY;
+    delete process.env.VANTA_TRELLO_TOKEN;
+    delete process.env.VANTA_DROPBOX_TOKEN;
+    delete process.env.VANTA_TRELLO_API_BASE;
+    delete process.env.VANTA_DROPBOX_API_BASE;
   });
 
   afterEach(async () => {
@@ -32,7 +42,80 @@ describe("desktop operator routes", () => {
     if (originalTelegramAllow === undefined) delete process.env.VANTA_TELEGRAM_ALLOW; else process.env.VANTA_TELEGRAM_ALLOW = originalTelegramAllow;
     if (originalTelegramApiBase === undefined) delete process.env.VANTA_TELEGRAM_API_BASE; else process.env.VANTA_TELEGRAM_API_BASE = originalTelegramApiBase;
     if (originalProvider === undefined) delete process.env.VANTA_PROVIDER; else process.env.VANTA_PROVIDER = originalProvider;
+    if (originalTrelloKey === undefined) delete process.env.VANTA_TRELLO_KEY; else process.env.VANTA_TRELLO_KEY = originalTrelloKey;
+    if (originalTrelloToken === undefined) delete process.env.VANTA_TRELLO_TOKEN; else process.env.VANTA_TRELLO_TOKEN = originalTrelloToken;
+    if (originalDropboxToken === undefined) delete process.env.VANTA_DROPBOX_TOKEN; else process.env.VANTA_DROPBOX_TOKEN = originalDropboxToken;
+    if (originalTrelloApiBase === undefined) delete process.env.VANTA_TRELLO_API_BASE; else process.env.VANTA_TRELLO_API_BASE = originalTrelloApiBase;
+    if (originalDropboxApiBase === undefined) delete process.env.VANTA_DROPBOX_API_BASE; else process.env.VANTA_DROPBOX_API_BASE = originalDropboxApiBase;
     await Promise.all([rm(home, { recursive: true, force: true }), rm(root, { recursive: true, force: true })]);
+  });
+
+  it("serves the same truthful integration catalog to desktop", async () => {
+    const server = createDesktopServer(root);
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("desktop server did not bind");
+    try {
+      const response = await fetch(`http://127.0.0.1:${address.port}/api/connect/integrations`);
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual(expect.arrayContaining([
+        expect.objectContaining({ id: "trello", state: "needs_setup", actions: ["configure"] }),
+        expect.objectContaining({ id: "dropbox", state: "needs_setup", actions: ["configure"] }),
+        expect.objectContaining({ id: "box", state: "installable", actions: ["install"] }),
+      ]));
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
+
+  it("runs bounded Trello and Dropbox tests through the desktop action route", async () => {
+    const provider = createServer((req, res) => {
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(req.url?.includes("trello") ? JSON.stringify([{ id: "board", name: "Fixture board" }]) : JSON.stringify({ entries: [], cursor: "cursor", has_more: false }));
+    });
+    await new Promise<void>((resolve) => provider.listen(0, "127.0.0.1", resolve));
+    const address = provider.address();
+    if (!address || typeof address === "string") throw new Error("provider fixture did not bind");
+    process.env.VANTA_TRELLO_KEY = "key";
+    process.env.VANTA_TRELLO_TOKEN = "token";
+    process.env.VANTA_TRELLO_API_BASE = `http://127.0.0.1:${address.port}/trello`;
+    process.env.VANTA_DROPBOX_TOKEN = "token";
+    process.env.VANTA_DROPBOX_API_BASE = `http://127.0.0.1:${address.port}/dropbox`;
+    const server = createDesktopServer(root);
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const desktop = server.address();
+    if (!desktop || typeof desktop === "string") throw new Error("desktop server did not bind");
+    const base = `http://127.0.0.1:${desktop.port}/api/connect/integrations`;
+    try {
+      const trello = await fetch(base, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: "trello", action: "test" }) });
+      const dropbox = await fetch(base, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: "dropbox", action: "test" }) });
+      const trelloBody = await trello.json() as { message: string; integrations: unknown[] };
+      const dropboxBody = await dropbox.json() as { message: string; integrations: unknown[] };
+      expect(trelloBody.message).toBe("Trello connection test passed.");
+      expect(trelloBody.integrations).toContainEqual(expect.objectContaining({ id: "trello", receipt: expect.objectContaining({ action: "test", outcome: "passed" }) }));
+      expect(dropboxBody.message).toBe("Dropbox connection test passed.");
+      expect(dropboxBody.integrations).toContainEqual(expect.objectContaining({ id: "dropbox", receipt: expect.objectContaining({ action: "test", outcome: "passed" }) }));
+    } finally {
+      await Promise.all([new Promise<void>((resolve) => server.close(() => resolve())), new Promise<void>((resolve) => provider.close(() => resolve()))]);
+    }
+  });
+
+  it("installs the Box hosted MCP pack through the integration action route", async () => {
+    const server = createDesktopServer(root);
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("desktop server did not bind");
+    try {
+      const response = await fetch(`http://127.0.0.1:${address.port}/api/connect/integrations`, {
+        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: "box", action: "install" }),
+      });
+      expect(response.status).toBe(200);
+      const body = await response.json() as { message: string; integrations: unknown[] };
+      expect(body.message).toContain("Installed box-remote-mcp");
+      expect(body.integrations).toContainEqual(expect.objectContaining({ id: "box", state: "installed", actions: ["configure", "manage_mcp"], receipt: expect.objectContaining({ action: "install", outcome: "passed" }) }));
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
   });
 
   it("answers Telegram setup without initializing a missing model provider", async () => {

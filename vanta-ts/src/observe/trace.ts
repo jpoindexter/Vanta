@@ -27,27 +27,48 @@ const ERROR_THRESHOLD = 3;   // ≥N consecutive errors → alert
 const OS_ERROR_PATTERN = /\b(operation not permitted|permission denied|eperm|enoent|eacces|eaddrinuse|command not found)\b/i;
 
 /**
- * Extract the tool calls (+ their results) from the last assistant turn in
- * the message history. Returns [] when the last turn had no tool calls.
+ * Extract tool calls (+ results) across the latest user turn. Agents commonly
+ * read in one assistant batch and write in a later batch; reducing the turn to
+ * only its final batch creates false blind-write warnings.
  */
 export function extractLastTurnCalls(messages: Message[]): TurnCall[] {
+  let turnStart = -1;
   for (let i = messages.length - 1; i >= 0; i--) {
-    const msg = messages[i];
-    if (!msg || msg.role !== "assistant") continue;
-    const toolCalls = msg.toolCalls;
-    if (!toolCalls?.length) continue;
-    const toolResults = messages.slice(i + 1).filter((m) => m.role === "tool");
-    return toolCalls.map((tc, idx) => {
-      // Match by id first (reliable), fall back to positional order
-      const byId = toolResults.find((m) => m.role === "tool" && m.toolCallId === tc.id);
-      const resultMsg = byId ?? toolResults[idx];
-      const content = resultMsg?.role === "tool" ? resultMsg.content : "";
+    if (messages[i]?.role === "user") {
+      turnStart = i + 1;
+      break;
+    }
+  }
+  // Some tests/legacy histories omit user messages. Preserve the old behavior
+  // there by starting at the last assistant batch that contains tool calls.
+  if (turnStart < 0) {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i];
+      if (msg?.role === "assistant" && msg.toolCalls?.length) {
+        turnStart = i;
+        break;
+      }
+    }
+  }
+  if (turnStart < 0) return [];
+
+  const turn = messages.slice(turnStart);
+  const toolResults = turn.filter((msg) => msg.role === "tool");
+  const calls: TurnCall[] = [];
+  let fallbackIndex = 0;
+  for (const msg of turn) {
+    if (msg.role !== "assistant" || !msg.toolCalls?.length) continue;
+    for (const tc of msg.toolCalls) {
+      const byId = toolResults.find((result) => result.toolCallId === tc.id);
+      const resultMsg = byId ?? toolResults[fallbackIndex];
+      fallbackIndex += 1;
+      const content = resultMsg?.content ?? "";
       const isError = /^(error|blocked|failed|unsupported)/i.test(content.trim())
         || OS_ERROR_PATTERN.test(content);
-      return { name: tc.name, result: content, isError, args: tc.arguments };
-    });
+      calls.push({ name: tc.name, result: content, isError, args: tc.arguments });
+    }
   }
-  return [];
+  return calls;
 }
 
 /** Same tool called ≥LOOP_THRESHOLD times in one turn. */

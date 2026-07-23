@@ -70,7 +70,18 @@ export function resolveToken(
   explicitToken?: string,
   env: NodeJS.ProcessEnv = process.env,
 ): string | undefined {
-  if (explicitToken) return explicitToken;
+  if (explicitToken) return resolveTemplate(explicitToken, env);
   const envKey = `VANTA_MCP_TOKEN_${serverName.toUpperCase().replace(/[^A-Z0-9]/g, "_")}`;
   return env[envKey];
+}
+
+/** Resolve `${VARNAME}` placeholders without copying absent values into requests. */
+export function resolveTemplate(value: string, env: NodeJS.ProcessEnv = process.env): string | undefined {
+  let missing = false;
+  const resolved = value.replace(/\$\{([A-Z_][A-Z0-9_]*)\}/g, (_match, key: string) => {
+    const found = env[key];
+    if (!found) missing = true;
+    return found ?? "";
+  });
+  return missing ? undefined : resolved;
 }

@@ -87,7 +87,7 @@ function ToolCallView(props: { entry: ToolEntry }): ReactElement {
         <Text>{head}</Text>
       </Box>
       {meta ? <Text color={ok ? undefined : RISK}>{"  ⎿  "}{clip(meta, 92)}</Text> : null}
-      {!ok ? <Text color={RISK}>{"  ↳  Recovery: review the failed input, then retry this step."}</Text> : null}
+      {!ok ? <Text color={RISK}>{"  ↳  Open trace evidence for full output."}</Text> : null}
       {e.diff && e.diff.length > 0 ? <DiffView diff={e.diff} /> : null}
     </Box>
   );

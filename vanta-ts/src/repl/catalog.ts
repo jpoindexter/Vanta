@@ -79,6 +79,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "changes", desc: "review changed files — per-file keep/undo (TUI)" },
   { name: "agents", desc: "custom agent editor — model, tools, color, markdown file (TUI)" },
   { name: "mcp", desc: "MCP panel — servers + connection status, per-server tools, tool detail, reconnect (TUI)" },
+  { name: "integrations", arg: "[test|install|configure|manage_mcp] <integration>", desc: "integration catalog — truthful state, setup and test actions" },
   { name: "sandbox", desc: "sandbox settings — config, dependencies, doctor, per-tool overrides (TUI)" },
   { name: "permissions", arg: "[allow|ask|deny <tool> [pattern] | remove <n>]", desc: "tighten-only tool permission rules (~/.vanta/permissions.tsv)" },
   { name: "less-permission-prompts", desc: "scan the session for repeatedly-approved read-only tools and propose allow rules to cut future prompts (propose-only)" },

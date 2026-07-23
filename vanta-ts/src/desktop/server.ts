@@ -29,6 +29,7 @@ import { getWakeApi, setWakeApi } from "./wake-api.js";
 import { handleDesktopSetup } from "./setup.js";
 import { ensureDesktopPermissionMode } from "./permission-mode.js";
 import { handleDesktopMcpAction, handleDesktopMcpList } from "./mcp-connectors.js";
+import { handleIntegrationAction, handleIntegrationList } from "./integration-connectors.js";
 import { handleRuntimeProfiles } from "./runtime-profile-api.js";
 import { handleModelDownloads } from "./model-download-api.js";
 import { handleGoogleConnectAction, handleGoogleConnectStatus } from "./google-connect.js";
@@ -67,6 +68,7 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
     "/api/runtime/downloads": () => handleModelDownloads(state, req, res),
     "/api/chat/queue": () => handleQueueList(state, res),
     "/api/connect/mcp": () => handleDesktopMcpList(state, res),
+    "/api/connect/integrations": () => handleIntegrationList(state, res),
     "/api/connect/google": () => handleGoogleConnectStatus(res),
     "/api/release-proofs": () => handleDesktopReleaseProofs(state.root, res),
     "/api/wake": async () => sendJson(res, 200, await getWakeApi()),
@@ -94,6 +96,7 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
     "/api/connect/test": () => handleConnectTest(state, req, res),
     "/api/gateway/start": () => handleGatewayStart(state, res),
     "/api/connect/mcp": () => handleDesktopMcpAction(state, req, res),
+    "/api/connect/integrations": () => handleIntegrationAction(state, req, res),
     "/api/connect/google": () => handleGoogleConnectAction(req, res),
     "/api/runtime": () => handleRuntime(state, req, res),
     "/api/runtime/profiles": () => handleRuntimeProfiles(state, req, res),

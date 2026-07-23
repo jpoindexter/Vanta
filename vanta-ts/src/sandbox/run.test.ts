@@ -150,3 +150,19 @@ describe("sandbox permits the system /tmp (darwin)", () => {
     rmSync("/tmp/vanta-sb-regress.txt", { force: true });
   });
 });
+
+describe("sandbox permits child cleanup signals (darwin)", () => {
+  const canRun = process.platform === "darwin" && existsSync("/usr/bin/sandbox-exec");
+  it.skipIf(!canRun)("a sandboxed runner can terminate its own child worker", async () => {
+    const sb = await maybeSandbox({
+      env: { ...process.env, VANTA_SANDBOX: "1" },
+      root: process.cwd(),
+      baseCmd: "sh",
+      baseArgs: ["-c", 'sleep 1 & child=$!; if kill "$child"; then echo terminated; else echo denied; fi; wait "$child" 2>/dev/null || true'],
+    });
+    if (isSandboxError(sb)) return;
+    const output = execFileSync(sb.cmd, sb.args, { encoding: "utf8" });
+    expect(output.trim()).toBe("terminated");
+    await sb.cleanup?.();
+  });
+});

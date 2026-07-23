@@ -8,6 +8,27 @@ sidebar_position: 3
 
 Beyond [MCP](./mcp.md), Vanta exposes two local servers so other tools can use it — both locally bound and kernel-gated.
 
+## Service integrations
+
+`vanta integrations` reports the same honest state in the CLI, TUI (`/integrations`), and Desktop Connect > MCP:
+
+- **Needs setup** — no usable credential or connector is present.
+- **Installed** — a credential or pack is saved, but its live connection has not been verified.
+- **Ready** — a bounded read-only test passed and a redacted receipt was recorded.
+- **Needs attention** — the most recent verification failed; reconnect before using it.
+
+Run a bounded test or an explicit pack action with:
+
+```bash
+vanta integrations test trello
+vanta integrations install box
+vanta integrations configure dropbox
+```
+
+Trello and Dropbox keep reads and writes separate. Set the read credentials first (`VANTA_TRELLO_KEY` + `VANTA_TRELLO_TOKEN`, or `VANTA_DROPBOX_TOKEN`); add `VANTA_TRELLO_WRITE_TOKEN` or `VANTA_DROPBOX_WRITE_TOKEN` only when you intend to mutate remote data. Every write still asks for normal Vanta approval. Trello updates also require the card's current `dateLastActivity`, and Dropbox replacements require the file revision, so stale remote content is never silently overwritten.
+
+Box and Atlassian Rovo are hosted MCP packs. Install them explicitly, review the discovered tools and resources, then trust, authorize, and test them in the MCP panel before mounting tools. A locally saved credential alone never labels a service ready.
+
 ## Agent Client Protocol (editors)
 
 Expose the agent loop over HTTP/JSON-RPC so an editor (e.g. Zed) can send instructions and receive responses:

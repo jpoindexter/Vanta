@@ -61,6 +61,21 @@ describe("extractLastTurnCalls", () => {
     ];
     expect(extractLastTurnCalls(msgs)[0]!.args).toEqual({ command: "vanta auth google" });
   });
+
+  it("collects every tool batch in the latest user turn", () => {
+    const msgs: Message[] = [
+      { role: "user", content: "update the file" },
+      makeMsg("assistant", { toolCalls: [{ id: "read", name: "read_file" }] }),
+      makeMsg("tool", { toolCallId: "read", name: "read_file", content: "old content" }),
+      makeMsg("assistant", { toolCalls: [{ id: "write", name: "write_file" }] }),
+      makeMsg("tool", { toolCallId: "write", name: "write_file", content: "wrote ok" }),
+      makeMsg("assistant", { content: "done" }),
+    ];
+
+    const calls = extractLastTurnCalls(msgs);
+    expect(calls.map((call) => call.name)).toEqual(["read_file", "write_file"]);
+    expect(detectAnomalies(calls).some((a) => a.type === "blind-write")).toBe(false);
+  });
 });
 
 describe("detectAnomalies", () => {

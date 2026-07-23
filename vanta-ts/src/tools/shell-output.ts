@@ -44,14 +44,52 @@ export function formatRunFailure(command: string, e: RunError, pfx: string): Too
   return { ok: false, output: pfx + (out || e.message) };
 }
 
+/** Return the final shell segment without treating quoted operators as syntax. */
+function lastShellSegment(command: string): string {
+  let start = 0;
+  let quote: "'" | '"' | null = null;
+  let escaped = false;
+
+  for (let i = 0; i < command.length; i++) {
+    const char = command[i];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (quote) {
+      if (quote === '"' && char === "\\") escaped = true;
+      else if (char === quote) quote = null;
+      continue;
+    }
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (char === "'" || char === '"') {
+      quote = char;
+      continue;
+    }
+    if (char === ";" || char === "|") {
+      if (char === "|" && command[i + 1] === "|") i += 1;
+      start = i + 1;
+      continue;
+    }
+    if (char === "&" && command[i + 1] === "&") {
+      i += 1;
+      start = i + 1;
+    }
+  }
+  return command.slice(start);
+}
+
 /**
  * The program whose exit code we actually received: the first token of the
- * LAST segment of a pipeline/chain (`a | grep x`, `find . && echo`), since the
- * shell reports that command's status. `git grep`/`git diff` keep both words;
- * a leading path (`/usr/bin/grep`) is stripped to its basename.
+ * LAST unquoted segment of a pipeline/chain (`a | grep x`, `find . && echo`),
+ * since the shell reports that command's status. `git grep`/`git diff` keep
+ * both words; a leading path (`/usr/bin/grep`) is stripped to its basename.
  */
 export function lastCommandWord(command: string): string {
-  const seg = command.split(/&&|\|\||;|\|/).pop() ?? command;
+  const seg = lastShellSegment(command);
   const tok = seg.trim().split(/\s+/).filter(Boolean);
   let w = tok[0] ?? "";
   if (w === "git" && tok[1]) w = `git ${tok[1]}`;

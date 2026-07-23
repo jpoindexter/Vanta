@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-21",
+  "updated": "2026-07-23",
   "items": [
     {
       "id": "SANDBOX-RELATIVE-MKDIR-APPROVAL",
@@ -20359,6 +20359,87 @@
         "REWARD-SEEKING-EVAL-AWARENESS-REDTEAM",
         "REWARD-SEEKING-OVERSIGHT-GENERALIZATION",
         "REWARD-SEEKING-MODEL-LEDGER"
+      ]
+    },
+    {
+      "id": "CONNECT-INTEGRATION-STATE-CATALOG",
+      "track": "Extensibility",
+      "title": "Integration state catalog — distinguish native, installable, connected, and unavailable",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Make Connect report the real state of Trello, Dropbox, Box, Google Drive, Atlassian Rovo, Slack, and Telegram instead of treating generic connector scaffolding as an implemented integration. The catalog must distinguish native support, an available-but-uninstalled connector pack, installed-but-unconfigured, connected, degraded, and unavailable.",
+      "done": "One typed registry drives CLI, TUI, and Desktop labels and actions for all seven named services; existing Slack, Telegram, and Google Drive capabilities resolve from runtime evidence; Box, Google Drive, and Atlassian Rovo can expose install/connect actions only when a compatible pack is actually available; Trello and Dropbox remain visibly unavailable until their adapters ship; every connected service has a bounded test action and redacted receipt; tests prove no unavailable or scaffolding-only service is presented as connected or ready.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.6-terra",
+      "lens": "infra",
+      "source": "user integration-roadmap request 2026-07-23",
+      "updated": "2026-07-23",
+      "after": [
+        "VANTA-MCP-FIRST-CLASS-CONNECTORS",
+        "DESKTOP-CONNECT-SETUP-STATUS",
+        "MSG-ADAPTER-SLACK",
+        "DESKTOP-SETUP-HUB-TELEGRAM-LIFECYCLE",
+        "MEMORY-ADAPTER-DRIVE"
+      ]
+    },
+    {
+      "id": "CONNECT-TRELLO-ADAPTER",
+      "track": "Extensibility",
+      "title": "Trello integration — boards, lists, cards, and guarded updates",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Add a first-class Trello adapter because no compatible Trello connector pack is currently available to Vanta. Support useful planning workflows without bypassing the kernel or implying that catalog visibility equals a working connection.",
+      "done": "An operator can authenticate Trello, list and search authorized workspaces, boards, lists, and cards, attach a card as task context, and explicitly create or update a card; read and write scopes are separated; every mutation is kernel-assessed and receipted; credentials and card contents are redacted from logs; revocation and expired-auth recovery are actionable; contract tests cover empty, denied, rate-limited, and stale-card cases; and one authorized sandbox-board flow executes read, create, update, and verification end to end.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "reach",
+      "source": "user integration-roadmap request 2026-07-23",
+      "updated": "2026-07-23",
+      "after": [
+        "CONNECT-INTEGRATION-STATE-CATALOG"
+      ]
+    },
+    {
+      "id": "CONNECT-DROPBOX-ADAPTER",
+      "track": "Extensibility",
+      "title": "Dropbox integration — scoped file context, search, and explicit writes",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Add a first-class Dropbox adapter because no compatible Dropbox connector pack is currently available to Vanta. Keep Dropbox external and user-owned: remote files may become bounded task context, but they are never silently copied, overwritten, or treated as local memory.",
+      "done": "An operator can authenticate Dropbox, browse and search only authorized paths, attach a bounded remote file as task context, download an explicit file, and explicitly upload or replace a file; read and write scopes are separated; conflicts require a visible choice; every mutation is kernel-assessed and receipted; sensitive paths, oversized files, binary previews, revocation, rate limits, and offline behavior have tests; and one authorized sandbox-folder flow executes read, attach, upload, conflict handling, and verification end to end.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "reach",
+      "source": "user integration-roadmap request 2026-07-23",
+      "updated": "2026-07-23",
+      "after": [
+        "CONNECT-INTEGRATION-STATE-CATALOG"
+      ]
+    },
+    {
+      "id": "CONNECT-BOX-DRIVE-ROVO-PACKS",
+      "track": "Extensibility",
+      "title": "Box, Google Drive, and Atlassian Rovo connector packs — install, connect, and verify",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Bridge the externally available Box, Google Drive, and Atlassian Rovo connector packs into Vanta's connector lifecycle. Reuse the shipped Google Drive OAuth and memory adapter where their contracts match, while keeping file context, memory backup, and Atlassian work-management actions visibly separate.",
+      "done": "Connect can discover compatible Box, Google Drive, and Atlassian Rovo packs, show installed and authentication state, install or connect through an explicit operator action, inventory the resulting tools and resources before mounting, and run a bounded verification action; unsupported or policy-blocked packs remain unavailable with a reason; Google Drive reuses existing authorization without widening scopes silently; Box and Drive writes and Atlassian mutations are kernel-assessed and receipted; uninstall, revocation, degraded health, and reconnect paths are covered; and one authorized test workspace per service executes the advertised read path end to end before the integration can be labeled ready.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "infra",
+      "source": "user integration-roadmap request 2026-07-23",
+      "updated": "2026-07-23",
+      "after": [
+        "CONNECT-INTEGRATION-STATE-CATALOG",
+        "MEMORY-ADAPTER-DRIVE"
       ]
     }
   ]

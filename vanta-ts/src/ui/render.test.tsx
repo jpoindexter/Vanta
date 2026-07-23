@@ -83,6 +83,8 @@ describe("EntryView", () => {
     const out = inst.lastFrame();
     expect(out).toContain("Ran(x)");
     expect(out).toContain("boom");
+    expect(out).toContain("Open trace evidence for full output");
+    expect(out).not.toContain("review the failed input");
     inst.unmount();
   });
 

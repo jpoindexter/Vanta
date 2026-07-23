@@ -210,7 +210,11 @@ export function createFsSessionStore(env?: NodeJS.ProcessEnv): SessionStore {
     }
     const metas: SessionMeta[] = [];
     for (const file of files) {
-      const session = await load(file.replace(/\.json$/, ""));
+      // Listing is read-only. `load()` may reconcile dangling tool results and
+      // persist the repaired transcript, which breaks read-only callers under a
+      // scoped/sandboxed home. Use the raw reader here and leave repair to an
+      // explicit load/resume path.
+      const session = await readRawSession(file.replace(/\.json$/, ""), env);
       if (session) metas.push(toMeta(session));
     }
     return metas.sort((a, b) => b.updated.localeCompare(a.updated));

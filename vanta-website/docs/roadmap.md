@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1270 capabilities shipped · 2 in flight · 13 external proof gates · 7 on the horizon. Updated 2026-07-21._
+_1272 capabilities shipped · 2 in flight · 13 external proof gates · 20 on the horizon. Updated 2026-07-23._
 
 ## In flight
 
@@ -28,8 +28,10 @@ Vanta's packaged desktop budget measures process-to-shell well, but its first-us
 
 ## Recently shipped
 
-The latest of 1270+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1272+ capabilities. See the [changelog](./changelog) for curated milestones.
 
+- **Relative sibling mkdir approval — resolve the real target before the kernel and sandbox** — Harness · 2026-07-21
+- **Desktop one-time approvals and current Vanta app icon** — Desktop · 2026-07-21
 - **Desktop Ollama MiniCPM response — visible text instead of endless Thinking** — Desktop App · 2026-07-21
 - **TUI Ollama model drill-down — choose an installed local model** — Operator · 2026-07-21
 - **Capacity-aware support router — minimums, externalization, and activation** — Operator · 2026-07-21
@@ -48,8 +50,6 @@ The latest of 1270+ capabilities. See the [changelog](./changelog) for curated m
 - **Demote DuckDuckGo - bot-blocked search is explicit legacy fallback, never the default** — Harness · 2026-07-18
 - **Desktop message fidelity — preserve intraword underscores and exact identifiers** — Desktop App · 2026-07-18
 - **Desktop session draft ownership — drafts stay with the correct task** — Desktop App · 2026-07-18
-- **Desktop kernel port collision recovery - Retry finds a safe project endpoint** — Desktop App · 2026-07-17
-- **Desktop context attachments — files as searchable task context, not raw inventory** — Desktop App · 2026-07-17
 
 ## External proof gates
 
@@ -78,13 +78,25 @@ Directional, not committed — grouped by area, newest thinking first.
 - Desktop stream performance — incremental markdown and scoped token updates
 - Desktop support controls — set current capacity without leaving Work
 
-### Harness — 3 planned
+### Extensibility — 4 planned
+
+- Integration state catalog — distinguish native, installable, connected, and unavailable
+- Trello integration — boards, lists, cards, and guarded updates
+- Dropbox integration — scoped file context, search, and explicit writes
+- Box, Google Drive, and Atlassian Rovo connector packs — install, connect, and verify
+
+### Harness — 11 planned
 
 - Startup critical-path collapse — cache, defer, and prewarm first-turn work
 - Gateway delivery-obligation ledger — never lose a finished remote answer
 - Executive-function support evals — useful without overreach
+- Reward-seeking threat model - separate intended outcome from grader approval
+- Reward-process integrity boundary - graders and holdouts cannot be influenced
+- Contrastive authority detector - reverse grader and intent preferences
+- _…and 5 more_
 
-### Operator — 2 planned
+### Operator — 3 planned
 
 - Browser workflow boundary — observe, extract, and act under explicit policy
 - Current support-state expiry — temporary means temporary
+- Contextual reward-seeking ledger - trends without global safe-model labels

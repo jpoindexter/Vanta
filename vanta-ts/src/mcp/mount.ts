@@ -46,7 +46,11 @@ async function resolveTransport(
     // A previously-stored OAuth access token wins over a static config token.
     const stored = await loadMcpToken(name, env);
     const token = stored?.access_token ?? resolveToken(name, spec.token, env);
-    return httpTransport(spec.url, { token, headers: spec.headers });
+    const headers = Object.fromEntries(Object.entries(spec.headers ?? {}).flatMap(([key, value]) => {
+      const resolved = resolveToken(name, value, env);
+      return resolved ? [[key, resolved]] : [];
+    }));
+    return httpTransport(spec.url, { token, headers });
   }
   if (spec.command) {
     const t = stdioTransport(spec.command, spec.args ?? [], buildMcpChildEnv(env, spec.env));

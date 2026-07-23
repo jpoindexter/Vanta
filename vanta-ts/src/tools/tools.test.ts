@@ -75,6 +75,8 @@ describe("registry", () => {
       "drive_create",
       "drive_read",
       "drive_update",
+      "dropbox_read",
+      "dropbox_write",
       "edit_file",
       "enter_worktree",
       "exit_worktree",
@@ -166,6 +168,8 @@ describe("registry", () => {
       "todo",
       "tool_search",
       "transcribe",
+      "trello_read",
+      "trello_write",
       "twitter_read",
       "v2ex_read",
       "vision_action",
@@ -457,6 +461,9 @@ describe("classifyExitCode", () => {
   it("classifies by the LAST command in a pipeline/chain", () => {
     expect(classifyExitCode("cat x | grep y", 1).ok).toBe(true);
     expect(classifyExitCode("grep y file && echo done", 1).ok).toBe(false); // last = echo
+    // The `|` inside grep's quoted regex is data, not another shell pipeline.
+    expect(classifyExitCode("pdftotext -layout guide.pdf - | grep -E '^Part [0-9]{2}:|^Part [0-9]+:'", 1))
+      .toEqual({ ok: true, note: "No matches found" });
   });
   it("handles git grep / git diff and path-qualified binaries", () => {
     expect(classifyExitCode("git grep foo", 1).ok).toBe(true);
@@ -470,6 +477,7 @@ describe("lastCommandWord", () => {
     expect(lastCommandWord("grep x f")).toBe("grep");
     expect(lastCommandWord("cat x | grep y")).toBe("grep");
     expect(lastCommandWord("find . && echo hi")).toBe("echo");
+    expect(lastCommandWord("pdftotext -layout guide.pdf - | grep -E '^Part [0-9]{2}:|^Part [0-9]+:'")).toBe("grep");
     expect(lastCommandWord("git grep foo")).toBe("git grep");
     expect(lastCommandWord("/usr/bin/grep -n x")).toBe("grep");
   });

@@ -114,6 +114,10 @@ import { playbookTool } from "./playbook.js";
 import { enterWorktreeTool, exitWorktreeTool } from "./worktree.js";
 import { listPeersTool, peerSendTool } from "./peers.js";
 import { openDeepLinkTool } from "./deep-link.js";
+import { trelloReadTool } from "./trello-read.js";
+import { trelloWriteTool } from "./trello-write.js";
+import { dropboxReadTool } from "./dropbox-read.js";
+import { dropboxWriteTool } from "./dropbox-write.js";
 import {
   gmailSearchTool,
   gmailReadTool,
@@ -285,4 +289,8 @@ export const ALL_TOOLS: readonly Tool[] = [
   listPeersTool,
   peerSendTool,
   openDeepLinkTool,
+  trelloReadTool,
+  trelloWriteTool,
+  dropboxReadTool,
+  dropboxWriteTool,
 ];

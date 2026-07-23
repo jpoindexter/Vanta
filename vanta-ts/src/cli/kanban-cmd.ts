@@ -32,8 +32,10 @@ function listFlag(args: string[], name: string): string[] {
 type Context = { repoRoot: string; args: string[]; log: (line: string) => void; env: NodeJS.ProcessEnv };
 type Handler = (context: Context) => Promise<number> | number;
 
-function boardFor(context: Context): KanbanBoard {
-  return loadKanbanBoard(context.repoRoot, resolveBoardId(context.repoRoot, flag(context.args, "--board")));
+function boardFor(context: Context, positionalId = false): KanbanBoard {
+  const requested = flag(context.args, "--board")
+    ?? (positionalId ? context.args[0] : undefined);
+  return loadKanbanBoard(context.repoRoot, resolveBoardId(context.repoRoot, requested));
 }
 
 function saveAndPrint(context: Context, board: KanbanBoard): number {
@@ -56,10 +58,10 @@ const handlers: Record<string, Handler> = {
     if (!goal) return usage(log);
     return saveAndPrint({ repoRoot, args, log, env: process.env }, decomposeGoal(goal));
   },
-  status: (context) => { context.log(formatKanbanBoard(boardFor(context))); return 0; },
-  digest: (context) => { context.log(formatKanbanDigest(boardFor(context))); return 0; },
+  status: (context) => { context.log(formatKanbanBoard(boardFor(context, true))); return 0; },
+  digest: (context) => { context.log(formatKanbanDigest(boardFor(context, true))); return 0; },
   swarm: async (context) => {
-    const next = await runKanbanSwarm(boardFor(context));
+    const next = await runKanbanSwarm(boardFor(context, true));
     saveKanbanBoard(context.repoRoot, next);
     context.log(formatKanbanDigest(next));
     return 0;

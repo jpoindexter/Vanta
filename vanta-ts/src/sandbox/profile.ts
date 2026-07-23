@@ -52,7 +52,9 @@ export function buildSeatbeltProfile(
     "(allow process-fork)",
     "(allow sysctl-read)",
     "(allow mach-lookup)",
-    "(allow signal (target self))",
+    // Test runners and other orchestrators must be able to reap workers they
+    // spawned inside the same sandbox, without gaining host-wide signal access.
+    "(allow signal (target same-sandbox))",
     "; reads: permissive (system libs, binaries, project) — dangerous dirs denied below",
     "(allow file-read*)",
     "; pseudo-devices: reads are covered above; grant WRITE-DATA so tools that open",
@@ -66,7 +68,7 @@ export function buildSeatbeltProfile(
     "; DANGEROUS_DIRS: deny LAST so this overrides the broad read-allow above",
     ...dangerousAbs().map((d) => `(deny file* (subpath ${sb(d)}))`),
   ];
-  if (!opts.net) lines.push("; network", "(deny network*)");
+  lines.push("; network", opts.net ? "(allow network*)" : "(deny network*)");
   return lines.join("\n") + "\n";
 }
 

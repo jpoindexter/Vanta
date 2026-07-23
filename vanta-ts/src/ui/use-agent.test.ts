@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { runTurnGates, useAgent } from "./use-agent.js";
+import { failureSummary, runTurnGates, useAgent } from "./use-agent.js";
 import { freshGateState } from "../repl/post-turn-gates.js";
 import { startBackgroundResponse } from "../repl/bg-response-cmd.js";
 import { invalidateNdConfig } from "../nd/profile.js";
@@ -13,6 +13,29 @@ import type { ReplState } from "../repl/types.js";
 // the readline REPL): runTurnGates → runPostTurnGates → ndGatesAfterTurn → a note.
 
 type Action = { t: string; text?: string; suggestions?: string[] };
+
+describe("failureSummary", () => {
+  it("selects the actionable diagnostic instead of a test runner banner", () => {
+    const output = [
+      " RUN  v3.2.6 /Users/x/Vanta",
+      " Test Files  1 passed (1)",
+      " Unhandled Rejection: Error: kill EPERM",
+    ].join("\n");
+    expect(failureSummary(output)).toBe("Unhandled Rejection: Error: kill EPERM");
+  });
+
+  it.each([
+    "TypeError: detach is not a function",
+    "AssertionError: expected 1 to be 0",
+  ])("recognizes error-class diagnostics: %s", (diagnostic) => {
+    const output = [
+      " RUN  v3.2.6 /Users/x/Vanta",
+      " Test Files  1 failed (1)",
+      diagnostic,
+    ].join("\n");
+    expect(failureSummary(output)).toBe(diagnostic);
+  });
+});
 
 function makeDeps(messages: { role: string; content: string }[], notes: Action[]) {
   return {

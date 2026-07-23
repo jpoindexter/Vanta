@@ -38,7 +38,6 @@ export async function runTuiV2(repoRoot: string): Promise<void> {
   const confirmTrust = process.stdin.isTTY ? promptTrust : undefined;
   await maybeCurate();
   const surface = selectTuiSurface(process.env);
-  await installResizeGhostFix(process.stdout); // force absolute clear on resize (kills rewrap ghosting)
   // Enable the kitty keyboard protocol so the Cmd (super) modifier reaches the
   // composer — it's the only way Cmd+Backspace etc. are delivered. mode "auto"
   // probes the terminal and is a no-op where unsupported (e.g. Terminal.app).
@@ -53,13 +52,20 @@ export async function runTuiV2(repoRoot: string): Promise<void> {
           : <App setup={setup} repoRoot={repoRoot} onSetupRequest={onSetupRequest} />,
         { kittyKeyboard: { mode: "auto" } },
       );
+      // Ink only records its live renderer during render(); installing before
+      // this point silently no-ops because the private instance map is empty.
+      const detachResizeGhostFix = await installResizeGhostFix(process.stdout);
       // Own bracketed paste: Ink's usePaste-driven toggle proved unreliable (Terminal.app
       // delivered multi-line pastes as raw keystrokes → a newline submitted mid-paste).
       const disableBracketedPaste = enableBracketedPaste(process.stdout);
       process.once("exit", disableBracketedPaste);
-      await instance.waitUntilExit();
-      process.removeListener("exit", disableBracketedPaste);
-      disableBracketedPaste();
+      try {
+        await instance.waitUntilExit();
+      } finally {
+        process.removeListener("exit", disableBracketedPaste);
+        disableBracketedPaste();
+        detachResizeGhostFix();
+      }
       if (process.exitCode === RESTART_EXIT_CODE) process.exit(RESTART_EXIT_CODE);
     },
     runSetup: (request) => runSetupHandoff(repoRoot, request),

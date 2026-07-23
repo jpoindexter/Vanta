@@ -48,4 +48,19 @@ describe("kanban board", () => {
     expect(latestKanbanId(tmp)).toBe(board.id);
     expect(loadKanbanBoard(tmp, board.id).goal).toBe("persist me");
   });
+
+  it("resolves latest by board update time rather than filename", async () => {
+    tmp = await mkdtemp(join(tmpdir(), "vanta-kanban-"));
+    const older = {
+      ...decomposeGoal("older", { now: () => new Date("2026-07-09T00:00:00.000Z") }),
+      id: "z-older",
+    };
+    const newer = {
+      ...decomposeGoal("newer", { now: () => new Date("2026-07-10T00:00:00.000Z") }),
+      id: "a-newer",
+    };
+    saveKanbanBoard(tmp, older);
+    saveKanbanBoard(tmp, newer);
+    expect(latestKanbanId(tmp)).toBe("a-newer");
+  });
 });

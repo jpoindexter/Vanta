@@ -4,8 +4,6 @@ import { Banner } from "../src/ui/banner.js";
 import { Composer } from "../src/ui/composer.js";
 import { TodoPanel } from "../src/ui/todo-panel.js";
 import { Footer } from "../src/ui/app.js";
-import { ThemeProvider } from "../src/ui/theme.js";
-import { resolveTheme } from "../src/term/theme.js";
 import { installResizeGhostFix } from "../src/term/resize-fix.js";
 import { EntryView } from "../src/ui/transcript.js";
 import { PinnedRegion, resolveComposerAnchor } from "../src/ui/pinned-region.js";
@@ -32,7 +30,6 @@ function fakeEntries(n: number): Entry[] {
 }
 
 function Repro(): ReactElement {
-  const theme = resolveTheme(process.env);
   const vp = useViewportRows();
   const [goal, setGoal] = useState<string | null>(null);
   useEffect(() => { const id = setTimeout(() => setGoal(GOAL), 80); return () => clearTimeout(id); }, []);
@@ -42,7 +39,7 @@ function Repro(): ReactElement {
     ...entries.map((e, i) => ({ key: `e${i}`, node: h(EntryView, { entry: e }) })),
   ];
   const committedRows = estimateCommittedRows(entries, vp.cols);
-  return h(ThemeProvider, { theme }, h(Box, { flexDirection: "column" },
+  return h(Box, { flexDirection: "column" },
     h(Static, { items: staticItems }, (item: { key: string; node: ReactElement }) => h(Box, { key: item.key }, item.node)),
     h(PinnedRegion, { enabled: resolveComposerAnchor(process.env) === "bottom", viewportRows: vp.rows, committedRows },
       h(TodoPanel, { todos: [] }),
@@ -50,7 +47,7 @@ function Repro(): ReactElement {
         h(Composer, { focused: true, onSubmit: () => {}, placeholder: "Ask Vanta anything — /help for commands", files: [], history: [] })),
       h(Footer, { model: "gpt-5.5", effortLevel: "medium", ctxPct: 0, tokens: 12000, contextWindow: 272000, turns: 0, busy: false, queued: 0, goal, mcp: false, elapsed: "0s" }),
     ),
-  ));
+  );
 }
 
 render(h(Repro));
