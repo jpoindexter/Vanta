@@ -42,12 +42,16 @@ catch it.** Errors identified, ranked:
 - [x] **PDF-BUFFER-FIX** (S) — commit the Buffer→Uint8Array view fix in `pdf-read.ts`
   (pdf.js rejects a Node Buffer). Was correct but uncommitted.
 - [x] **DRIFT-REPRO-LITTER** (S) — delete abandoned repro scripts left in `vanta-ts/`.
-- [ ] **DRIFT-HARD-ENFORCE** (L) — *deferred, roadmap only.* True pre-dispatch **block**
-  (halt the tool call, force a yield to the user after N un-heard turns) instead of a note.
-  Needs a reliable off-goal signal + a grind-mode opt-out so it can't brick legitimate long
-  autonomous runs. Bigger blast radius (gate contract + orchestrator + turn loop) — a
-  separate slice, not same-day. The repeated-ask detector above lands the behavior change
-  now; this makes it un-ignorable.
+- [x] **DRIFT-HARD-ENFORCE** (M) — real pre-dispatch **halt**: a per-turn tool-budget
+  circuit breaker in `agent/turn-loop.ts` (`agent/tool-budget.ts`). Past the budget the
+  turn stops and **yields to the user** (`stoppedReason: "tool_budget"`) instead of
+  dispatching another batch — filling the gap where a turn of varied, succeeding, off-goal
+  tools sailed past every existing guard (identical-call, consecutive-failure, read-only)
+  until the 50-iter ceiling errored out. Ceiling tightens to 10 while the user is actively
+  **correcting** the agent (the existing adaptive `correction` signal) — the "not listening"
+  case — and is 30 otherwise; `VANTA_TOOL_BUDGET=0` disables it for autonomous/grind runs.
+  *Honest scope:* a blunt runaway backstop, not a semantic off-goal judge (that needs a
+  classifier) — it pairs with the goal-adherence note + adaptive redirect that handle intent.
 
 ---
 

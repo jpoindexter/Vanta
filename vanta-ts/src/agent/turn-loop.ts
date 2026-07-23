@@ -29,6 +29,7 @@ import { requiredToolNudge } from "./tool-use-contract.js";
 import { interruptedDisposition, interruptedToolResult } from "./effect-disposition.js";
 import { checkpointToolTranscript, persistEffectTransition } from "./effect-persistence.js";
 import { detectAdaptiveRedirect, detectAdaptiveSupport, injectAdaptiveSupport, type AdaptiveSupportPlan } from "./adaptive-support.js";
+import { resolveToolBudget, shouldHaltForToolBudget, buildToolBudgetSummary } from "./tool-budget.js";
 
 export type TurnOpts = {
   messages: Message[];
@@ -186,6 +187,11 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
   const effectiveSignal = signal ?? deps.signal;
   const maxIter = deps.maxIterations ?? 50;
   const adaptiveSupport = detectAdaptiveSupport(userText, messages);
+  // DRIFT-HARD-ENFORCE: per-turn tool-budget breaker. Tightens when the user is
+  // correcting the agent this turn — a corrected turn that keeps tooling is the
+  // "not listening" failure. `VANTA_TOOL_BUDGET=0` disables (autonomous mode).
+  const toolBudget = resolveToolBudget(process.env);
+  const correcting = adaptiveSupport.signals.includes("correction");
   messages.push(images?.length ? { role: "user", content: userText, images } : { role: "user", content: userText });
   const state = makeInitialState();
   const usage = () => (state.sawUsage ? { ...state.turnUsage } : undefined);
@@ -222,6 +228,13 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
     };
     const earlyExit = await handleToolCallsPresent({ result, messages, deps, ctx: liveCtx, state, prefetched, iter, support: adaptiveSupport });
     if (earlyExit) return earlyExit;
+    // DRIFT-HARD-ENFORCE: past the tool budget, halt and yield to the user
+    // instead of dispatching another batch (checked at the clean iteration
+    // boundary, same as the soft-stop).
+    if (shouldHaltForToolBudget(state.toolIterations, correcting, toolBudget)) {
+      const summary = buildToolBudgetSummary(state.toolNames, correcting);
+      return { finalText: await displayText(deps, summary), iterations: iter, stoppedReason: "tool_budget", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
+    }
   }
   return { finalText: `Reached the ${maxIter}-iteration limit before completing.`, iterations: maxIter, stoppedReason: "max_iterations", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
 }
