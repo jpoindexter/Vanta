@@ -1,8 +1,12 @@
 import { dirname } from "node:path";
 import { providerById } from "../providers/catalog.js";
 import { buildProviderForSelection, persistSelectionGlobal, parseModelArg } from "../term/model-switch.js";
+import type { ModelSelection } from "../term/model-switch.js";
+import type { LLMProvider } from "../providers/interface.js";
 import { loadPresets, presetFor } from "../models/presets.js";
 import type { SlashHandler } from "./types.js";
+
+type ModelCtx = Parameters<SlashHandler>[1];
 
 // `/model` — bare prints the active model; `/model <arg>` switches it. The TUI
 // intercepts a bare `/model` to open the visual picker (app.tsx); the arg form
@@ -16,7 +20,7 @@ export const model: SlashHandler = async (arg, ctx) => {
   const trimmed = parsedScope.arg;
   if (!trimmed) {
     if (parsedScope.explicit) return switchCurrentDefault(ctx, parsedScope.global);
-    return { output: `  ${ctx.setup.provider.modelId()} · ${ctx.setup.provider.contextWindow().toLocaleString()} ctx` };
+    return { output: activeModelOutput(ctx) };
   }
   const currentProviderId = ctx.state.providerId ?? ctx.env.VANTA_PROVIDER ?? "openai";
   const sel = parseModelArg(trimmed, currentProviderId);
@@ -27,12 +31,32 @@ export const model: SlashHandler = async (arg, ctx) => {
   try {
     provider = buildProviderForSelection(sel, ctx.env);
   } catch (err) {
-    return { output: `  model switch failed: ${err instanceof Error ? err.message.split("\n")[0] : String(err)}` };
+    return { output: switchFailureOutput(ctx, currentProviderId, err) };
   }
+  const presetNote = await applySelection(ctx, sel, provider, parsedScope.global);
+  const activeProvider = provider.routeInfo?.()?.provider ?? sel.providerId;
+  return { output: `  ⚓ model → ${activeProvider}/${provider.modelId()} (${sel.persistGlobal ? "set as default" : "this session"})${presetNote}`, provider };
+};
+
+function activeModelOutput(ctx: ModelCtx): string {
+  const provider = ctx.setup.provider.routeInfo?.()?.provider
+    ?? ctx.state.providerId
+    ?? ctx.env.VANTA_PROVIDER
+    ?? "openai";
+  return `  ${provider}/${ctx.setup.provider.modelId()} · ${ctx.setup.provider.contextWindow().toLocaleString()} ctx`;
+}
+
+function switchFailureOutput(ctx: ModelCtx, fallbackProvider: string, err: unknown): string {
+  const provider = ctx.setup.provider.routeInfo?.()?.provider ?? fallbackProvider;
+  const reason = err instanceof Error ? err.message.split("\n")[0] : String(err);
+  return `  ⛔ model switch failed — switch not applied; still using ${provider}/${ctx.setup.provider.modelId()}. ${reason}`;
+}
+
+async function applySelection(ctx: ModelCtx, sel: ModelSelection, provider: LLMProvider, persistGlobal: boolean): Promise<string> {
   const { buildSummarizer } = await import("../session.js");
   ctx.convo.setProvider(provider, buildSummarizer(provider));
   ctx.setup.provider = provider; // post-turn memory/review + banner read this
-  sel.persistGlobal = parsedScope.global;
+  sel.persistGlobal = persistGlobal;
   ctx.state.providerId = sel.providerId;
   ctx.state.modelId = provider.modelId();
   const entry = providerById(sel.providerId);
@@ -42,17 +66,13 @@ export const model: SlashHandler = async (arg, ctx) => {
     if (entry?.envVar && sel.apiKey) ctx.env[entry.envVar] = sel.apiKey;
     await persistSelectionGlobal(sel, dirname(ctx.dataDir)).catch(() => {});
   }
-  // OP-MODEL-PRESETS: re-apply the effort last used WITH this model.
   const preset = presetFor(await loadPresets(ctx.env), provider.modelId());
-  let presetNote = "";
-  if (preset?.effort) {
-    ctx.state.effortLevel = preset.effort;
-    ctx.setup.effortLevel = preset.effort;
-    if (sel.persistGlobal) ctx.env.VANTA_EFFORT_LEVEL = preset.effort;
-    presetNote = ` · effort ${preset.effort} (remembered)`;
-  }
-  return { output: `  ⚓ model → ${provider.modelId()} (${sel.persistGlobal ? "set as default" : "this session"})${presetNote}`, provider };
-};
+  if (!preset?.effort) return "";
+  ctx.state.effortLevel = preset.effort;
+  ctx.setup.effortLevel = preset.effort;
+  if (sel.persistGlobal) ctx.env.VANTA_EFFORT_LEVEL = preset.effort;
+  return ` · effort ${preset.effort} (remembered)`;
+}
 
 function parseScope(arg: string): { arg: string; global: boolean; explicit: boolean; error?: string } {
   const tokens = arg.trim().split(/\s+/).filter(Boolean);
