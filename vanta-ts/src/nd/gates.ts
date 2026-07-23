@@ -12,7 +12,6 @@ const primaryTool = (names: string[]): string | null => {
   return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]![0];
 };
 const isReadOnly = (s: EfSignals): boolean => !s.wroteFiles && !s.committed;
-const producedOutput = (s: EfSignals): boolean => s.producedText || s.wroteFiles || s.committed;
 const goalLine = (g: string | null): string => (g ? `\n  goal: "${g}"` : "");
 
 const COMPLEXITY_SIGNALS = [/refactor/i, /rewrite/i, /\bschema\b/i, /migrat/i, /multi[- ]?file/i, /not sure/i, /architecture/i, /redesign/i];
@@ -22,6 +21,48 @@ const INITIATION_SIGNALS = [/don'?t know where to (start|begin)/i, /where do i (
 function complexityScore(msg: string): number {
   return COMPLEXITY_SIGNALS.filter((re) => re.test(msg)).length;
 }
+
+// --- Goal-adherence (inhibit gate) helpers -------------------------------
+// The strongest, lowest-false-positive drift signal is the USER re-asking: a
+// counter of "am I busy?" gets fooled by an agent that runs tools nonstop while
+// ignoring the actual ask. So the inhibit gate watches for a repeated / reworded
+// / frustrated re-ask instead of activity.
+
+/** Low-signal filler dropped before comparing two asks. */
+const ASK_STOPWORDS = new Set([
+  "the", "a", "an", "to", "of", "for", "and", "or", "is", "it", "this", "that", "i", "u",
+  "you", "we", "me", "my", "can", "do", "did", "how", "what", "why", "please", "pls",
+  "just", "now", "get", "got", "one", "some", "me", "us",
+]);
+
+/** Content tokens of an ask, minus punctuation and filler. */
+function askTokens(msg: string): Set<string> {
+  const out = new Set<string>();
+  for (const w of msg.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/)) {
+    if (w.length > 1 && !ASK_STOPWORDS.has(w)) out.add(w);
+  }
+  return out;
+}
+
+/** Two asks "echo" when their content tokens overlap heavily (Jaccard ≥ 0.6). */
+function asksEcho(a: string, b: string): boolean {
+  const ta = askTokens(a), tb = askTokens(b);
+  if (!ta.size || !tb.size) return false;
+  let inter = 0;
+  for (const w of ta) if (tb.has(w)) inter++;
+  return inter / (ta.size + tb.size - inter) >= 0.6;
+}
+
+/** Phrases that mean "you already had this ask and didn't deliver." */
+const FRUSTRATION_SIGNALS = [
+  /asked (you|u)\b/i, /told (you|u)\b/i, /listen(ing|ed)?\b/i, /same (thing|question)/i,
+  /\b\d+\s*times\b/i, /already (said|told|asked)/i, /keep (asking|saying|telling)/i,
+  /still (not|haven'?t)/i, /for the \w+ time/i,
+];
+const isFrustratedReask = (msg: string): boolean => FRUSTRATION_SIGNALS.some((re) => re.test(msg));
+
+/** Bound an echoed ask quoted back inside a nudge. */
+const clipAsk = (s: string, max = 120): string => (s.length > max ? s.slice(0, max - 1) + "…" : s);
 
 export const GATES: readonly EfGate[] = [
   {
@@ -144,16 +185,25 @@ export const GATES: readonly EfGate[] = [
   },
   {
     id: "inhibit",
-    label: "inhibit — name drift after turns with no concrete output",
+    label: "inhibit — catch a repeated / unheard ask (goal-adherence)",
     defaultEnabled: true,
-    defaultThreshold: 3,
+    defaultThreshold: 1, // fire on the FIRST repeat — never make the user ask twice
     evaluate(s, prev, t) {
-      const n = producedOutput(s) ? 0 : prev.n + 1;
-      const fire = FIRES_ON_MULTIPLE(n, t);
-      return {
-        next: { n, last: fire ? s.turnIndex : prev.last, mark: null },
-        nudge: fire ? `⚠ ${n} turns without concrete output — possible drift.${goalLine(s.activeGoalText)}\n  On track? (confirm or redirect.)` : null,
-      };
+      const ask = s.lastUserMessage.trim();
+      // No fresh ask this turn (autonomous run / resend): hold state, stay quiet.
+      if (!ask || t <= 0) return { next: prev, nudge: null };
+      // A re-ask is the drift signal: an explicit frustration cue ("i asked you 4
+      // times") or the same ask reworded (`mark` holds the previous ask). Distinct
+      // asks reset the streak but are still remembered for the next comparison.
+      const reasked = isFrustratedReask(ask) || (prev.mark !== null && asksEcho(ask, prev.mark));
+      const n = reasked ? prev.n + 1 : 0;
+      const next: GateMemory = { n, last: reasked ? s.turnIndex : prev.last, mark: ask };
+      if (n < t) return { next, nudge: null };
+      const nudge =
+        n >= 2
+          ? `⛔ The user has asked this ${n + 1}× now — you are NOT doing what they asked:\n  "${clipAsk(ask)}"\n  Drop every other thread. Do exactly this now, or say plainly why you can't.`
+          : `⚠ The user just repeated their ask — you drifted off it:\n  "${clipAsk(ask)}"\n  Re-anchor on THIS message, not an earlier thread. Answer it directly.`;
+      return { next, nudge };
     },
   },
 ];

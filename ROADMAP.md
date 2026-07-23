@@ -6,6 +6,51 @@ Runtime flow: `docs/vanta-flow.md`. Locked choices: `DECISIONS.md`. Deferred: `P
 
 ---
 
+## 2026-07-23 — Goal-adherence drift (transcript-sourced, P0)
+
+Source: a live session where Vanta ignored the user's ask ~15 turns running. The user
+asked a question, Vanta answered it, then **re-answered a stale earlier question** every
+turn while the user repeated himself ("i asked you 4 times", "why aren't u listening").
+The ND anti-drift system — the whole reason this agent exists — **structurally could not
+catch it.** Errors identified, ranked:
+
+1. **Activity masks drift (measurement bug).** `nd/gates.ts` inhibit gate + the duplicate
+   `repl/inhibit.ts` reset their counter on *any* `write_file`/`shell_cmd`/commit. During
+   the drift Vanta ran shell/writes constantly → counter stuck at 0 → gate never fired. It
+   measures *whether the agent is busy*, not *whether it's doing what was asked*.
+2. **Stale anchor.** The drift note anchors on the kernel's formal `activeGoalText`, not the
+   *actual last user message*. The real ask "scrolled out of reach"; the gate had `lastUserMessage`
+   in its signal and never used it.
+3. **Advisory, not enforced.** Gates only `onNote(...)`. The model *saw* the notes (the
+   research-gate fired: "🔎 8 turns…") and rationalized past them every time.
+4. **Redundant broken duplicate.** Two `inhibit` implementations run every turn with the
+   same bug (`repl/inhibit.ts` + `nd/gates.ts`).
+5. **Over-asking, not-listening.** When the user finally said "fix the drift, the real fix",
+   Vanta looped 3-option config menus instead of acting on a decision already given.
+6. **Litter + uncommitted fix.** A correct `pdf-read.ts` Buffer→Uint8Array fix left
+   uncommitted; throwaway `._pdftest.mjs` / `repro-pdf.mjs` repro scripts abandoned in-tree.
+
+### Fixes
+
+- [x] **DRIFT-ADHERENCE-GATE** (M) — repurpose the canonical ND `inhibit` gate into a real
+  goal-adherence detector: fires on a **repeated / frustrated re-ask** (the "i asked you 4
+  times" signal — the strongest, lowest-false-positive drift signal), anchors the nudge on
+  the **actual last user message**, escalates imperatively on further repeats. Fires on the
+  *first* repeat so the user never has to ask twice. Co-located tests.
+- [x] **DRIFT-INHIBIT-DEDUP** (S) — retire the redundant, identically-buggy standalone
+  `repl/inhibit.ts` orchestrator path; the fixed ND gate supersedes it.
+- [x] **PDF-BUFFER-FIX** (S) — commit the Buffer→Uint8Array view fix in `pdf-read.ts`
+  (pdf.js rejects a Node Buffer). Was correct but uncommitted.
+- [x] **DRIFT-REPRO-LITTER** (S) — delete abandoned repro scripts left in `vanta-ts/`.
+- [ ] **DRIFT-HARD-ENFORCE** (L) — *deferred, roadmap only.* True pre-dispatch **block**
+  (halt the tool call, force a yield to the user after N un-heard turns) instead of a note.
+  Needs a reliable off-goal signal + a grind-mode opt-out so it can't brick legitimate long
+  autonomous runs. Bigger blast radius (gate contract + orchestrator + turn loop) — a
+  separate slice, not same-day. The repeated-ask detector above lands the behavior change
+  now; this makes it un-ignorable.
+
+---
+
 ## Where we are
 
 **v0/v1 = done.** All 7 original PRD phases and v1.1–v1.5 tracks shipped — agent loop,
