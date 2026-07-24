@@ -75,6 +75,7 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - Updated the Docusaurus deployment path and repository links for the Cloudflare Pages project serving `docs.vanta.theft.studio`.
 
 ### Added
+- **Buzz ACP connection** — `vanta buzz status|configure|test|serve` checks the local Buzz harness/CLI, performs a bounded authenticated relay read, and launches Vanta as Buzz's custom ACP agent. ACP sessions now preserve client-supplied system instructions and session MCP servers instead of silently discarding the tools and reply contract.
 - **Desktop app v1** — rebuilt the existing renderer as a fixed one-viewport daily workspace with explicit loading/error/setup states, searchable sessions, compact panel navigation, safer approvals, command/model dialogs, and persisted project selection. The Electron host now owns free-port selection, splash/startup receipts, bundled assets/runtime/kernel paths, first-run `.vanta/.env` model setup, Developer ID signing by certificate hash, and ARM64 `.app`/DMG/ZIP production.
 - **Maintenance health** — `vanta maintenance` combines a deduplicated needs-human ticket queue, documentation-router load/reference/staleness/contradiction evidence, and a delivery-versus-maintenance time/token budget. A meaningful over-budget sample creates one actionable operator ticket instead of more automatic meta-work.
 - **System prompt presets** — `/prompt list|show|use|reset` switches a bounded operating-role overlay from project or Vanta-home markdown definitions without replacing the base safety prompt.

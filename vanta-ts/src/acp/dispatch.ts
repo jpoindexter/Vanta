@@ -104,8 +104,10 @@ async function routeMethod(method: string, params: unknown, manager: SessionMana
     case "initialize":
       InitializeParams.parse(params ?? {});
       return buildInitializeResult();
-    case "session/new":
-      return manager.newSession(NewSessionParams.parse(params ?? {}).cwd);
+    case "session/new": {
+      const p = NewSessionParams.parse(params ?? {});
+      return manager.newSession(p.cwd, { mcpServers: p.mcpServers, systemPrompt: p.systemPrompt });
+    }
     case "session/load":
       return loadSession(params, manager);
     case "session/prompt":
@@ -127,7 +129,7 @@ function requireSession(sessionId: string, manager: SessionManager): void {
 
 function loadSession(params: unknown, manager: SessionManager): { sessionId: string } {
   const p = parse(LoadSessionParams, params);
-  return manager.loadSession(p.sessionId, p.cwd);
+  return manager.loadSession(p.sessionId, p.cwd, { mcpServers: p.mcpServers, systemPrompt: p.systemPrompt });
 }
 
 async function promptSession(params: unknown, manager: SessionManager): Promise<{ stopReason: string }> {

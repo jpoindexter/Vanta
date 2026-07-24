@@ -3,16 +3,18 @@ import { MESSAGING_CATALOG, messagingPlatformById, platformAvailability } from "
 import { readMcpRegistry, type McpConnectorRecord } from "../mcp/registry.js";
 import { latestIntegrationReceipt, readIntegrationReceipts } from "./receipts.js";
 import type { IntegrationId, IntegrationReceipt, IntegrationRecord, IntegrationState } from "./types.js";
+import { buzzReadiness } from "./buzz.js";
 
 type CatalogDeps = {
   googleAuthorized?: (env: NodeJS.ProcessEnv) => Promise<boolean>;
   mcpRecords?: (root: string, env: NodeJS.ProcessEnv) => Promise<McpConnectorRecord[]>;
   receipts?: typeof readIntegrationReceipts;
+  commandAvailable?: (command: string) => boolean;
 };
 
 const LABELS: Record<IntegrationId, string> = {
   trello: "Trello", dropbox: "Dropbox", box: "Box", "google-drive": "Google Drive",
-  "atlassian-rovo": "Atlassian Rovo", slack: "Slack", telegram: "Telegram",
+  "atlassian-rovo": "Atlassian Rovo", slack: "Slack", telegram: "Telegram", buzz: "Buzz",
 };
 
 function credentialState(env: NodeJS.ProcessEnv, names: string[]): IntegrationState {
@@ -55,6 +57,30 @@ function directRecord(id: "trello" | "dropbox", env: NodeJS.ProcessEnv, receipt?
   };
 }
 
+function buzzRecord(
+  env: NodeJS.ProcessEnv,
+  receipt: IntegrationReceipt | undefined,
+  hasCommand?: (command: string) => boolean,
+): Omit<IntegrationRecord, "receipt"> {
+  const readiness = buzzReadiness(env, hasCommand);
+  const state = testedState(readiness.ok, receipt);
+  const detail = state === "ready"
+    ? `ACP launcher and relay access verified at ${readiness.relayUrl}.`
+    : state === "degraded"
+      ? "The last Buzz relay test failed; check the identity, relay URL, and membership."
+      : readiness.ok
+        ? `Local ACP prerequisites are ready for ${readiness.relayUrl}; run a relay test.`
+        : `Missing ${readiness.missing.join(", ")}.`;
+  return {
+    id: "buzz",
+    label: LABELS.buzz,
+    kind: "native",
+    state,
+    detail,
+    actions: readiness.ok ? ["test", "configure"] : ["configure"],
+  };
+}
+
 export async function readIntegrationCatalog(
   root: string,
   env: NodeJS.ProcessEnv = process.env,
@@ -74,6 +100,7 @@ export async function readIntegrationCatalog(
     packRecord("atlassian-rovo", "atlassian-rovo-mcp", mcp),
     messagingRecord("slack", env, receipt("slack")),
     messagingRecord("telegram", env, receipt("telegram")),
+    buzzRecord(env, receipt("buzz"), deps.commandAvailable),
   ];
   return values.map((value) => ({ ...value, receipt: receipt(value.id) }));
 }
@@ -82,4 +109,4 @@ export function integrationStateLabel(state: IntegrationState): string {
   return ({ ready: "Ready", needs_setup: "Needs setup", installable: "Install available", installed: "Installed", degraded: "Needs attention", unavailable: "Unavailable" })[state];
 }
 
-export const INTEGRATION_IDS: readonly IntegrationId[] = ["trello", "dropbox", "box", "google-drive", "atlassian-rovo", "slack", "telegram"];
+export const INTEGRATION_IDS: readonly IntegrationId[] = ["trello", "dropbox", "box", "google-drive", "atlassian-rovo", "slack", "telegram", "buzz"];

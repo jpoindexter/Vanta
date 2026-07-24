@@ -21,4 +21,14 @@ describe("integration actions", () => {
     await expect(executeIntegrationAction(root, "dropbox", "configure", {})).resolves.toContain("VANTA_DROPBOX_TOKEN");
     expect(await readIntegrationReceipts(root)).toEqual([]);
   });
+
+  it("returns a redacted Buzz ACP setup contract without recording a connection", async () => {
+    root = await mkdtemp(join(tmpdir(), "vanta-integration-action-"));
+    const output = await executeIntegrationAction(root, "buzz", "configure", {
+      BUZZ_PRIVATE_KEY: "nsec-secret",
+    });
+    expect(output).toContain('BUZZ_ACP_AGENT_ARGS="acp,serve"');
+    expect(output).not.toContain("nsec-secret");
+    expect(await readIntegrationReceipts(root)).toEqual([]);
+  });
 });

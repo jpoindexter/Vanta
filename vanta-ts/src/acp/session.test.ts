@@ -78,7 +78,9 @@ describe("SessionManager lifecycle", () => {
 
 describe("SessionManager.prompt", () => {
   it("drives the fake agent and emits session/update notifications from its stream", async () => {
+    let request: RunRequest | undefined;
     const runner: AgentRunner = async (req: RunRequest) => {
+      request = req;
       req.emit({ type: "text_delta", delta: "Hello " });
       req.emit({ type: "tool_start", name: "read_file", args: { path: "a.ts" } });
       req.emit({ type: "tool_end", name: "read_file", ok: true, output: "contents" });
@@ -87,7 +89,11 @@ describe("SessionManager.prompt", () => {
     };
     const { sink, updates } = fakeSink();
     const mgr = new SessionManager(runner, sink, "/repo");
-    const { sessionId } = mgr.newSession();
+    const mcpServers = [{ name: "buzz", command: "buzz-mcp", args: [], env: [] }];
+    const { sessionId } = mgr.newSession("/repo", {
+      systemPrompt: "Reply through Buzz.",
+      mcpServers,
+    });
 
     const { stopReason } = await mgr.prompt(sessionId, "do it");
 
@@ -95,6 +101,8 @@ describe("SessionManager.prompt", () => {
     const kinds = updates.map((u) => u.update.sessionUpdate);
     expect(kinds).toEqual(["agent_message_chunk", "tool_call", "tool_call_update", "agent_message_chunk"]);
     expect(updates.every((u) => u.sessionId === sessionId)).toBe(true);
+    expect(request?.systemPrompt).toBe("Reply through Buzz.");
+    expect(request?.mcpServers).toEqual(mcpServers);
   });
 
   it("routes a tool's permission request to the injected approver", async () => {
@@ -112,6 +120,34 @@ describe("SessionManager.prompt", () => {
 
     expect(perms).toEqual([{ sessionId }]);
     expect(approveSpy).toHaveBeenCalledWith(true);
+  });
+
+  it("streams final text when a provider emits no token deltas", async () => {
+    const runner: AgentRunner = async (req) => {
+      req.emit({ type: "text_complete", text: "final only" });
+      return { stopReason: "end_turn" };
+    };
+    const { sink, updates } = fakeSink();
+    const mgr = new SessionManager(runner, sink, "/repo");
+    const { sessionId } = mgr.newSession();
+    await mgr.prompt(sessionId, "answer");
+    expect(updates.map(({ update }) => update)).toEqual([{
+      sessionUpdate: "agent_message_chunk",
+      content: { type: "text", text: "final only" },
+    }]);
+  });
+
+  it("does not duplicate final text after streaming token deltas", async () => {
+    const runner: AgentRunner = async (req) => {
+      req.emit({ type: "text_delta", delta: "streamed" });
+      req.emit({ type: "text_complete", text: "streamed" });
+      return { stopReason: "end_turn" };
+    };
+    const { sink, updates } = fakeSink();
+    const mgr = new SessionManager(runner, sink, "/repo");
+    const { sessionId } = mgr.newSession();
+    await mgr.prompt(sessionId, "answer");
+    expect(updates).toHaveLength(1);
   });
 
   it("a denied permission request resolves false to the runner", async () => {

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { FILE_TOOLS, EDIT_PERMISSION_OPTIONS, decideEditPrompt, pathFromAction } from "./edit-policy.js";
 import type { StreamEvent } from "../agent/agent-types.js";
+import type { AcpMcpServer } from "./protocol.js";
 
 // ACP session lifecycle — PURE + injectable. Owns the set of live sessions, maps
 // an ACP `session/prompt` onto an injected agent runner, converts the agent's
@@ -14,6 +15,8 @@ export type StopReason = "end_turn" | "cancelled" | "max_tokens" | "tool_calls" 
 export type RunRequest = {
   sessionId: string;
   prompt: string;
+  systemPrompt?: string;
+  mcpServers: AcpMcpServer[];
   signal: AbortSignal;
   /** Emit an agent StreamEvent — the session converts it to a session/update. */
   emit: (event: StreamEvent) => void;
@@ -68,6 +71,13 @@ type Session = {
   abort?: AbortController;
   /** EXT-ACP-EDIT-DIFF: "Allow edits this session" grant (sensitive paths still prompt). */
   autoApproveEdits?: boolean;
+  systemPrompt?: string;
+  mcpServers: AcpMcpServer[];
+};
+
+type SessionOptions = {
+  systemPrompt?: string;
+  mcpServers?: AcpMcpServer[];
 };
 
 /** Map an agent StreamEvent to its `session/update` payload, or null if it has none. */
@@ -110,20 +120,34 @@ export class SessionManager {
   ) {}
 
   /** Create a new session; returns its id. */
-  newSession(cwd?: string): { sessionId: string } {
+  newSession(cwd?: string, options: SessionOptions = {}): { sessionId: string } {
     const id = randomUUID();
-    this.sessions.set(id, { id, cwd: cwd ?? this.defaultCwd, modeId: "default" });
+    this.sessions.set(id, {
+      id,
+      cwd: cwd ?? this.defaultCwd,
+      modeId: "default",
+      systemPrompt: options.systemPrompt,
+      mcpServers: options.mcpServers ?? [],
+    });
     return { sessionId: id };
   }
 
   /** Load (re-register) an existing session id so a client can resume against it. */
-  loadSession(sessionId: string, cwd?: string): { sessionId: string } {
+  loadSession(sessionId: string, cwd?: string, options: SessionOptions = {}): { sessionId: string } {
     const existing = this.sessions.get(sessionId);
     if (existing) {
       if (cwd) existing.cwd = cwd;
+      if (options.systemPrompt !== undefined) existing.systemPrompt = options.systemPrompt;
+      if (options.mcpServers !== undefined) existing.mcpServers = options.mcpServers;
       return { sessionId };
     }
-    this.sessions.set(sessionId, { sessionId, cwd: cwd ?? this.defaultCwd, modeId: "default" } as unknown as Session);
+    this.sessions.set(sessionId, {
+      id: sessionId,
+      cwd: cwd ?? this.defaultCwd,
+      modeId: "default",
+      systemPrompt: options.systemPrompt,
+      mcpServers: options.mcpServers ?? [],
+    });
     return { sessionId };
   }
 
@@ -180,14 +204,31 @@ export class SessionManager {
     if (!s) throw new Error(`unknown session: ${sessionId}`);
     const abort = new AbortController();
     s.abort = abort;
+    let sawTextDelta = false;
     const emit = (event: StreamEvent): void => {
+      if (event.type === "text_delta") sawTextDelta = true;
+      if (event.type === "text_complete" && !sawTextDelta && event.text) {
+        this.sink.update(sessionId, {
+          sessionUpdate: "agent_message_chunk",
+          content: { type: "text", text: event.text },
+        });
+        return;
+      }
       const update = eventToUpdate(event);
       if (update) this.sink.update(sessionId, update);
     };
     const approve = (action: string, reason: string, toolName?: string, detail?: { diff?: string }): Promise<boolean> =>
       this.approveWithEditPolicy(s, { action, reason, toolName, diff: detail?.diff });
     try {
-      const { stopReason } = await this.runner({ sessionId, prompt, signal: abort.signal, emit, approve });
+      const { stopReason } = await this.runner({
+        sessionId,
+        prompt,
+        systemPrompt: s.systemPrompt,
+        mcpServers: s.mcpServers,
+        signal: abort.signal,
+        emit,
+        approve,
+      });
       return { stopReason: abort.signal.aborted ? "cancelled" : stopReason };
     } catch (err) {
       if (abort.signal.aborted) return { stopReason: "cancelled" };

@@ -128,10 +128,10 @@ import { runIntegrationsCommand } from "./integrations-cmd.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
-
 // `vanta <cmd>` dispatch table. The interactive entry points (chat/resume/run)
 // parse flags, so they stay as explicit checks in cli.ts main(); everything else is here.
 export const COMMANDS: Record<string, CommandFn> = {
+  buzz: async (root, rest) => (await import("./buzz-cmd.js")).runBuzzCommand(root, rest),
   "workflow-run": (root, rest) => runWorkflowRunCommand(root, rest),
   integrations: (root, rest) => runIntegrationsCommand(root, rest),
   "release-proofs": (root, rest) => runReleaseProofsCommand(root, rest),

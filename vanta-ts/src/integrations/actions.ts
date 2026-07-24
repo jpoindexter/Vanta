@@ -8,6 +8,7 @@ import { testGoogleDrive } from "./google-drive.js";
 import { appendIntegrationReceipt } from "./receipts.js";
 import { testSlack } from "./slack.js";
 import { listTrelloBoards } from "./trello.js";
+import { formatBuzzSetup, testBuzzConnection } from "./buzz.js";
 import type { IntegrationAction, IntegrationId } from "./types.js";
 
 export async function executeIntegrationAction(
@@ -19,7 +20,7 @@ export async function executeIntegrationAction(
   try {
     const message = action === "install" ? await installPack(root, id, env)
       : action === "test" ? await testIntegration(root, id, env)
-        : action === "manage_mcp" ? "Use the MCP panel to inspect, trust, authorize, and manage this connector." : configurationHint(id);
+        : action === "manage_mcp" ? "Use the MCP panel to inspect, trust, authorize, and manage this connector." : configurationHint(id, env);
     if (action === "install" || action === "test") await appendIntegrationReceipt(root, { integration: id, action, outcome: "passed", detail: message });
     return message;
   } catch (error) {
@@ -43,6 +44,7 @@ async function testIntegration(root: string, id: IntegrationId, env: NodeJS.Proc
   else if (id === "google-drive") await testGoogleDrive(env);
   else if (id === "slack") await testSlack(env);
   else if (id === "telegram") await testTelegram(env);
+  else if (id === "buzz") await testBuzzConnection(env);
   else await testMcpPack(root, id, env);
   return `${label(id)} connection test passed.`;
 }
@@ -71,17 +73,18 @@ function packName(id: IntegrationId): string | null {
   return id === "box" ? "box-remote-mcp" : id === "atlassian-rovo" ? "atlassian-rovo-mcp" : null;
 }
 
-function configurationHint(id: IntegrationId): string {
+function configurationHint(id: IntegrationId, env: NodeJS.ProcessEnv): string {
   return ({
     trello: "Set VANTA_TRELLO_KEY and VANTA_TRELLO_TOKEN, then test the connection.",
     dropbox: "Set VANTA_DROPBOX_TOKEN, then test the connection.",
     box: "Authorize Box in the MCP panel.", "google-drive": "Open Google to complete Workspace consent.",
     "atlassian-rovo": "Authorize Atlassian Rovo in the MCP panel.", slack: "Open Messaging to configure Slack.", telegram: "Open Messaging to configure Telegram.",
+    buzz: formatBuzzSetup(env, env.VANTA_BUZZ_AGENT_COMMAND?.trim() || "vanta"),
   })[id];
 }
 
 function label(id: IntegrationId): string {
-  return ({ trello: "Trello", dropbox: "Dropbox", box: "Box", "google-drive": "Google Drive", "atlassian-rovo": "Atlassian Rovo", slack: "Slack", telegram: "Telegram" })[id];
+  return ({ trello: "Trello", dropbox: "Dropbox", box: "Box", "google-drive": "Google Drive", "atlassian-rovo": "Atlassian Rovo", slack: "Slack", telegram: "Telegram", buzz: "Buzz" })[id];
 }
 
 function errorMessage(error: unknown): string {

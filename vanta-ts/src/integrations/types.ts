@@ -1,4 +1,4 @@
-export type IntegrationId = "trello" | "dropbox" | "box" | "google-drive" | "atlassian-rovo" | "slack" | "telegram";
+export type IntegrationId = "trello" | "dropbox" | "box" | "google-drive" | "atlassian-rovo" | "slack" | "telegram" | "buzz";
 
 export type IntegrationKind = "native" | "connector_pack";
 export type IntegrationState = "ready" | "needs_setup" | "installable" | "installed" | "degraded" | "unavailable";

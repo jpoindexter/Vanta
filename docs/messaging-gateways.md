@@ -13,6 +13,34 @@ default, configurable with `VANTA_CHANNEL_POLL_MS`) while cron, sentinels, loops
 and watchdog maintenance stay on `VANTA_GATEWAY_TICK_MS`. So every new platform is **one adapter
 file + registration** — no core changes.
 
+## Buzz via ACP
+
+Buzz is intentionally not another `PlatformAdapter`. Its `buzz-acp` harness owns
+relay subscriptions, channel membership, Nostr identity, batching, and recovery;
+Vanta runs behind it as an ACP stdio agent:
+
+```text
+Buzz relay → buzz-acp → vanta acp serve
+                         └→ buzz CLI / client-provided MCP tools
+```
+
+Build `buzz-acp` and the `buzz` CLI from `block/buzz`, mint a separate Buzz
+identity for Vanta, then run:
+
+```bash
+export BUZZ_PRIVATE_KEY="nsec1..."
+export BUZZ_RELAY_URL="ws://localhost:3000"
+vanta buzz test       # bounded authenticated channel read
+vanta buzz serve      # foreground mention/reply loop
+```
+
+`vanta buzz configure` prints the complete setup without echoing a configured
+private key. The launcher sets Buzz's comma-delimited custom-agent contract to
+`vanta` plus `acp,serve`. Vanta consumes the harness-supplied `systemPrompt` and
+session MCP definitions; tool calls still pass through the kernel. Buzz defaults
+to owner-only inbound access, so registering the agent owner and channel
+membership remains a Buzz-side requirement.
+
 ## Per-platform approach for a local macOS operator
 
 | Platform | Approach | Send | Receive | Setup / risk |
