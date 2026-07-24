@@ -55,7 +55,7 @@ export async function dispatchTool(
   // CALL-AGENT-STREAM: give the tool a progress channel wired to the `note`
   // StreamEvent, so a long external call streams output/heartbeats mid-execution.
   const execCtx: ToolContext = {
-    ...executionContext(call.name, ctx),
+    ...executionContext(call.name, ctx, deps.forceFreshApproval?.() === true),
     sandboxWritableDirs: gateResult.sandboxWritableDirs,
     onProgress: (text) => deps.onEvent?.({ type: "note", text }),
   };
@@ -159,7 +159,8 @@ function fireFailureHook(o: {
   void fireHooks(dataDir, "PostToolUseFailure", hookContext, opts);
 }
 
-function executionContext(toolName: string, ctx: ToolContext): ToolContext {
+function executionContext(toolName: string, ctx: ToolContext, forceFreshApproval = false): ToolContext {
+  if (forceFreshApproval) return ctx;
   const mode = ctx.permissionMode?.() ?? resolvePermissionMode(process.env);
   if (mode !== "fullAccess" && !acceptsEditsWithoutKernel(mode, toolName)) return ctx;
   return { ...ctx, requestApproval: async () => true };

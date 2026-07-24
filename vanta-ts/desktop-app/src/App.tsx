@@ -16,6 +16,7 @@ import type { DesktopTheme, DesktopView, RailTab } from "./types.js";
 import { isTelegramSetupQuestion, parseDesktopSetupCommand } from "../../src/setup/telegram-intent.js";
 import { reconnectProviderAndResume } from "./provider-auth-recovery.js";
 import { useComposerAttachments, withProjectAttachments } from "./use-composer-attachments.js";
+import { useRunLibrary } from "./run-library-state.js";
 
 type DesktopData = ReturnType<typeof useDesktopData>;
 type CompletionSound = ReturnType<typeof useCompletionSound>;
@@ -58,6 +59,7 @@ export function AppShell() {
   const [inspectorOpen, setInspectorOpen] = useState(() => window.innerWidth > 1080);
   const [theme, setTheme] = useState<DesktopTheme>(() => window.localStorage.getItem("vanta.desktop.theme") === "light" ? "light" : "dark");
   const attachments = useComposerAttachments();
+  const runLibrary = useRunLibrary();
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [conversationReady, setConversationReady] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(() => storedPaneWidth(SIDEBAR_STORAGE_KEY, 268));
@@ -108,8 +110,11 @@ export function AppShell() {
       return;
     }
     if (!isTelegramSetupQuestion(text)) {
-      const sent = await convo.submit(withProjectAttachments(text, attachments.files), attachments.images);
-      if (sent) attachments.clear();
+      const sent = await convo.submit(withProjectAttachments(text, attachments.files), attachments.images, attachments.files);
+      if (sent) {
+        attachments.clear();
+        await runLibrary.refresh();
+      }
       return;
     }
     try {
@@ -203,6 +208,20 @@ export function AppShell() {
         onSettings={data.openSettings}
         onShortcuts={data.openShortcuts}
         onDismiss={() => setMobilePanel("work")}
+        runLibrary={runLibrary}
+        onRunPrepared={async (prepared) => {
+          attachments.clear();
+          for (const file of prepared.files) attachments.addFile(file);
+          await convo.openSession(prepared.sessionId);
+          convo.setDraft(prepared.draft);
+          setView("work");
+          setMobilePanel("work");
+          if (prepared.lineage.mode === "replay") {
+            const sent = await convo.submit(withProjectAttachments(prepared.prompt, prepared.files), undefined, prepared.files);
+            if (sent) attachments.clear();
+          }
+          await runLibrary.refresh();
+        }}
       />
       <PaneResizeHandle
         className="sidebar-resize-handle"

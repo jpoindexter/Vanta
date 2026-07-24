@@ -6,9 +6,9 @@ import Layout from "@theme/Layout";
 import styles from "./index.module.css";
 
 const desktopRelease =
-  "https://github.com/jpoindexter/Vanta/releases/download/v0.9.4/Vanta-0.9.4-arm64.dmg";
+  "https://github.com/jpoindexter/Vanta/releases/download/v0.9.5/Vanta-0.9.5-arm64.dmg";
 const desktopReleaseNotes =
-  "https://github.com/jpoindexter/Vanta/releases/tag/v0.9.4";
+  "https://github.com/jpoindexter/Vanta/releases/tag/v0.9.8";
 
 const screens = [
   {

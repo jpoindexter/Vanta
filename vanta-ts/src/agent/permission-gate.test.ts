@@ -95,6 +95,18 @@ describe("applySafetyGate + permissions", () => {
     expect(prompted).toBe(false); // skipped the approval prompt
   });
 
+  it("replay forces a fresh human decision even when stored rules and full access would auto-confirm", async () => {
+    await writeRules("allow\tshell_cmd\t\n");
+    process.env.VANTA_PERMISSION_MODE = "fullAccess";
+    let prompted = false;
+    const deps = makeDeps({ risk: "ask", approve: false, onAsk: () => { prompted = true; } });
+    deps.forceFreshApproval = () => true;
+    const res = await applySafetyGate(call, deps, ctx);
+    expect(prompted).toBe(true);
+    expect(res.approved).toBe(false);
+    expect(res.reason).toContain("denied by user");
+  });
+
   it("no rules → behaves exactly as the kernel verdict (ask still prompts)", async () => {
     let prompted = false;
     const res = await applySafetyGate(call, makeDeps({ risk: "ask", approve: true, onAsk: () => { prompted = true; } }), ctx);
@@ -231,6 +243,27 @@ describe("applySafetyGate + permissions", () => {
     const result = await dispatchTool(call, deps, { root: home, safety: deps.safety, requestApproval: deps.requestApproval });
     expect(result.ok).toBe(true);
     expect(prompted).toBe(false);
+  });
+
+  it("replay keeps a tool-internal approval live under fullAccess", async () => {
+    process.env.VANTA_PERMISSION_MODE = "fullAccess";
+    let prompted = false;
+    const deps = makeDeps({ risk: "allow" });
+    deps.forceFreshApproval = () => true;
+    deps.registry = {
+      get: () => ({
+        execute: async (_raw: unknown, toolCtx: ToolContext) => ({
+          ok: await toolCtx.requestApproval("Run command", "tool confirmation", "shell_cmd"),
+          output: "ran",
+        }),
+        describeForSafety: () => "run command",
+        schema: { name: "shell_cmd", description: "test", parameters: { type: "object", properties: {} } },
+      }),
+    } as unknown as AgentDeps["registry"];
+    const context = { root: home, safety: deps.safety, requestApproval: async () => { prompted = true; return false; } } as ToolContext;
+    const result = await dispatchTool(call, deps, context);
+    expect(prompted).toBe(true);
+    expect(result.ok).toBe(false);
   });
 
   it("acceptEdits keeps shell_cmd on the normal approval flow", async () => {

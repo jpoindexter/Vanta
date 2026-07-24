@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-23",
+  "updated": "2026-07-24",
   "items": [
     {
       "id": "SANDBOX-RELATIVE-MKDIR-APPROVAL",
@@ -20441,6 +20441,21 @@
         "CONNECT-INTEGRATION-STATE-CATALOG",
         "MEMORY-ADAPTER-DRIVE"
       ]
+    },
+    {
+      "id": "VANTA-REUSABLE-RUN-LIBRARY",
+      "track": "Desktop App",
+      "title": "Reusable run library — save, inspect, fork, and safely replay successful runs",
+      "status": "shipped",
+      "size": "L",
+      "summary": "Capture prompts, attached files, tool history, approval decisions, final outputs, and run provenance. Let operators save useful runs, inspect how they worked, fork them with updated inputs, or replay them through a fresh safety review.",
+      "done": "After restarting the desktop app, an operator can find a saved run, inspect its inputs, timeline, output, and provenance, fork it into an editable new session, and replay it after reviewing file and environment drift. Recorded approvals never authorize new actions; every tool call passes through the current kernel. Missing or changed inputs are surfaced before execution, secrets are absent from persisted run bundles, legacy sessions appear with explicit incomplete-provenance labels, and an end-to-end desktop proof executes save, restart, search, inspect, fork, safe replay, and fresh approval denial.",
+      "tier": "rock",
+      "effort": "high",
+      "lens": "agent-loop",
+      "source": "Product Hunt feedback from İbrahim Temurtaş",
+      "updated": "2026-07-24",
+      "notes": "Local-only first release. One RunRecord is captured per user turn. Unsaved records follow session cleanup; saved records survive until explicitly removed. Fork prepares editable prompt and file inputs without prior assistant/tool context. Replay shows drift first, prepares a fresh task, and never invokes recorded tool calls or reuses approval authority."
     }
   ]
 }

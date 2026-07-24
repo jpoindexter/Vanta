@@ -14,6 +14,8 @@ import {
   handleTelegramSetupStatus,
   handleGatewayStart,
   handleSessionDraft,
+  handleRuns,
+  handleRunAction,
 } from "./handlers.js";
 export { approvalDecision, type PendingApproval, type DesktopEvent, type DesktopState, eventLabel } from "./handlers.js";
 import {
@@ -51,6 +53,7 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
   const handler: Record<string, () => Promise<void>> = {
     "/api/status": () => handleStatus(state, res),
     "/api/sessions": () => handleSessions(res),
+    "/api/runs": () => handleRuns(state, req, res),
     "/api/tools": () => handleTools(state, res),
     "/api/capabilities": () => handleCapabilities(state, res),
     "/api/messaging": () => handleMessaging(res),
@@ -88,6 +91,7 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
     "/api/sessions/pin": () => handlePinSession(req, res),
     "/api/sessions/reorder-pins": () => handleReorderPinnedSessions(req, res),
     "/api/sessions/draft": () => handleSessionDraft(state, req, res),
+    "/api/runs": () => handleRunAction(state, req, res),
     "/api/model": () => handleSetModel(state, req, res),
     "/api/messaging": () => handleSaveMessaging(state, req, res),
     "/api/setup": () => handleDesktopSetup(state, req, res),

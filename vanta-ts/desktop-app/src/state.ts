@@ -335,10 +335,11 @@ function conversationHandlers(state: ConversationState, cues: TurnCues, lastFail
   }
   const pinning = sessionPinningHandlers(state.refresh);
   function insertFile(file: string) { state.setDraft((value) => `${value} @${file}`.trimStart()); }
-  async function submit(text: string, images?: ImageAttachment[]): Promise<boolean> {
+  async function submit(text: string, images?: ImageAttachment[], files?: string[]): Promise<boolean> {
     return submitMessage(state, text, {
       cues,
       images,
+      files,
       onRecovery: (failed) => { lastFailedMessage.current = failed ? text : ""; },
     });
   }
@@ -377,6 +378,7 @@ export function latestRecoverableRun(messages: Message[]): { receipt: DesktopRun
 type SubmitMessageOptions = {
   cues?: TurnCues;
   images?: ImageAttachment[];
+  files?: string[];
   onRecovery?: (failed: boolean) => void;
 };
 
@@ -390,7 +392,7 @@ export async function submitMessage(state: ConversationState, text: string, opti
   state.setRecovery(null);
   state.setBusy(true);
   try {
-    const result = await api<{ finalText: string; events?: EventRow[]; interrupted?: boolean; receipt?: DesktopRunReceipt }>("/api/chat", postJson(chatPayload(text, options.images)));
+    const result = await api<{ finalText: string; events?: EventRow[]; interrupted?: boolean; receipt?: DesktopRunReceipt }>("/api/chat", postJson(chatPayload(text, options.images, options.files)));
     const failed = result.receipt ? result.receipt.status !== "done" : !result.interrupted && Boolean(result.events?.some((event) => event.ok === false));
     state.setMessages((m) => [...m, { role: "assistant", content: result.finalText || "(no text)", ...(result.receipt ? { desktopRun: result.receipt } : {}) }]);
     state.setStreamText(() => "");
@@ -413,8 +415,12 @@ export async function submitMessage(state: ConversationState, text: string, opti
   }
 }
 
-function chatPayload(message: string, images?: ImageAttachment[]): { message: string; images?: ImageAttachment[] } {
-  return images?.length ? { message, images } : { message };
+function chatPayload(message: string, images?: ImageAttachment[], files?: string[]): { message: string; images?: ImageAttachment[]; files?: string[] } {
+  return {
+    message,
+    ...(images?.length ? { images } : {}),
+    ...(files?.length ? { files } : {}),
+  };
 }
 
 function fallbackReceipt(instruction: string, partialText: string, events: EventRow[] = []): DesktopRunReceipt {

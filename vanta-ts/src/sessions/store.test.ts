@@ -21,6 +21,7 @@ import {
 } from "./store.js";
 import { reorderPinnedSessions, setSessionPinned } from "./pinning.js";
 import type { Message } from "../types.js";
+import { listRuns, saveRun, type RunRecord } from "../runs/store.js";
 
 const TRANSCRIPT: Message[] = [
   { role: "system", content: "you are vanta" },
@@ -83,6 +84,36 @@ describe("session store", () => {
 
   it("returns null for a missing session", async () => {
     expect(await loadSession("nope", env())).toBeNull();
+  });
+
+  it("deletes unsaved run records with a session while preserving saved runs", async () => {
+    const record = (id: string, saved: boolean): RunRecord => ({
+      version: 1,
+      id,
+      sessionId: "cleanup-runs",
+      turnIndex: 0,
+      title: id,
+      prompt: "Inspect this",
+      projectRoot: home,
+      startedAt: "2026-07-24T12:00:00.000Z",
+      completedAt: "2026-07-24T12:00:01.000Z",
+      status: "done",
+      saved,
+      tags: [],
+      provenance: "captured",
+      lineage: { mode: "original" },
+      inputs: [],
+      events: [],
+      finalOutput: "Complete",
+    });
+    await saveSession("cleanup-runs", TRANSCRIPT, { env: env() });
+    await saveRun(record("keep-run", true), env());
+    await saveRun(record("remove-run", false), env());
+
+    await deleteSession("cleanup-runs", env());
+
+    expect(await loadSession("cleanup-runs", env())).toBeNull();
+    expect((await listRuns({}, env())).map((run) => run.id)).toEqual(["keep-run"]);
   });
 
   it("lists sessions newest-first with a turn count", async () => {

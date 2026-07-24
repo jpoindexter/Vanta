@@ -72,10 +72,14 @@ export async function applySafetyGate(
   }
 
   const decision = await resolveLayeredDecision(verdict, call, action, ctx);
-  const externalMkdir = localShell ? externalDirectMkdirTarget(String(call.arguments.command), shellCwd, ctx.root) : null;
-  const effectiveDecision = decision.decision === "allow" && externalMkdir
-    ? { decision: "ask" as const, reason: `create a directory outside the project root at ${externalMkdir}` }
+  const forceFreshApproval = deps.forceFreshApproval?.() === true;
+  const replayDecision = forceFreshApproval && verdict.risk === "ask" && decision.decision !== "block"
+    ? { decision: "ask" as const, reason: "replay requires a fresh approval" }
     : decision;
+  const externalMkdir = localShell ? externalDirectMkdirTarget(String(call.arguments.command), shellCwd, ctx.root) : null;
+  const effectiveDecision = replayDecision.decision === "allow" && externalMkdir
+    ? { decision: "ask" as const, reason: `create a directory outside the project root at ${externalMkdir}` }
+    : replayDecision;
   const permissionMode = ctx.permissionMode?.() ?? resolvePermissionMode(process.env);
 
   if (effectiveDecision.decision === "block") {
@@ -83,6 +87,12 @@ export async function applySafetyGate(
   }
 
   if (effectiveDecision.decision === "ask") {
+    if (forceFreshApproval) {
+      const result = await handleApprovalRequest({ call, action, verdict, deps, root: ctx.root, tool });
+      return result.approved && call.name === "shell_cmd"
+        ? { ...result, sandboxWritableDirs: approvedMkdirWritableDirs(String(call.arguments.command ?? ""), shellCwd) }
+        : result;
+    }
     if (permissionMode === "fullAccess") {
       recordAutoDecision(action, deps.activeGoalText);
       await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "full-access-auto" });

@@ -9,6 +9,8 @@ import { LatestButton, preferredScrollBehavior, PromptMarkers, useLongSessionNav
 import { SchemaTraceExplorer, schemaRetryReady } from "./schema-trace-explorer.js";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { compactTrace } from "../../src/trace/quiet-trace.js";
+import { RunLibraryPanel, type RunLibraryController } from "./run-library.js";
+import type { PreparedRun } from "./types.js";
 
 export { Composer } from "./composer.js";
 
@@ -28,9 +30,12 @@ type SessionSidebarProps = {
   onSettings: () => void;
   onShortcuts: () => void;
   onDismiss?: () => void;
+  runLibrary?: RunLibraryController;
+  onRunPrepared?: (prepared: PreparedRun) => void | Promise<void>;
 };
 
 export function SessionSidebar(props: SessionSidebarProps) {
+  const [section, setSection] = useState<"threads" | "runs">("threads");
   const [query, setQuery] = useState("");
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
@@ -128,14 +133,15 @@ export function SessionSidebar(props: SessionSidebarProps) {
 
   return (
     <aside className="session-sidebar">
-      <div className="drawer-toolbar"><span>Threads</span><button className="panel-dismiss" type="button" aria-label="Close sessions" onClick={props.onDismiss}><X size={16} /></button></div>
+      <div className="drawer-toolbar"><span>{section === "threads" ? "Threads" : "Saved runs"}</span><button className="panel-dismiss" type="button" aria-label="Close sessions" onClick={props.onDismiss}><X size={16} /></button></div>
       <nav className="desktop-nav" aria-label="Vanta workspace">
         <button className={props.view === "work" ? "active" : ""} type="button" onClick={() => props.onView("work")}><MessageSquare size={16} />Work <span aria-hidden="true">{active.length}</span></button>
         <button className={props.view === "operate" ? "active" : ""} type="button" onClick={() => props.onView("operate")}><Activity size={16} />Operate</button>
         <button className={props.view === "outputs" ? "active" : ""} type="button" onClick={() => props.onView("outputs")}><PackageOpen size={16} />Outputs</button>
         <button className={props.view === "connect" ? "active" : ""} type="button" onClick={() => props.onView("connect")}><Network size={16} />Connect</button>
       </nav>
-      <section className="project-rail">
+      {props.runLibrary ? <div className="library-switch segmented" aria-label="History view"><button className={section === "threads" ? "active" : ""} type="button" onClick={() => setSection("threads")}>Threads</button><button className={section === "runs" ? "active" : ""} type="button" onClick={() => setSection("runs")}>Saved runs</button></div> : null}
+      {section === "runs" && props.runLibrary && props.onRunPrepared ? <RunLibraryPanel controller={props.runLibrary} onPrepared={props.onRunPrepared} /> : <section className="project-rail">
         <div className="section-heading project-heading"><h2>Projects</h2><button type="button" title="New task" aria-label="New task" onClick={props.onNew}><Plus size={14} /></button></div>
         <div className="project-row active"><span><FolderKanban size={15} />{projectName}</span><b>{active.length}</b></div>
         {pinned.length ? <>
@@ -167,7 +173,7 @@ export function SessionSidebar(props: SessionSidebarProps) {
           ) : null}
           {recentSessions.length === 0 && projectSessions.length === 0 && pinned.length === 0 ? <p className="muted">{query ? "No matching sessions." : "No saved sessions yet."}</p> : null}
         </div>
-      </section>
+      </section>}
       <footer className="session-sidebar-footer"><button type="button" onClick={props.onShortcuts}><Keyboard size={14} />Keyboard shortcuts <kbd>?</kbd></button><button type="button" onClick={props.onSettings}><Settings2 size={14} />Settings</button></footer>
       <SessionNoticeToast notice={safe.notice} onDismiss={safe.dismissNotice} />
     </aside>

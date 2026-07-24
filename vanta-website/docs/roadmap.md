@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1272 capabilities shipped · 2 in flight · 13 external proof gates · 20 on the horizon. Updated 2026-07-23._
+_1273 capabilities shipped · 2 in flight · 13 external proof gates · 20 on the horizon. Updated 2026-07-24._
 
 ## In flight
 
@@ -28,8 +28,9 @@ Vanta's packaged desktop budget measures process-to-shell well, but its first-us
 
 ## Recently shipped
 
-The latest of 1272+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1273+ capabilities. See the [changelog](./changelog) for curated milestones.
 
+- **Reusable run library — save, inspect, fork, and safely replay successful runs** — Desktop App · 2026-07-24
 - **Relative sibling mkdir approval — resolve the real target before the kernel and sandbox** — Harness · 2026-07-21
 - **Desktop one-time approvals and current Vanta app icon** — Desktop · 2026-07-21
 - **Desktop Ollama MiniCPM response — visible text instead of endless Thinking** — Desktop App · 2026-07-21
@@ -49,7 +50,6 @@ The latest of 1272+ capabilities. See the [changelog](./changelog) for curated m
 - **Desktop setup hub + Telegram lifecycle — route, verify, secure, and start** — Desktop App · 2026-07-18
 - **Demote DuckDuckGo - bot-blocked search is explicit legacy fallback, never the default** — Harness · 2026-07-18
 - **Desktop message fidelity — preserve intraword underscores and exact identifiers** — Desktop App · 2026-07-18
-- **Desktop session draft ownership — drafts stay with the correct task** — Desktop App · 2026-07-18
 
 ## External proof gates
 

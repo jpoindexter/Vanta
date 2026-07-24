@@ -24,6 +24,9 @@ export type AgentDeps = {
   requestApproval: (action: string, reason: string, toolName?: string, detail?: { diff?: string; fresh?: boolean }) => Promise<boolean>;
   /** Optional host-owned live permission mode for project/session surfaces. */
   permissionMode?: () => PermissionMode;
+  /** Replay-only safety latch. When true, an ASK verdict must reach the human
+   * again instead of being cleared by a stored rule, delegated grant, or access mode. */
+  forceFreshApproval?: () => boolean;
   onText?: (text: string) => void;
   /** Extended thinking / reasoning text returned by the provider (e.g. Anthropic
    * extended thinking). Called once per turn when the provider returns thinking. */

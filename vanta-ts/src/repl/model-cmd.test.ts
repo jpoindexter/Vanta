@@ -91,6 +91,7 @@ describe("/model handler", () => {
       "utf8",
     );
     ctx.env.CLAUDE_CONFIG_DIR = claudeHome;
+    ctx.env.VANTA_CLAUDE_KEYCHAIN_SERVICE = `vanta-test-missing-${Date.now()}`;
     ctx.state.providerId = "codex";
 
     const r = await model("claude-code claude-sonnet-5", ctx);

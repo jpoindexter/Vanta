@@ -1,10 +1,24 @@
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { handleChat, handleQueueChat, handleStopChat, type DesktopState } from "./handlers.js";
 import { DesktopTurnQueue, type TurnQueueDeps } from "./turn-queue.js";
 import { providerAuthRequiredPath } from "./provider-auth-store.js";
+
+let testHome: string;
+const originalHome = process.env.VANTA_HOME;
+
+beforeEach(async () => {
+  testHome = await mkdtemp(join(tmpdir(), "vanta-desktop-chat-"));
+  process.env.VANTA_HOME = testHome;
+});
+
+afterEach(async () => {
+  if (originalHome === undefined) delete process.env.VANTA_HOME;
+  else process.env.VANTA_HOME = originalHome;
+  await rm(testHome, { recursive: true, force: true });
+});
 
 function response() {
   let status = 0; let body = "";

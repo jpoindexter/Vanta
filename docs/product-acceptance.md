@@ -1,6 +1,6 @@
 # Product acceptance
 
-Updated 2026-07-20. This record separates executed behavior from static tests and external setup gates.
+Updated 2026-07-24. This record separates executed behavior from static tests and external setup gates.
 
 ## Executed operator paths
 
@@ -17,15 +17,17 @@ Updated 2026-07-20. This record separates executed behavior from static tests an
 | Produce cited research | Pass | `research-cited-synthesis` used two bounded decomposition workers, search, and three primary-source fetches; it returned a cited skeptic pass with explicit uncertainty in 176 seconds. |
 | Capture and inspect the screen | Pass | The CLI/TUI captured a real 3024x1964 Retina screen and a visual model returned the required `SIGHT_OK landscape` marker. Area, window, and all-display capture contracts also passed focused Desktop smoke coverage. |
 | Paste image context into Desktop | Pass | The Electron native clipboard bridge ingested text, PNG, and mixed clipboard content; Desktop rendered a removable chip, retained it after failed send, submitted it on success, and then cleared it. |
+| Reuse a saved Desktop run | Pass with provider boundary | Production Electron loaded a saved run from isolated disk state, opened its provenance and approval timeline, compared project/provider/model/tool/file drift, and dispatched a fresh replay request with structured `roadmap.json` metadata. The deterministic final chat response was mocked, so live-provider completion remains outside this proof. |
 
 The use-case catalog currently records 6 executed and 6 passed scenarios across 6 of 15 categories. The remaining categories are coverage gaps, not failures.
 
 ## Regression gates
 
-- TypeScript: 1,456 test files; 13,584 passed and 3 skipped.
+- TypeScript: 1,473 test files; 13,687 passed and 3 skipped.
 - Rust kernel: 70 passed.
 - TypeScript typecheck and architectural boundaries: passed.
 - Production desktop renderer build: passed.
+- Reusable-run production Electron smoke: passed.
 - Desktop visual proof: 36 Ghost light/dark captures passed across three supported widths.
 - Packaged performance proof: cold-start median plus per-sample hard ceiling, first-use, memory, CPU, and package-size budgets passed.
 - Production npm audit: 0 vulnerabilities.

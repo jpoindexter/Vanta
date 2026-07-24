@@ -3,6 +3,32 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## v0.9.8 — 2026-07-24
+
+**Reusable runs and more reliable operator handoffs.** Desktop work can now be saved, inspected, forked, and replayed as a fresh kernel-gated turn. This release also adds Buzz ACP connectivity, broadens the integration catalog, and closes PDF, terminal-resize, model-identity, and Claude authentication failures.
+
+### Added
+- A local reusable run library records one redacted, versioned run per user turn with structured file inputs, bounded snapshots, tool/approval provenance, lineage, and content-free reuse metrics.
+- Desktop adds **Threads | Saved runs**, run search and inspection, safe deletion, editable forks, and drift-reviewed replay across files, project root, provider, model, and available tools.
+- Buzz ACP status/configure/test/serve commands and client-supplied MCP/session instruction preservation.
+- A first-class integration catalog for Buzz, Dropbox, Google Drive, Slack, and Trello.
+- A per-turn tool-budget circuit breaker that yields control instead of allowing an unbounded tool loop.
+
+### Fixed
+- Replay never reuses recorded tool calls or approvals; a replayed action passes through the current kernel and asks again even when an older rule or access mode would otherwise allow it.
+- Desktop file attachments reach run capture as structured metadata, while unsafe, oversized, out-of-scope, private, or credential-bearing files are not snapshotted.
+- Interrupted checkpointed turns recover as explicit incomplete-provenance legacy runs after restart.
+- PDF reading gives pdf.js the expected `Uint8Array` view.
+- Terminal resize recovery, clipboard-image parsing, and model/provider identity reporting no longer leave stale or corrupted state.
+- Claude Code authentication prefers a refreshed keychain credential when the legacy credentials file has expired.
+
+### Verified boundary
+- Full TypeScript suite: 1,473 test files and 13,687 tests passed, with 3 intentional skips.
+- TypeScript typecheck, production Desktop build, architecture tests, and the production Electron layout/replay smoke passed.
+- The Desktop smoke executed saved-run discovery, provenance inspection, drift review, and a fresh replay dispatch with structured file metadata; its final chat response was deterministic fixture data, not a live paid-provider completion.
+- Production feature sources and built assets produced zero secret-scanner hits, and the smoke left no records in the operator's `~/.vanta/runs`.
+- GitHub Actions kernel assets and public release publication remain the tagged workflow boundary; this release does not claim a new notarized Desktop DMG.
+
 ## v0.9.7 — 2026-07-21
 
 **Resolved-path approvals.** Relative sibling-directory creation is canonicalized before safety assessment, so the approval and one-run sandbox scope agree on the exact destination.

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
 import type { Message } from "../types.js";
 import { reconcileDanglingToolResults } from "../agent/effect-disposition.js";
+import { deleteUnsavedRunsForSession } from "../runs/store.js";
 
 // Session persistence sits behind the SessionStore port. The default adapter writes
 // JSON under ~/.vanta/sessions; alternate stores replace it without caller changes.
@@ -255,9 +256,11 @@ export async function loadSession(id: string, env?: NodeJS.ProcessEnv): Promise<
   return createFsSessionStore(env).load(id);
 }
 
-/** Delete a session file. Idempotent — a missing file is not an error. */
+/** Delete a session and any disposable run records linked to it. Saved runs
+ *  intentionally survive until the operator deletes them explicitly. */
 export async function deleteSession(id: string, env?: NodeJS.ProcessEnv): Promise<void> {
-  return createFsSessionStore(env).delete(id);
+  await createFsSessionStore(env).delete(id);
+  await deleteUnsavedRunsForSession(id, env);
 }
 
 /** List active session metadata, newest first. Skips unparseable files. */
