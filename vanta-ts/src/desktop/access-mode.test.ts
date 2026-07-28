@@ -13,10 +13,18 @@ describe("desktop access mode", () => {
   it("maps the operator labels to runtime permission modes", () => {
     expect(permissionModeForAccess("ask")).toBe("default");
     expect(permissionModeForAccess("approve")).toBe("acceptEdits");
+    expect(permissionModeForAccess("plan")).toBe("default");
+    expect(permissionModeForAccess("auto")).toBe("auto");
     expect(permissionModeForAccess("full")).toBe("fullAccess");
     expect(accessModeForPermission("default")).toBe("ask");
     expect(accessModeForPermission("acceptEdits")).toBe("approve");
+    expect(accessModeForPermission("auto")).toBe("auto");
     expect(accessModeForPermission("fullAccess")).toBe("full");
+  });
+
+  it("resolves plan from the desktop environment without granting write authority", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-desktop-plan-"));
+    expect(await loadDesktopAccessMode(root, { VANTA_DESKTOP_PERMISSION_MODE: "plan" })).toBe("plan");
   });
 
   it("persists project scope without erasing other local settings", async () => {

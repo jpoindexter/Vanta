@@ -6,4 +6,6 @@ Ink 7 TUI surface. The existing `app.tsx` path is the default v1 UI and should s
 
 Approval UI (`approval-prompt.tsx`) renders typed request context from `../permissions/request.ts` and four decisions: allow once, always allow, deny, never allow.
 
+`mode-line.tsx` owns the shared Manual → Accept edits → Plan → Auto cycle. Shift+Tab cycles whenever the composer has focus. Auto-classifier Ask decisions must remain visible approvals; never auto-resolve a pending prompt in the renderer.
+
 Default TUI host responsibilities: fire session lifecycle hooks, prompt submit/expansion hooks, per-turn Stop hooks, StopFailure on send errors, and start the opt-in FileChanged watcher.

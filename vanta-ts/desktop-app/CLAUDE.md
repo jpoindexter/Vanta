@@ -14,6 +14,8 @@ npm run desktop:build
 
 The app calls the existing `/api/*` desktop endpoints. Do not import Vanta runtime modules into browser code. Approval-required actions still need the server-side pending approval flow.
 
+The project access picker exposes Manual, Accept edits, Plan, Auto, and Full access. The server owns their enforcement; the renderer only persists selection and explains the boundary.
+
 ## File Map
 
 - `src/App.tsx` — shell composition only.

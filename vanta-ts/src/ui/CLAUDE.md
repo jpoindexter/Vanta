@@ -13,3 +13,5 @@ When adding UI behavior, prefer pure helpers and co-located tests. Do not use `i
 Approval prompt: `approval-prompt.tsx` consumes `permissions/request.ts` for per-tool context and `permissions/grant.ts` for Always/Never tool-scoped rules. Esc maps to deny, not never.
 
 Hook host: `app.tsx`, `use-agent.ts`, and `use-slash.ts` mirror readline hook coverage for SessionStart/End, UserPromptSubmit, UserPromptExpansion, Stop, StopFailure, and FileChanged watcher startup.
+
+Operating modes: `mode-line.tsx` renders Manual, Accept edits, Plan, and Auto below the composer. `focus.ts` reserves Shift+Tab for this cycle while the composer is focused, including when prompt suggestions are visible. The TUI passes live permission and plan gates into `createConversation`; Auto never clears a pending human Ask in the view.

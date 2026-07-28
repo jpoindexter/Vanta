@@ -74,7 +74,11 @@ async function applyAutoMode(
 ): Promise<Decision> {
   if (decision === "block") return { decision, reason: "denied by a permission rule" };
   const settings = await loadSettings(ctx.root ?? process.cwd(), process.env);
-  if (!isAutoModeEnabled(process.env, settings)) return { decision, reason: "kernel or permission rule" };
+  const hostMode = ctx.permissionMode?.();
+  const autoEnabled = hostMode === undefined
+    ? isAutoModeEnabled(process.env, settings)
+    : hostMode === "auto";
+  if (!autoEnabled) return { decision, reason: "kernel or permission rule" };
   return classifyAutoModeAction({
     kernelRisk: decision,
     toolName,

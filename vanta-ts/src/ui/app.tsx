@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState, type ReactElement } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState, type ReactElement } from "react";
 import { Box, Static, useApp } from "ink";
 import { reduce } from "./reducer.js";
 import { initialState } from "./types.js";
@@ -43,6 +43,7 @@ import type { RunSetup } from "../session.js";
 import type { SetupHandoff } from "../setup/handoff.js";
 import { AskUserPrompt, type PendingQuestion } from "./ask-user-prompt.js";
 import { TaskApprovalScope } from "./task-approval.js";
+import { setPlanInstruction } from "../repl/plan-mode.js";
 
 type SubmitRouteDeps = Omit<SubmitDeps, "detachBackgroundResponse" | "safety"> & {
   setup: RunSetup;
@@ -106,6 +107,12 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
     if (state.busy) detachBackgroundResponse();
     else runSlash("/bg");
   };
+  const setPlanActive = useCallback((active: boolean): void => {
+    const messages = convoRef.current?.messages;
+    if (messages && setPlanInstruction(messages, active)) {
+      replStateRef.current.planApproved = false;
+    }
+  }, []);
   const transcriptSelectionKey = (input: string, key: { shift?: boolean; ctrl?: boolean; leftArrow?: boolean; rightArrow?: boolean; upArrow?: boolean; downArrow?: boolean }): boolean => {
     const result = handleTranscriptSelectionKey(state.entries, transcriptSelection, input, key);
     if (result.kind === "none") return false;
@@ -125,7 +132,7 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
   useHookLifecycle(props.repoRoot, replStateRef.current.sessionId, props.setup);
   const { mcp, elapsed } = useSessionStatus(props.setup, replStateRef, dispatch);
   const agents = useSubagentProgress();
-  const { mode, cycle } = useModeState(pending, setPending, runSlash);
+  const { mode, cycle } = useModeState(setPlanActive);
   useQueueDrain(state.busy, state.queued, dispatch, send);
   const provider = props.setup.provider;
   const est = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
@@ -145,7 +152,7 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
         <PinnedRegion enabled={composerAnchor === "bottom"} viewportRows={vp.rows} committedRows={estimateCommittedRows(state.entries, vp.cols)}>
           {pendingQuestion
             ? <AskUserPrompt pending={pendingQuestion} onDone={() => setPendingQuestion(null)} />
-            : pending && mode !== "auto"
+            : pending
             ? <ApprovalPrompt pending={pending} focusedTarget={focus} onFocusTargetChange={setFocus} onDone={() => setPending(null)} />
             : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} liveThinking={state.liveThinking} agents={agents} selectedAgent={teammate.selectedAgent} leaderTokens={est} />}
           <TranscriptSelectionPanel entries={state.entries} selection={transcriptSelection} />

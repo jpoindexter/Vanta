@@ -25,6 +25,8 @@ import {
 import { type TrustConfirmer } from "./settings/trust-gate.js";
 import { bootstrapKernel } from "./session/bootstrap-kernel.js";
 import { applyLocalRuntimeLimits, resolveSessionSystemPrompt, resolveSessionToolInclude } from "./session/local-runtime-policy.js";
+import { resolveOperatingMode } from "./modes/operating-mode.js";
+import { PLAN_INSTRUCTION } from "./repl/plan-mode.js";
 export { loadRalphContinuity } from "./session/prepare-helpers.js";
 
 export * from "./session/after-turn.js";
@@ -100,6 +102,9 @@ export async function prepareRun(
     process.env,
   );
   if (skillBody) systemPrompt += `\n\nApply this skill:\n${skillBody}`;
+  if (resolveOperatingMode(process.env) === "plan" && !systemPrompt.includes(PLAN_INSTRUCTION)) {
+    systemPrompt += PLAN_INSTRUCTION;
+  }
   if (instruction === "interactive session") systemPrompt = await injectResume(systemPrompt, repoRoot);
   const advisorProvider = resolveAdvisorProvider(process.env) ?? undefined;
   // VANTA-ASCIICAST: opt-in auto-record (VANTA_RECORD=1). Off = byte-identical,

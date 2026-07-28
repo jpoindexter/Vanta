@@ -11,6 +11,7 @@ import { acceptsEditsWithoutKernel, resolvePermissionMode } from "../modes/permi
 import { join } from "node:path";
 import { loadSettings } from "../settings/store.js";
 import { repairToolFailure } from "../tools/tool-boundary.js";
+import { resolveOperatingMode } from "../modes/operating-mode.js";
 
 export type DispatchOutcome = { executed: boolean; empty: boolean; output: string; ok: boolean; effectDisposition: EffectDisposition; tokensSaved?: number };
 
@@ -35,8 +36,9 @@ export async function dispatchTool(
   normalizeToolCall(call, tool, deps); // TOOL-CALL-REPAIR: log repair + coerce to schema
 
   // Plan mode: enforce read-only restriction when plan mode is active.
-  if (isPlanBlocked(call.name, deps.planGate)) {
-    const output = `blocked: plan mode is active — read-only tools only. Present your plan and run /planmode approve to proceed.`;
+  const planActive = resolveOperatingMode(process.env) === "plan" || (deps.planGate?.() ?? false);
+  if (isPlanBlocked(call.name, () => planActive)) {
+    const output = "blocked: plan mode is active — read-only tools only. Leave plan mode or run /planmode approve to proceed.";
     deps.onToolResult?.(call.name, false, output);
     deps.onEvent?.({ type: "tool_end", name: call.name, ok: false, output });
     return { executed: false, empty: false, ok: false, output, effectDisposition: "none" };

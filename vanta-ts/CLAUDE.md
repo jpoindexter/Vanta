@@ -413,7 +413,7 @@ Counts after: **122 built-in tools** (126 registered) · **128 slash commands**.
 
 **Operator profile + preference signals.** `operator-profile/profile.ts` ships declared vs inferred autonomy/scope/detail/risk preferences and tighten-only approval preferences. `preferences/signals.ts` appends zod-validated chosen-vs-rejected rows to `~/.vanta/preferences.jsonl`; `dispatch-helpers.ts` records only human approval/denial prompts, never kernel blocks or auto/rule/profile non-human decisions. `/preferences export` prints the JSONL path/content. Profile inference can read preference rows and infer conservative/narrow behavior from denial-heavy broad/risky actions.
 
-**VANTA-TAB-NAV.** `ui/focus.ts` adds the small focus manager; `ui/app.tsx` builds the visible focus target list and routes Tab/Shift+Tab through it. Composer input is active only when focused; approval actions expose focus IDs (`approval-allow|always|deny|never`) and Enter activates the focused row. Shift+Tab keeps the legacy mode cycle when the composer is the only focus target.
+**VANTA-TAB-NAV.** `ui/focus.ts` adds the small focus manager; `ui/app.tsx` builds the visible focus target list and routes Tab/Shift+Tab through it. Composer input is active only when focused; approval actions expose focus IDs (`approval-allow|always|deny|never`) and Enter activates the focused row. Shift+Tab cycles the operating mode whenever the composer is focused, including when prompt suggestions are visible.
 
 ## Session additions (2026-06-14) — keep current
 
@@ -426,7 +426,7 @@ Counts after: **122 built-in tools** (126 registered) · **128 slash commands**.
 **TUI parity grind + research intake.** Built the Claude-Code-shaped surfaces on the 06-13 rebuild and reversed two of its "not built" notes.
 
 - **Approval → per-tool numbered menu** (`ui/approval-prompt.tsx`): typed request context from `permissions/request.ts` (bash/file edit/file write/web/computer/sandbox/skill), `Do you want to proceed? ❯1 Yes / 2 Yes,don't ask again / 3 No / 4 Never allow`, ↑↓/Enter/1-4/Esc. Always/Never persist tool-scoped allow/deny rules; kernel **block** stays immovable.
-- **Shift+Tab mode cycle** (`normal → auto-accept → plan → normal`, `▶▶/⏸` indicator). Auto-accept auto-approves the kernel **ask** tier only (block refused upstream → safe by construction) — this **reverses the "auto-approve/yolo skipped" note**. Plan reuses real `/planmode` enforcement.
+- **Shift+Tab operating-mode cycle** (`Manual → Accept edits → Plan → Auto → Manual`, visible below the composer). Accept edits applies only to the bounded file-tool set after kernel assessment. Plan enforces a read-only dispatch gate. Auto runs the safe-action classifier after the kernel and permission rules; classifier Ask decisions remain human prompts.
 - **Transcript:** tool calls render `⏺ Verb(detail)` / `⎿ result` (dropped the grouped header) + clean labels for grep/glob/background/refs; **syntax-highlighted** fenced code (`ui/highlight.ts`); **no** Goal/Expected preamble (prompt rule reframed) and **no** per-turn token dump.
 - **Chrome:** rounded composer box + **blinking cursor** (`ui/use-blink.ts`); truecolor **hex theme** (matches `docs/design-refs`); active-goal `◇` line + compact PLAN `▰▰▱▱ ✓◐○` bar + status chips (live `◷` timer via `ui/use-clock`, `MCP ✓`); rich pickers (`●` current).
 - **New overlays/commands:** `/loops` (loop dashboard over the real store), `/changes` (interactive edit-review with git keep/undo), `/context` (visual per-category token breakdown), styled `/goals` ledger.

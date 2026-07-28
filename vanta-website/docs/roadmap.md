@@ -8,17 +8,11 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1273 capabilities shipped · 2 in flight · 13 external proof gates · 20 on the horizon. Updated 2026-07-24._
+_1276 capabilities shipped · 1 in flight · 13 external proof gates · 20 on the horizon. Updated 2026-07-28._
 
 ## In flight
 
 What we are actively building next.
-
-### TUI resize repaint regression — one clean frame after every terminal resize
-
-**Operator** · M-size
-
-Reopen the terminal-resize reliability work after a real 78x25 session on 2026-07-20 left repeated composer borders, prompt text, and orphaned line glyphs across the viewport. Treat SIGWINCH as a complete layout invalidation: clear the prior physical frame, recompute the transcript/composer/footer geometry, and draw one coherent current frame without losing the active draft or turn
 
 ### True first-token performance harness — measure cold start through painted output
 
@@ -28,8 +22,14 @@ Vanta's packaged desktop budget measures process-to-shell well, but its first-us
 
 ## Recently shipped
 
-The latest of 1273+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1276+ capabilities. See the [changelog](./changelog) for curated milestones.
 
+- **AskUserQuestion tool — structured multi-question UI with options, previews, multi-select** — Operator · 2026-07-28
+- **Task-scoped go-ahead — one approval for repeated reversible work** — Operator · 2026-07-28
+- **Live todo / progress checklist (TodoWrite pattern)** — Operator · 2026-07-28
+- **Shared operating-mode cycle — Manual / Accept edits / Plan / Auto** — Harness · 2026-07-28
+- **TUI resize repaint regression — one clean frame after every terminal resize** — Operator · 2026-07-28
+- **Deterministic turn closeout — changed, checked, verified, and next** — TUI · 2026-07-28
 - **Reusable run library — save, inspect, fork, and safely replay successful runs** — Desktop App · 2026-07-24
 - **Relative sibling mkdir approval — resolve the real target before the kernel and sandbox** — Harness · 2026-07-21
 - **Desktop one-time approvals and current Vanta app icon** — Desktop · 2026-07-21
@@ -44,12 +44,6 @@ The latest of 1273+ capabilities. See the [changelog](./changelog) for curated m
 - **Desktop live-proof diagnostics — separate API truth, rendered truth, and startup context** — Desktop App · 2026-07-19
 - **Desktop assistive-technology proof — automate accessibility and complete one VoiceOver task** — Desktop App · 2026-07-19
 - **Terminal panel + TerminalCaptureTool — agent captures terminal content, Meta+J toggle** — Operator · 2026-07-18
-- **Regional payment authorization broker - route by capability, regulation, and provider availability** — Harness · 2026-07-18
-- **Visa TAP conformance lab - signed agent intent and merchant recognition** — Harness · 2026-07-18
-- **Interactive Telegram setup discovery - answer the operator and expose the command** — Operator · 2026-07-18
-- **Desktop setup hub + Telegram lifecycle — route, verify, secure, and start** — Desktop App · 2026-07-18
-- **Demote DuckDuckGo - bot-blocked search is explicit legacy fallback, never the default** — Harness · 2026-07-18
-- **Desktop message fidelity — preserve intraword underscores and exact identifiers** — Desktop App · 2026-07-18
 
 ## External proof gates
 

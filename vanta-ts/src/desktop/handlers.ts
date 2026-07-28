@@ -25,7 +25,7 @@ import { pushSseEvent, type SseClients } from "./session-state.js";
 import { approvalDecision, approvalPayload, requestWebApproval, resolveApproval, type PendingApproval } from "./approval.js";
 import { readCanvasArtifact } from "../canvas/artifact.js";
 import { desktopArtifacts, desktopCapabilities, desktopMessagingPlatforms, saveDesktopMessagingPlatform, testDesktopMessagingPlatform } from "./operator-data.js";
-import { loadDesktopAccessMode, permissionModeForAccess, saveDesktopAccessMode, type DesktopAccessMode } from "./access-mode.js";
+import { desktopAccessModeLabel, isDesktopAccessMode, loadDesktopAccessMode, permissionModeForAccess, saveDesktopAccessMode, type DesktopAccessMode } from "./access-mode.js";
 import { desktopRuntimePayload, runDesktopRuntimeAction, selectDesktopRuntimeHost, type DesktopRuntimeAction } from "./runtime-controller.js";
 import { buildDesktopFileContext, isSafeProjectFile } from "./file-context.js";
 import { DesktopTurnQueue, QueueConflictError, desktopTurnQueuePath, fileTurnQueueDeps, type QueuedTurnTarget } from "./turn-queue.js";
@@ -54,6 +54,7 @@ import {
   type RunRecord,
 } from "../runs/store.js";
 import { deriveLegacyRuns } from "../runs/legacy.js";
+import { setPlanInstruction } from "../repl/plan-mode.js";
 export { approvalDecision, type PendingApproval } from "./approval.js";
 
 const desktopTurnQueues = new Map<string, DesktopTurnQueue>();
@@ -139,13 +140,14 @@ export function sendJson(res: http.ServerResponse, status: number, body: unknown
 }
 
 function attachConversation(state: DesktopState, setup: RunSetup, history?: Parameters<typeof createConversation>[2]): void {
-  state.convo = createConversation(setup.systemPrompt, {
+  const convo = createConversation(setup.systemPrompt, {
     provider: setup.provider, safety: setup.safety, registry: setup.registry, root: state.root,
     sessionId: state.sessionId,
     usageAgent: "desktop",
     usageTaskId: setup.goals.find((g) => g.status === "active")?.id?.toString(),
     requestApproval: (action, reason, toolName, detail) => requestWebApproval(state, action, reason, toolName, detail),
     permissionMode: () => permissionModeForAccess(state.accessMode ?? "approve"),
+    planGate: () => state.accessMode === "plan",
     forceFreshApproval: () => state.forceFreshApprovals === true,
     maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(setup.provider),
@@ -167,6 +169,8 @@ function attachConversation(state: DesktopState, setup: RunSetup, history?: Para
       }
     },
   }, history);
+  setPlanInstruction(convo.messages, state.accessMode === "plan");
+  state.convo = convo;
 }
 
 async function ensureDesktopConversation(state: DesktopState): Promise<Required<Pick<DesktopState, "setup" | "convo" | "root">> & DesktopState> {
@@ -205,12 +209,13 @@ export async function handleAccessMode(state: DesktopState, req: http.IncomingMe
   const live = await ensureDesktopConversation(state);
   if (req.method === "GET") return sendJson(res, 200, { mode: live.accessMode, scope: "project" });
   const body = await readJson(req) as { mode?: unknown };
-  if (body.mode !== "ask" && body.mode !== "approve" && body.mode !== "full") {
-    return sendJson(res, 400, { error: "mode must be ask, approve, or full" });
+  if (!isDesktopAccessMode(body.mode)) {
+    return sendJson(res, 400, { error: "mode must be ask, approve, plan, auto, or full" });
   }
   await saveDesktopAccessMode(state.root, body.mode);
   state.accessMode = body.mode;
-  const label = body.mode === "ask" ? "Ask for approval" : body.mode === "approve" ? "Approve for me" : "Full access";
+  setPlanInstruction(live.convo.messages, body.mode === "plan");
+  const label = desktopAccessModeLabel(body.mode);
   const event = { label: `Access mode changed to ${label} for this project.`, ok: true };
   state.currentEvents?.push(event);
   if (state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, event);

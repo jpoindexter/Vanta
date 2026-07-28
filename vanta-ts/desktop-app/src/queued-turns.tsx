@@ -88,5 +88,9 @@ export function QueuedTurnDrawer(props: { open: boolean; items: QueuedTurn[]; er
 }
 
 function accessLabel(mode: QueuedTurn["target"]["accessMode"]): string {
-  return mode === "ask" ? "Ask for approval" : mode === "approve" ? "Approve safe actions" : "Full access";
+  if (mode === "ask") return "Manual";
+  if (mode === "approve") return "Accept edits";
+  if (mode === "plan") return "Plan";
+  if (mode === "auto") return "Auto";
+  return "Full access";
 }

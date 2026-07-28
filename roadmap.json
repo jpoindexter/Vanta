@@ -11116,17 +11116,18 @@
     {
       "id": "TUI-MODE-CYCLE",
       "track": "Harness",
-      "title": "Shift+Tab autonomy mode cycle — normal / auto-accept / plan (Claude parity)",
+      "title": "Shared operating-mode cycle — Manual / Accept edits / Plan / Auto",
       "status": "shipped",
       "size": "M",
-      "summary": "Shift+Tab cycles normal → auto-accept → plan → normal with a ▶▶/⏸ indicator above the composer. Auto-accept auto-approves the kernel Ask tier (writes/out-of-root) while the Block tier (destructive/exfiltration) stays kernel-refused upstream — safe by construction. Plan reuses the real /planmode enforcement (write+shell blocked until /planmode approve). Reverses the earlier Rule-Zero deferral: the hard floor is intact because only Asks reach the prompt.",
-      "done": "Shift+Tab cycles modes; auto-accept resolves Ask approvals without prompting; plan toggles /planmode; ModeLine indicator renders; cycleMode + ModeLine tested; 115 ui tests green.",
+      "summary": "Shift+Tab cycles Manual → Accept edits → Plan → Auto → Manual from the focused composer. The same project modes are available in Desktop and through the CLI flag. Accept edits is limited to bounded file tools after kernel assessment; Plan is read-only; Auto uses the current safe-action classifier and leaves uncertain actions as human approval prompts.",
+      "done": "The mode line stays visible below the composer; real Shift+Tab input cycles all four modes even when prompt suggestions are present; Plan blocks writes before execution; Auto never blanket-approves a pending prompt; Desktop persists and enforces Manual, Accept edits, Plan, Auto, and Full access; CLI accepts plan; focused tests, production renderer build, and a real tmux PTY proof pass.",
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.6-terra",
       "lens": "tui",
-      "updated": "2026-06-13"
+      "updated": "2026-07-28",
+      "notes": "Expanded and safety-corrected 2026-07-28 from the operator's Claude mode screenshots. Removed the renderer-level blanket auto-approval path: only classifier-safe Auto actions continue without prompting. Added a shared operating-mode model, TUI/CLI/Desktop enforcement, persistent Desktop choices, visible Manual state, and a real PTY proof that executes four Shift+Tab transitions."
     },
     {
       "id": "TUI-LOOPS-DASHBOARD",

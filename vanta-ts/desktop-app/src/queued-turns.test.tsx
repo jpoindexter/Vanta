@@ -18,7 +18,7 @@ describe("QueuedTurnDrawer", () => {
     expect(html).toContain("Run the packaged proof");
     expect(html).toContain("Local Mac");
     expect(html).toContain("gpt-5.6-terra");
-    expect(html).toContain("Approve safe actions");
+    expect(html).toContain("Accept edits");
     expect(html).toContain("Move queued turn up");
     expect(html).toContain("Edit queued turn");
     expect(html).toContain("Steer with this turn next");

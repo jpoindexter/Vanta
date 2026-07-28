@@ -117,7 +117,7 @@ export type DesktopImageAttachment = {
   capture?: DesktopCaptureReceipt;
 };
 export type Goal = { text: string };
-export type AccessMode = "ask" | "approve" | "full";
+export type AccessMode = "ask" | "approve" | "plan" | "auto" | "full";
 export type QueuedTurn = {
   id: string;
   instruction: string;

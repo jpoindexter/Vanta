@@ -54,7 +54,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/compress/reactive.ts` — reactive trimming for oversized tool results before the next model turn
 - `src/cli/agents-cmd.ts` — background agent CLI management over `~/.vanta/team-tasks.jsonl`
 - `src/permissions/auto-mode.ts` — auto permission classifier config and decision helper
-- `src/modes/permission-mode.ts` — `default|acceptEdits|auto` mode parsing/env sync; acceptEdits bypasses the kernel only for six filesystem tools
+- `src/modes/operating-mode.ts` — shared Manual → Accept edits → Plan → Auto cycle; Plan adds a read-only gate. `permission-mode.ts` maps authority beneath the kernel, which remains mandatory.
 - `src/permissions/request.ts` / `grant.ts` — typed approval dialog model plus allow/deny rule persistence helpers
 - `src/fleet/` — parallel worker fleet: worktree-isolated subagents, team-task status records, persisted review reports, explicit branch accept
 - `src/auto-research/` — metric-driven unattended improvement loop; candidate branches run in worktrees and merge only on numeric improvement
@@ -105,7 +105,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - Parallel worker fleets live under `src/fleet/`: `vanta fleet run --task ...` creates one `.vanta/worktrees` checkout per task, records team-task states, persists `.vanta/fleets/<id>.json`, and `review`/`accept` expose diffs before merging.
 - Auto-research lives under `src/auto-research/`: `vanta auto-research --objective --metric --bounds` measures a numeric baseline, iterates isolated candidate worktrees, journals each delta, and merges only candidates that beat the current best score.
 - Meta-tune lives under `src/meta-tune/`: `vanta meta-tune instructions` evaluates bounded `PROGRAM.md` variants with pass@1 plus CNG/token efficiency, records `.vanta/meta-tune-instructions.json`, and writes `PROGRAM.md` only after explicit approval.
-- Permission modes: `default`, `acceptEdits`, `auto`. `acceptEdits` skips the kernel only for `write_file`, `edit_file`, `read_file`, `mkdir`, `glob_files`, `grep_files`; `shell_cmd` stays on the normal flow. `auto` runs the classifier after kernel + permission rules via `--permission-mode auto`, `VANTA_AUTO_MODE=1`, or `settings.autoMode.enabled`.
+- Operating modes: `default` (Manual), `acceptEdits`, `plan`, and `auto`, with explicit `fullAccess` available outside the Shift+Tab cycle. Every mode still calls the kernel. Accept edits auto-confirms only the bounded file-tool set after assessment; Plan adds a read-only gate; Auto runs the classifier after kernel + permission rules and leaves uncertain actions as human prompts.
 - Operator profile preferences live in `~/.vanta/operator-profile.json` and are applied after kernel + rules + auto-mode. They can only preserve/escalate decisions; one-way doors always ask and kernel Block remains immovable.
 - Preference signals live in `~/.vanta/preferences.jsonl`. Human approval/denial prompts append chosen-vs-rejected rows; kernel blocks and non-human auto/rule/profile decisions do not.
 - Approval prompts are per-tool: bash/file edit/file write/web/computer/sandbox/skill request models feed both Ink and desktop dialogs; Always/Never persist tool-scoped rules.

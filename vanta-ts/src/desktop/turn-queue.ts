@@ -8,7 +8,7 @@ export type QueuedTurnTarget = {
   root: string;
   controllerId: string;
   model: string;
-  accessMode: "ask" | "approve" | "full";
+  accessMode: "ask" | "approve" | "plan" | "auto" | "full";
 };
 
 export type QueuedTurn = {

@@ -40,7 +40,7 @@ export function handleFocusKey(
 ): boolean {
   if (!key.tab) return false;
   const enabled = focusableTargets(deps.targets);
-  if (key.shift && enabled.length <= 1 && enabled[0] === "composer") {
+  if (key.shift && deps.current === "composer" && enabled.includes("composer")) {
     deps.cycleMode();
     return true;
   }

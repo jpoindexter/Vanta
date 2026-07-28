@@ -18,6 +18,8 @@ import type { RunSetup } from "../session.js";
 import type { ReplState } from "../repl/types.js";
 import type { PendingQuestion } from "./ask-user-prompt.js";
 import { TaskApprovalScope, canContinueTask } from "./task-approval.js";
+import { resolveOperatingMode, permissionModeForOperating } from "../modes/operating-mode.js";
+import { PLAN_MARKER } from "../repl/plan-mode.js";
 
 /** Reload the agent's plan into the live todo panel (best-effort). */
 async function refreshTodos(dispatch: Dispatch<Action>): Promise<void> {
@@ -123,6 +125,12 @@ function convoConfig(deps: AgentDeps, scope?: TurnScope): Parameters<typeof crea
     maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(deps.setup.provider),
     getEffortLevel: () => deps.replStateRef.current.effortLevel ?? deps.setup.effortLevel,
+    permissionMode: () => permissionModeForOperating(resolveOperatingMode(process.env)),
+    planGate: () => {
+      const slashPlan = deps.convoRef.current?.messages[0]?.content.includes(PLAN_MARKER) === true
+        && deps.replStateRef.current.planApproved !== true;
+      return resolveOperatingMode(process.env) === "plan" || slashPlan;
+    },
     onThinking: (text) => liveDispatch(deps, { t: "thinking", text }, scope),
     onTextDelta: (d) => liveDispatch(deps, { t: "delta", d }, scope),
     onThinkingDelta: (d) => liveDispatch(deps, { t: "thinkingDelta", d }, scope),

@@ -24,13 +24,28 @@ import {
 
 export const PLAN_MARKER = "<!-- plan-first-mode -->";
 
-const INSTRUCTION = `\n\n${PLAN_MARKER}
+export const PLAN_INSTRUCTION = `\n\n${PLAN_MARKER}
 ⚡ Plan-first mode is active (enforced). Write and shell tools are blocked until the user
 approves the plan. Before acting:
 1. Lay out a numbered step-by-step plan using read-only tools only.
 2. Present it clearly and wait for the user to run /planmode approve.
 3. Only after approval execute the steps — kernel gating still applies per step.
 `;
+
+export function setPlanInstruction(messages: Array<{ role: string; content: string }>, active: boolean): boolean {
+  const sys = messages[0];
+  if (!sys || sys.role !== "system") return false;
+  const hasInstruction = sys.content.includes(PLAN_MARKER);
+  if (active && !hasInstruction) {
+    sys.content += PLAN_INSTRUCTION;
+    return true;
+  }
+  if (!active && hasInstruction) {
+    sys.content = sys.content.replace(PLAN_INSTRUCTION, "");
+    return true;
+  }
+  return false;
+}
 
 type PlanAction = "turn-on" | "turn-off" | "approve" | "already-on" | "already-off" | "already-approved";
 
@@ -44,7 +59,7 @@ function resolvePlanAction(arg: string, isOn: boolean, isApproved: boolean): Pla
 
 type DispatchCtx = {
   action: PlanAction;
-  sys: { content: string };
+  sys: { role: string; content: string };
   isOn: boolean;
   isApproved: boolean;
   state: { planApproved?: boolean };
@@ -52,12 +67,12 @@ type DispatchCtx = {
 
 function dispatchPlanAction({ action, sys, isOn, isApproved, state }: DispatchCtx): { output: string } {
   if (action === "turn-on") {
-    if (!isOn) sys.content += INSTRUCTION;
+    setPlanInstruction([sys], true);
     state.planApproved = false;
     return { output: "  ⚡ plan-first mode ON (enforced) — write tools blocked. Run /planmode approve after reviewing the plan." };
   }
   if (action === "turn-off") {
-    sys.content = sys.content.replace(INSTRUCTION, "");
+    setPlanInstruction([sys], false);
     state.planApproved = false;
     return { output: "  · plan-first mode OFF — Vanta acts immediately again" };
   }
@@ -102,7 +117,7 @@ export const planMode: SlashHandler = async (arg, ctx) => {
   const isOn = sys.content.includes(PLAN_MARKER);
   const isApproved = ctx.state.planApproved ?? false;
   const action = resolvePlanAction(arg, isOn, isApproved);
-  const result = dispatchPlanAction({ action, sys: sys as { content: string }, isOn, isApproved, state: ctx.state });
+  const result = dispatchPlanAction({ action, sys, isOn, isApproved, state: ctx.state });
   if (action !== "turn-on") return result;
   const interview = await interviewBlock(ctx);
   return interview ? { ...result, output: `${result.output}${interview}` } : result;

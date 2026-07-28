@@ -215,7 +215,7 @@ describe("Composer context legibility", () => {
     expect(html).toContain("Memory local");
     expect(html).toContain('class="approval-mode mode-ask"');
     expect(html).toContain('aria-haspopup="dialog"');
-    expect(html).toContain(">Ask</span>");
+    expect(html).toContain(">Manual</span>");
     expect(html).toContain("gpt-5.5");
     expect(html).toContain("Agent model");
     expect(html).toContain("Agent model: gpt-5.5. Change model");

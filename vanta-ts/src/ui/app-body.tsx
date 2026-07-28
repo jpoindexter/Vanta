@@ -112,8 +112,8 @@ function BottomRegion(props: {
   return (
     <Box flexDirection="column">
       <PromptSuggestionsPanel suggestions={props.promptSuggestions} focused={props.focused === "prompt-suggestions"} onSelect={props.onSubmit} />
-      <ModeLine mode={props.mode} />
       <Composer focused={props.focused === "composer"} onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} history={props.history} skills={props.skills} channels={props.channels} onPaste={props.onPaste} vim={props.vim} />
+      <ModeLine mode={props.mode} />
     </Box>
   );
 }

@@ -29,6 +29,7 @@ let home: string;
 const savedHome = process.env.VANTA_HOME;
 const savedAutoMode = process.env.VANTA_AUTO_MODE;
 const savedPermissionMode = process.env.VANTA_PERMISSION_MODE;
+const savedOperatingMode = process.env.VANTA_OPERATING_MODE;
 
 beforeEach(async () => {
   home = await mkdtemp(join(tmpdir(), "vanta-perm-gate-"));
@@ -41,6 +42,8 @@ afterEach(async () => {
   else process.env.VANTA_AUTO_MODE = savedAutoMode;
   if (savedPermissionMode === undefined) delete process.env.VANTA_PERMISSION_MODE;
   else process.env.VANTA_PERMISSION_MODE = savedPermissionMode;
+  if (savedOperatingMode === undefined) delete process.env.VANTA_OPERATING_MODE;
+  else process.env.VANTA_OPERATING_MODE = savedOperatingMode;
   await rm(home, { recursive: true, force: true });
 });
 
@@ -191,6 +194,37 @@ describe("applySafetyGate + permissions", () => {
     const res = await applySafetyGate({ ...call, name: "read_file" }, deps, ctx);
     expect(res.approved).toBe(true);
     expect(prompted).toBe(false);
+  });
+
+  it("honors a host-owned Auto mode without mutating process-wide settings", async () => {
+    let prompted = false;
+    const deps = makeDeps({ risk: "ask", onAsk: () => { prompted = true; } });
+    deps.registry = { get: () => ({ describeForSafety: () => "read file /repo/README.md" }) } as unknown as AgentDeps["registry"];
+    const hostCtx = { root: home, permissionMode: () => "auto" } as ToolContext;
+    const res = await applySafetyGate({ ...call, name: "read_file" }, deps, hostCtx);
+    expect(res.approved).toBe(true);
+    expect(prompted).toBe(false);
+  });
+
+  it("blocks writes before execution when the shared operating mode is Plan", async () => {
+    process.env.VANTA_OPERATING_MODE = "plan";
+    let executed = false;
+    const deps = makeDeps({ risk: "allow" });
+    deps.registry = {
+      get: () => ({
+        execute: async () => { executed = true; return { ok: true, output: "wrote" }; },
+        describeForSafety: () => "write file x",
+        schema: { name: "write_file", description: "test", parameters: { type: "object", properties: {} } },
+      }),
+    } as unknown as AgentDeps["registry"];
+    const result = await dispatchTool(
+      { id: "plan-write", name: "write_file", arguments: { path: "x", content: "x" } },
+      deps,
+      { root: home, requestApproval: deps.requestApproval } as ToolContext,
+    );
+    expect(result.executed).toBe(false);
+    expect(result.output).toContain("plan mode is active");
+    expect(executed).toBe(false);
   });
 
   it("acceptEdits auto-confirms a file write's ASK but STILL calls the kernel (security fix)", async () => {
