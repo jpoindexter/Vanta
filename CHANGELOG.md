@@ -13,6 +13,7 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - Buzz ACP status/configure/test/serve commands and client-supplied MCP/session instruction preservation.
 - A first-class integration catalog for Buzz, Dropbox, Google Drive, Slack, and Trello.
 - A per-turn tool-budget circuit breaker that yields control instead of allowing an unbounded tool loop.
+- The terminal now shows a Claude-style live task checklist for multi-step work, with total/done/in-progress/open counts and visible ✓/■/□ status rows.
 
 ### Fixed
 - Replay never reuses recorded tool calls or approvals; a replayed action passes through the current kernel and asks again even when an older rule or access mode would otherwise allow it.
@@ -21,9 +22,10 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - PDF reading gives pdf.js the expected `Uint8Array` view.
 - Terminal resize recovery, clipboard-image parsing, and model/provider identity reporting no longer leave stale or corrupted state.
 - Claude Code authentication prefers a refreshed keychain credential when the legacy credentials file has expired.
+- Task tracking remains available under per-turn and local-runtime tool scoping; completed checklists stay visible through the final response and clear before unrelated work.
 
 ### Verified boundary
-- Full TypeScript suite: 1,473 test files and 13,687 tests passed, with 3 intentional skips.
+- Full TypeScript suite: 1,474 test files and 13,693 tests passed, with 3 intentional skips.
 - TypeScript typecheck, production Desktop build, architecture tests, and the production Electron layout/replay smoke passed.
 - The Desktop smoke executed saved-run discovery, provenance inspection, drift review, and a fresh replay dispatch with structured file metadata; its final chat response was deterministic fixture data, not a live paid-provider completion.
 - Production feature sources and built assets produced zero secret-scanner hits, and the smoke left no records in the operator's `~/.vanta/runs`.

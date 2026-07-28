@@ -8,7 +8,7 @@ import { AtPalette } from "./at-palette.js";
 import { OverlayList } from "./overlay-list.js";
 import { CockpitPanel } from "./cockpit-panel.js";
 import { HelpPanel } from "./help-panel.js";
-import { TodoPanel, planMeter } from "./todo-panel.js";
+import { TodoPanel, taskSummary, visibleTasks } from "./todo-panel.js";
 import { StatusBar } from "./status-bar.js";
 import { Footer } from "./app.js";
 import { matchSlash } from "./slash.js";
@@ -240,24 +240,39 @@ describe("inline overlays", () => {
     inst.unmount();
   });
 
-  it("TodoPanel renders the plan with a meter + status counts", async () => {
-    const todos = [{ text: "ship it", status: "in_progress" as const }, { text: "done thing", status: "done" as const }];
+  it("TodoPanel renders a Claude-style live task checklist", async () => {
+    const todos = [
+      { text: "inspect source", status: "done" as const },
+      { text: "ship it", activeForm: "Shipping it", status: "in_progress" as const },
+      { text: "verify it", status: "pending" as const },
+    ];
     const inst = renderUi(h(TodoPanel, { todos }));
     await tick();
     const out = inst.lastFrame();
-    expect(out).toContain("plan");
-    expect(out).toContain("✓1"); // done
-    expect(out).toContain("◐1"); // in progress
-    expect(out).toContain("▰");  // progress meter
-    expect(out).toContain("ship it");
+    expect(out).toContain("3 tasks (1 done, 1 in progress, 1 open)");
+    expect(out).toContain("✓ inspect source");
+    expect(out).toContain("■ Shipping it");
+    expect(out).toContain("□ verify it");
+    expect(out.indexOf("inspect source")).toBeLessThan(out.indexOf("Shipping it"));
+    expect(out.indexOf("Shipping it")).toBeLessThan(out.indexOf("verify it"));
     inst.unmount();
   });
 
-  it("planMeter fills 4 cells by share done", () => {
-    expect(planMeter(0, 4)).toBe("▱▱▱▱");
-    expect(planMeter(2, 4)).toBe("▰▰▱▱");
-    expect(planMeter(4, 4)).toBe("▰▰▰▰");
-    expect(planMeter(0, 0)).toBe("▱▱▱▱"); // no divide-by-zero
+  it("taskSummary derives singular and plural counts from canonical todo state", () => {
+    expect(taskSummary([{ text: "work", status: "in_progress" }])).toBe("1 task (0 done, 1 in progress, 0 open)");
+    expect(taskSummary([
+      { text: "done", status: "done" },
+      { text: "open", status: "pending" },
+    ])).toBe("2 tasks (1 done, 0 in progress, 1 open)");
+  });
+
+  it("visibleTasks never truncates away the active task", () => {
+    const todos = Array.from({ length: 8 }, (_, index) => ({
+      text: `task ${index + 1}`,
+      status: index === 7 ? "in_progress" as const : "pending" as const,
+    }));
+    expect(visibleTasks(todos)).toHaveLength(6);
+    expect(visibleTasks(todos).at(-1)?.text).toBe("task 8");
   });
 
   it("TodoPanel renders nothing for an empty plan", async () => {
@@ -267,11 +282,13 @@ describe("inline overlays", () => {
     inst.unmount();
   });
 
-  it("TodoPanel hides a fully-complete plan (no more 'stuck at ✓4')", async () => {
+  it("TodoPanel keeps a fully-complete plan visible as turn evidence", async () => {
     const todos = [{ text: "a", status: "done" as const }, { text: "b", status: "done" as const }];
     const inst = renderUi(h(TodoPanel, { todos }));
     await tick();
-    expect(inst.lastFrame().trim()).toBe("");
+    expect(inst.lastFrame()).toContain("2 tasks (2 done, 0 in progress, 0 open)");
+    expect(inst.lastFrame()).toContain("✓ a");
+    expect(inst.lastFrame()).toContain("✓ b");
     inst.unmount();
   });
 });

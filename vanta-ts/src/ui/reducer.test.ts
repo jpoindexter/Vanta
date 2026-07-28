@@ -204,6 +204,12 @@ describe("ui reducer — Claude-method commit model", () => {
     expect(s.todos).toEqual(items);
   });
 
+  it("clears the previous turn's checklist when new work starts", () => {
+    const items = [{ text: "shipped", status: "done" as const }];
+    const s = run([{ t: "todos", items }, { t: "turnStart" }]);
+    expect(s.todos).toEqual([]);
+  });
+
   it("enqueues and dequeues messages FIFO", () => {
     const q = run([{ t: "enqueue", text: "first" }, { t: "enqueue", text: "second" }]);
     expect(q.queued).toEqual(["first", "second"]);

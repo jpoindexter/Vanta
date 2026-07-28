@@ -75,6 +75,8 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("read_file");
     expect(prompt).toContain("/tmp/vanta");
     expect(prompt).toContain("Never declare a task complete without verified");
+    expect(prompt).toContain("Live tasks: for work with three or more meaningful steps");
+    expect(prompt).toContain("Keep exactly one item in_progress");
   });
 
   it("summarizes a large tool catalog instead of listing every tool in the stable prompt", async () => {

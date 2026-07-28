@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-24",
+  "updated": "2026-07-28",
   "items": [
     {
       "id": "SANDBOX-RELATIVE-MKDIR-APPROVAL",
@@ -7463,13 +7463,15 @@
       "title": "Live todo / progress checklist (TodoWrite pattern)",
       "status": "shipped",
       "size": "M",
-      "summary": "SHIPPED 2026-06-08. Live checklist: when the agent calls todo write, the formatted checklist is shown as a note in the TUI transcript and printed in the readline session immediately. Builds on the existing todo tool + store. tsc clean; 1627 tests.",
-      "done": "Vanta shows a live checklist that updates as it works through a multi-step task.",
+      "summary": "SHIPPED 2026-06-08; strengthened 2026-07-28. Multi-step turns keep the todo tool in every remote and local/custom provider scope. The TUI renders one live, ordered checklist with Claude-style totals and ✓ complete, ■ in-progress, and □ open rows; activeForm labels describe current work. Completed tasks remain visible as turn evidence, then clear when the next turn starts.",
+      "done": "For work with three or more meaningful steps, Vanta creates and updates a live checklist with exactly one in-progress item. The visible counts and rows update from the same canonical todo state, the completed checklist remains visible through the final response, and no stale checklist carries into the next turn. A real installed-launcher PTY proof executes provider schema exposure, active and completed todo writes, final response rendering, and duplicate-free terminal capture.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.6-terra",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-07-28",
+      "notes": "2026-07-28 proof: `VANTA_COMMAND=$(command -v vanta) npm run tui:tasks:proof` launched the installed Vanta command in tmux against a deterministic local OpenAI-compatible provider. It observed todo in the real provider schema, captured `3 tasks (1 done, 1 in progress, 1 open)` with ✓/■/□ rows, captured `3 tasks (3 done, 0 in progress, 0 open)`, received `TASK_CHECKLIST_PROOF_OK`, and found one completed checklist in the final terminal grid."
     },
     {
       "id": "U2",

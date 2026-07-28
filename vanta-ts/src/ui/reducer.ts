@@ -32,7 +32,9 @@ export function reduce(state: UiState, a: Action): UiState {
       return { ...s, entries: [...s.entries, { kind: "user", text: a.text }], promptSuggestions: [] };
     }
     case "turnStart":
-      return { ...state, busy: true, streaming: "", activeTools: [], liveThinking: "", promptSuggestions: [] };
+      // A completed checklist remains visible after its turn, then clears when
+      // the next turn begins. A new todo write repopulates it live.
+      return { ...state, busy: true, streaming: "", activeTools: [], todos: [], liveThinking: "", promptSuggestions: [] };
     case "delta": {
       // Commit COMPLETE paragraphs into <Static> as they stream (hermes/CC: text flows into
       // scrollback, scrolling old content up). Only the in-progress paragraph stays in the

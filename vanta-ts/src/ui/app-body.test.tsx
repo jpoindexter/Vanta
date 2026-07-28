@@ -93,3 +93,21 @@ describe("LiveBody prompt suggestions", () => {
     inst.unmount();
   });
 });
+
+describe("LiveBody task checklist", () => {
+  it("shows live task status above the composer", async () => {
+    const inst = renderUi(h(LiveBody, base({
+      todos: [
+        { text: "Inspect the task", status: "done" },
+        { text: "Implement the change", activeForm: "Implementing the change", status: "in_progress" },
+        { text: "Verify the TUI", status: "pending" },
+      ],
+    })));
+    const frame = await waitForFrame(inst, "3 tasks (1 done, 1 in progress, 1 open)");
+    expect(frame).toContain("✓ Inspect the task");
+    expect(frame).toContain("■ Implementing the change");
+    expect(frame).toContain("□ Verify the TUI");
+    expect(frame).toContain("Ask Vanta anything");
+    inst.unmount();
+  });
+});
