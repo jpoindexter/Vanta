@@ -20490,7 +20490,7 @@
       "lens": "tui",
       "source": "Jason live TUI feedback and screenshot 2026-07-28",
       "updated": "2026-07-28",
-      "notes": "Implemented as an immutable turnSummary transcript entry computed from completed ToolEntry records at turnEnd. The model cannot omit it or inflate verification claims. A real tmux/PTTY proof covers the installed launcher, provider tool call, final response ordering, and closeout."
+      "notes": "Implemented as an immutable turnSummary transcript entry computed from completed ToolEntry records at turnEnd. The model cannot omit it or inflate verification claims. A real tmux/PTTY proof covers the project launcher, provider tool call, final response ordering, and closeout."
     }
   ]
 }

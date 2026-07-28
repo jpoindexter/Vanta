@@ -63,7 +63,7 @@ try {
   assert.match(final, /Next: Ready for review/);
   assert(final.indexOf("TURN_SUMMARY_PROOF_OK") < final.indexOf("Summary · 1 action"));
   console.log("tui-turn-summary: PASS");
-  console.log("executed: installed launcher → provider todo call → final response → deterministic closeout above composer");
+  console.log("executed: project launcher → provider todo call → final response → deterministic closeout above composer");
 } finally {
   await tmux("kill-session", "-t", session).catch(() => {});
   await new Promise((resolveClose) => server.close(resolveClose));
