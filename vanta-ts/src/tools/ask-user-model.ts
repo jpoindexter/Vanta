@@ -15,6 +15,7 @@ const MAX_HEADER_LEN = 12;
 const OptionSchema = z.object({
   label: z.string().min(1, "option.label must be non-empty"),
   description: z.string().min(1, "option.description must be non-empty"),
+  preview: z.string().max(4_000, "option.preview must be ≤4000 chars").optional(),
 });
 
 const QuestionSchema = z.object({
@@ -29,6 +30,8 @@ const QuestionSchema = z.object({
     .max(MAX_OPTIONS, `each question needs ${MIN_OPTIONS}-${MAX_OPTIONS} options`),
   /** When true the operator may pick any number of options (else exactly one). */
   multiSelect: z.boolean().optional(),
+  /** Add an operator-authored answer after the model-proposed options. */
+  allowOther: z.boolean().optional(),
 });
 
 export const AskQuestionSchema = z.object({
@@ -43,6 +46,7 @@ export type AskQuestion = z.infer<typeof QuestionSchema>;
 
 /** One question's resolved answer: the chosen option label(s). */
 export type ResolvedSelection = { header: string; selected: string[] };
+export type AskUserResponse = ResolvedSelection[] | null;
 
 export type ValidateInputResult =
   | { ok: true; questions: AskQuestion[] }
@@ -65,7 +69,11 @@ function controlStrip(text: string): string {
 
 /** Sanitize one option's model-supplied text. Pure. */
 function cleanOption(o: AskOption): AskOption {
-  return { label: controlStrip(o.label), description: controlStrip(o.description) };
+  return {
+    label: controlStrip(o.label),
+    description: controlStrip(o.description),
+    ...(o.preview === undefined ? {} : { preview: controlStrip(o.preview) }),
+  };
 }
 
 /** Sanitize one question's model-supplied text. Pure. */
@@ -75,6 +83,7 @@ function cleanQuestion(q: AskQuestion): AskQuestion {
     question: controlStrip(q.question),
     options: q.options.map(cleanOption),
     ...(q.multiSelect === undefined ? {} : { multiSelect: q.multiSelect }),
+    ...(q.allowOther === undefined ? {} : { allowOther: q.allowOther }),
   };
 }
 
@@ -106,6 +115,11 @@ function renderQuestion(q: AskQuestion, index: number): string {
 export function formatAskPrompt(questions: AskQuestion[]): string {
   const body = questions.map(renderQuestion).join("\n\n");
   return `${body}\n\n(Await the user's selection before proceeding.)`;
+}
+
+/** Format a live host's resolved selections into a compact tool result. */
+export function formatAskResponse(selections: ResolvedSelection[]): string {
+  return selections.map((selection) => `[${selection.header}] ${selection.selected.join(", ")}`).join("\n");
 }
 
 /** Coerce one raw answer (a 1-based number or an option label) to a label. Pure. */

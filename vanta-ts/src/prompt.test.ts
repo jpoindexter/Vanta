@@ -77,11 +77,13 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("Never declare a task complete without verified");
     expect(prompt).toContain("Live tasks: for work with three or more meaningful steps");
     expect(prompt).toContain("Keep exactly one item in_progress");
+    expect(prompt).toContain("Operator questions:");
+    expect(prompt).toContain("call `ask_user`");
   });
 
   it("summarizes a large tool catalog instead of listing every tool in the stable prompt", async () => {
     const manyTools = [
-      "tool_search", "clarify", "brain", "recall", "inspect_state", "read_file", "grep_files", "glob_files",
+      "tool_search", "clarify", "ask_user", "brain", "recall", "inspect_state", "read_file", "grep_files", "glob_files",
       "web_search", "web_fetch", "git_status", "git_diff", "edit_file", "write_file", "lsp_diagnostics",
       "gmail_send", "calendar_create", "browser_act", "money", "radar", "roadmap_move",
     ].map((name) => ({ name, description: `${name} tool`, parameters: {} }));

@@ -35,6 +35,8 @@ export function ctxSnapshot(setup: RunSetup, convo: Conversation | null, state?:
 type GlobalKey = { ctrl?: boolean; escape?: boolean; tab?: boolean; shift?: boolean; leftArrow?: boolean; rightArrow?: boolean; upArrow?: boolean; downArrow?: boolean };
 type GlobalKeyDeps = {
   busy: boolean; pending: Pending | null; overlayOpen: boolean;
+  /** A component such as the structured question picker exclusively owns stdin. */
+  inputModal?: boolean;
   abort: () => void; exit: () => void; cycle: () => void;
   focus: FocusTarget; focusTargets: FocusTargetSpec[]; setFocus: (target: FocusTarget) => void;
   quickOpenOpen: boolean; openQuickOpen: () => void;
@@ -57,7 +59,7 @@ type GlobalKeyDeps = {
 
 export function useGlobalKeys(deps: GlobalKeyDeps): void {
   const [chordPending, setChordPending] = useState<string | null>(null);
-  useInput((input, key) => handleGlobalKey(input, key, { ...deps, chordPending, setChordPending }));
+  useInput((input, key) => handleGlobalKey(input, key, { ...deps, chordPending, setChordPending }), { isActive: !deps.inputModal });
 }
 
 /** KEYBINDING-CUSTOMIZATION — load the resolved bindings once (defaults until
@@ -143,7 +145,13 @@ export function useFocusFallback(focus: FocusTarget, targets: FocusTargetSpec[],
 }
 
 export function buildFocusTargets(pending: Pending | null, overlay: OverlayView | null, promptSuggestions = false): FocusTargetSpec[] {
-  if (pending) return ["approval-allow", ...(pending.fresh ? [] : ["approval-always"]), "approval-deny", "approval-never"].map((id) => ({ id: id as FocusTarget }));
+  if (pending) return [
+    ...(pending.canContinueTask && !pending.fresh ? ["approval-task"] : []),
+    ...(!pending.canContinueTask || pending.fresh ? ["approval-allow"] : []),
+    ...(pending.fresh ? [] : ["approval-always"]),
+    "approval-deny",
+    "approval-never",
+  ].map((id) => ({ id: id as FocusTarget }));
   if (overlay) return [{ id: overlay.kind === "list" ? "overlay-list" : "overlay-close" }];
   return promptSuggestions ? [{ id: "composer" }, { id: "prompt-suggestions" }] : [{ id: "composer" }];
 }

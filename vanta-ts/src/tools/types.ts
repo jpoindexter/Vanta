@@ -4,6 +4,7 @@ import type { DiffLine } from "../util/diff.js";
 import type { ToolCall } from "../types.js";
 import type { ContextInspection } from "./inspect-context.js";
 import type { PermissionMode } from "../modes/permission-mode.js";
+import type { AskQuestion, AskUserResponse } from "./ask-user-model.js";
 
 export type { DiffLine };
 
@@ -17,6 +18,9 @@ export type ToolContext = {
   /** Pause and ask the human y/n. Returns true if approved. toolName lets the
    *  host key session/always-allow and accept-edits auto-approve decisions. */
   requestApproval: (action: string, reason: string, toolName?: string, detail?: { diff?: string; fresh?: boolean }) => Promise<boolean>;
+  /** Pause an interactive host for a structured operator-owned decision. Hosts
+   * without a picker omit this and the tool falls back to a formatted prompt. */
+  requestQuestion?: (questions: AskQuestion[]) => Promise<AskUserResponse>;
   /** Host-owned live permission mode. Desktop uses this instead of mutating the
    * process-wide mode when the operator changes a project setting. */
   permissionMode?: () => PermissionMode;

@@ -14,6 +14,7 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - A first-class integration catalog for Buzz, Dropbox, Google Drive, Slack, and Trello.
 - A per-turn tool-budget circuit breaker that yields control instead of allowing an unbounded tool loop.
 - The terminal now shows a Claude-style live task checklist for multi-step work, with total/done/in-progress/open counts and visible ✓/■/□ status rows.
+- The terminal now pauses live turns for Claude-style structured questions with numbered options, multi-select, previews, and an operator-authored Other answer.
 
 ### Fixed
 - Replay never reuses recorded tool calls or approvals; a replayed action passes through the current kernel and asks again even when an older rule or access mode would otherwise allow it.
@@ -23,9 +24,10 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - Terminal resize recovery, clipboard-image parsing, and model/provider identity reporting no longer leave stale or corrupted state.
 - Claude Code authentication prefers a refreshed keychain credential when the legacy credentials file has expired.
 - Task tracking remains available under per-turn and local-runtime tool scoping; completed checklists stay visible through the final response and clear before unrelated work.
+- A safe approval can continue matching reversible work for the current task without repeated prompts; task grants clear on the next turn and never cover one-way or fresh-transaction boundaries.
 
 ### Verified boundary
-- Full TypeScript suite: 1,474 test files and 13,693 tests passed, with 3 intentional skips.
+- Full TypeScript suite: 1,476 test files and 13,708 tests passed, with 3 intentional skips.
 - TypeScript typecheck, production Desktop build, architecture tests, and the production Electron layout/replay smoke passed.
 - The Desktop smoke executed saved-run discovery, provenance inspection, drift review, and a fresh replay dispatch with structured file metadata; its final chat response was deterministic fixture data, not a live paid-provider completion.
 - Production feature sources and built assets produced zero secret-scanner hits, and the smoke left no records in the operator's `~/.vanta/runs`.

@@ -8,7 +8,7 @@ const TOOL_SEARCH_CONTEXT_LIMIT = 3;
 // regardless of the request's keywords. WRITING a file or running a command must
 // never require a tool_search round-trip (that flailing stalled real tasks).
 const CORE = [
-  "tool_search", "clarify", "brain", "recall", "inspect_state", "inspect_context",
+  "tool_search", "clarify", "ask_user", "brain", "recall", "inspect_state", "inspect_context",
   "read_file", "write_file", "edit_file", "shell_cmd", "grep_files", "glob_files",
   "todo",
 ];

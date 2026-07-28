@@ -8,6 +8,7 @@ import { startBackgroundResponse } from "../repl/bg-response-cmd.js";
 import { invalidateNdConfig } from "../nd/profile.js";
 import type { ImageAttachment } from "../types.js";
 import type { ReplState } from "../repl/types.js";
+import { TaskApprovalScope } from "./task-approval.js";
 
 // Proves the ND executive-function engine fires in the DEFAULT TUI host (not just
 // the readline REPL): runTurnGates → runPostTurnGates → ndGatesAfterTurn → a note.
@@ -101,6 +102,8 @@ describe("useAgent send — image attachments", () => {
       repoRoot: mkdtempSync(join(tmpdir(), "vanta-send-")),
       dispatch: (_a?: unknown) => {},
       setPending: () => {},
+      setPendingQuestion: () => {},
+      taskApprovals: new TaskApprovalScope(),
       interruptRef: { current: null },
       convoRef: { current: conv },
       replStateRef: { current: { turnIndex: 0, started: new Date(0).toISOString(), pendingImages } },
@@ -137,6 +140,8 @@ describe("useAgent send — image attachments", () => {
       repoRoot: mkdtempSync(join(tmpdir(), "vanta-send-")),
       dispatch: () => {},
       setPending: () => {},
+      setPendingQuestion: () => {},
+      taskApprovals: new TaskApprovalScope(),
       interruptRef: { current: null },
       convoRef: { current: conv },
       replStateRef: { current: state },

@@ -20,18 +20,20 @@ Updated 2026-07-28. This record separates executed behavior from static tests an
 | Reuse a saved Desktop run | Pass with provider boundary | Production Electron loaded a saved run from isolated disk state, opened its provenance and approval timeline, compared project/provider/model/tool/file drift, and dispatched a fresh replay request with structured `roadmap.json` metadata. The deterministic final chat response was mocked, so live-provider completion remains outside this proof. |
 | Resize an active TUI session | Pass | The shipped `./run.sh` entry stayed in a live provider turn while a real tmux PTY moved through 60×20, 78×25, 100×30, and 140×45. Every captured grid retained one typed draft, one composer, one footer, the committed prompt, and the active thinking state; the previously failing 140×45 → 78×25 transition repainted at the current width without a stale frame. |
 | Track a multi-step TUI turn | Pass with provider-fixture boundary | The installed `vanta` launcher ran in a real tmux PTY against a deterministic local OpenAI-compatible provider. The provider received the `todo` schema, the terminal showed ordered ✓/■/□ rows at 1 done / 1 in progress / 1 open, then retained one duplicate-free 3-done checklist through the final response. The provider response was fixture data, so this proves the full TUI/tool path but not any model's independent decision to call `todo`. |
+| Answer a structured TUI question and continue approved work | Pass with provider-fixture boundary | The installed `vanta` launcher received the `ask_user` schema, paused the same live turn on a real Ink picker, rendered option preview and Other, accepted a keyboard selection, then showed one task-scoped approval. One Enter authorized two pre-existing disposable in-project file writes, both were re-read with the expected content, and the turn reached its final marker without a second prompt. The provider decisions were deterministic fixture data; one-way exclusions are deterministic tests rather than destructive live actions. |
 
 The use-case catalog currently records 6 executed and 6 passed scenarios across 6 of 15 categories. The remaining categories are coverage gaps, not failures.
 
 ## Regression gates
 
-- TypeScript: 1,474 test files; 13,693 passed and 3 skipped.
+- TypeScript: 1,476 test files; 13,708 passed and 3 skipped.
 - Rust kernel: 70 passed.
 - TypeScript typecheck and architectural boundaries: passed.
 - Production desktop renderer build: passed.
 - Reusable-run production Electron smoke: passed.
 - TUI resize grid proof: idle and animated-streaming width-only, height-only, combined, and rapid alternating resizes passed; captures are written to ignored `.artifacts/tui-resize-ghost/`.
 - TUI live-task proof: installed launcher, real tmux PTY, provider schema exposure, active/completed todo transitions, and final-grid retention passed.
+- TUI question/approval proof: installed launcher, real tmux PTY, ask_user picker, same-turn answer return, one task approval, and two verified writes passed.
 - Desktop visual proof: 36 Ghost light/dark captures passed across three supported widths.
 - Packaged performance proof: cold-start median plus per-sample hard ceiling, first-use, memory, CPU, and package-size budgets passed.
 - Production npm audit: 0 vulnerabilities.
@@ -54,6 +56,7 @@ node scripts/usecase-eval.mjs --id general-capability-start --run
 node scripts/usecase-eval.mjs --id research-cited-synthesis --run --timeout-ms 300000
 cd vanta-ts && npm test
 cd vanta-ts && VANTA_COMMAND="$(command -v vanta)" npm run tui:tasks:proof
+cd vanta-ts && VANTA_COMMAND="$(command -v vanta)" npm run tui:questions:proof
 cd vanta-ts && ./scripts/ghost-storm.sh
 cargo test
 ```

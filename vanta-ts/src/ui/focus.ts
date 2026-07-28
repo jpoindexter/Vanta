@@ -1,6 +1,7 @@
 export type FocusTarget =
   | "composer"
   | "slash-palette"
+  | "approval-task"
   | "approval-allow"
   | "approval-always"
   | "approval-deny"

@@ -48,6 +48,7 @@ type LiveBodyProps = {
   entries: Entry[];
   overlay: OverlayView | null;
   pending: Pending | null;
+  inputModal?: boolean;
   mode: Mode;
   focus: FocusTarget;
   todos: TodoItem[];
@@ -83,7 +84,7 @@ export function LiveBody(p: LiveBodyProps): ReactElement {
         ? <MessageActionsPanel entries={p.entries} onRetry={p.onMessageRetry} onBranch={p.onMessageBranch} onNote={p.onMessageNote} onClose={p.onMessageClose} />
         : p.quickOpen
         ? <QuickOpen files={p.files} onActivate={p.onQuickActivate} onClose={p.onQuickClose} />
-        : <BottomRegion focused={p.focus} overlay={p.overlay} pending={p.pending} mode={p.mode} files={p.files} history={p.history} skills={p.skills} channels={p.channels} vim={p.vim} promptSuggestions={p.promptSuggestions} onSubmit={p.onSubmit} onPaste={p.onPaste} onSelect={p.onSelect} onClose={p.onClose} />}
+        : <BottomRegion focused={p.focus} overlay={p.overlay} pending={p.pending} inputModal={p.inputModal} mode={p.mode} files={p.files} history={p.history} skills={p.skills} channels={p.channels} vim={p.vim} promptSuggestions={p.promptSuggestions} onSubmit={p.onSubmit} onPaste={p.onPaste} onSelect={p.onSelect} onClose={p.onClose} />}
     </>
   );
 }
@@ -92,6 +93,7 @@ function BottomRegion(props: {
   focused: FocusTarget;
   overlay: OverlayView | null;
   pending: Pending | null;
+  inputModal?: boolean;
   mode: Mode;
   files: string[];
   history: string[];
@@ -105,7 +107,7 @@ function BottomRegion(props: {
   onClose: () => void;
 }): ReactElement | null {
   const { overlay } = props;
-  if (props.pending) return null;
+  if (props.pending || props.inputModal) return null;
   if (overlay) return <OverlayPanel overlay={overlay} focused={props.focused} onSelect={props.onSelect} onClose={props.onClose} onSubmit={props.onSubmit} />;
   return (
     <Box flexDirection="column">

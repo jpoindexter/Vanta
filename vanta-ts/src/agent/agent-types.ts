@@ -7,6 +7,7 @@ import type { Summarizer } from "../context.js";
 import type { HookBus } from "../plugins/hooks.js";
 import type { SessionWorkingMemory } from "../memory/working.js";
 import type { PermissionMode } from "../modes/permission-mode.js";
+import type { AskQuestion, AskUserResponse } from "../tools/ask-user-model.js";
 
 export type AgentDeps = {
   provider: LLMProvider;
@@ -22,6 +23,8 @@ export type AgentDeps = {
   /** Ask the human to approve a gated action. `toolName` lets the host key an
    * allowlist ("always allow this tool"); omitted by tool-internal callers. */
   requestApproval: (action: string, reason: string, toolName?: string, detail?: { diff?: string; fresh?: boolean }) => Promise<boolean>;
+  /** Optional structured operator-question channel owned by interactive hosts. */
+  requestQuestion?: (questions: AskQuestion[]) => Promise<AskUserResponse>;
   /** Optional host-owned live permission mode for project/session surfaces. */
   permissionMode?: () => PermissionMode;
   /** Replay-only safety latch. When true, an ASK verdict must reach the human

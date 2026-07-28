@@ -41,6 +41,8 @@ import type { Conversation } from "../agent.js";
 import type { ReplState } from "../repl/types.js";
 import type { RunSetup } from "../session.js";
 import type { SetupHandoff } from "../setup/handoff.js";
+import { AskUserPrompt, type PendingQuestion } from "./ask-user-prompt.js";
+import { TaskApprovalScope } from "./task-approval.js";
 
 type SubmitRouteDeps = Omit<SubmitDeps, "detachBackgroundResponse" | "safety"> & {
   setup: RunSetup;
@@ -61,6 +63,8 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
   const app = useApp();
   const [state, dispatch] = useReducer(reduce, initialState);
   const [pending, setPending] = useState<Pending | null>(null);
+  const [pendingQuestion, setPendingQuestion] = useState<PendingQuestion | null>(null);
+  const taskApprovals = useRef(new TaskApprovalScope()).current;
   const interruptRef = useRef<AbortController | null>(null);
   const convoRef = useRef<Conversation | null>(null);
   const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0, effortLevel: props.setup.effortLevel, activeGoal: null });
@@ -76,7 +80,7 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
   const [searchSessions, setSearchSessions] = useState<SearchableSession[]>([]);
   const [transcriptSelection, setTranscriptSelection] = useState<TranscriptSelection | null>(null);
   const [traceOpen, setTraceOpen] = useState(false);
-  const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, interruptRef, convoRef, replStateRef, gatesRef });
+  const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, setPendingQuestion, taskApprovals, interruptRef, convoRef, replStateRef, gatesRef });
   const requestSetup = (request: SetupHandoff): void => {
     props.onSetupRequest?.(request);
     app.exit();
@@ -126,11 +130,11 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
   const provider = props.setup.provider;
   const est = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
   const teammate = useTeammateFocus(agents.length, { busy: state.busy, pending, overlay, quickOpen, globalSearch });
-  const promptSuggestionsVisible = !state.busy && !quickOpen && !globalSearch && !messageActions && !pending && !overlay && agents.length === 0 && state.promptSuggestions.length > 0;
+  const promptSuggestionsVisible = !state.busy && !quickOpen && !globalSearch && !messageActions && !pending && !pendingQuestion && !overlay && agents.length === 0 && state.promptSuggestions.length > 0;
   const keyContexts = activeKeybindingContexts({ quickOpen, globalSearch, messageActions, pending: Boolean(pending), overlayKind: overlay?.kind ?? null, transcriptSelection: Boolean(transcriptSelection), autocomplete: promptSuggestionsVisible });
   const focusTargets = buildFocusTargets(pending, overlay, promptSuggestionsVisible);
   useFocusFallback(focus, focusTargets, pending ? "approval" : overlay?.kind ?? (promptSuggestionsVisible ? "composer+suggestions" : "composer"), setFocus);
-  useGlobalKeys({ bindings: useKeybindings(), keyContexts, busy: state.busy, pending, overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus, quickOpenOpen: quickOpen, openQuickOpen: () => setQuickOpen(true), globalSearchOpen: globalSearch, openGlobalSearch, messageActionsOpen: messageActions, openMessageActions: () => setMessageActions(true), backgroundResponseAvailable: Boolean(replStateRef.current.backgroundResponse), toggleBackgroundResponse, traceOpen, toggleTrace: () => setTraceOpen((open) => !open), cycleAgent: teammate.cycleAgent, transcriptSelectionKey, onChordState: (text) => dispatch({ t: "note", text }) });
+  useGlobalKeys({ bindings: useKeybindings(), keyContexts, busy: state.busy, pending, inputModal: Boolean(pendingQuestion), overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus, quickOpenOpen: quickOpen, openQuickOpen: () => setQuickOpen(true), globalSearchOpen: globalSearch, openGlobalSearch, messageActionsOpen: messageActions, openMessageActions: () => setMessageActions(true), backgroundResponseAvailable: Boolean(replStateRef.current.backgroundResponse), toggleBackgroundResponse, traceOpen, toggleTrace: () => setTraceOpen((open) => !open), cycleAgent: teammate.cycleAgent, transcriptSelectionKey, onChordState: (text) => dispatch({ t: "note", text }) });
   const staticItems = buildStaticItems(provider.modelId(), props.repoRoot, state.entries, { tools: props.setup.registry.schemas().length, cmds: SLASH_COMMANDS.length });
   const vp = useViewportRows();
   const rich = useFooterRich({ repoRoot: props.repoRoot, sessionId: replStateRef.current.sessionId, sessionName: replStateRef.current.title, vimEnabled, outputStyle: process.env.VANTA_OUTPUT_STYLE, compacting: state.compacting });
@@ -139,14 +143,16 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
     <Box flexDirection="column">
         <Static items={staticItems}>{(item) => <Box key={item.key}>{item.node}</Box>}</Static>
         <PinnedRegion enabled={composerAnchor === "bottom"} viewportRows={vp.rows} committedRows={estimateCommittedRows(state.entries, vp.cols)}>
-          {pending && mode !== "auto"
+          {pendingQuestion
+            ? <AskUserPrompt pending={pendingQuestion} onDone={() => setPendingQuestion(null)} />
+            : pending && mode !== "auto"
             ? <ApprovalPrompt pending={pending} focusedTarget={focus} onFocusTargetChange={setFocus} onDone={() => setPending(null)} />
             : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} liveThinking={state.liveThinking} agents={agents} selectedAgent={teammate.selectedAgent} leaderTokens={est} />}
           <TranscriptSelectionPanel entries={state.entries} selection={transcriptSelection} />
           {traceOpen
             ? <TraceEvidencePanel entries={state.entries} />
-            : <LiveBody quickOpen={quickOpen} globalSearch={globalSearch} messageActions={messageActions} searchSessions={searchSessions} entries={state.entries} overlay={overlay} pending={pending} mode={mode} focus={focus} todos={state.todos} files={files} history={history} skills={skillMatches} channels={channels} vim={vimEnabled} promptSuggestions={promptSuggestionsVisible ? state.promptSuggestions : []} onQuickActivate={(c) => { setQuickOpen(false); runSlash(c); }} onQuickClose={() => setQuickOpen(false)} onSearchSelect={selectSearchHit} onSearchClose={() => setGlobalSearch(false)} onMessageRetry={onSubmit} onMessageBranch={() => runSlash("/fork")} onMessageNote={(text) => dispatch({ t: "note", text })} onMessageClose={() => setMessageActions(false)} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />}
-          {!pending && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={replStateRef.current.activeGoal} mcp={mcp} elapsed={elapsed} agents={agents} rich={rich} /> : null}
+            : <LiveBody quickOpen={quickOpen} globalSearch={globalSearch} messageActions={messageActions} searchSessions={searchSessions} entries={state.entries} overlay={overlay} pending={pending} inputModal={Boolean(pendingQuestion)} mode={mode} focus={focus} todos={state.todos} files={files} history={history} skills={skillMatches} channels={channels} vim={vimEnabled} promptSuggestions={promptSuggestionsVisible ? state.promptSuggestions : []} onQuickActivate={(c) => { setQuickOpen(false); runSlash(c); }} onQuickClose={() => setQuickOpen(false)} onSearchSelect={selectSearchHit} onSearchClose={() => setGlobalSearch(false)} onMessageRetry={onSubmit} onMessageBranch={() => runSlash("/fork")} onMessageNote={(text) => dispatch({ t: "note", text })} onMessageClose={() => setMessageActions(false)} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />}
+          {!pending && !pendingQuestion && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={replStateRef.current.activeGoal} mcp={mcp} elapsed={elapsed} agents={agents} rich={rich} /> : null}
         </PinnedRegion>
     </Box>
   );
