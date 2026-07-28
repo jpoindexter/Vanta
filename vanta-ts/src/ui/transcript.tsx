@@ -8,6 +8,7 @@ import { FOCUS, RISK } from "../term/palette.js";
 import type { Entry, ToolEntry } from "./types.js";
 import type { DiffLine } from "../util/diff.js";
 import { quietToolRows } from "./quiet-tool-group.js";
+import { turnSummaryLines } from "./turn-summary.js";
 
 // Pure renderers for one committed entry. Tools render Claude-style: each call is
 // a ⏺ Verb(detail) line over a dim ⎿ result line (+ inline diff for edits). Real
@@ -55,6 +56,13 @@ export function EntryView(props: { entry: Entry }): ReactElement {
   }
   if (e.kind === "thinking") return <ThinkingView text={e.text} />;
   if (e.kind === "note") return <NoteView text={e.text} />;
+  if (e.kind === "turnSummary") {
+    const lines = turnSummaryLines(e);
+    return <Box flexDirection="column" marginTop={1}>
+      <Text bold>{lines[0]}</Text>
+      {lines.slice(1).map((line, index) => <Text key={index}>  {line}</Text>)}
+    </Box>;
+  }
   if (e.kind === "toolGroup") return <ToolGroupView tools={e.tools} />;
   return <ToolCallView entry={e} />;
 }

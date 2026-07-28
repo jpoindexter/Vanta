@@ -1,6 +1,7 @@
 import { initialState, type Entry, type PendingTool, type ToolEntry, type UiState } from "./types.js";
 import type { DiffLine } from "../util/diff.js";
 import type { TodoItem } from "../todo/store.js";
+import { buildTurnSummary } from "./turn-summary.js";
 
 // One small reducer. The key invariant for the Claude method: a tool row is
 // committed to history (→ <Static>, which never repaints) only when it COMPLETES;
@@ -34,7 +35,7 @@ export function reduce(state: UiState, a: Action): UiState {
     case "turnStart":
       // A completed checklist remains visible after its turn, then clears when
       // the next turn begins. A new todo write repopulates it live.
-      return { ...state, busy: true, streaming: "", activeTools: [], todos: [], liveThinking: "", promptSuggestions: [] };
+      return { ...state, busy: true, streaming: "", activeTools: [], turnTools: [], todos: [], liveThinking: "", promptSuggestions: [] };
     case "delta": {
       // Commit COMPLETE paragraphs into <Static> as they stream (hermes/CC: text flows into
       // scrollback, scrolling old content up). Only the in-progress paragraph stays in the
@@ -173,7 +174,7 @@ function completeTool(state: UiState, a: Extract<Action, { t: "toolResult" }>): 
     kind: "tool", name: a.name, verb: pend?.verb ?? a.name, detail: pend?.detail ?? "",
     ok: a.ok, errorLine: a.errorLine, summary: a.summary, diff: a.diff, tokens: a.tokens, rawOutput: a.rawOutput,
   };
-  return { ...state, activeTools, pendingGroup: [...state.pendingGroup, entry] };
+  return { ...state, activeTools, pendingGroup: [...state.pendingGroup, entry], turnTools: [...state.turnTools, entry] };
 }
 
 /** Index of the last in-flight tool with this name (FIFO would mismatch interleaved calls). */
@@ -184,5 +185,15 @@ function lastIndexByName(tools: PendingTool[], name: string): number {
 
 /** End the turn: commit any trailing streamed text and clear the live region. */
 function commitStreaming(state: UiState): UiState {
-  return { ...commitText(state), activeTools: [], busy: false, liveThinking: "", compacting: false };
+  const committed = commitText(state);
+  const summary = buildTurnSummary(committed.turnTools);
+  return {
+    ...committed,
+    entries: summary ? [...committed.entries, summary] : committed.entries,
+    activeTools: [],
+    turnTools: [],
+    busy: false,
+    liveThinking: "",
+    compacting: false,
+  };
 }

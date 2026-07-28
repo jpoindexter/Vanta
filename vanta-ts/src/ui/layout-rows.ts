@@ -42,6 +42,8 @@ export function estimateEntryRows(entry: Entry, cols: number): number {
       return toolRows(entry);
     case "toolGroup":
       return 1 /*marginTop*/ + entry.tools.reduce((n, tl) => n + toolRows(tl), 0);
+    case "turnSummary":
+      return 4 /* marginTop + heading + verification + next */ + (entry.changed.length > 0 ? 1 : 0) + (entry.checked > 0 ? 1 : 0);
   }
 }
 

@@ -20475,6 +20475,22 @@
       "source": "Product Hunt feedback from İbrahim Temurtaş",
       "updated": "2026-07-24",
       "notes": "Local-only first release. One RunRecord is captured per user turn. Unsaved records follow session cleanup; saved records survive until explicitly removed. Fork prepares editable prompt and file inputs without prior assistant/tool context. Replay shows drift first, prepares a fresh task, and never invokes recorded tool calls or reuses approval authority."
+    },
+    {
+      "id": "TUI-DETERMINISTIC-TURN-SUMMARY",
+      "track": "TUI",
+      "title": "Deterministic turn closeout — changed, checked, verified, and next",
+      "status": "shipped",
+      "size": "S",
+      "summary": "End every tool-based TUI turn with a compact Claude-style closeout derived from Vanta's own tool receipts, so a large diff cannot bury what changed, what was actually checked, whether verification ran, or what the operator should do next.",
+      "done": "After a tool-based turn, the final committed block appears after tool output and assistant text and immediately above the composer; it reports changed targets and read/search counts, says `Verification: Not run` when no qualifying check executed, surfaces failed checks without claiming success, and points to Ctrl+T evidence when attention is required. Conversation-only turns remain uncluttered.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "lens": "tui",
+      "source": "Jason live TUI feedback and screenshot 2026-07-28",
+      "updated": "2026-07-28",
+      "notes": "Implemented as an immutable turnSummary transcript entry computed from completed ToolEntry records at turnEnd. The model cannot omit it or inflate verification claims. A real tmux/PTTY proof covers the installed launcher, provider tool call, final response ordering, and closeout."
     }
   ]
 }

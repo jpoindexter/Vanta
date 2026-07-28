@@ -27,6 +27,16 @@ export type ToolEntry = {
 /** A run of consecutive tool calls, committed as one block with a header. */
 export type ToolGroupEntry = { kind: "toolGroup"; tools: ToolEntry[] };
 
+export type TurnSummaryEntry = {
+  kind: "turnSummary";
+  actions: number;
+  changed: string[];
+  checked: number;
+  verificationPassed: number;
+  verificationFailed: number;
+  failures: number;
+};
+
 export type Entry =
   | { kind: "user"; text: string }
   // `cont` = a continuation chunk of a streamed reply (committed paragraph-by-paragraph
@@ -34,6 +44,7 @@ export type Entry =
   | { kind: "assistant"; text: string; cont?: boolean }
   | ToolEntry
   | ToolGroupEntry
+  | TurnSummaryEntry
   | { kind: "note"; text: string }
   | { kind: "thinking"; text: string };
 
@@ -50,6 +61,9 @@ export type UiState = {
   /** Completed tools in the current run, buffered until a non-tool entry flushes
    * them into history as one toolGroup (the grouped-header look). */
   pendingGroup: ToolEntry[];
+  /** Completed tool evidence for only the active turn. Used to build the
+   * deterministic closeout summary; cleared at the next turn boundary. */
+  turnTools: ToolEntry[];
   /** The agent's current plan (todo list), shown as a live panel when non-empty. */
   todos: TodoItem[];
   /** Messages submitted while busy — drained one per turn when idle. */
@@ -65,4 +79,4 @@ export type UiState = {
   promptSuggestions: string[];
 };
 
-export const initialState: UiState = { entries: [], streaming: "", activeTools: [], pendingGroup: [], todos: [], queued: [], busy: false, liveThinking: "", compacting: false, promptSuggestions: [] };
+export const initialState: UiState = { entries: [], streaming: "", activeTools: [], pendingGroup: [], turnTools: [], todos: [], queued: [], busy: false, liveThinking: "", compacting: false, promptSuggestions: [] };

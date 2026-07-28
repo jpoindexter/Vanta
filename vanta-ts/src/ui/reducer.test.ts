@@ -108,7 +108,7 @@ describe("ui reducer — Claude-method commit model", () => {
       { t: "turnEnd" },
     ]);
     // text after the tool stays AFTER the tool group, not merged before it
-    expect(s.entries.map((e) => e.kind)).toEqual(["user", "assistant", "toolGroup", "assistant"]);
+    expect(s.entries.map((e) => e.kind)).toEqual(["user", "assistant", "toolGroup", "assistant", "turnSummary"]);
   });
 
   it("does not commit an empty assistant turn", () => {
@@ -135,9 +135,10 @@ describe("ui reducer — Claude-method commit model", () => {
       { t: "toolResult", name: "write_file", ok: true, summary: "+6/-0" },
       { t: "turnEnd" },
     ]);
-    expect(s.entries).toHaveLength(2); // text once, then the group — no duplicate
+    expect(s.entries).toHaveLength(3); // text once, then the group and deterministic closeout
     expect(s.entries[0]).toEqual({ kind: "assistant", text: "Writing it now." });
     expect(s.entries[1]).toMatchObject({ kind: "toolGroup" });
+    expect(s.entries[2]).toMatchObject({ kind: "turnSummary", changed: ["x.html"] });
     expect(s.streaming).toBe("");
   });
 
@@ -169,6 +170,23 @@ describe("ui reducer — Claude-method commit model", () => {
     const group = s.entries.find((e) => e.kind === "toolGroup");
     expect(group).toMatchObject({ kind: "toolGroup" });
     expect((group as { tools: unknown[] }).tools).toHaveLength(2);
+  });
+
+  it("commits a summary last so it remains above the composer after a large diff", () => {
+    const diff = Array.from({ length: 96 }, (_, index) => ({ type: "add" as const, text: `line ${index}` }));
+    const s = run([
+      { t: "turnStart" },
+      { t: "toolCall", name: "write_file", verb: "wrote", detail: "~/Desktop/jobs/sources.md" },
+      { t: "toolResult", name: "write_file", ok: true, summary: "96 chars", diff },
+      { t: "delta", d: "Created the source list." },
+      { t: "turnEnd" },
+    ]);
+    expect(s.entries.at(-1)).toMatchObject({
+      kind: "turnSummary",
+      actions: 1,
+      changed: ["~/Desktop/jobs/sources.md"],
+      verificationPassed: 0,
+    });
   });
 
   it("flushes the group before a user turn / thinking", () => {

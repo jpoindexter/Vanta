@@ -144,6 +144,26 @@ describe("EntryView", () => {
     expect(out).not.toContain("20 lines");
     inst.unmount();
   });
+
+  it("renders the deterministic turn summary after tool evidence", async () => {
+    const entry = {
+      kind: "turnSummary" as const,
+      actions: 3,
+      changed: ["src/app.ts"],
+      checked: 1,
+      verificationPassed: 1,
+      verificationFailed: 0,
+      failures: 0,
+    };
+    const inst = renderUi(h(EntryView, { entry }));
+    await waitForFrame(inst, "Summary · 3 actions");
+    const out = inst.lastFrame();
+    expect(out).toContain("Changed: src/app.ts");
+    expect(out).toContain("Checked: 1 read/search action");
+    expect(out).toContain("Verification: 1 passed");
+    expect(out).toContain("Next: Ready for review");
+    inst.unmount();
+  });
 });
 
 describe("SlashPalette", () => {
