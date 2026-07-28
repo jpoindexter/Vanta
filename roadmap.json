@@ -19975,7 +19975,7 @@
       "id": "TUI-RESIZE-GHOST-REGRESSION",
       "track": "Operator",
       "title": "TUI resize repaint regression — one clean frame after every terminal resize",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Reopen the terminal-resize reliability work after a real 78x25 session on 2026-07-20 left repeated composer borders, prompt text, and orphaned line glyphs across the viewport. Treat SIGWINCH as a complete layout invalidation: clear the prior physical frame, recompute the transcript/composer/footer geometry, and draw one coherent current frame without losing the active draft or turn.",
       "done": "A real PTY resize-storm proof repeatedly shrinks and grows an active Vanta TUI through 60x20, 78x25, 100x30, and 140x45 while idle and streaming; after every SIGWINCH the captured terminal grid contains exactly one in-bounds composer, one footer, no stale borders or duplicate prompt text, and preserves the draft, transcript, scroll position, and active run. The proof runs against the shipped entry point, covers width-only and height-only changes plus rapid alternating resizes, and stores before/after terminal captures as the regression receipt.",
@@ -19985,8 +19985,8 @@
       "codex": "gpt-5.6-terra",
       "lens": "tui",
       "source": "operator-screenshot-2026-07-20",
-      "updated": "2026-07-20",
-      "notes": "REGRESSION: VANTA-ALT-SCREEN recorded resize ghosting as shipped on 2026-06-10, but the current real TUI visibly reproduces stacked historical composer frames at 78x25. Existing resize-fix unit coverage proves only the repaint hook mechanism; this card stays open until the real PTY output is clean under repeated resize events.",
+      "updated": "2026-07-28",
+      "notes": "SHIPPED 2026-07-28. Root cause: the resize hook repainted synchronously inside SIGWINCH and skipped height-only events, so Ink's throttled trailing frame or a React dimension subscriber could repaint stale pre-resize geometry after the clear. The hook now treats width and height as complete frame invalidations, coalesces rapid events, and runs the absolute repaint after Ink's 30 fps frame and React layout subscribers settle. EXECUTED: 10 focused mechanism/integration tests passed, including the real Ink absolute-clear sequence; 44 focused TUI tests passed; the full TypeScript suite passed 13,689 tests with 3 intentional skips; core TypeScript typecheck passed. The deterministic real-tmux harness passed idle and animated-streaming grids across width-only, height-only, combined, and rapid 60x20/78x25/100x30/140x45 changes, saving before/after captures under ignored `.artifacts/tui-resize-ghost/`. A separate live-provider run through `./run.sh` stayed active while resizing across all four target dimensions; every captured grid retained one draft, one composer, one footer, the committed prompt, and the active thinking state. The previously failing 140x45 -> 78x25 transition now renders a single 78-column frame.",
       "after": [
         "VANTA-ALT-SCREEN",
         "TUI-LINE-SCROLL"

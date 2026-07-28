@@ -1,6 +1,6 @@
 # Product acceptance
 
-Updated 2026-07-24. This record separates executed behavior from static tests and external setup gates.
+Updated 2026-07-28. This record separates executed behavior from static tests and external setup gates.
 
 ## Executed operator paths
 
@@ -18,16 +18,18 @@ Updated 2026-07-24. This record separates executed behavior from static tests an
 | Capture and inspect the screen | Pass | The CLI/TUI captured a real 3024x1964 Retina screen and a visual model returned the required `SIGHT_OK landscape` marker. Area, window, and all-display capture contracts also passed focused Desktop smoke coverage. |
 | Paste image context into Desktop | Pass | The Electron native clipboard bridge ingested text, PNG, and mixed clipboard content; Desktop rendered a removable chip, retained it after failed send, submitted it on success, and then cleared it. |
 | Reuse a saved Desktop run | Pass with provider boundary | Production Electron loaded a saved run from isolated disk state, opened its provenance and approval timeline, compared project/provider/model/tool/file drift, and dispatched a fresh replay request with structured `roadmap.json` metadata. The deterministic final chat response was mocked, so live-provider completion remains outside this proof. |
+| Resize an active TUI session | Pass | The shipped `./run.sh` entry stayed in a live provider turn while a real tmux PTY moved through 60×20, 78×25, 100×30, and 140×45. Every captured grid retained one typed draft, one composer, one footer, the committed prompt, and the active thinking state; the previously failing 140×45 → 78×25 transition repainted at the current width without a stale frame. |
 
 The use-case catalog currently records 6 executed and 6 passed scenarios across 6 of 15 categories. The remaining categories are coverage gaps, not failures.
 
 ## Regression gates
 
-- TypeScript: 1,473 test files; 13,687 passed and 3 skipped.
+- TypeScript: 1,473 test files; 13,689 passed and 3 skipped.
 - Rust kernel: 70 passed.
 - TypeScript typecheck and architectural boundaries: passed.
 - Production desktop renderer build: passed.
 - Reusable-run production Electron smoke: passed.
+- TUI resize grid proof: idle and animated-streaming width-only, height-only, combined, and rapid alternating resizes passed; captures are written to ignored `.artifacts/tui-resize-ghost/`.
 - Desktop visual proof: 36 Ghost light/dark captures passed across three supported widths.
 - Packaged performance proof: cold-start median plus per-sample hard ceiling, first-use, memory, CPU, and package-size budgets passed.
 - Production npm audit: 0 vulnerabilities.
@@ -49,5 +51,6 @@ node scripts/usecase-eval.mjs --status --json
 node scripts/usecase-eval.mjs --id general-capability-start --run
 node scripts/usecase-eval.mjs --id research-cited-synthesis --run --timeout-ms 300000
 cd vanta-ts && npm test
+cd vanta-ts && ./scripts/ghost-storm.sh
 cargo test
 ```
