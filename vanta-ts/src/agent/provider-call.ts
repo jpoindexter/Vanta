@@ -16,11 +16,13 @@ import { dispatchTool } from "./dispatch-tool.js";
 import { isTransientError, resolveProviderRetries } from "../tool-retry.js";
 import { classifyProviderError } from "../providers/error-taxonomy.js";
 import { stripAllImages } from "./image-recovery.js";
+import { recordTtftStage } from "../performance/ttft-trace.js";
 
 export type ProviderCall = {
   ctx: ToolContext;
   prefetched: Map<string, Promise<DispatchOutcome>>;
   schemas: ToolSchema[];
+  ttft?: { turnId: string; surface: string };
 };
 
 export type CompletionRetryArgs = {
@@ -111,20 +113,21 @@ export async function getCompletion(
   deps: AgentDeps,
   messages: Message[],
   signal?: AbortSignal,
-  pf?: { ctx: ToolContext; prefetched: Map<string, Promise<DispatchOutcome>>; schemas?: ToolSchema[] },
+  pf?: { ctx: ToolContext; prefetched: Map<string, Promise<DispatchOutcome>>; schemas?: ToolSchema[]; ttft?: { turnId: string; surface: string } },
 ): Promise<CompletionResult> {
   const schemas = pf?.schemas ?? schemasWithStructuredOutput(
     scopeToolSchemas(deps.registry.schemas(), toolScopeContext(messages, deps.activeGoalText), { env: process.env }),
     deps.outputSchema,
   );
   const cfg = { ...(signal ? { signal } : {}), effortLevel: deps.getEffortLevel?.() };
+  recordTtftStage("provider_dispatch", pf?.ttft);
   if (deps.provider.stream && deps.onTextDelta) {
     const onSafeToolCall = pf
       ? (call: ToolCall) => {
           if (!pf.prefetched.has(call.id)) pf.prefetched.set(call.id, dispatchTool(call, deps, pf.ctx));
         }
       : undefined;
-    const result = await consumeStream({ stream: deps.provider.stream(messages, schemas, cfg), onTextDelta: deps.onTextDelta, onThinkingDelta: deps.onThinkingDelta, signal, onSafeToolCall });
+    const result = await consumeStream({ stream: deps.provider.stream(messages, schemas, cfg), onTextDelta: deps.onTextDelta, onThinkingDelta: deps.onThinkingDelta, signal, onSafeToolCall, ttft: pf?.ttft });
     if (result) return result;
   }
   return deps.provider.complete(messages, schemas, cfg);

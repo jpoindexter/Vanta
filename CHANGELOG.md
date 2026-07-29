@@ -5,11 +5,21 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 
 ## Unreleased — 2026-07-29
 
+### Added
+- A versioned true-first-token harness now measures five fresh and five warm-profile runs for readline CLI, Ink TUI, authenticated SSE gateway, and Developer ID-signed packaged Desktop. Content-free timestamps separate process readiness, submit dispatch, first live provider delta, and first surface paint; receipts report median, p95, and worst with machine/build/model provenance.
+- TTFT regression budgets reject mocked or unverified providers, incomplete sample groups, and unsigned or unpackaged Desktop runs, then identify the exact surface, profile mode, and stage that regressed.
+
 ### Fixed
 - Automatic and manual context compaction now render a labeled square-cell progress meter with numeric phase milestones, replacing the generic spinner without using slanted track glyphs.
+- The readline host now uses the provider streaming path while preserving its single clean final print, making first-delta timing and interruption observable without duplicating output.
+- The TypeScript suite caps workers below total CPU saturation so Seatbelt, Node, browser, and tmux child-process tests retain startup headroom instead of intermittently crossing real timeout boundaries.
 - `browser_read` now uses Vanta's shared system-browser fallback, so an installed Chrome, Brave, or Edge keeps browser tasks working when Playwright's versioned Chromium cache is absent.
 - `shell_cmd` now marks macOS `mdfind` query-parser failures as failed even when `mdfind` exits zero. Timeout failures explain the recovery path and can be retried with a bounded `timeout_ms` override capped at two minutes instead of requiring the sandbox to be disabled.
 - Turn tracing ignores comparison operators and strings inside heredoc bodies, preventing read-only inspection scripts from producing false `trace[blind-write]` warnings.
+
+### Verified boundary
+- A live local Ollama baseline completed 40/40 samples across all four TTFT surfaces and both profile modes; no mocked response counted. The packaged macOS app passed strict Developer ID signature verification, and Desktop first paint was observed after a rendered DOM animation frame.
+- The automatic-compaction launcher proof completed six real TUI turns, crossed the configured threshold, rendered the square-cell 25% phase, issued the summary request, and resumed the provider turn.
 
 ## v0.9.8 — 2026-07-24
 
@@ -38,7 +48,7 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - Tool-budget, repeated-failure, interruption, and iteration-limit exits now persist and render their terminal reason in the TUI instead of ending on a receipt-only “Ready for review” state.
 
 ### Verified boundary
-- Full TypeScript suite: 1,481 test files and 13,740 tests passed, with 3 intentional skips.
+- Full TypeScript suite: 1,482 test files and 13,756 tests passed, with 3 intentional skips.
 - TypeScript typecheck, production Desktop build, architecture tests, and the production Electron layout/replay smoke passed.
 - The Desktop smoke executed saved-run discovery, provenance inspection, drift review, and a fresh replay dispatch with structured file metadata; its final chat response was deterministic fixture data, not a live paid-provider completion.
 - Production feature sources and built assets produced zero secret-scanner hits, and the smoke left no records in the operator's `~/.vanta/runs`.

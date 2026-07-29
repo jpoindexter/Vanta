@@ -31,6 +31,7 @@ import { checkpointToolTranscript, persistEffectTransition } from "./effect-pers
 import { detectAdaptiveRedirect, detectAdaptiveSupport, injectAdaptiveSupport, type AdaptiveSupportPlan } from "./adaptive-support.js";
 import { resolveToolBudget, shouldHaltForToolBudget, buildToolBudgetSummary } from "./tool-budget.js";
 import { resolvePermissionMode } from "../modes/permission-mode.js";
+import { beginTtftTurn } from "../performance/ttft-trace.js";
 
 export type TurnOpts = {
   messages: Message[];
@@ -209,6 +210,7 @@ async function handleToolCallsPresent(args: ToolCallIterArgs): Promise<AgentOutc
 
 export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
   const { messages, ctx, deps, userText, images, signal } = opts;
+  const ttft = beginTtftTurn(deps.usageAgent ?? "agent");
   const effectiveSignal = signal ?? deps.signal;
   const maxIter = deps.maxIterations ?? 50;
   const adaptiveSupport = detectAdaptiveSupport(userText, messages);
@@ -231,7 +233,7 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
     state.adaptiveRedirect = "";
     const trimmed = injectAdaptiveSupport(prepared, [adaptiveSupport.directive, redirectForCall]);
     const prefetched = new Map<string, Promise<DispatchOutcome>>();
-    const completion = await completeAndRecordUsage({ deps, depsWithTools, messages: trimmed, turnCtx, signal: effectiveSignal, providerCall: { ctx, prefetched, schemas } });
+    const completion = await completeAndRecordUsage({ deps, depsWithTools, messages: trimmed, turnCtx, signal: effectiveSignal, providerCall: { ctx, prefetched, schemas, ttft } });
     if (!completion.ok) return terminalOutcome({ messages, deps, state, iter, reason: "repeated_failure", text: completion.error });
     const result = completion.result;
     recordUsage(state, result);

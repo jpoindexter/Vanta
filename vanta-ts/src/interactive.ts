@@ -199,6 +199,10 @@ function buildConversation(o: ConvoOpts): { convo: ReturnType<typeof createConve
     workingMemory,
     onAutoCompact: (dropped, summary) => console.log(`  ⟳ auto-compacted ${dropped} messages — ${summary.length > 80 ? summary.slice(0, 77) + "…" : summary}`),
     ...consoleCallbacks(),
+    // Keep the readline surface on the provider's streaming path so TTFT and
+    // interruption observe the first real delta. The host still prints the
+    // assembled final response once, preserving its clean non-Ink layout.
+    onTextDelta: () => {},
     onThinking: (t) => console.log(`  ⚙ ${t.split("\n")[0]?.slice(0, 80) ?? ""}`),
     planGate: () => { const sys = convo.messages[0]; return !!(sys?.content.includes(PLAN_MARKER) && !state.planApproved); },
     shouldSoftStop: softStopPredicate(SOFT_STOP),

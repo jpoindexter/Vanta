@@ -26,12 +26,14 @@ Updated 2026-07-29. This record separates executed behavior from static tests an
 | Reload Vanta without losing the active task | Pass with provider-fixture boundary | A real tmux PTY completed one provider turn, invoked `/restart`, exited through the project relaunch loop, loaded the read-once session handoff, and sent a second turn. The provider received the first prompt and response after the new process launched and returned `CONTEXT_OK`; the TUI showed the resumed-session receipt. |
 | Cycle Vanta operating modes from the composer | Pass with provider-fixture boundary | The project `run.sh` launcher ran in a real tmux PTY. Actual Shift+Tab inputs moved the visible mode line through Manual → Accept edits → Plan → Auto; Auto then executed and verified a real `edit_file` without any approval input before returning to Manual. Focused safety tests prove kernel Block remains immovable and consequential/unsafe actions retain their gate. The provider tool call was deterministic fixture data. |
 | Finish an unfinished Auto-mode TUI task | Pass with provider-fixture boundary | The project `run.sh` launcher received a deterministic “Not done … I’ll finish” answer after writing a two-step checklist. Vanta automatically continued the same turn, executed and verified the remaining edit without approval input, and rendered the final completion marker. A second turn deliberately repeated an identical read three times and rendered the terminal stop reason rather than a blank receipt-only handoff. |
+| See automatic context compaction without losing the turn | Pass with provider-fixture boundary | The project launcher completed six real Ink TUI turns. The sixth crossed a controlled context threshold, issued the summarizer request, rendered the square-cell 25% compaction phase, cleared the active state, and resumed to the sixth provider response. The provider text was deterministic fixture data; thresholding, stored transcript compaction, TUI rendering, and continuation were production paths. |
+| Measure true first-token performance | Pass with live local provider | The versioned harness completed 40/40 Ollama qwen2.5:14b samples: five fresh and five warm profiles each for readline CLI, Ink TUI, authenticated SSE gateway, and Developer ID-signed packaged Desktop. It recorded process readiness, submit dispatch, provider first delta, and first surface paint separately. No mocked provider counted; Desktop paint followed a real DOM mutation and animation frame. |
 
 The use-case catalog currently records 6 executed and 6 passed scenarios across 6 of 15 categories. The remaining categories are coverage gaps, not failures.
 
 ## Regression gates
 
-- TypeScript: 1,481 test files; 13,740 passed and 3 skipped.
+- TypeScript: 1,482 test files; 13,756 passed and 3 skipped.
 - Rust kernel: 70 passed.
 - TypeScript typecheck and architectural boundaries: passed.
 - Production desktop renderer build: passed.
@@ -46,6 +48,8 @@ The use-case catalog currently records 6 executed and 6 passed scenarios across 
 - TUI task-completion proof: project launcher, real tmux PTY, explicit unfinished answer, automatic same-turn continuation, verified edit, final response, and visible repeated-call stop receipt passed.
 - Desktop visual proof: 36 Ghost light/dark captures passed across three supported widths.
 - Packaged performance proof: cold-start median plus per-sample hard ceiling, first-use, memory, CPU, and package-size budgets passed.
+- True-first-token proof: 40 live-provider samples passed baseline eligibility across CLI, TUI, gateway, and signed packaged Desktop; content-free receipts and per-stage p95 budgets are stored in `vanta-ts/scripts/fixtures/`.
+- Automatic compaction proof: real launcher, six TUI turns, automatic threshold, square-cell 25% phase, summary request, and resumed response passed.
 - Production npm audit: 0 vulnerabilities.
 - External `terminal-love` MCP: 94 tests passed and 0 production vulnerabilities after its Undici update.
 
@@ -69,7 +73,9 @@ cd vanta-ts && VANTA_COMMAND="$(command -v vanta)" npm run tui:tasks:proof
 cd vanta-ts && VANTA_COMMAND="$(command -v vanta)" npm run tui:questions:proof
 cd vanta-ts && npm run tui:output:proof
 cd vanta-ts && npm run tui:completion:proof
+cd vanta-ts && npm run tui:auto-compaction:proof
 cd vanta-ts && npm run tui:restart:proof
+cd vanta-ts && VANTA_TTFT_LIVE=1 npm run ttft:proof
 cd vanta-ts && ./scripts/ghost-storm.sh
 cargo test
 ```
