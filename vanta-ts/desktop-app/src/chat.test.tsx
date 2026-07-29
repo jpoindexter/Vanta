@@ -195,7 +195,13 @@ describe("Composer context legibility", () => {
         root="/Users/jasonpoindexter/Documents/GitHub/docs/Vanta"
         tools={42}
         accessMode="ask"
-        attachments={["desktop-app/src/App.tsx"]}
+        attachments={[{
+          id: "file:desktop-app/src/App.tsx",
+          kind: "file",
+          path: "desktop-app/src/App.tsx",
+          label: "App.tsx",
+          files: ["desktop-app/src/App.tsx"],
+        }]}
         onChange={vi.fn()}
         onSubmit={vi.fn()}
         onQueue={vi.fn()}
@@ -221,6 +227,39 @@ describe("Composer context legibility", () => {
     expect(html).toContain("Agent model: gpt-5.5. Change model");
     expect(html).toContain("desktop-app/src/App.tsx");
     expect(html).toContain("Remove desktop-app/src/App.tsx");
+  });
+
+  it("renders a folder as one icon-only removable chip", () => {
+    const html = renderToStaticMarkup(
+      <Composer
+        value=""
+        busy={false}
+        accessMode="ask"
+        attachments={[{
+          id: "folder:images",
+          kind: "folder",
+          path: "images",
+          label: "images",
+          files: ["images/a.jpg", "images/b.jpg"],
+        }]}
+        onChange={vi.fn()}
+        onSubmit={vi.fn()}
+        onQueue={vi.fn()}
+        onRemoveAttachment={vi.fn()}
+        onStop={vi.fn()}
+        onAttach={vi.fn()}
+        onMcp={vi.fn()}
+        onModel={vi.fn()}
+        onAccessMode={vi.fn(async () => undefined)}
+        onCommand={vi.fn()}
+      />,
+    );
+
+    expect(html).toContain('class="folder-context-chip"');
+    expect(html).toContain("Folder images with 2 readable files");
+    expect(html).toContain("Remove folder images");
+    expect(html).not.toContain(">images/a.jpg<");
+    expect(html).not.toContain(">images/b.jpg<");
   });
 });
 

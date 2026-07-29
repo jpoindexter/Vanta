@@ -7,6 +7,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { randomBytes } from "node:crypto";
 import { app, BrowserWindow, Tray, Menu, nativeImage, dialog, clipboard, shell, ipcMain } from "electron";
 import { createTrayController } from "./tray.mjs";
+import { resolveDroppedPaths } from "./dropped-paths.mjs";
 import { findAvailablePort, projectArg, readProjectSetting, resolveProjectRoot, saveProjectSetting } from "./project-root.mjs";
 import { resolveRuntimePaths } from "./runtime-paths.mjs";
 
@@ -36,6 +37,18 @@ ipcMain.handle("vanta:read-clipboard", () => {
     text: clipboard.readText(),
     image: png?.length ? { mime: "image/png", dataBase64: png.toString("base64"), bytes: png.length } : undefined,
   };
+});
+
+ipcMain.handle("vanta:resolve-dropped-paths", (_event, paths) =>
+  resolveDroppedPaths(paths, projectRoot));
+
+ipcMain.handle("vanta:pick-attachments", async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: "Attach files or folders to Vanta",
+    properties: ["openFile", "openDirectory", "multiSelections"],
+  });
+  if (result.canceled) return { files: [], items: [], errors: [] };
+  return resolveDroppedPaths(result.filePaths, projectRoot);
 });
 
 function runtimePaths() {

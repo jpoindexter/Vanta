@@ -233,13 +233,18 @@ h2 { margin: 14px 0 8px; font-size: 11px; letter-spacing: .08em; text-transform:
 .thinking i { width: 13px; height: 13px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.composer { width: min(790px, calc(100% - 32px)); justify-self: center; margin: 0 16px 16px; border: 1px solid var(--line-strong); border-radius: 10px; padding: 10px; background: var(--panel); display: grid; gap: 8px; box-shadow: 0 12px 30px color-mix(in srgb, var(--text) 12%, transparent); }
+.composer { position: relative; width: min(790px, calc(100% - 32px)); justify-self: center; margin: 0 16px 16px; border: 1px solid var(--line-strong); border-radius: 10px; padding: 10px; background: var(--panel); display: grid; gap: 8px; box-shadow: 0 12px 30px color-mix(in srgb, var(--text) 12%, transparent); }
+.composer.drop-active { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent), 0 12px 30px color-mix(in srgb, var(--text) 12%, transparent); }
+.composer-drop-target { position: absolute; z-index: 20; inset: 5px; display: grid; place-content: center; justify-items: center; gap: 5px; border: 1px dashed var(--accent); border-radius: 7px; background: color-mix(in srgb, var(--panel) 94%, var(--accent)); color: var(--accent); text-align: center; pointer-events: none; }
+.composer-drop-target strong { color: var(--text); font-size: 13px; }
+.composer-drop-target span { color: var(--muted); font-size: 11px; }
 .task-context { min-width: 0; display: flex; gap: 5px; overflow-x: auto; padding-bottom: 2px; }
 .task-context > span { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 4px; min-height: 24px; border: 1px solid var(--line); border-radius: 5px; background: var(--raised); color: var(--faint); padding: 3px 6px; font-size: 10px; }
 .task-context strong { color: var(--muted); }.task-context .safe { color: var(--amber); }
 .context-chips { width: 100%; justify-self: center; display: flex; flex-wrap: wrap; gap: 6px; }
 .context-chips > span { min-width: 0; max-width: 100%; display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--raised); color: var(--muted); padding: 4px 5px 4px 8px; font-size: 12px; }
 .context-chips > span > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.context-chips button { display: grid; place-items: center; flex: 0 0 auto; width: 20px; height: 20px; border: 0 !important; border-radius: 4px; background: transparent !important; color: var(--faint); padding: 0 !important; }.context-chips button:hover { color: var(--text); background: var(--panel) !important; }
+.context-chips .folder-context-chip { width: 52px; justify-content: space-between; padding-left: 7px; color: var(--accent); }
 .context-chips .image-context-chip { padding-left: 4px; }
 .image-context-chip img { width: 26px; height: 26px; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 4px; object-fit: cover; }
 .composer-attachment-error { width: 100%; margin: 0; color: var(--danger); font-size: 11px; line-height: 1.4; }
