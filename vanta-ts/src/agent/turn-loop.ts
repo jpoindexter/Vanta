@@ -30,6 +30,7 @@ import { interruptedDisposition, interruptedToolResult } from "./effect-disposit
 import { checkpointToolTranscript, persistEffectTransition } from "./effect-persistence.js";
 import { detectAdaptiveRedirect, detectAdaptiveSupport, injectAdaptiveSupport, type AdaptiveSupportPlan } from "./adaptive-support.js";
 import { resolveToolBudget, shouldHaltForToolBudget, buildToolBudgetSummary } from "./tool-budget.js";
+import { resolvePermissionMode } from "../modes/permission-mode.js";
 
 export type TurnOpts = {
   messages: Message[];
@@ -144,11 +145,35 @@ async function handleNoToolCalls(args: NoToolCallsArgs): Promise<AgentOutcome | 
 
 type ToolCallIterArgs = { result: CompletionResult; messages: Message[]; deps: AgentDeps; ctx: ToolContext; state: TurnState; prefetched: Map<string, Promise<DispatchOutcome>>; iter: number; support: AdaptiveSupportPlan };
 
+async function terminalOutcome(args: {
+  messages: Message[];
+  deps: AgentDeps;
+  state: TurnState;
+  iter: number;
+  reason: AgentOutcome["stoppedReason"];
+  text: string;
+}): Promise<AgentOutcome> {
+  const { messages, deps, state, iter, reason, text } = args;
+  messages.push({ role: "assistant", content: text });
+  const shown = await displayText(deps, text);
+  return {
+    finalText: shown,
+    iterations: iter,
+    stoppedReason: reason,
+    toolIterations: state.toolIterations,
+    usage: state.sawUsage ? { ...state.turnUsage } : undefined,
+    tokensSaved: state.tokensSaved > 0 ? state.tokensSaved : undefined,
+  };
+}
+
+function usesCorrectionLeash(plan: AdaptiveSupportPlan, deps: AgentDeps): boolean {
+  const mode = deps.permissionMode?.() ?? resolvePermissionMode(process.env);
+  return plan.signals.includes("correction") && mode !== "auto" && mode !== "fullAccess";
+}
+
 async function handleToolCallsPresent(args: ToolCallIterArgs): Promise<AgentOutcome | null> {
   const { result, messages, deps, ctx, state, prefetched, iter, support } = args;
   const usage = () => (state.sawUsage ? { ...state.turnUsage } : undefined);
-  const ti = () => state.toolIterations;
-  const ts = () => (state.tokensSaved > 0 ? state.tokensSaved : undefined);
   if (result.thinking) { deps.onThinking?.(result.thinking); deps.onEvent?.({ type: "thinking", text: result.thinking }); }
   const shownText = result.text.trim() ? await displayText(deps, result.text) : "";
   if (shownText) { deps.onText?.(shownText); deps.onEvent?.({ type: "text_complete", text: shownText }); }
@@ -165,9 +190,9 @@ async function handleToolCallsPresent(args: ToolCallIterArgs): Promise<AgentOutc
   }
   const stuckTool = await processToolCalls({ calls: result.toolCalls, deps, ctx, state, messages, prefetched });
   if (stuckTool)
-    return { finalText: `Stopped: called ${stuckTool} with identical arguments ${MAX_IDENTICAL_CALLS} times without progress.`, iterations: iter, stoppedReason: "repeated_failure", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
+    return terminalOutcome({ messages, deps, state, iter, reason: "repeated_failure", text: `Stopped: called ${stuckTool} with identical arguments ${MAX_IDENTICAL_CALLS} times without progress.` });
   if (state.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES)
-    return { finalText: `Stopped: ${MAX_CONSECUTIVE_FAILURES} consecutive tool calls produced no useful output.`, iterations: iter, stoppedReason: "repeated_failure", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
+    return terminalOutcome({ messages, deps, state, iter, reason: "repeated_failure", text: `Stopped: ${MAX_CONSECUTIVE_FAILURES} consecutive tool calls produced no useful output.` });
   const redirect = detectAdaptiveRedirect(support, state);
   if (redirect) {
     state.adaptiveRedirect = redirect;
@@ -177,7 +202,7 @@ async function handleToolCallsPresent(args: ToolCallIterArgs): Promise<AgentOutc
   // here (clean post-tool boundary), before the next provider call begins.
   if (deps.shouldSoftStop?.()) {
     const summary = buildStopSummary(state.toolNames);
-    return { finalText: await displayText(deps, summary), iterations: iter, stoppedReason: "soft_stopped", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
+    return terminalOutcome({ messages, deps, state, iter, reason: "soft_stopped", text: summary });
   }
   return null;
 }
@@ -187,21 +212,16 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
   const effectiveSignal = signal ?? deps.signal;
   const maxIter = deps.maxIterations ?? 50;
   const adaptiveSupport = detectAdaptiveSupport(userText, messages);
-  // DRIFT-HARD-ENFORCE: per-turn tool-budget breaker. Tightens when the user is
-  // correcting the agent this turn — a corrected turn that keeps tooling is the
-  // "not listening" failure. `VANTA_TOOL_BUDGET=0` disables (autonomous mode).
+  // DRIFT-HARD-ENFORCE: per-turn tool-budget breaker. Manual/Accept edits tighten
+  // during a correction; Auto/Full access keep the bounded general ceiling.
   const toolBudget = resolveToolBudget(process.env);
-  const correcting = adaptiveSupport.signals.includes("correction");
+  const correcting = usesCorrectionLeash(adaptiveSupport, deps);
   messages.push(images?.length ? { role: "user", content: userText, images } : { role: "user", content: userText });
   const state = makeInitialState();
-  const usage = () => (state.sawUsage ? { ...state.turnUsage } : undefined);
-  const ti = () => state.toolIterations;
-  const ts = () => (state.tokensSaved > 0 ? state.tokensSaved : undefined);
   // OP-CHECKPOINT-ROLLBACK: mark a new turn so file snapshots group per turn.
-  globalFileCheckpointStore.beginTurn();
-  const turnCtx = beginTurnContext(messages, deps);
+  globalFileCheckpointStore.beginTurn(); const turnCtx = beginTurnContext(messages, deps);
   for (let iter = 1; iter <= maxIter; iter++) {
-    if (effectiveSignal?.aborted) return interruptedOutcome(state, iter);
+    if (effectiveSignal?.aborted) return terminalOutcome({ messages, deps, state, iter: iter - 1, reason: "interrupted", text: "Interrupted." });
     // Scope schemas once per iteration so countTokens and getCompletion use the same set.
     const scoped = scopeToolSchemas(deps.registry.schemas(), toolScopeContext(messages, deps.activeGoalText), { env: process.env });
     const schemas = schemasWithStructuredOutput(scoped, deps.outputSchema);
@@ -212,8 +232,7 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
     const trimmed = injectAdaptiveSupport(prepared, [adaptiveSupport.directive, redirectForCall]);
     const prefetched = new Map<string, Promise<DispatchOutcome>>();
     const completion = await completeAndRecordUsage({ deps, depsWithTools, messages: trimmed, turnCtx, signal: effectiveSignal, providerCall: { ctx, prefetched, schemas } });
-    if (!completion.ok)
-      return { finalText: completion.error, iterations: iter, stoppedReason: "repeated_failure", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
+    if (!completion.ok) return terminalOutcome({ messages, deps, state, iter, reason: "repeated_failure", text: completion.error });
     const result = completion.result;
     recordUsage(state, result);
     recordPromptUsage(result, messages, deps);
@@ -233,21 +252,10 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
     // boundary, same as the soft-stop).
     if (shouldHaltForToolBudget(state.toolIterations, correcting, toolBudget)) {
       const summary = buildToolBudgetSummary(state.toolNames, correcting);
-      return { finalText: await displayText(deps, summary), iterations: iter, stoppedReason: "tool_budget", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
+      return terminalOutcome({ messages, deps, state, iter, reason: "tool_budget", text: summary });
     }
   }
-  return { finalText: `Reached the ${maxIter}-iteration limit before completing.`, iterations: maxIter, stoppedReason: "max_iterations", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
-}
-
-function interruptedOutcome(state: TurnState, iteration: number): AgentOutcome {
-  return {
-    finalText: "Interrupted.",
-    iterations: iteration - 1,
-    stoppedReason: "interrupted",
-    toolIterations: state.toolIterations,
-    usage: state.sawUsage ? { ...state.turnUsage } : undefined,
-    tokensSaved: state.tokensSaved > 0 ? state.tokensSaved : undefined,
-  };
+  return terminalOutcome({ messages, deps, state, iter: maxIter, reason: "max_iterations", text: `Reached the ${maxIter}-iteration limit before completing.` });
 }
 
 function recordPromptUsage(result: CompletionResult, messages: Message[], deps: AgentDeps): void {

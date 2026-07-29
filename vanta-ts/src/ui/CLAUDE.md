@@ -21,3 +21,5 @@ Reload continuity: `launch.tsx` may pass a saved `initialSession` after `/restar
 Closeout truth: `turn-summary.ts` keeps `Verification: Not run` unless a qualifying check ran, labels exact successful retries as recovered, and sends the operator to Ctrl+T only for unresolved failures.
 
 Output hierarchy: `quiet-tool-group.ts` preserves detailed receipts for runs of one to three actions. At four or more actions it collapses successful work into one categorized evidence line while failures remain expanded; Ctrl+T retains the full raw receipts. `layout-rows.ts` must use the same grouping helper so bottom pinning remains accurate. Markdown headings render as bold hierarchy without printing their source `#` markers.
+
+Terminal loop receipts: normal provider answers already arrive through `onTextDelta`; do not duplicate them. `use-agent.ts` adds only non-`done` `AgentOutcome.finalText` to the live reducer so synthetic stop reasons are visible and committed before `turnEnd`.

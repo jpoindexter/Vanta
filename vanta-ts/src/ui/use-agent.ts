@@ -1,6 +1,6 @@
 import { type Dispatch, type MutableRefObject } from "react";
 import { join } from "node:path";
-import { createConversation, type Conversation } from "../agent.js";
+import { createConversation, type AgentOutcome, type Conversation } from "../agent.js";
 import { buildSummarizer } from "../session.js";
 import { runPostTurnGates, type GateState } from "../repl/post-turn-gates.js";
 import { toolDisplay } from "../term/tool-display.js";
@@ -65,6 +65,15 @@ export function requestApprovalWithTaskScope(
 
 function liveDispatch(deps: AgentDeps, action: Action, scope?: TurnScope): void {
   if (scope?.forceLive || !isBackgroundResponseRunning(deps.replStateRef.current)) deps.dispatch(action);
+}
+
+export function terminalTextForTui(outcome: Pick<AgentOutcome, "finalText" | "stoppedReason">): string {
+  return outcome.stoppedReason !== "done" ? outcome.finalText.trim() : "";
+}
+
+function surfaceTerminalOutcome(deps: AgentDeps, outcome: AgentOutcome): void {
+  const text = terminalTextForTui(outcome);
+  if (text) liveDispatch(deps, { t: "delta", d: text });
 }
 
 const STRONG_FAILURE = /(?:\b(?:[a-z]*error|fatal)\b|operation not permitted|permission denied|\b(?:eperm|eacces|enoent|eaddrinuse)\b)/i;
@@ -198,7 +207,7 @@ function buildSend(deps: AgentDeps): (text: string, display?: string) => Promise
       finalText = outcome.finalText;
       if (isThisTurnDetached()) finishBackgroundResponse(deps.replStateRef.current, outcome.finalText, new Date());
       else {
-        await fireStopHook(join(deps.repoRoot, ".vanta"), { finalResponse: outcome.finalText, turnIndex: deps.replStateRef.current.turnIndex }, { cwd: deps.repoRoot, promptProvider: deps.setup.provider });
+        surfaceTerminalOutcome(deps, outcome); await fireStopHook(join(deps.repoRoot, ".vanta"), { finalResponse: outcome.finalText, turnIndex: deps.replStateRef.current.turnIndex }, { cwd: deps.repoRoot, promptProvider: deps.setup.provider });
         await runTurnGates(deps);
       }
     } catch (err) {

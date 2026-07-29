@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { failureSummary, runTurnGates, useAgent } from "./use-agent.js";
+import { failureSummary, runTurnGates, terminalTextForTui, useAgent } from "./use-agent.js";
 import { freshGateState } from "../repl/post-turn-gates.js";
 import { startBackgroundResponse } from "../repl/bg-response-cmd.js";
 import { invalidateNdConfig } from "../nd/profile.js";
@@ -241,6 +241,19 @@ describe("useAgent send — image attachments", () => {
       if (oldEnabled === undefined) delete process.env.VANTA_NOTIFY_UNFOCUSED;
       else process.env.VANTA_NOTIFY_UNFOCUSED = oldEnabled;
     }
+  });
+});
+
+describe("terminalTextForTui", () => {
+  it("surfaces a non-done loop boundary instead of leaving a blank transcript", () => {
+    expect(terminalTextForTui({
+      finalText: "Reached the 50-iteration limit before completing.",
+      stoppedReason: "max_iterations",
+    })).toContain("before completing");
+  });
+
+  it("does not duplicate a normal streamed final answer", () => {
+    expect(terminalTextForTui({ finalText: "Done.", stoppedReason: "done" })).toBe("");
   });
 });
 

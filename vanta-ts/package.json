@@ -17,6 +17,7 @@
     "tui:questions:proof": "node scripts/tui-question-approval-proof.mjs",
     "tui:summary:proof": "node scripts/tui-turn-summary-proof.mjs",
     "tui:output:proof": "node scripts/tui-output-hierarchy-proof.mjs",
+    "tui:completion:proof": "node scripts/tui-task-completion-proof.mjs",
     "tui:restart:proof": "node scripts/tui-restart-continuity-proof.mjs",
     "tui:modes:proof": "node scripts/tui-operating-mode-proof.mjs",
     "desktop:renderer:typecheck": "tsc --noEmit -p desktop-app/tsconfig.json",

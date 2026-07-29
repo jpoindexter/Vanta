@@ -13,7 +13,7 @@ export const CONTINUE_NUDGE =
 
 // Signals the model announced more work but stopped (without an explicit completion claim).
 const CONTINUE_SIGNAL_RE =
-  /\b(next step|i'?ll now|i will now|then i'?ll|then i will|continuing|proceed(?:ing)? to|remaining (?:step|item)|still (?:need|have) to|step \d|i'?ll continue|moving on to|let me (?:now )?(?:do|run|build|continue|start|write|create|gather|fetch|read|check))\b|^\s*[-*]\s*\[ \]/im;
+  /\b(next step|not (?:done|finished|complete)|haven['’]?t .{0,80}\byet|i['’]?(?:ll| will) finish|i['’]?ll now|i will now|then i['’]?ll|then i will|continuing|proceed(?:ing)? to|remaining (?:step|item)|still (?:need|have) to|step \d|i['’]?ll continue|moving on to|let me (?:now )?(?:do|run|build|continue|start|write|create|gather|fetch|read|check))\b|^\s*[-*]\s*\[ \]/im;
 
 export function looksUnfinished(text: string): boolean {
   return CONTINUE_SIGNAL_RE.test(text);

@@ -37,6 +37,9 @@ describe("looksUnfinished", () => {
     expect(looksUnfinished("- [ ] write the report")).toBe(true);
     expect(looksUnfinished("Let me now run the tests")).toBe(true);
     expect(looksUnfinished("I'll continue with the remaining items")).toBe(true);
+    expect(looksUnfinished("Not done: dashboard update/writeback.")).toBe(true);
+    expect(looksUnfinished("I haven’t written the updated dashboard yet.")).toBe(true);
+    expect(looksUnfinished("I’ll finish by replacing the stale table.")).toBe(true);
   });
   it("does not flag a clean completion", () => {
     expect(looksUnfinished("Saved the profile. All three goals scored 9/10.")).toBe(false);

@@ -12,3 +12,4 @@ Agent-loop internals split out from `../agent.ts`. Keep this layer orchestration
 - `permission-gate.test.ts` is the focused integration proof for that composition.
 - Auto-mode policy belongs in `../permissions/`; this folder only applies its decision.
 - Permission-mode shortcuts must stay narrow, explicit, and covered by regression tests. Auto and Accept edits clear routine file-tool Ask prompts only after the kernel; Auto still retains classifier blocks and consequential-action prompts.
+- Auto mode keeps the general bounded tool ceiling when the operator corrects or re-asks; the tighter correction leash is for Manual and Accept edits. Explicit unfinished text must auto-continue within the existing cap, while every forced terminal outcome is appended to the transcript with its reason.

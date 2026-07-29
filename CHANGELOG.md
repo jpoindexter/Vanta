@@ -26,12 +26,15 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - Claude Code authentication prefers a refreshed keychain credential when the legacy credentials file has expired.
 - Task tracking remains available under per-turn and local-runtime tool scoping; completed checklists stay visible through the final response and clear before unrelated work.
 - A safe approval can continue matching reversible work for the current task without repeated prompts; task grants clear on the next turn and never cover one-way or fresh-transaction boundaries.
+- Auto mode continues after explicit unfinished status such as “Not done,” “haven’t written it yet,” or “I’ll finish,” and uses the normal bounded tool ceiling instead of the tighter manual correction leash.
+- Tool-budget, repeated-failure, interruption, and iteration-limit exits now persist and render their terminal reason in the TUI instead of ending on a receipt-only “Ready for review” state.
 
 ### Verified boundary
-- Full TypeScript suite: 1,481 test files and 13,736 tests passed, with 3 intentional skips.
+- Full TypeScript suite: 1,481 test files and 13,740 tests passed, with 3 intentional skips.
 - TypeScript typecheck, production Desktop build, architecture tests, and the production Electron layout/replay smoke passed.
 - The Desktop smoke executed saved-run discovery, provenance inspection, drift review, and a fresh replay dispatch with structured file metadata; its final chat response was deterministic fixture data, not a live paid-provider completion.
 - Production feature sources and built assets produced zero secret-scanner hits, and the smoke left no records in the operator's `~/.vanta/runs`.
+- A real tmux TUI/provider-fixture run executed an unfinished Auto-mode answer, automatically continued into a verified edit and final response, then rendered a deliberate repeated-call terminal receipt.
 - GitHub Actions kernel assets and public release publication remain the tagged workflow boundary; this release does not claim a new notarized Desktop DMG.
 
 ## v0.9.7 — 2026-07-21

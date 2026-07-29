@@ -181,6 +181,88 @@ describe("automatic executive support", () => {
   });
 });
 
+describe("task completion boundaries", () => {
+  function productiveBatch(): ToolCall[] {
+    return Array.from({ length: 10 }, (_, index) => ({
+      id: `inspect-${index}`,
+      name: "inspect_item",
+      arguments: { index },
+    }));
+  }
+
+  function completionDeps(permissionMode: "default" | "auto") {
+    const registry = new InMemoryToolRegistry();
+    registry.register({
+      schema: { name: "inspect_item", description: "inspect", parameters: { type: "object", properties: {} } },
+      describeForSafety: (args) => `inspect item ${String(args.index)}`,
+      execute: async (args) => ({ ok: true, output: `item ${String(args.index)} checked` }),
+    });
+    const { safety } = spySafety();
+    return {
+      registry,
+      safety,
+      deps: {
+        provider: {} as LLMProvider,
+        safety,
+        registry,
+        root: "/tmp",
+        permissionMode: () => permissionMode,
+        requestApproval: async () => true,
+      } satisfies AgentDeps,
+    };
+  }
+
+  it("lets Auto mode finish a corrected task past the manual correction leash", async () => {
+    const fixture = completionDeps("auto");
+    let call = 0;
+    fixture.deps.provider = {
+      modelId: () => "fake",
+      contextWindow: () => 100_000,
+      complete: vi.fn(async (): Promise<CompletionResult> => {
+        call++;
+        if (call === 1) return { text: "", toolCalls: productiveBatch(), finishReason: "tool_calls" };
+        return { text: "Updated and verified the dashboard.", toolCalls: [], finishReason: "stop" };
+      }),
+    };
+
+    const out = await runTurn({
+      messages: [{ role: "system", content: "sys" }],
+      ctx: { root: "/tmp", safety: fixture.safety, requestApproval: async () => true, permissionMode: () => "auto" },
+      deps: fixture.deps,
+      userText: "You didn't finish; update every stale job now.",
+    });
+
+    expect(out.stoppedReason).toBe("done");
+    expect(out.toolIterations).toBe(10);
+    expect(out.finalText).toContain("Updated and verified");
+  });
+
+  it("records a visible terminal receipt when the manual correction leash halts", async () => {
+    const fixture = completionDeps("default");
+    fixture.deps.provider = {
+      modelId: () => "fake",
+      contextWindow: () => 100_000,
+      complete: vi.fn(async (): Promise<CompletionResult> => ({
+        text: "",
+        toolCalls: productiveBatch(),
+        finishReason: "tool_calls",
+      })),
+    };
+    const messages: Message[] = [{ role: "system", content: "sys" }];
+
+    const out = await runTurn({
+      messages,
+      ctx: { root: "/tmp", safety: fixture.safety, requestApproval: async () => true, permissionMode: () => "default" },
+      deps: fixture.deps,
+      userText: "You didn't finish; update every stale job now.",
+    });
+
+    expect(out.stoppedReason).toBe("tool_budget");
+    expect(out.finalText).toContain("redirecting me");
+    expect(messages.at(-1)).toMatchObject({ role: "assistant", content: out.finalText });
+  });
+});
+
 // A tool whose output is a secret-shaped string. describeForSafety returns a
 // benign, kernel-allowable string (never the output) so the gate approves.
 function secretLeakTool(secret: string): Tool {

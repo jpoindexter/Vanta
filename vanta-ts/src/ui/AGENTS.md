@@ -15,3 +15,5 @@ Completed turns must be saved through the existing session store. `/restart` sup
 Turn summaries retain every tool receipt but treat a failed action as recovered when a later successful tool has the same name and displayed target. Trace loop warnings require consecutive identical tool arguments; repeated reads or commands against different targets are normal progress.
 
 Output hierarchy keeps one-to-three completed tools visible. At four or more actions, collapse successful work into one categorized line and keep failed actions expanded; full raw output remains in Ctrl+T evidence. Markdown headings render as hierarchy without literal `#` prefixes, and `layout-rows.ts` must mirror any transcript-density change.
+
+The TUI normally receives final text through provider deltas. Loop-generated terminal outcomes (tool budget, repeated failure, interruption, or max iterations) do not have provider deltas, so `use-agent.ts` must surface them exactly once before `turnEnd`.

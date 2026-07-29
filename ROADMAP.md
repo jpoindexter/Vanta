@@ -47,9 +47,12 @@ catch it.** Errors identified, ranked:
   turn stops and **yields to the user** (`stoppedReason: "tool_budget"`) instead of
   dispatching another batch — filling the gap where a turn of varied, succeeding, off-goal
   tools sailed past every existing guard (identical-call, consecutive-failure, read-only)
-  until the 50-iter ceiling errored out. Ceiling tightens to 10 while the user is actively
-  **correcting** the agent (the existing adaptive `correction` signal) — the "not listening"
-  case — and is 30 otherwise; `VANTA_TOOL_BUDGET=0` disables it for autonomous/grind runs.
+  until the 50-iter ceiling errored out. The manual ceiling tightens to 10 while the user is
+  actively **correcting** the agent (the existing adaptive `correction` signal) — the "not
+  listening" case — and is 30 otherwise. Auto and Full access keep the bounded 30-tool
+  ceiling so productive correction work can finish; `VANTA_TOOL_BUDGET=0` explicitly
+  disables the backstop for autonomous/grind runs. Every terminal boundary is persisted
+  and rendered instead of leaving a blank TUI handoff.
   *Honest scope:* a blunt runaway backstop, not a semantic off-goal judge (that needs a
   classifier) — it pairs with the goal-adherence note + adaptive redirect that handle intent.
 
