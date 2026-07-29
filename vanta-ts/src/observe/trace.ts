@@ -24,7 +24,7 @@ const LOOP_THRESHOLD = 3;    // identical consecutive tool + args ≥N → warn;
 const ERROR_THRESHOLD = 3;   // ≥N consecutive errors → alert
 
 // Matches common OS-level error patterns that don't start with "Error:"
-const OS_ERROR_PATTERN = /\b(operation not permitted|permission denied|eperm|enoent|eacces|eaddrinuse|command not found)\b/i;
+const OS_ERROR_PATTERN = /\b(operation not permitted|permission denied|eperm|enoent|eacces|eaddrinuse|command not found|failed to create query for)\b/i;
 
 /**
  * Extract tool calls (+ results) across the latest user turn. Agents commonly
@@ -122,10 +122,33 @@ function detectErrorSpike(calls: TurnCall[]): TraceAnomaly[] {
 // invokes file-mutating operations. Auth/setup/status commands are neutral.
 const SHELL_WRITE_PATTERN = /(?:^|[;&|])\s*(?:rm\s|mv\s|cp\s|chmod|chown|truncate|dd\s|tee\s|mkdir|touch\s)|[>]/;
 
+/** Remove heredoc bodies before looking for shell redirects/mutators. A script
+ * can contain comparisons or strings with ">" without the shell writing. */
+function shellSurface(command: string): string {
+  const lines = command.split("\n");
+  const kept: string[] = [];
+  let delimiter: string | null = null;
+  let stripTabs = false;
+  for (const line of lines) {
+    if (delimiter) {
+      const candidate = stripTabs ? line.replace(/^\t+/, "") : line;
+      if (candidate.trim() === delimiter) delimiter = null;
+      continue;
+    }
+    kept.push(line);
+    const match = /<<(-)?\s*(['"]?)([A-Za-z_][A-Za-z0-9_]*)\2/.exec(line);
+    if (match) {
+      stripTabs = match[1] === "-";
+      delimiter = match[3] ?? null;
+    }
+  }
+  return kept.join("\n");
+}
+
 function shellCmdIsWrite(args?: Record<string, unknown>): boolean {
   if (!args) return true; // conservative: no info → treat as write
   const cmd = typeof args.command === "string" ? args.command.trim() : "";
-  return !cmd || SHELL_WRITE_PATTERN.test(cmd);
+  return !cmd || SHELL_WRITE_PATTERN.test(shellSurface(cmd));
 }
 
 /** First write-class tool appears before any read-class tool. */

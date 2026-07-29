@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { tmpdir } from "node:os";
 import { shellCmdTool, sandboxServeRefusal } from "./shell-cmd.js";
+import { formatRunFailure, formatRunSuccess } from "./shell-output.js";
 import type { ToolContext } from "./types.js";
 
 function ctx(root = tmpdir()): ToolContext {
@@ -12,6 +13,44 @@ describe("shell_cmd local execution", () => {
     const r = await shellCmdTool.execute({ command: "echo hello-vanta" }, ctx());
     expect(r.ok).toBe(true);
     expect(r.output).toContain("hello-vanta");
+  });
+
+  it("marks mdfind's zero-exit fatal query diagnostic as a failure", () => {
+    const result = formatRunSuccess(
+      `mdfind 'kMDItemKind == "Mail Message" && (application || recruiter)'`,
+      `Failed to create query for 'kMDItemKind == "Mail Message" && (application || recruiter)'.`,
+      "",
+    );
+    expect(result.ok).toBe(false);
+    expect(result.output).toContain("Failed to create query");
+  });
+
+  it.runIf(process.platform === "darwin")("marks the real malformed mdfind invocation as failed", async () => {
+    const result = await shellCmdTool.execute({
+      command: `mdfind 'kMDItemKind == "Mail Message" && (application || recruiter)'`,
+    }, ctx());
+    expect(result.ok).toBe(false);
+    expect(result.output).toContain("Failed to create query");
+  });
+
+  it("does not mistake normal mdfind diagnostics or an empty result for failure", () => {
+    expect(formatRunSuccess(
+      "mdfind 'application recruiter'",
+      `[UserQueryParser] Loading keywords and predicates for locale "en"`,
+      "",
+    ).ok).toBe(true);
+    expect(formatRunSuccess("mdfind 'no matches'", "", "").ok).toBe(true);
+  });
+
+  it("reports timeout termination explicitly with a bounded recovery path", () => {
+    const result = formatRunFailure("python3 scan.py", {
+      message: "Command failed: sandbox-exec ...",
+      killed: true,
+      signal: "SIGTERM",
+    }, "");
+    expect(result.ok).toBe(false);
+    expect(result.output).toMatch(/timed out/i);
+    expect(result.output).toMatch(/narrow|chunks/i);
   });
 
   it("blocks destructive patterns before running", async () => {

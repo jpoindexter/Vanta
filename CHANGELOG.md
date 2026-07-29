@@ -3,6 +3,13 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Unreleased — 2026-07-29
+
+### Fixed
+- `browser_read` now uses Vanta's shared system-browser fallback, so an installed Chrome, Brave, or Edge keeps browser tasks working when Playwright's versioned Chromium cache is absent.
+- `shell_cmd` now marks macOS `mdfind` query-parser failures as failed even when `mdfind` exits zero, and timeout failures explain the bounded recovery path instead of surfacing an opaque `sandbox-exec` error.
+- Turn tracing ignores comparison operators and strings inside heredoc bodies, preventing read-only inspection scripts from producing false `trace[blind-write]` warnings.
+
 ## v0.9.8 — 2026-07-24
 
 **Reusable runs and more reliable operator handoffs.** Desktop work can now be saved, inspected, forked, and replayed as a fresh kernel-gated turn. This release also adds Buzz ACP connectivity, broadens the integration catalog, and closes PDF, terminal-resize, model-identity, and Claude authentication failures.

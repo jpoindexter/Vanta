@@ -9,7 +9,14 @@ import { formatJsonInOutput } from "../term/json-format.js";
 // shapes captured stdout/stderr/exit/timing into a ToolResult. shell-cmd.ts
 // re-exports lastCommandWord/classifyExitCode so external importers stay unchanged.
 
-export type RunError = { code?: number | string; stdout?: string; stderr?: string; message: string };
+export type RunError = {
+  code?: number | string;
+  stdout?: string;
+  stderr?: string;
+  message: string;
+  killed?: boolean;
+  signal?: string;
+};
 
 /** Combine captured stdout/stderr into the tool output, stripping any subprocess
  *  plugin-hint tags from stderr and appending an install suggestion so the model
@@ -41,7 +48,29 @@ export function formatRunFailure(command: string, e: RunError, pfx: string): Too
     const cls = classifyExitCode(command, e.code);
     if (cls.ok) return { ok: true, output: pfx + (out ? `${cls.note}\n${out}` : `(${cls.note})`) };
   }
+  if (e.killed || e.signal === "SIGTERM") {
+    const detail = out ? `\n${out}` : "";
+    return {
+      ok: false,
+      output:
+        `${pfx}Command timed out before completion.${detail}\n` +
+        "Recovery: narrow the input, process it in chunks, or run it as a background task outside sandbox mode.",
+    };
+  }
   return { ok: false, output: pfx + (out || e.message) };
+}
+
+/**
+ * Some macOS utilities return exit 0 after printing a fatal diagnostic. Keep
+ * this command-scoped: arbitrary output containing the word "failed" can be a
+ * legitimate log or test fixture and must not flip a successful result.
+ */
+export function formatRunSuccess(command: string, out: string, pfx: string): ToolResult {
+  const program = lastCommandWord(command);
+  if (program === "mdfind" && /(?:^|\n)Failed to create query for\b/i.test(out)) {
+    return { ok: false, output: pfx + out };
+  }
+  return { ok: true, output: pfx + (out || "(command produced no output)") };
 }
 
 /** Return the final shell segment without treating quoted operators as syntax. */

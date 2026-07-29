@@ -14,7 +14,13 @@ import { loadSettings } from "../settings/store.js";
 import { resolveSshTarget, buildSshArgs } from "../ssh/config.js";
 import { applySessionEnv, sessionEnvStore } from "../repl/session-env.js";
 import { sessionCwd, isCwdChanged } from "../repl/session-cwd.js";
-import { combineOutput, formatRunFailure, withTimingNote, type RunError } from "./shell-output.js";
+import {
+  combineOutput,
+  formatRunFailure,
+  formatRunSuccess,
+  withTimingNote,
+  type RunError,
+} from "./shell-output.js";
 import { sandboxBackgroundRecovery, sandboxServeRecovery } from "./sandbox-recovery.js";
 import { resolveShellInvocation } from "../platform/shell.js";
 import { canonicalPath, isDangerousPath } from "./writable-zones.js";
@@ -94,7 +100,7 @@ async function runRemote(target: string, command: string, root: string, pfx: str
   try {
     const { stdout, stderr } = await run("ssh", buildSshArgs(profile, command), { timeout: TIMEOUT_MS, maxBuffer: MAX_OUTPUT });
     const out = combineOutput(stdout, stderr);
-    return { ok: true, output: pfx + (out || "(command produced no output)") };
+    return formatRunSuccess(command, out, pfx);
   } catch (err) {
     return formatRunFailure(command, err as RunError, pfx);
   }
@@ -224,7 +230,7 @@ async function runLocal(command: string, root: string, pfx: string, sandboxWrita
   try {
     const { stdout, stderr } = await run(sb.cmd, sb.args, childRunOpts(root));
     const out = combineOutput(stdout, stderr);
-    return withTimingNote({ ok: true, output: pfx + (out || "(command produced no output)") }, Date.now() - startedAt);
+    return withTimingNote(formatRunSuccess(command, out, pfx), Date.now() - startedAt);
   } catch (err) {
     return withTimingNote(formatRunFailure(command, err as RunError, pfx), Date.now() - startedAt);
   } finally {

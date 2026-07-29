@@ -50,6 +50,18 @@ describe("extractLastTurnCalls", () => {
     expect(extractLastTurnCalls(msgs)[0]!.isError).toBe(true);
   });
 
+  it("marks a zero-exit mdfind fatal diagnostic as an error", () => {
+    const msgs: Message[] = [
+      makeMsg("assistant", { toolCalls: [{ id: "tc1", name: "shell_cmd" }] }),
+      makeMsg("tool", {
+        toolCallId: "tc1",
+        name: "shell_cmd",
+        content: `Failed to create query for 'kMDItemKind == "Mail Message"'.`,
+      }),
+    ];
+    expect(extractLastTurnCalls(msgs)[0]!.isError).toBe(true);
+  });
+
   it("propagates tool call args through TurnCall", () => {
     const msgs: Message[] = [
       {
@@ -176,6 +188,37 @@ describe("detectAnomalies", () => {
       { name: "shell_cmd", result: "wrote ok", isError: false, args: { command: "echo foo > important.ts" } },
       { name: "read_file", result: "content", isError: false },
     ];
+    expect(detectAnomalies(calls).some((x) => x.type === "blind-write")).toBe(true);
+  });
+
+  it("does NOT parse comparison operators inside a read-only heredoc as shell writes", () => {
+    const calls = [{
+      name: "shell_cmd",
+      result: "SCANNED 35872",
+      isError: false,
+      args: {
+        command: `python3 - <<'PY'
+for count in range(10):
+    if count > 3:
+        print(count)
+PY`,
+      },
+    }];
+    expect(detectAnomalies(calls).some((x) => x.type === "blind-write")).toBe(false);
+  });
+
+  it("still detects a shell redirection after a heredoc body", () => {
+    const calls = [{
+      name: "shell_cmd",
+      result: "wrote",
+      isError: false,
+      args: {
+        command: `python3 - <<'PY'
+print(">")
+PY
+echo done > result.txt`,
+      },
+    }];
     expect(detectAnomalies(calls).some((x) => x.type === "blind-write")).toBe(true);
   });
 
