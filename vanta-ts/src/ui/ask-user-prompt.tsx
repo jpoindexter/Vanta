@@ -9,6 +9,21 @@ export type PendingQuestion = {
 
 type Answer = { selected: string[] };
 
+const SECONDARY_TEXT = "#a3a3a3";
+const MUTED_TEXT = "#858585";
+
+export type OptionTone = {
+  bold: boolean;
+  descriptionColor: string;
+  labelColor?: string;
+};
+
+export function optionTone(active: boolean): OptionTone {
+  return active
+    ? { bold: true, descriptionColor: SECONDARY_TEXT }
+    : { bold: false, labelColor: SECONDARY_TEXT, descriptionColor: MUTED_TEXT };
+}
+
 export function AskUserPrompt(props: { pending: PendingQuestion; onDone: () => void }): ReactElement {
   const [questionIndex, setQuestionIndex] = useState(0);
   const [cursor, setCursor] = useState(0);
@@ -24,6 +39,8 @@ export function AskUserPrompt(props: { pending: PendingQuestion; onDone: () => v
   const selected = answers[question.header]?.selected ?? [];
   const current = question.options[cursor];
   const preview = current?.preview;
+  const otherActive = cursor === question.options.length;
+  const otherTone = optionTone(otherActive);
   const moveCursor = (value: number): void => { cursorRef.current = value; setCursor(value); };
   const storeAnswers = (value: Record<string, Answer>): void => { answersRef.current = value; setAnswers(value); };
   const storeOther = (value: string | null): void => { otherInputRef.current = value; setOtherInput(value); };
@@ -109,17 +126,21 @@ export function AskUserPrompt(props: { pending: PendingQuestion; onDone: () => v
       <Text><Text color="cyan" bold>{question.header}</Text> <Text dimColor>{progress}</Text></Text>
       <Text bold>{question.question}</Text>
       <Box flexDirection="column" marginTop={1}>
-        {question.options.map((option, index) => (
-          <Text key={option.label}>
-            <Text color={index === cursor ? "cyan" : undefined}>{index === cursor ? "❯" : " "} {index + 1}.</Text>{" "}
-            <Text bold={index === cursor}>{question.multiSelect ? (selected.includes(option.label) ? "[x]" : "[ ]") : ""} {option.label}</Text>
-            <Text dimColor> — {option.description}</Text>
-          </Text>
-        ))}
+        {question.options.map((option, index) => {
+          const active = index === cursor;
+          const tone = optionTone(active);
+          return (
+            <Text key={option.label}>
+              <Text color={active ? "cyan" : tone.labelColor}>{active ? "❯" : " "} {index + 1}.</Text>{" "}
+              <Text bold={tone.bold} color={tone.labelColor}>{question.multiSelect ? (selected.includes(option.label) ? "[x]" : "[ ]") : ""} {option.label}</Text>
+              <Text color={tone.descriptionColor}> — {option.description}</Text>
+            </Text>
+          );
+        })}
         {allowOther ? (
           <Text>
-            <Text color={cursor === question.options.length ? "cyan" : undefined}>{cursor === question.options.length ? "❯" : " "} {question.options.length + 1}.</Text>{" "}
-            <Text bold={cursor === question.options.length}>Other</Text><Text dimColor> — Type your own answer</Text>
+            <Text color={otherActive ? "cyan" : otherTone.labelColor}>{otherActive ? "❯" : " "} {question.options.length + 1}.</Text>{" "}
+            <Text bold={otherTone.bold} color={otherTone.labelColor}>Other</Text><Text color={otherTone.descriptionColor}> — Type your own answer</Text>
           </Text>
         ) : null}
       </Box>

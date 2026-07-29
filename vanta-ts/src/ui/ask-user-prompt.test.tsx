@@ -1,6 +1,6 @@
 import { createElement as h } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { AskUserPrompt, type PendingQuestion } from "./ask-user-prompt.js";
+import { AskUserPrompt, optionTone, type PendingQuestion } from "./ask-user-prompt.js";
 import { renderUi, tick, waitForFrame, waitUntil } from "./test-render.js";
 
 function pending(over: Partial<PendingQuestion> = {}): PendingQuestion {
@@ -19,6 +19,18 @@ function pending(over: Partial<PendingQuestion> = {}): PendingQuestion {
 }
 
 describe("AskUserPrompt", () => {
+  it("keeps the active option bright while muting inactive text to readable tones", () => {
+    expect(optionTone(true)).toEqual({
+      bold: true,
+      descriptionColor: "#a3a3a3",
+    });
+    expect(optionTone(false)).toEqual({
+      bold: false,
+      labelColor: "#a3a3a3",
+      descriptionColor: "#858585",
+    });
+  });
+
   it("renders a compact numbered question, preview, Other, and keyboard hints", async () => {
     const inst = renderUi(h(AskUserPrompt, { pending: pending(), onDone: () => {} }));
     await tick();
