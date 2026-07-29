@@ -15,3 +15,7 @@ Approval prompt: `approval-prompt.tsx` consumes `permissions/request.ts` for per
 Hook host: `app.tsx`, `use-agent.ts`, and `use-slash.ts` mirror readline hook coverage for SessionStart/End, UserPromptSubmit, UserPromptExpansion, Stop, StopFailure, and FileChanged watcher startup.
 
 Operating modes: `mode-line.tsx` renders Manual, Accept edits, Plan, and Auto below the composer. `focus.ts` reserves Shift+Tab for this cycle while the composer is focused, including when prompt suggestions are visible. The TUI passes live permission and plan gates into `createConversation`; Auto never clears a pending human Ask in the view.
+
+Reload continuity: `launch.tsx` may pass a saved `initialSession` after `/restart`. `app.tsx` rebuilds session state from it, and `use-agent.ts` seeds `createConversation` with its messages and checkpoints every completed turn. Do not render old tool outputs as new receipts or reuse prior approvals.
+
+Closeout truth: `turn-summary.ts` keeps `Verification: Not run` unless a qualifying check ran, labels exact successful retries as recovered, and sends the operator to Ctrl+T only for unresolved failures.

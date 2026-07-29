@@ -7,6 +7,8 @@ import { installResizeGhostFix } from "../term/resize-fix.js";
 import { enableBracketedPaste } from "../term/bracketed-paste.js";
 import { promptTrust } from "./trust-prompt.js";
 import { runSetupHandoff, type SetupHandoff } from "../setup/handoff.js";
+import { resolveSessionModel } from "../sessions/model-scope.js";
+import type { Session } from "../sessions/store.js";
 
 export type TuiSurface = "v1" | "v2";
 
@@ -34,10 +36,11 @@ export async function runSetupResumeLoop<T>(deps: {
  * Launch the Claude-method UI (real Ink, inline + <Static>). v1 remains the
  * default; VANTA_TUI=v2 opts into the separate mission-control surface.
  */
-export async function runTuiV2(repoRoot: string): Promise<void> {
+export async function runTuiV2(repoRoot: string, opts: { initialSession?: Session } = {}): Promise<void> {
   const confirmTrust = process.stdin.isTTY ? promptTrust : undefined;
   await maybeCurate();
   const surface = selectTuiSurface(process.env);
+  const resumedSurface = opts.initialSession ? "v1" : surface;
   // Enable the kitty keyboard protocol so the Cmd (super) modifier reaches the
   // composer — it's the only way Cmd+Backspace etc. are delivered. mode "auto"
   // probes the terminal and is a no-op where unsupported (e.g. Terminal.app).
@@ -46,10 +49,12 @@ export async function runTuiV2(repoRoot: string): Promise<void> {
       confirmTrust: firstRun ? confirmTrust : undefined,
     }),
     runSurface: async (setup, onSetupRequest) => {
+      const resumedProvider = opts.initialSession ? resolveSessionModel(opts.initialSession, process.env) : null;
+      if (resumedProvider) setup.provider = resumedProvider;
       const instance = render(
-        surface === "v2"
+        resumedSurface === "v2"
           ? <AppV2 setup={setup} repoRoot={repoRoot} onSetupRequest={onSetupRequest} />
-          : <App setup={setup} repoRoot={repoRoot} onSetupRequest={onSetupRequest} />,
+          : <App setup={setup} repoRoot={repoRoot} onSetupRequest={onSetupRequest} initialSession={opts.initialSession} />,
         { kittyKeyboard: { mode: "auto" } },
       );
       // Ink only records its live renderer during render(); installing before

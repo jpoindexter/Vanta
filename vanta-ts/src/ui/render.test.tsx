@@ -153,6 +153,7 @@ describe("EntryView", () => {
       checked: 1,
       verificationPassed: 1,
       verificationFailed: 0,
+      recoveredFailures: 0,
       failures: 0,
     };
     const inst = renderUi(h(EntryView, { entry }));

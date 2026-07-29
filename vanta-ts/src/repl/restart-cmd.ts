@@ -1,4 +1,6 @@
 import type { SlashHandler } from "./types.js";
+import { saveSession } from "../sessions/store.js";
+import { writeRestartHandoff } from "./restart-handoff.js";
 
 // `/restart` — reload Vanta in place with fresh code. The agent exits with the
 // sentinel code 75; run.sh's relaunch loop re-execs tsx (picking up edited
@@ -8,10 +10,24 @@ import type { SlashHandler } from "./types.js";
 // would just quit, so we refuse with a hint instead of surprising the user.
 export const RESTART_EXIT_CODE = 75;
 
-export const restart: SlashHandler = (_arg, ctx) => {
+export const restart: SlashHandler = async (_arg, ctx) => {
   if (!ctx.env.VANTA_RELAUNCH) {
     return {
       output: "  ⚠ /restart needs the run.sh relaunch loop — start Vanta via ./run.sh (or the `vanta` command) to reload in place.",
+    };
+  }
+  try {
+    await saveSession(ctx.state.sessionId, ctx.convo.messages, {
+      env: ctx.env,
+      started: ctx.state.started,
+      title: ctx.state.title,
+      providerId: ctx.state.providerId,
+      modelId: ctx.state.modelId,
+    });
+    await writeRestartHandoff(ctx.dataDir, ctx.state.sessionId, ctx.now());
+  } catch (err) {
+    return {
+      output: `  ⚠ reload cancelled because session continuity could not be saved: ${err instanceof Error ? err.message : String(err)}`,
     };
   }
   return { output: "  ↻ reloading Vanta with fresh code…", restart: true };

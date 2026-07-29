@@ -9,6 +9,7 @@ export function buildTurnSummary(tools: readonly ToolEntry[]): TurnSummaryEntry 
   const changed = unique(tools.filter(isSuccessfulChange).map((tool) => tool.detail).filter(Boolean));
   const checks = tools.filter((tool) => tool.ok !== false && isCheck(tool));
   const verification = tools.filter(isVerification);
+  const { recovered, unresolved } = classifyFailures(tools);
   return {
     kind: "turnSummary",
     actions: tools.length,
@@ -16,7 +17,8 @@ export function buildTurnSummary(tools: readonly ToolEntry[]): TurnSummaryEntry 
     checked: checks.length,
     verificationPassed: verification.filter((tool) => tool.ok !== false).length,
     verificationFailed: verification.filter((tool) => tool.ok === false).length,
-    failures: tools.filter((tool) => tool.ok === false).length,
+    recoveredFailures: recovered,
+    failures: unresolved,
   };
 }
 
@@ -25,8 +27,35 @@ export function turnSummaryLines(summary: TurnSummaryEntry): string[] {
   if (summary.changed.length > 0) lines.push(`Changed: ${targetLabel(summary.changed)}`);
   if (summary.checked > 0) lines.push(`Checked: ${summary.checked} read/search action${summary.checked === 1 ? "" : "s"}`);
   lines.push(`Verification: ${verificationLabel(summary)}`);
+  if (summary.recoveredFailures > 0) {
+    lines.push(`Recovered: ${summary.recoveredFailures} transient failure${summary.recoveredFailures === 1 ? "" : "s"}`);
+  }
   lines.push(`Next: ${summary.failures > 0 ? "Review failed actions in Ctrl+T evidence" : "Ready for review"}`);
   return lines;
+}
+
+function toolActionKey(tool: ToolEntry): string {
+  return `${tool.name}\u0000${tool.detail.trim()}`;
+}
+
+/** A later successful retry of the same displayed action resolves the earlier
+ * failure. We retain every receipt in Ctrl+T; only the closeout's attention
+ * state changes, so recovered attempts do not masquerade as open failures. */
+function classifyFailures(tools: readonly ToolEntry[]): { recovered: number; unresolved: number } {
+  const laterSuccesses = new Set<string>();
+  let recovered = 0;
+  let unresolved = 0;
+  for (let index = tools.length - 1; index >= 0; index -= 1) {
+    const tool = tools[index]!;
+    const key = toolActionKey(tool);
+    if (tool.ok === false) {
+      if (laterSuccesses.has(key)) recovered += 1;
+      else unresolved += 1;
+    } else {
+      laterSuccesses.add(key);
+    }
+  }
+  return { recovered, unresolved };
 }
 
 function isSuccessfulChange(tool: ToolEntry): boolean {

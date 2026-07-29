@@ -34,6 +34,9 @@ export type TurnSummaryEntry = {
   checked: number;
   verificationPassed: number;
   verificationFailed: number;
+  /** Failed actions later succeeded with the same tool and target in this turn. */
+  recoveredFailures: number;
+  /** Failures without a later matching successful retry. */
   failures: number;
 };
 

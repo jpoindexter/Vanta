@@ -20,6 +20,8 @@ import type { PendingQuestion } from "./ask-user-prompt.js";
 import { TaskApprovalScope, canContinueTask } from "./task-approval.js";
 import { resolveOperatingMode, permissionModeForOperating } from "../modes/operating-mode.js";
 import { PLAN_MARKER } from "../repl/plan-mode.js";
+import { saveSession } from "../sessions/store.js";
+import type { Message } from "../types.js";
 
 /** Reload the agent's plan into the live todo panel (best-effort). */
 async function refreshTodos(dispatch: Dispatch<Action>): Promise<void> {
@@ -89,6 +91,7 @@ type AgentDeps = {
   convoRef: MutableRefObject<Conversation | null>;
   replStateRef: MutableRefObject<ReplState>;
   gatesRef: MutableRefObject<GateState>;
+  initialHistory?: Message[];
   notifyTurnComplete?: typeof osNotify;
   windowFocused?: () => boolean | Promise<boolean>;
 };
@@ -206,6 +209,14 @@ function buildSend(deps: AgentDeps): (text: string, display?: string) => Promise
     } finally {
       if (!isThisTurnDetached()) {
         deps.dispatch({ t: "turnEnd" });
+        const state = deps.replStateRef.current;
+        await saveSession(state.sessionId, conv.messages, {
+          env: process.env,
+          started: state.started,
+          title: state.title,
+          providerId: state.providerId,
+          modelId: state.modelId,
+        }).catch(() => {});
         await runForegroundAfterTurn(deps, userText, finalText, suggestionTurn);
       }
       deps.interruptRef.current = null;
@@ -220,7 +231,7 @@ function buildSend(deps: AgentDeps): (text: string, display?: string) => Promise
  */
 export function useAgent(deps: AgentDeps): { send: (text: string, display?: string) => Promise<void> } {
   if (deps.convoRef.current === null) {
-    deps.convoRef.current = createConversation(deps.setup.systemPrompt, convoConfig(deps));
+    deps.convoRef.current = createConversation(deps.setup.systemPrompt, convoConfig(deps), { history: deps.initialHistory });
   }
   return { send: buildSend(deps) };
 }

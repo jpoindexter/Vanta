@@ -44,6 +44,8 @@ import type { SetupHandoff } from "../setup/handoff.js";
 import { AskUserPrompt, type PendingQuestion } from "./ask-user-prompt.js";
 import { TaskApprovalScope } from "./task-approval.js";
 import { setPlanInstruction } from "../repl/plan-mode.js";
+import { providerIdFor } from "../sessions/model-scope.js";
+import type { Session } from "../sessions/store.js";
 
 type SubmitRouteDeps = Omit<SubmitDeps, "detachBackgroundResponse" | "safety"> & {
   setup: RunSetup;
@@ -60,7 +62,7 @@ function buildSubmitRoute(o: SubmitRouteDeps): (text: string) => void {
   });
 }
 
-export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?: (request: SetupHandoff) => void }): ReactElement {
+export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?: (request: SetupHandoff) => void; initialSession?: Session }): ReactElement {
   const app = useApp();
   const [state, dispatch] = useReducer(reduce, initialState);
   const [pending, setPending] = useState<Pending | null>(null);
@@ -68,7 +70,24 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
   const taskApprovals = useRef(new TaskApprovalScope()).current;
   const interruptRef = useRef<AbortController | null>(null);
   const convoRef = useRef<Conversation | null>(null);
-  const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0, effortLevel: props.setup.effortLevel, activeGoal: null });
+  const replStateRef = useRef<ReplState>(props.initialSession ? {
+    sessionId: props.initialSession.id,
+    started: props.initialSession.started,
+    turnIndex: props.initialSession.messages.filter((message) => message.role === "user").length,
+    title: props.initialSession.title,
+    providerId: props.initialSession.providerId,
+    modelId: props.initialSession.modelId,
+    effortLevel: props.setup.effortLevel,
+    activeGoal: null,
+  } : {
+    sessionId: newSessionId(),
+    started: new Date().toISOString(),
+    turnIndex: 0,
+    providerId: providerIdFor(props.setup.provider, process.env),
+    modelId: props.setup.provider.modelId(),
+    effortLevel: props.setup.effortLevel,
+    activeGoal: null,
+  });
   const gatesRef = useRef<GateState>(freshGateState());
   const [files, setFiles] = useState<string[]>([]);
   const [history, setHistory] = useState<string[]>([]);
@@ -81,7 +100,7 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
   const [searchSessions, setSearchSessions] = useState<SearchableSession[]>([]);
   const [transcriptSelection, setTranscriptSelection] = useState<TranscriptSelection | null>(null);
   const [traceOpen, setTraceOpen] = useState(false);
-  const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, setPendingQuestion, taskApprovals, interruptRef, convoRef, replStateRef, gatesRef });
+  const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, setPendingQuestion, taskApprovals, interruptRef, convoRef, replStateRef, gatesRef, initialHistory: props.initialSession?.messages });
   const requestSetup = (request: SetupHandoff): void => {
     props.onSetupRequest?.(request);
     app.exit();
@@ -128,6 +147,11 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
   const tick = useBusyTick(state.busy);
   const skillMatches = useSkillMatches(); const channels = useSlackChannels();
   useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
+  useEffect(() => {
+    if (props.initialSession) {
+      dispatch({ t: "note", text: `  ↻ Reloaded session ${props.initialSession.id} with ${replStateRef.current.turnIndex} turn(s)` });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => { for (const worker of props.setup.pluginWorkers ?? []) worker.dispose(); }, [props.setup.pluginWorkers]);
   useHookLifecycle(props.repoRoot, replStateRef.current.sessionId, props.setup);
   const { mcp, elapsed } = useSessionStatus(props.setup, replStateRef, dispatch);

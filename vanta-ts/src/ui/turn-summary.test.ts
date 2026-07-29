@@ -45,6 +45,27 @@ describe("turn summary", () => {
     expect(turnSummaryLines(summary!)).toContain("Next: Review failed actions in Ctrl+T evidence");
   });
 
+  it("marks an identical successful retry as recovered instead of leaving a false failure", () => {
+    const summary = buildTurnSummary([
+      tool({ name: "shell_cmd", verb: "ran", detail: "python3 search_jobs.py", ok: false }),
+      tool({ name: "shell_cmd", verb: "ran", detail: "python3 search_jobs.py", ok: true }),
+    ]);
+
+    expect(summary).toMatchObject({ failures: 0, recoveredFailures: 1 });
+    expect(turnSummaryLines(summary!)).toContain("Recovered: 1 transient failure");
+    expect(turnSummaryLines(summary!)).toContain("Next: Ready for review");
+  });
+
+  it("keeps a failed action unresolved when a different command later succeeds", () => {
+    const summary = buildTurnSummary([
+      tool({ name: "shell_cmd", verb: "ran", detail: "python3 search_jobs.py", ok: false }),
+      tool({ name: "shell_cmd", verb: "ran", detail: "python3 rank_jobs.py", ok: true }),
+    ]);
+
+    expect(summary).toMatchObject({ failures: 1, recoveredFailures: 0 });
+    expect(turnSummaryLines(summary!)).toContain("Next: Review failed actions in Ctrl+T evidence");
+  });
+
   it("does not create a closeout for a conversation-only turn", () => {
     expect(buildTurnSummary([])).toBeNull();
   });

@@ -20484,14 +20484,30 @@
       "status": "shipped",
       "size": "S",
       "summary": "End every tool-based TUI turn with a compact Claude-style closeout derived from Vanta's own tool receipts, so a large diff cannot bury what changed, what was actually checked, whether verification ran, or what the operator should do next.",
-      "done": "After a tool-based turn, the final committed block appears after tool output and assistant text and immediately above the composer; it reports changed targets and read/search counts, says `Verification: Not run` when no qualifying check executed, surfaces failed checks without claiming success, and points to Ctrl+T evidence when attention is required. Conversation-only turns remain uncluttered.",
+      "done": "After a tool-based turn, the final committed block appears after tool output and assistant text and immediately above the composer; it reports changed targets and read/search counts, says `Verification: Not run` when no qualifying check executed, surfaces unresolved failed checks without claiming success, labels exact successful retries as recovered, and points to Ctrl+T evidence only when attention is still required. Conversation-only turns remain uncluttered.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "low",
       "lens": "tui",
       "source": "Jason live TUI feedback and screenshot 2026-07-28",
-      "updated": "2026-07-28",
-      "notes": "Implemented as an immutable turnSummary transcript entry computed from completed ToolEntry records at turnEnd. The model cannot omit it or inflate verification claims. A real tmux/PTTY proof covers the project launcher, provider tool call, final response ordering, and closeout."
+      "updated": "2026-07-29",
+      "notes": "Implemented as an immutable turnSummary transcript entry computed from completed ToolEntry records at turnEnd. The model cannot omit it or inflate verification claims. Exact same-tool/same-target retries now resolve the closeout attention state while every original receipt remains in Ctrl+T evidence. A real tmux/PTTY proof covers the project launcher, provider tool call, final response ordering, and closeout."
+    },
+    {
+      "id": "TUI-RESTART-CONTINUITY",
+      "track": "TUI",
+      "title": "Hot reload continuity — preserve the active conversation and reset runtime status",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Make `/restart` reload fresh Vanta code without discarding the conversation that tells the agent what the operator was doing, while keeping stale handoffs and old process timing out of the new instance.",
+      "done": "A completed TUI turn is saved before reload; `/restart` writes a permission-restricted, content-free, five-minute handoff; the relaunch consumes it once, restores the session model and transcript into the TUI conversation, shows a reload receipt, and resets the visible active-instance clock. Missing, malformed, or stale handoffs start safely without resurrecting old context. A real PTY proof confirms the provider receives the pre-reload prompt and response after the process relaunches.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "tui",
+      "source": "Jason live TUI error transcript 2026-07-29",
+      "updated": "2026-07-29",
+      "notes": "The handoff stores only a session ID and timestamp under the project .vanta directory; transcript content remains in the existing private session store. Normal explicit --resume behavior is unchanged. The TUI also checkpoints completed turns, so reload and crash recovery use current assistant output rather than only mid-tool checkpoints."
     }
   ]
 }

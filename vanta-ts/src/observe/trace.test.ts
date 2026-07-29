@@ -83,14 +83,43 @@ describe("detectAnomalies", () => {
     expect(detectAnomalies([])).toEqual([]);
   });
 
-  it("detects a tool loop when the same tool appears ≥3 times", () => {
+  it("detects a tool loop when the same tool and arguments repeat consecutively ≥3 times", () => {
     const calls = Array.from({ length: 4 }, () => ({ name: "grep_files", result: "ok", isError: false }));
     const a = detectAnomalies(calls);
     expect(a.some((x) => x.type === "loop")).toBe(true);
     expect(a.find((x) => x.type === "loop")?.severity).toBe("warn");
   });
 
-  it("marks severity alert when the same tool appears ≥6 times", () => {
+  it("does not call productive reads or shell commands with different arguments a loop", () => {
+    const calls = [
+      ...Array.from({ length: 8 }, (_, index) => ({
+        name: "read_file",
+        result: `file ${index}`,
+        isError: false,
+        args: { path: `/repo/file-${index}.ts` },
+      })),
+      ...Array.from({ length: 8 }, (_, index) => ({
+        name: "shell_cmd",
+        result: `command ${index} ok`,
+        isError: false,
+        args: { command: `node script-${index}.mjs` },
+      })),
+    ];
+    expect(detectAnomalies(calls).some((x) => x.type === "loop")).toBe(false);
+  });
+
+  it("does not call non-consecutive retries a loop", () => {
+    const calls = [
+      { name: "shell_cmd", result: "failed", isError: true, args: { command: "npm test" } },
+      { name: "read_file", result: "package", isError: false, args: { path: "package.json" } },
+      { name: "shell_cmd", result: "ok", isError: false, args: { command: "npm test" } },
+      { name: "read_file", result: "config", isError: false, args: { path: "vitest.config.ts" } },
+      { name: "shell_cmd", result: "ok", isError: false, args: { command: "npm test" } },
+    ];
+    expect(detectAnomalies(calls).some((x) => x.type === "loop")).toBe(false);
+  });
+
+  it("marks severity alert when the same tool and arguments repeat consecutively ≥6 times", () => {
     const calls = Array.from({ length: 6 }, () => ({ name: "read_file", result: "ok", isError: false }));
     const a = detectAnomalies(calls);
     expect(a.find((x) => x.type === "loop")?.severity).toBe("alert");

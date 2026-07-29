@@ -43,6 +43,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/effort.ts` / `src/providers/effort.ts` — effort-level parsing plus OpenAI reasoning_effort / Anthropic extended-thinking param mapping
 - `src/repl/init-cmd.ts` — `/init`: generate `.claude/CLAUDE.md` from detected project context
 - `src/repl/rewind-cmd.ts` + `src/sessions/file-checkpoint.ts` — `/rewind`: in-memory per-edit file checkpoints, max 20 snapshots
+- `src/repl/restart-cmd.ts` + `src/repl/restart-handoff.ts` — `/restart`: save the live session, write a five-minute content-free handoff, and resume it once after the run.sh relaunch
 - `src/hooks/` — `.vanta/hooks.json` 30-event schema + runners for `command`/`shell`, `http`, `mcp_tool`, `prompt`, and `agent` hook types; `paper-events.ts` keeps arXiv 27-event parity checked.
 - `src/repl/hooks-cmd.ts` — `/hooks`: list/add/remove `.vanta/hooks.json` command hooks; listing labels all hook types.
 - `src/schedule/durable-cron.ts` + `src/tools/cron.ts` — durable `.vanta/scheduled_tasks.json` cron tasks plus legacy cron TSV compatibility
@@ -77,6 +78,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/ui/v2/` — opt-in mission-control shell (`VANTA_TUI=v2`), wrapping the shared v1 engine in left/right operator rails
 - `src/ui/reducer.ts` — pure transcript/UI reducer
 - `src/ui/use-agent.ts` — agent I/O hook for the TUI
+- `src/observe/trace.ts` — turn anomaly checks; loop warnings require consecutive identical tool + argument signatures, not merely repeated tool names
 - `src/desktop/` + `desktop-app/` — localhost desktop API host + Vite/React renderer
 - `src/interactive.ts` — readline REPL (fallback to TUI)
 
@@ -123,6 +125,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - Ralph-loop continuity is project-scoped at `.vanta/ralph-loop.json`: fresh launches surface it as PAUSED, and `/goal resume|drop` explicitly activates or discards carried work.
 - TUI rendering is real Ink 7 under `src/ui/`; v1 remains the default and `VANTA_TUI=v2` opts into the separate mission-control shell under `src/ui/v2/`. The old `src/tui/` render layer is gone. `src/tui/mission-control/cockpit-data.ts` is the only remaining `src/tui` code path and is data-only.
 - TUI focus traversal lives in `src/ui/focus.ts`: Tab moves forward, Shift+Tab moves backward when multiple focus targets are visible; Shift+Tab still cycles mode when the composer is the only target.
+- TUI `/restart` persists the completed conversation and resumes it through a read-once project `.vanta/restart-session.json` handoff; the visible elapsed clock measures the new active process, while the durable session keeps its original timestamps and lineage.
 - Desktop root serving is Vite-first: `npm run desktop:build` writes `desktop-app/dist/`, and `src/desktop/assets.ts` serves it before falling back to the small `page.ts` build notice.
 - Reach layer lives under `src/reach/` with tools for RSS, Reddit, cookies, and channel health. Deferred channels are tracked as `REACH-*`.
 - `vanta setup` now validates the provider before writing `.env`, offers Google OAuth, probes configured MCP servers by mounting/listing tools, and probes Telegram when configured; optional steps report exact fixes rather than fake enables.

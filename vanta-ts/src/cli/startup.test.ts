@@ -1,7 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
-import { findRepoRoot, parseRunArgs } from "./startup.js";
+import { findRepoRoot, loadRestartSession, parseRunArgs } from "./startup.js";
+import { mkdtemp } from "node:fs/promises";
+import { join } from "node:path";
+import { saveSession } from "../sessions/store.js";
+import { writeRestartHandoff } from "../repl/restart-handoff.js";
 
 describe("findRepoRoot", () => {
   it("honors the desktop shell's explicit project root", () => {
@@ -38,5 +42,20 @@ describe("parseRunArgs", () => {
     const r = parseRunArgs(["--output-format", "text", "hello world"]);
     expect(r.instruction).toBe("hello world");
     expect(r.outputFormat).toBe("text");
+  });
+});
+
+describe("reload continuity", () => {
+  it("consumes the handoff and loads the saved conversation", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-startup-reload-"));
+    const env = { VANTA_HOME: join(root, "home") } as NodeJS.ProcessEnv;
+    const now = new Date("2026-07-29T10:00:00.000Z");
+    await saveSession("reload-me", [{ role: "user", content: "run the jobs again" }], { env, started: now.toISOString() });
+    await writeRestartHandoff(join(root, ".vanta"), "reload-me", now);
+
+    const session = await loadRestartSession(root, env, now);
+    expect(session?.id).toBe("reload-me");
+    expect(session?.messages.at(-1)?.content).toBe("run the jobs again");
+    await expect(loadRestartSession(root, env, now)).resolves.toBeNull();
   });
 });

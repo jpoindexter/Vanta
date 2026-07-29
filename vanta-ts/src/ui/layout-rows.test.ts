@@ -47,6 +47,7 @@ describe("estimateEntryRows", () => {
       checked: 1,
       verificationPassed: 0,
       verificationFailed: 0,
+      recoveredFailures: 0,
       failures: 0,
     };
     expect(estimateEntryRows(summary, 80)).toBe(6);

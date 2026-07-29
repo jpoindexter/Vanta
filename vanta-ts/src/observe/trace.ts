@@ -20,7 +20,7 @@ const READ_TOOLS = new Set([
   "read_file", "grep_files", "glob_files",
   "web_fetch", "web_search", "inspect_state",
 ]);
-const LOOP_THRESHOLD = 3;    // same tool ≥N times → warn; ≥6 → alert
+const LOOP_THRESHOLD = 3;    // identical consecutive tool + args ≥N → warn; ≥6 → alert
 const ERROR_THRESHOLD = 3;   // ≥N consecutive errors → alert
 
 // Matches common OS-level error patterns that don't start with "Error:"
@@ -71,15 +71,36 @@ export function extractLastTurnCalls(messages: Message[]): TurnCall[] {
   return calls;
 }
 
-/** Same tool called ≥LOOP_THRESHOLD times in one turn. */
+function stableValue(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableValue).join(",")}]`;
+  if (value && typeof value === "object") {
+    const object = value as Record<string, unknown>;
+    return `{${Object.keys(object).sort().map((key) => `${JSON.stringify(key)}:${stableValue(object[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function callSignature(call: TurnCall): string {
+  return `${call.name}:${stableValue(call.args ?? {})}`;
+}
+
+/** Identical tool + arguments repeated consecutively ≥LOOP_THRESHOLD times. */
 function detectLoops(calls: TurnCall[]): TraceAnomaly[] {
-  const counts = new Map<string, number>();
-  for (const { name } of calls) counts.set(name, (counts.get(name) ?? 0) + 1);
   const out: TraceAnomaly[] = [];
-  for (const [name, n] of counts) {
+  let runStart = 0;
+  while (runStart < calls.length) {
+    const signature = callSignature(calls[runStart]!);
+    let runEnd = runStart + 1;
+    while (runEnd < calls.length && callSignature(calls[runEnd]!) === signature) runEnd += 1;
+    const n = runEnd - runStart;
     if (n >= LOOP_THRESHOLD) {
-      out.push({ type: "loop", detail: `${name} called ${n}× in one turn`, severity: n >= 6 ? "alert" : "warn" });
+      out.push({
+        type: "loop",
+        detail: `${calls[runStart]!.name} repeated identical action ${n}×`,
+        severity: n >= 6 ? "alert" : "warn",
+      });
     }
+    runStart = runEnd;
   }
   return out;
 }
