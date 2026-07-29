@@ -7,20 +7,23 @@
 // until the 50-iteration ceiling errors out — exactly what happened in the
 // session that motivated this: many tools per turn, none of them "the ask".
 //
-// This adds a graceful upper bound: past the budget the turn HALTS and yields
-// control back to the user (who can redirect) instead of burning more tools.
-// The ceiling tightens while the user is actively CORRECTING the agent, because
-// a corrected turn that keeps spelunking is the precise "not listening" failure.
+// This adds a two-phase upper bound. The acquisition phase closes before the
+// hard ceiling, leaving a fixed reserve for synthesis, verification, output,
+// and checklist closure. The ceiling still tightens while the user is actively
+// CORRECTING the agent, because a corrected turn that keeps spelunking is the
+// precise "not listening" failure.
 //
 // Honest scope: you cannot mechanically tell an on-goal tool call from an
 // off-goal one without a classifier, so this is a blunt RUNAWAY backstop, not a
 // semantic drift judge. It pairs with the goal-adherence note (nd inhibit gate)
 // + the adaptive redirect, which handle intent; this just caps volume and yields.
 
-/** Default per-turn tool ceiling — a runaway backstop, kept below the 50-iter limit. */
-export const DEFAULT_TOOL_BUDGET = 30;
-/** Tighter ceiling while the user is correcting/re-asking this turn. */
-export const CORRECTION_TOOL_BUDGET = 10;
+/** Default hard per-turn ceiling — a runaway backstop below the 50-iteration limit. */
+export const DEFAULT_TOOL_BUDGET = 40;
+/** Tighter hard ceiling while the user is correcting/re-asking this turn. */
+export const CORRECTION_TOOL_BUDGET = 20;
+/** Calls reserved inside the hard ceiling for finishing instead of researching. */
+export const DEFAULT_TOOL_CLOSURE_RESERVE = 10;
 
 /** Resolve the effective budget: `VANTA_TOOL_BUDGET` overrides; `0`/negative disables. */
 export function resolveToolBudget(env: NodeJS.ProcessEnv = process.env): number {
@@ -29,23 +32,90 @@ export function resolveToolBudget(env: NodeJS.ProcessEnv = process.env): number 
   return raw < 0 ? 0 : raw; // explicit override; 0 = disabled (autonomous / grind mode)
 }
 
-/**
- * Whether this turn has spent its tool budget and must yield to the user. Pure.
- * `correction` = the user is actively correcting the agent this turn (tighter
- * leash). A budget of 0 disables the breaker entirely.
- */
-export function shouldHaltForToolBudget(toolIterations: number, correction: boolean, budget: number): boolean {
-  if (budget <= 0) return false;
-  const ceiling = correction ? Math.min(budget, CORRECTION_TOOL_BUDGET) : budget;
-  return toolIterations >= ceiling;
+/** Resolve the predeclared closure reserve; invalid values use the default. */
+export function resolveToolClosureReserve(env: NodeJS.ProcessEnv = process.env): number {
+  const raw = parseInt(env.VANTA_TOOL_CLOSURE_RESERVE ?? "", 10);
+  if (Number.isNaN(raw)) return DEFAULT_TOOL_CLOSURE_RESERVE;
+  return Math.max(0, raw);
 }
 
-/** The yield-to-user summary shown when the tool budget halts a turn. Pure. */
+/** Effective hard ceiling for this turn and interaction mode. */
+export function effectiveToolBudget(correction: boolean, budget: number): number {
+  if (budget <= 0) return 0;
+  return correction ? Math.min(budget, CORRECTION_TOOL_BUDGET) : budget;
+}
+
+/** Point at which acquisition closes and the already-budgeted finish reserve begins. */
+export function toolClosureThreshold(
+  correction: boolean,
+  budget: number,
+  reserve = DEFAULT_TOOL_CLOSURE_RESERVE,
+): number {
+  const hard = effectiveToolBudget(correction, budget);
+  if (hard <= 0) return 0;
+  const boundedReserve = Math.min(Math.max(0, reserve), Math.max(0, hard - 1));
+  return Math.max(1, hard - boundedReserve);
+}
+
+/**
+ * Whether acquisition should close so the remaining predeclared budget is
+ * spent finishing the deliverable. A budget of 0 disables the breaker.
+ */
+export function shouldEnterToolClosure(
+  toolIterations: number,
+  correction: boolean,
+  budget: number,
+  reserve = DEFAULT_TOOL_CLOSURE_RESERVE,
+): boolean {
+  const hard = effectiveToolBudget(correction, budget);
+  return hard > 0 && toolIterations >= toolClosureThreshold(correction, budget, reserve) && toolIterations < hard;
+}
+
+/** Whether the hard per-turn tool ceiling has been spent. */
+export function shouldHaltForToolBudget(toolIterations: number, correction: boolean, budget: number): boolean {
+  const hard = effectiveToolBudget(correction, budget);
+  return hard > 0 && toolIterations >= hard;
+}
+
+const ACQUISITION_TOOLS = new Set([
+  "web_search",
+  "web_fetch",
+  "browser_navigate",
+  "browser_read",
+  "browser_extract",
+  "browser_act",
+]);
+
+export function isToolAllowedDuringClosure(name: string): boolean {
+  return !ACQUISITION_TOOLS.has(name);
+}
+
+/** Remove broad acquisition tools while preserving output and verification tools. */
+export function scopeToolsForClosure<T extends { name: string }>(schemas: ReadonlyArray<T>): T[] {
+  return schemas.filter((schema) => isToolAllowedDuringClosure(schema.name));
+}
+
+/** Private directive injected throughout the bounded finishing phase. */
+export function buildToolClosureDirective(openTodoCount: number | null): string {
+  const plan = openTodoCount && openTodoCount > 0
+    ? `The live checklist still has ${openTodoCount} open item${openTodoCount === 1 ? "" : "s"}.`
+    : "No open checklist count is available.";
+  return [
+    "[VANTA TOOL-BUDGET CLOSURE — private loop directive]",
+    "The acquisition phase is closed; the hard tool-call ceiling has not been raised.",
+    plan,
+    "Stop searching, fetching, browsing, and expanding the plan. Use evidence already collected.",
+    "Finish the requested deliverable now, perform only narrow necessary verification, and update every completed checklist item before returning.",
+    "Do not ask the operator what to do next unless a genuinely external decision or unsafe action blocks completion.",
+  ].join("\n");
+}
+
+/** The terminal receipt shown only when the hard ceiling is actually exhausted. */
 export function buildToolBudgetSummary(toolNames: ReadonlyArray<string>, correction: boolean): string {
   const seen: string[] = [];
   for (const name of toolNames) if (!seen.includes(name)) seen.push(name);
   const lead = correction
-    ? `Halted: I ran ${toolNames.length} tools this turn while you were redirecting me, without landing your ask.`
-    : `Halted: I ran ${toolNames.length} tools this turn without finishing — stopping to check in rather than burn more.`;
-  return `${lead}\n  Tools used: ${seen.join(", ") || "none"}.\n  Tell me the one thing to do next and I'll do exactly that.`;
+    ? `Stopped at the hard safety limit after ${toolNames.length} tool calls while correcting course.`
+    : `Stopped at the hard safety limit after ${toolNames.length} tool calls.`;
+  return `${lead}\n  Tools used: ${seen.join(", ") || "none"}.\n  The current goal and unfinished checklist remain preserved; “continue” resumes from that state.`;
 }

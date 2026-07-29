@@ -65,6 +65,31 @@ describe("shouldAutoContinue", () => {
   it("does NOT continue a clean completion (no signal, verify off)", async () => {
     expect(await shouldAutoContinue({ ...base, result: res("Done. Saved."), toolNames: ["write_file"] })).toBe(false);
   });
+  it("continues a clean-looking completion while the observed checklist is open", async () => {
+    expect(await shouldAutoContinue({
+      ...base,
+      result: res("Here are the results."),
+      toolNames: ["todo", "web_search"],
+      openTodoCount: 2,
+    })).toBe(true);
+  });
+  it("allows completion after the observed checklist reaches zero open items", async () => {
+    expect(await shouldAutoContinue({
+      ...base,
+      result: res("Here are the results."),
+      toolNames: ["todo", "web_search"],
+      openTodoCount: 0,
+    })).toBe(false);
+  });
+  it("does not return done with an open checklist after the generic nudge cap", async () => {
+    expect(await shouldAutoContinue({
+      ...base,
+      result: res("Here are the current results."),
+      toolNames: ["todo", "web_search"],
+      openTodoCount: 1,
+      autoContinues: 3,
+    })).toBe(true);
+  });
   it("respects the per-turn cap", async () => {
     expect(await shouldAutoContinue({ ...base, result: res("next step"), toolNames: ["read_file"], autoContinues: 3 })).toBe(false);
   });

@@ -20,7 +20,7 @@ import { runAdvisor } from "./advisor.js";
 import { compactOversizedResult } from "../compress/reactive.js";
 import type { AgentDeps, AgentOutcome } from "./agent-types.js";
 import { buildStopSummary } from "../repl/stop-cmd.js";
-import { CONTINUE_NUDGE, shouldAutoContinue } from "./auto-continue.js";
+import { buildContinueNudge, shouldAutoContinue } from "./auto-continue.js";
 import { MAX_CONSECUTIVE_FAILURES, MAX_IDENTICAL_CALLS, makeInitialState, recordUsage, recordToolOutcome } from "./turn-state.js";
 import type { TurnState } from "./turn-state.js";
 import { join } from "node:path";
@@ -29,7 +29,17 @@ import { requiredToolNudge } from "./tool-use-contract.js";
 import { interruptedDisposition, interruptedToolResult } from "./effect-disposition.js";
 import { checkpointToolTranscript, persistEffectTransition } from "./effect-persistence.js";
 import { detectAdaptiveRedirect, detectAdaptiveSupport, injectAdaptiveSupport, type AdaptiveSupportPlan } from "./adaptive-support.js";
-import { resolveToolBudget, shouldHaltForToolBudget, buildToolBudgetSummary } from "./tool-budget.js";
+import {
+  buildToolBudgetSummary,
+  buildToolClosureDirective,
+  effectiveToolBudget,
+  isToolAllowedDuringClosure,
+  resolveToolBudget,
+  resolveToolClosureReserve,
+  scopeToolsForClosure,
+  shouldEnterToolClosure,
+  shouldHaltForToolBudget,
+} from "./tool-budget.js";
 import { resolvePermissionMode } from "../modes/permission-mode.js";
 import { beginTtftTurn } from "../performance/ttft-trace.js";
 
@@ -57,7 +67,16 @@ async function logToolOutcome(deps: AgentDeps, name: string, ok: boolean, chars:
   }
 }
 
-type ProcessToolCallsArgs = { calls: ToolCall[]; deps: AgentDeps; ctx: ToolContext; state: TurnState; messages: Message[]; prefetched?: Map<string, Promise<DispatchOutcome>> };
+type ProcessToolCallsArgs = {
+  calls: ToolCall[];
+  deps: AgentDeps;
+  ctx: ToolContext;
+  state: TurnState;
+  messages: Message[];
+  hardToolBudget: number;
+  toolBudgetClosure: boolean;
+  prefetched?: Map<string, Promise<DispatchOutcome>>;
+};
 
 function maybeRunAdvisor(messages: Message[], deps: AgentDeps, state: TurnState): void {
   const threshold = DEFAULT_ERRORDETECT_THRESHOLD;
@@ -67,11 +86,40 @@ function maybeRunAdvisor(messages: Message[], deps: AgentDeps, state: TurnState)
     .catch(() => { /* best-effort */ });
 }
 
-async function processToolCalls(args: ProcessToolCallsArgs): Promise<string | null> {
-  const { calls, deps, ctx, state, messages, prefetched } = args;
+async function processToolCalls(args: ProcessToolCallsArgs): Promise<{ stuckTool: string | null; budgetExhausted: boolean }> {
+  const { calls, deps, ctx, state, messages, hardToolBudget, toolBudgetClosure, prefetched } = args;
   const batch: Array<{ name: string; ok: boolean; output: string }> = [];
   let stuckTool: string | null = null;
-  for (const call of calls) {
+  let budgetExhausted = false;
+  for (let index = 0; index < calls.length; index++) {
+    const call = calls[index]!;
+    if (hardToolBudget > 0 && state.toolIterations >= hardToolBudget) {
+      budgetExhausted = true;
+      for (const skipped of calls.slice(index)) {
+        const output = "Not executed: the turn reached its hard tool-call safety limit.";
+        messages.push({ role: "tool", toolCallId: skipped.id, name: skipped.name, content: output, effectDisposition: "none" });
+        await persistEffectTransition(ctx.root, deps.sessionId, skipped, "settled", "none");
+      }
+      await checkpointToolTranscript(deps.sessionId, messages);
+      break;
+    }
+    if (toolBudgetClosure && !isToolAllowedDuringClosure(call.name)) {
+      const output = "Not executed: broad search and browser acquisition are closed for this turn. Finish from the evidence already collected.";
+      const outcome: DispatchOutcome = { executed: false, empty: false, ok: false, output, effectDisposition: "none" };
+      batch.push({ name: call.name, ok: false, output });
+      state.toolNames.push(call.name);
+      state.toolIterations++;
+      messages.push({ role: "tool", toolCallId: call.id, name: call.name, content: output, effectDisposition: "none" });
+      await persistEffectTransition(ctx.root, deps.sessionId, call, "settled", "none");
+      await checkpointToolTranscript(deps.sessionId, messages);
+      await logToolOutcome(deps, call.name, false, output.length);
+      const stuck = recordToolOutcome(state, call, outcome, deps);
+      if (stuck) {
+        stuckTool = stuck;
+        break;
+      }
+      continue;
+    }
     const inFlight = prefetched?.get(call.id);
     let executionStarted = false;
     const trackedCtx: ToolContext = {
@@ -109,7 +157,7 @@ async function processToolCalls(args: ProcessToolCallsArgs): Promise<string | nu
     }
   }
   await fireHooks(join(ctx.root, ".vanta"), "PostToolBatch", { tools: batch }, { cwd: ctx.root, ...buildAgentHookDeps(deps) });
-  return stuckTool;
+  return { stuckTool, budgetExhausted };
 }
 
 type NoToolCallsArgs = { result: CompletionResult; messages: Message[]; deps: AgentDeps; iter: number; state: TurnState; userText: string; schemas: import("../providers/interface.js").ToolSchema[] };
@@ -131,10 +179,10 @@ async function handleNoToolCalls(args: NoToolCallsArgs): Promise<AgentOutcome | 
     }
     messages.push({ role: "assistant", content: result.text });
     const shown = await displayText(deps, result.text);
-    if (await shouldAutoContinue({ result, messages, autoContinues: state.autoContinues, toolNames: state.toolNames, deps })) {
+    if (await shouldAutoContinue({ result, messages, autoContinues: state.autoContinues, toolNames: state.toolNames, deps, openTodoCount: state.openTodoCount })) {
       state.autoContinues++;
       if (shown) deps.onText?.(shown); // surface the interim text, then push through
-      messages.push({ role: "user", content: CONTINUE_NUDGE });
+      messages.push({ role: "user", content: buildContinueNudge(state.openTodoCount) });
       return null;
     }
     return { finalText: shown, iterations: iter, stoppedReason: "done", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
@@ -144,7 +192,17 @@ async function handleNoToolCalls(args: NoToolCallsArgs): Promise<AgentOutcome | 
   return null;
 }
 
-type ToolCallIterArgs = { result: CompletionResult; messages: Message[]; deps: AgentDeps; ctx: ToolContext; state: TurnState; prefetched: Map<string, Promise<DispatchOutcome>>; iter: number; support: AdaptiveSupportPlan };
+type ToolCallIterArgs = {
+  result: CompletionResult;
+  messages: Message[];
+  deps: AgentDeps;
+  ctx: ToolContext;
+  state: TurnState;
+  prefetched: Map<string, Promise<DispatchOutcome>>;
+  iter: number;
+  support: AdaptiveSupportPlan;
+  hardToolBudget: number;
+};
 
 async function terminalOutcome(args: {
   messages: Message[];
@@ -173,7 +231,7 @@ function usesCorrectionLeash(plan: AdaptiveSupportPlan, deps: AgentDeps): boolea
 }
 
 async function handleToolCallsPresent(args: ToolCallIterArgs): Promise<AgentOutcome | null> {
-  const { result, messages, deps, ctx, state, prefetched, iter, support } = args;
+  const { result, messages, deps, ctx, state, prefetched, iter, support, hardToolBudget } = args;
   const usage = () => (state.sawUsage ? { ...state.turnUsage } : undefined);
   if (result.thinking) { deps.onThinking?.(result.thinking); deps.onEvent?.({ type: "thinking", text: result.thinking }); }
   const shownText = result.text.trim() ? await displayText(deps, result.text) : "";
@@ -189,7 +247,19 @@ async function handleToolCallsPresent(args: ToolCallIterArgs): Promise<AgentOutc
     messages.push({ role: "tool", toolCallId: result.toolCalls.find((c) => c.name === "StructuredOutput")?.id ?? "structured-output", name: "StructuredOutput", content: structured.output, effectDisposition: "none" });
     return structuredOutcome(structured, iter, usage());
   }
-  const stuckTool = await processToolCalls({ calls: result.toolCalls, deps, ctx, state, messages, prefetched });
+  const processed = await processToolCalls({
+    calls: result.toolCalls,
+    deps,
+    ctx,
+    state,
+    messages,
+    hardToolBudget,
+    toolBudgetClosure: state.toolBudgetClosure,
+    prefetched,
+  });
+  if (processed.budgetExhausted)
+    return terminalOutcome({ messages, deps, state, iter, reason: "tool_budget", text: buildToolBudgetSummary(state.toolNames, usesCorrectionLeash(support, deps)) });
+  const stuckTool = processed.stuckTool;
   if (stuckTool)
     return terminalOutcome({ messages, deps, state, iter, reason: "repeated_failure", text: `Stopped: called ${stuckTool} with identical arguments ${MAX_IDENTICAL_CALLS} times without progress.` });
   if (state.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES)
@@ -217,7 +287,9 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
   // DRIFT-HARD-ENFORCE: per-turn tool-budget breaker. Manual/Accept edits tighten
   // during a correction; Auto/Full access keep the bounded general ceiling.
   const toolBudget = resolveToolBudget(process.env);
+  const toolClosureReserve = resolveToolClosureReserve(process.env);
   const correcting = usesCorrectionLeash(adaptiveSupport, deps);
+  const hardToolBudget = effectiveToolBudget(correcting, toolBudget);
   messages.push(images?.length ? { role: "user", content: userText, images } : { role: "user", content: userText });
   const state = makeInitialState();
   // OP-CHECKPOINT-ROLLBACK: mark a new turn so file snapshots group per turn.
@@ -226,14 +298,24 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
     if (effectiveSignal?.aborted) return terminalOutcome({ messages, deps, state, iter: iter - 1, reason: "interrupted", text: "Interrupted." });
     // Scope schemas once per iteration so countTokens and getCompletion use the same set.
     const scoped = scopeToolSchemas(deps.registry.schemas(), toolScopeContext(messages, deps.activeGoalText), { env: process.env });
-    const schemas = schemasWithStructuredOutput(scoped, deps.outputSchema);
+    const phaseScoped = state.toolBudgetClosure ? scopeToolsForClosure(scoped) : scoped;
+    const schemas = schemasWithStructuredOutput(phaseScoped, deps.outputSchema);
     const depsWithTools = { ...deps, currentTools: schemas };
     const prepared = await prepareCallMessages(messages, depsWithTools, iter, turnCtx);
     const redirectForCall = state.adaptiveRedirect;
     state.adaptiveRedirect = "";
-    const trimmed = injectAdaptiveSupport(prepared, [adaptiveSupport.directive, redirectForCall]);
+    const closureDirective = state.toolBudgetClosure ? buildToolClosureDirective(state.openTodoCount) : "";
+    const trimmed = injectAdaptiveSupport(prepared, [adaptiveSupport.directive, redirectForCall, closureDirective]);
     const prefetched = new Map<string, Promise<DispatchOutcome>>();
-    const completion = await completeAndRecordUsage({ deps, depsWithTools, messages: trimmed, turnCtx, signal: effectiveSignal, providerCall: { ctx, prefetched, schemas, ttft } });
+    const prefetchLimit = hardToolBudget > 0 ? Math.max(0, hardToolBudget - state.toolIterations) : undefined;
+    const completion = await completeAndRecordUsage({
+      deps,
+      depsWithTools,
+      messages: trimmed,
+      turnCtx,
+      signal: effectiveSignal,
+      providerCall: { ctx, prefetched, schemas, ...(prefetchLimit === undefined ? {} : { prefetchLimit }), ttft },
+    });
     if (!completion.ok) return terminalOutcome({ messages, deps, state, iter, reason: "repeated_failure", text: completion.error });
     const result = completion.result;
     recordUsage(state, result);
@@ -247,11 +329,15 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
       ...ctx,
       inspectContext: () => buildContextInspection(messages, schemas, deps.provider.contextWindow()),
     };
-    const earlyExit = await handleToolCallsPresent({ result, messages, deps, ctx: liveCtx, state, prefetched, iter, support: adaptiveSupport });
+    const earlyExit = await handleToolCallsPresent({ result, messages, deps, ctx: liveCtx, state, prefetched, iter, support: adaptiveSupport, hardToolBudget });
     if (earlyExit) return earlyExit;
-    // DRIFT-HARD-ENFORCE: past the tool budget, halt and yield to the user
-    // instead of dispatching another batch (checked at the clean iteration
-    // boundary, same as the soft-stop).
+    // At the predeclared threshold, close broad acquisition and spend only the
+    // remaining fixed reserve on synthesis, verification, output, and plan
+    // closure. This does not raise or reset the hard budget.
+    if (!state.toolBudgetClosure && shouldEnterToolClosure(state.toolIterations, correcting, toolBudget, toolClosureReserve)) {
+      state.toolBudgetClosure = true;
+      continue;
+    }
     if (shouldHaltForToolBudget(state.toolIterations, correcting, toolBudget)) {
       const summary = buildToolBudgetSummary(state.toolNames, correcting);
       return terminalOutcome({ messages, deps, state, iter, reason: "tool_budget", text: summary });

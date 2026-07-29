@@ -9,6 +9,7 @@ import type { LLMProvider, CompletionResult, ToolSchema } from "../providers/int
 import type { Message, ToolCall, Verdict } from "../types.js";
 import type { Tool } from "../tools/types.js";
 import { loadSession } from "../sessions/store.js";
+import { CORRECTION_TOOL_BUDGET, DEFAULT_TOOL_BUDGET } from "./tool-budget.js";
 
 function history(): Message[] {
   return [
@@ -212,6 +213,67 @@ describe("task completion boundaries", () => {
     };
   }
 
+  it("keeps the turn alive past the generic nudge cap until the live checklist closes", async () => {
+    const registry = new InMemoryToolRegistry();
+    registry.register({
+      schema: { name: "todo", description: "todo", parameters: { type: "object", properties: {} } },
+      describeForSafety: () => "todo",
+      execute: async () => ({ ok: true, output: "todo ok" }),
+    });
+    const { safety } = spySafety();
+    let call = 0;
+    const provider: LLMProvider = {
+      modelId: () => "fake",
+      contextWindow: () => 100_000,
+      complete: vi.fn(async (): Promise<CompletionResult> => {
+        call++;
+        if (call === 1) {
+          return {
+            text: "",
+            toolCalls: [{
+              id: "plan-open",
+              name: "todo",
+              arguments: {
+                action: "write",
+                items: [{ text: "Finish the requested task", status: "in_progress" }],
+              },
+            }],
+            finishReason: "tool_calls",
+          };
+        }
+        if (call <= 5) {
+          return { text: "Here are the current results.", toolCalls: [], finishReason: "stop" };
+        }
+        if (call === 6) {
+          return {
+            text: "",
+            toolCalls: [{
+              id: "plan-closed",
+              name: "todo",
+              arguments: {
+                action: "write",
+                items: [{ text: "Finish the requested task", status: "done" }],
+              },
+            }],
+            finishReason: "tool_calls",
+          };
+        }
+        return { text: "The requested task is complete.", toolCalls: [], finishReason: "stop" };
+      }),
+    };
+
+    const out = await runTurn({
+      messages: [{ role: "system", content: "sys" }],
+      ctx: { root: "/tmp", safety, requestApproval: async () => true },
+      deps: { provider, safety, registry, root: "/tmp", requestApproval: async () => true },
+      userText: "Finish the requested task.",
+    });
+
+    expect(provider.complete).toHaveBeenCalledTimes(7);
+    expect(out.stoppedReason).toBe("done");
+    expect(out.finalText).toBe("The requested task is complete.");
+  });
+
   it("lets Auto mode finish a corrected task past the manual correction leash", async () => {
     const fixture = completionDeps("auto");
     let call = 0;
@@ -237,16 +299,16 @@ describe("task completion boundaries", () => {
     expect(out.finalText).toContain("Updated and verified");
   });
 
-  it("records a visible terminal receipt when the manual correction leash halts", async () => {
+  it("uses the finish reserve before recording a hard-stop receipt in manual correction mode", async () => {
     const fixture = completionDeps("default");
+    const seen: Message[][] = [];
     fixture.deps.provider = {
       modelId: () => "fake",
       contextWindow: () => 100_000,
-      complete: vi.fn(async (): Promise<CompletionResult> => ({
-        text: "",
-        toolCalls: productiveBatch(),
-        finishReason: "tool_calls",
-      })),
+      complete: vi.fn(async (providerMessages): Promise<CompletionResult> => {
+        seen.push(structuredClone(providerMessages));
+        return { text: "", toolCalls: productiveBatch(), finishReason: "tool_calls" };
+      }),
     };
     const messages: Message[] = [{ role: "system", content: "sys" }];
 
@@ -258,8 +320,147 @@ describe("task completion boundaries", () => {
     });
 
     expect(out.stoppedReason).toBe("tool_budget");
-    expect(out.finalText).toContain("redirecting me");
+    expect(out.toolIterations).toBe(CORRECTION_TOOL_BUDGET);
+    expect(out.finalText).toContain("hard safety limit");
+    expect(seen[1]?.some((message) => message.role === "system" && message.content.includes("VANTA TOOL-BUDGET CLOSURE"))).toBe(true);
     expect(messages.at(-1)).toMatchObject({ role: "assistant", content: out.finalText });
+  });
+
+  it("closes acquisition at 30 calls, finishes open tasks, and does not ask the operator to resume", async () => {
+    const registry = new InMemoryToolRegistry();
+    let searchExecutions = 0;
+    registry.register({
+      schema: { name: "web_search", description: "web_search", parameters: { type: "object", properties: {} } },
+      describeForSafety: () => "web_search",
+      execute: async () => {
+        searchExecutions++;
+        return { ok: true, output: "web_search ok" };
+      },
+    });
+    registry.register({
+      schema: { name: "todo", description: "todo", parameters: { type: "object", properties: {} } },
+      describeForSafety: () => "todo",
+      execute: async () => ({ ok: true, output: "todo ok" }),
+    });
+    const { safety } = spySafety();
+    const seen: Array<{ messages: Message[]; tools: string[] }> = [];
+    let call = 0;
+    const searches = (offset: number, count: number): ToolCall[] =>
+      Array.from({ length: count }, (_, index) => ({
+        id: `search-${offset + index}`,
+        name: "web_search",
+        arguments: { query: `role ${offset + index}` },
+      }));
+    const provider: LLMProvider = {
+      modelId: () => "fake",
+      contextWindow: () => 100_000,
+      complete: vi.fn(async (providerMessages, tools): Promise<CompletionResult> => {
+        seen.push({ messages: structuredClone(providerMessages), tools: tools.map((tool: ToolSchema) => tool.name) });
+        call++;
+        if (call === 1) {
+          return {
+            text: "",
+            toolCalls: [
+              {
+                id: "plan-open",
+                name: "todo",
+                arguments: {
+                  action: "write",
+                  items: [
+                    { text: "Check filters", status: "in_progress" },
+                    { text: "Rank leads", status: "pending" },
+                  ],
+                },
+              },
+              ...searches(0, 9),
+            ],
+            finishReason: "tool_calls",
+          };
+        }
+        if (call === 2) return { text: "", toolCalls: searches(9, 10), finishReason: "tool_calls" };
+        if (call === 3) return { text: "", toolCalls: searches(19, 10), finishReason: "tool_calls" };
+        if (call === 4) {
+          return {
+            text: "",
+            toolCalls: [
+              { id: "late-search", name: "web_search", arguments: { query: "one more source" } },
+              {
+                id: "plan-closed",
+                name: "todo",
+                arguments: {
+                  action: "write",
+                  items: [
+                    { text: "Check filters", status: "done" },
+                    { text: "Rank leads", status: "done" },
+                  ],
+                },
+              },
+            ],
+            finishReason: "tool_calls",
+          };
+        }
+        return { text: "Ranked the usable leads and recorded next actions.", toolCalls: [], finishReason: "stop" };
+      }),
+    };
+
+    const messages: Message[] = [{ role: "system", content: "sys" }];
+    const out = await runTurn({
+      messages,
+      ctx: { root: "/tmp", safety, requestApproval: async () => true },
+      deps: { provider, safety, registry, root: "/tmp", requestApproval: async () => true },
+      userText: "Search fresh roles, check the filters, and rank the usable leads.",
+    });
+
+    expect(out.stoppedReason).toBe("done");
+    expect(out.toolIterations).toBe(32);
+    expect(searchExecutions).toBe(29);
+    expect(out.finalText).toContain("Ranked the usable leads");
+    expect(seen[3]?.messages.some((message) => message.role === "system" && message.content.includes("2 open items"))).toBe(true);
+    expect(seen[3]?.tools).toContain("todo");
+    expect(seen[3]?.tools).not.toContain("web_search");
+    expect(messages.find((message) => message.role === "tool" && message.toolCallId === "late-search")?.content).toContain("acquisition are closed");
+    expect(out.finalText).not.toContain("Tell me the one thing");
+  });
+
+  it("never executes past the predeclared hard ceiling even when one batch requests more", async () => {
+    const registry = new InMemoryToolRegistry();
+    let executed = 0;
+    registry.register({
+      schema: { name: "inspect_item", description: "inspect", parameters: { type: "object", properties: {} } },
+      describeForSafety: (args) => `inspect ${String(args.index)}`,
+      execute: async () => {
+        executed++;
+        return { ok: true, output: "checked" };
+      },
+    });
+    const { safety } = spySafety();
+    const messages: Message[] = [{ role: "system", content: "sys" }];
+    const provider: LLMProvider = {
+      modelId: () => "fake",
+      contextWindow: () => 100_000,
+      complete: vi.fn(async (): Promise<CompletionResult> => ({
+        text: "",
+        toolCalls: Array.from({ length: DEFAULT_TOOL_BUDGET + 5 }, (_, index) => ({
+          id: `inspect-${index}`,
+          name: "inspect_item",
+          arguments: { index },
+        })),
+        finishReason: "tool_calls",
+      })),
+    };
+
+    const out = await runTurn({
+      messages,
+      ctx: { root: "/tmp", safety, requestApproval: async () => true },
+      deps: { provider, safety, registry, root: "/tmp", requestApproval: async () => true },
+      userText: "Inspect all items and report.",
+    });
+
+    expect(out.stoppedReason).toBe("tool_budget");
+    expect(out.toolIterations).toBe(DEFAULT_TOOL_BUDGET);
+    expect(executed).toBe(DEFAULT_TOOL_BUDGET);
+    expect(messages.filter((message) => message.role === "tool")).toHaveLength(DEFAULT_TOOL_BUDGET + 5);
+    expect(messages.filter((message) => message.role === "tool").slice(-5).every((message) => message.content.includes("Not executed"))).toBe(true);
   });
 });
 

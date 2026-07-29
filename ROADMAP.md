@@ -42,17 +42,17 @@ catch it.** Errors identified, ranked:
 - [x] **PDF-BUFFER-FIX** (S) — commit the Buffer→Uint8Array view fix in `pdf-read.ts`
   (pdf.js rejects a Node Buffer). Was correct but uncommitted.
 - [x] **DRIFT-REPRO-LITTER** (S) — delete abandoned repro scripts left in `vanta-ts/`.
-- [x] **DRIFT-HARD-ENFORCE** (M) — real pre-dispatch **halt**: a per-turn tool-budget
-  circuit breaker in `agent/turn-loop.ts` (`agent/tool-budget.ts`). Past the budget the
-  turn stops and **yields to the user** (`stoppedReason: "tool_budget"`) instead of
-  dispatching another batch — filling the gap where a turn of varied, succeeding, off-goal
-  tools sailed past every existing guard (identical-call, consecutive-failure, read-only)
-  until the 50-iter ceiling errored out. The manual ceiling tightens to 10 while the user is
-  actively **correcting** the agent (the existing adaptive `correction` signal) — the "not
-  listening" case — and is 30 otherwise. Auto and Full access keep the bounded 30-tool
-  ceiling so productive correction work can finish; `VANTA_TOOL_BUDGET=0` explicitly
-  disables the backstop for autonomous/grind runs. Every terminal boundary is persisted
-  and rendered instead of leaving a blank TUI handoff.
+- [x] **DRIFT-HARD-ENFORCE** (M) — two-phase per-turn tool budget in
+  `agent/turn-loop.ts` (`agent/tool-budget.ts`). At 30 calls, broad acquisition closes and
+  the already-declared ten-call reserve is spent synthesizing, verifying, producing the
+  requested output, and closing the checklist. The hard ceiling remains 40; reaching it
+  records `stoppedReason: "tool_budget"` instead of silently returning a partial success.
+  Manual/Accept-edits corrections use a 10-call acquisition phase plus a ten-call finish
+  reserve; Auto and Full access keep the general bounded ceiling. An observed open
+  checklist cannot return a normal `done` outcome merely because the generic continuation
+  nudge cap was reached. `VANTA_TOOL_BUDGET=0` explicitly disables the tool-call backstop
+  for autonomous/grind runs. Every terminal boundary is persisted and rendered instead of
+  leaving a blank TUI handoff.
   *Honest scope:* a blunt runaway backstop, not a semantic off-goal judge (that needs a
   classifier) — it pairs with the goal-adherence note + adaptive redirect that handle intent.
 

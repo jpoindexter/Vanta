@@ -35,10 +35,14 @@ export type TurnState = {
   adaptiveRedirects: number;
   /** Current private redirect, injected per call but not persisted in history. */
   adaptiveRedirect: string;
+  /** Latest successful todo write's unfinished item count; null until observed. */
+  openTodoCount: number | null;
+  /** The acquisition phase has closed; spend the remaining fixed budget finishing. */
+  toolBudgetClosure: boolean;
 };
 
 export function makeInitialState(): TurnState {
-  return { consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map(), tokensSaved: 0, toolNames: [], autoContinues: 0, toolContractNudges: 0, adaptiveRedirects: 0, adaptiveRedirect: "" };
+  return { consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map(), tokensSaved: 0, toolNames: [], autoContinues: 0, toolContractNudges: 0, adaptiveRedirects: 0, adaptiveRedirect: "", openTodoCount: null, toolBudgetClosure: false };
 }
 
 export function recordUsage(state: TurnState, result: CompletionResult): void {
@@ -60,6 +64,12 @@ export function recordToolOutcome(state: TurnState, call: ToolCall, outcome: Dis
     } else {
       state.consecutiveErrorResults = 0;
     }
+  }
+  if (outcome.ok && call.name === "todo" && call.arguments.action === "write" && Array.isArray(call.arguments.items)) {
+    state.openTodoCount = call.arguments.items.filter((item) => {
+      if (!item || typeof item !== "object") return true;
+      return (item as { status?: unknown }).status !== "done";
+    }).length;
   }
   const sig = callSignature(call.name, call.arguments);
   const count = (state.callCounts.get(sig) ?? 0) + 1;
