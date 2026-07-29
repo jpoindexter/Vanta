@@ -31,6 +31,7 @@ const run = promisify(execFile);
 const Args = z.object({
   command: z.string().min(1),
   background: z.boolean().optional(),
+  timeout_ms: z.number().int().min(100).max(120_000).optional(),
   /** Name of a settings.sshConfigs profile — run the command on that host. */
   ssh: z.string().min(1).optional(),
 });
@@ -91,14 +92,14 @@ export function shellSandboxEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
  *  name or an explicit `user@host`. The kernel still assessed the command via
  *  describeForSafety; the local sandbox is not applied because execution happens
  *  on the remote host, not this machine. */
-async function runRemote(target: string, command: string, root: string, pfx: string): Promise<ToolResult> {
+async function runRemote(target: string, command: string, root: string, pfx: string, timeoutMs: number): Promise<ToolResult> {
   const settings = await loadSettings(root, process.env);
   const profile = resolveSshTarget(target, settings.sshConfigs);
   if (!profile) {
     return { ok: false, output: `unknown ssh profile "${target}" — configure it in settings.sshConfigs, or pass an explicit user@host` };
   }
   try {
-    const { stdout, stderr } = await run("ssh", buildSshArgs(profile, command), { timeout: TIMEOUT_MS, maxBuffer: MAX_OUTPUT });
+    const { stdout, stderr } = await run("ssh", buildSshArgs(profile, command), { timeout: timeoutMs, maxBuffer: MAX_OUTPUT });
     const out = combineOutput(stdout, stderr);
     return formatRunSuccess(command, out, pfx);
   } catch (err) {
@@ -200,9 +201,9 @@ export function approvedMkdirWritableDirs(command: string, cwd: string): string[
 /** Spawn options for the child. Session env (VANTA-SESSION-ENV) is merged over
  *  process.env; with NO session vars the merge returns process.env unchanged, so
  *  the `env` field is omitted and the spawn is byte-identical to today's. */
-function childRunOpts(root: string): { cwd: string; timeout: number; maxBuffer: number; env?: NodeJS.ProcessEnv } {
+function childRunOpts(root: string, timeoutMs: number): { cwd: string; timeout: number; maxBuffer: number; env?: NodeJS.ProcessEnv } {
   const childEnv = applySessionEnv(process.env, sessionEnvStore.snapshot());
-  const base = { cwd: shellCommandCwd(root), timeout: TIMEOUT_MS, maxBuffer: MAX_OUTPUT };
+  const base = { cwd: shellCommandCwd(root), timeout: timeoutMs, maxBuffer: MAX_OUTPUT };
   return childEnv === process.env ? base : { ...base, env: childEnv };
 }
 
@@ -219,7 +220,13 @@ async function runBackground(command: string, root: string): Promise<ToolResult>
 }
 
 /** Run the command on the active execution backend (local / OS sandbox / docker). */
-async function runLocal(command: string, root: string, pfx: string, sandboxWritableDirs: readonly string[] = []): Promise<ToolResult> {
+async function runLocal(
+  command: string,
+  root: string,
+  pfx: string,
+  sandboxWritableDirs: readonly string[] = [],
+  timeoutMs = TIMEOUT_MS,
+): Promise<ToolResult> {
   const local = resolveExecBackend(process.env) === "docker"
     ? { cmd: "sh", args: ["-c", command] }
     : resolveShellInvocation(command);
@@ -228,7 +235,7 @@ async function runLocal(command: string, root: string, pfx: string, sandboxWrita
   if (isSandboxError(sb)) return { ok: false, output: pfx + sb.error };
   const startedAt = Date.now();
   try {
-    const { stdout, stderr } = await run(sb.cmd, sb.args, childRunOpts(root));
+    const { stdout, stderr } = await run(sb.cmd, sb.args, childRunOpts(root, timeoutMs));
     const out = combineOutput(stdout, stderr);
     return withTimingNote(formatRunSuccess(command, out, pfx), Date.now() - startedAt);
   } catch (err) {
@@ -242,12 +249,13 @@ export const shellCmdTool: Tool = {
   schema: {
     name: "shell_cmd",
     description:
-      "Run a shell command from the active working directory. Relative paths resolve there; use the exact absolute path when the user names a destination outside it. Returns combined stdout/stderr. Destructive commands are blocked. Set background=true for long-running commands — returns a task id immediately. Set ssh to a settings.sshConfigs profile name or user@host to run the command on that host. In an SSH session (`vanta ssh user@host`) commands default to the remote host.",
+      "Run a shell command from the active working directory. Relative paths resolve there; use the exact absolute path when the user names a destination outside it. Returns combined stdout/stderr. Destructive commands are blocked. Commands time out after 30 seconds by default; use timeout_ms for a bounded longer local scan (max 120000). Set background=true for long-running commands — returns a task id immediately. Set ssh to a settings.sshConfigs profile name or user@host to run the command on that host. In an SSH session (`vanta ssh user@host`) commands default to the remote host.",
     parameters: {
       type: "object",
       properties: {
         command: { type: "string", description: "The shell command to run" },
         background: { type: "boolean", description: "Run in background (returns task id immediately; check with bg_status)" },
+        timeout_ms: { type: "integer", minimum: 100, maximum: 120000, description: "Foreground timeout in milliseconds (default 30000; max 120000)" },
         ssh: { type: "string", description: "A configured SSH profile name or user@host — run the command on that host instead of locally" },
       },
       required: ["command"],
@@ -262,7 +270,7 @@ export const shellCmdTool: Tool = {
     if (!parsed.success) {
       return { ok: false, output: 'shell_cmd needs a "command" string' };
     }
-    const { command, background, ssh } = parsed.data;
+    const { command, background, timeout_ms = TIMEOUT_MS, ssh } = parsed.data;
     const refusal = globalRefusal(command);
     if (refusal) return refusal;
     const pfx = warnPrefix(command);
@@ -271,7 +279,7 @@ export const shellCmdTool: Tool = {
     const sshTarget = ssh ?? process.env.VANTA_SSH_SESSION;
     if (sshTarget) {
       if (background) return { ok: false, output: "refused: background tasks are not supported over ssh" };
-      return runRemote(sshTarget, command, ctx.root, pfx);
+      return runRemote(sshTarget, command, ctx.root, pfx, timeout_ms);
     }
     // SANDBOX-SERVE-FASTFAIL: pre-empt the background↔foreground refusal ping-pong for a
     // server whose only viable path is a non-sandboxed run. Fires for both branches.
@@ -289,6 +297,6 @@ export const shellCmdTool: Tool = {
       };
     }
     // Sandbox: opt-in OS isolation (VANTA_SANDBOX=1 or shell-only VANTA_SHELL_SANDBOX=1). Off → base unchanged.
-    return runLocal(command, ctx.root, pfx, ctx.sandboxWritableDirs);
+    return runLocal(command, ctx.root, pfx, ctx.sandboxWritableDirs, timeout_ms);
   },
 };

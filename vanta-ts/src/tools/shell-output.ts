@@ -54,7 +54,7 @@ export function formatRunFailure(command: string, e: RunError, pfx: string): Too
       ok: false,
       output:
         `${pfx}Command timed out before completion.${detail}\n` +
-        "Recovery: narrow the input, process it in chunks, or run it as a background task outside sandbox mode.",
+        "Recovery: retry with a larger bounded timeout_ms (max 120000), narrow the input, process it in chunks, or run it as a background task outside sandbox mode.",
     };
   }
   return { ok: false, output: pfx + (out || e.message) };

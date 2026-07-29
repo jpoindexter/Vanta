@@ -50,7 +50,23 @@ describe("shell_cmd local execution", () => {
     }, "");
     expect(result.ok).toBe(false);
     expect(result.output).toMatch(/timed out/i);
-    expect(result.output).toMatch(/narrow|chunks/i);
+    expect(result.output).toContain("timeout_ms");
+    expect(result.output).toContain("120000");
+  });
+
+  it("accepts a bounded timeout override and enforces its upper limit", async () => {
+    const completed = await shellCmdTool.execute({
+      command: "sleep 0.15; echo bounded-timeout-complete",
+      timeout_ms: 2_000,
+    }, ctx());
+    expect(completed.ok).toBe(true);
+    expect(completed.output).toContain("bounded-timeout-complete");
+
+    const invalid = await shellCmdTool.execute({
+      command: "echo should-not-run",
+      timeout_ms: 120_001,
+    }, ctx());
+    expect(invalid.ok).toBe(false);
   });
 
   it("blocks destructive patterns before running", async () => {
