@@ -21,7 +21,7 @@ export type Action =
   | { t: "dequeue" }
   | { t: "detachResponse"; text: string }
   | { t: "thinkingDelta"; d: string }
-  | { t: "compacting"; active: boolean }
+  | { t: "compacting"; active: boolean; progress?: number }
   | { t: "promptSuggestions"; suggestions: string[] }
   | { t: "turnStart" }
   | { t: "turnEnd" };
@@ -130,7 +130,7 @@ function flush(state: UiState): UiState {
 function reduceAux(state: UiState, a: Action): UiState {
   switch (a.t) {
     case "clear":
-      return { ...initialState, compacting: state.compacting };
+      return { ...initialState, compacting: state.compacting, compactionProgress: state.compactionProgress };
     case "note": {
       const s = flush(state);
       return { ...s, entries: [...s.entries, { kind: "note", text: a.text }] };
@@ -156,7 +156,11 @@ function reduceAux(state: UiState, a: Action): UiState {
       // Live reasoning preview (live region only). Cleared the moment real output text begins.
       return { ...state, liveThinking: state.liveThinking + a.d };
     case "compacting":
-      return { ...state, compacting: a.active };
+      return {
+        ...state,
+        compacting: a.active,
+        compactionProgress: a.active ? (a.progress ?? state.compactionProgress) : 0,
+      };
     case "promptSuggestions":
       return { ...state, promptSuggestions: a.suggestions };
     default:
@@ -195,5 +199,6 @@ function commitStreaming(state: UiState): UiState {
     busy: false,
     liveThinking: "",
     compacting: false,
+    compactionProgress: 0,
   };
 }

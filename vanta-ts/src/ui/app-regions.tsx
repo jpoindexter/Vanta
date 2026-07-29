@@ -15,6 +15,7 @@ import { glimmerEnabled, glimmerSegments, plainSegments } from "./glimmer.js";
 import type { SubagentProgress } from "../subagent/progress-store.js";
 import type { EffortLevel } from "../types.js";
 import type { RichSegment } from "./status-segments.js";
+import { ProgressBar } from "./components/progress-bar.js";
 
 function goalClip(s: string): string {
   const l = s.split("\n")[0] ?? "";
@@ -125,9 +126,30 @@ function BusyIndicator(props: { liveThinking: string; frame: string; verb: strin
     : <SingleSpinner frame={props.frame} verb={props.verb} tick={props.tick} secs={props.secs} suffix={props.suffix} />;
 }
 
-export function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy: boolean; tick: number; liveThinking?: string; agents?: SubagentProgress[]; selectedAgent?: number; leaderTokens?: number }): ReactElement | null {
-  const { streaming, activeTools, busy, tick, liveThinking = "", agents = [], selectedAgent = -1, leaderTokens = 0 } = props;
-  if (!busy && !streaming) return null;
+/** Compaction is phase-based, so the percentage advances only at completed
+ * milestones. The text + numeric value keep the state legible without color. */
+export function CompactionMeter(props: { progress: number }): ReactElement {
+  return (
+    <Box flexDirection="column">
+      <Text><Text color={ACTIVITY}>✱</Text> <Text bold>Compacting conversation…</Text></Text>
+      <Box marginLeft={2}>
+        <ProgressBar
+          value={props.progress}
+          max={100}
+          width={24}
+          color={ACTIVITY}
+          showPercent
+          variant="squares"
+          bracketed={false}
+        />
+      </Box>
+    </Box>
+  );
+}
+
+export function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy: boolean; tick: number; liveThinking?: string; agents?: SubagentProgress[]; selectedAgent?: number; leaderTokens?: number; compacting?: boolean; compactionProgress?: number }): ReactElement | null {
+  const { streaming, activeTools, busy, tick, liveThinking = "", agents = [], selectedAgent = -1, leaderTokens = 0, compacting = false, compactionProgress = 0 } = props;
+  if (!busy && !streaming && !compacting) return null;
   const loaders = toolLoaderRows(activeTools, tick);
   const { frame, verb, suffix } = busyLabel(tick);
   const secs = Math.round(tick * 0.15);
@@ -136,6 +158,7 @@ export function LiveRegion(props: { streaming: string; activeTools: PendingTool[
     : null;
   return (
     <Box flexDirection="column">
+      {compacting ? <CompactionMeter progress={compactionProgress} /> : null}
       {streaming ? <StreamPreview text={streaming} /> : null}
       {/* Per-tool loaders: each in-flight tool animates its own row (parallel-safe),
           transitioning into its ⏺ Verb(detail) result once it completes. */}
@@ -145,7 +168,7 @@ export function LiveRegion(props: { streaming: string; activeTools: PendingTool[
       {/* Parallel agents → a live tree (leader + one row per teammate). One/zero
           agents → the single thinking spinner, shown when no tool is running. */}
       {tree}
-      {busy && !streaming && loaders.length === 0 && !tree
+      {busy && !compacting && !streaming && loaders.length === 0 && !tree
         ? <BusyIndicator liveThinking={liveThinking} frame={frame} verb={verb} tick={tick} secs={secs} suffix={suffix} />
         : null}
     </Box>

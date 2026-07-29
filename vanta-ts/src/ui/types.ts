@@ -78,8 +78,10 @@ export type UiState = {
   liveThinking: string;
   /** True while the current session is actively compacting context. */
   compacting: boolean;
+  /** Coarse compaction phase milestone, clamped to 0..100 by the renderer. */
+  compactionProgress: number;
   /** Predicted next prompts for the operator after the latest completed turn. */
   promptSuggestions: string[];
 };
 
-export const initialState: UiState = { entries: [], streaming: "", activeTools: [], pendingGroup: [], turnTools: [], todos: [], queued: [], busy: false, liveThinking: "", compacting: false, promptSuggestions: [] };
+export const initialState: UiState = { entries: [], streaming: "", activeTools: [], pendingGroup: [], turnTools: [], todos: [], queued: [], busy: false, liveThinking: "", compacting: false, compactionProgress: 0, promptSuggestions: [] };

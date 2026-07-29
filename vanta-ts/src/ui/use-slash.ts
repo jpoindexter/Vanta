@@ -60,6 +60,7 @@ export function useSlash(deps: SlashDeps): { runSlash: (line: string) => void } 
     state: deps.replStateRef.current,
     env: process.env,
     now: () => new Date(),
+    onCompacting: (active, progress) => deps.dispatch({ t: "compacting", active, progress }),
   });
   const fx: SlashEffects = {
     clear: () => deps.dispatch({ t: "clear" }),

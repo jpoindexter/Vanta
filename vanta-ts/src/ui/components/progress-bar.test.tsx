@@ -40,4 +40,19 @@ describe("ProgressBar", () => {
     expect(frame).not.toContain("█");
     inst.unmount();
   });
+
+  it("renders discrete square cells without brackets", async () => {
+    const inst = renderUi(h(ProgressBar, {
+      value: 25,
+      max: 100,
+      width: 8,
+      showPercent: true,
+      variant: "squares",
+      bracketed: false,
+    }));
+    await tick();
+    expect(inst.lastFrame()).toContain("■■□□□□□□ 25%");
+    expect(inst.lastFrame()).not.toContain("[");
+    inst.unmount();
+  });
 });

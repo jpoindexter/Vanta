@@ -62,8 +62,9 @@ export type AgentDeps = {
   onIterationCheck?: (consecutiveFailures: number) => void;
   /** Called when a compression round runs, with the dropped count and summary. */
   onAutoCompact?: (dropped: number, summary: string) => void;
-  /** Called while an automatic compaction pass is actively summarizing context. */
-  onCompacting?: (active: boolean) => void;
+  /** Called while compaction runs. Progress is a coarse, real phase milestone,
+   * not an estimated timer; omitted consumers remain boolean-compatible. */
+  onCompacting?: (active: boolean, progress?: number) => void;
   /** Abort the run between iterations (Ctrl+C, gateway shutdown, caller cancel). */
   signal?: AbortSignal;
   /** SDK/non-interactive structured output schema. Adds the StructuredOutput synthetic tool. */

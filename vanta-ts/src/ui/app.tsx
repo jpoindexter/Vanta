@@ -178,7 +178,7 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
             ? <AskUserPrompt pending={pendingQuestion} onDone={() => setPendingQuestion(null)} />
             : pending
             ? <ApprovalPrompt pending={pending} focusedTarget={focus} onFocusTargetChange={setFocus} onDone={() => setPending(null)} />
-            : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} liveThinking={state.liveThinking} agents={agents} selectedAgent={teammate.selectedAgent} leaderTokens={est} />}
+            : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} liveThinking={state.liveThinking} agents={agents} selectedAgent={teammate.selectedAgent} leaderTokens={est} compacting={state.compacting} compactionProgress={state.compactionProgress} />}
           <TranscriptSelectionPanel entries={state.entries} selection={transcriptSelection} />
           {traceOpen
             ? <TraceEvidencePanel entries={state.entries} />

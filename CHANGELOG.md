@@ -6,6 +6,7 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 ## Unreleased — 2026-07-29
 
 ### Fixed
+- Automatic and manual context compaction now render a labeled square-cell progress meter with numeric phase milestones, replacing the generic spinner without using slanted track glyphs.
 - `browser_read` now uses Vanta's shared system-browser fallback, so an installed Chrome, Brave, or Edge keeps browser tasks working when Playwright's versioned Chromium cache is absent.
 - `shell_cmd` now marks macOS `mdfind` query-parser failures as failed even when `mdfind` exits zero. Timeout failures explain the recovery path and can be retried with a bounded `timeout_ms` override capped at two minutes instead of requiring the sandbox to be disabled.
 - Turn tracing ignores comparison operators and strings inside heredoc bodies, preventing read-only inspection scripts from producing false `trace[blind-write]` warnings.

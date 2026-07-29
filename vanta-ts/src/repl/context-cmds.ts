@@ -26,14 +26,27 @@ export const compress: SlashHandler = async (arg, ctx) => {
   const { buildSummarizer } = await import("../session.js");
   const before = ctx.convo.messages.length;
   const instructions = arg.trim() || undefined;
-  const compressed = await compressMessages(
-    ctx.convo.messages,
-    ctx.setup.provider.contextWindow(),
-    buildSummarizer(ctx.setup.provider, instructions),
-    { thresholdPct: 0 },
-  );
-  ctx.convo.messages.splice(0, Infinity, ...compressed);
-  return { output: `  · compressed ${before} → ${compressed.length} messages` };
+  ctx.onCompacting?.(true, 0);
+  try {
+    const summarize = buildSummarizer(ctx.setup.provider, instructions);
+    const compressed = await compressMessages(
+      ctx.convo.messages,
+      ctx.setup.provider.contextWindow(),
+      async (messages) => {
+        ctx.onCompacting?.(true, 25);
+        const summary = await summarize(messages);
+        ctx.onCompacting?.(true, 85);
+        return summary;
+      },
+      { thresholdPct: 0 },
+    );
+    ctx.onCompacting?.(true, 95);
+    ctx.convo.messages.splice(0, Infinity, ...compressed);
+    ctx.onCompacting?.(true, 100);
+    return { output: `  · compressed ${before} → ${compressed.length} messages` };
+  } finally {
+    ctx.onCompacting?.(false, 0);
+  }
 };
 
 /** PCLIP-COST-ATTRIBUTION: `/usage breakdown [--since <ISO date>]` — persisted

@@ -56,6 +56,8 @@ export type ReplCtx = {
   state: ReplState;
   env: NodeJS.ProcessEnv;
   now: () => Date;
+  /** Optional interactive-host compaction progress sink. */
+  onCompacting?: (active: boolean, progress?: number) => void;
   /** Session working memory — available in the REPL; may be absent in TUI buildCtx. */
   workingMemory?: SessionWorkingMemory;
 };
