@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-28",
+  "updated": "2026-07-29",
   "items": [
     {
       "id": "SANDBOX-RELATIVE-MKDIR-APPROVAL",
@@ -20492,6 +20492,22 @@
       "source": "Jason live TUI feedback and screenshot 2026-07-28",
       "updated": "2026-07-29",
       "notes": "Implemented as an immutable turnSummary transcript entry computed from completed ToolEntry records at turnEnd. The model cannot omit it or inflate verification claims. Exact same-tool/same-target retries now resolve the closeout attention state while every original receipt remains in Ctrl+T evidence. A real tmux/PTTY proof covers the project launcher, provider tool call, final response ordering, and closeout."
+    },
+    {
+      "id": "TUI-OUTPUT-HIERARCHY",
+      "track": "TUI",
+      "title": "Claude-style output hierarchy — compact evidence and scan-friendly answers",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Make the result visually dominant instead of giving every tool receipt, diff, warning, and final answer equal weight. Keep short runs transparent, compress long successful runs, preserve failures, and render real Markdown hierarchy.",
+      "done": "A turn with one to three completed tools keeps its detailed Claude-style receipts. At four or more actions, successful work collapses into one categorized line with a Ctrl+T evidence affordance while failed actions remain expanded. Markdown headings render without literal hash prefixes, the model is instructed not to duplicate tool receipts in its final response, row estimation matches the compressed layout, and a real tmux PTY proof executes the provider/tool/render path.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "lens": "tui",
+      "source": "Jason comparison of Claude Code and Vanta transcripts 2026-07-29",
+      "updated": "2026-07-29",
+      "notes": "The compact threshold is four actions. Successful work is summarized by read/search, edit, command, plan-update, and other counts. Full arguments, results, diffs, and failures remain available in Ctrl+T evidence. The response-shape instruction applies across hosts so model prose leads with the user-facing outcome and uses headings only when they improve scanning."
     },
     {
       "id": "TUI-RESTART-CONTINUITY",

@@ -19,3 +19,5 @@ Operating modes: `mode-line.tsx` renders Manual, Accept edits, Plan, and Auto be
 Reload continuity: `launch.tsx` may pass a saved `initialSession` after `/restart`. `app.tsx` rebuilds session state from it, and `use-agent.ts` seeds `createConversation` with its messages and checkpoints every completed turn. Do not render old tool outputs as new receipts or reuse prior approvals.
 
 Closeout truth: `turn-summary.ts` keeps `Verification: Not run` unless a qualifying check ran, labels exact successful retries as recovered, and sends the operator to Ctrl+T only for unresolved failures.
+
+Output hierarchy: `quiet-tool-group.ts` preserves detailed receipts for runs of one to three actions. At four or more actions it collapses successful work into one categorized evidence line while failures remain expanded; Ctrl+T retains the full raw receipts. `layout-rows.ts` must use the same grouping helper so bottom pinning remains accurate. Markdown headings render as bold hierarchy without printing their source `#` markers.

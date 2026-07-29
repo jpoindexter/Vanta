@@ -78,6 +78,8 @@ function ToolGroupView(props: { tools: ToolEntry[] }): ReactElement {
     <Box flexDirection="column" marginTop={1}>
       {rows.map((row, i) => row.kind === "reads"
         ? <Text key={i}><Text color={FOCUS}>⏺ </Text>{row.label} <Text dimColor>· {row.tools.length} receipt{row.tools.length === 1 ? "" : "s"} · Ctrl+T evidence</Text></Text>
+        : row.kind === "summary"
+        ? <Text key={i}><Text color={FOCUS}>⏺ </Text>{row.label} <Text dimColor>· Ctrl+T evidence</Text></Text>
         : <ToolCallView key={i} entry={row.tool} />)}
     </Box>
   );
@@ -94,7 +96,7 @@ function ToolCallView(props: { entry: ToolEntry }): ReactElement {
         <Text color={ok ? FOCUS : RISK}>⏺ </Text>
         <Text>{head}</Text>
       </Box>
-      {meta ? <Text color={ok ? undefined : RISK}>{"  ⎿  "}{clip(meta, 92)}</Text> : null}
+      {meta ? <Text color={ok ? undefined : RISK} dimColor={ok}>{"  ⎿  "}{clip(meta, 92)}</Text> : null}
       {!ok ? <Text color={RISK}>{"  ↳  Open trace evidence for full output."}</Text> : null}
       {e.diff && e.diff.length > 0 ? <DiffView diff={e.diff} /> : null}
     </Box>

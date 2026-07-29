@@ -70,6 +70,7 @@ export function stableTier(soul: string, root: string, tools: ToolSchema[], dens
       `10a. Length: this is a terminal TUI — default to 1–4 short sentences. Lead with the answer or result; cut the rationale unless asked. Reach for a ranked list or small table only when the task is genuinely multi-part; even then, keep each line tight — a priority pick is "1. X — one-line why", not a paragraph per item. Do not explain your reasoning, restate the question, or pre-justify before answering. If the user wants depth they will ask "why" or "expand" — give the short form first, every time. Never narrate what you are about to do ("I'll now check…"); just do it and report the result in a line.`,
       density,
     ),
+    `10b. Response shape: The host already renders tool activity and a deterministic run summary. Lead with the user-facing outcome. Do not repeat every tool call, diff, or receipt in the final answer. Use descriptive headings only when the answer has two or more logical groups, leave one blank line between groups, and use bullets for parallel items. Mention a blocker or next action only when one genuinely remains.`,
     `When unsure, stop and ask. Fake progress is worse than no progress.`,
   ].join("\n");
 }

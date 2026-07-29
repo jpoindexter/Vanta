@@ -22,6 +22,7 @@ Updated 2026-07-29. This record separates executed behavior from static tests an
 | Track a multi-step TUI turn | Pass with provider-fixture boundary | The installed `vanta` launcher ran in a real tmux PTY against a deterministic local OpenAI-compatible provider. The provider received the `todo` schema, the terminal showed ordered ✓/■/□ rows at 1 done / 1 in progress / 1 open, then retained one duplicate-free 3-done checklist through the final response. The provider response was fixture data, so this proves the full TUI/tool path but not any model's independent decision to call `todo`. |
 | Answer a structured TUI question and continue approved work | Pass with provider-fixture boundary | The installed `vanta` launcher received the `ask_user` schema, paused the same live turn on a real Ink picker, rendered option preview and Other, accepted a keyboard selection, then showed one task-scoped approval. One Enter authorized two pre-existing disposable in-project file writes, both were re-read with the expected content, and the turn reached its final marker without a second prompt. The provider decisions were deterministic fixture data; one-way exclusions are deterministic tests rather than destructive live actions. |
 | See a dependable TUI completion summary | Pass with provider-fixture boundary | The project `run.sh` launcher ran a real provider tool turn in a tmux PTY. After the final assistant text, the TUI rendered a deterministic closeout immediately above the composer with action count, truthful `Verification: Not run`, and `Next: Ready for review`. Focused reducer tests separately execute changed-target and read/search classification. The provider content was fixture data; the summary itself was derived from Vanta's recorded tool receipts. |
+| Read a clean, organized TUI answer after a long run | Pass with provider-fixture boundary | The project `run.sh` launcher executed four provider-requested tool calls in a real tmux PTY, collapsed their successful receipts into one categorized `4 actions · 4 plan updates · Ctrl+T evidence` line, rendered two Markdown headings without literal `##` markers, then retained the deterministic closeout above the composer. The provider content was fixture data; the Ink renderer, tool execution, evidence grouping, Markdown hierarchy, and terminal ordering were real. |
 | Reload Vanta without losing the active task | Pass with provider-fixture boundary | A real tmux PTY completed one provider turn, invoked `/restart`, exited through the project relaunch loop, loaded the read-once session handoff, and sent a second turn. The provider received the first prompt and response after the new process launched and returned `CONTEXT_OK`; the TUI showed the resumed-session receipt. |
 | Cycle Vanta operating modes from the composer | Pass with provider-fixture boundary | The project `run.sh` launcher ran in a real tmux PTY. Actual Shift+Tab inputs moved the visible mode line through Manual → Accept edits → Plan → Auto; Auto then executed and verified a real `edit_file` without any approval input before returning to Manual. Focused safety tests prove kernel Block remains immovable and consequential/unsafe actions retain their gate. The provider tool call was deterministic fixture data. |
 
@@ -29,7 +30,7 @@ The use-case catalog currently records 6 executed and 6 passed scenarios across 
 
 ## Regression gates
 
-- TypeScript: 1,476 test files; 13,708 passed and 3 skipped.
+- TypeScript: 1,481 test files; 13,736 passed and 3 skipped.
 - Rust kernel: 70 passed.
 - TypeScript typecheck and architectural boundaries: passed.
 - Production desktop renderer build: passed.
@@ -38,6 +39,7 @@ The use-case catalog currently records 6 executed and 6 passed scenarios across 
 - TUI live-task proof: installed launcher, real tmux PTY, provider schema exposure, active/completed todo transitions, and final-grid retention passed.
 - TUI question/approval proof: installed launcher, real tmux PTY, ask_user picker, same-turn answer return, one task approval, and two verified writes passed.
 - TUI completion-summary proof: project launcher, real tmux PTY, provider tool call, final response ordering, and receipt-derived closeout passed.
+- TUI output-hierarchy proof: project launcher, real tmux PTY, four completed tool actions, compact categorized evidence, clean Markdown headings, and closeout ordering passed.
 - TUI restart-continuity proof: project launcher, real tmux PTY, completed turn, `/restart`, process relaunch, transcript reload, and prior-context provider assertion passed.
 - TUI operating-mode proof: project launcher, real tmux PTY, complete Manual/Accept edits/Plan/Auto cycle, zero-input Auto edit, verified file content, and return to Manual passed.
 - Desktop visual proof: 36 Ghost light/dark captures passed across three supported widths.
@@ -63,6 +65,7 @@ node scripts/usecase-eval.mjs --id research-cited-synthesis --run --timeout-ms 3
 cd vanta-ts && npm test
 cd vanta-ts && VANTA_COMMAND="$(command -v vanta)" npm run tui:tasks:proof
 cd vanta-ts && VANTA_COMMAND="$(command -v vanta)" npm run tui:questions:proof
+cd vanta-ts && npm run tui:output:proof
 cd vanta-ts && npm run tui:restart:proof
 cd vanta-ts && ./scripts/ghost-storm.sh
 cargo test

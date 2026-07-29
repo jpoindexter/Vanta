@@ -144,7 +144,7 @@ function BlockView(props: { block: Block }): ReactElement {
       {b.lines.map((l, j) => <CodeLine key={j} line={l} lang={b.lang} />)}
     </Box>
   );
-  if (b.type === "heading") return <Box marginTop={1}><Text bold>{"#".repeat(b.level)} <Inline tokens={tokenizeInline(b.text)} /></Text></Box>;
+  if (b.type === "heading") return <Box marginTop={1}><Text bold><Inline tokens={tokenizeInline(b.text)} /></Text></Box>;
   if (b.type === "bullet") return <Text>{"  • "}<Inline tokens={tokenizeInline(b.text)} /></Text>;
   if (b.type === "numbered") return <Text>{`  ${b.n}. `}<Inline tokens={tokenizeInline(b.text)} /></Text>;
   if (b.type === "table") return <TableView block={b} />;

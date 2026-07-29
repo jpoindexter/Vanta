@@ -13,3 +13,5 @@ Default TUI host responsibilities: fire session lifecycle hooks, prompt submit/e
 Completed turns must be saved through the existing session store. `/restart` supplies `initialSession` on the next process; initialize the conversation with that transcript, retain its provider/model scope, show a compact reload receipt, and reset only process-local display timing.
 
 Turn summaries retain every tool receipt but treat a failed action as recovered when a later successful tool has the same name and displayed target. Trace loop warnings require consecutive identical tool arguments; repeated reads or commands against different targets are normal progress.
+
+Output hierarchy keeps one-to-three completed tools visible. At four or more actions, collapse successful work into one categorized line and keep failed actions expanded; full raw output remains in Ctrl+T evidence. Markdown headings render as hierarchy without literal `#` prefixes, and `layout-rows.ts` must mirror any transcript-density change.
