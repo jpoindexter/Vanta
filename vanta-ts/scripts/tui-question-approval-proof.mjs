@@ -75,8 +75,7 @@ try {
     VANTA_PROMPT_SUGGESTIONS: "0",
   }, command, repo));
   await waitForPane("Ask Vanta anything");
-  await tmux("send-keys", "-t", session, "-l", "Ask me which implementation path to use, then update both proof files.");
-  await tmux("send-keys", "-t", session, "Enter");
+  await send("Ask me which implementation path to use, then update both proof files.");
 
   await waitForPane("Which path should Vanta use?");
   const question = await capture();
@@ -111,6 +110,12 @@ try {
 
 async function tmux(...args) {
   return exec("tmux", args, { maxBuffer: 2_000_000 });
+}
+
+async function send(text) {
+  await tmux("send-keys", "-t", session, "-l", text);
+  await new Promise((resolveWait) => setTimeout(resolveWait, 150));
+  await tmux("send-keys", "-t", session, "Enter");
 }
 
 async function capture() {

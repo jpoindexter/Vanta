@@ -18,7 +18,7 @@ import type { RunSetup } from "../session.js";
 import type { ReplState } from "../repl/types.js";
 import type { PendingQuestion } from "./ask-user-prompt.js";
 import { TaskApprovalScope, canContinueTask } from "./task-approval.js";
-import { resolveOperatingMode, permissionModeForOperating } from "../modes/operating-mode.js";
+import { resolveOperatingMode, permissionModeForOperating, type OperatingMode } from "../modes/operating-mode.js";
 import { PLAN_MARKER } from "../repl/plan-mode.js";
 import { saveSession } from "../sessions/store.js";
 import type { Message } from "../types.js";
@@ -91,6 +91,7 @@ type AgentDeps = {
   convoRef: MutableRefObject<Conversation | null>;
   replStateRef: MutableRefObject<ReplState>;
   gatesRef: MutableRefObject<GateState>;
+  operatingMode?: () => OperatingMode;
   initialHistory?: Message[];
   notifyTurnComplete?: typeof osNotify;
   windowFocused?: () => boolean | Promise<boolean>;
@@ -128,11 +129,11 @@ function convoConfig(deps: AgentDeps, scope?: TurnScope): Parameters<typeof crea
     maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(deps.setup.provider),
     getEffortLevel: () => deps.replStateRef.current.effortLevel ?? deps.setup.effortLevel,
-    permissionMode: () => permissionModeForOperating(resolveOperatingMode(process.env)),
+    permissionMode: () => permissionModeForOperating(deps.operatingMode?.() ?? resolveOperatingMode(process.env)),
     planGate: () => {
       const slashPlan = deps.convoRef.current?.messages[0]?.content.includes(PLAN_MARKER) === true
         && deps.replStateRef.current.planApproved !== true;
-      return resolveOperatingMode(process.env) === "plan" || slashPlan;
+      return (deps.operatingMode?.() ?? resolveOperatingMode(process.env)) === "plan" || slashPlan;
     },
     onThinking: (text) => liveDispatch(deps, { t: "thinking", text }, scope),
     onTextDelta: (d) => liveDispatch(deps, { t: "delta", d }, scope),

@@ -100,7 +100,14 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
   const [searchSessions, setSearchSessions] = useState<SearchableSession[]>([]);
   const [transcriptSelection, setTranscriptSelection] = useState<TranscriptSelection | null>(null);
   const [traceOpen, setTraceOpen] = useState(false);
-  const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, setPendingQuestion, taskApprovals, interruptRef, convoRef, replStateRef, gatesRef, initialHistory: props.initialSession?.messages });
+  const setPlanActive = useCallback((active: boolean): void => {
+    const messages = convoRef.current?.messages;
+    if (messages && setPlanInstruction(messages, active)) {
+      replStateRef.current.planApproved = false;
+    }
+  }, []);
+  const { mode, cycle, getMode } = useModeState(setPlanActive);
+  const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, setPendingQuestion, taskApprovals, interruptRef, convoRef, replStateRef, gatesRef, operatingMode: getMode, initialHistory: props.initialSession?.messages });
   const requestSetup = (request: SetupHandoff): void => {
     props.onSetupRequest?.(request);
     app.exit();
@@ -126,12 +133,6 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
     if (state.busy) detachBackgroundResponse();
     else runSlash("/bg");
   };
-  const setPlanActive = useCallback((active: boolean): void => {
-    const messages = convoRef.current?.messages;
-    if (messages && setPlanInstruction(messages, active)) {
-      replStateRef.current.planApproved = false;
-    }
-  }, []);
   const transcriptSelectionKey = (input: string, key: { shift?: boolean; ctrl?: boolean; leftArrow?: boolean; rightArrow?: boolean; upArrow?: boolean; downArrow?: boolean }): boolean => {
     const result = handleTranscriptSelectionKey(state.entries, transcriptSelection, input, key);
     if (result.kind === "none") return false;
@@ -156,7 +157,6 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
   useHookLifecycle(props.repoRoot, replStateRef.current.sessionId, props.setup);
   const { mcp, elapsed } = useSessionStatus(props.setup, replStateRef, dispatch);
   const agents = useSubagentProgress();
-  const { mode, cycle } = useModeState(setPlanActive);
   useQueueDrain(state.busy, state.queued, dispatch, send);
   const provider = props.setup.provider;
   const est = estimateTokens(convoRef.current?.messages ?? [], state.streaming);

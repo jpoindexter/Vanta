@@ -206,6 +206,32 @@ describe("applySafetyGate + permissions", () => {
     expect(prompted).toBe(false);
   });
 
+  it("host-owned Auto mode executes an ordinary file edit without either approval prompt", async () => {
+    let prompts = 0;
+    let executed = false;
+    const deps = makeDeps({ risk: "ask", onAsk: () => { prompts += 1; } });
+    deps.registry = {
+      get: () => ({
+        execute: async (_raw: unknown, toolCtx: ToolContext) => {
+          executed = await toolCtx.requestApproval("Edit file x", "modifying existing file content", "edit_file");
+          return { ok: executed, output: executed ? "edited" : "denied" };
+        },
+        describeForSafety: () => "edit file x",
+        schema: { name: "edit_file", description: "test", parameters: { type: "object", properties: {} } },
+      }),
+    } as unknown as AgentDeps["registry"];
+
+    const result = await dispatchTool(
+      { id: "auto-edit", name: "edit_file", arguments: { path: "x" } },
+      deps,
+      { root: home, safety: deps.safety, requestApproval: deps.requestApproval, permissionMode: () => "auto" },
+    );
+
+    expect(result.ok).toBe(true);
+    expect(executed).toBe(true);
+    expect(prompts).toBe(0);
+  });
+
   it("blocks writes before execution when the shared operating mode is Plan", async () => {
     process.env.VANTA_OPERATING_MODE = "plan";
     let executed = false;

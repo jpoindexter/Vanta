@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactElement } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactElement } from "react";
 import { Text } from "ink";
 import {
   envForOperatingMode,
@@ -16,19 +16,23 @@ export function cycleMode(mode: Mode, setMode: (m: Mode) => void): void {
 
 export function useModeState(
   setPlanActive: (active: boolean) => void,
-): { mode: Mode; cycle: () => void } {
+): { mode: Mode; cycle: () => void; getMode: () => Mode } {
   const [mode, setMode] = useState<Mode>(() => resolveOperatingMode(process.env));
+  const lastCycleAt = useRef(0);
   useEffect(() => {
-    Object.assign(process.env, envForOperatingMode(mode));
-    setPlanActive(mode === "plan");
-  }, [mode, setPlanActive]);
+    setPlanActive(resolveOperatingMode(process.env) === "plan");
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const cycle = (): void => {
+    const now = Date.now();
+    if (now - lastCycleAt.current < 75) return;
+    lastCycleAt.current = now;
     const next = nextOperatingMode(mode);
     Object.assign(process.env, envForOperatingMode(next));
     setPlanActive(next === "plan");
     setMode(next);
   };
-  return { mode, cycle };
+  const getMode = useCallback((): Mode => resolveOperatingMode(process.env), []);
+  return { mode, cycle, getMode };
 }
 
 export function ModeLine(props: { mode: Mode }): ReactElement {

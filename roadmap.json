@@ -11119,15 +11119,15 @@
       "title": "Shared operating-mode cycle — Manual / Accept edits / Plan / Auto",
       "status": "shipped",
       "size": "M",
-      "summary": "Shift+Tab cycles Manual → Accept edits → Plan → Auto → Manual from the focused composer. The same project modes are available in Desktop and through the CLI flag. Accept edits is limited to bounded file tools after kernel assessment; Plan is read-only; Auto uses the current safe-action classifier and leaves uncertain actions as human approval prompts.",
-      "done": "The mode line stays visible below the composer; real Shift+Tab input cycles all four modes even when prompt suggestions are present; Plan blocks writes before execution; Auto never blanket-approves a pending prompt; Desktop persists and enforces Manual, Accept edits, Plan, Auto, and Full access; CLI accepts plan; focused tests, production renderer build, and a real tmux PTY proof pass.",
+      "summary": "Shift+Tab cycles Manual → Accept edits → Plan → Auto → Manual from the focused composer. The same project modes are available in Desktop and through the CLI flag. Accept edits is limited to bounded file tools after kernel assessment; Plan is read-only; Auto includes those routine file edits plus the safe-action classifier while consequential or unsafe actions still prompt/block.",
+      "done": "The mode line stays visible below the composer; real Shift+Tab input cycles all four modes without duplicate terminal events skipping a state; Plan blocks writes before execution; Auto executes ordinary file edits without a permission prompt while kernel Block remains immovable; Desktop persists and enforces Manual, Accept edits, Plan, Auto, and Full access; CLI accepts plan; focused tests and a real tmux PTY edit proof pass.",
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.6-terra",
       "lens": "tui",
-      "updated": "2026-07-28",
-      "notes": "Expanded and safety-corrected 2026-07-28 from the operator's Claude mode screenshots. Removed the renderer-level blanket auto-approval path: only classifier-safe Auto actions continue without prompting. Added a shared operating-mode model, TUI/CLI/Desktop enforcement, persistent Desktop choices, visible Manual state, and a real PTY proof that executes four Shift+Tab transitions."
+      "updated": "2026-07-29",
+      "notes": "Expanded and safety-corrected 2026-07-28 from the operator's Claude mode screenshots. Removed the renderer-level blanket auto-approval path and added a shared operating-mode model, TUI/CLI/Desktop enforcement, persistent Desktop choices, visible Manual state, and a real PTY cycle proof. Fixed 2026-07-29 after operator evidence showed the Auto badge still produced a file-edit permission request: Auto had reused the legacy read-only classifier, its internal edit confirmation was not cleared, and duplicate terminal Shift+Tab delivery could skip the stable authority state. Auto now inherits the bounded file-tool approval set after kernel assessment, the TUI passes live mode authority into the conversation, duplicate mode-cycle events are debounced, and the real PTY proof executes and verifies edit_file with zero approval input before returning to Manual."
     },
     {
       "id": "TUI-LOOPS-DASHBOARD",
