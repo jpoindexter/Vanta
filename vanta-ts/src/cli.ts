@@ -8,6 +8,7 @@ import { COMMANDS } from "./cli/commands-table.js";
 import { activateProfileEnvironment } from "./profiles/store.js";
 import { activateVaultEnvironment } from "./secrets/vault-manager.js";
 import { defaultExec } from "./secrets/provider.js";
+import { startRunPrewarm } from "./session/prewarm.js";
 
 async function initializeStoreAndProfile(): Promise<void> {
   const baseHome = await ensureVantaStore();
@@ -27,6 +28,12 @@ async function main(): Promise<void> {
   // VANTA-DUMP-SYS-PROMPT: print the assembled prompt and exit before any
   // command dispatch (the short-circuit lives in startInteractive).
   if (dumpPrompt) return startInteractive(repoRoot, { dumpPrompt });
+
+  if (cmd === undefined || cmd === "chat" || cmd === "--resume" || cmd === "resume"
+    || cmd === "run" || cmd === "desktop" || cmd === "companion"
+    || cmd === "api" || cmd === "gateway") {
+    startRunPrewarm(repoRoot);
+  }
 
   // Interactive entry points parse flags, so they stay explicit. They must exit
   // explicitly when the REPL ends — same hang class as `run` below: mounted MCP stdio

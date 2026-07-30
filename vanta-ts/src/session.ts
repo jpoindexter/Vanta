@@ -14,7 +14,6 @@ import type { LLMProvider } from "./providers/interface.js";
 import { resolveEffortLevel } from "./effort.js";
 import type { Summarizer } from "./context.js";
 import { resolveAuxProvider } from "./routing/aux-map.js";
-import { preconnectStartup } from "./net/preconnect.js";
 import { buildFallbackChain } from "./providers/fallback.js";
 import { wrapCredentialPool } from "./credentials/resolve.js";
 import type { EffortLevel, Goal } from "./types.js";
@@ -24,6 +23,7 @@ import {
 } from "./session/prepare-helpers.js";
 import { type TrustConfirmer } from "./settings/trust-gate.js";
 import { bootstrapKernel } from "./session/bootstrap-kernel.js";
+import { consumePrewarmedKernel } from "./session/prewarm.js";
 import { applyLocalRuntimeLimits, resolveSessionSystemPrompt, resolveSessionToolInclude } from "./session/local-runtime-policy.js";
 import { resolveOperatingMode } from "./modes/operating-mode.js";
 import { PLAN_INSTRUCTION } from "./repl/plan-mode.js";
@@ -67,7 +67,7 @@ export async function prepareRun(
   skillBody?: string,
   opts: PrepareRunOpts = {},
 ): Promise<RunSetup> {
-  const safety = await bootstrapKernel(repoRoot);
+  const safety = await consumePrewarmedKernel(repoRoot, { bootstrap: bootstrapKernel });
   // SETTINGS-BLOCKEDTOOLS-ENFORCE: load settings BEFORE buildRegistry so a tool
   // in settings.blockedTools is excluded from the live session registry. The
   // same settings object is reused by loadRuntimeExtensions (no second load).
@@ -78,10 +78,6 @@ export async function prepareRun(
   const mcpTrust = { root: repoRoot, confirm: opts.confirmTrust };
   const { pluginCommands, pluginPanels, pluginWorkers, mcpSkills } = await loadRuntimeExtensions(repoRoot, registry, mcpTrust, settings);
   const effortLevel = resolveEffortLevel(process.env.VANTA_EFFORT_LEVEL ?? settings.effortLevel);
-  // VANTA-API-PRECONNECT: opt-in (VANTA_PRECONNECT) best-effort TCP+TLS pre-warm
-  // to the provider's API host so the first request skips the handshake. Fire-
-  // and-forget — never awaited, swallows its own failure, cannot affect startup.
-  void preconnectStartup(process.env);
   const goals = await safety.getGoals().catch(() => []);
   const activeIds = goals.filter((g) => g.status === "active").map((g) => g.id);
 
