@@ -88,6 +88,14 @@ describe("loadRuntimeSettings → blockedTools registry exclusion", () => {
     expect(registry.get("tool_search")).toBeDefined();
   });
 
+  it("loads bundled skill metadata on a fresh profile without copying the library on the startup path", async () => {
+    const context = await loadPromptContext(root, []);
+    expect(context.skills.map((skill) => skill.name)).toContain("context-doctor");
+    await expect(import("node:fs/promises").then(({ readFile }) =>
+      readFile(join(home, "skills", "context-doctor", "SKILL.md"), "utf8")
+    )).rejects.toThrow();
+  });
+
   it("loads accepted operator beliefs into the real session prompt context", async () => {
     const store = { version: 1 as const, beliefs: [] };
     const now = new Date("2026-07-10T15:00:00.000Z");

@@ -13,6 +13,7 @@
     "vanta": "NODE_ENV=production node --import tsx src/cli.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "startup:compile": "node scripts/ensure-startup-compile.mjs",
     "tui:tasks:proof": "node scripts/tui-live-task-checklist-proof.mjs",
     "tui:questions:proof": "node scripts/tui-question-approval-proof.mjs",
     "tui:summary:proof": "node scripts/tui-turn-summary-proof.mjs",

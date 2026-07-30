@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
-import { join, relative } from "node:path";
+import { createHash } from "node:crypto";
+import { join, relative, resolve } from "node:path";
 import type { Goal } from "./types.js";
 import type { OutputDensity } from "./nd/types.js";
 import type { ToolSchema } from "./providers/interface.js";
@@ -8,6 +9,8 @@ import { scopeToolSchemas, toolScopeSummary } from "./agent/tool-scope.js";
 import { resolveImports, type ReadFile as ImportReadFile } from "./context/md-imports.js";
 import { cyberRiskSection } from "./prompt/cyber-risk.js";
 import { CONTEXT_DOCUMENTS } from "./context/router-health.js";
+import { resolveVantaHome } from "./store/home.js";
+import { readMetadataCache, writeMetadataCache } from "./cache/metadata.js";
 
 /** The length-cap phrase rule 10a opens with at `balanced` (DEFAULT) density. */
 const BALANCED_LENGTH_CAP = "default to 1–4 short sentences";
@@ -78,25 +81,58 @@ export function stableTier(soul: string, root: string, tools: ToolSchema[], dens
 /** readFile adapter for the @-import resolver: null on missing/unreadable. */
 const importReader: ImportReadFile = (path) => readIfExists(path);
 
+type ContextEvent = { kind: "loaded" | "missing" | "cycle"; path: string; source: string };
+type PromptContextCache = { output: string; events: ContextEvent[] };
+
+export function promptContextCachePath(
+  root: string,
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  const key = createHash("sha256").update(resolve(root)).digest("hex").slice(0, 24);
+  return join(resolveVantaHome(env), "cache", "prompt-context", `${key}.json`);
+}
+
 export async function contextTier(
   root: string,
-  observer?: (event: { kind: "loaded" | "missing" | "cycle"; path: string; source: string }) => void | Promise<void>,
+  observer?: (event: ContextEvent) => void | Promise<void>,
 ): Promise<string> {
+  const cachePath = promptContextCachePath(root);
+  const cached = await readMetadataCache<PromptContextCache>(cachePath, 1);
+  if (cached && typeof cached.output === "string" && Array.isArray(cached.events)) {
+    for (const event of cached.events) await observer?.(event);
+    return cached.output;
+  }
+
   const blocks: string[] = [];
+  const sourcePaths = CONTEXT_DOCUMENTS.map((name) => join(root, name));
+  const events: ContextEvent[] = [];
   for (const name of CONTEXT_DOCUMENTS) {
     const raw = await readIfExists(join(root, name));
     if (!raw) continue;
-    await observer?.({ kind: "loaded", path: name, source: "prompt" });
+    const promptEvent: ContextEvent = { kind: "loaded", path: name, source: "prompt" };
+    events.push(promptEvent);
+    await observer?.(promptEvent);
     // VANTA-MD-IMPORTS: inline any `@<path>` imports the context file declares
     // (relative paths resolve against the repo root; recursion capped at 4 hops;
     // cycles + missing files skip the token). No @import → unchanged content.
     const content = await resolveImports(raw, importReader, {
       baseDir: root,
-      onResolve: (event) => observer?.({ ...event, path: relative(root, event.path), source: "import" }),
+      onResolve: async (event) => {
+        sourcePaths.push(event.path);
+        const contextEvent: ContextEvent = {
+          ...event,
+          path: relative(root, event.path),
+          source: "import",
+        };
+        events.push(contextEvent);
+        await observer?.(contextEvent);
+      },
     });
     blocks.push(`# ${name}\n${content.trim()}`);
   }
-  return blocks.length ? `Project context:\n\n${blocks.join("\n\n")}` : "";
+  const output = blocks.length ? `Project context:\n\n${blocks.join("\n\n")}` : "";
+  await writeMetadataCache(cachePath, 1, { output, events }, sourcePaths).catch(() => {});
+  return output;
 }
 
 /** Vanta's brain digest — the durable self it reads each session (uses the `brain` tool to read/write more). */

@@ -6,6 +6,7 @@ node_modules
 *.tsbuildinfo
 vanta-ts/packages/sdk/dist/
 vanta-ts/.artifacts/
+vanta-ts/.startup-cache/
 
 # Env / secrets
 .env

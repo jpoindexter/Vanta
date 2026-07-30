@@ -2,7 +2,13 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { installSkillLibrary, libraryDir, librarySources } from "./library.js";
+import {
+  bundledSkillCachePath,
+  installSkillLibrary,
+  libraryDir,
+  librarySources,
+  listBundledSkills,
+} from "./library.js";
 import { listSkills } from "./store.js";
 
 const SKILL = (name: string) =>
@@ -97,5 +103,22 @@ describe("installSkillLibrary", () => {
     expect(srcs.some((s) => s.endsWith("design-system-skills"))).toBe(true);
     expect(srcs.some((s) => s.endsWith("ai-engineering-skills"))).toBe(true);
     expect(srcs.some((s) => s.endsWith("executive-function-skills"))).toBe(false);
+  });
+
+  it("reads a metadata-cached bundled index without copying skills into the user store", async () => {
+    const first = await listBundledSkills({ env: process.env, sources: [source] });
+    expect(first.map((skill) => skill.meta.name).sort()).toEqual(["alpha-skill", "beta-skill"]);
+    expect(JSON.parse(await readFile(bundledSkillCachePath(process.env, [source]), "utf8")).version).toBe(1);
+    await expect(readFile(join(home, "skills", "alpha-skill", "SKILL.md"), "utf8")).rejects.toThrow();
+
+    await writeFile(join(source, "alpha-skill", "SKILL.md"), SKILL("alpha-skill-changed"));
+    const changed = await listBundledSkills({ env: process.env, sources: [source] });
+    expect(changed.map((skill) => skill.meta.name)).toContain("alpha-skill-changed");
+  });
+
+  it("recovers bundled discovery from a corrupt persisted index", async () => {
+    await listBundledSkills({ env: process.env, sources: [source] });
+    await writeFile(bundledSkillCachePath(process.env, [source]), "{broken", "utf8");
+    expect((await listBundledSkills({ env: process.env, sources: [source] })).length).toBe(2);
   });
 });

@@ -77,13 +77,18 @@ export async function loadPromptContext(repoRoot: string, activeGoalIds: number[
 
 /** Install the bundled skill library + read the skill index (name + description). */
 async function loadSkillIndex(): Promise<{ name: string; description: string }[]> {
-  const { installSkillLibrary } = await import("../skills/library.js");
-  await installSkillLibrary({ env: process.env }).catch(() => {});
+  const { listBundledSkills } = await import("../skills/library.js");
   // SKILL-TRIGGERS: (re)register declared triggers into ~/.vanta/hooks.json (user
   // scope, idempotent). Best-effort — never blocks session start.
   const { syncSkillTriggers } = await import("../skills/triggers-sync.js");
   await syncSkillTriggers({ env: process.env }).catch(() => {});
-  return (await listSkills(process.env).catch(() => [])).map((s) => ({
+  const [bundled, user] = await Promise.all([
+    listBundledSkills({ env: process.env }).catch(() => []),
+    listSkills(process.env).catch(() => []),
+  ]);
+  const byName = new Map(bundled.map((skill) => [skill.meta.name.toLowerCase(), skill]));
+  for (const skill of user) byName.set(skill.meta.name.toLowerCase(), skill);
+  return [...byName.values()].sort((a, b) => a.meta.name.localeCompare(b.meta.name)).map((s) => ({
     name: s.meta.name,
     description: s.meta.description,
   }));
