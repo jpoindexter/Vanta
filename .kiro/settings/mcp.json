@@ -5,7 +5,9 @@
       "command": "codegraph",
       "args": [
         "serve",
-        "--mcp"
+        "--mcp",
+        "--path",
+        "vanta-ts"
       ]
     }
   }
