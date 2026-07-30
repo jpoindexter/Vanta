@@ -1,0 +1,78 @@
+/*
+ * Vanta docs alignment layer.
+ * Copy into the full website checkout's Docusaurus custom.css after its base theme.
+ * North star: https://vanta.theft.studio/ (audited 2026-07-22).
+ */
+
+:root {
+  --ifm-font-family-base: "Switzer", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ifm-heading-font-family: "Sentient", "Iowan Old Style", "Palatino Linotype", serif;
+  --ifm-global-radius: 0.25rem;
+  --ifm-button-border-radius: 0.25rem;
+  --ifm-card-border-radius: 0.5rem;
+  --vanta-radius-control: 0.25rem;
+  --vanta-radius-container: 0.5rem;
+  --vanta-line: rgb(244 239 227 / 18%);
+  --vanta-field: rgb(244 239 227 / 5%);
+}
+
+/* Marketing-site default: text actions and thin rules before filled controls. */
+.button,
+.pagination-nav__link,
+.alert,
+.theme-code-block {
+  border-radius: var(--vanta-radius-control);
+  box-shadow: none;
+}
+
+/* Remove Docusaurus pill language from navigation and hierarchy. */
+.menu__link,
+.menu__link--active,
+.breadcrumbs__link,
+.breadcrumbs__item--active .breadcrumbs__link {
+  border-radius: 0;
+}
+
+.menu__link--active:not(.menu__link--sublist) {
+  border-left: 2px solid var(--ifm-color-primary);
+  background: transparent;
+  padding-left: calc(var(--ifm-menu-link-padding-horizontal) - 2px);
+}
+
+.breadcrumbs__link {
+  padding: 0;
+  background: transparent;
+}
+
+/* Containers get one restrained radius tier, never a soft card stack. */
+.card,
+.theme-doc-markdown table {
+  border-color: var(--vanta-line);
+  border-radius: var(--vanta-radius-container);
+  box-shadow: none;
+}
+
+.theme-doc-markdown table {
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+}
+
+/* The rounded search field is a shared marketing-site exception. */
+.navbar__search-input {
+  border-radius: 999px;
+}
+
+/* Keep interaction state functional without turning whole controls violet. */
+.menu__link:hover,
+.table-of-contents__link:hover,
+.pagination-nav__link:hover {
+  color: var(--ifm-color-primary);
+}
+
+.menu__link:focus-visible,
+.breadcrumbs__link:focus-visible,
+.pagination-nav__link:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 3px;
+}

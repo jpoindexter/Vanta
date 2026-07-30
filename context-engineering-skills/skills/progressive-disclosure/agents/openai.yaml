@@ -1,0 +1,4 @@
+interface:
+  display_name: "Progressive Disclosure"
+  short_description: "Split oversized context into on-demand layers."
+  default_prompt: "Refactor this oversized instruction or skill into a thin entry point and on-demand references without losing required constraints."

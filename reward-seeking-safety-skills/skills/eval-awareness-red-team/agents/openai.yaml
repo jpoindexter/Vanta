@@ -1,0 +1,4 @@
+interface:
+  display_name: "Eval Awareness Red Team"
+  short_description: "Find metagaming and test-recognition confounds"
+  default_prompt: "Use $eval-awareness-red-team to test whether this evaluation is recognizable, gameable, or prompt-channel dependent."

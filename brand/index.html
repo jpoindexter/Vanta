@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>Vanta Brand Book</title>
+    <style>
+      :root {
+        --black: #050507;
+        --bone: #f4efe3;
+        --violet: #7c3aed;
+        --muted: color-mix(in srgb, var(--bone) 64%, transparent);
+        --rule: color-mix(in srgb, var(--bone) 18%, transparent);
+        --field: color-mix(in srgb, var(--bone) 5%, transparent);
+        --font-display: "Sentient", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+        --font-interface: "Switzer", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-system: SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace;
+        --radius-control: 4px;
+        --radius-card: 8px;
+        --radius-search: 999px;
+        --measure: 74ch;
+      }
+
+      * { box-sizing: border-box; }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        margin: 0;
+        color: var(--bone);
+        background: var(--black);
+        font-family: var(--font-interface);
+        font-size: 16px;
+        line-height: 1.6;
+      }
+
+      a { color: inherit; text-decoration-color: var(--violet); text-underline-offset: 0.2em; }
+      a:hover { color: var(--bone); text-decoration-thickness: 2px; }
+      a:focus-visible, summary:focus-visible { outline: 2px solid var(--violet); outline-offset: 4px; }
+
+      .skip-link {
+        position: fixed;
+        top: 0.75rem;
+        left: 0.75rem;
+        z-index: 10;
+        padding: 0.5rem 0.75rem;
+        color: var(--black);
+        background: var(--bone);
+        transform: translateY(-200%);
+      }
+
+      .skip-link:focus { transform: translateY(0); }
+
+      .masthead {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 2rem;
+        align-items: start;
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 1.5rem clamp(1rem, 4vw, 4rem);
+        border-bottom: 1px solid var(--rule);
+      }
+
+      .wordmark {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(1.55rem, 2.5vw, 2.25rem);
+        letter-spacing: 0.08em;
+        line-height: 1;
+      }
+
+      .brand-lockup { display: flex; align-items: center; gap: 0.7rem; }
+      .operator-mark { width: 1.45rem; height: 1.45rem; flex: 0 0 auto; }
+
+      .operator {
+        margin: 0.55rem 0 0;
+        color: var(--muted);
+        font-family: var(--font-system);
+        font-size: 0.7rem;
+        letter-spacing: 0.09em;
+      }
+
+      .masthead__meta { text-align: right; }
+      .masthead__meta p { margin: 0; color: var(--muted); font-family: var(--font-system); font-size: 0.7rem; letter-spacing: 0.08em; }
+
+      .shell {
+        display: grid;
+        grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+
+      .rail {
+        position: sticky;
+        top: 0;
+        align-self: start;
+        height: 100vh;
+        padding: 2rem clamp(1rem, 3vw, 3rem);
+        border-right: 1px solid var(--rule);
+        overflow: auto;
+      }
+
+      .rail__label, .eyebrow {
+        margin: 0 0 0.85rem;
+        color: var(--violet);
+        font-family: var(--font-system);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+      }
+
+      .toc { margin: 0; padding: 0; list-style: none; }
+      .toc li { margin: 0.45rem 0; }
+      .toc a { display: block; color: var(--muted); font-size: 0.88rem; text-decoration: none; }
+      .toc a:hover, .toc a[aria-current="true"] { color: var(--bone); }
+      .toc a[aria-current="true"]::before { content: ">_ "; color: var(--violet); font-family: var(--font-system); }
+
+      .rail__footer {
+        margin-top: 2.5rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--rule);
+      }
+
+      .rail__footer a { display: inline-block; color: var(--bone); font-size: 0.8rem; }
+
+      main { min-width: 0; }
+
+      .hero {
+        min-height: min(58vh, 42rem);
+        display: grid;
+        align-content: end;
+        padding: clamp(2.5rem, 9vw, 8rem) clamp(1rem, 8vw, 9rem) clamp(2.5rem, 7vw, 6rem);
+        border-bottom: 1px solid var(--rule);
+        background:
+          linear-gradient(90deg, transparent 0 83%, color-mix(in srgb, var(--violet) 60%, transparent) 83% 83.15%, transparent 83.15%),
+          radial-gradient(ellipse 50% 70% at 93% 90%, color-mix(in srgb, var(--bone) 12%, transparent), transparent 70%);
+      }
+
+      .hero__index { max-width: var(--measure); color: var(--muted); font-family: var(--font-system); font-size: 0.72rem; letter-spacing: 0.12em; }
+      .hero h1 { max-width: 13ch; margin: 1rem 0 1.25rem; font-family: var(--font-display); font-size: clamp(3rem, 8vw, 8rem); font-weight: 500; letter-spacing: -0.05em; line-height: 0.88; }
+      .hero__lede { max-width: 48rem; margin: 0; color: color-mix(in srgb, var(--bone) 83%, transparent); font-size: clamp(1rem, 1.3vw, 1.2rem); }
+      .hero__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 2rem; }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 0.55rem 0.85rem;
+        border: 1px solid var(--rule);
+        color: var(--bone);
+        font-size: 0.85rem;
+        text-decoration: none;
+        border-radius: var(--radius-control);
+      }
+
+      .button--primary { border-color: var(--violet); background: var(--violet); color: var(--bone); }
+      .button--primary:hover { background: color-mix(in srgb, var(--violet) 85%, var(--black)); }
+
+      .visuals {
+        display: grid;
+        gap: 1px;
+        border-bottom: 1px solid var(--rule);
+        background: var(--rule);
+      }
+
+      .visuals > * { background: var(--black); }
+
+      .visuals__intro {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(14rem, 0.55fr);
+        gap: 2rem;
+        padding: clamp(2rem, 6vw, 5rem) clamp(1rem, 8vw, 9rem);
+      }
+
+      .visuals h2 { max-width: 13ch; margin: 0; font-family: var(--font-display); font-size: clamp(2.4rem, 5vw, 5rem); font-weight: 500; letter-spacing: -0.05em; line-height: 0.92; }
+      .visuals__intro p:last-child { max-width: 30rem; margin: 0; color: var(--muted); }
+
+      .visual-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: 1px; background: var(--rule); }
+      .visual-tile { min-width: 0; padding: clamp(1rem, 3vw, 2.5rem); background: var(--black); }
+      .visual-tile--image { padding: 0; }
+      .visual-tile figure { margin: 0; }
+      .visual-tile img { display: block; width: 100%; height: 100%; min-height: 26rem; object-fit: cover; }
+      .visual-tile figcaption { padding: 0.75rem 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-family: var(--font-system); font-size: 0.68rem; letter-spacing: 0.07em; }
+
+      .swatches { display: grid; gap: 0.75rem; margin: 1.25rem 0 0; padding: 0; list-style: none; }
+      .swatch { display: grid; grid-template-columns: 4rem 1fr auto; gap: 0.75rem; align-items: center; padding: 0.5rem; border: 1px solid var(--rule); }
+      .swatch__chip { width: 4rem; height: 4rem; border: 1px solid color-mix(in srgb, var(--bone) 25%, transparent); }
+      .swatch__name { color: var(--bone); font-size: 0.86rem; font-weight: 650; }
+      .swatch__role, .swatch__value { margin: 0; color: var(--muted); font-family: var(--font-system); font-size: 0.68rem; letter-spacing: 0.06em; }
+
+      .type-specimen { padding-top: 0.5rem; }
+      .type-specimen p { margin: 0; }
+      .type-specimen__display { font-family: var(--font-display); font-size: clamp(2.5rem, 5.2vw, 5.75rem); line-height: 0.86; letter-spacing: -0.055em; }
+      .type-specimen__interface { margin-top: 1.5rem !important; font-size: 1.08rem; }
+      .type-specimen__mono { margin-top: 1.2rem !important; color: var(--violet); font-family: var(--font-system); font-size: 0.72rem; letter-spacing: 0.08em; }
+
+      .app-specimen { position: relative; overflow: hidden; min-height: 27rem; padding: 1rem; border: 1px solid var(--rule); border-radius: var(--radius-card); background: #09090c; }
+      .app-specimen__bar { display: flex; justify-content: space-between; gap: 0.75rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--rule); color: var(--muted); font-family: var(--font-system); font-size: 0.65rem; letter-spacing: 0.07em; }
+      .app-specimen__body { display: grid; grid-template-columns: 6.25rem 1fr; min-height: 21rem; }
+      .app-specimen__nav { padding: 1.25rem 0.8rem 0 0; border-right: 1px solid var(--rule); color: var(--muted); font-family: var(--font-system); font-size: 0.65rem; line-height: 2.7; letter-spacing: 0.07em; }
+      .app-specimen__nav span { display: block; }
+      .app-specimen__nav .is-active { color: var(--bone); }
+      .app-specimen__nav .is-active::before { content: ">_ "; color: var(--violet); }
+      .app-specimen__task { padding: 1.9rem clamp(1rem, 3vw, 2.25rem); }
+      .app-specimen__task h3 { margin: 0; font-family: var(--font-display); font-size: clamp(1.6rem, 3vw, 2.7rem); font-weight: 500; letter-spacing: -0.04em; line-height: 1; }
+      .app-specimen__task p { max-width: 27rem; margin: 0.75rem 0 1.8rem; color: var(--muted); font-size: 0.88rem; }
+      .app-specimen__receipt { padding: 0.8rem; border: 1px solid var(--rule); border-radius: var(--radius-control); font-family: var(--font-system); font-size: 0.68rem; letter-spacing: 0.06em; }
+      .app-specimen__receipt strong { color: var(--bone); }
+      .app-specimen__state { display: inline-flex; margin-top: 1rem; padding: 0.35rem 0.5rem; border-left: 2px solid var(--violet); color: var(--bone); font-family: var(--font-system); font-size: 0.65rem; letter-spacing: 0.07em; }
+
+      .reader { max-width: calc(var(--measure) + 12rem); padding: clamp(2rem, 7vw, 6rem) clamp(1rem, 8vw, 9rem) 8rem; }
+      .reader > * { max-width: var(--measure); }
+      .reader section { scroll-margin-top: 2rem; }
+      .reader section + section { margin-top: clamp(4rem, 10vw, 8rem); }
+
+      .reader h1, .reader h2, .reader h3 {
+        color: var(--bone);
+        font-family: var(--font-display);
+        font-weight: 500;
+        letter-spacing: -0.025em;
+        line-height: 1.05;
+      }
+
+      .reader h1 { margin: 0 0 1.25rem; font-size: clamp(2.4rem, 5vw, 4.75rem); }
+      .reader h2 { margin: 0 0 1.5rem; font-size: clamp(1.9rem, 3.3vw, 3.1rem); }
+      .reader h3 { margin: 2.5rem 0 0.7rem; font-family: var(--font-interface); font-size: 1.1rem; font-weight: 650; letter-spacing: 0; }
+      .reader p, .reader li { color: color-mix(in srgb, var(--bone) 84%, transparent); }
+      .reader p { margin: 1rem 0; }
+      .reader ul, .reader ol { padding-left: 1.25rem; }
+      .reader li + li { margin-top: 0.45rem; }
+      .reader strong { color: var(--bone); }
+
+      .reader blockquote {
+        margin: 2rem 0;
+        padding: 0.6rem 0 0.6rem 1.15rem;
+        border-left: 2px solid var(--violet);
+        color: var(--bone);
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+      }
+
+      .reader code { padding: 0.12rem 0.25rem; border-radius: var(--radius-control); background: var(--field); color: var(--bone); font-family: var(--font-system); font-size: 0.86em; }
+      .reader pre { overflow: auto; margin: 1.5rem 0; padding: 1.25rem; border: 1px solid var(--rule); border-radius: var(--radius-control); background: #0c0c0f; }
+      .reader pre code { padding: 0; background: transparent; font-size: 0.8rem; line-height: 1.6; }
+
+      .reader table { width: 100%; margin: 1.75rem 0; border-collapse: separate; border-spacing: 0; border: 1px solid var(--rule); border-radius: var(--radius-control); overflow: hidden; font-size: 0.92rem; }
+      .reader th, .reader td { padding: 0.75rem; border: 0; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top; }
+      .reader tr > :last-child { border-right: 0; }
+      .reader tbody tr:last-child > * { border-bottom: 0; }
+      .reader th { color: var(--bone); font-size: 0.78rem; letter-spacing: 0.04em; }
+      .reader td { color: color-mix(in srgb, var(--bone) 83%, transparent); }
+
+      .reader hr { width: 100%; margin: 4rem 0; border: 0; border-top: 1px solid var(--rule); }
+      .reader details { margin: 1.25rem 0; padding: 0.85rem 1rem; border: 1px solid var(--rule); border-radius: var(--radius-control); }
+      .reader summary { cursor: pointer; color: var(--bone); font-weight: 650; }
+      .reader .error { padding: 1.25rem; border-left: 2px solid var(--violet); color: var(--bone); background: var(--field); }
+
+      @media (max-width: 850px) {
+        .masthead { grid-template-columns: 1fr; }
+        .masthead__meta { text-align: left; }
+        .shell { display: block; }
+        .rail { position: static; height: auto; padding: 1rem; border-right: 0; border-bottom: 1px solid var(--rule); }
+        .rail__label, .rail__footer { display: none; }
+        .toc { display: flex; gap: 0.25rem 1rem; overflow-x: auto; white-space: nowrap; }
+        .toc li { margin: 0; }
+        .toc a { padding: 0.35rem 0; }
+        .hero { min-height: 30rem; }
+        .visuals__intro, .visual-grid { grid-template-columns: 1fr; }
+        .visual-tile img { min-height: 20rem; }
+        .reader { padding-bottom: 5rem; }
+        .reader table { display: block; overflow-x: auto; white-space: normal; }
+      }
+
+      @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#reader">Skip to the brand book</a>
+      <header class="masthead">
+        <div>
+        <div class="brand-lockup">
+          <img class="operator-mark" src="assets/marks/operator-signal-violet.svg" alt="">
+          <p class="wordmark">VANTA</p>
+        </div>
+        <p class="operator">LOCAL AI OPERATOR / BRAND SYSTEM</p>
+      </div>
+      <div class="masthead__meta">
+        <p>VERSION: 1.1.0-DRAFT</p>
+        <p>STATUS: LIVING DOCUMENT</p>
+      </div>
+    </header>
+
+    <div class="shell">
+      <aside class="rail" aria-label="Brand book navigation">
+        <p class="rail__label">CONTENTS</p>
+        <nav><ol class="toc" id="toc"></ol></nav>
+        <div class="rail__footer"><a href="BRAND-BOOK.md">Open the editable Markdown source</a></div>
+      </aside>
+
+      <main id="reader">
+        <section class="hero" aria-labelledby="page-title">
+          <p class="hero__index">OBSERVE / INTERFACE / EXECUTE</p>
+          <h1 id="page-title">The Vanta brand, in use.</h1>
+          <p class="hero__lede">A living operating system for how Vanta appears, speaks, moves, and feels across product, web, clothing, print, spaces, and the small moments in between.</p>
+          <div class="hero__actions">
+            <a class="button button--primary" href="BRAND-BOOK.md">Edit the source document</a>
+            <a class="button" href="#book">Read the brand book</a>
+          </div>
+        </section>
+        <section class="visuals" aria-labelledby="visual-language-title">
+          <div class="visuals__intro">
+            <div>
+              <p class="eyebrow">VISUAL LANGUAGE / LIVE REFERENCES</p>
+              <h2 id="visual-language-title">The signal has a material form.</h2>
+            </div>
+            <p>These are working reference applications, not decorative mood boards: the raven gives the system a watchful center; color carries state; product and physical objects make the same promise tangible.</p>
+          </div>
+          <div class="visual-grid">
+            <div class="visual-tile visual-tile--image">
+              <figure>
+                <img src="assets/images/raven-operator-hero-v1.png" alt="An engraved raven in profile on a black field with a single violet eye.">
+                <figcaption>IMAGE LANGUAGE / TRUE RAVEN ANATOMY / ENGRAVED, STILL, ONE VIOLET SIGNAL</figcaption>
+              </figure>
+            </div>
+            <div class="visual-tile">
+              <p class="eyebrow">COLOR / NO DRIFT</p>
+              <h3>Three colors. Each has a job.</h3>
+              <ul class="swatches" aria-label="Vanta color palette">
+                <li class="swatch">
+                  <span class="swatch__chip" style="background:#050507" aria-hidden="true"></span>
+                  <span><span class="swatch__name">Vanta Black</span><span class="swatch__role">canvas / surface / dark text</span></span>
+                  <span class="swatch__value">#050507</span>
+                </li>
+                <li class="swatch">
+                  <span class="swatch__chip" style="background:#f4efe3" aria-hidden="true"></span>
+                  <span><span class="swatch__name">Bone White / Ink</span><span class="swatch__role">text / light field / paper</span></span>
+                  <span class="swatch__value">#F4EFE3</span>
+                </li>
+                <li class="swatch">
+                  <span class="swatch__chip" style="background:#7c3aed" aria-hidden="true"></span>
+                  <span><span class="swatch__name">Signal Violet</span><span class="swatch__role">focus / selection / machine attention</span></span>
+                  <span class="swatch__value">#7C3AED</span>
+                </li>
+              </ul>
+              <p class="swatch__role">Bone on Black: 17.75:1. Violet on Black is reserved for UI state or large text, never body copy.</p>
+            </div>
+            <div class="visual-tile">
+              <p class="eyebrow">TYPOGRAPHY / THREE VOICES</p>
+              <div class="type-specimen" aria-label="Vanta typography specimen">
+                <p class="type-specimen__display">Vanta sees first.</p>
+                <p class="type-specimen__interface">Clear interfaces for consequential work.</p>
+                <p class="type-specimen__mono">STATUS: LOCAL / READY / PRIVATE</p>
+              </div>
+            </div>
+            <div class="visual-tile">
+              <p class="eyebrow">PRODUCT / QUIET CONTROL</p>
+              <div class="app-specimen" aria-label="Example Vanta desktop application screen">
+                <div class="app-specimen__bar"><span>VANTA / OPERATOR</span><span>BOUNDARY: LOCAL DEVICE</span></div>
+                <div class="app-specimen__body">
+                  <nav class="app-specimen__nav" aria-label="Example app navigation">
+                    <span>HOME</span><span class="is-active">TASKS</span><span>SKILLS</span><span>MEMORY</span><span>SETTINGS</span>
+                  </nav>
+                  <div class="app-specimen__task">
+                    <h3>Resolve the handoff.</h3>
+                    <p>Vanta found two conflicts in the workspace and prepared a safe review.</p>
+                    <div class="app-specimen__receipt"><strong>RECEIPT READY</strong><br>2 files compared / no changes written</div>
+                    <span class="app-specimen__state">STATE: AWAITING REVIEW</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="visual-tile visual-tile--image" style="grid-column: 1 / -1;">
+              <figure>
+                <img src="assets/images/operator-field-kit-v1.png" alt="A black operator T-shirt, overshirt, cap, canvas tote, notebook, and fabric patches arranged on a dark surface with restrained violet stitching.">
+                <figcaption>PHYSICAL LANGUAGE / WEARABLE, DURABLE, QUIET / APPAREL AND FIELD KIT REFERENCE</figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+        <article class="reader" id="book" aria-live="polite">
+          <p class="eyebrow">LOADING BRAND BOOK</p>
+          <p>Loading the editable source…</p>
+        </article>
+      </main>
+    </div>
+
+    <script>
+      const sourceUrl = "BRAND-BOOK.md";
+      const book = document.querySelector("#book");
+      const toc = document.querySelector("#toc");
+
+      function escapeHtml(value) {
+        return value.replace(/[&<>"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" })[character]);
+      }
+
+      function inline(value) {
+        return escapeHtml(value)
+          .replace(/`([^`]+)`/g, "<code>$1</code>")
+          .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+          .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "<a href=\"$2\">$1</a>");
+      }
+
+      function tableRow(line, tag) {
+        const cells = line.trim().replace(/^\||\|$/g, "").split("|");
+        return `<tr>${cells.map((cell) => `<${tag}>${inline(cell.trim())}</${tag}>`).join("")}</tr>`;
+      }
+
+      function markdownToHtml(markdown) {
+        const lines = markdown.replace(/^---[\s\S]*?---\s*/, "").split("\n");
+        const html = [];
+        let index = 0;
+        let paragraph = [];
+        let list = null;
+
+        function flushParagraph() {
+          if (paragraph.length) html.push(`<p>${inline(paragraph.join(" "))}</p>`);
+          paragraph = [];
+        }
+
+        function closeList() {
+          if (list) html.push(`</${list}>`);
+          list = null;
+        }
+
+        while (index < lines.length) {
+          const line = lines[index];
+          const next = lines[index + 1] || "";
+
+          if (line.startsWith("```")) {
+            flushParagraph(); closeList();
+            const block = [];
+            index += 1;
+            while (index < lines.length && !lines[index].startsWith("```")) block.push(lines[index++]);
+            html.push(`<pre><code>${escapeHtml(block.join("\n"))}</code></pre>`);
+            index += 1;
+            continue;
+          }
+
+          if (/^\|.*\|\s*$/.test(line) && /^\|[\s|:-]+\|\s*$/.test(next)) {
+            flushParagraph(); closeList();
+            const rows = ["<table><thead>", tableRow(line, "th"), "</thead><tbody>"];
+            index += 2;
+            while (index < lines.length && /^\|.*\|\s*$/.test(lines[index])) rows.push(tableRow(lines[index++], "td"));
+            rows.push("</tbody></table>");
+            html.push(rows.join(""));
+            continue;
+          }
+
+          const heading = line.match(/^(#{1,3})\s+(.+)$/);
+          if (heading) {
+            flushParagraph(); closeList();
+            const level = heading[1].length;
+            const title = heading[2].replace(/\s+—\s+\*\*.*?\*\*$/, "");
+            const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+            html.push(`<h${level} id="${slug}">${inline(heading[2])}</h${level}>`);
+            index += 1;
+            continue;
+          }
+
+          if (/^---\s*$/.test(line)) {
+            flushParagraph(); closeList(); html.push("<hr>"); index += 1; continue;
+          }
+
+          if (line.startsWith("> ")) {
+            flushParagraph(); closeList(); html.push(`<blockquote>${inline(line.slice(2))}</blockquote>`); index += 1; continue;
+          }
+
+          const bullet = line.match(/^[-*]\s+(.+)$/);
+          const ordered = line.match(/^\d+\.\s+(.+)$/);
+          if (bullet || ordered) {
+            flushParagraph();
+            const type = bullet ? "ul" : "ol";
+            if (list !== type) { closeList(); html.push(`<${type}>`); list = type; }
+            html.push(`<li>${inline((bullet || ordered)[1])}</li>`);
+            index += 1;
+            continue;
+          }
+
+          if (!line.trim()) { flushParagraph(); closeList(); index += 1; continue; }
+          paragraph.push(line.trim());
+          index += 1;
+        }
+
+        flushParagraph(); closeList();
+        return html.join("\n");
+      }
+
+      function buildToc() {
+        const headings = [...book.querySelectorAll("h1")].filter((heading) => heading.textContent !== "Vanta Brand Book");
+        toc.innerHTML = headings.map((heading) => `<li><a href="#${heading.id}">${heading.textContent.replace(/^\d+\.\s*/, "")}</a></li>`).join("");
+        const links = [...toc.querySelectorAll("a")];
+        const observer = new IntersectionObserver((entries) => {
+          const current = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+          if (!current) return;
+          links.forEach((link) => link.removeAttribute("aria-current"));
+          const link = toc.querySelector(`a[href="#${current.target.id}"]`);
+          if (link) link.setAttribute("aria-current", "true");
+        }, { rootMargin: "-20% 0px -65% 0px", threshold: [0, 0.5, 1] });
+        headings.forEach((heading) => observer.observe(heading));
+      }
+
+      fetch(sourceUrl)
+        .then((response) => {
+          if (!response.ok) throw new Error(`Could not load ${sourceUrl}`);
+          return response.text();
+        })
+        .then((markdown) => {
+          book.innerHTML = markdownToHtml(markdown);
+          book.querySelector("h1")?.setAttribute("tabindex", "-1");
+          buildToc();
+        })
+        .catch(() => {
+          book.innerHTML = `<p class="eyebrow">READER NEEDS A LOCAL WEB SERVER</p><div class="error"><p>This reader renders the editable Markdown source. Open it from a local web server, then refresh after editing.</p><p><code>cd brand &amp;&amp; python3 -m http.server 8000</code></p><p><a href="BRAND-BOOK.md">Open the source document directly</a></p></div>`;
+        });
+    </script>
+  </body>
+</html>

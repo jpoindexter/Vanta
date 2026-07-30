@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reward Safety"
+  short_description: "Route reward-seeking and grader-gaming safety work"
+  default_prompt: "Use $reward-safety to evaluate the requested reward, grader, oversight, or authority-conflict risk with calibrated evidence."

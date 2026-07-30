@@ -1,0 +1,411 @@
+diff --git a/vanta-ts/src/providers/index.ts b/vanta-ts/src/providers/index.ts
+index 74562cb0..29e33eb1 100644
+--- a/vanta-ts/src/providers/index.ts
++++ b/vanta-ts/src/providers/index.ts
+@@ -1,5 +1,6 @@
+ import { OpenAIProvider } from "./openai.js";
+ import { AnthropicProvider } from "./anthropic.js";
+ import { CodexProvider } from "./codex.js";
++import type { UserProvider } from "./user-providers.js";
+ import { resolveClaudeCodeToken } from "./claude-code-auth.js";
+ import { loadUserProviders, makeUserProvider } from "./user-providers.js";
+ import type { LLMProvider } from "./interface.js";
+@@ -99,6 +100,63 @@ const OPENAI_COMPAT: Record<string, { url: string; key: string; model: string }> = {
+   lmstudio: { url: "http://localhost:1234/v1", key: "", model: "local-model" }, // local, no key
+ };
+ 
++export type ProviderModelDiscoveryTarget = {
++  kind: "openai" | "anthropic" | "gemini";
++  url: string;
++  headers: Record<string, string>;
++};
++
++function openAiModelsUrl(baseURL: string): string {
++  return `${baseURL.replace(/\/$/, "")}/models`;
++}
++
++function userDiscoveryTarget(env: NodeJS.ProcessEnv, provider: UserProvider): ProviderModelDiscoveryTarget | null {
++  const apiKey = provider.keyEnv ? env[provider.keyEnv] : "local";
++  if (!apiKey) return null;
++  return { kind: "openai", url: openAiModelsUrl(provider.baseURL), headers: { authorization: `Bearer ${apiKey}` } };
++}
++
++/** Server-only model-list target. Credentials stay in request headers and never cross the desktop API. */
++export function providerModelDiscoveryTarget(env: NodeJS.ProcessEnv, providerId: string): ProviderModelDiscoveryTarget | null {
++  const id = providerId.trim().toLowerCase();
++  const user = loadUserProviders(env)[id];
++  if (user) return userDiscoveryTarget(env, user);
++
++  if (id === "openai") {
++    const apiKey = env.OPENAI_API_KEY;
++    return apiKey ? { kind: "openai", url: "https://api.openai.com/v1/models", headers: { authorization: `Bearer ${apiKey}` } } : null;
++  }
++  if (id === "anthropic") {
++    const apiKey = env.ANTHROPIC_API_KEY;
++    return apiKey ? {
++      kind: "anthropic",
++      url: "https://api.anthropic.com/v1/models?limit=1000",
++      headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
++    } : null;
++  }
++  if (id === "gemini") {
++    const apiKey = env.GEMINI_API_KEY ?? env.GOOGLE_API_KEY;
++    return apiKey ? {
++      kind: "gemini",
++      url: "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000",
++      headers: { "x-goog-api-key": apiKey },
++    } : null;
++  }
++  if (id === "ollama") {
++    return { kind: "openai", url: openAiModelsUrl(env.VANTA_OLLAMA_URL ?? DEFAULT_OLLAMA_URL), headers: { authorization: "Bearer ollama" } };
++  }
++  if (id === "openrouter") {
++    const apiKey = env.OPENROUTER_API_KEY;
++    return apiKey ? { kind: "openai", url: openAiModelsUrl(OPENROUTER_URL), headers: { authorization: `Bearer ${apiKey}` } } : null;
++  }
++  if (id === "nvidia" || id === "nim") {
++    const apiKey = env.NVIDIA_API_KEY;
++    return apiKey ? { kind: "openai", url: openAiModelsUrl(NVIDIA_NIM_URL), headers: { authorization: `Bearer ${apiKey}` } } : null;
++  }
++  if (id === "custom") {
++    const baseURL = env.VANTA_OPENAI_BASE_URL;
++    if (!baseURL) return null;
++    const apiKey = env.VANTA_OPENAI_KEY ?? env.OPENAI_API_KEY ?? "local";
++    return { kind: "openai", url: openAiModelsUrl(baseURL), headers: { authorization: `Bearer ${apiKey}` } };
++  }
++  const compatible = OPENAI_COMPAT[id];
++  if (!compatible) return null;
++  const apiKey = compatible.key ? env[compatible.key] : "local";
++  return apiKey ? { kind: "openai", url: openAiModelsUrl(compatible.url), headers: { authorization: `Bearer ${apiKey}` } } : null;
++}
++
+ /** Azure OpenAI / AI Foundry — OpenAI-compatible but with an api-version query + api-key header. */
+ function makeAzure(env: NodeJS.ProcessEnv): LLMProvider {
+   const endpoint = requireKey(env, "AZURE_OPENAI_ENDPOINT", "e.g. https://<resource>.openai.azure.com");
+diff --git a/vanta-ts/src/providers/model-discovery.ts b/vanta-ts/src/providers/model-discovery.ts
+new file mode 100644
+index 00000000..adbb4121
+--- /dev/null
++++ b/vanta-ts/src/providers/model-discovery.ts
+@@ -0,0 +1,105 @@
++import { providerModelDiscoveryTarget } from "./index.js";
++
++export type ModelDiscoveryResult = {
++  models: string[];
++  source: "catalog" | "live";
++  available: boolean;
++  error?: string;
++};
++
++type Fetcher = typeof fetch;
++type JsonObject = Record<string, unknown>;
++
++function records(value: unknown): JsonObject[] {
++  return Array.isArray(value) ? value.filter((entry): entry is JsonObject => Boolean(entry) && typeof entry === "object") : [];
++}
++
++function modelIds(payload: unknown, kind: "openai" | "anthropic" | "gemini"): string[] {
++  const object = payload && typeof payload === "object" ? payload as JsonObject : {};
++  if (kind === "gemini") {
++    return records(object.models)
++      .filter((model) => !Array.isArray(model.supportedGenerationMethods) || model.supportedGenerationMethods.includes("generateContent"))
++      .map((model) => typeof model.baseModelId === "string" ? model.baseModelId : typeof model.name === "string" ? model.name.replace(/^models\//, "") : "")
++      .filter(Boolean);
++  }
++  return records(object.data).map((model) => typeof model.id === "string" ? model.id : "").filter(Boolean);
++}
++
++function nextPage(payload: unknown, kind: "openai" | "anthropic" | "gemini"): string | null {
++  const object = payload && typeof payload === "object" ? payload as JsonObject : {};
++  if (kind === "gemini") return typeof object.nextPageToken === "string" ? object.nextPageToken : null;
++  if (kind === "anthropic" && object.has_more === true && typeof object.last_id === "string") return object.last_id;
++  return null;
++}
++
++function pageUrl(url: string, kind: "openai" | "anthropic" | "gemini", cursor: string): string {
++  const parsed = new URL(url);
++  parsed.searchParams.set(kind === "gemini" ? "pageToken" : "after_id", cursor);
++  return parsed.toString();
++}
++
++function safeError(error: unknown): string {
++  if (error instanceof DOMException && error.name === "TimeoutError") return "Live model discovery timed out.";
++  if (error instanceof Error && /^Model discovery failed \(HTTP \d+\)$/.test(error.message)) return error.message;
++  return "Live model discovery is temporarily unavailable.";
++}
++
++export async function discoverProviderModels(
++  providerId: string,
++  env: NodeJS.ProcessEnv,
++  fetcher: Fetcher = fetch,
++): Promise<ModelDiscoveryResult> {
++  const target = providerModelDiscoveryTarget(env, providerId);
++  if (!target) return { models: [], source: "catalog", available: false };
++
++  try {
++    const found: string[] = [];
++    let url = target.url;
++    for (let page = 0; page < 5; page += 1) {
++      const response = await fetcher(url, { headers: target.headers, signal: AbortSignal.timeout(4_000) });
++      if (!response.ok) throw new Error(`Model discovery failed (HTTP ${response.status})`);
++      const payload: unknown = await response.json();
++      found.push(...modelIds(payload, target.kind));
++      const cursor = nextPage(payload, target.kind);
++      if (!cursor) break;
++      url = pageUrl(target.url, target.kind, cursor);
++    }
++    return { models: [...new Set(found)].sort((a, b) => a.localeCompare(b, undefined, { numeric: true })).reverse(), source: "live", available: true };
++  } catch (error) {
++    return { models: [], source: "catalog", available: true, error: safeError(error) };
++  }
++}
+diff --git a/vanta-ts/src/desktop/handlers.ts b/vanta-ts/src/desktop/handlers.ts
+index b47d591f..733dbb67 100644
+--- a/vanta-ts/src/desktop/handlers.ts
++++ b/vanta-ts/src/desktop/handlers.ts
+@@ -11,7 +11,9 @@ import { PROVIDER_CATALOG, providerById, type ProviderEntry } from "../providers/catalog.js";
+ import { diskCacheDeps, mergeProviderCatalog, resolveCatalog } from "../providers/catalog-manifest.js";
+ import { resolveVantaHome } from "../store/home.js";
+-import { resolveProvider } from "../providers/index.js";
++import { providerModelDiscoveryTarget, resolveProvider } from "../providers/index.js";
++import { discoverProviderModels, type ModelDiscoveryResult } from "../providers/model-discovery.js";
+ import type { LLMProvider } from "../providers/interface.js";
+@@ -237,14 +239,28 @@ export async function handleCanvas(state: DesktopState, res: http.ServerResponse): Promise<void> {
+   }
+ }
+ 
+-export type DesktopProviderOption = { id: string; label: string; short: string; defaultModel: string; models: string[]; current: boolean };
++export type DesktopProviderOption = {
++  id: string;
++  label: string;
++  short: string;
++  defaultModel: string;
++  models: string[];
++  current: boolean;
++  savedDefaultModel?: string;
++  modelSource: "catalog" | "live";
++  discoveryAvailable: boolean;
++  discoveryError?: string;
++};
+ 
+ export function desktopProviderOptions(env: NodeJS.ProcessEnv, catalog: ProviderEntry[] = PROVIDER_CATALOG): DesktopProviderOption[] {
+   const current = (env.VANTA_PROVIDER ?? "openai").toLowerCase();
+   const options = new Map<string, DesktopProviderOption>();
+   for (const provider of catalog) {
++    const isDefaultProvider = provider.id === current;
+     options.set(provider.id, {
+       id: provider.id,
+       label: provider.label,
+       short: provider.short,
+       defaultModel: provider.defaultModel,
+       models: provider.models,
+-      current: provider.id === current,
++      current: isDefaultProvider,
++      savedDefaultModel: isDefaultProvider ? env.VANTA_MODEL ?? provider.defaultModel : undefined,
++      modelSource: "catalog",
++      discoveryAvailable: Boolean(providerModelDiscoveryTarget(env, provider.id)),
+     });
+   }
+   for (const [id, provider] of Object.entries(loadUserProviders(env))) {
++    const isDefaultProvider = id === current;
+     options.set(id, {
+@@ -254,7 +270,10 @@ export function desktopProviderOptions(env: NodeJS.ProcessEnv, catalog: ProviderEntry[] = PROVIDER_CATALOG): DesktopProviderOption[] {
+       defaultModel: provider.model ?? "",
+       models: provider.model ? [provider.model] : [],
+-      current: id === current,
++      current: isDefaultProvider,
++      savedDefaultModel: isDefaultProvider ? env.VANTA_MODEL ?? provider.model : undefined,
++      modelSource: "catalog",
++      discoveryAvailable: Boolean(providerModelDiscoveryTarget(env, id)),
+     });
+   }
+@@ -283,12 +302,28 @@ export const loadDesktopProviderCatalog: DesktopCatalogLoader = async (env) => {
+   return catalog.providers;
+ };
+ 
++export type DesktopModelDiscoverer = (providerId: string, env: NodeJS.ProcessEnv) => Promise<ModelDiscoveryResult>;
++
+ export async function desktopProviderOptionsLive(
+   env: NodeJS.ProcessEnv,
+   loadCatalog: DesktopCatalogLoader = loadDesktopProviderCatalog,
++  providerId?: string,
++  discover: DesktopModelDiscoverer = discoverProviderModels,
+ ): Promise<DesktopProviderOption[]> {
+-  return desktopProviderOptions(env, mergeProviderCatalog(await loadCatalog(env)));
++  const options = desktopProviderOptions(env, mergeProviderCatalog(await loadCatalog(env)));
++  if (!providerId) return options;
++  const id = providerId.trim().toLowerCase();
++  const result = await discover(id, env);
++  return options.map((option) => option.id !== id ? option : {
++    ...option,
++    models: [...new Set([...result.models, ...option.models])],
++    modelSource: result.source,
++    discoveryAvailable: result.available,
++    discoveryError: result.error,
++  });
+ }
+@@ -303,8 +338,8 @@ export function resolveDesktopProviderSelection(env: NodeJS.ProcessEnv, provider: string, model?: string): {
+   return { provider: id, model: resolved.modelId(), env: selectedEnv, resolved };
+ }
+ 
+-export async function handleModels(res: http.ServerResponse): Promise<void> {
+-  sendJson(res, 200, await desktopProviderOptionsLive(process.env));
++export async function handleModels(res: http.ServerResponse, providerId?: string): Promise<void> {
++  sendJson(res, 200, await desktopProviderOptionsLive(process.env, loadDesktopProviderCatalog, providerId));
+ }
+diff --git a/vanta-ts/src/desktop/server.ts b/vanta-ts/src/desktop/server.ts
+index 65c9dd18..b0ae619c 100644
+--- a/vanta-ts/src/desktop/server.ts
++++ b/vanta-ts/src/desktop/server.ts
+@@ -30,6 +30,11 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
+   const { req, res, state, sid, sseClients, pathname: p } = ctx;
+   if (await writeDesktopAsset(state.root, p, res)) return true;
+   if (p === "/api/events") { attachSse(sseClients, sid, res); return true; }
++  if (p.startsWith("/api/models/")) {
++    const providerId = decodeURIComponent(p.slice("/api/models/".length));
++    await handleModels(res, providerId);
++    return true;
++  }
+   const handler: Record<string, () => Promise<void>> = {
+diff --git a/vanta-ts/src/providers/catalog.ts b/vanta-ts/src/providers/catalog.ts
+index 4555bb0a..e1f13268 100644
+--- a/vanta-ts/src/providers/catalog.ts
++++ b/vanta-ts/src/providers/catalog.ts
+@@ -17,9 +17,9 @@ export type ProviderEntry = {
+   /** Default model written if the user accepts it. */
+   defaultModel: string;
+   /**
+-   * Curated model IDs surfaced in the /model picker. NOT exhaustive — the picker
+-   * also accepts any free-typed ID, which is how OpenRouter's 200+ and Ollama's
+-   * machine-local models stay reachable. Live model listing is a later upgrade.
++   * Offline model floor surfaced in the /model picker. The desktop augments this
++   * with provider-backed discovery and still accepts a free-typed ID, so launches,
++   * routers, and machine-local models remain reachable without a Vanta release.
+    */
+@@ -40,8 +40,11 @@ export type ProviderEntry = {
+ // Reused by both API-key Anthropic and the Pro/Max subscription backend.
+ const ANTHROPIC_MODELS = [
++  "claude-fable-5",
+   "claude-opus-4-8",
++  "claude-opus-4-7",
++  "claude-sonnet-5",
+   "claude-sonnet-4-6",
+@@ -139,13 +142,15 @@ export const PROVIDER_CATALOG: ProviderEntry[] = [
+     label: "Google Gemini",
+     short: "Gemini",
+     envVar: "GEMINI_API_KEY",
+-    defaultModel: "gemini-2.5-flash",
++    defaultModel: "gemini-3.5-flash",
+     models: [
++      "gemini-3.5-flash",
++      "gemini-3.1-pro-preview",
++      "gemini-3.1-pro-preview-customtools",
++      "gemini-3.1-flash-lite",
++      "gemini-3-flash-preview",
+       "gemini-2.5-flash",
+       "gemini-2.5-pro",
+       "gemini-2.5-flash-lite",
+-      "gemini-2.0-flash",
+-      "gemini-2.0-flash-lite",
+-      "gemini-1.5-pro",
+     ],
+@@ -166,7 +171,7 @@ export const PROVIDER_CATALOG: ProviderEntry[] = [
+     label: "Anthropic (Claude, API key)",
+     short: "Anthropic",
+     envVar: "ANTHROPIC_API_KEY",
+-    defaultModel: "claude-sonnet-4-6",
++    defaultModel: "claude-sonnet-5",
+@@ -179,7 +184,7 @@ export const PROVIDER_CATALOG: ProviderEntry[] = [
+     label: "Claude via Pro/Max subscription (uses your `claude` login — grey area)",
+     short: "Claude (sub)",
+     envVar: null,
+-    defaultModel: "claude-sonnet-4-6",
++    defaultModel: "claude-sonnet-5",
+diff --git a/vanta-ts/src/providers/model-discovery.test.ts b/vanta-ts/src/providers/model-discovery.test.ts
+new file mode 100644
+index 00000000..665c28ab
+--- /dev/null
++++ b/vanta-ts/src/providers/model-discovery.test.ts
+@@ -0,0 +1,87 @@
++import { describe, expect, it, vi } from "vitest";
++import { discoverProviderModels } from "./model-discovery.js";
++
++function response(payload: unknown, status = 200): Response {
++  return new Response(JSON.stringify(payload), { status, headers: { "content-type": "application/json" } });
++}
++
++describe("discoverProviderModels", () => {
++  it("loads and deduplicates OpenAI models without exposing the key", async () => {
++    const fetcher = vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
++      expect(init?.headers).toEqual({ authorization: "Bearer secret-openai-key" });
++      return response({ data: [{ id: "gpt-5.6-sol" }, { id: "gpt-5.6-sol" }, { id: "gpt-5.5" }] });
++    }) as typeof fetch;
++
++    await expect(discoverProviderModels("openai", { OPENAI_API_KEY: "secret-openai-key" }, fetcher)).resolves.toEqual({
++      models: ["gpt-5.6-sol", "gpt-5.5"], source: "live", available: true,
++    });
++  });
++
++  it("filters Gemini entries to generateContent-capable models and follows pagination", async () => {
++    const fetcher = vi.fn()
++      .mockResolvedValueOnce(response({
++        models: [
++          { baseModelId: "gemini-3.5-flash", supportedGenerationMethods: ["generateContent"] },
++          { baseModelId: "embedding-001", supportedGenerationMethods: ["embedContent"] },
++        ],
++        nextPageToken: "page-2",
++      }))
++      .mockResolvedValueOnce(response({ models: [{ name: "models/gemini-3.1-pro-preview", supportedGenerationMethods: ["generateContent"] }] })) as typeof fetch;
++
++    const result = await discoverProviderModels("gemini", { GEMINI_API_KEY: "gemini-key" }, fetcher);
++    expect(result.models).toEqual(["gemini-3.5-flash", "gemini-3.1-pro-preview"]);
++    expect(fetcher).toHaveBeenCalledTimes(2);
++    expect(String(vi.mocked(fetcher).mock.calls[1]?.[0])).toContain("pageToken=page-2");
++  });
++
++  it("uses Anthropic cursor pagination", async () => {
++    const fetcher = vi.fn()
++      .mockResolvedValueOnce(response({ data: [{ id: "claude-sonnet-5" }], has_more: true, last_id: "claude-sonnet-5" }))
++      .mockResolvedValueOnce(response({ data: [{ id: "claude-fable-5" }], has_more: false })) as typeof fetch;
++
++    const result = await discoverProviderModels("anthropic", { ANTHROPIC_API_KEY: "anthropic-key" }, fetcher);
++    expect(result.models).toEqual(["claude-sonnet-5", "claude-fable-5"]);
++    expect(String(vi.mocked(fetcher).mock.calls[1]?.[0])).toContain("after_id=claude-sonnet-5");
++  });
++
++  it("falls back to catalog state when credentials are unavailable", async () => {
++    await expect(discoverProviderModels("openai", {})).resolves.toEqual({ models: [], source: "catalog", available: false });
++  });
++
++  it("returns a redacted status-only failure", async () => {
++    const fetcher = vi.fn(async () => response({ error: { message: "secret-token leaked" } }, 401)) as typeof fetch;
++    await expect(discoverProviderModels("openai", { OPENAI_API_KEY: "secret-token" }, fetcher)).resolves.toEqual({
++      models: [], source: "catalog", available: true, error: "Model discovery failed (HTTP 401)",
++    });
++  });
++});
+diff --git a/vanta-ts/src/desktop/provider-selection.test.ts b/vanta-ts/src/desktop/provider-selection.test.ts
+index 0505eb9e..451e1d85 100644
+--- a/vanta-ts/src/desktop/provider-selection.test.ts
++++ b/vanta-ts/src/desktop/provider-selection.test.ts
+@@ -109,6 +109,26 @@ describe("desktop provider aliases", () => {
+     ]));
+   });
+ 
++  it("merges a live provider list while preserving the offline floor and saved default", async () => {
++    const discover = async () => ({ models: ["gpt-new-live"], source: "live" as const, available: true });
++    const options = await desktopProviderOptionsLive(
++      { VANTA_HOME: home, VANTA_PROVIDER: "openai", VANTA_MODEL: "gpt-5.6-terra", OPENAI_API_KEY: "secret" },
++      async () => [],
++      "openai",
++      discover,
++    );
++    expect(options.find((option) => option.id === "openai")).toEqual(expect.objectContaining({
++      models: expect.arrayContaining(["gpt-new-live", "gpt-5.6-sol"]),
++      savedDefaultModel: "gpt-5.6-terra",
++      modelSource: "live",
++      discoveryAvailable: true,
++    }));
++  });
++
+   it("provider-only selection uses the alias model and credential instead of the parent model", () => {

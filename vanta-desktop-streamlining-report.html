@@ -1,0 +1,988 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Vanta Desktop — Streamlining Audit</title>
+  <style>
+    :root {
+      --bg: #0b0c0c;
+      --surface: #111313;
+      --surface-raised: #171919;
+      --surface-soft: #1d2020;
+      --line: #292c2c;
+      --line-strong: #3b4040;
+      --text: #f0f2ef;
+      --muted: #a7adaa;
+      --faint: #737a76;
+      --green: #95d8ad;
+      --green-bg: #14221a;
+      --amber: #e7bd70;
+      --amber-bg: #241d12;
+      --blue: #a6c8ff;
+      --blue-bg: #151f2e;
+      --red: #e6a49c;
+      --red-bg: #291816;
+      --sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --content: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+    a { color: var(--blue); text-underline-offset: 3px; }
+    a:hover { color: #c8ddff; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    :focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+    code {
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--surface);
+      padding: 2px 5px;
+      color: #d8dcda;
+      font: .86em var(--mono);
+    }
+    .skip {
+      position: fixed;
+      z-index: 100;
+      top: 10px;
+      left: 10px;
+      transform: translateY(-160%);
+      border-radius: 6px;
+      background: var(--text);
+      color: var(--bg);
+      padding: 8px 12px;
+      font-weight: 700;
+    }
+    .skip:focus { transform: none; }
+
+    .topbar {
+      position: sticky;
+      z-index: 20;
+      top: 0;
+      border-bottom: 1px solid var(--line);
+      background: rgba(11, 12, 12, .92);
+      backdrop-filter: blur(14px);
+    }
+    .topbar-inner {
+      width: min(calc(100% - 32px), var(--content));
+      min-height: 52px;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 760;
+      letter-spacing: .08em;
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+    .brand-mark {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: var(--surface);
+      font: 800 11px var(--mono);
+    }
+    .topnav {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .topnav a {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      border-radius: 5px;
+      color: var(--muted);
+      padding: 0 9px;
+      font-size: 12px;
+      text-decoration: none;
+    }
+    .topnav a:hover { background: var(--surface); color: var(--text); }
+
+    main {
+      width: min(calc(100% - 32px), var(--content));
+      margin: auto;
+      padding: 62px 0 80px;
+    }
+    section { scroll-margin-top: 74px; }
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 14px;
+      color: var(--green);
+      font: 700 11px var(--mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .eyebrow::before {
+      width: 7px;
+      height: 7px;
+      border-radius: 2px;
+      background: currentColor;
+      content: "";
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 {
+      max-width: 840px;
+      margin-bottom: 18px;
+      font-size: clamp(2.4rem, 6vw, 5.1rem);
+      font-weight: 680;
+      letter-spacing: -.06em;
+      line-height: .98;
+    }
+    h2 {
+      margin-bottom: 9px;
+      font-size: clamp(1.55rem, 2.5vw, 2.2rem);
+      font-weight: 640;
+      letter-spacing: -.035em;
+      line-height: 1.15;
+    }
+    h3 {
+      margin-bottom: 6px;
+      font-size: 1rem;
+      font-weight: 680;
+      letter-spacing: -.012em;
+    }
+    .lede {
+      max-width: 760px;
+      margin-bottom: 30px;
+      color: var(--muted);
+      font-size: clamp(1.04rem, 1.5vw, 1.25rem);
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px 18px;
+      color: var(--faint);
+      font: 11px var(--mono);
+    }
+    .meta strong { color: var(--muted); font-weight: 600; }
+
+    .decision {
+      margin-top: 42px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(230px, 340px);
+      border: 1px solid #33493a;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--green-bg), var(--surface));
+      overflow: hidden;
+    }
+    .decision-copy { padding: 28px; }
+    .decision-label {
+      margin-bottom: 12px;
+      color: var(--green);
+      font: 700 11px var(--mono);
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+    .decision h2 {
+      max-width: 650px;
+      margin: 0;
+      font-size: clamp(1.6rem, 3vw, 2.5rem);
+    }
+    .decision-rule {
+      display: grid;
+      place-content: center;
+      border-left: 1px solid #33493a;
+      padding: 24px;
+      color: var(--muted);
+    }
+    .decision-rule strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
+      font-size: .92rem;
+    }
+    .decision-rule p { margin: 0; font-size: .9rem; }
+
+    .stat-grid {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .stat {
+      min-height: 116px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      padding: 18px;
+    }
+    .stat strong {
+      display: block;
+      margin-bottom: 5px;
+      font: 650 clamp(1.8rem, 3vw, 2.5rem) var(--mono);
+      letter-spacing: -.06em;
+    }
+    .stat span { color: var(--muted); font-size: .82rem; }
+
+    .section-head {
+      margin: 84px 0 22px;
+      display: grid;
+      grid-template-columns: minmax(0, .7fr) minmax(260px, .3fr);
+      gap: 28px;
+      align-items: end;
+    }
+    .section-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .evidence-note {
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tag {
+      min-height: 26px;
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+      padding: 0 9px;
+      font: 10px var(--mono);
+      letter-spacing: .02em;
+    }
+    .tag.observed { border-color: #3b5a46; color: var(--green); }
+    .tag.reported { border-color: #4a5164; color: var(--blue); }
+    .tag.inferred { border-color: #65512d; color: var(--amber); }
+
+    .four-way {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .bucket {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .bucket header {
+      border-bottom: 1px solid var(--line);
+      padding: 14px 16px;
+    }
+    .bucket header span {
+      display: block;
+      margin-bottom: 3px;
+      font: 700 11px var(--mono);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .bucket header small { color: var(--faint); }
+    .bucket ul {
+      margin: 0;
+      padding: 8px 16px 14px 34px;
+      color: var(--muted);
+      font-size: .86rem;
+    }
+    .bucket li { margin: 8px 0; }
+    .bucket.keep header span { color: var(--green); }
+    .bucket.simplify header span { color: var(--amber); }
+    .bucket.disclose header span { color: var(--blue); }
+    .bucket.remove header span { color: var(--red); }
+
+    .finding-list {
+      border-top: 1px solid var(--line);
+    }
+    .finding {
+      display: grid;
+      grid-template-columns: 86px minmax(200px, .6fr) minmax(280px, 1.4fr);
+      gap: 20px;
+      border-bottom: 1px solid var(--line);
+      padding: 22px 0;
+    }
+    .priority {
+      align-self: start;
+      width: max-content;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 4px 7px;
+      font: 700 10px var(--mono);
+      text-transform: uppercase;
+    }
+    .priority.blocker { border-color: #6f3d38; background: var(--red-bg); color: var(--red); }
+    .priority.important { border-color: #67512f; background: var(--amber-bg); color: var(--amber); }
+    .priority.monitor { border-color: #3a4f6a; background: var(--blue-bg); color: var(--blue); }
+    .finding h3 { margin: 1px 0 5px; }
+    .finding p { margin: 0; color: var(--muted); font-size: .9rem; }
+    .finding .evidence { color: var(--faint); font-size: .82rem; }
+
+    .shell-frame {
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      background: #080909;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .22);
+    }
+    .shell-title {
+      height: 44px;
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) auto;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      padding: 0 10px;
+      font-size: 11px;
+    }
+    .shell-title .toggle {
+      width: 24px;
+      height: 24px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--surface);
+    }
+    .shell-title strong { color: var(--text); font-weight: 630; }
+    .shell-title .review {
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 5px 8px;
+      color: var(--muted);
+    }
+    .shell-body {
+      min-height: 420px;
+      display: grid;
+      grid-template-columns: 214px minmax(0, 1fr);
+    }
+    .shell-side {
+      border-right: 1px solid var(--line);
+      background: #0d0f0f;
+      padding: 12px 9px;
+    }
+    .side-new {
+      height: 34px;
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 0 10px;
+      color: var(--text);
+      font-size: 11px;
+    }
+    .side-label {
+      margin: 20px 8px 7px;
+      color: var(--faint);
+      font: 9px var(--mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .side-item {
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      border-radius: 5px;
+      color: var(--muted);
+      padding: 0 9px;
+      font-size: 10px;
+    }
+    .side-item.active { background: var(--surface-soft); color: var(--text); }
+    .shell-main {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+    }
+    .shell-transcript {
+      width: min(100% - 34px, 660px);
+      margin: 0 auto;
+      padding: 42px 0 28px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .mini-turn { margin-bottom: 28px; }
+    .mini-turn strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .mini-turn p { margin: 0; }
+    .mini-progress {
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      padding: 10px;
+    }
+    .mini-progress span { color: var(--green); }
+    .shell-compose {
+      width: min(100% - 28px, 700px);
+      margin: 0 auto 14px;
+    }
+    .mini-composer {
+      min-height: 82px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--surface);
+      padding: 13px;
+      color: var(--faint);
+    }
+    .mini-footer {
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--faint);
+      font: 9px var(--mono);
+      padding: 0 3px;
+    }
+    .mini-footer strong { color: var(--amber); font-weight: 600; }
+    .shell-callouts {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .callout {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--surface);
+      padding: 14px;
+      color: var(--muted);
+      font-size: .82rem;
+    }
+    .callout strong { display: block; margin-bottom: 4px; color: var(--text); }
+
+    .borrow-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .borrow {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      padding: 20px;
+    }
+    .borrow.good { border-top-color: #4a7157; }
+    .borrow.skip { position: static; transform: none; }
+    .borrow h3 { margin-bottom: 12px; }
+    .borrow ul { margin: 0; padding-left: 20px; color: var(--muted); font-size: .9rem; }
+    .borrow li { margin: 8px 0; }
+
+    .risk-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .risk {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      padding: 17px;
+    }
+    .risk span {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--faint);
+      font: 700 10px var(--mono);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .risk strong { display: block; margin-bottom: 5px; }
+    .risk p { margin: 0; color: var(--muted); font-size: .82rem; }
+
+    .action-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      font-size: .88rem;
+    }
+    .action-table th, .action-table td {
+      border-bottom: 1px solid var(--line);
+      padding: 14px 15px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .action-table th {
+      color: var(--faint);
+      font: 700 10px var(--mono);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .action-table td { color: var(--muted); }
+    .action-table td:first-child { width: 54px; color: var(--text); font: 700 11px var(--mono); }
+    .action-table td:nth-child(2) { width: 30%; color: var(--text); font-weight: 630; }
+
+    .test-box {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(270px, .7fr);
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .test-list { padding: 24px; }
+    .test-list ol { margin: 14px 0 0; padding-left: 22px; color: var(--muted); }
+    .test-list li { margin: 9px 0; }
+    .stop-rule {
+      border-left: 1px solid var(--line);
+      background: var(--amber-bg);
+      padding: 24px;
+    }
+    .stop-rule p { margin: 7px 0 0; color: #c9ad78; font-size: .88rem; }
+
+    details {
+      border-top: 1px solid var(--line);
+    }
+    details:last-child { border-bottom: 1px solid var(--line); }
+    summary {
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      color: var(--text);
+      font-weight: 620;
+      list-style: none;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { color: var(--faint); content: "+"; font: 18px var(--mono); }
+    details[open] summary::after { content: "−"; }
+    .details-body {
+      max-width: 820px;
+      padding: 0 0 22px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    .details-body ul { margin: 0; padding-left: 20px; }
+    .details-body li { margin: 7px 0; }
+
+    .source-list {
+      margin: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 0;
+      list-style: none;
+    }
+    .source-list li {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--surface);
+      padding: 15px;
+    }
+    .source-list a { font-weight: 620; }
+    .source-list p { margin: 6px 0 0; color: var(--faint); font-size: .8rem; }
+
+    footer {
+      margin-top: 82px;
+      border-top: 1px solid var(--line);
+      padding-top: 22px;
+      color: var(--faint);
+      font: 11px var(--mono);
+    }
+
+    @media (max-width: 900px) {
+      .decision, .section-head, .test-box { grid-template-columns: 1fr; }
+      .decision-rule, .stop-rule { border-left: 0; border-top: 1px solid var(--line); }
+      .four-way, .risk-grid { grid-template-columns: 1fr 1fr; }
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+      .finding { grid-template-columns: 72px 1fr; }
+      .finding .evidence { grid-column: 2; }
+    }
+    @media (max-width: 680px) {
+      main { width: min(calc(100% - 24px), var(--content)); padding-top: 42px; }
+      .topbar-inner { width: calc(100% - 24px); }
+      .topnav a:not(:last-child) { display: none; }
+      .four-way, .borrow-grid, .risk-grid, .source-list { grid-template-columns: 1fr; }
+      .shell-body { grid-template-columns: 0 minmax(0, 1fr); }
+      .shell-side { overflow: hidden; padding: 0; }
+      .shell-callouts { grid-template-columns: 1fr; }
+      .action-table th:nth-child(3), .action-table td:nth-child(3) { display: none; }
+      .finding { grid-template-columns: 1fr; gap: 8px; }
+      .finding .evidence { grid-column: 1; }
+    }
+    @media print {
+      :root { color-scheme: light; --bg: #fff; --surface: #fff; --surface-raised: #f4f4f2; --surface-soft: #ededeb; --line: #d7d8d5; --line-strong: #afb2ad; --text: #111; --muted: #464a47; --faint: #666b67; --green-bg: #eef8f1; --amber-bg: #fbf6ea; --blue-bg: #eff5fc; --red-bg: #fbeeed; }
+      .topbar { position: static; }
+      main { padding-top: 32px; }
+      .shell-frame { box-shadow: none; }
+      section { break-inside: avoid; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#report">Skip to report</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#report"><span class="brand-mark" aria-hidden="true">V</span>Shell audit</a>
+      <nav class="topnav" aria-label="Report sections">
+        <a href="#decision">Decision</a>
+        <a href="#audit">Audit</a>
+        <a href="#target">Target shell</a>
+        <a href="#actions">Actions</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="report">
+    <header>
+      <p class="eyebrow">Desktop product review · updated 30 July 2026</p>
+      <h1>Make Vanta feel capable, not crowded.</h1>
+      <p class="lede">A source-backed audit and executed standalone build of Vanta’s streamlined desktop shell, grounded in Codex’s public runtime contracts and installed desktop queue behavior.</p>
+      <div class="meta">
+        <span><strong>Artifact reviewed</strong> /Users/jasonpoindexter/Documents/GitHub/_active/Vanta/vanta-desktop-demo.html</span>
+        <span><strong>Decision owner</strong> Jason</span>
+        <span><strong>Readiness</strong> Interactive standalone build</span>
+      </div>
+    </header>
+
+    <section class="decision" id="decision" aria-labelledby="decision-title">
+      <div class="decision-copy">
+        <div class="decision-label">Recommendation · proceed with conditions</div>
+        <h2 id="decision-title">Keep the chat-first concept. Remove duplicate paths to the same capability.</h2>
+      </div>
+      <div class="decision-rule">
+        <strong>Guiding policy</strong>
+        <p>One primary canvas, one adaptive composer footer, and one on-demand review surface.</p>
+      </div>
+    </section>
+
+    <section aria-labelledby="build-status-title">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Build status</p>
+          <h2 id="build-status-title">The streamlined shell is now functional.</h2>
+        </div>
+        <p>The HTML app now navigates between focused Runs, Connect, Scheduled, Plugins, Personas, Settings, and task views while preserving the chat-first task surface.</p>
+      </div>
+      <div class="evidence-note" aria-label="Executed build evidence">
+        <span class="tag observed">Executed · 8 browser flows</span>
+        <span class="tag observed">Executed · 390 × 844 compact layout</span>
+        <span class="tag observed">Executed · local state reload</span>
+      </div>
+    </section>
+
+    <div class="stat-grid" aria-label="Baseline shell observations">
+      <div class="stat"><strong>26</strong><span>button elements in the default demo shell</span></div>
+      <div class="stat"><strong>4×</strong><span>separate ways to reach Files</span></div>
+      <div class="stat"><strong>3×</strong><span>separate “ready” signals</span></div>
+      <div class="stat"><strong>1</strong><span>review entry point is enough</span></div>
+    </div>
+
+    <section id="audit">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">01 · What survives</p>
+          <h2>Preserve capability. Reduce exposure.</h2>
+        </div>
+        <p>The original user report that the app felt overblown matched the baseline DOM: Files, Activity, Diff, mode, and status recurred across multiple surfaces. The current build applies the target disclosure model.</p>
+      </div>
+
+      <div class="evidence-note" aria-label="Evidence types">
+        <span class="tag observed">Observed · source inspected</span>
+        <span class="tag reported">Reported · operator feedback</span>
+        <span class="tag inferred">Inferred · design consequence</span>
+      </div>
+
+      <div class="four-way">
+        <article class="bucket keep">
+          <header><span>Keep</span><small>Always useful</small></header>
+          <ul>
+            <li>Collapsible task sidebar</li>
+            <li>Centered transcript</li>
+            <li>File and folder attachments</li>
+            <li>Inline task progress</li>
+            <li>Composer with send/stop</li>
+          </ul>
+        </article>
+        <article class="bucket simplify">
+          <header><span>Simplify</span><small>Same job, less chrome</small></header>
+          <ul>
+            <li>Merge project and task headers</li>
+            <li>Combine model and mode controls</li>
+            <li>Collapse progress detail by default</li>
+            <li>Use one passive status row</li>
+          </ul>
+        </article>
+        <article class="bucket disclose">
+          <header><span>Disclose</span><small>Show on demand</small></header>
+          <ul>
+            <li>Files, Diff, and Activity</li>
+            <li>Provider, MCP, tools, and memory</li>
+            <li>Full tool trace and raw output</li>
+            <li>Saved runs and permissions</li>
+          </ul>
+        </article>
+        <article class="bucket remove">
+          <header><span>Remove</span><small>No net operator value</small></header>
+          <ul>
+            <li>Permanent “Ready” label</li>
+            <li>Repeated Files/Activity icons</li>
+            <li>Always-visible shortcut hint</li>
+            <li>Duplicate result/status copy</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="finding-list" aria-label="Prioritized findings">
+        <article class="finding">
+          <span class="priority blocker">Blocker</span>
+          <div><h3>Three navigation systems compete</h3><p>Top-right icons, the task-header context button, and the command palette all expose the inspector.</p></div>
+          <p class="evidence"><span class="tag observed">Observed</span> Files has four DOM entry points; Activity and Diff each have three. One “Review” trigger plus the command palette covers the same need.</p>
+        </article>
+        <article class="finding">
+          <span class="priority blocker">Blocker</span>
+          <div><h3>Prototype shortcuts over-promise</h3><p>The palette advertises shortcuts that the script does not implement.</p></div>
+          <p class="evidence"><span class="tag observed">Observed</span> <code>⌘D</code>, <code>⌘⇧F</code>, and <code>⌘⇧A</code> appear in UI; only <code>⌘K</code> and <code>Shift+Tab</code> have listeners.</p>
+        </article>
+        <article class="finding">
+          <span class="priority important">Important</span>
+          <div><h3>Status is repeated, not prioritized</h3><p>“Ready,” “Ready for review,” and the final result note describe the same state in three regions.</p></div>
+          <p class="evidence"><span class="tag inferred">Inferred</span> Repetition makes the shell feel busy and weakens the one message that should tell the operator what happens next.</p>
+        </article>
+        <article class="finding">
+          <span class="priority important">Important</span>
+          <div><h3>Selected state is mostly visual</h3><p>Task and inspector selection need semantic state, not only an <code>.active</code> class.</p></div>
+          <p class="evidence"><span class="tag observed">Observed</span> Add <code>aria-current</code> for the task and tab semantics or <code>aria-pressed</code> for inspector views; mark decorative SVGs hidden.</p>
+        </article>
+        <article class="finding">
+          <span class="priority monitor">Monitor</span>
+          <div><h3>Discoverability may fall after hiding controls</h3><p>Reducing chrome only works if Review and command search remain easy to find.</p></div>
+          <p class="evidence"><span class="tag inferred">Inferred</span> Test task-based discovery instead of assuming a cleaner screen is automatically more usable.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="target">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">02 · Target shell</p>
+          <h2>One shell, two layers.</h2>
+        </div>
+        <p>The default layer supports the current task. The disclosure layer holds review, configuration, and infrastructure detail.</p>
+      </div>
+
+      <div class="shell-frame" role="img" aria-label="Recommended Vanta desktop shell with task sidebar, conversation, composer, and one adaptive footer">
+        <div class="shell-title">
+          <span class="toggle" aria-hidden="true"></span>
+          <strong>Simplify desktop interface</strong>
+          <span class="review">Review · 3</span>
+        </div>
+        <div class="shell-body">
+          <aside class="shell-side" aria-hidden="true">
+            <div class="side-new">＋ New task</div>
+            <div class="side-label">Tasks</div>
+            <div class="side-item active">Simplify desktop interface</div>
+            <div class="side-item">Fix folder attachments</div>
+            <div class="side-label">Saved runs</div>
+            <div class="side-item">Release verification</div>
+          </aside>
+          <div class="shell-main">
+            <div class="shell-transcript">
+              <div class="mini-turn"><strong>You</strong><p>Make the desktop app calmer and more focused.</p></div>
+              <div class="mini-turn">
+                <strong>Vanta</strong>
+                <p>The shell now centers the active task. Review detail remains available without occupying the default canvas.</p>
+                <div class="mini-progress"><span>✓</span> 2 complete · 1 in progress</div>
+              </div>
+            </div>
+            <div class="shell-compose">
+              <div class="mini-composer">Ask Vanta to do something…</div>
+              <div class="mini-footer"><strong>Auto · Codex</strong><span>Vanta · local project</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="shell-callouts">
+        <div class="callout"><strong>Header: task + Review</strong>One title, one contextual review trigger, one overflow menu.</div>
+        <div class="callout"><strong>Composer: action controls</strong>Attachment, model/mode, and send/stop stay close to the prompt.</div>
+        <div class="callout"><strong>Footer: one state at a time</strong>Show a next-step instruction or passive context—never both.</div>
+      </div>
+    </section>
+
+    <section id="codex">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">03 · Codex transfer</p>
+          <h2>Borrow behavior, not density.</h2>
+        </div>
+        <p>The official repository establishes the turn contract. The installed desktop bundle establishes current queue controls and recovery states; visual styling remains Vanta’s own.</p>
+      </div>
+
+      <div class="borrow-grid">
+        <article class="borrow good">
+          <h3>Use in Vanta</h3>
+          <ul>
+            <li><strong>Adaptive footer:</strong> prioritize the active instruction, then collapse passive context by width.</li>
+            <li><strong>Command popup:</strong> keep advanced actions searchable instead of permanently visible.</li>
+            <li><strong>Inline approvals:</strong> present permission decisions inside the active turn with command or diff context.</li>
+            <li><strong>Separate queue and steer:</strong> queue a FIFO follow-up turn or steer the active turn without conflating the two.</li>
+            <li><strong>Recover interruption:</strong> pause queued work, preserve unsent input, and require an explicit Resume.</li>
+            <li><strong>Editable queue:</strong> support reorder, edit, delete, retry, and a saved queue/steer preference.</li>
+            <li><strong>Ambient title state:</strong> use the window title or subtle task row for working/action-required state.</li>
+            <li><strong>Thread primitives:</strong> preserve resume, fork, search, saved runs, and long-running tasks.</li>
+          </ul>
+        </article>
+        <article class="borrow skip">
+          <h3>Do not copy into the default shell</h3>
+          <ul>
+            <li>Every slash command as persistent navigation</li>
+            <li>TUI-specific key hints at all times</li>
+            <li>Raw output, Vim, and editor controls for every operator</li>
+            <li>Status-line configuration as primary UI</li>
+            <li>Codex branding, spacing, or pixel styling</li>
+            <li>Infrastructure telemetry without an active problem</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">04 · Product risk</p>
+          <h2>The product bet is sound; usability needs proof.</h2>
+        </div>
+        <p>Assessment follows the four-risk model. This is not a launch verdict because production performance, retention, and business evidence were not part of the artifact.</p>
+      </div>
+
+      <div class="risk-grid">
+        <article class="risk"><span>Value</span><strong>Supported</strong><p>The operator explicitly wants a calmer shell while retaining agent power.</p></article>
+        <article class="risk"><span>Usability</span><strong>Conditional</strong><p>Fewer controls helps only if Review, mode, and attachments remain discoverable.</p></article>
+        <article class="risk"><span>Feasibility</span><strong>High</strong><p>The existing demo already has the drawer, palette, composer, and responsive shell.</p></article>
+        <article class="risk"><span>Viability</span><strong>Unknown</strong><p>No pricing, retention, support-cost, or distribution evidence was reviewed.</p></article>
+      </div>
+    </section>
+
+    <section id="actions">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">05 · Action plan</p>
+          <h2>Three passes, in dependency order.</h2>
+        </div>
+        <p>The first pass removes cognitive load. The second makes disclosure trustworthy. The third proves that simplification did not hide essential work.</p>
+      </div>
+
+      <table class="action-table">
+        <thead><tr><th>Order</th><th>Change</th><th>Acceptance evidence</th></tr></thead>
+        <tbody>
+          <tr><td>P0</td><td>Reduce the default shell</td><td>One task header; one Review entry; no permanent Ready label; no repeated Files/Activity/Diff controls.</td></tr>
+          <tr><td>P0</td><td>Make the footer state-driven</td><td>Instruction replaces passive context during approval, queuing, interruption, or next-step states; narrow widths collapse safely.</td></tr>
+          <tr><td>P0</td><td>Fix control truthfulness</td><td>Every displayed shortcut works; every active/selected state is programmatically exposed; folder and file picker paths both work.</td></tr>
+          <tr><td>P1</td><td>Consolidate Review</td><td>A single drawer contains Files, Diff, and Activity; the relevant view opens directly from inline turn content.</td></tr>
+          <tr><td>P1</td><td>Put approvals in the turn</td><td>The request shows action, scope, and choices where the agent paused; session grants persist only for their declared scope.</td></tr>
+          <tr><td>P2</td><td>Add power-user disclosure</td><td>Command search exposes saved runs, fork, transcript, permissions, model detail, MCP, memory, and settings without adding default chrome.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">06 · Validation</p>
+          <h2>Test the decisions, not the polish.</h2>
+        </div>
+        <p>Use five real operator tasks or seven days of normal use, whichever comes first.</p>
+      </div>
+
+      <div class="test-box">
+        <div class="test-list">
+          <h3>Done criterion</h3>
+          <ol>
+            <li>Start a new task and submit the first prompt in under 15 seconds.</li>
+            <li>Attach one file and one folder without leaving the composer.</li>
+            <li>Find changed files and open the diff in under 10 seconds.</li>
+            <li>Change operating mode, then correctly identify the active mode.</li>
+            <li>Resolve an inline approval and verify the agent resumes once.</li>
+            <li>Resume a saved run or prior task without losing task context.</li>
+            <li>Complete every critical path with keyboard-only navigation.</li>
+          </ol>
+        </div>
+        <aside class="stop-rule">
+          <h3>Stop rule</h3>
+          <p>If two of five trials cannot find Review or mode within 10 seconds, do not restore all old chrome. Re-expose only the failed control and retest.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="notes">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">07 · Boundaries</p>
+          <h2>What this report does not claim.</h2>
+        </div>
+        <p>Calibration matters: source inspection can establish structure and coded behavior, not production usage quality.</p>
+      </div>
+
+      <details>
+        <summary>Evidence boundaries</summary>
+        <div class="details-body">
+          <ul>
+            <li><strong>Executed:</strong> the target demo source was inspected and its repeated entry points were counted.</li>
+            <li><strong>Executed:</strong> browser flows opened every primary destination, navigated history, searched the command palette, switched tasks, opened Review and Diff, dropped one folder as one chip, queued/removed/undid/stopped/resumed work, persisted persona/model/mode/view across reload, and validated the 390 × 844 compact shell without horizontal overflow.</li>
+            <li><strong>Executed:</strong> Codex’s public queue, steering, restoration, and turn protocol were traced at commit <code>88d6c2b</code>; the installed desktop queue component in Codex 26.721.41059 was also inspected.</li>
+            <li><strong>Observed:</strong> the desktop component exposes queue/steer switching, sortable messages, edit/delete actions, interrupted-queue recovery, retry states, and per-conversation persistence.</li>
+            <li><strong>Not established:</strong> the desktop app’s unminified source or source maps, production Vanta performance, multi-user usability, retention, or business viability.</li>
+          </ul>
+        </div>
+      </details>
+      <details>
+        <summary>Non-goals</summary>
+        <div class="details-body">
+          <ul>
+            <li>Do not clone Codex’s visual identity.</li>
+            <li>Do not remove providers, MCP, memory, saved runs, or safety approvals.</li>
+            <li>Do not hide irreversible action details.</li>
+            <li>Do not make drag-and-drop the only attachment path.</li>
+            <li>Do not turn this report into a broader desktop rewrite.</li>
+          </ul>
+        </div>
+      </details>
+    </section>
+
+    <section id="sources">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Sources</p>
+          <h2>Primary references.</h2>
+        </div>
+        <p>Accessed 29 July 2026. Official <code>openai/codex</code> sources were pinned to commit <code>88d6c2b</code>; installed Codex desktop 26.721.41059 was inspected for app-only queue behavior.</p>
+      </div>
+
+      <ul class="source-list">
+        <li><a href="https://github.com/openai/codex/blob/88d6c2b2b41b0790fa10c232f2a6be0e128cedd6/codex-rs/tui/src/chatwidget/input_queue.rs">Codex queued-input source</a><p>Separate same-turn steering, rejected steers, and FIFO follow-up turns.</p></li>
+        <li><a href="https://github.com/openai/codex/blob/88d6c2b2b41b0790fa10c232f2a6be0e128cedd6/codex-rs/tui/src/chatwidget/input_flow.rs">Codex input flow</a><p>Enter steers a running turn while Tab deliberately creates a queued follow-up.</p></li>
+        <li><a href="https://github.com/openai/codex/blob/88d6c2b2b41b0790fa10c232f2a6be0e128cedd6/codex-rs/tui/src/bottom_pane/pending_input_preview.rs">Codex pending-input preview</a><p>Distinct labels and edit affordances for pending steers and queued follow-ups.</p></li>
+        <li><a href="https://github.com/openai/codex/blob/88d6c2b2b41b0790fa10c232f2a6be0e128cedd6/codex-rs/app-server-protocol/src/protocol/v2/turn.rs">Codex turn protocol</a><p><code>turn/steer</code> targets the active turn and validates its expected turn ID.</p></li>
+        <li><a href="https://github.com/openai/codex/blob/88d6c2b2b41b0790fa10c232f2a6be0e128cedd6/codex-rs/app-server/README.md">Codex app-server protocol</a><p>Threads, turns, streaming state, interruption, approvals, and persisted task primitives.</p></li>
+        <li><a href="https://github.com/openai/codex/blob/main/codex-rs/core/config.schema.json">Codex configuration schema</a><p>Minimal default status line and ambient terminal title state.</p></li>
+        <li><a href="https://github.com/openai/codex/blob/main/README.md">OpenAI Codex repository</a><p>Scope and official entry points for the CLI and app.</p></li>
+        <li><a href="https://learn.chatgpt.com/docs/app">Official desktop app overview</a><p>Parallel chats, long-running work, files, projects, and location-based context.</p></li>
+      </ul>
+    </section>
+
+    <footer>
+      Vanta desktop streamlining audit + standalone app evidence · self-contained HTML
+    </footer>
+  </main>
+</body>
+</html>

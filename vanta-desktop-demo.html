@@ -1,0 +1,3340 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Vanta Desktop — Focused Shell</title>
+  <style>
+    :root {
+      --vanta-black: #050507;
+      --vanta-bone: #f4efe3;
+      --signal-violet: #7c3aed;
+      --bg: var(--vanta-black);
+      --chrome: color-mix(in oklab, var(--vanta-bone) 1.5%, var(--vanta-black));
+      --sidebar: color-mix(in oklab, var(--vanta-bone) 2.5%, var(--vanta-black));
+      --surface: color-mix(in oklab, var(--vanta-bone) 6%, var(--vanta-black));
+      --surface-2: color-mix(in oklab, var(--vanta-bone) 9%, var(--vanta-black));
+      --surface-3: color-mix(in oklab, var(--vanta-bone) 13%, var(--vanta-black));
+      --line: rgb(244 239 227 / 14%);
+      --line-strong: rgb(244 239 227 / 25%);
+      --text: var(--vanta-bone);
+      --muted: color-mix(in oklab, var(--vanta-bone) 78%, var(--vanta-black));
+      --faint: color-mix(in oklab, var(--vanta-bone) 62%, var(--vanta-black));
+      --green: var(--vanta-bone);
+      --amber: var(--vanta-bone);
+      --blue: var(--signal-violet);
+      --red: var(--vanta-bone);
+      --sidebar-width: 330px;
+      --drawer-width: 360px;
+      --sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font: 13px/1.5 var(--sans);
+      -webkit-font-smoothing: antialiased;
+    }
+    button, textarea, input, select { font: inherit; }
+    button { color: inherit; }
+    button:not(:disabled) {
+      cursor: pointer;
+      transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, transform 60ms ease;
+    }
+    button:not(:disabled):active { transform: scale(.96); }
+    button:focus-visible, textarea:focus-visible, input:not(.dialog-search):focus-visible, select:focus-visible, summary:focus-visible {
+      outline: 2px solid var(--blue);
+      outline-offset: 2px;
+    }
+    .sr-only {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      overflow: hidden !important;
+      clip: rect(1px, 1px, 1px, 1px) !important;
+      white-space: nowrap !important;
+    }
+    .icon {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 auto;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .app {
+      position: relative;
+      isolation: isolate;
+      width: 100vw;
+      height: 100dvh;
+      display: grid;
+      grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+      grid-template-rows: 44px minmax(0, 1fr);
+      grid-template-areas:
+        "title title"
+        "sidebar main";
+      background: var(--bg);
+    }
+    .app.sidebar-closed {
+      grid-template-columns: 0 minmax(0, 1fr);
+    }
+
+    .titlebar {
+      grid-area: title;
+      min-width: 0;
+      display: grid;
+      grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+      border-bottom: 1px solid var(--line);
+      background: var(--chrome);
+      user-select: none;
+    }
+    .app.sidebar-closed .titlebar { grid-template-columns: 44px minmax(0, 1fr); }
+    .window-controls {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      border-right: 1px solid var(--line);
+      padding: 0 10px;
+    }
+    .app.sidebar-closed .window-controls .traffic { display: none; }
+    .traffic { display: flex; gap: 6px; padding: 0 3px; }
+    .traffic i { width: 10px; height: 10px; display: block; border-radius: 50%; background: var(--faint); }
+    .taskbar {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 10px 0 13px;
+    }
+    .taskbar-title {
+      min-width: 0;
+      overflow: hidden;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 640;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .taskbar-actions { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+    .icon-button {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border: 1px solid transparent;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--muted);
+    }
+    .icon-button:hover, .icon-button[aria-pressed="true"] {
+      border-color: var(--line);
+      background: var(--surface-2);
+      color: var(--text);
+    }
+    .review-button {
+      min-height: 30px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 9px;
+      font-size: 11px;
+    }
+    .review-button:hover, .review-button[aria-pressed="true"] {
+      border-color: var(--line-strong);
+      background: var(--surface-2);
+      color: var(--text);
+    }
+    .count {
+      min-width: 17px;
+      height: 17px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 4px;
+      background: var(--surface-3);
+      color: var(--amber);
+      font: 9px var(--mono);
+    }
+
+    .sidebar {
+      grid-area: sidebar;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--line);
+      background: var(--sidebar);
+      overflow: hidden;
+      transition: opacity .12s ease;
+    }
+    .app.sidebar-closed .sidebar { opacity: 0; pointer-events: none; }
+    .new-task {
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 11px 9px 4px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--surface);
+      padding: 0 10px;
+      font-weight: 620;
+      text-align: left;
+    }
+    .new-task:hover { border-color: var(--line-strong); background: var(--surface-2); }
+    .section-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 19px 11px 7px;
+      color: var(--faint);
+      font: 700 9px var(--mono);
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+    .task-list { display: grid; gap: 2px; padding: 0 7px; }
+    .task-item {
+      min-width: 0;
+      min-height: 42px;
+      display: grid;
+      grid-template-columns: 18px minmax(0, 1fr);
+      align-items: center;
+      gap: 8px;
+      border: 1px solid transparent;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--muted);
+      padding: 6px 8px;
+      text-align: left;
+    }
+    .task-item:hover { background: var(--surface); color: var(--text); }
+    .task-item[aria-current="page"] {
+      border-color: var(--line);
+      background: var(--surface-2);
+      color: var(--text);
+    }
+    .task-copy { min-width: 0; }
+    .task-copy strong, .task-copy small {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .task-copy strong { font-size: 11px; font-weight: 600; }
+    .task-copy small { margin-top: 2px; color: var(--faint); font-size: 9px; }
+    .sidebar-footer {
+      margin-top: auto;
+      border-top: 1px solid var(--line);
+      padding: 7px;
+    }
+    .sidebar-footer button {
+      width: 100%;
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 8px;
+      text-align: left;
+    }
+    .sidebar-footer button:hover { background: var(--surface); color: var(--text); }
+
+    .main {
+      grid-area: main;
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      background: var(--bg);
+    }
+    .transcript {
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 36px 24px 44px;
+      scrollbar-color: var(--line-strong) transparent;
+    }
+    .conversation {
+      width: min(100%, 720px);
+      margin: 0 auto;
+    }
+    .turn { margin-bottom: 34px; }
+    .turn-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 9px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 650;
+    }
+    .avatar {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: var(--surface);
+      color: var(--green);
+      font: 700 9px var(--mono);
+    }
+    .user-bubble {
+      width: fit-content;
+      max-width: min(100%, 620px);
+      margin-left: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      padding: 10px 12px;
+      color: var(--text);
+    }
+    .answer { color: var(--muted); font-size: 14px; line-height: 1.65; }
+    .answer h2 {
+      margin: 0 0 10px;
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 640;
+      letter-spacing: -.02em;
+    }
+    .answer p { margin: 0 0 12px; }
+    .answer ul { margin: 10px 0 0; padding-left: 20px; }
+    .answer li { margin: 5px 0; }
+    .answer strong { color: var(--text); }
+    .inline-link {
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      padding: 0;
+      text-decoration: underline;
+      text-decoration-color: var(--signal-violet);
+      text-underline-offset: 3px;
+    }
+
+    .progress {
+      margin-top: 18px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .progress summary {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      cursor: pointer;
+      padding: 0 12px;
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 620;
+      list-style: none;
+    }
+    .progress summary::-webkit-details-marker { display: none; }
+    .progress summary::before { color: var(--green); content: "✓"; }
+    .progress summary span { margin-left: auto; color: var(--faint); font: 9px var(--mono); }
+    .progress-body { border-top: 1px solid var(--line); padding: 7px 12px 9px; }
+    .progress-row {
+      min-height: 30px;
+      display: grid;
+      grid-template-columns: 15px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .progress-row i { color: var(--green); font-style: normal; }
+    .progress-row small { color: var(--faint); font: 9px var(--mono); }
+
+    .approval {
+      margin-top: 16px;
+      border: 1px solid var(--line-strong);
+      border-inline-start: 2px solid var(--signal-violet);
+      border-radius: 7px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .approval-copy { padding: 13px; }
+    .approval-label {
+      margin-bottom: 5px;
+      color: var(--muted);
+      font: 700 9px var(--mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .approval h3 { margin: 0 0 5px; color: var(--text); font-size: 13px; }
+    .approval p { margin: 0; color: var(--muted); font-size: 11px; }
+    .approval-code {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--vanta-black);
+      padding: 8px;
+      color: var(--muted);
+      font: 10px/1.5 var(--mono);
+      overflow-wrap: anywhere;
+    }
+    .approval-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      border-top: 1px solid var(--line);
+      padding: 9px 12px;
+    }
+    .approval-actions button {
+      min-height: 30px;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 9px;
+      font-size: 10px;
+    }
+    .approval-actions button.primary {
+      border-color: var(--signal-violet);
+      background: var(--signal-violet);
+      color: var(--vanta-bone);
+      font-weight: 700;
+    }
+    .approval-actions button:hover { border-color: var(--signal-violet); color: var(--text); }
+
+    .composer-region {
+      position: relative;
+      border-top: 1px solid var(--line);
+      background: var(--chrome);
+      padding: 10px 16px 12px;
+    }
+    .composer-shell { width: min(100%, 760px); margin: 0 auto; }
+    .attachment-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 7px;
+    }
+    .attachment-list:empty { display: none; }
+    .attachment-chip {
+      min-width: 0;
+      max-width: min(100%, 280px);
+      height: 29px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--surface);
+      color: var(--muted);
+      padding: 0 5px 0 8px;
+      font-size: 10px;
+    }
+    .attachment-chip .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .attachment-chip button {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--faint);
+      padding: 0;
+    }
+    .attachment-chip button:hover { background: var(--surface-3); color: var(--text); }
+    .run-progress-pill {
+      width: fit-content;
+      max-width: calc(100% - 32px);
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 auto 8px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--surface);
+      color: var(--muted);
+      padding: 0 12px;
+      box-shadow: 0 8px 24px rgba(16, 17, 24, .18);
+      font-size: 11px;
+    }
+    .run-progress-pill[hidden], .run-diff[hidden], .prompt-queue[hidden], .queue-paused[hidden], .queue-menu[hidden] { display: none; }
+    .run-ring {
+      width: 12px;
+      height: 12px;
+      flex: 0 0 auto;
+      border: 2px solid var(--line-strong);
+      border-right-color: var(--blue);
+      border-radius: 50%;
+    }
+    .run-progress-copy {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .run-diff {
+      display: inline-flex;
+      gap: 6px;
+      margin-left: 2px;
+      font: 10px var(--mono);
+      white-space: nowrap;
+    }
+    .run-diff .add { color: var(--green); }
+    .run-diff .remove { color: var(--red); }
+    .prompt-queue {
+      position: relative;
+      z-index: 2;
+      max-height: 30dvh;
+      margin: 0 16px -14px;
+      overflow-y: auto;
+      border: 1px solid var(--line);
+      border-bottom: 0;
+      border-radius: 8px 8px 0 0;
+      background: var(--surface);
+      padding: 3px 8px 17px;
+      box-shadow: 0 -8px 28px rgba(16, 17, 24, .14);
+      scrollbar-color: var(--line-strong) transparent;
+    }
+    .prompt-queue:has(.queue-menu) { overflow: visible; }
+    .queue-paused {
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--line);
+      border-inline-start: 2px solid var(--signal-violet);
+      color: var(--muted);
+      padding: 2px 3px 5px;
+      font-size: 10px;
+    }
+    .queue-paused span { min-width: 0; flex: 1; }
+    .queue-resume {
+      min-height: 28px;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      background: var(--surface-2);
+      padding: 0 9px;
+      font-size: 10px;
+      font-weight: 650;
+    }
+    .queue-resume:hover { background: var(--surface-3); }
+    .queue-header {
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--line);
+      padding: 0 4px;
+    }
+    .queue-header h2 {
+      margin: 0;
+      color: var(--text);
+      font: 650 10px var(--sans);
+    }
+    .queue-count {
+      color: var(--faint);
+      font: 9px var(--mono);
+      font-variant-numeric: tabular-nums;
+    }
+    .queue-help {
+      min-width: 0;
+      margin-inline-start: auto;
+      overflow: hidden;
+      color: var(--faint);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 9px;
+    }
+    .queue-item {
+      position: relative;
+      min-height: 48px;
+      display: grid;
+      grid-template-columns: 40px minmax(0, 1fr) auto 40px 40px;
+      align-items: center;
+      gap: 4px;
+      color: var(--muted);
+      animation: queue-enter 140ms cubic-bezier(.2, 0, 0, 1);
+    }
+    .queue-item[data-dragging="true"] {
+      opacity: .72;
+      background: var(--surface-2);
+      box-shadow: 0 8px 24px rgb(0 0 0 / .28);
+    }
+    .queue-item + .queue-item { border-top: 1px solid var(--line); }
+    .queue-drag {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--faint);
+      font: 14px var(--mono);
+      cursor: grab;
+    }
+    .queue-drag:hover, .queue-drag:focus-visible {
+      background: var(--surface-2);
+      color: var(--text);
+    }
+    .queue-message { min-width: 0; }
+    .queue-copy {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      color: var(--text);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 11px;
+    }
+    .queue-state {
+      display: block;
+      margin-top: 2px;
+      overflow: hidden;
+      color: var(--muted);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 9px;
+    }
+    .queue-item.paused {
+      border-inline-start: 2px solid var(--vanta-bone);
+      padding-inline-start: 2px;
+    }
+    .queue-action, .queue-remove, .queue-more {
+      min-height: 40px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+    }
+    .queue-action {
+      padding: 0 9px;
+      font-size: 10px;
+    }
+    .queue-action:hover:not(:disabled), .queue-remove:hover, .queue-more:hover {
+      background: var(--surface-2);
+      color: var(--text);
+    }
+    .queue-action:disabled { color: var(--faint); cursor: default; }
+    .queue-remove, .queue-more {
+      width: 40px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+    }
+    .queue-menu {
+      position: absolute;
+      z-index: 6;
+      right: 41px;
+      top: 41px;
+      width: 196px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--surface-2);
+      padding: 4px;
+      box-shadow: 0 12px 28px rgba(16, 17, 24, .3);
+    }
+    .queue-menu button {
+      width: 100%;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 8px;
+      text-align: left;
+      font-size: 10px;
+    }
+    .queue-menu button:hover:not(:disabled) { background: var(--surface-3); color: var(--text); }
+    .queue-menu button:disabled { color: var(--faint); cursor: default; }
+    .follow-up-mode {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 9px;
+      font-size: 10px;
+    }
+    .follow-up-mode[hidden] { display: none; }
+    .follow-up-mode::before {
+      width: 5px;
+      height: 5px;
+      border-radius: 1px;
+      background: var(--signal-violet);
+      content: "";
+    }
+    .follow-up-mode:hover { border-color: var(--signal-violet); color: var(--text); }
+    .composer {
+      position: relative;
+      z-index: 1;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--surface);
+      overflow: visible;
+    }
+    .composer.drop-active {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 15%, transparent);
+    }
+    .composer.drop-active::after {
+      position: absolute;
+      inset: 6px;
+      z-index: 4;
+      display: grid;
+      place-items: center;
+      border: 1px dashed var(--blue);
+      border-radius: 6px;
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      color: var(--blue);
+      content: "Drop files or folders";
+      font-weight: 650;
+    }
+    .composer textarea {
+      width: 100%;
+      min-height: 62px;
+      max-height: 180px;
+      display: block;
+      resize: none;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      padding: 12px 13px 6px;
+      line-height: 1.5;
+    }
+    .composer textarea::placeholder { color: var(--faint); }
+    .composer-actions {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 7px 7px;
+    }
+    .session-button {
+      min-height: 28px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid transparent;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 7px;
+      font-size: 10px;
+    }
+    .session-button:hover { border-color: var(--line); background: var(--surface-2); color: var(--text); }
+    .mode-dot { width: 6px; height: 6px; border-radius: 1px; background: var(--signal-violet); }
+    .send-button {
+      width: 29px;
+      height: 29px;
+      display: grid;
+      place-items: center;
+      margin-left: auto;
+      border: 0;
+      border-radius: 6px;
+      background: var(--signal-violet);
+      color: var(--vanta-bone);
+    }
+    .send-button:disabled { background: var(--surface-3); color: var(--faint); cursor: default; }
+    .send-button.stop {
+      border: 1px solid var(--vanta-bone);
+      background: var(--vanta-bone);
+      color: var(--vanta-black);
+    }
+    .adaptive-footer {
+      min-height: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 2px 0;
+      color: var(--faint);
+      font: 9px var(--mono);
+    }
+    .adaptive-footer .right-context {
+      min-width: 0;
+      margin-left: auto;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .adaptive-footer.instruction { color: var(--muted); }
+    .adaptive-footer.instruction::before {
+      width: 5px;
+      height: 5px;
+      flex: 0 0 auto;
+      border-radius: 1px;
+      background: var(--signal-violet);
+      content: "";
+    }
+    .adaptive-footer.instruction .right-context { display: none; }
+
+    .attach-menu {
+      position: absolute;
+      z-index: 30;
+      bottom: 39px;
+      left: 7px;
+      width: 164px;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      background: var(--surface-2);
+      box-shadow: 0 14px 40px rgba(0, 0, 0, .35);
+      padding: 4px;
+    }
+    .attach-menu[hidden] { display: none; }
+    .attach-menu button {
+      width: 100%;
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 8px;
+      text-align: left;
+      font-size: 11px;
+    }
+    .attach-menu button:hover { background: var(--surface-3); color: var(--text); }
+
+    .drawer {
+      position: absolute;
+      z-index: 40;
+      top: 44px;
+      right: 0;
+      bottom: 0;
+      width: min(var(--drawer-width), calc(100% - 48px));
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      border-left: 1px solid var(--line);
+      background: var(--sidebar);
+      box-shadow: -24px 0 60px rgba(0, 0, 0, .32);
+      transform: translateX(calc(100% + 1px));
+      visibility: hidden;
+      will-change: transform;
+      transition:
+        transform .14s cubic-bezier(.4, 0, 1, 1),
+        visibility 0s linear .14s;
+    }
+    .drawer.open {
+      transform: none;
+      visibility: visible;
+      transition:
+        transform .2s cubic-bezier(0, 0, .2, 1),
+        visibility 0s;
+    }
+    .drawer-head {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding: 0 10px 0 13px;
+    }
+    .drawer-head strong { font-size: 12px; }
+    .drawer-head button { margin-left: auto; }
+    .drawer-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-bottom: 1px solid var(--line);
+      padding: 5px;
+    }
+    .drawer-tabs button {
+      min-height: 32px;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 10px;
+    }
+    .drawer-tabs button:hover { color: var(--text); }
+    .drawer-tabs button[aria-selected="true"] { background: var(--surface-2); color: var(--text); }
+    .drawer-body { min-height: 0; overflow-y: auto; padding: 13px; }
+    .drawer-panel[hidden] { display: none; }
+    .drawer-intro { margin: 0 0 12px; color: var(--faint); font-size: 10px; }
+    .file-row, .activity-row {
+      min-height: 40px;
+      display: grid;
+      grid-template-columns: 19px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 7px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 10px;
+    }
+    .file-row span, .activity-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-row small, .activity-row small { color: var(--faint); font: 9px var(--mono); }
+    .diff {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--vanta-black);
+      overflow: hidden;
+      font: 10px/1.7 var(--mono);
+    }
+    .diff div { padding: 2px 8px; white-space: pre-wrap; }
+    .diff .remove { border-inline-start: 2px solid var(--vanta-bone); background: var(--surface); color: var(--muted); }
+    .diff .add { border-inline-start: 2px solid var(--signal-violet); background: var(--surface); color: var(--text); }
+
+    dialog {
+      width: min(520px, calc(100vw - 24px));
+      max-height: min(680px, calc(100dvh - 24px));
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      padding: 0;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .5);
+    }
+    dialog::backdrop { background: rgba(0, 0, 0, .58); }
+    .dialog-head {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding: 0 10px 0 14px;
+    }
+    .dialog-head strong { font-size: 12px; }
+    .dialog-head button { margin-left: auto; }
+    .dialog-search {
+      width: 100%;
+      height: 45px;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      caret-color: var(--signal-violet);
+      padding: 0 14px;
+    }
+    .dialog-search:focus-visible {
+      outline: 0;
+      box-shadow: none;
+    }
+    html[data-input-modality="keyboard"] .dialog-search:focus-visible {
+      box-shadow: inset 0 -2px var(--signal-violet);
+    }
+    .command-list { display: grid; gap: 2px; padding: 6px; }
+    .command {
+      min-height: 39px;
+      display: grid;
+      grid-template-columns: 19px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 9px;
+      text-align: left;
+    }
+    .command:hover, .command:focus-visible { background: var(--surface-2); color: var(--text); }
+    .command kbd { color: var(--faint); font: 9px var(--mono); }
+    .session-dialog-body { padding: 14px; }
+    .control-group + .control-group { margin-top: 18px; }
+    .control-label {
+      margin-bottom: 7px;
+      color: var(--faint);
+      font: 700 9px var(--mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .mode-option {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      text-align: left;
+      padding: 7px 9px;
+    }
+    .mode-option:hover { border-color: var(--line-strong); color: var(--text); }
+    .mode-option[aria-pressed="true"] {
+      border-color: var(--signal-violet);
+      background: var(--surface-2);
+      color: var(--text);
+    }
+    .mode-option strong, .mode-option small { display: block; }
+    .mode-option strong { font-size: 10px; }
+    .mode-option small { margin-top: 2px; color: var(--faint); font-size: 9px; }
+    .model-select {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface-2);
+      color: var(--text);
+      padding: 0 10px;
+    }
+    .toast {
+      position: fixed;
+      z-index: 80;
+      right: 14px;
+      bottom: 14px;
+      max-width: min(320px, calc(100vw - 28px));
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      background: var(--surface-2);
+      color: var(--text);
+      padding: 9px 11px;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, .35);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity .12s ease, transform .12s ease;
+      font-size: 11px;
+    }
+    .toast.show { opacity: 1; pointer-events: auto; transform: none; }
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .toast button {
+      min-height: 32px;
+      margin-inline-start: auto;
+      border: 1px solid var(--line-strong);
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text);
+      padding: 0 10px;
+      font-size: 10px;
+      font-weight: 650;
+    }
+    @keyframes queue-enter {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .scrim {
+      position: absolute;
+      z-index: 34;
+      inset: 44px 0 0;
+      border: 0;
+      background: rgba(0, 0, 0, .38);
+    }
+    .scrim[hidden] { display: none; }
+
+    @media (max-width: 860px) {
+      :root { --sidebar-width: 210px; }
+      .transcript { padding-inline: 18px; }
+    }
+    @media (max-width: 680px) {
+      :root { --sidebar-width: 0px; }
+      .app, .app.sidebar-closed { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "main"; }
+      .titlebar, .app.sidebar-closed .titlebar { grid-template-columns: 44px minmax(0, 1fr); }
+      .window-controls { border-right: 0; padding: 0 7px; }
+      .traffic { display: none; }
+      .sidebar {
+        position: fixed;
+        z-index: 36;
+        top: 44px;
+        bottom: 0;
+        left: 0;
+        width: min(268px, 86vw);
+        opacity: 1;
+        transform: translateX(-102%);
+        transition: transform .16s ease;
+      }
+      .app.mobile-sidebar-open .sidebar { transform: none; pointer-events: auto; }
+      .review-button .label { display: none; }
+      .transcript { padding: 25px 13px 34px; }
+      .composer-region { padding: 8px 8px 9px; }
+      .prompt-queue { margin-inline: 4px; }
+      .run-progress-pill { max-width: calc(100% - 16px); }
+      .adaptive-footer .right-context { display: none; }
+      .session-button .model-name { display: none; }
+      .mode-grid { grid-template-columns: 1fr; }
+      .icon-button, .review-button { min-width: 40px; min-height: 40px; }
+      .taskbar { padding-right: 4px; }
+    }
+    @media (max-width: 430px) {
+      .taskbar-title { font-size: 11px; }
+      .turn { margin-bottom: 28px; }
+      .answer { font-size: 13px; }
+      .approval-actions { display: grid; grid-template-columns: 1fr; }
+      .approval-actions button { min-height: 40px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+
+    /* Codex-proven shell behavior, expressed through Vanta's owned visual system. */
+    body {
+      display: grid;
+      place-items: center;
+      padding: 34px;
+      background: var(--vanta-black);
+      font-size: 14px;
+    }
+    .app {
+      width: min(1840px, calc(100vw - 68px));
+      height: min(1120px, calc(100dvh - 68px));
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--bg);
+      box-shadow: 0 32px 90px rgba(0, 0, 0, .48);
+      overflow: hidden;
+    }
+    .titlebar {
+      border-bottom-color: var(--line);
+      background: var(--chrome);
+    }
+    .window-controls {
+      gap: 10px;
+      border-right-color: var(--line);
+      background: var(--sidebar);
+      padding-inline: 16px;
+    }
+    .traffic { gap: 8px; margin-right: 8px; }
+    .traffic i { width: 13px; height: 13px; background: var(--faint); }
+    .window-nav { display: flex; align-items: center; gap: 3px; }
+    .window-nav .icon-button { color: var(--faint); }
+    .taskbar {
+      gap: 10px;
+      padding-inline: 18px 12px;
+    }
+    .taskbar-title { font-size: 13px; font-weight: 590; }
+    .taskbar-project-icon { color: var(--text); }
+    .title-more { margin-left: 1px; }
+    .taskbar-actions { gap: 6px; }
+    .review-button {
+      border-color: transparent;
+      background: transparent;
+      font-size: 11px;
+    }
+    .review-button .label { display: none; }
+    .review-button:hover, .review-button[aria-pressed="true"] {
+      border-color: var(--line-strong);
+      background: var(--surface-2);
+    }
+
+    .sidebar {
+      border-right-color: var(--line);
+      background: var(--sidebar);
+    }
+    .sidebar-product {
+      min-height: 74px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 13px 8px 17px;
+    }
+    .product-switcher {
+      min-width: 0;
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--text);
+      padding: 0 7px;
+      font-size: 16px;
+      font-weight: 650;
+    }
+    .product-mark {
+      width: 24px;
+      height: 24px;
+      flex: 0 0 auto;
+    }
+    .product-switcher:hover { background: var(--surface); }
+    .product-search { margin-left: auto; }
+    .new-task {
+      min-height: 40px;
+      margin: 0 11px 2px;
+      border-color: transparent;
+      background: transparent;
+      padding-inline: 10px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .new-task:hover { border-color: transparent; background: var(--surface); }
+    .primary-nav {
+      display: grid;
+      gap: 1px;
+      padding: 0 11px 8px;
+    }
+    .primary-nav button {
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 10px;
+      text-align: left;
+      font-size: 13px;
+    }
+    .primary-nav button:hover { background: var(--surface); color: var(--text); }
+    .primary-nav button[aria-current="page"] {
+      background: var(--surface);
+      color: var(--text);
+    }
+    .primary-nav button[aria-current="page"]::after {
+      width: 5px;
+      height: 5px;
+      margin-left: auto;
+      background: var(--signal-violet);
+      content: "";
+    }
+    .section-label {
+      margin: 21px 17px 7px;
+      color: var(--faint);
+      font: 500 12px var(--sans);
+      letter-spacing: 0;
+      text-transform: none;
+    }
+    .task-list { gap: 1px; padding-inline: 10px; }
+    .task-item {
+      min-height: 38px;
+      grid-template-columns: 18px minmax(0, 1fr);
+      gap: 9px;
+      border: 0;
+      border-radius: 8px;
+      padding: 5px 9px;
+      color: var(--muted);
+    }
+    .task-item:hover { background: var(--surface); }
+    .task-item[aria-current="page"] {
+      border: 0;
+      border-inline-start: 2px solid var(--signal-violet);
+      border-radius: 0 4px 4px 0;
+      background: var(--surface);
+    }
+    .task-copy strong { font-size: 12px; font-weight: 520; }
+    .task-copy small { color: var(--faint); font-size: 9px; }
+    .sidebar-footer {
+      min-height: 60px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      border-top-color: var(--line);
+      padding: 8px 13px;
+    }
+    .profile-button {
+      width: 100%;
+      min-height: 48px;
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr) 28px;
+      align-items: center;
+      gap: 9px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 6px;
+      text-align: left;
+    }
+    .profile-button:hover { background: var(--surface); color: var(--text); }
+    .profile-avatar {
+      width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      border: 1px solid var(--line-strong);
+      background: var(--surface-2);
+      color: var(--vanta-bone);
+      font: 600 9px var(--sans);
+    }
+    .profile-copy { min-width: 0; }
+    .profile-copy strong, .profile-copy small {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .profile-copy strong { color: var(--text); font-size: 11px; font-weight: 600; }
+    .profile-copy small { margin-top: 2px; color: var(--faint); font-size: 9px; }
+    .persona-caret {
+      display: grid;
+      place-items: center;
+      color: var(--faint);
+      font: 12px var(--mono);
+      transition: transform 120ms ease;
+    }
+    .profile-button[aria-expanded="true"] .persona-caret { transform: rotate(180deg); }
+    .persona-menu {
+      position: absolute;
+      z-index: 24;
+      right: 13px;
+      bottom: calc(100% + 6px);
+      left: 13px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--sidebar);
+      padding: 5px;
+      box-shadow: 0 -16px 40px rgb(0 0 0 / .36);
+    }
+    .persona-menu[hidden] { display: none; }
+    .persona-menu-label {
+      padding: 7px 9px 6px;
+      color: var(--faint);
+      font: 700 9px var(--mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .persona-option, .persona-menu-action {
+      width: 100%;
+      min-height: 44px;
+      display: grid;
+      align-items: center;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--muted);
+      text-align: left;
+    }
+    .persona-option {
+      grid-template-columns: 28px minmax(0, 1fr) 14px;
+      gap: 9px;
+      padding: 5px 8px;
+    }
+    .persona-option:hover, .persona-option:focus-visible,
+    .persona-menu-action:hover, .persona-menu-action:focus-visible {
+      background: var(--surface-2);
+      color: var(--text);
+    }
+    .persona-option:focus-visible, .persona-menu-action:focus-visible { outline: 0; }
+    html[data-input-modality="keyboard"] .persona-option:focus-visible,
+    html[data-input-modality="keyboard"] .persona-menu-action:focus-visible {
+      outline: 2px solid var(--signal-violet);
+      outline-offset: -2px;
+    }
+    .persona-option[aria-checked="true"] {
+      background: var(--surface);
+      color: var(--text);
+    }
+    .persona-option[aria-checked="true"]::after {
+      width: 6px;
+      height: 6px;
+      justify-self: center;
+      background: var(--signal-violet);
+      content: "";
+    }
+    .persona-option-copy { min-width: 0; }
+    .persona-option-copy strong, .persona-option-copy small { display: block; }
+    .persona-option-copy strong { font-size: 10px; font-weight: 600; }
+    .persona-option-copy small {
+      margin-top: 2px;
+      overflow: hidden;
+      color: var(--faint);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 9px;
+    }
+    .persona-menu-separator { height: 1px; margin: 5px 4px; background: var(--line); }
+    .persona-menu-action {
+      grid-template-columns: 18px minmax(0, 1fr);
+      gap: 8px;
+      padding: 0 9px;
+      font-size: 10px;
+    }
+
+    .main { background: var(--bg); }
+    .workspace-view {
+      min-width: 0;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 42px 34px 56px;
+      scrollbar-color: var(--line-strong) transparent;
+    }
+    .workspace-view[hidden] { display: none; }
+    .workspace-inner {
+      width: min(100%, 820px);
+      margin: 0 auto;
+    }
+    .workspace-heading {
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--line);
+    }
+    .workspace-eyebrow {
+      margin: 0 0 8px;
+      color: var(--faint);
+      font: 600 10px var(--mono);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .workspace-heading h1 {
+      margin: 0;
+      color: var(--text);
+      font-size: clamp(22px, 3vw, 32px);
+      font-weight: 620;
+      letter-spacing: -.035em;
+    }
+    .workspace-heading p {
+      max-width: 64ch;
+      margin: 9px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .workspace-section + .workspace-section { margin-top: 32px; }
+    .workspace-section h2 {
+      margin: 0 0 8px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 620;
+    }
+    .workspace-section > p {
+      margin: 0 0 13px;
+      color: var(--faint);
+      font-size: 11px;
+    }
+    .workspace-list {
+      border-top: 1px solid var(--line);
+    }
+    .workspace-row {
+      min-height: 58px;
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      padding: 8px 2px;
+      text-align: left;
+    }
+    button.workspace-row:hover {
+      background: var(--surface);
+      color: var(--text);
+      padding-inline: 10px;
+    }
+    .workspace-row-copy { min-width: 0; }
+    .workspace-row-copy strong,
+    .workspace-row-copy small {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .workspace-row-copy strong {
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 590;
+    }
+    .workspace-row-copy small {
+      margin-top: 3px;
+      color: var(--faint);
+      font-size: 10px;
+    }
+    .workspace-row-meta {
+      color: var(--faint);
+      font: 10px var(--mono);
+      white-space: nowrap;
+    }
+    .workspace-row-meta.ready { color: var(--text); }
+    .workspace-action {
+      min-height: 34px;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 11px;
+      font-size: 10px;
+    }
+    .workspace-action:hover { border-color: var(--signal-violet); color: var(--text); }
+    .transcript {
+      padding: 30px 34px 46px;
+      background: var(--bg);
+    }
+    .conversation { width: min(100%, 820px); }
+    .turn { margin-bottom: 36px; }
+    .turn-label { display: none; }
+    .user-bubble {
+      max-width: min(100%, 620px);
+      border: 0;
+      border-radius: 8px;
+      background: var(--surface);
+      padding: 10px 16px;
+      font-size: 14px;
+    }
+    .work-summary {
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin: 42px 0 24px;
+      border-bottom: 1px solid var(--line);
+      color: var(--faint);
+      font-size: 13px;
+    }
+    .answer { color: var(--text); font-size: 14px; line-height: 1.65; }
+    .answer h2 { font-size: 18px; }
+    .answer p, .answer li { color: var(--muted); }
+    .progress {
+      border-color: var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+
+    .composer-region {
+      border-top: 0;
+      background: linear-gradient(to top, var(--bg) 78%, rgb(5 5 7 / 0));
+      padding: 14px 28px 22px;
+    }
+    .composer-shell { width: min(100%, 820px); }
+    .composer {
+      border-color: var(--line-strong);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: 0 12px 38px rgba(16, 17, 24, .25);
+    }
+    .composer textarea {
+      min-height: 74px;
+      padding: 16px 18px 7px;
+      font-size: 14px;
+    }
+    .composer-actions { padding: 5px 10px 10px; }
+    .composer-actions .icon-button { width: 34px; height: 34px; }
+    .session-button {
+      min-height: 34px;
+      border-radius: 4px;
+      padding-inline: 8px;
+      font-size: 11px;
+    }
+    .send-button {
+      width: 36px;
+      height: 36px;
+      border-radius: 4px;
+      background: var(--signal-violet);
+      color: var(--vanta-bone);
+    }
+    .adaptive-footer {
+      min-height: 22px;
+      padding: 4px 12px 0;
+      color: var(--faint);
+    }
+
+    .drawer, dialog, .attach-menu, .toast {
+      background: var(--sidebar);
+      border-color: var(--line-strong);
+    }
+
+    @media (max-width: 1100px) {
+      :root { --sidebar-width: 286px; }
+      body { padding: 20px; }
+      .app { width: calc(100vw - 40px); height: calc(100dvh - 40px); }
+      .window-nav .history-control { display: none; }
+    }
+    @media (max-width: 680px) {
+      body { display: block; padding: 0; }
+      .app, .app.sidebar-closed {
+        width: 100vw;
+        height: 100dvh;
+        border: 0;
+        border-radius: 0;
+      }
+      .sidebar { background: var(--sidebar); }
+      .window-controls { background: var(--chrome); padding-inline: 7px; }
+      .window-nav { display: none; }
+      .taskbar { padding-left: 8px; }
+      .workspace-view { padding: 27px 16px 40px; }
+      .transcript { padding: 24px 14px 34px; }
+      .composer-region { padding: 8px 8px 10px; }
+      .composer { border-radius: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <svg class="sr-only" aria-hidden="true">
+    <symbol id="i-sidebar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M20 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="i-review" viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></symbol>
+    <symbol id="i-command" viewBox="0 0 24 24"><path d="M9 6V5a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3v14a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3z"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.4 1A8 8 0 0 0 15 6l-.3-2.5h-4L10.3 6a8 8 0 0 0-1.6 1L6.4 6 4.3 9.5l2 1.5a7 7 0 0 0 0 2l-2 1.5L6.4 18l2.3-1a8 8 0 0 0 1.6 1l.4 2.5h4L15 18a8 8 0 0 0 1.6-1l2.4 1 2-3.5-2-1.5a7 7 0 0 0 .1-1z"/></symbol>
+    <symbol id="i-paperclip" viewBox="0 0 24 24"><path d="m21 11-8.5 8.5a6 6 0 0 1-8.5-8.5l9-9a4 4 0 0 1 5.7 5.7l-9 9a2 2 0 0 1-2.8-2.8l8.4-8.4"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7M12 5v14"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-diff" viewBox="0 0 24 24"><path d="M8 3v18M4 7h8M6 17h4M17 6v6M14 9h6"/></symbol>
+    <symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l2-7 4 14 2-7h6"/></symbol>
+    <symbol id="i-model" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="3"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 20 6v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+    <symbol id="i-forward" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-plug" viewBox="0 0 24 24"><path d="M8 3v5M16 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4"/></symbol>
+  </svg>
+
+  <div class="app" id="app">
+    <header class="titlebar">
+      <div class="window-controls">
+        <span class="traffic" aria-hidden="true"><i></i><i></i><i></i></span>
+        <button class="icon-button" id="sidebarToggle" type="button" aria-label="Toggle task sidebar" aria-expanded="true">
+          <svg class="icon" aria-hidden="true"><use href="#i-sidebar"/></svg>
+        </button>
+        <div class="window-nav" aria-label="Task history">
+          <button class="icon-button history-control" type="button" aria-label="Previous task"><svg class="icon" aria-hidden="true"><use href="#i-back"/></svg></button>
+          <button class="icon-button history-control" type="button" aria-label="Next task"><svg class="icon" aria-hidden="true"><use href="#i-forward"/></svg></button>
+        </div>
+      </div>
+      <div class="taskbar">
+        <svg class="icon taskbar-project-icon" aria-hidden="true"><use href="#i-folder"/></svg>
+        <span class="taskbar-title" id="taskTitle">Simplify desktop interface</span>
+        <button class="icon-button title-more" type="button" aria-label="More task actions"><svg class="icon" aria-hidden="true"><use href="#i-more"/></svg></button>
+        <div class="taskbar-actions">
+          <button class="review-button" id="reviewButton" type="button" aria-controls="reviewDrawer" aria-expanded="false" aria-pressed="false">
+            <svg class="icon" aria-hidden="true"><use href="#i-review"/></svg>
+            <span class="label">Review</span>
+            <span class="count" aria-label="3 review items">3</span>
+          </button>
+          <button class="icon-button" id="commandButton" type="button" aria-label="Open command palette">
+            <svg class="icon" aria-hidden="true"><use href="#i-command"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <aside class="sidebar" id="sidebar" aria-label="Tasks and saved runs">
+      <div class="sidebar-product">
+        <button class="product-switcher" type="button">
+          <img class="product-mark" src="brand/assets/marks/operator-signal-violet.svg" alt="">
+          Vanta <span aria-hidden="true">⌄</span>
+        </button>
+        <button class="icon-button product-search" type="button" aria-label="Search tasks"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg></button>
+      </div>
+      <button class="new-task" id="newTaskButton" type="button">
+        <svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>
+        New task
+      </button>
+      <nav class="primary-nav" aria-label="Vanta">
+        <button type="button" data-primary="Runs"><svg class="icon" aria-hidden="true"><use href="#i-activity"/></svg>Runs</button>
+        <button type="button" data-primary="Connect"><svg class="icon" aria-hidden="true"><use href="#i-plug"/></svg>Connect</button>
+        <button type="button" data-primary="Scheduled"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>Scheduled</button>
+        <button type="button" data-primary="Plugins"><svg class="icon" aria-hidden="true"><use href="#i-command"/></svg>Plugins</button>
+      </nav>
+
+      <nav aria-label="Tasks">
+        <div class="section-label"><span>Pinned</span><span>3</span></div>
+        <div class="task-list">
+          <button class="task-item" type="button" data-title="Simplify desktop interface" aria-current="page">
+            <svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>
+            <span class="task-copy"><strong>Simplify desktop interface</strong><small>Ready for review</small></span>
+          </button>
+          <button class="task-item" type="button" data-title="Fix folder attachments">
+            <svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>
+            <span class="task-copy"><strong>Fix folder attachments</strong><small>Completed · 24m</small></span>
+          </button>
+          <button class="task-item" type="button" data-title="Reusable run library">
+            <svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>
+            <span class="task-copy"><strong>Reusable run library</strong><small>Paused · yesterday</small></span>
+          </button>
+        </div>
+      </nav>
+
+      <nav aria-label="Saved runs">
+        <div class="section-label"><span>Saved runs</span><span>2</span></div>
+        <div class="task-list">
+          <button class="task-item" type="button" data-title="Release verification">
+            <svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>
+            <span class="task-copy"><strong>Release verification</strong><small>Reusable run</small></span>
+          </button>
+          <button class="task-item" type="button" data-title="Job search validation">
+            <svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>
+            <span class="task-copy"><strong>Job search validation</strong><small>Reusable run</small></span>
+          </button>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="persona-menu" id="personaMenu" role="menu" aria-label="Choose persona" hidden>
+          <div class="persona-menu-label">Personas</div>
+          <button class="persona-option" type="button" role="menuitemradio" aria-checked="true" tabindex="-1" data-persona="personal">
+            <span class="profile-avatar" aria-hidden="true">JP</span>
+            <span class="persona-option-copy"><strong>Jason</strong><small>Personal defaults</small></span>
+          </button>
+          <button class="persona-option" type="button" role="menuitemradio" aria-checked="false" tabindex="-1" data-persona="builder">
+            <span class="profile-avatar" aria-hidden="true">PB</span>
+            <span class="persona-option-copy"><strong>Product builder</strong><small>Product, design, and release defaults</small></span>
+          </button>
+          <button class="persona-option" type="button" role="menuitemradio" aria-checked="false" tabindex="-1" data-persona="research">
+            <span class="profile-avatar" aria-hidden="true">R</span>
+            <span class="persona-option-copy"><strong>Research</strong><small>Evidence-first investigation defaults</small></span>
+          </button>
+          <div class="persona-menu-separator" role="separator"></div>
+          <button class="persona-menu-action" type="button" role="menuitem" tabindex="-1" data-persona-action="manage">
+            <svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg><span>Manage personas</span>
+          </button>
+          <button class="persona-menu-action" type="button" role="menuitem" tabindex="-1" data-persona-action="account">
+            <svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg><span>Account settings</span>
+          </button>
+        </div>
+        <button class="profile-button" type="button" id="personaButton" aria-haspopup="menu" aria-expanded="false" aria-controls="personaMenu">
+          <span class="profile-avatar" id="personaAvatar" aria-hidden="true">JP</span>
+          <span class="profile-copy"><strong id="personaName">Jason</strong><small id="personaKind">Personal persona</small></span>
+          <span class="persona-caret" aria-hidden="true">⌃</span>
+        </button>
+      </div>
+    </aside>
+
+    <main class="main" id="main">
+      <section class="workspace-view" id="workspaceView" tabindex="-1" aria-live="polite" hidden></section>
+      <section class="transcript" id="transcript" aria-label="Conversation">
+        <div class="conversation" id="conversation">
+          <article class="turn">
+            <div class="turn-label"><span class="avatar" aria-hidden="true">JP</span><span>You</span></div>
+            <div class="user-bubble">The desktop app feels overblown. Make it calmer and more focused, like Codex.</div>
+          </article>
+
+          <div class="work-summary">Worked for 3m 14s <span aria-hidden="true">›</span></div>
+
+          <article class="turn">
+            <div class="turn-label"><span class="avatar" aria-hidden="true">V</span><span>Vanta</span></div>
+            <div class="answer">
+              <h2>The active task is now the interface.</h2>
+              <p>Vanta keeps tasks, saved runs, attachments, operating modes, and review tools without showing all of them at once.</p>
+              <ul>
+                <li>The transcript and composer own the main canvas.</li>
+                <li>Files, changes, and tool activity share one <button class="inline-link" type="button" data-open-review="files">Review drawer</button>.</li>
+                <li>Instructions replace passive status only when you need to act.</li>
+              </ul>
+              <details class="progress">
+                <summary>Implementation complete <span>3 of 3</span></summary>
+                <div class="progress-body">
+                  <div class="progress-row"><i>✓</i><span>Remove duplicated navigation and status</span><small>done</small></div>
+                  <div class="progress-row"><i>✓</i><span>Combine model and operating mode</span><small>done</small></div>
+                  <div class="progress-row"><i>✓</i><span>Keep review and approvals contextual</span><small>done</small></div>
+                </div>
+              </details>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="composer-region" aria-label="Message composer">
+        <div class="composer-shell">
+          <div class="attachment-list" id="attachmentList" aria-label="Attachments"></div>
+          <div class="run-progress-pill" id="runProgress" role="status" aria-live="polite" hidden>
+            <span class="run-ring" aria-hidden="true"></span>
+            <span class="run-progress-copy" id="runProgressCopy">Step 1 / 3 · Simplify shell</span>
+            <span class="run-diff" id="runDiff" hidden><span class="add">+43</span><span class="remove">−10</span></span>
+          </div>
+          <section class="prompt-queue" id="promptQueue" aria-labelledby="queueTitle" hidden>
+            <header class="queue-header">
+              <h2 id="queueTitle">Queue</h2>
+              <span class="queue-count" id="queueCount">0 next</span>
+              <span class="queue-help" id="queueHelp">Runs after the current task</span>
+            </header>
+            <div class="queue-paused" id="queuePaused" role="status" hidden>
+              <span>Queue paused. Your messages are safe.</span>
+              <button class="queue-resume" id="resumeQueue" type="button">Resume queue</button>
+            </div>
+            <div id="queueList"></div>
+          </section>
+          <div class="sr-only" id="queueAnnouncement" aria-live="polite"></div>
+          <form class="composer" id="composer">
+            <label class="sr-only" for="prompt">Message Vanta</label>
+            <textarea id="prompt" rows="2" placeholder="Ask Vanta to do something…"></textarea>
+            <div class="composer-actions">
+              <button class="icon-button" id="attachButton" type="button" aria-label="Attach files or folders" aria-expanded="false">
+                <svg class="icon" aria-hidden="true"><use href="#i-paperclip"/></svg>
+              </button>
+              <div class="attach-menu" id="attachMenu" hidden>
+                <button id="chooseFiles" type="button"><svg class="icon" aria-hidden="true"><use href="#i-file"/></svg>Choose files</button>
+                <button id="chooseFolder" type="button"><svg class="icon" aria-hidden="true"><use href="#i-folder"/></svg>Choose folder</button>
+              </div>
+              <input class="sr-only" id="fileInput" type="file" multiple aria-label="Choose files">
+              <input class="sr-only" id="folderInput" type="file" webkitdirectory directory multiple aria-label="Choose folder">
+
+              <button class="session-button" id="sessionButton" type="button" aria-label="Session model Codex, operating mode Auto">
+                <svg class="icon" aria-hidden="true"><use href="#i-model"/></svg>
+                <span class="model-name" id="modelLabel">Codex</span>
+                <span aria-hidden="true">·</span>
+                <span class="mode-dot" aria-hidden="true"></span>
+                <strong id="modeLabel">Auto</strong>
+              </button>
+
+              <button class="follow-up-mode" id="followUpMode" type="button" aria-pressed="false" hidden>Queue next</button>
+
+              <button class="send-button" id="sendButton" type="submit" aria-label="Send message" disabled>
+                <svg class="icon" aria-hidden="true"><use href="#i-send"/></svg>
+              </button>
+            </div>
+          </form>
+          <div class="adaptive-footer" id="adaptiveFooter" aria-live="polite">
+            <span id="footerPrimary">Auto · Codex</span>
+            <span class="right-context" id="footerContext">Vanta · local project</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <button class="scrim" id="scrim" type="button" aria-label="Close open panel" hidden></button>
+
+    <aside class="drawer" id="reviewDrawer" role="dialog" aria-modal="true" aria-labelledby="reviewTitle" aria-hidden="true">
+    <header class="drawer-head">
+      <strong id="reviewTitle">Review</strong>
+      <button class="icon-button" id="closeReview" type="button" aria-label="Close review">
+        <svg class="icon" aria-hidden="true"><use href="#i-close"/></svg>
+      </button>
+    </header>
+    <div class="drawer-tabs" role="tablist" aria-label="Review views">
+      <button id="tab-files" type="button" role="tab" aria-controls="panel-files" aria-selected="true" tabindex="0" data-panel="files">Files</button>
+      <button id="tab-diff" type="button" role="tab" aria-controls="panel-diff" aria-selected="false" tabindex="-1" data-panel="diff">Diff</button>
+      <button id="tab-activity" type="button" role="tab" aria-controls="panel-activity" aria-selected="false" tabindex="-1" data-panel="activity">Activity</button>
+    </div>
+    <div class="drawer-body">
+      <section class="drawer-panel" id="panel-files" role="tabpanel" aria-labelledby="tab-files">
+        <p class="drawer-intro">Only files related to this task.</p>
+        <div class="file-row"><svg class="icon" aria-hidden="true"><use href="#i-file"/></svg><span>vanta-desktop-demo.html</span><small>M</small></div>
+        <div class="file-row"><svg class="icon" aria-hidden="true"><use href="#i-file"/></svg><span>vanta-desktop-streamlining-report.html</span><small>A</small></div>
+        <div class="file-row"><svg class="icon" aria-hidden="true"><use href="#i-file"/></svg><span>desktop-app/src/styles.css</span><small>M</small></div>
+      </section>
+      <section class="drawer-panel" id="panel-diff" role="tabpanel" aria-labelledby="tab-diff" hidden>
+        <p class="drawer-intro">The readable change summary. Full detail stays available here.</p>
+        <div class="diff" aria-label="Example changes">
+          <div class="remove">- permanent Files, Diff, and Activity buttons</div>
+          <div class="remove">- repeated Ready and shortcut status</div>
+          <div class="add">+ one contextual Review drawer</div>
+          <div class="add">+ one adaptive composer footer</div>
+        </div>
+      </section>
+      <section class="drawer-panel" id="panel-activity" role="tabpanel" aria-labelledby="tab-activity" hidden>
+        <p class="drawer-intro">A concise receipt, not a second transcript.</p>
+        <div class="activity-row"><svg class="icon" aria-hidden="true"><use href="#i-file"/></svg><span>Read desktop shell</span><small>12:41</small></div>
+        <div class="activity-row"><svg class="icon" aria-hidden="true"><use href="#i-diff"/></svg><span>Reduced duplicate controls</span><small>12:43</small></div>
+        <div class="activity-row"><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg><span>Validated interaction states</span><small>12:45</small></div>
+      </section>
+    </div>
+    </aside>
+  </div>
+
+  <dialog id="commandDialog" aria-labelledby="commandTitle">
+    <div class="dialog-head">
+      <strong id="commandTitle">Commands</strong>
+      <button class="icon-button" type="button" data-close-dialog="commandDialog" aria-label="Close commands">
+        <svg class="icon" aria-hidden="true"><use href="#i-close"/></svg>
+      </button>
+    </div>
+    <label class="sr-only" for="commandSearch">Search commands</label>
+    <input class="dialog-search" id="commandSearch" type="search" placeholder="Search commands…">
+    <div class="command-list" id="commandList">
+      <button class="command" type="button" data-command="new"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg><span>New task</span><kbd>⌘ N</kbd></button>
+      <button class="command" type="button" data-command="review"><svg class="icon" aria-hidden="true"><use href="#i-review"/></svg><span>Open Review</span><kbd>⌘ ⇧ R</kbd></button>
+      <button class="command" type="button" data-command="mode"><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg><span>Cycle operating mode</span><kbd>⇧ Tab</kbd></button>
+      <button class="command" type="button" data-command="approval"><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg><span>Preview inline approval</span><kbd></kbd></button>
+      <button class="command" type="button" data-command="sidebar"><svg class="icon" aria-hidden="true"><use href="#i-sidebar"/></svg><span>Toggle task sidebar</span><kbd></kbd></button>
+      <button class="command" type="button" data-command="runs"><svg class="icon" aria-hidden="true"><use href="#i-activity"/></svg><span>Open Runs</span><kbd></kbd></button>
+      <button class="command" type="button" data-command="connect"><svg class="icon" aria-hidden="true"><use href="#i-plug"/></svg><span>Open Connect</span><kbd></kbd></button>
+      <button class="command" type="button" data-command="scheduled"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg><span>Open Scheduled</span><kbd></kbd></button>
+      <button class="command" type="button" data-command="plugins"><svg class="icon" aria-hidden="true"><use href="#i-command"/></svg><span>Open Plugins</span><kbd></kbd></button>
+    </div>
+  </dialog>
+
+  <dialog id="sessionDialog" aria-labelledby="sessionTitle">
+    <div class="dialog-head">
+      <strong id="sessionTitle">Session controls</strong>
+      <button class="icon-button" type="button" data-close-dialog="sessionDialog" aria-label="Close session controls">
+        <svg class="icon" aria-hidden="true"><use href="#i-close"/></svg>
+      </button>
+    </div>
+    <div class="session-dialog-body">
+      <div class="control-group">
+        <div class="control-label">Operating mode</div>
+        <div class="mode-grid" id="modeGrid">
+          <button class="mode-option" type="button" data-mode="Auto" aria-pressed="true"><strong>Auto</strong><small>Work independently inside current permissions</small></button>
+          <button class="mode-option" type="button" data-mode="Accept edits" aria-pressed="false"><strong>Accept edits</strong><small>Automatically accept scoped file changes</small></button>
+          <button class="mode-option" type="button" data-mode="Plan" aria-pressed="false"><strong>Plan</strong><small>Propose the approach before execution</small></button>
+          <button class="mode-option" type="button" data-mode="Manual" aria-pressed="false"><strong>Manual</strong><small>Ask before each consequential action</small></button>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="modelSelect">Model</label>
+        <select class="model-select" id="modelSelect">
+          <option>Codex</option>
+          <option>Claude</option>
+          <option>Gemini</option>
+          <option>Local model</option>
+        </select>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+    const icon = (name) => `<svg class="icon" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+
+    const app = $("#app");
+    const sidebarToggle = $("#sidebarToggle");
+    const reviewButton = $("#reviewButton");
+    const reviewDrawer = $("#reviewDrawer");
+    const closeReviewButton = $("#closeReview");
+    const scrim = $("#scrim");
+    const prompt = $("#prompt");
+    const composer = $("#composer");
+    const sendButton = $("#sendButton");
+    const adaptiveFooter = $("#adaptiveFooter");
+    const footerPrimary = $("#footerPrimary");
+    const footerContext = $("#footerContext");
+    const attachmentList = $("#attachmentList");
+    const runProgress = $("#runProgress");
+    const runProgressCopy = $("#runProgressCopy");
+    const runDiff = $("#runDiff");
+    const promptQueue = $("#promptQueue");
+    const queuePaused = $("#queuePaused");
+    const resumeQueueButton = $("#resumeQueue");
+    const queueCount = $("#queueCount");
+    const queueHelp = $("#queueHelp");
+    const queueList = $("#queueList");
+    const queueAnnouncement = $("#queueAnnouncement");
+    const followUpMode = $("#followUpMode");
+    const attachButton = $("#attachButton");
+    const attachMenu = $("#attachMenu");
+    const fileInput = $("#fileInput");
+    const folderInput = $("#folderInput");
+    const commandDialog = $("#commandDialog");
+    const sessionDialog = $("#sessionDialog");
+    const commandSearch = $("#commandSearch");
+    const conversation = $("#conversation");
+    const transcript = $("#transcript");
+    const main = $("#main");
+    const workspaceView = $("#workspaceView");
+    const composerRegion = $(".composer-region");
+    const personaButton = $("#personaButton");
+    const personaMenu = $("#personaMenu");
+    const personaAvatar = $("#personaAvatar");
+    const personaName = $("#personaName");
+    const personaKind = $("#personaKind");
+
+    document.documentElement.dataset.inputModality = "pointer";
+    document.addEventListener("pointerdown", () => {
+      document.documentElement.dataset.inputModality = "pointer";
+    }, true);
+    document.addEventListener("keydown", () => {
+      document.documentElement.dataset.inputModality = "keyboard";
+    }, true);
+
+    const modes = ["Auto", "Accept edits", "Plan", "Manual"];
+    const personas = {
+      personal: { name: "Jason", kind: "Personal persona", avatar: "JP" },
+      builder: { name: "Product builder", kind: "Builder persona", avatar: "PB" },
+      research: { name: "Research", kind: "Research persona", avatar: "R" }
+    };
+    const taskTemplates = {
+      "Fix folder attachments": {
+        prompt: "A dragged folder should appear as one folder chip instead of a list of every file.",
+        duration: "Worked for 2m 41s",
+        heading: "Folder drops now stay compact.",
+        body: "Vanta keeps the directory as one structured attachment. Individual files remain inside the folder boundary and are not expanded into the composer.",
+        progress: ["Detect directory drops", "Render one folder chip", "Keep removal keyboard-accessible"]
+      },
+      "Reusable run library": {
+        prompt: "Let me save, inspect, fork, and safely replay useful runs.",
+        duration: "Paused yesterday",
+        heading: "The reusable run contract is preserved.",
+        body: "Saved runs keep inputs, lineage, redacted activity, and output. Replay starts a fresh task and rechecks current files and permissions.",
+        progress: ["Capture structured inputs", "Inspect lineage and output", "Revalidate before replay"]
+      },
+      "Release verification": {
+        prompt: "Verify the packaged desktop app before release.",
+        duration: "Saved run · 18m",
+        heading: "Release verification is ready to reuse.",
+        body: "This saved run records the packaging, signature, launch, and critical desktop interaction checks without carrying old approvals into a new execution.",
+        progress: ["Build package", "Verify signature", "Launch and exercise critical flow"]
+      },
+      "Job search validation": {
+        prompt: "Validate the current job-search results and remove stale leads.",
+        duration: "Saved run · 11m",
+        heading: "The validation run can be forked with fresh inputs.",
+        body: "The prompt and filters are reusable. Results and prior tool calls remain evidence only; a new run checks dates and sources again.",
+        progress: ["Load current criteria", "Check freshness", "Rank usable leads"]
+      }
+    };
+    const workspacePages = {
+      runs: {
+        eyebrow: "Reusable work",
+        title: "Runs",
+        description: "Inspect recent work or start from a result that already proved useful.",
+        content: `
+          <section class="workspace-section">
+            <h2>Recent</h2>
+            <p>One row per run. Details stay behind Review.</p>
+            <div class="workspace-list">
+              <button class="workspace-row" type="button" data-open-task="Simplify desktop interface">${icon("activity")}<span class="workspace-row-copy"><strong>Simplify desktop interface</strong><small>3 files changed · ready for review</small></span><span class="workspace-row-meta ready">complete</span></button>
+              <button class="workspace-row" type="button" data-open-task="Fix folder attachments">${icon("folder")}<span class="workspace-row-copy"><strong>Fix folder attachments</strong><small>Folder drop and compact chip flow</small></span><span class="workspace-row-meta">24m</span></button>
+              <button class="workspace-row" type="button" data-open-task="Reusable run library">${icon("review")}<span class="workspace-row-copy"><strong>Reusable run library</strong><small>Saved with incomplete provenance labels</small></span><span class="workspace-row-meta">paused</span></button>
+            </div>
+          </section>`
+      },
+      connect: {
+        eyebrow: "Local connections",
+        title: "Connect",
+        description: "Providers, tools, and channels in one quiet inventory. Configuration opens only when selected.",
+        content: `
+          <section class="workspace-section">
+            <h2>Runtime</h2>
+            <div class="workspace-list">
+              <div class="workspace-row">${icon("model")}<span class="workspace-row-copy"><strong>Codex</strong><small>Current model provider</small></span><span class="workspace-row-meta ready">ready</span></div>
+              <div class="workspace-row">${icon("command")}<span class="workspace-row-copy"><strong>Local tools</strong><small>Project-scoped execution</small></span><span class="workspace-row-meta ready">146 tools</span></div>
+            </div>
+          </section>
+          <section class="workspace-section">
+            <h2>Channels</h2>
+            <div class="workspace-list">
+              <button class="workspace-row" type="button" data-workspace-action="test-buzz">${icon("plug")}<span class="workspace-row-copy"><strong>Buzz</strong><small>General · encrypted messaging gateway</small></span><span class="workspace-row-meta ready">connected</span></button>
+              <button class="workspace-row" type="button" data-workspace-action="configure-telegram">${icon("plug")}<span class="workspace-row-copy"><strong>Telegram</strong><small>Optional operator channel</small></span><span class="workspace-row-meta">configure</span></button>
+            </div>
+          </section>`
+      },
+      scheduled: {
+        eyebrow: "Background work",
+        title: "Scheduled",
+        description: "Only recurring tasks live here. One-off follow-ups stay in the active task queue.",
+        content: `
+          <section class="workspace-section">
+            <h2>Schedules</h2>
+            <div class="workspace-list">
+              <button class="workspace-row" type="button" data-workspace-action="toggle-job-search">${icon("clock")}<span class="workspace-row-copy"><strong>Fresh job search</strong><small>Every weekday · verifies dates before ranking</small></span><span class="workspace-row-meta ready">on</span></button>
+              <button class="workspace-row" type="button" data-workspace-action="toggle-release-watch">${icon("clock")}<span class="workspace-row-copy"><strong>Release watch</strong><small>Runs only when a release candidate exists</small></span><span class="workspace-row-meta">off</span></button>
+            </div>
+          </section>`
+      },
+      plugins: {
+        eyebrow: "Capabilities",
+        title: "Plugins",
+        description: "Add a capability when a task needs it. Installed plugins remain secondary to the conversation.",
+        content: `
+          <section class="workspace-section">
+            <h2>Installed</h2>
+            <div class="workspace-list">
+              <div class="workspace-row">${icon("command")}<span class="workspace-row-copy"><strong>GitHub</strong><small>Repositories, issues, pull requests, and releases</small></span><span class="workspace-row-meta ready">enabled</span></div>
+              <div class="workspace-row">${icon("command")}<span class="workspace-row-copy"><strong>Browser</strong><small>Read and interact with the web when a task requires it</small></span><span class="workspace-row-meta ready">enabled</span></div>
+              <button class="workspace-row" type="button" data-workspace-action="browse-plugins">${icon("plus")}<span class="workspace-row-copy"><strong>Find another plugin</strong><small>Open the curated plugin catalog</small></span><span class="workspace-row-meta">browse</span></button>
+            </div>
+          </section>`
+      },
+      personas: {
+        eyebrow: "Working defaults",
+        title: "Personas",
+        description: "Personas change defaults and working context; they are not separate accounts.",
+        content: `
+          <section class="workspace-section">
+            <h2>Choose a persona</h2>
+            <div class="workspace-list">
+              <button class="workspace-row" type="button" data-select-persona="personal">${icon("chat")}<span class="workspace-row-copy"><strong>Jason</strong><small>Personal defaults</small></span><span class="workspace-row-meta">personal</span></button>
+              <button class="workspace-row" type="button" data-select-persona="builder">${icon("review")}<span class="workspace-row-copy"><strong>Product builder</strong><small>Product, design, and release defaults</small></span><span class="workspace-row-meta">builder</span></button>
+              <button class="workspace-row" type="button" data-select-persona="research">${icon("search")}<span class="workspace-row-copy"><strong>Research</strong><small>Evidence-first investigation defaults</small></span><span class="workspace-row-meta">research</span></button>
+            </div>
+          </section>`
+      },
+      settings: {
+        eyebrow: "Account",
+        title: "Settings",
+        description: "Account settings stay separate from task personas and project permissions.",
+        content: `
+          <section class="workspace-section">
+            <h2>Session</h2>
+            <div class="workspace-list">
+              <button class="workspace-row" type="button" data-workspace-action="session-controls">${icon("model")}<span class="workspace-row-copy"><strong>Model and operating mode</strong><small>Change this task without changing every persona</small></span><span class="workspace-row-meta">open</span></button>
+              <div class="workspace-row">${icon("shield")}<span class="workspace-row-copy"><strong>Current permission policy</strong><small>Auto inside the configured project boundary</small></span><span class="workspace-row-meta ready">scoped</span></div>
+            </div>
+          </section>`
+      }
+    };
+    const UI_STORAGE_KEY = "vanta.desktop-demo.ui.v1";
+    const restoredUi = loadUiState();
+    const QUEUE_STORAGE_KEY = "vanta.desktop-demo.queue.v1";
+    const restoredQueue = loadQueueState();
+    const attachments = new Map();
+    const queuedPrompts = restoredQueue.items;
+    const taskSnapshots = new Map([["Simplify desktop interface", conversation.innerHTML]]);
+    let activeMode = modes.includes(restoredUi.mode) ? restoredUi.mode : "Auto";
+    let activeModel = ["Codex", "Claude", "Gemini", "Local model"].includes(restoredUi.model) ? restoredUi.model : "Codex";
+    let activePrompt = "";
+    let running = false;
+    let pendingApproval = false;
+    let footerOverride = "";
+    let footerTimer = 0;
+    let reviewReturnFocus = null;
+    let dragDepth = 0;
+    let runTimer = 0;
+    let runStepTimer = 0;
+    let runStep = 0;
+    let queueSequence = restoredQueue.sequence;
+    let queueingEnabled = restoredQueue.queueingEnabled;
+    let queueInterrupted = restoredQueue.interrupted;
+    let draggedQueueId = null;
+    let queueMenuReturnFocus = null;
+    let activePersonaId = personas[restoredUi.persona] ? restoredUi.persona : "personal";
+    let activeSurface = { kind: "task", id: "Simplify desktop interface" };
+    let navigationHistory = [];
+    let navigationIndex = -1;
+
+    function escapeHtml(value) {
+      return value.replace(/[&<>"']/g, (character) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#39;"
+      })[character]);
+    }
+
+    function loadUiState() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(UI_STORAGE_KEY) || "null");
+        if (parsed?.version !== 1) throw new Error("invalid UI state");
+        return {
+          mode: typeof parsed.mode === "string" ? parsed.mode : "",
+          model: typeof parsed.model === "string" ? parsed.model : "",
+          persona: typeof parsed.persona === "string" ? parsed.persona : "",
+          sidebarClosed: parsed.sidebarClosed === true,
+          surface: parsed.surface?.kind === "primary" && typeof parsed.surface.id === "string"
+            ? { kind: "primary", id: parsed.surface.id }
+            : { kind: "task", id: typeof parsed.surface?.id === "string" ? parsed.surface.id : "Simplify desktop interface" }
+        };
+      } catch (_) {
+        return {
+          mode: "Auto",
+          model: "Codex",
+          persona: "personal",
+          sidebarClosed: false,
+          surface: { kind: "task", id: "Simplify desktop interface" }
+        };
+      }
+    }
+
+    function persistUiState() {
+      try {
+        localStorage.setItem(UI_STORAGE_KEY, JSON.stringify({
+          version: 1,
+          mode: activeMode,
+          model: activeModel,
+          persona: activePersonaId,
+          sidebarClosed: app.classList.contains("sidebar-closed"),
+          surface: activeSurface
+        }));
+      } catch (_) {
+        // The standalone app remains usable when browser storage is unavailable.
+      }
+    }
+
+    function taskMarkup(title) {
+      const template = taskTemplates[title];
+      if (!template) return "";
+      const persona = personas[activePersonaId];
+      const progress = template.progress.map((label) => `<div class="progress-row"><i>✓</i><span>${escapeHtml(label)}</span><small>done</small></div>`).join("");
+      return `
+        <article class="turn">
+          <div class="turn-label"><span class="avatar" aria-hidden="true">${escapeHtml(persona.avatar)}</span><span>You</span></div>
+          <div class="user-bubble">${escapeHtml(template.prompt)}</div>
+        </article>
+        <div class="work-summary">${escapeHtml(template.duration)} <span aria-hidden="true">›</span></div>
+        <article class="turn">
+          <div class="turn-label"><span class="avatar" aria-hidden="true">V</span><span>Vanta</span></div>
+          <div class="answer">
+            <h2>${escapeHtml(template.heading)}</h2>
+            <p>${escapeHtml(template.body)}</p>
+            <details class="progress">
+              <summary>Run summary <span>${template.progress.length} of ${template.progress.length}</span></summary>
+              <div class="progress-body">${progress}</div>
+            </details>
+          </div>
+        </article>`;
+    }
+
+    function renderWorkspacePage(id) {
+      const page = workspacePages[id];
+      if (!page) return;
+      workspaceView.innerHTML = `
+        <div class="workspace-inner">
+          <header class="workspace-heading">
+            <p class="workspace-eyebrow">${escapeHtml(page.eyebrow)}</p>
+            <h1>${escapeHtml(page.title)}</h1>
+            <p>${escapeHtml(page.description)}</p>
+          </header>
+          ${page.content}
+        </div>`;
+      workspaceView.querySelectorAll("[data-open-task]").forEach((button) => {
+        button.addEventListener("click", () => navigateToSurface("task", button.dataset.openTask));
+      });
+      workspaceView.querySelectorAll("[data-select-persona]").forEach((button) => {
+        button.addEventListener("click", () => {
+          selectPersona(button.dataset.selectPersona, false);
+          renderWorkspacePage("personas");
+        });
+      });
+      workspaceView.querySelectorAll("[data-workspace-action]").forEach((button) => {
+        button.addEventListener("click", () => executeWorkspaceAction(button));
+      });
+    }
+
+    function executeWorkspaceAction(button) {
+      const action = button.dataset.workspaceAction;
+      if (action === "session-controls") {
+        sessionDialog.showModal();
+        return;
+      }
+      if (action === "test-buzz") {
+        $(".workspace-row-meta", button).textContent = "verified";
+        showToast("Buzz connection verified");
+        return;
+      }
+      if (action === "configure-telegram") {
+        $(".workspace-row-meta", button).textContent = "ready to configure";
+        showToast("Telegram setup prepared");
+        return;
+      }
+      if (action === "toggle-job-search" || action === "toggle-release-watch") {
+        const state = $(".workspace-row-meta", button);
+        const enabled = state.textContent.trim() !== "on";
+        state.textContent = enabled ? "on" : "off";
+        state.classList.toggle("ready", enabled);
+        showToast(`${$(".workspace-row-copy strong", button).textContent} ${enabled ? "enabled" : "paused"}`);
+        return;
+      }
+      if (action === "browse-plugins") showToast("Plugin catalog ready to open");
+    }
+
+    function saveActiveTaskSnapshot() {
+      if (activeSurface.kind === "task") taskSnapshots.set(activeSurface.id, conversation.innerHTML);
+    }
+
+    function updateHistoryControls() {
+      const controls = $$(".history-control");
+      controls[0].disabled = navigationIndex <= 0;
+      controls[1].disabled = navigationIndex < 0 || navigationIndex >= navigationHistory.length - 1;
+    }
+
+    function pushNavigation(surface) {
+      const current = navigationHistory[navigationIndex];
+      if (current?.kind === surface.kind && current?.id === surface.id) return;
+      navigationHistory = navigationHistory.slice(0, navigationIndex + 1);
+      navigationHistory.push({ ...surface });
+      navigationIndex = navigationHistory.length - 1;
+      updateHistoryControls();
+    }
+
+    function navigateHistory(offset) {
+      const next = navigationIndex + offset;
+      if (next < 0 || next >= navigationHistory.length) return;
+      navigationIndex = next;
+      navigateToSurface(navigationHistory[next].kind, navigationHistory[next].id, false);
+      updateHistoryControls();
+    }
+
+    function navigateToSurface(kind, id, addToHistory = true) {
+      if (kind === "primary" && !workspacePages[id]) return;
+      saveActiveTaskSnapshot();
+      activeSurface = { kind, id };
+      closeReview(false);
+      closePersonaMenu();
+      $$(".task-item").forEach((button) => {
+        if (kind === "task" && button.dataset.title === id) button.setAttribute("aria-current", "page");
+        else button.removeAttribute("aria-current");
+      });
+      $$("[data-primary]").forEach((button) => {
+        if (kind === "primary" && button.dataset.primary.toLowerCase() === id) button.setAttribute("aria-current", "page");
+        else button.removeAttribute("aria-current");
+      });
+
+      if (kind === "task") {
+        workspaceView.hidden = true;
+        transcript.hidden = false;
+        composerRegion.hidden = false;
+        reviewButton.hidden = false;
+        conversation.innerHTML = taskSnapshots.get(id) ?? taskMarkup(id);
+        taskSnapshots.set(id, conversation.innerHTML);
+        wireInlineReviewLinks(conversation);
+        $("#taskTitle").textContent = id;
+        window.requestAnimationFrame(() => { transcript.scrollTop = transcript.scrollHeight; });
+      } else {
+        transcript.hidden = true;
+        composerRegion.hidden = true;
+        reviewButton.hidden = true;
+        workspaceView.hidden = false;
+        renderWorkspacePage(id);
+        $("#taskTitle").textContent = workspacePages[id].title;
+        workspaceView.scrollTop = 0;
+        workspaceView.focus({ preventScroll: true });
+      }
+
+      if (addToHistory) pushNavigation(activeSurface);
+      persistUiState();
+      if (window.innerWidth <= 680) {
+        app.classList.remove("mobile-sidebar-open");
+        scrim.hidden = true;
+        sidebarToggle.setAttribute("aria-expanded", "false");
+      }
+    }
+
+    function loadQueueState() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(QUEUE_STORAGE_KEY) || "null");
+        if (parsed?.version !== 1 || !Array.isArray(parsed.items)) throw new Error("invalid queue state");
+        const items = parsed.items.slice(0, 25).flatMap((item) => {
+          const id = Number(item?.id);
+          const text = typeof item?.text === "string" ? item.text.trim().slice(0, 5000) : "";
+          if (!Number.isSafeInteger(id) || id < 1 || !text) return [];
+          return [{
+            id,
+            text,
+            createdAt: Number.isFinite(item.createdAt) ? item.createdAt : Date.now(),
+            pausedReason: typeof item.pausedReason === "string" ? item.pausedReason.slice(0, 500) : ""
+          }];
+        });
+        return {
+          items,
+          sequence: Math.max(0, ...items.map((item) => item.id)),
+          queueingEnabled: parsed.queueingEnabled !== false,
+          // A reload cannot restore the active task, so recovered messages pause
+          // until the operator explicitly resumes them.
+          interrupted: items.length > 0
+        };
+      } catch (_) {
+        return { items: [], sequence: 0, queueingEnabled: true, interrupted: false };
+      }
+    }
+
+    function persistQueueState() {
+      try {
+        localStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify({
+          version: 1,
+          queueingEnabled,
+          interrupted: queueInterrupted,
+          items: queuedPrompts.map(({ id, text, createdAt, pausedReason }) => ({ id, text, createdAt, pausedReason }))
+        }));
+      } catch (_) {
+        // The prototype remains usable when local storage is unavailable.
+      }
+    }
+
+    function showToast(message, actionLabel = "", action = null, duration = 2600) {
+      const toast = $("#toast");
+      toast.replaceChildren();
+      const copy = document.createElement("span");
+      copy.textContent = message;
+      toast.append(copy);
+      if (actionLabel && action) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = actionLabel;
+        button.addEventListener("click", () => {
+          window.clearTimeout(showToast.timer);
+          toast.classList.remove("show");
+          action();
+        });
+        toast.append(button);
+        duration = Math.max(duration, 6000);
+      }
+      toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => toast.classList.remove("show"), duration);
+    }
+
+    function setFooterOverride(message, duration = 1800) {
+      footerOverride = message;
+      window.clearTimeout(footerTimer);
+      renderFooter();
+      footerTimer = window.setTimeout(() => {
+        footerOverride = "";
+        renderFooter();
+      }, duration);
+    }
+
+    function renderFooter() {
+      let primary = `${activeMode} · ${activeModel}`;
+      let context = "Vanta · local project";
+      let instructional = false;
+
+      if (pendingApproval) {
+        primary = "Review the requested action above";
+        context = "";
+        instructional = true;
+      } else if (running) {
+        primary = queueingEnabled
+          ? "Enter: Queue next · ⌘Enter: Steer now"
+          : "Enter: Steer now · ⌘Enter: Queue next";
+        primary += ` · Esc: Stop${queuedPrompts.length ? ` · ${queuedPrompts.length} next` : ""}`;
+        context = "";
+        instructional = true;
+      } else if (footerOverride) {
+        primary = footerOverride;
+        context = "";
+        instructional = true;
+      } else if (queuedPrompts.length) {
+        primary = queueInterrupted
+          ? `${queuedPrompts.length} queued message${queuedPrompts.length === 1 ? "" : "s"} safe · Resume queue to continue`
+          : `${queuedPrompts.length} message${queuedPrompts.length === 1 ? "" : "s"} queued next`;
+        context = "";
+        instructional = true;
+      } else if (prompt.value.trim()) {
+        primary = "Enter sends · Shift+Enter adds a line";
+        context = "";
+        instructional = true;
+      }
+
+      footerPrimary.textContent = primary;
+      footerContext.textContent = context;
+      adaptiveFooter.classList.toggle("instruction", instructional);
+    }
+
+    function renderFollowUpMode() {
+      followUpMode.textContent = queueingEnabled ? "Queue next" : "Steer now";
+      followUpMode.setAttribute("aria-pressed", String(!queueingEnabled));
+      followUpMode.setAttribute(
+        "aria-label",
+        queueingEnabled
+          ? "Follow-up action: Queue next. Select to use Steer now."
+          : "Follow-up action: Steer now. Select to use Queue next."
+      );
+      followUpMode.title = queueingEnabled
+        ? "Run this message after the current task"
+        : "Add this message to the current task now";
+    }
+
+    function toggleFollowUpMode() {
+      queueingEnabled = !queueingEnabled;
+      renderFollowUpMode();
+      renderQueue();
+      renderFooter();
+      announceQueue(queueingEnabled ? "Queue next is the default follow-up action" : "Steer now is the default follow-up action");
+      showToast(queueingEnabled ? "Follow-ups will queue next" : "Follow-ups will steer now");
+    }
+
+    function renderSessionControl() {
+      $("#modelLabel").textContent = activeModel;
+      $("#modeLabel").textContent = activeMode;
+      $("#sessionButton").setAttribute("aria-label", `Session model ${activeModel}, operating mode ${activeMode}`);
+      $$(".mode-option").forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.mode === activeMode));
+      });
+      $("#modelSelect").value = activeModel;
+      renderFooter();
+    }
+
+    function cycleMode() {
+      const index = modes.indexOf(activeMode);
+      activeMode = modes[(index + 1) % modes.length];
+      renderSessionControl();
+      persistUiState();
+      setFooterOverride(`${activeMode} mode · Shift+Tab cycles modes`);
+    }
+
+    function toggleSidebar() {
+      if (window.innerWidth <= 680) {
+        const open = app.classList.toggle("mobile-sidebar-open");
+        sidebarToggle.setAttribute("aria-expanded", String(open));
+        scrim.hidden = !open;
+      } else {
+        const closed = app.classList.toggle("sidebar-closed");
+        sidebarToggle.setAttribute("aria-expanded", String(!closed));
+        persistUiState();
+      }
+    }
+
+    function selectReviewPanel(panel, focusTab = false) {
+      const tabs = $$(".drawer-tabs [role='tab']");
+      tabs.forEach((tab) => {
+        const selected = tab.dataset.panel === panel;
+        tab.setAttribute("aria-selected", String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+        $(`#panel-${tab.dataset.panel}`).hidden = !selected;
+        if (selected && focusTab) tab.focus();
+      });
+    }
+
+    function openReview(panel = "files", trigger = document.activeElement) {
+      reviewReturnFocus = trigger;
+      selectReviewPanel(panel);
+      reviewDrawer.classList.add("open");
+      reviewDrawer.setAttribute("aria-hidden", "false");
+      reviewButton.setAttribute("aria-expanded", "true");
+      reviewButton.setAttribute("aria-pressed", "true");
+      scrim.hidden = false;
+      closeReviewButton.focus();
+    }
+
+    function closeReview(restoreFocus = true) {
+      reviewDrawer.classList.remove("open");
+      reviewDrawer.setAttribute("aria-hidden", "true");
+      reviewButton.setAttribute("aria-expanded", "false");
+      reviewButton.setAttribute("aria-pressed", "false");
+      if (!app.classList.contains("mobile-sidebar-open")) scrim.hidden = true;
+      if (restoreFocus && reviewReturnFocus instanceof HTMLElement) reviewReturnFocus.focus();
+    }
+
+    function toggleReview() {
+      if (reviewDrawer.classList.contains("open")) closeReview();
+      else openReview("files", reviewButton);
+    }
+
+    function trapReviewFocus(event) {
+      if (event.key !== "Tab" || !reviewDrawer.classList.contains("open")) return false;
+      const focusable = $$("button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]", reviewDrawer)
+        .filter((element) => element.tabIndex >= 0 && !element.closest("[hidden]"));
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (!first || !last) return false;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+        return true;
+      }
+      if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+        return true;
+      }
+      return false;
+    }
+
+    function closeAttachMenu() {
+      attachMenu.hidden = true;
+      attachButton.setAttribute("aria-expanded", "false");
+    }
+
+    function toggleAttachMenu() {
+      const willOpen = attachMenu.hidden;
+      attachMenu.hidden = !willOpen;
+      attachButton.setAttribute("aria-expanded", String(willOpen));
+      if (willOpen) $("#chooseFiles").focus();
+    }
+
+    function renderPersona() {
+      const persona = personas[activePersonaId];
+      personaAvatar.textContent = persona.avatar;
+      personaName.textContent = persona.name;
+      personaKind.textContent = persona.kind;
+      personaButton.setAttribute("aria-label", `Active persona: ${persona.name}, ${persona.kind}. Choose persona`);
+      $$(".persona-option").forEach((option) => {
+        option.setAttribute("aria-checked", String(option.dataset.persona === activePersonaId));
+      });
+    }
+
+    function closePersonaMenu(restoreFocus = false) {
+      if (personaMenu.hidden) return;
+      personaMenu.hidden = true;
+      personaButton.setAttribute("aria-expanded", "false");
+      if (restoreFocus) personaButton.focus();
+    }
+
+    function openPersonaMenu() {
+      closeAttachMenu();
+      personaMenu.hidden = false;
+      personaButton.setAttribute("aria-expanded", "true");
+      const current = $(`.persona-option[data-persona="${activePersonaId}"]`);
+      current?.focus();
+    }
+
+    function togglePersonaMenu() {
+      if (personaMenu.hidden) openPersonaMenu();
+      else closePersonaMenu(true);
+    }
+
+    function selectPersona(id, returnToTask = true) {
+      if (!personas[id]) return;
+      activePersonaId = id;
+      renderPersona();
+      closePersonaMenu(returnToTask);
+      persistUiState();
+      showToast(`Switched to ${personas[id].name}`);
+    }
+
+    function addAttachment(name, kind = "file", size = 0) {
+      const key = `${kind}:${name}:${size}`;
+      if (attachments.has(key)) return;
+      attachments.set(key, { name, kind, size });
+      renderAttachments();
+      setFooterOverride(`${attachments.size} attachment${attachments.size === 1 ? "" : "s"} ready`);
+    }
+
+    function renderAttachments() {
+      attachmentList.innerHTML = "";
+      for (const [key, attachment] of attachments) {
+        const chip = document.createElement("span");
+        chip.className = "attachment-chip";
+        chip.innerHTML = `${icon(attachment.kind === "folder" ? "folder" : "file")}<span class="name"></span><button type="button" aria-label="Remove ${escapeHtml(attachment.name)}">${icon("close")}</button>`;
+        $(".name", chip).textContent = attachment.name;
+        $("button", chip).addEventListener("click", () => {
+          attachments.delete(key);
+          renderAttachments();
+          setFooterOverride("Attachment removed");
+        });
+        attachmentList.append(chip);
+      }
+    }
+
+    function addFiles(fileList) {
+      [...fileList].forEach((file) => addAttachment(file.name, "file", file.size));
+    }
+
+    function addFolderSelection(fileList) {
+      const first = fileList[0];
+      if (!first) return;
+      const folderName = first.webkitRelativePath?.split("/")[0] || "Selected folder";
+      addAttachment(folderName, "folder", fileList.length);
+    }
+
+    async function addDroppedItems(dataTransfer) {
+      const items = [...dataTransfer.items];
+      if (!items.length) {
+        addFiles(dataTransfer.files);
+        return;
+      }
+
+      for (const item of items) {
+        if (item.kind !== "file") continue;
+        try {
+          if (item.getAsFileSystemHandle) {
+            const handle = await item.getAsFileSystemHandle();
+            if (handle) {
+              addAttachment(handle.name, handle.kind === "directory" ? "folder" : "file");
+              continue;
+            }
+          }
+        } catch (_) {}
+
+        const entry = item.webkitGetAsEntry?.();
+        if (entry) {
+          addAttachment(entry.name, entry.isDirectory ? "folder" : "file");
+          continue;
+        }
+
+        const file = item.getAsFile();
+        if (file) addAttachment(file.name, "file", file.size);
+      }
+    }
+
+    function announceQueue(message) {
+      queueAnnouncement.textContent = message;
+    }
+
+    function renderRunProgress() {
+      runProgress.hidden = !running;
+      if (!running) return;
+      const labels = ["Simplify shell", "Wire queue controls", "Verify interactions"];
+      runProgressCopy.textContent = `Step ${runStep} / 3 · ${labels[Math.max(0, runStep - 1)]}`;
+      runDiff.hidden = runStep < 2;
+    }
+
+    function renderQueue() {
+      promptQueue.hidden = queuedPrompts.length === 0;
+      queuePaused.hidden = !queueInterrupted;
+      queueCount.textContent = `${queuedPrompts.length} next`;
+      queueHelp.textContent = queueInterrupted ? "Paused until you resume" : "Runs after the current task";
+      queueList.innerHTML = "";
+      queuedPrompts.forEach((item, index) => {
+        const row = document.createElement("div");
+        row.className = "queue-item";
+        row.classList.toggle("paused", Boolean(item.pausedReason));
+        row.dataset.state = item.pausedReason ? "error" : "queued";
+        row.dataset.queueId = String(item.id);
+        row.innerHTML = `
+          <button class="queue-drag" type="button" draggable="true">⠿</button>
+          <span class="queue-message"><span class="queue-copy"></span><small class="queue-state" hidden></small></span>
+          <button class="queue-action" type="button"></button>
+          <button class="queue-more" type="button" aria-label="Queued message actions" aria-expanded="false">${icon("more")}</button>
+          <button class="queue-remove" type="button">${icon("trash")}</button>`;
+        $(".queue-copy", row).textContent = item.text;
+        const state = $(".queue-state", row);
+        state.hidden = !item.pausedReason;
+        state.textContent = item.pausedReason || "";
+        const action = $(".queue-action", row);
+        const retry = Boolean(item.pausedReason);
+        action.textContent = retry ? "Retry message" : "Steer now";
+        action.disabled = !retry && !running;
+        action.title = retry ? "Retry only this failed message" : "Add this message to the current task now";
+        action.setAttribute("aria-label", `${retry ? "Retry message" : "Steer now with"}: ${item.text}`);
+        action.addEventListener("click", () => retry ? retryQueuedPrompt(item.id) : steerQueuedPrompt(item.id));
+        const more = $(".queue-more", row);
+        more.addEventListener("click", () => toggleQueueMenu(row, item.id, index));
+        const remove = $(".queue-remove", row);
+        remove.setAttribute("aria-label", `Remove from queue: ${item.text}`);
+        remove.addEventListener("click", () => removeQueuedPrompt(item.id));
+        const drag = $(".queue-drag", row);
+        drag.setAttribute("aria-label", `Reorder queued message: ${item.text}`);
+        drag.addEventListener("dragstart", (event) => {
+          draggedQueueId = item.id;
+          row.dataset.dragging = "true";
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", String(item.id));
+        });
+        row.addEventListener("dragover", (event) => {
+          if (draggedQueueId === null || draggedQueueId === item.id) return;
+          event.preventDefault();
+          event.dataTransfer.dropEffect = "move";
+        });
+        row.addEventListener("drop", (event) => {
+          event.preventDefault();
+          reorderQueuedPrompts(draggedQueueId, item.id);
+          draggedQueueId = null;
+        });
+        row.addEventListener("dragend", () => {
+          draggedQueueId = null;
+          delete row.dataset.dragging;
+        });
+        queueList.append(row);
+      });
+      persistQueueState();
+    }
+
+    function closeQueueMenus(restoreFocus = false) {
+      $$(".queue-menu").forEach((menu) => menu.remove());
+      $$(".queue-more").forEach((button) => button.setAttribute("aria-expanded", "false"));
+      if (restoreFocus && queueMenuReturnFocus instanceof HTMLElement) queueMenuReturnFocus.focus();
+      queueMenuReturnFocus = null;
+    }
+
+    function toggleQueueMenu(row, id, index) {
+      const button = $(".queue-more", row);
+      const wasOpen = button.getAttribute("aria-expanded") === "true";
+      closeQueueMenus();
+      if (wasOpen) return;
+      queueMenuReturnFocus = button;
+      button.setAttribute("aria-expanded", "true");
+      const menu = document.createElement("div");
+      menu.className = "queue-menu";
+      menu.setAttribute("role", "menu");
+      menu.innerHTML = `
+        <button type="button" role="menuitem" data-queue-menu="edit">Edit message</button>
+        <button type="button" role="menuitem" data-queue-menu="earlier" ${index === 0 ? "disabled" : ""}>Move earlier</button>
+        <button type="button" role="menuitem" data-queue-menu="later" ${index === queuedPrompts.length - 1 ? "disabled" : ""}>Move later</button>
+        <button type="button" role="menuitem" data-queue-menu="mode">${queueingEnabled ? "Use Steer now by default" : "Use Queue next by default"}</button>`;
+      menu.addEventListener("click", (event) => {
+        const command = event.target.closest("[data-queue-menu]")?.dataset.queueMenu;
+        if (!command) return;
+        if (command === "edit") editQueuedPrompt(id);
+        if (command === "earlier") moveQueuedPrompt(id, -1);
+        if (command === "later") moveQueuedPrompt(id, 1);
+        if (command === "mode") toggleFollowUpMode();
+        closeQueueMenus();
+      });
+      menu.addEventListener("keydown", (event) => {
+        const items = $$("[role='menuitem']:not(:disabled)", menu);
+        const current = items.indexOf(document.activeElement);
+        if (event.key === "Escape") {
+          event.preventDefault();
+          event.stopPropagation();
+          closeQueueMenus(true);
+        } else if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+          event.preventDefault();
+          event.stopPropagation();
+          const next = event.key === "Home"
+            ? 0
+            : event.key === "End"
+              ? items.length - 1
+              : (current + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+          items[next]?.focus();
+        }
+      });
+      row.append(menu);
+      menu.querySelector("button:not(:disabled)")?.focus();
+    }
+
+    function reorderQueuedPrompts(sourceId, targetId) {
+      if (sourceId === null || sourceId === targetId) return;
+      const sourceIndex = queuedPrompts.findIndex((item) => item.id === sourceId);
+      const targetIndex = queuedPrompts.findIndex((item) => item.id === targetId);
+      if (sourceIndex < 0 || targetIndex < 0) return;
+      const [item] = queuedPrompts.splice(sourceIndex, 1);
+      queuedPrompts.splice(targetIndex, 0, item);
+      renderQueue();
+      announceQueue(`Moved queued message to position ${targetIndex + 1}`);
+    }
+
+    function moveQueuedPrompt(id, offset) {
+      const index = queuedPrompts.findIndex((item) => item.id === id);
+      const nextIndex = index + offset;
+      if (index < 0 || nextIndex < 0 || nextIndex >= queuedPrompts.length) return;
+      const [item] = queuedPrompts.splice(index, 1);
+      queuedPrompts.splice(nextIndex, 0, item);
+      renderQueue();
+      announceQueue(`Moved queued message to position ${nextIndex + 1}`);
+    }
+
+    function editQueuedPrompt(id) {
+      const index = queuedPrompts.findIndex((item) => item.id === id);
+      if (index < 0) return;
+      const [item] = queuedPrompts.splice(index, 1);
+      prompt.value = [prompt.value.trim(), item.text].filter(Boolean).join("\n");
+      prompt.dispatchEvent(new Event("input", { bubbles: true }));
+      renderQueue();
+      renderFooter();
+      announceQueue(`Editing queued message: ${item.text}`);
+      prompt.focus();
+    }
+
+    function removeQueuedPrompt(id) {
+      const index = queuedPrompts.findIndex((item) => item.id === id);
+      if (index < 0) return;
+      const [removed] = queuedPrompts.splice(index, 1);
+      if (!queuedPrompts.length) queueInterrupted = false;
+      renderQueue();
+      renderFooter();
+      announceQueue(`Removed from queue: ${removed.text}`);
+      showToast("Removed from queue", "Undo", () => {
+        queuedPrompts.splice(Math.min(index, queuedPrompts.length), 0, removed);
+        renderQueue();
+        renderFooter();
+        announceQueue(`Restored to queue: ${removed.text}`);
+        prompt.focus();
+      });
+    }
+
+    function steerQueuedPrompt(id) {
+      if (!running) return;
+      const index = queuedPrompts.findIndex((item) => item.id === id);
+      if (index < 0) return;
+      const [item] = queuedPrompts.splice(index, 1);
+      renderQueue();
+      appendUserTurn(item.text);
+      activePrompt = `${activePrompt}\n${item.text}`;
+      runStep = Math.max(2, runStep);
+      renderRunProgress();
+      scheduleRunCompletion(2200);
+      announceQueue(`Added to the current task: ${item.text}`);
+      showToast("Added to the current task");
+      transcript.scrollTo({ top: transcript.scrollHeight, behavior: "smooth" });
+      renderFooter();
+    }
+
+    function retryQueuedPrompt(id) {
+      const item = queuedPrompts.find((candidate) => candidate.id === id);
+      if (!item) return;
+      item.pausedReason = "";
+      if (running) {
+        steerQueuedPrompt(id);
+        return;
+      }
+      queueInterrupted = false;
+      const index = queuedPrompts.findIndex((candidate) => candidate.id === id);
+      const [retry] = queuedPrompts.splice(index, 1);
+      renderQueue();
+      appendUserTurn(retry.text);
+      startRun(retry.text);
+      announceQueue(`Retrying only this queued message: ${retry.text}`);
+      showToast("Retrying this message");
+    }
+
+    function resumeQueue() {
+      if (!queueInterrupted || !queuedPrompts.length || running) return;
+      queueInterrupted = false;
+      const next = queuedPrompts.shift();
+      renderQueue();
+      appendUserTurn(next.text);
+      startRun(next.text);
+      announceQueue(`Queue resumed with: ${next.text}`);
+      showToast("Queue resumed");
+      transcript.scrollTo({ top: transcript.scrollHeight, behavior: "smooth" });
+    }
+
+    function setRunning(next) {
+      running = next;
+      sendButton.classList.toggle("stop", next);
+      sendButton.setAttribute("aria-label", next ? "Stop task" : "Send message");
+      sendButton.innerHTML = icon(next ? "stop" : "send");
+      sendButton.disabled = !next && !prompt.value.trim();
+      followUpMode.hidden = !next;
+      renderFollowUpMode();
+      renderRunProgress();
+      renderQueue();
+      renderFooter();
+    }
+
+    function clearRunClock() {
+      window.clearTimeout(runTimer);
+      window.clearInterval(runStepTimer);
+      runTimer = 0;
+      runStepTimer = 0;
+    }
+
+    function scheduleRunCompletion(delay = 4200) {
+      window.clearTimeout(runTimer);
+      runTimer = window.setTimeout(completeRun, delay);
+    }
+
+    function startRun(text) {
+      activePrompt = text;
+      runStep = 1;
+      clearRunClock();
+      setRunning(true);
+      runStepTimer = window.setInterval(() => {
+        if (runStep >= 3) {
+          window.clearInterval(runStepTimer);
+          runStepTimer = 0;
+          return;
+        }
+        runStep += 1;
+        renderRunProgress();
+      }, 1100);
+      scheduleRunCompletion();
+    }
+
+    function completeRun() {
+      clearRunClock();
+      appendAssistantTurn();
+      const next = queueInterrupted ? null : queuedPrompts.shift();
+      if (next) {
+        renderQueue();
+        appendUserTurn(next.text);
+        startRun(next.text);
+        announceQueue(`Started the next queued message: ${next.text}`);
+        showToast("Starting the next queued task");
+      } else {
+        activePrompt = "";
+        runStep = 0;
+        setRunning(false);
+      }
+      transcript.scrollTo({ top: transcript.scrollHeight, behavior: "smooth" });
+    }
+
+    function appendUserTurn(text) {
+      const turn = document.createElement("article");
+      turn.className = "turn";
+      turn.innerHTML = `<div class="turn-label"><span class="avatar" aria-hidden="true">JP</span><span>You</span></div><div class="user-bubble">${escapeHtml(text)}</div>`;
+      conversation.append(turn);
+    }
+
+    function appendAssistantTurn() {
+      const turn = document.createElement("article");
+      turn.className = "turn";
+      turn.innerHTML = `<div class="turn-label"><span class="avatar" aria-hidden="true">V</span><span>Vanta</span></div><div class="answer"><h2>Task received.</h2><p>This demo keeps the response readable and moves detailed evidence into <button class="inline-link" type="button" data-open-review="activity">Review</button>.</p></div>`;
+      conversation.append(turn);
+      wireInlineReviewLinks(turn);
+    }
+
+    function appendApproval() {
+      if (pendingApproval) return;
+      pendingApproval = true;
+      const turn = document.createElement("article");
+      turn.className = "turn";
+      turn.id = "approvalTurn";
+      turn.innerHTML = `
+        <div class="turn-label"><span class="avatar" aria-hidden="true">V</span><span>Vanta</span></div>
+        <div class="answer">
+          <div class="approval">
+            <div class="approval-copy">
+              <div class="approval-label">Action needs approval</div>
+              <h3>Update the desktop shell</h3>
+              <p>Vanta wants to modify one file inside the current project.</p>
+              <div class="approval-code">vanta-desktop-demo.html · modify existing content</div>
+            </div>
+            <div class="approval-actions">
+              <button class="primary" type="button" data-approval="once">Allow once</button>
+              <button type="button" data-approval="session">Allow for this session</button>
+              <button type="button" data-approval="deny">Deny</button>
+            </div>
+          </div>
+        </div>`;
+      conversation.append(turn);
+      wireApproval(turn);
+      transcript.scrollTo({ top: transcript.scrollHeight, behavior: "smooth" });
+      renderFooter();
+      window.setTimeout(() => $("[data-approval='once']", turn)?.focus(), 120);
+    }
+
+    function wireApproval(root) {
+      $$("[data-approval]", root).forEach((button) => {
+        button.addEventListener("click", () => {
+          const decision = button.dataset.approval;
+          pendingApproval = false;
+          $(".approval", root).innerHTML = `<div class="approval-copy"><div class="approval-label">Approval resolved</div><h3>${decision === "deny" ? "Action denied" : decision === "session" ? "Allowed for this session" : "Allowed once"}</h3><p>${decision === "deny" ? "No changes were made." : "Vanta can continue through the current permission boundary."}</p></div>`;
+          renderFooter();
+          showToast(decision === "deny" ? "Action denied" : "Vanta resumed");
+          prompt.focus();
+        });
+      });
+    }
+
+    function wireInlineReviewLinks(root = document) {
+      $$("[data-open-review]", root).forEach((button) => {
+        if (button.dataset.wired) return;
+        button.dataset.wired = "true";
+        button.addEventListener("click", () => openReview(button.dataset.openReview, button));
+      });
+    }
+
+    function clearComposerDraft() {
+      prompt.value = "";
+      prompt.style.height = "";
+      attachments.clear();
+      renderAttachments();
+    }
+
+    function queuePrompt() {
+      const text = prompt.value.trim();
+      if (!text) return;
+      queuedPrompts.push({ id: ++queueSequence, text, createdAt: Date.now(), pausedReason: "" });
+      clearComposerDraft();
+      renderQueue();
+      renderFooter();
+      announceQueue(`Queued next, position ${queuedPrompts.length}: ${text}`);
+      showToast("Queued for after the current task");
+      prompt.focus();
+    }
+
+    function steerPrompt() {
+      const text = prompt.value.trim();
+      if (!text || !running) return;
+      appendUserTurn(text);
+      clearComposerDraft();
+      activePrompt = `${activePrompt}\n${text}`;
+      runStep = Math.max(2, runStep);
+      renderRunProgress();
+      scheduleRunCompletion(2200);
+      announceQueue(`Added to the current task: ${text}`);
+      showToast("Added to the current task");
+      transcript.scrollTop = transcript.scrollHeight;
+      renderFooter();
+    }
+
+    function submitPrompt() {
+      const text = prompt.value.trim();
+      if (!text) return;
+      appendUserTurn(text);
+      clearComposerDraft();
+      startRun(text);
+      transcript.scrollTop = transcript.scrollHeight;
+    }
+
+    function stopTask() {
+      if (!running) return;
+      clearRunClock();
+      activePrompt = "";
+      runStep = 0;
+      queueInterrupted = queuedPrompts.length > 0;
+      setRunning(false);
+      renderQueue();
+      setFooterOverride(
+        queuedPrompts.length
+          ? `Task stopped · ${queuedPrompts.length} queued message${queuedPrompts.length === 1 ? " is" : "s are"} safe`
+          : "Task stopped · Your draft and partial result are safe"
+      );
+    }
+
+    function newTask() {
+      clearRunClock();
+      activePrompt = "";
+      runStep = 0;
+      queuedPrompts.splice(0);
+      queueInterrupted = false;
+      clearComposerDraft();
+      setRunning(false);
+      ensureTaskItem("New task");
+      taskSnapshots.set("New task", "");
+      navigateToSurface("task", "New task");
+      prompt.focus();
+      showToast("New task ready");
+    }
+
+    function executeCommand(command) {
+      commandDialog.close();
+      if (command === "new") newTask();
+      if (command === "review") {
+        if (activeSurface.kind === "task") openReview("files", commandButton);
+        else showToast("Open a task to review its files");
+      }
+      if (command === "mode") cycleMode();
+      if (command === "approval") appendApproval();
+      if (command === "sidebar") toggleSidebar();
+      if (["runs", "connect", "scheduled", "plugins"].includes(command)) navigateToSurface("primary", command);
+    }
+
+    function ensureTaskItem(title) {
+      const existing = $$(".task-item").find((button) => button.dataset.title === title);
+      if (existing) return existing;
+      const button = document.createElement("button");
+      button.className = "task-item";
+      button.type = "button";
+      button.dataset.title = title;
+      button.innerHTML = `${icon("chat")}<span class="task-copy"><strong></strong><small>Draft</small></span>`;
+      $(".task-copy strong", button).textContent = title;
+      button.addEventListener("click", () => navigateToSurface("task", title));
+      const taskList = $("nav[aria-label='Tasks'] .task-list");
+      taskList.prepend(button);
+      const count = $("nav[aria-label='Tasks'] .section-label span:last-child");
+      count.textContent = String(taskList.children.length);
+      return button;
+    }
+
+    function openCommandPalette() {
+      if (!commandDialog.open) commandDialog.showModal();
+      commandSearch.value = "";
+      $$(".command").forEach((button) => button.hidden = false);
+      commandSearch.focus();
+    }
+
+    function visibleCommands() {
+      return $$(".command").filter((button) => !button.hidden);
+    }
+
+    sidebarToggle.addEventListener("click", toggleSidebar);
+    reviewButton.addEventListener("click", toggleReview);
+    closeReviewButton.addEventListener("click", () => closeReview());
+    scrim.addEventListener("click", () => {
+      closeReview(false);
+      app.classList.remove("mobile-sidebar-open");
+      scrim.hidden = true;
+      sidebarToggle.setAttribute("aria-expanded", "false");
+    });
+
+    $$(".drawer-tabs [role='tab']").forEach((tab, index, tabs) => {
+      tab.addEventListener("click", () => selectReviewPanel(tab.dataset.panel));
+      tab.addEventListener("keydown", (event) => {
+        if (!["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+        event.preventDefault();
+        const offset = event.key === "ArrowRight" ? 1 : -1;
+        const next = tabs[(index + offset + tabs.length) % tabs.length];
+        selectReviewPanel(next.dataset.panel, true);
+      });
+    });
+
+    attachButton.addEventListener("click", toggleAttachMenu);
+    $("#chooseFiles").addEventListener("click", () => {
+      closeAttachMenu();
+      fileInput.click();
+    });
+    $("#chooseFolder").addEventListener("click", () => {
+      closeAttachMenu();
+      folderInput.click();
+    });
+    fileInput.addEventListener("change", () => {
+      addFiles(fileInput.files);
+      fileInput.value = "";
+    });
+    folderInput.addEventListener("change", () => {
+      addFolderSelection(folderInput.files);
+      folderInput.value = "";
+    });
+
+    composer.addEventListener("dragenter", (event) => {
+      event.preventDefault();
+      dragDepth += 1;
+      composer.classList.add("drop-active");
+    });
+    composer.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
+    });
+    composer.addEventListener("dragleave", (event) => {
+      event.preventDefault();
+      dragDepth = Math.max(0, dragDepth - 1);
+      if (!dragDepth) composer.classList.remove("drop-active");
+    });
+    composer.addEventListener("drop", async (event) => {
+      event.preventDefault();
+      dragDepth = 0;
+      composer.classList.remove("drop-active");
+      await addDroppedItems(event.dataTransfer);
+      prompt.focus();
+    });
+
+    prompt.addEventListener("input", () => {
+      sendButton.disabled = !running && !prompt.value.trim();
+      prompt.style.height = "auto";
+      prompt.style.height = `${Math.min(prompt.scrollHeight, 180)}px`;
+      renderFooter();
+    });
+    prompt.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+        event.preventDefault();
+        if (!running) {
+          submitPrompt();
+          return;
+        }
+        const alternate = event.metaKey || event.ctrlKey;
+        if (alternate) {
+          if (queueingEnabled) steerPrompt();
+          else queuePrompt();
+        } else if (queueingEnabled) {
+          queuePrompt();
+        } else {
+          steerPrompt();
+        }
+      }
+    });
+    composer.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (running) stopTask();
+      else submitPrompt();
+    });
+
+    $("#sessionButton").addEventListener("click", () => sessionDialog.showModal());
+    $$(".mode-option").forEach((button) => {
+      button.addEventListener("click", () => {
+        activeMode = button.dataset.mode;
+        renderSessionControl();
+        persistUiState();
+        setFooterOverride(`${activeMode} mode selected`);
+      });
+    });
+    $("#modelSelect").addEventListener("change", (event) => {
+      activeModel = event.target.value;
+      renderSessionControl();
+      persistUiState();
+      setFooterOverride(`${activeModel} selected for this task`);
+    });
+
+    $("#commandButton").addEventListener("click", openCommandPalette);
+    commandSearch.addEventListener("input", () => {
+      const query = commandSearch.value.trim().toLowerCase();
+      $$(".command").forEach((button) => {
+        button.hidden = !button.textContent.toLowerCase().includes(query);
+      });
+    });
+    commandSearch.addEventListener("keydown", (event) => {
+      const commands = visibleCommands();
+      if (event.key === "ArrowDown" && commands.length) {
+        event.preventDefault();
+        commands[0].focus();
+      } else if (event.key === "Enter" && commands.length === 1) {
+        event.preventDefault();
+        commands[0].click();
+      }
+    });
+    $("#commandList").addEventListener("keydown", (event) => {
+      if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+      const commands = visibleCommands();
+      const index = commands.indexOf(document.activeElement);
+      if (!commands.length || index < 0) return;
+      event.preventDefault();
+      const next = event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? commands.length - 1
+          : (index + (event.key === "ArrowDown" ? 1 : -1) + commands.length) % commands.length;
+      commands[next].focus();
+    });
+    $$(".command").forEach((button) => button.addEventListener("click", () => executeCommand(button.dataset.command)));
+    $$("[data-close-dialog]").forEach((button) => {
+      button.addEventListener("click", () => $(`#${button.dataset.closeDialog}`).close());
+    });
+
+    $("#newTaskButton").addEventListener("click", newTask);
+    resumeQueueButton.addEventListener("click", resumeQueue);
+    followUpMode.addEventListener("click", toggleFollowUpMode);
+    personaButton.addEventListener("click", togglePersonaMenu);
+    personaMenu.addEventListener("click", (event) => {
+      const persona = event.target.closest("[data-persona]")?.dataset.persona;
+      const action = event.target.closest("[data-persona-action]")?.dataset.personaAction;
+      if (persona) selectPersona(persona);
+      if (action === "manage") {
+        closePersonaMenu();
+        navigateToSurface("primary", "personas");
+      }
+      if (action === "account") {
+        closePersonaMenu();
+        navigateToSurface("primary", "settings");
+      }
+    });
+    personaMenu.addEventListener("keydown", (event) => {
+      const items = $$("[role='menuitemradio'], [role='menuitem']", personaMenu);
+      const index = items.indexOf(document.activeElement);
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        closePersonaMenu(true);
+      } else if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+        event.preventDefault();
+        const next = event.key === "Home"
+          ? 0
+          : event.key === "End"
+            ? items.length - 1
+            : (index + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+        items[next]?.focus();
+      }
+    });
+    $(".product-switcher").addEventListener("click", () => navigateToSurface("task", "Simplify desktop interface"));
+    $(".product-search").addEventListener("click", openCommandPalette);
+    $(".title-more").addEventListener("click", openCommandPalette);
+    $$(".history-control").forEach((button) => {
+      button.addEventListener("click", () => navigateHistory(button.getAttribute("aria-label") === "Previous task" ? -1 : 1));
+    });
+    $$("[data-primary]").forEach((button) => {
+      button.addEventListener("click", () => navigateToSurface("primary", button.dataset.primary.toLowerCase()));
+    });
+    $$(".task-item").forEach((button) => {
+      button.addEventListener("click", () => {
+        navigateToSurface("task", button.dataset.title);
+      });
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest("#attachButton") && !event.target.closest("#attachMenu")) closeAttachMenu();
+      if (!event.target.closest(".queue-more") && !event.target.closest(".queue-menu")) closeQueueMenus();
+      if (!event.target.closest("#personaButton") && !event.target.closest("#personaMenu")) closePersonaMenu();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (trapReviewFocus(event)) return;
+      if (event.key === "Escape" && (commandDialog.open || sessionDialog.open)) return;
+      const key = event.key.toLowerCase();
+      if ((event.metaKey || event.ctrlKey) && key === "k") {
+        event.preventDefault();
+        openCommandPalette();
+      } else if ((event.metaKey || event.ctrlKey) && key === "n") {
+        event.preventDefault();
+        newTask();
+      } else if ((event.metaKey || event.ctrlKey) && event.shiftKey && key === "r") {
+        event.preventDefault();
+        openReview("files", reviewButton);
+      } else if (event.shiftKey && event.key === "Tab" && document.activeElement === prompt) {
+        event.preventDefault();
+        cycleMode();
+      } else if (event.key === "Escape") {
+        if (!personaMenu.hidden) {
+          event.preventDefault();
+          closePersonaMenu(true);
+        } else if ($(".queue-menu")) {
+          event.preventDefault();
+          closeQueueMenus(true);
+        } else if (running) stopTask();
+        else if (reviewDrawer.classList.contains("open")) closeReview();
+        else closeAttachMenu();
+      }
+    });
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 680) {
+        app.classList.remove("mobile-sidebar-open");
+        if (!reviewDrawer.classList.contains("open")) scrim.hidden = true;
+      }
+    });
+
+    if (restoredUi.sidebarClosed && window.innerWidth > 680) {
+      app.classList.add("sidebar-closed");
+      sidebarToggle.setAttribute("aria-expanded", "false");
+    }
+    renderPersona();
+    renderQueue();
+    renderSessionControl();
+    navigateToSurface(restoredUi.surface.kind, restoredUi.surface.id, false);
+    pushNavigation(activeSurface);
+  </script>
+</body>
+</html>

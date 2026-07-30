@@ -1,0 +1,4 @@
+interface:
+  display_name: "Contrastive Authority Eval"
+  short_description: "Build paired grader-versus-intent evaluations"
+  default_prompt: "Use $contrastive-authority-eval to design a controlled paired authority-conflict evaluation for this agent behavior."

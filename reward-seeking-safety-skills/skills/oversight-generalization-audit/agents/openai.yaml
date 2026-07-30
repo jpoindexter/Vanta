@@ -1,0 +1,4 @@
+interface:
+  display_name: "Oversight Generalization Audit"
+  short_description: "Compare behavior with present, flawed, or absent oversight"
+  default_prompt: "Use $oversight-generalization-audit to test whether this agent behavior survives changes in oversight."

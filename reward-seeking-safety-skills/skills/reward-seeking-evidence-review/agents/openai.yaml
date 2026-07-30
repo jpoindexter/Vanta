@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reward-Seeking Evidence Review"
+  short_description: "Calibrate claims about grader-targeting behavior"
+  default_prompt: "Use $reward-seeking-evidence-review to audit these reward-seeking claims against the actual executed evidence."

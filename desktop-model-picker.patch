@@ -1,0 +1,251 @@
+diff --git a/vanta-ts/desktop-app/src/types.ts b/vanta-ts/desktop-app/src/types.ts
+--- a/vanta-ts/desktop-app/src/types.ts
++++ b/vanta-ts/desktop-app/src/types.ts
+@@ -8,7 +8,20 @@ export type Goal = { text: string };
+ export type Status = { kernel: string; model: string; provider?: string; tools: number; sessionId: string; root?: string; goals: Goal[] };
+ export type Message = { role: string; content?: string; name?: string };
+-export type Provider = { id: string; label: string; short: string; models: string[]; defaultModel?: string; requiresKey?: boolean; signupUrl?: string; note?: string };
++export type Provider = {
++  id: string;
++  label: string;
++  short: string;
++  models: string[];
++  defaultModel?: string;
++  current?: boolean;
++  savedDefaultModel?: string;
++  modelSource?: "catalog" | "live";
++  discoveryAvailable?: boolean;
++  discoveryError?: string;
++  requiresKey?: boolean;
++  signupUrl?: string;
++  note?: string;
++};
+ export type EventRow = { label: string; ok?: boolean };
+diff --git a/vanta-ts/desktop-app/src/state.ts b/vanta-ts/desktop-app/src/state.ts
+--- a/vanta-ts/desktop-app/src/state.ts
++++ b/vanta-ts/desktop-app/src/state.ts
+@@ -59,6 +59,11 @@ export function useDesktopData() {
+     await refresh();
+   }
+ 
++  async function refreshProviderModels(providerId: string) {
++    const refreshed = await api<Provider[]>(`/api/models/${encodeURIComponent(providerId)}`);
++    setModels(refreshed);
++  }
++
+   useEffect(() => { void refresh(); }, [refresh]);
+   return {
+-    status, sessions, tools, files, models, canvas, capabilities, messaging, artifacts, tab, setTab, phase, error, refresh, setModel, ...overlays,
++    status, sessions, tools, files, models, canvas, capabilities, messaging, artifacts, tab, setTab, phase, error, refresh, refreshProviderModels, setModel, ...overlays,
+diff --git a/vanta-ts/desktop-app/src/App.tsx b/vanta-ts/desktop-app/src/App.tsx
+--- a/vanta-ts/desktop-app/src/App.tsx
++++ b/vanta-ts/desktop-app/src/App.tsx
+@@ -243,7 +243,7 @@ function DesktopOverlays(props: {
+         onSettings={data.openSettings}
+         onTab={props.onInspector}
+       />
+-      <ModelPicker open={data.modelOpen} models={data.models} status={data.status} onClose={data.closeModelPicker} onSelect={data.setModel} />
++      <ModelPicker open={data.modelOpen} models={data.models} status={data.status} onClose={data.closeModelPicker} onRefresh={data.refreshProviderModels} onSelect={data.setModel} />
+diff --git a/vanta-ts/desktop-app/src/overlays.tsx b/vanta-ts/desktop-app/src/overlays.tsx
+--- a/vanta-ts/desktop-app/src/overlays.tsx
++++ b/vanta-ts/desktop-app/src/overlays.tsx
+@@ -1,6 +1,6 @@
+ import { useEffect, useMemo, useState } from "react";
+ import type { FormEvent } from "react";
+-import { Bot, Check, Command, KeyRound, MonitorCog, Search, ShieldCheck, Star, X } from "lucide-react";
++import { Bot, Check, Command, KeyRound, MonitorCog, RefreshCw, Search, ShieldCheck, Star, X } from "lucide-react";
+ import type { Approval, ApprovalDecision, PermissionSection, Provider, RailTab, Status } from "./types.js";
+@@ -65,51 +65,112 @@ export function SettingsDialog(props: { open: boolean; models: Provider[]; status: Status | null; theme: "dark" | "light"; onTheme: (theme: "dark" | "light") => void; onClose: () => void; onModel: () => void; onSetup: () => void }) {
+   </section></div>;
+ }
+ 
+-export function ModelPicker(props: { open: boolean; models: Provider[]; status: Status | null; onClose: () => void; onSelect: (provider: string, model: string, scope?: "session" | "global") => void }) {
++export function ModelPicker(props: { open: boolean; models: Provider[]; status: Status | null; onClose: () => void; onRefresh: (provider: string) => Promise<void>; onSelect: (provider: string, model: string, scope?: "session" | "global") => void }) {
+   const [query, setQuery] = useState("");
++  const [selectedProviderId, setSelectedProviderId] = useState("");
++  const [customModel, setCustomModel] = useState("");
++  const [refreshing, setRefreshing] = useState(false);
+   useEffect(() => {
+-    if (props.open) setQuery("");
++    if (!props.open) return;
++    const providerId = props.status?.provider ?? props.models.find((provider) => provider.current)?.id ?? props.models[0]?.id ?? "";
++    setQuery("");
++    setCustomModel("");
++    setSelectedProviderId(providerId);
++    if (providerId) {
++      setRefreshing(true);
++      void props.onRefresh(providerId).finally(() => setRefreshing(false));
++    }
+   }, [props.open]);
+   if (!props.open) return null;
+   const matchingProviders = filterProviders(props.models, query);
++  const activeProvider = matchingProviders.find((provider) => provider.id === selectedProviderId)
++    ?? matchingProviders.find((provider) => provider.id === props.status?.provider)
++    ?? matchingProviders[0];
++  const visibleModels = activeProvider ? filterModels(activeProvider, query) : [];
++  async function refreshSelected() {
++    if (!activeProvider || !activeProvider.discoveryAvailable) return;
++    setRefreshing(true);
++    try { await props.onRefresh(activeProvider.id); }
++    finally { setRefreshing(false); }
++  }
++  function chooseCustom(event: FormEvent) {
++    event.preventDefault();
++    const model = customModel.trim();
++    if (activeProvider && model) props.onSelect(activeProvider.id, model, "session");
++  }
++  function navigateProviders(event: React.KeyboardEvent<HTMLElement>) {
++    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
++    const buttons = [...event.currentTarget.querySelectorAll<HTMLButtonElement>("button[data-provider-id]")];
++    const current = buttons.indexOf(document.activeElement as HTMLButtonElement);
++    const delta = event.key === "ArrowDown" ? 1 : -1;
++    const next = buttons[(Math.max(0, current) + delta + buttons.length) % buttons.length];
++    if (!next) return;
++    event.preventDefault();
++    setSelectedProviderId(next.dataset.providerId ?? "");
++    next.focus();
++  }
+   return (
+     <div className="overlay" onClick={props.onClose}>
+       <div className="palette model-picker" role="dialog" aria-modal="true" aria-labelledby="model-title" onClick={(e) => e.stopPropagation()}>
+         <div className="dialog-heading"><div><p className="eyebrow">Active session</p><h2 id="model-title">Choose a model</h2></div><button className="icon-button" type="button" aria-label="Close" onClick={props.onClose}><X size={16} /></button></div>
+         <label className="palette-search model-search"><Search size={16} /><span className="sr-only">Search models</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search providers and models" /></label>
+-        <p className="model-picker-note">Select a model for this session. Use the star to make one the default for new sessions.</p>
+-        <div className="model-provider-list">
+-          {providers.map(({ provider, models }) => <section key={provider.id} className="model-provider-group" aria-labelledby={`provider-${provider.id}`}>
+-            <header><div><h3 id={`provider-${provider.id}`}>{provider.label}</h3><span>{models.length} model{models.length === 1 ? "" : "s"}</span></div></header>
+-            <div className="model-rows">{models.map((model) => <ModelRow key={model} provider={provider} model={model} status={props.status} onSelect={props.onSelect} />)}</div>
+-          </section>)}
+-          {providers.length === 0 ? <p className="muted model-empty">No matching models.</p> : null}
++        <div className="model-picker-body">
++          <nav className="model-provider-nav" aria-label="Model providers" onKeyDown={navigateProviders}>
++            {matchingProviders.map((provider) => <button key={provider.id} data-provider-id={provider.id} className={provider.id === activeProvider?.id ? "active" : ""} type="button" onClick={() => setSelectedProviderId(provider.id)}>
++              <span><strong>{provider.short || provider.label}</strong>{provider.current ? <small>Default provider</small> : null}</span>
++              <b>{filterModels(provider, query).length}</b>
++            </button>)}
++          </nav>
++          <section className="model-provider-detail" aria-live="polite">
++            {activeProvider ? <>
++              <header className="model-detail-heading">
++                <div><h3>{activeProvider.label}</h3><p>{activeProvider.modelSource === "live" ? "Live provider models" : "Vanta catalog"}</p></div>
++                <button className="icon-button" type="button" onClick={() => void refreshSelected()} disabled={!activeProvider.discoveryAvailable || refreshing} aria-label={`Refresh ${activeProvider.label} models`} title={activeProvider.discoveryAvailable ? "Refresh models from provider" : "Connect this provider to load live models"}><RefreshCw size={15} className={refreshing ? "spinning" : ""} /></button>
++              </header>
++              {activeProvider.discoveryError ? <p className="model-discovery-error" role="status">{activeProvider.discoveryError} Showing the offline catalog.</p> : null}
++              <div className="model-rows">{visibleModels.map((model) => <ModelRow key={model} provider={activeProvider} model={model} status={props.status} onSelect={props.onSelect} />)}</div>
++              {visibleModels.length === 0 ? <p className="muted model-empty">No matching models for this provider.</p> : null}
++              <form className="custom-model" onSubmit={chooseCustom}><label htmlFor="custom-model-id">Use another model ID</label><div><input id="custom-model-id" value={customModel} onChange={(event) => setCustomModel(event.target.value)} placeholder="provider model ID" /><button type="submit" disabled={!customModel.trim()}>Use</button></div></form>
++            </> : <p className="muted model-empty">No matching providers or models.</p>}
++          </section>
+         </div>
+       </div>
+     </div>
+   );
+ }
+ 
++export function filterModels(provider: Provider, query: string): string[] {
++  const normalized = query.trim().toLowerCase();
++  return provider.models.filter((model) => !normalized || `${provider.label} ${provider.short} ${model}`.toLowerCase().includes(normalized));
++}
++
++export function filterProviders(providers: Provider[], query: string): Provider[] {
++  return providers.filter((provider) => filterModels(provider, query).length > 0 || `${provider.label} ${provider.short}`.toLowerCase().includes(query.trim().toLowerCase()));
++}
++
+ function ModelRow(props: { provider: Provider; model: string; status: Status | null; onSelect: (provider: string, model: string, scope?: "session" | "global") => void }) {
+   const selected = props.status?.provider === props.provider.id && props.status?.model === props.model;
++  const savedDefault = props.provider.current && props.provider.savedDefaultModel === props.model;
+   return <div className={`model-row${selected ? " selected" : ""}`}>
+     <button className="model-select" type="button" onClick={() => props.onSelect(props.provider.id, props.model, "session")} aria-pressed={selected}>
+       <span className="model-name">{props.model}</span>
+-      {selected ? <span className="model-active"><Check size={14} />Current</span> : null}
++      <span className="model-badges">{selected ? <span className="model-active"><Check size={14} />Current</span> : null}{savedDefault ? <span className="model-saved"><Star size={12} fill="currentColor" />Default</span> : null}</span>
+     </button>
+-    <button className="icon-button model-default" type="button" onClick={() => props.onSelect(props.provider.id, props.model, "global")} aria-label={`Set ${props.provider.label} ${props.model} as default`} title="Set as default"><Star size={15} /></button>
++    <button className={`icon-button model-default${savedDefault ? " saved" : ""}`} type="button" onClick={() => props.onSelect(props.provider.id, props.model, "global")} aria-label={savedDefault ? `${props.provider.label} ${props.model} is the default` : `Set ${props.provider.label} ${props.model} as default`} title={savedDefault ? "Default for new sessions" : "Set as default"}><Star size={15} fill={savedDefault ? "currentColor" : "none"} /></button>
+   </div>;
+ }
+diff --git a/vanta-ts/desktop-app/src/styles.css b/vanta-ts/desktop-app/src/styles.css
+--- a/vanta-ts/desktop-app/src/styles.css
++++ b/vanta-ts/desktop-app/src/styles.css
+@@ -255,34 +255,48 @@ h1 { font-size: 18px; letter-spacing: 0; }
+ .palette-actions { display: grid; gap: 5px; }
+ .palette-actions button { text-align: left; }
+-.model-picker { width: min(720px, calc(100vw - 32px)); max-height: min(680px, 76vh); gap: 12px; }
++.model-picker { width: min(820px, calc(100vw - 32px)); height: min(660px, 78vh); max-height: min(660px, 78vh); grid-template-rows: auto auto minmax(0, 1fr); gap: 12px; overflow: hidden; }
+ .model-picker .dialog-heading { align-items: flex-start; }
+ .model-picker .dialog-heading .eyebrow { margin: 0 0 3px; }
+ .model-search { margin: 0; }
+-.model-picker-note { margin: -2px 0 0; color: var(--muted); font-size: 12px; }
+-.model-provider-list { display: grid; gap: 16px; min-height: 0; overflow: auto; padding-right: 2px; }
+-.model-provider-group { display: grid; gap: 6px; }
+-.model-provider-group header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); padding: 0 2px 6px; }
+-.model-provider-group header > div { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+-.model-provider-group h3 { margin: 0; color: var(--text); font-size: 12px; }
+-.model-provider-group header span { color: var(--faint); font-size: 11px; }
+-.model-rows { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
++.model-picker-body { min-width: 0; min-height: 0; display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 12px; border-top: 1px solid var(--line); padding-top: 12px; overflow: hidden; }
++.model-provider-nav { min-width: 0; min-height: 0; display: grid; align-content: start; gap: 2px; border-right: 1px solid var(--line); overflow: auto; padding-right: 10px; }
++.model-provider-nav button { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid transparent; background: transparent; padding: 8px; text-align: left; }
++.model-provider-nav button:hover { background: var(--raised); }
++.model-provider-nav button.active { border-color: var(--line-strong); background: var(--raised); }
++.model-provider-nav button > span { min-width: 0; display: grid; gap: 2px; }
++.model-provider-nav strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
++.model-provider-nav small { color: var(--accent); font-size: 10px; }
++.model-provider-nav b { color: var(--faint); font-size: 11px; font-weight: 500; }
++.model-provider-detail { min-width: 0; min-height: 0; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; align-content: start; gap: 8px; overflow: hidden; }
++.model-detail-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 38px; }
++.model-detail-heading h3 { margin: 0; font-size: 14px; }
++.model-detail-heading p { color: var(--faint); font-size: 11px; }
++.model-detail-heading .icon-button { width: 32px; height: 32px; display: grid; place-items: center; padding: 0; }
++.model-detail-heading button:disabled { cursor: default; opacity: .45; }
++.model-discovery-error { border: 1px solid color-mix(in srgb, var(--amber) 40%, var(--line)); border-radius: 6px; background: color-mix(in srgb, var(--amber) 7%, transparent); color: var(--muted); padding: 7px 9px; font-size: 11px; }
++.model-rows { min-height: 0; align-content: start; display: grid; gap: 4px; overflow: auto; padding-right: 3px; }
+ .model-row { display: grid; grid-template-columns: minmax(0, 1fr) 34px; align-items: stretch; min-width: 0; border: 1px solid var(--line); border-radius: 6px; background: var(--raised); overflow: hidden; }
+-.model-row:hover, .model-row:focus-within { border-color: var(--line-strong); background: #161f2b; }
+-.model-row.selected { border-color: var(--accent); background: #10272b; }
++.model-row:hover, .model-row:focus-within { border-color: var(--line-strong); }
++.model-row.selected { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, var(--raised)); }
+ .model-select { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; border: 0; border-radius: 0; background: transparent; color: var(--text); padding: 10px; text-align: left; }
+ .model-select:hover { background: transparent; }
+ .model-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; }
++.model-badges { display: flex; align-items: center; gap: 7px; }
+ .model-active { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 3px; color: var(--accent); font-size: 10px; font-weight: 700; text-transform: uppercase; }
++.model-saved { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 3px; color: var(--amber); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+ .model-default { width: 34px; min-width: 34px; min-height: 34px; align-self: stretch; border: 0; border-left: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--muted); }
+-.model-default:hover, .model-default:focus-visible { background: #1d3140; color: #f0c36a; }
++.model-default:hover, .model-default:focus-visible, .model-default.saved { background: color-mix(in srgb, var(--amber) 7%, transparent); color: var(--amber); }
+ .model-empty { margin: 8px 0; text-align: center; }
+-@media (max-width: 620px) { .model-rows { grid-template-columns: minmax(0, 1fr); } }
++.custom-model { display: grid; gap: 5px; border-top: 1px solid var(--line); padding-top: 9px; }
++.custom-model label { color: var(--faint); font-size: 11px; }
++.custom-model > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
++.custom-model input { min-width: 0; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--text); padding: 8px; }
++.custom-model button { padding: 7px 12px; }
++.spinning { animation: spin .8s linear infinite; }
++@media (max-width: 700px) { .model-picker { height: min(720px, calc(100dvh - 24px)); max-height: calc(100dvh - 24px); }.model-picker-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }.model-provider-nav { grid-auto-flow: column; grid-auto-columns: minmax(125px, 1fr); border-right: 0; border-bottom: 1px solid var(--line); overflow-x: auto; padding: 0 0 9px; }.model-provider-nav button { min-width: 125px; }.model-badges { gap: 4px; }.model-saved, .model-active { font-size: 9px; } }
+diff --git a/vanta-ts/desktop-app/src/overlays.test.tsx b/vanta-ts/desktop-app/src/overlays.test.tsx
+--- a/vanta-ts/desktop-app/src/overlays.test.tsx
++++ b/vanta-ts/desktop-app/src/overlays.test.tsx
+@@ -38,17 +38,24 @@ describe("ModelPicker", () => {
+       <ModelPicker
+         open
+-        models={[{ id: "ollama", label: "Ollama", short: "Local", models: ["qwen"] }]}
++        models={[{ id: "ollama", label: "Ollama", short: "Local", models: ["qwen"], current: true, savedDefaultModel: "qwen", modelSource: "live", discoveryAvailable: true }]}
+         status={{ kernel: "ready", model: "qwen", provider: "ollama", tools: 1, sessionId: "s1" }}
+         onClose={vi.fn()}
++        onRefresh={vi.fn()}
+         onSelect={vi.fn()}
+       />,
+     );
+     expect(html).toContain("Choose a model");
+-    expect(html).toContain("Search models");
++    expect(html).toContain("Search providers and models");
+     expect(html).toContain("Ollama");
++    expect(html).toContain("Live provider models");
+     expect(html).toContain("Current");
+-    expect(html).toContain("Set Ollama qwen as default");
++    expect(html).toContain("Default");
++    expect(html).toContain("Ollama qwen is the default");
++    expect(html).toContain("Use another model ID");
+   });
+ });

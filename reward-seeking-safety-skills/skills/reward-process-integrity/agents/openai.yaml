@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reward Process Integrity"
+  short_description: "Protect graders, holdouts, budgets, and release gates"
+  default_prompt: "Use $reward-process-integrity to trace and harden the full evaluation and reward path for this agent."

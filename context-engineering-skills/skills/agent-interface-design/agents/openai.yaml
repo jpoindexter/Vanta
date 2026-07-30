@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Interface Design"
+  short_description: "Design clear schemas for agent-facing tools."
+  default_prompt: "Review this agent-facing tool interface and replace tutorial prose with precise schemas, constraints, and structured results."

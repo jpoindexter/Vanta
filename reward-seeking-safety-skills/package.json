@@ -1,0 +1,25 @@
+{
+  "name": "reward-seeking-safety-skills",
+  "version": "0.1.2",
+  "private": false,
+  "description": "Agent skills and eval utilities for reward-seeking, grader-targeting, and oversight-dependent behavior.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "check": "node scripts/check-pack.mjs"
+  },
+  "keywords": [
+    "ai-safety",
+    "agent-safety",
+    "reward-hacking",
+    "reward-seeking",
+    "llm-evals",
+    "alignment",
+    "codex-skills",
+    "claude-code"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  }
+}

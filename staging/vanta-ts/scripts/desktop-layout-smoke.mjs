@@ -1,0 +1,158 @@
+import { _electron as electron } from "playwright-core";
+import { resolve } from "node:path";
+
+const port = process.env.VANTA_DESKTOP_SMOKE_PORT ?? "7821";
+const executablePath = process.env.VANTA_DESKTOP_APP;
+const app = await electron.launch({
+  ...(executablePath ? { executablePath } : {}),
+  args: executablePath ? ["--project", resolve(process.cwd(), "..")] : ["desktop-app/electron/main.mjs"],
+  cwd: process.cwd(),
+  env: { ...process.env, VANTA_DESKTOP_PORT: port, ELECTRON_DISABLE_SECURITY_WARNINGS: "1" },
+});
+
+try {
+  const page = await app.firstWindow();
+  await page.setViewportSize({ width: 1778, height: 1136 });
+  await page.getByRole("heading", { name: "New session" }).waitFor({ timeout: 15_000 });
+  await page.getByRole("button", { name: "New session" }).click();
+  await page.getByRole("heading", { name: "What should Vanta handle?" }).waitFor();
+  const healthy = await measure(page);
+  assertLayout(healthy, "healthy");
+  if (process.env.VANTA_DESKTOP_SHELL_SCREENSHOT) {
+    await page.screenshot({ path: process.env.VANTA_DESKTOP_SHELL_SCREENSHOT });
+  }
+  await page.getByTitle("Change model").click();
+  const modelDesktop = await measureModelPicker(page);
+  assertModelPicker(modelDesktop, "desktop");
+  await page.getByRole("dialog", { name: "Choose a model" }).getByRole("button", { name: "Close" }).click();
+
+  await page.route("**/api/status", (route) => route.fulfill({
+    status: 500,
+    contentType: "application/json",
+    body: JSON.stringify({ error: "Forced layout recovery fixture" }),
+  }));
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.getByRole("alert").waitFor();
+  const recovery = await measure(page);
+  assertLayout(recovery, "recovery");
+
+  await page.unroute("**/api/status");
+  await page.route("**/api/files", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify(Array.from({ length: 220 }, (_, index) => `src/a-very-long-project-folder/feature-${index}/implementation-with-a-long-name.ts`)),
+  }));
+  await page.setViewportSize({ width: 760, height: 900 });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.getByRole("button", { name: "Open contextual inspector" }).click();
+  await page.getByRole("button", { name: "Attach project files" }).click();
+  await page.locator(".files-panel").waitFor();
+  await page.locator(".file-list button").first().waitFor();
+  const files = await measureFiles(page);
+  assertFiles(files);
+
+  await page.setViewportSize({ width: 640, height: 900 });
+  await page.keyboard.press("Meta+K");
+  await page.getByRole("dialog", { name: "Command palette" }).getByRole("button", { name: "Model picker" }).click();
+  const modelCompact = await measureModelPicker(page);
+  assertModelPicker(modelCompact, "compact");
+
+  if (process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT) {
+    await page.screenshot({ path: process.env.VANTA_DESKTOP_SMOKE_SCREENSHOT });
+  }
+  console.log(JSON.stringify({ viewport: "1778x1136", healthy, modelDesktop, recovery, files, modelCompact }));
+} finally {
+  await app.close();
+}
+
+async function measureModelPicker(page) {
+  const dialog = page.getByRole("dialog", { name: "Choose a model" });
+  await dialog.waitFor();
+  await dialog.locator(".model-row").first().waitFor();
+  return dialog.evaluate((element) => {
+    const box = (target) => {
+      const rect = target.getBoundingClientRect();
+      return { top: rect.top, right: rect.right, bottom: rect.bottom, left: rect.left, width: rect.width, height: rect.height };
+    };
+    const body = element.querySelector(".model-picker-body");
+    const detail = element.querySelector(".model-provider-detail");
+    const custom = element.querySelector(".custom-model");
+    if (!body || !detail || !custom) throw new Error("Model picker fixture did not render");
+    return {
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+      dialog: box(element), body: box(body), detail: box(detail), custom: box(custom),
+      widths: [element.clientWidth, element.scrollWidth, detail.clientWidth, detail.scrollWidth],
+      providers: element.querySelectorAll(".model-provider-nav button").length,
+      models: element.querySelectorAll(".model-row").length,
+    };
+  });
+}
+
+async function measureFiles(page) {
+  return page.evaluate(() => {
+    const box = (element) => {
+      const rect = element.getBoundingClientRect();
+      return { top: rect.top, bottom: rect.bottom, width: rect.width, height: rect.height };
+    };
+    const rail = document.querySelector(".right-rail");
+    const heading = document.querySelector(".rail-heading");
+    const panel = document.querySelector(".files-panel");
+    const list = document.querySelector(".file-list");
+    const rows = [...document.querySelectorAll(".file-list button")].slice(0, 5);
+    if (!rail || !heading || !panel || !list || rows.length === 0) throw new Error("Files panel fixture did not render");
+    return {
+      railDisplay: getComputedStyle(rail).display,
+      rail: box(rail), heading: box(heading), panel: box(panel), list: box(list),
+      panelWidths: [panel.clientWidth, panel.scrollWidth],
+      listWidths: [list.clientWidth, list.scrollWidth],
+      rowHeights: rows.map((row) => box(row).height),
+    };
+  });
+}
+
+async function measure(page) {
+  return page.evaluate(() => {
+    const box = (selector) => {
+      const element = document.querySelector(selector);
+      if (!element) throw new Error(`Missing ${selector}`);
+      const rect = element.getBoundingClientRect();
+      return { top: rect.top, bottom: rect.bottom, height: rect.height };
+    };
+    return {
+      viewportHeight: window.innerHeight,
+      documentScrollHeight: document.documentElement.scrollHeight,
+      shell: box(".app-shell"),
+      stage: box(".conversation-stage"),
+      thread: box(".chat-thread"),
+      composer: box(".composer"),
+    };
+  });
+}
+
+function assertLayout(result, label) {
+  const tolerance = 1;
+  if (result.documentScrollHeight > result.viewportHeight + tolerance) throw new Error(`${label}: document scrolls`);
+  if (result.shell.bottom > result.viewportHeight + tolerance) throw new Error(`${label}: shell exceeds viewport`);
+  if (result.composer.top < 0 || result.composer.bottom > result.viewportHeight + tolerance) throw new Error(`${label}: composer is clipped`);
+  if (result.stage.bottom > result.composer.top + tolerance) throw new Error(`${label}: conversation overlaps composer`);
+  if (result.thread.bottom > result.stage.bottom + tolerance) throw new Error(`${label}: chat exceeds conversation stage`);
+}
+
+function assertFiles(result) {
+  if (result.railDisplay !== "grid") throw new Error(`files: inspector uses ${result.railDisplay}, expected grid`);
+  if (result.panel.top < result.heading.bottom - 1) throw new Error("files: panel overlaps heading");
+  if (result.panelWidths[1] > result.panelWidths[0]) throw new Error("files: panel scrolls horizontally");
+  if (result.listWidths[1] > result.listWidths[0]) throw new Error("files: list scrolls horizontally");
+  if (result.rowHeights.some((height) => height < 27)) throw new Error(`files: clipped rows ${result.rowHeights.join(",")}`);
+}
+
+function assertModelPicker(result, label) {
+  const tolerance = 1;
+  if (result.dialog.left < -tolerance || result.dialog.right > result.viewport.width + tolerance) throw new Error(`${label} model picker exceeds viewport width`);
+  if (result.dialog.top < -tolerance || result.dialog.bottom > result.viewport.height + tolerance) throw new Error(`${label} model picker exceeds viewport height`);
+  if (result.widths[1] > result.widths[0] + tolerance) throw new Error(`${label} model picker scrolls horizontally`);
+  if (result.widths[3] > result.widths[2] + tolerance) throw new Error(`${label} model detail scrolls horizontally`);
+  if (result.custom.bottom > result.dialog.bottom + tolerance) throw new Error(`${label} custom model control is clipped`);
+  if (result.custom.height < 60) throw new Error(`${label} custom model control collapsed to ${result.custom.height}px`);
+  if (result.providers < 1 || result.models < 1) throw new Error(`${label} model picker has no selectable provider/model`);
+}

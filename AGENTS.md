@@ -1,72 +1,61 @@
-# AGENTS.md — Vanta (repo root)
+# Repository Guidelines
 
-Cross-tool agent context (Codex, Cursor, etc.). Pairs with `CLAUDE.md`. Read both. `CLAUDE.md` has deeper detail; this file has the essentials any agent needs to operate.
+## Project Structure & Module Organization
 
-## What this repo is
+This repository is a focused Vanta desktop workbench snapshot, not the complete
+application checkout. Keep root-level patches (`*.patch`) and
+`vanta-desktop-demo.html` as review/demo artifacts.
 
-Vanta is a local trusted-operator agent: Rust safety kernel + TypeScript agent loop. It knows its goals before picking tools, enforces scope on every action, and reports only verified output.
+- `staging/vanta-ts/src/` contains TypeScript runtime code. Provider adapters
+  live in `src/providers/`; terminal behavior lives in `src/term/`.
+- `staging/vanta-ts/desktop-app/src/` contains the React desktop UI. Keep UI
+  state in `state.ts`, shared types in `types.ts`, and styles in `styles.css`.
+- `staging/vanta-ts/scripts/` contains focused smoke checks.
+- `staging/docs/` and `staging/vanta-website/docs/` contain product and UX
+  decisions; update them when behavior or interaction rules change.
 
-Two layers:
+## Build, Test, and Development Commands
 
-| Path | Language | Role |
-|------|----------|------|
-| `src/` | Rust | Safety kernel: risk classifier, approvals, goals, HTTP sidecar on :7788 |
-| `vanta-ts/` | TypeScript, Node 22, ESM | Agent loop: LLM providers, 137 built-in tools (141 registered), 146 slash commands, TUI, REPL |
-
-The kernel is the enforced security boundary — `assess()` blocks, it doesn't advise. Deep TS docs: `vanta-ts/AGENTS.md`.
-
-## Build + test
+This snapshot has no `package.json`, lockfile, or local dependency tree. Do not
+invent build commands or add generated dependencies here. In a full Vanta
+checkout, run commands from `vanta-ts/`:
 
 ```bash
-cargo build && cargo test                     # Rust kernel (last recorded: 67 tests)
-cd vanta-ts && npx vitest run && npx tsc --noEmit  # TS agent (last recorded full green: 11979 tests + typecheck)
-./install.sh                                  # global `vanta` in ~/.local/bin
-vanta                                          # launch TUI (TTY) or readline REPL
+npm run desktop:native     # build and launch the desktop app
+npm run desktop:dist       # produce a local macOS distribution
+node scripts/desktop-layout-smoke.mjs  # run the desktop layout smoke check
 ```
 
-> **Status (2026-07-19):** v0.9.4 is the current desktop release line. The release workbench exposes **142 registered tools** and uses one authoritative `roadmap.json`; the human launch-pad view is generated as `roadmap.html`. Release claims and executed boundaries live in `CHANGELOG.md` and `docs/product-acceptance.md`. The local codegraph index lives in ignored `.codegraph/`; refresh it with `codegraph index -f .` and verify with `codegraph status .` before relying on code-intel results.
+Run the narrowest relevant test first. Existing TypeScript tests are colocated
+with their code, for example `src/providers/index.test.ts` and
+`desktop-app/src/overlays.test.tsx`.
 
-## Key files
+## Coding Style & Naming Conventions
 
-- `MANIFESTO.md` — north star, hard lines, non-negotiable
-- `PROGRAM.md` — bounded tunable harness instruction block scored by `vanta meta-tune instructions`
-- `ROADMAP.md` — build order, what's done, what's next
-- `DECISIONS.md` — locked choices (append-only)
-- `PARKED.md` — deferred ideas
-- `HANDOFF.md` — current cold-start snapshot for new sessions
-- `docs/superpowers/specs/` — approved design specs
-- `docs/superpowers/plans/` — implementation plans
+Use TypeScript and React with two-space indentation, semicolons, double-quoted
+string literals, and explicit exported types for shared boundaries. Name React
+components in `PascalCase`; use `camelCase` for functions, variables, and hooks;
+and use kebab-case for documentation files. Keep provider-specific logic inside
+`src/providers/`, not in UI components. Preserve the existing accessibility
+pattern: interactive controls need clear labels and keyboard behavior.
 
-## Active branch
+## Testing Guidelines
 
-`main` — all work happens here. Every slice: real code + co-located test + tsc/cargo clean + `git commit` + `git push`. No exceptions.
+Add a colocated `*.test.ts` or `*.test.tsx` file for behavior changes. Cover the
+user-visible path plus failure/empty states, particularly provider auth, model
+selection, layouts, and approval flows. Record any manual desktop check in the
+relevant staging document; a passing unit test alone does not validate Electron
+or macOS behavior.
 
-## Safety rules (non-negotiable)
+## Commit & Pull Request Guidelines
 
-- Kernel `src/*.rs` — never edit autonomously. Human approval required.
-- `vanta-ts/src/factory/*.ts` — same.
-- `MANIFESTO.md` — human-only, never modify.
-- Never commit secrets, never `rm -rf`, never `git push --force` shared branches.
+No Git history is available in this snapshot, so use concise imperative commits,
+such as `fix desktop model picker overflow`. Keep each commit scoped. Pull
+requests should state the behavior change, tests run, and remaining gaps; attach
+screenshots for desktop UI changes and link the relevant issue or roadmap item.
 
-## Adding a TS tool
+## Security & Configuration
 
-1. New file `vanta-ts/src/tools/<name>.ts`, export a `Tool`.
-2. Zod-parse args (`safeParse`) — it's an LLM boundary.
-3. Path args → `resolveInScope`; return `{ok:false}` if outside.
-4. Add it to the `ALL_TOOLS` array in `vanta-ts/src/tools/all-tools.ts` AND add the name to the sorted list in `tools/tools.test.ts`. (`index.ts` is now just `buildRegistry`, which filters `ALL_TOOLS` + adds factory `mount_mcp`/`tool_search`.)
-5. Watch for import cycles with `tools/index.ts` (lazy-import `buildRegistry` if needed — see `swarm.ts`).
-
-## Docs discipline
-
-Every folder that gets modified gets/keeps a `CLAUDE.md` and an `AGENTS.md`. Read a folder's docs only when working in it (index, don't inject). Update `ROADMAP.md` checkboxes when completing a tracked item. Commit + push every slice.
-
-<!-- CODEGRAPH_START -->
-## CodeGraph
-
-In repositories indexed by CodeGraph (a `.codegraph/` directory exists at the repo root), reach for it BEFORE grep/find or reading files when you need to understand or locate code:
-
-- **MCP tools** (when available): `codegraph_explore` answers most code questions in one call — the relevant symbols' verbatim source plus the call paths between them. `codegraph_node` returns one symbol's source + callers, or reads a whole file with line numbers. If the tools are listed but deferred, load them by name via tool search.
-- **Shell** (always works): `codegraph explore "<symbol names or question>"` and `codegraph node <symbol-or-file>` print the same output.
-
-If there is no `.codegraph/` directory, skip CodeGraph entirely — indexing is the user's decision.
-<!-- CODEGRAPH_END -->
+Never commit `.env` files, API keys, OAuth tokens, or local Vanta state. Keep
+credentials in ignored local configuration and ensure logs, patches, and
+screenshots do not expose them.

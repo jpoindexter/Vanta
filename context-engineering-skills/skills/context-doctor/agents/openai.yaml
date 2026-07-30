@@ -1,0 +1,4 @@
+interface:
+  display_name: "Context Doctor"
+  short_description: "Audit agent context before trimming it."
+  default_prompt: "Audit this repository’s agent context, show the context budget and conflicts, and propose a reviewed cleanup diff without editing."
