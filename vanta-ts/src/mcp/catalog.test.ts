@@ -26,6 +26,14 @@ describe("catalog", () => {
     expect(ha?.authEnv).toEqual(["API_ACCESS_TOKEN"]);
   });
 
+  it("installs filesystem with a project-relative allowed root", () => {
+    expect(catalogEntry("filesystem")?.args).toEqual([
+      "-y",
+      "@modelcontextprotocol/server-filesystem",
+      ".",
+    ]);
+  });
+
   it("declares the official hosted Box and Atlassian Rovo MCP packs", () => {
     expect(catalogEntry("box-remote-mcp")).toMatchObject({ url: "https://mcp.box.com", tokenEnv: "VANTA_BOX_MCP_TOKEN" });
     expect(catalogEntry("atlassian-rovo-mcp")).toMatchObject({ url: "https://mcp.atlassian.com/v1/mcp/authv2", tokenEnv: "VANTA_ATLASSIAN_ROVO_MCP_TOKEN" });

@@ -11,6 +11,7 @@ import {
   mcpToolToVantaTool,
   buildMcpChildEnv,
   extractAuthConfig,
+  resolveMcpStdioArgs,
   type ServerSpec,
   type McpTrust,
 } from "./mount-config.js";
@@ -29,6 +30,7 @@ export {
   mcpToolToVantaTool,
   buildMcpChildEnv,
   extractAuthConfig,
+  resolveMcpStdioArgs,
   type McpConfig,
   type McpTrust,
 } from "./mount-config.js";
@@ -40,6 +42,7 @@ async function resolveTransport(
   spec: ServerSpec,
   env: NodeJS.ProcessEnv,
   children: Array<{ kill: () => void }>,
+  root: string,
 ): Promise<Transport | null> {
   if (spec.url) {
     const { httpTransport, resolveToken } = await import("./http-transport.js");
@@ -53,7 +56,7 @@ async function resolveTransport(
     return httpTransport(spec.url, { token, headers });
   }
   if (spec.command) {
-    const t = stdioTransport(spec.command, spec.args ?? [], buildMcpChildEnv(env, spec.env));
+    const t = stdioTransport(spec.command, resolveMcpStdioArgs(spec, root), buildMcpChildEnv(env, spec.env));
     children.push({ kill: () => t.child.kill() });
     return t.transport;
   }
@@ -84,7 +87,7 @@ async function mountOneServer(opts: {
     const risk = detectMcpEgressRisk(spec.command, spec.args ?? []);
     if (risk.risky) log(formatEgressWarning(name, risk.reason));
   }
-  const transport = await resolveTransport(name, spec, env, children);
+  const transport = await resolveTransport(name, spec, env, children, cwd);
   if (!transport) { log(`  · mcp: ${name} skipped — no command or url`); return 0; }
   const client = new McpClient(transport, mcpClientEvents(cwd, name));
   await client.initialize();

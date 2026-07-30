@@ -1,14 +1,9 @@
-import { createInterface } from "node:readline/promises";
-import { existsSync } from "node:fs";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import { recordAudio, detectRecorder } from "./recorder.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { KernelClient } from "../kernel/client.js";
 import type { ToolRegistry } from "../tools/registry.js";
-import { runAgent, createConversation } from "../agent.js";
-
-const execAsync = promisify(execFile);
+import { createConversation } from "../agent.js";
+import { createVoiceTurnSpeaker, type VoiceTurnSpeaker } from "../tts/streaming.js";
 
 type VoiceDeps = {
   provider: LLMProvider;
@@ -28,6 +23,7 @@ async function handleVoiceTurn(
   recorder: Recorder,
   deps: VoiceDeps,
   log: (msg: string) => void,
+  speaker: VoiceTurnSpeaker,
 ): Promise<void> {
   const duration = deps.durationSec ?? 5;
   log("\n[Recording…]");
@@ -53,10 +49,11 @@ async function handleVoiceTurn(
   const text = xResult.output.trim();
   log(`You: ${text}`);
 
-  const outcome = await convo.send(text);
-  if (outcome.finalText.trim()) {
-    // Speak the response via macOS `say`
-    await execAsync("say", [outcome.finalText.slice(0, 500)]).catch(() => {});
+  const { speech } = await speaker.run(() => convo.send(text));
+  if (speech.error) {
+    log(`[speech unavailable: ${speech.error}]`);
+  } else if (speech.mode === "streaming" && speech.firstClauseMs !== undefined) {
+    log(`[speech started after first clause · ${speech.firstClauseMs}ms]`);
   }
 }
 
@@ -74,6 +71,7 @@ export async function runVoiceLoop(deps: VoiceDeps): Promise<void> {
     return;
   }
 
+  const speaker = createVoiceTurnSpeaker(process.env);
   const convo = createConversation(deps.systemPrompt, {
     provider: deps.provider,
     safety: deps.safety,
@@ -81,6 +79,7 @@ export async function runVoiceLoop(deps: VoiceDeps): Promise<void> {
     root: deps.root,
     requestApproval: async () => false, // voice mode auto-denies risky ops
     onText: (text) => log(`Vanta: ${text}`),
+    ...speaker.callbacks,
   });
 
   log(`Voice mode active — ${duration}s per turn, Ctrl+C to exit.`);
@@ -90,7 +89,7 @@ export async function runVoiceLoop(deps: VoiceDeps): Promise<void> {
 
   try {
     while (running) {
-      await handleVoiceTurn(convo, recorder, deps, log);
+      await handleVoiceTurn(convo, recorder, deps, log, speaker);
     }
   } finally {
     process.removeListener("SIGINT", onSigint);

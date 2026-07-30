@@ -1,6 +1,101 @@
 {
-  "updated": "2026-07-29",
+  "updated": "2026-07-30",
   "items": [
+    {
+      "id": "VANTA-STREAMING-TTS-FIRST-CLAUSE",
+      "track": "Operator",
+      "title": "Streaming TTS — speak after the first complete clause",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Reduce voice-response silence by feeding live model deltas through a deterministic clause splitter and bounded sequential TTS queue. Reuse the configured Edge, OpenAI, ElevenLabs, or local provider; keep whole-response synthesis as the fallback.",
+      "done": "VANTA_TTS_STREAMING=1 makes push-to-talk and wake-word voice turns dispatch the first complete clause before model completion; punctuation, abbreviation, decimal, minimum, and hard-maximum rules are deterministic; tool boundaries discard unspoken draft clauses; synthesis failures trip a per-turn breaker; queue length is bounded; setup persists the opt-in; disabled and non-streaming paths synthesize the complete final response; tests prove first-clause dispatch precedes model completion without calling a paid provider.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "updated": "2026-07-29",
+      "notes": "Source: operator-supplied Streaming TTS architecture image, 2026-07-29. Applied streaming-as-interaction, deterministic boundaries, bounded queues, circuit breaking, provider substitution, and explicit drift disclosure. Implementation: src/tts/clause-splitter.ts, src/tts/streaming.ts, src/voice/loop.ts, and src/voice/wake-loop.ts. Product/operations contract: docs/streaming-tts.md. Executed evidence: 8 focused files / 42 tests passed; the full suite passed 1,491 files / 13,800 tests with 3 intentional skips; TypeScript typecheck passed; and the real conversation-stream proof emitted STREAMING_TTS_FIRST_CLAUSE_OK with firstClauseBeforeProviderDone=true and two ordered clauses. Boundary: the proof uses a silent injected synthesis sink, so it establishes conversation-to-synthesis ordering and fallback behavior but not audible hardware output, network-provider latency, or audio quality.",
+      "source": "operator-supplied streaming-tts diagram"
+    },
+    {
+      "id": "VANTA-STREAMING-TTS-GATEWAY-AUDIO",
+      "track": "Messaging",
+      "title": "Gateway streaming speech adapter — native live audio where platforms support it",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Extend the messaging platform contract with an opt-in live audio stream sink so provider PCM/audio chunks can reach capable channels without pretending that sequential completed-file uploads are streaming.",
+      "done": "At least one real platform adapter advertises a typed audio-stream capability, accepts bounded audio chunks with backpressure and cancellation, records delivery receipts without content, falls back to the final text response on drift/failure, and passes a live platform proof. Platforms without the capability remain byte-compatible.",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "updated": "2026-07-29",
+      "notes": "Current PlatformAdapter supports text, images, typing, and completed files but no live audio-chunk transport. Do not simulate streaming by sending many audio attachments. Start only after choosing a platform with a real native streaming contract.",
+      "source": "docs/streaming-tts.md",
+      "after": [
+        "VANTA-STREAMING-TTS-FIRST-CLAUSE"
+      ]
+    },
+    {
+      "id": "VANTA-MSA-TS-INTEGRATION",
+      "track": "Operator",
+      "title": "Memory Sparse Attention adapter — long-context memory without Python in Vanta",
+      "status": "shipped",
+      "size": "L",
+      "summary": "Give Vanta an optional Memory Sparse Attention backend through a typed TypeScript service contract. Vanta remains TypeScript/Rust and keeps its local brain authoritative; a separately operated NVIDIA runtime handles MSA indexing, routing, and generation. The same capability is exposed through Vanta's kernel-gated MCP server for other AI clients.",
+      "done": "VANTA_MEMORY=msa selects a schema-validated TypeScript adapter only when a safe VANTA_MSA_URL is configured; local writes happen before remote indexing; query failures, empty results, timeouts, and malformed output fall back to local memory; the setup wizard and msa_memory tool expose status/index/query/generate; vanta mcp serve lists the capability and still kernel-gates calls; a real authenticated loopback service exercises all four endpoints; unconfigured behavior stays byte-compatible and no Python dependency or secret enters Vanta.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "memory",
+      "updated": "2026-07-29",
+      "notes": "Decision owner: Jason Poindexter. Dominant uncertainty: feasibility. Observed: the official implementation is an end-to-end trained architecture rather than a drop-in kernel and publishes a Python/PyTorch/FlashAttention quick start. Inferred product boundary: consume it as an optional model service; never make it Vanta's only memory. Product brief, API, safety rules, metrics, rollout, and proof boundary: docs/msa-long-context.md.\n\nSHIPPED 2026-07-29: Added the schema-validated TypeScript MSA protocol/client, local-first MemoryProvider adapter, setup choice, msa_memory status/index/query/generate tool, and default kernel-gated MCP discovery. HTTP policy requires HTTPS remotely and permits loopback HTTP; bearer tokens stay inside the transport; external text and metadata are control-stripped; requests time out and return errors as values; failed or empty recall falls back locally. Executed evidence: 117 focused tests passed, the full suite passed 1,488 files and 13,785 tests with 3 intentional skips, TypeScript typecheck passed, the authenticated loopback proof exercised health/index/query/generate plus the real provider resolver, durable local write, and remote recall, and the installed global launcher completed a real MCP handshake with msa_memory in its 10-tool default allowlist. Boundary: the proof runtime is a mock service and does not establish official checkpoint inference, CUDA performance, or 100M-token behavior; that remains VANTA-MSA-NVIDIA-RUNTIME-PROOF.",
+      "source": "arXiv:2603.23516; https://github.com/EverMind-AI/MSA"
+    },
+    {
+      "id": "VANTA-MSA-NVIDIA-RUNTIME-PROOF",
+      "track": "Infrastructure",
+      "title": "MSA NVIDIA runtime proof — execute the official checkpoint behind Vanta's contract",
+      "status": "parked",
+      "size": "L",
+      "summary": "Turn the TypeScript integration into real MSA behavior by serving the official checkpoint on supported NVIDIA hardware. This is an external proof gate: mocks, request traces, and adapter tests prove plumbing but cannot prove sparse routing quality, 100M-token behavior, latency, or cost.",
+      "done": "A supported NVIDIA host loads the official MSA checkpoint, implements Vanta's four-endpoint contract, indexes a versioned acceptance corpus, survives restart, returns cited answers through Vanta and one second MCP client, records recall quality plus TTFT/TPOT/throughput/GPU memory/cost, and demonstrates local fallback when the service is stopped. The receipt names hardware, model revision, corpus size, runtime version, and executed commands.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "memory",
+      "updated": "2026-07-29",
+      "notes": "Blocked on access to supported NVIDIA hardware and a stable serving wrapper for the official research code. Do not claim 100M-token support from the TypeScript contract proof.",
+      "source": "arXiv:2603.23516; https://huggingface.co/EverMind-AI/MSA-4B",
+      "after": [
+        "VANTA-MSA-TS-INTEGRATION"
+      ],
+      "parkedReason": "external proof"
+    },
+    {
+      "id": "VANTA-MSA-NATIVE-RUNTIME-PORT",
+      "track": "Infrastructure",
+      "title": "Native MSA runtime decision — evaluate Rust/C++/CUDA only after live value",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Evaluate removing Python from the separately deployed MSA service by porting its model-specific routing, document-wise RoPE, compressed K/V memory, checkpoint loader, and GPU kernels to a native runtime. This is not required to keep Vanta Python-free and should proceed only after the external runtime proves material operator value.",
+      "done": "A written go/no-go compares maintaining the isolated reference runtime with a native port; if Go, the native service loads a converted, checksummed checkpoint, passes the same contract and safety suite, reproduces accepted quality within a predeclared tolerance, records performance/cost on the same hardware, and keeps Vanta client behavior unchanged.",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "updated": "2026-07-29",
+      "notes": "Continuation trigger: the NVIDIA pilot demonstrates material value and the official architecture is stable enough to port. Stop if accuracy parity, checkpoint conversion, or maintenance cost is unacceptable.",
+      "source": "docs/msa-long-context.md",
+      "after": [
+        "VANTA-MSA-NVIDIA-RUNTIME-PROOF"
+      ]
+    },
     {
       "id": "SANDBOX-RELATIVE-MKDIR-APPROVAL",
       "track": "Harness",
@@ -1886,7 +1981,7 @@
       "lens": "agent-loop",
       "updated": "2026-07-28",
       "source": "operator feedback 2026-07-28",
-      "notes": "In-memory TaskApprovalScope rechecks eligibility on every prompt and never bypasses the kernel assessment. Safe file/web work and clearly read-only shell calls can reuse a same-tool grant during one turn; in-project write_file overwrites are allowed only after the visible task approval and exclude traversal and secret-config paths. Persistent Always/Never remains separate. TUI decide now awaits persistent rule writes before resuming, closing the former same-batch race. Executed proof: one Enter on the live approval card authorized two pre-existing disposable file writes; a second prompt would have left the proof timed out."
+      "notes": "In-memory TaskApprovalScope rechecks eligibility on every prompt and never bypasses the kernel assessment. Safe file/web work and clearly read-only shell calls can reuse a same-tool grant during one turn; in-project write_file overwrites are allowed only after the visible task approval and exclude traversal and secret-config paths. Persistent Always/Never remains separate. TUI decide now awaits persistent rule writes before resuming, closing the former same-batch race. Executed proof: one Enter on the live approval card authorized two pre-existing disposable file writes; a second prompt would have left the proof timed out.\n\nBOUNDED DELETE FOLLOW-UP 2026-07-29: The kernel now routes exact `rmdir`, `unlink`, and non-forced removal descriptions to Ask instead of an unoverrideable Block. Forced-recursive deletion, device writes, wipes, data-loss operations, and protected paths remain Block. Live proof on the installed port-7788 kernel classified an empty-directory `Path.rmdir()` action as Ask and `rm -rf ~/Desktop` as Block; a disposable end-to-end agent dispatch accepted exactly one approval and removed the empty directory."
     },
     {
       "id": "VANTA-ASCIICAST",
@@ -19251,18 +19346,19 @@
     {
       "id": "DESKTOP-QUEUED-TURN-EDITOR",
       "track": "Desktop App",
-      "title": "Desktop queued-turn editor - inspect, reorder, edit, steer, or cancel what runs next",
+      "title": "Desktop queued-turn editor — inspect, reorder, edit, steer, retry, or remove what runs next",
       "status": "shipped",
       "size": "M",
       "summary": "Expose Vanta's existing queued-input and gateway steering substrate in Desktop. The current turn remains primary while pending instructions show their execution order, dependency, target, and safe edit/cancel actions.",
-      "done": "Work shows a compact queued count and an accessible drawer; queued instructions can be edited, reordered, removed, or sent as a steer action; target/controller/model/approval scope is visible per item; changes persist through restart and reconcile with gateway/background execution; races with a just-starting item resolve deterministically; Electron proof covers queue, steer, reorder, cancel, reconnect, and compact layout.",
+      "done": "Work shows a compact queued count and an accessible drawer; queued instructions can be edited, reordered, removed, or sent as a steer action; failed rows retain an explicit reason, cannot silently auto-run, and expose Retry message, Edit message, and Remove from queue; target/controller/model/approval scope is visible per item; changes persist through restart and reconcile with gateway/background execution; races with a just-starting item resolve deterministically; Electron proof covers queue, steer, reorder, remove, reconnect, and compact layout.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.6-terra",
       "lens": "tui",
-      "updated": "2026-07-16",
-      "source": "local-studio-vanta-extraction-2026-07-16",
+      "updated": "2026-07-30",
+      "source": "local-studio-vanta-extraction-2026-07-16; flow-report-2026-07-29",
+      "notes": "FLOW REPORT PATCH 2026-07-30: Reconciled the approved Queue next / Steer now terminology with production and closed the report's failure-recovery gap. A failed claimed turn now persists a bounded reason and attempt count, is excluded from automatic claims, and requires an explicit Retry message action. Edit message and Remove from queue remain available. Executed evidence: 21 focused queue-store, desktop-handler, and rendered-component tests passed; both TypeScript surfaces passed; the source Electron queue smoke exercised enqueue, edit, reorder, steer, remove, failed reason, explicit retry, starting-race lock, reconnect, relaunch, and 760x700 layout. The freshly rebuilt signed packaged app then passed the same real queued-turn flow, including visible failed reason, explicit Retry message, starting-race locking, reconnect, relaunch, compact layout, and persisted controller/model/approval scope. Existing durable-restart coverage remains in src/desktop/turn-queue.test.ts; packaged VoiceOver evidence remains in docs/release-proofs/desktop-accessibility-2026-07-19.json.",
       "after": [
         "VANTA-S-QUEUE",
         "GATEWAY-SESSION-MANAGER",

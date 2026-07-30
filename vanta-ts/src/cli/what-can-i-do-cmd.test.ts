@@ -27,7 +27,8 @@ describe("runWhatCanIDoCommand", () => {
     const result = await capture(() => runWhatCanIDoCommand(["--demo", "fix-error"]));
     expect(result.code).toBe(0);
     expect(result.output).toContain("Demo: Fix a pasted error");
-    expect(result.output).toContain("VANTA_SHELL_SANDBOX=0 vanta");
+    expect(result.output).toContain("without relaunching Vanta");
+    expect(result.output).not.toContain("VANTA_SHELL_SANDBOX=0");
   });
 
   it("runs the cold activation check", async () => {

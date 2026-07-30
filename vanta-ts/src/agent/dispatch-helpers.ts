@@ -96,7 +96,13 @@ export async function applySafetyGate(
     if (permissionMode === "fullAccess") {
       recordAutoDecision(action, deps.activeGoalText);
       await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "full-access-auto" });
-      return { approved: true, reason: "full access (kernel and explicit blocks remain enforced)" };
+      return call.name === "shell_cmd"
+        ? {
+            approved: true,
+            reason: "full access (kernel and explicit blocks remain enforced)",
+            sandboxWritableDirs: approvedMkdirWritableDirs(String(call.arguments.command ?? ""), shellCwd),
+          }
+        : { approved: true, reason: "full access (kernel and explicit blocks remain enforced)" };
     }
     const result = await handleAskDecision({ call, action, verdict, decision: effectiveDecision, deps, root: ctx.root, tool, permissionMode });
     return result.approved && call.name === "shell_cmd"

@@ -10,6 +10,7 @@ import { createTrayController } from "./tray.mjs";
 import { resolveDroppedPaths } from "./dropped-paths.mjs";
 import { findAvailablePort, projectArg, readProjectSetting, resolveProjectRoot, saveProjectSetting } from "./project-root.mjs";
 import { resolveRuntimePaths } from "./runtime-paths.mjs";
+import { desktopRuntimeEnv } from "./runtime-env.mjs";
 
 app.setName("Vanta");
 
@@ -66,7 +67,7 @@ function startServer() {
   const executable = app.isPackaged ? process.execPath : (process.env.VANTA_NODE || "node");
   const childArgs = ["--import", pathToFileURL(paths.loader).href, paths.cli, "desktop", String(port), "--no-open", ...(companion ? ["--companion"] : [])];
   const env = {
-    ...process.env,
+    ...desktopRuntimeEnv(process.env),
     VANTA_DESKTOP_DIST: paths.dist,
     VANTA_PROJECT_ROOT: projectRoot,
     VANTA_KERNEL_BIN: paths.kernel,

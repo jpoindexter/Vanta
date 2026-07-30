@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { readMcpConfig, mcpToolToVantaTool, buildMcpChildEnv } from "./mount.js";
+import { readMcpConfig, mcpToolToVantaTool, buildMcpChildEnv, resolveMcpStdioArgs } from "./mount.js";
 
 describe("readMcpConfig", () => {
   const prev = process.env.VANTA_MCP_SERVERS;
@@ -180,5 +180,21 @@ describe("buildMcpChildEnv", () => {
     const out = buildMcpChildEnv({ ...base, VANTA_MCP_FULL_ENV: "1" }, { FOO: "bar" });
     expect(out.OPENAI_API_KEY).toBe("sk-secret-should-not-leak");
     expect(out.FOO).toBe("bar");
+  });
+});
+
+describe("resolveMcpStdioArgs", () => {
+  it("gives an imported filesystem server the active project root", () => {
+    expect(resolveMcpStdioArgs(
+      { command: "npx", args: ["-y", "@modelcontextprotocol/server-filesystem"] },
+      "/workspace/project",
+    )).toEqual(["-y", "@modelcontextprotocol/server-filesystem", "/workspace/project"]);
+  });
+
+  it("preserves an explicitly configured filesystem root", () => {
+    expect(resolveMcpStdioArgs(
+      { command: "npx", args: ["-y", "@modelcontextprotocol/server-filesystem", "/allowed"] },
+      "/workspace/project",
+    )).toEqual(["-y", "@modelcontextprotocol/server-filesystem", "/allowed"]);
   });
 });

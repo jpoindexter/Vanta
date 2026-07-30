@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { BRAIN_REGIONS, isBrainRegion } from "../brain/regions.js";
 import { resolveBrain } from "../brain/interface.js";
+import { resolveMemoryProvider } from "../memory/provider.js";
 import { guardMemoryRecall } from "../memory/guardrails.js";
 import { routeRecall, formatRoutedHit } from "../brain/router.js";
 import { defaultLookups } from "../brain/router-stores.js";
@@ -45,9 +46,8 @@ async function handleRemember(a: ParsedArgs): Promise<ToolResult> {
     return { ok: false, output: `remember needs a valid region. Use action=list to see them.` };
   }
   if (!a.content?.trim()) return { ok: false, output: "remember needs content" };
-  const e = await resolveBrain().remember({
+  const e = await resolveMemoryProvider().remember(a.content, {
     region: a.region,
-    content: a.content,
     entryType: a.entry_type,
     strength: a.strength,
     forgetAfter: a.forget_after,
@@ -56,7 +56,10 @@ async function handleRemember(a: ParsedArgs): Promise<ToolResult> {
 }
 
 async function handleRecall(a: ParsedArgs): Promise<ToolResult> {
-  const r = await resolveBrain().recall({ query: a.query, region: a.region, topK: a.top_k ?? 10 });
+  const r = await resolveMemoryProvider().recall(a.query ?? "", {
+    region: a.region,
+    topK: a.top_k ?? 10,
+  });
   if (!r.entries.length) return { ok: true, output: "(no matching memories)" };
   return { ok: true, output: guardMemoryRecall(r.entries).formatted };
 }

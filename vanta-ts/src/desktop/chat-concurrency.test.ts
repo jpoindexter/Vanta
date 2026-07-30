@@ -146,7 +146,11 @@ describe("desktop chat concurrency", () => {
     await handleChat(state, chatRequest("do work"), reply.res);
 
     expect(send).toHaveBeenCalledTimes(2);
-    expect((await queue.list("desktop-test")).items).toMatchObject([{ instruction: "queued follow-up", status: "queued" }]);
+    expect((await queue.list("desktop-test")).items).toMatchObject([{
+      instruction: "queued follow-up",
+      status: "failed",
+      failure: { reason: "Task stopped after repeated failures.", attempts: 1 },
+    }]);
     expect(reply.result().body.receipt).toMatchObject({ status: "failed", checkpoint: { instruction: "queued follow-up" } });
   });
 

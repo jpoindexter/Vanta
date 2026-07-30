@@ -23,8 +23,9 @@ blocked, gracefully, not executed).
 
 ## 2. What the boundary enforces
 
-- **Risk classification** (`src/safety.rs`) — destructive/data-loss/exfiltration → `Block`;
-  exec-vectors, machine/credential config, out-of-scope paths, irreversible ops → `Ask`;
+- **Risk classification** (`src/safety.rs`) — catastrophic forced-recursive deletion,
+  device writes, data-loss, and exfiltration → `Block`; bounded deletion, exec-vectors,
+  machine/credential config, out-of-scope paths, and irreversible ops → `Ask`;
   read-only/reversible in-scope work → `Allow`.
 - **Scope containment** (`src/scope.rs`) — canonicalized path containment; `..` traversal,
   sibling-prefix (`/a/vanta-evil` vs `/a/vanta`), and symlink escapes are rejected.

@@ -9,21 +9,22 @@
 //
 // This adds a two-phase upper bound. The acquisition phase closes before the
 // hard ceiling, leaving a fixed reserve for synthesis, verification, output,
-// and checklist closure. The ceiling still tightens while the user is actively
-// CORRECTING the agent, because a corrected turn that keeps spelunking is the
-// precise "not listening" failure.
+// and checklist closure. Corrected turns retain a bounded ceiling but must still
+// have enough room to finish a legitimate build or repair.
 //
 // Honest scope: you cannot mechanically tell an on-goal tool call from an
 // off-goal one without a classifier, so this is a blunt RUNAWAY backstop, not a
 // semantic drift judge. It pairs with the goal-adherence note (nd inhibit gate)
 // + the adaptive redirect, which handle intent; this just caps volume and yields.
 
-/** Default hard per-turn ceiling — a runaway backstop below the 50-iteration limit. */
-export const DEFAULT_TOOL_BUDGET = 40;
-/** Tighter hard ceiling while the user is correcting/re-asking this turn. */
-export const CORRECTION_TOOL_BUDGET = 20;
-/** Calls reserved inside the hard ceiling for finishing instead of researching. */
-export const DEFAULT_TOOL_CLOSURE_RESERVE = 10;
+/** Default per-turn ceiling — high enough for a real multi-step build while still
+ * bounding pathological tool loops. Repetition/stall guards should stop bad loops
+ * first; this is the last-resort volume backstop, not a routine workflow boundary. */
+export const DEFAULT_TOOL_BUDGET = 120;
+/** Corrected turns still get enough room to finish the requested repair. */
+export const CORRECTION_TOOL_BUDGET = 60;
+/** Calls reserved inside the ceiling for verification, output, and checklist closure. */
+export const DEFAULT_TOOL_CLOSURE_RESERVE = 20;
 
 /** Resolve the effective budget: `VANTA_TOOL_BUDGET` overrides; `0`/negative disables. */
 export function resolveToolBudget(env: NodeJS.ProcessEnv = process.env): number {

@@ -32,6 +32,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "skillify", arg: "[name]", desc: "distill this session into a draft SKILL.md (write_skill saves it — not auto-written)" },
   { name: "learn", arg: "<url|path> [as <name>]", desc: "build a skill from a doc/URL — distills, gates, and saves an editable SKILL.md" },
   { name: "status", desc: "kernel, provider, keys, store health" },
+  { name: "doctor", arg: "[--limit N]", desc: "health plus read-only context weight, duplicate rules, and cleanup candidates" },
   { name: "health", desc: "capability health — gmail/search/vision/browser/mcp + the exact fix for each gap" },
   { name: "world", arg: "[query]", desc: "view Vanta's world model — entities + relationships across your systems" },
   { name: "money", desc: "Money OS ledger — offers, prospect pipeline, revenue total" },

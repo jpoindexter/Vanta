@@ -21,9 +21,9 @@ import {
   withTimingNote,
   type RunError,
 } from "./shell-output.js";
-import { sandboxBackgroundRecovery, sandboxServeRecovery } from "./sandbox-recovery.js";
+import { sandboxServeRecovery } from "./sandbox-recovery.js";
 import { resolveShellInvocation } from "../platform/shell.js";
-import { canonicalPath, isDangerousPath } from "./writable-zones.js";
+import { addSessionDir, canonicalPath, isDangerousPath } from "./writable-zones.js";
 
 export { lastCommandWord, classifyExitCode } from "./shell-output.js";
 
@@ -78,8 +78,12 @@ function bwrapOnPath(): boolean {
   return bwrapCache;
 }
 
-export function shellSandboxEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
-  if (!shouldSandboxShell(env, process.platform, bwrapOnPath())) return env;
+export function shellSandboxEnv(
+  env: NodeJS.ProcessEnv,
+  platform: NodeJS.Platform = process.platform,
+  hasBwrap = bwrapOnPath(),
+): NodeJS.ProcessEnv {
+  if (!shouldSandboxShell(env, platform, hasBwrap)) return env;
   // AUTO-enabled (no explicit flag) keeps network ON so npm/git/curl still work — the
   // high-value containment is the deny-default FS (secrets unreadable, writes bounded).
   // Explicitly-requested sandboxing keeps the strict default (network denied). A user-set
@@ -130,21 +134,24 @@ export function sandboxAgentRefusal(command: string): ToolResult | null {
   return { ok: false, output: `refused: launching an agent via tmux under the sandbox dead-ends (tmux is denied).${agentLaunchRedirect(command) ?? ""}` };
 }
 
-/** SANDBOX-SERVE-FASTFAIL: a listening web server has NO working path under an active
- *  shell sandbox — background:true isn't sandboxed (refused) and a foreground bind gets
- *  EPERM on the deny-default network. Without this, the agent discovers the dead-end only
- *  by burning both refusals (background↔foreground ping-pong) until the repair loop opens.
- *  Detect the serve/listen intent under sandbox and fail FAST with the one actionable fix.
- *  Null when there's no serve intent or the sandbox is off. */
-export function sandboxServeRefusal(command: string, root = process.cwd()): ToolResult | null {
+/** SANDBOX-SERVE-FASTFAIL: serving is supported inside the OS sandbox when its
+ * network capability is enabled. Refuse only strict network-disabled sessions,
+ * with a recovery that keeps filesystem containment on. */
+export function sandboxServeRefusal(
+  command: string,
+  root = process.cwd(),
+  env: NodeJS.ProcessEnv = process.env,
+  platform: NodeJS.Platform = process.platform,
+  hasBwrap = bwrapOnPath(),
+): ToolResult | null {
   if (!looksLikeServeIntent(command)) return null;
-  if (shellSandboxEnv(process.env).VANTA_SANDBOX !== "1") return null;
+  const sandboxEnv = shellSandboxEnv(env, platform, hasBwrap);
+  if (sandboxEnv.VANTA_SANDBOX !== "1" || sandboxEnv.VANTA_SANDBOX_NET === "1") return null;
   return {
     ok: false,
     output:
-      `refused: serving a listening web server has no working path under the shell sandbox — ` +
-      `background tasks aren't sandboxed and a foreground bind is denied by the deny-default network. ` +
-      `To serve it, re-run this session non-sandboxed.\n${sandboxServeRecovery(root)}`,
+      `refused: sandbox network is disabled, so this listening web server cannot bind. ` +
+      `Keep filesystem containment enabled and allow network for server work.\n${sandboxServeRecovery(root)}`,
   };
 }
 
@@ -155,11 +162,13 @@ export function shellCommandCwd(root: string): string {
   return isCwdChanged() ? sessionCwd() : root;
 }
 
-const DIRECT_MKDIR = /^\s*mkdir(?:\s+(?:-[A-Za-z]+|--))*\s+([^\s;&|`$<>(){}\[\]*?]+)(?=\s*(?:&&|;|$))/;
+const DIRECT_MKDIR =
+  /^\s*mkdir(?:\s+(?:-[A-Za-z]+|--))*\s+(?:'([^']+)'|"([^"\\`$]+)"|([^\s'";&|`$<>(){}\[\]*?]+))(?=\s*(?:&&|;|$))/;
 
 /** Resolve the one direct mkdir shape eligible for a one-run sandbox grant. */
 export function directMkdirTarget(command: string, cwd: string): string | null {
-  const raw = DIRECT_MKDIR.exec(command)?.[1];
+  const match = DIRECT_MKDIR.exec(command);
+  const raw = match?.[1] ?? match?.[2] ?? match?.[3];
   if (!raw || raw.startsWith("~")) return null;
   const target = canonicalPath(resolve(cwd, raw));
   return isDangerousPath(target).dangerous ? null : target;
@@ -207,16 +216,44 @@ function childRunOpts(root: string, timeoutMs: number): { cwd: string; timeout: 
   return childEnv === process.env ? base : { ...base, env: childEnv };
 }
 
-/** Background path: refuse under an active sandbox (detached tasks aren't wrapped —
- *  no exit-time profile cleanup for an unref'd child, and the sandbox only ever
- *  TIGHTENS, so we refuse the unsandboxed bypass rather than silently weaken it),
- *  else spawn a detached task and return its id. */
-async function runBackground(command: string, root: string): Promise<ToolResult> {
-  if (shellSandboxEnv(process.env).VANTA_SANDBOX === "1") {
-    return { ok: false, output: `refused: background tasks are not sandboxed under sandbox mode.${agentLaunchRedirect(command) ?? ""}\n${sandboxBackgroundRecovery(root)}` };
+function localInvocation(command: string): { cmd: string; args: string[] } {
+  return resolveExecBackend(process.env) === "docker"
+    ? { cmd: "sh", args: ["-c", command] }
+    : resolveShellInvocation(command);
+}
+
+/** Background path: use the same execution backend and OS sandbox as foreground
+ * commands. The background task owns the sandbox profile cleanup and releases it
+ * only after the detached child exits. */
+async function runBackground(
+  command: string,
+  root: string,
+  sandboxWritableDirs: readonly string[] = [],
+): Promise<ToolResult> {
+  const workdir = shellCommandCwd(root);
+  const childEnv = applySessionEnv(process.env, sessionEnvStore.snapshot());
+  const local = localInvocation(command);
+  const sb = await wrapExec({
+    env: shellSandboxEnv(childEnv),
+    root,
+    workdir,
+    baseCmd: local.cmd,
+    baseArgs: local.args,
+    additionalWritableDirs: sandboxWritableDirs,
+  });
+  if (isSandboxError(sb)) return { ok: false, output: sb.error };
+  try {
+    const task = await spawnBackground(command, join(root, ".vanta"), workdir, {
+      cmd: sb.cmd,
+      args: sb.args,
+      ...(childEnv === process.env ? {} : { env: childEnv }),
+      cleanup: sb.cleanup,
+    });
+    return { ok: true, output: `background task started: ${task.id}\ncheck with: bg_status(${task.id})` };
+  } catch (error) {
+    await sb.cleanup?.();
+    return formatRunFailure(command, error as RunError, "");
   }
-  const task = await spawnBackground(command, join(root, ".vanta"), root);
-  return { ok: true, output: `background task started: ${task.id}\ncheck with: bg_status(${task.id})` };
 }
 
 /** Run the command on the active execution backend (local / OS sandbox / docker). */
@@ -227,9 +264,7 @@ async function runLocal(
   sandboxWritableDirs: readonly string[] = [],
   timeoutMs = TIMEOUT_MS,
 ): Promise<ToolResult> {
-  const local = resolveExecBackend(process.env) === "docker"
-    ? { cmd: "sh", args: ["-c", command] }
-    : resolveShellInvocation(command);
+  const local = localInvocation(command);
   const workdir = shellCommandCwd(root);
   const sb = await wrapExec({ env: shellSandboxEnv(process.env), root, workdir, baseCmd: local.cmd, baseArgs: local.args, additionalWritableDirs: sandboxWritableDirs });
   if (isSandboxError(sb)) return { ok: false, output: pfx + sb.error };
@@ -281,11 +316,11 @@ export const shellCmdTool: Tool = {
       if (background) return { ok: false, output: "refused: background tasks are not supported over ssh" };
       return runRemote(sshTarget, command, ctx.root, pfx, timeout_ms);
     }
-    // SANDBOX-SERVE-FASTFAIL: pre-empt the background↔foreground refusal ping-pong for a
-    // server whose only viable path is a non-sandboxed run. Fires for both branches.
+    // SANDBOX-SERVE-FASTFAIL: strict network-disabled sessions cannot bind a
+    // listener. The default sandbox permits network and continues below.
     const serveRefusal = sandboxServeRefusal(command, ctx.root);
     if (serveRefusal) return serveRefusal;
-    if (background) return runBackground(command, ctx.root);
+    if (background) return runBackground(command, ctx.root, ctx.sandboxWritableDirs);
     // RELIABILITY-SHELL-BG-WEDGE: a foreground command that backgrounds a child ('&')
     // or starts a never-exiting server holds the inherited stdio pipe open, so the
     // execFile-based foreground path blocks the whole turn (then orphans the daemon at
@@ -297,6 +332,14 @@ export const shellCmdTool: Tool = {
       };
     }
     // Sandbox: opt-in OS isolation (VANTA_SANDBOX=1 or shell-only VANTA_SHELL_SANDBOX=1). Off → base unchanged.
-    return runLocal(command, ctx.root, pfx, ctx.sandboxWritableDirs, timeout_ms);
+    const result = await runLocal(command, ctx.root, pfx, ctx.sandboxWritableDirs, timeout_ms);
+    // A human-approved direct mkdir is a project handoff, not a one-command dead end.
+    // Keep only the exact newly-created directory writable for the rest of this
+    // session; the dangerous-path floor and kernel gate still apply on every call.
+    const externalTarget = externalDirectMkdirTarget(command, shellCommandCwd(ctx.root), ctx.root);
+    if (result.ok && externalTarget && existsSync(externalTarget) && ctx.sandboxWritableDirs?.length) {
+      addSessionDir(externalTarget, process.env);
+    }
+    return result;
   },
 };

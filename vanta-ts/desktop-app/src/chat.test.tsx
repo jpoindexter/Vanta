@@ -186,7 +186,7 @@ describe("ChatThread approval checkpoint", () => {
 });
 
 describe("Composer context legibility", () => {
-  it("renders model scope, tools, memory, approval state, and removable file chips", () => {
+  it("renders the streamlined model, approval state, and removable file chips", () => {
     const html = renderToStaticMarkup(
       <Composer
         value=""
@@ -215,10 +215,6 @@ describe("Composer context legibility", () => {
       />,
     );
 
-    expect(html).toContain("Session model");
-    expect(html).toContain("Tools 42");
-    expect(html).toContain("MCP 0 · 0 tools");
-    expect(html).toContain("Memory local");
     expect(html).toContain('class="approval-mode mode-ask"');
     expect(html).toContain('aria-haspopup="dialog"');
     expect(html).toContain(">Manual</span>");

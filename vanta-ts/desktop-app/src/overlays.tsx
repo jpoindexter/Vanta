@@ -1,9 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
 import { Bot, Check, Command, KeyRound, MonitorCog, RefreshCw, Search, ShieldCheck, Star, X } from "lucide-react";
-import type { Approval, ApprovalDecision, DesktopTheme, PermissionSection, Provider, RailTab, Status } from "./types.js";
+import type { Approval, ApprovalDecision, DesktopTheme, DesktopView, PermissionSection, Provider, Status } from "./types.js";
 
-export function CommandPalette(props: { open: boolean; onClose: () => void; onNew: () => void; onModel: () => void; onTelegram: () => void; onSound: () => void; onSettings: () => void; onTab: (tab: RailTab) => void }) {
+type CommandPaletteProps = {
+  open: boolean;
+  onClose: () => void;
+  onNew: () => void;
+  onReview: () => void;
+  onSidebar: () => void;
+  onCycleMode: () => void;
+  onView: (view: DesktopView) => void;
+  onModel: () => void;
+  onTelegram: () => void;
+  onSound: () => void;
+  onSettings: () => void;
+};
+
+export function CommandPalette(props: CommandPaletteProps) {
   const [query, setQuery] = useState("");
   const actions = commandActions(props);
   const visible = useMemo(() => actions.filter(([label]) => label.toLowerCase().includes(query.toLowerCase())), [actions, query]);
@@ -11,8 +25,8 @@ export function CommandPalette(props: { open: boolean; onClose: () => void; onNe
   return (
     <div className="overlay" onClick={props.onClose}>
       <div className="palette" role="dialog" aria-modal="true" aria-labelledby="command-title" onClick={(e) => e.stopPropagation()}>
-        <div className="dialog-heading"><h2 id="command-title">Command palette</h2><button className="icon-button" type="button" aria-label="Close" onClick={props.onClose}><X size={16} /></button></div>
-        <label className="palette-search"><Search size={16} /><span className="sr-only">Search commands</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search actions" /></label>
+        <div className="dialog-heading"><h2 id="command-title">Commands</h2><button className="icon-button" type="button" aria-label="Close" onClick={props.onClose}><X size={16} /></button></div>
+        <label className="palette-search"><Search size={16} /><span className="sr-only">Search commands</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search commands…" /></label>
         <div className="palette-actions">{visible.map(([label, action], index) => <button key={label} type="button" onClick={() => { action(); props.onClose(); }}><span>{String(index + 1).padStart(2, "0")}</span><strong>{label}</strong><kbd>↵</kbd></button>)}</div>
         {visible.length === 0 ? <p className="muted">No matching action.</p> : null}
       </div>
@@ -47,17 +61,20 @@ export function NewTaskDialog(props: { open: boolean; root?: string; model?: str
   </form></div>;
 }
 
-function commandActions(props: { onNew: () => void; onModel: () => void; onTelegram: () => void; onSound: () => void; onSettings: () => void; onTab: (tab: RailTab) => void }) {
+function commandActions(props: CommandPaletteProps) {
   return [
-    ["New session", props.onNew],
-    ["Model picker", props.onModel],
+    ["New task", props.onNew],
+    ["Open Review", props.onReview],
+    ["Cycle operating mode", props.onCycleMode],
+    ["Toggle task sidebar", props.onSidebar],
+    ["Open Runs", () => props.onView("operate")],
+    ["Open Connect", () => props.onView("connect")],
+    ["Open Scheduled", () => props.onView("scheduled")],
+    ["Open Plugins", () => props.onView("plugins")],
+    ["Choose model", props.onModel],
     ["Set up Telegram", props.onTelegram],
     ["Completion sound", props.onSound],
     ["Settings", props.onSettings],
-    ["Outputs", () => props.onTab("outputs")],
-    ["Canvas", () => props.onTab("canvas")],
-    ["Files", () => props.onTab("files")],
-    ["Terminal", () => props.onTab("terminal")],
   ] as const;
 }
 

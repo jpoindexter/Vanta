@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Activity, Archive, ArchiveRestore, Check, CheckCircle2, ChevronRight, Copy, FileText, FolderKanban, Keyboard, Maximize2, MessageSquare, MoreHorizontal, Network, PackageOpen, Pencil, Pin, Plug, Plus, RotateCcw, Search, Settings2, ShieldCheck, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
+import { Activity, Archive, ArchiveRestore, CalendarClock, Check, CheckCircle2, ChevronDown, ChevronRight, Copy, FileText, Keyboard, Maximize2, MoreHorizontal, PackageOpen, Pencil, Plug, Plus, RotateCcw, Search, Settings2, ShieldCheck, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
 import type { Approval, ApprovalDecision, DesktopRunReceipt, DesktopView, Message, PermissionSection, Session } from "./types.js";
 import { MessageMarkdown } from "./message-markdown.js";
 import { moveSessionMenuFocus, SessionNoticeToast, useSessionMenuDismiss, useSessionSafeOps, type SessionDeleteAction } from "./session-safe-ops.js";
@@ -42,6 +42,7 @@ export function SessionSidebar(props: SessionSidebarProps) {
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
   const [archivedOpen, setArchivedOpen] = useState(false);
   const [trashOpen, setTrashOpen] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
   const sessions = useMemo(() => props.sessions.filter((session) => session.title.toLowerCase().includes(query.toLowerCase())), [props.sessions, query]);
   const groups = useMemo(() => partitionSessions(sessions), [sessions]);
   const { active, pinned, project: projectSessions, recent: recentSessions, archived, trashed } = groups;
@@ -134,28 +135,34 @@ export function SessionSidebar(props: SessionSidebarProps) {
   return (
     <aside className="session-sidebar">
       <div className="drawer-toolbar"><span>{section === "threads" ? "Threads" : "Saved runs"}</span><button className="panel-dismiss" type="button" aria-label="Close sessions" onClick={props.onDismiss}><X size={16} /></button></div>
+      <div className="sidebar-product">
+        <button className="product-switcher" type="button" onClick={() => { setSection("threads"); props.onView("work"); }}>
+          <span className="product-mark" aria-hidden="true">V</span><strong>Vanta</strong><ChevronDown size={13} aria-hidden="true" />
+        </button>
+        <button className="sidebar-search-trigger" type="button" aria-label="Search tasks" title="Search tasks" onClick={() => { setSection("threads"); window.requestAnimationFrame(() => searchRef.current?.focus()); }}><Search size={15} /></button>
+      </div>
+      <button className="sidebar-new-task" type="button" onClick={props.onNew}><Plus size={15} />New task</button>
       <nav className="desktop-nav" aria-label="Vanta workspace">
-        <button className={props.view === "work" ? "active" : ""} type="button" onClick={() => props.onView("work")}><MessageSquare size={16} />Work <span aria-hidden="true">{active.length}</span></button>
-        <button className={props.view === "operate" ? "active" : ""} type="button" onClick={() => props.onView("operate")}><Activity size={16} />Operate</button>
-        <button className={props.view === "outputs" ? "active" : ""} type="button" onClick={() => props.onView("outputs")}><PackageOpen size={16} />Outputs</button>
-        <button className={props.view === "connect" ? "active" : ""} type="button" onClick={() => props.onView("connect")}><Network size={16} />Connect</button>
+        <button className={props.view === "operate" ? "active" : ""} type="button" onClick={() => props.onView("operate")}><Activity size={16} />Runs</button>
+        <button className={props.view === "connect" ? "active" : ""} type="button" onClick={() => props.onView("connect")}><Plug size={16} />Connect</button>
+        <button className={props.view === "scheduled" ? "active" : ""} type="button" onClick={() => props.onView("scheduled")}><CalendarClock size={16} />Scheduled</button>
+        <button className={props.view === "plugins" ? "active" : ""} type="button" onClick={() => props.onView("plugins")}><PackageOpen size={16} />Plugins</button>
       </nav>
-      {props.runLibrary ? <div className="library-switch segmented" aria-label="History view"><button className={section === "threads" ? "active" : ""} type="button" onClick={() => setSection("threads")}>Threads</button><button className={section === "runs" ? "active" : ""} type="button" onClick={() => setSection("runs")}>Saved runs</button></div> : null}
+      {props.runLibrary ? <div className="library-switch segmented" aria-label="Task history view"><button className={section === "threads" ? "active" : ""} type="button" onClick={() => setSection("threads")}>Tasks</button><button className={section === "runs" ? "active" : ""} type="button" onClick={() => setSection("runs")}>Saved runs</button></div> : null}
       {section === "runs" && props.runLibrary && props.onRunPrepared ? <RunLibraryPanel controller={props.runLibrary} onPrepared={props.onRunPrepared} /> : <section className="project-rail">
-        <div className="section-heading project-heading"><h2>Projects</h2><button type="button" title="New task" aria-label="New task" onClick={props.onNew}><Plus size={14} /></button></div>
-        <div className="project-row active"><span><FolderKanban size={15} />{projectName}</span><b>{active.length}</b></div>
+        <div className="section-heading project-heading"><h2>{projectName}</h2><span>{active.length}</span></div>
         {pinned.length ? <>
-          <div className="section-heading pinned-heading"><h2><Pin size={12} />Pinned</h2><span>{pinned.length}</span></div>
+          <div className="section-heading pinned-heading"><h2>Pinned</h2><span>{pinned.length}</span></div>
           <div className="session-list pinned-session-group">{pinned.map(renderSession)}</div>
         </> : null}
         <div className="session-list project-session-group">
           {projectSessions.map(renderSession)}
         </div>
         <div className="section-heading recent-heading">
-          <h2>Recent sessions</h2>
+          <h2>Tasks</h2>
           <div><span>{recentSessions.length}</span><button type="button" onClick={selecting ? stopSelecting : startSelecting}>{selecting ? "Cancel" : "Select chats"}</button></div>
         </div>
-        <label className="session-search"><Search size={14} /><span className="sr-only">Search sessions</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search sessions" /></label>
+        <label className="session-search"><Search size={14} /><span className="sr-only">Search tasks</span><input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search tasks" /></label>
         {selecting ? <BulkSessionActions count={selected.size} visibleCount={visibleSessions.length} onSelectAll={selectAllVisible} onClear={clearSelected} onArchive={() => void archiveSelected(true)} onRestore={() => void archiveSelected(false)} onDelete={() => void deleteSelected()} onCancel={stopSelecting} /> : null}
         <div className="session-list recent-session-group">
           {recentSessions.map(renderSession)}
@@ -174,7 +181,14 @@ export function SessionSidebar(props: SessionSidebarProps) {
           {recentSessions.length === 0 && projectSessions.length === 0 && pinned.length === 0 ? <p className="muted">{query ? "No matching sessions." : "No saved sessions yet."}</p> : null}
         </div>
       </section>}
-      <footer className="session-sidebar-footer"><button type="button" onClick={props.onShortcuts}><Keyboard size={14} />Keyboard shortcuts <kbd>?</kbd></button><button type="button" onClick={props.onSettings}><Settings2 size={14} />Settings</button></footer>
+      <footer className="session-sidebar-footer">
+        <button className="persona-profile" type="button" onClick={props.onSettings} aria-label="Open personal persona settings">
+          <span className="persona-avatar" aria-hidden="true">V</span>
+          <span><strong>Personal</strong><small>Persona · Settings</small></span>
+          <Settings2 size={15} aria-hidden="true" />
+        </button>
+        <button className="sidebar-shortcuts" type="button" onClick={props.onShortcuts} aria-label="Keyboard shortcuts"><Keyboard size={14} /><kbd>?</kbd></button>
+      </footer>
       <SessionNoticeToast notice={safe.notice} onDismiss={safe.dismissNotice} />
     </aside>
   );

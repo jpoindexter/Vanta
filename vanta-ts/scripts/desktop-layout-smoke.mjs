@@ -162,9 +162,13 @@ try {
   }));
   await page.setViewportSize({ width: 760, height: 900 });
   await page.reload({ waitUntil: "domcontentloaded" });
-  // The composer owns the file-context entry point and opens the inspector in
-  // either initial state, so the proof does not depend on a stale tray toggle.
-  await page.getByRole("button", { name: "Attach project files" }).click();
+  const openInspector = page.getByRole("button", { name: "Open contextual inspector" });
+  if (await openInspector.isVisible().catch(() => false)) await openInspector.click();
+  const filesTab = page.locator(".inspector-tabs button").filter({ hasText: "Files" });
+  if (!await filesTab.isVisible().catch(() => false)) {
+    await page.getByRole("button", { name: "Inspect", exact: true }).click();
+  }
+  await filesTab.click();
   await page.locator(".files-panel").waitFor();
   await page.locator(".file-list button").first().waitFor();
   const files = await measureFiles(page);

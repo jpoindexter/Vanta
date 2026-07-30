@@ -143,6 +143,8 @@ import { mediaStudioTool } from "./media-studio.js";
 import { paymentTransactionTool } from "./payment-transaction.js";
 import { shopifyOperationsTool } from "./shopify-operations.js";
 import { telephonyWorkflowTool } from "./telephony-workflow.js";
+import { spargeAttentionTool } from "./sparge-attention.js";
+import { msaMemoryTool } from "./msa-memory.js";
 import type { Tool } from "./types.js";
 
 /**
@@ -271,6 +273,8 @@ export const ALL_TOOLS: readonly Tool[] = [
   paymentTransactionTool,
   shopifyOperationsTool,
   telephonyWorkflowTool,
+  spargeAttentionTool,
+  msaMemoryTool,
   financeModelTool,
   spreadsheetWorkbookTool,
   bgListTool,

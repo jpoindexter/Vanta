@@ -3,6 +3,7 @@ import { dirname } from "node:path";
 import { time } from "./time-ranges.js";
 import { auditSkills, listSkills } from "../skills/store.js";
 import { gatherStatus, formatStatus, resolveStatusCondensed } from "../status.js";
+import { doctor } from "./doctor-cmd.js";
 import { newSessionId } from "../sessions/store.js";
 import { slashHelp } from "./catalog.js";
 import { oneLine, lastUserIndex } from "./format.js";
@@ -202,10 +203,10 @@ const goals: SlashHandler = async (_arg, ctx) => {
   return { output: formatGoalLedger(g, deps.edges) };
 };
 
-/** Command-name → handler. Aliases share a handler (clear/new/reset, exit/quit, status/doctor). */
+/** Command-name → handler. Aliases share a handler where their behavior is identical. */
 export const HANDLERS: Record<string, SlashHandler> = {
   help, home, blueprint, prompt: promptCommand, "system-prompt": promptCommand, "what-can-i-do": whatCanIDo, "diagnose-crash": diagnoseCrash, "spec-to-app": specToApp, autonomy, exit, quit: exit, init, "init-verifiers": initVerifiers, clear, new: clear, reset: clear, attachments, history,
-  export: exportConvo, stop, bg, retry, undo, rewind, hooks, skills, skillify, learn, tools, model, effort, env, cd, setup: setupCommand, status, doctor: status,
+  export: exportConvo, stop, bg, retry, undo, rewind, hooks, skills, skillify, learn, tools, model, effort, env, cd, setup: setupCommand, status, doctor,
   plan, compress, compact: compress, memory, learnings, goals, goal, sessions, resume, title, fork, context: contextCmd,
   mcp, integrations, usage, copy, screenshot, update, image, paste, look, cron, loop: loopSchedule, proactive, moim, record, next, now, planmode: planMode, planv2: planV2, boundary, where, explain, recover, "schema-recovery": schemaRecovery, "schema-quality": schemaQuality, wm, restart, bug, feedback, learning, handoff, open, edit, tasks, bgtasks, wftasks, btw, describe: describeCmd, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto, suggest, time,
   routes, files, composer, vim, cockpit, agents, sandbox, rename, branch, summary, "output-style": outputStyle, permissions, "less-permission-prompts": lessPerms, "reload-plugins": reloadPlugins, "reload-skills": reloadSkills,

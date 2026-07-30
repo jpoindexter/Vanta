@@ -48,6 +48,13 @@ export type BgTask = {
   exitCode?: number;
 };
 
+export type BackgroundInvocation = {
+  cmd: string;
+  args: string[];
+  env?: NodeJS.ProcessEnv;
+  cleanup?: () => Promise<void>;
+};
+
 function bgDir(dataDir: string): string {
   return join(dataDir, "bg-tasks");
 }
@@ -69,6 +76,7 @@ export async function spawnBackground(
   command: string,
   dataDir: string,
   cwd: string,
+  invocation?: BackgroundInvocation,
 ): Promise<BgTask> {
   await mkdir(bgDir(dataDir), { recursive: true });
   const id = genId();
@@ -78,12 +86,13 @@ export async function spawnBackground(
   const logFile = logPath(dataDir, id);
   await writeFile(logFile, "");
 
-  const shell = resolveShellInvocation(command);
+  const shell = invocation ?? resolveShellInvocation(command);
   const child = spawn(shell.cmd, shell.args, {
     cwd,
     detached: true,
     stdio: ["ignore", "pipe", "pipe"],
     windowsHide: true,
+    ...(invocation?.env ? { env: invocation.env } : {}),
   });
 
   meta.pid = child.pid;
@@ -99,9 +108,12 @@ export async function spawnBackground(
 
   child.on("close", (code) => {
     clearInterval(watchdog);
-    const done: BgTask = { ...meta, status: code === 0 ? "done" : "failed", exitCode: code ?? -1 };
-    writeFile(metaPath(dataDir, id), JSON.stringify(done, null, 2)).catch(() => {});
-    writeFile(logFile, chunks.join("")).catch(() => {});
+    void (async () => {
+      const done: BgTask = { ...meta, status: code === 0 ? "done" : "failed", exitCode: code ?? -1 };
+      await writeFile(logFile, chunks.join("")).catch(() => {});
+      await invocation?.cleanup?.().catch(() => {});
+      await writeFile(metaPath(dataDir, id), JSON.stringify(done, null, 2)).catch(() => {});
+    })();
   });
 
   child.unref();

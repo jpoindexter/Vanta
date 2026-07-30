@@ -270,7 +270,9 @@ process.stdin.on("data", (chunk) => {
   await page.getByPlaceholder("Search models and providers").fill("");
   await page.locator(".model-provider-nav button").first().waitFor();
   await page.locator(".model-picker").getByRole("button", { name: "Close model picker" }).click();
-  await page.getByRole("button", { name: "Attach project files" }).click();
+  const openInspector = page.getByRole("button", { name: "Open contextual inspector" });
+  if (await openInspector.isVisible().catch(() => false)) await openInspector.click();
+  await page.locator(".inspector-tabs button").filter({ hasText: "Files" }).click();
   await page.locator(".right-rail").waitFor();
   await page.locator(".files-panel").waitFor();
   const fileButton = page.locator(".file-list button").first();

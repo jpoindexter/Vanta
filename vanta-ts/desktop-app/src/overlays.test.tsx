@@ -5,8 +5,12 @@ import { ApprovalOverlay, CommandPalette, ModelPicker, SetupWizard } from "./ove
 
 describe("CommandPalette", () => {
   it("exposes Telegram setup when slash opens quick actions", () => {
-    const html = renderToStaticMarkup(<CommandPalette open onClose={vi.fn()} onNew={vi.fn()} onModel={vi.fn()} onTelegram={vi.fn()} onSound={vi.fn()} onSettings={vi.fn()} onTab={vi.fn()} />);
+    const html = renderToStaticMarkup(<CommandPalette open onClose={vi.fn()} onNew={vi.fn()} onReview={vi.fn()} onSidebar={vi.fn()} onCycleMode={vi.fn()} onView={vi.fn()} onModel={vi.fn()} onTelegram={vi.fn()} onSound={vi.fn()} onSettings={vi.fn()} />);
     expect(html).toContain("Set up Telegram");
+    expect(html).toContain("Open Review");
+    expect(html).toContain("Open Scheduled");
+    expect(html).toContain("Open Plugins");
+    expect(html).not.toContain(">Terminal<");
   });
 });
 

@@ -11,7 +11,7 @@ Two layers:
 | Path | Language | Role |
 |------|----------|------|
 | `src/` | Rust | Safety kernel: risk classifier, approvals, goals, HTTP sidecar on :7788 |
-| `vanta-ts/` | TypeScript, Node 22, ESM | Agent loop: LLM providers, 137 built-in tools (141 registered), 146 slash commands, TUI, REPL |
+| `vanta-ts/` | TypeScript, Node 22, ESM | Agent loop: LLM providers, 144 built-in tools (148 registered), 151 slash commands, TUI, REPL |
 
 The kernel is the enforced security boundary — `assess()` blocks, it doesn't advise. Deep TS docs: `vanta-ts/AGENTS.md`.
 
@@ -24,7 +24,7 @@ cd vanta-ts && npx vitest run && npx tsc --noEmit  # TS agent (last recorded ful
 vanta                                          # launch TUI (TTY) or readline REPL
 ```
 
-> **Status (2026-07-19):** v0.9.4 is the current desktop release line. The release workbench exposes **142 registered tools** and uses one authoritative `roadmap.json`; the human launch-pad view is generated as `roadmap.html`. Release claims and executed boundaries live in `CHANGELOG.md` and `docs/product-acceptance.md`. The local codegraph index lives in ignored `.codegraph/`; refresh it with `codegraph index -f .` and verify with `codegraph status .` before relying on code-intel results.
+> **Status (2026-07-29):** the release workbench exposes **148 registered tools** and uses one authoritative `roadmap.json`; the human launch-pad view is generated as `roadmap.html`. Release claims and executed boundaries live in `CHANGELOG.md` and `docs/product-acceptance.md`. The local codegraph index lives in ignored `.codegraph/`; refresh it with `codegraph index -f .` and verify with `codegraph status .` before relying on code-intel results.
 
 ## Key files
 

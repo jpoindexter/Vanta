@@ -43,6 +43,7 @@ describe("resolveServeAllowlist", () => {
   it("defaults to a read-only safe set", () => {
     const set = resolveServeAllowlist({} as NodeJS.ProcessEnv);
     expect(set.has("read_file")).toBe(true);
+    expect(set.has("msa_memory")).toBe(true);
     expect(set.has("write_file")).toBe(false);
     expect(set.has("shell_cmd")).toBe(false);
   });
@@ -93,6 +94,7 @@ describe("handleMessage", () => {
     };
     const names = res.result.tools.map((t) => t.name);
     expect(names).toContain("read_file");
+    expect(names).toContain("msa_memory");
     expect(names).not.toContain("write_file");
     expect(names).not.toContain("shell_cmd");
   });

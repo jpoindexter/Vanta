@@ -854,6 +854,7 @@ export async function handleQueueChat(state: DesktopState, req: http.IncomingMes
     else if (action === "move" && (body.direction === "up" || body.direction === "down")) await queue.move(id, revision, body.direction);
     else if (action === "cancel") await queue.cancel(id, revision);
     else if (action === "steer") await queue.steer(id, revision);
+    else if (action === "retry") await queue.retry(id, revision);
     else return sendJson(res, 400, { error: "unsupported queue action" });
     sendJson(res, 200, await queue.list(queueSessionId(state)));
   } catch (error) {
@@ -885,6 +886,25 @@ function receiptStatusForStoppedReason(stoppedReason: string): Pick<DesktopRunRe
   if (stoppedReason === "done") return { status: "done" };
   if (stoppedReason === "interrupted") return { status: "interrupted", failureKind: "interrupted" };
   return { status: "failed", failureKind: "unknown" };
+}
+
+function queuedTurnFailureReason(stoppedReason: string): string {
+  if (stoppedReason === "repeated_failure") return "Task stopped after repeated failures.";
+  if (stoppedReason === "max_iterations") return "Task stopped at the iteration safety limit.";
+  if (stoppedReason === "tool_budget") return "Task stopped at the tool-call safety limit.";
+  if (stoppedReason === "context_length") return "Task stopped because the context limit was reached.";
+  if (stoppedReason === "interrupted") return "Task stopped by the operator.";
+  return "Task stopped before completion.";
+}
+
+function queuedTurnExceptionReason(failureKind: DesktopRunFailureKind, wasInterrupted: boolean): string {
+  if (wasInterrupted) return "Task stopped by the operator.";
+  if (failureKind === "provider_auth") return "Provider authentication is required.";
+  if (failureKind === "user_denied") return "A required action was denied.";
+  if (failureKind === "tool") return "A required tool failed.";
+  if (failureKind === "model") return "The model or provider failed.";
+  if (failureKind === "setup") return "Vanta setup is incomplete.";
+  return "Task failed before completion.";
 }
 
 function buildRunReceipt(opts: {
@@ -968,7 +988,7 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
       );
       if (claimedTurnId) {
         if (outcome.stoppedReason === "done") await turnQueue(state).complete(claimedTurnId);
-        else await turnQueue(state).release(claimedTurnId);
+        else await turnQueue(state).release(claimedTurnId, queuedTurnFailureReason(outcome.stoppedReason));
         claimedTurnId = undefined;
       }
       if (outcome.stoppedReason !== "done") break;
@@ -985,10 +1005,13 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
     const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events, instruction, partialText: outcome.finalText });
     sendJson(res, 200, { finalText: outcome.finalText, events, usage: outcome.usage, sessionId: state.sessionId, receipt });
   } catch (error) {
-    if (claimedTurnId) await turnQueue(state).release(claimedTurnId).catch(() => undefined);
     const wasInterrupted = interrupted(error, controller);
     const partial = state._chatDeltas?.join("").trim();
     const failureKind = classifyDesktopFailure(error, wasInterrupted, events);
+    if (claimedTurnId) {
+      await turnQueue(state).release(claimedTurnId, queuedTurnExceptionReason(failureKind, wasInterrupted)).catch(() => undefined);
+      claimedTurnId = undefined;
+    }
     if (failureKind === "provider_auth" && live) {
       const route = providerRouteStatus(state, live.setup.provider);
       state._providerAuthRequired = {

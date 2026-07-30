@@ -32,16 +32,43 @@ impl Verdict {
     }
 }
 
-// Destructive operations — broadened beyond the trivial "rm -rf" so shell/interpreter
-// variants don't slip through. Matched on the NORMALIZED string.
+// Catastrophic destructive operations remain an immovable Block. These are
+// forced-recursive/wipe forms where a broad or malformed target can erase far
+// more than the operator intended.
+const DESTRUCTIVE_BLOCK: &[&str] = &[
+    "rm -rf",
+    "rm -fr",
+    "rm -r -f",
+    "rm -f -r",
+    "rmtree",
+    "shutil.rmtree",
+    "nuke",
+    "wipe",
+    "mkfs",
+    ":(){",
+    "fork bomb",
+    "git clean -fd",
+    "git clean -df",
+    "shred",
+    "diskutil erase",
+];
+
+// Bounded deletion is not forbidden by Rule Zero; it requires explicit
+// approval. Keeping it in Ask lets the normal approval UI authorize the exact
+// action while Block remains reserved for catastrophic forms above.
 // NOTE: the bare module name "pathlib" is intentionally NOT in this list — it over-matched
 // ANY read-only pathlib use (e.g. `Path(x).read_text()`, `.exists()`) and blocked legitimate
-// verify/read commands. The destructive pathlib METHODS are still caught: `.unlink()` by
-// "unlink(", `.rmdir()` by "rmdir", `shutil.rmtree` / `os.remove` by their own entries.
-const DESTRUCTIVE: &[&str] = &[
-    "rm -rf", "rm -fr", "rm -r", "rm -f", "rmdir", "rmtree", "shutil.rmtree", "os.remove",
-    "os.unlink", "unlink(", "delete", "erase", "nuke", "wipe", "trash",
-    "mkfs", ":(){", "fork bomb", "git clean -fd", "git clean -df", "shred",
+// verify/read commands. The bounded pathlib methods are caught below and Ask.
+const DELETE_REQUIRES_APPROVAL: &[&str] = &[
+    "rm -r",
+    "rm -f",
+    "rmdir",
+    "os.remove",
+    "os.unlink",
+    "unlink(",
+    "delete",
+    "erase",
+    "trash",
 ];
 // Writes to a real device node (`> /dev/sda`, `dd of=/dev/disk0`) are destructive,
 // but the safe pseudo-devices (/dev/null, /dev/stderr, /dev/tty*, …) are not — the
@@ -64,8 +91,7 @@ const MACHINE_CONFIG: &[&str] = &["install", "sudo", "launchctl", "system", "pro
 // Irreversible-but-not-destructive operations: publishing, pushing, applying
 // migrations, deploying, rewriting history. They don't lose local data (so they're
 // NOT Block), but they can't be cleanly undone — so they escalate Allow → Ask.
-// `delete`/`overwrite` are the card's other irreversible examples and are already
-// Block above; this set covers the `push`/`migrate` families that otherwise Allow.
+// Bounded deletes Ask above; overwrite/data-loss remains Block.
 const IRREVERSIBLE: &[&str] = &[
     "git push", "push origin", "push -u", "git rebase", "rebase -i", "git restore",
     "checkout --", "git checkout .", "branch -d", "tag -d", "stash drop", "stash clear",
@@ -101,8 +127,11 @@ pub fn assess_action(text: &str, root: &Path) -> Verdict {
     // (rm  -rf, r"m" -rf, rm\ -rf). True containment still needs a sandbox.
     let t = normalize_cmd(&raw);
 
-    if has_any(&t, DESTRUCTIVE) || writes_to_block_device(&t) {
+    if has_any(&t, DESTRUCTIVE_BLOCK) || writes_to_block_device(&t) {
         return block("destructive file operation violates rule zero");
+    }
+    if has_any(&t, DELETE_REQUIRES_APPROVAL) {
+        return ask("bounded delete requires explicit operator approval");
     }
     if has_any(&t, DATA_LOSS) {
         return block("overwrite/data-loss operation needs explicit separate approval");

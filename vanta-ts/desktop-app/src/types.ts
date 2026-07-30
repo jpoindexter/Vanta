@@ -58,7 +58,15 @@ export type PreparedRun = {
 };
 export type Tool = { name: string; desc: string };
 export type DesktopTheme = "dark" | "light";
-export type DesktopView = "work" | "operate" | "outputs" | "connect";
+export type DesktopView = "work" | "operate" | "outputs" | "connect" | "scheduled" | "plugins";
+export type ScheduledTask = {
+  id: number;
+  cron: string;
+  instruction: string;
+  status: "active" | "paused";
+  mode?: "no_agent" | "script_context";
+  routine?: "skip" | "once";
+};
 export type Capability = { id: string; kind: "tool" | "skill"; name: string; description: string; tags: string[] };
 export type MessagingPlatform = {
   id: string; label: string; status: ConnectStatus; configured: boolean; missing: string[]; prerequisite?: string; warning?: string;
@@ -122,7 +130,8 @@ export type QueuedTurn = {
   id: string;
   instruction: string;
   intent: "next" | "steer";
-  status: "queued" | "starting";
+  status: "queued" | "starting" | "failed";
+  failure?: { reason: string; at: string; attempts: number };
   target: { sessionId: string; root: string; controllerId: string; model: string; accessMode: AccessMode };
   position: number;
   revision: number;

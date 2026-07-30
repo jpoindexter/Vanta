@@ -299,7 +299,11 @@ describe("task completion boundaries", () => {
     expect(out.finalText).toContain("Updated and verified");
   });
 
-  it("uses the finish reserve before recording a hard-stop receipt in manual correction mode", async () => {
+  it("uses the finish reserve before recording an explicitly lowered hard-stop receipt", async () => {
+    const previousBudget = process.env.VANTA_TOOL_BUDGET;
+    const previousReserve = process.env.VANTA_TOOL_CLOSURE_RESERVE;
+    process.env.VANTA_TOOL_BUDGET = "20";
+    process.env.VANTA_TOOL_CLOSURE_RESERVE = "10";
     const fixture = completionDeps("default");
     const seen: Message[][] = [];
     fixture.deps.provider = {
@@ -312,21 +316,32 @@ describe("task completion boundaries", () => {
     };
     const messages: Message[] = [{ role: "system", content: "sys" }];
 
-    const out = await runTurn({
-      messages,
-      ctx: { root: "/tmp", safety: fixture.safety, requestApproval: async () => true, permissionMode: () => "default" },
-      deps: fixture.deps,
-      userText: "You didn't finish; update every stale job now.",
-    });
+    try {
+      const out = await runTurn({
+        messages,
+        ctx: { root: "/tmp", safety: fixture.safety, requestApproval: async () => true, permissionMode: () => "default" },
+        deps: fixture.deps,
+        userText: "You didn't finish; update every stale job now.",
+      });
 
-    expect(out.stoppedReason).toBe("tool_budget");
-    expect(out.toolIterations).toBe(CORRECTION_TOOL_BUDGET);
-    expect(out.finalText).toContain("hard safety limit");
-    expect(seen[1]?.some((message) => message.role === "system" && message.content.includes("VANTA TOOL-BUDGET CLOSURE"))).toBe(true);
-    expect(messages.at(-1)).toMatchObject({ role: "assistant", content: out.finalText });
+      expect(out.stoppedReason).toBe("tool_budget");
+      expect(out.toolIterations).toBe(20);
+      expect(out.finalText).toContain("hard safety limit");
+      expect(seen[1]?.some((message) => message.role === "system" && message.content.includes("VANTA TOOL-BUDGET CLOSURE"))).toBe(true);
+      expect(messages.at(-1)).toMatchObject({ role: "assistant", content: out.finalText });
+    } finally {
+      if (previousBudget === undefined) delete process.env.VANTA_TOOL_BUDGET;
+      else process.env.VANTA_TOOL_BUDGET = previousBudget;
+      if (previousReserve === undefined) delete process.env.VANTA_TOOL_CLOSURE_RESERVE;
+      else process.env.VANTA_TOOL_CLOSURE_RESERVE = previousReserve;
+    }
   });
 
-  it("closes acquisition at 30 calls, finishes open tasks, and does not ask the operator to resume", async () => {
+  it("honors an explicitly lowered acquisition threshold, finishes open tasks, and does not ask the operator to resume", async () => {
+    const previousBudget = process.env.VANTA_TOOL_BUDGET;
+    const previousReserve = process.env.VANTA_TOOL_CLOSURE_RESERVE;
+    process.env.VANTA_TOOL_BUDGET = "40";
+    process.env.VANTA_TOOL_CLOSURE_RESERVE = "10";
     const registry = new InMemoryToolRegistry();
     let searchExecutions = 0;
     registry.register({
@@ -411,15 +426,22 @@ describe("task completion boundaries", () => {
       userText: "Search fresh roles, check the filters, and rank the usable leads.",
     });
 
-    expect(out.stoppedReason).toBe("done");
-    expect(out.toolIterations).toBe(32);
-    expect(searchExecutions).toBe(29);
-    expect(out.finalText).toContain("Ranked the usable leads");
-    expect(seen[3]?.messages.some((message) => message.role === "system" && message.content.includes("2 open items"))).toBe(true);
-    expect(seen[3]?.tools).toContain("todo");
-    expect(seen[3]?.tools).not.toContain("web_search");
-    expect(messages.find((message) => message.role === "tool" && message.toolCallId === "late-search")?.content).toContain("acquisition are closed");
-    expect(out.finalText).not.toContain("Tell me the one thing");
+    try {
+      expect(out.stoppedReason).toBe("done");
+      expect(out.toolIterations).toBe(32);
+      expect(searchExecutions).toBe(29);
+      expect(out.finalText).toContain("Ranked the usable leads");
+      expect(seen[3]?.messages.some((message) => message.role === "system" && message.content.includes("2 open items"))).toBe(true);
+      expect(seen[3]?.tools).toContain("todo");
+      expect(seen[3]?.tools).not.toContain("web_search");
+      expect(messages.find((message) => message.role === "tool" && message.toolCallId === "late-search")?.content).toContain("acquisition are closed");
+      expect(out.finalText).not.toContain("Tell me the one thing");
+    } finally {
+      if (previousBudget === undefined) delete process.env.VANTA_TOOL_BUDGET;
+      else process.env.VANTA_TOOL_BUDGET = previousBudget;
+      if (previousReserve === undefined) delete process.env.VANTA_TOOL_CLOSURE_RESERVE;
+      else process.env.VANTA_TOOL_CLOSURE_RESERVE = previousReserve;
+    }
   });
 
   it("never executes past the predeclared hard ceiling even when one batch requests more", async () => {

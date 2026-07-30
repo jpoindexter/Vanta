@@ -78,6 +78,7 @@ describe("installSkillLibrary", () => {
     expect([...r.installed, ...r.skipped]).toContain("skill-generator");
     expect([...r.installed, ...r.skipped]).toContain("batch");
     expect([...r.installed, ...r.skipped]).toContain("ideation-methods");
+    expect([...r.installed, ...r.skipped]).toContain("context-doctor");
   }, 60_000);
 
   it("installs the design + ai-engineering sources without duplicating core EF behavior", async () => {

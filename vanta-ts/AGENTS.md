@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last recorded full green: 13756 tests (from vanta-ts/)
+npx vitest run                   # last recorded full green: 13802 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -69,6 +69,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/agent/tool-scope.ts` — per-turn task-relevant tool schema subset; full catalog reachable through `tool_search`
 - `src/memory/guardrails.ts` — freshness/conflict/provenance labels for recalled memories
 - `src/memory/extractor.ts` — opt-in `VANTA_EXTRACT_MEMORIES=1` post-turn fact extractor; JSON array only, deduped against brain entries, persists `semantic` facts with `auto-extracted` provenance
+- `src/tts/clause-splitter.ts` + `src/tts/streaming.ts` — opt-in first-clause speech: deterministic incremental boundaries, bounded sequential synthesis, tool-draft reset, and whole-response fallback shared by push-to-talk and wake-word voice loops
 - `src/mem-eval/` — deterministic memory retrieval benchmarks: fixture runner plus public LongMemEval/LoCoMo loader, scorer, and report writer
 - `src/ralph/state.ts` — `.vanta/ralph-loop.json` continuity: ordered long-task features, paused startup block, `/goal resume|drop` support
 - `src/cli/lifecycle.ts` — startup flags: `--init`, `--init-only`, `--maintenance`
@@ -94,7 +95,7 @@ npx tsc --noEmit                 # must be clean before any commit
 
 ## Current surface
 
-- `src/tools/all-tools.ts` currently lists **137 built-in tools** (141 registered with factory `mount_mcp`/`tool_search`/`mcp_auth`/`run_pipeline`); runtime MCP mounts can add more.
+- `src/tools/all-tools.ts` currently lists **144 built-in tools** (148 registered with factory `mount_mcp`/`tool_search`/`mcp_auth`/`run_pipeline`); runtime MCP mounts can add more.
 - `src/repl/catalog.ts` currently exposes **146 slash commands**.
 - `/prompt list|show|use|reset` applies a bounded session role from project/home agent definitions; the base safety prompt and kernel contract remain intact.
 - Code intelligence defaults to the `codegraph` adapter through `src/code-intel/index.ts`; `.codegraph/` is ignored local state, refreshed with `codegraph index -f .`, and should be verified with `codegraph status .` before trusting impact/search output.
@@ -124,6 +125,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - Startup flags include `--init`, `--init-only`, `--maintenance`, and resume `--fork-session`.
 - Ralph-loop continuity is project-scoped at `.vanta/ralph-loop.json`: fresh launches surface it as PAUSED, and `/goal resume|drop` explicitly activates or discards carried work.
 - TUI rendering is real Ink 7 under `src/ui/`; v1 remains the default and `VANTA_TUI=v2` opts into the separate mission-control shell under `src/ui/v2/`. The old `src/tui/` render layer is gone. `src/tui/mission-control/cockpit-data.ts` is the only remaining `src/tui` code path and is data-only.
+- Shipped TUI launchers set `NODE_ENV=production` before importing Ink so React's development reconciler cannot retain an unbounded global `perf_hooks` measure timeline. Verify this boundary with `npm run tui:performance:proof`.
 - TUI focus traversal lives in `src/ui/focus.ts`: Tab moves forward, Shift+Tab moves backward when multiple focus targets are visible; Shift+Tab still cycles mode when the composer is the only target.
 - TUI `/restart` persists the completed conversation and resumes it through a read-once project `.vanta/restart-session.json` handoff; the visible elapsed clock measures the new active process, while the durable session keeps its original timestamps and lineage.
 - Desktop root serving is Vite-first: `npm run desktop:build` writes `desktop-app/dist/`, and `src/desktop/assets.ts` serves it before falling back to the small `page.ts` build notice.
@@ -144,6 +146,6 @@ npx tsc --noEmit                 # must be clean before any commit
 
 ## Env vars (key ones)
 
-`VANTA_PROVIDER` · `VANTA_MODEL` · `VANTA_EFFORT_LEVEL` · `VANTA_KERNEL_URL` · `VANTA_HOME` · `VANTA_SELF_IMPROVE` · `VANTA_VERIFY` (opt-in completion verifier) · `VANTA_EXTRACT_MEMORIES` (opt-in post-turn fact extraction) · `VANTA_VISION_MODEL` / `VANTA_VISION_PROVIDER` (auxiliary vision routing) · `VANTA_FACTORY_BUDGET` · `VANTA_FACTORY_DISABLED` (factory kill switch) · `VANTA_TOOL_RETRIES` · `VANTA_STALL_THRESHOLD` · `VANTA_MODE_DETECT` · `VANTA_AUTOHANDOFF` / `VANTA_AUTOHANDOFF_THRESHOLD` · `VANTA_GOAL_ACTION` · `VANTA_RELAUNCH` (set by run.sh; enables /restart) · `VANTA_BROWSER_DISABLED` · `VANTA_DISABLE_AGENT_VIEW` · `VANTA_PERMISSION_MODE` · `VANTA_AUTO_MODE` · `VANTA_EMBED_MODEL` · `VANTA_RESUME_MAX_AGE_MIN` · `VANTA_LOOP_WAKE_CONTEXT` (internal detached-loop wake payload) · `VANTA_TUI` (`v2` opt-in mission-control shell)
+`VANTA_PROVIDER` · `VANTA_MODEL` · `VANTA_EFFORT_LEVEL` · `VANTA_KERNEL_URL` · `VANTA_HOME` · `VANTA_SELF_IMPROVE` · `VANTA_VERIFY` (opt-in completion verifier) · `VANTA_EXTRACT_MEMORIES` (opt-in post-turn fact extraction) · `VANTA_TTS_STREAMING` / `VANTA_TTS_STREAMING_PROVIDER` (opt-in first-clause speech) · `VANTA_VISION_MODEL` / `VANTA_VISION_PROVIDER` (auxiliary vision routing) · `VANTA_FACTORY_BUDGET` · `VANTA_FACTORY_DISABLED` (factory kill switch) · `VANTA_TOOL_RETRIES` · `VANTA_STALL_THRESHOLD` · `VANTA_MODE_DETECT` · `VANTA_AUTOHANDOFF` / `VANTA_AUTOHANDOFF_THRESHOLD` · `VANTA_GOAL_ACTION` · `VANTA_RELAUNCH` (set by run.sh; enables /restart) · `VANTA_BROWSER_DISABLED` · `VANTA_DISABLE_AGENT_VIEW` · `VANTA_PERMISSION_MODE` · `VANTA_AUTO_MODE` · `VANTA_EMBED_MODEL` · `VANTA_RESUME_MAX_AGE_MIN` · `VANTA_LOOP_WAKE_CONTEXT` (internal detached-loop wake payload) · `VANTA_TUI` (`v2` opt-in mission-control shell)
 
 Full env list: `CLAUDE.md §Env`.

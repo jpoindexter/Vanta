@@ -1,5 +1,5 @@
 import { McpClient, stdioTransport, type Transport } from "./client.js";
-import { buildMcpChildEnv, readMcpConfig, type McpConfig } from "./mount.js";
+import { buildMcpChildEnv, readMcpConfig, resolveMcpStdioArgs, type McpConfig } from "./mount.js";
 import type { McpServerView } from "../ui/mcp-view.js";
 import { appendMcpReceipt, readMcpRegistry, recordMcpProbe, type McpConnectorRecord } from "./registry.js";
 
@@ -19,7 +19,7 @@ export type ElicitHandler = (req: { server: string; method: string; params: unkn
 /** A connected (or failed) server plus the live client used for reconnect. */
 export type McpConnection = McpServerView & { client?: McpClient };
 
-async function resolveTransport(name: string, spec: ServerSpec, env: NodeJS.ProcessEnv): Promise<{ transport: Transport; kind: "stdio" | "http" } | null> {
+async function resolveTransport(name: string, spec: ServerSpec, env: NodeJS.ProcessEnv, root: string): Promise<{ transport: Transport; kind: "stdio" | "http" } | null> {
   if (spec.url) {
     const { httpTransport, resolveToken } = await import("./http-transport.js");
     const { loadMcpToken } = await import("./auth-store.js");
@@ -33,7 +33,7 @@ async function resolveTransport(name: string, spec: ServerSpec, env: NodeJS.Proc
     return { transport: httpTransport(spec.url, { token, headers }), kind: "http" };
   }
   if (spec.command) {
-    const t = stdioTransport(spec.command, spec.args ?? [], buildMcpChildEnv(env, spec.env));
+    const t = stdioTransport(spec.command, resolveMcpStdioArgs(spec, root), buildMcpChildEnv(env, spec.env));
     return { transport: t.transport, kind: "stdio" };
   }
   return null;
@@ -41,7 +41,8 @@ async function resolveTransport(name: string, spec: ServerSpec, env: NodeJS.Proc
 
 /** Connect to one server: initialize + list tools. Errors become a view, never throw. */
 export async function connectServer(name: string, spec: ServerSpec, opts: { env: NodeJS.ProcessEnv; onElicit?: ElicitHandler; root?: string; record?: McpConnectorRecord }): Promise<McpConnection> {
-  const resolved = await resolveTransport(name, spec, opts.env).catch(() => null);
+  const root = opts.root ?? process.cwd();
+  const resolved = await resolveTransport(name, spec, opts.env, root).catch(() => null);
   const transport = resolved?.transport;
   const kind = resolved?.kind ?? (spec.url ? "http" : "stdio");
   if (!transport) return { name, transport: kind, status: "error", error: "no command or url configured", tools: [] };
@@ -54,9 +55,18 @@ export async function connectServer(name: string, spec: ServerSpec, opts: { env:
     return { name, transport: kind, status: "connected", tools, resources, client, source: opts.record?.source, trust: opts.record?.trust, auth: opts.record?.auth };
   } catch (err) {
     try { client.close(); } catch { /* already gone */ }
-    if (opts.root) await recordMcpProbe(opts.root, name, { ok: false, error: (err as Error).message });
-    return { name, transport: kind, status: "error", error: (err as Error).message, tools: [] };
+    const error = mcpConnectionError(err, spec);
+    if (opts.root) await recordMcpProbe(opts.root, name, { ok: false, error });
+    return { name, transport: kind, status: "error", error, tools: [] };
   }
+}
+
+function mcpConnectionError(error: unknown, spec: ServerSpec): string {
+  const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
+  if (code === "ENOENT" && spec.command) {
+    return `Executable "${spec.command}" was not found. Install it or update this connector's command, then test again.`;
+  }
+  return error instanceof Error ? error.message : String(error);
 }
 
 /** Connect to every configured MCP server. Best-effort per server; never throws. */

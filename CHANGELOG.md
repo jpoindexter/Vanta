@@ -6,10 +6,31 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 ## Unreleased — 2026-07-29
 
 ### Added
+- Opt-in first-clause streaming TTS now feeds live model deltas through a
+  deterministic clause splitter and bounded sequential speech queue in both
+  push-to-talk and wake-word voice loops. Tool boundaries discard unspoken
+  drafts, synthesis failures stop the remaining queue, and disabled or
+  non-streaming paths retain whole-response synthesis.
+- An optional Memory Sparse Attention backend now connects through a typed
+  TypeScript service contract, keeps Vanta's local memory authoritative, and
+  exposes status, index, query, and generation through the kernel-gated
+  `msa_memory` tool and MCP server. The official Python/PyTorch/CUDA runtime
+  remains external, so this adds no Python dependency to Vanta.
+- Added the bounded `sparge_attention` tool for compatibility diagnostics,
+  pinned installation guidance, integration snippets, and local CUDA
+  benchmarks through the separately installed SpargeAttention Kit. Hosted
+  model APIs remain explicitly out of scope.
 - A versioned true-first-token harness now measures five fresh and five warm-profile runs for readline CLI, Ink TUI, authenticated SSE gateway, and Developer ID-signed packaged Desktop. Content-free timestamps separate process readiness, submit dispatch, first live provider delta, and first surface paint; receipts report median, p95, and worst with machine/build/model provenance.
 - TTFT regression budgets reject mocked or unverified providers, incomplete sample groups, and unsigned or unpackaged Desktop runs, then identify the exact surface, profile mode, and stage that regressed.
 
 ### Fixed
+- Bounded deletion now enters the normal approval flow instead of hitting an
+  unoverrideable Rule Zero block. An approved exact `rmdir`, `unlink`, or
+  non-forced removal can execute, while forced-recursive deletion, device
+  writes, wipes, and protected-path mutations remain blocked.
+- Desktop chat now accepts Finder file and folder drops across the full Electron preload/IPC path, keeps each folder as one icon-only composer chip while retaining its filtered files for submission, skips private/noise entries and symlinks, and submits files as structured context. The paperclip opens the native file/folder picker instead of the Files inspector, and file-only context can be sent without typing a placeholder prompt.
+- The per-turn tool budget now reserves its final ten calls for bounded synthesis, verification, output, and checklist closure. At the 30-call acquisition threshold Vanta removes broad web/browser acquisition tools and continues from collected evidence instead of halting to ask what to do next; the predeclared 40-call hard ceiling remains enforced, including streamed tool prefetch.
+- A successful `todo` update is now part of the completion predicate: a clean-looking answer cannot end the turn while its observed checklist still has open or in-progress items.
 - Automatic and manual context compaction now render a labeled square-cell progress meter with numeric phase milestones, replacing the generic spinner without using slanted track glyphs.
 - The readline host now uses the provider streaming path while preserving its single clean final print, making first-delta timing and interruption observable without duplicating output.
 - The TypeScript suite caps workers below total CPU saturation so Seatbelt, Node, browser, and tmux child-process tests retain startup headroom instead of intermittently crossing real timeout boundaries.
@@ -18,6 +39,26 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - Turn tracing ignores comparison operators and strings inside heredoc bodies, preventing read-only inspection scripts from producing false `trace[blind-write]` warnings.
 
 ### Verified boundary
+- The live kernel classified an exact empty-directory `rmdir` as `Ask` and
+  `rm -rf ~/Desktop` as `Block`. A disposable end-to-end agent dispatch accepted
+  one approval, removed the empty temporary directory, and preserved the
+  catastrophic-delete block floor.
+- The production Electron context smoke opened the native picker, dispatched Chromium native drag events for normal file, Shift-file, and folder drops, rendered their chips, omitted a dropped `.env`, and submitted the resolved paths through `/api/chat`.
+- The full TypeScript suite passes: 1,491 test files and 13,802 tests, with
+  3 intentional skips; core and renderer TypeScript checks also pass.
+- The streaming-TTS proof drove a real Vanta conversation stream and emitted
+  `STREAMING_TTS_FIRST_CLAUSE_OK` with the first clause dispatched before
+  provider completion and both clauses drained in order. Its injected silent
+  synthesis sink does not establish speaker hardware, provider latency, or
+  audio quality.
+- The authenticated MSA loopback proof exercised health, index, query, and
+  generation through the real TypeScript provider resolver, including durable
+  local writes and remote recall. It proves the adapter contract, not official
+  checkpoint inference, CUDA performance, or 100M-token behavior.
+- The installed `/Users/jasonpoindexter/.local/bin/vanta mcp serve` completed a
+  real MCP handshake and advertised `msa_memory` in its 10-tool default
+  allowlist, proving other local MCP clients can discover the capability.
+- A real tmux TUI run crossed the 30-call acquisition threshold with two open tasks, entered the bounded closure phase, marked both tasks done, and returned the requested result without an operator restart prompt. A separate oversized batch executed exactly the 40-call hard ceiling and recorded the skipped remainder.
 - A live local Ollama baseline completed 40/40 samples across all four TTFT surfaces and both profile modes; no mocked response counted. The packaged macOS app passed strict Developer ID signature verification, and Desktop first paint was observed after a rendered DOM animation frame.
 - The automatic-compaction launcher proof completed six real TUI turns, crossed the configured threshold, rendered the square-cell 25% phase, issued the summary request, and resumed the provider turn.
 
@@ -48,7 +89,7 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - Tool-budget, repeated-failure, interruption, and iteration-limit exits now persist and render their terminal reason in the TUI instead of ending on a receipt-only “Ready for review” state.
 
 ### Verified boundary
-- Full TypeScript suite: 1,482 test files and 13,756 tests passed, with 3 intentional skips.
+- Full TypeScript suite: 1,482 test files and 13,764 tests passed, with 3 intentional skips.
 - TypeScript typecheck, production Desktop build, architecture tests, and the production Electron layout/replay smoke passed.
 - The Desktop smoke executed saved-run discovery, provenance inspection, drift review, and a fresh replay dispatch with structured file metadata; its final chat response was deterministic fixture data, not a live paid-provider completion.
 - Production feature sources and built assets produced zero secret-scanner hits, and the smoke left no records in the operator's `~/.vanta/runs`.

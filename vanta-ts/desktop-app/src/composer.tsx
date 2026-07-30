@@ -1,5 +1,5 @@
 import { useRef, useState, type ClipboardEvent, type DragEvent, type FormEvent, type KeyboardEvent } from "react";
-import { ArrowUp, Folder, FolderKanban, Laptop, ListPlus, Network, PackageOpen, Paperclip, Plug, Plus, Square, Upload, X } from "lucide-react";
+import { ArrowUp, Folder, ListPlus, Paperclip, Plus, Square, Upload, X } from "lucide-react";
 import { AccessModePicker } from "./access-mode-picker.js";
 import { clipboardImageFiles, imagePreviewUrl, insertClipboardText } from "./clipboard-paste.js";
 import { nativeClipboardAvailable, readNativeClipboard } from "./desktop-clipboard.js";
@@ -81,17 +81,12 @@ export function Composer(props: ComposerProps) {
   return <form className={`composer ${dropActive ? "drop-active" : ""}`} data-drop-active={dropActive ? "true" : "false"} aria-describedby="vanta-attachment-help" onSubmit={send} onDragEnter={dragEnter} onDragOver={dragOver} onDragLeave={dragLeave} onDrop={drop}>
     {dropActive ? <div className="composer-drop-target" role="status" aria-live="polite"><Upload size={22} /><strong>Drop files or folders to attach</strong><span>Folders stay compact while readable files are attached.</span></div> : null}
     <p className="sr-only" id="vanta-attachment-help">Drag files or folders here, or use the attachment button.</p>
-    <TaskContext root={props.root} tools={props.tools} mcp={props.mcp} onMcp={props.onMcp} />
     <label className="sr-only" htmlFor="vanta-composer">Message Vanta</label>
-    <textarea id="vanta-composer" value={props.value} disabled={!ready} onChange={(event) => props.onChange(event.target.value)} onPaste={(event) => void pasteImages(event, props)} onKeyDown={(event) => keyDown(event, props)} placeholder={!ready ? "Loading this project..." : props.busy ? "Queue the next instruction..." : "Ask Vanta to do something..."} />
+    <textarea id="vanta-composer" value={props.value} disabled={!ready} onChange={(event) => props.onChange(event.target.value)} onPaste={(event) => void pasteImages(event, props)} onKeyDown={(event) => keyDown(event, props)} placeholder={!ready ? "Loading this project..." : props.busy ? "Queue next..." : "Ask Vanta to do something..."} />
     <AttachmentChips items={props.attachments} images={images} onRemoveItem={props.onRemoveAttachment} onRemoveImage={props.onRemoveImage} />
     {props.attachmentError ? <p className="composer-attachment-error" role="alert">{props.attachmentError}</p> : null}
     <ComposerFooter {...props} ready={ready} canSend={canSend} hasImages={images.length > 0} />
   </form>;
-}
-
-function TaskContext(props: Pick<ComposerProps, "root" | "tools" | "mcp" | "onMcp">) {
-  return <div className="task-context" aria-label="Task execution context: Session model, project, host, tools, MCP, and local memory"><span><FolderKanban size={12} /><strong>{props.root?.split("/").filter(Boolean).at(-1) ?? "Project"}</strong></span><span><Laptop size={12} /><strong>Local Mac</strong></span><span><Network size={12} /><strong>Tools {props.tools ?? 0}</strong></span><button type="button" title="Manage MCP connectors" onClick={props.onMcp}><Plug size={12} /><strong>MCP {props.mcp?.servers ?? 0} · {props.mcp?.tools ?? 0} tools</strong></button><span><PackageOpen size={12} /><strong>Memory local</strong></span></div>;
 }
 
 function AttachmentChips(props: { items: DesktopAttachmentItem[]; images: DesktopImageAttachment[]; onRemoveItem: (id: string) => void; onRemoveImage?: (id: string) => void }) {
@@ -111,8 +106,8 @@ function RemoveButton(props: { label: string; onClick: () => void }) {
 function ComposerFooter(props: ComposerProps & { ready: boolean; canSend: boolean; hasImages: boolean }) {
   const hasFileAttachments = props.attachments.length > 0;
   const queueDisabled = !props.ready || !props.value.trim() || props.hasImages || hasFileAttachments;
-  const queueTitle = props.hasImages || hasFileAttachments ? "Wait for the active run before sending attachment context" : "Queue next instruction";
-  return <div className="composer-footer"><div className="composer-context-controls"><button className="composer-context-button" type="button" title="Attach files or folders" aria-label="Attach files or folders" onClick={props.onAttach}><Paperclip size={16} /><span className="sr-only">Attachments</span></button><LookCaptureButton busy={props.lookBusy} onCapture={props.onLookCapture} /><button className="composer-command-button" type="button" title="Open commands" aria-label="Open commands" onClick={props.onCommand}><Plus size={16} /><span className="sr-only">Commands</span></button></div><div className="composer-actions"><button className="model-button" type="button" title="Change agent model" aria-label={`Agent model: ${props.model ?? "not selected"}. Change model`} onClick={props.onModel}><small>Agent model</small><span>{props.model ?? "Choose model"}</span></button><AccessModePicker mode={props.accessMode} onChange={props.onAccessMode} />{props.busy ? <><button className="queue-button" type="submit" disabled={queueDisabled} title={queueTitle}><ListPlus size={15} /><span>Queue</span></button><button className="stop-button" type="button" title="Stop current run" aria-label="Stop current run" onClick={props.onStop}><Square size={14} /><span>Stop</span></button></> : <button className="send-button" type="submit" disabled={!props.ready || !props.canSend} aria-label="Send"><ArrowUp size={16} /></button>}</div></div>;
+  const queueTitle = props.hasImages || hasFileAttachments ? "Wait for the active run before sending attachment context" : "Queue next";
+  return <div className="composer-footer"><div className="composer-context-controls"><button className="composer-context-button" type="button" title="Attach files or folders" aria-label="Attach files or folders" onClick={props.onAttach}><Paperclip size={16} /><span className="sr-only">Attachments</span></button><LookCaptureButton busy={props.lookBusy} onCapture={props.onLookCapture} /><button className="composer-command-button" type="button" title="Open commands" aria-label="Open commands" onClick={props.onCommand}><Plus size={16} /><span className="sr-only">Commands</span></button></div><div className="composer-actions"><button className="model-button" type="button" title="Change agent model" aria-label={`Agent model: ${props.model ?? "not selected"}. Change model`} onClick={props.onModel}><small>Agent model</small><span>{props.model ?? "Choose model"}</span></button><AccessModePicker mode={props.accessMode} onChange={props.onAccessMode} />{props.busy ? <><button className="queue-button" type="submit" disabled={queueDisabled} title={queueTitle}><ListPlus size={15} /><span>Queue next</span></button><button className="stop-button" type="button" title="Stop task" aria-label="Stop task" onClick={props.onStop}><Square size={14} /><span>Stop task</span></button></> : <button className="send-button" type="submit" disabled={!props.ready || !props.canSend} aria-label="Send"><ArrowUp size={16} /></button>}</div></div>;
 }
 
 async function pasteImages(event: ClipboardEvent<HTMLTextAreaElement>, props: ComposerProps): Promise<void> {

@@ -33,7 +33,7 @@ export const MCP_CATALOG: McpCatalogEntry[] = [
     name: "filesystem",
     description: "Local filesystem access (official reference server).",
     command: "npx",
-    args: ["-y", "@modelcontextprotocol/server-filesystem"],
+    args: ["-y", "@modelcontextprotocol/server-filesystem", "."],
     defaultTools: ["read_file", "read_multiple_files", "list_directory", "directory_tree", "search_files", "get_file_info"],
     optInTools: ["write_file", "edit_file", "create_directory", "move_file"],
     docsUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem",

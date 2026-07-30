@@ -223,4 +223,35 @@ process.stdin.on("data", (chunk) => {
       await new Promise<void>((resolve) => server.close(() => resolve()));
     }
   });
+
+  it("returns an actionable top-level error when an MCP executable is missing", async () => {
+    await writeFile(join(root, ".mcp.json"), JSON.stringify({
+      servers: { missing: { command: "vanta-mcp-that-does-not-exist" } },
+    }));
+    const server = createDesktopServer(root);
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("desktop server did not bind");
+    const base = `http://127.0.0.1:${address.port}`;
+    try {
+      await fetch(`${base}/api/connect/mcp`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name: "missing", action: "trust" }),
+      });
+      const response = await fetch(`${base}/api/connect/mcp`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name: "missing", action: "test" }),
+      });
+      const body = await response.json() as { error?: string; result?: { error?: string }; connectors?: Array<{ name: string; lastError?: string }> };
+
+      expect(response.status).toBe(409);
+      expect(body.error).toContain('Executable "vanta-mcp-that-does-not-exist" was not found');
+      expect(body.result?.error).toBe(body.error);
+      expect(body.connectors).toContainEqual(expect.objectContaining({ name: "missing", lastError: body.error }));
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
 });

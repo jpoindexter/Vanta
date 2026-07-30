@@ -56,6 +56,8 @@ export type McpConfigResolution = {
   sources: Record<string, McpConfigSource>;
 };
 
+const FILESYSTEM_SERVER_PACKAGE = "@modelcontextprotocol/server-filesystem";
+
 function parseOrEmpty(raw: string): McpConfig {
   try {
     return ConfigSchema.parse(JSON.parse(raw));
@@ -203,4 +205,16 @@ export function missingDeclaredMcpEnv(
     const match = /^\$\{([A-Z_][A-Z0-9_]*)\}$/.exec(value);
     return match && !processEnv[match[1]!] ? [match[1]!] : [];
   });
+}
+
+/**
+ * The reference filesystem server requires at least one allowed directory.
+ * Older Vanta/Claude imports omitted it; bind those legacy specs to the active
+ * project without overriding an explicitly configured directory.
+ */
+export function resolveMcpStdioArgs(spec: ServerSpec, root: string): string[] {
+  const args = [...(spec.args ?? [])];
+  const packageIndex = args.indexOf(FILESYSTEM_SERVER_PACKAGE);
+  if (packageIndex >= 0 && packageIndex === args.length - 1) args.push(root);
+  return args;
 }

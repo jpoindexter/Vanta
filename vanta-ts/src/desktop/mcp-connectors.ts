@@ -138,6 +138,7 @@ async function recordDesktopTest(root: string, name: string, action: DesktopMcpA
 async function sendDesktopProbeResult(root: string, res: http.ServerResponse, connection: McpConnection): Promise<void> {
   const ok = connection.status === "connected";
   sendJson(res, ok ? 200 : 409, {
+    ...(!ok ? { error: connection.error ?? "MCP connector did not connect" } : {}),
     result: { status: connection.status, tools: connection.tools.map((tool) => tool.name), resources: connection.resources?.map((resource) => resource.uri) ?? [], error: connection.error },
     ...(await desktopMcpPayload(root)),
   });

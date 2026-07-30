@@ -7,7 +7,7 @@ import {
   type CompletionSoundPlayer,
   type CompletionSoundSettings,
 } from "./completion-sound.js";
-import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, ConnectTestResult, DesktopRunReceipt, DesktopRuntime, EventRow, GatewayStartResult, GoogleConnectStatus, Message, MessagingPlatform, Provider, RailTab, ReleaseProofReport, RuntimeAction, Session, Status, TelegramSetupStatus, Tool } from "./types.js";
+import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, ConnectTestResult, DesktopRunReceipt, DesktopRuntime, EventRow, GatewayStartResult, GoogleConnectStatus, Message, MessagingPlatform, Provider, RailTab, ReleaseProofReport, RuntimeAction, ScheduledTask, Session, Status, TelegramSetupStatus, Tool } from "./types.js";
 import type { SessionDeleteAction } from "./session-safe-ops.js";
 import { sessionPinningHandlers } from "./session-pinning-api.js";
 import { createSessionDraftController, hasPersistableSessionDraftContext } from "./session-drafts.js";
@@ -26,6 +26,7 @@ export function useDesktopData() {
   const [google, setGoogle] = useState<GoogleConnectStatus>({ status: "needs_setup", clientConfigured: false, authorized: false, message: "Checking Google Workspace..." });
   const [releaseProofs, setReleaseProofs] = useState<ReleaseProofReport | null>(null);
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
+  const [schedules, setSchedules] = useState<ScheduledTask[]>([]);
   const [runtime, setRuntime] = useState<DesktopRuntime>({ selectedHostId: "local", hosts: [] });
   const [tab, setTab] = useState<RailTab>("activity");
   const overlays = useDesktopOverlays();
@@ -43,6 +44,7 @@ export function useDesktopData() {
       api<DesktopRuntime>("/api/runtime").catch(() => ({ selectedHostId: "local", hosts: [] })),
       api<GoogleConnectStatus>("/api/connect/google").catch(() => ({ status: "needs_setup", clientConfigured: false, authorized: false, message: "Google Workspace status is unavailable." } as GoogleConnectStatus)),
       api<ReleaseProofReport>("/api/release-proofs").catch(() => null),
+      api<ScheduledTask[]>("/api/schedules").catch(() => []),
     ]);
     const [statusResult, sessionsResult, toolsResult, filesResult, modelsResult] = await critical;
     // A mutation can invalidate an older aggregate refresh while its requests
@@ -64,7 +66,7 @@ export function useDesktopData() {
     }
     setError(""); setPhase("ready");
 
-    const [canvasResult, capabilitiesResult, messagingResult, artifactsResult, runtimeResult, googleResult, releaseProofsResult] = await optional;
+    const [canvasResult, capabilitiesResult, messagingResult, artifactsResult, runtimeResult, googleResult, releaseProofsResult, schedulesResult] = await optional;
     if (version !== refreshVersion.current) return;
     setCanvas(canvasResult.status === "fulfilled" ? canvasResult.value : null);
     setCapabilities(capabilitiesResult.status === "fulfilled" ? capabilitiesResult.value : []);
@@ -73,6 +75,7 @@ export function useDesktopData() {
     setRuntime(runtimeResult.status === "fulfilled" ? runtimeResult.value : { selectedHostId: "local", hosts: [] });
     setGoogle(googleResult.status === "fulfilled" ? googleResult.value : { status: "needs_setup", clientConfigured: false, authorized: false, message: "Google Workspace status is unavailable." });
     setReleaseProofs(releaseProofsResult.status === "fulfilled" ? releaseProofsResult.value : null);
+    setSchedules(schedulesResult.status === "fulfilled" ? schedulesResult.value : []);
   }, []);
 
   async function setModel(provider: string, model: string, scope: "session" | "global" = "session") {
@@ -105,7 +108,7 @@ export function useDesktopData() {
 
   useEffect(() => { void refresh(); }, [refresh]);
   return {
-    status, sessions, tools, files, models, canvas, capabilities, messaging, google, releaseProofs, artifacts, runtime, tab, setTab, phase, error, refresh, refreshProviderModels, setModel, setAccessMode,
+    status, sessions, tools, files, models, canvas, capabilities, messaging, google, releaseProofs, artifacts, schedules, runtime, tab, setTab, phase, error, refresh, refreshProviderModels, setModel, setAccessMode,
     setRuntimeHost: (hostId: string) => updateRuntime(hostId),
     runRuntimeAction: (hostId: string, action: RuntimeAction) => updateRuntime(hostId, action),
     ...overlays,
@@ -358,7 +361,7 @@ function conversationHandlers(state: ConversationState, cues: TurnCues, lastFail
       await api<{ queued: boolean }>("/api/chat/queue", postJson({ message: queued }));
       state.setMessages((messages) => [...messages, { role: "user", content: queued }]);
       state.setDraft(() => "");
-      state.setEvents([{ label: "Next instruction queued.", ok: true }]);
+      state.setEvents([{ label: "Queued next.", ok: true }]);
     } catch (error) {
       state.setEvents([{ label: error instanceof Error ? error.message : String(error), ok: false }]);
     }

@@ -126,17 +126,19 @@ Vanta is a **general operator**, not a coding tool — one agent runs every cate
 **Kernel (Rust):** enforced risk classifier (allow/ask/block), approval queue, goal ledger, event log, HTTP cockpit + JSON API, `VANTA_ROOT` scoping.
 
 **Agent (TypeScript):**
-- Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 142 registered tools and 149 commands
+- Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 148 registered tools and 151 commands
 - **Goals** — kernel goal ledger plus TS dependency graph (`/goal blocks`, `/goal blocked_by`, `vanta goals`)
 - **Skills & memory** — learned `~/.vanta/skills`, `/skills audit` for local skill injection-scan findings, a configurable public registry client with quarantine/approval/update rollback, per-goal memory, curator, LLM context compression with [settled local Git versioning](docs/local-store-versioning.md)
 - **Web search** — keyless (DuckDuckGo/SearXNG) + keyed (Brave/SerpAPI/Exa/Firecrawl/Tavily/Parallel/xAI Grok grounded search) with domain scoping; `web_fetch` readable extraction routes large pages through a size-tiered summarize/chunk/synthesize pipeline (configurable aux model)
 - **Governance & cost** — `vanta governance export` (auditable report of every gated action), versioned `.env` + `vanta config rollback`, persisted spend ledger via `/usage breakdown`
 - **Browser & vision** — screenshot / navigate / extract / read / act (Playwright), image/video understanding, and explicit `/look` capture for a macOS area, window, or all displays
-- **Voice & terminal** — push-to-talk voice input (local whisper STT), live terminal capture (tmux-backed), Slack `#channel` autocomplete in the composer
+- **Voice & terminal** — push-to-talk voice input (local whisper STT), opt-in [first-clause streaming TTS](docs/streaming-tts.md) with bounded queue and whole-response fallback, live terminal capture (tmux-backed), Slack `#channel` autocomplete in the composer
 - **Desktop control** — native screen control (screencapture → vision grounding → cliclick, or the CHICAGO computer-use MCP); `vanta control setup` grants OS permissions
 - **Ambient companion** — native Electron menu-bar presence with Quick Ask and approval status; `vanta desktop --companion` exposes a token-paired mobile status/chat/approval surface while terminal, files, tools, and model settings remain loopback-only
 - **Native desktop app** — one-viewport React/Electron workspace with persisted project selection, reusable runs with drift-reviewed replay, in-app model setup, sessions/chat/canvas/files/terminal, image clipboard paste, explicit screen capture, actionable startup recovery, and a [notarized ARM64 macOS DMG](https://github.com/jpoindexter/Vanta/releases/download/v0.9.5/Vanta-0.9.5-arm64.dmg)
 - **Personal tuning** — `vanta tune lora` trains a local LoRA adapter from your accepted/rejected operator decisions (real MPS/CUDA/CPU training)
+- **Sparse attention** — the bounded `sparge_attention` tool diagnoses, plans, integrates, and benchmarks the separately installed SpargeAttention runtime for compatible local PyTorch/NVIDIA CUDA inference; hosted model APIs and Apple Silicon acceleration are explicitly out of scope
+- **Memory Sparse Attention** — an optional [TypeScript MSA adapter](docs/msa-long-context.md) keeps Vanta and its local brain Python-free, reaches a separately operated NVIDIA long-context runtime over a strict service contract, falls back locally on failure, and exposes the same governed capability to other MCP clients
 - **Code & dev** — scoped file editing, grep/glob, `run_code`, LSP diagnostics/definition (TS), git tools, regression locks
 - **Autonomous** — cron scheduler, background tasks, subagent delegation, swarm/workflow, A2A bus, team workers
 - **Prompt-routed agents** — `/prompt` swaps a bounded session role; `delegate {agent_type}` spawns workers from the same project/home markdown definitions with prompt, tool, and model routing

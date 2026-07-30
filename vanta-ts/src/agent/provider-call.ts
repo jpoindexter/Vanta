@@ -22,6 +22,8 @@ export type ProviderCall = {
   ctx: ToolContext;
   prefetched: Map<string, Promise<DispatchOutcome>>;
   schemas: ToolSchema[];
+  /** Maximum safe tools this provider call may start before the loop dispatches. */
+  prefetchLimit?: number;
   ttft?: { turnId: string; surface: string };
 };
 
@@ -113,7 +115,7 @@ export async function getCompletion(
   deps: AgentDeps,
   messages: Message[],
   signal?: AbortSignal,
-  pf?: { ctx: ToolContext; prefetched: Map<string, Promise<DispatchOutcome>>; schemas?: ToolSchema[]; ttft?: { turnId: string; surface: string } },
+  pf?: { ctx: ToolContext; prefetched: Map<string, Promise<DispatchOutcome>>; schemas?: ToolSchema[]; prefetchLimit?: number; ttft?: { turnId: string; surface: string } },
 ): Promise<CompletionResult> {
   const schemas = pf?.schemas ?? schemasWithStructuredOutput(
     scopeToolSchemas(deps.registry.schemas(), toolScopeContext(messages, deps.activeGoalText), { env: process.env }),
@@ -122,8 +124,11 @@ export async function getCompletion(
   const cfg = { ...(signal ? { signal } : {}), effortLevel: deps.getEffortLevel?.() };
   recordTtftStage("provider_dispatch", pf?.ttft);
   if (deps.provider.stream && deps.onTextDelta) {
+    const exposedTools = new Set(schemas.map((schema) => schema.name));
     const onSafeToolCall = pf
       ? (call: ToolCall) => {
+          if (!exposedTools.has(call.name)) return;
+          if (pf.prefetchLimit !== undefined && pf.prefetched.size >= pf.prefetchLimit) return;
           if (!pf.prefetched.has(call.id)) pf.prefetched.set(call.id, dispatchTool(call, deps, pf.ctx));
         }
       : undefined;

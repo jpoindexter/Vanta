@@ -30,6 +30,7 @@ const DEFAULT_SERVE_TOOLS = [
   "lsp_definition",
   "git_status",
   "git_diff",
+  "msa_memory",
 ] as const;
 
 const BRIDGE_TOOLS = {

@@ -10,7 +10,7 @@ import { z } from "zod";
 const MAX_QUESTIONS = 4;
 const MIN_OPTIONS = 2;
 const MAX_OPTIONS = 4;
-const MAX_HEADER_LEN = 12;
+export const ASK_USER_MAX_HEADER_LEN = 12;
 
 const OptionSchema = z.object({
   label: z.string().min(1, "option.label must be non-empty"),
@@ -22,7 +22,7 @@ const QuestionSchema = z.object({
   header: z
     .string()
     .min(1, "header must be non-empty")
-    .max(MAX_HEADER_LEN, `header must be ≤${MAX_HEADER_LEN} chars`),
+    .max(ASK_USER_MAX_HEADER_LEN, `header must be ≤${ASK_USER_MAX_HEADER_LEN} chars`),
   question: z.string().min(1, "question must be non-empty"),
   options: z
     .array(OptionSchema)
@@ -67,6 +67,46 @@ function controlStrip(text: string): string {
   return text.replace(CONTROL_RE, " ").replace(/\s+/g, " ").trim();
 }
 
+/** Compact a model-generated display label without dropping its question. */
+function compactHeader(text: string): string {
+  const clean = controlStrip(text);
+  if (clean.length <= ASK_USER_MAX_HEADER_LEN) return clean;
+  const prefix = clean.slice(0, ASK_USER_MAX_HEADER_LEN + 1);
+  const wordBoundary = prefix.lastIndexOf(" ");
+  return wordBoundary >= 4
+    ? prefix.slice(0, wordBoundary)
+    : clean.slice(0, ASK_USER_MAX_HEADER_LEN);
+}
+
+/** Keep compacted headers unique because answer maps are keyed by header. */
+function uniqueHeader(base: string, used: Set<string>): string {
+  let candidate = base;
+  for (let index = 2; used.has(candidate.toLowerCase()); index += 1) {
+    const suffix = ` ${index}`;
+    candidate = `${base.slice(0, ASK_USER_MAX_HEADER_LEN - suffix.length).trimEnd()}${suffix}`;
+  }
+  used.add(candidate.toLowerCase());
+  return candidate;
+}
+
+/**
+ * Repair the one cosmetic constraint models commonly miss before strict
+ * validation. Structural mistakes still fail with the normal actionable error.
+ */
+function repairQuestionHeaders(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
+  const input = raw as Record<string, unknown>;
+  if (!Array.isArray(input.questions)) return raw;
+  const used = new Set<string>();
+  const questions = input.questions.map((question) => {
+    if (!question || typeof question !== "object" || Array.isArray(question)) return question;
+    const item = question as Record<string, unknown>;
+    if (typeof item.header !== "string") return question;
+    return { ...item, header: uniqueHeader(compactHeader(item.header), used) };
+  });
+  return { ...input, questions };
+}
+
 /** Sanitize one option's model-supplied text. Pure. */
 function cleanOption(o: AskOption): AskOption {
   return {
@@ -93,7 +133,7 @@ function cleanQuestion(q: AskQuestion): AskQuestion {
  * Pure.
  */
 export function validateAskInput(raw: unknown): ValidateInputResult {
-  const parsed = AskQuestionSchema.safeParse(raw);
+  const parsed = AskQuestionSchema.safeParse(repairQuestionHeaders(raw));
   if (!parsed.success) {
     const first = parsed.error.issues[0];
     const where = first?.path.length ? `${first.path.join(".")}: ` : "";

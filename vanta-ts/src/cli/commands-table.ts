@@ -96,6 +96,7 @@ import { runMarketingCommand } from "./marketing-cmd.js";
 import { runAmbientScreenCommand } from "./ambient-screen-cmd.js";
 import { runLifeSearchCommand } from "./lifesearch-cmd.js";
 import { runHarnessThicknessCommand } from "./harness-thickness-cmd.js";
+import { runDoctorCommand } from "./doctor-cmd.js";
 import { runKanbanCommand } from "./kanban-cmd.js";
 import { runLeadCommand } from "./lead-cmd.js";
 import { runDeepPlanCommand } from "./deep-plan-cmd.js";
@@ -179,7 +180,7 @@ export const COMMANDS: Record<string, CommandFn> = {
     const healthCode = await runStatus(process.env, rest);
     return serviceCode || healthCode;
   },
-  doctor: (_root, rest) => runStatus(process.env, rest),
+  doctor: (root, rest) => runDoctorCommand(root, rest),
   keybindings: (_root, rest) => runKeybindingsCommand(rest),
   migrate: (_root, rest) => runMigrate(rest),
   "agent-image": (_root, rest) => runAgentImageCommand(rest),

@@ -38,6 +38,7 @@ import { handleGoogleConnectAction, handleGoogleConnectStatus } from "./google-c
 import { handleDesktopReleaseProofs } from "./release-proofs.js";
 import { handleDesktopLookCapture } from "./look-capture-api.js";
 import { handleWorkflowRunRoute } from "./workflow-run-api.js";
+import { handleDesktopSchedules } from "./schedule-api.js";
 
 type RouteCtx = { req: http.IncomingMessage; res: http.ServerResponse; state: DesktopState; sid: string; sseClients: SseClients; pathname: string };
 
@@ -54,6 +55,7 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
     "/api/status": () => handleStatus(state, res),
     "/api/sessions": () => handleSessions(res),
     "/api/runs": () => handleRuns(state, req, res),
+    "/api/schedules": () => handleDesktopSchedules(state, res),
     "/api/tools": () => handleTools(state, res),
     "/api/capabilities": () => handleCapabilities(state, res),
     "/api/messaging": () => handleMessaging(res),

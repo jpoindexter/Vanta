@@ -118,6 +118,7 @@ describe("registry", () => {
       "media_studio",
       "money",
       "mount_mcp",
+      "msa_memory",
       "nl_assertions",
       "open_deep_link",
       "outreach",
@@ -157,6 +158,7 @@ describe("registry", () => {
       "shopify_operations",
       "skill_manage",
       "sleep",
+      "sparge_attention",
       "speak",
       "spreadsheet_workbook",
       "swarm",
@@ -382,6 +384,48 @@ describe("shell_cmd", () => {
     const res = await shellCmdTool.execute({ command: "echo hi" }, ctx());
     expect(res.ok).toBe(true);
     expect(res.output).toContain("hi");
+  });
+
+  it("keeps a quoted approved external mkdir target writable for the session", async () => {
+    const target = join(dirname(root), `vanta new project ${Date.now()}`);
+    const previous = process.env.VANTA_EXTRA_DIRS;
+    try {
+      delete process.env.VANTA_EXTRA_DIRS;
+      const res = await shellCmdTool.execute(
+        { command: `mkdir '${target}'` },
+        ctx({ sandboxWritableDirs: [canonicalPath(dirname(root))] }),
+      );
+      expect(res.ok).toBe(true);
+      expect(String(process.env.VANTA_EXTRA_DIRS ?? "").split(",")).toContain(canonicalPath(target));
+    } finally {
+      if (previous === undefined) delete process.env.VANTA_EXTRA_DIRS;
+      else process.env.VANTA_EXTRA_DIRS = previous;
+      await rm(target, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps an approved external project writable for a later git init", async () => {
+    const target = join(dirname(root), `vanta git project ${Date.now()}`);
+    const previous = process.env.VANTA_EXTRA_DIRS;
+    try {
+      delete process.env.VANTA_EXTRA_DIRS;
+      const created = await shellCmdTool.execute(
+        { command: `mkdir '${target}'` },
+        ctx({ sandboxWritableDirs: [canonicalPath(dirname(root))] }),
+      );
+      expect(created.ok).toBe(true);
+
+      const initialized = await shellCmdTool.execute(
+        { command: `cd '${target}' && git init` },
+        ctx(),
+      );
+      expect(initialized.ok).toBe(true);
+      await expect(readFile(join(target, ".git", "HEAD"), "utf8")).resolves.toContain("ref:");
+    } finally {
+      if (previous === undefined) delete process.env.VANTA_EXTRA_DIRS;
+      else process.env.VANTA_EXTRA_DIRS = previous;
+      await rm(target, { recursive: true, force: true });
+    }
   });
 
   it("refuses a destructive command locally", async () => {

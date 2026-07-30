@@ -201,12 +201,11 @@ try {
     throw new Error(`Desktop composer did not become ready: ${JSON.stringify(bootState)}`, { cause: error });
   }
   await page.locator(".titlebar-leading-actions").waitFor();
-  for (const destination of ["Work", "Operate", "Outputs", "Connect"]) {
+  for (const destination of ["Runs", "Connect", "Scheduled", "Plugins"]) {
     await page.getByRole("button", { name: destination, exact: true }).waitFor();
   }
-  await page.getByRole("toolbar", { name: "Task controls" }).waitFor();
-  await page.getByRole("button", { name: "Background" }).waitFor();
-  await page.locator(".desktop-statusbar").getByText(/Gateway/).waitFor();
+  if (await page.getByRole("toolbar", { name: "Task controls" }).count()) throw new Error("Permanent task-control toolbar returned");
+  if (await page.locator(".desktop-statusbar").count()) throw new Error("Permanent desktop status bar returned");
   const fixtureMessage = page.getByText(/Make the desktop shell feel like a serious operator workbench/);
   if (!await fixtureMessage.isVisible().catch(() => false)) {
     const fixtureSession = page.locator(".session-list .session").filter({ hasText: "Ship the desktop workbench" });
@@ -287,33 +286,31 @@ try {
   await capture("recovery");
   await page.locator(".conversation-stage").waitFor();
   await page.locator("#vanta-composer").waitFor();
-  const taskContext = page.getByLabel("Task execution context");
-  await taskContext.getByText(/Tools \d+/).waitFor();
-  await taskContext.getByText("Memory local").waitFor();
+  if (await page.getByLabel("Task execution context").count()) throw new Error("Duplicated task context returned above the composer");
   await page.getByRole("button", { name: /Agent model: .*Change model/ }).first().waitFor();
   await page.evaluate(async () => fetch("/api/access-mode", { method: "POST", headers: { "content-type": "application/json", "x-vanta-desktop-boundary": window.vantaDesktop?.boundaryToken ?? "" }, body: JSON.stringify({ mode: "ask" }) }));
   await page.reload();
   await page.locator(".app-shell").waitFor();
   const accessTrigger = page.locator(".approval-mode");
-  await accessTrigger.getByText("Ask", { exact: true }).waitFor();
-  await selectAccessMode(page, accessTrigger, "Approve for me", "approve", "Approve");
+  await accessTrigger.getByText("Manual", { exact: true }).waitFor();
+  await selectAccessMode(page, accessTrigger, "Accept edits", "approve", "Accept edits");
   await selectAccessMode(page, accessTrigger, "Full access", "full", "Full access");
   await page.reload();
   await page.locator(".app-shell").waitFor();
   await page.locator(".approval-mode").getByText("Full access").waitFor();
   const persistedAccess = await page.evaluate(async () => (await fetch("/api/access-mode", { headers: { "x-vanta-desktop-boundary": window.vantaDesktop?.boundaryToken ?? "" } })).json());
   if (persistedAccess.mode !== "full" || persistedAccess.scope !== "project") throw new Error(`Full access did not persist at project scope: ${JSON.stringify(persistedAccess)}`);
-  await selectAccessMode(page, page.locator(".approval-mode"), "Ask for approval", "ask", "Ask");
-  await page.getByRole("button", { name: "Open commands" }).waitFor();
-  await page.getByRole("button", { name: "Open command palette" }).click();
-  await page.getByRole("dialog", { name: "Command palette" }).waitFor();
+  await selectAccessMode(page, page.locator(".approval-mode"), "Manual mode", "ask", "Manual");
+  await page.getByRole("button", { name: "Open commands" }).first().waitFor();
+  await page.getByRole("button", { name: "Open commands" }).first().click();
+  await page.getByRole("dialog", { name: "Commands" }).waitFor();
   const pointerPaletteFocus = await focusState(page);
   if (pointerPaletteFocus.modality !== "pointer" || pointerPaletteFocus.outlineWidth !== 0) throw new Error(`Pointer-open command palette showed a keyboard focus ring: ${JSON.stringify(pointerPaletteFocus)}`);
   await page.keyboard.press("Escape");
   await page.keyboard.press("Meta+K");
-  await page.getByRole("dialog", { name: "Command palette" }).waitFor();
+  await page.getByRole("dialog", { name: "Commands" }).waitFor();
   const keyboardPaletteFocus = await focusState(page);
-  if (keyboardPaletteFocus.modality !== "keyboard" || keyboardPaletteFocus.outlineWidth < 1) throw new Error(`Keyboard-open command palette lost its focus ring: ${JSON.stringify(keyboardPaletteFocus)}`);
+  if (keyboardPaletteFocus.modality !== "keyboard" || keyboardPaletteFocus.tag !== "INPUT" || keyboardPaletteFocus.outlineWidth !== 0) throw new Error(`Keyboard-open command palette regained the oversized input outline: ${JSON.stringify(keyboardPaletteFocus)}`);
   await page.keyboard.press("Escape");
 
   await page.locator(".session-sidebar").getByRole("button", { name: "New task", exact: true }).click();
@@ -325,29 +322,38 @@ try {
   await newTask.getByRole("checkbox", { name: /Use isolated worktree/ }).waitFor();
   await newTask.getByRole("button", { name: "Cancel" }).click();
 
-  await page.getByRole("button", { name: "Operate", exact: true }).click();
-  await page.locator(".operator-view").getByRole("heading", { name: "Operate", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Runs", exact: true }).click();
+  await page.locator(".operator-view").getByRole("heading", { name: "Runs", exact: true }).waitFor();
   await page.getByText("active tasks", { exact: true }).waitFor();
 
   await page.getByRole("button", { name: "Connect", exact: true }).click();
   await page.locator(".operator-view").getByRole("heading", { name: "Connect", exact: true }).waitFor();
   await page.locator(".connect-card").filter({ hasText: "Capabilities" }).getByText("2 available", { exact: true }).waitFor();
   await page.locator(".connect-card").filter({ hasText: "Messaging" }).getByText(/1 available adapters\./).waitFor();
+  await page.getByRole("button", { name: "Scheduled", exact: true }).click();
+  await page.locator(".operator-view").getByRole("heading", { name: "Scheduled", exact: true }).waitFor();
+  await page.getByRole("button", { name: "New schedule" }).waitFor();
+  await page.getByRole("button", { name: "Plugins", exact: true }).click();
+  await page.locator(".operator-view").getByRole("heading", { name: "Plugins", exact: true }).waitFor();
+  await page.getByText("Read file", { exact: true }).waitFor();
   await capture("setup");
 
-  await page.getByRole("button", { name: "Work", exact: true }).click();
-  const inspectorToggle = page.getByRole("button", { name: "Open contextual inspector" });
-  if (await inspectorToggle.isVisible().catch(() => false)) await inspectorToggle.click();
+  await page.locator(".session-list .session").filter({ hasText: "Ship the desktop workbench" }).click();
+  const inspectorToggle = page.locator(".review-button");
+  await inspectorToggle.click();
   const inspector = page.locator(".right-rail");
   await inspector.waitFor();
-  for (const tab of ["Activity", "Files", "Diff", "Preview", "Receipts", "Terminal"]) {
+  for (const tab of ["Files", "Diff", "Activity"]) {
     await inspector.getByRole("tab", { name: tab, exact: true }).waitFor();
   }
+  if (await inspector.getByRole("tab").count() !== 3) throw new Error("Review drawer exposed more than Files, Diff, and Activity");
   await inspector.getByRole("tab", { name: "Files", exact: true }).click();
   const fileSearch = inspector.getByPlaceholder("Find a project file");
   await fileSearch.fill("README");
   await fileSearch.fill("");
   await inspector.locator(".file-list button").first().waitFor();
+  await inspector.getByRole("button", { name: "Close review" }).click();
+  await inspector.waitFor({ state: "detached" });
 
   await page.locator(".composer").getByRole("button", { name: /Agent model: .*Change model/ }).click();
   await page.getByRole("heading", { name: "Choose a model" }).waitFor();
@@ -387,7 +393,7 @@ try {
     if ((metrics.shellBottom ?? 0) > metrics.viewportHeight + 1) throw new Error(`Responsive shell exceeds viewport: ${JSON.stringify(metrics)}`);
     if ((metrics.inspectorLeft ?? 0) < -1 || (metrics.inspectorRight ?? 0) > metrics.viewportWidth + 1) throw new Error(`Responsive inspector exceeds viewport: ${JSON.stringify(metrics)}`);
     if (viewport.width === 760 && process.env.VANTA_DESKTOP_CONVERGENCE_COMPACT_SCREENSHOT) {
-      const closeInspector = page.getByRole("button", { name: "Close inspector" });
+      const closeInspector = page.getByRole("button", { name: "Close review" }).first();
       if (await closeInspector.isVisible().catch(() => false)) await closeInspector.click();
       await page.locator(".right-rail").waitFor({ state: "detached" });
       await page.waitForFunction(() => (document.querySelector(".session-sidebar")?.getBoundingClientRect().right ?? 0) <= 1);
@@ -397,7 +403,8 @@ try {
   }
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.locator(".mobile-nav").waitFor();
+  if (await page.locator(".mobile-nav").count()) throw new Error("Redundant mobile destination bar returned");
+  await page.getByRole("button", { name: "Toggle threads" }).waitFor();
   await page.getByRole("button", { name: "Copy response" }).first().waitFor();
   await page.getByRole("button", { name: "Expand response" }).first().waitFor();
   const compact = await page.evaluate(() => ({
@@ -412,8 +419,30 @@ try {
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.waitForFunction(() => window.innerWidth === 1440 && window.innerHeight === 960);
   await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const sidebarToggle = page.getByRole("button", { name: "Toggle threads" });
+  await sidebarToggle.click();
+  await page.locator(".app-shell.sidebar-collapsed").waitFor();
+  const collapsedTitlebar = await page.evaluate(() => {
+    const rect = (selector) => {
+      const element = document.querySelector(selector);
+      if (!element) throw new Error(`Missing collapsed titlebar surface ${selector}`);
+      const box = element.getBoundingClientRect();
+      return { left: box.left, right: box.right, width: box.width };
+    };
+    return {
+      identity: rect(".titlebar-identity"),
+      controls: rect(".titlebar-leading-actions"),
+      context: rect(".titlebar-agent-context"),
+      task: rect(".titlebar-task"),
+    };
+  });
+  if (collapsedTitlebar.context.left < 150) throw new Error(`Collapsed titlebar lost its macOS traffic-light-safe leading rail: ${JSON.stringify(collapsedTitlebar)}`);
+  if (collapsedTitlebar.controls.right > collapsedTitlebar.context.left - 8) throw new Error(`Collapsed titlebar controls overlap the task context: ${JSON.stringify(collapsedTitlebar)}`);
+  if (collapsedTitlebar.task.left < collapsedTitlebar.context.left) throw new Error(`Collapsed titlebar task escaped its context column: ${JSON.stringify(collapsedTitlebar)}`);
+  await sidebarToggle.click();
+  await page.waitForFunction(() => !document.querySelector(".app-shell")?.classList.contains("sidebar-collapsed"));
   if (!await inspector.isVisible().catch(() => false)) {
-    await page.getByRole("button", { name: "Open contextual inspector" }).click();
+    await page.locator(".review-button").click();
     await inspector.waitFor();
   }
   await inspector.getByRole("tab", { name: "Activity", exact: true }).click();
@@ -431,13 +460,12 @@ try {
       sidebar: rect(".session-sidebar"),
       titlebarIdentity: rect(".titlebar-identity"),
       titlebarControls: rect(".titlebar-leading-actions"),
-      workToolbar: rect(".work-toolbar"),
       inspector: rect(".right-rail"),
+      inspectorHeading: rect(".review-drawer-heading"),
       inspectorTabs: rect(".inspector-tabs"),
       composer: rect(".composer"),
       assistantMessage: rect(".message.assistant .message-content"),
       userMessage: rect(".message.user .message-markdown"),
-      statusbar: rect(".desktop-statusbar"),
     };
   });
   if (geometry.sidebar.width < 250 || geometry.sidebar.width > 340) throw new Error(`Project rail width drifted: ${JSON.stringify(geometry)}`);
@@ -445,14 +473,14 @@ try {
   if (geometry.titlebarControls.left < 70) throw new Error(`Titlebar controls overlap the macOS traffic-light zone: ${JSON.stringify(geometry)}`);
   if (Math.abs(geometry.titlebarControls.right - geometry.titlebarIdentity.right) > 16) throw new Error(`Titlebar controls are not right-aligned in the project rail: ${JSON.stringify(geometry)}`);
   if (await page.locator(".titlebar-brand").count()) throw new Error("Redundant in-app product branding returned to the titlebar");
-  if (geometry.inspectorTabs.top - geometry.inspector.top > 4) throw new Error(`Inspector tabs do not own the tray top: ${JSON.stringify(geometry)}`);
-  if (Math.abs(geometry.workToolbar.height - geometry.inspectorTabs.height) > 1) throw new Error(`Work toolbar and inspector tabs have different heights: ${JSON.stringify(geometry)}`);
-  if (Math.abs(geometry.workToolbar.bottom - geometry.inspectorTabs.bottom) > 1) throw new Error(`Work toolbar and inspector tabs do not share a baseline: ${JSON.stringify(geometry)}`);
+  if (Math.abs(geometry.inspectorHeading.top - geometry.inspector.top) > 1) throw new Error(`Review heading does not own the drawer top: ${JSON.stringify(geometry)}`);
+  if (Math.abs(geometry.inspectorTabs.top - geometry.inspectorHeading.bottom) > 1) throw new Error(`Review tabs are not aligned below the drawer heading: ${JSON.stringify(geometry)}`);
   if (geometry.composer.width > 780 || geometry.composer.width < 560) throw new Error(`Composer width drifted from the Codex-style work surface: ${JSON.stringify(geometry)}`);
   if (geometry.assistantMessage.width > 780) throw new Error(`Transcript reading column is too wide: ${JSON.stringify(geometry)}`);
-  if (Math.abs(geometry.composer.left - geometry.assistantMessage.left) > 2) throw new Error(`Composer and transcript are not aligned: ${JSON.stringify(geometry)}`);
+  const composerCenter = (geometry.composer.left + geometry.composer.right) / 2;
+  const transcriptCenter = (geometry.assistantMessage.left + geometry.assistantMessage.right) / 2;
+  if (Math.abs(composerCenter - transcriptCenter) > 2) throw new Error(`Composer and transcript are not centered on the same task axis: ${JSON.stringify(geometry)}`);
   if (geometry.userMessage.right > geometry.assistantMessage.right + 1) throw new Error(`Operator message exceeds the transcript edge: ${JSON.stringify(geometry)}`);
-  if (Math.abs(geometry.statusbar.height - 27) > 1) throw new Error(`Statusbar height drifted: ${JSON.stringify(geometry)}`);
   const visual = await page.evaluate(() => {
     const style = (selector) => {
       const element = document.querySelector(selector);
@@ -478,7 +506,7 @@ try {
   if (visual.userMessage.background === "rgba(0, 0, 0, 0)") throw new Error(`Operator message lost its compact bubble: ${JSON.stringify(visual)}`);
   if (visual.assistantSpeakerLabels !== 0) throw new Error(`Redundant assistant speaker chrome returned: ${JSON.stringify(visual)}`);
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
-  process.stdout.write(`${JSON.stringify({ destinations: true, newTask: true, operate: true, accessModes: ["approve", "full", "ask"], inlineApproval: approvalDecisions, inspector: true, modelPicker: true, responsive, compact: true, geometry, visual, visualProof: visualProof ? { updated: visualUpdate, captures: visualResults.length, baselineRoot: visualBaselineRoot } : undefined, accessibilityProof: accessibilityProof ? accessibilityResults : undefined })}\n`);
+  process.stdout.write(`${JSON.stringify({ destinations: ["Runs", "Connect", "Scheduled", "Plugins"], newTask: true, runs: true, accessModes: ["approve", "full", "ask"], inlineApproval: approvalDecisions, review: ["Files", "Diff", "Activity"], modelPicker: true, responsive, compact: true, collapsedTitlebar, geometry, visual, visualProof: visualProof ? { updated: visualUpdate, captures: visualResults.length, baselineRoot: visualBaselineRoot } : undefined, accessibilityProof: accessibilityProof ? accessibilityResults : undefined })}\n`);
 } finally {
   await app?.close().catch(() => undefined);
   await Promise.all([

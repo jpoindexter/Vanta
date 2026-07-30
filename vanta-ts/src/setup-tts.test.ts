@@ -25,6 +25,18 @@ describe("buildTtsEnv", () => {
   it("omits the key when none is given", () => {
     expect(buildTtsEnv(ttsProviderById("elevenlabs")!)).not.toHaveProperty("ELEVENLABS_API_KEY");
   });
+
+  it("persists the explicit first-clause streaming choice", () => {
+    expect(buildTtsEnv(
+      ttsProviderById("local")!,
+      undefined,
+      undefined,
+      { streaming: true },
+    )).toMatchObject({
+      VANTA_TTS_PROVIDER: "local",
+      VANTA_TTS_STREAMING: "1",
+    });
+  });
 });
 
 describe("renderTtsMenu", () => {

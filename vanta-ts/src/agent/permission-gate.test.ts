@@ -132,6 +132,40 @@ describe("applySafetyGate + permissions", () => {
     }
   });
 
+  it("passes a direct mkdir parent into the sandbox under full access", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-full-access-mkdir-"));
+    process.env.VANTA_PERMISSION_MODE = "fullAccess";
+    try {
+      const res = await applySafetyGate(
+        { id: "mkdir-full", name: "shell_cmd", arguments: { command: "mkdir ../new-project" } },
+        makeDeps({ risk: "ask", approve: false }),
+        { root } as ToolContext,
+      );
+      expect(res.approved).toBe(true);
+      expect(res.sandboxWritableDirs).toEqual([canonicalPath(dirname(root))]);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("prompts and scopes a quoted absolute mkdir outside the project", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-quoted-mkdir-"));
+    const target = join(dirname(root), "Vanta Biz OS");
+    let prompted = false;
+    try {
+      const res = await applySafetyGate(
+        { id: "mkdir-quoted", name: "shell_cmd", arguments: { command: `mkdir -p '${target}'` } },
+        makeDeps({ risk: "allow", onAsk: () => { prompted = true; } }),
+        { root } as ToolContext,
+      );
+      expect(prompted).toBe(true);
+      expect(res.approved).toBe(true);
+      expect(res.sandboxWritableDirs).toEqual([canonicalPath(dirname(root))]);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   it("canonicalizes a relative mkdir before the kernel verdict", async () => {
     const root = await mkdtemp(join(tmpdir(), "vanta-relative-mkdir-"));
     let assessed = "";

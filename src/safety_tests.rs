@@ -9,8 +9,18 @@ use std::path::PathBuf;
     }
 
     #[test]
-    fn blocks_deletes() {
-        assert_eq!(assess_action("delete ~/Documents", &root()).risk, Risk::Block);
+    fn bounded_deletes_require_approval() {
+        for action in [
+            "delete ~/Documents/empty-folder",
+            "run shell command: rmdir ~/Desktop/empty-folder",
+            "run shell command: rm -f notes.tmp",
+            "run shell command: python3 -c \"from pathlib import Path; Path('x').unlink()\"",
+            "run shell command: python3 -c \"from pathlib import Path; Path('d').rmdir()\"",
+        ] {
+            let verdict = assess_action(action, &root());
+            assert_eq!(verdict.risk, Risk::Ask, "expected Ask for {action}");
+            assert!(verdict.needs_human);
+        }
     }
 
     #[test]
@@ -54,9 +64,14 @@ use std::path::PathBuf;
     // --- known bypass patterns that a naive keyword denylist lets through ---
 
     #[test]
-    fn blocks_python_rmtree_disguise() {
-        let v = assess_action("run shell command: python3 -c \"import shutil; shutil.rmtree('/data')\"", &root());
-        assert_eq!(v.risk, Risk::Block);
+    fn catastrophic_recursive_deletes_still_block() {
+        for action in [
+            "run shell command: python3 -c \"import shutil; shutil.rmtree('/data')\"",
+            "run shell command: rm -rf /tmp/x",
+            "run shell command: rm -r -f build",
+        ] {
+            assert_eq!(assess_action(action, &root()).risk, Risk::Block, "{action}");
+        }
     }
 
     #[test]
@@ -67,19 +82,6 @@ use std::path::PathBuf;
             &root(),
         );
         assert_ne!(v.risk, Risk::Block, "read-only pathlib must not Block (it's a verify, not a delete)");
-    }
-
-    #[test]
-    fn destructive_pathlib_methods_still_block() {
-        // The dangerous pathlib operations are still caught by their method names.
-        assert_eq!(assess_action("run shell command: python3 -c \"from pathlib import Path; Path('x').unlink()\"", &root()).risk, Risk::Block);
-        assert_eq!(assess_action("run shell command: python3 -c \"from pathlib import Path; Path('d').rmdir()\"", &root()).risk, Risk::Block);
-    }
-
-    #[test]
-    fn blocks_double_space_rm() {
-        assert_eq!(assess_action("run shell command: rm  -rf  /tmp/x", &root()).risk, Risk::Block);
-        assert_eq!(assess_action("run shell command: rm -r -f build", &root()).risk, Risk::Block);
     }
 
     #[test]
@@ -297,12 +299,12 @@ use std::path::PathBuf;
     }
 
     #[test]
-    fn block_floor_unchanged_by_reversibility() {
+    fn block_floor_keeps_catastrophic_deletes_while_bounded_delete_asks() {
         // The reversibility tail only tightens Allow → Ask; it must never downgrade
-        // a Block. Destructive + data-loss irreversible ops stay Block.
+        // catastrophic/data-loss operations. Exact bounded deletes use Ask.
         let r = root();
         assert_eq!(assess_action("run shell command: rm -rf build", &r).risk, Risk::Block);
         assert_eq!(assess_action("run shell command: git push --force origin main", &r).risk, Risk::Block);
-        assert_eq!(assess_action("delete the old branch", &r).risk, Risk::Block);
+        assert_eq!(assess_action("delete the old branch", &r).risk, Risk::Ask);
         assert_eq!(assess_action("write file src/safety.rs", &r).risk, Risk::Block);
     }

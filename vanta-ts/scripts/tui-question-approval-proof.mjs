@@ -40,7 +40,9 @@ const server = createServer(async (request, response) => {
       id: "ask-path",
       args: {
         questions: [{
-          header: "Approach",
+          // Deliberately exceeds the 12-character display contract. The tool
+          // boundary must compact it instead of stopping the agent turn.
+          header: "Repository location",
           question: "Which path should Vanta use?",
           options: [
             { label: "Focused", description: "Change only the proof files", preview: "2 files · reversible" },
@@ -79,7 +81,7 @@ try {
 
   await waitForPane("Which path should Vanta use?");
   const question = await capture();
-  assert.match(question, /Approach 1\/1/);
+  assert.match(question, /Repository 1\/1/);
   assert.match(question, /Focused — Change only the proof files/);
   assert.match(question, /Other — Type your own answer/);
   assert.match(question, /2 files · reversible/);

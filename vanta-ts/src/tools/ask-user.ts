@@ -1,5 +1,10 @@
 import type { Tool, ToolResult } from "./types.js";
-import { validateAskInput, formatAskPrompt, formatAskResponse } from "./ask-user-model.js";
+import {
+  ASK_USER_MAX_HEADER_LEN,
+  validateAskInput,
+  formatAskPrompt,
+  formatAskResponse,
+} from "./ask-user-model.js";
 
 // ───────────────────────────────────────────────────────────────────────────
 // VANTA-ASK-USER-TOOL — the STRUCTURED sibling of `clarify`.
@@ -37,7 +42,11 @@ export const askUserTool: Tool = {
             type: "object",
             required: ["header", "question", "options"],
             properties: {
-              header: { type: "string", description: "Short label, ≤12 chars." },
+              header: {
+                type: "string",
+                maxLength: ASK_USER_MAX_HEADER_LEN,
+                description: "Short label, ≤12 chars.",
+              },
               question: { type: "string", description: "The question to ask." },
               options: {
                 type: "array",

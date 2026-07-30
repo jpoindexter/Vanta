@@ -100,6 +100,13 @@ fi
 # VANTA_RELAUNCH tells the agent the loop is active (so /restart is offered).
 export VANTA_RELAUNCH=1
 
+# Ink uses React's development reconciler unless NODE_ENV is set before Node
+# imports it. That reconciler records multiple global performance measures per
+# render and never clears them, so a long TUI session eventually crosses Node's
+# one-million-entry warning threshold. Keep explicit development overrides, but
+# default the shipped launcher to the production reconciler.
+export NODE_ENV="${NODE_ENV:-production}"
+
 # V8 heap headroom: node's default old-space cap is ~4GB, and large extractions
 # or long sessions can exceed it (a default-heap node OOMs near 4GB — observed).
 # Raise the ceiling; override (MB) via VANTA_NODE_MAX_MB. Appends to any existing
