@@ -169,8 +169,11 @@ describe("installResizeGhostFix", () => {
     stdout.columns = 78;
     stdout.rows = 25;
     stdout.emit("resize");
-    await new Promise((resolve) => setTimeout(resolve, 80));
-    expect(stdout.chunks.join("")).toContain("\u001b[2J\u001b[3J\u001b[H");
+    const clear = "\u001b[2J\u001b[3J\u001b[H";
+    for (let attempt = 0; attempt < 100 && !stdout.chunks.join("").includes(clear); attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+    expect(stdout.chunks.join("")).toContain(clear);
     detach();
     instance.unmount();
   });

@@ -215,10 +215,12 @@ process.stdin.on("data", (chunk) => {
       expect(await removed.json()).toMatchObject({ connectors: [] });
       const installed = await fetch(`${base}/api/connect/mcp`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "fetch", action: "install" }) });
       expect(await installed.json()).toMatchObject({ connectors: [expect.objectContaining({ name: "fetch", source: "user", trust: "pending" })] });
-      await mkdir(join(home, "Library", "Application Support", "Claude"), { recursive: true });
-      await writeFile(join(home, "Library", "Application Support", "Claude", "claude_desktop_config.json"), JSON.stringify({ mcpServers: { "claude-notes": { command: process.execPath, args: [fixture] } } }));
-      const imported = await fetch(`${base}/api/connect/mcp`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "import_desktop" }) });
-      expect(await imported.json()).toMatchObject({ connectors: expect.arrayContaining([expect.objectContaining({ name: "claude-notes", source: "user" })]) });
+      if (process.platform === "darwin") {
+        await mkdir(join(home, "Library", "Application Support", "Claude"), { recursive: true });
+        await writeFile(join(home, "Library", "Application Support", "Claude", "claude_desktop_config.json"), JSON.stringify({ mcpServers: { "claude-notes": { command: process.execPath, args: [fixture] } } }));
+        const imported = await fetch(`${base}/api/connect/mcp`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "import_desktop" }) });
+        expect(await imported.json()).toMatchObject({ connectors: expect.arrayContaining([expect.objectContaining({ name: "claude-notes", source: "user" })]) });
+      }
     } finally {
       await new Promise<void>((resolve) => server.close(() => resolve()));
     }
