@@ -69,7 +69,7 @@ jobs:
           src/webhook-workflows/runtime.test.ts
       - name: Full TypeScript suite
         working-directory: vanta-ts
-        run: npm test
+        run: npm test -- --maxWorkers=4
       - name: Protected-path diff
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
