@@ -23,6 +23,8 @@ export type ToolContext = {
   root: string;
   /** Current conversation/session id, when a host has one. Used for durable sidecar metadata. */
   sessionId?: string;
+  /** Stable provider tool-call id for one model-requested operation. */
+  effectCallId?: string;
   safety: KernelClient;
   /** Pause and ask the human y/n. Returns true if approved. toolName lets the
    *  host key session/always-allow and accept-edits auto-approve decisions. */

@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ToolRegistry } from "./registry.js";
 import type { ToolContext } from "./types.js";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const stdioTransport = vi.hoisted(() => vi.fn((
   _command: string,
@@ -32,13 +35,15 @@ describe("mount_mcp child boundary", () => {
     const registry = new ToolRegistry();
     const tool = buildMountMcpTool(registry);
 
+    const root = await mkdtemp(join(tmpdir(), "vanta-mount-mcp-"));
     const result = await tool.execute({
       name: "bounded",
       command: "example-mcp",
       env: { EXPLICIT_SERVER_TOKEN: "declared" },
     }, {
-      root: process.cwd(),
-      safety: {} as ToolContext["safety"],
+      root,
+      sessionId: "mount-mcp-test",
+      safety: { assess: async () => ({ risk: "allow", reason: "test" }) } as unknown as ToolContext["safety"],
       requestApproval: async () => true,
     });
 
@@ -47,5 +52,6 @@ describe("mount_mcp child boundary", () => {
     const childEnv = stdioTransport.mock.calls[0]?.[2] as NodeJS.ProcessEnv;
     expect(childEnv.VANTA_TEST_PARENT_SECRET).toBeUndefined();
     expect(childEnv.EXPLICIT_SERVER_TOKEN).toBe("declared");
+    await rm(root, { recursive: true, force: true });
   });
 });

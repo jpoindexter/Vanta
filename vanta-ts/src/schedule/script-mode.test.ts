@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { addCron, loadCron, saveCron, type CronEntry } from "./cron.js";
+import { addCron, loadCron, saveCron, scriptSha256, type CronEntry } from "./cron.js";
 import { runDueTasks, type RunTask, type RunScript } from "./runner.js";
 import { parseScheduleFlags } from "./commands.js";
 
@@ -33,6 +33,10 @@ function fakeRunners(): { calls: string[]; scripts: string[]; run: RunTask; runS
   };
 }
 
+function authority(script: string): Pick<CronEntry, "scriptSha256" | "authorityId"> {
+  return { scriptSha256: scriptSha256(script), authorityId: "operator-cli:test" };
+}
+
 describe("cron.tsv round-trip with mode/script", () => {
   it("persists mode + script and keeps legacy 4-column lines parseable", async () => {
     const dataDir = await tmpDataDir();
@@ -54,9 +58,33 @@ describe("cron.tsv round-trip with mode/script", () => {
 describe("runner script modes", () => {
   const base = { cron: EVERY_MINUTE, status: "active" as const };
 
+  it("keeps a legacy script visible but refuses to spawn it without authority", async () => {
+    const entry: CronEntry = { id: 0, instruction: "legacy script", ...base, mode: "no_agent", script: "printf legacy" };
+    const f = fakeRunners();
+    const results = await runDueTasks({ dataDir: await tmpDataDir(), now: NOW, run: f.run, runScript: f.runScript, load: async () => [entry] });
+    expect(results[0]?.result).toContain("needs human");
+    expect(f.scripts).toEqual([]);
+  });
+
+  it("invalidates authority when the bound script bytes change", async () => {
+    const entry: CronEntry = {
+      id: 9,
+      instruction: "changed script",
+      ...base,
+      mode: "no_agent",
+      script: "printf changed",
+      scriptSha256: scriptSha256("printf original"),
+      authorityId: "operator-cli:test",
+    };
+    const f = fakeRunners();
+    const results = await runDueTasks({ dataDir: await tmpDataDir(), now: NOW, run: f.run, runScript: f.runScript, load: async () => [entry] });
+    expect(results[0]?.result).toContain("needs human");
+    expect(f.scripts).toEqual([]);
+  });
+
   it("no_agent delivers script stdout and NEVER calls the model", async () => {
     const dataDir = await tmpDataDir();
-    const entry: CronEntry = { id: 1, instruction: "disk check", ...base, mode: "no_agent", script: "df -h" };
+    const entry: CronEntry = { id: 1, instruction: "disk check", ...base, mode: "no_agent", script: "df -h", ...authority("df -h") };
     const f = fakeRunners();
     const results = await runDueTasks({ dataDir, now: NOW, run: f.run, runScript: f.runScript, load: async () => [entry] });
     expect(results).toEqual([{ id: 1, instruction: "disk check", result: "out-of:df -h" }]);
@@ -65,7 +93,7 @@ describe("runner script modes", () => {
   });
 
   it("no_agent falls back to the instruction as the script", async () => {
-    const entry: CronEntry = { id: 2, instruction: "echo hi", ...base, mode: "no_agent" };
+    const entry: CronEntry = { id: 2, instruction: "echo hi", ...base, mode: "no_agent", ...authority("echo hi") };
     const f = fakeRunners();
     const results = await runDueTasks({ dataDir: await tmpDataDir(), now: NOW, run: f.run, runScript: f.runScript, load: async () => [entry] });
     expect(f.scripts).toEqual(["echo hi"]);
@@ -73,7 +101,7 @@ describe("runner script modes", () => {
   });
 
   it("no_agent surfaces a failed script as an error result", async () => {
-    const entry: CronEntry = { id: 3, instruction: "x", ...base, mode: "no_agent", script: "boom" };
+    const entry: CronEntry = { id: 3, instruction: "x", ...base, mode: "no_agent", script: "boom", ...authority("boom") };
     const f = fakeRunners();
     const failScript: RunScript = async () => ({ ok: false, output: "script failed: exit 1" });
     const results = await runDueTasks({ dataDir: await tmpDataDir(), now: NOW, run: f.run, runScript: failScript, load: async () => [entry] });
@@ -82,7 +110,7 @@ describe("runner script modes", () => {
   });
 
   it("script_context runs the script then injects its stdout into the agent turn", async () => {
-    const entry: CronEntry = { id: 4, instruction: "summarize disk usage", ...base, mode: "script_context", script: "df -h" };
+    const entry: CronEntry = { id: 4, instruction: "summarize disk usage", ...base, mode: "script_context", script: "df -h", ...authority("df -h") };
     const f = fakeRunners();
     const results = await runDueTasks({ dataDir: await tmpDataDir(), now: NOW, run: f.run, runScript: f.runScript, load: async () => [entry] });
     expect(f.scripts).toEqual(["df -h"]);
@@ -93,7 +121,7 @@ describe("runner script modes", () => {
   });
 
   it("script modes without a configured runner report a clear error (not a silent agent run)", async () => {
-    const entry: CronEntry = { id: 5, instruction: "x", ...base, mode: "no_agent", script: "df" };
+    const entry: CronEntry = { id: 5, instruction: "x", ...base, mode: "no_agent", script: "df", ...authority("df") };
     const f = fakeRunners();
     const results = await runDueTasks({ dataDir: await tmpDataDir(), now: NOW, run: f.run, load: async () => [entry] });
     expect(results[0]?.result).toContain("no script runner");

@@ -33,6 +33,8 @@ import {
   stopTyping,
   typingHeartbeatEnabled,
 } from "./typing-heartbeat.js";
+import { payloadSha256, type EffectGateContext } from "../effects/execute-effect.js";
+import { sendGatewayMessage, type GatewayEffectKind } from "./effect-send.js";
 
 function firstLine(text: string): string {
   const line = text.split("\n")[0] ?? "";
@@ -48,7 +50,30 @@ type SessionRun = {
   /** Reply-context store deps; absent → sent replies aren't recorded. */
   reply?: ReplyStoreDeps;
   progressBubble?: ProgressBubbleConfig;
+  effectGate?: EffectGateContext;
 };
+
+function messageRunKey(platform: PlatformAdapter, message: InboundMessage): string {
+  return `${platform.id}:${message.chatId}:${message.id ?? payloadSha256(`${message.threadId ?? ""}\0${message.text}`)}`;
+}
+
+async function sendForInbound(
+  ctx: SessionRun,
+  inbound: InboundMessage,
+  text: string,
+  kind: Exclude<GatewayEffectKind, "gateway.native-file">,
+  suffix: string,
+): Promise<OutboundMessage> {
+  const message: OutboundMessage = { chatId: inbound.chatId, threadId: inbound.threadId, text };
+  await sendGatewayMessage({
+    platform: ctx.platform,
+    gate: ctx.effectGate,
+    message,
+    kind,
+    idempotencyKey: `${messageRunKey(ctx.platform, inbound)}:${suffix}`,
+  });
+  return message;
+}
 
 // Wire point 2 (record-on-send): persist the sent reply's id→text for later
 // reply-context quoting (best-effort; an id-less outbound is skipped).
@@ -63,7 +88,7 @@ function scheduleProgressBubble(ctx: SessionRun, m: InboundMessage): () => void 
   let sent = false;
   const timer = setTimeout(() => {
     sent = true;
-    void ctx.platform.send({ chatId: m.chatId, threadId: m.threadId, text: plan.text })
+    void sendForInbound(ctx, m, plan.text, "gateway.progress", "progress")
       .catch((err) => ctx.log(`  progress bubble failed: ${err instanceof Error ? err.message : String(err)}`));
   }, plan.thresholdMs);
   timer.unref?.();
@@ -106,6 +131,13 @@ async function runOne(ctx: SessionRun, m: InboundMessage): Promise<void> {
   const sink = createGatewayStreamSink({
     platform: ctx.platform,
     target: { chatId: m.chatId, threadId: m.threadId },
+    send: (message) => sendGatewayMessage({
+      platform: ctx.platform,
+      gate: ctx.effectGate,
+      message,
+      kind: "gateway.final",
+      idempotencyKey: `${messageRunKey(ctx.platform, m)}:final`,
+    }),
     record: (message) => recordReply(ctx, message),
     delivered: (_message, receipt) => appendChannelProof(ctx.dataDir, buildChannelProof(m, receipt))
       .catch((error) => ctx.log(`  channel proof failed: ${error instanceof Error ? error.message : String(error)}`)),
@@ -140,7 +172,8 @@ async function deliverFinalReply(ctx: SessionRun, m: InboundMessage, emit: (even
   await emit({ type: "MessageStop", text: plan.visibleText });
   const delivered = await sendDeliverables({
     dataDir: ctx.dataDir, platform: ctx.platform, target: { chatId: m.chatId, threadId: m.threadId },
-    files: plan.files, log: ctx.log,
+    files: plan.files, log: ctx.log, effectGate: ctx.effectGate,
+    idempotencyPrefix: messageRunKey(ctx.platform, m),
   });
   for (const reason of [...plan.skipped, ...delivered.skipped]) ctx.log(`  deliverable skipped: ${reason}`);
 }
@@ -202,11 +235,11 @@ async function processPolledMessage(step: PollStep): Promise<{ state: SessionSta
     const refs = await preprocessContextRefs(enriched.text, scope, step.deps.contextRefs.deps);
     if (refs.block) enriched = { ...enriched, llmText: `${refs.block}\n\n${enriched.llmText ?? enriched.text}` };
     const receipt = formatContextRefReceipt(refs);
-    if (receipt) await step.ctx.platform.send({ chatId: enriched.chatId, threadId: enriched.threadId, text: receipt });
+    if (receipt) await sendForInbound(step.ctx, enriched, receipt, "gateway.context", "context-receipt");
   }
   const mobile = await handleMobileControlCommand({ dataDir: step.deps.dataDir, msg: enriched, replyBus: step.deps.replyBus });
   if (mobile.consumed) {
-    if (mobile.reply) await step.ctx.platform.send({ chatId: enriched.chatId, threadId: enriched.threadId, text: mobile.reply });
+    if (mobile.reply) await sendForInbound(step.ctx, enriched, mobile.reply, "gateway.mobile-control", "mobile-control");
     step.log(`  ✓ mobile control: ${firstLine(enriched.text)}`);
     return { state: step.state, seen: processed.seen, handled: 0 };
   }
@@ -249,6 +282,7 @@ async function pollPlatformSession(
     log,
     reply: replyStoreDeps(deps),
     progressBubble: deps.progressBubble,
+    effectGate: deps.effectGate,
   };
   // CHANNEL-PERMISSIONS-WIRE: messages the approval pump polled (and parked)
   // while a turn was blocked come first — none are lost to the pump.

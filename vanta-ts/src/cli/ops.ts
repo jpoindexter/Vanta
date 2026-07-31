@@ -14,6 +14,8 @@ import { enforceScopeBudget, scopeForLoop } from "../budget/enforce.js";
 import { recordTurnSpend } from "../cost/ledger.js";
 import { buildGatewayHandle } from "./gateway-stream.js";
 import { runGatewayUtilityCommand } from "./gateway-utility-cmd.js";
+import { createKernelClient } from "../kernel/client.js";
+import { resolvePermissionMode } from "../modes/permission-mode.js";
 
 // Operational subcommands (gateway / service / mcp / factory + the
 // non-interactive cron task). Extracted from cli.ts to keep each file <300.
@@ -131,12 +133,26 @@ export async function runGatewayCommand(repoRoot: string, rest: string[] = []): 
   const { replyBus, requestApproval } = await buildGatewayApprover(platform);
   const runTask = buildCronRunTask(repoRoot, { requestApproval });
   const handle = buildGatewayHandle(runTask);
+  const kernel = createKernelClient(process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788", repoRoot);
+  const effectGate = {
+    kernel,
+    ...(requestApproval ? {
+      approval: {
+        request: (request: import("../effects/execute-effect.js").EffectApprovalRequest) =>
+          requestApproval(request.action, request.reason, request.effectKind),
+      },
+    } : {}),
+    projectRoot: repoRoot,
+    sessionId: `gateway:${process.pid}`,
+    permissionMode: resolvePermissionMode(process.env),
+  };
 
   const webhook = gatewayWebhook(platform);
 
   await runGateway({
     dataDir: dataDirFor(repoRoot),
     run: runTask,
+    effectGate,
     platform,
     handle,
     replyBus,

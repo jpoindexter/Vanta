@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { constants } from "node:fs";
 import { loadRuntimeExtensions } from "./runtime-extensions.js";
 import { ToolRegistry } from "../tools/registry.js";
+import { allowTestEffectGate } from "../effects/test-gate.js";
 
 const TMP_BASE = fileURLToPath(new URL("../../.vitest-tmp/", import.meta.url));
 
@@ -98,7 +99,13 @@ describe("loadRuntimeExtensions — MCP startup is opt-in", () => {
   });
 
   it("mounts at startup only after an explicit settings opt-in", async () => {
-    await loadRuntimeExtensions(root, new ToolRegistry() as never, undefined, { mcp: { autoMount: true } });
+    await loadRuntimeExtensions(
+      root,
+      new ToolRegistry() as never,
+      undefined,
+      { mcp: { autoMount: true } },
+      allowTestEffectGate(root),
+    );
     await expect(access(marker, constants.F_OK)).resolves.toBeUndefined();
   });
 });

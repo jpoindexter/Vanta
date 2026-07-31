@@ -7,6 +7,13 @@ import { z } from "zod";
 import { PLUGIN_CAPABILITIES, type PluginCapability } from "./capabilities.js";
 import type { PluginManifest } from "./manifest.js";
 import { PluginPanelRegistry } from "./panels.js";
+import { buildSafeChildEnv } from "../exec/child-env.js";
+import {
+  executeEffect,
+  payloadSha256,
+  stableEffectId,
+  type EffectGateContext,
+} from "../effects/execute-effect.js";
 
 const HostRequestSchema = z.object({
   type: z.literal("host.request"),
@@ -41,6 +48,7 @@ export type LaunchPluginWorkerOptions = {
   log?: (message: string) => void;
   schedule?: PluginWorkerScheduler;
   startupTimeoutMs?: number;
+  effectGate?: EffectGateContext;
 };
 
 function containedEntry(pluginDir: string, main: string): string {
@@ -62,10 +70,7 @@ function permissionArgs(pluginDir: string, entry: string): string[] {
 }
 
 function workerEnv(name: string): NodeJS.ProcessEnv {
-  const keep = ["HOME", "LANG", "LC_ALL", "PATH", "TMPDIR"] as const;
-  const env: NodeJS.ProcessEnv = { NODE_NO_WARNINGS: "1", VANTA_PLUGIN_NAME: name };
-  for (const key of keep) if (process.env[key]) env[key] = process.env[key];
-  return env;
+  return { ...buildSafeChildEnv(process.env), NODE_NO_WARNINGS: "1", VANTA_PLUGIN_NAME: name };
 }
 
 function defaultSchedule(intervalMs: number, fire: () => void): () => void {
@@ -106,11 +111,32 @@ export async function launchPluginWorker(opts: LaunchPluginWorkerOptions): Promi
   const granted = [...new Set(opts.granted)].filter((capability) => declared.has(capability));
   const allowed = new Set(granted);
   const log = opts.log ?? (() => {});
-  const child = spawn(process.execPath, permissionArgs(pluginDir, entry), {
-    cwd: pluginDir,
-    env: workerEnv(opts.manifest.name),
-    stdio: ["pipe", "pipe", "pipe"],
+  if (!opts.effectGate) throw new Error(`blocked: plugin ${opts.manifest.name} launch effect gate unavailable`);
+  const effectGate = opts.effectGate;
+  const launchSeed = {
+    host: "plugin-host",
+    kind: "plugin.worker.launch",
+    targetClass: "isolated-plugin-process",
+    payloadSha256: payloadSha256(`${entry}\0${opts.manifest.version}\0${granted.join(",")}`),
+    idempotencyKey: `plugin:${effectGate.sessionId ?? "one-shot"}:${opts.manifest.name}:${opts.manifest.version}:${entry}`,
+  };
+  const launch = await executeEffect({
+    id: stableEffectId(launchSeed),
+    actor: opts.manifest.name,
+    action: `launch isolated plugin worker ${opts.manifest.name} with ${granted.length} granted capabilities`,
+    ...launchSeed,
+  }, effectGate, async () => {
+    const value = spawn(process.execPath, permissionArgs(pluginDir, entry), {
+      cwd: pluginDir,
+      env: workerEnv(opts.manifest.name),
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    return { value, acknowledgementId: value.pid ? String(value.pid) : undefined };
   });
+  if ((launch.outcome !== "confirmed" && launch.outcome !== "verified") || !launch.value) {
+    throw new Error(`plugin worker ${opts.manifest.name} launch ${launch.outcome}`);
+  }
+  const child = launch.value;
   const jobs = new Map<string, () => void>();
   const schedule = opts.schedule ?? defaultSchedule;
   const lines = createInterface({ input: child.stdout });
@@ -186,6 +212,8 @@ export async function launchPluginWorker(opts: LaunchPluginWorkerOptions): Promi
           const value = await serveHostRequest(request.capability, request.method, request.params, {
             plugin: opts.manifest.name, home: opts.vantaHome, log, panels: opts.panels, jobs, schedule,
             send: (message) => writeMessage(child, message),
+            requestId: request.id,
+            effectGate,
           });
           writeMessage(child, { type: "host.response", id: request.id, ok: true, value });
         } catch (error) {
@@ -216,13 +244,46 @@ type HostRequestDeps = {
   jobs: Map<string, () => void>;
   schedule: PluginWorkerScheduler;
   send: (message: unknown) => void;
+  requestId: string;
+  effectGate: EffectGateContext;
 };
+
+async function runPluginOperation(
+  capability: PluginCapability,
+  method: string,
+  params: unknown,
+  deps: HostRequestDeps,
+  operation: () => Promise<unknown> | unknown,
+): Promise<unknown> {
+  const seed = {
+    host: "plugin-host",
+    kind: `plugin.${capability}.${method}`,
+    targetClass: "plugin-host-service",
+    payloadSha256: payloadSha256(JSON.stringify(params ?? null)),
+    idempotencyKey: `plugin:${deps.plugin}:request:${deps.requestId}`,
+  };
+  const result = await executeEffect({
+    id: stableEffectId(seed),
+    actor: deps.plugin,
+    action: `allow plugin ${deps.plugin} to invoke ${capability}.${method}`,
+    ...seed,
+  }, deps.effectGate, async () => ({
+    value: await operation(),
+    acknowledgementId: `${capability}.${method}`,
+  }));
+  if (result.outcome !== "confirmed" && result.outcome !== "verified") {
+    throw new Error(`plugin host operation ${result.outcome}`);
+  }
+  return result.value;
+}
 
 async function serveHostRequest(capability: PluginCapability, method: string, params: unknown, deps: HostRequestDeps): Promise<unknown> {
   if (capability === "log.write" && method === "write") {
     const { message } = LogParams.parse(params);
-    deps.log(`  · plugin ${deps.plugin}: ${message}`);
-    return { written: true };
+    return runPluginOperation(capability, method, params, deps, () => {
+      deps.log(`  · plugin ${deps.plugin}: ${message}`);
+      return { written: true };
+    });
   }
   if (capability === "storage.read" && method === "get") {
     const { key } = StorageGetParams.parse(params);
@@ -230,20 +291,24 @@ async function serveHostRequest(capability: PluginCapability, method: string, pa
   }
   if (capability === "storage.write" && method === "set") {
     const { key, value } = StorageSetParams.parse(params);
-    const current = await readPluginStorage(deps.home, deps.plugin);
-    current[key] = value;
-    await writePluginStorage(deps.home, deps.plugin, current);
-    return { written: true };
+    return runPluginOperation(capability, method, params, deps, async () => {
+      const current = await readPluginStorage(deps.home, deps.plugin);
+      current[key] = value;
+      await writePluginStorage(deps.home, deps.plugin, current);
+      return { written: true };
+    });
   }
   if (capability === "schedule.jobs" && method === "register") {
     const { name, intervalMs } = ScheduleParams.parse(params);
-    deps.jobs.get(name)?.();
-    deps.jobs.set(name, deps.schedule(intervalMs, () => deps.send({ type: "job", name, at: new Date().toISOString() })));
-    return { scheduled: name, intervalMs };
+    return runPluginOperation(capability, method, params, deps, () => {
+      deps.jobs.get(name)?.();
+      deps.jobs.set(name, deps.schedule(intervalMs, () => deps.send({ type: "job", name, at: new Date().toISOString() })));
+      return { scheduled: name, intervalMs };
+    });
   }
   if (capability === "ui.panel" && method === "register") {
     const { panel } = PanelParams.parse(params);
-    return deps.panels.register(deps.plugin, panel);
+    return runPluginOperation(capability, method, params, deps, () => deps.panels.register(deps.plugin, panel));
   }
   throw new Error(`unsupported host service ${capability}.${method}`);
 }

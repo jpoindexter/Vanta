@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { promisify } from "node:util";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { z } from "zod";
-import type { Tool, ToolResult } from "./types.js";
+import type { Tool, ToolContext, ToolResult } from "./types.js";
 import { spawnBackground } from "./bg-tasks.js";
 import { destructiveWarning } from "./destructive-warn.js";
 import { isSandboxError } from "../sandbox/run.js";
@@ -25,6 +25,12 @@ import { sandboxServeRecovery } from "./sandbox-recovery.js";
 import { resolveShellInvocation } from "../platform/shell.js";
 import { addSessionDir, canonicalPath, isDangerousPath } from "./writable-zones.js";
 import { buildSafeChildEnv } from "../exec/child-env.js";
+import {
+  executeEffect,
+  payloadSha256,
+  stableEffectId,
+} from "../effects/execute-effect.js";
+import { effectGateFromToolContext } from "../effects/gate-context.js";
 
 export { lastCommandWord, classifyExitCode } from "./shell-output.js";
 
@@ -228,9 +234,10 @@ function localInvocation(command: string): { cmd: string; args: string[] } {
  * only after the detached child exits. */
 async function runBackground(
   command: string,
-  root: string,
+  ctx: ToolContext,
   sandboxWritableDirs: readonly string[] = [],
 ): Promise<ToolResult> {
+  const root = ctx.root;
   const workdir = shellCommandCwd(root);
   const childEnv = applySessionEnv(process.env, sessionEnvStore.snapshot());
   const local = localInvocation(command);
@@ -243,17 +250,40 @@ async function runBackground(
     additionalWritableDirs: sandboxWritableDirs,
   });
   if (isSandboxError(sb)) return { ok: false, output: sb.error };
+  let cleanupTransferred = false;
   try {
-    const task = await spawnBackground(command, join(root, ".vanta"), workdir, {
-      cmd: sb.cmd,
-      args: sb.args,
-      env: buildSafeChildEnv(childEnv),
-      cleanup: sb.cleanup,
+    const hash = payloadSha256(command);
+    const seed = {
+      host: "tool-host",
+      kind: "shell.background.launch",
+      targetClass: "sandboxed-background-process",
+      payloadSha256: hash,
+      idempotencyKey: `shell-background:${ctx.effectCallId ?? ctx.sessionId ?? "one-shot"}:${hash}`,
+    };
+    const result = await executeEffect({
+      id: stableEffectId(seed),
+      actor: "shell_cmd",
+      action: `launch sandboxed background command with sha256:${hash}`,
+      ...seed,
+    }, effectGateFromToolContext(ctx), async () => {
+      const task = await spawnBackground(command, join(root, ".vanta"), workdir, {
+        cmd: sb.cmd,
+        args: sb.args,
+        env: buildSafeChildEnv(childEnv),
+        cleanup: sb.cleanup,
+      });
+      cleanupTransferred = true;
+      return { value: task, acknowledgementId: task.pid ? String(task.pid) : task.id };
     });
+    if ((result.outcome !== "confirmed" && result.outcome !== "verified") || !result.value) {
+      return { ok: false, output: `background launch ${result.outcome}` };
+    }
+    const task = result.value;
     return { ok: true, output: `background task started: ${task.id}\ncheck with: bg_status(${task.id})` };
   } catch (error) {
-    await sb.cleanup?.();
     return formatRunFailure(command, error as RunError, "");
+  } finally {
+    if (!cleanupTransferred) await sb.cleanup?.();
   }
 }
 
@@ -321,7 +351,7 @@ export const shellCmdTool: Tool = {
     // listener. The default sandbox permits network and continues below.
     const serveRefusal = sandboxServeRefusal(command, ctx.root);
     if (serveRefusal) return serveRefusal;
-    if (background) return runBackground(command, ctx.root, ctx.sandboxWritableDirs);
+    if (background) return runBackground(command, ctx, ctx.sandboxWritableDirs);
     // RELIABILITY-SHELL-BG-WEDGE: a foreground command that backgrounds a child ('&')
     // or starts a never-exiting server holds the inherited stdio pipe open, so the
     // execFile-based foreground path blocks the whole turn (then orphans the daemon at

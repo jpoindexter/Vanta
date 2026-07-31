@@ -11,6 +11,8 @@ import { runMigrate } from "./migrate-cmd.js";
 import { runAgentImageCommand } from "./agent-image-cmd.js";
 import { runPreflight, formatPreflight, commandExists, detectPlatform, PREFLIGHT_TOOLS } from "../setup/preflight.js";
 import { runBetaProofCommand } from "./beta-proof-cmd.js";
+import { createKernelClient } from "../kernel/client.js";
+import { resolvePermissionMode } from "../modes/permission-mode.js";
 import {
   dataDirFor,
   buildCronRunTask,
@@ -197,7 +199,12 @@ export const COMMANDS: Record<string, CommandFn> = {
     return code;
   },
   config: (root, rest) => runConfigCommand(root, rest),
-  cron: (root) => runCron(dataDirFor(root), new Date(), buildCronRunTask(root)),
+  cron: (root) => runCron(dataDirFor(root), new Date(), buildCronRunTask(root), {
+    kernel: createKernelClient(process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788", root),
+    projectRoot: root,
+    sessionId: `cron:${process.pid}`,
+    permissionMode: resolvePermissionMode(process.env),
+  }),
   gateway: (root, rest) => runGatewayCommand(root, rest),
   service: (root, rest) => runServiceCommand(root, rest),
   spreadsheet: (root, rest) => runSpreadsheetCommand(root, rest),

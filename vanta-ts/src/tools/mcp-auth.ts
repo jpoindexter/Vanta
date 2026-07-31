@@ -4,8 +4,9 @@ import { loadMcpToken } from "../mcp/auth-store.js";
 import { authPending, type AuthPendingRegistry } from "../mcp/auth-pending.js";
 import { mcpToolToVantaTool, readMcpConfig } from "../mcp/mount.js";
 import { connectServer } from "../mcp/connect.js";
-import type { Tool, ToolResult } from "./types.js";
+import type { Tool, ToolContext, ToolResult } from "./types.js";
 import type { ToolRegistry } from "./registry.js";
+import { effectGateFromToolContext } from "../effects/gate-context.js";
 
 // `mcp_auth` — authorize an MCP server that requires OAuth. When a configured
 // server's connection fails with an auth-required signal, mount marks it pending
@@ -40,12 +41,18 @@ async function finishAuth(opts: {
   pending: AuthPendingRegistry;
   cwd: string;
   env: NodeJS.ProcessEnv;
+  ctx: ToolContext;
 }): Promise<ToolResult> {
-  const { server, registry, pending, cwd, env } = opts;
+  const { server, registry, pending, cwd, env, ctx } = opts;
   const config = await readMcpConfig(env, cwd).catch(() => null);
   const spec = config?.servers[server];
   if (!spec) return { ok: false, output: `mcp_auth: server "${server}" is not in config` };
-  const conn = await connectServer(server, spec, { env });
+  const conn = await connectServer(server, spec, {
+    env,
+    root: cwd,
+    effectGate: effectGateFromToolContext(ctx),
+    idempotencyKey: `mcp-auth:${ctx.effectCallId ?? ctx.sessionId ?? "one-shot"}:${server}:authorized`,
+  });
   if (conn.status !== "connected" || !conn.client) {
     return { ok: false, output: `mcp_auth: ${server} still not reachable after auth — ${conn.error ?? "unknown error"}` };
   }
@@ -74,13 +81,13 @@ async function beginAuth(server: string, pending: AuthPendingRegistry, env: Node
   };
 }
 
-async function executeMcpAuth(registry: ToolRegistry, pending: AuthPendingRegistry, rawArgs: unknown, cwd: string): Promise<ToolResult> {
+async function executeMcpAuth(registry: ToolRegistry, pending: AuthPendingRegistry, rawArgs: unknown, ctx: ToolContext): Promise<ToolResult> {
   const r = Args.safeParse(rawArgs);
   if (!r.success) return { ok: false, output: `invalid args: ${r.error.message}` };
   const { server } = r.data;
   const env = process.env;
   // If a token already exists, the user has authorized — reconnect now.
-  if (await loadMcpToken(server, env)) return finishAuth({ server, registry, pending, cwd, env });
+  if (await loadMcpToken(server, env)) return finishAuth({ server, registry, pending, cwd: ctx.root, env, ctx });
   return beginAuth(server, pending, env);
 }
 
@@ -96,6 +103,6 @@ export function buildMcpAuthTool(registry: ToolRegistry, pending: AuthPendingReg
       const r = Args.safeParse(rawArgs);
       return r.success ? `mcp auth ${r.data.server}` : "mcp_auth (invalid args)";
     },
-    execute: (rawArgs, ctx) => executeMcpAuth(registry, pending, rawArgs, ctx.root),
+    execute: (rawArgs, ctx) => executeMcpAuth(registry, pending, rawArgs, ctx),
   };
 }

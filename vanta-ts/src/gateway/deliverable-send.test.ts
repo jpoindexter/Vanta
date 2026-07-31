@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { sendDeliverables } from "./deliverable-send.js";
 import type { PlatformAdapter } from "./platforms/base.js";
+import { allowTestEffectGate } from "../effects/test-gate.js";
 
 let dir = "";
 afterEach(async () => { if (dir) await rm(dir, { recursive: true, force: true }); });
@@ -21,6 +22,8 @@ describe("sendDeliverables", () => {
       dataDir: dir, platform, target: { chatId: "42" },
       files: [{ path, name: "report.pdf", mime: "application/pdf", source: "reply" }],
       now: () => new Date("2026-07-11T12:00:00Z"),
+      effectGate: allowTestEffectGate(dir),
+      idempotencyPrefix: "test:deliverable:1",
     });
     expect(result).toEqual({ sent: 1, skipped: [] });
     expect(sent).toEqual(["report.pdf:19"]);
@@ -34,6 +37,8 @@ describe("sendDeliverables", () => {
     const result = await sendDeliverables({
       dataDir: dir, platform: adapter(), target: { chatId: "42" },
       files: [{ path: join(dir, "missing.pdf"), name: "missing.pdf", mime: "application/pdf", source: "reply" }],
+      effectGate: allowTestEffectGate(dir),
+      idempotencyPrefix: "test:deliverable:2",
     });
     expect(result).toEqual({ sent: 0, skipped: ["missing.pdf: channel test does not support native files"] });
   });

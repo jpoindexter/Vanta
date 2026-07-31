@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { ToolRegistry } from "../tools/registry.js";
 import { mountMcpServers } from "./mount.js";
+import { allowTestEffectGate } from "../effects/test-gate.js";
 
 const roots: string[] = [];
 
@@ -34,6 +35,7 @@ describe("MCP launch trust boundary", () => {
     const result = await mountMcpServers(new ToolRegistry(), env, () => {}, {
       cwd: root,
       trust: { root, confirm: async () => false },
+      effectGate: allowTestEffectGate(root),
     });
     result.dispose();
 
@@ -70,6 +72,7 @@ describe("MCP launch trust boundary", () => {
     const first = await mountMcpServers(new ToolRegistry(), config(firstMarker, "v1"), () => {}, {
       cwd: root,
       trust: { root, confirm },
+      effectGate: allowTestEffectGate(root),
     });
     first.dispose();
     expect(await readFile(firstMarker, "utf8")).toBe("started");
@@ -77,6 +80,7 @@ describe("MCP launch trust boundary", () => {
     const changed = await mountMcpServers(new ToolRegistry(), config(changedMarker, "v2"), () => {}, {
       cwd: root,
       trust: { root, confirm },
+      effectGate: allowTestEffectGate(root),
     });
     changed.dispose();
 

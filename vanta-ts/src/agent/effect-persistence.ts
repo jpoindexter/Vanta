@@ -14,6 +14,22 @@ import {
 
 export type EffectTransition = "pending" | "started" | "settled";
 export type ApprovalTransition = "requested" | "approved" | "denied" | "expired";
+export type HostEffectOutcome = "denied" | "blocked" | "confirmed" | "unknown" | "verified" | "failed";
+export type HostEffectRecord = {
+  id: string;
+  actor: string;
+  host: string;
+  kind: string;
+  targetClass: string;
+  payloadSha256: string;
+  idempotencyKey: string;
+};
+export type HostEffectReceipt = {
+  outcome: HostEffectOutcome;
+  acknowledgementId?: string;
+  readbackSha256?: string;
+  errorSha256?: string;
+};
 
 const PROJECTION_FILES = [
   "action-receipts.jsonl",
@@ -401,6 +417,109 @@ export async function persistEffectTransition(
     }
     await commitEnvelope(root, buildEnvelope("effect", at, projections));
   });
+}
+
+/** Persist a non-tool host effect without retaining bodies, credentials, headers, or provider payloads. */
+export async function persistHostEffectTransition(
+  root: string,
+  sessionId: string | undefined,
+  effect: HostEffectRecord,
+  transition: EffectTransition,
+  receipt?: HostEffectReceipt,
+): Promise<void> {
+  if (!root) throw new Error("effect journal requires a project root");
+  await withJournalLock(root, async () => {
+    await reconcileEffectJournalUnlocked(root).catch(() => {});
+    const at = new Date().toISOString();
+    const stableSession = sessionId ?? "one-shot";
+    const workItemId = `${stableSession}:effect:${effect.id}`;
+    const state = hostEffectState(transition, receipt?.outcome);
+    const record = {
+      at,
+      sessionId: stableSession,
+      effectId: effect.id,
+      actor: effect.actor,
+      host: effect.host,
+      kind: effect.kind,
+      targetClass: effect.targetClass,
+      payloadSha256: effect.payloadSha256,
+      idempotencyKey: effect.idempotencyKey,
+      transition,
+      ...(receipt ? {
+        outcome: receipt.outcome,
+        ...(receipt.acknowledgementId ? { acknowledgementId: receipt.acknowledgementId } : {}),
+        ...(receipt.readbackSha256 ? { readbackSha256: receipt.readbackSha256 } : {}),
+        ...(receipt.errorSha256 ? { errorSha256: receipt.errorSha256 } : {}),
+      } : {}),
+    };
+    const item = WorkItemSchema.parse({
+      version: 1,
+      id: workItemId,
+      outcome: `Execute ${effect.kind}`,
+      source: "effect-intent",
+      state,
+      runId: workItemId,
+      ...(state === "needs human" ? {
+        waitCondition: "External effect settlement is uncertain",
+        nextAction: "Request human readback before retrying",
+        resumeContext: `Resolve effect ${effect.id} without replaying it`,
+      } : {}),
+      updatedAt: at,
+    });
+    const run = RunSchema.parse({
+      version: 1,
+      id: workItemId,
+      workItemId,
+      state,
+      actor: `${effect.host}:${effect.actor}`,
+      ...(transition !== "pending" ? { startedAt: at } : {}),
+      ...(transition === "settled" ? { settledAt: at } : {}),
+    });
+    const projections: Projection[] = [
+      { file: "tool-effects.jsonl", line: JSON.stringify(record) },
+      { file: "work-items.jsonl", line: JSON.stringify(item) },
+      { file: "runs.jsonl", line: JSON.stringify(run) },
+    ];
+    if (transition === "settled" && receipt) {
+      const disposition = hostEffectDisposition(receipt.outcome);
+      const verification = receipt.outcome === "verified"
+        ? "verified" as const
+        : receipt.outcome === "confirmed" || receipt.outcome === "unknown"
+          ? "unverified" as const
+          : undefined;
+      const evidence = receipt.readbackSha256 ?? receipt.acknowledgementId;
+      const settled = ReceiptSchema.parse({
+        version: 1,
+        id: `${workItemId}:${at}`,
+        workItemId,
+        runId: workItemId,
+        action: effect.kind,
+        disposition,
+        ...(verification ? { verification } : {}),
+        ...(evidence ? { evidence } : {}),
+        at,
+      });
+      projections.push({ file: "action-receipts.jsonl", line: JSON.stringify(settled) });
+    }
+    await commitEnvelope(root, buildEnvelope("effect", at, projections));
+  });
+}
+
+function hostEffectState(transition: EffectTransition, outcome?: HostEffectOutcome): WorkItemState {
+  if (transition === "pending") return "queued";
+  if (transition === "started") return "running";
+  if (outcome === "verified") return "verified";
+  if (outcome === "confirmed") return "unverified";
+  if (outcome === "unknown") return "needs human";
+  if (outcome === "denied" || outcome === "blocked") return "stopped";
+  return "failed";
+}
+
+function hostEffectDisposition(outcome: HostEffectOutcome) {
+  if (outcome === "denied" || outcome === "blocked") return "denied" as const;
+  if (outcome === "unknown") return "unknown" as const;
+  if (outcome === "confirmed" || outcome === "verified") return "confirmed" as const;
+  return "none" as const;
 }
 
 function stateFor(

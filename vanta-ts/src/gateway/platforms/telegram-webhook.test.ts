@@ -9,6 +9,7 @@ import { startMessagingWebhook } from "../run.js";
 import { pollPlatformSession } from "../run-session.js";
 import { initialState } from "../session-manager.js";
 import { TelegramAdapter } from "./telegram.js";
+import { allowTestEffectGate } from "../../effects/test-gate.js";
 
 let webhookServer: PlatformWebhookServer | undefined;
 let telegramServer: Server | undefined;
@@ -90,6 +91,7 @@ describe("Telegram messaging webhook", () => {
       handle: async (text) => `agent reply to ${text}`,
       now: () => new Date(2026, 6, 10, 12, 0),
       log: () => {},
+      effectGate: allowTestEffectGate(dataDir),
     }, initialState());
 
     expect(result.count).toBe(1);

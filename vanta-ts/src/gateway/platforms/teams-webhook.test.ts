@@ -8,6 +8,7 @@ import { pollPlatformSession } from "../run-session.js";
 import { initialState } from "../session-manager.js";
 import { TeamsAdapter, type TeamsTransport } from "./teams.js";
 import { readChannelProofs } from "../channel-proof.js";
+import { allowTestEffectGate } from "../../effects/test-gate.js";
 
 const SERVICE_URL = "https://smba.trafficmanager.net/teams";
 let server: PlatformWebhookServer | undefined;
@@ -65,6 +66,7 @@ describe("Teams messaging webhook", () => {
       handle: async (text) => `agent reply to ${text}`,
       now: () => new Date(2026, 6, 10, 12, 0),
       log: () => {},
+      effectGate: allowTestEffectGate(dataDir),
     }, initialState());
 
     expect(result.count).toBe(1);
@@ -126,6 +128,7 @@ describe("Teams messaging webhook", () => {
       platform: adapter,
       handle: async () => "reply",
       log: () => {},
+      effectGate: allowTestEffectGate(dataDir),
     }, initialState());
     expect(await readChannelProofs(dataDir)).toEqual([]);
   });

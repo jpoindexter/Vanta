@@ -1,4 +1,5 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { createHash, randomUUID } from "node:crypto";
 import { dirname, join } from "node:path";
 import { loadDurableCron } from "./durable-cron.js";
 
@@ -21,9 +22,28 @@ export type CronEntry = {
   mode?: CronMode;
   /** The shell command for script modes (no_agent falls back to `instruction`). */
   script?: string;
+  /** SHA-256 of the exact authorized script bytes. Missing means needs human. */
+  scriptSha256?: string;
+  /** Operator or approved-agent authority bound to `scriptSha256`. */
+  authorityId?: string;
   /** Present = this entry is a routine; the value is its catch-up policy. */
   routine?: RoutinePolicy;
 };
+
+export function scriptSha256(script: string): string {
+  return createHash("sha256").update(script, "utf8").digest("hex");
+}
+
+export function scriptAuthorityValid(entry: CronEntry): boolean {
+  if (entry.mode !== "no_agent" && entry.mode !== "script_context") return true;
+  const script = entry.script ?? (entry.mode === "no_agent" ? entry.instruction : undefined);
+  return Boolean(
+    script
+    && entry.authorityId
+    && entry.scriptSha256
+    && entry.scriptSha256 === scriptSha256(script),
+  );
+}
 
 const CRON_FILE = "cron.tsv";
 const FIELD_COUNT = 5;
@@ -146,7 +166,7 @@ function cronPath(dataDir: string): string {
 function parseLine(line: string): CronEntry | null {
   const cells = line.split("\t");
   if (cells.length < 4) return null;
-  const [idCell, cron, instruction, status, modeCell, scriptCell, routineCell] = cells;
+  const [idCell, cron, instruction, status, modeCell, scriptCell, routineCell, scriptHashCell, authorityCell] = cells;
   const id = Number(idCell);
   if (
     cron === undefined ||
@@ -156,14 +176,23 @@ function parseLine(line: string): CronEntry | null {
   ) {
     return null;
   }
-  return withOptionalCells({ id, cron, instruction, status }, modeCell, scriptCell, routineCell);
+  return withOptionalCells({ id, cron, instruction, status }, modeCell, scriptCell, routineCell, scriptHashCell, authorityCell);
 }
 
 /** Apply the optional TSV columns (mode/script/routine) onto a base entry. Pure. */
-function withOptionalCells(entry: CronEntry, modeCell?: string, scriptCell?: string, routineCell?: string): CronEntry {
+function withOptionalCells(
+  entry: CronEntry,
+  modeCell?: string,
+  scriptCell?: string,
+  routineCell?: string,
+  scriptHashCell?: string,
+  authorityCell?: string,
+): CronEntry {
   if (modeCell === "no_agent" || modeCell === "script_context") entry.mode = modeCell;
   if (scriptCell) entry.script = scriptCell;
   if (routineCell === "skip" || routineCell === "once") entry.routine = routineCell;
+  if (/^[a-f0-9]{64}$/.test(scriptHashCell ?? "")) entry.scriptSha256 = scriptHashCell;
+  if (authorityCell) entry.authorityId = authorityCell;
   return entry;
 }
 
@@ -196,7 +225,17 @@ export async function saveCron(
   const path = cronPath(dataDir);
   await mkdir(dirname(path), { recursive: true });
   const body = entries
-    .map((e) => [e.id, e.cron, e.instruction, e.status, e.mode ?? "", e.script ?? "", e.routine ?? ""].join("\t"))
+    .map((e) => [
+      e.id,
+      e.cron,
+      e.instruction,
+      e.status,
+      e.mode ?? "",
+      e.script ?? "",
+      e.routine ?? "",
+      e.scriptSha256 ?? "",
+      e.authorityId ?? "",
+    ].join("\t"))
     .join("\n");
   await writeFile(path, body === "" ? "" : `${body}\n`, "utf8");
 }
@@ -206,13 +245,32 @@ export async function addCron(
   dataDir: string,
   cron: string,
   instruction: string,
-  opts: { mode?: CronMode; script?: string; routine?: RoutinePolicy } = {},
+  opts: {
+    mode?: CronMode;
+    script?: string;
+    routine?: RoutinePolicy;
+    scriptSha256?: string;
+    authorityId?: string;
+  } = {},
 ): Promise<CronEntry> {
   const entries = await loadLegacyCron(dataDir);
   const all = [...entries, ...await loadDurableCron(dataDir)];
   const nextId = all.reduce((max, e) => Math.max(max, e.id), 0) + 1;
   const entry: CronEntry = { id: nextId, cron, instruction, status: "active", ...opts };
   entries.push(entry);
+  await saveCron(dataDir, entries);
+  return entry;
+}
+
+/** Bind the current bytes of one legacy script entry to an explicit operator authority. */
+export async function authorizeCron(dataDir: string, id: number): Promise<CronEntry | null> {
+  const entries = await loadLegacyCron(dataDir);
+  const entry = entries.find((candidate) => candidate.id === id);
+  if (!entry || (entry.mode !== "no_agent" && entry.mode !== "script_context")) return null;
+  const script = entry.script ?? (entry.mode === "no_agent" ? entry.instruction : undefined);
+  if (!script) return null;
+  entry.scriptSha256 = scriptSha256(script);
+  entry.authorityId = `operator-cli:${randomUUID()}`;
   await saveCron(dataDir, entries);
   return entry;
 }

@@ -9,7 +9,12 @@ import { formatRunFailure, formatRunSuccess } from "./shell-output.js";
 import type { ToolContext } from "./types.js";
 
 function ctx(root = tmpdir()): ToolContext {
-  return { root, safety: {} as ToolContext["safety"], requestApproval: vi.fn(async () => true) };
+  return {
+    root,
+    sessionId: `shell-test:${root}`,
+    safety: { assess: async () => ({ risk: "allow", reason: "test" }) } as unknown as ToolContext["safety"],
+    requestApproval: vi.fn(async () => true),
+  };
 }
 
 describe("shell_cmd local execution", () => {

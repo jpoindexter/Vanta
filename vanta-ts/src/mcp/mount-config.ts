@@ -5,6 +5,11 @@ import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
 import type { McpClient, McpToolDef } from "./client.js";
 import type { Tool } from "../tools/types.js";
+import {
+  executeEffect,
+  payloadSha256,
+  stableEffectId,
+} from "../effects/execute-effect.js";
 import type { TrustConfirmer } from "../settings/trust-gate.js";
 import type { McpAuthConfig } from "./auth-flow.js";
 
@@ -149,13 +154,50 @@ export function mcpToolToVantaTool(
     // Surface server/tool/args so the kernel can assess (an MCP fs-write is gated
     // like any other). Truncated to keep content keywords from false-triggering.
     describeForSafety: (args) => `mcp ${server} ${def.name} ${JSON.stringify(args).slice(0, 200)}`,
-    async execute(args) {
-      try {
-        const output = await client.callTool(def.name, args as Record<string, unknown>);
-        return { ok: true, output: output || "(empty result)" };
-      } catch (err) {
-        return { ok: false, output: `mcp ${server}.${def.name} failed: ${(err as Error).message}` };
+    async execute(args, ctx) {
+      const hash = payloadSha256(JSON.stringify(args));
+      const seed = {
+        host: `mcp:${server}`,
+        kind: "mcp.tool.call",
+        targetClass: "mcp-tool",
+        payloadSha256: hash,
+        idempotencyKey: `mcp:${server}:${def.name}:${ctx.effectCallId ?? ctx.sessionId ?? "one-shot"}:${hash}`,
+      };
+      const result = await executeEffect({
+        id: stableEffectId(seed),
+        actor: def.name,
+        action: `call MCP tool ${server}.${def.name} with payload sha256:${hash}`,
+        ...seed,
+      }, {
+        kernel: ctx.safety,
+        approval: {
+          request: (request) => ctx.requestApproval(
+            request.action,
+            request.reason,
+            `mcp_${server}_${def.name}`,
+            { fresh: true },
+          ),
+        },
+        projectRoot: ctx.root,
+        sessionId: ctx.sessionId,
+        permissionMode: ctx.permissionMode?.() ?? "default",
+      }, async () => ({
+        value: await client.callTool(def.name, args as Record<string, unknown>),
+        acknowledgementId: `${server}.${def.name}:response`,
+      }));
+      if (result.outcome !== "confirmed" && result.outcome !== "verified") {
+        return {
+          ok: false,
+          output: `mcp ${server}.${def.name} ${result.outcome}; do not retry automatically`,
+          effectDisposition: result.outcome === "unknown" ? "unknown" : "denied",
+        };
       }
+      return {
+        ok: true,
+        output: result.value || "(empty result)",
+        effectDisposition: "confirmed",
+        verification: { status: "unverified" },
+      };
     },
   };
 }

@@ -28,6 +28,7 @@ import { applyLocalRuntimeLimits, resolveSessionSystemPrompt, resolveSessionTool
 import { resolveOperatingMode } from "./modes/operating-mode.js";
 import { PLAN_INSTRUCTION } from "./repl/plan-mode.js";
 import { canCreateAccomplishmentMemory, type WorkItemState } from "./work-items/contract.js";
+import { resolvePermissionMode } from "./modes/permission-mode.js";
 export { loadRalphContinuity } from "./session/prepare-helpers.js";
 
 export * from "./session/after-turn.js";
@@ -77,7 +78,18 @@ export async function prepareRun(
   const include = resolveSessionToolInclude(settings.allowedTools, provider.routeInfo?.(), process.env);
   const registry = buildRegistry({ exclude: settings.blockedTools ?? [], include });
   const mcpTrust = { root: repoRoot, confirm: opts.confirmTrust };
-  const { pluginCommands, pluginPanels, pluginWorkers, mcpSkills } = await loadRuntimeExtensions(repoRoot, registry, mcpTrust, settings);
+  const { pluginCommands, pluginPanels, pluginWorkers, mcpSkills } = await loadRuntimeExtensions(
+    repoRoot,
+    registry,
+    mcpTrust,
+    settings,
+    {
+      kernel: safety,
+      projectRoot: repoRoot,
+      sessionId: `runtime-extensions:${process.pid}`,
+      permissionMode: resolvePermissionMode(process.env),
+    },
+  );
   const effortLevel = resolveEffortLevel(process.env.VANTA_EFFORT_LEVEL ?? settings.effortLevel);
   const goals = await safety.getGoals().catch(() => []);
   const activeIds = goals.filter((g) => g.status === "active").map((g) => g.id);

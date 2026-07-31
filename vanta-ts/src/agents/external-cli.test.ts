@@ -70,6 +70,25 @@ function fakeSpawn(o: { stdout?: string; stderr?: string; code?: number | null; 
 }
 
 describe("runExternalAgent — stream + classify", () => {
+  it("does not expose synthetic provider credentials to the child", async () => {
+    let childEnv: NodeJS.ProcessEnv | undefined;
+    const spawn: SpawnFn = (_cmd, _args, opts) => {
+      childEnv = opts.env;
+      return fakeSpawn({ code: 0 })("", [], opts);
+    };
+    await runExternalAgent({ cmd: "claude", args: [] }, {
+      cwd: "/tmp",
+      env: {
+        PATH: "/usr/bin",
+        HOME: "/tmp/operator",
+        OPENAI_API_KEY: "openai-must-not-cross",
+        VANTA_GMAIL_TOKEN: "gmail-must-not-cross",
+      },
+      spawn,
+    });
+    expect(childEnv).toEqual({ PATH: "/usr/bin", HOME: "/tmp/operator" });
+  });
+
   it("returns stdout on success (byte-equivalent return)", async () => {
     const r = await runExternalAgent({ cmd: "claude", args: ["-p", "x"] }, { cwd: "/tmp", spawn: fakeSpawn({ stdout: "the answer", code: 0 }) });
     expect(r.ok).toBe(true);

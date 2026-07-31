@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -8,6 +8,7 @@ import { loadEnabledPlugins } from "./loader.js";
 import { ToolRegistry } from "../tools/registry.js";
 import { PluginCommandRegistry } from "./commands.js";
 import type { PluginManifest } from "./manifest.js";
+import { allowTestEffectGate } from "../effects/test-gate.js";
 
 const dirs: string[] = [];
 const handles: PluginWorkerHandle[] = [];
@@ -49,6 +50,7 @@ describe("plugin worker host", () => {
       panels,
       log: (line) => logs.push(line),
       schedule: (_intervalMs, fire) => { fireJob = fire; return () => { fireJob = undefined; }; },
+      effectGate: allowTestEffectGate(dir),
     });
     handles.push(handle);
 
@@ -63,6 +65,7 @@ describe("plugin worker host", () => {
 
     fireJob?.();
     await waitFor(() => logs.some((line) => line.includes("job heartbeat ran")));
+    await waitForSettledClaims(dir);
   });
 
   it("loads a worker through the enabled-plugin loader with operator grants", async () => {
@@ -88,6 +91,7 @@ describe("plugin worker host", () => {
       panels,
       log: (line) => logs.push(line),
       workerSchedule: () => () => {},
+      effectGate: allowTestEffectGate(root),
     });
     handles.push(...loaded.workers);
 
@@ -125,12 +129,24 @@ async function fixtureDir(name: string): Promise<string> {
   return dir;
 }
 
-async function waitFor(predicate: () => boolean): Promise<void> {
+async function waitFor(predicate: () => boolean | Promise<boolean>): Promise<void> {
   const deadline = Date.now() + 1_000;
-  while (!predicate()) {
+  while (!await predicate()) {
     if (Date.now() >= deadline) throw new Error("timed out waiting for worker event");
     await new Promise((resolve) => setTimeout(resolve, 10));
   }
+}
+
+async function waitForSettledClaims(root: string): Promise<void> {
+  const claims = join(root, ".vanta", "effect-claims");
+  await waitFor(async () => {
+    const files = await readdir(claims).catch(() => []);
+    if (files.length === 0) return false;
+    const values = await Promise.all(files.map(async (file) => JSON.parse(
+      await readFile(join(claims, file), "utf8"),
+    ) as { state?: string }));
+    return values.every((value) => value.state === "settled");
+  });
 }
 
 const WORKER_FIXTURE = String.raw`

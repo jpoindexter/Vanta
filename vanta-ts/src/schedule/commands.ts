@@ -1,4 +1,14 @@
-import { addCron, loadCron, removeCron, type CronMode, type RoutinePolicy } from "./cron.js";
+import {
+  addCron,
+  authorizeCron,
+  loadCron,
+  removeCron,
+  scriptAuthorityValid,
+  scriptSha256,
+  type CronMode,
+  type RoutinePolicy,
+} from "./cron.js";
+import { randomUUID } from "node:crypto";
 import {
   runDueTasksTracked,
   loadLastFired,
@@ -11,6 +21,8 @@ import { runCronScript } from "./script-run.js";
 import { runDailySentinels } from "../goals/sentinel.js";
 import { runAutoWatch, formatWatchChange } from "../watch/auto-watch.js";
 import { runAmbientScreenTick } from "../ambient/screen-context.js";
+import type { EffectGateContext } from "../effects/execute-effect.js";
+import { runScheduledScript } from "./effect-run.js";
 
 /** Pull `--<flag> <value>` out of an argv slice (value + remaining args). */
 function parseValueFlag(args: string[], flag: string): { value: string | null; rest: string[] } {
@@ -80,7 +92,10 @@ async function runScheduleList(dataDir: string): Promise<number> {
     return 0;
   }
   for (const e of entries) {
-    console.log(`#${e.id} [${e.status}] ${e.cron} — ${e.instruction}`);
+    const authority = (e.mode === "no_agent" || e.mode === "script_context")
+      ? scriptAuthorityValid(e) ? " [authorized]" : " [needs human]"
+      : "";
+    console.log(`#${e.id} [${e.status}]${authority} ${e.cron} — ${e.instruction}`);
   }
   return 0;
 }
@@ -91,6 +106,18 @@ async function runScheduleRemove(dataDir: string, rawId: string | undefined): Pr
   const removed = await removeCron(dataDir, id);
   console.log(removed ? `removed scheduled task #${id}` : `scheduled task #${id} not found`);
   return removed ? 0 : 1;
+}
+
+async function runScheduleAuthorize(dataDir: string, rawId: string | undefined): Promise<number> {
+  const id = Number(rawId);
+  if (!Number.isInteger(id)) return 1;
+  const entry = await authorizeCron(dataDir, id);
+  if (!entry) {
+    console.log(`scheduled script #${id} not found`);
+    return 1;
+  }
+  console.log(`authorized scheduled script #${id} at sha256:${entry.scriptSha256}`);
+  return 0;
 }
 
 /** Flag validation for `vanta schedule` adds; a returned string is the error. */
@@ -108,6 +135,7 @@ export async function runScheduleCommand(
 ): Promise<number> {
   if (rest[0] === "list") return runScheduleList(dataDir);
   if (rest[0] === "remove") return runScheduleRemove(dataDir, rest[1]);
+  if (rest[0] === "authorize") return runScheduleAuthorize(dataDir, rest[1]);
 
   const flags = parseScheduleFlags(rest);
   const instruction = flags.rest.join(" ").trim();
@@ -118,7 +146,19 @@ export async function runScheduleCommand(
     return 1;
   }
 
-  const entry = await addCron(dataDir, flags.cron, instruction, { mode: flags.mode, script: flags.script, routine: flags.routine });
+  const script = flags.script ?? (flags.mode === "no_agent" ? instruction : undefined);
+  const authority = script
+    ? {
+        scriptSha256: scriptSha256(script),
+        authorityId: `operator-cli:${randomUUID()}`,
+      }
+    : {};
+  const entry = await addCron(dataDir, flags.cron, instruction, {
+    mode: flags.mode,
+    script: flags.script,
+    routine: flags.routine,
+    ...authority,
+  });
   const modeTag = [entry.mode ? ` (${entry.mode})` : "", entry.routine ? ` (routine:${entry.routine})` : ""].join("");
   console.log(
     `scheduled #${entry.id} [${entry.status}]${modeTag} ${entry.cron} — ${entry.instruction}`,
@@ -148,6 +188,7 @@ export async function runCron(
   dataDir: string,
   now: Date,
   run: RunTask,
+  effectGate?: EffectGateContext,
 ): Promise<void> {
   // At-most-once: a re-invocation within the same minute (overlapping OS
   // scheduler ticks) skips a task already fired this window; the next minute
@@ -159,7 +200,13 @@ export async function runCron(
     run,
     lastFired,
     claim: (id, windowKey) => claimFire(dataDir, id, windowKey),
-    runScript: (script) => runCronScript(script),
+    runScript: (script, entry) => runScheduledScript({
+      entry,
+      script,
+      context: effectGate,
+      windowKey: fireWindowKey(now),
+      run: runCronScript,
+    }),
     createIssue: (title) => createRoutineIssue(dataDir, title),
   });
   await saveLastFired(dataDir, updated);

@@ -18,6 +18,12 @@ import {
 } from "./mount-config.js";
 import { loadSettings, type Settings } from "../settings/store.js";
 import { serverAccessDecision } from "../settings/mcp-access.js";
+import {
+  executeEffect,
+  payloadSha256,
+  stableEffectId,
+  type EffectGateContext,
+} from "../effects/execute-effect.js";
 
 // Mount external MCP servers as Vanta tools. Config parsing + tool mapping are
 // pure helpers in mount-config.ts (re-exported below); this file owns the live
@@ -83,8 +89,9 @@ async function mountOneServer(opts: {
   cwd: string;
   log: (msg: string) => void;
   trust?: McpTrust;
+  effectGate?: EffectGateContext;
 }): Promise<number> {
-  const { name, spec, registry, env, children, deferred, cwd, log, trust } = opts;
+  const { name, spec, registry, env, children, deferred, cwd, log, trust, effectGate } = opts;
   if (trust) {
     const tools = (spec.tools ?? []).map((tool) => ({ name: tool }));
     const launch = spec.command
@@ -103,11 +110,44 @@ async function mountOneServer(opts: {
     const risk = detectMcpEgressRisk(spec.command, spec.args ?? []);
     if (risk.risky) log(formatEgressWarning(name, risk.reason));
   }
-  const transport = await resolveTransport(name, spec, env, children, cwd);
-  if (!transport) { log(`  · mcp: ${name} skipped — no command or url`); return 0; }
-  const client = new McpClient(transport, mcpClientEvents(cwd, name));
-  await client.initialize();
-  const defs = await client.listTools();
+  if (!effectGate) throw new Error(`blocked: MCP ${name} launch effect gate unavailable`);
+  const authenticated = spec.url
+    ? Boolean((await loadMcpToken(name, env))?.access_token)
+    : false;
+  const launchDescription = JSON.stringify({
+    command: spec.command,
+    args: spec.args ?? [],
+    url: spec.url,
+    tools: spec.tools ?? [],
+    authenticated,
+  });
+  const seed = {
+    host: "mcp-host",
+    kind: "mcp.server.launch",
+    targetClass: spec.url ? "remote-mcp-server" : "local-mcp-process",
+    payloadSha256: payloadSha256(launchDescription),
+    idempotencyKey: `mcp:${effectGate.sessionId ?? "one-shot"}:${name}:${payloadSha256(launchDescription)}`,
+  };
+  const launched = await executeEffect({
+    id: stableEffectId(seed),
+    actor: `mcp:${name}`,
+    action: `launch and initialize MCP server ${name}`,
+    ...seed,
+  }, effectGate, async () => {
+    const transport = await resolveTransport(name, spec, env, children, cwd);
+    if (!transport) throw new Error("no command or url");
+    const client = new McpClient(transport, mcpClientEvents(cwd, name));
+    await client.initialize();
+    const defs = await client.listTools();
+    return { value: { client, defs }, acknowledgementId: `${name}:initialized` };
+  });
+  if ((launched.outcome !== "confirmed" && launched.outcome !== "verified") || !launched.value) {
+    if (launched.operationError && isAuthRequiredError(launched.operationError)) {
+      throw launched.operationError;
+    }
+    throw new Error(`MCP ${name} launch ${launched.outcome}`);
+  }
+  const { client, defs } = launched.value;
   const mountDefs = filterAllowedTools(defs, spec.tools);
   for (const def of mountDefs) registry.register(mcpToolToVantaTool(client, name, def, { deferred }));
   const skipped = defs.length - mountDefs.length;
@@ -148,7 +188,7 @@ export async function mountMcpServers(
   registry: ToolRegistry,
   env: NodeJS.ProcessEnv = process.env,
   log: (msg: string) => void = () => {},
-  opts: { cwd?: string; trust?: McpTrust; pending?: AuthPendingRegistry } = {},
+  opts: { cwd?: string; trust?: McpTrust; pending?: AuthPendingRegistry; effectGate?: EffectGateContext } = {},
 ): Promise<MountResult> {
   const cwd = opts.cwd ?? process.cwd();
   const trust = opts.trust;
@@ -171,7 +211,18 @@ export async function mountMcpServers(
     const spec = config.servers[name];
     if (!spec) continue;
     try {
-      const count = await mountOneServer({ name, spec, registry, env, children, deferred, cwd, log, trust });
+      const count = await mountOneServer({
+        name,
+        spec,
+        registry,
+        env,
+        children,
+        deferred,
+        cwd,
+        log,
+        trust,
+        effectGate: opts.effectGate,
+      });
       if (count > 0) { mounted.push(name); toolCount += count; }
     } catch (err) {
       handleMountFailure({ name, spec, err, pending, log });

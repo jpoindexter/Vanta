@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { hasMissedFire, isDue } from "./cron.js";
+import { hasMissedFire, isDue, scriptAuthorityValid } from "./cron.js";
 import type { CronEntry } from "./cron.js";
 import { resolveSchedulerDue, type SchedulerProvider } from "./provider.js";
 import { wakeContextForCron } from "../loop/wake.js";
@@ -73,7 +73,7 @@ export type RunTask = (
 export type DueTaskResult = { id: number; instruction: string; result: string };
 
 /** Runs a cron entry's script (HARNESS-CRON-SCRIPT-MODE). Injected like `run`. */
-export type RunScript = (script: string) => Promise<{ ok: boolean; output: string }>;
+export type RunScript = (script: string, entry: CronEntry) => Promise<{ ok: boolean; output: string }>;
 
 /** Creates a tracked issue for a routine fire, returning its id (PCLIP-ROUTINES-ISSUE). */
 export type CreateIssue = (title: string) => Promise<string>;
@@ -149,7 +149,10 @@ async function runScriptMode(
   if (!runScript) return "error: script-mode entry but no script runner configured";
   const script = entry.script ?? (entry.mode === "no_agent" ? entry.instruction : undefined);
   if (!script) return "error: script_context entry has no script";
-  const res = await runScript(script);
+  if (!scriptAuthorityValid(entry)) {
+    return `needs human: scheduled script #${entry.id} has no authority for its current SHA-256`;
+  }
+  const res = await runScript(script, entry);
   if (entry.mode === "no_agent") return res.ok ? res.output : `error: ${res.output}`;
   const turn = `${entry.instruction}\n\n[script output]\n${res.output}`;
   return (await run(turn, wakeContextForCron(entry, now))).finalText;

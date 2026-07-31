@@ -23,6 +23,12 @@ import {
 } from "../cli/loop-cmd-build.js";
 import type { Escalation } from "../loop/types.js";
 import { wakeContextFromLoop, wakeEnv } from "../loop/wake.js";
+import {
+  executeEffect,
+  payloadSha256,
+  stableEffectId,
+} from "../effects/execute-effect.js";
+import { effectGateFromToolContext } from "../effects/gate-context.js";
 
 // `loop` tool — create and manage first-class loops from the agent's own loop.
 // The agent calls `run` to fire a single iteration in a background process
@@ -134,12 +140,32 @@ async function execRun(id: string | undefined, dataDir: string, ctx: ToolContext
   const state = await loadState(dataDir, id);
 
   const cliPath = resolveCliPath();
-  const child = spawn(
-    process.execPath,
-    ["--import", "tsx/esm", cliPath, "loop", "run", id],
-    { detached: true, stdio: "ignore", cwd: ctx.root, env: wakeEnv(wakeContextFromLoop(def, state, new Date(), "manual")) },
-  );
-  child.unref();
+  const wake = wakeContextFromLoop(def, state, new Date(), "manual");
+  const hash = payloadSha256(JSON.stringify(wake));
+  const seed = {
+    host: "tool-host",
+    kind: "loop.child.launch",
+    targetClass: "local-loop-process",
+    payloadSha256: hash,
+    idempotencyKey: `loop-tool:${ctx.effectCallId ?? ctx.sessionId ?? "one-shot"}:${id}:${hash}`,
+  };
+  const launched = await executeEffect({
+    id: stableEffectId(seed),
+    actor: "loop",
+    action: `launch one background iteration for loop ${id}`,
+    ...seed,
+  }, effectGateFromToolContext(ctx), async () => {
+    const child = spawn(
+      process.execPath,
+      ["--import", "tsx/esm", cliPath, "loop", "run", id],
+      { detached: true, stdio: "ignore", cwd: ctx.root, env: wakeEnv(wake) },
+    );
+    child.unref();
+    return { value: child.pid, acknowledgementId: child.pid ? String(child.pid) : undefined };
+  });
+  if (launched.outcome !== "confirmed" && launched.outcome !== "verified") {
+    return { ok: false, output: `loop ${id} launch ${launched.outcome}` };
+  }
   return { ok: true, output: `started loop ${id} (running in background)` };
 }
 

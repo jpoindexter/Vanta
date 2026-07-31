@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pollPlatformSession } from "./run-session.js";
 import { initialState } from "./session-manager.js";
 import { createWebChatBuffer, WebChatAdapter } from "./platforms/webchat.js";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./platforms/base.js";
+import { allowTestEffectGate } from "../effects/test-gate.js";
 
 const dirs: string[] = [];
 afterEach(async () => Promise.all(dirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true }))));
@@ -23,6 +24,7 @@ class QueueAdapter implements PlatformAdapter {
 function base(dataDir: string) {
   return {
     dataDir,
+    effectGate: allowTestEffectGate(dataDir),
     run: async () => ({ finalText: "" }),
     load: async () => [],
     log: () => {},
@@ -69,6 +71,7 @@ describe("gateway context references", () => {
     expect(outbound[0]).toContain("Context references · scope default");
     expect(outbound[0]).toContain("@file:notes/a.txt:2-2");
     expect(outbound.at(-1)).toBe("done");
+    expect(await readFile(join(dataDir, ".vanta", "tool-effects.jsonl"), "utf8")).toContain('"kind":"gateway.context"');
     await platform.disconnect();
   });
 

@@ -76,6 +76,7 @@ export async function dispatchTool(
   // StreamEvent, so a long external call streams output/heartbeats mid-execution.
   const execCtx: ToolContext = {
     ...executionContext(call.name, ctx, deps.forceFreshApproval?.() === true),
+    effectCallId: call.id,
     sandboxWritableDirs: gateResult.sandboxWritableDirs,
     onProgress: (text) => deps.onEvent?.({ type: "note", text }),
   };
