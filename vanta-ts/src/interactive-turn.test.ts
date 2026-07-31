@@ -11,6 +11,10 @@ import type { ReplState } from "./repl/types.js";
 // the splitter found zero paths.
 
 const readClipboardImageMock = vi.fn();
+// This unit exercises dropped-media routing, not the native credential vault.
+// Mock the package boundary so Linux CI does not load an omitted optional
+// @napi-rs/keyring binding through interactive-turn's unrelated import graph.
+vi.mock("@napi-rs/keyring", () => ({ AsyncEntry: class {} }));
 vi.mock("./term/clipboard-image.js", () => ({
   readClipboardImage: (...args: unknown[]) => readClipboardImageMock(...args),
 }));
