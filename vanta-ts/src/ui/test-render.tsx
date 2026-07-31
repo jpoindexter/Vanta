@@ -65,6 +65,9 @@ export function renderUi(tree: ReactElement, opts: { cols?: number } = {}): UiTe
     stdin: stdin as unknown as NodeJS.ReadStream,
     patchConsole: false,
     exitOnCtrlC: false,
+    // The harness models an interactive TTY even when GitHub Actions sets CI.
+    // Ink otherwise switches to non-interactive mode and writes only on unmount.
+    interactive: true,
   });
   // Real Ink splits a frame across several writes (cursor moves + content), so
   // join all writes and strip ANSI — fine for contains-assertions on output.

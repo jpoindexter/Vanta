@@ -75,8 +75,12 @@ function defaultSchedule(intervalMs: number, fire: () => void): () => void {
 }
 
 function writeMessage(child: ChildProcessWithoutNullStreams, message: unknown): void {
-  if (child.stdin.destroyed) return;
-  child.stdin.write(`${JSON.stringify(message)}\n`);
+  if (!child.stdin.writable || child.stdin.destroyed || child.stdin.writableEnded) return;
+  try {
+    child.stdin.write(`${JSON.stringify(message)}\n`);
+  } catch {
+    // The worker can exit between the writable check and the write.
+  }
 }
 
 async function readPluginStorage(home: string, plugin: string): Promise<Record<string, unknown>> {
@@ -118,6 +122,9 @@ export async function launchPluginWorker(opts: LaunchPluginWorkerOptions): Promi
   let disposed = false;
   let processing = Promise.resolve();
   let stderr = "";
+  child.stdin.on("error", (error) => {
+    if (!disposed) log(`  · plugin ${opts.manifest.name}: worker input closed: ${error.message}`);
+  });
 
   const dispose = (): void => {
     if (disposed) return;

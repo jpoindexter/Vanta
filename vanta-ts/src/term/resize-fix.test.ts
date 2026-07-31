@@ -147,6 +147,7 @@ describe("installResizeGhostFix", () => {
       stdout: stdout as unknown as NodeJS.WriteStream,
       stdin: stdin as unknown as NodeJS.ReadStream,
       patchConsole: false,
+      interactive: true,
     });
     const before = stdout.listenerCount("resize");
     const detach = await installResizeGhostFix(stdout as unknown as NodeJS.WriteStream);
@@ -163,6 +164,7 @@ describe("installResizeGhostFix", () => {
       stdout: stdout as unknown as NodeJS.WriteStream,
       stdin: stdin as unknown as NodeJS.ReadStream,
       patchConsole: false,
+      interactive: true,
     });
     const detach = await installResizeGhostFix(stdout as unknown as NodeJS.WriteStream);
     stdout.chunks = [];
