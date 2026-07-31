@@ -11,6 +11,8 @@ import type { AgentDeps } from "../agent.js";
 import type { ToolContext } from "../tools/types.js";
 import type { ToolCall } from "../types.js";
 import { shellHooksPath } from "../hooks/shell-hooks.js";
+import { writeFileTool } from "../tools/write-file.js";
+import { editFileTool } from "../tools/edit-file.js";
 
 // This suite writes project-scoped hooks.json + fires hooks; opt past the new
 // project-trust gate (gate covered in hooks/shell-hooks.test.ts).
@@ -337,6 +339,84 @@ describe("applySafetyGate + permissions", () => {
     const result = await dispatchTool(call, deps, { root: home, safety: deps.safety, requestApproval: deps.requestApproval });
     expect(result.ok).toBe(true);
     expect(prompted).toBe(false);
+  });
+
+  it("fullAccess cannot auto-confirm an exact project control-plane write", async () => {
+    process.env.VANTA_PERMISSION_MODE = "fullAccess";
+    let prompts = 0;
+    const deps = makeDeps({ risk: "allow", approve: false, onAsk: () => { prompts += 1; } });
+    deps.registry = { get: () => writeFileTool } as unknown as AgentDeps["registry"];
+    const target = join(home, ".mcp.json");
+
+    const result = await dispatchTool(
+      { id: "control-write", name: "write_file", arguments: { path: ".mcp.json", content: '{"servers":{}}' } },
+      deps,
+      { root: home, safety: deps.safety, requestApproval: deps.requestApproval },
+    );
+
+    expect(result.ok).toBe(false);
+    expect(prompts).toBe(1);
+    await expect(readFile(target, "utf8")).rejects.toThrow();
+  });
+
+  it("fullAccess cannot auto-confirm an exact project control-plane edit", async () => {
+    process.env.VANTA_PERMISSION_MODE = "fullAccess";
+    const target = join(home, ".mcp.json");
+    await writeFile(target, '{"enabled":false}', "utf8");
+    let prompts = 0;
+    const deps = makeDeps({ risk: "allow", approve: false, onAsk: () => { prompts += 1; } });
+    deps.registry = { get: () => editFileTool } as unknown as AgentDeps["registry"];
+
+    const result = await dispatchTool(
+      {
+        id: "control-edit",
+        name: "edit_file",
+        arguments: { path: ".mcp.json", old_string: "false", new_string: "true" },
+      },
+      deps,
+      { root: home, safety: deps.safety, requestApproval: deps.requestApproval },
+    );
+
+    expect(result.ok).toBe(false);
+    expect(prompts).toBe(1);
+    expect(await readFile(target, "utf8")).toBe('{"enabled":false}');
+  });
+
+  it("derives verified only from executed proof, not a mutator's success flag", async () => {
+    process.env.VANTA_PERMISSION_MODE = "fullAccess";
+    const deps = makeDeps({ risk: "allow" });
+    deps.registry = {
+      get: () => ({
+        schema: { name: "gmail_send", description: "test", parameters: { type: "object", properties: {} } },
+        describeForSafety: () => "send an email",
+        execute: async () => ({ ok: true, output: "provider accepted" }),
+      }),
+    } as unknown as AgentDeps["registry"];
+
+    const result = await dispatchTool(
+      { id: "unverified-send", name: "gmail_send", arguments: {} },
+      deps,
+      { root: home, safety: deps.safety, requestApproval: deps.requestApproval },
+    );
+
+    expect(result.ok).toBe(true);
+    expect(result.effectDisposition).toBe("confirmed");
+    expect(result.workItemState).toBe("unverified");
+  });
+
+  it("propagates a file tool's on-disk readback into verified WorkItem state", async () => {
+    process.env.VANTA_PERMISSION_MODE = "fullAccess";
+    const deps = makeDeps({ risk: "allow" });
+    deps.registry = { get: () => writeFileTool } as unknown as AgentDeps["registry"];
+
+    const result = await dispatchTool(
+      { id: "verified-file", name: "write_file", arguments: { path: "verified.txt", content: "proof" } },
+      deps,
+      { root: home, safety: deps.safety, requestApproval: deps.requestApproval },
+    );
+
+    expect(result.ok).toBe(true);
+    expect(result.workItemState).toBe("verified");
   });
 
   it("replay keeps a tool-internal approval live under fullAccess", async () => {

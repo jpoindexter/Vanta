@@ -68,7 +68,10 @@ function setupHint(tool: string): string {
 function missingSetup(tool: string, ctx: Context): string[] {
   if (/^(gmail_|calendar_|drive_)/.test(tool)) {
     const exists = ctx.fileExists ?? existsSync;
-    return exists(join(resolveVantaHome(ctx.env), "google-tokens.json")) ? [] : ["Google OAuth token"];
+    const service = tool.split("_", 1)[0];
+    return exists(join(resolveVantaHome(ctx.env), `google-tokens-${service}.json`))
+      ? []
+      : [`Google ${service} OAuth token`];
   }
   return [];
 }
@@ -78,7 +81,8 @@ function repairSteps(tool: string, ctx: Context, state: { known: boolean; blocke
   if (!state.known) repairs.push("install or enable the plugin/MCP server that provides this tool");
   if (state.blocked) repairs.push("vanta setup");
   if (!state.allowlisted && ctx.profileId) repairs.push(`vanta profiles tools ${ctx.profileId} --allow ${tool}`);
-  if (state.missing.includes("Google OAuth token")) repairs.push("vanta auth google");
+  const googleMissing = state.missing.find((entry) => /^Google (gmail|calendar|drive) OAuth token$/.test(entry));
+  if (googleMissing) repairs.push(`vanta auth google ${googleMissing.split(" ")[1]}`);
   return repairs;
 }
 

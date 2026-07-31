@@ -9,6 +9,7 @@ import {
   resolveWritableZones,
 } from "./zones.js";
 import { pathScopeRecovery } from "./sandbox-recovery.js";
+import { projectPathPolicy } from "./project-security-path.js";
 
 // The configurable zone-resolution helpers live in `zones.ts`; re-exported here so
 // existing importers of "./writable-zones.js" (read-file, write-file, sandbox, exec,
@@ -60,9 +61,11 @@ function isInRoot(canonAbs: string, root: string): boolean {
 // tools — single source of truth, can't drift. Entries use `~` / relative form;
 // callers expand via `expandHome` + `resolve` before use (see `isDangerousPath`).
 export const DANGEROUS_DIRS = ["~/.ssh", "~/.gnupg", "~/.aws", "~/.config/gcloud", "/etc", "/private/etc", "/System", "/var/db/sudo"];
-const DANGEROUS_FILES = [
+export const DANGEROUS_FILES = [
   "~/.netrc", "~/.npmrc", "~/.pypirc", "~/.docker/config.json", "~/.kube/config",
   "~/.codex/auth.json", "~/.claude/.credentials.json", "~/.vanta/google-tokens.json",
+  "~/.vanta/google-tokens-gmail.json", "~/.vanta/google-tokens-calendar.json",
+  "~/.vanta/google-tokens-drive.json",
   "~/.bashrc", "~/.bash_profile", "~/.zshrc", "~/.zprofile", "~/.profile",
 ];
 
@@ -98,6 +101,10 @@ export function resolveReadablePath(
   const danger = isDangerousPath(abs);
   if (danger.dangerous) {
     return { ok: false, abs, error: `refused: ${path} is ${danger.reason} — never accessible to tools` };
+  }
+  const projectPolicy = projectPathPolicy(abs, root);
+  if (projectPolicy.kind === "denied") {
+    return { ok: false, abs, error: `refused: ${path} is ${projectPolicy.reason} — protected from ordinary tool access` };
   }
   if (!isInRoot(abs, root) && !isInZone(abs, resolveReadableZones(env, root).map(canonicalPath))) {
     return {
@@ -153,6 +160,10 @@ export function resolveWritablePath(
   const danger = isDangerousPath(abs);
   if (danger.dangerous) {
     return { ok: false, abs, error: `refused: ${path} is ${danger.reason} — never writable, even in auto-approve mode` };
+  }
+  const projectPolicy = projectPathPolicy(abs, root);
+  if (projectPolicy.kind === "denied") {
+    return { ok: false, abs, error: `refused: ${path} is ${projectPolicy.reason} — protected from ordinary tool access` };
   }
   if (!isInRoot(abs, root) && !isInZone(abs, resolveWritableZones(env).map(canonicalPath))) {
     return {

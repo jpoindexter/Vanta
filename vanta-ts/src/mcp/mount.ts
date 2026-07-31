@@ -11,6 +11,7 @@ import {
   mcpToolToVantaTool,
   buildMcpChildEnv,
   extractAuthConfig,
+  mcpTrustDecisionKey,
   resolveMcpStdioArgs,
   type ServerSpec,
   type McpTrust,
@@ -30,6 +31,7 @@ export {
   mcpToolToVantaTool,
   buildMcpChildEnv,
   extractAuthConfig,
+  mcpTrustDecisionKey,
   resolveMcpStdioArgs,
   type McpConfig,
   type McpTrust,
@@ -83,6 +85,20 @@ async function mountOneServer(opts: {
   trust?: McpTrust;
 }): Promise<number> {
   const { name, spec, registry, env, children, deferred, cwd, log, trust } = opts;
+  if (trust) {
+    const tools = (spec.tools ?? []).map((tool) => ({ name: tool }));
+    const launch = spec.command
+      ? { command: spec.command, args: spec.args ?? [] }
+      : { url: spec.url };
+    const trusted = await resolveMcpTrust(trust.root, name, tools, trust.confirm, {
+      decisionKey: mcpTrustDecisionKey(name, spec),
+      launch,
+    });
+    if (!trusted) {
+      log(`  · mcp: ${name} skipped — not trusted`);
+      return 0;
+    }
+  }
   if (spec.command) {
     const risk = detectMcpEgressRisk(spec.command, spec.args ?? []);
     if (risk.risky) log(formatEgressWarning(name, risk.reason));
@@ -92,11 +108,6 @@ async function mountOneServer(opts: {
   const client = new McpClient(transport, mcpClientEvents(cwd, name));
   await client.initialize();
   const defs = await client.listTools();
-  if (trust) {
-    const tools = defs.map((d) => ({ name: d.name, description: d.description }));
-    const ok = await resolveMcpTrust(trust.root, name, tools, trust.confirm);
-    if (!ok) { log(`  · mcp: ${name} skipped — not trusted`); return 0; }
-  }
   const mountDefs = filterAllowedTools(defs, spec.tools);
   for (const def of mountDefs) registry.register(mcpToolToVantaTool(client, name, def, { deferred }));
   const skipped = defs.length - mountDefs.length;

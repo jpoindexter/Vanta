@@ -44,7 +44,7 @@ export type LaunchPluginWorkerOptions = {
 };
 
 function containedEntry(pluginDir: string, main: string): string {
-  const entry = resolve(pluginDir, main);
+  const entry = realpathSync(resolve(pluginDir, main));
   const rel = relative(pluginDir, entry);
   if (!rel || rel.startsWith("..") || isAbsolute(rel)) throw new Error("plugin worker main must stay inside plugin directory");
   return entry;

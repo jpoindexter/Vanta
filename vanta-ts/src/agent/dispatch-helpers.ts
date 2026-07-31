@@ -19,6 +19,8 @@ import { buildPermDeniedPayload, shouldFirePermDenied } from "../hooks/perm-deni
 import { gateAuditEvent, type GateResolution } from "../governance/audit.js";
 import { join } from "node:path";
 import { approvedMkdirWritableDirs, externalDirectMkdirTarget, shellCommandCwd, shellCommandSafetyAction } from "../tools/shell-cmd.js";
+import type { ToolResult } from "../tools/types.js";
+import { persistApprovalTransition } from "./effect-persistence.js";
 
 export type SafetyGateResult = { approved: boolean; reason?: string; sandboxWritableDirs?: string[] };
 
@@ -199,7 +201,15 @@ async function handleApprovalRequest(o: {
   const why = verdict.reason || "permission rule";
   // EXT-ACP-EDIT-DIFF: file tools attach an old/new preview to the ask.
   const diff = await o.tool?.describeDiff?.(call.arguments, root).catch(() => undefined);
-  const approved = await deps.requestApproval(action, why, call.name, diff ? { diff } : undefined);
+  await persistApprovalTransition(root, deps.sessionId, call, action, "requested");
+  let approved: boolean;
+  try {
+    approved = await deps.requestApproval(action, why, call.name, diff ? { diff } : undefined);
+  } catch (error) {
+    await persistApprovalTransition(root, deps.sessionId, call, action, "expired");
+    throw error;
+  }
+  await persistApprovalTransition(root, deps.sessionId, call, action, approved ? "approved" : "denied");
   await recordApprovalSignal(call.name, action, why, approved);
   // Reconcile the kernel approval queue ONLY when the kernel itself asked.
   // Queue bookkeeping is best-effort — a kernel hiccup must not abort the turn.
@@ -234,7 +244,7 @@ export async function executeWithRetry(
   deps: AgentDeps,
   ctx: ToolContext,
   tool: any, // The tool object from registry.get()
-): Promise<{ ok: boolean; output: string; diff?: any[] }> {
+): Promise<ToolResult> {
   try {
     if (shouldWarn(call.name, deps.activeGoalText)) {
       deps.onText?.(buildSelfMonitorText(call.name, deps.activeGoalText!));

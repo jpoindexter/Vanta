@@ -8,6 +8,7 @@ import type { HookBus } from "../plugins/hooks.js";
 import type { SessionWorkingMemory } from "../memory/working.js";
 import type { PermissionMode } from "../modes/permission-mode.js";
 import type { AskQuestion, AskUserResponse } from "../tools/ask-user-model.js";
+import type { WorkItemState } from "../work-items/contract.js";
 
 export type AgentDeps = {
   provider: LLMProvider;
@@ -121,6 +122,8 @@ export type AgentOutcome = {
   structuredResult?: unknown;
   /** Subagent-only receipt metadata; absent for normal parent turns. */
   workerEvidence?: { rawSidechain: string; tools: string[]; durationMs: number; model: string };
+  /** Evidence-derived turn state; only `verified` may create accomplishment memory. */
+  completionState?: WorkItemState;
 };
 
 /** A stateful multi-turn conversation that retains history across `send` calls. */

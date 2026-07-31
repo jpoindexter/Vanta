@@ -1,98 +1,111 @@
-// Agent-readable build order — a GENERATED VIEW of roadmap.json (STRATEGY.md:
-// "One source of truth"). Never edit the output; regenerate it.
+// Agent-readable build order — a GENERATED VIEW of roadmap.json.
 //
-//   node scripts/build-order.mjs [outPath]   (default: ~/Desktop/vanta-build-order-agent-readable.md)
+//   node scripts/build-order.mjs [outPath]
 //
-// Ordering (STRATEGY.md "Build order rule"):
-//   status (building > next > horizon) → tier (rock > pebble > sand) →
-//   pillar (Harness > Operator > Solutioning > Extensibility > Cofounder engine) →
-//   size (S→XL) → effort (low→high) → stable. A card with `after: [ids]` is
-//   bumped below its open dependencies.
+// The default output is docs/vanta-build-order-agent-readable.md in this repo.
 import { readFileSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-const OUT = process.argv[2] ?? join(homedir(), "Desktop", "vanta-build-order-agent-readable.md");
-const r = JSON.parse(readFileSync("roadmap.json", "utf8"));
+const scriptDir = dirname(fileURLToPath(import.meta.url));
+const repoRoot = resolve(scriptDir, "..");
+const DEFAULT_OUT = join(repoRoot, "docs", "vanta-build-order-agent-readable.md");
+const TRACKS = ["Harness", "Operator", "Solutioning", "Extensibility", "Cofounder engine"];
+const STATUS_ORDER = { building: 0, next: 1, horizon: 2 };
+const TIER_ORDER = { rock: 0, pebble: 1, sand: 2 };
+const TRACK_ORDER = Object.fromEntries(TRACKS.map((track, index) => [track, index]));
+const SIZE_ORDER = { XS: 0, S: 1, M: 2, L: 3, XL: 4 };
+const EFFORT_ORDER = { low: 0, medium: 1, high: 2 };
 
-const PILLARS = ["Harness", "Operator", "Solutioning", "Extensibility", "Cofounder engine"];
-const ord = (m, v, fb) => (v in m ? m[v] : fb);
-const S_STATUS = { building: 0, next: 1, horizon: 2 };
-const S_TIER = { rock: 0, pebble: 1, sand: 2 };
-const S_PILLAR = Object.fromEntries(PILLARS.map((p, i) => [p, i]));
-const S_SIZE = { XS: 0, S: 1, M: 2, L: 3, XL: 4 };
-const S_EFFORT = { low: 0, medium: 1, high: 2 };
+const order = (map, value, fallback) => (value in map ? map[value] : fallback);
 
-const open = r.items.filter((i) => i.status !== "shipped" && i.status !== "parked");
-open.forEach((it, i) => (it.__i = i));
-open.sort(
-  (a, b) =>
-    ord(S_STATUS, a.status, 9) - ord(S_STATUS, b.status, 9) ||
-    ord(S_TIER, a.tier, 3) - ord(S_TIER, b.tier, 3) ||
-    ord(S_PILLAR, a.track, 9) - ord(S_PILLAR, b.track, 9) ||
-    ord(S_SIZE, a.size, 5) - ord(S_SIZE, b.size, 5) ||
-    ord(S_EFFORT, a.effort, 3) - ord(S_EFFORT, b.effort, 3) ||
-    a.__i - b.__i,
-);
-open.forEach((it) => delete it.__i);
+function openItems(roadmap) {
+  const open = roadmap.items
+    .filter((item) => item.status !== "shipped" && item.status !== "parked")
+    .map((item, index) => ({ ...item, __index: index }));
+  open.sort(
+    (a, b) =>
+      order(STATUS_ORDER, a.status, 9) - order(STATUS_ORDER, b.status, 9) ||
+      order(TIER_ORDER, a.tier, 3) - order(TIER_ORDER, b.tier, 3) ||
+      order(TRACK_ORDER, a.track, 9) - order(TRACK_ORDER, b.track, 9) ||
+      order(SIZE_ORDER, a.size, 5) - order(SIZE_ORDER, b.size, 5) ||
+      order(EFFORT_ORDER, a.effort, 3) - order(EFFORT_ORDER, b.effort, 3) ||
+      a.__index - b.__index,
+  );
+  for (const item of open) delete item.__index;
 
-// `after` bump: never list a card before an open dependency. Bounded passes —
-// a cycle can't loop forever, it just stops moving.
-for (let pass = 0; pass < 10; pass++) {
-  let moved = false;
-  for (const it of open) {
-    if (!it.after?.length) continue;
-    const depIdx = Math.max(...it.after.map((d) => open.findIndex((o) => o.id === d)));
-    const selfIdx = open.indexOf(it);
-    if (depIdx > selfIdx) {
-      open.splice(selfIdx, 1);
-      open.splice(depIdx, 0, it); // depIdx shifted left by the removal → lands just after dep
-      moved = true;
+  // Never list a card before one of its open dependencies. Bounded passes keep
+  // a malformed dependency cycle from looping forever.
+  for (let pass = 0; pass < 10; pass++) {
+    let moved = false;
+    for (const item of open) {
+      if (!item.after?.length) continue;
+      const dependencyIndex = Math.max(...item.after.map((id) => open.findIndex((candidate) => candidate.id === id)));
+      const itemIndex = open.indexOf(item);
+      if (dependencyIndex > itemIndex) {
+        open.splice(itemIndex, 1);
+        open.splice(dependencyIndex, 0, item);
+        moved = true;
+      }
     }
+    if (!moved) break;
   }
-  if (!moved) break;
+  return open;
 }
 
-const counts = {};
-for (const i of open) counts[i.track] = (counts[i.track] ?? 0) + 1;
+export function buildOrderDocument(roadmap) {
+  const open = openItems(roadmap);
+  const counts = {};
+  for (const item of open) counts[item.track] = (counts[item.track] ?? 0) + 1;
 
-const lines = [
-  "# Vanta Build Order — Agent-Readable",
-  "",
-  "Source: roadmap.json (generated view — do not edit; regenerate via `node scripts/build-order.mjs`)",
-  `Roadmap updated: ${r.updated}`,
-  "Strategy: STRATEGY.md (5 pillars; CC parity is a quarry, not a goal)",
-  "",
-  "## Agent instructions",
-  "Build in numbered order. For each item: read repo/folder AGENTS.md + CLAUDE.md + STRATEGY.md, implement the smallest complete slice, add/update tests, verify with targeted tests/typecheck/build or real UI observation, update roadmap status when shipped, commit the slice, then continue. Stop before high-risk actions, secrets, kernel edits, or scope changes.",
-  "",
-  "Ordering: open only; building > next > horizon; rock > pebble > sand; pillar (Harness > Operator > Solutioning > Extensibility > Cofounder engine); S > M > L; low > medium > high; `after:` deps bump below their dependency.",
-  "",
-  "## Summary",
-  `- total_cards: ${r.items.length}`,
-  `- open_cards: ${open.length}`,
-  ...PILLARS.filter((p) => counts[p]).map((p) => `- ${p}: ${counts[p]} open`),
-  "",
-  "## Build order",
-  "",
-];
-
-open.forEach((it, n) => {
-  const num = String(n + 1).padStart(3, "0");
-  lines.push(`${num}. [${it.status}] ${it.id} — ${it.title}`);
-  const meta = [
-    `track: ${it.track}`,
-    `tier: ${it.tier ?? "-"}`,
-    `size: ${it.size}`,
-    `effort: ${it.effort ?? "-"}`,
-    `model: ${it.model ?? "-"}`,
+  const lines = [
+    "# Vanta Build Order — Agent-Readable",
+    "",
+    "Source: roadmap.json (generated view — do not edit; regenerate via `node scripts/build-order.mjs`)",
+    `Roadmap updated: ${roadmap.updated}`,
+    "Strategy: STRATEGY.md (one product with Vanta, Engine, and Lab boundaries; roadmap tracks are compatible responsibilities)",
+    "",
+    "## Agent instructions",
+    "Build the smallest dependency-ready slice from the two active lanes. Read repo/folder AGENTS.md + CLAUDE.md + STRATEGY.md, preserve protected paths and unrelated dirty work, add or update tests first, and change status only after the card's real Done criterion is executed. Do not commit or push unless the current user instruction explicitly authorizes it. High-risk effects, credentials, kernel/factory edits, merges, publication, and deployment require their own authority.",
+    "",
+    "Ordering: open only; building > next > horizon; rock > pebble > sand; compatible responsibility (Harness > Operator > Solutioning > Extensibility > Cofounder engine); S > M > L; low > medium > high; `after:` dependencies remain ahead of dependents.",
+    "",
+    "The 28 convergence outcomes are an acceptance catalog, not 28 simultaneous projects. `roadmap.json` is the only product-development work database.",
+    "",
+    "## Summary",
+    `- total_cards: ${roadmap.items.length}`,
+    `- open_cards: ${open.length}`,
+    ...TRACKS.filter((track) => counts[track]).map((track) => `- ${track}: ${counts[track]} open`),
+    "",
+    "## Build order",
+    "",
   ];
-  if (it.after?.length) meta.push(`after: ${it.after.join(", ")}`);
-  lines.push(`    ${meta.join(" | ")}`);
-  lines.push(`    why: ${it.summary}`);
-  lines.push(`    done: ${it.done}`);
-  lines.push("");
-});
 
-writeFileSync(OUT, lines.join("\n"));
-console.log(`build order → ${OUT} (${open.length} open cards)`);
+  open.forEach((item, index) => {
+    const number = String(index + 1).padStart(3, "0");
+    lines.push(`${number}. [${item.status}] ${item.id} — ${item.title}`);
+    const metadata = [
+      `track: ${item.track}`,
+      `tier: ${item.tier ?? "-"}`,
+      `size: ${item.size}`,
+      `effort: ${item.effort ?? "-"}`,
+      `model: ${item.model ?? "-"}`,
+    ];
+    if (item.after?.length) metadata.push(`after: ${item.after.join(", ")}`);
+    lines.push(`    ${metadata.join(" | ")}`);
+    lines.push(`    why: ${item.summary}`);
+    lines.push(`    done: ${item.done}`);
+    lines.push("");
+  });
+  return lines.join("\n");
+}
+
+function runCli() {
+  const outputPath = resolve(process.argv[2] ?? DEFAULT_OUT);
+  const roadmap = JSON.parse(readFileSync(join(repoRoot, "roadmap.json"), "utf8"));
+  const document = buildOrderDocument(roadmap);
+  writeFileSync(outputPath, document);
+  console.log(`build order → ${outputPath} (${openItems(roadmap).length} open cards)`);
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) runCli();

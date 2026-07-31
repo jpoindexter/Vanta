@@ -1,13 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import { googleConnectStatus, performGoogleConnectAction } from "./google-connect.js";
 
-function deps(state: { client: boolean; auth: boolean }) {
+function deps(state: { client: boolean; auth: boolean; services?: Set<string> }) {
   return {
     hasClient: vi.fn(async () => state.client),
-    hasAuth: vi.fn(async () => state.auth),
+    hasAuth: vi.fn(async (_env, service: string) => state.services ? state.services.has(service) : state.auth),
     ingestClient: vi.fn(async () => { state.client = true; }),
     begin: vi.fn(async () => ({ authUrl: "https://accounts.google.test/consent" })),
-    complete: vi.fn(async () => { state.auth = true; }),
+    complete: vi.fn(async (_env, service: string) => {
+      if (state.services) state.services.add(service);
+      else state.auth = true;
+    }),
   };
 }
 
@@ -36,5 +39,20 @@ describe("desktop Google Connect", () => {
     const injected = deps({ client: false, auth: false });
     await expect(performGoogleConnectAction({ action: "ingest_client", clientPath: "" }, {}, injected)).rejects.toThrow("client_secret.json");
     await expect(performGoogleConnectAction({ action: "remove" }, {}, injected)).rejects.toThrow("action must be");
+  });
+
+  it("tracks independently authorized and missing services", async () => {
+    const state = { client: true, auth: false, services: new Set<string>(["gmail"]) };
+    const injected = deps(state);
+    await expect(googleConnectStatus({}, injected)).resolves.toMatchObject({
+      status: "ready",
+      authorizedServices: ["gmail"],
+      missingServices: ["calendar", "drive"],
+    });
+    await performGoogleConnectAction({ action: "complete", service: "calendar" }, {}, injected);
+    await expect(googleConnectStatus({}, injected)).resolves.toMatchObject({
+      authorizedServices: ["gmail", "calendar"],
+      missingServices: ["drive"],
+    });
   });
 });

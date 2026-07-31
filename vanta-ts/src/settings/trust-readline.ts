@@ -24,6 +24,13 @@ function projectPreviews(req: Extract<TrustRequest, { kind: "project" }>): strin
 }
 
 function mcpSummary(req: Extract<TrustRequest, { kind: "mcp" }>): string {
+  if (req.launch) {
+    const target = req.launch.url ?? [req.launch.command, ...(req.launch.args ?? [])].filter(Boolean).join(" ");
+    const allowlist = req.tools.length > 0
+      ? `\nDeclared tool allowlist: ${req.tools.map((tool) => tool.name).join(", ")}`
+      : "\nTools will be inspected only after trust.";
+    return `This server must launch before its tool inventory can be inspected:\n  · ${target}${allowlist}`;
+  }
   const shown = req.tools.slice(0, PREVIEW_TOOLS);
   const lines = shown.map((t) => `  · ${t.name}${t.description ? ` — ${t.description}` : ""}`);
   const more = req.tools.length > shown.length ? `\n  … (+${req.tools.length - shown.length} more)` : "";

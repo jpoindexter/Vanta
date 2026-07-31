@@ -72,7 +72,7 @@ export function buildCronRunTask(
       summarize: buildSummarizer(setup.provider),
       ...callbacks,
     }, images); // MSG-MEDIA-IMAGES: inbound images reach the agent's vision
-    await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction: prompt, finalText: outcome.finalText });
+    await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction: prompt, finalText: outcome.finalText, completionState: outcome.completionState });
     // Budget hard-stop: attribute this run's cost to its scope (a loop when run
     // under a loop wake, else the session). enforceScopeBudget is a no-op unless a
     // budget is set, and auto-pauses + cancels queued work on overspend.

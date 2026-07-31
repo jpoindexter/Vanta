@@ -6,6 +6,7 @@ import { serializeForNotes } from "../memory/session-memory.js";
 import { ENTRY_TYPE_VALUES } from "./entry-types.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { Message } from "../types.js";
+import type { WorkItemState } from "../work-items/contract.js";
 
 // Auto-learning — how the brain grows with the user. After a busy turn, a single
 // background model call distils the conversation into 0–3 DURABLE memories and
@@ -100,6 +101,14 @@ export function parseLearned(text: string): Array<z.infer<typeof LearnedSchema>[
 }
 
 type Learned = z.infer<typeof LearnedSchema>[number];
+const ACCOMPLISHMENT_WORDS = /\b(?:shipped|completed|finished|deployed|published|sent|fixed|created|delivered|released)\b/i;
+
+function allowedForCompletionState(memory: Learned, state: WorkItemState | undefined): boolean {
+  if (state === undefined || state === "verified") return true;
+  if (memory.region === "episodic") return false;
+  if (memory.entry_type === "event" || memory.entry_type === "artifact") return false;
+  return !ACCOMPLISHMENT_WORDS.test(memory.content);
+}
 
 /** Remember one learned memory through the ingest gate: volatile facts become
  * live-access pointers (value dropped, source:external), evergreen facts store
@@ -125,6 +134,7 @@ async function rememberLearned(m: Learned, env?: NodeJS.ProcessEnv): Promise<str
 export async function learnFromTranscript(opts: {
   provider: LLMProvider;
   transcript: Message[];
+  completionState?: WorkItemState;
   env?: NodeJS.ProcessEnv;
 }): Promise<string[]> {
   try {
@@ -137,7 +147,7 @@ export async function learnFromTranscript(opts: {
       ],
       [],
     );
-    const learned = parseLearned(text);
+    const learned = parseLearned(text).filter((memory) => allowedForCompletionState(memory, opts.completionState));
     const kept: string[] = [];
     for (const m of learned) kept.push(await rememberLearned(m, opts.env));
     return kept;

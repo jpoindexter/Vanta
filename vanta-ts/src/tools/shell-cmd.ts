@@ -24,6 +24,7 @@ import {
 import { sandboxServeRecovery } from "./sandbox-recovery.js";
 import { resolveShellInvocation } from "../platform/shell.js";
 import { addSessionDir, canonicalPath, isDangerousPath } from "./writable-zones.js";
+import { buildSafeChildEnv } from "../exec/child-env.js";
 
 export { lastCommandWord, classifyExitCode } from "./shell-output.js";
 
@@ -213,7 +214,7 @@ export function approvedMkdirWritableDirs(command: string, cwd: string): string[
 function childRunOpts(root: string, timeoutMs: number): { cwd: string; timeout: number; maxBuffer: number; env?: NodeJS.ProcessEnv } {
   const childEnv = applySessionEnv(process.env, sessionEnvStore.snapshot());
   const base = { cwd: shellCommandCwd(root), timeout: timeoutMs, maxBuffer: MAX_OUTPUT };
-  return childEnv === process.env ? base : { ...base, env: childEnv };
+  return { ...base, env: buildSafeChildEnv(childEnv) };
 }
 
 function localInvocation(command: string): { cmd: string; args: string[] } {
@@ -246,7 +247,7 @@ async function runBackground(
     const task = await spawnBackground(command, join(root, ".vanta"), workdir, {
       cmd: sb.cmd,
       args: sb.args,
-      ...(childEnv === process.env ? {} : { env: childEnv }),
+      env: buildSafeChildEnv(childEnv),
       cleanup: sb.cleanup,
     });
     return { ok: true, output: `background task started: ${task.id}\ncheck with: bg_status(${task.id})` };

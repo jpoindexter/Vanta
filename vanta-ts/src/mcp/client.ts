@@ -196,9 +196,9 @@ export class McpClient {
 export function stdioTransport(
   command: string,
   args: string[],
-  env?: NodeJS.ProcessEnv,
+  env: NodeJS.ProcessEnv,
 ): { transport: Transport; child: ChildProcess } {
-  const child = spawn(command, args, { stdio: ["pipe", "pipe", "pipe"], env: env ?? process.env });
+  const child = spawn(command, args, { stdio: ["pipe", "pipe", "pipe"], env });
   const transport: Transport = {
     send: (line) => child.stdin?.write(line),
     onMessage: (cb) => child.stdout?.on("data", (d: Buffer) => cb(d.toString("utf8"))),

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
@@ -55,6 +56,25 @@ export type McpConfigResolution = {
   config: McpConfig;
   sources: Record<string, McpConfigSource>;
 };
+
+/** Bind a persisted trust decision to the exact launch/auth/tool declaration. */
+export function mcpTrustDecisionKey(server: string, spec: ServerSpec): string {
+  const identity = JSON.stringify({
+    command: spec.command ?? null,
+    args: spec.args ?? [],
+    env: Object.entries(spec.env ?? {}).sort(([a], [b]) => a.localeCompare(b)),
+    url: spec.url ?? null,
+    token: spec.token ?? null,
+    headers: Object.entries(spec.headers ?? {}).sort(([a], [b]) => a.localeCompare(b)),
+    authorizationUrl: spec.authorizationUrl ?? null,
+    tokenUrl: spec.tokenUrl ?? null,
+    clientId: spec.clientId ?? null,
+    clientSecret: spec.clientSecret ?? null,
+    scope: spec.scope ?? null,
+    tools: spec.tools ?? [],
+  });
+  return `${server}@${createHash("sha256").update(identity).digest("hex").slice(0, 16)}`;
+}
 
 const FILESYSTEM_SERVER_PACKAGE = "@modelcontextprotocol/server-filesystem";
 

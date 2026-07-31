@@ -68,7 +68,7 @@ const MessageSchema: z.ZodType<Message> = z.lazy(() =>
       toolCallId: z.string(),
       name: z.string(),
       content: z.string(),
-      effectDisposition: z.enum(["none", "confirmed", "unknown"]).optional(),
+      effectDisposition: z.enum(["none", "confirmed", "denied", "expired", "unknown", "compensated"]).optional(),
     }),
   ]),
 ) as z.ZodType<Message>;

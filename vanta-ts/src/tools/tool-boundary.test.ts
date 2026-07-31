@@ -21,9 +21,9 @@ describe("profile tool boundaries", () => {
     });
 
     expect(explanation).toMatchObject({ visible: false, typicalRisk: "ask" });
-    expect(explanation.missing).toContain("Google OAuth token");
+    expect(explanation.missing).toContain("Google gmail OAuth token");
     expect(explanation.repairs).toContain("vanta profiles tools research-lead --allow gmail_send");
-    expect(explanation.repairs).toContain("vanta auth google");
+    expect(explanation.repairs).toContain("vanta auth google gmail");
   });
 
   it("warns when a profile has no role allowlist", () => {
@@ -40,6 +40,6 @@ describe("profile tool boundaries", () => {
       schemas: buildRegistry().schemas(), settings: {}, env: {}, fileExists: () => false,
     });
     expect(repaired).toContain("401 unauthorized");
-    expect(repaired).toContain("Repair: vanta auth google");
+    expect(repaired).toContain("Repair: vanta auth google gmail");
   });
 });

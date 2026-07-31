@@ -116,4 +116,19 @@ describe("learnFromTranscript", () => {
     const [stored] = await loadEntries();
     expect(stored?.entryType).toBe("decision");
   });
+
+  it("does not persist accomplishment-shaped memory from an unverified turn", async () => {
+    const reply = JSON.stringify([
+      { region: "episodic", content: "we shipped the production migration today", entry_type: "event" },
+      { region: "semantic", content: "the deployment completed successfully", entry_type: "artifact" },
+      { region: "user_model", content: "prefers one concrete next step", entry_type: "preference" },
+    ]);
+    const learned = await learnFromTranscript({
+      provider: fakeProvider(reply),
+      transcript,
+      completionState: "unverified",
+    });
+    expect(learned).toEqual(["prefers one concrete next step"]);
+    expect((await loadEntries()).map((entry) => entry.content)).toEqual(["prefers one concrete next step"]);
+  });
 });

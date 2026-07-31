@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { stdioTransport, McpClient } from "../mcp/client.js";
-import { mcpToolToVantaTool } from "../mcp/mount.js";
+import { buildMcpChildEnv, mcpToolToVantaTool } from "../mcp/mount.js";
 import { mcpClientEvents } from "../mcp/events.js";
 import type { Tool, ToolResult } from "./types.js";
 import type { ToolRegistry } from "./registry.js";
@@ -48,10 +48,7 @@ async function executeMountMcp(registry: ToolRegistry, rawArgs: unknown, repoRoo
   const { name, command, args: cmdArgs = [], env: cmdEnv = {} } = r.data;
 
   try {
-    const { transport, child } = stdioTransport(command, cmdArgs, {
-      ...process.env,
-      ...cmdEnv,
-    });
+    const { transport, child } = stdioTransport(command, cmdArgs, buildMcpChildEnv(process.env, cmdEnv));
     process.once("exit", () => {
       try {
         child.kill();

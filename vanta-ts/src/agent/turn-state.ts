@@ -3,6 +3,8 @@ import type { ToolCall } from "../types.js";
 import type { DispatchOutcome } from "./dispatch-tool.js";
 import type { AgentDeps } from "./agent-types.js";
 import { isErrorResult, buildErrorDetectText, DEFAULT_ERRORDETECT_THRESHOLD } from "../repl/error-detect.js";
+import type { WorkItemState } from "../work-items/contract.js";
+import type { StoppedReason } from "./agent-types.js";
 
 // TURN-STATE — the per-turn bookkeeping `runTurn` mutates: usage totals, the
 // consecutive-failure/error counters that drive the error-detect note, and the
@@ -27,6 +29,8 @@ export type TurnState = {
   tokensSaved: number;
   /** VANTA-STOP-CMD: names of tools completed this turn, for the soft-stop summary. */
   toolNames: string[];
+  /** Canonical terminal state for every dispatched WorkItem in this turn. */
+  workItemStates: WorkItemState[];
   /** VANTA-AUTOCONTINUE: how many times this turn auto-continued past a premature stop. */
   autoContinues: number;
   /** Bounded retries that enforce an explicit specialized-tool contract. */
@@ -42,7 +46,15 @@ export type TurnState = {
 };
 
 export function makeInitialState(): TurnState {
-  return { consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map(), tokensSaved: 0, toolNames: [], autoContinues: 0, toolContractNudges: 0, adaptiveRedirects: 0, adaptiveRedirect: "", openTodoCount: null, toolBudgetClosure: false };
+  return { consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map(), tokensSaved: 0, toolNames: [], workItemStates: [], autoContinues: 0, toolContractNudges: 0, adaptiveRedirects: 0, adaptiveRedirect: "", openTodoCount: null, toolBudgetClosure: false };
+}
+
+export function turnCompletionState(state: TurnState, stoppedReason: StoppedReason): WorkItemState {
+  if (state.workItemStates.includes("unverified")) return "unverified";
+  if (stoppedReason !== "done") return "stopped";
+  if (state.workItemStates.length > 0 && state.workItemStates.every((item) => item === "verified")) return "verified";
+  const priority: WorkItemState[] = ["needs human", "waiting", "failed", "stopped", "running", "queued", "draft"];
+  return priority.find((item) => state.workItemStates.includes(item)) ?? "unverified";
 }
 
 export function recordUsage(state: TurnState, result: CompletionResult): void {
@@ -53,6 +65,7 @@ export function recordUsage(state: TurnState, result: CompletionResult): void {
 }
 
 export function recordToolOutcome(state: TurnState, call: ToolCall, outcome: DispatchOutcome, deps: AgentDeps): string | null {
+  state.workItemStates.push(outcome.workItemState);
   if (outcome.executed) {
     state.consecutiveFailures = outcome.empty ? state.consecutiveFailures + 1 : 0;
     if (isErrorResult(outcome.ok, outcome.output)) {

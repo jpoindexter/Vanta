@@ -47,6 +47,7 @@ describe("file checkpoint hooks", () => {
     const id = globalFileCheckpointStore.list().at(-1)?.id;
 
     expect(res.ok).toBe(true);
+    expect(res.verification).toMatchObject({ status: "verified" });
     expect(id).toBeDefined();
     await globalFileCheckpointStore.restore(id ?? "");
     expect(await readFile(join(root, "edit.txt"), "utf8")).toBe("hello old world");

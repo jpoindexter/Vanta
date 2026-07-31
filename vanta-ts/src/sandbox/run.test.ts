@@ -63,9 +63,9 @@ describe("maybeSandbox — seatbelt (darwin)", () => {
     const profile = await readFile(profilePath, "utf8");
     expect(profile).toContain("(deny default)");
     // tmpdir() MUST be writable so run_code's mkdtemp temp dir works under sandbox.
-    expect(profile).toContain(`(allow file-write* (subpath "${realpathSync(tmpdir())}"))`);
+    expect(profile).toContain(`(allow file-write* (require-all (subpath "${realpathSync(tmpdir())}")`);
     // root is writable
-    expect(profile).toContain(`(allow file-write* (subpath "${resolve(ROOT)}"))`);
+    expect(profile).toContain(`(allow file-write* (require-all (subpath "${resolve(ROOT)}")`);
 
     await r.cleanup?.();
     await expect(stat(profilePath)).rejects.toThrow();
@@ -93,8 +93,8 @@ describe("maybeSandbox — seatbelt (darwin)", () => {
     const profilePath = r.args[1];
     if (profilePath === undefined) throw new Error("missing profile path");
     const profile = await readFile(profilePath, "utf8");
-    expect(profile).toContain(`(allow file-write* (subpath "${approved}"))`);
-    expect(profile).not.toContain(`(allow file-write* (subpath "${homedir()}"))`);
+    expect(profile).toContain(`(allow file-write* (require-all (subpath "${approved}")`);
+    expect(profile).not.toContain(`(allow file-write* (require-all (subpath "${homedir()}")`);
     await r.cleanup?.();
   });
 });

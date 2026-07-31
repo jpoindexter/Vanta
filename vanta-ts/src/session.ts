@@ -27,6 +27,7 @@ import { consumePrewarmedKernel } from "./session/prewarm.js";
 import { applyLocalRuntimeLimits, resolveSessionSystemPrompt, resolveSessionToolInclude } from "./session/local-runtime-policy.js";
 import { resolveOperatingMode } from "./modes/operating-mode.js";
 import { PLAN_INSTRUCTION } from "./repl/plan-mode.js";
+import { canCreateAccomplishmentMemory, type WorkItemState } from "./work-items/contract.js";
 export { loadRalphContinuity } from "./session/prepare-helpers.js";
 
 export * from "./session/after-turn.js";
@@ -151,8 +152,9 @@ export function buildSummarizer(provider: LLMProvider, instructions?: string): S
 }
 
 export async function writeRunMemory(
-  o: { provider: LLMProvider; goals: Goal[]; instruction: string; finalText: string; now?: string; sessionId?: string; turnIndex?: number },
+  o: { provider: LLMProvider; goals: Goal[]; instruction: string; finalText: string; completionState?: WorkItemState; now?: string; sessionId?: string; turnIndex?: number },
 ): Promise<void> {
+  if (!o.completionState || !canCreateAccomplishmentMemory(o.completionState)) return;
   const goal = o.goals.find((g) => g.status === "active");
   if (!goal) return;
   try {

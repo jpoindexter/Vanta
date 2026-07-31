@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -95,6 +95,27 @@ describe("plugin worker host", () => {
     expect(loaded.diagnostics).toContainEqual(expect.objectContaining({ plugin: "operator", ok: true, message: "worker loaded" }));
     expect(loaded.workers).toHaveLength(1);
     expect(loaded.panels.list()).toHaveLength(1);
+  });
+
+  it("rejects a worker entry symlink that resolves outside the plugin directory", async () => {
+    const dir = await fixtureDir("symlink-root");
+    const outside = await fixtureDir("symlink-outside");
+    await writeFile(join(outside, "worker.mjs"), 'process.stdout.write("{\\"type\\":\\"ready\\"}\\n");', "utf8");
+    await symlink(join(outside, "worker.mjs"), join(dir, "worker.mjs"));
+    const manifest: PluginManifest = {
+      name: "escaped",
+      version: "1.0.0",
+      main: "index.mjs",
+      worker: { main: "worker.mjs", capabilities: [] },
+    };
+
+    await expect(launchPluginWorker({
+      manifest,
+      pluginDir: dir,
+      vantaHome: join(dir, "home"),
+      granted: [],
+      panels: new PluginPanelRegistry(),
+    })).rejects.toThrow("plugin worker main must stay inside plugin directory");
   });
 });
 

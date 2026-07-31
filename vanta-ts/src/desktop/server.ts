@@ -260,9 +260,16 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-export async function serveDesktop(repoRoot: string, port = 7790, companion = false): Promise<void> {
-  const server = createDesktopServer(repoRoot, { enabled: companion, port });
+export async function serveDesktop(
+  repoRoot: string,
+  port = 7790,
+  companion = false,
+  boundaryToken = process.env.VANTA_DESKTOP_BOUNDARY_TOKEN,
+  launchUrl = `http://127.0.0.1:${port}`,
+): Promise<void> {
+  if (!boundaryToken) throw new Error("desktop boundary token is required");
+  const server = createDesktopServer(repoRoot, { enabled: companion, port, boundaryToken });
   const host = companion ? "0.0.0.0" : "127.0.0.1";
   await new Promise<void>((resolve) => server.listen(port, host, resolve));
-  console.log(`vanta desktop — http://127.0.0.1:${port}${companion ? " · companion LAN enabled" : ""}`);
+  console.log(`vanta desktop — ${launchUrl}${companion ? " · companion LAN enabled" : ""}`);
 }

@@ -976,7 +976,7 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
       outcome = await live.convo.send(instruction, instructionImages, controller.signal);
       instructionImages = undefined;
       instructionFiles = [];
-      await writeRunMemory({ provider: live.setup.provider, goals: live.setup.goals, instruction, finalText: outcome.finalText });
+      await writeRunMemory({ provider: live.setup.provider, goals: live.setup.goals, instruction, finalText: outcome.finalText, completionState: outcome.completionState });
       events.push({ label: `${outcome.stoppedReason} · ${outcome.iterations} iteration(s)`, ok: outcome.stoppedReason === "done", kind: "summary" });
       const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events, instruction, partialText: outcome.finalText });
       attachDesktopRunReceipt(live.convo, receipt, outcome.finalText);

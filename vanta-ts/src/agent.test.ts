@@ -38,7 +38,9 @@ beforeAll(async () => {
   prevHome = process.env.VANTA_HOME;
   home = mkdtempSync(join(tmpdir(), "vanta-agent-test-"));
   process.env.VANTA_HOME = home;
-  kernelUp = await createKernelClient(KERNEL_URL, KERNEL_ROOT).status();
+  const kernel = createKernelClient(KERNEL_URL, KERNEL_ROOT);
+  kernelUp = await kernel.status()
+    && await kernel.assess("inspect_state goals").then(() => true, () => false);
 }, 30_000);
 
 afterAll(() => {

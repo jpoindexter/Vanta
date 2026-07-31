@@ -21,7 +21,7 @@ import { compactOversizedResult } from "../compress/reactive.js";
 import type { AgentDeps, AgentOutcome } from "./agent-types.js";
 import { buildStopSummary } from "../repl/stop-cmd.js";
 import { buildContinueNudge, shouldAutoContinue } from "./auto-continue.js";
-import { MAX_CONSECUTIVE_FAILURES, MAX_IDENTICAL_CALLS, makeInitialState, recordUsage, recordToolOutcome } from "./turn-state.js";
+import { MAX_CONSECUTIVE_FAILURES, MAX_IDENTICAL_CALLS, makeInitialState, recordUsage, recordToolOutcome, turnCompletionState } from "./turn-state.js";
 import type { TurnState } from "./turn-state.js";
 import { join } from "node:path";
 import { buildContextInspection } from "../tools/inspect-context.js";
@@ -99,13 +99,21 @@ async function processToolCalls(args: ProcessToolCallsArgs): Promise<{ stuckTool
         const output = "Not executed: the turn reached its hard tool-call safety limit.";
         messages.push({ role: "tool", toolCallId: skipped.id, name: skipped.name, content: output, effectDisposition: "none" });
         await persistEffectTransition(ctx.root, deps.sessionId, skipped, "settled", "none");
+        state.workItemStates.push("stopped");
       }
       await checkpointToolTranscript(deps.sessionId, messages);
       break;
     }
     if (toolBudgetClosure && !isToolAllowedDuringClosure(call.name)) {
       const output = "Not executed: broad search and browser acquisition are closed for this turn. Finish from the evidence already collected.";
-      const outcome: DispatchOutcome = { executed: false, empty: false, ok: false, output, effectDisposition: "none" };
+      const outcome: DispatchOutcome = {
+        executed: false,
+        empty: false,
+        ok: false,
+        output,
+        effectDisposition: "none",
+        workItemState: "stopped",
+      };
       batch.push({ name: call.name, ok: false, output });
       state.toolNames.push(call.name);
       state.toolIterations++;
@@ -137,7 +145,14 @@ async function processToolCalls(args: ProcessToolCallsArgs): Promise<{ stuckTool
     } catch (error) {
       const disposition = interruptedDisposition(call, executionStarted);
       const synthetic = interruptedToolResult(call, disposition);
-      outcome = { executed: executionStarted, empty: false, ok: false, output: `${synthetic.content}\nError: ${error instanceof Error ? error.message : String(error)}`, effectDisposition: disposition };
+      outcome = {
+        executed: executionStarted,
+        empty: false,
+        ok: false,
+        output: `${synthetic.content}\nError: ${error instanceof Error ? error.message : String(error)}`,
+        effectDisposition: disposition,
+        workItemState: disposition === "unknown" ? "unverified" : "failed",
+      };
     }
     batch.push({ name: call.name, ok: outcome.ok, output: outcome.output });
     state.toolNames.push(call.name);
@@ -146,7 +161,14 @@ async function processToolCalls(args: ProcessToolCallsArgs): Promise<{ stuckTool
     const reactive = compactOversizedResult(outcome.output, { contextWindow: deps.provider.contextWindow() });
     if (reactive.tokensSaved) state.tokensSaved += reactive.tokensSaved;
     messages.push({ role: "tool", toolCallId: call.id, name: call.name, content: reactive.output, effectDisposition: outcome.effectDisposition });
-    await persistEffectTransition(ctx.root, deps.sessionId, call, "settled", outcome.effectDisposition);
+    await persistEffectTransition(
+      ctx.root,
+      deps.sessionId,
+      call,
+      "settled",
+      outcome.effectDisposition,
+      outcome.workItemState,
+    );
     await checkpointToolTranscript(deps.sessionId, messages);
     await logToolOutcome(deps, call.name, outcome.ok, reactive.output.length);
     const stuck = recordToolOutcome(state, call, outcome, deps);
@@ -185,7 +207,15 @@ async function handleNoToolCalls(args: NoToolCallsArgs): Promise<AgentOutcome | 
       messages.push({ role: "user", content: buildContinueNudge(state.openTodoCount) });
       return null;
     }
-    return { finalText: shown, iterations: iter, stoppedReason: "done", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
+    return {
+      finalText: shown,
+      iterations: iter,
+      stoppedReason: "done",
+      toolIterations: ti(),
+      usage: usage(),
+      tokensSaved: ts(),
+      completionState: turnCompletionState(state, "done"),
+    };
   }
   messages.push({ role: "assistant", content: "" });
   messages.push({ role: "user", content: "You returned nothing. State your result or call a tool." });
@@ -220,6 +250,7 @@ async function terminalOutcome(args: {
     iterations: iter,
     stoppedReason: reason,
     toolIterations: state.toolIterations,
+    completionState: turnCompletionState(state, reason),
     usage: state.sawUsage ? { ...state.turnUsage } : undefined,
     tokensSaved: state.tokensSaved > 0 ? state.tokensSaved : undefined,
   };

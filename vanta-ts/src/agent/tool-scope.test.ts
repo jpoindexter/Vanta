@@ -5,6 +5,9 @@ import { buildToolSearchTool } from "../tools/tool-search.js";
 import type { ToolSchema, LLMProvider, CompletionResult } from "../providers/interface.js";
 import type { SafetyClient } from "../safety-client.js";
 import { scopeToolSchemas, toolScopeSummary } from "./tool-scope.js";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 function schema(name: string, description = `${name} tool`): ToolSchema {
   return { name, description, parameters: { type: "object", properties: {} } };
@@ -93,6 +96,7 @@ describe("per-task tool scoping", () => {
   });
 
   it("exposes a searched tool's full schema on the next provider call", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-tool-scope-"));
     const registry = new ToolRegistry();
     for (const s of manySchemas) registry.register({ schema: s, execute: async () => ({ ok: true, output: "" }) });
     registry.register(buildToolSearchTool(registry));
@@ -116,13 +120,16 @@ describe("per-task tool scoping", () => {
       provider,
       safety: fakeSafety,
       registry,
-      root: "/x",
+      root,
       requestApproval: async () => true,
     });
 
-    await convo.send("use a deferred calendar tool");
-
-    expect(seen[0]).not.toContain("calendar_create");
-    expect(seen[1]).toContain("calendar_create");
+    try {
+      await convo.send("use a deferred calendar tool");
+      expect(seen[0]).not.toContain("calendar_create");
+      expect(seen[1]).toContain("calendar_create");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 });

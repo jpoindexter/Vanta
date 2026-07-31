@@ -22,6 +22,10 @@ export function desktopUrl(port: number): string {
   return `http://127.0.0.1:${port}`;
 }
 
+export function authenticatedDesktopUrl(url: string, boundaryToken: string): string {
+  return `${url.replace(/\/$/, "")}/#boundary=${encodeURIComponent(boundaryToken)}`;
+}
+
 export function parseDesktopLaunchArgs(args: string[], env: NodeJS.ProcessEnv = process.env): DesktopLaunchPlan {
   const portArg = args.find((arg) => /^\d+$/.test(arg));
   const port = parsePort(portArg ?? env.VANTA_DESKTOP_PORT);

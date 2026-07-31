@@ -5,10 +5,19 @@ import type { ToolCall } from "../types.js";
 import type { ContextInspection } from "./inspect-context.js";
 import type { PermissionMode } from "../modes/permission-mode.js";
 import type { AskQuestion, AskUserResponse } from "./ask-user-model.js";
+import type { ReceiptDisposition } from "../work-items/contract.js";
 
 export type { DiffLine };
 
-export type ToolResult = { ok: boolean; output: string; diff?: DiffLine[] };
+export type ToolResult = {
+  ok: boolean;
+  output: string;
+  diff?: DiffLine[];
+  /** Explicit effect truth. Omitted mutators fail conservatively toward unknown. */
+  effectDisposition?: ReceiptDisposition;
+  /** Only executed readback/proof may set verified. Success alone stays unverified. */
+  verification?: { status: "unverified" | "verified"; evidence?: string };
+};
 
 export type ToolContext = {
   root: string;

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -17,6 +17,53 @@ describe("shell_cmd local execution", () => {
     const r = await shellCmdTool.execute({ command: "echo hello-vanta" }, ctx());
     expect(r.ok).toBe(true);
     expect(r.output).toContain("hello-vanta");
+  });
+
+  it("does not expose provider credentials inherited by the Vanta process", async () => {
+    const previous = process.env.OPENAI_API_KEY;
+    process.env.OPENAI_API_KEY = "should-never-reach-shell";
+    try {
+      const r = await shellCmdTool.execute({ command: 'printf "${OPENAI_API_KEY-unset}"' }, ctx());
+      expect(r.ok).toBe(true);
+      expect(r.output).toContain("unset");
+      expect(r.output).not.toContain("should-never-reach-shell");
+    } finally {
+      if (previous === undefined) delete process.env.OPENAI_API_KEY;
+      else process.env.OPENAI_API_KEY = previous;
+    }
+  });
+
+  it.runIf(process.platform === "darwin")("cannot read project .env through the default sandbox", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-shell-secret-"));
+    const previous = process.env.VANTA_SHELL_SANDBOX;
+    try {
+      process.env.VANTA_SHELL_SANDBOX = "1";
+      await writeFile(join(root, ".env"), "PROJECT_SECRET=should-never-reach-shell\n", "utf8");
+      const r = await shellCmdTool.execute({ command: "cat .env" }, ctx(root));
+      expect(r.output).not.toContain("should-never-reach-shell");
+      expect(r.ok).toBe(false);
+    } finally {
+      if (previous === undefined) delete process.env.VANTA_SHELL_SANDBOX;
+      else process.env.VANTA_SHELL_SANDBOX = previous;
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it.runIf(process.platform === "darwin")("cannot overwrite project .env through the default sandbox", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-shell-secret-write-"));
+    const previous = process.env.VANTA_SHELL_SANDBOX;
+    const envPath = join(root, ".env");
+    try {
+      process.env.VANTA_SHELL_SANDBOX = "1";
+      await writeFile(envPath, "PROJECT_SECRET=original\n", "utf8");
+      const r = await shellCmdTool.execute({ command: "printf hacked > .env" }, ctx(root));
+      expect(r.ok).toBe(false);
+      expect(await readFile(envPath, "utf8")).toBe("PROJECT_SECRET=original\n");
+    } finally {
+      if (previous === undefined) delete process.env.VANTA_SHELL_SANDBOX;
+      else process.env.VANTA_SHELL_SANDBOX = previous;
+      await rm(root, { recursive: true, force: true });
+    }
   });
 
   it("marks mdfind's zero-exit fatal query diagnostic as a failure", () => {
