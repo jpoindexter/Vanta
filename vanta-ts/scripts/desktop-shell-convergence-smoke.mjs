@@ -206,7 +206,10 @@ try {
   }
   if (await page.getByRole("toolbar", { name: "Task controls" }).count()) throw new Error("Permanent task-control toolbar returned");
   if (await page.locator(".desktop-statusbar").count()) throw new Error("Permanent desktop status bar returned");
-  const fixtureMessage = page.getByText(/Make the desktop shell feel like a serious operator workbench/);
+  const fixtureMessage = page
+    .locator(".message.user .message-content")
+    .filter({ hasText: "Make the desktop shell feel like a serious operator workbench" })
+    .first();
   if (!await fixtureMessage.isVisible().catch(() => false)) {
     const fixtureSession = page.locator(".session-list .session").filter({ hasText: "Ship the desktop workbench" });
     await fixtureSession.waitFor();
