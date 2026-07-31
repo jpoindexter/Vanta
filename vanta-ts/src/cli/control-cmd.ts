@@ -57,7 +57,12 @@ export function formatDoctor(d: DesktopDoctor): string {
 }
 
 /** Injected seams for {@link runControlCommand}. */
-export type ControlDeps = { log?: (l: string) => void; run?: CmdRunner; openPane?: typeof openPrivacyPane };
+export type ControlDeps = {
+  log?: (l: string) => void;
+  run?: CmdRunner;
+  openPane?: typeof openPrivacyPane;
+  platform?: NodeJS.Platform;
+};
 
 /**
  * `vanta control` (default `setup`) opens the Screen Recording + Accessibility
@@ -66,7 +71,7 @@ export type ControlDeps = { log?: (l: string) => void; run?: CmdRunner; openPane
  */
 export async function runControlCommand(repoRoot: string, rest: string[], deps: ControlDeps = {}): Promise<number> {
   const log = deps.log ?? console.log;
-  const d = desktopControlDoctor(deps.run ?? realRun);
+  const d = desktopControlDoctor(deps.run ?? realRun, deps.platform ?? process.platform);
   if ((rest[0] ?? "setup") === "doctor") {
     log(formatDoctor(d));
     return d.ready ? 0 : 1;

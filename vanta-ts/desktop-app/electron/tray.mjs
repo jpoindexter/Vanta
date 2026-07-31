@@ -1,9 +1,9 @@
 export function createTrayController(deps) {
-  const { Tray, Menu, nativeImage, dialog, clipboard, BrowserWindow, app, baseUrl, boundaryToken = "", preload, fetchImpl = fetch } = deps;
+  const { Tray, Menu, nativeImage, dialog, clipboard, BrowserWindow, app, baseUrl, boundaryToken = "", preload, fetchImpl = fetch, platform = process.platform } = deps;
   const desktopHeaders = boundaryToken ? { "x-vanta-desktop-boundary": boundaryToken } : {};
   // NSActionTemplate is a fixed, visually heavy circled glyph on current macOS and
   // ignores pointSize. Use the scalable SF Symbol so the status item stays compact.
-  const icon = process.platform === "darwin"
+  const icon = platform === "darwin"
     ? nativeImage.createFromNamedImage("ellipsis", { pointSize: 13, weight: "semibold" })
     : nativeImage.createEmpty();
   icon.setTemplateImage?.(true);

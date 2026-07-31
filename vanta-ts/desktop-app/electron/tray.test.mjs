@@ -17,6 +17,7 @@ describe("tray controller", () => {
       Tray: FakeTray, Menu: { buildFromTemplate: (items) => items },
       nativeImage: { createFromNamedImage, createEmpty: () => ({}) },
       dialog, clipboard, BrowserWindow: FakeWindow, app: { quit() {} }, baseUrl: "http://127.0.0.1:7790", fetchImpl,
+      platform: "darwin",
     });
     expect(createFromNamedImage).toHaveBeenCalledWith("ellipsis", { pointSize: 13, weight: "semibold" });
     await controller.refresh();
