@@ -9,7 +9,10 @@ sidebar_position: 7
 ## General
 
 **Is Vanta a chatbot?**
-No — it's a local trusted-operator agent. It knows the goal before it picks a tool, gates every action through an enforced kernel, and reports only what it verified. See [Introduction](./intro.md).
+No — it is a full-capability personal operator focused on trusted continuity.
+Its standard dispatcher consults a separate Rust kernel, while the current trust
+roadmap closes audited secondary paths and unifies evidence-derived completion.
+See [Introduction](./intro.md).
 
 **Does my data leave my machine?**
 Only if you use a cloud model or a network tool (web, comms, browser). Run fully local on Ollama — see [Self-host offline](./guides/self-host.md). State lives under `.vanta/` (per project) and `~/.vanta` (global).
@@ -18,7 +21,11 @@ Only if you use a cloud model or a network tool (web, comms, browser). Run fully
 OpenAI, Ollama, Anthropic, Gemini, OpenRouter. Switch with `vanta setup` or `/model`. See [Providers](./providers.md).
 
 **How is this safe?**
-A small Rust kernel classifies every action allow/ask/block and the agent can't bypass it (Rule Zero). See the [Safety model](./safety-model.md) and [Security features](./security.md).
+A small Rust kernel classifies standard-dispatch actions allow/ask/block and
+that path fails closed where exercised. Hooks, plugins, MCP, factory,
+schedulers, workers, credentials, and local APIs still need universal
+mediation. See the [Safety model](./safety-model.md) and [Security
+features](./security.md).
 
 ## Setup
 

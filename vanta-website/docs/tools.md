@@ -6,7 +6,12 @@ sidebar_position: 1
 
 # Tools
 
-Vanta ships **139 built-in tools** (142 registered, including the factory-built `mount_mcp`, `tool_search`, and `mcp_auth`). Every tool call is gated by the kernel before it runs. The model sees a per-turn scoped subset of the catalog; `tool_search` is always reachable to pull in the rest on demand.
+Vanta ships a large built-in catalog. Standard-dispatch tools call the Rust
+kernel before execution and fail closed when assessment is unavailable where
+that path has been exercised. The July 30 audit found secondary hook, plugin,
+MCP, factory, scheduler, worker, and extension effects that still need one
+authoritative gateway. The model sees a per-turn scoped subset of the catalog;
+`tool_search` can pull in the rest on demand.
 
 ## By category
 
@@ -38,7 +43,10 @@ Large tool outputs are optionally compressed before they hit the context window 
 
 ## How a tool is gated
 
-Each tool exposes a `describeForSafety(args)` that returns only the safety-relevant string (path or command). The kernel classifies it; the loop executes only on `allow`. See [the agent loop](./agent-loop.md).
+Each standard tool exposes a `describeForSafety(args)` safety description. The
+standard loop asks the kernel to classify it; current work is replacing
+incomplete descriptions and secondary effect paths with a complete normalized
+action envelope. See [the agent loop](./agent-loop.md).
 
 ## Adding your own
 

@@ -1,6 +1,23 @@
 # Product acceptance
 
-Updated 2026-07-29. This record separates executed behavior from static tests and external setup gates.
+Updated 2026-07-30. This record separates executed behavior from static tests,
+audited gaps, target contracts, and external setup gates. A prior receipt remains
+evidence for only its exact version, environment, path, and marker.
+
+The July 30 independent audit found release-blocking gaps in universal effect
+mediation, hook/control-plane isolation, credential environments, local API
+authentication, untrusted-content quarantine, receipt semantics, and dependency
+security. Documentation and roadmap changes do not fix those runtime gaps.
+
+## Current evidence boundary
+
+| Evidence | Observed result | Does not establish |
+|---|---|---|
+| Active-branch acceptance record | Executed paths below, including the newest TUI, Desktop, MSA, streaming-TTS, and startup evidence | Universal host/effect coverage or current market value |
+| Independent TypeScript audit | 1,499 files; 13,847 passed; 3 skipped | End-to-end safety, external providers, or packaged behavior |
+| Independent Rust audit | 70 passed | An unavoidable capability boundary across every effect path |
+| Standard dispatcher outage behavior | Failed closed where exercised | Mediation of hook, plugin, MCP, factory, scheduler, worker, or extension bypasses |
+| Independent production dependency audit | 14 high-severity advisories observed | Reachability or exploitability; each finding still needs disposition |
 
 ## Executed operator paths
 
@@ -52,7 +69,10 @@ The use-case catalog currently records 6 executed and 6 passed scenarios across 
 - Packaged performance proof: cold-start median plus per-sample hard ceiling, first-use, memory, CPU, and package-size budgets passed.
 - True-first-token proof: 40 live-provider samples passed baseline eligibility across CLI, TUI, gateway, and signed packaged Desktop; content-free receipts and per-stage p95 budgets are stored in `vanta-ts/scripts/fixtures/`.
 - Automatic compaction proof: real launcher, six TUI turns, automatic threshold, square-cell 25% phase, summary request, and resumed response passed.
-- Production npm audit: 0 vulnerabilities.
+- Historical production npm audit receipt: 0 vulnerabilities for the recorded
+  run. This is superseded as a current claim by the July 30 audit observation of
+  14 high-severity advisories; reachability, remediation, and a fresh clean run
+  remain open.
 - External `terminal-love` MCP: 94 tests passed and 0 production vulnerabilities after its Undici update.
 
 ## Release boundary
@@ -61,7 +81,112 @@ The public [v0.9.5 desktop artifact](https://github.com/jpoindexter/Vanta/releas
 
 The CLI/TUI visual answer is executed. The signed app's capture contracts are executed under automation, but a successful visual-model answer from that packaged bundle remains an external proof until macOS Screen Recording permission is granted to `studio.theft.vanta`. The clipboard proof exercises Electron's native clipboard bridge and the renderer paste path; it does not establish macOS Command-V keyboard delivery.
 
-Provider credentials, physical devices, and third-party accounts remain separate external gates. Run `vanta roadmap proof-status` for the exact ten parked proofs.
+Provider credentials, physical devices, and third-party accounts remain separate external gates. Run `vanta roadmap proof-status` for the eleven gates: one currently ready and ten pending.
+
+## Canonical lifecycle and authority contract
+
+WorkItems use exactly:
+
+```text
+draft
+queued
+running
+waiting
+needs human
+stopped
+failed
+unverified
+verified
+```
+
+Captured, Now, Waiting, Needs You, and Done are UI projections only: Captured →
+`draft`; Now → `queued` or `running`; Waiting → `waiting`; Needs You → `needs
+human`; Done → `verified`. `denied`, `expired`, `unknown`, and `compensated`
+belong to Action/Receipt disposition, not WorkItem state. Model narration and
+stop reasons cannot promote a WorkItem to `verified`.
+
+The operational spine is WorkItem, Run, Approval, Receipt, provenance-bearing
+memory, follow-up, and resume context. An effect requires provider readback,
+artifact hashes, deterministic readback, or equivalent external evidence.
+
+`R0`–`R5` are reserved exclusively for autonomy:
+
+1. **R0 — Observe:** read, classify, and report; no mutation.
+2. **R1 — Recommend:** identify the outcome and propose one next action; no mutation.
+3. **R2 — Prepare:** create private, reversible drafts, tasks, notes, reminders, or isolated artifacts.
+4. **R3 — Confirm:** show the exact action preview and require fresh one-use authority.
+5. **R4 — Delegate:** run an allowlisted recurring workflow within explicit target, account, recipient, quota, budget, expiry, exclusions, cancellation, and review bounds.
+6. **R5 — Autonomous delegate:** in a proven bounded domain, initiate, chain, coordinate, communicate with permitted parties, monitor, reconcile, follow up, and recover without per-step approval.
+
+`E0`–`E5` is currently a reserved consequence namespace, not an operative
+runtime classifier; no E label grants autonomy or substitutes for the kernel's
+`Allow | Ask | Block` decision.
+
+## Complete universal-design acceptance
+
+- No flow depends on “visualize the outcome.” Previews, examples, frames,
+  timelines, before/after states, ordered steps, observable attributes, literal
+  spatial descriptions, and references make state concrete.
+- Meaning is never color-only. Text, icons, shapes, position, programmatic
+  labels, high contrast, color-vision support, and reduced motion are required.
+- Streaming and auto-scroll are optional; reading position and stable layout
+  persist; summaries precede detail.
+- Capacity is cognitive, attentional, sensory, social, emotional, physical, and
+  time-related, and may be `unknown`.
+- Transient observations expire or are reviewed. Preferences and capacity never
+  silently become identity.
+- Literal controls include `do it`, `show me`, `snooze`, `skip`, and `off`.
+  Refusal works for the current session, repeated pattern/workflow, and global
+  support.
+- Quiet hours and interruption budgets are honored without bargaining, shame,
+  nagging, coercive language, streak punishment, backlog dumps, or catch-up
+  punishment.
+- Exact resume context survives interruption, shutdown, failure, waiting, and
+  capacity change without transcript reconstruction.
+
+## Human relationship and portable-export acceptance
+
+Trusted-person collaboration remains horizon-only. It requires granular
+bilateral consent, private/shared boundaries, provenance and authorship, burden
+and notification controls, exact role/authority scope, review/revocation/expiry,
+visibility into what was shared and why, and safeguards against coercion,
+surveillance, triangulation, or one-sided authority.
+
+Portable export may include user-owned records and artifacts. It must not restore
+credentials, OAuth refresh tokens, approval authority, standing grants or
+capabilities, signing material, protected audit/control state, trusted-device
+status, or safety-root/policy authority. The destination requires fresh account
+binding, review, and explicit reauthorization.
+
+## Explicit unresolved trust blockers
+
+1. Project hooks can convert project-state writes into unsandboxed execution.
+2. Hooks may use `shell: true` and inherit the host environment.
+3. Shell/code subprocesses may inherit secrets and read control files.
+4. `.vanta` control-plane and audit material remains agent-reachable.
+5. Some Desktop/API paths may lack mandatory authentication.
+6. Origin and local-boundary checks need exact validation.
+7. Plugin, MCP, hook, factory, scheduler, worker, and extension effects are not
+   universally brokered.
+8. Approvals are not fully bound to actor, account, normalized arguments,
+   target state, content, nonce, expiry, and one use.
+9. Gmail `to` and `subject` need CR/LF rejection before MIME construction and
+   authorization hashing.
+10. Gmail, Calendar, and Drive scopes must be separate and incremental.
+11. Life mutations need preconditions, idempotency, provider readback,
+    immutable IDs, and compensation where possible.
+12. External content is untrusted data, never authority.
+13. Completion and memory can still be laundered from polished narration.
+14. Memory needs provenance and cannot promote model inference to user fact.
+15. Factory/Git/self-repair needs isolated worktrees, scrubbed environments,
+    bounded diffs, frozen tests/evaluators, receipts, rollback, and
+    human-approved promotion, merge, and deployment.
+16. Dependency audit and full lint remain unresolved until independently rerun
+    and fixed.
+
+No unattended high-consequence effect is accepted until exact authority,
+transaction integrity, verification, receipts, reversal or compensation,
+review, and revocation pass end to end.
 
 ## Reproduce
 

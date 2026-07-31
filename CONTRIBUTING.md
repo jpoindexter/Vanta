@@ -1,8 +1,9 @@
 # Contributing to Vanta
 
-Thanks for your interest. Vanta is a local, trusted-operator AI agent — a Rust safety
-kernel that enforces the boundary, and a TypeScript agent loop that gates every action
-through it. Contributions are welcome, from typo fixes to new adapters.
+Thanks for your interest. Vanta is a trusted personal operator with a Rust
+kernel intended as the root of trust and a TypeScript agent loop whose standard
+dispatcher consults it. Audited secondary effect paths remain active security
+work. Contributions are welcome, from typo fixes to new adapters.
 
 By participating you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).
 
@@ -25,11 +26,12 @@ cd vanta-ts && npm install
 | Path | What |
 |------|------|
 | `src/` | **`vanta-kernel`** — Rust, zero-dependency. The enforced security boundary: risk classifier, approvals, goals, events, HTTP sidecar. |
-| `vanta-ts/` | **`vanta`** — TypeScript agent loop: LLM providers, tools, prompt. Gates every action through the kernel. |
+| `vanta-ts/` | **`vanta`** — TypeScript agent loop: LLM providers, tools, prompt, and standard kernel-directed dispatch. |
 | `docs/` | PRD, architecture, design notes. |
 
-The kernel is the boundary — `assess()` is a gate, not a suggestion. The TS layer
-orchestrates but **cannot bypass the kernel**. Keep it that way.
+The kernel is the intended boundary — `assess()` is a gate on paths that call
+it. New effects must enter one trusted gateway; do not add a secondary path.
+See the current gaps in `docs/product-acceptance.md`.
 
 ## Run it
 

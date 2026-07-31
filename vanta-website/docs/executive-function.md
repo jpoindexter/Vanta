@@ -6,11 +6,11 @@ sidebar_position: 7
 
 # Executive-function support
 
-Vanta is neurodivergent-first without requiring a diagnosis or a personal biography. Executive-function support is part of the core system prompt and works automatically in every normal session; it is not something you must install or invoke.
+Vanta uses disability-led curb-cut universal design without requiring a diagnosis or a personal biography. Executive-function support is intended as default product behavior for anyone whose current attention, memory, time, or capacity is finite; it is not an optional diagnosis mode.
 
 In Auto mode, a deterministic per-turn router responds to explicit situational language and observable task friction. Saying “I'm stuck,” “this is too much,” “what's next,” “I can't start,” or correcting a missed instruction makes Vanta reduce choices, externalize the current state, and begin or identify one safe reversible action. Broad multi-step tasks automatically receive one active step instead of an expanding plan.
 
-Vanta also monitors its own tool loop. If an action request produces six research-only calls, or a tool approach starts repeating or failing, the harness privately redirects the model toward a materially different executable step. The directive is bounded to one redirect and is not added to the visible or saved conversation. These adaptations are turn-local: Vanta does not infer or store a diagnosis, personality, or durable capacity from how you write.
+Current runtime gates also monitor tool-loop proxies such as repeated calls and research-only turns. The July 30 audit found these proxies development-centric: legitimate research can be an outcome, and file writes or commits do not prove closure. The target contract is outcome-aware and uses owner, next action, blocker/waiting condition, time/capacity fit, drift, resume context, and truthful evidence. These adaptations must not infer or store diagnosis, personality, or durable capacity from writing style.
 
 ## Set current support
 
@@ -38,7 +38,7 @@ When capacity is low, Vanta keeps safety and the requested function, defers opti
 
 Profiles persist at `~/.vanta/nd-profile.json`. Existing profiles gain the current-state fields as `auto`, preserving previous behavior.
 
-## Long-session gates
+## Current long-session gates
 
 | Gate | When it fires |
 |------|---------------|
@@ -52,7 +52,7 @@ Profiles persist at `~/.vanta/nd-profile.json`. Existing profiles gain the curre
 | **Time blindness** | An enabled elapsed-time checkpoint becomes due |
 | **Velocity** | Capturing work is outpacing shipping it |
 
-Each gate is best-effort and isolated so a support failure never breaks the task loop.
+Each gate is best-effort and isolated so a support failure never breaks the task loop. Their presence is not proof of cross-surface support; Desktop, TUI, messaging, background, dismissal, expiry, and restart behavior remain acceptance work.
 
 ## Reusable skills
 
@@ -68,4 +68,12 @@ The methods synthesize work by Dawson and Guare, Kolberg and Nadeau, KC Davis, T
 - Current state is explicit, temporary in meaning, and always overridable
 - Simple requests remain simple; support must not become another maintenance burden
 
-Desktop support controls and automatic session expiry are tracked separately on the roadmap.
+The current roadmap consolidates Desktop controls, automatic expiry, pre-action timing, dismissals, quiet hours, recovery-day behavior, aphantasia-safe previews, non-color output, and host conformance into the UX/EVAL acceptance contract rather than exposing a new mode or dashboard.
+
+Trusted-person collaboration remains horizon-only. It requires granular
+bilateral consent; private/shared boundaries; provenance and authorship; burden
+and notification controls; exact role and authority scope; review, revocation,
+and expiry; visibility into what was shared and why; and safeguards against
+coercion, surveillance, triangulation, or one-sided authority. Vanta complements
+human relationships; it does not replace, isolate, monopolize, or impersonate
+people.

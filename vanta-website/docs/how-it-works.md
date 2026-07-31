@@ -6,7 +6,11 @@ sidebar_position: 1
 
 # How it works
 
-Vanta is two cooperating processes — a small **Rust kernel** that decides what's safe, and a **TypeScript agent** that orchestrates the model and tools. The agent cannot act without the kernel's verdict.
+Vanta's standard path uses two cooperating processes — a small **Rust kernel**
+that classifies submitted actions and a **TypeScript agent** that orchestrates
+the model and tools. The current trust work is to route every secondary effect
+through this contract; the standard path is evidence, not proof that all
+secondary paths are already mediated.
 
 ## System overview
 
@@ -37,7 +41,10 @@ flowchart TB
   agent --- events
 ```
 
-The kernel exposes a local HTTP sidecar on `127.0.0.1:7788`; the agent calls `assess` before **every** tool execution.
+The kernel exposes a local HTTP sidecar on `127.0.0.1:7788`; the standard tool
+dispatcher calls `assess` before execution. Hook, plugin, MCP, factory,
+scheduler, worker, extension, credential, and local-API coverage remains under
+audit.
 
 ## One turn, step by step
 
@@ -65,8 +72,14 @@ sequenceDiagram
   T-->>A: result {ok, output}
   A->>L: append result, continue
   L-->>A: final text
-  A-->>U: verified answer
+  A-->>U: answer + available per-tool evidence state
 ```
+
+Successful tool execution is not automatically verified completion. Individual
+tools may provide deterministic readback evidence; otherwise consequential
+success settles `unverified`. The separate post-turn LLM completion verifier is
+opt-in via `VANTA_VERIFY=1`, runs after the response, and does not make verified
+completion a default loop invariant.
 
 ## The safety decision
 

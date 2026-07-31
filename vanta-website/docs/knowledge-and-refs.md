@@ -86,3 +86,9 @@ vanta corpus vault-export --vault ~/Documents/Notes --apply
 
 The export writes raw source pages under `raw/corpus/`, linked source pages under
 `wiki/corpus/`, and entity wiki-links without altering the corpus index.
+
+Portable data is not portable authority. An export must not restore or transfer
+credentials, OAuth refresh tokens, approval authority, standing grants or
+capabilities, signing material, protected audit/control state, trusted-device
+status, or safety-root/policy authority. A destination requires fresh account
+binding, review, and explicit reauthorization.

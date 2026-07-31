@@ -6,7 +6,9 @@ sidebar_position: 3
 
 # Editor & API integrations
 
-Beyond [MCP](./mcp.md), Vanta exposes two local servers so other tools can use it — both locally bound and kernel-gated.
+Beyond [MCP](./mcp.md), Vanta exposes local servers so other tools can use it.
+Loopback binding is not authentication; each surface has its own documented
+boundary, and generic local API/origin coverage remains trust work.
 
 ## Service integrations
 
@@ -43,7 +45,9 @@ It writes an `agent.json` capability registry at the repo root and serves:
 - `POST /run` — execute an instruction, return the response
 - `GET /status` — health
 
-Every action still goes through the kernel — the editor can't do anything the agent couldn't.
+Requests enter the standard agent dispatcher, which consults the kernel where
+verified. This does not make the editor endpoint an independent trust boundary
+or prove secondary effects are mediated.
 
 ## OpenAI-compatible proxy
 

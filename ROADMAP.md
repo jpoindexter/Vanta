@@ -1,8 +1,45 @@
-# Vanta Roadmap — v0 (done) → v1
+# Vanta roadmap — current projection and historical archive
 
-Source of truth for build order. One line moves between `[ ]`/`[~]`/`[x]` as slices land.
-North star / why: [`MANIFESTO.md`](MANIFESTO.md). Vision + rationale: `docs/prd.md`.
-Runtime flow: `docs/vanta-flow.md`. Locked choices: `DECISIONS.md`. Deferred: `PARKED.md`.
+`roadmap.json` is the only product-development work database. This file keeps
+historical narrative and does not override the JSON, `STRATEGY.md`, or
+`DECISIONS.md`.
+
+## Current converged build order — 2026-07-30
+
+**Building**
+
+1. `TRUST-02` — urgent hook, environment, authentication, and control-plane
+   trust closure.
+2. `UX-03` — one safe local/read-only capture → recommendation/prepared action
+   → waiting/resume → real restart/re-entry journey.
+
+**Next**
+
+1. `TRUST-04` — one evidence-derived WorkItem/Run/Approval/Receipt contract.
+2. `TRUST-01` — inventory every effect path and establish one trusted gateway.
+3. `OP-01` — minimal canonical operator spine and lossless legacy projection.
+4. `GROW-01` — manual interviews and bounded continuity pilots; no source
+   implementation or mass outreach.
+
+The 28 destination outcomes are a dependency/acceptance catalog, not 28
+simultaneous projects. Open inventory is capped at 12, Next at 4,
+implementation-ready at 6, and Building at 2.
+
+```text
+TRUST-01 TRUST-02 TRUST-03 TRUST-04 TRUST-05 TRUST-06
+OP-01 OP-02 OP-03 OP-04 OP-05
+UX-01 UX-02 UX-03 UX-04
+LIFE-01 LIFE-02 LIFE-03 LIFE-04
+GROW-01 GROW-02 GROW-03 GROW-04 GROW-05
+PACK-01 LAB-01 EVAL-01 DOGFOOD-01
+```
+
+## Historical narrative below
+
+The sections below are retained as product and implementation provenance. Old
+instructions to commit, push, “finish everything,” treat R labels as risk or
+autonomy variants, or claim universal kernel/completion behavior are
+superseded by current strategy and acceptance evidence.
 
 ---
 

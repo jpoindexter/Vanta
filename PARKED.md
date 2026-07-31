@@ -86,3 +86,30 @@ Agentic Harness Engineering (https://github.com/china-qijizhifeng/agentic-harnes
 
 ## Reference-agent cloud/platform half — against local-first (2026-06-16)
 Extracted the local-compatible operator slice of a reference agent into 5 horizon cards (VANTA-KANBAN/-BLUEPRINTS/-SKILLS-HUB/-COST-GUARD/-SUGGESTIONS). The rest is **parked, deliberately** — it's the opposite of Vanta's north star (local-first, kernel-gated, no platform, no SaaS): cloud/serverless terminal backends (Modal, Daytona, Singularity, cloud-VM, hibernate-wake), the 6 comms platforms beyond Vanta's scope (already parked, Rule of 3), the web dashboard + account/subscription, and the batch trajectory/datagen pipeline (already parked). Most of that operator surface (cron, webhooks, comms, brain, skills, sessions, subagents, MCP, providers, profiles, voice, pairing, cost tracking) Vanta already has.
+
+## Total-realignment parks (2026-07-30)
+
+The controlling correction started from active commit
+`a751cb17dcb768097798b4278882a64103527811`, not stale `origin/main`. It
+preserved all 1,319 active records and parked all 22 cards that were open on
+that active baseline. They were not deleted; their complete IDs, bodies,
+dependencies, sources, and prior notes remain in `roadmap.json`.
+
+Dispositions:
+
+- browser workflow action → hidden behind intent and dependency-gated by
+  TRUST-03/TRUST-05;
+- streaming audio, native-runtime, startup/stream performance, and EF support
+  controls/expiry →
+  consolidated into UX-03/UX-04/EVAL-01;
+- gateway delivery obligation → consolidated into OP-04/TRUST-04;
+- reward-seeking research/evaluation/release cards → deferred to LAB-01/EVAL-01,
+  with evaluator-integrity requirements retained under TRUST-06.
+- integration-state, Trello, Dropbox, and Box/Drive/Rovo connector work →
+  deferred behind TRUST-01/LIFE-01/PACK-01.
+
+The complete 22-card one-to-one mapping is in
+`docs/strategy-realignment-correction-2026-07-30.md`. The earlier
+`docs/strategy-realignment-2026-07-30.md` records the superseded stale-baseline
+first pass. Revival requires its canonical dependency and acceptance owner to
+be active; do not revive a duplicate product lane.

@@ -6,7 +6,11 @@ sidebar_position: 1
 
 # MCP integration
 
-Vanta speaks the Model Context Protocol both directions — it mounts other MCP servers as tools, and it can expose itself as an MCP server. Either way, every call stays kernel-gated.
+Vanta speaks the Model Context Protocol both directions — it mounts other MCP
+servers as tools, and it can expose a bounded allowlist as an MCP server.
+Standard mounted-tool dispatch and the read-only server path consult the kernel
+where documented; configuration, transport, mounting, and extension effects
+remain in the universal effect-path audit.
 
 ## Connector lifecycle
 
@@ -24,7 +28,11 @@ vanta mcp receipts
 
 A connector is not **Ready** until its transport test passes and project trust is explicit. OAuth connectors report **Needs setup** until authorization completes. Disabling writes the project-local MCP policy, so every Vanta host sees the same decision. Test, reconnect, trust, enable/disable, install, and import actions write credential-free receipts under `.vanta/mcp/`.
 
-The registry does not weaken execution safety. Trust decides whether a connector may mount; every MCP tool call still passes through the kernel, and a kernel `Block` cannot be overridden by connector settings.
+The registry does not weaken the standard execution path. Trust decides whether
+a connector may mount; mounted calls registered through the standard tool
+registry are assessed by the kernel, and connector settings cannot loosen a
+kernel `Block`. Same-run configuration, mounting, transport, and nonstandard
+extension effects remain in the universal effect-path audit.
 
 To deliberately mount enabled connectors at every session start, set
 `mcp.autoMount` to `true` in Vanta settings or export

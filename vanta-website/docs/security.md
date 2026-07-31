@@ -8,22 +8,34 @@ sidebar_position: 5
 
 Vanta is a **local trusted-operator agent**: it runs on your machine, with your credentials, and can read/write files, run shell, reach the network, and drive a browser. That power is the point — the security model **bounds** it, it doesn't remove it. This page summarizes the model and the [2026-06-20 pentest](#pentest--findings--fixes-2026-06-20); the full source of truth is [`SECURITY.md`](https://github.com/jpoindexter/Vanta/blob/main/SECURITY.md) in the repo.
 
-> **Rule Zero** — no deletes, overwrites, out-of-scope writes, or secret handling without explicit approval. Enforced by the kernel on every tool call.
+> **Rule Zero** is the target contract: no deletes, overwrites, out-of-scope
+> writes, or secret handling without explicit authority. Standard dispatch
+> consults the kernel; universal effect mediation is not yet proven.
 
 ## The boundary: a separate Rust kernel
 
-Every tool call goes `describeForSafety(args)` → kernel `assess()` → **Allow / Ask / Block**, out of process. The TypeScript agent loop can *tighten* a verdict (rules, auto-mode, operator profile) but can **never loosen a kernel Block** — and if the kernel is unreachable the gate **fails closed** (blocked, gracefully). The kernel enforces:
+Every standard-dispatch tool call goes `describeForSafety(args)` → kernel
+`assess()` → **Allow / Ask / Block**, out of process. That dispatcher can
+tighten a kernel verdict and has failed closed where tested. The July 30 audit
+found hook, plugin, MCP, factory, scheduler, worker, credential, and local-API
+paths that still need hard mediation. Within the kernel path:
 
 - **Risk classification** — destructive / data-loss / exfiltration → `Block`; exec-vectors, credential/system config, out-of-scope paths, irreversible ops → `Ask`; read-only / reversible in-scope work → `Allow`.
 - **Scope containment** — canonicalized path containment; `..` traversal, sibling-prefix (`/a/vanta-evil` vs `/a/vanta`), and symlink escapes are rejected.
-- **Protected paths** — the kernel's own source, `vanta-ts/src/factory/*`, and the manifesto are never agent-writable.
-- **Tamper-evident audit log** — every event is hash-chained (`h = sha256(secret_key + prev_h + payload)`) with a per-install key (`.vanta/audit.key`, `0600`); edits, inserts, reorders, and tail-truncation are all detectable.
+- **Protected paths on the standard mediated path** — the kernel blocks its own
+  source, `vanta-ts/src/factory/*`, and the manifesto. Direct/factory and
+  secondary write paths remain part of the universal mediation blocker.
+- **Tamper-evident audit log** — every event is hash-chained (`h = sha256(secret_key + prev_h + payload)`) with a per-install key (`.vanta/audit.key`, `0600`). Edits, inserts, and reorders are detectable. When the log, key, and keyed head anchor all exist and remain protected, the exercised verifier also detects tail truncation; current legacy missing-anchor and missing-log states remain accepted.
 
 ## The execution boundary — the honest part
 
 A keyword denylist over an English action description **cannot fully contain a shell.** `assess()` sees the *description*, not the live argv, so an obfuscated or interpreter-wrapped command (`$(...)`, `base64 -d | sh`, an off-list binary) can evade any denylist. The denylist is **defense-in-depth that raises the bar — not an airtight gate.**
 
-**The real execution boundary is the sandbox — ON BY DEFAULT** for `shell_cmd` and `self_correct` wherever an OS sandbox backend exists (macOS seatbelt — always present; Linux bwrap — if installed). It's **deny-default filesystem** (project root + writable zones + tmp only), so a sandboxed command **cannot read `~/.ssh` / credentials or write outside scope** — secret-exfil-by-file and host tampering are contained by default.
+The sandbox is a second containment layer for `shell_cmd` and `self_correct`
+where an OS backend actually applies. Its deny-default filesystem limits path
+reach, but this does not establish scrubbed environments, project
+secret/control-file isolation, or coverage of every shell-capable secondary
+path.
 
 - Network in the auto-default sandbox stays **on** (so `npm install` / `git` / `curl` keep working); the filesystem containment is the default win. Set **`VANTA_SANDBOX_NET=0`** for full containment (no outbound → no reverse shell). Reverse-shell binaries (`ncat`/`socat`/`nc`/`/dev/tcp`…) are additionally denylisted → `Ask`.
 - `VANTA_SHELL_SANDBOX=1` forces strict shell sandboxing (network denied by default); `VANTA_SANDBOX=1` also sandboxes `run_code`; `VANTA_EXEC_BACKEND=docker` runs in a container (`--network none` unless `VANTA_SANDBOX_NET=1`).
@@ -40,7 +52,10 @@ Vanta is often pointed at a repo you didn't write, which can carry config that's
 | Plugins | not loaded | `plugins.trustProjectPlugins` + `VANTA_ENABLE_PROJECT_PLUGINS=1` |
 | Hooks (`.vanta/hooks.json`) | **not loaded** | project trust / `VANTA_ENABLE_PROJECT_HOOKS=1` |
 
-User-scope config (`~/.vanta`) is always trusted (it's yours). Hook gating closed a zero-click RCE where a cloned repo's `.vanta/hooks.json` ran shell on session start.
+User-scope config (`~/.vanta`) is treated as trusted input. The project-trust
+gate blocks the previously demonstrated cloned-repo path, while same-run hook
+activation, `shell: true`, inherited environments, and model-controlled
+control-plane writes remain explicit blockers.
 
 ## Secrets & network
 
@@ -62,12 +77,19 @@ A full multi-surface pentest drove these fixes — all committed, tests green:
 - Raw tool output written to a world-readable, audit-sealed log → status + length only.
 - `~/.vanta` git store had no `.gitignore` → added.
 - No SSRF guard → `assertPublicUrl`.
-- Audit tail-truncation undetectable → keyed head anchor.
+- Audit tail-truncation evidence → keyed head anchor on initialized/protected
+  stores; fail-closed migration for legacy missing state remains open.
 - `git push --force` hidden from the kernel → flags surfaced so the `DATA_LOSS` Block fires.
 
 **Medium** — SSH `ProxyCommand` / leading-dash injection rejected; `.vanta` + audit-key perms; control-char escaping; a dead bash-classifier fixed.
 
-**Verified solid (do not regress):** kernel `Block` is monotonic through the whole gate chain; the JSON parser is bounded (no deep-nest / quadratic / panic); no prototype pollution; no ReDoS; npm **0 vulnerabilities**; the kernel is **zero-dependency**; MCP/plugin trust gates fail safe; the headless approver fails closed.
+**Executed June 20 receipts (do not overgeneralize):** kernel `Block` was
+monotonic through the exercised gate chain; the JSON parser was bounded; the
+reviewed paths found no prototype pollution or ReDoS; the kernel was
+zero-dependency; and the exercised MCP/plugin and headless-approval paths failed
+safe. The npm receipt at that snapshot reported 0 vulnerabilities. The July 30
+audit instead observed 14 high-severity production dependency advisories;
+current reachability and remediation require fresh disposition.
 
 ## Other concrete mechanisms
 

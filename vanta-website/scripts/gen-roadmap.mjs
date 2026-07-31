@@ -64,7 +64,7 @@ out.push(
   '',
 );
 out.push(
-  `_${shipped.length} capabilities shipped · ${inFlight.length} in flight · ${externalProof.length} external proof gates · ${horizon.length} on the horizon. Updated ${roadmap.updated || 'recently'}._`,
+  `_${shipped.length} capabilities shipped · ${inFlight.length} in flight · ${externalProof.length} parked external-proof items · ${horizon.length} on the horizon. Updated ${roadmap.updated || 'recently'}._`,
   '',
 );
 
@@ -85,8 +85,8 @@ for (const c of recent) {
 }
 out.push('');
 
-out.push('## External proof gates', '');
-out.push('Implemented locally, but not called shipped until the real provider, device, or hosted environment produces an accepted receipt.', '');
+out.push('## Parked external-proof items', '');
+out.push('These remain unshipped until the real provider, device, or hosted environment produces the evidence required by that card. Eleven are canonical machine-evaluated release gates; the remaining parked items are related proof work.', '');
 for (const c of externalProof) {
   out.push(`- **${clean(c.title)}** — ${c.track}`);
 }
