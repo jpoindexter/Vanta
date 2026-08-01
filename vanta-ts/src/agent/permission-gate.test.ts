@@ -357,6 +357,10 @@ describe("applySafetyGate + permissions", () => {
     expect(result.ok).toBe(false);
     expect(prompts).toBe(1);
     await expect(readFile(target, "utf8")).rejects.toThrow();
+    const approvals = (await readFile(join(home, ".vanta", "approvals.jsonl"), "utf8"))
+      .trim().split("\n").map((line) => JSON.parse(line));
+    expect(approvals.map((entry) => entry.state)).toEqual(["requested", "denied"]);
+    expect(approvals.every((entry) => /^[a-f0-9]{64}$/.test(entry.actionSha256))).toBe(true);
   });
 
   it("fullAccess cannot auto-confirm an exact project control-plane edit", async () => {

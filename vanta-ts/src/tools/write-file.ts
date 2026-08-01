@@ -30,7 +30,7 @@ async function confirmDangerousPath(
   for (const g of guards) {
     if (!g.hit) continue;
     if (!(await ctx.requestApproval(g.warning, g.reason, "write_file"))) {
-      return { ok: false, output: `write to ${path} denied — ${g.noun} left unchanged` };
+      return { ok: false, output: `write to ${path} denied — ${g.noun} left unchanged`, effectDisposition: "denied" };
     }
   }
   return null;
@@ -166,7 +166,7 @@ export const writeFileTool: Tool = {
       "write_file",
       controlPlane.detail,
     ))) {
-      return { ok: false, output: `write to ${path} denied — project control-plane state left unchanged` };
+      return { ok: false, output: `write to ${path} denied — project control-plane state left unchanged`, effectDisposition: "denied" };
     }
 
     const dangerous = await confirmDangerousPath(path, abs, ctx);

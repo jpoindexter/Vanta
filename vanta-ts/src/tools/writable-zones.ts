@@ -54,6 +54,10 @@ function isInRoot(canonAbs: string, root: string): boolean {
   return canonAbs === r || canonAbs.startsWith(r + sep);
 }
 
+type PathResolution =
+  | { ok: true; abs: string }
+  | { ok: false; abs: string; error: string; approvalAllowed?: false };
+
 // Dangerous-paths floor: an unconditional floor beneath zones, scope, AND approval
 // mode. These credential/system paths are NEVER readable or writable by the file
 // tools — distinct from configurable zones, and not overridable by auto-approve.
@@ -95,7 +99,7 @@ export function resolveReadablePath(
   rawPath: string,
   root: string,
   env: NodeJS.ProcessEnv,
-): { ok: true; abs: string } | { ok: false; abs: string; error: string } {
+): PathResolution {
   const path = expandHome(rawPath);
   const abs = canonicalPath(resolveInScope(path, root).path);
   const danger = isDangerousPath(abs);
@@ -104,7 +108,7 @@ export function resolveReadablePath(
   }
   const projectPolicy = projectPathPolicy(abs, root);
   if (projectPolicy.kind === "denied") {
-    return { ok: false, abs, error: `refused: ${path} is ${projectPolicy.reason} — protected from ordinary tool access` };
+    return { ok: false, abs, error: `refused: ${path} is ${projectPolicy.reason} — protected from ordinary tool access`, approvalAllowed: false };
   }
   if (!isInRoot(abs, root) && !isInZone(abs, resolveReadableZones(env, root).map(canonicalPath))) {
     return {
@@ -116,13 +120,12 @@ export function resolveReadablePath(
   return { ok: true, abs };
 }
 
-type PathResolution = { ok: true; abs: string } | { ok: false; abs: string; error: string };
 type AskFn = (action: string, reason: string, toolName?: string) => Promise<boolean>;
 
 /** Out-of-zone but not dangerous → ask the human; approval adds the dir to the
  *  session (same as /add-dir) and the access proceeds. Dangerous paths never ask. */
 async function resolveWithAsk(r: PathResolution, kind: "read" | "write", env: NodeJS.ProcessEnv, ask: AskFn): Promise<PathResolution> {
-  if (r.ok || isDangerousPath(r.abs).dangerous) return r;
+  if (r.ok || r.approvalAllowed === false || isDangerousPath(r.abs).dangerous) return r;
   const dir = dirname(r.abs);
   const approved = await ask(
     `${kind} ${r.abs}`,
@@ -154,7 +157,7 @@ export function resolveWritablePath(
   rawPath: string,
   root: string,
   env: NodeJS.ProcessEnv,
-): { ok: true; abs: string } | { ok: false; abs: string; error: string } {
+): PathResolution {
   const path = expandHome(rawPath);
   const abs = canonicalPath(resolveInScope(path, root).path);
   const danger = isDangerousPath(abs);
@@ -163,7 +166,7 @@ export function resolveWritablePath(
   }
   const projectPolicy = projectPathPolicy(abs, root);
   if (projectPolicy.kind === "denied") {
-    return { ok: false, abs, error: `refused: ${path} is ${projectPolicy.reason} — protected from ordinary tool access` };
+    return { ok: false, abs, error: `refused: ${path} is ${projectPolicy.reason} — protected from ordinary tool access`, approvalAllowed: false };
   }
   if (!isInRoot(abs, root) && !isInZone(abs, resolveWritableZones(env).map(canonicalPath))) {
     return {

@@ -183,6 +183,24 @@ describe("resolveWritablePath", () => {
 describe("resolve path with session approval", () => {
   const root = "/Users/x/Documents/GitHub/Vanta";
 
+  it("never lets approval override protected project credential or audit reads", async () => {
+    for (const path of [".env", ".vanta/audit.key", ".vanta/events.jsonl"]) {
+      let asked = false;
+      const result = await resolveReadablePathAsk(path, root, {}, async () => { asked = true; return true; });
+      expect(result.ok, path).toBe(false);
+      expect(asked, path).toBe(false);
+    }
+  });
+
+  it("never lets approval override protected project credential or audit writes", async () => {
+    for (const path of [".env", ".vanta/audit.key", ".vanta/events.jsonl"]) {
+      let asked = false;
+      const result = await resolveWritablePathAsk(path, root, {}, async () => { asked = true; return true; });
+      expect(result.ok, path).toBe(false);
+      expect(asked, path).toBe(false);
+    }
+  });
+
   it("approval adds an out-of-zone readable dir to the session and proceeds", async () => {
     const env = {} as NodeJS.ProcessEnv;
     const asked: Array<{ action: string; reason: string; toolName?: string }> = [];

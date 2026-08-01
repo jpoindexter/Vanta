@@ -4,6 +4,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { _electron as electron } from "playwright-core";
+import { assertDesktopBoundaryResults } from "./lib/trust-02-packaged-proof.mjs";
 
 const project = await mkdtemp(join(tmpdir(), "vanta-origin-project-"));
 const home = await mkdtemp(join(tmpdir(), "vanta-origin-home-"));
@@ -38,11 +39,26 @@ try {
   page.setDefaultTimeout(30_000);
   await page.locator(".app-shell").waitFor();
   const trustedUrl = page.url();
+  const trustedOrigin = new URL(trustedUrl).origin;
   const boundary = await page.evaluate(() => window.vantaDesktop?.boundaryToken ?? "");
   assert.equal(boundary.length, 64, "sandboxed preload should expose one per-launch boundary to the trusted renderer");
 
-  const untrustedRead = await fetch(`${new URL(trustedUrl).origin}/api/sessions`);
-  assert.equal(untrustedRead.status, 403, "a local caller without the launch boundary must not read desktop state");
+  const hostileRequests = [
+    ["missing-token read", "/api/sessions", {}],
+    ["missing-token chat", "/api/chat", post({ message: "write a hostile file" })],
+    ["missing-token terminal", "/api/terminal", post({ command: "touch hostile" })],
+    ["missing-token approval", "/api/approval", post({ id: "hostile", decision: "allow" })],
+    ["missing-token messaging", "/api/messaging", post({ id: "telegram", values: { token: "hostile" } })],
+    ["missing-token connector", "/api/connect/mcp", post({ action: "trust", name: "hostile" })],
+    ["missing-token draft", "/api/sessions/draft", post({ action: "save", id: "hostile", value: "hostile" })],
+    ["wrong-token draft", "/api/sessions/draft", post({ action: "save", id: "hostile", value: "hostile" }, { "x-vanta-desktop-boundary": "b".repeat(64) })],
+    ["hostile-origin draft", "/api/sessions/draft", post({ action: "save", id: "hostile", value: "hostile" }, { "x-vanta-desktop-boundary": boundary, origin: "http://127.0.0.1:65500" })],
+  ];
+  const hostile = [];
+  for (const [label, pathname, options] of hostileRequests) {
+    const response = await fetch(`${trustedOrigin}${pathname}`, options);
+    hostile.push({ label, status: response.status });
+  }
 
   await page.evaluate((target) => { window.location.href = target; }, hostileUrl);
   await page.waitForTimeout(250);
@@ -60,10 +76,34 @@ try {
   });
   assert.equal(normalRendererRead.status, 200);
   assert.ok(Array.isArray(normalRendererRead.body));
+  const untouchedDraft = await page.evaluate(async () => {
+    const response = await fetch("/api/sessions/draft", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-vanta-desktop-boundary": window.vantaDesktop?.boundaryToken ?? "" },
+      body: JSON.stringify({ action: "load", id: "hostile" }),
+    });
+    return { status: response.status, body: await response.json() };
+  });
+  assert.deepEqual(untouchedDraft, { status: 200, body: { exists: false, value: "" } });
+  assertDesktopBoundaryResults({
+    hostile,
+    trusted: [
+      { label: "trusted renderer read", status: normalRendererRead.status },
+      { label: "trusted draft readback", status: untouchedDraft.status },
+    ],
+  });
 
-  console.log(JSON.stringify({ packaged: Boolean(executablePath), launchBoundary: true, untrustedReadDenied: true, navigationDenied: true, windowDenied: true, trustedRendererPassed: true }));
+  console.log(JSON.stringify({ packaged: Boolean(executablePath), launchBoundary: true, hostileRequestsDenied: hostile.length, hostileMutationAbsent: true, navigationDenied: true, windowDenied: true, trustedRendererPassed: true }));
 } finally {
   await app?.close().catch(() => undefined);
   await new Promise((resolve) => hostile.close(resolve));
   await Promise.all([rm(project, { recursive: true, force: true }), rm(home, { recursive: true, force: true }), rm(userData, { recursive: true, force: true })]);
+}
+
+function post(body, headers = {}) {
+  return {
+    method: "POST",
+    headers: { "content-type": "application/json", ...headers },
+    body: JSON.stringify(body),
+  };
 }

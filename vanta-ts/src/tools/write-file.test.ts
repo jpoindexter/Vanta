@@ -47,6 +47,7 @@ describe("write_file shell-startup confirm (SHELL-STARTUP-WRITE-PROMPT)", () => 
     const ctx = makeCtx(root, async () => false);
     const result = await writeFileTool.execute({ path: ".bash_profile", content: "evil\n" }, ctx);
     expect(result.ok).toBe(false);
+    expect(result.effectDisposition).toBe("denied");
     expect(result.output).toContain("shell startup file left unchanged");
     expect(await fileExists(join(root, ".bash_profile"))).toBe(false);
   });
@@ -114,6 +115,7 @@ describe("write_file git-hooks confirm (VANTA-ACCEPTEDITS-HUSKY)", () => {
     const ctx = makeCtx(root, async () => false);
     const result = await writeFileTool.execute({ path: ".husky/pre-commit", content: "evil\n" }, ctx);
     expect(result.ok).toBe(false);
+    expect(result.effectDisposition).toBe("denied");
     expect(result.output).toContain("git-hooks file left unchanged");
     expect(await fileExists(join(root, ".husky/pre-commit"))).toBe(false);
   });
@@ -167,6 +169,7 @@ describe("write_file project control-plane confirmation", () => {
     }, makeCtx(root, async () => false));
 
     expect(result.ok).toBe(false);
+    expect(result.effectDisposition).toBe("denied");
     expect(result.output).toContain("project control-plane");
     expect(await fileExists(join(root, ".mcp.json"))).toBe(false);
   });

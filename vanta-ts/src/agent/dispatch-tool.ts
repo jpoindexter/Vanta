@@ -15,6 +15,7 @@ import { resolveOperatingMode } from "../modes/operating-mode.js";
 import { toolMayHaveSideEffects } from "./effect-disposition.js";
 import { settleWorkItem, type WorkItemState } from "../work-items/contract.js";
 import type { ToolResult } from "../tools/types.js";
+import { persistApprovalTransition } from "./effect-persistence.js";
 
 export type DispatchOutcome = {
   executed: boolean;
@@ -75,7 +76,7 @@ export async function dispatchTool(
   // CALL-AGENT-STREAM: give the tool a progress channel wired to the `note`
   // StreamEvent, so a long external call streams output/heartbeats mid-execution.
   const execCtx: ToolContext = {
-    ...executionContext(call.name, ctx, deps.forceFreshApproval?.() === true),
+    ...executionContext(call, deps, ctx, deps.forceFreshApproval?.() === true),
     effectCallId: call.id,
     sandboxWritableDirs: gateResult.sandboxWritableDirs,
     onProgress: (text) => deps.onEvent?.({ type: "note", text }),
@@ -216,16 +217,24 @@ function fireFailureHook(o: {
   void fireHooks(dataDir, "PostToolUseFailure", hookContext, opts);
 }
 
-function executionContext(toolName: string, ctx: ToolContext, forceFreshApproval = false): ToolContext {
-  if (forceFreshApproval) return ctx;
+function executionContext(call: ToolCall, deps: AgentDeps, ctx: ToolContext, forceFreshApproval = false): ToolContext {
   const mode = ctx.permissionMode?.() ?? resolvePermissionMode(process.env);
-  if (mode !== "fullAccess" && !acceptsEditsWithoutKernel(mode, toolName)) return ctx;
+  const autoApprove = !forceFreshApproval && (mode === "fullAccess" || acceptsEditsWithoutKernel(mode, call.name));
   return {
     ...ctx,
-    requestApproval: async (action, reason, requestedToolName, detail) => (
-      detail?.fresh
-        ? ctx.requestApproval(action, reason, requestedToolName, detail)
-        : true
-    ),
+    requestApproval: async (action, reason, requestedToolName, detail) => {
+      if (!detail?.fresh) {
+        return autoApprove ? true : ctx.requestApproval(action, reason, requestedToolName, detail);
+      }
+      await persistApprovalTransition(ctx.root, deps.sessionId, call, action, "requested");
+      try {
+        const approved = await ctx.requestApproval(action, reason, requestedToolName, detail);
+        await persistApprovalTransition(ctx.root, deps.sessionId, call, action, approved ? "approved" : "denied");
+        return approved;
+      } catch (error) {
+        await persistApprovalTransition(ctx.root, deps.sessionId, call, action, "expired");
+        throw error;
+      }
+    },
   };
 }
