@@ -34,29 +34,23 @@ export function useDesktopData() {
   const [error, setError] = useState("");
   const refresh = useCallback(async () => {
     const version = ++refreshVersion.current;
+    // First-frame data must not invoke ensureDesktopConversation: status/tools
+    // initialize the kernel, provider, plugins, and MCP. Load only shell data
+    // needed to make the composer usable, then start the deeper probes.
     const critical = Promise.allSettled([
-      api<Status>("/api/status"), api<Session[]>("/api/sessions"), api<Tool[]>("/api/tools"),
-      api<string[]>("/api/files"), api<Provider[]>("/api/models"),
+      api<Session[]>("/api/sessions"),
+      api<string[]>("/api/files"),
+      api<Provider[]>("/api/models"),
     ]);
-    const optional = Promise.allSettled([
-      api<CanvasArtifact | null>("/api/canvas").catch(() => null),
-      api<Capability[]>("/api/capabilities").catch(() => []), api<MessagingPlatform[]>("/api/messaging").catch(() => []), api<Artifact[]>("/api/artifacts").catch(() => []),
-      api<DesktopRuntime>("/api/runtime").catch(() => ({ selectedHostId: "local", hosts: [] })),
-      api<GoogleConnectStatus>("/api/connect/google").catch(() => ({ status: "needs_setup", clientConfigured: false, authorized: false, message: "Google Workspace status is unavailable." } as GoogleConnectStatus)),
-      api<ReleaseProofReport>("/api/release-proofs").catch(() => null),
-      api<ScheduledTask[]>("/api/schedules").catch(() => []),
-    ]);
-    const [statusResult, sessionsResult, toolsResult, filesResult, modelsResult] = await critical;
+    const [sessionsResult, filesResult, modelsResult] = await critical;
     // A mutation can invalidate an older aggregate refresh while its requests
     // are still in flight. Never let stale status overwrite the saved mode.
     if (version !== refreshVersion.current) return;
-    if (statusResult.status === "fulfilled") setStatus(statusResult.value);
     if (sessionsResult.status === "fulfilled") setSessions(sessionsResult.value);
-    if (toolsResult.status === "fulfilled") setTools(toolsResult.value);
     if (filesResult.status === "fulfilled") setFiles(filesResult.value);
     if (modelsResult.status === "fulfilled") setModels(modelsResult.value);
 
-    const failure = [statusResult, sessionsResult, toolsResult, filesResult, modelsResult]
+    const failure = [sessionsResult, filesResult, modelsResult]
       .find((result): result is PromiseRejectedResult => result.status === "rejected");
     if (failure) {
       setError(failure.reason instanceof Error ? failure.reason.message : String(failure.reason));
@@ -66,8 +60,22 @@ export function useDesktopData() {
     }
     setError(""); setPhase("ready");
 
-    const [canvasResult, capabilitiesResult, messagingResult, artifactsResult, runtimeResult, googleResult, releaseProofsResult, schedulesResult] = await optional;
+    // Optional probes and hidden-pane data begin only after the shell is ready;
+    // they cannot compete with or gate the first interactive frame.
+    const optional = await Promise.allSettled([
+      api<Status>("/api/status").catch(() => null),
+      api<Tool[]>("/api/tools").catch(() => []),
+      api<CanvasArtifact | null>("/api/canvas").catch(() => null),
+      api<Capability[]>("/api/capabilities").catch(() => []), api<MessagingPlatform[]>("/api/messaging").catch(() => []), api<Artifact[]>("/api/artifacts").catch(() => []),
+      api<DesktopRuntime>("/api/runtime").catch(() => ({ selectedHostId: "local", hosts: [] })),
+      api<GoogleConnectStatus>("/api/connect/google").catch(() => ({ status: "needs_setup", clientConfigured: false, authorized: false, message: "Google Workspace status is unavailable." } as GoogleConnectStatus)),
+      api<ReleaseProofReport>("/api/release-proofs").catch(() => null),
+      api<ScheduledTask[]>("/api/schedules").catch(() => []),
+    ]);
+    const [statusResult, toolsResult, canvasResult, capabilitiesResult, messagingResult, artifactsResult, runtimeResult, googleResult, releaseProofsResult, schedulesResult] = optional;
     if (version !== refreshVersion.current) return;
+    setStatus(statusResult.status === "fulfilled" ? statusResult.value : null);
+    setTools(toolsResult.status === "fulfilled" ? toolsResult.value : []);
     setCanvas(canvasResult.status === "fulfilled" ? canvasResult.value : null);
     setCapabilities(capabilitiesResult.status === "fulfilled" ? capabilitiesResult.value : []);
     setMessaging(messagingResult.status === "fulfilled" ? messagingResult.value : []);

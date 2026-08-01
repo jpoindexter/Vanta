@@ -9,6 +9,7 @@ import {
   evaluateTtftBudgets,
   percentile,
   sampleMetrics,
+  settleBefore,
   summarizeSamples,
   ttftFailureMessage,
 } from "./ttft-performance.mjs";
@@ -58,6 +59,14 @@ test("reports nearest-rank median, p95, and worst from at least five samples", (
   const summary = summarizeSamples(Array.from({ length: 5 }, (_, index) => sample("cli", "fresh", index)));
   assert.deepEqual(summary.submitToDispatchMs, { median: 20, p95: 20, worst: 20, samples: [20, 20, 20, 20, 20] });
   assert.throws(() => summarizeSamples([sample("cli", "fresh")]), /at least five/);
+});
+
+test("bounds an observation promise instead of hanging the acceptance harness", async () => {
+  await assert.rejects(
+    settleBefore(new Promise(() => {}), 5, "desktop first paint"),
+    /timed out waiting for desktop first paint after 5ms/,
+  );
+  await assert.doesNotReject(settleBefore(Promise.resolve(42), 50, "fast observation"));
 });
 
 test("refuses mocked providers and incomplete or unsigned desktop groups", () => {

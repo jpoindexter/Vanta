@@ -9,6 +9,21 @@ export const TTFT_METRICS = [
   "submitToFirstPaintMs",
 ];
 
+export async function settleBefore(promise, timeoutMs, label) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(
+      () => reject(new Error(`timed out waiting for ${label} after ${timeoutMs}ms`)),
+      timeoutMs,
+    );
+  });
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 export function sampleMetrics(timestamps) {
   const required = [
     "processStartedAtMs",
