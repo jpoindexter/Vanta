@@ -3,6 +3,7 @@ import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { App } from "@capacitor/app";
 import type { Approval, ApprovalDecision, EventRow, Message, Session, Status } from "./types.js";
 import { companionClient, HOST_KEY, isLocalCompanion, isNativeCompanion, mobileSmokeConfig, normalizeHost, parsePairLink, postJson, streamCompanionEvents, TOKEN_KEY } from "./companion-client.js";
+import { StyledSelect } from "./form-controls.js";
 
 export function CompanionApp() {
   const native = isNativeCompanion();
@@ -153,7 +154,7 @@ function CompanionApproval(props: { approval: Approval; answer: (decision: Appro
 }
 
 function CompanionSessions(props: { sessions: Session[]; current?: string; onNew: () => Promise<void>; onOpen: (id: string) => Promise<void> }) {
-  return <nav className="companion-sessions" aria-label="Sessions"><select aria-label="Current session" value={props.current ?? ""} onChange={(event) => void props.onOpen(event.target.value)}><option value="">Current session</option>{props.sessions.map((session) => <option key={session.id} value={session.id}>{session.title}</option>)}</select><button type="button" onClick={() => void props.onNew()} aria-label="New session">+</button></nav>;
+  return <nav className="companion-sessions" aria-label="Sessions"><StyledSelect aria-label="Current session" value={props.current ?? ""} onChange={(event) => void props.onOpen(event.target.value)}><option value="">Current session</option>{props.sessions.map((session) => <option key={session.id} value={session.id}>{session.title}</option>)}</StyledSelect><button type="button" onClick={() => void props.onNew()} aria-label="New session">+</button></nav>;
 }
 
 function CompanionThread(props: { messages: Message[]; events: EventRow[]; streamText: string }) {

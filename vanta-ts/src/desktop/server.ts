@@ -4,7 +4,7 @@ import type { DesktopState, DesktopEvent } from "./handlers.js";
 import {
   eventLabel, readJson, sendJson,
   handleStatus, handleSessions, handleNewSession, handleOpenSession,
-  handleRenameSession, handleArchiveSession, handleDeleteSession, handlePinSession, handleReorderPinnedSessions,
+  handleRenameSession, handleArchiveSession, handleDeleteSession, handleBulkSessions, handlePinSession, handleReorderPinnedSessions,
   handleTools, handleCapabilities, handleMessaging, handleArtifacts, handleSaveMessaging,
   handleFiles, handleFileContext, handleCanvas, handleModels, handleSetModel,
   handleApproval, handleTerminal, handleChat, handleStopChat, handleQueueChat, handleQueueList,
@@ -90,6 +90,7 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
     "/api/sessions/rename": () => handleRenameSession(req, res),
     "/api/sessions/archive": () => handleArchiveSession(req, res),
     "/api/sessions/delete": () => handleDeleteSession(state, req, res),
+    "/api/sessions/bulk": () => handleBulkSessions(state, req, res),
     "/api/sessions/pin": () => handlePinSession(req, res),
     "/api/sessions/reorder-pins": () => handleReorderPinnedSessions(req, res),
     "/api/sessions/draft": () => handleSessionDraft(state, req, res),

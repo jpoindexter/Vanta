@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Activity, Archive, ArchiveRestore, CalendarClock, Check, CheckCircle2, ChevronDown, ChevronRight, Copy, FileText, Keyboard, Maximize2, MoreHorizontal, PackageOpen, Pencil, Plug, Plus, RotateCcw, Search, Settings2, ShieldCheck, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
+import { Activity, Archive, ArchiveRestore, CalendarClock, Check, CheckCircle2, ChevronDown, ChevronRight, Copy, FileText, Keyboard, LoaderCircle, Maximize2, MoreHorizontal, PackageOpen, Pencil, Plug, Plus, RotateCcw, Search, Settings2, ShieldCheck, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
 import type { Approval, ApprovalDecision, DesktopRunReceipt, DesktopView, Message, PermissionSection, Session } from "./types.js";
 import { MessageMarkdown } from "./message-markdown.js";
 import { moveSessionMenuFocus, SessionNoticeToast, useSessionMenuDismiss, useSessionSafeOps, type SessionDeleteAction } from "./session-safe-ops.js";
@@ -23,6 +23,8 @@ type SessionSidebarProps = {
   onRename: (id: string, title: string) => void | Promise<void>;
   onArchive: (id: string, archived: boolean) => void | Promise<void>;
   onDelete: (id: string, action: SessionDeleteAction) => void | Promise<void>;
+  onBulkArchive: (ids: string[], archived: boolean) => void | Promise<void>;
+  onBulkDelete: (ids: string[], action: SessionDeleteAction) => void | Promise<void>;
   onPin: (id: string, pinned: boolean) => void | Promise<void>;
   onReorderPins: (orderedIds: string[]) => void | Promise<void>;
   view: DesktopView;
@@ -42,6 +44,7 @@ export function SessionSidebar(props: SessionSidebarProps) {
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
   const [archivedOpen, setArchivedOpen] = useState(false);
   const [trashOpen, setTrashOpen] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
   const sessions = useMemo(() => props.sessions.filter((session) => session.title.toLowerCase().includes(query.toLowerCase())), [props.sessions, query]);
   const groups = useMemo(() => partitionSessions(sessions), [sessions]);
@@ -49,7 +52,7 @@ export function SessionSidebar(props: SessionSidebarProps) {
   const visibleSessions = useMemo(() => [...pinned, ...projectSessions, ...recentSessions, ...(archivedOpen ? archived : []), ...(trashOpen ? trashed : [])], [pinned, projectSessions, recentSessions, archived, archivedOpen, trashOpen, trashed]);
   const projectName = props.root?.split("/").filter(Boolean).at(-1) ?? "Current project";
   const selectedSessions = useMemo(() => props.sessions.filter((session) => selected.has(session.id)), [props.sessions, selected]);
-  const safe = useSessionSafeOps({ rename: props.onRename, archive: props.onArchive, remove: props.onDelete, pin: props.onPin, reorderPins: props.onReorderPins });
+  const safe = useSessionSafeOps({ rename: props.onRename, archive: props.onArchive, archiveMany: props.onBulkArchive, remove: props.onDelete, removeMany: props.onBulkDelete, pin: props.onPin, reorderPins: props.onReorderPins });
 
   useEffect(() => {
     setSelected((current) => {
@@ -99,15 +102,19 @@ export function SessionSidebar(props: SessionSidebarProps) {
   }
   async function archiveSelected(archivedState: boolean) {
     const targets = selectedSessions.filter((session) => !session.trashed);
-    if (!targets.length) return;
-    if (await safe.archive(targets, archivedState)) stopSelecting();
+    if (!targets.length || bulkProgress) return;
+    setBulkProgress(`${archivedState ? "Archiving" : "Restoring"} ${targets.length}…`);
+    try { if (await safe.archive(targets, archivedState)) stopSelecting(); }
+    finally { setBulkProgress(""); }
   }
   async function deleteSelected() {
     const targets = [...selectedSessions];
-    if (!targets.length) return;
+    if (!targets.length || bulkProgress) return;
     const allTrashed = targets.every((session) => session.trashed);
     if (allTrashed && !window.confirm(`Delete ${targets.length} selected session${targets.length === 1 ? "" : "s"} forever? This cannot be undone.`)) return;
-    if (await safe.remove(targets, allTrashed ? "permanent" : "trash")) stopSelecting();
+    setBulkProgress(`${allTrashed ? "Deleting permanently" : "Moving to Trash"} ${targets.length}…`);
+    try { if (await safe.remove(targets, allTrashed ? "permanent" : "trash")) stopSelecting(); }
+    finally { setBulkProgress(""); }
   }
   const renderSession = (session: Session) => {
     const pinnedIndex = pinned.findIndex(({ id }) => id === session.id);
@@ -163,7 +170,7 @@ export function SessionSidebar(props: SessionSidebarProps) {
           <div><span>{recentSessions.length}</span><button type="button" onClick={selecting ? stopSelecting : startSelecting}>{selecting ? "Cancel" : "Select chats"}</button></div>
         </div>
         <label className="session-search"><Search size={14} /><span className="sr-only">Search tasks</span><input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search tasks" /></label>
-        {selecting ? <BulkSessionActions count={selected.size} visibleCount={visibleSessions.length} onSelectAll={selectAllVisible} onClear={clearSelected} onArchive={() => void archiveSelected(true)} onRestore={() => void archiveSelected(false)} onDelete={() => void deleteSelected()} onCancel={stopSelecting} /> : null}
+        {selecting ? <BulkSessionActions count={selected.size} visibleCount={visibleSessions.length} progress={bulkProgress} onSelectAll={selectAllVisible} onClear={clearSelected} onArchive={() => void archiveSelected(true)} onRestore={() => void archiveSelected(false)} onDelete={() => void deleteSelected()} onCancel={stopSelecting} /> : null}
         <div className="session-list recent-session-group">
           {recentSessions.map(renderSession)}
           {archived.length > 0 ? (
@@ -194,17 +201,18 @@ export function SessionSidebar(props: SessionSidebarProps) {
   );
 }
 
-function BulkSessionActions(props: { count: number; visibleCount: number; onSelectAll: () => void; onClear: () => void; onArchive: () => void; onRestore: () => void; onDelete: () => void; onCancel: () => void }) {
-  const disabled = props.count === 0;
+function BulkSessionActions(props: { count: number; visibleCount: number; progress: string; onSelectAll: () => void; onClear: () => void; onArchive: () => void; onRestore: () => void; onDelete: () => void; onCancel: () => void }) {
+  const busy = Boolean(props.progress);
+  const disabled = props.count === 0 || busy;
   return (
-    <div className="session-bulk-actions" role="toolbar" aria-label="Selected session actions">
-      <span>{props.count ? `${props.count} selected` : "Select chats"} <small>Shift-click for a range</small></span>
-      <button type="button" disabled={props.visibleCount === 0} onClick={props.onSelectAll}><Check size={13} />All visible</button>
+    <div className="session-bulk-actions" role="toolbar" aria-label="Selected session actions" aria-busy={busy}>
+      <span>{props.count ? `${props.count} selected` : "Select chats"} <small role="status" aria-live="polite">{busy ? <><LoaderCircle className="spinning" size={12} aria-hidden="true" />{props.progress}</> : "Shift-click for a range"}</small></span>
+      <button type="button" disabled={props.visibleCount === 0 || busy} onClick={props.onSelectAll}><Check size={13} />All visible</button>
       <button type="button" disabled={disabled} onClick={props.onClear}><X size={13} />Clear</button>
       <button type="button" disabled={disabled} onClick={props.onArchive}><Archive size={13} />Archive</button>
       <button type="button" disabled={disabled} onClick={props.onRestore}><ArchiveRestore size={13} />Restore</button>
       <button className="danger" type="button" disabled={disabled} onClick={props.onDelete}><Trash2 size={13} />Delete</button>
-      <button type="button" onClick={props.onCancel}><X size={13} />Done</button>
+      <button type="button" disabled={busy} onClick={props.onCancel}><X size={13} />Done</button>
     </div>
   );
 }

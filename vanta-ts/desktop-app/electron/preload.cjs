@@ -13,4 +13,8 @@ contextBridge.exposeInMainWorld("vantaDesktop", Object.freeze({
     return ipcRenderer.invoke("vanta:resolve-dropped-paths", paths);
   },
   pickAttachments: () => ipcRenderer.invoke("vanta:pick-attachments"),
+  pickProjectFolder: (currentPath) => ipcRenderer.invoke("vanta:pick-project-folder", currentPath),
+  switchProjectForNewTask: (draft) => ipcRenderer.invoke("vanta:switch-project-for-new-task", draft),
+  readPendingProjectTask: () => ipcRenderer.invoke("vanta:read-pending-project-task"),
+  acknowledgePendingProjectTask: (id) => ipcRenderer.invoke("vanta:acknowledge-pending-project-task", id),
 }));

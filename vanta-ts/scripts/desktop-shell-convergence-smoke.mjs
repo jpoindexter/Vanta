@@ -53,6 +53,16 @@ try {
       messages: Array.from({ length: turns }, (_, index) => ({ role: index % 2 ? "assistant" : "user", content: `${title} turn ${index + 1}` })),
     }), "utf8");
   }
+  for (let index = 1; index <= 44; index += 1) {
+    const id = `bulk-delete-${String(index).padStart(2, "0")}`;
+    await writeFile(join(home, "sessions", `${id}.json`), JSON.stringify({
+      id,
+      title: `Bulk delete fixture ${String(index).padStart(2, "0")}`,
+      started: "2026-07-12T00:00:00.000Z",
+      updated: "2026-07-12T00:00:00.000Z",
+      messages: [{ role: "user", content: `Bulk delete fixture ${index}` }],
+    }), "utf8");
+  }
 
   app = await electron.launch({
     ...(executablePath ? { executablePath } : {}),
@@ -319,11 +329,47 @@ try {
   await page.locator(".session-sidebar").getByRole("button", { name: "New task", exact: true }).click();
   const newTask = page.getByRole("dialog", { name: "Start a new task" });
   await newTask.waitFor();
-  await newTask.getByRole("combobox", { name: "Agent" }).waitFor();
-  await newTask.getByRole("combobox", { name: "Execution host" }).waitFor();
+  const agentMenu = newTask.getByRole("combobox", { name: "Agent" });
+  const hostMenu = newTask.getByRole("combobox", { name: "Execution host" });
+  await agentMenu.waitFor();
+  await hostMenu.waitFor();
+  for (const menu of [agentMenu, hostMenu]) {
+    if (!await menu.locator("xpath=..").evaluate((element) => element.classList.contains("select-control"))) {
+      throw new Error("New task menu is missing the shared styled select trigger.");
+    }
+  }
   for (const field of ["Project folder", "Base branch", "Model", "First instruction"]) await newTask.getByRole("textbox", { name: field }).waitFor();
+  const projectFolder = newTask.getByRole("textbox", { name: "Project folder" });
+  if (await projectFolder.getAttribute("readonly") === null) throw new Error("Project folder path must be picker-controlled and read-only.");
+  await newTask.getByRole("button", { name: "Choose project folder" }).waitFor();
+  const nativePickerAvailable = await page.evaluate(() => typeof window.vantaDesktop?.pickProjectFolder === "function");
+  if (!nativePickerAvailable) throw new Error("Native project folder picker is missing from the isolated preload bridge.");
   await newTask.getByRole("checkbox", { name: /Use isolated worktree/ }).waitFor();
   await newTask.getByRole("button", { name: "Cancel" }).click();
+
+  const sessionSearch = page.getByRole("textbox", { name: "Search tasks" });
+  await sessionSearch.fill("Bulk delete fixture");
+  await page.waitForFunction(() => document.querySelectorAll(".session-row").length === 44);
+  await page.getByRole("button", { name: "Select chats" }).click();
+  const bulkToolbar = page.getByRole("toolbar", { name: "Selected session actions" });
+  await bulkToolbar.getByRole("button", { name: "All visible" }).click();
+  await bulkToolbar.getByText("44 selected", { exact: false }).waitFor();
+  let bulkRequests = 0;
+  await page.route("**/api/sessions/bulk", async (route) => {
+    bulkRequests += 1;
+    await new Promise((resolveDelay) => setTimeout(resolveDelay, 150));
+    await route.continue();
+  });
+  const bulkStarted = Date.now();
+  await bulkToolbar.getByRole("button", { name: "Delete", exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('[aria-label="Selected session actions"]')?.getAttribute("aria-busy") === "true");
+  await bulkToolbar.getByText("Moving to Trash 44…", { exact: false }).waitFor();
+  await bulkToolbar.waitFor({ state: "detached" });
+  const bulkElapsed = Date.now() - bulkStarted;
+  if (bulkRequests !== 1) throw new Error(`Bulk delete made ${bulkRequests} mutation requests instead of one.`);
+  if (bulkElapsed > 2_000) throw new Error(`Bulk delete exceeded the 2s interaction budget: ${bulkElapsed}ms.`);
+  await page.getByText("Moved to Trash 44 sessions.", { exact: true }).waitFor();
+  await sessionSearch.fill("");
 
   await page.getByRole("button", { name: "Runs", exact: true }).click();
   await page.locator(".operator-view").getByRole("heading", { name: "Runs", exact: true }).waitFor();
@@ -509,7 +555,7 @@ try {
   if (visual.userMessage.background === "rgba(0, 0, 0, 0)") throw new Error(`Operator message lost its compact bubble: ${JSON.stringify(visual)}`);
   if (visual.assistantSpeakerLabels !== 0) throw new Error(`Redundant assistant speaker chrome returned: ${JSON.stringify(visual)}`);
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
-  process.stdout.write(`${JSON.stringify({ destinations: ["Runs", "Connect", "Scheduled", "Plugins"], newTask: true, runs: true, accessModes: ["approve", "full", "ask"], inlineApproval: approvalDecisions, review: ["Files", "Diff", "Activity"], modelPicker: true, responsive, compact: true, collapsedTitlebar, geometry, visual, visualProof: visualProof ? { updated: visualUpdate, captures: visualResults.length, baselineRoot: visualBaselineRoot } : undefined, accessibilityProof: accessibilityProof ? accessibilityResults : undefined })}\n`);
+  process.stdout.write(`${JSON.stringify({ destinations: ["Runs", "Connect", "Scheduled", "Plugins"], newTask: true, bulkDelete: { selected: 44, requests: bulkRequests, elapsedMs: bulkElapsed }, runs: true, accessModes: ["approve", "full", "ask"], inlineApproval: approvalDecisions, review: ["Files", "Diff", "Activity"], modelPicker: true, responsive, compact: true, collapsedTitlebar, geometry, visual, visualProof: visualProof ? { updated: visualUpdate, captures: visualResults.length, baselineRoot: visualBaselineRoot } : undefined, accessibilityProof: accessibilityProof ? accessibilityResults : undefined })}\n`);
 } finally {
   await app?.close().catch(() => undefined);
   await Promise.all([

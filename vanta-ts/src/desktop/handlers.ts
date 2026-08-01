@@ -456,6 +456,7 @@ function sessionIdFromBody(body: { id?: unknown }): string {
 }
 
 type DeleteSessionRequest = { id: string; trashed: boolean; permanent: boolean };
+type BulkSessionAction = "archive" | "unarchive" | "trash" | "restore" | "delete";
 
 function parseDeleteSessionRequest(body: { id?: unknown; trashed?: unknown; permanent?: unknown }): DeleteSessionRequest | { error: string } {
   const id = sessionIdFromBody(body);
@@ -470,6 +471,19 @@ function clearActiveSession(state: DesktopState, id: string, shouldClear: boolea
   state.convo = undefined; state.sessionId = undefined; state.sessionStarted = undefined;
   state.providerId = undefined; state.modelId = undefined; state.currentEvents = undefined;
   state.pendingRunLineage = undefined; state.pendingRunPreparedAt = undefined; state.forceFreshApprovals = false;
+}
+
+function parseBulkSessionRequest(body: { ids?: unknown; action?: unknown }): { ids: string[]; action: BulkSessionAction } | { error: string } {
+  if (!Array.isArray(body.ids) || body.ids.length === 0 || body.ids.length > 500) {
+    return { error: "ids must contain between 1 and 500 session ids" };
+  }
+  if (body.ids.some((id) => typeof id !== "string" || !id.trim())) return { error: "every session id must be a non-empty string" };
+  const ids = [...new Set((body.ids as string[]).map((id) => id.trim()))];
+  const action = body.action;
+  if (action !== "archive" && action !== "unarchive" && action !== "trash" && action !== "restore" && action !== "delete") {
+    return { error: "action must be archive, unarchive, trash, restore, or delete" };
+  }
+  return { ids, action };
 }
 
 export async function handleRenameSession(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
@@ -527,6 +541,24 @@ export async function handleDeleteSession(state: DesktopState, req: http.Incomin
   else await setSessionTrashed(id, trashed, process.env);
   clearActiveSession(state, id, permanent || trashed);
   sendJson(res, 200, { id, trashed: permanent ? undefined : trashed, permanent });
+}
+
+export async function handleBulkSessions(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const body = await readJson(req) as { ids?: unknown; action?: unknown };
+  const parsed = parseBulkSessionRequest(body);
+  if ("error" in parsed) return sendJson(res, 400, parsed);
+  const { ids, action } = parsed;
+  const sessions = await Promise.all(ids.map((id) => loadSession(id, process.env)));
+  const missing = ids.filter((_id, index) => !sessions[index]);
+  if (missing.length) return sendJson(res, 404, { error: `${missing.length} selected session${missing.length === 1 ? " is" : "s are"} no longer available`, missing });
+
+  await Promise.all(ids.map(async (id) => {
+    if (action === "archive" || action === "unarchive") await setSessionArchived(id, action === "archive", process.env);
+    else if (action === "delete") await deleteSession(id, process.env);
+    else await setSessionTrashed(id, action === "trash", process.env);
+    clearActiveSession(state, id, action === "trash" || action === "delete");
+  }));
+  sendJson(res, 200, { action, count: ids.length, ids });
 }
 
 export async function handleTools(state: DesktopState, res: http.ServerResponse): Promise<void> {

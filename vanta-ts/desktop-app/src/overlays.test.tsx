@@ -1,7 +1,7 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { ApprovalOverlay, CommandPalette, ModelPicker, SetupWizard } from "./overlays.js";
+import { ApprovalOverlay, CommandPalette, ModelPicker, NewTaskDialog, SetupWizard } from "./overlays.js";
 
 describe("CommandPalette", () => {
   it("exposes Telegram setup when slash opens quick actions", () => {
@@ -11,6 +11,27 @@ describe("CommandPalette", () => {
     expect(html).toContain("Open Scheduled");
     expect(html).toContain("Open Plugins");
     expect(html).not.toContain(">Terminal<");
+  });
+});
+
+describe("NewTaskDialog", () => {
+  it("uses a native folder chooser entry point and styled menu triggers", () => {
+    const html = renderToStaticMarkup(
+      <NewTaskDialog
+        open
+        root="/projects/vanta"
+        model="gpt-5"
+        onClose={vi.fn()}
+        onCreate={vi.fn()}
+      />,
+    );
+
+    expect(html).toContain('id="new-task-folder"');
+    expect(html).toContain('value="/projects/vanta"');
+    expect(html).toContain("readOnly");
+    expect(html).toContain('aria-label="Choose project folder"');
+    expect(html).toContain("Choose…");
+    expect(html.match(/class="select-control"/g)).toHaveLength(2);
   });
 });
 

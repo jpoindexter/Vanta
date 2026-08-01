@@ -11,6 +11,8 @@ import { resolveDroppedPaths } from "./dropped-paths.mjs";
 import { findAvailablePort, projectArg, readProjectSetting, resolveProjectRoot, saveProjectSetting } from "./project-root.mjs";
 import { resolveRuntimePaths } from "./runtime-paths.mjs";
 import { desktopRuntimeEnv } from "./runtime-env.mjs";
+import { showProjectFolderPicker } from "./project-folder-picker.mjs";
+import { createPendingProjectTaskStore, prepareProjectSwitch } from "./project-switch.mjs";
 
 app.setName("Vanta");
 
@@ -28,6 +30,7 @@ let port = DEFAULT_DESKTOP_PORT;
 let automationKernelUrl;
 let shuttingDown = false;
 let serverReady;
+const pendingProjectTask = createPendingProjectTaskStore();
 const boundaryToken = randomBytes(32).toString("hex");
 process.env.VANTA_DESKTOP_BOUNDARY_TOKEN = boundaryToken;
 
@@ -50,6 +53,30 @@ ipcMain.handle("vanta:pick-attachments", async () => {
   });
   if (result.canceled) return { files: [], items: [], errors: [] };
   return resolveDroppedPaths(result.filePaths, projectRoot);
+});
+
+ipcMain.handle("vanta:pick-project-folder", (_event, currentPath) =>
+  showProjectFolderPicker({
+    dialog,
+    parentWindow: mainWindow,
+    currentPath,
+    fallbackPath: projectRoot,
+  }));
+
+ipcMain.handle("vanta:switch-project-for-new-task", async (_event, draft) => {
+  const prepared = await prepareProjectSwitch(draft);
+  await saveProjectSetting(app.getPath("userData"), prepared.targetRoot);
+  pendingProjectTask.set(prepared);
+  projectRoot = prepared.targetRoot;
+  setImmediate(() => { void loadProject().catch((error) => showFatal(error instanceof Error ? error.message : String(error))); });
+  return { switching: true, projectRoot };
+});
+
+ipcMain.handle("vanta:read-pending-project-task", () => pendingProjectTask.read(projectRoot));
+
+ipcMain.handle("vanta:acknowledge-pending-project-task", (_event, id) => {
+  if (typeof id !== "string" || id.length > 128) return false;
+  return pendingProjectTask.acknowledge(id, projectRoot);
 });
 
 function runtimePaths() {

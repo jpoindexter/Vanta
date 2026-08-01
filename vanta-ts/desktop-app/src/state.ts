@@ -330,9 +330,20 @@ function conversationHandlers(state: ConversationState, cues: TurnCues, lastFail
     if (active && archived) await newSession();
     else await state.refresh();
   }
+  async function archiveSessions(ids: string[], archived: boolean, active: boolean) {
+    await api("/api/sessions/bulk", postJson({ ids, action: archived ? "archive" : "unarchive" }));
+    if (active && archived) await newSession();
+    else await state.refresh();
+  }
   async function deleteSession(id: string, active: boolean, action: SessionDeleteAction = "trash") {
     await api("/api/sessions/delete", postJson(action === "permanent" ? { id, permanent: true } : { id, trashed: action === "trash" }));
     if (action === "permanent") await state.clearDraftFor(id);
+    if (active && action !== "restore") await newSession();
+    else await state.refresh();
+  }
+  async function deleteSessions(ids: string[], active: boolean, action: SessionDeleteAction = "trash") {
+    await api("/api/sessions/bulk", postJson({ ids, action: action === "permanent" ? "delete" : action }));
+    if (action === "permanent") await Promise.all(ids.map((id) => state.clearDraftFor(id)));
     if (active && action !== "restore") await newSession();
     else await state.refresh();
   }
@@ -366,7 +377,7 @@ function conversationHandlers(state: ConversationState, cues: TurnCues, lastFail
       state.setEvents([{ label: error instanceof Error ? error.message : String(error), ok: false }]);
     }
   }
-  return { openSession, newSession, renameSession, archiveSession, deleteSession, ...pinning, submit, localReply, queue, retry: () => lastFailedMessage.current ? submit(lastFailedMessage.current) : Promise.resolve(), insertFile };
+  return { openSession, newSession, renameSession, archiveSession, archiveSessions, deleteSession, deleteSessions, ...pinning, submit, localReply, queue, retry: () => lastFailedMessage.current ? submit(lastFailedMessage.current) : Promise.resolve(), insertFile };
 }
 
 export function latestRecoverableRun(messages: Message[]): { receipt: DesktopRunReceipt; instruction: string } | null {

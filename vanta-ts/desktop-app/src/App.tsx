@@ -16,6 +16,7 @@ import { isTelegramSetupQuestion, parseDesktopSetupCommand } from "../../src/set
 import { reconnectProviderAndResume } from "./provider-auth-recovery.js";
 import { useComposerAttachments, withProjectAttachments } from "./use-composer-attachments.js";
 import { useRunLibrary } from "./run-library-state.js";
+import { acknowledgePendingDesktopProjectTask, readPendingDesktopProjectTask, switchDesktopProjectForNewTask, type PendingDesktopProjectTask } from "./project-folder-picker.js";
 
 type DesktopData = ReturnType<typeof useDesktopData>;
 type CompletionSound = ReturnType<typeof useCompletionSound>;
@@ -38,6 +39,11 @@ function storedPaneWidth(key: string, fallback: number): number {
   return Number.isFinite(value) ? value : fallback;
 }
 
+function comparableProjectPath(value: string | undefined): string {
+  if (!value) return "";
+  return value.length > 1 ? value.replace(/\/+$/, "") : value;
+}
+
 export function AppShell() {
   useInputModality();
   const data = useDesktopData();
@@ -57,10 +63,12 @@ export function AppShell() {
   const attachments = useComposerAttachments();
   const runLibrary = useRunLibrary();
   const [newTaskOpen, setNewTaskOpen] = useState(false);
+  const [projectTaskRecovery, setProjectTaskRecovery] = useState<(PendingDesktopProjectTask & { error?: string }) | null>(null);
   const [conversationReady, setConversationReady] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(() => storedPaneWidth(SIDEBAR_STORAGE_KEY, 268));
   const preferredSidebarWidth = useRef(sidebarWidth);
   const bootSession = useRef("");
+  const pendingProjectTaskAttempted = useRef(false);
   function changeTheme(next: DesktopTheme) { setTheme(next); window.localStorage.setItem("vanta.desktop.theme", next); }
   function changeSidebarWidth(next: number) {
     preferredSidebarWidth.current = next;
@@ -128,6 +136,17 @@ export function AppShell() {
     }
   }
 
+  async function createNewTask(draft: NewTaskDraft) {
+    if (!conversationReady) throw new Error("Wait for the current project to finish loading.");
+    if (comparableProjectPath(draft.folder) !== comparableProjectPath(data.status?.root)) {
+      await switchDesktopProjectForNewTask(draft);
+      return;
+    }
+    await createTask(draft, convo, () => { setNewTaskOpen(false); setView("work"); });
+    if (projectTaskRecovery) await acknowledgePendingDesktopProjectTask(projectTaskRecovery.id);
+    setProjectTaskRecovery(null);
+  }
+
   useEffect(() => {
     function constrainPanes() {
       if (window.innerWidth <= 760 && mobilePanel !== "inspect") setInspectorOpen(false);
@@ -155,6 +174,29 @@ export function AppShell() {
       .catch(() => { bootSession.current = ""; })
       .finally(() => setConversationReady(true));
   }, [convo.openSession, data.phase, data.sessions, data.status?.sessionId]);
+
+  useEffect(() => {
+    if (!conversationReady || pendingProjectTaskAttempted.current) return;
+    pendingProjectTaskAttempted.current = true;
+    void (async () => {
+      const pending = await readPendingDesktopProjectTask();
+      if (!pending) return;
+      if (comparableProjectPath(pending.targetRoot) !== comparableProjectPath(data.status?.root)) {
+        throw Object.assign(new Error("The retained task does not match the active project."), { pending });
+      }
+      try {
+        await createTask(pending.draft, convo, () => { setNewTaskOpen(false); setView("work"); });
+        await acknowledgePendingDesktopProjectTask(pending.id);
+      } catch (error) {
+        setProjectTaskRecovery({ ...pending, error: error instanceof Error ? error.message : "Vanta could not restore the task after switching projects." });
+        setNewTaskOpen(true);
+      }
+    })().catch((error) => {
+      const pending = (error as Error & { pending?: PendingDesktopProjectTask }).pending;
+      if (pending) setProjectTaskRecovery({ ...pending, error: error instanceof Error ? error.message : "Vanta could not restore the task after switching projects." });
+      setNewTaskOpen(Boolean(pending));
+    });
+  }, [conversationReady, convo, data.status?.root]);
 
   useEffect(() => {
     function shortcut(event: KeyboardEvent) {
@@ -198,6 +240,8 @@ export function AppShell() {
         onRename={(id, title) => convo.renameSession(id, title, id === data.status?.sessionId)}
         onArchive={(id, archived) => convo.archiveSession(id, archived, id === data.status?.sessionId)}
         onDelete={(id, action) => convo.deleteSession(id, id === data.status?.sessionId, action)}
+        onBulkArchive={(ids, archived) => convo.archiveSessions(ids, archived, !!data.status?.sessionId && ids.includes(data.status.sessionId))}
+        onBulkDelete={(ids, action) => convo.deleteSessions(ids, !!data.status?.sessionId && ids.includes(data.status.sessionId), action)}
         onPin={convo.pinSession}
         onReorderPins={convo.reorderPinnedSessions}
         view={view}
@@ -270,7 +314,7 @@ export function AppShell() {
         onOpenSession={(id) => { setInspectorOpen(false); void convo.openSession(id); }}
         onDismiss={() => { setInspectorOpen(false); setMobilePanel("work"); }}
       /> : null}
-      <NewTaskDialog open={newTaskOpen} root={data.status?.root} model={data.status?.model} onClose={() => setNewTaskOpen(false)} onCreate={(draft) => { if (conversationReady) void createTask(draft, convo, () => { setNewTaskOpen(false); setView("work"); }); }} />
+      <NewTaskDialog open={newTaskOpen} root={data.status?.root} model={data.status?.model} initialDraft={projectTaskRecovery?.draft} initialError={projectTaskRecovery?.error} onClose={() => setNewTaskOpen(false)} onCreate={createNewTask} />
       <DesktopOverlays
         data={data}
         sound={sound}
