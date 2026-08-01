@@ -45,6 +45,7 @@
     "desktop:model-runtime-clarity:smoke": "npm run desktop:build && node scripts/desktop-model-runtime-clarity-smoke.mjs",
     "desktop:mcp-runtime:smoke": "node scripts/desktop-mcp-runtime-smoke.mjs",
     "desktop:crypto-free:proof": "npm run desktop:pack && node scripts/desktop-crypto-free-proof.mjs && vitest run src/payments/service.test.ts src/payments/readiness.test.ts src/cli/payments-cmd.test.ts src/payments/contract.test.ts",
+    "desktop:dependency-boundary:proof": "npm run desktop:pack && node --test scripts/desktop-package-policy.node-test.mjs && node scripts/desktop-package-dependency-proof.mjs",
     "desktop:full-access:smoke": "npm run desktop:build && node scripts/desktop-full-access-warning-smoke.mjs",
     "desktop:sessions:smoke": "npm run desktop:build && node scripts/desktop-session-management-smoke.mjs",
     "desktop:context:smoke": "npm run desktop:build && node scripts/desktop-context-attachments-smoke.mjs",
@@ -149,9 +150,14 @@
       "src/**/*",
       "package.json",
       "!node_modules/@huggingface/**/*",
+      "!node_modules/@img/**/*",
+      "!node_modules/adm-zip/**/*",
+      "!node_modules/global-agent/**/*",
+      "!node_modules/onnxruntime-common/**/*",
       "!node_modules/onnxruntime-node/**/*",
       "!node_modules/onnxruntime-web/**/*",
-      "!node_modules/lucide-react/**/*"
+      "!node_modules/lucide-react/**/*",
+      "!node_modules/sharp/**/*"
     ],
     "extraResources": [
       {

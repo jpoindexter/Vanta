@@ -94,7 +94,7 @@ Roadmap state: `TRUST-02` remains `building`. This inventory is evidence, not a 
 
 ## Acceptance evidence
 
-The trust-boundary workflow and local verification run:
+Local verification runs:
 
 - kernel unreachable, denial, allow-once, definitive failure, journal failure, and crash/replay cases;
 - gateway final, file, mobile, progress, and context settlements;
@@ -104,4 +104,26 @@ The trust-boundary workflow and local verification run:
 - cross-process filesystem writer-lock tests;
 - protected-path and secret scans.
 
-These checks prove the bounded paths above. They do not prove packaged behavior, live account delivery, Rust-kernel changes, or that `TRUST-02` is shipped.
+Repository-level GitHub Actions are disabled. No hosted workflow is required for this
+evidence and no workflow was dispatched.
+
+### 2026-08-01 local closure addendum
+
+- The desktop visual proof passed all 36 current shell captures at the unchanged
+  `1.100%` mismatch limit after the intentionally replaced shell baselines were
+  regenerated and visually sampled.
+- The production dependency audit excluding optional dependencies reports zero
+  vulnerabilities. The full production lock graph still reports five high-severity
+  findings in `winnow`'s unused optional local-ML chain, for which no upstream fix is
+  available.
+- The packaged desktop dependency proof builds the app and inspects both `app.asar`
+  and `app.asar.unpacked`; the unused `@huggingface`, `@img`, `adm-zip`,
+  `global-agent`, `onnxruntime-*`, and `sharp` packages are absent.
+- The website production audit reports zero vulnerabilities.
+- The package proof produced and locally signed a macOS app using the existing local
+  identity. It did not notarize, upload, publish, deploy, or release that app.
+
+These checks prove the bounded paths above and the packaged dependency boundary.
+They do not prove live account delivery, every packaged TRUST-02 behavior, protected
+Rust/factory changes, notarization, or that `TRUST-02` is shipped. The roadmap card
+therefore remains `building`.
