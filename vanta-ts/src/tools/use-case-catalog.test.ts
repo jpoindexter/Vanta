@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { ALL_TOOLS } from "./all-tools.js";
@@ -18,9 +18,11 @@ type Scenario = {
 
 const catalogPath = fileURLToPath(new URL("../../../eval/use-cases/hermes-community-v1.json", import.meta.url));
 const catalog = JSON.parse(readFileSync(catalogPath, "utf8")) as { version: number; scenarios: Scenario[] };
-const sourcePath = fileURLToPath(new URL("../../../reference/hermes-agent/website/src/data/userStories.json", import.meta.url));
-const sourceStories = JSON.parse(readFileSync(sourcePath, "utf8")) as Array<{ id: string; category: string }>;
 const indexPath = fileURLToPath(new URL("../../../eval/use-cases/hermes-story-index.json", import.meta.url));
+const sourceIndex = JSON.parse(readFileSync(indexPath, "utf8")) as {
+  sourceCommit: string;
+  stories: Array<{ id: string; category: string; quote?: unknown }>;
+};
 
 describe("Hermes community use-case catalog", () => {
   it("starts with one scenario in every live Hermes category", () => {
@@ -57,9 +59,9 @@ describe("Hermes community use-case catalog", () => {
     }
   });
 
-  it("references the pinned Hermes corpus with at least two executable jobs per category", () => {
-    expect(sourceStories).toHaveLength(262);
-    const sourceIds = new Set(sourceStories.map((story) => story.id));
+  it("references the checked-in source index with at least two executable jobs per category", () => {
+    expect(sourceIndex.stories).toHaveLength(262);
+    const sourceIds = new Set(sourceIndex.stories.map((story) => story.id));
     const counts = new Map<string, number>();
     for (const scenario of catalog.scenarios) {
       expect(sourceIds.has(scenario.sourceStoryId ?? ""), scenario.id).toBe(true);
@@ -70,13 +72,8 @@ describe("Hermes community use-case catalog", () => {
   });
 
   it("keeps a durable quote-free index of all 262 source stories", () => {
-    expect(existsSync(indexPath)).toBe(true);
-    const index = JSON.parse(readFileSync(indexPath, "utf8")) as {
-      sourceCommit: string;
-      stories: Array<Record<string, unknown>>;
-    };
-    expect(index.sourceCommit).toMatch(/^[0-9a-f]{7,40}$/);
-    expect(index.stories).toHaveLength(262);
-    expect(index.stories.every((story) => !Object.hasOwn(story, "quote"))).toBe(true);
+    expect(sourceIndex.sourceCommit).toMatch(/^[0-9a-f]{7,40}$/);
+    expect(sourceIndex.stories).toHaveLength(262);
+    expect(sourceIndex.stories.every((story) => !Object.hasOwn(story, "quote"))).toBe(true);
   });
 });
