@@ -108,7 +108,7 @@ function commandActions(props: CommandPaletteProps) {
     ["Open Review", props.onReview],
     ["Cycle operating mode", props.onCycleMode],
     ["Toggle task sidebar", props.onSidebar],
-    ["Open Runs", () => props.onView("operate")],
+    ["Open Today", () => props.onView("operate")],
     ["Open Connect", () => props.onView("connect")],
     ["Open Scheduled", () => props.onView("scheduled")],
     ["Open Plugins", () => props.onView("plugins")],

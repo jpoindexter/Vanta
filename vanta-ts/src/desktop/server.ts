@@ -39,6 +39,7 @@ import { handleDesktopReleaseProofs } from "./release-proofs.js";
 import { handleDesktopLookCapture } from "./look-capture-api.js";
 import { handleWorkflowRunRoute } from "./workflow-run-api.js";
 import { handleDesktopSchedules } from "./schedule-api.js";
+import { handleDesktopContinuity } from "./continuity-api.js";
 
 type RouteCtx = { req: http.IncomingMessage; res: http.ServerResponse; state: DesktopState; sid: string; sseClients: SseClients; pathname: string };
 
@@ -56,6 +57,7 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
     "/api/sessions": () => handleSessions(res),
     "/api/runs": () => handleRuns(state, req, res),
     "/api/schedules": () => handleDesktopSchedules(state, res),
+    "/api/continuity": () => handleDesktopContinuity(state, req, res),
     "/api/tools": () => handleTools(state, res),
     "/api/capabilities": () => handleCapabilities(state, res),
     "/api/messaging": () => handleMessaging(res),
@@ -95,6 +97,7 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
     "/api/sessions/reorder-pins": () => handleReorderPinnedSessions(req, res),
     "/api/sessions/draft": () => handleSessionDraft(state, req, res),
     "/api/runs": () => handleRunAction(state, req, res),
+    "/api/continuity": () => handleDesktopContinuity(state, req, res),
     "/api/model": () => handleSetModel(state, req, res),
     "/api/messaging": () => handleSaveMessaging(state, req, res),
     "/api/setup": () => handleDesktopSetup(state, req, res),
@@ -135,6 +138,7 @@ type ServerOpts = {
   publicApi: PublicApiRouteOptions;
   isLoopback: (req: http.IncomingMessage) => boolean;
   boundaryToken?: string;
+  env: NodeJS.ProcessEnv;
 };
 
 const NATIVE_ORIGINS = new Set(["capacitor://localhost", "http://localhost", "https://localhost"]);
@@ -208,6 +212,7 @@ async function routeRequest(req: http.IncomingMessage, res: http.ServerResponse,
   const sid = local ? sessionIdFromRequest(req) : "default";
   if (await handlePublicApiProbeRoute({ req, res, pathname: url.pathname, options: opts.publicApi, sessions, root: repoRoot })) return;
   const state = getSession(sessions, sid, repoRoot);
+  state._env ??= opts.env;
   if (handleNativePreflight(req, res, url.pathname)) return;
   applyCompanionCors(req, res, url.pathname);
   state._sseSessionId = sid; state._sseClients = sseClients;
@@ -233,6 +238,7 @@ type DesktopServerOptions = Partial<CompanionRouteOptions> & {
   sseClients?: SseClients;
   readinessDeps?: ReadinessDeps;
   boundaryToken?: string;
+  env?: NodeJS.ProcessEnv;
 };
 
 export function createDesktopServer(repoRoot: string, options: DesktopServerOptions = {}): http.Server {
@@ -254,6 +260,7 @@ function desktopServerOptions(repoRoot: string, options: DesktopServerOptions): 
     publicApi: { enabled: options.publicApi ?? false, home, allowedOrigins: new Set(options.publicApiAllowedOrigins ?? []), readinessDeps: options.readinessDeps },
     isLoopback: options.isLoopback ?? isLoopbackRequest,
     boundaryToken: options.boundaryToken ?? process.env.VANTA_DESKTOP_BOUNDARY_TOKEN,
+    env: options.env ?? process.env,
   };
 }
 

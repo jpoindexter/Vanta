@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-30",
+  "updated": "2026-08-02",
   "items": [
     {
       "id": "VANTA-STREAMING-TTS-FIRST-CLAUSE",
@@ -20687,18 +20687,18 @@
       "tier": "rock",
       "model": "opus",
       "codex": "gpt-5.6-sol",
-      "updated": "2026-07-30",
+      "updated": "2026-08-02",
       "source": "vanta-total-realignment-correction-2026-07-30",
       "id": "UX-03",
       "track": "Operator",
       "title": "Safe continuity slice — messy capture to Today, prepared action, waiting, and restart re-entry",
-      "status": "building",
+      "status": "shipped",
       "size": "L",
       "effort": "high",
       "lens": "selfhood",
       "summary": "Prove the wedge without consequential external authority: one bounded messy life-or-work item becomes a sourced outcome, one Today recommendation, a prepared action using the relevant generalist capability, durable waiting/resume state, and correct restart re-entry.",
       "done": "On the supported launch path, a real local/read-only item is captured without forced taxonomy, yields one recommendation and at most three choices, prepares a useful action in under fifteen minutes, records owner/wait condition/resume context, survives a real process restart, and returns the last verified state plus one re-entry action without transcript reconstruction or repeated external effect. Capacity may be unknown across cognitive, attentional, sensory, social, emotional, physical, and time dimensions. Literal controls include do it, show me, snooze, skip, and off; refusal works for the session, repeated pattern, and global support; transient state expires or is reviewed; quiet hours, interruption budgets, stable layout, non-color meaning, reduced motion, optional streaming/auto-scroll, aphantasia-safe concrete previews, and shame-free recovery are proven.",
-      "notes": "Initial safe Operator-value lane; local/read-only until trust dependencies are earned."
+      "notes": "Shipped as the bounded local/read-only continuity wedge on 2026-08-02. Executed evidence: three real source-Electron launches captured @brief.md without taxonomy, rendered one recommendation and exactly three primary choices, prepared a ten-minute read-only action, persisted WorkItem/Run/Approval/Receipt state, restored one exact re-entry action after a full process restart, rejected duplicate execution, expired transient capacity to unknown, reset session refusal on restart, settled snooze and skip, preserved source bytes, and reported zero serious axe violations. Focused API tests also prove persistent pattern and global refusal. This does not authorize consequential external effects or promote TRUST-02, TRUST-04, TRUST-01, or OP-01."
     },
     {
       "tier": "rock",

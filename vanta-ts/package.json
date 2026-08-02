@@ -51,6 +51,8 @@
     "desktop:sessions:smoke": "npm run desktop:build && node scripts/desktop-session-management-smoke.mjs",
     "desktop:context:smoke": "npm run desktop:build && node scripts/desktop-context-attachments-smoke.mjs",
     "desktop:project-switch:smoke": "npm run desktop:build && node scripts/desktop-project-switch-smoke.mjs",
+    "desktop:continuity:proof": "npm run desktop:build && node scripts/desktop-continuity-restart-proof.mjs",
+    "trust:effect-ledger": "node --test scripts/lib/trust-01-effect-ledger.node-test.mjs && node scripts/trust-01-effect-ledger.mjs",
     "desktop:clipboard:smoke": "npm run desktop:build && node scripts/desktop-clipboard-paste-smoke.mjs",
     "desktop:look:smoke": "npm run desktop:build && node scripts/desktop-look-capture-smoke.mjs",
     "desktop:look:live-proof": "node scripts/desktop-look-capture-live-proof.mjs",

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Bell, Command, FolderKanban, ListOrdered, MessageSquarePlus, PanelLeft, RefreshCw } from "lucide-react";
 import { ChatThread, Composer, SessionSidebar } from "./chat.js";
 import { CommandPalette, KeyboardShortcuts, ModelPicker, NewTaskDialog, SettingsDialog, SetupWizard, type NewTaskDraft } from "./overlays.js";
-import { ArtifactsView, ConnectView, OperateView, PluginsView, ScheduledView } from "./operator-views.js";
+import { ArtifactsView, ConnectView, PluginsView, ScheduledView } from "./operator-views.js";
 import { RightRail } from "./rail.js";
 import { CompletionSoundSettings } from "./sound-settings.js";
 import { FullAccessWarning, fullAccessScope, useFullAccessWarning } from "./full-access-warning.js";
@@ -17,10 +17,13 @@ import { reconnectProviderAndResume } from "./provider-auth-recovery.js";
 import { useComposerAttachments, withProjectAttachments } from "./use-composer-attachments.js";
 import { useRunLibrary } from "./run-library-state.js";
 import { acknowledgePendingDesktopProjectTask, readPendingDesktopProjectTask, switchDesktopProjectForNewTask, type PendingDesktopProjectTask } from "./project-folder-picker.js";
+import { ContinuityView } from "./continuity-view.js";
+import { useContinuity } from "./continuity-state.js";
 
 type DesktopData = ReturnType<typeof useDesktopData>;
 type CompletionSound = ReturnType<typeof useCompletionSound>;
 type DesktopMcp = ReturnType<typeof useDesktopMcp>;
+type Continuity = ReturnType<typeof useContinuity>;
 
 const SIDEBAR_STORAGE_KEY = "vanta.desktop.sidebar-width";
 const MIN_SIDEBAR_WIDTH = 216;
@@ -53,6 +56,7 @@ export function AppShell() {
   const queued = useQueuedTurns(convo.sessionId || data.status?.sessionId, convo.busy || queueOpen);
   const approval = useApproval();
   const mcp = useDesktopMcp();
+  const continuity = useContinuity();
   const accessWarning = useFullAccessWarning(data.status?.accessMode ?? "approve", fullAccessScope(data.status?.root));
   const [mobilePanel, setMobilePanel] = useState<"sessions" | "work" | "inspect">("work");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -293,6 +297,7 @@ export function AppShell() {
           onOpenSession={(id) => { openView("work"); void convo.openSession(id); }}
           onCreateSchedule={() => { openView("work"); convo.setDraft("Schedule a recurring task: "); }}
           onConnect={() => openView("connect")}
+          continuity={continuity}
         />}
       </main>
       <QueuedTurnDrawer open={queueOpen} items={queued.snapshot.items} error={queued.error} onClose={() => setQueueOpen(false)} onAction={queued.mutate} />
@@ -502,8 +507,9 @@ function OperatorWorkspace(props: {
   onOpenSession: (id: string) => void;
   onCreateSchedule: () => void;
   onConnect: () => void;
+  continuity: Continuity;
 }) {
-  if (props.view === "operate") return <OperateView sessions={props.data.sessions} events={props.events} status={props.data.status} onOpenSession={props.onOpenSession} />;
+  if (props.view === "operate") return <ContinuityView snapshot={props.continuity.snapshot} busy={props.continuity.busy} error={props.continuity.error} onCapture={props.continuity.capture} onAction={props.continuity.act} />;
   if (props.view === "outputs") return <ArtifactsView artifacts={props.data.artifacts} onOpenSession={props.onOpenSession} onRefresh={() => { void props.data.refresh(); }} />;
   if (props.view === "scheduled") return <ScheduledView items={props.data.schedules} onCreate={props.onCreateSchedule} />;
   if (props.view === "plugins") return <PluginsView items={props.data.capabilities} onConnect={props.onConnect} />;
@@ -511,7 +517,7 @@ function OperatorWorkspace(props: {
 }
 
 function viewLabel(view: Exclude<DesktopView, "work">): string {
-  if (view === "operate") return "Runs";
+  if (view === "operate") return "Today";
   if (view === "outputs") return "Outputs";
   if (view === "scheduled") return "Scheduled";
   if (view === "plugins") return "Plugins";

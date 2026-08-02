@@ -24,6 +24,16 @@ export const RECEIPT_DISPOSITIONS = [
 export type ReceiptDisposition = typeof RECEIPT_DISPOSITIONS[number];
 
 const Timestamp = z.string().datetime();
+const CapacityLevel = z.enum(["unknown", "low", "steady", "high"]);
+const CapacityDimensions = z.object({
+  cognitive: CapacityLevel,
+  attentional: CapacityLevel,
+  sensory: CapacityLevel,
+  social: CapacityLevel,
+  emotional: CapacityLevel,
+  physical: CapacityLevel,
+  time: CapacityLevel,
+});
 
 export const WorkItemSchema = z.object({
   version: z.literal(1),
@@ -36,6 +46,20 @@ export const WorkItemSchema = z.object({
   waitCondition: z.string().min(1).optional(),
   nextAction: z.string().min(1).optional(),
   resumeContext: z.string().min(1).optional(),
+  provenanceMemory: z.array(z.object({
+    source: z.string().min(1),
+    sourceId: z.string().min(1).optional(),
+    capturedAt: Timestamp,
+  })).optional(),
+  followUp: z.object({ at: Timestamp.optional(), condition: z.string().min(1).optional() }).optional(),
+  timeCapacityFit: z.object({ minutes: z.number().int().min(1).max(15), capacity: CapacityDimensions }).optional(),
+  blocker: z.string().min(1).optional(),
+  artifacts: z.array(z.object({
+    kind: z.enum(["file", "draft", "link", "note"]),
+    ref: z.string().min(1),
+    sha256: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+  })).optional(),
+  lastVerified: z.object({ state: z.enum(WORK_ITEM_STATES), at: Timestamp, evidence: z.string().min(1) }).optional(),
   updatedAt: Timestamp,
 });
 export type WorkItem = z.infer<typeof WorkItemSchema>;

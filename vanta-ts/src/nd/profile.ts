@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
 import { resolveIsolation, skipSettings } from "../cli/isolation.js";
-import { defaultNdConfig, defaultNdPreferences, defaultNdProfile } from "./engine.js";
+import { defaultNdConfig, defaultNdPreferences, defaultNdProfile, defaultNdSupport } from "./engine.js";
 import { GATES } from "./gates.js";
 import {
   ACTIVATION_STATES,
@@ -17,6 +17,8 @@ import {
   type NdConfig,
   type NdPreferences,
   type NdProfile,
+  type NdSupport,
+  type EffectiveNdSupport,
 } from "./types.js";
 
 // Per-user ND support profile. Lives at ~/.vanta/nd-profile.json — the mechanism
@@ -42,12 +44,31 @@ const PreferencesSchema = z
     motivation: z.enum(MOTIVATION_STATES),
   })
   .partial();
+const CapacityDimensionSchema = z.enum(["unknown", "low", "steady", "high"]);
+const CapacityDimensionsSchema = z.object({
+  cognitive: CapacityDimensionSchema,
+  attentional: CapacityDimensionSchema,
+  sensory: CapacityDimensionSchema,
+  social: CapacityDimensionSchema,
+  emotional: CapacityDimensionSchema,
+  physical: CapacityDimensionSchema,
+  time: CapacityDimensionSchema,
+}).partial();
+const SupportSchema = z.object({
+  capacity: CapacityDimensionsSchema,
+  transient: z.object({ setAt: z.string().datetime(), reviewAt: z.string().datetime(), expiresAt: z.string().datetime() }).partial(),
+  quietHours: z.object({ enabled: z.boolean(), start: z.string(), end: z.string() }).partial(),
+  interruptionBudget: z.object({ daily: z.number().int().min(0).max(24) }).partial(),
+  interaction: z.object({ reducedMotion: z.boolean(), streaming: z.boolean(), autoScroll: z.boolean() }).partial(),
+  refusals: z.object({ global: z.boolean(), patterns: z.array(z.string().min(1)) }).partial(),
+}).partial();
 // The file is the full profile, but stays tolerant of the legacy shape where the
 // top level WAS the bare gate map (no `gates`/`prefs` keys).
-const NdProfileSchema = z.object({ gates: NdConfigSchema, prefs: PreferencesSchema }).partial();
+const NdProfileSchema = z.object({ gates: NdConfigSchema, prefs: PreferencesSchema, support: SupportSchema }).partial();
 
 type SavedGates = Partial<Record<string, { enabled?: boolean; threshold?: number }>>;
 type SavedPrefs = Partial<NdPreferences>;
+type SavedSupport = z.infer<typeof SupportSchema>;
 
 export function ndProfilePath(env: NodeJS.ProcessEnv = process.env): string {
   return join(resolveVantaHome(env), FILE);
@@ -75,25 +96,37 @@ function mergePrefsOverDefaults(saved: SavedPrefs): NdPreferences {
   return { ...defaultNdPreferences(), ...saved };
 }
 
+function mergeSupportOverDefaults(saved: SavedSupport): NdSupport {
+  const base = defaultNdSupport();
+  return {
+    capacity: { ...base.capacity, ...saved.capacity },
+    transient: { ...base.transient, ...saved.transient },
+    quietHours: { ...base.quietHours, ...saved.quietHours },
+    interruptionBudget: { ...base.interruptionBudget, ...saved.interruptionBudget },
+    interaction: { ...base.interaction, ...saved.interaction },
+    refusals: { ...base.refusals, ...saved.refusals },
+  };
+}
+
 /**
  * Read the raw file and split it into saved gate + pref slices, tolerating both
  * the current `{gates, prefs}` shape and the legacy bare-gate-map shape.
  */
-function splitSaved(raw: unknown): { gates: SavedGates; prefs: SavedPrefs } {
+function splitSaved(raw: unknown): { gates: SavedGates; prefs: SavedPrefs; support: SavedSupport } {
   const asProfile = NdProfileSchema.safeParse(raw);
-  if (asProfile.success && (asProfile.data.gates || asProfile.data.prefs)) {
-    return { gates: asProfile.data.gates ?? {}, prefs: asProfile.data.prefs ?? {} };
+  if (asProfile.success && (asProfile.data.gates || asProfile.data.prefs || asProfile.data.support)) {
+    return { gates: asProfile.data.gates ?? {}, prefs: asProfile.data.prefs ?? {}, support: asProfile.data.support ?? {} };
   }
   // Legacy: the top level was the bare gate map.
   const asLegacy = NdConfigSchema.safeParse(raw);
-  return { gates: asLegacy.success ? asLegacy.data : {}, prefs: {} };
+  return { gates: asLegacy.success ? asLegacy.data : {}, prefs: {}, support: {} };
 }
 
 /** Load the user's whole ND profile, always complete (defaults fill any gaps). */
 export async function loadNdProfile(env: NodeJS.ProcessEnv = process.env): Promise<NdProfile> {
   try {
-    const { gates, prefs } = splitSaved(JSON.parse(await readFile(ndProfilePath(env), "utf8")));
-    return { gates: mergeGatesOverDefaults(gates), prefs: mergePrefsOverDefaults(prefs) };
+    const { gates, prefs, support } = splitSaved(JSON.parse(await readFile(ndProfilePath(env), "utf8")));
+    return { gates: mergeGatesOverDefaults(gates), prefs: mergePrefsOverDefaults(prefs), support: mergeSupportOverDefaults(support) };
   } catch {
     return defaultNdProfile();
   }
@@ -113,13 +146,34 @@ export async function loadNdConfig(env: NodeJS.ProcessEnv = process.env): Promis
 /** Persist a new gate config, preserving the saved preferences. */
 export async function saveNdConfig(config: NdConfig, env: NodeJS.ProcessEnv = process.env): Promise<void> {
   const current = await loadNdProfile(env);
-  await saveNdProfile({ gates: config, prefs: current.prefs }, env);
+  await saveNdProfile({ gates: config, prefs: current.prefs, support: current.support }, env);
 }
 
 /** Persist new preferences, preserving the saved gate config. */
 export async function saveNdPreferences(prefs: NdPreferences, env: NodeJS.ProcessEnv = process.env): Promise<void> {
   const current = await loadNdProfile(env);
-  await saveNdProfile({ gates: current.gates, prefs }, env);
+  await saveNdProfile({ gates: current.gates, prefs, support: current.support }, env);
+}
+
+/** Persist support state/policy while preserving gates and communication preferences. */
+export async function saveNdSupport(support: NdSupport, env: NodeJS.ProcessEnv = process.env): Promise<void> {
+  const current = await loadNdProfile(env);
+  await saveNdProfile({ gates: current.gates, prefs: current.prefs, support }, env);
+  invalidateNdConfig();
+}
+
+/** Resolve expiry without rewriting history or inferring replacement capacity. */
+export async function effectiveNdSupport(
+  env: NodeJS.ProcessEnv = process.env,
+  now = new Date(),
+): Promise<EffectiveNdSupport> {
+  const support = (await loadNdProfile(env)).support;
+  const expired = Boolean(support.transient.expiresAt && Date.parse(support.transient.expiresAt) <= now.getTime());
+  return {
+    ...support,
+    capacity: expired ? defaultNdSupport().capacity : support.capacity,
+    transient: { ...support.transient, expired },
+  };
 }
 
 /** Focused accessor: the user's output density, for a renderer / the prompt to read. */

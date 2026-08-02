@@ -150,7 +150,7 @@ export function SessionSidebar(props: SessionSidebarProps) {
       </div>
       <button className="sidebar-new-task" type="button" onClick={props.onNew}><Plus size={15} />New task</button>
       <nav className="desktop-nav" aria-label="Vanta workspace">
-        <button className={props.view === "operate" ? "active" : ""} type="button" onClick={() => props.onView("operate")}><Activity size={16} />Runs</button>
+        <button className={props.view === "operate" ? "active" : ""} type="button" onClick={() => props.onView("operate")}><Activity size={16} />Today</button>
         <button className={props.view === "connect" ? "active" : ""} type="button" onClick={() => props.onView("connect")}><Plug size={16} />Connect</button>
         <button className={props.view === "scheduled" ? "active" : ""} type="button" onClick={() => props.onView("scheduled")}><CalendarClock size={16} />Scheduled</button>
         <button className={props.view === "plugins" ? "active" : ""} type="button" onClick={() => props.onView("plugins")}><PackageOpen size={16} />Plugins</button>

@@ -94,6 +94,8 @@ export type DesktopState = {
   runtimeHostBySession?: Record<string, string>;
   _sseSessionId?: string;
   _sseClients?: SseClients;
+  _env?: NodeJS.ProcessEnv;
+  _continuitySessionOff?: boolean;
 };
 
 export function eventLabel(event: StreamEvent): DesktopEvent | null {

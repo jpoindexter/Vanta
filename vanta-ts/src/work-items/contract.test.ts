@@ -66,4 +66,33 @@ describe("canonical WorkItem contract", () => {
     expect(transitionAllowed("unverified", "running")).toBe(true);
     expect(transitionAllowed("verified", "running")).toBe(false);
   });
+
+  it("carries the minimum operator spine without inventing another lifecycle", () => {
+    const parsed = WorkItemSchema.parse({
+      version: 1,
+      id: "w-spine",
+      outcome: "Choose the first unfinished action from the local brief",
+      source: "local-file:brief.md",
+      state: "waiting",
+      owner: "operator",
+      waitCondition: "When the operator is ready to continue",
+      nextAction: "Open the brief at the first unchecked item",
+      resumeContext: "The source was verified at sha256:abc before waiting",
+      provenanceMemory: [{ source: "brief.md", capturedAt: "2026-08-02T12:00:00.000Z", sourceId: "brief.md" }],
+      followUp: { at: "2026-08-03T09:00:00.000Z", condition: "Snooze elapsed" },
+      timeCapacityFit: {
+        minutes: 10,
+        capacity: { cognitive: "unknown", attentional: "low", sensory: "unknown", social: "unknown", emotional: "unknown", physical: "unknown", time: "steady" },
+      },
+      blocker: "Waiting for the operator",
+      artifacts: [{ kind: "note", ref: "continuity:w-spine", sha256: "a".repeat(64) }],
+      lastVerified: { state: "waiting", at: "2026-08-02T12:01:00.000Z", evidence: `sha256:${"b".repeat(64)}` },
+      updatedAt: "2026-08-02T12:01:00.000Z",
+    });
+
+    expect(parsed.state).toBe("waiting");
+    expect(parsed.timeCapacityFit?.capacity.attentional).toBe("low");
+    expect(parsed.artifacts).toHaveLength(1);
+    expect(WORK_ITEM_STATES).toHaveLength(9);
+  });
 });

@@ -92,6 +92,33 @@ export type ActivationState = "auto" | "ready" | "stuck";
 /** Current task engagement, never inferred as a stable personal trait. */
 export type MotivationState = "auto" | "engaged" | "low";
 
+/** Explicit, short-lived capacity by dimension; unknown is always a valid answer. */
+export type CapacityDimensionLevel = "unknown" | "low" | "steady" | "high";
+export const CAPACITY_DIMENSION_KEYS = [
+  "cognitive",
+  "attentional",
+  "sensory",
+  "social",
+  "emotional",
+  "physical",
+  "time",
+] as const;
+export type CapacityDimension = typeof CAPACITY_DIMENSION_KEYS[number];
+export type CapacityDimensions = Record<CapacityDimension, CapacityDimensionLevel>;
+
+export type NdSupport = {
+  capacity: CapacityDimensions;
+  transient: { setAt?: string; reviewAt?: string; expiresAt?: string };
+  quietHours: { enabled: boolean; start: string; end: string };
+  interruptionBudget: { daily: number };
+  interaction: { reducedMotion: boolean; streaming: boolean; autoScroll: boolean };
+  refusals: { global: boolean; patterns: string[] };
+};
+
+export type EffectiveNdSupport = Omit<NdSupport, "transient"> & {
+  transient: NdSupport["transient"] & { expired: boolean };
+};
+
 /** All valid values per preference, for parse/validate at the command + persistence boundary. */
 export const OUTPUT_DENSITIES = ["minimal", "balanced", "rich"] as const;
 export const SENSORY_LOADS = ["low", "medium", "high"] as const;
@@ -124,6 +151,7 @@ export type NdPreferences = {
 export type NdProfile = {
   gates: NdConfig;
   prefs: NdPreferences;
+  support: NdSupport;
 };
 
 /** The engine's running state: each gate's accumulator. */
