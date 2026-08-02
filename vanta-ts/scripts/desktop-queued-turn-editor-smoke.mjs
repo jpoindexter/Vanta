@@ -37,7 +37,10 @@ try {
   await queueInstruction(page, "Run source proof");
   await queueInstruction(page, "Run packaged proof");
 
-  await page.getByRole("button", { name: "Open queued turns, 2 queued" }).click();
+  const openQueue = page.locator(".inline-queue-trigger");
+  await openQueue.waitFor();
+  assert.equal(await openQueue.getAttribute("aria-label"), "Open queue, 2 next");
+  await openQueue.click();
   await page.getByRole("dialog", { name: "Queue 2" }).waitFor();
   assert.equal(await page.locator(".queued-turn-list li").count(), 2);
   if (accessibilityProof) accessibilityResults.push(await scanAccessibility(page, "queue"));
@@ -81,8 +84,14 @@ try {
   app = await launch();
   page = await readyPage(app);
   await installRoutes(page);
+  await page.reload();
+  await page.locator(".app-shell").waitFor();
+  await page.getByLabel("Message Vanta").waitFor({ state: "visible" });
   await openProofSession(page);
-  await page.getByRole("button", { name: /Open queued turns/ }).click();
+  const restoredQueue = page.locator(".inline-queue-trigger");
+  await restoredQueue.waitFor();
+  assert.match(await restoredQueue.getAttribute("aria-label") ?? "", /^Open queue, \d+ next$/);
+  await restoredQueue.click();
   await page.getByText("Run packaged proof").waitFor();
   await page.getByText("Starting now").waitFor();
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);

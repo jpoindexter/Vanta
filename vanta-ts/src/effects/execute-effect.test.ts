@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   effectPersistence,
+  effectDescriptorSha256,
   executeEffect,
   payloadSha256,
   type EffectGateContext,
@@ -134,6 +135,75 @@ describe("executeEffect", () => {
     expect(result).toMatchObject({ outcome: "verified", acknowledgementId: "ack-1", value: "provider-value" });
     expect(operation).toHaveBeenCalledTimes(1);
     expect(await allJournalText(projectRoot)).not.toContain(secretBody);
+  });
+
+  it("consumes only matching outer authority without a second policy decision", async () => {
+    const projectRoot = await root();
+    const assess = vi.fn(async () => ({ risk: "block" as const, reason: "must not run" }));
+    const approval = vi.fn(async () => false);
+    const operation = vi.fn(async () => ({ acknowledgementId: "authorized" }));
+    const result = await executeEffect(intent(), {
+      ...context(projectRoot),
+      kernel: { assess },
+      approval: { request: approval },
+      operationId: "call-1",
+      scopeId: "turn-1",
+      authority: {
+        operationId: "call-1",
+        scopeId: "turn-1",
+        descriptorSha256: effectDescriptorSha256(intent()),
+      },
+    }, operation);
+
+    expect(result.outcome).toBe("confirmed");
+    expect(assess).not.toHaveBeenCalled();
+    expect(approval).not.toHaveBeenCalled();
+    expect(operation).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects authority for a different effect descriptor and runs the policy boundary", async () => {
+    const projectRoot = await root();
+    const assess = vi.fn(async () => ({ risk: "block" as const, reason: "blocked" }));
+    const operation = vi.fn();
+    const result = await executeEffect(intent(), {
+      ...context(projectRoot),
+      kernel: { assess },
+      operationId: "call-2",
+      scopeId: "turn-1",
+      authority: { operationId: "call-2", scopeId: "turn-1", descriptorSha256: "0".repeat(64) },
+    }, operation);
+
+    expect(result.outcome).toBe("blocked");
+    expect(assess).toHaveBeenCalledTimes(1);
+    expect(operation).not.toHaveBeenCalled();
+  });
+
+  it("allows a different child effect only through an explicit central capability", async () => {
+    const projectRoot = await root();
+    const assess = vi.fn(async () => ({ risk: "block" as const, reason: "local boundary must not decide" }));
+    const authorizeChild = vi.fn(async () => "allowed" as const);
+    const operation = vi.fn(async () => ({ acknowledgementId: "child-authorized" }));
+    const result = await executeEffect(intent(), {
+      ...context(projectRoot),
+      kernel: { assess },
+      operationId: "call-3",
+      scopeId: "turn-1",
+      authority: {
+        operationId: "call-3",
+        scopeId: "turn-1",
+        descriptorSha256: "0".repeat(64),
+        authorizeChild,
+      },
+    }, operation);
+
+    expect(result.outcome).toBe("confirmed");
+    expect(authorizeChild).toHaveBeenCalledWith(expect.objectContaining({
+      action: intent().action,
+      kind: intent().kind,
+      payloadSha256: intent().payloadSha256,
+    }));
+    expect(assess).not.toHaveBeenCalled();
+    expect(operation).toHaveBeenCalledTimes(1);
   });
 
   it("settles a provider throw as unknown because the external effect may have happened", async () => {

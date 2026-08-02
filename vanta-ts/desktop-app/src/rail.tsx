@@ -26,7 +26,7 @@ export function RightRail(props: {
   const visibleTab = visibleRailTab(props.tab);
   return (
     <aside id="review-drawer" className="right-rail" role="dialog" aria-modal="true" aria-labelledby="review-drawer-title">
-      <header className="review-drawer-heading"><strong id="review-drawer-title">Review</strong><button className="panel-dismiss inspector-dismiss" type="button" aria-label="Close review" onClick={props.onDismiss}><X size={16} /></button></header>
+      <header className="review-drawer-heading"><strong id="review-drawer-title">Review</strong><button className="review-open-outputs" type="button" onClick={props.onOpenOutputs}>Outputs</button><button className="panel-dismiss inspector-dismiss" type="button" aria-label="Close review" onClick={props.onDismiss}><X size={16} /></button></header>
       <nav className="inspector-tabs" role="tablist" aria-label="Review views">
         <InspectorTab tab="files" current={visibleTab} icon={FileText} onTab={props.onTab}>Files</InspectorTab>
         <InspectorTab tab="diff" current={visibleTab} icon={FileDiff} onTab={props.onTab}>Diff</InspectorTab>

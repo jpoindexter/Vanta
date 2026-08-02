@@ -16,6 +16,8 @@ import { toolMayHaveSideEffects } from "./effect-disposition.js";
 import { settleWorkItem, type WorkItemState } from "../work-items/contract.js";
 import type { ToolResult } from "../tools/types.js";
 import { persistApprovalTransition } from "./effect-persistence.js";
+import { effectAuthority } from "../effects/gate-context.js";
+import { toolEffectDescriptorSha256 } from "../effects/tool-effect-gateway.js";
 
 export type DispatchOutcome = {
   executed: boolean;
@@ -77,10 +79,23 @@ export async function dispatchTool(
   // StreamEvent, so a long external call streams output/heartbeats mid-execution.
   const execCtx: ToolContext = {
     ...executionContext(call, deps, ctx, deps.forceFreshApproval?.() === true),
+    safety: deps.safety,
     effectCallId: call.id,
+    effectJournalOwnerId: call.id,
+    effectApprovalAction: gateResult.effectApprovalAction,
+    effectApprovalReusable: gateResult.effectApprovalReusable,
     sandboxWritableDirs: gateResult.sandboxWritableDirs,
     onProgress: (text) => deps.onEvent?.({ type: "note", text }),
   };
+  const authorizedAction = gateResult.effectApprovalAction
+    ?? tool?.describeForSafety?.(call.arguments)
+    ?? `${call.name} ${JSON.stringify(call.arguments)}`;
+  execCtx.effectAuthority = effectAuthority(
+    execCtx,
+    toolEffectDescriptorSha256(call.name, call.arguments, authorizedAction),
+    authorizedAction,
+    gateResult.effectApprovalReusable,
+  );
   await ctx.onToolExecutionStart?.(call);
   const res = await executeWithRetry(call, deps, execCtx, tool);
   const truth = toolResultTruth(call.name, res);

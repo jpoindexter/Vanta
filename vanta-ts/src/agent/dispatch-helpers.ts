@@ -21,8 +21,16 @@ import { join } from "node:path";
 import { approvedMkdirWritableDirs, externalDirectMkdirTarget, shellCommandCwd, shellCommandSafetyAction } from "../tools/shell-cmd.js";
 import type { ToolResult } from "../tools/types.js";
 import { persistApprovalTransition } from "./effect-persistence.js";
+import { executeToolEffect } from "../effects/tool-effect-gateway.js";
 
-export type SafetyGateResult = { approved: boolean; reason?: string; sandboxWritableDirs?: string[] };
+export type SafetyGateResult = {
+  approved: boolean;
+  reason?: string;
+  sandboxWritableDirs?: string[];
+  /** Exact Ask action already resolved by this gate. */
+  effectApprovalAction?: string;
+  effectApprovalReusable?: boolean;
+};
 
 /** PAPER-GOVERNANCE-AUDIT: log one durable, tamper-evident `gate` event per
  *  applySafetyGate exit — the kernel's raw verdict plus how it was finally
@@ -91,9 +99,10 @@ export async function applySafetyGate(
   if (effectiveDecision.decision === "ask") {
     if (forceFreshApproval) {
       const result = await handleApprovalRequest({ call, action, verdict, deps, root: ctx.root, tool });
-      return result.approved && call.name === "shell_cmd"
-        ? { ...result, sandboxWritableDirs: approvedMkdirWritableDirs(String(call.arguments.command ?? ""), shellCwd) }
-        : result;
+      if (!result.approved) return result;
+      return call.name === "shell_cmd"
+        ? { ...result, effectApprovalAction: action, effectApprovalReusable: false, sandboxWritableDirs: approvedMkdirWritableDirs(String(call.arguments.command ?? ""), shellCwd) }
+        : { ...result, effectApprovalAction: action, effectApprovalReusable: false };
     }
     if (permissionMode === "fullAccess") {
       recordAutoDecision(action, deps.activeGoalText);
@@ -102,18 +111,25 @@ export async function applySafetyGate(
         ? {
             approved: true,
             reason: "full access (kernel and explicit blocks remain enforced)",
+            effectApprovalAction: action,
+            effectApprovalReusable: true,
             sandboxWritableDirs: approvedMkdirWritableDirs(String(call.arguments.command ?? ""), shellCwd),
           }
-        : { approved: true, reason: "full access (kernel and explicit blocks remain enforced)" };
+        : { approved: true, reason: "full access (kernel and explicit blocks remain enforced)", effectApprovalAction: action, effectApprovalReusable: true };
     }
     const result = await handleAskDecision({ call, action, verdict, decision: effectiveDecision, deps, root: ctx.root, tool, permissionMode });
-    return result.approved && call.name === "shell_cmd"
-      ? { ...result, sandboxWritableDirs: approvedMkdirWritableDirs(String(call.arguments.command ?? ""), shellCwd) }
-      : result;
+    if (!result.approved) return result;
+    return call.name === "shell_cmd"
+      ? { ...result, effectApprovalAction: action, effectApprovalReusable: true, sandboxWritableDirs: approvedMkdirWritableDirs(String(call.arguments.command ?? ""), shellCwd) }
+      : { ...result, effectApprovalAction: action, effectApprovalReusable: true };
   }
 
   await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "allow" });
-  return { approved: true };
+  return {
+    approved: true,
+    effectApprovalAction: action,
+    effectApprovalReusable: !forceFreshApproval && (verdict.risk === "ask" || permissionMode === "fullAccess"),
+  };
 }
 
 /**
@@ -256,11 +272,11 @@ export async function executeWithRetry(
   // TOOL-RETRY: re-run only idempotent reads on a transient failure; never a
   // write/shell/spawn (re-running could double a side effect). Honest report —
   // the final result is returned as-is, success is never faked.
-  let res = await tool.execute(call.arguments, ctx);
+  let res = await executeToolEffect(call.name, call.arguments, tool, ctx);
   const budget = resolveToolRetries();
   for (let attempt = 1; attempt <= budget && shouldRetryTool(call.name, res.ok, res.output); attempt++) {
     deps.onText?.(`  ↻ ${call.name} hit a transient failure — retry ${attempt}/${budget}`);
-    res = await tool.execute(call.arguments, ctx);
+    res = await executeToolEffect(call.name, call.arguments, tool, ctx);
   }
 
   return res;

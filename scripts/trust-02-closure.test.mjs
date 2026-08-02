@@ -27,7 +27,7 @@ test("TRUST-02 closure removes the card from the open queue and retains executed
   assert.equal(trust?.status, "shipped");
   assert.doesNotMatch(buildOrder, /TRUST-02 —/);
   assert.doesNotMatch(buildOrder, /TRUST-04 —/);
-  assert.match(buildOrder, /TRUST-01 —/);
+  assert.doesNotMatch(buildOrder, /TRUST-01 —/);
   assert.match(buildOrder, /OP-01 —/);
   assert.equal(receipt?.roadmapId, "TRUST-02");
   assert.equal(receipt?.roadmapState, "shipped");

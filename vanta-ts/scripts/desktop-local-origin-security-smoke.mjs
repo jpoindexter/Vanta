@@ -76,6 +76,17 @@ try {
   });
   assert.equal(normalRendererRead.status, 200);
   assert.ok(Array.isArray(normalRendererRead.body));
+  const trustedTerminal = await page.evaluate(async () => {
+    const response = await fetch("/api/terminal", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-vanta-desktop-boundary": window.vantaDesktop?.boundaryToken ?? "" },
+      body: JSON.stringify({ command: "printf TRUST01_TERMINAL_OK" }),
+    });
+    return { status: response.status, body: await response.json() };
+  });
+  assert.equal(trustedTerminal.status, 200);
+  assert.equal(trustedTerminal.body.ok, true);
+  assert.match(trustedTerminal.body.output, /TRUST01_TERMINAL_OK/);
   const untouchedDraft = await page.evaluate(async () => {
     const response = await fetch("/api/sessions/draft", {
       method: "POST",
@@ -89,11 +100,12 @@ try {
     hostile,
     trusted: [
       { label: "trusted renderer read", status: normalRendererRead.status },
+      { label: "trusted terminal effect", status: trustedTerminal.status },
       { label: "trusted draft readback", status: untouchedDraft.status },
     ],
   });
 
-  console.log(JSON.stringify({ packaged: Boolean(executablePath), launchBoundary: true, hostileRequestsDenied: hostile.length, hostileMutationAbsent: true, navigationDenied: true, windowDenied: true, trustedRendererPassed: true }));
+  console.log(JSON.stringify({ packaged: Boolean(executablePath), launchBoundary: true, hostileRequestsDenied: hostile.length, hostileMutationAbsent: true, navigationDenied: true, windowDenied: true, trustedRendererPassed: true, trustedTerminalEffect: true }));
 } finally {
   await app?.close().catch(() => undefined);
   await new Promise((resolve) => hostile.close(resolve));

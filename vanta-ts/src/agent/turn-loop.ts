@@ -42,6 +42,7 @@ import {
 } from "./tool-budget.js";
 import { resolvePermissionMode } from "../modes/permission-mode.js";
 import { beginTtftTurn } from "../performance/ttft-trace.js";
+import { randomUUID } from "node:crypto";
 
 export type TurnOpts = {
   messages: Message[];
@@ -311,6 +312,7 @@ async function handleToolCallsPresent(args: ToolCallIterArgs): Promise<AgentOutc
 
 export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
   const { messages, ctx, deps, userText, images, signal } = opts;
+  const effectScopeId = ctx.effectScopeId ?? deps.sessionId ?? `turn:${randomUUID()}`;
   const ttft = beginTtftTurn(deps.usageAgent ?? "agent");
   const effectiveSignal = signal ?? deps.signal;
   const maxIter = deps.maxIterations ?? 50;
@@ -358,6 +360,7 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
     }
     const liveCtx: ToolContext = {
       ...ctx,
+      effectScopeId,
       inspectContext: () => buildContextInspection(messages, schemas, deps.provider.contextWindow()),
     };
     const earlyExit = await handleToolCallsPresent({ result, messages, deps, ctx: liveCtx, state, prefetched, iter, support: adaptiveSupport, hardToolBudget });

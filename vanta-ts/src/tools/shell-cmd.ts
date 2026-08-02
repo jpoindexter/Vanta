@@ -30,7 +30,7 @@ import {
   payloadSha256,
   stableEffectId,
 } from "../effects/execute-effect.js";
-import { effectGateFromToolContext } from "../effects/gate-context.js";
+import { effectGateFromToolContext, effectOperationKey } from "../effects/gate-context.js";
 
 export { lastCommandWord, classifyExitCode } from "./shell-output.js";
 
@@ -258,7 +258,7 @@ async function runBackground(
       kind: "shell.background.launch",
       targetClass: "sandboxed-background-process",
       payloadSha256: hash,
-      idempotencyKey: `shell-background:${ctx.effectCallId ?? ctx.sessionId ?? "one-shot"}:${hash}`,
+      idempotencyKey: effectOperationKey("shell-background", ctx),
     };
     const result = await executeEffect({
       id: stableEffectId(seed),

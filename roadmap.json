@@ -20724,12 +20724,12 @@
       "tier": "rock",
       "model": "opus",
       "codex": "gpt-5.6-sol",
-      "updated": "2026-07-30",
+      "updated": "2026-08-02",
       "source": "vanta-total-realignment-correction-2026-07-30",
       "id": "TRUST-01",
       "track": "Harness",
       "title": "Universal effect-path inventory and one trusted action gateway",
-      "status": "next",
+      "status": "shipped",
       "after": [
         "TRUST-02"
       ],
@@ -20738,7 +20738,7 @@
       "lens": "agent-loop",
       "summary": "Inventory filesystem, shell, Git, network, credentials, hooks, plugins, MCP, scheduler, workers, Desktop, connectors, factory, and self-repair effects; route every consequential effect through one authoritative gateway without deleting working capability.",
       "done": "The inventory names every effect path, actor, account, credential, normalization, policy decision, executor, receipt, compensation, and bypass test; unmediated effects equal zero in executed adversarial coverage. Gmail to/subject reject CR/LF before MIME construction and authorization hashing; Gmail, Calendar, and Drive scopes are separate and incremental; life mutations use preconditions, idempotency, immutable provider IDs, readback, and compensation. Compatibility adapters preserve provenance, measurement, cutoff, and rollback and never become a second policy boundary.",
-      "notes": "Trust inventory precedes the canonical action envelope."
+      "notes": "Shipped 2026-08-02 on the supported local Vanta and signed macOS hosts. The complete 14,002-test TypeScript suite, independent adversarial review, effect-surface mutation validator, signed app and DMG, 9 source plus 9 packaged desktop flows, terminal/origin/restart/capture paths, real local transcription, zero-vulnerability runtime audit, protected-path scan, and Git/package secret scans pass. Gmail, Calendar, and Drive authority were granted separately. The sanitized live proof rejected Gmail CR/LF header injection before approval without sending, then created, conditionally updated, exactly read back, and cleaned up one opaque Calendar event and Drive file without logging provider content, account identity, or credentials. This closes the written TRUST-01 Done contract for the executed hosts; it does not claim cross-platform packaging, notarization, merge, release, publication, deployment, or every future effect path. Evidence: docs/trust-01-progress-receipt-2026-08-02.json and docs/trust-01-progress-audit-2026-08-02.html."
     },
     {
       "tier": "rock",

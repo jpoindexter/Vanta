@@ -19,6 +19,7 @@ import { useRunLibrary } from "./run-library-state.js";
 import { acknowledgePendingDesktopProjectTask, readPendingDesktopProjectTask, switchDesktopProjectForNewTask, type PendingDesktopProjectTask } from "./project-folder-picker.js";
 import { ContinuityView } from "./continuity-view.js";
 import { useContinuity } from "./continuity-state.js";
+import { RuntimeStrip } from "./runtime-strip.js";
 
 type DesktopData = ReturnType<typeof useDesktopData>;
 type CompletionSound = ReturnType<typeof useCompletionSound>;
@@ -279,6 +280,17 @@ export function AppShell() {
       />
       <main className="workbench">
         {view === "work" ? <>
+          <div className="work-controls">
+            <RuntimeStrip
+              runtime={data.runtime}
+              agentModel={data.status?.model}
+              agentProvider={data.status?.provider}
+              agentRoute={data.status?.providerRoute}
+              phase={data.phase}
+              onSelect={data.setRuntimeHost}
+              onAction={data.runRuntimeAction}
+            />
+          </div>
           <div className={`conversation-stage ${data.phase === "error" ? "has-error" : ""}`}>
             {data.phase === "error" ? <ConnectionError message={data.error} onRetry={() => { void data.refresh(); }} onSetup={data.openSetup} /> : null}
             {data.phase === "loading" ? <LoadingState /> : <ChatThread key={convo.sessionId || data.status?.sessionId} sessionId={convo.sessionId || data.status?.sessionId} messages={convo.messages} busy={convo.busy} streamText={convo.streamText} events={convo.events} recovery={convo.recovery} approval={approval.approval} onApproval={approval.answerApproval} onRetry={convo.retry} onReconnect={data.openSetup} onPrompt={convo.setDraft} />}
@@ -430,7 +442,7 @@ function DesktopHeader(props: {
         <div className="titlebar-task"><FolderKanban size={14} /><div className="title-block"><h1>{props.title}</h1></div></div>
         <div className="titlebar-actions">
           {props.queueCount ? <button className="titlebar-queue" type="button" aria-label={`Open queue, ${props.queueCount} next`} onClick={props.onQueue}><ListOrdered size={14} /><span>{props.queueCount}</span></button> : null}
-          <button className={`review-button ${props.inspectorOpen ? "active" : ""}`} type="button" aria-expanded={props.inspectorOpen} aria-controls="review-drawer" onClick={props.onInspector}><span>Review</span>{props.reviewCount ? <strong aria-label={`${props.reviewCount} review items`}>{props.reviewCount}</strong> : null}</button>
+          <button className={`review-button ${props.inspectorOpen ? "active" : ""}`} type="button" aria-label="Review" aria-expanded={props.inspectorOpen} aria-controls="review-drawer" onClick={props.onInspector}><span>Review</span>{props.reviewCount ? <strong aria-label={`${props.reviewCount} review items`}>{props.reviewCount}</strong> : null}</button>
           <button className="icon-button" type="button" title="Commands (Command K)" onClick={props.onCommand} aria-label="Open commands"><Command size={16} /></button>
         </div>
       </div>

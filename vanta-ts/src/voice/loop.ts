@@ -4,6 +4,8 @@ import type { KernelClient } from "../kernel/client.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import { createConversation } from "../agent.js";
 import { createVoiceTurnSpeaker, type VoiceTurnSpeaker } from "../tts/streaming.js";
+import { randomUUID } from "node:crypto";
+import { executeToolEffect } from "../effects/tool-effect-gateway.js";
 
 type VoiceDeps = {
   provider: LLMProvider;
@@ -35,8 +37,9 @@ async function handleVoiceTurn(
 
   log("[Transcribing…]");
   const { transcribeTool } = await import("../tools/transcribe.js");
-  const xResult = await transcribeTool.execute({ path: rec.path }, {
+  const xResult = await executeToolEffect("transcribe", { path: rec.path }, transcribeTool, {
     root: deps.root,
+    effectCallId: `voice-transcribe:${randomUUID()}`,
     safety: deps.safety,
     requestApproval: async () => false,
   });

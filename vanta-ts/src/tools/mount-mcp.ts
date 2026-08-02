@@ -9,7 +9,7 @@ import {
   payloadSha256,
   stableEffectId,
 } from "../effects/execute-effect.js";
-import { effectGateFromToolContext } from "../effects/gate-context.js";
+import { effectGateFromToolContext, effectOperationKey } from "../effects/gate-context.js";
 
 const Args = z.object({
   name: z.string().min(1),
@@ -60,7 +60,7 @@ async function executeMountMcp(registry: ToolRegistry, rawArgs: unknown, ctx: To
       kind: "mcp.server.launch",
       targetClass: "model-selected-mcp-process",
       payloadSha256: payloadSha256(payload),
-      idempotencyKey: `mount-mcp:${ctx.effectCallId ?? ctx.sessionId ?? "one-shot"}:${name}:${payloadSha256(payload)}`,
+      idempotencyKey: effectOperationKey("mount-mcp", ctx),
     };
     const mounted = await executeEffect({
       id: stableEffectId(seed),

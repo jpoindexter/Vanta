@@ -196,6 +196,39 @@ describe("handleMessage", () => {
     expect(res.result.content[0]!.text).toContain("approved approval 9");
     expect(calls).toEqual(["approve:9"]);
   });
+
+  it("does not reuse a settled effect when a client reuses a JSON-RPC id", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-mcp-id-reuse-"));
+    try {
+      let executions = 0;
+      const registry = buildRegistry();
+      registry.register({
+        schema: { name: "synthetic_effect", description: "test", parameters: { type: "object", properties: {} } },
+        describeForSafety: () => "execute synthetic effect",
+        execute: async () => ({ ok: true, output: `execution ${++executions}` }),
+      });
+      const serverDeps = deps({
+        registry,
+        allowlist: new Set(["synthetic_effect"]),
+        ctx: { root, safety: fakeSafety("allow"), requestApproval: async () => false } as ToolContext,
+      });
+      serverDeps.ctx.safety = serverDeps.safety;
+      const message = {
+        id: 44,
+        method: "tools/call",
+        params: { name: "synthetic_effect", arguments: { value: "same" } },
+      };
+
+      const first = await handleMessage(message, serverDeps) as { result: { content: Array<{ text: string }> } };
+      const second = await handleMessage(message, serverDeps) as { result: { content: Array<{ text: string }> } };
+
+      expect(first.result.content[0]?.text).toContain("execution 1");
+      expect(second.result.content[0]?.text).toContain("execution 2");
+      expect(executions).toBe(2);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
 });
 
 /** Two transports wired directly together — client.send → server.onMessage and back. */

@@ -153,6 +153,8 @@
       "desktop-app/electron/**/*.mjs",
       "desktop-app/electron/**/*.cjs",
       "src/**/*",
+      "!src/**/*.test.ts",
+      "!src/**/*.test.tsx",
       "package.json",
       "!node_modules/@huggingface/**/*",
       "!node_modules/@img/**/*",
@@ -202,7 +204,9 @@
     }
   },
   "overrides": {
+    "adm-zip": "0.6.0",
     "esbuild": "^0.28.1",
+    "sharp": "0.35.3",
     "uuid": "^11.1.1"
   }
 }

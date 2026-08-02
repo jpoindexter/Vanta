@@ -10,6 +10,7 @@ import {
   payloadSha256,
   stableEffectId,
 } from "../effects/execute-effect.js";
+import { effectGateFromToolContext, effectOperationKey } from "../effects/gate-context.js";
 import type { TrustConfirmer } from "../settings/trust-gate.js";
 import type { McpAuthConfig } from "./auth-flow.js";
 
@@ -161,27 +162,14 @@ export function mcpToolToVantaTool(
         kind: "mcp.tool.call",
         targetClass: "mcp-tool",
         payloadSha256: hash,
-        idempotencyKey: `mcp:${server}:${def.name}:${ctx.effectCallId ?? ctx.sessionId ?? "one-shot"}:${hash}`,
+        idempotencyKey: effectOperationKey("mcp-tool", ctx),
       };
       const result = await executeEffect({
         id: stableEffectId(seed),
         actor: def.name,
         action: `call MCP tool ${server}.${def.name} with payload sha256:${hash}`,
         ...seed,
-      }, {
-        kernel: ctx.safety,
-        approval: {
-          request: (request) => ctx.requestApproval(
-            request.action,
-            request.reason,
-            `mcp_${server}_${def.name}`,
-            { fresh: true },
-          ),
-        },
-        projectRoot: ctx.root,
-        sessionId: ctx.sessionId,
-        permissionMode: ctx.permissionMode?.() ?? "default",
-      }, async () => ({
+      }, effectGateFromToolContext(ctx), async () => ({
         value: await client.callTool(def.name, args as Record<string, unknown>),
         acknowledgementId: `${server}.${def.name}:response`,
       }));

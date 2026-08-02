@@ -211,7 +211,7 @@ try {
     throw new Error(`Desktop composer did not become ready: ${JSON.stringify(bootState)}`, { cause: error });
   }
   await page.locator(".titlebar-leading-actions").waitFor();
-  for (const destination of ["Runs", "Connect", "Scheduled", "Plugins"]) {
+  for (const destination of ["Today", "Connect", "Scheduled", "Plugins"]) {
     await page.getByRole("button", { name: destination, exact: true }).waitFor();
   }
   if (await page.getByRole("toolbar", { name: "Task controls" }).count()) throw new Error("Permanent task-control toolbar returned");
@@ -371,9 +371,9 @@ try {
   await page.getByText("Moved to Trash 44 sessions.", { exact: true }).waitFor();
   await sessionSearch.fill("");
 
-  await page.getByRole("button", { name: "Runs", exact: true }).click();
-  await page.locator(".operator-view").getByRole("heading", { name: "Runs", exact: true }).waitFor();
-  await page.getByText("active tasks", { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Today", exact: true }).click();
+  await page.locator(".continuity-workspace").getByRole("heading", { name: "Today", exact: true }).waitFor();
+  await page.getByLabel("What do you want off your mind?").waitFor();
 
   await page.getByRole("button", { name: "Connect", exact: true }).click();
   await page.locator(".operator-view").getByRole("heading", { name: "Connect", exact: true }).waitFor();
@@ -555,7 +555,7 @@ try {
   if (visual.userMessage.background === "rgba(0, 0, 0, 0)") throw new Error(`Operator message lost its compact bubble: ${JSON.stringify(visual)}`);
   if (visual.assistantSpeakerLabels !== 0) throw new Error(`Redundant assistant speaker chrome returned: ${JSON.stringify(visual)}`);
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
-  process.stdout.write(`${JSON.stringify({ destinations: ["Runs", "Connect", "Scheduled", "Plugins"], newTask: true, bulkDelete: { selected: 44, requests: bulkRequests, elapsedMs: bulkElapsed }, runs: true, accessModes: ["approve", "full", "ask"], inlineApproval: approvalDecisions, review: ["Files", "Diff", "Activity"], modelPicker: true, responsive, compact: true, collapsedTitlebar, geometry, visual, visualProof: visualProof ? { updated: visualUpdate, captures: visualResults.length, baselineRoot: visualBaselineRoot } : undefined, accessibilityProof: accessibilityProof ? accessibilityResults : undefined })}\n`);
+  process.stdout.write(`${JSON.stringify({ destinations: ["Today", "Connect", "Scheduled", "Plugins"], newTask: true, bulkDelete: { selected: 44, requests: bulkRequests, elapsedMs: bulkElapsed }, continuity: true, accessModes: ["approve", "full", "ask"], inlineApproval: approvalDecisions, review: ["Files", "Diff", "Activity"], modelPicker: true, responsive, compact: true, collapsedTitlebar, geometry, visual, visualProof: visualProof ? { updated: visualUpdate, captures: visualResults.length, baselineRoot: visualBaselineRoot } : undefined, accessibilityProof: accessibilityProof ? accessibilityResults : undefined })}\n`);
 } finally {
   await app?.close().catch(() => undefined);
   await Promise.all([
@@ -586,6 +586,7 @@ async function selectAccessMode(page, trigger, label, expectedMode, expectedButt
   await menu.waitFor();
   await menu.getByText("Project setting").waitFor();
   const responsePromise = page.waitForResponse((response) => new URL(response.url()).pathname === "/api/access-mode" && response.request().method() === "POST");
+  // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp -- label is a hard-coded smoke fixture, never user-controlled.
   await menu.getByRole("radio", { name: new RegExp(label) }).click();
   const response = await responsePromise;
   const saved = await response.json();

@@ -568,10 +568,27 @@
   font-size: 12px;
 }
 
+.review-open-outputs {
+  min-height: 28px;
+  margin-left: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xs);
+  background: var(--raised);
+  color: var(--muted);
+  padding: 4px 8px;
+  font-size: 10px;
+}
+
+.review-open-outputs:hover,
+.review-open-outputs:focus-visible {
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
 .right-rail .inspector-dismiss {
   position: static;
   display: grid;
-  margin-left: auto;
+  margin-left: 4px;
 }
 
 .inspector-tabs {

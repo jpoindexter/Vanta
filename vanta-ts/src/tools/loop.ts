@@ -28,7 +28,7 @@ import {
   payloadSha256,
   stableEffectId,
 } from "../effects/execute-effect.js";
-import { effectGateFromToolContext } from "../effects/gate-context.js";
+import { effectGateFromToolContext, effectOperationKey } from "../effects/gate-context.js";
 
 // `loop` tool — create and manage first-class loops from the agent's own loop.
 // The agent calls `run` to fire a single iteration in a background process
@@ -147,7 +147,7 @@ async function execRun(id: string | undefined, dataDir: string, ctx: ToolContext
     kind: "loop.child.launch",
     targetClass: "local-loop-process",
     payloadSha256: hash,
-    idempotencyKey: `loop-tool:${ctx.effectCallId ?? ctx.sessionId ?? "one-shot"}:${id}:${hash}`,
+    idempotencyKey: effectOperationKey("loop-tool", ctx),
   };
   const launched = await executeEffect({
     id: stableEffectId(seed),

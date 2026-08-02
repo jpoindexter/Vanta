@@ -36,8 +36,38 @@ export type EffectGateContext = {
   sessionId?: string;
   /** Stable host operation id, such as the provider tool-call id. */
   operationId?: string;
+  scopeId?: string;
+  /** Already-decided authority from the one outer gateway. */
+  authority?: {
+    operationId: string;
+    scopeId: string;
+    descriptorSha256: string;
+    authorizeChild?: (intent: Pick<EffectIntent, "action" | "kind" | "targetClass" | "payloadSha256">) => Promise<"allowed" | "blocked" | "denied">;
+  };
   permissionMode: string;
 };
+
+export function effectDescriptorSha256(
+  intent: Pick<EffectIntent, "action" | "kind" | "targetClass" | "payloadSha256">,
+): string {
+  return createHash("sha256")
+    .update([intent.kind, intent.targetClass, intent.action, intent.payloadSha256].join("\0"))
+    .digest("hex");
+}
+
+function hasAuthorityScope(context: EffectGateContext): boolean {
+  return Boolean(
+    context.operationId
+    && context.scopeId
+    && context.authority?.operationId === context.operationId
+    && context.authority.scopeId === context.scopeId,
+  );
+}
+
+function hasMatchingAuthority(context: EffectGateContext, intent: EffectIntent): boolean {
+  return hasAuthorityScope(context)
+    && context.authority?.descriptorSha256 === effectDescriptorSha256(intent);
+}
 
 export type EffectOutcome = {
   outcome: HostEffectOutcome;
@@ -57,6 +87,9 @@ export type EffectOperationResult<T> = {
 
 export type EffectExecutionResult<T> = EffectOutcome & {
   value?: T;
+  /** Transient policy explanation for the host; never persisted. */
+  policyRisk?: "ask" | "block";
+  policyReason?: string;
   /**
    * Transient in-memory cause for a caller that must distinguish a recoverable
    * provider condition (for example MCP OAuth). It is never persisted.
@@ -161,19 +194,36 @@ export async function executeEffect<T>(
     });
   }
 
-  let verdict: Awaited<ReturnType<EffectGateContext["kernel"]["assess"]>>;
-  try {
-    verdict = await context.kernel.assess(intent.action);
-  } catch (error) {
-    return settle(context, intent, persistence, {
-      outcome: "blocked",
-      errorSha256: payloadSha256(error instanceof Error ? error.message : String(error)),
-    });
+  let childDecision: "allowed" | "blocked" | "denied" | undefined;
+  if (!hasMatchingAuthority(context, intent) && hasAuthorityScope(context) && context.authority?.authorizeChild) {
+    try {
+      childDecision = await context.authority.authorizeChild(intent);
+    } catch {
+      childDecision = "blocked";
+    }
+    if (childDecision !== "allowed") {
+      return settle(context, intent, persistence, { outcome: childDecision });
+    }
   }
-  if (verdict.risk === "block") {
-    return settle(context, intent, persistence, { outcome: "blocked" });
+  let verdict: Awaited<ReturnType<EffectGateContext["kernel"]["assess"]>> | undefined;
+  if (!hasMatchingAuthority(context, intent) && childDecision !== "allowed") {
+    try {
+      verdict = await context.kernel.assess(intent.action);
+    } catch (error) {
+      return settle(context, intent, persistence, {
+        outcome: "blocked",
+        errorSha256: payloadSha256(error instanceof Error ? error.message : String(error)),
+      });
+    }
   }
-  if (verdict.risk === "ask") {
+  if (verdict?.risk === "block") {
+    return {
+      ...await settle(context, intent, persistence, { outcome: "blocked" }),
+      policyRisk: "block",
+      policyReason: verdict.reason,
+    };
+  }
+  if (verdict?.risk === "ask") {
     await approvals.persist(context, intent, "requested");
     let approved = false;
     try {
@@ -198,11 +248,16 @@ export async function executeEffect<T>(
       };
     }
     await approvals.persist(context, intent, approved ? "approved" : "denied");
-    if (!approved) return settle(context, intent, persistence, { outcome: "denied" });
+    if (!approved) {
+      return {
+        ...await settle(context, intent, persistence, { outcome: "denied" }),
+        policyRisk: "ask",
+        policyReason: verdict.reason,
+      };
+    }
   }
 
   await persistence.persist(context, intent, "started");
-  await updateEffectClaim(context, intent, "started");
   try {
     const result = await operation();
     const acknowledgementId = safeAcknowledgement(result.acknowledgementId);

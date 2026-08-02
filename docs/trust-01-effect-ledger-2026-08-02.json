@@ -18,6 +18,20 @@
       "bypassTests": ["src/agents/external-cli.test.ts", "src/exec/child-env.test.ts"]
     },
     {
+      "source": "src/effects/tool-effect-gateway.ts",
+      "classification": "mediated",
+      "effectKinds": ["ordinary.tool.execute", "plugin.tool.execute"],
+      "actor": "Exact registered tool name and stable provider call id",
+      "account": "Local project or provider account owned by the selected tool",
+      "credential": "The adapter retains only normalized payload SHA-256; credentials stay in the tool or provider boundary",
+      "normalization": "Canonical recursively sorted arguments, tool name, session, stable operation id, target class, and SHA-256",
+      "policyDecision": "The durable pending claim precedes kernel assessment and exact approval; unclassified tools default into this gateway",
+      "executor": "executeToolEffect invokes the registered tool exactly once and never automatically retries consequential effects",
+      "receipt": "Canonical effect journal records pending, started, outcome, acknowledgement, readback hash, and WorkItem settlement",
+      "compensation": "Explicit denied, expired, unknown, and compensated tool truth is preserved; ambiguous operations require human readback",
+      "bypassTests": ["src/effects/tool-effect-gateway.test.ts", "src/agent/permission-gate.test.ts", "scripts/lib/trust-01-effect-ledger.node-test.mjs"]
+    },
+    {
       "source": "src/gateway/child-ops.ts",
       "classification": "mediated",
       "effectKinds": ["gateway.loop.launch", "gateway.factory.launch", "gateway.webhook"],

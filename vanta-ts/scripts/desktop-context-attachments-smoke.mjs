@@ -61,7 +61,7 @@ try {
   if (await openInspector.isVisible().catch(() => false)) await openInspector.click();
   const filesTab = page.locator(".inspector-tabs button").filter({ hasText: "Files" });
   if (!await filesTab.isVisible().catch(() => false)) {
-    await page.getByRole("button", { name: "Inspect", exact: true }).click();
+    await page.getByRole("button", { name: "Review", exact: true }).click();
   }
   await filesTab.click();
   const panel = page.locator(".files-panel");
@@ -87,8 +87,8 @@ try {
   assert.ok(geometry.panel[1] <= geometry.panel[0], `file panel overflowed: ${JSON.stringify(geometry)}`);
   assert.ok(geometry.chips[1] <= geometry.chips[0], `context chips overflowed: ${JSON.stringify(geometry)}`);
 
+  await page.getByRole("dialog", { name: "Review" }).getByRole("button", { name: "Close review" }).click();
   await page.getByRole("button", { name: "Remove src/chat.tsx" }).click();
-  await page.getByRole("button", { name: "Close inspector" }).click();
 
   await app.evaluate(({ dialog }, path) => {
     dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [path] });

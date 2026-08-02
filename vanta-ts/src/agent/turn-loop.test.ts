@@ -445,10 +445,11 @@ describe("task completion boundaries", () => {
   });
 
   it("never executes past the predeclared hard ceiling even when one batch requests more", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-turn-ceiling-"));
     const registry = new InMemoryToolRegistry();
     let executed = 0;
     registry.register({
-      schema: { name: "inspect_item", description: "inspect", parameters: { type: "object", properties: {} } },
+      schema: { name: "inspect_state", description: "inspect", parameters: { type: "object", properties: {} } },
       describeForSafety: (args) => `inspect ${String(args.index)}`,
       execute: async () => {
         executed++;
@@ -464,26 +465,30 @@ describe("task completion boundaries", () => {
         text: "",
         toolCalls: Array.from({ length: DEFAULT_TOOL_BUDGET + 5 }, (_, index) => ({
           id: `inspect-${index}`,
-          name: "inspect_item",
+          name: "inspect_state",
           arguments: { index },
         })),
         finishReason: "tool_calls",
       })),
     };
 
-    const out = await runTurn({
-      messages,
-      ctx: { root: "/tmp", safety, requestApproval: async () => true },
-      deps: { provider, safety, registry, root: "/tmp", requestApproval: async () => true },
-      userText: "Inspect all items and report.",
-    });
+    try {
+      const out = await runTurn({
+        messages,
+        ctx: { root, safety, requestApproval: async () => true },
+        deps: { provider, safety, registry, root, requestApproval: async () => true },
+        userText: "Inspect all items and report.",
+      });
 
-    expect(out.stoppedReason).toBe("tool_budget");
-    expect(out.toolIterations).toBe(DEFAULT_TOOL_BUDGET);
-    expect(executed).toBe(DEFAULT_TOOL_BUDGET);
-    expect(messages.filter((message) => message.role === "tool")).toHaveLength(DEFAULT_TOOL_BUDGET + 5);
-    expect(messages.filter((message) => message.role === "tool").slice(-5).every((message) => message.content.includes("Not executed"))).toBe(true);
-  });
+      expect(out.stoppedReason).toBe("tool_budget");
+      expect(out.toolIterations).toBe(DEFAULT_TOOL_BUDGET);
+      expect(executed).toBe(DEFAULT_TOOL_BUDGET);
+      expect(messages.filter((message) => message.role === "tool")).toHaveLength(DEFAULT_TOOL_BUDGET + 5);
+      expect(messages.filter((message) => message.role === "tool").slice(-5).every((message) => message.content.includes("Not executed"))).toBe(true);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  }, 30_000);
 });
 
 // A tool whose output is a secret-shaped string. describeForSafety returns a

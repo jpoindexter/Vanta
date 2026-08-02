@@ -4,29 +4,26 @@
 // bindings (zero-context-cost). Every step is kernel-gated exactly like a direct
 // tool call — this is orchestration, never a permission escape.
 import type { Tool, ToolContext, ToolResult } from "./types.js";
+import { randomUUID } from "node:crypto";
 import type { ToolRegistry } from "./registry.js";
 import {
   parsePipeline,
   runPipeline,
   type ToolResultLike,
 } from "../workflow/rpc-pipeline.js";
+import { executeToolEffect } from "../effects/tool-effect-gateway.js";
 
 const estTokens = (chars: number) => Math.ceil(chars / 4);
 
-/** A kernel-gated callTool: routes each step through assess() + requestApproval,
- *  exactly like a direct tool call. Cannot bypass the gate. */
+/** Route every step through the authoritative gateway. */
 function gatedCallTool(registry: ToolRegistry, ctx: ToolContext) {
+  let step = 0;
+  const pipelineOperationId = ctx.effectCallId ?? `direct-pipeline:${randomUUID()}`;
   return async (toolName: string, args: Record<string, unknown>): Promise<ToolResultLike> => {
     const tool = registry.get(toolName);
     if (!tool) return { ok: false, output: `unknown tool: ${toolName}` };
-    const action = tool.describeForSafety?.(args) ?? `${toolName} ${JSON.stringify(args)}`;
-    const verdict = await ctx.safety.assess(action);
-    if (verdict.risk === "block") return { ok: false, output: `blocked: ${action}` };
-    if (verdict.risk === "ask") {
-      const approved = await ctx.requestApproval(action, `pipeline step: ${toolName}`, toolName);
-      if (!approved) return { ok: false, output: `denied: ${action}` };
-    }
-    const res = await tool.execute(args, ctx);
+    const effectCallId = `${pipelineOperationId}:pipeline:${step++}`;
+    const res = await executeToolEffect(toolName, args, tool, { ...ctx, effectCallId }, { forceGateway: true });
     return { ok: res.ok, output: res.output };
   };
 }

@@ -1,4 +1,5 @@
 import http from "node:http";
+import { randomUUID } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -55,6 +56,8 @@ import {
 } from "../runs/store.js";
 import { deriveLegacyRuns } from "../runs/legacy.js";
 import { setPlanInstruction } from "../repl/plan-mode.js";
+import { executeToolEffect, toolEffectDescriptorSha256 } from "../effects/tool-effect-gateway.js";
+import { effectAuthority } from "../effects/gate-context.js";
 export { approvalDecision, type PendingApproval } from "./approval.js";
 
 const desktopTurnQueues = new Map<string, DesktopTurnQueue>();
@@ -801,14 +804,25 @@ export async function handleTerminal(state: DesktopState, req: http.IncomingMess
     const approved = await requestWebApproval(state, action, reason, "shell_cmd");
     if (!approved) return sendJson(res, 200, { ok: false, output: `denied: ${reason}` });
   }
-  const result = await tool.execute({
-    command,
-  }, {
+  const effectCallId = `desktop-terminal:${randomUUID()}`;
+  const effectCtx = {
     root: state.root,
     sessionId: state.sessionId,
+    effectCallId,
+    effectApprovalAction: action,
+    effectApprovalReusable: true,
     safety: live.setup.safety,
     requestApproval: (action: string, reason: string) => requestWebApproval(state, action, reason, "shell_cmd"),
     sandboxWritableDirs: needsApproval ? approvedMkdirWritableDirs(command, commandCwd) : undefined,
+  };
+  const result = await executeToolEffect("shell_cmd", {
+    command,
+  }, tool, {
+    ...effectCtx,
+    effectAuthority: effectAuthority(
+      effectCtx,
+      toolEffectDescriptorSha256("shell_cmd", { command }, action),
+    ),
   });
   sendJson(res, 200, result);
 }

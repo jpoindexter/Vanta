@@ -10,7 +10,7 @@ import {
   payloadSha256,
   stableEffectId,
 } from "../effects/execute-effect.js";
-import { effectGateFromToolContext } from "../effects/gate-context.js";
+import { effectGateFromToolContext, effectOperationKey } from "../effects/gate-context.js";
 
 const Args = z.object({
   action: z.enum(["mark", "rollback", "status", "sandbox_test"]),
@@ -111,7 +111,7 @@ async function runSelfRepairEffect(
     kind,
     targetClass: target,
     payloadSha256: hash,
-    idempotencyKey: `${kind}:${ctx.effectCallId ?? ctx.sessionId ?? "one-shot"}:${target}:${hash}`,
+    idempotencyKey: effectOperationKey(kind, ctx),
   };
   const result = await executeEffect({
     id: stableEffectId(seed),

@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { mkdir, open, readFile, rename, rm } from "node:fs/promises";
+import { access, mkdir, open, readFile, readdir, rename, rm } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { EffectGateContext, EffectIntent } from "./execute-effect.js";
 import type { HostEffectOutcome } from "../agent/effect-persistence.js";
@@ -14,13 +14,58 @@ export type EffectClaim = {
   updatedAt: string;
 };
 
+const legacyClaimIndexes = new Map<string, Promise<Map<string, string>>>();
+
 function sha256(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
 
 function claimFile(context: EffectGateContext, intent: EffectIntent): string {
+  const key = sha256(intent.idempotencyKey);
+  return join(context.projectRoot, ".vanta", "effect-claims", `${key}.json`);
+}
+
+function legacyClaimFile(context: EffectGateContext, intent: EffectIntent): string {
   const key = sha256(`${intent.id}\0${intent.idempotencyKey}`);
   return join(context.projectRoot, ".vanta", "effect-claims", `${key}.json`);
+}
+
+async function readClaim(path: string): Promise<EffectClaim | null> {
+  try {
+    return JSON.parse(await readFile(path, "utf8")) as EffectClaim;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw error;
+  }
+}
+
+async function buildLegacyClaimIndex(directory: string): Promise<Map<string, string>> {
+  const index = new Map<string, string>();
+  let files: string[];
+  try {
+    files = await readdir(directory);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return index;
+    throw error;
+  }
+  for (const file of files) {
+    if (!file.endsWith(".json")) continue;
+    const path = join(directory, file);
+    const claim = await readClaim(path);
+    if (claim?.idempotencyKey) index.set(claim.idempotencyKey, path);
+  }
+  return index;
+}
+
+async function findLegacyIdempotencyClaim(context: EffectGateContext, intent: EffectIntent): Promise<EffectClaim | null> {
+  const directory = join(context.projectRoot, ".vanta", "effect-claims");
+  let pending = legacyClaimIndexes.get(directory);
+  if (!pending) {
+    pending = buildLegacyClaimIndex(directory);
+    legacyClaimIndexes.set(directory, pending);
+  }
+  const path = (await pending).get(intent.idempotencyKey);
+  return path ? readClaim(path) : null;
 }
 
 async function syncDirectory(path: string): Promise<void> {
@@ -70,14 +115,15 @@ export async function readEffectClaim(
   context: EffectGateContext,
   intent: EffectIntent,
 ): Promise<EffectClaim | null> {
-  try {
-    const existing = JSON.parse(await readFile(claimFile(context, intent), "utf8")) as EffectClaim;
-    assertClaimIdentity(existing, intent);
-    return existing;
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
-    throw error;
+  const current = await readClaim(claimFile(context, intent));
+  if (current) {
+    assertClaimIdentity(current, intent);
+    return current;
   }
+  const legacy = await readClaim(legacyClaimFile(context, intent)) ?? await findLegacyIdempotencyClaim(context, intent);
+  if (!legacy) return null;
+  assertClaimIdentity(legacy, intent);
+  return legacy;
 }
 
 export async function claimEffectIntent(
@@ -111,13 +157,18 @@ export async function claimEffectIntent(
   }
 }
 
-export function updateEffectClaim(
+export async function updateEffectClaim(
   context: EffectGateContext,
   intent: EffectIntent,
   state: EffectClaim["state"],
   outcome?: HostEffectOutcome,
 ): Promise<void> {
-  return durableWrite(claimFile(context, intent), {
+  const current = claimFile(context, intent);
+  const legacy = legacyClaimFile(context, intent);
+  const target = await access(current).then(() => current).catch(async () => (
+    access(legacy).then(() => legacy).catch(() => current)
+  ));
+  await durableWrite(target, {
     version: 1,
     id: intent.id,
     payloadSha256: intent.payloadSha256,
