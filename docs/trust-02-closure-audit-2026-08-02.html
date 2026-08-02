@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>TRUST-02 Bounded Closure Audit</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">TRUST-02 Bounded Closure Audit</h1>
+</header>
+<h1 id="trust-02-bounded-closure-audit">TRUST-02 Bounded Closure
+Audit</h1>
+<p>Date: 2026-08-02</p>
+<p>Branch: <code>codex/trust-02-closure-20260802</code></p>
+<p>Verified source head:
+<code>590126e9aaad261768374d920ccd3d71a652cd85</code></p>
+<p>Observed remote <code>main</code>:
+<code>4911ae44bbb35beef4511ba298475ba5a82b7e1c</code></p>
+<h2 id="verdict">Verdict</h2>
+<p>The bounded <code>TRUST-02</code> roadmap contract is satisfied on
+Vanta’s supported packaged Darwin ARM64 path and is promoted from
+<code>building</code> to <code>shipped</code>.</p>
+<p>The exact written Done path was executed again from the current
+stacked source head after the Desktop reliability and local continuity
+work. Nine hostile or unauthenticated Desktop/API requests were denied,
+synthetic credential and audit values remained outside model-visible
+results, the complete hook payload was denied or exact-approved, hook
+activation stayed absent in the writing process and occurred after
+restart, and durable approval/effect/action evidence was retained.</p>
+<p>This is a bounded product-roadmap closure, not a release or
+integration verdict. The draft stack remains unmerged. Cross-platform
+release, notarization, publication, deployment, live-provider receipts,
+and universal action-gateway mediation are not claimed.</p>
+<h2 id="before-and-after">Before and after</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Boundary</th>
+<th>Before</th>
+<th>After</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Roadmap state</td>
+<td><code>TRUST-02</code> remained <code>building</code> even though its
+packaged local Done path had passed on the earlier stack.</td>
+<td><code>TRUST-02</code> is <code>shipped</code> with an exact-head
+closure receipt tied to the written card contract.</td>
+</tr>
+<tr>
+<td>Current-head regression risk</td>
+<td>The earlier receipt predated the Desktop project-switch and UX-03
+commits.</td>
+<td>The packaged proof was rerun from source head <code>590126e9…</code>
+and passed without tracked build drift.</td>
+</tr>
+<tr>
+<td>Open build order</td>
+<td>Dependents stayed behind a still-open <code>TRUST-02</code>.</td>
+<td><code>TRUST-02</code> leaves the open queue; <code>TRUST-04</code>
+and <code>TRUST-01</code> remain the next trust cards in dependency
+order.</td>
+</tr>
+<tr>
+<td>Scope language</td>
+<td>Release-only gaps were mixed into the reason not to close the
+bounded card.</td>
+<td>The card closes on its written Done contract; release, live-account,
+protected-source, and universal-gateway claims remain separate
+gates.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="exact-executed-path">Exact executed path</h2>
+<p>Command, from <code>vanta-ts/</code>:</p>
+<pre class="text"><code>npm run desktop:trust-02:proof</code></pre>
+<p>Observed exit: <code>0</code></p>
+<p>Observed behavior:</p>
+<ul>
+<li>packaged and locally code-signed macOS app launched;</li>
+<li>nine missing-token, wrong-token, or hostile-origin requests
+denied;</li>
+<li>trusted renderer access passed;</li>
+<li>model-controlled hook denial and exact approval executed;</li>
+<li>synthetic <code>.env</code> and audit-state values produced zero
+exposure and zero mutation;</li>
+<li>four exact approval transitions persisted;</li>
+<li>same-process hook activation remained absent;</li>
+<li>one post-restart hook activation occurred;</li>
+<li>21 tool transitions and eight action receipts were retained;</li>
+<li>all eight required tool receipts were present.</li>
+</ul>
+<p>Package hashes:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Artifact</th>
+<th>SHA-256</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Vanta.app</code> <code>app.asar</code></td>
+<td><code>2ed12d9961a9ce82c887de8893b559ac797e58a40ff33354638587ed80bb5850</code></td>
+</tr>
+<tr>
+<td>Embedded kernel</td>
+<td><code>68c02be00eda10c27c98e0268b176cfc69589c3ca573f7885f7c9eb6dbe577ba</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="written-done-contract-mapping">Written Done contract
+mapping</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Card clause</th>
+<th>Evidence</th>
+<th>Grade</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hook/control-plane, credential, audit-state, and unauthenticated
+Desktop/API attempts produce no unmediated effect or secret
+exposure.</td>
+<td>Hostile API matrix plus packaged hook, file, shell, credential, and
+audit-state scenario; 9 denied, 0 secret exposure, 0 mutation.</td>
+<td>Executed</td>
+</tr>
+<tr>
+<td>Complete proposed payload is denied or exact-approved.</td>
+<td>Denial path plus exact hook approval bound to the complete payload
+and SHA-256; four durable approval transitions.</td>
+<td>Executed</td>
+</tr>
+<tr>
+<td>Hook activation is restart-bounded.</td>
+<td>No activation in the writing process; one activation after process
+restart.</td>
+<td>Executed</td>
+</tr>
+<tr>
+<td>Audit evidence remains outside agent scope.</td>
+<td>Synthetic audit key and event state were denied to model-controlled
+file and shell paths and absent from receipts.</td>
+<td>Executed</td>
+</tr>
+<tr>
+<td>Exact-origin and adversarial shell, file, hook, Desktop, and restart
+paths run end to end with retained receipts.</td>
+<td>Packaged proof executed all named paths; 21 tool transitions and
+eight action receipts retained.</td>
+<td>Executed</td>
+</tr>
+</tbody>
+</table>
+<h2 id="verification-ledger">Verification ledger</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Check</th>
+<th>Result</th>
+<th>What it does not establish</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Real packaged TRUST-02 proof</td>
+<td>Exit <code>0</code>; exact observations above.</td>
+<td>Another operating system, notarization, live external provider
+behavior, publication, or deployment.</td>
+</tr>
+<tr>
+<td>Local code signature validation</td>
+<td><code>Vanta.app</code> valid on disk and satisfies its designated
+requirement.</td>
+<td>Apple notarization or distribution acceptance.</td>
+</tr>
+<tr>
+<td>Post-proof Git status and whitespace check</td>
+<td>Clean; no tracked build drift and no whitespace errors.</td>
+<td>The later closure-document diff by itself.</td>
+</tr>
+<tr>
+<td>Protected-path comparison since the original implementation
+base</td>
+<td>Root <code>src/**</code>, <code>vanta-ts/src/factory/**</code>, and
+<code>MANIFESTO.md</code> absent.</td>
+<td>A future authorized protected-source migration.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="separate-repository-gate">Separate repository gate</h2>
+<p><code>npm audit --omit=dev</code> still reports five high-severity
+transitive advisories: <code>adm-zip</code> through
+<code>onnxruntime-node</code> and
+<code>@huggingface/transformers</code>, plus <code>sharp</code>/libvips.
+Both dependency chains report no fix available. This closure does not
+change dependencies and does not claim dependency-audit green or release
+readiness. Replacement, reachability proof, or an upstream fix remains a
+separate integration gate.</p>
+<h2 id="repository-and-authority-boundaries">Repository and authority
+boundaries</h2>
+<ul>
+<li>No root <code>src/**</code>, protected factory source, or
+<code>MANIFESTO.md</code> change is part of this closure slice.</li>
+<li>No unrelated repository content, local state, checkout, or
+credential belongs in this payload.</li>
+<li>GitHub Actions remain disabled; no paid workflow is required.</li>
+<li>No live account, participant, outreach, billing, merge, release,
+publication, notarization, deployment, or direct push to
+<code>main</code> occurred.</li>
+<li>No checkpoint tag is created here. The operator’s separate
+authorization record remains the gate for any new non-release tag.</li>
+</ul>
+<h2 id="next-dependency-ordered-work">Next dependency-ordered work</h2>
+<p><code>TRUST-04</code> is now the smallest ready trust card: prove one
+typed WorkItem/Run/Approval/Receipt truth contract across representative
+file, UI, message, calendar, job, and restart hosts.
+<code>TRUST-01</code> remains next in parallel dependency terms but
+still needs the ordinary-tool gateway and Calendar/Drive real-path
+guarantees. Neither card is promoted by this audit.</p>
+<p>Machine-readable receipt:
+<code>docs/trust-02-closure-receipt-2026-08-02.json</code>.</p>
+</body>
+</html>

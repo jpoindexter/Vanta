@@ -20670,18 +20670,18 @@
       "tier": "rock",
       "model": "opus",
       "codex": "gpt-5.6-sol",
-      "updated": "2026-07-30",
+      "updated": "2026-08-02",
       "source": "vanta-total-realignment-correction-2026-07-30",
       "id": "TRUST-02",
       "track": "Harness",
       "title": "Urgent control-plane trust closure — hooks, environments, audit state, and local authentication",
-      "status": "building",
+      "status": "shipped",
       "size": "L",
       "effort": "high",
       "lens": "agent-loop",
       "summary": "Close the smallest confirmed P0 slice before consequential autonomy: protect project control-plane state, prevent same-run hook activation, scrub shell/code/hook environments, deny ordinary credential and audit-key access, and authenticate every local Desktop/API instance.",
       "done": "A model-controlled attempt to create or modify hook/control-plane state, inspect process/project credentials or audit signing state, or drive a local Desktop/API without exact authentication produces no unmediated host effect and no secret exposure; the complete proposed payload is denied or exact-approved; hook activation is restart-bounded; audit evidence remains outside agent scope; exact-origin validation and adversarial shell, file, hook, Desktop, and restart paths run end to end with retained receipts.",
-      "notes": "Initial urgent Trust lane. This closes a bounded confirmed slice, not the entire action gateway."
+      "notes": "Shipped as the bounded TRUST-02 control-plane slice on 2026-08-02. Executed on the supported packaged Darwin ARM64 path from source head 590126e9aaad261768374d920ccd3d71a652cd85: nine unauthenticated or hostile local Desktop/API requests were denied; model-controlled hook, credential, audit-state, shell, file, Desktop, exact-origin, and restart paths produced zero synthetic secret exposure or mutation; the complete hook payload was denied or exact-approved with four durable approval transitions; same-process hook activation stayed absent; restart activation occurred once; and 21 tool transitions plus eight action receipts were retained. This closes the card's written Done contract, not the entire action gateway, cross-platform release, notarization, publication, deployment, live-provider proof, TRUST-04, TRUST-01, or OP-01. Evidence: docs/trust-02-closure-receipt-2026-08-02.json and docs/trust-02-closure-audit-2026-08-02.html."
     },
     {
       "tier": "rock",

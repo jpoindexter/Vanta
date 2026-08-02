@@ -8,17 +8,11 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1282 capabilities shipped · 5 in flight · 14 parked external-proof items · 6 on the horizon. Updated 2026-08-02._
+_1283 capabilities shipped · 4 in flight · 14 parked external-proof items · 6 on the horizon. Updated 2026-08-02._
 
 ## In flight
 
 What we are actively building next.
-
-### Urgent control-plane trust closure — hooks, environments, audit state, and local authentication
-
-**Harness** · L-size
-
-Close the smallest confirmed P0 slice before consequential autonomy: protect project control-plane state, prevent same-run hook activation, scrub shell/code/hook environments, deny ordinary credential and audit-key access, and authenticate every local Desktop/API instance
 
 ### Truthful completion and one typed receipt across every host
 
@@ -46,8 +40,9 @@ Begin commercial and usefulness learning manually: test the same capture → rec
 
 ## Recently shipped
 
-The latest of 1282+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1283+ capabilities. See the [changelog](./changelog) for curated milestones.
 
+- **Urgent control-plane trust closure — hooks, environments, audit state, and local authentication** — Harness · 2026-08-02
 - **Safe continuity slice — messy capture to Today, prepared action, waiting, and restart re-entry** — Operator · 2026-08-02
 - **Desktop queued-turn editor — inspect, reorder, edit, steer, retry, or remove what runs next** — Desktop App · 2026-07-30
 - **Streaming TTS — speak after the first complete clause** — Operator · 2026-07-29
@@ -67,7 +62,6 @@ The latest of 1282+ capabilities. See the [changelog](./changelog) for curated m
 - **Desktop one-time approvals and current Vanta app icon** — Desktop · 2026-07-21
 - **Desktop Ollama MiniCPM response — visible text instead of endless Thinking** — Desktop App · 2026-07-21
 - **TUI Ollama model drill-down — choose an installed local model** — Operator · 2026-07-21
-- **Capacity-aware support router — minimums, externalization, and activation** — Operator · 2026-07-21
 
 ## Parked external-proof items
 

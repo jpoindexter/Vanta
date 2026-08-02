@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "roadmapId": "TRUST-02",
+  "roadmapState": "shipped",
+  "branch": "codex/trust-02-closure-20260802",
+  "sourceHeadSha": "590126e9aaad261768374d920ccd3d71a652cd85",
+  "remoteMainObservedSha": "4911ae44bbb35beef4511ba298475ba5a82b7e1c",
+  "executedAt": "2026-08-02T13:21:08Z",
+  "platform": "Darwin arm64",
+  "proof": {
+    "command": "npm run desktop:trust-02:proof",
+    "exitCode": 0,
+    "packaged": true,
+    "localCodeSignatureVerified": true,
+    "syntheticLocalProvider": true,
+    "hostileDesktopRequestsDenied": 9,
+    "hostileMutationAbsent": true,
+    "secretExposure": 0,
+    "secretMutation": 0,
+    "exactApprovalTransitions": 4,
+    "sameRunHookActivation": false,
+    "restartHookActivation": true,
+    "requiredToolReceipts": 8,
+    "retainedToolTransitions": 21,
+    "retainedActionReceipts": 8
+  },
+  "doneCriteria": {
+    "auditEvidenceOutsideAgentScope": "executed",
+    "completePayloadDeniedOrExactApproved": "executed",
+    "controlPlaneAndCredentialAttemptsMediated": "executed",
+    "exactOriginAndAdversarialPathsEndToEnd": "executed",
+    "hookActivationRestartBounded": "executed",
+    "retainedReceipts": "executed",
+    "secretExposureAbsent": "executed"
+  },
+  "artifacts": {
+    "appAsarSha256": "2ed12d9961a9ce82c887de8893b559ac797e58a40ff33354638587ed80bb5850",
+    "kernelSha256": "68c02be00eda10c27c98e0268b176cfc69589c3ca573f7885f7c9eb6dbe577ba"
+  },
+  "limits": [
+    "This receipt closes the bounded TRUST-02 roadmap contract on the supported packaged Darwin ARM64 path.",
+    "The provider was synthetic and local; no live external account was used.",
+    "The receipt does not establish cross-platform release, notarization, publication, deployment, or universal action-gateway closure.",
+    "The stacked draft pull requests remain unmerged and are not called integration-ready by this receipt.",
+    "GitHub Actions remained disabled and no paid service was invoked."
+  ]
+}
