@@ -13,6 +13,8 @@
     "vanta": "NODE_ENV=production node --import tsx src/cli.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "security:dependencies": "npm audit --omit=dev",
+    "security:dependencies:all": "npm audit",
     "startup:compile": "node scripts/ensure-startup-compile.mjs",
     "tui:tasks:proof": "node scripts/tui-live-task-checklist-proof.mjs",
     "tui:questions:proof": "node scripts/tui-question-approval-proof.mjs",
@@ -191,7 +193,9 @@
     }
   },
   "overrides": {
+    "adm-zip": "0.6.0",
     "esbuild": "^0.28.1",
+    "sharp": "0.35.3",
     "uuid": "^11.1.1"
   }
 }
