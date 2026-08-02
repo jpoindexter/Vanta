@@ -58,6 +58,15 @@ import { deriveLegacyRuns } from "../runs/legacy.js";
 import { setPlanInstruction } from "../repl/plan-mode.js";
 import { executeToolEffect, toolEffectDescriptorSha256 } from "../effects/tool-effect-gateway.js";
 import { effectAuthority } from "../effects/gate-context.js";
+import {
+  defaultProviderModelSettings,
+  normalizeProviderModelSettings,
+  providerModelSettingsCapabilities,
+  type ProviderModelSettings,
+  type ProviderModelSettingsCapabilities,
+  type ProviderEffortLevel,
+  type ProviderSpeed,
+} from "../providers/model-settings.js";
 export { approvalDecision, type PendingApproval } from "./approval.js";
 
 const desktopTurnQueues = new Map<string, DesktopTurnQueue>();
@@ -79,6 +88,8 @@ export type DesktopState = {
   sessionStarted?: string;
   providerId?: string;
   modelId?: string;
+  effortLevel?: ProviderEffortLevel;
+  providerSpeed?: ProviderSpeed;
   currentEvents?: DesktopEvent[];
   currentRunEvents?: RunEvent[];
   activeRunCapture?: {
@@ -155,6 +166,8 @@ function attachConversation(state: DesktopState, setup: RunSetup, history?: Para
     planGate: () => state.accessMode === "plan",
     forceFreshApproval: () => state.forceFreshApprovals === true,
     maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
+    getEffortLevel: () => state.effortLevel ?? setup.effortLevel,
+    getServiceTier: () => state.providerSpeed,
     summarize: buildSummarizer(setup.provider),
     activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
     onTextDelta: (delta) => {
@@ -190,6 +203,12 @@ async function ensureDesktopConversation(state: DesktopState): Promise<Required<
   if (!state.sessionId) { state.sessionId = newSessionId(); state.sessionStarted = new Date().toISOString(); }
   state.providerId ??= providerIdFor(state.setup.provider, process.env);
   state.modelId ??= state.setup.provider.modelId();
+  const modelSettings = defaultProviderModelSettings(state.providerId, state.modelId, {
+    effortLevel: state.effortLevel ?? state.setup.effortLevel,
+    speed: state.providerSpeed ?? process.env.VANTA_SERVICE_TIER,
+  });
+  state.effortLevel = modelSettings.effortLevel;
+  state.providerSpeed = modelSettings.speed;
   if (!state.convo) attachConversation(state, state.setup);
   return state as Required<Pick<DesktopState, "setup" | "convo" | "root">> & DesktopState;
 }
@@ -203,7 +222,7 @@ export async function handleStatus(state: DesktopState, res: http.ServerResponse
   state._providerAuthRequired ??= await loadProviderAuthRequired(state.root);
   const live = await ensureDesktopConversation(state);
   const goals = await live.setup.safety.getGoals().catch(() => live.setup.goals);
-  sendJson(res, 200, { kernel: "online", model: live.setup.provider.modelId(), provider: live.providerId ?? process.env.VANTA_PROVIDER ?? "openai", providerRoute: providerRouteStatus(state, live.setup.provider), tools: live.setup.registry.list().length, sessionId: live.sessionId, root: state.root, goals: goals.filter((g) => g.status === "active"), accessMode: live.accessMode, accessScope: "project" });
+  sendJson(res, 200, { kernel: "online", model: live.setup.provider.modelId(), provider: live.providerId ?? process.env.VANTA_PROVIDER ?? "openai", modelSettings: currentDesktopModelSettings(live), providerRoute: providerRouteStatus(state, live.setup.provider), tools: live.setup.registry.list().length, sessionId: live.sessionId, root: state.root, goals: goals.filter((g) => g.status === "active"), accessMode: live.accessMode, accessScope: "project" });
 }
 
 export async function handleTelegramSetupStatus(state: DesktopState, res: http.ServerResponse): Promise<void> {
@@ -652,6 +671,7 @@ export type DesktopProviderOption = {
   modelSource: "catalog" | "live";
   discoveryAvailable: boolean;
   discoveryError?: string;
+  modelSettings: ProviderModelSettingsCapabilities;
 };
 
 export function desktopProviderOptions(env: NodeJS.ProcessEnv, catalog: ProviderEntry[] = PROVIDER_CATALOG): DesktopProviderOption[] {
@@ -669,6 +689,7 @@ export function desktopProviderOptions(env: NodeJS.ProcessEnv, catalog: Provider
       savedDefaultModel: isDefaultProvider ? env.VANTA_MODEL ?? provider.defaultModel : undefined,
       modelSource: "catalog",
       discoveryAvailable: provider.id === "codex" || Boolean(providerModelDiscoveryTarget(env, provider.id)),
+      modelSettings: providerModelSettingsCapabilities(provider.id, isDefaultProvider ? env.VANTA_MODEL ?? provider.defaultModel : provider.defaultModel, env),
     });
   }
   for (const [id, provider] of Object.entries(loadUserProviders(env))) {
@@ -683,6 +704,7 @@ export function desktopProviderOptions(env: NodeJS.ProcessEnv, catalog: Provider
       savedDefaultModel: isDefaultProvider ? env.VANTA_MODEL ?? provider.model : undefined,
       modelSource: "catalog",
       discoveryAvailable: Boolean(providerModelDiscoveryTarget(env, id)),
+      modelSettings: providerModelSettingsCapabilities(id, isDefaultProvider ? env.VANTA_MODEL ?? provider.model ?? "" : provider.model ?? "", env),
     });
   }
   return [...options.values()];
@@ -742,8 +764,15 @@ export function resolveDesktopProviderSelection(env: NodeJS.ProcessEnv, provider
   return { provider: id, model: resolved.modelId(), env: selectedEnv, resolved };
 }
 
-export async function handleModels(res: http.ServerResponse, providerId?: string): Promise<void> {
-  sendJson(res, 200, await desktopProviderOptionsLive(process.env, loadDesktopProviderCatalog, providerId));
+export async function handleModels(state: DesktopState, res: http.ServerResponse, providerId?: string): Promise<void> {
+  const options = await desktopProviderOptionsLive(process.env, loadDesktopProviderCatalog, providerId);
+  const currentProvider = state.providerId ?? process.env.VANTA_PROVIDER ?? "openai";
+  const currentModel = state.modelId ?? process.env.VANTA_MODEL;
+  sendJson(res, 200, options.map((option) => option.id === currentProvider && currentModel ? {
+    ...option,
+    current: true,
+    modelSettings: providerModelSettingsCapabilities(option.id, currentModel, process.env),
+  } : option));
 }
 
 export async function handleSetModel(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
@@ -762,12 +791,53 @@ export async function handleSetModel(state: DesktopState, req: http.IncomingMess
     }
     state.providerId = selection.provider;
     state.modelId = selection.model;
+    const nextSettings = defaultProviderModelSettings(selection.provider, selection.model, {
+      effortLevel: state.effortLevel ?? state.setup?.effortLevel,
+      speed: state.providerSpeed,
+    });
+    state.effortLevel = nextSettings.effortLevel;
+    state.providerSpeed = nextSettings.speed;
     state.setup && (state.setup.provider = selection.resolved);
     state.convo?.setProvider(selection.resolved, buildSummarizer(selection.resolved));
     const entry = providerById(selection.provider);
-    sendJson(res, 200, { provider: selection.provider, model: selection.model, scope: global ? "global" : "session", label: entry?.label ?? selection.provider });
+    sendJson(res, 200, { provider: selection.provider, model: selection.model, modelSettings: currentDesktopModelSettings(state), scope: global ? "global" : "session", label: entry?.label ?? selection.provider });
   } catch (err: unknown) {
     sendJson(res, 400, { error: err instanceof Error ? err.message : String(err), provider, model });
+  }
+}
+
+function currentDesktopModelSettings(state: DesktopState): ProviderModelSettings {
+  return {
+    ...(state.effortLevel ? { effortLevel: state.effortLevel } : {}),
+    ...(state.providerSpeed ? { speed: state.providerSpeed } : {}),
+  };
+}
+
+export async function handleModelSettings(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const live = await ensureDesktopConversation(state);
+  if (req.method === "GET") return sendJson(res, 200, currentDesktopModelSettings(live));
+  const body = await readJson(req) as { effortLevel?: unknown; speed?: unknown; scope?: unknown };
+  if (body.effortLevel === undefined && body.speed === undefined) {
+    return sendJson(res, 400, { error: "effortLevel or speed is required" });
+  }
+  const provider = live.providerId ?? process.env.VANTA_PROVIDER ?? "openai";
+  const model = live.modelId ?? live.setup.provider.modelId();
+  try {
+    const settings = normalizeProviderModelSettings(provider, model, body);
+    if (settings.effortLevel) live.effortLevel = settings.effortLevel;
+    if (settings.speed) live.providerSpeed = settings.speed;
+    const global = body.scope === "global";
+    if (global) {
+      const updates: Record<string, string> = {};
+      if (settings.effortLevel) updates.VANTA_EFFORT_LEVEL = settings.effortLevel;
+      if (settings.speed) updates.VANTA_SERVICE_TIER = settings.speed;
+      const existing = existsSync(envPath(live.root)) ? await readFile(envPath(live.root), "utf8") : "";
+      await writeFile(envPath(live.root), upsertEnvMigratingLegacy(existing, updates), { mode: 0o600 });
+      Object.assign(process.env, updates);
+    }
+    sendJson(res, 200, { provider, model, modelSettings: currentDesktopModelSettings(live), scope: global ? "global" : "session" });
+  } catch (error) {
+    sendJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
   }
 }
 

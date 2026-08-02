@@ -1,4 +1,5 @@
-import type { EffortLevel, Message, ToolCall } from "../types.js";
+import type { Message, ToolCall } from "../types.js";
+import type { ProviderEffortLevel, ProviderSpeed } from "./model-settings.js";
 
 /** A tool advertised to the model, in JSON-schema form. */
 export type ToolSchema = {
@@ -10,7 +11,8 @@ export type ToolSchema = {
 export type CompletionConfig = {
   temperature?: number;
   maxTokens?: number;
-  effortLevel?: EffortLevel;
+  effortLevel?: ProviderEffortLevel;
+  serviceTier?: ProviderSpeed;
   /** Abort signal — cancels the in-flight HTTP request when set. */
   signal?: AbortSignal;
 };

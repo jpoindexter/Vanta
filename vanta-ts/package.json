@@ -43,6 +43,7 @@
     "desktop:layout:smoke": "npm run desktop:build && node scripts/desktop-layout-smoke.mjs",
     "desktop:runtime-strip:smoke": "npm run desktop:build && node scripts/desktop-runtime-strip-smoke.mjs",
     "desktop:model-runtime-clarity:smoke": "npm run desktop:build && node scripts/desktop-model-runtime-clarity-smoke.mjs",
+    "desktop:model-settings:smoke": "npm run desktop:build && node scripts/desktop-model-settings-smoke.mjs",
     "desktop:mcp-runtime:smoke": "node scripts/desktop-mcp-runtime-smoke.mjs",
     "desktop:crypto-free:proof": "npm run desktop:pack && node scripts/desktop-crypto-free-proof.mjs && vitest run src/payments/service.test.ts src/payments/readiness.test.ts src/cli/payments-cmd.test.ts src/payments/contract.test.ts",
     "desktop:dependency-boundary:proof": "npm run desktop:pack && node --test scripts/desktop-package-policy.node-test.mjs && node scripts/desktop-package-dependency-proof.mjs",

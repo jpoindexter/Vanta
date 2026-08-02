@@ -29,8 +29,8 @@ const ALLOWS: Array<{ prefixes: string[]; allows: ModelCapability[] }> = [
     allows: ["reasoning_effort"],
   },
   {
-    // Claude 3.7+ and Claude 4 support extended thinking
-    prefixes: ["claude-3-7", "claude-sonnet-4", "claude-opus-4", "claude-haiku-4"],
+    // Claude 3.7+ and the supported Claude 4/5 families support extended thinking.
+    prefixes: ["claude-3-7", "claude-sonnet-4", "claude-opus-4", "claude-haiku-4", "claude-sonnet-5", "claude-fable-5"],
     allows: ["thinking"],
   },
 ];

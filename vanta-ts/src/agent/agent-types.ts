@@ -1,7 +1,7 @@
 import type { LLMProvider } from "../providers/interface.js";
 import type { KernelClient } from "../kernel/client.js";
 import type { ToolRegistry } from "../tools/registry.js";
-import type { EffortLevel, Message, ImageAttachment } from "../types.js";
+import type { Message, ImageAttachment } from "../types.js";
 import type { DiffLine } from "../util/diff.js";
 import type { Summarizer } from "../context.js";
 import type { HookBus } from "../plugins/hooks.js";
@@ -9,6 +9,7 @@ import type { SessionWorkingMemory } from "../memory/working.js";
 import type { PermissionMode } from "../modes/permission-mode.js";
 import type { AskQuestion, AskUserResponse } from "../tools/ask-user-model.js";
 import type { WorkItemState } from "../work-items/contract.js";
+import type { ProviderEffortLevel, ProviderSpeed } from "../providers/model-settings.js";
 
 export type AgentDeps = {
   provider: LLMProvider;
@@ -53,7 +54,9 @@ export type AgentDeps = {
   /** When set, a goal-reminder note is re-injected after context compression. */
   activeGoalText?: string;
   /** Per-turn model effort, read live so /effort changes apply next call. */
-  getEffortLevel?: () => EffortLevel;
+  getEffortLevel?: () => ProviderEffortLevel;
+  /** Per-turn provider service tier, read live so Desktop changes apply next call. */
+  getServiceTier?: () => ProviderSpeed | undefined;
   /** The live session scratchpad, re-injected on compaction. Hosts refresh it
    * post-turn via Conversation.setSessionMemory. */
   sessionMemory?: string;

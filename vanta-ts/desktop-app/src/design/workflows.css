@@ -765,6 +765,129 @@
   margin-top: 3px;
 }
 
+.provider-settings {
+  flex: 0 0 auto;
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--raised);
+  padding: 12px;
+}
+
+.provider-settings-inactive p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.provider-settings-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.provider-settings-heading .eyebrow,
+.provider-settings-heading h4 {
+  margin: 0;
+}
+
+.provider-settings-heading h4 {
+  margin-top: 2px;
+  font-size: 13px;
+}
+
+.provider-settings-heading > span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.provider-setting-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.provider-setting {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.provider-setting .select-control select {
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--text);
+  padding: 7px 30px 7px 10px;
+  font: inherit;
+}
+
+.provider-setting small {
+  min-height: 14px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.provider-settings-advanced {
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+
+.provider-settings-advanced summary {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  list-style: none;
+}
+
+.provider-settings-advanced summary::-webkit-details-marker {
+  display: none;
+}
+
+.provider-settings-advanced summary::after {
+  margin-inline-start: auto;
+  content: "+";
+}
+
+.provider-settings-advanced[open] summary::after {
+  content: "−";
+}
+
+.provider-settings-advanced > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 6px;
+}
+
+.provider-settings-advanced p,
+.provider-settings-message {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.provider-settings-advanced button {
+  flex: 0 0 auto;
+  min-height: 32px;
+}
+
+.provider-settings-message:empty {
+  display: none;
+}
+
 .model-rows {
   flex: 1 1 0;
   grid-auto-rows: minmax(48px, auto);
@@ -891,6 +1014,15 @@
 
   .model-detail-heading {
     min-height: 44px;
+  }
+
+  .provider-setting-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .provider-settings-advanced > div {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .model-row,

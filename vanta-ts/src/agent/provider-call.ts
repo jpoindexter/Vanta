@@ -121,7 +121,11 @@ export async function getCompletion(
     scopeToolSchemas(deps.registry.schemas(), toolScopeContext(messages, deps.activeGoalText), { env: process.env }),
     deps.outputSchema,
   );
-  const cfg = { ...(signal ? { signal } : {}), effortLevel: deps.getEffortLevel?.() };
+  const cfg = {
+    ...(signal ? { signal } : {}),
+    effortLevel: deps.getEffortLevel?.(),
+    serviceTier: deps.getServiceTier?.(),
+  };
   recordTtftStage("provider_dispatch", pf?.ttft);
   if (deps.provider.stream && deps.onTextDelta) {
     const exposedTools = new Set(schemas.map((schema) => schema.name));

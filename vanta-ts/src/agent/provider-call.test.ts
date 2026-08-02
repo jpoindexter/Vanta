@@ -95,6 +95,32 @@ describe("getCompletionWithContextRetry — transient provider retry", () => {
 });
 
 describe("streamed tool prefetch boundaries", () => {
+  it("passes live effort and speed settings to the provider request", async () => {
+    let config: unknown;
+    const deps = {
+      provider: {
+        modelId: () => "gpt-5.6-sol",
+        contextWindow: () => 100_000,
+        complete: async (_messages: unknown, _tools: unknown, received: unknown) => {
+          config = received;
+          return OK;
+        },
+      },
+      registry: { schemas: () => [] },
+      root: "/tmp",
+      getEffortLevel: () => "ultra",
+      getServiceTier: () => "fast",
+    } as unknown as AgentDeps;
+
+    await getCompletion(deps, [{ role: "user", content: "finish" }], undefined, {
+      ctx: { root: "/tmp", safety: {} as never, requestApproval: async () => true },
+      prefetched: new Map(),
+      schemas: [],
+    });
+
+    expect(config).toEqual(expect.objectContaining({ effortLevel: "ultra", serviceTier: "fast" }));
+  });
+
   it("does not prefetch a hallucinated tool that is absent from the exposed schema set", async () => {
     let executed = 0;
     const registry = new InMemoryToolRegistry();

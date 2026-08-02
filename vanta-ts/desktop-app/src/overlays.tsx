@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
 import { Bot, Check, Command, FolderOpen, KeyRound, MonitorCog, RefreshCw, Search, ShieldCheck, Star, X } from "lucide-react";
-import type { Approval, ApprovalDecision, DesktopTheme, DesktopView, PermissionSection, Provider, Status } from "./types.js";
+import type { Approval, ApprovalDecision, DesktopTheme, DesktopView, ModelEffort, PermissionSection, Provider, ProviderModelSettings, ProviderSpeed, Status } from "./types.js";
 import { StyledSelect } from "./form-controls.js";
 import { pickDesktopProjectFolder } from "./project-folder-picker.js";
 
@@ -153,7 +153,7 @@ function SafetySettings(props: { status: Status | null; warningAcknowledged: boo
   </section>;
 }
 
-export function ModelPicker(props: { open: boolean; models: Provider[]; status: Status | null; onClose: () => void; onRefresh: (provider: string) => Promise<void>; onSelect: (provider: string, model: string, scope?: "session" | "global") => void }) {
+export function ModelPicker(props: { open: boolean; models: Provider[]; status: Status | null; onClose: () => void; onRefresh: (provider: string) => Promise<void>; onSelect: (provider: string, model: string, scope?: "session" | "global") => void; onSettings: (settings: ProviderModelSettings, scope?: "session" | "global") => Promise<void> }) {
   const [query, setQuery] = useState("");
   const [selectedProviderId, setSelectedProviderId] = useState("");
   const [customModel, setCustomModel] = useState("");
@@ -200,7 +200,7 @@ export function ModelPicker(props: { open: boolean; models: Provider[]; status: 
   return (
     <div className="overlay" onClick={props.onClose}>
       <div className="palette model-picker" role="dialog" aria-modal="true" aria-labelledby="model-title" onClick={(e) => e.stopPropagation()}>
-        <div className="dialog-heading model-picker-heading"><div><h2 id="model-title">Choose a model</h2><p>Click a model for this task. Use the star to save a default for new tasks.</p></div><button className="icon-button" type="button" aria-label="Close model picker" onClick={props.onClose}><X size={16} /></button></div>
+        <div className="dialog-heading model-picker-heading"><div><h2 id="model-title">Choose a model</h2><p>Choose a model and tune the controls supported by its provider.</p></div><button className="icon-button" type="button" aria-label="Close model picker" onClick={props.onClose}><X size={16} /></button></div>
         <label className="palette-search model-search"><Search size={16} /><span className="sr-only">Search models and providers</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search models and providers" /></label>
         <div className="model-picker-body">
           <nav className="model-provider-nav" role="tablist" aria-label="Model providers" aria-orientation="vertical" onKeyDown={navigateProviders}>
@@ -215,6 +215,7 @@ export function ModelPicker(props: { open: boolean; models: Provider[]; status: 
                 <div><h3>{activeProvider.short || activeProvider.label}</h3><p>{visibleModels.length} models · {activeProvider.modelSource === "live" ? "Live provider catalog" : "Vanta catalog"}</p></div>
                 <button className="icon-button" type="button" onClick={() => void refreshSelected()} disabled={!activeProvider.discoveryAvailable || refreshing} aria-label={`Refresh ${activeProvider.label} models`} title={activeProvider.discoveryAvailable ? "Refresh models from provider" : "Connect this provider to load live models"}><RefreshCw size={15} className={refreshing ? "spinning" : ""} /></button>
               </header>
+              <ProviderSettingsControls provider={activeProvider} status={props.status} onSettings={props.onSettings} />
               {activeProvider.discoveryError ? <p className="model-discovery-error" role="status">{activeProvider.discoveryError} Showing the offline catalog.</p> : null}
               <div className="model-rows" aria-label={`${activeProvider.short || activeProvider.label} models`}>{visibleModels.map((model) => <ModelRow key={model} provider={activeProvider} model={model} status={props.status} onSelect={props.onSelect} />)}</div>
               {visibleModels.length === 0 ? <p className="muted model-empty">No matching models for this provider.</p> : null}
@@ -225,6 +226,69 @@ export function ModelPicker(props: { open: boolean; models: Provider[]; status: 
       </div>
     </div>
   );
+}
+
+const EFFORT_LABELS: Record<ModelEffort, string> = {
+  low: "Light",
+  medium: "Medium",
+  high: "High",
+  xhigh: "Extra High",
+  max: "Max",
+  ultra: "Ultra",
+};
+
+const SPEED_LABELS: Record<ProviderSpeed, string> = {
+  standard: "Standard",
+  fast: "Fast",
+};
+
+function settingsForProvider(provider: Provider, status: Status | null): ProviderModelSettings {
+  const current = status?.provider === provider.id ? status.modelSettings : undefined;
+  return {
+    ...(provider.modelSettings?.effort ? { effortLevel: current?.effortLevel ?? provider.modelSettings.effort.defaultValue } : {}),
+    ...(provider.modelSettings?.speed ? { speed: current?.speed ?? provider.modelSettings.speed.defaultValue } : {}),
+  };
+}
+
+function ProviderSettingsControls(props: { provider: Provider; status: Status | null; onSettings: (settings: ProviderModelSettings, scope?: "session" | "global") => Promise<void> }) {
+  const capabilities = props.provider.modelSettings;
+  const [draft, setDraft] = useState<ProviderModelSettings>(() => settingsForProvider(props.provider, props.status));
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  useEffect(() => {
+    setDraft(settingsForProvider(props.provider, props.status));
+    setMessage("");
+  }, [props.provider.id, props.status?.provider, props.status?.model]);
+  if (!capabilities?.effort && !capabilities?.speed) return null;
+  if (props.status?.provider !== props.provider.id) return <section className="provider-settings provider-settings-inactive" aria-label={`${props.provider.label} settings unavailable`}><p>Select a {props.provider.short || props.provider.label} model for this task before tuning its provider controls.</p></section>;
+
+  async function save(next: ProviderModelSettings, scope: "session" | "global") {
+    setDraft(next);
+    setBusy(true);
+    setMessage("");
+    try {
+      await props.onSettings(next, scope);
+      setMessage(scope === "global" ? "Saved as project defaults." : "Applies to the next request.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not save model settings.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return <section className="provider-settings" aria-labelledby="provider-settings-title">
+    <div className="provider-settings-heading"><div><p className="eyebrow">Provider controls</p><h4 id="provider-settings-title">Tune {props.provider.short || props.provider.label}</h4></div><span>{busy ? "Saving…" : "This task"}</span></div>
+    <div className="provider-setting-grid">
+      {capabilities.effort ? <label className="provider-setting"><span>Effort</span><StyledSelect aria-label={`${props.provider.label} effort`} value={draft.effortLevel ?? capabilities.effort.defaultValue} disabled={busy} onChange={(event) => void save({ ...draft, effortLevel: event.target.value as ModelEffort }, "session")}>
+        {capabilities.effort.options.map((option) => <option key={option} value={option}>{EFFORT_LABELS[option]}</option>)}
+      </StyledSelect><small>{draft.effortLevel === "ultra" ? "Uses allowance fastest" : "Reasoning depth"}</small></label> : null}
+      {capabilities.speed ? <label className="provider-setting"><span>Speed</span><StyledSelect aria-label={`${props.provider.label} speed`} value={draft.speed ?? capabilities.speed.defaultValue} disabled={busy} onChange={(event) => void save({ ...draft, speed: event.target.value as ProviderSpeed }, "session")}>
+        {capabilities.speed.options.map((option) => <option key={option} value={option}>{SPEED_LABELS[option]}</option>)}
+      </StyledSelect><small>{draft.speed === "fast" ? "1.5× speed, increased usage" : "Default speed"}</small></label> : null}
+    </div>
+    <details className="provider-settings-advanced"><summary>Advanced</summary><div><p>Save the selected effort{capabilities.speed ? " and speed" : ""} for new tasks in this project.</p><button type="button" disabled={busy} onClick={() => void save(draft, "global")}>Save as project defaults</button></div></details>
+    <p className="provider-settings-message" role="status" aria-live="polite">{message}</p>
+  </section>;
 }
 
 export function filterModels(provider: Provider, query: string): string[] {

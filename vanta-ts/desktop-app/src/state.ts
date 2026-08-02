@@ -7,7 +7,7 @@ import {
   type CompletionSoundPlayer,
   type CompletionSoundSettings,
 } from "./completion-sound.js";
-import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, ConnectTestResult, DesktopRunReceipt, DesktopRuntime, EventRow, GatewayStartResult, GoogleConnectStatus, Message, MessagingPlatform, Provider, RailTab, ReleaseProofReport, RuntimeAction, ScheduledTask, Session, Status, TelegramSetupStatus, Tool } from "./types.js";
+import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, ConnectTestResult, DesktopRunReceipt, DesktopRuntime, EventRow, GatewayStartResult, GoogleConnectStatus, Message, MessagingPlatform, Provider, ProviderModelSettings, RailTab, ReleaseProofReport, RuntimeAction, ScheduledTask, Session, Status, TelegramSetupStatus, Tool } from "./types.js";
 import type { SessionDeleteAction } from "./session-safe-ops.js";
 import { sessionPinningHandlers } from "./session-pinning-api.js";
 import { createSessionDraftController, hasPersistableSessionDraftContext } from "./session-drafts.js";
@@ -83,6 +83,15 @@ export function useDesktopData() {
     overlays.closeModelPicker();
     await refresh();
   }
+  async function setModelSettings(settings: ProviderModelSettings, scope: "session" | "global" = "session") {
+    const saved = await api<{ modelSettings: ProviderModelSettings }>("/api/model-settings", {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify({ ...settings, scope }),
+    });
+    refreshVersion.current += 1;
+    setStatus((current) => current ? { ...current, modelSettings: saved.modelSettings } : current);
+  }
   async function refreshProviderModels(providerId: string) {
     const refreshed = await api<Provider[]>(`/api/models/${encodeURIComponent(providerId)}`);
     setModels(refreshed);
@@ -108,7 +117,7 @@ export function useDesktopData() {
 
   useEffect(() => { void refresh(); }, [refresh]);
   return {
-    status, sessions, tools, files, models, canvas, capabilities, messaging, google, releaseProofs, artifacts, schedules, runtime, tab, setTab, phase, error, refresh, refreshProviderModels, setModel, setAccessMode,
+    status, sessions, tools, files, models, canvas, capabilities, messaging, google, releaseProofs, artifacts, schedules, runtime, tab, setTab, phase, error, refresh, refreshProviderModels, setModel, setModelSettings, setAccessMode,
     setRuntimeHost: (hostId: string) => updateRuntime(hostId),
     runRuntimeAction: (hostId: string, action: RuntimeAction) => updateRuntime(hostId, action),
     ...overlays,

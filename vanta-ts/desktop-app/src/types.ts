@@ -149,7 +149,14 @@ export type ProviderRouteStatus = {
   authMethod: "subscription" | "api_key" | "local" | "unknown";
   authState: "ready" | "required";
 };
-export type Status = { kernel: string; model: string; provider?: string; providerRoute?: ProviderRouteStatus; tools: number; sessionId: string; root?: string; goals: Goal[]; accessMode?: AccessMode; accessScope?: "project" };
+export type ModelEffort = "low" | "medium" | "high" | "xhigh" | "max" | "ultra";
+export type ProviderSpeed = "standard" | "fast";
+export type ProviderModelSettings = { effortLevel?: ModelEffort; speed?: ProviderSpeed };
+export type ProviderModelSettingsCapabilities = {
+  effort?: { defaultValue: ModelEffort; options: ModelEffort[] };
+  speed?: { defaultValue: ProviderSpeed; options: ProviderSpeed[] };
+};
+export type Status = { kernel: string; model: string; provider?: string; modelSettings?: ProviderModelSettings; providerRoute?: ProviderRouteStatus; tools: number; sessionId: string; root?: string; goals: Goal[]; accessMode?: AccessMode; accessScope?: "project" };
 export type RuntimeHostSnapshot = {
   host: { id: string; label: string; kind: "local" | "remote" };
   status: "offline" | "auth_required" | "idle" | "starting" | "running" | "stopping" | "failed" | "degraded";
@@ -259,6 +266,7 @@ export type Provider = {
   modelSource?: "catalog" | "live";
   discoveryAvailable?: boolean;
   discoveryError?: string;
+  modelSettings?: ProviderModelSettingsCapabilities;
   requiresKey?: boolean;
   signupUrl?: string;
   note?: string;

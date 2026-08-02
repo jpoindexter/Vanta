@@ -77,6 +77,7 @@ describe("ModelPicker", () => {
         onClose={vi.fn()}
         onRefresh={vi.fn()}
         onSelect={vi.fn()}
+        onSettings={vi.fn()}
       />,
     );
     expect(html).toContain("Choose a model");
@@ -87,6 +88,41 @@ describe("ModelPicker", () => {
     expect(html).toContain("Default");
     expect(html).toContain("Ollama qwen is the default");
     expect(html).toContain("Use a model ID that is not listed");
+  });
+
+  it("shows only the settings supported by the active provider", () => {
+    const codex = renderToStaticMarkup(
+      <ModelPicker
+        open
+        models={[{ id: "codex", label: "Codex", short: "Codex", models: ["gpt-5.6-sol"], modelSource: "live", discoveryAvailable: true, modelSettings: { effort: { defaultValue: "medium", options: ["low", "medium", "high", "xhigh", "max", "ultra"] }, speed: { defaultValue: "standard", options: ["standard", "fast"] } } }]}
+        status={{ kernel: "ready", model: "gpt-5.6-sol", provider: "codex", modelSettings: { effortLevel: "high", speed: "fast" }, tools: 1, sessionId: "s1" }}
+        onClose={vi.fn()}
+        onRefresh={vi.fn()}
+        onSelect={vi.fn()}
+        onSettings={vi.fn()}
+      />,
+    );
+    expect(codex).toContain("Effort");
+    expect(codex).toContain("Extra High");
+    expect(codex).toContain("Ultra");
+    expect(codex).toContain("Speed");
+    expect(codex).toContain("1.5× speed, increased usage");
+    expect(codex).toContain("Save as project defaults");
+
+    const claude = renderToStaticMarkup(
+      <ModelPicker
+        open
+        models={[{ id: "claude-code", label: "Claude Code", short: "Claude", models: ["claude-sonnet-5"], modelSource: "live", discoveryAvailable: true, modelSettings: { effort: { defaultValue: "medium", options: ["low", "medium", "high", "xhigh", "max"] } } }]}
+        status={{ kernel: "ready", model: "claude-sonnet-5", provider: "claude-code", modelSettings: { effortLevel: "medium" }, tools: 1, sessionId: "s1" }}
+        onClose={vi.fn()}
+        onRefresh={vi.fn()}
+        onSelect={vi.fn()}
+        onSettings={vi.fn()}
+      />,
+    );
+    expect(claude).toContain("Effort");
+    expect(claude).not.toContain("Ultra");
+    expect(claude).not.toContain("Speed</span>");
   });
 });
 

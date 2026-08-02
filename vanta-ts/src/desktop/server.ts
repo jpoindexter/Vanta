@@ -6,7 +6,7 @@ import {
   handleStatus, handleSessions, handleNewSession, handleOpenSession,
   handleRenameSession, handleArchiveSession, handleDeleteSession, handleBulkSessions, handlePinSession, handleReorderPinnedSessions,
   handleTools, handleCapabilities, handleMessaging, handleArtifacts, handleSaveMessaging,
-  handleFiles, handleFileContext, handleCanvas, handleModels, handleSetModel,
+  handleFiles, handleFileContext, handleCanvas, handleModels, handleSetModel, handleModelSettings,
   handleApproval, handleTerminal, handleChat, handleStopChat, handleQueueChat, handleQueueList,
   handleAccessMode,
   handleRuntime,
@@ -49,7 +49,7 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
   if (p === "/api/events") { attachSse(sseClients, sid, res); return true; }
   if (p.startsWith("/api/models/")) {
     const providerId = decodeURIComponent(p.slice("/api/models/".length));
-    await handleModels(res, providerId);
+    await handleModels(state, res, providerId);
     return true;
   }
   const handler: Record<string, () => Promise<void>> = {
@@ -65,7 +65,7 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
     "/api/files": () => handleFiles(state, res),
     "/api/file-context": () => handleFileContext(state, res),
     "/api/canvas": () => handleCanvas(state, res),
-    "/api/models": () => handleModels(res),
+    "/api/models": () => handleModels(state, res),
     "/api/setup": () => handleDesktopSetup(state, req, res),
     "/api/setup/messaging/telegram": () => handleTelegramSetupStatus(state, res),
     "/api/approval": () => handleApproval(state, req, res),
@@ -99,6 +99,7 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
     "/api/runs": () => handleRunAction(state, req, res),
     "/api/continuity": () => handleDesktopContinuity(state, req, res),
     "/api/model": () => handleSetModel(state, req, res),
+    "/api/model-settings": () => handleModelSettings(state, req, res),
     "/api/messaging": () => handleSaveMessaging(state, req, res),
     "/api/setup": () => handleDesktopSetup(state, req, res),
     "/api/approval": () => handleApproval(state, req, res),

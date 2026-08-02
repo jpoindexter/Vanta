@@ -490,7 +490,7 @@ function DesktopOverlays(props: {
         onSound={data.openSoundSettings}
         onSettings={data.openSettings}
       />
-      <ModelPicker open={data.modelOpen} models={data.models} status={data.status} onClose={data.closeModelPicker} onRefresh={data.refreshProviderModels} onSelect={data.setModel} />
+      <ModelPicker open={data.modelOpen} models={data.models} status={data.status} onClose={data.closeModelPicker} onRefresh={data.refreshProviderModels} onSelect={data.setModel} onSettings={data.setModelSettings} />
       <SettingsDialog open={data.settingsOpen} models={data.models} status={data.status} theme={props.theme} fullAccessWarningAcknowledged={props.accessWarning.acknowledged} onResetFullAccessWarning={props.accessWarning.reset} onTheme={props.onTheme} onClose={data.closeSettings} onModel={data.openModelPicker} onSetup={data.openSetup} />
       <KeyboardShortcuts open={data.shortcutsOpen} onClose={data.closeShortcuts} />
       <SetupWizard open={data.setupOpen} models={data.models} onClose={data.closeSetup} onSave={async (provider, model, apiKey) => {
