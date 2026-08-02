@@ -82,6 +82,13 @@ export type ContinuitySnapshot = {
   runs: ContinuityStore["runs"];
   approvals: ContinuityStore["approvals"];
   receipts: ContinuityStore["receipts"];
+  projections: {
+    captured: ContinuityItem[];
+    now: ContinuityItem[];
+    waiting: ContinuityItem[];
+    needsYou: ContinuityItem[];
+    done: ContinuityItem[];
+  };
   legacy: { reconciledAt: string; sources: LegacySource[] };
   support: ContinuitySupport;
   reentry?: { itemId: string; action: string };

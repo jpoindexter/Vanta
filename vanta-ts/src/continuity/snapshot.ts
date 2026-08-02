@@ -1,6 +1,7 @@
 import { effectiveNdSupport } from "../nd/profile.js";
 import { reconcileLegacySources } from "./legacy.js";
 import type { ContinuityDiagnostic, ContinuitySnapshot, ContinuityStore } from "./types.js";
+import { projectWorkItems } from "../work-items/projections.js";
 
 export type SnapshotOptions = {
   env: NodeJS.ProcessEnv;
@@ -20,6 +21,9 @@ export async function buildContinuitySnapshot(
   const active = store.items
     .filter((item) => !["stopped", "failed", "verified"].includes(item.state))
     .sort((left, right) => left.updatedAt.localeCompare(right.updatedAt));
+  const projections = projectWorkItems(
+    [...store.items].sort((left, right) => left.updatedAt.localeCompare(right.updatedAt)),
+  );
   const waiting = active.find((item) => item.state === "waiting" && item.nextAction);
   const refusalScope = options.refusalScope
     ?? (options.sessionOff ? "session" : support.refusals.global ? "global" : patternOff ? "pattern" : undefined);
@@ -32,6 +36,7 @@ export async function buildContinuitySnapshot(
     runs: store.runs,
     approvals: store.approvals,
     receipts: store.receipts,
+    projections,
     legacy: { reconciledAt: options.now.toISOString(), sources: await reconcileLegacySources(root, options.env) },
     support: {
       capacity: support.capacity,

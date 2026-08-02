@@ -1,12 +1,12 @@
-import { createHash, randomUUID } from "node:crypto";
-import { mkdir, open, readFile, rename, rm } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { createHash } from "node:crypto";
 import {
   persistHostEffectTransition,
   type EffectTransition,
   type HostEffectOutcome,
   type HostEffectReceipt,
 } from "../agent/effect-persistence.js";
+import { claimEffectIntent, readEffectClaim, updateEffectClaim } from "./effect-claim.js";
+import { effectApprovalPersistence, type EffectApprovalPersistence } from "./effect-approval.js";
 
 export type EffectIntent = {
   id: string;
@@ -91,16 +91,6 @@ export const effectPersistence: EffectPersistence = {
   ),
 };
 
-type EffectClaim = {
-  version: 1;
-  id: string;
-  payloadSha256: string;
-  idempotencyKey: string;
-  state: "pending" | "started" | "settled";
-  outcome?: HostEffectOutcome;
-  updatedAt: string;
-};
-
 export function payloadSha256(payload: string | Uint8Array): string {
   return createHash("sha256").update(payload).digest("hex");
 }
@@ -119,110 +109,6 @@ function validateIntent(intent: EffectIntent): void {
   if (intent.action.length > 1_000) throw new Error("effect intent action is too long");
 }
 
-function claimFile(context: EffectGateContext, intent: EffectIntent): string {
-  const key = payloadSha256(`${intent.id}\0${intent.idempotencyKey}`);
-  return join(context.projectRoot, ".vanta", "effect-claims", `${key}.json`);
-}
-
-async function durableWrite(path: string, value: unknown): Promise<void> {
-  await mkdir(dirname(path), { recursive: true, mode: 0o700 });
-  const temporary = `${path}.${process.pid}.${randomUUID()}.tmp`;
-  let handle;
-  try {
-    handle = await open(temporary, "wx", 0o600);
-    await handle.writeFile(`${JSON.stringify(value)}\n`, "utf8");
-    await handle.sync();
-    await handle.close();
-    handle = undefined;
-    await rename(temporary, path);
-    await syncDirectory(dirname(path));
-  } catch (error) {
-    await handle?.close().catch(() => {});
-    await rm(temporary, { force: true }).catch(() => {});
-    throw error;
-  }
-}
-
-async function syncDirectory(path: string): Promise<void> {
-  let handle;
-  try {
-    handle = await open(path, "r");
-    await handle.sync();
-  } catch (error) {
-    const code = (error as NodeJS.ErrnoException).code;
-    if (!["EINVAL", "ENOTSUP", "EPERM", "EISDIR"].includes(code ?? "")) throw error;
-  } finally {
-    await handle?.close();
-  }
-}
-
-function assertClaimIdentity(existing: EffectClaim, intent: EffectIntent): void {
-  if (
-    existing.version !== 1
-    || existing.id !== intent.id
-    || existing.payloadSha256 !== intent.payloadSha256
-    || existing.idempotencyKey !== intent.idempotencyKey
-  ) {
-    throw new Error("effect claim identity mismatch");
-  }
-}
-
-async function readClaim(context: EffectGateContext, intent: EffectIntent): Promise<EffectClaim | null> {
-  try {
-    const existing = JSON.parse(await readFile(claimFile(context, intent), "utf8")) as EffectClaim;
-    assertClaimIdentity(existing, intent);
-    return existing;
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
-    throw error;
-  }
-}
-
-async function claimIntent(context: EffectGateContext, intent: EffectIntent): Promise<{ created: boolean; claim: EffectClaim }> {
-  const path = claimFile(context, intent);
-  await mkdir(dirname(path), { recursive: true, mode: 0o700 });
-  const claim: EffectClaim = {
-    version: 1,
-    id: intent.id,
-    payloadSha256: intent.payloadSha256,
-    idempotencyKey: intent.idempotencyKey,
-    state: "pending",
-    updatedAt: new Date().toISOString(),
-  };
-  let handle;
-  try {
-    handle = await open(path, "wx", 0o600);
-    await handle.writeFile(`${JSON.stringify(claim)}\n`, "utf8");
-    await handle.sync();
-    await handle.close();
-    await syncDirectory(dirname(path));
-    return { created: true, claim };
-  } catch (error) {
-    await handle?.close().catch(() => {});
-    if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
-    const existing = JSON.parse(await readFile(path, "utf8")) as EffectClaim;
-    assertClaimIdentity(existing, intent);
-    return { created: false, claim: existing };
-  }
-}
-
-async function updateClaim(
-  context: EffectGateContext,
-  intent: EffectIntent,
-  state: EffectClaim["state"],
-  outcome?: HostEffectOutcome,
-): Promise<void> {
-  await durableWrite(claimFile(context, intent), {
-    version: 1,
-    id: intent.id,
-    payloadSha256: intent.payloadSha256,
-    idempotencyKey: intent.idempotencyKey,
-    state,
-    ...(outcome ? { outcome } : {}),
-    updatedAt: new Date().toISOString(),
-  } satisfies EffectClaim);
-}
-
 function safeAcknowledgement(value: string | undefined): string | undefined {
   if (!value) return undefined;
   return value.replace(/[\r\n]/g, "").slice(0, 256);
@@ -236,7 +122,7 @@ async function settle<T>(
   value?: T,
 ): Promise<EffectExecutionResult<T>> {
   await persistence.persist(context, intent, "settled", outcome);
-  await updateClaim(context, intent, "settled", outcome.outcome);
+  await updateEffectClaim(context, intent, "settled", outcome.outcome);
   return { ...outcome, ...(value === undefined ? {} : { value }) };
 }
 
@@ -249,11 +135,15 @@ export async function executeEffect<T>(
   intent: EffectIntent,
   context: EffectGateContext,
   operation: () => Promise<EffectOperationResult<T>>,
-  deps: { persistence?: EffectPersistence } = {},
+  deps: {
+    persistence?: EffectPersistence;
+    approvalPersistence?: EffectApprovalPersistence;
+  } = {},
 ): Promise<EffectExecutionResult<T>> {
   validateIntent(intent);
   const persistence = deps.persistence ?? effectPersistence;
-  const existing = await readClaim(context, intent);
+  const approvals = deps.approvalPersistence ?? effectApprovalPersistence;
+  const existing = await readEffectClaim(context, intent);
   if (existing) {
     if (existing.state === "settled" && existing.outcome) return { outcome: existing.outcome };
     return settle(context, intent, persistence, { outcome: "unknown" });
@@ -262,7 +152,7 @@ export async function executeEffect<T>(
   // Journal creation is the first executable gate. Failure throws before the
   // claim or provider operation, so an unrecordable effect cannot occur.
   await persistence.persist(context, intent, "pending");
-  const claimed = await claimIntent(context, intent);
+  const claimed = await claimEffectIntent(context, intent);
   if (!claimed.created) {
     return settle(context, intent, persistence, {
       outcome: claimed.claim.state === "settled" && claimed.claim.outcome
@@ -284,22 +174,35 @@ export async function executeEffect<T>(
     return settle(context, intent, persistence, { outcome: "blocked" });
   }
   if (verdict.risk === "ask") {
-    const approved = context.approval
-      ? await context.approval.request({
-          action: intent.action,
-          reason: verdict.reason ?? "kernel approval required",
-          intentId: intent.id,
-          effectKind: intent.kind,
-          targetClass: intent.targetClass,
-          payloadSha256: intent.payloadSha256,
-          idempotencyKey: intent.idempotencyKey,
-        })
-      : false;
+    await approvals.persist(context, intent, "requested");
+    let approved = false;
+    try {
+      approved = context.approval
+        ? await context.approval.request({
+            action: intent.action,
+            reason: verdict.reason ?? "kernel approval required",
+            intentId: intent.id,
+            effectKind: intent.kind,
+            targetClass: intent.targetClass,
+            payloadSha256: intent.payloadSha256,
+            idempotencyKey: intent.idempotencyKey,
+          })
+        : false;
+    } catch (error) {
+      await approvals.persist(context, intent, "expired");
+      await approvals.settleExpired(context, intent);
+      await updateEffectClaim(context, intent, "settled", "denied");
+      return {
+        outcome: "denied",
+        errorSha256: payloadSha256(error instanceof Error ? error.message : String(error)),
+      };
+    }
+    await approvals.persist(context, intent, approved ? "approved" : "denied");
     if (!approved) return settle(context, intent, persistence, { outcome: "denied" });
   }
 
   await persistence.persist(context, intent, "started");
-  await updateClaim(context, intent, "started");
+  await updateEffectClaim(context, intent, "started");
   try {
     const result = await operation();
     const acknowledgementId = safeAcknowledgement(result.acknowledgementId);

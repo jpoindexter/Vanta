@@ -59,41 +59,7 @@ export type PreparedRun = {
 export type Tool = { name: string; desc: string };
 export type DesktopTheme = "dark" | "light";
 export type DesktopView = "work" | "operate" | "outputs" | "connect" | "scheduled" | "plugins";
-export type CapacityDimensionLevel = "unknown" | "low" | "steady" | "high";
-export type CapacityDimensions = {
-  cognitive: CapacityDimensionLevel; attentional: CapacityDimensionLevel; sensory: CapacityDimensionLevel;
-  social: CapacityDimensionLevel; emotional: CapacityDimensionLevel; physical: CapacityDimensionLevel; time: CapacityDimensionLevel;
-};
-export type ContinuityItem = {
-  version: 1; id: string; outcome: string; source: string;
-  state: "draft" | "queued" | "running" | "waiting" | "needs human" | "stopped" | "failed" | "unverified" | "verified";
-  owner?: string; waitCondition?: string; nextAction?: string; resumeContext?: string; updatedAt: string;
-  recommendation: string; choices: Array<"do it" | "show me" | "snooze">;
-  preparedAction: { kind: "read_local_file"; target: string; minutes: number; reversible: true; preview: string };
-  provenanceMemory: Array<{ source: string; sourceId?: string; capturedAt: string }>;
-  followUp: { at?: string; condition?: string };
-  timeCapacityFit: { minutes: number; capacity: CapacityDimensions };
-  blocker: string;
-  artifacts: Array<{ kind: "file" | "draft" | "link" | "note"; ref: string; sha256?: string }>;
-  lastVerified?: { state: ContinuityItem["state"]; at: string; evidence: string };
-};
-export type ContinuitySnapshot = {
-  integrity: "ok" | "degraded";
-  diagnostics: Array<{ code: string; message: string; recovery: string }>;
-  today: ContinuityItem[]; inbox: ContinuityItem[];
-  projects: Array<{ id: string; label: string; itemCount: number }>;
-  runs: Array<{ id: string }>; approvals: Array<{ id: string }>; receipts: Array<{ id: string }>;
-  legacy: { reconciledAt: string; sources: Array<{ kind: string; readOnly: true; count: number; ids: string[]; sha256: string; error?: string }> };
-  support: {
-    capacity: CapacityDimensions;
-    transient: { setAt?: string; reviewAt?: string; expiresAt?: string; expired: boolean };
-    quietHours: { enabled: boolean; start: string; end: string };
-    interruptionBudget: { daily: number; remaining: number };
-    interaction: { reducedMotion: boolean; streaming: boolean; autoScroll: boolean };
-    refusal: { active: boolean; scope?: "session" | "pattern" | "global" };
-  };
-  reentry?: { itemId: string; action: string };
-};
+export type { CapacityDimensionLevel, CapacityDimensions, ContinuityItem, ContinuitySnapshot } from "./continuity-types.js";
 export type ScheduledTask = {
   id: number;
   cron: string;

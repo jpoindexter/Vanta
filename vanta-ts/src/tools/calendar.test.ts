@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { SafetyClient } from "../safety-client.js";
 import type { ToolContext } from "./types.js";
 import {
@@ -14,7 +14,6 @@ function makeCtx(requestApproval: ToolContext["requestApproval"]): ToolContext {
   return { root: "/tmp", safety: {} as SafetyClient, requestApproval };
 }
 
-const denyCtx = makeCtx(async () => false);
 // Asserts the network is never touched: if execute reached googleFetch it would
 // need a token; if it reached approval-then-fetch this throw would surface.
 const throwIfApprovedCtx = makeCtx(async () => {
@@ -50,12 +49,20 @@ describe("calendar_create", () => {
   });
 
   it("returns 'denied by user' and makes no network call when denied", async () => {
+    const requestApproval = vi.fn(async () => false);
     const result = await calendarCreateTool.execute(
       { summary: "Standup", start: "2026-06-02T09:00:00Z", end: "2026-06-02T09:30:00Z" },
-      denyCtx,
+      makeCtx(requestApproval),
     );
     expect(result.ok).toBe(false);
     expect(result.output).toBe("denied by user");
+    expect(result.effectDisposition).toBe("denied");
+    expect(requestApproval).toHaveBeenCalledWith(
+      "create a calendar event",
+      "adds an event to your calendar",
+      undefined,
+      { fresh: true },
+    );
   });
 });
 
@@ -66,12 +73,31 @@ describe("calendar_update", () => {
   });
 
   it("returns 'denied by user' and makes no network call when denied", async () => {
+    const requestApproval = vi.fn(async () => false);
     const result = await calendarUpdateTool.execute(
       { id: "evt_123", summary: "Renamed" },
-      denyCtx,
+      makeCtx(requestApproval),
     );
     expect(result.ok).toBe(false);
     expect(result.output).toBe("denied by user");
+    expect(result.effectDisposition).toBe("denied");
+    expect(requestApproval).toHaveBeenCalledWith(
+      "update a calendar event",
+      "modifies an event on your calendar",
+      undefined,
+      { fresh: true },
+    );
+  });
+});
+
+describe("calendar approval expiry", () => {
+  it("keeps an expired decision separate from provider uncertainty", async () => {
+    const expired = makeCtx(async () => { throw new Error("approval timed out"); });
+    const result = await calendarCreateTool.execute(
+      { summary: "Standup", start: "2026-06-02T09:00:00Z", end: "2026-06-02T09:30:00Z" },
+      expired,
+    );
+    expect(result).toMatchObject({ ok: false, effectDisposition: "expired" });
   });
 });
 

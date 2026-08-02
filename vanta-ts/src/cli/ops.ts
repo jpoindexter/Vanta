@@ -16,6 +16,7 @@ import { buildGatewayHandle } from "./gateway-stream.js";
 import { runGatewayUtilityCommand } from "./gateway-utility-cmd.js";
 import { createKernelClient } from "../kernel/client.js";
 import { resolvePermissionMode } from "../modes/permission-mode.js";
+import { runTaskIdentity } from "./task-host.js";
 
 // Operational subcommands (gateway / service / mcp / factory + the
 // non-interactive cron task). Extracted from cli.ts to keep each file <300.
@@ -64,11 +65,13 @@ export function buildCronRunTask(
   return async (instruction, wake, images, callbacks) => {
     const prompt = withWakeContext(instruction, wake);
     const setup = await prepareRun(repoRoot, prompt);
+    const identity = runTaskIdentity(wake);
     const outcome = await runAgent(setup.systemPrompt, prompt, {
       provider: setup.provider,
       safety: setup.safety,
       registry: setup.registry,
       root: repoRoot,
+      ...identity,
       requestApproval: opts.requestApproval ?? (async () => false),
       maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
       summarize: buildSummarizer(setup.provider),

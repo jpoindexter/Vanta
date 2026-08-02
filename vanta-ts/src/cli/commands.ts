@@ -90,7 +90,11 @@ async function finishOneShot(o: {
     provider: o.setup.provider, safety: o.setup.safety, root: o.root, transcript: o.convo.messages,
     toolIterations: o.outcome.toolIterations, turnIndex: 1, deferMutation: choiceWall,
   });
-  memoryExtractAfterTurn({ provider: o.setup.provider, transcript: o.convo.messages });
+  memoryExtractAfterTurn({
+    provider: o.setup.provider,
+    transcript: o.convo.messages,
+    completionState: o.outcome.completionState,
+  });
 }
 
 export async function runInstruction(

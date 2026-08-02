@@ -7,6 +7,7 @@ import { ENTRY_TYPE_VALUES } from "./entry-types.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { Message } from "../types.js";
 import type { WorkItemState } from "../work-items/contract.js";
+import { canPersistMemoryClaim } from "../work-items/memory-policy.js";
 
 // Auto-learning — how the brain grows with the user. After a busy turn, a single
 // background model call distils the conversation into 0–3 DURABLE memories and
@@ -101,13 +102,12 @@ export function parseLearned(text: string): Array<z.infer<typeof LearnedSchema>[
 }
 
 type Learned = z.infer<typeof LearnedSchema>[number];
-const ACCOMPLISHMENT_WORDS = /\b(?:shipped|completed|finished|deployed|published|sent|fixed|created|delivered|released)\b/i;
-
 function allowedForCompletionState(memory: Learned, state: WorkItemState | undefined): boolean {
-  if (state === undefined || state === "verified") return true;
+  if (state === "verified") return true;
+  if (!canPersistMemoryClaim(memory.content, state)) return false;
   if (memory.region === "episodic") return false;
   if (memory.entry_type === "event" || memory.entry_type === "artifact") return false;
-  return !ACCOMPLISHMENT_WORDS.test(memory.content);
+  return true;
 }
 
 /** Remember one learned memory through the ingest gate: volatile facts become

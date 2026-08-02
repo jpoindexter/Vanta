@@ -8,17 +8,11 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1283 capabilities shipped · 4 in flight · 14 parked external-proof items · 6 on the horizon. Updated 2026-08-02._
+_1284 capabilities shipped · 3 in flight · 14 parked external-proof items · 6 on the horizon. Updated 2026-08-02._
 
 ## In flight
 
 What we are actively building next.
-
-### Truthful completion and one typed receipt across every host
-
-**Harness** · M-size
-
-Make Desktop, CLI/TUI, messaging, jobs, memory, and goal progress consume one evidence-derived WorkItem/Run/Approval/Receipt contract rather than model prose or host-specific stop reasons
 
 ### Universal effect-path inventory and one trusted action gateway
 
@@ -40,10 +34,11 @@ Begin commercial and usefulness learning manually: test the same capture → rec
 
 ## Recently shipped
 
-The latest of 1283+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1284+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Urgent control-plane trust closure — hooks, environments, audit state, and local authentication** — Harness · 2026-08-02
 - **Safe continuity slice — messy capture to Today, prepared action, waiting, and restart re-entry** — Operator · 2026-08-02
+- **Truthful completion and one typed receipt across every host** — Harness · 2026-08-02
 - **Desktop queued-turn editor — inspect, reorder, edit, steer, retry, or remove what runs next** — Desktop App · 2026-07-30
 - **Streaming TTS — speak after the first complete clause** — Operator · 2026-07-29
 - **Memory Sparse Attention adapter — long-context memory without Python in Vanta** — Operator · 2026-07-29
@@ -61,7 +56,6 @@ The latest of 1283+ capabilities. See the [changelog](./changelog) for curated m
 - **Relative sibling mkdir approval — resolve the real target before the kernel and sandbox** — Harness · 2026-07-21
 - **Desktop one-time approvals and current Vanta app icon** — Desktop · 2026-07-21
 - **Desktop Ollama MiniCPM response — visible text instead of endless Thinking** — Desktop App · 2026-07-21
-- **TUI Ollama model drill-down — choose an installed local model** — Operator · 2026-07-21
 
 ## Parked external-proof items
 

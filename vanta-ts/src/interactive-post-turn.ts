@@ -62,7 +62,7 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWi
   if (!choiceWall) await suggestSkillFromRun(text, process.env);
   await antiSlopAfterText(outcome.finalText, (note) => console.log(`\n${note}`)).catch(() => {});
   await reviewAfterTurn({ provider: setup.provider, safety: setup.safety, root: repoRoot, transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: state.turnIndex, deferMutation: choiceWall });
-  memoryExtractAfterTurn({ provider: setup.provider, transcript: convo.messages });
+  memoryExtractAfterTurn({ provider: setup.provider, transcript: convo.messages, completionState: outcome.completionState });
   const newScratch = await sessionMemoryAfterTurn({ provider: setup.provider, dataDir: join(repoRoot, ".vanta"), transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: state.turnIndex });
   if (newScratch) convo.setSessionMemory(newScratch);
   const learned = await brainLearnAfterTurn({ provider: setup.provider, transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: state.turnIndex, completionState: outcome.completionState });

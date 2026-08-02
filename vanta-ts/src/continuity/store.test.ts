@@ -42,6 +42,10 @@ describe("continuity operator store", () => {
     expect(result.item.preparedAction).toMatchObject({ kind: "read_local_file", target: "brief.md", minutes: 10, reversible: true });
     expect(result.item.timeCapacityFit.capacity).toMatchObject({ attentional: "low", time: "steady", sensory: "unknown" });
     expect(result.snapshot.today.map((item) => item.id)).toEqual(["continuity-1"]);
+    expect(result.snapshot.projections.now.map((item) => item.id)).toEqual(["continuity-1"]);
+    expect(result.snapshot.projections).toMatchObject({
+      captured: [], waiting: [], needsYou: [], done: [],
+    });
   });
 
   it("binds an at-mentioned project file from the same messy capture", async () => {

@@ -74,6 +74,7 @@ describe("runMemoryExtractor", () => {
         "The user prefers terse status updates",
         "Vanta's memory extractor is opt-in only",
       ])),
+      completionState: "verified",
       env: { VANTA_EXTRACT_MEMORIES: "1" },
       now,
     });
@@ -88,5 +89,29 @@ describe("runMemoryExtractor", () => {
     expect(entries).toHaveLength(2);
     expect(entries.map((e) => e.sourceRef)).toEqual(["auto-extracted", "auto-extracted"]);
     expect(entries.map((e) => e.createdAt)).toEqual([now.toISOString(), now.toISOString()]);
+  });
+
+  it("does not turn an unknown attempt into accomplishment memory", async () => {
+    const out = await runMemoryExtractor(turnWindow, {
+      provider: fakeProvider(JSON.stringify([
+        "We shipped the typed receipt rollout",
+        "Solved the production migration",
+        "The user prefers terse status updates",
+      ])),
+      completionState: "unverified",
+      env: { VANTA_EXTRACT_MEMORIES: "1" },
+    });
+
+    expect(out).toEqual({
+      extracted: [
+        "We shipped the typed receipt rollout",
+        "Solved the production migration",
+        "The user prefers terse status updates",
+      ],
+      stored: 1,
+    });
+    expect((await loadEntries()).map((entry) => entry.content)).toEqual([
+      "The user prefers terse status updates",
+    ]);
   });
 });

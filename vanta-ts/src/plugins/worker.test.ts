@@ -63,9 +63,10 @@ describe("plugin worker host", () => {
     expect(panels.list()[0]?.actions?.[0]?.prompt).toBe("Refresh worker status");
     await expect(readFile(join(home, "plugin-data", "operator.json"), "utf8")).rejects.toThrow();
 
+    const settledBeforeJob = await waitForSettledClaims(dir);
     fireJob?.();
     await waitFor(() => logs.some((line) => line.includes("job heartbeat ran")));
-    await waitForSettledClaims(dir);
+    await waitForSettledClaims(dir, settledBeforeJob + 1);
   });
 
   it("loads a worker through the enabled-plugin loader with operator grants", async () => {
@@ -137,16 +138,19 @@ async function waitFor(predicate: () => boolean | Promise<boolean>): Promise<voi
   }
 }
 
-async function waitForSettledClaims(root: string): Promise<void> {
+async function waitForSettledClaims(root: string, minimum = 1): Promise<number> {
   const claims = join(root, ".vanta", "effect-claims");
+  let settled = 0;
   await waitFor(async () => {
-    const files = await readdir(claims).catch(() => []);
-    if (files.length === 0) return false;
+    const files = (await readdir(claims).catch(() => [])).filter((file) => file.endsWith(".json"));
+    if (files.length < minimum) return false;
     const values = await Promise.all(files.map(async (file) => JSON.parse(
       await readFile(join(claims, file), "utf8"),
     ) as { state?: string }));
-    return values.every((value) => value.state === "settled");
+    settled = values.filter((value) => value.state === "settled").length;
+    return settled === files.length;
   });
+  return settled;
 }
 
 const WORKER_FIXTURE = String.raw`

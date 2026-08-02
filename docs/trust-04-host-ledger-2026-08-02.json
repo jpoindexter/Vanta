@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "scope": "The seven supported TRUST-04 host surfaces and six representative real-path classes",
+  "contract": {
+    "states": ["draft", "queued", "running", "waiting", "needs human", "stopped", "failed", "unverified", "verified"],
+    "projections": ["Captured", "Now", "Waiting", "Needs You", "Done"],
+    "dispositions": ["none", "confirmed", "denied", "expired", "unknown", "compensated"]
+  },
+  "hosts": [
+    {
+      "id": "desktop",
+      "role": "producer",
+      "source": "src/desktop/handlers.ts",
+      "anchor": "usageAgent: \"desktop\"",
+      "contractBoundary": "src/agent.ts#recordAgentTurnReceipt",
+      "tests": ["src/agent/turn-receipt.integration.test.ts", "src/desktop/continuity-api.test.ts"]
+    },
+    {
+      "id": "cli",
+      "role": "producer",
+      "source": "src/cli/commands.ts",
+      "anchor": "usageAgent: \"one-shot\"",
+      "contractBoundary": "src/agent.ts#recordAgentTurnReceipt",
+      "tests": ["src/agent/turn-receipt.integration.test.ts", "src/cli/goals-cmd.test.ts"]
+    },
+    {
+      "id": "tui",
+      "role": "producer",
+      "source": "src/ui/use-agent.ts",
+      "anchor": "usageAgent: \"tui\"",
+      "contractBoundary": "src/agent.ts#recordAgentTurnReceipt",
+      "tests": ["src/agent/turn-receipt.integration.test.ts", "src/ui/use-agent.test.ts"]
+    },
+    {
+      "id": "messaging",
+      "role": "producer",
+      "source": "src/cli/task-host.ts",
+      "anchor": "usageAgent: \"messaging\"",
+      "contractBoundary": "src/agent.ts#recordAgentTurnReceipt",
+      "tests": ["src/cli/task-host.test.ts", "src/gateway/run.test.ts"]
+    },
+    {
+      "id": "jobs",
+      "role": "producer",
+      "source": "src/cli/task-host.ts",
+      "anchor": "usageAgent: \"jobs\"",
+      "contractBoundary": "src/agent.ts#recordAgentTurnReceipt",
+      "tests": ["src/cli/task-host.test.ts", "src/schedule/script-mode.test.ts"]
+    },
+    {
+      "id": "memory",
+      "role": "consumer",
+      "source": "src/memory/extractor.ts",
+      "anchor": "canPersistMemoryClaim",
+      "contractBoundary": "src/work-items/memory-policy.ts#canPersistMemoryClaim",
+      "tests": ["src/work-items/memory-policy.test.ts", "src/memory/extractor.test.ts", "src/brain/learn.test.ts"]
+    },
+    {
+      "id": "goal-progress",
+      "role": "consumer",
+      "source": "src/goals/progress.ts",
+      "anchor": "goalWorkItemState",
+      "contractBoundary": "src/work-items/read-model.ts#readWorkItemProjection",
+      "tests": ["src/repl/goal-ledger.test.ts", "src/cli/goals-cmd.test.ts"]
+    }
+  ],
+  "representativePaths": [
+    {
+      "id": "file",
+      "source": "src/continuity/store.ts",
+      "anchor": "executePreparedRead",
+      "tests": ["src/continuity/store.test.ts", "src/tools/write-file.test.ts"]
+    },
+    {
+      "id": "ui",
+      "source": "src/continuity/snapshot.ts",
+      "anchor": "projectWorkItems",
+      "tests": ["src/continuity/store.test.ts", "src/desktop/continuity-api.test.ts"]
+    },
+    {
+      "id": "message",
+      "source": "src/gateway/effect-send.ts",
+      "anchor": "executeEffect",
+      "tests": ["src/effects/execute-effect.test.ts", "src/gateway/stream-run.test.ts"]
+    },
+    {
+      "id": "calendar",
+      "source": "src/tools/calendar-write.ts",
+      "anchor": "effectDisposition: \"expired\"",
+      "tests": ["src/tools/calendar.test.ts", "src/agent/calendar-receipt.integration.test.ts"]
+    },
+    {
+      "id": "job",
+      "source": "src/schedule/effect-run.ts",
+      "anchor": "executeEffect",
+      "tests": ["src/schedule/effect-run.test.ts", "src/schedule/script-run.test.ts", "src/cli/task-host.test.ts"]
+    },
+    {
+      "id": "restart",
+      "source": "src/effects/execute-effect.ts",
+      "anchor": "readEffectClaim",
+      "tests": ["src/effects/execute-effect.test.ts", "src/repl/restart-cmd.test.ts"]
+    }
+  ]
+}

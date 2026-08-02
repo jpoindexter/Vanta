@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -21,6 +21,28 @@ describe("runGoalsCommand", () => {
     expect(code).toBe(0);
     expect(lines.join("\n")).toContain("◌ dependent");
     expect(lines.join("\n")).toContain("blocked_by:1");
+  });
+
+  it("prints canonical WorkItem evidence separately from kernel goal status", async () => {
+    const root = mkdtempSync(join(tmpdir(), "goals-cli-"));
+    dirs.push(root);
+    mkdirSync(join(root, ".vanta"));
+    writeFileSync(join(root, ".vanta", "work-items.jsonl"), `${JSON.stringify({
+      version: 1,
+      id: "goal:1:turn:1",
+      outcome: "Finish the goal",
+      source: "goal:1",
+      state: "verified",
+      updatedAt: "2026-08-02T12:00:00.000Z",
+    })}\n`);
+    const lines: string[] = [];
+
+    await runGoalsCommand(root, {
+      getGoals: async () => [{ id: 1, text: "current thing", status: "done" }],
+      log: (line) => lines.push(line),
+    });
+
+    expect(lines.join("\n")).toContain("done · work:verified");
   });
 
   it("adds, runs, and retires standing goal sentinels", async () => {

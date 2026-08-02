@@ -20704,12 +20704,12 @@
       "tier": "rock",
       "model": "opus",
       "codex": "gpt-5.6-sol",
-      "updated": "2026-07-30",
+      "updated": "2026-08-02",
       "source": "vanta-total-realignment-correction-2026-07-30",
       "id": "TRUST-04",
       "track": "Harness",
       "title": "Truthful completion and one typed receipt across every host",
-      "status": "next",
+      "status": "shipped",
       "after": [
         "TRUST-02"
       ],
@@ -20718,7 +20718,7 @@
       "lens": "agent-loop",
       "summary": "Make Desktop, CLI/TUI, messaging, jobs, memory, and goal progress consume one evidence-derived WorkItem/Run/Approval/Receipt contract rather than model prose or host-specific stop reasons.",
       "done": "Every supported host persists exactly the WorkItem states draft, queued, running, waiting, needs human, stopped, failed, unverified, and verified. Captured, Now, Waiting, Needs You, and Done remain projections only. Action/receipt dispositions denied, expired, unknown, and compensated remain separate. Verification outages and missing readback produce unverified; unknown effects are never blindly retried; failed, stopped, denied, expired, unknown, and compensated attempts cannot create accomplishment memory; representative file, UI, message, calendar, job, and restart paths prove the contract end to end.",
-      "notes": "One lifecycle and receipt model is required before expanded continuity or delegation."
+      "notes": "Shipped 2026-08-02 on the supported local Vanta hosts. Desktop, CLI, TUI, messaging, and jobs now persist one content-free WorkItem/Run/Receipt turn envelope; memory and goal progress consume that same evidence-derived contract. Executed evidence covers all nine lifecycle states, the five projection-only views, separate denied/expired/unknown/compensated dispositions, five producer hosts, two consumer hosts, fresh calendar approval, unknown-effect no-replay, every nonverified accomplishment-memory block, a real scheduled effect, synthetic messaging delivery, and three real Electron launches plus a TUI process restart. Full TypeScript passed 13,975 tests with 3 skipped under a 60-second per-test ceiling; Rust passed 70 tests. Evidence: docs/trust-04-host-ledger-2026-08-02.json and docs/trust-04-closure-audit-2026-08-02.html. This does not claim live-provider account proof, cross-platform packaging, notarization, merge, release, publication, deployment, TRUST-01, or OP-01."
     },
     {
       "tier": "rock",

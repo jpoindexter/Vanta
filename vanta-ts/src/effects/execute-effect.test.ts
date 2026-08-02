@@ -86,6 +86,42 @@ describe("executeEffect", () => {
     expect(operation).not.toHaveBeenCalled();
   });
 
+  it("persists requested and approved authority under the same effect WorkItem", async () => {
+    const projectRoot = await root();
+    await executeEffect(intent(), context(projectRoot, "ask"), async () => ({
+      acknowledgementId: "ack-approved",
+      verified: true,
+    }));
+
+    const approvals = (await readFile(join(projectRoot, ".vanta", "approvals.jsonl"), "utf8"))
+      .trim().split("\n").map((line) => JSON.parse(line));
+    expect(approvals.map((approval) => approval.state)).toEqual(["requested", "approved"]);
+    expect(approvals).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        workItemId: "session-1:effect:effect-1",
+        runId: "session-1:effect:effect-1",
+        actionSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+      }),
+    ]));
+  });
+
+  it("settles an expired approval separately without calling the operation", async () => {
+    const projectRoot = await root();
+    const operation = vi.fn();
+    const result = await executeEffect(intent(), {
+      ...context(projectRoot, "ask"),
+      approval: { request: async () => { throw new Error("approval timed out"); } },
+    }, operation);
+
+    expect(result.outcome).toBe("denied");
+    expect(operation).not.toHaveBeenCalled();
+    const approvals = (await readFile(join(projectRoot, ".vanta", "approvals.jsonl"), "utf8"))
+      .trim().split("\n").map((line) => JSON.parse(line));
+    expect(approvals.map((approval) => approval.state)).toEqual(["requested", "expired"]);
+    const receipt = JSON.parse((await readFile(join(projectRoot, ".vanta", "action-receipts.jsonl"), "utf8")).trim());
+    expect(receipt).toMatchObject({ disposition: "expired" });
+  });
+
   it("calls an allowed operation exactly once and retains only acknowledgement metadata", async () => {
     const projectRoot = await root();
     const secretBody = "secret-body-that-must-not-be-journaled";

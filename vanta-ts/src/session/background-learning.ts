@@ -190,11 +190,16 @@ export async function dialecticAfterTurn(opts: {
 export function memoryExtractAfterTurn(opts: {
   provider: LLMProvider;
   transcript: Message[];
+  completionState?: WorkItemState;
   env?: NodeJS.ProcessEnv;
 }): void {
   const env = opts.env ?? process.env;
   if (env.VANTA_EXTRACT_MEMORIES !== "1") return;
-  void runMemoryExtractor(opts.transcript, { provider: opts.provider, env }).catch(() => {});
+  void runMemoryExtractor(opts.transcript, {
+    provider: opts.provider,
+    completionState: opts.completionState,
+    env,
+  }).catch(() => {});
 }
 
 /**

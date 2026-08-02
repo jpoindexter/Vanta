@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Tool } from "./types.js";
+import type { Tool, ToolContext, ToolResult } from "./types.js";
 import { googleFetch } from "../google/client.js";
 
 // Write tools (create/update) for Google Calendar. Extracted from calendar.ts (size gate).
@@ -37,6 +37,19 @@ async function bodyOf(res: Response): Promise<string> {
   }
 }
 
+async function approvalFailure(
+  ctx: ToolContext,
+  action: string,
+  reason: string,
+): Promise<ToolResult | undefined> {
+  try {
+    const approved = await ctx.requestApproval(action, reason, undefined, { fresh: true });
+    return approved ? undefined : { ok: false, output: "denied by user", effectDisposition: "denied" };
+  } catch {
+    return { ok: false, output: "approval expired", effectDisposition: "expired" };
+  }
+}
+
 export const calendarCreateTool: Tool = {
   schema: {
     name: "calendar_create",
@@ -62,11 +75,12 @@ export const calendarCreateTool: Tool = {
         output: "calendar_create needs summary, start, and end (ISO times)",
       };
     }
-    const approved = await ctx.requestApproval(
+    const approval = await approvalFailure(
+      ctx,
       "create a calendar event",
       "adds an event to your calendar",
     );
-    if (!approved) return { ok: false, output: "denied by user" };
+    if (approval) return approval;
 
     const { summary, start, end, description } = parsed.data;
     const body = {
@@ -123,11 +137,12 @@ export const calendarUpdateTool: Tool = {
     if (!parsed.success) {
       return { ok: false, output: 'calendar_update needs an event "id"' };
     }
-    const approved = await ctx.requestApproval(
+    const approval = await approvalFailure(
+      ctx,
       "update a calendar event",
       "modifies an event on your calendar",
     );
-    if (!approved) return { ok: false, output: "denied by user" };
+    if (approval) return approval;
 
     const { id, summary, start, end, description } = parsed.data;
     const body: Record<string, unknown> = {};
