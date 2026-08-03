@@ -22,6 +22,7 @@
     "tui:completion:proof": "node scripts/tui-task-completion-proof.mjs",
     "tui:restart:proof": "node scripts/tui-restart-continuity-proof.mjs",
     "tui:modes:proof": "node scripts/tui-operating-mode-proof.mjs",
+    "tui:model-settings:proof": "node scripts/tui-model-settings-proof.mjs",
     "tui:compaction:proof": "node scripts/tui-compaction-meter-proof.mjs",
     "tui:auto-compaction:proof": "node scripts/tui-auto-compaction-meter-proof.mjs",
     "tui:performance:proof": "node --test scripts/tui-performance-entry-buffer.node-test.mjs",

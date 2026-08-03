@@ -16,7 +16,8 @@ import type { Summarizer } from "./context.js";
 import { resolveAuxProvider } from "./routing/aux-map.js";
 import { buildFallbackChain } from "./providers/fallback.js";
 import { wrapCredentialPool } from "./credentials/resolve.js";
-import type { EffortLevel, Goal } from "./types.js";
+import type { Goal } from "./types.js";
+import { defaultProviderModelSettings, type ProviderEffortLevel, type ProviderSpeed } from "./providers/model-settings.js";
 import {
   loadRuntimeExtensions, loadRuntimeSettings, buildRunPrompt, injectResume, logSessionConfig,
   resolveLoadContext, fireInstructionsLoaded,
@@ -48,7 +49,8 @@ export type RunSetup = {
   provider: LLMProvider;
   /** Optional stronger read-only model consulted after repeated tool failures (VANTA_ADVISOR_MODEL). */
   advisorProvider?: LLMProvider;
-  effortLevel: EffortLevel;
+  effortLevel: ProviderEffortLevel;
+  serviceTier?: ProviderSpeed;
   goals: Goal[];
   systemPrompt: string;
   ralphContinuity?: string;
@@ -90,7 +92,14 @@ export async function prepareRun(
       permissionMode: resolvePermissionMode(process.env),
     },
   );
-  const effortLevel = resolveEffortLevel(process.env.VANTA_EFFORT_LEVEL ?? settings.effortLevel);
+  const configuredEffort = process.env.VANTA_EFFORT_LEVEL ?? settings.effortLevel;
+  const providerId = provider.routeInfo?.()?.provider ?? process.env.VANTA_PROVIDER ?? "openai";
+  const modelSettings = defaultProviderModelSettings(providerId, provider.modelId(), {
+    effortLevel: configuredEffort,
+    speed: process.env.VANTA_SERVICE_TIER,
+  }, process.env);
+  const effortLevel = modelSettings.effortLevel ?? resolveEffortLevel(configuredEffort);
+  const serviceTier = modelSettings.speed;
   const goals = await safety.getGoals().catch(() => []);
   const activeIds = goals.filter((g) => g.status === "active").map((g) => g.id);
 
@@ -126,7 +135,7 @@ export async function prepareRun(
     }
   }
   logSessionConfig(safety, provider, registry, systemPrompt);
-  return { safety, registry, pluginCommands, pluginPanels, pluginWorkers, mcpSkills, provider, advisorProvider, effortLevel, goals, systemPrompt, ralphContinuity: prompt.ralphContinuity };
+  return { safety, registry, pluginCommands, pluginPanels, pluginWorkers, mcpSkills, provider, advisorProvider, effortLevel, serviceTier, goals, systemPrompt, ralphContinuity: prompt.ralphContinuity };
 }
 
 const SUMMARIZE_SYS =

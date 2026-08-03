@@ -138,6 +138,7 @@ function convoConfig(deps: AgentDeps, scope?: TurnScope): Parameters<typeof crea
     maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(deps.setup.provider),
     getEffortLevel: () => deps.replStateRef.current.effortLevel ?? deps.setup.effortLevel,
+    getServiceTier: () => deps.replStateRef.current.serviceTier ?? deps.setup.serviceTier,
     permissionMode: () => permissionModeForOperating(deps.operatingMode?.() ?? resolveOperatingMode(process.env)),
     planGate: () => {
       const slashPlan = deps.convoRef.current?.messages[0]?.content.includes(PLAN_MARKER) === true

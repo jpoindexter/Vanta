@@ -4,6 +4,8 @@ import { buildProviderForSelection, persistSelectionGlobal, parseModelArg } from
 import type { ModelSelection } from "../term/model-switch.js";
 import type { LLMProvider } from "../providers/interface.js";
 import { loadPresets, presetFor } from "../models/presets.js";
+import { defaultProviderModelSettings, providerModelSettingsCapabilities } from "../providers/model-settings.js";
+import { resolveEffortLevel } from "../effort.js";
 import type { SlashHandler } from "./types.js";
 
 type ModelCtx = Parameters<SlashHandler>[1];
@@ -23,7 +25,7 @@ export const model: SlashHandler = async (arg, ctx) => {
     return { output: activeModelOutput(ctx) };
   }
   const currentProviderId = ctx.state.providerId ?? ctx.env.VANTA_PROVIDER ?? "openai";
-  const sel = parseModelArg(trimmed, currentProviderId);
+  const sel = parseModelArg(trimmed, currentProviderId, ctx.env);
   if (!sel) {
     return { output: "  usage: /model [<provider>] [<model>] [--session|--global]   e.g. /model openai gpt-4o · /model gemini --global" };
   }
@@ -67,11 +69,30 @@ async function applySelection(ctx: ModelCtx, sel: ModelSelection, provider: LLMP
     await persistSelectionGlobal(sel, dirname(ctx.dataDir)).catch(() => {});
   }
   const preset = presetFor(await loadPresets(ctx.env), provider.modelId());
-  if (!preset?.effort) return "";
-  ctx.state.effortLevel = preset.effort;
-  ctx.setup.effortLevel = preset.effort;
-  if (sel.persistGlobal) ctx.env.VANTA_EFFORT_LEVEL = preset.effort;
-  return ` · effort ${preset.effort} (remembered)`;
+  const providerId = provider.routeInfo?.()?.provider ?? sel.providerId;
+  const capabilities = providerModelSettingsCapabilities(providerId, provider.modelId(), ctx.env);
+  const rememberedEffort = preset?.effort && capabilities.effort?.options.includes(preset.effort)
+    ? preset.effort
+    : undefined;
+  const next = defaultProviderModelSettings(providerId, provider.modelId(), {
+    effortLevel: rememberedEffort ?? ctx.state.effortLevel ?? ctx.setup.effortLevel,
+    speed: ctx.state.serviceTier ?? ctx.setup.serviceTier,
+  }, ctx.env);
+  if (capabilities.effort && next.effortLevel) {
+    ctx.state.effortLevel = next.effortLevel;
+    ctx.setup.effortLevel = next.effortLevel;
+  } else {
+    delete ctx.state.effortLevel;
+    ctx.setup.effortLevel = resolveEffortLevel(ctx.env.VANTA_EFFORT_LEVEL);
+  }
+  if (next.speed) ctx.state.serviceTier = next.speed;
+  else delete ctx.state.serviceTier;
+  ctx.setup.serviceTier = next.speed;
+  const settings = [
+    next.effortLevel ? `effort ${next.effortLevel}${rememberedEffort ? " (remembered)" : ""}` : "",
+    next.speed ? `speed ${next.speed}` : "",
+  ].filter(Boolean).join(" · ");
+  return settings ? ` · ${settings}` : "";
 }
 
 function parseScope(arg: string): { arg: string; global: boolean; explicit: boolean; error?: string } {

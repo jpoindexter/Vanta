@@ -18,10 +18,11 @@ export type ProviderModelSettingsCapabilities = {
   speed?: { defaultValue: ProviderSpeed; options: ProviderSpeed[] };
 };
 
-const CODEX_EFFORT: ProviderEffortLevel[] = ["low", "medium", "high", "xhigh", "max", "ultra"];
+export const PROVIDER_EFFORT_LEVELS = ["low", "medium", "high", "xhigh", "max", "ultra"] as const satisfies readonly ProviderEffortLevel[];
+const CODEX_EFFORT: ProviderEffortLevel[] = [...PROVIDER_EFFORT_LEVELS];
 const CLAUDE_EFFORT: ProviderEffortLevel[] = ["low", "medium", "high", "xhigh", "max"];
 
-function isProviderEffortLevel(value: string): value is ProviderEffortLevel {
+export function isProviderEffortLevel(value: string): value is ProviderEffortLevel {
   return isEffortLevel(value) || value === "ultra";
 }
 

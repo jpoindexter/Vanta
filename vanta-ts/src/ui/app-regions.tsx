@@ -13,7 +13,7 @@ import { Banner } from "./banner.js";
 import { EntryView } from "./transcript.js";
 import { glimmerEnabled, glimmerSegments, plainSegments } from "./glimmer.js";
 import type { SubagentProgress } from "../subagent/progress-store.js";
-import type { EffortLevel } from "../types.js";
+import type { ProviderEffortLevel, ProviderSpeed } from "../providers/model-settings.js";
 import type { RichSegment } from "./status-segments.js";
 import { ProgressBar } from "./components/progress-bar.js";
 
@@ -41,7 +41,8 @@ export function AgentPill(props: { running: SubagentProgress[] }): ReactElement 
 
 export function Footer(props: {
   model: string;
-  effortLevel: EffortLevel;
+  effortLevel: ProviderEffortLevel;
+  serviceTier?: ProviderSpeed;
   ctxPct: number;
   tokens: number;
   contextWindow: number;
@@ -58,7 +59,7 @@ export function Footer(props: {
     <Box flexDirection="column">
       <AgentPill running={props.agents ?? []} />
       <Text>{props.goal ? <><Text color={GOAL}>◇</Text> {goalClip(props.goal)}</> : " "}</Text>
-      <StatusBar model={props.model} effortLevel={props.effortLevel} ctxPct={props.ctxPct} tokens={props.tokens} contextWindow={props.contextWindow} turns={props.turns} busy={props.busy} queued={props.queued} elapsed={props.elapsed} mcp={props.mcp} rich={props.rich} />
+      <StatusBar model={props.model} effortLevel={props.effortLevel} serviceTier={props.serviceTier} ctxPct={props.ctxPct} tokens={props.tokens} contextWindow={props.contextWindow} turns={props.turns} busy={props.busy} queued={props.queued} elapsed={props.elapsed} mcp={props.mcp} rich={props.rich} />
       <Text>  <Text color={FOCUS}>/</Text> commands  ·  <Text color={FOCUS}>@</Text> files  ·  <Text color={ACTIVITY}>!</Text> shell  ·  <Text color={GOAL}>#</Text> memory</Text>
     </Box>
   );

@@ -4,7 +4,7 @@ import { listSessions } from "../sessions/store.js";
 import { listSkills } from "../skills/store.js";
 import { gatherCockpitData, type CockpitData } from "../tui/mission-control/cockpit-data.js";
 import { gatherStats, type UsageStats } from "./stats-data.js";
-import { sessionRows, skillRows, modelRows, providerModelRows, setupRows, PICKER_KINDS, type OverlayKind, type OverlayRow } from "./overlays.js";
+import { effortRows, modelRows, modelSettingsRows, providerModelRows, sessionRows, setupRows, skillRows, speedRows, PICKER_KINDS, type OverlayKind, type OverlayRow } from "./overlays.js";
 import { providerById } from "../providers/catalog.js";
 import { discoverProviderModels } from "../providers/model-discovery.js";
 import { listLoopSummaries, type LoopSummary } from "../loop/summary.js";
@@ -58,7 +58,10 @@ export type OverlayView =
 /** The four picker kinds that resolve to a generic selectable list; null otherwise. */
 async function listOverlay(kind: OverlayKind, setup: RunSetup): Promise<OverlayView | null> {
   if (kind === "setup") return { kind: "list", title: "Set up Vanta", rows: setupRows() };
-  if (kind === "model") return { kind: "list", title: "Switch model for this session", rows: modelRows(setup.provider.routeInfo?.().provider ?? process.env.VANTA_PROVIDER ?? "openai", setup.provider.modelId()) };
+  const providerId = setup.provider.routeInfo?.().provider ?? process.env.VANTA_PROVIDER ?? "openai";
+  const current = { effortLevel: setup.effortLevel, speed: setup.serviceTier };
+  if (kind === "model") return { kind: "list", title: "Switch model for this session", rows: modelRows(providerId, setup.provider.modelId(), current) };
+  if (kind === "modelSettings") return { kind: "list", title: `${setup.provider.modelId()} settings`, rows: modelSettingsRows(providerId, setup.provider.modelId(), current) };
   if (kind === "sessions") return { kind: "list", title: "Sessions", rows: sessionRows(await listSessions(process.env)) };
   if (kind === "skills") return { kind: "list", title: "Skills", rows: skillRows(await listSkills(process.env)) };
   return null;
@@ -157,7 +160,7 @@ function exportContext(getCtx?: () => CtxSnapshot): ExportContext {
   };
 }
 
-export function useOverlay(deps: { setup: RunSetup; repoRoot: string; runSlash: (line: string) => void; getContext?: () => CtxSnapshot }): {
+export function useOverlay(deps: { setup: RunSetup; repoRoot: string; runSlash: (line: string) => void | Promise<void>; getContext?: () => CtxSnapshot }): {
   overlay: OverlayView | null;
   openOverlay: (kind: OverlayKind) => void;
   closeOverlay: () => void;
@@ -165,10 +168,26 @@ export function useOverlay(deps: { setup: RunSetup; repoRoot: string; runSlash: 
 } {
   const [overlay, setOverlay] = useState<OverlayView | null>(null);
   const activeProviderId = (): string => deps.setup.provider.routeInfo?.().provider ?? process.env.VANTA_PROVIDER ?? "openai";
+  const currentSettings = () => ({ effortLevel: deps.setup.effortLevel, speed: deps.setup.serviceTier });
   const showModelProviders = (): void => setOverlay({
     kind: "list",
     title: "Switch model for this session",
-    rows: modelRows(activeProviderId(), deps.setup.provider.modelId()),
+    rows: modelRows(activeProviderId(), deps.setup.provider.modelId(), currentSettings()),
+  });
+  const showModelSettings = (): void => setOverlay({
+    kind: "list",
+    title: `${deps.setup.provider.modelId()} settings`,
+    rows: modelSettingsRows(activeProviderId(), deps.setup.provider.modelId(), currentSettings()),
+  });
+  const showEffort = (): void => setOverlay({
+    kind: "list",
+    title: `${deps.setup.provider.modelId()} effort`,
+    rows: effortRows(activeProviderId(), deps.setup.provider.modelId(), deps.setup.effortLevel),
+  });
+  const showSpeed = (): void => setOverlay({
+    kind: "list",
+    title: `${deps.setup.provider.modelId()} speed`,
+    rows: speedRows(activeProviderId(), deps.setup.provider.modelId(), deps.setup.serviceTier),
   });
   const showProviderModels = (providerId: string): void => {
     const entry = providerById(providerId);
@@ -228,12 +247,28 @@ export function useOverlay(deps: { setup: RunSetup; repoRoot: string; runSlash: 
       showProviderModels(row.next.providerId);
       return;
     }
+    if (row.next?.kind === "modelSettings") {
+      showModelSettings();
+      return;
+    }
+    if (row.next?.kind === "modelEffort") {
+      showEffort();
+      return;
+    }
+    if (row.next?.kind === "modelSpeed") {
+      showSpeed();
+      return;
+    }
     if (row.command.startsWith("plugin-panel:")) {
       const panel = deps.setup.pluginPanels?.get(row.command.slice("plugin-panel:".length));
       setOverlay(panel ? { kind: "pluginPanel", panel } : null);
       return;
     }
-    deps.runSlash(row.command);
+    const applied = Promise.resolve(deps.runSlash(row.command));
+    if (row.afterCommand?.kind === "modelSettings") {
+      void applied.then(showModelSettings);
+      return;
+    }
     setOverlay(null);
   };
   return { overlay, openOverlay, closeOverlay, selectRow };

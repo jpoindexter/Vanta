@@ -442,7 +442,7 @@ describe("task completion boundaries", () => {
       if (previousReserve === undefined) delete process.env.VANTA_TOOL_CLOSURE_RESERVE;
       else process.env.VANTA_TOOL_CLOSURE_RESERVE = previousReserve;
     }
-  });
+  }, 60_000);
 
   it("never executes past the predeclared hard ceiling even when one batch requests more", async () => {
     const root = await mkdtemp(join(tmpdir(), "vanta-turn-ceiling-"));

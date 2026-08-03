@@ -3,7 +3,7 @@ import { Box, Text, useStdout } from "ink";
 import { contextBar, kfmt } from "./busy.js";
 import { HEALTH, FOCUS } from "../term/palette.js";
 import { effortIndicatorVisible, formatEffortIndicator } from "../term/effort-indicator.js";
-import type { EffortLevel } from "../types.js";
+import type { ProviderEffortLevel, ProviderSpeed } from "../providers/model-settings.js";
 import type { RichSegment } from "./status-segments.js";
 
 // Footer status line. Segments are dropped lowest-priority-first as the terminal
@@ -22,12 +22,12 @@ export function fitSegments(segments: Segment[], width: number): string[] {
   return segments.filter((s) => keptSet.has(s)).map((s) => s.text);
 }
 
-type Keys = { MODEL: string; EFFORT: string; CTX: string; ELAPSED: string; TURNS: string; QUEUED: string; MCP: string; HINT: string };
+type Keys = { MODEL: string; EFFORT: string; SPEED: string; CTX: string; ELAPSED: string; TURNS: string; QUEUED: string; MCP: string; HINT: string };
 
 /** Pure: build the canonical text keys for each segment. */
 function buildKeys(props: {
   model: string; gauge: string; bar: string;
-  ctxPct: number; turns: number; queued?: number; busy: boolean; elapsed?: string; mcp?: boolean; effortLevel?: EffortLevel;
+  ctxPct: number; turns: number; queued?: number; busy: boolean; elapsed?: string; mcp?: boolean; effortLevel?: ProviderEffortLevel; serviceTier?: ProviderSpeed;
 }): Keys {
   const turnsLabel = `${props.turns} turn${props.turns === 1 ? "" : "s"}`;
   return {
@@ -35,6 +35,7 @@ function buildKeys(props: {
     EFFORT:  effortIndicatorVisible(props.effortLevel, process.env)
       ? `  ·  ${formatEffortIndicator(props.effortLevel, { style: "glyph" })}`
       : "",
+    SPEED:   props.serviceTier ? `  ·  speed:${props.serviceTier}` : "",
     CTX:     `  ·  ${props.gauge} [${props.bar}] ${props.ctxPct}%`,
     ELAPSED: props.elapsed ? `  ·  ◷ ${props.elapsed}` : "",
     TURNS:   `  ·  ${turnsLabel}`,
@@ -63,6 +64,7 @@ function renderKept(o: RenderKeptOpts): ReactElement {
     <Box>
       {textIf(kept, k.MODEL, undefined, k.MODEL)}
       {textIf(kept, k.EFFORT, undefined, k.EFFORT)}
+      {textIf(kept, k.SPEED, undefined, k.SPEED)}
       {kept.has(k.CTX) && (
         <><Text>{"  ·  "}{gauge} </Text><Text color={FOCUS}>[{bar}]</Text><Text> {ctxPct}%</Text></>
       )}
@@ -78,7 +80,8 @@ function renderKept(o: RenderKeptOpts): ReactElement {
 
 export function StatusBar(props: {
   model: string;
-  effortLevel?: EffortLevel;
+  effortLevel?: ProviderEffortLevel;
+  serviceTier?: ProviderSpeed;
   ctxPct: number;
   tokens: number;
   contextWindow: number;
@@ -103,6 +106,7 @@ export function StatusBar(props: {
     { text: k.MODEL,  priority: 17 },
     { text: k.CTX,    priority: 16 },
     ...(k.EFFORT ? [{ text: k.EFFORT, priority: 16 }] : []),
+    ...(k.SPEED ? [{ text: k.SPEED, priority: 15 }] : []),
     ...(props.elapsed ? [{ text: k.ELAPSED, priority: 15 }] : []),
     { text: k.TURNS,  priority: 14 },
     ...(props.queued && props.queued > 0 ? [{ text: k.QUEUED, priority: 13 }] : []),

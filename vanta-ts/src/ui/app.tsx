@@ -78,6 +78,7 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
     providerId: props.initialSession.providerId,
     modelId: props.initialSession.modelId,
     effortLevel: props.setup.effortLevel,
+    serviceTier: props.setup.serviceTier,
     activeGoal: null,
   } : {
     sessionId: newSessionId(),
@@ -86,6 +87,7 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
     providerId: providerIdFor(props.setup.provider, process.env),
     modelId: props.setup.provider.modelId(),
     effortLevel: props.setup.effortLevel,
+    serviceTier: props.setup.serviceTier,
     activeGoal: null,
   });
   const gatesRef = useRef<GateState>(freshGateState());
@@ -183,7 +185,7 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
           {traceOpen
             ? <TraceEvidencePanel entries={state.entries} />
             : <LiveBody quickOpen={quickOpen} globalSearch={globalSearch} messageActions={messageActions} searchSessions={searchSessions} entries={state.entries} overlay={overlay} pending={pending} inputModal={Boolean(pendingQuestion)} mode={mode} focus={focus} todos={state.todos} files={files} history={history} skills={skillMatches} channels={channels} vim={vimEnabled} promptSuggestions={promptSuggestionsVisible ? state.promptSuggestions : []} onQuickActivate={(c) => { setQuickOpen(false); runSlash(c); }} onQuickClose={() => setQuickOpen(false)} onSearchSelect={selectSearchHit} onSearchClose={() => setGlobalSearch(false)} onMessageRetry={onSubmit} onMessageBranch={() => runSlash("/fork")} onMessageNote={(text) => dispatch({ t: "note", text })} onMessageClose={() => setMessageActions(false)} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />}
-          {!pending && !pendingQuestion && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={replStateRef.current.activeGoal} mcp={mcp} elapsed={elapsed} agents={agents} rich={rich} /> : null}
+          {!pending && !pendingQuestion && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} serviceTier={replStateRef.current.serviceTier ?? props.setup.serviceTier} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={replStateRef.current.activeGoal} mcp={mcp} elapsed={elapsed} agents={agents} rich={rich} /> : null}
         </PinnedRegion>
     </Box>
   );

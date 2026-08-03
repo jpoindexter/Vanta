@@ -63,6 +63,23 @@ describe("/model handler", () => {
     expect(env.VANTA_MODEL).toBeUndefined();
   });
 
+  it("does not leak Codex-only effort or speed into an unsupported provider", async () => {
+    const env: NodeJS.ProcessEnv = { VANTA_PROVIDER: "codex" };
+    const { ctx } = await makeCtx(env);
+    ctx.state.effortLevel = "ultra";
+    ctx.state.serviceTier = "fast";
+    ctx.setup.effortLevel = "ultra";
+    ctx.setup.serviceTier = "fast";
+
+    const result = await model("ollama qwen2.5:14b", ctx);
+
+    expect(result.output).not.toMatch(/effort|speed/);
+    expect(ctx.state.effortLevel).toBeUndefined();
+    expect(ctx.state.serviceTier).toBeUndefined();
+    expect(ctx.setup.effortLevel).toBe("medium");
+    expect(ctx.setup.serviceTier).toBeUndefined();
+  });
+
   it("persists only when --global is explicit", async () => {
     const env: NodeJS.ProcessEnv = { VANTA_PROVIDER: "ollama", VANTA_MODEL: "global-old" };
     const { ctx, repoRoot } = await makeCtx(env);
