@@ -8,6 +8,7 @@
 #   vanta_termux_prepare_build    — install compiler fallback only when required
 #   vanta_ensure_node             — guarantee node >= 22 (download a portable one)
 #   vanta_fetch_prebuilt_kernel D — download the prebuilt kernel into D/target/debug
+#   vanta_agent_deps_ready D      — verify the packages required to launch the TUI
 #
 # A non-CS user needs neither Rust nor a system Node: the kernel comes from the
 # GitHub release, Node comes from nodejs.org — both checksum-verified.
@@ -65,6 +66,16 @@ vanta_node_ready() {
   command -v node >/dev/null 2>&1 || return 1
   major="$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)"
   [ "${major:-0}" -ge 22 ]
+}
+
+# A node_modules directory can survive an interrupted or stale install while
+# required runtime packages are absent. Check the direct packages needed by the
+# TypeScript loader and Ink TUI before treating dependencies as ready.
+vanta_agent_deps_ready() {
+  agent_dir="$1"
+  [ -f "$agent_dir/node_modules/tsx/package.json" ] &&
+    [ -f "$agent_dir/node_modules/ink/package.json" ] &&
+    [ -f "$agent_dir/node_modules/react/package.json" ]
 }
 
 # Ensure node >= 22 is on PATH; download a portable build from nodejs.org if not.

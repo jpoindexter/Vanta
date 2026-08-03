@@ -71,13 +71,13 @@ vanta_acquire_deps() {
   vanta_install_agent_deps "$DIR/vanta-ts"
 }
 
-if [ ! -x "$DIR/target/debug/vanta-kernel" ] || ! vanta_node_ready || [ ! -d "$DIR/vanta-ts/node_modules" ]; then
+if [ ! -x "$DIR/target/debug/vanta-kernel" ] || ! vanta_node_ready || ! vanta_agent_deps_ready "$DIR/vanta-ts"; then
   VANTA_INSTALL_RETRY_COMMAND="$DIR/run.sh"
   export VANTA_INSTALL_RETRY_COMMAND
   vanta_install_init run.sh "kernel,node,deps"
   [ -x "$DIR/target/debug/vanta-kernel" ] || vanta_install_stage kernel "Acquire safety kernel" vanta_acquire_kernel
   vanta_node_ready || vanta_install_stage node "Acquire Node.js 22+" vanta_acquire_node
-  [ -d "$DIR/vanta-ts/node_modules" ] || vanta_install_stage deps "Install agent dependencies" vanta_acquire_deps
+  vanta_agent_deps_ready "$DIR/vanta-ts" || vanta_install_stage deps "Install agent dependencies" vanta_acquire_deps
   vanta_install_finish
 fi
 
