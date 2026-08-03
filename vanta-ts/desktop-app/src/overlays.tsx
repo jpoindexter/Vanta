@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
-import { Bot, Check, Command, FolderOpen, KeyRound, MonitorCog, RefreshCw, Search, ShieldCheck, Star, X } from "lucide-react";
+import { Bot, Check, ChevronRight, Command, FolderOpen, KeyRound, MonitorCog, RefreshCw, Search, ShieldCheck, Star, X } from "lucide-react";
 import type { Approval, ApprovalDecision, DesktopTheme, DesktopView, ModelEffort, PermissionSection, Provider, ProviderModelSettings, ProviderSpeed, Status } from "./types.js";
 import { StyledSelect } from "./form-controls.js";
 import { pickDesktopProjectFolder } from "./project-folder-picker.js";
@@ -154,6 +154,8 @@ function SafetySettings(props: { status: Status | null; warningAcknowledged: boo
 }
 
 export function ModelPicker(props: { open: boolean; models: Provider[]; status: Status | null; onClose: () => void; onRefresh: (provider: string) => Promise<void>; onSelect: (provider: string, model: string, scope?: "session" | "global") => void; onSettings: (settings: ProviderModelSettings, scope?: "session" | "global") => Promise<void> }) {
+  const currentProvider = props.models.find((provider) => provider.id === props.status?.provider);
+  const [view, setView] = useState<"settings" | "browser">(() => currentProvider ? "settings" : "browser");
   const [query, setQuery] = useState("");
   const [selectedProviderId, setSelectedProviderId] = useState("");
   const [customModel, setCustomModel] = useState("");
@@ -164,12 +166,28 @@ export function ModelPicker(props: { open: boolean; models: Provider[]; status: 
     setQuery("");
     setCustomModel("");
     setSelectedProviderId(providerId);
-    if (providerId) {
+    setView(currentProvider ? "settings" : "browser");
+    if (!currentProvider && providerId) {
       setRefreshing(true);
       void props.onRefresh(providerId).finally(() => setRefreshing(false));
     }
   }, [props.open]);
   if (!props.open) return null;
+  function close() {
+    setView(currentProvider ? "settings" : "browser");
+    props.onClose();
+  }
+  if (view === "settings" && currentProvider && props.status) {
+    const providerName = currentProvider.short || currentProvider.label;
+    return <div className="model-popover-layer" onClick={close}>
+      <section className="model-settings-popover" role="dialog" aria-labelledby="model-settings-title" onClick={(event) => event.stopPropagation()}>
+        <header className="model-settings-popover-heading"><div><p className="eyebrow">Current provider</p><h2 id="model-settings-title">{providerName} settings</h2></div><button className="icon-button" type="button" aria-label="Close model settings" onClick={close}><X size={16} /></button></header>
+        <button className="model-settings-row" type="button" autoFocus onClick={() => setView("browser")}><span>Model</span><strong>{props.status.model}</strong><ChevronRight size={15} aria-hidden="true" /></button>
+        <ProviderSettingsControls compact provider={currentProvider} status={props.status} onSettings={props.onSettings} />
+        <button className="model-settings-browse" type="button" onClick={() => setView("browser")}>Browse providers and models<ChevronRight size={15} aria-hidden="true" /></button>
+      </section>
+    </div>;
+  }
   const matchingProviders = filterProviders(props.models, query);
   const activeProvider = matchingProviders.find((provider) => provider.id === selectedProviderId)
     ?? matchingProviders.find((provider) => provider.id === props.status?.provider)
@@ -198,9 +216,9 @@ export function ModelPicker(props: { open: boolean; models: Provider[]; status: 
     next.focus();
   }
   return (
-    <div className="overlay" onClick={props.onClose}>
+    <div className="overlay" onClick={close}>
       <div className="palette model-picker" role="dialog" aria-modal="true" aria-labelledby="model-title" onClick={(e) => e.stopPropagation()}>
-        <div className="dialog-heading model-picker-heading"><div><h2 id="model-title">Choose a model</h2><p>Choose a model and tune the controls supported by its provider.</p></div><button className="icon-button" type="button" aria-label="Close model picker" onClick={props.onClose}><X size={16} /></button></div>
+        <div className="dialog-heading model-picker-heading"><div>{currentProvider ? <button className="model-picker-back" type="button" onClick={() => setView("settings")}>Back to {currentProvider.short || currentProvider.label} settings</button> : null}<h2 id="model-title">Choose a model</h2><p>Choose a model and tune the controls supported by its provider.</p></div><button className="icon-button" type="button" aria-label="Close model picker" onClick={close}><X size={16} /></button></div>
         <label className="palette-search model-search"><Search size={16} /><span className="sr-only">Search models and providers</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search models and providers" /></label>
         <div className="model-picker-body">
           <nav className="model-provider-nav" role="tablist" aria-label="Model providers" aria-orientation="vertical" onKeyDown={navigateProviders}>
@@ -250,7 +268,7 @@ function settingsForProvider(provider: Provider, status: Status | null): Provide
   };
 }
 
-function ProviderSettingsControls(props: { provider: Provider; status: Status | null; onSettings: (settings: ProviderModelSettings, scope?: "session" | "global") => Promise<void> }) {
+function ProviderSettingsControls(props: { compact?: boolean; provider: Provider; status: Status | null; onSettings: (settings: ProviderModelSettings, scope?: "session" | "global") => Promise<void> }) {
   const capabilities = props.provider.modelSettings;
   const [draft, setDraft] = useState<ProviderModelSettings>(() => settingsForProvider(props.provider, props.status));
   const [busy, setBusy] = useState(false);
@@ -276,8 +294,8 @@ function ProviderSettingsControls(props: { provider: Provider; status: Status | 
     }
   }
 
-  return <section className="provider-settings" aria-labelledby="provider-settings-title">
-    <div className="provider-settings-heading"><div><p className="eyebrow">Provider controls</p><h4 id="provider-settings-title">Tune {props.provider.short || props.provider.label}</h4></div><span>{busy ? "Saving…" : "This task"}</span></div>
+  return <section className={`provider-settings${props.compact ? " provider-settings-compact" : ""}`} {...(props.compact ? { "aria-label": `${props.provider.short || props.provider.label} controls` } : { "aria-labelledby": "provider-settings-title" })}>
+    {!props.compact ? <div className="provider-settings-heading"><div><p className="eyebrow">Provider controls</p><h4 id="provider-settings-title">Tune {props.provider.short || props.provider.label}</h4></div><span>{busy ? "Saving…" : "This task"}</span></div> : null}
     <div className="provider-setting-grid">
       {capabilities.effort ? <label className="provider-setting"><span>Effort</span><StyledSelect aria-label={`${props.provider.label} effort`} value={draft.effortLevel ?? capabilities.effort.defaultValue} disabled={busy} onChange={(event) => void save({ ...draft, effortLevel: event.target.value as ModelEffort }, "session")}>
         {capabilities.effort.options.map((option) => <option key={option} value={option}>{EFFORT_LABELS[option]}</option>)}

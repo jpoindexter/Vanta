@@ -73,7 +73,7 @@ describe("ModelPicker", () => {
       <ModelPicker
         open
         models={[{ id: "ollama", label: "Ollama", short: "Local", models: ["qwen"], current: true, savedDefaultModel: "qwen", modelSource: "live", discoveryAvailable: true }]}
-        status={{ kernel: "ready", model: "qwen", provider: "ollama", tools: 1, sessionId: "s1" }}
+        status={null}
         onClose={vi.fn()}
         onRefresh={vi.fn()}
         onSelect={vi.fn()}
@@ -84,10 +84,28 @@ describe("ModelPicker", () => {
     expect(html).toContain("Search models and providers");
     expect(html).toContain("Ollama");
     expect(html).toContain("Live provider catalog");
-    expect(html).toContain("This task");
     expect(html).toContain("Default");
     expect(html).toContain("Ollama qwen is the default");
     expect(html).toContain("Use a model ID that is not listed");
+  });
+
+  it("opens compact settings for the selected provider before the full browser", () => {
+    const html = renderToStaticMarkup(
+      <ModelPicker
+        open
+        models={[{ id: "codex", label: "OpenAI Codex via ChatGPT subscription", short: "Codex", models: ["gpt-5.6-sol"], modelSource: "live", discoveryAvailable: true, modelSettings: { effort: { defaultValue: "medium", options: ["low", "medium", "high", "xhigh", "max", "ultra"] }, speed: { defaultValue: "standard", options: ["standard", "fast"] } } }]}
+        status={{ kernel: "ready", model: "gpt-5.6-sol", provider: "codex", modelSettings: { effortLevel: "high", speed: "standard" }, tools: 1, sessionId: "s1" }}
+        onClose={vi.fn()}
+        onRefresh={vi.fn()}
+        onSelect={vi.fn()}
+        onSettings={vi.fn()}
+      />,
+    );
+    expect(html).toContain("Codex settings");
+    expect(html).toContain("Browse providers and models");
+    expect(html).toContain("gpt-5.6-sol");
+    expect(html).not.toContain("Search models and providers");
+    expect(html).not.toContain("Choose a model");
   });
 
   it("shows only the settings supported by the active provider", () => {
