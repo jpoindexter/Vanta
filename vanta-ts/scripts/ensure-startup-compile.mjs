@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { execFile } from "node:child_process";
+import { existsSync } from "node:fs";
 import { cp, mkdir } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,12 +10,18 @@ import { ensureStartupCompile } from "./lib/startup-compile.mjs";
 const exec = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const assets = ["skills-library", "plugins", "automation-blueprints", "blueprints", "docker"];
+const packagedCompiler = typeof process.resourcesPath === "string"
+  ? join(process.resourcesPath, "typescript", "node_modules", "@typescript", "native", "bin", "tsc")
+  : "";
+const compiler = packagedCompiler && existsSync(packagedCompiler)
+  ? packagedCompiler
+  : join(root, "node_modules", "@typescript", "native", "bin", "tsc");
 
 await ensureStartupCompile({
   root,
   build: async (staging) => {
     await exec(process.execPath, [
-      join(root, "node_modules", "typescript", "bin", "tsc"),
+      compiler,
       "-p",
       join(root, "tsconfig.runtime.json"),
       "--outDir",
