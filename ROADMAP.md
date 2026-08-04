@@ -4,26 +4,35 @@
 historical narrative and does not override the JSON, `STRATEGY.md`, or
 `DECISIONS.md`.
 
-## Current converged build order — 2026-07-30
+## Current converged build order — 2026-08-02
 
 **Building**
 
-1. `TRUST-02` — urgent hook, environment, authentication, and control-plane
-   trust closure.
-2. `UX-03` — one safe local/read-only capture → recommendation/prepared action
-   → waiting/resume → real restart/re-entry journey.
+No roadmap card is currently Building. The bounded `TRUST-02`, `UX-03`,
+`TRUST-04`, and `TRUST-01` contracts are recorded as shipped with retained
+receipts for their stated supported-host boundaries; those records do not claim
+merge, release, deployment, or broader external proof.
 
 **Next**
 
-1. `TRUST-04` — one evidence-derived WorkItem/Run/Approval/Receipt contract.
-2. `TRUST-01` — inventory every effect path and establish one trusted gateway.
-3. `OP-01` — minimal canonical operator spine and lossless legacy projection.
-4. `GROW-01` — manual interviews and bounded continuity pilots; no source
-   implementation or mass outreach.
+1. `OP-01` — minimal canonical operator spine and lossless legacy projection;
+   its `TRUST-04` dependency is satisfied.
+2. `GROW-01` — deferred manual interviews and bounded continuity pilots; no
+   source implementation, paid research, or outreach is active.
+
+**Horizon**
+
+1. `TRUST-03` — canonical action envelope and scoped capability.
+2. `TRUST-05` — untrusted-content quarantine across supported input surfaces.
+3. `TRUST-06` — safe factory, self-repair, and Vanta Lab production boundary.
+4. `OP-03` — deterministic, deduplicated, expiring Needs You projection.
+5. `UX-04` — contextual Review, first-run usefulness, and cross-host accessibility.
+6. `LIFE-02` — quarantined read-only morning orientation after its dependencies.
 
 The 28 destination outcomes are a dependency/acceptance catalog, not 28
-simultaneous projects. Open inventory is capped at 12, Next at 4,
-implementation-ready at 6, and Building at 2.
+simultaneous projects. Current open inventory is 8: 2 Next and 6 Horizon.
+Capacity remains capped at 12 open, 4 Next, 6 implementation-ready, and 2
+Building.
 
 ```text
 TRUST-01 TRUST-02 TRUST-03 TRUST-04 TRUST-05 TRUST-06
