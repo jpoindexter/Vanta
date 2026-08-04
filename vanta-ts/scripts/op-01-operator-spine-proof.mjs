@@ -111,6 +111,13 @@ console.log(JSON.stringify({
   tui: { command: "/operator-spine via exact CLI bridge", exit: 0, sameDigest: true },
   effect: { approval: "approved", providerCalls, receipt: "confirmed/verified" },
   views: Object.fromEntries(Object.entries(finalDesktop.operator.views).map(([key, value]) => [key, value.length])),
-  sources: finalDesktop.operator.sources.map((source) => ({ kind: source.kind, status: source.status, sourceCount: source.sourceCount, projectedCount: source.projectedCount })),
+  sources: finalDesktop.operator.sources.map((source) => ({
+    kind: source.kind,
+    status: source.status,
+    sourceCount: source.sourceCount,
+    projectedCount: source.projectedCount,
+    sourceSha256: source.sourceSha256,
+    projectionSha256: source.projectionSha256,
+  })),
   legacySourceBytesUnchanged: true,
 }));
