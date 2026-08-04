@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { _electron as electron } from "playwright-core";
 import { scanAccessibility } from "./lib/desktop-accessibility-proof.mjs";
 
@@ -12,6 +12,7 @@ const sourcePath = join(project, "brief.md");
 const sourceText = "# Restart proof\n\n- [ ] Email Sam the revised outline\n- [ ] Archive old notes\n";
 const basePort = Number(process.env.VANTA_DESKTOP_SMOKE_PORT ?? "7858");
 const rendererErrors = [];
+const executablePath = process.env.VANTA_DESKTOP_APP;
 let app;
 
 function supportProfile(expiresAt) {
@@ -32,7 +33,8 @@ function supportProfile(expiresAt) {
 
 async function launch(index) {
   const next = await electron.launch({
-    args: ["desktop-app/electron/main.mjs", "--project", project],
+    ...(executablePath ? { executablePath: resolve(executablePath) } : {}),
+    args: executablePath ? ["--project", project] : ["desktop-app/electron/main.mjs", "--project", project],
     cwd: process.cwd(),
     env: {
       ...process.env,
@@ -83,6 +85,17 @@ async function waitForReceiptCount(page, count) {
   }, count);
 }
 
+async function waitForReceiptAction(page, action) {
+  await page.waitForFunction(async (expected) => {
+    const response = await fetch("/api/continuity", {
+      headers: { "x-vanta-desktop-boundary": window.vantaDesktop?.boundaryToken ?? "" },
+    });
+    if (!response.ok) return false;
+    const value = await response.json();
+    return value.receipts?.some((receipt) => receipt.action === expected);
+  }, action);
+}
+
 async function closeCurrent() {
   await app?.close().catch(() => undefined);
   app = undefined;
@@ -98,6 +111,10 @@ try {
   await page.getByText(/Quiet hours 22:00–08:00/).waitFor();
   await page.getByText(/streaming buffered · scroll manual/).waitFor();
   assert.equal((await snapshot(page)).support.capacity.attentional, "low");
+  await page.getByRole("tab", { name: "Sources", exact: true }).click();
+  await page.getByRole("region", { name: "Read-only source reconciliation" }).waitFor();
+  await page.getByText(/read-only/).first().waitFor();
+  await page.getByRole("tab", { name: "Today", exact: true }).click();
   await page.getByLabel("What do you want off your mind?").fill("I lost the thread in @brief.md and need one next step");
   await page.getByRole("button", { name: "Capture", exact: true }).click();
   const card = page.locator(".recommendation-card");
@@ -160,10 +177,11 @@ try {
   assert.deepEqual(resumed.support.refusal, { active: false });
   assert.equal(resumed.receipts.length, 1, "pre-snooze restart had an unexpected receipt");
   await page.locator(".recommendation-card").getByRole("button", { name: "Snooze", exact: true }).click();
-  await waitForReceiptCount(page, 2);
+  await waitForReceiptAction(page, "continuity.snooze");
   const snoozed = await snapshot(page);
   assert.equal(snoozed.today[0].state, "waiting");
-  assert.match(snoozed.today[0].followUp.at ?? "", /^\d{4}-\d{2}-\d{2}T/, `missing snooze time: ${JSON.stringify({ followUp: snoozed.today[0].followUp, receipt: snoozed.receipts.at(-1) })}`);
+  const snoozeReceipt = snoozed.receipts.find((receipt) => receipt.action === "continuity.snooze");
+  assert.match(snoozed.today[0].followUp.at ?? "", /^\d{4}-\d{2}-\d{2}T/, `missing snooze time: ${JSON.stringify({ followUp: snoozed.today[0].followUp, receipt: snoozeReceipt })}`);
   await page.locator(".recommendation-card").getByRole("button", { name: "Skip", exact: true }).click();
   await page.getByText("Nothing is asking for attention", { exact: true }).waitFor();
   const skipped = await snapshot(page);
@@ -188,6 +206,8 @@ try {
     approvals: skipped.approvals.length,
     receipts: skipped.receipts.length,
     legacySources: skipped.legacy.sources.length,
+    sourceReconciliationVisible: true,
+    target: executablePath ? "packaged" : "source",
   }));
 } finally {
   await closeCurrent();

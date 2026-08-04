@@ -2,6 +2,7 @@ import { effectiveNdSupport } from "../nd/profile.js";
 import { reconcileLegacySources } from "./legacy.js";
 import type { ContinuityDiagnostic, ContinuitySnapshot, ContinuityStore } from "./types.js";
 import { projectWorkItems } from "../work-items/projections.js";
+import { buildOperatorSpine } from "../work-items/operator-spine.js";
 
 export type SnapshotOptions = {
   env: NodeJS.ProcessEnv;
@@ -16,7 +17,10 @@ export async function buildContinuitySnapshot(
   store: ContinuityStore,
   options: SnapshotOptions,
 ): Promise<ContinuitySnapshot> {
-  const support = await effectiveNdSupport(options.env, options.now);
+  const [support, operator] = await Promise.all([
+    effectiveNdSupport(options.env, options.now),
+    buildOperatorSpine(root, { env: options.env, now: options.now }),
+  ]);
   const patternOff = support.refusals.patterns.includes("today-recommendation");
   const active = store.items
     .filter((item) => !["stopped", "failed", "verified"].includes(item.state))
@@ -25,11 +29,20 @@ export async function buildContinuitySnapshot(
     [...store.items].sort((left, right) => left.updatedAt.localeCompare(right.updatedAt)),
   );
   const waiting = active.find((item) => item.state === "waiting" && item.nextAction);
+  const sourceIssue = operator.sources.find((source) => source.status === "degraded" || source.status === "unreadable");
+  const diagnostics: ContinuityDiagnostic[] = [
+    ...(options.diagnostics ?? []),
+    ...(sourceIssue ? [{
+      code: "operator_source_unreadable" as const,
+      message: `${sourceIssue.kind} reconciliation is ${sourceIssue.status}`,
+      recovery: `Inspect ${sourceIssue.path}; Vanta left the source untouched.`,
+    }] : []),
+  ];
   const refusalScope = options.refusalScope
     ?? (options.sessionOff ? "session" : support.refusals.global ? "global" : patternOff ? "pattern" : undefined);
   return {
-    integrity: options.diagnostics?.length ? "degraded" : "ok",
-    diagnostics: options.diagnostics ?? [],
+    integrity: diagnostics.length ? "degraded" : "ok",
+    diagnostics,
     today: refusalScope ? [] : active.slice(0, 1),
     inbox: active,
     projects: [{ id: "current", label: "Current project", itemCount: store.items.length }],
@@ -38,6 +51,7 @@ export async function buildContinuitySnapshot(
     receipts: store.receipts,
     projections,
     legacy: { reconciledAt: options.now.toISOString(), sources: await reconcileLegacySources(root, options.env) },
+    operator,
     support: {
       capacity: support.capacity,
       transient: support.transient,

@@ -152,6 +152,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "roadmap", desc: "open the drag-and-drop roadmap board" },
   { name: "audit", desc: "run npm audit + dependency checks" },
   { name: "today", desc: "today brief — tasks, goals, calendar, episodic" },
+  { name: "operator-spine", desc: "read-only tasks, tickets, schedules, sessions, runs, approvals, and receipts" },
   { name: "import", arg: "<archive.tgz>", desc: "import config/skills from a backup archive" },
   { name: "exit", desc: "leave the session" },
 ];

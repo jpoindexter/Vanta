@@ -32,6 +32,16 @@ const snapshot = {
   approvals: [],
   receipts: [],
   legacy: { reconciledAt: "2026-08-02T12:01:00.000Z", sources: [] },
+  operator: {
+    version: 1 as const, readOnly: true as const, integrity: "ok" as const,
+    observedAt: "2026-08-02T12:01:00.000Z", digest: "a".repeat(64),
+    views: { captured: [], now: [], waiting: [], needsYou: [], done: [] },
+    sources: [{
+      kind: "ticket", path: "/tmp/project/.vanta/tickets.json", readOnly: true as const, status: "ok" as const,
+      sourceCount: 1, projectedCount: 1, sourceIds: ["ticket-1"], projectedIds: ["ticket-1"],
+      sourceSha256: "b".repeat(64), projectionSha256: "c".repeat(64), issues: [],
+    }],
+  },
   support: {
     capacity: { cognitive: "unknown" as const, attentional: "low" as const, sensory: "unknown" as const, social: "unknown" as const, emotional: "unknown" as const, physical: "unknown" as const, time: "steady" as const },
     transient: { reviewAt: "2026-08-02T16:00:00.000Z", expiresAt: "2026-08-03T12:00:00.000Z", expired: false },
@@ -49,6 +59,7 @@ describe("ContinuityView", () => {
     expect(html).toContain("Today");
     expect(html).toContain("Inbox");
     expect(html).toContain("Projects");
+    expect(html).toContain("Sources");
     expect(html).toContain("Do it");
     expect(html).toContain("Show me");
     expect(html).toContain("Snooze");

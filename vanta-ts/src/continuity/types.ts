@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ApprovalSchema, ReceiptSchema, RunSchema, WorkItemSchema } from "../work-items/contract.js";
+import type { OperatorSpineSnapshot } from "../work-items/operator-spine.js";
 
 export const CapacityDimensionsSchema = z.object({
   cognitive: z.enum(["unknown", "low", "steady", "high"]),
@@ -64,7 +65,7 @@ export type LegacySource = {
   sha256: string;
   error?: string;
 };
-export type ContinuityDiagnostic = { code: "continuity_store_unreadable"; message: string; recovery: string };
+export type ContinuityDiagnostic = { code: "continuity_store_unreadable" | "operator_source_unreadable"; message: string; recovery: string };
 export type ContinuitySupport = {
   capacity: z.infer<typeof CapacityDimensionsSchema>;
   transient: { setAt?: string; reviewAt?: string; expiresAt?: string; expired: boolean };
@@ -90,6 +91,7 @@ export type ContinuitySnapshot = {
     done: ContinuityItem[];
   };
   legacy: { reconciledAt: string; sources: LegacySource[] };
+  operator: OperatorSpineSnapshot;
   support: ContinuitySupport;
   reentry?: { itemId: string; action: string };
 };

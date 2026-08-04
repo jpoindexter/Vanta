@@ -22,7 +22,7 @@ const dimensionLabels: Array<[keyof CapacityDimensions, string]> = [
 ];
 
 export function ContinuityView(props: ViewProps) {
-  const [tab, setTab] = useState<"today" | "inbox" | "projects">("today");
+  const [tab, setTab] = useState<"today" | "inbox" | "projects" | "sources">("today");
   const [capture, setCapture] = useState("");
   const [offScope, setOffScope] = useState<"session" | "pattern" | "global">("session");
   async function submit(event: FormEvent) {
@@ -42,12 +42,14 @@ export function ContinuityView(props: ViewProps) {
       <button type="button" role="tab" aria-selected={tab === "today"} className={tab === "today" ? "active" : ""} onClick={() => setTab("today")}>Today</button>
       <button type="button" role="tab" aria-selected={tab === "inbox"} className={tab === "inbox" ? "active" : ""} onClick={() => setTab("inbox")}>Inbox <span>{snapshot?.inbox.length ?? 0}</span></button>
       <button type="button" role="tab" aria-selected={tab === "projects"} className={tab === "projects" ? "active" : ""} onClick={() => setTab("projects")}>Projects</button>
+      <button type="button" role="tab" aria-selected={tab === "sources"} className={tab === "sources" ? "active" : ""} onClick={() => setTab("sources")}>Sources</button>
     </div>
     {snapshot?.integrity === "degraded" ? <IntegrityNotice snapshot={snapshot} /> : null}
     {props.error ? <p className="continuity-error" role="alert">{props.error}</p> : null}
     {tab === "today" ? <TodayPanel snapshot={snapshot} busy={props.busy} onAction={props.onAction} /> : null}
     {tab === "inbox" ? <InboxPanel items={snapshot?.inbox ?? []} /> : null}
     {tab === "projects" ? <ProjectsPanel snapshot={snapshot} /> : null}
+    {tab === "sources" ? <SourcesPanel snapshot={snapshot} /> : null}
     <form className="continuity-capture" onSubmit={(event) => { void submit(event); }}>
       <label htmlFor="continuity-capture">What do you want off your mind?</label>
       <div><textarea id="continuity-capture" value={capture} onChange={(event) => setCapture(event.target.value)} placeholder="Drop the messy version here. No category or priority needed." rows={2} /><button type="submit" disabled={props.busy || !capture.trim()}>Capture</button></div>
@@ -89,6 +91,16 @@ function InboxPanel({ items }: { items: ContinuityItem[] }) {
 
 function ProjectsPanel({ snapshot }: { snapshot: ContinuitySnapshot | null }) {
   return <section className="continuity-list">{snapshot?.projects.map((project) => <article key={project.id}><CheckCircle2 size={15} /><div><strong>{project.label}</strong><small>{project.itemCount} continuity item{project.itemCount === 1 ? "" : "s"}</small></div></article>)}</section>;
+}
+
+function SourcesPanel({ snapshot }: { snapshot: ContinuitySnapshot | null }) {
+  if (!snapshot) return <section className="continuity-list"><p>Loading source reconciliation…</p></section>;
+  return <section className="continuity-list" aria-label="Read-only source reconciliation">
+    <p><strong>{snapshot.operator.integrity === "ok" ? "Reconciled" : "Needs repair"}</strong> · read-only · {snapshot.operator.digest.slice(0, 12)}</p>
+    {snapshot.operator.sources.map((source) => <article key={`${source.kind}:${source.path}`}>
+      <Inbox size={15} /><div><strong>{source.kind}</strong><small>{source.projectedCount}/{source.sourceCount} projected · {source.status}{source.issues[0] ? ` · ${source.issues[0]}` : ""}</small></div>
+    </article>)}
+  </section>;
 }
 
 function SupportSummary({ snapshot }: { snapshot: ContinuitySnapshot | null }) {

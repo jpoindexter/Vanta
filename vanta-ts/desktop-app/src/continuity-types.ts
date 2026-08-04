@@ -27,6 +27,15 @@ export type ContinuitySnapshot = {
     needsYou: ContinuityItem[]; done: ContinuityItem[];
   };
   legacy: { reconciledAt: string; sources: Array<{ kind: string; readOnly: true; count: number; ids: string[]; sha256: string; error?: string }> };
+  operator: {
+    version: 1; readOnly: true; integrity: "ok" | "degraded"; observedAt: string; digest: string;
+    views: { captured: unknown[]; now: unknown[]; waiting: unknown[]; needsYou: unknown[]; done: unknown[] };
+    sources: Array<{
+      kind: string; path: string; readOnly: true; status: "missing" | "ok" | "degraded" | "unreadable";
+      sourceCount: number; projectedCount: number; sourceIds: string[]; projectedIds: string[];
+      sourceSha256: string; projectionSha256: string; issues: string[];
+    }>;
+  };
   support: {
     capacity: CapacityDimensions;
     transient: { setAt?: string; reviewAt?: string; expiresAt?: string; expired: boolean };

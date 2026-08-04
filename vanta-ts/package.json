@@ -55,6 +55,8 @@
     "desktop:context:smoke": "npm run desktop:build && node scripts/desktop-context-attachments-smoke.mjs",
     "desktop:project-switch:smoke": "npm run desktop:build && node scripts/desktop-project-switch-smoke.mjs",
     "desktop:continuity:proof": "npm run desktop:build && node scripts/desktop-continuity-restart-proof.mjs",
+    "desktop:continuity:packaged:proof": "npm run desktop:pack && VANTA_DESKTOP_APP=release/mac-arm64/Vanta.app/Contents/MacOS/Vanta node scripts/desktop-continuity-restart-proof.mjs",
+    "op-01:proof": "node --import tsx scripts/op-01-operator-spine-proof.mjs",
     "trust:effect-ledger": "node --test scripts/lib/trust-01-effect-ledger.node-test.mjs && node scripts/trust-01-effect-ledger.mjs",
     "trust:host-ledger": "node --test scripts/lib/trust-04-host-ledger.node-test.mjs && node scripts/trust-04-host-ledger.mjs",
     "desktop:clipboard:smoke": "npm run desktop:build && node scripts/desktop-clipboard-paste-smoke.mjs",

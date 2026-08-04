@@ -128,12 +128,14 @@ import { runLocalModelCommand } from "./local-model-cmd.js";
 import { runReleaseProofsCommand } from "./release-proofs-cmd.js";
 import { runWorkflowRunCommand } from "./workflow-run-cmd.js";
 import { runIntegrationsCommand } from "./integrations-cmd.js";
+import { runOperatorSpineCommand } from "./operator-spine-cmd.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
 // `vanta <cmd>` dispatch table. The interactive entry points (chat/resume/run)
 // parse flags, so they stay as explicit checks in cli.ts main(); everything else is here.
 export const COMMANDS: Record<string, CommandFn> = {
+  "operator-spine": (root) => runOperatorSpineCommand(root),
   buzz: async (root, rest) => (await import("./buzz-cmd.js")).runBuzzCommand(root, rest),
   "workflow-run": (root, rest) => runWorkflowRunCommand(root, rest),
   integrations: (root, rest) => runIntegrationsCommand(root, rest),

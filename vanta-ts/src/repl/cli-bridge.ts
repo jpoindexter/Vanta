@@ -50,5 +50,6 @@ export const CLI_PASSTHROUGH: Readonly<Record<string, SlashHandler>> = {
   roadmap: cliCmd("roadmap"),
   audit: cliCmd("audit"),
   today: cliCmd("today"),
+  "operator-spine": cliCmd("operator-spine"),
   import: cliCmd("import"),
 };

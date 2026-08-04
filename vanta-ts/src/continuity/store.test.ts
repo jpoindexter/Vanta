@@ -153,7 +153,10 @@ describe("continuity operator store", () => {
     await mkdir(join(root, ".vanta"), { recursive: true });
     await writeFile(continuityStorePath(root), "{not-json", "utf8");
     const snapshot = await loadContinuitySnapshot(root, { env });
-    expect(snapshot.diagnostics).toEqual([expect.objectContaining({ code: "continuity_store_unreadable" })]);
+    expect(snapshot.diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: "continuity_store_unreadable" }),
+      expect.objectContaining({ code: "operator_source_unreadable" }),
+    ]));
     expect(snapshot.integrity).toBe("degraded");
     await expect(readFile(continuityStorePath(root), "utf8")).resolves.toBe("{not-json");
   });
