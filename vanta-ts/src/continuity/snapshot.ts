@@ -12,6 +12,41 @@ export type SnapshotOptions = {
   diagnostics?: ContinuityDiagnostic[];
 };
 
+function activeItems(store: ContinuityStore) {
+  return store.items
+    .filter((item) => !["stopped", "failed", "verified"].includes(item.state))
+    .sort((left, right) => left.updatedAt.localeCompare(right.updatedAt));
+}
+
+function sourceDiagnostics(
+  operator: Awaited<ReturnType<typeof buildOperatorSpine>>,
+  diagnostics: ContinuityDiagnostic[] = [],
+): ContinuityDiagnostic[] {
+  const issue = operator.sources.find((entry) =>
+    entry.status === "degraded" || entry.status === "unreadable",
+  );
+  if (!issue) return diagnostics;
+  return [
+    ...diagnostics,
+    {
+      code: "operator_source_unreadable",
+      message: `${issue.kind} reconciliation is ${issue.status}`,
+      recovery: `Inspect ${issue.path}; Vanta left the source untouched.`,
+    },
+  ];
+}
+
+function effectiveRefusalScope(
+  options: SnapshotOptions,
+  patternOff: boolean,
+  globalOff: boolean,
+): SnapshotOptions["refusalScope"] {
+  if (options.refusalScope) return options.refusalScope;
+  if (options.sessionOff) return "session";
+  if (globalOff) return "global";
+  return patternOff ? "pattern" : undefined;
+}
+
 export async function buildContinuitySnapshot(
   root: string,
   store: ContinuityStore,
@@ -22,24 +57,13 @@ export async function buildContinuitySnapshot(
     buildOperatorSpine(root, { env: options.env, now: options.now }),
   ]);
   const patternOff = support.refusals.patterns.includes("today-recommendation");
-  const active = store.items
-    .filter((item) => !["stopped", "failed", "verified"].includes(item.state))
-    .sort((left, right) => left.updatedAt.localeCompare(right.updatedAt));
+  const active = activeItems(store);
   const projections = projectWorkItems(
     [...store.items].sort((left, right) => left.updatedAt.localeCompare(right.updatedAt)),
   );
   const waiting = active.find((item) => item.state === "waiting" && item.nextAction);
-  const sourceIssue = operator.sources.find((source) => source.status === "degraded" || source.status === "unreadable");
-  const diagnostics: ContinuityDiagnostic[] = [
-    ...(options.diagnostics ?? []),
-    ...(sourceIssue ? [{
-      code: "operator_source_unreadable" as const,
-      message: `${sourceIssue.kind} reconciliation is ${sourceIssue.status}`,
-      recovery: `Inspect ${sourceIssue.path}; Vanta left the source untouched.`,
-    }] : []),
-  ];
-  const refusalScope = options.refusalScope
-    ?? (options.sessionOff ? "session" : support.refusals.global ? "global" : patternOff ? "pattern" : undefined);
+  const diagnostics = sourceDiagnostics(operator, options.diagnostics);
+  const refusalScope = effectiveRefusalScope(options, patternOff, support.refusals.global);
   return {
     integrity: diagnostics.length ? "degraded" : "ok",
     diagnostics,

@@ -21,8 +21,10 @@ const dimensionLabels: Array<[keyof CapacityDimensions, string]> = [
   ["social", "Social"], ["emotional", "Emotional"], ["physical", "Physical"], ["time", "Time"],
 ];
 
+type ContinuityTab = "today" | "inbox" | "projects" | "sources";
+
 export function ContinuityView(props: ViewProps) {
-  const [tab, setTab] = useState<"today" | "inbox" | "projects" | "sources">("today");
+  const [tab, setTab] = useState<ContinuityTab>("today");
   const [capture, setCapture] = useState("");
   const [offScope, setOffScope] = useState<"session" | "pattern" | "global">("session");
   async function submit(event: FormEvent) {
@@ -38,18 +40,9 @@ export function ContinuityView(props: ViewProps) {
       <div><p className="eyebrow">Continuity</p><h1 id="continuity-title">Today</h1><p>One thread to pick up without reconstructing everything.</p></div>
       <SupportSummary snapshot={snapshot} />
     </header>
-    <div className="continuity-tabs" role="tablist" aria-label="Continuity views">
-      <button type="button" role="tab" aria-selected={tab === "today"} className={tab === "today" ? "active" : ""} onClick={() => setTab("today")}>Today</button>
-      <button type="button" role="tab" aria-selected={tab === "inbox"} className={tab === "inbox" ? "active" : ""} onClick={() => setTab("inbox")}>Inbox <span>{snapshot?.inbox.length ?? 0}</span></button>
-      <button type="button" role="tab" aria-selected={tab === "projects"} className={tab === "projects" ? "active" : ""} onClick={() => setTab("projects")}>Projects</button>
-      <button type="button" role="tab" aria-selected={tab === "sources"} className={tab === "sources" ? "active" : ""} onClick={() => setTab("sources")}>Sources</button>
-    </div>
-    {snapshot?.integrity === "degraded" ? <IntegrityNotice snapshot={snapshot} /> : null}
-    {props.error ? <p className="continuity-error" role="alert">{props.error}</p> : null}
-    {tab === "today" ? <TodayPanel snapshot={snapshot} busy={props.busy} onAction={props.onAction} /> : null}
-    {tab === "inbox" ? <InboxPanel items={snapshot?.inbox ?? []} /> : null}
-    {tab === "projects" ? <ProjectsPanel snapshot={snapshot} /> : null}
-    {tab === "sources" ? <SourcesPanel snapshot={snapshot} /> : null}
+    <ContinuityTabs tab={tab} inboxCount={snapshot?.inbox.length ?? 0} onSelect={setTab} />
+    <ContinuityNotices snapshot={snapshot} error={props.error} />
+    <ContinuityPanel tab={tab} snapshot={snapshot} busy={props.busy} onAction={props.onAction} />
     <form className="continuity-capture" onSubmit={(event) => { void submit(event); }}>
       <label htmlFor="continuity-capture">What do you want off your mind?</label>
       <div><textarea id="continuity-capture" value={capture} onChange={(event) => setCapture(event.target.value)} placeholder="Drop the messy version here. No category or priority needed." rows={2} /><button type="submit" disabled={props.busy || !capture.trim()}>Capture</button></div>
@@ -59,6 +52,48 @@ export function ContinuityView(props: ViewProps) {
       <div><StyledSelect aria-label="Off scope" value={offScope} onChange={(event) => setOffScope(event.target.value as typeof offScope)}><option value="session">This session</option><option value="pattern">This pattern</option><option value="global">Everywhere</option></StyledSelect><button type="button" disabled={props.busy} onClick={() => void props.onAction(undefined, "off", { scope: offScope })}><Pause size={14} />Off</button></div>
     </footer>
   </section>;
+}
+
+function ContinuityTabs(props: {
+  tab: ContinuityTab;
+  inboxCount: number;
+  onSelect: (tab: ContinuityTab) => void;
+}) {
+  const tabs: Array<{ id: ContinuityTab; label: string }> = [
+    { id: "today", label: "Today" },
+    { id: "inbox", label: `Inbox ${props.inboxCount}` },
+    { id: "projects", label: "Projects" },
+    { id: "sources", label: "Sources" },
+  ];
+  return <div className="continuity-tabs" role="tablist" aria-label="Continuity views">
+    {tabs.map((entry) => <button
+      key={entry.id}
+      type="button"
+      role="tab"
+      aria-selected={props.tab === entry.id}
+      className={props.tab === entry.id ? "active" : ""}
+      onClick={() => props.onSelect(entry.id)}
+    >{entry.id === "inbox" ? <>Inbox <span>{props.inboxCount}</span></> : entry.label}</button>)}
+  </div>;
+}
+
+function ContinuityNotices(props: { snapshot: ContinuitySnapshot | null; error?: string }) {
+  return <>
+    {props.snapshot?.integrity === "degraded" ? <IntegrityNotice snapshot={props.snapshot} /> : null}
+    {props.error ? <p className="continuity-error" role="alert">{props.error}</p> : null}
+  </>;
+}
+
+function ContinuityPanel(props: Pick<ViewProps, "busy" | "onAction"> & {
+  tab: ContinuityTab;
+  snapshot: ContinuitySnapshot | null;
+}) {
+  if (props.tab === "today") {
+    return <TodayPanel snapshot={props.snapshot} busy={props.busy} onAction={props.onAction} />;
+  }
+  if (props.tab === "inbox") return <InboxPanel items={props.snapshot?.inbox ?? []} />;
+  if (props.tab === "projects") return <ProjectsPanel snapshot={props.snapshot} />;
+  return <SourcesPanel snapshot={props.snapshot} />;
 }
 
 function TodayPanel(props: Pick<ViewProps, "busy" | "onAction"> & { snapshot: ContinuitySnapshot | null }) {

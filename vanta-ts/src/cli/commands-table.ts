@@ -1,21 +1,11 @@
 // The `vanta <cmd>` dispatch table; interactive entry points stay in cli.ts.
-import { runScheduleCommand, runCron } from "../schedule/commands.js";
 import { runRoomsList, runModes } from "../projects/commands.js";
 import { runAuthCommand } from "../google/commands.js";
-import { runSetup } from "../setup.js";
-import { runFullSetup } from "../setup-full.js";
-import { runMessagingSetup } from "../setup-messaging.js";
-import { runTtsSetup } from "../setup-tts.js";
-import { runStatus } from "../status.js";
 import { runMigrate } from "./migrate-cmd.js";
 import { runAgentImageCommand } from "./agent-image-cmd.js";
-import { runPreflight, formatPreflight, commandExists, detectPlatform, PREFLIGHT_TOOLS } from "../setup/preflight.js";
 import { runBetaProofCommand } from "./beta-proof-cmd.js";
-import { createKernelClient } from "../kernel/client.js";
-import { resolvePermissionMode } from "../modes/permission-mode.js";
 import {
   dataDirFor,
-  buildCronRunTask,
   runGatewayCommand,
   runMcpCommand,
   runRoadmapCommand,
@@ -129,6 +119,13 @@ import { runReleaseProofsCommand } from "./release-proofs-cmd.js";
 import { runWorkflowRunCommand } from "./workflow-run-cmd.js";
 import { runIntegrationsCommand } from "./integrations-cmd.js";
 import { runOperatorSpineCommand } from "./operator-spine-cmd.js";
+import {
+  runCombinedStatus,
+  runCronCommand,
+  runPreflightCommand,
+  runScheduledCommand,
+  runSetupCommand,
+} from "./commands-table-system.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
@@ -178,35 +175,17 @@ export const COMMANDS: Record<string, CommandFn> = {
   autonomy: (root, rest) => runAutonomyCommand(root, rest),
   api: (root, rest) => runApiCommand(root, rest),
   home: (root) => runHomeCommand(dataDirFor(root)),
-  setup: async (root, rest) => { if (rest[0] === "messaging") await runMessagingSetup(root, undefined, { platformId: rest[1] }); else if (rest[0] === "tts") await runTtsSetup(root); else if (rest[0] === "model") await runSetup(root); else await runFullSetup(root); },
-  status: async (root, rest) => {
-    const serviceCode = await runServiceCommand(root, ["status"]);
-    const healthCode = await runStatus(process.env, rest);
-    return serviceCode || healthCode;
-  },
+  setup: (root, rest) => runSetupCommand(root, rest),
+  status: (root, rest) => runCombinedStatus(root, rest),
   doctor: (root, rest) => runDoctorCommand(root, rest),
   keybindings: (_root, rest) => runKeybindingsCommand(rest),
   migrate: (_root, rest) => runMigrate(rest),
   "agent-image": (_root, rest) => runAgentImageCommand(rest),
-  preflight: () => {
-    const platform = detectPlatform();
-    const res = runPreflight(commandExists, PREFLIGHT_TOOLS, platform);
-    console.log(formatPreflight(res, platform));
-    return res.ok ? 0 : 1;
-  },
+  preflight: () => runPreflightCommand(),
   "beta-proof": (root) => runBetaProofCommand(root),
-  schedule: async (root, rest) => {
-    const code = await runScheduleCommand(dataDirFor(root), rest);
-    if (code !== 0) usage();
-    return code;
-  },
+  schedule: (root, rest) => runScheduledCommand(root, rest),
   config: (root, rest) => runConfigCommand(root, rest),
-  cron: (root) => runCron(dataDirFor(root), new Date(), buildCronRunTask(root), {
-    kernel: createKernelClient(process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788", root),
-    projectRoot: root,
-    sessionId: `cron:${process.pid}`,
-    permissionMode: resolvePermissionMode(process.env),
-  }),
+  cron: (root) => runCronCommand(root),
   gateway: (root, rest) => runGatewayCommand(root, rest),
   service: (root, rest) => runServiceCommand(root, rest),
   spreadsheet: (root, rest) => runSpreadsheetCommand(root, rest),
