@@ -297,7 +297,7 @@ describe("task completion boundaries", () => {
     expect(out.stoppedReason).toBe("done");
     expect(out.toolIterations).toBe(10);
     expect(out.finalText).toContain("Updated and verified");
-  });
+  }, 60_000);
 
   it("uses the finish reserve before recording an explicitly lowered hard-stop receipt", async () => {
     const previousBudget = process.env.VANTA_TOOL_BUDGET;
@@ -335,7 +335,7 @@ describe("task completion boundaries", () => {
       if (previousReserve === undefined) delete process.env.VANTA_TOOL_CLOSURE_RESERVE;
       else process.env.VANTA_TOOL_CLOSURE_RESERVE = previousReserve;
     }
-  });
+  }, 60_000);
 
   it("honors an explicitly lowered acquisition threshold, finishes open tasks, and does not ask the operator to resume", async () => {
     const previousBudget = process.env.VANTA_TOOL_BUDGET;

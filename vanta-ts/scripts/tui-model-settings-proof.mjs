@@ -31,7 +31,7 @@ try {
     VANTA_PROMPT_SUGGESTIONS: "0",
   }, command, repo));
 
-  await waitForPane("Ask Vanta anything");
+  await acceptFixtureProjectTrustAndWaitForComposer();
   await sendText("/effort ultra --session");
   await waitForPane("effort ultra · this session");
   await sendText("/speed fast --session");
@@ -86,6 +86,21 @@ async function waitForPane(text, timeoutMs = 30_000) {
     await new Promise((resolveWait) => setTimeout(resolveWait, 50));
   }
   throw new Error(`Timed out waiting for ${JSON.stringify(text)}\n${await capture().catch(() => "")}`);
+}
+
+async function acceptFixtureProjectTrustAndWaitForComposer(timeoutMs = 30_000) {
+  const until = Date.now() + timeoutMs;
+  let accepted = false;
+  while (Date.now() < until) {
+    const pane = await capture();
+    if (pane.includes("Ask Vanta anything")) return;
+    if (!accepted && pane.includes("Trust this project's context?")) {
+      accepted = true;
+      await press("y");
+    }
+    await new Promise((resolveWait) => setTimeout(resolveWait, 50));
+  }
+  throw new Error(`Timed out waiting for the trusted fixture composer\n${await capture().catch(() => "")}`);
 }
 
 function shellCommand(env, executable, cwd) {

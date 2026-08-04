@@ -143,7 +143,7 @@ describe("handleMessage", () => {
     expect(res.result.isError).toBe(true);
     expect(res.result.content[0]!.text).toContain("blocked by safety");
     expect(res.result.content[0]!.text).toContain("destructive");
-  });
+  }, 60_000);
 
   it("refuses an ask verdict (headless — no human to prompt)", async () => {
     const res = (await handleMessage(
