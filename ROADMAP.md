@@ -4,20 +4,18 @@
 historical narrative and does not override the JSON, `STRATEGY.md`, or
 `DECISIONS.md`.
 
-## Current converged build order — 2026-08-02
+## Current converged build order — 2026-08-04
 
 **Building**
 
 No roadmap card is currently Building. The bounded `TRUST-02`, `UX-03`,
-`TRUST-04`, and `TRUST-01` contracts are recorded as shipped with retained
+`TRUST-04`, `TRUST-01`, and `OP-01` contracts are recorded as shipped with retained
 receipts for their stated supported-host boundaries; those records do not claim
 merge, release, deployment, or broader external proof.
 
 **Next**
 
-1. `OP-01` — minimal canonical operator spine and lossless legacy projection;
-   its `TRUST-04` dependency is satisfied.
-2. `GROW-01` — deferred manual interviews and bounded continuity pilots; no
+1. `GROW-01` — deferred manual interviews and bounded continuity pilots; no
    source implementation, paid research, or outreach is active.
 
 **Horizon**
@@ -30,7 +28,7 @@ merge, release, deployment, or broader external proof.
 6. `LIFE-02` — quarantined read-only morning orientation after its dependencies.
 
 The 28 destination outcomes are a dependency/acceptance catalog, not 28
-simultaneous projects. Current open inventory is 8: 2 Next and 6 Horizon.
+simultaneous projects. Current open inventory is 7: 1 Next and 6 Horizon.
 Capacity remains capped at 12 open, 4 Next, 6 implementation-ready, and 2
 Building.
 

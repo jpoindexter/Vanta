@@ -8,17 +8,11 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1285 capabilities shipped · 2 in flight · 14 parked external-proof items · 6 on the horizon. Updated 2026-08-02._
+_1286 capabilities shipped · 1 in flight · 14 parked external-proof items · 6 on the horizon. Updated 2026-08-04._
 
 ## In flight
 
 What we are actively building next.
-
-### Minimum operator spine — WorkItem, Run, Approval, Receipt, follow-up, and resume
-
-**Operator** · L-size
-
-Define only the stable operational spine required by the first continuity slice. Existing tasks, tickets, schedules, sessions, runs, and boards remain behind read-only projections until reconciliation proves a safe cutover
 
 ### Phase-0 trusted-continuity evidence lane — interviews, pilots, burden, retention, and price
 
@@ -28,13 +22,14 @@ Begin commercial and usefulness learning manually: test the same capture → rec
 
 ## Recently shipped
 
-The latest of 1285+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1286+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Urgent control-plane trust closure — hooks, environments, audit state, and local authentication** — Harness · 2026-08-02
 - **Safe continuity slice — messy capture to Today, prepared action, waiting, and restart re-entry** — Operator · 2026-08-02
 - **Truthful completion and one typed receipt across every host** — Harness · 2026-08-02
 - **Universal effect-path inventory and one trusted action gateway** — Harness · 2026-08-02
 - **Desktop queued-turn editor — inspect, reorder, edit, steer, retry, or remove what runs next** — Desktop App · 2026-07-30
+- **Minimum operator spine — WorkItem, Run, Approval, Receipt, follow-up, and resume** — Operator · 2026-07-30
 - **Streaming TTS — speak after the first complete clause** — Operator · 2026-07-29
 - **Memory Sparse Attention adapter — long-context memory without Python in Vanta** — Operator · 2026-07-29
 - **Shared operating-mode cycle — Manual / Accept edits / Plan / Auto** — Harness · 2026-07-29
@@ -49,7 +44,6 @@ The latest of 1285+ capabilities. See the [changelog](./changelog) for curated m
 - **TUI resize repaint regression — one clean frame after every terminal resize** — Operator · 2026-07-28
 - **Reusable run library — save, inspect, fork, and safely replay successful runs** — Desktop App · 2026-07-24
 - **Relative sibling mkdir approval — resolve the real target before the kernel and sandbox** — Harness · 2026-07-21
-- **Desktop one-time approvals and current Vanta app icon** — Desktop · 2026-07-21
 
 ## Parked external-proof items
 

@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-02",
+  "updated": "2026-08-04",
   "items": [
     {
       "id": "VANTA-STREAMING-TTS-FIRST-CLAUSE",
@@ -20749,7 +20749,7 @@
       "id": "OP-01",
       "track": "Operator",
       "title": "Minimum operator spine — WorkItem, Run, Approval, Receipt, follow-up, and resume",
-      "status": "next",
+      "status": "shipped",
       "after": [
         "TRUST-04"
       ],
@@ -20758,7 +20758,7 @@
       "lens": "memory",
       "summary": "Define only the stable operational spine required by the first continuity slice. Existing tasks, tickets, schedules, sessions, runs, and boards remain behind read-only projections until reconciliation proves a safe cutover.",
       "done": "Every flagship story represents desired outcome, source, exact nine-state WorkItem lifecycle, Run, Approval, Receipt, provenance memory, next action, owner, wait condition, follow-up, time/capacity fit, blocker, artifacts, and resume context without another user-facing store. A read-only projection preserves legacy source and ID; count/hash reconciliation survives restart; corrupt or unreadable stores remain visible; no writer cutover occurs without bounded dual-write, rollback, and retirement evidence.",
-      "notes": "Implementation-ready minimal facade, not a universal life ontology or permission for a big-bang migration. OP-02 and OP-05 acceptance is attached. The source generator still contains stale pillar/commit-push prose and requires separate authorization."
+      "notes": "Shipped 2026-08-04 as the bounded read-only operator spine. One deterministic facade projects the existing continuity store, team and workflow tasks, tickets, legacy and durable schedules, sessions, run-library records, kanban lanes, canonical WorkItems/Runs/Approvals/action receipts, and their original source type, ID, and path into the exact nine-state lifecycle and five projection-only views. Source and projected IDs, counts, and SHA-256 hashes survive three Desktop server starts; corrupt rows and unreadable stores remain visible; unverified legacy completion never enters Done or accomplishment memory; approval and receipt dispositions remain separate; an interrupted continuity item restored the exact resume action before an approved synthetic effect executed once and closed verified; and the exact CLI path used by the TUI produced the same digest as Desktop while every legacy fixture source byte stayed unchanged. No legacy writer was cut over, no second user-facing store was added, and no dual-write, rollback, or retirement claim is made. Evidence: vanta-ts/scripts/op-01-operator-spine-proof.mjs and docs/op-01-operator-spine-audit-2026-08-04.md. This does not claim merge, release, deployment, publication, live-account proof, or GROW-01 work."
     },
     {
       "tier": "rock",
