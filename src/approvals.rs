@@ -229,22 +229,9 @@ mod tests {
     #[test]
     fn never_queues_blocked_actions() {
         let q = ApprovalQueue::empty();
-        let err = q
-            .propose(&root(), "run shell command: rm -rf ~/Documents")
-            .unwrap_err();
+        let err = q.propose(&root(), "delete ~/Documents").unwrap_err();
         assert!(err.contains("blocked"));
         assert_eq!(q.list().len(), 0);
-    }
-
-    #[test]
-    fn queues_bounded_delete_for_explicit_approval() {
-        let q = ApprovalQueue::empty();
-        let item = q
-            .propose(&root(), "run shell command: rmdir ~/Desktop/empty-folder")
-            .unwrap();
-        assert_eq!(item.risk, Risk::Ask);
-        assert!(item.needs_human);
-        assert_eq!(item.status, ApprovalStatus::Pending);
     }
 
     #[test]

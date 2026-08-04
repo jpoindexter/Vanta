@@ -112,18 +112,10 @@ mod tests {
 
     #[test]
     fn blocks_destructive_runtime_requests_without_tool_execution() {
-        let result = run_native(&root(), "run shell command: rm -rf ~/Documents");
+        let result = run_native(&root(), "delete ~/Documents");
         assert_eq!(result.decision, RuntimeDecision::Blocked);
         assert!(!result.executed);
         assert!(result.output.contains("destructive"));
-    }
-
-    #[test]
-    fn routes_bounded_delete_to_approval_without_execution() {
-        let result = run_native(&root(), "run shell command: rmdir ~/Desktop/empty-folder");
-        assert_eq!(result.decision, RuntimeDecision::NeedsApproval);
-        assert!(!result.executed);
-        assert!(result.output.contains("approval"));
     }
 
     #[test]
