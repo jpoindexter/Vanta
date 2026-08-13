@@ -17,6 +17,12 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - Added the active-provider TUI model picker, visible queued-message editing,
   and provider-supported model settings without reopening provider selection on
   every `/model` invocation.
+- Added six checked-in, no-paid-service product-validation playbooks covering
+  problem hypotheses, customer discovery, MVP scope, PMF diagnosis, founder
+  bottlenecks, and GTM planning.
+- Added a repository-owned secret scanner for complete Git history plus the
+  current tracked/non-ignored snapshot, and restored executable npm dependency
+  audit commands.
 - Opt-in first-clause streaming TTS now feeds live model deltas through a
   deterministic clause splitter and bounded sequential speech queue in both
   push-to-talk and wake-word voice loops. Tool boundaries discard unspoken
@@ -45,6 +51,11 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - Refreshed compatible runtime and documentation dependencies. The exact
   runtime graph is npm-audit clean; the static documentation toolchain retains
   one upstream `image-size` advisory with no patched release.
+- Bounded Desktop TTFT observations so a missing first paint produces a useful
+  failure with recent process diagnostics instead of hanging indefinitely.
+- Documented three reviewed Semgrep boundaries: ACP writes JSON-RPC rather than
+  HTML, and Desktop companion/public API origins are echoed only after exact
+  allowlist checks covered by integration tests.
 - Bounded deletion now enters the normal approval flow instead of hitting an
   unoverrideable Rule Zero block. An approved exact `rmdir`, `unlink`, or
   non-forced removal can execute, while forced-recursive deletion, device

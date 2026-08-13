@@ -102,6 +102,8 @@ release.
 
 - **`protect` tool** — scans inbound text (an offer, a message, a contract) for six threat classes — scam indicators, credential/PII exposure, destructive shell patterns, social-engineering pressure, safety-bypass instructions, contract-trap clauses — and returns a structured report before you act on it.
 - **Pre-commit secret scan** — gitleaks blocks accidental secret commits; `.env` is gitignored and validated at startup (fail-fast).
+- **Repository-owned closure scan** — `./scripts/secret-scan` checks complete Git history plus the current tracked and non-ignored snapshot with redacted output. The 2026-08-13 run scanned 3,019 commits and 21.30 MB of files with zero findings.
+- **Whole-tree SAST** — the 2026-08-13 Semgrep run covered 3,666 tracked files with 167 community rules and returned zero findings. Narrow suppressions document three tested rule-shape mismatches: ACP JSON-RPC is not HTML, and both CORS echoes require exact allowlist membership.
 - **`api_key_helper`** — fetch keys at use-time to keep them out of files entirely.
 
 See also the [safety model](./safety-model.md) (the allow/ask/block verdict logic) and the [kernel](./kernel.md) internals.

@@ -183,10 +183,18 @@ Full scan with the bundled `security-skills` gate (gitleaks · npm/cargo/osv · 
   an `os.tmpdir()` fixture (minimal-reproduced — IN-REPO imports OK, OS-tmpdir "Cannot find module").
   Fixed by relocating **that test's** fixtures in-repo (`.vitest-tmp/`, gitignored); the production
   `loader.ts` is unchanged. **Full suite 977 files / 11132 tests green** on vitest 3, `tsc` clean.
-- **SAST (semgrep) — 0 real.** One hit: a fake AWS key in `cofounder/company-template.test.ts` — a
-  **fixture that tests the secret scanner**, allowlisted in `.gitleaks.toml`. Not a credential.
+- **SAST (Semgrep) — zero findings in the current tracked tree.** The 2026-08-13
+  run scanned 3,666 tracked files with 167 community rules. Three old false
+  positives now carry narrow rule-specific rationale: ACP serializes JSON-RPC,
+  not HTML; companion CORS accepts only the fixed native-origin set; and public
+  API CORS accepts only operator-configured exact HTTPS origins. Focused tests
+  prove allowed and rejected origins.
+- **Secrets — zero findings.** `./scripts/secret-scan` checks complete Git history
+  and the current tracked/non-ignored snapshot with redacted output; the closure
+  run scanned 3,019 commits and 21.30 MB of repository-owned files.
 
-Re-run any time: `./security-skills/scan.sh .` (no agent needed).
+Re-run any time: `./scripts/secret-scan` for repository secrets and
+`./security-skills/scan.sh .` for the broader dependency/SAST gate.
 
 ## 8. Operator guidance
 

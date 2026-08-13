@@ -161,7 +161,7 @@ hosts must be classified and proved before they inherit that claim:
   OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 148 registered tools and
   155 commands
 - **Goals** — kernel goal ledger plus TS dependency graph (`/goal blocks`, `/goal blocked_by`, `vanta goals`)
-- **Skills & memory** — learned `~/.vanta/skills`, `/skills audit` for local skill injection-scan findings, a configurable public registry client with quarantine/approval/update rollback, per-goal memory, curator, LLM context compression with [settled local Git versioning](docs/local-store-versioning.md)
+- **Skills & memory** — learned `~/.vanta/skills`, `/skills audit` for local skill injection-scan findings, a configurable public registry client with quarantine/approval/update rollback, per-goal memory, curator, LLM context compression with [settled local Git versioning](docs/local-store-versioning.md), and checked-in product-validation playbooks for problem hypotheses, customer discovery, MVP scope, PMF diagnosis, founder bottlenecks, and GTM planning
 - **Web search** — keyless (DuckDuckGo/SearXNG) + keyed (Brave/SerpAPI/Exa/Firecrawl/Tavily/Parallel/xAI Grok grounded search) with domain scoping; `web_fetch` readable extraction routes large pages through a size-tiered summarize/chunk/synthesize pipeline, and the optional locally installed Scrapling MCP connector provides guarded HTTP, browser, and stealth fallback
 - **Governance & cost** — `vanta governance export` (auditable report of every gated action), versioned `.env` + `vanta config rollback`, persisted spend ledger via `/usage breakdown`
 - **Browser & vision** — screenshot / navigate / extract / read / act (Playwright), image/video understanding, and explicit `/look` capture for a macOS area, window, or all displays
@@ -379,6 +379,9 @@ path, elapsed time, token usage, estimated cost, and tracked replay/follow-up co
 Do no harm. No deletes, overwrites, external commitments, or work outside user-owned authority. The kernel and trusted action gateway are intended to enforce that contract; public claims stay bounded to the executed evidence in [product acceptance](docs/product-acceptance.md) until every audited effect path is mediated.
 
 Full threat model + the 2026-06-20 pentest (findings & fixes): **[Security](https://docs.vanta.theft.studio/security)** · report a vulnerability privately via [SECURITY.md](SECURITY.md).
+
+Before publishing a branch, run `./scripts/secret-scan`. It scans complete Git
+history plus the current tracked and non-ignored snapshot with redacted output.
 
 ## Contributing
 

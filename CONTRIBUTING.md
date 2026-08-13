@@ -49,8 +49,10 @@ Run these from the right directory and make sure they're green:
 
 ```bash
 cargo test                                  # kernel tests (from repo root)
+./scripts/secret-scan                       # complete history + repository-owned snapshot
 cd vanta-ts && npm test                     # agent tests — RUN FROM vanta-ts/, not the repo root
 cd vanta-ts && npm run typecheck            # tsc --noEmit, must be clean
+cd vanta-ts && npm run security:dependencies:all
 cd vanta-ts && npm run desktop:renderer:typecheck
 cd vanta-ts && npm run typescript:compat:test
 cd vanta-ts && npx vanta lint --staged      # size gate (also runs as a pre-commit hook)
