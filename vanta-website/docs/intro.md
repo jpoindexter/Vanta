@@ -25,7 +25,7 @@ scoped, revocable, and interruptible.
 | **`vanta-kernel`** (`src/`) | Rust, zero deps | The intended enforced security boundary: risk classifier, approval queue, goal ledger, event log, HTTP sidecar |
 | **`vanta`** (`vanta-ts/`) | TypeScript, Node 22 | The agent loop, providers, tools, work state, memory, jobs, Desktop, and extensibility |
 
-The kernel and action gateway are intended to be the unavoidable effect boundary. The standard dispatcher fails closed when assessment is unavailable, but the July 30 audit found secondary hook, plugin, factory, credential, local-API, and completion paths that still require hard mediation. The repository product-acceptance record separates executed evidence from release-blocking gaps.
+The Rust kernel and shared TypeScript action gateway form the checked effect boundary. The bounded `TRUST-02`, `TRUST-04`, and `TRUST-01` contracts have executed evidence across the documented local and signed macOS paths, including secondary hosts, exact authority, failure recovery, and typed receipts. The versioned inventory—not a broad marketing claim—defines coverage; future executors and other hosts require fresh evidence. The repository product-acceptance record separates that executed boundary from release and external-proof work.
 
 ## What it does
 
@@ -53,6 +53,6 @@ The product contract requires three properties:
    receipts separately record denied, expired, unknown, and compensated
    dispositions.
 
-These are release requirements. Current gaps remain explicit until their real paths pass.
+These are product requirements. The supported local contracts have passed their retained real paths; release packaging, other operating systems, live accounts, and future roadmap cards remain separately gated.
 
 Next: [install and run it →](./quickstart.md)

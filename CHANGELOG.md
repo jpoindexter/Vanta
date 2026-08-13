@@ -3,9 +3,20 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
-## Unreleased — 2026-07-29
+## Unreleased — 2026-08-13
 
 ### Added
+- Consolidated the bounded `TRUST-02`, `UX-03`, `TRUST-04`, `TRUST-01`, and
+  `OP-01` source stack on current `main`: one checked effect gateway, typed
+  cross-host receipts, accessible interruption/re-entry, and a deterministic
+  read-only operator-spine projection. These are source capabilities with
+  retained receipts, not a new public release.
+- Added a guarded optional Scrapling MCP connector. The read-mostly default
+  exposes HTTP, browser, and stealth extraction; Vanta validates every target,
+  proxy, and CDP URL against its public-network SSRF boundary before dispatch.
+- Added the active-provider TUI model picker, visible queued-message editing,
+  and provider-supported model settings without reopening provider selection on
+  every `/model` invocation.
 - Opt-in first-clause streaming TTS now feeds live model deltas through a
   deterministic clause splitter and bounded sequential speech queue in both
   push-to-talk and wake-word voice loops. Tool boundaries discard unspoken
@@ -24,6 +35,16 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - TTFT regression budgets reject mocked or unverified providers, incomplete sample groups, and unsigned or unpackaged Desktop runs, then identify the exact surface, profile mode, and stage that regressed.
 
 ### Fixed
+- Telegram repair/status commands now stay inside the TUI, while the explicit
+  shell wizard owns hidden token input and pre-save verification. Bot API calls
+  use a bounded IPv4 fallback that preserves Telegram Host/SNI when local
+  dual-stack routing is broken.
+- Pasted multiline text no longer hides subsequent typing, structured question
+  navigation remains responsive after choosing Other, and the launcher reuses
+  persistent setup across isolated worktrees instead of re-running onboarding.
+- Refreshed compatible runtime and documentation dependencies. The exact
+  runtime graph is npm-audit clean; the static documentation toolchain retains
+  one upstream `image-size` advisory with no patched release.
 - Bounded deletion now enters the normal approval flow instead of hitting an
   unoverrideable Rule Zero block. An approved exact `rmdir`, `unlink`, or
   non-forced removal can execute, while forced-recursive deletion, device

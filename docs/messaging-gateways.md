@@ -56,14 +56,12 @@ live device/DB/daemon in tests (same discipline as `parseUpdates`).
 
 ## Setup wizard (`MSG-WIZARD`)
 
-`setup.ts` today picks an LLM provider only (`PROVIDER_CATALOG` + `runSetup` + `upsertEnv`).
-Extend with a messaging step / `vanta setup messaging`:
-1. List platforms with **availability** from the registry (configured? prereqs present?).
-2. For the chosen ones, write env (`upsertEnv`, idempotent).
-3. Print **exact setup/pairing steps**: BotFather link (Telegram); the Full-Disk-Access +
-   Automation grant walkthrough (iMessage); QR scan + Node check (WhatsApp); `signal-cli`
-   link (Signal).
-Mirror `renderProviderMenu`/`runSetup`. No crashes on missing prereqs — explain them.
+`vanta setup messaging` is the shell-owned setup hub. It lists registered
+platforms with configured/prerequisite state, keeps secret entry hidden, writes
+configuration idempotently, and prints the exact platform-specific pairing or
+permission steps. The TUI `/setup messaging` and natural-language repair
+intents are status-only so Ink remains mounted and pasted credentials cannot
+fall through to the shell.
 
 ### Telegram setup contract
 
@@ -99,10 +97,10 @@ The flow uses a local-first setup hub, existing-configuration detection, verific
   prefer Business API if a real account matters.
 - **Telegram + Signal** are the low-risk official/CLI paths.
 
-## Build order
+## Current boundary
 
-1. `MSG-REGISTRY` (tiny, unblocks clean multi-platform wiring + the wizard).
-2. `MSG-WIZARD` (config only — no OS perms, ships clean, gives the UX).
-3. `MSG-PAIRING` (security; reused by all adapters).
-4. `MSG-IMESSAGE` (native send+receive; needs Jason's perms for live test).
-5. `MSG-SIGNAL`, then `MSG-WHATSAPP` (most fragile, last).
+The registry, wizard, pairing flow, and Telegram status/repair separation are
+implemented. Telegram's Bot API path has focused setup, IPv4 fallback, gateway,
+and TUI replay evidence. Other adapters still require their own credentials,
+platform permissions, and real-service acceptance before live delivery is
+claimed.

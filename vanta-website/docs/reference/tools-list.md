@@ -6,7 +6,7 @@ sidebar_position: 3
 
 # Tool reference
 
-Every built-in tool, generated directly from the source registry — **142 tools**. Each call is gated by the kernel before it runs (tools marked _safety-checked_ send a safety descriptor to the kernel). The model sees a per-turn scoped subset; `tool_search` pulls in the rest on demand.
+Every built-in tool, generated directly from the source registry — **148 tools**. Each call is gated by the kernel before it runs (tools marked _safety-checked_ send a safety descriptor to the kernel). The model sees a per-turn scoped subset; `tool_search` pulls in the rest on demand.
 
 ## Files & code
 
@@ -59,7 +59,7 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 
 ### `glob_files`
 
-Find files matching a glob pattern (e.g. 'src/**/*.ts', '**/*.&#123;json,yaml&#125;'). Returns matching paths sorted alphabetically. Read-only.
+Find files matching a glob pattern (e.g. 'src/**/*.ts', '**/*.&#123;json,yaml&#125;'). Returns matching paths sorted alphabetically. Read-only and project-scoped: do not pass a base_path outside the active project. For an operator-named external path, use a foreground shell_cmd instead.
 
 | Param | Type | Required | Description |
 |---|---|---|---|
@@ -70,12 +70,13 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 
 ### `shell_cmd`
 
-Run a shell command inside the project scope. Returns combined stdout/stderr. Destructive commands are blocked. Set background=true for long-running commands — returns a task id immediately. Set ssh to a settings.sshConfigs profile name or user@host to run the command on that host. In an SSH session (`vanta ssh user@host`) commands default to the remote host.
+Run a shell command from the active working directory. Relative paths resolve there; use the exact absolute path when the user names a destination outside it. Returns combined stdout/stderr. Destructive commands are blocked. Commands time out after 30 seconds by default; use timeout_ms for a bounded longer local scan (max 120000). Set background=true for long-running commands — returns a task id immediately. Set ssh to a settings.sshConfigs profile name or user@host to run the command on that host. In an SSH session (`vanta ssh user@host`) commands default to the remote host.
 
 | Param | Type | Required | Description |
 |---|---|---|---|
 | `command` | string | yes | The shell command to run |
 | `background` | boolean | no | Run in background (returns task id immediately; check with bg_status) |
+| `timeout_ms` | integer | no | Foreground timeout in milliseconds (default 30000; max 120000) |
 | `ssh` | string | no | A configured SSH profile name or user@host — run the command on that host instead of locally |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
@@ -544,6 +545,7 @@ Update fields of an existing event on the primary Google calendar. Always requir
 | Param | Type | Required | Description |
 |---|---|---|---|
 | `id` | string | yes | Event id to update |
+| `etag` | string | yes | Current event ETag used as the If-Match precondition |
 | `summary` | string | no | New event title |
 | `start` | string | no | New start time as ISO 8601 |
 | `end` | string | no | New end time as ISO 8601 |
@@ -580,6 +582,7 @@ Replace the content of an existing Google Drive file by id. Always requires appr
 | Param | Type | Required | Description |
 |---|---|---|---|
 | `id` | string | yes | Drive file id |
+| `version` | string | yes | Current monotonically increasing Drive file version |
 | `content` | string | yes | New file contents |
 | `mimeType` | string | no | MIME type (default text/plain) |
 
@@ -753,12 +756,12 @@ reflections — Lessons learned, self-critique, mistakes to avoid, what Vanta is
 mood — Vanta's current affective and operating state — kept brief.
 salience — High-priority signals, urgent concerns, or context shifts that should modulate current attention — updated per session when something important surfaces.
 executive — Active plans being tracked, things to actively inhibit or defer (anti-goals), and constraints on the current task stack.
-Use action=list to see regions, read to load one in full, append to add what you've learned (preferred — non-destructive), replace to rewrite a region. Update user_model/semantic/episodic as you learn about the user and world; reflections after mistakes; identity/personality as it forms. For discrete memories use remember (typed entry with strength + optional forget_after decay) and recall (top memories by strength×recency; recalling reinforces them).
+Use action=list to see regions, read to load one in full, append to add what you've learned (preferred — non-destructive), replace to rewrite a region. Update user_model/semantic/episodic as you learn about the user and world; reflections after mistakes; identity/personality as it forms. For discrete memories use remember (typed entry with strength + optional forget_after decay; omitted region defaults to semantic) and recall (top memories by strength×recency; recalling reinforces them).
 
 | Param | Type | Required | Description |
 |---|---|---|---|
 | `action` | string | yes | What to do |
-| `region` | string | no | Brain region (see list). Required except for list/recall. |
+| `region` | string | no | Brain region (see list). Required for read/append/replace; remember defaults to semantic. |
 | `content` | string | no | Text for append/replace/remember. |
 | `query` | string | no | recall: substring filter over memories. |
 | `entry_type` | string | no | remember: kind of memory (default fact). |
@@ -1249,6 +1252,31 @@ Distill a run's events.jsonl into a sourced root-cause report. Reads the trace (
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
+### `dropbox_read`
+
+Browse, search, or attach bounded text from an authorized Dropbox path. Read-only.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes |  |
+| `path` | string | no |  |
+| `query` | string | no |  |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `dropbox_write`
+
+Upload a Dropbox file, or replace one only with its current revision. Always asks for approval.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `path` | string | yes |  |
+| `content` | string | yes |  |
+| `mode` | string | no |  |
+| `rev` | string | no |  |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
 ### `enter_worktree`
 
 Create an isolated git worktree (its own branch + directory) for parallel work without touching the main checkout. Returns the worktree path and branch; clean it up afterwards with exit_worktree.
@@ -1296,11 +1324,12 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 
 ### `google_auth`
 
-Authorize Vanta with Google. Two steps: 1) Call with action='start' — returns the consent URL; show it to the user. 2) Call with action='complete' — waits (up to 5 min) for the user to approve in their browser, then saves the tokens. Use when the user says 'auth google' or 'vanta auth google'. Do NOT shell out to ./run.sh auth google.
+Authorize Vanta with Google. Two steps: Choose exactly one service (gmail, calendar, or drive). 1) Call with action='start' — returns that service's consent URL. 2) After the operator completes consent in their browser, call action='complete' with the same service to save that service's token. Use when the user says 'auth google' or 'vanta auth google'. Do NOT shell out to ./run.sh auth google.
 
 | Param | Type | Required | Description |
 |---|---|---|---|
 | `action` | string | yes | 'start' returns the consent URL. 'complete' polls for the callback and saves tokens. |
+| `service` | string | yes | The one Google capability to authorize independently. |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
@@ -1408,6 +1437,23 @@ Preview or approval-gated render a scoped local MP4 from bounded color/image sce
 |---|---|---|---|
 | `action` | string | yes |  |
 | `brief` | object | yes | Media brief: title, relative .mp4 output, dimensions/fps, and 1-24 color or project-image scenes. |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `msa_memory`
+
+Use the optional Memory Sparse Attention runtime. Check status, index one text document, retrieve cited memory segments, or generate an answer over the indexed memory. Vanta stays TypeScript/Rust; the model runtime is a separately configured NVIDIA service.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes |  |
+| `document_id` | string | no | Stable id for indexed content; generated when omitted. |
+| `content` | string | no | Text to index (10 MB maximum). |
+| `metadata` | object | no | Flat string/number/boolean/null metadata. |
+| `namespace` | string | no | Optional memory collection/namespace. |
+| `query` | string | no | Question or retrieval query. |
+| `top_k` | number | no | Selected memory segments, 1-50. |
+| `max_output_tokens` | number | no | Generation cap, 1-16384. |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
@@ -1608,6 +1654,24 @@ Create, edit, patch, archive, or change supporting files in a reusable skill. Ag
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
+### `sparge_attention`
+
+Diagnose, plan, integrate, or benchmark the globally installed SpargeAttention kit for compatible local PyTorch/CUDA inference. The tool cannot accelerate hosted OpenAI, Claude, Gemini, or other remote APIs. doctor and install_plan are read-only; integration returns a snippet without editing files; benchmark is hard-bounded local GPU compute.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes | Operation to perform |
+| `topk` | number | no | Sparse block retention ratio (default 0.5) |
+| `causal` | boolean | no | Use causal attention |
+| `batch` | integer | no |  |
+| `heads` | integer | no |  |
+| `sequence_length` | integer | no |  |
+| `head_dim` | integer | no |  |
+| `warmup` | integer | no |  |
+| `iterations` | integer | no |  |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
 ### `spreadsheet_workbook`
 
 Inspect or explain formulas, then preview or approval-gated apply cell, formula, sheet, and chart changes to a scoped local .xlsx workbook. Apply reopens the result and writes a SHA-256 receipt.
@@ -1682,6 +1746,34 @@ First-class issue tracker above goals, persisted in .vanta/tickets.json. action:
 | `link` | string | no | link kind (link) |
 | `target` | string | no | link target id (link) |
 | `labels` | array | no | labels (create) |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `trello_read`
+
+List or search the authorized Trello workspaces, boards, lists, and cards. Read-only.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes |  |
+| `boardId` | string | no |  |
+| `listId` | string | no |  |
+| `query` | string | no |  |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `trello_write`
+
+Create or update a Trello card. Always asks for approval before writing.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes |  |
+| `listId` | string | no |  |
+| `cardId` | string | no |  |
+| `expectedDateLastActivity` | string | no |  |
+| `name` | string | no |  |
+| `desc` | string | no |  |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 

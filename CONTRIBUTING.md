@@ -1,9 +1,10 @@
 # Contributing to Vanta
 
-Thanks for your interest. Vanta is a trusted personal operator with a Rust
-kernel intended as the root of trust and a TypeScript agent loop whose standard
-dispatcher consults it. Audited secondary effect paths remain active security
-work. Contributions are welcome, from typo fixes to new adapters.
+Thanks for your interest. Vanta is a trusted personal operator with a protected
+Rust policy kernel and a TypeScript agent loop whose shared effect gateway binds
+authority, execution, and receipts across the checked inventory. New effect
+paths must enter that gateway and add inventory plus failure-path evidence.
+Contributions are welcome, from typo fixes to new adapters.
 
 By participating you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).
 
@@ -29,9 +30,10 @@ cd vanta-ts && npm install
 | `vanta-ts/` | **`vanta`** — TypeScript agent loop: LLM providers, tools, prompt, and standard kernel-directed dispatch. |
 | `docs/` | PRD, architecture, design notes. |
 
-The kernel is the intended boundary — `assess()` is a gate on paths that call
-it. New effects must enter one trusted gateway; do not add a secondary path.
-See the current gaps in `docs/product-acceptance.md`.
+The kernel and shared effect gateway are the boundary. New effects must add a
+stable action description, exact scope/operation identity, failure settlement,
+inventory classification, and tests; do not add a secondary path. See the
+current evidence limits in `docs/product-acceptance.md`.
 
 ## Run it
 
@@ -49,7 +51,10 @@ Run these from the right directory and make sure they're green:
 cargo test                                  # kernel tests (from repo root)
 cd vanta-ts && npm test                     # agent tests — RUN FROM vanta-ts/, not the repo root
 cd vanta-ts && npm run typecheck            # tsc --noEmit, must be clean
+cd vanta-ts && npm run desktop:renderer:typecheck
+cd vanta-ts && npm run typescript:compat:test
 cd vanta-ts && npx vanta lint --staged      # size gate (also runs as a pre-commit hook)
+cd vanta-website && npm run build           # generated public docs + production build
 ```
 
 > ⚠️ Run the TS test suite from `vanta-ts/`, **not** the repo root — the root config also

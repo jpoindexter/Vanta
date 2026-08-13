@@ -6,7 +6,7 @@
 
 Vanta is an open-source, full-capability personal AI operator for work and life that cross tools, files, research, software, documents, communication, schedules, business, media, and automation. Its wedge is trusted continuity: give it something real, and Vanta is designed to preserve the outcome, prepare or perform the next safe action, carry waiting and follow-up through interruption, and close only with evidence.
 
-Vanta belongs in the broad Hermes/OpenClaw capability class. It specializes in reducing the executive burden required to turn intent into a verified outcome. Neurodivergent and disability experience supplies curb-cut universal-design requirements—concrete representation, low-friction capture, one recommendation, transition support, re-entry, and accessible operation—without limiting the audience or requiring diagnosis disclosure.
+Vanta belongs in the broad personal-agent capability class. It specializes in reducing the executive burden required to turn intent into a verified outcome. Neurodivergent and disability experience supplies curb-cut universal-design requirements—concrete representation, low-friction capture, one recommendation, transition support, re-entry, and accessible operation—without limiting the audience or requiring diagnosis disclosure.
 
 The destination is progressively earned practical autonomy. Workflows move from
 R0 Observe → R1 Recommend → R2 Prepare → R3 Confirm → R4 Delegate → R5
@@ -20,7 +20,7 @@ The canonical labels are **R0 — Observe**, **R1 — Recommend**,
 `unverified`, `verified`. `denied`, `expired`, `unknown`, and `compensated`
 are receipt/action dispositions, not WorkItem states.
 
-> **Implementation truth:** Vanta has substantial shipped capability and an intended Rust security boundary, but the July 30 audit identified release-blocking gaps in hook/control-plane mediation, credential isolation, audit integrity, API authentication, untrusted-content handling, and completion receipts. The [current acceptance record](docs/product-acceptance.md) separates executed evidence from required behavior.
+> **Implementation truth (2026-08-13):** the bounded `TRUST-02`, `UX-03`, `TRUST-04`, `TRUST-01`, and `OP-01` contracts have executed receipts and are marked shipped for their documented local and signed macOS boundaries. This integrated source stack is still a draft change, not the public release. Cross-platform packaging, live external accounts, external proof, and future effect paths require their own evidence. See the [current acceptance record](docs/product-acceptance.md).
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/jpoindexter/Vanta/main/vanta-website/static/img/vanta-desktop-work-dark.webp" alt="Vanta Desktop Work view showing an agent task, tool activity, approvals, and model scope" width="960">
@@ -31,6 +31,7 @@ are receipt/action dispositions, not WorkItem states.
 - **[Download Vanta Desktop for macOS](https://github.com/jpoindexter/Vanta/releases/download/v0.9.5/Vanta-0.9.5-arm64.dmg)** — signed, notarized, and stapled for Apple Silicon.
 - **[Read the latest release notes](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.8)** — reusable runs, safe replay, Buzz ACP, integrations, and reliability fixes. The v0.9.5 download above remains the latest notarized Desktop DMG.
 - **[Read the docs](https://docs.vanta.theft.studio/)** — setup, safety model, agents, memory, MCP, messaging, and the live roadmap.
+- **[Follow the roadmap](ROADMAP.md)** — `GROW-01` is the sole Next card and remains deferred until manual, no-paid-service user research is authorized; six dependency-ordered cards remain Horizon.
 
 ## What ships in Desktop v0.9.5
 
@@ -41,7 +42,7 @@ Vanta Desktop is the native macOS surface for the same Vanta agent that runs in 
 - **Connect** — setup states for model providers, skills, MCP servers, messaging channels, and Google services.
 - **Models** — a live catalog with default and one-task model selection.
 - **Outputs** — generated files, previews, diffs, receipts, and other run artifacts.
-- **Kernel-directed execution** — the standard dispatcher consults the Rust policy boundary; the current acceptance record names audited paths that still require hard capability mediation and end-to-end proof.
+- **Kernel-directed execution** — the checked local and signed-macOS effect inventory routes through the Rust policy boundary and shared action gateway. A retained receipt covers that exact inventory; it does not automatically cover a future path or another host.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/jpoindexter/Vanta/main/vanta-website/static/img/vanta-desktop-connect-light.webp" alt="Vanta Desktop Connect view with provider, capability, MCP, messaging, and Google setup states" width="960">
@@ -52,8 +53,8 @@ The public `v0.9.5` artifact includes the notarized ARM64 DMG and ZIP, checksum,
 <details>
 <summary>Architecture</summary>
 
-- **`src/` — Rust safety kernel** (`vanta-kernel`): the intended enforced boundary for risk classification, approvals, goal state, and audit events; current bypass gaps remain release-blocking.
-- **`vanta-ts/` — TypeScript agent layer** (`vanta`): model providers, tools, durable context, and the goal-aware agent loop.
+- **`src/` — Rust safety kernel** (`vanta-kernel`): the protected policy boundary for risk classification, approvals, goal state, and audit events.
+- **`vanta-ts/` — TypeScript agent layer** (`vanta`): model providers, tools, durable context, the shared effect gateway, and the goal-aware agent loop.
 - **`vanta-ts/desktop-app/` — React/Electron desktop app**: the native operator surface; it does not duplicate the agent runtime.
 
 </details>
@@ -97,7 +98,7 @@ Then: `vanta setup` (pick a model backend) → `vanta` (interactive session) →
 ./run.sh run "read README.md and summarize it"
 ```
 
-First run downloads the prebuilt kernel (and a portable Node if needed) and installs agent deps once; after that it's instant. The kernel auto-starts when the agent needs it. Provider defaults to local **Ollama** (`qwen2.5:14b`, no API key) — make sure Ollama is running. Edit `vanta-ts/.env` to switch to OpenAI/Anthropic.
+First run downloads the prebuilt kernel (and a portable Node if needed) and installs agent deps once; after that it's instant. The kernel auto-starts when the agent needs it. Provider defaults to local **Ollama** (`qwen2.5:14b`, no API key) — make sure Ollama is running. Run `vanta setup model` to switch providers or connect a supported subscription-backed CLI.
 
 ```bash
 ./run.sh                                   # list all commands
@@ -108,6 +109,7 @@ First run downloads the prebuilt kernel (and a portable Node if needed) and inst
 ./run.sh modes install                     # the 6 operator modes
 ./run.sh rooms | room <name> "<instr>"     # per-project goal streams
 ./run.sh goals                             # kernel goals plus dependency graph state
+./run.sh setup model                       # provider + model setup
 ./run.sh local-model setup                 # hardware → verified download → useful local result
 ./run.sh schedule "<instr>" --cron "0 8 * * *" | schedule list | cron
 ./run.sh auth google gmail                 # Google OAuth per service
@@ -121,9 +123,10 @@ Inside an interactive session, use `/look` to drag-select an area, `/look window
 
 ## What you can build
 
-Vanta is a **general operator**, not a coding tool. The standard tool dispatcher
-consults the kernel; audited gateway, plugin, MCP, factory, scheduler, worker,
-and extension paths remain universal-mediation release work:
+Vanta is a **general operator**, not a coding tool. Its checked local and signed
+macOS effect paths share one default-deny gateway and kernel assessment. The
+versioned effect inventory is the coverage boundary; new executors and untested
+hosts must be classified and proved before they inherit that claim:
 
 - **Scheduled ops** — *"every weekday 9am, summarize my inbox and post to Slack"* (`vanta schedule`, natural-language cron).
 - **Self-improving skills** — it writes a reusable `SKILL.md` after solving something hard, then it's faster next time.
@@ -133,7 +136,7 @@ and extension paths remain universal-mediation release work:
   recovery and truthful stopping. It does not establish verified completion on
   every unattended path; see
   [`docs/reliability-results.md`](docs/reliability-results.md) and the remaining
-  acceptance blockers.
+  acceptance boundaries.
 - **Reach you anywhere** — one gateway, 22 registered messaging adapters.
   Telegram and ntfy have accepted live receipts; the others have narrower
   source/fixture evidence and require platform-specific setup and live proof.
@@ -145,7 +148,7 @@ and extension paths remain universal-mediation release work:
 - **First local model setup** → run `vanta local-model setup`; it reports hardware and storage impact, previews the exact `llama-server` launch, verifies the model checksum, and resumes the same command after interruption. Use `vanta local-model status` for the durable checkpoint and recent receipts.
 - **Kernel won't bind / "port 7788 in use"** → a stale kernel from a prior build: `lsof -nP -iTCP:7788 -sTCP:LISTEN`, kill the PID, re-run.
 - **macOS blocks the downloaded kernel** ("cannot be opened") → clear the Gatekeeper quarantine: `xattr -dr com.apple.quarantine ~/vanta` (or build from source: `cargo build`).
-- **Messaging / email / voice "didn't send"** → those *route* correctly but need the platform's credential (e.g. a Telegram bot token from @BotFather). The agent works fully with just a model backend; add tokens later in `vanta-ts/.env`.
+- **Telegram "didn't send"** → run `vanta setup messaging telegram` in the shell. Token entry is hidden, `getMe` is verified before persistence, and `/setup telegram` inside the TUI remains a status/repair view so Vanta does not exit underneath pasted input.
 
 ## What works now
 
@@ -156,10 +159,10 @@ and extension paths remain universal-mediation release work:
   state. Some tools perform deterministic readback; the separate post-turn LLM
   completion verifier is opt-in (`VANTA_VERIFY=1`), not a universal invariant.
   OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 148 registered tools and
-  151 commands
+  155 commands
 - **Goals** — kernel goal ledger plus TS dependency graph (`/goal blocks`, `/goal blocked_by`, `vanta goals`)
 - **Skills & memory** — learned `~/.vanta/skills`, `/skills audit` for local skill injection-scan findings, a configurable public registry client with quarantine/approval/update rollback, per-goal memory, curator, LLM context compression with [settled local Git versioning](docs/local-store-versioning.md)
-- **Web search** — keyless (DuckDuckGo/SearXNG) + keyed (Brave/SerpAPI/Exa/Firecrawl/Tavily/Parallel/xAI Grok grounded search) with domain scoping; `web_fetch` readable extraction routes large pages through a size-tiered summarize/chunk/synthesize pipeline (configurable aux model)
+- **Web search** — keyless (DuckDuckGo/SearXNG) + keyed (Brave/SerpAPI/Exa/Firecrawl/Tavily/Parallel/xAI Grok grounded search) with domain scoping; `web_fetch` readable extraction routes large pages through a size-tiered summarize/chunk/synthesize pipeline, and the optional locally installed Scrapling MCP connector provides guarded HTTP, browser, and stealth fallback
 - **Governance & cost** — `vanta governance export` (auditable report of every gated action), versioned `.env` + `vanta config rollback`, persisted spend ledger via `/usage breakdown`
 - **Browser & vision** — screenshot / navigate / extract / read / act (Playwright), image/video understanding, and explicit `/look` capture for a macOS area, window, or all displays
 - **Voice & terminal** — push-to-talk voice input (local whisper STT), opt-in [first-clause streaming TTS](docs/streaming-tts.md) with bounded queue and whole-response fallback, live terminal capture (tmux-backed), Slack `#channel` autocomplete in the composer
@@ -188,7 +191,7 @@ Executed release-critical stories and their remaining boundary are recorded in [
 
 ## Run anywhere you control
 
-Vanta is designed to run on infrastructure you control, with the same intended kernel/action-gateway contract on each supported host. The audit-discovered mediation gaps remain release blockers on every backend. Pick the execution backend in `vanta setup` → **Execution backend** (local · sandbox · docker · ssh):
+Vanta is designed to run on infrastructure you control. The shared kernel/action-gateway contract has executed evidence for the documented local and signed macOS hosts; Docker, SSH, Windows, Linux, and hosted backends retain host-specific proof requirements. Pick the execution backend in `vanta setup` → **Execution backend** (local · sandbox · docker · ssh):
 
 - **Local** — the default.
 - **Sandbox** — `VANTA_SANDBOX=1` (or shell-only `VANTA_SHELL_SANDBOX=1`) wraps shell + `run_code` in the OS sandbox; `VANTA_SANDBOX_NET=1` allows network.
@@ -196,7 +199,7 @@ Vanta is designed to run on infrastructure you control, with the same intended k
 - **SSH** — name a host you control in `settings.sshConfigs`, then
   `shell_cmd {ssh:"<name>", command}` runs it on that host through the standard
   assessed tool path; `vanta ssh <name>` opens an interactive session. Do not
-  infer universal secondary-path mediation from that registered-tool behavior.
+  infer equivalent host behavior without that host's retained receipt.
 
 ### The $5 VPS path
 
@@ -209,14 +212,14 @@ Prefer to keep the agent on your laptop but execute on the VPS? Add an `sshConfi
 
 ## Why Vanta
 
-- **Independent boundary by design** — a separate Rust kernel risk-classifies standard-dispatch actions; the current trust roadmap closes the audited secondary paths required before “unavoidable on every effect” is a supported claim.
+- **Independent boundary by design** — a separate Rust kernel risk-classifies actions, while the shared default-deny gateway binds authority, execution, and receipts across the checked effect inventory.
 - **Reliable, not just capable** — the target bar is finishing real multi-step
   tasks unattended and reporting only verified output. The tracked reliability
   eval (`scripts/reliability-eval.sh` → `docs/reliability-results.md`) found and
   fixed specific bugs; it is evidence for those exercised scenarios, not a
   universal completion guarantee. Feature count is table stakes, not the bar.
 - **Goal-aware** — a goal ledger + dependency graph mean Vanta knows the goal before it picks a tool.
-- **Disability-led universal design** — executive-function support is intended for everyone by default, without diagnosis inference. The current per-turn router is a foundation; outcome-aware, pre-action, cross-host, dismissal, expiry, aphantasia, and non-color behavior remain explicit acceptance work.
+- **Disability-led universal design** — executive-function support is intended for everyone by default, without diagnosis inference. The shipped continuity slice preserves concrete next actions, re-entry, capacity expiry, refusal, snooze, skip, reduced motion, and non-color meaning; broader cross-host accessibility remains `UX-04`.
 - **Learns you, locally** — `vanta tune lora` trains a local adapter from your own accept/reject decisions; nothing leaves the machine.
 - **22 registered messaging channels** from one gateway (Telegram, Slack,
   Discord, Signal, WhatsApp, iMessage, Teams, Email, Nostr…) — Telegram and
@@ -224,7 +227,7 @@ Prefer to keep the agent on your laptop but execute on the VPS? Add an `sshConfi
   setup and live acceptance.
 - **Any model, multiple hosts** — provider-agnostic (any OpenAI-compatible
   endpoint + Azure/OpenRouter/Ollama); runs local / sandbox / Docker / SSH /
-  $5 VPS. Equivalent effect mediation across every host remains a release gate.
+  $5 VPS. Each host must pass its own effect, package, and external-service proof.
 - **MIT + self-hosted** — your data residency, no vendor lock-in.
 
 More → **[Why Vanta](https://docs.vanta.theft.studio/why-vanta)**.
@@ -243,7 +246,7 @@ Recent Hermes transcript mining added a focused parity path to the roadmap: pers
 
 The 2026-07-12 Hermes-main delta found six smaller gaps after that parity wave. All six are shipped: tool-effect disposition, real-headroom compaction, route-aware usage, session-scoped model selection, gateway context references, and bounded authenticated readiness. See [`docs/research/hermes-current-delta-2026-07-12.md`](docs/research/hermes-current-delta-2026-07-12.md).
 
-Parked external acceptance is machine-readable through `vanta roadmap proof-status [--json]`. It evaluates eleven canonical receipt gates—currently one ready and ten pending—and rejects local provider fixtures unless a matching external-acceptance packet binds the exact event IDs. Use `vanta roadmap proof-packet [--json]` for the same non-failing handoff checklist while receipts are still missing. When a gate passes, `vanta roadmap proof-accept <card-id>` or `--all-ready` ships only the proven cards, preserves dependency order, and records the accepted evidence in roadmap notes. See [`docs/roadmap-external-proofs.md`](docs/roadmap-external-proofs.md).
+Parked external acceptance is machine-readable through `vanta roadmap proof-status [--json]`. It evaluates eleven canonical receipt gates—0 of 11 were ready in the 2026-08-13 local check—and rejects local provider fixtures unless a matching external-acceptance packet binds the exact event IDs. Use `vanta roadmap proof-packet [--json]` for the same non-failing handoff checklist while receipts are still missing. When a gate passes, `vanta roadmap proof-accept <card-id>` or `--all-ready` ships only the proven cards, preserves dependency order, and records the accepted evidence in roadmap notes. See [`docs/roadmap-external-proofs.md`](docs/roadmap-external-proofs.md).
 
 Same-provider credential pools are managed with `vanta auth pool`; they lease environment, Keychain, Bitwarden, 1Password, or vault references without persisting values, rotate on credential failures, and exhaust before cross-provider fallback. See [`docs/credential-pools.md`](docs/credential-pools.md).
 

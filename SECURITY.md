@@ -6,22 +6,22 @@ browser. That power is the point — so the security model is about *bounding* i
 removing it. This document is the source of truth for that model, the guarantees it
 makes, the ones it does **not**, and how to run it safely.
 
-> Rule Zero is the target contract: no deletes, overwrites, out-of-scope writes,
-> or secret handling without explicit authority. The standard dispatcher
-> consults the kernel and fails closed where exercised. The July 30 audit found
-> secondary hook, plugin, MCP, factory, scheduler, worker, credential, and local
-> API paths that still require hard mediation before universal enforcement can
-> be claimed.
+> Rule Zero is the contract: no deletes, overwrites, out-of-scope writes, or
+> secret handling without explicit authority. The checked local and signed
+> macOS effect inventory enters one shared gateway and kernel and fails closed
+> when required policy or journal state is unavailable. A future executor or
+> another host must earn its own evidence before it inherits that claim.
 
 ## 1. Architecture: the kernel is the boundary
 
 | Layer | Language | Role |
 |-------|----------|------|
 | `vanta-kernel` (`src/`) | Rust, zero deps | Intended root of trust — risk classifier, scope/protected-path checks, approvals, audit log, loopback HTTP API |
-| `vanta` (`vanta-ts/`) | TypeScript, Node 22 | Agent loop — standard tool dispatch consults the kernel; audited secondary effect paths remain release blockers |
+| `vanta` (`vanta-ts/`) | TypeScript, Node 22 | Agent loop and shared effect gateway — binds operation, target, payload hash, authority, execution, and receipts before consequential work |
 
-Every standard-dispatch tool call follows: `describeForSafety(args)` → kernel
-`assess()` → `{Allow | Ask | Block}`.
+Every consequential call in the checked inventory follows: stable effect
+description → shared gateway → kernel `assess()` → `{Allow | Ask | Block}` →
+content-free settlement receipt.
 The TS layer may **tighten** a verdict (rules, auto-mode, operator profile) but can **never
 loosen a kernel `Block`**. If the kernel is unreachable the gate **fails closed** (the tool is
 blocked, gracefully, not executed).
@@ -34,10 +34,10 @@ blocked, gracefully, not executed).
   read-only/reversible in-scope work → `Allow`.
 - **Scope containment** (`src/scope.rs`) — canonicalized path containment; `..` traversal,
   sibling-prefix (`/a/vanta-evil` vs `/a/vanta`), and symlink escapes are rejected.
-- **Protected paths on the standard mediated path** — the kernel blocks its own
-  source (`src/*.rs`, `Cargo.toml`/`.lock`), `vanta-ts/src/factory/*`, and
-  `MANIFESTO.md`. Direct/factory and secondary write paths remain part of the
-  universal mediation blocker.
+- **Protected paths** — model-controlled paths block the kernel source
+  (`src/*.rs`, `Cargo.toml`/`.lock`), `vanta-ts/src/factory/*`, and
+  `MANIFESTO.md`. The checked inventory records explicit trusted-infrastructure
+  adapters and rejects unknown executors.
 - **Approvals** (`src/approvals.rs`) — only `Ask` actions queue; `Block` refuses, `Allow`
   runs. Persisted to `.vanta/approvals.tsv`.
 - **Tamper-evident audit log** (`src/audit.rs`) — every event is hash-chained
@@ -62,10 +62,11 @@ decision** (the same gate for all of these):
 | **Hooks (`.vanta/hooks.json`)** | **not loaded** | project trust, or `VANTA_ENABLE_PROJECT_HOOKS=1` |
 
 User-scope config in `~/.vanta` is treated as trusted input. The project-trust
-gate blocks the previously demonstrated zero-click cloned-repo path, but
-universal mediation, protected audit-state relocation, and every alternate
-executor remain explicit blockers. The TypeScript correction hardens ordinary
-file/shell/hook paths, but does not change the Rust legacy-anchor contract.
+gate blocks the previously demonstrated zero-click cloned-repo path. The
+packaged `TRUST-02` proof also exercised restart-bounded hook activation,
+scrubbed child environments, protected control state, exact approval, and nine
+hostile or unauthenticated local-API requests with no secret exposure. The Rust
+legacy missing-anchor contract remains unchanged and explicitly bounded.
 
 ## 4. Secrets
 
@@ -103,9 +104,9 @@ an airtight gate.
 The sandbox is a second containment layer for `shell_cmd` and `self_correct`
 where an OS backend actually applies (macOS seatbelt; Linux bwrap when
 installed). Its deny-default filesystem limits path reach to root, writable
-zones, and tmp. This does not prove subprocess environment scrubbing, project
-secret/control-file isolation, or mediation of every shell-capable secondary
-path; those remain release blockers.
+zones, and tmp. The supported local proof additionally exercises scrubbed child
+environments and protected control state; an untested backend still needs its
+own host receipt.
 
 - **Network in the auto-default sandbox stays ON** so `npm install`/`git`/`curl` keep
   working; the FS containment is the default win. Set **`VANTA_SANDBOX_NET=0`** for full
@@ -147,31 +148,34 @@ tests green):
   terminates ssh args; `.vanta/` dir + audit key perms; `esc()` control chars; bash-classifier
   was a dead no-op + over-approved credential reads → fixed + hardened.
 
-**Executed June 20 receipts (do not overgeneralize):** kernel `Block` was
+**Executed June 20 receipts (historical; do not overgeneralize):** kernel `Block` was
 monotonic through the exercised TS gate chain; `jsonv.rs` was bounded (no
 deep-nest/quadratic/panic); the reviewed paths found no prototype pollution or
 ReDoS; the kernel was zero-dependency; and the exercised MCP/plugin and
-headless-approval paths failed safe. The npm receipt at that snapshot reported
-0 vulnerabilities. The July 30 audit instead observed 14 high-severity
-production dependency advisories; current reachability and remediation require
-fresh disposition.
+headless-approval paths failed safe. The exact 2026-08-13 integrated runtime
+dependency graph now reports zero npm advisories after compatible dependency
+remediation. The static documentation build retains one unpatched `image-size`
+denial-of-service advisory through Docusaurus; npm expands it into 19 high
+dependent-package entries. It is build-time on repository-authored content,
+not code served to visitors, and remains visible pending an upstream fixed
+release.
 
-## 7b. Dependency & scan audit (2026-06-27)
+## 7b. Dependency & scan audit (refreshed 2026-08-13)
 
 Full scan with the bundled `security-skills` gate (gitleaks · npm/cargo/osv · semgrep). Triaged by
 **reachability before severity** — recorded here so the next audit doesn't re-litigate.
 
-- **Shipped runtime — CLEAN.** Secrets: gitleaks **0 leaks** over 2003 commits. Runtime deps:
-  `npm audit --omit=dev` clean; kernel `cargo audit` clean (zero-dependency). The artifact a user
-  installs (`npm install --omit=dev` + the prebuilt kernel) carries no known CVE.
-- **Docs site (`vanta-website`, Docusaurus) — high + uuid FIXED.** serialize-javascript RCE/DoS
-  (GHSA-5c6j / GHSA-qj8w) → `overrides` `^7.0.5`; uuid bounds bug (GHSA-w5hq) → `overrides` `^11.1.1`;
-  `docusaurus build` verified after each. The remaining **23 are a single advisory** — js-yaml
-  quadratic DoS (GHSA-h67p-54hq-rp68) — cascading through every `@docusaurus/*` package via
-  `gray-matter`. **No upstream patch exists** (can't override to a version that isn't released). It's
-  **build-time** (frontmatter parsing during `docusaurus build`), **unreachable** by a site visitor
-  (the served site is static HTML), on **self-authored** content. Accepted until js-yaml/gray-matter
-  ship a fix.
+- **Runtime — clean at the exact integrated source head.** `npm audit` reports
+  zero vulnerabilities after the compatible dependency refresh and
+  `pdfjs-dist` 6.2.108 update. This does not cover a future lockfile or zero-day.
+- **Docs site (`vanta-website`, Docusaurus) — all fixable findings remediated.**
+  Docusaurus 3.10.2 plus the current js-yaml, nanoid, DOMPurify, Mermaid,
+  PostCSS, Undici, fast-uri, and brace-expansion patches are installed. The
+  remaining npm result is one `image-size <=2.0.2` advisory with no patched npm
+  release; npm reports 19 high entries because the same package flows through
+  the Docusaurus graph. It is **build-time** on self-authored repository content
+  and is not shipped in the static site output. Keep it visible and update when
+  upstream publishes a fixed version.
 - **`vanta-ts` dev deps — FIXED.** Migrated to **vitest 3 / vite 6** (+ esbuild `overrides ^0.28.1`),
   clearing every dev-tooling advisory (incl. the vitest 9.8) → `osv-scanner` **0 vulnerabilities**
   (276 packages). The migration's one blocker: vitest 3's module runner only resolves dynamic

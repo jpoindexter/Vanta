@@ -6,7 +6,7 @@ sidebar_position: 4
 
 # Command reference
 
-Every slash command, generated from the command catalog — **150 commands**. Type any of these in an interactive session; `/help` prints the live list.
+Every slash command, generated from the command catalog — **155 commands**. Type any of these in an interactive session; `/help` prints the live list.
 
 ## Session & history
 
@@ -45,7 +45,7 @@ Every slash command, generated from the command catalog — **150 commands**. Ty
 |---|---|
 | `/model` | change provider & model — interactive picker |
 | `/models` | list available models for the active provider |
-| `/effort` | set model effort for this session |
+| `/effort` | set supported model effort |
 | `/setup` | open setup or inspect one setup area |
 | `/config` | interactive settings — view + change config (TUI) |
 | `/settings` | show/edit persisted settings |
@@ -168,17 +168,21 @@ Every slash command, generated from the command catalog — **150 commands**. Ty
 | `/checkpoint` | snapshot the full conversation state under a name |
 | `/describe` | generate a short LLM description of a file or directory |
 | `/diagnose-crash` | diagnose a pasted macOS/iOS/build crash log with cited evidence |
+| `/doctor` | health plus read-only context weight, duplicate rules, and cleanup candidates |
 | `/env` | session-scoped env vars injected into shell_cmd/run_code child processes |
 | `/explain` | capability-preservation surface — what changed + why, with a comprehension probe on risky/large changes |
 | `/feedback` | draft a redacted GitHub issue from feedback/feature requests; `send` files it |
 | `/home` | operator home — workflows, channels, skills, tasks, memory, watchers, setup |
 | `/init-verifiers` | detect the project's build/test/lint/typecheck gates → verifier skills it can run to check its work |
+| `/integrations` | integration catalog — truthful state, setup and test actions |
 | `/learn` | build a skill from a doc/URL — distills, gates, and saves an editable SKILL.md |
 | `/learning` | self-learning loop status — skills minted/refined/adopted + adoption rate |
 | `/learnings` | per-project learnings index — relevant insights, stale/conflicting flagged |
 | `/less-permission-prompts` | scan the session for repeatedly-approved read-only tools and propose allow rules to cut future prompts (propose-only) |
 | `/loop` | schedule a recurring task from a natural-language interval (e.g. every 2 hours &lt;task&gt;, daily, every monday) |
+| `/model-settings` | review or save model effort and speed |
 | `/nd` | executive-function support gates — view/toggle/tune the ND gate set |
+| `/operator-spine` | read-only tasks, tickets, schedules, sessions, runs, approvals, and receipts |
 | `/outreach` | authorized brand workspace — pending drafts + the proof ledger (draft-only, approval-gated) |
 | `/peers` | live Vanta peer sessions on this machine (UDS) — id, title, pid for cross-session collab |
 | `/planv2` | plan mode v2 — fan a task out across N concurrent plan-execution agents (VANTA_PLAN_V2_AGENT_COUNT, 1-10) |
@@ -199,6 +203,7 @@ Every slash command, generated from the command catalog — **150 commands**. Ty
 | `/security-review` | security audit of the current branch's diff vs base (injection/secret/authz/traversal/exec/SSRF) |
 | `/skillify` | distill this session into a draft SKILL.md (write_skill saves it — not auto-written) |
 | `/spec-to-app` | build a verified React/Tailwind preview from a product spec |
+| `/speed` | set supported provider speed |
 | `/stats` | aggregate usage — sessions, turns, tool calls, tokens/cost (TUI) |
 | `/status` | kernel, provider, keys, store health |
 | `/stop` | graceful soft-stop — finish the current tool call, then end the turn with a summary |

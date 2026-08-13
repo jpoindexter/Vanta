@@ -1,23 +1,25 @@
 # Product acceptance
 
-Updated 2026-07-30. This record separates executed behavior from static tests,
-audited gaps, target contracts, and external setup gates. A prior receipt remains
-evidence for only its exact version, environment, path, and marker.
+Updated 2026-08-13. This record separates executed behavior from static tests,
+repository integration, release state, and external setup gates. A receipt is
+evidence only for its exact version, environment, path, and marker.
 
-The July 30 independent audit found release-blocking gaps in universal effect
-mediation, hook/control-plane isolation, credential environments, local API
-authentication, untrusted-content quarantine, receipt semantics, and dependency
-security. Documentation and roadmap changes do not fix those runtime gaps.
+The bounded `TRUST-02`, `UX-03`, `TRUST-04`, `TRUST-01`, and `OP-01` contracts
+now have retained executed receipts and are `shipped` in canonical
+`roadmap.json` for their documented local and signed macOS boundaries. The
+integrated source stack is still a draft repository change, not the public
+release. Cross-platform packages, live external accounts, external
+participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
 | Evidence | Observed result | Does not establish |
 |---|---|---|
-| Active-branch acceptance record | Executed paths below, including the newest TUI, Desktop, MSA, streaming-TTS, and startup evidence | Universal host/effect coverage or current market value |
-| Independent TypeScript audit | 1,499 files; 13,847 passed; 3 skipped | End-to-end safety, external providers, or packaged behavior |
-| Independent Rust audit | 70 passed | An unavoidable capability boundary across every effect path |
-| Standard dispatcher outage behavior | Failed closed where exercised | Mediation of hook, plugin, MCP, factory, scheduler, worker, or extension bypasses |
-| Independent production dependency audit | 14 high-severity advisories observed | Reachability or exploitability; each finding still needs disposition |
+| Bounded trust and continuity receipts | `TRUST-02`, `UX-03`, `TRUST-04`, `TRUST-01`, and `OP-01` executed on their named local/signed macOS paths | A public release, another operating system, or future code |
+| Checked effect inventory | 409 production sources, 1,074 primitive calls, eight explicit trusted adapters, zero unknown executors at the retained TRUST-01 head | Runtime-generated or subsequently added paths |
+| Exact-head local integration preflight | Recorded in `docs/repository-closure-2026-08-13.md` after execution | GitHub approval, merge, notarization, deployment, or customer value |
+| Runtime dependency audit | `vanta-ts` exact graph: zero npm advisories on 2026-08-13 | Zero-days or a future lockfile |
+| Documentation dependency audit | All fixable findings remediated; one unpatched build-time `image-size` advisory expands to 19 Docusaurus entries | An upstream fix that does not exist yet |
 
 ## Executed operator paths
 
@@ -69,10 +71,9 @@ The use-case catalog currently records 6 executed and 6 passed scenarios across 
 - Packaged performance proof: cold-start median plus per-sample hard ceiling, first-use, memory, CPU, and package-size budgets passed.
 - True-first-token proof: 40 live-provider samples passed baseline eligibility across CLI, TUI, gateway, and signed packaged Desktop; content-free receipts and per-stage p95 budgets are stored in `vanta-ts/scripts/fixtures/`.
 - Automatic compaction proof: real launcher, six TUI turns, automatic threshold, square-cell 25% phase, summary request, and resumed response passed.
-- Historical production npm audit receipt: 0 vulnerabilities for the recorded
-  run. This is superseded as a current claim by the July 30 audit observation of
-  14 high-severity advisories; reachability, remediation, and a fresh clean run
-  remain open.
+- Current integrated `vanta-ts` npm audit: 0 vulnerabilities on 2026-08-13.
+- Current documentation audit: all fixable findings updated; one unpatched
+  build-time `image-size` advisory is reported through 19 Docusaurus packages.
 - External `terminal-love` MCP: 94 tests passed and 0 production vulnerabilities after its Undici update.
 
 ## Release boundary
@@ -81,7 +82,7 @@ The public [v0.9.5 desktop artifact](https://github.com/jpoindexter/Vanta/releas
 
 The CLI/TUI visual answer is executed. The signed app's capture contracts are executed under automation, but a successful visual-model answer from that packaged bundle remains an external proof until macOS Screen Recording permission is granted to `studio.theft.vanta`. The clipboard proof exercises Electron's native clipboard bridge and the renderer paste path; it does not establish macOS Command-V keyboard delivery.
 
-Provider credentials, physical devices, and third-party accounts remain separate external gates. Run `vanta roadmap proof-status` for the eleven gates: one currently ready and ten pending.
+Provider credentials, physical devices, and third-party accounts remain separate external gates. The 2026-08-13 `vanta roadmap proof-status --json` run reports 0 of 11 external gates ready; no live-account work was attempted.
 
 ## Canonical lifecycle and authority contract
 
@@ -158,31 +159,25 @@ capabilities, signing material, protected audit/control state, trusted-device
 status, or safety-root/policy authority. The destination requires fresh account
 binding, review, and explicit reauthorization.
 
-## Explicit unresolved trust blockers
+## Current remaining boundaries
 
-1. Project hooks can convert project-state writes into unsandboxed execution.
-2. Hooks may use `shell: true` and inherit the host environment.
-3. Shell/code subprocesses may inherit secrets and read control files.
-4. `.vanta` control-plane and audit material remains agent-reachable.
-5. Some Desktop/API paths may lack mandatory authentication.
-6. Origin and local-boundary checks need exact validation.
-7. Plugin, MCP, hook, factory, scheduler, worker, and extension effects are not
-   universally brokered.
-8. Approvals are not fully bound to actor, account, normalized arguments,
-   target state, content, nonce, expiry, and one use.
-9. Gmail `to` and `subject` need CR/LF rejection before MIME construction and
-   authorization hashing.
-10. Gmail, Calendar, and Drive scopes must be separate and incremental.
-11. Life mutations need preconditions, idempotency, provider readback,
-    immutable IDs, and compensation where possible.
-12. External content is untrusted data, never authority.
-13. Completion and memory can still be laundered from polished narration.
-14. Memory needs provenance and cannot promote model inference to user fact.
-15. Factory/Git/self-repair needs isolated worktrees, scrubbed environments,
-    bounded diffs, frozen tests/evaluators, receipts, rollback, and
-    human-approved promotion, merge, and deployment.
-16. Dependency audit and full lint remain unresolved until independently rerun
-    and fixed.
+1. The consolidated source stack must pass its exact-head local preflight,
+   independent review, protected-path and secret checks, then receive the
+   repository's required human approval before merge.
+2. No new public Desktop artifact has been rebuilt, notarized, published, or
+   tested as a downloaded release from this source stack.
+3. Windows, Linux, Android, Docker, SSH, hosted backends, live messaging
+   accounts, and other third-party providers retain their own exact-path gates.
+4. `TRUST-03` (canonical capability envelope), `TRUST-05` (untrusted-content
+   quarantine), and `TRUST-06` (factory/self-repair production boundary) remain
+   dependency-ordered Horizon work; shipped cards do not promote them.
+5. `UX-04` remains the broader cross-host accessibility and first-run contract.
+6. `GROW-01` is the sole Next card. Manual interviews and bounded continuity
+   pilots are deferred; no paid research, outreach, or participant work is
+   active.
+7. The documentation toolchain retains one upstream `image-size` advisory with
+   no patched npm release. It is build-time on self-authored content and remains
+   visible until upstream ships a fix.
 
 No unattended high-consequence effect is accepted until exact authority,
 transaction integrity, verification, receipts, reversal or compensation,

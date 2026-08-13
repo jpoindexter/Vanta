@@ -6,12 +6,11 @@ sidebar_position: 1
 
 # Tools
 
-Vanta ships a large built-in catalog. Standard-dispatch tools call the Rust
-kernel before execution and fail closed when assessment is unavailable where
-that path has been exercised. The July 30 audit found secondary hook, plugin,
-MCP, factory, scheduler, worker, and extension effects that still need one
-authoritative gateway. The model sees a per-turn scoped subset of the catalog;
-`tool_search` can pull in the rest on demand.
+Vanta ships a large built-in catalog. Consequential tools and the checked
+secondary hosts enter one default-deny effect gateway before the Rust kernel;
+missing policy or journal state fails closed. The versioned inventory defines
+the executed coverage boundary. The model sees a per-turn scoped subset of the
+catalog; `tool_search` can pull in the rest on demand.
 
 ## By category
 
@@ -21,7 +20,7 @@ authoritative gateway. The model sees a per-turn scoped subset of the catalog;
 `write_file` writes freely in-repo and only into a configured writable zone out-of-repo; it runs the size gate on every TS write and reports violations so the agent self-corrects.
 
 ### Web & search
-`web_search` (automatic managed-provider routing with Brave-browser/Bing keyless fallback) · `web_fetch` (readable-content extraction) · `rss_read` · `reddit_read` · `cookie_import` (kernel-gated credential store, never echoed). DuckDuckGo adapters are explicit legacy options because they frequently bot-block agents.
+`web_search` (automatic managed-provider routing with Brave-browser/Bing keyless fallback) · `web_fetch` (readable-content extraction) · optional guarded Scrapling MCP fallback (`get` → browser `fetch` → `stealthy_fetch`) · `rss_read` · `reddit_read` · `cookie_import` (kernel-gated credential store, never echoed). DuckDuckGo adapters are explicit legacy options because they frequently bot-block agents.
 
 ### Browser, vision & voice
 `screenshot` · `browser_navigate` · `browser_extract` · `browser_act` (navigate/click/type/press/scroll with an approval-gated, masked dry-run preview for irreversible controls) · `describe_image` · `compare_vision` · `look_at_screen` · `look_at_camera` · `watch_video` · `transcribe` (audio → text) · `speak` (text → speech). `look_at_screen` gives the agent an explicit kernel-gated view of the current display; `/look` and the Desktop capture control add operator-selected area/window/display images to the next turn. Vision and voice route through a dedicated model when configured (`VANTA_VISION_MODEL`), so a text-only main model still has eyes and ears. See [Sight & screen context](./sight.md).
@@ -43,10 +42,10 @@ Large tool outputs are optionally compressed before they hit the context window 
 
 ## How a tool is gated
 
-Each standard tool exposes a `describeForSafety(args)` safety description. The
-standard loop asks the kernel to classify it; current work is replacing
-incomplete descriptions and secondary effect paths with a complete normalized
-action envelope. See [the agent loop](./agent-loop.md).
+Each consequential tool exposes a stable safety description. The shared gateway
+binds its effect kind, target, payload hash, scope, and operation ID before the
+kernel classifies it, then persists a content-free settlement receipt. See [the
+agent loop](./agent-loop.md).
 
 ## Adding your own
 

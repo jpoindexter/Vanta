@@ -20,25 +20,23 @@ Each receipt proves only its exact version, environment, path, and marker.
 Provider fixtures do not prove model judgment; source tests do not prove a
 signed package; adapter mocks do not prove an external service.
 
-## Current gaps
+## Current state
 
-The July 30 independent audit found release-blocking work in:
+The bounded `TRUST-02`, `UX-03`, `TRUST-04`, `TRUST-01`, and `OP-01` contracts
+are shipped in the canonical roadmap with retained receipts for their exact
+local and signed macOS boundaries. Together they cover protected control state,
+hostile local-API requests, child-environment isolation, one checked effect
+gateway, exact authority, crash/replay uncertainty, one typed completion
+contract, accessible interruption/re-entry, and one read-only operator spine.
 
-- hook and `.vanta` control-plane mediation;
-- subprocess credential and environment isolation;
-- protected audit/policy state;
-- mandatory local API authentication and exact-origin checks;
-- plugin, MCP, factory, scheduler, worker, and extension effect mediation;
-- exact approval and action-envelope binding;
-- untrusted-content quarantine;
-- one WorkItem/Run/Approval/Receipt completion contract;
-- memory provenance and unknown-effect reconciliation;
-- factory/Git/self-repair isolation and human-approved promotion;
-- dependency audit and full lint.
+This source stack is still awaiting repository integration and is not the
+public Desktop release. Cross-platform packages, live external accounts,
+external participants, and future effect paths remain separate proof gates.
+`GROW-01` is the sole Next card and no paid research or outreach is active.
 
-The audit also observed 14 high-severity production dependency advisories.
-Reachability and remediation require a fresh disposition; an older zero-advisory
-receipt is not current proof.
+The exact 2026-08-13 runtime dependency graph reports zero npm advisories. The
+static documentation toolchain retains one upstream `image-size` advisory with
+no patched release; npm reports it through 19 dependent Docusaurus packages.
 
 ## State and proof
 
@@ -46,15 +44,15 @@ The canonical migration contract uses exactly `draft`, `queued`, `running`,
 `waiting`, `needs human`,
 `stopped`, `failed`, `unverified`, and `verified`. `denied`, `expired`,
 `unknown`, and `compensated` are Action/Receipt dispositions, not WorkItem
-states. Assistant prose cannot create `verified`. The current correction adds a
-typed facade and evidence-derived tool receipts, but legacy task, autonomy,
-Desktop, gateway, scheduler, and worker stores remain to be reconciled before
-this can be called the deployed lifecycle across every host.
+states. Assistant prose cannot create `verified`. The shipped OP-01 facade
+projects legacy and canonical stores without changing legacy writers, and the
+shared host receipt boundary prevents narration from manufacturing verified
+completion.
 
 No unattended high-consequence effect is accepted until exact authority,
 transaction integrity, verification, receipts, reversal or compensation,
 review, revocation, and the real supported host path all pass.
 
 Full evidence, receipt boundaries, reproduction commands, universal-design
-acceptance, and the 16 explicit trust blockers live in
+acceptance, and remaining release/external-proof boundaries live in
 [`docs/product-acceptance.md`](https://github.com/jpoindexter/Vanta/blob/main/docs/product-acceptance.md).
