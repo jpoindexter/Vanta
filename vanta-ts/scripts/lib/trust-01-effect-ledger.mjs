@@ -11,7 +11,7 @@ const SURFACE_PATTERNS = {
   browser: /\.(?:goto|screenshot)\s*\(/g,
   filesystem: /\b(?:writeFile|appendFile|rm|rename|mkdir|copyFile|symlink|chmod)\s*\(/g,
   process: /\b(?:spawn|execFile|fork)\s*\(|\bawait\s+exec\s*\(/g,
-  network: /\b(?:fetch|googleFetch)\s*\(/g,
+  network: /\b(?:fetch|googleFetch)\s*\(|\bthis\.http\s*\(/g,
   provider: /\.(?:complete|stream)\s*\(/g,
   sensor: /\b(?:captureLook|captureFrame|recordAudio)\s*\(/g,
   "tool-dispatch": /\b[A-Za-z_$][\w$]*\.execute\s*\(/g,

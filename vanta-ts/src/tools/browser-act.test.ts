@@ -2,6 +2,10 @@ import { describe, it, expect, vi } from "vitest";
 import { browserActTool } from "./browser-act.js";
 import type { ToolContext } from "./types.js";
 
+vi.mock("./browser-act-run.js", () => ({
+  runActions: vi.fn(async () => ({ ok: true, output: "stubbed browser run" })),
+}));
+
 // Arg validation + the risky/unlisted-domain approval gate all run before any
 // playwright import or browser launch, so a stub ctx is sufficient — no
 // network/browser is touched in these cases.
@@ -69,8 +73,8 @@ describe("browserActTool safety gate", () => {
     process.env.VANTA_ALLOWED_DOMAINS = "example.com";
     try {
       const ctx = makeCtx(true);
-      // playwright-core may be absent in CI — either it runs (ok) or returns the
-      // install hint. Either way the approval gate must NOT have fired.
+      // The browser runner is mocked because this test owns only the approval
+      // boundary; browser launch and network behavior have separate coverage.
       await browserActTool.execute(
         {
           actions: [

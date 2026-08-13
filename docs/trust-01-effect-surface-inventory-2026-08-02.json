@@ -87,7 +87,7 @@
       "primitives": {
         "provider": 2
       },
-      "effectSha256": "fdc02e4d5cc6cc9cdc4a88a029754eeb1bfc1776a68bcf196f9992bba110ab64",
+      "effectSha256": "a5a70418416e010a05a5b24510c069db21a6e40c1c68d7f9faef75bd9fc83a82",
       "classification": "mediated-host",
       "actor": "Registered Vanta tool or bounded host adapter",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -1484,11 +1484,11 @@
     {
       "source": "src/desktop/handlers.ts",
       "primitives": {
-        "filesystem": 1,
+        "filesystem": 2,
         "network": 1,
         "provider": 1
       },
-      "effectSha256": "b43bc6e6d47dc908a01f42e30cd97880848ca4f80ab2730334da83f9ff543f87",
+      "effectSha256": "b08e9f82c03d590c33b0af7e6e2a197b650310e675d712ba50003e2e9fd72bb3",
       "classification": "mediated-host",
       "actor": "Registered Vanta tool or bounded host adapter",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -2356,7 +2356,7 @@
       "primitives": {
         "network": 5
       },
-      "effectSha256": "1b5eda9a20704225631abfb164b9fc233ee06a41cc8bb14cb19f3e1077a616c4",
+      "effectSha256": "efc736b4e25f8060f1794cf63bd2754fbc9731263c0e0e825d3c9c942092391c",
       "classification": "mediated-host",
       "actor": "Registered Vanta tool or bounded host adapter",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -3306,7 +3306,7 @@
       "primitives": {
         "filesystem": 2
       },
-      "effectSha256": "ce595f273198906bbd17366f4a4e8a671d085a3146186be444e497bba9bb7df1",
+      "effectSha256": "cd43c65cf7c1fa4302a48816a1178ab8e1d195ecde6a118ffa07f84fc24ee5d4",
       "classification": "trusted-infrastructure",
       "actor": "Vanta trusted infrastructure",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -4006,7 +4006,7 @@
       "primitives": {
         "provider": 1
       },
-      "effectSha256": "87c1f4e6ae938072247dbcbbacff87bde306be190875932fbe4eead223435fe0",
+      "effectSha256": "d9167f11e0da51e62db0b9908703c934a3159f92c4411fec2540958b2de0afc9",
       "classification": "trusted-infrastructure",
       "actor": "Vanta trusted infrastructure",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -4546,7 +4546,7 @@
       "primitives": {
         "process": 1
       },
-      "effectSha256": "ed9901906104bd28ef5d970ad61815568afdcdc682ae5cfd643634192ec509ad",
+      "effectSha256": "aac8e8aa3a37b2ea583757fbd98cf95c9fec9bfa2a69ebf9e7752f7d19ba3cf0",
       "classification": "mediated-adapter",
       "actor": "Registered Vanta tool or bounded host adapter",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -5900,7 +5900,7 @@
       "primitives": {
         "provider": 2
       },
-      "effectSha256": "d7fb60520e6735cd714edfe77ace3303997b6d2379e26d35d063275981f1c4b0",
+      "effectSha256": "680d64918050e8ebea1e7048d9adc1c6e466c4598bee8a621f129a02b604fa6b",
       "classification": "trusted-infrastructure",
       "actor": "Vanta trusted infrastructure",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -6128,7 +6128,7 @@
       "primitives": {
         "filesystem": 1
       },
-      "effectSha256": "967f1ed84dae0a64ab139d20a9a7891a2dee7823e4f4375ee620475013eb6282",
+      "effectSha256": "226abdfb89c505f0d2b23e9c577d841726d5eabbd95d135183bfdd0373d642e2",
       "classification": "trusted-infrastructure",
       "actor": "Vanta trusted infrastructure",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -6166,7 +6166,7 @@
       "primitives": {
         "provider": 1
       },
-      "effectSha256": "048ba95ef5b28055bb033e05e7593088580567d8b4f292b08007651a00c39953",
+      "effectSha256": "11467ec92c34ecabb937a3bf50cc05540850f1dbd1af84933d0b36002f897bdb",
       "classification": "trusted-infrastructure",
       "actor": "Vanta trusted infrastructure",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -6439,7 +6439,7 @@
       "primitives": {
         "filesystem": 11
       },
-      "effectSha256": "a041abb19aa6139452e1573b06ecb1a379dc348815585bbf82a9260c1153df6f",
+      "effectSha256": "f85e03f312185589b9cfd4fa654be9104ee08773100e36c4c01debdc00502dfe",
       "classification": "trusted-infrastructure",
       "actor": "Vanta trusted infrastructure",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -7603,7 +7603,7 @@
         "network": 1,
         "provider": 1
       },
-      "effectSha256": "a24d1a74dfc88ca3bd9615adad1a821313fe6b569fd12b53a0cccc92581b98e7",
+      "effectSha256": "3119c158082c365e516943d9770bc84c64333bc833691496711d9ce82f05d614",
       "classification": "mediated-tool",
       "actor": "Registered Vanta tool or bounded host adapter",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -7723,7 +7723,7 @@
       "primitives": {
         "provider": 1
       },
-      "effectSha256": "dfcd0d883d54bcc95bf2921a9a0ba0c7325622d8687bf82349f0cb0c90a33b5b",
+      "effectSha256": "ba233522a2144deed5762de9abb498215645b4d995ec60737dc6f19cc36c9170",
       "classification": "trusted-infrastructure",
       "actor": "Vanta trusted infrastructure",
       "account": "Local project or explicitly configured provider account named by the owning callsite",

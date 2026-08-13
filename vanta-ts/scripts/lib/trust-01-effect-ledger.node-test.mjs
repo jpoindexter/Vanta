@@ -43,11 +43,13 @@ test("surface mutation and hidden direct-dispatch patterns fail closed", async (
     await page.goto(url);
     await page.screenshot({ path });
     await provider.complete(messages, tools);
+    await this.http(url);
     await captureLook({ mode: "screen" });
   `);
   assert.deepEqual(inspected.primitives, {
     browser: 2,
     filesystem: 1,
+    network: 1,
     provider: 1,
     sensor: 1,
     "tool-dispatch": 2,
