@@ -90,6 +90,8 @@ async function dispatchRequest(req: RequestInbound, manager: SessionManager, tra
       transport.send(serializeError(req.id, RPC.METHOD_NOT_FOUND, `method not found: ${req.method}`));
       return;
     }
+    // ACP transport emits serialized JSON-RPC, not an HTML response body.
+    // nosemgrep: javascript.express.security.audit.xss.direct-response-write.direct-response-write
     transport.send(serializeResult(req.id, result));
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

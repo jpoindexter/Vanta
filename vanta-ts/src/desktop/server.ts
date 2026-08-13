@@ -147,6 +147,8 @@ const NATIVE_ORIGINS = new Set(["capacitor://localhost", "http://localhost", "ht
 export function applyCompanionCors(req: http.IncomingMessage, res: http.ServerResponse, pathname: string): boolean {
   const origin = req.headers.origin;
   if (!pathname.startsWith("/api/companion/") || typeof origin !== "string" || !NATIVE_ORIGINS.has(origin)) return false;
+  // The echoed value must be an exact member of the fixed native-origin set.
+  // nosemgrep: javascript.express.security.cors-misconfiguration.cors-misconfiguration
   res.setHeader("access-control-allow-origin", origin);
   res.setHeader("vary", "origin");
   res.setHeader("access-control-allow-headers", "authorization, content-type");
