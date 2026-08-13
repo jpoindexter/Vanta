@@ -119,4 +119,44 @@ describe("AskUserPrompt", () => {
     expect(cancelled.resolve).toHaveBeenCalledWith(null);
     cancelInst.unmount();
   });
+
+  it("returns arrow-key control to the choices after an Other answer advances", async () => {
+    const p = pending({
+      questions: [
+        {
+          header: "Access",
+          question: "Who can you reach?",
+          options: [
+            { label: "Customers", description: "Existing customers" },
+            { label: "Partners", description: "Existing partners" },
+          ],
+        },
+        {
+          header: "Scope",
+          question: "Which scope?",
+          options: [
+            { label: "Narrow", description: "Focused files" },
+            { label: "Full", description: "Whole suite" },
+          ],
+        },
+      ],
+    });
+    const inst = renderUi(h(AskUserPrompt, { pending: p, onDone: () => {} }));
+    await tick();
+    inst.input("\u001b[B");
+    inst.input("\u001b[B");
+    inst.input("\r");
+    await waitForFrame(inst, "Type your answer");
+    inst.input("No direct access");
+    inst.input("\r");
+    await waitForFrame(inst, "Scope 2/2");
+    inst.input("\u001b[B");
+    inst.input("\r");
+    await waitUntil(() => vi.mocked(p.resolve).mock.calls.length > 0);
+    expect(p.resolve).toHaveBeenCalledWith([
+      { header: "Access", selected: ["No direct access"] },
+      { header: "Scope", selected: ["Full"] },
+    ]);
+    inst.unmount();
+  });
 });

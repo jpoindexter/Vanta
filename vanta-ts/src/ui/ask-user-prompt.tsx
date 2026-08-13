@@ -60,6 +60,7 @@ export function AskUserPrompt(props: { pending: PendingQuestion; onDone: () => v
     if (questionIndex === props.pending.questions.length - 1) finish(nextAnswers);
     else {
       storeAnswers(nextAnswers);
+      storeOther(null);
       setQuestionIndex((index) => index + 1);
       moveCursor(0);
       setError("");

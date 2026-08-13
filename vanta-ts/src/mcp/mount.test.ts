@@ -2,7 +2,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { readMcpConfig, mcpToolToVantaTool, buildMcpChildEnv, resolveMcpStdioArgs } from "./mount.js";
+import {
+  readMcpConfig,
+  mcpToolToVantaTool,
+  buildMcpChildEnv,
+  resolveMcpStdioArgs,
+  validateScraplingToolArgs,
+} from "./mount.js";
 import type { ToolContext } from "../tools/types.js";
 
 const effectRoots: string[] = [];
@@ -148,6 +154,17 @@ describe("mcpToolToVantaTool", () => {
     expect(res.output).toContain("unknown");
   });
 
+  it("blocks a private Scrapling target before invoking the connector", async () => {
+    const callTool = vi.fn(async () => "should not run");
+    const tool = mcpToolToVantaTool({ callTool }, "scrapling", { name: "get" });
+
+    const res = await tool.execute({ url: "http://127.0.0.1:7788/status" }, await effectContext());
+
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("blocked");
+    expect(callTool).not.toHaveBeenCalled();
+  });
+
   it("deduplicates one provider call id without blocking a later intentional call", async () => {
     const callTool = vi.fn(async () => "sent");
     const tool = mcpToolToVantaTool({ callTool }, "mail", { name: "send" });
@@ -162,6 +179,48 @@ describe("mcpToolToVantaTool", () => {
     expect(replay.ok).toBe(true);
     expect(second.ok).toBe(true);
     expect(callTool).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("validateScraplingToolArgs", () => {
+  const publicOnly = vi.fn(async (url: string) =>
+    url.includes("127.0.0.1")
+      ? { ok: false as const, error: "SSRF guard: blocked private/loopback address" }
+      : { ok: true as const },
+  );
+
+  it("blocks a private Scrapling target before the MCP call", async () => {
+    const error = await validateScraplingToolArgs(
+      "scrapling",
+      "get",
+      { url: "http://127.0.0.1:7788/status" },
+      publicOnly,
+    );
+    expect(error).toContain("private/loopback");
+  });
+
+  it("checks each URL and caps bulk scraping", async () => {
+    await expect(validateScraplingToolArgs(
+      "scrapling",
+      "bulk_get",
+      { urls: Array.from({ length: 21 }, (_, i) => `https://example.com/${i}`) },
+      publicOnly,
+    )).resolves.toContain("at most 20");
+  });
+
+  it("allows a public single-page target and ignores other MCP servers", async () => {
+    await expect(validateScraplingToolArgs(
+      "scrapling",
+      "fetch",
+      { url: "https://example.com" },
+      publicOnly,
+    )).resolves.toBeNull();
+    await expect(validateScraplingToolArgs(
+      "other",
+      "fetch",
+      { url: "http://127.0.0.1" },
+      publicOnly,
+    )).resolves.toBeNull();
   });
 });
 

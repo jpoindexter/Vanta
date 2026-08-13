@@ -18,6 +18,7 @@ import type { OutputFormat } from "./commands.js";
 import { consumeRestartHandoff } from "../repl/restart-handoff.js";
 import { loadSession } from "../sessions/store.js";
 import type { Session } from "../sessions/store.js";
+import { resolveVantaHome } from "../store/home.js";
 
 export function findRepoRoot(env: NodeJS.ProcessEnv = process.env): string {
   const selectedProject = env.VANTA_PROJECT_ROOT?.trim();
@@ -31,6 +32,8 @@ export function findRepoRoot(env: NodeJS.ProcessEnv = process.env): string {
 }
 
 export function loadEnv(repoRoot: string): void {
+  // Node's loadEnvFile only fills keys that are not already present, so this
+  // order gives ambient > project > worktree > persistent-home precedence.
   try {
     process.loadEnvFile(join(repoRoot, ".vanta", ".env"));
   } catch {
@@ -40,6 +43,11 @@ export function loadEnv(repoRoot: string): void {
     process.loadEnvFile(join(repoRoot, "vanta-ts", ".env"));
   } catch {
     // no .env file — rely on the ambient environment
+  }
+  try {
+    process.loadEnvFile(join(resolveVantaHome(process.env), ".env"));
+  } catch {
+    // No persistent fallback yet — a genuinely fresh install may run setup.
   }
   mirrorLegacyEnv();
 }

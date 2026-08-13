@@ -57,6 +57,15 @@ export const MCP_CATALOG: McpCatalogEntry[] = [
     docsUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/fetch",
   },
   {
+    name: "scrapling",
+    description: "Local open-source adaptive scraper: HTTP first, browser or stealth fallback.",
+    command: "scrapling",
+    args: ["mcp"],
+    defaultTools: ["get", "fetch", "stealthy_fetch"],
+    optInTools: ["bulk_get", "bulk_fetch", "bulk_stealthy_fetch"],
+    docsUrl: "https://scrapling.readthedocs.io/en/latest/ai/mcp-server.html",
+  },
+  {
     name: "homeassistant",
     description: "Home Assistant via its built-in MCP server and local mcp-proxy.",
     command: "mcp-proxy",

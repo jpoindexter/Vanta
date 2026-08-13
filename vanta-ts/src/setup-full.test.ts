@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 // Mock the heavy steps so the orchestration is testable without prompts/IO.
-vi.mock("./setup.js", () => ({ runSetup: vi.fn(async () => true), envPath: vi.fn(() => "/nonexistent/.env"), askLine: vi.fn(async () => ""), setEnv: vi.fn(async () => {}) }));
+vi.mock("./setup.js", () => ({ runSetup: vi.fn(async () => true), envPath: vi.fn((root: string) => join(root, "vanta-ts", ".env")), askLine: vi.fn(async () => ""), setEnv: vi.fn(async () => {}) }));
 vi.mock("./setup-messaging.js", () => ({ runMessagingSetup: vi.fn(async () => true) }));
 // the capability step dynamic-imports these — stub them so runFullSetup tests do
 // no real brew/pane IO (the logic itself is covered in setup/capabilities.test.ts)
@@ -33,6 +33,7 @@ import { runMessagingSetup } from "./setup-messaging.js";
 import { writeRegion } from "./brain/store.js";
 import { select } from "./term/select.js";
 import { probeProvider, runGoogleStep, probeMcp, probeMessaging } from "./setup/assistant.js";
+import { gatherCapabilities } from "./repl/health-cmd.js";
 
 const mRunSetup = vi.mocked(runSetup);
 const mEnvPath = vi.mocked(envPath);
@@ -44,6 +45,7 @@ const mProbeProvider = vi.mocked(probeProvider);
 const mGoogle = vi.mocked(runGoogleStep);
 const mMcp = vi.mocked(probeMcp);
 const mProbeMessaging = vi.mocked(probeMessaging);
+const mGatherCapabilities = vi.mocked(gatherCapabilities);
 const mkEnv = (o: Record<string, string>) => o as NodeJS.ProcessEnv;
 
 beforeEach(() => {
@@ -127,6 +129,10 @@ describe("runFullSetup", () => {
       });
       expect(mGoogle).toHaveBeenCalledWith(expect.objectContaining({
         env: expect.objectContaining({ VANTA_PROVIDER: "codex", VANTA_MODEL: "gpt-5.6-luna" }),
+      }));
+      expect(mGatherCapabilities).toHaveBeenCalledWith(expect.objectContaining({
+        VANTA_PROVIDER: "codex",
+        VANTA_MODEL: "gpt-5.6-luna",
       }));
     } finally {
       if (previousProvider === undefined) delete process.env.VANTA_PROVIDER;

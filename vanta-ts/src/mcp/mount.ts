@@ -13,6 +13,7 @@ import {
   extractAuthConfig,
   mcpTrustDecisionKey,
   resolveMcpStdioArgs,
+  validateScraplingToolArgs,
   type ServerSpec,
   type McpTrust,
 } from "./mount-config.js";
@@ -39,6 +40,7 @@ export {
   extractAuthConfig,
   mcpTrustDecisionKey,
   resolveMcpStdioArgs,
+  validateScraplingToolArgs,
   type McpConfig,
   type McpTrust,
 } from "./mount-config.js";

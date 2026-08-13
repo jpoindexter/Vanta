@@ -276,7 +276,10 @@ export async function executeWithRetry(
   const budget = resolveToolRetries();
   for (let attempt = 1; attempt <= budget && shouldRetryTool(call.name, res.ok, res.output); attempt++) {
     deps.onText?.(`  ↻ ${call.name} hit a transient failure — retry ${attempt}/${budget}`);
-    res = await executeToolEffect(call.name, call.arguments, tool, ctx);
+    const retryCtx = ctx.effectCallId
+      ? { ...ctx, effectCallId: `${ctx.effectCallId}:retry-${attempt}` }
+      : ctx;
+    res = await executeToolEffect(call.name, call.arguments, tool, retryCtx);
   }
 
   return res;

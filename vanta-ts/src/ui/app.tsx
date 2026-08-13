@@ -115,7 +115,7 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
     app.exit();
   };
   const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit, setComposerAnchor, setVim, requestSetup });
-  const { overlay, openOverlay, closeOverlay, selectRow } = useOverlay({ setup: props.setup, repoRoot: props.repoRoot, runSlash, getContext: () => ctxSnapshot(props.setup, convoRef.current, replStateRef.current) });
+  const { overlay, openOverlay, closeOverlay, selectRow, applyModelPick, switchProviderFromPick } = useOverlay({ setup: props.setup, repoRoot: props.repoRoot, runSlash, getContext: () => ctxSnapshot(props.setup, convoRef.current, replStateRef.current) });
   const openGlobalSearch = (): void => {
     void listSessions(process.env).then(async (metas) => {
       const loaded = await Promise.all(metas.map((m) => loadSession(m.id, process.env)));
@@ -147,6 +147,12 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
   };
   const route = buildSubmitRoute({ runSlash, send, openOverlay, openGlobalSearch, busy: state.busy, setup: props.setup, repoRoot: props.repoRoot, dispatch, detachBackgroundResponse });
   const onSubmit = (text: string): void => { setTranscriptSelection(null); setHistory((h) => [...h, text]); route(text); };
+  const editQueued = (index: number): string | undefined => {
+    const text = state.queued[index];
+    if (text === undefined) return undefined;
+    dispatch({ t: "dequeueAt", index });
+    return text;
+  };
   const tick = useBusyTick(state.busy);
   const skillMatches = useSkillMatches(); const channels = useSlackChannels();
   useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
@@ -184,7 +190,7 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
           <TranscriptSelectionPanel entries={state.entries} selection={transcriptSelection} />
           {traceOpen
             ? <TraceEvidencePanel entries={state.entries} />
-            : <LiveBody quickOpen={quickOpen} globalSearch={globalSearch} messageActions={messageActions} searchSessions={searchSessions} entries={state.entries} overlay={overlay} pending={pending} inputModal={Boolean(pendingQuestion)} mode={mode} focus={focus} todos={state.todos} files={files} history={history} skills={skillMatches} channels={channels} vim={vimEnabled} promptSuggestions={promptSuggestionsVisible ? state.promptSuggestions : []} onQuickActivate={(c) => { setQuickOpen(false); runSlash(c); }} onQuickClose={() => setQuickOpen(false)} onSearchSelect={selectSearchHit} onSearchClose={() => setGlobalSearch(false)} onMessageRetry={onSubmit} onMessageBranch={() => runSlash("/fork")} onMessageNote={(text) => dispatch({ t: "note", text })} onMessageClose={() => setMessageActions(false)} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />}
+            : <LiveBody quickOpen={quickOpen} globalSearch={globalSearch} messageActions={messageActions} searchSessions={searchSessions} entries={state.entries} overlay={overlay} pending={pending} inputModal={Boolean(pendingQuestion)} mode={mode} focus={focus} todos={state.todos} queued={state.queued} onEditQueued={editQueued} files={files} history={history} skills={skillMatches} channels={channels} vim={vimEnabled} promptSuggestions={promptSuggestionsVisible ? state.promptSuggestions : []} onQuickActivate={(c) => { setQuickOpen(false); runSlash(c); }} onQuickClose={() => setQuickOpen(false)} onSearchSelect={selectSearchHit} onSearchClose={() => setGlobalSearch(false)} onMessageRetry={onSubmit} onMessageBranch={() => runSlash("/fork")} onMessageNote={(text) => dispatch({ t: "note", text })} onMessageClose={() => setMessageActions(false)} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onApplyModelPick={applyModelPick} onSwitchProvider={switchProviderFromPick} onClose={closeOverlay} />}
           {!pending && !pendingQuestion && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} serviceTier={replStateRef.current.serviceTier ?? props.setup.serviceTier} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={replStateRef.current.activeGoal} mcp={mcp} elapsed={elapsed} agents={agents} rich={rich} /> : null}
         </PinnedRegion>
     </Box>

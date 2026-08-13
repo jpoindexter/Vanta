@@ -11,6 +11,7 @@ import {
   validateTelegramAllowlist,
   validateTelegramToken,
 } from "./setup-messaging.js";
+import { promptSecret } from "./setup.js";
 
 describe("buildMessagingEnv", () => {
   it("writes the secret env for telegram", () => {
@@ -79,6 +80,24 @@ describe("Telegram setup validation", () => {
   });
 });
 
+describe("secret prompt output", () => {
+  it("does not echo the answer through the readline output stream", async () => {
+    const writes: string[] = [];
+    const output = { write: (chunk: unknown) => { writes.push(String(chunk)); return true; } };
+    const rl = {
+      output,
+      question: async (query: string) => {
+        output.write(query);
+        await Promise.resolve();
+        output.write("secret-value");
+        return "secret-value";
+      },
+    } as never;
+    await expect(promptSecret(rl, "Token: ")).resolves.toBe("secret-value");
+    expect(writes).toEqual(["Token: "]);
+  });
+});
+
 describe("renderMessagingMenu", () => {
   it("tags telegram configured when its token is present, available when not", () => {
     expect(renderMessagingMenu({ VANTA_TELEGRAM_TOKEN: "x" })).toMatch(/Telegram\s+\[configured\]/);
@@ -106,5 +125,8 @@ describe("renderSetupSteps", () => {
     const out = renderSetupSteps(messagingPlatformById("telegram")!);
     expect(out).toMatch(/1\. Open @BotFather/);
     expect(out).toMatch(/t\.me\/BotFather/);
+    expect(out).toMatch(/numeric Telegram user ID/i);
+    expect(out).toMatch(/privacy mode/i);
+    expect(out).toMatch(/revoke/i);
   });
 });

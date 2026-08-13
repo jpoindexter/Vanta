@@ -38,6 +38,17 @@ describe("catalog", () => {
     expect(catalogEntry("box-remote-mcp")).toMatchObject({ url: "https://mcp.box.com", tokenEnv: "VANTA_BOX_MCP_TOKEN" });
     expect(catalogEntry("atlassian-rovo-mcp")).toMatchObject({ url: "https://mcp.atlassian.com/v1/mcp/authv2", tokenEnv: "VANTA_ATLASSIAN_ROVO_MCP_TOKEN" });
   });
+
+  it("offers Scrapling as a local scraper with bulk work explicitly opt-in", () => {
+    const scrapling = catalogEntry("scrapling");
+    expect(scrapling).toMatchObject({
+      command: "scrapling",
+      args: ["mcp"],
+      defaultTools: ["get", "fetch", "stealthy_fetch"],
+      optInTools: ["bulk_get", "bulk_fetch", "bulk_stealthy_fetch"],
+    });
+    expect(scrapling?.docsUrl).toContain("scrapling.readthedocs.io");
+  });
 });
 
 describe("buildInstallSpec", () => {
@@ -80,6 +91,17 @@ describe("buildInstallSpec", () => {
     const r = buildInstallSpec(catalogEntry("box-remote-mcp")!);
     expect(r.ok).toBe(true);
     if (r.ok) expect(r.spec).toMatchObject({ env: { VANTA_BOX_MCP_TOKEN: "${VANTA_BOX_MCP_TOKEN}" }, token: "${VANTA_BOX_MCP_TOKEN}" });
+  });
+
+  it("keeps Scrapling bulk scraping out of the default install", () => {
+    const scrapling = catalogEntry("scrapling")!;
+    const defaults = buildInstallSpec(scrapling);
+    expect(defaults.ok).toBe(true);
+    if (defaults.ok) expect(defaults.spec.tools).not.toContain("bulk_get");
+
+    const optedIn = buildInstallSpec(scrapling, ["bulk_get"]);
+    expect(optedIn.ok).toBe(true);
+    if (optedIn.ok) expect(optedIn.spec.tools).toContain("bulk_get");
   });
 });
 

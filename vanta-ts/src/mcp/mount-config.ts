@@ -11,6 +11,7 @@ import {
   stableEffectId,
 } from "../effects/execute-effect.js";
 import { effectGateFromToolContext, effectOperationKey } from "../effects/gate-context.js";
+import { assertPublicUrl, type GuardResult } from "../net/ssrf-guard.js";
 import type { TrustConfirmer } from "../settings/trust-gate.js";
 import type { McpAuthConfig } from "./auth-flow.js";
 
@@ -133,6 +134,43 @@ function toolName(server: string, tool: string): string {
   return `mcp_${server}_${tool}`.replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
+const SCRAPLING_SINGLE_TOOLS = new Set(["get", "fetch", "stealthy_fetch"]);
+const SCRAPLING_BULK_TOOLS = new Set(["bulk_get", "bulk_fetch", "bulk_stealthy_fetch"]);
+const MAX_SCRAPLING_BULK_URLS = 20;
+type ScraplingUrlGuard = (url: string) => Promise<GuardResult>;
+
+function optionalScraplingNetworkTargets(args: Record<string, unknown>): string[] {
+  const proxy = args.proxy;
+  const proxyServer = proxy && typeof proxy === "object"
+    ? (proxy as Record<string, unknown>).server
+    : proxy;
+  return [args.cdp_url, proxyServer].filter((value): value is string => typeof value === "string" && value.length > 0);
+}
+
+/** Apply Vanta's public-network boundary before Scrapling receives any target. */
+export async function validateScraplingToolArgs(
+  server: string,
+  tool: string,
+  args: Record<string, unknown>,
+  guard: ScraplingUrlGuard = assertPublicUrl,
+): Promise<string | null> {
+  if (server !== "scrapling") return null;
+  const bulk = SCRAPLING_BULK_TOOLS.has(tool);
+  if (!bulk && !SCRAPLING_SINGLE_TOOLS.has(tool)) return `unsupported Scrapling tool: ${tool}`;
+  const urls = bulk ? args.urls : [args.url];
+  if (!Array.isArray(urls) || urls.length === 0 || urls.some((url) => typeof url !== "string")) {
+    return bulk ? "Scrapling bulk tools need a non-empty urls array" : "Scrapling tools need a url";
+  }
+  if (bulk && urls.length > MAX_SCRAPLING_BULK_URLS) {
+    return `Scrapling bulk tools accept at most ${MAX_SCRAPLING_BULK_URLS} URLs per call`;
+  }
+  for (const url of [...(urls as string[]), ...optionalScraplingNetworkTargets(args)]) {
+    const result = await guard(url);
+    if (!result.ok) return result.error;
+  }
+  return null;
+}
+
 /** Build an Vanta Tool that proxies to an MCP server tool. */
 export function mcpToolToVantaTool(
   client: Pick<McpClient, "callTool">,
@@ -156,6 +194,14 @@ export function mcpToolToVantaTool(
     // like any other). Truncated to keep content keywords from false-triggering.
     describeForSafety: (args) => `mcp ${server} ${def.name} ${JSON.stringify(args).slice(0, 200)}`,
     async execute(args, ctx) {
+      const blocked = await validateScraplingToolArgs(server, def.name, args);
+      if (blocked) {
+        return {
+          ok: false,
+          output: `mcp ${server}.${def.name} blocked: ${blocked}`,
+          effectDisposition: "denied",
+        };
+      }
       const hash = payloadSha256(JSON.stringify(args));
       const seed = {
         host: `mcp:${server}`,

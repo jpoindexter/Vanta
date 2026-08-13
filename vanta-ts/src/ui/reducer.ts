@@ -19,6 +19,7 @@ export type Action =
   | { t: "todos"; items: TodoItem[] }
   | { t: "enqueue"; text: string }
   | { t: "dequeue" }
+  | { t: "dequeueAt"; index: number }
   | { t: "detachResponse"; text: string }
   | { t: "thinkingDelta"; d: string }
   | { t: "compacting"; active: boolean; progress?: number }
@@ -141,6 +142,8 @@ function reduceAux(state: UiState, a: Action): UiState {
       return { ...state, queued: [...state.queued, a.text] };
     case "dequeue":
       return { ...state, queued: state.queued.slice(1) };
+    case "dequeueAt":
+      return { ...state, queued: state.queued.filter((_, index) => index !== a.index) };
     case "detachResponse": {
       const s = flush(state);
       return {

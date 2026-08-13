@@ -52,7 +52,7 @@ describe("ComposerView — paste pill", () => {
     const inst = renderUi(baseView({
       value: "line1\nline2\nline3\nline4",
       cursor: 0,
-      pill: { count: 1, lines: 4 },
+      pill: { count: 1, lines: 4, start: 0, end: 23 },
     }));
     await tick();
     const frame = inst.lastFrame() ?? "";
@@ -65,7 +65,7 @@ describe("ComposerView — paste pill", () => {
     const inst = renderUi(baseView({
       value: "a\nb\nc\nd\ne",
       cursor: 0,
-      pill: { count: 3, lines: 5 },
+      pill: { count: 3, lines: 5, start: 0, end: 9 },
     }));
     await tick();
     expect(inst.lastFrame()).toContain("Pasted text #3 +5 lines");
@@ -90,6 +90,24 @@ describe("Composer — long paste collapses to a pill even with newlines strippe
     inst.input("a normal short message");
     await waitForFrame(inst, "a normal short message");
     expect(inst.lastFrame()).not.toContain("Pasted text");
+    inst.unmount();
+  });
+
+  it("keeps text typed after a collapsed paste visible and submits the complete buffer", async () => {
+    const onSubmit = vi.fn();
+    const inst = renderUi(h(Composer, { focused: true, onSubmit, placeholder: "Ask", files: [], history: [] }));
+    await tick();
+    const pasted = "one\ntwo\nthree\nfour\nfive";
+    inst.input(`\x1b[200~${pasted}\x1b[201~`);
+    await waitForFrame(inst, "Pasted text");
+
+    inst.input(" explain this");
+    await waitForFrame(inst, "explain this");
+    expect(inst.lastFrame()).toContain("Pasted text #1 +5 lines");
+
+    inst.input("\r");
+    await waitUntil(() => onSubmit.mock.calls.length > 0);
+    expect(onSubmit).toHaveBeenCalledWith(`${pasted} explain this`);
     inst.unmount();
   });
 });

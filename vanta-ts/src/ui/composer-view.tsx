@@ -8,6 +8,7 @@ import { ChannelPalette } from "./channel-palette.js";
 import { matchSlash } from "./slash.js";
 import { useBlink } from "./use-blink.js";
 import { selEmpty, selRange, type Sel } from "./selection.js";
+import type { PastePill } from "./composer-input.js";
 
 // Pure render layer for the composer — palettes + the bordered input line.
 // Split out of composer.tsx (size gate) so the stateful Composer stays small.
@@ -23,7 +24,7 @@ export function ComposerView(props: {
   cursor: number;
   selection?: Sel | null;
   placeholder: string;
-  pill?: { count: number; lines: number };
+  pill?: PastePill;
   ghost?: string;
   vimMode?: "normal" | "insert" | "visual";
 }): ReactElement {
@@ -42,7 +43,7 @@ export function ComposerView(props: {
         {props.value.length === 0
           ? <Text><Text inverse={blink}> </Text><Text dimColor>{props.placeholder}</Text></Text>
           : props.pill
-            ? <PastedTextPill count={props.pill.count} lines={props.pill.lines} blink={blink} />
+            ? <CollapsedPasteText value={props.value} cursor={props.cursor} selection={props.selection} pill={props.pill} blink={blink} ghost={props.ghost} />
             : <CursorText value={props.value} cursor={props.cursor} selection={props.selection} blink={blink} ghost={props.ghost} />}
       </Box>
     </Box>
@@ -57,13 +58,41 @@ function VimTag({ mode }: { mode?: "normal" | "insert" | "visual" }): ReactEleme
   return <Text color={mode === "insert" ? undefined : "yellow"} dimColor={mode === "insert"}>{VIM_TAG[mode]}{" "}</Text>;
 }
 
-function PastedTextPill({ count, lines, blink }: { count: number; lines: number; blink: boolean }): ReactElement {
+function PastedTextPill({ count, lines }: { count: number; lines: number }): ReactElement {
   return (
     <Text>
       <Text>{"["}</Text>
       <Text>Pasted text #{count} +{lines} lines</Text>
       <Text>{"]"}</Text>
-      <Text inverse={blink}>{" "}</Text>
+    </Text>
+  );
+}
+
+function CollapsedPasteText(props: {
+  value: string; cursor: number; selection?: Sel | null; pill: PastePill; blink: boolean; ghost?: string;
+}): ReactElement {
+  const { value, cursor, selection, pill, blink, ghost } = props;
+  // A selection or caret inside the paste means the user is inspecting/editing
+  // that text; expand it rather than hiding the active editing target.
+  if (!selEmpty(selection ?? null) || (cursor > pill.start && cursor < pill.end)) {
+    return <CursorText value={value} cursor={cursor} selection={selection} blink={blink} ghost={ghost} />;
+  }
+  const prefix = value.slice(0, pill.start);
+  const suffix = value.slice(pill.end);
+  if (cursor <= pill.start) {
+    return (
+      <Text>
+        <CursorText value={prefix} cursor={cursor} blink={blink} />
+        <PastedTextPill count={pill.count} lines={pill.lines} />
+        {suffix}
+      </Text>
+    );
+  }
+  return (
+    <Text>
+      {prefix}
+      <PastedTextPill count={pill.count} lines={pill.lines} />
+      <CursorText value={suffix} cursor={cursor - pill.end} blink={blink} ghost={ghost} />
     </Text>
   );
 }

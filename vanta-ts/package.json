@@ -17,6 +17,7 @@
     "startup:compile": "node scripts/ensure-startup-compile.mjs",
     "tui:tasks:proof": "node scripts/tui-live-task-checklist-proof.mjs",
     "tui:questions:proof": "node scripts/tui-question-approval-proof.mjs",
+    "tui:question-navigation:proof": "node scripts/tui-question-navigation-proof.mjs",
     "tui:summary:proof": "node scripts/tui-turn-summary-proof.mjs",
     "tui:output:proof": "node scripts/tui-output-hierarchy-proof.mjs",
     "tui:completion:proof": "node scripts/tui-task-completion-proof.mjs",

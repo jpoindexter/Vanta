@@ -1,11 +1,56 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { compressOutput } from "./dispatch-helpers.js";
+import { compressOutput, executeWithRetry } from "./dispatch-helpers.js";
 import { retrieveOriginal } from "../compress/store.js";
 import { undensify, densifySearchResult } from "../compress/search-densify.js";
 import { estTokens } from "winnow";
+import type { AgentDeps } from "./agent-types.js";
+import type { Tool, ToolContext } from "../tools/types.js";
+import type { ToolCall } from "../types.js";
+
+describe("executeWithRetry — effect identity", () => {
+  let root: string;
+  const previousRetries = process.env.VANTA_TOOL_RETRIES;
+
+  beforeEach(async () => {
+    root = await mkdtemp(join(tmpdir(), "vanta-tool-retry-effect-"));
+    process.env.VANTA_TOOL_RETRIES = "1";
+  });
+
+  afterEach(async () => {
+    if (previousRetries === undefined) delete process.env.VANTA_TOOL_RETRIES;
+    else process.env.VANTA_TOOL_RETRIES = previousRetries;
+    await rm(root, { recursive: true, force: true });
+  });
+
+  it("gives a safe read retry a fresh effect id instead of replay-blocking it", async () => {
+    const execute = vi.fn()
+      .mockResolvedValueOnce({ ok: false, output: "fetch failed: ECONNRESET" })
+      .mockResolvedValueOnce({ ok: true, output: "page contents" });
+    const tool: Tool = {
+      schema: { name: "web_fetch", description: "fetch", parameters: { type: "object", properties: {} } },
+      describeForSafety: () => "fetch url https://example.com",
+      execute,
+    };
+    const call = { id: "call-1", name: "web_fetch", arguments: { url: "https://example.com" } } as ToolCall;
+    const deps = { onText: vi.fn() } as unknown as AgentDeps;
+    const ctx: ToolContext = {
+      root,
+      sessionId: "session-1",
+      effectCallId: call.id,
+      effectJournalOwnerId: call.id,
+      safety: { assess: vi.fn(async () => ({ risk: "allow" as const, reason: "safe read" })) } as unknown as ToolContext["safety"],
+      requestApproval: vi.fn(async () => true),
+    };
+
+    const result = await executeWithRetry(call, deps, ctx, tool);
+
+    expect(result).toMatchObject({ ok: true, output: "page contents" });
+    expect(execute).toHaveBeenCalledTimes(2);
+  });
+});
 
 // TOON view for read_file on JSON object-array files (lossless; original recoverable).
 describe("compressOutput — TOON for read_file JSON files", () => {

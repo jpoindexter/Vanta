@@ -42,7 +42,7 @@ async function handleRegionAction(a: ParsedArgs): Promise<ToolResult> {
 }
 
 async function handleRemember(a: ParsedArgs): Promise<ToolResult> {
-  if (!a.region || !isBrainRegion(a.region)) {
+  if (a.region && !isBrainRegion(a.region)) {
     return { ok: false, output: `remember needs a valid region. Use action=list to see them.` };
   }
   if (!a.content?.trim()) return { ok: false, output: "remember needs content" };
@@ -82,13 +82,13 @@ export const brainTool: Tool = {
       "learned (preferred — non-destructive), replace to rewrite a region. Update user_model/" +
       "semantic/episodic as you learn about the user and world; reflections after mistakes; " +
       "identity/personality as it forms. For discrete memories use remember (typed entry with " +
-      "strength + optional forget_after decay) and recall (top memories by strength×recency; " +
+      "strength + optional forget_after decay; omitted region defaults to semantic) and recall (top memories by strength×recency; " +
       "recalling reinforces them).",
     parameters: {
       type: "object",
       properties: {
         action: { type: "string", enum: ["read", "append", "replace", "list", "remember", "recall", "route"], description: "What to do" },
-        region: { type: "string", description: "Brain region (see list). Required except for list/recall." },
+        region: { type: "string", description: "Brain region (see list). Required for read/append/replace; remember defaults to semantic." },
         content: { type: "string", description: "Text for append/replace/remember." },
         query: { type: "string", description: "recall: substring filter over memories." },
         entry_type: { type: "string", enum: ["fact", "skill", "preference", "pattern", "insight", "plan", "emotion"], description: "remember: kind of memory (default fact)." },

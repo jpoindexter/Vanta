@@ -100,7 +100,7 @@ export async function runFullSetup(repoRoot: string, env: NodeJS.ProcessEnv = pr
   loadFreshEnv(repoRoot, env);
 
   console.log(sectionHeader("Google OAuth"));
-  printProbe("Google", await runGoogleStep({ env }), "set VANTA_GOOGLE_CLIENT_ID/SECRET, then authorize");
+  printProbe("Google Gmail", await runGoogleStep({ env }), "run `vanta auth google gmail --client <client_secret.json>`");
 
   console.log(sectionHeader("MCP servers"));
   printProbe("MCP", await probeMcp({ env, cwd: repoRoot }), "add .mcp.json or VANTA_MCP_SERVERS");
