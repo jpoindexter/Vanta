@@ -13,6 +13,7 @@ import {
   buildTtftReceipt,
   evaluateTtftBudgets,
   sampleMetrics,
+  settleBefore,
   ttftFailureMessage,
 } from "./lib/ttft-performance.mjs";
 
@@ -187,6 +188,13 @@ async function runDesktopSample({ paths, profileMode, sampleIndex }) {
     },
   });
   const appProcess = app.process();
+  const processLog = [];
+  const captureLog = (stream, label) => stream?.on("data", (chunk) => {
+    processLog.push(`${label}: ${String(chunk).trim()}`);
+    if (processLog.length > 40) processLog.shift();
+  });
+  captureLog(appProcess?.stdout, "stdout");
+  captureLog(appProcess?.stderr, "stderr");
   try {
     const page = await app.firstWindow();
     page.setDefaultTimeout(180_000);
@@ -207,10 +215,18 @@ async function runDesktopSample({ paths, profileMode, sampleIndex }) {
     }), "§");
     const submittedAtMs = Date.now();
     await page.locator("#vanta-composer").press("Enter");
-    const firstPaintedAtMs = await firstPaint;
+    const firstPaintedAtMs = await settleBefore(firstPaint, 180_000, "desktop first painted response token");
     const trace = await waitForTrace(tracePath, 180_000);
     const timestamps = timestampsFromTrace({ processStartedAtMs, interactiveAtMs, submittedAtMs, firstPaintedAtMs }, trace);
     return makeSample("desktop", profileMode, sampleIndex, timestamps, "rendered_dom_animation_frame");
+  } catch (error) {
+    const detail = processLog.filter(Boolean).join("\n").slice(-8_000);
+    throw new Error(
+      `desktop ${profileMode} sample ${sampleIndex} failed`
+        + `${appProcess ? ` (exit=${appProcess.exitCode ?? "running"}, signal=${appProcess.signalCode ?? "none"})` : ""}`
+        + `${detail ? `\n${detail}` : ""}\n${error instanceof Error ? error.message : String(error)}`,
+      { cause: error },
+    );
   } finally {
     await Promise.race([app.close(), delay(3_000)]);
     if (appProcess && !appProcess.killed) appProcess.kill("SIGKILL");
