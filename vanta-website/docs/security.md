@@ -91,9 +91,9 @@ monotonic through the exercised gate chain; the JSON parser was bounded; the
 reviewed paths found no prototype pollution or ReDoS; the kernel was
 zero-dependency; and the exercised MCP/plugin and headless-approval paths failed
 safe. The exact 2026-08-13 integrated runtime graph now reports zero npm
-advisories after the `pdfjs-dist` and compatible transitive updates. The static
-documentation build still inherits one unpatched `image-size` denial-of-service
-advisory through Docusaurus; npm expands that one dependency into 19 high
+advisories after the local AnyDoc parser and compatible transitive updates. The static
+documentation build still inherits two unpatched `image-size` denial-of-service
+advisories through Docusaurus; npm expands that dependency path into 19 high
 package entries. It is build-time on repository-authored content, not code
 served to visitors, and remains visible until upstream publishes a fixed
 release.

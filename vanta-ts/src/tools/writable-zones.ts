@@ -120,6 +120,27 @@ export function resolveReadablePath(
   return { ok: true, abs };
 }
 
+/** Canonical read policy for tools whose public contract is project-only.
+ * Unlike a lexical scope check, this follows existing symlinks before deciding
+ * whether the target is inside the project and retains the protected-path floor. */
+export function resolveProjectReadablePath(
+  rawPath: string,
+  root: string,
+  env: NodeJS.ProcessEnv,
+): PathResolution {
+  const result = resolveReadablePath(rawPath, root, env);
+  if (!result.ok) return result;
+  if (!isInRoot(result.abs, root)) {
+    return {
+      ok: false,
+      abs: result.abs,
+      error: `path is outside the project scope: ${rawPath}`,
+      approvalAllowed: false,
+    };
+  }
+  return result;
+}
+
 type AskFn = (action: string, reason: string, toolName?: string) => Promise<boolean>;
 
 /** Out-of-zone but not dangerous → ask the human; approval adds the dir to the

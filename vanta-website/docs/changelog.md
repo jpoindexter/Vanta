@@ -8,6 +8,11 @@ sidebar_position: 2
 
 Major capability milestones, newest first. This is a curated highlight reel — the full per-slice history lives in `roadmap.json`.
 
+## 2026-08-14 — bounded local document reading
+- **One document path** — `document_read` converts Word, PowerPoint, Excel, OpenDocument, RTF, EPUB, CSV, and PDF files to Markdown with Firecrawl AnyDoc 0.1.9; the existing `pdf_read` interface now shares that parser.
+- **Corpus support** — local corpus ingest converts those same document formats before chunking, hashing, embedding, and provenance capture.
+- **Local privacy boundary** — conversion runs in a size-, output-, and time-bounded child without provider or OAuth credentials. Canonical path checks reject escaping symlinks before parser execution. Scanned PDFs fail honestly with “OCR required” and are not uploaded to a hosted parser.
+
 ## 2026-07-24 — v0.9.8 reusable runs and operator handoffs
 - **Reusable run library** — Desktop records redacted, versioned turn provenance and lets operators search, inspect, save, delete, fork, or replay useful work.
 - **Fresh replay safety** — replay compares file, project, provider, model, and tool drift, then submits a normal new turn through the current kernel. Recorded approvals and tool calls never become authority.

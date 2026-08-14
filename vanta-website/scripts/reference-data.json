@@ -1176,6 +1176,27 @@
       "hasSafety": true
     },
     {
+      "name": "document_read",
+      "description": "Locally convert a project-scoped Word, PowerPoint, Excel, OpenDocument, RTF, EPUB, CSV, or PDF file to Markdown. The file stays on-device; size/output limits and actionable errors cover encrypted, malformed, unsupported, and scanned files.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the document, relative to the project root"
+          },
+          "max_bytes": {
+            "type": "number",
+            "description": "Max file size in bytes (default 26214400, hard cap 52428800)"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
       "name": "drive_create",
       "description": "Create a new file in Google Drive with the given name and text content. Always requires approval.",
       "parameters": {
@@ -2491,7 +2512,7 @@
     },
     {
       "name": "pdf_read",
-      "description": "Extract text from a PDF file (scoped to the project) and return it as context. Enforces a max file-size limit and returns a clear error for encrypted, corrupt, missing, or image-only PDFs.",
+      "description": "Locally extract text from a PDF file (scoped to the project) and return it as context without uploading it. Enforces a max file-size limit and returns a clear error for encrypted, corrupt, missing, or image-only PDFs.",
       "parameters": {
         "type": "object",
         "properties": {

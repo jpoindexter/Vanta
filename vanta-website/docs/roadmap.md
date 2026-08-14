@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1286 capabilities shipped · 1 in flight · 14 parked external-proof items · 6 on the horizon. Updated 2026-08-04._
+_1286 capabilities shipped · 1 in flight · 14 parked external-proof items · 6 on the horizon. Updated 2026-08-14._
 
 ## In flight
 
@@ -24,6 +24,7 @@ Begin commercial and usefulness learning manually: test the same capture → rec
 
 The latest of 1286+ capabilities. See the [changelog](./changelog) for curated milestones.
 
+- **Local document reading — bounded PDF and office-file context** — Operator · 2026-08-14
 - **Urgent control-plane trust closure — hooks, environments, audit state, and local authentication** — Harness · 2026-08-02
 - **Safe continuity slice — messy capture to Today, prepared action, waiting, and restart re-entry** — Operator · 2026-08-02
 - **Truthful completion and one typed receipt across every host** — Harness · 2026-08-02
@@ -43,7 +44,6 @@ The latest of 1286+ capabilities. See the [changelog](./changelog) for curated m
 - **Live todo / progress checklist (TodoWrite pattern)** — Operator · 2026-07-28
 - **TUI resize repaint regression — one clean frame after every terminal resize** — Operator · 2026-07-28
 - **Reusable run library — save, inspect, fork, and safely replay successful runs** — Desktop App · 2026-07-24
-- **Relative sibling mkdir approval — resolve the real target before the kernel and sandbox** — Harness · 2026-07-21
 
 ## Parked external-proof items
 

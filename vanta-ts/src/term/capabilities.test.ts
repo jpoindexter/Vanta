@@ -5,6 +5,7 @@ describe("groupToolsByDomain", () => {
   it("groups tools into ordered domains", () => {
     const groups = groupToolsByDomain([
       "read_file",
+      "document_read",
       "write_file",
       "shell_cmd",
       "web_search",
@@ -14,7 +15,7 @@ describe("groupToolsByDomain", () => {
       "recall",
     ]);
     const byLabel = Object.fromEntries(groups.map((g) => [g.label, g.tools]));
-    expect(byLabel["Files"]).toEqual(["read_file", "write_file"]);
+    expect(byLabel["Files"]).toEqual(["read_file", "document_read", "write_file"]);
     expect(byLabel["Code & shell"]).toEqual(["shell_cmd"]);
     expect(byLabel["Web & research"]).toEqual(["web_search"]);
     expect(byLabel["Comms (email · calendar · drive)"]).toEqual(["gmail_send", "calendar_read"]);

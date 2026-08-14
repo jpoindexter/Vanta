@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -11,6 +11,27 @@ import {
 import type { ToolContext } from "./types.js";
 
 let root: string;
+let outsideRoot: string;
+
+function textPdf(text: string): string {
+  const stream = `BT /F1 12 Tf 72 720 Td (${text}) Tj ET`;
+  const objects = [
+    "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n",
+    "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n",
+    "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>\nendobj\n",
+    `4 0 obj\n<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}\nendstream\nendobj\n`,
+    "5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n",
+  ];
+  let body = "%PDF-1.4\n";
+  const offsets = objects.map((object) => {
+    const offset = Buffer.byteLength(body);
+    body += object;
+    return offset;
+  });
+  const xref = Buffer.byteLength(body);
+  body += `xref\n0 6\n0000000000 65535 f \n${offsets.map((offset) => `${String(offset).padStart(10, "0")} 00000 n `).join("\n")}\n`;
+  return `${body}trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+}
 
 /** A ToolContext carrying an injected extractor so the live tool needs no real PDF. */
 function ctx(extractor?: PdfExtractor): ToolContext {
@@ -24,10 +45,12 @@ function ctx(extractor?: PdfExtractor): ToolContext {
 
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), "vanta-pdf-test-"));
+  outsideRoot = await mkdtemp(join(tmpdir(), "vanta-pdf-outside-"));
 });
 
 afterEach(async () => {
   await rm(root, { recursive: true, force: true });
+  await rm(outsideRoot, { recursive: true, force: true });
 });
 
 describe("checkPdfSize", () => {
@@ -88,6 +111,18 @@ describe("extractText", () => {
     if (!res.ok) expect(res.error).toContain("corrupt");
   });
 
+  it("reports the local OCR boundary for an image-only PDF", async () => {
+    const fake: PdfExtractor = async () => {
+      throw Object.assign(new Error("image-only PDF"), { code: "unsupported" });
+    };
+    const res = await extractText(new Uint8Array(), fake);
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.error).toContain("OCR required");
+      expect(res.error).toContain("not uploaded");
+    }
+  });
+
   it("truncates text that exceeds the output cap", async () => {
     const fake: PdfExtractor = async () => ["x".repeat(200_000)];
     const res = await extractText(new Uint8Array(), fake);
@@ -114,6 +149,13 @@ describe("pdf_read tool", () => {
     expect(res.output).toBe("hello from the pdf");
   });
 
+  it("extracts text from a real PDF through the local AnyDoc child", async () => {
+    await writeFile(join(root, "real.pdf"), textPdf("Vanta local PDF reader"));
+    const res = await pdfReadTool.execute({ path: "real.pdf" }, ctx());
+    expect(res.ok).toBe(true);
+    expect(res.output).toContain("Vanta local PDF reader");
+  });
+
   it("rejects a file over the max-size limit (errors-as-values)", async () => {
     await writeFile(join(root, "big.pdf"), "x".repeat(5000));
     const res = await pdfReadTool.execute(
@@ -134,6 +176,22 @@ describe("pdf_read tool", () => {
     const res = await pdfReadTool.execute({ path: "../escape.pdf" }, ctx(async () => ["x"]));
     expect(res.ok).toBe(false);
     expect(res.output).toContain("outside the project scope");
+  });
+
+  it("rejects an in-project symlink that escapes the project before extraction", async () => {
+    const outside = join(outsideRoot, "private.pdf");
+    await writeFile(outside, "%PDF-1.4 outside-project content");
+    await symlink(outside, join(root, "linked.pdf"));
+    let extractorCalled = false;
+
+    const res = await pdfReadTool.execute({ path: "linked.pdf" }, ctx(async () => {
+      extractorCalled = true;
+      return ["leaked"];
+    }));
+
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("outside the project scope");
+    expect(extractorCalled).toBe(false);
   });
 
   it("rejects a non-.pdf path", async () => {

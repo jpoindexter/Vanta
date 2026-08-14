@@ -6,7 +6,7 @@
 export type CapabilityDomain = { label: string; tools: string[] };
 
 const DOMAINS: ReadonlyArray<{ label: string; match: (name: string) => boolean }> = [
-  { label: "Files", match: (n) => /^(read_file|write_file|edit_file|list_dir)$/.test(n) },
+  { label: "Files", match: (n) => /^(read_file|pdf_read|document_read|write_file|edit_file|list_dir)$/.test(n) },
   { label: "Code & shell", match: (n) => /^(shell_cmd|run_code|lsp_)/.test(n) },
   { label: "Web & research", match: (n) => /^web_/.test(n) },
   { label: "Browser & vision", match: (n) => /^(browser_|screenshot|describe_image)/.test(n) },

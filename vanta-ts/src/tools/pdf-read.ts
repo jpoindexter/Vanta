@@ -2,7 +2,8 @@ import { readFile, stat } from "node:fs/promises";
 import { extname } from "node:path";
 import { z } from "zod";
 import type { Tool } from "./types.js";
-import { resolveInScope } from "../scope.js";
+import { convertDocumentBytes, SCANNED_PDF_MESSAGE } from "../documents/anydoc.js";
+import { resolveProjectReadablePath } from "./writable-zones.js";
 
 const Args = z.object({
   path: z.string().min(1),
@@ -20,8 +21,8 @@ const HARD_MAX_BYTES = 50 * 1024 * 1024;
 const MAX_OUTPUT = 120_000;
 const TRUNCATED_MARKER = "\n\n…[truncated]";
 
-/** An injected extractor: bytes → one string per page. Default impl lazy-imports
- *  pdfjs-dist; tests pass a fake so no real PDF binary is needed. */
+/** An injected extractor: bytes → one string per page. Tests pass a fake while
+ *  the default routes through Vanta's bounded local AnyDoc process. */
 export type PdfExtractor = (bytes: Uint8Array) => Promise<string[]>;
 
 export type SizeCheck =
@@ -71,8 +72,11 @@ export async function extractText(
 
 /** Map a parser rejection to an actionable, leak-free message. */
 function classifyExtractError(err: unknown): string {
+  const code = String((err as { code?: unknown })?.code ?? "");
   const name = (err as { name?: string })?.name ?? "";
   const msg = (err as Error)?.message ?? String(err);
+  const localError = classifyLocalPdfError(code);
+  if (localError) return localError;
   if (name === "PasswordException" || /password/i.test(msg)) {
     return "PDF is encrypted/password-protected — cannot extract text.";
   }
@@ -82,47 +86,32 @@ function classifyExtractError(err: unknown): string {
   return `could not parse PDF: ${msg}`;
 }
 
+function classifyLocalPdfError(code: string): string | null {
+  const messages: Record<string, string> = {
+    unsupported: SCANNED_PDF_MESSAGE,
+    encrypted: "PDF is encrypted/password-protected — cannot extract text.",
+    resourceLimit: "PDF exceeded the local conversion safety limits.",
+    malformed: "PDF is corrupt or not a valid PDF file.",
+    missingPart: "PDF is corrupt or not a valid PDF file.",
+    io: "PDF could not be read by the local converter.",
+  };
+  return messages[code] ?? null;
+}
+
 function cap(text: string): string {
   if (text.length <= MAX_OUTPUT) return text;
   return text.slice(0, MAX_OUTPUT - TRUNCATED_MARKER.length) + TRUNCATED_MARKER;
 }
 
-/**
- * Default extractor: lazy-imports pdfjs-dist (legacy build = no DOM/worker in
- * Node) so the dep is optional at module load and the tool degrades gracefully
- * if it's absent. Returns one string per page.
- */
-async function pdfjsExtractor(bytes: Uint8Array): Promise<string[]> {
-  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  // pdf.js rejects a Node Buffer (`Please provide binary data as Uint8Array,
-  // rather than Buffer`) even though Buffer extends Uint8Array. Hand it a plain
-  // Uint8Array view over the same bytes (no copy) so both the real read path
-  // and any Buffer-passing caller work.
-  const data =
-    Buffer.isBuffer(bytes)
-      ? new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength)
-      : bytes;
-  const task = pdfjs.getDocument({ data, useSystemFonts: true });
-  const doc = await task.promise;
-  try {
-    const pages: string[] = [];
-    for (let n = 1; n <= doc.numPages; n++) {
-      const page = await doc.getPage(n);
-      const content = await page.getTextContent();
-      const items = content.items as Array<{ str?: string }>;
-      pages.push(items.map((it) => it.str ?? "").join(" "));
-    }
-    return pages;
-  } finally {
-    await task.destroy();
-  }
+async function anydocPdfExtractor(bytes: Uint8Array): Promise<string[]> {
+  return [await convertDocumentBytes(bytes, ".pdf")];
 }
 
 export const pdfReadTool: Tool = {
   schema: {
     name: "pdf_read",
     description:
-      "Extract text from a PDF file (scoped to the project) and return it as context. " +
+      "Locally extract text from a PDF file (scoped to the project) and return it as context without uploading it. " +
       "Enforces a max file-size limit and returns a clear error for encrypted, corrupt, " +
       "missing, or image-only PDFs.",
     parameters: {
@@ -150,14 +139,14 @@ export const pdfReadTool: Tool = {
     if (extname(path).toLowerCase() !== ".pdf") {
       return { ok: false, output: `not a .pdf file: ${path}` };
     }
-    const scoped = resolveInScope(path, ctx.root);
+    const scoped = resolveProjectReadablePath(path, ctx.root, process.env);
     if (!scoped.ok) {
-      return { ok: false, output: `path is outside the project scope: ${path}` };
+      return { ok: false, output: scoped.error };
     }
 
     let info: Awaited<ReturnType<typeof stat>>;
     try {
-      info = await stat(scoped.path);
+      info = await stat(scoped.abs);
     } catch {
       return { ok: false, output: `no such file: ${path}` };
     }
@@ -170,12 +159,12 @@ export const pdfReadTool: Tool = {
 
     let bytes: Uint8Array;
     try {
-      bytes = await readFile(scoped.path);
+      bytes = await readFile(scoped.abs);
     } catch (err) {
       return { ok: false, output: `could not read ${path}: ${(err as Error).message}` };
     }
 
-    const extractor = (ctx as { pdfExtractor?: PdfExtractor }).pdfExtractor ?? pdfjsExtractor;
+    const extractor = (ctx as { pdfExtractor?: PdfExtractor }).pdfExtractor ?? anydocPdfExtractor;
     const result = await extractText(bytes, extractor);
     return result.ok
       ? { ok: true, output: result.text }

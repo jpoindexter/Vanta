@@ -3,6 +3,8 @@ import { splitStableVolatile } from "../prompt.js";
 
 export const LOCAL_CODING_TOOLS = [
   "read_file",
+  "pdf_read",
+  "document_read",
   "edit_file",
   "write_file",
   "grep_files",

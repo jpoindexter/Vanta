@@ -72,6 +72,7 @@ describe("registry", () => {
       "delegate",
       "describe_image",
       "distill_trace",
+      "document_read",
       "drive_create",
       "drive_read",
       "drive_update",

@@ -6,7 +6,7 @@ sidebar_position: 3
 
 # Tool reference
 
-Every built-in tool, generated directly from the source registry — **148 tools**. Each call is gated by the kernel before it runs (tools marked _safety-checked_ send a safety descriptor to the kernel). The model sees a per-turn scoped subset; `tool_search` pulls in the rest on demand.
+Every built-in tool, generated directly from the source registry — **149 tools**. Each call is gated by the kernel before it runs (tools marked _safety-checked_ send a safety descriptor to the kernel). The model sees a per-turn scoped subset; `tool_search` pulls in the rest on demand.
 
 ## Files & code
 
@@ -17,6 +17,28 @@ Read a UTF-8 text file. Reads inside the project freely; outside the project, re
 | Param | Type | Required | Description |
 |---|---|---|---|
 | `path` | string | yes | Path relative to the project root, or an absolute / ~-prefixed path inside a readable zone |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `pdf_read`
+
+Locally extract text from a PDF file (scoped to the project) and return it as context without uploading it. Enforces a max file-size limit and returns a clear error for encrypted, corrupt, missing, or image-only PDFs.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `path` | string | yes | Path to the PDF, relative to the project root |
+| `max_bytes` | number | no | Max file size to read in bytes (default 26214400, hard cap 52428800) |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `document_read`
+
+Locally convert a project-scoped Word, PowerPoint, Excel, OpenDocument, RTF, EPUB, CSV, or PDF file to Markdown. The file stays on-device; size/output limits and actionable errors cover encrypted, malformed, unsupported, and scanned files.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `path` | string | yes | Path to the document, relative to the project root |
+| `max_bytes` | number | no | Max file size in bytes (default 26214400, hard cap 52428800) |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
@@ -1506,17 +1528,6 @@ Preview or execute a strict test-gated payment contract. Exact totals, caps, exp
 |---|---|---|---|
 | `action` | string | yes |  |
 | `contract` | object | yes | Strict version-1 payment contract. Use minor units and an approved provider CLI or vault signer reference; plaintext credentials are rejected. |
-
-_Safety-checked: sends a descriptor to the kernel for classification._
-
-### `pdf_read`
-
-Extract text from a PDF file (scoped to the project) and return it as context. Enforces a max file-size limit and returns a clear error for encrypted, corrupt, missing, or image-only PDFs.
-
-| Param | Type | Required | Description |
-|---|---|---|---|
-| `path` | string | yes | Path to the PDF, relative to the project root |
-| `max_bytes` | number | no | Max file size to read in bytes (default 26214400, hard cap 52428800) |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 

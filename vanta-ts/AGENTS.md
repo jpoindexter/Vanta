@@ -95,7 +95,7 @@ npx tsc --noEmit                 # must be clean before any commit
 
 ## Current surface
 
-- `src/tools/all-tools.ts` currently lists **144 built-in tools** (148 registered with factory `mount_mcp`/`tool_search`/`mcp_auth`/`run_pipeline`); runtime MCP mounts can add more.
+- `src/tools/all-tools.ts` currently lists **145 built-in tools** (149 registered with factory `mount_mcp`/`tool_search`/`mcp_auth`/`run_pipeline`); runtime MCP mounts can add more.
 - `src/repl/catalog.ts` currently exposes **146 slash commands**.
 - `/prompt list|show|use|reset` applies a bounded session role from project/home agent definitions; the base safety prompt and kernel contract remain intact.
 - Code intelligence defaults to the `codegraph` adapter through `src/code-intel/index.ts`; `.codegraph/` is ignored local state, refreshed with `codegraph index -f .`, and should be verified with `codegraph status .` before trusting impact/search output.

@@ -154,24 +154,24 @@ deep-nest/quadratic/panic); the reviewed paths found no prototype pollution or
 ReDoS; the kernel was zero-dependency; and the exercised MCP/plugin and
 headless-approval paths failed safe. The exact 2026-08-13 integrated runtime
 dependency graph now reports zero npm advisories after compatible dependency
-remediation. The static documentation build retains one unpatched `image-size`
-denial-of-service advisory through Docusaurus; npm expands it into 19 high
-dependent-package entries. It is build-time on repository-authored content,
+remediation. The static documentation build retains two unpatched `image-size`
+denial-of-service advisories through Docusaurus; npm expands that dependency
+path into 19 high dependent-package entries. It is build-time on repository-authored content,
 not code served to visitors, and remains visible pending an upstream fixed
 release.
 
-## 7b. Dependency & scan audit (refreshed 2026-08-13)
+## 7b. Dependency & scan audit (refreshed 2026-08-14)
 
 Full scan with the bundled `security-skills` gate (gitleaks · npm/cargo/osv · semgrep). Triaged by
 **reachability before severity** — recorded here so the next audit doesn't re-litigate.
 
 - **Runtime — clean at the exact integrated source head.** `npm audit` reports
   zero vulnerabilities after the compatible dependency refresh and
-  `pdfjs-dist` 6.2.108 update. This does not cover a future lockfile or zero-day.
+  local AnyDoc 0.1.9 update. This does not cover a future lockfile or zero-day.
 - **Docs site (`vanta-website`, Docusaurus) — all fixable findings remediated.**
   Docusaurus 3.10.2 plus the current js-yaml, nanoid, DOMPurify, Mermaid,
   PostCSS, Undici, fast-uri, and brace-expansion patches are installed. The
-  remaining npm result is one `image-size <=2.0.2` advisory with no patched npm
+  remaining npm result is two `image-size <=2.0.2` advisories with no patched npm
   release; npm reports 19 high entries because the same package flows through
   the Docusaurus graph. It is **build-time** on self-authored repository content
   and is not shipped in the static site output. Keep it visible and update when

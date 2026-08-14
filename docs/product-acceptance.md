@@ -19,7 +19,7 @@ participants, future effect paths, and publication require separate evidence.
 | Checked effect inventory | 409 production sources, 1,074 primitive calls, eight explicit trusted adapters, zero unknown executors at the retained TRUST-01 head | Runtime-generated or subsequently added paths |
 | Exact-head local integration preflight | Recorded in `docs/repository-closure-2026-08-13.md` after execution | GitHub approval, merge, notarization, deployment, or customer value |
 | Runtime dependency audit | `vanta-ts` exact graph: zero npm advisories on 2026-08-13 | Zero-days or a future lockfile |
-| Documentation dependency audit | All fixable findings remediated; one unpatched build-time `image-size` advisory expands to 19 Docusaurus entries | An upstream fix that does not exist yet |
+| Documentation dependency audit | All fixable findings remediated; two unpatched build-time `image-size` advisories expand through 19 Docusaurus entries | An upstream fix that does not exist yet |
 
 ## Executed operator paths
 
@@ -72,8 +72,8 @@ The use-case catalog currently records 6 executed and 6 passed scenarios across 
 - True-first-token proof: 40 live-provider samples passed baseline eligibility across CLI, TUI, gateway, and signed packaged Desktop; content-free receipts and per-stage p95 budgets are stored in `vanta-ts/scripts/fixtures/`.
 - Automatic compaction proof: real launcher, six TUI turns, automatic threshold, square-cell 25% phase, summary request, and resumed response passed.
 - Current integrated `vanta-ts` npm audit: 0 vulnerabilities on 2026-08-13.
-- Current documentation audit: all fixable findings updated; one unpatched
-  build-time `image-size` advisory is reported through 19 Docusaurus packages.
+- Current documentation audit: all fixable findings updated; two unpatched
+  build-time `image-size` advisories are reported through 19 Docusaurus packages.
 - External `terminal-love` MCP: 94 tests passed and 0 production vulnerabilities after its Undici update.
 
 ## Release boundary
@@ -175,7 +175,7 @@ binding, review, and explicit reauthorization.
 6. `GROW-01` is the sole Next card. Manual interviews and bounded continuity
    pilots are deferred; no paid research, outreach, or participant work is
    active.
-7. The documentation toolchain retains one upstream `image-size` advisory with
+7. The documentation toolchain retains two upstream `image-size` advisories with
    no patched npm release. It is build-time on self-authored content and remains
    visible until upstream ships a fix.
 

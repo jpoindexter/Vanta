@@ -34,9 +34,9 @@ public Desktop release. Cross-platform packages, live external accounts,
 external participants, and future effect paths remain separate proof gates.
 `GROW-01` is the sole Next card and no paid research or outreach is active.
 
-The exact 2026-08-13 runtime dependency graph reports zero npm advisories. The
-static documentation toolchain retains one upstream `image-size` advisory with
-no patched release; npm reports it through 19 dependent Docusaurus packages.
+The exact 2026-08-14 runtime dependency graph reports zero npm advisories. The
+static documentation toolchain retains two upstream `image-size` advisories with
+no patched release; npm reports their dependency path through 19 Docusaurus packages.
 
 ## State and proof
 

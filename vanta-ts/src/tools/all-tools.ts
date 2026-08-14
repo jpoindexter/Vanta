@@ -71,21 +71,8 @@ import { xueqiuReadTool } from "./xueqiu-read.js";
 import { xiaohongshuReadTool } from "./xiaohongshu-read.js";
 import { runCodeTool } from "./run-code.js";
 import { maximizerTool } from "./maximizer.js";
-import {
-  lspDiagnosticsTool,
-  lspDefinitionTool,
-  lspReferencesTool,
-  lspSymbolsTool,
-  lspHoverTool,
-} from "./lsp.js";
-import {
-  gitStatusTool,
-  gitDiffTool,
-  gitCommitTool,
-  gitPushTool,
-  gitBranchTool,
-  gitCheckoutTool,
-} from "./git.js";
+import { lspDiagnosticsTool, lspDefinitionTool, lspReferencesTool, lspSymbolsTool, lspHoverTool } from "./lsp.js";
+import { gitStatusTool, gitDiffTool, gitCommitTool, gitPushTool, gitBranchTool, gitCheckoutTool } from "./git.js";
 import { delegateTool } from "./delegate.js";
 import { callAgentTool } from "./call-agent.js";
 import { agentSessionTool } from "./agent-session.js";
@@ -95,6 +82,7 @@ import { bgListTool, bgStatusTool } from "./bg-tasks.js";
 import { refIngestTool, refSearchTool, refListTool } from "./ref-ingest.js";
 import { editFileTool } from "./edit-file.js";
 import { pdfReadTool } from "./pdf-read.js";
+import { documentReadTool } from "./document-read.js";
 import { grepFilesTool } from "./grep-files.js";
 import { globFilesTool } from "./glob-files.js";
 import { protectTool } from "./protect.js";
@@ -157,6 +145,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   editFileTool,
   writeFileTool,
   pdfReadTool,
+  documentReadTool,
   grepFilesTool,
   globFilesTool,
   shellCmdTool,

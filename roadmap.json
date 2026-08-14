@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-04",
+  "updated": "2026-08-14",
   "items": [
     {
       "id": "VANTA-STREAMING-TTS-FIRST-CLAUSE",
@@ -2018,17 +2018,18 @@
     {
       "id": "VANTA-PDF-READ",
       "track": "Operator",
-      "title": "PDF reading — extract text from PDFs as context with size/error handling",
+      "title": "Local document reading — bounded PDF and office-file context",
       "status": "shipped",
       "size": "M",
-      "summary": "another agent can extract text from PDF files as tool context. Handles error cases: empty (no text), too_large (size limits), password_protected, corrupted, unknown. Uses pdftotext/poppler if available, with fallback. Output is persisted to tool-results dir for large PDFs. Integrates with FileReadTool so the model can `read` a PDF path.",
-      "done": "`read_file('report.pdf')` returns extracted text. Password-protected PDFs return a helpful error. Files over the size limit return a partial extract with a note.",
+      "summary": "Vanta converts project-scoped Word, PowerPoint, Excel, OpenDocument, RTF, EPUB, CSV, and text-based PDF files to bounded Markdown locally. `document_read`, the compatible `pdf_read` surface, and corpus ingest share one native AnyDoc conversion boundary; Markdown and plain text retain their existing direct readers.",
+      "done": "Supported document bytes are converted on-device with a 50 MB hard input cap, bounded output, typed errors, stripped child credentials, canonical path containment, and no hosted fallback. Escaping symlinks and protected paths are refused before parsing; encrypted, malformed, and scanned/image-only files fail honestly; the native binding executes in the signed packaged macOS application.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.6-terra",
       "lens": "infra",
-      "updated": "2026-06-20"
+      "updated": "2026-08-14",
+      "notes": "Expanded and revalidated with @firecrawl/anydoc 0.1.9 on 2026-08-14. Executed evidence: 71 focused tests passed across real CSV, RTF, PDF, corpus ingestion, credential stripping, resource limits, and symlink containment; the production Desktop build packaged and signed the Darwin ARM64 native binding, and the packaged executable converted CSV locally. Boundary: no OCR, hosted Firecrawl Parse, notarization, release, Windows/Linux execution, or external-account claim."
     },
     {
       "id": "VANTA-AGENT-EDITOR",

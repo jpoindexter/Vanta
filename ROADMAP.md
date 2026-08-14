@@ -4,7 +4,7 @@
 historical narrative and does not override the JSON, `STRATEGY.md`, or
 `DECISIONS.md`.
 
-## Current converged build order — 2026-08-04
+## Current converged build order — 2026-08-14
 
 **Building**
 

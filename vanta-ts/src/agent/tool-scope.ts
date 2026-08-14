@@ -15,7 +15,7 @@ const CORE = [
 
 const GROUPS: Record<string, string[]> = {
   code: ["git_status", "git_diff", "lsp_diagnostics", "lsp_definition", "edit_file", "write_file", "shell_cmd", "run_code"],
-  research: ["web_search", "web_fetch", "browser_read", "browser_navigate", "screenshot", "life_search", "ref_search", "ref_ingest"],
+  research: ["web_search", "web_fetch", "browser_read", "browser_navigate", "screenshot", "life_search", "ref_search", "ref_ingest", "pdf_read", "document_read"],
   comms: ["gmail_search", "gmail_read", "gmail_draft", "calendar_read", "send_message"],
   business: ["money", "radar", "world", "life_search", "graph_query"],
   ops: ["loop", "team", "regression_lock", "roadmap_status", "roadmap_move", "roadmap_add"],

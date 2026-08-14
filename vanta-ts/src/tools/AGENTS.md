@@ -5,7 +5,7 @@ Built-in tool implementations. Register new tools in the `ALL_TOOLS` array in `a
 - `brain.ts` recall output is memory-guarded: fresh/sourced/non-conflicting entries are marked usable, while stale/conflicting/weak-provenance entries are flagged not used.
 - `cron.ts` owns `cron_create`/`cron_list`; durable tasks persist in `.vanta/scheduled_tasks.json`, non-durable compatibility remains in the legacy TSV store.
 - `structured-output.ts` builds the synthetic `StructuredOutput` tool; it is injected per SDK run, not registered as a built-in tool.
-- Path tools must use scope helpers; safety descriptions must include risk-relevant target/command only, not content.
+- Path tools must use scope helpers; project-only readers use `resolveProjectReadablePath` so existing symlinks are canonicalized before containment and protected-path checks. Safety descriptions include risk-relevant target/command only, not content.
 - Multi-tool files split writers/runners under the size gate: `*-write.ts` (git/calendar/drive, `gmail-helpers.ts`) + `*-run.ts` (`team-run.ts`, `radar-scan.ts`, `browser-act-run.ts`) hold helpers the parent imports — edit those, not a parent copy.
 - `bg-tasks.ts` sends `Notification` hooks through `term/notify.ts` when a background shell task appears idle at an interactive prompt.
 - `shell-cmd.ts` uses the shared OS sandbox wrapper when either `VANTA_SANDBOX=1` or shell-only `VANTA_SHELL_SANDBOX=1` is set. Background tasks retain that wrapper; dev servers run when sandbox networking is enabled, while strict network-disabled sessions recover with `VANTA_SANDBOX_NET=1` without disabling filesystem containment.

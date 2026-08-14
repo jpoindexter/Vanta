@@ -56,7 +56,7 @@ Refs live in `~/.vanta/refs/index.json`. Source type is auto-detected; ingesting
 ## Corpus compiler
 
 The corpus compiler is the visible workflow for making a folder of Markdown notes,
-downloaded `.vtt`/`.srt` transcripts, text files, or an approved public URL searchable:
+downloaded `.vtt`/`.srt` transcripts, local documents, or an approved public URL searchable:
 
 ```bash
 vanta corpus ingest ./interviews
@@ -72,10 +72,13 @@ semantic similarity when an embedding backend is available, and entity-link rank
 printed `Signals` line lists only signals actually used; each result includes a
 source/date/freshness receipt.
 
-Local ingest accepts `.md`, `.markdown`, `.txt`, `.vtt`, and `.srt`, skips hidden paths and
-unsupported files, and refuses symbolic-link inputs. URL ingest is checked by Vanta's SSRF
-and egress policy before it is fetched. `status` identifies stale material and `refresh`
-re-reads the original local path or URL.
+Local ingest accepts `.md`, `.markdown`, `.txt`, `.vtt`, `.srt`, Word, PowerPoint, Excel,
+OpenDocument, RTF, EPUB, CSV, and text-based PDF files. It skips hidden paths and unsupported
+files and refuses symbolic-link inputs. Document conversion uses Firecrawl AnyDoc locally in
+a bounded child whose environment omits provider and OAuth credentials. Image-only/scanned
+PDFs return an explicit OCR-required error and are not sent to a hosted parser. URL ingest is
+checked by Vanta's SSRF and egress policy before fetch. `status` identifies stale material and
+`refresh` re-reads the original local path or URL.
 
 Export to an Obsidian-compatible vault is preview-first:
 

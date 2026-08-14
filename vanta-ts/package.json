@@ -39,6 +39,7 @@
     "desktop:host:test": "node --test desktop-app/electron/dropped-paths.node-test.mjs desktop-app/electron/project-folder-picker.node-test.mjs desktop-app/electron/project-root.node-test.mjs desktop-app/electron/project-switch.node-test.mjs desktop-app/electron/runtime-env.node-test.mjs desktop-app/electron/runtime-paths.node-test.mjs && vitest run desktop-app/electron/tray.test.mjs",
     "desktop:kernel": "bash scripts/prepare-desktop-kernel.sh",
     "desktop:pack": "npm run desktop:build && npm run desktop:kernel && node scripts/package-desktop.mjs",
+    "desktop:anydoc:smoke": "npm run desktop:pack && node scripts/anydoc-packaged-smoke.mjs",
     "desktop:dist": "npm run desktop:build && npm run desktop:kernel && node scripts/package-desktop.mjs --dist",
     "desktop:release": "npm run desktop:build && npm run desktop:kernel && node scripts/package-desktop.mjs --dist --notarize",
     "desktop:sound:smoke": "npm run desktop:build && node scripts/desktop-completion-sound-smoke.mjs",
@@ -106,6 +107,7 @@
     "@capacitor/app": "^8.1.0",
     "@capacitor/core": "^8.4.1",
     "@capacitor/ios": "^8.4.1",
+    "@firecrawl/anydoc": "0.1.9",
     "@mozilla/readability": "^0.6.0",
     "@napi-rs/keyring": "^1.3.0",
     "@noble/curves": "2.2.0",
@@ -119,7 +121,6 @@
     "lucide-react": "^0.468.0",
     "nodemailer": "9.0.1",
     "openai": "^5.12.0",
-    "pdfjs-dist": "6.2.108",
     "playwright-core": "^1.60.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
@@ -152,6 +153,7 @@
     "asarUnpack": [
       "node_modules/esbuild/**/*",
       "node_modules/@esbuild/**/*",
+      "node_modules/@firecrawl/**/*.node",
       "node_modules/tsx/**/*"
     ],
     "directories": {

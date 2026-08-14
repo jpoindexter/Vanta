@@ -10,8 +10,10 @@ and documentation work. GitHub Actions remain disabled.
 
 This record is deliberately not a shipment claim. `main` still requires an
 independent approving review, eleven external acceptance gates remain open,
-and the documentation build retains one upstream `image-size` advisory that
-npm expands into nineteen high-severity dependency entries.
+and the documentation build retains upstream `image-size` advisories that npm
+currently expands into nineteen high-severity dependency entries. The
+2026-08-14 audit refresh reports two advisories affecting all published
+versions through 2.0.2; no patched release exists.
 
 ## Git boundary
 
