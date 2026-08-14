@@ -125,38 +125,41 @@ The intended boundary remains:
 - model prose cannot create a verified accomplishment;
 - immediate stop, revocation, recovery, and provenance are non-negotiable.
 
-Concrete unresolved implementation blockers remain explicit:
+### Current implementation boundaries
 
-1. project hooks can turn project-state writes into unsandboxed execution;
-2. hooks may use `shell: true` and inherit the host environment;
-3. shell/code subprocesses may inherit secrets and read project control files;
-4. `.vanta` control-plane and audit material is agent-reachable;
-5. some Desktop/API paths may lack mandatory authentication;
-6. origin and local-boundary checks require exact validation;
-7. plugin, MCP, hook, factory, scheduler, worker, and extension effects are not
-   yet universally brokered;
-8. approvals are not yet fully bound to actor, account, normalized arguments,
-   target state, content, nonce, expiry, and one use;
-9. Gmail `to` and `subject` require CR/LF rejection before MIME construction
-   and authorization hashing;
-10. Gmail, Calendar, and Drive scopes must be requested separately and
-    incrementally;
-11. life mutations need preconditions, idempotency, provider readback,
-    immutable IDs, and compensation where possible;
-12. external content is untrusted data, never authority;
-13. polished narration can still launder completion or memory without evidence;
-14. memory needs provenance and cannot promote model inference to user fact;
-15. factory/Git/self-repair needs isolated worktrees, scrubbed environments,
-    bounded diffs, frozen tests/evaluators, receipts, rollback, and
-    human-approved promotion, merge, and deployment;
-16. dependency audit and full lint remain unresolved until independently rerun
-    and fixed.
+The July 30 audit's original blocker list remains in its dated correction and
+closure artifacts as historical evidence; it is not the current implementation
+status. Retained executed receipts now close the bounded supported-host slices
+for hook/environment/authentication and control-plane isolation (`TRUST-02`),
+typed lifecycle and completion evidence (`TRUST-04`), the inventoried trusted
+effect gateway plus Gmail header/scope and mutation safeguards (`TRUST-01`), and
+the read-only operational facade (`OP-01`). Those receipts cover their named
+local and signed macOS paths only. They do not automatically cover a future
+tool, host, provider, package, or unattended workflow.
+
+The current open boundaries are explicit:
+
+1. `TRUST-03` — exact one-use capability envelopes and earned recurring
+   authority remain Horizon work.
+2. `TRUST-05` — hostile email, web, document, attachment, message, social, and
+   tool output still require one proven untrusted-content quarantine contract.
+3. `TRUST-06` — factory, self-repair, Git promotion, and Vanta Lab remain
+   isolated from production defaults pending their full boundary proof.
+4. `OP-03`, `UX-04`, and `LIFE-02` remain dependency-ordered product and
+   accessibility work; their partial supporting components do not close them.
+5. Cross-platform packages, notarized/public artifacts, live-provider paths,
+   and external acceptance receipts require their own executed evidence.
+6. The runtime dependency graph is currently audit-clean; the documentation
+   build retains the separately recorded upstream `image-size` advisories until a
+   compatible patched release exists.
 
 No unattended high-consequence effect is allowed until exact authority,
 transaction integrity, verification, receipts, reversal or compensation,
 review, and revocation are proven.
 
-The 2026-07-30 audit found concrete gaps between this contract and current implementation, including hook/control-plane bypasses, credential exposure, audit-key reachability, incomplete effect mediation, untrusted-content handling, and inconsistent completion semantics. Those are active blockers, not documentation-fixed claims.
+The 2026-07-30 audit established the historical gaps and the acceptance bar.
+Later source changes count only where dated receipts execute that bar; the open
+boundaries above remain open rather than being closed by documentation.
 
 The UI is a projection, not another lifecycle: Captured = `draft`; Now =
 `queued` or `running`; Waiting = `waiting`; Needs You = `needs human`; Done =
