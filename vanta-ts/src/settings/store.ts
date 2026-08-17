@@ -1,9 +1,11 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { existsSync } from "node:fs";
 import { resolveVantaHome } from "../store/home.js";
 import { uxSettingsToEnv } from "./ux-settings.js";
 import { SettingsSchema, type Settings } from "./schema.js";
+import { readMetadataCache, writeMetadataCache } from "../cache/metadata.js";
 
 export { SettingsSchema, type Settings } from "./schema.js";
 
@@ -27,6 +29,11 @@ function localSettingsPath(projectRoot: string): string {
   return join(projectRoot, ".vanta", "settings.local.json");
 }
 
+export function settingsCachePath(projectRoot: string, env?: NodeJS.ProcessEnv): string {
+  const project = createHash("sha256").update(projectRoot).digest("hex").slice(0, 20);
+  return join(resolveVantaHome(env), "cache", "settings", `${project}.json`);
+}
+
 function deepMerge(base: Record<string, unknown>, over: Record<string, unknown>): Record<string, unknown> {
   const result: Record<string, unknown> = { ...base };
   for (const [k, v] of Object.entries(over)) {
@@ -47,17 +54,29 @@ export async function loadSettings(
   projectRoot: string,
   env?: NodeJS.ProcessEnv,
 ): Promise<Settings> {
+  const sources = [
+    userSettingsPath(env),
+    projectSettingsPath(projectRoot),
+    localSettingsPath(projectRoot),
+  ];
+  const cached = await readMetadataCache<unknown>(settingsCachePath(projectRoot, env), 1);
+  if (cached !== null) {
+    const parsed = SettingsSchema.safeParse(cached);
+    if (parsed.success) return parsed.data;
+  }
   const [user, project, local] = await Promise.all([
-    readJson(userSettingsPath(env)),
-    readJson(projectSettingsPath(projectRoot)),
-    readJson(localSettingsPath(projectRoot)),
+    readJson(sources[0]!),
+    readJson(sources[1]!),
+    readJson(sources[2]!),
   ]);
   const merged = deepMerge(
     deepMerge(user as Record<string, unknown>, project as Record<string, unknown>),
     local as Record<string, unknown>,
   );
   const parsed = SettingsSchema.safeParse(merged);
-  return parsed.success ? parsed.data : {};
+  const settings = parsed.success ? parsed.data : {};
+  await writeMetadataCache(settingsCachePath(projectRoot, env), 1, settings, sources).catch(() => {});
+  return settings;
 }
 
 /** Write to one settings scope. */

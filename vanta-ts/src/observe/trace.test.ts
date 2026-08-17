@@ -50,6 +50,18 @@ describe("extractLastTurnCalls", () => {
     expect(extractLastTurnCalls(msgs)[0]!.isError).toBe(true);
   });
 
+  it("marks a zero-exit mdfind fatal diagnostic as an error", () => {
+    const msgs: Message[] = [
+      makeMsg("assistant", { toolCalls: [{ id: "tc1", name: "shell_cmd" }] }),
+      makeMsg("tool", {
+        toolCallId: "tc1",
+        name: "shell_cmd",
+        content: `Failed to create query for 'kMDItemKind == "Mail Message"'.`,
+      }),
+    ];
+    expect(extractLastTurnCalls(msgs)[0]!.isError).toBe(true);
+  });
+
   it("propagates tool call args through TurnCall", () => {
     const msgs: Message[] = [
       {
@@ -61,6 +73,21 @@ describe("extractLastTurnCalls", () => {
     ];
     expect(extractLastTurnCalls(msgs)[0]!.args).toEqual({ command: "vanta auth google" });
   });
+
+  it("collects every tool batch in the latest user turn", () => {
+    const msgs: Message[] = [
+      { role: "user", content: "update the file" },
+      makeMsg("assistant", { toolCalls: [{ id: "read", name: "read_file" }] }),
+      makeMsg("tool", { toolCallId: "read", name: "read_file", content: "old content" }),
+      makeMsg("assistant", { toolCalls: [{ id: "write", name: "write_file" }] }),
+      makeMsg("tool", { toolCallId: "write", name: "write_file", content: "wrote ok" }),
+      makeMsg("assistant", { content: "done" }),
+    ];
+
+    const calls = extractLastTurnCalls(msgs);
+    expect(calls.map((call) => call.name)).toEqual(["read_file", "write_file"]);
+    expect(detectAnomalies(calls).some((a) => a.type === "blind-write")).toBe(false);
+  });
 });
 
 describe("detectAnomalies", () => {
@@ -68,14 +95,43 @@ describe("detectAnomalies", () => {
     expect(detectAnomalies([])).toEqual([]);
   });
 
-  it("detects a tool loop when the same tool appears ≥3 times", () => {
+  it("detects a tool loop when the same tool and arguments repeat consecutively ≥3 times", () => {
     const calls = Array.from({ length: 4 }, () => ({ name: "grep_files", result: "ok", isError: false }));
     const a = detectAnomalies(calls);
     expect(a.some((x) => x.type === "loop")).toBe(true);
     expect(a.find((x) => x.type === "loop")?.severity).toBe("warn");
   });
 
-  it("marks severity alert when the same tool appears ≥6 times", () => {
+  it("does not call productive reads or shell commands with different arguments a loop", () => {
+    const calls = [
+      ...Array.from({ length: 8 }, (_, index) => ({
+        name: "read_file",
+        result: `file ${index}`,
+        isError: false,
+        args: { path: `/repo/file-${index}.ts` },
+      })),
+      ...Array.from({ length: 8 }, (_, index) => ({
+        name: "shell_cmd",
+        result: `command ${index} ok`,
+        isError: false,
+        args: { command: `node script-${index}.mjs` },
+      })),
+    ];
+    expect(detectAnomalies(calls).some((x) => x.type === "loop")).toBe(false);
+  });
+
+  it("does not call non-consecutive retries a loop", () => {
+    const calls = [
+      { name: "shell_cmd", result: "failed", isError: true, args: { command: "npm test" } },
+      { name: "read_file", result: "package", isError: false, args: { path: "package.json" } },
+      { name: "shell_cmd", result: "ok", isError: false, args: { command: "npm test" } },
+      { name: "read_file", result: "config", isError: false, args: { path: "vitest.config.ts" } },
+      { name: "shell_cmd", result: "ok", isError: false, args: { command: "npm test" } },
+    ];
+    expect(detectAnomalies(calls).some((x) => x.type === "loop")).toBe(false);
+  });
+
+  it("marks severity alert when the same tool and arguments repeat consecutively ≥6 times", () => {
     const calls = Array.from({ length: 6 }, () => ({ name: "read_file", result: "ok", isError: false }));
     const a = detectAnomalies(calls);
     expect(a.find((x) => x.type === "loop")?.severity).toBe("alert");
@@ -132,6 +188,37 @@ describe("detectAnomalies", () => {
       { name: "shell_cmd", result: "wrote ok", isError: false, args: { command: "echo foo > important.ts" } },
       { name: "read_file", result: "content", isError: false },
     ];
+    expect(detectAnomalies(calls).some((x) => x.type === "blind-write")).toBe(true);
+  });
+
+  it("does NOT parse comparison operators inside a read-only heredoc as shell writes", () => {
+    const calls = [{
+      name: "shell_cmd",
+      result: "SCANNED 35872",
+      isError: false,
+      args: {
+        command: `python3 - <<'PY'
+for count in range(10):
+    if count > 3:
+        print(count)
+PY`,
+      },
+    }];
+    expect(detectAnomalies(calls).some((x) => x.type === "blind-write")).toBe(false);
+  });
+
+  it("still detects a shell redirection after a heredoc body", () => {
+    const calls = [{
+      name: "shell_cmd",
+      result: "wrote",
+      isError: false,
+      args: {
+        command: `python3 - <<'PY'
+print(">")
+PY
+echo done > result.txt`,
+      },
+    }];
     expect(detectAnomalies(calls).some((x) => x.type === "blind-write")).toBe(true);
   });
 

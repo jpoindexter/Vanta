@@ -22,6 +22,12 @@ import type {
   ChicagoClient,
   CallMcp,
 } from "./chicago-client.js";
+import {
+  executeEffect,
+  payloadSha256,
+  stableEffectId,
+  type EffectGateContext,
+} from "../effects/execute-effect.js";
 
 const PROTOCOL_VERSION = "2024-11-05";
 
@@ -87,15 +93,39 @@ function rawCaller(transport: Transport): { call: CallMcp; init: () => Promise<v
 }
 
 /** Spawn + handshake the configured stdio server, returning a raw-capable client. */
-async function createStdioClient(env: NodeJS.ProcessEnv, spec: ChicagoServerSpec): Promise<ChicagoClient | null> {
+async function createStdioClient(
+  env: NodeJS.ProcessEnv,
+  spec: ChicagoServerSpec,
+  gate: EffectGateContext | undefined,
+): Promise<ChicagoClient | null> {
   if (!spec.command) return null; // only stdio computer-use servers this round
-  const { transport, child } = stdioTransport(spec.command, spec.args ?? [], buildMcpChildEnv(env, spec.env));
-  const caller = rawCaller(transport);
-  await caller.init();
-  return {
-    rawCallTool: caller.call,
-    close: () => { try { caller.close(); } catch { /* already gone */ } try { child.kill(); } catch { /* already gone */ } },
+  if (!gate) return null;
+  const payload = JSON.stringify({ command: spec.command, args: spec.args ?? [], envKeys: Object.keys(spec.env ?? {}).sort() });
+  const seed = {
+    host: "vision-action-host",
+    kind: "mcp.server.launch",
+    targetClass: "computer-use-mcp-process",
+    payloadSha256: payloadSha256(payload),
+    idempotencyKey: `chicago:${gate.sessionId ?? "one-shot"}:${payloadSha256(payload)}`,
   };
+  const launched = await executeEffect({
+    id: stableEffectId(seed),
+    actor: "vision_action",
+    action: `launch computer-use MCP server ${spec.command}`,
+    ...seed,
+  }, gate, async () => {
+    const { transport, child } = stdioTransport(spec.command!, spec.args ?? [], buildMcpChildEnv(env, spec.env));
+    const caller = rawCaller(transport);
+    await caller.init();
+    const value: ChicagoClient = {
+      rawCallTool: caller.call,
+      close: () => { try { caller.close(); } catch { /* already gone */ } try { child.kill(); } catch { /* already gone */ } },
+    };
+    return { value, acknowledgementId: "chicago:initialized" };
+  });
+  return (launched.outcome === "confirmed" || launched.outcome === "verified")
+    ? launched.value ?? null
+    : null;
 }
 
 /**
@@ -103,9 +133,13 @@ async function createStdioClient(env: NodeJS.ProcessEnv, spec: ChicagoServerSpec
  * config and connect it for real. Pass to {@link connectChicago}. Pure of args —
  * `env`/`cwd` are read at call time; spawning is the documented runtime boundary.
  */
-export function resolveChicagoConnect(env: NodeJS.ProcessEnv, cwd: string = process.cwd()): ChicagoConnectDeps {
+export function resolveChicagoConnect(
+  env: NodeJS.ProcessEnv,
+  cwd: string = process.cwd(),
+  effectGate?: EffectGateContext,
+): ChicagoConnectDeps {
   return {
     mountServer: (name) => mountFromConfig(env, cwd, name),
-    createMcpClient: (spec) => createStdioClient(env, spec),
+    createMcpClient: (spec) => createStdioClient(env, spec, effectGate),
   };
 }

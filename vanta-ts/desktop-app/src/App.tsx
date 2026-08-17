@@ -1,34 +1,36 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Activity, Bell, Command, Cpu, FolderKanban, ListOrdered, MessageSquare, MessageSquarePlus, Network, PackageOpen, PanelLeft, PanelRight, Pause, RefreshCw, RotateCcw, Search, Settings2, ShieldCheck, Square } from "lucide-react";
+import { Bell, Command, FolderKanban, ListOrdered, MessageSquarePlus, PanelLeft, RefreshCw } from "lucide-react";
 import { ChatThread, Composer, SessionSidebar } from "./chat.js";
 import { CommandPalette, KeyboardShortcuts, ModelPicker, NewTaskDialog, SettingsDialog, SetupWizard, type NewTaskDraft } from "./overlays.js";
-import { ArtifactsView, ConnectView, OperateView } from "./operator-views.js";
+import { ArtifactsView, ConnectView, PluginsView, ScheduledView } from "./operator-views.js";
 import { RightRail } from "./rail.js";
 import { CompletionSoundSettings } from "./sound-settings.js";
-import { agentModelPresentation, RuntimeStrip } from "./runtime-strip.js";
 import { FullAccessWarning, fullAccessScope, useFullAccessWarning } from "./full-access-warning.js";
 import { mentionedProjectFiles } from "./file-context.js";
 import { connectionRecovery } from "./connection-recovery.js";
 import { useApproval, useCompletionSound, useConversation, useDesktopData } from "./state.js";
 import { useDesktopMcp } from "./mcp-state.js";
 import { QueuedTurnDrawer, useQueuedTurns } from "./queued-turns.js";
-import type { DesktopTheme, DesktopView, RailTab } from "./types.js";
+import type { AccessMode, DesktopTheme, DesktopView } from "./types.js";
 import { isTelegramSetupQuestion, parseDesktopSetupCommand } from "../../src/setup/telegram-intent.js";
 import { reconnectProviderAndResume } from "./provider-auth-recovery.js";
 import { useComposerAttachments, withProjectAttachments } from "./use-composer-attachments.js";
+import { useRunLibrary } from "./run-library-state.js";
+import { acknowledgePendingDesktopProjectTask, readPendingDesktopProjectTask, switchDesktopProjectForNewTask, type PendingDesktopProjectTask } from "./project-folder-picker.js";
+import { ContinuityView } from "./continuity-view.js";
+import { useContinuity } from "./continuity-state.js";
+import { RuntimeStrip } from "./runtime-strip.js";
 
 type DesktopData = ReturnType<typeof useDesktopData>;
 type CompletionSound = ReturnType<typeof useCompletionSound>;
 type DesktopMcp = ReturnType<typeof useDesktopMcp>;
+type Continuity = ReturnType<typeof useContinuity>;
 
 const SIDEBAR_STORAGE_KEY = "vanta.desktop.sidebar-width";
-const RAIL_STORAGE_KEY = "vanta.desktop.rail-width";
 const MIN_SIDEBAR_WIDTH = 216;
 const MAX_SIDEBAR_WIDTH = 420;
-const MIN_RAIL_WIDTH = 300;
-const CANVAS_MIN_RAIL_WIDTH = 460;
-const MAX_RAIL_WIDTH = 560;
 const MIN_WORK_WIDTH = 380;
+const ACCESS_MODE_CYCLE: AccessMode[] = ["auto", "full", "ask", "approve", "plan"];
 
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(Math.max(value, minimum), Math.max(minimum, maximum));
@@ -41,6 +43,11 @@ function storedPaneWidth(key: string, fallback: number): number {
   return Number.isFinite(value) ? value : fallback;
 }
 
+function comparableProjectPath(value: string | undefined): string {
+  if (!value) return "";
+  return value.length > 1 ? value.replace(/\/+$/, "") : value;
+}
+
 export function AppShell() {
   useInputModality();
   const data = useDesktopData();
@@ -50,37 +57,42 @@ export function AppShell() {
   const queued = useQueuedTurns(convo.sessionId || data.status?.sessionId, convo.busy || queueOpen);
   const approval = useApproval();
   const mcp = useDesktopMcp();
+  const continuity = useContinuity();
   const accessWarning = useFullAccessWarning(data.status?.accessMode ?? "approve", fullAccessScope(data.status?.root));
   const [mobilePanel, setMobilePanel] = useState<"sessions" | "work" | "inspect">("work");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [view, setView] = useState<DesktopView>("work");
   const [connectTarget, setConnectTarget] = useState<ConnectTarget | null>(null);
-  const [inspectorOpen, setInspectorOpen] = useState(() => window.innerWidth > 1080);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
   const [theme, setTheme] = useState<DesktopTheme>(() => window.localStorage.getItem("vanta.desktop.theme") === "light" ? "light" : "dark");
   const attachments = useComposerAttachments();
+  const runLibrary = useRunLibrary();
   const [newTaskOpen, setNewTaskOpen] = useState(false);
+  const [projectTaskRecovery, setProjectTaskRecovery] = useState<(PendingDesktopProjectTask & { error?: string }) | null>(null);
   const [conversationReady, setConversationReady] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(() => storedPaneWidth(SIDEBAR_STORAGE_KEY, 268));
-  const [railWidth, setRailWidth] = useState(() => storedPaneWidth(RAIL_STORAGE_KEY, 352));
   const preferredSidebarWidth = useRef(sidebarWidth);
-  const preferredRailWidth = useRef(railWidth);
   const bootSession = useRef("");
+  const pendingProjectTaskAttempted = useRef(false);
   function changeTheme(next: DesktopTheme) { setTheme(next); window.localStorage.setItem("vanta.desktop.theme", next); }
   function changeSidebarWidth(next: number) {
     preferredSidebarWidth.current = next;
     window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(next));
     setSidebarWidth(next);
   }
-  function changeRailWidth(next: number) {
-    preferredRailWidth.current = next;
-    window.localStorage.setItem(RAIL_STORAGE_KEY, String(next));
-    setRailWidth(next);
-  }
   const inspectorVisible = inspectorOpen && view === "work";
-  const railMinimum = data.tab === "canvas" ? CANVAS_MIN_RAIL_WIDTH : MIN_RAIL_WIDTH;
-  const sidebarMaximum = Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, window.innerWidth - MIN_WORK_WIDTH - (inspectorVisible ? railWidth : 0)));
-  const railMaximum = Math.max(railMinimum, Math.min(MAX_RAIL_WIDTH, window.innerWidth - MIN_WORK_WIDTH - sidebarWidth));
+  const sidebarMaximum = Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, window.innerWidth - MIN_WORK_WIDTH));
   const mentionedFiles = mentionedProjectFiles(data.files, [...convo.messages.map((message) => message.content ?? ""), convo.draft]);
+  const reviewCount = new Set([
+    ...mentionedFiles,
+    ...data.artifacts.filter((artifact) => !artifact.sessionId || artifact.sessionId === (convo.sessionId || data.status?.sessionId)).map((artifact) => artifact.value),
+  ]).size + convo.events.filter((event) => event.ok === false).length;
+  function cycleAccessMode() {
+    const current = data.status?.accessMode ?? "approve";
+    const index = ACCESS_MODE_CYCLE.indexOf(current);
+    const next = ACCESS_MODE_CYCLE[(index + 1 + ACCESS_MODE_CYCLE.length) % ACCESS_MODE_CYCLE.length] ?? "auto";
+    void data.setAccessMode(next);
+  }
   function openTelegramSetup() {
     setConnectTarget({ key: Date.now(), section: "messaging", messagingId: "telegram" });
     setView("connect");
@@ -89,6 +101,11 @@ export function AppShell() {
   function openNewTask() {
     if (!conversationReady) return;
     setNewTaskOpen(true);
+  }
+  function openView(next: DesktopView) {
+    setView(next);
+    setInspectorOpen(false);
+    setMobilePanel("work");
   }
   async function submitWork(text: string) {
     if (!conversationReady) return;
@@ -108,8 +125,11 @@ export function AppShell() {
       return;
     }
     if (!isTelegramSetupQuestion(text)) {
-      const sent = await convo.submit(withProjectAttachments(text, attachments.files), attachments.images);
-      if (sent) attachments.clear();
+      const sent = await convo.submit(withProjectAttachments(text, attachments.files), attachments.images, attachments.files);
+      if (sent) {
+        attachments.clear();
+        await runLibrary.refresh();
+      }
       return;
     }
     try {
@@ -121,25 +141,27 @@ export function AppShell() {
     }
   }
 
+  async function createNewTask(draft: NewTaskDraft) {
+    if (!conversationReady) throw new Error("Wait for the current project to finish loading.");
+    if (comparableProjectPath(draft.folder) !== comparableProjectPath(data.status?.root)) {
+      await switchDesktopProjectForNewTask(draft);
+      return;
+    }
+    await createTask(draft, convo, () => { setNewTaskOpen(false); setView("work"); });
+    if (projectTaskRecovery) await acknowledgePendingDesktopProjectTask(projectTaskRecovery.id);
+    setProjectTaskRecovery(null);
+  }
+
   useEffect(() => {
     function constrainPanes() {
       if (window.innerWidth <= 760 && mobilePanel !== "inspect") setInspectorOpen(false);
-      let nextSidebar = preferredSidebarWidth.current;
-      let nextRail = preferredRailWidth.current;
-      if (inspectorVisible) {
-        nextRail = clamp(nextRail, railMinimum, Math.min(MAX_RAIL_WIDTH, window.innerWidth - MIN_WORK_WIDTH - nextSidebar));
-      }
-      nextSidebar = clamp(nextSidebar, MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, window.innerWidth - MIN_WORK_WIDTH - (inspectorVisible ? nextRail : 0)));
-      if (inspectorVisible) {
-        nextRail = clamp(nextRail, railMinimum, Math.min(MAX_RAIL_WIDTH, window.innerWidth - MIN_WORK_WIDTH - nextSidebar));
-      }
+      const nextSidebar = clamp(preferredSidebarWidth.current, MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, window.innerWidth - MIN_WORK_WIDTH));
       setSidebarWidth((current) => current === nextSidebar ? current : nextSidebar);
-      setRailWidth((current) => current === nextRail ? current : nextRail);
     }
     constrainPanes();
     window.addEventListener("resize", constrainPanes);
     return () => window.removeEventListener("resize", constrainPanes);
-  }, [inspectorVisible, mobilePanel, railMinimum]);
+  }, [mobilePanel]);
 
   useEffect(() => {
     if (data.phase !== "ready") {
@@ -159,11 +181,36 @@ export function AppShell() {
   }, [convo.openSession, data.phase, data.sessions, data.status?.sessionId]);
 
   useEffect(() => {
+    if (!conversationReady || pendingProjectTaskAttempted.current) return;
+    pendingProjectTaskAttempted.current = true;
+    void (async () => {
+      const pending = await readPendingDesktopProjectTask();
+      if (!pending) return;
+      if (comparableProjectPath(pending.targetRoot) !== comparableProjectPath(data.status?.root)) {
+        throw Object.assign(new Error("The retained task does not match the active project."), { pending });
+      }
+      try {
+        await createTask(pending.draft, convo, () => { setNewTaskOpen(false); setView("work"); });
+        await acknowledgePendingDesktopProjectTask(pending.id);
+      } catch (error) {
+        setProjectTaskRecovery({ ...pending, error: error instanceof Error ? error.message : "Vanta could not restore the task after switching projects." });
+        setNewTaskOpen(true);
+      }
+    })().catch((error) => {
+      const pending = (error as Error & { pending?: PendingDesktopProjectTask }).pending;
+      if (pending) setProjectTaskRecovery({ ...pending, error: error instanceof Error ? error.message : "Vanta could not restore the task after switching projects." });
+      setNewTaskOpen(Boolean(pending));
+    });
+  }, [conversationReady, convo, data.status?.root]);
+
+  useEffect(() => {
     function shortcut(event: KeyboardEvent) {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); data.openPalette(); }
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "n") { event.preventDefault(); openNewTask(); }
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === "r") { event.preventDefault(); data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }
+      if (event.shiftKey && event.key === "Tab") { event.preventDefault(); cycleAccessMode(); }
       if (event.key === "?") { const target = event.target as HTMLElement | null; if (target?.tagName !== "INPUT" && target?.tagName !== "TEXTAREA") data.openShortcuts(); }
-      if (event.key === "Escape") { data.closePalette(); data.closeModelPicker(); data.closeSoundSettings(); data.closeSettings(); data.closeShortcuts(); }
+      if (event.key === "Escape") { data.closePalette(); data.closeModelPicker(); data.closeSoundSettings(); data.closeSettings(); data.closeShortcuts(); setInspectorOpen(false); setMobilePanel("work"); }
     }
     window.addEventListener("keydown", shortcut);
     return () => window.removeEventListener("keydown", shortcut);
@@ -172,12 +219,12 @@ export function AppShell() {
   return (
     <div
       className={`app-shell theme-${theme} panel-${mobilePanel} ${sidebarCollapsed ? "sidebar-collapsed" : ""} ${inspectorVisible ? "inspector-open" : ""} ${data.tab === "canvas" && inspectorVisible ? "canvas-open" : ""}`}
-      style={{ "--sidebar-width": `${sidebarWidth}px`, "--rail-width": `${railWidth}px` } as CSSProperties}
+      style={{ "--sidebar-width": `${sidebarWidth}px` } as CSSProperties}
     >
       <DesktopHeader
         title={view === "work" ? convo.activeTitle : viewLabel(view)}
-        data={data}
-        approvalPending={!!approval.approval}
+        reviewCount={reviewCount}
+        queueCount={queued.snapshot.items.length}
         inspectorOpen={inspectorOpen}
         sidebarCollapsed={sidebarCollapsed}
         onNew={openNewTask}
@@ -185,24 +232,42 @@ export function AppShell() {
           if (window.innerWidth <= 760) setMobilePanel((panel) => panel === "sessions" ? "work" : "sessions");
           else setSidebarCollapsed((collapsed) => !collapsed);
         }}
-        onInspector={() => { setInspectorOpen((open) => !open); setMobilePanel(inspectorOpen ? "work" : "inspect"); }}
+        onQueue={() => setQueueOpen(true)}
+        onCommand={data.openPalette}
+        onInspector={() => { if (!inspectorOpen) data.setTab("files"); setInspectorOpen((open) => !open); setMobilePanel(inspectorOpen ? "work" : "inspect"); }}
       />
       <SessionSidebar
         sessions={data.sessions}
         root={data.status?.root}
         activeId={data.status?.sessionId}
         onNew={openNewTask}
-        onOpen={convo.openSession}
+        onOpen={(id) => { openView("work"); void convo.openSession(id); }}
         onRename={(id, title) => convo.renameSession(id, title, id === data.status?.sessionId)}
         onArchive={(id, archived) => convo.archiveSession(id, archived, id === data.status?.sessionId)}
         onDelete={(id, action) => convo.deleteSession(id, id === data.status?.sessionId, action)}
+        onBulkArchive={(ids, archived) => convo.archiveSessions(ids, archived, !!data.status?.sessionId && ids.includes(data.status.sessionId))}
+        onBulkDelete={(ids, action) => convo.deleteSessions(ids, !!data.status?.sessionId && ids.includes(data.status.sessionId), action)}
         onPin={convo.pinSession}
         onReorderPins={convo.reorderPinnedSessions}
         view={view}
-        onView={setView}
+        onView={openView}
         onSettings={data.openSettings}
         onShortcuts={data.openShortcuts}
         onDismiss={() => setMobilePanel("work")}
+        runLibrary={runLibrary}
+        onRunPrepared={async (prepared) => {
+          attachments.clear();
+          for (const file of prepared.files) attachments.addFile(file);
+          await convo.openSession(prepared.sessionId);
+          convo.setDraft(prepared.draft);
+          setView("work");
+          setMobilePanel("work");
+          if (prepared.lineage.mode === "replay") {
+            const sent = await convo.submit(withProjectAttachments(prepared.prompt, prepared.files), undefined, prepared.files);
+            if (sent) attachments.clear();
+          }
+          await runLibrary.refresh();
+        }}
       />
       <PaneResizeHandle
         className="sidebar-resize-handle"
@@ -216,20 +281,39 @@ export function AppShell() {
       <main className="workbench">
         {view === "work" ? <>
           <div className="work-controls">
-            <WorkToolbar busy={convo.busy} queueCount={queued.snapshot.items.length} onQueue={() => setQueueOpen(true)} onBackground={() => setView("operate")} onStop={() => { void convo.stop(); }} onReset={openNewTask} />
-            <RuntimeStrip runtime={data.runtime} agentModel={data.status?.model} agentProvider={data.status?.provider} agentRoute={data.status?.providerRoute} phase={data.phase} onSelect={data.setRuntimeHost} onAction={data.runRuntimeAction} />
+            <RuntimeStrip
+              runtime={data.runtime}
+              agentModel={data.status?.model}
+              agentProvider={data.status?.provider}
+              agentRoute={data.status?.providerRoute}
+              phase={data.phase}
+              onSelect={data.setRuntimeHost}
+              onAction={data.runRuntimeAction}
+            />
           </div>
           <div className={`conversation-stage ${data.phase === "error" ? "has-error" : ""}`}>
             {data.phase === "error" ? <ConnectionError message={data.error} onRetry={() => { void data.refresh(); }} onSetup={data.openSetup} /> : null}
             {data.phase === "loading" ? <LoadingState /> : <ChatThread key={convo.sessionId || data.status?.sessionId} sessionId={convo.sessionId || data.status?.sessionId} messages={convo.messages} busy={convo.busy} streamText={convo.streamText} events={convo.events} recovery={convo.recovery} approval={approval.approval} onApproval={approval.answerApproval} onRetry={convo.retry} onReconnect={data.openSetup} onPrompt={convo.setDraft} />}
           </div>
           <div className="composer-stack">
+            {queued.snapshot.items.length ? <button className="inline-queue-trigger" type="button" aria-label={`Open queue, ${queued.snapshot.items.length} next`} onClick={() => setQueueOpen(true)}><ListOrdered size={14} /><span>Queue</span><strong>{queued.snapshot.items.length} next</strong><small>Runs after the current task</small></button> : null}
             <FullAccessWarning visible={accessWarning.visible} onClose={accessWarning.close} onAcknowledge={accessWarning.acknowledge} />
-            <Composer value={convo.draft} busy={convo.busy} ready={conversationReady} model={data.status?.model} root={data.status?.root} tools={data.status?.tools} mcp={mcp.summary} accessMode={data.status?.accessMode ?? "approve"} attachments={attachments.files} images={attachments.images} attachmentError={attachments.error} lookBusy={attachments.capturing} onChange={convo.setDraft} onSubmit={(text) => { void submitWork(text); }} onQueue={(text) => { void convo.queue(text).then(queued.refresh); }} onRemoveAttachment={attachments.removeFile} onRemoveImage={attachments.removeImage} onPasteImages={attachments.pasteImages} onLookCapture={attachments.captureLook} onStop={convo.stop} onAttach={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }} onMcp={() => setView("connect")} onModel={data.openModelPicker} onAccessMode={data.setAccessMode} onCommand={data.openPalette} />
+            <Composer value={convo.draft} busy={convo.busy} ready={conversationReady} model={data.status?.model} root={data.status?.root} tools={data.status?.tools} mcp={mcp.summary} accessMode={data.status?.accessMode ?? "approve"} attachments={attachments.items} images={attachments.images} attachmentError={attachments.error} lookBusy={attachments.capturing} onChange={convo.setDraft} onSubmit={(text) => { void submitWork(text); }} onQueue={(text) => { void convo.queue(text).then(queued.refresh); }} onRemoveAttachment={attachments.removeItem} onRemoveImage={attachments.removeImage} onPasteImages={attachments.pasteImages} onDropFiles={attachments.dropFiles} onLookCapture={attachments.captureLook} onStop={convo.stop} onAttach={() => { void attachments.pickFiles(); }} onMcp={() => setView("connect")} onModel={data.openModelPicker} onAccessMode={data.setAccessMode} onCommand={data.openPalette} />
           </div>
-        </> : <OperatorWorkspace view={view} data={data} mcp={mcp} events={convo.events} connectTarget={connectTarget} onOpenSession={(id) => { setView("work"); void convo.openSession(id); }} />}
+        </> : <OperatorWorkspace
+          view={view}
+          data={data}
+          mcp={mcp}
+          events={convo.events}
+          connectTarget={connectTarget}
+          onOpenSession={(id) => { openView("work"); void convo.openSession(id); }}
+          onCreateSchedule={() => { openView("work"); convo.setDraft("Schedule a recurring task: "); }}
+          onConnect={() => openView("connect")}
+          continuity={continuity}
+        />}
       </main>
       <QueuedTurnDrawer open={queueOpen} items={queued.snapshot.items} error={queued.error} onClose={() => setQueueOpen(false)} onAction={queued.mutate} />
+      {inspectorVisible ? <button className="review-scrim" type="button" aria-label="Close review" onClick={() => { setInspectorOpen(false); setMobilePanel("work"); }} /> : null}
       {inspectorVisible ? <RightRail
         status={data.status}
         tools={data.tools}
@@ -247,19 +331,21 @@ export function AppShell() {
         onOpenSession={(id) => { setInspectorOpen(false); void convo.openSession(id); }}
         onDismiss={() => { setInspectorOpen(false); setMobilePanel("work"); }}
       /> : null}
-      {inspectorVisible ? <PaneResizeHandle
-        className="rail-resize-handle"
-        label="Resize outputs"
-        value={railWidth}
-        minimum={railMinimum}
-        maximum={railMaximum}
-        direction="left"
-        onChange={changeRailWidth}
-      /> : null}
-      <MobileNavigation view={view} onView={(next) => { setView(next); setMobilePanel("work"); }} onInspect={() => { setInspectorOpen(true); setMobilePanel("inspect"); }} />
-      <DesktopStatusbar data={data} />
-      <NewTaskDialog open={newTaskOpen} root={data.status?.root} model={data.status?.model} onClose={() => setNewTaskOpen(false)} onCreate={(draft) => { if (conversationReady) void createTask(draft, convo, () => { setNewTaskOpen(false); setView("work"); }); }} />
-      <DesktopOverlays data={data} sound={sound} convo={convo} theme={theme} accessWarning={accessWarning} onTheme={changeTheme} onNew={openNewTask} onTelegram={openTelegramSetup} onInspector={(tab) => { data.setTab(tab); setInspectorOpen(true); setMobilePanel("inspect"); }} />
+      <NewTaskDialog open={newTaskOpen} root={data.status?.root} model={data.status?.model} initialDraft={projectTaskRecovery?.draft} initialError={projectTaskRecovery?.error} onClose={() => setNewTaskOpen(false)} onCreate={createNewTask} />
+      <DesktopOverlays
+        data={data}
+        sound={sound}
+        convo={convo}
+        theme={theme}
+        accessWarning={accessWarning}
+        onTheme={changeTheme}
+        onNew={openNewTask}
+        onTelegram={openTelegramSetup}
+        onReview={() => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }}
+        onSidebar={() => setSidebarCollapsed((collapsed) => !collapsed)}
+        onCycleMode={cycleAccessMode}
+        onView={openView}
+      />
     </div>
   );
 }
@@ -335,33 +421,33 @@ function PaneResizeHandle(props: {
   ><span className="sr-only">{props.label}</span></div>;
 }
 
-function DesktopHeader(props: { title: string; data: DesktopData; approvalPending: boolean; inspectorOpen: boolean; sidebarCollapsed: boolean; onNew: () => void; onSidebar: () => void; onInspector: () => void }) {
-  const { data } = props;
-  const root = data.status?.root?.split("/").filter(Boolean).at(-1) ?? "Project";
-  const agent = agentModelPresentation(data.phase, data.status?.model, data.status?.provider);
+function DesktopHeader(props: {
+  title: string;
+  reviewCount: number;
+  queueCount: number;
+  inspectorOpen: boolean;
+  sidebarCollapsed: boolean;
+  onNew: () => void;
+  onSidebar: () => void;
+  onInspector: () => void;
+  onQueue: () => void;
+  onCommand: () => void;
+}) {
   return (
     <header className="app-titlebar" aria-label="Application chrome">
       <div className="titlebar-identity">
         <div className="titlebar-leading-actions"><button className={props.sidebarCollapsed ? "" : "active"} type="button" title="Toggle threads" aria-label="Toggle threads" aria-pressed={!props.sidebarCollapsed} onClick={props.onSidebar}><PanelLeft size={16} /></button><button type="button" title="New task" aria-label="New task" onClick={props.onNew}><MessageSquarePlus size={16} /></button></div>
       </div>
-      <div className="titlebar-agent-context"><div className="titlebar-task"><FolderKanban size={14} /><div className="title-block"><p>{root}</p><h1>{props.title}</h1></div></div><div className="titlebar-runtime"><span className={`kernel-status ${data.phase}`}><i />{data.phase === "ready" ? "online" : data.phase}</span><button type="button" title={`Agent model: ${agent.value}. Change model`} aria-label={`Agent model: ${agent.value}. Change model`} onClick={data.openModelPicker}><Cpu size={14} /><span className="agent-model-label"><small>Agent model</small><strong>{agent.value}</strong></span></button></div></div>
-      <div className="status-strip titlebar-actions">
-        <span className={`approval-status ${props.approvalPending ? "pending" : ""}`}><i />{props.approvalPending ? "approve" : "ask"}</span>
-        <button className="icon-button" type="button" title={props.inspectorOpen ? "Close inspector" : "Open contextual inspector"} onClick={props.onInspector} aria-label={props.inspectorOpen ? "Close inspector" : "Open contextual inspector"}><PanelRight size={16} /></button>
-        <button className="icon-button" type="button" title="Settings" onClick={data.openSettings} aria-label="Settings"><Settings2 size={16} /></button>
-        <button className="icon-button" type="button" title="Command palette (Command K)" onClick={data.openPalette} aria-label="Open command palette"><Command size={16} /></button>
+      <div className="titlebar-agent-context">
+        <div className="titlebar-task"><FolderKanban size={14} /><div className="title-block"><h1>{props.title}</h1></div></div>
+        <div className="titlebar-actions">
+          {props.queueCount ? <button className="titlebar-queue" type="button" aria-label={`Open queue, ${props.queueCount} next`} onClick={props.onQueue}><ListOrdered size={14} /><span>{props.queueCount}</span></button> : null}
+          <button className={`review-button ${props.inspectorOpen ? "active" : ""}`} type="button" aria-label="Review" aria-expanded={props.inspectorOpen} aria-controls="review-drawer" onClick={props.onInspector}><span>Review</span>{props.reviewCount ? <strong aria-label={`${props.reviewCount} review items`}>{props.reviewCount}</strong> : null}</button>
+          <button className="icon-button" type="button" title="Commands (Command K)" onClick={props.onCommand} aria-label="Open commands"><Command size={16} /></button>
+        </div>
       </div>
     </header>
   );
-}
-
-function WorkToolbar(props: { busy: boolean; queueCount: number; onQueue: () => void; onBackground: () => void; onStop: () => void; onReset: () => void }) {
-  return <section className="work-toolbar" data-busy={props.busy ? "true" : "false"} role="toolbar" aria-label="Task controls"><strong className="work-toolbar-title"><i />{props.busy ? "Run active" : "Run controls"}</strong><div><button className="queued-turn-trigger" type="button" aria-label={`Open queued turns, ${props.queueCount} queued`} onClick={props.onQueue}><ListOrdered size={14} /><span>{props.queueCount} queued</span></button><button type="button" onClick={props.onBackground}><Pause size={14} />Background</button><button className="danger" type="button" onClick={props.onStop} disabled={!props.busy}><Square size={13} />Stop</button><button type="button" onClick={props.onReset}><RotateCcw size={14} />New task</button></div></section>;
-}
-
-function DesktopStatusbar(props: { data: DesktopData }) {
-  const root = props.data.status?.root?.split("/").filter(Boolean).at(-1) ?? "Project";
-  return <footer className="desktop-statusbar"><span><i />Gateway {props.data.phase === "ready" ? "ready" : props.data.phase}</span><span><ShieldCheck size={12} />Kernel {props.data.status?.kernel ?? "checking"}</span><span><Activity size={12} />{props.data.sessions.filter((session) => !session.archived).length} tasks</span><em>{root}</em></footer>;
 }
 
 function LoadingState() {
@@ -383,7 +469,10 @@ function DesktopOverlays(props: {
   onTheme: (theme: DesktopTheme) => void;
   onNew: () => void;
   onTelegram: () => void;
-  onInspector: (tab: RailTab) => void;
+  onReview: () => void;
+  onSidebar: () => void;
+  onCycleMode: () => void;
+  onView: (view: DesktopView) => void;
 }) {
   const { data, sound, convo } = props;
   return (
@@ -392,13 +481,16 @@ function DesktopOverlays(props: {
         open={data.paletteOpen}
         onClose={data.closePalette}
         onNew={props.onNew}
+        onReview={props.onReview}
+        onSidebar={props.onSidebar}
+        onCycleMode={props.onCycleMode}
+        onView={props.onView}
         onModel={data.openModelPicker}
         onTelegram={props.onTelegram}
         onSound={data.openSoundSettings}
         onSettings={data.openSettings}
-        onTab={props.onInspector}
       />
-      <ModelPicker open={data.modelOpen} models={data.models} status={data.status} onClose={data.closeModelPicker} onRefresh={data.refreshProviderModels} onSelect={data.setModel} />
+      <ModelPicker open={data.modelOpen} models={data.models} status={data.status} onClose={data.closeModelPicker} onRefresh={data.refreshProviderModels} onSelect={data.setModel} onSettings={data.setModelSettings} />
       <SettingsDialog open={data.settingsOpen} models={data.models} status={data.status} theme={props.theme} fullAccessWarningAcknowledged={props.accessWarning.acknowledged} onResetFullAccessWarning={props.accessWarning.reset} onTheme={props.onTheme} onClose={data.closeSettings} onModel={data.openModelPicker} onSetup={data.openSetup} />
       <KeyboardShortcuts open={data.shortcutsOpen} onClose={data.closeShortcuts} />
       <SetupWizard open={data.setupOpen} models={data.models} onClose={data.closeSetup} onSave={async (provider, model, apiKey) => {
@@ -418,14 +510,30 @@ function DesktopOverlays(props: {
 
 type ConnectTarget = { key: number; section: "overview" | "capabilities" | "mcp" | "messaging" | "google"; messagingId?: string };
 
-function OperatorWorkspace(props: { view: DesktopView; data: DesktopData; mcp: DesktopMcp; events: ReturnType<typeof useConversation>["events"]; connectTarget: ConnectTarget | null; onOpenSession: (id: string) => void }) {
-  if (props.view === "operate") return <OperateView sessions={props.data.sessions} events={props.events} status={props.data.status} onOpenSession={props.onOpenSession} />;
+function OperatorWorkspace(props: {
+  view: DesktopView;
+  data: DesktopData;
+  mcp: DesktopMcp;
+  events: ReturnType<typeof useConversation>["events"];
+  connectTarget: ConnectTarget | null;
+  onOpenSession: (id: string) => void;
+  onCreateSchedule: () => void;
+  onConnect: () => void;
+  continuity: Continuity;
+}) {
+  if (props.view === "operate") return <ContinuityView snapshot={props.continuity.snapshot} busy={props.continuity.busy} error={props.continuity.error} onCapture={props.continuity.capture} onAction={props.continuity.act} />;
   if (props.view === "outputs") return <ArtifactsView artifacts={props.data.artifacts} onOpenSession={props.onOpenSession} onRefresh={() => { void props.data.refresh(); }} />;
+  if (props.view === "scheduled") return <ScheduledView items={props.data.schedules} onCreate={props.onCreateSchedule} />;
+  if (props.view === "plugins") return <PluginsView items={props.data.capabilities} onConnect={props.onConnect} />;
   return <ConnectView key={props.connectTarget?.key ?? "connect"} capabilities={props.data.capabilities} platforms={props.data.messaging} models={props.data.models} status={props.data.status} google={props.data.google} releaseProofs={props.data.releaseProofs} mcp={props.mcp} initialSection={props.connectTarget?.section} messagingId={props.connectTarget?.messagingId} onSaveMessaging={props.data.saveMessaging} onTest={props.data.testConnection} onStartGateway={props.data.startGateway} onGoogleConnect={props.data.googleConnect} onOpenModel={props.data.openModelPicker} onOpenSetup={props.data.openSetup} />;
 }
 
 function viewLabel(view: Exclude<DesktopView, "work">): string {
-  return view === "operate" ? "Operate" : view === "outputs" ? "Outputs" : "Connect";
+  if (view === "operate") return "Today";
+  if (view === "outputs") return "Outputs";
+  if (view === "scheduled") return "Scheduled";
+  if (view === "plugins") return "Plugins";
+  return "Connect";
 }
 
 async function createTask(draft: NewTaskDraft, convo: ReturnType<typeof useConversation>, close: () => void) {
@@ -433,9 +541,4 @@ async function createTask(draft: NewTaskDraft, convo: ReturnType<typeof useConve
   const context = [`Agent: ${draft.agent}`, `Host: ${draft.host}`, `Project: ${draft.folder}`, `Branch: ${draft.branch}`, draft.worktree ? "Use an isolated worktree." : "Work in the current checkout.", draft.approvals ? "Ask before consequential actions." : "Use the configured approval policy."].join("\n");
   convo.setDraft(`${draft.prompt.trim()}${draft.prompt.trim() ? "\n\n" : ""}${context}`);
   close();
-}
-
-function MobileNavigation(props: { view: DesktopView; onView: (view: DesktopView) => void; onInspect: () => void }) {
-  const destinations: Array<[DesktopView, typeof MessageSquare, string]> = [["work", MessageSquare, "Work"], ["operate", Activity, "Operate"], ["outputs", PackageOpen, "Outputs"], ["connect", Network, "Connect"]];
-  return <nav className="mobile-nav" aria-label="Mobile workspace">{destinations.map(([view, Icon, label]) => <button key={view} className={props.view === view ? "active" : ""} type="button" onClick={() => props.onView(view)}><Icon size={17} /><span>{label}</span></button>)}<button type="button" onClick={props.onInspect}><PanelRight size={17} /><span>Inspect</span></button></nav>;
 }

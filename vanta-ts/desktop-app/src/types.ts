@@ -1,7 +1,73 @@
 export type Session = { id: string; title: string; turns: number; updated: string; archived?: boolean; trashed?: boolean; pinned?: boolean; pinOrder?: number };
+export type RunInput = {
+  path: string;
+  sha256?: string;
+  bytes?: number;
+  snapshotRef?: string;
+  capture: "snapshotted" | "linked" | "missing" | "redacted";
+  note?: string;
+};
+export type RunEvent = {
+  at: string;
+  kind: "tool_start" | "tool_end" | "approval" | "note";
+  toolName?: string;
+  ok?: boolean;
+  args?: Record<string, unknown>;
+  output?: string;
+  approval?: { decision: "allow" | "always" | "deny" | "never"; reason: string };
+};
+export type RunRecord = {
+  version: 1;
+  id: string;
+  sessionId: string;
+  turnIndex: number;
+  title: string;
+  prompt: string;
+  projectRoot: string;
+  providerId?: string;
+  modelId?: string;
+  startedAt: string;
+  completedAt: string;
+  status: "done" | "failed" | "interrupted";
+  saved: boolean;
+  tags: string[];
+  provenance: "captured" | "derived";
+  lineage: { mode: "original" | "fork" | "replay"; parentRunId?: string };
+  inputs: RunInput[];
+  events: RunEvent[];
+  finalOutput: string;
+  usage?: { inputTokens: number; outputTokens: number };
+};
+export type ReplayPreview = {
+  runId: string;
+  canExecute: boolean;
+  project: { recorded: string; current: string; changed: boolean };
+  provider: { recorded?: string; current?: string; changed: boolean };
+  model: { recorded?: string; current?: string; changed: boolean };
+  tools: { recorded: string[]; unavailable: string[] };
+  inputs: Array<{ path: string; expectedSha256?: string; actualSha256?: string; state: "ready" | "changed" | "missing" | "redacted" }>;
+  warning: string;
+};
+export type PreparedRun = {
+  sessionId: string;
+  prompt: string;
+  draft: string;
+  files: string[];
+  lineage: RunRecord["lineage"];
+  preview: ReplayPreview;
+};
 export type Tool = { name: string; desc: string };
 export type DesktopTheme = "dark" | "light";
-export type DesktopView = "work" | "operate" | "outputs" | "connect";
+export type DesktopView = "work" | "operate" | "outputs" | "connect" | "scheduled" | "plugins";
+export type { CapacityDimensionLevel, CapacityDimensions, ContinuityItem, ContinuitySnapshot } from "./continuity-types.js";
+export type ScheduledTask = {
+  id: number;
+  cron: string;
+  instruction: string;
+  status: "active" | "paused";
+  mode?: "no_agent" | "script_context";
+  routine?: "skip" | "once";
+};
 export type Capability = { id: string; kind: "tool" | "skill"; name: string; description: string; tags: string[] };
 export type MessagingPlatform = {
   id: string; label: string; status: ConnectStatus; configured: boolean; missing: string[]; prerequisite?: string; warning?: string;
@@ -60,12 +126,13 @@ export type DesktopImageAttachment = {
   capture?: DesktopCaptureReceipt;
 };
 export type Goal = { text: string };
-export type AccessMode = "ask" | "approve" | "full";
+export type AccessMode = "ask" | "approve" | "plan" | "auto" | "full";
 export type QueuedTurn = {
   id: string;
   instruction: string;
   intent: "next" | "steer";
-  status: "queued" | "starting";
+  status: "queued" | "starting" | "failed";
+  failure?: { reason: string; at: string; attempts: number };
   target: { sessionId: string; root: string; controllerId: string; model: string; accessMode: AccessMode };
   position: number;
   revision: number;
@@ -82,7 +149,14 @@ export type ProviderRouteStatus = {
   authMethod: "subscription" | "api_key" | "local" | "unknown";
   authState: "ready" | "required";
 };
-export type Status = { kernel: string; model: string; provider?: string; providerRoute?: ProviderRouteStatus; tools: number; sessionId: string; root?: string; goals: Goal[]; accessMode?: AccessMode; accessScope?: "project" };
+export type ModelEffort = "low" | "medium" | "high" | "xhigh" | "max" | "ultra";
+export type ProviderSpeed = "standard" | "fast";
+export type ProviderModelSettings = { effortLevel?: ModelEffort; speed?: ProviderSpeed };
+export type ProviderModelSettingsCapabilities = {
+  effort?: { defaultValue: ModelEffort; options: ModelEffort[] };
+  speed?: { defaultValue: ProviderSpeed; options: ProviderSpeed[] };
+};
+export type Status = { kernel: string; model: string; provider?: string; modelSettings?: ProviderModelSettings; providerRoute?: ProviderRouteStatus; tools: number; sessionId: string; root?: string; goals: Goal[]; accessMode?: AccessMode; accessScope?: "project" };
 export type RuntimeHostSnapshot = {
   host: { id: string; label: string; kind: "local" | "remote" };
   status: "offline" | "auth_required" | "idle" | "starting" | "running" | "stopping" | "failed" | "degraded";
@@ -192,6 +266,7 @@ export type Provider = {
   modelSource?: "catalog" | "live";
   discoveryAvailable?: boolean;
   discoveryError?: string;
+  modelSettings?: ProviderModelSettingsCapabilities;
   requiresKey?: boolean;
   signupUrl?: string;
   note?: string;

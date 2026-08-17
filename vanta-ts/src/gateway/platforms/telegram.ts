@@ -9,6 +9,7 @@ import type {
   PlatformWebhookHandler,
 } from "./base.js";
 import { formatForDialect } from "./format.js";
+import type { TelegramFetch } from "../../net/ipv4-fetch.js";
 import { capabilities, segmentsFor, type AdapterCapabilities } from "./capabilities.js";
 import {
   TelegramReceiveBehavior,
@@ -83,6 +84,7 @@ export class TelegramAdapter implements PlatformAdapter {
   readonly capabilities = TELEGRAM_CAPABILITIES;
   private offset = 0;
   private readonly base: string;
+  private readonly http: TelegramFetch;
   private readonly sleep: (ms: number) => Promise<void>;
   private readonly receive: TelegramReceiveBehavior;
 
@@ -92,8 +94,10 @@ export class TelegramAdapter implements PlatformAdapter {
     apiBase?: string;
     sleep?: (ms: number) => Promise<void>;
     webhookSecret?: string;
+    fetch?: TelegramFetch;
   }) {
     this.base = `${opts.apiBase ?? "https://api.telegram.org"}/bot${opts.token}`;
+    this.http = opts.fetch ?? globalThis.fetch;
     this.sleep = opts.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
     this.receive = new TelegramReceiveBehavior({ allow: opts.allow, webhookSecret: opts.webhookSecret });
   }
@@ -108,12 +112,12 @@ export class TelegramAdapter implements PlatformAdapter {
   async poll(): Promise<InboundMessage[]> {
     const payload = this.receive.receivesWebhook
       ? this.receive.drainWebhookPayload()
-      : await fetch(`${this.base}/getUpdates?timeout=0&offset=${this.offset}`).then((res) => res.json());
+      : await this.http(`${this.base}/getUpdates?timeout=0&offset=${this.offset}`).then((res) => res.json());
     const { messages, nextOffset, callbackIds } = this.receive.parseAndFilter(payload, this.offset);
     this.offset = nextOffset;
     // Ack every callback so Telegram stops the button spinner (best-effort).
     for (const id of callbackIds) {
-      await fetch(`${this.base}/answerCallbackQuery`, {
+      await this.http(`${this.base}/answerCallbackQuery`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ callback_query_id: id }),
@@ -144,7 +148,7 @@ export class TelegramAdapter implements PlatformAdapter {
       link_preview_options: { is_disabled: true },
     });
     for (let attempt = 1; ; attempt += 1) {
-      const res = await fetch(`${this.base}/sendMessage`, {
+      const res = await this.http(`${this.base}/sendMessage`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body,
@@ -177,7 +181,7 @@ export class TelegramAdapter implements PlatformAdapter {
 
   /** Tell Telegram that the agent is working before its final reply is ready. */
   async sendTyping(target: { chatId: string; threadId?: string }): Promise<void> {
-    await fetch(`${this.base}/sendChatAction`, {
+    await this.http(`${this.base}/sendChatAction`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -193,7 +197,7 @@ export class TelegramAdapter implements PlatformAdapter {
     body.set("chat_id", file.chatId);
     if (file.threadId !== undefined) body.set("message_thread_id", file.threadId);
     body.set("document", new Blob([file.data], { type: file.mime }), file.name);
-    const response = await fetch(`${this.base}/sendDocument`, { method: "POST", body });
+    const response = await this.http(`${this.base}/sendDocument`, { method: "POST", body });
     const id = parseSentId(await safeJson(response));
     return id ? {
       platform: "telegram", transport: "bot-api:sendDocument", accepted: true,

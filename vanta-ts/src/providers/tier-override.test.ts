@@ -5,7 +5,8 @@ import { resolveTierModel, isTierKeyword } from "./tier-override.js";
 // These are the curated-first Anthropic model ids per tier in catalog.ts; if the
 // catalog's lead model for a tier changes, this test should change with it.
 const CATALOG_DEFAULTS = {
-  opus: "claude-opus-4-8",
+  // Opus 5 became the catalogued lead; the other ids below are unrelated fixtures.
+  opus: "claude-opus-5",
   sonnet: "claude-sonnet-5",
   haiku: "claude-haiku-4-5",
 } as const;

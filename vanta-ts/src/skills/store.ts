@@ -2,6 +2,7 @@ import { readFile, writeFile, mkdir, readdir, rename } from "node:fs/promises";
 import { join } from "node:path";
 import {
   skillsDir,
+  resolveVantaHome,
   slugifySkillName,
   ensureVantaStore,
   commitInHome,
@@ -9,6 +10,7 @@ import {
 import { parseSkill, serializeSkill } from "./frontmatter.js";
 import { scanForInjection } from "./gating.js";
 import type { Skill } from "./types.js";
+import { readMetadataCache, writeMetadataCache } from "../cache/metadata.js";
 
 /** Subdir reserved for retired skills; never returned by listSkills. */
 const ARCHIVE_DIR = "_archive";
@@ -50,6 +52,12 @@ function warnOnce(message: string): void {
 export type SkillAuditFinding = { path: string; skill: Skill; hits: string[] };
 
 type ReadSkillFileResult = { skill: Skill; hits: string[] };
+
+type CachedSkillRecord = ReadSkillFileResult & { path: string };
+
+export function skillIndexCachePath(env?: NodeJS.ProcessEnv): string {
+  return join(resolveVantaHome(env), "cache", "skill-index-v1.json");
+}
 
 async function readSkillFile(path: string): Promise<ReadSkillFileResult | null> {
   try {
@@ -141,7 +149,10 @@ export async function readSkill(
   name: string,
   env?: NodeJS.ProcessEnv,
 ): Promise<Skill | null> {
-  return tryReadSkill(skillPath(slugifySkillName(name), env), env);
+  const local = await tryReadSkill(skillPath(slugifySkillName(name), env), env);
+  if (local) return local;
+  const { readBundledSkill } = await import("./library.js");
+  return readBundledSkill(name, env ?? process.env);
 }
 
 /**
@@ -159,12 +170,34 @@ async function skillEntries(env?: NodeJS.ProcessEnv): Promise<string[]> {
 }
 
 export async function listSkills(env?: NodeJS.ProcessEnv): Promise<Skill[]> {
-  const skills: Skill[] = [];
-  for (const entry of await skillEntries(env)) {
-    const skill = await tryReadSkill(join(skillsDir(env), entry, SKILL_FILE), env);
-    if (skill) skills.push(skill);
+  const root = skillsDir(env);
+  const entries = await skillEntries(env);
+  const sources = [
+    root,
+    ...entries.flatMap((entry) => [join(root, entry), join(root, entry, SKILL_FILE)]),
+  ];
+  let records = await readMetadataCache<CachedSkillRecord[]>(skillIndexCachePath(env), 1);
+  if (!Array.isArray(records) || records.some((record) =>
+    !record || typeof record.path !== "string" || !record.skill?.meta || !Array.isArray(record.hits)
+  )) {
+    records = [];
+    for (const entry of entries) {
+      const path = join(root, entry, SKILL_FILE);
+      const read = await readSkillFile(path);
+      if (read) records.push({ path, ...read });
+    }
+    await writeMetadataCache(skillIndexCachePath(env), 1, records, sources).catch(() => {});
   }
 
+  const strict = env?.VANTA_SKILL_STRICT === "1";
+  const skills: Skill[] = [];
+  for (const record of records) {
+    if (strict && record.hits.length) {
+      warnOnce(`  ⚠ skill skipped (VANTA_SKILL_STRICT, injection scan: ${record.hits.join(", ")}): ${record.path}`);
+      continue;
+    }
+    skills.push(record.skill);
+  }
   return skills.sort((a, b) => a.meta.name.localeCompare(b.meta.name));
 }
 

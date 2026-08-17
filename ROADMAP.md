@@ -1,8 +1,104 @@
-# Vanta Roadmap — v0 (done) → v1
+# Vanta roadmap — current projection and historical archive
 
-Source of truth for build order. One line moves between `[ ]`/`[~]`/`[x]` as slices land.
-North star / why: [`MANIFESTO.md`](MANIFESTO.md). Vision + rationale: `docs/prd.md`.
-Runtime flow: `docs/vanta-flow.md`. Locked choices: `DECISIONS.md`. Deferred: `PARKED.md`.
+`roadmap.json` is the only product-development work database. This file keeps
+historical narrative and does not override the JSON, `STRATEGY.md`, or
+`DECISIONS.md`.
+
+## Current converged build order — 2026-08-14
+
+**Building**
+
+No roadmap card is currently Building. The bounded `TRUST-02`, `UX-03`,
+`TRUST-04`, `TRUST-01`, and `OP-01` contracts are recorded as shipped with retained
+receipts for their stated supported-host boundaries; those records do not claim
+merge, release, deployment, or broader external proof.
+
+**Next**
+
+1. `GROW-01` — deferred manual interviews and bounded continuity pilots; no
+   source implementation, paid research, or outreach is active.
+
+**Horizon**
+
+1. `TRUST-03` — canonical action envelope and scoped capability.
+2. `TRUST-05` — untrusted-content quarantine across supported input surfaces.
+3. `TRUST-06` — safe factory, self-repair, and Vanta Lab production boundary.
+4. `OP-03` — deterministic, deduplicated, expiring Needs You projection.
+5. `UX-04` — contextual Review, first-run usefulness, and cross-host accessibility.
+6. `LIFE-02` — quarantined read-only morning orientation after its dependencies.
+
+The 28 destination outcomes are a dependency/acceptance catalog, not 28
+simultaneous projects. Current open inventory is 7: 1 Next and 6 Horizon.
+Capacity remains capped at 12 open, 4 Next, 6 implementation-ready, and 2
+Building.
+
+```text
+TRUST-01 TRUST-02 TRUST-03 TRUST-04 TRUST-05 TRUST-06
+OP-01 OP-02 OP-03 OP-04 OP-05
+UX-01 UX-02 UX-03 UX-04
+LIFE-01 LIFE-02 LIFE-03 LIFE-04
+GROW-01 GROW-02 GROW-03 GROW-04 GROW-05
+PACK-01 LAB-01 EVAL-01 DOGFOOD-01
+```
+
+## Historical narrative below
+
+The sections below are retained as product and implementation provenance. Old
+instructions to commit, push, “finish everything,” treat R labels as risk or
+autonomy variants, or claim universal kernel/completion behavior are
+superseded by current strategy and acceptance evidence.
+
+---
+
+## 2026-07-23 — Goal-adherence drift (transcript-sourced, P0)
+
+Source: a live session where Vanta ignored the user's ask ~15 turns running. The user
+asked a question, Vanta answered it, then **re-answered a stale earlier question** every
+turn while the user repeated himself ("i asked you 4 times", "why aren't u listening").
+The ND anti-drift system — the whole reason this agent exists — **structurally could not
+catch it.** Errors identified, ranked:
+
+1. **Activity masks drift (measurement bug).** `nd/gates.ts` inhibit gate + the duplicate
+   `repl/inhibit.ts` reset their counter on *any* `write_file`/`shell_cmd`/commit. During
+   the drift Vanta ran shell/writes constantly → counter stuck at 0 → gate never fired. It
+   measures *whether the agent is busy*, not *whether it's doing what was asked*.
+2. **Stale anchor.** The drift note anchors on the kernel's formal `activeGoalText`, not the
+   *actual last user message*. The real ask "scrolled out of reach"; the gate had `lastUserMessage`
+   in its signal and never used it.
+3. **Advisory, not enforced.** Gates only `onNote(...)`. The model *saw* the notes (the
+   research-gate fired: "🔎 8 turns…") and rationalized past them every time.
+4. **Redundant broken duplicate.** Two `inhibit` implementations run every turn with the
+   same bug (`repl/inhibit.ts` + `nd/gates.ts`).
+5. **Over-asking, not-listening.** When the user finally said "fix the drift, the real fix",
+   Vanta looped 3-option config menus instead of acting on a decision already given.
+6. **Litter + uncommitted fix.** A correct `pdf-read.ts` Buffer→Uint8Array fix left
+   uncommitted; throwaway `._pdftest.mjs` / `repro-pdf.mjs` repro scripts abandoned in-tree.
+
+### Fixes
+
+- [x] **DRIFT-ADHERENCE-GATE** (M) — repurpose the canonical ND `inhibit` gate into a real
+  goal-adherence detector: fires on a **repeated / frustrated re-ask** (the "i asked you 4
+  times" signal — the strongest, lowest-false-positive drift signal), anchors the nudge on
+  the **actual last user message**, escalates imperatively on further repeats. Fires on the
+  *first* repeat so the user never has to ask twice. Co-located tests.
+- [x] **DRIFT-INHIBIT-DEDUP** (S) — retire the redundant, identically-buggy standalone
+  `repl/inhibit.ts` orchestrator path; the fixed ND gate supersedes it.
+- [x] **PDF-BUFFER-FIX** (S) — commit the Buffer→Uint8Array view fix in `pdf-read.ts`
+  (pdf.js rejects a Node Buffer). Was correct but uncommitted.
+- [x] **DRIFT-REPRO-LITTER** (S) — delete abandoned repro scripts left in `vanta-ts/`.
+- [x] **DRIFT-HARD-ENFORCE** (M) — two-phase per-turn tool budget in
+  `agent/turn-loop.ts` (`agent/tool-budget.ts`). At 30 calls, broad acquisition closes and
+  the already-declared ten-call reserve is spent synthesizing, verifying, producing the
+  requested output, and closing the checklist. The hard ceiling remains 40; reaching it
+  records `stoppedReason: "tool_budget"` instead of silently returning a partial success.
+  Manual/Accept-edits corrections use a 10-call acquisition phase plus a ten-call finish
+  reserve; Auto and Full access keep the general bounded ceiling. An observed open
+  checklist cannot return a normal `done` outcome merely because the generic continuation
+  nudge cap was reached. `VANTA_TOOL_BUDGET=0` explicitly disables the tool-call backstop
+  for autonomous/grind runs. Every terminal boundary is persisted and rendered instead of
+  leaving a blank TUI handoff.
+  *Honest scope:* a blunt runaway backstop, not a semantic off-goal judge (that needs a
+  classifier) — it pairs with the goal-adherence note + adaptive redirect that handle intent.
 
 ---
 

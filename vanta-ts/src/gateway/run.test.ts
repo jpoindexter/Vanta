@@ -12,6 +12,7 @@ import { saveDef } from "../loop/store.js";
 import { createReplyBus } from "../permissions/reply-bus.js";
 import { loadMobileRuns, startMobileRun } from "./mobile-control.js";
 import { createGoalSentinel } from "../goals/sentinel.js";
+import { allowTestEffectGate } from "../effects/test-gate.js";
 
 class FakeAdapter implements PlatformAdapter {
   sent: OutboundMessage[] = [];
@@ -182,6 +183,7 @@ describe("runGatewayLoop", () => {
 describe("pollPlatform", () => {
   const noCron = {
     dataDir: "/x",
+    effectGate: allowTestEffectGate(join(tmpdir(), `vanta-gateway-legacy-${process.pid}`)),
     run: async () => ({ finalText: "" }),
     load: async () => [],
     log: () => {},
@@ -224,6 +226,7 @@ describe("pollPlatformSession (concurrent inbound routing)", () => {
   const TS = "[Sat 2026-06-20 12:00]";
   const noCron = {
     dataDir: "/x",
+    effectGate: allowTestEffectGate(join(tmpdir(), `vanta-gateway-session-${process.pid}`)),
     run: async () => ({ finalText: "" }),
     load: async () => [],
     log: () => {},
@@ -310,7 +313,14 @@ describe("pollPlatformSession (concurrent inbound routing)", () => {
       ]);
       const handled: string[] = [];
       const r = await pollPlatformSession(
-        { ...noCron, dataDir, platform: adapter, replyBus: bus, handle: async (t) => { handled.push(t); return "agent"; } },
+        {
+          ...noCron,
+          dataDir,
+          effectGate: allowTestEffectGate(dataDir),
+          platform: adapter,
+          replyBus: bus,
+          handle: async (t) => { handled.push(t); return "agent"; },
+        },
         initialState(),
       );
       expect(r.count).toBe(0);
@@ -320,6 +330,12 @@ describe("pollPlatformSession (concurrent inbound routing)", () => {
         `Paused ${prior.id}.`,
         "Approved abc123.",
       ]);
+      const effects = await import("node:fs/promises").then(({ readFile }) =>
+        readFile(join(dataDir, ".vanta", "tool-effects.jsonl"), "utf8"));
+      const settledMobile = effects.trim().split("\n")
+        .map((line) => JSON.parse(line) as { kind?: string; transition?: string })
+        .filter((effect) => effect.kind === "gateway.mobile-control" && effect.transition === "settled");
+      expect(settledMobile).toHaveLength(3);
       expect((await loadMobileRuns(dataDir)).find((run) => run.id === prior.id)?.status).toBe("paused");
     } finally {
       bus.unregister("abc123");
@@ -328,12 +344,15 @@ describe("pollPlatformSession (concurrent inbound routing)", () => {
   });
 
   it("sends one progress bubble before a token-window reply expires", async () => {
+    const dataDir = await mkdtemp(join(tmpdir(), "vanta-progress-session-"));
     const adapter = new FakeAdapter([{ chatId: "line-user", text: "slow task" }], "line");
     let finish!: () => void;
     const done = new Promise<void>((resolve) => { finish = resolve; });
     const run = pollPlatformSession(
       {
         ...noCron,
+        dataDir,
+        effectGate: allowTestEffectGate(dataDir),
         platform: adapter,
         progressBubble: { thresholdMs: 1 },
         handle: async () => {
@@ -344,14 +363,20 @@ describe("pollPlatformSession (concurrent inbound routing)", () => {
       initialState(),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 20));
-    expect(adapter.sent).toEqual([{ chatId: "line-user", text: expect.stringContaining("Still working") }]);
+    await vi.waitFor(() => {
+      expect(adapter.sent).toEqual([{ chatId: "line-user", text: expect.stringContaining("Still working") }]);
+    });
     finish();
     await run;
     expect(adapter.sent).toEqual([
       { chatId: "line-user", text: expect.stringContaining("Still working") },
       { chatId: "line-user", text: "final answer" },
     ]);
+    const effects = await import("node:fs/promises").then(({ readFile }) =>
+      readFile(join(dataDir, ".vanta", "tool-effects.jsonl"), "utf8"));
+    expect(effects).toContain('"kind":"gateway.progress"');
+    expect(effects).toContain('"kind":"gateway.final"');
+    await rm(dataDir, { recursive: true, force: true });
   });
 
   it("starts a typing heartbeat immediately while a Telegram turn is running", async () => {

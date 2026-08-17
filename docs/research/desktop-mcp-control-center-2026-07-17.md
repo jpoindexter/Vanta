@@ -28,3 +28,29 @@ git diff --check
 ```
 
 The final flow receipt returned `ok: true` for source and packaged targets. Both targets proved install, Claude import, trust approval, OAuth-needed state, tool test, resource read, reconnect failure, disabled-server behavior, and Work composer MCP context at 1440x960, 1024x640, and 760x700.
+
+## Packaged macOS connector recovery
+
+Date: 2026-07-30
+
+The packaged app now normalizes its child-process `PATH` before starting the
+desktop host. Standard Homebrew and user-level executable locations are added
+without replacing the inherited environment, so local stdio connectors such as
+CodeGraph and Node-based MCP servers remain discoverable when Vanta starts from
+Finder.
+
+Failed connector tests now return the underlying redacted error at the desktop
+API boundary instead of the generic `Request failed (409)` message. A missing
+executable names the connector command and tells the operator to install it or
+update the configuration. Legacy filesystem entries that omitted an allowed
+root receive the current project root at runtime; newly installed entries store
+`.` explicitly.
+
+Focused tests cover path normalization, missing-executable reporting, catalog
+defaults, and legacy filesystem compatibility. A live source probe under a
+stripped Finder-style `PATH` discovered 4 CodeGraph tools, 14 filesystem tools,
+and 10 Obsidian tools. `npm run desktop:mcp-runtime:smoke` also launched the
+signed packaged app with that restricted environment, discovered a Node-backed
+fixture tool, and proved the missing-executable recovery response. GitHub
+authentication, absent third-party applications, and credential remediation
+remain connector-specific setup states rather than MCP transport failures.

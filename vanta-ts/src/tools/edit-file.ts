@@ -5,6 +5,7 @@ import { resolveWritablePathAsk } from "./writable-zones.js";
 import { beginDiagnosticDelta } from "../lsp/diagnostic-note.js";
 import { computeDiff } from "../util/diff.js";
 import { globalFileCheckpointStore } from "../sessions/file-checkpoint.js";
+import { projectControlPlaneConfirmation } from "./project-security-path.js";
 
 const Args = z.object({
   path: z.string().min(1),
@@ -45,12 +46,22 @@ async function applyEdit(
     const finishDiag = await beginDiagnosticDelta(abs, true);
     globalFileCheckpointStore.save({ path, absPath: abs, content });
     await writeFile(abs, updated, "utf8");
+    const readback = await readFile(abs, "utf8").catch(() => null);
+    const verified = readback === updated;
     const occurrences = replace_all ? content.split(old_string).length - 1 : 1;
     const diagNote = await finishDiag();
     return {
       ok: true,
-      output: `edited ${path} — replaced ${occurrences} occurrence${occurrences === 1 ? "" : "s"}${diagNote}`,
+      output:
+        `edited ${path} — replaced ${occurrences} occurrence${occurrences === 1 ? "" : "s"}` +
+        (verified ? " · verified by on-disk readback" : " · ⚠ on-disk readback unavailable or mismatched") +
+        diagNote,
       diff: diff.length ? diff : undefined,
+      effectDisposition: "confirmed",
+      verification: {
+        status: verified ? "verified" : "unverified",
+        evidence: verified ? `readback matched ${Buffer.byteLength(updated)} bytes at ${abs}` : `readback unavailable or mismatched at ${abs}`,
+      },
     };
   } catch (err) {
     return { ok: false, output: `could not write ${path}: ${(err as Error).message}` };
@@ -123,7 +134,13 @@ export const editFileTool: Tool = {
     const check = checkUniqueness(content, old_string, replace_all, path);
     if (!check.ok) return check;
 
-    const approved = await ctx.requestApproval(`Edit file ${path}`, "modifying existing file content", "edit_file");
+    const updated = replace_all
+      ? content.split(old_string).join(new_string)
+      : content.replace(old_string, new_string);
+    const controlPlane = projectControlPlaneConfirmation({ abs, root: ctx.root, displayPath: path, content: updated });
+    const approved = controlPlane
+      ? await ctx.requestApproval(controlPlane.action, controlPlane.reason, "edit_file", controlPlane.detail)
+      : await ctx.requestApproval(`Edit file ${path}`, "modifying existing file content", "edit_file");
     if (!approved) return { ok: false, output: `edit to ${path} denied — file left unchanged` };
 
     return applyEdit(abs, path, content, { path, old_string, new_string, replace_all });

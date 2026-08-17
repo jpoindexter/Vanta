@@ -1,4 +1,6 @@
 import http from "node:http";
+import { randomUUID } from "node:crypto";
+import { classifyProviderError } from "../providers/error-taxonomy.js";
 import { readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -25,7 +27,7 @@ import { pushSseEvent, type SseClients } from "./session-state.js";
 import { approvalDecision, approvalPayload, requestWebApproval, resolveApproval, type PendingApproval } from "./approval.js";
 import { readCanvasArtifact } from "../canvas/artifact.js";
 import { desktopArtifacts, desktopCapabilities, desktopMessagingPlatforms, saveDesktopMessagingPlatform, testDesktopMessagingPlatform } from "./operator-data.js";
-import { loadDesktopAccessMode, permissionModeForAccess, saveDesktopAccessMode, type DesktopAccessMode } from "./access-mode.js";
+import { desktopAccessModeLabel, isDesktopAccessMode, loadDesktopAccessMode, permissionModeForAccess, saveDesktopAccessMode, type DesktopAccessMode } from "./access-mode.js";
 import { desktopRuntimePayload, runDesktopRuntimeAction, selectDesktopRuntimeHost, type DesktopRuntimeAction } from "./runtime-controller.js";
 import { buildDesktopFileContext, isSafeProjectFile } from "./file-context.js";
 import { DesktopTurnQueue, QueueConflictError, desktopTurnQueuePath, fileTurnQueueDeps, type QueuedTurnTarget } from "./turn-queue.js";
@@ -36,6 +38,36 @@ import { redactForLog } from "../store/redact-structural.js";
 import { loadProviderAuthRequired, saveProviderAuthRequired, type ProviderAuthRequired } from "./provider-auth-store.js";
 import { parseDesktopImageInput } from "./image-input.js";
 import { approvedMkdirWritableDirs, externalDirectMkdirTarget, shellCommandCwd, shellCommandSafetyAction } from "../tools/shell-cmd.js";
+import {
+  approvalRunEvent,
+  appendRunLibraryMetric,
+  captureRunInputs,
+  deleteRun,
+  listRuns,
+  loadRun,
+  newRunId,
+  previewReplay,
+  runEventFromTool,
+  saveRun,
+  setRunSaved,
+  type RunEvent,
+  type RunInput,
+  type RunLineage,
+  type RunRecord,
+} from "../runs/store.js";
+import { deriveLegacyRuns } from "../runs/legacy.js";
+import { setPlanInstruction } from "../repl/plan-mode.js";
+import { executeToolEffect, toolEffectDescriptorSha256 } from "../effects/tool-effect-gateway.js";
+import { effectAuthority } from "../effects/gate-context.js";
+import {
+  defaultProviderModelSettings,
+  normalizeProviderModelSettings,
+  providerModelSettingsCapabilities,
+  type ProviderModelSettings,
+  type ProviderModelSettingsCapabilities,
+  type ProviderEffortLevel,
+  type ProviderSpeed,
+} from "../providers/model-settings.js";
 export { approvalDecision, type PendingApproval } from "./approval.js";
 
 const desktopTurnQueues = new Map<string, DesktopTurnQueue>();
@@ -57,12 +89,28 @@ export type DesktopState = {
   sessionStarted?: string;
   providerId?: string;
   modelId?: string;
+  effortLevel?: ProviderEffortLevel;
+  providerSpeed?: ProviderSpeed;
   currentEvents?: DesktopEvent[];
+  currentRunEvents?: RunEvent[];
+  activeRunCapture?: {
+    id: string;
+    instruction: string;
+    startedAt: string;
+    turnIndex: number;
+    inputs: RunInput[];
+    lineage: RunLineage;
+  };
+  pendingRunLineage?: RunLineage;
+  pendingRunPreparedAt?: number;
+  forceFreshApprovals?: boolean;
   pendingApproval?: PendingApproval;
   accessMode?: DesktopAccessMode;
   runtimeHostBySession?: Record<string, string>;
   _sseSessionId?: string;
   _sseClients?: SseClients;
+  _env?: NodeJS.ProcessEnv;
+  _continuitySessionOff?: boolean;
 };
 
 export function eventLabel(event: StreamEvent): DesktopEvent | null {
@@ -109,14 +157,18 @@ export function sendJson(res: http.ServerResponse, status: number, body: unknown
 }
 
 function attachConversation(state: DesktopState, setup: RunSetup, history?: Parameters<typeof createConversation>[2]): void {
-  state.convo = createConversation(setup.systemPrompt, {
+  const convo = createConversation(setup.systemPrompt, {
     provider: setup.provider, safety: setup.safety, registry: setup.registry, root: state.root,
     sessionId: state.sessionId,
     usageAgent: "desktop",
     usageTaskId: setup.goals.find((g) => g.status === "active")?.id?.toString(),
     requestApproval: (action, reason, toolName, detail) => requestWebApproval(state, action, reason, toolName, detail),
     permissionMode: () => permissionModeForAccess(state.accessMode ?? "approve"),
+    planGate: () => state.accessMode === "plan",
+    forceFreshApproval: () => state.forceFreshApprovals === true,
     maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
+    getEffortLevel: () => state.effortLevel ?? setup.effortLevel,
+    getServiceTier: () => state.providerSpeed,
     summarize: buildSummarizer(setup.provider),
     activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
     onTextDelta: (delta) => {
@@ -126,6 +178,9 @@ function attachConversation(state: DesktopState, setup: RunSetup, history?: Para
       }
     },
     onEvent: (event) => {
+      if (event.type === "tool_start" || event.type === "tool_end") {
+        state.currentRunEvents?.push(runEventFromTool(event));
+      }
       const label = eventLabel(event);
       if (label) {
         state.currentEvents?.push(label);
@@ -133,6 +188,8 @@ function attachConversation(state: DesktopState, setup: RunSetup, history?: Para
       }
     },
   }, history);
+  setPlanInstruction(convo.messages, state.accessMode === "plan");
+  state.convo = convo;
 }
 
 async function ensureDesktopConversation(state: DesktopState): Promise<Required<Pick<DesktopState, "setup" | "convo" | "root">> & DesktopState> {
@@ -147,6 +204,12 @@ async function ensureDesktopConversation(state: DesktopState): Promise<Required<
   if (!state.sessionId) { state.sessionId = newSessionId(); state.sessionStarted = new Date().toISOString(); }
   state.providerId ??= providerIdFor(state.setup.provider, process.env);
   state.modelId ??= state.setup.provider.modelId();
+  const modelSettings = defaultProviderModelSettings(state.providerId, state.modelId, {
+    effortLevel: state.effortLevel ?? state.setup.effortLevel,
+    speed: state.providerSpeed ?? process.env.VANTA_SERVICE_TIER,
+  });
+  state.effortLevel = modelSettings.effortLevel;
+  state.providerSpeed = modelSettings.speed;
   if (!state.convo) attachConversation(state, state.setup);
   return state as Required<Pick<DesktopState, "setup" | "convo" | "root">> & DesktopState;
 }
@@ -160,7 +223,7 @@ export async function handleStatus(state: DesktopState, res: http.ServerResponse
   state._providerAuthRequired ??= await loadProviderAuthRequired(state.root);
   const live = await ensureDesktopConversation(state);
   const goals = await live.setup.safety.getGoals().catch(() => live.setup.goals);
-  sendJson(res, 200, { kernel: "online", model: live.setup.provider.modelId(), provider: live.providerId ?? process.env.VANTA_PROVIDER ?? "openai", providerRoute: providerRouteStatus(state, live.setup.provider), tools: live.setup.registry.list().length, sessionId: live.sessionId, root: state.root, goals: goals.filter((g) => g.status === "active"), accessMode: live.accessMode, accessScope: "project" });
+  sendJson(res, 200, { kernel: "online", model: live.setup.provider.modelId(), provider: live.providerId ?? process.env.VANTA_PROVIDER ?? "openai", modelSettings: currentDesktopModelSettings(live), providerRoute: providerRouteStatus(state, live.setup.provider), tools: live.setup.registry.list().length, sessionId: live.sessionId, root: state.root, goals: goals.filter((g) => g.status === "active"), accessMode: live.accessMode, accessScope: "project" });
 }
 
 export async function handleTelegramSetupStatus(state: DesktopState, res: http.ServerResponse): Promise<void> {
@@ -171,12 +234,13 @@ export async function handleAccessMode(state: DesktopState, req: http.IncomingMe
   const live = await ensureDesktopConversation(state);
   if (req.method === "GET") return sendJson(res, 200, { mode: live.accessMode, scope: "project" });
   const body = await readJson(req) as { mode?: unknown };
-  if (body.mode !== "ask" && body.mode !== "approve" && body.mode !== "full") {
-    return sendJson(res, 400, { error: "mode must be ask, approve, or full" });
+  if (!isDesktopAccessMode(body.mode)) {
+    return sendJson(res, 400, { error: "mode must be ask, approve, plan, auto, or full" });
   }
   await saveDesktopAccessMode(state.root, body.mode);
   state.accessMode = body.mode;
-  const label = body.mode === "ask" ? "Ask for approval" : body.mode === "approve" ? "Approve for me" : "Full access";
+  setPlanInstruction(live.convo.messages, body.mode === "plan");
+  const label = desktopAccessModeLabel(body.mode);
   const event = { label: `Access mode changed to ${label} for this project.`, ok: true };
   state.currentEvents?.push(event);
   if (state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, event);
@@ -216,7 +280,171 @@ export async function handleSessions(res: http.ServerResponse): Promise<void> {
   sendJson(res, 200, await listAllSessions(process.env));
 }
 
+function runTitle(instruction: string): string {
+  const title = redactForLog(instruction).trim().replace(/\s+/g, " ");
+  return title.length > 80 ? `${title.slice(0, 77)}...` : title || "Untitled run";
+}
+
+async function beginRunCapture(
+  state: DesktopState,
+  instruction: string,
+  files: string[],
+  turnIndex: number,
+): Promise<void> {
+  const id = newRunId();
+  const lineage = state.pendingRunLineage ?? { mode: "original" };
+  if (lineage.mode !== "original") {
+    await appendRunLibraryMetric("run_reuse_submitted", {
+      mode: lineage.mode,
+      elapsedMs: Math.max(0, Date.now() - (state.pendingRunPreparedAt ?? Date.now())),
+    }, process.env).catch(() => undefined);
+  }
+  state.currentRunEvents = [];
+  state.activeRunCapture = {
+    id,
+    instruction,
+    startedAt: new Date().toISOString(),
+    turnIndex,
+    inputs: await captureRunInputs(state.root, files, id, process.env),
+    lineage,
+  };
+  state.pendingRunLineage = undefined;
+  state.pendingRunPreparedAt = undefined;
+}
+
+async function finishRunCapture(
+  state: DesktopState,
+  status: RunRecord["status"],
+  finalOutput: string,
+  usage?: RunRecord["usage"],
+): Promise<RunRecord | null> {
+  const capture = state.activeRunCapture;
+  if (!capture || !state.sessionId) return null;
+  const record = await saveRun({
+    version: 1,
+    id: capture.id,
+    sessionId: state.sessionId,
+    turnIndex: capture.turnIndex,
+    title: runTitle(capture.instruction),
+    prompt: redactForLog(capture.instruction),
+    projectRoot: state.root,
+    providerId: state.providerId,
+    modelId: state.modelId,
+    startedAt: capture.startedAt,
+    completedAt: new Date().toISOString(),
+    status,
+    saved: false,
+    tags: [],
+    provenance: "captured",
+    lineage: capture.lineage,
+    inputs: capture.inputs,
+    events: state.currentRunEvents ?? [],
+    finalOutput: redactForLog(finalOutput),
+    ...(usage ? { usage } : {}),
+  }, process.env);
+  if (capture.lineage.mode !== "original") {
+    await appendRunLibraryMetric("run_reuse_completed", {
+      mode: capture.lineage.mode,
+      status,
+    }, process.env).catch(() => undefined);
+  }
+  state.activeRunCapture = undefined;
+  state.currentRunEvents = undefined;
+  state.forceFreshApprovals = false;
+  return record;
+}
+
+async function allRunsWithLegacy(root: string): Promise<RunRecord[]> {
+  const captured = await listRuns({}, process.env);
+  const capturedTurns = new Set(captured.map((run) => `${run.sessionId}:${run.turnIndex}`));
+  const legacy: RunRecord[] = [];
+  for (const meta of await listAllSessions(process.env)) {
+    const session = await loadSession(meta.id, process.env);
+    if (!session) continue;
+    legacy.push(...deriveLegacyRuns(session, root).filter((run) => !capturedTurns.has(`${run.sessionId}:${run.turnIndex}`)));
+  }
+  return [...captured, ...legacy].sort((a, b) => b.completedAt.localeCompare(a.completedAt));
+}
+
+async function resolveLibraryRun(id: string, root: string): Promise<RunRecord | null> {
+  const stored = await loadRun(id, process.env);
+  if (stored) return stored;
+  return (await allRunsWithLegacy(root)).find((run) => run.id === id) ?? null;
+}
+
+export async function handleRuns(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const url = new URL(req.url ?? "/api/runs", "http://localhost");
+  const query = url.searchParams.get("q")?.trim().toLowerCase() ?? "";
+  const savedOnly = url.searchParams.get("saved") === "1";
+  const runs = (await allRunsWithLegacy(state.root))
+    .filter((run) => !savedOnly || run.saved)
+    .filter((run) => !query || `${run.title}\n${run.prompt}\n${run.inputs.map((input) => input.path).join("\n")}`.toLowerCase().includes(query));
+  sendJson(res, 200, runs);
+}
+
+export async function handleRunAction(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const body = await readJson(req) as {
+    action?: unknown;
+    id?: unknown;
+    saved?: unknown;
+    prompt?: unknown;
+    files?: unknown;
+    acknowledgeDrift?: unknown;
+  };
+  const action = typeof body.action === "string" ? body.action : "get";
+  const id = typeof body.id === "string" ? body.id : "";
+  const run = id ? await resolveLibraryRun(id, state.root) : null;
+  if (!run) return sendJson(res, 404, { error: "run not found" });
+  if (action === "get") return sendJson(res, 200, run);
+  if (action === "save") {
+    const saved = body.saved !== false;
+    const persisted = run.provenance === "derived"
+      ? await saveRun({ ...run, saved }, process.env)
+      : await setRunSaved(run.id, saved, process.env);
+    return sendJson(res, 200, persisted);
+  }
+  if (action === "delete") {
+    if (!await loadRun(run.id, process.env)) return sendJson(res, 409, { error: "save this legacy run before deleting its library copy" });
+    await deleteRun(run.id, process.env);
+    await appendRunLibraryMetric("run_deleted", {}, process.env).catch(() => undefined);
+    return sendJson(res, 200, { id: run.id, deleted: true });
+  }
+  const live = await ensureDesktopConversation(state);
+  const preview = await previewReplay(run, {
+    projectRoot: state.root,
+    providerId: state.providerId,
+    modelId: state.modelId,
+    tools: live.setup.registry.list().map((tool) => tool.schema.name),
+  });
+  if (action === "preview") return sendJson(res, 200, preview);
+  if (action !== "fork" && action !== "replay") return sendJson(res, 400, { error: "unsupported run action" });
+  if (action === "replay" && !preview.canExecute && body.acknowledgeDrift !== true) {
+    await appendRunLibraryMetric("run_replay_blocked", { driftCount: preview.inputs.filter((input) => input.state !== "ready").length }, process.env).catch(() => undefined);
+    return sendJson(res, 409, { error: "replay inputs changed or are unavailable; fork the run or explicitly acknowledge the drift", preview });
+  }
+  const files = Array.isArray(body.files)
+    ? body.files.filter((file): file is string => typeof file === "string")
+    : run.inputs.filter((input) => input.capture !== "redacted" && input.capture !== "missing").map((input) => input.path);
+  const prompt = typeof body.prompt === "string" && body.prompt.trim() ? body.prompt.trim() : run.prompt;
+  state.sessionId = newSessionId();
+  state.sessionStarted = new Date().toISOString();
+  state.providerId = providerIdFor(live.setup.provider, process.env);
+  state.modelId = live.setup.provider.modelId();
+  attachConversation(state, live.setup);
+  state.pendingRunLineage = { mode: action, parentRunId: run.id };
+  state.pendingRunPreparedAt = Date.now();
+  state.forceFreshApprovals = action === "replay";
+  await persistActiveSession(state);
+  const draft = [prompt, ...files.map((file) => `@${file}`)].filter(Boolean).join("\n");
+  await saveDesktopSessionDraft(state.root, state.sessionId, draft, process.env);
+  await appendRunLibraryMetric(action === "fork" ? "run_fork_prepared" : "run_replay_prepared", { driftCount: preview.inputs.filter((input) => input.state !== "ready").length }, process.env).catch(() => undefined);
+  sendJson(res, 200, { sessionId: state.sessionId, prompt, draft, files, lineage: state.pendingRunLineage, preview });
+}
+
 export async function handleNewSession(state: DesktopState, res: http.ServerResponse): Promise<void> {
+  state.pendingRunLineage = undefined;
+  state.pendingRunPreparedAt = undefined;
+  state.forceFreshApprovals = false;
   const setup = state.setup ?? await prepareRun(state.root, "desktop interface session");
   state.setup = setup;
   state.sessionId = newSessionId();
@@ -232,6 +460,12 @@ export async function handleOpenSession(state: DesktopState, req: http.IncomingM
   const id = typeof body.id === "string" ? body.id : "";
   const session = id ? await loadSession(id, process.env) : null;
   if (!session) return sendJson(res, 404, { error: "session not found" });
+  const openingPreparedRun = state.sessionId === session.id && state.pendingRunLineage !== undefined;
+  if (!openingPreparedRun) {
+    state.pendingRunLineage = undefined;
+    state.pendingRunPreparedAt = undefined;
+    state.forceFreshApprovals = false;
+  }
   const setup = state.setup ?? await prepareRun(state.root, "desktop interface session");
   const sessionProvider = resolveSessionModel(session, process.env);
   if (sessionProvider) setup.provider = sessionProvider;
@@ -247,6 +481,7 @@ function sessionIdFromBody(body: { id?: unknown }): string {
 }
 
 type DeleteSessionRequest = { id: string; trashed: boolean; permanent: boolean };
+type BulkSessionAction = "archive" | "unarchive" | "trash" | "restore" | "delete";
 
 function parseDeleteSessionRequest(body: { id?: unknown; trashed?: unknown; permanent?: unknown }): DeleteSessionRequest | { error: string } {
   const id = sessionIdFromBody(body);
@@ -260,6 +495,20 @@ function clearActiveSession(state: DesktopState, id: string, shouldClear: boolea
   if (state.sessionId !== id || !shouldClear) return;
   state.convo = undefined; state.sessionId = undefined; state.sessionStarted = undefined;
   state.providerId = undefined; state.modelId = undefined; state.currentEvents = undefined;
+  state.pendingRunLineage = undefined; state.pendingRunPreparedAt = undefined; state.forceFreshApprovals = false;
+}
+
+function parseBulkSessionRequest(body: { ids?: unknown; action?: unknown }): { ids: string[]; action: BulkSessionAction } | { error: string } {
+  if (!Array.isArray(body.ids) || body.ids.length === 0 || body.ids.length > 500) {
+    return { error: "ids must contain between 1 and 500 session ids" };
+  }
+  if (body.ids.some((id) => typeof id !== "string" || !id.trim())) return { error: "every session id must be a non-empty string" };
+  const ids = [...new Set((body.ids as string[]).map((id) => id.trim()))];
+  const action = body.action;
+  if (action !== "archive" && action !== "unarchive" && action !== "trash" && action !== "restore" && action !== "delete") {
+    return { error: "action must be archive, unarchive, trash, restore, or delete" };
+  }
+  return { ids, action };
 }
 
 export async function handleRenameSession(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
@@ -311,10 +560,30 @@ export async function handleDeleteSession(state: DesktopState, req: http.Incomin
   const { id, permanent, trashed } = parsed;
   const session = await loadSession(id, process.env);
   if (!session) return sendJson(res, 404, { error: "session not found" });
-  if (permanent) await deleteSession(id, process.env);
+  if (permanent) {
+    await deleteSession(id, process.env);
+  }
   else await setSessionTrashed(id, trashed, process.env);
   clearActiveSession(state, id, permanent || trashed);
   sendJson(res, 200, { id, trashed: permanent ? undefined : trashed, permanent });
+}
+
+export async function handleBulkSessions(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const body = await readJson(req) as { ids?: unknown; action?: unknown };
+  const parsed = parseBulkSessionRequest(body);
+  if ("error" in parsed) return sendJson(res, 400, parsed);
+  const { ids, action } = parsed;
+  const sessions = await Promise.all(ids.map((id) => loadSession(id, process.env)));
+  const missing = ids.filter((_id, index) => !sessions[index]);
+  if (missing.length) return sendJson(res, 404, { error: `${missing.length} selected session${missing.length === 1 ? " is" : "s are"} no longer available`, missing });
+
+  await Promise.all(ids.map(async (id) => {
+    if (action === "archive" || action === "unarchive") await setSessionArchived(id, action === "archive", process.env);
+    else if (action === "delete") await deleteSession(id, process.env);
+    else await setSessionTrashed(id, action === "trash", process.env);
+    clearActiveSession(state, id, action === "trash" || action === "delete");
+  }));
+  sendJson(res, 200, { action, count: ids.length, ids });
 }
 
 export async function handleTools(state: DesktopState, res: http.ServerResponse): Promise<void> {
@@ -403,6 +672,7 @@ export type DesktopProviderOption = {
   modelSource: "catalog" | "live";
   discoveryAvailable: boolean;
   discoveryError?: string;
+  modelSettings: ProviderModelSettingsCapabilities;
 };
 
 export function desktopProviderOptions(env: NodeJS.ProcessEnv, catalog: ProviderEntry[] = PROVIDER_CATALOG): DesktopProviderOption[] {
@@ -420,6 +690,7 @@ export function desktopProviderOptions(env: NodeJS.ProcessEnv, catalog: Provider
       savedDefaultModel: isDefaultProvider ? env.VANTA_MODEL ?? provider.defaultModel : undefined,
       modelSource: "catalog",
       discoveryAvailable: provider.id === "codex" || Boolean(providerModelDiscoveryTarget(env, provider.id)),
+      modelSettings: providerModelSettingsCapabilities(provider.id, isDefaultProvider ? env.VANTA_MODEL ?? provider.defaultModel : provider.defaultModel, env),
     });
   }
   for (const [id, provider] of Object.entries(loadUserProviders(env))) {
@@ -434,6 +705,7 @@ export function desktopProviderOptions(env: NodeJS.ProcessEnv, catalog: Provider
       savedDefaultModel: isDefaultProvider ? env.VANTA_MODEL ?? provider.model : undefined,
       modelSource: "catalog",
       discoveryAvailable: Boolean(providerModelDiscoveryTarget(env, id)),
+      modelSettings: providerModelSettingsCapabilities(id, isDefaultProvider ? env.VANTA_MODEL ?? provider.model ?? "" : provider.model ?? "", env),
     });
   }
   return [...options.values()];
@@ -493,8 +765,15 @@ export function resolveDesktopProviderSelection(env: NodeJS.ProcessEnv, provider
   return { provider: id, model: resolved.modelId(), env: selectedEnv, resolved };
 }
 
-export async function handleModels(res: http.ServerResponse, providerId?: string): Promise<void> {
-  sendJson(res, 200, await desktopProviderOptionsLive(process.env, loadDesktopProviderCatalog, providerId));
+export async function handleModels(state: DesktopState, res: http.ServerResponse, providerId?: string): Promise<void> {
+  const options = await desktopProviderOptionsLive(process.env, loadDesktopProviderCatalog, providerId);
+  const currentProvider = state.providerId ?? process.env.VANTA_PROVIDER ?? "openai";
+  const currentModel = state.modelId ?? process.env.VANTA_MODEL;
+  sendJson(res, 200, options.map((option) => option.id === currentProvider && currentModel ? {
+    ...option,
+    current: true,
+    modelSettings: providerModelSettingsCapabilities(option.id, currentModel, process.env),
+  } : option));
 }
 
 export async function handleSetModel(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
@@ -513,12 +792,53 @@ export async function handleSetModel(state: DesktopState, req: http.IncomingMess
     }
     state.providerId = selection.provider;
     state.modelId = selection.model;
+    const nextSettings = defaultProviderModelSettings(selection.provider, selection.model, {
+      effortLevel: state.effortLevel ?? state.setup?.effortLevel,
+      speed: state.providerSpeed,
+    });
+    state.effortLevel = nextSettings.effortLevel;
+    state.providerSpeed = nextSettings.speed;
     state.setup && (state.setup.provider = selection.resolved);
     state.convo?.setProvider(selection.resolved, buildSummarizer(selection.resolved));
     const entry = providerById(selection.provider);
-    sendJson(res, 200, { provider: selection.provider, model: selection.model, scope: global ? "global" : "session", label: entry?.label ?? selection.provider });
+    sendJson(res, 200, { provider: selection.provider, model: selection.model, modelSettings: currentDesktopModelSettings(state), scope: global ? "global" : "session", label: entry?.label ?? selection.provider });
   } catch (err: unknown) {
     sendJson(res, 400, { error: err instanceof Error ? err.message : String(err), provider, model });
+  }
+}
+
+function currentDesktopModelSettings(state: DesktopState): ProviderModelSettings {
+  return {
+    ...(state.effortLevel ? { effortLevel: state.effortLevel } : {}),
+    ...(state.providerSpeed ? { speed: state.providerSpeed } : {}),
+  };
+}
+
+export async function handleModelSettings(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const live = await ensureDesktopConversation(state);
+  if (req.method === "GET") return sendJson(res, 200, currentDesktopModelSettings(live));
+  const body = await readJson(req) as { effortLevel?: unknown; speed?: unknown; scope?: unknown };
+  if (body.effortLevel === undefined && body.speed === undefined) {
+    return sendJson(res, 400, { error: "effortLevel or speed is required" });
+  }
+  const provider = live.providerId ?? process.env.VANTA_PROVIDER ?? "openai";
+  const model = live.modelId ?? live.setup.provider.modelId();
+  try {
+    const settings = normalizeProviderModelSettings(provider, model, body);
+    if (settings.effortLevel) live.effortLevel = settings.effortLevel;
+    if (settings.speed) live.providerSpeed = settings.speed;
+    const global = body.scope === "global";
+    if (global) {
+      const updates: Record<string, string> = {};
+      if (settings.effortLevel) updates.VANTA_EFFORT_LEVEL = settings.effortLevel;
+      if (settings.speed) updates.VANTA_SERVICE_TIER = settings.speed;
+      const existing = existsSync(envPath(live.root)) ? await readFile(envPath(live.root), "utf8") : "";
+      await writeFile(envPath(live.root), upsertEnvMigratingLegacy(existing, updates), { mode: 0o600 });
+      Object.assign(process.env, updates);
+    }
+    sendJson(res, 200, { provider, model, modelSettings: currentDesktopModelSettings(live), scope: global ? "global" : "session" });
+  } catch (error) {
+    sendJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
   }
 }
 
@@ -530,8 +850,10 @@ export async function handleApproval(state: DesktopState, req: http.IncomingMess
   const body = await readJson(req) as { id?: unknown; approved?: unknown; decision?: unknown };
   const p = state.pendingApproval;
   if (!p || body.id !== p.id) return sendJson(res, 404, { error: "approval not found" });
+  const decision = approvalDecision(body.decision, body.approved);
+  state.currentRunEvents?.push(approvalRunEvent(p.toolName, p.reason, decision));
   state.pendingApproval = undefined;
-  await resolveApproval(p, approvalDecision(body.decision, body.approved));
+  await resolveApproval(p, decision);
   sendJson(res, 200, { ok: true });
 }
 
@@ -553,14 +875,25 @@ export async function handleTerminal(state: DesktopState, req: http.IncomingMess
     const approved = await requestWebApproval(state, action, reason, "shell_cmd");
     if (!approved) return sendJson(res, 200, { ok: false, output: `denied: ${reason}` });
   }
-  const result = await tool.execute({
-    command,
-  }, {
+  const effectCallId = `desktop-terminal:${randomUUID()}`;
+  const effectCtx = {
     root: state.root,
     sessionId: state.sessionId,
+    effectCallId,
+    effectApprovalAction: action,
+    effectApprovalReusable: true,
     safety: live.setup.safety,
     requestApproval: (action: string, reason: string) => requestWebApproval(state, action, reason, "shell_cmd"),
     sandboxWritableDirs: needsApproval ? approvedMkdirWritableDirs(command, commandCwd) : undefined,
+  };
+  const result = await executeToolEffect("shell_cmd", {
+    command,
+  }, tool, {
+    ...effectCtx,
+    effectAuthority: effectAuthority(
+      effectCtx,
+      toolEffectDescriptorSha256("shell_cmd", { command }, action),
+    ),
   });
   sendJson(res, 200, result);
 }
@@ -640,6 +973,7 @@ export async function handleQueueChat(state: DesktopState, req: http.IncomingMes
     else if (action === "move" && (body.direction === "up" || body.direction === "down")) await queue.move(id, revision, body.direction);
     else if (action === "cancel") await queue.cancel(id, revision);
     else if (action === "steer") await queue.steer(id, revision);
+    else if (action === "retry") await queue.retry(id, revision);
     else return sendJson(res, 400, { error: "unsupported queue action" });
     sendJson(res, 200, await queue.list(queueSessionId(state)));
   } catch (error) {
@@ -654,6 +988,12 @@ function interrupted(error: unknown, controller: AbortController): boolean {
 
 function classifyDesktopFailure(error: unknown, wasInterrupted: boolean, events: DesktopEvent[]): DesktopRunFailureKind {
   if (wasInterrupted) return "interrupted";
+  // Auth is decided by the SHARED, priority-ordered taxonomy rather than a local
+  // regex — two independent classifiers for the same 401 drifted apart once and
+  // would again. The string banks below still cover the desktop-only kinds, and
+  // the auth pattern stays as a fallback for failures carried only by event text.
+  const reason = classifyProviderError(error).reason;
+  if (reason === "auth" || reason === "auth_permanent") return "provider_auth";
   const text = `${error instanceof Error ? `${error.name} ${error.message}` : String(error)} ${events.map((event) => event.label).join(" ")}`.toLowerCase();
   if (/\b401\b|incorrect api key|invalid api key|authentication|unauthorized|oauth|credential|token (?:expired|revoked|refresh)|login required|not authorized/.test(text)) return "provider_auth";
   if (/setup|api key|provider is required|no provider|configure/.test(text)) return "setup";
@@ -671,6 +1011,25 @@ function receiptStatusForStoppedReason(stoppedReason: string): Pick<DesktopRunRe
   if (stoppedReason === "done") return { status: "done" };
   if (stoppedReason === "interrupted") return { status: "interrupted", failureKind: "interrupted" };
   return { status: "failed", failureKind: "unknown" };
+}
+
+function queuedTurnFailureReason(stoppedReason: string): string {
+  if (stoppedReason === "repeated_failure") return "Task stopped after repeated failures.";
+  if (stoppedReason === "max_iterations") return "Task stopped at the iteration safety limit.";
+  if (stoppedReason === "tool_budget") return "Task stopped at the tool-call safety limit.";
+  if (stoppedReason === "context_length") return "Task stopped because the context limit was reached.";
+  if (stoppedReason === "interrupted") return "Task stopped by the operator.";
+  return "Task stopped before completion.";
+}
+
+function queuedTurnExceptionReason(failureKind: DesktopRunFailureKind, wasInterrupted: boolean): string {
+  if (wasInterrupted) return "Task stopped by the operator.";
+  if (failureKind === "provider_auth") return "Provider authentication is required.";
+  if (failureKind === "user_denied") return "A required action was denied.";
+  if (failureKind === "tool") return "A required tool failed.";
+  if (failureKind === "model") return "The model or provider failed.";
+  if (failureKind === "setup") return "Vanta setup is incomplete.";
+  return "Task failed before completion.";
 }
 
 function buildRunReceipt(opts: {
@@ -697,9 +1056,13 @@ function attachDesktopRunReceipt(convo: Conversation, receipt: DesktopRunReceipt
 
 export async function handleChat(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   if (state._chatActive) return sendJson(res, 409, { error: "a turn is already running" });
-  const body = await readJson(req) as { message?: unknown; images?: unknown };
+  const body = await readJson(req) as { message?: unknown; images?: unknown; files?: unknown };
   const parsedImages = parseDesktopImageInput(body.images);
   if (!parsedImages.ok) return sendJson(res, 400, { error: parsedImages.error });
+  if (body.files !== undefined && (!Array.isArray(body.files) || body.files.length > 50 || body.files.some((file) => typeof file !== "string"))) {
+    return sendJson(res, 400, { error: "files must be a list of at most 50 project-relative paths" });
+  }
+  const files = (body.files as string[] | undefined) ?? [];
   const images = parsedImages.images;
   const message = typeof body.message === "string" ? body.message.trim() : "";
   const instructionText = message || (images.length ? "Describe the attached image." : "");
@@ -710,7 +1073,9 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
     const receipt = buildRunReceipt({ status: "failed", failureKind: "provider_auth", events: [{ label: "Provider authentication required.", ok: false }], instruction: instructionText });
     receipt.actions = ["edit_request", "start_from_checkpoint"];
     const live = await ensureDesktopConversation(state);
+    await beginRunCapture(state, instructionText, files, live.convo.messages.filter((entry) => entry.role === "user").length);
     live.convo.messages.push({ role: "user", content: instructionText, ...(images.length ? { images } : {}) }, { role: "assistant", content: finalText, desktopRun: receipt });
+    await finishRunCapture(state, "failed", finalText);
     await persistActiveSession(state);
     return sendJson(res, 200, { finalText, events: receipt.events, sessionId: state.sessionId, receipt });
   }
@@ -728,18 +1093,27 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
     live = await ensureDesktopConversation(state);
     let instruction = instructionText;
     let instructionImages = images.length ? images : undefined;
+    let instructionFiles = files;
     let outcome: Awaited<ReturnType<typeof live.convo.send>>;
     while (true) {
+      await beginRunCapture(state, instruction, instructionFiles, live.convo.messages.filter((entry) => entry.role === "user").length);
       if (live.sessionId) await checkpointSessionMessages(live.sessionId, [...live.convo.messages, { role: "user", content: instruction, ...(instructionImages ? { images: instructionImages } : {}) }], process.env);
       outcome = await live.convo.send(instruction, instructionImages, controller.signal);
       instructionImages = undefined;
-      await writeRunMemory({ provider: live.setup.provider, goals: live.setup.goals, instruction, finalText: outcome.finalText });
+      instructionFiles = [];
+      await writeRunMemory({ provider: live.setup.provider, goals: live.setup.goals, instruction, finalText: outcome.finalText, completionState: outcome.completionState });
       events.push({ label: `${outcome.stoppedReason} · ${outcome.iterations} iteration(s)`, ok: outcome.stoppedReason === "done", kind: "summary" });
       const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events, instruction, partialText: outcome.finalText });
       attachDesktopRunReceipt(live.convo, receipt, outcome.finalText);
+      await finishRunCapture(
+        state,
+        outcome.stoppedReason === "done" ? "done" : outcome.stoppedReason === "interrupted" ? "interrupted" : "failed",
+        outcome.finalText,
+        outcome.usage,
+      );
       if (claimedTurnId) {
         if (outcome.stoppedReason === "done") await turnQueue(state).complete(claimedTurnId);
-        else await turnQueue(state).release(claimedTurnId);
+        else await turnQueue(state).release(claimedTurnId, queuedTurnFailureReason(outcome.stoppedReason));
         claimedTurnId = undefined;
       }
       if (outcome.stoppedReason !== "done") break;
@@ -756,10 +1130,13 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
     const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events, instruction, partialText: outcome.finalText });
     sendJson(res, 200, { finalText: outcome.finalText, events, usage: outcome.usage, sessionId: state.sessionId, receipt });
   } catch (error) {
-    if (claimedTurnId) await turnQueue(state).release(claimedTurnId).catch(() => undefined);
     const wasInterrupted = interrupted(error, controller);
     const partial = state._chatDeltas?.join("").trim();
     const failureKind = classifyDesktopFailure(error, wasInterrupted, events);
+    if (claimedTurnId) {
+      await turnQueue(state).release(claimedTurnId, queuedTurnExceptionReason(failureKind, wasInterrupted)).catch(() => undefined);
+      claimedTurnId = undefined;
+    }
     if (failureKind === "provider_auth" && live) {
       const route = providerRouteStatus(state, live.setup.provider);
       state._providerAuthRequired = {
@@ -789,11 +1166,15 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
     if (failureKind === "provider_auth") receipt.actions = ["edit_request", "start_from_checkpoint"];
     if (live) {
       live.convo.messages.push({ role: "assistant", content: finalText, desktopRun: receipt });
+      await finishRunCapture(state, wasInterrupted ? "interrupted" : "failed", finalText);
       await persistActiveSession(state);
     }
     sendJson(res, 200, { finalText, events, interrupted: wasInterrupted, sessionId: state.sessionId, receipt });
   } finally {
     state.currentEvents = undefined;
+    state.currentRunEvents = undefined;
+    state.activeRunCapture = undefined;
+    state.forceFreshApprovals = false;
     state._chatDeltas = undefined;
     state._streamTextDeltas = false;
     state._chatActive = false;

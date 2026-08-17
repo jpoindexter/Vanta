@@ -14,6 +14,9 @@ import { enforceScopeBudget, scopeForLoop } from "../budget/enforce.js";
 import { recordTurnSpend } from "../cost/ledger.js";
 import { buildGatewayHandle } from "./gateway-stream.js";
 import { runGatewayUtilityCommand } from "./gateway-utility-cmd.js";
+import { createKernelClient } from "../kernel/client.js";
+import { resolvePermissionMode } from "../modes/permission-mode.js";
+import { runTaskIdentity } from "./task-host.js";
 
 // Operational subcommands (gateway / service / mcp / factory + the
 // non-interactive cron task). Extracted from cli.ts to keep each file <300.
@@ -62,17 +65,19 @@ export function buildCronRunTask(
   return async (instruction, wake, images, callbacks) => {
     const prompt = withWakeContext(instruction, wake);
     const setup = await prepareRun(repoRoot, prompt);
+    const identity = runTaskIdentity(wake);
     const outcome = await runAgent(setup.systemPrompt, prompt, {
       provider: setup.provider,
       safety: setup.safety,
       registry: setup.registry,
       root: repoRoot,
+      ...identity,
       requestApproval: opts.requestApproval ?? (async () => false),
       maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
       summarize: buildSummarizer(setup.provider),
       ...callbacks,
     }, images); // MSG-MEDIA-IMAGES: inbound images reach the agent's vision
-    await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction: prompt, finalText: outcome.finalText });
+    await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction: prompt, finalText: outcome.finalText, completionState: outcome.completionState });
     // Budget hard-stop: attribute this run's cost to its scope (a loop when run
     // under a loop wake, else the session). enforceScopeBudget is a no-op unless a
     // budget is set, and auto-pauses + cancels queued work on overspend.
@@ -131,12 +136,26 @@ export async function runGatewayCommand(repoRoot: string, rest: string[] = []): 
   const { replyBus, requestApproval } = await buildGatewayApprover(platform);
   const runTask = buildCronRunTask(repoRoot, { requestApproval });
   const handle = buildGatewayHandle(runTask);
+  const kernel = createKernelClient(process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788", repoRoot);
+  const effectGate = {
+    kernel,
+    ...(requestApproval ? {
+      approval: {
+        request: (request: import("../effects/execute-effect.js").EffectApprovalRequest) =>
+          requestApproval(request.action, request.reason, request.effectKind),
+      },
+    } : {}),
+    projectRoot: repoRoot,
+    sessionId: `gateway:${process.pid}`,
+    permissionMode: resolvePermissionMode(process.env),
+  };
 
   const webhook = gatewayWebhook(platform);
 
   await runGateway({
     dataDir: dataDirFor(repoRoot),
     run: runTask,
+    effectGate,
     platform,
     handle,
     replyBus,

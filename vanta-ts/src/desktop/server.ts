@@ -4,9 +4,9 @@ import type { DesktopState, DesktopEvent } from "./handlers.js";
 import {
   eventLabel, readJson, sendJson,
   handleStatus, handleSessions, handleNewSession, handleOpenSession,
-  handleRenameSession, handleArchiveSession, handleDeleteSession, handlePinSession, handleReorderPinnedSessions,
+  handleRenameSession, handleArchiveSession, handleDeleteSession, handleBulkSessions, handlePinSession, handleReorderPinnedSessions,
   handleTools, handleCapabilities, handleMessaging, handleArtifacts, handleSaveMessaging,
-  handleFiles, handleFileContext, handleCanvas, handleModels, handleSetModel,
+  handleFiles, handleFileContext, handleCanvas, handleModels, handleSetModel, handleModelSettings,
   handleApproval, handleTerminal, handleChat, handleStopChat, handleQueueChat, handleQueueList,
   handleAccessMode,
   handleRuntime,
@@ -14,6 +14,8 @@ import {
   handleTelegramSetupStatus,
   handleGatewayStart,
   handleSessionDraft,
+  handleRuns,
+  handleRunAction,
 } from "./handlers.js";
 export { approvalDecision, type PendingApproval, type DesktopEvent, type DesktopState, eventLabel } from "./handlers.js";
 import {
@@ -29,12 +31,15 @@ import { getWakeApi, setWakeApi } from "./wake-api.js";
 import { handleDesktopSetup } from "./setup.js";
 import { ensureDesktopPermissionMode } from "./permission-mode.js";
 import { handleDesktopMcpAction, handleDesktopMcpList } from "./mcp-connectors.js";
+import { handleIntegrationAction, handleIntegrationList } from "./integration-connectors.js";
 import { handleRuntimeProfiles } from "./runtime-profile-api.js";
 import { handleModelDownloads } from "./model-download-api.js";
 import { handleGoogleConnectAction, handleGoogleConnectStatus } from "./google-connect.js";
 import { handleDesktopReleaseProofs } from "./release-proofs.js";
 import { handleDesktopLookCapture } from "./look-capture-api.js";
 import { handleWorkflowRunRoute } from "./workflow-run-api.js";
+import { handleDesktopSchedules } from "./schedule-api.js";
+import { handleDesktopContinuity } from "./continuity-api.js";
 
 type RouteCtx = { req: http.IncomingMessage; res: http.ServerResponse; state: DesktopState; sid: string; sseClients: SseClients; pathname: string };
 
@@ -44,12 +49,15 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
   if (p === "/api/events") { attachSse(sseClients, sid, res); return true; }
   if (p.startsWith("/api/models/")) {
     const providerId = decodeURIComponent(p.slice("/api/models/".length));
-    await handleModels(res, providerId);
+    await handleModels(state, res, providerId);
     return true;
   }
   const handler: Record<string, () => Promise<void>> = {
     "/api/status": () => handleStatus(state, res),
     "/api/sessions": () => handleSessions(res),
+    "/api/runs": () => handleRuns(state, req, res),
+    "/api/schedules": () => handleDesktopSchedules(state, res),
+    "/api/continuity": () => handleDesktopContinuity(state, req, res),
     "/api/tools": () => handleTools(state, res),
     "/api/capabilities": () => handleCapabilities(state, res),
     "/api/messaging": () => handleMessaging(res),
@@ -57,7 +65,7 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
     "/api/files": () => handleFiles(state, res),
     "/api/file-context": () => handleFileContext(state, res),
     "/api/canvas": () => handleCanvas(state, res),
-    "/api/models": () => handleModels(res),
+    "/api/models": () => handleModels(state, res),
     "/api/setup": () => handleDesktopSetup(state, req, res),
     "/api/setup/messaging/telegram": () => handleTelegramSetupStatus(state, res),
     "/api/approval": () => handleApproval(state, req, res),
@@ -67,6 +75,7 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
     "/api/runtime/downloads": () => handleModelDownloads(state, req, res),
     "/api/chat/queue": () => handleQueueList(state, res),
     "/api/connect/mcp": () => handleDesktopMcpList(state, res),
+    "/api/connect/integrations": () => handleIntegrationList(state, res),
     "/api/connect/google": () => handleGoogleConnectStatus(res),
     "/api/release-proofs": () => handleDesktopReleaseProofs(state.root, res),
     "/api/wake": async () => sendJson(res, 200, await getWakeApi()),
@@ -83,10 +92,14 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
     "/api/sessions/rename": () => handleRenameSession(req, res),
     "/api/sessions/archive": () => handleArchiveSession(req, res),
     "/api/sessions/delete": () => handleDeleteSession(state, req, res),
+    "/api/sessions/bulk": () => handleBulkSessions(state, req, res),
     "/api/sessions/pin": () => handlePinSession(req, res),
     "/api/sessions/reorder-pins": () => handleReorderPinnedSessions(req, res),
     "/api/sessions/draft": () => handleSessionDraft(state, req, res),
+    "/api/runs": () => handleRunAction(state, req, res),
+    "/api/continuity": () => handleDesktopContinuity(state, req, res),
     "/api/model": () => handleSetModel(state, req, res),
+    "/api/model-settings": () => handleModelSettings(state, req, res),
     "/api/messaging": () => handleSaveMessaging(state, req, res),
     "/api/setup": () => handleDesktopSetup(state, req, res),
     "/api/approval": () => handleApproval(state, req, res),
@@ -94,6 +107,7 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
     "/api/connect/test": () => handleConnectTest(state, req, res),
     "/api/gateway/start": () => handleGatewayStart(state, res),
     "/api/connect/mcp": () => handleDesktopMcpAction(state, req, res),
+    "/api/connect/integrations": () => handleIntegrationAction(state, req, res),
     "/api/connect/google": () => handleGoogleConnectAction(req, res),
     "/api/runtime": () => handleRuntime(state, req, res),
     "/api/runtime/profiles": () => handleRuntimeProfiles(state, req, res),
@@ -125,6 +139,7 @@ type ServerOpts = {
   publicApi: PublicApiRouteOptions;
   isLoopback: (req: http.IncomingMessage) => boolean;
   boundaryToken?: string;
+  env: NodeJS.ProcessEnv;
 };
 
 const NATIVE_ORIGINS = new Set(["capacitor://localhost", "http://localhost", "https://localhost"]);
@@ -132,6 +147,8 @@ const NATIVE_ORIGINS = new Set(["capacitor://localhost", "http://localhost", "ht
 export function applyCompanionCors(req: http.IncomingMessage, res: http.ServerResponse, pathname: string): boolean {
   const origin = req.headers.origin;
   if (!pathname.startsWith("/api/companion/") || typeof origin !== "string" || !NATIVE_ORIGINS.has(origin)) return false;
+  // The echoed value must be an exact member of the fixed native-origin set.
+  // nosemgrep: javascript.express.security.cors-misconfiguration.cors-misconfiguration
   res.setHeader("access-control-allow-origin", origin);
   res.setHeader("vary", "origin");
   res.setHeader("access-control-allow-headers", "authorization, content-type");
@@ -198,6 +215,7 @@ async function routeRequest(req: http.IncomingMessage, res: http.ServerResponse,
   const sid = local ? sessionIdFromRequest(req) : "default";
   if (await handlePublicApiProbeRoute({ req, res, pathname: url.pathname, options: opts.publicApi, sessions, root: repoRoot })) return;
   const state = getSession(sessions, sid, repoRoot);
+  state._env ??= opts.env;
   if (handleNativePreflight(req, res, url.pathname)) return;
   applyCompanionCors(req, res, url.pathname);
   state._sseSessionId = sid; state._sseClients = sseClients;
@@ -223,6 +241,7 @@ type DesktopServerOptions = Partial<CompanionRouteOptions> & {
   sseClients?: SseClients;
   readinessDeps?: ReadinessDeps;
   boundaryToken?: string;
+  env?: NodeJS.ProcessEnv;
 };
 
 export function createDesktopServer(repoRoot: string, options: DesktopServerOptions = {}): http.Server {
@@ -244,6 +263,7 @@ function desktopServerOptions(repoRoot: string, options: DesktopServerOptions): 
     publicApi: { enabled: options.publicApi ?? false, home, allowedOrigins: new Set(options.publicApiAllowedOrigins ?? []), readinessDeps: options.readinessDeps },
     isLoopback: options.isLoopback ?? isLoopbackRequest,
     boundaryToken: options.boundaryToken ?? process.env.VANTA_DESKTOP_BOUNDARY_TOKEN,
+    env: options.env ?? process.env,
   };
 }
 
@@ -251,9 +271,16 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-export async function serveDesktop(repoRoot: string, port = 7790, companion = false): Promise<void> {
-  const server = createDesktopServer(repoRoot, { enabled: companion, port });
+export async function serveDesktop(
+  repoRoot: string,
+  port = 7790,
+  companion = false,
+  boundaryToken = process.env.VANTA_DESKTOP_BOUNDARY_TOKEN,
+  launchUrl = `http://127.0.0.1:${port}`,
+): Promise<void> {
+  if (!boundaryToken) throw new Error("desktop boundary token is required");
+  const server = createDesktopServer(repoRoot, { enabled: companion, port, boundaryToken });
   const host = companion ? "0.0.0.0" : "127.0.0.1";
   await new Promise<void>((resolve) => server.listen(port, host, resolve));
-  console.log(`vanta desktop — http://127.0.0.1:${port}${companion ? " · companion LAN enabled" : ""}`);
+  console.log(`vanta desktop — ${launchUrl}${companion ? " · companion LAN enabled" : ""}`);
 }

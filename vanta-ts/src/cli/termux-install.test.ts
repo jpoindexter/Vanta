@@ -57,11 +57,16 @@ describe("Termux install/runtime path", () => {
     await mkdir(join(root, "scripts"), { recursive: true });
     await mkdir(join(root, "target", "debug"), { recursive: true });
     await mkdir(join(root, "vanta-ts", "node_modules", "tsx"), { recursive: true });
+    await mkdir(join(root, "vanta-ts", "node_modules", "ink"), { recursive: true });
+    await mkdir(join(root, "vanta-ts", "node_modules", "react"), { recursive: true });
     await mkdir(fakeBin, { recursive: true });
     await copyFile(join(process.cwd(), "..", "run.sh"), join(root, "run.sh"));
     await copyFile(join(process.cwd(), "..", "scripts", "setup-lib.sh"), join(root, "scripts", "setup-lib.sh"));
     await copyFile(join(process.cwd(), "..", "scripts", "install-events.sh"), join(root, "scripts", "install-events.sh"));
     await writeExecutable(join(root, "target", "debug", "vanta-kernel"), "#!/bin/sh\nexit 0\n");
+    await writeFile(join(root, "vanta-ts", "node_modules", "tsx", "package.json"), "{}\n", "utf8");
+    await writeFile(join(root, "vanta-ts", "node_modules", "ink", "package.json"), "{}\n", "utf8");
+    await writeFile(join(root, "vanta-ts", "node_modules", "react", "package.json"), "{}\n", "utf8");
     await writeExecutable(join(fakeBin, "node"), NODE_FIXTURE);
     await chmod(join(root, "run.sh"), 0o755);
 

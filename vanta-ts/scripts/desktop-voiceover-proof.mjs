@@ -104,7 +104,9 @@ try {
   recording = spawn("/usr/sbin/screencapture", ["-v", "-V24", "-x", videoPath], { stdio: "ignore" });
   await delay(1_000);
 
-  await activateWithKeyboard(page, page.getByRole("button", { name: "Attach project files" }));
+  const openInspector = page.getByRole("button", { name: "Open contextual inspector" });
+  if (await openInspector.isVisible().catch(() => false)) await activateWithKeyboard(page, openInspector);
+  await activateWithKeyboard(page, page.locator(".inspector-tabs button").filter({ hasText: "Files" }));
   const filesPanel = page.locator(".files-panel");
   await filesPanel.getByText("Recent").waitFor();
   await activateWithKeyboard(page, filesPanel.getByTitle("README.md"));

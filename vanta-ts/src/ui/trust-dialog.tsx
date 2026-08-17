@@ -10,7 +10,12 @@ import { Box, Text, useInput } from "ink";
 /** What the operator is being asked to trust. */
 export type TrustRequest =
   | { kind: "project"; name: string; files: { name: string; body: string }[] }
-  | { kind: "mcp"; server: string; tools: { name: string; description?: string }[] };
+  | {
+    kind: "mcp";
+    server: string;
+    tools: { name: string; description?: string }[];
+    launch?: { command?: string; args?: string[]; url?: string };
+  };
 
 const PREVIEW_LINES = 12;
 const PREVIEW_TOOLS = 12;
@@ -78,8 +83,20 @@ function ProjectPreview(props: { files: ContextFile[] }): ReactElement {
 }
 
 function McpBody(props: { req: Extract<TrustRequest, { kind: "mcp" }> }): ReactElement {
-  const { tools } = props.req;
+  const { launch, tools } = props.req;
   const shown = tools.slice(0, PREVIEW_TOOLS);
+  if (launch) {
+    const target = launch.url ?? [launch.command, ...(launch.args ?? [])].filter(Boolean).join(" ");
+    return (
+      <Box flexDirection="column">
+        <Text dimColor>This server must launch before its tool inventory can be inspected:</Text>
+        <Text bold>· {target}</Text>
+        {tools.length > 0
+          ? <Text dimColor>Declared tool allowlist: {tools.map((tool) => tool.name).join(", ")}</Text>
+          : <Text dimColor>Tools will be inspected only after trust.</Text>}
+      </Box>
+    );
+  }
   return (
     <Box flexDirection="column">
       <Text dimColor>This MCP server registers {tools.length} tool(s) Vanta would be able to call:</Text>

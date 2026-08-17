@@ -3,6 +3,138 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Unreleased — 2026-08-17
+
+### Added
+- Consolidated the bounded `TRUST-02`, `UX-03`, `TRUST-04`, `TRUST-01`, and
+  `OP-01` source stack on current `main`: one checked effect gateway, typed
+  cross-host receipts, accessible interruption/re-entry, and a deterministic
+  read-only operator-spine projection. These are source capabilities with
+  retained receipts, not a new public release.
+- Added a guarded optional Scrapling MCP connector. The read-mostly default
+  exposes HTTP, browser, and stealth extraction; Vanta validates every target,
+  proxy, and CDP URL against its public-network SSRF boundary before dispatch.
+- Added the active-provider TUI model picker, visible queued-message editing,
+  and provider-supported model settings without reopening provider selection on
+  every `/model` invocation.
+- Added six checked-in, no-paid-service product-validation playbooks covering
+  problem hypotheses, customer discovery, MVP scope, PMF diagnosis, founder
+  bottlenecks, and GTM planning.
+- Added a repository-owned secret scanner for complete Git history plus the
+  current tracked/non-ignored snapshot, and restored executable npm dependency
+  audit commands.
+- Opt-in first-clause streaming TTS now feeds live model deltas through a
+  deterministic clause splitter and bounded sequential speech queue in both
+  push-to-talk and wake-word voice loops. Tool boundaries discard unspoken
+  drafts, synthesis failures stop the remaining queue, and disabled or
+  non-streaming paths retain whole-response synthesis.
+- An optional Memory Sparse Attention backend now connects through a typed
+  TypeScript service contract, keeps Vanta's local memory authoritative, and
+  exposes status, index, query, and generation through the kernel-gated
+  `msa_memory` tool and MCP server. The official Python/PyTorch/CUDA runtime
+  remains external, so this adds no Python dependency to Vanta.
+- Added the bounded `sparge_attention` tool for compatibility diagnostics,
+  pinned installation guidance, integration snippets, and local CUDA
+  benchmarks through the separately installed SpargeAttention Kit. Hosted
+  model APIs remain explicitly out of scope.
+- A versioned true-first-token harness now measures five fresh and five warm-profile runs for readline CLI, Ink TUI, authenticated SSE gateway, and Developer ID-signed packaged Desktop. Content-free timestamps separate process readiness, submit dispatch, first live provider delta, and first surface paint; receipts report median, p95, and worst with machine/build/model provenance.
+- TTFT regression budgets reject mocked or unverified providers, incomplete sample groups, and unsigned or unpackaged Desktop runs, then identify the exact surface, profile mode, and stage that regressed.
+- Added explicit, capability-gated fast-mode controls. Anthropic requests use the documented Opus-only fast-mode parameter and beta header; Codex retains its service-tier path. Standard remains the default and premium usage is disclosed before selection.
+- Added a tool-call pairing invariant plus preflight transcript repair so every emitted call has an adjacent, ordered result even when a batch stops early.
+
+### Fixed
+- Telegram repair/status commands now stay inside the TUI, while the explicit
+  shell wizard owns hidden token input and pre-save verification. Bot API calls
+  use a bounded IPv4 fallback that preserves Telegram Host/SNI when local
+  dual-stack routing is broken.
+- Pasted multiline text no longer hides subsequent typing, structured question
+  navigation remains responsive after choosing Other, and the launcher reuses
+  persistent setup across isolated worktrees instead of re-running onboarding.
+- Refreshed compatible runtime and documentation dependencies. The exact
+  runtime graph is npm-audit clean; the static documentation toolchain retains
+  one upstream `image-size` advisory with no patched release.
+- Bounded Desktop TTFT observations so a missing first paint produces a useful
+  failure with recent process diagnostics instead of hanging indefinitely.
+- Documented three reviewed Semgrep boundaries: ACP writes JSON-RPC rather than
+  HTML, and Desktop companion/public API origins are echoed only after exact
+  allowlist checks covered by integration tests.
+- Bounded deletion now enters the normal approval flow instead of hitting an
+  unoverrideable Rule Zero block. An approved exact `rmdir`, `unlink`, or
+  non-forced removal can execute, while forced-recursive deletion, device
+  writes, wipes, and protected-path mutations remain blocked.
+- Desktop chat now accepts Finder file and folder drops across the full Electron preload/IPC path, keeps each folder as one icon-only composer chip while retaining its filtered files for submission, skips private/noise entries and symlinks, and submits files as structured context. The paperclip opens the native file/folder picker instead of the Files inspector, and file-only context can be sent without typing a placeholder prompt.
+- The per-turn tool budget now reserves its final ten calls for bounded synthesis, verification, output, and checklist closure. At the 30-call acquisition threshold Vanta removes broad web/browser acquisition tools and continues from collected evidence instead of halting to ask what to do next; the predeclared 40-call hard ceiling remains enforced, including streamed tool prefetch.
+- A successful `todo` update is now part of the completion predicate: a clean-looking answer cannot end the turn while its observed checklist still has open or in-progress items.
+- Automatic and manual context compaction now render a labeled square-cell progress meter with numeric phase milestones, replacing the generic spinner without using slanted track glyphs.
+- The readline host now uses the provider streaming path while preserving its single clean final print, making first-delta timing and interruption observable without duplicating output.
+- The TypeScript suite caps workers below total CPU saturation so Seatbelt, Node, browser, and tmux child-process tests retain startup headroom instead of intermittently crossing real timeout boundaries.
+- `browser_read` now uses Vanta's shared system-browser fallback, so an installed Chrome, Brave, or Edge keeps browser tasks working when Playwright's versioned Chromium cache is absent.
+- `shell_cmd` now marks macOS `mdfind` query-parser failures as failed even when `mdfind` exits zero. Timeout failures explain the recovery path and can be retried with a bounded `timeout_ms` override capped at two minutes instead of requiring the sandbox to be disabled.
+- Turn tracing ignores comparison operators and strings inside heredoc bodies, preventing read-only inspection scripts from producing false `trace[blind-write]` warnings.
+- Large TUI pastes now collapse to an in-buffer marker while text typed afterward stays visible; submission restores the original bytes, and deleting a marker cannot silently orphan its payload.
+- Queued TUI messages remain visible in a bounded panel and Up from an empty composer pulls the newest item back for editing without stealing palette or history navigation.
+- Desktop clears a submitted draft immediately, restores it after failure only when no newer text would be overwritten, bounds long activity traces, and keeps model selection open only when the selected provider exposes effort or speed settings.
+- Rejected an unpublished direct Claude OAuth/token-store implementation and a broad Auto-mode bypass during consolidation. Claude subscription authentication remains owned by the official Claude Code client; unmatched kernel `Ask` actions still ask.
+
+### Verified boundary
+- The live kernel classified an exact empty-directory `rmdir` as `Ask` and
+  `rm -rf ~/Desktop` as `Block`. A disposable end-to-end agent dispatch accepted
+  one approval, removed the empty temporary directory, and preserved the
+  catastrophic-delete block floor.
+- The production Electron context smoke opened the native picker, dispatched Chromium native drag events for normal file, Shift-file, and folder drops, rendered their chips, omitted a dropped `.env`, and submitted the resolved paths through `/api/chat`.
+- The full TypeScript suite passes: 1,536 test files and 14,158 tests, with
+  3 intentional skips; core and renderer TypeScript checks also pass.
+- The streaming-TTS proof drove a real Vanta conversation stream and emitted
+  `STREAMING_TTS_FIRST_CLAUSE_OK` with the first clause dispatched before
+  provider completion and both clauses drained in order. Its injected silent
+  synthesis sink does not establish speaker hardware, provider latency, or
+  audio quality.
+- The authenticated MSA loopback proof exercised health, index, query, and
+  generation through the real TypeScript provider resolver, including durable
+  local writes and remote recall. It proves the adapter contract, not official
+  checkpoint inference, CUDA performance, or 100M-token behavior.
+- The installed `/Users/jasonpoindexter/.local/bin/vanta mcp serve` completed a
+  real MCP handshake and advertised `msa_memory` in its 10-tool default
+  allowlist, proving other local MCP clients can discover the capability.
+- A real tmux TUI run crossed the 30-call acquisition threshold with two open tasks, entered the bounded closure phase, marked both tasks done, and returned the requested result without an operator restart prompt. A separate oversized batch executed exactly the 40-call hard ceiling and recorded the skipped remainder.
+- A live local Ollama baseline completed 40/40 samples across all four TTFT surfaces and both profile modes; no mocked response counted. The packaged macOS app passed strict Developer ID signature verification, and Desktop first paint was observed after a rendered DOM animation frame.
+- The automatic-compaction launcher proof completed six real TUI turns, crossed the configured threshold, rendered the square-cell 25% phase, issued the summary request, and resumed the provider turn.
+- The 2026-08-17 consolidation reran the real tmux model-settings path and the 42-capture Desktop visual matrix. Complete local gate results and evidence boundaries are recorded in [`docs/final-consolidation-audit-2026-08-17.md`](docs/final-consolidation-audit-2026-08-17.md).
+
+## v0.9.8 — 2026-07-24
+
+**Reusable runs and more reliable operator handoffs.** Desktop work can now be saved, inspected, forked, and replayed as a fresh kernel-gated turn. This release also adds Buzz ACP connectivity, broadens the integration catalog, and closes PDF, terminal-resize, model-identity, and Claude authentication failures.
+
+### Added
+- A local reusable run library records one redacted, versioned run per user turn with structured file inputs, bounded snapshots, tool/approval provenance, lineage, and content-free reuse metrics.
+- Desktop adds **Threads | Saved runs**, run search and inspection, safe deletion, editable forks, and drift-reviewed replay across files, project root, provider, model, and available tools.
+- Buzz ACP status/configure/test/serve commands and client-supplied MCP/session instruction preservation.
+- A first-class integration catalog for Buzz, Dropbox, Google Drive, Slack, and Trello.
+- A per-turn tool-budget circuit breaker that yields control instead of allowing an unbounded tool loop.
+- The terminal now shows a Claude-style live task checklist for multi-step work, with total/done/in-progress/open counts and visible ✓/■/□ status rows.
+- The terminal now pauses live turns for Claude-style structured questions with numbered options, multi-select, previews, and an operator-authored Other answer.
+- Terminal answers now use a calmer Claude-style hierarchy: long successful tool runs collapse into one categorized evidence line, failures stay expanded, Markdown headings render without literal hash prefixes, and the model avoids duplicating the host's receipts in its final answer.
+
+### Fixed
+- Replay never reuses recorded tool calls or approvals; a replayed action passes through the current kernel and asks again even when an older rule or access mode would otherwise allow it.
+- Desktop file attachments reach run capture as structured metadata, while unsafe, oversized, out-of-scope, private, or credential-bearing files are not snapshotted.
+- Interrupted checkpointed turns recover as explicit incomplete-provenance legacy runs after restart.
+- PDF reading gives pdf.js the expected `Uint8Array` view.
+- Terminal resize recovery, clipboard-image parsing, and model/provider identity reporting no longer leave stale or corrupted state.
+- Claude Code authentication prefers a refreshed keychain credential when the legacy credentials file has expired.
+- Task tracking remains available under per-turn and local-runtime tool scoping; completed checklists stay visible through the final response and clear before unrelated work.
+- A safe approval can continue matching reversible work for the current task without repeated prompts; task grants clear on the next turn and never cover one-way or fresh-transaction boundaries.
+- Auto mode continues after explicit unfinished status such as “Not done,” “haven’t written it yet,” or “I’ll finish,” and uses the normal bounded tool ceiling instead of the tighter manual correction leash.
+- Tool-budget, repeated-failure, interruption, and iteration-limit exits now persist and render their terminal reason in the TUI instead of ending on a receipt-only “Ready for review” state.
+
+### Verified boundary
+- Full TypeScript suite: 1,482 test files and 13,764 tests passed, with 3 intentional skips.
+- TypeScript typecheck, production Desktop build, architecture tests, and the production Electron layout/replay smoke passed.
+- The Desktop smoke executed saved-run discovery, provenance inspection, drift review, and a fresh replay dispatch with structured file metadata; its final chat response was deterministic fixture data, not a live paid-provider completion.
+- Production feature sources and built assets produced zero secret-scanner hits, and the smoke left no records in the operator's `~/.vanta/runs`.
+- A real tmux TUI/provider-fixture run executed an unfinished Auto-mode answer, automatically continued into a verified edit and final response, then rendered a deliberate repeated-call terminal receipt.
+- GitHub Actions kernel assets and public release publication remain the tagged workflow boundary; this release does not claim a new notarized Desktop DMG.
+
 ## v0.9.7 — 2026-07-21
 
 **Resolved-path approvals.** Relative sibling-directory creation is canonicalized before safety assessment, so the approval and one-run sandbox scope agree on the exact destination.
@@ -75,6 +207,7 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - Updated the Docusaurus deployment path and repository links for the Cloudflare Pages project serving `docs.vanta.theft.studio`.
 
 ### Added
+- **Buzz ACP connection** — `vanta buzz status|configure|test|serve` checks the local Buzz harness/CLI, performs a bounded authenticated relay read, and launches Vanta as Buzz's custom ACP agent. ACP sessions now preserve client-supplied system instructions and session MCP servers instead of silently discarding the tools and reply contract.
 - **Desktop app v1** — rebuilt the existing renderer as a fixed one-viewport daily workspace with explicit loading/error/setup states, searchable sessions, compact panel navigation, safer approvals, command/model dialogs, and persisted project selection. The Electron host now owns free-port selection, splash/startup receipts, bundled assets/runtime/kernel paths, first-run `.vanta/.env` model setup, Developer ID signing by certificate hash, and ARM64 `.app`/DMG/ZIP production.
 - **Maintenance health** — `vanta maintenance` combines a deduplicated needs-human ticket queue, documentation-router load/reference/staleness/contradiction evidence, and a delivery-versus-maintenance time/token budget. A meaningful over-budget sample creates one actionable operator ticket instead of more automatic meta-work.
 - **System prompt presets** — `/prompt list|show|use|reset` switches a bounded operating-role overlay from project or Vanta-home markdown definitions without replacing the base safety prompt.
@@ -83,6 +216,7 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - **Bounded runtime readiness** — `GET /api/v1/live` is a cheap, unauthenticated, non-mutating liveness probe. Bearer-authenticated `/api/v1/readiness` and `/status` report redacted status/counts for the kernel, provider config, stores, disk, gateway channels, active turns, background work, and delegated workers without initializing a conversation.
 
 ### Fixed
+- **TUI resize repaint regression** — terminal width and height changes now coalesce into one settled full repaint after Ink and React finish their resize work, preventing stale wide composer frames from stacking at 78×25. A real-tmux grid harness covers idle and animated streaming states, exact 60×20/78×25/100×30/140×45 dimensions, height-only changes, and rapid alternating resizes.
 - **Desktop composer clipped below the native window** — startup and recovery UI now share one explicitly bounded conversation grid track, so an error banner cannot create an implicit row that pushes the empty state and composer offscreen. A packaged Electron smoke locks the reported `1778×1136` viewport in healthy and forced-recovery states.
 - **Desktop Files panel corruption at compact widths** — opening the inspector no longer replaces its two-row grid with a horizontal flex layout. File paths now render as stable single-line rows, ellipsize with full-path tooltips, and stay inside a vertical-only list scroller.
 - **Repeatable notarized desktop releases** — `npm run desktop:release` now signs the DMG container itself before submitting it to Apple, then staples, validates, and Gatekeeper-assesses the accepted artifact. This prevents an accepted app bundle from being wrapped in a DMG that Gatekeeper reports as having no usable signature.

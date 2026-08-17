@@ -15,6 +15,10 @@ import { resolveSessionCap } from "../budget/session-cap.js";
 import { resolveIsolation, isolationLevel, isolationBanner } from "./isolation.js";
 import { wantsDumpPrompt, stripDumpFlag, runDumpPrompt, defaultDumpDeps } from "./dump-prompt.js";
 import type { OutputFormat } from "./commands.js";
+import { consumeRestartHandoff } from "../repl/restart-handoff.js";
+import { loadSession } from "../sessions/store.js";
+import type { Session } from "../sessions/store.js";
+import { resolveVantaHome } from "../store/home.js";
 
 export function findRepoRoot(env: NodeJS.ProcessEnv = process.env): string {
   const selectedProject = env.VANTA_PROJECT_ROOT?.trim();
@@ -28,6 +32,8 @@ export function findRepoRoot(env: NodeJS.ProcessEnv = process.env): string {
 }
 
 export function loadEnv(repoRoot: string): void {
+  // Node's loadEnvFile only fills keys that are not already present, so this
+  // order gives ambient > project > worktree > persistent-home precedence.
   try {
     process.loadEnvFile(join(repoRoot, ".vanta", ".env"));
   } catch {
@@ -37,6 +43,11 @@ export function loadEnv(repoRoot: string): void {
     process.loadEnvFile(join(repoRoot, "vanta-ts", ".env"));
   } catch {
     // no .env file — rely on the ambient environment
+  }
+  try {
+    process.loadEnvFile(join(resolveVantaHome(process.env), ".env"));
+  } catch {
+    // No persistent fallback yet — a genuinely fresh install may run setup.
   }
   mirrorLegacyEnv();
 }
@@ -72,6 +83,15 @@ function shouldUseTui(opts: { resumeId?: string; noTui?: boolean }): boolean {
   return Boolean(process.stdin.isTTY) && !opts.resumeId && !opts.noTui && !process.env.VANTA_NO_TUI;
 }
 
+export async function loadRestartSession(
+  repoRoot: string,
+  env: NodeJS.ProcessEnv = process.env,
+  now = new Date(),
+): Promise<Session | null> {
+  const sessionId = await consumeRestartHandoff(join(repoRoot, ".vanta"), now);
+  return sessionId ? loadSession(sessionId, env) : null;
+}
+
 export async function startInteractive(
   repoRoot: string,
   opts: { resumeId?: string; noTui?: boolean; forkSession?: boolean; lifecycle?: LifecycleFlags; pluginSources?: PluginSource[]; dumpPrompt?: boolean } = {},
@@ -82,6 +102,17 @@ export async function startInteractive(
   if (opts.pluginSources?.length) await installPluginSources(repoRoot, opts.pluginSources);
   if (await maybeRunStartupLifecycle(repoRoot, opts.lifecycle)) return;
   if (!await ensureConfiguredOrSetup(repoRoot)) return;
+  const canResumeRestartInTui = !opts.resumeId && !opts.noTui && !process.env.VANTA_NO_TUI && Boolean(process.stdin.isTTY);
+  const restartSession = canResumeRestartInTui ? await loadRestartSession(repoRoot) : null;
+  if (restartSession) {
+    try {
+      return await runTuiV2(repoRoot, { initialSession: restartSession });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`\nTUI unavailable after reload (${msg.split("\n")[0]}); resuming in readline mode.\n`);
+      return runChat(repoRoot, { ...opts, resumeId: restartSession.id });
+    }
+  }
   if (!shouldUseTui(opts)) return runChat(repoRoot, opts);
   try {
     return await runTuiV2(repoRoot);

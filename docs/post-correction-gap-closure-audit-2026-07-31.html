@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vanta post-correction gap-closure audit · 2026-07-31</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080a0c;
+      --panel: #101419;
+      --panel-2: #151b21;
+      --line: #2a333d;
+      --text: #edf3f7;
+      --muted: #a8b4be;
+      --good: #68e5ad;
+      --warn: #ffd477;
+      --bad: #ff8b8b;
+      --info: #8bc7ff;
+      --code: #0a0e12;
+      --max: 1160px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 15% -10%, rgba(104, 229, 173, 0.11), transparent 32rem),
+        radial-gradient(circle at 95% 0%, rgba(139, 199, 255, 0.09), transparent 30rem),
+        var(--bg);
+      color: var(--text);
+      font: 16px/1.56 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    a { color: var(--info); }
+    a:focus-visible, summary:focus-visible {
+      outline: 3px solid var(--info);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    header, main, footer {
+      width: min(calc(100% - 32px), var(--max));
+      margin-inline: auto;
+    }
+
+    header { padding: 64px 0 32px; }
+    main { padding-bottom: 56px; }
+    footer {
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      padding: 24px 0 48px;
+    }
+
+    .eyebrow {
+      color: var(--good);
+      font: 700 0.78rem/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 850px;
+      margin: 10px 0 12px;
+      font-size: clamp(2.15rem, 6vw, 4.5rem);
+      line-height: 0.98;
+      letter-spacing: -0.045em;
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: clamp(1.45rem, 3vw, 2.2rem);
+      line-height: 1.12;
+      letter-spacing: -0.025em;
+    }
+
+    h3 { margin: 0 0 8px; font-size: 1rem; }
+    p { margin: 0 0 12px; }
+    ul { margin: 10px 0 0; padding-left: 1.25rem; }
+    li + li { margin-top: 5px; }
+
+    .lede {
+      max-width: 830px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.12rem;
+    }
+
+    .verdict {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      align-items: start;
+      margin: 28px 0 0;
+      border: 1px solid color-mix(in srgb, var(--bad) 45%, var(--line));
+      border-radius: 16px;
+      background: color-mix(in srgb, var(--bad) 7%, var(--panel));
+      padding: 18px;
+    }
+
+    .verdict strong { color: var(--bad); }
+    .badge {
+      display: inline-flex;
+      min-height: 30px;
+      align-items: center;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font: 700 0.74rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .badge.good { color: #042417; background: var(--good); }
+    .badge.warn { color: #2c1d00; background: var(--warn); }
+    .badge.bad { color: #300505; background: var(--bad); }
+    .badge.info { color: #041c31; background: var(--info); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .metric, section, details {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(145deg, var(--panel-2), var(--panel));
+    }
+
+    .metric { min-height: 128px; padding: 16px; }
+    .metric .value {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--good);
+      font: 750 clamp(1.7rem, 4vw, 2.5rem)/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: -0.06em;
+    }
+    .metric .label { color: var(--muted); font-size: 0.88rem; }
+
+    section { margin-top: 18px; padding: clamp(18px, 4vw, 30px); }
+    .section-note { max-width: 820px; color: var(--muted); }
+
+    .table-wrap {
+      margin-top: 18px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+    table {
+      width: 100%;
+      min-width: 820px;
+      border-collapse: collapse;
+      background: rgba(7, 10, 13, 0.44);
+    }
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: var(--muted);
+      font: 700 0.76rem/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    tr:last-child td { border-bottom: 0; }
+
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    code {
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--code);
+      padding: 0.12em 0.35em;
+      font-size: 0.88em;
+    }
+    pre {
+      overflow-x: auto;
+      margin: 12px 0 0;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--code);
+      padding: 14px;
+      color: #d9e5ec;
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .callout {
+      border-left: 4px solid var(--info);
+      border-radius: 8px;
+      background: rgba(139, 199, 255, 0.07);
+      padding: 14px 16px;
+    }
+    .callout.warn {
+      border-left-color: var(--warn);
+      background: rgba(255, 212, 119, 0.07);
+    }
+    .callout.bad {
+      border-left-color: var(--bad);
+      background: rgba(255, 139, 139, 0.07);
+    }
+
+    details { margin-top: 12px; padding: 14px 16px; }
+    summary { cursor: pointer; font-weight: 700; }
+    details[open] summary { margin-bottom: 10px; }
+
+    .claim {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 12px;
+      padding: 11px 0;
+      border-top: 1px solid var(--line);
+    }
+    .claim:first-of-type { border-top: 0; }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .two-col { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      header { padding-top: 40px; }
+      .grid { grid-template-columns: 1fr; }
+      .verdict { grid-template-columns: 1fr; }
+      .claim { grid-template-columns: 1fr; gap: 4px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="eyebrow">Vanta · post-correction audit · 2026-07-31 CEST</div>
+    <h1>Gap closure with the truth left intact.</h1>
+    <p class="lede">
+      This report covers the roadmap correction and the post-correction implementation
+      currently held, uncommitted, on the isolated branch
+      <code>codex/total-realignment-correction-20260730</code>.
+    </p>
+    <div class="verdict" role="note" aria-label="Integration verdict">
+      <span class="badge bad">Not integration-ready</span>
+      <p>
+        <strong>The roadmap data and changed implementation paths are validated.</strong>
+        Integration remains blocked because correction-only evidence and later source work
+        are still mixed, universal effect mediation and legacy host migration
+        are unfinished, external proofs are incomplete, and dependency advisories remain. No commit, push, merge, tag, release,
+        publication, or deployment occurred.
+      </p>
+    </div>
+    <div class="grid" aria-label="Audit metrics">
+      <div class="metric"><span class="value">1,331</span><span class="label">unique roadmap records after correction</span></div>
+      <div class="metric"><span class="value">13,892</span><span class="label">current full-suite tests passed; 3 intentional skips</span></div>
+      <div class="metric"><span class="value">28</span><span class="label">destination outcomes preserved as an acceptance catalog</span></div>
+      <div class="metric"><span class="value">0</span><span class="label">Git or remote side effects</span></div>
+    </div>
+  </header>
+
+  <main>
+    <section aria-labelledby="scope">
+      <h2 id="scope">Constraint ledger</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Controlling constraint</th><th>Observed result</th></tr></thead>
+          <tbody>
+            <tr><td>Outcome</td><td>Close verified source, product, and roadmap gaps end to end.</td><td>Bounded gaps implemented; residuals named below.</td></tr>
+            <tr><td>Target</td><td>Isolated correction worktree at baseline <code>a751cb17…</code>.</td><td>Branch and HEAD preserved.</td></tr>
+            <tr><td>Must</td><td>Preserve 1,319 active IDs, reconcile 14 + 8 discrepancies, add 12 realignment cards, install R0–R5 and nine-state contracts, produce exact evidence.</td><td>Executed and validator-backed.</td></tr>
+            <tr><td>Must not</td><td>No original-checkout edits; no protected Rust, factory, or <code>MANIFESTO.md</code> edits; no Git history or remote changes.</td><td>Protected-path scan empty; original checkout unchanged.</td></tr>
+            <tr><td>Authority</td><td>Correction handoff, current user request, PM/ND routing, repository instructions.</td><td>Post-correction source work is reported separately from the correction-only snapshot.</td></tr>
+            <tr><td>Done evidence</td><td>Real path, full tests, type/build checks, hardened mutation tests, scans, exact diff, and honest gaps.</td><td>All available local gates executed; external-only and protected-scope gaps remain.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="before-after">
+      <h2 id="before-after">Before → after</h2>
+      <p class="section-note">“After” means implemented or corrected in this uncommitted worktree. It does not mean released.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Area</th><th>Before</th><th>After</th><th>Boundary</th></tr></thead>
+          <tbody>
+            <tr><td>Roadmap</td><td>Stale/shared snapshots dropped active IDs and duplicated or misframed realignment work.</td><td>All 1,319 active IDs preserved; 12 cards added; 22 existing cards changed only through pinned permitted deltas; 1,331 unique records; 1,297 existing records deep-equal.</td><td>TRUST-02 and UX-03 remain building. No status was promoted on implementation inference.</td></tr>
+            <tr><td>Autonomy</td><td>R0–R5 wording drifted and legacy watch/queue/auto behavior could be read as the target contract.</td><td>Eight governing artifacts carry the exact autonomy definition; R0–R5 is reserved for autonomy; legacy runtime language is labeled migration work.</td><td>E0–E5 is reserved and explicitly non-operative, not implementation-ready.</td></tr>
+            <tr><td>Operational truth</td><td>Legacy task states and model prose could imply completion across hosts.</td><td>Typed WorkItem, Run, Approval, and Receipt schemas; exact nine-state lifecycle; explicit transition graph; verified/unverified settlement; unverified accomplishment-shaped memory is filtered.</td><td>Legacy stores and every host are not yet migrated to one authoritative spine.</td></tr>
+            <tr><td>Filesystem control plane</td><td>Ordinary file tools could reach project credentials, audit state, hooks, and Vanta control files; settlement used separate best-effort JSONL appends.</td><td>Project secret/audit paths are denied; control-plane writes require exact fresh approval bound to bytes and SHA-256. Approval/effect transitions acquire a filesystem writer lock, persist one secret-free, hash-addressed envelope, then atomically and idempotently project JSONL views. Failed projection stays pending for replay; journal/lock failure rejects before projections.</td><td>Universal authoritative settlement and complete legacy host/store migration remain open.</td></tr>
+            <tr><td>Child processes</td><td>Shell, code, hooks, and model-selected MCP servers could inherit broad credentials; MCP trust happened only after launch and tool discovery; plugin-worker containment was lexical.</td><td>Safe child environment and sandbox controls; dynamic and hook MCP launches receive only declared/safe environment variables; MCP trust is bound to the exact launch/auth/tool declaration and resolved before process or network start; plugin-worker entry symlinks are canonicalized before spawn.</td><td>Alternate launchers, explicit auto-mount/config authority, unsupported no-backend systems, and universal external-effect mediation remain inventory work.</td></tr>
+            <tr><td>Hook activation</td><td>Control-plane changes could become active during the same process lifetime.</td><td>Hook configuration is snapshotted for the process lifetime; activation requires restart.</td><td>Does not prove every extension/plugin activation path is restart-bound.</td></tr>
+            <tr><td>Local auth</td><td>Desktop/API local-origin and token assumptions were under-specified.</td><td>Random per-install token, fragment delivery, required server token, exact-origin checks, hostile read/navigation/window denial smoke.</td><td>Packaged/notarized release proof was not run in this pass.</td></tr>
+            <tr><td>Google/Gmail</td><td>Service capabilities and mail boundaries had ambiguous or broad caller behavior.</td><td>Separate Gmail, Calendar, and Drive scopes/token stores; service-aware CLI/Desktop status; CR/LF header rejection; exact send approval; inbound mail control stripping and untrusted wrapping.</td><td>No real external Google account mutation receipt was created.</td></tr>
+            <tr><td>Completion and receipts</td><td>Verifier prose and separate JSONL writes could be mistaken for verified, durable settlement.</td><td>Completion requires verified WorkItems; unverified accomplishment memory is filtered. The bounded TypeScript path now has an authoritative journal envelope, cross-process writer exclusion, and recoverable projections.</td><td>This does not establish universal or cross-host settlement.</td></tr>
+            <tr><td>Public claims</td><td>Docs overstated universal kernel mediation, tail-truncation guarantees, operative autonomy/lifecycle contracts, verified completion, messaging proof, and accessibility defaults.</td><td>Current behavior, target behavior, migration work, historical counts, and release gates are separated across public and governing docs.</td><td>Claims remain subject to review before publication.</td></tr>
+            <tr><td>Validator</td><td>Happy-path checks could miss semantic card drift, cycles, staged/committed source, and changed autonomy meaning.</td><td>Pinned hashes and exact record hashes; canonical Zod parse; duplicate/self/missing/cycle checks; 22 discrepancy mappings; broader source guard; seven adversarial mutation tests plus build-order authority test.</td><td>The correction-only guard correctly fails this mixed implementation worktree.</td></tr>
+            <tr><td>Dependencies</td><td>Audits were not part of the prior correction evidence.</td><td>Website non-breaking audit remediation resolved eight of nine advisory classes and the production build still passes.</td><td>Main runtime: 14 high findings, no safe automatic fix. Website: one current brace-expansion advisory class remains; npm reports 20 affected dependency paths and offers only a breaking forced change.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="section17">
+      <h2 id="section17">Section 17 disposition</h2>
+      <div class="two-col">
+        <div class="callout">
+          <h3>Corrected</h3>
+          <ul>
+            <li>P0-A through P0-D public-claim blockers.</li>
+            <li>P1-A through P1-D completion, comparison, messaging, and accessibility wording.</li>
+            <li>Exact autonomy text across governing artifacts.</li>
+            <li>Job/Run ambiguity, typed operational schemas, transitions, retry/resume rules, and projection boundary.</li>
+            <li>Eleven canonical external release gates: one ready, ten pending.</li>
+            <li>All validator hardening and required mutation cases.</li>
+            <li>MCP denial-before-launch, changed-config re-consent, scoped MCP child environments, and plugin-worker symlink containment.</li>
+            <li>Durable approval/effect envelope, fail-closed journal creation, pending replay, idempotent projections, and secret-free settlement metadata.</li>
+            <li>Filesystem writer locking that respects live owners, times out fail-closed, and byte-checks abandoned locks before removal.</li>
+          </ul>
+        </div>
+        <div class="callout warn">
+          <h3>Deferred with evidence</h3>
+          <ul>
+            <li>Durable correction-only versus implementation separation requires explicit Git authorization.</li>
+            <li>Universal gateway mediation across direct gateway, plugin, MCP, scheduler, worker, factory, and self-repair paths.</li>
+            <li>Protected Rust audit migration and protected factory behavior changes.</li>
+            <li>Universal settlement, complete legacy migration, and all external/account/device receipts.</li>
+            <li>Dependency findings without a compatible upstream remediation.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:14px">
+        <h3>Rejected reviewer finding</h3>
+        <p>
+          The stale claim that Google still requests Gmail, Calendar, and Drive together is rejected.
+          Current code defines one scope and one token store per service; focused and full tests pass.
+          That code-path evidence still does not constitute a live external-account receipt.
+        </p>
+      </div>
+    </section>
+
+    <section aria-labelledby="evidence">
+      <h2 id="evidence">Executed evidence</h2>
+      <div class="claim">
+        <span class="badge good">Executed</span>
+        <div><strong>Current full behavior suite:</strong> <code>npm test -- --maxWorkers=4</code> → exit 0; 1,505 files, 13,892 passed, 3 intentional skips. The timing-sensitive background-response and hard-ceiling tests passed in this complete run.</div>
+      </div>
+      <div class="claim">
+        <span class="badge good">Executed</span>
+        <div><strong>Focused changed paths:</strong> 24 files, 303 tests passed, including lifecycle, effects, permissions, memory truth, sandbox, Gmail, Google, and Desktop API.</div>
+      </div>
+      <div class="claim">
+        <span class="badge good">Executed</span>
+        <div><strong>MCP/plugin boundary:</strong> nine files, 70 tests passed, including real denial-before-launch, changed-config re-consent, undeclared-environment, trust-preview, and symlink-escape cases.</div>
+      </div>
+      <div class="claim">
+        <span class="badge good">Executed</span>
+        <div><strong>Approval/effect journal:</strong> the initial cases failed 2/4 before passing 4/4; the writer-lock case then failed 1/5 before implementation and passed afterward. Focused agent regressions passed 54 tests; the final pass covered four files and 15 tests. Cases execute journal-before-projection, fail-closed creation, pending replay, applied settlement, secret-free envelopes, and waiting on a live filesystem lock owner.</div>
+      </div>
+      <div class="claim">
+        <span class="badge good">Executed</span>
+        <div><strong>Type safety:</strong> runtime and Desktop renderer TypeScript checks both exited 0 after final edits.</div>
+      </div>
+      <div class="claim">
+        <span class="badge good">Executed</span>
+        <div><strong>Desktop real path:</strong> production renderer build plus local-origin security smoke exited 0; untrusted read, navigation, and window operations were denied while the trusted renderer passed.</div>
+      </div>
+      <div class="claim">
+        <span class="badge good">Executed</span>
+        <div><strong>Website:</strong> Docusaurus production build exited 0 after roadmap regeneration and dependency remediation.</div>
+      </div>
+      <div class="claim">
+        <span class="badge good">Executed</span>
+        <div><strong>Roadmap validator:</strong> exit 0 with implementation reporting; 1,319 preserved, 12 added, 22 exact deltas, canonical schema valid, dependencies acyclic, 28 outcomes set-equal.</div>
+      </div>
+      <div class="claim">
+        <span class="badge good">Executed</span>
+        <div><strong>Mutation controls:</strong> seven validator attacks plus one build-order authority test passed. The attacks cover swapped status, self/cycle dependencies, missing schema fields, parked metadata drift, changed autonomy meaning, and unstaged/staged/committed source bypass.</div>
+      </div>
+      <div class="claim">
+        <span class="badge good">Executed</span>
+        <div><strong>Expected negative control:</strong> the correction-only validator exited 1 and named 88 implementation paths. This proves the current mixed worktree cannot masquerade as a correction-only checkpoint.</div>
+      </div>
+      <div class="claim">
+        <span class="badge good">Executed</span>
+        <div><strong>Repository and secret checks:</strong> <code>git diff --check</code> exited 0; protected-path scan was empty; earlier Gitleaks history coverage scanned 2,952 commits; the final 148-file, 4,016-KiB changed/untracked scan had zero findings. A whole-worktree scan’s only match was a generated-build false positive sourced from the non-secret <code>VANTA_SELF_IMPROVE=1</code> feature-flag example.</div>
+      </div>
+      <div class="claim">
+        <span class="badge good">Executed</span>
+        <div><strong>Static analysis:</strong> the prior Semgrep scan found zero issues across 102 current changed/untracked files. A final incremental receipt-journal scan ran 63 applicable rules across two files with zero findings, zero errors, and 100% parsed lines. The earlier scan had one partial parse; the broader scan had parser warnings and four existing HTTP-in-test findings, so this is not a universal clean-source claim.</div>
+      </div>
+      <div class="claim">
+        <span class="badge bad">Open gate</span>
+        <div><strong>Dependencies:</strong> runtime npm audit reports 14 high paths; website audit reports 20 high paths from its remaining chain; OSV reports nine vulnerable packages across both lockfiles. No compatible non-breaking clean gate is available in this worktree.</div>
+      </div>
+
+      <div class="callout warn" style="margin-top:14px">
+        <h3>Timing evidence retained</h3>
+        <p>
+          The first current run at eight workers timed out one
+          <code>src/ui/app-bg-response.test.tsx</code> case while 13,888 tests passed.
+          That file passed three consecutive isolated runs, then passed inside the
+          complete four-worker suite. This supports parallel-load sensitivity; it
+          does not erase the initial failure.
+        </p>
+      </div>
+
+      <div class="callout warn" style="margin-top:14px">
+        <h3>Receipt regression trail retained</h3>
+        <p>
+          The first journal-enabled full run exposed three fake-root fixtures. The
+          next run made every assertion green but timed out one hard-ceiling test
+          because every derived projection was fsynced. The final design fsyncs the
+          authoritative envelope while keeping projections atomic and replayable.
+          The hard-ceiling case then passed in 5.26 seconds against its 20-second
+          limit, followed by the complete green suite.
+        </p>
+      </div>
+
+      <details>
+        <summary>What these checks do not establish</summary>
+        <ul>
+          <li>They do not establish notarized/package release behavior, deployment, publication, or real third-party account effects.</li>
+          <li>They do not prove every process launcher and external effect crosses one unavoidable gateway.</li>
+          <li>They do not establish one authoritative settlement path across every legacy host and store.</li>
+          <li>They do not make TRUST-02 or UX-03 shipped.</li>
+          <li>They do not eliminate the dependency advisories listed above.</li>
+        </ul>
+      </details>
+    </section>
+
+    <section aria-labelledby="roadmap">
+      <h2 id="roadmap">Validated roadmap state</h2>
+      <div class="grid">
+        <div class="metric"><span class="value">1,281</span><span class="label">shipped</span></div>
+        <div class="metric"><span class="value">38</span><span class="label">parked</span></div>
+        <div class="metric"><span class="value">2</span><span class="label">building</span></div>
+        <div class="metric"><span class="value">4 + 6</span><span class="label">next + horizon</span></div>
+      </div>
+      <div class="two-col">
+        <div class="callout">
+          <h3>Now</h3>
+          <p><code>TRUST-02</code> and <code>UX-03</code> stay building. The six implementation-ready open records remain a dependency-ordered queue, not a promise to execute all 28 outcomes simultaneously.</p>
+        </div>
+        <div class="callout warn">
+          <h3>Stop condition</h3>
+          <p>Do not promote a card based on code presence, a passing adjacent test, or a generated document. Promotion requires the card’s full real-world Done criteria and retained receipt.</p>
+        </div>
+      </div>
+      <pre>active snapshot     1f1334605d51c9fe5794bc53396655e987082013a73eef5e71f82b55ad50288c
+stale snapshot      07969a59171ab52da78057702a498878b73c42fb709549a5ec7a28c3c24a72ae
+first-pass roadmap  b15d6dcef3fe200a31f0a8ffc07fc9aad9df740118023da1ff5a27ae4658ff43
+corrected roadmap   c98ca5b4662216b42111d98ceadfef01b6fe0b5e547794b134f11f4512e0dd1f</pre>
+    </section>
+
+    <section aria-labelledby="diff">
+      <h2 id="diff">Repository and Git report</h2>
+      <div class="table-wrap">
+        <table>
+          <tbody>
+            <tr><th>Worktree</th><td><code>/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-total-realignment-correction-20260730</code></td></tr>
+            <tr><th>Branch</th><td><code>codex/total-realignment-correction-20260730</code></td></tr>
+            <tr><th>HEAD / baseline</th><td><code>a751cb17dcb768097798b4278882a64103527811</code></td></tr>
+            <tr><th>Final tracked diff</th><td>127 files; 3,903 insertions; 1,321 deletions.</td></tr>
+            <tr><th>Final untracked status entries</th><td>20, including this HTML audit and its Markdown companion.</td></tr>
+            <tr><th>Final status entries</th><td>147 total; nothing staged.</td></tr>
+            <tr><th>Protected paths</th><td>No root <code>src/**</code>, <code>MANIFESTO.md</code>, or <code>vanta-ts/src/factory/**</code> diff.</td></tr>
+            <tr><th>Original checkout</th><td>Still branch <code>agent/v0-9-7-desktop-demo-and-identity</code>, same HEAD, same nine pre-existing status entries.</td></tr>
+            <tr><th>Git/remote effects</th><td>Zero commits, pushes, merges, tags, releases, deployments, or publications.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="remaining">
+      <h2 id="remaining">Remaining integration gates</h2>
+      <ol>
+        <li>Review and authorize a correction-only checkpoint, then put implementation work on a distinct durable base. This cannot be done without committing or reconstructing history, which was explicitly forbidden.</li>
+        <li>Complete the universal effect-path inventory and route consequential direct gateway, plugin, MCP, scheduler, worker, factory, self-repair, and alternate child-process paths through an authoritative gateway.</li>
+        <li>Extend the existing durable journal persistence and filesystem writer exclusion through the remaining legacy host/store reconciliation paths.</li>
+        <li>Execute real external Google, device, provider, payment, telephony, hosted, and accessibility receipts required by their cards.</li>
+        <li>Resolve the main runtime’s 14 high dependency findings and the website’s remaining brace-expansion advisory when compatible upstream versions exist.</li>
+        <li>Run packaged/notarized Desktop, publication, and release-candidate gates only after explicit authorization.</li>
+      </ol>
+    </section>
+  </main>
+
+  <footer>
+    Static, dependency-free audit. Accessibility treatment follows visible focus,
+    semantic landmarks, responsive tables, reduced-motion preference, high contrast,
+    and no color-only status encoding.
+  </footer>
+</body>
+</html>

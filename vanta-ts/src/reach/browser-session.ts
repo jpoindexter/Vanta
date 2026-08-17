@@ -3,6 +3,8 @@
 // API requests the page made. Works for any site — login-walled or JS-rendered —
 // not just X. The X query-id capture (twitter-capture.ts) is one user of it.
 
+import { resolveChromiumExecutable } from "../browser/launch.js";
+
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 const NAV_TIMEOUT_MS = 30_000;
@@ -78,6 +80,20 @@ export function safeReplayHeaders(headers: Record<string, string>): Record<strin
 }
 
 /**
+ * Use the same executable resolution as Vanta's other browser tools. This lets
+ * browser_read fall back to an installed Chrome/Brave/Edge when Playwright's
+ * versioned cache is missing after an npm update.
+ */
+export function sessionBrowserLaunchOptions(
+  chromium: Pick<typeof import("playwright-core").chromium, "executablePath">,
+  env: NodeJS.ProcessEnv = process.env,
+  exists?: (path: string) => boolean,
+): { headless: true; executablePath?: string } {
+  const executablePath = resolveChromiumExecutable(chromium, env, exists);
+  return executablePath ? { headless: true, executablePath } : { headless: true };
+}
+
+/**
  * Open `url` in a headless browser, injecting `cookie` (if given) for the url's
  * origin, and return the body text + every request URL the page issued. Needs
  * playwright-core + chromium; errors-as-values otherwise.
@@ -95,7 +111,7 @@ export async function openWithSession(
   }
   let browser: Awaited<ReturnType<typeof chromium.launch>> | null = null;
   try {
-    browser = await chromium.launch({ headless: true });
+    browser = await chromium.launch(sessionBrowserLaunchOptions(chromium));
     const context = await browser.newContext({ userAgent: UA });
     if (cookie) await context.addCookies(cookieToPlaywright(cookie, url));
     const page = await context.newPage();

@@ -37,6 +37,9 @@ describe("looksUnfinished", () => {
     expect(looksUnfinished("- [ ] write the report")).toBe(true);
     expect(looksUnfinished("Let me now run the tests")).toBe(true);
     expect(looksUnfinished("I'll continue with the remaining items")).toBe(true);
+    expect(looksUnfinished("Not done: dashboard update/writeback.")).toBe(true);
+    expect(looksUnfinished("I haven’t written the updated dashboard yet.")).toBe(true);
+    expect(looksUnfinished("I’ll finish by replacing the stale table.")).toBe(true);
   });
   it("does not flag a clean completion", () => {
     expect(looksUnfinished("Saved the profile. All three goals scored 9/10.")).toBe(false);
@@ -61,6 +64,31 @@ describe("shouldAutoContinue", () => {
   });
   it("does NOT continue a clean completion (no signal, verify off)", async () => {
     expect(await shouldAutoContinue({ ...base, result: res("Done. Saved."), toolNames: ["write_file"] })).toBe(false);
+  });
+  it("continues a clean-looking completion while the observed checklist is open", async () => {
+    expect(await shouldAutoContinue({
+      ...base,
+      result: res("Here are the results."),
+      toolNames: ["todo", "web_search"],
+      openTodoCount: 2,
+    })).toBe(true);
+  });
+  it("allows completion after the observed checklist reaches zero open items", async () => {
+    expect(await shouldAutoContinue({
+      ...base,
+      result: res("Here are the results."),
+      toolNames: ["todo", "web_search"],
+      openTodoCount: 0,
+    })).toBe(false);
+  });
+  it("does not return done with an open checklist after the generic nudge cap", async () => {
+    expect(await shouldAutoContinue({
+      ...base,
+      result: res("Here are the current results."),
+      toolNames: ["todo", "web_search"],
+      openTodoCount: 1,
+      autoContinues: 3,
+    })).toBe(true);
   });
   it("respects the per-turn cap", async () => {
     expect(await shouldAutoContinue({ ...base, result: res("next step"), toolNames: ["read_file"], autoContinues: 3 })).toBe(false);

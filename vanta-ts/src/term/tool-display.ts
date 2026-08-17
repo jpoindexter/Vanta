@@ -85,8 +85,9 @@ function toolDisplayUtilGroup(name: string, str: (k: string) => string): ToolDis
 
 /** Display for file/shell/web/code tools. Returns null when name is not in this group. */
 function toolDisplayCoreGroup(name: string, str: (k: string) => string): ToolDisplay | null {
+  const document = toolDisplayDocument(name, str("path"));
+  if (document) return document;
   switch (name) {
-    case "read_file": return { icon: "📖", verb: "read", detail: abbrevPath(str("path")) };
     case "write_file": return { icon: "✎", verb: "wrote", detail: abbrevPath(str("path")) };
     case "shell_cmd": {
       const label = bashLabel(str("command"));
@@ -99,6 +100,16 @@ function toolDisplayCoreGroup(name: string, str: (k: string) => string): ToolDis
     case "browser_extract": return { icon: "↗", verb: "read page", detail: "" };
     default: return null;
   }
+}
+
+function toolDisplayDocument(name: string, path: string): ToolDisplay | null {
+  const verbs: Record<string, string> = {
+    read_file: "read",
+    pdf_read: "read PDF",
+    document_read: "read document",
+  };
+  const verb = verbs[name];
+  return verb ? { icon: "📖", verb, detail: abbrevPath(path) } : null;
 }
 
 /** Display for media/sensing tools. Returns null when name is not in this group. */

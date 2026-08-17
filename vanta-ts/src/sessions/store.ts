@@ -4,6 +4,7 @@ import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
 import type { Message } from "../types.js";
 import { reconcileDanglingToolResults } from "../agent/effect-disposition.js";
+import { deleteUnsavedRunsForSession } from "../runs/store.js";
 
 // Session persistence sits behind the SessionStore port. The default adapter writes
 // JSON under ~/.vanta/sessions; alternate stores replace it without caller changes.
@@ -67,7 +68,7 @@ const MessageSchema: z.ZodType<Message> = z.lazy(() =>
       toolCallId: z.string(),
       name: z.string(),
       content: z.string(),
-      effectDisposition: z.enum(["none", "confirmed", "unknown"]).optional(),
+      effectDisposition: z.enum(["none", "confirmed", "denied", "expired", "unknown", "compensated"]).optional(),
     }),
   ]),
 ) as z.ZodType<Message>;
@@ -210,7 +211,11 @@ export function createFsSessionStore(env?: NodeJS.ProcessEnv): SessionStore {
     }
     const metas: SessionMeta[] = [];
     for (const file of files) {
-      const session = await load(file.replace(/\.json$/, ""));
+      // Listing is read-only. `load()` may reconcile dangling tool results and
+      // persist the repaired transcript, which breaks read-only callers under a
+      // scoped/sandboxed home. Use the raw reader here and leave repair to an
+      // explicit load/resume path.
+      const session = await readRawSession(file.replace(/\.json$/, ""), env);
       if (session) metas.push(toMeta(session));
     }
     return metas.sort((a, b) => b.updated.localeCompare(a.updated));
@@ -251,9 +256,11 @@ export async function loadSession(id: string, env?: NodeJS.ProcessEnv): Promise<
   return createFsSessionStore(env).load(id);
 }
 
-/** Delete a session file. Idempotent — a missing file is not an error. */
+/** Delete a session and any disposable run records linked to it. Saved runs
+ *  intentionally survive until the operator deletes them explicitly. */
 export async function deleteSession(id: string, env?: NodeJS.ProcessEnv): Promise<void> {
-  return createFsSessionStore(env).delete(id);
+  await createFsSessionStore(env).delete(id);
+  await deleteUnsavedRunsForSession(id, env);
 }
 
 /** List active session metadata, newest first. Skips unparseable files. */

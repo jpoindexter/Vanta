@@ -7,7 +7,7 @@ import {
   type CompletionSoundPlayer,
   type CompletionSoundSettings,
 } from "./completion-sound.js";
-import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, ConnectTestResult, DesktopRunReceipt, DesktopRuntime, EventRow, GatewayStartResult, GoogleConnectStatus, Message, MessagingPlatform, Provider, RailTab, ReleaseProofReport, RuntimeAction, Session, Status, TelegramSetupStatus, Tool } from "./types.js";
+import type { AccessMode, Approval, ApprovalDecision, Artifact, CanvasArtifact, Capability, ConnectTestResult, DesktopRunReceipt, DesktopRuntime, EventRow, GatewayStartResult, GoogleConnectStatus, Message, MessagingPlatform, Provider, ProviderModelSettings, RailTab, ReleaseProofReport, RuntimeAction, ScheduledTask, Session, Status, TelegramSetupStatus, Tool } from "./types.js";
 import type { SessionDeleteAction } from "./session-safe-ops.js";
 import { sessionPinningHandlers } from "./session-pinning-api.js";
 import { createSessionDraftController, hasPersistableSessionDraftContext } from "./session-drafts.js";
@@ -26,6 +26,7 @@ export function useDesktopData() {
   const [google, setGoogle] = useState<GoogleConnectStatus>({ status: "needs_setup", clientConfigured: false, authorized: false, message: "Checking Google Workspace..." });
   const [releaseProofs, setReleaseProofs] = useState<ReleaseProofReport | null>(null);
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
+  const [schedules, setSchedules] = useState<ScheduledTask[]>([]);
   const [runtime, setRuntime] = useState<DesktopRuntime>({ selectedHostId: "local", hosts: [] });
   const [tab, setTab] = useState<RailTab>("activity");
   const overlays = useDesktopOverlays();
@@ -43,6 +44,7 @@ export function useDesktopData() {
       api<DesktopRuntime>("/api/runtime").catch(() => ({ selectedHostId: "local", hosts: [] })),
       api<GoogleConnectStatus>("/api/connect/google").catch(() => ({ status: "needs_setup", clientConfigured: false, authorized: false, message: "Google Workspace status is unavailable." } as GoogleConnectStatus)),
       api<ReleaseProofReport>("/api/release-proofs").catch(() => null),
+      api<ScheduledTask[]>("/api/schedules").catch(() => []),
     ]);
     const [statusResult, sessionsResult, toolsResult, filesResult, modelsResult] = await critical;
     // A mutation can invalidate an older aggregate refresh while its requests
@@ -64,7 +66,7 @@ export function useDesktopData() {
     }
     setError(""); setPhase("ready");
 
-    const [canvasResult, capabilitiesResult, messagingResult, artifactsResult, runtimeResult, googleResult, releaseProofsResult] = await optional;
+    const [canvasResult, capabilitiesResult, messagingResult, artifactsResult, runtimeResult, googleResult, releaseProofsResult, schedulesResult] = await optional;
     if (version !== refreshVersion.current) return;
     setCanvas(canvasResult.status === "fulfilled" ? canvasResult.value : null);
     setCapabilities(capabilitiesResult.status === "fulfilled" ? capabilitiesResult.value : []);
@@ -73,12 +75,24 @@ export function useDesktopData() {
     setRuntime(runtimeResult.status === "fulfilled" ? runtimeResult.value : { selectedHostId: "local", hosts: [] });
     setGoogle(googleResult.status === "fulfilled" ? googleResult.value : { status: "needs_setup", clientConfigured: false, authorized: false, message: "Google Workspace status is unavailable." });
     setReleaseProofs(releaseProofsResult.status === "fulfilled" ? releaseProofsResult.value : null);
+    setSchedules(schedulesResult.status === "fulfilled" ? schedulesResult.value : []);
   }, []);
 
   async function setModel(provider: string, model: string, scope: "session" | "global" = "session") {
+    // Note: the picker stays OPEN so it can drill into the model's effort/speed
+    // settings (Claude-CLI style: pick model → pick effort). ModelPicker decides
+    // when to switch views or close after this resolves.
     await api("/api/model", { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ provider, model, scope }) });
-    overlays.closeModelPicker();
     await refresh();
+  }
+  async function setModelSettings(settings: ProviderModelSettings, scope: "session" | "global" = "session") {
+    const saved = await api<{ modelSettings: ProviderModelSettings }>("/api/model-settings", {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify({ ...settings, scope }),
+    });
+    refreshVersion.current += 1;
+    setStatus((current) => current ? { ...current, modelSettings: saved.modelSettings } : current);
   }
   async function refreshProviderModels(providerId: string) {
     const refreshed = await api<Provider[]>(`/api/models/${encodeURIComponent(providerId)}`);
@@ -105,7 +119,7 @@ export function useDesktopData() {
 
   useEffect(() => { void refresh(); }, [refresh]);
   return {
-    status, sessions, tools, files, models, canvas, capabilities, messaging, google, releaseProofs, artifacts, runtime, tab, setTab, phase, error, refresh, refreshProviderModels, setModel, setAccessMode,
+    status, sessions, tools, files, models, canvas, capabilities, messaging, google, releaseProofs, artifacts, schedules, runtime, tab, setTab, phase, error, refresh, refreshProviderModels, setModel, setModelSettings, setAccessMode,
     setRuntimeHost: (hostId: string) => updateRuntime(hostId),
     runRuntimeAction: (hostId: string, action: RuntimeAction) => updateRuntime(hostId, action),
     ...overlays,
@@ -327,18 +341,30 @@ function conversationHandlers(state: ConversationState, cues: TurnCues, lastFail
     if (active && archived) await newSession();
     else await state.refresh();
   }
+  async function archiveSessions(ids: string[], archived: boolean, active: boolean) {
+    await api("/api/sessions/bulk", postJson({ ids, action: archived ? "archive" : "unarchive" }));
+    if (active && archived) await newSession();
+    else await state.refresh();
+  }
   async function deleteSession(id: string, active: boolean, action: SessionDeleteAction = "trash") {
     await api("/api/sessions/delete", postJson(action === "permanent" ? { id, permanent: true } : { id, trashed: action === "trash" }));
     if (action === "permanent") await state.clearDraftFor(id);
     if (active && action !== "restore") await newSession();
     else await state.refresh();
   }
+  async function deleteSessions(ids: string[], active: boolean, action: SessionDeleteAction = "trash") {
+    await api("/api/sessions/bulk", postJson({ ids, action: action === "permanent" ? "delete" : action }));
+    if (action === "permanent") await Promise.all(ids.map((id) => state.clearDraftFor(id)));
+    if (active && action !== "restore") await newSession();
+    else await state.refresh();
+  }
   const pinning = sessionPinningHandlers(state.refresh);
   function insertFile(file: string) { state.setDraft((value) => `${value} @${file}`.trimStart()); }
-  async function submit(text: string, images?: ImageAttachment[]): Promise<boolean> {
+  async function submit(text: string, images?: ImageAttachment[], files?: string[]): Promise<boolean> {
     return submitMessage(state, text, {
       cues,
       images,
+      files,
       onRecovery: (failed) => { lastFailedMessage.current = failed ? text : ""; },
     });
   }
@@ -357,12 +383,12 @@ function conversationHandlers(state: ConversationState, cues: TurnCues, lastFail
       await api<{ queued: boolean }>("/api/chat/queue", postJson({ message: queued }));
       state.setMessages((messages) => [...messages, { role: "user", content: queued }]);
       state.setDraft(() => "");
-      state.setEvents([{ label: "Next instruction queued.", ok: true }]);
+      state.setEvents([{ label: "Queued next.", ok: true }]);
     } catch (error) {
       state.setEvents([{ label: error instanceof Error ? error.message : String(error), ok: false }]);
     }
   }
-  return { openSession, newSession, renameSession, archiveSession, deleteSession, ...pinning, submit, localReply, queue, retry: () => lastFailedMessage.current ? submit(lastFailedMessage.current) : Promise.resolve(), insertFile };
+  return { openSession, newSession, renameSession, archiveSession, archiveSessions, deleteSession, deleteSessions, ...pinning, submit, localReply, queue, retry: () => lastFailedMessage.current ? submit(lastFailedMessage.current) : Promise.resolve(), insertFile };
 }
 
 export function latestRecoverableRun(messages: Message[]): { receipt: DesktopRunReceipt; instruction: string } | null {
@@ -377,6 +403,7 @@ export function latestRecoverableRun(messages: Message[]): { receipt: DesktopRun
 type SubmitMessageOptions = {
   cues?: TurnCues;
   images?: ImageAttachment[];
+  files?: string[];
   onRecovery?: (failed: boolean) => void;
 };
 
@@ -385,19 +412,23 @@ export async function submitMessage(state: ConversationState, text: string, opti
   const onRecovery = options.onRecovery ?? (() => {});
   cues.prime?.();
   state.setMessages((m) => [...m, { role: "user", content: text }]);
+  // Clear immediately so a running turn never leaves a second copy in the
+  // composer. If the turn fails, restore it only when the user has not started a
+  // new draft while the request was running.
+  state.setDraft(() => "");
   state.setEvents([{ label: "thinking..." }]);
   state.setStreamText(() => "");
   state.setRecovery(null);
   state.setBusy(true);
   try {
-    const result = await api<{ finalText: string; events?: EventRow[]; interrupted?: boolean; receipt?: DesktopRunReceipt }>("/api/chat", postJson(chatPayload(text, options.images)));
+    const result = await api<{ finalText: string; events?: EventRow[]; interrupted?: boolean; receipt?: DesktopRunReceipt }>("/api/chat", postJson(chatPayload(text, options.images, options.files)));
     const failed = result.receipt ? result.receipt.status !== "done" : !result.interrupted && Boolean(result.events?.some((event) => event.ok === false));
     state.setMessages((m) => [...m, { role: "assistant", content: result.finalText || "(no text)", ...(result.receipt ? { desktopRun: result.receipt } : {}) }]);
     state.setStreamText(() => "");
     state.setEvents(result.events?.length ? result.events : [{ label: "No tool events returned." }]);
     state.setRecovery(failed ? result.receipt ?? fallbackReceipt(text, result.finalText, result.events) : null);
+    if (failed) restoreFailedDraft(state, text);
     onRecovery(failed);
-    if (!failed) state.setDraft(() => "");
     await Promise.resolve(cues.complete?.()).catch(() => undefined);
     await state.refresh();
     return !failed;
@@ -406,6 +437,7 @@ export async function submitMessage(state: ConversationState, text: string, opti
     state.setStreamText(() => "");
     state.setEvents([{ label: (err as Error).message, ok: false }]);
     state.setRecovery(fallbackReceipt(text, (err as Error).message, [{ label: (err as Error).message, ok: false }]));
+    restoreFailedDraft(state, text);
     onRecovery(true);
     return false;
   } finally {
@@ -413,8 +445,16 @@ export async function submitMessage(state: ConversationState, text: string, opti
   }
 }
 
-function chatPayload(message: string, images?: ImageAttachment[]): { message: string; images?: ImageAttachment[] } {
-  return images?.length ? { message, images } : { message };
+function restoreFailedDraft(state: ConversationState, text: string): void {
+  state.setDraft((current) => current.length === 0 ? text : current);
+}
+
+function chatPayload(message: string, images?: ImageAttachment[], files?: string[]): { message: string; images?: ImageAttachment[]; files?: string[] } {
+  return {
+    message,
+    ...(images?.length ? { images } : {}),
+    ...(files?.length ? { files } : {}),
+  };
 }
 
 function fallbackReceipt(instruction: string, partialText: string, events: EventRow[] = []): DesktopRunReceipt {

@@ -1,356 +1,388 @@
-# Vanta PRD
+# Vanta product requirements
 
-## One-line thesis
+**Status:** Current product definition as of 2026-07-30
+**Authority:** `MANIFESTO.md` → append-only `DECISIONS.md` → `STRATEGY.md` → this PRD
+**Work database:** `roadmap.json`
+**Acceptance:** `docs/product-acceptance.md`
 
-Vanta is a personal AI operator — a real digital person that knows your goals, acts safely, learns from experience, and can do everything a smart operator would do across code, research, comms, calendar, and business work.
+Earlier phase checklists in this file described Vanta v0/v1 construction. They are
+historical and remain recoverable through Git history, releases, `CHANGELOG.md`,
+and shipped roadmap records. They are not the current build queue.
 
-> **Status (2026-06-02): v0 complete → building v1.**
-> All 7 original phases below are **done** (32 tools, 290 tests green) — that's v0,
-> "has all the parts." v1 makes Vanta *feel and work* like a full personal agent:
-> hook to any model (ChatGPT/Claude/Gemini/local/OpenRouter) via a first-run wizard,
-> remember conversations across sessions, learn from what it does (self-improvement
-> loop), borrow the bundled skill library, and run as a service you can text.
-> **Ordered v1 build list + sequencing: see [`../ROADMAP.md`](../ROADMAP.md).**
-> The phase roadmap in this PRD is the historical v0 record.
+## Product statement
 
----
+**Vanta is a full-capability, life-integrated, progressively autonomous personal
+AI operator for the general human experience. It can do the broad work expected
+of a Hermes/OpenClaw-class agent, while specializing in trusted continuity and
+responsibility transfer when human attention, memory, time, and executive
+function are finite. Neurodivergent and disability experience supplies curb-cut
+universal-design requirements without limiting the audience.**
 
-## What Vanta is
+## Problem
 
-Vanta is not a chatbot. Not a dashboard. Not a wrapper.
+People routinely have more intentions, obligations, relationships, transitions,
+and opportunities than their available attention and executive function can
+carry to completion. Capacity varies with stress, sleep, illness, pain, aging,
+caregiving, parenting, grief, disability, workload, unfamiliar situations, and
+ordinary interruption.
 
-Vanta is a full-capability personal operator agent with one structural advantage over everything that came before: it knows the goal before it picks a tool, enforces scope on every action, and reports only what it actually verified.
+General agents can perform many isolated tasks. They still leave the person to
+reconstruct context, classify work, repeat instructions, supervise permissions,
+remember follow-up, and decide whether anything actually finished.
 
-**The lineage:**
-- Prior art → gave agents a body (tool execution)
-- Prior agent → gave agents a personal runtime (chat + tools + memory, reactive)
-- Vanta → a real digital person (goal-aware, scope-enforced, fully capable, trusted)
+Vanta’s wedge is trusted continuity and responsibility transfer. It should own
+the repeatable logistics:
 
-**What users are asking for** (from open issues, by demand):
-- Better web search with privacy options — SerpAPI, Searxng, Brave (95 combined reactions)
-- Clean accessible UI (40 reactions)
-- Cross-agent communication / subagent delegation (46 reactions)
-- Versioned backups for memory and skills (17 reactions)
-- Claude subscription auth instead of API keys (14 reactions)
-
-Vanta is designed to address all of these natively — privacy-first search, git-versioned skills/memory, better architecture throughout.
-
----
-
-## What a real digital person can do
-
-Vanta's full capability target — every phase owned:
-
-| Capability | Phase |
-|---|---|
-| Block unsafe actions (Rust kernel) | Done |
-| Read, write, edit files | 1 |
-| Run shell commands | 1 |
-| OpenAI + Ollama + Anthropic models | 1 |
-| Know your active goals | 1 |
-| Learn from experience (skills system) | 2 |
-| Remember context across sessions | 2 |
-| **Search the web (privacy-first)** | **2** |
-| Browse websites / extract content | 3 |
-| Understand screenshots / images | 3 |
-| Execute and test code | 4 |
-| Navigate codebases (LSP) | 4 |
-| Git operations with approval gates | 4 |
-| Read and send email | 5 |
-| Manage calendar | 5 |
-| Post to Slack / Discord | 5 |
-| Run unattended scheduled tasks | 6 |
-| Spawn and coordinate subagents | 6 |
-| Cross-agent communication (A2A) | 6 |
-| Operate across multiple projects | 7 |
-| Business operator modes | 7 |
-| Route tasks across models by cost | 7 |
-
----
-
-## Core principles (non-negotiable in every phase)
-
-### 1. Goal before tool
-Every session starts by loading active goals. The agent knows what it is working toward before selecting any action.
-
-### 2. Safety enforced, not advisory
-The Rust kernel is the security boundary. `assess()` is a gate — blocked means blocked. Not a warning. Not optional.
-
-### 3. Verified output only
-The agent does not declare a task complete without verified tool output proving it. No fake progress. Ever.
-
-### 4. Scope enforced
-Every file operation, shell command, and external call is gated through the safety kernel. No silent side effects outside approved scope.
-
-### 5. Approval before risk
-Risky operations enter the approval queue before execution. Jason approves interactively or async via the cockpit.
-
-### 6. Learns from experience
-After completing complex tasks, Vanta creates skill files that encode what worked. Skills are plain markdown — readable, editable, git-versioned. Skills are version-controlled by design: no extra backup step needed.
-
-### 7. Privacy-first by default
-Web search defaults to automatic routing: configured providers first, then browser-backed Brave and Bing without a key. DuckDuckGo is retained only as an explicit legacy option because its bot gates are unreliable. Self-hosted Searxng is the recommended private power-user option.
-
-### 8. Honest about limits
-When a task is outside scope, unsupported, or uncertain — Vanta stops and says so. Stopping is always better than faking.
-
----
-
-## Architecture
-
-```
-Rust safety kernel (vanta-kernel)
-  → assess(), approve(), goals, events
-  → HTTP sidecar on :7788
-  → security boundary — enforced always
-
-TypeScript agent layer (vanta-ts)
-  → agent loop: goal-inject → plan → assess → execute → verify
-  → LLM providers: OpenAI, Ollama, Anthropic (typed interface, swappable)
-  → search providers: automatic routing, Searxng, managed APIs, browser-backed Brave/Bing, explicit legacy DDG (typed interface, swappable)
-  → tool registry: every tool defined, typed, scoped
-  → skills: ~/.vanta/skills/ (markdown + YAML, git-versioned)
-  → memory: ~/.vanta/memories/ (per-goal summaries, git-versioned)
-
-MCP integrations (Jason's existing setup — Phase 5)
-  → Gmail, Google Calendar, Drive
-  → Supabase, Vercel (dev tools)
-  → Figma, PostHog (product tools)
-  → Slack, Discord (future)
+```text
+capture → understand outcome → recommend or prepare → act within authority
+→ verify → wait and follow up → resume → truthfully close
 ```
 
----
+## Audience and design method
 
-## Phase roadmap — v0 (COMPLETE)
+The audience is general. Named use cases and cohorts are evidence, not market
+boundaries.
 
-> All phases below shipped. Kept as the historical record of how v0 was built.
-> The forward build list is [`../ROADMAP.md`](../ROADMAP.md) (v1 — Full Parity).
+Neurodivergent and disabled people remain paid co-designers because their lived
+constraints expose failures earlier and more sharply. Autism, ADHD, aphantasia,
+color-vision, mobility, sensory, cognitive-load, and executive-function
+requirements are non-negotiable source constraints.
 
-### Phase 1 — Agent Loop ✅
-**Done when:** `vanta run "read README and summarize"` works end-to-end with verified output. `vanta run "delete everything"` blocked before execution. Ollama works offline.
+Apply the curb-cut effect:
 
-Delivers:
-- `vanta-ts/` TypeScript package
-- OpenAI + Ollama provider (one adapter, baseURL swap)
-- Anthropic provider stub
-- Tool registry: `read-file`, `write-file`, `shell-cmd`, `inspect-state`
-- Three-tier system prompt (SOUL.md + VANTA.md/AGENTS.md/CLAUDE.md discovery + active goals)
-- Agent loop: messages[], goal injection, tool dispatch, pause-on-ask approval
-- Context trimmer (protect first 3 + last 6, 75% trigger)
-- Kernel auto-start from CLI
-- `vanta run "<instruction>"` CLI entry
+- no diagnosis gate or diagnosis inference;
+- inclusive behavior available by default;
+- capture without forced taxonomy;
+- concrete representation and exact previews;
+- one recommendation and at most three visible choices;
+- initiation, time, transition, waiting, follow-up, and re-entry support;
+- literal, non-shaming state;
+- negotiated preferences with visible reason, scope, lifetime, reset, and host
+  coverage;
+- accessible generated artifacts, not only accessible application chrome.
 
-Out of scope: memory persistence, skills, web search, browser.
+## Product surface
 
----
+Vanta is one operator identity across supported Desktop, TUI/CLI, messaging,
+background, and future hosts. All hosts should share one work state, memory
+contract, trust model, and receipt semantics.
 
-### Phase 2A — Skills & Memory
-**Done when:** Vanta remembers what it did toward a goal across sessions. After a complex task, it creates a skill file. A week later, it recalls and applies that skill automatically.
+The default interaction is one conversation shell:
 
-Delivers:
-- **Skills system** — `~/.vanta/skills/<name>/SKILL.md` (markdown + YAML frontmatter, portable format)
-- **Slash commands** — `/skills`, `/skill <name>` list and invoke skills
-- **Curator** — background maintenance: consolidate overlapping skills, archive stale (30d inactive), remove old (90d)
-- **Memory** — per-goal session summaries in `~/.vanta/memories/<goal-id>.md`
-- **Memory injection** — volatile tier includes recent goal memory on every session start
-- `write-skill` tool — agent creates skill files from experience (the actual learning loop)
-- `recall` tool — full-text search across skill library
-- LLM-based context compression (replaces Phase 1 trim-only approach)
-- Skills and memory are plain files — git-versioned by default, no special backup needed
+- **Today** — one current outcome, genuine Needs You items, and at most three
+  next items;
+- **Inbox** — messy captures that survived without forced commitment;
+- **Projects** — outcomes, history, and an optional WorkItem projection;
+- **Review** — contextual Activity, Changes, Outputs, and Evidence/Approvals.
 
----
+The default input is:
 
-### Phase 2B — Web Search ← moved up from Phase 3
-**Done when:** `vanta run "research the latest on X and summarize"` returns a cited report using web results, with no API key required by default.
+> **What do you want off your mind?**
 
-This moved up because it's the most requested feature (95 combined reactions across 3 issues). It unlocks research tasks that make Vanta genuinely useful for business operator work.
+The user should not have to choose a model, tool, worker, agent, mode, host,
+worktree, queue, or workflow first.
 
-Delivers:
-- **SearchProvider interface** — same pattern as LLMProvider: `search(query, config) → SearchResult[]`
-- **Automatic search routing** — configured providers first, then keyless Brave browser/Bing; DDG adapter is explicit legacy compatibility only
-- **Searxng adapter** — self-hosted, `VANTA_SEARCH_URL=http://localhost:8080` (recommended for privacy)
-- **SerpAPI adapter** — opt-in, `VANTA_SEARCH_PROVIDER=serpapi` + key
-- **Brave Search adapter** — opt-in, privacy-focused, citations, `VANTA_SEARCH_PROVIDER=brave`
-- `web-search` tool — calls search provider, returns top N results as structured JSON
-- `web-fetch` tool — fetch any URL, extract readable text (Mozilla Readability), return clean markdown
-- Provider config identical to LLM config: one env var switches everything
-- Research skill templates: `~/.vanta/skills/research/` bundled with install
+## Capability floor
 
+Vanta must preserve representative generalist competence across:
+
+- research, web, browser, and information synthesis;
+- files, documents, spreadsheets, presentations, and knowledge work;
+- coding, debugging, software delivery, and technical operation;
+- email, calendar, messaging, scheduling, and communication;
+- life administration, home routines, reminders, and coordination;
+- employment, applications, interviews, career, and income work;
+- business research, offers, customers, clients, and operations;
+- relationships, permitted public-source opportunity research, and follow-up;
+- design, writing, social content, YouTube, audio, video, film, and other media;
+- skills, plugins, MCP, APIs, workers, background jobs, automation, and future
+  capabilities not yet enumerated.
+
+Broad capability is table stakes. It is selected by intent and hidden through
+progressive disclosure, not deleted to make the interface look narrow.
+
+## Internal boundaries
+
+- **Vanta** — the customer-facing operator and continuity contract.
+- **Vanta Engine** — policy, action gateway, models, tools, jobs, triggers,
+  workers, memory, skills, plugins, MCP, recovery, and extensibility.
+- **Vanta Lab** — quarantined factory, auto-research, tuning, experimental
+  organizations, self-modification, and speculative autonomy.
+
+These are boundaries under one product strategy. Lab is absent from production
+defaults and cannot change policy, credentials, evaluators, audit state, or the
+root of trust. Multi-agent fan-out is an internal capability for one owner, not
+the product identity or a multi-tenant company platform.
+
+Capability packs—Research, Life Admin, Build, Business/Growth,
+Media/Publishing, and Messaging/Social—begin as dormant manifests or projections
+over existing registries. An inactive pack contributes zero prompt fragments,
+active schemas, workers, requested credentials, or persistent navigation.
+
+## Canonical product nouns
+
+- **Conversation** — interaction and history.
+- **Outcome** — what the user wants to be true.
+- **WorkItem** — a commitment or next action toward an outcome.
+- **Run** — one foreground or background attempt to advance a WorkItem.
+- **Trigger** — a time or event condition that queues a Run.
+- **Action** — one proposed side effect.
+- **Capability** — exact, expiring authority for an Action or narrow workflow.
+- **Receipt** — policy, execution, verification, and compensation evidence.
+- **Artifact** — generated or changed content.
+- **MemoryRecord** — a sourced fact, preference, learning, or summary.
+- **CapabilityPack** — dormant vertical implementation selected by intent.
+
+Boards, tasks, tickets, plans, Today, schedules, and legacy Jobs are projections
+or internal implementation details—not peer user truths. A legacy Job may map
+to one canonical Run, but cannot define another lifecycle.
+
+## WorkItem minimum contract
+
+```text
+WorkItem {
+  version: 1
+  id: non-empty string
+  outcome: non-empty string
+  source: non-empty provenance string
+  state: draft | queued | running | waiting | needs human
+       | stopped | failed | unverified | verified
+  runId?: non-empty string
+  owner?: non-empty string
+  waitCondition?: non-empty string
+  nextAction?: non-empty string
+  resumeContext?: non-empty string
+  updatedAt: ISO-8601 timestamp
+}
+
+Run {
+  version: 1
+  id: non-empty string
+  workItemId: non-empty string
+  state: WorkItem.state
+  actor: non-empty string
+  startedAt?: ISO-8601 timestamp
+  settledAt?: ISO-8601 timestamp
+}
+
+Approval {
+  version: 1
+  id: non-empty string
+  workItemId: non-empty string
+  runId: non-empty string
+  actionSha256: 64 lowercase hex characters
+  state: requested | approved | denied | expired
+  at: ISO-8601 timestamp
+  expiresAt?: ISO-8601 timestamp
+}
+
+Receipt {
+  version: 1
+  id: non-empty string
+  workItemId: non-empty string
+  runId: non-empty string
+  action: non-empty capability/tool name
+  disposition: none | confirmed | denied | expired | unknown | compensated
+  verification?: unverified | verified
+  evidence?: non-empty string
+  at: ISO-8601 timestamp
+}
 ```
-VANTA_SEARCH_PROVIDER=auto         → reliable configured providers + keyless browser fallback (default)
-VANTA_SEARCH_PROVIDER=searxng      → self-hosted Searxng (VANTA_SEARCH_URL required)
-VANTA_SEARCH_PROVIDER=serpapi      → SerpAPI (SERPAPI_KEY required)
-VANTA_SEARCH_PROVIDER=brave        → Brave Search (BRAVE_KEY required)
+
+Legal WorkItem transitions are:
+
+```text
+draft       -> queued | stopped
+queued      -> running | waiting | needs human | stopped | failed
+running     -> waiting | needs human | stopped | failed | unverified | verified
+waiting     -> queued | running | needs human | stopped | failed | unverified | verified
+needs human -> queued | running | stopped | failed
+stopped     -> queued
+failed      -> queued | running
+unverified  -> queued | running | waiting | failed | verified
+verified    -> terminal
 ```
 
----
+Retry never follows an `unknown` effect blindly. It first reconciles provider or
+artifact state and either records `verified`, keeps `unverified`, or records a
+compensation receipt. Resume preserves the same WorkItem ID and provenance;
+each attempt gets a distinct Run in migrated stores. Only `verified` can create
+accomplishment memory.
 
-### Phase 3 — Browser & Vision
-**Done when:** Vanta can open a URL, take a screenshot, understand what it sees, and extract structured data — all from a single instruction.
+The UI projects Captured = `draft`; Now = `queued` or `running`; Waiting =
+`waiting`; Needs You = `needs human`; Done = `verified`. These labels are not
+additional states. Legacy stores must be projected read-only before migration. Preserve source IDs,
+compare counts and hashes, route one writer at a time, bound any dual-write,
+prove restart and rollback, then freeze and eventually retire the adapter.
 
-Delivers:
-- `screenshot` tool — Playwright headless screenshot of any approved URL
-- `browser-navigate` tool — click, fill form, scroll, extract — scoped to approved domain allowlist
-- `browser-extract` tool — structured extraction from page (tables, lists, specific elements)
-- Image understanding — pass screenshots to GPT-4o or Claude vision for analysis
-- Domain allowlist — browser tools only hit approved domains; new domains are `risk: ask`
-- Vision skill templates: `~/.vanta/skills/vision/` — screenshot-analysis, form-fill, data-extract patterns
+## Trust and action contract
 
----
+Vanta’s intended trust zones are:
 
-### Phase 4 — Code & Dev
-**Done when:** Vanta can take a GitHub issue, write a fix, run tests, and propose a PR — with every step approval-gated and every result verified.
+1. **Untrusted intake/planner** — raw external content is data, has no effect
+   authority, and yields provenance-aware structured facts.
+2. **Trusted action gateway** — canonicalizes exact operations, applies policy,
+   mints and consumes narrow capabilities, brokers credentials, reserves
+   idempotency, executes, reconciles unknowns, and records compensation.
+3. **Provenance/evidence store** — retains immutable events, provider readbacks,
+   and memory claims linked to sources.
 
-Delivers:
-- `run-code` tool — execute Python/Node/Rust in a scoped subprocess with timeout, capture stdout/stderr
-- `lsp-diagnostics` tool — get type errors and warnings for a file without running it
-- `lsp-definition` tool — go-to-definition, find-references for any symbol
-- `git-status`, `git-diff` — always `risk: allow` (read-only)
-- `git-commit`, `git-push` — always `risk: ask`, require explicit approval
-- `git-branch`, `git-checkout` — `risk: ask`
-- Project context auto-detection — reads `VANTA.md`, `CLAUDE.md`, `README.md`, `AGENTS.md` from cwd, injects into context tier
-- Code skill library: `~/.vanta/skills/code/` — debug, refactor, test-write, PR-review patterns
-- Anthropic adapter (full) — implement in this phase; Claude is significantly better at code than GPT-4o-mini
+Every consequential action must bind:
 
----
+```text
+actor, account, operation, normalized target and arguments,
+recipient, content and attachment hashes, amount or audience,
+quota, expiry, nonce, attempts, idempotency, state precondition,
+evidence requirement, compensation
+```
 
-### Phase 5 — Communications & Calendar
-**Done when:** Vanta can draft and send an email, schedule a meeting, and create a Drive doc — all from a single instruction, with approval before every outbound action.
+Changing any bound field after approval produces zero provider calls.
 
-All comms tools route through the MCP infrastructure already connected to Jason's account.
+External content cannot grant authority, access credentials, modify policy or
+goals, write authoritative memory, or trigger outbound effects.
 
-Delivers:
-- `gmail-search` tool — search inbox, return thread summaries
-- `gmail-read` tool — read full thread
-- `gmail-draft` tool — create draft, never auto-send (`risk: ask` always)
-- `gmail-send` tool — send an approved draft, explicit approval required, always
-- `calendar-read` tool — list events, check availability
-- `calendar-create` tool — propose event (`risk: ask`)
-- `calendar-update` tool — modify existing event (`risk: ask`)
-- `drive-read` tool — read document content
-- `drive-create` tool — create new document (`risk: ask`)
-- `drive-update` tool — update existing document (`risk: ask`)
-- **Comms rule: every outbound action (send, create, update) is always `risk: ask`.** No exceptions. No auto-send ever.
-- Claude subscription auth — support OAuth-based auth for Anthropic (no API key needed for Claude Pro/Max subscribers)
+## Truthful state and receipts
 
----
+All hosts and memory writers use the exact WorkItem lifecycle above. Receipt and
+Action records may additionally carry the dispositions `denied`, `expired`,
+`unknown`, and `compensated`; those are never WorkItem states.
 
-### Phase 6 — Autonomous Operation
-**Done when:** Vanta runs a scheduled daily briefing at 8am without Jason doing anything — and every action in that briefing still goes through the approval queue before executing.
+Unknown effects are reconciled, never blindly retried. Assistant prose, a stop
+reason, a file edit, or a green adjacent test cannot create a verified
+accomplishment.
 
-Delivers:
-- Cron scheduler — `vanta schedule "daily briefing" --cron "0 8 * * *"`, stored in `.vanta/cron.tsv`
-- Scheduled task runner — wakes, loads goal context, executes, logs to events.jsonl
-- All scheduled actions gate through safety kernel — no blanket auto-approval for scheduled work
-- **Subagent spawning** — parent agent decomposes work, spawns workers with explicit scoped permissions
-- Worker isolation — each subagent: own goal, own scope, own iteration budget (50), cannot modify parent state
-- Parent aggregates verified results only
-- **A2A protocol stub** — basic cross-agent communication interface (Google A2A format) for future cross-agent delegation
-- Approval queue for async scheduled work — risky actions queue in cockpit, Jason approves on next check-in
+## Progressive autonomy
 
----
+Autonomy is earned per workflow and domain. `R0`–`R5` are reserved exclusively
+for this ladder:
 
-### Phase 7 — Digital Person
-**Done when:** Vanta can run a full "weekly operator review" — checks every active project, summarizes status, flags blockers, drafts updates, proposes next actions — and delivers it as a structured brief ready to act on.
+1. R0 — Observe: read, classify, and report; no mutation.
+2. R1 — Recommend: identify the outcome and propose one next action; no mutation.
+3. R2 — Prepare: create private, reversible drafts, tasks, notes, reminders, or isolated artifacts.
+4. R3 — Confirm: show the exact action preview and require fresh one-use authority.
+5. R4 — Delegate: run an allowlisted recurring workflow within explicit target, account, recipient, quota, budget, expiry, exclusions, cancellation, and review bounds.
+6. R5 — Autonomous delegate: in a proven bounded domain, initiate, chain, coordinate, communicate with permitted parties, monitor, reconcile, follow up, and recover without per-step approval.
 
-Delivers:
-- **Project rooms** — Vanta knows each `~/Documents/GitHub/_active/` project, can load context per project, track separate goal streams
-- **Business operator modes** (encoded as skills — Jason can customize):
-  - `build-product-slice` — PRD → code → test → PR
-  - `research-to-offer` — research topic → synthesize → draft proposal → queue for send
-  - `weekly-review` — check all projects, summarize, flag blockers, propose priorities
-  - `revenue-push` — identify revenue action → draft outreach → queue for approval
-  - `pre-ship-review` — run checks, review diff, propose go/no-go
-  - `inspect-opportunity` — research market, score idea, draft one-pager
-- **Multi-model routing** — classify task → cheap model (gpt-4o-mini, llama3.2) for tool calls and summaries, expensive model (gpt-4o, claude-opus) for planning, synthesis, and code
-- **Mode learning** — after running a workflow 3 times, Vanta proposes encoding it as a skill
+Consequence is classified separately as `E0`–`E5` and never grants autonomy.
 
----
+A proven autonomous delegate may notice conditions, initiate and chain actions,
+coordinate services, communicate inside approved relationships and recipients,
+monitor, reconcile, follow up, and recover without per-step approval. Grants
+remain user-owned, scoped, visible, revocable, budgeted, interruptible, and
+automatically demoted after failure or drift.
 
-## v1 — Full Feature Set (current focus)
+Never unattended:
 
-v0 has every subsystem; v1 closes the *experience + self-improvement* gap that made
-it feel like scripts. Built from a full feature audit. Seven tracks —
-**ordered build list, sizes, and "done when" live in [`../ROADMAP.md`](../ROADMAP.md)**:
+- policy, credential, evaluator, audit, or root-of-trust changes;
+- credential export;
+- permanent deletion without tested backup;
+- legal or major financial commitments;
+- broad public or customer messaging;
+- default-branch or production self-merge;
+- disabling stop, revocation, or audit.
 
-- **A — Hook to any model + full setup.** Gemini + OpenRouter providers, a declarative provider registry (so new backends auto-wire), `vanta setup` first-run wizard (provider picker → masked key → merged `.env` → model pick), first-run auto-launch, `vanta status`/`doctor`. *Delivers the headline: "open vanta → setup → hook to ChatGPT/Claude/Gemini → run."*
-- **B — Self-improvement loop.** A minimal hook spine, post-turn nudge counters, a **background-review fork** (whitelisted to memory+skills, replays each turn, writes its own skills), and a **safe curator** (consolidate + archive, **never auto-delete**; provenance so it only touches agent-created skills). *This is "how it self-improves everything."*
-- **C — Continuity.** SQLite session persist + resume (`vanta --resume`, `sessions browse`). *So it stops forgetting between runs.*
-- **D — Borrow the skills library.** Port the top bundled skills (coupling stripped) + adopt skill bundles.
-- **E — Autonomy & reach.** Daemon/service mode (launchd, in-process cron tick), a first messaging gateway (Telegram), webhook triggers + deliver targets, steer/interrupt, MCP client, optional ACP server.
-- **F — Robustness steals.** Message sanitization, loop guardrails, subdirectory hints, jittered retry backoff.
-- **G — Subscription auth.** Claude / ChatGPT-Codex / Gemini-CLI OAuth (enhances A; API keys work without it).
+## Flagship journeys
 
-**v1 done (one sentence):** Open `vanta` → it talks back → a wizard configures any model
-backend without editing files → it remembers conversations → it learns from what it does
-→ it's reachable as a background service.
+Every journey must close as:
 
----
+```text
+trigger → capture → interpret → commit → prepare/act → authorize
+→ effect → verify → wait/follow up → close → remember
+```
 
-## What Vanta does NOT do (ever)
+Required evidence journeys include:
 
-- Delete or overwrite files without explicit approval
-- Send any message (email, Slack, social) without explicit approval
-- Touch outside the approved scope without approval
-- Claim success without verified tool output
-- Run destructive commands (rm -rf, DROP TABLE, reset --hard)
-- Store or log secrets
-- Operate autonomously without the safety gate
-- Browse domains not on the approved allowlist without approval
+1. messy capture without forced classification;
+2. one cross-source Today recommendation;
+3. prepared initiation and time/transition support;
+4. read-only morning orientation from quarantined email/calendar;
+5. malicious external content unable to reach privileged action;
+6. exact-recipient send with idempotency and provider readback;
+7. durable waiting, follow-up, and reply closure;
+8. overwhelm reduced to takeover, first step, or safe park;
+9. restart re-entry from last verified state;
+10. cited research ending in a decision or next action;
+11. job/client work grounded in verified experience, without mass outreach;
+12. idea-to-business experiment with a continue/change/park rule;
+13. coding, design, and media work closing with artifact and evidence;
+14. self-repair producing only an isolated candidate and evidence;
+15. stale profile/skill/identity migration with backup, diff, opt-in, provenance,
+    rollback, and no silent user-state mutation.
 
----
+The complete 38-story reconciliation suite is recorded in
+`docs/strategy-realignment-2026-07-30.md`.
 
-## Vanta design principles
+## Product and evidence budgets
 
-| Principle | Vanta |
-|---|---|
-| Safety | Enforced — Rust kernel is the boundary |
-| Goal awareness | First-class — loaded before every session |
-| Scope enforcement | Always on — every action gated |
-| Verification | Runtime check — empty = not done |
-| Fake progress | Blocked by design |
-| Web search | Auto routing + managed providers + Brave-browser/Bing keyless fallback; DDG explicit legacy only |
-| Privacy-first search | Yes — Searxng self-hosted is the recommended option |
-| Skills | Markdown files — portable format, git-versioned |
-| Skill backups | Git-versioned by default — no extra work |
-| Memory | Goal-linked summaries, git-versioned |
-| Comms | Gmail + Calendar ✅ · Telegram gateway (v1 E2) |
-| Code execution | ✅ run-code + LSP + git |
-| Browser | ✅ Playwright + vision |
-| Autonomy | Scoped + approval-gated · daemon (v1 E1) |
-| Multi-agent | ✅ subagents + local A2A · ACP server (v1 E6) |
-| Stack | TypeScript + Rust |
-| Model backends | OpenAI/Ollama/Anthropic ✅ · Gemini/OpenRouter + registry (v1 A) |
-| Setup | Edit `.env` → first-run wizard (v1 A4) |
-| Sessions | Per-goal memory ✅ · full transcripts (v1 C1) |
-| Self-improvement | Pieces built ✅ · wired into loop (v1 B) |
-| Auth | API keys ✅ · subscription OAuth (v1 G) |
+| Dimension | Target |
+|---|---:|
+| Customer-facing products | 1 |
+| Default shell | 1 |
+| Persistent human concepts | Today, Inbox, Projects |
+| Visible alternatives | ≤3, with 1 recommendation |
+| Open build-order cards | ≤12 |
+| Next | ≤4 |
+| Implementation-ready | ≤6 |
+| Development WIP | 2 |
+| Default tool schemas | target ≤12 |
+| Active schemas after intent expansion | target ≤24 |
+| Baseline prompt | target ≤10K; ceiling 15K |
+| Canonical user work owner | 1 |
+| Unmediated effect paths | 0 |
+| Effectful actions with typed receipts | 100% |
 
----
+Product progress is measured by safety, executive burden transferred, truthful
+closure, restart/re-entry, retained use, support cost, payment evidence, and
+real-world outcomes—not tools, commands, cards, downloads, or model narration.
 
-## Done criteria — Phase 1
+## Current implementation truth
 
-- [ ] `vanta run "list my active goals"` → reads kernel, responds with goal list
-- [ ] `vanta run "read README.md and summarize"` → reads file, returns summary with verification step visible
-- [ ] `vanta run "delete everything"` → blocked before any execution, no files touched
-- [ ] `vanta run "install a daemon"` → queued for approval, not executed
-- [ ] `VANTA_PROVIDER=ollama vanta run "what are my goals"` → uses local model, no internet required
-- [ ] All Rust tests pass (`cargo test`)
-- [ ] All TS tests pass (`npm test`)
-- [ ] Kernel auto-starts if not running
+The July 30 audit confirmed substantial engineering and a large executed test
+suite, but also identified critical gaps between product claims and enforcement:
 
----
+- project hook/control-plane writes can create unmediated host execution;
+- subprocess and project-file paths can expose credentials;
+- audit signing material is reachable from agent-controlled project state;
+- TypeScript and extension effect paths are not all mediated by a hard
+  capability boundary;
+- untrusted email/web/document content is not fully quarantined;
+- approval payloads and completion semantics are inconsistent across hosts;
+- several user work stores and queues lack one authoritative facade;
+- published dependency and release claims have drifted.
 
-## Open questions (v0 ones resolved; v1 ones live)
+This PRD states the required product. It does not mark those gaps fixed.
 
-**Resolved in v0:**
-1. ~~Comms route through kernel `assess()` or TS-only?~~ → Every tool, comms included, gates through kernel `assess()`. (DECISIONS)
-2. ~~Project rooms stored or inferred?~~ → Inferred from `~/Documents/GitHub/_active/` via `VANTA_PROJECTS_DIR`.
-3. ~~Skills portable format?~~ → **Yes** — same `SKILL.md` + YAML frontmatter; confirmed bundled skills are directly portable (v1 D).
-5. ~~A2A: Google protocol or Vanta-native?~~ → Local in-process bus shipped; networked = **ACP server** in v1 E6.
+## Initial build sequence
 
-**Live for v1:**
-- **MCP client vs own each integration** (v1 E5) — Vanta went direct for Google. Add an MCP client as a general tool gateway, or keep owning integrations? Leaning: add the client, keep Google direct as the reference impl.
-- **Curator delete policy** — Prior art: archive only, never auto-delete (recoverable). Vanta's `curator.ts` currently *removes* at 90d. v1 B4 changes this to archive. (Effectively decided — log in DECISIONS when implemented.)
-- **Setup config format** — write provider/model to `.env` (current) or a `config.yaml`? Leaning: `.env` merge for v1 (no new parser), revisit if config grows.
-- **Desktop app** (Tauri, consistent with indx) vs CLI + cockpit — still deferred (PARKED).
+Keep exactly two development lanes:
+
+1. **Urgent Trust:** close the smallest hook, environment, authentication, and
+   control-plane bypass slice with adversarial executed proof.
+2. **Safe Operator value:** a local/read-only messy item from life or work
+   reaches Today, a prepared action using a relevant generalist capability,
+   durable waiting/resume, and restart/re-entry with no consequential external
+   effect.
+
+Attach evaluation, dogfood, and burden evidence to both lanes. Begin manual
+market evidence immediately: functional executive-burden interviews, bounded
+continuity-loop pilots across life and work, assisted/unassisted separation,
+price tests, support time, incidents, and reasons for non-return. Unknowns remain
+`unproven`.
+
+The exact 28-outcome destination/acceptance catalog is:
+
+```text
+TRUST-01 TRUST-02 TRUST-03 TRUST-04 TRUST-05 TRUST-06
+OP-01 OP-02 OP-03 OP-04 OP-05
+UX-01 UX-02 UX-03 UX-04
+LIFE-01 LIFE-02 LIFE-03 LIFE-04
+GROW-01 GROW-02 GROW-03 GROW-04 GROW-05
+PACK-01 LAB-01 EVAL-01 DOGFOOD-01
+```
+
+It is a dependency and acceptance map, not 28 simultaneous projects. Only
+reconciled `roadmap.json` records consume current inventory.
+
+Next: exact action/receipt binding, one WorkItem facade, trustworthy Needs You,
+quarantined read-only morning orientation, and first-run/accessibility proof.
+Consequential external effects wait for their trust dependencies.

@@ -5,6 +5,9 @@ import type { Tool } from "./tools/types.js";
 import type { LLMProvider, CompletionResult, StreamChunk } from "./providers/interface.js";
 import type { SafetyClient } from "./safety-client.js";
 import type { ToolCall } from "./types.js";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 // Streaming tool execution: a concurrency-safe tool must START while the model is
 // still streaming the rest of the response. We prove that by making the provider
@@ -28,6 +31,7 @@ const read2: ToolCall = { id: "r2", name: "read_file", arguments: { path: "b" } 
 
 describe("streaming tool execution", () => {
   it("starts concurrency-safe tools mid-stream, before the response completes", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-stream-tools-"));
     const startedPaths = new Set<string>();
     let execCount = 0;
     const bothStarted = deferred<void>();
@@ -78,23 +82,26 @@ describe("streaming tool execution", () => {
       provider: wrapped,
       safety: fakeSafety,
       registry,
-      root: "/x",
+      root,
       requestApproval: async () => true,
       onTextDelta: () => {}, // enables the streaming path
     });
 
-    const outcome = await convo.send("read a and b");
-
-    // Overlap proven: the stream only completed because both reads started mid-stream.
-    expect(startedPaths.has("a") && startedPaths.has("b")).toBe(true);
-    // Each tool executed exactly once — prefetch result is reused, not re-dispatched.
-    expect(execCount).toBe(2);
-    // Both tool results landed in the transcript, in order.
-    const toolMsgs = convo.messages.filter((m) => m.role === "tool");
-    expect(toolMsgs).toHaveLength(2);
-    expect(toolMsgs.map((m) => (m.role === "tool" ? m.toolCallId : ""))).toEqual(["r1", "r2"]);
-    // The streaming path carried both turns; complete() never ran.
-    expect(completeCalls).toBe(0);
-    expect(outcome.finalText).toBe("done: read both");
+    try {
+      const outcome = await convo.send("read a and b");
+      // Overlap proven: the stream only completed because both reads started mid-stream.
+      expect(startedPaths.has("a") && startedPaths.has("b")).toBe(true);
+      // Each tool executed exactly once — prefetch result is reused, not re-dispatched.
+      expect(execCount).toBe(2);
+      // Both tool results landed in the transcript, in order.
+      const toolMsgs = convo.messages.filter((m) => m.role === "tool");
+      expect(toolMsgs).toHaveLength(2);
+      expect(toolMsgs.map((m) => (m.role === "tool" ? m.toolCallId : ""))).toEqual(["r1", "r2"]);
+      // The streaming path carried both turns; complete() never ran.
+      expect(completeCalls).toBe(0);
+      expect(outcome.finalText).toBe("done: read both");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 });

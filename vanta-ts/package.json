@@ -1,6 +1,6 @@
 {
   "name": "vanta",
-  "version": "0.9.7",
+  "version": "0.9.8",
   "type": "module",
   "private": true,
   "description": "Vanta agent layer — goal-aware, scope-enforced operator runtime",
@@ -10,9 +10,25 @@
     "vanta": "bin/vanta.mjs"
   },
   "scripts": {
-    "vanta": "node --import tsx src/cli.ts",
+    "vanta": "NODE_ENV=production node --import tsx src/cli.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "security:dependencies": "npm audit --omit=dev",
+    "security:dependencies:all": "npm audit",
+    "typescript:compat:test": "node --test scripts/lib/typescript-7-compat.node-test.mjs",
+    "startup:compile": "node scripts/ensure-startup-compile.mjs",
+    "tui:tasks:proof": "node scripts/tui-live-task-checklist-proof.mjs",
+    "tui:questions:proof": "node scripts/tui-question-approval-proof.mjs",
+    "tui:question-navigation:proof": "node scripts/tui-question-navigation-proof.mjs",
+    "tui:summary:proof": "node scripts/tui-turn-summary-proof.mjs",
+    "tui:output:proof": "node scripts/tui-output-hierarchy-proof.mjs",
+    "tui:completion:proof": "node scripts/tui-task-completion-proof.mjs",
+    "tui:restart:proof": "node scripts/tui-restart-continuity-proof.mjs",
+    "tui:modes:proof": "node scripts/tui-operating-mode-proof.mjs",
+    "tui:model-settings:proof": "node scripts/tui-model-settings-proof.mjs",
+    "tui:compaction:proof": "node scripts/tui-compaction-meter-proof.mjs",
+    "tui:auto-compaction:proof": "node scripts/tui-auto-compaction-meter-proof.mjs",
+    "tui:performance:proof": "node --test scripts/tui-performance-entry-buffer.node-test.mjs",
     "desktop:renderer:typecheck": "tsc --noEmit -p desktop-app/tsconfig.json",
     "desktop:dev": "vite --host 127.0.0.1 --config desktop-app/vite.config.ts",
     "desktop:build": "vite build --config desktop-app/vite.config.ts",
@@ -20,9 +36,10 @@
     "desktop:native:smoke": "npm run desktop:build && electron desktop-app/electron/main.mjs --smoke",
     "desktop:kernel-collision:smoke": "npm run desktop:pack && node scripts/desktop-kernel-collision-smoke.mjs",
     "desktop:devtools:smoke": "npm run desktop:build && node scripts/desktop-devtools-detached-smoke.mjs",
-    "desktop:host:test": "node --test desktop-app/electron/project-root.node-test.mjs desktop-app/electron/runtime-paths.node-test.mjs && vitest run desktop-app/electron/tray.test.mjs",
+    "desktop:host:test": "node --test desktop-app/electron/dropped-paths.node-test.mjs desktop-app/electron/project-folder-picker.node-test.mjs desktop-app/electron/project-root.node-test.mjs desktop-app/electron/project-switch.node-test.mjs desktop-app/electron/runtime-env.node-test.mjs desktop-app/electron/runtime-paths.node-test.mjs && vitest run desktop-app/electron/tray.test.mjs",
     "desktop:kernel": "bash scripts/prepare-desktop-kernel.sh",
     "desktop:pack": "npm run desktop:build && npm run desktop:kernel && node scripts/package-desktop.mjs",
+    "desktop:anydoc:smoke": "npm run desktop:pack && node scripts/anydoc-packaged-smoke.mjs",
     "desktop:dist": "npm run desktop:build && npm run desktop:kernel && node scripts/package-desktop.mjs --dist",
     "desktop:release": "npm run desktop:build && npm run desktop:kernel && node scripts/package-desktop.mjs --dist --notarize",
     "desktop:sound:smoke": "npm run desktop:build && node scripts/desktop-completion-sound-smoke.mjs",
@@ -32,10 +49,20 @@
     "desktop:layout:smoke": "npm run desktop:build && node scripts/desktop-layout-smoke.mjs",
     "desktop:runtime-strip:smoke": "npm run desktop:build && node scripts/desktop-runtime-strip-smoke.mjs",
     "desktop:model-runtime-clarity:smoke": "npm run desktop:build && node scripts/desktop-model-runtime-clarity-smoke.mjs",
+    "desktop:model-settings:smoke": "npm run desktop:build && node scripts/desktop-model-settings-smoke.mjs",
+    "desktop:mcp-runtime:smoke": "node scripts/desktop-mcp-runtime-smoke.mjs",
     "desktop:crypto-free:proof": "npm run desktop:pack && node scripts/desktop-crypto-free-proof.mjs && vitest run src/payments/service.test.ts src/payments/readiness.test.ts src/cli/payments-cmd.test.ts src/payments/contract.test.ts",
+    "desktop:dependency-boundary:proof": "npm run desktop:pack && node --test scripts/desktop-package-policy.node-test.mjs && node scripts/desktop-package-dependency-proof.mjs",
+    "desktop:trust-02:proof": "npm run desktop:pack && node --test scripts/lib/trust-02-packaged-proof.node-test.mjs && VANTA_DESKTOP_APP=release/mac-arm64/Vanta.app/Contents/MacOS/Vanta node scripts/desktop-local-origin-security-smoke.mjs && node scripts/desktop-trust-02-packaged-proof.mjs",
     "desktop:full-access:smoke": "npm run desktop:build && node scripts/desktop-full-access-warning-smoke.mjs",
     "desktop:sessions:smoke": "npm run desktop:build && node scripts/desktop-session-management-smoke.mjs",
     "desktop:context:smoke": "npm run desktop:build && node scripts/desktop-context-attachments-smoke.mjs",
+    "desktop:project-switch:smoke": "npm run desktop:build && node scripts/desktop-project-switch-smoke.mjs",
+    "desktop:continuity:proof": "npm run desktop:build && node scripts/desktop-continuity-restart-proof.mjs",
+    "desktop:continuity:packaged:proof": "npm run desktop:pack && VANTA_DESKTOP_APP=release/mac-arm64/Vanta.app/Contents/MacOS/Vanta node scripts/desktop-continuity-restart-proof.mjs",
+    "op-01:proof": "node --import tsx scripts/op-01-operator-spine-proof.mjs",
+    "trust:effect-ledger": "node --test scripts/lib/trust-01-effect-ledger.node-test.mjs && node scripts/trust-01-effect-ledger.mjs",
+    "trust:host-ledger": "node --test scripts/lib/trust-04-host-ledger.node-test.mjs && node scripts/trust-04-host-ledger.mjs",
     "desktop:clipboard:smoke": "npm run desktop:build && node scripts/desktop-clipboard-paste-smoke.mjs",
     "desktop:look:smoke": "npm run desktop:build && node scripts/desktop-look-capture-smoke.mjs",
     "desktop:look:live-proof": "node scripts/desktop-look-capture-live-proof.mjs",
@@ -59,6 +86,10 @@
     "desktop:visual:update": "npm run desktop:build && VANTA_DESKTOP_VISUAL_PROOF=1 VANTA_DESKTOP_VISUAL_UPDATE=1 node scripts/desktop-shell-convergence-smoke.mjs",
     "desktop:performance:proof": "npm run desktop:pack && node --test scripts/lib/desktop-performance-budget.node-test.mjs && node scripts/desktop-performance-budget.mjs",
     "desktop:performance:update": "npm run desktop:pack && node scripts/desktop-performance-budget.mjs --update",
+    "ttft:proof": "node --import tsx scripts/ttft-performance-harness.mjs",
+    "ttft:update": "node --import tsx scripts/ttft-performance-harness.mjs --update",
+    "tts:streaming:proof": "node --import tsx scripts/streaming-tts-proof.mjs",
+    "msa:contract:proof": "node --import tsx scripts/msa-runtime-contract-smoke.mjs",
     "desktop:live-turn:proof": "npm run desktop:build && node --test scripts/desktop-live-proof-diagnostics.node-test.mjs && node scripts/desktop-live-turn-proof.mjs",
     "local-runtime:v1:proof": "node --import tsx scripts/local-runtime-v1-release-proof.ts",
     "installer:managed:smoke": "bash ../scripts/managed-install-smoke.sh",
@@ -76,10 +107,12 @@
     "@capacitor/app": "^8.1.0",
     "@capacitor/core": "^8.4.1",
     "@capacitor/ios": "^8.4.1",
+    "@firecrawl/anydoc": "0.1.9",
     "@mozilla/readability": "^0.6.0",
     "@napi-rs/keyring": "^1.3.0",
     "@noble/curves": "2.2.0",
     "@tanstack/react-virtual": "^3.14.6",
+    "@typescript/native": "npm:typescript@^7.0.2",
     "exceljs": "^4.4.0",
     "google-auth-library": "^10.6.2",
     "imapflow": "1.4.2",
@@ -88,12 +121,11 @@
     "lucide-react": "^0.468.0",
     "nodemailer": "9.0.1",
     "openai": "^5.12.0",
-    "pdfjs-dist": "6.0.227",
     "playwright-core": "^1.60.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "tsx": "^4.19.0",
-    "typescript": "^5.8.0",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
     "web-tree-sitter": "^0.26.10",
     "winnow": "https://github.com/jpoindexter/winnow/archive/7d5756b72c32cb6bb46987ca9b85611a893d7cf1.tar.gz",
     "zod": "^3.25.0"
@@ -121,6 +153,7 @@
     "asarUnpack": [
       "node_modules/esbuild/**/*",
       "node_modules/@esbuild/**/*",
+      "node_modules/@firecrawl/**/*.node",
       "node_modules/tsx/**/*"
     ],
     "directories": {
@@ -131,16 +164,31 @@
       "desktop-app/electron/**/*.mjs",
       "desktop-app/electron/**/*.cjs",
       "src/**/*",
+      "!src/**/*.test.ts",
+      "!src/**/*.test.tsx",
       "package.json",
       "!node_modules/@huggingface/**/*",
+      "!node_modules/@img/**/*",
+      "!node_modules/adm-zip/**/*",
+      "!node_modules/global-agent/**/*",
+      "!node_modules/onnxruntime-common/**/*",
       "!node_modules/onnxruntime-node/**/*",
       "!node_modules/onnxruntime-web/**/*",
-      "!node_modules/lucide-react/**/*"
+      "!node_modules/lucide-react/**/*",
+      "!node_modules/sharp/**/*"
     ],
     "extraResources": [
       {
         "from": "../target/release/vanta-kernel",
         "to": "kernel/vanta-kernel"
+      },
+      {
+        "from": "node_modules/@typescript",
+        "to": "typescript/node_modules/@typescript",
+        "filter": [
+          "native/**/*",
+          "typescript-*/**/*"
+        ]
       }
     ],
     "mac": {
@@ -175,7 +223,10 @@
     }
   },
   "overrides": {
+    "adm-zip": "0.6.0",
     "esbuild": "^0.28.1",
+    "ip-address": "10.4.0",
+    "sharp": "0.35.3",
     "uuid": "^11.1.1"
   }
 }

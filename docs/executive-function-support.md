@@ -1,6 +1,12 @@
 # Capacity-aware executive-function support
 
-Vanta is neurodivergent-first without being diagnosis-gated or person-specific. The operating contract is built directly into Vanta's core system prompt and applies in every normal session. It does not depend on skill discovery or a slash command.
+> **Current direction, implementation caveat:** Disability-led curb-cut universal design
+> is for the general audience, not an ND-only segment. The runtime described below is an
+> existing foundation, not complete cross-surface proof. The 2026-07-30 audit found its
+> turn/tool/Git proxies too development-centric and requires migration to canonical outcome,
+> owner, next-action, waiting, time/capacity, resume, dismissal, expiry, and receipt state.
+
+Vanta is disability-led and universally available without being diagnosis-gated or person-specific. The operating contract is intended to apply in every normal session and not depend on skill discovery or slash-command recall.
 
 With every current-state field on `auto`, Vanta adapts only to explicit situational language and observable task friction. A deterministic pre-turn router recognizes activation friction, low bandwidth, reorientation requests, corrections, and broad multi-step tasks. It injects a private turn directive without modifying the saved transcript. If the operator says they are stuck, overwhelmed, low on energy, cannot start, or asks what comes next, Vanta reduces choices, externalizes the current state, and starts or identifies one safe reversible action.
 

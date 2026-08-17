@@ -26,11 +26,11 @@ anything if you can trust it, so this one is built to survive a skeptic, not to 
 
 | Capability | Vanta | Hermes Agent | OpenClaw |
 |---|---|---|---|
-| **Safety boundary** | **Two layers: a separate Rust kernel risk-classifies _every_ action (allow / ask / block + scope containment + a tamper-evident audit chain), and an OS sandbox / Docker / SSH backend _contains_ execution** | In-process command approval + container isolation | Channel allowlists + mention-gating |
+| **Safety boundary** | **Two-layer target: standard dispatch consults a separate Rust kernel; sandbox / Docker / SSH adds containment. The July 30 audit found secondary paths still requiring mediation.** | In-process command approval + container isolation | Channel allowlists + mention-gating |
 | **Goal-aware gating** | **A goal ledger + dependency graph; Vanta knows the goal before it picks a tool** | Memory & skills, no goal gate | Per-sender session isolation |
 | **Personal tuning** | **Local LoRA trained from _your own_ accept/reject decisions (real on-device training)** | RL training via Atropos | — |
 | Interfaces | ≈ CLI + TUI + web cockpit + Electron desktop | ≈ CLI + TUI + Electron desktop | CLI + Web Control UI + mobile nodes |
-| Messaging channels | ≈ **20 adapters wired** (Telegram, Slack, Discord, Signal, WhatsApp, iMessage, Matrix, LINE, Mattermost, IRC, ntfy, Teams, Twitch, SMS, Zalo, Feishu, WebChat, Nostr, Google Chat, Email) — [5 verified live from one gateway](/comms-and-gateway); the rest need per-platform creds | 20+ platforms | 13+ (incl. iMessage, Teams, Matrix, Nostr…) |
+| Messaging channels | ≈ **22 adapters registered** — [Telegram and ntfy have accepted live receipts](/comms-and-gateway); the others need per-platform setup and live acceptance | 20+ platforms | 13+ (incl. iMessage, Teams, Matrix, Nostr…) |
 | Memory | ≈ brain / memory layers + public LongMemEval / LoCoMo benchmarks | ≈ FTS5 recall + Honcho user-modeling | Session memory |
 | Skills / self-improvement | ≈ Auto skill-improvement (periodic LLM review of used skills) + reflection-from-correction + experiential playbook + meta-tune + LoRA | Self-improving skills + **Skills Hub (shareable)** | **Plugin marketplace** |
 | Subagents / parallel | ≈ subagents + worktree fleet + tmux swarm | ≈ subagent delegation | Multi-agent routing |
@@ -45,13 +45,11 @@ anything if you can trust it, so this one is built to survive a skeptic, not to 
 
 Two are Vanta-only; the third is a local-first take on something Hermes also does:
 
-1. **The boundary is a separate enforced layer, not a feature of the agent.** Vanta's
-   [Rust kernel](/kernel) risk-classifies every action into allow / ask / block, enforces
-   [scope containment](/safety-model), and writes a tamper-evident audit chain — and the
-   agent loop _cannot bypass it_. Hermes and OpenClaw both have real controls (command
-   approval, container isolation, allowlists), but those live inside the same process as
-   the agent. Vanta's `assess()` is a gate the agent talks _through_, not _around_; the
-   sandbox is the containment. _(Vanta-only.)_
+1. **The intended boundary is a separate layer, not model policy.** Vanta's
+   [Rust kernel](/kernel) classifies standard-dispatch actions allow / ask /
+   block and records audit evidence; sandboxing adds containment. The current
+   trust roadmap closes audited hook, plugin, MCP, factory, scheduler, worker,
+   credential, and local-API paths before this can be called unavoidable.
 2. **Goal-aware gating.** Vanta carries a goal ledger and dependency graph, so it knows
    the goal _before_ it chooses a tool, and an action that doesn't serve the goal is
    visible as such. _(Vanta-only.)_
@@ -63,9 +61,13 @@ Two are Vanta-only; the third is a local-first take on something Hermes also doe
 
 ## Where Hermes and OpenClaw lead today
 
-We'd rather you hear it here than find out later. The honest gaps are **ecosystem and
-reach**, not core capability — Vanta's channels and self-improvement loop are already
-shipped (see [Comms & gateway](/comms-and-gateway) and [Self-improvement](/self-improvement)):
+We'd rather you hear it here than find out later. Vanta still has **core trust
+and reliability release work**, in addition to ecosystem and reach gaps:
+universal effect mediation, credential isolation, exact approval binding,
+untrusted-content quarantine, completion/recovery reconciliation, and the
+legacy factory promotion boundary. See [Product acceptance](/acceptance),
+[Comms & gateway](/comms-and-gateway), and
+[Self-improvement](/self-improvement).
 
 - **Community ecosystem scale.** Vanta now ships a public multi-source skill registry
   client with verified previews, approval-gated install/update, quarantine, and reversible
@@ -93,8 +95,10 @@ report.
 
 ---
 
-_Last verified 2026-07-12 against Vanta main and Hermes Agent at `4281151a`; OpenClaw
-claims were refreshed against its public repo and docs:
+_Competitor facts were last checked 2026-07-12 against Vanta main and Hermes
+Agent at `4281151a`; Vanta's boundary statement was corrected 2026-07-30 from
+the independent audit. OpenClaw claims were refreshed against its public repo
+and docs:
 [OpenClaw](https://github.com/openclaw/openclaw) ·
 [Hermes Agent](https://github.com/NousResearch/hermes-agent). Spotted something out of
 date? Open an issue — accuracy is the point._

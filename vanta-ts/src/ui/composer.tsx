@@ -8,10 +8,11 @@ import { useVim } from "./use-vim.js";
 import { editInEditor } from "./composer-editor.js";
 import { ComposerView } from "./composer-view.js";
 import {
-  isPasteBurst, isMultiLinePaste, useTextPaste, usePastePill,
+  isPasteBurst, isRawPasteChunk, useTextPaste, handlePillDelete, handleQueueEdit,
   handleReturnKey, handleSpecialChord, handlePaletteKey, handleHistory, handleGhostOrEdit,
   readClipboardText, writeClipboardText,
 } from "./composer-input.js";
+import { usePasteCollapse } from "./paste-pill.js";
 import type { Sel } from "./selection.js";
 import { composerSelectionCommand, extendComposerSelection } from "./composer-selection.js";
 
@@ -20,8 +21,9 @@ export { ComposerView } from "./composer-view.js";
 // surface here so importers + tests keep importing them from ./composer.js.
 export {
   countLines, PASTE_PILL_THRESHOLD, PASTE_PILL_CHARS, isPasteBurst,
-  isImagePasteSignal, normalizePaste, isMultiLinePaste,
+  isImagePasteSignal, normalizePaste, isMultiLinePaste, isRawPasteChunk,
 } from "./composer-input.js";
+export { expandPills, pillToken, pillTokenAt, shouldPill, splitPills } from "./paste-pill.js";
 
 // The v2 composer on real Ink's useInput. Readline/emacs chords (^A/^E/^B/^F,
 // ^U/^K/^W kill, ^Y yank, ^D delete, ⌥←/→ word) live in composer-keys; here we
@@ -76,6 +78,9 @@ type ComposerProps = {
   channels?: SlackChannel[];
   focused?: boolean;
   vim?: boolean;
+  /** Queued-message count; ↑ from an empty composer edits the newest. */
+  queuedCount?: number;
+  onEditQueued?: (index: number) => string | undefined;
 };
 
 export function Composer(props: ComposerProps): ReactElement {
@@ -84,7 +89,7 @@ export function Composer(props: ComposerProps): ReactElement {
   const undoRef = useRef("");
   const histRef = useRef<HistState>(EMPTY_HIST);
   const inputAtRef = useRef(0); // ms timestamp of the last keystroke (paste-burst detection)
-  const { pill, clearPill } = usePastePill(value);
+  const paste = usePasteCollapse();
   const { slashMatches, atMatches, channelMatches, activeLen } = useComposerPalettes({ value, cursor, files: props.files, channels: props.channels, skills: props.skills });
   const selClamped = Math.min(sel, Math.max(0, activeLen - 1));
   const ghost = activeLen === 0 && histRef.current.histIdx === -1 && cursor === value.length ? historyTypeahead(props.history, value) : "";
@@ -92,15 +97,18 @@ export function Composer(props: ComposerProps): ReactElement {
   const focused = props.focused ?? true;
   const vimHandle = useVim((props.vim ?? false) && focused);
   const submitNow = (): void => {
-    const text = (isPartialSlash(value, slashMatches) ? completeSlash(value, slashMatches, selClamped) : value).trim();
-    setBuf("", 0); histRef.current = EMPTY_HIST; clearPill(); vimHandle.reset();
+    const composed = isPartialSlash(value, slashMatches) ? completeSlash(value, slashMatches, selClamped) : value;
+    const text = paste.expand(composed).trim(); // markers → the originals the user pasted
+    setBuf("", 0); histRef.current = EMPTY_HIST; paste.reset(); vimHandle.reset();
     if (text) props.onSubmit(text);
   };
   const completeNow = (): void => { const next = completeBuffer({ value, cursor, slashMatches, channelMatches, atMatches, sel: selClamped }); setBuf(next, next.length); };
   const applyEdit = (e: Edit): void => { if (e.kill !== undefined) { killRef.current = e.kill; undoRef.current = value; } setBuf(e.value, e.cursor); };
   const insertNewline = (): void => setBuf(value.slice(0, cursor) + "\n" + value.slice(cursor), cursor + 1);
-  const openEditor = (): void => { undoRef.current = value; const next = editInEditor(value); setBuf(next, next.length); };
-  const pasteText = useTextPaste({ read: () => ({ value: valueRef.current, cursor: cursorRef.current, selection: selectionRef.current }), setBuf, focused, onImagePaste: props.onPaste });
+  // $EDITOR gets the real text behind any marker, and re-collapses on the way
+  // back so a long edited buffer still can't wrap the input line into a scramble.
+  const openEditor = (): void => { undoRef.current = value; const next = paste.collapse(editInEditor(paste.expand(value))); setBuf(next, next.length); };
+  const pasteText = useTextPaste({ read: () => ({ value: valueRef.current, cursor: cursorRef.current, selection: selectionRef.current }), setBuf, focused, onImagePaste: props.onPaste, collapse: paste.collapse });
   const undo = (): void => { const prev = undoRef.current; undoRef.current = value; setBuf(prev, prev.length); };
   const histNav = (dir: "up" | "down"): void => { const n = navigateHistory(props.history, histRef.current, dir); histRef.current = n; setBuf(n.value, n.value.length); };
 
@@ -108,9 +116,10 @@ export function Composer(props: ComposerProps): ReactElement {
     value, cursor, activeLen, selClamped, ghost, inputAtRef, valueRef, cursorRef, selectionRef,
     setBuf, setSel, setSelection, pasteText, submitNow, insertNewline, openEditor, undo, completeNow,
     histNav, applyEdit, vimHandle, killRef, onPaste: props.onPaste,
+    queuedCount: props.queuedCount ?? 0, onEditQueued: props.onEditQueued,
   }), { isActive: focused });
 
-  return <ComposerView focused={focused} slashMatches={slashMatches} atMatches={atMatches} channelMatches={channelSuggestionLabels(channelMatches)} sel={selClamped} value={value} cursor={cursor} selection={selection} placeholder={props.placeholder} pill={pill} ghost={ghost} vimMode={vimHandle.mode} />;
+  return <ComposerView focused={focused} slashMatches={slashMatches} atMatches={atMatches} channelMatches={channelSuggestionLabels(channelMatches)} sel={selClamped} value={value} cursor={cursor} selection={selection} placeholder={props.placeholder} ghost={ghost} vimMode={vimHandle.mode} />;
 }
 
 type InputCtx = {
@@ -121,6 +130,7 @@ type InputCtx = {
   pasteText: (text: string) => void; submitNow: () => void; insertNewline: () => void; openEditor: () => void;
   undo: () => void; completeNow: () => void; histNav: (dir: "up" | "down") => void; applyEdit: (edit: Edit) => void;
   vimHandle: ReturnType<typeof useVim>; onPaste?: () => void;
+  queuedCount: number; onEditQueued?: (index: number) => string | undefined;
 };
 
 function handleComposerInput(input: string, key: Key, o: InputCtx): void {
@@ -129,14 +139,18 @@ function handleComposerInput(input: string, key: Key, o: InputCtx): void {
   if (key.tab && key.shift) return;
   if (handleSelectionInput(input, key, o)) return;
   if (o.vimHandle.handle({ input, key, value: o.value, cursor: o.cursor, setBuf: o.setBuf })) return;
-  if (isMultiLinePaste(input)) return o.pasteText(input);
+  if (isRawPasteChunk(input)) return o.pasteText(input);
   handleStandardInput(input, key, burst, o);
 }
 
 function handleStandardInput(input: string, key: Key, burst: boolean, o: InputCtx): void {
   if (handleReturnKey(key, burst, o.insertNewline, o.submitNow)) return;
+  if (handlePillDelete(key, o.valueRef.current, o.cursorRef.current, o.setBuf)) return;
   if (handleSpecialChord(input, key, { openEditor: o.openEditor, undo: o.undo, pasteText: o.pasteText, paste: o.onPaste })) return;
   if (o.activeLen > 0 && handlePaletteKey({ key, len: o.activeLen, sel: o.selClamped, setSel: o.setSel, complete: o.completeNow })) return;
+  // Must sit AFTER the palette guard and BEFORE history, or it either steals the
+  // palette's ↑ or never runs.
+  if (o.onEditQueued && handleQueueEdit(key, { value: o.value, cursor: o.cursor, activeLen: o.activeLen, queuedCount: o.queuedCount }, o.onEditQueued, o.setBuf)) return;
   if (handleHistory(input, key, o.histNav)) return;
   handleGhostOrEdit({ input, key, ghost: o.ghost, value: o.valueRef.current, cursor: o.cursorRef.current, killRing: o.killRef.current, setBuf: o.setBuf, applyEdit: o.applyEdit });
 }

@@ -6,36 +6,47 @@ browser. That power is the point — so the security model is about *bounding* i
 removing it. This document is the source of truth for that model, the guarantees it
 makes, the ones it does **not**, and how to run it safely.
 
-> Rule Zero: no deletes, overwrites, out-of-scope writes, or secret handling without
-> explicit approval — enforced by the kernel on every tool call.
+> Rule Zero is the contract: no deletes, overwrites, out-of-scope writes, or
+> secret handling without explicit authority. The checked local and signed
+> macOS effect inventory enters one shared gateway and kernel and fails closed
+> when required policy or journal state is unavailable. A future executor or
+> another host must earn its own evidence before it inherits that claim.
 
 ## 1. Architecture: the kernel is the boundary
 
 | Layer | Language | Role |
 |-------|----------|------|
-| `vanta-kernel` (`src/`) | Rust, zero deps | **Enforced** security boundary — risk classifier, scope/protected-path checks, approvals, tamper-evident audit log, loopback HTTP API |
-| `vanta` (`vanta-ts/`) | TypeScript, Node 22 | Agent loop — LLM providers, tools, prompt. **Gates every action through the kernel; cannot bypass it.** |
+| `vanta-kernel` (`src/`) | Rust, zero deps | Intended root of trust — risk classifier, scope/protected-path checks, approvals, audit log, loopback HTTP API |
+| `vanta` (`vanta-ts/`) | TypeScript, Node 22 | Agent loop and shared effect gateway — binds operation, target, payload hash, authority, execution, and receipts before consequential work |
 
-Every tool call follows: `describeForSafety(args)` → kernel `assess()` → `{Allow | Ask | Block}`.
+Every consequential call in the checked inventory follows: stable effect
+description → shared gateway → kernel `assess()` → `{Allow | Ask | Block}` →
+content-free settlement receipt.
 The TS layer may **tighten** a verdict (rules, auto-mode, operator profile) but can **never
 loosen a kernel `Block`**. If the kernel is unreachable the gate **fails closed** (the tool is
 blocked, gracefully, not executed).
 
 ## 2. What the boundary enforces
 
-- **Risk classification** (`src/safety.rs`) — destructive/data-loss/exfiltration → `Block`;
-  exec-vectors, machine/credential config, out-of-scope paths, irreversible ops → `Ask`;
+- **Risk classification** (`src/safety.rs`) — catastrophic forced-recursive deletion,
+  device writes, data-loss, and exfiltration → `Block`; bounded deletion, exec-vectors,
+  machine/credential config, out-of-scope paths, and irreversible ops → `Ask`;
   read-only/reversible in-scope work → `Allow`.
 - **Scope containment** (`src/scope.rs`) — canonicalized path containment; `..` traversal,
   sibling-prefix (`/a/vanta-evil` vs `/a/vanta`), and symlink escapes are rejected.
-- **Protected paths** — the kernel's own source (`src/*.rs`, `Cargo.toml`/`.lock`),
-  `vanta-ts/src/factory/*`, and `MANIFESTO.md` are never writable by the agent.
+- **Protected paths** — model-controlled paths block the kernel source
+  (`src/*.rs`, `Cargo.toml`/`.lock`), `vanta-ts/src/factory/*`, and
+  `MANIFESTO.md`. The checked inventory records explicit trusted-infrastructure
+  adapters and rejects unknown executors.
 - **Approvals** (`src/approvals.rs`) — only `Ask` actions queue; `Block` refuses, `Allow`
   runs. Persisted to `.vanta/approvals.tsv`.
 - **Tamper-evident audit log** (`src/audit.rs`) — every event is hash-chained
   (`h = sha256(secret_key + prev_h + payload)`); a per-install key (`.vanta/audit.key`, 0600)
-  makes edits/inserts/reorders detectable, and a keyed head anchor (`.vanta/audit.head`)
-  detects tail-truncation.
+  makes edits/inserts/reorders detectable. When the log, key, and keyed head
+  anchor (`.vanta/audit.head`) all exist and remain protected, the exercised
+  verification path detects tail truncation. Legacy missing-anchor and
+  missing-log states are accepted by the current Rust verifier, so unconditional
+  tail-truncation detection remains migration work.
 
 ## 3. Trust model (untrusted repos)
 
@@ -50,8 +61,12 @@ decision** (the same gate for all of these):
 | Plugins | not loaded | `plugins.trustProjectPlugins` + `VANTA_ENABLE_PROJECT_PLUGINS=1` |
 | **Hooks (`.vanta/hooks.json`)** | **not loaded** | project trust, or `VANTA_ENABLE_PROJECT_HOOKS=1` |
 
-User-scope config in `~/.vanta` is always trusted (it's yours). Hook gating closed a
-zero-click RCE where a cloned repo's `.vanta/hooks.json` ran shell on session start.
+User-scope config in `~/.vanta` is treated as trusted input. The project-trust
+gate blocks the previously demonstrated zero-click cloned-repo path. The
+packaged `TRUST-02` proof also exercised restart-bounded hook activation,
+scrubbed child environments, protected control state, exact approval, and nine
+hostile or unauthenticated local-API requests with no secret exposure. The Rust
+legacy missing-anchor contract remains unchanged and explicitly bounded.
 
 ## 4. Secrets
 
@@ -86,11 +101,12 @@ obfuscated, or interpreter-wrapped command can evade any denylist (`$(...)`, `ba
 a binary not on the list). The denylist (§2) is **defense-in-depth that raises the bar**, not
 an airtight gate.
 
-**The real execution boundary is the sandbox — now ON BY DEFAULT for `shell_cmd` and
-`self_correct`** wherever an OS sandbox backend exists (macOS seatbelt — always present;
-Linux bwrap — if installed). The sandbox is `deny-default` filesystem (root + writable
-zones + tmp only), so a sandboxed command **cannot read `~/.ssh`/credentials or write
-outside scope** — secret-exfil-by-file and host tampering are contained by default.
+The sandbox is a second containment layer for `shell_cmd` and `self_correct`
+where an OS backend actually applies (macOS seatbelt; Linux bwrap when
+installed). Its deny-default filesystem limits path reach to root, writable
+zones, and tmp. The supported local proof additionally exercises scrubbed child
+environments and protected control state; an untested backend still needs its
+own host receipt.
 
 - **Network in the auto-default sandbox stays ON** so `npm install`/`git`/`curl` keep
   working; the FS containment is the default win. Set **`VANTA_SANDBOX_NET=0`** for full
@@ -123,34 +139,43 @@ tests green):
 - **HIGH** — raw tool output written to a world-readable, audit-sealed log → status+length only.
 - **HIGH** — `~/.vanta` git store had no `.gitignore` → added.
 - **HIGH** — no SSRF guard → `assertPublicUrl` (§5).
-- **HIGH** — audit tail-truncation undetectable → keyed head anchor (§2).
+- **HIGH (bounded)** — keyed head-anchor verification detects tail truncation
+  for initialized, protected stores; legacy missing-anchor/log migration remains
+  open (§2).
 - **HIGH** — `git push --force` hidden from the kernel (`describeForSafety` was a bare
   `"git push"`) → flags surfaced so the `DATA_LOSS` Block fires.
 - **MED** — SSH profile `ProxyCommand`/leading-dash injection → schema rejects them + `--`
   terminates ssh args; `.vanta/` dir + audit key perms; `esc()` control chars; bash-classifier
   was a dead no-op + over-approved credential reads → fixed + hardened.
 
-**Verified solid (do not regress):** kernel `Block` is monotonic through the whole TS gate
-chain; `jsonv.rs` bounded (no deep-nest/quadratic/panic); no prototype pollution; no ReDoS;
-npm `0 vulnerabilities`; kernel is zero-dependency; MCP/plugin trust gates fail safe; headless
-approver fails closed.
+**Executed June 20 receipts (historical; do not overgeneralize):** kernel `Block` was
+monotonic through the exercised TS gate chain; `jsonv.rs` was bounded (no
+deep-nest/quadratic/panic); the reviewed paths found no prototype pollution or
+ReDoS; the kernel was zero-dependency; and the exercised MCP/plugin and
+headless-approval paths failed safe. The exact 2026-08-13 integrated runtime
+dependency graph now reports zero npm advisories after compatible dependency
+remediation. The static documentation build retains two unpatched `image-size`
+denial-of-service advisories through Docusaurus; npm expands that dependency
+path into 19 high dependent-package entries. It is build-time on repository-authored content,
+not code served to visitors, and remains visible pending an upstream fixed
+release.
 
-## 7b. Dependency & scan audit (2026-06-27)
+## 7b. Dependency & scan audit (refreshed 2026-08-14)
 
 Full scan with the bundled `security-skills` gate (gitleaks · npm/cargo/osv · semgrep). Triaged by
 **reachability before severity** — recorded here so the next audit doesn't re-litigate.
 
-- **Shipped runtime — CLEAN.** Secrets: gitleaks **0 leaks** over 2003 commits. Runtime deps:
-  `npm audit --omit=dev` clean; kernel `cargo audit` clean (zero-dependency). The artifact a user
-  installs (`npm install --omit=dev` + the prebuilt kernel) carries no known CVE.
-- **Docs site (`vanta-website`, Docusaurus) — high + uuid FIXED.** serialize-javascript RCE/DoS
-  (GHSA-5c6j / GHSA-qj8w) → `overrides` `^7.0.5`; uuid bounds bug (GHSA-w5hq) → `overrides` `^11.1.1`;
-  `docusaurus build` verified after each. The remaining **23 are a single advisory** — js-yaml
-  quadratic DoS (GHSA-h67p-54hq-rp68) — cascading through every `@docusaurus/*` package via
-  `gray-matter`. **No upstream patch exists** (can't override to a version that isn't released). It's
-  **build-time** (frontmatter parsing during `docusaurus build`), **unreachable** by a site visitor
-  (the served site is static HTML), on **self-authored** content. Accepted until js-yaml/gray-matter
-  ship a fix.
+- **Runtime — clean at the exact integrated source head.** `npm audit` reports
+  zero vulnerabilities after the compatible dependency refresh and
+  local AnyDoc 0.1.9 update. This does not cover a future lockfile or zero-day.
+- **Docs site (`vanta-website`, Docusaurus) — all fixable findings remediated.**
+  Docusaurus 3.10.2 plus the current js-yaml, nanoid, DOMPurify, Mermaid,
+  PostCSS, Undici, fast-uri, and brace-expansion patches are installed. The
+  remaining npm result is two `image-size <=2.0.2` advisories with no patched npm
+  release; npm reports 19 high entries because the same package flows through
+  the Docusaurus graph. It is **build-time** on self-authored repository content
+  and is not shipped in the static site output. Keep it visible and update when
+  upstream publishes a fixed version.
 - **`vanta-ts` dev deps — FIXED.** Migrated to **vitest 3 / vite 6** (+ esbuild `overrides ^0.28.1`),
   clearing every dev-tooling advisory (incl. the vitest 9.8) → `osv-scanner` **0 vulnerabilities**
   (276 packages). The migration's one blocker: vitest 3's module runner only resolves dynamic
@@ -158,10 +183,18 @@ Full scan with the bundled `security-skills` gate (gitleaks · npm/cargo/osv · 
   an `os.tmpdir()` fixture (minimal-reproduced — IN-REPO imports OK, OS-tmpdir "Cannot find module").
   Fixed by relocating **that test's** fixtures in-repo (`.vitest-tmp/`, gitignored); the production
   `loader.ts` is unchanged. **Full suite 977 files / 11132 tests green** on vitest 3, `tsc` clean.
-- **SAST (semgrep) — 0 real.** One hit: a fake AWS key in `cofounder/company-template.test.ts` — a
-  **fixture that tests the secret scanner**, allowlisted in `.gitleaks.toml`. Not a credential.
+- **SAST (Semgrep) — zero findings in the current tracked tree.** The 2026-08-13
+  run scanned 3,666 tracked files with 167 community rules. Three old false
+  positives now carry narrow rule-specific rationale: ACP serializes JSON-RPC,
+  not HTML; companion CORS accepts only the fixed native-origin set; and public
+  API CORS accepts only operator-configured exact HTTPS origins. Focused tests
+  prove allowed and rejected origins.
+- **Secrets — zero findings.** `./scripts/secret-scan` checks complete Git history
+  and the current tracked/non-ignored snapshot with redacted output; the closure
+  run scanned 3,019 commits and 21.30 MB of repository-owned files.
 
-Re-run any time: `./security-skills/scan.sh .` (no agent needed).
+Re-run any time: `./scripts/secret-scan` for repository secrets and
+`./security-skills/scan.sh .` for the broader dependency/SAST gate.
 
 ## 8. Operator guidance
 
@@ -172,6 +205,13 @@ Re-run any time: `./security-skills/scan.sh .` (no agent needed).
 - **Secrets:** prefer a `VANTA_SECRET_BACKEND` over `.env`; never paste a live secret into the
   chat (if you do, rotate it).
 - **Verify the chain:** the audit log is tamper-evident — periodically confirm it verifies.
+
+### 8a. Subscription and permission-mode boundaries
+
+- Claude subscription authentication is owned by the official Claude Code client. Vanta may discover an existing official login, but does not register as Anthropic's client, run a copied OAuth grant, or maintain a second refresh-token store. Reauthenticate with `claude auth login --claudeai`.
+- Auto mode does not turn every kernel `Ask` into `Allow`. Only an explicit bounded allow rule can loosen an ask-class action; unmatched actions retain the kernel verdict, dangerous interpreters still ask, and `Block` remains immovable.
+- Full Access is not part of the normal Shift-Tab cycle. If selected through its explicit host control, the existing warning and kernel/block boundaries still apply; the selection is not silently persisted into project `.env` by the TUI.
+- Provider fast tiers are opt-in and default to standard. They can spend an allowance or incur a premium rate; capability checks keep unsupported models from receiving speculative fast parameters.
 
 ## 9. Reporting a vulnerability
 

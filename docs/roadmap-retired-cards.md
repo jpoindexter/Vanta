@@ -25,3 +25,18 @@ unfinished product work.
 Reintroduction requires a new card with a current Vanta-native outcome and proof
 criterion. Do not restore these records merely because an upstream competitor
 has a similarly named feature.
+
+## 2026-07-30 active-horizon contraction
+
+No cards were removed from `roadmap.json` in the total realignment. Instead, all
+22 cards open at active commit
+`a751cb17dcb768097798b4278882a64103527811` were changed to `parked`,
+preserving complete records in the canonical data. The controlling one-to-one
+mapping and outcome owner are recorded in
+`docs/strategy-realignment-correction-2026-07-30.md`; the earlier
+`docs/strategy-realignment-2026-07-30.md` is superseded first-pass evidence
+from stale `origin/main`.
+
+This supersedes the older practice of removing rejected/superseded records from
+the JSON. Future convergence migrations should prefer in-place parking with a
+reason unless schema size or release-history policy is separately changed.

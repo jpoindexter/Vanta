@@ -10,6 +10,7 @@ import { runCompletionVerifier, shouldVerifyCompletion } from "../verify/complet
 import type { KernelClient } from "../kernel/client.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { Message } from "../types.js";
+import type { WorkItemState } from "../work-items/contract.js";
 
 // The post-turn background forks that grow or check Vanta from a finished turn:
 // skill capture, session scratchpad, opt-in fact extraction, durable brain
@@ -149,11 +150,17 @@ export async function brainLearnAfterTurn(opts: {
   transcript: Message[];
   toolIterations: number;
   turnIndex: number;
+  completionState?: WorkItemState;
   env?: NodeJS.ProcessEnv;
 }): Promise<string[]> {
   const env = opts.env ?? process.env;
   if (!shouldLearn(opts.turnIndex, opts.toolIterations, env)) return [];
-  return learnFromTranscript({ provider: opts.provider, transcript: opts.transcript, env });
+  return learnFromTranscript({
+    provider: opts.provider,
+    transcript: opts.transcript,
+    completionState: opts.completionState,
+    env,
+  });
 }
 
 /**
@@ -183,11 +190,16 @@ export async function dialecticAfterTurn(opts: {
 export function memoryExtractAfterTurn(opts: {
   provider: LLMProvider;
   transcript: Message[];
+  completionState?: WorkItemState;
   env?: NodeJS.ProcessEnv;
 }): void {
   const env = opts.env ?? process.env;
   if (env.VANTA_EXTRACT_MEMORIES !== "1") return;
-  void runMemoryExtractor(opts.transcript, { provider: opts.provider, env }).catch(() => {});
+  void runMemoryExtractor(opts.transcript, {
+    provider: opts.provider,
+    completionState: opts.completionState,
+    env,
+  }).catch(() => {});
 }
 
 /**

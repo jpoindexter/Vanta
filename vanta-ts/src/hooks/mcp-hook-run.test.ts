@@ -4,13 +4,18 @@ const mockReadMcpConfig = vi.hoisted(() => vi.fn());
 const mockCallTool = vi.hoisted(() => vi.fn());
 const mockInitialize = vi.hoisted(() => vi.fn());
 const mockClose = vi.hoisted(() => vi.fn());
+const mockBuildMcpChildEnv = vi.hoisted(() => vi.fn(() => ({ PATH: "/safe", DECLARED: "value" })));
+const mockStdioTransport = vi.hoisted(() => vi.fn(() => ({
+  transport: {},
+  child: { kill: vi.fn() },
+})));
 
-vi.mock("../mcp/mount.js", () => ({ readMcpConfig: mockReadMcpConfig }));
+vi.mock("../mcp/mount.js", () => ({
+  readMcpConfig: mockReadMcpConfig,
+  buildMcpChildEnv: mockBuildMcpChildEnv,
+}));
 vi.mock("../mcp/client.js", () => ({
-  stdioTransport: vi.fn(() => ({
-    transport: {},
-    child: { kill: vi.fn() },
-  })),
+  stdioTransport: mockStdioTransport,
   McpClient: class MockMcpClient {
     constructor(_transport: unknown) {}
     initialize = mockInitialize;
@@ -66,5 +71,29 @@ describe("runMcpToolHook", () => {
     mockCallTool.mockResolvedValueOnce("ok");
     await runMcpToolHook(MCP_HOOK, "not-json", { cwd: "/tmp" });
     expect(mockCallTool).toHaveBeenCalledWith("send_notification", { raw: "not-json" });
+  });
+
+  it("scopes the child environment to declared MCP variables", async () => {
+    const config = {
+      servers: {
+        notify: {
+          command: "npx",
+          args: ["notify-mcp"],
+          env: { DECLARED: "${HOOK_SERVER_TOKEN}" },
+        },
+      },
+    };
+    mockReadMcpConfig.mockResolvedValueOnce(config);
+    mockInitialize.mockResolvedValueOnce(undefined);
+    mockCallTool.mockResolvedValueOnce("ok");
+
+    await runMcpToolHook(MCP_HOOK, "{}", { cwd: "/tmp" });
+
+    expect(mockBuildMcpChildEnv).toHaveBeenCalledWith(process.env, config.servers.notify.env);
+    expect(mockStdioTransport).toHaveBeenCalledWith(
+      "npx",
+      ["notify-mcp"],
+      { PATH: "/safe", DECLARED: "value" },
+    );
   });
 });

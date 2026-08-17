@@ -84,13 +84,17 @@ async function finishOneShot(o: {
   const choiceWall = isExplicitChoiceWall(o.outcome.finalText);
   emitOutput(o.format, o.outcome.finalText, o.setup.provider.modelId());
   if (!o.structured) console.log(`\n[${o.outcome.stoppedReason} · ${o.outcome.iterations} iteration(s)]`);
-  await writeRunMemory({ provider: o.setup.provider, goals: o.setup.goals, instruction: o.instruction, finalText: o.outcome.finalText });
+  await writeRunMemory({ provider: o.setup.provider, goals: o.setup.goals, instruction: o.instruction, finalText: o.outcome.finalText, completionState: o.outcome.completionState });
   if (!choiceWall) await suggestSkillFromRun(o.instruction, process.env);
   await reviewAfterTurn({
     provider: o.setup.provider, safety: o.setup.safety, root: o.root, transcript: o.convo.messages,
     toolIterations: o.outcome.toolIterations, turnIndex: 1, deferMutation: choiceWall,
   });
-  memoryExtractAfterTurn({ provider: o.setup.provider, transcript: o.convo.messages });
+  memoryExtractAfterTurn({
+    provider: o.setup.provider,
+    transcript: o.convo.messages,
+    completionState: o.outcome.completionState,
+  });
 }
 
 export async function runInstruction(

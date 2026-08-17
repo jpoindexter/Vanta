@@ -17,24 +17,31 @@ type SetupOpts = { quiet?: boolean; validate?: (updates: Record<string, string>)
 
 /** Read a secret without echoing it to the terminal. Falls back to plain prompt. */
 export async function promptSecret(rl: Readline, query: string): Promise<string> {
-  // readline's Interface writes echoed input via _writeToOutput; muting it while
-  // the answer is typed hides the key. Typed-cast with a comment per house rules.
-  const muted = rl as unknown as { _writeToOutput?: (s: string) => void };
-  const original = muted._writeToOutput?.bind(rl);
+  // Node 22's readline/promises implementation writes through a private symbol,
+  // so replacing the legacy `_writeToOutput` property no longer suppresses echo.
+  // Wrap the public output stream instead; the prompt itself is written before
+  // `hide` flips on, and every subsequent echo/control write is dropped.
+  const output = (rl as unknown as { output?: { write?: (...args: unknown[]) => unknown } }).output ?? null;
+  const originalWrite = output?.write?.bind(output);
   const shouldUseRawMode = Boolean(process.stdin.isTTY && process.stdout.isTTY && process.stdin.setRawMode);
   const wasRaw = process.stdin.isRaw;
   let hide = false;
-  muted._writeToOutput = (s: string) => {
-    if (!hide || s.includes("\n")) original?.(s);
-  };
-  hide = true;
+  if (output && originalWrite) {
+    output.write = (...args: unknown[]) => {
+      const chunk = args[0];
+      if (hide && typeof chunk === "string" && !chunk.includes("\n")) return true;
+      return originalWrite(...args);
+    };
+  }
   try {
     if (shouldUseRawMode && !wasRaw) process.stdin.setRawMode(true);
-    return (await rl.question(query)).trim();
+    const answer = rl.question(query);
+    hide = true;
+    return (await answer).trim();
   } finally {
     hide = false;
     if (shouldUseRawMode && !wasRaw) process.stdin.setRawMode(false);
-    if (original) muted._writeToOutput = original;
+    if (output && originalWrite) output.write = originalWrite;
   }
 }
 

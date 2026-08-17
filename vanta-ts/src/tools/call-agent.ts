@@ -18,6 +18,7 @@ import { resolveBoxCredential, type BoxCredential } from "../agents/autonomous-c
 import { extractEditedPath, parseClaudeStreamLine } from "../agents/claude-stream.js";
 import { recordAgentEdit } from "../agents/attribution-store.js";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
+import { effectGateFromToolContext } from "../effects/gate-context.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -79,7 +80,13 @@ async function runCodingClaude(ctx: ToolContext, inv: Invocation, env?: NodeJS.P
     if (ev.progress && ev.progress !== last) { last = ev.progress; ctx.onProgress?.(`⋯ claude: ${ev.progress}`); }
     if (ev.result !== undefined) { result = ev.result; isError = ev.isError === true; }
   };
-  const res = await runExternalAgent(inv, { cwd: ctx.root, env, onChunk, timeoutMs: CODING_TIMEOUT_MS });
+  const res = await runExternalAgent(inv, {
+    cwd: ctx.root,
+    env,
+    onChunk,
+    timeoutMs: CODING_TIMEOUT_MS,
+    effectGate: effectGateFromToolContext(ctx),
+  });
   await recordStreamEdits(ctx, agent, edited);
   if (res.notInstalled) return { ok: false, output: "claude CLI not found on PATH." };
   if (!result) return { ok: false, output: `claude build did not finish: ${(res.stderr || res.stdout).trim().slice(0, 500) || `exit ${res.code ?? "?"}`}` };
@@ -90,7 +97,11 @@ async function runCodingClaude(ctx: ToolContext, inv: Invocation, env?: NodeJS.P
  * everything else streams text output. Split out to keep execute under the complexity gate. */
 async function runResolved(ctx: ToolContext, agent: string, inv: Invocation, coding?: boolean): Promise<ToolResult> {
   if (coding && agent === "claude") return runCodingClaude(ctx, inv);
-  return formatResult(agent, await runExternalAgent(inv, { cwd: ctx.root, onChunk: ctx.onProgress }));
+  return formatResult(agent, await runExternalAgent(inv, {
+    cwd: ctx.root,
+    onChunk: ctx.onProgress,
+    effectGate: effectGateFromToolContext(ctx),
+  }));
 }
 
 /** Resolve → approve (showing the exact mount boundary) → run the boxed agent, streaming progress. */

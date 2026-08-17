@@ -1,6 +1,6 @@
 import { createElement as h } from "react";
 import { describe, it, expect } from "vitest";
-import { renderUi, tick } from "./test-render.js";
+import { renderUi, waitForFrame } from "./test-render.js";
 import {
   AgentsList,
   AgentDetail,
@@ -47,8 +47,7 @@ describe("formatToolsSummary", () => {
 describe("AgentsList", () => {
   it("renders each agent name with the count header", async () => {
     const inst = renderUi(h(AgentsList, { agents, selectedIndex: 0 }));
-    await tick();
-    const out = inst.lastFrame();
+    const out = await waitForFrame(inst, "Agents (3)");
     expect(out).toContain("Agents (3)");
     expect(out).toContain("researcher");
     expect(out).toContain("builder");
@@ -58,8 +57,7 @@ describe("AgentsList", () => {
 
   it("marks the selected row with the ❯ marker", async () => {
     const inst = renderUi(h(AgentsList, { agents, selectedIndex: 1 }));
-    await tick();
-    const out = inst.lastFrame();
+    const out = await waitForFrame(inst, "❯ builder");
     // The marker precedes the selected agent's name and no other.
     expect(out).toContain("❯ builder");
     expect(out).not.toContain("❯ researcher");
@@ -69,8 +67,7 @@ describe("AgentsList", () => {
 
   it("shows each agent's status", async () => {
     const inst = renderUi(h(AgentsList, { agents, selectedIndex: 0 }));
-    await tick();
-    const out = inst.lastFrame();
+    const out = await waitForFrame(inst, "blocked");
     expect(out).toContain("idle");
     expect(out).toContain("running");
     expect(out).toContain("blocked");
@@ -79,8 +76,7 @@ describe("AgentsList", () => {
 
   it("renders a clean 'no agents' row for an empty roster", async () => {
     const inst = renderUi(h(AgentsList, { agents: [], selectedIndex: 0 }));
-    await tick();
-    const out = inst.lastFrame();
+    const out = await waitForFrame(inst, "no agents");
     expect(out).toContain("Agents (0)");
     expect(out).toContain("no agents");
     inst.unmount();
@@ -98,8 +94,7 @@ describe("AgentDetail", () => {
 
   it("renders the name, model, tools summary, and status fields", async () => {
     const inst = renderUi(h(AgentDetail, { agent }));
-    await tick();
-    const out = inst.lastFrame();
+    const out = await waitForFrame(inst, "claude-sonnet-4-6");
     expect(out).toContain("researcher");
     expect(out).toContain("Model");
     expect(out).toContain("claude-sonnet-4-6");
@@ -113,8 +108,7 @@ describe("AgentDetail", () => {
   it("shows 'inherit' for a missing model and 'all tools' for unrestricted tools", async () => {
     const minimal: AgentDetailData = { name: "general" };
     const inst = renderUi(h(AgentDetail, { agent: minimal }));
-    await tick();
-    const out = inst.lastFrame();
+    const out = await waitForFrame(inst, "all tools");
     expect(out).toContain("general");
     expect(out).toContain("inherit");
     expect(out).toContain("all tools");

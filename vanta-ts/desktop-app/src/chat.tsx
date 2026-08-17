@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Activity, Archive, ArchiveRestore, Check, CheckCircle2, ChevronRight, Copy, FileText, FolderKanban, Keyboard, Maximize2, MessageSquare, MoreHorizontal, Network, PackageOpen, Pencil, Pin, Plug, Plus, RotateCcw, Search, Settings2, ShieldCheck, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
+import { Activity, Archive, ArchiveRestore, CalendarClock, Check, CheckCircle2, ChevronDown, ChevronRight, Copy, FileText, Keyboard, LoaderCircle, Maximize2, MoreHorizontal, PackageOpen, Pencil, Plug, Plus, RotateCcw, Search, Settings2, ShieldCheck, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
 import type { Approval, ApprovalDecision, DesktopRunReceipt, DesktopView, Message, PermissionSection, Session } from "./types.js";
 import { MessageMarkdown } from "./message-markdown.js";
 import { moveSessionMenuFocus, SessionNoticeToast, useSessionMenuDismiss, useSessionSafeOps, type SessionDeleteAction } from "./session-safe-ops.js";
@@ -9,6 +9,8 @@ import { LatestButton, preferredScrollBehavior, PromptMarkers, useLongSessionNav
 import { SchemaTraceExplorer, schemaRetryReady } from "./schema-trace-explorer.js";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { compactTrace } from "../../src/trace/quiet-trace.js";
+import { RunLibraryPanel, type RunLibraryController } from "./run-library.js";
+import type { PreparedRun } from "./types.js";
 
 export { Composer } from "./composer.js";
 
@@ -21,6 +23,8 @@ type SessionSidebarProps = {
   onRename: (id: string, title: string) => void | Promise<void>;
   onArchive: (id: string, archived: boolean) => void | Promise<void>;
   onDelete: (id: string, action: SessionDeleteAction) => void | Promise<void>;
+  onBulkArchive: (ids: string[], archived: boolean) => void | Promise<void>;
+  onBulkDelete: (ids: string[], action: SessionDeleteAction) => void | Promise<void>;
   onPin: (id: string, pinned: boolean) => void | Promise<void>;
   onReorderPins: (orderedIds: string[]) => void | Promise<void>;
   view: DesktopView;
@@ -28,22 +32,27 @@ type SessionSidebarProps = {
   onSettings: () => void;
   onShortcuts: () => void;
   onDismiss?: () => void;
+  runLibrary?: RunLibraryController;
+  onRunPrepared?: (prepared: PreparedRun) => void | Promise<void>;
 };
 
 export function SessionSidebar(props: SessionSidebarProps) {
+  const [section, setSection] = useState<"threads" | "runs">("threads");
   const [query, setQuery] = useState("");
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
   const [archivedOpen, setArchivedOpen] = useState(false);
   const [trashOpen, setTrashOpen] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
   const sessions = useMemo(() => props.sessions.filter((session) => session.title.toLowerCase().includes(query.toLowerCase())), [props.sessions, query]);
   const groups = useMemo(() => partitionSessions(sessions), [sessions]);
   const { active, pinned, project: projectSessions, recent: recentSessions, archived, trashed } = groups;
   const visibleSessions = useMemo(() => [...pinned, ...projectSessions, ...recentSessions, ...(archivedOpen ? archived : []), ...(trashOpen ? trashed : [])], [pinned, projectSessions, recentSessions, archived, archivedOpen, trashOpen, trashed]);
   const projectName = props.root?.split("/").filter(Boolean).at(-1) ?? "Current project";
   const selectedSessions = useMemo(() => props.sessions.filter((session) => selected.has(session.id)), [props.sessions, selected]);
-  const safe = useSessionSafeOps({ rename: props.onRename, archive: props.onArchive, remove: props.onDelete, pin: props.onPin, reorderPins: props.onReorderPins });
+  const safe = useSessionSafeOps({ rename: props.onRename, archive: props.onArchive, archiveMany: props.onBulkArchive, remove: props.onDelete, removeMany: props.onBulkDelete, pin: props.onPin, reorderPins: props.onReorderPins });
 
   useEffect(() => {
     setSelected((current) => {
@@ -93,15 +102,19 @@ export function SessionSidebar(props: SessionSidebarProps) {
   }
   async function archiveSelected(archivedState: boolean) {
     const targets = selectedSessions.filter((session) => !session.trashed);
-    if (!targets.length) return;
-    if (await safe.archive(targets, archivedState)) stopSelecting();
+    if (!targets.length || bulkProgress) return;
+    setBulkProgress(`${archivedState ? "Archiving" : "Restoring"} ${targets.length}…`);
+    try { if (await safe.archive(targets, archivedState)) stopSelecting(); }
+    finally { setBulkProgress(""); }
   }
   async function deleteSelected() {
     const targets = [...selectedSessions];
-    if (!targets.length) return;
+    if (!targets.length || bulkProgress) return;
     const allTrashed = targets.every((session) => session.trashed);
     if (allTrashed && !window.confirm(`Delete ${targets.length} selected session${targets.length === 1 ? "" : "s"} forever? This cannot be undone.`)) return;
-    if (await safe.remove(targets, allTrashed ? "permanent" : "trash")) stopSelecting();
+    setBulkProgress(`${allTrashed ? "Deleting permanently" : "Moving to Trash"} ${targets.length}…`);
+    try { if (await safe.remove(targets, allTrashed ? "permanent" : "trash")) stopSelecting(); }
+    finally { setBulkProgress(""); }
   }
   const renderSession = (session: Session) => {
     const pinnedIndex = pinned.findIndex(({ id }) => id === session.id);
@@ -128,29 +141,36 @@ export function SessionSidebar(props: SessionSidebarProps) {
 
   return (
     <aside className="session-sidebar">
-      <div className="drawer-toolbar"><span>Threads</span><button className="panel-dismiss" type="button" aria-label="Close sessions" onClick={props.onDismiss}><X size={16} /></button></div>
+      <div className="drawer-toolbar"><span>{section === "threads" ? "Threads" : "Saved runs"}</span><button className="panel-dismiss" type="button" aria-label="Close sessions" onClick={props.onDismiss}><X size={16} /></button></div>
+      <div className="sidebar-product">
+        <button className="product-switcher" type="button" onClick={() => { setSection("threads"); props.onView("work"); }}>
+          <span className="product-mark" aria-hidden="true">V</span><strong>Vanta</strong><ChevronDown size={13} aria-hidden="true" />
+        </button>
+        <button className="sidebar-search-trigger" type="button" aria-label="Search tasks" title="Search tasks" onClick={() => { setSection("threads"); window.requestAnimationFrame(() => searchRef.current?.focus()); }}><Search size={15} /></button>
+      </div>
+      <button className="sidebar-new-task" type="button" onClick={props.onNew}><Plus size={15} />New task</button>
       <nav className="desktop-nav" aria-label="Vanta workspace">
-        <button className={props.view === "work" ? "active" : ""} type="button" onClick={() => props.onView("work")}><MessageSquare size={16} />Work <span aria-hidden="true">{active.length}</span></button>
-        <button className={props.view === "operate" ? "active" : ""} type="button" onClick={() => props.onView("operate")}><Activity size={16} />Operate</button>
-        <button className={props.view === "outputs" ? "active" : ""} type="button" onClick={() => props.onView("outputs")}><PackageOpen size={16} />Outputs</button>
-        <button className={props.view === "connect" ? "active" : ""} type="button" onClick={() => props.onView("connect")}><Network size={16} />Connect</button>
+        <button className={props.view === "operate" ? "active" : ""} type="button" onClick={() => props.onView("operate")}><Activity size={16} />Today</button>
+        <button className={props.view === "connect" ? "active" : ""} type="button" onClick={() => props.onView("connect")}><Plug size={16} />Connect</button>
+        <button className={props.view === "scheduled" ? "active" : ""} type="button" onClick={() => props.onView("scheduled")}><CalendarClock size={16} />Scheduled</button>
+        <button className={props.view === "plugins" ? "active" : ""} type="button" onClick={() => props.onView("plugins")}><PackageOpen size={16} />Plugins</button>
       </nav>
-      <section className="project-rail">
-        <div className="section-heading project-heading"><h2>Projects</h2><button type="button" title="New task" aria-label="New task" onClick={props.onNew}><Plus size={14} /></button></div>
-        <div className="project-row active"><span><FolderKanban size={15} />{projectName}</span><b>{active.length}</b></div>
+      {props.runLibrary ? <div className="library-switch segmented" aria-label="Task history view"><button className={section === "threads" ? "active" : ""} type="button" onClick={() => setSection("threads")}>Tasks</button><button className={section === "runs" ? "active" : ""} type="button" onClick={() => setSection("runs")}>Saved runs</button></div> : null}
+      {section === "runs" && props.runLibrary && props.onRunPrepared ? <RunLibraryPanel controller={props.runLibrary} onPrepared={props.onRunPrepared} /> : <section className="project-rail">
+        <div className="section-heading project-heading"><h2>{projectName}</h2><span>{active.length}</span></div>
         {pinned.length ? <>
-          <div className="section-heading pinned-heading"><h2><Pin size={12} />Pinned</h2><span>{pinned.length}</span></div>
+          <div className="section-heading pinned-heading"><h2>Pinned</h2><span>{pinned.length}</span></div>
           <div className="session-list pinned-session-group">{pinned.map(renderSession)}</div>
         </> : null}
         <div className="session-list project-session-group">
           {projectSessions.map(renderSession)}
         </div>
         <div className="section-heading recent-heading">
-          <h2>Recent sessions</h2>
+          <h2>Tasks</h2>
           <div><span>{recentSessions.length}</span><button type="button" onClick={selecting ? stopSelecting : startSelecting}>{selecting ? "Cancel" : "Select chats"}</button></div>
         </div>
-        <label className="session-search"><Search size={14} /><span className="sr-only">Search sessions</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search sessions" /></label>
-        {selecting ? <BulkSessionActions count={selected.size} visibleCount={visibleSessions.length} onSelectAll={selectAllVisible} onClear={clearSelected} onArchive={() => void archiveSelected(true)} onRestore={() => void archiveSelected(false)} onDelete={() => void deleteSelected()} onCancel={stopSelecting} /> : null}
+        <label className="session-search"><Search size={14} /><span className="sr-only">Search tasks</span><input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search tasks" /></label>
+        {selecting ? <BulkSessionActions count={selected.size} visibleCount={visibleSessions.length} progress={bulkProgress} onSelectAll={selectAllVisible} onClear={clearSelected} onArchive={() => void archiveSelected(true)} onRestore={() => void archiveSelected(false)} onDelete={() => void deleteSelected()} onCancel={stopSelecting} /> : null}
         <div className="session-list recent-session-group">
           {recentSessions.map(renderSession)}
           {archived.length > 0 ? (
@@ -167,24 +187,32 @@ export function SessionSidebar(props: SessionSidebarProps) {
           ) : null}
           {recentSessions.length === 0 && projectSessions.length === 0 && pinned.length === 0 ? <p className="muted">{query ? "No matching sessions." : "No saved sessions yet."}</p> : null}
         </div>
-      </section>
-      <footer className="session-sidebar-footer"><button type="button" onClick={props.onShortcuts}><Keyboard size={14} />Keyboard shortcuts <kbd>?</kbd></button><button type="button" onClick={props.onSettings}><Settings2 size={14} />Settings</button></footer>
+      </section>}
+      <footer className="session-sidebar-footer">
+        <button className="persona-profile" type="button" onClick={props.onSettings} aria-label="Open personal persona settings">
+          <span className="persona-avatar" aria-hidden="true">V</span>
+          <span><strong>Personal</strong><small>Persona · Settings</small></span>
+          <Settings2 size={15} aria-hidden="true" />
+        </button>
+        <button className="sidebar-shortcuts" type="button" onClick={props.onShortcuts} aria-label="Keyboard shortcuts"><Keyboard size={14} /><kbd>?</kbd></button>
+      </footer>
       <SessionNoticeToast notice={safe.notice} onDismiss={safe.dismissNotice} />
     </aside>
   );
 }
 
-function BulkSessionActions(props: { count: number; visibleCount: number; onSelectAll: () => void; onClear: () => void; onArchive: () => void; onRestore: () => void; onDelete: () => void; onCancel: () => void }) {
-  const disabled = props.count === 0;
+function BulkSessionActions(props: { count: number; visibleCount: number; progress: string; onSelectAll: () => void; onClear: () => void; onArchive: () => void; onRestore: () => void; onDelete: () => void; onCancel: () => void }) {
+  const busy = Boolean(props.progress);
+  const disabled = props.count === 0 || busy;
   return (
-    <div className="session-bulk-actions" role="toolbar" aria-label="Selected session actions">
-      <span>{props.count ? `${props.count} selected` : "Select chats"} <small>Shift-click for a range</small></span>
-      <button type="button" disabled={props.visibleCount === 0} onClick={props.onSelectAll}><Check size={13} />All visible</button>
+    <div className="session-bulk-actions" role="toolbar" aria-label="Selected session actions" aria-busy={busy}>
+      <span>{props.count ? `${props.count} selected` : "Select chats"} <small role="status" aria-live="polite">{busy ? <><LoaderCircle className="spinning" size={12} aria-hidden="true" />{props.progress}</> : "Shift-click for a range"}</small></span>
+      <button type="button" disabled={props.visibleCount === 0 || busy} onClick={props.onSelectAll}><Check size={13} />All visible</button>
       <button type="button" disabled={disabled} onClick={props.onClear}><X size={13} />Clear</button>
       <button type="button" disabled={disabled} onClick={props.onArchive}><Archive size={13} />Archive</button>
       <button type="button" disabled={disabled} onClick={props.onRestore}><ArchiveRestore size={13} />Restore</button>
       <button className="danger" type="button" disabled={disabled} onClick={props.onDelete}><Trash2 size={13} />Delete</button>
-      <button type="button" onClick={props.onCancel}><X size={13} />Done</button>
+      <button type="button" disabled={busy} onClick={props.onCancel}><X size={13} />Done</button>
     </div>
   );
 }
@@ -502,14 +530,28 @@ function RunTimeline(props: { calls: NonNullable<Message["toolCalls"]>; messages
   })}</section>;
 }
 
+const VISIBLE_TRACE_GROUPS = 5;
+
+/** The run trace, kept short. Only the most recent few steps plus anything that
+ *  needs attention render by default; the rest sit behind one disclosure so a
+ *  long turn cannot push the composer off screen. */
 function EventTimeline(props: { events: import("./types.js").EventRow[] }) {
   const groups = compactTrace(props.events);
-  return <section className="run-timeline event-timeline quiet-trace" aria-label="Current run activity">{groups.map((group, index) => (
-    <details className={`timeline-step ${group.status === "attention" ? "bad" : ""}`} key={`${group.label}-${index}`}>
-      <summary><span><ChevronRight size={13} /></span><strong>{group.label}</strong><em>{group.status}</em></summary>
-      <div className="trace-evidence" aria-label="Tool evidence">{group.evidence.map((event, evidenceIndex) => <pre key={`${event.label}-${evidenceIndex}`}>{event.detail || event.label}</pre>)}</div>
-    </details>
-  ))}</section>;
+  const overflow = Math.max(0, groups.length - VISIBLE_TRACE_GROUPS);
+  const shown = overflow ? groups.filter((group, index) => group.status === "attention" || index >= overflow) : groups;
+  const hidden = groups.length - shown.length;
+  return <section className="run-timeline event-timeline quiet-trace" aria-label="Current run activity">
+    {hidden > 0 ? <details className="timeline-step trace-overflow">
+      <summary><span><ChevronRight size={13} /></span><strong>{hidden} earlier step{hidden === 1 ? "" : "s"}</strong><em>done</em></summary>
+      <div className="trace-evidence" aria-label="Earlier steps">{groups.slice(0, overflow).filter((group) => group.status !== "attention").map((group, index) => <pre key={`${group.label}-${index}`}>{group.label}</pre>)}</div>
+    </details> : null}
+    {shown.map((group, index) => (
+      <details className={`timeline-step ${group.status === "attention" ? "bad" : ""}`} key={`${group.label}-${index}`}>
+        <summary><span><ChevronRight size={13} /></span><strong>{group.label}</strong><em>{group.status}</em></summary>
+        <div className="trace-evidence" aria-label="Tool evidence">{group.evidence.map((event, evidenceIndex) => <pre key={`${event.label}-${evidenceIndex}`}>{event.detail || event.label}</pre>)}</div>
+      </details>
+    ))}
+  </section>;
 }
 
 function RunRecovery(props: { receipt: DesktopRunReceipt; onRetry: () => void; onReconnect: () => void; onEdit: () => void; onCheckpoint: () => void }) {

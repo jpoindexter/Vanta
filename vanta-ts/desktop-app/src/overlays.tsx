@@ -1,9 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
-import { Bot, Check, Command, KeyRound, MonitorCog, RefreshCw, Search, ShieldCheck, Star, X } from "lucide-react";
-import type { Approval, ApprovalDecision, DesktopTheme, PermissionSection, Provider, RailTab, Status } from "./types.js";
+import { Bot, Check, ChevronRight, Command, FolderOpen, KeyRound, MonitorCog, RefreshCw, Search, ShieldCheck, Star, X } from "lucide-react";
+import type { Approval, ApprovalDecision, DesktopTheme, DesktopView, ModelEffort, PermissionSection, Provider, ProviderModelSettings, ProviderSpeed, Status } from "./types.js";
+import { StyledSelect } from "./form-controls.js";
+import { pickDesktopProjectFolder } from "./project-folder-picker.js";
 
-export function CommandPalette(props: { open: boolean; onClose: () => void; onNew: () => void; onModel: () => void; onTelegram: () => void; onSound: () => void; onSettings: () => void; onTab: (tab: RailTab) => void }) {
+type CommandPaletteProps = {
+  open: boolean;
+  onClose: () => void;
+  onNew: () => void;
+  onReview: () => void;
+  onSidebar: () => void;
+  onCycleMode: () => void;
+  onView: (view: DesktopView) => void;
+  onModel: () => void;
+  onTelegram: () => void;
+  onSound: () => void;
+  onSettings: () => void;
+};
+
+export function CommandPalette(props: CommandPaletteProps) {
   const [query, setQuery] = useState("");
   const actions = commandActions(props);
   const visible = useMemo(() => actions.filter(([label]) => label.toLowerCase().includes(query.toLowerCase())), [actions, query]);
@@ -11,8 +27,8 @@ export function CommandPalette(props: { open: boolean; onClose: () => void; onNe
   return (
     <div className="overlay" onClick={props.onClose}>
       <div className="palette" role="dialog" aria-modal="true" aria-labelledby="command-title" onClick={(e) => e.stopPropagation()}>
-        <div className="dialog-heading"><h2 id="command-title">Command palette</h2><button className="icon-button" type="button" aria-label="Close" onClick={props.onClose}><X size={16} /></button></div>
-        <label className="palette-search"><Search size={16} /><span className="sr-only">Search commands</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search actions" /></label>
+        <div className="dialog-heading"><h2 id="command-title">Commands</h2><button className="icon-button" type="button" aria-label="Close" onClick={props.onClose}><X size={16} /></button></div>
+        <label className="palette-search"><Search size={16} /><span className="sr-only">Search commands</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search commands…" /></label>
         <div className="palette-actions">{visible.map(([label, action], index) => <button key={label} type="button" onClick={() => { action(); props.onClose(); }}><span>{String(index + 1).padStart(2, "0")}</span><strong>{label}</strong><kbd>↵</kbd></button>)}</div>
         {visible.length === 0 ? <p className="muted">No matching action.</p> : null}
       </div>
@@ -22,42 +38,84 @@ export function CommandPalette(props: { open: boolean; onClose: () => void; onNe
 
 export type NewTaskDraft = { agent: string; host: string; folder: string; branch: string; model: string; prompt: string; worktree: boolean; approvals: boolean };
 
-export function NewTaskDialog(props: { open: boolean; root?: string; model?: string; onClose: () => void; onCreate: (draft: NewTaskDraft) => void }) {
+export function NewTaskDialog(props: { open: boolean; root?: string; model?: string; initialDraft?: NewTaskDraft; initialError?: string; onClose: () => void; onCreate: (draft: NewTaskDraft) => void | Promise<void> }) {
   const [draft, setDraft] = useState<NewTaskDraft>(() => ({ agent: "Operator", host: "Local Mac", folder: props.root ?? "", branch: "main", model: props.model ?? "", prompt: "", worktree: true, approvals: true }));
+  const [choosingFolder, setChoosingFolder] = useState(false);
+  const [folderError, setFolderError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   useEffect(() => {
     if (!props.open) return;
-    setDraft((current) => ({ ...current, folder: props.root ?? current.folder, model: props.model ?? current.model }));
-  }, [props.model, props.open, props.root]);
+    setDraft((current) => props.initialDraft ?? ({ ...current, folder: props.root ?? current.folder, model: props.model ?? current.model }));
+    setFolderError("");
+    setSubmitError(props.initialError ?? "");
+  }, [props.initialDraft, props.initialError, props.model, props.open, props.root]);
   if (!props.open) return null;
   const set = <K extends keyof NewTaskDraft>(key: K, value: NewTaskDraft[K]) => setDraft((current) => ({ ...current, [key]: value }));
-  return <div className="overlay" onClick={props.onClose}><form className="new-task-dialog" role="dialog" aria-modal="true" aria-labelledby="new-task-title" onSubmit={(event) => { event.preventDefault(); props.onCreate(draft); }} onClick={(event) => event.stopPropagation()}>
-    <div className="dialog-heading"><div><p className="eyebrow">Work contract</p><h2 id="new-task-title">Start a new task</h2></div><button className="icon-button" type="button" aria-label="Close new task" onClick={props.onClose}><X size={16} /></button></div>
+  async function chooseFolder() {
+    setChoosingFolder(true);
+    setFolderError("");
+    try {
+      const folder = await pickDesktopProjectFolder(draft.folder);
+      if (folder) set("folder", folder);
+    } catch (error) {
+      setFolderError(error instanceof Error ? error.message : "Vanta could not open the folder picker.");
+    } finally {
+      setChoosingFolder(false);
+    }
+  }
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      await props.onCreate(draft);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Vanta could not create the task.");
+      setSubmitting(false);
+    }
+  }
+  return <div className="overlay" onClick={() => { if (!submitting) props.onClose(); }}><form className="new-task-dialog" role="dialog" aria-modal="true" aria-labelledby="new-task-title" aria-busy={submitting} onSubmit={(event) => { void submit(event); }} onClick={(event) => event.stopPropagation()}>
+    <div className="dialog-heading"><div><p className="eyebrow">Work contract</p><h2 id="new-task-title">Start a new task</h2></div><button className="icon-button" type="button" aria-label="Close new task" onClick={props.onClose} disabled={submitting}><X size={16} /></button></div>
     <p className="dialog-copy">Choose where the work runs before the first message. The session starts only when you create it.</p>
     <div className="new-task-grid">
-      <label>Agent<select value={draft.agent} onChange={(event) => set("agent", event.target.value)}><option>Operator</option><option>Researcher</option><option>Verifier</option><option>Sentinel</option></select></label>
-      <label>Execution host<select value={draft.host} onChange={(event) => set("host", event.target.value)}><option>Local Mac</option><option>Gateway</option><option>Remote worker</option></select></label>
-      <label className="wide">Project folder<input value={draft.folder} onChange={(event) => set("folder", event.target.value)} /></label>
+      <label>Agent<StyledSelect value={draft.agent} onChange={(event) => set("agent", event.target.value)}><option>Operator</option><option>Researcher</option><option>Verifier</option><option>Sentinel</option></StyledSelect></label>
+      <label>Execution host<StyledSelect value={draft.host} onChange={(event) => set("host", event.target.value)}><option>Local Mac</option><option>Gateway</option><option>Remote worker</option></StyledSelect></label>
+      <div className="wide form-field">
+        <label htmlFor="new-task-folder">Project folder</label>
+        <div className="folder-picker-control">
+          <input id="new-task-folder" value={draft.folder} readOnly aria-describedby={folderError ? "new-task-folder-error" : undefined} />
+          <button type="button" onClick={() => void chooseFolder()} disabled={choosingFolder || submitting} aria-label="Choose project folder">
+            <FolderOpen size={15} aria-hidden="true" />{choosingFolder ? "Opening…" : "Choose…"}
+          </button>
+        </div>
+        {folderError ? <small id="new-task-folder-error" className="form-error" role="alert">{folderError}</small> : null}
+      </div>
       <label>Base branch<input value={draft.branch} onChange={(event) => set("branch", event.target.value)} /></label>
       <label>Model<input value={draft.model} onChange={(event) => set("model", event.target.value)} /></label>
       <label className="wide">First instruction<textarea autoFocus value={draft.prompt} onChange={(event) => set("prompt", event.target.value)} placeholder="What should Vanta handle?" /></label>
     </div>
     <label className="task-toggle"><input type="checkbox" checked={draft.worktree} onChange={(event) => set("worktree", event.target.checked)} /><span><strong>Use isolated worktree</strong><small>Create a reversible branch for this task.</small></span></label>
     <label className="task-toggle"><input type="checkbox" checked={draft.approvals} onChange={(event) => set("approvals", event.target.checked)} /><span><strong>Ask before consequential actions</strong><small>Show the exact command or diff before execution.</small></span></label>
-    <div className="dialog-actions"><button type="button" onClick={props.onClose}>Cancel</button><button className="primary" type="submit">Create and run</button></div>
+    {submitError ? <p className="form-error" role="alert">{submitError}</p> : null}
+    <div className="dialog-actions"><button type="button" onClick={props.onClose} disabled={submitting}>Cancel</button><button className="primary" type="submit" disabled={submitting}>{submitting ? "Switching project…" : "Create and run"}</button></div>
   </form></div>;
 }
 
-function commandActions(props: { onNew: () => void; onModel: () => void; onTelegram: () => void; onSound: () => void; onSettings: () => void; onTab: (tab: RailTab) => void }) {
+function commandActions(props: CommandPaletteProps) {
   return [
-    ["New session", props.onNew],
-    ["Model picker", props.onModel],
+    ["New task", props.onNew],
+    ["Open Review", props.onReview],
+    ["Cycle operating mode", props.onCycleMode],
+    ["Toggle task sidebar", props.onSidebar],
+    ["Open Today", () => props.onView("operate")],
+    ["Open Connect", () => props.onView("connect")],
+    ["Open Scheduled", () => props.onView("scheduled")],
+    ["Open Plugins", () => props.onView("plugins")],
+    ["Choose model", props.onModel],
     ["Set up Telegram", props.onTelegram],
     ["Completion sound", props.onSound],
     ["Settings", props.onSettings],
-    ["Outputs", () => props.onTab("outputs")],
-    ["Canvas", () => props.onTab("canvas")],
-    ["Files", () => props.onTab("files")],
-    ["Terminal", () => props.onTab("terminal")],
   ] as const;
 }
 
@@ -95,7 +153,9 @@ function SafetySettings(props: { status: Status | null; warningAcknowledged: boo
   </section>;
 }
 
-export function ModelPicker(props: { open: boolean; models: Provider[]; status: Status | null; onClose: () => void; onRefresh: (provider: string) => Promise<void>; onSelect: (provider: string, model: string, scope?: "session" | "global") => void }) {
+export function ModelPicker(props: { open: boolean; models: Provider[]; status: Status | null; onClose: () => void; onRefresh: (provider: string) => Promise<void>; onSelect: (provider: string, model: string, scope?: "session" | "global") => void; onSettings: (settings: ProviderModelSettings, scope?: "session" | "global") => Promise<void> }) {
+  const currentProvider = props.models.find((provider) => provider.id === props.status?.provider);
+  const [view, setView] = useState<"settings" | "browser">(() => currentProvider ? "settings" : "browser");
   const [query, setQuery] = useState("");
   const [selectedProviderId, setSelectedProviderId] = useState("");
   const [customModel, setCustomModel] = useState("");
@@ -106,17 +166,44 @@ export function ModelPicker(props: { open: boolean; models: Provider[]; status: 
     setQuery("");
     setCustomModel("");
     setSelectedProviderId(providerId);
-    if (providerId) {
+    setView(currentProvider ? "settings" : "browser");
+    if (!currentProvider && providerId) {
       setRefreshing(true);
       void props.onRefresh(providerId).finally(() => setRefreshing(false));
     }
   }, [props.open]);
   if (!props.open) return null;
+  function close() {
+    setView(currentProvider ? "settings" : "browser");
+    props.onClose();
+  }
+  if (view === "settings" && currentProvider && props.status) {
+    const providerName = currentProvider.short || currentProvider.label;
+    return <div className="model-popover-layer" onClick={close}>
+      <section className="model-settings-popover" role="dialog" aria-labelledby="model-settings-title" onClick={(event) => event.stopPropagation()}>
+        <header className="model-settings-popover-heading"><div><p className="eyebrow">Current provider</p><h2 id="model-settings-title">{providerName} settings</h2></div><button className="icon-button" type="button" aria-label="Close model settings" onClick={close}><X size={16} /></button></header>
+        <button className="model-settings-row" type="button" autoFocus onClick={() => setView("browser")}><span>Model</span><strong>{props.status.model}</strong><ChevronRight size={15} aria-hidden="true" /></button>
+        <ProviderSettingsControls compact provider={currentProvider} status={props.status} onSettings={props.onSettings} />
+        <button className="model-settings-browse" type="button" onClick={() => setView("browser")}>Browse providers and models<ChevronRight size={15} aria-hidden="true" /></button>
+      </section>
+    </div>;
+  }
   const matchingProviders = filterProviders(props.models, query);
   const activeProvider = matchingProviders.find((provider) => provider.id === selectedProviderId)
     ?? matchingProviders.find((provider) => provider.id === props.status?.provider)
     ?? matchingProviders[0];
   const visibleModels = activeProvider ? filterModels(activeProvider, query) : [];
+  // Claude-CLI style: after picking a model, drill into its settings view (effort /
+  // speed) instead of closing. A model with no tunable controls has nothing to
+  // tune, so close the picker as before. A "global" pick (Set as default) also
+  // just applies and closes.
+  async function selectModel(provider: string, model: string, scope?: "session" | "global") {
+    props.onSelect(provider, model, scope);
+    const picked = props.models.find((entry) => entry.id === provider);
+    const tunable = Boolean(picked?.modelSettings?.effort || picked?.modelSettings?.speed);
+    if (scope === "session" && tunable) setView("settings");
+    else close();
+  }
   async function refreshSelected() {
     if (!activeProvider || !activeProvider.discoveryAvailable) return;
     setRefreshing(true);
@@ -126,7 +213,7 @@ export function ModelPicker(props: { open: boolean; models: Provider[]; status: 
   function chooseCustom(event: FormEvent) {
     event.preventDefault();
     const model = customModel.trim();
-    if (activeProvider && model) props.onSelect(activeProvider.id, model, "session");
+    if (activeProvider && model) void selectModel(activeProvider.id, model, "session");
   }
   function navigateProviders(event: ReactKeyboardEvent<HTMLElement>) {
     if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
@@ -140,9 +227,9 @@ export function ModelPicker(props: { open: boolean; models: Provider[]; status: 
     next.focus();
   }
   return (
-    <div className="overlay" onClick={props.onClose}>
+    <div className="overlay" onClick={close}>
       <div className="palette model-picker" role="dialog" aria-modal="true" aria-labelledby="model-title" onClick={(e) => e.stopPropagation()}>
-        <div className="dialog-heading model-picker-heading"><div><h2 id="model-title">Choose a model</h2><p>Click a model for this task. Use the star to save a default for new tasks.</p></div><button className="icon-button" type="button" aria-label="Close model picker" onClick={props.onClose}><X size={16} /></button></div>
+        <div className="dialog-heading model-picker-heading"><div>{currentProvider ? <button className="model-picker-back" type="button" onClick={() => setView("settings")}>Back to {currentProvider.short || currentProvider.label} settings</button> : null}<h2 id="model-title">Choose a model</h2><p>Choose a model and tune the controls supported by its provider.</p></div><button className="icon-button" type="button" aria-label="Close model picker" onClick={close}><X size={16} /></button></div>
         <label className="palette-search model-search"><Search size={16} /><span className="sr-only">Search models and providers</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search models and providers" /></label>
         <div className="model-picker-body">
           <nav className="model-provider-nav" role="tablist" aria-label="Model providers" aria-orientation="vertical" onKeyDown={navigateProviders}>
@@ -157,8 +244,9 @@ export function ModelPicker(props: { open: boolean; models: Provider[]; status: 
                 <div><h3>{activeProvider.short || activeProvider.label}</h3><p>{visibleModels.length} models · {activeProvider.modelSource === "live" ? "Live provider catalog" : "Vanta catalog"}</p></div>
                 <button className="icon-button" type="button" onClick={() => void refreshSelected()} disabled={!activeProvider.discoveryAvailable || refreshing} aria-label={`Refresh ${activeProvider.label} models`} title={activeProvider.discoveryAvailable ? "Refresh models from provider" : "Connect this provider to load live models"}><RefreshCw size={15} className={refreshing ? "spinning" : ""} /></button>
               </header>
+              <ProviderSettingsControls provider={activeProvider} status={props.status} onSettings={props.onSettings} />
               {activeProvider.discoveryError ? <p className="model-discovery-error" role="status">{activeProvider.discoveryError} Showing the offline catalog.</p> : null}
-              <div className="model-rows" aria-label={`${activeProvider.short || activeProvider.label} models`}>{visibleModels.map((model) => <ModelRow key={model} provider={activeProvider} model={model} status={props.status} onSelect={props.onSelect} />)}</div>
+              <div className="model-rows" aria-label={`${activeProvider.short || activeProvider.label} models`}>{visibleModels.map((model) => <ModelRow key={model} provider={activeProvider} model={model} status={props.status} onSelect={selectModel} />)}</div>
               {visibleModels.length === 0 ? <p className="muted model-empty">No matching models for this provider.</p> : null}
               <details className="custom-model-disclosure"><summary>Use a model ID that is not listed</summary><form className="custom-model" onSubmit={chooseCustom}><label htmlFor="custom-model-id">Model ID</label><div><input id="custom-model-id" value={customModel} onChange={(event) => setCustomModel(event.target.value)} placeholder="Enter the provider model ID" /><button type="submit" disabled={!customModel.trim()}>Use for task</button></div></form></details>
             </> : <p className="muted model-empty">No matching providers or models.</p>}
@@ -167,6 +255,77 @@ export function ModelPicker(props: { open: boolean; models: Provider[]; status: 
       </div>
     </div>
   );
+}
+
+const EFFORT_LABELS: Record<ModelEffort, string> = {
+  low: "Light",
+  medium: "Medium",
+  high: "High",
+  xhigh: "Extra High",
+  max: "Max",
+  ultra: "Ultra",
+};
+
+const SPEED_LABELS: Record<ProviderSpeed, string> = {
+  standard: "Standard",
+  fast: "Fast",
+};
+
+/** The fast-tier tradeoff differs by provider: Anthropic documents up to 2.5×
+ *  output tokens/sec for Opus fast mode, Codex 1.5× for its fast service tier. */
+export function fastSpeedHint(providerId: string): string {
+  return /^(anthropic|claude-code|claude-cli)$/.test(providerId.trim().toLowerCase())
+    ? "Up to 2.5× output speed, premium rate"
+    : "1.5× speed, increased usage";
+}
+
+function settingsForProvider(provider: Provider, status: Status | null): ProviderModelSettings {
+  const current = status?.provider === provider.id ? status.modelSettings : undefined;
+  return {
+    ...(provider.modelSettings?.effort ? { effortLevel: current?.effortLevel ?? provider.modelSettings.effort.defaultValue } : {}),
+    ...(provider.modelSettings?.speed ? { speed: current?.speed ?? provider.modelSettings.speed.defaultValue } : {}),
+  };
+}
+
+function ProviderSettingsControls(props: { compact?: boolean; provider: Provider; status: Status | null; onSettings: (settings: ProviderModelSettings, scope?: "session" | "global") => Promise<void> }) {
+  const capabilities = props.provider.modelSettings;
+  const [draft, setDraft] = useState<ProviderModelSettings>(() => settingsForProvider(props.provider, props.status));
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  useEffect(() => {
+    setDraft(settingsForProvider(props.provider, props.status));
+    setMessage("");
+  }, [props.provider.id, props.status?.provider, props.status?.model]);
+  if (!capabilities?.effort && !capabilities?.speed) return null;
+  if (props.status?.provider !== props.provider.id) return <section className="provider-settings provider-settings-inactive" aria-label={`${props.provider.label} settings unavailable`}><p>Select a {props.provider.short || props.provider.label} model for this task before tuning its provider controls.</p></section>;
+
+  async function save(next: ProviderModelSettings, scope: "session" | "global") {
+    setDraft(next);
+    setBusy(true);
+    setMessage("");
+    try {
+      await props.onSettings(next, scope);
+      setMessage(scope === "global" ? "Saved as project defaults." : "Applies to the next request.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not save model settings.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return <section className={`provider-settings${props.compact ? " provider-settings-compact" : ""}`} {...(props.compact ? { "aria-label": `${props.provider.short || props.provider.label} controls` } : { "aria-labelledby": "provider-settings-title" })}>
+    {!props.compact ? <div className="provider-settings-heading"><div><p className="eyebrow">Provider controls</p><h4 id="provider-settings-title">Tune {props.provider.short || props.provider.label}</h4></div><span>{busy ? "Saving…" : "This task"}</span></div> : null}
+    <div className="provider-setting-grid">
+      {capabilities.effort ? <label className="provider-setting"><span>Effort</span><StyledSelect aria-label={`${props.provider.label} effort`} value={draft.effortLevel ?? capabilities.effort.defaultValue} disabled={busy} onChange={(event) => void save({ ...draft, effortLevel: event.target.value as ModelEffort }, "session")}>
+        {capabilities.effort.options.map((option) => <option key={option} value={option}>{EFFORT_LABELS[option]}</option>)}
+      </StyledSelect><small>{draft.effortLevel === "ultra" ? "Uses allowance fastest" : "Reasoning depth"}</small></label> : null}
+      {capabilities.speed ? <label className="provider-setting"><span>Speed</span><StyledSelect aria-label={`${props.provider.label} speed`} value={draft.speed ?? capabilities.speed.defaultValue} disabled={busy} onChange={(event) => void save({ ...draft, speed: event.target.value as ProviderSpeed }, "session")}>
+        {capabilities.speed.options.map((option) => <option key={option} value={option}>{SPEED_LABELS[option]}</option>)}
+      </StyledSelect><small>{draft.speed === "fast" ? fastSpeedHint(props.provider.id) : "Default speed"}</small></label> : null}
+    </div>
+    <details className="provider-settings-advanced"><summary>Advanced</summary><div><p>Save the selected effort{capabilities.speed ? " and speed" : ""} for new tasks in this project.</p><button type="button" disabled={busy} onClick={() => void save(draft, "global")}>Save as project defaults</button></div></details>
+    <p className="provider-settings-message" role="status" aria-live="polite">{message}</p>
+  </section>;
 }
 
 export function filterModels(provider: Provider, query: string): string[] {
@@ -212,7 +371,7 @@ export function SetupWizard(props: { open: boolean; models: Provider[]; onClose:
   return <div className="overlay" onClick={props.onClose}>
     <form className="setup-dialog" role="dialog" aria-modal="true" aria-labelledby="setup-title" onSubmit={submit} onClick={(event) => event.stopPropagation()}>
       <div className="dialog-heading"><div><p className="eyebrow">First run</p><h2 id="setup-title">Connect a model</h2></div><button className="icon-button" type="button" aria-label="Close" onClick={props.onClose}><X size={16} /></button></div>
-      <label>Provider<select value={provider?.id ?? ""} onChange={(event) => { const next = props.models.find((item) => item.id === event.target.value); setProviderId(event.target.value); setModel(next?.defaultModel ?? next?.models[0] ?? ""); setApiKey(""); }}>{props.models.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
+      <label>Provider<StyledSelect value={provider?.id ?? ""} onChange={(event) => { const next = props.models.find((item) => item.id === event.target.value); setProviderId(event.target.value); setModel(next?.defaultModel ?? next?.models[0] ?? ""); setApiKey(""); }}>{props.models.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</StyledSelect></label>
       <label>Model<input list="setup-models" value={model} onChange={(event) => setModel(event.target.value)} /></label>
       <datalist id="setup-models">{provider?.models.map((item) => <option key={item} value={item} />)}</datalist>
       {provider?.requiresKey ? <label>API key<input type="password" autoComplete="off" value={apiKey} onChange={(event) => setApiKey(event.target.value)} required /></label> : null}

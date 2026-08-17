@@ -1,5 +1,11 @@
 # Living Operator — Vanta's growth direction
 
+> **Historical strategy synthesis (2026-06-05).** This document preserves the source
+> language and shipped-history rationale of the living-operator arc. It is not the current
+> build order or market identity. Current authority is `STRATEGY.md`, the append-only
+> 2026-07-30 decision, `docs/prd.md`, and `roadmap.json`. Owner-specific language below is
+> historical design provenance, not a distributable default or public audience boundary.
+
 > Source synthesis of three captures (2026-06-05): `vanta wants.rtf`, `argowants2.rtf`,
 > `agro wants 3.md`, plus two live goals (natural voice; sentience-like continuity).
 > Items live in `roadmap.json`; this doc is the narrative + build order behind them.

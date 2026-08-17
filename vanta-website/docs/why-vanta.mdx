@@ -1,25 +1,27 @@
 ---
 id: why-vanta
 title: Why Vanta
-description: Why choose Vanta — a local, ND-first trusted-operator agent with an enforced safety boundary, goal-aware execution, executive-function support, 20 messaging channels, any model, and MIT self-hosting.
+description: Why choose Vanta — a broad personal operator for trusted continuity, curb-cut universal design, progressively earned autonomy, and evidence-backed follow-through.
 sidebar_position: 3
 ---
 
 # Why Vanta
 
-Vanta is a **local, trusted-operator agent**: it knows the goal before it picks a tool,
-enforces scope on every action, and reports only verified output. It runs on your hardware,
-on any model, and the safety boundary travels with it.
+Vanta is a **full-capability personal operator**: broad enough for research, files,
+software, documents, communication, schedules, business, media, life administration,
+and automation; specialized in preserving the thread and transferring safe responsibility
+when human attention and executive function are finite.
 
 Here's what that buys you — each point is a concrete, checkable claim, not a slogan.
 
-### A boundary the agent can't talk its way past
+### A boundary the agent must not be able to talk its way past
 
-Vanta's [Rust kernel](/kernel) risk-classifies **every** action into allow / ask / block,
-enforces [scope containment](/safety-model), and writes a tamper-evident audit chain — and
-the agent loop *cannot bypass it*. Execution runs inside an OS sandbox, Docker, or SSH
-backend. The safety boundary is a separate enforced layer, not a feature the model can
-reason around.
+Vanta's [Rust kernel](/kernel) risk-classifies actions into allow / ask / block and is
+intended to anchor scope, approvals, and audit evidence independently of model prose.
+The July 30 audit found secondary effect paths that still need hard mediation and
+credential isolation, so this remains a release contract rather than an absolute
+present-tense claim. The repository product-acceptance record keeps the executed
+evidence and gaps separate.
 
 ### It knows the goal before it acts
 
@@ -29,10 +31,10 @@ See the [agent loop](/agent-loop).
 
 ### Built around executive function, not against it
 
-Most agents assume the bottleneck is capability. For a lot of people — especially
-neurodivergent operators — the real bottleneck is *coherence*: starting, not drifting, and
-closing a loop before opening the next one. Vanta is **ND-first by design**, with
-executive-function support as a first-class layer, not an afterthought:
+Most agents assume the bottleneck is capability. Human executive capacity is finite and
+variable for everyone. Neurodivergent and disability experience exposes the sharpest
+failures and supplies curb-cut design requirements; the resulting support is available
+to everyone by default without diagnosis gating:
 
 - **Automatic adaptation** — observable task cues such as stuckness, corrections, overload,
   and reorientation needs privately reshape the current turn without inferring a diagnosis or
@@ -45,12 +47,14 @@ executive-function support as a first-class layer, not an afterthought:
   the rest hidden — never a wall of options.
 - **Working memory** — it re-anchors the goal and current step across a long session, and
   after any context compression, so you don't lose the thread.
-- **Closure over novelty** — gates flag unfinished, uncommitted work *before* you
-  context-switch, and bias toward "where do we stand?"
+- **Closure over novelty** — outcome state, ownership, waiting conditions, and evidence
+  preserve the thread without treating Git activity as a proxy for life progress.
 - **Time-blindness help** — estimates come as best / realistic / worst ranges with named
   hidden costs, never a single misleading number.
-- **Low sensory load** — compressed output by default: one idea per line, the single most
-  important thing in bold.
+- **Negotiable sensory load** — the current router can compress output when
+  explicit state calls for it, while stored defaults remain balanced density
+  and medium sensory load. Low-sensory defaults, cross-host persistence, and
+  complete dismissal/expiry behavior remain acceptance work.
 
 See [executive function](/executive-function).
 
@@ -61,19 +65,29 @@ accepted and rejected — real on-device (MPS / CUDA / CPU) training, nothing le
 machine. Plus auto skill-improvement, reflection-from-correction, and an evolving memory.
 See [self-improvement](/self-improvement).
 
+### Progressively autonomous without a global trust switch
+
+The canonical migration target promotes workflows through R0 Observe, R1
+Recommend, R2 Prepare, R3 Confirm, R4 Delegate, and R5 Autonomous delegate.
+`R0`–`R5` are reserved exclusively for autonomy. Current legacy autonomy stores
+have not yet been reconciled into this contract across hosts.
+
 ### Reachable from anywhere you already are
 
-**20 messaging adapters from one gateway** — Telegram, Slack, Discord, Signal, WhatsApp,
-iMessage, Matrix, LINE, Mattermost, IRC, ntfy, Teams, Twitch, SMS, Zalo, Feishu, WebChat,
-Nostr, Google Chat, Email (5 verified live end-to-end; the rest need only your
-credentials). See [comms & gateway](/comms-and-gateway).
+**22 registered messaging adapters from one gateway** — Telegram, Slack,
+Discord, Signal, WhatsApp, iMessage, Matrix, LINE, Mattermost, IRC, ntfy,
+Teams, Twitch, SMS, Zalo, Feishu, QQ, WeChat, WebChat, Nostr, Google Chat, and
+Email. Telegram and ntfy have accepted live receipts; the rest require
+platform-specific setup and live acceptance. See [comms & gateway](/comms-and-gateway).
 
 ### Any model, any host you control
 
 Provider-agnostic: any OpenAI-compatible endpoint (custom base URL) plus Azure,
 OpenRouter (200+ models), Ollama, OpenAI, Anthropic, and Gemini — and Vanta exposes its
 own OpenAI-compatible proxy. Run it local, in a sandbox, in Docker, over SSH, or on a $5
-VPS; the kernel enforces scope identically everywhere. See [providers](/providers).
+VPS. The intended action-gateway contract is the same on each host; current
+acceptance does not yet prove identical mediation for every effect path. See
+[providers](/providers).
 
 ### Yours, not rented
 
@@ -84,10 +98,9 @@ service in the loop.
 
 ## Honest about the bar
 
-Some capabilities are live-proven today; others are built and need one-time setup for live
-use (a provider key, OAuth client, browser binaries, or a platform credential). We label
-which is which rather than implying everything is turnkey — see [what works now](/docs)
-and each capability page. The claims above are things you can verify by running it, not
-marketing superlatives.
+Some capabilities are live-proven today; others need setup, integration hardening, or
+end-to-end evidence. We label which is which rather than implying everything is turnkey.
+The current audit also supersedes stale absolute safety and dependency claims. See
+[what works now](/docs) and the acceptance record.
 
 Ready? [Quickstart](/quickstart) gets you talking to Vanta in one command.

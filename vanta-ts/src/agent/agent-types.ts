@@ -1,12 +1,15 @@
 import type { LLMProvider } from "../providers/interface.js";
 import type { KernelClient } from "../kernel/client.js";
 import type { ToolRegistry } from "../tools/registry.js";
-import type { EffortLevel, Message, ImageAttachment } from "../types.js";
+import type { Message, ImageAttachment } from "../types.js";
 import type { DiffLine } from "../util/diff.js";
 import type { Summarizer } from "../context.js";
 import type { HookBus } from "../plugins/hooks.js";
 import type { SessionWorkingMemory } from "../memory/working.js";
 import type { PermissionMode } from "../modes/permission-mode.js";
+import type { AskQuestion, AskUserResponse } from "../tools/ask-user-model.js";
+import type { WorkItemState } from "../work-items/contract.js";
+import type { ProviderEffortLevel, ProviderSpeed } from "../providers/model-settings.js";
 
 export type AgentDeps = {
   provider: LLMProvider;
@@ -22,8 +25,13 @@ export type AgentDeps = {
   /** Ask the human to approve a gated action. `toolName` lets the host key an
    * allowlist ("always allow this tool"); omitted by tool-internal callers. */
   requestApproval: (action: string, reason: string, toolName?: string, detail?: { diff?: string; fresh?: boolean }) => Promise<boolean>;
+  /** Optional structured operator-question channel owned by interactive hosts. */
+  requestQuestion?: (questions: AskQuestion[]) => Promise<AskUserResponse>;
   /** Optional host-owned live permission mode for project/session surfaces. */
   permissionMode?: () => PermissionMode;
+  /** Replay-only safety latch. When true, an ASK verdict must reach the human
+   * again instead of being cleared by a stored rule, delegated grant, or access mode. */
+  forceFreshApproval?: () => boolean;
   onText?: (text: string) => void;
   /** Extended thinking / reasoning text returned by the provider (e.g. Anthropic
    * extended thinking). Called once per turn when the provider returns thinking. */
@@ -46,7 +54,9 @@ export type AgentDeps = {
   /** When set, a goal-reminder note is re-injected after context compression. */
   activeGoalText?: string;
   /** Per-turn model effort, read live so /effort changes apply next call. */
-  getEffortLevel?: () => EffortLevel;
+  getEffortLevel?: () => ProviderEffortLevel;
+  /** Per-turn provider service tier, read live so Desktop changes apply next call. */
+  getServiceTier?: () => ProviderSpeed | undefined;
   /** The live session scratchpad, re-injected on compaction. Hosts refresh it
    * post-turn via Conversation.setSessionMemory. */
   sessionMemory?: string;
@@ -56,8 +66,9 @@ export type AgentDeps = {
   onIterationCheck?: (consecutiveFailures: number) => void;
   /** Called when a compression round runs, with the dropped count and summary. */
   onAutoCompact?: (dropped: number, summary: string) => void;
-  /** Called while an automatic compaction pass is actively summarizing context. */
-  onCompacting?: (active: boolean) => void;
+  /** Called while compaction runs. Progress is a coarse, real phase milestone,
+   * not an estimated timer; omitted consumers remain boolean-compatible. */
+  onCompacting?: (active: boolean, progress?: number) => void;
   /** Abort the run between iterations (Ctrl+C, gateway shutdown, caller cancel). */
   signal?: AbortSignal;
   /** SDK/non-interactive structured output schema. Adds the StructuredOutput synthetic tool. */
@@ -84,7 +95,7 @@ export type AgentDeps = {
   shouldSoftStop?: () => boolean;
 };
 
-export type StoppedReason = "done" | "max_iterations" | "repeated_failure" | "interrupted" | "soft_stopped";
+export type StoppedReason = "done" | "max_iterations" | "repeated_failure" | "interrupted" | "soft_stopped" | "tool_budget";
 
 /**
  * UX-STREAM: Typed stream-event vocabulary — names what happened so each
@@ -114,6 +125,8 @@ export type AgentOutcome = {
   structuredResult?: unknown;
   /** Subagent-only receipt metadata; absent for normal parent turns. */
   workerEvidence?: { rawSidechain: string; tools: string[]; durationMs: number; model: string };
+  /** Evidence-derived turn state; only `verified` may create accomplishment memory. */
+  completionState?: WorkItemState;
 };
 
 /** A stateful multi-turn conversation that retains history across `send` calls. */

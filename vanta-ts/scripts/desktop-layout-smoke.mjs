@@ -1,5 +1,6 @@
 import { _electron as electron } from "playwright-core";
-import { mkdtemp, rm } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -7,15 +8,46 @@ const port = process.env.VANTA_DESKTOP_SMOKE_PORT ?? "7821";
 const executablePath = process.env.VANTA_DESKTOP_APP;
 const userData = await mkdtemp(join(tmpdir(), "vanta-desktop-layout-profile-"));
 const vantaHome = await mkdtemp(join(tmpdir(), "vanta-desktop-layout-home-"));
+const projectRoot = resolve(process.cwd(), "..");
+const roadmapBytes = await readFile(join(projectRoot, "roadmap.json"));
+await mkdir(join(vantaHome, "runs"), { recursive: true, mode: 0o700 });
+await writeFile(join(vantaHome, "runs", "desktop-smoke-run.json"), `${JSON.stringify({
+  version: 1,
+  id: "desktop-smoke-run",
+  sessionId: "desktop-smoke-session",
+  turnIndex: 0,
+  title: "Reusable run smoke proof",
+  prompt: "Review the current project roadmap",
+  projectRoot,
+  startedAt: "2026-07-24T10:00:00.000Z",
+  completedAt: "2026-07-24T10:01:00.000Z",
+  status: "done",
+  saved: true,
+  tags: [],
+  provenance: "captured",
+  lineage: { mode: "original" },
+  inputs: [{
+    path: "roadmap.json",
+    sha256: createHash("sha256").update(roadmapBytes).digest("hex"),
+    bytes: roadmapBytes.length,
+    capture: "linked",
+  }],
+  events: [
+    { at: "2026-07-24T10:00:10.000Z", kind: "tool_start", toolName: "read_file", args: { path: "roadmap.json" } },
+    { at: "2026-07-24T10:00:11.000Z", kind: "approval", toolName: "read_file", ok: true, approval: { decision: "allow", reason: "Fixture approval is provenance only." } },
+  ],
+  finalOutput: "The roadmap was reviewed.",
+}, null, 2)}\n`, { mode: 0o600 });
 const app = await electron.launch({
   ...(executablePath ? { executablePath } : {}),
-  args: executablePath ? ["--project", resolve(process.cwd(), "..")] : ["desktop-app/electron/main.mjs"],
+  args: executablePath ? ["--project", projectRoot] : ["desktop-app/electron/main.mjs"],
   cwd: process.cwd(),
   env: {
     ...process.env,
     VANTA_DESKTOP_PORT: port,
     VANTA_DESKTOP_USER_DATA: userData,
     VANTA_HOME: vantaHome,
+    VANTA_PROJECT_ROOT: projectRoot,
     VANTA_DESKTOP_AUTOMATION: "1",
     OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "vanta-desktop-smoke-key",
     ELECTRON_DISABLE_SECURITY_WARNINGS: "1",
@@ -48,6 +80,38 @@ try {
   if (process.env.VANTA_DESKTOP_EMPTY_SCREENSHOT) {
     await page.screenshot({ path: process.env.VANTA_DESKTOP_EMPTY_SCREENSHOT });
   }
+  await page.getByRole("button", { name: "Saved runs", exact: true }).click();
+  await page.getByRole("region", { name: "Reusable runs" }).waitFor();
+  await page.getByRole("button", { name: /Reusable run smoke proof/ }).click();
+  const runDialog = page.getByRole("dialog", { name: "Reusable run smoke proof" });
+  await runDialog.waitFor();
+  await runDialog.getByText("Captured provenance").waitFor();
+  await runDialog.getByText("Timeline").click();
+  await runDialog.getByText("allow", { exact: true }).waitFor();
+  await runDialog.getByRole("button", { name: "Review replay" }).click();
+  await runDialog.getByText("Project root", { exact: true }).waitFor();
+  await runDialog.getByText("All available", { exact: true }).waitFor();
+  await runDialog.getByText("Inputs match. The new run will request fresh approvals.").waitFor();
+  let replayPayload;
+  await page.route("**/api/chat", async (route) => {
+    replayPayload = route.request().postDataJSON();
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        finalText: "Replay smoke completed.",
+        events: [{ label: "Fresh replay turn completed.", ok: true }],
+        receipt: { status: "done", events: [{ label: "Fresh replay turn completed.", ok: true }], actions: [] },
+      }),
+    });
+  });
+  await runDialog.getByRole("button", { name: "Replay now" }).click();
+  await page.getByText("Fresh replay turn completed.", { exact: true }).first().waitFor();
+  if (!replayPayload?.message?.startsWith("Review the current project roadmap") || replayPayload?.files?.[0] !== "roadmap.json") {
+    throw new Error("Replay did not submit a fresh turn with structured input metadata");
+  }
+  await page.unroute("**/api/chat");
+  await page.getByRole("button", { name: "Threads", exact: true }).click();
   await page.locator(".session-sidebar").getByRole("button", { name: "New task" }).click();
   await page.getByRole("dialog", { name: "Start a new task" }).getByRole("button", { name: "Create and run" }).click();
   await page.locator(".composer").waitFor();
@@ -61,7 +125,7 @@ try {
   const inspectorClosed = await measure(page);
   assertLayout(inspectorClosed, "inspector closed");
   await page.locator(".app-titlebar").getByRole("button", { name: "Open contextual inspector" }).click();
-  await page.locator(".composer").getByTitle("Change model").click();
+  await page.locator(".composer").getByRole("button", { name: /Agent model: .* Change model/ }).click();
   const modelDesktop = await measureModelPicker(page);
   assertModelPicker(modelDesktop, "desktop");
   if (process.env.VANTA_DESKTOP_MODEL_SCREENSHOT) {
@@ -98,9 +162,13 @@ try {
   }));
   await page.setViewportSize({ width: 760, height: 900 });
   await page.reload({ waitUntil: "domcontentloaded" });
-  // The composer owns the file-context entry point and opens the inspector in
-  // either initial state, so the proof does not depend on a stale tray toggle.
-  await page.getByRole("button", { name: "Attach project files" }).click();
+  const openInspector = page.getByRole("button", { name: "Open contextual inspector" });
+  if (await openInspector.isVisible().catch(() => false)) await openInspector.click();
+  const filesTab = page.locator(".inspector-tabs button").filter({ hasText: "Files" });
+  if (!await filesTab.isVisible().catch(() => false)) {
+    await page.getByRole("button", { name: "Inspect", exact: true }).click();
+  }
+  await filesTab.click();
   await page.locator(".files-panel").waitFor();
   await page.locator(".file-list button").first().waitFor();
   const files = await measureFiles(page);

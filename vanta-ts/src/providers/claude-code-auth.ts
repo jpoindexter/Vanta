@@ -63,9 +63,13 @@ export function readClaudeCodeAuth(
   const envToken = env.CLAUDE_CODE_OAUTH_TOKEN?.trim() || env.ANTHROPIC_AUTH_TOKEN?.trim();
   if (envToken) return { token: envToken };
 
+  let expiredFile: ClaudeCodeAuth | null = null;
   try {
     const fromFile = parseClaudeOauth(readFileSync(credentialsPath(env), "utf8"));
-    if (fromFile) return fromFile;
+    if (fromFile) {
+      if (!isTokenExpired(fromFile.expiresAt, Date.now())) return fromFile;
+      expiredFile = fromFile; // stale legacy file; modern Claude Code may have refreshed the keychain
+    }
   } catch {
     // no creds file / unreadable — try the keychain next
   }
@@ -75,7 +79,7 @@ export function readClaudeCodeAuth(
     const fromKeychain = parseClaudeOauth(blob);
     if (fromKeychain) return fromKeychain;
   }
-  return null;
+  return expiredFile;
 }
 
 /**

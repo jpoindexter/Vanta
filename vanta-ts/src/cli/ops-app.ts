@@ -1,20 +1,23 @@
 import { join } from "node:path";
+import { randomBytes } from "node:crypto";
 import { resolveVantaHome } from "../store/home.js";
-import { parseDesktopLaunchArgs } from "../desktop/native-shell.js";
+import { authenticatedDesktopUrl, parseDesktopLaunchArgs } from "../desktop/native-shell.js";
 
 export async function runDesktopCommand(repoRoot: string, rest: string[]): Promise<void> {
   const launch = parseDesktopLaunchArgs(rest, process.env);
   const { serveDesktop } = await import("../desktop/server.js");
+  const boundaryToken = process.env.VANTA_DESKTOP_BOUNDARY_TOKEN ?? randomBytes(32).toString("hex");
+  const launchUrl = authenticatedDesktopUrl(launch.url, boundaryToken);
   if (!launch.openBrowser) {
-    await serveDesktop(repoRoot, launch.port, launch.companion);
+    await serveDesktop(repoRoot, launch.port, launch.companion, boundaryToken, launchUrl);
     return;
   }
   setTimeout(() => {
     void import("node:child_process").then(({ execSync }) => {
-      try { execSync(`open "${launch.url}"`); } catch {}
+      try { execSync(`open "${launchUrl}"`); } catch {}
     });
   }, 300);
-  await serveDesktop(repoRoot, launch.port, launch.companion);
+  await serveDesktop(repoRoot, launch.port, launch.companion, boundaryToken, launchUrl);
 }
 
 export async function runFactoryCommand(repoRoot: string, sub: string): Promise<void> {

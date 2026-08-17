@@ -1,5 +1,6 @@
 import type { Conversation } from "../agent.js";
-import type { EffortLevel, ImageAttachment } from "../types.js";
+import type { ImageAttachment } from "../types.js";
+import type { ProviderEffortLevel, ProviderSpeed } from "../providers/model-settings.js";
 import type { RunSetup } from "../session.js";
 import type { SessionWorkingMemory } from "../memory/working.js";
 import type { LLMProvider } from "../providers/interface.js";
@@ -27,7 +28,9 @@ export type ReplState = {
   /** COST-VISIBLE: running session cost split (local free vs frontier metered). */
   sessionCost?: SessionCost;
   /** Current session model-effort setting; /effort mutates it live. */
-  effortLevel?: EffortLevel;
+  effortLevel?: ProviderEffortLevel;
+  /** Current session provider service tier; /speed mutates it live. */
+  serviceTier?: ProviderSpeed;
   /** Provider/model override owned by this session; absent means configured default. */
   providerId?: string;
   modelId?: string;
@@ -56,6 +59,8 @@ export type ReplCtx = {
   state: ReplState;
   env: NodeJS.ProcessEnv;
   now: () => Date;
+  /** Optional interactive-host compaction progress sink. */
+  onCompacting?: (active: boolean, progress?: number) => void;
   /** Session working memory — available in the REPL; may be absent in TUI buildCtx. */
   workingMemory?: SessionWorkingMemory;
 };

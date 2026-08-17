@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { McpClient } from "./client.js";
-import { httpTransport, resolveToken } from "./http-transport.js";
+import { httpTransport, resolveTemplate, resolveToken } from "./http-transport.js";
 
 // A tiny loopback HTTP MCP endpoint: echoes the request id, requires a Bearer
 // token, and replies with a SINGLE JSON object that has NO trailing newline —
@@ -33,6 +33,13 @@ describe("resolveToken", () => {
     expect(resolveToken("foo", "explicit", {} as NodeJS.ProcessEnv)).toBe("explicit");
     expect(resolveToken("my-server", undefined, { VANTA_MCP_TOKEN_MY_SERVER: "envtok" } as NodeJS.ProcessEnv)).toBe("envtok");
     expect(resolveToken("none", undefined, {} as NodeJS.ProcessEnv)).toBeUndefined();
+  });
+});
+
+describe("resolveTemplate", () => {
+  it("resolves named environment placeholders and refuses missing values", () => {
+    expect(resolveTemplate("Bearer ${VANTA_TEST_TOKEN}", { VANTA_TEST_TOKEN: "secret" })).toBe("Bearer secret");
+    expect(resolveTemplate("${VANTA_MISSING}", {})).toBeUndefined();
   });
 });
 

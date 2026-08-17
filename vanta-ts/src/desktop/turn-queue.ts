@@ -8,14 +8,19 @@ export type QueuedTurnTarget = {
   root: string;
   controllerId: string;
   model: string;
-  accessMode: "ask" | "approve" | "full";
+  accessMode: "ask" | "approve" | "plan" | "auto" | "full";
 };
 
 export type QueuedTurn = {
   id: string;
   instruction: string;
   intent: "next" | "steer";
-  status: "queued" | "starting";
+  status: "queued" | "starting" | "failed";
+  failure?: {
+    reason: string;
+    at: string;
+    attempts: number;
+  };
   target: QueuedTurnTarget;
   position: number;
   revision: number;
@@ -36,8 +41,14 @@ export type TurnQueueDeps = {
 };
 
 export class QueueConflictError extends Error {
-  constructor(readonly code: "not_found" | "revision_conflict" | "already_started") {
-    super(code === "already_started" ? "This queued turn has already started." : code === "revision_conflict" ? "This queued turn changed. Refresh and try again." : "Queued turn not found.");
+  constructor(readonly code: "not_found" | "revision_conflict" | "already_started" | "not_retryable") {
+    super(code === "already_started"
+      ? "This queued turn has already started."
+      : code === "revision_conflict"
+        ? "This queued turn changed. Refresh and try again."
+        : code === "not_retryable"
+          ? "This queued turn is not waiting for a retry."
+          : "Queued turn not found.");
     this.name = "QueueConflictError";
   }
 }
@@ -171,13 +182,34 @@ export class DesktopTurnQueue {
     });
   }
 
-  async release(id: string): Promise<void> {
+  async release(id: string, failureReason?: string): Promise<void> {
     return this.mutate((document) => {
       const item = document.items.find((candidate) => candidate.id === id);
       if (!item) return;
       delete item.ownerPid;
-      item.status = "queued";
+      const reason = cleanFailureReason(failureReason);
+      if (reason) {
+        item.status = "failed";
+        item.failure = {
+          reason,
+          at: this.deps.now().toISOString(),
+          attempts: (item.failure?.attempts ?? 0) + 1,
+        };
+      } else {
+        item.status = "queued";
+        delete item.failure;
+      }
       this.touch(item);
+    });
+  }
+
+  async retry(id: string, revision: number): Promise<QueuedTurn> {
+    return this.mutate((document) => {
+      const item = this.mutable(document, id, revision);
+      if (item.status !== "failed") throw new QueueConflictError("not_retryable");
+      item.status = "queued";
+      delete item.failure;
+      return this.touch(item);
     });
   }
 
@@ -189,15 +221,19 @@ export class DesktopTurnQueue {
     const item = document.items.find((candidate) => candidate.id === id);
     if (!item) throw new QueueConflictError("not_found");
     if (item.revision !== revision) throw new QueueConflictError("revision_conflict");
-    if (item.status !== "queued") throw new QueueConflictError("already_started");
+    if (item.status === "starting") throw new QueueConflictError("already_started");
     return item;
   }
 
   private touch(item: QueuedTurn): QueuedTurn {
     item.revision += 1;
     item.updatedAt = this.deps.now().toISOString();
-    return { ...item, target: { ...item.target } };
+    return { ...item, target: { ...item.target }, ...(item.failure ? { failure: { ...item.failure } } : {}) };
   }
+}
+
+function cleanFailureReason(reason: string | undefined): string {
+  return (reason ?? "").replace(/[\u0000-\u001f\u007f]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 500);
 }
 
 export function desktopTurnQueuePath(root: string, env: NodeJS.ProcessEnv = process.env): string {

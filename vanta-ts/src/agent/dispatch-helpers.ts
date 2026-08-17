@@ -19,8 +19,18 @@ import { buildPermDeniedPayload, shouldFirePermDenied } from "../hooks/perm-deni
 import { gateAuditEvent, type GateResolution } from "../governance/audit.js";
 import { join } from "node:path";
 import { approvedMkdirWritableDirs, externalDirectMkdirTarget, shellCommandCwd, shellCommandSafetyAction } from "../tools/shell-cmd.js";
+import type { ToolResult } from "../tools/types.js";
+import { persistApprovalTransition } from "./effect-persistence.js";
+import { executeToolEffect } from "../effects/tool-effect-gateway.js";
 
-export type SafetyGateResult = { approved: boolean; reason?: string; sandboxWritableDirs?: string[] };
+export type SafetyGateResult = {
+  approved: boolean;
+  reason?: string;
+  sandboxWritableDirs?: string[];
+  /** Exact Ask action already resolved by this gate. */
+  effectApprovalAction?: string;
+  effectApprovalReusable?: boolean;
+};
 
 /** PAPER-GOVERNANCE-AUDIT: log one durable, tamper-evident `gate` event per
  *  applySafetyGate exit — the kernel's raw verdict plus how it was finally
@@ -72,10 +82,14 @@ export async function applySafetyGate(
   }
 
   const decision = await resolveLayeredDecision(verdict, call, action, ctx);
-  const externalMkdir = localShell ? externalDirectMkdirTarget(String(call.arguments.command), shellCwd, ctx.root) : null;
-  const effectiveDecision = decision.decision === "allow" && externalMkdir
-    ? { decision: "ask" as const, reason: `create a directory outside the project root at ${externalMkdir}` }
+  const forceFreshApproval = deps.forceFreshApproval?.() === true;
+  const replayDecision = forceFreshApproval && verdict.risk === "ask" && decision.decision !== "block"
+    ? { decision: "ask" as const, reason: "replay requires a fresh approval" }
     : decision;
+  const externalMkdir = localShell ? externalDirectMkdirTarget(String(call.arguments.command), shellCwd, ctx.root) : null;
+  const effectiveDecision = replayDecision.decision === "allow" && externalMkdir
+    ? { decision: "ask" as const, reason: `create a directory outside the project root at ${externalMkdir}` }
+    : replayDecision;
   const permissionMode = ctx.permissionMode?.() ?? resolvePermissionMode(process.env);
 
   if (effectiveDecision.decision === "block") {
@@ -83,19 +97,39 @@ export async function applySafetyGate(
   }
 
   if (effectiveDecision.decision === "ask") {
+    if (forceFreshApproval) {
+      const result = await handleApprovalRequest({ call, action, verdict, deps, root: ctx.root, tool });
+      if (!result.approved) return result;
+      return call.name === "shell_cmd"
+        ? { ...result, effectApprovalAction: action, effectApprovalReusable: false, sandboxWritableDirs: approvedMkdirWritableDirs(String(call.arguments.command ?? ""), shellCwd) }
+        : { ...result, effectApprovalAction: action, effectApprovalReusable: false };
+    }
     if (permissionMode === "fullAccess") {
       recordAutoDecision(action, deps.activeGoalText);
       await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "full-access-auto" });
-      return { approved: true, reason: "full access (kernel and explicit blocks remain enforced)" };
+      return call.name === "shell_cmd"
+        ? {
+            approved: true,
+            reason: "full access (kernel and explicit blocks remain enforced)",
+            effectApprovalAction: action,
+            effectApprovalReusable: true,
+            sandboxWritableDirs: approvedMkdirWritableDirs(String(call.arguments.command ?? ""), shellCwd),
+          }
+        : { approved: true, reason: "full access (kernel and explicit blocks remain enforced)", effectApprovalAction: action, effectApprovalReusable: true };
     }
     const result = await handleAskDecision({ call, action, verdict, decision: effectiveDecision, deps, root: ctx.root, tool, permissionMode });
-    return result.approved && call.name === "shell_cmd"
-      ? { ...result, sandboxWritableDirs: approvedMkdirWritableDirs(String(call.arguments.command ?? ""), shellCwd) }
-      : result;
+    if (!result.approved) return result;
+    return call.name === "shell_cmd"
+      ? { ...result, effectApprovalAction: action, effectApprovalReusable: true, sandboxWritableDirs: approvedMkdirWritableDirs(String(call.arguments.command ?? ""), shellCwd) }
+      : { ...result, effectApprovalAction: action, effectApprovalReusable: true };
   }
 
   await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "allow" });
-  return { approved: true };
+  return {
+    approved: true,
+    effectApprovalAction: action,
+    effectApprovalReusable: !forceFreshApproval && (verdict.risk === "ask" || permissionMode === "fullAccess"),
+  };
 }
 
 /**
@@ -183,7 +217,15 @@ async function handleApprovalRequest(o: {
   const why = verdict.reason || "permission rule";
   // EXT-ACP-EDIT-DIFF: file tools attach an old/new preview to the ask.
   const diff = await o.tool?.describeDiff?.(call.arguments, root).catch(() => undefined);
-  const approved = await deps.requestApproval(action, why, call.name, diff ? { diff } : undefined);
+  await persistApprovalTransition(root, deps.sessionId, call, action, "requested");
+  let approved: boolean;
+  try {
+    approved = await deps.requestApproval(action, why, call.name, diff ? { diff } : undefined);
+  } catch (error) {
+    await persistApprovalTransition(root, deps.sessionId, call, action, "expired");
+    throw error;
+  }
+  await persistApprovalTransition(root, deps.sessionId, call, action, approved ? "approved" : "denied");
   await recordApprovalSignal(call.name, action, why, approved);
   // Reconcile the kernel approval queue ONLY when the kernel itself asked.
   // Queue bookkeeping is best-effort — a kernel hiccup must not abort the turn.
@@ -218,7 +260,7 @@ export async function executeWithRetry(
   deps: AgentDeps,
   ctx: ToolContext,
   tool: any, // The tool object from registry.get()
-): Promise<{ ok: boolean; output: string; diff?: any[] }> {
+): Promise<ToolResult> {
   try {
     if (shouldWarn(call.name, deps.activeGoalText)) {
       deps.onText?.(buildSelfMonitorText(call.name, deps.activeGoalText!));
@@ -230,11 +272,14 @@ export async function executeWithRetry(
   // TOOL-RETRY: re-run only idempotent reads on a transient failure; never a
   // write/shell/spawn (re-running could double a side effect). Honest report —
   // the final result is returned as-is, success is never faked.
-  let res = await tool.execute(call.arguments, ctx);
+  let res = await executeToolEffect(call.name, call.arguments, tool, ctx);
   const budget = resolveToolRetries();
   for (let attempt = 1; attempt <= budget && shouldRetryTool(call.name, res.ok, res.output); attempt++) {
     deps.onText?.(`  ↻ ${call.name} hit a transient failure — retry ${attempt}/${budget}`);
-    res = await tool.execute(call.arguments, ctx);
+    const retryCtx = ctx.effectCallId
+      ? { ...ctx, effectCallId: `${ctx.effectCallId}:retry-${attempt}` }
+      : ctx;
+    res = await executeToolEffect(call.name, call.arguments, tool, retryCtx);
   }
 
   return res;

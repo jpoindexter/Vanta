@@ -1,6 +1,7 @@
 import { Check, Copy, Download, Plus, Upload } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { api } from "./api.js";
+import { StyledSelect } from "./form-controls.js";
 import type { RuntimeProfileItem, RuntimeProfilePayload } from "./types.js";
 
 type ProfileAction =
@@ -53,16 +54,16 @@ export function RuntimeProfilesView(props: { payload?: RuntimeProfilePayload; er
       {props.error ? <p className="runtime-switch-error" role="alert">{props.error}</p> : null}
       {creating ? <form className="runtime-profile-form" onSubmit={create}>
         <label>ID<input name="id" required pattern="[a-z0-9._-]+" /></label><label>Name<input name="name" required /></label>
-        <label>Engine<select name="backend" defaultValue="llama_cpp"><option value="llama_cpp">llama.cpp</option><option value="mlx">MLX</option><option value="vllm">vLLM</option><option value="sglang">SGLang</option></select></label>
+        <label>Engine<StyledSelect name="backend" defaultValue="llama_cpp"><option value="llama_cpp">llama.cpp</option><option value="mlx">MLX</option><option value="vllm">vLLM</option><option value="sglang">SGLang</option></StyledSelect></label>
         <label>Model path<input name="modelPath" required /></label><label>Model bytes<input name="modelBytes" type="number" min="1" required /></label><label>Available memory<input name="availableMemoryBytes" type="number" min="1" defaultValue={props.payload?.host.memoryBytes} required /></label>
         <details><summary>Advanced controls</summary><div>
           <label>Host<input name="host" defaultValue="127.0.0.1" /></label><label>Port<input name="port" type="number" defaultValue="8129" /></label>
           <label>Context<input name="contextTokens" type="number" defaultValue="32768" /></label><label>Threads<input name="threads" type="number" min="1" /></label>
           <label>GPU layers<input name="gpuLayers" type="number" min="0" /></label><label>Batch size<input name="batchSize" type="number" min="1" /></label>
-          <label>Parallel slots<input name="parallel" type="number" min="1" defaultValue="1" /></label><label>Flash attention<select name="flashAttention" defaultValue=""><option value="">Engine default</option><option value="on">On</option><option value="off">Off</option></select></label>
+          <label>Parallel slots<input name="parallel" type="number" min="1" defaultValue="1" /></label><label>Flash attention<StyledSelect name="flashAttention" defaultValue=""><option value="">Engine default</option><option value="on">On</option><option value="off">Off</option></StyledSelect></label>
           <label>Environment references<textarea name="environment" placeholder="MODEL_TOKEN=secret://runtime/model-token" /></label><label>Extra arguments<textarea name="extraArgs" placeholder="--custom-kernel=1" /></label>
           <label>Compatible platforms<input name="platforms" placeholder="darwin, linux" /></label><label>Compatible architectures<input name="architectures" placeholder="arm64, x64" /></label>
-          <label>Policy<select name="policyScope" defaultValue="ask"><option value="ask">Ask</option><option value="approve">Approve safe</option><option value="full">Full access</option></select></label>
+          <label>Policy<StyledSelect name="policyScope" defaultValue="ask"><option value="ask">Ask</option><option value="approve">Approve safe</option><option value="full">Full access</option></StyledSelect></label>
           <fieldset><legend>Explicit reviews</legend><label><input name="reviewUnknown" type="checkbox" />Unknown flags reviewed</label><label><input name="reviewRemoteBind" type="checkbox" />Remote bind reviewed</label><label><input name="reviewContractOnly" type="checkbox" />Contract-only backend reviewed</label></fieldset>
         </div></details>
         <div><button type="submit" disabled={props.pending}>Create profile</button><button type="button" onClick={() => setCreating(false)}>Cancel</button></div>

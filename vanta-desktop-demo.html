@@ -1,0 +1,909 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Vanta Desktop — Focused Shell Demo</title>
+  <style>
+    :root {
+      --bg: #0c0d0d;
+      --sidebar: #101211;
+      --surface: #131514;
+      --surface-2: #181b19;
+      --hover: #1d211e;
+      --line: #292e2a;
+      --line-strong: #3a403b;
+      --text: #edf0ed;
+      --muted: #9ba19b;
+      --faint: #70766f;
+      --accent: #b7d6bd;
+      --accent-strong: #d6ead9;
+      --success: #8bc49a;
+      --warning: #d7b56f;
+      --danger: #d9897f;
+      --sidebar-width: 252px;
+      --inspector-width: 324px;
+      --radius: 8px;
+      --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #050606;
+      color: var(--text);
+      font-family: var(--font-ui);
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, textarea, input { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, textarea:focus-visible, input:focus-visible, summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .app {
+      height: 100dvh;
+      min-height: 620px;
+      display: grid;
+      grid-template-rows: 44px 1fr;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    .titlebar {
+      display: grid;
+      grid-template-columns: var(--sidebar-width) minmax(0, 1fr) auto;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+      user-select: none;
+    }
+
+    .window-region, .project-region, .status-region {
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .window-region {
+      gap: 8px;
+      padding: 0 14px;
+      border-right: 1px solid var(--line);
+    }
+
+    .traffic { display: flex; gap: 7px; margin-right: 7px; }
+    .traffic i { width: 10px; height: 10px; border-radius: 50%; background: #5b605b; }
+    .traffic i:first-child { background: #d9796f; }
+    .traffic i:nth-child(2) { background: #d2ab5f; }
+    .traffic i:last-child { background: #77b887; }
+
+    .icon-button, .quiet-button, .pill-button, .send-button, .new-task {
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .icon-button {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border-radius: 6px;
+      color: var(--muted);
+    }
+    .icon-button:hover, .icon-button[aria-pressed="true"] { color: var(--text); background: var(--hover); }
+
+    .project-region { min-width: 0; gap: 9px; padding: 0 16px; }
+    .project-mark {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      color: var(--accent);
+      font: 700 11px var(--font-mono);
+    }
+    .project-copy { min-width: 0; line-height: 1.1; }
+    .project-copy strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+    .project-copy span { color: var(--faint); font-size: 10px; }
+
+    .status-region { gap: 4px; padding-right: 8px; }
+    .online {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-right: 4px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .online::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+
+    .workspace {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: var(--sidebar-width) minmax(0, 1fr) 0;
+      transition: grid-template-columns 160ms ease;
+    }
+    .workspace.sidebar-closed { grid-template-columns: 0 minmax(0, 1fr) 0; }
+    .workspace.inspector-open { grid-template-columns: var(--sidebar-width) minmax(0, 1fr) var(--inspector-width); }
+    .workspace.sidebar-closed.inspector-open { grid-template-columns: 0 minmax(0, 1fr) var(--inspector-width); }
+
+    .sidebar, .inspector {
+      min-width: 0;
+      overflow: hidden;
+      background: var(--sidebar);
+    }
+    .sidebar {
+      border-right: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+    }
+    .workspace.sidebar-closed .sidebar { visibility: hidden; }
+
+    .new-task {
+      min-height: 34px;
+      margin: 12px 10px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      background: var(--surface-2);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .new-task:hover { border-color: #555d56; background: var(--hover); }
+
+    .side-section { padding: 8px 8px 2px; }
+    .section-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 7px 7px;
+      color: var(--faint);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .section-label button {
+      border: 0;
+      background: none;
+      color: var(--faint);
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .task-list { display: grid; gap: 2px; }
+    .task-item {
+      width: 100%;
+      min-height: 42px;
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr);
+      align-items: center;
+      gap: 7px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      padding: 6px 8px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .task-item:hover { background: var(--hover); color: var(--text); }
+    .task-item.active { background: var(--surface-2); color: var(--text); }
+    .task-item svg { color: var(--faint); }
+    .task-item.active svg { color: var(--accent); }
+    .task-item span { min-width: 0; }
+    .task-item strong, .task-item small {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .task-item strong { font-size: 12px; font-weight: 560; }
+    .task-item small { margin-top: 3px; color: var(--faint); font-size: 10px; }
+
+    .side-footer {
+      margin-top: auto;
+      padding: 8px;
+      border-top: 1px solid var(--line);
+    }
+    .side-footer button {
+      width: 100%;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 9px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .side-footer button:hover { background: var(--hover); color: var(--text); }
+
+    .conversation {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: 48px minmax(0, 1fr) auto;
+      background: var(--bg);
+    }
+    .conversation-header {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .conversation-title { min-width: 0; }
+    .conversation-title h1 {
+      margin: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .conversation-title p { margin: 2px 0 0; color: var(--faint); font-size: 10px; }
+    .header-actions { display: flex; gap: 2px; margin-left: auto; }
+
+    .transcript {
+      min-height: 0;
+      overflow-y: auto;
+      scrollbar-color: var(--line-strong) transparent;
+      padding: 28px max(24px, calc((100% - 760px) / 2)) 36px;
+    }
+    .turn { margin: 0 0 28px; }
+    .turn-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 10px;
+      color: var(--faint);
+      font-size: 11px;
+      font-weight: 650;
+    }
+    .avatar {
+      width: 20px;
+      height: 20px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      color: var(--accent);
+      font: 700 9px var(--font-mono);
+    }
+    .user-copy {
+      display: inline-block;
+      max-width: 88%;
+      margin: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      padding: 10px 12px;
+      color: #dfe2df;
+      line-height: 1.55;
+    }
+    .answer { color: #dfe3df; line-height: 1.65; }
+    .answer h2 { margin: 0 0 10px; color: var(--text); font-size: 15px; }
+    .answer p { margin: 0 0 12px; }
+    .answer ul { margin: 8px 0 14px; padding-left: 20px; }
+    .answer li { margin: 5px 0; }
+    .answer code {
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--surface);
+      padding: 2px 5px;
+      color: var(--accent-strong);
+      font: 12px var(--font-mono);
+    }
+
+    .task-progress {
+      margin: 18px 0 14px;
+      border-left: 2px solid var(--line-strong);
+      padding: 1px 0 1px 14px;
+    }
+    .progress-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .progress-head strong { font-size: 12px; }
+    .progress-head span { color: var(--faint); font: 10px var(--font-mono); }
+    .progress-row {
+      min-height: 28px;
+      display: grid;
+      grid-template-columns: 18px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .progress-row.done { color: var(--faint); }
+    .progress-row.active { color: var(--text); font-weight: 600; }
+    .progress-icon {
+      width: 14px;
+      height: 14px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      color: var(--success);
+      font-size: 9px;
+    }
+    .progress-row.active .progress-icon {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #152017;
+    }
+    .progress-row small { color: var(--faint); font: 10px var(--font-mono); }
+
+    .activity {
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .activity summary {
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      cursor: pointer;
+      list-style: none;
+      font-size: 11px;
+    }
+    .activity summary::-webkit-details-marker { display: none; }
+    .activity summary::before { content: "›"; color: var(--faint); font-size: 16px; transition: transform 120ms ease; }
+    .activity[open] summary::before { transform: rotate(90deg); }
+    .activity-log {
+      margin: 0 0 10px 22px;
+      border-left: 1px solid var(--line);
+      padding-left: 12px;
+      color: var(--faint);
+      font: 10px/1.8 var(--font-mono);
+    }
+
+    .result-note {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .result-note i { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+
+    .composer-wrap {
+      padding: 0 max(18px, calc((100% - 790px) / 2)) 18px;
+      background: linear-gradient(to bottom, transparent, var(--bg) 18px);
+    }
+    .composer {
+      position: relative;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: var(--surface);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, .25);
+    }
+    .composer textarea {
+      width: 100%;
+      min-height: 76px;
+      max-height: 180px;
+      display: block;
+      resize: none;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      padding: 14px 15px 8px;
+      line-height: 1.5;
+    }
+    .composer textarea::placeholder { color: #686e68; }
+    .composer-footer {
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 7px;
+    }
+    .composer-footer .spacer { flex: 1; }
+    .pill-button {
+      min-height: 30px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 6px;
+      padding: 0 8px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .pill-button:hover { color: var(--text); background: var(--hover); }
+    .pill-button strong { color: var(--text); font-weight: 560; }
+    #modeButton[data-mode="Auto"] { color: var(--success); }
+    #modeButton[data-mode="Plan"] { color: #87bdc9; }
+    #modeButton[data-mode="Accept edits"] { color: #b9a1d8; }
+    .send-button {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 7px;
+      background: var(--accent);
+      color: #172019;
+    }
+    .send-button:hover { background: var(--accent-strong); }
+    .send-button:disabled { opacity: .35; cursor: default; }
+    .composer-hint { margin: 7px 0 0; color: var(--faint); text-align: center; font-size: 10px; }
+
+    .inspector {
+      border-left: 1px solid var(--line);
+      visibility: hidden;
+    }
+    .workspace.inspector-open .inspector { visibility: visible; }
+    .inspector-head {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--line);
+      padding: 0 10px 0 14px;
+    }
+    .inspector-head strong { font-size: 12px; }
+    .inspector-head button { margin-left: auto; }
+    .inspector-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-bottom: 1px solid var(--line);
+      padding: 6px;
+    }
+    .inspector-tabs button {
+      min-height: 30px;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--faint);
+      cursor: pointer;
+      font-size: 11px;
+    }
+    .inspector-tabs button:hover { color: var(--text); }
+    .inspector-tabs button.active { background: var(--surface-2); color: var(--text); }
+    .inspector-body { height: calc(100% - 85px); overflow-y: auto; padding: 12px; }
+    .inspector-summary {
+      margin: 2px 2px 14px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+    .file-row, .activity-row {
+      min-height: 42px;
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 7px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .file-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-row small { color: var(--faint); font: 9px var(--font-mono); }
+    .diff {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #0a0b0b;
+      font: 10px/1.7 var(--font-mono);
+    }
+    .diff div { padding: 0 8px; white-space: pre; }
+    .diff .add { background: rgba(74, 130, 86, .17); color: #a6d0ae; }
+    .diff .remove { background: rgba(153, 78, 69, .15); color: #d7a19a; }
+
+    dialog {
+      width: min(560px, calc(100vw - 28px));
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: var(--surface);
+      color: var(--text);
+      padding: 0;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .55);
+    }
+    dialog::backdrop { background: rgba(0, 0, 0, .55); }
+    .palette-input {
+      width: 100%;
+      height: 50px;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      padding: 0 16px;
+    }
+    .command-list { padding: 7px; }
+    .command-list button {
+      width: 100%;
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 10px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .command-list button:hover, .command-list button:focus { background: var(--hover); color: var(--text); }
+    .command-list kbd { color: var(--faint); font: 10px var(--font-mono); }
+
+    .sr-only {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      overflow: hidden !important;
+      clip: rect(1px, 1px, 1px, 1px) !important;
+      white-space: nowrap !important;
+    }
+
+    svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+    @media (max-width: 920px) {
+      :root { --sidebar-width: 220px; --inspector-width: 290px; }
+      .status-region .online { display: none; }
+      .transcript { padding-inline: 24px; }
+    }
+    @media (max-width: 760px) {
+      :root { --sidebar-width: 0px; }
+      .titlebar { grid-template-columns: auto minmax(0, 1fr) auto; }
+      .window-region { border-right: 0; }
+      .traffic { display: none; }
+      .sidebar { display: none; }
+      .workspace, .workspace.inspector-open, .workspace.sidebar-closed.inspector-open {
+        grid-template-columns: minmax(0, 1fr) 0;
+      }
+      .workspace.inspector-open .inspector {
+        position: fixed;
+        z-index: 30;
+        top: 44px;
+        right: 0;
+        bottom: 0;
+        width: min(324px, 92vw);
+        visibility: visible;
+        box-shadow: -20px 0 50px rgba(0, 0, 0, .45);
+      }
+      .transcript { padding: 22px 16px 28px; }
+      .composer-wrap { padding-inline: 10px; }
+      .pill-button .optional { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <svg class="sr-only" aria-hidden="true">
+    <symbol id="i-sidebar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-message" viewBox="0 0 24 24"><path d="M20 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></symbol>
+    <symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l2-7 4 14 2-7h6"/></symbol>
+    <symbol id="i-diff" viewBox="0 0 24 24"><path d="M8 3v18M4 7h8M6 17h4M17 6v6M14 9h6"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></symbol>
+    <symbol id="i-paperclip" viewBox="0 0 24 24"><path d="m21.4 11.6-8.5 8.5a6 6 0 0 1-8.5-8.5l9-9a4 4 0 0 1 5.7 5.7l-9 9a2 2 0 0 1-2.8-2.8l8.4-8.4"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7M12 5v14"/></symbol>
+    <symbol id="i-command" viewBox="0 0 24 24"><path d="M9 6V5a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3v14a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+  </svg>
+
+  <div class="app">
+    <header class="titlebar">
+      <div class="window-region">
+        <span class="traffic" aria-hidden="true"><i></i><i></i><i></i></span>
+        <button class="icon-button" id="sidebarToggle" type="button" aria-label="Toggle task sidebar" aria-expanded="true">
+          <svg><use href="#i-sidebar"/></svg>
+        </button>
+      </div>
+      <div class="project-region">
+        <span class="project-mark" aria-hidden="true">V</span>
+        <span class="project-copy"><strong>Vanta</strong><span>Focused desktop concept</span></span>
+      </div>
+      <div class="status-region">
+        <span class="online">Ready</span>
+        <button class="icon-button inspector-trigger" data-panel="activity" type="button" aria-label="Open activity" aria-pressed="false"><svg><use href="#i-activity"/></svg></button>
+        <button class="icon-button inspector-trigger" data-panel="files" type="button" aria-label="Open files" aria-pressed="false"><svg><use href="#i-file"/></svg></button>
+        <button class="icon-button inspector-trigger" data-panel="diff" type="button" aria-label="Open diff" aria-pressed="false"><svg><use href="#i-diff"/></svg></button>
+        <button class="icon-button" id="commandButton" type="button" aria-label="Open command palette"><svg><use href="#i-command"/></svg></button>
+      </div>
+    </header>
+
+    <div class="workspace" id="workspace">
+      <aside class="sidebar" aria-label="Tasks">
+        <button class="new-task" type="button"><svg><use href="#i-plus"/></svg>New task</button>
+        <section class="side-section">
+          <div class="section-label"><span>Tasks</span><button type="button" aria-label="Task options">•••</button></div>
+          <div class="task-list">
+            <button class="task-item active" type="button">
+              <svg><use href="#i-message"/></svg>
+              <span><strong>Simplify desktop interface</strong><small>Ready for review</small></span>
+            </button>
+            <button class="task-item" type="button">
+              <svg><use href="#i-message"/></svg>
+              <span><strong>Fix folder attachments</strong><small>Completed · 24m</small></span>
+            </button>
+            <button class="task-item" type="button">
+              <svg><use href="#i-message"/></svg>
+              <span><strong>Reusable run library</strong><small>Saved · yesterday</small></span>
+            </button>
+          </div>
+        </section>
+        <section class="side-section">
+          <div class="section-label"><span>Saved</span><span>2</span></div>
+          <div class="task-list">
+            <button class="task-item" type="button">
+              <svg><use href="#i-message"/></svg>
+              <span><strong>Release verification</strong><small>Reusable run</small></span>
+            </button>
+          </div>
+        </section>
+        <div class="side-footer">
+          <button type="button"><svg><use href="#i-settings"/></svg>Settings</button>
+        </div>
+      </aside>
+
+      <main class="conversation">
+        <header class="conversation-header">
+          <div class="conversation-title">
+            <h1>Simplify desktop interface</h1>
+            <p>Vanta · local project</p>
+          </div>
+          <div class="header-actions">
+            <button class="icon-button inspector-trigger" data-panel="files" type="button" aria-label="Show task context" aria-pressed="false"><svg><use href="#i-file"/></svg></button>
+            <button class="icon-button" type="button" aria-label="More task actions">•••</button>
+          </div>
+        </header>
+
+        <section class="transcript" id="transcript" aria-label="Conversation">
+          <article class="turn">
+            <div class="turn-label"><span class="avatar" aria-hidden="true">JP</span><span>You</span></div>
+            <p class="user-copy">The desktop app feels overblown. Make it calmer and more focused, like Codex.</p>
+          </article>
+
+          <article class="turn">
+            <div class="turn-label"><span class="avatar" aria-hidden="true">V</span><span>Vanta</span></div>
+            <div class="answer">
+              <h2>The interface is now centered on the task.</h2>
+              <p>I removed persistent infrastructure panels from the default view. Files, activity, and diffs now open only when you ask for them.</p>
+              <ul>
+                <li>The conversation is the primary workspace.</li>
+                <li>Tasks remain visible in one compact sidebar.</li>
+                <li>Model and access mode live beside the composer.</li>
+              </ul>
+
+              <section class="task-progress" aria-label="Task progress">
+                <div class="progress-head"><strong>Implementation</strong><span>2 of 3 complete</span></div>
+                <div class="progress-row done"><span class="progress-icon">✓</span><span>Reduce the permanent app chrome</span><small>done</small></div>
+                <div class="progress-row done"><span class="progress-icon">✓</span><span>Move system detail into contextual drawers</span><small>done</small></div>
+                <div class="progress-row active"><span class="progress-icon">•</span><span>Review the focused desktop demo</span><small>now</small></div>
+              </section>
+
+              <details class="activity">
+                <summary>4 actions · files and validation</summary>
+                <div class="activity-log">Read desktop shell<br>Updated layout hierarchy<br>Checked keyboard navigation<br>Rendered desktop preview</div>
+              </details>
+              <div class="result-note"><i aria-hidden="true"></i><span>Ready for your review. Open Files, Diff, or Activity in the top-right.</span></div>
+            </div>
+          </article>
+        </section>
+
+        <div class="composer-wrap">
+          <form class="composer" id="composer">
+            <label class="sr-only" for="prompt">Message Vanta</label>
+            <textarea id="prompt" rows="2" placeholder="Ask Vanta to do something…"></textarea>
+            <div class="composer-footer">
+              <button class="icon-button" id="attachButton" type="button" aria-label="Attach files or folders"><svg><use href="#i-paperclip"/></svg></button>
+              <input class="sr-only" id="attachmentInput" type="file" multiple>
+              <button class="pill-button" type="button" aria-label="Change model"><span class="optional">Model</span><strong>Codex</strong></button>
+              <button class="pill-button" id="modeButton" data-mode="Auto" type="button" aria-label="Change access mode"><span>●</span><strong>Auto</strong></button>
+              <span class="spacer"></span>
+              <button class="send-button" id="sendButton" type="submit" aria-label="Send message" disabled><svg><use href="#i-arrow"/></svg></button>
+            </div>
+          </form>
+          <p class="composer-hint">Shift+Tab changes mode · ⌘K opens commands</p>
+        </div>
+      </main>
+
+      <aside class="inspector" id="inspector" aria-label="Context inspector">
+        <header class="inspector-head"><strong id="inspectorTitle">Files</strong><button class="icon-button" id="closeInspector" type="button" aria-label="Close inspector"><svg><use href="#i-close"/></svg></button></header>
+        <nav class="inspector-tabs" aria-label="Inspector views">
+          <button type="button" data-panel="files" class="active">Files</button>
+          <button type="button" data-panel="diff">Diff</button>
+          <button type="button" data-panel="activity">Activity</button>
+        </nav>
+        <div class="inspector-body" id="inspectorBody"></div>
+      </aside>
+    </div>
+  </div>
+
+  <dialog id="commandPalette" aria-labelledby="paletteLabel">
+    <label class="sr-only" id="paletteLabel" for="paletteInput">Search commands</label>
+    <input class="palette-input" id="paletteInput" type="search" placeholder="Search commands…">
+    <div class="command-list">
+      <button type="button" data-command="files"><span>Open files</span><kbd>⌘ ⇧ F</kbd></button>
+      <button type="button" data-command="diff"><span>Review changes</span><kbd>⌘ D</kbd></button>
+      <button type="button" data-command="activity"><span>Show activity</span><kbd>⌘ ⇧ A</kbd></button>
+      <button type="button" data-command="mode"><span>Change access mode</span><kbd>⇧ Tab</kbd></button>
+    </div>
+  </dialog>
+
+  <script>
+    const workspace = document.querySelector("#workspace");
+    const sidebarToggle = document.querySelector("#sidebarToggle");
+    const inspector = document.querySelector("#inspector");
+    const inspectorTitle = document.querySelector("#inspectorTitle");
+    const inspectorBody = document.querySelector("#inspectorBody");
+    const closeInspector = document.querySelector("#closeInspector");
+    const inspectorTriggers = [...document.querySelectorAll(".inspector-trigger")];
+    const inspectorTabs = [...document.querySelectorAll(".inspector-tabs button")];
+    const prompt = document.querySelector("#prompt");
+    const sendButton = document.querySelector("#sendButton");
+    const composer = document.querySelector("#composer");
+    const transcript = document.querySelector("#transcript");
+    const modeButton = document.querySelector("#modeButton");
+    const commandButton = document.querySelector("#commandButton");
+    const commandPalette = document.querySelector("#commandPalette");
+    const paletteInput = document.querySelector("#paletteInput");
+    const attachButton = document.querySelector("#attachButton");
+    const attachmentInput = document.querySelector("#attachmentInput");
+    let inspectorPanel = "files";
+    let inspectorReturnFocus = null;
+
+    const panelContent = {
+      files: `
+        <p class="inspector-summary">Only files related to this task. Project browsing stays out of the way until needed.</p>
+        <div class="file-row"><svg><use href="#i-file"/></svg><span>desktop-app/src/App.tsx</span><small>M</small></div>
+        <div class="file-row"><svg><use href="#i-file"/></svg><span>desktop-app/src/styles.css</span><small>M</small></div>
+        <div class="file-row"><svg><use href="#i-file"/></svg><span>vanta-desktop-demo.html</span><small>A</small></div>`,
+      diff: `
+        <p class="inspector-summary">A compact review surface. Approvals appear here only when an action needs you.</p>
+        <div class="diff" aria-label="Example code changes">
+          <div class="remove">- permanent activity panel</div>
+          <div class="remove">- persistent runtime telemetry</div>
+          <div class="add">+ contextual inspector drawer</div>
+          <div class="add">+ focused conversation canvas</div>
+        </div>`,
+      activity: `
+        <p class="inspector-summary">The full trace is available, but the conversation only shows a readable summary.</p>
+        <div class="activity-row"><svg><use href="#i-file"/></svg><span>Read desktop shell</span><small>12:41</small></div>
+        <div class="activity-row"><svg><use href="#i-diff"/></svg><span>Updated layout hierarchy</span><small>12:43</small></div>
+        <div class="activity-row"><svg><use href="#i-activity"/></svg><span>Validated keyboard controls</span><small>12:45</small></div>`
+    };
+
+    function openInspector(panel, trigger) {
+      inspectorPanel = panel;
+      inspectorReturnFocus = trigger || document.activeElement;
+      workspace.classList.add("inspector-open");
+      inspectorTitle.textContent = panel[0].toUpperCase() + panel.slice(1);
+      inspectorBody.innerHTML = panelContent[panel];
+      inspectorTabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.panel === panel));
+      inspectorTriggers.forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.panel === panel)));
+    }
+
+    function hideInspector() {
+      workspace.classList.remove("inspector-open");
+      inspectorTriggers.forEach((button) => button.setAttribute("aria-pressed", "false"));
+      inspectorReturnFocus?.focus();
+    }
+
+    sidebarToggle.addEventListener("click", () => {
+      const closed = workspace.classList.toggle("sidebar-closed");
+      sidebarToggle.setAttribute("aria-expanded", String(!closed));
+    });
+    inspectorTriggers.forEach((button) => button.addEventListener("click", () => {
+      const sameOpenPanel = workspace.classList.contains("inspector-open") && inspectorPanel === button.dataset.panel;
+      if (sameOpenPanel) hideInspector();
+      else openInspector(button.dataset.panel, button);
+    }));
+    inspectorTabs.forEach((button) => button.addEventListener("click", () => openInspector(button.dataset.panel, button)));
+    closeInspector.addEventListener("click", hideInspector);
+
+    const modes = ["Auto", "Accept edits", "Plan", "Manual"];
+    function cycleMode() {
+      const next = modes[(modes.indexOf(modeButton.dataset.mode) + 1) % modes.length];
+      modeButton.dataset.mode = next;
+      modeButton.querySelector("strong").textContent = next;
+      modeButton.setAttribute("aria-label", `Access mode: ${next}. Change access mode`);
+    }
+    modeButton.addEventListener("click", cycleMode);
+
+    prompt.addEventListener("input", () => {
+      sendButton.disabled = !prompt.value.trim();
+      prompt.style.height = "auto";
+      prompt.style.height = `${Math.min(prompt.scrollHeight, 180)}px`;
+    });
+    composer.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const text = prompt.value.trim();
+      if (!text) return;
+      const turn = document.createElement("article");
+      turn.className = "turn";
+      turn.innerHTML = `<div class="turn-label"><span class="avatar" aria-hidden="true">JP</span><span>You</span></div><p class="user-copy"></p>`;
+      turn.querySelector(".user-copy").textContent = text;
+      transcript.append(turn);
+      prompt.value = "";
+      prompt.style.height = "";
+      sendButton.disabled = true;
+      transcript.scrollTo({ top: transcript.scrollHeight, behavior: "smooth" });
+    });
+    prompt.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        composer.requestSubmit();
+      }
+    });
+
+    attachButton.addEventListener("click", () => attachmentInput.click());
+    attachmentInput.addEventListener("change", () => {
+      const count = attachmentInput.files.length;
+      if (count) attachButton.setAttribute("aria-label", `${count} attachment${count === 1 ? "" : "s"} selected`);
+    });
+
+    function showPalette() {
+      commandPalette.showModal();
+      paletteInput.value = "";
+      paletteInput.focus();
+    }
+    commandButton.addEventListener("click", showPalette);
+    commandPalette.addEventListener("click", (event) => {
+      if (event.target === commandPalette) commandPalette.close();
+    });
+    document.querySelectorAll("[data-command]").forEach((button) => button.addEventListener("click", () => {
+      const command = button.dataset.command;
+      commandPalette.close();
+      if (command === "mode") cycleMode();
+      else openInspector(command, commandButton);
+    }));
+    document.addEventListener("keydown", (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        showPalette();
+      }
+      if (event.shiftKey && event.key === "Tab" && document.activeElement === prompt) {
+        event.preventDefault();
+        cycleMode();
+      }
+      if (event.key === "Escape" && workspace.classList.contains("inspector-open") && !commandPalette.open) hideInspector();
+    });
+
+    openInspector("files");
+    hideInspector();
+
+    // Optional text measurement enhancement. The page remains fully functional offline.
+    (async () => {
+      try {
+        const { prepare, layout } = await import("https://esm.sh/@chenglou/pretext");
+        await document.fonts.ready;
+        const copy = document.querySelector(".answer > p");
+        const prepared = prepare(copy.textContent, getComputedStyle(copy).font);
+        const resize = new ResizeObserver(() => {
+          copy.style.minHeight = `${layout(prepared, copy.clientWidth, parseFloat(getComputedStyle(copy).lineHeight)).height}px`;
+        });
+        resize.observe(copy);
+      } catch (_) {}
+    })();
+  </script>
+</body>
+</html>

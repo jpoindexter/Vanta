@@ -1,19 +1,11 @@
 // The `vanta <cmd>` dispatch table; interactive entry points stay in cli.ts.
-import { runScheduleCommand, runCron } from "../schedule/commands.js";
 import { runRoomsList, runModes } from "../projects/commands.js";
 import { runAuthCommand } from "../google/commands.js";
-import { runSetup } from "../setup.js";
-import { runFullSetup } from "../setup-full.js";
-import { runMessagingSetup } from "../setup-messaging.js";
-import { runTtsSetup } from "../setup-tts.js";
-import { runStatus } from "../status.js";
 import { runMigrate } from "./migrate-cmd.js";
 import { runAgentImageCommand } from "./agent-image-cmd.js";
-import { runPreflight, formatPreflight, commandExists, detectPlatform, PREFLIGHT_TOOLS } from "../setup/preflight.js";
 import { runBetaProofCommand } from "./beta-proof-cmd.js";
 import {
   dataDirFor,
-  buildCronRunTask,
   runGatewayCommand,
   runMcpCommand,
   runRoadmapCommand,
@@ -96,6 +88,7 @@ import { runMarketingCommand } from "./marketing-cmd.js";
 import { runAmbientScreenCommand } from "./ambient-screen-cmd.js";
 import { runLifeSearchCommand } from "./lifesearch-cmd.js";
 import { runHarnessThicknessCommand } from "./harness-thickness-cmd.js";
+import { runDoctorCommand } from "./doctor-cmd.js";
 import { runKanbanCommand } from "./kanban-cmd.js";
 import { runLeadCommand } from "./lead-cmd.js";
 import { runDeepPlanCommand } from "./deep-plan-cmd.js";
@@ -124,14 +117,25 @@ import { runMaintenanceCommand } from "./maintenance-cmd.js";
 import { runLocalModelCommand } from "./local-model-cmd.js";
 import { runReleaseProofsCommand } from "./release-proofs-cmd.js";
 import { runWorkflowRunCommand } from "./workflow-run-cmd.js";
+import { runIntegrationsCommand } from "./integrations-cmd.js";
+import { runOperatorSpineCommand } from "./operator-spine-cmd.js";
+import {
+  runCombinedStatus,
+  runCronCommand,
+  runPreflightCommand,
+  runScheduledCommand,
+  runSetupCommand,
+} from "./commands-table-system.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
-
 // `vanta <cmd>` dispatch table. The interactive entry points (chat/resume/run)
 // parse flags, so they stay as explicit checks in cli.ts main(); everything else is here.
 export const COMMANDS: Record<string, CommandFn> = {
+  "operator-spine": (root) => runOperatorSpineCommand(root),
+  buzz: async (root, rest) => (await import("./buzz-cmd.js")).runBuzzCommand(root, rest),
   "workflow-run": (root, rest) => runWorkflowRunCommand(root, rest),
+  integrations: (root, rest) => runIntegrationsCommand(root, rest),
   "release-proofs": (root, rest) => runReleaseProofsCommand(root, rest),
   "local-model": (root, rest) => runLocalModelCommand(root, rest),
   maintenance: (root, rest) => runMaintenanceCommand(root, rest),
@@ -171,30 +175,17 @@ export const COMMANDS: Record<string, CommandFn> = {
   autonomy: (root, rest) => runAutonomyCommand(root, rest),
   api: (root, rest) => runApiCommand(root, rest),
   home: (root) => runHomeCommand(dataDirFor(root)),
-  setup: async (root, rest) => { if (rest[0] === "messaging") await runMessagingSetup(root, undefined, { platformId: rest[1] }); else if (rest[0] === "tts") await runTtsSetup(root); else if (rest[0] === "model") await runSetup(root); else await runFullSetup(root); },
-  status: async (root, rest) => {
-    const serviceCode = await runServiceCommand(root, ["status"]);
-    const healthCode = await runStatus(process.env, rest);
-    return serviceCode || healthCode;
-  },
-  doctor: (_root, rest) => runStatus(process.env, rest),
+  setup: (root, rest) => runSetupCommand(root, rest),
+  status: (root, rest) => runCombinedStatus(root, rest),
+  doctor: (root, rest) => runDoctorCommand(root, rest),
   keybindings: (_root, rest) => runKeybindingsCommand(rest),
   migrate: (_root, rest) => runMigrate(rest),
   "agent-image": (_root, rest) => runAgentImageCommand(rest),
-  preflight: () => {
-    const platform = detectPlatform();
-    const res = runPreflight(commandExists, PREFLIGHT_TOOLS, platform);
-    console.log(formatPreflight(res, platform));
-    return res.ok ? 0 : 1;
-  },
+  preflight: () => runPreflightCommand(),
   "beta-proof": (root) => runBetaProofCommand(root),
-  schedule: async (root, rest) => {
-    const code = await runScheduleCommand(dataDirFor(root), rest);
-    if (code !== 0) usage();
-    return code;
-  },
+  schedule: (root, rest) => runScheduledCommand(root, rest),
   config: (root, rest) => runConfigCommand(root, rest),
-  cron: (root) => runCron(dataDirFor(root), new Date(), buildCronRunTask(root)),
+  cron: (root) => runCronCommand(root),
   gateway: (root, rest) => runGatewayCommand(root, rest),
   service: (root, rest) => runServiceCommand(root, rest),
   spreadsheet: (root, rest) => runSpreadsheetCommand(root, rest),

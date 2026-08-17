@@ -3,6 +3,7 @@ import { Box, Text, useInput } from "ink";
 import type { Entry } from "./types.js";
 import { writeClipboardText } from "./composer-input.js";
 import { FOCUS } from "../term/palette.js";
+import { turnSummaryLines } from "./turn-summary.js";
 
 export type MessageAction = "copy" | "retry" | "branch";
 
@@ -11,6 +12,7 @@ const ACTIONS: MessageAction[] = ["copy", "retry", "branch"];
 function entryText(entry: Entry): string {
   if (entry.kind === "user" || entry.kind === "assistant" || entry.kind === "note" || entry.kind === "thinking") return entry.text;
   if (entry.kind === "tool") return `${entry.verb}${entry.detail ? ` ${entry.detail}` : ""} ${entry.summary ?? entry.errorLine ?? ""}`.trim();
+  if (entry.kind === "turnSummary") return turnSummaryLines(entry).join("\n");
   return entry.tools.map(entryText).join("\n");
 }
 

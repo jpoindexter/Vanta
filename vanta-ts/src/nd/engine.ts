@@ -7,6 +7,7 @@ import {
   type NdConfig,
   type NdPreferences,
   type NdProfile,
+  type NdSupport,
 } from "./types.js";
 
 // The one ND engine. Runs each ENABLED gate over the turn signals, threading its
@@ -32,9 +33,24 @@ export function defaultNdPreferences(): NdPreferences {
   };
 }
 
+/** Inclusive defaults: no inferred capacity and calm interaction behavior. */
+export function defaultNdSupport(): NdSupport {
+  return {
+    capacity: {
+      cognitive: "unknown", attentional: "unknown", sensory: "unknown",
+      social: "unknown", emotional: "unknown", physical: "unknown", time: "unknown",
+    },
+    transient: {},
+    quietHours: { enabled: false, start: "22:00", end: "08:00" },
+    interruptionBudget: { daily: 3 },
+    interaction: { reducedMotion: true, streaming: false, autoScroll: false },
+    refusals: { global: false, patterns: [] },
+  };
+}
+
 /** Default whole profile: default gates + default preferences. */
 export function defaultNdProfile(): NdProfile {
-  return { gates: defaultNdConfig(), prefs: defaultNdPreferences() };
+  return { gates: defaultNdConfig(), prefs: defaultNdPreferences(), support: defaultNdSupport() };
 }
 
 /** Set one preference key (returns a new prefs object). */

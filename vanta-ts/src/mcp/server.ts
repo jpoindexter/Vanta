@@ -2,6 +2,8 @@ import type { KernelClient } from "../kernel/client.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import type { Tool, ToolContext } from "../tools/types.js";
 import { listSessions, loadSession } from "../sessions/store.js";
+import { executeToolEffect } from "../effects/tool-effect-gateway.js";
+import { randomUUID } from "node:crypto";
 
 // Minimal MCP (Model Context Protocol) SERVER — the mirror of client.ts. Exposes
 // Vanta's own tools over stdio JSON-RPC so an external host (e.g. an MCP client) can
@@ -30,6 +32,7 @@ const DEFAULT_SERVE_TOOLS = [
   "lsp_definition",
   "git_status",
   "git_diff",
+  "msa_memory",
 ] as const;
 
 const BRIDGE_TOOLS = {
@@ -64,6 +67,16 @@ export type ServerDeps = {
   allowlist: Set<string>;
   env?: NodeJS.ProcessEnv;
 };
+
+const serveScopes = new WeakMap<ServerDeps, string>();
+
+function serveScope(deps: ServerDeps): string {
+  const existing = serveScopes.get(deps);
+  if (existing) return existing;
+  const created = `mcp-serve:${process.pid}:${randomUUID()}`;
+  serveScopes.set(deps, created);
+  return created;
+}
 
 type RpcMessage = { jsonrpc?: string; id?: number | string | null; method?: string; params?: unknown };
 
@@ -134,16 +147,36 @@ function bridgeToolDefs(deps: ServerDeps): Array<(typeof BRIDGE_TOOLS)[keyof typ
   return Object.values(BRIDGE_TOOLS).filter((tool) => deps.allowlist.has(tool.name));
 }
 
-async function callBridgeTool(name: string, args: Record<string, unknown>, deps: ServerDeps): Promise<object | null> {
+async function callBridgeTool(
+  name: string,
+  args: Record<string, unknown>,
+  deps: ServerDeps,
+  operationId: string,
+): Promise<object | null> {
   if (name !== "vanta_approval_resolve") return null;
   const id = Number(args.id);
   const decision = String(args.decision ?? "");
   if (!Number.isInteger(id) || !["approve", "deny"].includes(decision)) return toolResult("id and decision are required", true);
-  const verdict = await deps.safety.assess(`${decision} pending approval ${id} via MCP serve`);
-  if (verdict.risk !== "allow") return toolResult(`approval resolution refused: ${verdict.reason}`, true);
-  if (decision === "approve") await deps.safety.approve(id);
-  else await deps.safety.deny(id);
-  return toolResult(`${decision}d approval ${id}`, false);
+  const bridge: Tool = {
+    schema: {
+      name: BRIDGE_TOOLS.vanta_approval_resolve.name,
+      description: BRIDGE_TOOLS.vanta_approval_resolve.description,
+      parameters: BRIDGE_TOOLS.vanta_approval_resolve.inputSchema,
+    },
+    describeForSafety: () => `${decision} pending approval ${id} via MCP serve`,
+    execute: async () => {
+      if (decision === "approve") await deps.safety.approve(id);
+      else await deps.safety.deny(id);
+      return { ok: true, output: `${decision}d approval ${id}` };
+    },
+  };
+  const result = await executeToolEffect(name, args, bridge, {
+    ...deps.ctx,
+    safety: deps.safety,
+    effectCallId: operationId,
+    effectScopeId: deps.ctx.effectScopeId ?? serveScope(deps),
+  }, { forceGateway: true });
+  return toolResult(result.output, !result.ok);
 }
 
 /**
@@ -155,30 +188,22 @@ async function callTool(
   name: string,
   args: Record<string, unknown>,
   deps: ServerDeps,
+  operationId: string,
 ): Promise<object> {
   if (!deps.allowlist.has(name)) {
     return toolResult(`tool not exposed over MCP serve: ${name}`, true);
   }
-  const bridgeResult = await callBridgeTool(name, args, deps);
+  const bridgeResult = await callBridgeTool(name, args, deps, operationId);
   if (bridgeResult) return bridgeResult;
   const tool = deps.registry.get(name);
   if (!tool) return toolResult(`unknown tool: ${name}`, true);
 
-  const action = tool.describeForSafety
-    ? tool.describeForSafety(args)
-    : `${name} ${JSON.stringify(args)}`;
-  const verdict = await deps.safety.assess(action);
-
-  if (verdict.risk === "block") {
-    return toolResult(`blocked by safety: ${verdict.reason}`, true);
-  }
-  if (verdict.risk === "ask") {
-    return toolResult(
-      `requires human approval (not available over MCP serve): ${verdict.reason}`,
-      true,
-    );
-  }
-  const res = await tool.execute(args, deps.ctx);
+  const res = await executeToolEffect(name, args, tool, {
+    ...deps.ctx,
+    safety: deps.safety,
+    effectCallId: operationId,
+    effectScopeId: deps.ctx.effectScopeId ?? serveScope(deps),
+  }, { forceGateway: true });
   return toolResult(res.output || "(empty result)", !res.ok);
 }
 
@@ -193,7 +218,7 @@ function toolsListResult(deps: ServerDeps): object {
 async function handleToolCall(id: RpcMessage["id"], params: unknown, deps: ServerDeps): Promise<object> {
   const p = (params ?? {}) as { name?: string; arguments?: Record<string, unknown> };
   if (!p.name) return rpcError(id, -32602, "tools/call requires a 'name' param");
-  return ok(id, await callTool(p.name, p.arguments ?? {}, deps));
+  return ok(id, await callTool(p.name, p.arguments ?? {}, deps, `mcp-invocation:${randomUUID()}`));
 }
 
 async function handleResourceRead(id: RpcMessage["id"], params: unknown, deps: ServerDeps): Promise<object> {

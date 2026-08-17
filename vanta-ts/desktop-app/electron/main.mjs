@@ -7,8 +7,12 @@ import { setTimeout as delay } from "node:timers/promises";
 import { randomBytes } from "node:crypto";
 import { app, BrowserWindow, Tray, Menu, nativeImage, dialog, clipboard, shell, ipcMain } from "electron";
 import { createTrayController } from "./tray.mjs";
+import { resolveDroppedPaths } from "./dropped-paths.mjs";
 import { findAvailablePort, projectArg, readProjectSetting, resolveProjectRoot, saveProjectSetting } from "./project-root.mjs";
 import { resolveRuntimePaths } from "./runtime-paths.mjs";
+import { desktopRuntimeEnv } from "./runtime-env.mjs";
+import { showProjectFolderPicker } from "./project-folder-picker.mjs";
+import { createPendingProjectTaskStore, prepareProjectSwitch } from "./project-switch.mjs";
 
 app.setName("Vanta");
 
@@ -26,6 +30,7 @@ let port = DEFAULT_DESKTOP_PORT;
 let automationKernelUrl;
 let shuttingDown = false;
 let serverReady;
+const pendingProjectTask = createPendingProjectTaskStore();
 const boundaryToken = randomBytes(32).toString("hex");
 process.env.VANTA_DESKTOP_BOUNDARY_TOKEN = boundaryToken;
 
@@ -36,6 +41,42 @@ ipcMain.handle("vanta:read-clipboard", () => {
     text: clipboard.readText(),
     image: png?.length ? { mime: "image/png", dataBase64: png.toString("base64"), bytes: png.length } : undefined,
   };
+});
+
+ipcMain.handle("vanta:resolve-dropped-paths", (_event, paths) =>
+  resolveDroppedPaths(paths, projectRoot));
+
+ipcMain.handle("vanta:pick-attachments", async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: "Attach files or folders to Vanta",
+    properties: ["openFile", "openDirectory", "multiSelections"],
+  });
+  if (result.canceled) return { files: [], items: [], errors: [] };
+  return resolveDroppedPaths(result.filePaths, projectRoot);
+});
+
+ipcMain.handle("vanta:pick-project-folder", (_event, currentPath) =>
+  showProjectFolderPicker({
+    dialog,
+    parentWindow: mainWindow,
+    currentPath,
+    fallbackPath: projectRoot,
+  }));
+
+ipcMain.handle("vanta:switch-project-for-new-task", async (_event, draft) => {
+  const prepared = await prepareProjectSwitch(draft);
+  await saveProjectSetting(app.getPath("userData"), prepared.targetRoot);
+  pendingProjectTask.set(prepared);
+  projectRoot = prepared.targetRoot;
+  setImmediate(() => { void loadProject().catch((error) => showFatal(error instanceof Error ? error.message : String(error))); });
+  return { switching: true, projectRoot };
+});
+
+ipcMain.handle("vanta:read-pending-project-task", () => pendingProjectTask.read(projectRoot));
+
+ipcMain.handle("vanta:acknowledge-pending-project-task", (_event, id) => {
+  if (typeof id !== "string" || id.length > 128) return false;
+  return pendingProjectTask.acknowledge(id, projectRoot);
 });
 
 function runtimePaths() {
@@ -53,7 +94,7 @@ function startServer() {
   const executable = app.isPackaged ? process.execPath : (process.env.VANTA_NODE || "node");
   const childArgs = ["--import", pathToFileURL(paths.loader).href, paths.cli, "desktop", String(port), "--no-open", ...(companion ? ["--companion"] : [])];
   const env = {
-    ...process.env,
+    ...desktopRuntimeEnv(process.env),
     VANTA_DESKTOP_DIST: paths.dist,
     VANTA_PROJECT_ROOT: projectRoot,
     VANTA_KERNEL_BIN: paths.kernel,

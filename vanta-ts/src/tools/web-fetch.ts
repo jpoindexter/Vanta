@@ -18,6 +18,10 @@ const MAX_OUTPUT = 80_000;
 const TRUNCATED_MARKER = "\n\n…[truncated]";
 const MAX_REDIRECTS = 5;
 const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+const SCRAPLING_FALLBACK =
+  "do NOT retry web_fetch; if the optional Scrapling connector is mounted, try mcp_scrapling_get once, " +
+  "then mcp_scrapling_fetch for JavaScript or mcp_scrapling_stealthy_fetch only for bot protection; " +
+  "otherwise ask the user to paste the content";
 
 type FetchOk = { ok: true; res: Response };
 type FetchErr = { ok: false; output: string };
@@ -126,7 +130,7 @@ function recordFailure(url: string, reason: string): { ok: false; output: string
     ok: false,
     output:
       `fetch failed: ${reason}. ${url} is unavailable to automated fetch — ` +
-      `do NOT retry it; ask the user to paste the content if you need it.`,
+      `${SCRAPLING_FALLBACK}.`,
   };
 }
 

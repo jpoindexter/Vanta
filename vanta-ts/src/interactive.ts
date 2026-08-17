@@ -97,6 +97,7 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
     started: resumed?.started ?? new Date().toISOString(),
     turnIndex: resumed?.messages.filter((m) => m.role === "user").length ?? 0,
     effortLevel: setup.effortLevel,
+    serviceTier: setup.serviceTier,
     providerId: resumed?.providerId ?? providerIdFor(setup.provider, process.env),
     modelId: resumed?.modelId ?? setup.provider.modelId(),
   };
@@ -196,9 +197,14 @@ function buildConversation(o: ConvoOpts): { convo: ReturnType<typeof createConve
     requestApproval: approver(rl), maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(setup.provider), activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
     getEffortLevel: () => state.effortLevel ?? setup.effortLevel,
+    getServiceTier: () => state.serviceTier ?? setup.serviceTier,
     workingMemory,
     onAutoCompact: (dropped, summary) => console.log(`  ⟳ auto-compacted ${dropped} messages — ${summary.length > 80 ? summary.slice(0, 77) + "…" : summary}`),
     ...consoleCallbacks(),
+    // Keep the readline surface on the provider's streaming path so TTFT and
+    // interruption observe the first real delta. The host still prints the
+    // assembled final response once, preserving its clean non-Ink layout.
+    onTextDelta: () => {},
     onThinking: (t) => console.log(`  ⚙ ${t.split("\n")[0]?.slice(0, 80) ?? ""}`),
     planGate: () => { const sys = convo.messages[0]; return !!(sys?.content.includes(PLAN_MARKER) && !state.planApproved); },
     shouldSoftStop: softStopPredicate(SOFT_STOP),

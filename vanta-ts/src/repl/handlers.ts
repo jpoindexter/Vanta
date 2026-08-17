@@ -3,6 +3,7 @@ import { dirname } from "node:path";
 import { time } from "./time-ranges.js";
 import { auditSkills, listSkills } from "../skills/store.js";
 import { gatherStatus, formatStatus, resolveStatusCondensed } from "../status.js";
+import { doctor } from "./doctor-cmd.js";
 import { newSessionId } from "../sessions/store.js";
 import { slashHelp } from "./catalog.js";
 import { oneLine, lastUserIndex } from "./format.js";
@@ -24,6 +25,9 @@ import { schemaQuality } from "./schema-quality-cmd.js";
 import { wm } from "./wm.js";
 import { model } from "./model-cmd.js";
 import { effort } from "./effort-cmd.js";
+import { speed } from "./speed-cmd.js";
+import { fast } from "./fast-cmd.js";
+import { modelSettings } from "./model-settings-cmd.js";
 import { env } from "./env-cmd.js";
 import { cd } from "./cd-cmd.js";
 import { moim } from "./moim-cmd.js";
@@ -80,7 +84,7 @@ import { sessions, resume, title, fork } from "./session-cmds.js";
 import { image, paste, copy, update } from "./media-cmds.js";
 import { look } from "./look-cmd.js";
 import { screenshot } from "./screenshot-cmd.js";
-import { history, exportConvo, compress, usage, mcp, cron } from "./context-cmds.js";
+import { history, exportConvo, compress, usage, mcp, integrations, cron } from "./context-cmds.js";
 import { stop } from "./stop-cmd.js";
 import { securityReview } from "./security-review-cmd.js";
 import { loopSchedule } from "./loop-schedule-cmd.js";
@@ -202,12 +206,12 @@ const goals: SlashHandler = async (_arg, ctx) => {
   return { output: formatGoalLedger(g, deps.edges) };
 };
 
-/** Command-name → handler. Aliases share a handler (clear/new/reset, exit/quit, status/doctor). */
+/** Command-name → handler. Aliases share a handler where their behavior is identical. */
 export const HANDLERS: Record<string, SlashHandler> = {
   help, home, blueprint, prompt: promptCommand, "system-prompt": promptCommand, "what-can-i-do": whatCanIDo, "diagnose-crash": diagnoseCrash, "spec-to-app": specToApp, autonomy, exit, quit: exit, init, "init-verifiers": initVerifiers, clear, new: clear, reset: clear, attachments, history,
-  export: exportConvo, stop, bg, retry, undo, rewind, hooks, skills, skillify, learn, tools, model, effort, env, cd, setup: setupCommand, status, doctor: status,
+  export: exportConvo, stop, bg, retry, undo, rewind, hooks, skills, skillify, learn, tools, model, effort, speed, fast, "model-settings": modelSettings, env, cd, setup: setupCommand, status, doctor,
   plan, compress, compact: compress, memory, learnings, goals, goal, sessions, resume, title, fork, context: contextCmd,
-  mcp, usage, copy, screenshot, update, image, paste, look, cron, loop: loopSchedule, proactive, moim, record, next, now, planmode: planMode, planv2: planV2, boundary, where, explain, recover, "schema-recovery": schemaRecovery, "schema-quality": schemaQuality, wm, restart, bug, feedback, learning, handoff, open, edit, tasks, bgtasks, wftasks, btw, describe: describeCmd, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto, suggest, time,
+  mcp, integrations, usage, copy, screenshot, update, image, paste, look, cron, loop: loopSchedule, proactive, moim, record, next, now, planmode: planMode, planv2: planV2, boundary, where, explain, recover, "schema-recovery": schemaRecovery, "schema-quality": schemaQuality, wm, restart, bug, feedback, learning, handoff, open, edit, tasks, bgtasks, wftasks, btw, describe: describeCmd, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto, suggest, time,
   routes, files, composer, vim, cockpit, agents, sandbox, rename, branch, summary, "output-style": outputStyle, permissions, "less-permission-prompts": lessPerms, "reload-plugins": reloadPlugins, "reload-skills": reloadSkills,
   tui: tuiCommand, focus: focusCommand, "terminal-setup": terminalSetup, preferences: async (arg, ctx) => (await import("./preferences-cmd.js")).preferences(arg, ctx),
   ultrathink, ultracode, "deep-research": deepResearch, skeptic, "security-review": securityReview, health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie, nd, support, peers, tickets, outreach, activity,

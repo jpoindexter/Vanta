@@ -52,7 +52,7 @@ export type SlashDeps = {
   requestSetup: (request: SetupHandoff) => void;
 };
 
-export function useSlash(deps: SlashDeps): { runSlash: (line: string) => void } {
+export function useSlash(deps: SlashDeps): { runSlash: (line: string) => Promise<void> } {
   const buildCtx = (): ReplCtx => ({
     convo: deps.convoRef.current!,
     setup: deps.setup,
@@ -60,6 +60,7 @@ export function useSlash(deps: SlashDeps): { runSlash: (line: string) => void } 
     state: deps.replStateRef.current,
     env: process.env,
     now: () => new Date(),
+    onCompacting: (active, progress) => deps.dispatch({ t: "compacting", active, progress }),
   });
   const fx: SlashEffects = {
     clear: () => deps.dispatch({ t: "clear" }),
@@ -70,15 +71,14 @@ export function useSlash(deps: SlashDeps): { runSlash: (line: string) => void } 
     vimMode: deps.setVim,
     setup: deps.requestSetup,
   };
-  const runSlash = (line: string): void => {
+  const runSlash = async (line: string): Promise<void> => {
     if (!deps.convoRef.current) return;
-    void executeSlash(line, buildCtx()).then(async (r) => {
-      if (r.resend) {
-        const command = line.split(/\s/)[0]?.slice(1) ?? "";
-        await fireHooks(join(deps.repoRoot, ".vanta"), "UserPromptExpansion", { command, prompt: r.resend }, { cwd: deps.repoRoot, matcherValue: command, promptProvider: deps.setup.provider });
-      }
-      applySlashResult(r, fx);
-    });
+    const r = await executeSlash(line, buildCtx());
+    if (r.resend) {
+      const command = line.split(/\s/)[0]?.slice(1) ?? "";
+      await fireHooks(join(deps.repoRoot, ".vanta"), "UserPromptExpansion", { command, prompt: r.resend }, { cwd: deps.repoRoot, matcherValue: command, promptProvider: deps.setup.provider });
+    }
+    applySlashResult(r, fx);
   };
   return { runSlash };
 }

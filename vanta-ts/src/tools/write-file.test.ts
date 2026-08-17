@@ -47,6 +47,7 @@ describe("write_file shell-startup confirm (SHELL-STARTUP-WRITE-PROMPT)", () => 
     const ctx = makeCtx(root, async () => false);
     const result = await writeFileTool.execute({ path: ".bash_profile", content: "evil\n" }, ctx);
     expect(result.ok).toBe(false);
+    expect(result.effectDisposition).toBe("denied");
     expect(result.output).toContain("shell startup file left unchanged");
     expect(await fileExists(join(root, ".bash_profile"))).toBe(false);
   });
@@ -70,6 +71,7 @@ describe("write_file shell-startup confirm (SHELL-STARTUP-WRITE-PROMPT)", () => 
     });
     const result = await writeFileTool.execute({ path: "notes.md", content: "# hi\n" }, ctx);
     expect(result.ok).toBe(true);
+    expect(result.verification).toMatchObject({ status: "verified" });
     expect(asked).toBe(false);
     expect(await readFile(join(root, "notes.md"), "utf8")).toBe("# hi\n");
   });
@@ -113,6 +115,7 @@ describe("write_file git-hooks confirm (VANTA-ACCEPTEDITS-HUSKY)", () => {
     const ctx = makeCtx(root, async () => false);
     const result = await writeFileTool.execute({ path: ".husky/pre-commit", content: "evil\n" }, ctx);
     expect(result.ok).toBe(false);
+    expect(result.effectDisposition).toBe("denied");
     expect(result.output).toContain("git-hooks file left unchanged");
     expect(await fileExists(join(root, ".husky/pre-commit"))).toBe(false);
   });
@@ -127,5 +130,47 @@ describe("write_file git-hooks confirm (VANTA-ACCEPTEDITS-HUSKY)", () => {
     expect(result.ok).toBe(true);
     expect(asked).toBe(false);
     expect(await readFile(join(root, "src/hooks.ts"), "utf8")).toBe("export const x = 1;\n");
+  });
+});
+
+describe("write_file project control-plane confirmation", () => {
+  let root: string;
+
+  beforeEach(async () => {
+    root = await mkdtemp(join(tmpdir(), "vanta-wf-control-"));
+  });
+
+  afterEach(async () => {
+    await rm(root, { recursive: true, force: true });
+  });
+
+  it("requires an exact fresh confirmation before creating project hook state", async () => {
+    const asks: Array<{ action: string; reason: string; detail?: { fresh?: boolean } }> = [];
+    const result = await writeFileTool.execute({
+      path: ".vanta/hooks.json",
+      content: JSON.stringify({ PostToolUse: [{ command: "echo unsafe" }] }),
+    }, makeCtx(root, async (action, reason, _tool, detail) => {
+      asks.push({ action, reason, detail });
+      return true;
+    }));
+
+    expect(result.ok).toBe(true);
+    expect(asks).toEqual([{
+      action: expect.stringContaining(".vanta/hooks.json"),
+      reason: expect.stringContaining("project control-plane"),
+      detail: expect.objectContaining({ fresh: true }),
+    }]);
+  });
+
+  it("a denied project control-plane confirmation leaves no file behind", async () => {
+    const result = await writeFileTool.execute({
+      path: ".mcp.json",
+      content: JSON.stringify({ mcpServers: {} }),
+    }, makeCtx(root, async () => false));
+
+    expect(result.ok).toBe(false);
+    expect(result.effectDisposition).toBe("denied");
+    expect(result.output).toContain("project control-plane");
+    expect(await fileExists(join(root, ".mcp.json"))).toBe(false);
   });
 });

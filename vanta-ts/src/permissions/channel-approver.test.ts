@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createReplyBus } from "./reply-bus.js";
 import { buildChannelApprover, resolveApproverChats, approvalTimeoutMs } from "./channel-approver.js";
+import { allowTestEffectGate } from "../effects/test-gate.js";
 
 // CHANNEL-PERMISSIONS-WIRE — an approval prompt reaches the configured channel;
 // an allowlisted "yes/no <id>" reply resolves it, raced against the local
@@ -98,6 +99,7 @@ describe("gateway loop integration (pollPlatformSession)", () => {
       },
       replyBus: bus,
       log: () => {},
+      effectGate: allowTestEffectGate("/tmp/unused"),
     };
     // Subscribe BEFORE the poll (as a live relay does), so the consumed reply
     // lands in this stream's buffer.

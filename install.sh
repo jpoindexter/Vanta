@@ -84,7 +84,7 @@ else
   fi
 fi
 
-if [ ! -d "$SCRIPT_DIR/vanta-ts/node_modules" ]; then
+if ! vanta_agent_deps_ready "$SCRIPT_DIR/vanta-ts"; then
   echo -e "${CYAN}→${NC} installing agent dependencies (first run)…"
   # Users install runtime deps only (--omit=dev) — keeps the test toolchain (vitest/vite)
   # and its advisories off a tester's machine. tsx + typescript are runtime deps (the app

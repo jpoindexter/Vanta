@@ -6,7 +6,10 @@ sidebar_position: 2
 
 # The kernel
 
-The kernel (`vanta-kernel`, in `src/`) is the enforced security boundary — small, dependency-free Rust. It owns every decision about whether an action is safe, and the agent layer cannot bypass it.
+The kernel (`vanta-kernel`, in `src/`) is the intended root of trust: small,
+dependency-free Rust. Standard tool dispatch consults it and fails closed where
+exercised. The July 30 audit found secondary effect, credential, control-plane,
+and local-API paths that must be mediated before the boundary is unavoidable.
 
 ## Modules
 

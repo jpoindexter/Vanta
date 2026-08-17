@@ -51,7 +51,7 @@ async function launchApp() {
     ...(executablePath ? { executablePath } : {}),
     args: executablePath ? ["--project", resolve(process.cwd(), "..")] : ["desktop-app/electron/main.mjs"],
     cwd: process.cwd(),
-    env: { ...process.env, VANTA_HOME: home, VANTA_DESKTOP_USER_DATA: userData, VANTA_DESKTOP_PORT: port, VANTA_DESKTOP_AUTOMATION: "1", ELECTRON_DISABLE_SECURITY_WARNINGS: "1" },
+    env: { ...process.env, VANTA_HOME: home, VANTA_DESKTOP_USER_DATA: userData, VANTA_DESKTOP_PORT: port, VANTA_DESKTOP_AUTOMATION: "1", OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "vanta-session-smoke-key", ELECTRON_DISABLE_SECURITY_WARNINGS: "1" },
   });
   page = await app.firstWindow();
   page.setDefaultTimeout(15_000);
@@ -69,6 +69,13 @@ async function assertPinnedTitles(expected, message) {
   assert.deepEqual(await pinnedTitles(), expected, message);
 }
 
+async function waitForConversationReady() {
+  await page.waitForFunction(() => {
+    const composer = document.querySelector("#vanta-composer");
+    return composer instanceof HTMLTextAreaElement && !composer.disabled;
+  });
+}
+
 try {
   await mkdir(join(home, "sessions"), { recursive: true });
   await writeFile(join(home, "sessions", `${session.id}.json`), JSON.stringify(session), "utf8");
@@ -76,7 +83,8 @@ try {
   await Promise.all(pinSessions.map((entry) => writeFile(join(home, "sessions", `${entry.id}.json`), JSON.stringify(entry), "utf8")));
   await launchApp();
 
-  let composer = page.getByPlaceholder("Ask Vanta to do something...");
+  let composer = page.getByLabel("Message Vanta");
+  await waitForConversationReady();
   await page.getByRole("button", { name: session.title, exact: true }).click();
   await composer.fill("draft owned by original session");
   await page.getByRole("button", { name: "Bulk target one", exact: true }).click();
@@ -88,7 +96,8 @@ try {
   await app.close();
   app = undefined;
   await launchApp();
-  composer = page.getByPlaceholder("Ask Vanta to do something...");
+  composer = page.getByLabel("Message Vanta");
+  await waitForConversationReady();
   await page.getByRole("button", { name: session.title, exact: true }).click();
   assert.equal(await composer.inputValue(), "draft owned by original session", "a session draft should survive an Electron process restart");
   await page.getByRole("button", { name: "Bulk target one", exact: true }).click();
@@ -113,7 +122,7 @@ try {
   assert.equal(await manage(session.title).evaluate((element) => element === document.activeElement), true, "Escape should return focus to the session menu trigger");
 
   await manage(session.title).click();
-  await page.getByPlaceholder("Search sessions").click();
+  await page.getByPlaceholder("Search tasks").click();
   await menu().waitFor({ state: "detached" });
 
   for (const title of ["Pinned alpha", "Pinned beta"]) {
@@ -159,8 +168,8 @@ try {
   await notice().getByRole("button", { name: "Dismiss session notice" }).click();
   await manage("Pinned gamma").click();
   await menu().getByRole("menuitem", { name: "Move to Trash" }).click();
-  await page.locator("details.trashed-sessions summary").click();
   await notice().getByRole("button", { name: "Dismiss session notice" }).click();
+  await page.locator("details.trashed-sessions summary").click();
   await manage("Pinned gamma").click();
   await menu().getByRole("menuitem", { name: "Restore from Trash" }).click();
   await assertPinnedTitles(["Pinned alpha", "Pinned beta"], "trash restore should return a session unpinned");
@@ -202,14 +211,17 @@ try {
   await menu().getByRole("menuitem", { name: "Move to Trash" }).click();
   await trash.waitFor();
   await notice().filter({ hasText: "Moved to Trash 1 session." }).waitFor();
+  await notice().getByRole("button", { name: "Dismiss session notice" }).click();
   await trash.locator("summary").click();
   await manage(renamed).click();
   await menu().getByRole("menuitem", { name: "Restore from Trash" }).click();
   await trash.waitFor({ state: "detached" });
+  await notice().getByRole("button", { name: "Dismiss session notice" }).click();
   await manage(renamed).waitFor();
 
   await manage(renamed).click();
   await menu().getByRole("menuitem", { name: "Move to Trash" }).click();
+  await notice().getByRole("button", { name: "Dismiss session notice" }).click();
   await trash.locator("summary").click();
   await manage(renamed).click();
   page.once("dialog", (dialog) => dialog.accept());
@@ -240,6 +252,7 @@ try {
   await page.getByText("6 selected").waitFor();
   await page.getByRole("button", { name: "Delete", exact: true }).click();
   await trash.waitFor();
+  await notice().getByRole("button", { name: "Dismiss session notice" }).click();
   await trash.locator("summary").click();
   await page.getByRole("button", { name: "Select chats" }).click();
   await page.getByRole("button", { name: "All visible" }).click();

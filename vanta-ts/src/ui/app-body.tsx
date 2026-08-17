@@ -1,11 +1,13 @@
 import { type ReactElement } from "react";
 import { Box } from "ink";
 import { Composer } from "./composer.js";
+import { QueuePanel } from "./queue-panel.js";
 import { type SlackChannel } from "../repl/slack-suggest.js";
-import { TodoPanel } from "./todo-panel.js";
+import { TodoPanel, type TodoActivity } from "./todo-panel.js";
 import { type Pending } from "./use-agent.js";
 import { type OverlayView } from "./use-overlay.js";
 import { OverlayList } from "./overlay-list.js";
+import { ModelPickPanel } from "./model-pick-panel.js";
 import { CockpitPanel } from "./cockpit-panel.js";
 import { StatsPanel } from "./stats-panel.js";
 import { HelpPanel } from "./help-panel.js";
@@ -48,9 +50,15 @@ type LiveBodyProps = {
   entries: Entry[];
   overlay: OverlayView | null;
   pending: Pending | null;
+  inputModal?: boolean;
   mode: Mode;
   focus: FocusTarget;
   todos: TodoItem[];
+  /** Turn cost shown beside the plan headline. */
+  activity?: TodoActivity;
+  queued?: string[];
+  /** Pull a queued message back into the composer for editing. */
+  onEditQueued?: (index: number) => string | undefined;
   files: string[];
   history: string[];
   skills: SlashMatch[];
@@ -68,22 +76,25 @@ type LiveBodyProps = {
   onSubmit: (text: string) => void;
   onPaste: () => void;
   onSelect: (row: OverlayRow) => void;
+  onApplyModelPick?: (choice: { providerId: string; model: string; effort?: string; speed?: string; scope: "global" | "session" }) => void;
+  onSwitchProvider?: () => void;
   onClose: () => void;
 };
 
 /** The bottom live region: todo panel + either the quick-open picker or the
  * normal overlay/composer surface. Keeps the decision out of App's body. */
 export function LiveBody(p: LiveBodyProps): ReactElement {
+  const queued = p.queued ?? [];
   return (
     <>
-      {p.overlay || p.quickOpen || p.globalSearch || p.messageActions ? null : <TodoPanel todos={p.todos} />}
+      {p.overlay || p.quickOpen || p.globalSearch || p.messageActions ? null : <TodoPanel todos={p.todos} activity={p.activity} />}
       {p.globalSearch
         ? <GlobalSearchDialog sessions={p.searchSessions} onSelect={p.onSearchSelect} onClose={p.onSearchClose} />
         : p.messageActions
         ? <MessageActionsPanel entries={p.entries} onRetry={p.onMessageRetry} onBranch={p.onMessageBranch} onNote={p.onMessageNote} onClose={p.onMessageClose} />
         : p.quickOpen
         ? <QuickOpen files={p.files} onActivate={p.onQuickActivate} onClose={p.onQuickClose} />
-        : <BottomRegion focused={p.focus} overlay={p.overlay} pending={p.pending} mode={p.mode} files={p.files} history={p.history} skills={p.skills} channels={p.channels} vim={p.vim} promptSuggestions={p.promptSuggestions} onSubmit={p.onSubmit} onPaste={p.onPaste} onSelect={p.onSelect} onClose={p.onClose} />}
+        : <BottomRegion focused={p.focus} overlay={p.overlay} pending={p.pending} inputModal={p.inputModal} mode={p.mode} queued={queued} onEditQueued={p.onEditQueued} files={p.files} history={p.history} skills={p.skills} channels={p.channels} vim={p.vim} promptSuggestions={p.promptSuggestions} onSubmit={p.onSubmit} onPaste={p.onPaste} onSelect={p.onSelect} onApplyModelPick={p.onApplyModelPick} onSwitchProvider={p.onSwitchProvider} onClose={p.onClose} />}
     </>
   );
 }
@@ -92,7 +103,10 @@ function BottomRegion(props: {
   focused: FocusTarget;
   overlay: OverlayView | null;
   pending: Pending | null;
+  inputModal?: boolean;
   mode: Mode;
+  queued: string[];
+  onEditQueued?: (index: number) => string | undefined;
   files: string[];
   history: string[];
   skills: SlashMatch[];
@@ -102,25 +116,29 @@ function BottomRegion(props: {
   onSubmit: (text: string) => void;
   onPaste: () => void;
   onSelect: (row: OverlayRow) => void;
+  onApplyModelPick?: (choice: { providerId: string; model: string; effort?: string; speed?: string; scope: "global" | "session" }) => void;
+  onSwitchProvider?: () => void;
   onClose: () => void;
 }): ReactElement | null {
   const { overlay } = props;
-  if (props.pending) return null;
-  if (overlay) return <OverlayPanel overlay={overlay} focused={props.focused} onSelect={props.onSelect} onClose={props.onClose} onSubmit={props.onSubmit} />;
+  if (props.pending || props.inputModal) return null;
+  if (overlay) return <OverlayPanel overlay={overlay} focused={props.focused} onSelect={props.onSelect} onApplyModelPick={props.onApplyModelPick ?? (() => {})} onSwitchProvider={props.onSwitchProvider ?? (() => {})} onClose={props.onClose} onSubmit={props.onSubmit} />;
   return (
     <Box flexDirection="column">
       <PromptSuggestionsPanel suggestions={props.promptSuggestions} focused={props.focused === "prompt-suggestions"} onSelect={props.onSubmit} />
+      <QueuePanel queued={props.queued} />
+      <Composer focused={props.focused === "composer"} onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} history={props.history} skills={props.skills} channels={props.channels} onPaste={props.onPaste} vim={props.vim} queuedCount={props.queued.length} onEditQueued={props.onEditQueued} />
       <ModeLine mode={props.mode} />
-      <Composer focused={props.focused === "composer"} onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} history={props.history} skills={props.skills} channels={props.channels} onPaste={props.onPaste} vim={props.vim} />
     </Box>
   );
 }
 
 /** Renders the open overlay's panel. Split from BottomRegion so each stays under
  * the complexity gate; the switch is append-only (one branch per overlay kind). */
-function OverlayPanel(props: { overlay: OverlayView; focused: FocusTarget; onSelect: (row: OverlayRow) => void; onClose: () => void; onSubmit: (text: string) => void }): ReactElement | null {
+function OverlayPanel(props: { overlay: OverlayView; focused: FocusTarget; onSelect: (row: OverlayRow) => void; onApplyModelPick: (choice: { providerId: string; model: string; effort?: string; speed?: string; scope: "global" | "session" }) => void; onSwitchProvider: () => void; onClose: () => void; onSubmit: (text: string) => void }): ReactElement | null {
   const { overlay, onClose } = props;
   if (overlay.kind === "list") return <OverlayList focused={props.focused === "overlay-list"} title={overlay.title} rows={overlay.rows} onSelect={props.onSelect} onClose={onClose} />;
+  if (overlay.kind === "modelPick") return <ModelPickPanel focused={props.focused === "overlay-list"} providerId={overlay.providerId} providerLabel={overlay.providerLabel} models={overlay.models} currentModel={overlay.currentModel} currentEffort={overlay.currentEffort} currentSpeed={overlay.currentSpeed} onApply={props.onApplyModelPick} onSwitchProvider={props.onSwitchProvider} onClose={onClose} />;
   if (overlay.kind === "cockpit") return <CockpitPanel data={overlay.data} onClose={onClose} />;
   if (overlay.kind === "stats") return <StatsPanel stats={overlay.stats} onClose={onClose} />;
   if (overlay.kind === "loops") return <LoopsPanel loops={overlay.loops} onClose={onClose} />;

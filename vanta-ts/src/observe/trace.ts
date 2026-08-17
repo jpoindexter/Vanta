@@ -20,45 +20,87 @@ const READ_TOOLS = new Set([
   "read_file", "grep_files", "glob_files",
   "web_fetch", "web_search", "inspect_state",
 ]);
-const LOOP_THRESHOLD = 3;    // same tool ≥N times → warn; ≥6 → alert
+const LOOP_THRESHOLD = 3;    // identical consecutive tool + args ≥N → warn; ≥6 → alert
 const ERROR_THRESHOLD = 3;   // ≥N consecutive errors → alert
 
 // Matches common OS-level error patterns that don't start with "Error:"
-const OS_ERROR_PATTERN = /\b(operation not permitted|permission denied|eperm|enoent|eacces|eaddrinuse|command not found)\b/i;
+const OS_ERROR_PATTERN = /\b(operation not permitted|permission denied|eperm|enoent|eacces|eaddrinuse|command not found|failed to create query for)\b/i;
 
 /**
- * Extract the tool calls (+ their results) from the last assistant turn in
- * the message history. Returns [] when the last turn had no tool calls.
+ * Extract tool calls (+ results) across the latest user turn. Agents commonly
+ * read in one assistant batch and write in a later batch; reducing the turn to
+ * only its final batch creates false blind-write warnings.
  */
 export function extractLastTurnCalls(messages: Message[]): TurnCall[] {
+  let turnStart = -1;
   for (let i = messages.length - 1; i >= 0; i--) {
-    const msg = messages[i];
-    if (!msg || msg.role !== "assistant") continue;
-    const toolCalls = msg.toolCalls;
-    if (!toolCalls?.length) continue;
-    const toolResults = messages.slice(i + 1).filter((m) => m.role === "tool");
-    return toolCalls.map((tc, idx) => {
-      // Match by id first (reliable), fall back to positional order
-      const byId = toolResults.find((m) => m.role === "tool" && m.toolCallId === tc.id);
-      const resultMsg = byId ?? toolResults[idx];
-      const content = resultMsg?.role === "tool" ? resultMsg.content : "";
+    if (messages[i]?.role === "user") {
+      turnStart = i + 1;
+      break;
+    }
+  }
+  // Some tests/legacy histories omit user messages. Preserve the old behavior
+  // there by starting at the last assistant batch that contains tool calls.
+  if (turnStart < 0) {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i];
+      if (msg?.role === "assistant" && msg.toolCalls?.length) {
+        turnStart = i;
+        break;
+      }
+    }
+  }
+  if (turnStart < 0) return [];
+
+  const turn = messages.slice(turnStart);
+  const toolResults = turn.filter((msg) => msg.role === "tool");
+  const calls: TurnCall[] = [];
+  let fallbackIndex = 0;
+  for (const msg of turn) {
+    if (msg.role !== "assistant" || !msg.toolCalls?.length) continue;
+    for (const tc of msg.toolCalls) {
+      const byId = toolResults.find((result) => result.toolCallId === tc.id);
+      const resultMsg = byId ?? toolResults[fallbackIndex];
+      fallbackIndex += 1;
+      const content = resultMsg?.content ?? "";
       const isError = /^(error|blocked|failed|unsupported)/i.test(content.trim())
         || OS_ERROR_PATTERN.test(content);
-      return { name: tc.name, result: content, isError, args: tc.arguments };
-    });
+      calls.push({ name: tc.name, result: content, isError, args: tc.arguments });
+    }
   }
-  return [];
+  return calls;
 }
 
-/** Same tool called ≥LOOP_THRESHOLD times in one turn. */
+function stableValue(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableValue).join(",")}]`;
+  if (value && typeof value === "object") {
+    const object = value as Record<string, unknown>;
+    return `{${Object.keys(object).sort().map((key) => `${JSON.stringify(key)}:${stableValue(object[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function callSignature(call: TurnCall): string {
+  return `${call.name}:${stableValue(call.args ?? {})}`;
+}
+
+/** Identical tool + arguments repeated consecutively ≥LOOP_THRESHOLD times. */
 function detectLoops(calls: TurnCall[]): TraceAnomaly[] {
-  const counts = new Map<string, number>();
-  for (const { name } of calls) counts.set(name, (counts.get(name) ?? 0) + 1);
   const out: TraceAnomaly[] = [];
-  for (const [name, n] of counts) {
+  let runStart = 0;
+  while (runStart < calls.length) {
+    const signature = callSignature(calls[runStart]!);
+    let runEnd = runStart + 1;
+    while (runEnd < calls.length && callSignature(calls[runEnd]!) === signature) runEnd += 1;
+    const n = runEnd - runStart;
     if (n >= LOOP_THRESHOLD) {
-      out.push({ type: "loop", detail: `${name} called ${n}× in one turn`, severity: n >= 6 ? "alert" : "warn" });
+      out.push({
+        type: "loop",
+        detail: `${calls[runStart]!.name} repeated identical action ${n}×`,
+        severity: n >= 6 ? "alert" : "warn",
+      });
     }
+    runStart = runEnd;
   }
   return out;
 }
@@ -80,10 +122,33 @@ function detectErrorSpike(calls: TurnCall[]): TraceAnomaly[] {
 // invokes file-mutating operations. Auth/setup/status commands are neutral.
 const SHELL_WRITE_PATTERN = /(?:^|[;&|])\s*(?:rm\s|mv\s|cp\s|chmod|chown|truncate|dd\s|tee\s|mkdir|touch\s)|[>]/;
 
+/** Remove heredoc bodies before looking for shell redirects/mutators. A script
+ * can contain comparisons or strings with ">" without the shell writing. */
+function shellSurface(command: string): string {
+  const lines = command.split("\n");
+  const kept: string[] = [];
+  let delimiter: string | null = null;
+  let stripTabs = false;
+  for (const line of lines) {
+    if (delimiter) {
+      const candidate = stripTabs ? line.replace(/^\t+/, "") : line;
+      if (candidate.trim() === delimiter) delimiter = null;
+      continue;
+    }
+    kept.push(line);
+    const match = /<<(-)?\s*(['"]?)([A-Za-z_][A-Za-z0-9_]*)\2/.exec(line);
+    if (match) {
+      stripTabs = match[1] === "-";
+      delimiter = match[3] ?? null;
+    }
+  }
+  return kept.join("\n");
+}
+
 function shellCmdIsWrite(args?: Record<string, unknown>): boolean {
   if (!args) return true; // conservative: no info → treat as write
   const cmd = typeof args.command === "string" ? args.command.trim() : "";
-  return !cmd || SHELL_WRITE_PATTERN.test(cmd);
+  return !cmd || SHELL_WRITE_PATTERN.test(shellSurface(cmd));
 }
 
 /** First write-class tool appears before any read-class tool. */

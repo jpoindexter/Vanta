@@ -1,6 +1,7 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { createConversation } from "../agent.js";
+import { createVoiceTurnSpeaker } from "../tts/streaming.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { KernelClient } from "../kernel/client.js";
 import type { ToolRegistry } from "../tools/registry.js";
@@ -130,6 +131,7 @@ export async function runWakeVoiceLoop(deps: WakeVoiceDeps): Promise<WakeLoopRes
   const log = deps.log ?? console.log;
   const recorder = await detectRecorder();
   if (!recorder) throw new Error("Wake word needs ffmpeg or sox (brew install ffmpeg)");
+  const speaker = createVoiceTurnSpeaker(process.env);
   const convo = createConversation(deps.systemPrompt, {
     provider: deps.provider,
     safety: deps.safety,
@@ -137,15 +139,17 @@ export async function runWakeVoiceLoop(deps: WakeVoiceDeps): Promise<WakeLoopRes
     root: deps.root,
     requestApproval: async () => false,
     onText: (text) => log(`Vanta: ${text}`),
+    ...speaker.callbacks,
   });
   log(`Wake word active · say “${deps.phrase ?? "Hey Vanta"}” · local detection · Ctrl+C to stop`);
   return runWakeLoop({
     ...deps,
     capture: (seconds) => recordAudio(seconds, recorder),
     onTurn: async (text) => {
-      const outcome = await convo.send(text);
-      if (outcome.finalText.trim() && process.platform === "darwin") {
-        await execAsync("say", [outcome.finalText.slice(0, 500)]).catch(() => {});
+      const { speech } = await speaker.run(() => convo.send(text));
+      if (speech.error) log(`[speech unavailable: ${speech.error}]`);
+      else if (speech.mode === "streaming" && speech.firstClauseMs !== undefined) {
+        log(`[speech started after first clause · ${speech.firstClauseMs}ms]`);
       }
     },
   });

@@ -64,9 +64,33 @@ describe("runEfGates — single-gate triggers", () => {
     const r = runEfGates(sig({ lastUserMessage: "i don't know where to start" }), emptyEfState(), defaultNdConfig());
     expect(r.nudges.some((n) => n.includes("smallest first step"))).toBe(true);
   });
-  it("inhibit fires after 3 no-output turns", () => {
-    const seq = Array.from({ length: 3 }, () => sig({ toolNames: ["read_file"], producedText: false }));
-    expect(runTurns(seq).some((n) => n.includes("possible drift"))).toBe(true);
+  it("inhibit fires on the FIRST repeated ask, even reworded (does not need 4×)", () => {
+    const seq = [
+      sig({ lastUserMessage: "fix the pdf bug", toolNames: ["read_file", "shell_cmd"] }),
+      sig({ lastUserMessage: "fix the pdf", toolNames: ["read_file", "shell_cmd"] }),
+    ];
+    // Busy tool activity must NOT mask the drift (the original bug).
+    expect(runTurns(seq).some((n) => n.includes("repeated their ask"))).toBe(true);
+  });
+  it("inhibit escalates imperatively when the ask keeps repeating", () => {
+    const seq = [
+      sig({ lastUserMessage: "fix the pdf" }),
+      sig({ lastUserMessage: "fix the pdf" }),
+      sig({ lastUserMessage: "i asked you 4 times now" }),
+    ];
+    expect(runTurns(seq).some((n) => n.includes("Drop every other thread"))).toBe(true);
+  });
+  it("inhibit fires on an explicit frustration cue alone", () => {
+    const r = runEfGates(sig({ lastUserMessage: "why aren't you listening to me" }), emptyEfState(), defaultNdConfig());
+    expect(r.nudges.some((n) => n.includes("repeated their ask"))).toBe(true);
+  });
+  it("inhibit stays quiet across distinct, unrelated asks", () => {
+    const seq = [
+      sig({ lastUserMessage: "start the web dashboard" }),
+      sig({ lastUserMessage: "read this pdf file" }),
+      sig({ lastUserMessage: "find me a business idea" }),
+    ];
+    expect(runTurns(seq).some((n) => n.includes("repeated their ask") || n.includes("Drop every other thread"))).toBe(false);
   });
   it("closure fires after 3 uncommitted writes", () => {
     const seq = Array.from({ length: 3 }, () => sig({ toolNames: ["write_file"], wroteFiles: true }));

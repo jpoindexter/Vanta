@@ -3,7 +3,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseCronFlag, runScheduleCommand, runCron } from "./commands.js";
-import { addCron } from "./cron.js";
+import { addCron, loadCron, scriptSha256 } from "./cron.js";
 import { createGoalSentinel } from "../goals/sentinel.js";
 import { addAutoWatch } from "../watch/auto-watch.js";
 import { setAmbientEnabled } from "../ambient/screen-context.js";
@@ -61,6 +61,35 @@ describe("runScheduleCommand", () => {
       "0 9 * * *",
     ]);
     expect(code).toBe(0);
+  });
+
+  it("binds manual script creation to the exact operator-authorized bytes", async () => {
+    expect(await runScheduleCommand(dataDir, [
+      "disk",
+      "check",
+      "--cron",
+      "0 9 * * *",
+      "--mode",
+      "no_agent",
+      "--script",
+      "df -h",
+    ])).toBe(0);
+    expect((await loadCron(dataDir))[0]).toMatchObject({
+      scriptSha256: scriptSha256("df -h"),
+      authorityId: expect.stringMatching(/^operator-cli:/),
+    });
+  });
+
+  it("authorizes the current bytes of a legacy script entry", async () => {
+    const entry = await addCron(dataDir, "* * * * *", "legacy", {
+      mode: "no_agent",
+      script: "printf legacy",
+    });
+    expect(await runScheduleCommand(dataDir, ["authorize", String(entry.id)])).toBe(0);
+    expect((await loadCron(dataDir))[0]).toMatchObject({
+      scriptSha256: scriptSha256("printf legacy"),
+      authorityId: expect.stringMatching(/^operator-cli:/),
+    });
   });
 
   it("lists stored tasks", async () => {

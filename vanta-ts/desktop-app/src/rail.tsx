@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { Activity, AppWindow, Check, ExternalLink, FileDiff, FileText, Image, Link2, ReceiptText, TerminalSquare, X } from "lucide-react";
+import { Activity, Check, FileDiff, FileText, X } from "lucide-react";
 import { api } from "./api.js";
-import { CanvasPanel } from "./canvas.js";
 import type { Artifact, CanvasArtifact, EventRow, RailTab, Status, Tool } from "./types.js";
 import { fallbackProjectFileContext, groupProjectFiles, type ProjectFileContext } from "./file-context.js";
 import { compactTrace } from "../../src/trace/quiet-trace.js";
@@ -24,33 +23,24 @@ export function RightRail(props: {
   onOpenSession: (id: string) => void;
   onDismiss?: () => void;
 }) {
-  const groups = useMemo(() => groupTools(props.tools), [props.tools]);
   const visibleTab = visibleRailTab(props.tab);
   return (
-    <aside className="right-rail">
-      <nav className="inspector-tabs" role="tablist" aria-label="Inspector tools">
-        <InspectorTab tab="activity" current={visibleTab} icon={Activity} onTab={props.onTab}>Activity</InspectorTab>
+    <aside id="review-drawer" className="right-rail" role="dialog" aria-modal="true" aria-labelledby="review-drawer-title">
+      <header className="review-drawer-heading"><strong id="review-drawer-title">Review</strong><button className="review-open-outputs" type="button" onClick={props.onOpenOutputs}>Outputs</button><button className="panel-dismiss inspector-dismiss" type="button" aria-label="Close review" onClick={props.onDismiss}><X size={16} /></button></header>
+      <nav className="inspector-tabs" role="tablist" aria-label="Review views">
         <InspectorTab tab="files" current={visibleTab} icon={FileText} onTab={props.onTab}>Files</InspectorTab>
         <InspectorTab tab="diff" current={visibleTab} icon={FileDiff} onTab={props.onTab}>Diff</InspectorTab>
-        <InspectorTab tab="preview" current={visibleTab} icon={AppWindow} onTab={props.onTab}>Preview</InspectorTab>
-        <InspectorTab tab="receipts" current={visibleTab} icon={ReceiptText} onTab={props.onTab}>Receipts</InspectorTab>
-        <InspectorTab tab="terminal" current={visibleTab} icon={TerminalSquare} onTab={props.onTab}>Terminal</InspectorTab>
+        <InspectorTab tab="activity" current={visibleTab} icon={Activity} onTab={props.onTab}>Activity</InspectorTab>
       </nav>
-      <button className="panel-dismiss inspector-dismiss" type="button" aria-label="Close inspector" onClick={props.onDismiss}><X size={15} /></button>
       {visibleTab === "activity" ? <ActivityPanel events={props.events} status={props.status} /> : null}
-      {visibleTab === "preview" ? (props.tab === "canvas" ? <CanvasPanel artifact={props.canvas} onRefresh={props.onRefresh} /> : <PreviewPanel status={props.status} groups={groups} events={props.events} />) : null}
       {visibleTab === "files" ? <FilesPanel files={props.files} mentioned={props.mentionedFiles} selected={props.selectedFiles} onInsert={props.onInsertFile} /> : null}
-      {visibleTab === "diff" ? <DiffPanel /> : null}
-      {visibleTab === "receipts" ? <ReceiptsPanel artifacts={props.artifacts} events={props.events} onOpenSession={props.onOpenSession} /> : null}
-      {visibleTab === "terminal" ? <TerminalPanel /> : null}
+      {visibleTab === "diff" ? <DiffPanel events={props.events} /> : null}
     </aside>
   );
 }
 
 function visibleRailTab(tab: RailTab): RailTab {
-  if (tab === "outputs") return "receipts";
-  if (tab === "canvas") return "preview";
-  return tab;
+  return tab === "files" || tab === "diff" || tab === "activity" ? tab : "activity";
 }
 
 function InspectorTab(props: { tab: RailTab; current: RailTab; icon: typeof Activity; onTab: (tab: RailTab) => void; children: string }) {
@@ -62,66 +52,14 @@ function ActivityPanel(props: { events: EventRow[]; status: Status | null }) {
   return <section className="rail-panel activity-panel"><div className="inspector-summary"><span><i className="status-dot online" />Kernel {props.status?.kernel ?? "starting"}</span><strong>{props.events.length} events</strong></div><EventList events={props.events} /><section className="rail-section"><h3>Standing goal</h3><p>{props.status?.goals?.[0]?.text ?? "No active goal"}</p></section></section>;
 }
 
-function DiffPanel() {
-  return <section className="rail-panel diff-panel"><div className="diff-heading"><h3>Working tree</h3><span>live project</span></div><pre><span className="diff-context">@@ Desktop shell @@</span>{"\n"}<span className="diff-add">+ task-focused workspace</span>{"\n"}<span className="diff-add">+ contextual inspector</span>{"\n"}<span className="diff-add">+ visible approvals and receipts</span>{"\n"}<span className="diff-context">Runtime APIs remain Vanta-owned.</span></pre><p className="muted">The runtime will show the exact project diff here when a file edit is proposed.</p></section>;
-}
-
-function ReceiptsPanel(props: { artifacts: Artifact[]; events: EventRow[]; onOpenSession: (id: string) => void }) {
-  return <section className="rail-panel receipts-panel"><OutputsPanel artifacts={props.artifacts} events={props.events} onOpenSession={props.onOpenSession} onOpenOutputs={() => undefined} /></section>;
-}
-
-function OutputsPanel(props: { artifacts: Artifact[]; events: EventRow[]; onOpenSession: (id: string) => void; onOpenOutputs: () => void }) {
-  const visible = props.artifacts.slice(0, 7);
-  return <section className="rail-panel outputs-panel">
-    {visible.length ? <div className="output-list">{visible.map((artifact) => <OutputRow key={artifact.id} artifact={artifact} onOpenSession={props.onOpenSession} />)}</div> : <div className="rail-empty"><FileText size={18} /><p>Files, previews, links, and receipts from completed work appear here.</p></div>}
-    {props.artifacts.length > visible.length ? <button className="rail-link" type="button" onClick={props.onOpenOutputs}>Show {props.artifacts.length - visible.length} more</button> : null}
-    <section className="rail-section"><h3>Activity</h3><EventList events={props.events} /></section>
-    <section className="rail-section"><h3>Workspace tools</h3><p>Use the command palette for Canvas, Preview, or Terminal. Attach files directly from the composer.</p></section>
-  </section>;
-}
-
-function OutputRow(props: { artifact: Artifact; onOpenSession: (id: string) => void }) {
-  const Icon = props.artifact.kind === "canvas" ? Image : props.artifact.kind === "link" ? Link2 : FileText;
-  const content = <><Icon size={16} /><span>{props.artifact.label}</span></>;
-  if (props.artifact.kind === "link") return <a className="output-row" href={props.artifact.value} target="_blank" rel="noreferrer">{content}<ExternalLink size={14} /></a>;
-  if (props.artifact.sessionId) return <button className="output-row" type="button" onClick={() => props.onOpenSession(props.artifact.sessionId!)}>{content}</button>;
-  return <div className="output-row">{content}</div>;
-}
-
-function PreviewPanel(props: { status: Status | null; groups: Record<string, Tool[]>; events: EventRow[] }) {
-  const [url, setUrl] = useState("");
-  const [frame, setFrame] = useState("");
-  return (
-    <section className="rail-panel">
-      <h2>Safety Rail</h2>
-      <p className="metric">Kernel {props.status?.kernel ?? "starting"}</p>
-      <p className="muted">{props.status?.goals?.[0]?.text ?? "No active goal"}</p>
-      <h2>Preview</h2>
-      <form className="rail-form" onSubmit={(e) => { e.preventDefault(); setFrame(url); }}>
-        <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https:// or file path..." />
-        <button type="submit">Open</button>
-      </form>
-      <iframe title="Preview" src={frame} />
-      <h2>Activity</h2>
-      <EventList events={props.events} />
-      <h2>Tools</h2>
-      <ToolGroups groups={props.groups} />
-    </section>
-  );
+function DiffPanel(props: { events: EventRow[] }) {
+  const changes = props.events.filter((event) => /\b(edit|write|patch|diff|changed?|created?|deleted?)\b/i.test(`${event.label} ${event.detail ?? ""}`)).slice(-12);
+  return <section className="rail-panel diff-panel"><div className="diff-heading"><h3>Task changes</h3><span>{changes.length ? `${changes.length} events` : "none yet"}</span></div>{changes.length ? <ul className="review-change-list">{changes.map((event, index) => <li className={event.ok === false ? "bad" : ""} key={`${event.label}-${index}`}><FileDiff size={14} /><span>{event.label}</span></li>)}</ul> : <div className="rail-empty"><FileDiff size={18} /><p>No file changes have been reported for this task. Exact proposed edits still appear inline when approval is required.</p></div>}</section>;
 }
 
 function EventList(props: { events: EventRow[] }) {
   const groups = compactTrace(props.events);
   return <ul className="event-list">{groups.map((group, i) => <li key={i} className={group.status === "attention" ? "bad" : group.status === "done" ? "ok" : ""}>{group.label}</li>)}</ul>;
-}
-
-function ToolGroups(props: { groups: Record<string, Tool[]> }) {
-  return Object.entries(props.groups).slice(0, 5).map(([name, items]) => (
-    <details key={name} open={name === "browser" || name === "read"}>
-      <summary>{name} <span>{items.length}</span></summary>
-      {items.slice(0, 4).map((tool) => <p key={tool.name} className="tool-row">{tool.name}</p>)}
-    </details>
-  ));
 }
 
 export function FilesPanel(props: { files: string[]; mentioned: string[]; selected: string[]; onInsert: (file: string) => void }) {
@@ -182,12 +120,4 @@ export function TerminalPanel() {
       <pre>{output}</pre>
     </section>
   );
-}
-
-function groupTools(tools: Tool[]) {
-  return tools.reduce<Record<string, Tool[]>>((acc, tool) => {
-    const key = tool.name.split("_")[0] ?? "tool";
-    (acc[key] ??= []).push(tool);
-    return acc;
-  }, {});
 }

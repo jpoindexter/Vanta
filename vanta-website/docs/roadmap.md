@@ -8,53 +8,48 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1270 capabilities shipped · 2 in flight · 13 external proof gates · 7 on the horizon. Updated 2026-07-21._
+_1286 capabilities shipped · 1 in flight · 14 parked external-proof items · 6 on the horizon. Updated 2026-08-14._
 
 ## In flight
 
 What we are actively building next.
 
-### TUI resize repaint regression — one clean frame after every terminal resize
+### Phase-0 trusted-continuity evidence lane — interviews, pilots, burden, retention, and price
 
-**Operator** · M-size
+**Solutioning** · S-size
 
-Reopen the terminal-resize reliability work after a real 78x25 session on 2026-07-20 left repeated composer borders, prompt text, and orphaned line glyphs across the viewport. Treat SIGWINCH as a complete layout invalidation: clear the prior physical frame, recompute the transcript/composer/footer geometry, and draw one coherent current frame without losing the active draft or turn
-
-### True first-token performance harness — measure cold start through painted output
-
-**Harness** · M-size
-
-Vanta's packaged desktop budget measures process-to-shell well, but its first-use path uses a mocked chat response and cannot prove submit-to-dispatch, provider first delta, or first painted token. Establish truthful CLI, TUI, gateway, and packaged-desktop timing before optimizing the critical path
+Begin commercial and usefulness learning manually: test the same capture → recommend/prepare/act → wait/resume → verify/close contract across bounded life-and-work tasks with chronic and situational executive burden
 
 ## Recently shipped
 
-The latest of 1270+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1286+ capabilities. See the [changelog](./changelog) for curated milestones.
 
-- **Desktop Ollama MiniCPM response — visible text instead of endless Thinking** — Desktop App · 2026-07-21
-- **TUI Ollama model drill-down — choose an installed local model** — Operator · 2026-07-21
-- **Capacity-aware support router — minimums, externalization, and activation** — Operator · 2026-07-21
-- **Workflow composer v1 — compose Vanta primitives without rebuilding n8n** — Operator · 2026-07-20
-- **Workflow data handoffs — typed references with preflight and redaction** — Harness · 2026-07-20
-- **Graph shared run state — typed coordination without one giant conversation** — Harness · 2026-07-20
-- **Graph completion contracts — stop on evidence, budget, or escalation** — Harness · 2026-07-20
-- **Remote context references - safe @file, @diff, and @git expansion through the gateway** — Operator · 2026-07-19
-- **Desktop live-proof diagnostics — separate API truth, rendered truth, and startup context** — Desktop App · 2026-07-19
-- **Desktop assistive-technology proof — automate accessibility and complete one VoiceOver task** — Desktop App · 2026-07-19
-- **Terminal panel + TerminalCaptureTool — agent captures terminal content, Meta+J toggle** — Operator · 2026-07-18
-- **Regional payment authorization broker - route by capability, regulation, and provider availability** — Harness · 2026-07-18
-- **Visa TAP conformance lab - signed agent intent and merchant recognition** — Harness · 2026-07-18
-- **Interactive Telegram setup discovery - answer the operator and expose the command** — Operator · 2026-07-18
-- **Desktop setup hub + Telegram lifecycle — route, verify, secure, and start** — Desktop App · 2026-07-18
-- **Demote DuckDuckGo - bot-blocked search is explicit legacy fallback, never the default** — Harness · 2026-07-18
-- **Desktop message fidelity — preserve intraword underscores and exact identifiers** — Desktop App · 2026-07-18
-- **Desktop session draft ownership — drafts stay with the correct task** — Desktop App · 2026-07-18
-- **Desktop kernel port collision recovery - Retry finds a safe project endpoint** — Desktop App · 2026-07-17
-- **Desktop context attachments — files as searchable task context, not raw inventory** — Desktop App · 2026-07-17
+- **Local document reading — bounded PDF and office-file context** — Operator · 2026-08-14
+- **Urgent control-plane trust closure — hooks, environments, audit state, and local authentication** — Harness · 2026-08-02
+- **Safe continuity slice — messy capture to Today, prepared action, waiting, and restart re-entry** — Operator · 2026-08-02
+- **Truthful completion and one typed receipt across every host** — Harness · 2026-08-02
+- **Universal effect-path inventory and one trusted action gateway** — Harness · 2026-08-02
+- **Desktop queued-turn editor — inspect, reorder, edit, steer, retry, or remove what runs next** — Desktop App · 2026-07-30
+- **Minimum operator spine — WorkItem, Run, Approval, Receipt, follow-up, and resume** — Operator · 2026-07-30
+- **Streaming TTS — speak after the first complete clause** — Operator · 2026-07-29
+- **Memory Sparse Attention adapter — long-context memory without Python in Vanta** — Operator · 2026-07-29
+- **Shared operating-mode cycle — Manual / Accept edits / Plan / Auto** — Harness · 2026-07-29
+- **Surface 'compacting now' state in footer** — Operator · 2026-07-29
+- **True first-token performance harness — measure cold start through painted output** — Harness · 2026-07-29
+- **Deterministic turn closeout — changed, checked, verified, and next** — TUI · 2026-07-29
+- **Claude-style output hierarchy — compact evidence and scan-friendly answers** — TUI · 2026-07-29
+- **Hot reload continuity — preserve the active conversation and reset runtime status** — TUI · 2026-07-29
+- **AskUserQuestion tool — structured multi-question UI with options, previews, multi-select** — Operator · 2026-07-28
+- **Task-scoped go-ahead — one approval for repeated reversible work** — Operator · 2026-07-28
+- **Live todo / progress checklist (TodoWrite pattern)** — Operator · 2026-07-28
+- **TUI resize repaint regression — one clean frame after every terminal resize** — Operator · 2026-07-28
+- **Reusable run library — save, inspect, fork, and safely replay successful runs** — Desktop App · 2026-07-24
 
-## External proof gates
+## Parked external-proof items
 
-Implemented locally, but not called shipped until the real provider, device, or hosted environment produces an accepted receipt.
+These remain unshipped until the real provider, device, or hosted environment produces the evidence required by that card. Eleven are canonical machine-evaluated release gates; the remaining parked items are related proof work.
 
+- **MSA NVIDIA runtime proof — execute the official checkpoint behind Vanta's contract** — Infrastructure
 - **Run Anywhere v1 release gate — reach, wake, and execute on controlled infrastructure** — Operator
 - **Messaging adapter — Microsoft Teams** — Operator
 - **Termux / Android runtime (run-anywhere North Star gap)** — Operator
@@ -73,18 +68,14 @@ Implemented locally, but not called shipped until the real provider, device, or 
 
 Directional, not committed — grouped by area, newest thinking first.
 
-### Desktop App — 2 planned
-
-- Desktop stream performance — incremental markdown and scoped token updates
-- Desktop support controls — set current capacity without leaving Work
-
 ### Harness — 3 planned
 
-- Startup critical-path collapse — cache, defer, and prewarm first-turn work
-- Gateway delivery-obligation ledger — never lose a finished remote answer
-- Executive-function support evals — useful without overreach
+- Canonical action envelope and scoped capability
+- Untrusted-content quarantine across email, web, documents, messages, and social input
+- Safe factory, self-repair, and Vanta Lab production boundary
 
-### Operator — 2 planned
+### Operator — 3 planned
 
-- Browser workflow boundary — observe, extract, and act under explicit policy
-- Current support-state expiry — temporary means temporary
+- Trustworthy Needs You — deterministic, deduplicated, expiring, and auto-resolving
+- Contextual Review, first-run usefulness, and cross-host accessibility contract
+- Quarantined read-only morning orientation

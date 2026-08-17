@@ -24,6 +24,7 @@ function base(over = {}) {
     mode: "default" as const,
     focus: "composer" as const,
     todos: [],
+    queued: [],
     files: [],
     history: [],
     skills: [],
@@ -42,6 +43,8 @@ function base(over = {}) {
     onPaste: vi.fn(),
     onSelect: vi.fn(),
     onClose: vi.fn(),
+    onApplyModelPick: vi.fn(),
+    onSwitchProvider: vi.fn(),
     ...over,
   };
 }
@@ -90,6 +93,24 @@ describe("LiveBody prompt suggestions", () => {
     inst.input("\r");
     await waitUntil(() => onSubmit.mock.calls.length > 0);
     expect(onSubmit).toHaveBeenCalledWith("Verify it");
+    inst.unmount();
+  });
+});
+
+describe("LiveBody task checklist", () => {
+  it("shows live task status above the composer", async () => {
+    const inst = renderUi(h(LiveBody, base({
+      todos: [
+        { text: "Inspect the task", status: "done" },
+        { text: "Implement the change", activeForm: "Implementing the change", status: "in_progress" },
+        { text: "Verify the TUI", status: "pending" },
+      ],
+    })));
+    const frame = await waitForFrame(inst, "✻ Implementing the change…");
+    expect(frame).toContain("✓ Inspect the task");
+    expect(frame).toContain("■ Implementing the change");
+    expect(frame).toContain("□ Verify the TUI");
+    expect(frame).toContain("Ask Vanta anything");
     inst.unmount();
   });
 });

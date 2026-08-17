@@ -189,3 +189,50 @@ Append-only. Locked choices. Don't re-litigate without new info.
 **Why:** Jason explicitly said, "I don't use crypto." A technically available rail that the operator will not use is product noise and must not block roadmap completion. Preserving the isolated code avoids an unrelated deletion while the terminal roadmap classification prevents it from returning as mandatory work.
 **Consequences:** Do not open a faucet, request wallet funding, or count an HTTP 402/crypto receipt toward a required payment gate. The unfunded `X402_TEST_SIGNER` Keychain reference is not deleted automatically because credential deletion requires a separate explicit action.
 **Reversible?** Yes, but only through an explicit operator decision that rewrites the roadmap and proof criteria first.
+
+## 2026-07-30 — SUPERSEDES narrow product framing: full-capability trusted operator, curb-cut universal design, integrated autonomy
+**Anchor:** The 2026-06-04 decision already chose a “FULL-CAPABILITY personal operator,” made executive-function-first an inclusive design lens, invoked the curb-cut effect, and rejected narrowing Vanta to “an AI agent for neurodivergent people.” That decision governs this clarification.
+
+**Choice:** Vanta is a full-capability, life-integrated, progressively autonomous personal AI operator for the general human experience. It can do the broad work expected of a Hermes/OpenClaw-class agent, while specializing in trusted continuity and responsibility transfer when human attention, memory, time, and executive function are finite. Neurodivergent and disability experience supplies curb-cut universal-design requirements without limiting the audience.
+
+**Supersedes and clarifies:**
+
+- The 2026-06-16 ND-only audience boundary is superseded. Disability-led and neurodivergent requirements remain non-negotiable source constraints and paid co-design inputs, but the product is not diagnosis-gated and does not infer diagnosis.
+- The 2026-06-11 five-pillar model remains a compatible roadmap schema, not five competing product identities. Harness serves Engine trust; Operator serves the customer product; Solutioning supplies Research/Business/Growth recipes; Extensibility supplies dormant capabilities after core value; Cofounder mechanics are hidden bounded workers, with speculative organizations in Lab.
+- The 2026-06-19 single-owner multi-agency decision remains active as an internal fan-out capability. It does not define Vanta as an AI-run company, cofounder product, or multi-tenant service.
+
+**Wedge:** trusted, life-integrated continuity and responsibility transfer under finite human executive function. Named workflows such as client follow-up, life administration, coding, media, employment, and business work are acceptance evidence, not the market boundary.
+
+**Autonomy destination:** `R0`–`R5` are reserved exclusively for autonomy:
+`R0 — Observe` (read/classify/report; no mutation), `R1 — Recommend` (identify the
+outcome and propose one next action; no mutation), `R2 — Prepare` (private,
+reversible drafts/tasks/notes/reminders/isolated artifacts), `R3 — Confirm`
+(exact preview plus fresh one-use authority), `R4 — Delegate` (allowlisted
+recurring workflow bounded by exact target/account/recipient/quota/budget/
+expiry/exclusions/cancellation/review), and `R5 — Autonomous delegate` (a proven
+bounded domain may initiate, chain, coordinate, communicate with permitted
+parties, monitor, reconcile, follow up, and recover without per-step approval).
+User-owned grants remain scoped, visible, revocable, budgeted, interruptible,
+and automatically demoted after failure or drift. Consequence uses a separate
+`E0`–`E5` scale and never grants autonomy. There is no opaque self-expanding
+global Full Access switch and no permanent requirement for per-step supervision.
+
+**WorkItem lifecycle:** exactly `draft`, `queued`, `running`, `waiting`,
+`needs human`, `stopped`, `failed`, `unverified`, and `verified`. Captured,
+Now, Waiting, Needs You, and Done are UI projections, not additional states.
+`denied`, `expired`, `unknown`, and `compensated` are receipt/action
+dispositions, not WorkItem states.
+
+**Preserved boundaries:** user-controlled-infrastructure-first and run-anywhere; the Rust kernel as the intended enforced security boundary; goal-before-tool; external content as untrusted data; least-privilege credentials and exact capabilities; evidence-backed completion; immediate stop and revocation; no self-expansion of authority; single owner; no multi-tenancy without a separate decision. Company/cofounder organization mechanics are subordinate to bounded worker capability or quarantined Lab experimentation.
+
+**Required propagation:** Current strategy, soul, PRD, acceptance, roadmap, repository context, handoff, and public positioning must use this framing. `roadmap.json` remains the work database; generated views remain projections. Historical records remain intact and are labeled when superseded.
+
+**Evidence boundary:** This is a framing and prioritization realignment. It does not prove that unimplemented runtime behavior, trust guarantees, autonomy, accessibility, product demand, or market outcomes already exist.
+
+**Reversible?** The prioritization can be revisited with new executed product and market evidence. The append-only history, user-owned authority, universal-design constraints, and evidence boundary remain.
+
+## 2026-08-17 — Claude subscription authentication remains owned by the official client
+**Choice:** Vanta discovers an existing Claude Code login from the official credential locations, but does not mint, store, refresh, or sign out Claude subscription tokens itself. Reauthentication stays `claude auth login --claudeai`.
+**Why:** Anthropic documents subscription authentication through Claude Code, but publishes no third-party OAuth client-registration contract for reusing Claude Code's client identity. A recovered implementation hardcoded that identity and created a second credential store. Passing local tests would not make that provider contract authorized or stable.
+**Evidence:** `claude auth status --json` reported a signed-in subscription locally, and constructing Vanta's `claude-code` provider resolved the expected subscription route without exposing a token. No model request was sent and no account state was changed.
+**Reversible?** Yes. A future documented third-party OAuth contract can be implemented behind the provider boundary with its own registered client.

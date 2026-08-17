@@ -4,19 +4,64 @@ import type { DiffLine } from "../util/diff.js";
 import type { ToolCall } from "../types.js";
 import type { ContextInspection } from "./inspect-context.js";
 import type { PermissionMode } from "../modes/permission-mode.js";
+import type { AskQuestion, AskUserResponse } from "./ask-user-model.js";
+import type { ReceiptDisposition } from "../work-items/contract.js";
 
 export type { DiffLine };
 
-export type ToolResult = { ok: boolean; output: string; diff?: DiffLine[] };
+export type ToolResult = {
+  ok: boolean;
+  output: string;
+  diff?: DiffLine[];
+  /** Explicit effect truth. Omitted mutators fail conservatively toward unknown. */
+  effectDisposition?: ReceiptDisposition;
+  /** Only executed readback/proof may set verified. Success alone stays unverified. */
+  verification?: { status: "unverified" | "verified"; evidence?: string };
+};
+
+export type EffectAuthority = {
+  /** Exact host operation authorized by the one outer policy boundary. */
+  operationId: string;
+  /** Turn/session scope prevents authority reuse by another host lifecycle. */
+  scopeId: string;
+  /** SHA-256 over kind, target class, action, and payload hash. */
+  descriptorSha256: string;
+  /** Exact outer action, when policy allows inner compatibility consumption. */
+  action?: string;
+  consumeExactApproval?: boolean;
+  /** Explicit central-gateway capability for a different child effect. */
+  authorizeChild?: (intent: {
+    action: string;
+    kind: string;
+    targetClass: string;
+    payloadSha256: string;
+  }) => Promise<"allowed" | "blocked" | "denied">;
+};
 
 export type ToolContext = {
   root: string;
   /** Current conversation/session id, when a host has one. Used for durable sidecar metadata. */
   sessionId?: string;
+  /** Stable provider tool-call id for one model-requested operation. */
+  effectCallId?: string;
+  /** Stable scope for claim keys when a host has no persisted session id. */
+  effectScopeId?: string;
+  /** In-memory authority consumed only by matching inner compatibility adapters. */
+  effectAuthority?: EffectAuthority;
+  /** Exact call whose pending/started/settled journal is owned by the outer host. */
+  effectJournalOwnerId?: string;
+  /** Exact action already authorized by the outer dispatcher for this call.
+   * The effect gateway may consume it once instead of prompting twice. */
+  effectApprovalAction?: string;
+  /** Whether an exact matching inner confirmation may consume that decision. */
+  effectApprovalReusable?: boolean;
   safety: KernelClient;
   /** Pause and ask the human y/n. Returns true if approved. toolName lets the
    *  host key session/always-allow and accept-edits auto-approve decisions. */
   requestApproval: (action: string, reason: string, toolName?: string, detail?: { diff?: string; fresh?: boolean }) => Promise<boolean>;
+  /** Pause an interactive host for a structured operator-owned decision. Hosts
+   * without a picker omit this and the tool falls back to a formatted prompt. */
+  requestQuestion?: (questions: AskQuestion[]) => Promise<AskUserResponse>;
   /** Host-owned live permission mode. Desktop uses this instead of mutating the
    * process-wide mode when the operator changes a project setting. */
   permissionMode?: () => PermissionMode;

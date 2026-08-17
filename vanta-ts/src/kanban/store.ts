@@ -20,10 +20,7 @@ export function loadKanbanBoard(repoRoot: string, id: string): KanbanBoard {
 }
 
 export function latestKanbanId(repoRoot: string): string | null {
-  const dir = kanbanDir(repoRoot);
-  if (!existsSync(dir)) return null;
-  const files = readdirSync(dir).filter((file) => file.endsWith(".json")).sort();
-  return files.at(-1)?.replace(/\.json$/, "") ?? null;
+  return listKanbanBoards(repoRoot)[0]?.id ?? null;
 }
 
 export function listKanbanBoards(repoRoot: string): KanbanBoard[] {

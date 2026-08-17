@@ -1,6 +1,7 @@
 import { initialState, type Entry, type PendingTool, type ToolEntry, type UiState } from "./types.js";
 import type { DiffLine } from "../util/diff.js";
 import type { TodoItem } from "../todo/store.js";
+import { buildTurnSummary } from "./turn-summary.js";
 
 // One small reducer. The key invariant for the Claude method: a tool row is
 // committed to history (→ <Static>, which never repaints) only when it COMPLETES;
@@ -18,9 +19,10 @@ export type Action =
   | { t: "todos"; items: TodoItem[] }
   | { t: "enqueue"; text: string }
   | { t: "dequeue" }
+  | { t: "dequeueAt"; index: number }
   | { t: "detachResponse"; text: string }
   | { t: "thinkingDelta"; d: string }
-  | { t: "compacting"; active: boolean }
+  | { t: "compacting"; active: boolean; progress?: number }
   | { t: "promptSuggestions"; suggestions: string[] }
   | { t: "turnStart" }
   | { t: "turnEnd" };
@@ -32,7 +34,9 @@ export function reduce(state: UiState, a: Action): UiState {
       return { ...s, entries: [...s.entries, { kind: "user", text: a.text }], promptSuggestions: [] };
     }
     case "turnStart":
-      return { ...state, busy: true, streaming: "", activeTools: [], liveThinking: "", promptSuggestions: [] };
+      // A completed checklist remains visible after its turn, then clears when
+      // the next turn begins. A new todo write repopulates it live.
+      return { ...state, busy: true, streaming: "", activeTools: [], turnTools: [], todos: [], liveThinking: "", promptSuggestions: [] };
     case "delta": {
       // Commit COMPLETE paragraphs into <Static> as they stream (hermes/CC: text flows into
       // scrollback, scrolling old content up). Only the in-progress paragraph stays in the
@@ -127,7 +131,7 @@ function flush(state: UiState): UiState {
 function reduceAux(state: UiState, a: Action): UiState {
   switch (a.t) {
     case "clear":
-      return { ...initialState, compacting: state.compacting };
+      return { ...initialState, compacting: state.compacting, compactionProgress: state.compactionProgress };
     case "note": {
       const s = flush(state);
       return { ...s, entries: [...s.entries, { kind: "note", text: a.text }] };
@@ -138,6 +142,10 @@ function reduceAux(state: UiState, a: Action): UiState {
       return { ...state, queued: [...state.queued, a.text] };
     case "dequeue":
       return { ...state, queued: state.queued.slice(1) };
+    // Pull one message back out for editing. `dequeue` is head-only (the drain
+    // path); this is the panel's "press ↑ to edit" path and can target any row.
+    case "dequeueAt":
+      return { ...state, queued: state.queued.filter((_, index) => index !== a.index) };
     case "detachResponse": {
       const s = flush(state);
       return {
@@ -153,7 +161,11 @@ function reduceAux(state: UiState, a: Action): UiState {
       // Live reasoning preview (live region only). Cleared the moment real output text begins.
       return { ...state, liveThinking: state.liveThinking + a.d };
     case "compacting":
-      return { ...state, compacting: a.active };
+      return {
+        ...state,
+        compacting: a.active,
+        compactionProgress: a.active ? (a.progress ?? state.compactionProgress) : 0,
+      };
     case "promptSuggestions":
       return { ...state, promptSuggestions: a.suggestions };
     default:
@@ -171,7 +183,7 @@ function completeTool(state: UiState, a: Extract<Action, { t: "toolResult" }>): 
     kind: "tool", name: a.name, verb: pend?.verb ?? a.name, detail: pend?.detail ?? "",
     ok: a.ok, errorLine: a.errorLine, summary: a.summary, diff: a.diff, tokens: a.tokens, rawOutput: a.rawOutput,
   };
-  return { ...state, activeTools, pendingGroup: [...state.pendingGroup, entry] };
+  return { ...state, activeTools, pendingGroup: [...state.pendingGroup, entry], turnTools: [...state.turnTools, entry] };
 }
 
 /** Index of the last in-flight tool with this name (FIFO would mismatch interleaved calls). */
@@ -182,5 +194,16 @@ function lastIndexByName(tools: PendingTool[], name: string): number {
 
 /** End the turn: commit any trailing streamed text and clear the live region. */
 function commitStreaming(state: UiState): UiState {
-  return { ...commitText(state), activeTools: [], busy: false, liveThinking: "", compacting: false };
+  const committed = commitText(state);
+  const summary = buildTurnSummary(committed.turnTools);
+  return {
+    ...committed,
+    entries: summary ? [...committed.entries, summary] : committed.entries,
+    activeTools: [],
+    turnTools: [],
+    busy: false,
+    liveThinking: "",
+    compacting: false,
+    compactionProgress: 0,
+  };
 }

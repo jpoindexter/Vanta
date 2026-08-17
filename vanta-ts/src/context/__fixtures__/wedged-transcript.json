@@ -1,0 +1,68 @@
+[
+  {
+    "role": "tool",
+    "content": "orphaned result",
+    "toolCallId": "orphan-call",
+    "name": "fixture_tool"
+  },
+  {
+    "role": "assistant",
+    "content": "first synthetic batch",
+    "toolCalls": [
+      {
+        "id": "batch-1-a",
+        "name": "fixture_tool",
+        "arguments": {},
+        "effectState": "started"
+      },
+      {
+        "id": "batch-1-b",
+        "name": "fixture_tool",
+        "arguments": {},
+        "effectState": "started"
+      }
+    ]
+  },
+  {
+    "role": "tool",
+    "content": "result 1a",
+    "toolCallId": "batch-1-a",
+    "name": "fixture_tool"
+  },
+  {
+    "role": "assistant",
+    "content": "second synthetic batch",
+    "toolCalls": [
+      {
+        "id": "batch-2-a",
+        "name": "fixture_tool",
+        "arguments": {},
+        "effectState": "started"
+      },
+      {
+        "id": "batch-2-b",
+        "name": "fixture_tool",
+        "arguments": {},
+        "effectState": "started"
+      }
+    ]
+  },
+  {
+    "role": "tool",
+    "content": "result 1b",
+    "toolCallId": "batch-1-b",
+    "name": "fixture_tool"
+  },
+  {
+    "role": "tool",
+    "content": "result 2a",
+    "toolCallId": "batch-2-a",
+    "name": "fixture_tool"
+  },
+  {
+    "role": "tool",
+    "content": "result 2b",
+    "toolCallId": "batch-2-b",
+    "name": "fixture_tool"
+  }
+]

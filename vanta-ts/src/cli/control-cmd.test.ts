@@ -39,6 +39,7 @@ describe("runControlCommand", () => {
     const code = await runControlCommand("/r", [], {
       log: (l) => lines.push(l),
       run: have("screencapture", "cliclick"),
+      platform: "darwin",
       openPane: (p) => {
         opened.push(p);
         return { ok: true, url: "u", message: `opened ${p}` };
@@ -50,7 +51,11 @@ describe("runControlCommand", () => {
   });
 
   it("doctor → exit 1 when not ready", async () => {
-    const code = await runControlCommand("/r", ["doctor"], { log: () => {}, run: have("screencapture") /* no cliclick */ });
+    const code = await runControlCommand("/r", ["doctor"], {
+      log: () => {},
+      run: have("screencapture"), /* no cliclick */
+      platform: "darwin",
+    });
     expect(code).toBe(1);
   });
 });

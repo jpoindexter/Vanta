@@ -46,7 +46,10 @@ export function resolveToolRetries(env: NodeJS.ProcessEnv = process.env): number
 export function isTransientError(err: unknown): boolean {
   const cause = err instanceof Error && err.cause ? ` ${err.cause instanceof Error ? `${err.cause.name} ${err.cause.message}` : String(err.cause)}` : "";
   const text = err instanceof Error ? `${err.name} ${err.message}${cause}` : String(err);
-  return TRANSIENT.test(text);
+  // Node's built-in fetch (Undici) uses this otherwise-unclassified signature
+  // when the remote side closes an SSE response mid-stream.
+  const undiciTerminated = err instanceof TypeError && /^terminated$/i.test(err.message.trim());
+  return undiciTerminated || TRANSIENT.test(text);
 }
 
 /** Provider-call retry budget from env (default 2, clamped 0..5). A long run makes many model

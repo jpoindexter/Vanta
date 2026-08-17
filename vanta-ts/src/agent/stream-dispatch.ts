@@ -1,5 +1,6 @@
 import type { StreamChunk, CompletionResult } from "../providers/interface.js";
 import type { ToolCall } from "../types.js";
+import { recordTtftStage } from "../performance/ttft-trace.js";
 
 // Streaming tool execution: the agent loop starts a concurrency-safe tool the
 // moment its tool-call block finishes streaming (a `tool_call` chunk), overlapping
@@ -41,10 +42,14 @@ export async function consumeStream(opts: {
   signal?: AbortSignal;
   onSafeToolCall?: (call: ToolCall) => void;
   onThinkingDelta?: (delta: string) => void;
+  ttft?: { turnId: string; surface: string };
 }): Promise<CompletionResult | null> {
   let result: CompletionResult | null = null;
   for await (const chunk of opts.stream) {
     if (opts.signal?.aborted) throw new DOMException("Aborted", "AbortError");
+    if (chunk.type === "text" || chunk.type === "thinking" || chunk.type === "tool_call") {
+      recordTtftStage("provider_first_delta", opts.ttft);
+    }
     if (chunk.type === "text") {
       opts.onTextDelta(chunk.delta);
     } else if (chunk.type === "thinking") {

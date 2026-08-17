@@ -104,6 +104,21 @@ describe("preconnect", () => {
     expect(result).toEqual({ ok: true, warmed: false, reason: "no-host" });
   });
 
+  it("does NOT bypass an explicitly configured proxy", async () => {
+    const connect = vi.fn<Connect>().mockResolvedValue(undefined);
+    const result = await preconnect({
+      env: env({
+        VANTA_PRECONNECT: "1",
+        VANTA_PROVIDER: "openai",
+        HTTPS_PROXY: "http://user:secret@proxy.example:8080",
+      }),
+      connect,
+    });
+    expect(connect).not.toHaveBeenCalled();
+    expect(result).toEqual({ ok: true, warmed: false, reason: "proxy-configured" });
+    expect(JSON.stringify(result)).not.toContain("secret");
+  });
+
   it("swallows a thrown connect and never throws", async () => {
     const connect = vi.fn<Connect>().mockRejectedValue(new Error("ECONNREFUSED"));
     const result = await preconnect({ env: env({ VANTA_PRECONNECT: "1", VANTA_PROVIDER: "openai" }), connect });

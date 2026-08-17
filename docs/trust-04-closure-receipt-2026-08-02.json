@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "roadmapId": "TRUST-04",
+  "roadmapState": "shipped",
+  "branch": "codex/trust-04-typed-receipts-20260802",
+  "sourceBaseSha": "96e26ced23ab87444ae1b38a51ad6ef8997c90ff",
+  "remoteMainObservedSha": "4911ae44bbb35beef4511ba298475ba5a82b7e1c",
+  "executedAt": "2026-08-02T16:47:37Z",
+  "platform": "Darwin arm64",
+  "contract": {
+    "states": ["draft", "queued", "running", "waiting", "needs human", "stopped", "failed", "unverified", "verified"],
+    "projections": ["Captured", "Now", "Waiting", "Needs You", "Done"],
+    "dispositions": ["none", "confirmed", "denied", "expired", "unknown", "compensated"]
+  },
+  "proof": {
+    "supportedHosts": 7,
+    "producerHostsExecuted": 5,
+    "consumerHostsValidated": 2,
+    "representativePaths": 6,
+    "validatorMutationClasses": 6,
+    "fullTypeScriptPassed": 13975,
+    "fullTypeScriptSkipped": 3,
+    "fullTypeScriptFailed": 0,
+    "fullTypeScriptPerTestTimeoutSeconds": 60,
+    "fullTypeScriptDurationSeconds": 610.74,
+    "fullTypeScriptMaxWorkers": 4,
+    "precedingFullTypeScriptFailed": 2,
+    "precedingFullTypeScriptFailure": "default-worker diagnostic exposed a plugin-worker claim-observation race and a load-sensitive hard-ceiling timeout; the race was repaired and the ceiling passed alone and in the four-worker full run",
+    "backgroundTaskIsolatedPassed": 1,
+    "pluginWorkerRepeatedPassed": 15,
+    "hardCeilingIsolatedPassed": 1,
+    "wholeSuiteSixtySecondAttemptExitCode": 124,
+    "runtimeTypecheckExitCode": 0,
+    "rendererTypecheckExitCode": 0,
+    "electronLaunches": 3,
+    "electronRestartReentry": true,
+    "electronDuplicatePreparedRead": false,
+    "tuiProcessRestartReentry": true,
+    "scheduledOperationCallsAfterReplay": 1,
+    "calendarProviderMutationAfterDenial": false,
+    "rustPassed": 70,
+    "websiteBuildExitCode": 0,
+    "semgrepFindings": 0,
+    "gitleaksHistoryCommitsScanned": 2973,
+    "gitleaksHistoryFindings": 0
+  },
+  "doneCriteria": {
+    "oneTypedContractAcrossSupportedHosts": "executed",
+    "exactLifecycleAndProjectionVocabulary": "executed",
+    "dispositionsRemainSeparate": "executed",
+    "verificationOutageStaysUnverified": "executed",
+    "unknownEffectNeverBlindlyRetried": "executed",
+    "nonverifiedAccomplishmentMemoryBlocked": "executed",
+    "representativeFileUiMessageCalendarJobRestart": "executed"
+  },
+  "artifacts": {
+    "hostLedgerSha256": "1f30da12534a48cef86939171aaeae9e1fd5dd6990297212d31b522cf4e66d93",
+    "contractSha256": "0e1fccc387f9da02abd5f286210e870fcc42f67acbf166d8f812fe4abb0a253a",
+    "agentBoundarySha256": "463dd0ea0bbc7c10d6532773df5fc2e78d62c0e9e35dedd06533b54cd8fc78ad",
+    "effectExecutorSha256": "2abddaf077e69d6357fd9aa09b017ac55aade3c56c30558529b395a6abe31e3e"
+  },
+  "limits": [
+    "This receipt closes TRUST-04 on the supported local Vanta hosts and synthetic/local provider fixtures.",
+    "The first whole-suite run was intentionally killed at 60 seconds and exited 124. Default-worker diagnostics later exposed two load/race failures; the plugin claim-observation race was repaired and repeated five times, the hard-ceiling path passed alone, and the exact final four-worker rerun used a 60-second per-test ceiling, took 610.74 seconds, and had zero failures.",
+    "No live Gmail, Calendar, messaging, or other external account was mutated.",
+    "No GitHub Actions, paid CI, package installation, protected-source edit, merge, tag, release, publication, deployment, or notarization was performed.",
+    "The stacked pull request remains draft and this receipt does not claim TRUST-01, OP-01, cross-platform packaging, or universal live-provider proof."
+  ]
+}

@@ -96,7 +96,7 @@ try {
   });
   await page.getByRole("button", { name: "Scroll to latest message" }).waitFor();
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
-  process.stdout.write(`${JSON.stringify({ ok: true, target: executablePath ? "packaged" : "source", turns: 500, renderedMessages: await page.locator(".transcript-turn").count(), promptMarkers: 32, taskSwitch: true, relaunch: true, streamingDetached: true, inputs: ["wheel", "touch", "keyboard"], viewports: ["1440x960", "1024x640", "760x700"], reducedMotion: true, measuredVirtualization: true })}\n`);
+  process.stdout.write(`${JSON.stringify({ ok: true, target: executablePath ? "packaged" : "source", turns: 500, renderedMessages: await page.locator(".transcript-turn").count(), promptMarkers: 32, promptPreviews: true, taskSwitch: true, relaunch: true, streamingDetached: true, inputs: ["wheel", "touch", "keyboard"], viewports: ["1440x960", "1024x640", "760x700"], reducedMotion: true, measuredVirtualization: true })}\n`);
 } finally {
   await app?.close().catch(() => undefined);
   await Promise.all([rm(home, { recursive: true, force: true }), rm(userData, { recursive: true, force: true }), rm(project, { recursive: true, force: true })]);
@@ -138,6 +138,13 @@ async function proveFixture(page) {
   const rendered = await page.locator(".transcript-turn").count();
   assert.ok(rendered > 0 && rendered < 80, `the 500-turn fixture should render a bounded measured window, received ${rendered}`);
   assert.equal(await page.locator(".prompt-markers button").count(), 32, "the prompt map should stay bounded");
+  const firstMarker = page.getByRole("button", { name: /Jump to prompt: Prompt 1:/ });
+  const firstPreview = firstMarker.locator("xpath=..").locator(".prompt-marker-preview");
+  await firstMarker.hover();
+  await firstPreview.waitFor({ state: "visible" });
+  assert.match(await firstPreview.innerText(), /Prompt 1 of 32[\s\S]*Prompt 1:/i, "hovering a marker should preview its prompt");
+  await firstMarker.focus();
+  await firstPreview.waitFor({ state: "visible" });
   await page.getByRole("button", { name: /Jump to prompt: Prompt 500:/ }).waitFor();
   assert.ok(await page.locator(".transcript-window").evaluate((element) => element.getBoundingClientRect().height > 10_000), "the measured virtual transcript should preserve the full scroll range");
   await expectStableLatest(page);

@@ -12,7 +12,7 @@ const docs = join(here, '..', 'docs', 'reference');
 
 // ---- category maps (anything unmapped falls into "Other") ----
 const TOOL_CATEGORIES = [
-  ['Files & code', ['read_file','write_file','edit_file','grep_files','glob_files','shell_cmd','run_code','lsp_diagnostics','lsp_definition','git_status','git_diff','git_commit','git_push','git_branch','git_checkout','github_read','regression_lock','protect']],
+  ['Files & code', ['read_file','pdf_read','document_read','write_file','edit_file','grep_files','glob_files','shell_cmd','run_code','lsp_diagnostics','lsp_definition','git_status','git_diff','git_commit','git_push','git_branch','git_checkout','github_read','regression_lock','protect']],
   ['Web, search & reach', ['web_search','web_fetch','rss_read','reddit_read','twitter_read','linkedin_read','youtube_read','podcast_read','watch_video','x','reach','cookie_import']],
   ['Browser, vision & voice', ['browser_navigate','browser_act','browser_extract','browser_read','screenshot','describe_image','compare_vision','look_at_screen','look_at_camera','transcribe','speak']],
   ['Comms', ['gmail_search','gmail_read','gmail_draft','gmail_send','calendar_read','calendar_create','calendar_update','drive_read','drive_create','drive_update','send_message']],

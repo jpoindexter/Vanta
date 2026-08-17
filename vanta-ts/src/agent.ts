@@ -10,6 +10,7 @@ import { join } from "node:path";
 import { recordNeedsHumanOutcome } from "./operator/needs-human.js";
 import { recordDocReferences } from "./context/router-health.js";
 import { recordWorkOutcome } from "./maintenance/budget.js";
+import { recordTurnReceipt } from "./work-items/turn-receipt.js";
 
 export type { AgentDeps, StreamEvent, AgentOutcome, StoppedReason, Conversation } from "./agent/agent-types.js";
 import type { AgentDeps, AgentOutcome } from "./agent/agent-types.js";
@@ -32,6 +33,18 @@ async function recordTurnMaintenance(deps: AgentDeps, userText: string, outcome:
   await recordNeedsHumanOutcome(dataDir, { instruction: userText, outcome, source }).catch(() => null);
 }
 
+async function recordAgentTurnReceipt(deps: AgentDeps, outcome: AgentOutcome): Promise<void> {
+  if (!deps.sessionId && !deps.usageAgent) return;
+  const host = deps.usageAgent === "one-shot" ? "cli" : deps.usageAgent ?? "agent";
+  await recordTurnReceipt({
+    root: deps.root,
+    sessionId: deps.sessionId,
+    host,
+    goalId: deps.usageTaskId,
+    completionState: outcome.completionState,
+  });
+}
+
 /**
  * Open a conversation that persists message history across turns — the basis for
  * the interactive REPL. `runAgent` is the one-shot form of this.
@@ -51,6 +64,7 @@ export function createConversation(
     sessionId: deps.sessionId,
     safety: deps.safety,
     requestApproval: deps.requestApproval,
+    requestQuestion: deps.requestQuestion,
     permissionMode: deps.permissionMode,
   };
   return {
@@ -59,6 +73,7 @@ export function createConversation(
       const startedAt = Date.now();
       await persistCompaction(messages, deps);
       const outcome = await runTurn({ messages, ctx, deps, userText, images, signal });
+      await recordAgentTurnReceipt(deps, outcome);
       await recordTurnMaintenance(deps, userText, outcome, startedAt);
       return outcome;
     },

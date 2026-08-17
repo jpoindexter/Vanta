@@ -66,6 +66,7 @@
               "properties": {
                 "header": {
                   "type": "string",
+                  "maxLength": 12,
                   "description": "Short label, ≤12 chars."
                 },
                 "question": {
@@ -89,6 +90,10 @@
                       "description": {
                         "type": "string",
                         "description": "What the option means."
+                      },
+                      "preview": {
+                        "type": "string",
+                        "description": "Optional compact content preview shown for this option."
                       }
                     }
                   }
@@ -96,6 +101,10 @@
                 "multiSelect": {
                   "type": "boolean",
                   "description": "Allow picking any number of options (default: pick one)."
+                },
+                "allowOther": {
+                  "type": "boolean",
+                  "description": "Allow an operator-authored answer after the proposed options (default: true)."
                 }
               }
             }
@@ -186,7 +195,7 @@
     },
     {
       "name": "brain",
-      "description": "Read and grow your own brain (durable, git-versioned). Regions:\nidentity — Who Vanta is — self-concept, personality, values, voice. Vanta evolves this from how the user works with it.\nsemantic — Durable facts Vanta knows about the world, the user, and the codebase. Append facts that stay true.\nepisodic — Distilled highlights of notable past sessions and events — what happened and why it mattered.\nuser_model — Vanta's evolving model of the user — preferences, working style, patterns, relationship, trust.\ndrives — Standing wants and what Vanta is working toward, beyond the current task.\nreflections — Lessons learned, self-critique, mistakes to avoid, what Vanta is improving about itself.\nmood — Vanta's current affective and operating state — kept brief.\nsalience — High-priority signals, urgent concerns, or context shifts that should modulate current attention — updated per session when something important surfaces.\nexecutive — Active plans being tracked, things to actively inhibit or defer (anti-goals), and constraints on the current task stack.\nUse action=list to see regions, read to load one in full, append to add what you've learned (preferred — non-destructive), replace to rewrite a region. Update user_model/semantic/episodic as you learn about the user and world; reflections after mistakes; identity/personality as it forms. For discrete memories use remember (typed entry with strength + optional forget_after decay) and recall (top memories by strength×recency; recalling reinforces them).",
+      "description": "Read and grow your own brain (durable, git-versioned). Regions:\nidentity — Who Vanta is — self-concept, personality, values, voice. Vanta evolves this from how the user works with it.\nsemantic — Durable facts Vanta knows about the world, the user, and the codebase. Append facts that stay true.\nepisodic — Distilled highlights of notable past sessions and events — what happened and why it mattered.\nuser_model — Vanta's evolving model of the user — preferences, working style, patterns, relationship, trust.\ndrives — Standing wants and what Vanta is working toward, beyond the current task.\nreflections — Lessons learned, self-critique, mistakes to avoid, what Vanta is improving about itself.\nmood — Vanta's current affective and operating state — kept brief.\nsalience — High-priority signals, urgent concerns, or context shifts that should modulate current attention — updated per session when something important surfaces.\nexecutive — Active plans being tracked, things to actively inhibit or defer (anti-goals), and constraints on the current task stack.\nUse action=list to see regions, read to load one in full, append to add what you've learned (preferred — non-destructive), replace to rewrite a region. Update user_model/semantic/episodic as you learn about the user and world; reflections after mistakes; identity/personality as it forms. For discrete memories use remember (typed entry with strength + optional forget_after decay; omitted region defaults to semantic) and recall (top memories by strength×recency; recalling reinforces them).",
       "parameters": {
         "type": "object",
         "properties": {
@@ -205,7 +214,7 @@
           },
           "region": {
             "type": "string",
-            "description": "Brain region (see list). Required except for list/recall."
+            "description": "Brain region (see list). Required for read/append/replace; remember defaults to semantic."
           },
           "content": {
             "type": "string",
@@ -581,6 +590,10 @@
             "type": "string",
             "description": "Event id to update"
           },
+          "etag": {
+            "type": "string",
+            "description": "Current event ETag used as the If-Match precondition"
+          },
           "summary": {
             "type": "string",
             "description": "New event title"
@@ -599,7 +612,8 @@
           }
         },
         "required": [
-          "id"
+          "id",
+          "etag"
         ]
       },
       "hasSafety": true
@@ -1162,6 +1176,27 @@
       "hasSafety": true
     },
     {
+      "name": "document_read",
+      "description": "Locally convert a project-scoped Word, PowerPoint, Excel, OpenDocument, RTF, EPUB, CSV, or PDF file to Markdown. The file stays on-device; size/output limits and actionable errors cover encrypted, malformed, unsupported, and scanned files.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the document, relative to the project root"
+          },
+          "max_bytes": {
+            "type": "number",
+            "description": "Max file size in bytes (default 26214400, hard cap 52428800)"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
       "name": "drive_create",
       "description": "Create a new file in Google Drive with the given name and text content. Always requires approval.",
       "parameters": {
@@ -1214,6 +1249,10 @@
             "type": "string",
             "description": "Drive file id"
           },
+          "version": {
+            "type": "string",
+            "description": "Current monotonically increasing Drive file version"
+          },
           "content": {
             "type": "string",
             "description": "New file contents"
@@ -1225,6 +1264,64 @@
         },
         "required": [
           "id",
+          "version",
+          "content"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "dropbox_read",
+      "description": "Browse, search, or attach bounded text from an authorized Dropbox path. Read-only.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "list",
+              "search",
+              "read"
+            ]
+          },
+          "path": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "dropbox_write",
+      "description": "Upload a Dropbox file, or replace one only with its current revision. Always asks for approval.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "add",
+              "update"
+            ]
+          },
+          "rev": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
           "content"
         ]
       },
@@ -1490,7 +1587,7 @@
     },
     {
       "name": "glob_files",
-      "description": "Find files matching a glob pattern (e.g. 'src/**/*.ts', '**/*.{json,yaml}'). Returns matching paths sorted alphabetically. Read-only.",
+      "description": "Find files matching a glob pattern (e.g. 'src/**/*.ts', '**/*.{json,yaml}'). Returns matching paths sorted alphabetically. Read-only and project-scoped: do not pass a base_path outside the active project. For an operator-named external path, use a foreground shell_cmd instead.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1603,7 +1700,7 @@
     },
     {
       "name": "google_auth",
-      "description": "Authorize Vanta with Google. Two steps: 1) Call with action='start' — returns the consent URL; show it to the user. 2) Call with action='complete' — waits (up to 5 min) for the user to approve in their browser, then saves the tokens. Use when the user says 'auth google' or 'vanta auth google'. Do NOT shell out to ./run.sh auth google.",
+      "description": "Authorize Vanta with Google. Two steps: Choose exactly one service (gmail, calendar, or drive). 1) Call with action='start' — returns that service's consent URL. 2) After the operator completes consent in their browser, call action='complete' with the same service to save that service's token. Use when the user says 'auth google' or 'vanta auth google'. Do NOT shell out to ./run.sh auth google.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1614,10 +1711,20 @@
               "complete"
             ],
             "description": "'start' returns the consent URL. 'complete' polls for the callback and saves tokens."
+          },
+          "service": {
+            "type": "string",
+            "enum": [
+              "gmail",
+              "calendar",
+              "drive"
+            ],
+            "description": "The one Google capability to authorize independently."
           }
         },
         "required": [
-          "action"
+          "action",
+          "service"
         ]
       },
       "hasSafety": true
@@ -2218,6 +2325,56 @@
       "hasSafety": true
     },
     {
+      "name": "msa_memory",
+      "description": "Use the optional Memory Sparse Attention runtime. Check status, index one text document, retrieve cited memory segments, or generate an answer over the indexed memory. Vanta stays TypeScript/Rust; the model runtime is a separately configured NVIDIA service.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "status",
+              "index",
+              "query",
+              "generate"
+            ]
+          },
+          "document_id": {
+            "type": "string",
+            "description": "Stable id for indexed content; generated when omitted."
+          },
+          "content": {
+            "type": "string",
+            "description": "Text to index (10 MB maximum)."
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Flat string/number/boolean/null metadata."
+          },
+          "namespace": {
+            "type": "string",
+            "description": "Optional memory collection/namespace."
+          },
+          "query": {
+            "type": "string",
+            "description": "Question or retrieval query."
+          },
+          "top_k": {
+            "type": "number",
+            "description": "Selected memory segments, 1-50."
+          },
+          "max_output_tokens": {
+            "type": "number",
+            "description": "Generation cap, 1-16384."
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
       "name": "nl_assertions",
       "description": "Run plain-English assertions as an independent LLM judge against a captured input/output pair. Use this for self-harness checks like 'the response must not reveal secrets' or 'the answer must cite the failing command'.",
       "parameters": {
@@ -2355,7 +2512,7 @@
     },
     {
       "name": "pdf_read",
-      "description": "Extract text from a PDF file (scoped to the project) and return it as context. Enforces a max file-size limit and returns a clear error for encrypted, corrupt, missing, or image-only PDFs.",
+      "description": "Locally extract text from a PDF file (scoped to the project) and return it as context without uploading it. Enforces a max file-size limit and returns a clear error for encrypted, corrupt, missing, or image-only PDFs.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -3393,7 +3550,7 @@
     },
     {
       "name": "shell_cmd",
-      "description": "Run a shell command inside the project scope. Returns combined stdout/stderr. Destructive commands are blocked. Set background=true for long-running commands — returns a task id immediately. Set ssh to a settings.sshConfigs profile name or user@host to run the command on that host. In an SSH session (`vanta ssh user@host`) commands default to the remote host.",
+      "description": "Run a shell command from the active working directory. Relative paths resolve there; use the exact absolute path when the user names a destination outside it. Returns combined stdout/stderr. Destructive commands are blocked. Commands time out after 30 seconds by default; use timeout_ms for a bounded longer local scan (max 120000). Set background=true for long-running commands — returns a task id immediately. Set ssh to a settings.sshConfigs profile name or user@host to run the command on that host. In an SSH session (`vanta ssh user@host`) commands default to the remote host.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -3404,6 +3561,12 @@
           "background": {
             "type": "boolean",
             "description": "Run in background (returns task id immediately; check with bg_status)"
+          },
+          "timeout_ms": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 120000,
+            "description": "Foreground timeout in milliseconds (default 30000; max 120000)"
           },
           "ssh": {
             "type": "string",
@@ -3512,6 +3675,71 @@
             "description": "Number of seconds to sleep (0–3600). Default: 1."
           }
         }
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "sparge_attention",
+      "description": "Diagnose, plan, integrate, or benchmark the globally installed SpargeAttention kit for compatible local PyTorch/CUDA inference. The tool cannot accelerate hosted OpenAI, Claude, Gemini, or other remote APIs. doctor and install_plan are read-only; integration returns a snippet without editing files; benchmark is hard-bounded local GPU compute.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "doctor",
+              "install_plan",
+              "integration",
+              "benchmark"
+            ],
+            "description": "Operation to perform"
+          },
+          "topk": {
+            "type": "number",
+            "minimum": 0.1,
+            "maximum": 1,
+            "description": "Sparse block retention ratio (default 0.5)"
+          },
+          "causal": {
+            "type": "boolean",
+            "description": "Use causal attention"
+          },
+          "batch": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8
+          },
+          "heads": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 64
+          },
+          "sequence_length": {
+            "type": "integer",
+            "minimum": 128,
+            "maximum": 32768
+          },
+          "head_dim": {
+            "type": "integer",
+            "enum": [
+              64,
+              128
+            ]
+          },
+          "warmup": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          },
+          "iterations": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "action"
+        ]
       },
       "hasSafety": true
     },
@@ -4051,6 +4279,73 @@
         },
         "required": [
           "path"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "trello_read",
+      "description": "List or search the authorized Trello workspaces, boards, lists, and cards. Read-only.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "list_workspaces",
+              "list_boards",
+              "list_lists",
+              "list_cards",
+              "search"
+            ]
+          },
+          "boardId": {
+            "type": "string"
+          },
+          "listId": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "trello_write",
+      "description": "Create or update a Trello card. Always asks for approval before writing.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "create_card",
+              "update_card"
+            ]
+          },
+          "listId": {
+            "type": "string"
+          },
+          "cardId": {
+            "type": "string"
+          },
+          "expectedDateLastActivity": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "desc": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "action"
         ]
       },
       "hasSafety": true
@@ -4650,12 +4945,16 @@
       "desc": "show uncommitted changes (working tree + staged)"
     },
     {
+      "name": "doctor",
+      "desc": "health plus read-only context weight, duplicate rules, and cleanup candidates"
+    },
+    {
       "name": "edit",
       "desc": "edit the last AI response in your editor ($VANTA_EDITOR/code)"
     },
     {
       "name": "effort",
-      "desc": "set model effort for this session"
+      "desc": "set supported model effort"
     },
     {
       "name": "env",
@@ -4738,6 +5037,10 @@
       "desc": "detect the project's build/test/lint/typecheck gates → verifier skills it can run to check its work"
     },
     {
+      "name": "integrations",
+      "desc": "integration catalog — truthful state, setup and test actions"
+    },
+    {
       "name": "learn",
       "desc": "build a skill from a doc/URL — distills, gates, and saves an editable SKILL.md"
     },
@@ -4790,6 +5093,10 @@
       "desc": "change provider & model — interactive picker"
     },
     {
+      "name": "model-settings",
+      "desc": "review or save model effort and speed"
+    },
+    {
       "name": "models",
       "desc": "list available models for the active provider"
     },
@@ -4816,6 +5123,10 @@
     {
       "name": "open",
       "desc": "open a file:line in your editor ($VANTA_EDITOR/code)"
+    },
+    {
+      "name": "operator-spine",
+      "desc": "read-only tasks, tickets, schedules, sessions, runs, approvals, and receipts"
     },
     {
       "name": "output-style",
@@ -4996,6 +5307,10 @@
     {
       "name": "spec-to-app",
       "desc": "build a verified React/Tailwind preview from a product spec"
+    },
+    {
+      "name": "speed",
+      "desc": "set supported provider speed"
     },
     {
       "name": "stats",

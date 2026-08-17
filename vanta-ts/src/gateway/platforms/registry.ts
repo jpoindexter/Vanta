@@ -39,12 +39,16 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
     requiredEnv: ["VANTA_TELEGRAM_TOKEN"],
     secretEnv: "VANTA_TELEGRAM_TOKEN",
     signupUrl: "https://t.me/BotFather",
+    warning: "Treat the BotFather token like a password. If it was pasted into a terminal, chat, or log, revoke it with @BotFather and create a new one.",
     setupSteps: [
       "Open @BotFather in Telegram.",
       "Send /newbot and follow the prompts to name your bot.",
       "Copy the HTTP API token BotFather gives you.",
-      "Paste it here. Optionally set VANTA_TELEGRAM_ALLOW to a comma list of chat ids.",
-      "For serverless wake-on-message, set VANTA_TELEGRAM_WEBHOOK_SECRET and register /telegram/webhook with Telegram.",
+      "Paste it only into Vanta's hidden prompt. Vanta verifies getMe before writing the token.",
+      "Find your numeric Telegram user ID (usernames are not accepted), then enter it as the owner ID. You may enter multiple comma-separated IDs.",
+      "Leave owner IDs empty only when you intentionally want code-based pairing for new chats.",
+      "For groups, Telegram privacy mode may require /setprivacy or an @mention; re-add the bot after changing that BotFather setting.",
+      "Polling is the default. For serverless wake-on-message, set VANTA_TELEGRAM_WEBHOOK_SECRET and register /telegram/webhook with Telegram.",
     ],
   },
   {

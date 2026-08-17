@@ -1,8 +1,29 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { readMcpConfig, mcpToolToVantaTool, buildMcpChildEnv } from "./mount.js";
+import {
+  readMcpConfig,
+  mcpToolToVantaTool,
+  buildMcpChildEnv,
+  resolveMcpStdioArgs,
+  validateScraplingToolArgs,
+} from "./mount.js";
+import type { ToolContext } from "../tools/types.js";
+
+const effectRoots: string[] = [];
+afterEach(async () => Promise.all(effectRoots.splice(0).map((root) => rm(root, { recursive: true, force: true }))));
+
+async function effectContext(): Promise<ToolContext> {
+  const root = await mkdtemp(join(tmpdir(), "vanta-mcp-effect-"));
+  effectRoots.push(root);
+  return {
+    root,
+    sessionId: "mcp-test",
+    safety: { assess: async () => ({ risk: "allow", reason: "test" }) } as unknown as ToolContext["safety"],
+    requestApproval: async () => true,
+  };
+}
 
 describe("readMcpConfig", () => {
   const prev = process.env.VANTA_MCP_SERVERS;
@@ -112,8 +133,13 @@ describe("mcpToolToVantaTool", () => {
 
   it("executes by proxying to the MCP client", async () => {
     const tool = mcpToolToVantaTool(fakeClient, "files", { name: "read" });
-    const res = await tool.execute({ path: "a.txt" }, {} as never);
-    expect(res).toEqual({ ok: true, output: 'ran with {"path":"a.txt"}' });
+    const res = await tool.execute({ path: "a.txt" }, await effectContext());
+    expect(res).toMatchObject({
+      ok: true,
+      output: 'ran with {"path":"a.txt"}',
+      effectDisposition: "confirmed",
+      verification: { status: "unverified" },
+    });
   });
 
   it("returns an error result (not a throw) when the call fails", async () => {
@@ -123,9 +149,78 @@ describe("mcpToolToVantaTool", () => {
       },
     };
     const tool = mcpToolToVantaTool(failing, "files", { name: "read" });
-    const res = await tool.execute({}, {} as never);
+    const res = await tool.execute({}, await effectContext());
     expect(res.ok).toBe(false);
-    expect(res.output).toContain("server gone");
+    expect(res.output).toContain("unknown");
+  });
+
+  it("blocks a private Scrapling target before invoking the connector", async () => {
+    const callTool = vi.fn(async () => "should not run");
+    const tool = mcpToolToVantaTool({ callTool }, "scrapling", { name: "get" });
+
+    const res = await tool.execute({ url: "http://127.0.0.1:7788/status" }, await effectContext());
+
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("blocked");
+    expect(callTool).not.toHaveBeenCalled();
+  });
+
+  it("deduplicates one provider call id without blocking a later intentional call", async () => {
+    const callTool = vi.fn(async () => "sent");
+    const tool = mcpToolToVantaTool({ callTool }, "mail", { name: "send" });
+    const context = await effectContext();
+    const args = { body: "same bytes" };
+
+    const first = await tool.execute(args, { ...context, effectCallId: "call-1" });
+    const replay = await tool.execute(args, { ...context, effectCallId: "call-1" });
+    const second = await tool.execute(args, { ...context, effectCallId: "call-2" });
+
+    expect(first.ok).toBe(true);
+    expect(replay.ok).toBe(true);
+    expect(second.ok).toBe(true);
+    expect(callTool).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("validateScraplingToolArgs", () => {
+  const publicOnly = vi.fn(async (url: string) =>
+    url.includes("127.0.0.1")
+      ? { ok: false as const, error: "SSRF guard: blocked private/loopback address" }
+      : { ok: true as const },
+  );
+
+  it("blocks a private Scrapling target before the MCP call", async () => {
+    const error = await validateScraplingToolArgs(
+      "scrapling",
+      "get",
+      { url: "http://127.0.0.1:7788/status" },
+      publicOnly,
+    );
+    expect(error).toContain("private/loopback");
+  });
+
+  it("checks each URL and caps bulk scraping", async () => {
+    await expect(validateScraplingToolArgs(
+      "scrapling",
+      "bulk_get",
+      { urls: Array.from({ length: 21 }, (_, i) => `https://example.com/${i}`) },
+      publicOnly,
+    )).resolves.toContain("at most 20");
+  });
+
+  it("allows a public single-page target and ignores other MCP servers", async () => {
+    await expect(validateScraplingToolArgs(
+      "scrapling",
+      "fetch",
+      { url: "https://example.com" },
+      publicOnly,
+    )).resolves.toBeNull();
+    await expect(validateScraplingToolArgs(
+      "other",
+      "fetch",
+      { url: "http://127.0.0.1" },
+      publicOnly,
+    )).resolves.toBeNull();
   });
 });
 
@@ -180,5 +275,21 @@ describe("buildMcpChildEnv", () => {
     const out = buildMcpChildEnv({ ...base, VANTA_MCP_FULL_ENV: "1" }, { FOO: "bar" });
     expect(out.OPENAI_API_KEY).toBe("sk-secret-should-not-leak");
     expect(out.FOO).toBe("bar");
+  });
+});
+
+describe("resolveMcpStdioArgs", () => {
+  it("gives an imported filesystem server the active project root", () => {
+    expect(resolveMcpStdioArgs(
+      { command: "npx", args: ["-y", "@modelcontextprotocol/server-filesystem"] },
+      "/workspace/project",
+    )).toEqual(["-y", "@modelcontextprotocol/server-filesystem", "/workspace/project"]);
+  });
+
+  it("preserves an explicitly configured filesystem root", () => {
+    expect(resolveMcpStdioArgs(
+      { command: "npx", args: ["-y", "@modelcontextprotocol/server-filesystem", "/allowed"] },
+      "/workspace/project",
+    )).toEqual(["-y", "@modelcontextprotocol/server-filesystem", "/allowed"]);
   });
 });

@@ -8,7 +8,7 @@ type SetupCommandDeps = {
   status?: (env: NodeJS.ProcessEnv, dataDir: string) => Promise<TelegramSetupStatus>;
 };
 
-export { isTelegramSetupQuestion } from "../setup/telegram-intent.js";
+export { isTelegramSetupQuestion, mentionsTelegramSetup } from "../setup/telegram-intent.js";
 
 function telegramAccess(env: NodeJS.ProcessEnv): string {
   return env.VANTA_TELEGRAM_ALLOW?.trim()
@@ -44,8 +44,7 @@ export function createSetupCommand(deps: SetupCommandDeps = {}): SlashHandler {
     if (section === "messaging" || section === "telegram") {
       const resolveStatus = deps.status ?? ((env, dataDir) => resolveTelegramSetupStatus(env, dataDir, { probe: deps.probe }));
       const output = renderTelegramSetupStatus(await resolveStatus(ctx.env, ctx.dataDir)).split("\n").map((line) => `  ${line}`).join("\n");
-      if (rest[0]?.toLowerCase() === "status") return { output };
-      return { output, setupHandoff: { section: "messaging", platformId: "telegram" } };
+      return { output };
     }
 
     if (section === "tts" || section === "voice") {

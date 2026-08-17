@@ -1,12 +1,45 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { ApprovalOverlay, CommandPalette, ModelPicker, SetupWizard } from "./overlays.js";
+import { ApprovalOverlay, CommandPalette, fastSpeedHint, ModelPicker, NewTaskDialog, SetupWizard } from "./overlays.js";
+
+describe("fastSpeedHint", () => {
+  it("uses each provider's own documented fast-tier tradeoff", () => {
+    expect(fastSpeedHint("claude-code")).toBe("Up to 2.5× output speed, premium rate");
+    expect(fastSpeedHint("anthropic")).toBe("Up to 2.5× output speed, premium rate");
+    expect(fastSpeedHint("codex")).toBe("1.5× speed, increased usage");
+  });
+});
 
 describe("CommandPalette", () => {
   it("exposes Telegram setup when slash opens quick actions", () => {
-    const html = renderToStaticMarkup(<CommandPalette open onClose={vi.fn()} onNew={vi.fn()} onModel={vi.fn()} onTelegram={vi.fn()} onSound={vi.fn()} onSettings={vi.fn()} onTab={vi.fn()} />);
+    const html = renderToStaticMarkup(<CommandPalette open onClose={vi.fn()} onNew={vi.fn()} onReview={vi.fn()} onSidebar={vi.fn()} onCycleMode={vi.fn()} onView={vi.fn()} onModel={vi.fn()} onTelegram={vi.fn()} onSound={vi.fn()} onSettings={vi.fn()} />);
     expect(html).toContain("Set up Telegram");
+    expect(html).toContain("Open Review");
+    expect(html).toContain("Open Scheduled");
+    expect(html).toContain("Open Plugins");
+    expect(html).not.toContain(">Terminal<");
+  });
+});
+
+describe("NewTaskDialog", () => {
+  it("uses a native folder chooser entry point and styled menu triggers", () => {
+    const html = renderToStaticMarkup(
+      <NewTaskDialog
+        open
+        root="/projects/vanta"
+        model="gpt-5"
+        onClose={vi.fn()}
+        onCreate={vi.fn()}
+      />,
+    );
+
+    expect(html).toContain('id="new-task-folder"');
+    expect(html).toContain('value="/projects/vanta"');
+    expect(html).toContain("readOnly");
+    expect(html).toContain('aria-label="Choose project folder"');
+    expect(html).toContain("Choose…");
+    expect(html.match(/class="select-control"/g)).toHaveLength(2);
   });
 });
 
@@ -48,20 +81,74 @@ describe("ModelPicker", () => {
       <ModelPicker
         open
         models={[{ id: "ollama", label: "Ollama", short: "Local", models: ["qwen"], current: true, savedDefaultModel: "qwen", modelSource: "live", discoveryAvailable: true }]}
-        status={{ kernel: "ready", model: "qwen", provider: "ollama", tools: 1, sessionId: "s1" }}
+        status={null}
         onClose={vi.fn()}
         onRefresh={vi.fn()}
         onSelect={vi.fn()}
+        onSettings={vi.fn()}
       />,
     );
     expect(html).toContain("Choose a model");
     expect(html).toContain("Search models and providers");
     expect(html).toContain("Ollama");
     expect(html).toContain("Live provider catalog");
-    expect(html).toContain("This task");
     expect(html).toContain("Default");
     expect(html).toContain("Ollama qwen is the default");
     expect(html).toContain("Use a model ID that is not listed");
+  });
+
+  it("opens compact settings for the selected provider before the full browser", () => {
+    const html = renderToStaticMarkup(
+      <ModelPicker
+        open
+        models={[{ id: "codex", label: "OpenAI Codex via ChatGPT subscription", short: "Codex", models: ["gpt-5.6-sol"], modelSource: "live", discoveryAvailable: true, modelSettings: { effort: { defaultValue: "medium", options: ["low", "medium", "high", "xhigh", "max", "ultra"] }, speed: { defaultValue: "standard", options: ["standard", "fast"] } } }]}
+        status={{ kernel: "ready", model: "gpt-5.6-sol", provider: "codex", modelSettings: { effortLevel: "high", speed: "standard" }, tools: 1, sessionId: "s1" }}
+        onClose={vi.fn()}
+        onRefresh={vi.fn()}
+        onSelect={vi.fn()}
+        onSettings={vi.fn()}
+      />,
+    );
+    expect(html).toContain("Codex settings");
+    expect(html).toContain("Browse providers and models");
+    expect(html).toContain("gpt-5.6-sol");
+    expect(html).not.toContain("Search models and providers");
+    expect(html).not.toContain("Choose a model");
+  });
+
+  it("shows only the settings supported by the active provider", () => {
+    const codex = renderToStaticMarkup(
+      <ModelPicker
+        open
+        models={[{ id: "codex", label: "Codex", short: "Codex", models: ["gpt-5.6-sol"], modelSource: "live", discoveryAvailable: true, modelSettings: { effort: { defaultValue: "medium", options: ["low", "medium", "high", "xhigh", "max", "ultra"] }, speed: { defaultValue: "standard", options: ["standard", "fast"] } } }]}
+        status={{ kernel: "ready", model: "gpt-5.6-sol", provider: "codex", modelSettings: { effortLevel: "high", speed: "fast" }, tools: 1, sessionId: "s1" }}
+        onClose={vi.fn()}
+        onRefresh={vi.fn()}
+        onSelect={vi.fn()}
+        onSettings={vi.fn()}
+      />,
+    );
+    expect(codex).toContain("Effort");
+    expect(codex).toContain("Extra High");
+    expect(codex).toContain("Ultra");
+    expect(codex).toContain("Speed");
+    expect(codex).toContain("1.5× speed, increased usage");
+    expect(codex).toContain("Save as project defaults");
+
+    const claude = renderToStaticMarkup(
+      <ModelPicker
+        open
+        models={[{ id: "claude-code", label: "Claude Code", short: "Claude", models: ["claude-sonnet-5"], modelSource: "live", discoveryAvailable: true, modelSettings: { effort: { defaultValue: "medium", options: ["low", "medium", "high", "xhigh", "max"] } } }]}
+        status={{ kernel: "ready", model: "claude-sonnet-5", provider: "claude-code", modelSettings: { effortLevel: "medium" }, tools: 1, sessionId: "s1" }}
+        onClose={vi.fn()}
+        onRefresh={vi.fn()}
+        onSelect={vi.fn()}
+        onSettings={vi.fn()}
+      />,
+    );
+    expect(claude).toContain("Effort");
+    expect(claude).not.toContain("Ultra");
+    expect(claude).not.toContain("Speed</span>");
   });
 });
 

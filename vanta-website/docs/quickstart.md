@@ -41,7 +41,7 @@ Then pick a model backend and start a session:
 ```bash
 vanta setup     # choose: openai | gemini | anthropic | openrouter | ollama
 vanta           # interactive session
-vanta doctor    # health check
+vanta doctor    # health + read-only context-engineering audit
 ```
 
 The provider defaults to local **Ollama** (`qwen2.5:14b`, no API key) — make sure Ollama is running, or edit `vanta-ts/.env` to switch to OpenAI/Anthropic.
@@ -51,7 +51,7 @@ The provider defaults to local **Ollama** (`qwen2.5:14b`, no API key) — make s
 ```bash
 ./run.sh                                   # interactive session
 ./run.sh run "read README.md and summarize it"   # one-shot
-./run.sh doctor                            # agent-side health
+./run.sh doctor                            # agent health + context audit
 ./run.sh help                              # list all subcommands
 ```
 

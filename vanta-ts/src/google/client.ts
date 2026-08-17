@@ -1,4 +1,5 @@
 import { getAccessToken } from "./auth.js";
+import { googleServiceForUrl } from "./capability.js";
 
 /**
  * Authenticated fetch wrapper for Google REST APIs. Attaches a Bearer token
@@ -11,12 +12,13 @@ export async function googleFetch(
   init: RequestInit = {},
   env?: NodeJS.ProcessEnv,
 ): Promise<Response> {
-  const token = await getAccessToken(env);
+  const service = googleServiceForUrl(url);
+  const token = await getAccessToken(env, undefined, service);
   const res = await fetch(url, withAuth(init, token));
   if (res.status !== 401) return res;
   // 401: token may be stale. getAccessToken again to take the refresh path,
   // then retry exactly once. No further retry — avoid an auth loop.
-  const fresh = await getAccessToken(env);
+  const fresh = await getAccessToken(env, undefined, service);
   return fetch(url, withAuth(init, fresh));
 }
 

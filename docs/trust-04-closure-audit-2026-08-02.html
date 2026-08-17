@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>trust-04-closure-audit-2026-08-02</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<h1 id="trust-04-closure-audit-2026-08-02">TRUST-04 Closure Audit —
+2026-08-02</h1>
+<h2 id="verdict">Verdict</h2>
+<p><code>TRUST-04</code> is <strong>verified and shipped for the
+supported local Vanta hosts</strong>. One canonical
+<code>WorkItem</code> / <code>Run</code> / <code>Approval</code> /
+<code>Receipt</code> contract now governs Desktop, CLI, TUI, messaging,
+and jobs; memory and goal progress consume the same evidence-derived
+state. The six representative file, UI, message, calendar, job, and
+restart paths have executed evidence.</p>
+<p>This is not a live-account, cross-platform release, merge,
+deployment, notarization, or universal gateway claim. GitHub Actions
+remained disabled.</p>
+<h2 id="scope-and-protected-boundaries">Scope and protected
+boundaries</h2>
+<ul>
+<li>Branch: <code>codex/trust-04-typed-receipts-20260802</code></li>
+<li>Stacked base: <code>codex/trust-02-closure-20260802</code></li>
+<li>Verified base SHA:
+<code>96e26ced23ab87444ae1b38a51ad6ef8997c90ff</code></li>
+<li>Observed <code>origin/main</code>:
+<code>4911ae44bbb35beef4511ba298475ba5a82b7e1c</code></li>
+<li>Protected Rust kernel, <code>vanta-ts/src/factory/**</code>, and
+<code>MANIFESTO.md</code>: unchanged</li>
+<li>Other worktrees: clean and unchanged</li>
+<li>No unrelated-project material, live credentials, local
+<code>.vanta</code> state, or generated release artifacts are in the
+change payload</li>
+</ul>
+<h2 id="before-after">Before / after</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Boundary</th>
+<th>Before</th>
+<th>After</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Host turn truth</td>
+<td>Tool calls had canonical records, but terminal host turns did not
+share one receipt</td>
+<td>Every producer host passes through
+<code>createConversation.send()</code> and persists one content-free
+turn envelope</td>
+<td><code>src/agent/turn-receipt.integration.test.ts</code> executes
+Desktop, CLI, TUI, messaging, and jobs</td>
+</tr>
+<tr>
+<td>Effect approval</td>
+<td>Shared effect execution did not persist
+requested/approved/denied/expired authority under the effect
+WorkItem</td>
+<td>Exact effect approvals share the effect WorkItem; timeout remains
+<code>expired</code></td>
+<td><code>src/effects/execute-effect.test.ts</code></td>
+</tr>
+<tr>
+<td>Projection names</td>
+<td>Continuity exposed host-specific views</td>
+<td>Captured, Now, Waiting, Needs You, and Done are derived projections
+only</td>
+<td><code>src/work-items/projections.test.ts</code>, real Electron
+continuity proof</td>
+</tr>
+<tr>
+<td>Completion memory</td>
+<td>Extractor and learner could accept accomplishment-shaped memory
+without turn evidence</td>
+<td>Only <code>verified</code> may persist an accomplishment claim;
+ordinary preferences remain allowed</td>
+<td><code>src/work-items/memory-policy.test.ts</code>, extractor and
+brain tests</td>
+</tr>
+<tr>
+<td>Goal progress</td>
+<td>Goal status was independent from canonical WorkItem truth</td>
+<td>CLI and TUI goal views read the latest linked WorkItem state; a goal
+marked done without evidence shows <code>work:unverified</code></td>
+<td>goal ledger and CLI tests</td>
+</tr>
+<tr>
+<td>Messaging vs jobs</td>
+<td>The shared cron/gateway runner did not identify the terminal
+host</td>
+<td>No wake maps to <code>messaging</code>; scheduled/loop wake maps to
+<code>jobs</code> with its goal ID</td>
+<td><code>src/cli/task-host.test.ts</code></td>
+</tr>
+<tr>
+<td>Calendar authority</td>
+<td>Calendar mutations asked internally but did not force fresh approval
+or preserve denied/expired disposition</td>
+<td>Create/update require fresh approval; denial and expiry settle
+distinctly and never call the provider</td>
+<td>tool tests plus real dispatcher integration</td>
+</tr>
+<tr>
+<td>Job replay</td>
+<td>Scheduler effect mediation existed without direct typed-receipt
+acceptance evidence</td>
+<td>Same fire window executes once, persists confirmed/unverified, and
+replay never invokes the operation again</td>
+<td><code>src/schedule/effect-run.test.ts</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="exact-contract">Exact contract</h2>
+<p>Lifecycle states are exactly:</p>
+<p><code>draft</code>, <code>queued</code>, <code>running</code>,
+<code>waiting</code>, <code>needs human</code>, <code>stopped</code>,
+<code>failed</code>, <code>unverified</code>, <code>verified</code>.</p>
+<p>Operator projections are exactly:</p>
+<p><code>Captured</code>, <code>Now</code>, <code>Waiting</code>,
+<code>Needs You</code>, <code>Done</code>.</p>
+<p>Receipt dispositions remain separate from lifecycle state:</p>
+<p><code>none</code>, <code>confirmed</code>, <code>denied</code>,
+<code>expired</code>, <code>unknown</code>,
+<code>compensated</code>.</p>
+<p>The checked-in host ledger and mutation validator reject missing
+hosts, altered lifecycle vocabulary, invented projections, collapsed
+dispositions, or missing evidence paths.</p>
+<h2 id="representative-real-paths">Representative real paths</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Path</th>
+<th>Executed result</th>
+<th>What it does not establish</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>File</td>
+<td>Real Electron launches read <code>brief.md</code>, retained its
+SHA-256, and rejected duplicate execution</td>
+<td>No arbitrary external filesystem write authority</td>
+</tr>
+<tr>
+<td>UI</td>
+<td>Three Electron launches rendered continuity, retained exact re-entry
+after process restart, and reported zero serious accessibility
+violations</td>
+<td>No cross-platform packaged UI claim</td>
+</tr>
+<tr>
+<td>Message</td>
+<td>Synthetic platform sent the canonical final response and native file
+once through <code>executeEffect</code>, with settlement records</td>
+<td>No live messaging account delivery</td>
+</tr>
+<tr>
+<td>Calendar</td>
+<td>Real agent dispatcher persisted requested→denied fresh approval plus
+denied tool/turn receipts; provider mutation count stayed zero</td>
+<td>No live Google Calendar mutation or readback</td>
+</tr>
+<tr>
+<td>Job</td>
+<td>Scheduled effect executed once, persisted confirmed/unverified
+acknowledgement, refused replay, and withheld credentials from a real
+scheduled child process</td>
+<td>No unattended live production schedule</td>
+</tr>
+<tr>
+<td>Restart</td>
+<td>Effect replay after simulated crash became unknown/needs-human
+without a second operation; Electron and TUI process restarts restored
+state</td>
+<td>No crash proof on every operating system</td>
+</tr>
+</tbody>
+</table>
+<h2 id="verification-record">Verification record</h2>
+<table>
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 40%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr>
+<th>Command</th>
+<th style="text-align: right;">Exit</th>
+<th>Observed result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>npm run trust:host-ledger</code></td>
+<td style="text-align: right;">0</td>
+<td>7 hosts, 6 representative paths, 6 mutation classes rejected,
+roadmap state shipped</td>
+</tr>
+<tr>
+<td>Final focused TRUST-04 Vitest suite</td>
+<td style="text-align: right;">0</td>
+<td>92/92 across 16 suites, including code-size enforcement</td>
+</tr>
+<tr>
+<td>Whole-suite <code>timeout 60s npm test</code></td>
+<td style="text-align: right;">124</td>
+<td>Honest timeout; not counted as a pass</td>
+</tr>
+<tr>
+<td>Isolated hard-ceiling test</td>
+<td style="text-align: right;">0</td>
+<td>1 passed in 12.3 seconds</td>
+</tr>
+<tr>
+<td>First exact-final
+<code>npx vitest run --testTimeout=60000</code></td>
+<td style="text-align: right;">1</td>
+<td>13,963 passed, 3 skipped; one aggregate-load polling timeout in
+<code>bg-tasks.test.ts</code></td>
+</tr>
+<tr>
+<td>Isolated <code>bg-tasks.test.ts</code> rerun</td>
+<td style="text-align: right;">0</td>
+<td>1/1 passed in 116 ms</td>
+</tr>
+<tr>
+<td>Reviewer counterexample regressions</td>
+<td style="text-align: right;">2 then 0</td>
+<td>The first review exposed five contract/claim gaps; the second
+exposed one ordinary-fact memory regression. The repaired memory path
+passed 35/35 and the full suite passed.</td>
+</tr>
+<tr>
+<td>Post-review default-worker full diagnostic</td>
+<td style="text-align: right;">130 (stopped after red)</td>
+<td>Exposed a plugin-claim observation race and load-sensitive
+hard-ceiling timeout</td>
+</tr>
+<tr>
+<td>Repeated plugin worker plus isolated hard ceiling</td>
+<td style="text-align: right;">0 / 0</td>
+<td>Plugin suite passed 5 consecutive runs (15 tests); hard ceiling
+passed alone in 43.46 seconds</td>
+</tr>
+<tr>
+<td>Final
+<code>npx vitest run --testTimeout=60000 --maxWorkers=4</code></td>
+<td style="text-align: right;">0</td>
+<td>13,975 passed, 3 skipped, 0 failed; 1,519 files in 610.74
+seconds</td>
+</tr>
+<tr>
+<td>Runtime and renderer TypeScript typechecks</td>
+<td style="text-align: right;">0 / 0</td>
+<td>Both compile without emit</td>
+</tr>
+<tr>
+<td><code>npm run desktop:continuity:proof</code></td>
+<td style="text-align: right;">0</td>
+<td>3 Electron launches; exact restart re-entry; no duplicate read</td>
+</tr>
+<tr>
+<td><code>npm run tui:restart:proof</code></td>
+<td style="text-align: right;">0</td>
+<td>New process restored prior transcript context</td>
+</tr>
+<tr>
+<td><code>npm --prefix vanta-website run build</code></td>
+<td style="text-align: right;">0</td>
+<td>Optimized production documentation build</td>
+</tr>
+<tr>
+<td><code>cargo test</code></td>
+<td style="text-align: right;">0</td>
+<td>70 passed; one pre-existing unused-import warning</td>
+</tr>
+<tr>
+<td>Explicit TypeScript/JavaScript Semgrep packs</td>
+<td style="text-align: right;">0</td>
+<td>74 rules, all 43 changed code files, 0 findings</td>
+</tr>
+<tr>
+<td><code>gitleaks git --log-opts=--all --redact</code></td>
+<td style="text-align: right;">0</td>
+<td>2,973 commits, 75.72 MB, 0 findings</td>
+</tr>
+<tr>
+<td><code>git diff --check</code></td>
+<td style="text-align: right;">0</td>
+<td>No whitespace errors</td>
+</tr>
+</tbody>
+</table>
+<h2 id="claim-ledger">Claim ledger</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Status</th>
+<th>Boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Exact canonical vocabularies</td>
+<td>Executed</td>
+<td>Source, schemas, projections, validator mutations</td>
+</tr>
+<tr>
+<td>Five producer hosts persist the same terminal envelope</td>
+<td>Executed</td>
+<td>Local synthetic providers through the real conversation
+boundary</td>
+</tr>
+<tr>
+<td>Memory cannot manufacture nonverified accomplishments</td>
+<td>Executed</td>
+<td>All eight nonverified states plus extractor/learner paths</td>
+</tr>
+<tr>
+<td>Unknown consequential effects are not replayed</td>
+<td>Executed</td>
+<td>Shared executor crash fixture and scheduler fire-window replay</td>
+</tr>
+<tr>
+<td>Representative paths satisfy local TRUST-04 Done</td>
+<td>Executed</td>
+<td>File/UI/message/calendar/job/restart evidence above</td>
+</tr>
+<tr>
+<td>Live external accounts passed</td>
+<td>Not claimed</td>
+<td>No live account mutation was authorized or required</td>
+</tr>
+<tr>
+<td>Cross-platform release or deployment passed</td>
+<td>Not claimed</td>
+<td>No packaging, release, publication, deployment, or notarization
+occurred</td>
+</tr>
+</tbody>
+</table>
+<h2 id="artifacts">Artifacts</h2>
+<ul>
+<li><code>docs/trust-04-host-ledger-2026-08-02.json</code></li>
+<li><code>docs/trust-04-closure-receipt-2026-08-02.json</code></li>
+<li><code>docs/trust-04-closure-audit-2026-08-02.html</code></li>
+<li>Host ledger SHA-256:
+<code>1f30da12534a48cef86939171aaeae9e1fd5dd6990297212d31b522cf4e66d93</code></li>
+<li>Contract SHA-256:
+<code>0e1fccc387f9da02abd5f286210e870fcc42f67acbf166d8f812fe4abb0a253a</code></li>
+</ul>
+<h2 id="remaining-roadmap-order">Remaining roadmap order</h2>
+<p><code>TRUST-01</code> is the next Harness card. <code>OP-01</code> is
+now dependency-ready. Neither is promoted by this audit.</p>
+</body>
+</html>

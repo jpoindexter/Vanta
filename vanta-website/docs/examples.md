@@ -83,7 +83,9 @@ description: Run my Friday weekly review across goals, money, and radar.
 }
 ```
 
-Its tools mount as kernel-gated Vanta tools on next launch. See [MCP integration](./mcp.md).
+Its tools mount into Vanta's standard dispatcher on next launch. Review trust,
+discovered tools, arguments, and effects; mounting is not proof of universal
+mediation. See [MCP integration](./mcp.md).
 
 ## Add a custom tool
 
@@ -102,7 +104,9 @@ export const wordCount: Tool = {
 };
 ```
 
-Register it in `tools/all-tools.ts` — it's then kernel-gated like every built-in.
+Register it in `tools/all-tools.ts` so standard dispatch can assess it. The tool
+still needs a complete safety description, scoped executor, receipt, and
+adversarial proof.
 
 ## Full reference
 

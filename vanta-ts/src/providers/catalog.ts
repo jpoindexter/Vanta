@@ -39,6 +39,7 @@ export type ProviderEntry = {
 // Reused by both API-key Anthropic and the Pro/Max subscription backend.
 const ANTHROPIC_MODELS = [
   "claude-fable-5",
+  "claude-opus-5",
   "claude-opus-4-8",
   "claude-opus-4-7",
   "claude-sonnet-5",

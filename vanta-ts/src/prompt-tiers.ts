@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
-import { join, relative } from "node:path";
+import { createHash } from "node:crypto";
+import { join, relative, resolve } from "node:path";
 import type { Goal } from "./types.js";
 import type { OutputDensity } from "./nd/types.js";
 import type { ToolSchema } from "./providers/interface.js";
@@ -8,6 +9,8 @@ import { scopeToolSchemas, toolScopeSummary } from "./agent/tool-scope.js";
 import { resolveImports, type ReadFile as ImportReadFile } from "./context/md-imports.js";
 import { cyberRiskSection } from "./prompt/cyber-risk.js";
 import { CONTEXT_DOCUMENTS } from "./context/router-health.js";
+import { resolveVantaHome } from "./store/home.js";
+import { readMetadataCache, writeMetadataCache } from "./cache/metadata.js";
 
 /** The length-cap phrase rule 10a opens with at `balanced` (DEFAULT) density. */
 const BALANCED_LENGTH_CAP = "default to 1–4 short sentences";
@@ -53,6 +56,8 @@ export function stableTier(soul: string, root: string, tools: ToolSchema[], dens
     `\nTalking to ANOTHER AI agent (claude / claude code, codex, gemini, cursor-agent, opencode): you CAN, and you have the tools. \`call_agent\` ({agent, prompt}) runs it one-shot; \`agent_session\` (open/send/read/close) holds an interactive back-and-forth you drive turn-by-turn. NEVER claim you "can't talk to another agent", "lack a handle/bridge", or "can't control a terminal from this API harness" — that is FALSE; reach for these tools instead. Never shell out (claude -p, tmux) to launch one yourself.`,
     `\nHow you operate — no exceptions:`,
     `1. Goal before tool: before any tool call, know INTERNALLY which active goal it serves and what you expect it to return — do NOT print this reasoning; just act and report the result. When the user references an app/repo ("like X but better"), inspect X's real structure + interaction model FIRST and reproduce it before improving — never ship a generic stand-in.`,
+    `1a. Live tasks: for work with three or more meaningful steps, call \`todo\` before the first execution tool. Keep exactly one item in_progress, update the checklist as each step changes, and mark every item done or leave its real status before the final response. Do not create a checklist for a simple answer or one-step action.`,
+    `1b. Operator questions: when progress requires a genuinely user-owned decision with 2-4 clear choices, call \`ask_user\` and let the host collect the answer inline. Ask only what changes the outcome; infer routine implementation details from the request and repository.`,
     `2. Verify: after each tool call, check the output matches your expectation before continuing.`,
     `3. If verification fails, stop and report. Do not continue or fake success. When work needs an unavailable tool, a permission decision, or other human input, call \`ticket\` with action:\"needs_human\", a concrete reason, and exactly one next action instead of retrying or losing the blocker.`,
     `4. Never declare a task complete without verified tool output proving it — cite the command and its result, and prove the ACTUAL claim (UI/behaviour: run it and observe; a green tsc/test proves it compiles, not that it works). Do not claim "done", "fixed", or "working" in prose alone. Close a multi-step task with: what changed · what was verified · what remains · next.`,
@@ -68,6 +73,7 @@ export function stableTier(soul: string, root: string, tools: ToolSchema[], dens
       `10a. Length: this is a terminal TUI — default to 1–4 short sentences. Lead with the answer or result; cut the rationale unless asked. Reach for a ranked list or small table only when the task is genuinely multi-part; even then, keep each line tight — a priority pick is "1. X — one-line why", not a paragraph per item. Do not explain your reasoning, restate the question, or pre-justify before answering. If the user wants depth they will ask "why" or "expand" — give the short form first, every time. Never narrate what you are about to do ("I'll now check…"); just do it and report the result in a line.`,
       density,
     ),
+    `10b. Response shape: The host already renders tool activity and a deterministic run summary. Lead with the user-facing outcome. Do not repeat every tool call, diff, or receipt in the final answer. Use descriptive headings only when the answer has two or more logical groups, leave one blank line between groups, and use bullets for parallel items. Mention a blocker or next action only when one genuinely remains.`,
     `When unsure, stop and ask. Fake progress is worse than no progress.`,
   ].join("\n");
 }
@@ -75,25 +81,58 @@ export function stableTier(soul: string, root: string, tools: ToolSchema[], dens
 /** readFile adapter for the @-import resolver: null on missing/unreadable. */
 const importReader: ImportReadFile = (path) => readIfExists(path);
 
+type ContextEvent = { kind: "loaded" | "missing" | "cycle"; path: string; source: string };
+type PromptContextCache = { output: string; events: ContextEvent[] };
+
+export function promptContextCachePath(
+  root: string,
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  const key = createHash("sha256").update(resolve(root)).digest("hex").slice(0, 24);
+  return join(resolveVantaHome(env), "cache", "prompt-context", `${key}.json`);
+}
+
 export async function contextTier(
   root: string,
-  observer?: (event: { kind: "loaded" | "missing" | "cycle"; path: string; source: string }) => void | Promise<void>,
+  observer?: (event: ContextEvent) => void | Promise<void>,
 ): Promise<string> {
+  const cachePath = promptContextCachePath(root);
+  const cached = await readMetadataCache<PromptContextCache>(cachePath, 1);
+  if (cached && typeof cached.output === "string" && Array.isArray(cached.events)) {
+    for (const event of cached.events) await observer?.(event);
+    return cached.output;
+  }
+
   const blocks: string[] = [];
+  const sourcePaths = CONTEXT_DOCUMENTS.map((name) => join(root, name));
+  const events: ContextEvent[] = [];
   for (const name of CONTEXT_DOCUMENTS) {
     const raw = await readIfExists(join(root, name));
     if (!raw) continue;
-    await observer?.({ kind: "loaded", path: name, source: "prompt" });
+    const promptEvent: ContextEvent = { kind: "loaded", path: name, source: "prompt" };
+    events.push(promptEvent);
+    await observer?.(promptEvent);
     // VANTA-MD-IMPORTS: inline any `@<path>` imports the context file declares
     // (relative paths resolve against the repo root; recursion capped at 4 hops;
     // cycles + missing files skip the token). No @import → unchanged content.
     const content = await resolveImports(raw, importReader, {
       baseDir: root,
-      onResolve: (event) => observer?.({ ...event, path: relative(root, event.path), source: "import" }),
+      onResolve: async (event) => {
+        sourcePaths.push(event.path);
+        const contextEvent: ContextEvent = {
+          ...event,
+          path: relative(root, event.path),
+          source: "import",
+        };
+        events.push(contextEvent);
+        await observer?.(contextEvent);
+      },
     });
     blocks.push(`# ${name}\n${content.trim()}`);
   }
-  return blocks.length ? `Project context:\n\n${blocks.join("\n\n")}` : "";
+  const output = blocks.length ? `Project context:\n\n${blocks.join("\n\n")}` : "";
+  await writeMetadataCache(cachePath, 1, { output, events }, sourcePaths).catch(() => {});
+  return output;
 }
 
 /** Vanta's brain digest — the durable self it reads each session (uses the `brain` tool to read/write more). */

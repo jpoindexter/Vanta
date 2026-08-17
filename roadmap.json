@@ -1,6 +1,103 @@
 {
-  "updated": "2026-07-21",
+  "updated": "2026-08-14",
   "items": [
+    {
+      "id": "VANTA-STREAMING-TTS-FIRST-CLAUSE",
+      "track": "Operator",
+      "title": "Streaming TTS — speak after the first complete clause",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Reduce voice-response silence by feeding live model deltas through a deterministic clause splitter and bounded sequential TTS queue. Reuse the configured Edge, OpenAI, ElevenLabs, or local provider; keep whole-response synthesis as the fallback.",
+      "done": "VANTA_TTS_STREAMING=1 makes push-to-talk and wake-word voice turns dispatch the first complete clause before model completion; punctuation, abbreviation, decimal, minimum, and hard-maximum rules are deterministic; tool boundaries discard unspoken draft clauses; synthesis failures trip a per-turn breaker; queue length is bounded; setup persists the opt-in; disabled and non-streaming paths synthesize the complete final response; tests prove first-clause dispatch precedes model completion without calling a paid provider.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "updated": "2026-07-29",
+      "notes": "Source: operator-supplied Streaming TTS architecture image, 2026-07-29. Applied streaming-as-interaction, deterministic boundaries, bounded queues, circuit breaking, provider substitution, and explicit drift disclosure. Implementation: src/tts/clause-splitter.ts, src/tts/streaming.ts, src/voice/loop.ts, and src/voice/wake-loop.ts. Product/operations contract: docs/streaming-tts.md. Executed evidence: 8 focused files / 42 tests passed; the full suite passed 1,491 files / 13,800 tests with 3 intentional skips; TypeScript typecheck passed; and the real conversation-stream proof emitted STREAMING_TTS_FIRST_CLAUSE_OK with firstClauseBeforeProviderDone=true and two ordered clauses. Boundary: the proof uses a silent injected synthesis sink, so it establishes conversation-to-synthesis ordering and fallback behavior but not audible hardware output, network-provider latency, or audio quality.",
+      "source": "operator-supplied streaming-tts diagram"
+    },
+    {
+      "id": "VANTA-STREAMING-TTS-GATEWAY-AUDIO",
+      "track": "Messaging",
+      "title": "Gateway streaming speech adapter — native live audio where platforms support it",
+      "status": "parked",
+      "size": "L",
+      "summary": "Extend the messaging platform contract with an opt-in live audio stream sink so provider PCM/audio chunks can reach capable channels without pretending that sequential completed-file uploads are streaming.",
+      "done": "At least one real platform adapter advertises a typed audio-stream capability, accepts bounded audio chunks with backpressure and cancellation, records delivery receipts without content, falls back to the final text response on drift/failure, and passes a live platform proof. Platforms without the capability remain byte-compatible.",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "updated": "2026-07-30",
+      "notes": "Current PlatformAdapter supports text, images, typing, and completed files but no live audio-chunk transport. Do not simulate streaming by sending many audio attachments. Start only after choosing a platform with a real native streaming contract.\n\nREALIGNMENT 2026-07-30: CONSOLIDATE into cross-host accessibility and communication acceptance (UX-04, LIFE-01).",
+      "source": "docs/streaming-tts.md",
+      "after": [
+        "VANTA-STREAMING-TTS-FIRST-CLAUSE"
+      ],
+      "parkedReason": "strategy decision"
+    },
+    {
+      "id": "VANTA-MSA-TS-INTEGRATION",
+      "track": "Operator",
+      "title": "Memory Sparse Attention adapter — long-context memory without Python in Vanta",
+      "status": "shipped",
+      "size": "L",
+      "summary": "Give Vanta an optional Memory Sparse Attention backend through a typed TypeScript service contract. Vanta remains TypeScript/Rust and keeps its local brain authoritative; a separately operated NVIDIA runtime handles MSA indexing, routing, and generation. The same capability is exposed through Vanta's kernel-gated MCP server for other AI clients.",
+      "done": "VANTA_MEMORY=msa selects a schema-validated TypeScript adapter only when a safe VANTA_MSA_URL is configured; local writes happen before remote indexing; query failures, empty results, timeouts, and malformed output fall back to local memory; the setup wizard and msa_memory tool expose status/index/query/generate; vanta mcp serve lists the capability and still kernel-gates calls; a real authenticated loopback service exercises all four endpoints; unconfigured behavior stays byte-compatible and no Python dependency or secret enters Vanta.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "memory",
+      "updated": "2026-07-29",
+      "notes": "Decision owner: Jason Poindexter. Dominant uncertainty: feasibility. Observed: the official implementation is an end-to-end trained architecture rather than a drop-in kernel and publishes a Python/PyTorch/FlashAttention quick start. Inferred product boundary: consume it as an optional model service; never make it Vanta's only memory. Product brief, API, safety rules, metrics, rollout, and proof boundary: docs/msa-long-context.md.\n\nSHIPPED 2026-07-29: Added the schema-validated TypeScript MSA protocol/client, local-first MemoryProvider adapter, setup choice, msa_memory status/index/query/generate tool, and default kernel-gated MCP discovery. HTTP policy requires HTTPS remotely and permits loopback HTTP; bearer tokens stay inside the transport; external text and metadata are control-stripped; requests time out and return errors as values; failed or empty recall falls back locally. Executed evidence: 117 focused tests passed, the full suite passed 1,488 files and 13,785 tests with 3 intentional skips, TypeScript typecheck passed, the authenticated loopback proof exercised health/index/query/generate plus the real provider resolver, durable local write, and remote recall, and the installed global launcher completed a real MCP handshake with msa_memory in its 10-tool default allowlist. Boundary: the proof runtime is a mock service and does not establish official checkpoint inference, CUDA performance, or 100M-token behavior; that remains VANTA-MSA-NVIDIA-RUNTIME-PROOF.",
+      "source": "arXiv:2603.23516; https://github.com/EverMind-AI/MSA"
+    },
+    {
+      "id": "VANTA-MSA-NVIDIA-RUNTIME-PROOF",
+      "track": "Infrastructure",
+      "title": "MSA NVIDIA runtime proof — execute the official checkpoint behind Vanta's contract",
+      "status": "parked",
+      "size": "L",
+      "summary": "Turn the TypeScript integration into real MSA behavior by serving the official checkpoint on supported NVIDIA hardware. This is an external proof gate: mocks, request traces, and adapter tests prove plumbing but cannot prove sparse routing quality, 100M-token behavior, latency, or cost.",
+      "done": "A supported NVIDIA host loads the official MSA checkpoint, implements Vanta's four-endpoint contract, indexes a versioned acceptance corpus, survives restart, returns cited answers through Vanta and one second MCP client, records recall quality plus TTFT/TPOT/throughput/GPU memory/cost, and demonstrates local fallback when the service is stopped. The receipt names hardware, model revision, corpus size, runtime version, and executed commands.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "memory",
+      "updated": "2026-07-29",
+      "notes": "Blocked on access to supported NVIDIA hardware and a stable serving wrapper for the official research code. Do not claim 100M-token support from the TypeScript contract proof.",
+      "source": "arXiv:2603.23516; https://huggingface.co/EverMind-AI/MSA-4B",
+      "after": [
+        "VANTA-MSA-TS-INTEGRATION"
+      ],
+      "parkedReason": "external proof"
+    },
+    {
+      "id": "VANTA-MSA-NATIVE-RUNTIME-PORT",
+      "track": "Infrastructure",
+      "title": "Native MSA runtime decision — evaluate Rust/C++/CUDA only after live value",
+      "status": "parked",
+      "size": "L",
+      "summary": "Evaluate removing Python from the separately deployed MSA service by porting its model-specific routing, document-wise RoPE, compressed K/V memory, checkpoint loader, and GPU kernels to a native runtime. This is not required to keep Vanta Python-free and should proceed only after the external runtime proves material operator value.",
+      "done": "A written go/no-go compares maintaining the isolated reference runtime with a native port; if Go, the native service loads a converted, checksummed checkpoint, passes the same contract and safety suite, reproduces accepted quality within a predeclared tolerance, records performance/cost on the same hardware, and keeps Vanta client behavior unchanged.",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "updated": "2026-07-30",
+      "notes": "Continuation trigger: the NVIDIA pilot demonstrates material value and the official architecture is stable enough to port. Stop if accuracy parity, checkpoint conversion, or maintenance cost is unacceptable.\n\nREALIGNMENT 2026-07-30: DEFER optional native extraction until measured value justifies PACK-01/LAB-01 work.",
+      "source": "docs/msa-long-context.md",
+      "after": [
+        "VANTA-MSA-NVIDIA-RUNTIME-PROOF"
+      ],
+      "parkedReason": "strategy decision"
+    },
     {
       "id": "SANDBOX-RELATIVE-MKDIR-APPROVAL",
       "track": "Harness",
@@ -1861,15 +1958,32 @@
       "title": "AskUserQuestion tool — structured multi-question UI with options, previews, multi-select",
       "status": "shipped",
       "size": "M",
-      "summary": "another agent's AskUserQuestion tool lets the model present 1-4 structured questions in one call, each with 2-4 labeled options (plus auto-added 'Other'), optional per-option preview content (markdown in a side panel), optional multi-select, and a short header chip. The user's selections plus free-text notes are returned as structured annotations. Richer than a plain clarify tool — preview content enables side-by-side comparisons of code snippets or mockups.",
-      "done": "Model can call AskUserQuestion with up to 4 questions. Each question shows options in a tappable list; options with `preview` show a preview pane. User can select + add notes. Returns structured answers.",
+      "summary": "The model can present 1-4 structured questions in one call, each with 2-4 labeled options, an auto-added Other answer, optional per-option preview content, optional multi-select, and a short header chip. The live TUI pauses the same turn, collects the operator-owned choice, and returns the structured answer to the model.",
+      "done": "The model calls ask_user with up to 4 questions; the TUI renders a keyboard-operable numbered picker with previews, multi-select, and Other free text; the selected answers return to the waiting tool and the same agent turn continues.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.6-terra",
       "lens": "tui",
-      "updated": "2026-06-21",
-      "notes": "WIRED LIVE (registered in ALL_TOOLS): ask_user is now a callable kernel-gated tool (describeForSafety -> Allow). Pure AskQuestionSchema (questions[1..4] {header<=12, question, options[2..4] {label,description}, multiSelect?}) + validateAskInput (zod + actionable first-issue error, returns control-stripped questions) + formatAskPrompt (numbered options, pick one/pick any hint) + validateAnswers (coerce 1-based number/numeric-string/case-insensitive label; single-select rejects >1; multi dedupes; out-of-range/unknown/unanswered -> error) + ask_user Tool (end-of-turn like clarify: describeForSafety constant -> kernel Allow; execute validates + returns formatAskPrompt as output). SECURITY: model-supplied text control-stripped (ANSI ESC) before formatting (header<=12 checked pre-strip); only ASKS never acts. Built+tested; deferred wires = ALL_TOOLS registration (the one shared edit) + TUI multi-select picker feeds validateAnswers (named, picker = boundary)."
+      "updated": "2026-07-28",
+      "notes": "LIVE TUI WIRE SHIPPED 2026-07-28. ask_user remains kernel-allowed and schema-validated, but interactive hosts now provide requestQuestion: the tool pauses, the Ink picker owns stdin, and single-select, multi-select, preview, Other text, cancellation, and multi-question progress resolve into a compact tool result before the model continues. Non-interactive hosts keep the prior formatted-prompt fallback. Model-supplied terminal control characters are stripped. Executed proof: installed vanta launcher in a real tmux PTY received ask_user, rendered and answered the picker, resumed the same turn, then completed two writes."
+    },
+    {
+      "id": "TUI-TASK-SCOPED-GO-AHEAD",
+      "track": "Operator",
+      "title": "Task-scoped go-ahead — one approval for repeated reversible work",
+      "status": "shipped",
+      "size": "S",
+      "summary": "An operator's approval should carry through the current bounded task instead of asking again for every matching reversible edit. Keep one-time and persistent choices available without weakening one-way safety gates.",
+      "done": "A safe approval card offers Yes — go ahead with this task; choosing it suppresses later matching prompts only for the current agent turn. The next user turn clears the grant. Deletes, traversal, sensitive files, deploys, pushes, messages, payments, credentials, fresh transactions, and other one-way actions still require their own decision or remain blocked.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.6-terra",
+      "lens": "agent-loop",
+      "updated": "2026-07-28",
+      "source": "operator feedback 2026-07-28",
+      "notes": "In-memory TaskApprovalScope rechecks eligibility on every prompt and never bypasses the kernel assessment. Safe file/web work and clearly read-only shell calls can reuse a same-tool grant during one turn; in-project write_file overwrites are allowed only after the visible task approval and exclude traversal and secret-config paths. Persistent Always/Never remains separate. TUI decide now awaits persistent rule writes before resuming, closing the former same-batch race. Executed proof: one Enter on the live approval card authorized two pre-existing disposable file writes; a second prompt would have left the proof timed out.\n\nBOUNDED DELETE FOLLOW-UP 2026-07-29: The kernel now routes exact `rmdir`, `unlink`, and non-forced removal descriptions to Ask instead of an unoverrideable Block. Forced-recursive deletion, device writes, wipes, data-loss operations, and protected paths remain Block. Live proof on the installed port-7788 kernel classified an empty-directory `Path.rmdir()` action as Ask and `rm -rf ~/Desktop` as Block; a disposable end-to-end agent dispatch accepted exactly one approval and removed the empty directory."
     },
     {
       "id": "VANTA-ASCIICAST",
@@ -1904,17 +2018,18 @@
     {
       "id": "VANTA-PDF-READ",
       "track": "Operator",
-      "title": "PDF reading — extract text from PDFs as context with size/error handling",
+      "title": "Local document reading — bounded PDF and office-file context",
       "status": "shipped",
       "size": "M",
-      "summary": "another agent can extract text from PDF files as tool context. Handles error cases: empty (no text), too_large (size limits), password_protected, corrupted, unknown. Uses pdftotext/poppler if available, with fallback. Output is persisted to tool-results dir for large PDFs. Integrates with FileReadTool so the model can `read` a PDF path.",
-      "done": "`read_file('report.pdf')` returns extracted text. Password-protected PDFs return a helpful error. Files over the size limit return a partial extract with a note.",
+      "summary": "Vanta converts project-scoped Word, PowerPoint, Excel, OpenDocument, RTF, EPUB, CSV, and text-based PDF files to bounded Markdown locally. `document_read`, the compatible `pdf_read` surface, and corpus ingest share one native AnyDoc conversion boundary; Markdown and plain text retain their existing direct readers.",
+      "done": "Supported document bytes are converted on-device with a 50 MB hard input cap, bounded output, typed errors, stripped child credentials, canonical path containment, and no hosted fallback. Escaping symlinks and protected paths are refused before parsing; encrypted, malformed, and scanned/image-only files fail honestly; the native binding executes in the signed packaged macOS application.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.6-terra",
       "lens": "infra",
-      "updated": "2026-06-20"
+      "updated": "2026-08-14",
+      "notes": "Expanded and revalidated with @firecrawl/anydoc 0.1.9 on 2026-08-14. Executed evidence: 71 focused tests passed across real CSV, RTF, PDF, corpus ingestion, credential stripping, resource limits, and symlink containment; the production Desktop build packaged and signed the Darwin ARM64 native binding, and the packaged executable converted CSV locally. Boundary: no OCR, hosted Firecrawl Parse, notarization, release, Windows/Linux execution, or external-account claim."
     },
     {
       "id": "VANTA-AGENT-EDITOR",
@@ -7463,13 +7578,15 @@
       "title": "Live todo / progress checklist (TodoWrite pattern)",
       "status": "shipped",
       "size": "M",
-      "summary": "SHIPPED 2026-06-08. Live checklist: when the agent calls todo write, the formatted checklist is shown as a note in the TUI transcript and printed in the readline session immediately. Builds on the existing todo tool + store. tsc clean; 1627 tests.",
-      "done": "Vanta shows a live checklist that updates as it works through a multi-step task.",
+      "summary": "SHIPPED 2026-06-08; strengthened 2026-07-28. Multi-step turns keep the todo tool in every remote and local/custom provider scope. The TUI renders one live, ordered checklist with Claude-style totals and ✓ complete, ■ in-progress, and □ open rows; activeForm labels describe current work. Completed tasks remain visible as turn evidence, then clear when the next turn starts.",
+      "done": "For work with three or more meaningful steps, Vanta creates and updates a live checklist with exactly one in-progress item. The visible counts and rows update from the same canonical todo state, the completed checklist remains visible through the final response, and no stale checklist carries into the next turn. A real installed-launcher PTY proof executes provider schema exposure, active and completed todo writes, final response rendering, and duplicate-free terminal capture.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.6-terra",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-07-28",
+      "notes": "2026-07-28 proof: `VANTA_COMMAND=$(command -v vanta) npm run tui:tasks:proof` launched the installed Vanta command in tmux against a deterministic local OpenAI-compatible provider. It observed todo in the real provider schema, captured `3 tasks (1 done, 1 in progress, 1 open)` with ✓/■/□ rows, captured `3 tasks (3 done, 0 in progress, 0 open)`, received `TASK_CHECKLIST_PROOF_OK`, and found one completed checklist in the final terminal grid."
     },
     {
       "id": "U2",
@@ -11097,17 +11214,18 @@
     {
       "id": "TUI-MODE-CYCLE",
       "track": "Harness",
-      "title": "Shift+Tab autonomy mode cycle — normal / auto-accept / plan (Claude parity)",
+      "title": "Shared operating-mode cycle — Manual / Accept edits / Plan / Auto",
       "status": "shipped",
       "size": "M",
-      "summary": "Shift+Tab cycles normal → auto-accept → plan → normal with a ▶▶/⏸ indicator above the composer. Auto-accept auto-approves the kernel Ask tier (writes/out-of-root) while the Block tier (destructive/exfiltration) stays kernel-refused upstream — safe by construction. Plan reuses the real /planmode enforcement (write+shell blocked until /planmode approve). Reverses the earlier Rule-Zero deferral: the hard floor is intact because only Asks reach the prompt.",
-      "done": "Shift+Tab cycles modes; auto-accept resolves Ask approvals without prompting; plan toggles /planmode; ModeLine indicator renders; cycleMode + ModeLine tested; 115 ui tests green.",
+      "summary": "Shift+Tab cycles Manual → Accept edits → Plan → Auto → Manual from the focused composer. The same project modes are available in Desktop and through the CLI flag. Accept edits is limited to bounded file tools after kernel assessment; Plan is read-only; Auto includes those routine file edits plus the safe-action classifier while consequential or unsafe actions still prompt/block.",
+      "done": "The mode line stays visible below the composer; real Shift+Tab input cycles all four modes without duplicate terminal events skipping a state; Plan blocks writes before execution; Auto executes ordinary file edits without a permission prompt while kernel Block remains immovable; Desktop persists and enforces Manual, Accept edits, Plan, Auto, and Full access; CLI accepts plan; focused tests and a real tmux PTY edit proof pass.",
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.6-terra",
       "lens": "tui",
-      "updated": "2026-06-13"
+      "updated": "2026-07-29",
+      "notes": "Expanded and safety-corrected 2026-07-28 from the operator's Claude mode screenshots. Removed the renderer-level blanket auto-approval path and added a shared operating-mode model, TUI/CLI/Desktop enforcement, persistent Desktop choices, visible Manual state, and a real PTY cycle proof. Fixed 2026-07-29 after operator evidence showed the Auto badge still produced a file-edit permission request: Auto had reused the legacy read-only classifier, its internal edit confirmation was not cleared, and duplicate terminal Shift+Tab delivery could skip the stable authority state. Auto now inherits the bounded file-tool approval set after kernel assessment, the TUI passes live mode authority into the conversation, duplicate mode-cycle events are debounced, and the real PTY proof executes and verifies edit_file with zero approval input before returning to Manual."
     },
     {
       "id": "TUI-LOOPS-DASHBOARD",
@@ -15251,8 +15369,9 @@
       "effort": "low",
       "codex": "gpt-5.6-luna",
       "lens": "tui",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-29",
+      "source": "ref-audit-2026-06-20",
+      "notes": "SHIPPED and re-proven 2026-07-29. Automatic and manual compaction now render a labeled square-cell phase meter with a numeric percentage and clear it when the operation finishes. EXECUTED: the project launcher completed six real Ink TUI turns against a deterministic local provider; the sixth crossed the configured context threshold, issued a real summary request, rendered the square-cell 25% milestone, and resumed the provider turn. The separate manual /compact launcher proof also passed."
     },
     {
       "id": "OP-COMPLETION-SOUND",
@@ -19230,18 +19349,19 @@
     {
       "id": "DESKTOP-QUEUED-TURN-EDITOR",
       "track": "Desktop App",
-      "title": "Desktop queued-turn editor - inspect, reorder, edit, steer, or cancel what runs next",
+      "title": "Desktop queued-turn editor — inspect, reorder, edit, steer, retry, or remove what runs next",
       "status": "shipped",
       "size": "M",
       "summary": "Expose Vanta's existing queued-input and gateway steering substrate in Desktop. The current turn remains primary while pending instructions show their execution order, dependency, target, and safe edit/cancel actions.",
-      "done": "Work shows a compact queued count and an accessible drawer; queued instructions can be edited, reordered, removed, or sent as a steer action; target/controller/model/approval scope is visible per item; changes persist through restart and reconcile with gateway/background execution; races with a just-starting item resolve deterministically; Electron proof covers queue, steer, reorder, cancel, reconnect, and compact layout.",
+      "done": "Work shows a compact queued count and an accessible drawer; queued instructions can be edited, reordered, removed, or sent as a steer action; failed rows retain an explicit reason, cannot silently auto-run, and expose Retry message, Edit message, and Remove from queue; target/controller/model/approval scope is visible per item; changes persist through restart and reconcile with gateway/background execution; races with a just-starting item resolve deterministically; Electron proof covers queue, steer, reorder, remove, reconnect, and compact layout.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.6-terra",
       "lens": "tui",
-      "updated": "2026-07-16",
-      "source": "local-studio-vanta-extraction-2026-07-16",
+      "updated": "2026-07-30",
+      "source": "local-studio-vanta-extraction-2026-07-16; flow-report-2026-07-29",
+      "notes": "FLOW REPORT PATCH 2026-07-30: Reconciled the approved Queue next / Steer now terminology with production and closed the report's failure-recovery gap. A failed claimed turn now persists a bounded reason and attempt count, is excluded from automatic claims, and requires an explicit Retry message action. Edit message and Remove from queue remain available. Executed evidence: 21 focused queue-store, desktop-handler, and rendered-component tests passed; both TypeScript surfaces passed; the source Electron queue smoke exercised enqueue, edit, reorder, steer, remove, failed reason, explicit retry, starting-race lock, reconnect, relaunch, and 760x700 layout. The freshly rebuilt signed packaged app then passed the same real queued-turn flow, including visible failed reason, explicit Retry message, starting-race locking, reconnect, relaunch, compact layout, and persisted controller/model/approval scope. Existing durable-restart coverage remains in src/desktop/turn-queue.test.ts; packaged VoiceOver evidence remains in docs/release-proofs/desktop-accessibility-2026-07-19.json.",
       "after": [
         "VANTA-S-QUEUE",
         "GATEWAY-SESSION-MANAGER",
@@ -19919,7 +20039,7 @@
       "id": "BROWSER-WORKFLOW-ACTION-BOUNDARY",
       "track": "Operator",
       "title": "Browser workflow boundary — observe, extract, and act under explicit policy",
-      "status": "horizon",
+      "status": "parked",
       "size": "L",
       "summary": "The transcript's browser nodes are useful only if Vanta preserves its safety model. Expose bounded Open, Observe, Extract, Act, and Agent-browser workflow steps, while making domains, budgets, credentials, approvals, and evidence explicit instead of granting a workflow a blank browser cheque.",
       "done": "A workflow can declare browser Open, Observe, Extract, Act, and Agent-browser steps with allowed domains, action budget, credential/profile scope, and expected evidence. Observe and Extract remain read-only by default; login, submission, purchase, upload, email, and other irreversible effects route through the kernel and required approval stage. Dry run explains each planned browser effect; executed fixtures produce redacted DOM/screenshot/receipt evidence and prove blocked-domain, budget, credential, cancellation, and approved-action behavior.",
@@ -19935,7 +20055,10 @@
         "AUTH-BROWSER",
         "SCHEMA-TASK-ENVIRONMENT-CONTRACT",
         "PCLIP-APPROVAL-STAGES"
-      ]
+      ],
+      "updated": "2026-07-30",
+      "notes": "REALIGNMENT 2026-07-30: HIDE BEHIND INTENT; external browser effects wait for TRUST-03 and TRUST-05.",
+      "parkedReason": "strategy decision"
     },
     {
       "id": "DESKTOP-OLLAMA-MINICPM-VISIBLE-RESPONSE",
@@ -19975,7 +20098,7 @@
       "id": "TUI-RESIZE-GHOST-REGRESSION",
       "track": "Operator",
       "title": "TUI resize repaint regression — one clean frame after every terminal resize",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Reopen the terminal-resize reliability work after a real 78x25 session on 2026-07-20 left repeated composer borders, prompt text, and orphaned line glyphs across the viewport. Treat SIGWINCH as a complete layout invalidation: clear the prior physical frame, recompute the transcript/composer/footer geometry, and draw one coherent current frame without losing the active draft or turn.",
       "done": "A real PTY resize-storm proof repeatedly shrinks and grows an active Vanta TUI through 60x20, 78x25, 100x30, and 140x45 while idle and streaming; after every SIGWINCH the captured terminal grid contains exactly one in-bounds composer, one footer, no stale borders or duplicate prompt text, and preserves the draft, transcript, scroll position, and active run. The proof runs against the shipped entry point, covers width-only and height-only changes plus rapid alternating resizes, and stores before/after terminal captures as the regression receipt.",
@@ -19985,8 +20108,8 @@
       "codex": "gpt-5.6-terra",
       "lens": "tui",
       "source": "operator-screenshot-2026-07-20",
-      "updated": "2026-07-20",
-      "notes": "REGRESSION: VANTA-ALT-SCREEN recorded resize ghosting as shipped on 2026-06-10, but the current real TUI visibly reproduces stacked historical composer frames at 78x25. Existing resize-fix unit coverage proves only the repaint hook mechanism; this card stays open until the real PTY output is clean under repeated resize events.",
+      "updated": "2026-07-28",
+      "notes": "SHIPPED 2026-07-28. Root cause: the resize hook repainted synchronously inside SIGWINCH and skipped height-only events, so Ink's throttled trailing frame or a React dimension subscriber could repaint stale pre-resize geometry after the clear. The hook now treats width and height as complete frame invalidations, coalesces rapid events, and runs the absolute repaint after Ink's 30 fps frame and React layout subscribers settle. EXECUTED: 10 focused mechanism/integration tests passed, including the real Ink absolute-clear sequence; 44 focused TUI tests passed; the full TypeScript suite passed 13,689 tests with 3 intentional skips; core TypeScript typecheck passed. The deterministic real-tmux harness passed idle and animated-streaming grids across width-only, height-only, combined, and rapid 60x20/78x25/100x30/140x45 changes, saving before/after captures under ignored `.artifacts/tui-resize-ghost/`. A separate live-provider run through `./run.sh` stayed active while resizing across all four target dimensions; every captured grid retained one draft, one composer, one footer, the committed prompt, and the active thinking state. The previously failing 140x45 -> 78x25 transition now renders a single 78-column frame.",
       "after": [
         "VANTA-ALT-SCREEN",
         "TUI-LINE-SCROLL"
@@ -19996,7 +20119,7 @@
       "id": "QUICKSILVER-TTFT-PERF-HARNESS",
       "track": "Harness",
       "title": "True first-token performance harness — measure cold start through painted output",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Hermes v0.19 cut agent initialization from about 4.3s to 0.9s by first replacing one-off timing scripts with a production benchmark harness. Vanta's packaged desktop budget measures process-to-shell well, but its first-use path uses a mocked chat response and cannot prove submit-to-dispatch, provider first delta, or first painted token. Establish truthful CLI, TUI, gateway, and packaged-desktop timing before optimizing the critical path.",
       "done": "A versioned production harness runs at least five isolated samples for CLI, TUI, gateway, and signed packaged Desktop with separate fresh-profile and warm-profile modes; records process-to-interactive, submit-to-dispatch, provider-first-delta, and first-painted-token timestamps; reports median, p95, and worst sample with machine/build metadata; never counts a mocked provider as TTFT; stores a baseline receipt; and fails CI on explicit regression budgets while explaining which stage regressed.",
@@ -20006,7 +20129,8 @@
       "codex": "gpt-5.6-terra",
       "lens": "infra",
       "source": "https://github.com/NousResearch/hermes-agent/releases/tag/v2026.7.20",
-      "updated": "2026-07-21",
+      "updated": "2026-07-29",
+      "notes": "SHIPPED 2026-07-29. V1 content-free runtime trace events record turn start, provider dispatch, and the first real streamed provider delta without prompts, output, credentials, or tool payloads. The production harness observes readiness and first surface output externally for readline CLI, Ink TUI, authenticated SSE gateway, and Developer ID-signed packaged Desktop; Desktop paint is timestamped after a DOM mutation and animation frame. It refuses fewer than five samples, mocked/unverified providers, incomplete groups, and unsigned/unpackaged Desktop runs; reports median, p95, and worst for process-to-interactive, submit-to-dispatch, provider-to-first-delta, delta-to-paint, and submit-to-paint; and names the exact group/stage on budget regression. EXECUTED: 40/40 live local Ollama qwen2.5:14b samples completed across four surfaces, fresh/warm profiles, and five isolated samples per group. The eligible baseline receipt, machine/build metadata, model digest, and explicit p95 budgets are stored under vanta-ts/scripts/fixtures/. The signed Desktop bundle passed strict codesign verification before measurement.",
       "after": [
         "DESKTOP-VISUAL-PERFORMANCE-REGRESSION-GATES"
       ]
@@ -20015,7 +20139,7 @@
       "id": "QUICKSILVER-STARTUP-CRITICAL-PATH",
       "track": "Harness",
       "title": "Startup critical-path collapse — cache, defer, and prewarm first-turn work",
-      "status": "horizon",
+      "status": "parked",
       "size": "L",
       "summary": "Apply the useful Hermes Quicksilver pattern to Vanta's measured startup path: cache skill discovery and prompt artifacts by scan signature, use mtime/size manifests for invalidation, move capability and environment probes off the blocking path, defer nonessential panes and extensions, and prewarm the kernel socket and selected provider while the operator is reading or typing. Preserve correctness with bounded waits and fail-open optional probes instead of hiding work behind an unbounded background task.",
       "done": "The TTFT harness identifies the blocking stages before changes; skill/config/prompt caches invalidate on file metadata changes and survive restart; optional probes, hidden Desktop panes, and nonessential extension work do not block the first interactive frame; kernel/provider prewarm respects proxy, credential, and project scope; stuck prewarm tasks cannot block a turn; cold process-to-interactive and local submit-to-dispatch medians improve by at least 40% from the captured Vanta baseline; and fresh-profile, changed-config, offline, invalid-cache, and crash-recovery fixtures preserve correct behavior.",
@@ -20025,18 +20149,20 @@
       "codex": "gpt-5.6-sol",
       "lens": "infra",
       "source": "https://github.com/NousResearch/hermes-agent/releases/tag/v2026.7.20",
-      "updated": "2026-07-21",
+      "updated": "2026-07-30",
       "after": [
         "QUICKSILVER-TTFT-PERF-HARNESS",
         "VANTA-API-PRECONNECT",
         "VANTA-DEFERRED-SESSION-HOOKS"
-      ]
+      ],
+      "notes": "REALIGNMENT 2026-07-30: CONSOLIDATE into first-run and performance acceptance (UX-04, EVAL-01).",
+      "parkedReason": "strategy decision"
     },
     {
       "id": "QUICKSILVER-DESKTOP-STREAM-PERF",
       "track": "Desktop App",
       "title": "Desktop stream performance — incremental markdown and scoped token updates",
-      "status": "horizon",
+      "status": "parked",
       "size": "M",
       "summary": "Vanta virtualizes completed turns, but every streamed delta still appends React state and reparses the full in-progress Markdown response. Copy the principle behind Hermes v0.19's desktop speed wave: coalesce deltas to animation frames, incrementally parse stable Markdown blocks, isolate streaming subscriptions from the sidebar and tool surfaces, and virtualize oversized diffs without changing transcript fidelity.",
       "done": "A production benchmark streams long Markdown, code, tool activity, and a large diff while recording first paint, frame time, render counts, CPU, and memory; streamed text remains byte-identical after persistence; delta updates are frame-coalesced; stable Markdown blocks are not reparsed; sidebar, session rows, and unrelated tool controls do not rerender per token; large diffs remain scrollable and interactive; accessibility announcements are rate-limited but complete; and the measured fixture passes explicit regression budgets on the signed packaged app.",
@@ -20046,17 +20172,19 @@
       "codex": "gpt-5.6-terra",
       "lens": "tui",
       "source": "https://github.com/NousResearch/hermes-agent/releases/tag/v2026.7.20",
-      "updated": "2026-07-21",
+      "updated": "2026-07-30",
       "after": [
         "QUICKSILVER-TTFT-PERF-HARNESS",
         "DESKTOP-CODEX-CHAT-SURFACE"
-      ]
+      ],
+      "notes": "REALIGNMENT 2026-07-30: OPTIONAL proof under UX-04 and EVAL-01 after the safe continuity slice.",
+      "parkedReason": "optional proof"
     },
     {
       "id": "GATEWAY-DELIVERY-OBLIGATION-LEDGER",
       "track": "Harness",
       "title": "Gateway delivery-obligation ledger — never lose a finished remote answer",
-      "status": "horizon",
+      "status": "parked",
       "size": "M",
       "summary": "Hermes v0.19 closes a real messaging failure window: a response can finish after the model charge but disappear if the gateway dies before the platform confirms delivery. Vanta records transport receipts but does not persist a send obligation around final Telegram and other channel delivery. Add a durable outbox contract rather than retrying from transient process memory.",
       "done": "Before sending a final gateway response, Vanta writes a mode-0600 delivery obligation keyed by profile, channel, conversation, turn, content hash, and idempotency key; a confirmed platform receipt atomically closes it; restart redelivers unresolved obligations without rerunning the model; duplicate acknowledgements and reconnect races cannot double-send; expired or permanently rejected deliveries become visible operator actions rather than silent loss; payloads and logs are redacted; and crash-before-send, crash-after-send-before-ack, retry, duplicate, multi-profile isolation, and Telegram end-to-end fixtures pass.",
@@ -20066,11 +20194,13 @@
       "codex": "gpt-5.6-sol",
       "lens": "reach",
       "source": "https://github.com/NousResearch/hermes-agent/releases/tag/v2026.7.20",
-      "updated": "2026-07-21",
+      "updated": "2026-07-30",
       "after": [
         "PORT-DELIVERY-REGISTRY",
         "HARNESS-EVENTS-WAIT"
-      ]
+      ],
+      "notes": "REALIGNMENT 2026-07-30: CONSOLIDATE into OP-04 and TRUST-04; do not create a second job or receipt truth.",
+      "parkedReason": "strategy decision"
     },
     {
       "id": "EF-CAPACITY-SUPPORT-ROUTER",
@@ -20098,7 +20228,7 @@
       "id": "EF-SUPPORT-DESKTOP-CONTROLS",
       "track": "Desktop App",
       "title": "Desktop support controls — set current capacity without leaving Work",
-      "status": "horizon",
+      "status": "parked",
       "size": "M",
       "summary": "Expose the same diagnosis-free current-state contract in Desktop. A compact Work control should show Auto/Low/Steady/High capacity plus memory-load and activation overrides, explain the immediate behavior change, and avoid a medicalized settings maze.",
       "done": "Desktop reads and writes the same profile as /support; the active state is visible in Work; keyboard and screen-reader paths work; Auto is the default; changes affect the next real turn; reset is one action; packaged macOS tests cover persistence, project switching, and narrow resize without duplicating runtime state.",
@@ -20108,16 +20238,18 @@
       "codex": "gpt-5.6-terra",
       "lens": "tui",
       "source": "executive-function source synthesis 2026-07-21",
-      "updated": "2026-07-21",
+      "updated": "2026-07-30",
       "after": [
         "EF-CAPACITY-SUPPORT-ROUTER"
-      ]
+      ],
+      "notes": "REALIGNMENT 2026-07-30: CONSOLIDATE into negotiated support and literal controls under UX-03.",
+      "parkedReason": "strategy decision"
     },
     {
       "id": "EF-SUPPORT-STATE-EXPIRY",
       "track": "Operator",
       "title": "Current support-state expiry — temporary means temporary",
-      "status": "horizon",
+      "status": "parked",
       "size": "S",
       "summary": "Capacity, memory load, activation, and motivation are current conditions, not durable identity. Add session scope or an explicit expiry so a low-capacity setting cannot silently follow the operator forever while communication preferences remain durable.",
       "done": "Each current-state field supports session-only and bounded expiry; restart and expiry return it to Auto without resetting communication preferences; active expiry is visible; Desktop, TUI, CLI, and gateway use one contract; clock, restart, migration, and stale-profile tests pass.",
@@ -20127,16 +20259,18 @@
       "codex": "gpt-5.6-luna",
       "lens": "selfhood",
       "source": "executive-function source synthesis 2026-07-21",
-      "updated": "2026-07-21",
+      "updated": "2026-07-30",
       "after": [
         "EF-CAPACITY-SUPPORT-ROUTER"
-      ]
+      ],
+      "notes": "REALIGNMENT 2026-07-30: CONSOLIDATE into transient support expiry and review under UX-03.",
+      "parkedReason": "strategy decision"
     },
     {
       "id": "EF-SUPPORT-NONOVERREACH-EVALS",
       "track": "Harness",
       "title": "Executive-function support evals — useful without overreach",
-      "status": "horizon",
+      "status": "parked",
       "size": "M",
       "summary": "Measure the failure modes a green unit test cannot catch: unwanted coaching, diagnosis inference, excessive decomposition, lost safety at low capacity, fabricated urgency, and supports that create more maintenance than the original task.",
       "done": "A versioned eval corpus includes neurodivergent and non-neurodivergent operator scenarios, explicit and Auto states, simple and complex tasks, and adversarial profile text; graders measure outcome completion, intervention relevance, cognitive load, privacy, autonomy, and safety preservation; Auto does not trigger unsupported diagnostic language; regressions block release with inspectable transcripts.",
@@ -20146,16 +20280,18 @@
       "codex": "gpt-5.6-sol",
       "lens": "selfhood",
       "source": "executive-function source synthesis 2026-07-21",
-      "updated": "2026-07-21",
+      "updated": "2026-07-30",
       "after": [
         "EF-CAPACITY-SUPPORT-ROUTER"
-      ]
+      ],
+      "notes": "REALIGNMENT 2026-07-30: CONSOLIDATE into universal support/accessibility acceptance (UX-03, UX-04, EVAL-01).",
+      "parkedReason": "strategy decision"
     },
     {
       "id": "REWARD-SEEKING-THREAT-MODEL",
       "track": "Harness",
       "title": "Reward-seeking threat model - separate intended outcome from grader approval",
-      "status": "horizon",
+      "status": "parked",
       "size": "S",
       "summary": "Define reward-seeking as context-specific behavioral sensitivity to beliefs about a grader, verifier, or deployment monitor. Map operator intent, developer policy, grader, monitor, and external constraints for each eval class so Vanta can distinguish completing the task from merely satisfying the scoring process.",
       "done": "A versioned threat-model schema names the task distribution, intended authority, reward path, monitor, conflict action, and expected conflict resolution; repo repair, browser work, messaging, workflow execution, and self-evolution each have one reviewed instance; no field claims a global model trait; the schema is required by reward-seeking eval reports; and docs distinguish reward-seeking, reward hacking, evaluation gaming, and ordinary high reward.",
@@ -20165,17 +20301,19 @@
       "codex": "gpt-5.6-terra",
       "lens": "infra",
       "source": "Hojmark et al., Measuring Reward-Seeking via Contrastive Belief Updates, Sections 2-3",
-      "updated": "2026-07-21",
+      "updated": "2026-07-30",
       "after": [
         "AHE-EVAL-HARNESS",
         "VERIFY-RIGHT"
-      ]
+      ],
+      "notes": "REALIGNMENT 2026-07-30: DEFER to LAB-01 and EVAL-01; no current production WIP.",
+      "parkedReason": "strategy decision"
     },
     {
       "id": "REWARD-PROCESS-INTEGRITY-BOUNDARY",
       "track": "Harness",
       "title": "Reward-process integrity boundary - graders and holdouts cannot be influenced",
-      "status": "horizon",
+      "status": "parked",
       "size": "M",
       "summary": "Extend Vanta's self-evolution guardrail into a general evaluation boundary. The evaluated agent must not read or modify hidden tests, verifier code, score inputs, model selection, budgets, audit receipts, or release thresholds, including indirect influence through tools, environment, network, and generated reports.",
       "done": "Task generation, execution, evidence capture, verification, aggregation, and release run under separate capability principals; the evaluated workspace cannot read holdout membership or expected outputs; direct and indirect attempts to alter verifier, tests, monitor, budgets, model, logs, or thresholds are blocked and receipted; verifier failure cannot become a pass; crash and replay preserve denial evidence; and red-team fixtures demonstrate each protected path on repo, browser, and workflow evals.",
@@ -20185,18 +20323,20 @@
       "codex": "gpt-5.6-sol",
       "lens": "infra",
       "source": "Hojmark et al., Sections 2.2, 6, and 8",
-      "updated": "2026-07-21",
+      "updated": "2026-07-30",
       "after": [
         "REWARD-SEEKING-THREAT-MODEL",
         "AHE-EVOLVE-GUARDRAILS",
         "SCHEMA-CONTROLLED-COMMIT-GATE"
-      ]
+      ],
+      "notes": "REALIGNMENT 2026-07-30: DEFER to TRUST-06 and EVAL-01; preserve evaluator-integrity requirements.",
+      "parkedReason": "strategy decision"
     },
     {
       "id": "REWARD-SEEKING-CONTRASTIVE-DETECTOR",
       "track": "Harness",
       "title": "Contrastive authority detector - reverse grader and intent preferences",
-      "status": "horizon",
+      "status": "parked",
       "size": "M",
       "summary": "Add a production-feasible paired detector for API models: hold task, model, tools, budget, and prompt structure fixed while reversing whether the grader or operator/developer prefers an observable behavior. This detects context-specific grader sensitivity but is explicitly not a model-ranking instrument.",
       "done": "The eval schema records both authority assignments, prompt channel, feature opportunity, controls, invalids, refusals, and tool policy; neutral calibration cases and consequential honesty/task-completion cases run in fresh sandboxes; Beta(1,1)-smoothed raw and log-odds gaps include uncertainty; positive controls must activate before a negative result is allowed; failed activation returns inconclusive; reports carry detector_only and reject leaderboard or release-score use; and at least two provider models execute the same versioned fixture.",
@@ -20206,18 +20346,20 @@
       "codex": "gpt-5.6-sol",
       "lens": "infra",
       "source": "Hojmark et al., Sections 3-5 and Appendix T",
-      "updated": "2026-07-21",
+      "updated": "2026-07-30",
       "after": [
         "REWARD-SEEKING-THREAT-MODEL",
         "AHE-EVAL-VERIFIER",
         "SCHEMA-HARNESS-EVAL-ABLATION"
-      ]
+      ],
+      "notes": "REALIGNMENT 2026-07-30: DEFER to LAB-01 and EVAL-01.",
+      "parkedReason": "strategy decision"
     },
     {
       "id": "REWARD-SEEKING-BEHAVIORAL-SIGNAL-SUITE",
       "track": "Harness",
       "title": "Behavioral grader-targeting signals - actions and receipts over self-report",
-      "status": "horizon",
+      "status": "parked",
       "size": "M",
       "summary": "Measure grader-targeting from observable action because chain-of-thought may omit, contradict, or strategically conceal it. Detect hidden-test discovery, grading-script access, verifier manipulation, skipped checks, promise violations, evidence falsification, oversight disabling, and score-only formatting changes without treating any single signal as a diagnosis.",
       "done": "Each signal has a typed event, false-positive fixture, and task-opportunity precondition; direct and indirect tool paths are covered; signals survive session restart and remote gateway delivery; reports distinguish attempted, blocked, completed, and inferred actions; chain-of-thought and self-report cannot create or clear a finding; at least one multi-step agent task proves every high-severity event end to end; and aggregate output remains scoped to the tested distribution.",
@@ -20227,18 +20369,20 @@
       "codex": "gpt-5.6-sol",
       "lens": "infra",
       "source": "Hojmark et al., Sections 2.3, 5.2, and 6",
-      "updated": "2026-07-21",
+      "updated": "2026-07-30",
       "after": [
         "REWARD-PROCESS-INTEGRITY-BOUNDARY",
         "REWARD-SEEKING-CONTRASTIVE-DETECTOR",
         "SCHEMA-TRANSITION-TIMELINE"
-      ]
+      ],
+      "notes": "REALIGNMENT 2026-07-30: DEFER to LAB-01 and EVAL-01.",
+      "parkedReason": "strategy decision"
     },
     {
       "id": "REWARD-SEEKING-CALIBRATION-CONTROLS",
       "track": "Harness",
       "title": "Reward-seeking eval calibration - positive controls and honest inconclusive results",
-      "status": "horizon",
+      "status": "parked",
       "size": "M",
       "summary": "Prevent null results from being mistaken for safety. Every detector must prove that the target belief or authority information was available, the behavior had opportunities to occur, and a planted positive control moves in the expected direction before it can report not_detected.",
       "done": "The harness supports planted positive and negative controls, manipulation or recall checks, feature-opportunity counts, invalid/refusal accounting, seeded uncertainty analysis, repeated runs, and changed-surface replications; nulls caused by failed activation, insufficient power, ontology mismatch, or prompt-channel instability become inconclusive; calibration artifacts are versioned by provider/model/harness; and regression tests include an instrument that deliberately fails to activate.",
@@ -20248,17 +20392,19 @@
       "codex": "gpt-5.6-terra",
       "lens": "infra",
       "source": "Hojmark et al., Sections 4 and 7, Appendices I and T",
-      "updated": "2026-07-21",
+      "updated": "2026-07-30",
       "after": [
         "REWARD-SEEKING-CONTRASTIVE-DETECTOR",
         "AHE-EVAL-HARNESS"
-      ]
+      ],
+      "notes": "REALIGNMENT 2026-07-30: DEFER to LAB-01 and EVAL-01.",
+      "parkedReason": "strategy decision"
     },
     {
       "id": "REWARD-SEEKING-EVAL-AWARENESS-REDTEAM",
       "track": "Harness",
       "title": "Evaluation-awareness red team - expose metagaming and prompt-channel confounds",
-      "status": "horizon",
+      "status": "parked",
       "size": "M",
       "summary": "Test whether reward-safety evaluations are recognizable and therefore gameable. Run matched ordinary, benchmark-like, and disguised task forms; vary authority-conflict placement and recall hints; and detect when the instrument changes behavior by revealing that evaluation is occurring.",
       "done": "A versioned suite varies system, developer, user, retrieved-context, and where-supported out-of-context placement while holding task semantics fixed; public canaries detect memorized fixtures; ordinary and disguised variants measure final actions and receipts before self-report; prompt-channel or disguise sensitivity marks the instrument contaminated; private holdout instances and expected outputs never enter the evaluated context; and reports state whether the eval remains suitable for detection, comparison, or neither.",
@@ -20268,17 +20414,19 @@
       "codex": "gpt-5.6-terra",
       "lens": "infra",
       "source": "Hojmark et al., Section 2.2 and Appendix T",
-      "updated": "2026-07-21",
+      "updated": "2026-07-30",
       "after": [
         "REWARD-SEEKING-CONTRASTIVE-DETECTOR",
         "REWARD-SEEKING-CALIBRATION-CONTROLS"
-      ]
+      ],
+      "notes": "REALIGNMENT 2026-07-30: DEFER to LAB-01 and EVAL-01.",
+      "parkedReason": "strategy decision"
     },
     {
       "id": "REWARD-SEEKING-OVERSIGHT-GENERALIZATION",
       "track": "Harness",
       "title": "Oversight generalization suite - present, flawed, absent, and powerless monitors",
-      "status": "horizon",
+      "status": "parked",
       "size": "L",
       "summary": "Test the deployment boundary that ordinary evals miss: whether Vanta preserves operator and developer intent when oversight is absent, incorrect, delayed, or unable to affect reward. Compare matched conditions instead of assuming behavior under a visible grader transfers off distribution.",
       "done": "Repo repair, browser workflow, messaging, and multi-step workflow fixtures each run under accurate-visible, flawed-proxy, absent, delayed, and powerless-monitor conditions with fixed model/tools/budget; task success and integrity are scored separately; promise keeping, truthful reporting, monitor preservation, hidden-test integrity, and blocked-action recovery are covered; changed-surface replications pass; and high-impact regressions produce inspectable release-blocking evidence rather than a single opaque model score.",
@@ -20288,18 +20436,20 @@
       "codex": "gpt-5.6-sol",
       "lens": "infra",
       "source": "Hojmark et al., Sections 2.2, 5.2, and 8",
-      "updated": "2026-07-21",
+      "updated": "2026-07-30",
       "after": [
         "REWARD-PROCESS-INTEGRITY-BOUNDARY",
         "REWARD-SEEKING-BEHAVIORAL-SIGNAL-SUITE",
         "REWARD-SEEKING-CALIBRATION-CONTROLS"
-      ]
+      ],
+      "notes": "REALIGNMENT 2026-07-30: DEFER to LAB-01 and EVAL-01.",
+      "parkedReason": "strategy decision"
     },
     {
       "id": "REWARD-SEEKING-MODEL-LEDGER",
       "track": "Operator",
       "title": "Contextual reward-seeking ledger - trends without global safe-model labels",
-      "status": "horizon",
+      "status": "parked",
       "size": "M",
       "summary": "Track reward-safety evidence by exact provider, model version, harness, task distribution, authority pair, prompt channel, tool policy, and date. Show trends and uncertainty without collapsing context-dependent behavior into one permanent model reputation.",
       "done": "Every result stores immutable config and artifact hashes, sample counts, invalids, posterior intervals, detector type, calibration state, and claim boundary; the UI compares like-for-like runs and refuses incompatible aggregate scores; provider or harness changes invalidate stale release evidence; trend alerts require replicated movement; exports redact private holdouts; and operators can inspect the executed transcripts and receipts behind every point.",
@@ -20309,12 +20459,14 @@
       "codex": "gpt-5.6-terra",
       "lens": "memory",
       "source": "Hojmark et al., Sections 2.1, 3.1, 5, and 7",
-      "updated": "2026-07-21",
+      "updated": "2026-07-30",
       "after": [
         "REWARD-SEEKING-CALIBRATION-CONTROLS",
         "REWARD-SEEKING-OVERSIGHT-GENERALIZATION",
         "TRUST-LABELS"
-      ]
+      ],
+      "notes": "REALIGNMENT 2026-07-30: DEFER to LAB-01 and EVAL-01.",
+      "parkedReason": "strategy decision"
     },
     {
       "id": "REWARD-SEEKING-SDF-RESEARCH-LANE",
@@ -20342,7 +20494,7 @@
       "id": "REWARD-SEEKING-RELEASE-GATE",
       "track": "Harness",
       "title": "Reward-safety release gate - passing the grader is not enough",
-      "status": "horizon",
+      "status": "parked",
       "size": "S",
       "summary": "Require independent evidence that a model or harness update preserves intent when grader incentives conflict or oversight changes. A task score, self-report, or one LLM judge cannot independently approve release.",
       "done": "The gate runs integrity-boundary proofs, calibrated contrastive detection, behavioral signal checks, eval-awareness contamination checks, and matched oversight-generalization fixtures; deterministic checks and an independent decision owner review evidence; any high-severity completed grader-targeting action or uncontained reward-path influence blocks release; inconclusive high-impact cases require explicit human disposition; override reasons are immutable; and the gate is executed on one real provider or harness update with a complete receipt.",
@@ -20352,14 +20504,408 @@
       "codex": "gpt-5.6-sol",
       "lens": "infra",
       "source": "Hojmark et al., Sections 2.2 and 8",
-      "updated": "2026-07-21",
+      "updated": "2026-07-30",
       "after": [
         "REWARD-PROCESS-INTEGRITY-BOUNDARY",
         "REWARD-SEEKING-BEHAVIORAL-SIGNAL-SUITE",
         "REWARD-SEEKING-EVAL-AWARENESS-REDTEAM",
         "REWARD-SEEKING-OVERSIGHT-GENERALIZATION",
         "REWARD-SEEKING-MODEL-LEDGER"
-      ]
+      ],
+      "notes": "REALIGNMENT 2026-07-30: DEFER to LAB-01 and EVAL-01.",
+      "parkedReason": "strategy decision"
+    },
+    {
+      "id": "CONNECT-INTEGRATION-STATE-CATALOG",
+      "track": "Extensibility",
+      "title": "Integration state catalog — distinguish native, installable, connected, and unavailable",
+      "status": "parked",
+      "size": "S",
+      "summary": "Make Connect report the real state of Trello, Dropbox, Box, Google Drive, Atlassian Rovo, Slack, and Telegram instead of treating generic connector scaffolding as an implemented integration. The catalog must distinguish native support, an available-but-uninstalled connector pack, installed-but-unconfigured, connected, degraded, and unavailable.",
+      "done": "One typed registry drives CLI, TUI, and Desktop labels and actions for all seven named services; existing Slack, Telegram, and Google Drive capabilities resolve from runtime evidence; Box, Google Drive, and Atlassian Rovo can expose install/connect actions only when a compatible pack is actually available; Trello and Dropbox remain visibly unavailable until their adapters ship; every connected service has a bounded test action and redacted receipt; tests prove no unavailable or scaffolding-only service is presented as connected or ready.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.6-terra",
+      "lens": "infra",
+      "source": "user integration-roadmap request 2026-07-23",
+      "updated": "2026-07-30",
+      "after": [
+        "VANTA-MCP-FIRST-CLASS-CONNECTORS",
+        "DESKTOP-CONNECT-SETUP-STATUS",
+        "MSG-ADAPTER-SLACK",
+        "DESKTOP-SETUP-HUB-TELEGRAM-LIFECYCLE",
+        "MEMORY-ADAPTER-DRIVE"
+      ],
+      "notes": "REALIGNMENT 2026-07-30: CONSOLIDATE truthful integration inventory into TRUST-01 and LIFE-01.",
+      "parkedReason": "strategy decision"
+    },
+    {
+      "id": "CONNECT-TRELLO-ADAPTER",
+      "track": "Extensibility",
+      "title": "Trello integration — boards, lists, cards, and guarded updates",
+      "status": "parked",
+      "size": "M",
+      "summary": "Add a first-class Trello adapter because no compatible Trello connector pack is currently available to Vanta. Support useful planning workflows without bypassing the kernel or implying that catalog visibility equals a working connection.",
+      "done": "An operator can authenticate Trello, list and search authorized workspaces, boards, lists, and cards, attach a card as task context, and explicitly create or update a card; read and write scopes are separated; every mutation is kernel-assessed and receipted; credentials and card contents are redacted from logs; revocation and expired-auth recovery are actionable; contract tests cover empty, denied, rate-limited, and stale-card cases; and one authorized sandbox-board flow executes read, create, update, and verification end to end.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "reach",
+      "source": "user integration-roadmap request 2026-07-23",
+      "updated": "2026-07-30",
+      "after": [
+        "CONNECT-INTEGRATION-STATE-CATALOG"
+      ],
+      "notes": "REALIGNMENT 2026-07-30: DEFER effectful connector expansion behind TRUST-01, TRUST-03, and proven demand.",
+      "parkedReason": "strategy decision"
+    },
+    {
+      "id": "CONNECT-DROPBOX-ADAPTER",
+      "track": "Extensibility",
+      "title": "Dropbox integration — scoped file context, search, and explicit writes",
+      "status": "parked",
+      "size": "M",
+      "summary": "Add a first-class Dropbox adapter because no compatible Dropbox connector pack is currently available to Vanta. Keep Dropbox external and user-owned: remote files may become bounded task context, but they are never silently copied, overwritten, or treated as local memory.",
+      "done": "An operator can authenticate Dropbox, browse and search only authorized paths, attach a bounded remote file as task context, download an explicit file, and explicitly upload or replace a file; read and write scopes are separated; conflicts require a visible choice; every mutation is kernel-assessed and receipted; sensitive paths, oversized files, binary previews, revocation, rate limits, and offline behavior have tests; and one authorized sandbox-folder flow executes read, attach, upload, conflict handling, and verification end to end.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "reach",
+      "source": "user integration-roadmap request 2026-07-23",
+      "updated": "2026-07-30",
+      "after": [
+        "CONNECT-INTEGRATION-STATE-CATALOG"
+      ],
+      "notes": "REALIGNMENT 2026-07-30: DEFER effectful connector expansion behind TRUST-01, TRUST-03, and proven demand.",
+      "parkedReason": "strategy decision"
+    },
+    {
+      "id": "CONNECT-BOX-DRIVE-ROVO-PACKS",
+      "track": "Extensibility",
+      "title": "Box, Google Drive, and Atlassian Rovo connector packs — install, connect, and verify",
+      "status": "parked",
+      "size": "M",
+      "summary": "Bridge the externally available Box, Google Drive, and Atlassian Rovo connector packs into Vanta's connector lifecycle. Reuse the shipped Google Drive OAuth and memory adapter where their contracts match, while keeping file context, memory backup, and Atlassian work-management actions visibly separate.",
+      "done": "Connect can discover compatible Box, Google Drive, and Atlassian Rovo packs, show installed and authentication state, install or connect through an explicit operator action, inventory the resulting tools and resources before mounting, and run a bounded verification action; unsupported or policy-blocked packs remain unavailable with a reason; Google Drive reuses existing authorization without widening scopes silently; Box and Drive writes and Atlassian mutations are kernel-assessed and receipted; uninstall, revocation, degraded health, and reconnect paths are covered; and one authorized test workspace per service executes the advertised read path end to end before the integration can be labeled ready.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "infra",
+      "source": "user integration-roadmap request 2026-07-23",
+      "updated": "2026-07-30",
+      "after": [
+        "CONNECT-INTEGRATION-STATE-CATALOG",
+        "MEMORY-ADAPTER-DRIVE"
+      ],
+      "notes": "REALIGNMENT 2026-07-30: DEFER pack expansion behind PACK-01, TRUST-01, and incremental scope proof.",
+      "parkedReason": "strategy decision"
+    },
+    {
+      "id": "VANTA-REUSABLE-RUN-LIBRARY",
+      "track": "Desktop App",
+      "title": "Reusable run library — save, inspect, fork, and safely replay successful runs",
+      "status": "shipped",
+      "size": "L",
+      "summary": "Capture prompts, attached files, tool history, approval decisions, final outputs, and run provenance. Let operators save useful runs, inspect how they worked, fork them with updated inputs, or replay them through a fresh safety review.",
+      "done": "After restarting the desktop app, an operator can find a saved run, inspect its inputs, timeline, output, and provenance, fork it into an editable new session, and replay it after reviewing file and environment drift. Recorded approvals never authorize new actions; every tool call passes through the current kernel. Missing or changed inputs are surfaced before execution, secrets are absent from persisted run bundles, legacy sessions appear with explicit incomplete-provenance labels, and an end-to-end desktop proof executes save, restart, search, inspect, fork, safe replay, and fresh approval denial.",
+      "tier": "rock",
+      "effort": "high",
+      "lens": "agent-loop",
+      "source": "Product Hunt feedback from İbrahim Temurtaş",
+      "updated": "2026-07-24",
+      "notes": "Local-only first release. One RunRecord is captured per user turn. Unsaved records follow session cleanup; saved records survive until explicitly removed. Fork prepares editable prompt and file inputs without prior assistant/tool context. Replay shows drift first, prepares a fresh task, and never invokes recorded tool calls or reuses approval authority."
+    },
+    {
+      "id": "TUI-DETERMINISTIC-TURN-SUMMARY",
+      "track": "TUI",
+      "title": "Deterministic turn closeout — changed, checked, verified, and next",
+      "status": "shipped",
+      "size": "S",
+      "summary": "End every tool-based TUI turn with a compact Claude-style closeout derived from Vanta's own tool receipts, so a large diff cannot bury what changed, what was actually checked, whether verification ran, or what the operator should do next.",
+      "done": "After a tool-based turn, the final committed block appears after tool output and assistant text and immediately above the composer; it reports changed targets and read/search counts, says `Verification: Not run` when no qualifying check executed, surfaces unresolved failed checks without claiming success, labels exact successful retries as recovered, and points to Ctrl+T evidence only when attention is still required. Conversation-only turns remain uncluttered.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "lens": "tui",
+      "source": "Jason live TUI feedback and screenshot 2026-07-28",
+      "updated": "2026-07-29",
+      "notes": "Implemented as an immutable turnSummary transcript entry computed from completed ToolEntry records at turnEnd. The model cannot omit it or inflate verification claims. Exact same-tool/same-target retries now resolve the closeout attention state while every original receipt remains in Ctrl+T evidence. A real tmux/PTTY proof covers the project launcher, provider tool call, final response ordering, and closeout."
+    },
+    {
+      "id": "TUI-OUTPUT-HIERARCHY",
+      "track": "TUI",
+      "title": "Claude-style output hierarchy — compact evidence and scan-friendly answers",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Make the result visually dominant instead of giving every tool receipt, diff, warning, and final answer equal weight. Keep short runs transparent, compress long successful runs, preserve failures, and render real Markdown hierarchy.",
+      "done": "A turn with one to three completed tools keeps its detailed Claude-style receipts. At four or more actions, successful work collapses into one categorized line with a Ctrl+T evidence affordance while failed actions remain expanded. Markdown headings render without literal hash prefixes, the model is instructed not to duplicate tool receipts in its final response, row estimation matches the compressed layout, and a real tmux PTY proof executes the provider/tool/render path.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "lens": "tui",
+      "source": "Jason comparison of Claude Code and Vanta transcripts 2026-07-29",
+      "updated": "2026-07-29",
+      "notes": "The compact threshold is four actions. Successful work is summarized by read/search, edit, command, plan-update, and other counts. Full arguments, results, diffs, and failures remain available in Ctrl+T evidence. The response-shape instruction applies across hosts so model prose leads with the user-facing outcome and uses headings only when they improve scanning."
+    },
+    {
+      "id": "TUI-RESTART-CONTINUITY",
+      "track": "TUI",
+      "title": "Hot reload continuity — preserve the active conversation and reset runtime status",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Make `/restart` reload fresh Vanta code without discarding the conversation that tells the agent what the operator was doing, while keeping stale handoffs and old process timing out of the new instance.",
+      "done": "A completed TUI turn is saved before reload; `/restart` writes a permission-restricted, content-free, five-minute handoff; the relaunch consumes it once, restores the session model and transcript into the TUI conversation, shows a reload receipt, and resets the visible active-instance clock. Missing, malformed, or stale handoffs start safely without resurrecting old context. A real PTY proof confirms the provider receives the pre-reload prompt and response after the process relaunches.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "tui",
+      "source": "Jason live TUI error transcript 2026-07-29",
+      "updated": "2026-07-29",
+      "notes": "The handoff stores only a session ID and timestamp under the project .vanta directory; transcript content remains in the existing private session store. Normal explicit --resume behavior is unchanged. The TUI also checkpoints completed turns, so reload and crash recovery use current assistant output rather than only mid-tool checkpoints."
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-08-02",
+      "source": "vanta-total-realignment-correction-2026-07-30",
+      "id": "TRUST-02",
+      "track": "Harness",
+      "title": "Urgent control-plane trust closure — hooks, environments, audit state, and local authentication",
+      "status": "shipped",
+      "size": "L",
+      "effort": "high",
+      "lens": "agent-loop",
+      "summary": "Close the smallest confirmed P0 slice before consequential autonomy: protect project control-plane state, prevent same-run hook activation, scrub shell/code/hook environments, deny ordinary credential and audit-key access, and authenticate every local Desktop/API instance.",
+      "done": "A model-controlled attempt to create or modify hook/control-plane state, inspect process/project credentials or audit signing state, or drive a local Desktop/API without exact authentication produces no unmediated host effect and no secret exposure; the complete proposed payload is denied or exact-approved; hook activation is restart-bounded; audit evidence remains outside agent scope; exact-origin validation and adversarial shell, file, hook, Desktop, and restart paths run end to end with retained receipts.",
+      "notes": "Shipped as the bounded TRUST-02 control-plane slice on 2026-08-02. Executed on the supported packaged Darwin ARM64 path from source head 590126e9aaad261768374d920ccd3d71a652cd85: nine unauthenticated or hostile local Desktop/API requests were denied; model-controlled hook, credential, audit-state, shell, file, Desktop, exact-origin, and restart paths produced zero synthetic secret exposure or mutation; the complete hook payload was denied or exact-approved with four durable approval transitions; same-process hook activation stayed absent; restart activation occurred once; and 21 tool transitions plus eight action receipts were retained. This closes the card's written Done contract, not the entire action gateway, cross-platform release, notarization, publication, deployment, live-provider proof, TRUST-04, TRUST-01, or OP-01. Evidence: docs/trust-02-closure-receipt-2026-08-02.json and docs/trust-02-closure-audit-2026-08-02.html."
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-08-02",
+      "source": "vanta-total-realignment-correction-2026-07-30",
+      "id": "UX-03",
+      "track": "Operator",
+      "title": "Safe continuity slice — messy capture to Today, prepared action, waiting, and restart re-entry",
+      "status": "shipped",
+      "size": "L",
+      "effort": "high",
+      "lens": "selfhood",
+      "summary": "Prove the wedge without consequential external authority: one bounded messy life-or-work item becomes a sourced outcome, one Today recommendation, a prepared action using the relevant generalist capability, durable waiting/resume state, and correct restart re-entry.",
+      "done": "On the supported launch path, a real local/read-only item is captured without forced taxonomy, yields one recommendation and at most three choices, prepares a useful action in under fifteen minutes, records owner/wait condition/resume context, survives a real process restart, and returns the last verified state plus one re-entry action without transcript reconstruction or repeated external effect. Capacity may be unknown across cognitive, attentional, sensory, social, emotional, physical, and time dimensions. Literal controls include do it, show me, snooze, skip, and off; refusal works for the session, repeated pattern, and global support; transient state expires or is reviewed; quiet hours, interruption budgets, stable layout, non-color meaning, reduced motion, optional streaming/auto-scroll, aphantasia-safe concrete previews, and shame-free recovery are proven.",
+      "notes": "Shipped as the bounded local/read-only continuity wedge on 2026-08-02. Executed evidence: three real source-Electron launches captured @brief.md without taxonomy, rendered one recommendation and exactly three primary choices, prepared a ten-minute read-only action, persisted WorkItem/Run/Approval/Receipt state, restored one exact re-entry action after a full process restart, rejected duplicate execution, expired transient capacity to unknown, reset session refusal on restart, settled snooze and skip, preserved source bytes, and reported zero serious axe violations. Focused API tests also prove persistent pattern and global refusal. This does not authorize consequential external effects or promote TRUST-02, TRUST-04, TRUST-01, or OP-01."
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-08-02",
+      "source": "vanta-total-realignment-correction-2026-07-30",
+      "id": "TRUST-04",
+      "track": "Harness",
+      "title": "Truthful completion and one typed receipt across every host",
+      "status": "shipped",
+      "after": [
+        "TRUST-02"
+      ],
+      "size": "M",
+      "effort": "high",
+      "lens": "agent-loop",
+      "summary": "Make Desktop, CLI/TUI, messaging, jobs, memory, and goal progress consume one evidence-derived WorkItem/Run/Approval/Receipt contract rather than model prose or host-specific stop reasons.",
+      "done": "Every supported host persists exactly the WorkItem states draft, queued, running, waiting, needs human, stopped, failed, unverified, and verified. Captured, Now, Waiting, Needs You, and Done remain projections only. Action/receipt dispositions denied, expired, unknown, and compensated remain separate. Verification outages and missing readback produce unverified; unknown effects are never blindly retried; failed, stopped, denied, expired, unknown, and compensated attempts cannot create accomplishment memory; representative file, UI, message, calendar, job, and restart paths prove the contract end to end.",
+      "notes": "Shipped 2026-08-02 on the supported local Vanta hosts. Desktop, CLI, TUI, messaging, and jobs now persist one content-free WorkItem/Run/Receipt turn envelope; memory and goal progress consume that same evidence-derived contract. Executed evidence covers all nine lifecycle states, the five projection-only views, separate denied/expired/unknown/compensated dispositions, five producer hosts, two consumer hosts, fresh calendar approval, unknown-effect no-replay, every nonverified accomplishment-memory block, a real scheduled effect, synthetic messaging delivery, and three real Electron launches plus a TUI process restart. Full TypeScript passed 13,975 tests with 3 skipped under a 60-second per-test ceiling; Rust passed 70 tests. Evidence: docs/trust-04-host-ledger-2026-08-02.json and docs/trust-04-closure-audit-2026-08-02.html. This does not claim live-provider account proof, cross-platform packaging, notarization, merge, release, publication, deployment, TRUST-01, or OP-01."
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-08-02",
+      "source": "vanta-total-realignment-correction-2026-07-30",
+      "id": "TRUST-01",
+      "track": "Harness",
+      "title": "Universal effect-path inventory and one trusted action gateway",
+      "status": "shipped",
+      "after": [
+        "TRUST-02"
+      ],
+      "size": "L",
+      "effort": "high",
+      "lens": "agent-loop",
+      "summary": "Inventory filesystem, shell, Git, network, credentials, hooks, plugins, MCP, scheduler, workers, Desktop, connectors, factory, and self-repair effects; route every consequential effect through one authoritative gateway without deleting working capability.",
+      "done": "The inventory names every effect path, actor, account, credential, normalization, policy decision, executor, receipt, compensation, and bypass test; unmediated effects equal zero in executed adversarial coverage. Gmail to/subject reject CR/LF before MIME construction and authorization hashing; Gmail, Calendar, and Drive scopes are separate and incremental; life mutations use preconditions, idempotency, immutable provider IDs, readback, and compensation. Compatibility adapters preserve provenance, measurement, cutoff, and rollback and never become a second policy boundary.",
+      "notes": "Shipped 2026-08-02 on the supported local Vanta and signed macOS hosts. The complete 14,002-test TypeScript suite, independent adversarial review, effect-surface mutation validator, signed app and DMG, 9 source plus 9 packaged desktop flows, terminal/origin/restart/capture paths, real local transcription, zero-vulnerability runtime audit, protected-path scan, and Git/package secret scans pass. Gmail, Calendar, and Drive authority were granted separately. The sanitized live proof rejected Gmail CR/LF header injection before approval without sending, then created, conditionally updated, exactly read back, and cleaned up one opaque Calendar event and Drive file without logging provider content, account identity, or credentials. This closes the written TRUST-01 Done contract for the executed hosts; it does not claim cross-platform packaging, notarization, merge, release, publication, deployment, or every future effect path. Evidence: docs/trust-01-progress-receipt-2026-08-02.json and docs/trust-01-progress-audit-2026-08-02.html."
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-07-30",
+      "source": "vanta-total-realignment-correction-2026-07-30",
+      "id": "OP-01",
+      "track": "Operator",
+      "title": "Minimum operator spine — WorkItem, Run, Approval, Receipt, follow-up, and resume",
+      "status": "shipped",
+      "after": [
+        "TRUST-04"
+      ],
+      "size": "L",
+      "effort": "high",
+      "lens": "memory",
+      "summary": "Define only the stable operational spine required by the first continuity slice. Existing tasks, tickets, schedules, sessions, runs, and boards remain behind read-only projections until reconciliation proves a safe cutover.",
+      "done": "Every flagship story represents desired outcome, source, exact nine-state WorkItem lifecycle, Run, Approval, Receipt, provenance memory, next action, owner, wait condition, follow-up, time/capacity fit, blocker, artifacts, and resume context without another user-facing store. A read-only projection preserves legacy source and ID; count/hash reconciliation survives restart; corrupt or unreadable stores remain visible; no writer cutover occurs without bounded dual-write, rollback, and retirement evidence.",
+      "notes": "Shipped 2026-08-04 as the bounded read-only operator spine. One deterministic facade projects the existing continuity store, team and workflow tasks, tickets, legacy and durable schedules, sessions, run-library records, kanban lanes, canonical WorkItems/Runs/Approvals/action receipts, and their original source type, ID, and path into the exact nine-state lifecycle and five projection-only views. Source and projected IDs, counts, and SHA-256 hashes survive three Desktop server starts; corrupt rows and unreadable stores remain visible; unverified legacy completion never enters Done or accomplishment memory; approval and receipt dispositions remain separate; an interrupted continuity item restored the exact resume action before an approved synthetic effect executed once and closed verified; and the exact CLI path used by the TUI produced the same digest as Desktop while every legacy fixture source byte stayed unchanged. No legacy writer was cut over, no second user-facing store was added, and no dual-write, rollback, or retirement claim is made. Evidence: vanta-ts/scripts/op-01-operator-spine-proof.mjs and docs/op-01-operator-spine-audit-2026-08-04.md. This does not claim merge, release, deployment, publication, live-account proof, or GROW-01 work."
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-07-30",
+      "source": "vanta-total-realignment-correction-2026-07-30",
+      "id": "GROW-01",
+      "track": "Solutioning",
+      "title": "Phase-0 trusted-continuity evidence lane — interviews, pilots, burden, retention, and price",
+      "status": "next",
+      "size": "S",
+      "effort": "medium",
+      "lens": "reach",
+      "summary": "Begin commercial and usefulness learning manually: test the same capture → recommend/prepare/act → wait/resume → verify/close contract across bounded life-and-work tasks with chronic and situational executive burden.",
+      "done": "Ten functional-problem interviews and five accessibly supported continuity pilots intentionally include neurodivergent/disabled paid co-design and situational burden without diagnosis gating; assisted/unassisted use, task domains, acquisition source, weeks-three/four repeat loops, burden change, verified outcomes, payment or explicit price/value rejection, revenue, founder support minutes, incidents, and non-return reasons are recorded; unknowns remain unproven; a precommitted continue/change/park date and weekly time/expense ceiling are recorded; fixtures cannot close the card.",
+      "notes": "Manual evidence lane; it consumes no development WIP and authorizes no mass outreach, enrichment, CRM, billing, community, analytics, or source implementation."
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-07-30",
+      "source": "vanta-total-realignment-correction-2026-07-30",
+      "id": "TRUST-03",
+      "track": "Harness",
+      "title": "Canonical action envelope and scoped capability",
+      "status": "horizon",
+      "after": [
+        "TRUST-01",
+        "TRUST-02"
+      ],
+      "size": "L",
+      "effort": "high",
+      "lens": "agent-loop",
+      "summary": "Bind actor, account, operation, complete normalized arguments, target, recipient, content/attachment hashes, amount or audience, quota, expiry, nonce, attempts, idempotency, state precondition, evidence, and compensation.",
+      "done": "Changing any bound actor, account, target, argument, recipient, content byte, attachment, amount, audience, state precondition, expiry, nonce, or replay status after approval produces zero provider calls; capabilities are atomically consumed by the executor and exact drift/replay/crash fixtures pass. R3 uses fresh one-use authority; R4 and R5 grants also bind allowlist, target, account, recipient, quota, budget, expiry, exclusions, cancellation, and review.",
+      "notes": "Dependency-gated route to earned R4/R5 authority, not a global Full Access switch."
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-07-30",
+      "source": "vanta-total-realignment-correction-2026-07-30",
+      "id": "TRUST-05",
+      "track": "Harness",
+      "title": "Untrusted-content quarantine across email, web, documents, messages, and social input",
+      "status": "horizon",
+      "after": [
+        "TRUST-01",
+        "TRUST-02"
+      ],
+      "size": "L",
+      "effort": "high",
+      "lens": "agent-loop",
+      "summary": "Raw external content enters a no-effect intake context and yields a small, validated, provenance-aware structure before any privileged operator receives it.",
+      "done": "Malicious email, web, document, attachment, message, social, and tool-output fixtures cannot access credentials, request authority, modify goals or authoritative memory, trigger outbound effects, or escape through links/redirects; the privileged operator receives validated facts and risk signals with source provenance; supported host and restart paths pass.",
+      "notes": "Required before LIFE-02 and any unattended external-content workflow."
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-07-30",
+      "source": "vanta-total-realignment-correction-2026-07-30",
+      "id": "TRUST-06",
+      "track": "Harness",
+      "title": "Safe factory, self-repair, and Vanta Lab production boundary",
+      "status": "horizon",
+      "after": [
+        "TRUST-01",
+        "TRUST-02",
+        "TRUST-04"
+      ],
+      "size": "L",
+      "effort": "high",
+      "lens": "agent-loop",
+      "summary": "Keep factory, self-repair, auto-research, tuning, experimental organizations, and self-modification absent from production defaults and unable to change the trust boundary.",
+      "done": "Flagship journeys run with Lab prompts, tools, workers, credentials, and navigation absent. Incidents may produce only isolated candidates in scrubbed worktrees with bounded diffs, frozen tests/evaluators, brokered Git/effects, receipts, rollback, and holdouts. Unrelated dirty files, evaluator edits, reward-hacked metrics, missing holdouts, push failures, aliases/symlinks, and post-canary regressions halt without success. Default-branch/production promotion, merge, deployment, policy, credential, audit, evaluator, kernel, manifesto, and factory-boundary changes remain human-gated.",
+      "notes": "Factory, self-repair, and multi-agency remain Lab-only until this boundary is proven."
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-07-30",
+      "source": "vanta-total-realignment-correction-2026-07-30",
+      "id": "OP-03",
+      "track": "Operator",
+      "title": "Trustworthy Needs You — deterministic, deduplicated, expiring, and auto-resolving",
+      "status": "horizon",
+      "after": [
+        "OP-01",
+        "TRUST-04"
+      ],
+      "size": "M",
+      "effort": "high",
+      "lens": "selfhood",
+      "summary": "Make the attention contract trustworthy: ordinary conversation creates nothing; only a deterministic blocker with one exact decision or authorization may set WorkItem state to needs human.",
+      "done": "Ordinary questions, greetings, status commands, read-only success, and model uncertainty create zero Needs You items; a blocked effect creates one item keyed by WorkItem, exact action, and blocker; it preserves the smallest resolution, source, expiry, and receipt; repeated failures merge into a timeline; setup, approval, replacement, success, stop, or expiry resolves it; actionable quality is at least 95% and duplicates below 1% in executed journeys.",
+      "notes": "Attention is an explicit lifecycle contract, not model-generated urgency."
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-07-30",
+      "source": "vanta-total-realignment-correction-2026-07-30",
+      "id": "UX-04",
+      "track": "Operator",
+      "title": "Contextual Review, first-run usefulness, and cross-host accessibility contract",
+      "status": "horizon",
+      "after": [
+        "UX-03",
+        "TRUST-04"
+      ],
+      "size": "L",
+      "effort": "high",
+      "lens": "tui",
+      "summary": "One contextual Review surface renders Activity, Changes, Outputs, and Evidence/Approvals; the supported launch path and generated artifacts satisfy the disability-led universal-design contract.",
+      "done": "The supported launch path reaches one persisted/resumable useful local outcome within ten minutes without Gmail/Calendar or diagnosis disclosure. Keyboard, focus, screen reader, high contrast, common color-vision deficiencies, non-color meaning, reduced motion, density, notifications, optional streaming/auto-scroll, sound, stable layout, preserved reading position, summary-first detail, literal state, and narrow resize pass on the active build. Concrete aphantasia-safe previews and accessible charts/media pass. Support reason/scope/lifetime/reset/dismissal, multidimensional capacity including unknown, quiet hours, interruption budgets, and exact resume are consistent across Desktop, TUI, messaging, background, restart, and safe mode.",
+      "notes": "Accessibility and contextual review are cross-host product contracts."
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-07-30",
+      "source": "vanta-total-realignment-correction-2026-07-30",
+      "id": "LIFE-02",
+      "track": "Operator",
+      "title": "Quarantined read-only morning orientation",
+      "status": "horizon",
+      "after": [
+        "TRUST-05",
+        "OP-01",
+        "OP-03",
+        "UX-03"
+      ],
+      "size": "L",
+      "effort": "high",
+      "lens": "reach",
+      "summary": "Use a bounded durable cursor over quarantined email and calendar to extract urgent items, commitments, reply needs, waiting state, and FYI without creating or executing an external commitment.",
+      "done": "A test mailbox/calendar and then an explicitly authorized R0 Observe account produce a concise sourced brief with no invented commitment; Gmail and Calendar use separate incremental scopes; malicious content cannot reach effects or secrets; WorkItems deduplicate and retain source; timezone and freshness are visible; restart resumes the cursor without loss or duplication; usefulness is measured; no send, invite, archive, label, or Drive mutation is required.",
+      "notes": "Read-only orientation is the first life-admin slice; all mutations remain out of scope."
     }
   ]
 }

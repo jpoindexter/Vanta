@@ -14,17 +14,22 @@ import type { LLMProvider } from "./providers/interface.js";
 import { resolveEffortLevel } from "./effort.js";
 import type { Summarizer } from "./context.js";
 import { resolveAuxProvider } from "./routing/aux-map.js";
-import { preconnectStartup } from "./net/preconnect.js";
 import { buildFallbackChain } from "./providers/fallback.js";
 import { wrapCredentialPool } from "./credentials/resolve.js";
-import type { EffortLevel, Goal } from "./types.js";
+import type { Goal } from "./types.js";
+import { defaultProviderModelSettings, type ProviderEffortLevel, type ProviderSpeed } from "./providers/model-settings.js";
 import {
   loadRuntimeExtensions, loadRuntimeSettings, buildRunPrompt, injectResume, logSessionConfig,
   resolveLoadContext, fireInstructionsLoaded,
 } from "./session/prepare-helpers.js";
 import { type TrustConfirmer } from "./settings/trust-gate.js";
 import { bootstrapKernel } from "./session/bootstrap-kernel.js";
+import { consumePrewarmedKernel } from "./session/prewarm.js";
 import { applyLocalRuntimeLimits, resolveSessionSystemPrompt, resolveSessionToolInclude } from "./session/local-runtime-policy.js";
+import { resolveOperatingMode } from "./modes/operating-mode.js";
+import { PLAN_INSTRUCTION } from "./repl/plan-mode.js";
+import { canCreateAccomplishmentMemory, type WorkItemState } from "./work-items/contract.js";
+import { resolvePermissionMode } from "./modes/permission-mode.js";
 export { loadRalphContinuity } from "./session/prepare-helpers.js";
 
 export * from "./session/after-turn.js";
@@ -44,7 +49,8 @@ export type RunSetup = {
   provider: LLMProvider;
   /** Optional stronger read-only model consulted after repeated tool failures (VANTA_ADVISOR_MODEL). */
   advisorProvider?: LLMProvider;
-  effortLevel: EffortLevel;
+  effortLevel: ProviderEffortLevel;
+  serviceTier?: ProviderSpeed;
   goals: Goal[];
   systemPrompt: string;
   ralphContinuity?: string;
@@ -65,7 +71,7 @@ export async function prepareRun(
   skillBody?: string,
   opts: PrepareRunOpts = {},
 ): Promise<RunSetup> {
-  const safety = await bootstrapKernel(repoRoot);
+  const safety = await consumePrewarmedKernel(repoRoot, { bootstrap: bootstrapKernel });
   // SETTINGS-BLOCKEDTOOLS-ENFORCE: load settings BEFORE buildRegistry so a tool
   // in settings.blockedTools is excluded from the live session registry. The
   // same settings object is reused by loadRuntimeExtensions (no second load).
@@ -74,12 +80,26 @@ export async function prepareRun(
   const include = resolveSessionToolInclude(settings.allowedTools, provider.routeInfo?.(), process.env);
   const registry = buildRegistry({ exclude: settings.blockedTools ?? [], include });
   const mcpTrust = { root: repoRoot, confirm: opts.confirmTrust };
-  const { pluginCommands, pluginPanels, pluginWorkers, mcpSkills } = await loadRuntimeExtensions(repoRoot, registry, mcpTrust, settings);
-  const effortLevel = resolveEffortLevel(process.env.VANTA_EFFORT_LEVEL ?? settings.effortLevel);
-  // VANTA-API-PRECONNECT: opt-in (VANTA_PRECONNECT) best-effort TCP+TLS pre-warm
-  // to the provider's API host so the first request skips the handshake. Fire-
-  // and-forget — never awaited, swallows its own failure, cannot affect startup.
-  void preconnectStartup(process.env);
+  const { pluginCommands, pluginPanels, pluginWorkers, mcpSkills } = await loadRuntimeExtensions(
+    repoRoot,
+    registry,
+    mcpTrust,
+    settings,
+    {
+      kernel: safety,
+      projectRoot: repoRoot,
+      sessionId: `runtime-extensions:${process.pid}`,
+      permissionMode: resolvePermissionMode(process.env),
+    },
+  );
+  const configuredEffort = process.env.VANTA_EFFORT_LEVEL ?? settings.effortLevel;
+  const providerId = provider.routeInfo?.()?.provider ?? process.env.VANTA_PROVIDER ?? "openai";
+  const modelSettings = defaultProviderModelSettings(providerId, provider.modelId(), {
+    effortLevel: configuredEffort,
+    speed: process.env.VANTA_SERVICE_TIER,
+  }, process.env);
+  const effortLevel = modelSettings.effortLevel ?? resolveEffortLevel(configuredEffort);
+  const serviceTier = modelSettings.speed;
   const goals = await safety.getGoals().catch(() => []);
   const activeIds = goals.filter((g) => g.status === "active").map((g) => g.id);
 
@@ -100,6 +120,9 @@ export async function prepareRun(
     process.env,
   );
   if (skillBody) systemPrompt += `\n\nApply this skill:\n${skillBody}`;
+  if (resolveOperatingMode(process.env) === "plan" && !systemPrompt.includes(PLAN_INSTRUCTION)) {
+    systemPrompt += PLAN_INSTRUCTION;
+  }
   if (instruction === "interactive session") systemPrompt = await injectResume(systemPrompt, repoRoot);
   const advisorProvider = resolveAdvisorProvider(process.env) ?? undefined;
   // VANTA-ASCIICAST: opt-in auto-record (VANTA_RECORD=1). Off = byte-identical,
@@ -112,7 +135,7 @@ export async function prepareRun(
     }
   }
   logSessionConfig(safety, provider, registry, systemPrompt);
-  return { safety, registry, pluginCommands, pluginPanels, pluginWorkers, mcpSkills, provider, advisorProvider, effortLevel, goals, systemPrompt, ralphContinuity: prompt.ralphContinuity };
+  return { safety, registry, pluginCommands, pluginPanels, pluginWorkers, mcpSkills, provider, advisorProvider, effortLevel, serviceTier, goals, systemPrompt, ralphContinuity: prompt.ralphContinuity };
 }
 
 const SUMMARIZE_SYS =
@@ -150,8 +173,9 @@ export function buildSummarizer(provider: LLMProvider, instructions?: string): S
 }
 
 export async function writeRunMemory(
-  o: { provider: LLMProvider; goals: Goal[]; instruction: string; finalText: string; now?: string; sessionId?: string; turnIndex?: number },
+  o: { provider: LLMProvider; goals: Goal[]; instruction: string; finalText: string; completionState?: WorkItemState; now?: string; sessionId?: string; turnIndex?: number },
 ): Promise<void> {
+  if (!o.completionState || !canCreateAccomplishmentMemory(o.completionState)) return;
   const goal = o.goals.find((g) => g.status === "active");
   if (!goal) return;
   try {

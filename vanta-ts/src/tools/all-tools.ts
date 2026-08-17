@@ -71,21 +71,8 @@ import { xueqiuReadTool } from "./xueqiu-read.js";
 import { xiaohongshuReadTool } from "./xiaohongshu-read.js";
 import { runCodeTool } from "./run-code.js";
 import { maximizerTool } from "./maximizer.js";
-import {
-  lspDiagnosticsTool,
-  lspDefinitionTool,
-  lspReferencesTool,
-  lspSymbolsTool,
-  lspHoverTool,
-} from "./lsp.js";
-import {
-  gitStatusTool,
-  gitDiffTool,
-  gitCommitTool,
-  gitPushTool,
-  gitBranchTool,
-  gitCheckoutTool,
-} from "./git.js";
+import { lspDiagnosticsTool, lspDefinitionTool, lspReferencesTool, lspSymbolsTool, lspHoverTool } from "./lsp.js";
+import { gitStatusTool, gitDiffTool, gitCommitTool, gitPushTool, gitBranchTool, gitCheckoutTool } from "./git.js";
 import { delegateTool } from "./delegate.js";
 import { callAgentTool } from "./call-agent.js";
 import { agentSessionTool } from "./agent-session.js";
@@ -95,6 +82,7 @@ import { bgListTool, bgStatusTool } from "./bg-tasks.js";
 import { refIngestTool, refSearchTool, refListTool } from "./ref-ingest.js";
 import { editFileTool } from "./edit-file.js";
 import { pdfReadTool } from "./pdf-read.js";
+import { documentReadTool } from "./document-read.js";
 import { grepFilesTool } from "./grep-files.js";
 import { globFilesTool } from "./glob-files.js";
 import { protectTool } from "./protect.js";
@@ -114,6 +102,10 @@ import { playbookTool } from "./playbook.js";
 import { enterWorktreeTool, exitWorktreeTool } from "./worktree.js";
 import { listPeersTool, peerSendTool } from "./peers.js";
 import { openDeepLinkTool } from "./deep-link.js";
+import { trelloReadTool } from "./trello-read.js";
+import { trelloWriteTool } from "./trello-write.js";
+import { dropboxReadTool } from "./dropbox-read.js";
+import { dropboxWriteTool } from "./dropbox-write.js";
 import {
   gmailSearchTool,
   gmailReadTool,
@@ -139,6 +131,8 @@ import { mediaStudioTool } from "./media-studio.js";
 import { paymentTransactionTool } from "./payment-transaction.js";
 import { shopifyOperationsTool } from "./shopify-operations.js";
 import { telephonyWorkflowTool } from "./telephony-workflow.js";
+import { spargeAttentionTool } from "./sparge-attention.js";
+import { msaMemoryTool } from "./msa-memory.js";
 import type { Tool } from "./types.js";
 
 /**
@@ -151,6 +145,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   editFileTool,
   writeFileTool,
   pdfReadTool,
+  documentReadTool,
   grepFilesTool,
   globFilesTool,
   shellCmdTool,
@@ -267,6 +262,8 @@ export const ALL_TOOLS: readonly Tool[] = [
   paymentTransactionTool,
   shopifyOperationsTool,
   telephonyWorkflowTool,
+  spargeAttentionTool,
+  msaMemoryTool,
   financeModelTool,
   spreadsheetWorkbookTool,
   bgListTool,
@@ -285,4 +282,8 @@ export const ALL_TOOLS: readonly Tool[] = [
   listPeersTool,
   peerSendTool,
   openDeepLinkTool,
+  trelloReadTool,
+  trelloWriteTool,
+  dropboxReadTool,
+  dropboxWriteTool,
 ];

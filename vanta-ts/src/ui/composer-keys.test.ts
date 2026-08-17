@@ -35,6 +35,10 @@ describe("readlineEdit chords", () => {
     expect(readlineEdit(s("x", 1), "", k({ return: true }))).toBeNull();
     expect(readlineEdit(s("x", 1), "", k({ upArrow: true }))).toBeNull();
   });
+  it("bare ←/→ move the cursor by one char", () => {
+    expect(readlineEdit(s("hello", 3), "", k({ leftArrow: true }))).toEqual({ value: "hello", cursor: 2 });
+    expect(readlineEdit(s("hello", 3), "", k({ rightArrow: true }))).toEqual({ value: "hello", cursor: 4 });
+  });
 });
 
 describe("historyTypeahead", () => {

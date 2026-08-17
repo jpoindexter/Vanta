@@ -5,6 +5,7 @@ import {
   type CompletionSoundId,
   type CompletionSoundSettings as CompletionSoundPrefs,
 } from "./completion-sound.js";
+import { StyledSelect } from "./form-controls.js";
 
 export function CompletionSoundSettings(props: {
   open: boolean;
@@ -32,14 +33,14 @@ export function CompletionSoundSettings(props: {
         </label>
         <label className="select-row" htmlFor="completion-sound-choice">
           <span>Chime</span>
-          <select
+          <StyledSelect
             id="completion-sound-choice"
             value={props.settings.sound}
             disabled={!props.settings.enabled}
             onChange={(event) => props.onChange({ ...props.settings, sound: event.currentTarget.value as CompletionSoundId })}
           >
             {COMPLETION_SOUND_IDS.map((sound) => <option key={sound} value={sound}>{COMPLETION_SOUND_LABELS[sound]}</option>)}
-          </select>
+          </StyledSelect>
         </label>
         <div className="dialog-actions">
           <button type="button" disabled={!props.settings.enabled} onClick={props.onPreview}>Preview</button>

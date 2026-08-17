@@ -38,6 +38,20 @@ describe("estimateEntryRows", () => {
     ] };
     expect(estimateEntryRows(e, 80)).toBe(1 + 2 + 1); // margin + (head+meta) + head
   });
+
+  it("turnSummary includes the heading and only the populated evidence rows", () => {
+    const summary: Entry = {
+      kind: "turnSummary",
+      actions: 2,
+      changed: ["x.ts"],
+      checked: 1,
+      verificationPassed: 0,
+      verificationFailed: 0,
+      recoveredFailures: 0,
+      failures: 0,
+    };
+    expect(estimateEntryRows(summary, 80)).toBe(6);
+  });
 });
 
 describe("estimateCommittedRows", () => {

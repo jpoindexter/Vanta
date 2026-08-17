@@ -15,11 +15,15 @@ export function buildTtsEnv(
   provider: TtsProvider,
   key?: string,
   voice?: string,
+  options: { streaming?: boolean } = {},
 ): Record<string, string> {
   const updates: Record<string, string> = { VANTA_TTS_PROVIDER: provider.id };
   const v = voice?.trim() || provider.defaultVoice;
   if (v) updates.VANTA_TTS_VOICE = v;
   if (provider.envVar && key) updates[provider.envVar] = key;
+  if (options.streaming !== undefined) {
+    updates.VANTA_TTS_STREAMING = options.streaming ? "1" : "0";
+  }
   return updates;
 }
 
@@ -74,12 +78,22 @@ export async function runTtsSetup(repoRoot: string, rl?: Readline): Promise<bool
     }
 
     const voice = (await ownRl.question(`\n  Voice id [${provider.defaultVoice ?? "default"}]: `)).trim();
+    const streamingAnswer = (
+      await ownRl.question("\n  Speak after the first complete clause? [y/N]: ")
+    ).trim().toLowerCase();
+    const streaming = streamingAnswer === "y" || streamingAnswer === "yes";
 
     const path = envPath(repoRoot);
     const existing = existsSync(path) ? await readFile(path, "utf8") : "";
-    await writeFile(path, upsertEnv(existing, buildTtsEnv(provider, key, voice)), { mode: 0o600 });
+    await writeFile(
+      path,
+      upsertEnv(existing, buildTtsEnv(provider, key, voice, { streaming })),
+      { mode: 0o600 },
+    );
 
-    console.log(`\n  ✓ Configured ${provider.label} for spoken replies.\n`);
+    console.log(
+      `\n  ✓ Configured ${provider.label} for ${streaming ? "first-clause streaming" : "whole-response"} spoken replies.\n`,
+    );
     return true;
   } finally {
     if (!rl) ownRl.close();
