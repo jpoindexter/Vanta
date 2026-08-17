@@ -2,27 +2,34 @@
    the existing React/API layers; this file owns the reduced information hierarchy. */
 :root,
 .theme-dark {
-  --bg: #09090c;
-  --panel: #101014;
-  --panel-2: #0c0c10;
-  --workspace: #111116;
-  --raised: #1a1921;
-  --line: #292832;
-  --line-strong: #454250;
-  --text: #f4f1f7;
-  --muted: #b9b4bf;
-  --faint: #7f7a87;
-  --accent: #a868f0;
-  --surface-selected: #24212c;
-  --focus: #c38cff;
+  /* Vanta brand palette (BRAND-BOOK 3.4): three colors, no drift.
+     Vanta Black #050507 · Bone #F4EFE3 · Signal Violet #7C3AED.
+     Surfaces are tonal layers of Black lifted toward Bone — the book forbids
+     introducing a new hue to solve hierarchy, so the greys stay neutral rather
+     than carrying the old violet cast. Violet is reserved for active/selected/
+     focused/live state and small rules; target composition 82/16/2. */
+  --bg: #050507;
+  --panel: #0c0c0e;
+  --panel-2: #08080a;
+  --workspace: #101012;
+  --raised: #18181a;
+  --line: #2a2a2c;
+  --line-strong: #4a4a4d;
+  --text: #f4efe3;
+  --muted: #b3aea3;
+  --faint: #7d796f;
+  --accent: #7c3aed;
+  --surface-selected: #232325;
+  --focus: #7c3aed;
   --titlebar-height: 44px;
   --titlebar-collapsed-leading-width: 160px;
   --statusbar-height: 0px;
 }
 
 .theme-light {
-  --accent: #7040a0;
-  --focus: #7040a0;
+  /* Violet on Bone measures 4.97:1 — usable for non-body UI state. */
+  --accent: #7c3aed;
+  --focus: #7c3aed;
 }
 
 .app-shell,
@@ -411,7 +418,17 @@
   padding: 7px 5px 6px;
 }
 
+/* Model + access-mode are ONE segmented control: the model button is rounded on
+   the left and square on the right, the access-mode pill mirrors it, and the
+   -3px pull closes the .composer-actions gap between them.
+
+   Every selector here must be scoped under .composer-actions. The global base
+   `.composer button` (styles.css) is (0,1,1) and beats a bare `.approval-mode`
+   (0,1,0), so the unscoped rules below silently never applied — the model button
+   got its square edge while the pill stayed fully rounded and then overlapped it
+   by 3px, which is what read as "a plain bordered input". */
 .composer-actions .model-button {
+  position: relative; /* owns its own caption's positioning context */
   height: 30px;
   max-width: 170px;
   border: 1px solid var(--line);
@@ -419,19 +436,22 @@
   padding: 4px 7px;
 }
 
+/* The caption stays visually hidden: .model-button is a 170px inline-flex row,
+   so an inline "AGENT MODEL" would eat the width the model id needs. The button
+   carries its own aria-label, and the <small> is kept in the DOM for it. */
 .composer-actions .model-button small {
   position: absolute;
   width: 1px;
   height: 1px;
   overflow: hidden;
-  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
 }
 
 .access-mode-picker {
   margin-left: -3px;
 }
 
-.approval-mode {
+.composer-actions .approval-mode {
   height: 30px;
   border: 1px solid var(--line);
   border-left: 0;
@@ -456,12 +476,14 @@
   color: var(--faint) !important;
 }
 
-.queue-button,
-.stop-button {
+.composer-actions .queue-button,
+.composer-actions .stop-button {
   border-radius: 6px;
 }
 
-.stop-button {
+/* Solid inverted fill — the "this is the destructive one" treatment. Unscoped,
+   this lost to `.composer button`'s background and never rendered. */
+.composer-actions .stop-button {
   background: var(--text);
   color: var(--bg);
 }
@@ -900,4 +922,31 @@
   .queue-drawer {
     animation: none;
   }
+}
+
+/* Run trace density (Codex-like). A long turn used to render one full-contrast
+   36px row per tool call — eleven of them pushed the composer off screen. Rows
+   are quieter and shorter; full contrast is reserved for the one status that
+   actually needs the operator, so `attention` still reads at a glance. */
+.quiet-trace details.timeline-step {
+  min-height: 26px;
+}
+
+.quiet-trace details.timeline-step > summary {
+  min-height: 26px;
+}
+
+.quiet-trace details.timeline-step > summary strong {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.quiet-trace details.timeline-step.bad > summary strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.quiet-trace details.timeline-step.trace-overflow > summary strong {
+  color: var(--faint);
+  font-style: italic;
 }

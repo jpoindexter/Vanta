@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { fitSegments, type Segment } from "./status-bar.js";
+import { buildKeys, fitSegments, type Segment } from "./status-bar.js";
 
 // Mirrors the segment list StatusBar builds internally.
 function makeSegs(queued?: number): Segment[] {
@@ -77,5 +77,21 @@ describe("fitSegments", () => {
     // Result order must match original insertion order.
     const origOrder = segs.map((s) => s.text).filter((t) => result.includes(t));
     expect(result).toEqual(origOrder);
+  });
+});
+
+describe("SPEED segment", () => {
+  const base = {
+    model: "claude-opus-5", gauge: "24k/200k", bar: "████░░░░",
+    ctxPct: 12, turns: 3, busy: false,
+  };
+
+  it("shows the ↯ glyph while fast mode is on", () => {
+    expect(buildKeys({ ...base, serviceTier: "fast" }).SPEED).toBe("  ·  ↯ speed:fast");
+  });
+
+  it("labels standard speed plainly and stays empty when unset", () => {
+    expect(buildKeys({ ...base, serviceTier: "standard" }).SPEED).toBe("  ·  speed:standard");
+    expect(buildKeys(base).SPEED).toBe("");
   });
 });

@@ -1,26 +1,16 @@
-import { useRef, useState } from "react";
 import { usePaste } from "ink";
 import { execSync } from "node:child_process";
 import { readlineEdit, type Key, type Edit } from "./composer-keys.js";
-import { replaceSelection, selEmpty, selRange, type Sel } from "./selection.js";
+import { replaceSelection, selEmpty, type Sel } from "./selection.js";
+import { PASTE_PILL_CHARS, pillTokenAt } from "./paste-pill.js";
 
-// Pure input-event processing for the Composer: line counting, paste detection /
-// normalization + the paste hooks, and the line-level key-chord handlers the
-// component's `useInput` dispatches to. Split from composer.tsx so both stay
-// under the size gate; composer.tsx re-exports the public helpers unchanged.
+// Pure input-event processing for the Composer: paste detection / normalization
+// + the paste hook, and the line-level key-chord handlers the component's
+// `useInput` dispatches to. Split from composer.tsx so both stay under the size
+// gate; composer.tsx re-exports the public helpers unchanged. Collapsing a large
+// paste to its buffer marker lives in paste-pill.ts.
 
-/** Lines in value (0 for empty string, 1 for single-line, N for N-1 newlines). */
-export function countLines(value: string): number {
-  if (value === "") return 0;
-  return (value.match(/\n/g) ?? []).length + 1;
-}
-
-export const PASTE_PILL_THRESHOLD = 3;
-// Also collapse a long paste whose newlines got normalized away by the terminal —
-// it arrives as a few very long lines (≤3), so the line threshold alone misses it
-// and the long lines wrap/overlap into a scramble. A buffer this long is a paste,
-// not typing, so collapse it to the pill regardless of line count.
-export const PASTE_PILL_CHARS = 500;
+export { countLines, PASTE_PILL_THRESHOLD, PASTE_PILL_CHARS } from "./paste-pill.js";
 
 /**
  * Opt-in paste guard for terminals that DON'T bracket pastes (so a multi-line
@@ -65,10 +55,22 @@ export function isMultiLinePaste(input: string): boolean {
   return input.length > 1 && /[\r\n]/.test(input);
 }
 
+/**
+ * A single input chunk that is a paste rather than typing. Either it carries a
+ * line break (a raw CR would otherwise read as Enter and submit mid-paste), or
+ * it is longer than any human keystroke burst — a terminal that strips newlines
+ * delivers a long paste as one chunk with no break to detect. Both must take the
+ * paste path so CRs are normalized and a big one collapses to its marker.
+ */
+export function isRawPasteChunk(input: string): boolean {
+  return isMultiLinePaste(input) || input.length >= PASTE_PILL_CHARS;
+}
+
 type TextPasteOpts = {
   read: () => { value: string; cursor: number; selection?: Sel | null }; focused: boolean;
   setBuf: (v: string, c: number) => void; onImagePaste?: () => void;
-  onTextPaste?: (paste: { value: string; text: string; start: number; end: number }) => void;
+  /** Swap pill-worthy text for its buffer marker; short text passes through. */
+  collapse: (text: string) => string;
 };
 
 export function useTextPaste(o: TextPasteOpts): (text: string) => void {
@@ -79,64 +81,33 @@ export function useTextPaste(o: TextPasteOpts): (text: string) => void {
     // clipboard image instead of inserting nothing. Harmless on a truly-empty
     // clipboard (the /paste handler just reports "no image").
     if (o.onImagePaste && isImagePasteSignal(raw)) { o.onImagePaste(); return; }
-    const text = normalizePaste(raw); // CR → LF so it can't overwrite the render or submit
+    // CR → LF so it can't overwrite the render or submit, then collapse a large
+    // paste to its marker so the input line stays short and typable after it.
+    const text = o.collapse(normalizePaste(raw));
     const { value, cursor, selection } = o.read(); // refs → the LATEST buffer, never a stale closure
     const activeSelection = selection ?? null;
-    const start = selEmpty(activeSelection) ? cursor : selRange(activeSelection).start;
     const next = selEmpty(activeSelection) ? { value: value.slice(0, cursor) + text + value.slice(cursor), cursor: cursor + text.length } : replaceSelection(value, activeSelection, text);
     o.setBuf(next.value, next.cursor);
-    o.onTextPaste?.({ value: next.value, text, start, end: start + text.length });
   };
   // Bracketed paste mode: text with newlines arrives as one string, not returns.
   usePaste(pasteText);
   return pasteText;
 }
 
-export type PastePill = { count: number; lines: number; start: number; end: number };
-
-function shouldCollapsePaste(value: string): boolean {
-  return countLines(value) > PASTE_PILL_THRESHOLD || value.length > PASTE_PILL_CHARS;
-}
-
-function displayLineCount(value: string): number {
-  return Math.max(countLines(value), Math.ceil(value.length / 80));
-}
-
-export function usePastePill(): {
-  pill?: PastePill;
-  recordPaste: (paste: { value: string; text: string; start: number; end: number }) => void;
-  reconcileEdit: (before: string, after: string) => void;
-  clearPill: () => void;
-} {
-  const pasteCountRef = useRef(0);
-  const pillRef = useRef<PastePill | undefined>(undefined);
-  const [pill, setPill] = useState<PastePill | undefined>(undefined);
-  const updatePill = (next?: PastePill): void => { pillRef.current = next; setPill(next); };
-  const clearPill = (): void => updatePill(undefined);
-  const recordPaste = (paste: { value: string; text: string; start: number; end: number }): void => {
-    if (!shouldCollapsePaste(paste.text)) return;
-    pasteCountRef.current++;
-    const current = pillRef.current;
-    const start = current ? Math.min(current.start, paste.start) : paste.start;
-    const end = current ? Math.max(current.end, paste.end) : paste.end;
-    updatePill({ count: pasteCountRef.current, lines: displayLineCount(paste.value.slice(start, end)), start, end });
-  };
-  const reconcileEdit = (before: string, after: string): void => {
-    const current = pillRef.current;
-    if (!current || before === after) return;
-    let changedAt = 0;
-    const shared = Math.min(before.length, after.length);
-    while (changedAt < shared && before[changedAt] === after[changedAt]) changedAt++;
-    // Edits at/after the collapsed span are safe: their text remains visible.
-    // An edit before or inside it invalidates the offsets, so expand honestly.
-    if (changedAt < current.end) clearPill();
-  };
-  return {
-    pill,
-    recordPaste,
-    reconcileEdit,
-    clearPill,
-  };
+/**
+ * Backspace inside a collapsed-paste marker removes the whole marker. Deleting
+ * one character would leave `[Pasted text #1 +50 line` — a label the user cannot
+ * repair, whose stored text would then be orphaned and silently dropped at
+ * submit. Modified deletes (^U, ⌥⌫, ⌘⌫) keep their readline meaning. True when
+ * handled.
+ */
+export function handlePillDelete(key: Key, value: string, cursor: number, setBuf: (v: string, c: number) => void): boolean {
+  if (!key.backspace && !key.delete) return false;
+  if (key.meta || key.super || key.ctrl) return false;
+  const span = pillTokenAt(value, cursor);
+  if (!span) return false;
+  setBuf(value.slice(0, span.start) + value.slice(span.end), span.start);
+  return true;
 }
 
 /** Enter submits (or shift+enter newlines). True when handled. */
@@ -188,6 +159,28 @@ export function writeClipboardText(text: string): boolean {
   try { execSync("pbcopy", { input: text, timeout: 1000 }); return true; } catch { return false; }
 }
 
+/**
+ * ↑ pulls the most recent queued message back into the composer for editing —
+ * but ONLY from an empty buffer. Up is already spoken for three ways (history
+ * nav here, transcript selection globally, palette nav when one is open), and
+ * Shift+Up is taken by message actions, so an unconditional hijack would destroy
+ * history recall. Gating on an empty composer is the same rule Claude Code uses
+ * and leaves every other Up behaviour intact. True when handled.
+ */
+export function handleQueueEdit(
+  key: Key,
+  ctx: { value: string; cursor: number; activeLen: number; queuedCount: number },
+  edit: (index: number) => string | undefined,
+  setBuf: (v: string, c: number) => void,
+): boolean {
+  if (!key.upArrow) return false;
+  if (ctx.value !== "" || ctx.cursor !== 0 || ctx.activeLen > 0 || ctx.queuedCount === 0) return false;
+  const text = edit(ctx.queuedCount - 1); // most recently queued first
+  if (text === undefined) return false;
+  setBuf(text, text.length);
+  return true;
+}
+
 /** ↑/↓ (palette closed) or ^P/^N walk the input history. True when handled. */
 export function handleHistory(input: string, key: Key, nav: (dir: "up" | "down") => void): boolean {
   const up = key.upArrow || (key.ctrl && input === "p");
@@ -195,20 +188,6 @@ export function handleHistory(input: string, key: Key, nav: (dir: "up" | "down")
   if (up) { nav("up"); return true; }
   if (down) { nav("down"); return true; }
   return false;
-}
-
-/** Pull the newest queued message into an empty composer for editing. */
-export function handleQueueEdit(
-  key: Key,
-  ctx: { value: string; cursor: number; activeLen: number; queuedCount: number },
-  edit: (index: number) => string | undefined,
-  setBuf: (value: string, cursor: number) => void,
-): boolean {
-  if (!key.upArrow || ctx.value !== "" || ctx.cursor !== 0 || ctx.activeLen > 0 || ctx.queuedCount === 0) return false;
-  const text = edit(ctx.queuedCount - 1);
-  if (text === undefined) return false;
-  setBuf(text, text.length);
-  return true;
 }
 
 type PaletteKeyOpts = { key: Key; len: number; sel: number; setSel: (n: number) => void; complete: () => void };

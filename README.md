@@ -20,7 +20,7 @@ The canonical labels are **R0 — Observe**, **R1 — Recommend**,
 `unverified`, `verified`. `denied`, `expired`, `unknown`, and `compensated`
 are receipt/action dispositions, not WorkItem states.
 
-> **Implementation truth (2026-08-13):** the bounded `TRUST-02`, `UX-03`, `TRUST-04`, `TRUST-01`, and `OP-01` contracts have executed receipts and are marked shipped for their documented local and signed macOS boundaries. This integrated source stack is still a draft change, not the public release. Cross-platform packaging, live external accounts, external proof, and future effect paths require their own evidence. See the [current acceptance record](docs/product-acceptance.md).
+> **Implementation truth (2026-08-17):** the bounded `TRUST-02`, `UX-03`, `TRUST-04`, `TRUST-01`, and `OP-01` contracts have executed receipts and are marked shipped for their documented local and signed macOS boundaries. The current draft stack also repairs tool-result adjacency, visible paste/queue interaction, and model controls, but it is still review work—not the public release. Cross-platform packaging, live external accounts, external proof, and future effect paths require their own evidence. See the [current acceptance record](docs/product-acceptance.md).
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/jpoindexter/Vanta/main/vanta-website/static/img/vanta-desktop-work-dark.webp" alt="Vanta Desktop Work view showing an agent task, tool activity, approvals, and model scope" width="960">
@@ -144,6 +144,7 @@ hosts must be classified and proved before they inherit that claim:
 ## Troubleshooting
 
 - **`vanta doctor` says no provider** → run `vanta setup` and pick a backend (Ollama for free/local, or paste an API key).
+- **Claude Code subscription is not detected** → authenticate with Anthropic's official client using `claude auth login --claudeai`, then restart Vanta. Vanta reads that login; it does not mint, refresh, store, or sign out Claude subscription tokens itself.
 - **Local model "not responding"** → make sure Ollama is running (`ollama serve`) and the model is pulled (`ollama pull qwen2.5:14b`).
 - **First local model setup** → run `vanta local-model setup`; it reports hardware and storage impact, previews the exact `llama-server` launch, verifies the model checksum, and resumes the same command after interruption. Use `vanta local-model status` for the durable checkpoint and recent receipts.
 - **Kernel won't bind / "port 7788 in use"** → a stale kernel from a prior build: `lsof -nP -iTCP:7788 -sTCP:LISTEN`, kill the PID, re-run.
@@ -166,6 +167,7 @@ hosts must be classified and proved before they inherit that claim:
 - **Governance & cost** — `vanta governance export` (auditable report of every gated action), versioned `.env` + `vanta config rollback`, persisted spend ledger via `/usage breakdown`
 - **Browser & vision** — screenshot / navigate / extract / read / act (Playwright), image/video understanding, and explicit `/look` capture for a macOS area, window, or all displays
 - **Voice & terminal** — push-to-talk voice input (local whisper STT), opt-in [first-clause streaming TTS](docs/streaming-tts.md) with bounded queue and whole-response fallback, live terminal capture (tmux-backed), Slack `#channel` autocomplete in the composer
+- **Terminal model controls** — `/model` opens the active provider's compact model list, `/model-setup` returns to provider setup, and declared provider capabilities expose `/effort`, `/speed`, and `/fast`. Fast tiers are opt-in, model-gated, and explicitly labeled as higher-usage or premium paths.
 - **Desktop control** — native screen control (screencapture → vision grounding → cliclick, or the CHICAGO computer-use MCP); `vanta control setup` grants OS permissions
 - **Ambient companion** — native Electron menu-bar presence with Quick Ask and approval status; `vanta desktop --companion` exposes a token-paired mobile status/chat/approval surface while terminal, files, tools, and model settings remain loopback-only
 - **Native desktop app** — one-viewport React/Electron workspace with persisted project selection, reusable runs with drift-reviewed replay, in-app model setup, sessions/chat/canvas/files/terminal, image clipboard paste, explicit screen capture, actionable startup recovery, and a [notarized ARM64 macOS DMG](https://github.com/jpoindexter/Vanta/releases/download/v0.9.5/Vanta-0.9.5-arm64.dmg)

@@ -22,6 +22,21 @@ describe("queue display", () => {
     instance.unmount();
   });
 
+  it("renders nothing when the queue is empty", async () => {
+    const instance = renderUi(h(QueuePanel, { queued: [] }));
+    await tick();
+    expect(instance.lastFrame().trim()).toBe("");
+    instance.unmount();
+  });
+
+  it("reports overflow instead of growing past the row budget", async () => {
+    const instance = renderUi(h(QueuePanel, { queued: ["alpha", "bravo", "charlie", "delta", "echo"] }));
+    await tick();
+    expect(instance.lastFrame()).toContain("… 2 more queued");
+    expect(instance.lastFrame()).not.toContain("delta");
+    instance.unmount();
+  });
+
   it("pulls the newest queued message into an empty composer", async () => {
     const onEditQueued = vi.fn(() => "queued text");
     const instance = renderUi(h(Composer, {
@@ -53,5 +68,21 @@ describe("queue display", () => {
   it("removes an edited queue entry without disturbing its siblings", () => {
     const queued = reduce(reduce(reduce(initialState, { t: "enqueue", text: "a" }), { t: "enqueue", text: "b" }), { t: "enqueue", text: "c" });
     expect(reduce(queued, { t: "dequeueAt", index: 1 }).queued).toEqual(["a", "c"]);
+  });
+  it("is a no-op for an out-of-range index", () => {
+    const queued = reduce(initialState, { t: "enqueue", text: "a" });
+    expect(reduce(queued, { t: "dequeueAt", index: 5 }).queued).toEqual(["a"]);
+  });
+  it("does not hijack ↑ when nothing is queued", async () => {
+    const onEditQueued = vi.fn(() => "queued text");
+    const inst = renderUi(h(Composer, {
+      onSubmit: () => {}, placeholder: "Ask", files: [], history: ["earlier message"], focused: true,
+      queuedCount: 0, onEditQueued,
+    }));
+    await tick();
+    inst.input("\u001b[A");
+    await waitForFrame(inst, "earlier message");
+    expect(onEditQueued).not.toHaveBeenCalled();
+    inst.unmount();
   });
 });

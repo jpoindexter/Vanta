@@ -193,6 +193,17 @@ export function ModelPicker(props: { open: boolean; models: Provider[]; status: 
     ?? matchingProviders.find((provider) => provider.id === props.status?.provider)
     ?? matchingProviders[0];
   const visibleModels = activeProvider ? filterModels(activeProvider, query) : [];
+  // Claude-CLI style: after picking a model, drill into its settings view (effort /
+  // speed) instead of closing. A model with no tunable controls has nothing to
+  // tune, so close the picker as before. A "global" pick (Set as default) also
+  // just applies and closes.
+  async function selectModel(provider: string, model: string, scope?: "session" | "global") {
+    props.onSelect(provider, model, scope);
+    const picked = props.models.find((entry) => entry.id === provider);
+    const tunable = Boolean(picked?.modelSettings?.effort || picked?.modelSettings?.speed);
+    if (scope === "session" && tunable) setView("settings");
+    else close();
+  }
   async function refreshSelected() {
     if (!activeProvider || !activeProvider.discoveryAvailable) return;
     setRefreshing(true);
@@ -202,7 +213,7 @@ export function ModelPicker(props: { open: boolean; models: Provider[]; status: 
   function chooseCustom(event: FormEvent) {
     event.preventDefault();
     const model = customModel.trim();
-    if (activeProvider && model) props.onSelect(activeProvider.id, model, "session");
+    if (activeProvider && model) void selectModel(activeProvider.id, model, "session");
   }
   function navigateProviders(event: ReactKeyboardEvent<HTMLElement>) {
     if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
@@ -235,7 +246,7 @@ export function ModelPicker(props: { open: boolean; models: Provider[]; status: 
               </header>
               <ProviderSettingsControls provider={activeProvider} status={props.status} onSettings={props.onSettings} />
               {activeProvider.discoveryError ? <p className="model-discovery-error" role="status">{activeProvider.discoveryError} Showing the offline catalog.</p> : null}
-              <div className="model-rows" aria-label={`${activeProvider.short || activeProvider.label} models`}>{visibleModels.map((model) => <ModelRow key={model} provider={activeProvider} model={model} status={props.status} onSelect={props.onSelect} />)}</div>
+              <div className="model-rows" aria-label={`${activeProvider.short || activeProvider.label} models`}>{visibleModels.map((model) => <ModelRow key={model} provider={activeProvider} model={model} status={props.status} onSelect={selectModel} />)}</div>
               {visibleModels.length === 0 ? <p className="muted model-empty">No matching models for this provider.</p> : null}
               <details className="custom-model-disclosure"><summary>Use a model ID that is not listed</summary><form className="custom-model" onSubmit={chooseCustom}><label htmlFor="custom-model-id">Model ID</label><div><input id="custom-model-id" value={customModel} onChange={(event) => setCustomModel(event.target.value)} placeholder="Enter the provider model ID" /><button type="submit" disabled={!customModel.trim()}>Use for task</button></div></form></details>
             </> : <p className="muted model-empty">No matching providers or models.</p>}
@@ -259,6 +270,14 @@ const SPEED_LABELS: Record<ProviderSpeed, string> = {
   standard: "Standard",
   fast: "Fast",
 };
+
+/** The fast-tier tradeoff differs by provider: Anthropic documents up to 2.5×
+ *  output tokens/sec for Opus fast mode, Codex 1.5× for its fast service tier. */
+export function fastSpeedHint(providerId: string): string {
+  return /^(anthropic|claude-code|claude-cli)$/.test(providerId.trim().toLowerCase())
+    ? "Up to 2.5× output speed, premium rate"
+    : "1.5× speed, increased usage";
+}
 
 function settingsForProvider(provider: Provider, status: Status | null): ProviderModelSettings {
   const current = status?.provider === provider.id ? status.modelSettings : undefined;
@@ -302,7 +321,7 @@ function ProviderSettingsControls(props: { compact?: boolean; provider: Provider
       </StyledSelect><small>{draft.effortLevel === "ultra" ? "Uses allowance fastest" : "Reasoning depth"}</small></label> : null}
       {capabilities.speed ? <label className="provider-setting"><span>Speed</span><StyledSelect aria-label={`${props.provider.label} speed`} value={draft.speed ?? capabilities.speed.defaultValue} disabled={busy} onChange={(event) => void save({ ...draft, speed: event.target.value as ProviderSpeed }, "session")}>
         {capabilities.speed.options.map((option) => <option key={option} value={option}>{SPEED_LABELS[option]}</option>)}
-      </StyledSelect><small>{draft.speed === "fast" ? "1.5× speed, increased usage" : "Default speed"}</small></label> : null}
+      </StyledSelect><small>{draft.speed === "fast" ? fastSpeedHint(props.provider.id) : "Default speed"}</small></label> : null}
     </div>
     <details className="provider-settings-advanced"><summary>Advanced</summary><div><p>Save the selected effort{capabilities.speed ? " and speed" : ""} for new tasks in this project.</p><button type="button" disabled={busy} onClick={() => void save(draft, "global")}>Save as project defaults</button></div></details>
     <p className="provider-settings-message" role="status" aria-live="polite">{message}</p>

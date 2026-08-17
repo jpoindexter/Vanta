@@ -72,7 +72,6 @@ function handlePickKey(
   if (key.return && state.model) return void props.onApply({ ...pick, scope: "global" });
   if ((input === "s" || input === "S") && state.model) props.onApply({ ...pick, scope: "session" });
 }
-
 function ControlLine(props: { value: string; label: string; hint: string }): ReactElement {
   return <Text><Text color="yellow">  ● </Text><Text>{props.value} {props.label} </Text><Text dimColor>{props.hint}</Text></Text>;
 }

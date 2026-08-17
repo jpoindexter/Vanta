@@ -1,7 +1,7 @@
 # Vanta Build Order — Agent-Readable
 
 Source: roadmap.json (generated view — do not edit; regenerate via `node scripts/build-order.mjs`)
-Roadmap updated: 2026-08-04
+Roadmap updated: 2026-08-14
 Strategy: STRATEGY.md (one product with Vanta, Engine, and Lab boundaries; roadmap tracks are compatible responsibilities)
 
 ## Agent instructions

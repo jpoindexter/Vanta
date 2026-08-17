@@ -15,7 +15,7 @@ const STATIC_ROWS: ReadonlyArray<[string, string]> = [
   ["# note", "save a note to Vanta's brain"],
   ["↑ / ↓", "move the palette / overlay selection"],
   ["Tab", "complete the highlighted command / file"],
-  ["Shift+Tab", "cycle Manual · Accept edits · Plan · Auto"],
+  ["Shift+Tab", "cycle Manual · Accept edits · Plan · Auto · Full access"],
   ["Esc", "close an overlay · cancel an approval"],
 ];
 

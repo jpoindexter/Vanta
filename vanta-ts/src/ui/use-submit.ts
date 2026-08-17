@@ -47,6 +47,7 @@ export function useSubmit(deps: SubmitDeps): (text: string) => void {
   return (text: string): void => {
     if (text === "?") return deps.openOverlay("help");
     if (isSlashLine(text)) return routeSlash(text, deps);
+    // Only an unambiguous instruction opens the wizard — doing so EXITS the TUI.
     if (isTelegramSetupQuestion(text)) return deps.runSlash("/setup telegram");
     if (mentionsTelegramSetup(text)) note("  Tip: run /setup telegram to inspect Telegram, or use `vanta setup messaging telegram` in a shell to enter a token.");
     if (maybeRunShortcut(text, { safety: deps.safety, repoRoot: deps.repoRoot, note })) return;

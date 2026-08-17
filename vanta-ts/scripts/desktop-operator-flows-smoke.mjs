@@ -264,6 +264,11 @@ process.stdin.on("data", (chunk) => {
 
   await page.locator(".product-switcher").click();
   await page.locator(".composer").getByTitle("Change agent model").click();
+  // An active provider opens its compact settings first. The full provider
+  // browser is an explicit second step so routine model tuning stays in place.
+  const activeModelSettings = page.getByRole("dialog", { name: /OpenAI.*settings/i });
+  await activeModelSettings.waitFor();
+  await activeModelSettings.getByRole("button", { name: "Browse providers and models" }).click();
   await page.getByRole("heading", { name: "Choose a model" }).waitFor();
   if (process.env.VANTA_DESKTOP_MODEL_PICKER_SCREENSHOT) await page.screenshot({ path: process.env.VANTA_DESKTOP_MODEL_PICKER_SCREENSHOT, fullPage: false });
   await page.getByPlaceholder("Search models and providers").fill("__missing_model__");
@@ -295,10 +300,26 @@ process.stdin.on("data", (chunk) => {
   await page.locator(".composer").getByRole("button", { name: "Open commands" }).click();
   await page.getByRole("heading", { name: "Commands" }).waitFor();
   await page.getByRole("button", { name: "Set up Telegram" }).click();
-  await page.getByRole("heading", { name: "Telegram" }).waitFor();
+  await page.getByRole("heading", { name: "Telegram" }).waitFor({ timeout: 10_000 }).catch(async () => {
+    const landing = await page.locator(".operator-view").evaluate((element) => ({
+      headings: [...element.querySelectorAll("h1,h2,h3")].map((heading) => heading.textContent?.trim()).filter(Boolean),
+      selectedTabs: [...element.querySelectorAll('[role="tab"][aria-selected="true"]')].map((tab) => tab.textContent?.trim()).filter(Boolean),
+    }));
+    throw new Error(`Set up Telegram did not open its messaging detail: ${JSON.stringify(landing)}`);
+  });
   await page.locator('.messaging-detail input[type="password"]').waitFor();
   await page.locator(".product-switcher").click();
-  await page.locator("#vanta-composer").fill("how do i setup telgram i dont see the / command");
+  const telegramQuestion = "how do i setup telgram i dont see the / command";
+  await page.locator("#vanta-composer").fill(telegramQuestion);
+  await page.getByRole("button", { name: "Send" }).click();
+  await page.getByLabel("Conversation history").getByText(telegramQuestion, { exact: true }).waitFor();
+  await page.waitForFunction(() => {
+    const composer = document.querySelector("#vanta-composer");
+    return composer instanceof HTMLTextAreaElement && !composer.disabled;
+  });
+  if (await page.getByRole("heading", { name: "Telegram" }).count()) throw new Error("Telegram question was diverted away from the model");
+
+  await page.locator("#vanta-composer").fill("fix telegram");
   await page.getByRole("button", { name: "Send" }).click();
   await page.getByRole("heading", { name: "Telegram" }).waitFor();
   await page.locator(".product-switcher").click();

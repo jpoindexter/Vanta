@@ -20,14 +20,15 @@ function pending(over: Partial<PendingQuestion> = {}): PendingQuestion {
 
 describe("AskUserPrompt", () => {
   it("keeps the active option bright while muting inactive text to readable tones", () => {
+    // Bone stepped down in tone (the brand ladder), not standalone greys.
     expect(optionTone(true)).toEqual({
       bold: true,
-      descriptionColor: "#a3a3a3",
+      descriptionColor: "#b3aea3",
     });
     expect(optionTone(false)).toEqual({
       bold: false,
-      labelColor: "#a3a3a3",
-      descriptionColor: "#858585",
+      labelColor: "#b3aea3",
+      descriptionColor: "#7d796f",
     });
   });
 

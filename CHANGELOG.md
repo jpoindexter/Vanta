@@ -3,7 +3,7 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
-## Unreleased — 2026-08-13
+## Unreleased — 2026-08-17
 
 ### Added
 - Consolidated the bounded `TRUST-02`, `UX-03`, `TRUST-04`, `TRUST-01`, and
@@ -39,6 +39,8 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
   model APIs remain explicitly out of scope.
 - A versioned true-first-token harness now measures five fresh and five warm-profile runs for readline CLI, Ink TUI, authenticated SSE gateway, and Developer ID-signed packaged Desktop. Content-free timestamps separate process readiness, submit dispatch, first live provider delta, and first surface paint; receipts report median, p95, and worst with machine/build/model provenance.
 - TTFT regression budgets reject mocked or unverified providers, incomplete sample groups, and unsigned or unpackaged Desktop runs, then identify the exact surface, profile mode, and stage that regressed.
+- Added explicit, capability-gated fast-mode controls. Anthropic requests use the documented Opus-only fast-mode parameter and beta header; Codex retains its service-tier path. Standard remains the default and premium usage is disclosed before selection.
+- Added a tool-call pairing invariant plus preflight transcript repair so every emitted call has an adjacent, ordered result even when a batch stops early.
 
 ### Fixed
 - Telegram repair/status commands now stay inside the TUI, while the explicit
@@ -69,6 +71,10 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - `browser_read` now uses Vanta's shared system-browser fallback, so an installed Chrome, Brave, or Edge keeps browser tasks working when Playwright's versioned Chromium cache is absent.
 - `shell_cmd` now marks macOS `mdfind` query-parser failures as failed even when `mdfind` exits zero. Timeout failures explain the recovery path and can be retried with a bounded `timeout_ms` override capped at two minutes instead of requiring the sandbox to be disabled.
 - Turn tracing ignores comparison operators and strings inside heredoc bodies, preventing read-only inspection scripts from producing false `trace[blind-write]` warnings.
+- Large TUI pastes now collapse to an in-buffer marker while text typed afterward stays visible; submission restores the original bytes, and deleting a marker cannot silently orphan its payload.
+- Queued TUI messages remain visible in a bounded panel and Up from an empty composer pulls the newest item back for editing without stealing palette or history navigation.
+- Desktop clears a submitted draft immediately, bounds long activity traces, and keeps model selection open only when the selected provider exposes effort or speed settings.
+- Rejected an unpublished direct Claude OAuth/token-store implementation and a broad Auto-mode bypass during consolidation. Claude subscription authentication remains owned by the official Claude Code client; unmatched kernel `Ask` actions still ask.
 
 ### Verified boundary
 - The live kernel classified an exact empty-directory `rmdir` as `Ask` and
@@ -93,6 +99,7 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - A real tmux TUI run crossed the 30-call acquisition threshold with two open tasks, entered the bounded closure phase, marked both tasks done, and returned the requested result without an operator restart prompt. A separate oversized batch executed exactly the 40-call hard ceiling and recorded the skipped remainder.
 - A live local Ollama baseline completed 40/40 samples across all four TTFT surfaces and both profile modes; no mocked response counted. The packaged macOS app passed strict Developer ID signature verification, and Desktop first paint was observed after a rendered DOM animation frame.
 - The automatic-compaction launcher proof completed six real TUI turns, crossed the configured threshold, rendered the square-cell 25% phase, issued the summary request, and resumed the provider turn.
+- The 2026-08-17 consolidation reran the real tmux model-settings path and the 42-capture Desktop visual matrix. Complete local gate results and evidence boundaries are recorded in [`docs/final-consolidation-audit-2026-08-17.md`](docs/final-consolidation-audit-2026-08-17.md).
 
 ## v0.9.8 — 2026-07-24
 

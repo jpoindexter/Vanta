@@ -405,6 +405,12 @@ try {
   await inspector.waitFor({ state: "detached" });
 
   await page.locator(".composer").getByRole("button", { name: /Agent model: .*Change model/ }).click();
+  // With a provider already active, ModelPicker opens on the compact settings
+  // popover (overlays.tsx: view === "settings"); the catalog is one step in.
+  // The fixture marks openai current, so this popover is deterministic.
+  await page.getByRole("heading", { name: "OpenAI settings" }).waitFor();
+  await capture("model-settings");
+  await page.getByRole("button", { name: "Browse providers and models" }).click();
   await page.getByRole("heading", { name: "Choose a model" }).waitFor();
   await page.getByPlaceholder("Search models and providers").fill("openai");
   const pointerModelFocus = await focusState(page);

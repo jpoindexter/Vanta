@@ -1,3 +1,5 @@
+// Applying a pick from the combined /model window. Split out of use-overlay.ts
+// (size gate) — the panel itself lives in model-pick-panel.tsx.
 export type ModelPickApply = {
   providerId: string;
   model: string;

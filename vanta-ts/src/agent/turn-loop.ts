@@ -17,6 +17,8 @@ import { completeAndRecordUsage } from "./provider-usage.js";
 import { maybeStructuredOutput, schemasWithStructuredOutput, structuredOutcome } from "./structured-output.js";
 import { buildStructuredOutputInstruction } from "../tools/structured-output.js";
 import { runAdvisor } from "./advisor.js";
+import { assertToolPairing } from "./tool-pairing.js";
+import { settleBudgetExhausted, settleStructuredBatch, settleUnansweredCalls } from "./settle-batch.js";
 import { compactOversizedResult } from "../compress/reactive.js";
 import type { AgentDeps, AgentOutcome } from "./agent-types.js";
 import { buildStopSummary } from "../repl/stop-cmd.js";
@@ -96,12 +98,7 @@ async function processToolCalls(args: ProcessToolCallsArgs): Promise<{ stuckTool
     const call = calls[index]!;
     if (hardToolBudget > 0 && state.toolIterations >= hardToolBudget) {
       budgetExhausted = true;
-      for (const skipped of calls.slice(index)) {
-        const output = "Not executed: the turn reached its hard tool-call safety limit.";
-        messages.push({ role: "tool", toolCallId: skipped.id, name: skipped.name, content: output, effectDisposition: "none" });
-        await persistEffectTransition(ctx.root, deps.sessionId, skipped, "settled", "none");
-        state.workItemStates.push("stopped");
-      }
+      await settleBudgetExhausted({ calls: calls.slice(index), messages, ctx, deps, state });
       await checkpointToolTranscript(deps.sessionId, messages);
       break;
     }
@@ -179,6 +176,12 @@ async function processToolCalls(args: ProcessToolCallsArgs): Promise<{ stuckTool
       break;
     }
   }
+  // Single settle point for every early exit above (a stuck tool breaks the loop
+  // and leaves the rest of the batch un-answered). One result per call is a
+  // transcript invariant, not a happy-path nicety — see agent/tool-pairing.ts.
+  await settleUnansweredCalls({ calls, messages, ctx, deps, state });
+  await checkpointToolTranscript(deps.sessionId, messages);
+  assertToolPairing(messages, "processToolCalls");
   await fireHooks(join(ctx.root, ".vanta"), "PostToolBatch", { tools: batch }, { cwd: ctx.root, ...buildAgentHookDeps(deps) });
   return { stuckTool, budgetExhausted };
 }
@@ -276,7 +279,10 @@ async function handleToolCallsPresent(args: ToolCallIterArgs): Promise<AgentOutc
   await checkpointToolTranscript(deps.sessionId, messages);
   const structured = maybeStructuredOutput(result.toolCalls, deps.outputSchema);
   if (structured.handled) {
-    messages.push({ role: "tool", toolCallId: result.toolCalls.find((c) => c.name === "StructuredOutput")?.id ?? "structured-output", name: "StructuredOutput", content: structured.output, effectDisposition: "none" });
+    // Answer EVERY call in the batch, in call order. Emitting only the
+    // StructuredOutput result left any sibling dangling, and the old
+    // "structured-output" id fallback invented a result with no matching call.
+    settleStructuredBatch(result.toolCalls, structured.output, messages);
     return structuredOutcome(structured, iter, usage());
   }
   const processed = await processToolCalls({

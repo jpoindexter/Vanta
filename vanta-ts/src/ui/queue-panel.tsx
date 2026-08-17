@@ -12,7 +12,6 @@ export function queueRowText(text: string): string {
   const trimmed = first.trim();
   return trimmed.length <= ROW_WIDTH ? trimmed : `${trimmed.slice(0, ROW_WIDTH - 1)}…`;
 }
-
 export function visibleQueue(queued: readonly string[]): string[] {
   return queued.slice(0, MAX_ROWS).map(queueRowText);
 }

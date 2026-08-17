@@ -3,7 +3,7 @@ import { Box } from "ink";
 import { Composer } from "./composer.js";
 import { QueuePanel } from "./queue-panel.js";
 import { type SlackChannel } from "../repl/slack-suggest.js";
-import { TodoPanel } from "./todo-panel.js";
+import { TodoPanel, type TodoActivity } from "./todo-panel.js";
 import { type Pending } from "./use-agent.js";
 import { type OverlayView } from "./use-overlay.js";
 import { OverlayList } from "./overlay-list.js";
@@ -54,7 +54,10 @@ type LiveBodyProps = {
   mode: Mode;
   focus: FocusTarget;
   todos: TodoItem[];
+  /** Turn cost shown beside the plan headline. */
+  activity?: TodoActivity;
   queued?: string[];
+  /** Pull a queued message back into the composer for editing. */
   onEditQueued?: (index: number) => string | undefined;
   files: string[];
   history: string[];
@@ -84,7 +87,7 @@ export function LiveBody(p: LiveBodyProps): ReactElement {
   const queued = p.queued ?? [];
   return (
     <>
-      {p.overlay || p.quickOpen || p.globalSearch || p.messageActions ? null : <TodoPanel todos={p.todos} />}
+      {p.overlay || p.quickOpen || p.globalSearch || p.messageActions ? null : <TodoPanel todos={p.todos} activity={p.activity} />}
       {p.globalSearch
         ? <GlobalSearchDialog sessions={p.searchSessions} onSelect={p.onSearchSelect} onClose={p.onSearchClose} />
         : p.messageActions

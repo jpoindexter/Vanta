@@ -30,7 +30,7 @@ const SIDEBAR_STORAGE_KEY = "vanta.desktop.sidebar-width";
 const MIN_SIDEBAR_WIDTH = 216;
 const MAX_SIDEBAR_WIDTH = 420;
 const MIN_WORK_WIDTH = 380;
-const ACCESS_MODE_CYCLE: AccessMode[] = ["auto", "ask", "approve", "plan"];
+const ACCESS_MODE_CYCLE: AccessMode[] = ["auto", "full", "ask", "approve", "plan"];
 
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(Math.max(value, minimum), Math.max(minimum, maximum));

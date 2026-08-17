@@ -152,8 +152,12 @@ export function buildFocusTargets(pending: Pending | null, overlay: OverlayView 
     "approval-deny",
     "approval-never",
   ].map((id) => ({ id: id as FocusTarget }));
-  if (overlay) return [{ id: overlay.kind === "list" ? "overlay-list" : "overlay-close" }];
+  if (overlay) return [{ id: overlayFocusTarget(overlay) }];
   return promptSuggestions ? [{ id: "composer" }, { id: "prompt-suggestions" }] : [{ id: "composer" }];
+}
+
+function overlayFocusTarget(overlay: OverlayView): FocusTarget {
+  return overlay.kind === "list" || overlay.kind === "modelPick" ? "overlay-list" : "overlay-close";
 }
 
 export function useSkillMatches(): SlashMatch[] {

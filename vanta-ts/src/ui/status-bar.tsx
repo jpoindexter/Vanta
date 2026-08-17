@@ -25,7 +25,7 @@ export function fitSegments(segments: Segment[], width: number): string[] {
 type Keys = { MODEL: string; EFFORT: string; SPEED: string; CTX: string; ELAPSED: string; TURNS: string; QUEUED: string; MCP: string; HINT: string };
 
 /** Pure: build the canonical text keys for each segment. */
-function buildKeys(props: {
+export function buildKeys(props: {
   model: string; gauge: string; bar: string;
   ctxPct: number; turns: number; queued?: number; busy: boolean; elapsed?: string; mcp?: boolean; effortLevel?: ProviderEffortLevel; serviceTier?: ProviderSpeed;
 }): Keys {
@@ -35,7 +35,9 @@ function buildKeys(props: {
     EFFORT:  effortIndicatorVisible(props.effortLevel, process.env)
       ? `  ·  ${formatEffortIndicator(props.effortLevel, { style: "glyph" })}`
       : "",
-    SPEED:   props.serviceTier ? `  ·  speed:${props.serviceTier}` : "",
+    // Fast mode gets the ↯ glyph (the affordance Claude Code / Codex users
+    // already read); standard speed stays the plain label.
+    SPEED:   props.serviceTier === "fast" ? "  ·  ↯ speed:fast" : props.serviceTier ? `  ·  speed:${props.serviceTier}` : "",
     CTX:     `  ·  ${props.gauge} [${props.bar}] ${props.ctxPct}%`,
     ELAPSED: props.elapsed ? `  ·  ◷ ${props.elapsed}` : "",
     TURNS:   `  ·  ${turnsLabel}`,

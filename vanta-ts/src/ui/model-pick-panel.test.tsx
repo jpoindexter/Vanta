@@ -51,7 +51,7 @@ describe("ModelPickPanel", () => {
       providerId: "claude-code",
       model: "claude-opus-4-8",
       effort: "medium",
-      speed: undefined,
+      speed: "standard",
       scope: "session",
     });
     instance.unmount();

@@ -1,7 +1,10 @@
 import { createElement as h } from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderUi, tick, waitUntil, waitForFrame } from "./test-render.js";
-import { countLines, Composer, ComposerView, PASTE_PILL_THRESHOLD, isImagePasteSignal, normalizePaste } from "./composer.js";
+import {
+  countLines, Composer, ComposerView, PASTE_PILL_THRESHOLD, isImagePasteSignal, normalizePaste,
+  expandPills, pillToken, pillTokenAt, shouldPill, splitPills,
+} from "./composer.js";
 import { matchSlash } from "./slash.js";
 import type { SlackChannel } from "../repl/slack-suggest.js";
 
@@ -39,42 +42,138 @@ const baseView = (overrides: Partial<Parameters<typeof ComposerView>[0]> = {}) =
     ...overrides,
   });
 
-describe("ComposerView — paste pill", () => {
-  it("renders CursorText content when no pill", async () => {
-    const inst = renderUi(baseView({ value: "hello", cursor: 5 }));
+describe("paste-pill — pure marker helpers", () => {
+  it("collapses only pill-worthy text (>3 lines or >500 chars)", () => {
+    expect(shouldPill("a\nb\nc\nd")).toBe(true);
+    expect(shouldPill("x".repeat(501))).toBe(true);
+    expect(shouldPill("a\nb\nc")).toBe(false);
+    expect(shouldPill("a normal short message")).toBe(false);
+  });
+
+  it("singularizes the marker's line count", () => {
+    expect(pillToken(1, 1)).toBe("[Pasted text #1 +1 line]");
+    expect(pillToken(2, 50)).toBe("[Pasted text #2 +50 lines]");
+  });
+
+  it("expands markers back to the stored originals, keeping surrounding text", () => {
+    const store = new Map([[1, "line1\nline2\nline3\nline4"]]);
+    expect(expandPills(`${pillToken(1, 4)} explain this`, store)).toBe("line1\nline2\nline3\nline4 explain this");
+  });
+
+  it("leaves a marker with no stored entry verbatim rather than dropping it", () => {
+    expect(expandPills("[Pasted text #9 +4 lines]", new Map())).toBe("[Pasted text #9 +4 lines]");
+  });
+
+  it("splits the buffer so only marker runs are flagged for dimming", () => {
+    expect(splitPills(`head ${pillToken(1, 4)} tail`)).toEqual([
+      { text: "head ", pill: false },
+      { text: "[Pasted text #1 +4 lines]", pill: true },
+      { text: " tail", pill: false },
+    ]);
+    expect(splitPills("just typing")).toEqual([{ text: "just typing", pill: false }]);
+    expect(splitPills("")).toEqual([]);
+  });
+
+  it("splits two markers without losing the text between them", () => {
+    const value = `${pillToken(1, 4)}${pillToken(2, 9)} x`;
+    const segs = splitPills(value);
+    expect(segs.map((s) => s.pill)).toEqual([true, true, false]);
+    expect(segs.map((s) => s.text).join("")).toBe(value); // lossless round-trip
+  });
+
+  it("locates the marker spanning the cursor, and nothing outside it", () => {
+    const value = `${pillToken(1, 4)} tail`;
+    expect(pillTokenAt(value, 25)).toEqual({ start: 0, end: 25 });
+    expect(pillTokenAt(value, 0)).toBeNull(); // before the marker — normal edit
+    expect(pillTokenAt(value, 30)).toBeNull(); // in the typed tail
+  });
+});
+
+/** The most recent repaint only. `lastFrame()` joins every write ever made, so a
+ *  "no longer shows X" assertion has to look at the newest box, not the pile. */
+const latestBox = (inst: { lastFrame: () => string }): string => {
+  const boxes = inst.lastFrame().split("╭");
+  return boxes[boxes.length - 1] ?? "";
+};
+
+describe("ComposerView — the collapsed-paste marker stays visible", () => {
+  it("renders the marker beside text typed after it", async () => {
+    const value = `${pillToken(1, 4)} tail`;
+    const inst = renderUi(baseView({ value, cursor: value.length }));
     await tick();
-    expect(inst.lastFrame()).toContain("hello");
-    expect(inst.lastFrame()).not.toContain("Pasted text");
+    expect(latestBox(inst)).toContain("[Pasted text #1 +4 lines] tail");
     inst.unmount();
   });
 
-  it("renders the pill label when pill prop is set", async () => {
-    const inst = renderUi(baseView({
-      value: "line1\nline2\nline3\nline4",
-      cursor: 0,
-      pill: { count: 1, lines: 4, start: 0, end: 23 },
-    }));
+  it("renders an ordinary typed buffer without a paste marker", async () => {
+    const inst = renderUi(baseView({ value: "just typing", cursor: 11 }));
     await tick();
-    const frame = inst.lastFrame() ?? "";
-    expect(frame).toContain("Pasted text #1 +4 lines");
-    expect(frame).not.toContain("line1");
-    inst.unmount();
-  });
-
-  it("increments count in the pill label", async () => {
-    const inst = renderUi(baseView({
-      value: "a\nb\nc\nd\ne",
-      cursor: 0,
-      pill: { count: 3, lines: 5, start: 0, end: 9 },
-    }));
-    await tick();
-    expect(inst.lastFrame()).toContain("Pasted text #3 +5 lines");
+    expect(latestBox(inst)).toContain("just typing");
+    expect(latestBox(inst)).not.toContain("Pasted text");
     inst.unmount();
   });
 });
 
-describe("Composer — long paste collapses to a pill even with newlines stripped", () => {
-  it("pills a long single-line paste (≤3 lines) via the char threshold", async () => {
+describe("ComposerView — dimmed marker rendering stays lossless", () => {
+  // The harness strips ANSI, so dimming itself is not observable here; what the
+  // segmented render CAN break is the text — a dropped or doubled character at a
+  // run boundary. Sweep the cursor across both boundaries and the interior.
+  const value = `${pillToken(1, 4)} tail`;
+  for (const cursor of [0, 12, 24, 25, 26, value.length]) {
+    it(`renders the buffer exactly once with the cursor at ${cursor}`, async () => {
+      const inst = renderUi(baseView({ value, cursor }));
+      await tick();
+      const box = latestBox(inst);
+      expect(box).toContain(value);
+      expect(box.split("Pasted text").length - 1).toBe(1); // not duplicated
+      inst.unmount();
+    });
+  }
+});
+
+describe("Composer — typing stays visible after a collapsed paste", () => {
+  it("renders text typed after a paste (the marker must not replace the input line)", async () => {
+    const inst = renderUi(h(Composer, { focused: true, onSubmit: () => {}, placeholder: "Ask", files: [], history: [] }));
+    await tick();
+    inst.input("\x1b[200~one\ntwo\nthree\nfour\nfive\x1b[201~");
+    await waitForFrame(inst, "Pasted text");
+    inst.input(" what does this do?");
+    await waitForFrame(inst, "what does this do?");
+    const box = latestBox(inst); // both must be on screen at the SAME time
+    expect(box).toContain("Pasted text #1 +5 lines"); // marker still shown
+    expect(box).toContain("what does this do?"); // …alongside the typed text
+    inst.unmount();
+  });
+
+  it("submits the ORIGINAL pasted text, not the marker", async () => {
+    const onSubmit = vi.fn();
+    const inst = renderUi(h(Composer, { focused: true, onSubmit, placeholder: "Ask", files: [], history: [] }));
+    await tick();
+    inst.input("\x1b[200~one\ntwo\nthree\nfour\nfive\x1b[201~");
+    await waitForFrame(inst, "Pasted text");
+    inst.input(" explain");
+    await waitForFrame(inst, "explain");
+    await tick(); // clear the paste-burst window so Enter submits
+    inst.input("\r");
+    await waitUntil(() => onSubmit.mock.calls.length > 0);
+    expect(onSubmit).toHaveBeenCalledWith("one\ntwo\nthree\nfour\nfive explain");
+    inst.unmount();
+  });
+
+  it("backspace removes the whole marker instead of chewing one character", async () => {
+    const inst = renderUi(h(Composer, { focused: true, onSubmit: () => {}, placeholder: "Ask", files: [], history: [] }));
+    await tick();
+    inst.input("\x1b[200~one\ntwo\nthree\nfour\nfive\x1b[201~");
+    await waitForFrame(inst, "Pasted text");
+    inst.input("\x7f"); // backspace
+    await waitUntil(() => !latestBox(inst).includes("Pasted text"));
+    expect(latestBox(inst)).not.toContain("+5 line"); // no mangled remnant
+    inst.unmount();
+  });
+});
+
+describe("Composer — long paste collapses to a marker even with newlines stripped", () => {
+  it("collapses a long single-line paste (≤3 lines) via the char threshold", async () => {
     const inst = renderUi(h(Composer, { focused: true, onSubmit: () => {}, placeholder: "Ask", files: [], history: [] }));
     await tick();
     const longPaste = "word ".repeat(140); // ~700 chars, ONE line (newlines stripped) — used to wrap/scramble
@@ -84,7 +183,7 @@ describe("Composer — long paste collapses to a pill even with newlines strippe
     inst.unmount();
   });
 
-  it("does NOT pill ordinary short typed input", async () => {
+  it("does NOT collapse ordinary short typed input", async () => {
     const inst = renderUi(h(Composer, { focused: true, onSubmit: () => {}, placeholder: "Ask", files: [], history: [] }));
     await tick();
     inst.input("a normal short message");

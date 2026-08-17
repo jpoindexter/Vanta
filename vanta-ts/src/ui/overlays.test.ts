@@ -50,6 +50,10 @@ describe("overlay row builders", () => {
     expect(speed.find((row) => row.command === "/speed fast --session")?.mark).toBe("●");
     expect(speed.some((row) => row.command === "/speed standard --session")).toBe(true);
     expect(speedRows("claude-code", "claude-sonnet-5", undefined, {})).toEqual([]);
+    // Opus fast mode is real, and its hint carries Anthropic's own multiplier.
+    const opus = speedRows("claude-code", "claude-opus-5", undefined, {});
+    expect(opus.find((row) => row.command === "/speed fast --session")?.hint).toBe("up to 2.5× output speed, premium rate");
+    expect(opus.find((row) => row.command === "/speed standard --session")?.mark).toBe("●");
   });
 
   it("providerModelRows exposes every discovered Ollama model through the existing hot-swap command", () => {
@@ -62,6 +66,18 @@ describe("overlay row builders", () => {
       mark: "●",
       command: "/model ollama hf.co/openbmb/MiniCPM5-1B-GGUF:q4_k_m",
     });
+  });
+
+  it("providerModelRows chains into settings for an effort-capable model, and applies-and-closes otherwise", () => {
+    const rows = providerModelRows("anthropic", ["claude-opus-5", "claude-sonnet-5"], "anthropic", "claude-sonnet-5");
+    const opus = rows.find((row) => row.command === "/model anthropic claude-opus-5");
+    // Claude models expose effort → picking one drills into the settings menu.
+    expect(opus).toMatchObject({ afterCommand: { kind: "modelSettings" } });
+
+    const noEffort = providerModelRows("ollama", ["qwen2.5:14b"], "ollama");
+    const qwen = noEffort.find((row) => row.command === "/model ollama qwen2.5:14b");
+    // Ollama has no tunable controls → no dead-end settings hop.
+    expect(qwen?.afterCommand).toBeUndefined();
   });
 
   it("PICKER_KINDS maps bare commands to overlay kinds", () => {

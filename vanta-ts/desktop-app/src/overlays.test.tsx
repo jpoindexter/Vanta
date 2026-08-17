@@ -1,7 +1,15 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { ApprovalOverlay, CommandPalette, ModelPicker, NewTaskDialog, SetupWizard } from "./overlays.js";
+import { ApprovalOverlay, CommandPalette, fastSpeedHint, ModelPicker, NewTaskDialog, SetupWizard } from "./overlays.js";
+
+describe("fastSpeedHint", () => {
+  it("uses each provider's own documented fast-tier tradeoff", () => {
+    expect(fastSpeedHint("claude-code")).toBe("Up to 2.5× output speed, premium rate");
+    expect(fastSpeedHint("anthropic")).toBe("Up to 2.5× output speed, premium rate");
+    expect(fastSpeedHint("codex")).toBe("1.5× speed, increased usage");
+  });
+});
 
 describe("CommandPalette", () => {
   it("exposes Telegram setup when slash opens quick actions", () => {

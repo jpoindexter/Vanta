@@ -8,7 +8,7 @@ import { ChannelPalette } from "./channel-palette.js";
 import { matchSlash } from "./slash.js";
 import { useBlink } from "./use-blink.js";
 import { selEmpty, selRange, type Sel } from "./selection.js";
-import type { PastePill } from "./composer-input.js";
+import { splitPills, type PillSegment } from "./paste-pill.js";
 
 // Pure render layer for the composer — palettes + the bordered input line.
 // Split out of composer.tsx (size gate) so the stateful Composer stays small.
@@ -24,7 +24,6 @@ export function ComposerView(props: {
   cursor: number;
   selection?: Sel | null;
   placeholder: string;
-  pill?: PastePill;
   ghost?: string;
   vimMode?: "normal" | "insert" | "visual";
 }): ReactElement {
@@ -40,11 +39,12 @@ export function ComposerView(props: {
       <Box borderStyle="round" borderColor={props.focused === false ? "gray" : "white"} paddingX={1}>
         <VimTag mode={props.vimMode} />
         <Text color={FOCUS}>{focusIndicator(props.focused !== false)}</Text><Text>{" "}</Text>
+        {/* A large paste is already collapsed to a `[Pasted text …]` marker in the
+            buffer (paste-pill.ts), so the value always renders through CursorText —
+            text typed after a paste stays visible and editable. */}
         {props.value.length === 0
           ? <Text><Text inverse={blink}> </Text><Text dimColor>{props.placeholder}</Text></Text>
-          : props.pill
-            ? <CollapsedPasteText value={props.value} cursor={props.cursor} selection={props.selection} pill={props.pill} blink={blink} ghost={props.ghost} />
-            : <CursorText value={props.value} cursor={props.cursor} selection={props.selection} blink={blink} ghost={props.ghost} />}
+          : <CursorText value={props.value} cursor={props.cursor} selection={props.selection} blink={blink} ghost={props.ghost} />}
       </Box>
     </Box>
   );
@@ -56,45 +56,6 @@ const VIM_TAG: Record<"normal" | "insert" | "visual", string> = { normal: "NOR",
 function VimTag({ mode }: { mode?: "normal" | "insert" | "visual" }): ReactElement | null {
   if (!mode) return null;
   return <Text color={mode === "insert" ? undefined : "yellow"} dimColor={mode === "insert"}>{VIM_TAG[mode]}{" "}</Text>;
-}
-
-function PastedTextPill({ count, lines }: { count: number; lines: number }): ReactElement {
-  return (
-    <Text>
-      <Text>{"["}</Text>
-      <Text>Pasted text #{count} +{lines} lines</Text>
-      <Text>{"]"}</Text>
-    </Text>
-  );
-}
-
-function CollapsedPasteText(props: {
-  value: string; cursor: number; selection?: Sel | null; pill: PastePill; blink: boolean; ghost?: string;
-}): ReactElement {
-  const { value, cursor, selection, pill, blink, ghost } = props;
-  // A selection or caret inside the paste means the user is inspecting/editing
-  // that text; expand it rather than hiding the active editing target.
-  if (!selEmpty(selection ?? null) || (cursor > pill.start && cursor < pill.end)) {
-    return <CursorText value={value} cursor={cursor} selection={selection} blink={blink} ghost={ghost} />;
-  }
-  const prefix = value.slice(0, pill.start);
-  const suffix = value.slice(pill.end);
-  if (cursor <= pill.start) {
-    return (
-      <Text>
-        <CursorText value={prefix} cursor={cursor} blink={blink} />
-        <PastedTextPill count={pill.count} lines={pill.lines} />
-        {suffix}
-      </Text>
-    );
-  }
-  return (
-    <Text>
-      {prefix}
-      <PastedTextPill count={pill.count} lines={pill.lines} />
-      <CursorText value={suffix} cursor={cursor - pill.end} blink={blink} ghost={ghost} />
-    </Text>
-  );
 }
 
 /** Render the value with a blinking inverse-video block at the cursor column
@@ -110,15 +71,32 @@ function CursorText(props: { value: string; cursor: number; selection?: Sel | nu
       </Text>
     );
   }
-  const before = value.slice(0, cursor);
-  const at = value[cursor] ?? " ";
-  const after = value.slice(cursor + 1);
-  const glyph = at === "\n" ? " " : at;
   const atEnd = cursor >= value.length;
+  let offset = 0;
+  const runs = splitPills(value).map((seg) => {
+    const start = offset;
+    offset += seg.text.length;
+    return <PillRun key={start} seg={seg} start={start} cursor={cursor} blink={blink} />;
+  });
   return (
     <Text>
-      {before}<Text inverse={blink}>{glyph}</Text>{at === "\n" ? "\n" : ""}{after}
+      {runs}
+      {atEnd ? <Text inverse={blink}>{" "}</Text> : null}
       {atEnd && ghost ? <Text dimColor>{ghost}</Text> : null}
+    </Text>
+  );
+}
+
+/** One run of the buffer — dimmed when it is a collapsed-paste marker — carrying
+ * the cursor block when the cursor falls inside it. */
+function PillRun(props: { seg: PillSegment; start: number; cursor: number; blink: boolean }): ReactElement {
+  const { seg, start, cursor, blink } = props;
+  const local = cursor - start;
+  if (local < 0 || local >= seg.text.length) return <Text dimColor={seg.pill}>{seg.text}</Text>;
+  const at = seg.text[local] ?? " ";
+  return (
+    <Text dimColor={seg.pill}>
+      {seg.text.slice(0, local)}<Text inverse={blink}>{at === "\n" ? " " : at}</Text>{at === "\n" ? "\n" : ""}{seg.text.slice(local + 1)}
     </Text>
   );
 }

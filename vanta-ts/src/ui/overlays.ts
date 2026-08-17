@@ -123,11 +123,15 @@ export function speedRows(
   const capability = providerModelSettingsCapabilities(providerId, modelId, env).speed;
   if (!capability) return [];
   const selected = current ?? capability.defaultValue;
+  // The speed multiplier differs by provider: Anthropic documents up to 2.5x
+  // output tokens/sec for Opus fast mode, Codex 1.5x for its fast tier.
+  const anthropic = /^(anthropic|claude-code|claude-cli)$/.test(providerId.trim().toLowerCase());
+  const fastHint = anthropic ? "up to 2.5× output speed, premium rate" : "1.5× speed, increased usage";
   return [
     { label: "Back to settings", command: "/model-settings", next: { kind: "modelSettings" } },
     ...capability.options.map((option) => ({
       label: option === "fast" ? "Fast" : "Standard",
-      hint: option === "fast" ? "1.5× speed, increased usage" : "Default speed",
+      hint: option === "fast" ? fastHint : "Default speed",
       command: `/speed ${option} --session`,
       mark: option === selected ? "●" : undefined,
       afterCommand: { kind: "modelSettings" } as const,
@@ -153,11 +157,19 @@ export function providerModelRows(
   const unique = [...new Set(models.map((model) => model.trim()).filter(Boolean))];
   return [
     { label: "Back to providers", hint: "Choose another provider", command: "/model", next: { kind: "modelProviders" } },
-    ...unique.map((model) => ({
-      mark: providerId === currentProviderId && model === currentModel ? "●" : undefined,
-      label: model,
-      hint: provider?.short ?? providerId,
-      command: `/model ${providerId} ${model}`,
-    })),
+    ...unique.map((model) => {
+      // After applying a model that exposes effort/speed, chain straight into its
+      // settings menu (Claude-CLI style: pick model → pick effort). A model with
+      // no tunable controls just applies and closes — no dead-end sub-menu.
+      const caps = providerModelSettingsCapabilities(providerId, model, process.env);
+      const tunable = Boolean(caps.effort || caps.speed);
+      return {
+        mark: providerId === currentProviderId && model === currentModel ? "●" : undefined,
+        label: model,
+        hint: provider?.short ?? providerId,
+        command: `/model ${providerId} ${model}`,
+        ...(tunable ? { afterCommand: { kind: "modelSettings" } as const } : {}),
+      };
+    }),
   ];
 }

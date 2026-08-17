@@ -9,8 +9,9 @@ export type PendingQuestion = {
 
 type Answer = { selected: string[] };
 
-const SECONDARY_TEXT = "#a3a3a3";
-const MUTED_TEXT = "#858585";
+// Bone stepped down in tone, not a separate grey — the same ladder the desktop uses.
+const SECONDARY_TEXT = "#b3aea3";
+const MUTED_TEXT = "#7d796f";
 
 export type OptionTone = {
   bold: boolean;

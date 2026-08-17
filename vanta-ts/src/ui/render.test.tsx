@@ -267,15 +267,28 @@ describe("inline overlays", () => {
       { text: "ship it", activeForm: "Shipping it", status: "in_progress" as const },
       { text: "verify it", status: "pending" as const },
     ];
-    const inst = renderUi(h(TodoPanel, { todos }));
+    const inst = renderUi(h(TodoPanel, { todos, activity: { elapsed: "6m 24s", tokens: 14300, effort: "xhigh" } }));
     await tick();
     const out = inst.lastFrame();
-    expect(out).toContain("3 tasks (1 done, 1 in progress, 1 open)");
-    expect(out).toContain("✓ inspect source");
+    // Headline names what is happening NOW, with the turn's cost beside it —
+    // the plan's shape only stands in when nothing is active.
+    expect(out).toContain("✻ Shipping it…");
+    expect(out).toContain("(6m 24s · ↓ 14.3k tokens · xhigh effort)");
+    expect(out).toContain("└ ✓ inspect source");
     expect(out).toContain("■ Shipping it");
     expect(out).toContain("□ verify it");
-    expect(out.indexOf("inspect source")).toBeLessThan(out.indexOf("Shipping it"));
-    expect(out.indexOf("Shipping it")).toBeLessThan(out.indexOf("verify it"));
+    expect(out.indexOf("inspect source")).toBeLessThan(out.indexOf("□ verify it"));
+    inst.unmount();
+  });
+
+  it("TodoPanel falls back to the plan summary when nothing is in progress", async () => {
+    const todos = [
+      { text: "inspect source", status: "done" as const },
+      { text: "verify it", status: "pending" as const },
+    ];
+    const inst = renderUi(h(TodoPanel, { todos }));
+    await tick();
+    expect(inst.lastFrame()).toContain("2 tasks (1 done, 0 in progress, 1 open)");
     inst.unmount();
   });
 

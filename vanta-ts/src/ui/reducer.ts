@@ -142,6 +142,8 @@ function reduceAux(state: UiState, a: Action): UiState {
       return { ...state, queued: [...state.queued, a.text] };
     case "dequeue":
       return { ...state, queued: state.queued.slice(1) };
+    // Pull one message back out for editing. `dequeue` is head-only (the drain
+    // path); this is the panel's "press ↑ to edit" path and can target any row.
     case "dequeueAt":
       return { ...state, queued: state.queued.filter((_, index) => index !== a.index) };
     case "detachResponse": {

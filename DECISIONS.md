@@ -230,3 +230,9 @@ dispositions, not WorkItem states.
 **Evidence boundary:** This is a framing and prioritization realignment. It does not prove that unimplemented runtime behavior, trust guarantees, autonomy, accessibility, product demand, or market outcomes already exist.
 
 **Reversible?** The prioritization can be revisited with new executed product and market evidence. The append-only history, user-owned authority, universal-design constraints, and evidence boundary remain.
+
+## 2026-08-17 — Claude subscription authentication remains owned by the official client
+**Choice:** Vanta discovers an existing Claude Code login from the official credential locations, but does not mint, store, refresh, or sign out Claude subscription tokens itself. Reauthentication stays `claude auth login --claudeai`.
+**Why:** Anthropic documents subscription authentication through Claude Code, but publishes no third-party OAuth client-registration contract for reusing Claude Code's client identity. A recovered implementation hardcoded that identity and created a second credential store. Passing local tests would not make that provider contract authorized or stable.
+**Evidence:** `claude auth status --json` reported a signed-in subscription locally, and constructing Vanta's `claude-code` provider resolved the expected subscription route without exposing a token. No model request was sent and no account state was changed.
+**Reversible?** Yes. A future documented third-party OAuth contract can be implemented behind the provider boundary with its own registered client.

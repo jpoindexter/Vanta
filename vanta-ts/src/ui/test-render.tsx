@@ -18,7 +18,13 @@ class FakeStdin extends EventEmitter {
   writeInput(input: string): void { this.chunks.push(input); this.emit("readable"); }
 }
 
-export type UiTestInstance = { input: (s: string) => void; lastFrame: () => string; unmount: () => void };
+export type UiTestInstance = {
+  input: (s: string) => void;
+  lastFrame: () => string;
+  /** Output WITH escape codes intact — for asserting styling (dim, inverse). */
+  rawFrame: () => string;
+  unmount: () => void;
+};
 
 /** Let real Ink flush its first paint (it writes on the next tick, not sync). */
 export const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 10));
@@ -74,6 +80,7 @@ export function renderUi(tree: ReactElement, opts: { cols?: number } = {}): UiTe
   return {
     input: (s: string) => stdin.writeInput(s),
     lastFrame: () => frames.join("").replace(/\x1b\[[0-9;?]*[a-zA-Z]/g, ""),
+    rawFrame: () => frames.join(""),
     unmount: () => instance.unmount(),
   };
 }

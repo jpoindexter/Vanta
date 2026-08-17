@@ -206,6 +206,13 @@ Re-run any time: `./scripts/secret-scan` for repository secrets and
   chat (if you do, rotate it).
 - **Verify the chain:** the audit log is tamper-evident — periodically confirm it verifies.
 
+### 8a. Subscription and permission-mode boundaries
+
+- Claude subscription authentication is owned by the official Claude Code client. Vanta may discover an existing official login, but does not register as Anthropic's client, run a copied OAuth grant, or maintain a second refresh-token store. Reauthenticate with `claude auth login --claudeai`.
+- Auto mode does not turn every kernel `Ask` into `Allow`. Only an explicit bounded allow rule can loosen an ask-class action; unmatched actions retain the kernel verdict, dangerous interpreters still ask, and `Block` remains immovable.
+- Full Access is not part of the normal Shift-Tab cycle. If selected through its explicit host control, the existing warning and kernel/block boundaries still apply; the selection is not silently persisted into project `.env` by the TUI.
+- Provider fast tiers are opt-in and default to standard. They can spend an allowance or incur a premium rate; capability checks keep unsupported models from receiving speculative fast parameters.
+
 ## 9. Reporting a vulnerability
 
 This is a personal project under active development. Report issues privately to

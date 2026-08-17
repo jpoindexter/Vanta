@@ -1,5 +1,6 @@
 import http from "node:http";
 import { randomUUID } from "node:crypto";
+import { classifyProviderError } from "../providers/error-taxonomy.js";
 import { readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -987,6 +988,12 @@ function interrupted(error: unknown, controller: AbortController): boolean {
 
 function classifyDesktopFailure(error: unknown, wasInterrupted: boolean, events: DesktopEvent[]): DesktopRunFailureKind {
   if (wasInterrupted) return "interrupted";
+  // Auth is decided by the SHARED, priority-ordered taxonomy rather than a local
+  // regex — two independent classifiers for the same 401 drifted apart once and
+  // would again. The string banks below still cover the desktop-only kinds, and
+  // the auth pattern stays as a fallback for failures carried only by event text.
+  const reason = classifyProviderError(error).reason;
+  if (reason === "auth" || reason === "auth_permanent") return "provider_auth";
   const text = `${error instanceof Error ? `${error.name} ${error.message}` : String(error)} ${events.map((event) => event.label).join(" ")}`.toLowerCase();
   if (/\b401\b|incorrect api key|invalid api key|authentication|unauthorized|oauth|credential|token (?:expired|revoked|refresh)|login required|not authorized/.test(text)) return "provider_auth";
   if (/setup|api key|provider is required|no provider|configure/.test(text)) return "setup";

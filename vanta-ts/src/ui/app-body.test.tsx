@@ -24,6 +24,7 @@ function base(over = {}) {
     mode: "default" as const,
     focus: "composer" as const,
     todos: [],
+    queued: [],
     files: [],
     history: [],
     skills: [],
@@ -42,6 +43,8 @@ function base(over = {}) {
     onPaste: vi.fn(),
     onSelect: vi.fn(),
     onClose: vi.fn(),
+    onApplyModelPick: vi.fn(),
+    onSwitchProvider: vi.fn(),
     ...over,
   };
 }
@@ -103,7 +106,7 @@ describe("LiveBody task checklist", () => {
         { text: "Verify the TUI", status: "pending" },
       ],
     })));
-    const frame = await waitForFrame(inst, "3 tasks (1 done, 1 in progress, 1 open)");
+    const frame = await waitForFrame(inst, "✻ Implementing the change…");
     expect(frame).toContain("✓ Inspect the task");
     expect(frame).toContain("■ Implementing the change");
     expect(frame).toContain("□ Verify the TUI");

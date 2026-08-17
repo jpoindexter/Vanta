@@ -25,7 +25,9 @@ const DIFF_MAX = 12;
 const THINK_MAX = 3;
 // A subtle background highlights the user's own turn (Claude Code's userMessageBackground
 // pattern) so what YOU said reads distinctly from the assistant's prose.
-const USER_BG = "#2b2f3a";
+// A tonal layer of Vanta Black lifted toward Bone — the brand book bars a new hue
+// for hierarchy, so this carries no blue cast.
+const USER_BG = "#232325";
 
 export function EntryView(props: { entry: Entry }): ReactElement {
   const e = props.entry;
@@ -94,9 +96,12 @@ function ToolCallView(props: { entry: ToolEntry }): ReactElement {
     <Box flexDirection="column">
       <Box>
         <Text color={ok ? FOCUS : RISK}>⏺ </Text>
-        <Text>{head}</Text>
+        {/* Tool rows are where paths actually appear (`Edit(src/ui/app.tsx)`), so
+            they carry the OSC-8 affordance too — notes alone were not enough.
+            Clip BEFORE linkify: truncating after would cut an escape sequence. */}
+        <Text>{linkify(head)}</Text>
       </Box>
-      {meta ? <Text color={ok ? undefined : RISK} dimColor={ok}>{"  ⎿  "}{clip(meta, 92)}</Text> : null}
+      {meta ? <Text color={ok ? undefined : RISK} dimColor={ok}>{"  ⎿  "}{linkify(clip(meta, 92))}</Text> : null}
       {!ok ? <Text color={RISK}>{"  ↳  Open trace evidence for full output."}</Text> : null}
       {e.diff && e.diff.length > 0 ? <DiffView diff={e.diff} /> : null}
     </Box>

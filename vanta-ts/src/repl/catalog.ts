@@ -25,6 +25,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "prompt", arg: "list|show <name>|use <name>|reset", desc: "switch the session's operating prompt preset" },
   { name: "effort", arg: "<level> [--session|--global]", desc: "set supported model effort" },
   { name: "speed", arg: "<standard|fast> [--session|--global]", desc: "set supported provider speed" },
+  { name: "fast", arg: "[on|off|status] [--session|--global]", desc: "toggle fast mode — same model, faster output, premium rate" },
   { name: "model-settings", arg: "[--global]", desc: "review or save model effort and speed" },
   { name: "env", arg: "[KEY=value|-KEY]", desc: "session-scoped env vars injected into shell_cmd/run_code child processes" },
   { name: "cd", arg: "[path]", desc: "change the session working directory for shell_cmd (no arg prints it)" },

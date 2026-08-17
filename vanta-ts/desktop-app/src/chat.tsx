@@ -530,14 +530,28 @@ function RunTimeline(props: { calls: NonNullable<Message["toolCalls"]>; messages
   })}</section>;
 }
 
+const VISIBLE_TRACE_GROUPS = 5;
+
+/** The run trace, kept short. Only the most recent few steps plus anything that
+ *  needs attention render by default; the rest sit behind one disclosure so a
+ *  long turn cannot push the composer off screen. */
 function EventTimeline(props: { events: import("./types.js").EventRow[] }) {
   const groups = compactTrace(props.events);
-  return <section className="run-timeline event-timeline quiet-trace" aria-label="Current run activity">{groups.map((group, index) => (
-    <details className={`timeline-step ${group.status === "attention" ? "bad" : ""}`} key={`${group.label}-${index}`}>
-      <summary><span><ChevronRight size={13} /></span><strong>{group.label}</strong><em>{group.status}</em></summary>
-      <div className="trace-evidence" aria-label="Tool evidence">{group.evidence.map((event, evidenceIndex) => <pre key={`${event.label}-${evidenceIndex}`}>{event.detail || event.label}</pre>)}</div>
-    </details>
-  ))}</section>;
+  const overflow = Math.max(0, groups.length - VISIBLE_TRACE_GROUPS);
+  const shown = overflow ? groups.filter((group, index) => group.status === "attention" || index >= overflow) : groups;
+  const hidden = groups.length - shown.length;
+  return <section className="run-timeline event-timeline quiet-trace" aria-label="Current run activity">
+    {hidden > 0 ? <details className="timeline-step trace-overflow">
+      <summary><span><ChevronRight size={13} /></span><strong>{hidden} earlier step{hidden === 1 ? "" : "s"}</strong><em>done</em></summary>
+      <div className="trace-evidence" aria-label="Earlier steps">{groups.slice(0, overflow).filter((group) => group.status !== "attention").map((group, index) => <pre key={`${group.label}-${index}`}>{group.label}</pre>)}</div>
+    </details> : null}
+    {shown.map((group, index) => (
+      <details className={`timeline-step ${group.status === "attention" ? "bad" : ""}`} key={`${group.label}-${index}`}>
+        <summary><span><ChevronRight size={13} /></span><strong>{group.label}</strong><em>{group.status}</em></summary>
+        <div className="trace-evidence" aria-label="Tool evidence">{group.evidence.map((event, evidenceIndex) => <pre key={`${event.label}-${evidenceIndex}`}>{event.detail || event.label}</pre>)}</div>
+      </details>
+    ))}
+  </section>;
 }
 
 function RunRecovery(props: { receipt: DesktopRunReceipt; onRetry: () => void; onReconnect: () => void; onEdit: () => void; onCheckpoint: () => void }) {

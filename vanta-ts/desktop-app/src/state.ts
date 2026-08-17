@@ -79,8 +79,10 @@ export function useDesktopData() {
   }, []);
 
   async function setModel(provider: string, model: string, scope: "session" | "global" = "session") {
+    // Note: the picker stays OPEN so it can drill into the model's effort/speed
+    // settings (Claude-CLI style: pick model → pick effort). ModelPicker decides
+    // when to switch views or close after this resolves.
     await api("/api/model", { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ provider, model, scope }) });
-    overlays.closeModelPicker();
     await refresh();
   }
   async function setModelSettings(settings: ProviderModelSettings, scope: "session" | "global" = "session") {
@@ -410,6 +412,10 @@ export async function submitMessage(state: ConversationState, text: string, opti
   const onRecovery = options.onRecovery ?? (() => {});
   cues.prime?.();
   state.setMessages((m) => [...m, { role: "user", content: text }]);
+  // Clear immediately so a running turn never leaves a second copy in the
+  // composer. If the turn fails, restore it only when the user has not started a
+  // new draft while the request was running.
+  state.setDraft(() => "");
   state.setEvents([{ label: "thinking..." }]);
   state.setStreamText(() => "");
   state.setRecovery(null);
@@ -421,8 +427,8 @@ export async function submitMessage(state: ConversationState, text: string, opti
     state.setStreamText(() => "");
     state.setEvents(result.events?.length ? result.events : [{ label: "No tool events returned." }]);
     state.setRecovery(failed ? result.receipt ?? fallbackReceipt(text, result.finalText, result.events) : null);
+    if (failed) restoreFailedDraft(state, text);
     onRecovery(failed);
-    if (!failed) state.setDraft(() => "");
     await Promise.resolve(cues.complete?.()).catch(() => undefined);
     await state.refresh();
     return !failed;
@@ -431,11 +437,16 @@ export async function submitMessage(state: ConversationState, text: string, opti
     state.setStreamText(() => "");
     state.setEvents([{ label: (err as Error).message, ok: false }]);
     state.setRecovery(fallbackReceipt(text, (err as Error).message, [{ label: (err as Error).message, ok: false }]));
+    restoreFailedDraft(state, text);
     onRecovery(true);
     return false;
   } finally {
     state.setBusy(false);
   }
+}
+
+function restoreFailedDraft(state: ConversationState, text: string): void {
+  state.setDraft((current) => current.length === 0 ? text : current);
 }
 
 function chatPayload(message: string, images?: ImageAttachment[], files?: string[]): { message: string; images?: ImageAttachment[]; files?: string[] } {

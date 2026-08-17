@@ -1,4 +1,5 @@
 import { isEffortLevel } from "../effort.js";
+import { anthropicFastModeSupported } from "./fast-mode.js";
 import type { EffortLevel } from "../types.js";
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
@@ -78,8 +79,16 @@ export function providerModelSettingsCapabilities(
   if (provider === "codex" || provider === "openai-codex") {
     return connectedCodexCapabilities(modelId, env) ?? fallbackCodexCapabilities(modelId);
   }
-  if (provider === "claude-code" || provider === "claude-cli") {
-    return { effort: { defaultValue: "medium", options: [...CLAUDE_EFFORT] } };
+  if (provider === "claude-code" || provider === "claude-cli" || provider === "anthropic") {
+    return {
+      effort: { defaultValue: "medium", options: [...CLAUDE_EFFORT] },
+      // Fast mode is an Opus-only research preview. Declaring the capability
+      // only where Anthropic supports it keeps /fast and /speed from offering a
+      // toggle the API would reject.
+      ...(anthropicFastModeSupported(modelId, env)
+        ? { speed: { defaultValue: "standard" as ProviderSpeed, options: [...PROVIDER_SPEEDS] } }
+        : {}),
+    };
   }
   return {};
 }
