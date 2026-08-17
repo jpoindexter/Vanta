@@ -20,7 +20,9 @@ No push to `main`, force-push, merge, release, deployment, notarization, or paid
 
 ## Preserved user work
 
-Four other checkouts were treated as user-owned and left unchanged. Before reconciliation, their tracked diffs, untracked archives, statuses, branch/HEAD records, and SHA-256 manifests were written to the private packet at `Desktop/vanta audit/final-consolidation-20260817`.
+Four other checkouts were treated as user-owned and were not edited by this consolidation. Before reconciliation, their tracked diffs, untracked archives, statuses, branch/HEAD records, and SHA-256 manifests were written to the private packet at `Desktop/vanta audit/final-consolidation-20260817`.
+
+At final recheck, three checkout statuses matched their preservation snapshots exactly. The installed-runtime checkout had concurrently gained two user-owned untracked Apple Mail audit scripts. They were not created, edited, staged, removed, or included here; a supplemental archive and file hashes were added to the private recovery packet.
 
 The largest unpublished correction checkout is also preserved by the local recovery ref `recovery/correction-unpublished-20260817` at commit `66a427f105fb2ada6e7b2467a9242ef6090fb91a`. Its reconstructed tree matched the source checkout with zero path or byte mismatches. The recovery ref and private packet were not pushed.
 
