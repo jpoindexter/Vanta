@@ -150,7 +150,7 @@ hosts must be classified and proved before they inherit that claim:
 - **Kernel won't bind / "port 7788 in use"** → a stale kernel from a prior build: `lsof -nP -iTCP:7788 -sTCP:LISTEN`, kill the PID, re-run.
 - **macOS blocks the downloaded kernel** ("cannot be opened") → clear the Gatekeeper quarantine: `xattr -dr com.apple.quarantine ~/vanta` (or build from source: `cargo build`).
 - **Telegram "didn't send"** → run `vanta setup messaging telegram` in the shell. Token entry is hidden, `getMe` is verified before persistence, and `/setup telegram` inside the TUI remains a status/repair view so Vanta does not exit underneath pasted input.
-- **Apple Mail audit says `Operation not permitted`** → grant Full Disk Access to the app launching the command, quit and reopen it, then retry. The audit scripts open Mail's index read-only and print counts by default. See [Apple Mail local audit](docs/apple-mail-local-audit.md).
+- **Vanta's Apple Mail audit says data is protected** → grant Full Disk Access to the app running Vanta, quit and reopen it, then ask Vanta to retry. Vanta opens Mail's local index read-only, never reads message bodies, and returns counts by default. See [Apple Mail local audit](docs/apple-mail-local-audit.md).
 
 ## What works now
 
@@ -160,7 +160,7 @@ hosts must be classified and proved before they inherit that claim:
 - Core loop: goal-inject → plan → assess → execute → record effect and evidence
   state. Some tools perform deterministic readback; the separate post-turn LLM
   completion verifier is opt-in (`VANTA_VERIFY=1`), not a universal invariant.
-  OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 149 registered tools and
+  OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 150 registered tools and
   155 commands
 - **Goals** — kernel goal ledger plus TS dependency graph (`/goal blocks`, `/goal blocked_by`, `vanta goals`)
 - **Skills & memory** — learned `~/.vanta/skills`, `/skills audit` for local skill injection-scan findings, a configurable public registry client with quarantine/approval/update rollback, per-goal memory, curator, LLM context compression with [settled local Git versioning](docs/local-store-versioning.md), and checked-in product-validation playbooks for problem hypotheses, customer discovery, MVP scope, PMF diagnosis, founder bottlenecks, and GTM planning

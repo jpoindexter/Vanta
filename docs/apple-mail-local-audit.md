@@ -1,6 +1,6 @@
 # Apple Mail local audit
 
-The Apple Mail audit scripts search the local Mail index for job-application messages. They do not send mail, change Mail data, contact a provider, or upload message content.
+Vanta can audit the local Apple Mail index for job-application messages through its governed `apple_mail_audit` tool. This is a Vanta capability, not a separate script. It does not send mail, change Mail data, contact a provider, or upload message content.
 
 ## macOS permission
 
@@ -9,31 +9,26 @@ Apple protects `~/Library/Mail` with Full Disk Access. If the command reports `O
 1. Open **System Settings → Privacy & Security → Full Disk Access**.
 2. Enable the application that launches the command: Terminal, iTerm, Codex, or Vanta.
 3. Quit that application completely and reopen it. macOS does not apply the permission to an already-running process.
-4. Retry the command.
+4. Ask Vanta to retry.
 
 Grant only the application you use. You can revoke the permission after the audit.
 
-## Commands
+## Use it in Vanta
 
-```bash
-python3 scripts/audit-apple-mail-job-apps.py
-python3 scripts/find-apple-mail-application-signals.py
-```
+Ask naturally:
 
-The scripts discover the newest numeric Apple Mail database directory instead of assuming `V10`. They open SQLite with `mode=ro` and `query_only`, so writes fail closed.
+- “Audit Apple Mail for job-application status signals since 2025-01-01.”
+- “Count possible job-application messages in Apple Mail.”
+- “Show me the matched Apple Mail application metadata.”
 
-Default output contains aggregate counts only. Printing sender addresses, subjects, and summaries is an explicit local action:
+Vanta discovers the newest numeric Apple Mail database directory instead of assuming a version. It invokes `/usr/bin/sqlite3` with `-readonly`; no shell is involved and the query selects metadata only.
 
-```bash
-python3 scripts/audit-apple-mail-job-apps.py --details
-python3 scripts/find-apple-mail-application-signals.py --details
-```
-
-Use `--since YYYY-MM-DD` to change the lower date bound. `--database PATH` supports a reviewed snapshot or test database without scanning `~/Library/Mail`.
+Default output contains aggregate counts only. When you explicitly ask to see matches, Vanta asks for fresh in-app approval before reading and returning up to 25 sender, subject, and Mail-summary records. Use a `YYYY-MM-DD` date in your request to change the lower bound.
 
 ## Privacy boundary
 
 - No message body is queried.
-- Sender, subject, and summary fields remain hidden unless `--details` is supplied.
+- Sender, subject, and summary fields remain hidden unless you explicitly request them and approve Vanta's in-app prompt.
+- Approved metadata is marked as untrusted external data and stripped of terminal control characters before it reaches the agent transcript.
 - Errors do not print the database path or a traceback containing the home directory.
-- The live audit remains blocked until macOS grants Full Disk Access; fixture tests cannot prove access to a real Mail account.
+- The live audit remains blocked until macOS grants Full Disk Access to the app running Vanta; fixture tests cannot prove access to a real Mail account.

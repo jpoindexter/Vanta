@@ -46,6 +46,7 @@ async function receiptText(root: string): Promise<string> {
 
 describe("tool effect policy", () => {
   it("keeps only explicit reads outside the gateway", () => {
+    expect(toolEffectPolicy("apple_mail_audit")).toBe("read-only");
     expect(toolEffectPolicy("read_file")).toBe("read-only");
     expect(toolEffectPolicy("shell_cmd")).toBe("gateway");
     expect(toolEffectPolicy("mcp_files_write")).toBe("gateway");

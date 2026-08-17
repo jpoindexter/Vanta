@@ -39,6 +39,7 @@ describe("registry", () => {
     const names = r.schemas().map((s) => s.name).sort();
     expect(names).toEqual([
       "agent_session",
+      "apple_mail_audit",
       "ask_user",
       "bg_list",
       "bg_status",
