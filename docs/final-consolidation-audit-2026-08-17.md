@@ -11,9 +11,9 @@
 | Branch | `codex/vanta-final-consolidation-20260817` |
 | Prior stack head | `58a6f0be2b85c9af103703a92ef2734ae5856d00` |
 | Consolidation commit | `adadf2c847e9f0f90f4a0f593dd52387961051eb` |
-| Divergence before publication | 0 behind / 72 ahead of `origin/main` |
+| Divergence after the consolidation commit, before audit commits | 0 behind / 72 ahead of `origin/main` |
 | Consolidation diff | 123 files; 2,399 insertions; 872 deletions |
-| Full branch diff | 845 files; 60,827 insertions; 7,068 deletions |
+| Full branch diff | 847 files; 61,081 insertions; 7,068 deletions |
 | Worktree after commit | clean |
 
 No push to `main`, force-push, merge, release, deployment, notarization, or paid workflow occurred during this audit. GitHub Actions remained disabled.
@@ -66,7 +66,7 @@ Official references used for the provider boundary: [Anthropic fast mode](https:
 | Roadmap aggregate | schema + dependency/cycle check from `vanta-ts` | 0 | 1,331 unique; 0 missing; 0 self; 0 cycles |
 | Runtime npm audit | `npm audit --omit=dev` | 0 | 0 vulnerabilities |
 | RustSec | `cargo audit` | 0 | 0 vulnerabilities |
-| Secrets | `./scripts/secret-scan` | 0 | 3,015 commits and current tracked/non-ignored snapshot; 0 findings |
+| Secrets | `./scripts/secret-scan` | 0 | 3,018 existing commits plus the staged snapshot; 0 findings |
 | SAST | Semgrep security + secrets rules over changed source | 0 | 61 files; 61 rules; 0 findings |
 | Protected paths | staged-path guard | 0 | 0 Rust kernel, protected factory, Cargo, or `MANIFESTO.md` paths |
 | Forbidden additions | staged path/content guard | 0 | 0 Hermes, Nightcode, local `.vanta`, or quarantine additions |
@@ -114,7 +114,7 @@ There are no duplicate IDs, missing dependencies, self-dependencies, or cycles. 
 - The existing size gate remains red at 51 findings. The comparable baseline has the same 51 findings; newly added modules do not increase the count. This is inherited refactoring debt, not a green repository-wide size claim.
 - The website build toolchain contains `image-size@2.0.2`, reported as one package with two high-severity denial-of-service advisories and expanded by npm to 19 affected dependency nodes. Docusaurus 3.10.2 and `image-size` 2.0.2 are current, no patched version exists, and npm's proposed force-fix is a breaking search-plugin downgrade. The path is limited to the local static build reading repository-owned images.
 - No live provider request, paid fast-mode request, external account, participant test, release, deployment, notarization, or merge was executed. Those outcomes are not implied by local gates.
-- The full stacked PR is large (845 files from `main`) and still requires human review. Local green does not replace review or merge authorization.
+- The full stacked PR is large (847 files from `main`) and still requires human review. Local green does not replace review or merge authorization.
 
 ## Claim ledger
 
