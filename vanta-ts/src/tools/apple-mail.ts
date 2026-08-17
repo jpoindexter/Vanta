@@ -8,7 +8,8 @@ import { buildSafeChildEnv } from "../exec/child-env.js";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
 
 const execFileAsync = promisify(execFile);
-const ROW_LIMIT = 10_000;
+const ROW_LIMIT = 25_000;
+const PAGE_SIZE = 500;
 const DEFAULT_DETAILS_LIMIT = 10;
 
 const CandidatePattern = /(application|applied|candidate|interview|position|role|job|hiring|recruit|talent|opportunity|workable|greenhouse|ashby|lever|smartrecruiters|personio|teamtailor|welcome to the jungle|indeed|linkedin)/i;
@@ -88,25 +89,32 @@ export async function queryAppleMailIndex(
   since: string,
   run: SqliteRunner = defaultSqliteRunner,
 ): Promise<AppleMailRow[]> {
-  const sql = appleMailQuery(since);
   try {
-    const output = await run("/usr/bin/sqlite3", ["-readonly", "-json", databasePath, sql]);
-    if (!output.trim()) return [];
-    return z.array(MailRowSchema).parse(JSON.parse(output));
+    const rows: AppleMailRow[] = [];
+    for (let offset = 0; offset < ROW_LIMIT; offset += PAGE_SIZE) {
+      const sql = appleMailQuery(since, PAGE_SIZE, offset);
+      const output = await run("/usr/bin/sqlite3", ["-readonly", "-json", databasePath, sql]);
+      const page = output.trim()
+        ? z.array(MailRowSchema).parse(JSON.parse(output))
+        : [];
+      rows.push(...page);
+      if (page.length < PAGE_SIZE) break;
+    }
+    return rows;
   } catch (error) {
     if (isPermissionError(error)) throw new AppleMailError("permission");
     throw new AppleMailError("query");
   }
 }
 
-function appleMailQuery(since: string): string {
+function appleMailQuery(since: string, limit: number, offset: number): string {
   return `
 select m.rowid as messageId,
        datetime(m.date_received, 'unixepoch', 'localtime') as receivedAt,
-       coalesce(a.comment, '') as senderName,
-       coalesce(a.address, '') as senderAddress,
-       coalesce(m.subject_prefix, '') || coalesce(s.subject, '') as subject,
-       coalesce(z.summary, '') as summary
+       substr(coalesce(a.comment, ''), 1, 500) as senderName,
+       substr(coalesce(a.address, ''), 1, 500) as senderAddress,
+       substr(coalesce(m.subject_prefix, '') || coalesce(s.subject, ''), 1, 1000) as subject,
+       substr(coalesce(z.summary, ''), 1, 2000) as summary
 from messages m
 join subjects s on s.rowid = m.subject
 left join addresses a on a.rowid = m.sender
@@ -114,7 +122,7 @@ left join summaries z on z.rowid = m.summary
 where m.deleted = 0
   and m.date_received >= cast(strftime('%s', '${since}') as integer)
 order by m.date_received desc
-limit ${ROW_LIMIT};`.trim();
+limit ${limit} offset ${offset};`.trim();
 }
 
 function defaultSince(): string {

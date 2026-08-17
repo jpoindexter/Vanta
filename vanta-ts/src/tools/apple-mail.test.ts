@@ -91,6 +91,27 @@ describe("Apple Mail audit tool", () => {
     expect(result).toEqual([]);
   });
 
+  it("paginates large Mail indexes instead of overflowing one child-process buffer", async () => {
+    const page = Array.from({ length: 500 }, (_, index) => ({
+      ...rows[0]!,
+      messageId: index + 1,
+    }));
+    const queries: string[] = [];
+    const result = await queryAppleMailIndex(
+      "/private/Envelope Index",
+      "2024-01-01",
+      async (_command, args) => {
+        queries.push(args.at(-1) ?? "");
+        return queries.length === 1 ? JSON.stringify(page) : "[]";
+      },
+    );
+
+    expect(result).toHaveLength(500);
+    expect(queries).toHaveLength(2);
+    expect(queries[0]).toContain("limit 500 offset 0");
+    expect(queries[1]).toContain("limit 500 offset 500");
+  });
+
   it("runs the production query against a real read-only SQLite fixture", async () => {
     const root = await mkdtemp(join(tmpdir(), "vanta-apple-mail-db-"));
     const database = join(root, "Envelope Index");

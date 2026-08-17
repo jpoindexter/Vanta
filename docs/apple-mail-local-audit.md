@@ -21,7 +21,7 @@ Ask naturally:
 - “Count possible job-application messages in Apple Mail.”
 - “Show me the matched Apple Mail application metadata.”
 
-Vanta discovers the newest numeric Apple Mail database directory instead of assuming a version. It invokes `/usr/bin/sqlite3` with `-readonly`; no shell is involved and the query selects metadata only.
+Vanta discovers the newest numeric Apple Mail database directory instead of assuming a version. It invokes `/usr/bin/sqlite3` with `-readonly`; no shell is involved and the query selects metadata only. Large indexes are read in bounded 500-row pages up to a 25,000-row scan limit, and the result reports when that limit may have truncated the audit.
 
 Default output contains aggregate counts only. When you explicitly ask to see matches, Vanta asks for fresh in-app approval before reading and returning up to 25 sender, subject, and Mail-summary records. Use a `YYYY-MM-DD` date in your request to change the lower bound.
 
