@@ -16,7 +16,7 @@ function schema(name: string, description = `${name} tool`): ToolSchema {
 const manySchemas = [
   "tool_search", "clarify", "ask_user", "brain", "recall", "inspect_state", "inspect_context", "read_file", "grep_files", "glob_files",
   "web_search", "web_fetch", "pdf_read", "document_read", "git_status", "git_diff", "edit_file", "write_file", "shell_cmd", "lsp_diagnostics", "todo",
-  "gmail_send", "calendar_create", "browser_act", "money", "radar", "roadmap_status", "roadmap_move", "call_agent", "delegate",
+  "gmail_send", "apple_mail_audit", "calendar_create", "browser_act", "money", "radar", "roadmap_status", "roadmap_move", "call_agent", "delegate",
   "compose_workflow", "protect", "brief",
 ].map((name) => schema(name));
 
@@ -40,6 +40,14 @@ describe("per-task tool scoping", () => {
     for (const core of ["read_file", "write_file", "edit_file", "shell_cmd", "todo", "ask_user"]) {
       expect(scoped).toContain(core); // never hidden behind tool_search
     }
+  });
+
+  it("exposes the local Apple Mail audit for Apple Mail and job-application requests", () => {
+    const appleMail = scopeToolSchemas(manySchemas, "audit Apple Mail for job application replies").map((s) => s.name);
+    const application = scopeToolSchemas(manySchemas, "check my job applications in Mail").map((s) => s.name);
+
+    expect(appleMail).toContain("apple_mail_audit");
+    expect(application).toContain("apple_mail_audit");
   });
 
   it("keeps call_agent callable when the user wants to talk to another agent (VANTA-AGENT-ROUTING-DISCOVERY)", () => {

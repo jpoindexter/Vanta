@@ -112,6 +112,7 @@ import {
   gmailDraftTool,
   gmailSendTool,
 } from "./gmail.js";
+import { appleMailAuditTool } from "./apple-mail.js";
 import {
   calendarReadTool,
   calendarCreateTool,
@@ -246,6 +247,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   agentSessionTool,
   buildWithAgentTool,
   gmailSearchTool,
+  appleMailAuditTool,
   gmailReadTool,
   gmailDraftTool,
   gmailSendTool,

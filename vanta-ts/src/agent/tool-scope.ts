@@ -16,7 +16,7 @@ const CORE = [
 const GROUPS: Record<string, string[]> = {
   code: ["git_status", "git_diff", "lsp_diagnostics", "lsp_definition", "edit_file", "write_file", "shell_cmd", "run_code"],
   research: ["web_search", "web_fetch", "browser_read", "browser_navigate", "screenshot", "life_search", "ref_search", "ref_ingest", "pdf_read", "document_read"],
-  comms: ["gmail_search", "gmail_read", "gmail_draft", "calendar_read", "send_message"],
+  comms: ["gmail_search", "gmail_read", "gmail_draft", "apple_mail_audit", "calendar_read", "send_message"],
   business: ["money", "radar", "world", "life_search", "graph_query"],
   ops: ["loop", "team", "regression_lock", "roadmap_status", "roadmap_move", "roadmap_add"],
   media: ["describe_image", "compare_vision", "look_at_screen", "look_at_camera", "transcribe", "speak"],
@@ -29,7 +29,7 @@ const GROUPS: Record<string, string[]> = {
 const HINTS: Array<[RegExp, keyof typeof GROUPS]> = [
   [/\b(code|test|typescript|tsc|build|commit|git|file|bug|fix|repo|diff|lint)\b/i, "code"],
   [/\b(research|source|market|web|browser|search|read|evidence|solutioning|recommendation)\b/i, "research"],
-  [/\b(email|gmail|calendar|message|schedule|meeting|outreach|draft)\b/i, "comms"],
+  [/\b(email|gmail|mail|calendar|message|schedule|meeting|outreach|draft|job applications?)\b/i, "comms"],
   [/\b(revenue|money|opportunity|prospect|business|market|customer|price)\b/i, "business"],
   [/\b(roadmap|task|team|loop|verify|regression|todo|plan)\b/i, "ops"],
   [/\b(image|screen|camera|audio|voice|transcribe|vision)\b/i, "media"],

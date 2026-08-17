@@ -20,6 +20,7 @@ const callerOwnedPersistence = { persist: async () => {} };
  * new and plugin tools therefore cannot silently gain an execution bypass.
  */
 const READ_ONLY_TOOLS = new Set([
+  "apple_mail_audit",
   "ask_user",
   "bg_list",
   "bg_status",
