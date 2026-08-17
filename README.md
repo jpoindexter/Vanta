@@ -150,6 +150,7 @@ hosts must be classified and proved before they inherit that claim:
 - **Kernel won't bind / "port 7788 in use"** → a stale kernel from a prior build: `lsof -nP -iTCP:7788 -sTCP:LISTEN`, kill the PID, re-run.
 - **macOS blocks the downloaded kernel** ("cannot be opened") → clear the Gatekeeper quarantine: `xattr -dr com.apple.quarantine ~/vanta` (or build from source: `cargo build`).
 - **Telegram "didn't send"** → run `vanta setup messaging telegram` in the shell. Token entry is hidden, `getMe` is verified before persistence, and `/setup telegram` inside the TUI remains a status/repair view so Vanta does not exit underneath pasted input.
+- **Apple Mail audit says `Operation not permitted`** → grant Full Disk Access to the app launching the command, quit and reopen it, then retry. The audit scripts open Mail's index read-only and print counts by default. See [Apple Mail local audit](docs/apple-mail-local-audit.md).
 
 ## What works now
 
