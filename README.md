@@ -20,7 +20,7 @@ The canonical labels are **R0 — Observe**, **R1 — Recommend**,
 `unverified`, `verified`. `denied`, `expired`, `unknown`, and `compensated`
 are receipt/action dispositions, not WorkItem states.
 
-> **Implementation truth (2026-08-17):** the bounded `TRUST-02`, `UX-03`, `TRUST-04`, `TRUST-01`, and `OP-01` contracts have executed receipts and are marked shipped for their documented local and signed macOS boundaries. The current draft stack also repairs tool-result adjacency, visible paste/queue interaction, and model controls, but it is still review work—not the public release. Cross-platform packaging, live external accounts, external proof, and future effect paths require their own evidence. See the [current acceptance record](docs/product-acceptance.md).
+> **Implementation truth (2026-08-17):** the bounded `TRUST-02`, `UX-03`, `TRUST-04`, `TRUST-01`, and `OP-01` contracts have executed receipts and are marked shipped for their documented local and signed macOS boundaries. The current draft stack also repairs tool-result adjacency, visible paste/queue interaction, and model controls, but it is still review work—not the public release. Cross-platform packaging, live external accounts, external proof, and future effect paths require their own evidence. See the [current acceptance record](docs/product-acceptance.md) and [final local consolidation audit](docs/final-consolidation-audit-2026-08-17.md).
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/jpoindexter/Vanta/main/vanta-website/static/img/vanta-desktop-work-dark.webp" alt="Vanta Desktop Work view showing an agent task, tool activity, approvals, and model scope" width="960">

@@ -73,7 +73,7 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - Turn tracing ignores comparison operators and strings inside heredoc bodies, preventing read-only inspection scripts from producing false `trace[blind-write]` warnings.
 - Large TUI pastes now collapse to an in-buffer marker while text typed afterward stays visible; submission restores the original bytes, and deleting a marker cannot silently orphan its payload.
 - Queued TUI messages remain visible in a bounded panel and Up from an empty composer pulls the newest item back for editing without stealing palette or history navigation.
-- Desktop clears a submitted draft immediately, bounds long activity traces, and keeps model selection open only when the selected provider exposes effort or speed settings.
+- Desktop clears a submitted draft immediately, restores it after failure only when no newer text would be overwritten, bounds long activity traces, and keeps model selection open only when the selected provider exposes effort or speed settings.
 - Rejected an unpublished direct Claude OAuth/token-store implementation and a broad Auto-mode bypass during consolidation. Claude subscription authentication remains owned by the official Claude Code client; unmatched kernel `Ask` actions still ask.
 
 ### Verified boundary
@@ -82,7 +82,7 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
   one approval, removed the empty temporary directory, and preserved the
   catastrophic-delete block floor.
 - The production Electron context smoke opened the native picker, dispatched Chromium native drag events for normal file, Shift-file, and folder drops, rendered their chips, omitted a dropped `.env`, and submitted the resolved paths through `/api/chat`.
-- The full TypeScript suite passes: 1,491 test files and 13,802 tests, with
+- The full TypeScript suite passes: 1,536 test files and 14,158 tests, with
   3 intentional skips; core and renderer TypeScript checks also pass.
 - The streaming-TTS proof drove a real Vanta conversation stream and emitted
   `STREAMING_TTS_FIRST_CLAUSE_OK` with the first clause dispatched before

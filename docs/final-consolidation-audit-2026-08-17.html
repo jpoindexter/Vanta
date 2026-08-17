@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vanta final consolidation audit — 2026-08-17</title>
+  <style>
+    :root { color-scheme: dark; --bg:#08090b; --panel:#111318; --ink:#f3efe5; --muted:#a9acb5; --line:#30343d; --ok:#58d68d; --warn:#f4c95d; --accent:#65c8ff; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.6 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { width:min(1120px,calc(100% - 32px)); margin:40px auto 80px; }
+    header { border:1px solid var(--line); background:linear-gradient(145deg,#151820,#0d0f13); padding:30px; }
+    .eyebrow { margin:0 0 8px; color:var(--accent); font:700 12px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { margin:0; font-size:clamp(28px,5vw,52px); line-height:1.05; letter-spacing:-.035em; }
+    h2 { margin:34px 0 12px; font-size:22px; }
+    p, li { max-width:88ch; }
+    .verdict { margin:22px 0 0; padding:14px 16px; border-left:3px solid var(--ok); background:#0f1815; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:10px; margin:18px 0; }
+    .card { border:1px solid var(--line); background:var(--panel); padding:15px; }
+    .card strong { display:block; color:var(--ok); font-size:22px; }
+    table { width:100%; border-collapse:collapse; display:block; overflow:auto; border:1px solid var(--line); }
+    th, td { padding:9px 11px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { color:var(--muted); background:#151820; position:sticky; top:0; }
+    code { color:#d9f2ff; font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace; }
+    a { color:var(--accent); }
+    .ok { color:var(--ok); } .warn { color:var(--warn); }
+    footer { margin-top:36px; color:var(--muted); border-top:1px solid var(--line); padding-top:18px; }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">Local evidence · review checkpoint</p>
+    <h1>Vanta final consolidation audit</h1>
+    <p>17 August 2026</p>
+    <p class="verdict"><strong class="ok">Locally green for the proposed Vanta-only consolidation.</strong><br>This is not a release, merge, deployment, live-account proof, or external-user result.</p>
+  </header>
+
+  <section>
+    <h2>Topology</h2>
+    <div class="grid">
+      <div class="card"><span>Base</span><strong><code>4911ae44</code></strong><small>origin/main</small></div>
+      <div class="card"><span>Consolidation</span><strong><code>adadf2c8</code></strong><small>123 files · +2,399/−872</small></div>
+      <div class="card"><span>Divergence</span><strong>0 / 72</strong><small>behind / ahead</small></div>
+      <div class="card"><span>Roadmap</span><strong>1,331</strong><small>unique records</small></div>
+    </div>
+    <p>Branch: <code>codex/vanta-final-consolidation-20260817</code>. Full branch diff: 845 files, 60,827 insertions, 7,068 deletions. The committed worktree was clean before this audit document was added.</p>
+  </section>
+
+  <section>
+    <h2>What was consolidated</h2>
+    <ul>
+      <li>Tool-call/result adjacency repair and deterministic early-exit settlement.</li>
+      <li>Compact TUI long-paste rendering with visible text after the paste, exact-byte submission, and visible/editable queued messages.</li>
+      <li>Capability-driven Desktop and TUI model, effort, and speed controls.</li>
+      <li>Compact active-provider model settings before the full provider browser.</li>
+      <li>Telegram status and repair actions that stay inside the TUI; explicit shell-only credential entry.</li>
+      <li>Desktop draft and attachment preservation after failed sends without overwriting newer typing.</li>
+      <li>Local AnyDoc/PDF/document conversion retained in the final packaged app.</li>
+      <li>Unsafe recovered direct OAuth and broad permission bypasses rejected before commit.</li>
+    </ul>
+    <p>Provider boundaries follow <a href="https://platform.claude.com/docs/en/build-with-claude/fast-mode">Anthropic fast mode</a>, <a href="https://docs.anthropic.com/en/docs/claude-code/getting-started">Claude Code setup</a>, and <a href="https://support.anthropic.com/en/articles/11145838-using-claude-code-with-your-pro-or-max-plan">Claude subscription authentication</a>. No live paid request was sent.</p>
+  </section>
+
+  <section>
+    <h2>Executed evidence</h2>
+    <table>
+      <thead><tr><th>Gate</th><th>Exit</th><th>Observed result</th></tr></thead>
+      <tbody>
+        <tr><td>Runtime + renderer typechecks</td><td class="ok">0</td><td>Both clean</td></tr>
+        <tr><td>TypeScript 7 compatibility</td><td class="ok">0</td><td>1/1 passed</td></tr>
+        <tr><td>Full TypeScript suite</td><td class="ok">0</td><td>1,536 files; 14,158 passed; 3 skipped; 0 failed</td></tr>
+        <tr><td>Rust suite</td><td class="ok">0</td><td>70 passed; 0 failed</td></tr>
+        <tr><td>Website typecheck + production build</td><td class="ok">0</td><td>Passed</td></tr>
+        <tr><td>Desktop visual proof</td><td class="ok">0</td><td>42/42 exact captures; 3/3 guard tests</td></tr>
+        <tr><td>Final packaged Desktop</td><td class="ok">0</td><td>Build and code-signature verification passed</td></tr>
+        <tr><td>Packaged behavior</td><td class="ok">0</td><td>AnyDoc, model settings, queue, paste/failure recovery, and full operator/Telegram flows passed</td></tr>
+        <tr><td>Roadmap</td><td class="ok">0</td><td>1,331 unique; no missing/self/cyclic dependencies</td></tr>
+        <tr><td>Secrets</td><td class="ok">0</td><td>3,015 commits plus current snapshot; zero findings</td></tr>
+        <tr><td>Semgrep</td><td class="ok">0</td><td>61 changed source files; zero findings</td></tr>
+        <tr><td>Runtime npm + RustSec</td><td class="ok">0</td><td>Zero vulnerabilities</td></tr>
+        <tr><td>Protected/forbidden paths</td><td class="ok">0</td><td>Zero additions</td></tr>
+        <tr><td>Real <code>vanta</code> PTY</td><td class="ok">0</td><td>No setup loop; Telegram stayed open; compact model picker; paste suffix visible</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Roadmap</h2>
+    <div class="grid">
+      <div class="card"><span>Shipped</span><strong>1,286</strong></div>
+      <div class="card"><span>Parked</span><strong>38</strong></div>
+      <div class="card"><span>Next</span><strong>1</strong><small>GROW-01</small></div>
+      <div class="card"><span>Horizon</span><strong>6</strong></div>
+    </div>
+    <p>No card was promoted by consolidation. Generated projections came from canonical <code>roadmap.json</code>.</p>
+  </section>
+
+  <section>
+    <h2>Security and GitHub</h2>
+    <ul>
+      <li>GitHub Actions remained disabled.</li>
+      <li>Main protection blocks force-push and deletion, requires linear history, resolved conversations, one approval, and approval after the last push.</li>
+      <li>No credential, private transcript, Hermes checkout/source, Nightcode content, local <code>.vanta</code> state, recovery archive, or quarantine artifact entered the commit.</li>
+      <li>Four dirty user checkouts were preserved with external patches, archives, manifests, and a local recovery ref. None was modified.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Artifact hashes</h2>
+    <table><tbody>
+      <tr><th>Vanta executable</th><td><code>8618703399046a304166047e7654d2ff3e4c059c42ad9e004abc80541d7461e3</code></td></tr>
+      <tr><th>app.asar</th><td><code>98e8da3e7a5d6e2d7e90dd71099623f7f6a80bc069f8dd4bd0f0e7f810b6ab3c</code></td></tr>
+      <tr><th>AnyDoc native module</th><td><code>c52d087d176d6740f225c5c87f69801043de2ad745827dd06bfc8fcc7a0a3de2</code></td></tr>
+    </tbody></table>
+  </section>
+
+  <section>
+    <h2>Remaining gaps</h2>
+    <ul>
+      <li class="warn">The size gate remains at the same inherited 51 findings as the comparable baseline. New modules did not increase the count.</li>
+      <li class="warn">The website build chain has one unpatched <code>image-size@2.0.2</code> package with two DoS advisories (reported by npm as 19 affected nodes). The current upstream versions provide no fix; the path reads repository-owned images during local static builds.</li>
+      <li>No live provider, external account, participant, distribution, release, notarization, deployment, or merge proof was run.</li>
+      <li>The 845-file stacked diff still requires human review. Local green is not merge authorization.</li>
+    </ul>
+  </section>
+
+  <footer>Executed evidence is separated from code-path and external claims. See the Markdown audit for exact commands, failed-check closure, and the complete claim ledger.</footer>
+</main>
+</body>
+</html>
