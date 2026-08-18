@@ -4,7 +4,7 @@
 historical narrative and does not override the JSON, `STRATEGY.md`, or
 `DECISIONS.md`.
 
-## Current converged build order — 2026-08-14
+## Current converged build order — 2026-08-18
 
 **Building**
 
@@ -15,8 +15,10 @@ merge, release, deployment, or broader external proof.
 
 **Next**
 
-1. `GROW-01` — deferred manual interviews and bounded continuity pilots; no
-   source implementation, paid research, or outreach is active.
+1. `DESKTOP-COLD-OPERATOR-RELEASE-PROOF` — one voluntary, uncompensated fresh
+   non-developer completes a useful task in the exact packaged candidate. No
+   paid participant, recruiting, research-platform, CI, hosting, outreach, or
+   other new service spend is authorized.
 
 **Horizon**
 
@@ -26,9 +28,11 @@ merge, release, deployment, or broader external proof.
 4. `OP-03` — deterministic, deduplicated, expiring Needs You projection.
 5. `UX-04` — contextual Review, first-run usefulness, and cross-host accessibility.
 6. `LIFE-02` — quarantined read-only morning orientation after its dependencies.
+7. `GROW-01` — voluntary zero-cost continuity interviews and pilots after the
+   cold-operator proof, with volunteer-sample limitations recorded explicitly.
 
 The 28 destination outcomes are a dependency/acceptance catalog, not 28
-simultaneous projects. Current open inventory is 7: 1 Next and 6 Horizon.
+simultaneous projects. Current open inventory is 8: 1 Next and 7 Horizon.
 Capacity remains capped at 12 open, 4 Next, 6 implementation-ready, and 2
 Building.
 

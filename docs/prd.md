@@ -43,8 +43,10 @@ capture → understand outcome → recommend or prepare → act within authority
 The audience is general. Named use cases and cohorts are evidence, not market
 boundaries.
 
-Neurodivergent and disabled people remain paid co-designers because their lived
-constraints expose failures earlier and more sharply. Autism, ADHD, aphantasia,
+Neurodivergent and disabled people remain voluntary co-design contributors because their lived
+constraints expose failures earlier and more sharply. Vanta does not infer diagnosis,
+require disclosure, or generalize an uncompensated volunteer sample into representative
+market proof. Autism, ADHD, aphantasia,
 color-vision, mobility, sensory, cognitive-load, and executive-function
 requirements are non-negotiable source constraints.
 

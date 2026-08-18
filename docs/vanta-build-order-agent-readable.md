@@ -1,7 +1,7 @@
 # Vanta Build Order — Agent-Readable
 
 Source: roadmap.json (generated view — do not edit; regenerate via `node scripts/build-order.mjs`)
-Roadmap updated: 2026-08-14
+Roadmap updated: 2026-08-18
 Strategy: STRATEGY.md (one product with Vanta, Engine, and Lab boundaries; roadmap tracks are compatible responsibilities)
 
 ## Agent instructions
@@ -13,17 +13,17 @@ The 28 convergence outcomes are an acceptance catalog, not 28 simultaneous proje
 
 ## Summary
 - total_cards: 1331
-- open_cards: 7
+- open_cards: 8
 - Harness: 3 open
-- Operator: 3 open
+- Operator: 4 open
 - Solutioning: 1 open
 
 ## Build order
 
-001. [next] GROW-01 — Phase-0 trusted-continuity evidence lane — interviews, pilots, burden, retention, and price
-    track: Solutioning | tier: rock | size: S | effort: medium | model: opus
-    why: Begin commercial and usefulness learning manually: test the same capture → recommend/prepare/act → wait/resume → verify/close contract across bounded life-and-work tasks with chronic and situational executive burden.
-    done: Ten functional-problem interviews and five accessibly supported continuity pilots intentionally include neurodivergent/disabled paid co-design and situational burden without diagnosis gating; assisted/unassisted use, task domains, acquisition source, weeks-three/four repeat loops, burden change, verified outcomes, payment or explicit price/value rejection, revenue, founder support minutes, incidents, and non-return reasons are recorded; unknowns remain unproven; a precommitted continue/change/park date and weekly time/expense ceiling are recorded; fixtures cannot close the card.
+001. [next] DESKTOP-COLD-OPERATOR-RELEASE-PROOF — Desktop cold-operator release proof — one useful task without repo knowledge
+    track: Operator | tier: rock | size: S | effort: low | model: sonnet | after: DESKTOP-MODEL-RUNTIME-STATUS-CLARITY, DESKTOP-PROVIDER-AUTH-VALIDATION-RECOVERY
+    why: Run the first zero-cost external usability proof: a voluntary non-developer completes the current packaged Desktop work loop without Vanta repository context or paid recruiting, research, CI, hosting, or participant services.
+    done: A voluntary, uncompensated fresh non-developer operator gives informed consent, launches the exact packaged release candidate with no Vanta repo context, identifies the model and access boundary, starts one useful task in their own words, handles one approval or recoverable failure, and finds the resulting output; the run records time to first useful result, every confusion point, assistance requested, and the fixes or explicit release waivers, then repeats after blocking fixes with no coaching beyond the in-product UI. No sensitive account data is requested, the participant may stop at any time, no new spend is incurred, and the resulting evidence is labeled as one usability run rather than representative market proof.
 
 002. [horizon] TRUST-03 — Canonical action envelope and scoped capability
     track: Harness | tier: rock | size: L | effort: high | model: opus | after: TRUST-01, TRUST-02
@@ -54,3 +54,8 @@ The 28 convergence outcomes are an acceptance catalog, not 28 simultaneous proje
     track: Operator | tier: rock | size: L | effort: high | model: opus | after: TRUST-05, OP-01, OP-03, UX-03
     why: Use a bounded durable cursor over quarantined email and calendar to extract urgent items, commitments, reply needs, waiting state, and FYI without creating or executing an external commitment.
     done: A test mailbox/calendar and then an explicitly authorized R0 Observe account produce a concise sourced brief with no invented commitment; Gmail and Calendar use separate incremental scopes; malicious content cannot reach effects or secrets; WorkItems deduplicate and retain source; timezone and freshness are visible; restart resumes the cursor without loss or duplication; usefulness is measured; no send, invite, archive, label, or Drive mutation is required.
+
+008. [horizon] GROW-01 — Phase-0 trusted-continuity evidence lane — voluntary interviews, pilots, burden, and retention
+    track: Solutioning | tier: rock | size: S | effort: medium | model: opus | after: DESKTOP-COLD-OPERATOR-RELEASE-PROOF
+    why: After the first cold-operator proof, test the same capture → recommend/prepare/act → wait/resume → verify/close contract across bounded life-and-work tasks using voluntary, zero-cost interviews and pilots.
+    done: Ten voluntary functional-problem interviews and five voluntary, accessibly supported continuity pilots include neurodivergent/disabled lived experience and situational burden without diagnosis gating; assisted/unassisted use, task domains, acquisition source, weeks-three/four repeat loops, burden change, verified outcomes, founder support minutes, incidents, non-return reasons, and the selection and representativeness limits of an uncompensated cohort are recorded; unknowns remain unproven; a precommitted continue/change/park date and zero-expense ceiling are recorded; fixtures cannot close the card.

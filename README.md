@@ -31,7 +31,7 @@ are receipt/action dispositions, not WorkItem states.
 - **[Download Vanta Desktop for macOS](https://github.com/jpoindexter/Vanta/releases/download/v0.9.5/Vanta-0.9.5-arm64.dmg)** — signed, notarized, and stapled for Apple Silicon.
 - **[Read the latest release notes](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.8)** — reusable runs, safe replay, Buzz ACP, integrations, and reliability fixes. The v0.9.5 download above remains the latest notarized Desktop DMG.
 - **[Read the docs](https://docs.vanta.theft.studio/)** — setup, safety model, agents, memory, MCP, messaging, and the live roadmap.
-- **[Follow the roadmap](ROADMAP.md)** — `GROW-01` is the sole Next card and remains deferred until manual, no-paid-service user research is authorized; six dependency-ordered cards remain Horizon.
+- **[Follow the roadmap](ROADMAP.md)** — the zero-cost Desktop cold-operator proof is the sole Next card; `GROW-01` and six dependency-ordered contracts remain Horizon. No paid participants, recruiting, research platforms, Actions, hosting, outreach, or new service spend are authorized.
 
 ## What ships in Desktop v0.9.5
 

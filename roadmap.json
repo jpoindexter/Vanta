@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-14",
+  "updated": "2026-08-18",
   "items": [
     {
       "id": "VANTA-STREAMING-TTS-FIRST-CLAUSE",
@@ -19765,12 +19765,12 @@
     },
     {
       "id": "DESKTOP-COLD-OPERATOR-RELEASE-PROOF",
-      "track": "Desktop App",
+      "track": "Operator",
       "title": "Desktop cold-operator release proof — one useful task without repo knowledge",
-      "status": "parked",
+      "status": "next",
       "size": "S",
-      "summary": "The earlier fresh-context review covered the CLI activation gallery, and the desktop shell has scripted acceptance, but no non-developer has completed the current packaged desktop work loop without Vanta repo context.",
-      "done": "A fresh non-developer operator launches the exact packaged release candidate with no Vanta repo context, identifies the model and access boundary, starts one useful task in their own words, handles one approval or recoverable failure, and finds the resulting output; the run records time to first useful result, every confusion point, assistance requested, and the fixes or explicit release waivers, then repeats after blocking fixes with no coaching beyond the in-product UI.",
+      "summary": "Run the first zero-cost external usability proof: a voluntary non-developer completes the current packaged Desktop work loop without Vanta repository context or paid recruiting, research, CI, hosting, or participant services.",
+      "done": "A voluntary, uncompensated fresh non-developer operator gives informed consent, launches the exact packaged release candidate with no Vanta repo context, identifies the model and access boundary, starts one useful task in their own words, handles one approval or recoverable failure, and finds the resulting output; the run records time to first useful result, every confusion point, assistance requested, and the fixes or explicit release waivers, then repeats after blocking fixes with no coaching beyond the in-product UI. No sensitive account data is requested, the participant may stop at any time, no new spend is incurred, and the resulting evidence is labeled as one usability run rather than representative market proof.",
       "tier": "rock",
       "model": "sonnet",
       "effort": "low",
@@ -19781,7 +19781,7 @@
         "DESKTOP-MODEL-RUNTIME-STATUS-CLARITY",
         "DESKTOP-PROVIDER-AUTH-VALIDATION-RECOVERY"
       ],
-      "parkedReason": "external proof"
+      "notes": "NEXT 2026-08-18: owner-authorized zero-cost user testing. Use only voluntary participation and existing owner-controlled local/open-source tooling. No paid participants, recruiters, research platforms, GitHub Actions, hosting, outreach automation, or other new service spend."
     },
     {
       "id": "DESKTOP-RELEASE-CANDIDATE-PROVENANCE",
@@ -20769,14 +20769,17 @@
       "source": "vanta-total-realignment-correction-2026-07-30",
       "id": "GROW-01",
       "track": "Solutioning",
-      "title": "Phase-0 trusted-continuity evidence lane — interviews, pilots, burden, retention, and price",
-      "status": "next",
+      "title": "Phase-0 trusted-continuity evidence lane — voluntary interviews, pilots, burden, and retention",
+      "status": "horizon",
       "size": "S",
       "effort": "medium",
       "lens": "reach",
-      "summary": "Begin commercial and usefulness learning manually: test the same capture → recommend/prepare/act → wait/resume → verify/close contract across bounded life-and-work tasks with chronic and situational executive burden.",
-      "done": "Ten functional-problem interviews and five accessibly supported continuity pilots intentionally include neurodivergent/disabled paid co-design and situational burden without diagnosis gating; assisted/unassisted use, task domains, acquisition source, weeks-three/four repeat loops, burden change, verified outcomes, payment or explicit price/value rejection, revenue, founder support minutes, incidents, and non-return reasons are recorded; unknowns remain unproven; a precommitted continue/change/park date and weekly time/expense ceiling are recorded; fixtures cannot close the card.",
-      "notes": "Manual evidence lane; it consumes no development WIP and authorizes no mass outreach, enrichment, CRM, billing, community, analytics, or source implementation."
+      "summary": "After the first cold-operator proof, test the same capture → recommend/prepare/act → wait/resume → verify/close contract across bounded life-and-work tasks using voluntary, zero-cost interviews and pilots.",
+      "done": "Ten voluntary functional-problem interviews and five voluntary, accessibly supported continuity pilots include neurodivergent/disabled lived experience and situational burden without diagnosis gating; assisted/unassisted use, task domains, acquisition source, weeks-three/four repeat loops, burden change, verified outcomes, founder support minutes, incidents, non-return reasons, and the selection and representativeness limits of an uncompensated cohort are recorded; unknowns remain unproven; a precommitted continue/change/park date and zero-expense ceiling are recorded; fixtures cannot close the card.",
+      "notes": "HORIZON 2026-08-18: zero-cost manual evidence lane after DESKTOP-COLD-OPERATOR-RELEASE-PROOF. It consumes no development WIP and authorizes no participant payment, paid recruiting, paid research platform, mass outreach, enrichment, CRM, billing, community, analytics, hosting, CI spend, or source implementation.",
+      "after": [
+        "DESKTOP-COLD-OPERATOR-RELEASE-PROOF"
+      ]
     },
     {
       "tier": "rock",
