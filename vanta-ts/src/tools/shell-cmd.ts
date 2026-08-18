@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import { promisify } from "node:util";
-import { dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { join } from "node:path";
 import { z } from "zod";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
 import { spawnBackground } from "./bg-tasks.js";
@@ -23,7 +23,11 @@ import {
 } from "./shell-output.js";
 import { sandboxServeRecovery } from "./sandbox-recovery.js";
 import { resolveShellInvocation } from "../platform/shell.js";
-import { addSessionDir, canonicalPath, isDangerousPath } from "./writable-zones.js";
+import { addSessionDir } from "./writable-zones.js";
+import {
+  externalDirectMkdirTargets,
+  resolvedMkdirSafetySuffix,
+} from "./shell-mkdir-scope.js";
 import { buildSafeChildEnv } from "../exec/child-env.js";
 import {
   executeEffect,
@@ -169,49 +173,11 @@ export function shellCommandCwd(root: string): string {
   return isCwdChanged() ? sessionCwd() : root;
 }
 
-const DIRECT_MKDIR =
-  /^\s*mkdir(?:\s+(?:-[A-Za-z]+|--))*\s+(?:'([^']+)'|"([^"\\`$]+)"|([^\s'";&|`$<>(){}\[\]*?]+))(?=\s*(?:&&|;|$))/;
-
-/** Resolve the one direct mkdir shape eligible for a one-run sandbox grant. */
-export function directMkdirTarget(command: string, cwd: string): string | null {
-  const match = DIRECT_MKDIR.exec(command);
-  const raw = match?.[1] ?? match?.[2] ?? match?.[3];
-  if (!raw || raw.startsWith("~")) return null;
-  const target = canonicalPath(resolve(cwd, raw));
-  return isDangerousPath(target).dangerous ? null : target;
-}
+export { approvedMkdirWritableDirs, directMkdirTarget, externalDirectMkdirTarget, externalDirectMkdirTargets } from "./shell-mkdir-scope.js";
 
 /** Show the kernel and operator where a relative mkdir will actually land. */
 export function shellCommandSafetyAction(command: string, cwd: string): string {
-  const target = directMkdirTarget(command, cwd);
-  const resolved = target ? ` (resolved mkdir target: ${target})` : "";
-  return `run shell command: ${command}${resolved}`;
-}
-
-/** Return the resolved target only when it leaves the canonical project root. */
-export function externalDirectMkdirTarget(command: string, cwd: string, root: string): string | null {
-  const target = directMkdirTarget(command, cwd);
-  if (!target) return null;
-  const fromRoot = relative(canonicalPath(resolve(root)), target);
-  return fromRoot.startsWith("..") || isAbsolute(fromRoot) ? target : null;
-}
-
-/**
- * Return the existing parent that a directly invoked mkdir needs writable. This
- * intentionally recognizes only a single plain mkdir target at command start;
- * arbitrary shell syntax never widens a sandbox binding. The caller supplies
- * this only after the kernel has asked and the operator has approved.
- */
-export function approvedMkdirWritableDirs(command: string, cwd: string): string[] {
-  const target = directMkdirTarget(command, cwd);
-  if (!target) return [];
-  let parent = dirname(target);
-  while (!existsSync(parent)) {
-    const next = dirname(parent);
-    if (next === parent) return [];
-    parent = next;
-  }
-  return [canonicalPath(parent)];
+  return `run shell command: ${command}${resolvedMkdirSafetySuffix(command, cwd)}`;
 }
 
 /** Spawn options for the child. Session env (VANTA-SESSION-ENV) is merged over
@@ -367,9 +333,11 @@ export const shellCmdTool: Tool = {
     // A human-approved direct mkdir is a project handoff, not a one-command dead end.
     // Keep only the exact newly-created directory writable for the rest of this
     // session; the dangerous-path floor and kernel gate still apply on every call.
-    const externalTarget = externalDirectMkdirTarget(command, shellCommandCwd(ctx.root), ctx.root);
-    if (result.ok && externalTarget && existsSync(externalTarget) && ctx.sandboxWritableDirs?.length) {
-      addSessionDir(externalTarget, process.env);
+    const externalTargets = externalDirectMkdirTargets(command, shellCommandCwd(ctx.root), ctx.root);
+    if (result.ok && ctx.sandboxWritableDirs?.length) {
+      for (const target of externalTargets) {
+        if (existsSync(target)) addSessionDir(target, process.env);
+      }
     }
     return result;
   },

@@ -1,3 +1,5 @@
+import { dirname } from "node:path";
+
 // Sandbox-violation expanded view (VANTA-SANDBOX-VIOLATION) — PURE parse + hint
 // + format. When the OS sandbox (sandbox/run.ts → macOS Seatbelt / Linux bwrap)
 // blocks an action, the command's stderr/stdout carries a deny signal. These
@@ -47,6 +49,7 @@ const SEATBELT_DENY = /\bdeny(?:\((?:\d+)\))?\s+([a-z][a-z0-9-]*)(?:\s+(\S+))?/i
 // Linux bwrap surfaces a bare "bwrap: ... Permission denied" for write/exec; a
 // network attempt under --unshare-net surfaces from the wrapped tool itself.
 const BWRAP_DENY = /\bbwrap:.*permission denied/i;
+const MKDIR_WRITE_DENY = /(?:^|\n)mkdir:\s+(.+?):\s+operation not permitted\b/i;
 const SECCOMP_DENY = /\boperation not permitted\b/i;
 const NET_UNREACHABLE = /\bnetwork is unreachable\b|\bcould not resolve host\b/i;
 
@@ -85,6 +88,14 @@ export function parseSandboxViolation(errorText: string): SandboxViolation | nul
     const rule = seatbelt[1]!.toLowerCase();
     return { kind: kindForOp(rule), target: asTarget(seatbelt[2]), rule };
   }
+  const mkdir = MKDIR_WRITE_DENY.exec(errorText);
+  if (mkdir) {
+    return {
+      kind: "file-write",
+      target: asTarget(mkdir[1]),
+      rule: "file-write-create",
+    };
+  }
   if (NET_UNREACHABLE.test(errorText)) {
     return { kind: "network", rule: "network-outbound" };
   }
@@ -107,8 +118,8 @@ export function violationHint(violation: SandboxViolation): string {
   switch (violation.kind) {
     case "file-write":
       return violation.target
-        ? `add ${cleanTarget(violation.target)}'s directory to VANTA_WRITABLE_DIRS to allow this write`
-        : "add the target directory to VANTA_WRITABLE_DIRS to allow this write";
+        ? `run /add-dir ${dirname(cleanTarget(violation.target))} for this session, or add that directory to comma-separated VANTA_WRITABLE_DIRS before launching Vanta`
+        : "run /add-dir with the target directory for this session, or add it to comma-separated VANTA_WRITABLE_DIRS before launching Vanta";
     case "file-read":
       return violation.target
         ? `add ${cleanTarget(violation.target)}'s directory to VANTA_READABLE_DIRS to allow this read`

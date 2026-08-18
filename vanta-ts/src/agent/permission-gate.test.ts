@@ -168,6 +168,20 @@ describe("applySafetyGate + permissions", () => {
     }
   });
 
+  it("passes writable parents for the approved multi-target HOME mkdir used by setup", async () => {
+    const command = 'mkdir -p "$HOME/.local/firecrawl-tools" "$HOME/.codex/skills"';
+    let prompted = false;
+    const res = await applySafetyGate(
+      { id: "mkdir-home-pair", name: "shell_cmd", arguments: { command } },
+      makeDeps({ risk: "allow", approve: true, onAsk: () => { prompted = true; } }),
+      { root: home } as ToolContext,
+    );
+
+    expect(prompted).toBe(true);
+    expect(res.approved).toBe(true);
+    expect(res.sandboxWritableDirs?.length).toBeGreaterThan(0);
+  });
+
   it("canonicalizes a relative mkdir before the kernel verdict", async () => {
     const root = await mkdtemp(join(tmpdir(), "vanta-relative-mkdir-"));
     let assessed = "";
