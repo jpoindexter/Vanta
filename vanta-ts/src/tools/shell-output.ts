@@ -3,6 +3,7 @@ import { parseVantaHints, formatHintSuggestion } from "../hints/vanta-hints.js";
 import { limitOutput, resolveMaxOutput } from "./bash-output-limit.js";
 import { shouldShowTiming, buildTimingNote } from "./shell-timing.js";
 import { formatJsonInOutput } from "../term/json-format.js";
+import { formatSandboxViolation, parseSandboxViolation } from "../sandbox/violation-view.js";
 
 // Pure output/result formatting for shell_cmd. Extracted from shell-cmd.ts (size
 // gate). NONE of this touches the gating/assess/sandbox decision path — it only
@@ -57,7 +58,10 @@ export function formatRunFailure(command: string, e: RunError, pfx: string): Too
         "Recovery: retry with a larger bounded timeout_ms (max 120000), narrow the input, process it in chunks, or run it as a background task outside sandbox mode.",
     };
   }
-  return { ok: false, output: pfx + (out || e.message) };
+  const failure = out || e.message;
+  const violation = parseSandboxViolation(failure);
+  const recovery = violation ? `\n${formatSandboxViolation(violation)}` : "";
+  return { ok: false, output: pfx + failure + recovery };
 }
 
 /**

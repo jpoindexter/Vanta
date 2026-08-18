@@ -26,7 +26,7 @@ Agent-layer config lives in `vanta-ts/.env` (gitignored; `.env.example` document
 | `VANTA_ROOT` | Overrides the kernel's working-dir scope |
 | `VANTA_MAX_ITER` | Max tool iterations per turn |
 | `VANTA_HOME` | Global store dir (default `~/.vanta`) |
-| `VANTA_WRITABLE_DIRS` / `VANTA_READABLE_DIRS` | Out-of-repo write/read zones |
+| `VANTA_WRITABLE_DIRS` / `VANTA_READABLE_DIRS` | Comma-separated out-of-repo write/read zones; `/add-dir <path>` grants one writable directory for the current session |
 
 ## Search & web
 | Variable | Purpose |

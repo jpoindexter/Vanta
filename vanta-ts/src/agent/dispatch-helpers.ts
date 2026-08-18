@@ -18,7 +18,7 @@ import { fireHooks } from "../hooks/shell-hooks.js";
 import { buildPermDeniedPayload, shouldFirePermDenied } from "../hooks/perm-denied.js";
 import { gateAuditEvent, type GateResolution } from "../governance/audit.js";
 import { join } from "node:path";
-import { approvedMkdirWritableDirs, externalDirectMkdirTarget, shellCommandCwd, shellCommandSafetyAction } from "../tools/shell-cmd.js";
+import { approvedMkdirWritableDirs, externalDirectMkdirTargets, shellCommandCwd, shellCommandSafetyAction } from "../tools/shell-cmd.js";
 import type { ToolResult } from "../tools/types.js";
 import { persistApprovalTransition } from "./effect-persistence.js";
 import { executeToolEffect } from "../effects/tool-effect-gateway.js";
@@ -86,9 +86,9 @@ export async function applySafetyGate(
   const replayDecision = forceFreshApproval && verdict.risk === "ask" && decision.decision !== "block"
     ? { decision: "ask" as const, reason: "replay requires a fresh approval" }
     : decision;
-  const externalMkdir = localShell ? externalDirectMkdirTarget(String(call.arguments.command), shellCwd, ctx.root) : null;
-  const effectiveDecision = replayDecision.decision === "allow" && externalMkdir
-    ? { decision: "ask" as const, reason: `create a directory outside the project root at ${externalMkdir}` }
+  const externalMkdirs = localShell ? externalDirectMkdirTargets(String(call.arguments.command), shellCwd, ctx.root) : [];
+  const effectiveDecision = replayDecision.decision === "allow" && externalMkdirs.length > 0
+    ? { decision: "ask" as const, reason: `create directories outside the project root at ${externalMkdirs.join(", ")}` }
     : replayDecision;
   const permissionMode = ctx.permissionMode?.() ?? resolvePermissionMode(process.env);
 

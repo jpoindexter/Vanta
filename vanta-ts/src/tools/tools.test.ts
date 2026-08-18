@@ -406,6 +406,29 @@ describe("shell_cmd", () => {
     }
   });
 
+  it("keeps every approved multi-target mkdir writable for the session", async () => {
+    const parent = dirname(root);
+    const first = join(parent, `vanta setup first ${Date.now()}`);
+    const second = join(parent, `vanta setup second ${Date.now()}`);
+    const previous = process.env.VANTA_EXTRA_DIRS;
+    try {
+      delete process.env.VANTA_EXTRA_DIRS;
+      const res = await shellCmdTool.execute(
+        { command: `mkdir -p '${first}' '${second}'` },
+        ctx({ sandboxWritableDirs: [canonicalPath(parent)] }),
+      );
+      expect(res.ok).toBe(true);
+      const sessionDirs = String(process.env.VANTA_EXTRA_DIRS ?? "").split(",");
+      expect(sessionDirs).toContain(canonicalPath(first));
+      expect(sessionDirs).toContain(canonicalPath(second));
+    } finally {
+      if (previous === undefined) delete process.env.VANTA_EXTRA_DIRS;
+      else process.env.VANTA_EXTRA_DIRS = previous;
+      await rm(first, { recursive: true, force: true });
+      await rm(second, { recursive: true, force: true });
+    }
+  });
+
   it("keeps an approved external project writable for a later git init", async () => {
     const target = join(dirname(root), `vanta git project ${Date.now()}`);
     const previous = process.env.VANTA_EXTRA_DIRS;

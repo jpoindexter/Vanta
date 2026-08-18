@@ -25,6 +25,17 @@ describe("parseSandboxViolation", () => {
     expect(v?.rule).toBe("file-read-data");
   });
 
+  it("parses macOS mkdir EPERM as a file-write deny", () => {
+    const v = parseSandboxViolation(
+      "mkdir: /Users/x/.local/firecrawl-tools: Operation not permitted",
+    );
+    expect(v).toEqual({
+      kind: "file-write",
+      target: "/Users/x/.local/firecrawl-tools",
+      rule: "file-write-create",
+    });
+  });
+
   it("parses a network deny (Seatbelt network-outbound) into kind network", () => {
     const v = parseSandboxViolation("deny(1) network-outbound 93.184.216.34:443");
     expect(v?.kind).toBe("network");
@@ -64,6 +75,8 @@ describe("parseSandboxViolation", () => {
 describe("violationHint", () => {
   it("a file-write deny gets the writable-dirs hint", () => {
     const hint = violationHint({ kind: "file-write", target: "/Users/x/out.txt" });
+    expect(hint).toContain("/add-dir /Users/x");
+    expect(hint).toContain("comma-separated");
     expect(hint).toContain("VANTA_WRITABLE_DIRS");
   });
 
