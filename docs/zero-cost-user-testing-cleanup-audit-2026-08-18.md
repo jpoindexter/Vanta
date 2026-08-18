@@ -43,8 +43,8 @@ Vanta's sole dependency-ready `Next` outcome is the first cold-operator release 
 | Roadmap graph | Pass | 1,331 unique; zero missing, self, or cyclic dependencies |
 | Runtime dependency audit | Pass | Zero vulnerabilities |
 | RustSec | Pass | Zero advisories in the lockfile |
-| Proposed-file Semgrep scan | Pass | 39 rules over 10 files; zero findings |
-| Complete-history and repository snapshot secret scan | Pass | 3,022 commits and current tracked/non-ignored snapshot; zero findings |
+| Proposed-file Semgrep scan | Pass | 39 rules over 11 files; zero findings |
+| Complete-history and repository snapshot secret scan | Pass | Complete Git history and current tracked/non-ignored snapshot; zero findings |
 | Protected/forbidden-path scan | Pass | No protected Rust, factory, `MANIFESTO.md`, `.vanta`, quarantine, recovery, Hermes, or Nightcode path in the proposed change |
 | Whitespace validation | Pass | `git diff --check` exit 0 |
 

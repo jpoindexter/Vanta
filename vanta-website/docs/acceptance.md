@@ -32,7 +32,10 @@ contract, accessible interruption/re-entry, and one read-only operator spine.
 This source stack is still awaiting repository integration and is not the
 public Desktop release. Cross-platform packages, live external accounts,
 external participants, and future effect paths remain separate proof gates.
-`GROW-01` is the sole Next card and no paid research or outreach is active.
+The voluntary, zero-cost Desktop cold-operator proof is the sole Next card.
+`GROW-01` is deferred to Horizon behind it. No paid participants, recruiting,
+research platforms, GitHub Actions, hosting, outreach, or other new service
+spend is authorized.
 
 The exact 2026-08-14 runtime dependency graph reports zero npm advisories. The
 static documentation toolchain retains two upstream `image-size` advisories with
