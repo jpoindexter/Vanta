@@ -18,7 +18,7 @@ Vanta's sole dependency-ready `Next` outcome is the first cold-operator release 
 
 ## Repository preservation and cleanup
 
-- The active stack remains 78 commits ahead of `origin/main` and zero commits behind.
+- The inherited feature stack was 78 commits ahead of `origin/main`; scoped cleanup commits sit above it, and the branch remains zero behind.
 - Four inherited dirty worktrees containing 160 entries were backed up outside the repository, reconciled, and returned to clean status without discarding their contents.
 - Five unpublished legacy branches were retained as explicit local archives. They were not pushed because their changes are already represented by, superseded by, or intentionally excluded from the consolidated stack.
 - Superseded draft PRs #26 and #27 were closed only after confirming their heads are ancestors of draft PR #28. Their commits and remote branches were not deleted.
