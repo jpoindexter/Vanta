@@ -172,9 +172,11 @@ binding, review, and explicit reauthorization.
    quarantine), and `TRUST-06` (factory/self-repair production boundary) remain
    dependency-ordered Horizon work; shipped cards do not promote them.
 5. `UX-04` remains the broader cross-host accessibility and first-run contract.
-6. `GROW-01` is the sole Next card. Manual interviews and bounded continuity
-   pilots are deferred; no paid research, outreach, or participant work is
-   active.
+6. `DESKTOP-COLD-OPERATOR-RELEASE-PROOF` is the sole Next card. It permits one
+   voluntary, uncompensated fresh non-developer usability run against an exact
+   packaged candidate. `GROW-01` is Horizon work after that proof. No paid
+   participant, recruiting, research-platform, CI, hosting, outreach, or other
+   new service spend is authorized.
 7. The documentation toolchain retains two upstream `image-size` advisories with
    no patched npm release. It is build-time on self-authored content and remains
    visible until upstream ships a fix.

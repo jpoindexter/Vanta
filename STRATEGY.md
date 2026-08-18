@@ -14,7 +14,7 @@ The wedge is not feature count or a narrow vertical. Vanta owns the thread: unde
 
 Executive capacity is finite and variable for everyone. Stress, sleep, illness, pain, aging, caregiving, parenting, grief, disability, workload, unfamiliar situations, and interruption all change what a person can carry.
 
-Use neurodivergent and disabled experience as paid co-design input and non-negotiable source requirements. Make the resulting curb cuts—capture without taxonomy, concrete representation, one recommendation, time and transition support, low-friction initiation, re-entry, quiet proactivity, safe delegation, and shame-free recovery—available to everyone by default.
+Use neurodivergent and disabled experience as voluntary co-design input and non-negotiable source requirements. Vanta roadmap work incurs no new participant, recruiting, research-platform, CI, hosting, outreach, or service spend unless the owner makes a later explicit exception. Make the resulting curb cuts—capture without taxonomy, concrete representation, one recommendation, time and transition support, low-friction initiation, re-entry, quiet proactivity, safe delegation, and shame-free recovery—available to everyone by default. Record the selection and representativeness limits of uncompensated participation rather than generalizing beyond the evidence.
 
 Do not infer diagnosis, require disclosure, create a paternalistic “ND mode,” or treat one support pattern as universal. Preferences and situational supports are negotiated, visible, scoped, correctable, expiring where appropriate, and immediately dismissible.
 
@@ -209,7 +209,7 @@ These 28 IDs are a dependency and acceptance map. Only reconciled
 
 Evaluation, dogfood, and market evidence attach to the two build lanes; they do not consume a third development slot.
 
-Phase-0 market learning begins manually. Run functional executive-burden interviews and bounded continuity-loop pilots across life and work with an intentionally inclusive cohort. Separate assisted from unassisted use; record domains, burden change, retention, payment, revenue, support time, incidents, and reasons for non-return. Unknown values remain `unproven`. Fixtures and shipped modules cannot close demand evidence.
+Phase-0 learning begins with the zero-cost cold-operator Desktop proof, then advances to voluntary functional executive-burden interviews and bounded continuity-loop pilots across life and work. Separate assisted from unassisted use; record domains, burden change, retention, support time, incidents, reasons for non-return, and the limits of the volunteer sample. No participant payment, paid recruiting, research platform, CI, hosting, outreach automation, or other new service spend is authorized. Unknown values remain `unproven`. Fixtures and shipped modules cannot close demand evidence.
 
 ## Build-order rule
 

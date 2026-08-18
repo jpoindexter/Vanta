@@ -8,17 +8,17 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1286 capabilities shipped · 1 in flight · 14 parked external-proof items · 6 on the horizon. Updated 2026-08-14._
+_1286 capabilities shipped · 1 in flight · 13 parked external-proof items · 7 on the horizon. Updated 2026-08-18._
 
 ## In flight
 
 What we are actively building next.
 
-### Phase-0 trusted-continuity evidence lane — interviews, pilots, burden, retention, and price
+### Desktop cold-operator release proof — one useful task without repo knowledge
 
-**Solutioning** · S-size
+**Operator** · S-size
 
-Begin commercial and usefulness learning manually: test the same capture → recommend/prepare/act → wait/resume → verify/close contract across bounded life-and-work tasks with chronic and situational executive burden
+Run the first zero-cost external usability proof: a voluntary non-developer completes the current packaged Desktop work loop without Vanta repository context or paid recruiting, research, CI, hosting, or participant services
 
 ## Recently shipped
 
@@ -60,7 +60,6 @@ These remain unshipped until the real provider, device, or hosted environment pr
 - **Shopify operations - scoped catalog, orders, inventory, and verified mutations** — Operator
 - **Telephony consent lifecycle - provision numbers, SMS, calls, callbacks, and retention** — Reach
 - **Commerce and telephony skill pack - Shopify, shopping, returns, SMS, and calls** — Reach
-- **Desktop cold-operator release proof — one useful task without repo knowledge** — Desktop App
 - **Desktop release-candidate provenance — notarize and bind the exact commit** — Desktop App
 - **Look capture — native macOS screen, window, or marquee vision from CLI and Desktop** — Operator
 
@@ -79,3 +78,7 @@ Directional, not committed — grouped by area, newest thinking first.
 - Trustworthy Needs You — deterministic, deduplicated, expiring, and auto-resolving
 - Contextual Review, first-run usefulness, and cross-host accessibility contract
 - Quarantined read-only morning orientation
+
+### Solutioning — 1 planned
+
+- Phase-0 trusted-continuity evidence lane — voluntary interviews, pilots, burden, and retention
