@@ -44,6 +44,7 @@ const USAGE_LINES = [
       "       vanta setup model                  just the model/provider picker",
       "       vanta setup messaging [platform]   configure a messaging gateway (for example: telegram)",
       "       vanta setup tts                    configure the voice/TTS provider (Edge keyless, OpenAI, ElevenLabs, local)",
+      "       vanta browser auth <site>          open Vanta's dedicated browser profile for a manual login",
       "       vanta voice wake [on|off|status|listen]   opt-in local Hey Vanta listener",
       "       vanta config <get|set|edit|check>  manage settings (~/.vanta/config.json; secrets → .env)",
       "       vanta status                       health check (kernel, provider, keys, store)",

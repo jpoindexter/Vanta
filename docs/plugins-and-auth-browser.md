@@ -55,24 +55,20 @@ encryption, high secret-handling risk, easy to leak auth cookies. Instead Vanta 
 
 ### Flow
 ```
-vanta browser auth x.com         # opens a HEADED Chromium in ~/.vanta/browser-profiles/x.com/
-                                # you log in manually — Vanta never sees password/2FA
-                                # close the window → session stays in that profile
-browser_extract_auth({url, profile:"x.com", what:"text"})   # headless launchPersistentContext, read-only
+vanta browser auth example.com   # opens a HEADED Chromium in ~/.vanta/browser-profile/
+                                 # you log in manually — Vanta never sees password/2FA
+                                 # press Enter in the terminal → session persists
+browser_navigate({url:"https://example.com/account"})        # later calls reuse the profile
 ```
 
 ### Tools (built on existing browser-extract/navigate/screenshot + isAllowedDomain)
-- `browser_auth({site})` — create/login a profile (headed, manual login, no cookie read).
-- `browser_extract_auth({url, profile, what})` — read text/links/tables from a logged-in
-  page (headless), domain-bound, then close.
-- `browser_profiles` — list profiles (domains + timestamps + mode only — **no cookies**).
-- `browser_forget <site>` — remove a profile (approval-gated; deletes auth state).
-- `browser_navigate_auth` (click/fill) — **later**, approval-gated per action.
+- `vanta browser auth <site>` — create/login to Vanta's dedicated persistent profile in a headed browser.
+- `browser_navigate` / `browser_act` — reuse that profile for allowed domains; risky actions remain approval-gated.
+- `~/.vanta/browser-profile/` — one local Vanta-owned profile; **no cookies are returned to the model**.
 
 ### Safety rules (non-negotiable)
 1. Dedicated profile only — never import real-browser cookies.
-2. Domain-bound — an `x.com` profile may visit only `x.com`/`twitter.com`; redirect
-   elsewhere → stop unless approved.
+2. Domain allowlist — off-list navigation requires approval; redirects and site policy can still block use.
 3. Never return cookies, auth headers, localStorage, sessionStorage, or raw session
    blobs — only visible text/links/tables (screenshots if approved).
 4. Read-only by default; posting/DM/like/follow/settings/purchase = explicit approval each
@@ -82,20 +78,13 @@ browser_extract_auth({url, profile:"x.com", what:"text"})   # headless launchPer
 6. Visible indicator — say "Using authenticated profile: x.com" on every authed use.
 
 ### Files
-- `vanta-ts/src/browser/profile.ts` — `browserProfileRoot(env)`, `sanitizeProfileId`
-  (reject `../`), `profilePath` (`mkdir 0700` under `~/.vanta/browser-profiles`),
-  `profileAllowsUrl(profile, url)`.
-- `vanta-ts/src/tools/browser-auth.ts`, `browser-extract-auth.ts` — registered in
-  `tools/index.ts`.
-- Tests (mostly pure, no live browser): id sanitization rejects `../../secrets`; path
-  stays under `~/.vanta/browser-profiles`; `x.com` allows `x.com/search`, refuses
-  `evil.com`; authed extract output never contains cookies; missing profile → actionable
-  error.
+- `vanta-ts/src/browser/profile.ts` — resolves the dedicated profile and enables persistent reuse.
+- `vanta-ts/src/cli/browser-cmd.ts` — headed manual-login flow.
+- `vanta-ts/src/browser/launch.ts` — persistent/ephemeral page acquisition shared by browser tools.
+- Tests cover URL resolution, profile selection, allowlisting, and persistent launch behavior. Live site acceptance remains site-specific.
 
 ### First slice — AUTH-BROWSER-1 (read-only)
-`profile.ts` helper + `browser_auth` + `browser_extract_auth` + registration + tests. No
-navigate/click/fill yet. **Done:** `browser_auth x.com` → manual login → `browser_extract_auth`
-reads X search results from the profile; cookies stay confined; tests prove it.
+`profile.ts` helper + `vanta browser auth <site>` + persistent `browser_navigate`/`browser_act` reuse. Login state stays in Vanta's local profile. This capability does not override a site's terms or anti-automation controls.
 
 ## "Universal" — three layers
 The same capability ships at three reuse levels:

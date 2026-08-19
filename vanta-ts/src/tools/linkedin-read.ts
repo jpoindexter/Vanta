@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { openWithSession } from "../reach/browser-session.js";
 import { extractBrowserCookies } from "../reach/browser-cookies.js";
-import { loadCookie } from "../reach/cookie.js";
+import { cookieHasName, loadCookie } from "../reach/cookie.js";
 
 const Args = z.object({
   url: z.string().url(),
@@ -12,22 +12,31 @@ const Args = z.object({
 
 const DEFAULT_MAX = 12_000;
 
+export function hasLinkedInSession(cookie: string | null): cookie is string {
+  return cookie !== null && cookieHasName(cookie, "li_at");
+}
+
+export function looksLikeLinkedInSignIn(text: string): boolean {
+  return /new to linkedin|join now|sign in with|email or phone/i.test(text);
+}
+
 /** The LinkedIn session: live from the browser store, else a stored cookie. */
 function linkedinSession(browser?: "brave" | "chrome" | "edge"): string | null {
   if (browser) {
     const r = extractBrowserCookies({ browser, hostLike: "%linkedin.com" });
-    if (r.ok) return r.cookie;
+    if (r.ok && hasLinkedInSession(r.cookie)) return r.cookie;
   }
-  return loadCookie("linkedin");
+  const stored = loadCookie("linkedin");
+  return hasLinkedInSession(stored) ? stored : null;
 }
 
 export const linkedinReadTool: Tool = {
   schema: {
     name: "linkedin_read",
     description:
-      "Read a LinkedIn profile, company, post, or search-results page (login-walled + JS-rendered) through a real browser " +
-      "using your logged-in session. Pass browser:\"brave\" to auto-use your LinkedIn login, or cookie_import a linkedin cookie first. " +
-      "Returns the page's visible text. (Built on the browser-session reach capability.)",
+      "Read-only access to a LinkedIn page through a complete logged-in browser session. " +
+      "LinkedIn may refuse automated access; never use this tool for messages, applications, or profile changes. " +
+      "Prefer a LinkedIn data export or approved OAuth when available. Returns visible text only.",
     parameters: {
       type: "object",
       properties: {
@@ -45,8 +54,28 @@ export const linkedinReadTool: Tool = {
     if (!/^https?:\/\/(www\.)?linkedin\.com\//i.test(parsed.data.url)) {
       return { ok: false, output: "linkedin_read is for linkedin.com URLs — use browser_read for other sites" };
     }
-    const r = await openWithSession(parsed.data.url, linkedinSession(parsed.data.browser));
+    const session = linkedinSession(parsed.data.browser);
+    if (!session) {
+      return {
+        ok: false,
+        output:
+          "LinkedIn is not authenticated (no li_at session cookie). " +
+          "Use a LinkedIn data export or approved OAuth; keep profile edits, messages, and applications manual.",
+      };
+    }
+    const r = await openWithSession(parsed.data.url, session);
     if (!r.ok) return { ok: false, output: `linkedin_read failed: ${r.error}` };
-    return { ok: true, output: r.text.slice(0, parsed.data.max ?? DEFAULT_MAX) || "(no visible text — log into LinkedIn in your browser, or cookie_import linkedin)" };
+    if (looksLikeLinkedInSignIn(r.text)) {
+      return {
+        ok: false,
+        output:
+          "LinkedIn rejected the session and returned sign-in. Vanta will not report this as authenticated. " +
+          "Refresh access through an approved path or use a LinkedIn data export.",
+      };
+    }
+    return {
+      ok: true,
+      output: r.text.slice(0, parsed.data.max ?? DEFAULT_MAX) || "(no visible text — use a LinkedIn data export or approved OAuth)",
+    };
   },
 };

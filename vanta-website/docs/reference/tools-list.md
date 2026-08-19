@@ -300,7 +300,7 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 
 ### `linkedin_read`
 
-Read a LinkedIn profile, company, post, or search-results page (login-walled + JS-rendered) through a real browser using your logged-in session. Pass browser:"brave" to auto-use your LinkedIn login, or cookie_import a linkedin cookie first. Returns the page's visible text. (Built on the browser-session reach capability.)
+Read-only access to a LinkedIn page through a complete logged-in browser session. LinkedIn may refuse automated access; never use this tool for messages, applications, or profile changes. Prefer a LinkedIn data export or approved OAuth when available. Returns visible text only.
 
 | Param | Type | Required | Description |
 |---|---|---|---|

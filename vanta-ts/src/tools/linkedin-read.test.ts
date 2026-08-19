@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { linkedinReadTool } from "./linkedin-read.js";
+import { hasLinkedInSession, linkedinReadTool, looksLikeLinkedInSignIn } from "./linkedin-read.js";
 import type { ToolContext } from "./types.js";
 
 const ctx = {} as ToolContext;
@@ -19,5 +19,16 @@ describe("linkedin_read", () => {
 
   it("describeForSafety surfaces the url", () => {
     expect(linkedinReadTool.describeForSafety?.({ url: "https://www.linkedin.com/in/x" })).toBe("linkedin read https://www.linkedin.com/in/x");
+  });
+
+  it("requires LinkedIn's authentication cookie instead of any cookie file", () => {
+    expect(hasLinkedInSession("JSESSIONID=ajax:1; bcookie=id")).toBe(false);
+    expect(hasLinkedInSession("li_at=auth; JSESSIONID=ajax:1")).toBe(true);
+    expect(hasLinkedInSession(null)).toBe(false);
+  });
+
+  it("recognizes LinkedIn's signed-out interstitial", () => {
+    expect(looksLikeLinkedInSignIn("New to LinkedIn? Join now. Sign in with email or phone")).toBe(true);
+    expect(looksLikeLinkedInSignIn("Feed My Network Jobs Messaging Notifications")).toBe(false);
   });
 });
