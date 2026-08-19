@@ -12,6 +12,7 @@ export const CONCURRENCY_SAFE_TOOLS = new Set<string>([
   "read_file",
   "grep_files",
   "glob_files",
+  "job_profile_scan",
   "inspect_state",
   "recall",
   "web_search",

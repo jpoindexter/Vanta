@@ -153,6 +153,7 @@ describe("EntryView", () => {
       checked: 1,
       verificationPassed: 1,
       verificationFailed: 0,
+      completionClaimUnverified: false,
       recoveredFailures: 0,
       failures: 0,
     };

@@ -101,6 +101,7 @@ describe("registry", () => {
       "grep_files",
       "inspect_context",
       "inspect_state",
+      "job_profile_scan",
       "lan_control",
       "lan_discover",
       "life_search",

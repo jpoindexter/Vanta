@@ -160,7 +160,7 @@ hosts must be classified and proved before they inherit that claim:
 - Core loop: goal-inject → plan → assess → execute → record effect and evidence
   state. Some tools perform deterministic readback; the separate post-turn LLM
   completion verifier is opt-in (`VANTA_VERIFY=1`), not a universal invariant.
-  OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 150 registered tools and
+  OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 151 registered tools and
   155 commands
 - **Goals** — kernel goal ledger plus TS dependency graph (`/goal blocks`, `/goal blocked_by`, `vanta goals`)
 - **Skills & memory** — learned `~/.vanta/skills`, `/skills audit` for local skill injection-scan findings, a configurable public registry client with quarantine/approval/update rollback, per-goal memory, curator, LLM context compression with [settled local Git versioning](docs/local-store-versioning.md), and checked-in product-validation playbooks for problem hypotheses, customer discovery, MVP scope, PMF diagnosis, founder bottlenecks, and GTM planning
@@ -176,6 +176,7 @@ hosts must be classified and proved before they inherit that claim:
 - **Sparse attention** — the bounded `sparge_attention` tool diagnoses, plans, integrates, and benchmarks the separately installed SpargeAttention runtime for compatible local PyTorch/NVIDIA CUDA inference; hosted model APIs and Apple Silicon acceleration are explicitly out of scope
 - **Memory Sparse Attention** — an optional [TypeScript MSA adapter](docs/msa-long-context.md) keeps Vanta and its local brain Python-free, reaches a separately operated NVIDIA long-context runtime over a strict service contract, falls back locally on failure, and exposes the same governed capability to other MCP clients
 - **Local document reading** — `document_read` converts Word, PowerPoint, Excel, OpenDocument, RTF, EPUB, CSV, and text-based PDF files to Markdown on-device; `pdf_read` keeps its existing interface on the same bounded parser, and corpus ingest accepts the same formats. Scanned PDFs report that OCR is required instead of uploading the file.
+- **Private job-profile recall** — `job_profile_scan` performs a bounded, read-only scan of recent local Claude and Codex JSONL archives, returns only user-authored job/profile excerpts, skips subagents and skill injections, redacts credential-shaped values, and never writes an intermediate transcript file.
 - **Code & dev** — scoped file editing, grep/glob, `run_code`, LSP diagnostics/definition (TS), git tools, regression locks
 - **Autonomous** — cron scheduler, background tasks, subagent delegation, swarm/workflow, A2A bus, team workers
 - **Prompt-routed agents** — `/prompt` swaps a bounded session role; `delegate {agent_type}` spawns workers from the same project/home markdown definitions with prompt, tool, and model routing

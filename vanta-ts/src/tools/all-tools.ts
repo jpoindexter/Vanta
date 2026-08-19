@@ -41,6 +41,7 @@ import { radarTool } from "./radar.js";
 import { reachTool } from "./reach-tool.js";
 import { teamTool } from "./team.js";
 import { lifeSearchTool } from "./life-search.js";
+import { jobProfileScanTool } from "./job-profile-scan.js";
 import { linkedinReadTool } from "./linkedin-read.js";
 import { redditReadTool } from "./reddit-read.js";
 import { regressionLockTool } from "./regression-lock.js";
@@ -198,6 +199,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   reachTool,
   teamTool,
   lifeSearchTool,
+  jobProfileScanTool,
   linkedinReadTool,
   regressionLockTool,
   reviewArtifactTool,

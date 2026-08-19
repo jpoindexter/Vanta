@@ -36,6 +36,24 @@ describe("turn summary", () => {
     expect(turnSummaryLines(summary!)).toContain("Verification: Not run");
   });
 
+  it("marks an unsupported completion claim as unproven", () => {
+    const summary = buildTurnSummary(
+      [tool({ name: "write_file", verb: "wrote" })],
+      "Fixed and verified. Everything is done.",
+    );
+    expect(summary).toMatchObject({ completionClaimUnverified: true });
+    expect(turnSummaryLines(summary!)).toContain("Verification: Not run · completion claim unproven");
+    expect(turnSummaryLines(summary!)).toContain("Next: Run the real acceptance check");
+  });
+
+  it("does not flag an explicit statement that work is not verified", () => {
+    const summary = buildTurnSummary(
+      [tool({ name: "write_file", verb: "wrote" })],
+      "The change is not verified yet.",
+    );
+    expect(summary).toMatchObject({ completionClaimUnverified: false });
+  });
+
   it("surfaces failed actions and sends the operator to trace evidence", () => {
     const summary = buildTurnSummary([
       tool({ name: "shell_cmd", verb: "ran", detail: "npm test", ok: false }),

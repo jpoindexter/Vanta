@@ -175,6 +175,25 @@ describe("detectAnomalies", () => {
     expect(detectAnomalies(calls).some((x) => x.type === "blind-write")).toBe(false);
   });
 
+  it.each(["linkedin_read", "github_read", "browser_read", "apple_mail_audit", "list_mcp_resources"])(
+    "recognizes %s as a read before a write",
+    (name) => {
+      const calls = [
+        { name, result: "read result", isError: false },
+        { name: "write_file", result: "wrote ok", isError: false },
+      ];
+      expect(detectAnomalies(calls).some((x) => x.type === "blind-write")).toBe(false);
+    },
+  );
+
+  it("does not mistake browser_act for a read", () => {
+    const calls = [
+      { name: "browser_act", result: "clicked", isError: false },
+      { name: "write_file", result: "wrote ok", isError: false },
+    ];
+    expect(detectAnomalies(calls).some((x) => x.type === "blind-write")).toBe(true);
+  });
+
   it("does NOT flag blind-write for auth/setup shell_cmd before a read", () => {
     const calls = [
       { name: "shell_cmd", result: "oauth ok", isError: false, args: { command: "./run.sh auth google" } },

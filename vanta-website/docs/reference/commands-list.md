@@ -6,7 +6,7 @@ sidebar_position: 4
 
 # Command reference
 
-Every slash command, generated from the command catalog — **155 commands**. Type any of these in an interactive session; `/help` prints the live list.
+Every slash command, generated from the command catalog — **156 commands**. Type any of these in an interactive session; `/help` prints the live list.
 
 ## Session & history
 
@@ -171,6 +171,7 @@ Every slash command, generated from the command catalog — **155 commands**. Ty
 | `/doctor` | health plus read-only context weight, duplicate rules, and cleanup candidates |
 | `/env` | session-scoped env vars injected into shell_cmd/run_code child processes |
 | `/explain` | capability-preservation surface — what changed + why, with a comprehension probe on risky/large changes |
+| `/fast` | toggle fast mode — same model, faster output, premium rate |
 | `/feedback` | draft a redacted GitHub issue from feedback/feature requests; `send` files it |
 | `/home` | operator home — workflows, channels, skills, tasks, memory, watchers, setup |
 | `/init-verifiers` | detect the project's build/test/lint/typecheck gates → verifier skills it can run to check its work |

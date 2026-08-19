@@ -47,6 +47,7 @@ describe("estimateEntryRows", () => {
       checked: 1,
       verificationPassed: 0,
       verificationFailed: 0,
+      completionClaimUnverified: false,
       recoveredFailures: 0,
       failures: 0,
     };

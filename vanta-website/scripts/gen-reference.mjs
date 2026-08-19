@@ -18,7 +18,7 @@ const TOOL_CATEGORIES = [
   ['Comms', ['gmail_search','gmail_read','gmail_draft','gmail_send','calendar_read','calendar_create','calendar_update','drive_read','drive_create','drive_update','send_message']],
   ['Autonomy & multi-agent', ['delegate','swarm','compose_workflow','team','cron_create','cron_list','bg_list','bg_status','watch','loop','sleep','only']],
   ['Memory, knowledge & learning', ['brain','recall','write_skill','ref_ingest','ref_search','ref_list','retrieve_original','graph_query','playbook','clarify','inspect_state','todo']],
-  ['Operator systems', ['world','money','radar','life_search','self_repair']],
+  ['Operator systems', ['world','money','radar','life_search','job_profile_scan','self_repair']],
   ['Roadmap & meta', ['roadmap_add','roadmap_move','tool_search','mount_mcp','list_mcp_resources','read_mcp_resource','config']],
 ];
 
