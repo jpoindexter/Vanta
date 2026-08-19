@@ -18,7 +18,8 @@ export type TurnCall = { name: string; result: string; isError: boolean; args?: 
 const WRITE_TOOLS = new Set(["write_file", "edit_file", "shell_cmd", "run_code"]);
 const READ_TOOLS = new Set([
   "read_file", "grep_files", "glob_files",
-  "web_fetch", "web_search", "inspect_state",
+  "web_fetch", "web_search", "inspect_state", "apple_mail_audit",
+  "browser_extract", "screenshot", "look_at_screen", "look_at_camera", "job_profile_scan",
 ]);
 const LOOP_THRESHOLD = 3;    // identical consecutive tool + args ≥N → warn; ≥6 → alert
 const ERROR_THRESHOLD = 3;   // ≥N consecutive errors → alert
@@ -151,11 +152,17 @@ function shellCmdIsWrite(args?: Record<string, unknown>): boolean {
   return !cmd || SHELL_WRITE_PATTERN.test(shellSurface(cmd));
 }
 
+function isReadTool(name: string): boolean {
+  return READ_TOOLS.has(name)
+    || /^(read_|list_|search_|inspect_|grep_|glob_|find_)/.test(name)
+    || /_(read|search)$/.test(name);
+}
+
 /** First write-class tool appears before any read-class tool. */
 function detectBlindWrite(calls: TurnCall[]): TraceAnomaly[] {
   let hadRead = false;
   for (const { name, isError, args } of calls) {
-    if (READ_TOOLS.has(name)) { hadRead = true; continue; }
+    if (isReadTool(name)) { hadRead = true; continue; }
     const isWrite = WRITE_TOOLS.has(name)
       && (name !== "shell_cmd" || shellCmdIsWrite(args));
     if (isWrite && !hadRead && !isError) {

@@ -19,6 +19,9 @@ describe("isOutputTurn", () => {
   it("returns true for shell_cmd", () => {
     expect(isOutputTurn(["shell_cmd"])).toBe(true);
   });
+  it("returns true for edit_file", () => {
+    expect(isOutputTurn(["edit_file"])).toBe(true);
+  });
   it("returns false for read-only tools", () => {
     expect(isOutputTurn(["read_file", "web_search", "recall"])).toBe(false);
   });
@@ -90,6 +93,20 @@ describe("extractLastTurnToolNames", () => {
 
   it("returns empty array for empty message list", () => {
     expect(extractLastTurnToolNames([])).toEqual([]);
+  });
+
+  it("collects every assistant tool batch in the latest user turn", () => {
+    const messages: Message[] = [
+      { role: "user", content: "fix and verify it" },
+      { role: "assistant", content: "editing", toolCalls: [{ id: "e1", name: "edit_file", arguments: {} }] },
+      { role: "tool", toolCallId: "e1", name: "edit_file", content: "updated" },
+      { role: "assistant", content: "checking", toolCalls: [{ id: "r1", name: "read_file", arguments: {} }] },
+      { role: "tool", toolCallId: "r1", name: "read_file", content: "new content" },
+      { role: "assistant", content: "done" },
+    ];
+
+    expect(extractLastTurnToolNames(messages)).toEqual(["edit_file", "read_file"]);
+    expect(nextGateState({ consecutiveTurns: 7 }, extractLastTurnToolNames(messages))).toEqual({ consecutiveTurns: 0 });
   });
 });
 

@@ -195,7 +195,7 @@ function lastIndexByName(tools: PendingTool[], name: string): number {
 /** End the turn: commit any trailing streamed text and clear the live region. */
 function commitStreaming(state: UiState): UiState {
   const committed = commitText(state);
-  const summary = buildTurnSummary(committed.turnTools);
+  const summary = buildTurnSummary(committed.turnTools, currentTurnAssistantText(committed.entries));
   return {
     ...committed,
     entries: summary ? [...committed.entries, summary] : committed.entries,
@@ -206,4 +206,14 @@ function commitStreaming(state: UiState): UiState {
     compacting: false,
     compactionProgress: 0,
   };
+}
+
+function currentTurnAssistantText(entries: readonly Entry[]): string {
+  const chunks: string[] = [];
+  for (let index = entries.length - 1; index >= 0; index -= 1) {
+    const entry = entries[index]!;
+    if (entry.kind === "user") break;
+    if (entry.kind === "assistant") chunks.unshift(entry.text);
+  }
+  return chunks.join("\n");
 }
