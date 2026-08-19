@@ -52,7 +52,7 @@ This is the reach analogue of the self-repair organ: *detect off → heal → re
 
 ### Authenticated browser — a general capability (any site)
 
-`reach/browser-session.ts openWithSession(url, cookie)` opens a URL in a real headless browser with session cookies injected, returning rendered text + request metadata. The **`browser_read`** tool wraps it. Cookie injection is an authenticated transport, not proof that a site accepted the session; channel tools must validate their required auth cookies and detect signed-out responses.
+`reach/browser-session.ts openWithSession(url, cookie)` opens a URL in a real headless browser with session cookies injected, returning rendered text + request metadata. The **`browser_read`** tool wraps it. `browser_act` can reuse a cookie previously saved by `cookie_import` via `sessionChannel`; it asks before reading the credential, requires a first navigation, and injects into the acquired Playwright context before that navigation. Known channels are bound to their canonical host, while custom channels require an operator-set `VANTA_BROWSER_SESSION_HOST_<CHANNEL>` binding. Raw cookies are never accepted by `browser_act` or included in its output. Cookie injection is an authenticated transport, not proof that a site accepted the session; channel tools must validate their required auth cookies and detect signed-out responses.
 
 ### LinkedIn boundary
 
@@ -64,7 +64,7 @@ Supported paths:
 2. **Official live access:** use LinkedIn OAuth only for permissions granted to an approved developer application. [LinkedIn's access guide](https://learn.microsoft.com/en-us/linkedin/shared/authentication/getting-access) shows that open permissions cover limited authenticated-member identity fields and sharing, not general job search or profile editing.
 3. **Review workflow:** give Vanta a public job URL or pasted job description; Vanta prepares the analysis/application, and you perform the LinkedIn action yourself.
 
-Never paste a LinkedIn password or 2FA code into Vanta. `cookie_import` now refuses to call a LinkedIn cookie set authenticated when it lacks the required `li_at` cookie, and `linkedin_read` reports a sign-in redirect as failure rather than success. A complete cookie is still not permission to automate LinkedIn.
+Never paste a LinkedIn password or 2FA code into Vanta. `cookie_import` now refuses to call a LinkedIn cookie set authenticated when it lacks the required `li_at` cookie, and `linkedin_read` reports a sign-in redirect as failure rather than success. A complete cookie is still not permission to automate LinkedIn; the generic `browser_act` session capability does not override this boundary.
 
 ### X/Twitter setup
 

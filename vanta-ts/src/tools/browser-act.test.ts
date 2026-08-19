@@ -1,5 +1,10 @@
-import { describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { browserActTool } from "./browser-act.js";
+import { runActions } from "./browser-act-run.js";
+import { saveCookie } from "../reach/cookie.js";
 import type { ToolContext } from "./types.js";
 
 vi.mock("./browser-act-run.js", () => ({
@@ -16,6 +21,14 @@ function makeCtx(approve: boolean): ToolContext {
     requestApproval: vi.fn(async () => approve),
   };
 }
+
+const originalVantaHome = process.env.VANTA_HOME;
+
+afterEach(() => {
+  vi.mocked(runActions).mockClear();
+  if (originalVantaHome === undefined) delete process.env.VANTA_HOME;
+  else process.env.VANTA_HOME = originalVantaHome;
+});
 
 describe("browserActTool argument validation", () => {
   it("rejects a missing actions array", async () => {
@@ -91,6 +104,81 @@ describe("browserActTool safety gate", () => {
       else process.env.VANTA_ALLOWED_DOMAINS = prev;
     }
   }, 45_000);
+
+  it("asks before loading a stored browser session", async () => {
+    const ctx = makeCtx(false);
+    const result = await browserActTool.execute(
+      {
+        actions: [{ type: "navigate", url: "https://www.linkedin.com/feed/" }],
+        sessionChannel: "linkedin",
+      },
+      ctx,
+    );
+
+    expect(ctx.requestApproval).toHaveBeenCalledOnce();
+    const [, reason] =
+      (ctx.requestApproval as ReturnType<typeof vi.fn>).mock.calls[0] ?? [];
+    expect(reason).toContain("stored login session: linkedin");
+    expect(result).toEqual({ ok: false, output: "denied by user" });
+    expect(runActions).not.toHaveBeenCalled();
+  });
+
+  it("fails closed before launch when the stored session is missing", async () => {
+    const home = mkdtempSync(join(tmpdir(), "vanta-browser-act-missing-"));
+    process.env.VANTA_HOME = home;
+    try {
+      const result = await browserActTool.execute(
+        {
+          actions: [{ type: "navigate", url: "https://www.linkedin.com/feed/" }],
+          sessionChannel: "linkedin",
+        },
+        makeCtx(true),
+      );
+      expect(result.ok).toBe(false);
+      expect(result.output).toContain("No stored session for linkedin");
+      expect(runActions).not.toHaveBeenCalled();
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  it("never discloses a stored session to an unrelated host", async () => {
+    const ctx = makeCtx(true);
+    const result = await browserActTool.execute(
+      {
+        actions: [{ type: "navigate", url: "https://example.com" }],
+        sessionChannel: "linkedin",
+      },
+      ctx,
+    );
+    expect(result.ok).toBe(false);
+    expect(result.output).toContain("restricted to linkedin.com");
+    expect(ctx.requestApproval).not.toHaveBeenCalled();
+    expect(runActions).not.toHaveBeenCalled();
+  });
+
+  it("passes an approved stored session to the browser runner", async () => {
+    const home = mkdtempSync(join(tmpdir(), "vanta-browser-act-session-"));
+    process.env.VANTA_HOME = home;
+    try {
+      expect(saveCookie("linkedin", "li_at=test-only-secret", process.env).ok).toBe(true);
+      const result = await browserActTool.execute(
+        {
+          actions: [{ type: "navigate", url: "https://www.linkedin.com/feed/" }],
+          sessionChannel: "linkedin",
+        },
+        makeCtx(true),
+      );
+      expect(result.ok).toBe(true);
+      expect(runActions).toHaveBeenCalledOnce();
+      expect(vi.mocked(runActions).mock.calls[0]?.[4]).toEqual({
+        cookie: "li_at=test-only-secret",
+        url: "https://www.linkedin.com/feed/",
+      });
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
 });
 
 describe("browserActTool describeForSafety", () => {
