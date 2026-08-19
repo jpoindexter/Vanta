@@ -9,6 +9,7 @@ export const PLAN_MODE_ALLOWED_TOOLS = new Set([
   "edit_file",      // read-path is safe; write-path is blocked by this gate upstream
   "grep_files",
   "glob_files",
+  "job_profile_scan",
   "recall",
   "web_search",
   "web_fetch",

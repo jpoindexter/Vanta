@@ -6,7 +6,7 @@ sidebar_position: 3
 
 # Tool reference
 
-Every built-in tool, generated directly from the source registry — **149 tools**. Each call is gated by the kernel before it runs (tools marked _safety-checked_ send a safety descriptor to the kernel). The model sees a per-turn scoped subset; `tool_search` pulls in the rest on demand.
+Every built-in tool, generated directly from the source registry — **151 tools**. Each call is gated by the kernel before it runs (tools marked _safety-checked_ send a safety descriptor to the kernel). The model sees a per-turn scoped subset; `tool_search` pulls in the rest on demand.
 
 ## Files & code
 
@@ -995,6 +995,19 @@ Search or refresh Vanta's local stores (world/money/radar/team JSONL + ERRORS.md
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
+### `job_profile_scan`
+
+Read a bounded set of recent local Claude and Codex JSONL archives and return only user-authored job/profile excerpts. Skips subagents and skill injections, redacts credential-shaped values, and never writes an intermediate transcript file.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `query` | string | no | Optional case-insensitive regex; defaults to job, resume, portfolio, career, and design-role terms |
+| `max_files` | integer | no | Newest archive files to inspect (default 1000) |
+| `max_matches` | integer | no | Maximum excerpts (default 40) |
+| `max_chars` | integer | no | Maximum characters per excerpt (default 800) |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
 ### `self_repair`
 
 Self-repair: mark a compartment's current code as last-known-good, or roll it back to that sha. action:mark &#123;compartment&#125; records the current HEAD as the compartment's good state. action:rollback &#123;compartment&#125; restores it (git checkout of the compartment's paths) — approval-gated, refuses protected compartments (brainstem/skeleton) and discards uncommitted changes under those paths. action:sandbox_test &#123;toolPath&#125; runs a bounded OS-sandboxed test for a new/replaced limb tool before attach. action:status lists recorded markers. Compartments: brainstem, skeleton, reflexes, memory, limbs.
@@ -1109,6 +1122,19 @@ Open a PERSISTENT interactive session over another agent CLI (claude/codex/gemin
 | `text` | string | no | For send: the prompt to send to the agent |
 | `show` | boolean | no | For open: open a visible terminal window to watch (default true; false = headless) |
 | `coding` | boolean | no | For open: launch build-ready (auto-accepts file edits so the agent can write/change code hands-free). Default false. |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `apple_mail_audit`
+
+Audit the local macOS Apple Mail index for job-application candidates or status signals. Read-only: never reads message bodies or changes Mail. Returns counts by default; set includeDetails only when the user explicitly asks to see matched metadata, which triggers an in-app approval.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `mode` | string | no | Broad candidate messages or stronger application-status signals (default signals) |
+| `since` | string | no | Inclusive YYYY-MM-DD lower date bound (default: two years ago) |
+| `includeDetails` | boolean | no | Request bounded sender/subject/summary metadata after fresh in-app approval (default false) |
+| `maxResults` | number | no | Maximum detailed matches, 1-25 (default 10) |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 

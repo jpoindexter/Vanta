@@ -35,7 +35,7 @@ Large tool outputs are optionally compressed before they hit the context window 
 `delegate` (scoped subagent) · cron scheduler · background team workers · A2A message bus.
 
 ### Operator systems
-`world` · `money` · `radar` · `team` · `life_search` · `self_repair` · reach tools — see [Operator systems](./operator-systems.md).
+`world` · `money` · `radar` · `team` · `life_search` · `job_profile_scan` (bounded user-authored local job/profile recall; no intermediate transcript) · `self_repair` · reach tools — see [Operator systems](./operator-systems.md).
 
 ### Memory & learning
 `brain` (remember/recall) · `recall` · `write_skill` · `roadmap_add` / `roadmap_move` · `clarify` · `inspect_state`.

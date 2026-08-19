@@ -52,7 +52,7 @@ function visibilityReason(profileId: string | undefined, state: { known: boolean
 }
 
 function typicalRisk(tool: string): "allow" | "ask" | "block" {
-  if (/^(read_file|pdf_read|document_read|grep_files|glob_files|inspect_|git_status|git_diff|recall|ref_search)/.test(tool)) return "allow";
+  if (/^(read_file|pdf_read|document_read|grep_files|glob_files|job_profile_scan|inspect_|git_status|git_diff|recall|ref_search)/.test(tool)) return "allow";
   if (/(send|create|update|write|edit|delete|push|commit|shell|run_code|browser_act|deploy)/.test(tool)) return "ask";
   return "ask";
 }
