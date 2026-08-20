@@ -160,7 +160,7 @@ hosts must be classified and proved before they inherit that claim:
 - Core loop: goal-inject → plan → assess → execute → record effect and evidence
   state. Some tools perform deterministic readback; the separate post-turn LLM
   completion verifier is opt-in (`VANTA_VERIFY=1`), not a universal invariant.
-  OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 151 registered tools and
+  OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 152 registered tools and
   155 commands
 - **Goals** — kernel goal ledger plus TS dependency graph (`/goal blocks`, `/goal blocked_by`, `vanta goals`)
 - **Skills & memory** — learned `~/.vanta/skills`, `/skills audit` for local skill injection-scan findings, a configurable public registry client with quarantine/approval/update rollback, per-goal memory, curator, LLM context compression with [settled local Git versioning](docs/local-store-versioning.md), and checked-in product-validation playbooks for problem hypotheses, customer discovery, MVP scope, PMF diagnosis, founder bottlenecks, and GTM planning

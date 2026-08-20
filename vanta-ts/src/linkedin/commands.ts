@@ -56,7 +56,7 @@ async function reportStatus(
     log("LinkedIn authorization expired. Run: vanta auth linkedin import");
     return 1;
   }
-  log(`LinkedIn personal posting authority is connected; expires ${new Date(result.credential.expiresAt).toISOString()}.`);
+  log(`LinkedIn OAuth token is active with w_member_social; expires ${new Date(result.credential.expiresAt).toISOString()}. No post was sent by this status check.`);
   return 0;
 }
 
@@ -74,7 +74,7 @@ async function connectNative(input: {
   }
   try {
     await (input.deps.connect ?? runLinkedInAuth)(input.env, { clientId, notify: input.log });
-    input.log("LinkedIn personal posting authority is connected through w_member_social.");
+    input.log("LinkedIn OAuth token is connected through w_member_social; posting has not been tested.");
     return 0;
   } catch (caught) {
     input.error(caught instanceof Error ? caught.message : String(caught));
@@ -108,7 +108,7 @@ async function importPortalToken(input: {
       clientId: resolved.clientId,
       clientSecret,
     });
-    input.log("LinkedIn personal posting authority verified and stored securely.");
+    input.log("LinkedIn OAuth token verified and stored securely; posting has not been tested.");
     return 0;
   } catch (caught) {
     input.error(caught instanceof Error ? caught.message : String(caught));

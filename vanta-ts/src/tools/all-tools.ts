@@ -43,6 +43,7 @@ import { teamTool } from "./team.js";
 import { lifeSearchTool } from "./life-search.js";
 import { jobProfileScanTool } from "./job-profile-scan.js";
 import { linkedinReadTool } from "./linkedin-read.js";
+import { linkedinPostTool } from "./linkedin-post.js";
 import { redditReadTool } from "./reddit-read.js";
 import { regressionLockTool } from "./regression-lock.js";
 import { reviewArtifactTool } from "./review-artifact.js";
@@ -201,6 +202,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   lifeSearchTool,
   jobProfileScanTool,
   linkedinReadTool,
+  linkedinPostTool,
   regressionLockTool,
   reviewArtifactTool,
   ticketTool,

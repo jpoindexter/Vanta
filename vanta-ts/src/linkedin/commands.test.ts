@@ -14,7 +14,7 @@ describe("vanta auth linkedin", () => {
       { connect: connect as never, log: (line) => lines.push(line) },
     );
     expect(code).toBe(0);
-    expect(lines.join("\n")).toContain("personal posting authority is connected");
+    expect(lines.join("\n")).toContain("posting has not been tested");
     expect(lines.join("\n")).not.toContain("client secret");
   });
 
@@ -39,7 +39,7 @@ describe("vanta auth linkedin", () => {
       },
     );
     expect(code).toBe(0);
-    expect(lines.join("\n")).toContain("verified and stored securely");
+    expect(lines.join("\n")).toContain("posting has not been tested");
     expect(lines.join("\n")).not.toContain("access-value");
     expect(lines.join("\n")).not.toContain("secret-value");
   });
@@ -62,7 +62,8 @@ describe("vanta auth linkedin", () => {
       status: status as never,
       log: (line) => lines.push(line),
     })).toBe(0);
-    expect(lines.join("\n")).toContain("personal posting authority is connected");
+    expect(lines.join("\n")).toContain("OAuth token is active");
+    expect(lines.join("\n")).toContain("No post was sent");
     expect(lines.join("\n")).not.toContain("never-print-this");
   });
 

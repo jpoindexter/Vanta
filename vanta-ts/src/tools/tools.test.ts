@@ -105,6 +105,7 @@ describe("registry", () => {
       "lan_control",
       "lan_discover",
       "life_search",
+      "linkedin_post",
       "linkedin_read",
       "list_mcp_resources",
       "list_peers",
