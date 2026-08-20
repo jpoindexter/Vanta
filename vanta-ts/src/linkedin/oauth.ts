@@ -2,12 +2,10 @@ import {
   LINKEDIN_AUTHORIZATION_URL,
   LINKEDIN_SCOPES,
   LINKEDIN_TOKEN_URL,
-  LINKEDIN_USERINFO_URL,
-  LinkedInIdentitySchema,
   LinkedInTokenResponseSchema,
+  type LinkedInAuthorization,
   type LinkedInCredential,
   type LinkedInFetch,
-  type LinkedInIdentity,
 } from "./contract.js";
 import { startLinkedInCallback } from "./callback.js";
 import { openExternalUrl } from "./open-url.js";
@@ -49,7 +47,7 @@ export function buildLinkedInAuthUrl(input: {
 export async function exchangeLinkedInCode(
   input: TokenExchangeInput,
   doFetch: LinkedInFetch,
-): Promise<{ accessToken: string; expiresIn: number }> {
+): Promise<{ accessToken: string; expiresIn: number; scopes: string[] }> {
   const body = new URLSearchParams({
     grant_type: "authorization_code",
     code: input.code,
@@ -65,20 +63,11 @@ export async function exchangeLinkedInCode(
   if (!response.ok) throw new Error(`LinkedIn token exchange failed with HTTP ${response.status}.`);
   const parsed = LinkedInTokenResponseSchema.safeParse(await response.json());
   if (!parsed.success) throw new Error("LinkedIn token response did not include a valid access token.");
-  return { accessToken: parsed.data.access_token, expiresIn: parsed.data.expires_in };
-}
-
-export async function fetchLinkedInIdentity(
-  accessToken: string,
-  doFetch: LinkedInFetch,
-): Promise<LinkedInIdentity> {
-  const response = await doFetch(LINKEDIN_USERINFO_URL, {
-    headers: { authorization: `Bearer ${accessToken}`, accept: "application/json" },
-  });
-  if (!response.ok) throw new Error(`LinkedIn identity verification failed with HTTP ${response.status}.`);
-  const parsed = LinkedInIdentitySchema.safeParse(await response.json());
-  if (!parsed.success) throw new Error("LinkedIn identity response was missing the member identifier.");
-  return parsed.data;
+  const scopes = parsed.data.scope?.split(/\s+/).filter(Boolean) ?? [...LINKEDIN_SCOPES];
+  if (!scopes.includes("w_member_social")) {
+    throw new Error("LinkedIn did not grant personal posting authority.");
+  }
+  return { accessToken: parsed.data.access_token, expiresIn: parsed.data.expires_in, scopes };
 }
 
 async function resolveClientId(
@@ -96,7 +85,7 @@ async function resolveClientId(
 export async function runLinkedInAuth(
   env: NodeJS.ProcessEnv = process.env,
   options: LinkedInAuthOptions = {},
-): Promise<LinkedInIdentity> {
+): Promise<LinkedInAuthorization> {
   const notify = options.notify ?? ((message: string) => console.log(message));
   const doFetch = options.fetch ?? (globalThis.fetch as LinkedInFetch);
   const clientId = await resolveClientId(env, options.clientId);
@@ -120,19 +109,17 @@ export async function runLinkedInAuth(
       codeVerifier: pkce.verifier,
       redirectUri: callback.redirectUri,
     }, doFetch);
-    const identity = await fetchLinkedInIdentity(token.accessToken, doFetch);
     const now = options.now?.() ?? Date.now();
+    const expiresAt = now + token.expiresIn * 1000;
     const credential: LinkedInCredential = {
       accessToken: token.accessToken,
       clientId,
-      expiresAt: now + token.expiresIn * 1000,
-      scopes: [...LINKEDIN_SCOPES],
-      subject: identity.sub,
-      ...(identity.name ? { name: identity.name } : {}),
-      ...(identity.email ? { email: identity.email } : {}),
+      expiresAt,
+      scopes: token.scopes,
+      authorization: "member-posting",
     };
     await saveLinkedInCredential(credential, env);
-    return identity;
+    return { expiresAt, scopes: token.scopes };
   } finally {
     await callback.close();
   }

@@ -6,7 +6,7 @@ describe("vanta auth linkedin", () => {
     const lines: string[] = [];
     const connect = vi.fn(async (_env, options) => {
       expect(options.clientId).toBe("public-client-id");
-      return { sub: "member-1", name: "Jason" };
+      return { expiresAt: Date.UTC(2030, 0, 1), scopes: ["w_member_social"] };
     });
     const code = await runLinkedInAuthCommand(
       ["linkedin", "--client-id", "public-client-id"],
@@ -14,7 +14,7 @@ describe("vanta auth linkedin", () => {
       { connect: connect as never, log: (line) => lines.push(line) },
     );
     expect(code).toBe(0);
-    expect(lines.join("\n")).toContain("LinkedIn connected as Jason");
+    expect(lines.join("\n")).toContain("personal posting authority is connected");
     expect(lines.join("\n")).not.toContain("client secret");
   });
 
@@ -27,16 +27,15 @@ describe("vanta auth linkedin", () => {
         accessToken: "never-print-this",
         clientId: "client-id",
         expiresAt: Date.UTC(2030, 0, 1),
-        scopes: ["openid"],
-        subject: "member-1",
-        name: "Jason",
+        scopes: ["w_member_social"],
+        authorization: "member-posting",
       },
     }));
     expect(await runLinkedInAuthCommand(["linkedin", "status"], {}, {
       status: status as never,
       log: (line) => lines.push(line),
     })).toBe(0);
-    expect(lines.join("\n")).toContain("LinkedIn connected as Jason");
+    expect(lines.join("\n")).toContain("personal posting authority is connected");
     expect(lines.join("\n")).not.toContain("never-print-this");
   });
 

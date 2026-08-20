@@ -6,10 +6,9 @@ import {
   LINKEDIN_AUTHORIZATION_URL,
   LINKEDIN_SCOPES,
   LINKEDIN_TOKEN_URL,
-  LINKEDIN_USERINFO_URL,
   type LinkedInFetch,
 } from "./contract.js";
-import { buildLinkedInAuthUrl, exchangeLinkedInCode, fetchLinkedInIdentity, runLinkedInAuth } from "./oauth.js";
+import { buildLinkedInAuthUrl, exchangeLinkedInCode, runLinkedInAuth } from "./oauth.js";
 import { challengeForVerifier, createOAuthState, createPkcePair } from "./pkce.js";
 
 function response(json: unknown, status = 200) {
@@ -39,6 +38,8 @@ describe("LinkedIn native PKCE", () => {
     expect(url.searchParams.get("state")).toBe("state-value");
     expect(url.searchParams.get("code_challenge_method")).toBe("S256");
     expect(url.searchParams.get("scope")?.split(" ")).toEqual(LINKEDIN_SCOPES);
+    expect(url.searchParams.get("scope")).toBe("w_member_social");
+    expect(url.searchParams.get("scope")).not.toContain("openid");
   });
 
   it("exchanges the code with its verifier and never sends a client secret", async () => {
@@ -49,36 +50,30 @@ describe("LinkedIn native PKCE", () => {
       codeVerifier: "verifier",
       redirectUri: "http://127.0.0.1:8765/linkedin/callback",
     }, fetch);
-    expect(result).toEqual({ accessToken: "access", expiresIn: 5_184_000 });
+    expect(result).toEqual({ accessToken: "access", expiresIn: 5_184_000, scopes: ["w_member_social"] });
     const [url, init] = vi.mocked(fetch).mock.calls[0] ?? [];
     expect(url).toBe(LINKEDIN_TOKEN_URL);
     expect(init?.body).toContain("code_verifier=verifier");
     expect(init?.body).not.toContain("client_secret");
   });
 
-  it("verifies the personal member through OpenID userinfo", async () => {
-    const fetch = vi.fn(async () => response({ sub: "member-1", name: "Jason" })) as unknown as LinkedInFetch;
-    await expect(fetchLinkedInIdentity("access", fetch)).resolves.toMatchObject({ sub: "member-1", name: "Jason" });
-    const [url, init] = vi.mocked(fetch).mock.calls[0] ?? [];
-    expect(url).toBe(LINKEDIN_USERINFO_URL);
-    expect(new Headers(init?.headers).get("authorization")).toBe("Bearer access");
-  });
-
-  it("rejects malformed token and identity responses", async () => {
+  it("rejects malformed tokens and tokens without posting authority", async () => {
     const missingToken = vi.fn(async () => response({ expires_in: 5 })) as unknown as LinkedInFetch;
     await expect(exchangeLinkedInCode({ clientId: "c", code: "c", codeVerifier: "v", redirectUri: "r" }, missingToken)).rejects.toThrow("valid access token");
-    const missingSubject = vi.fn(async () => response({ name: "No subject" })) as unknown as LinkedInFetch;
-    await expect(fetchLinkedInIdentity("access", missingSubject)).rejects.toThrow("member identifier");
+    const missingScope = vi.fn(async () => response({ access_token: "access", expires_in: 5, scope: "profile" })) as unknown as LinkedInFetch;
+    await expect(exchangeLinkedInCode({ clientId: "c", code: "c", codeVerifier: "v", redirectUri: "r" }, missingScope)).rejects.toThrow("posting authority");
   });
 
-  it("completes the loopback flow and stores the verified identity without logging its token", async () => {
+  it("stores posting authority without an invalid OpenID identity request or token logging", async () => {
     const home = await mkdtemp(join(tmpdir(), "vanta-linkedin-flow-"));
     const lines: string[] = [];
-    const fetchApi = vi.fn(async (url: string) => url === LINKEDIN_TOKEN_URL
-      ? response({ access_token: "never-log-token", expires_in: 60 })
-      : response({ sub: "member-1", name: "Jason" })) as unknown as LinkedInFetch;
+    const fetchApi = vi.fn(async () => response({
+      access_token: "never-log-token",
+      expires_in: 60,
+      scope: "w_member_social",
+    })) as unknown as LinkedInFetch;
     try {
-      const identity = await runLinkedInAuth({ VANTA_HOME: home }, {
+      const authorization = await runLinkedInAuth({ VANTA_HOME: home }, {
         clientId: "client-id",
         fetch: fetchApi,
         now: () => 1_000,
@@ -89,9 +84,18 @@ describe("LinkedIn native PKCE", () => {
           await callback.text();
         },
       });
-      expect(identity).toMatchObject({ sub: "member-1", name: "Jason" });
+      expect(authorization).toEqual({ expiresAt: 61_000, scopes: ["w_member_social"] });
+      expect(fetchApi).toHaveBeenCalledTimes(1);
       const stored = await readFile(join(home, "linkedin-tokens.json"), "utf8");
-      expect(JSON.parse(stored)).toMatchObject({ subject: "member-1", expiresAt: 61_000 });
+      expect(JSON.parse(stored)).toEqual({
+        accessToken: "never-log-token",
+        clientId: "client-id",
+        expiresAt: 61_000,
+        scopes: ["w_member_social"],
+        authorization: "member-posting",
+      });
+      expect(stored).not.toContain("subject");
+      expect(stored).not.toContain("email");
       expect(lines.join("\n")).not.toContain("never-log-token");
     } finally {
       await rm(home, { recursive: true, force: true });

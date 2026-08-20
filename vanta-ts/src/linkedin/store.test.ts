@@ -8,9 +8,8 @@ const credential = {
   accessToken: "secret-access-token",
   clientId: "public-client-id",
   expiresAt: 2_000_000_000_000,
-  scopes: ["openid", "profile", "email", "w_member_social"],
-  subject: "member-1",
-  name: "Jason",
+  scopes: ["w_member_social"],
+  authorization: "member-posting" as const,
 };
 
 describe("LinkedIn credential storage", () => {

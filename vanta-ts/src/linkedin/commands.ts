@@ -28,7 +28,7 @@ async function reportStatus(
     log("LinkedIn authorization expired. Run: vanta auth linkedin");
     return 1;
   }
-  log(`LinkedIn connected as ${result.credential.name ?? "your personal account"}; expires ${new Date(result.credential.expiresAt).toISOString()}.`);
+  log(`LinkedIn personal posting authority is connected; expires ${new Date(result.credential.expiresAt).toISOString()}.`);
   return 0;
 }
 
@@ -45,8 +45,8 @@ async function connect(input: {
     return 1;
   }
   try {
-    const identity = await (input.deps.connect ?? runLinkedInAuth)(input.env, { clientId, notify: input.log });
-    input.log(`LinkedIn connected as ${identity.name ?? "your personal account"}. Personal posting authority is available only through w_member_social.`);
+    await (input.deps.connect ?? runLinkedInAuth)(input.env, { clientId, notify: input.log });
+    input.log("LinkedIn personal posting authority is connected through w_member_social.");
     return 0;
   } catch (caught) {
     input.error(caught instanceof Error ? caught.message : String(caught));
