@@ -10,6 +10,7 @@ const credential = {
   expiresAt: 2_000_000_000_000,
   scopes: ["w_member_social"],
   authorization: "member-posting" as const,
+  source: "portal-token" as const,
 };
 
 describe("LinkedIn credential storage", () => {

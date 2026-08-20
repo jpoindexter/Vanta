@@ -5,10 +5,11 @@ import { join } from "node:path";
 import {
   LINKEDIN_AUTHORIZATION_URL,
   LINKEDIN_SCOPES,
+  LINKEDIN_TOKEN_INSPECTION_URL,
   LINKEDIN_TOKEN_URL,
   type LinkedInFetch,
 } from "./contract.js";
-import { buildLinkedInAuthUrl, exchangeLinkedInCode, runLinkedInAuth } from "./oauth.js";
+import { buildLinkedInAuthUrl, exchangeLinkedInCode, importLinkedInToken, inspectLinkedInToken, runLinkedInAuth } from "./oauth.js";
 import { challengeForVerifier, createOAuthState, createPkcePair } from "./pkce.js";
 
 function response(json: unknown, status = 200) {
@@ -64,6 +65,49 @@ describe("LinkedIn native PKCE", () => {
     await expect(exchangeLinkedInCode({ clientId: "c", code: "c", codeVerifier: "v", redirectUri: "r" }, missingScope)).rejects.toThrow("posting authority");
   });
 
+  it("introspects a portal token without storing or logging the client secret", async () => {
+    const fetch = vi.fn(async () => response({
+      active: true,
+      client_id: "client-id",
+      expires_at: 2_000_000_000,
+      scope: "profile,w_member_social",
+    })) as unknown as LinkedInFetch;
+    await expect(inspectLinkedInToken({
+      accessToken: "access",
+      clientId: "client-id",
+      clientSecret: "fixture",
+    }, fetch)).resolves.toEqual({
+      expiresAt: 2_000_000_000_000,
+      scopes: ["profile", "w_member_social"],
+    });
+    const [url, init] = vi.mocked(fetch).mock.calls[0] ?? [];
+    expect(url).toBe(LINKEDIN_TOKEN_INSPECTION_URL);
+    expect(init?.body).toContain("client_secret=fixture");
+  });
+
+  it("verifies then stores a portal token without persisting the client secret", async () => {
+    const home = await mkdtemp(join(tmpdir(), "vanta-linkedin-import-"));
+    const fetch = vi.fn(async () => response({
+      active: true,
+      client_id: "client-id",
+      expires_at: 2_000_000_000,
+      scope: "w_member_social",
+    })) as unknown as LinkedInFetch;
+    try {
+      await importLinkedInToken({ VANTA_HOME: home }, {
+        accessToken: "access",
+        clientId: "client-id",
+        clientSecret: "fixture",
+      }, fetch);
+      const stored = await readFile(join(home, "linkedin-tokens.json"), "utf8");
+      expect(JSON.parse(stored)).toMatchObject({ source: "portal-token", scopes: ["w_member_social"] });
+      expect(stored).not.toContain("clientSecret");
+      expect(stored).not.toContain("fixture");
+    } finally {
+      await rm(home, { recursive: true, force: true });
+    }
+  });
+
   it("stores posting authority without an invalid OpenID identity request or token logging", async () => {
     const home = await mkdtemp(join(tmpdir(), "vanta-linkedin-flow-"));
     const lines: string[] = [];
@@ -93,6 +137,7 @@ describe("LinkedIn native PKCE", () => {
         expiresAt: 61_000,
         scopes: ["w_member_social"],
         authorization: "member-posting",
+        source: "native-pkce",
       });
       expect(stored).not.toContain("subject");
       expect(stored).not.toContain("email");

@@ -1,7 +1,9 @@
 import {
   LINKEDIN_AUTHORIZATION_URL,
   LINKEDIN_SCOPES,
+  LINKEDIN_TOKEN_INSPECTION_URL,
   LINKEDIN_TOKEN_URL,
+  LinkedInTokenInspectionSchema,
   LinkedInTokenResponseSchema,
   type LinkedInAuthorization,
   type LinkedInCredential,
@@ -25,6 +27,12 @@ interface TokenExchangeInput {
   code: string;
   codeVerifier: string;
   redirectUri: string;
+}
+
+interface TokenImportInput {
+  accessToken: string;
+  clientId: string;
+  clientSecret: string;
 }
 
 export function buildLinkedInAuthUrl(input: {
@@ -68,6 +76,56 @@ export async function exchangeLinkedInCode(
     throw new Error("LinkedIn did not grant personal posting authority.");
   }
   return { accessToken: parsed.data.access_token, expiresIn: parsed.data.expires_in, scopes };
+}
+
+function parseScopes(value: string | undefined): string[] {
+  return value?.split(/[,\s]+/).filter(Boolean) ?? [];
+}
+
+export async function inspectLinkedInToken(
+  input: TokenImportInput,
+  doFetch: LinkedInFetch,
+): Promise<{ expiresAt: number; scopes: string[] }> {
+  const body = new URLSearchParams({
+    client_id: input.clientId,
+    client_secret: input.clientSecret,
+    token: input.accessToken,
+  });
+  const response = await doFetch(LINKEDIN_TOKEN_INSPECTION_URL, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded", accept: "application/json" },
+    body: body.toString(),
+  });
+  if (!response.ok) throw new Error(`LinkedIn token verification failed with HTTP ${response.status}.`);
+  const parsed = LinkedInTokenInspectionSchema.safeParse(await response.json());
+  if (!parsed.success || !parsed.data.active || !parsed.data.expires_at) {
+    throw new Error("LinkedIn token is inactive, expired, or missing an expiration time.");
+  }
+  if (parsed.data.client_id && parsed.data.client_id !== input.clientId) {
+    throw new Error("LinkedIn token belongs to a different application.");
+  }
+  const scopes = parseScopes(parsed.data.scope);
+  if (!scopes.includes("w_member_social")) {
+    throw new Error("LinkedIn token is missing w_member_social posting authority.");
+  }
+  return { expiresAt: parsed.data.expires_at * 1000, scopes };
+}
+
+export async function importLinkedInToken(
+  env: NodeJS.ProcessEnv,
+  input: TokenImportInput,
+  doFetch: LinkedInFetch = globalThis.fetch as LinkedInFetch,
+): Promise<LinkedInAuthorization> {
+  const verified = await inspectLinkedInToken(input, doFetch);
+  await saveLinkedInCredential({
+    accessToken: input.accessToken,
+    clientId: input.clientId,
+    expiresAt: verified.expiresAt,
+    scopes: verified.scopes,
+    authorization: "member-posting",
+    source: "portal-token",
+  }, env);
+  return verified;
 }
 
 async function resolveClientId(
@@ -117,6 +175,7 @@ export async function runLinkedInAuth(
       expiresAt,
       scopes: token.scopes,
       authorization: "member-posting",
+      source: "native-pkce",
     };
     await saveLinkedInCredential(credential, env);
     return { expiresAt, scopes: token.scopes };
@@ -140,7 +199,7 @@ export async function getLinkedInAccessToken(
 ): Promise<string> {
   const status = await linkedInStatus(env);
   if (!status.credential || status.expired) {
-    throw new Error("LinkedIn authorization is missing or expired. Run: vanta auth linkedin");
+    throw new Error("LinkedIn authorization is missing or expired. Run: vanta auth linkedin import");
   }
   return status.credential.accessToken;
 }

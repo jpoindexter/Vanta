@@ -2,20 +2,46 @@ import { describe, expect, it, vi } from "vitest";
 import { runLinkedInAuthCommand } from "./commands.js";
 
 describe("vanta auth linkedin", () => {
-  it("connects a personal account without requesting a client secret", async () => {
+  it("keeps native PKCE explicit for apps LinkedIn has enabled", async () => {
     const lines: string[] = [];
     const connect = vi.fn(async (_env, options) => {
       expect(options.clientId).toBe("public-client-id");
       return { expiresAt: Date.UTC(2030, 0, 1), scopes: ["w_member_social"] };
     });
     const code = await runLinkedInAuthCommand(
-      ["linkedin", "--client-id", "public-client-id"],
+      ["linkedin", "native-pkce", "--client-id", "public-client-id"],
       {},
       { connect: connect as never, log: (line) => lines.push(line) },
     );
     expect(code).toBe(0);
     expect(lines.join("\n")).toContain("personal posting authority is connected");
     expect(lines.join("\n")).not.toContain("client secret");
+  });
+
+  it("defaults to portal import without placing secrets in arguments or output", async () => {
+    const lines: string[] = [];
+    const answers = ["access-value", "secret-value"];
+    const importToken = vi.fn(async (_env, input) => {
+      expect(input).toEqual({
+        accessToken: "access-value",
+        clientId: "public-client-id",
+        clientSecret: "secret-value",
+      });
+      return { expiresAt: Date.UTC(2030, 0, 1), scopes: ["w_member_social"] };
+    });
+    const code = await runLinkedInAuthCommand(
+      ["linkedin", "--client-id", "public-client-id"],
+      {},
+      {
+        importToken: importToken as never,
+        askSecret: async () => answers.shift() ?? "",
+        log: (line) => lines.push(line),
+      },
+    );
+    expect(code).toBe(0);
+    expect(lines.join("\n")).toContain("verified and stored securely");
+    expect(lines.join("\n")).not.toContain("access-value");
+    expect(lines.join("\n")).not.toContain("secret-value");
   });
 
   it("reports a connected personal account without revealing its token", async () => {
@@ -29,6 +55,7 @@ describe("vanta auth linkedin", () => {
         expiresAt: Date.UTC(2030, 0, 1),
         scopes: ["w_member_social"],
         authorization: "member-posting",
+        source: "portal-token",
       },
     }));
     expect(await runLinkedInAuthCommand(["linkedin", "status"], {}, {

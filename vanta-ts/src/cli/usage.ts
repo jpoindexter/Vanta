@@ -86,7 +86,7 @@ const USAGE_LINES = [
       "       vanta rooms | room <name> [\"<instruction>\"]   project rooms",
       "       vanta modes [list|install]         operator modes",
       "       vanta auth google [--client <json>] one-time Google OAuth (ingests client_secret.json)",
-      "       vanta auth linkedin [status] [--client-id <id>] connect your personal LinkedIn account with PKCE",
+      "       vanta auth linkedin [status|import|native-pkce] [--client-id <id>] connect personal LinkedIn posting",
       "       vanta mcp list|test|reconnect|enable|disable|trust|receipts|catalog|install|import-desktop|serve   manage shared MCP connectors",
       "       vanta roadmap                      build roadmap.html from roadmap.json and open it",
       "       vanta roadmap status [--json] [--open [--actionable]] [--require-drained|--require-complete]  print counts/open work; gates exit nonzero when unmet",
