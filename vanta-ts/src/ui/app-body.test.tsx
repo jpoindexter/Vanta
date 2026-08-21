@@ -1,6 +1,8 @@
 import { createElement as h } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { LiveBody } from "./app-body.js";
+import { reduce } from "./reducer.js";
+import { initialState } from "./types.js";
 import { renderUi, waitForFrame, waitUntil } from "./test-render.js";
 import type { SearchableSession } from "../search/cross-session.js";
 
@@ -110,6 +112,28 @@ describe("LiveBody task checklist", () => {
     expect(frame).toContain("✓ Inspect the task");
     expect(frame).toContain("■ Implementing the change");
     expect(frame).toContain("□ Verify the TUI");
+    expect(frame).toContain("Ask Vanta anything");
+    inst.unmount();
+  });
+
+  it("renders an unfinished checklist as idle after the turn returns control", async () => {
+    const settled = reduce({
+      ...initialState,
+      busy: true,
+      todos: [
+        { text: "Confirm scheduling", status: "done" },
+        { text: "Create operator", status: "done" },
+        { text: "Verify stored loop", activeForm: "Verifying the stored loop", status: "in_progress" },
+      ],
+    }, { t: "turnEnd" });
+    const inst = renderUi(h(LiveBody, base({
+      activity: { elapsed: "324m49s", tokens: 35_400, effort: "high" },
+      todos: settled.todos,
+    })));
+    const frame = await waitForFrame(inst, "3 tasks (2 done, 0 in progress, 1 open)");
+    expect(frame).not.toContain("Verifying the stored loop…");
+    expect(frame).not.toContain("324m49s");
+    expect(frame).toContain("□ Verify stored loop");
     expect(frame).toContain("Ask Vanta anything");
     inst.unmount();
   });

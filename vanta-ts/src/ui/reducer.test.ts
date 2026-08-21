@@ -228,6 +228,19 @@ describe("ui reducer — Claude-method commit model", () => {
     expect(s.todos).toEqual([]);
   });
 
+  it("pauses unfinished work when a turn returns control to the user", () => {
+    const items = [
+      { text: "confirmed", status: "done" as const },
+      { text: "verify stored loop", activeForm: "Verifying the stored loop", status: "in_progress" as const },
+    ];
+    const s = run([{ t: "todos", items }, { t: "turnEnd" }]);
+    expect(s.todos).toEqual([
+      items[0],
+      { text: "verify stored loop", activeForm: "Verifying the stored loop", status: "pending" },
+    ]);
+    expect(s.busy).toBe(false);
+  });
+
   it("enqueues and dequeues messages FIFO", () => {
     const q = run([{ t: "enqueue", text: "first" }, { t: "enqueue", text: "second" }]);
     expect(q.queued).toEqual(["first", "second"]);
