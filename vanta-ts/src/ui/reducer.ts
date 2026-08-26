@@ -138,14 +138,6 @@ function reduceAux(state: UiState, a: Action): UiState {
     }
     case "todos":
       return { ...state, todos: a.items };
-    case "enqueue":
-      return { ...state, queued: [...state.queued, a.text] };
-    case "dequeue":
-      return { ...state, queued: state.queued.slice(1) };
-    // Pull one message back out for editing. `dequeue` is head-only (the drain
-    // path); this is the panel's "press ↑ to edit" path and can target any row.
-    case "dequeueAt":
-      return { ...state, queued: state.queued.filter((_, index) => index !== a.index) };
     case "detachResponse": {
       const s = flush(state);
       return {
@@ -157,8 +149,22 @@ function reduceAux(state: UiState, a: Action): UiState {
         liveThinking: "",
       };
     }
+    default:
+      return reduceLiveAux(state, a);
+  }
+}
+
+function reduceLiveAux(state: UiState, a: Action): UiState {
+  switch (a.t) {
+    case "enqueue":
+      return { ...state, queued: [...state.queued, a.text] };
+    case "dequeue":
+      return { ...state, queued: state.queued.slice(1) };
+    // Pull one message back out for editing. `dequeue` is head-only (the drain
+    // path); this is the panel's "press ↑ to edit" path and can target any row.
+    case "dequeueAt":
+      return { ...state, queued: state.queued.filter((_, index) => index !== a.index) };
     case "thinkingDelta":
-      // Live reasoning preview (live region only). Cleared the moment real output text begins.
       return { ...state, liveThinking: state.liveThinking + a.d };
     case "compacting":
       return {
@@ -201,11 +207,18 @@ function commitStreaming(state: UiState): UiState {
     entries: summary ? [...committed.entries, summary] : committed.entries,
     activeTools: [],
     turnTools: [],
+    todos: pauseUnfinishedTodos(committed.todos),
     busy: false,
     liveThinking: "",
     compacting: false,
     compactionProgress: 0,
   };
+}
+
+function pauseUnfinishedTodos(todos: TodoItem[]): TodoItem[] {
+  return todos.map((todo) => todo.status === "in_progress"
+    ? { ...todo, status: "pending" as const }
+    : todo);
 }
 
 function currentTurnAssistantText(entries: readonly Entry[]): string {

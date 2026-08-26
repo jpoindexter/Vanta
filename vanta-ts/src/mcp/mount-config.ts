@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
@@ -11,9 +10,11 @@ import {
   stableEffectId,
 } from "../effects/execute-effect.js";
 import { effectGateFromToolContext, effectOperationKey } from "../effects/gate-context.js";
-import { assertPublicUrl, type GuardResult } from "../net/ssrf-guard.js";
 import type { TrustConfirmer } from "../settings/trust-gate.js";
 import type { McpAuthConfig } from "./auth-flow.js";
+import { validateScraplingToolArgs } from "./scrapling-guard.js";
+
+export { validateScraplingToolArgs } from "./scrapling-guard.js";
 
 // Pure config-resolution + tool-mapping helpers for the MCP mount layer. No
 // spawn, no live client lifecycle — that lives in mount.ts. Split out so both
@@ -63,25 +64,6 @@ export type McpConfigResolution = {
   config: McpConfig;
   sources: Record<string, McpConfigSource>;
 };
-
-/** Bind a persisted trust decision to the exact launch/auth/tool declaration. */
-export function mcpTrustDecisionKey(server: string, spec: ServerSpec): string {
-  const identity = JSON.stringify({
-    command: spec.command ?? null,
-    args: spec.args ?? [],
-    env: Object.entries(spec.env ?? {}).sort(([a], [b]) => a.localeCompare(b)),
-    url: spec.url ?? null,
-    token: spec.token ?? null,
-    headers: Object.entries(spec.headers ?? {}).sort(([a], [b]) => a.localeCompare(b)),
-    authorizationUrl: spec.authorizationUrl ?? null,
-    tokenUrl: spec.tokenUrl ?? null,
-    clientId: spec.clientId ?? null,
-    clientSecret: spec.clientSecret ?? null,
-    scope: spec.scope ?? null,
-    tools: spec.tools ?? [],
-  });
-  return `${server}@${createHash("sha256").update(identity).digest("hex").slice(0, 16)}`;
-}
 
 const FILESYSTEM_SERVER_PACKAGE = "@modelcontextprotocol/server-filesystem";
 
@@ -134,41 +116,51 @@ function toolName(server: string, tool: string): string {
   return `mcp_${server}_${tool}`.replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
-const SCRAPLING_SINGLE_TOOLS = new Set(["get", "fetch", "stealthy_fetch"]);
-const SCRAPLING_BULK_TOOLS = new Set(["bulk_get", "bulk_fetch", "bulk_stealthy_fetch"]);
-const MAX_SCRAPLING_BULK_URLS = 20;
-type ScraplingUrlGuard = (url: string) => Promise<GuardResult>;
-
-function optionalScraplingNetworkTargets(args: Record<string, unknown>): string[] {
-  const proxy = args.proxy;
-  const proxyServer = proxy && typeof proxy === "object"
-    ? (proxy as Record<string, unknown>).server
-    : proxy;
-  return [args.cdp_url, proxyServer].filter((value): value is string => typeof value === "string" && value.length > 0);
-}
-
-/** Apply Vanta's public-network boundary before Scrapling receives any target. */
-export async function validateScraplingToolArgs(
+function buildMcpToolExecutor(
+  client: Pick<McpClient, "callTool">,
   server: string,
-  tool: string,
-  args: Record<string, unknown>,
-  guard: ScraplingUrlGuard = assertPublicUrl,
-): Promise<string | null> {
-  if (server !== "scrapling") return null;
-  const bulk = SCRAPLING_BULK_TOOLS.has(tool);
-  if (!bulk && !SCRAPLING_SINGLE_TOOLS.has(tool)) return `unsupported Scrapling tool: ${tool}`;
-  const urls = bulk ? args.urls : [args.url];
-  if (!Array.isArray(urls) || urls.length === 0 || urls.some((url) => typeof url !== "string")) {
-    return bulk ? "Scrapling bulk tools need a non-empty urls array" : "Scrapling tools need a url";
-  }
-  if (bulk && urls.length > MAX_SCRAPLING_BULK_URLS) {
-    return `Scrapling bulk tools accept at most ${MAX_SCRAPLING_BULK_URLS} URLs per call`;
-  }
-  for (const url of [...(urls as string[]), ...optionalScraplingNetworkTargets(args)]) {
-    const result = await guard(url);
-    if (!result.ok) return result.error;
-  }
-  return null;
+  def: McpToolDef,
+): Tool["execute"] {
+  return async (args, ctx) => {
+    const blocked = await validateScraplingToolArgs(server, def.name, args);
+    if (blocked) {
+      return {
+        ok: false,
+        output: `mcp ${server}.${def.name} blocked: ${blocked}`,
+        effectDisposition: "denied",
+      };
+    }
+    const hash = payloadSha256(JSON.stringify(args));
+    const seed = {
+      host: `mcp:${server}`,
+      kind: "mcp.tool.call",
+      targetClass: "mcp-tool",
+      payloadSha256: hash,
+      idempotencyKey: effectOperationKey("mcp-tool", ctx),
+    };
+    const result = await executeEffect({
+      id: stableEffectId(seed),
+      actor: def.name,
+      action: `call MCP tool ${server}.${def.name} with payload sha256:${hash}`,
+      ...seed,
+    }, effectGateFromToolContext(ctx), async () => ({
+      value: await client.callTool(def.name, args),
+      acknowledgementId: `${server}.${def.name}:response`,
+    }));
+    if (result.outcome !== "confirmed" && result.outcome !== "verified") {
+      return {
+        ok: false,
+        output: `mcp ${server}.${def.name} ${result.outcome}; do not retry automatically`,
+        effectDisposition: result.outcome === "unknown" ? "unknown" : "denied",
+      };
+    }
+    return {
+      ok: true,
+      output: result.value || "(empty result)",
+      effectDisposition: "confirmed",
+      verification: { status: "unverified" },
+    };
+  };
 }
 
 /** Build an Vanta Tool that proxies to an MCP server tool. */
@@ -193,46 +185,7 @@ export function mcpToolToVantaTool(
     // Surface server/tool/args so the kernel can assess (an MCP fs-write is gated
     // like any other). Truncated to keep content keywords from false-triggering.
     describeForSafety: (args) => `mcp ${server} ${def.name} ${JSON.stringify(args).slice(0, 200)}`,
-    async execute(args, ctx) {
-      const blocked = await validateScraplingToolArgs(server, def.name, args);
-      if (blocked) {
-        return {
-          ok: false,
-          output: `mcp ${server}.${def.name} blocked: ${blocked}`,
-          effectDisposition: "denied",
-        };
-      }
-      const hash = payloadSha256(JSON.stringify(args));
-      const seed = {
-        host: `mcp:${server}`,
-        kind: "mcp.tool.call",
-        targetClass: "mcp-tool",
-        payloadSha256: hash,
-        idempotencyKey: effectOperationKey("mcp-tool", ctx),
-      };
-      const result = await executeEffect({
-        id: stableEffectId(seed),
-        actor: def.name,
-        action: `call MCP tool ${server}.${def.name} with payload sha256:${hash}`,
-        ...seed,
-      }, effectGateFromToolContext(ctx), async () => ({
-        value: await client.callTool(def.name, args as Record<string, unknown>),
-        acknowledgementId: `${server}.${def.name}:response`,
-      }));
-      if (result.outcome !== "confirmed" && result.outcome !== "verified") {
-        return {
-          ok: false,
-          output: `mcp ${server}.${def.name} ${result.outcome}; do not retry automatically`,
-          effectDisposition: result.outcome === "unknown" ? "unknown" : "denied",
-        };
-      }
-      return {
-        ok: true,
-        output: result.value || "(empty result)",
-        effectDisposition: "confirmed",
-        verification: { status: "unverified" },
-      };
-    },
+    execute: buildMcpToolExecutor(client, server, def),
   };
 }
 

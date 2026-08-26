@@ -53,12 +53,13 @@ export function TodoPanel(props: { todos: TodoItem[]; activity?: TodoActivity })
   // Bound height so the live region cannot grow past the viewport and ghost.
   const shown = visibleTasks(props.todos);
   const extra = props.todos.length - shown.length;
+  const hasActiveTask = props.todos.some((todo) => todo.status === "in_progress");
   return (
     <Box flexDirection="column" marginTop={1}>
       <Text>
         <Text color={ACTIVITY}>✻ </Text>
         <Text bold>{headline(props.todos)}</Text>
-        <Text dimColor>{activityMeta(props.activity)}</Text>
+        <Text dimColor>{activityMeta(hasActiveTask ? props.activity : undefined)}</Text>
       </Text>
       {shown.map((todo, index) => <TodoRow key={`${index}:${todo.text}`} todo={todo} first={index === 0} />)}
       {extra > 0 ? <Text dimColor>    … {extra} more</Text> : null}

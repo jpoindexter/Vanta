@@ -210,6 +210,18 @@ describe("detectAnomalies", () => {
     expect(detectAnomalies(calls).some((x) => x.type === "blind-write")).toBe(true);
   });
 
+  it("does NOT flag a read-only shell command that discards stderr to /dev/null", () => {
+    const calls = [{
+      name: "shell_cmd",
+      result: "2026-08-21 12:16:17 UTC (+0000)",
+      isError: false,
+      args: {
+        command: "date '+%Y-%m-%d %H:%M:%S %Z (%z)' && test \"$(readlink /etc/localtime 2>/dev/null || true)\" != \"\"",
+      },
+    }];
+    expect(detectAnomalies(calls).some((x) => x.type === "blind-write")).toBe(false);
+  });
+
   it("does NOT parse comparison operators inside a read-only heredoc as shell writes", () => {
     const calls = [{
       name: "shell_cmd",

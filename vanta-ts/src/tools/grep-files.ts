@@ -1,4 +1,6 @@
 import { execFile } from "node:child_process";
+import { access, constants } from "node:fs/promises";
+import { isAbsolute, resolve } from "node:path";
 import { promisify } from "node:util";
 import { z } from "zod";
 import type { Tool } from "./types.js";
@@ -50,6 +52,8 @@ export const grepFilesTool: Tool = {
     }
     const { pattern, path, file_glob, max_results = 100 } = parsed.data;
     const searchPath = path ? expandHome(path) : ctx.root;
+    const pathError = await searchPathError(searchPath, ctx.root);
+    if (pathError) return { ok: false, output: pathError };
 
     // Try rg first; fall back to grep.
     const args = { pattern, searchPath, fileGlob: file_glob, maxResults: max_results, cwd: ctx.root };
@@ -60,6 +64,23 @@ export const grepFilesTool: Tool = {
     }
   },
 };
+
+async function searchPathError(searchPath: string, cwd: string): Promise<string | null> {
+  const resolvedPath = isAbsolute(searchPath) ? searchPath : resolve(cwd, searchPath);
+  try {
+    await access(resolvedPath, constants.R_OK);
+    return null;
+  } catch (error: unknown) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === "ENOENT") {
+      return `grep_files: path not found: ${searchPath}. Repair: check the path and try again.`;
+    }
+    if (code === "EACCES" || code === "EPERM") {
+      return `grep_files: path is not readable: ${searchPath}. Repair: choose an allowed path or grant access.`;
+    }
+    return `grep_files: cannot inspect path: ${searchPath}. Repair: verify the path and permissions.`;
+  }
+}
 
 type GrepArgs = { pattern: string; searchPath: string; fileGlob: string | undefined; maxResults: number; cwd: string };
 
@@ -94,7 +115,7 @@ async function runGrep(o: GrepArgs): Promise<{ ok: boolean; output: string }> {
   const args: string[] = ["-rn", "--color=never", "-m", String(maxResults)];
   if (fileGlob) args.push("--include", fileGlob);
   // Use -- to separate options from pattern/path (supported by GNU grep and BSD grep).
-  args.push(pattern, searchPath);
+  args.push("--", pattern, searchPath);
 
   try {
     const { stdout } = await execFileAsync("grep", args, { cwd, maxBuffer: 2 * 1024 * 1024 });

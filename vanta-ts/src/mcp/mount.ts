@@ -11,7 +11,6 @@ import {
   mcpToolToVantaTool,
   buildMcpChildEnv,
   extractAuthConfig,
-  mcpTrustDecisionKey,
   resolveMcpStdioArgs,
   validateScraplingToolArgs,
   type ServerSpec,
@@ -23,8 +22,10 @@ import {
   executeEffect,
   payloadSha256,
   stableEffectId,
+  type EffectExecutionResult,
   type EffectGateContext,
 } from "../effects/execute-effect.js";
+import { applyMcpToolPolicy, mcpTrustDecisionKey } from "./tool-policy.js";
 
 // Mount external MCP servers as Vanta tools. Config parsing + tool mapping are
 // pure helpers in mount-config.ts (re-exported below); this file owns the live
@@ -38,22 +39,25 @@ export {
   mcpToolToVantaTool,
   buildMcpChildEnv,
   extractAuthConfig,
-  mcpTrustDecisionKey,
   resolveMcpStdioArgs,
   validateScraplingToolArgs,
   type McpConfig,
   type McpTrust,
 } from "./mount-config.js";
+export { mcpTrustDecisionKey } from "./tool-policy.js";
 
 export type MountResult = { servers: string[]; toolCount: number; dispose: () => void };
 
-async function resolveTransport(
-  name: string,
-  spec: ServerSpec,
-  env: NodeJS.ProcessEnv,
-  children: Array<{ kill: () => void }>,
-  root: string,
-): Promise<Transport | null> {
+type TransportOptions = {
+  name: string;
+  spec: ServerSpec;
+  env: NodeJS.ProcessEnv;
+  children: Array<{ kill: () => void }>;
+  root: string;
+};
+
+async function resolveTransport(opts: TransportOptions): Promise<Transport | null> {
+  const { name, spec, env, children, root } = opts;
   if (spec.url) {
     const { httpTransport, resolveToken } = await import("./http-transport.js");
     // A previously-stored OAuth access token wins over a static config token.
@@ -73,15 +77,7 @@ async function resolveTransport(
   return null;
 }
 
-/** EXT-MCP-CATALOG: a per-server `tools` allowlist mounts ONLY those tools (the
- * catalog's read-mostly default); absent/empty → all tools mount. Pure. */
-function filterAllowedTools<T extends { name: string }>(defs: T[], allow: string[] | undefined): T[] {
-  if (!allow || allow.length === 0) return defs;
-  const set = new Set(allow);
-  return defs.filter((d) => set.has(d.name));
-}
-
-async function mountOneServer(opts: {
+type MountServerOptions = {
   name: string;
   spec: ServerSpec;
   registry: ToolRegistry;
@@ -92,43 +88,58 @@ async function mountOneServer(opts: {
   log: (msg: string) => void;
   trust?: McpTrust;
   effectGate?: EffectGateContext;
-}): Promise<number> {
-  const { name, spec, registry, env, children, deferred, cwd, log, trust, effectGate } = opts;
-  if (trust) {
-    const tools = (spec.tools ?? []).map((tool) => ({ name: tool }));
-    const launch = spec.command
-      ? { command: spec.command, args: spec.args ?? [] }
-      : { url: spec.url };
-    const trusted = await resolveMcpTrust(trust.root, name, tools, trust.confirm, {
-      decisionKey: mcpTrustDecisionKey(name, spec),
-      launch,
-    });
-    if (!trusted) {
-      log(`  · mcp: ${name} skipped — not trusted`);
-      return 0;
-    }
-  }
-  if (spec.command) {
-    const risk = detectMcpEgressRisk(spec.command, spec.args ?? []);
-    if (risk.risky) log(formatEgressWarning(name, risk.reason));
-  }
-  if (!effectGate) throw new Error(`blocked: MCP ${name} launch effect gate unavailable`);
+};
+
+async function confirmMcpTrust(opts: MountServerOptions): Promise<boolean> {
+  const { name, spec, trust, log } = opts;
+  if (!trust) return true;
+  const tools = (spec.tools ?? []).map((tool) => ({ name: tool }));
+  const launch = spec.command
+    ? { command: spec.command, args: spec.args ?? [] }
+    : { url: spec.url };
+  const trusted = await resolveMcpTrust(trust.root, name, tools, trust.confirm, {
+    decisionKey: mcpTrustDecisionKey(name, spec),
+    launch,
+  });
+  if (!trusted) log(`  · mcp: ${name} skipped — not trusted`);
+  return trusted;
+}
+
+async function describeMcpLaunch(opts: MountServerOptions): Promise<string> {
+  const { name, spec, env } = opts;
   const authenticated = spec.url
     ? Boolean((await loadMcpToken(name, env))?.access_token)
     : false;
-  const launchDescription = JSON.stringify({
+  return JSON.stringify({
     command: spec.command,
     args: spec.args ?? [],
     url: spec.url,
-    tools: spec.tools ?? [],
+    tools: spec.tools ?? null,
     authenticated,
   });
+}
+
+function unwrapMcpLaunch<T>(name: string, launched: EffectExecutionResult<T>): T {
+  if ((launched.outcome === "confirmed" || launched.outcome === "verified") && launched.value) {
+    return launched.value;
+  }
+  if (launched.operationError && isAuthRequiredError(launched.operationError)) throw launched.operationError;
+  throw new Error(`MCP ${name} launch ${launched.outcome}`);
+}
+
+async function launchConfiguredMcp(opts: MountServerOptions) {
+  const { name, spec, env, children, cwd, effectGate } = opts;
+  if (!effectGate) throw new Error(`blocked: MCP ${name} launch effect gate unavailable`);
+  const launchDescription = await describeMcpLaunch(opts);
+  const digest = payloadSha256(launchDescription);
+  const sessionId = effectGate.sessionId ?? "one-shot";
+  const remote = Boolean(spec.url);
   const seed = {
     host: "mcp-host",
     kind: "mcp.server.launch",
-    targetClass: spec.url ? "remote-mcp-server" : "local-mcp-process",
-    payloadSha256: payloadSha256(launchDescription),
-    idempotencyKey: `mcp:${effectGate.sessionId ?? "one-shot"}:${name}:${payloadSha256(launchDescription)}`,
+    targetClass: remote ? "remote-mcp-server" : "local-mcp-process",
+    payloadSha256: digest,
+    idempotencyKey: `mcp:${sessionId}:${name}:${digest}`,
   };
   const launched = await executeEffect({
     id: stableEffectId(seed),
@@ -136,21 +147,24 @@ async function mountOneServer(opts: {
     action: `launch and initialize MCP server ${name}`,
     ...seed,
   }, effectGate, async () => {
-    const transport = await resolveTransport(name, spec, env, children, cwd);
+    const transport = await resolveTransport({ name, spec, env, children, root: cwd });
     if (!transport) throw new Error("no command or url");
     const client = new McpClient(transport, mcpClientEvents(cwd, name));
     await client.initialize();
-    const defs = await client.listTools();
-    return { value: { client, defs }, acknowledgementId: `${name}:initialized` };
+    return { value: { client, defs: await client.listTools() }, acknowledgementId: `${name}:initialized` };
   });
-  if ((launched.outcome !== "confirmed" && launched.outcome !== "verified") || !launched.value) {
-    if (launched.operationError && isAuthRequiredError(launched.operationError)) {
-      throw launched.operationError;
-    }
-    throw new Error(`MCP ${name} launch ${launched.outcome}`);
+  return unwrapMcpLaunch(name, launched);
+}
+
+async function mountOneServer(opts: MountServerOptions): Promise<number> {
+  const { name, spec, registry, deferred, log } = opts;
+  if (!(await confirmMcpTrust(opts))) return 0;
+  if (spec.command) {
+    const risk = detectMcpEgressRisk(spec.command, spec.args ?? []);
+    if (risk.risky) log(formatEgressWarning(name, risk.reason));
   }
-  const { client, defs } = launched.value;
-  const mountDefs = filterAllowedTools(defs, spec.tools);
+  const { client, defs } = await launchConfiguredMcp(opts);
+  const mountDefs = applyMcpToolPolicy(defs, spec.tools);
   for (const def of mountDefs) registry.register(mcpToolToVantaTool(client, name, def, { deferred }));
   const skipped = defs.length - mountDefs.length;
   log(`  · mcp: mounted ${name} (${mountDefs.length} tool(s)${skipped ? `, ${skipped} not in allowlist` : ""})${spec.url ? " [http]" : ""}`);
@@ -203,7 +217,6 @@ export async function mountMcpServers(
     if (!names.includes(name)) log(`  · mcp: ${name} disabled for this project`);
   }
   if (names.length === 0) return { servers: [], toolCount: 0, dispose: () => {} };
-
   const children: Array<{ kill: () => void }> = [];
   const mounted: string[] = [];
   let toolCount = 0;

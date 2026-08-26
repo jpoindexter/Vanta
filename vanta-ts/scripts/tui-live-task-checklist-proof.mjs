@@ -70,7 +70,7 @@ try {
 
   await waitFor(() => Boolean(heldActiveResponse), "provider's second request");
   const active = await capture();
-  assert.match(active, /3 tasks \(1 done, 1 in progress, 1 open\)/);
+  assert.match(active, /✻ Implementing the change…/);
   assert.match(active, /✓ Inspect the task/);
   assert.match(active, /■ Implementing the change/);
   assert.match(active, /□ Verify the TUI/);

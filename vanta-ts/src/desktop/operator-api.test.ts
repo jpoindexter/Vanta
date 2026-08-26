@@ -207,6 +207,14 @@ process.stdin.on("data", (chunk) => {
       expect(await trusted.json()).toMatchObject({ connectors: [expect.objectContaining({ name: "notes", trust: "trusted" })] });
       const tested = await fetch(`${base}/api/connect/mcp`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "notes", action: "test" }) });
       expect(await tested.json()).toMatchObject({ result: { status: "connected", tools: ["search_notes"], resources: ["fixture://status"] } });
+      await writeFile(join(root, ".mcp.json"), JSON.stringify({
+        servers: { notes: { command: process.execPath, args: [fixture], tools: [] } },
+      }));
+      const narrowed = await fetch(`${base}/api/connect/mcp`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "notes", action: "reconnect" }) });
+      expect(await narrowed.json()).toMatchObject({
+        result: { status: "connected", tools: [], resources: ["fixture://status"] },
+        connectors: [expect.objectContaining({ name: "notes", tools: [] })],
+      });
       const resource = await fetch(`${base}/api/connect/mcp`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "notes", action: "read_resource", uri: "fixture://status" }) });
       expect(await resource.json()).toMatchObject({ resource: { uri: "fixture://status", preview: expect.stringContaining("fixture ready") } });
       const disabled = await fetch(`${base}/api/connect/mcp`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "notes", action: "disable" }) });

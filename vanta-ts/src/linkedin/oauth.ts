@@ -1,0 +1,205 @@
+import {
+  LINKEDIN_AUTHORIZATION_URL,
+  LINKEDIN_SCOPES,
+  LINKEDIN_TOKEN_INSPECTION_URL,
+  LINKEDIN_TOKEN_URL,
+  LinkedInTokenInspectionSchema,
+  LinkedInTokenResponseSchema,
+  type LinkedInAuthorization,
+  type LinkedInCredential,
+  type LinkedInFetch,
+} from "./contract.js";
+import { startLinkedInCallback } from "./callback.js";
+import { openExternalUrl } from "./open-url.js";
+import { createOAuthState, createPkcePair } from "./pkce.js";
+import { loadLinkedInCredential, saveLinkedInCredential } from "./store.js";
+
+export interface LinkedInAuthOptions {
+  clientId?: string;
+  notify?: (message: string) => void;
+  fetch?: LinkedInFetch;
+  openUrl?: (url: string) => Promise<void>;
+  now?: () => number;
+}
+
+interface TokenExchangeInput {
+  clientId: string;
+  code: string;
+  codeVerifier: string;
+  redirectUri: string;
+}
+
+interface TokenImportInput {
+  accessToken: string;
+  clientId: string;
+  clientSecret: string;
+}
+
+export function buildLinkedInAuthUrl(input: {
+  clientId: string;
+  redirectUri: string;
+  state: string;
+  codeChallenge: string;
+}): string {
+  const url = new URL(LINKEDIN_AUTHORIZATION_URL);
+  url.searchParams.set("response_type", "code");
+  url.searchParams.set("client_id", input.clientId);
+  url.searchParams.set("redirect_uri", input.redirectUri);
+  url.searchParams.set("state", input.state);
+  url.searchParams.set("scope", LINKEDIN_SCOPES.join(" "));
+  url.searchParams.set("code_challenge", input.codeChallenge);
+  url.searchParams.set("code_challenge_method", "S256");
+  return url.toString();
+}
+
+export async function exchangeLinkedInCode(
+  input: TokenExchangeInput,
+  doFetch: LinkedInFetch,
+): Promise<{ accessToken: string; expiresIn: number; scopes: string[] }> {
+  const body = new URLSearchParams({
+    grant_type: "authorization_code",
+    code: input.code,
+    redirect_uri: input.redirectUri,
+    client_id: input.clientId,
+    code_verifier: input.codeVerifier,
+  });
+  const response = await doFetch(LINKEDIN_TOKEN_URL, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded", accept: "application/json" },
+    body: body.toString(),
+  });
+  if (!response.ok) throw new Error(`LinkedIn token exchange failed with HTTP ${response.status}.`);
+  const parsed = LinkedInTokenResponseSchema.safeParse(await response.json());
+  if (!parsed.success) throw new Error("LinkedIn token response did not include a valid access token.");
+  const scopes = parsed.data.scope?.split(/\s+/).filter(Boolean) ?? [...LINKEDIN_SCOPES];
+  if (!scopes.includes("w_member_social")) {
+    throw new Error("LinkedIn did not grant personal posting authority.");
+  }
+  return { accessToken: parsed.data.access_token, expiresIn: parsed.data.expires_in, scopes };
+}
+
+function parseScopes(value: string | undefined): string[] {
+  return value?.split(/[,\s]+/).filter(Boolean) ?? [];
+}
+
+export async function inspectLinkedInToken(
+  input: TokenImportInput,
+  doFetch: LinkedInFetch,
+): Promise<{ expiresAt: number; scopes: string[] }> {
+  const body = new URLSearchParams({
+    client_id: input.clientId,
+    client_secret: input.clientSecret,
+    token: input.accessToken,
+  });
+  const response = await doFetch(LINKEDIN_TOKEN_INSPECTION_URL, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded", accept: "application/json" },
+    body: body.toString(),
+  });
+  if (!response.ok) throw new Error(`LinkedIn token verification failed with HTTP ${response.status}.`);
+  const parsed = LinkedInTokenInspectionSchema.safeParse(await response.json());
+  if (!parsed.success || !parsed.data.active || !parsed.data.expires_at) {
+    throw new Error("LinkedIn token is inactive, expired, or missing an expiration time.");
+  }
+  if (parsed.data.client_id && parsed.data.client_id !== input.clientId) {
+    throw new Error("LinkedIn token belongs to a different application.");
+  }
+  const scopes = parseScopes(parsed.data.scope);
+  if (!scopes.includes("w_member_social")) {
+    throw new Error("LinkedIn token is missing w_member_social posting authority.");
+  }
+  return { expiresAt: parsed.data.expires_at * 1000, scopes };
+}
+
+export async function importLinkedInToken(
+  env: NodeJS.ProcessEnv,
+  input: TokenImportInput,
+  doFetch: LinkedInFetch = globalThis.fetch as LinkedInFetch,
+): Promise<LinkedInAuthorization> {
+  const verified = await inspectLinkedInToken(input, doFetch);
+  await saveLinkedInCredential({
+    accessToken: input.accessToken,
+    clientId: input.clientId,
+    expiresAt: verified.expiresAt,
+    scopes: verified.scopes,
+    authorization: "member-posting",
+    source: "portal-token",
+  }, env);
+  return verified;
+}
+
+async function resolveClientId(
+  env: NodeJS.ProcessEnv,
+  explicit: string | undefined,
+): Promise<string> {
+  const stored = await loadLinkedInCredential(env);
+  const clientId = explicit?.trim() || env.VANTA_LINKEDIN_CLIENT_ID?.trim() || stored?.clientId;
+  if (!clientId) {
+    throw new Error("LinkedIn client ID missing. Run: vanta auth linkedin --client-id <client-id>");
+  }
+  return clientId;
+}
+
+export async function runLinkedInAuth(
+  env: NodeJS.ProcessEnv = process.env,
+  options: LinkedInAuthOptions = {},
+): Promise<LinkedInAuthorization> {
+  const notify = options.notify ?? ((message: string) => console.log(message));
+  const doFetch = options.fetch ?? (globalThis.fetch as LinkedInFetch);
+  const clientId = await resolveClientId(env, options.clientId);
+  const state = createOAuthState();
+  const pkce = createPkcePair();
+  const callback = await startLinkedInCallback(state);
+  const authUrl = buildLinkedInAuthUrl({
+    clientId,
+    redirectUri: callback.redirectUri,
+    state,
+    codeChallenge: pkce.challenge,
+  });
+  notify(`\nAuthorize Vanta in your default browser. If it does not open, use:\n\n${authUrl}\n`);
+  await (options.openUrl ?? openExternalUrl)(authUrl).catch(() => {
+    notify("The browser could not be opened automatically; open the URL above manually.");
+  });
+  try {
+    const token = await exchangeLinkedInCode({
+      clientId,
+      code: await callback.code,
+      codeVerifier: pkce.verifier,
+      redirectUri: callback.redirectUri,
+    }, doFetch);
+    const now = options.now?.() ?? Date.now();
+    const expiresAt = now + token.expiresIn * 1000;
+    const credential: LinkedInCredential = {
+      accessToken: token.accessToken,
+      clientId,
+      expiresAt,
+      scopes: token.scopes,
+      authorization: "member-posting",
+      source: "native-pkce",
+    };
+    await saveLinkedInCredential(credential, env);
+    return { expiresAt, scopes: token.scopes };
+  } finally {
+    await callback.close();
+  }
+}
+
+export async function linkedInStatus(
+  env: NodeJS.ProcessEnv = process.env,
+  now: number = Date.now(),
+): Promise<{ connected: boolean; expired: boolean; credential: LinkedInCredential | null }> {
+  const credential = await loadLinkedInCredential(env);
+  if (!credential) return { connected: false, expired: false, credential: null };
+  const expired = credential.expiresAt <= now;
+  return { connected: !expired, expired, credential };
+}
+
+export async function getLinkedInAccessToken(
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<string> {
+  const status = await linkedInStatus(env);
+  if (!status.credential || status.expired) {
+    throw new Error("LinkedIn authorization is missing or expired. Run: vanta auth linkedin import");
+  }
+  return status.credential.accessToken;
+}

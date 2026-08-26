@@ -105,6 +105,7 @@ describe("registry", () => {
       "lan_control",
       "lan_discover",
       "life_search",
+      "linkedin_post",
       "linkedin_read",
       "list_mcp_resources",
       "list_peers",
@@ -583,6 +584,10 @@ describe("config_sandbox", () => {
     expect(scoped.schemas().map((s) => s.name).sort()).toEqual(["read_file", "shell_cmd"]);
     // No subset → the full registry.
     expect(buildScopedRegistry().schemas().length).toBeGreaterThan(2);
+  });
+
+  it("treats an explicit empty override.toolNames as zero tools", () => {
+    expect(buildScopedRegistry([]).schemas()).toEqual([]);
   });
 });
 

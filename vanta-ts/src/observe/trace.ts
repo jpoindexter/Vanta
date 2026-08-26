@@ -14,6 +14,7 @@ export type TraceAnomaly = {
 };
 
 export type TurnCall = { name: string; result: string; isError: boolean; args?: Record<string, unknown> };
+type ToolMessage = Extract<Message, { role: "tool" }>;
 
 const WRITE_TOOLS = new Set(["write_file", "edit_file", "shell_cmd", "run_code"]);
 const READ_TOOLS = new Set([
@@ -33,43 +34,48 @@ const OS_ERROR_PATTERN = /\b(operation not permitted|permission denied|eperm|eno
  * only its final batch creates false blind-write warnings.
  */
 export function extractLastTurnCalls(messages: Message[]): TurnCall[] {
-  let turnStart = -1;
-  for (let i = messages.length - 1; i >= 0; i--) {
-    if (messages[i]?.role === "user") {
-      turnStart = i + 1;
-      break;
-    }
-  }
-  // Some tests/legacy histories omit user messages. Preserve the old behavior
-  // there by starting at the last assistant batch that contains tool calls.
-  if (turnStart < 0) {
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const msg = messages[i];
-      if (msg?.role === "assistant" && msg.toolCalls?.length) {
-        turnStart = i;
-        break;
-      }
-    }
-  }
+  const turnStart = findLastTurnStart(messages);
   if (turnStart < 0) return [];
 
   const turn = messages.slice(turnStart);
-  const toolResults = turn.filter((msg) => msg.role === "tool");
+  const toolResults = turn.filter((msg): msg is ToolMessage => msg.role === "tool");
+  const fallback = { index: 0 };
+  return turn.flatMap((msg) => callsFromMessage(msg, toolResults, fallback));
+}
+
+function findLastTurnStart(messages: Message[]): number {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i]?.role === "user") return i + 1;
+  }
+  // Some tests/legacy histories omit user messages. Preserve the old behavior
+  // there by starting at the last assistant batch that contains tool calls.
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const msg = messages[i];
+    if (msg?.role === "assistant" && msg.toolCalls?.length) return i;
+  }
+  return -1;
+}
+
+function callsFromMessage(
+  msg: Message,
+  toolResults: ToolMessage[],
+  fallback: { index: number },
+): TurnCall[] {
+  if (msg.role !== "assistant" || !msg.toolCalls?.length) return [];
   const calls: TurnCall[] = [];
-  let fallbackIndex = 0;
-  for (const msg of turn) {
-    if (msg.role !== "assistant" || !msg.toolCalls?.length) continue;
-    for (const tc of msg.toolCalls) {
-      const byId = toolResults.find((result) => result.toolCallId === tc.id);
-      const resultMsg = byId ?? toolResults[fallbackIndex];
-      fallbackIndex += 1;
-      const content = resultMsg?.content ?? "";
-      const isError = /^(error|blocked|failed|unsupported)/i.test(content.trim())
-        || OS_ERROR_PATTERN.test(content);
-      calls.push({ name: tc.name, result: content, isError, args: tc.arguments });
-    }
+  for (const tc of msg.toolCalls) {
+    const byId = toolResults.find((result) => result.toolCallId === tc.id);
+    const resultMsg = byId ?? toolResults[fallback.index];
+    fallback.index += 1;
+    const content = resultMsg?.content ?? "";
+    calls.push({ name: tc.name, result: content, isError: resultIsError(content), args: tc.arguments });
   }
   return calls;
+}
+
+function resultIsError(content: string): boolean {
+  return /^(error|blocked|failed|unsupported)/i.test(content.trim())
+    || OS_ERROR_PATTERN.test(content);
 }
 
 function stableValue(value: unknown): string {
@@ -149,7 +155,11 @@ function shellSurface(command: string): string {
 function shellCmdIsWrite(args?: Record<string, unknown>): boolean {
   if (!args) return true; // conservative: no info → treat as write
   const cmd = typeof args.command === "string" ? args.command.trim() : "";
-  return !cmd || SHELL_WRITE_PATTERN.test(shellSurface(cmd));
+  const surface = shellSurface(cmd).replace(
+    /(?:^|\s)(?:\d*|&)>+\s*\/dev\/null(?=\s|$)/g,
+    " ",
+  );
+  return !cmd || SHELL_WRITE_PATTERN.test(surface);
 }
 
 function isReadTool(name: string): boolean {

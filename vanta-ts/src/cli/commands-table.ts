@@ -1,6 +1,7 @@
 // The `vanta <cmd>` dispatch table; interactive entry points stay in cli.ts.
 import { runRoomsList, runModes } from "../projects/commands.js";
 import { runAuthCommand } from "../google/commands.js";
+import { runLinkedInAuthCommand } from "../linkedin/commands.js";
 import { runMigrate } from "./migrate-cmd.js";
 import { runAgentImageCommand } from "./agent-image-cmd.js";
 import { runBetaProofCommand } from "./beta-proof-cmd.js";
@@ -200,7 +201,11 @@ export const COMMANDS: Record<string, CommandFn> = {
   rooms: () => runRoomsList(process.env),
   room: (root, rest) => runRoomCommand(root, rest),
   modes: (_root, rest) => runModes(process.env, rest[0]),
-  auth: (_root, rest) => rest[0] === "pool" ? runAuthPoolCommand(rest.slice(1)) : runAuthCommand(rest),
+  auth: (_root, rest) => rest[0] === "pool"
+    ? runAuthPoolCommand(rest.slice(1))
+    : rest[0] === "linkedin"
+      ? runLinkedInAuthCommand(rest)
+      : runAuthCommand(rest),
   voice: (root, rest) => runVoiceCommand(root, rest),
   control: (root, rest) => runControlCommand(root, rest),
   hooks: (_root, rest) => runHooksCommand(rest),

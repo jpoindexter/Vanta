@@ -8,6 +8,7 @@ import {
   buildMcpChildEnv,
   resolveMcpStdioArgs,
   validateScraplingToolArgs,
+  mcpTrustDecisionKey,
 } from "./mount.js";
 import type { ToolContext } from "../tools/types.js";
 
@@ -39,6 +40,22 @@ describe("readMcpConfig", () => {
       }),
     } as NodeJS.ProcessEnv);
     expect(cfg.servers.files).toEqual({ command: "mcp-fs", args: ["/tmp"] });
+  });
+
+  it("preserves absent, explicit-empty, and named tool policies", async () => {
+    const cfg = await readMcpConfig({
+      VANTA_MCP_SERVERS: JSON.stringify({
+        servers: {
+          absent: { command: "mcp-absent" },
+          empty: { command: "mcp-empty", tools: [] },
+          named: { command: "mcp-named", tools: ["read"] },
+        },
+      }),
+    } as NodeJS.ProcessEnv);
+
+    expect(cfg.servers.absent?.tools).toBeUndefined();
+    expect(cfg.servers.empty?.tools).toEqual([]);
+    expect(cfg.servers.named?.tools).toEqual(["read"]);
   });
 
   it("returns empty servers on malformed config", async () => {
@@ -107,6 +124,13 @@ describe("readMcpConfig", () => {
       await rm(dir, { recursive: true });
       await rm(home, { recursive: true });
     }
+  });
+});
+
+describe("mcpTrustDecisionKey", () => {
+  it("binds trust to the difference between absent and explicit-empty tools", () => {
+    expect(mcpTrustDecisionKey("fixture", { command: "mcp" }))
+      .not.toBe(mcpTrustDecisionKey("fixture", { command: "mcp", tools: [] }));
   });
 });
 

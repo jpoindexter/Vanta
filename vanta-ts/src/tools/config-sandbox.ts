@@ -29,7 +29,7 @@ const OverrideArg = z.object({
   promptPrefix: z.string().min(1).optional(),
   model: z.string().min(1).optional(),
   provider: z.string().min(1).optional(),
-  toolNames: z.array(z.string().min(1)).min(1).optional(),
+  toolNames: z.array(z.string().min(1)).optional(),
 });
 
 const Args = z.object({
@@ -46,7 +46,7 @@ function dataDir(ctx: ToolContext): string {
 
 /** A scoped registry exposing only `toolNames` (everything else excluded). */
 export function buildScopedRegistry(toolNames?: string[]): ReturnType<typeof buildRegistry> {
-  if (!toolNames?.length) return buildRegistry();
+  if (toolNames === undefined) return buildRegistry();
   const wanted = new Set(toolNames);
   const all = buildRegistry().schemas().map((s) => s.name);
   return buildRegistry({ exclude: all.filter((name) => !wanted.has(name)) });
