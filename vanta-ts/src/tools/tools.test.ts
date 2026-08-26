@@ -585,6 +585,10 @@ describe("config_sandbox", () => {
     // No subset → the full registry.
     expect(buildScopedRegistry().schemas().length).toBeGreaterThan(2);
   });
+
+  it("treats an explicit empty override.toolNames as zero tools", () => {
+    expect(buildScopedRegistry([]).schemas()).toEqual([]);
+  });
 });
 
 describe("enter_worktree", () => {

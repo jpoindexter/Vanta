@@ -50,6 +50,23 @@ describe("McpPanel — server list", () => {
     inst.unmount();
   });
 
+  it("shows a connected explicit-empty server as zero tools with no drill-in", async () => {
+    const empty: McpServerView = {
+      name: "empty",
+      transport: "stdio",
+      status: "connected",
+      tools: [],
+    };
+    const inst = renderUi(h(McpPanel, { servers: [empty], onReconnect: noop, onClose: noop }));
+    await tick();
+    expect(inst.lastFrame()).toContain("0 tools");
+    inst.input(ENTER);
+    await tick();
+    expect(inst.lastFrame()).toContain("MCP servers (1)");
+    expect(inst.lastFrame()).not.toContain("empty · tools");
+    inst.unmount();
+  });
+
   it("reconnects the selected errored server on r", async () => {
     const onReconnect = vi.fn();
     // github (connected) is first; move down to stripe (errored), then press r.

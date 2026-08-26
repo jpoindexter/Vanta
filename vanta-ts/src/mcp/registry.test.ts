@@ -45,6 +45,19 @@ describe("project MCP connector registry", () => {
     ]);
   });
 
+  it("does not advertise stale probe tools after config narrows to explicit-empty", async () => {
+    await recordMcpProbe(root, "local", {
+      ok: true,
+      tools: ["read", "write"],
+      resources: [],
+    });
+    await writeFile(join(root, ".mcp.json"), JSON.stringify({
+      mcpServers: { local: { command: "node", args: ["server.js"], tools: [] } },
+    }));
+
+    expect((await readMcpRegistry(root, env))[0]?.tools).toEqual([]);
+  });
+
   it("uses the shared settings and trust stores for operator changes", async () => {
     await setMcpConnectorEnabled(root, "local", false);
     await setMcpConnectorTrust(root, "local", false);

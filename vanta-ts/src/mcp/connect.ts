@@ -8,6 +8,7 @@ import {
   stableEffectId,
   type EffectGateContext,
 } from "../effects/execute-effect.js";
+import { applyMcpToolPolicy } from "./tool-policy.js";
 
 // Live connection layer for the MCP management panel. Connects to each configured
 // server (best-effort), captures connected/error status + discovered tools, and
@@ -24,6 +25,15 @@ export type ElicitHandler = (req: { server: string; method: string; params: unkn
 
 /** A connected (or failed) server plus the live client used for reconnect. */
 export type McpConnection = McpServerView & { client?: McpClient };
+
+type ConnectOptions = {
+  env: NodeJS.ProcessEnv;
+  onElicit?: ElicitHandler;
+  root?: string;
+  record?: McpConnectorRecord;
+  effectGate?: EffectGateContext;
+  idempotencyKey?: string;
+};
 
 async function resolveTransport(name: string, spec: ServerSpec, env: NodeJS.ProcessEnv, root: string): Promise<{ transport: Transport; kind: "stdio" | "http" } | null> {
   if (spec.url) {
@@ -45,62 +55,53 @@ async function resolveTransport(name: string, spec: ServerSpec, env: NodeJS.Proc
   return null;
 }
 
+async function describeConnection(name: string, spec: ServerSpec, opts: ConnectOptions): Promise<string> {
+  const authenticated = spec.url
+    ? Boolean((await import("./auth-store.js").then(({ loadMcpToken }) => loadMcpToken(name, opts.env)))?.access_token)
+    : false;
+  return JSON.stringify({ name, command: spec.command, args: spec.args ?? [], url: spec.url, authenticated });
+}
+
+function failedConnection(name: string, spec: ServerSpec, outcome: string, error: unknown): McpConnection {
+  return {
+    name,
+    transport: spec.url ? "http" : "stdio",
+    status: "error",
+    error: error instanceof Error ? error.message : `MCP connection ${outcome}`,
+    tools: [],
+  };
+}
+
+async function connectWithEffect(name: string, spec: ServerSpec, opts: ConnectOptions, root: string): Promise<McpConnection> {
+  const effectGate = opts.effectGate!;
+  const description = await describeConnection(name, spec, opts);
+  const digest = payloadSha256(description);
+  const seed = {
+    host: "mcp-connect-host",
+    kind: "mcp.server.connect",
+    targetClass: spec.url ? "remote-mcp-server" : "local-mcp-process",
+    payloadSha256: digest,
+    idempotencyKey: opts.idempotencyKey ?? `mcp-connect:${effectGate.sessionId ?? "one-shot"}:${name}:${digest}`,
+  };
+  const connected = await executeEffect({
+    id: stableEffectId(seed),
+    actor: `mcp:${name}`,
+    action: `connect and inspect MCP server ${name}`,
+    ...seed,
+  }, effectGate, async () => {
+    const result = await connectServerOperation(name, spec, opts, root);
+    if (result.value.status !== "connected") throw new Error(result.value.error ?? `MCP ${name} did not connect`);
+    return result;
+  });
+  if ((connected.outcome === "confirmed" || connected.outcome === "verified") && connected.value) return connected.value;
+  return failedConnection(name, spec, connected.outcome, connected.operationError);
+}
+
 /** Connect to one server: initialize + list tools. Errors become a view, never throw. */
-export async function connectServer(name: string, spec: ServerSpec, opts: {
-  env: NodeJS.ProcessEnv;
-  onElicit?: ElicitHandler;
-  root?: string;
-  record?: McpConnectorRecord;
-  effectGate?: EffectGateContext;
-  idempotencyKey?: string;
-}): Promise<McpConnection> {
+export async function connectServer(name: string, spec: ServerSpec, opts: ConnectOptions): Promise<McpConnection> {
   const root = opts.root ?? process.cwd();
-  if (opts.effectGate) {
-    const authenticated = spec.url
-      ? Boolean((await import("./auth-store.js").then(({ loadMcpToken }) => loadMcpToken(name, opts.env)))?.access_token)
-      : false;
-    const description = JSON.stringify({
-      name,
-      command: spec.command,
-      args: spec.args ?? [],
-      url: spec.url,
-      authenticated,
-    });
-    const seed = {
-      host: "mcp-connect-host",
-      kind: "mcp.server.connect",
-      targetClass: spec.url ? "remote-mcp-server" : "local-mcp-process",
-      payloadSha256: payloadSha256(description),
-      idempotencyKey: opts.idempotencyKey
-        ?? `mcp-connect:${opts.effectGate.sessionId ?? "one-shot"}:${name}:${payloadSha256(description)}`,
-    };
-    const connected = await executeEffect({
-      id: stableEffectId(seed),
-      actor: `mcp:${name}`,
-      action: `connect and inspect MCP server ${name}`,
-      ...seed,
-    }, opts.effectGate, async () => {
-      const result = await connectServerOperation(name, spec, opts, root);
-      if (result.value.status !== "connected") {
-        throw new Error(result.value.error ?? `MCP ${name} did not connect`);
-      }
-      return result;
-    });
-    if ((connected.outcome === "confirmed" || connected.outcome === "verified") && connected.value) {
-      return connected.value;
-    }
-    return {
-      name,
-      transport: spec.url ? "http" : "stdio",
-      status: "error",
-      error: connected.operationError instanceof Error
-        ? connected.operationError.message
-        : `MCP connection ${connected.outcome}`,
-      tools: [],
-    };
-  }
-  const direct = await connectServerOperation(name, spec, opts, root);
-  return direct.value!;
+  if (opts.effectGate) return connectWithEffect(name, spec, opts, root);
+  return (await connectServerOperation(name, spec, opts, root)).value;
 }
 
 async function connectServerOperation(
@@ -116,7 +117,8 @@ async function connectServerOperation(
   const client = new McpClient(transport, opts.onElicit ? { onElicitation: (r) => opts.onElicit!({ server: name, method: r.method, params: r.params }) } : {});
   try {
     await client.initialize();
-    const tools = await client.listTools();
+    const discoveredTools = await client.listTools();
+    const tools = applyMcpToolPolicy(discoveredTools, spec.tools);
     const resources = await client.listResources().catch(() => []);
     if (opts.root) await recordMcpProbe(opts.root, name, { ok: true, tools: tools.map((tool) => tool.name), resources: resources.map((resource) => resource.uri) });
     const value: McpConnection = { name, transport: kind, status: "connected", tools, resources, client, source: opts.record?.source, trust: opts.record?.trust, auth: opts.record?.auth };
