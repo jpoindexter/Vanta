@@ -212,6 +212,21 @@ try {
     throw new Error(`Desktop composer did not become ready: ${JSON.stringify(bootState)}`, { cause: error });
   }
   await page.locator(".titlebar-leading-actions").waitFor();
+  await page.getByRole("region", { name: "Current task" }).waitFor();
+  await page.getByRole("region", { name: "Current task" }).getByText("Outcome", { exact: true }).waitFor();
+  await page.locator("#vanta-composer").fill("Keep this draft while focusing");
+  await page.keyboard.press("Meta+L");
+  const composerFocus = await page.locator("#vanta-composer").evaluate((element) => ({
+    focused: element === document.activeElement,
+    value: element.value,
+    selectionStart: element.selectionStart,
+    selectionEnd: element.selectionEnd,
+  }));
+  if (!composerFocus.focused || composerFocus.value !== "Keep this draft while focusing" || composerFocus.selectionStart !== composerFocus.value.length || composerFocus.selectionEnd !== composerFocus.value.length) throw new Error(`Command+L composer focus failed: ${JSON.stringify(composerFocus)}`);
+  await page.locator("#vanta-composer").fill("");
+  const runtimeSummary = await page.locator("[data-runtime-strip]").textContent() ?? "";
+  if (!runtimeSummary.includes("Task system") || !runtimeSummary.includes("Runtime details")) throw new Error(`task-system summary is missing: ${runtimeSummary}`);
+  for (const hidden of ["gpt-5.6-sol", "qwen.gguf", "Memory pressure", "tok/s"]) if (runtimeSummary.includes(hidden)) throw new Error(`runtime telemetry escaped progressive disclosure: ${hidden}`);
   for (const destination of ["Today", "Connect", "Scheduled", "Plugins"]) {
     await page.getByRole("button", { name: destination, exact: true }).waitFor();
   }
@@ -269,7 +284,7 @@ try {
     await page.keyboard.press("Tab");
     semanticAccessibilityProof = await page.evaluate(() => {
       const sizes = (selectors, property) => selectors.flatMap((selector) => [...document.querySelectorAll(selector)].map((element) => ({ selector, value: Number.parseFloat(getComputedStyle(element)[property]) || 0 })));
-      const metadata = sizes([".runtime-strip-trigger small", ".runtime-engine", ".timeline-step small", ".timeline-step em", ".inline-approval header span", ".inline-approval .approval-section strong", ".inline-approval .approval-section code", ".approval-mode"], "fontSize");
+      const metadata = sizes([".runtime-strip-trigger small", ".runtime-guidance", ".runtime-disclosure", ".task-dossier span", ".timeline-step small", ".timeline-step em", ".inline-approval header span", ".inline-approval .approval-section strong", ".inline-approval .approval-section code", ".approval-mode"], "fontSize");
       const controls = sizes([".inline-approval button", ".composer-actions .model-button", ".composer-actions .approval-mode"], "height");
       const focused = getComputedStyle(document.activeElement);
       return {
@@ -278,7 +293,7 @@ try {
         focus: { outlineWidth: Number.parseFloat(focused.outlineWidth) || 0, outlineStyle: focused.outlineStyle },
         stateText: {
           approval: document.querySelector(".approval-mode")?.textContent?.trim() ?? "",
-          runtime: document.querySelector(".runtime-engine")?.textContent?.trim() ?? "",
+          runtime: document.querySelector(".runtime-health")?.textContent?.trim() ?? "",
         },
       };
     });

@@ -21,6 +21,7 @@ import { ContinuityView } from "./continuity-view.js";
 import { useContinuity } from "./continuity-state.js";
 import { RuntimeStrip } from "./runtime-strip.js";
 import { LoadingIndicator } from "./form-controls.js";
+import { focusDesktopComposer, handleGlobalShortcut } from "./global-shortcuts.js";
 
 type DesktopData = ReturnType<typeof useDesktopData>;
 type CompletionSound = ReturnType<typeof useCompletionSound>;
@@ -206,12 +207,15 @@ export function AppShell() {
 
   useEffect(() => {
     function shortcut(event: KeyboardEvent) {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); data.openPalette(); }
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "n") { event.preventDefault(); openNewTask(); }
-      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === "r") { event.preventDefault(); data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); }
-      if (event.shiftKey && event.key === "Tab") { event.preventDefault(); cycleAccessMode(); }
-      if (event.key === "?") { const target = event.target as HTMLElement | null; if (target?.tagName !== "INPUT" && target?.tagName !== "TEXTAREA") data.openShortcuts(); }
-      if (event.key === "Escape") { data.closePalette(); data.closeModelPicker(); data.closeSoundSettings(); data.closeSettings(); data.closeShortcuts(); setInspectorOpen(false); setMobilePanel("work"); }
+      handleGlobalShortcut(event, {
+        focusComposer: focusDesktopComposer,
+        openPalette: data.openPalette,
+        openNewTask,
+        openReview: () => { data.setTab("files"); setInspectorOpen(true); setMobilePanel("inspect"); },
+        cycleAccessMode,
+        openShortcuts: data.openShortcuts,
+        closeOverlays: () => { data.closePalette(); data.closeModelPicker(); data.closeSoundSettings(); data.closeSettings(); data.closeShortcuts(); setInspectorOpen(false); setMobilePanel("work"); },
+      });
     }
     window.addEventListener("keydown", shortcut);
     return () => window.removeEventListener("keydown", shortcut);
@@ -294,7 +298,7 @@ export function AppShell() {
           </div>
           <div className={`conversation-stage ${data.phase === "error" ? "has-error" : ""}`}>
             {data.phase === "error" ? <ConnectionError message={data.error} onRetry={() => { void data.refresh(); }} onSetup={data.openSetup} /> : null}
-            {data.phase === "loading" ? <LoadingState /> : <ChatThread key={convo.sessionId || data.status?.sessionId} sessionId={convo.sessionId || data.status?.sessionId} messages={convo.messages} busy={convo.busy} streamText={convo.streamText} events={convo.events} recovery={convo.recovery} approval={approval.approval} onApproval={approval.answerApproval} onRetry={convo.retry} onReconnect={data.openSetup} onPrompt={convo.setDraft} />}
+            {data.phase === "loading" ? <LoadingState /> : <ChatThread key={convo.sessionId || data.status?.sessionId} title={convo.activeTitle} sessionId={convo.sessionId || data.status?.sessionId} messages={convo.messages} busy={convo.busy} streamText={convo.streamText} events={convo.events} recovery={convo.recovery} approval={approval.approval} queueCount={queued.snapshot.items.length} onApproval={approval.answerApproval} onRetry={convo.retry} onReconnect={data.openSetup} onPrompt={convo.setDraft} />}
           </div>
           <div className="composer-stack">
             {queued.snapshot.items.length ? <button className="inline-queue-trigger" type="button" aria-label={`Open queue, ${queued.snapshot.items.length} next`} onClick={() => setQueueOpen(true)}><ListOrdered size={14} /><span>Queue</span><strong>{queued.snapshot.items.length} next</strong><small>Runs after the current task</small></button> : null}

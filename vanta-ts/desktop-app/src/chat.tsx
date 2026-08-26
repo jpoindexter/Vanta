@@ -12,6 +12,7 @@ import { compactTrace } from "../../src/trace/quiet-trace.js";
 import { RunLibraryPanel, type RunLibraryController } from "./run-library.js";
 import type { PreparedRun } from "./types.js";
 import { ConfirmationActions, ControlButton } from "./form-controls.js";
+import { TaskDossier } from "./task-dossier.js";
 
 export { Composer } from "./composer.js";
 
@@ -307,7 +308,7 @@ function SessionButton(props: {
 type MessageFeedback = "helpful" | "not_helpful";
 type ExpandedMessage = { content: string; opener: HTMLButtonElement | null } | null;
 
-export function ChatThread(props: { sessionId?: string; messages: Message[]; busy: boolean; streamText: string; events: { label: string; ok?: boolean }[]; recovery: DesktopRunReceipt | null; approval: Approval | null; onApproval: (decision: ApprovalDecision) => void | Promise<void>; onRetry: () => void; onReconnect?: () => void; onPrompt: (text: string) => void }) {
+export function ChatThread(props: { title: string; sessionId?: string; messages: Message[]; busy: boolean; streamText: string; events: { label: string; ok?: boolean }[]; recovery: DesktopRunReceipt | null; approval: Approval | null; queueCount: number; onApproval: (decision: ApprovalDecision) => void | Promise<void>; onRetry: () => void; onReconnect?: () => void; onPrompt: (text: string) => void }) {
   const rows = useMemo(() => props.messages.filter((m) => m.role !== "system"), [props.messages]);
   const turns = useMemo(() => rows.flatMap((message, rowIndex) => message.role === "tool" ? [] : [{ message, rowIndex }]), [rows]);
   const recovery = props.recovery;
@@ -383,6 +384,7 @@ export function ChatThread(props: { sessionId?: string; messages: Message[]; bus
 
   return (
     <div className="chat-thread-frame">
+    <TaskDossier title={props.title} hasMessages={rows.length > 0} busy={props.busy} streaming={Boolean(props.streamText)} approval={props.approval} recovery={props.recovery} queueCount={props.queueCount} />
     <PromptMarkers messages={rows} onJump={jumpToPrompt} />
     <section ref={navigation.scrollerRef} className="chat-thread" aria-label="Conversation history" aria-live="polite" tabIndex={0}>
       {rows.length === 0 ? <EmptyState onPrompt={props.onPrompt} /> : null}

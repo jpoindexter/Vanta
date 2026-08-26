@@ -198,7 +198,7 @@ h2 { margin: 14px 0 8px; font-size: 11px; letter-spacing: .08em; text-transform:
 .queue-drawer-backdrop { position: fixed; z-index: 80; inset: 0; display: flex; justify-content: flex-end; background: color-mix(in srgb, var(--bg) 58%, transparent); }
 .queue-drawer { width: min(520px, calc(100vw - 24px)); height: 100%; display: grid; grid-template-rows: auto auto minmax(0, 1fr); border-inline-start: 1px solid var(--line-strong); background: var(--panel); box-shadow: -18px 0 48px color-mix(in srgb, #000 55%, transparent); }
 .queue-drawer > header { min-height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); padding: 14px 16px; }
-.queue-drawer > header span { display: block; color: var(--faint); font-size: 10px; text-transform: uppercase; }
+.queue-drawer > header span { display: block; color: var(--muted); font-size: var(--type-metadata); text-transform: uppercase; }
 .queue-drawer > header h2 { display: flex; align-items: center; gap: 8px; margin: 5px 0 0; color: var(--text); font-size: 15px; letter-spacing: 0; text-transform: none; }
 .queue-drawer > header small { color: var(--faint); font: inherit; }
 .queue-error { margin: 0; border-bottom: 1px solid var(--line); color: var(--danger); padding: 10px 16px; font-size: 12px; }
@@ -208,14 +208,14 @@ h2 { margin: 14px 0 8px; font-size: 11px; letter-spacing: .08em; text-transform:
 .queued-turn-list li { min-height: 96px; display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: start; gap: 10px; border-bottom: 1px solid var(--line); padding: 14px 12px; }
 .queued-turn-list li[data-status="starting"] { background: var(--raised); }
 .queued-turn-list li[data-status="failed"] { box-shadow: inset 2px 0 var(--danger); }
-.queue-position { color: var(--faint); font: 11px/1.4 var(--font-mono); }
+.queue-position { color: var(--muted); font: var(--type-metadata)/1.4 var(--font-mono); }
 .queue-copy { min-width: 0; display: grid; gap: 7px; }
 .queue-copy > strong { overflow: hidden; color: var(--text); text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
-.queue-copy > span { color: var(--faint); font-size: 10px; line-height: 1.45; }
+.queue-copy > span { color: var(--muted); font-size: var(--type-metadata); line-height: 1.45; }
 .queued-turn-list li[data-status="failed"] .queue-copy > span { color: var(--danger); }
-.queue-copy form { display: grid; gap: 7px; }.queue-copy form textarea { min-height: 72px; resize: vertical; }.queue-copy form div { display: flex; gap: 6px; }.queue-copy form button { min-height: 28px; }
+.queue-copy form { display: grid; gap: 7px; }.queue-copy form textarea { min-height: 72px; resize: vertical; }.queue-copy form div { display: flex; gap: 6px; }.queue-copy form button { min-height: var(--control-height-compact); }
 .queue-actions { display: flex; align-items: center; gap: 2px; }
-.queue-actions button { width: 30px; height: 30px; display: grid; place-items: center; border: 0; background: transparent; color: var(--muted); padding: 0; }
+.queue-actions button { width: var(--control-height-compact); height: var(--control-height-compact); display: grid; place-items: center; border: 0; background: transparent; color: var(--muted); padding: 0; }
 .queue-actions button:hover:not(:disabled) { background: var(--raised); color: var(--text); }.queue-actions button:disabled { opacity: .25; }
 .empty-state { margin: auto; width: min(680px, 100%); display: grid; gap: 10px; text-align: center; color: var(--muted); }
 .empty-mark { width: 42px; height: 42px; margin: 0 auto 6px; border-radius: 8px; font-size: 19px; }
