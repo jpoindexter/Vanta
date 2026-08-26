@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
 import { Bot, Check, ChevronRight, Command, FolderOpen, KeyRound, MonitorCog, RefreshCw, Search, ShieldCheck, Star, X } from "lucide-react";
 import type { Approval, ApprovalDecision, DesktopTheme, DesktopView, ModelEffort, PermissionSection, Provider, ProviderModelSettings, ProviderSpeed, Status } from "./types.js";
-import { StyledSelect } from "./form-controls.js";
+import { ConfirmationActions, ControlButton, InlineError, LoadingIndicator, StyledSelect, TextField } from "./form-controls.js";
 import { pickDesktopProjectFolder } from "./project-folder-picker.js";
 
 type CommandPaletteProps = {
@@ -372,13 +372,13 @@ export function SetupWizard(props: { open: boolean; models: Provider[]; onClose:
     <form className="setup-dialog" role="dialog" aria-modal="true" aria-labelledby="setup-title" onSubmit={submit} onClick={(event) => event.stopPropagation()}>
       <div className="dialog-heading"><div><p className="eyebrow">First run</p><h2 id="setup-title">Connect a model</h2></div><button className="icon-button" type="button" aria-label="Close" onClick={props.onClose}><X size={16} /></button></div>
       <label>Provider<StyledSelect value={provider?.id ?? ""} onChange={(event) => { const next = props.models.find((item) => item.id === event.target.value); setProviderId(event.target.value); setModel(next?.defaultModel ?? next?.models[0] ?? ""); setApiKey(""); }}>{props.models.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</StyledSelect></label>
-      <label>Model<input list="setup-models" value={model} onChange={(event) => setModel(event.target.value)} /></label>
+      <label>Model<TextField list="setup-models" value={model} onChange={(event) => setModel(event.target.value)} /></label>
       <datalist id="setup-models">{provider?.models.map((item) => <option key={item} value={item} />)}</datalist>
-      {provider?.requiresKey ? <label>API key<input type="password" autoComplete="off" value={apiKey} onChange={(event) => setApiKey(event.target.value)} required /></label> : null}
+      {provider?.requiresKey ? <label>API key<TextField type="password" autoComplete="off" value={apiKey} onChange={(event) => setApiKey(event.target.value)} required /></label> : null}
       {provider?.note ? <p className="muted">{provider.note}</p> : null}
       {provider?.signupUrl ? <a href={provider.signupUrl} target="_blank" rel="noreferrer">Get an API key</a> : null}
-      {error ? <p className="setup-error" role="alert">{error}</p> : null}
-      <div className="dialog-actions"><button type="button" onClick={props.onClose}>Cancel</button><button type="submit" disabled={saving}>{saving ? "Connecting…" : "Connect"}</button></div>
+      {error ? <InlineError>{error}</InlineError> : null}
+      <ConfirmationActions className="dialog-actions"><ControlButton type="button" onClick={props.onClose}>Cancel</ControlButton><ControlButton tone="primary" type="submit" disabled={saving} aria-busy={saving}>{saving ? <><LoadingIndicator label="Connecting" />Connecting…</> : "Connect"}</ControlButton></ConfirmationActions>
     </form>
   </div>;
 }
@@ -393,10 +393,10 @@ export function ApprovalOverlay(props: { approval: Approval | null; onAnswer: (d
         <p className="approval-subject">{request?.subject ?? props.approval.action}</p>
         <p>{request?.reason ?? props.approval.reason}</p>
         {(request?.sections ?? fallbackSections(props.approval)).map((section) => <ApprovalSection key={section.label} section={section} />)}
-        <div>
-          <button type="button" onClick={() => props.onAnswer("allow")}>Allow once</button>
-          <button type="button" onClick={() => props.onAnswer("deny")}>Reject</button>
-        </div>
+        <ConfirmationActions>
+          <ControlButton tone="primary" type="button" onClick={() => props.onAnswer("allow")}>Allow once</ControlButton>
+          <ControlButton type="button" onClick={() => props.onAnswer("deny")}>Reject</ControlButton>
+        </ConfirmationActions>
       </div>
     </div>
   );

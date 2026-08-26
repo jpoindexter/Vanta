@@ -10,6 +10,20 @@ export const VISUAL_VIEWPORTS = [
 ];
 
 export const VISUAL_THEMES = ["dark", "light"];
+export const VISUAL_SURFACES = [
+  "approval",
+  "bulk-sessions",
+  "connect",
+  "model-picker",
+  "model-settings",
+  "recovery",
+  "setup",
+  "work",
+];
+
+export function expectedVisualBaselineNames() {
+  return VISUAL_SURFACES.flatMap((surface) => VISUAL_THEMES.flatMap((theme) => VISUAL_VIEWPORTS.map((viewport) => `${surface}-${theme}-${viewport.name}.png`))).sort();
+}
 
 export function comparePng(actualBuffer, expectedBuffer, options = {}) {
   const actual = PNG.sync.read(actualBuffer);
@@ -43,6 +57,7 @@ export function comparePng(actualBuffer, expectedBuffer, options = {}) {
 }
 
 export async function captureVisualMatrix(page, surface, options) {
+  if (!VISUAL_SURFACES.includes(surface)) throw new Error(`Unsupported visual surface ${surface}. Register it in VISUAL_SURFACES before capturing it.`);
   const originalViewport = page.viewportSize();
   const originalTheme = await page.locator(".app-shell").evaluate((shell) => shell.classList.contains("theme-light") ? "light" : "dark");
   const results = [];
@@ -55,6 +70,7 @@ export async function captureVisualMatrix(page, surface, options) {
       for (const viewport of VISUAL_VIEWPORTS) {
         await page.setViewportSize(viewport);
         await settle(page);
+        await assertRuntimeDoesNotOverlapTranscript(page, surface, viewport.name);
         const name = `${surface}-${theme}-${viewport.name}.png`;
         const baselinePath = join(options.baselineRoot, name);
         const actual = await page.screenshot({ animations: "disabled", fullPage: false });
@@ -92,6 +108,17 @@ export async function captureVisualMatrix(page, surface, options) {
     await settle(page);
   }
   return results;
+}
+
+async function assertRuntimeDoesNotOverlapTranscript(page, surface, viewport) {
+  const bounds = await page.evaluate(() => {
+    const runtime = document.querySelector(".runtime-strip")?.getBoundingClientRect();
+    const transcript = document.querySelector(".chat-thread")?.getBoundingClientRect();
+    return runtime && transcript ? { runtimeBottom: runtime.bottom, transcriptTop: transcript.top } : null;
+  });
+  if (bounds && bounds.runtimeBottom > bounds.transcriptTop + .5) {
+    throw new Error(`Runtime strip overlaps the transcript on ${surface}-${viewport}: ${JSON.stringify(bounds)}`);
+  }
 }
 
 async function settle(page) {

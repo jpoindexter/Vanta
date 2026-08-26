@@ -17,6 +17,7 @@ const accessibilityProof = process.env.VANTA_DESKTOP_ACCESSIBILITY_PROOF === "1"
 const visualBaselineRoot = resolve("scripts", "fixtures", "desktop-visual-baselines", `${platform()}-${arch()}`);
 const visualResults = [];
 const accessibilityResults = [];
+let semanticAccessibilityProof;
 let app;
 const rendererErrors = [];
 
@@ -261,6 +262,38 @@ try {
   await inlineApproval.getByText("Target file").waitFor();
   await inlineApproval.getByText("Preview").waitFor();
   await inlineApproval.getByText("- old shell").waitFor();
+  if (accessibilityProof) {
+    const allow = inlineApproval.getByRole("button", { name: "Allow once" });
+    await allow.focus();
+    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("Tab");
+    semanticAccessibilityProof = await page.evaluate(() => {
+      const sizes = (selectors, property) => selectors.flatMap((selector) => [...document.querySelectorAll(selector)].map((element) => ({ selector, value: Number.parseFloat(getComputedStyle(element)[property]) || 0 })));
+      const metadata = sizes([".runtime-strip-trigger small", ".runtime-engine", ".timeline-step small", ".timeline-step em", ".inline-approval header span", ".inline-approval .approval-section strong", ".inline-approval .approval-section code", ".approval-mode"], "fontSize");
+      const controls = sizes([".inline-approval button", ".composer-actions .model-button", ".composer-actions .approval-mode"], "height");
+      const focused = getComputedStyle(document.activeElement);
+      return {
+        metadata,
+        controls,
+        focus: { outlineWidth: Number.parseFloat(focused.outlineWidth) || 0, outlineStyle: focused.outlineStyle },
+        stateText: {
+          approval: document.querySelector(".approval-mode")?.textContent?.trim() ?? "",
+          runtime: document.querySelector(".runtime-engine")?.textContent?.trim() ?? "",
+        },
+      };
+    });
+    const undersizedMetadata = semanticAccessibilityProof.metadata.filter((entry) => entry.value < 12);
+    const undersizedControls = semanticAccessibilityProof.controls.filter((entry) => entry.value < 36);
+    if (undersizedMetadata.length) throw new Error(`Consequential metadata is below 12px: ${JSON.stringify(undersizedMetadata)}`);
+    if (undersizedControls.length) throw new Error(`Consequential controls are below 36px: ${JSON.stringify(undersizedControls)}`);
+    if (semanticAccessibilityProof.focus.outlineWidth < 2 || semanticAccessibilityProof.focus.outlineStyle === "none") throw new Error(`Approval keyboard focus is not visible: ${JSON.stringify(semanticAccessibilityProof.focus)}`);
+    if (!semanticAccessibilityProof.stateText.approval || !semanticAccessibilityProof.stateText.runtime) throw new Error(`Approval or runtime state relies on color alone: ${JSON.stringify(semanticAccessibilityProof.stateText)}`);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    const reducedMotionSeconds = await page.locator(".app-shell").evaluate((element) => Number.parseFloat(getComputedStyle(element).transitionDuration) || 0);
+    if (reducedMotionSeconds > .001) throw new Error(`Reduced-motion transition remained active: ${reducedMotionSeconds}s`);
+    semanticAccessibilityProof.reducedMotionSeconds = reducedMotionSeconds;
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+  }
   await capture("approval");
   await inlineApproval.getByRole("button", { name: "Allow once" }).click();
   await inlineApproval.getByText("File edit permission request").waitFor({ state: "detached" });
@@ -379,6 +412,7 @@ try {
   await page.locator(".operator-view").getByRole("heading", { name: "Connect", exact: true }).waitFor();
   await page.locator(".connect-card").filter({ hasText: "Capabilities" }).getByText("2 available", { exact: true }).waitFor();
   await page.locator(".connect-card").filter({ hasText: "Messaging" }).getByText(/1 available adapters\./).waitFor();
+  await capture("connect");
   await page.getByRole("button", { name: "Scheduled", exact: true }).click();
   await page.locator(".operator-view").getByRole("heading", { name: "Scheduled", exact: true }).waitFor();
   await page.getByRole("button", { name: "New schedule" }).waitFor();
@@ -561,7 +595,7 @@ try {
   if (visual.userMessage.background === "rgba(0, 0, 0, 0)") throw new Error(`Operator message lost its compact bubble: ${JSON.stringify(visual)}`);
   if (visual.assistantSpeakerLabels !== 0) throw new Error(`Redundant assistant speaker chrome returned: ${JSON.stringify(visual)}`);
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
-  process.stdout.write(`${JSON.stringify({ destinations: ["Today", "Connect", "Scheduled", "Plugins"], newTask: true, bulkDelete: { selected: 44, requests: bulkRequests, elapsedMs: bulkElapsed }, continuity: true, accessModes: ["approve", "full", "ask"], inlineApproval: approvalDecisions, review: ["Files", "Diff", "Activity"], modelPicker: true, responsive, compact: true, collapsedTitlebar, geometry, visual, visualProof: visualProof ? { updated: visualUpdate, captures: visualResults.length, baselineRoot: visualBaselineRoot } : undefined, accessibilityProof: accessibilityProof ? accessibilityResults : undefined })}\n`);
+  process.stdout.write(`${JSON.stringify({ destinations: ["Today", "Connect", "Scheduled", "Plugins"], newTask: true, bulkDelete: { selected: 44, requests: bulkRequests, elapsedMs: bulkElapsed }, continuity: true, accessModes: ["approve", "full", "ask"], inlineApproval: approvalDecisions, review: ["Files", "Diff", "Activity"], modelPicker: true, responsive, compact: true, collapsedTitlebar, geometry, visual, visualProof: visualProof ? { updated: visualUpdate, captures: visualResults.length, baselineRoot: visualBaselineRoot } : undefined, accessibilityProof: accessibilityProof ? { surfaces: accessibilityResults, semantic: semanticAccessibilityProof } : undefined })}\n`);
 } finally {
   await app?.close().catch(() => undefined);
   await Promise.all([

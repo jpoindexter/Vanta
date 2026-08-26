@@ -11,6 +11,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { compactTrace } from "../../src/trace/quiet-trace.js";
 import { RunLibraryPanel, type RunLibraryController } from "./run-library.js";
 import type { PreparedRun } from "./types.js";
+import { ConfirmationActions, ControlButton } from "./form-controls.js";
 
 export { Composer } from "./composer.js";
 
@@ -607,10 +608,10 @@ function ApprovalCheckpoint(props: { approval: Approval; onAnswer: (decision: Ap
       <div className="approval-sections">
         {sections.map((section) => <ApprovalSection key={section.label} section={section} />)}
       </div>
-      <div className="approval-actions">
-        <button className="primary" type="button" disabled={!!pending} aria-busy={pending === "allow"} onClick={() => void answer("allow")}>{pending === "allow" ? "Allowing..." : "Allow once"}</button>
-        <button type="button" disabled={!!pending} aria-busy={pending === "deny"} onClick={() => void answer("deny")}>{pending === "deny" ? "Rejecting..." : "Reject"}</button>
-      </div>
+      <ConfirmationActions className="approval-actions">
+        <ControlButton tone="primary" type="button" disabled={!!pending} aria-busy={pending === "allow"} onClick={() => void answer("allow")}>{pending === "allow" ? "Allowing..." : "Allow once"}</ControlButton>
+        <ControlButton type="button" disabled={!!pending} aria-busy={pending === "deny"} onClick={() => void answer("deny")}>{pending === "deny" ? "Rejecting..." : "Reject"}</ControlButton>
+      </ConfirmationActions>
     </section>
   );
 }

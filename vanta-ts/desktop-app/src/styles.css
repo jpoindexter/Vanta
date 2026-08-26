@@ -1,21 +1,3 @@
-:root {
-  color-scheme: dark;
-  --bg: #0a0a0a;
-  --panel: #111111;
-  --panel-2: #0e0e0e;
-  --workspace: #151515;
-  --raised: #1c1c1c;
-  --line: #292929;
-  --line-strong: #454545;
-  --text: #f5f5f3;
-  --muted: #b8b8b4;
-  --faint: #858581;
-  --accent: #f5f5f3;
-  --ok: #83bd96;
-  --amber: #d5ac62;
-  --danger: #d67972;
-}
-.theme-light { color-scheme: light; --bg: #e9e9e6; --panel: #f7f7f4; --panel-2: #efefec; --workspace: #ffffff; --raised: #dfdfdc; --line: #c9c9c5; --line-strong: #969690; --text: #111111; --muted: #4f4f4b; --faint: #686864; --accent: #111111; --ok: #247949; --amber: #8b6118; --danger: #a6403b; background: var(--bg); }
 .theme-light .session-row:hover, .theme-light .session-row:focus-within, .theme-light .session-row.active { background: var(--surface-selected); }.theme-light .session-row.active { box-shadow: inset 2px 0 var(--accent); }.theme-light .desktop-nav button.active, .theme-light .segmented button.active, .theme-light .artifact-tabs button.active, .theme-light .settings-nav button.active, .theme-light .connect-tabs button.active { background: var(--surface-selected); border-color: var(--line-strong); }.theme-light .platform-list button.active { background: var(--surface-selected); border-color: var(--line-strong); }.theme-light .view-search, .theme-light .session-search, .theme-light .composer textarea, .theme-light .messaging-detail input { background: var(--panel); }.theme-light .artifact-card, .theme-light .capability-row, .theme-light .operator-empty, .theme-light .connect-card { background: var(--panel); }.theme-light .overlay { background: rgb(0 0 0 / 55%); }
 
 * { box-sizing: border-box; }
@@ -118,7 +100,7 @@ button { color: inherit; cursor: pointer; }
 h1, h2, p { margin: 0; }
 h1 { font-size: 18px; letter-spacing: 0; }
 h2 { margin: 14px 0 8px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
-.eyebrow { color: var(--accent); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+.eyebrow { color: var(--accent-text); font-size: var(--type-metadata); text-transform: uppercase; letter-spacing: .06em; }
 .muted { color: var(--muted); }
 .section-heading { display: flex; align-items: center; justify-content: space-between; }
 .section-heading span { color: var(--faint); font-variant-numeric: tabular-nums; }
@@ -805,14 +787,14 @@ button:focus, textarea:focus, input:focus, select:focus, summary:focus { outline
 .inline-approval header { display: flex; align-items: flex-start; gap: 8px; color: var(--amber); }
 .inline-approval header > div { display: grid; gap: 1px; }
 .inline-approval header strong { color: var(--amber); font-size: 13px; }
-.inline-approval header span { color: var(--muted); font-size: 11px; }
+.inline-approval header span { color: var(--muted); font-size: var(--type-metadata); }
 .approval-brief { display: grid; gap: 6px; }
 .approval-brief p { color: var(--muted); }
 .approval-brief code { overflow-wrap: anywhere; color: var(--text); }
 .approval-sections { display: grid; gap: 7px; }
 .inline-approval .approval-section { display: grid; gap: 5px; border: 1px solid var(--line); border-radius: 6px; background: color-mix(in srgb, var(--bg) 64%, transparent); padding: 8px; }
-.inline-approval .approval-section strong { color: var(--faint); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
-.inline-approval .approval-section code { max-height: 180px; overflow: auto; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 11px; }
+.inline-approval .approval-section strong { color: var(--faint); font-size: var(--type-metadata); letter-spacing: .06em; text-transform: uppercase; }
+.inline-approval .approval-section code { max-height: 180px; overflow: auto; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: var(--type-metadata); }
 .inline-approval .approval-section.danger { border-color: color-mix(in srgb, var(--amber) 70%, var(--line)); }
 .approval-actions { display: flex; flex-wrap: wrap; gap: 7px; }
 .inline-approval button { border: 1px solid var(--line); border-radius: 6px; background: var(--raised); color: var(--muted); padding: 7px 9px; }

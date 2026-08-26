@@ -101,7 +101,7 @@
 
 .timeline-step small,
 .timeline-step em {
-  font-size: 10px;
+  font-size: var(--type-metadata);
 }
 
 .thinking {
@@ -127,7 +127,9 @@
 
 .inline-approval button,
 .run-recovery button {
+  min-height: var(--control-height-compact);
   border-radius: var(--radius-sm);
+  font-size: var(--type-control);
 }
 
 .run-recovery {
@@ -554,7 +556,7 @@
 }
 
 .operator-header .eyebrow {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .operator-header h1 {
@@ -592,7 +594,7 @@
 .release-proof-summary strong { color: var(--muted); font-size: 10px; text-transform: uppercase; }
 .release-proof-summary strong.release_proven { color: var(--ok); }
 .release-proof-summary strong.configured { color: var(--amber); }
-.release-proof-summary strong.tested { color: var(--accent); }
+.release-proof-summary strong.tested { color: var(--accent-text); }
 
 .connect-card {
   grid-template-columns: 30px minmax(110px, .35fr) minmax(0, 1fr) auto;

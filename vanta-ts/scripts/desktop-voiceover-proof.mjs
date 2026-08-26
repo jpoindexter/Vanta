@@ -104,14 +104,14 @@ try {
   recording = spawn("/usr/sbin/screencapture", ["-v", "-V24", "-x", videoPath], { stdio: "ignore" });
   await delay(1_000);
 
-  const openInspector = page.getByRole("button", { name: "Open contextual inspector" });
-  if (await openInspector.isVisible().catch(() => false)) await activateWithKeyboard(page, openInspector);
-  await activateWithKeyboard(page, page.locator(".inspector-tabs button").filter({ hasText: "Files" }));
-  const filesPanel = page.locator(".files-panel");
+  await activateWithKeyboard(page, page.getByRole("button", { name: "Review", exact: true }));
+  const review = page.getByRole("dialog", { name: "Review" });
+  await activateWithKeyboard(page, review.getByRole("tab", { name: "Files" }));
+  const filesPanel = review.locator(".files-panel");
   await filesPanel.getByText("Recent").waitFor();
   await activateWithKeyboard(page, filesPanel.getByTitle("README.md"));
   await page.getByLabel("Attached project context").getByText("README.md").waitFor();
-  await activateWithKeyboard(page, page.getByRole("button", { name: "Close inspector" }));
+  await activateWithKeyboard(page, review.getByRole("button", { name: "Close review" }));
 
   const approval = page.locator(".inline-approval");
   await approval.getByText("File access permission request").waitFor();
@@ -136,7 +136,7 @@ try {
   const receipt = {
     generatedAt: new Date().toISOString(),
     commit: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
-    packagedSourceClean: execFileSync("git", ["status", "--porcelain", "--", "vanta-ts"], { encoding: "utf8" }).trim().length === 0,
+    packagedSourceClean: execFileSync("git", ["status", "--porcelain", "--", "."], { encoding: "utf8" }).trim().length === 0,
     packagedApp: executablePath,
     voiceOverPid,
     pointerDowns,

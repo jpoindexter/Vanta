@@ -1,36 +1,6 @@
 /* Production port of the accepted focused-shell demo. Runtime behavior stays in
    the existing React/API layers; this file owns the reduced information hierarchy. */
-:root,
-.theme-dark {
-  /* Vanta brand palette (BRAND-BOOK 3.4): three colors, no drift.
-     Vanta Black #050507 · Bone #F4EFE3 · Signal Violet #7C3AED.
-     Surfaces are tonal layers of Black lifted toward Bone — the book forbids
-     introducing a new hue to solve hierarchy, so the greys stay neutral rather
-     than carrying the old violet cast. Violet is reserved for active/selected/
-     focused/live state and small rules; target composition 82/16/2. */
-  --bg: #050507;
-  --panel: #0c0c0e;
-  --panel-2: #08080a;
-  --workspace: #101012;
-  --raised: #18181a;
-  --line: #2a2a2c;
-  --line-strong: #4a4a4d;
-  --text: #f4efe3;
-  --muted: #b3aea3;
-  --faint: #7d796f;
-  --accent: #7c3aed;
-  --surface-selected: #232325;
-  --focus: #7c3aed;
-  --titlebar-height: 44px;
-  --titlebar-collapsed-leading-width: 160px;
-  --statusbar-height: 0px;
-}
-
-.theme-light {
-  /* Violet on Bone measures 4.97:1 — usable for non-body UI state. */
-  --accent: #7c3aed;
-  --focus: #7c3aed;
-}
+/* Palette and semantic values live only in design/tokens.css. */
 
 .app-shell,
 .app-shell.inspector-open,
@@ -383,7 +353,7 @@
 }
 
 .workbench {
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   background: var(--workspace);
 }
 
@@ -429,7 +399,7 @@
    by 3px, which is what read as "a plain bordered input". */
 .composer-actions .model-button {
   position: relative; /* owns its own caption's positioning context */
-  height: 30px;
+  height: var(--control-height-compact);
   max-width: 170px;
   border: 1px solid var(--line);
   border-radius: 6px 0 0 6px;
@@ -452,11 +422,12 @@
 }
 
 .composer-actions .approval-mode {
-  height: 30px;
+  height: var(--control-height-compact);
   border: 1px solid var(--line);
   border-left: 0;
   border-radius: 0 6px 6px 0;
-  color: var(--accent);
+  color: var(--accent-text);
+  font-size: var(--type-metadata);
   padding: 4px 7px;
 }
 

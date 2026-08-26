@@ -12,6 +12,7 @@ import "./design/access-mode.css";
 import "./design/full-access-warning.css";
 import "./design/workflow-runs.css";
 import "./design/streamlined-shell.css";
+import "./design/primitives.css";
 import { isNativeCompanion } from "./companion-client";
 
 const Root = window.location.pathname === "/companion" || isNativeCompanion() ? CompanionApp : AppShell;
