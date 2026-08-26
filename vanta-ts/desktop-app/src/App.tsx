@@ -20,6 +20,7 @@ import { acknowledgePendingDesktopProjectTask, readPendingDesktopProjectTask, sw
 import { ContinuityView } from "./continuity-view.js";
 import { useContinuity } from "./continuity-state.js";
 import { RuntimeStrip } from "./runtime-strip.js";
+import { LoadingIndicator } from "./form-controls.js";
 
 type DesktopData = ReturnType<typeof useDesktopData>;
 type CompletionSound = ReturnType<typeof useCompletionSound>;
@@ -451,7 +452,7 @@ function DesktopHeader(props: {
 }
 
 function LoadingState() {
-  return <section className="loading-state" role="status"><span className="loader" /><h2>Connecting to Vanta</h2><p>Loading the kernel, project context, and sessions.</p></section>;
+  return <section className="loading-state"><LoadingIndicator label="Connecting to Vanta" /><h2>Connecting to Vanta</h2><p>Loading the kernel, project context, and sessions.</p></section>;
 }
 
 function ConnectionError(props: { message: string; onRetry: () => void; onSetup: () => void }) {

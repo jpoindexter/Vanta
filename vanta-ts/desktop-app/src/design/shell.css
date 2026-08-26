@@ -315,7 +315,7 @@
   flex: 0 0 auto;
   color: var(--faint);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: var(--type-metadata);
   font-weight: 600;
   letter-spacing: .04em;
   text-transform: uppercase;
@@ -339,6 +339,7 @@
 
 .runtime-engine {
   color: var(--faint);
+  font-size: var(--type-metadata);
 }
 
 .runtime-state {
