@@ -123,7 +123,7 @@ export function KeyboardShortcuts(props: { open: boolean; onClose: () => void })
   if (!props.open) return null;
   const command = navigator.platform.toLowerCase().includes("mac") ? "Command" : "Ctrl";
   const rows = [
-    [`${command} N`, "New session"], [`${command} K`, "Command palette"], ["?", "Keyboard shortcuts"], ["Esc", "Close the active dialog"], ["Enter", "Send message"], ["Shift Enter", "Insert newline"], ["@", "Attach a project file"], ["/", "Open quick actions"],
+    [`${command} L`, "Focus composer"], [`${command} N`, "New session"], [`${command} K`, "Command palette"], [`${command} Shift M`, "Cycle access mode"], ["?", "Keyboard shortcuts"], ["Esc", "Close the active dialog"], ["Enter", "Send message"], ["Shift Enter", "Insert newline"], ["@", "Attach a project file"], ["/", "Open quick actions"],
   ];
   return <div className="overlay" onClick={props.onClose}><section className="palette shortcut-dialog" role="dialog" aria-modal="true" aria-labelledby="shortcuts-title" onClick={(event) => event.stopPropagation()}>
     <div className="dialog-heading"><div><p className="eyebrow">Desktop controls</p><h2 id="shortcuts-title">Keyboard shortcuts</h2></div><button className="icon-button" type="button" aria-label="Close" onClick={props.onClose}><X size={16} /></button></div>

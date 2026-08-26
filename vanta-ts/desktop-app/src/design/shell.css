@@ -274,7 +274,7 @@
   min-width: 0;
   min-height: 34px;
   display: grid;
-  grid-template-columns: minmax(150px, 1.5fr) minmax(150px, 1.4fr) minmax(72px, .8fr) minmax(72px, .8fr) 108px 78px 42px 70px 18px;
+  grid-template-columns: minmax(150px, .8fr) minmax(220px, 1.6fr) auto 18px;
   align-items: center;
   gap: 10px;
   overflow: hidden;
@@ -303,9 +303,7 @@
   white-space: nowrap;
 }
 
-.runtime-host,
-.runtime-agent-model,
-.runtime-model {
+.runtime-health {
   color: var(--text);
 }
 
@@ -337,9 +335,15 @@
   gap: 6px;
 }
 
-.runtime-engine {
+.runtime-guidance,
+.runtime-disclosure {
   color: var(--faint);
   font-size: var(--type-metadata);
+}
+
+.runtime-disclosure {
+  justify-self: end;
+  color: var(--muted);
 }
 
 .runtime-state {
@@ -351,11 +355,15 @@
 }
 
 .runtime-state.state-running { background: var(--ok); }
+.runtime-state.state-ready { background: var(--ok); }
 .runtime-state.state-starting,
-.runtime-state.state-stopping { background: var(--amber); }
+.runtime-state.state-stopping,
+.runtime-state.state-checking,
+.runtime-state.state-stale { background: var(--amber); }
 .runtime-state.state-failed,
 .runtime-state.state-offline,
-.runtime-state.state-auth_required { background: var(--danger); }
+.runtime-state.state-auth_required,
+.runtime-state.state-attention { background: var(--danger); }
 
 .runtime-pressure meter {
   width: 46px;
@@ -642,11 +650,7 @@
 }
 
 @media (max-width: 920px) {
-  .runtime-strip-trigger { grid-template-columns: minmax(150px, 1.3fr) minmax(140px, 1.2fr) 72px 42px 18px; }
-  .runtime-engine,
-  .runtime-model,
-  .runtime-pressure,
-  .runtime-throughput { display: none !important; }
+  .runtime-strip-trigger { grid-template-columns: minmax(150px, .8fr) minmax(180px, 1.4fr) auto 18px; }
   .runtime-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .runtime-detail-grid > div,
   .runtime-detail-grid > div:nth-child(4n) { border-inline-end: 1px solid var(--line); border-bottom: 1px solid var(--line); }
@@ -685,8 +689,8 @@
     height: calc(100dvh - var(--titlebar-height) - 56px);
   }
 
-  .runtime-strip-trigger { grid-template-columns: minmax(150px, 1fr) minmax(140px, 1fr) 42px 18px; padding-inline: 9px; }
-  .runtime-trust { display: none !important; }
+  .runtime-strip-trigger { grid-template-columns: minmax(130px, 1fr) auto 18px; padding-inline: 9px; }
+  .runtime-guidance { display: none !important; }
   .runtime-context-panel { inset-inline: 6px; width: auto; max-height: calc(100dvh - 200px); }
   .runtime-host-switcher { grid-template-columns: 1fr; }
   .runtime-actions { flex-wrap: wrap; }
