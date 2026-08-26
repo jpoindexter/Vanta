@@ -36,7 +36,7 @@ No protected Rust source, factory source, `MANIFESTO.md`, installed Vanta checko
 | Gate | Result |
 | --- | --- |
 | Focused MCP, registry, delegation, CLI, TUI, Desktop, and sandbox suite | 13 files, 161 tests passed |
-| Full TypeScript suite | 1,552 files passed; 14,259 passed; 3 skipped; 0 failed |
+| Full TypeScript suite | 1,552 files passed; 14,262 passed; 3 skipped; 0 failed |
 | Runtime TypeScript typecheck | exit 0 |
 | Desktop renderer typecheck | exit 0 |
 | TypeScript compatibility test | 1 passed |
