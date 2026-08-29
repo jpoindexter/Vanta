@@ -8,11 +8,17 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1286 capabilities shipped · 1 in flight · 13 parked external-proof items · 7 on the horizon. Updated 2026-08-18._
+_1288 capabilities shipped · 2 in flight · 13 parked external-proof items · 8 on the horizon. Updated 2026-08-29._
 
 ## In flight
 
 What we are actively building next.
+
+### Desktop operator dossier — outcome-first shell and progressive runtime disclosure
+
+**Desktop App** · M-size
+
+Recompose the existing Vanta Desktop capabilities into a quiet operator dossier: chat is home, the current outcome and next decision dominate, durable work has stable destinations, and model/runtime detail stays available without competing with the task
 
 ### Desktop cold-operator release proof — one useful task without repo knowledge
 
@@ -22,8 +28,10 @@ Run the first zero-cost external usability proof: a voluntary non-developer comp
 
 ## Recently shipped
 
-The latest of 1286+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1288+ capabilities. See the [changelog](./changelog) for curated milestones.
 
+- **Explicit-empty MCP allowlist — zero means zero tools** — Harness · 2026-08-26
+- **Desktop semantic foundation — contrast, type, controls, and one token authority** — Desktop App · 2026-08-26
 - **Local document reading — bounded PDF and office-file context** — Operator · 2026-08-14
 - **Urgent control-plane trust closure — hooks, environments, audit state, and local authentication** — Harness · 2026-08-02
 - **Safe continuity slice — messy capture to Today, prepared action, waiting, and restart re-entry** — Operator · 2026-08-02
@@ -42,8 +50,6 @@ The latest of 1286+ capabilities. See the [changelog](./changelog) for curated m
 - **AskUserQuestion tool — structured multi-question UI with options, previews, multi-select** — Operator · 2026-07-28
 - **Task-scoped go-ahead — one approval for repeated reversible work** — Operator · 2026-07-28
 - **Live todo / progress checklist (TodoWrite pattern)** — Operator · 2026-07-28
-- **TUI resize repaint regression — one clean frame after every terminal resize** — Operator · 2026-07-28
-- **Reusable run library — save, inspect, fork, and safely replay successful runs** — Desktop App · 2026-07-24
 
 ## Parked external-proof items
 
@@ -67,8 +73,9 @@ These remain unshipped until the real provider, device, or hosted environment pr
 
 Directional, not committed — grouped by area, newest thinking first.
 
-### Harness — 3 planned
+### Harness — 4 planned
 
+- Capability-grounded prompt — promise only callable tools and routes
 - Canonical action envelope and scoped capability
 - Untrusted-content quarantine across email, web, documents, messages, and social input
 - Safe factory, self-repair, and Vanta Lab production boundary

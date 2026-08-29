@@ -4,7 +4,7 @@
 historical narrative and does not override the JSON, `STRATEGY.md`, or
 `DECISIONS.md`.
 
-## Current converged build order — 2026-08-18
+## Current converged build order — 2026-08-29
 
 **Building**
 
@@ -15,26 +15,38 @@ merge, release, deployment, or broader external proof.
 
 **Next**
 
-1. `DESKTOP-COLD-OPERATOR-RELEASE-PROOF` — one voluntary, uncompensated fresh
+1. `DESKTOP-OPERATOR-DOSSIER-HIERARCHY` — make outcome, next action, and
+   approval state primary while moving runtime detail into progressive disclosure.
+2. `DESKTOP-COLD-OPERATOR-RELEASE-PROOF` — one voluntary, uncompensated fresh
    non-developer completes a useful task in the exact packaged candidate. No
    paid participant, recruiting, research-platform, CI, hosting, outreach, or
    other new service spend is authorized.
 
 **Horizon**
 
-1. `TRUST-03` — canonical action envelope and scoped capability.
-2. `TRUST-05` — untrusted-content quarantine across supported input surfaces.
-3. `TRUST-06` — safe factory, self-repair, and Vanta Lab production boundary.
-4. `OP-03` — deterministic, deduplicated, expiring Needs You projection.
-5. `UX-04` — contextual Review, first-run usefulness, and cross-host accessibility.
-6. `LIFE-02` — quarantined read-only morning orientation after its dependencies.
-7. `GROW-01` — voluntary zero-cost continuity interviews and pilots after the
+1. `CAPABILITY-GROUNDED-SYSTEM-PROMPT` — promise only effective callable tools,
+   providers, connectors, and host routes after policy.
+2. `TRUST-03` — canonical action envelope and scoped capability.
+3. `TRUST-05` — untrusted-content quarantine across supported input surfaces.
+4. `TRUST-06` — safe factory, self-repair, and Vanta Lab production boundary.
+5. `OP-03` — deterministic, deduplicated, expiring Needs You projection.
+6. `UX-04` — contextual Review, background continuity, first-run usefulness,
+   and cross-host accessibility.
+7. `LIFE-02` — quarantined read-only morning orientation after its dependencies.
+8. `GROW-01` — voluntary zero-cost continuity interviews and pilots after the
    cold-operator proof, with volunteer-sample limitations recorded explicitly.
 
 The 28 destination outcomes are a dependency/acceptance catalog, not 28
-simultaneous projects. Current open inventory is 8: 1 Next and 7 Horizon.
+simultaneous projects. Current open inventory is 10: 2 Next and 8 Horizon.
 Capacity remains capped at 12 open, 4 Next, 6 implementation-ready, and 2
 Building.
+
+The current Hermes delta refresh, adoption decisions, and explicit non-ports are
+in `docs/hermes-current-delta-audit-2026-08-29.md`. The dependency order and
+per-phase test contracts remain in
+`docs/hermes-desktop-gap-closure-plan-2026-08-25.md`. Six compatible patterns are
+retained as parked cards with explicit re-entry triggers so they do not displace
+the zero-cost user-testing path.
 
 ```text
 TRUST-01 TRUST-02 TRUST-03 TRUST-04 TRUST-05 TRUST-06
