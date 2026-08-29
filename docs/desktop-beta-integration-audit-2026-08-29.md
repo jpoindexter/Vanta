@@ -41,7 +41,7 @@ not merge, release, deployment, or a shipped beta claim.
 | Full TypeScript suite | 0 | 1,555 files; 14,275 passed; 3 skipped. |
 | `cargo test` | 0 | 70 passed; inherited unused-import warning. |
 | Roadmap generation, build-order test, duplicate/dependency/cycle validation | 0 | 1,341 unique cards; zero missing dependencies or cycles. |
-| Production website build | 0 | Docusaurus build passed; its separate dependency audit reported 19 inherited high-severity advisories. |
+| Production website build | 0 | Docusaurus build passed after the affected-image signature gate disabled and rejected the unpatched parser formats. |
 | Signed packaged accessibility proof | 0 | Source and packaged shell plus queue passed; eight surfaces each had zero serious findings; metadata 12px; controls 36px; focus 2px solid; reduced motion active. |
 | Keyboard-only VoiceOver proof | 0 | Attachment, Review, allow-once approval, and result reached with zero pointer input. |
 | Visual regression proof | 0 | Four comparator tests and 48 exact captures passed with no missing or orphaned baselines. |
@@ -50,7 +50,32 @@ not merge, release, deployment, or a shipped beta claim.
 | Complete-history and snapshot secret scan | 0 | 2,176 commits and 21.57 MB repository-owned snapshot; zero findings. |
 | Protected-path and high-confidence credential scan | 0 | No protected Rust, factory, `MANIFESTO.md`, or credential-pattern change. |
 | `git diff --check` | 0 | No whitespace errors. |
-| Website dependency audit | non-green | 19 inherited high-severity advisories; no dependency-security-green claim. |
+| Website dependency audit | 0 bounded gate | Two upstream advisories expand through 19 packages; affected parsers disabled, build inputs clean, any new advisory fails, exception expires 2026-10-01. Raw `npm audit` remains non-zero. |
+
+## Dependency hardening follow-up
+
+The raw website audit still reports the two upstream `image-size <=2.0.2`
+denial-of-service advisories through 19 Docusaurus nodes. No patched npm release
+exists, and npm's proposed force-fix is a breaking search-plugin downgrade.
+Vanta therefore applies a bounded mitigation rather than hiding the scanner:
+
+- the Docusaurus process disables `heif`, `icns`, `jxl`, and `jxl-stream`;
+- the prebuild gate identifies ICNS, JPEG XL, and HEIF/AVIF by bytes, including
+  a misleading file extension, and stops before Docusaurus reads the input;
+- seven regression tests cover clean audit, exact exception, unexpected
+  advisory, registry failure, signature detection, disguised input, and all
+  four disabled parser identifiers;
+- `npm run security:dependencies` accepts only the two named advisories, fails
+  on any other advisory or incomplete audit, pins the reviewed 2.0.2 graph, and
+  expires on 2026-10-01;
+- a production build and local static server returned HTTP 200 for `/`,
+  `/security`, `/acceptance`, and `/roadmap`; the served security and roadmap
+  copy matched the current source.
+
+This is executed mitigation of the reachable build path, not an upstream package
+fix and not a zero-advisory claim. OSV still reports the same two no-fix package
+records; the static site sent to visitors contains neither Docusaurus nor
+`image-size`.
 
 ## Candidate artifact
 

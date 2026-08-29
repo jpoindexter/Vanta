@@ -19,7 +19,7 @@ function readReceipt() {
   }
 }
 
-test("TRUST-02 closure removes the card from the open queue and retains executed evidence", () => {
+test("TRUST-02 closure stays shipped while the current Next lane leads the open queue", () => {
   const trust = roadmap.items.find((item) => item.id === "TRUST-02");
   const buildOrder = buildOrderDocument(roadmap);
   const receipt = readReceipt();
@@ -28,7 +28,11 @@ test("TRUST-02 closure removes the card from the open queue and retains executed
   assert.doesNotMatch(buildOrder, /TRUST-02 —/);
   assert.doesNotMatch(buildOrder, /TRUST-04 —/);
   assert.doesNotMatch(buildOrder, /TRUST-01 —/);
-  assert.match(buildOrder, /OP-01 —/);
+  assert.doesNotMatch(buildOrder, /OP-01 —/);
+  assert.match(
+    buildOrder,
+    /001\. \[next\] DESKTOP-OPERATOR-DOSSIER-HIERARCHY[\s\S]*002\. \[next\] DESKTOP-COLD-OPERATOR-RELEASE-PROOF/,
+  );
   assert.equal(receipt?.roadmapId, "TRUST-02");
   assert.equal(receipt?.roadmapState, "shipped");
   assert.equal(receipt?.proof?.exitCode, 0);

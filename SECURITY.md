@@ -156,11 +156,13 @@ headless-approval paths failed safe. The exact 2026-08-13 integrated runtime
 dependency graph now reports zero npm advisories after compatible dependency
 remediation. The static documentation build retains two unpatched `image-size`
 denial-of-service advisories through Docusaurus; npm expands that dependency
-path into 19 high dependent-package entries. It is build-time on repository-authored content,
-not code served to visitors, and remains visible pending an upstream fixed
-release.
+path into 19 high dependent-package entries. Vanta now disables the affected
+ICNS, JPEG XL, and HEIF/AVIF parsers in the Docusaurus process and rejects those
+formats by file signature before the build. The package remains build-time on
+repository-authored content, not code served to visitors, and the exact,
+expiring exception remains visible pending an upstream fixed release.
 
-## 7b. Dependency & scan audit (refreshed 2026-08-14)
+## 7b. Dependency & scan audit (refreshed 2026-08-29)
 
 Full scan with the bundled `security-skills` gate (gitleaks · npm/cargo/osv · semgrep). Triaged by
 **reachability before severity** — recorded here so the next audit doesn't re-litigate.
@@ -174,8 +176,11 @@ Full scan with the bundled `security-skills` gate (gitleaks · npm/cargo/osv · 
   remaining npm result is two `image-size <=2.0.2` advisories with no patched npm
   release; npm reports 19 high entries because the same package flows through
   the Docusaurus graph. It is **build-time** on self-authored repository content
-  and is not shipped in the static site output. Keep it visible and update when
-  upstream publishes a fixed version.
+  and is not shipped in the static site output. The build disables all four
+  affected parser identifiers and rejects ICNS, JPEG XL, and HEIF/AVIF magic
+  bytes before Docusaurus loads content. `npm run security:dependencies`
+  fails on any other advisory and expires this bounded exception on 2026-10-01.
+  Re-review sooner if upstream publishes a fixed version.
 - **`vanta-ts` dev deps — FIXED.** Migrated to **vitest 3 / vite 6** (+ esbuild `overrides ^0.28.1`),
   clearing every dev-tooling advisory (incl. the vitest 9.8) → `osv-scanner` **0 vulnerabilities**
   (276 packages). The migration's one blocker: vitest 3's module runner only resolves dynamic

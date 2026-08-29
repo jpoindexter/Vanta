@@ -37,9 +37,12 @@ The voluntary, zero-cost Desktop cold-operator proof is the sole Next card.
 research platforms, GitHub Actions, hosting, outreach, or other new service
 spend is authorized.
 
-The exact 2026-08-14 runtime dependency graph reports zero npm advisories. The
-static documentation toolchain retains two upstream `image-size` advisories with
-no patched release; npm reports their dependency path through 19 Docusaurus packages.
+The current runtime dependency graph reports zero npm advisories. The static
+documentation toolchain retains two upstream `image-size` advisories with no
+patched release; npm reports their dependency path through 19 Docusaurus
+packages. The affected parsers are disabled, repository build inputs are
+signature-scanned before Docusaurus runs, and the narrow local exception fails
+on any new advisory or after 2026-10-01.
 
 ## State and proof
 
