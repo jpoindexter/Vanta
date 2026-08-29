@@ -44,7 +44,27 @@ const leaky = (s) => /\b(hermes|openclaw|wedge)\b/i.test(scrub(s)) && !/migrat|i
 const byStatus = (st) => items.filter((c) => (c.status || '').toLowerCase() === st);
 const next = byStatus('next');
 const building = byStatus('building');
-const inFlight = [...building, ...next];
+const dependencyOrder = (cards) => {
+  const ordered = [...cards];
+  for (let pass = 0; pass < ordered.length; pass += 1) {
+    let moved = false;
+    for (const card of [...ordered]) {
+      const cardIndex = ordered.indexOf(card);
+      const dependencyIndex = Math.max(
+        -1,
+        ...(card.after || []).map((id) => ordered.findIndex((candidate) => candidate.id === id)),
+      );
+      if (dependencyIndex > cardIndex) {
+        ordered.splice(cardIndex, 1);
+        ordered.splice(dependencyIndex, 0, card);
+        moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+  return ordered;
+};
+const inFlight = dependencyOrder([...building, ...next]);
 const shipped = byStatus('shipped');
 const horizon = byStatus('horizon');
 const externalProof = items.filter((c) =>

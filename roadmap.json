@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-18",
+  "updated": "2026-08-29",
   "items": [
     {
       "id": "VANTA-STREAMING-TTS-FIRST-CLAUSE",
@@ -19779,9 +19779,11 @@
       "source": "blind-audit-vanta-desktop-2026-07-18",
       "after": [
         "DESKTOP-MODEL-RUNTIME-STATUS-CLARITY",
-        "DESKTOP-PROVIDER-AUTH-VALIDATION-RECOVERY"
+        "DESKTOP-PROVIDER-AUTH-VALIDATION-RECOVERY",
+        "DESKTOP-SEMANTIC-FOUNDATION-ACCESSIBILITY-REPAIR",
+        "DESKTOP-OPERATOR-DOSSIER-HIERARCHY"
       ],
-      "notes": "NEXT 2026-08-18: owner-authorized zero-cost user testing. Use only voluntary participation and existing owner-controlled local/open-source tooling. No paid participants, recruiters, research platforms, GitHub Actions, hosting, outreach automation, or other new service spend."
+      "notes": "NEXT 2026-08-25: owner-authorized zero-cost user testing after the executed accessibility repair and operator-hierarchy slice. Use only voluntary participation and existing owner-controlled local/open-source tooling. No paid participants, recruiters, research platforms, GitHub Actions, hosting, outreach automation, or other new service spend."
     },
     {
       "id": "DESKTOP-RELEASE-CANDIDATE-PROVENANCE",
@@ -20141,15 +20143,15 @@
       "title": "Startup critical-path collapse — cache, defer, and prewarm first-turn work",
       "status": "parked",
       "size": "L",
-      "summary": "Apply the useful Hermes Quicksilver pattern to Vanta's measured startup path: cache skill discovery and prompt artifacts by scan signature, use mtime/size manifests for invalidation, move capability and environment probes off the blocking path, defer nonessential panes and extensions, and prewarm the kernel socket and selected provider while the operator is reading or typing. Preserve correctness with bounded waits and fail-open optional probes instead of hiding work behind an unbounded background task.",
-      "done": "The TTFT harness identifies the blocking stages before changes; skill/config/prompt caches invalidate on file metadata changes and survive restart; optional probes, hidden Desktop panes, and nonessential extension work do not block the first interactive frame; kernel/provider prewarm respects proxy, credential, and project scope; stuck prewarm tasks cannot block a turn; cold process-to-interactive and local submit-to-dispatch medians improve by at least 40% from the captured Vanta baseline; and fresh-profile, changed-config, offline, invalid-cache, and crash-recovery fixtures preserve correct behavior.",
+      "summary": "Apply the useful Hermes startup pattern to Vanta's measured path: validate a bounded runtime-resolution ladder, cache skill discovery and prompt artifacts by scan signature, move optional capability probes off the blocking path, defer nonessential panes and extensions, and prewarm the kernel socket and selected provider while the operator is reading or typing. Preserve correctness with bounded waits and fail-open optional probes instead of hiding work behind an unbounded background task.",
+      "done": "The TTFT harness identifies the blocking stages before changes; every runtime candidate is executed or health-probed rather than accepted by file existence; install, connect-existing-runtime, connecting, repair, offline, and boot-failure states remain distinct; skill/config/prompt caches invalidate on file metadata changes and survive restart; optional probes and hidden Desktop panes do not block the first interactive frame; kernel/provider prewarm respects proxy, credential, and project scope; stuck prewarm tasks cannot block a turn; cold process-to-interactive and local submit-to-dispatch medians improve by at least 40% from the captured Vanta baseline; and fresh-profile, changed-config, offline, invalid-cache, and crash-recovery fixtures preserve correct behavior.",
       "tier": "rock",
       "model": "opus",
       "effort": "high",
       "codex": "gpt-5.6-sol",
       "lens": "infra",
-      "source": "https://github.com/NousResearch/hermes-agent/releases/tag/v2026.7.20",
-      "updated": "2026-07-30",
+      "source": "https://github.com/NousResearch/hermes-agent/tree/1bbb6e5bce56e721ab685af4cd87df21bbff4d35/apps/desktop",
+      "updated": "2026-08-26",
       "after": [
         "QUICKSILVER-TTFT-PERF-HARNESS",
         "VANTA-API-PRECONNECT",
@@ -20164,15 +20166,15 @@
       "title": "Desktop stream performance — incremental markdown and scoped token updates",
       "status": "parked",
       "size": "M",
-      "summary": "Vanta virtualizes completed turns, but every streamed delta still appends React state and reparses the full in-progress Markdown response. Copy the principle behind Hermes v0.19's desktop speed wave: coalesce deltas to animation frames, incrementally parse stable Markdown blocks, isolate streaming subscriptions from the sidebar and tool surfaces, and virtualize oversized diffs without changing transcript fidelity.",
-      "done": "A production benchmark streams long Markdown, code, tool activity, and a large diff while recording first paint, frame time, render counts, CPU, and memory; streamed text remains byte-identical after persistence; delta updates are frame-coalesced; stable Markdown blocks are not reparsed; sidebar, session rows, and unrelated tool controls do not rerender per token; large diffs remain scrollable and interactive; accessibility announcements are rate-limited but complete; and the measured fixture passes explicit regression budgets on the signed packaged app.",
+      "summary": "Vanta virtualizes completed turns, but the remaining stream path needs one lossless transport and render contract: reconnect from the last durable event, deduplicate by event identity, coalesce deltas to animation frames, incrementally parse stable Markdown blocks, isolate streaming subscriptions from unrelated surfaces, and virtualize oversized diffs without changing transcript fidelity.",
+      "done": "A production benchmark streams long Markdown, code, tool activity, interim messages, and a large diff while recording first paint, frame time, render counts, CPU, and memory; a forced disconnect resumes from the last durable event ID with no missing or duplicate content; streamed text remains byte-identical after persistence and restart; delta updates are frame-coalesced; stable Markdown blocks are not reparsed; sidebar, session rows, and unrelated controls do not rerender per token; large diffs remain interactive; accessibility announcements are rate-limited but complete; and the measured fixture passes explicit regression budgets on the packaged app.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.6-terra",
       "lens": "tui",
-      "source": "https://github.com/NousResearch/hermes-agent/releases/tag/v2026.7.20",
-      "updated": "2026-07-30",
+      "source": "https://github.com/NousResearch/hermes-agent/tree/1bbb6e5bce56e721ab685af4cd87df21bbff4d35/apps/desktop",
+      "updated": "2026-08-25",
       "after": [
         "QUICKSILVER-TTFT-PERF-HARNESS",
         "DESKTOP-CODEX-CHAT-SURFACE"
@@ -20762,6 +20764,219 @@
       "notes": "Shipped 2026-08-04 as the bounded read-only operator spine. One deterministic facade projects the existing continuity store, team and workflow tasks, tickets, legacy and durable schedules, sessions, run-library records, kanban lanes, canonical WorkItems/Runs/Approvals/action receipts, and their original source type, ID, and path into the exact nine-state lifecycle and five projection-only views. Source and projected IDs, counts, and SHA-256 hashes survive three Desktop server starts; corrupt rows and unreadable stores remain visible; unverified legacy completion never enters Done or accomplishment memory; approval and receipt dispositions remain separate; an interrupted continuity item restored the exact resume action before an approved synthetic effect executed once and closed verified; and the exact CLI path used by the TUI produced the same digest as Desktop while every legacy fixture source byte stayed unchanged. No legacy writer was cut over, no second user-facing store was added, and no dual-write, rollback, or retirement claim is made. Evidence: vanta-ts/scripts/op-01-operator-spine-proof.mjs and docs/op-01-operator-spine-audit-2026-08-04.md. This does not claim merge, release, deployment, publication, live-account proof, or GROW-01 work."
     },
     {
+      "id": "MCP-EXPLICIT-EMPTY-ALLOWLIST",
+      "track": "Harness",
+      "title": "Explicit-empty MCP allowlist — zero means zero tools",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Correct the MCP capability boundary so an explicitly configured empty tool list exposes no tools, while an absent list retains the documented default. Preserve the distinction across config parsing, server mount, deferred discovery, reconnect, Desktop, TUI, and delegated workers.",
+      "done": "Mutation tests prove missing tools configuration follows the documented default, tools: [] registers and advertises exactly zero tools, a non-empty allowlist exposes only exact named tools, deny rules still win, reconnect and hot reload cannot widen the set, the stable prompt names only callable tools, and no hidden or deferred schema path can invoke a tool outside the effective set.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "agent-loop",
+      "updated": "2026-08-26",
+      "source": "https://github.com/NousResearch/hermes-agent/tree/1bbb6e5bce56e721ab685af4cd87df21bbff4d35",
+      "after": [
+        "VANTA-SETTINGS-MCP",
+        "HERMES-TOOL-SURFACE-PROFILES"
+      ],
+      "notes": "SHIPPED 2026-08-26 on the stacked feature branch. The implementation preserves absent, explicit-empty, and exact-named MCP tool policies through configuration, trust identity, launch, discovery, reconnect, registry projection, delegation, CLI, TUI, Desktop, prompt inventory, and tool search. Executed evidence: 13 focused files / 161 tests, a real stdio MCP server, reconnect and stale-inventory mutation cases, full TypeScript suite 1,552 files / 14,262 passed / 3 skipped, both typechecks, TypeScript compatibility, production Desktop build, 70 Rust tests, changed-source size gate, Semgrep, complete-history and snapshot secret scan, protected-content scan, and whitespace check. Checkpoint target: d96f531f23a57ebdea9b82b1d08361cf18d4dbf3. Evidence: docs/mcp-explicit-empty-allowlist-audit-2026-08-26.md. This status records the bounded source contract; it does not claim merge, release, deployment, hosted CI, or end-user adoption."
+    },
+    {
+      "id": "DESKTOP-SEMANTIC-FOUNDATION-ACCESSIBILITY-REPAIR",
+      "track": "Desktop App",
+      "title": "Desktop semantic foundation — contrast, type, controls, and one token authority",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Repair the executed accessibility failures and collapse the Desktop's competing visual roots into one semantic-token and shared-primitive authority before changing information architecture.",
+      "done": "The production approval path has zero serious or critical automated accessibility findings; consequential metadata renders at 12px or larger; compact interactive controls are at least 36px high with visible keyboard focus and non-color state meaning; one semantic token source owns color, type, spacing, elevation, focus, and motion; shared Button, field, loader, error, and confirmation primitives replace local overrides in changed surfaces; all supported routes have current screenshots with zero orphaned baselines; and the packaged macOS app passes keyboard, VoiceOver, contrast, narrow-window, reduced-motion, and visual-regression proof.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "tui",
+      "updated": "2026-08-26",
+      "source": "docs/hermes-desktop-gap-closure-plan-2026-08-25.md",
+      "after": [
+        "DESKTOP-ACCESSIBILITY-ASSISTIVE-PROOF",
+        "DESKTOP-VISUAL-PERFORMANCE-REGRESSION-GATES"
+      ],
+      "notes": "SHIPPED 2026-08-26 on the stacked feature branch after the real baseline exposed 10 serious contrast findings. The corrected source and signed packaged app passed zero-serious accessibility scans, 12px consequential metadata, 36px consequential controls, visible focus, textual state, reduced motion, 48 exact route/theme/viewport captures with no missing or orphan baselines, and a keyboard-only VoiceOver attachment-to-approval-to-result replay with zero pointer input. Checkpoint target: eca32af8a05b097e5a755a6ab4ae9e4c3e628c64. Evidence: docs/desktop-semantic-accessibility-audit-2026-08-26.md. This does not establish whole-repository size compliance, merge, release, deployment, or unfamiliar-user comprehension."
+    },
+    {
+      "id": "DESKTOP-OPERATOR-DOSSIER-HIERARCHY",
+      "track": "Desktop App",
+      "title": "Desktop operator dossier — outcome-first shell and progressive runtime disclosure",
+      "status": "next",
+      "size": "M",
+      "summary": "Recompose the existing Vanta Desktop capabilities into a quiet operator dossier: chat is home, the current outcome and next decision dominate, durable work has stable destinations, and model/runtime detail stays available without competing with the task.",
+      "done": "A first-time operator can identify the current outcome, next action, approval state, active model/access boundary, queued work, and finished artifact without repository knowledge; the primary rail contains only stable destinations; task history and transient activity are separated; runtime telemetry is one compact disclosure; the model picker remains a compact provider-scoped control; command/control overlays never steal focus from background work; Cmd/Ctrl+L focuses the composer; direct manipulation paints immediately and rolls back truthfully on persistence failure; and current Work, Today, Connect, Scheduled, approval, error, empty, reconnecting, degraded, and stale states pass packaged interaction, keyboard, narrow-window, and screenshot proof.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "tui",
+      "updated": "2026-08-25",
+      "source": "docs/hermes-desktop-gap-closure-plan-2026-08-25.md; https://github.com/NousResearch/hermes-agent/blob/1bbb6e5bce56e721ab685af4cd87df21bbff4d35/apps/desktop/DESIGN.md",
+      "after": [
+        "DESKTOP-SEMANTIC-FOUNDATION-ACCESSIBILITY-REPAIR"
+      ],
+      "notes": "IMPLEMENTED, NOT SHIPPED 2026-08-26. Source and signed packaged proofs passed the outcome/next dossier, progressive runtime disclosure, queue recovery, keyboard focus, model/runtime clarity, responsive layout, visual baseline, and automated accessibility paths. The required first-use comprehension run with a person unfamiliar with Vanta was not executed, so the card remains Next and has no checkpoint tag. Adopted patterns were reimplemented from contracts only; no Hermes source or visual identity entered Vanta. Evidence: docs/desktop-operator-dossier-audit-2026-08-26.md."
+    },
+    {
+      "id": "CAPABILITY-GROUNDED-SYSTEM-PROMPT",
+      "track": "Harness",
+      "title": "Capability-grounded prompt — promise only callable tools and routes",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Assemble the dynamic capability section from the effective post-policy tool and host registry so the agent never promises a tool, provider, connector, or route that the current session cannot call.",
+      "done": "For manual, plan, accept-edits, auto, delegated, offline, disabled-server, explicit-empty MCP, and provider-degraded fixtures, the rendered prompt and What can I do surface name exactly the effective callable capability set; stable cacheable instructions remain byte-stable; dynamic capability text is isolated; unavailable actions include one truthful recovery route; and prompt-to-registry property tests catch every invented or omitted capability.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "agent-loop",
+      "updated": "2026-08-25",
+      "source": "https://github.com/NousResearch/hermes-agent/tree/1bbb6e5bce56e721ab685af4cd87df21bbff4d35",
+      "after": [
+        "MCP-EXPLICIT-EMPTY-ALLOWLIST"
+      ],
+      "notes": "Horizon because the capability boundary must be corrected first and the active queue is at capacity."
+    },
+    {
+      "id": "HARNESS-UNIFIED-DEADLINE-FAILURE-CONTRACT",
+      "track": "Harness",
+      "title": "Unified operation deadlines — abort trees and never return silent success",
+      "status": "parked",
+      "size": "M",
+      "summary": "Give model calls, tools, MCP operations, subprocesses, and scheduled work one composable deadline and cancellation contract, including deterministic handling for empty provider responses.",
+      "done": "Every in-scope operation accepts a propagated deadline and AbortSignal; timeout terminates the owned process tree, preserves external-effect uncertainty, closes resources, and emits one typed failure receipt; consequential effects are not retried automatically; an empty or whitespace-only provider response becomes a deterministic typed failure or explicit intentional-silence result, never a successful blank turn; and timeout, reset, child-grandchild, late-event, shutdown, and restart fixtures leave no orphan process, duplicate effect, or missing terminal state.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "agent-loop",
+      "updated": "2026-08-25",
+      "source": "https://github.com/NousResearch/hermes-agent/tree/1bbb6e5bce56e721ab685af4cd87df21bbff4d35",
+      "after": [
+        "TRUST-04",
+        "RELIABILITY-PROVIDER-HARDENING"
+      ],
+      "notes": "CURRENT HERMES REFRESH 2026-08-29: Hermes added a shared wall-clock deadline that remains effective when an event loop is blocked, marks timed-out stateful backends suspect, separates turn-hold expiry from idle timeout, and tree-kills owned descendants. These strengthen this existing card rather than creating a duplicate. It remains parked while the two-card zero-cost beta queue runs; re-enter on any hang, orphan-process, blank-turn, poisoned-backend reuse, or ambiguous-timeout regression. Comparison: docs/hermes-current-delta-audit-2026-08-29.md.",
+      "parkedReason": "strategy decision"
+    },
+    {
+      "id": "HARNESS-DURABLE-PRECOMPACTION-CHECKPOINT",
+      "track": "Harness",
+      "title": "Durable pre-compaction checkpoint — preserve obligations before context loss",
+      "status": "parked",
+      "size": "M",
+      "summary": "Extend Vanta's shipped compaction and session-memory stack with an optional required durable checkpoint for active goals, approvals, unresolved effects, files, and exact re-entry state before destructive context reduction.",
+      "done": "When the active task crosses the configured consequence or continuity threshold, compaction cannot begin until a versioned checkpoint persists the active goal, current step, open WorkItems, approvals, unknown effects, file and artifact references, authoritative decisions, next action, and resume cursor; checkpoint failure preserves the original context and reports the blocker; restart and repeated compaction recover the same obligations without duplication; low-consequence chat remains lightweight; and adversarial fixtures prove summaries cannot overwrite stronger durable state.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "memory",
+      "updated": "2026-08-25",
+      "source": "https://github.com/NousResearch/hermes-agent/tree/1bbb6e5bce56e721ab685af4cd87df21bbff4d35",
+      "after": [
+        "OP-01",
+        "HERMES-DELTA-COMPACTION-REAL-HEADROOM"
+      ],
+      "notes": "CURRENT HERMES REFRESH 2026-08-29: provider-reported usage anchors, byte-measured 413 recovery, compaction-boundary schema refresh, summary-route pinning, image aging, and cross-session/race guards strengthen this existing checkpoint contract. It remains parked until operator testing identifies a real continuity failure or the active queue drains. Comparison: docs/hermes-current-delta-audit-2026-08-29.md.",
+      "parkedReason": "strategy decision"
+    },
+    {
+      "id": "WEB-POLICY-SAFE-RESULT-CACHE",
+      "track": "Harness",
+      "title": "Policy-safe web result cache — freshness and authority remain visible",
+      "status": "parked",
+      "size": "M",
+      "summary": "Reuse recent web fetch/search results only when URL, query, policy, identity, scope, and freshness are compatible; never turn cached untrusted content into authoritative or privileged context.",
+      "done": "Cache keys bind normalized request, provider, identity and project scope, egress policy, auth class, and content-safety disposition; entries carry fetched-at, expiry, provenance, validator metadata, and redaction state; private or credentialed responses are excluded by default; current-information requests bypass or revalidate stale entries; quarantined content remains quarantined; policy or scope changes invalidate reuse; and hit, miss, stale, offline, poisoned-entry, cross-project, cross-profile, redirect, and secret-leak fixtures pass with measurable latency benefit.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "infra",
+      "updated": "2026-08-25",
+      "source": "https://github.com/NousResearch/hermes-agent/tree/1bbb6e5bce56e721ab685af4cd87df21bbff4d35",
+      "after": [
+        "TRUST-05",
+        "NET-EGRESS-POLICY"
+      ],
+      "notes": "Parked optimization. Re-enter only after a measured repeated-fetch bottleneck; never cache merely because the reference does.",
+      "parkedReason": "optional proof"
+    },
+    {
+      "id": "GLOBAL-PAUSE-NEW-WORK-SENTINEL",
+      "track": "Operator",
+      "title": "Global pause sentinel — stop new work without corrupting active effects",
+      "status": "parked",
+      "size": "S",
+      "summary": "Provide one operator-visible, cross-host pause state that prevents new autonomous, scheduled, delegated, gateway, and background work while allowing in-flight consequential effects to settle or surface uncertainty honestly.",
+      "done": "Desktop, TUI, CLI, scheduler, gateway, workers, and restart read the same durable pause record; new work is rejected before dispatch with one clear recovery action; in-flight read-only work cancels safely while consequential effects settle, fail, or become needs human without duplication; approvals cannot bypass pause; resume requires explicit operator action; stale and corrupt sentinels fail safe but remain recoverable; and cross-process race fixtures prove no new run starts after the acknowledged pause boundary.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "selfhood",
+      "updated": "2026-08-25",
+      "source": "https://github.com/NousResearch/hermes-agent/tree/1bbb6e5bce56e721ab685af4cd87df21bbff4d35",
+      "after": [
+        "TRUST-04",
+        "OP-01"
+      ],
+      "notes": "Parked until unattended user-testing work is authorized or a stop-control failure appears.",
+      "parkedReason": "strategy decision"
+    },
+    {
+      "id": "DESKTOP-CONNECTION-PROJECT-LIFECYCLE",
+      "track": "Desktop App",
+      "title": "Desktop connection and project lifecycle — validated boot, re-home, and workspace ownership",
+      "status": "parked",
+      "size": "L",
+      "summary": "Make the Desktop's machine boundary and workspace model explicit: validate local runtime candidates, connect to an existing authorized runtime when chosen, preserve distinct connection states, and let a project own its working directory, repositories, worktrees, and sessions.",
+      "done": "First launch distinguishes install local, connect existing, connecting, healthy, degraded, offline, auth expired, repair, and boot failure; candidate resolution health-checks the executable and API plus streaming leg; switching an authorized connection re-homes gateway-bound stores without remounting the shell or stealing focus; background sessions continue under their original connection identity; each project owns one canonical cwd and may reference multiple repositories, worktrees, and sessions without a conflicting per-session folder picker; profile deletion and rename preserve routing truth; and fresh install, invalid binary, port collision, reconnect, project switch, restart, and stale-profile packaged fixtures pass.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "updated": "2026-08-25",
+      "source": "https://github.com/NousResearch/hermes-agent/tree/1bbb6e5bce56e721ab685af4cd87df21bbff4d35/apps/desktop",
+      "after": [
+        "DESKTOP-OPERATOR-DOSSIER-HIERARCHY",
+        "MANAGED-RUNTIME-INSTALLER"
+      ],
+      "notes": "CURRENT HERMES REFRESH 2026-08-29: preserve malformed connection entries visibly, bind every transcript/cache/route to connection ownership, keep unproven warm transcripts off screen, fail closed on stale profiles, and revalidate after resume or power changes. These strengthen this existing card rather than authorizing Hermes-style remote fleet or cloud hosting. It remains parked until the zero-cost cold-operator proof establishes whether connection or workspace confusion is a real adoption blocker. Comparison: docs/hermes-current-delta-audit-2026-08-29.md.",
+      "parkedReason": "strategy decision"
+    },
+    {
+      "id": "DESKTOP-NATIVE-RESILIENCE-SHELL",
+      "track": "Desktop App",
+      "title": "Desktop native resilience shell — find, window state, auth storage, and crash evidence",
+      "status": "parked",
+      "size": "M",
+      "summary": "Complete the small native behaviors that make a long-lived Desktop trustworthy: native find in transcript, durable window and zoom state, secure OAuth/token storage, crash forensics, power-aware background work, and truthful update readiness without adding a release service.",
+      "done": "Native find searches the active transcript with keyboard navigation and no focus trap; window bounds, pane layout, and zoom restore safely across display changes; OAuth tokens remain in OS-backed secure storage and never renderer storage or logs; abnormal exits produce redacted crash evidence and a recovery choice; sleep/wake and power-save transitions preserve or pause sessions without duplicate work; update UI claims only locally verified availability and never downloads or installs without explicit authority; and packaged restart, crash, multi-display, zoom, auth-expiry, sleep/wake, and offline fixtures pass.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.6-terra",
+      "lens": "tui",
+      "updated": "2026-08-25",
+      "source": "https://github.com/NousResearch/hermes-agent/tree/1bbb6e5bce56e721ab685af4cd87df21bbff4d35/apps/desktop",
+      "after": [
+        "DESKTOP-OPERATOR-DOSSIER-HIERARCHY"
+      ],
+      "notes": "CURRENT HERMES REFRESH 2026-08-29: failure-atomic saves, one persistence owner for streamed text, bounded transcript caches, secure-store policy, backend release gates, update recovery, and sleep/wake revalidation strengthen this existing shell contract. It remains parked product hardening. No updater service, remote manager, release, notarization, or publication work is authorized. Comparison: docs/hermes-current-delta-audit-2026-08-29.md.",
+      "parkedReason": "optional proof"
+    },
+    {
       "tier": "rock",
       "model": "opus",
       "codex": "gpt-5.6-sol",
@@ -20878,14 +21093,16 @@
       "status": "horizon",
       "after": [
         "UX-03",
-        "TRUST-04"
+        "TRUST-04",
+        "DESKTOP-OPERATOR-DOSSIER-HIERARCHY"
       ],
       "size": "L",
       "effort": "high",
       "lens": "tui",
-      "summary": "One contextual Review surface renders Activity, Changes, Outputs, and Evidence/Approvals; the supported launch path and generated artifacts satisfy the disability-led universal-design contract.",
-      "done": "The supported launch path reaches one persisted/resumable useful local outcome within ten minutes without Gmail/Calendar or diagnosis disclosure. Keyboard, focus, screen reader, high contrast, common color-vision deficiencies, non-color meaning, reduced motion, density, notifications, optional streaming/auto-scroll, sound, stable layout, preserved reading position, summary-first detail, literal state, and narrow resize pass on the active build. Concrete aphantasia-safe previews and accessible charts/media pass. Support reason/scope/lifetime/reset/dismissal, multidimensional capacity including unknown, quiet hours, interruption budgets, and exact resume are consistent across Desktop, TUI, messaging, background, restart, and safe mode.",
-      "notes": "Accessibility and contextual review are cross-host product contracts."
+      "summary": "One contextual Review surface renders Activity, Changes, Outputs, Evidence/Approvals, and durable background-session state; the supported launch path and generated artifacts satisfy the disability-led universal-design contract.",
+      "done": "The supported launch path reaches one persisted/resumable useful local outcome within ten minutes without Gmail/Calendar or diagnosis disclosure. Keyboard, focus including Cmd/Ctrl+L composer focus, screen reader, high contrast, common color-vision deficiencies, non-color meaning, reduced motion, density, notifications, optional streaming/auto-scroll, sound, stable layout, preserved reading position, summary-first detail, literal state, and narrow resize pass on the active build. Background events update unread, progress, and settlement state without navigating or stealing focus; session switch and restart preserve unread boundaries, queues, drafts, scroll anchors, and exact resume; optimistic direct manipulation rolls back visibly on persistence failure. Concrete aphantasia-safe previews and accessible charts/media pass. Support reason/scope/lifetime/reset/dismissal, multidimensional capacity including unknown, quiet hours, interruption budgets, and exact resume are consistent across Desktop, TUI, messaging, background, restart, and safe mode.",
+      "updated": "2026-08-25",
+      "notes": "Accessibility and contextual review are cross-host product contracts. The 2026-08-25 Hermes Desktop comparison adds non-focus-stealing background continuity, durable unread state, direct-manipulation rollback, and global composer focus without creating a second session truth."
     },
     {
       "tier": "rock",
