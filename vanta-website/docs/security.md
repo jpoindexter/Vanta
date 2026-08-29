@@ -94,9 +94,10 @@ safe. The exact 2026-08-13 integrated runtime graph now reports zero npm
 advisories after the local AnyDoc parser and compatible transitive updates. The static
 documentation build still inherits two unpatched `image-size` denial-of-service
 advisories through Docusaurus; npm expands that dependency path into 19 high
-package entries. It is build-time on repository-authored content, not code
-served to visitors, and remains visible until upstream publishes a fixed
-release.
+package entries. Vanta disables the affected ICNS, JPEG XL, and HEIF/AVIF
+parsers and rejects those signatures before Docusaurus reads build inputs. The
+exact exception is build-time only, fails closed on any new advisory, expires
+2026-10-01, and remains visible until upstream publishes a fixed release.
 
 ## Other concrete mechanisms
 

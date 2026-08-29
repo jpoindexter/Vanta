@@ -1,6 +1,6 @@
 # Product acceptance
 
-Updated 2026-08-13. This record separates executed behavior from static tests,
+Updated 2026-08-29. This record separates executed behavior from static tests,
 repository integration, release state, and external setup gates. A receipt is
 evidence only for its exact version, environment, path, and marker.
 
@@ -19,7 +19,7 @@ participants, future effect paths, and publication require separate evidence.
 | Checked effect inventory | 409 production sources, 1,074 primitive calls, eight explicit trusted adapters, zero unknown executors at the retained TRUST-01 head | Runtime-generated or subsequently added paths |
 | Exact-head local integration preflight | Recorded in `docs/repository-closure-2026-08-13.md` after execution | GitHub approval, merge, notarization, deployment, or customer value |
 | Runtime dependency audit | `vanta-ts` exact graph: zero npm advisories on 2026-08-13 | Zero-days or a future lockfile |
-| Documentation dependency audit | All fixable findings remediated; two unpatched build-time `image-size` advisories expand through 19 Docusaurus entries | An upstream fix that does not exist yet |
+| Documentation dependency audit | All fixable findings remediated; affected image parsers disabled; repository build inputs scanned; exact two-advisory exception expires 2026-10-01 | An upstream patched package or arbitrary future dependency safety |
 
 ## Executed operator paths
 
@@ -72,8 +72,10 @@ The use-case catalog currently records 6 executed and 6 passed scenarios across 
 - True-first-token proof: 40 live-provider samples passed baseline eligibility across CLI, TUI, gateway, and signed packaged Desktop; content-free receipts and per-stage p95 budgets are stored in `vanta-ts/scripts/fixtures/`.
 - Automatic compaction proof: real launcher, six TUI turns, automatic threshold, square-cell 25% phase, summary request, and resumed response passed.
 - Current integrated `vanta-ts` npm audit: 0 vulnerabilities on 2026-08-13.
-- Current documentation audit: all fixable findings updated; two unpatched
-  build-time `image-size` advisories are reported through 19 Docusaurus packages.
+- Current documentation audit: all fixable findings updated; the affected
+  build-time `image-size` parsers are disabled and their input signatures are
+  rejected before Docusaurus runs. The exact two-advisory exception expands
+  through 19 packages, fails on any additional advisory, and expires 2026-10-01.
 - External `terminal-love` MCP: 94 tests passed and 0 production vulnerabilities after its Undici update.
 
 ## Release boundary
