@@ -111,7 +111,7 @@
     "pixelmatch": "^7.2.0",
     "pngjs": "^7.0.0",
     "vite": "^6.4.3",
-    "vitest": "^3.2.6"
+    "vitest": "^5.0.0"
   },
   "build": {
     "appId": "studio.theft.vanta",
