@@ -106,7 +106,7 @@
     "@types/react": "^19.2.16",
     "@types/react-dom": "^19.2.3",
     "axe-core": "^4.12.1",
-    "electron": "^43.1.0",
+    "electron": "^43.5.0",
     "electron-builder": "^26.15.3",
     "pixelmatch": "^7.2.0",
     "pngjs": "^7.0.0",
