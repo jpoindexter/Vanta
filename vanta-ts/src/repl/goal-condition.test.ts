@@ -71,8 +71,8 @@ describe("checkGoalLoop", () => {
     } as unknown as SafetyClient;
   }
 
-  let onNote: ReturnType<typeof vi.fn>;
-  beforeEach(() => { onNote = vi.fn(); });
+  let onNote: ReturnType<typeof vi.fn<(text: string) => void>>;
+  beforeEach(() => { onNote = vi.fn<(text: string) => void>(); });
 
   it("returns null when no active goal exists", async () => {
     const safety = makeSafety({ getGoals: vi.fn().mockResolvedValue([]) });

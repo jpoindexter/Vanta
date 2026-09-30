@@ -18,9 +18,11 @@ type Scenario = {
 
 const catalogPath = fileURLToPath(new URL("../../../eval/use-cases/hermes-community-v1.json", import.meta.url));
 const catalog = JSON.parse(readFileSync(catalogPath, "utf8")) as { version: number; scenarios: Scenario[] };
-const sourcePath = fileURLToPath(new URL("../../../reference/hermes-agent/website/src/data/userStories.json", import.meta.url));
-const sourceStories = JSON.parse(readFileSync(sourcePath, "utf8")) as Array<{ id: string; category: string }>;
 const indexPath = fileURLToPath(new URL("../../../eval/use-cases/hermes-story-index.json", import.meta.url));
+// Use the checked-in quote-free index; a private reference checkout is not a test dependency.
+const sourceStories = (JSON.parse(readFileSync(indexPath, "utf8")) as {
+  stories: Array<{ id: string; category: string }>;
+}).stories;
 
 describe("Hermes community use-case catalog", () => {
   it("starts with one scenario in every live Hermes category", () => {

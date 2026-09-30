@@ -165,6 +165,20 @@ Re-run any time: `./security-skills/scan.sh .` (no agent needed).
 
 ## 8. Operator guidance
 
+### Dependency maintenance update — 2026-09-30
+
+The dependency findings and accepted-risk statements in section 7b are historical,
+not a current security guarantee. The September repair updates the runtime,
+Electron, test tooling, and website dependency trees. All three checked-in npm
+lockfiles returned zero audit findings, including development dependencies.
+See [the executed remediation report](docs/dependency-security-2026-09-30.md).
+
+Recheck with `node scripts/dependency-security-check.mjs`; it fails closed if npm
+cannot complete an audit. No paid CI is required. Default-branch Dependabot alerts
+remain open until the repair is reviewed and merged; existing installations and
+downloadable releases are not updated by a branch push. No audit proves the
+absence of unknown vulnerabilities or replaces application-level verification.
+
 - **Untrusted repo?** Don't trust it in the dialog; keep `VANTA_ENABLE_PROJECT_HOOKS` unset;
   run with `VANTA_SHELL_SANDBOX=1` (or `VANTA_EXEC_BACKEND=docker`).
 - **Autonomous / unattended?** Sandbox on, a spend budget set (`budget` tool / PCLIP), and
