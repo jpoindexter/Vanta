@@ -24,8 +24,16 @@ export function approvalPayload(p: PendingApproval): unknown {
 }
 
 export async function resolveApproval(p: PendingApproval, decision: ApprovalDecision): Promise<void> {
-  if (decision === "always") await grantAlways(p.toolName).catch(() => {});
-  if (decision === "never") await grantNever(p.toolName).catch(() => {});
+  if (decision === "always" || decision === "never") {
+    if (!p.toolName) throw new Error("Cannot save an approval rule without a tool name.");
+    try {
+      if (decision === "always") await grantAlways(p.toolName);
+      else await grantNever(p.toolName);
+    } catch {
+      // Do not silently turn a failed persistent choice into a one-time decision.
+      throw new Error("Could not save the approval rule. The action was not approved.");
+    }
+  }
   p.resolve(decision === "allow" || decision === "always");
 }
 

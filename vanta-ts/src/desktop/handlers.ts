@@ -851,9 +851,17 @@ export async function handleApproval(state: DesktopState, req: http.IncomingMess
   const p = state.pendingApproval;
   if (!p || body.id !== p.id) return sendJson(res, 404, { error: "approval not found" });
   const decision = approvalDecision(body.decision, body.approved);
-  state.currentRunEvents?.push(approvalRunEvent(p.toolName, p.reason, decision));
+  // Claim the request before awaiting storage so duplicate submissions cannot run it twice.
   state.pendingApproval = undefined;
-  await resolveApproval(p, decision);
+  try {
+    await resolveApproval(p, decision);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : "Could not save the approval rule.";
+    state.currentRunEvents?.push(approvalRunEvent(p.toolName, reason, "deny"));
+    p.resolve(false);
+    return sendJson(res, 500, { error: reason });
+  }
+  state.currentRunEvents?.push(approvalRunEvent(p.toolName, p.reason, decision));
   sendJson(res, 200, { ok: true });
 }
 
