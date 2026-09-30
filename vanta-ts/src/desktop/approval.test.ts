@@ -75,6 +75,16 @@ describe("desktop approval persistence", () => {
     expect(p.resolve).toHaveBeenCalledTimes(1);
   });
 
+  it("records denial when fresh approval forbids remembering an allow", async () => {
+    const p = pending();
+    p.detail = { fresh: true };
+    const state: DesktopState = { root: "/tmp", pendingApproval: p, currentRunEvents: [] };
+    expect((await submit(state, "always")).status).toBe(200);
+    expect(p.resolve).toHaveBeenCalledExactlyOnceWith(false);
+    expect(grantAlways).not.toHaveBeenCalled();
+    expect(state.currentRunEvents).toMatchObject([{ ok: false, approval: { decision: "deny" } }]);
+  });
+
   it("rejects a duplicate submission while the rule is still saving", async () => {
     let finish!: () => void;
     vi.mocked(grantAlways).mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve; }));

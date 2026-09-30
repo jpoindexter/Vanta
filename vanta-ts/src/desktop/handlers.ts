@@ -854,14 +854,14 @@ export async function handleApproval(state: DesktopState, req: http.IncomingMess
   // Claim the request before awaiting storage so duplicate submissions cannot run it twice.
   state.pendingApproval = undefined;
   try {
-    await resolveApproval(p, decision);
+    const result = await resolveApproval(p, decision);
+    state.currentRunEvents?.push(approvalRunEvent(p.toolName, p.reason, result.decision));
   } catch (error) {
     const reason = error instanceof Error ? error.message : "Could not save the approval rule.";
     state.currentRunEvents?.push(approvalRunEvent(p.toolName, reason, "deny"));
     p.resolve(false);
     return sendJson(res, 500, { error: reason });
   }
-  state.currentRunEvents?.push(approvalRunEvent(p.toolName, p.reason, decision));
   sendJson(res, 200, { ok: true });
 }
 

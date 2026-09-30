@@ -4,7 +4,7 @@ Ink 7 TUI surface. The existing `app.tsx` path is the default v1 UI and should s
 
 `src/ui/v2/` is the opt-in mission-control surface selected by `VANTA_TUI=v2`. Keep launch selection small and testable in `launch.tsx`; keep layout-specific v2 code in `v2/`.
 
-Approval UI (`approval-prompt.tsx`) renders typed request context from `../permissions/request.ts` and four decisions: allow once, always allow, deny, never allow.
+Approval UI (`approval-prompt.tsx`) renders typed request context from `../permissions/request.ts` and consumes `../permissions/decision.ts` for allow once, always allow, deny, and never allow. Eligible task grants stay in-memory and never apply to fresh approvals. Persistence failures deny and show an explicit dismissible error; a pending choice is claimed once.
 
 `mode-line.tsx` owns the shared Manual → Accept edits → Plan → Auto cycle. Shift+Tab cycles whenever the composer has focus. Auto clears routine read/file-edit Ask decisions in the gate and tool execution context; consequential or classifier-unsafe Ask decisions remain visible approvals. Never auto-resolve a pending prompt in the renderer.
 

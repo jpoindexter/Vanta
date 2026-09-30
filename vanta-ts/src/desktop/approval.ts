@@ -1,5 +1,5 @@
 import { buildPermissionRequest } from "../permissions/request.js";
-import { grantAlways, grantNever } from "../permissions/grant.js";
+import { decidePermission, type PermissionDecision, type PermissionDecisionResult } from "../permissions/decision.js";
 
 export type PendingApproval = {
   id: string;
@@ -10,7 +10,7 @@ export type PendingApproval = {
   resolve: (approved: boolean) => void;
 };
 
-export type ApprovalDecision = "allow" | "always" | "deny" | "never";
+export type ApprovalDecision = PermissionDecision;
 type ApprovalHost = { pendingApproval?: PendingApproval };
 
 export function approvalDecision(decision: unknown, approved: unknown): ApprovalDecision {
@@ -23,18 +23,11 @@ export function approvalPayload(p: PendingApproval): unknown {
   return { id: p.id, action: p.action, reason: p.reason, toolName: p.toolName, request: buildPermissionRequest(p) };
 }
 
-export async function resolveApproval(p: PendingApproval, decision: ApprovalDecision): Promise<void> {
-  if (decision === "always" || decision === "never") {
-    if (!p.toolName) throw new Error("Cannot save an approval rule without a tool name.");
-    try {
-      if (decision === "always") await grantAlways(p.toolName);
-      else await grantNever(p.toolName);
-    } catch {
-      // Do not silently turn a failed persistent choice into a one-time decision.
-      throw new Error("Could not save the approval rule. The action was not approved.");
-    }
-  }
-  p.resolve(decision === "allow" || decision === "always");
+export async function resolveApproval(p: PendingApproval, decision: ApprovalDecision): Promise<PermissionDecisionResult> {
+  const result = await decidePermission({ toolName: p.toolName, fresh: p.detail?.fresh }, decision);
+  if (result.error) throw new Error(result.error);
+  p.resolve(result.approved);
+  return result;
 }
 
 export async function requestWebApproval(host: ApprovalHost, action: string, reason: string, toolName?: string, detail?: { diff?: string; fresh?: boolean }): Promise<boolean> {
