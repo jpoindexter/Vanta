@@ -333,6 +333,8 @@ Do no harm. No deletes, no overwrites, no touching outside authorized scope with
 
 Full threat model + the 2026-06-20 pentest (findings & fixes): **[Security](https://docs.vanta.theft.studio/security)** · report a vulnerability privately via [SECURITY.md](SECURITY.md).
 
+Dependency maintenance: run `node scripts/dependency-security-check.mjs` from the repository root. It audits all three npm lockfiles, including development dependencies, and fails on findings or unavailable audit results. See the [dated dependency remediation evidence](docs/dependency-security-2026-09-30.md); a clean branch audit does not mean a released or installed app has been updated.
+
 ## Contributing
 
 Issues and PRs welcome — see **[CONTRIBUTING.md](CONTRIBUTING.md)** for setup, the code standards (size gate, ESM, zod boundaries), and how to run the suite. We follow a [Code of Conduct](CODE_OF_CONDUCT.md). Found a vulnerability? See [SECURITY.md](SECURITY.md) — please report privately, not in a public issue.

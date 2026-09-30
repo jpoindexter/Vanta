@@ -94,7 +94,8 @@ function cap(text: string): string {
  */
 async function pdfjsExtractor(bytes: Uint8Array): Promise<string[]> {
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  const task = pdfjs.getDocument({ data: bytes, useSystemFonts: true });
+  // readFile returns a Buffer; PDF.js requires a plain, independently owned Uint8Array.
+  const task = pdfjs.getDocument({ data: new Uint8Array(bytes), useSystemFonts: true });
   const doc = await task.promise;
   try {
     const pages: string[] = [];

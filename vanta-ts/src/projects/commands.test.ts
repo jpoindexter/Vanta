@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi, type MockInstance } from "vitest";
 import { mkdtemp, mkdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -9,7 +9,7 @@ describe("projects/commands", () => {
   let projectsDir: string;
   let home: string;
   let env: NodeJS.ProcessEnv;
-  let log: ReturnType<typeof vi.spyOn>;
+  let log: MockInstance<typeof console.log>;
 
   beforeEach(async () => {
     projectsDir = await mkdtemp(join(tmpdir(), "vanta-pcmd-rooms-"));
