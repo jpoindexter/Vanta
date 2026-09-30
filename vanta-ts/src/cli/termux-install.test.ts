@@ -197,6 +197,8 @@ async function installerFixture(): Promise<{ root: string; prefix: string; log: 
   return { root, prefix, log, env: {
     ...process.env,
     HOME: home,
+    // Keep installer state inside this fixture even when the test runner has VANTA_HOME set.
+    VANTA_HOME: join(home, ".vanta"),
     PREFIX: prefix,
     TERMUX_VERSION: "0.118",
     PATH: `${fakeBin}:${process.env.PATH}`,

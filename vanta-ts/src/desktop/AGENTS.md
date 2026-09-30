@@ -6,7 +6,7 @@ Local command-center surface for Vanta.
 - Do not bypass the kernel; all agent work must still flow through the normal conversation/tool dispatch path.
 - Web approvals are wired: an `ask`-tier action blocks on a real `/api/approval` decision (allow/always/deny/never) rather than auto-denying. Kernel `block` stays immovable.
 - Desktop access mode is project-scoped through `/api/access-mode`: Manual prompts, Accept edits auto-confirms project file operations, Plan is read-only, Auto includes routine file edits plus the safe-action classifier, and Full access clears Ask prompts without bypassing kernel or explicit Block decisions.
-- `server.ts` is the thin router; `handlers.ts` holds the `/api/*` handler bodies over the per-session `DesktopState`. `session-state.ts` owns the per-session state map + SSE event channel.
+- `server.ts` is the thin router; `handlers.ts` preserves public imports as a facade over the responsibility-specific `handler-*.ts` modules. `handler-state.ts` defines per-session `DesktopState`; `session-state.ts` owns the state map + SSE event channel.
 - `assets.ts` serves the built React app from `vanta-ts/desktop-app/dist`; `page.ts` is only the no-build fallback notice.
-- `approval.ts` owns the pending approval payload/decision adapter for desktop; server routes stay thin.
+- `approval.ts` owns the pending approval payload/decision adapter for desktop; server routes stay thin. Always/Never must persist before resolving; a persistence failure returns an error and the handler denies the waiting action without recording a successful grant.
 - Browser UI code lives in `vanta-ts/desktop-app/`; do not import Vanta runtime modules into that app.
