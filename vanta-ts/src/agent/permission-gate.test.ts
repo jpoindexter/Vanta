@@ -13,6 +13,7 @@ import type { ToolCall } from "../types.js";
 import { shellHooksPath } from "../hooks/shell-hooks.js";
 import { writeFileTool } from "../tools/write-file.js";
 import { editFileTool } from "../tools/edit-file.js";
+import { grantAlways, grantNever } from "../permissions/grant.js";
 
 // This suite writes project-scoped hooks.json + fires hooks; opt past the new
 // project-trust gate (gate covered in hooks/shell-hooks.test.ts).
@@ -79,6 +80,22 @@ async function writeHookConfig(root: string, config: unknown): Promise<void> {
 }
 
 describe("applySafetyGate + permissions", () => {
+  it("honors a changed persistent choice in later task gates without repeat prompts", async () => {
+    await writeRules("ask\tshell_cmd\t\n");
+    let prompts = 0;
+    const options = { risk: "ask" as const, onAsk: () => { prompts++; } };
+    expect((await applySafetyGate(call, makeDeps(options), ctx)).approved).toBe(true);
+    expect(prompts).toBe(1);
+    await grantAlways("shell_cmd");
+    for (const id of ["later-task", "another-session"]) {
+      expect((await applySafetyGate({ ...call, id }, makeDeps(options), ctx)).approved).toBe(true);
+    }
+    expect(prompts).toBe(1);
+    await grantNever("shell_cmd");
+    expect((await applySafetyGate(call, makeDeps(options), ctx)).approved).toBe(false);
+    expect(prompts).toBe(1);
+  });
+
   it("a deny rule blocks an otherwise-allowed tool", async () => {
     await writeRules("deny\tshell_cmd\t\n");
     const res = await applySafetyGate(call, makeDeps({ risk: "allow" }), ctx);

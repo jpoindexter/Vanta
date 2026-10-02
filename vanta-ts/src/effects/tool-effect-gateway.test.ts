@@ -141,7 +141,7 @@ describe("executeToolEffect", () => {
     };
     const originalApproval = ctx.requestApproval as ReturnType<typeof vi.fn>;
     const execute = vi.fn(async (_args: Record<string, unknown>, inner: ToolContext) => ({
-      ok: await inner.requestApproval("WRITE_FILE synthetic target", "already covered"),
+      ok: await inner.requestApproval("write_file synthetic target", "already covered"),
       output: "mutated",
     }));
 
@@ -151,6 +151,20 @@ describe("executeToolEffect", () => {
     expect(ctx.safety.assess).not.toHaveBeenCalled();
     expect(originalApproval).not.toHaveBeenCalled();
     expect(execute).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    { innerAction: "write_file synthetic target", detail: { fresh: true } },
+    { innerAction: "write_file synthetic TARGET", detail: undefined },
+  ])("does not consume exact authority for fresh or different target: $innerAction", async ({ innerAction, detail }) => {
+    const root = await temporaryRoot(); const ctx = context(root);
+    const action = "write_file synthetic target";
+    ctx.effectAuthority = { operationId: "call-1", scopeId: "session-1", descriptorSha256: toolEffectDescriptorSha256("write_file", {}, action), action, consumeExactApproval: true };
+    ctx.requestApproval = vi.fn(async () => false);
+    const execute = vi.fn(async (_args, inner: ToolContext) => ({ ok: await inner.requestApproval(innerAction, "exact inner", "write_file", detail), output: "no mutation" }));
+    expect((await executeToolEffect("write_file", {}, tool("write_file", execute), ctx)).ok).toBe(false);
+    expect(ctx.requestApproval).toHaveBeenCalledWith(innerAction, "exact inner", "write_file", { fresh: true });
+    expect(ctx.safety.assess).toHaveBeenCalledOnce();
   });
 
   it("journals an ordinary consequential tool and executes it once per operation id", async () => {

@@ -48,8 +48,11 @@ distinct boundaries; the whole workflow remains incomplete.
 Dependency remediation from separate branches is not integrated into this
 candidate. Older zero-advisory claims and the documentation exception that
 expired on October 1 must not be presented as current security clearance.
-Integration code-size checks are also not green. No whole roadmap card is
-cleared on the strength of this local package.
+The application-source checkpoint now passes the size gate across 123 changed
+production files. Its full TypeScript run has 14,451 passes and 3 unchanged
+optional live-test skips. The implementation and notes are available in
+[draft PR #59](https://github.com/jpoindexter/Vanta/pull/59), not merged into
+the default branch or released. No whole roadmap card is cleared by this checkpoint.
 
 ## State and proof
 

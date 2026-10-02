@@ -1,0 +1,56 @@
+.chat-conversation { display: flex; flex-direction: column; height: 100%; min-height: 0; position: relative; }
+.chat-welcome { margin: auto; text-align: center; padding: var(--space-8) var(--space-6); }
+.chat-welcome h1 { font-size: clamp(24px, 2.5vw, 32px); font-weight: 500; letter-spacing: -.8px; text-wrap: balance; margin-block: 0 var(--space-3); }
+.chat-welcome p { font-size: 14px; line-height: 1.6; color: var(--muted); }
+.chat-starters { display: flex; justify-content: center; flex-wrap: wrap; gap: var(--space-2); margin-block-start: var(--space-6); }
+.chat-starters button, .chat-back-button { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 40px; padding: var(--space-2) var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-md); background: transparent; color: var(--muted); font-size: 12px; text-align: start; }
+.chat-starters button:hover:not(:disabled), .chat-back-button:hover { background: var(--raised); color: var(--text); }
+.chat-back-button { flex-shrink: 0; border: 0; }
+.chat-composer-dock { width: min(var(--chat-measure), 100%); margin-inline: auto; padding: var(--space-3) var(--space-6) var(--space-4); flex-shrink: 0; }
+.chat-conversation.is-empty .chat-composer-dock { margin-block-end: clamp(36px, 14vh, 160px); }
+.chat-first-shell .composer { width: 100%; margin: 0; border: 1px solid var(--line-strong); border-radius: var(--chat-radius); background: var(--workspace); box-shadow: none; padding: var(--space-4); }
+.chat-first-shell .composer:focus-within { border-color: var(--focus); box-shadow: none; }
+.chat-first-shell .composer textarea:focus-visible { outline: none; }
+.chat-first-shell .composer textarea { min-height: 64px; max-height: 220px; line-height: 1.6; font-size: 15px; color: var(--text); padding: 0; background: transparent; resize: vertical; }
+.chat-first-shell .composer-footer { gap: var(--space-2); padding-block-start: var(--space-3); flex-wrap: wrap; }
+.chat-first-shell .composer-actions { margin-inline-start: auto; gap: var(--space-2); }
+.chat-first-shell .approval-mode { display: inline-flex; min-height: 36px; }
+.chat-first-shell .model-button { display: flex; align-items: center; max-width: 220px; min-height: 36px; color: var(--muted); background: transparent; border: 0; padding-inline: var(--space-2); font-size: 12px; }
+.chat-first-shell .model-button small { display: none; }
+.chat-first-shell .model-button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-first-shell .model-button:hover { background: var(--raised); color: var(--text); }
+.chat-first-shell .send-button { width: 36px; height: 36px; background: var(--accent); color: var(--chat-on-accent) !important; border: 0; border-radius: 50% !important; }
+.chat-first-shell .send-button:disabled { background: var(--raised); color: var(--faint); }
+.chat-first-shell .stop-button { background: var(--raised); color: var(--text); border: 1px solid var(--line-strong); border-radius: var(--radius-md); }
+.chat-composer-hint { display: flex; justify-content: space-between; gap: var(--space-3); padding-block-start: var(--space-2); color: var(--faint); font-size: 11px; font-variant-numeric: tabular-nums; }
+.chat-first-shell .chat-thread-frame { flex: 1; min-height: 0; width: 100%; }
+.chat-first-shell .chat-thread { padding: var(--space-6) max(var(--space-6), calc((100% - 752px) / 2)); scrollbar-width: thin; }
+.chat-conversation .task-dossier { display: none; }
+.chat-context-content .task-dossier { display: grid; grid-template-columns: 1fr; }
+.chat-first-shell .message { padding-block: var(--space-4); font-size: 15px; line-height: 1.7; }
+.chat-first-shell .message.user { background: var(--raised); border: 0; border-radius: 14px; padding: var(--space-3) var(--space-4); margin-block: var(--space-3) var(--space-6); }
+.chat-first-shell .message.assistant { background: transparent; border: 0; padding-inline: 0; }
+.chat-first-shell .message-content { min-width: 0; }
+.chat-first-shell .message-content p { font-size: inherit; line-height: 1.7; }
+.chat-inline-queue { max-height: 200px; overflow: auto; margin-block-end: var(--space-3); }
+.chat-inline-queue h2 { font-size: 12px; font-weight: 500; color: var(--muted); margin: 0 0 var(--space-2); }
+.chat-inline-queue h2 span { margin-inline-start: var(--space-2); font-variant-numeric: tabular-nums; }
+.chat-inline-queue ol { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--space-1); }
+.chat-inline-queue li { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); background: var(--surface-selected); }
+.chat-queued-text { flex: 1; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
+.chat-queue-actions { display: flex; }
+.chat-inline-queue button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-width: 40px; min-height: 40px; border: 0; border-radius: var(--radius-md); color: var(--text); background: transparent; }
+.chat-inline-queue button:hover:not(:disabled) { background: var(--panel); }
+.chat-inline-queue form { width: 100%; }
+.chat-inline-queue textarea { width: 100%; min-height: 64px; color: var(--text); background: var(--panel); border: 1px solid var(--line-strong); border-radius: var(--radius-md); padding: var(--space-2); }
+.chat-inline-queue :is(small, [role="alert"]) { width: 100%; color: var(--danger); }
+.chat-inline-queue .chat-queue-target { color: var(--muted); overflow-wrap: anywhere; }
+.chat-first-shell .model-settings-popover { border-radius: 14px; background: var(--raised); border-color: var(--line-strong); }
+@media (max-width: 760px) {
+  .chat-composer-dock { padding-inline: var(--space-3); }
+  .chat-first-shell .composer { padding: var(--space-3); }
+  .chat-first-shell .composer-actions { flex-wrap: wrap; }
+  .chat-first-shell .chat-thread { padding-inline: var(--space-4); }
+  .chat-composer-hint { flex-wrap: wrap; }
+  .chat-conversation.is-empty .chat-composer-dock { margin-block-end: var(--space-6); }
+}

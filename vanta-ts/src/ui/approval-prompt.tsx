@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
 import { focusIndicator, type FocusTarget } from "./focus.js";
 import { grantAlways, grantNever } from "./grant.js";
@@ -28,9 +28,31 @@ export const approves = (outcome: Outcome): boolean => outcome === "task" || out
 export async function decide(pending: Pending, outcome: Outcome): Promise<void> {
   if (pending.fresh && (outcome === "task" || outcome === "always")) { pending.resolve(false); return; }
   if (outcome === "task") pending.grantTask?.();
-  if (outcome === "always") await grantAlways(pending.toolName).catch(() => {});
-  if (outcome === "never") await grantNever(pending.toolName).catch(() => {});
+  if (outcome === "always" || outcome === "never") {
+    if (!pending.toolName) throw new Error("Cannot save an approval rule without a tool name. Choose a one-time decision.");
+    try {
+      if (outcome === "always") await grantAlways(pending.toolName);
+      else await grantNever(pending.toolName);
+    } catch {
+      throw new Error("Could not save the approval rule. Nothing was approved. Retry or choose a one-time decision.");
+    }
+  }
   pending.resolve(approves(outcome));
+}
+
+function useApprovalDecision(pending: Pending, onDone: () => void) {
+  const locked = useRef<Pending | null>(null);
+  const [error, setError] = useState("");
+  const pick = async (outcome: Outcome) => {
+    if (locked.current === pending) return;
+    locked.current = pending; setError("");
+    try { await decide(pending, outcome); onDone(); }
+    catch (reason) {
+      locked.current = null;
+      setError(reason instanceof Error ? reason.message : "Approval could not be saved. Please try again.");
+    }
+  };
+  return { error, pick };
 }
 
 export function ApprovalPrompt(props: { focusedTarget?: FocusTarget; onDone: () => void; onFocusTargetChange?: (target: FocusTarget) => void; pending: Pending }): ReactElement {
@@ -43,7 +65,8 @@ export function ApprovalPrompt(props: { focusedTarget?: FocusTarget; onDone: () 
   );
   const [sel, setSel] = useState(() => Math.max(0, choiceIndex(props.focusedTarget, choices)));
   const request = buildPermissionRequest(pending);
-  const pick = (i: number): void => { void decide(pending, choices[i]!.outcome).then(onDone); };
+  const decision = useApprovalDecision(pending, onDone);
+  const pick = (i: number): void => { void decision.pick(choices[i]!.outcome); };
   useEffect(() => {
     const idx = choiceIndex(props.focusedTarget, choices);
     if (idx >= 0) setSel(idx);
@@ -62,6 +85,7 @@ export function ApprovalPrompt(props: { focusedTarget?: FocusTarget; onDone: () 
       <Text bold>⚠ {request.title}</Text>
       <Text>{request.subject}</Text>
       {request.reason ? <Text>{request.reason}</Text> : null}
+      {decision.error ? <Text color="red">{decision.error}</Text> : null}
       {request.sections.map((section) => <RequestSection key={section.label} section={section} />)}
       <Box marginTop={1} flexDirection="column">
         <Text bold>Do you want to proceed?</Text>

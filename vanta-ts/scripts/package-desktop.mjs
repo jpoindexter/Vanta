@@ -1,6 +1,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
-import { basename } from "node:path";
+import { basename, resolve } from "node:path";
+import { signAsync } from "@electron/osx-sign";
 
 const mode = process.argv.includes("--dist") ? "dist" : "dir";
 const notarize = process.argv.includes("--notarize");
@@ -21,36 +22,16 @@ function clearSigningState(target) {
   run("find", [target, "-name", "*.cstemp", "-delete"]);
 }
 
-function signApp(target, identity) {
+async function signApp(target, identity) {
   clearSigningState(target);
-  const candidates = execFileSync(
-    "find",
-    [
-      `${target}/Contents`, "-type", "f", "(", "-perm", "-111", "-o", "-name", "*.dylib", "-o", "-name", "*.node", ")", "-print",
-    ],
-    { encoding: "utf8" },
-  ).trim().split("\n").filter(Boolean);
-  for (const candidate of candidates) {
-    const kind = execFileSync("file", ["-b", candidate], { encoding: "utf8" });
-    if (!kind.includes("Mach-O")) continue;
-    run("codesign", ["--force", "--options", "runtime", "--timestamp", "--sign", identity, candidate]);
-  }
-  const frameworks = execFileSync(
-    "find",
-    [
-      `${target}/Contents/Frameworks`, "-depth", "-type", "d", "(", "-name", "*.app", "-o", "-name", "*.framework", ")", "-print",
-    ],
-    { encoding: "utf8" },
-  ).trim().split("\n").filter(Boolean);
-  for (const framework of frameworks) {
-    const args = ["--force", "--options", "runtime", "--timestamp", "--sign", identity];
-    if (framework.endsWith(".app")) args.push("--entitlements", entitlements);
-    run("codesign", [...args, framework]);
-  }
-  // Enclosed code can leave transient .cstemp files. Remove those before sealing
-  // the outer bundle, otherwise macOS will reject a bundle that `--deep` appears to verify.
-  clearSigningState(target);
-  run("codesign", ["--force", "--options", "runtime", "--timestamp", "--sign", identity, "--entitlements", entitlements, target]);
+  const appPath = resolve(target);
+  // Select the exact certificate fingerprint even when keychain display names
+  // collide. codesign still validates the signature and strict bundle seal.
+  await signAsync({ app: appPath, identity, identityValidation: false,
+    platform: "darwin", type: "distribution", strictVerify: true,
+    optionsForFile: (file) => ({ hardenedRuntime: true,
+      entitlements: resolve(file === appPath ? entitlements : "node_modules/app-builder-lib/templates/entitlements.mac.plist") }),
+  });
   run("codesign", ["--verify", "--deep", "--strict", "--verbose=2", target]);
 }
 
@@ -62,11 +43,11 @@ function developerIdentity() {
   } catch { return undefined; }
 }
 
-run("npx", ["electron-builder", "--mac", "dir", "--arm64"], { ...process.env, CSC_IDENTITY_AUTO_DISCOVERY: "false" });
+run("npx", ["electron-builder", "--mac", "dir", "--arm64", "-c.mac.identity=null", "-c.mac.notarize=false"], { ...process.env, CSC_IDENTITY_AUTO_DISCOVERY: "false" });
 const identity = developerIdentity();
 if (identity) {
   console.log(`Signing Vanta.app with Developer ID ${identity.slice(0, 8)}…`);
-  signApp(app, identity);
+  await signApp(app, identity);
 } else console.warn("No Developer ID Application certificate found; leaving the local artifact unsigned.");
 
 if (mode === "dist") {

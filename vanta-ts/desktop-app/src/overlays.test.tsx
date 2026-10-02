@@ -44,7 +44,7 @@ describe("NewTaskDialog", () => {
 });
 
 describe("ApprovalOverlay", () => {
-  it("renders request context with one-time approval only", () => {
+  it("renders request context and accurately scoped remembered tool choices", () => {
     const html = renderToStaticMarkup(
       <ApprovalOverlay
         approval={{
@@ -54,6 +54,7 @@ describe("ApprovalOverlay", () => {
           toolName: "shell_cmd",
           request: {
             kind: "bash",
+            canRemember: true,
             title: "Bash permission request",
             subject: "git status --short",
             reason: "kernel ask",
@@ -69,9 +70,22 @@ describe("ApprovalOverlay", () => {
     expect(html).toContain("git status --short");
     expect(html).toContain("Allow once");
     expect(html).toContain("Reject");
+    expect(html).toContain("Always allow this tool");
+    expect(html).toContain("Never allow this tool");
+    expect(html).toContain("future tasks on this Mac");
+    expect(html).toContain('role="dialog"');
+  });
+  it("keeps exact-action approvals one-time, even if remember eligibility is inconsistent", () => {
+    const html = renderToStaticMarkup(<ApprovalOverlay approval={{ id: "fresh", action: "publish exact post", reason: "review", toolName: "linkedin_post", request: { kind: "generic", title: "Publish", subject: "post", reason: "review", sections: [], fresh: true, canRemember: true } }} onAnswer={vi.fn()} />);
     expect(html).not.toContain("Always allow");
     expect(html).not.toContain("Never allow");
-    expect(html).toContain('role="dialog"');
+    expect(html).toContain("This exact action needs approval each time");
+  });
+  it("shows a failed decision as an unapproved action with a dismissal, not another allow button", () => {
+    const html = renderToStaticMarkup(<ApprovalOverlay approval={{ id: "failed", action: "write", reason: "review", error: "Could not save the approval rule. The action was not approved." }} onAnswer={vi.fn()} />);
+    expect(html).toContain("The action was not approved.");
+    expect(html).toContain("Dismiss");
+    expect(html).not.toContain("Allow once");
   });
 });
 

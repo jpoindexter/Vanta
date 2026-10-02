@@ -56,15 +56,20 @@ Reserve capacity for regressions before expanding the next surface. Review after
 
 The whole redesign is done only when the normal installed app executes the complete workflow above, retains existing capabilities, passes keyboard/accessibility and failure-path checks, and the canonical roadmap and GitHub documentation match that evidence. Automated fixture checks, source tests, and signed packages are separate evidence layers; they do not substitute for live provider/account or human usability evidence.
 
-Current re-entry: finish the integration size gate before publishing application
-changes; then simplify the remaining Connections/background/results journey.
+Current re-entry: the changed-source size gate is clear. Publish the application
+checkpoint, then simplify the remaining Connections/background/results journey.
 Repeat the normal-profile latest-package check when native access is available;
 preserve the owner's unsent draft and do not submit it. Full Desktop research to
 document and bounded native observe/action/readback remain acceptance work.
 
 ## Executed October 2 checkpoint
 
-**Publication boundary:** the documentation/roadmap checkpoint does not contain
+The section below records the earlier documentation-only checkpoint. The
+[application source checkpoint](development-checkpoint-2026-10-02.md) supersedes
+its uncommitted-source and size-gate status, without upgrading its historical
+package or native-interaction evidence.
+
+**Historical publication boundary:** the documentation/roadmap checkpoint did not contain
 the locally installed application implementation. Those application changes are
 preserved, uncommitted in the execution worktree while their integration size gate
 is unresolved. A checkout of this documentation commit cannot reproduce the

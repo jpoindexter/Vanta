@@ -1,23 +1,21 @@
-import type { EffectDisposition, ToolCall } from "../types.js";
-import type { ToolContext, Tool } from "../tools/types.js";
-import type { AgentDeps } from "./agent-types.js";
-import { applySafetyGate, executeWithRetry, compressOutput } from "./dispatch-helpers.js";
-import { offloadResult } from "../compress/result-offload.js";
-import { isPlanBlocked } from "./plan-gate.js";
-import { coerceToSchema } from "../providers/tool-call-repair.js";
-import { firePreToolUse, firePostToolUse, fireHooks } from "../hooks/shell-hooks.js";
-import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
-import { acceptsEditsWithoutKernel, resolvePermissionMode } from "../modes/permission-mode.js";
 import { join } from "node:path";
-import { loadSettings } from "../settings/store.js";
-import { repairToolFailure } from "../tools/tool-boundary.js";
-import { resolveOperatingMode } from "../modes/operating-mode.js";
-import { toolMayHaveSideEffects } from "./effect-disposition.js";
-import { settleWorkItem, type WorkItemState } from "../work-items/contract.js";
-import type { ToolResult } from "../tools/types.js";
-import { persistApprovalTransition } from "./effect-persistence.js";
+import { offloadResult } from "../compress/result-offload.js";
 import { effectAuthority } from "../effects/gate-context.js";
 import { toolEffectDescriptorSha256 } from "../effects/tool-effect-gateway.js";
+import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
+import { fireHooks,firePostToolUse,firePreToolUse } from "../hooks/shell-hooks.js";
+import { resolveOperatingMode } from "../modes/operating-mode.js";
+import { coerceToSchema } from "../providers/tool-call-repair.js";
+import { loadSettings } from "../settings/store.js";
+import { repairToolFailure } from "../tools/tool-boundary.js";
+import type { Tool,ToolContext,ToolResult } from "../tools/types.js";
+import type { EffectDisposition,ToolCall } from "../types.js";
+import { settleWorkItem,type WorkItemState } from "../work-items/contract.js";
+import type { AgentDeps } from "./agent-types.js";
+import { applySafetyGate,compressOutput,executeWithRetry,type SafetyGateResult } from "./dispatch-helpers.js";
+import { toolMayHaveSideEffects } from "./effect-disposition.js";
+import { executionContext } from "./execution-context.js";
+import { isPlanBlocked } from "./plan-gate.js";
 
 export type DispatchOutcome = {
   executed: boolean;
@@ -70,11 +68,23 @@ export async function dispatchTool(
     };
   }
 
-  const dataDir = join(ctx.root, ".vanta");
   const hookDeps = buildAgentHookDeps(deps);
   const preBlocked = await applyPreToolUseHooks(call, deps, ctx, hookDeps);
   if (preBlocked) return preBlocked;
 
+  const execCtx = dispatchExecutionContext(call, deps, ctx, { tool, gateResult });
+  await ctx.onToolExecutionStart?.(call);
+  const res = await executeWithRetry(call, deps, execCtx, tool);
+  return finishToolExecution({ call, deps, ctx, res, hookDeps });
+}
+
+function dispatchExecutionContext(
+  call: ToolCall,
+  deps: AgentDeps,
+  ctx: ToolContext,
+  options: { tool: Tool | undefined; gateResult: SafetyGateResult },
+): ToolContext {
+  const { tool, gateResult } = options;
   // CALL-AGENT-STREAM: give the tool a progress channel wired to the `note`
   // StreamEvent, so a long external call streams output/heartbeats mid-execution.
   const execCtx: ToolContext = {
@@ -96,8 +106,18 @@ export async function dispatchTool(
     authorizedAction,
     gateResult.effectApprovalReusable,
   );
-  await ctx.onToolExecutionStart?.(call);
-  const res = await executeWithRetry(call, deps, execCtx, tool);
+  return execCtx;
+}
+
+async function finishToolExecution(options: {
+  call: ToolCall;
+  deps: AgentDeps;
+  ctx: ToolContext;
+  res: ToolResult;
+  hookDeps: ReturnType<typeof buildAgentHookDeps>;
+}): Promise<DispatchOutcome> {
+  const { call, deps, ctx, res, hookDeps } = options;
+  const dataDir = join(ctx.root, ".vanta");
   const truth = toolResultTruth(call.name, res);
   if (!res.ok) res.output = await addRepairPath(call.name, res.output, deps, ctx.root);
   const postBlocked = await applyPostToolUseBlock({ call, deps, ctx, res, hookDeps });
@@ -230,26 +250,4 @@ function fireFailureHook(o: {
   const hookContext = { tool: call.name, args: call.arguments, result: { ok: res.ok, output: res.output } };
   const opts = { toolName: call.name, matcherValue: call.name, isError: true, cwd: root, ...hookDeps };
   void fireHooks(dataDir, "PostToolUseFailure", hookContext, opts);
-}
-
-function executionContext(call: ToolCall, deps: AgentDeps, ctx: ToolContext, forceFreshApproval = false): ToolContext {
-  const mode = ctx.permissionMode?.() ?? resolvePermissionMode(process.env);
-  const autoApprove = !forceFreshApproval && (mode === "fullAccess" || acceptsEditsWithoutKernel(mode, call.name));
-  return {
-    ...ctx,
-    requestApproval: async (action, reason, requestedToolName, detail) => {
-      if (!detail?.fresh) {
-        return autoApprove ? true : ctx.requestApproval(action, reason, requestedToolName, detail);
-      }
-      await persistApprovalTransition(ctx.root, deps.sessionId, call, action, "requested");
-      try {
-        const approved = await ctx.requestApproval(action, reason, requestedToolName, detail);
-        await persistApprovalTransition(ctx.root, deps.sessionId, call, action, approved ? "approved" : "denied");
-        return approved;
-      } catch (error) {
-        await persistApprovalTransition(ctx.root, deps.sessionId, call, action, "expired");
-        throw error;
-      }
-    },
-  };
 }

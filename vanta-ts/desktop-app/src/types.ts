@@ -1,4 +1,4 @@
-export type Session = { id: string; title: string; turns: number; updated: string; archived?: boolean; trashed?: boolean; pinned?: boolean; pinOrder?: number };
+export type Session = { id: string; title: string; turns: number; updated: string; projectId?: string; archived?: boolean; trashed?: boolean; pinned?: boolean; pinOrder?: number };
 export type RunInput = {
   path: string;
   sha256?: string;
@@ -290,8 +290,10 @@ export type PermissionRequest = {
   subject: string;
   reason: string;
   toolName?: string;
+  fresh?: boolean;
+  canRemember?: boolean;
   sections: PermissionSection[];
 };
 export type ApprovalDecision = "allow" | "always" | "deny" | "never";
-export type Approval = { id: string; action: string; reason: string; toolName?: string; request?: PermissionRequest };
+export type Approval = { id: string; action: string; reason: string; toolName?: string; request?: PermissionRequest; error?: string };
 export type RailTab = "activity" | "files" | "diff" | "preview" | "receipts" | "terminal" | "outputs" | "canvas";

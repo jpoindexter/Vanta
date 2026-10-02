@@ -12,6 +12,12 @@ import {
 import { buildLinkedInAuthUrl, exchangeLinkedInCode, importLinkedInToken, inspectLinkedInToken, runLinkedInAuth } from "./oauth.js";
 import { challengeForVerifier, createOAuthState, createPkcePair } from "./pkce.js";
 
+// Exercise the real callback server without binding the operator's fixed OAuth port.
+vi.mock("./callback.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./callback.js")>();
+  return { ...actual, startLinkedInCallback: (state: string) => actual.startLinkedInCallback(state, { port: 0 }) };
+});
+
 function response(json: unknown, status = 200) {
   return { ok: status >= 200 && status < 300, status, json: async () => json };
 }
@@ -123,8 +129,11 @@ describe("LinkedIn native PKCE", () => {
         now: () => 1_000,
         notify: (line) => lines.push(line),
         openUrl: async (authUrl) => {
-          const state = new URL(authUrl).searchParams.get("state");
-          const callback = await fetch(`http://127.0.0.1:8765/linkedin/callback?code=code&state=${state}`);
+          const url = new URL(authUrl);
+          const redirect = new URL(url.searchParams.get("redirect_uri")!);
+          redirect.searchParams.set("code", "code");
+          redirect.searchParams.set("state", url.searchParams.get("state")!);
+          const callback = await fetch(redirect);
           await callback.text();
         },
       });

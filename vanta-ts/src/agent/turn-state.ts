@@ -50,6 +50,7 @@ export function makeInitialState(): TurnState {
 }
 
 export function turnCompletionState(state: TurnState, stoppedReason: StoppedReason): WorkItemState {
+  if (stoppedReason === "blocked") return "waiting";
   if (state.workItemStates.includes("unverified")) return "unverified";
   if (stoppedReason !== "done") return "stopped";
   if (state.workItemStates.length > 0 && state.workItemStates.every((item) => item === "verified")) return "verified";
@@ -66,26 +67,33 @@ export function recordUsage(state: TurnState, result: CompletionResult): void {
 
 export function recordToolOutcome(state: TurnState, call: ToolCall, outcome: DispatchOutcome, deps: AgentDeps): string | null {
   state.workItemStates.push(outcome.workItemState);
-  if (outcome.executed) {
-    state.consecutiveFailures = outcome.empty ? state.consecutiveFailures + 1 : 0;
-    if (isErrorResult(outcome.ok, outcome.output)) {
-      state.consecutiveErrorResults++;
-      const t = DEFAULT_ERRORDETECT_THRESHOLD;
-      if (state.consecutiveErrorResults >= t && state.consecutiveErrorResults % t === 0) {
-        try { deps.onText?.(buildErrorDetectText(state.consecutiveErrorResults)); deps.onIterationCheck?.(state.consecutiveErrorResults); } catch { /* best-effort */ }
-      }
-    } else {
-      state.consecutiveErrorResults = 0;
-    }
-  }
-  if (outcome.ok && call.name === "todo" && call.arguments.action === "write" && Array.isArray(call.arguments.items)) {
-    state.openTodoCount = call.arguments.items.filter((item) => {
-      if (!item || typeof item !== "object") return true;
-      return (item as { status?: unknown }).status !== "done";
-    }).length;
-  }
+  if (outcome.executed) recordExecutionErrors(state, outcome, deps);
+  if (outcome.ok) recordTodoProgress(state, call);
   const sig = callSignature(call.name, call.arguments);
   const count = (state.callCounts.get(sig) ?? 0) + 1;
   state.callCounts.set(sig, count);
   return count >= MAX_IDENTICAL_CALLS ? call.name : null;
+}
+
+function recordExecutionErrors(state: TurnState, outcome: DispatchOutcome, deps: AgentDeps): void {
+  state.consecutiveFailures = outcome.empty ? state.consecutiveFailures + 1 : 0;
+  if (!isErrorResult(outcome.ok, outcome.output)) {
+    state.consecutiveErrorResults = 0;
+    return;
+  }
+  state.consecutiveErrorResults++;
+  const threshold = DEFAULT_ERRORDETECT_THRESHOLD;
+  if (state.consecutiveErrorResults < threshold || state.consecutiveErrorResults % threshold !== 0) return;
+  try {
+    deps.onText?.(buildErrorDetectText(state.consecutiveErrorResults));
+    deps.onIterationCheck?.(state.consecutiveErrorResults);
+  } catch { /* best-effort */ }
+}
+
+function recordTodoProgress(state: TurnState, call: ToolCall): void {
+  if (call.name !== "todo" || call.arguments.action !== "write" || !Array.isArray(call.arguments.items)) return;
+  state.openTodoCount = call.arguments.items.filter((item) => {
+    if (!item || typeof item !== "object") return true;
+    return (item as { status?: unknown }).status !== "done";
+  }).length;
 }

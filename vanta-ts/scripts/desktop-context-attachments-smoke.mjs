@@ -3,9 +3,11 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { _electron as electron } from "playwright-core";
+import { chatFirstProviderFixture } from "./lib/chat-first-provider-fixture.mjs";
 
 const project = await mkdtemp(join(tmpdir(), "vanta-desktop-context-project-"));
 const userData = await mkdtemp(join(tmpdir(), "vanta-desktop-context-profile-"));
+const fixture = await chatFirstProviderFixture();
 const executablePath = process.env.VANTA_DESKTOP_APP;
 const longPath = "src/a-deeply-nested-feature/with-a-very-long-directory-name/context-implementation.ts";
 const files = ["README.md", "src/App.tsx", "src/chat.tsx", longPath];
@@ -14,6 +16,7 @@ const droppedFolder = join(project, "drop-folder");
 const shiftedFile = join(project, "shift-drop.md");
 const pickedFile = join(project, "picked-from-dialog.md");
 let app;
+let page;
 const submissions = [];
 
 try {
@@ -28,17 +31,20 @@ try {
     args: executablePath ? ["--project", project] : ["desktop-app/electron/main.mjs", "--project", project],
     cwd: process.cwd(),
     env: {
-      ...process.env,
+      PATH: process.env.PATH, TMPDIR: tmpdir(), LANG: "en_US.UTF-8",
+      VANTA_HOME: join(userData, "state"), VANTA_PROVIDER: "custom", VANTA_MODEL: "desktop-proof",
+      VANTA_OPENAI_BASE_URL: fixture.url, VANTA_MCP_AUTO_MOUNT: "0", VANTA_PROMPT_SUGGESTIONS: "0",
       VANTA_PROJECT_ROOT: project,
       VANTA_DESKTOP_USER_DATA: userData,
       VANTA_DESKTOP_PORT: process.env.VANTA_DESKTOP_SMOKE_PORT ?? "7827",
       VANTA_DESKTOP_AUTOMATION: "1",
-      OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "vanta-context-smoke-key",
       ELECTRON_DISABLE_SECURITY_WARNINGS: "1",
     },
   });
-  const page = await app.firstWindow();
+  page = await app.firstWindow();
   page.setDefaultTimeout(20_000);
+  await page.locator(".chat-first-shell").waitFor();
+  await page.waitForFunction(() => !document.querySelector("#vanta-composer")?.disabled);
   await page.route("**/api/files", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(files) }));
   await page.route("**/api/file-context", (route) => route.fulfill({
     status: 200, contentType: "application/json",
@@ -49,7 +55,8 @@ try {
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ finalText: "Context received.", events: [] }) });
   });
   await page.setViewportSize({ width: 760, height: 700 });
-  await page.reload({ waitUntil: "domcontentloaded" });
+  // Retained Classic attachments; chat-first context has a separate packaged proof.
+  await page.goto(new URL("?shell=classic", page.url()).href, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => {
     const composer = document.querySelector("#vanta-composer");
     return composer instanceof HTMLTextAreaElement && !composer.disabled;
@@ -144,7 +151,11 @@ try {
   assert.deepEqual(fileOnly.files, ["picked-from-dialog.md"]);
 
   console.log(JSON.stringify({ groups: true, nativePicker: true, dragFile: true, shiftDrag: true, dragFolder: true, folderIconChip: true, privateSkipped: true, fileOnlySubmit: true, attach: true, remove: true, search: true, submitRefs: true, viewport: "760x700", geometry }));
+} catch (error) {
+  if (page && !page.isClosed()) console.error("Context smoke UI:", (await page.locator("body").innerText()).slice(0, 6000));
+  throw error;
 } finally {
   await app?.close().catch(() => undefined);
+  await fixture.close();
   await Promise.all([rm(project, { recursive: true, force: true }), rm(userData, { recursive: true, force: true })]);
 }

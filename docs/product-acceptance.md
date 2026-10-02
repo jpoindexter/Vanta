@@ -15,6 +15,12 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [October 2 application source checkpoint](development-checkpoint-2026-10-02.md)
+supersedes the earlier docs-only publication and size-gate status: 123 changed
+production files have zero size violations; 14,451 TypeScript tests pass with
+three unchanged optional live tests skipped. Package and source evidence remain
+separate. The following package receipt is the earlier installed checkpoint.
+
 The installed October 2 ambient-workspace candidate has ASAR SHA-256
 `b77ef4a81bfc92711654b2a40eb733d2897f6d64480ff201d09cfde99e55821a`.
 Strict macOS signature validation, both typechecks, and the full TypeScript suite
@@ -33,8 +39,8 @@ collision. Its automated proof is not full normal-profile workflow acceptance.
 
 A real installed CLI research run produced and read back a 162-word cited brief;
 this does not establish Desktop research or native-app observe/action/readback.
-The earlier source-fetch failure remains failure evidence. Integration size lint
-and dependency-security integration are not green; no whole card is cleared.
+The earlier source-fetch failure remains failure evidence. Changed-source size
+lint now passes; dependency-security integration is not green. No whole card is cleared.
 See the [current workflow and evidence](desktop-ambient-workflow-2026-10-02.md).
 
 Dependency fixes on separate branches have not been integrated into this

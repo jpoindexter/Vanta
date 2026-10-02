@@ -5,8 +5,9 @@ import { homedir } from "node:os";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
 import { randomBytes } from "node:crypto";
-import { app, BrowserWindow, Tray, Menu, nativeImage, dialog, clipboard, shell, ipcMain } from "electron";
+import { app, BrowserWindow, Tray, Menu, nativeImage, dialog, clipboard, shell, ipcMain, screen } from "electron";
 import { createTrayController } from "./tray.mjs";
+import { createDesktopPresence } from "./desktop-presence.mjs";
 import { resolveDroppedPaths } from "./dropped-paths.mjs";
 import { findAvailablePort, projectArg, readProjectSetting, resolveProjectRoot, saveProjectSetting } from "./project-root.mjs";
 import { resolveRuntimePaths } from "./runtime-paths.mjs";
@@ -25,6 +26,7 @@ const automation = process.env.VANTA_DESKTOP_AUTOMATION === "1";
 let serverProcess;
 let mainWindow;
 let trayController;
+let desktopPresence;
 let projectRoot;
 let port = DEFAULT_DESKTOP_PORT;
 let automationKernelUrl;
@@ -139,6 +141,7 @@ function stopServer() {
 
 async function loadProject() {
   stopServer();
+  desktopPresence?.reset();
   port = await findAvailablePort(Number(process.env.VANTA_DESKTOP_PORT) || DEFAULT_DESKTOP_PORT);
   if (automation && !process.env.VANTA_KERNEL_URL) {
     const preferredKernelPort = Number(process.env.VANTA_DESKTOP_KERNEL_PORT) || 22_000 + process.pid % 20_000;
@@ -151,7 +154,8 @@ async function loadProject() {
   if (!smoke) void mainWindow.loadURL(url).catch((error) => showFatal(`Desktop renderer failed: ${error.message}`));
   if (smoke) await waitForKernel(url);
   if (smoke) console.log("desktop smoke: packaged kernel online");
-  if (!smoke) trayController = createTrayController({ Tray, Menu, nativeImage, dialog, clipboard, BrowserWindow, app, baseUrl: url, boundaryToken, preload: join(dirname(fileURLToPath(import.meta.url)), "preload.cjs") });
+  if (!smoke) trayController = createTrayController({ Tray, Menu, nativeImage, dialog, clipboard, app, baseUrl: url, boundaryToken,
+    openWorkspace: (mode) => desktopPresence.setMode(mode), showAvatar: () => desktopPresence.showAvatar() });
 }
 
 async function waitForKernel(url) {
@@ -181,7 +185,9 @@ function buildApplicationMenu() {
     { label: "Vanta", submenu: [
       { label: "About Vanta", role: "about" }, { type: "separator" },
       { label: "Open Project…", accelerator: "CmdOrCtrl+O", click: () => { void chooseProject(); } },
-      { label: "Show Vanta", accelerator: "CmdOrCtrl+Shift+V", click: () => { mainWindow?.show(); mainWindow?.focus(); } },
+      { label: "Show Vanta", accelerator: "CmdOrCtrl+Shift+V", click: () => { void desktopPresence?.setMode("full"); } },
+      { label: "Mini Vanta", click: () => { void desktopPresence?.setMode("mini"); } },
+      { label: "Show Vanta avatar", click: () => { void desktopPresence?.showAvatar(); } },
       { type: "separator" }, { role: "hide" }, { role: "hideOthers" }, { role: "unhide" }, { type: "separator" }, { role: "quit" },
     ] },
     { label: "Edit", submenu: [{ role: "undo" }, { role: "redo" }, { type: "separator" }, { role: "cut" }, { role: "copy" }, { role: "paste" }, { role: "selectAll" }] },
@@ -202,7 +208,7 @@ async function createWindow() {
   if (process.platform === "darwin" && icon) app.dock?.setIcon(icon);
   mainWindow = new BrowserWindow({
     width: 1440, height: 960, minWidth: 760, minHeight: 620, show: false,
-    title: "Vanta", backgroundColor: "#151515",
+    title: "Vanta", backgroundColor: "#ffffff",
     ...(icon ? { icon } : {}),
     ...(process.platform === "darwin" ? {
       titleBarStyle: "hiddenInset",
@@ -217,6 +223,7 @@ async function createWindow() {
     },
   });
   mainWindow.once("ready-to-show", () => { if (!smoke) mainWindow.show(); });
+  desktopPresence = createDesktopPresence({ BrowserWindow, screen, ipcMain, getWindow: () => mainWindow });
   mainWindow.webContents.setWindowOpenHandler(({ url }) => { if (/^https?:/.test(url)) void shell.openExternal(url); return { action: "deny" }; });
   mainWindow.webContents.on("will-navigate", (event, target) => {
     if (trustedRendererNavigation(target)) return;
@@ -237,7 +244,7 @@ function trustedRendererNavigation(target) {
 }
 
 function splashHtml() {
-  return `<!doctype html><meta charset="utf-8"><title>Vanta</title><style>body{margin:0;display:grid;place-items:center;height:100vh;background:#151515;color:#f5f5f3;font:14px system-ui}main{text-align:center}.mark{display:grid;place-items:center;width:44px;height:44px;margin:0 auto 16px;border-radius:8px;background:#f5f5f3;color:#151515;font-weight:800;font-size:20px}p{color:#b8b8b4}</style><main><div class="mark">V</div><strong>Opening Vanta</strong><p>Loading the local runtime and kernel…</p></main>`;
+  return `<!doctype html><meta charset="utf-8"><title>Vanta</title><style>body{margin:0;display:grid;place-items:center;height:100vh;background:#fff;color:#202024;font:14px system-ui}main{text-align:center}.mark{display:grid;place-items:center;width:44px;height:44px;margin:0 auto 16px;border-radius:8px;background:#7c3aed;color:#fff;font-weight:800;font-size:20px}p{color:#51515a}</style><main><div class="mark">V</div><strong>Opening Vanta</strong><p>Loading your chats…</p></main>`;
 }
 
 async function initialProject() {
@@ -263,7 +270,7 @@ const ownsInstance = automation || app.requestSingleInstanceLock();
 if (!ownsInstance) app.quit();
 else {
   app.on("second-instance", () => { mainWindow?.show(); mainWindow?.focus(); });
-  app.on("before-quit", () => { shuttingDown = true; stopServer(); });
+  app.on("before-quit", () => { shuttingDown = true; desktopPresence?.dispose(); stopServer(); });
   app.on("window-all-closed", () => { if (automation || process.platform !== "darwin") app.quit(); });
   app.on("activate", () => { mainWindow?.show(); });
   app.whenReady().then(async () => {

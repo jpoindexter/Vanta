@@ -17,4 +17,12 @@ contextBridge.exposeInMainWorld("vantaDesktop", Object.freeze({
   switchProjectForNewTask: (draft) => ipcRenderer.invoke("vanta:switch-project-for-new-task", draft),
   readPendingProjectTask: () => ipcRenderer.invoke("vanta:read-pending-project-task"),
   acknowledgePendingProjectTask: (id) => ipcRenderer.invoke("vanta:acknowledge-pending-project-task", id),
+  readSurfaceMode: () => ipcRenderer.invoke("vanta:surface-mode"),
+  setSurfaceMode: (mode) => ipcRenderer.invoke("vanta:set-surface-mode", mode),
+  reportSurfacePhase: (phase) => { void ipcRenderer.invoke("vanta:surface-phase", phase).catch(() => {}); },
+  onSurfaceMode: (callback) => {
+    const listener = (_event, mode) => callback(mode);
+    ipcRenderer.on("vanta:surface-mode-changed", listener);
+    return () => ipcRenderer.removeListener("vanta:surface-mode-changed", listener);
+  },
 }));

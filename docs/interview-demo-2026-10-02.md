@@ -30,7 +30,11 @@ Owner correction, later the same day: no interview/demo edition or special every
 2. Next: prove public research → local cited document and bounded native-app observe/action/readback; then continue through dependency-ready recovery cards. Record only non-private material and distinguish live model output from fixtures.
 3. Later: complete browser/project parity and dependency-stack integration. Unfamiliar-user acceptance remains deferred by the owner. No backlog-wide completion claim.
 
-## Baseline
+## Historical baseline
+
+The [application checkpoint](development-checkpoint-2026-10-02.md) supersedes
+the uncommitted-source status below. This document retains earlier candidate
+hashes and observations; it is not an interview-only product mode.
 
 - Branch `codex/desktop-chat-workbench-20261002`; base `ab5e8910f2d474ed3e84772bf2262893b9962b5e`; local uncommitted integration is preserved.
 - Prior candidate: 14,379 TypeScript tests passed, 3 optional voice/LoRA tests skipped; 43 fixture-provider packaged interactions passed.
