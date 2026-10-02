@@ -56,15 +56,21 @@ Reserve capacity for regressions before expanding the next surface. Review after
 
 The whole redesign is done only when the normal installed app executes the complete workflow above, retains existing capabilities, passes keyboard/accessibility and failure-path checks, and the canonical roadmap and GitHub documentation match that evidence. Automated fixture checks, source tests, and signed packages are separate evidence layers; they do not substitute for live provider/account or human usability evidence.
 
-Current re-entry: the application source checkpoint is published at `c272e25d`
-in draft PR #59; its changed-source size gate is clear. The normal installed
-app has now executed real-provider research to a cited file and read it back.
-That run exposed an inert document link. See the
-[document-link repair and live evidence](desktop-document-link-repair-2026-10-02.md).
-After unlocking, use the guarded update and click the existing result in the
-normal app; preserve the owner's unsent draft and never submit it as a probe.
-Then continue Connections/background/results coherence and bounded native
-observe/action/readback. The whole workflow remains in progress.
+Current re-entry: source checkpoint `da10fc45` is published in draft PR #59.
+Its exact signed `8dd23904…` package is installed with a rollback copy. The
+normal full workspace opens the previously generated research document from
+its result link and retains the unsent draft. See the
+[document-link repair and live evidence](desktop-document-link-repair-2026-10-02.md)
+for the installed hash, updater gates and separate evidence from the preceding
+real-provider research run. Normal-profile mini-link, Stop, remembered routine
+approvals and bounded native observe/action/readback still need proof.
+
+The owner's latest interface direction is to adapt LibreChat's actual frontend
+to Vanta, not merely reproduce its colors. Preserve one Vanta agent, conversation
+history, authority model and existing capabilities. Start isolated from the
+installed application and connect the reused presentation layer to Vanta's
+runtime; no LibreChat backend/store migration or paid service is implied.
+This is an implementation direction, not a completed port or a card closure.
 
 ## Executed October 2 checkpoint
 

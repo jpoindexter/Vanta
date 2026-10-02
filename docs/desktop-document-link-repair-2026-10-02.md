@@ -3,7 +3,7 @@
 This is a development follow-up to source checkpoint
 `c272e25d0cef1ee15f55c4a491fb12abfb54a350`, not a release or full ambient-workflow acceptance.
 
-## Normal installed application: executed evidence
+## Earlier normal installed application: executed evidence
 
 The installed archive was rehashed as
 `fb31b7ff1119039a491bdadb88f00438a67d47aa37cc18e0365f7ad8d1ac9539`.
@@ -72,7 +72,7 @@ Commands run in `vanta-ts/` unless marked root. All exits below were 0.
 | `npx vitest run --reporter=dot` | 1,592 files, 14,486 passed, 3 skipped | Optional LoRA/Whisper integrations remain unexecuted |
 | Explicit `npx tsx src/cli.ts lint` on the six changed production renderer files | 6 files, zero violations | The analyzer does not measure `.mjs` proof scripts |
 | `node scripts/check-boundaries.mjs` (root) | All 5 boundaries passed | Static architectural checks |
-| `npm run desktop:pack` | Production renderer and signed macOS package passed | Not installed or notarized by this follow-up |
+| `npm run desktop:pack` | Production renderer and signed macOS package passed | Packaging alone is not installation or notarization; subsequent installation is recorded below |
 | `codesign --verify --deep --strict --verbose=2 release/mac-arm64/Vanta.app` | Valid on disk; designated requirement satisfied | Signature does not establish usability |
 | `node scripts/desktop-chat-first-proof.mjs` | 54 checks passed, zero renderer errors | Disposable profile and synthetic provider; real packaged UI, local kernel, API and project files |
 | Semgrep `p/security-audit --metrics=off --error` on the six changed production renderer files | 22 rules executed, 225 loaded, zero findings | Not a dependency or whole-repository security certification |
@@ -86,8 +86,8 @@ The packaged check added three interaction cases to the previous 51.
 
 The exact candidate archive SHA-256 is
 `8dd23904ce84e44dc7841c9d849ee6a7c90f45f13014238a02995c1e658ebde3`.
-The installed archive remains the earlier `fb31b7ff…` recorded above. Packaged
-proof artifacts are retained locally under
+The guarded update subsequently installed this exact archive, as recorded below.
+Packaged proof artifacts are retained locally under
 `vanta-ts/.artifacts/chat-first-proof/`, including `result.json` and the inspected
 `document-link-from-mini.png`. They contain fixture content, not the operator's
 conversation. The fixture's non-Git repository-probe diagnostics and the
@@ -97,13 +97,37 @@ Rust, website deployment and live account integrations were not rerun for this
 renderer-only follow-up. The earlier source checkpoint records their separate
 evidence; none is implied by these new checks. GitHub Actions remains disabled.
 
-## Remaining acceptance boundary
+## Guarded installation and normal-profile result: executed
 
-The Mac subsequently reported a locked screen, preventing native interaction
-with the normal application. The running installed app and its drafts were not
-force-closed or overwritten. The new link behavior still needs the normal-profile
-installed-app click-through after the guarded update. Do not substitute the
-earlier successful research/file output for that missing interaction proof.
+`npm run desktop:rebuild` exited 0 and installed the exact `8dd23904…`
+archive at `2026-10-02T18:54:11.754Z`. Its retained log is
+`vanta-ts/.artifacts/document-link-installed-update.log`. The updater reran
+both typechecks, seven installer tests, production packaging, Developer ID
+signing/deep verification and all 54 packaged interactions with zero renderer
+errors before replacement. Independent hashing of the installed archive
+matched the full candidate SHA-256 above. The preceding `fb31b7ff…` package
+and the machine-readable installation receipt remain in the local rollback
+folder outside Git.
+
+The earlier locked-screen observation was transient. The idle app was later
+quit normally and reopened on the owner's existing profile; no forced
+termination, shared-kernel restart or user-state reset was used. The research
+conversation and deliberately unsent acceptance draft were retained.
+
+In the normal installed full workspace, clicking the existing `research.md`
+result opened the read-only document workbench alongside that conversation.
+The native accessibility tree showed the document heading, brief and both MDN
+source links, while the composer retained its unsent draft. This closes the
+full-workspace result-link interaction gap for this exact installed package.
+It does not imply a new live research turn on this package.
+
+Mini Vanta opened with the same conversation and draft. A subsequent normal-
+profile mini result-link attempt did not establish an observable expansion and
+document-open result: native input targets became stale and the final observed
+state was inconclusive. The disposable packaged mini-link test passed, but
+that is not a substitute for this remaining normal-profile interaction proof.
+
+## Remaining acceptance boundary
 
 Whole-flow Connections/background/results coherence, bounded native-app action,
 normal-profile approval persistence/denial/interruption, native assistive and
