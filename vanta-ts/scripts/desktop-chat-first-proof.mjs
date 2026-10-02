@@ -131,17 +131,26 @@ try {
     await page.getByRole("button", { name: "Stop task", exact: true }).click(); await idle();
     await page.locator("#vanta-composer").fill("Draft belongs to the first chat");
   });
-  await check("chat switching restores distinct history and drafts", async () => {
+  await check("chat switching restores distinct history, drafts and activity", async () => {
     const row = page.locator(".chat-nav-row").filter({ has: page.locator('[aria-current="page"]') });
     const firstTitle = await row.locator(".chat-nav-open").innerText();
     await page.locator("button.chat-new").click();
     await page.waitForFunction(() => document.querySelector("#vanta-composer")?.value === "");
     assert.equal(await page.locator("#vanta-composer").inputValue(), "");
     await send("This is a second conversation."); await reply("This is a second conversation."); await idle();
+    const secondTitle = await row.locator(".chat-nav-open").innerText();
     await page.locator(".chat-nav-open").filter({ hasText: firstTitle }).first().click();
     await reply("Remember this local conversation.");
     assert.equal(await page.locator("#vanta-composer").inputValue(), "Draft belongs to the first chat");
     assert.equal(await page.getByText("Local provider reply: This is a second conversation.", { exact: true }).count(), 0);
+    const activity = page.getByRole("region", { name: "Current run activity", exact: true });
+    await activity.getByText("Stopped by operator.", { exact: true }).first().waitFor();
+    await page.locator(".chat-nav-open").filter({ hasText: secondTitle }).first().click();
+    await reply("This is a second conversation.");
+    assert.equal(await activity.getByText("Stopped by operator.", { exact: true }).count(), 0);
+    await page.locator(".chat-nav-open").filter({ hasText: firstTitle }).first().click();
+    await reply("Remember this local conversation.");
+    assert.equal(await page.locator("#vanta-composer").inputValue(), "Draft belongs to the first chat");
   });
   await check("queued turn executes once and both turns enter canonical history", async () => {
     await send("Keep this response open");

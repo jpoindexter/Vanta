@@ -8,7 +8,8 @@ invoke, give context, work, intervene, inspect results, leave/resume, and schedu
 The mini and optional avatar are entrances to the same live workspace, not a
 second agent or conversation store. No interview/demo edition is selected.
 
-Current branch: `codex/desktop-chat-workbench-20261002`. Authority includes
+Current branch: `codex/librechat-shell-adapter-20261002`, continuing the
+`codex/desktop-chat-workbench-20261002` stack. Authority includes
 implementation, local guarded app replacement, documentation, and normal Git
 publication. Required review still applies before any merge. No force push,
 paid workflows, release, deployment, notarization, or unsolicited account action.
@@ -54,6 +55,14 @@ Hover previews also appear on keyboard focus; touch keeps actions visible.
 Use semantic controls, immediate focus rings, Escape and focus restoration.
 Motion is optional opacity only; reduced motion removes it. Quiet success,
 persistent actionable errors; never fabricate readiness, evidence or counts.
+
+Design-skill application follows the approved source interface, not a new visual
+concept: component anatomy/state matrices, chat and navigation flow continuity,
+contrast and keyboard accessibility, and progressive disclosure. Conversation
+identity owns its messages, draft, activity and recovery together. A stopped
+turn must never make another conversation appear stopped. Copy, attachment,
+model, permission and result controls must preserve these existing boundaries
+when their presentation is adapted from LibreChat.
 
 ## Historical September execution ledger
 

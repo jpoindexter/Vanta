@@ -7,9 +7,10 @@ agent, not a special interview edition. Reuse LibreChat's actual interface
 where it fits, with white/grey Vanta presentation and the existing generalist
 engine, history, model connections, tools, memory and permissions underneath.
 
-Now: publish the validated first conversation/navigation port and its installed
-evidence. Next: complete normal-profile Stop and remembered-permission checks,
-then a bounded Vanta-driven native-app action. Later: coherent opt-in background
+Now: finish the normal-profile conversation-activity correction and carry the
+same LibreChat presentation through the remaining everyday interactions. Next:
+remembered-permission checks and a bounded Vanta-driven native-app action.
+Later: coherent opt-in background
 follow-through and deferred unfamiliar-person acceptance. This is not the whole
 desktop redesign.
 
@@ -154,9 +155,70 @@ preceding package, not rerun here.
 
 ## Remaining product gates
 
-Normal-profile live Stop, remembered routine approvals across a new task/restart,
-and a Vanta-driven native computer/app action still need their own executed
-acceptance. The whole Connections/Today/Schedules/Outputs/Settings journey,
+Normal-profile remembered routine approvals across a new task/restart and a
+Vanta-driven native computer/app action still need their own executed acceptance.
+Live Stop was executed on the preceding package; the activity-isolation replay
+below was executed on the current package. The whole
+Connections/Today/Schedules/Outputs/Settings journey,
 project/browser parity, ambient watch → result → global pause/restart, dependency
 security integration and deferred unfamiliar-person proof remain open. No
 whole roadmap card is promoted. The public release and `main` are unchanged.
+
+## Continuing acceptance and design pass
+
+The owner reiterated that LibreChat's already-designed chat interface is the
+base, not a request for another invented visual direction. The relevant design
+skills are applied by surface: chat/app-shell/navigation flows; components and
+their complete states; light-theme colour/contrast; keyboard/accessibility;
+and Nielsen, Norman and AI-native interaction principles. They do not authorize
+an unrelated design system, backend replacement or unimplemented controls.
+
+The installed `d430d9f4…` app completed a normal-profile text-only live Stop
+interaction: the operator clicked Stop during the response, Send returned,
+partial output remained, and switching away/back retained 137 complete numbered
+items plus the partial 138th item. No tool or account action was requested.
+That run exposed a separate defect: another conversation inherited the stopped
+conversation's activity labels even though its own messages and draft restored.
+
+The correction loads the selected conversation's latest recorded activity, or
+clears it if there is no receipt. Four regression tests failed before the
+correction and passed after it. The full suite then passed with 14,496 tests and
+3 skipped. A packaged-test selector initially matched both summary and evidence
+text, so the guarded updater stopped before installation. The corrected rerun
+passed all 57 packaged checks and installed the signed candidate at
+`2026-10-02T20:52:46.552Z`. Candidate and installed ASAR independently matched:
+`b4c9c7d1965e30b8351106a21b507537528aa1eea48d6c885eac20b7a53cd505`.
+The prior `d430d9f4…` app and receipt are retained outside Git in
+`Vanta Local Updates/update-gbl3D5/`.
+
+After the owner unlocked the Mac, the actual installed app restored the research
+conversation and draft. Opening the stopped conversation retained its partial
+response and stopped receipt. Returning to the research conversation showed its
+own completed receipt, no stopped status, and the exact unchanged unsent draft.
+No new model request, permission grant or account action was performed in that
+replay. This executes the demonstrated activity-isolation criterion, not the
+remaining whole-product criteria. Its screenshot still shows excessive tool
+result presentation; the next UI slice addresses that using upstream source.
+
+| Correction gate | Command | Result |
+| --- | --- | --- |
+| Focused selection/draft/chat | `npx --no-install vitest run desktop-app/src/session-selection.test.ts desktop-app/src/session-drafts.test.ts desktop-app/src/chat.test.tsx` | exit 0; 22 passed |
+| Full suite | `npm test` | exit 0; 1,594 files, 14,496 passed, 3 skipped |
+| Guarded build and installation | `npm run desktop:rebuild` | exit 0 after selector correction; both typechecks, 7 installer tests, signed production package, 57 interactions, 27 fixture-provider requests, zero renderer errors |
+| Changed production size | `runLint` with explicit `desktop-app/src/conversation-sessions.ts` | exit 0; no violations |
+| Architecture | Root `node scripts/check-boundaries.mjs` | exit 0; 5 boundaries |
+| Changed production security | `semgrep scan --config p/javascript --config p/typescript --metrics=off --error desktop-app/src/conversation-sessions.ts` | exit 0; 74 rules, zero findings |
+| Roadmap and projections | `npx --no-install vitest run src/roadmap`; root generators and their Node tests | exit 0; 173 roadmap tests, 7 generator tests; generated projections unchanged |
+| History and snapshot secrets | Root `bash scripts/secret-scan` | exit 0; 2,185 existing commits plus tracked/non-ignored snapshot, zero findings |
+| Proof syntax / whitespace | `node --check scripts/desktop-chat-first-proof.mjs`; `git diff --check` | exit 0 |
+
+The packaged rerun recorded 85 expected host diagnostics from Git probes in the
+non-repository fixture; this is separate from its zero renderer errors. The
+installed replay does not re-prove fresh research generation or remembered
+permission persistence. The CLI installation was not changed.
+
+Next source-level presentation candidates, reviewed at the same upstream pin:
+`Chat/Input/ChatForm.tsx` (context above the growing input, one action row) and
+`Chat/Messages/MinimalHoverButtons.tsx` plus `styles.ts` (quiet message actions
+that remain available on keyboard focus and touch). These are source references,
+not a claim that those components have already been ported.
