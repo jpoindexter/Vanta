@@ -32,7 +32,7 @@ async function nativeProjectProof(ctx) {
         return { canceled: false, filePaths: [target] };
       };
     }, target);
-    await page.getByRole("button", { name: "New project task", exact: true }).click();
+    await openChatUtility(page, "New project task");
     await page.getByLabel("First instruction", { exact: true }).fill("Retain this instruction in the selected second project.");
     await page.getByRole("button", { name: "Choose project folder", exact: true }).click();
     if (native) console.log(`NATIVE_PICKER_READY ${target}`);
@@ -159,7 +159,7 @@ async function libraryProof(ctx) {
   });
   await ctx.check("Library bulk trash and restore preserve the never-sent draft", async () => {
     const page = ctx.getPage(); await command(page, "Open Library");
-    await page.getByRole("button", { name: "Chats", exact: true }).click();
+    await page.getByRole("navigation", { name: "Library sections", exact: true }).getByRole("button", { name: "Chats", exact: true }).click();
     const manager = page.getByRole("region", { name: "Manage chats" });
     await manager.getByRole("searchbox", { name: "Find saved chats" }).fill("Never-sent draft proof");
     await manager.getByRole("button", { name: "Select visible", exact: true }).click();
@@ -178,7 +178,7 @@ async function libraryProof(ctx) {
     const page = ctx.getPage(); const before = await ctx.api("/api/status");
     for (let index = 0; index < 12; index++) {
       await command(page, "Open Library");
-      await page.getByRole("button", { name: "Chats", exact: true }).waitFor();
+      await page.getByRole("navigation", { name: "Library sections", exact: true }).getByRole("button", { name: "Chats", exact: true }).waitFor();
       assert.equal((await ctx.api("/api/status")).sessionId, before.sessionId);
     }
     await page.locator('.chat-nav-open').filter({ hasText: "Never-sent draft proof" }).click();

@@ -42,6 +42,51 @@ The native Codex inspection restriction is a concrete research limitation. Owner
 | Leave/resume | Hide the workspace; return through menu bar/avatar/history | Hiding is not cancellation; quitting is explicit; no second conversation controller | Same unfinished work and draft survive hide/show and an appropriate restart |
 | Background | See schedules, waiting decisions, blocked work, and finished results | Quiet unless something is actionable; no fake success inferred from process liveness | A real scheduled execution and its result/decision return to the originating work |
 
+## Owner addition: ambient follow-through, not only a chat shell
+
+On October 2 the owner supplied [ClickUp's ambient-AI article](https://clickup.com/blog/hub/ai/agentic-ai/ambient/).
+Its relevant product ideas are context continuity, proactive assistance and
+background execution within defined boundaries. This is a design reference,
+not evidence that ClickUp's promotional outcomes will hold for Vanta, and not
+a request to subscribe to ClickUp or import its infrastructure.
+
+**Vanta-specific requirement:** one understandable desktop agent should keep
+helping between prompts. A user can ask it to watch a chosen source, prepare
+useful work when that source changes, and bring back the result or the smallest
+decision needed. This belongs in the same chat, mini window, activity history
+and permission system as foreground work—not a separate automation console.
+
+Code inspected at this checkpoint already contains opt-in screen-context
+proposals (`src/ambient/screen-context.ts`) and queued proactive ticks
+(`src/proactive/tick.ts`, `policy.ts`) with idle/cadence/budget checks. That is
+existing machinery, not proof of the complete installed ambient workflow.
+Historical shipped cards retain their own evidence; they do not close the
+integration acceptance below.
+
+| Vanta journey | Existing canonical owner | Additional installed acceptance |
+| --- | --- | --- |
+| Ask naturally to watch a chosen file or source | `DESKTOP-OPERATOR-DOSSIER-HIERARCHY`, existing `AUTO-WATCH` machinery | Show the source, purpose, cadence, model, retention and allowed actions; explicit enablement creates one recurring job, not another chat controller |
+| Leave Vanta working and return later | `SCHEDULE-CONTINUITY-CHANGE-SUPPRESSION` | One changed input produces one durable run and one result in the originating chat; repeated/unchanged signals make no extra model call or notice; restart and sleep/wake do not replay effects |
+| Understand why Vanta surfaced something | `OP-03` | Show the triggering source and time, the relevant user instruction, what changed, what Vanta did and what needs a decision; respect snooze, quiet hours, dismissal, expiry and cross-channel deduplication |
+| Grant routine authority once | Existing permissions plus the active Desktop card | A saved, revocable rule is applied to matching routine actions in later chats and background runs; failed persistence stays visible; fresh-only actions and changed scope cannot inherit the rule |
+| Pause background work | `GLOBAL-PAUSE-NEW-WORK-SENTINEL` | One acknowledged pause blocks new work across Desktop and scheduler, survives restart and makes the disposition of already-running effects visible; hiding the window is not a pause |
+| Add context from connected apps | `CONNECT-INTEGRATION-STATE-CATALOG` plus the active Desktop card | Surface the actual source and connection freshness; opt-in capture has an obvious indicator and immediate off control; disabled/revoked sources are not read or sent to a model |
+
+The first end-to-end acceptance uses a disposable local folder: enable a watch
+from chat, hide the window, change one source file, return to one cited summary,
+observe unchanged-input suppression, pause, change the file again and confirm
+no new work. Reopen Vanta and confirm pause and the original conversation
+survive. The same journey must expose a failed connection and a denied action
+without retry storms or a false completion badge. Fixture-provider evidence
+and a normal installed run must be labelled separately.
+
+Capture is not permission to act. Enabling ambient work does not silently
+enable microphone/screen recording, add accounts, purchase services, publish
+posts or contact people. No speculative mood/health inference is required.
+The user can inspect/correct/delete retained context; model suggestions never
+rewrite standing instructions or broaden permission. These requirements do
+not change existing card statuses or activate a watcher on the owner's Mac.
+
 ## Dependency-ordered execution
 
 **Now — coherent local workspace.** Integrate and validate chat continuity, white/grey appearance, current model discovery, routine permission persistence, truthful failure states, and safe local app replacement. Replace native Quick Ask with compact/full views of the same window. Add an optional, non-surveilling avatar that only opens this workspace and shows a small factual state. Close the demonstrated companion authentication gap before relying on that route.

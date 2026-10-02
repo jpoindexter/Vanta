@@ -22,7 +22,11 @@ Modern-minimal application, not a marketing page. Familiar conversation sidebar,
 readable transcript, quiet composer, optional contextual inspector. Vanta's engine,
 providers, approval policy and canonical stores remain the source of truth.
 The approved reference is the interaction structure of Codex Desktop, not its
-branding or proprietary renderer. No upstream source is copied in this rebuild.
+branding or proprietary renderer. The October 2 owner direction now permits
+adapting LibreChat's actual frontend. Its identified presentation components
+retain upstream attribution/license and connect to Vanta's existing runtime;
+no second engine or history store is introduced. See
+[the adoption record](docs/librechat-desktop-adoption-2026-10-02.md).
 
 ## System
 
@@ -40,8 +44,10 @@ Layout styles are scoped to `.chat-first-shell`; semantic appearance tokens are 
 The sidebar is secondary, conversation primary, inspector tertiary. New chat
 does not require a task form. Project/task creation remains a separate action.
 The conversation list takes priority over feature navigation. Today, Outputs,
-Library, Schedules, Skills & tools and Connections sit behind the initially
-collapsed Tools & activity disclosure. Utility screens have a Back to chat action
+Library, Schedules, Skills & tools and advanced project creation remain behind
+the initially collapsed Tools & activity disclosure. Chats, Activity and
+Connections have labelled navigation-rail shortcuts; chat history can collapse
+without removing those entrances. Utility screens have a Back to chat action
 that returns to the current session without creating another one. New-chat
 starters prepare editable drafts only, never submit or overwrite a draft.
 Hover previews also appear on keyboard focus; touch keeps actions visible.

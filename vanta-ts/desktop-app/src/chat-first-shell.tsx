@@ -26,7 +26,7 @@ export function ChatFirstShell() {
   useChatDialogs();
   useChatShortcuts({ state, actions });
   return <div className={`app-shell chat-first-shell theme-${state.theme}`} style={state.layout.style} data-surface={surface.mode} data-sidebar={state.sidebar} data-inspector={state.inspector}>
-    {state.sidebar ? <ChatFirstSidebar state={state} actions={actions} /> : null}
+    <ChatFirstSidebar state={state} actions={actions} />
     {state.sidebar ? <ChatPaneResize pane="sidebar" value={state.layout.sidebar} onChange={state.layout.setWidth} /> : null}
     <div className="chat-main-column"><ChatHeader state={state} surface={surface} />
       <ActiveChatNavigation state={state} />
@@ -44,7 +44,7 @@ function ChatHeader({ state, surface }: { state: ChatFirstState; surface: Return
   const { data } = state;
   return <>
     <header className="chat-header">
-      {!state.sidebar ? <button className="chat-icon" type="button" aria-label="Show sidebar" aria-expanded="false" onClick={() => state.setSidebar(true)}><PanelLeft size={18} /></button> : null}
+      {!state.sidebar ? <button className="chat-icon lc-header-sidebar" type="button" aria-label="Show sidebar" aria-expanded="false" onClick={() => state.setSidebar(true)}><PanelLeft size={18} /></button> : null}
       {state.view !== "work" ? <button className="chat-back-button" type="button" onClick={() => state.setView("work")}><ArrowLeft size={16} aria-hidden="true" />Back to chat</button> : null}
       <span className="chat-header-title">{labels[state.view]}</span>
       <button className="chat-project-button" type="button" aria-expanded={runtimeOpen} onClick={() => setRuntimeOpen(!runtimeOpen)} title={data.status?.root}>

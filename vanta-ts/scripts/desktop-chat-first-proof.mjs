@@ -13,6 +13,7 @@ import { chatFirstEntryProof, openChatUtility } from "./lib/chat-first-entry-pro
 import { documentWorkbenchProof } from "./lib/chat-document-workbench-proof.mjs";
 import { documentLinksProof } from "./lib/chat-document-links-proof.mjs";
 import { desktopSurfaceProof } from "./lib/desktop-surface-proof.mjs";
+import { libreChatShellProof } from "./lib/librechat-shell-proof.mjs";
 
 const root = await mkdtemp(join(tmpdir(), "vanta-chat-first-proof-"));
 const project = join(root, "project");
@@ -104,6 +105,7 @@ try {
     await capture("01-new-chat");
   });
   await chatFirstEntryProof({ page, check, fixture, capture });
+  await libreChatShellProof({ page, app, check, fixture, capture, candidateAsar });
   await check("send and completed response persist", async () => {
     await send("Remember this local conversation."); await reply("Remember this local conversation."); await idle();
     assert.equal(fixture.requests.length, 1); await capture("02-conversation");
@@ -235,7 +237,7 @@ try {
   });
   await check("project task creation stages context without running a model", async () => {
     const before = fixture.requests.length;
-    await page.getByRole("button", { name: "New project task", exact: true }).click();
+    await openChatUtility(page, "New project task");
     await page.getByRole("dialog", { name: "New project task", exact: true }).waitFor();
     await page.getByLabel("First instruction", { exact: true }).fill("Prepare a project task without executing it.");
     await capture("08-project-task");
