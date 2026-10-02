@@ -31,7 +31,17 @@ are receipt/action dispositions, not WorkItem states.
 - **[Download Vanta Desktop for macOS](https://github.com/jpoindexter/Vanta/releases/download/v0.9.5/Vanta-0.9.5-arm64.dmg)** — signed, notarized, and stapled for Apple Silicon.
 - **[Read the latest release notes](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.8)** — reusable runs, safe replay, Buzz ACP, integrations, and reliability fixes. The v0.9.5 download above remains the latest notarized Desktop DMG.
 - **[Read the docs](https://docs.vanta.theft.studio/)** — setup, safety model, agents, memory, MCP, messaging, and the live roadmap.
-- **[Follow the roadmap](ROADMAP.md)** — the zero-cost Desktop cold-operator proof is the sole Next card; `GROW-01` and six dependency-ordered contracts remain Horizon. No paid participants, recruiting, research platforms, Actions, hosting, outreach, or new service spend are authorized.
+- **[Follow the roadmap](ROADMAP.md)** — canonical status lives in `roadmap.json`; generated views and local implementation evidence have separate publication boundaries. Paid growth and unfamiliar-person testing remain deferred. No paid participants, recruiting, research platforms, Actions, hosting, outreach, or new service spend are authorized.
+
+## Ambient Desktop redesign — local candidate, not a release
+
+The October 2 candidate uses a white/grey workspace with Vanta violet, optional dark appearance, ordinary chat, optional project context, queued messages, per-chat drafts and document tabs. Mini Vanta and an optional floating avatar open the **same workspace and conversation**, not a second agent. The avatar does not monitor the screen or microphone. The existing general-purpose engine remains in place.
+
+The signed local package passed 51 fixture-provider interaction checks and 14,445 TypeScript tests (3 optional integrations skipped). Checks cover draft/queue/Stop continuity, remembered routine approval and storage failure, mini/full switching while streaming, visible permission controls, and the bounded avatar bridge. `npm run desktop:rebuild` now verifies the package before replacing `/Applications/Vanta.app`, refuses replacement while it is running, and keeps a rollback copy. This is a local update, not notarization or a public release.
+
+The **whole workflow remains in progress**: Connections, background work, decisions, outputs and resumption need a coherent end-to-end experience. Normal-profile mini/avatar and draft retention were observed on the preceding package; the latest package has fixture proof, not a complete live Desktop research/computer-control proof. Integration code-size and dependency-security gates are not green. See the [workflow contract and source review](docs/desktop-ambient-workflow-2026-10-02.md) and [dated evidence](docs/desktop-chat-workbench-2026-10-02.md). No whole roadmap card is cleared by this candidate.
+
+This documentation checkpoint publishes the plan and evidence, **not the pending application implementation**. Its source remains preserved locally until the integration gates pass; checking out this commit does not produce the installed candidate described above.
 
 ## What ships in Desktop v0.9.5
 

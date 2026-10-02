@@ -4,58 +4,44 @@
 historical narrative and does not override the JSON, `STRATEGY.md`, or
 `DECISIONS.md`.
 
-## Current converged build order — 2026-08-29
+## Current converged build order — 2026-10-02
+
+Generated from `roadmap.json` by `node scripts/roadmap-current-projection.mjs`. Do not hand-edit this section.
 
 **Building**
 
-No roadmap card is currently Building. The bounded `TRUST-02`, `UX-03`,
-`TRUST-04`, `TRUST-01`, and `OP-01` contracts are recorded as shipped with retained
-receipts for their stated supported-host boundaries; those records do not claim
-merge, release, deployment, or broader external proof.
+1. `DESKTOP-OPERATOR-DOSSIER-HIERARCHY` — Desktop ambient workflow — one agent across chat, mini, work and results
 
 **Next**
 
-1. `DESKTOP-OPERATOR-DOSSIER-HIERARCHY` — make outcome, next action, and
-   approval state primary while moving runtime detail into progressive disclosure.
-2. `DESKTOP-COLD-OPERATOR-RELEASE-PROOF` — one voluntary, uncompensated fresh
-   non-developer completes a useful task in the exact packaged candidate. No
-   paid participant, recruiting, research-platform, CI, hosting, outreach, or
-   other new service spend is authorized.
+1. `REPOSITORY-GIT-PROBE-EXECUTION-ISOLATION` — Repository Git probe isolation — project configuration cannot execute host commands
+2. `CONTROL-PLANE-INSTRUCTION-WRITE-BOUNDARY` — Protected instruction writes — exact approval for every standing-order file
+3. `LOCAL-STATE-ATOMIC-RECOVERY-BOUNDARY` — Local state recovery boundary — never silently lose operator truth
+4. `BROWSER-WORKFLOW-ACTION-BOUNDARY` — Browser workflow boundary — observe, extract, and act under explicit policy
 
 **Horizon**
 
-1. `CAPABILITY-GROUNDED-SYSTEM-PROMPT` — promise only effective callable tools,
-   providers, connectors, and host routes after policy.
-2. `TRUST-03` — canonical action envelope and scoped capability.
-3. `TRUST-05` — untrusted-content quarantine across supported input surfaces.
-4. `TRUST-06` — safe factory, self-repair, and Vanta Lab production boundary.
-5. `OP-03` — deterministic, deduplicated, expiring Needs You projection.
-6. `UX-04` — contextual Review, background continuity, first-run usefulness,
-   and cross-host accessibility.
-7. `LIFE-02` — quarantined read-only morning orientation after its dependencies.
-8. `GROW-01` — voluntary zero-cost continuity interviews and pilots after the
-   cold-operator proof, with volunteer-sample limitations recorded explicitly.
+1. `CAPABILITY-GROUNDED-SYSTEM-PROMPT` — Capability-grounded prompt — promise only callable tools and routes
+2. `TRUST-03` — Canonical action envelope and scoped capability
+3. `TRUST-05` — Untrusted-content quarantine across email, web, documents, messages, and social input
+4. `TRUST-06` — Safe factory, self-repair, and Vanta Lab production boundary
+5. `OP-03` — Trustworthy Needs You — deterministic, deduplicated, expiring, and auto-resolving
+6. `UX-04` — Contextual Review, first-run usefulness, and cross-host accessibility contract
+7. `BROWSER-AUTHENTICATED-WORKSPACE` — Authenticated browser workspace — visible sessions, takeover, and revocation
 
-The 28 destination outcomes are a dependency/acceptance catalog, not 28
-simultaneous projects. Current open inventory is 10: 2 Next and 8 Horizon.
-Capacity remains capped at 12 open, 4 Next, 6 implementation-ready, and 2
-Building.
+**Blocked**
 
-The current Hermes delta refresh, adoption decisions, and explicit non-ports are
-in `docs/hermes-current-delta-audit-2026-08-29.md`. The dependency order and
-per-phase test contracts remain in
-`docs/hermes-desktop-gap-closure-plan-2026-08-25.md`. Six compatible patterns are
-retained as parked cards with explicit re-entry triggers so they do not displace
-the zero-cost user-testing path.
+No cards currently Blocked.
 
-```text
-TRUST-01 TRUST-02 TRUST-03 TRUST-04 TRUST-05 TRUST-06
-OP-01 OP-02 OP-03 OP-04 OP-05
-UX-01 UX-02 UX-03 UX-04
-LIFE-01 LIFE-02 LIFE-03 LIFE-04
-GROW-01 GROW-02 GROW-03 GROW-04 GROW-05
-PACK-01 LAB-01 EVAL-01 DOGFOOD-01
-```
+Inventory: 1362 cards; 1288 shipped; 12 open; 62 parked.
+
+Next means planned, not implemented. Preserve shipped evidence; card completion requires its executed Done contract.
+
+Desktop direction and phase gates: [whole ambient workflow](docs/desktop-ambient-workflow-2026-10-02.md). Earlier decisions remain in the [September plan](docs/desktop-chat-first-revamp-plan-2026-09-08.md).
+
+The unfamiliar-person proof and GROW-01 remain deferred. No paid services, publication, or new runtime authority are implied.
+
+Prior research and reconciliation records remain in the dated audit documents and canonical card notes.
 
 ## Historical narrative below
 

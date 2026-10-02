@@ -55,6 +55,11 @@
 <body>
 <div class="wrap">
   <header>
+    <p><strong>Historical runbook — not current completion status.</strong>
+      As of October 2, 2026, the whole Desktop workflow, computer-control proof,
+      integration size gate and dependency remediation remain incomplete.
+      Read the <a href="desktop-ambient-workflow-2026-10-02.md">current workflow evidence</a>
+      and canonical <a href="../ROADMAP.md">roadmap</a> before using these older receipts.</p>
     <h1><span class="glyph">◆</span> Finish the 6 Rocks — step by step</h1>
     <div class="sub">All 6 committed; suite <b>10,483</b> green. <b>Both code wires are now DONE</b> (slack app→composer, live-verified against your real channels · voice_input trigger). What's left is purely <b>your runtime inputs</b> below. Each step is who-does-what + the exact command.</div>
     <div class="legend">
@@ -145,7 +150,7 @@ tmux kill-session -t vanta-fleet-&lt;pid&gt;</code></pre></li>
       <li><div class="step-h"><span class="who you">YOU</span><span class="step-t">One setup command</span></div>
         <pre><code>vanta control        # opens Screen Recording + Accessibility panes
 brew install cliclick # the mouse/keyboard helper (vanta control tells you if missing)</code></pre>
-        <div class="note">then <code>vanta control doctor</code> confirms readiness. The kernel still gates every action.</div></li>
+        <div class="note"><code>vanta control doctor</code> checks helper availability only. Screen Recording, Accessibility, a vision model and a real observe/action/readback still need verification. The kernel gates every action.</div></li>
       <li><div class="step-h"><span class="who you">YOU</span><span class="step-t">Optional power-up: an external computer-use MCP</span></div>
         <pre><code>echo 'VANTA_CHICAGO_MCP=&lt;server&gt;' &gt;&gt; vanta-ts/.env   # only if you want a richer driver</code></pre>
         <div class="note">the native path above is enough; this just routes clicks through a dedicated MCP server instead.</div></li>

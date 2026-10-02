@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-29",
+  "updated": "2026-10-02",
   "items": [
     {
       "id": "VANTA-STREAMING-TTS-FIRST-CLAUSE",
@@ -16375,11 +16375,11 @@
       "status": "shipped",
       "size": "M",
       "summary": "a reference agent harness ships a tool-call-repair layer that fixes malformed/partial tool calls before they fail. Vanta targets local + weaker models (Ollama, small open models) where this matters most — repair the JSON/args (coerce types, fill defaults, fix truncation) so a fumbled call retries clean instead of wasting a turn. Reliability for the real-operator bar.",
-      "done": "A representative malformed tool call from a weak/local model is repaired and executed instead of erroring; repair is logged; measured drop in tool-call failures on a local model.",
+      "done": "Representative malformed or partial JSON and text-serialized tool calls from a weak/local model are either repaired into one schema-valid call or settled as a typed failure; an unterminated tool-call opener or stray argument markup after a cut stream is never persisted or displayed as ordinary assistant prose; complete inline prose mentions remain unchanged; repair and refusal are logged without raw sensitive arguments; replay cannot duplicate an effect; and a real local-model corpus measures the change in repair success, false repair, leaked markup, and failed calls.",
       "tier": "rock",
       "lens": "agent-loop",
       "updated": "2026-06-22",
-      "notes": "providers/tool-call-repair.ts: JSON-repair ladder (fences/extract-object/loose-fix/complete-truncated) + schema coercion (string->number/bool) + default-fill. Wired into openai-convert parseToolCall (replaces {_raw} fallback) + dispatch normalizeToolCall (coerce to tool schema, log via note event). ToolCall.repaired flag.",
+      "notes": "providers/tool-call-repair.ts: JSON-repair ladder (fences/extract-object/loose-fix/complete-truncated) + schema coercion (string->number/bool) + default-fill. Wired into openai-convert parseToolCall (replaces {_raw} fallback) + dispatch normalizeToolCall (coerce to tool schema, log via note event). ToolCall.repaired flag. POST-RELEASE FIXED-POINT REFRESH 2026-09-03: current Hermes source adds a disconfirming stream-cut case where incomplete XML-style tool markup can escape into stored/displayed assistant prose; that behavior is added to this existing owner rather than a duplicate card. Comparison: docs/hermes-post-release-fixed-point-audit-2026-09-03.md.",
       "source": "vision-gap-audit-2026-06-21",
       "after": [
         "INSTALL-PARITY"
@@ -19767,7 +19767,7 @@
       "id": "DESKTOP-COLD-OPERATOR-RELEASE-PROOF",
       "track": "Operator",
       "title": "Desktop cold-operator release proof — one useful task without repo knowledge",
-      "status": "next",
+      "status": "parked",
       "size": "S",
       "summary": "Run the first zero-cost external usability proof: a voluntary non-developer completes the current packaged Desktop work loop without Vanta repository context or paid recruiting, research, CI, hosting, or participant services.",
       "done": "A voluntary, uncompensated fresh non-developer operator gives informed consent, launches the exact packaged release candidate with no Vanta repo context, identifies the model and access boundary, starts one useful task in their own words, handles one approval or recoverable failure, and finds the resulting output; the run records time to first useful result, every confusion point, assistance requested, and the fixes or explicit release waivers, then repeats after blocking fixes with no coaching beyond the in-product UI. No sensitive account data is requested, the participant may stop at any time, no new spend is incurred, and the resulting evidence is labeled as one usability run rather than representative market proof.",
@@ -19783,7 +19783,9 @@
         "DESKTOP-SEMANTIC-FOUNDATION-ACCESSIBILITY-REPAIR",
         "DESKTOP-OPERATOR-DOSSIER-HIERARCHY"
       ],
-      "notes": "NEXT 2026-08-25: owner-authorized zero-cost user testing after the executed accessibility repair and operator-hierarchy slice. Use only voluntary participation and existing owner-controlled local/open-source tooling. No paid participants, recruiters, research platforms, GitHub Actions, hosting, outreach automation, or other new service spend."
+      "notes": "PARKED 2026-09-03 at the operator's explicit request to run the unfamiliar-person test later. Re-enter only when the operator supplies a voluntary, uncompensated participant and the exact packaged candidate. Use only existing owner-controlled local/open-source tooling. No paid participants, recruiters, research platforms, GitHub Actions, hosting, outreach automation, or other new service spend.\n\nOWNER RECONCILIATION 2026-09-08: The eventual unfamiliar-person run must test the new exact packaged chat-first candidate, including conversation versus tracked-task comprehension, capability discovery, stop/re-entry, and artifact finding. Prior dossier or prototype checks cannot substitute. Participant recruitment, outreach, and execution remain deferred at Jason's direction; no paid services. Plan: docs/desktop-chat-first-revamp-plan-2026-09-08.md.",
+      "parkedReason": "external proof",
+      "updated": "2026-09-08"
     },
     {
       "id": "DESKTOP-RELEASE-CANDIDATE-PROVENANCE",
@@ -20041,10 +20043,10 @@
       "id": "BROWSER-WORKFLOW-ACTION-BOUNDARY",
       "track": "Operator",
       "title": "Browser workflow boundary — observe, extract, and act under explicit policy",
-      "status": "parked",
+      "status": "next",
       "size": "L",
-      "summary": "The transcript's browser nodes are useful only if Vanta preserves its safety model. Expose bounded Open, Observe, Extract, Act, and Agent-browser workflow steps, while making domains, budgets, credentials, approvals, and evidence explicit instead of granting a workflow a blank browser cheque.",
-      "done": "A workflow can declare browser Open, Observe, Extract, Act, and Agent-browser steps with allowed domains, action budget, credential/profile scope, and expected evidence. Observe and Extract remain read-only by default; login, submission, purchase, upload, email, and other irreversible effects route through the kernel and required approval stage. Dry run explains each planned browser effect; executed fixtures produce redacted DOM/screenshot/receipt evidence and prove blocked-domain, budget, credential, cancellation, and approved-action behavior.",
+      "summary": "Make every current and future browser action use one explicit policy boundary. Navigation and extraction are read-only capabilities; click, fill, select, submit, upload, download, dialog handling, login, and authenticated reads declare their exact account, profile, domain, target, budget, authority, and expected evidence instead of inheriting a broad browser grant.",
+      "done": "The supported TUI, Desktop, workflow, and tool-host paths route every non-read browser action through one normalized intent and the kernel before Playwright/CDP execution; approval previews bind account/profile, origin and redirect scope, action, target, content/file hash, audience or recipient, and one-use authority; allowlisted navigation cannot smuggle click/fill/submit effects; authenticated reads require explicit revocable profile authority; external effects are never automatically retried after timeout/crash and settle failed or unknown honestly; blocked-domain, redirect, popup, frame, dialog, download, upload, cancellation, restart, and provider-acknowledgement fixtures plus one real packaged authenticated journey produce redacted evidence without cookies, storage, credentials, or full sensitive bodies.",
       "tier": "rock",
       "model": "opus",
       "effort": "high",
@@ -20058,9 +20060,8 @@
         "SCHEMA-TASK-ENVIRONMENT-CONTRACT",
         "PCLIP-APPROVAL-STAGES"
       ],
-      "updated": "2026-07-30",
-      "notes": "REALIGNMENT 2026-07-30: HIDE BEHIND INTENT; external browser effects wait for TRUST-03 and TRUST-05.",
-      "parkedReason": "strategy decision"
+      "updated": "2026-10-02",
+      "notes": "PROMOTED 2026-08-29 after the full Hermes documentation audit and live Vanta source comparison found that current browser_navigate action variants and authenticated-cookie reads do not yet share the exact action/account approval contract described by this card. Fix the exposed supported boundary now; TRUST-03 remains the broader reusable capability contract and TRUST-05 remains required before unattended untrusted-content workflows. Comparison: docs/hermes-full-documentation-adoption-audit-2026-08-29.md.\n\nOWNER RECONCILIATION 2026-09-08: Move from Next to Horizon to make room for the owner-prioritized local Desktop lane. This does not relax browser policy: no new authenticated browsing or mutation ships before this card passes. Existing acceptance criteria and dependencies are unchanged. Plan: docs/desktop-chat-first-revamp-plan-2026-09-08.md.\n\nOWNER PRIORITY 2026-10-02: Return this dependency-ready card to Next after the active chat/approval slice. Owner prioritizes computer control, browsing and research for interview readiness. Prove research-to-document behavior and revocable scoped authority; repeat routine authorized actions must not ask again. Preserve fresh approvals for credentials and consequential account mutations and provide visible Stop. Native-control proof must establish OS permission and observe-act-verify, not just helper presence. No live account work or paid service is introduced.\n\nPRODUCT OUTCOME CORRECTION 2026-10-02: Owner explicitly rejected a demo-only target. Continue real Desktop/agent recovery and clear dependency-ready features only after executed acceptance. The installed chat-first replacement passed 43 fixture-provider interactions; original bundle retained for rollback. A real Codex research run then exposed a blocker: source HTTP 403 led to an explicit Blocked response, but checklist auto-continuation forced more work and an unsupported brief. That run is failure evidence, not successful research. Repairing blocked continuation and remembered Desktop/terminal permissions with red-to-green regressions; new installed-package proof remains required. No whole-card closure, release or human acceptance is inferred. Evidence and exact re-entry: docs/interview-demo-2026-10-02.md and docs/desktop-chat-workbench-2026-10-02.md in codex/desktop-chat-workbench-20261002.\n\nINSTALLED CHECKPOINT 2026-10-02: Exact /Applications/Vanta.app ASAR 0628a4d7ee3001775bdc81745be3f2e1db267b4627a58841b85d7ac65d7efdeb passed strict deep signature verification and all 46 installed-path packaged interactions, including saved named-tool approval across restart/new chat, denied persistence failure with visible error, and explicit blocked termination. Full candidate suite: 1,583 files, 14,404 passed, 3 skipped. Prior installed bundles preserved outside Git. These are fixture-provider checks, not live research/native-control acceptance. The Mac is locked; the next real UI run awaits owner unlock. Source-only control doctor wording now distinguishes helper presence from unverified permissions and actions (38 focused tests and runtime typecheck passed); unchanged installed CLI is not claimed updated. Whole-card status and full acceptance remain unchanged. Working product, not demo-only, remains the outcome.\n\nAMBIENT WORKFLOW CORRECTION 2026-10-02: Owner requests the whole invoke/context/work/decision/results/resume/background journey, not only New chat or a demo edition. White/grey is the default with Vanta violet; optional dark remains. Normal installed UI is accessible; earlier locked-Mac notes are historical. Mini and opt-in avatar open the same conversation without another agent, automatic screen/audio capture or expanded authority. Exact signed installed ASAR b77ef4a81bfc92711654b2a40eb733d2897f6d64480ff201d09cfde99e55821a passed 51 packaged fixture-provider checks, including mini/full continuity, avatar, permission visibility and shortcut regression. Full TypeScript: 1588 files, 14445 passed, 3 skipped. Real CLI public-source research produced and reread a cited brief; this is not normal Desktop native-control proof. Whole-flow, dependencies, size debt, authenticated browser and unfamiliar-person acceptance remain open. Push is now authorized; merge/release/paid workflows are not implied. Current contract and pinned Codex/Goose/Hermes/Buzz comparison: docs/desktop-ambient-workflow-2026-10-02.md."
     },
     {
       "id": "DESKTOP-OLLAMA-MINICPM-VISIBLE-RESPONSE",
@@ -20189,19 +20190,19 @@
       "status": "parked",
       "size": "M",
       "summary": "Hermes v0.19 closes a real messaging failure window: a response can finish after the model charge but disappear if the gateway dies before the platform confirms delivery. Vanta records transport receipts but does not persist a send obligation around final Telegram and other channel delivery. Add a durable outbox contract rather than retrying from transient process memory.",
-      "done": "Before sending a final gateway response, Vanta writes a mode-0600 delivery obligation keyed by profile, channel, conversation, turn, content hash, and idempotency key; a confirmed platform receipt atomically closes it; restart redelivers unresolved obligations without rerunning the model; duplicate acknowledgements and reconnect races cannot double-send; expired or permanently rejected deliveries become visible operator actions rather than silent loss; payloads and logs are redacted; and crash-before-send, crash-after-send-before-ack, retry, duplicate, multi-profile isolation, and Telegram end-to-end fixtures pass.",
+      "done": "Before sending a final gateway response, Vanta writes a mode-0600 delivery obligation keyed by profile, channel, conversation, turn, content hash, and idempotency key; a confirmed platform receipt atomically closes it; restart reconciles unresolved obligations without rerunning the model; resend is allowed only when provider idempotency or authoritative no-send evidence makes it safe, otherwise retain unknown and request human resolution; duplicate acknowledgements and reconnect races cannot double-send; expired or permanently rejected deliveries become visible operator actions rather than silent loss; payloads and logs are redacted; and crash-before-send, crash-after-send-before-ack, retry, duplicate, multi-profile isolation, and Telegram end-to-end fixtures pass. Additional acceptance from 2026-10-01 review: Represent scheduled result delivery separately from execution success, keyed by run, approved channel/account and delivery identity. Snapshot or revalidate approved routing at send time; disconnected channels become a visible pending/failed obligation rather than silent success. Test one result with multiple explicitly approved destinations, partial delivery, reconnect, uncertain send acknowledgement and restart without replaying a consequential send or inventing completion.",
       "tier": "rock",
       "model": "opus",
       "effort": "high",
       "codex": "gpt-5.6-sol",
       "lens": "reach",
       "source": "https://github.com/NousResearch/hermes-agent/releases/tag/v2026.7.20",
-      "updated": "2026-07-30",
+      "updated": "2026-10-01",
       "after": [
         "PORT-DELIVERY-REGISTRY",
         "HARNESS-EVENTS-WAIT"
       ],
-      "notes": "REALIGNMENT 2026-07-30: CONSOLIDATE into OP-04 and TRUST-04; do not create a second job or receipt truth.",
+      "notes": "REALIGNMENT 2026-07-30: CONSOLIDATE into OP-04 and TRUST-04; do not create a second job or receipt truth.\n\nUPSTREAM ADOPTION 2026-10-01: Owner Jason; planning refinement, not executed Vanta implementation. Preserve current status, dependencies, authority and zero-new-spend constraints. Source: https://github.com/vellum-ai/vellum-assistant/blob/cd99c7513bca15d3f02138e0960f3f3ed4048185/assistant/docs/architecture/scheduling.md. Mapping and sequence: docs/upstream-agent-desktop-adoption-2026-10-01.md.",
       "parkedReason": "strategy decision"
     },
     {
@@ -20673,6 +20674,73 @@
       "tier": "rock",
       "model": "opus",
       "codex": "gpt-5.6-sol",
+      "updated": "2026-10-01",
+      "source": "NousResearch/hermes-agent@562ee8ab76a703b7f524172cae0b1d52f9f94bd3",
+      "id": "LEARNING-SKILL-MEMORY-ROUTING",
+      "track": "Harness",
+      "title": "Learned-knowledge routing — task procedure belongs to skills, universal facts to memory",
+      "status": "parked",
+      "after": [
+        "VANTA-SELF-LEARNING-LOOP",
+        "MEM-RELEVANCE",
+        "CONTROL-PLANE-INSTRUCTION-WRITE-BOUNDARY"
+      ],
+      "size": "M",
+      "effort": "high",
+      "lens": "memory",
+      "summary": "Route what Vanta learns from a task—including the operator's corrections and preferences for that class of work—into an approval-gated reusable skill, while reserving durable memory for facts or preferences that genuinely apply across sessions and domains.",
+      "done": "One deterministic pre-persistence classifier receives the candidate, provenance, active task, project, referenced skill, recurrence evidence, sensitivity, and claimed scope; task procedure, tool sequence, project convention, and task-class correction become a new or revised skill proposal with a minimal diff and exact activation boundary; only explicit stable identity, global constraints, and genuinely every-session preferences may enter durable memory; ambiguous, one-off, inferred, sensitive, or stale observations remain session-local or are discarded; the same candidate cannot be written to both stores without an explicit linked rationale; approval denial changes neither store; correction-versus-global-preference, same wording across two projects, no matching skill, conflicting skill, recurrence, duplicate, secret, malformed scope, crash, restart, and rollback fixtures pass, and one real repeated task demonstrates later skill reuse without unrelated memory injection. Additional acceptance from 2026-10-01 review: Keep source, original observation date, correction lineage and user-approved scope on imported or consolidated candidates; import time must not make old facts appear freshly observed. Review distilled imports before persistence, keep large raw corpora outside always-injected memory, and retrieve only bounded relevant sections. Fixtures reject instruction injection through memory delimiters, stale imported preferences, unintended cross-project reuse and opt-out bypass; no new vector service is required by this card.",
+      "notes": "PARKED 2026-09-03 after Hermes main advanced during the fixed-point audit. Vanta already ships a post-turn skill reviewer and a durable-memory relevance classifier, but the current memory classifier broadly marks corrections and preferences durable without a task-scope versus every-session routing decision. Re-enter when a task-specific correction appears in unrelated sessions, a reusable procedure is stored only as memory, or the protected instruction-write boundary is implemented. This card does not authorize automatic skill activation or silent memory writes. Comparison: docs/hermes-post-release-fixed-point-audit-2026-09-03.md.\n\nUPSTREAM ADOPTION 2026-10-01: Owner Jason; planning refinement, not executed Vanta implementation. Preserve current status, dependencies, authority and zero-new-spend constraints. Source: https://github.com/vellum-ai/vellum-assistant/blob/cd99c7513bca15d3f02138e0960f3f3ed4048185/assistant/docs/architecture/memory.md. Mapping and sequence: docs/upstream-agent-desktop-adoption-2026-10-01.md.",
+      "parkedReason": "strategy decision"
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-terra",
+      "updated": "2026-09-03",
+      "source": "NousResearch/hermes-agent@10f2a209660a61f0a9f291ae5c4c6dedbc3f5b04",
+      "id": "DESKTOP-BROWSER-VISUAL-COMMENT-DRAFT",
+      "track": "Desktop App",
+      "title": "Browser visual comments — point at the page and keep feedback as a draft",
+      "status": "parked",
+      "after": [
+        "DESKTOP-OPERATOR-DOSSIER-HIERARCHY",
+        "HARNESS-VISUAL-VERIFY",
+        "BROWSER-WORKFLOW-ACTION-BOUNDARY"
+      ],
+      "size": "M",
+      "effort": "medium",
+      "lens": "tui",
+      "summary": "Let a Desktop operator click or drag over a visible browser preview, attach a short numbered note, and place bounded crops plus stable page context into the composer without sending a turn or granting browser-action authority.",
+      "done": "Desktop exposes a keyboard- and pointer-operable comment mode in the Vanta-owned browser preview; click or drag creates a numbered pin with editable text, URL, title, frame, viewport, scroll, scale, and crop provenance; pins can be reordered, edited, removed, cleared, and revisited without modifying the page; Add comments creates one removable composer draft with bounded sanitized crops and literal note-to-region mapping but never submits, clicks, fills, uploads, downloads, or widens browser authority; unsupported cross-origin frame, navigation, stale page, resize, zoom, high-DPI, long page, overlapping pin, empty note, capture failure, sensitive-field, keyboard-only, screen-reader, restart, and cancellation fixtures preserve or discard drafts truthfully; one signed packaged design-review journey proves the operator can identify three regions, revise one note, add the bundle, inspect it, and choose whether to send.",
+      "notes": "PARKED 2026-09-03 after the repeated current-main pass found Hermes's in-app browser comment mode was mentioned but not owned by a distinct Vanta outcome. Re-enter after two observed design or browser-review tasks require prose-only spatial descriptions, or when the browser action boundary is implemented and the Desktop dossier resumes. This is a prepare-only context workflow, not authorization to mutate a page. Comparison: docs/hermes-post-release-fixed-point-audit-2026-09-03.md.",
+      "parkedReason": "optional proof"
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-09-03",
+      "source": "NousResearch/hermes-agent@f6234d00c5d59450adea1d7edd30ad3859375c79",
+      "id": "REPOSITORY-GIT-PROBE-EXECUTION-ISOLATION",
+      "track": "Harness",
+      "title": "Repository Git probe isolation — project configuration cannot execute host commands",
+      "status": "next",
+      "after": [
+        "TRUST-01",
+        "TRUST-02"
+      ],
+      "size": "M",
+      "effort": "high",
+      "lens": "infra",
+      "summary": "Prevent a repository delivered with hostile Git configuration or attributes from executing host commands when Vanta automatically gathers status, diffs, history, worktree, goal, or review context before an approval prompt.",
+      "done": "One canonical Git process boundary covers every automatic and model-controlled Git call in CLI, TUI, Desktop, context references, status rails, reviews, goals, worktrees, self-repair, and repository helpers; automatic probes ignore global and system configuration, pin repository execution sinks such as fsmonitor, hooksPath, pager, editor, credential helpers, and SSH commands to inert values, remain noninteractive, and apply both --no-ext-diff and --no-textconv to diff-rendering commands; write and network operations disclose any separately required hook, credential, or transport authority instead of inheriting it silently; a real repository fixture armed through .git/config and .gitattributes proves status, diff, show, log, blame, branch, worktree, commit, checkout, and push preparation create no marker, prompt, credential read, or host process before exact approval, while ordinary repositories and explicitly authorized safe authentication still work.",
+      "notes": "NEXT 2026-09-03 after the fixed-point audit inspected Vanta's current runGit and related execFile call sites and found no GIT_CONFIG hardening or diff-driver suppression. This is a confirmed pre-approval host-command-execution class, not evidence that a Vanta user was exploited. Implement before opening untrusted repositories. Comparison: docs/hermes-post-release-fixed-point-audit-2026-09-03.md."
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
       "updated": "2026-08-02",
       "source": "vanta-total-realignment-correction-2026-07-30",
       "id": "TRUST-02",
@@ -20807,23 +20875,23 @@
     },
     {
       "id": "DESKTOP-OPERATOR-DOSSIER-HIERARCHY",
-      "track": "Desktop App",
-      "title": "Desktop operator dossier — outcome-first shell and progressive runtime disclosure",
-      "status": "next",
-      "size": "M",
-      "summary": "Recompose the existing Vanta Desktop capabilities into a quiet operator dossier: chat is home, the current outcome and next decision dominate, durable work has stable destinations, and model/runtime detail stays available without competing with the task.",
-      "done": "A first-time operator can identify the current outcome, next action, approval state, active model/access boundary, queued work, and finished artifact without repository knowledge; the primary rail contains only stable destinations; task history and transient activity are separated; runtime telemetry is one compact disclosure; the model picker remains a compact provider-scoped control; command/control overlays never steal focus from background work; Cmd/Ctrl+L focuses the composer; direct manipulation paints immediately and rolls back truthfully on persistence failure; and current Work, Today, Connect, Scheduled, approval, error, empty, reconnecting, degraded, and stale states pass packaged interaction, keyboard, narrow-window, and screenshot proof.",
+      "track": "Operator",
+      "title": "Desktop ambient workflow — one agent across chat, mini, work and results",
+      "status": "building",
+      "size": "L",
+      "summary": "Streamline the existing Vanta Desktop into one everyday workflow: invoke, give context, work, intervene, inspect results and resume or schedule. Keep the generalist engine, capabilities and revocable authority. White/grey with Vanta violet; optional mini/avatar opens the same workspace, not another agent.",
+      "done": "The existing packaged Vanta app opens New chat without an outcome form, project, repository, or WorkItem prerequisite; only explicit tracked work creates a task. Chat titles, search, rename, pin, archive/restore, hover/focus previews with project and activity context, keyboard/touch quick actions, and dismissible menus work without accidentally opening a chat. Each conversation preserves its draft, attachments, visible editable queue, unread marker, scroll anchor, model settings, and original runtime identity through switching and restart. One real Vanta conversation sends, streams, stops, switches, and resumes without a second session store or duplicate execution; ordinary chat has no mandatory outcome/approval panel. The composer exposes provider-supported model, effort, speed, attachments, and current permission scope without implying new authority. Files, Browser, Review, and Activity are contextual side panels with safe previews and no focus theft. White and grey with restrained Vanta violet use semantic theme tokens; optional dark preserves an explicit preference with keyboard, screen-reader, high-contrast, reduced-motion, zoom, and narrow-window proof. A before/after capability matrix retains every existing supported Desktop capability or records explicit owner-approved deferral; shipped historical evidence is unchanged. Failure, offline, approval denial, queue replay, reconnect, persistence rollback, and packaged regression gates pass on the exact candidate. Unfamiliar-person comprehension and cold-operator acceptance remain explicit deferred gates, never inferred from the prototype or earlier dossier tests. Additional acceptance from 2026-10-01 review: Integrate and test the existing conversation-first Desktop work rather than replace Vanta with another product shell. Keep New chat, searchable history, optional projects, compact provider-supported model settings, visible queued messages, stop, draft recovery and contextual evidence in the main flow. Use source-grounded reconnect and queue patterns, with memory details and privacy controls progressively disclosed; retained proof must identify the exact packaged build and installed-launcher path, not only a synthetic-provider screenshot. Additional whole-flow acceptance: mini/full/avatar preserve live session identity, draft, attachments, queue, progress, visible permission scope, approval and Stop. Hide/show never duplicates execution or impersonates cancellation. Connections, Today, Schedules, Outputs and Settings return to the originating conversation. Avatar visibility is optional, hideable and never grants screen/audio access. A normal installed public-research-to-document path and bounded native observe/approved-action/readback/interruption execute with retained evidence.",
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.6-terra",
       "lens": "tui",
-      "updated": "2026-08-25",
+      "updated": "2026-10-02",
       "source": "docs/hermes-desktop-gap-closure-plan-2026-08-25.md; https://github.com/NousResearch/hermes-agent/blob/1bbb6e5bce56e721ab685af4cd87df21bbff4d35/apps/desktop/DESIGN.md",
       "after": [
         "DESKTOP-SEMANTIC-FOUNDATION-ACCESSIBILITY-REPAIR"
       ],
-      "notes": "IMPLEMENTED, NOT SHIPPED 2026-08-26. Source and signed packaged proofs passed the outcome/next dossier, progressive runtime disclosure, queue recovery, keyboard focus, model/runtime clarity, responsive layout, visual baseline, and automated accessibility paths. The required first-use comprehension run with a person unfamiliar with Vanta was not executed, so the card remains Next and has no checkpoint tag. Adopted patterns were reimplemented from contracts only; no Hermes source or visual identity entered Vanta. Evidence: docs/desktop-operator-dossier-audit-2026-08-26.md."
+      "notes": "IMPLEMENTED, NOT SHIPPED. Source and signed packaged proofs passed the outcome/next dossier, progressive runtime disclosure, queue recovery, keyboard focus, model/runtime clarity, responsive layout, visual baseline, and automated accessibility paths. PARKED 2026-09-03 because the operator explicitly deferred the remaining first-use comprehension run with a person unfamiliar with Vanta; re-enter with that voluntary participant and the exact packaged candidate. No checkpoint tag exists. Adopted patterns were reimplemented from contracts only; no Hermes source or visual identity entered Vanta. Evidence: docs/desktop-operator-dossier-audit-2026-08-26.md.\n\nOWNER RECONCILIATION 2026-09-08: Jason selected in-place Vanta Desktop improvement, Codex-like visual and interaction conventions, Vanta colors, and retention of the existing generalist capability floor. This supersedes the outcome-first exposure requirement, not the agent or trust contract. The prior dossier source/packaged evidence remains historical and does not prove this new contract. Next means planned, not Building or shipped. No wholesale Hermes shell fork or Codex engine migration is selected. Human proof remains deferred. Plan: docs/desktop-chat-first-revamp-plan-2026-09-08.md.\n\nUPSTREAM ADOPTION 2026-10-01: Owner Jason; planning refinement, not executed Vanta implementation. Preserve current status, dependencies, authority and zero-new-spend constraints. Source: https://github.com/NousResearch/hermes-agent/blob/040b6df2c40b0f4f88f51e4c2062eafc4d7463c5/apps/desktop/src/store/composer-queue.ts ; https://github.com/vellum-ai/vellum-assistant/blob/cd99c7513bca15d3f02138e0960f3f3ed4048185/clients/web/src/domains/chat/inspector/components/tabs/memory-tab.tsx. Mapping and sequence: docs/upstream-agent-desktop-adoption-2026-10-01.md.\n\nEXECUTION 2026-10-02: Owner reaffirmed the supplied Codex screenshot as the structural target, using Vanta colors. Building on isolated branch codex/desktop-chat-workbench-20261002; chat-first work and approval persistence are combined locally. Added document tabs, bounded read-only Markdown/source previews, resizable workbench, and grouping of recorded project associations. Focused Desktop/runtime tests passed; exact-candidate packaged proof is being retained in docs/desktop-chat-workbench-2026-10-02.md in that worktree. NOT SHIPPED: embedded browser, complete project identity/switching, native assistive proof, dependency integration, installed-launcher and unfamiliar-person acceptance remain outstanding. No installation, publication or paid workflows.\n\nOWNER PRIORITY 2026-10-02: Product-design interview readiness; interview date is not scheduled. Prioritize normal chat, remembered explicit permissions, research with readable documents, then bounded native app control with progress and Stop. Active branch codex/desktop-chat-workbench-20261002; evidence docs/desktop-chat-workbench-2026-10-02.md in that worktree. Installed helpers and synthetic calls do not prove actual computer control. No card completion, installation, paid workflows, publication or live-account mutation is implied.\n\nPRODUCT OUTCOME CORRECTION 2026-10-02: Owner explicitly rejected a demo-only target. Continue real Desktop/agent recovery and clear dependency-ready features only after executed acceptance. The installed chat-first replacement passed 43 fixture-provider interactions; original bundle retained for rollback. A real Codex research run then exposed a blocker: source HTTP 403 led to an explicit Blocked response, but checklist auto-continuation forced more work and an unsupported brief. That run is failure evidence, not successful research. Repairing blocked continuation and remembered Desktop/terminal permissions with red-to-green regressions; new installed-package proof remains required. No whole-card closure, release or human acceptance is inferred. Evidence and exact re-entry: docs/interview-demo-2026-10-02.md and docs/desktop-chat-workbench-2026-10-02.md in codex/desktop-chat-workbench-20261002.\n\nINSTALLED CHECKPOINT 2026-10-02: Exact /Applications/Vanta.app ASAR 0628a4d7ee3001775bdc81745be3f2e1db267b4627a58841b85d7ac65d7efdeb passed strict deep signature verification and all 46 installed-path packaged interactions, including saved named-tool approval across restart/new chat, denied persistence failure with visible error, and explicit blocked termination. Full candidate suite: 1,583 files, 14,404 passed, 3 skipped. Prior installed bundles preserved outside Git. These are fixture-provider checks, not live research/native-control acceptance. The Mac is locked; the next real UI run awaits owner unlock. Source-only control doctor wording now distinguishes helper presence from unverified permissions and actions (38 focused tests and runtime typecheck passed); unchanged installed CLI is not claimed updated. Whole-card status and full acceptance remain unchanged. Working product, not demo-only, remains the outcome.\n\nAMBIENT WORKFLOW CORRECTION 2026-10-02: Owner requests the whole invoke/context/work/decision/results/resume/background journey, not only New chat or a demo edition. White/grey is the default with Vanta violet; optional dark remains. Normal installed UI is accessible; earlier locked-Mac notes are historical. Mini and opt-in avatar open the same conversation without another agent, automatic screen/audio capture or expanded authority. Exact signed installed ASAR b77ef4a81bfc92711654b2a40eb733d2897f6d64480ff201d09cfde99e55821a passed 51 packaged fixture-provider checks, including mini/full continuity, avatar, permission visibility and shortcut regression. Full TypeScript: 1588 files, 14445 passed, 3 skipped. Real CLI public-source research produced and reread a cited brief; this is not normal Desktop native-control proof. Whole-flow, dependencies, size debt, authenticated browser and unfamiliar-person acceptance remain open. Push is now authorized; merge/release/paid workflows are not implied. Current contract and pinned Codex/Goose/Hermes/Buzz comparison: docs/desktop-ambient-workflow-2026-10-02.md."
     },
     {
       "id": "CAPABILITY-GROUNDED-SYSTEM-PROMPT",
@@ -20852,19 +20920,19 @@
       "status": "parked",
       "size": "M",
       "summary": "Give model calls, tools, MCP operations, subprocesses, and scheduled work one composable deadline and cancellation contract, including deterministic handling for empty provider responses.",
-      "done": "Every in-scope operation accepts a propagated deadline and AbortSignal; timeout terminates the owned process tree, preserves external-effect uncertainty, closes resources, and emits one typed failure receipt; consequential effects are not retried automatically; an empty or whitespace-only provider response becomes a deterministic typed failure or explicit intentional-silence result, never a successful blank turn; and timeout, reset, child-grandchild, late-event, shutdown, and restart fixtures leave no orphan process, duplicate effect, or missing terminal state.",
+      "done": "Every in-scope operation accepts a propagated deadline and AbortSignal; timeout terminates the owned process tree, preserves external-effect uncertainty, closes resources, and emits one typed failure receipt; subprocess completion records exit code, terminating signal, timeout/cancel origin, stderr availability, and whether descendants were confirmed gone instead of collapsing signal death into generic failure; slow context-file reads and preprocessing remain inside the same wall-clock deadline instead of blocking before a model call; consequential effects are not retried automatically; an empty or whitespace-only provider response becomes a deterministic typed failure or explicit intentional-silence result regardless of whether usage metadata is present, every completed provider call remains observable when usage is absent, and repeated empty recovery is strictly bounded rather than a successful blank turn; and timeout, reset, child-grandchild, late-event, shutdown, blocked-event-loop, slow-file, usage-less-empty, and restart fixtures leave no orphan process, duplicate effect, poisoned backend reuse, or missing terminal state. Additional acceptance from 2026-10-01 review: A scheduled invocation establishes its run ID before asynchronous setup, propagates one remaining wall-clock budget to its owned continuations, background commands and child runs, waits for their terminal settlement, and cancels only that run's work; late wakes cannot revive a terminal run. After a timed-out stateful backend, reuse requires a successful health check or fresh instance. Tests distinguish idle, first-token, absolute deadline, late completion and provider-confirmed effects.",
       "tier": "rock",
       "model": "opus",
       "effort": "high",
       "codex": "gpt-5.6-sol",
       "lens": "agent-loop",
-      "updated": "2026-08-25",
+      "updated": "2026-10-01",
       "source": "https://github.com/NousResearch/hermes-agent/tree/1bbb6e5bce56e721ab685af4cd87df21bbff4d35",
       "after": [
         "TRUST-04",
         "RELIABILITY-PROVIDER-HARDENING"
       ],
-      "notes": "CURRENT HERMES REFRESH 2026-08-29: Hermes added a shared wall-clock deadline that remains effective when an event loop is blocked, marks timed-out stateful backends suspect, separates turn-hold expiry from idle timeout, and tree-kills owned descendants. These strengthen this existing card rather than creating a duplicate. It remains parked while the two-card zero-cost beta queue runs; re-enter on any hang, orphan-process, blank-turn, poisoned-backend reuse, or ambiguous-timeout regression. Comparison: docs/hermes-current-delta-audit-2026-08-29.md.",
+      "notes": "CURRENT HERMES DOCS REFRESH 2026-08-29: the full documentation corpus reinforces a shared wall-clock deadline that remains effective when an event loop is blocked, marks timed-out stateful backends suspect, separates turn-hold expiry from idle timeout, preserves signal/exit diagnostics, and tree-kills owned descendants. POST-RELEASE FIXED-POINT REFRESH 2026-09-03: current Hermes work also demonstrates that context-file reads must remain inside the turn deadline; that requirement is folded into this owner rather than duplicated. Re-enter on any hang, orphan-process, blank-turn, poisoned-backend reuse, signal-death misreport, slow context read outside the deadline, or ambiguous-timeout regression. Comparisons: docs/hermes-current-delta-audit-2026-08-29.md, docs/hermes-full-documentation-adoption-audit-2026-08-29.md, and docs/hermes-post-release-fixed-point-audit-2026-09-03.md.\n\nUPSTREAM ADOPTION 2026-10-01: Owner Jason; planning refinement, not executed Vanta implementation. Preserve current status, dependencies, authority and zero-new-spend constraints. Source: https://github.com/NousResearch/hermes-agent/blob/040b6df2c40b0f4f88f51e4c2062eafc4d7463c5/agent/deadline.py ; https://github.com/vellum-ai/vellum-assistant/blob/cd99c7513bca15d3f02138e0960f3f3ed4048185/assistant/src/schedule/scheduler.ts. Mapping and sequence: docs/upstream-agent-desktop-adoption-2026-10-01.md.",
       "parkedReason": "strategy decision"
     },
     {
@@ -20874,19 +20942,19 @@
       "status": "parked",
       "size": "M",
       "summary": "Extend Vanta's shipped compaction and session-memory stack with an optional required durable checkpoint for active goals, approvals, unresolved effects, files, and exact re-entry state before destructive context reduction.",
-      "done": "When the active task crosses the configured consequence or continuity threshold, compaction cannot begin until a versioned checkpoint persists the active goal, current step, open WorkItems, approvals, unknown effects, file and artifact references, authoritative decisions, next action, and resume cursor; checkpoint failure preserves the original context and reports the blocker; restart and repeated compaction recover the same obligations without duplication; low-consequence chat remains lightweight; and adversarial fixtures prove summaries cannot overwrite stronger durable state.",
+      "done": "When the active task crosses the configured consequence or continuity threshold, compaction cannot begin until a versioned checkpoint persists the active goal, current step, open WorkItems, approvals, unknown effects, file and artifact references, authoritative decisions, next action, and resume cursor; checkpoint failure preserves the original context and reports the blocker; restart and repeated compaction recover the same obligations without duplication; low-consequence chat remains lightweight; and adversarial fixtures prove summaries cannot overwrite stronger durable state. Additional acceptance from 2026-10-01 review: Preserve a bounded anchor for the most recently delivered assistant reply when the next user message refers to it; maintain valid role ordering and tool-call/result pairing, reject duplicate call IDs, and fall back to the durable checkpoint when an anchor cannot fit. Test short follow-up references, tool-heavy replies, repeated compaction, and no-shrink cases without retaining the whole transcript.",
       "tier": "rock",
       "model": "opus",
       "effort": "high",
       "codex": "gpt-5.6-sol",
       "lens": "memory",
-      "updated": "2026-08-25",
+      "updated": "2026-10-01",
       "source": "https://github.com/NousResearch/hermes-agent/tree/1bbb6e5bce56e721ab685af4cd87df21bbff4d35",
       "after": [
         "OP-01",
         "HERMES-DELTA-COMPACTION-REAL-HEADROOM"
       ],
-      "notes": "CURRENT HERMES REFRESH 2026-08-29: provider-reported usage anchors, byte-measured 413 recovery, compaction-boundary schema refresh, summary-route pinning, image aging, and cross-session/race guards strengthen this existing checkpoint contract. It remains parked until operator testing identifies a real continuity failure or the active queue drains. Comparison: docs/hermes-current-delta-audit-2026-08-29.md.",
+      "notes": "CURRENT HERMES REFRESH 2026-08-29: provider-reported usage anchors, byte-measured 413 recovery, compaction-boundary schema refresh, summary-route pinning, image aging, and cross-session/race guards strengthen this existing checkpoint contract. It remains parked until operator testing identifies a real continuity failure or the active queue drains. Comparison: docs/hermes-current-delta-audit-2026-08-29.md.\n\nUPSTREAM ADOPTION 2026-10-01: Owner Jason; planning refinement, not executed Vanta implementation. Preserve current status, dependencies, authority and zero-new-spend constraints. Source: https://github.com/NousResearch/hermes-agent/blob/040b6df2c40b0f4f88f51e4c2062eafc4d7463c5/agent/conversation_compression_reply_anchor.py. Mapping and sequence: docs/upstream-agent-desktop-adoption-2026-10-01.md.",
       "parkedReason": "strategy decision"
     },
     {
@@ -20940,19 +21008,19 @@
       "status": "parked",
       "size": "L",
       "summary": "Make the Desktop's machine boundary and workspace model explicit: validate local runtime candidates, connect to an existing authorized runtime when chosen, preserve distinct connection states, and let a project own its working directory, repositories, worktrees, and sessions.",
-      "done": "First launch distinguishes install local, connect existing, connecting, healthy, degraded, offline, auth expired, repair, and boot failure; candidate resolution health-checks the executable and API plus streaming leg; switching an authorized connection re-homes gateway-bound stores without remounting the shell or stealing focus; background sessions continue under their original connection identity; each project owns one canonical cwd and may reference multiple repositories, worktrees, and sessions without a conflicting per-session folder picker; profile deletion and rename preserve routing truth; and fresh install, invalid binary, port collision, reconnect, project switch, restart, and stale-profile packaged fixtures pass.",
+      "done": "First launch distinguishes install local, connect existing, connecting, healthy, degraded, offline, auth expired, repair, and boot failure; candidate resolution health-checks the executable and API plus streaming leg; every local or remote connection has a visible owner, transport, endpoint class, authorization state, capability set, last health result, and removal path; switching an authorized connection re-homes gateway-bound stores without remounting the shell or stealing focus; background sessions continue under their original connection identity and side-by-side streams never cross caches or credentials; each project owns one canonical cwd and may reference multiple repositories, worktrees, and sessions without a conflicting per-session folder picker; profile deletion and rename preserve routing truth; and fresh install, invalid binary, port collision, reconnect, project switch, concurrent connections, restart, resume, and stale-profile packaged fixtures pass. Additional acceptance from 2026-10-01 review: Use one in-flight reconnect attempt per connection owner, distinguish user retry from expected runtime restart, probe health before replay and retain the visible offline reason. Offline approval controls offer reconnect without manufacturing or replaying approval. Packaged tests cover repeated clicks, failed health checks, changing connection during reconnect and recovery without stealing composer focus.",
       "tier": "rock",
       "model": "opus",
       "effort": "high",
       "codex": "gpt-5.6-sol",
       "lens": "infra",
-      "updated": "2026-08-25",
+      "updated": "2026-10-01",
       "source": "https://github.com/NousResearch/hermes-agent/tree/1bbb6e5bce56e721ab685af4cd87df21bbff4d35/apps/desktop",
       "after": [
         "DESKTOP-OPERATOR-DOSSIER-HIERARCHY",
         "MANAGED-RUNTIME-INSTALLER"
       ],
-      "notes": "CURRENT HERMES REFRESH 2026-08-29: preserve malformed connection entries visibly, bind every transcript/cache/route to connection ownership, keep unproven warm transcripts off screen, fail closed on stale profiles, and revalidate after resume or power changes. These strengthen this existing card rather than authorizing Hermes-style remote fleet or cloud hosting. It remains parked until the zero-cost cold-operator proof establishes whether connection or workspace confusion is a real adoption blocker. Comparison: docs/hermes-current-delta-audit-2026-08-29.md.",
+      "notes": "CURRENT HERMES DOCS REFRESH 2026-08-29: preserve malformed connection entries visibly, bind every transcript/cache/route to connection ownership, keep unproven warm transcripts off screen, fail closed on stale profiles, revalidate after resume or power changes, and make simultaneous connection identity legible. These strengthen this existing card rather than authorizing Hermes-style remote fleet or cloud hosting. It remains parked until the zero-cost cold-operator proof establishes whether connection or workspace confusion is a real adoption blocker. Comparisons: docs/hermes-current-delta-audit-2026-08-29.md and docs/hermes-full-documentation-adoption-audit-2026-08-29.md.\n\nOWNER RECONCILIATION 2026-09-08: Projects remain optional organizational contexts. A standalone chat must not require a cwd; filesystem actions request an explicit native folder/file selection only when needed. Keep existing Vanta runtime/auth/transport contracts. Do not import a Hermes bootstrapper, remote fleet, or new engine. Existing connections and background runs retain their owner through soft workspace switches. This deeper lifecycle card remains parked; safe existing-path UI improvements belong to the active Desktop card. Plan: docs/desktop-chat-first-revamp-plan-2026-09-08.md.\n\nUPSTREAM ADOPTION 2026-10-01: Owner Jason; planning refinement, not executed Vanta implementation. Preserve current status, dependencies, authority and zero-new-spend constraints. Source: https://github.com/NousResearch/hermes-agent/blob/040b6df2c40b0f4f88f51e4c2062eafc4d7463c5/apps/desktop/src/store/gateway-reconnect.ts. Mapping and sequence: docs/upstream-agent-desktop-adoption-2026-10-01.md.",
       "parkedReason": "strategy decision"
     },
     {
@@ -20962,18 +21030,18 @@
       "status": "parked",
       "size": "M",
       "summary": "Complete the small native behaviors that make a long-lived Desktop trustworthy: native find in transcript, durable window and zoom state, secure OAuth/token storage, crash forensics, power-aware background work, and truthful update readiness without adding a release service.",
-      "done": "Native find searches the active transcript with keyboard navigation and no focus trap; window bounds, pane layout, and zoom restore safely across display changes; OAuth tokens remain in OS-backed secure storage and never renderer storage or logs; abnormal exits produce redacted crash evidence and a recovery choice; sleep/wake and power-save transitions preserve or pause sessions without duplicate work; update UI claims only locally verified availability and never downloads or installs without explicit authority; and packaged restart, crash, multi-display, zoom, auth-expiry, sleep/wake, and offline fixtures pass.",
+      "done": "Native find searches the active transcript with keyboard navigation and no focus trap; window bounds, pane layout, and zoom restore safely across display changes; OAuth uses the system browser with PKCE/state/nonce and an RFC 8252 loopback or explicit remote handoff, never an embedded credential webview; tokens remain in OS-backed secure storage and never renderer storage, process arguments, shell history, URLs, or logs; callback mismatch, expiry, denial, locked keychain, and unsupported-flow recovery are visible; abnormal exits produce redacted crash evidence and a recovery choice; sleep/wake and power-save transitions preserve or pause sessions without duplicate work; signed packaged builds retain one stable application identity so previously granted macOS TCC permissions survive an authorized update, while identity or entitlement drift is detected before replacement; an authorized update downloads into an isolated stage, verifies provenance, checksum, signature, application identity, entitlements, and rollback compatibility before an atomic swap, retains one recoverable prior version, and restores it after interrupted replacement or failed relaunch; update UI claims only locally verified availability and never downloads or installs without explicit authority; and packaged restart, crash, multi-display, zoom, OAuth, auth-expiry, permission-upgrade, signing-drift, staged-update, interrupted-swap, failed-relaunch, rollback, sleep/wake, and offline fixtures pass. Additional acceptance from 2026-10-01 review: Persist queued message identity, safe display text, attachment references and drain failure count across restart; do not silently substitute display text for a missing executable attachment or frozen terminal payload. Missing restored payloads remain editable blocked drafts. Test sleep/crash during queue drain, repeated startup, attachment removal, actor/session changes and uncertain send settlement without duplicate dispatch.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.6-terra",
       "lens": "tui",
-      "updated": "2026-08-25",
+      "updated": "2026-10-02",
       "source": "https://github.com/NousResearch/hermes-agent/tree/1bbb6e5bce56e721ab685af4cd87df21bbff4d35/apps/desktop",
       "after": [
         "DESKTOP-OPERATOR-DOSSIER-HIERARCHY"
       ],
-      "notes": "CURRENT HERMES REFRESH 2026-08-29: failure-atomic saves, one persistence owner for streamed text, bounded transcript caches, secure-store policy, backend release gates, update recovery, and sleep/wake revalidation strengthen this existing shell contract. It remains parked product hardening. No updater service, remote manager, release, notarization, or publication work is authorized. Comparison: docs/hermes-current-delta-audit-2026-08-29.md.",
+      "notes": "CURRENT HERMES RELEASE REFRESH 2026-09-03: failure-atomic saves, one persistence owner for streamed text, bounded transcript caches, system-browser OAuth, secure-store policy, stable macOS signing/TCC identity, backend release gates, update stage-and-swap recovery, and sleep/wake revalidation strengthen this existing shell contract. It remains parked product hardening. No updater service, remote manager, release, notarization, or publication work is authorized. Comparisons: docs/hermes-current-delta-audit-2026-08-29.md, docs/hermes-full-documentation-adoption-audit-2026-08-29.md, docs/hermes-release-history-adoption-audit-2026-09-03.md, and docs/hermes-post-release-fixed-point-audit-2026-09-03.md.\n\nOWNER RECONCILIATION 2026-09-08: Retain the existing Electron app and native bridge, stable application identity, OS credential storage, and security boundaries. Reuse native dialogs, editable-context menus, focus handling, find, window/zoom persistence, and recovery patterns where compatible; source reuse needs a pinned license/NOTICE/dependency record. Native release/update work stays parked and separately authorized. Plan: docs/desktop-chat-first-revamp-plan-2026-09-08.md.\n\nUPSTREAM ADOPTION 2026-10-01: Owner Jason; planning refinement, not executed Vanta implementation. Preserve current status, dependencies, authority and zero-new-spend constraints. Source: https://github.com/NousResearch/hermes-agent/blob/040b6df2c40b0f4f88f51e4c2062eafc4d7463c5/apps/desktop/src/store/composer-queue.ts. Mapping and sequence: docs/upstream-agent-desktop-adoption-2026-10-01.md.\n\nLOCAL UPDATE SUBSET 2026-10-02: Owner-authorized desktop:rebuild now typechecks, packages, signs, tests the exact candidate and replaces the stopped installed app with a verified hash and recoverable prior bundle. This is a local builder/installer, not a release/update service or proof of every signing/TCC, sleep/wake, crash or multi-display criterion above. Full native resilience remains parked. Evidence: docs/desktop-ambient-workflow-2026-10-02.md.",
       "parkedReason": "optional proof"
     },
     {
@@ -20985,16 +21053,17 @@
       "id": "GROW-01",
       "track": "Solutioning",
       "title": "Phase-0 trusted-continuity evidence lane — voluntary interviews, pilots, burden, and retention",
-      "status": "horizon",
+      "status": "parked",
       "size": "S",
       "effort": "medium",
       "lens": "reach",
       "summary": "After the first cold-operator proof, test the same capture → recommend/prepare/act → wait/resume → verify/close contract across bounded life-and-work tasks using voluntary, zero-cost interviews and pilots.",
       "done": "Ten voluntary functional-problem interviews and five voluntary, accessibly supported continuity pilots include neurodivergent/disabled lived experience and situational burden without diagnosis gating; assisted/unassisted use, task domains, acquisition source, weeks-three/four repeat loops, burden change, verified outcomes, founder support minutes, incidents, non-return reasons, and the selection and representativeness limits of an uncompensated cohort are recorded; unknowns remain unproven; a precommitted continue/change/park date and zero-expense ceiling are recorded; fixtures cannot close the card.",
-      "notes": "HORIZON 2026-08-18: zero-cost manual evidence lane after DESKTOP-COLD-OPERATOR-RELEASE-PROOF. It consumes no development WIP and authorizes no participant payment, paid recruiting, paid research platform, mass outreach, enrichment, CRM, billing, community, analytics, hosting, CI spend, or source implementation.",
+      "notes": "PARKED 2026-09-03 at the operator's request while product hardening continues. This remains a zero-cost manual evidence lane after DESKTOP-COLD-OPERATOR-RELEASE-PROOF; it consumes no development WIP and authorizes no participant payment, paid recruiting, paid research platform, mass outreach, enrichment, CRM, billing, community, analytics, hosting, CI spend, or source implementation.",
       "after": [
         "DESKTOP-COLD-OPERATOR-RELEASE-PROOF"
-      ]
+      ],
+      "parkedReason": "strategy decision"
     },
     {
       "tier": "rock",
@@ -21064,7 +21133,7 @@
       "tier": "rock",
       "model": "opus",
       "codex": "gpt-5.6-sol",
-      "updated": "2026-07-30",
+      "updated": "2026-10-01",
       "source": "vanta-total-realignment-correction-2026-07-30",
       "id": "OP-03",
       "track": "Operator",
@@ -21078,14 +21147,14 @@
       "effort": "high",
       "lens": "selfhood",
       "summary": "Make the attention contract trustworthy: ordinary conversation creates nothing; only a deterministic blocker with one exact decision or authorization may set WorkItem state to needs human.",
-      "done": "Ordinary questions, greetings, status commands, read-only success, and model uncertainty create zero Needs You items; a blocked effect creates one item keyed by WorkItem, exact action, and blocker; it preserves the smallest resolution, source, expiry, and receipt; repeated failures merge into a timeline; setup, approval, replacement, success, stop, or expiry resolves it; actionable quality is at least 95% and duplicates below 1% in executed journeys.",
-      "notes": "Attention is an explicit lifecycle contract, not model-generated urgency."
+      "done": "Ordinary questions, greetings, status commands, read-only success, and model uncertainty create zero Needs You items; a blocked effect creates one item keyed by WorkItem, exact action, and blocker; it preserves the smallest resolution, source, expiry, and receipt; repeated failures merge into a timeline; setup, approval, replacement, success, stop, or expiry resolves it; actionable quality is at least 95% and duplicates below 1% in executed journeys. Additional acceptance from 2026-10-01 review: Keep deterministic quiet hours, interruption budgets, refusal scope, deduplication and expiry ahead of any model recommendation about notification timing or channel. A model timeout uses a conservative deterministic fallback, never an urgency escalation; cross-channel suppression prevents resurfacing a refused suggestion elsewhere. Show why attention is needed and the smallest resolution; test noisy repeated signals, model denial/timeout, revoked channel, stale blockers and resolution during delivery.",
+      "notes": "Attention is an explicit lifecycle contract, not model-generated urgency.\n\nUPSTREAM ADOPTION 2026-10-01: Owner Jason; planning refinement, not executed Vanta implementation. Preserve current status, dependencies, authority and zero-new-spend constraints. Source: https://github.com/vellum-ai/vellum-assistant/blob/cd99c7513bca15d3f02138e0960f3f3ed4048185/assistant/src/notifications/decision-engine.ts. Mapping and sequence: docs/upstream-agent-desktop-adoption-2026-10-01.md."
     },
     {
       "tier": "rock",
       "model": "opus",
       "codex": "gpt-5.6-sol",
-      "updated": "2026-07-30",
+      "updated": "2026-10-01",
       "source": "vanta-total-realignment-correction-2026-07-30",
       "id": "UX-04",
       "track": "Operator",
@@ -21100,20 +21169,413 @@
       "effort": "high",
       "lens": "tui",
       "summary": "One contextual Review surface renders Activity, Changes, Outputs, Evidence/Approvals, and durable background-session state; the supported launch path and generated artifacts satisfy the disability-led universal-design contract.",
-      "done": "The supported launch path reaches one persisted/resumable useful local outcome within ten minutes without Gmail/Calendar or diagnosis disclosure. Keyboard, focus including Cmd/Ctrl+L composer focus, screen reader, high contrast, common color-vision deficiencies, non-color meaning, reduced motion, density, notifications, optional streaming/auto-scroll, sound, stable layout, preserved reading position, summary-first detail, literal state, and narrow resize pass on the active build. Background events update unread, progress, and settlement state without navigating or stealing focus; session switch and restart preserve unread boundaries, queues, drafts, scroll anchors, and exact resume; optimistic direct manipulation rolls back visibly on persistence failure. Concrete aphantasia-safe previews and accessible charts/media pass. Support reason/scope/lifetime/reset/dismissal, multidimensional capacity including unknown, quiet hours, interruption budgets, and exact resume are consistent across Desktop, TUI, messaging, background, restart, and safe mode.",
-      "updated": "2026-08-25",
-      "notes": "Accessibility and contextual review are cross-host product contracts. The 2026-08-25 Hermes Desktop comparison adds non-focus-stealing background continuity, durable unread state, direct-manipulation rollback, and global composer focus without creating a second session truth."
+      "done": "The supported launch path reaches one persisted/resumable useful local outcome within ten minutes without Gmail/Calendar or diagnosis disclosure. Keyboard, focus including Cmd/Ctrl+L composer focus, screen reader, high contrast, common color-vision deficiencies, non-color meaning, reduced motion, density, notifications, optional streaming/auto-scroll, sound, stable layout, preserved reading position, summary-first detail, literal state, and narrow resize pass on the active build. Background events update unread, progress, and settlement state without navigating or stealing focus; session switch and restart preserve unread boundaries, queues, drafts, scroll anchors, and exact resume; optimistic direct manipulation rolls back visibly on persistence failure. Concrete aphantasia-safe previews and accessible charts/media pass. Support reason/scope/lifetime/reset/dismissal, multidimensional capacity including unknown, quiet hours, interruption budgets, and exact resume are consistent across Desktop, TUI, messaging, background, restart, and safe mode. Additional acceptance from 2026-10-01 review: The contextual memory inspector distinguishes saved, pending, selected-for-this-turn, actually injected and unavailable memory; show provenance, original observation date and degraded retrieval without implying that selected candidates influenced an answer. Expose verify, correct, challenge and opt-out paths; correction or disabling memory affects the next real turn through existing stores. Onboarding separates optional diagnostics/analytics from required service consent, preserves explicit choices on restart and explains changed policy rather than silently re-enabling sharing. Tests cover empty, disabled, stale, failed and cross-project memory without making a graph dashboard a prerequisite for chat.",
+      "notes": "Accessibility and contextual review are cross-host product contracts. The 2026-08-25 Hermes Desktop comparison adds non-focus-stealing background continuity, durable unread state, direct-manipulation rollback, and global composer focus without creating a second session truth.\n\nOWNER RECONCILIATION 2026-09-08: Contextual Files, Browser, Review, and Activity sit beside chat; ordinary conversation need not produce a dossier or verified accomplishment. Sidebar hover cards must also work on focus, stay reachable by pointer, close with Escape, avoid clipping, and never be the only route to an action; touch has explicit buttons. Preserve the nine-state lifecycle, receipt dispositions, accessibility controls, reading position, and permission semantics. Full cross-host acceptance stays Horizon; the active Desktop card owns its local shell slice. Plan: docs/desktop-chat-first-revamp-plan-2026-09-08.md.\n\nUPSTREAM ADOPTION 2026-10-01: Owner Jason; planning refinement, not executed Vanta implementation. Preserve current status, dependencies, authority and zero-new-spend constraints. Source: https://github.com/vellum-ai/vellum-assistant/blob/cd99c7513bca15d3f02138e0960f3f3ed4048185/clients/web/src/domains/chat/inspector/components/tabs/memory-tab.tsx ; https://github.com/vellum-ai/vellum-assistant/blob/cd99c7513bca15d3f02138e0960f3f3ed4048185/clients/web/src/domains/onboarding/components/consent-controls.tsx. Mapping and sequence: docs/upstream-agent-desktop-adoption-2026-10-01.md."
     },
     {
       "tier": "rock",
       "model": "opus",
       "codex": "gpt-5.6-sol",
-      "updated": "2026-07-30",
+      "updated": "2026-10-01",
+      "source": "hermes-full-documentation-audit-2026-08-29",
+      "id": "BROWSER-AUTHENTICATED-WORKSPACE",
+      "track": "Operator",
+      "title": "Authenticated browser workspace — visible sessions, takeover, and revocation",
+      "status": "horizon",
+      "after": [
+        "BROWSER-WORKFLOW-ACTION-BOUNDARY",
+        "AUTH-BROWSER",
+        "DESKTOP-OPERATOR-DOSSIER-HIERARCHY"
+      ],
+      "size": "L",
+      "effort": "high",
+      "lens": "reach",
+      "summary": "Turn Vanta's dedicated browser profile into a legible operator workspace: connect accounts in a headed Vanta-owned session, see which profile and site are active, watch or take over safely, and revoke or reset access without copying a live personal-browser profile into agent storage.",
+      "done": "Desktop and TUI expose the same named browser sessions, tabs, account/profile binding, domain scope, ownership, health, idle expiry, and revoke/reset actions; sign-in occurs in a headed Vanta-owned profile with explicit authority and never exports raw cookies, local storage, credentials, or authorization headers to the model; accessibility snapshots provide stable element references with frame, popup, dialog, download, and stale-reference handling; watch and human takeover suspend agent input without stealing the user's ordinary cursor or focus; restart, crash, idle TTL, corrupt profile, concurrent session, auth expiry, cancellation, and cleanup fixtures pass; one real packaged authenticated read journey and one freshly approved reversible action are observed end to end with redacted receipts. Additional acceptance from 2026-10-01 review: Maintain explicitly authorized browser session ownership across action batches, including dialog events, tab/frame targets and bounded reconnection; validate browser identity and redact debug endpoints. Existing cookie injection is not treated as absent. Real-profile attachment requires explicit profile/account selection, a visible scope and disconnect/revoke control; copying a personal profile remains out of scope and never happens silently, claim copied credentials are secret-free, or automatically replay an uncertain account mutation after reconnect.",
+      "notes": "HERMES FULL-DOC ADOPTION 2026-08-29: adopt the useful session, stable-reference, live-view, takeover, and cleanup contract after the browser effect boundary. Reject direct copying of Chrome/Brave/Edge live profiles until profile pinning, filesystem permissions, lock ownership, Keychain behavior, revocation, and real packaged proof are independently satisfied. Comparison: docs/hermes-full-documentation-adoption-audit-2026-08-29.md.\n\nUPSTREAM ADOPTION 2026-10-01: Owner Jason; planning refinement, not executed Vanta implementation. Preserve current status, dependencies, authority and zero-new-spend constraints. Source: https://github.com/NousResearch/hermes-agent/blob/040b6df2c40b0f4f88f51e4c2062eafc4d7463c5/tools/browser_supervisor.py ; https://github.com/NousResearch/hermes-agent/blob/040b6df2c40b0f4f88f51e4c2062eafc4d7463c5/tools/browser_tool_real_profile.py. Mapping and sequence: docs/upstream-agent-desktop-adoption-2026-10-01.md."
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-10-01",
+      "source": "hermes-full-documentation-audit-2026-08-29",
+      "id": "SANDBOX-EGRESS-CREDENTIAL-BROKER",
+      "track": "Harness",
+      "title": "Sandbox egress credential broker — opaque grants, host-owned secrets",
+      "status": "parked",
+      "after": [
+        "TRUST-02",
+        "NET-EGRESS-POLICY",
+        "VANTA-A2A-DOCKER-AUTONOMOUS"
+      ],
+      "size": "L",
+      "effort": "high",
+      "lens": "infra",
+      "summary": "Let an authorized sandbox call approved providers without receiving the real provider credential: the sandbox gets an opaque, short-lived grant while a host-side broker validates destination and injects the secret only after policy.",
+      "done": "A sandbox receives only a project/session/provider/host/path/method/expiry-bound opaque grant; the host broker owns the real credential, rechecks allowlist, DNS/IP and redirect safety, strips hop-by-hop and spoofed authorization headers, enforces quotas, and injects the secret only for the approved upstream request; broker or policy failure stops the request with no fallback to inherited environment credentials; grant rotation, revocation, restart, replay, SSRF, redirect, DNS-rebinding, log, process-environment, file-permission, and concurrent-sandbox fixtures pass; unsupported signed, mTLS, or interactive OAuth providers report an explicit unsupported disposition rather than weakening the boundary. Additional acceptance from 2026-10-01 review: Materialize credentials only inside a separately owned execution broker after target, method, credential scope and fresh approval validation; ordinary model tools, renderers, subprocess environment enumeration, transcripts and receipts receive opaque handles or redacted results. Explicitly classify unrestricted host-shell paths outside that guarantee, block them where required, and test broker loss, redirect/SSRF attempts, rejected approvals, secret-bearing responses and grant expiry. Do not describe software path checks or sanitized bash as OS sandboxing, and do not widen session grants into assistant-wide standing authority.",
+      "notes": "PARKED 2026-08-29 until a real sandbox task needs provider credentials or a credential-exposure regression appears. Adopt the provider-neutral host-broker pattern, not Hermes's implementation, hosted gateway, vendor configuration, or third-party source. Comparison: docs/hermes-full-documentation-adoption-audit-2026-08-29.md.\n\nUPSTREAM ADOPTION 2026-10-01: Owner Jason; planning refinement, not executed Vanta implementation. Preserve current status, dependencies, authority and zero-new-spend constraints. Source: https://github.com/vellum-ai/vellum-assistant/blob/cd99c7513bca15d3f02138e0960f3f3ed4048185/assistant/docs/credential-execution-service.md ; https://github.com/vellum-ai/vellum-assistant/blob/cd99c7513bca15d3f02138e0960f3f3ed4048185/assistant/src/__tests__/credential-security-invariants.test.ts. Mapping and sequence: docs/upstream-agent-desktop-adoption-2026-10-01.md.",
+      "parkedReason": "strategy decision"
+    },
+    {
+      "tier": "pebble",
+      "model": "sonnet",
+      "codex": "gpt-5.6-terra",
+      "updated": "2026-08-29",
+      "source": "hermes-full-documentation-audit-2026-08-29",
+      "id": "DOCUMENT-SCANNED-PAGE-RECOVERY",
+      "track": "Operator",
+      "title": "Scanned-document recovery — detect missing pages before targeted OCR",
+      "status": "parked",
+      "after": [
+        "VANTA-PDF-READ",
+        "AUX-VISION"
+      ],
+      "size": "M",
+      "effort": "medium",
+      "lens": "reach",
+      "summary": "Extend bounded local document reading with truthful page-coverage detection and operator-selected recovery for scanned or image-only ranges instead of silently returning an incomplete document or OCRing an entire file by default.",
+      "done": "PDF extraction reports total pages, text-bearing pages, exact empty or low-coverage ranges, and the nearest preceding heading; when material gaps are detected it stops before claiming complete extraction and offers only targeted local render-plus-vision or bounded on-device OCR for selected pages; page, byte, language, time, cancellation, table/equation, and confidence limits remain visible; no hosted fallback or full-document OCR occurs silently; outputs retain page provenance and distinguish extracted text from OCR; mixed, scanned, encrypted, rotated, malformed, large, cancel, timeout, and signed-packaged fixtures pass.",
+      "notes": "PARKED 2026-08-29 until a real VANTA-PDF-READ document shows materially missing page coverage. The existing shipped reader remains valid for text-bearing PDFs and office files; this card does not rewrite that evidence. Comparison: docs/hermes-full-documentation-adoption-audit-2026-08-29.md.",
+      "parkedReason": "optional proof"
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-08-29",
+      "source": "hermes-full-documentation-audit-2026-08-29",
+      "id": "COMPUTER-USE-NO-FOREGROUND-SESSION",
+      "track": "Operator",
+      "title": "No-foreground computer-use session — preserve user cursor, focus, and control",
+      "status": "parked",
+      "after": [
+        "DESKTOP-CONTROL-BOUNDARY",
+        "HP-COMPUTER-USE",
+        "BROWSER-WORKFLOW-ACTION-BOUNDARY"
+      ],
+      "size": "L",
+      "effort": "high",
+      "lens": "reach",
+      "summary": "Move supported computer-use automation out of the operator's active pointer and focus path by running it in an explicitly owned background desktop session with visible scope, takeover, pause, and cleanup.",
+      "done": "A supported packaged host can create an isolated background computer-use session bound to one project, app/window/region allowlist, authority, deadline, and kill switch; the operator's ordinary cursor, keyboard focus, clipboard, and foreground app remain unchanged; each capture yields stable short-lived element references and every action follows capture, assess, exact approval when required, execute once, and verify; stale references, focus drift, unexpected window, permission denial, screen lock, sleep, disconnect, crash, restart, takeover, pause, and cleanup fail safely with no duplicate effect; the session is visibly distinguishable and one real packaged journey passes without foreground input theft.",
+      "notes": "PARKED 2026-08-29 until user testing shows foreground-input theft is blocking a real workflow or the OS/session architecture is explicitly authorized. This does not authorize hidden surveillance, continuous capture, remote desktop hosting, CAPTCHA bypass, or unrestricted computer control. Comparison: docs/hermes-full-documentation-adoption-audit-2026-08-29.md.",
+      "parkedReason": "strategy decision"
+    },
+    {
+      "tier": "pebble",
+      "model": "sonnet",
+      "codex": "gpt-5.6-terra",
+      "updated": "2026-08-29",
+      "source": "hermes-full-documentation-audit-2026-08-29",
+      "id": "TOOL-DISCOVERY-SCALE-QUALITY",
+      "track": "Harness",
+      "title": "Tool discovery at scale — measurable recall without eager schema load",
+      "status": "parked",
+      "after": [
+        "VANTA-TOOL-SEARCH-AUTO",
+        "HERMES-TOOL-SURFACE-PROFILES",
+        "CAPABILITY-GROUNDED-SYSTEM-PROMPT"
+      ],
+      "size": "M",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "summary": "Strengthen Vanta's shipped deferred tool search only when catalogs become large enough to justify it: rank by name, source, description, and parameter intent; disclose tools in stages; and measure whether the model can actually find and call the right capability.",
+      "done": "Deterministic benchmarks at 100, 1,000, and at least 3,000 tools compare eager schemas with deferred discovery on task success, top-k recall, prompt tokens, search turns, latency, false capability claims, and failed calls across one hosted and one local/open model; the chosen implementation supports batched queries, source/server filters, parameter-name matches, stemming or equivalent lexical normalization, explicit describe before call, session-scoped catalogs, and truthful empty/disabled results; discovered schemas are concretely validated before exposure, including empty, malformed, recursive, oversized, and unsupported parameter definitions, so metadata cannot create an invalid callable surface; the underlying tool identity still reaches policy, hooks, approvals, receipts, and revocation; no discovery wrapper creates a second ungoverned execution path.",
+      "notes": "PARKED 2026-08-29 because Vanta already ships auto tool search and role-based tool surfaces. The post-release fixed-point refresh adds concrete discovered-schema validation to this owner rather than creating a duplicate tool-search card. Re-enter when the effective catalog exceeds 500 tools, three observed tasks fail because the right tool is not discoverable, deferred discovery consumes more turns/tokens than the eager baseline, or a discovered tool presents a malformed schema. Comparisons: docs/hermes-full-documentation-adoption-audit-2026-08-29.md and docs/hermes-post-release-fixed-point-audit-2026-09-03.md.",
+      "parkedReason": "strategy decision"
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-09-03",
+      "source": "hermes-release-history-audit-2026-09-03",
+      "id": "CONTROL-PLANE-INSTRUCTION-WRITE-BOUNDARY",
+      "track": "Harness",
+      "title": "Protected instruction writes — exact approval for every standing-order file",
+      "status": "next",
+      "after": [
+        "TRUST-01",
+        "TRUST-02",
+        "HERMES-SKILL-WRITE-APPROVAL-QUEUE"
+      ],
+      "size": "M",
+      "effort": "high",
+      "lens": "agent-loop",
+      "summary": "Extend Vanta's control-plane boundary from runtime state and agent-authored skills to every repository or operator file that can change standing instructions, tool authority, memory policy, verification policy, or future-session behavior.",
+      "done": "One canonical classifier covers repository and nested AGENTS.md, CLAUDE.md, VANTA.md, skill and agent definitions, hook/config policy, authoritative memory instructions, verification/evaluator policy, and equivalent resolved aliases; direct file tools, patch/edit paths, shell/code/hooks, MCP/plugins, workers, Desktop, TUI, workflows, symlinks, hard links, case variants, renamed files, and restart paths cannot modify them under full-access or unattended modes without a fresh exact preview containing resolved path, byte count, payload hash, reason, and scope; denial and cancellation leave bytes unchanged; approved writes execute once, activate only at the documented boundary, and produce redacted receipts; malicious-document, nested-repository, alias, concurrent-write, crash, restart, and protected-compartment fixtures pass without blocking ordinary source edits.",
+      "notes": "NEXT 2026-09-03. Hermes v0.21 made protected instruction files an unconditional approval boundary. Vanta's current projectPathPolicy covers .vanta, .mcp.json, Git hooks, and .env files, while the separate skill queue covers agent-authored skills; the audited source does not classify ordinary AGENTS.md or CLAUDE.md writes at this boundary. This roadmap record is a confirmed code-path gap, not proof of exploitation. Comparison: docs/hermes-release-history-adoption-audit-2026-09-03.md."
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-10-01",
+      "source": "Hermes post-release state and recovery lineage through 561b053f794a1781868bb032029d589c67708119",
+      "id": "LOCAL-STATE-ATOMIC-RECOVERY-BOUNDARY",
+      "track": "Harness",
+      "title": "Local state recovery boundary — never silently lose operator truth",
+      "status": "next",
+      "after": [
+        "PORT-SESSION-STORE",
+        "TRUST-04",
+        "RUN-RESUME",
+        "PCLIP-ATOMIC-CHECKOUT"
+      ],
+      "size": "L",
+      "effort": "high",
+      "lens": "memory",
+      "summary": "Make Vanta's canonical local sessions, WorkItems, runs, approvals, receipts, schedules, settings, and continuity state failure-atomic, concurrency-safe, recoverable, and visibly degraded instead of returning missing data after a partial write or corrupt file.",
+      "done": "Every canonical operator-truth store uses schema-versioned writes through one owned persistence boundary with same-directory exclusive temporary creation, owner-only permissions, flush and atomic replace where supported, writer exclusion or compare-and-swap, bounded retention, and a last-known-good recovery path; parse, schema, truncation, checksum, permission, disk-full, concurrent-writer, symlink, crash-between-write-and-rename, stale-lock, backup/import, and interrupted-migration failures quarantine the suspect artifact without overwriting or deleting the live source, surface the exact affected store and recovery action, and never convert missing or corrupt state into an empty successful session; repeated restart and recovery fixtures preserve stable IDs, hashes, associations, pending approvals, and unknown-effect dispositions without duplicate work, while read-only listing remains non-mutating. Additional acceptance from 2026-10-01 review: Memory consolidation consumes only the exact snapshot entries whose durable writes were acknowledged, leaving newer concurrent appends and failed or timed-out batches recoverable. Cross-process exclusion or transactional compare-and-swap must cover append and consume; a grace-period drain is not a proof of losslessness. Test a writer suspended between open and write beyond 500 ms, identical duplicate entries, disk-full during copy-back, crash after acknowledgement and restart; surface unrecovered state rather than quietly dropping it.",
+      "notes": "NEXT 2026-09-03. Vanta has strong atomic implementations in several newer stores, but the current default session adapter still writes the live JSON file directly and converts parse/schema/read failures to null. The fixed-point audit also found direct-write variants across other canonical state stores. This card closes the shared durability boundary rather than claiming every current store is corrupt. Comparison: docs/hermes-post-release-fixed-point-audit-2026-09-03.md.\n\nUPSTREAM ADOPTION 2026-10-01: Owner Jason; planning refinement, not executed Vanta implementation. Preserve current status, dependencies, authority and zero-new-spend constraints. Source: https://github.com/vellum-ai/vellum-assistant/blob/cd99c7513bca15d3f02138e0960f3f3ed4048185/assistant/src/plugins/defaults/memory/buffer-file.ts ; https://github.com/vellum-ai/vellum-assistant/blob/cd99c7513bca15d3f02138e0960f3f3ed4048185/assistant/docs/architecture/memory.md. Mapping and sequence: docs/upstream-agent-desktop-adoption-2026-10-01.md."
+    },
+    {
+      "tier": "pebble",
+      "model": "sonnet",
+      "codex": "gpt-5.6-terra",
+      "updated": "2026-09-03",
+      "source": "hermes-release-history-audit-2026-09-03",
+      "id": "MCP-FLEET-HEALTH-CONTEXT-BUDGET",
+      "track": "Operator",
+      "title": "MCP fleet health and context budget — fix connections before a task fails",
+      "status": "parked",
+      "after": [
+        "VANTA-MCP-PANEL",
+        "VANTA-MCP-FIRST-CLASS-CONNECTORS",
+        "DESKTOP-MCP-CONTROL-CENTER",
+        "LIVE-CONTEXT-COST-INSPECTOR",
+        "VANTA-DEEP-LINK"
+      ],
+      "size": "M",
+      "effort": "medium",
+      "lens": "tui",
+      "summary": "Turn the shipped MCP panel into one Desktop and TUI connection center that shows health, authentication expiry, effective project scope, schema context cost, and actual recent use before a broken or oversized server disrupts work.",
+      "done": "Desktop and TUI read one MCP registry and show each server's transport, owner, project scope, enabled state, last bounded health result, authentication expiry or reauthorization action, exposed/deferred tool count, estimated schema tokens, and locally derived 30-day calls/errors/latency without sending telemetry; paste or operator-selected file imports produce a parsed preview and require explicit confirmation before writing config or launching a server; a vanta:// install link is untrusted input and can install only with a verified publisher signature, allowed origin, expiry, nonce/replay defense, and exact confirmation, while unsigned or unknown links remain read-only previews; background probes are bounded, redacted, suspend offline, and never execute a tool; stale auth, malformed config, duplicate server, explicit-empty allowlist, unavailable command, slow server, removed server, forged/expired/replayed link, restart, accessibility, and narrow-layout fixtures pass.",
+      "notes": "PARKED 2026-09-03 because VANTA-MCP-PANEL already provides list, status, tool detail, reconnect, and elicitation. Re-enter after three enabled servers, one pre-call authentication failure, or measured MCP schema cost above 10% of the selected model context. Reject Hermes's hosted catalog dependency and automatic installation. Comparison: docs/hermes-release-history-adoption-audit-2026-09-03.md.",
+      "parkedReason": "optional proof"
+    },
+    {
+      "tier": "pebble",
+      "model": "sonnet",
+      "codex": "gpt-5.6-terra",
+      "updated": "2026-09-03",
+      "source": "hermes-release-history-audit-2026-09-03",
+      "id": "MODEL-METADATA-OVERRIDE-PROVENANCE",
+      "track": "Operator",
+      "title": "Model metadata overrides — operators can correct a stale catalog safely",
+      "status": "parked",
+      "after": [
+        "REL1",
+        "DESKTOP-P5",
+        "CAPABILITY-GROUNDED-SYSTEM-PROMPT"
+      ],
+      "size": "M",
+      "effort": "medium",
+      "lens": "reach",
+      "summary": "Let an operator override stale model context, output, pricing, and capability metadata with visible provenance without silently changing the bundled catalog or inventing provider facts.",
+      "done": "One typed override format applies consistently to CLI, TUI, Desktop, provider routing, effort/speed controls, context accounting, cost estimates, and auxiliary/delegated models; every field records operator, bundled-catalog, live-probe, or provider-document provenance plus checked date; invalid, conflicting, impossible, stale, unsupported, and model-removed overrides fail visibly without mutating the base catalog; override scope and precedence are visible and reversible; offline, custom OpenAI-compatible, Ollama, unknown-pricing, restart, project/session scope, and catalog-update fixtures pass.",
+      "notes": "PARKED 2026-09-03 because REL1 already omits unsupported parameters and provider controls already work. Re-enter when one real model is blocked by stale metadata or a catalog correction cannot wait for a release. Data-use disclosure is independently owned by MODEL-DATA-USE-DISCLOSURE. Comparison: docs/hermes-release-history-adoption-audit-2026-09-03.md.",
+      "parkedReason": "strategy decision"
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-09-03",
+      "source": "hermes-release-history-audit-2026-09-03",
+      "id": "MODEL-DATA-USE-DISCLOSURE",
+      "track": "Operator",
+      "title": "Model data-use disclosure — show sourced retention and training terms before selection",
+      "status": "parked",
+      "after": [
+        "REL1",
+        "DESKTOP-P5"
+      ],
+      "size": "M",
+      "effort": "medium",
+      "lens": "reach",
+      "summary": "Give operators one consistent, dated account of whether a provider, model, or service tier may retain submitted content or use it for training before they choose that route.",
+      "done": "CLI, TUI, Desktop, delegated routing, and auxiliary-model selection read one typed data-use registry keyed by exact provider, model, service tier, and account mode; every retention, training, residency, and opt-out statement includes an authoritative source URL, checked date, applicability, and unknown state; the first selection and every materially changed policy show the disclosure before dispatch, acknowledgement binds only to the exact policy revision, and no warning is inferred from a provider name alone; local-only and custom endpoints are distinguished without claiming privacy that Vanta cannot observe; stale source, conflicting terms, offline, unknown account tier, policy change, acknowledgement expiry, and accessibility fixtures pass.",
+      "notes": "PARKED 2026-09-03 pending a separately maintained provider-policy corpus. No current provider terms were audited here, so this status is not a claim that every current route is safe to use without disclosure. Re-enter before any picker states provider data-use facts or when a verified tier-specific retention/training policy requires an operator decision. Comparison: docs/hermes-release-history-adoption-audit-2026-09-03.md.",
+      "parkedReason": "strategy decision"
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-10-01",
+      "source": "hermes-release-history-audit-2026-09-03",
+      "id": "SCHEDULE-CONTINUITY-CHANGE-SUPPRESSION",
+      "track": "Harness",
+      "title": "Schedule continuity and change suppression — recurring work remembers without repeating itself",
+      "status": "parked",
+      "after": [
+        "VANTA-CRON-DURABLE",
+        "HARNESS-CRON-AT-MOST-ONCE",
+        "LOOP-STATE",
+        "AUTO-WATCH",
+        "TRUST-04"
+      ],
+      "size": "L",
+      "effort": "high",
+      "lens": "agent-loop",
+      "summary": "Give recurring jobs a bounded, inspectable continuity record and a deterministic no-change fast path so monitors neither forget prior output nor spend a model turn merely to repeat it.",
+      "done": "Each recurring job declares continuity off/on, one bounded operator-readable notepad, selected provider/model/reasoning effort, input cursor or fingerprint, output digest, delivery target, and retention; a deterministic preflight can settle no-change without loading credentials or calling a model, while changed or uncertain input runs normally and updates state atomically only after truthful settlement; a read-only doctor distinguishes schedule health, execution settlement, and delivery settlement instead of reporting a run as healthy merely because it started; model drift, missing authority, corrupt state, missed fire, overlapping run, crash, restart, timeout, cancellation, delivery failure, unknown external effect, manual trigger, clock jump, and retention fixtures preserve one run identity, expose uncertainty, and never duplicate a consequential effect or notification. Additional acceptance from 2026-10-01 review: Tie one scheduled invocation to a durable run identity and its owned child work; do not declare completion while an owned continuation or delivery remains pending. Timeout and cancellation reconcile that invocation without cancelling unrelated work in a reused chat. Executed fixtures cover overlapping schedules, changed authority, delayed children, restart, late wake, unchanged results and partial output; suppress routine unchanged notices while retaining truthful partial/unknown evidence.",
+      "notes": "PARKED 2026-09-03 because Vanta already ships durable cron, loop state, watchers, receipts, and provider-aware timeouts. The post-release fixed-point refresh strengthens the existing outcome with truthful schedule/execution/delivery diagnostics rather than adding another cron card. Re-enter after one duplicate monitor notification, one repeated unchanged model run, one delivery reported healthy without settlement, or one recurring task that re-derives material context after restart. Comparisons: docs/hermes-release-history-adoption-audit-2026-09-03.md and docs/hermes-post-release-fixed-point-audit-2026-09-03.md.\n\nUPSTREAM ADOPTION 2026-10-01: Owner Jason; planning refinement, not executed Vanta implementation. Preserve current status, dependencies, authority and zero-new-spend constraints. Source: https://github.com/vellum-ai/vellum-assistant/blob/cd99c7513bca15d3f02138e0960f3f3ed4048185/assistant/src/schedule/scheduler.ts ; https://github.com/vellum-ai/vellum-assistant/blob/cd99c7513bca15d3f02138e0960f3f3ed4048185/assistant/docs/architecture/scheduling.md. Mapping and sequence: docs/upstream-agent-desktop-adoption-2026-10-01.md.",
+      "parkedReason": "optional proof"
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-09-03",
+      "source": "hermes-release-history-audit-2026-09-03",
+      "id": "DELEGATION-LIVE-STEERING-BUDGET",
+      "track": "Harness",
+      "title": "Live delegation control — steer or stop a child and keep bounded partial work",
+      "status": "parked",
+      "after": [
+        "VANTA-TASK-TOOLS",
+        "VANTA-JSON-SCHEMA",
+        "HERMES-DELEGATION-TREE-RECEIPTS",
+        "PCLIP-COST-ATTRIBUTION",
+        "GRAPH-OPERATOR-REPLAY-HANDOFF",
+        "GRAPH-EVIDENCE-STOP-CONTRACTS"
+      ],
+      "size": "L",
+      "effort": "high",
+      "lens": "agent-loop",
+      "summary": "Complete Vanta's existing task, message, transcript, and receipt primitives with one live child-control contract: list, steer, stop, retain partial results, validate typed output, and enforce explicit time, turn, token, cost, and concurrency budgets.",
+      "done": "A running delegated child has one stable parent-owned identity and can be listed, inspected, sent a sequenced course correction, or stopped from CLI, TUI, Desktop, workflow, and lead-agent tools; the child acknowledges the exact steering revision or reports that it already settled; batch quality, independence, authority, and aggregate budget are validated before spawn; stop cancels descendants, settles in-flight effects honestly, preserves a redacted partial result and artifact manifest, and never converts partial work into verified completion; optional JSON Schema output validation is retry-bounded, and capped or truncated output carries a visible machine-readable truncation marker; time, turn, token, cost, concurrency, process, file-descriptor, and output-byte budgets are explicit, inherited downward, observable while live, and cannot be raised by a child; crash, restart, message race, late steer, double stop, unreachable child, malformed or truncated output, descriptor exhaustion, process exhaustion, invalid batch, budget exhaustion, and uncommitted-work fixtures pass with a durable replay timeline.",
+      "notes": "PARKED 2026-09-03 because Vanta already ships TaskCreate/Get/List/Update/Stop/Output, send_message, live sidechain output, delegation receipts, cost attribution, and graph replay. Re-enter when one real child needs a mid-run correction, partial-result recovery, or a budget stop that current primitives cannot express. Do not copy Hermes's raised 250-iteration or 10-child defaults; derive bounded defaults from Vanta evidence. Comparison: docs/hermes-release-history-adoption-audit-2026-09-03.md.",
+      "parkedReason": "strategy decision"
+    },
+    {
+      "tier": "pebble",
+      "model": "sonnet",
+      "codex": "gpt-5.6-terra",
+      "updated": "2026-10-02",
+      "source": "hermes-release-history-audit-2026-09-03",
+      "id": "DESKTOP-QUICK-CAPTURE",
+      "track": "Operator",
+      "title": "Desktop quick capture — preserve a thought without opening the full workbench",
+      "status": "parked",
+      "after": [
+        "UX-03",
+        "DESKTOP-OPERATOR-DOSSIER-HIERARCHY",
+        "DESKTOP-QUEUED-TURN-EDITOR",
+        "DESKTOP-SESSION-DRAFT-OWNERSHIP",
+        "DESKTOP-RICH-CLIPBOARD-PASTE"
+      ],
+      "size": "M",
+      "effort": "medium",
+      "lens": "tui",
+      "summary": "Add an optional global-hotkey capture window for a new or existing conversation, an explicitly tracked task, or a reviewable inbox without requiring task creation, opening a second agent, adding a session store, or starting uncontrolled background work.",
+      "done": "An operator-enabled macOS shortcut opens a keyboard-first capture window within the measured launch budget, shows the selected project/session or inbox, accepts text and supported attachments, preserves the draft on dismissal or crash, and queues rather than executes by default; sending to an active turn uses the existing queued-turn and steering contract with a visible preview; duplicate shortcut, focus, secure-input, screen-reader, reduced-motion, multiple-display, locked-screen, offline, restart, invalid target, attachment-limit, and permission-revocation fixtures pass; disabling the feature unregisters the shortcut and removes no captured content; one unfamiliar operator completes capture and recovery without coaching.",
+      "notes": "PARKED 2026-09-03 until cold-operator evidence shows that opening the full Desktop blocks capture or three real tasks are lost between intention and launch. Adopt the low-friction capture pattern, not Hermes's plugin platform, bot identity, or multi-window product structure. Comparison: docs/hermes-release-history-adoption-audit-2026-09-03.md.\n\nOWNER RECONCILIATION 2026-09-08: Align capture with chat-first semantics: a thought may remain a conversation, not a task. This optional extra window remains parked; it is not a prerequisite for fixing the primary composer. Plan: docs/desktop-chat-first-revamp-plan-2026-09-08.md.\n\nOWNER REQUEST 2026-10-02: An optional avatar and mini workspace are explicitly requested. The bounded same-window mini/avatar is implemented in the active Desktop card, not a second agent or session store. Global-hotkey capture, multi-display/secure-input behavior, crash-safe attachment recovery and unfamiliar-operator proof remain this parked card's unfinished criteria. Status/dependencies unchanged. Hermes composer draft/popout source at 7200e0f5ae0c55a4a2e4a3aabc653f5c12b3204f informed ownership/focus/bounds requirements. Evidence: docs/desktop-ambient-workflow-2026-10-02.md.",
+      "parkedReason": "optional proof"
+    },
+    {
+      "tier": "pebble",
+      "model": "sonnet",
+      "codex": "gpt-5.6-terra",
+      "updated": "2026-09-03",
+      "source": "hermes-release-history-audit-2026-09-03",
+      "id": "APPROVAL-POLICY-DRY-RUN",
+      "track": "Operator",
+      "title": "Approval-policy dry run — explain the real verdict without executing",
+      "status": "parked",
+      "after": [
+        "TRUST-01",
+        "VANTA-PERMISSION-EXPLAINER"
+      ],
+      "size": "S",
+      "effort": "low",
+      "lens": "agent-loop",
+      "summary": "Let an operator or agent query the real safety and approval path for a proposed tool action without running it, reserving authority, or asking a model to guess the verdict.",
+      "done": "A read-only CLI, TUI, Desktop, and tool-facing query accepts the same normalized tool name, arguments, project, host, permission mode, and actor context as execution; it invokes the production assessment path with effects disabled and returns allow, ask, or block plus risk, matched rule, required approval scope, and redacted reason; it never executes the operation, creates reusable approval, claims an idempotency key, reads secret values, or mutates policy; unknown tool, malformed arguments, aliases, symlinks, remote host, stale policy, unavailable kernel, full-access, and adversarial description fixtures prove the dry-run verdict matches the subsequent assessment at the same policy revision or reports that it changed.",
+      "notes": "PARKED 2026-09-03 because VANTA-PERMISSION-EXPLAINER explains a verdict only after an action reaches approval. Re-enter when an operator cannot predict whether a planned action will be allowed, asked, or blocked, or when a workflow needs preflight policy validation. Comparison: docs/hermes-release-history-adoption-audit-2026-09-03.md.",
+      "parkedReason": "optional proof"
+    },
+    {
+      "tier": "pebble",
+      "model": "sonnet",
+      "codex": "gpt-5.6-terra",
+      "updated": "2026-09-03",
+      "source": "hermes-release-history-audit-2026-09-03",
+      "id": "STALL-BOUNDARY-DIAGNOSTIC-CAPTURE",
+      "track": "Harness",
+      "title": "Stall-boundary diagnostics — capture redacted evidence when the watchdog fires",
+      "status": "parked",
+      "after": [
+        "LIVENESS-WATCHDOG",
+        "REPRO-PACK"
+      ],
+      "size": "M",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "summary": "When a loop or worker is declared stalled, capture the bounded runtime state needed to explain the wedge at that moment instead of relying only on logs assembled afterward.",
+      "done": "The production liveness watchdog emits one content-minimized diagnostic snapshot before halting new work: process and worker identity, state-machine state, active operation class, bounded async stack or equivalent wait-site evidence, deadline/budget, last progress timestamp, queue depth, and redacted recent event IDs; capture is time- and size-bounded, cannot delay the stop boundary, never includes prompts, outputs, credentials, provider payloads, or environment values, and links into the existing repro packet; repeated fire, recursion, unavailable stack capture, worker exit race, remote host, crash, restart, and redaction fixtures pass, while tuning remains within operator-set safety ceilings.",
+      "notes": "PARKED 2026-09-03 because Vanta detects and surfaces stalls and can assemble repro packets, but no retained contract captures diagnostic state at the watchdog boundary. Re-enter after one stall cannot be diagnosed from existing receipts or repeated liveness incidents require the same manual evidence gathering. Comparison: docs/hermes-release-history-adoption-audit-2026-09-03.md.",
+      "parkedReason": "optional proof"
+    },
+    {
+      "tier": "sand",
+      "model": "sonnet",
+      "codex": "gpt-5.6-luna",
+      "updated": "2026-10-01",
+      "source": "hermes-release-history-audit-2026-09-03",
+      "id": "SESSION-RESUME-PERSISTENCE-IDEMPOTENCE",
+      "track": "Harness",
+      "title": "Resume persistence idempotence — loaded transcript rows never append twice",
+      "status": "parked",
+      "after": [
+        "RUN-RESUME",
+        "TUI-RESTART-CONTINUITY"
+      ],
+      "size": "S",
+      "effort": "low",
+      "lens": "agent-loop",
+      "summary": "Make resume-to-save idempotence an explicit cross-host contract so reloading a session and persisting the next turn cannot duplicate historical transcript rows.",
+      "done": "Every persisted message or transcript row has stable load/save identity or equivalent snapshot semantics; CLI, TUI, Desktop, gateway, crash checkpoint, hot reload, fork, import, and migrated legacy sessions load and save repeatedly without duplicating prior rows, while genuinely new identical-content messages remain distinct; interrupted tool calls reconcile once; concurrent save, retry, compaction, archive/restore, corrupt tail, restart, and alternate-store fixtures compare exact row counts and hashes across at least three resume cycles. Additional acceptance from 2026-10-01 review: Persist ownership and stable identity for queued turns and their settlement as well as historical transcript rows. Repeated resume must not duplicate a queued dispatch, reset its bounded failure count, import a foreign actor's pending turn, or treat an unresolved external send as safe to retry.",
+      "notes": "PARKED 2026-09-03 because the current filesystem session adapter overwrites the complete message snapshot rather than appending, which is a strong code-path safeguard, but the audit found no explicit cross-host resume-to-save regression proof. Re-enter before an append-oriented session backend ships, when session persistence changes, or after any duplicate historical row is observed. Comparison: docs/hermes-release-history-adoption-audit-2026-09-03.md.\n\nUPSTREAM ADOPTION 2026-10-01: Owner Jason; planning refinement, not executed Vanta implementation. Preserve current status, dependencies, authority and zero-new-spend constraints. Source: https://github.com/NousResearch/hermes-agent/blob/040b6df2c40b0f4f88f51e4c2062eafc4d7463c5/apps/desktop/src/store/composer-queue.ts. Mapping and sequence: docs/upstream-agent-desktop-adoption-2026-10-01.md.",
+      "parkedReason": "optional proof"
+    },
+    {
+      "tier": "pebble",
+      "model": "sonnet",
+      "codex": "gpt-5.6-terra",
+      "updated": "2026-09-03",
+      "source": "https://hermes-agent.nousresearch.com/docs/user-guide/local-models",
+      "id": "LOCAL-MODEL-AUTOFIT-CONTEXT-LIFECYCLE",
+      "track": "Operator",
+      "title": "Local model auto-fit — useful context without memory guesswork",
+      "status": "parked",
+      "after": [
+        "LOCAL-RUNTIME-ENGINE-LIFECYCLE",
+        "LOCAL-MODEL-FIRST-INFERENCE-WIZARD",
+        "LOCAL-MODEL-DOWNLOAD-QUEUE",
+        "RUNTIME-RESOURCE-USAGE-LEDGER"
+      ],
+      "size": "L",
+      "effort": "high",
+      "lens": "tui",
+      "summary": "Let an operator discover or add a local model and receive a truthful hardware-fit, quality, context, storage, and performance recommendation that Vanta can apply and revise automatically without exposing fragile engine tuning knobs.",
+      "done": "Desktop and TUI use one local-model inventory for curated entries, bounded Hugging Face discovery, installed Ollama or compatible endpoints, and operator-selected GGUF or MLX artifacts; each candidate shows provenance, license, architecture, quantization or precision, download and companion size, checksum coverage, measured or estimated RAM/VRAM fit, minimum useful context, maximum context, vision/tool support, and a visible unsupported or unknown state; Vanta chooses a reversible runtime profile, grows context only within measured memory and latency ceilings before compaction, unloads idle models without interrupting active work, and preserves manual endpoints; incompatible hardware, misleading metadata, partial download, moved linked file, context growth failure, memory pressure, idle reload, offline, restart, and one real local task fixtures pass without claiming that a community model was validated merely because it loaded.",
+      "notes": "PARKED 2026-09-03 because Vanta already ships the runtime controller, MLX/llama.cpp lifecycle, first-inference wizard, durable download queue, and resource ledger. Re-enter when an operator must hand-tune context or quantization, a downloaded model cannot be evaluated before launch, or three local-model setup failures are caused by fit uncertainty. The current Hermes documentation added one indexed Local Models page after the frozen 208-page audit; this card records only the distinct auto-fit/context outcome. Comparison: docs/hermes-post-release-fixed-point-audit-2026-09-03.md.",
+      "parkedReason": "optional proof"
+    },
+    {
+      "tier": "rock",
+      "model": "opus",
+      "codex": "gpt-5.6-sol",
+      "updated": "2026-09-08",
       "source": "vanta-total-realignment-correction-2026-07-30",
       "id": "LIFE-02",
       "track": "Operator",
       "title": "Quarantined read-only morning orientation",
-      "status": "horizon",
+      "status": "parked",
       "after": [
         "TRUST-05",
         "OP-01",
@@ -21125,7 +21587,30 @@
       "lens": "reach",
       "summary": "Use a bounded durable cursor over quarantined email and calendar to extract urgent items, commitments, reply needs, waiting state, and FYI without creating or executing an external commitment.",
       "done": "A test mailbox/calendar and then an explicitly authorized R0 Observe account produce a concise sourced brief with no invented commitment; Gmail and Calendar use separate incremental scopes; malicious content cannot reach effects or secrets; WorkItems deduplicate and retain source; timezone and freshness are visible; restart resumes the cursor without loss or duplication; usefulness is measured; no send, invite, archive, label, or Drive mutation is required.",
-      "notes": "Read-only orientation is the first life-admin slice; all mutations remain out of scope."
+      "notes": "Read-only orientation is the first life-admin slice; all mutations remain out of scope.\n\nOWNER RECONCILIATION 2026-09-08: Defer the dependency-blocked morning-orientation initiative to preserve the 12-open-card limit while Desktop is prioritized. Re-enter after TRUST-05 and OP-03 pass and the owner selects this workflow. No acceptance or trust requirement is removed. Plan: docs/desktop-chat-first-revamp-plan-2026-09-08.md.",
+      "parkedReason": "strategy decision"
+    },
+    {
+      "id": "PROVIDER-OAUTH-REFRESH-ATOMICITY",
+      "track": "Harness",
+      "title": "Provider OAuth refresh — serialize rotation without losing another caller",
+      "status": "parked",
+      "size": "M",
+      "summary": "Prevent concurrent sessions sharing one provider account from rotating its refresh token twice, losing the winning credentials, or forcing an unnecessary sign-in.",
+      "done": "For each provider/account credential store, acquire cross-process writer ownership before rereading freshness, refreshing and atomically persisting; callers arriving after another refresh reuse the winner. Preserve unrelated credential fields and owner-only permissions. Handle external CLI rotation by bounded reread rather than blind retry; quarantine an unpersisted rotated credential and surface recovery without logging secrets. Execute two-process refresh, pre-persistence 401, crashed writer, stale lock, locked store, disk-full, provider timeout and external-rotation fixtures. Two simultaneous stale-token callers settle successfully with one refresh where all writers follow the protocol; ambiguous provider results are not retried as a fresh rotation. Run the installed provider path with synthetic credentials before any separately authorized live login check.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "codex": "gpt-5.6-sol",
+      "lens": "infra",
+      "updated": "2026-10-01",
+      "source": "https://github.com/NousResearch/hermes-agent/blob/040b6df2c40b0f4f88f51e4c2062eafc4d7463c5/agent/credential_pool.py",
+      "after": [
+        "HERMES-CREDENTIAL-POOLS",
+        "LOCAL-STATE-ATOMIC-RECOVERY-BOUNDARY"
+      ],
+      "parkedReason": "review",
+      "notes": "Owner Jason. New defect slice, not a duplicate of shipped credential-pool support. Prior synthetic probe of codex-auth.ts at installed head 12bc974c0383157abcd943f0c129e1fe9c63ef89 observed two refresh requests, one persistence write, one fulfilled caller and one rejected caller when a second 401 preceded the winning write. No live token or account was used. The implementation has not been changed. Existing four Next slots and twelve open cards are retained; prioritize this defect when an active slot clears or the owner explicitly reprioritizes. Re-entry: retain a two-process regression test, then implement the account-scoped persistence boundary. See docs/upstream-agent-desktop-adoption-2026-10-01.md."
     }
   ]
 }
