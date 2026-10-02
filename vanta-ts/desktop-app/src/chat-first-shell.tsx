@@ -14,6 +14,7 @@ import { useChatProjectTask } from "./chat-first-project-task.js";
 import { useChatDialogs } from "./chat-first-dialogs.js";
 import { ChatPaneResize } from "./chat-first-layout.js";
 import { useDesktopSurface } from "./desktop-surface.js";
+import { ChatDocumentLinks } from "./chat-first-document-links.js";
 
 type Props = { state: ChatFirstState; actions: ChatFirstActions };
 
@@ -30,7 +31,7 @@ export function ChatFirstShell() {
     <div className="chat-main-column"><ChatHeader state={state} surface={surface} />
       <ActiveChatNavigation state={state} />
       <ChatStatus state={state} />
-      <main className="chat-main" id="chat-main">{state.view === "work" ? <ChatFirstConversation state={state} actions={actions} /> : <ChatFirstWorkspace state={state} actions={actions} />}</main>
+      <ChatDocumentLinks state={state} surface={surface}><main className="chat-main" id="chat-main">{state.view === "work" ? <ChatFirstConversation state={state} actions={actions} /> : <ChatFirstWorkspace state={state} actions={actions} />}</main></ChatDocumentLinks>
     </div>
     {state.inspector ? <><ChatPaneResize pane="context" value={state.layout.context} onChange={state.layout.setWidth} /><ChatFirstInspector state={state} /></> : null}
     <ChatFirstOverlays state={state} actions={actions} />

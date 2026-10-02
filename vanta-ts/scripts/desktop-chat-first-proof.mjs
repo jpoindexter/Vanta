@@ -11,6 +11,7 @@ import { retainedCapabilityProof } from "./lib/chat-first-retained-proof.mjs";
 import { chatPreviewProof } from "./lib/chat-first-preview-proof.mjs";
 import { chatFirstEntryProof, openChatUtility } from "./lib/chat-first-entry-proof.mjs";
 import { documentWorkbenchProof } from "./lib/chat-document-workbench-proof.mjs";
+import { documentLinksProof } from "./lib/chat-document-links-proof.mjs";
 import { desktopSurfaceProof } from "./lib/desktop-surface-proof.mjs";
 
 const root = await mkdtemp(join(tmpdir(), "vanta-chat-first-proof-"));
@@ -169,6 +170,7 @@ try {
     await page.keyboard.press("Escape");
   });
   await documentWorkbenchProof({ page, check, fixture, capture });
+  await documentLinksProof({ page, check, project, send, idle, api, capture });
   await chatPreviewProof({ check, getPage: () => page, getApp: () => app, capture });
   await check("hover and keyboard sidebar actions retain renamed and pinned chat", async () => {
     const active = page.locator('.chat-nav-row[data-active="true"]');

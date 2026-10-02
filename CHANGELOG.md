@@ -5,6 +5,10 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 
 ## Development checkpoint — 2026-10-02 (not merged or released)
 
+- Added bounded chat-result routing into the document workbench, including
+  mini-to-full handoff and recoverable preview errors. This follows a real
+  installed Desktop research/file readback that exposed inert result links.
+  [Proof layers and pending installed-app acceptance](docs/desktop-document-link-repair-2026-10-02.md).
 - Saved the ambient Desktop implementation alongside its tests and notes:
   chat-first navigation, white/grey appearance, same-workspace mini/avatar,
   current model discovery, remembered routine approvals, safe previews and

@@ -56,11 +56,15 @@ Reserve capacity for regressions before expanding the next surface. Review after
 
 The whole redesign is done only when the normal installed app executes the complete workflow above, retains existing capabilities, passes keyboard/accessibility and failure-path checks, and the canonical roadmap and GitHub documentation match that evidence. Automated fixture checks, source tests, and signed packages are separate evidence layers; they do not substitute for live provider/account or human usability evidence.
 
-Current re-entry: the changed-source size gate is clear. Publish the application
-checkpoint, then simplify the remaining Connections/background/results journey.
-Repeat the normal-profile latest-package check when native access is available;
-preserve the owner's unsent draft and do not submit it. Full Desktop research to
-document and bounded native observe/action/readback remain acceptance work.
+Current re-entry: the application source checkpoint is published at `c272e25d`
+in draft PR #59; its changed-source size gate is clear. The normal installed
+app has now executed real-provider research to a cited file and read it back.
+That run exposed an inert document link. See the
+[document-link repair and live evidence](desktop-document-link-repair-2026-10-02.md).
+After unlocking, use the guarded update and click the existing result in the
+normal app; preserve the owner's unsent draft and never submit it as a probe.
+Then continue Connections/background/results coherence and bounded native
+observe/action/readback. The whole workflow remains in progress.
 
 ## Executed October 2 checkpoint
 

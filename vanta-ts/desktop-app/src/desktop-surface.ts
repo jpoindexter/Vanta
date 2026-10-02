@@ -48,8 +48,17 @@ export function useDesktopSurface(state: ChatFirstState) {
   }, []);
   const phase = state.data.phase !== "ready" ? "connecting" : state.approval.approval ? "needs-you" : state.convo.busy ? "working" : "ready";
   useEffect(() => { surfaceBridge()?.reportSurfacePhase(phase); }, [phase]);
-  return { mode, available: Boolean(surfaceBridge()), toggle: () => {
-    void surfaceBridge()?.setSurfaceMode(mode === "mini" ? "full" : "mini")
-      .catch((error: unknown) => state.setError(error instanceof Error ? error.message : String(error)));
-  } };
+  return { mode, available: Boolean(surfaceBridge()),
+    expand: () => changeSurfaceMode("full", state.setError),
+    toggle: () => { void changeSurfaceMode(mode === "mini" ? "full" : "mini", state.setError); } };
+}
+
+async function changeSurfaceMode(mode: DesktopSurfaceMode, onError: (message: string) => void): Promise<boolean> {
+  try {
+    const result = await surfaceBridge()?.setSurfaceMode(mode);
+    return result === mode;
+  } catch (error) {
+    onError(error instanceof Error ? error.message : String(error));
+    return false;
+  }
 }

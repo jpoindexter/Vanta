@@ -16,6 +16,11 @@ contained documentation and roadmap reconciliation only. The application
 implementation was still uncommitted. That publication gap is the purpose of
 this checkpoint. Pushing a work branch does not merge it into `main`.
 
+The application payload was subsequently committed and pushed as
+`c272e25d0cef1ee15f55c4a491fb12abfb54a350` (220 files). Its local and remote
+SHA matched. The [live research and document-link follow-up](desktop-document-link-repair-2026-10-02.md)
+records later observations and repair checks separately from this baseline.
+
 ## Included work
 
 - Chat-first workspace, light/dark appearance, conversation and draft ownership,
