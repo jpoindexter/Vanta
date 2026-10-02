@@ -2,6 +2,12 @@ import { describe, expect, it } from "vitest";
 import { buildPermissionRequest } from "./request.js";
 
 describe("buildPermissionRequest", () => {
+  it("exposes remembered-rule eligibility only for named, non-fresh requests", () => {
+    const ordinary = { toolName: "write_file", action: "write file brief.md", reason: "review" };
+    expect(buildPermissionRequest(ordinary)).toMatchObject({ canRemember: true, fresh: false });
+    expect(buildPermissionRequest({ ...ordinary, detail: { fresh: true } })).toMatchObject({ canRemember: false, fresh: true });
+    expect(buildPermissionRequest({ action: "unknown action", reason: "review" })).toMatchObject({ canRemember: false });
+  });
   it("builds a bash-specific request from shell_cmd descriptors", () => {
     const req = buildPermissionRequest({
       toolName: "shell_cmd",

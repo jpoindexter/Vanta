@@ -3,6 +3,23 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Development checkpoint — 2026-10-02 (not merged or released)
+
+- Added bounded chat-result routing into the document workbench, including
+  mini-to-full handoff and recoverable preview errors. This follows a real
+  installed Desktop research/file readback that exposed inert result links.
+  [Proof layers and pending installed-app acceptance](docs/desktop-document-link-repair-2026-10-02.md).
+- Saved the ambient Desktop implementation alongside its tests and notes:
+  chat-first navigation, white/grey appearance, same-workspace mini/avatar,
+  current model discovery, remembered routine approvals, safe previews and
+  guarded local app replacement.
+- Split conversation, inventory, rendering, approval and turn-execution modules
+  while retaining existing public facades and safety/persistence ordering.
+- Closed all measured size violations in changed production source. Full
+  TypeScript regression run: 14,451 passed, 3 existing optional live tests skipped.
+- [Current evidence, Git publication boundary and remaining work](docs/development-checkpoint-2026-10-02.md).
+  Whole-workflow acceptance and dependency integration remain open.
+
 ## Unreleased — 2026-08-17
 
 ### Added

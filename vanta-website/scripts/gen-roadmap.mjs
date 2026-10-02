@@ -7,6 +7,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { openItems } from '../../scripts/build-order.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const roadmapPath = join(here, '..', '..', 'roadmap.json');
@@ -44,27 +45,7 @@ const leaky = (s) => /\b(hermes|openclaw|wedge)\b/i.test(scrub(s)) && !/migrat|i
 const byStatus = (st) => items.filter((c) => (c.status || '').toLowerCase() === st);
 const next = byStatus('next');
 const building = byStatus('building');
-const dependencyOrder = (cards) => {
-  const ordered = [...cards];
-  for (let pass = 0; pass < ordered.length; pass += 1) {
-    let moved = false;
-    for (const card of [...ordered]) {
-      const cardIndex = ordered.indexOf(card);
-      const dependencyIndex = Math.max(
-        -1,
-        ...(card.after || []).map((id) => ordered.findIndex((candidate) => candidate.id === id)),
-      );
-      if (dependencyIndex > cardIndex) {
-        ordered.splice(cardIndex, 1);
-        ordered.splice(dependencyIndex, 0, card);
-        moved = true;
-      }
-    }
-    if (!moved) break;
-  }
-  return ordered;
-};
-const inFlight = dependencyOrder([...building, ...next]);
+const inFlight = openItems(roadmap).filter((card) => ['building', 'next'].includes(card.status));
 const shipped = byStatus('shipped');
 const horizon = byStatus('horizon');
 const externalProof = items.filter((c) =>

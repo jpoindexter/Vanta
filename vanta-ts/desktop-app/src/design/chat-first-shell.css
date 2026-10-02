@@ -1,0 +1,76 @@
+/* Hallmark · genre: modern-minimal · macrostructure: Workbench · design-system: design.md · designed-as-app */
+.chat-first-shell {
+  --chat-sidebar-width: 260px;
+  --chat-measure: 800px;
+  --chat-radius: 16px;
+  --chat-control: 40px;
+  --chat-on-accent: #f4efe3;
+  display: grid;
+  grid-template-columns: var(--chat-sidebar-width) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+  height: 100dvh;
+  min-width: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+.chat-first-shell[data-sidebar="false"] { grid-template-columns: minmax(0, 1fr); }
+.chat-first-shell[data-inspector="true"] { grid-template-columns: var(--chat-sidebar-width) minmax(320px, 1fr) minmax(280px, 360px); }
+.chat-first-shell[data-sidebar="false"][data-inspector="true"] { grid-template-columns: minmax(320px, 1fr) minmax(280px, 360px); }
+.chat-first-shell button, .chat-first-shell input, .chat-first-shell textarea { font-family: inherit; }
+.chat-first-shell button { cursor: pointer; }
+.chat-first-shell button:disabled { opacity: .5; cursor: not-allowed; }
+.chat-first-shell :where(button, a, input, textarea, select):focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.chat-main-column { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--bg); }
+.chat-header { display: flex; align-items: center; gap: var(--space-3); height: 52px; flex-shrink: 0; padding-inline: var(--space-6); -webkit-app-region: drag; }
+.chat-header :is(button, a) { -webkit-app-region: no-drag; }
+.chat-first-shell[data-sidebar="false"] .chat-header { padding-inline-start: 90px; }
+.chat-header-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 500; }
+.chat-icon { display: inline-flex; align-items: center; justify-content: center; width: var(--chat-control); height: var(--chat-control); flex-shrink: 0; color: var(--muted); background: transparent; border: 0; border-radius: var(--radius-md); }
+.chat-icon:hover:not(:disabled), .chat-first-shell .chat-project-button:hover { color: var(--text); background: var(--raised); }
+.chat-classic-link { color: var(--muted); text-decoration: none; font-size: 12px; padding-block: var(--space-3); }
+.chat-classic-link:hover { color: var(--text); text-decoration: underline; }
+.chat-classic-link[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
+.chat-first-shell[data-surface="mini"] .chat-classic-link { display: none; }
+.chat-first-shell[data-surface="mini"] .chat-header { gap: var(--space-1); }
+.chat-project-button { display: flex; align-items: center; gap: var(--space-2); max-width: 200px; overflow: hidden; white-space: nowrap; border: 0; background: transparent; color: var(--muted); min-height: var(--chat-control); border-radius: var(--radius-md); }
+.chat-runtime { padding: var(--space-2) var(--space-6); border-block: 1px solid var(--line); }
+.chat-main { min-width: 0; min-height: 0; flex: 1; overflow: auto; }
+.chat-main > .operator-workspace, .chat-main > .continuity-workspace { height: 100%; }
+.chat-status-error { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-2) var(--space-6); padding: var(--space-3); border: 1px solid var(--danger); border-radius: var(--radius-md); background: var(--surface-danger); }
+.chat-status-error > span { flex: 1; min-width: 180px; }
+.chat-status-error button { min-height: 36px; background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: var(--radius-md); }
+.chat-loading { color: var(--muted); margin: var(--space-3) var(--space-6); }
+.chat-appearance { display: flex; align-items: center; gap: var(--space-2); min-height: 40px; margin: 0 var(--space-3) var(--space-2); padding: var(--space-2); color: var(--muted); background: transparent; border: 0; border-radius: var(--radius-md); text-align: left; }
+.chat-appearance:hover { background: var(--raised); color: var(--text); }
+.chat-inspector { min-width: 0; min-height: 0; border-inline-start: 1px solid var(--line); background: var(--panel); overflow: auto; }
+.chat-inspector > header { display: flex; justify-content: space-between; align-items: center; min-height: 52px; padding-inline: var(--space-4); }
+.chat-inspector > nav { display: flex; gap: var(--space-1); padding: var(--space-2); border-block-end: 1px solid var(--line); }
+.chat-inspector > nav button { flex: 1; min-height: var(--chat-control); background: transparent; color: var(--muted); border: 0; border-radius: var(--radius-md); }
+.chat-inspector > nav button[aria-pressed="true"] { color: var(--text); background: var(--raised); }
+.chat-context-content { padding: var(--space-4); }
+.chat-context-content h2 { font-size: 15px; font-weight: 500; }
+.chat-context-content p { color: var(--muted); line-height: 1.5; }
+.chat-context-content ol, .chat-context-content ul { padding-inline-start: var(--space-4); }
+.chat-context-content li { margin-block: var(--space-3); overflow-wrap: anywhere; }
+.chat-context-content [data-failed="true"] { color: var(--danger); }
+.chat-context-content a { color: var(--accent-text); }
+.chat-context-content button { padding: var(--space-3); color: var(--text); background: var(--raised); border: 1px solid var(--line); border-radius: var(--radius-md); }
+@media (max-width: 1100px) {
+  .chat-first-shell[data-inspector="true"] { grid-template-columns: minmax(0, 1fr) 320px; }
+  .chat-first-shell[data-inspector="true"] > .chat-sidebar { display: none; }
+  .chat-project-button { display: none; }
+}
+@media (max-width: 760px) {
+  .chat-first-shell, .chat-first-shell[data-inspector="true"], .chat-first-shell[data-sidebar="false"][data-inspector="true"] { display: flex; }
+  .chat-main-column { flex: 1; }
+  .chat-sidebar { position: absolute; inset: 0 auto 0 0; width: min(300px, 100%); z-index: 35; box-shadow: var(--elevation-overlay); }
+  .chat-inspector { position: absolute; inset: 52px 0 0 0; z-index: 36; }
+  .chat-first-shell[data-inspector="true"] .chat-main { visibility: hidden; }
+  .chat-first-shell[data-sidebar="true"]:not([data-inspector="true"]) .chat-main-column { visibility: hidden; }
+  .chat-header { padding-inline: var(--space-3); }
+  .chat-first-shell .chat-icon { width: 44px; height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { .chat-first-shell * { scroll-behavior: auto; transition: none; animation: none; } }

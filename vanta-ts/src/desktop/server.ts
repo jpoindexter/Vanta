@@ -40,6 +40,7 @@ import { handleDesktopLookCapture } from "./look-capture-api.js";
 import { handleWorkflowRunRoute } from "./workflow-run-api.js";
 import { handleDesktopSchedules } from "./schedule-api.js";
 import { handleDesktopContinuity } from "./continuity-api.js";
+import { handleFilePreview } from "./file-preview.js";
 
 type RouteCtx = { req: http.IncomingMessage; res: http.ServerResponse; state: DesktopState; sid: string; sseClients: SseClients; pathname: string };
 
@@ -64,6 +65,7 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
     "/api/artifacts": () => handleArtifacts(state, res),
     "/api/files": () => handleFiles(state, res),
     "/api/file-context": () => handleFileContext(state, res),
+    "/api/file-preview": () => handleFilePreview(state.root, req, res),
     "/api/canvas": () => handleCanvas(state, res),
     "/api/models": () => handleModels(state, res),
     "/api/setup": () => handleDesktopSetup(state, req, res),
@@ -221,14 +223,10 @@ async function routeRequest(req: http.IncomingMessage, res: http.ServerResponse,
   state._sseSessionId = sid; state._sseClients = sseClients;
   const ctx: RouteCtx = { req, res, state, sid, sseClients, pathname: url.pathname };
   if (await handlePublicApiRoute({ req, res, state, pathname: url.pathname, options: opts.publicApi, sseClients, sid })) return;
-  if (await handleCompanionRoute({ req, res, state, pathname: url.pathname, options: opts.companion, local, sseClients, sid })) return;
-  if (remoteDesktopBlocked(local, url.pathname)) {
-    sendJson(res, 403, { error: "desktop APIs are loopback-only" }); return;
-  }
-  const boundary = desktopBoundaryDecision(req, url, opts.boundaryToken);
-  if (!boundary.allowed) {
-    sendJson(res, boundary.status, { error: boundary.error }); return;
-  }
+  // Loopback is not authentication: other callers retain only the enabled, code/bearer-gated companion paths.
+  const trustedCompanionLocal = local && desktopBoundaryDecision(req, url, opts.boundaryToken).allowed;
+  if (await handleCompanionRoute({ req, res, state, pathname: url.pathname, options: opts.companion, local: trustedCompanionLocal, sseClients, sid })) return;
+  if (denyDesktopRequest(req, res, url, { local, boundaryToken: opts.boundaryToken })) return;
   const handled = await routeByMethod(ctx);
   if (!handled) sendJson(res, 404, { error: "not found" });
 }
@@ -259,7 +257,7 @@ function desktopServerOptions(repoRoot: string, options: DesktopServerOptions): 
     sessions: options.sessions ?? new Map(),
     sseClients: options.sseClients ?? new Map(),
     repoRoot,
-    companion: { enabled: options.enabled ?? false, home, port: options.port ?? 7790 },
+    companion: companionOptions(home, options),
     publicApi: { enabled: options.publicApi ?? false, home, allowedOrigins: new Set(options.publicApiAllowedOrigins ?? []), readinessDeps: options.readinessDeps },
     isLoopback: options.isLoopback ?? isLoopbackRequest,
     boundaryToken: options.boundaryToken ?? process.env.VANTA_DESKTOP_BOUNDARY_TOKEN,
@@ -273,14 +271,29 @@ function errorMessage(error: unknown): string {
 
 export async function serveDesktop(
   repoRoot: string,
-  port = 7790,
-  companion = false,
-  boundaryToken = process.env.VANTA_DESKTOP_BOUNDARY_TOKEN,
-  launchUrl = `http://127.0.0.1:${port}`,
+  options: { port?: number; companion?: boolean; boundaryToken?: string; launchUrl?: string } = {},
 ): Promise<void> {
+  const { port = 7790, companion = false, boundaryToken = process.env.VANTA_DESKTOP_BOUNDARY_TOKEN } = options;
+  const launchUrl = options.launchUrl ?? `http://127.0.0.1:${port}`;
   if (!boundaryToken) throw new Error("desktop boundary token is required");
   const server = createDesktopServer(repoRoot, { enabled: companion, port, boundaryToken });
   const host = companion ? "0.0.0.0" : "127.0.0.1";
   await new Promise<void>((resolve) => server.listen(port, host, resolve));
   console.log(`vanta desktop — ${launchUrl}${companion ? " · companion LAN enabled" : ""}`);
+}
+
+function denyDesktopRequest(req: http.IncomingMessage, res: http.ServerResponse, url: URL, options: { local: boolean; boundaryToken?: string }): boolean {
+  const { local, boundaryToken } = options;
+  if (remoteDesktopBlocked(local, url.pathname)) {
+    sendJson(res, 403, { error: "desktop APIs are loopback-only" }); return true;
+  }
+  const boundary = desktopBoundaryDecision(req, url, boundaryToken);
+  if (!boundary.allowed) {
+    sendJson(res, boundary.status, { error: boundary.error }); return true;
+  }
+  return false;
+}
+
+function companionOptions(home: string, options: DesktopServerOptions): CompanionRouteOptions {
+  return { enabled: options.enabled ?? false, home, port: options.port ?? 7790 };
 }

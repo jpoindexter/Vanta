@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
-import { api } from "./api.js";
+import { useComposerCapture } from "./use-composer-capture.js";
+import { appendAttachmentReferences } from "../../src/desktop/attachment-text.js";
 import { clipboardFilesToImages, mergeClipboardImages } from "./clipboard-paste.js";
 import {
   attachmentItemForFile,
@@ -9,16 +10,13 @@ import {
   type DesktopAttachmentItem,
   type DesktopAttachmentSelection,
 } from "./desktop-attachments.js";
-import type { DesktopCaptureReceipt, DesktopImageAttachment, DesktopLookMode } from "./types.js";
-
-type CaptureImage = { name: string; mime: "image/png"; dataBase64: string; capture: DesktopCaptureReceipt };
-type CaptureResponse = { status: "captured"; images: CaptureImage[] } | { status: "cancelled" };
+import type { DesktopImageAttachment } from "./types.js";
 
 export function useComposerAttachments() {
   const [items, setItems] = useState<DesktopAttachmentItem[]>([]);
   const [images, setImages] = useState<DesktopImageAttachment[]>([]);
   const [error, setError] = useState("");
-  const [capturing, setCapturing] = useState(false);
+  const { capturing, captureLook } = useComposerCapture(setImages, setError);
   const files = [...new Set(items.flatMap((item) => item.files))];
 
   const applySelection = useCallback((selection: DesktopAttachmentSelection) => {
@@ -59,40 +57,15 @@ export function useComposerAttachments() {
     }
   }, [applySelection]);
 
-  const captureLook = useCallback(async (mode: DesktopLookMode) => {
-    setCapturing(true);
-    setError("");
-    try {
-      const result = await api<CaptureResponse>("/api/look", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ mode }),
-      });
-      if (result.status === "captured") {
-        const incoming = result.images.map((image) => ({ ...image, id: captureId(), bytes: image.capture.bytes }));
-        setImages((current) => mergeClipboardImages(current, incoming));
-      }
-      return result.status;
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : String(reason));
-      return "failed" as const;
-    } finally {
-      setCapturing(false);
-    }
-  }, []);
-
   const clear = useCallback(() => { setItems([]); setImages([]); setError(""); }, []);
 
   return { files, items, images, error, capturing, addFile, removeItem, removeImage, pasteImages, dropFiles, pickFiles, captureLook, clear };
 }
 
 export function withProjectAttachments(text: string, files: string[]): string {
-  return [text.trim(), ...files.map((file) => `@${file}`)].filter(Boolean).join("\n");
+  return appendAttachmentReferences(text, files);
 }
 
-function captureId(): string {
-  return globalThis.crypto?.randomUUID?.() ?? `look-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
 
 export function mergeAttachmentItems(
   current: DesktopAttachmentItem[],

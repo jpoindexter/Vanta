@@ -9,13 +9,20 @@ import { runCompletionVerifier } from "../verify/completion-verifier.js";
 
 export const CONTINUE_NUDGE =
   "Continue — you did work but the task is not finished. Do the next step NOW (actually perform it, don't just describe it). " +
-  "Only stop when the task is fully complete; if you need a decision only the user can make, call clarify or ask_user.";
+  "Stop and report Blocked: when a required source, capability, or approval is unavailable; never invent success to close a checklist. " +
+  "Otherwise finish the task; if you need a decision only the user can make, call clarify or ask_user.";
 
 export function buildContinueNudge(openTodoCount: number | null = null): string {
   if (!openTodoCount || openTodoCount <= 0) return CONTINUE_NUDGE;
   return `Continue — your live checklist still has ${openTodoCount} open item${openTodoCount === 1 ? "" : "s"}. ` +
     "Finish the next item now, update the checklist as work completes, and only return after every completed item is marked done. " +
+    "Required evidence or capability unavailable? Report Blocked: and preserve unfinished items; never invent success. " +
     "If a decision only the user can make genuinely blocks progress, call clarify or ask_user.";
+}
+
+/** Explicit terminal report, not a mention of an earlier or quoted blockage. */
+export function reportsBlocker(text: string): boolean {
+  return /^(?:#{1,6}\s*)?(?:\*\*)?Blocked(?:\*\*)?\s*[:—-](?:\*\*)?\s*\S/i.test(text.trim());
 }
 
 // Signals the model announced more work but stopped (without an explicit completion claim).
@@ -61,6 +68,7 @@ export async function shouldAutoContinue(args: AutoContinueArgs): Promise<boolea
   const max = autoContinueMax(env);
   if (max === 0) return false;
   if (toolNames.length === 0) return false; // a pure answer, not a stalled task
+  if (reportsBlocker(result.text)) return false;
   if (awaitingUser(result.text, toolNames)) return false;
   // The generic nudge cap prevents repeatedly second-guessing a model that has
   // not declared a plan. A live checklist is stronger state: returning `done`

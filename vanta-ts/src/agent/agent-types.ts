@@ -95,7 +95,7 @@ export type AgentDeps = {
   shouldSoftStop?: () => boolean;
 };
 
-export type StoppedReason = "done" | "max_iterations" | "repeated_failure" | "interrupted" | "soft_stopped" | "tool_budget";
+export type StoppedReason = "done" | "blocked" | "max_iterations" | "repeated_failure" | "interrupted" | "soft_stopped" | "tool_budget";
 
 /**
  * UX-STREAM: Typed stream-event vocabulary — names what happened so each

@@ -1,7 +1,7 @@
 // `vanta control [setup|doctor]` — make Vanta's NATIVE desktop control work
 // out of the box (the chicago-mcp rock, without an external MCP server). Vanta
 // already ships vision_action (screencapture → vision grounding → cliclick); this
-// command grants the OS permissions + checks the one external helper (cliclick),
+// command opens OS permission settings + checks the external helper (cliclick),
 // so "Vanta can drive my screen" is part of the build, not a separate program.
 // Routing through an external computer-use MCP (VANTA_CHICAGO_MCP) stays an
 // optional power-user upgrade on top of this native path.
@@ -24,12 +24,12 @@ export function toolPresent(run: CmdRunner, tool: string): boolean {
   }
 }
 
-/** Readiness of the native desktop-control substrate. */
+/** Dependency inventory only; no permission, perception or actuation probe. */
 export type DesktopDoctor = {
   os: NodeJS.Platform;
   screencapture: boolean;
   cliclick: boolean;
-  ready: boolean;
+  ready: boolean; // Compatibility field: dependencies present, NOT end-to-end readiness.
   notes: string[];
 };
 
@@ -40,7 +40,7 @@ export function desktopControlDoctor(run: CmdRunner = realRun, platform: NodeJS.
   const notes: string[] = [];
   if (platform !== "darwin") notes.push("Native desktop control is macOS-only right now.");
   if (!cliclick) notes.push("cliclick missing — install the click helper: brew install cliclick");
-  if (platform === "darwin") notes.push("Grant Screen Recording + Accessibility to your terminal (run `vanta control` to open both panes).");
+  if (platform === "darwin") notes.push("Screen Recording, Accessibility, a vision model and observe/action/readback are not verified. Permissions belong to the launching app or terminal; `vanta control` opens settings but cannot grant them.");
   return { os: platform, screencapture, cliclick, ready: screencapture && cliclick, notes };
 }
 
@@ -51,7 +51,7 @@ export function formatDoctor(d: DesktopDoctor): string {
     "Desktop control (native vision_action — screencapture → ground → cliclick):",
     `  ${yn(d.screencapture)} screencapture  (built-in macOS screen capture)`,
     `  ${yn(d.cliclick)} cliclick       (mouse + keyboard actuation)`,
-    `  ${d.ready ? "✓ READY — Vanta can see your screen and click/type on it" : "✗ not ready yet"}`,
+    `  ${d.ready ? "✓ Dependencies found — computer control is not verified" : "✗ Missing dependencies — computer control is not verified"}`,
     ...d.notes.map((n) => `  • ${n}`),
   ].join("\n");
 }
@@ -66,8 +66,8 @@ export type ControlDeps = {
 
 /**
  * `vanta control` (default `setup`) opens the Screen Recording + Accessibility
- * panes and reports readiness; `vanta control doctor` just reports. Exit 0 when
- * ready (doctor) / always 0 for setup (panes opened).
+ * panes and reports dependencies; `vanta control doctor` just reports. Exit 0
+ * means helpers are present, not that permissions or actions work.
  */
 export async function runControlCommand(repoRoot: string, rest: string[], deps: ControlDeps = {}): Promise<number> {
   const log = deps.log ?? console.log;

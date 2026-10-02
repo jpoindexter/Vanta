@@ -1,0 +1,52 @@
+import type { Conversation } from "../agent.js";
+import { type ProviderEffortLevel,type ProviderSpeed } from "../providers/model-settings.js";
+import { type RunEvent,type RunInput,type RunLineage } from "../runs/store.js";
+import type { RunSetup } from "../session.js";
+import { type EventLabel } from "../term/event-format.js";
+import { type DesktopAccessMode } from "./access-mode.js";
+import { type PendingApproval } from "./approval.js";
+import { type ProviderAuthRequired } from "./provider-auth-store.js";
+import { type SseClients } from "./session-state.js";
+import { DesktopTurnQueue } from "./turn-queue.js";
+
+export type DesktopEvent = EventLabel & { delta?: string };
+
+export type DesktopState = {
+  setup?: RunSetup;
+  _setupPromise?: Promise<RunSetup>;
+  _setupError?: { message: string; at: number };
+  _providerAuthRequired?: ProviderAuthRequired;
+  _chatActive?: boolean;
+  _chatAbort?: AbortController;
+  _chatDeltas?: string[];
+  _turnQueue?: DesktopTurnQueue;
+  _streamTextDeltas?: boolean;
+  convo?: Conversation;
+  root: string;
+  sessionId?: string;
+  sessionStarted?: string;
+  providerId?: string;
+  modelId?: string;
+  effortLevel?: ProviderEffortLevel;
+  providerSpeed?: ProviderSpeed;
+  currentEvents?: DesktopEvent[];
+  currentRunEvents?: RunEvent[];
+  activeRunCapture?: {
+    id: string;
+    instruction: string;
+    startedAt: string;
+    turnIndex: number;
+    inputs: RunInput[];
+    lineage: RunLineage;
+  };
+  pendingRunLineage?: RunLineage;
+  pendingRunPreparedAt?: number;
+  forceFreshApprovals?: boolean;
+  pendingApproval?: PendingApproval;
+  accessMode?: DesktopAccessMode;
+  runtimeHostBySession?: Record<string, string>;
+  _sseSessionId?: string;
+  _sseClients?: SseClients;
+  _env?: NodeJS.ProcessEnv;
+  _continuitySessionOff?: boolean;
+};

@@ -2,7 +2,7 @@ import type { KernelClient } from "../kernel/client.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import type { Tool, ToolContext } from "../tools/types.js";
 import { listSessions, loadSession } from "../sessions/store.js";
-import { executeToolEffect } from "../effects/tool-effect-gateway.js";
+import { executeGatewayToolEffect } from "../effects/tool-effect-gateway.js";
 import { randomUUID } from "node:crypto";
 
 // Minimal MCP (Model Context Protocol) SERVER — the mirror of client.ts. Exposes
@@ -170,12 +170,12 @@ async function callBridgeTool(
       return { ok: true, output: `${decision}d approval ${id}` };
     },
   };
-  const result = await executeToolEffect(name, args, bridge, {
+  const result = await executeGatewayToolEffect(name, args, bridge, {
     ...deps.ctx,
     safety: deps.safety,
     effectCallId: operationId,
     effectScopeId: deps.ctx.effectScopeId ?? serveScope(deps),
-  }, { forceGateway: true });
+  });
   return toolResult(result.output, !result.ok);
 }
 
@@ -198,12 +198,12 @@ async function callTool(
   const tool = deps.registry.get(name);
   if (!tool) return toolResult(`unknown tool: ${name}`, true);
 
-  const res = await executeToolEffect(name, args, tool, {
+  const res = await executeGatewayToolEffect(name, args, tool, {
     ...deps.ctx,
     safety: deps.safety,
     effectCallId: operationId,
     effectScopeId: deps.ctx.effectScopeId ?? serveScope(deps),
-  }, { forceGateway: true });
+  });
   return toolResult(res.output || "(empty result)", !res.ok);
 }
 

@@ -24,12 +24,22 @@ export function approvalPayload(p: PendingApproval): unknown {
 }
 
 export async function resolveApproval(p: PendingApproval, decision: ApprovalDecision): Promise<void> {
-  if (decision === "always") await grantAlways(p.toolName).catch(() => {});
-  if (decision === "never") await grantNever(p.toolName).catch(() => {});
+  if (decision === "always" || decision === "never") {
+    if (p.detail?.fresh) throw new Error("This action requires one-time approval; a saved rule cannot replace it.");
+    if (!p.toolName) throw new Error("Cannot save an approval rule without a tool name.");
+    try {
+      if (decision === "always") await grantAlways(p.toolName);
+      else await grantNever(p.toolName);
+    } catch {
+      // Do not silently turn a failed persistent choice into a one-time decision.
+      throw new Error("Could not save the approval rule. The action was not approved.");
+    }
+  }
   p.resolve(decision === "allow" || decision === "always");
 }
 
-export async function requestWebApproval(host: ApprovalHost, action: string, reason: string, toolName?: string, detail?: { diff?: string; fresh?: boolean }): Promise<boolean> {
+export async function requestWebApproval(host: ApprovalHost, action: string, reason: string, options?: string | Pick<PendingApproval, "toolName" | "detail">): Promise<boolean> {
+  const { toolName, detail } = typeof options === "string" ? { toolName: options } : options ?? {};
   if (host.pendingApproval) return false;
   return new Promise<boolean>((resolve) => {
     host.pendingApproval = { id: `${Date.now()}`, action, reason, toolName, detail, resolve };

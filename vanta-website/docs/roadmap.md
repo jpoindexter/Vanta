@@ -8,23 +8,41 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1288 capabilities shipped · 2 in flight · 13 parked external-proof items · 8 on the horizon. Updated 2026-08-29._
+_1288 capabilities shipped · 5 in flight · 14 parked external-proof items · 7 on the horizon. Updated 2026-10-02._
 
 ## In flight
 
 What we are actively building next.
 
-### Desktop operator dossier — outcome-first shell and progressive runtime disclosure
+### Desktop ambient workflow — one agent across chat, mini, work and results
 
-**Desktop App** · M-size
+**Operator** · L-size
 
-Recompose the existing Vanta Desktop capabilities into a quiet operator dossier: chat is home, the current outcome and next decision dominate, durable work has stable destinations, and model/runtime detail stays available without competing with the task
+Streamline the existing Vanta Desktop into one everyday workflow: invoke, give context, work, intervene, inspect results and resume or schedule. Keep the generalist engine, capabilities and revocable authority. White/grey with Vanta violet; optional mini/avatar opens the same workspace, not another agent
 
-### Desktop cold-operator release proof — one useful task without repo knowledge
+### Repository Git probe isolation — project configuration cannot execute host commands
 
-**Operator** · S-size
+**Harness** · M-size
 
-Run the first zero-cost external usability proof: a voluntary non-developer completes the current packaged Desktop work loop without Vanta repository context or paid recruiting, research, CI, hosting, or participant services
+Prevent a repository delivered with hostile Git configuration or attributes from executing host commands when Vanta automatically gathers status, diffs, history, worktree, goal, or review context before an approval prompt
+
+### Protected instruction writes — exact approval for every standing-order file
+
+**Harness** · M-size
+
+Extend Vanta's control-plane boundary from runtime state and agent-authored skills to every repository or operator file that can change standing instructions, tool authority, memory policy, verification policy, or future-session behavior
+
+### Local state recovery boundary — never silently lose operator truth
+
+**Harness** · L-size
+
+Make Vanta's canonical local sessions, WorkItems, runs, approvals, receipts, schedules, settings, and continuity state failure-atomic, concurrency-safe, recoverable, and visibly degraded instead of returning missing data after a partial write or corrupt file
+
+### Browser workflow boundary — observe, extract, and act under explicit policy
+
+**Operator** · L-size
+
+Make every current and future browser action use one explicit policy boundary. Navigation and extraction are read-only capabilities; click, fill, select, submit, upload, download, dialog handling, login, and authenticated reads declare their exact account, profile, domain, target, budget, authority, and expected evidence instead of inheriting a broad browser grant
 
 ## Recently shipped
 
@@ -66,6 +84,7 @@ These remain unshipped until the real provider, device, or hosted environment pr
 - **Shopify operations - scoped catalog, orders, inventory, and verified mutations** — Operator
 - **Telephony consent lifecycle - provision numbers, SMS, calls, callbacks, and retention** — Reach
 - **Commerce and telephony skill pack - Shopify, shopping, returns, SMS, and calls** — Reach
+- **Desktop cold-operator release proof — one useful task without repo knowledge** — Operator
 - **Desktop release-candidate provenance — notarize and bind the exact commit** — Desktop App
 - **Look capture — native macOS screen, window, or marquee vision from CLI and Desktop** — Operator
 
@@ -84,8 +103,4 @@ Directional, not committed — grouped by area, newest thinking first.
 
 - Trustworthy Needs You — deterministic, deduplicated, expiring, and auto-resolving
 - Contextual Review, first-run usefulness, and cross-host accessibility contract
-- Quarantined read-only morning orientation
-
-### Solutioning — 1 planned
-
-- Phase-0 trusted-continuity evidence lane — voluntary interviews, pilots, burden, and retention
+- Authenticated browser workspace — visible sessions, takeover, and revocation

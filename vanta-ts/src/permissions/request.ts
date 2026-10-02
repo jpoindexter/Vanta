@@ -7,6 +7,8 @@ export type PermissionRequest = {
   subject: string;
   reason: string;
   toolName?: string;
+  fresh?: boolean;
+  canRemember?: boolean;
   sections: PermissionSection[];
 };
 
@@ -32,6 +34,8 @@ export function buildPermissionRequest(args: Args): PermissionRequest {
     subject,
     reason: args.reason,
     toolName: args.toolName,
+    fresh: args.detail?.fresh === true,
+    canRemember: Boolean(args.toolName) && args.detail?.fresh !== true,
     sections: sectionsFor(kind, subject, args.action, args.detail),
   };
 }

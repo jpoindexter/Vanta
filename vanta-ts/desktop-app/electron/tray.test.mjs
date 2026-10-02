@@ -5,10 +5,8 @@ describe("tray controller", () => {
   it("surfaces online status, pending approval, quick ask, and pairing", async () => {
     const menus = [];
     class FakeTray { setToolTip() {} setContextMenu(menu) { menus.push(menu); } on() {} destroy() {} }
-    class FakeWindow {
-      static getAllWindows() { return []; }
-      isDestroyed() { return false; } on() {} async loadURL() {} show() {} focus() {} destroy() {}
-    }
+    const openWorkspace = vi.fn(async () => {});
+    const showAvatar = vi.fn();
     const dialog = { showMessageBox: vi.fn(async () => ({ response: 0 })) };
     const clipboard = { writeText: vi.fn() };
     const createFromNamedImage = vi.fn(() => ({ setTemplateImage() {} }));
@@ -16,7 +14,7 @@ describe("tray controller", () => {
     const controller = createTrayController({
       Tray: FakeTray, Menu: { buildFromTemplate: (items) => items },
       nativeImage: { createFromNamedImage, createEmpty: () => ({}) },
-      dialog, clipboard, BrowserWindow: FakeWindow, app: { quit() {} }, baseUrl: "http://127.0.0.1:7790", fetchImpl,
+      dialog, clipboard, openWorkspace, showAvatar, app: { quit() {} }, baseUrl: "http://127.0.0.1:7790", fetchImpl, boundaryToken: "local-test-boundary",
       platform: "darwin",
     });
     expect(createFromNamedImage).toHaveBeenCalledWith("ellipsis", { pointSize: 13, weight: "semibold" });
@@ -28,6 +26,14 @@ describe("tray controller", () => {
     await controller.pairMobile();
     expect(dialog.showMessageBox).toHaveBeenCalledWith(expect.objectContaining({ message: "BCDFGH" }));
     expect(clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining("192.168.1.4"));
+    expect(fetchImpl).toHaveBeenCalledWith("http://127.0.0.1:7790/api/companion/pair/start", expect.objectContaining({ headers: { "x-vanta-desktop-boundary": "local-test-boundary" } }));
+    expect(fetchImpl).toHaveBeenCalledWith("http://127.0.0.1:7790/api/companion/info", expect.objectContaining({ headers: { "x-vanta-desktop-boundary": "local-test-boundary" } }));
+    latest.find((item) => item.label === "Open Vanta").click();
+    await controller.openQuick();
+    latest.find((item) => item.label === "Show Vanta avatar").click();
+    expect(openWorkspace.mock.calls).toEqual([["full"], ["mini"]]);
+    expect(showAvatar).toHaveBeenCalledOnce();
     controller.dispose();
+    expect(openWorkspace.mock.calls).toHaveLength(2);
   });
 });

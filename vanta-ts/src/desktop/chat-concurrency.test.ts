@@ -28,8 +28,8 @@ function response() {
   };
 }
 
-function chatRequest(message: string, images?: Array<{ mime: string; dataBase64: string }>) {
-  const body = JSON.stringify({ message, ...(images ? { images } : {}) });
+function chatRequest(message: string, images?: Array<{ mime: string; dataBase64: string }>, sessionId?: string) {
+  const body = JSON.stringify({ message, ...(images ? { images } : {}), ...(sessionId ? { sessionId } : {}) });
   const req = { on: (event: string, listener: (value?: Buffer) => void) => { if (event === "data") listener(Buffer.from(body)); if (event === "end") listener(); return req; } } as any;
   return req;
 }
@@ -57,6 +57,16 @@ function recoveryState(send: FakeSend, root = "/repo"): DesktopState {
 }
 
 describe("desktop chat concurrency", () => {
+  it("rejects a stale renderer session before invoking the provider or recording a turn", async () => {
+    const send = vi.fn(async () => ({ finalText: "Must not run", iterations: 1, stoppedReason: "done" as const, toolIterations: 0 }));
+    const state = recoveryState(send);
+    const reply = response();
+    await handleChat(state, chatRequest("Wrong chat draft", undefined, "different-chat"), reply.res);
+    expect(reply.result()).toEqual({ status: 409, body: { error: "The active chat changed. Reopen the intended chat before sending." } });
+    expect(send).not.toHaveBeenCalled();
+    expect(state.convo?.messages).toHaveLength(1);
+  });
+
   it("rejects an overlapping turn before reading another request body", async () => {
     const state: DesktopState = { root: "/repo", _chatActive: true };
     const reply = response();

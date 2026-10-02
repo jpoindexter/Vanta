@@ -4,6 +4,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { _electron as electron } from "playwright-core";
+import { chatFirstProviderFixture } from "./lib/chat-first-provider-fixture.mjs";
+import { chatFirstRefreshProof } from "./lib/chat-first-refresh-proof.mjs";
 
 const home = await mkdtemp(join(tmpdir(), "vanta-desktop-long-session-home-"));
 const userData = await mkdtemp(join(tmpdir(), "vanta-desktop-long-session-profile-"));
@@ -12,6 +14,7 @@ const port = process.env.VANTA_DESKTOP_SMOKE_PORT ?? "7955";
 const executablePath = process.env.VANTA_DESKTOP_APP;
 const rendererErrors = [];
 let app;
+const provider = await chatFirstProviderFixture();
 
 try {
   await mkdir(join(home, "sessions"), { recursive: true });
@@ -30,13 +33,25 @@ try {
   let page = await readyPage(app);
   await openSession(page, "Navigate five hundred turns");
   await proveFixture(page);
+  assert.equal(await page.locator("#vanta-composer").isEnabled(), true, "the selected conversation must finish loading before keyboard input");
+  const typingAt = performance.now();
+  await page.locator("#vanta-composer").pressSequentially("Draft stays editable in a long chat.");
+  assert.equal(await page.locator("#vanta-composer").inputValue(), "Draft stays editable in a long chat.");
+  const typingMs = performance.now() - typingAt;
 
+  const scrollAt = performance.now();
   const detachedView = await detachAndPersist(page, 0.44);
+  const scrollAndPersistMs = performance.now() - scrollAt;
+  const switchAt = performance.now();
   await openSession(page, "Short comparison task");
+  const switchMs = performance.now() - switchAt;
   const afterShort = await storedView(page, "long-session-proof");
   assert.equal(afterShort?.anchorIndex, detachedView.anchorIndex, `opening another task should not overwrite the outgoing anchor: ${JSON.stringify(afterShort)}`);
+  const returnAt = performance.now();
   await openSession(page, "Navigate five hundred turns");
   await expectRestoredPosition(page, detachedView, "task switch");
+  const returnMs = performance.now() - returnAt;
+  assert.equal(await page.locator("#vanta-composer").inputValue(), "Draft stays editable in a long chat.");
 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.evaluate(() => {
@@ -55,6 +70,7 @@ try {
   await page.getByRole("button", { name: "Scroll to latest message" }).waitFor({ state: "detached" });
 
   await page.setViewportSize({ width: 760, height: 700 });
+  if (await page.locator(".chat-first-shell").count()) await page.getByRole("button", { name: "Hide sidebar", exact: true }).click();
   assert.equal(await page.locator(".prompt-markers").evaluate((element) => getComputedStyle(element).display), "none", "compact mode should hide the prompt minimap");
   await page.locator(".chat-thread").focus();
   await page.keyboard.press("PageUp");
@@ -74,7 +90,7 @@ try {
   await page.locator(".app-shell").waitFor();
   await page.getByRole("button", { name: "Scroll to latest message" }).getByText("New messages").waitFor();
   await expectRestoredPosition(page, streamView, "streamed delta");
-  await page.unroute("**/api/events");
+  await page.unroute("**/api/events**");
 
   const relaunchView = await detachAndPersist(page, 0.36);
   await app.close();
@@ -95,11 +111,30 @@ try {
     element.dispatchEvent(move);
   });
   await page.getByRole("button", { name: "Scroll to latest message" }).waitFor();
+  const stopMs = process.env.VANTA_MEASURE_STOP === "1" ? await measureStop(page) : null;
+  const refreshBoundary = process.env.VANTA_REFRESH_BOUNDARY_PROOF === "1" ? await chatFirstRefreshProof(page) : null;
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
-  process.stdout.write(`${JSON.stringify({ ok: true, target: executablePath ? "packaged" : "source", turns: 500, renderedMessages: await page.locator(".transcript-turn").count(), promptMarkers: 32, promptPreviews: true, taskSwitch: true, relaunch: true, streamingDetached: true, inputs: ["wheel", "touch", "keyboard"], viewports: ["1440x960", "1024x640", "760x700"], reducedMotion: true, measuredVirtualization: true })}\n`);
+  process.stdout.write(`${JSON.stringify({ ok: true, target: executablePath ? "packaged" : "source", turns: 500, renderedMessages: await page.locator(".transcript-turn").count(), promptMarkers: 32, promptPreviews: true, taskSwitch: true, relaunch: true, streamingDetached: true, inputs: ["wheel", "touch", "keyboard"], viewports: ["1440x960", "1024x640", "760x700"], reducedMotion: true, measuredVirtualization: true,
+    observedLatencyMs: { typing: typingMs, scrollAndPersist: scrollAndPersistMs, shortSwitch: switchMs, longReturn: returnMs, ...(stopMs === null ? {} : { stop: stopMs }) }, refreshBoundary, latencyBaseline: "single-run observation; comparison requires paired retained baseline receipts", syntheticModelRequests: provider.requests.length })}\n`);
 } finally {
   await app?.close().catch(() => undefined);
+  await provider.close();
   await Promise.all([rm(home, { recursive: true, force: true }), rm(userData, { recursive: true, force: true }), rm(project, { recursive: true, force: true })]);
+}
+
+async function measureStop(page) {
+  await page.locator("#vanta-composer").fill("Keep this response open for stop latency");
+  await page.locator("#vanta-composer").press("Enter");
+  const stop = page.getByRole("button", { name: /^(Stop current run|Stop task)$/ });
+  await stop.waitFor();
+  await page.waitForFunction(() => document.body.textContent.includes("Response streaming. Waiting for your next instruction."));
+  assert.equal(provider.requests.filter((request) => request.prompt.includes("Keep this response open for stop latency")).length, 1,
+    `the held response must reach the synthetic provider exactly once: ${JSON.stringify(provider.requests)}`);
+  const started = performance.now();
+  await stop.click();
+  await stop.waitFor({ state: "hidden" });
+  await page.waitForFunction(() => document.querySelector("#vanta-composer")?.disabled === false);
+  return performance.now() - started;
 }
 
 async function writeSession(id, title, messages, updated) {
@@ -111,7 +146,10 @@ async function launch() {
     ...(executablePath ? { executablePath } : {}),
     args: executablePath ? ["--project", project] : ["desktop-app/electron/main.mjs", "--project", project],
     cwd: process.cwd(),
-    env: { ...process.env, VANTA_HOME: home, VANTA_DESKTOP_USER_DATA: userData, VANTA_DESKTOP_PORT: port, VANTA_DESKTOP_AUTOMATION: "1", OPENAI_API_KEY: "vanta-long-session-proof-key", ELECTRON_DISABLE_SECURITY_WARNINGS: "1" },
+    env: { PATH: process.env.PATH ?? "/usr/bin:/bin:/opt/homebrew/bin", TMPDIR: tmpdir(), LANG: "en_US.UTF-8",
+      VANTA_HOME: home, VANTA_DESKTOP_USER_DATA: userData, VANTA_DESKTOP_PORT: port, VANTA_DESKTOP_AUTOMATION: "1",
+      VANTA_PROVIDER: "custom", VANTA_MODEL: "desktop-proof", VANTA_OPENAI_BASE_URL: provider.url,
+      VANTA_MCP_AUTO_MOUNT: "0", VANTA_PROMPT_SUGGESTIONS: "0", VANTA_OPERATING_MODE: "default", VANTA_PERMISSION_MODE: "default" },
   });
 }
 
@@ -126,12 +164,15 @@ async function readyPage(instance) {
 }
 
 async function openSession(page, title) {
-  const target = page.locator(".session-list .session").filter({ hasText: title }).first();
+  const target = page.locator(".chat-nav-open, .session-list .session").filter({ hasText: title }).first();
   await target.waitFor();
   await target.click();
   await page.locator(".chat-thread").waitFor();
   if (title.includes("five hundred")) await page.locator(".prompt-markers").waitFor();
   else await page.waitForFunction(() => document.querySelectorAll(".transcript-turn").length === 2);
+  // History renders before its draft and canonical refresh finish. Unlike fill,
+  // pressSequentially sends keys even when a textarea is still disabled.
+  await page.waitForFunction(() => document.querySelector("#vanta-composer")?.disabled === false);
 }
 
 async function proveFixture(page) {

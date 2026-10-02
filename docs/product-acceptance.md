@@ -1,6 +1,8 @@
 # Product acceptance
 
-Updated 2026-08-29. This record separates executed behavior from static tests,
+Updated 2026-10-02 with a local product-recovery addendum. Historical release
+receipts below retain their original version/date and are not current security attestations.
+This record separates executed behavior from static tests,
 repository integration, release state, and external setup gates. A receipt is
 evidence only for its exact version, environment, path, and marker.
 
@@ -12,6 +14,38 @@ release. Cross-platform packages, live external accounts, external
 participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
+
+The [October 2 application source checkpoint](development-checkpoint-2026-10-02.md)
+supersedes the earlier docs-only publication and size-gate status: 123 changed
+production files have zero size violations; 14,451 TypeScript tests pass with
+three unchanged optional live tests skipped. Package and source evidence remain
+separate. The following package receipt is the earlier installed checkpoint.
+
+The installed October 2 ambient-workspace candidate has ASAR SHA-256
+`b77ef4a81bfc92711654b2a40eb733d2897f6d64480ff201d09cfde99e55821a`.
+Strict macOS signature validation, both typechecks, and the full TypeScript suite
+(1,588 files; 14,445 passed; 3 skipped) passed. All 51 packaged interaction checks
+passed with a fixture provider and no renderer errors. The guarded updater
+installed that exact tested archive and retained a rollback copy without changing
+operator credentials, conversation state or the CLI installation. Mini/full and
+the optional avatar use the same workspace; no automatic context capture is added.
+
+Normal-profile draft retention, light appearance, current Codex models and
+mini/full/avatar interaction were observed on the preceding `bc2ee772…` package.
+The latest native replay attempt reported a locked Mac; that is a current replay
+limit, not a claim that earlier native checks were impossible. The latest package
+adds a visible compact permission control and avoids an access-mode shortcut
+collision. Its automated proof is not full normal-profile workflow acceptance.
+
+A real installed CLI research run produced and read back a 162-word cited brief;
+this does not establish Desktop research or native-app observe/action/readback.
+The earlier source-fetch failure remains failure evidence. Changed-source size
+lint now passes; dependency-security integration is not green. No whole card is cleared.
+See the [current workflow and evidence](desktop-ambient-workflow-2026-10-02.md).
+
+Dependency fixes on separate branches have not been integrated into this
+candidate; older zero-advisory statements and the now-expired documentation
+exception below must not be treated as a current security-green claim.
 
 | Evidence | Observed result | Does not establish |
 |---|---|---|

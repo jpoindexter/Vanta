@@ -1,15 +1,16 @@
-import type { ReceiptDisposition } from "../work-items/contract.js";
 import type { HostEffectOutcome } from "../agent/effect-persistence.js";
-import type { Tool, ToolContext, ToolResult } from "../tools/types.js";
+import type { Tool,ToolContext,ToolResult } from "../tools/types.js";
+import type { ReceiptDisposition } from "../work-items/contract.js";
 import {
-  executeEffect,
-  effectDescriptorSha256,
-  payloadSha256,
-  stableEffectId,
-  type EffectGateContext,
-  type EffectIntent,
+effectDescriptorSha256,
+executeEffect,
+payloadSha256,
+stableEffectId,
+type EffectGateContext,
+type EffectIntent,
 } from "./execute-effect.js";
-import { effectAuthority, effectScope } from "./gate-context.js";
+import { effectAuthority,effectScope } from "./gate-context.js";
+import { authorizeChildEffect,authorizeInnerAction } from "./tool-effect-approval.js";
 
 export type ToolEffectPolicy = "read-only" | "gateway";
 
@@ -155,71 +156,14 @@ function driftResult(name: string): ToolResult {
   };
 }
 
-function sameAction(left: string | undefined, right: string): boolean {
-  return left?.trim().toLocaleLowerCase() === right.trim().toLocaleLowerCase();
-}
-
-async function authorizeInnerAction(
-  ctx: ToolContext,
-  authority: NonNullable<ToolContext["effectAuthority"]>,
-  action: string,
-  reason: string,
-  toolName?: string,
-  detail?: { diff?: string; fresh?: boolean },
-): Promise<boolean> {
-  if (authority.consumeExactApproval && sameAction(authority.action, action)) return true;
-  let verdict: Awaited<ReturnType<ToolContext["safety"]["assess"]>>;
-  try {
-    verdict = await ctx.safety.assess(action);
-  } catch {
-    return false;
-  }
-  if (verdict.risk === "block") return false;
-  return ctx.requestApproval(
-    action,
-    reason,
-    toolName,
-    { ...detail, fresh: true },
-  );
-}
-
-async function authorizeChildEffect(
-  ctx: ToolContext,
-  intent: Pick<EffectIntent, "action" | "kind" | "targetClass" | "payloadSha256">,
-): Promise<"allowed" | "blocked" | "denied"> {
-  let verdict: Awaited<ReturnType<ToolContext["safety"]["assess"]>>;
-  try {
-    verdict = await ctx.safety.assess(intent.action);
-  } catch {
-    return "blocked";
-  }
-  if (verdict.risk === "block") return "blocked";
-  if (verdict.risk === "allow") return "allowed";
-  const approved = await ctx.requestApproval(
-    intent.action,
-    verdict.reason || "child effect requires approval",
-    undefined,
-    { fresh: true },
-  );
-  return approved ? "allowed" : "denied";
-}
-
 async function executeGatewayEffect(
   name: string,
   args: Record<string, unknown>,
   tool: Tool,
   ctx: ToolContext,
 ) {
-  const hash = payloadSha256(canonical(args));
-  const seed = {
-    host: "ordinary-tool-gateway",
-    kind: `tool.${name}`,
-    targetClass: name,
-    payloadSha256: hash,
-    idempotencyKey: `tool:${ctx.effectScopeId ?? ctx.sessionId ?? "direct"}:${ctx.effectCallId}`,
-  };
-  const action = tool.describeForSafety?.(args) ?? `execute ${name} with payload sha256:${hash}`;
-  const intent = { id: stableEffectId(seed), actor: name, action, ...seed };
+  const intent = toolEffectIntent(name, args, tool, ctx);
+  const { action } = intent;
   const descriptorSha256 = effectDescriptorSha256(intent);
   const authority = effectAuthority(
     ctx,
@@ -238,10 +182,7 @@ async function executeGatewayEffect(
       requestApproval: (innerAction, reason, toolName, detail) => authorizeInnerAction(
         ctx,
         authority!,
-        innerAction,
-        reason,
-        toolName,
-        detail,
+        { action: innerAction, reason, toolName, detail },
       ),
     });
     return {
@@ -280,10 +221,19 @@ export async function executeToolEffect(
   args: Record<string, unknown>,
   tool: Tool,
   ctx: ToolContext,
-  options: { forceGateway?: boolean } = {},
 ): Promise<ToolResult> {
   const policy = toolEffectPolicy(name);
-  if (!options.forceGateway && policy !== "gateway") return tool.execute(args, ctx);
+  if (policy !== "gateway") return tool.execute(args, ctx);
+  return executeGatewayToolEffect(name, args, tool, ctx);
+}
+
+/** Explicit forced gateway for composed pipeline steps, including read-only tools. */
+export async function executeGatewayToolEffect(
+  name: string,
+  args: Record<string, unknown>,
+  tool: Tool,
+  ctx: ToolContext,
+): Promise<ToolResult> {
   if (!ctx.effectCallId) return missingOperationId(name);
   try {
     return gatewayResult(name, await executeGatewayEffect(name, args, tool, ctx));
@@ -291,4 +241,17 @@ export async function executeToolEffect(
     if (error instanceof Error && error.message === "effect claim identity mismatch") return driftResult(name);
     throw error;
   }
+}
+
+function toolEffectIntent(name: string, args: Record<string, unknown>, tool: Tool, ctx: ToolContext): EffectIntent {
+  const hash = payloadSha256(canonical(args));
+  const seed = {
+    host: "ordinary-tool-gateway",
+    kind: `tool.${name}`,
+    targetClass: name,
+    payloadSha256: hash,
+    idempotencyKey: `tool:${ctx.effectScopeId ?? ctx.sessionId ?? "direct"}:${ctx.effectCallId}`,
+  };
+  const action = tool.describeForSafety?.(args) ?? `execute ${name} with payload sha256:${hash}`;
+  return { id: stableEffectId(seed), actor: name, action, ...seed };
 }

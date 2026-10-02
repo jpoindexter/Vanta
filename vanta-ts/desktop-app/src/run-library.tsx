@@ -73,12 +73,7 @@ function RunDetail(props: {
       <section className="run-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="run-detail-title">
         <header><div><span>Reusable run</span><h2 id="run-detail-title">{props.run.title}</h2></div><button type="button" onClick={props.onClose} aria-label="Close run details"><X size={16} /></button></header>
         <div className="run-detail-body">
-          <section className="run-overview"><div><strong>{props.run.status}</strong><span>{props.run.provenance === "derived" ? "Incomplete provenance · derived from a legacy session" : "Captured provenance"}</span></div><div><strong>{props.run.providerId ?? "Unknown provider"}</strong><span>{props.run.modelId ?? "Unknown model"}</span></div><div><strong>{props.run.events.filter((event) => event.kind === "tool_start").length} tools</strong><span>{props.run.inputs.length} inputs</span></div></section>
-          <details open><summary>Prompt</summary><pre>{props.run.prompt}</pre></details>
-          <details><summary>Inputs <span>{props.run.inputs.length}</span></summary>{props.run.inputs.length ? <ul>{props.run.inputs.map((input) => <li key={input.path}><FileText size={13} /><span>{input.path}</span><em>{input.capture}</em></li>)}</ul> : <p className="muted">No structured file inputs were captured.</p>}</details>
-          <details><summary>Timeline <span>{props.run.events.length}</span></summary>{props.run.events.length ? <ol>{props.run.events.map((event, index) => <li key={`${event.at}-${index}`}><span>{event.kind === "approval" ? <ShieldCheck size={13} /> : <History size={13} />}</span><div><strong>{event.toolName ?? event.kind}</strong><small>{event.approval?.decision ?? (event.ok === false ? "failed" : event.kind)}</small></div></li>)}</ol> : <p className="muted">No detailed events were available.</p>}</details>
-          <details><summary>Final output</summary><pre>{props.run.finalOutput}</pre></details>
-          <details><summary>Provenance</summary><p>Session {props.run.sessionId} · turn {props.run.turnIndex + 1} · {props.run.lineage.mode}{props.run.lineage.parentRunId ? ` of ${props.run.lineage.parentRunId}` : ""}</p></details>
+          <RunRecordDetails run={props.run} />
           {preview ? <ReplayReview preview={preview} acknowledged={acknowledged} onAcknowledge={setAcknowledged} /> : null}
           {error ? <p className="run-library-error" role="alert">{error}</p> : null}
         </div>
@@ -86,7 +81,7 @@ function RunDetail(props: {
           <button type="button" disabled={!!busy} onClick={() => void act("save", async () => props.onUpdated(await props.controller.save(props.run.id, !props.run.saved)))}>{props.run.saved ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}{props.run.saved ? "Saved" : "Save run"}</button>
           {props.run.saved ? <button className="danger" type="button" disabled={!!busy} onClick={() => void act("delete", async () => { await props.controller.remove(props.run.id); props.onClose(); })}><Trash2 size={14} />Delete saved run</button> : null}
           <button type="button" disabled={!!busy} onClick={() => void act("fork", async () => props.onPrepared(await props.controller.prepare(props.run.id, "fork")))}><GitFork size={14} />Fork</button>
-          {!preview ? <button className="primary" type="button" disabled={!!busy} onClick={() => void act("preview", async () => setPreview(await props.controller.preview(props.run.id)))}><Play size={14} />Review replay</button> : <button className="primary" type="button" disabled={!!busy || (!preview.canExecute && !acknowledged)} onClick={() => void act("replay", async () => props.onPrepared(await props.controller.prepare(props.run.id, "replay", { acknowledgeDrift: acknowledged })))}><Play size={14} />Replay now</button>}
+          {!preview ? <button className="primary" type="button" disabled={!!busy} onClick={() => void act("preview", async () => setPreview(await props.controller.preview(props.run.id)))}><Play size={14} />Review replay</button> : <button className="primary" type="button" disabled={!!busy || (!preview.canExecute && !acknowledged)} onClick={() => void act("replay", async () => props.onPrepared(await props.controller.prepare(props.run.id, "replay", { acknowledgeDrift: acknowledged })))}><Play size={14} />Prepare replay</button>}
         </footer>
       </section>
     </div>
@@ -101,4 +96,15 @@ function ReplayReview(props: { preview: ReplayPreview; acknowledged: boolean; on
     { label: "Model", recorded: props.preview.model.recorded ?? "Unavailable", current: props.preview.model.current ?? "Unavailable", changed: props.preview.model.changed },
   ];
   return <section className="replay-review"><h3>Replay review</h3><p>{props.preview.warning}</p><dl>{comparison.map((item) => <div key={item.label}><dt>{item.label}</dt><dd><span>{item.recorded}</span><span>{item.current}</span><em className={item.changed ? "changed" : "ready"}>{item.changed ? "changed" : "match"}</em></dd></div>)}<div><dt>Tools</dt><dd><span>{props.preview.tools.recorded.length ? `${props.preview.tools.recorded.length} recorded` : "None recorded"}</span><span>{props.preview.tools.unavailable.length ? props.preview.tools.unavailable.join(", ") : "All available"}</span><em className={props.preview.tools.unavailable.length ? "changed" : "ready"}>{props.preview.tools.unavailable.length ? "drift" : "match"}</em></dd></div></dl><h4>Inputs</h4><ul>{props.preview.inputs.map((input) => <li key={input.path}><span>{input.path}</span><em className={input.state}>{input.state}</em></li>)}</ul>{drift.length ? <label><input type="checkbox" checked={props.acknowledged} onChange={(event) => props.onAcknowledge(event.target.checked)} />I reviewed the changed or unavailable inputs and accept replay with the current inputs.</label> : <p className="replay-ready"><ShieldCheck size={14} />Inputs match. The new run will request fresh approvals.</p>}</section>;
+}
+
+function RunRecordDetails({ run }: { run: RunRecord }) {
+  return <>
+          <section className="run-overview"><div><strong>{run.status}</strong><span>{run.provenance === "derived" ? "Incomplete provenance · derived from a legacy session" : "Captured provenance"}</span></div><div><strong>{run.providerId ?? "Unknown provider"}</strong><span>{run.modelId ?? "Unknown model"}</span></div><div><strong>{run.events.filter((event) => event.kind === "tool_start").length} tools</strong><span>{run.inputs.length} inputs</span></div></section>
+          <details open><summary>Prompt</summary><pre>{run.prompt}</pre></details>
+          <details><summary>Inputs <span>{run.inputs.length}</span></summary>{run.inputs.length ? <ul>{run.inputs.map((input) => <li key={input.path}><FileText size={13} /><span>{input.path}</span><em>{input.capture}</em></li>)}</ul> : <p className="muted">No structured file inputs were captured.</p>}</details>
+          <details><summary>Timeline <span>{run.events.length}</span></summary>{run.events.length ? <ol>{run.events.map((event, index) => <li key={`${event.at}-${index}`}><span>{event.kind === "approval" ? <ShieldCheck size={13} /> : <History size={13} />}</span><div><strong>{event.toolName ?? event.kind}</strong><small>{event.approval?.decision ?? (event.ok === false ? "failed" : event.kind)}</small></div></li>)}</ol> : <p className="muted">No detailed events were available.</p>}</details>
+          <details><summary>Final output</summary><pre>{run.finalOutput}</pre></details>
+          <details><summary>Provenance</summary><p>Session {run.sessionId} · turn {run.turnIndex + 1} · {run.lineage.mode}{run.lineage.parentRunId ? ` of ${run.lineage.parentRunId}` : ""}</p></details>
+  </>;
 }

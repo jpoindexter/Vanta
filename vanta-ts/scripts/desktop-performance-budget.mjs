@@ -5,6 +5,7 @@ import { join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { _electron as electron } from "playwright-core";
 import { evaluatePerformanceBudgets, evaluateSampleHardMax, median, performanceFailureMessage } from "./lib/desktop-performance-budget.mjs";
+import { chatFirstProviderFixture } from "./lib/chat-first-provider-fixture.mjs";
 
 const run = promisify(execFile);
 const root = process.cwd();
@@ -23,6 +24,7 @@ const projectContainer = await mkdtemp(join(tmpdir(), "vanta-performance-project
 const project = join(projectContainer, "performance-proof-project");
 const scratchPaths = [home, userData, projectContainer];
 let app;
+const provider = await chatFirstProviderFixture();
 
 try {
   await mkdir(project, { recursive: true });
@@ -45,14 +47,15 @@ try {
   await page.locator("#vanta-composer").fill("run the performance proof");
   const firstUseAt = performance.now();
   await page.locator("#vanta-composer").press("Enter");
-  await page.getByRole("button", { name: "Stop current run" }).waitFor();
+  const stop = page.getByRole("button", { name: /^(Stop current run|Stop task)$/ });
+  await stop.waitFor();
   const activeSamples = [];
   for (let index = 0; index < 3; index += 1) {
     await new Promise((resolveDelay) => setTimeout(resolveDelay, 200));
     activeSamples.push(await processTreeMetrics(app.process().pid));
   }
   releaseResponse?.();
-  await page.getByText("Performance proof completed.").waitFor();
+  await stop.waitFor({ state: "hidden" });
   const firstUseMs = performance.now() - firstUseAt;
   await app.close();
   app = undefined;
@@ -97,6 +100,7 @@ try {
   process.stdout.write(`${JSON.stringify({ target, metrics, evidence: { coldStartSamplesMs: coldStartSamplesMs.map(round), coldStartWorstMs: round(sampleResult.worst) }, budgets: result.results })}\n`);
 } finally {
   if (app) await app.close().catch(() => undefined);
+  await provider.close();
   await Promise.all(scratchPaths.map((path) => rm(path, { recursive: true, force: true })));
 }
 
@@ -107,19 +111,27 @@ async function launchMeasuredApp(paths) {
     args: ["--project", paths.project],
     cwd: root,
     env: {
-      ...process.env,
+      PATH: process.env.PATH ?? "/usr/bin:/bin:/opt/homebrew/bin", HOME: process.env.HOME,
+      TMPDIR: tmpdir(), LANG: "en_US.UTF-8",
       VANTA_HOME: paths.home,
       VANTA_DESKTOP_USER_DATA: paths.userData,
       VANTA_DESKTOP_PORT: String(paths.port),
       VANTA_DESKTOP_AUTOMATION: "1",
-      OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "vanta-performance-proof-key",
+      VANTA_PROVIDER: "custom", VANTA_MODEL: "desktop-proof", VANTA_OPENAI_BASE_URL: provider.url,
+      VANTA_MCP_AUTO_MOUNT: "0", VANTA_PROMPT_SUGGESTIONS: "0", VANTA_OPERATING_MODE: "default", VANTA_PERMISSION_MODE: "default",
       ELECTRON_DISABLE_SECURITY_WARNINGS: "1",
     },
   });
-  const page = await launchedApp.firstWindow();
-  page.setDefaultTimeout(30_000);
-  await page.locator(".app-shell").waitFor();
-  return { app: launchedApp, page, coldStartMs: performance.now() - coldStartAt };
+  try {
+    const page = await launchedApp.firstWindow();
+    page.setDefaultTimeout(30_000);
+    await page.locator(".app-shell").waitFor();
+    await page.waitForFunction(() => !document.querySelector("#vanta-composer")?.disabled);
+    return { app: launchedApp, page, coldStartMs: performance.now() - coldStartAt };
+  } catch (error) {
+    await launchedApp.close().catch(() => undefined);
+    throw error;
+  }
 }
 
 async function processTreeMetrics(rootPid) {

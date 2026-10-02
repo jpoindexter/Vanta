@@ -105,7 +105,7 @@ try {
       }),
     });
   });
-  await runDialog.getByRole("button", { name: "Replay now" }).click();
+  await runDialog.getByRole("button", { name: "Prepare replay" }).click();
   await page.getByText("Fresh replay turn completed.", { exact: true }).first().waitFor();
   if (!replayPayload?.message?.startsWith("Review the current project roadmap") || replayPayload?.files?.[0] !== "roadmap.json") {
     throw new Error("Replay did not submit a fresh turn with structured input metadata");

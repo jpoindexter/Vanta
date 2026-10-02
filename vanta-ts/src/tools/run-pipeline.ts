@@ -11,7 +11,7 @@ import {
   runPipeline,
   type ToolResultLike,
 } from "../workflow/rpc-pipeline.js";
-import { executeToolEffect } from "../effects/tool-effect-gateway.js";
+import { executeGatewayToolEffect } from "../effects/tool-effect-gateway.js";
 
 const estTokens = (chars: number) => Math.ceil(chars / 4);
 
@@ -23,7 +23,7 @@ function gatedCallTool(registry: ToolRegistry, ctx: ToolContext) {
     const tool = registry.get(toolName);
     if (!tool) return { ok: false, output: `unknown tool: ${toolName}` };
     const effectCallId = `${pipelineOperationId}:pipeline:${step++}`;
-    const res = await executeToolEffect(toolName, args, tool, { ...ctx, effectCallId }, { forceGateway: true });
+    const res = await executeGatewayToolEffect(toolName, args, tool, { ...ctx, effectCallId });
     return { ok: res.ok, output: res.output };
   };
 }

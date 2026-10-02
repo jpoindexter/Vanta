@@ -32,17 +32,27 @@ contract, accessible interruption/re-entry, and one read-only operator spine.
 This source stack is still awaiting repository integration and is not the
 public Desktop release. Cross-platform packages, live external accounts,
 external participants, and future effect paths remain separate proof gates.
-The voluntary, zero-cost Desktop cold-operator proof is the sole Next card.
-`GROW-01` is deferred to Horizon behind it. No paid participants, recruiting,
-research platforms, GitHub Actions, hosting, outreach, or other new service
-spend is authorized.
+As of October 2, the whole ambient Desktop workflow is Building. Four internal
+Next cards cover Git probe isolation, standing-instruction writes, local-state
+recovery and browser action boundaries. The unfamiliar-person proof and
+`GROW-01` remain Parked. No paid participants, recruiting, research platforms,
+GitHub Actions, hosting, outreach, or other new service spend is authorized.
 
-The current runtime dependency graph reports zero npm advisories. The static
-documentation toolchain retains two upstream `image-size` advisories with no
-patched release; npm reports their dependency path through 19 Docusaurus
-packages. The affected parsers are disabled, repository build inputs are
-signature-scanned before Docusaurus runs, and the narrow local exception fails
-on any new advisory or after 2026-10-01.
+The local ambient-workspace candidate passed 51 packaged fixture interactions
+and 14,445 TypeScript tests, with 3 skipped. It adds white/grey appearance,
+same-workspace mini/full views, and an optional avatar without automatic capture.
+Local signed installation is not a public release or live Desktop computer-control
+proof. Source tests and the preceding package's normal-profile checks have
+distinct boundaries; the whole workflow remains incomplete.
+
+Dependency remediation from separate branches is not integrated into this
+candidate. Older zero-advisory claims and the documentation exception that
+expired on October 1 must not be presented as current security clearance.
+The application-source checkpoint now passes the size gate across 123 changed
+production files. Its full TypeScript run has 14,451 passes and 3 unchanged
+optional live-test skips. The implementation and notes are available in
+[draft PR #59](https://github.com/jpoindexter/Vanta/pull/59), not merged into
+the default branch or released. No whole roadmap card is cleared by this checkpoint.
 
 ## State and proof
 
