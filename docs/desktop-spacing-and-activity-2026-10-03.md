@@ -109,6 +109,37 @@ use disposable fixture data, not a fresh live-provider run. Re-entry: open
 `/Applications/Vanta.app`, confirm the unchanged draft, expand/collapse Web fetch
 in the existing research conversation, and check the final compact row spacing.
 
+### Direct installed-binary continuation
+
+The next continuation rechecked native access; the UI tool again reported the
+Mac locked. It then extended the real packaged permission replay with **Never
+allow**: select it in the actual approval UI, observe the unchanged disposable
+file and persisted deny rule, restart the app, create another chat, propose the
+same edit, and observe no prompt, no file change and no automatic retry.
+
+Executed from `vanta-ts/`:
+
+```sh
+node --check scripts/lib/chat-first-permission-proof.mjs
+VANTA_DESKTOP_APP=/Applications/Vanta.app/Contents/MacOS/Vanta node scripts/desktop-chat-first-proof.mjs
+```
+
+Both exited 0. The full replay now passes **61 checks**, with **31 synthetic
+local-provider requests** and **zero renderer errors**. It exercises the actual
+installed binary, whose ASAR still matches `1eb44d03…` above. No runtime code,
+operator profile, installed bundle or authority setting changed. The synthetic
+model requested bounded edits only inside a disposable project; the real
+Desktop, approval UI, persistence and kernel handled them. Expected non-Git
+fixture diagnostics are not renderer errors.
+
+This additionally establishes remembered denial, not native computer control or
+operator-profile acceptance. It does not test changing an existing remembered
+allow through a Desktop settings screen. No new video was recorded while native
+UI access remained unavailable. Evidence remains local in
+`vanta-ts/.artifacts/installed-permission-proof-2026-10-03.log` and the packaged
+proof result/captures. The canonical Desktop card stays Building and points to
+this report; no status or acceptance criterion is relaxed.
+
 ## Boundaries
 
 No protected Rust/factory/MANIFESTO, runtime policy, live-account, operator state,

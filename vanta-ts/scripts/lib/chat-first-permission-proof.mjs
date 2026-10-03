@@ -40,6 +40,7 @@ export async function permissionPersistenceProof(ctx) {
       assert.equal(await readFile(join(ctx.project, "brief.md"), "utf8"), original);
     } finally { await rmdir(rules); await rename(`${rules}.backup`, rules); }
   });
+  await rememberedDenialProof(ctx);
   await ctx.check("a blocked result with an open checklist stops without a forced continuation", async () => {
     const page = ctx.getPage();
     await page.locator("button.chat-new").click();
@@ -51,5 +52,34 @@ export async function permissionPersistenceProof(ctx) {
     assert.equal(await readFile(join(ctx.project, "brief.md"), "utf8"), original);
     assert(!ctx.fixture.requests.slice(before).some((request) => request.prompt.startsWith("Continue —")));
     await ctx.capture("19-blocked-without-forced-continuation");
+  });
+}
+
+async function rememberedDenialProof(ctx) {
+  await ctx.check("Never allow survives packaged restart and a new chat without changing the file", async () => {
+    const rules = join(ctx.proofHome, "permissions.tsv");
+    const target = join(ctx.project, "brief.md");
+    await writeFile(rules, ""); // Disposable profile only; never operator permissions.
+    await writeFile(target, original);
+    let page = ctx.getPage();
+    await page.locator("button.chat-new").click();
+    await ctx.send("Approval proof remember denial: propose the bounded edit.");
+    const approval = page.locator(".inline-approval");
+    await approval.getByText("More permission options", { exact: true }).click();
+    await approval.getByRole("button", { name: "Never allow this tool", exact: true }).click();
+    await ctx.idle();
+    assert.match(await readFile(rules, "utf8"), /deny\tedit_file/);
+    assert.equal(await readFile(target, "utf8"), original);
+    await ctx.restart(); page = ctx.getPage();
+    await page.locator("button.chat-new").click();
+    const prompt = "Approval proof denied in another task: do not reuse prior allow authority.";
+    const before = ctx.fixture.requests.length;
+    await ctx.send(prompt);
+    await page.getByText(`Local provider reply: ${prompt}`, { exact: true }).waitFor();
+    await ctx.idle();
+    assert.equal(await page.locator(".inline-approval").count(), 0);
+    assert.equal(await readFile(target, "utf8"), original);
+    assert.equal(ctx.fixture.requests.length - before, 2, "denied action must not trigger automatic retries");
+    await ctx.capture("20-remembered-denial");
   });
 }
