@@ -3,8 +3,8 @@
 .lc-tool-activity, .lc-run-activity { width: min(var(--chat-measure, 768px), 100%); margin: 0 auto 4px; }
 .lc-tool-group, .lc-trace-row { min-width: 0; border: 0; padding: 0; margin: 0; background: transparent; }
 .lc-tool-group > summary, .lc-trace-row > summary {
-  display: flex; align-items: center; gap: 8px; min-height: 36px;
-  padding: 4px; color: var(--muted); border-radius: 6px; cursor: pointer; list-style: none;
+  display: flex; align-items: center; gap: var(--space-2); min-height: 36px;
+  padding: var(--space-1) 0; color: var(--muted); border-radius: var(--radius-md); cursor: pointer; list-style: none;
   font-size: 13px; line-height: 1.5;
 }
 .lc-tool-group > summary::-webkit-details-marker, .lc-trace-row > summary::-webkit-details-marker { display: none; }
@@ -12,7 +12,8 @@
 .lc-tool-group > summary:focus-visible, .lc-trace-row > summary:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
 .lc-tool-group > summary > svg, .lc-trace-row > summary > svg { flex-shrink: 0; }
 .lc-activity-label { min-width: 0; overflow-wrap: anywhere; }
-.lc-activity-meta { margin-inline-start: auto; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.lc-activity-meta { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.lc-tool-group > summary > .lc-activity-chevron { margin-inline-start: var(--space-1); }
 .lc-tool-group[open] > summary { color: var(--text); }
 .lc-tool-group[open] > summary .lc-activity-chevron, .lc-trace-row[open] > summary .lc-activity-chevron { transform: rotate(90deg); }
 .lc-activity-rail { border-inline-start: 1px solid var(--line-strong); margin: 2px 0 8px 10px; padding-inline-start: 16px; }

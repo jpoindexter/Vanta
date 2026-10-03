@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Archive, Folder, MessageSquarePlus, Search } from "lucide-react";
+import { Archive, ChevronDown, Folder, MessageSquarePlus, Search } from "lucide-react";
 import { ChatWorkspaceNavigation } from "./chat-workspace-navigation.js";
 import { chatGroups } from "./chat-first-navigation.js";
 import { ChatRow } from "./chat-first-row.js";
@@ -12,17 +12,21 @@ type Props = { state: ChatFirstState; actions: ChatFirstActions };
 export function ChatFirstSidebar({ state, actions }: Props) {
   const [query, setQuery] = useState("");
   const [archived, setArchived] = useState(false);
+  const [searching, setSearching] = useState(false);
   const locked = state.convo.busy || state.pending || !state.ready;
   return <aside className="chat-sidebar lc-sidebar" data-expanded={state.sidebar} aria-label="Chat navigation" id="chat-navigation">
-    {state.sidebar ? <header><strong className="chat-wordmark">vanta<span aria-hidden="true">.</span></strong></header> : null}
     <div className="lc-sidebar-body">
-    <ChatWorkspaceNavigation state={state} locked={locked} onNewChat={() => void actions.navigate()} />
+    <ChatWorkspaceNavigation state={state} />
     {state.sidebar ? <div className="lc-history-panel">
+    <header className="chat-history-header">
+      <button className="chat-brand-button" type="button" aria-label="Vanta settings" onClick={state.data.openSettings}><strong className="chat-wordmark">Vanta</strong><ChevronDown size={12} /></button>
+      <button className="chat-icon" type="button" aria-label="Find chats" aria-expanded={searching} onClick={() => setSearching(!searching)}><Search size={16} /></button>
+    </header>
     <button className="chat-new" type="button" disabled={locked} onClick={() => void actions.navigate()}><MessageSquarePlus size={18} />New chat<kbd>⌘ N</kbd></button>
-    <label className="chat-search"><Search size={16} aria-hidden="true" /><span className="sr-only">Search chats</span>
-      <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search chats" /></label>
-    <div className="chat-list-heading"><span>{archived ? "Archived chats" : "Your chats"}</span>
-      <button className="chat-icon" type="button" aria-label={archived ? "Show recent chats" : "Show archived chats"} aria-pressed={archived} onClick={() => setArchived(!archived)}><Archive size={15} /></button></div>
+    {searching ? <div className="chat-search-row"><label className="chat-search"><Search size={14} aria-hidden="true" /><span className="sr-only">Search chats</span>
+      <input autoFocus type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search chats" /></label>
+      <button className="chat-icon" type="button" aria-label={archived ? "Show recent chats" : "Show archived chats"} aria-pressed={archived} onClick={() => setArchived(!archived)}><Archive size={15} /></button></div> : null}
+    {!searching && (query || archived) ? <button className="chat-filter-reset" type="button" onClick={() => { setQuery(""); setArchived(false); }}>Clear {archived ? "archived" : "search"} filter</button> : null}
     <ChatHistory state={state} actions={actions} locked={locked} query={query} archived={archived} />
     </div> : null}
     </div>

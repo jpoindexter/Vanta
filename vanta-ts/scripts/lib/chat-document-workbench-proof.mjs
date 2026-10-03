@@ -9,6 +9,8 @@ export async function documentWorkbenchProof({ page, check, fixture, capture }) 
     await page.getByRole("button", { name: "Files", exact: true }).click();
     await page.getByRole("button", { name: "Read brief.md", exact: true }).first().click();
     await page.getByRole("heading", { name: "Local desktop proof", exact: true }).waitFor();
+    assert.equal(await page.getByRole("navigation", { name: "Open documents", exact: true }).count(), 1);
+    assert.equal(await page.locator(".chat-inspector .chat-document-tabs").count(), 0);
     assert.equal(await page.locator("#vanta-composer").inputValue(), draft);
     assert.equal(fixture.requests.length, requests);
     await scanAccessibility(page, "Document beside conversation");

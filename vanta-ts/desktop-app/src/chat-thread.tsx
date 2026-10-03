@@ -74,7 +74,7 @@ function ActiveRunStatus(props: ChatThreadProps) {
   const recovery = props.recovery;
   return <>
       {props.busy ? <div className="thinking"><i />Working...</div> : null}
-      {props.events.length && props.events[0]?.label !== "No tool activity yet." ? <EventTimeline events={props.events} /> : null}
+      {props.events.length && props.events[0]?.label !== "No tool activity yet." ? <EventTimeline events={props.events} running={props.busy} /> : null}
       {recovery ? <RunRecovery receipt={recovery} onRetry={props.onRetry} onReconnect={() => props.onReconnect?.()} onEdit={() => props.onPrompt(recovery.checkpoint?.instruction ?? "")} onCheckpoint={() => props.onPrompt(checkpointPrompt(recovery))} /> : null}
   </>;
 }

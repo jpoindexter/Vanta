@@ -17,7 +17,7 @@ export async function libreChatShellProof({ page, app, check, fixture, capture, 
     await composer.fill("Keep this unsent draft across the LibreChat-derived shell.");
     await page.getByRole("button", { name: "Hide sidebar", exact: true }).click();
     const rail = page.getByRole("navigation", { name: "Workspace navigation", exact: true });
-    await rail.getByRole("button", { name: "New chat", exact: true }).waitFor();
+    await page.getByRole("button", { name: "Start new chat", exact: true }).waitFor();
     for (const [action, heading] of [["Connections", "Connections"], ["Activity", "Today"]]) {
       const button = rail.getByRole("button", { name: action, exact: true });
       await button.focus(); await page.keyboard.press("Enter");
@@ -28,7 +28,7 @@ export async function libreChatShellProof({ page, app, check, fixture, capture, 
     }
     await scanAccessibility(page, "Collapsed LibreChat-derived rail");
     await capture("librechat-collapsed-draft");
-    await rail.getByRole("button", { name: "Show sidebar", exact: true }).click();
+    await page.getByRole("button", { name: "Show sidebar", exact: true }).click();
     assert.equal(fixture.requests.length, before);
     await composer.fill("");
   });
@@ -49,8 +49,7 @@ export async function libreChatShellProof({ page, app, check, fixture, capture, 
     assert(context.y < 60 && context.x + context.width <= 1440, "inspector escaped the window");
     await capture("librechat-collapsed-inspector");
     await page.keyboard.press("Escape");
-    await page.getByRole("navigation", { name: "Workspace navigation", exact: true })
-      .getByRole("button", { name: "Show sidebar", exact: true }).click();
+    await page.getByRole("button", { name: "Show sidebar", exact: true }).click();
     await window.evaluate((win, dimensions) => win.setContentSize(...dimensions), size);
   });
 }

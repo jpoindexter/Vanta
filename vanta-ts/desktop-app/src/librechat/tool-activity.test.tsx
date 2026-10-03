@@ -52,7 +52,7 @@ describe("LibreChat-derived compact tool activity", () => {
   });
 
   it("keeps failed and active activity outside the collapsed completed evidence", () => {
-    const doc = documentFor(<EventTimeline events={[
+    const doc = documentFor(<EventTimeline running events={[
       { label: "Read source", kind: "tool_end", name: "read_file", ok: true, detail: "full source" },
       { label: "Write rejected", kind: "tool_end", name: "write_file", ok: false, detail: "Permission denied" },
       { label: "Waiting for tool", kind: "tool_start", name: "web_fetch" },
@@ -74,6 +74,19 @@ describe("LibreChat-derived compact tool activity", () => {
     const doc = documentFor(<EventTimeline events={events} />);
     expect(doc.querySelectorAll(".lc-completed-trace pre")).toHaveLength(9);
     for (const event of events) expect(doc.textContent).toContain(event.detail);
+  });
+
+  it("never presents saved or stopped activity as still running", () => {
+    const doc = documentFor(<EventTimeline running={false} events={[
+      { label: "→ shell_cmd", detail: "Launch requested" },
+      { label: "Launch failed", ok: false, detail: "Application unavailable" },
+    ]} />);
+    expect(doc.querySelector('[data-status="active"]')).toBeNull();
+    expect(doc.querySelector(".lc-completed-trace")?.textContent).toContain("Launch requested");
+    expect(doc.querySelector('[data-status="recorded"]')?.textContent).toContain("Outcome not recorded");
+    expect(doc.querySelector('[data-status="attention"]')?.hasAttribute("open")).toBe(true);
+    expect(doc.textContent).toContain("Application unavailable");
+    expect(doc.textContent).not.toContain("success");
   });
 
   it("does not render a blank assistant bubble before a tool-only turn", () => {

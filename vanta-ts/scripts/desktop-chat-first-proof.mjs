@@ -15,6 +15,7 @@ import { documentLinksProof } from "./lib/chat-document-links-proof.mjs";
 import { desktopSurfaceProof } from "./lib/desktop-surface-proof.mjs";
 import { libreChatShellProof } from "./lib/librechat-shell-proof.mjs";
 import { libreChatLayoutProof } from "./lib/librechat-layout-proof.mjs";
+import { chatTypographyProof } from "./lib/chat-typography-proof.mjs";
 
 const root = await mkdtemp(join(tmpdir(), "vanta-chat-first-proof-"));
 const project = join(root, "project");
@@ -77,7 +78,8 @@ async function api(path) {
 try {
   await launch();
   await check("new profile starts white and grey; theme choice persists across reload", async () => {
-    assert.equal(await page.locator(".chat-first-shell").evaluate((el) => getComputedStyle(el).backgroundColor), "rgb(255, 255, 255)");
+    assert.equal(await page.locator(".chat-titlebar").evaluate((el) => getComputedStyle(el).backgroundColor), "rgb(247, 247, 248)");
+    assert.equal(await page.locator(".chat-main-column").evaluate((el) => getComputedStyle(el).backgroundColor), "rgb(255, 255, 255)");
     await page.getByRole("button", { name: "Switch to dark mode", exact: true }).click();
     await page.reload();
     await page.locator(".chat-first-shell.theme-dark").waitFor();
@@ -233,6 +235,7 @@ try {
     await page.keyboard.press("Escape");
   });
   await check("search, archive and restore use canonical chat records", async () => {
+    await page.getByRole("button", { name: "Find chats", exact: true }).click();
     await page.getByRole("searchbox", { name: "Search chats" }).fill("Desktop continuity proof");
     assert.equal(await page.locator(".chat-nav-open").count(), 1);
     await page.locator(".chat-nav-open").click();
@@ -262,7 +265,9 @@ try {
   await retainedCapabilityProof({ check, getPage: () => page, getApp: () => app, fixture, project, api, send, idle, capture });
   await workbenchInteractionProof({ check, getPage: () => page, getApp: () => app, fixture, project, proofHome, api, send, idle, capture,
     restart: async () => { await app.close(); app = undefined; await launch(); } });
+  await chatTypographyProof({ page, app, check, send, idle, capture });
   await check("Classic shell remains reachable", async () => {
+    await page.locator(".chat-window-options > summary").click();
     await page.getByRole("link", { name: "Classic view" }).click();
     await page.locator(".desktop-nav").waitFor();
     assert.equal(await page.locator(".chat-first-shell").count(), 0);

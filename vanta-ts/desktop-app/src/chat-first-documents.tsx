@@ -18,10 +18,10 @@ export function useDocumentWorkbench(root: string) {
 }
 
 type Documents = ReturnType<typeof useDocumentWorkbench>;
-export function DocumentTabs({ documents }: { documents: Documents }) {
+export function DocumentTabs({ documents, onSelect }: { documents: Documents; onSelect?: () => void }) {
   return <nav className="chat-document-tabs" aria-label="Open documents">{documents.paths.map((path) =>
     <div key={path} data-active={documents.active === path}>
-      <button type="button" aria-pressed={documents.active === path} title={path} onClick={() => documents.setActive(path)}><FileText size={14} aria-hidden="true" /><span>{path.split("/").pop()}</span></button>
+      <button type="button" aria-pressed={documents.active === path} title={path} onClick={() => { documents.setActive(path); onSelect?.(); }}><FileText size={14} aria-hidden="true" /><span>{path.split("/").pop()}</span></button>
       <button type="button" aria-label={`Close ${path}`} onClick={() => documents.close(path)}><X size={14} /></button>
     </div>)}</nav>;
 }

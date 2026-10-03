@@ -1,0 +1,33 @@
+{
+  "$description": "Owner screenshot normalized reference contract; inferred dimensions, retained Vanta colors. Not extracted Codex source.",
+  "primitive": {
+    "white": { "$type": "color", "$value": "#ffffff" },
+    "chrome": { "$type": "color", "$value": "#f7f7f8" },
+    "ink": { "$type": "color", "$value": "#202024" },
+    "violet": { "$type": "color", "$value": "#7c3aed" },
+    "space": {
+      "1": { "$type": "dimension", "$value": "4px" },
+      "2": { "$type": "dimension", "$value": "8px" },
+      "3": { "$type": "dimension", "$value": "12px" },
+      "4": { "$type": "dimension", "$value": "16px" },
+      "6": { "$type": "dimension", "$value": "24px" },
+      "8": { "$type": "dimension", "$value": "32px" }
+    }
+  },
+  "semantic": {
+    "surface": { "$type": "color", "$value": "{primitive.white}", "$extensions": { "confidence": "observed role; retained Vanta value" } },
+    "navigation": { "$type": "color", "$value": "{primitive.chrome}" },
+    "text": { "$type": "color", "$value": "{primitive.ink}" },
+    "action": { "$type": "color", "$value": "{primitive.violet}" },
+    "titlebar": { "$type": "dimension", "$value": "44px", "$extensions": { "confidence": "inferred" } },
+    "rail": { "$type": "dimension", "$value": "48px", "$extensions": { "confidence": "inferred" } },
+    "history": { "$type": "dimension", "$value": "240px", "$extensions": { "confidence": "inferred; saved user width wins" } },
+    "measure": { "$type": "dimension", "$value": "768px", "$extensions": { "confidence": "retained Vanta measure" } },
+    "row": { "$type": "dimension", "$value": "{primitive.space.8}" },
+    "gutter": { "$type": "dimension", "$value": "{primitive.space.6}" },
+    "composerRadius": { "$type": "dimension", "$value": "{primitive.space.6}" },
+    "panelRadius": { "$type": "dimension", "$value": "{primitive.space.4}" },
+    "rowRadius": { "$type": "dimension", "$value": "{primitive.space.2}" },
+    "bodyType": { "$type": "dimension", "$value": "15px", "$extensions": { "confidence": "inferred" } }
+  }
+}

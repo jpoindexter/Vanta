@@ -142,6 +142,21 @@ this report; no status or acceptance criterion is relaxed.
 
 ## Boundaries
 
+### Later October 3 continuation
+
+The previously blocked normal-profile visual check subsequently ran on the
+`1eb44d03…` archive: real history, the unchanged unsent draft and keyboard/pointer
+tool disclosure were observed. The old pending-unlock paragraphs above are
+historical, not the current access state. A bounded Vanta-controlled Calculator
+attempt failed to locate the application and produced no native result. This is
+failure evidence, not completed computer-control acceptance.
+
+The owner then selected a direct Codex screenshot match for the whole window
+hierarchy. Current source, package, installation and visual evidence continues
+in [Desktop reference match](desktop-reference-match-2026-10-03.md). The inherited
+Markdown whitespace gaps and stale idle tool-start labels were reproduced and
+corrected there. No authority settings were changed.
+
 No protected Rust/factory/MANIFESTO, runtime policy, live-account, operator state,
 paid workflow, release, merge, tag or force push is part of this change. Actions
 remains disabled. Existing cards retain their status and acceptance requirements.
