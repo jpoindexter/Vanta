@@ -1,7 +1,7 @@
 # Vanta Build Order — Agent-Readable
 
 Source: roadmap.json (generated view — do not edit; regenerate via `node scripts/build-order.mjs`)
-Roadmap updated: 2026-10-02
+Roadmap updated: 2026-10-03
 Strategy: STRATEGY.md (one product with Vanta, Engine, and Lab boundaries; roadmap tracks are compatible responsibilities)
 
 ## Agent instructions
@@ -12,7 +12,7 @@ Ordering: open only; building > next > horizon; rock > pebble > sand; compatible
 The 28 convergence outcomes are an acceptance catalog, not 28 simultaneous projects. `roadmap.json` is the only product-development work database.
 
 ## Summary
-- total_cards: 1362
+- total_cards: 1363
 - open_cards: 12
 - Harness: 7 open
 - Operator: 5 open
@@ -21,7 +21,7 @@ The 28 convergence outcomes are an acceptance catalog, not 28 simultaneous proje
 
 001. [building] DESKTOP-OPERATOR-DOSSIER-HIERARCHY — Desktop ambient workflow — one agent across chat, mini, work and results
     track: Operator | tier: rock | size: L | effort: medium | model: sonnet | after: DESKTOP-SEMANTIC-FOUNDATION-ACCESSIBILITY-REPAIR
-    why: Streamline the existing Vanta Desktop into one everyday workflow: invoke, give context, work, intervene, inspect results and resume or schedule. Keep the generalist engine, capabilities and revocable authority. White/grey with Vanta violet; optional mini/avatar opens the same workspace, not another agent.
+    why: Streamline the existing Vanta Desktop into one everyday workflow: invoke, give context, work, intervene, inspect results and resume or schedule. Keep the generalist engine, capabilities and revocable authority. White/grey with Vanta violet; optional mini/avatar opens the same workspace, not another agent. Owner priority 2026-10-03: dependable chat/remembered approvals and Stop first, then browser/native actions with saved results, then local-first voice in the same conversation. Voice model downloads and optional hosted providers have explicit acceptance in VOICE-LOCAL-MODELS-AND-PROVIDERS; historical speech modules are not Desktop voice proof. Sequence and evidence: docs/voice-and-everyday-agent-plan-2026-10-03.md.
     done: The existing packaged Vanta app opens New chat without an outcome form, project, repository, or WorkItem prerequisite; only explicit tracked work creates a task. Chat titles, search, rename, pin, archive/restore, hover/focus previews with project and activity context, keyboard/touch quick actions, and dismissible menus work without accidentally opening a chat. Each conversation preserves its draft, attachments, visible editable queue, unread marker, scroll anchor, model settings, and original runtime identity through switching and restart. One real Vanta conversation sends, streams, stops, switches, and resumes without a second session store or duplicate execution; ordinary chat has no mandatory outcome/approval panel. The composer exposes provider-supported model, effort, speed, attachments, and current permission scope without implying new authority. Files, Browser, Review, and Activity are contextual side panels with safe previews and no focus theft. White and grey with restrained Vanta violet use semantic theme tokens; optional dark preserves an explicit preference with keyboard, screen-reader, high-contrast, reduced-motion, zoom, and narrow-window proof. A before/after capability matrix retains every existing supported Desktop capability or records explicit owner-approved deferral; shipped historical evidence is unchanged. Failure, offline, approval denial, queue replay, reconnect, persistence rollback, and packaged regression gates pass on the exact candidate. Unfamiliar-person comprehension and cold-operator acceptance remain explicit deferred gates, never inferred from the prototype or earlier dossier tests. Additional acceptance from 2026-10-01 review: Integrate and test the existing conversation-first Desktop work rather than replace Vanta with another product shell. Keep New chat, searchable history, optional projects, compact provider-supported model settings, visible queued messages, stop, draft recovery and contextual evidence in the main flow. Use source-grounded reconnect and queue patterns, with memory details and privacy controls progressively disclosed; retained proof must identify the exact packaged build and installed-launcher path, not only a synthetic-provider screenshot. Additional whole-flow acceptance: mini/full/avatar preserve live session identity, draft, attachments, queue, progress, visible permission scope, approval and Stop. Hide/show never duplicates execution or impersonates cancellation. Connections, Today, Schedules, Outputs and Settings return to the originating conversation. Avatar visibility is optional, hideable and never grants screen/audio access. A normal installed public-research-to-document path and bounded native observe/approved-action/readback/interruption execute with retained evidence.
 
 002. [next] REPOSITORY-GIT-PROBE-EXECUTION-ISOLATION — Repository Git probe isolation — project configuration cannot execute host commands

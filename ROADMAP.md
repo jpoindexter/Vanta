@@ -4,7 +4,7 @@
 historical narrative and does not override the JSON, `STRATEGY.md`, or
 `DECISIONS.md`.
 
-## Current converged build order — 2026-10-02
+## Current converged build order — 2026-10-03
 
 Generated from `roadmap.json` by `node scripts/roadmap-current-projection.mjs`. Do not hand-edit this section.
 
@@ -33,7 +33,7 @@ Generated from `roadmap.json` by `node scripts/roadmap-current-projection.mjs`. 
 
 No cards currently Blocked.
 
-Inventory: 1362 cards; 1288 shipped; 12 open; 62 parked.
+Inventory: 1363 cards; 1288 shipped; 12 open; 63 parked.
 
 Next means planned, not implemented. Preserve shipped evidence; card completion requires its executed Done contract.
 
