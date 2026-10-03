@@ -54,3 +54,29 @@ export async function libreChatShellProof({ page, app, check, fixture, capture, 
     await window.evaluate((win, dimensions) => win.setContentSize(...dimensions), size);
   });
 }
+
+export async function compactToolActivityProof(ctx) {
+  await ctx.check("tool evidence is compact, keyboard-expandable and does not execute again", async () => {
+    const page = ctx.getPage();
+    const before = ctx.fixture.requests.length;
+    const group = page.locator(".lc-tool-activity > .lc-tool-group").last();
+    const summary = group.locator(":scope > summary");
+    await summary.waitFor();
+    assert.equal(await group.getAttribute("open"), null);
+    assert((await summary.innerText()).includes("result"));
+    assert.equal(await group.locator("pre").isVisible(), false);
+    assert((await group.boundingBox()).height <= 40, "collapsed tool group inherited oversized disclosure padding");
+    assert.equal(await group.evaluate((element) => getComputedStyle(element).borderTopWidth), "0px");
+    await summary.focus(); await page.keyboard.press("Enter");
+    await group.locator("pre").waitFor({ state: "visible" });
+    assert((await group.locator("pre").innerText()).length > 0);
+    await scanAccessibility(page, "Expanded LibreChat-derived tool evidence");
+    await ctx.capture("librechat-tool-evidence-expanded");
+    await summary.focus(); await page.keyboard.press("Space");
+    await group.locator("pre").waitFor({ state: "hidden" });
+    assert.equal(await summary.evaluate((element) => element === document.activeElement), true);
+    await scanAccessibility(page, "Compact LibreChat-derived tool activity");
+    await ctx.capture("librechat-tool-evidence-collapsed");
+    assert.equal(ctx.fixture.requests.length, before, "disclosure must never retry a tool or model request");
+  });
+}

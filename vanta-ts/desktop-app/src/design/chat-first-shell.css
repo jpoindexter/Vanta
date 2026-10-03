@@ -1,7 +1,7 @@
 /* Hallmark · genre: modern-minimal · macrostructure: Workbench · design-system: design.md · designed-as-app */
 .chat-first-shell {
   --chat-sidebar-width: 260px;
-  --chat-measure: 800px;
+  --chat-measure: 768px;
   --chat-radius: 16px;
   --chat-control: 40px;
   --chat-on-accent: #f4efe3;

@@ -21,6 +21,7 @@ import "./design/chat-first-conversation.css";
 import "./design/chat-first-workspaces.css";
 import "./design/chat-workbench.css";
 import "./librechat/presentation.css";
+import "./librechat/tool-activity.css";
 import { isNativeCompanion } from "./companion-client";
 import { initializeDesktopTheme } from "./desktop-theme.js";
 

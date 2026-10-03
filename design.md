@@ -64,6 +64,24 @@ turn must never make another conversation appear stopped. Copy, attachment,
 model, permission and result controls must preserve these existing boundaries
 when their presentation is adapted from LibreChat.
 
+Tool presentation follows LibreChat's disclosure pattern: a compact summary
+with a readable tool name and recorded-result count, then an inset evidence
+rail when expanded. Receiving a result is not evidence that the action worked.
+Do not show a green success check for an untyped returned payload. Recorded
+failures and active steps remain outside the completed-activity fold; approvals
+and recovery stay in their existing independent controls. A tool-only assistant
+turn has no empty message bubble or irrelevant message feedback actions.
+
+The October 3 spacing correction uses LibreChat's actual ChatForm anatomy:
+a one-line, content-growing input with a compact footer, not a permanently tall
+textarea. Transcript, tool activity, approvals and composer share one 768px
+measure and 24px outer gutters (16px in narrow windows). User messages have one
+bubble surface, not nested padding/backgrounds. Only one history preview can be
+visible; it uses a two-line title and compact metadata, dismisses when a chat is
+selected, and remains keyboard-accessible. Preserve full details in the explicit
+row menu. These are alignment, proximity and progressive-disclosure corrections
+to the existing interface, not a second visual system.
+
 ## Historical September execution ledger
 
 - Outcome: a usable chat-first desktop candidate with an explicit Classic fallback.

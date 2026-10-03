@@ -43,16 +43,6 @@ export function Composer(props: ComposerProps) {
   const dragDepth = useRef(0);
   const [dropActive, setDropActive] = useState(false);
   const canSend = Boolean(props.value.trim() || images.length || props.attachments.length);
-  function send(event: FormEvent) {
-    event.preventDefault();
-    const lookMode = desktopLookCommand(props.value);
-    if (lookMode) { props.onChange(""); void props.onLookCapture(lookMode); return; }
-    const value = props.value.trim() || attachmentPrompt(props.attachments.length, images.length);
-    if (!value) return;
-    if (props.busy && (images.length || props.attachments.length)) return;
-    if (props.busy) props.onQueue(value);
-    else props.onSubmit(value);
-  }
   function dragEnter(event: DragEvent<HTMLFormElement>) {
     if (!hasDraggedFiles(event)) return;
     event.preventDefault();
@@ -78,15 +68,31 @@ export function Composer(props: ComposerProps) {
     const files = Array.from(event.dataTransfer.files);
     if (files.length) void props.onDropFiles?.(files);
   }
-  return <form className={`composer ${dropActive ? "drop-active" : ""}`} data-drop-active={dropActive ? "true" : "false"} aria-describedby="vanta-attachment-help" onSubmit={send} onDragEnter={dragEnter} onDragOver={dragOver} onDragLeave={dragLeave} onDrop={drop}>
+  return <form className={`composer ${dropActive ? "drop-active" : ""}`} data-drop-active={dropActive ? "true" : "false"} aria-describedby="vanta-attachment-help" onSubmit={(event) => submitComposer(event, props)} onDragEnter={dragEnter} onDragOver={dragOver} onDragLeave={dragLeave} onDrop={drop}>
     {dropActive ? <div className="composer-drop-target" role="status" aria-live="polite"><Upload size={22} /><strong>Drop files or folders to attach</strong><span>Folders stay compact while readable files are attached.</span></div> : null}
     <p className="sr-only" id="vanta-attachment-help">Drag files or folders here, or use the attachment button.</p>
     <label className="sr-only" htmlFor="vanta-composer">Message Vanta</label>
-    <textarea id="vanta-composer" value={props.value} disabled={!ready} onChange={(event) => props.onChange(event.target.value)} onPaste={(event) => void pasteImages(event, props)} onKeyDown={(event) => keyDown(event, props)} placeholder={!ready ? "Loading this project..." : props.busy ? "Queue next..." : "Ask Vanta to do something..."} />
+    <ComposerInput {...props} ready={ready} />
     <AttachmentChips items={props.attachments} images={images} onRemoveItem={props.onRemoveAttachment} onRemoveImage={props.onRemoveImage} />
     {props.attachmentError ? <p className="composer-attachment-error" role="alert">{props.attachmentError}</p> : null}
     <ComposerFooter {...props} ready={ready} canSend={canSend} hasImages={images.length > 0} />
   </form>;
+}
+
+function ComposerInput(props: ComposerProps & { ready: boolean }) {
+  return <textarea id="vanta-composer" rows={1} value={props.value} disabled={!props.ready} onChange={(event) => props.onChange(event.target.value)} onPaste={(event) => void pasteImages(event, props)} onKeyDown={(event) => keyDown(event, props)} placeholder={!props.ready ? "Loading this project..." : props.busy ? "Queue next..." : "Ask Vanta to do something..."} />;
+}
+
+function submitComposer(event: FormEvent, props: ComposerProps) {
+  event.preventDefault();
+  const lookMode = desktopLookCommand(props.value);
+  if (lookMode) { props.onChange(""); void props.onLookCapture(lookMode); return; }
+  const imageCount = props.images?.length ?? 0;
+  const value = props.value.trim() || attachmentPrompt(props.attachments.length, imageCount);
+  if (!value) return;
+  if (props.busy && (imageCount || props.attachments.length)) return;
+  if (props.busy) props.onQueue(value);
+  else props.onSubmit(value);
 }
 
 function AttachmentChips(props: { items: DesktopAttachmentItem[]; images: DesktopImageAttachment[]; onRemoveItem: (id: string) => void; onRemoveImage?: (id: string) => void }) {

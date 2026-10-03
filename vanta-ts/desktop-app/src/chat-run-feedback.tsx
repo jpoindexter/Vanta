@@ -1,39 +1,9 @@
-import { CheckCircle2,ChevronRight,Plug,RotateCcw,ShieldCheck } from "lucide-react";
-import { compactTrace } from "../../src/trace/quiet-trace.js";
+import { Plug,RotateCcw,ShieldCheck } from "lucide-react";
 import { ApprovalDecisionControls } from "./approval-decision-controls.js";
 import { SchemaTraceExplorer,schemaRetryReady } from "./schema-trace-explorer.js";
-import type { Approval,ApprovalDecision,DesktopRunReceipt,Message,PermissionSection } from "./types.js";
-
-export function RunTimeline(props: { calls: NonNullable<Message["toolCalls"]>; messages: Message[] }) {
-  return <section className="run-timeline" aria-label="Run steps">{props.calls.map((call) => {
-    const result = props.messages.find((message) => message.role === "tool" && message.toolCallId === call.id);
-    return <div className="timeline-step" key={call.id}><span><CheckCircle2 size={13} /></span><div><strong>{result?.content || humanizeTool(call.name)}</strong><small>{call.name}</small></div><em>{result ? "done" : "running"}</em></div>;
-  })}</section>;
-}
-
-const VISIBLE_TRACE_GROUPS = 5;
-
-/** The run trace, kept short. Only the most recent few steps plus anything that
- *  needs attention render by default; the rest sit behind one disclosure so a
- *  long turn cannot push the composer off screen. */
-export function EventTimeline(props: { events: import("./types.js").EventRow[] }) {
-  const groups = compactTrace(props.events);
-  const overflow = Math.max(0, groups.length - VISIBLE_TRACE_GROUPS);
-  const shown = overflow ? groups.filter((group, index) => group.status === "attention" || index >= overflow) : groups;
-  const hidden = groups.length - shown.length;
-  return <section className="run-timeline event-timeline quiet-trace" aria-label="Current run activity">
-    {hidden > 0 ? <details className="timeline-step trace-overflow">
-      <summary><span><ChevronRight size={13} /></span><strong>{hidden} earlier step{hidden === 1 ? "" : "s"}</strong><em>done</em></summary>
-      <div className="trace-evidence" aria-label="Earlier steps">{groups.slice(0, overflow).filter((group) => group.status !== "attention").map((group, index) => <pre key={`${group.label}-${index}`}>{group.label}</pre>)}</div>
-    </details> : null}
-    {shown.map((group, index) => (
-      <details className={`timeline-step ${group.status === "attention" ? "bad" : ""}`} key={`${group.label}-${index}`}>
-        <summary><span><ChevronRight size={13} /></span><strong>{group.label}</strong><em>{group.status}</em></summary>
-        <div className="trace-evidence" aria-label="Tool evidence">{group.evidence.map((event, evidenceIndex) => <pre key={`${event.label}-${evidenceIndex}`}>{event.detail || event.label}</pre>)}</div>
-      </details>
-    ))}
-  </section>;
-}
+import type { Approval,ApprovalDecision,DesktopRunReceipt,PermissionSection } from "./types.js";
+export { ToolActivity as RunTimeline } from "./librechat/tool-activity.js";
+export { RunActivity as EventTimeline } from "./librechat/run-activity.js";
 
 type RecoveryProps = { receipt: DesktopRunReceipt; onRetry: () => void; onReconnect: () => void; onEdit: () => void; onCheckpoint: () => void };
 
@@ -79,10 +49,6 @@ export function ApprovalCheckpoint(props: { approval: Approval; onAnswer: (decis
 
 function ApprovalSection({ section }: { section: PermissionSection }) {
   return <div className={`approval-section ${section.tone ?? ""}`}><strong>{section.label}</strong><code>{section.value}</code></div>;
-}
-
-function humanizeTool(name: string): string {
-  return name.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
 }
 
 export function EmptyState(props: { onPrompt: (text: string) => void }) {

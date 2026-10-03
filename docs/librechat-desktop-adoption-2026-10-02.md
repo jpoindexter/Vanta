@@ -222,3 +222,35 @@ Next source-level presentation candidates, reviewed at the same upstream pin:
 `Chat/Messages/MinimalHoverButtons.tsx` plus `styles.ts` (quiet message actions
 that remain available on keyboard focus and touch). These are source references,
 not a claim that those components have already been ported.
+
+## Compact tool activity — source adaptation
+
+The next bounded port uses the same pinned LibreChat source:
+`client/src/components/Chat/Messages/Content/ToolCallGroup.tsx` for its compact
+ghost disclosure header, tool-name summary and inset evidence rail, with the
+related `ActivityPhaseGroup.tsx` failure-visible folding pattern. Vanta uses
+native keyboard-operable `details`/`summary`, its existing semantic colour
+tokens and its own recorded messages/events. No upstream state store, runtime,
+animation system, authorization handler or extra dependency is imported. The
+existing MIT notice covers the new attributed presentation files.
+
+The previous UI printed complete tool outputs as always-visible cards, placed
+empty assistant bubbles before tool-only turns, and labeled any returned output
+as green "done". The new presentation starts with a compact neutral summary and
+opens full escaped text on demand. Missing and empty recorded results are
+distinct. Completed trace groups collapse together, but structured failures and
+active steps stay visible; pending approvals and recovery controls are not
+inside that fold. Earlier groups retain their full evidence, not just labels.
+
+Seven new regression cases failed against the previous presentation and passed
+after the change. The focused component/chat check passes 16 tests, the complete
+renderer check passes 258 tests in 63 files, and the full suite passes 14,503
+tests with 3 skipped in 1,595 files. Both typechecks, the size gate over five
+production files, five architecture boundaries and changed-source Semgrep
+passed. This source-only checkpoint is superseded by the
+[October 3 spacing and installed-package record](desktop-spacing-and-activity-2026-10-03.md):
+60 packaged checks passed on final signed ASAR `1eb44d03…`, including keyboard
+tool evidence, strict compact row height, aligned/growing input and single-preview
+ownership. Guarded installation passed with rollback. Final native inspection in
+the normal profile remains pending Mac unlock; fixture proof does not establish
+live-provider or whole ambient-workflow completion.

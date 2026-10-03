@@ -4,6 +4,7 @@ import { mkdir, readFile, realpath, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { scanAccessibility } from "./desktop-accessibility-proof.mjs";
 import { permissionPersistenceProof } from "./chat-first-permission-proof.mjs";
+import { compactToolActivityProof } from "./librechat-shell-proof.mjs";
 
 export async function workbenchInteractionProof(ctx) {
   await draftProof(ctx);
@@ -12,6 +13,7 @@ export async function workbenchInteractionProof(ctx) {
   await libraryProof(ctx);
   await busyNavigationProof(ctx);
   await approvalProof(ctx);
+  await compactToolActivityProof(ctx);
   await permissionPersistenceProof(ctx);
   await workspaceProof(ctx);
   await nativeProjectProof(ctx);

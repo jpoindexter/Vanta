@@ -18,11 +18,15 @@ export function useChatPreview(disabled: boolean) {
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const clear = () => clearTimeout(timer.current);
   const dismiss = () => { clear(); setVisible(false); };
+  const show = () => {
+    window.dispatchEvent(new CustomEvent("vanta:chat-preview", { detail: row.current }));
+    setVisible(true);
+  };
   const begin = (kind: "hover" | "focus") => {
     held.current[kind] = true; clear();
     if (disabled || window.innerWidth <= 760) return;
-    if (kind === "focus") setVisible(true);
-    else timer.current = setTimeout(() => setVisible(true), 500);
+    if (kind === "focus") show();
+    else timer.current = setTimeout(show, 500);
   };
   const end = (kind: "hover" | "focus") => {
     held.current[kind] = false; clear();
@@ -30,6 +34,7 @@ export function useChatPreview(disabled: boolean) {
   };
   useEffect(() => { if (disabled) dismiss(); }, [disabled]);
   useEffect(() => clear, []);
+  usePreviewOwnership(row, dismiss);
   usePreviewPosition(row, card, visible && !disabled, dismiss);
   usePreviewEscape(visible && !disabled, dismiss);
   return { row, card, visible: visible && !disabled, dismiss,
@@ -42,6 +47,16 @@ export function useChatPreview(disabled: boolean) {
       if (!event.currentTarget.contains(event.relatedTarget)) end("focus");
     },
   };
+}
+
+function usePreviewOwnership(row: RefObject<HTMLLIElement | null>, dismiss: () => void) {
+  useEffect(() => {
+    const claim = (event: Event) => {
+      if ((event as CustomEvent).detail !== row.current) dismiss();
+    };
+    window.addEventListener("vanta:chat-preview", claim);
+    return () => window.removeEventListener("vanta:chat-preview", claim);
+  }, [row, dismiss]);
 }
 
 function usePreviewEscape(visible: boolean, dismiss: () => void) {

@@ -6,12 +6,12 @@
 .chat-starters button, .chat-back-button { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 40px; padding: var(--space-2) var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-md); background: transparent; color: var(--muted); font-size: 12px; text-align: start; }
 .chat-starters button:hover:not(:disabled), .chat-back-button:hover { background: var(--raised); color: var(--text); }
 .chat-back-button { flex-shrink: 0; border: 0; }
-.chat-composer-dock { width: min(var(--chat-measure), 100%); margin-inline: auto; padding: var(--space-3) var(--space-6) var(--space-4); flex-shrink: 0; }
+.chat-composer-dock { width: min(var(--chat-measure), calc(100% - 48px)); margin-inline: auto; padding-block: var(--space-3) var(--space-4); flex-shrink: 0; }
 .chat-conversation.is-empty .chat-composer-dock { margin-block-end: clamp(36px, 14vh, 160px); }
 .chat-first-shell .composer { width: 100%; margin: 0; border: 1px solid var(--line-strong); border-radius: var(--chat-radius); background: var(--workspace); box-shadow: none; padding: var(--space-4); }
 .chat-first-shell .composer:focus-within { border-color: var(--focus); box-shadow: none; }
 .chat-first-shell .composer textarea:focus-visible { outline: none; }
-.chat-first-shell .composer textarea { min-height: 64px; max-height: 220px; line-height: 1.6; font-size: 15px; color: var(--text); padding: 0; background: transparent; resize: vertical; }
+.chat-first-shell .composer textarea { field-sizing: content; min-height: 24px; max-height: min(220px, 40dvh); line-height: 1.6; font-size: 15px; color: var(--text); padding: 0; background: transparent; resize: none; overflow-y: auto; }
 .chat-first-shell .composer-footer { gap: var(--space-2); padding-block-start: var(--space-3); flex-wrap: wrap; }
 .chat-first-shell .composer-actions { margin-inline-start: auto; gap: var(--space-2); }
 .chat-first-shell .approval-mode { display: inline-flex; min-height: 36px; }
@@ -24,11 +24,13 @@
 .chat-first-shell .stop-button { background: var(--raised); color: var(--text); border: 1px solid var(--line-strong); border-radius: var(--radius-md); }
 .chat-composer-hint { display: flex; justify-content: space-between; gap: var(--space-3); padding-block-start: var(--space-2); color: var(--faint); font-size: 11px; font-variant-numeric: tabular-nums; }
 .chat-first-shell .chat-thread-frame { flex: 1; min-height: 0; width: 100%; }
-.chat-first-shell .chat-thread { padding: var(--space-6) max(var(--space-6), calc((100% - 752px) / 2)); scrollbar-width: thin; }
+.chat-first-shell .chat-thread { padding: var(--space-6); scrollbar-width: thin; scrollbar-gutter: auto; }
+.chat-first-shell .transcript-window { width: min(var(--chat-measure), 100%); }
+.chat-first-shell :is(.transcript-turn, .run-timeline, .inline-approval, .thinking, .run-recovery, .event-timeline) { width: min(var(--chat-measure), 100%); }
 .chat-conversation .task-dossier { display: none; }
 .chat-context-content .task-dossier { display: grid; grid-template-columns: 1fr; }
 .chat-first-shell .message { padding-block: var(--space-4); font-size: 15px; line-height: 1.7; }
-.chat-first-shell .message.user { background: var(--raised); border: 0; border-radius: 14px; padding: var(--space-3) var(--space-4); margin-block: var(--space-3) var(--space-6); }
+.chat-first-shell .message.user { background: transparent; border: 0; padding: 0; margin-block: var(--space-2) var(--space-4); }
 .chat-first-shell .message.assistant { background: transparent; border: 0; padding-inline: 0; }
 .chat-first-shell .message-content { min-width: 0; }
 .chat-first-shell .message-content p { font-size: inherit; line-height: 1.7; }
@@ -47,7 +49,7 @@
 .chat-inline-queue .chat-queue-target { color: var(--muted); overflow-wrap: anywhere; }
 .chat-first-shell .model-settings-popover { border-radius: 14px; background: var(--raised); border-color: var(--line-strong); }
 @media (max-width: 760px) {
-  .chat-composer-dock { padding-inline: var(--space-3); }
+  .chat-composer-dock { width: calc(100% - 32px); }
   .chat-first-shell .composer { padding: var(--space-3); }
   .chat-first-shell .composer-actions { flex-wrap: wrap; }
   .chat-first-shell .chat-thread { padding-inline: var(--space-4); }

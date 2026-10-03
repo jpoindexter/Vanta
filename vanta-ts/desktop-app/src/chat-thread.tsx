@@ -54,14 +54,14 @@ function TranscriptRows({ view, feedbackState }: { view: ReturnType<typeof useCh
             key={virtualTurn.key}
             style={typeof window === "undefined" ? undefined : { position: "absolute", top: 0, left: 0, width: "100%", transform: `translateY(${virtualTurn.start}px)` }}
           >
-            <MessageBubble
+            {message.content?.trim() || !message.toolCalls?.length ? <MessageBubble
               message={message}
               feedback={feedback[key]}
               feedbackReason={feedbackReasons[key]}
               onFeedback={(value) => setMessageFeedback(key, value)}
               onFeedbackReason={(value) => setMessageFeedbackReason(key, value)}
               onExpand={(opener) => setExpanded({ content: message.content ?? "", opener })}
-            />
+            /> : null}
             {message.toolCalls?.length ? <RunTimeline calls={message.toolCalls} messages={rows} /> : null}
           </div>
         );

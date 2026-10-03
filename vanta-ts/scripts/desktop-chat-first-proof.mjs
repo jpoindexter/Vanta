@@ -14,6 +14,7 @@ import { documentWorkbenchProof } from "./lib/chat-document-workbench-proof.mjs"
 import { documentLinksProof } from "./lib/chat-document-links-proof.mjs";
 import { desktopSurfaceProof } from "./lib/desktop-surface-proof.mjs";
 import { libreChatShellProof } from "./lib/librechat-shell-proof.mjs";
+import { libreChatLayoutProof } from "./lib/librechat-layout-proof.mjs";
 
 const root = await mkdtemp(join(tmpdir(), "vanta-chat-first-proof-"));
 const project = join(root, "project");
@@ -110,6 +111,7 @@ try {
     await send("Remember this local conversation."); await reply("Remember this local conversation."); await idle();
     assert.equal(fixture.requests.length, 1); await capture("02-conversation");
   });
+  await libreChatLayoutProof({ page, app, check, fixture, capture });
   await check("visible queue supports edit and removal while streaming", async () => {
     await send("Keep this response open");
     await page.getByText("Response streaming. Waiting for your next instruction.", { exact: true }).waitFor();
@@ -138,6 +140,7 @@ try {
     await page.waitForFunction(() => document.querySelector("#vanta-composer")?.value === "");
     assert.equal(await page.locator("#vanta-composer").inputValue(), "");
     await send("This is a second conversation."); await reply("This is a second conversation."); await idle();
+    await page.waitForFunction(() => document.querySelector('.chat-nav-row[data-active="true"] .chat-nav-open')?.textContent?.trim() === "This is a second conversation.");
     const secondTitle = await row.locator(".chat-nav-open").innerText();
     await page.locator(".chat-nav-open").filter({ hasText: firstTitle }).first().click();
     await reply("Remember this local conversation.");
