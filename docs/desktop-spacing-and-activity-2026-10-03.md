@@ -118,3 +118,10 @@ Still open: the full Connections/background/results/settings/ambient journey,
 normal-profile remembered routine approval across tasks/restart, a Vanta-driven
 native action, dependency-security integration and deferred unfamiliar-person
 acceptance. Those are not cleared by layout or fixture-provider tests.
+
+## Review image
+
+Actual final packaged renderer at 1440px, with disposable local-provider data.
+This is not a wireframe or a normal-profile/live-provider screenshot.
+
+![Aligned conversation and growing composer in the final packaged Vanta app](assets/librechat-spacing-2026-10-03.png)
