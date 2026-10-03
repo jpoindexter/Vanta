@@ -18,6 +18,7 @@ const manySchemas = [
   "web_search", "web_fetch", "pdf_read", "document_read", "git_status", "git_diff", "edit_file", "write_file", "shell_cmd", "lsp_diagnostics", "todo",
   "gmail_send", "apple_mail_audit", "calendar_create", "browser_act", "money", "radar", "roadmap_status", "roadmap_move", "call_agent", "delegate",
   "compose_workflow", "protect", "brief",
+  "native_app_launch", "vision_action", "look_at_screen",
 ].map((name) => schema(name));
 
 const fakeSafety = {
@@ -26,6 +27,11 @@ const fakeSafety = {
 } as unknown as SafetyClient;
 
 describe("per-task tool scoping", () => {
+  it("exposes native launch and observation for computer tasks without adding them to unrelated requests", () => {
+    const names = scopeToolSchemas(manySchemas, "Open Calculator on my desktop").map((s) => s.name);
+    expect(names).toEqual(expect.arrayContaining(["native_app_launch", "vision_action", "look_at_screen"]));
+    expect(scopeToolSchemas(manySchemas, "draft an email").map((s) => s.name)).not.toContain("native_app_launch");
+  });
   it("exposes a smaller task-relevant subset while keeping tool_search reachable", () => {
     const scoped = scopeToolSchemas(manySchemas, "fix the failing TypeScript test and commit it");
     const names = scoped.map((s) => s.name);

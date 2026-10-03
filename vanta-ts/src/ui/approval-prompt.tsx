@@ -26,18 +26,23 @@ export const approves = (outcome: Outcome): boolean => outcome === "task" || out
 
 /** Resolve a pending approval for an outcome; "always" also persists the rule. */
 export async function decide(pending: Pending, outcome: Outcome): Promise<void> {
-  if (pending.fresh && (outcome === "task" || outcome === "always")) { pending.resolve(false); return; }
-  if (outcome === "task") pending.grantTask?.();
-  if (outcome === "always" || outcome === "never") {
-    if (!pending.toolName) throw new Error("Cannot save an approval rule without a tool name. Choose a one-time decision.");
-    try {
-      if (outcome === "always") await grantAlways(pending.toolName);
-      else await grantNever(pending.toolName);
-    } catch {
-      throw new Error("Could not save the approval rule. Nothing was approved. Retry or choose a one-time decision.");
-    }
+  if (pending.fresh && ["task", "always", "never"].includes(outcome)) { pending.resolve(false); return; }
+  if (pending.canRemember === false && ["task", "always", "never"].includes(outcome)) {
+    throw new Error("This approval policy requires a one-time decision; a saved rule cannot replace it.");
   }
+  if (outcome === "task") pending.grantTask?.();
+  if (outcome === "always" || outcome === "never") await saveDecision(pending, outcome);
   pending.resolve(approves(outcome));
+}
+
+async function saveDecision(pending: Pending, outcome: "always" | "never"): Promise<void> {
+  if (!pending.toolName) throw new Error("Cannot save an approval rule without a tool name. Choose a one-time decision.");
+  try {
+    if (outcome === "always") await grantAlways(pending.toolName);
+    else await grantNever(pending.toolName);
+  } catch {
+    throw new Error("Could not save the approval rule. Nothing was approved. Retry or choose a one-time decision.");
+  }
 }
 
 function useApprovalDecision(pending: Pending, onDone: () => void) {
@@ -57,14 +62,14 @@ function useApprovalDecision(pending: Pending, onDone: () => void) {
 
 export function ApprovalPrompt(props: { focusedTarget?: FocusTarget; onDone: () => void; onFocusTargetChange?: (target: FocusTarget) => void; pending: Pending }): ReactElement {
   const { pending, onDone } = props;
+  const request = buildPermissionRequest({ ...pending, detail: { fresh: pending.fresh, canRemember: pending.canRemember } });
+  const canContinue = pending.canContinueTask && !pending.fresh && pending.canRemember !== false;
   const choices = CHOICES.filter((choice) =>
-    (!pending.fresh || !["task", "always"].includes(choice.outcome))
-    && (choice.outcome !== "task" || pending.canContinueTask),
+    choice.outcome !== "task" || canContinue,
   ).filter((choice) =>
-    choice.outcome !== "allow" || !pending.canContinueTask || pending.fresh,
-  );
+    choice.outcome !== "allow" || !canContinue,
+  ).filter((choice) => request.canRemember || !["always", "never"].includes(choice.outcome));
   const [sel, setSel] = useState(() => Math.max(0, choiceIndex(props.focusedTarget, choices)));
-  const request = buildPermissionRequest(pending);
   const decision = useApprovalDecision(pending, onDone);
   const pick = (i: number): void => { void decision.pick(choices[i]!.outcome); };
   useEffect(() => {

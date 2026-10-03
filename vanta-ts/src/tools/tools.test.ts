@@ -123,6 +123,7 @@ describe("registry", () => {
       "money",
       "mount_mcp",
       "msa_memory",
+      "native_app_launch",
       "nl_assertions",
       "open_deep_link",
       "outreach",

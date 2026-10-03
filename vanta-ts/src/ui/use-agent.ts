@@ -17,7 +17,8 @@ import type { Action } from "./reducer.js";
 import type { RunSetup } from "../session.js";
 import type { ReplState } from "../repl/types.js";
 import type { PendingQuestion } from "./ask-user-prompt.js";
-import { TaskApprovalScope, canContinueTask } from "./task-approval.js";
+import { TaskApprovalScope, requestApprovalWithTaskScope, type Pending } from "./task-approval.js";
+export { requestApprovalWithTaskScope, type Pending } from "./task-approval.js";
 import { resolveOperatingMode, permissionModeForOperating, type OperatingMode } from "../modes/operating-mode.js";
 import { PLAN_MARKER } from "../repl/plan-mode.js";
 import { saveSession } from "../sessions/store.js";
@@ -28,40 +29,10 @@ async function refreshTodos(dispatch: Dispatch<Action>): Promise<void> {
   try { dispatch({ t: "todos", items: await readTodos(process.env) }); } catch { /* ignore */ }
 }
 
-/** A pending kernel approval the live region renders; resolved by an a/A/d keypress.
- * `toolName` lets "always allow" persist a tool-scoped rule (see ui/grant.ts). */
-export type Pending = {
-  action: string;
-  reason: string;
-  toolName?: string;
-  fresh?: boolean;
-  canContinueTask?: boolean;
-  grantTask?: () => void;
-  resolve: (ok: boolean) => void;
-};
-
 type TurnScope = {
   /** Foreground turns started while another response is detached still render live. */
   forceLive?: boolean;
 };
-
-export function requestApprovalWithTaskScope(
-  taskApprovals: TaskApprovalScope,
-  setPending: (pending: Pending | null) => void,
-  action: string,
-  reason: string,
-  toolName?: string,
-  detail?: { diff?: string; fresh?: boolean },
-): Promise<boolean> {
-  const input = { action, reason, toolName, fresh: detail?.fresh };
-  if (taskApprovals.allows(input)) return Promise.resolve(true);
-  return new Promise<boolean>((resolve) => setPending({
-    ...input,
-    canContinueTask: canContinueTask(input),
-    grantTask: () => { taskApprovals.grant(input); },
-    resolve,
-  }));
-}
 
 function liveDispatch(deps: AgentDeps, action: Action, scope?: TurnScope): void {
   if (scope?.forceLive || !isBackgroundResponseRunning(deps.replStateRef.current)) deps.dispatch(action);
@@ -159,7 +130,7 @@ function convoConfig(deps: AgentDeps, scope?: TurnScope): Parameters<typeof crea
       if (name === "todo") void refreshTodos(deps.dispatch); // reflect plan edits live
     },
     requestApproval: (action, reason, toolName, detail) =>
-      requestApprovalWithTaskScope(deps.taskApprovals, deps.setPending, action, reason, toolName, detail),
+      requestApprovalWithTaskScope({ taskApprovals: deps.taskApprovals, setPending: deps.setPending, action, reason, toolName, detail }),
     requestQuestion: (questions) =>
       new Promise((resolve) => deps.setPendingQuestion({ questions, resolve })),
   };
@@ -220,19 +191,23 @@ function buildSend(deps: AgentDeps): (text: string, display?: string) => Promise
     } finally {
       if (!isThisTurnDetached()) {
         deps.dispatch({ t: "turnEnd" });
-        const state = deps.replStateRef.current;
-        await saveSession(state.sessionId, conv.messages, {
-          env: process.env,
-          started: state.started,
-          title: state.title,
-          providerId: state.providerId,
-          modelId: state.modelId,
-        }).catch(() => {});
+        await saveForegroundSession(deps, conv);
         await runForegroundAfterTurn(deps, userText, finalText, suggestionTurn);
       }
       deps.interruptRef.current = null;
     }
   };
+}
+
+async function saveForegroundSession(deps: AgentDeps, conv: Conversation): Promise<void> {
+  const state = deps.replStateRef.current;
+  await saveSession(state.sessionId, conv.messages, {
+    env: process.env,
+    started: state.started,
+    title: state.title,
+    providerId: state.providerId,
+    modelId: state.modelId,
+  }).catch(() => {});
 }
 
 /**

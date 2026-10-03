@@ -11,6 +11,8 @@ import { autoApproveOverridden,recordAutoDecision } from "./decision-log.js";
 import { tryDelegatedAutoApprove } from "./delegated-gate.js";
 import type { DiffCapable,SafetyGateResult } from "./dispatch-safety-types.js";
 import { persistApprovalTransition } from "./effect-persistence.js";
+import type { ApprovalDetail } from "../permissions/request.js";
+import type { Decision } from "./decision-chain.js";
 
 /** PAPER-GOVERNANCE-AUDIT: log one durable, tamper-evident `gate` event per
  *  applySafetyGate exit — the kernel's raw verdict plus how it was finally
@@ -30,7 +32,7 @@ export async function handleAskDecision(o: {
   call: ToolCall;
   action: string;
   verdict: Verdict;
-  decision: { decision: "allow" | "ask" | "block"; reason: string };
+  decision: Decision;
   deps: AgentDeps;
   root: string;
   tool?: DiffCapable;
@@ -56,7 +58,7 @@ export async function handleAskDecision(o: {
     return delegated;
   }
   await firePermissionEvent(root, "PermissionRequest", call.name, { tool: call.name, action, reason: decision.reason });
-  return handleApprovalRequest({ call, action, verdict, deps, root, tool });
+  return handleApprovalRequest({ call, action, verdict, decision, deps, root, tool });
 }
 
 /** Delegated-authority auto-approval for an Ask (or null to prompt). Wraps the
@@ -94,19 +96,20 @@ export async function handleApprovalRequest(o: {
   call: ToolCall;
   action: string;
   verdict: Verdict;
+  decision?: Decision;
   deps: AgentDeps;
   root: string;
   tool?: DiffCapable;
   fresh?: boolean;
 }): Promise<SafetyGateResult> {
   const { call, action, verdict, deps, root } = o;
-  const why = verdict.reason || "permission rule";
+  const why = o.decision?.canRemember === false ? o.decision.reason : verdict.reason || "permission rule";
   // EXT-ACP-EDIT-DIFF: file tools attach an old/new preview to the ask.
   const diff = await o.tool?.describeDiff?.(call.arguments, root).catch(() => undefined);
   await persistApprovalTransition(root, deps.sessionId, call, action, "requested");
   let approved: boolean;
   try {
-    const detail = approvalDetail(o.fresh, diff);
+    const detail = approvalDetail(o.fresh, diff, o.decision?.canRemember);
     approved = await deps.requestApproval(action, why, call.name, detail);
   } catch (error) {
     await persistApprovalTransition(root, deps.sessionId, call, action, "expired");
@@ -139,7 +142,8 @@ async function recordApprovalSignal(toolName: string, action: string, reason: st
 }
 
 
-function approvalDetail(fresh?: boolean, diff?: string) {
-  if (fresh) return { ...(diff ? { diff } : {}), fresh: true };
-  return diff ? { diff } : undefined;
+function approvalDetail(fresh?: boolean, diff?: string, canRemember?: boolean): ApprovalDetail | undefined {
+  const detail = { ...(fresh ? { fresh: true } : {}), ...(diff ? { diff } : {}),
+    ...(canRemember === false ? { canRemember: false } : {}) };
+  return Object.keys(detail).length ? detail : undefined;
 }

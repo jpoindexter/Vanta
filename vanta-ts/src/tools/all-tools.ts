@@ -25,6 +25,7 @@ import { browserNavigateTool } from "./browser-navigate.js";
 import { browserExtractTool } from "./browser-extract.js";
 import { browserActTool } from "./browser-act.js";
 import { visionActionTool } from "./vision-action.js";
+import { nativeAppLaunchTool } from "./native-app-launch.js";
 import { visionWatchTool } from "./vision-watch.js";
 import { browserReadTool } from "./browser-read.js";
 import { describeImageTool } from "./describe-image.js";
@@ -183,6 +184,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   browserExtractTool,
   browserActTool,
   visionActionTool,
+  nativeAppLaunchTool,
   visionWatchTool,
   browserReadTool,
   describeImageTool,

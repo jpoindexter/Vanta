@@ -20,6 +20,7 @@ const GROUPS: Record<string, string[]> = {
   business: ["money", "radar", "world", "life_search", "graph_query"],
   ops: ["loop", "team", "regression_lock", "roadmap_status", "roadmap_move", "roadmap_add"],
   media: ["describe_image", "compare_vision", "look_at_screen", "look_at_camera", "transcribe", "speak"],
+  computer: ["native_app_launch", "vision_action", "look_at_screen"],
   // VANTA-AGENT-ROUTING-DISCOVERY: any cross-agent mention must keep call_agent's
   // schema callable (under scoping it was hidden → the model shelled out instead).
   agents: ["call_agent", "delegate"],
@@ -33,6 +34,7 @@ const HINTS: Array<[RegExp, keyof typeof GROUPS]> = [
   [/\b(revenue|money|opportunity|prospect|business|market|customer|price)\b/i, "business"],
   [/\b(roadmap|task|team|loop|verify|regression|todo|plan)\b/i, "ops"],
   [/\b(image|screen|camera|audio|voice|transcribe|vision)\b/i, "media"],
+  [/\b(desktop|computer|native app|calculator|launch an? app|open an? app)\b/i, "computer"],
   [/\b(claude|codex|gemini|cursor|opencode|another agent|other agent|sub-?agent|call_agent|delegate)\b/i, "agents"],
   [/\b(workflow|architecture|kubernetes|deploy(?:ment)?|isolation|secrets?|health check|rollback|approval gate|reviewable brief)\b/i, "workflow"],
 ];
