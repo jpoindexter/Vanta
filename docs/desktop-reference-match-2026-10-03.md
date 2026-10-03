@@ -1,5 +1,10 @@
 # Desktop reference match — October 3, 2026
 
+Continuation: the owner subsequently identified heavy focused controls and menu
+borders in this candidate. The [quiet-controls repair](desktop-quiet-controls-2026-10-03.md)
+records that follow-up, including the reproduced defect and later package evidence.
+The hashes and results below remain the historical window-hierarchy checkpoint.
+
 ## Contract
 
 The owner's primary reference is the supplied Codex Desktop screenshot, not a

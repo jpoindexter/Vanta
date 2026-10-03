@@ -10,6 +10,7 @@
       "2": { "$type": "dimension", "$value": "8px" },
       "3": { "$type": "dimension", "$value": "12px" },
       "4": { "$type": "dimension", "$value": "16px" },
+      "5": { "$type": "dimension", "$value": "20px" },
       "6": { "$type": "dimension", "$value": "24px" },
       "8": { "$type": "dimension", "$value": "32px" }
     }
@@ -28,6 +29,10 @@
     "composerRadius": { "$type": "dimension", "$value": "{primitive.space.6}" },
     "panelRadius": { "$type": "dimension", "$value": "{primitive.space.4}" },
     "rowRadius": { "$type": "dimension", "$value": "{primitive.space.2}" },
-    "bodyType": { "$type": "dimension", "$value": "15px", "$extensions": { "confidence": "inferred" } }
+    "bodyType": { "$type": "dimension", "$value": "15px", "$extensions": { "confidence": "inferred" } },
+    "decorativeEdge": { "$type": "color", "$value": "#e6e6e8", "$extensions": { "confidence": "inferred quiet light-theme target; runtime mixes 65 percent border with workspace; not a focus or text color" } },
+    "menuWidth": { "$type": "dimension", "$value": "320px", "$extensions": { "confidence": "Vanta implementation target, capped by viewport" } },
+    "settingsInset": { "$type": "dimension", "$value": "{primitive.space.5}" },
+    "controlFocus": { "$type": "color", "$value": "#6d28d9", "$extensions": { "confidence": "retained Vanta light-theme focus; quiet edges do not replace keyboard affordances" } }
   }
 }

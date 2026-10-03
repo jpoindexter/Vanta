@@ -3,14 +3,15 @@
 .chat-welcome h1 { font-size: clamp(24px, 2.5vw, 32px); font-weight: 500; letter-spacing: -.8px; text-wrap: balance; margin-block: 0 var(--space-3); }
 .chat-welcome p { font-size: 14px; line-height: 1.6; color: var(--muted); }
 .chat-starters { display: flex; justify-content: center; flex-wrap: wrap; gap: var(--space-2); margin-block-start: var(--space-6); }
-.chat-starters button, .chat-back-button { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 40px; padding: var(--space-2) var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-md); background: transparent; color: var(--muted); font-size: 12px; text-align: start; }
+.chat-starters button, .chat-back-button { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 40px; padding: var(--space-2) var(--space-3); border: 1px solid transparent; border-radius: 12px; background: var(--panel); color: var(--muted); font-size: 12px; text-align: start; }
 .chat-starters button:hover:not(:disabled), .chat-back-button:hover { background: var(--raised); color: var(--text); }
-.chat-back-button { flex-shrink: 0; border: 0; }
+.chat-back-button { flex-shrink: 0; border: 0; background: transparent; }
 .chat-composer-dock { width: min(var(--chat-measure), calc(100% - 48px)); margin-inline: auto; padding-block: var(--space-3) var(--space-4); flex-shrink: 0; }
 .chat-conversation.is-empty .chat-composer-dock { margin-block-end: clamp(36px, 14vh, 160px); }
-.chat-first-shell .composer { width: 100%; margin: 0; border: 1px solid var(--line-strong); border-radius: var(--chat-radius); background: var(--workspace); box-shadow: none; padding: var(--space-4); }
-.chat-first-shell .composer:focus-within { border-color: var(--focus); box-shadow: none; }
-.chat-first-shell .composer textarea:focus-visible { outline: none; }
+.chat-first-shell .composer { width: 100%; margin: 0; border: 1px solid var(--chat-surface-edge); border-radius: var(--chat-radius); background: var(--workspace); box-shadow: var(--chat-composer-shadow); padding: var(--space-4); }
+/* Keep the writing surface quiet on focus; the text control owns its local cue. */
+.chat-first-shell .composer:focus-within { border-color: var(--chat-surface-edge); box-shadow: var(--chat-composer-shadow); }
+.chat-first-shell .composer textarea:focus-visible { outline: 2px solid transparent; outline-offset: 2px; caret-color: var(--focus); background-image: linear-gradient(var(--focus), var(--focus)); background-size: 24px 2px; background-position: 4px bottom; background-repeat: no-repeat; }
 .chat-first-shell .composer textarea { field-sizing: content; min-height: 24px; max-height: min(220px, 40dvh); line-height: 1.6; font-size: 15px; color: var(--text); padding: 0; background: transparent; resize: none; overflow-y: auto; }
 .chat-first-shell .composer-footer { gap: var(--space-2); padding-block-start: var(--space-3); flex-wrap: wrap; }
 .chat-first-shell .composer-actions { margin-inline-start: auto; gap: var(--space-2); }
@@ -21,7 +22,7 @@
 .chat-first-shell .model-button:hover { background: var(--raised); color: var(--text); }
 .chat-first-shell .send-button { width: 36px; height: 36px; background: var(--accent); color: var(--chat-on-accent) !important; border: 0; border-radius: 50% !important; }
 .chat-first-shell .send-button:disabled { background: var(--raised); color: var(--faint); }
-.chat-first-shell .stop-button { background: var(--raised); color: var(--text); border: 1px solid var(--line-strong); border-radius: var(--radius-md); }
+.chat-first-shell .stop-button { background: var(--raised); color: var(--text); border: 0; border-radius: var(--radius-md); }
 .chat-composer-hint { display: flex; justify-content: space-between; gap: var(--space-3); padding-block-start: var(--space-2); color: var(--faint); font-size: 11px; font-variant-numeric: tabular-nums; }
 .chat-first-shell .chat-thread-frame { flex: 1; min-height: 0; width: 100%; }
 .chat-first-shell .chat-thread { padding: var(--space-6); scrollbar-width: thin; scrollbar-gutter: auto; }
@@ -47,7 +48,19 @@
 .chat-inline-queue textarea { width: 100%; min-height: 64px; color: var(--text); background: var(--panel); border: 1px solid var(--line-strong); border-radius: var(--radius-md); padding: var(--space-2); }
 .chat-inline-queue :is(small, [role="alert"]) { width: 100%; color: var(--danger); }
 .chat-inline-queue .chat-queue-target { color: var(--muted); overflow-wrap: anywhere; }
-.chat-first-shell .model-settings-popover { border-radius: 14px; background: var(--raised); border-color: var(--line-strong); }
+.chat-first-shell .model-settings-popover { width: min(320px, calc(100vw - 24px)); border-radius: 14px; background: var(--chat-menu-surface); border-color: var(--chat-surface-edge); box-shadow: var(--chat-overlay-shadow); }
+.chat-first-shell .model-settings-popover-heading { min-height: 44px; padding-block: 2px 6px; border-color: var(--chat-surface-edge); }
+.chat-first-shell .model-settings-popover-heading h2 { text-transform: none; letter-spacing: 0; font-weight: 500; }
+.chat-first-shell :is(.model-settings-row, .model-settings-browse) { min-height: 40px; padding-block: 6px; border: 0; border-radius: 8px; }
+.chat-first-shell .model-settings-row strong { font-family: inherit; font-weight: 500; }
+.chat-first-shell .provider-settings-compact :is(.provider-setting, .provider-settings-advanced) { border: 0; }
+.chat-first-shell .provider-settings-compact .provider-setting { min-height: 44px; padding-block: 4px; row-gap: 0; }
+.chat-first-shell .provider-settings-compact .provider-setting .select-control select { min-height: 28px; padding-block: 4px; border-color: transparent; border-radius: 8px; }
+.chat-first-shell .provider-settings-compact .provider-setting small { margin-top: 0; }
+.chat-first-shell .provider-settings-compact .provider-setting .select-control select:hover:not(:disabled) { background: var(--raised); }
+.chat-first-shell .provider-settings-compact .provider-settings-advanced { border-top: 1px solid var(--chat-surface-edge); }
+.chat-first-shell .provider-settings-compact .provider-settings-advanced button { border: 0; border-radius: 8px; background: var(--panel); padding: 6px 10px; color: var(--text); }
+.chat-first-shell .provider-settings-compact .provider-settings-advanced button:hover:not(:disabled) { background: var(--raised); }
 @media (max-width: 760px) {
   .chat-composer-dock { width: calc(100% - 32px); }
   .chat-first-shell .composer { padding: var(--space-3); }

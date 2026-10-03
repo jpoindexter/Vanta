@@ -16,12 +16,14 @@ import { desktopSurfaceProof } from "./lib/desktop-surface-proof.mjs";
 import { libreChatShellProof } from "./lib/librechat-shell-proof.mjs";
 import { libreChatLayoutProof } from "./lib/librechat-layout-proof.mjs";
 import { chatTypographyProof } from "./lib/chat-typography-proof.mjs";
+import { chatQuietControlsProof } from "./lib/chat-quiet-controls-proof.mjs";
 
 const root = await mkdtemp(join(tmpdir(), "vanta-chat-first-proof-"));
 const project = join(root, "project");
 const proofHome = join(root, "state");
 const userData = join(root, "profile");
 const artifacts = resolve(".artifacts/chat-first-proof");
+const scope = process.argv.includes("--quiet-controls-only") ? "quiet-controls-only" : "full-chat-first";
 const executablePath = resolve(process.env.VANTA_DESKTOP_APP ?? "release/mac-arm64/Vanta.app/Contents/MacOS/Vanta");
 const candidateAsar = resolve(dirname(executablePath), "../Resources/app.asar");
 const candidateHash = async () => createHash("sha256").update(await readFile(candidateAsar)).digest("hex");
@@ -107,6 +109,8 @@ try {
     assert.equal(fixture.requests.length, before);
     await capture("01-new-chat");
   });
+  await chatQuietControlsProof({ page, app, check, fixture, capture });
+  if (scope === "full-chat-first") {
   await chatFirstEntryProof({ page, check, fixture, capture });
   await libreChatShellProof({ page, app, check, fixture, capture, candidateAsar });
   await check("send and completed response persist", async () => {
@@ -272,16 +276,17 @@ try {
     await page.locator(".desktop-nav").waitFor();
     assert.equal(await page.locator(".chat-first-shell").count(), 0);
   });
+  }
   assert.deepEqual(rendererErrors, [], "renderer emitted uncaught errors");
   assert.equal(await candidateHash(), candidateSha256, "the candidate changed during packaged verification");
-  console.log(JSON.stringify({ verdict: "passed", candidateSha256, checks, providerRequests: fixture.requests.length, artifacts, isolatedState: root, rendererErrors, hostDiagnostics: errors }, null, 2));
-  await writeFile(join(artifacts, "result.json"), JSON.stringify({ verdict: "passed", candidateSha256, checks, providerRequests: fixture.requests.length, rendererErrors, hostDiagnostics: errors }, null, 2));
+  console.log(JSON.stringify({ verdict: "passed", scope, candidateSha256, checks, providerRequests: fixture.requests.length, artifacts, isolatedState: root, rendererErrors, hostDiagnostics: errors }, null, 2));
+  await writeFile(join(artifacts, "result.json"), JSON.stringify({ verdict: "passed", scope, candidateSha256, checks, providerRequests: fixture.requests.length, rendererErrors, hostDiagnostics: errors }, null, 2));
 } catch (error) {
   if (page && !page.isClosed()) {
     await capture("failure").catch(() => {});
     await writeFile(join(artifacts, "failure-ui.txt"), await page.locator("body").innerText());
   }
-  await writeFile(join(artifacts, "result.json"), JSON.stringify({ verdict: "failed", candidateSha256, checks, error: String(error), errors }, null, 2));
+  await writeFile(join(artifacts, "result.json"), JSON.stringify({ verdict: "failed", scope, candidateSha256, checks, error: String(error), errors }, null, 2));
   throw error;
 } finally {
   await app?.close().catch(() => {}); await fixture.close();

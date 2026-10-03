@@ -8,6 +8,10 @@
   --chat-titlebar-height: 44px;
   --chat-control: 32px;
   --chat-radius: 24px;
+  --chat-surface-edge: color-mix(in srgb, var(--line) 65%, var(--workspace));
+  --chat-menu-surface: var(--workspace);
+  --chat-composer-shadow: 0 1px 2px rgb(0 0 0 / 3%), 0 4px 16px rgb(0 0 0 / 3%);
+  --chat-overlay-shadow: 0 2px 8px rgb(0 0 0 / 6%), 0 12px 32px rgb(0 0 0 / 10%);
   grid-template-rows: var(--chat-titlebar-height) minmax(0, 1fr);
   background: var(--panel);
 }
@@ -68,8 +72,7 @@
 .chat-first-shell .message.user .message-markdown { padding: 10px 16px; border-radius: 20px; background: var(--raised); }
 .chat-first-shell .message-footer { margin-block-start: 4px; }
 .chat-first-shell .message.user .message-footer { min-height: 24px; }
-.chat-first-shell .composer { border-color: var(--line); padding: 12px; box-shadow: 0 2px 12px color-mix(in srgb, var(--text) 5%, transparent); }
-.chat-first-shell .composer:focus-within { border-color: var(--line-strong); box-shadow: 0 2px 12px color-mix(in srgb, var(--text) 7%, transparent); }
+.chat-first-shell .composer { padding: 12px; }
 .chat-first-shell .composer textarea { padding: 0 4px; min-height: 32px; }
 .chat-first-shell .composer-footer { padding-block-start: 8px; gap: 8px; }
 .chat-first-shell .composer-context-controls { gap: 4px; }
@@ -80,7 +83,7 @@
 .chat-first-shell .send-button:disabled { color: var(--muted) !important; background: var(--raised); }
 .chat-composer-dock { padding-block: 8px 12px; }
 .chat-composer-hint { padding: 8px 4px 0; font-size: 10px; }
-.chat-first-shell .chat-inspector { grid-row: 2; margin: 8px 8px 8px 0; border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 2px 10px color-mix(in srgb, var(--text) 4%, transparent); }
+.chat-first-shell .chat-inspector { grid-row: 2; margin: 8px 8px 8px 0; border: 1px solid var(--chat-surface-edge); border-radius: 16px; box-shadow: var(--chat-composer-shadow); }
 .chat-inspector > header { min-height: 44px; padding-inline: 16px 8px; }
 .chat-inspector > header strong { font-size: 13px; font-weight: 500; color: var(--muted); }
 .chat-inspector > nav { gap: 0; padding: 4px 8px; flex-wrap: nowrap; }
@@ -90,10 +93,25 @@
 .chat-window-options > summary::-webkit-details-marker { display: none; }
 .chat-window-options > summary:is(:hover, :focus-visible) { background: var(--raised); }
 .chat-window-options > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-.chat-window-menu { position: absolute; right: 0; top: 38px; width: 260px; padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--workspace); box-shadow: var(--elevation-overlay); }
+.chat-window-menu { position: absolute; right: 0; top: 38px; width: 260px; padding: 6px; border: 1px solid var(--chat-surface-edge); border-radius: 12px; background: var(--chat-menu-surface); box-shadow: var(--chat-overlay-shadow); }
 .chat-window-menu > :is(button, a) { display: block; width: 100%; text-align: start; min-height: 36px; padding: 8px 10px; border: 0; border-radius: 6px; background: transparent; color: var(--text); text-decoration: none; font-size: 13px; }
 .chat-window-menu > :is(button, a):hover { background: var(--raised); }
 .chat-window-menu .chat-runtime { padding: 8px; overflow-wrap: anywhere; }
+/* One quiet surface for transient controls; selection, danger and keyboard
+ * focus remain independent of this decorative frame. */
+.chat-first-shell :is(.access-mode-menu, .chat-row-menu, .chat-hover-preview, .look-capture-menu) {
+  border-color: var(--chat-surface-edge); border-radius: 12px;
+  background: var(--chat-menu-surface); box-shadow: var(--chat-overlay-shadow);
+}
+.chat-first-shell :is(.access-mode-menu > header button, .model-settings-popover .icon-button) {
+  border: 0; border-radius: 8px; background: transparent;
+}
+.chat-first-shell :is(.access-mode-menu > header button, .model-settings-popover .icon-button):hover:not(:disabled) { background: var(--raised); }
+.chat-first-shell .access-mode-menu label.active { border-color: transparent; }
+.chat-first-shell .access-mode-menu details { border-color: var(--chat-surface-edge); }
+.chat-first-shell .look-capture-menu > button { border-radius: 8px; }
+.chat-first-shell .chat-row-menu input { border-color: var(--chat-surface-edge); }
+.chat-first-shell .chat-row-menu .chat-preview-details { border-color: var(--chat-surface-edge); }
 @media (max-width: 760px) {
   .chat-first-shell { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; }
   .chat-first-shell > .chat-titlebar { padding-inline-end: 8px; }
@@ -107,4 +125,10 @@
   .chat-first-shell .chat-thread { padding: 20px 16px; }
   .chat-first-shell .chat-row-action { height: 40px; }
   .chat-first-shell .chat-nav-open { min-height: 40px; }
+}
+@media (forced-colors: active) {
+  .chat-first-shell { --chat-surface-edge: CanvasText; --chat-composer-shadow: none; --chat-overlay-shadow: none; }
+  .chat-first-shell .chat-starters button { border-color: ButtonText; }
+  .chat-first-shell .composer textarea:focus-visible { outline: 2px solid Highlight; background-image: none; }
+  .chat-first-shell .access-mode-menu label.active { border-color: Highlight; }
 }

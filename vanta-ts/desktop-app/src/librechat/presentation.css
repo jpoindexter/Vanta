@@ -29,9 +29,9 @@
 .lc-rail-control[aria-pressed="true"] { box-shadow: inset 2px 0 var(--accent-text); }
 .lc-rail-tooltip {
   display: none; position: absolute; left: calc(100% + 8px); z-index: 70;
-  padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px;
+  padding: 6px 10px; border: 1px solid var(--chat-surface-edge); border-radius: 6px;
   background: var(--workspace); color: var(--text); white-space: nowrap;
-  box-shadow: var(--elevation-overlay); font-size: 12px; pointer-events: none;
+  box-shadow: var(--chat-overlay-shadow); font-size: 12px; pointer-events: none;
 }
 .lc-rail-control:is(:hover, :focus-visible) .lc-rail-tooltip { display: block; }
 .lc-sidebar-rail .chat-tools-navigation { position: relative; }
@@ -44,8 +44,8 @@
 .lc-sidebar-rail .chat-tools-toggle > svg:last-child, .lc-sidebar-rail .chat-tools-current { display: none; }
 .lc-sidebar-rail .chat-feature-nav {
   position: absolute; left: 44px; top: 0; z-index: 65; width: 240px; max-height: min(60vh, 360px);
-  padding: 8px; background: var(--workspace); border: 1px solid var(--line-strong);
-  border-radius: 12px; box-shadow: var(--elevation-overlay);
+  padding: 8px; background: var(--chat-menu-surface); border: 1px solid var(--chat-surface-edge);
+  border-radius: 12px; box-shadow: var(--chat-overlay-shadow);
 }
 .chat-first-shell .chat-resize-sidebar { left: calc(var(--lc-navigation-width) - 3px); }
 .lc-chat-view { overflow: hidden; }
