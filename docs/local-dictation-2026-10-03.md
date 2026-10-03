@@ -104,12 +104,21 @@ not establish the remaining voice roadmap acceptance.
 
 ## Installation boundary
 
-The signed candidate is ready. At the final native check, the UI tool reported
-the Mac locked, so Vanta could not be quit normally for safe replacement.
-The running `/Applications/Vanta.app` was not overwritten. No microphone
-permission was granted and no physical recording was started.
-Quit Vanta after unlocking to allow the verified installer to retain a rollback
-copy and replace the app.
+Installed on October 3 at 14:29 Europe/Madrid. The earlier UI-tool report that
+the Mac was locked was not independently established; the owner reported it
+was not locked, and a fresh native access attempt succeeded. Treat that earlier
+message as an access-tool failure, not confirmed device state.
+
+The idle app was quit normally and the guarded installer replaced
+`/Applications/Vanta.app` with the exact tested ASAR hash above. The prior app is
+recoverable at `~/Library/Application Support/Vanta Local Updates/update-dRnsd9/Vanta.app`;
+the adjacent `receipt.json` records both hashes. No running app was overwritten.
+
+Normal-profile native inspection after reopening confirmed the original chat,
+empty composer, Dictate a message button and shortcut tooltip, Command-K →
+Keyboard shortcuts → dictation/cancel entries, then Escape back to the unchanged
+chat. No message, recording or microphone-permission change was made. Installed
+control discovery is executed; physical microphone/TCC proof remains open.
 
 ## Publication and CLI update
 

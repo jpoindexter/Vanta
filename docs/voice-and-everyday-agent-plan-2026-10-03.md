@@ -177,7 +177,8 @@ The [local dictation guide](local-dictation-2026-10-03.md) records the executed
 46 focused tests, six signed-package interaction checks and four real-terminal
 checks, with zero agent requests. This supersedes the earlier source-only
 checkpoint above. These replays use synthetic audio and do not establish
-physical microphone permission or input quality. App replacement is pending a
-normal quit while the UI tool reports the Mac locked. The larger voice card
+physical microphone permission or input quality. The exact signed candidate was
+installed with rollback on October 3; normal-profile mic/shortcut-help discovery
+passed. An earlier locked-Mac tool report was not confirmed device state. The larger voice card
 remains incomplete until model management, output providers and its remaining
 acceptance criteria have executed.
