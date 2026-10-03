@@ -24,9 +24,16 @@ export function renderSetupHub(ctx: ReplCtx): string {
     "  Setup",
     `  Model      ${ctx.setup.provider.modelId()} · /model`,
     `  Telegram   ${telegram} · /setup telegram`,
-    "  Voice      /setup tts",
+    "  Dictation  /voice setup (local input)",
+    "  Speech     /setup tts (optional spoken replies)",
     "  MCP        /mcp",
   ].join("\n");
+}
+
+async function setupVoiceSection(section: string, rest: string[], ctx: ReplCtx) {
+  if (section === "tts") return { output: "  Opening voice setup…", setupHandoff: { section: "tts" as const } };
+  const { voice } = await import("./voice-cmd.js");
+  return voice(rest.join(" ") || "setup", ctx);
 }
 
 export function createSetupCommand(deps: SetupCommandDeps = {}): SlashHandler {
@@ -47,13 +54,11 @@ export function createSetupCommand(deps: SetupCommandDeps = {}): SlashHandler {
       return { output };
     }
 
-    if (section === "tts" || section === "voice") {
-      return { output: "  Opening voice setup…", setupHandoff: { section: "tts" } };
-    }
+    if (["voice", "tts"].includes(section)) return setupVoiceSection(section, rest, ctx);
 
     if (section === "mcp") return { output: "  Open MCP connections with /mcp." };
 
-    return { output: "  usage: /setup [model|messaging|telegram|tts|mcp]" };
+    return { output: "  usage: /setup [model|messaging|telegram|voice|tts|mcp]" };
   };
 }
 

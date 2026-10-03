@@ -16,6 +16,9 @@ export async function runSetupCommand(root: string, rest: string[]): Promise<voi
     await runMessagingSetup(root, undefined, { platformId: rest[1] });
   } else if (rest[0] === "tts") {
     await runTtsSetup(root);
+  } else if (rest[0] === "voice") {
+    const { runDictationCommand } = await import("./voice-cmd.js");
+    await runDictationCommand(rest.slice(1).length ? rest.slice(1) : ["setup"]);
   } else if (rest[0] === "model") {
     await runSetup(root);
   } else {

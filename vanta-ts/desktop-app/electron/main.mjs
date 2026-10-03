@@ -14,6 +14,7 @@ import { resolveRuntimePaths } from "./runtime-paths.mjs";
 import { desktopRuntimeEnv } from "./runtime-env.mjs";
 import { showProjectFolderPicker } from "./project-folder-picker.mjs";
 import { createPendingProjectTaskStore, prepareProjectSwitch } from "./project-switch.mjs";
+import { installMicrophonePermissions } from "./microphone-permissions.mjs";
 
 app.setName("Vanta");
 
@@ -223,6 +224,7 @@ async function createWindow() {
     },
   });
   mainWindow.once("ready-to-show", () => { if (!smoke) mainWindow.show(); });
+  installMicrophonePermissions(mainWindow.webContents.session, { getWindow: () => mainWindow, getOrigin: () => `http://127.0.0.1:${port}` });
   desktopPresence = createDesktopPresence({ BrowserWindow, screen, ipcMain, getWindow: () => mainWindow });
   mainWindow.webContents.setWindowOpenHandler(({ url }) => { if (/^https?:/.test(url)) void shell.openExternal(url); return { action: "deny" }; });
   mainWindow.webContents.on("will-navigate", (event, target) => {

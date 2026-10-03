@@ -29,7 +29,7 @@ function ChatComposer({ state, actions }: Props) {
       <ChatFirstQueue items={queue.snapshot.items} error={queue.error} onRefresh={queue.refresh} />
       <FullAccessWarning visible={state.warning.visible} onClose={state.warning.close} onAcknowledge={state.warning.acknowledge} />
       {convo.draftError ? <div className="chat-draft-error" role="alert"><span>{convo.draftError}</span><button type="button" onClick={() => void convo.retryDraft()}>Retry draft save</button></div> : null}
-      <Composer value={convo.draft} busy={convo.busy} ready={state.ready && !state.pending} model={data.status?.model}
+      <Composer sessionId={convo.sessionId} value={convo.draft} busy={convo.busy} ready={state.ready && !state.pending} model={data.status?.model}
         root={data.status?.root} tools={data.status?.tools} mcp={state.mcp.summary} accessMode={data.status?.accessMode ?? "approve"}
         attachments={attachments.items} images={attachments.images} attachmentError={attachments.error} lookBusy={attachments.capturing}
         onChange={convo.setDraft} onSubmit={(text) => void actions.submit(text)} onQueue={(text) => void actions.enqueue(text)}

@@ -7865,7 +7865,7 @@
       "primitives": {
         "filesystem": 2
       },
-      "effectSha256": "e95f429f0369a7b86a070bd21fff7e2aa04e527118efcaf4f3bc1b22198b3d73",
+      "effectSha256": "1e3af6af90b3aa44c5912d21af448539eb7c39a957f803172e5648c2b2c8d6cd",
       "classification": "trusted-infrastructure",
       "actor": "Vanta trusted infrastructure",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -7995,6 +7995,31 @@
       ]
     },
     {
+      "source": "src/voice/local-dictation.ts",
+      "primitives": {
+        "filesystem": 2,
+        "process": 1
+      },
+      "effectSha256": "4ee9b742b6ab362d0cfd6ea594b1465dfb12a8f503436f19a4b150780048351f",
+      "classification": "mediated-adapter",
+      "actor": "Registered Vanta tool or bounded host adapter",
+      "account": "Local project or explicitly configured provider account named by the owning callsite",
+      "credential": "Credential resolution remains in the owning provider or safe child environment; inventory stores no values",
+      "normalization": "The complete source file is SHA-256 pinned; consequential tool calls additionally bind normalized arguments",
+      "policyDecision": "The authoritative effect gateway or an explicitly reviewed host boundary decides before execution",
+      "executor": "src/voice/local-dictation.ts",
+      "receipt": "Canonical effect journal and WorkItem receipt, or the named host receipt for an explicit adapter",
+      "compensation": "No blind consequential retry; uncertainty remains visible and provider-specific compensation is required where available",
+      "bypassTests": [
+        "scripts/lib/trust-01-effect-ledger.node-test.mjs"
+      ],
+      "provenance": "Owning gateway/host and exact source path src/voice/local-dictation.ts",
+      "measurement": "Primitive kind/count plus normalized payload or argument SHA-256",
+      "cutoff": "Caller authority, kernel decision, operation id, and bounded target determine execution lifetime",
+      "rollback": "Provider-specific compensation or explicit needs-human settlement; never a blind retry",
+      "policyBoundary": false
+    },
+    {
       "source": "src/voice/loop.ts",
       "primitives": {
         "sensor": 1
@@ -8016,9 +8041,10 @@
     {
       "source": "src/voice/recorder.ts",
       "primitives": {
+        "filesystem": 1,
         "sensor": 1
       },
-      "effectSha256": "0cc9d3c5fceece32a42539be8135194a713b0f610b011970e86ca1bb039188fc",
+      "effectSha256": "d78d3c673828fabe2951098fc65965b5fb7192be1a876e5131eeced27aa32e55",
       "classification": "trusted-infrastructure",
       "actor": "Vanta trusted infrastructure",
       "account": "Local project or explicitly configured provider account named by the owning callsite",

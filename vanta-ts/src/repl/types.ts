@@ -50,6 +50,8 @@ export type ReplState = {
   lastActionAt?: string;
   /** Latest response detached with `/bg` in the TUI while the turn keeps running. */
   backgroundResponse?: BackgroundResponse;
+  /** Installed local dictation model override, scoped to this conversation. */
+  dictationModel?: string;
 };
 
 export type ReplCtx = {
@@ -61,6 +63,10 @@ export type ReplCtx = {
   now: () => Date;
   /** Optional interactive-host compaction progress sink. */
   onCompacting?: (active: boolean, progress?: number) => void;
+  /** Explicit local dictation progress; never an agent turn. */
+  onVoicePhase?: (phase: "checking" | "recording" | "transcribing" | "idle") => void;
+  /** Host lifetime cancellation also covers async dispatch before capture starts. */
+  voiceSignal?: AbortSignal;
   /** Session working memory — available in the REPL; may be absent in TUI buildCtx. */
   workingMemory?: SessionWorkingMemory;
 };

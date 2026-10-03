@@ -2,7 +2,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { unlink } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 
 const execAsync = promisify(execFile);
 
@@ -37,17 +37,28 @@ export async function detectRecorder(probe: RecorderProbe = realProbe): Promise<
 export async function recordAudio(
   durationSec = 5,
   tool?: "sox" | "ffmpeg",
+  signal?: AbortSignal,
 ): Promise<RecorderResult> {
+  if (!Number.isFinite(durationSec) || durationSec < 1 || durationSec > 60) throw new Error("Record between 1 and 60 seconds.");
+  signal?.throwIfAborted();
   const recorder = tool ?? await detectRecorder();
   if (!recorder) {
     throw new Error("No audio recorder found. Install sox (brew install sox) or ffmpeg.");
   }
-  const path = join(tmpdir(), `vanta-voice-${Date.now()}.wav`);
-  if (recorder === "sox") {
-    await execAsync("sox", ["-d", "-r", "16000", "-c", "1", path, "trim", "0", String(durationSec)], { timeout: (durationSec + 5) * 1000 });
-  } else {
-    // ffmpeg: record from default input
-    await execAsync("ffmpeg", ["-y", "-f", "avfoundation", "-i", ":0", "-t", String(durationSec), "-ar", "16000", "-ac", "1", path], { timeout: (durationSec + 5) * 1000 });
+  signal?.throwIfAborted();
+  const dir = await mkdtemp(join(tmpdir(), "vanta-voice-"));
+  const path = join(dir, "audio.wav");
+  const cleanup = () => rm(dir, { recursive: true, force: true });
+  try {
+    const args = recorder === "sox"
+      ? ["-d", "-r", "16000", "-c", "1", "-b", "16", path, "trim", "0", String(durationSec)]
+      : ["-nostdin", "-y", "-f", "avfoundation", "-i", ":0", "-t", String(durationSec), "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", path];
+    if (recorder === "ffmpeg" && process.platform !== "darwin") throw new Error("Use sox for microphone capture on this platform.");
+    await execAsync(recorder, args, { timeout: (durationSec + 5) * 1000, signal, killSignal: "SIGKILL", maxBuffer: 256 * 1024 });
+    signal?.throwIfAborted();
+    return { path, cleanup };
+  } catch (error) {
+    await cleanup();
+    throw error;
   }
-  return { path, cleanup: () => unlink(path).catch(() => {}) };
 }

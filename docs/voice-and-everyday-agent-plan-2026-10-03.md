@@ -152,3 +152,32 @@ installed-app replacement, CLI checkout update, release, tag or paid provider
 request. The prior installed app remains available; the STT selection fix must
 be included in the next validated build/update before installed behavior is
 claimed.
+
+## Desktop and terminal access — implementation in progress
+
+Owner additions: voice must also work in the CLI/TUI, with discoverable setup,
+menu options, keyboard shortcuts and visible recording/transcribing indicators.
+The first implementation slice prepares an editable transcript; it does not send
+that transcript to an agent automatically. The existing explicit voice
+conversation loop remains a separate opt-in operation.
+
+- Desktop: a quiet mic control next to the composer, Command/Ctrl+Shift+D to
+  start/stop, Escape to discard active dictation, and visible local-processing
+  status. Shortcut help and the button tooltip expose the action.
+- Terminal: `vanta voice` and `/voice` expose status and setup; `/setup voice`
+  stays inside the session. Recording returns a draft in the TUI. Setup must
+  distinguish installed speech engines/models from actual microphone access.
+- Both paths use the same bounded local dictation engine and `VANTA_STT_MODEL`;
+  cached checkpoints only, no silent model download or hosted fallback.
+- Keyboard actions must preserve typed drafts, avoid dialog/keybinding conflicts,
+  stop capture on cancellation, and never redirect late transcripts to another
+  chat. A shortcut is not permission for background or always-on listening.
+
+The [local dictation guide](local-dictation-2026-10-03.md) records the executed
+46 focused tests, six signed-package interaction checks and four real-terminal
+checks, with zero agent requests. This supersedes the earlier source-only
+checkpoint above. These replays use synthetic audio and do not establish
+physical microphone permission or input quality. App replacement is pending a
+normal quit while the UI tool reports the Mac locked. The larger voice card
+remains incomplete until model management, output providers and its remaining
+acceptance criteria have executed.
