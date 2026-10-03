@@ -34,7 +34,7 @@ describe("ApprovalPrompt — Claude-method numbered menu", () => {
     const done = vi.fn();
     const inst = renderUi(h(ApprovalPrompt, { pending, focusedTarget: "approval-deny", onDone: done }));
     await tick();
-    expect(inst.lastFrame()).toContain("❯ 3.");
+    expect(inst.lastFrame()).toContain("❯ 2.");
     inst.input("\r");
     await waitUntil(() => vi.mocked(pending.resolve).mock.calls.length > 0);
     expect(pending.resolve).toHaveBeenCalledWith(false);

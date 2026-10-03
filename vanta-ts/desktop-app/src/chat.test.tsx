@@ -135,7 +135,7 @@ describe("ChatThread quiet trace", () => {
       />,
     );
     expect(html).toContain("Read and searched 2 times");
-    expect(html.match(/<details/g)).toHaveLength(1);
+    expect(html.match(/<details/g)).toHaveLength(2);
     expect(html).toContain("first full output");
     expect(html).toContain("second full output");
     expect(html).not.toContain("internal policy narration");

@@ -38,7 +38,7 @@
     "desktop:native:smoke": "npm run desktop:build && electron desktop-app/electron/main.mjs --smoke",
     "desktop:kernel-collision:smoke": "npm run desktop:pack && node scripts/desktop-kernel-collision-smoke.mjs",
     "desktop:devtools:smoke": "npm run desktop:build && node scripts/desktop-devtools-detached-smoke.mjs",
-    "desktop:host:test": "node --test desktop-app/electron/dropped-paths.node-test.mjs desktop-app/electron/project-folder-picker.node-test.mjs desktop-app/electron/project-root.node-test.mjs desktop-app/electron/project-switch.node-test.mjs desktop-app/electron/runtime-env.node-test.mjs desktop-app/electron/runtime-paths.node-test.mjs desktop-app/electron/desktop-surface.node-test.mjs desktop-app/electron/desktop-presence.node-test.mjs && vitest run desktop-app/electron/tray.test.mjs",
+    "desktop:host:test": "node --test desktop-app/electron/dropped-paths.node-test.mjs desktop-app/electron/project-folder-picker.node-test.mjs desktop-app/electron/project-root.node-test.mjs desktop-app/electron/project-switch.node-test.mjs desktop-app/electron/runtime-env.node-test.mjs desktop-app/electron/runtime-paths.node-test.mjs desktop-app/electron/desktop-surface.node-test.mjs desktop-app/electron/desktop-presence.node-test.mjs desktop-app/electron/microphone-permissions.node-test.mjs && vitest run desktop-app/electron/tray.test.mjs",
     "desktop:kernel": "bash scripts/prepare-desktop-kernel.sh",
     "desktop:pack": "npm run desktop:build && npm run desktop:kernel && node scripts/package-desktop.mjs",
     "desktop:anydoc:smoke": "npm run desktop:pack && node scripts/anydoc-packaged-smoke.mjs",
@@ -200,6 +200,11 @@
       "category": "public.app-category.productivity",
       "icon": "desktop-app/build/icon.png",
       "hardenedRuntime": true,
+      "entitlements": "desktop-app/build/entitlements.mac.plist",
+      "entitlementsInherit": "desktop-app/build/entitlements.mac.inherit.plist",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Vanta uses the microphone only when you start dictation, to turn your speech into an editable local draft."
+      },
       "gatekeeperAssess": false,
       "target": [
         "dmg",

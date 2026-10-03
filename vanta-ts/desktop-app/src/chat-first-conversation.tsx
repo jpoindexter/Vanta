@@ -5,23 +5,31 @@ import { ChatFirstQueue } from "./chat-first-queue.js";
 import { ChatWelcome } from "./chat-first-welcome.js";
 import type { ChatFirstState } from "./chat-first-state.js";
 import type { ChatFirstActions } from "./chat-first-actions.js";
+import { LibreChatView } from "./librechat/chat-view.js";
 
 type Props = { state: ChatFirstState; actions: ChatFirstActions };
 
 export function ChatFirstConversation({ state, actions }: Props) {
-  const { convo, data, attachments, queue } = state;
+  const { convo, data, queue } = state;
   const empty = !convo.messages.length && !convo.busy && !state.approval.approval;
-  return <div className={`chat-conversation ${empty ? "is-empty" : ""}`}>
-    {empty ? <ChatWelcome draft={convo.draft} ready={state.ready && !state.pending} onDraft={convo.setDraft} /> :
+  return <LibreChatView heading={convo.activeTitle || "New chat"} isLandingPage={empty}
+    landing={<ChatWelcome draft={convo.draft} ready={state.ready && !state.pending} onDraft={convo.setDraft} />}
+    messages={
       <ChatThread key={convo.sessionId} title={convo.activeTitle} sessionId={convo.sessionId} messages={convo.messages}
         busy={convo.busy} streamText={convo.streamText} events={convo.events} recovery={convo.recovery}
         approval={state.approval.approval} queueCount={queue.snapshot.items.length} onApproval={state.approval.answerApproval}
         onRetry={convo.retry} onReconnect={data.openSetup} onPrompt={convo.setDraft} />}
+    composer={<ChatComposer state={state} actions={actions} />} />;
+}
+
+function ChatComposer({ state, actions }: Props) {
+  const { convo, data, attachments, queue } = state;
+  return (
     <div className="chat-composer-dock">
       <ChatFirstQueue items={queue.snapshot.items} error={queue.error} onRefresh={queue.refresh} />
       <FullAccessWarning visible={state.warning.visible} onClose={state.warning.close} onAcknowledge={state.warning.acknowledge} />
       {convo.draftError ? <div className="chat-draft-error" role="alert"><span>{convo.draftError}</span><button type="button" onClick={() => void convo.retryDraft()}>Retry draft save</button></div> : null}
-      <Composer value={convo.draft} busy={convo.busy} ready={state.ready && !state.pending} model={data.status?.model}
+      <Composer sessionId={convo.sessionId} value={convo.draft} busy={convo.busy} ready={state.ready && !state.pending} model={data.status?.model}
         root={data.status?.root} tools={data.status?.tools} mcp={state.mcp.summary} accessMode={data.status?.accessMode ?? "approve"}
         attachments={attachments.items} images={attachments.images} attachmentError={attachments.error} lookBusy={attachments.capturing}
         onChange={convo.setDraft} onSubmit={(text) => void actions.submit(text)} onQueue={(text) => void actions.enqueue(text)}
@@ -31,7 +39,7 @@ export function ChatFirstConversation({ state, actions }: Props) {
         onAccessMode={data.setAccessMode} onCommand={data.openPalette} />
       <ComposerHint state={state} />
     </div>
-  </div>;
+  );
 }
 
 function ComposerHint({ state: { convo, data, settling } }: { state: ChatFirstState }) {

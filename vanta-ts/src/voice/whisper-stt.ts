@@ -100,7 +100,7 @@ export function transcribeAudio(audioPath: string, deps: TranscribeDeps = {}): T
   if (!whisperAvailable(run)) return { ok: false, error: "whisper not installed (pip install -U openai-whisper)" };
   const txtPath = transcriptPathFor(audioPath, outputDir);
   try {
-    run(buildWhisperArgs(audioPath, { model: deps.model ?? "tiny", outputDir, language: deps.language }));
+    run(buildWhisperArgs(audioPath, { model: deps.model ?? sttModel(), outputDir, language: deps.language }));
     const text = stripControl(readText(txtPath)).trim();
     return text.length > 0 ? { ok: true, text } : { ok: false, error: "whisper produced no transcript" };
   } catch (e) {

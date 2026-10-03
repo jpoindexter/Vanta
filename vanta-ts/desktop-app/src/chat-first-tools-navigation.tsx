@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { CalendarClock, ChevronDown, Folder, History, LayoutList, Plug, Wrench } from "lucide-react";
 import type { ChatFirstState } from "./chat-first-state.js";
 
@@ -11,14 +12,33 @@ const destinations = [
   { id: "connect", label: "Connections", icon: Plug },
 ] as const;
 
-type Props = { view: ChatFirstState["view"]; onNavigate: (view: ChatFirstState["view"]) => void };
+type Props = { view: ChatFirstState["view"]; onNavigate: (view: ChatFirstState["view"]) => void; children?: (close: () => void) => ReactNode };
 
 /** Utilities stay discoverable without displacing conversation history. */
-export function ChatToolsNavigation({ view, onNavigate }: Props) {
+export function ChatToolsNavigation({ view, onNavigate, children }: Props) {
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const menu = root.current;
+    const history = menu?.closest(".chat-sidebar")?.querySelector<HTMLElement>(".lc-history-panel");
+    const priorInert = history?.getAttribute("inert");
+    history?.setAttribute("inert", "");
+    const outside = (event: PointerEvent) => {
+      if (menu && !menu.contains(event.target as Node)) setOpen(false);
+    };
+    window.addEventListener("pointerdown", outside, true);
+    return () => {
+      window.removeEventListener("pointerdown", outside, true);
+      if (priorInert == null) history?.removeAttribute("inert");
+      else history?.setAttribute("inert", priorInert);
+    };
+  }, [open]);
   const current = destinations.find((destination) => destination.id === view);
-  return <div className="chat-tools-navigation" onKeyDown={(event) => {
+  return <div ref={root} className="chat-tools-navigation" onBlur={(event) => {
+    if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+  }} onKeyDown={(event) => {
     if (event.key !== "Escape" || !open) return;
     event.preventDefault(); event.stopPropagation(); setOpen(false); trigger.current?.focus();
   }}>
@@ -32,6 +52,7 @@ export function ChatToolsNavigation({ view, onNavigate }: Props) {
         aria-current={view === id ? "page" : undefined} onClick={() => { onNavigate(id); setOpen(false); }}>
         <Icon size={16} aria-hidden="true" />{label}
       </button>)}
+      {children?.(() => setOpen(false))}
     </nav>
   </div>;
 }

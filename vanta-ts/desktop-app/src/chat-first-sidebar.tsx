@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { Archive, Folder, MessageSquarePlus, Moon, PanelLeftClose, Search, Settings2, Sun } from "lucide-react";
-import { ChatToolsNavigation } from "./chat-first-tools-navigation.js";
+import { Archive, ChevronDown, Folder, MessageSquarePlus, Search } from "lucide-react";
+import { ChatWorkspaceNavigation } from "./chat-workspace-navigation.js";
 import { chatGroups } from "./chat-first-navigation.js";
 import { ChatRow } from "./chat-first-row.js";
 import { groupProjectChats } from "./chat-first-projects.js";
@@ -12,18 +12,31 @@ type Props = { state: ChatFirstState; actions: ChatFirstActions };
 export function ChatFirstSidebar({ state, actions }: Props) {
   const [query, setQuery] = useState("");
   const [archived, setArchived] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const locked = state.convo.busy || state.pending || !state.ready;
+  return <aside className="chat-sidebar lc-sidebar" data-expanded={state.sidebar} aria-label="Chat navigation" id="chat-navigation">
+    <div className="lc-sidebar-body">
+    <ChatWorkspaceNavigation state={state} />
+    {state.sidebar ? <div className="lc-history-panel">
+    <header className="chat-history-header">
+      <button className="chat-brand-button" type="button" aria-label="Vanta settings" onClick={state.data.openSettings}><strong className="chat-wordmark">Vanta</strong><ChevronDown size={12} /></button>
+      <button className="chat-icon" type="button" aria-label="Find chats" aria-expanded={searching} onClick={() => setSearching(!searching)}><Search size={16} /></button>
+    </header>
+    <button className="chat-new" type="button" disabled={locked} onClick={() => void actions.navigate()}><MessageSquarePlus size={18} />New chat<kbd>⌘ N</kbd></button>
+    {searching ? <div className="chat-search-row"><label className="chat-search"><Search size={14} aria-hidden="true" /><span className="sr-only">Search chats</span>
+      <input autoFocus type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search chats" /></label>
+      <button className="chat-icon" type="button" aria-label={archived ? "Show recent chats" : "Show archived chats"} aria-pressed={archived} onClick={() => setArchived(!archived)}><Archive size={15} /></button></div> : null}
+    {!searching && (query || archived) ? <button className="chat-filter-reset" type="button" onClick={() => { setQuery(""); setArchived(false); }}>Clear {archived ? "archived" : "search"} filter</button> : null}
+    <ChatHistory state={state} actions={actions} locked={locked} query={query} archived={archived} />
+    </div> : null}
+    </div>
+  </aside>;
+}
+
+function ChatHistory({ state, actions, locked, query, archived }: Props & { locked: boolean; query: string; archived: boolean }) {
   const groups = useMemo(() => chatGroups(state.data.sessions, query, archived), [state.data.sessions, query, archived]);
   const projects = groupProjectChats(groups.recent);
-  const locked = state.convo.busy || state.pending || !state.ready;
-  return <aside className="chat-sidebar" aria-label="Chat navigation" id="chat-navigation">
-    <header><strong className="chat-wordmark">vanta<span aria-hidden="true">.</span></strong>
-      <button className="chat-icon" type="button" aria-label="Hide sidebar" onClick={() => state.setSidebar(false)}><PanelLeftClose size={18} /></button></header>
-    <button className="chat-new" type="button" disabled={locked} onClick={() => void actions.navigate()}><MessageSquarePlus size={18} />New chat<kbd>⌘ N</kbd></button>
-    <label className="chat-search"><Search size={16} aria-hidden="true" /><span className="sr-only">Search chats</span>
-      <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search chats" /></label>
-    <div className="chat-list-heading"><span>{archived ? "Archived chats" : "Your chats"}</span>
-      <button className="chat-icon" type="button" aria-label={archived ? "Show recent chats" : "Show archived chats"} aria-pressed={archived} onClick={() => setArchived(!archived)}><Archive size={15} /></button></div>
-    <div className="chat-session-list" role="region" aria-label="Chat history" tabIndex={0}>
+  return <div className="chat-session-list" role="region" aria-label="Chat history" tabIndex={0}>
       {groups.pinned.length ? <ChatGroup title="Pinned" sessions={groups.pinned} state={state} actions={actions} locked={locked} /> : null}
       {projects.general.length ? <ChatGroup title={archived ? "Archived" : "Recent"} sessions={projects.general} state={state} actions={actions} locked={locked} /> : null}
       {projects.projects.map((project) => <details className="chat-project-group" key={project.id} open>
@@ -31,19 +44,7 @@ export function ChatFirstSidebar({ state, actions }: Props) {
         <ChatGroup title={`Chats in ${project.id}`} sessions={project.sessions} state={state} actions={actions} locked={locked} />
       </details>)}
       {!groups.pinned.length && !groups.recent.length ? <p className="chat-list-empty">{emptyChatLabel(query, archived)}</p> : null}
-    </div>
-    <footer><ChatToolsNavigation view={state.view} onNavigate={(view) => openView(state, view)} />
-      <button type="button" disabled={locked} onClick={() => state.setTaskOpen(true)}><Folder size={16} />New project task</button>
-      <button type="button" onClick={state.data.openSettings}><Settings2 size={16} />Settings</button></footer>
-    <AppearanceControl state={state} />
-  </aside>;
-}
-
-function AppearanceControl({ state }: Pick<Props, "state">) {
-  return <button className="chat-appearance" type="button" onClick={() => state.setTheme(state.theme === "light" ? "dark" : "light")}
-      aria-label={`Switch to ${state.theme === "light" ? "dark" : "light"} mode`}>
-      {state.theme === "light" ? <Moon size={16} aria-hidden="true" /> : <Sun size={16} aria-hidden="true" />}
-      {state.theme === "light" ? "Light appearance" : "Dark appearance"}</button>;
+    </div>;
 }
 
 function ChatGroup(props: Props & { title: string; sessions: ChatFirstState["data"]["sessions"]; locked: boolean }) {
@@ -52,11 +53,6 @@ function ChatGroup(props: Props & { title: string; sessions: ChatFirstState["dat
       currentSession={session.id === props.state.convo.sessionId}
       locked={props.locked} onOpen={(id) => void props.actions.navigate(id)}
       onPin={(id, pinned) => void props.actions.pin(id, pinned)} onArchive={(id, archived) => void props.actions.archive(id, archived)} onRename={props.actions.rename} />)}</ul></section>;
-}
-
-function openView(state: ChatFirstState, view: ChatFirstState["view"]) {
-  state.setView(view);
-  if (window.innerWidth < 900) state.setSidebar(false);
 }
 
 function emptyChatLabel(query: string, archived: boolean) {

@@ -8,7 +8,8 @@ invoke, give context, work, intervene, inspect results, leave/resume, and schedu
 The mini and optional avatar are entrances to the same live workspace, not a
 second agent or conversation store. No interview/demo edition is selected.
 
-Current branch: `codex/desktop-chat-workbench-20261002`. Authority includes
+Current branch: `codex/librechat-shell-adapter-20261002`, continuing the
+`codex/desktop-chat-workbench-20261002` stack. Authority includes
 implementation, local guarded app replacement, documentation, and normal Git
 publication. Required review still applies before any merge. No force push,
 paid workflows, release, deployment, notarization, or unsolicited account action.
@@ -22,7 +23,11 @@ Modern-minimal application, not a marketing page. Familiar conversation sidebar,
 readable transcript, quiet composer, optional contextual inspector. Vanta's engine,
 providers, approval policy and canonical stores remain the source of truth.
 The approved reference is the interaction structure of Codex Desktop, not its
-branding or proprietary renderer. No upstream source is copied in this rebuild.
+branding or proprietary renderer. The October 2 owner direction now permits
+adapting LibreChat's actual frontend. Its identified presentation components
+retain upstream attribution/license and connect to Vanta's existing runtime;
+no second engine or history store is introduced. See
+[the adoption record](docs/librechat-desktop-adoption-2026-10-02.md).
 
 ## System
 
@@ -40,14 +45,42 @@ Layout styles are scoped to `.chat-first-shell`; semantic appearance tokens are 
 The sidebar is secondary, conversation primary, inspector tertiary. New chat
 does not require a task form. Project/task creation remains a separate action.
 The conversation list takes priority over feature navigation. Today, Outputs,
-Library, Schedules, Skills & tools and Connections sit behind the initially
-collapsed Tools & activity disclosure. Utility screens have a Back to chat action
+Library, Schedules, Skills & tools and advanced project creation remain behind
+the initially collapsed Tools & activity disclosure. Chats, Activity and
+Connections have labelled navigation-rail shortcuts; chat history can collapse
+without removing those entrances. Utility screens have a Back to chat action
 that returns to the current session without creating another one. New-chat
 starters prepare editable drafts only, never submit or overwrite a draft.
 Hover previews also appear on keyboard focus; touch keeps actions visible.
 Use semantic controls, immediate focus rings, Escape and focus restoration.
 Motion is optional opacity only; reduced motion removes it. Quiet success,
 persistent actionable errors; never fabricate readiness, evidence or counts.
+
+Design-skill application follows the approved source interface, not a new visual
+concept: component anatomy/state matrices, chat and navigation flow continuity,
+contrast and keyboard accessibility, and progressive disclosure. Conversation
+identity owns its messages, draft, activity and recovery together. A stopped
+turn must never make another conversation appear stopped. Copy, attachment,
+model, permission and result controls must preserve these existing boundaries
+when their presentation is adapted from LibreChat.
+
+Tool presentation follows LibreChat's disclosure pattern: a compact summary
+with a readable tool name and recorded-result count, then an inset evidence
+rail when expanded. Receiving a result is not evidence that the action worked.
+Do not show a green success check for an untyped returned payload. Recorded
+failures and active steps remain outside the completed-activity fold; approvals
+and recovery stay in their existing independent controls. A tool-only assistant
+turn has no empty message bubble or irrelevant message feedback actions.
+
+The October 3 spacing correction uses LibreChat's actual ChatForm anatomy:
+a one-line, content-growing input with a compact footer, not a permanently tall
+textarea. Transcript, tool activity, approvals and composer share one 768px
+measure and 24px outer gutters (16px in narrow windows). User messages have one
+bubble surface, not nested padding/backgrounds. Only one history preview can be
+visible; it uses a two-line title and compact metadata, dismisses when a chat is
+selected, and remains keyboard-accessible. Preserve full details in the explicit
+row menu. These are alignment, proximity and progressive-disclosure corrections
+to the existing interface, not a second visual system.
 
 ## Historical September execution ledger
 

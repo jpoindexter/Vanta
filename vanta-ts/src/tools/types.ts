@@ -6,6 +6,7 @@ import type { ContextInspection } from "./inspect-context.js";
 import type { PermissionMode } from "../modes/permission-mode.js";
 import type { AskQuestion, AskUserResponse } from "./ask-user-model.js";
 import type { ReceiptDisposition } from "../work-items/contract.js";
+import type { ApprovalDetail } from "../permissions/request.js";
 
 export type { DiffLine };
 
@@ -58,7 +59,7 @@ export type ToolContext = {
   safety: KernelClient;
   /** Pause and ask the human y/n. Returns true if approved. toolName lets the
    *  host key session/always-allow and accept-edits auto-approve decisions. */
-  requestApproval: (action: string, reason: string, toolName?: string, detail?: { diff?: string; fresh?: boolean }) => Promise<boolean>;
+  requestApproval: (action: string, reason: string, toolName?: string, detail?: ApprovalDetail) => Promise<boolean>;
   /** Pause an interactive host for a structured operator-owned decision. Hosts
    * without a picker omit this and the tool falls back to a formatted prompt. */
   requestQuestion?: (questions: AskQuestion[]) => Promise<AskUserResponse>;

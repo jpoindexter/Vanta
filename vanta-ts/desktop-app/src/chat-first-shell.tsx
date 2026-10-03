@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { ArrowLeft, ChevronDown, Maximize2, Minimize2, PanelLeft, PanelRight, X } from "lucide-react";
+import { useEffect } from "react";
+import { X } from "lucide-react";
 import { useChatFirstState, type ChatFirstState } from "./chat-first-state.js";
 import { useChatFirstActions, type ChatFirstActions } from "./chat-first-actions.js";
 import { ChatFirstSidebar } from "./chat-first-sidebar.js";
@@ -8,7 +8,7 @@ import { ChatFirstWorkspace } from "./chat-first-workspaces.js";
 import { ChatFirstOverlays } from "./chat-first-overlays.js";
 import { ChatFirstInspector } from "./chat-first-inspector.js";
 import { chatTitle } from "./chat-first-navigation.js";
-import { RuntimeStrip } from "./runtime-strip.js";
+import { ChatTitlebar } from "./chat-titlebar.js";
 import { focusDesktopComposer, handleGlobalShortcut } from "./global-shortcuts.js";
 import { useChatProjectTask } from "./chat-first-project-task.js";
 import { useChatDialogs } from "./chat-first-dialogs.js";
@@ -26,9 +26,10 @@ export function ChatFirstShell() {
   useChatDialogs();
   useChatShortcuts({ state, actions });
   return <div className={`app-shell chat-first-shell theme-${state.theme}`} style={state.layout.style} data-surface={surface.mode} data-sidebar={state.sidebar} data-inspector={state.inspector}>
-    {state.sidebar ? <ChatFirstSidebar state={state} actions={actions} /> : null}
+    <ChatTitlebar state={state} actions={actions} surface={surface} />
+    <ChatFirstSidebar state={state} actions={actions} />
     {state.sidebar ? <ChatPaneResize pane="sidebar" value={state.layout.sidebar} onChange={state.layout.setWidth} /> : null}
-    <div className="chat-main-column"><ChatHeader state={state} surface={surface} />
+    <div className="chat-main-column">
       <ActiveChatNavigation state={state} />
       <ChatStatus state={state} />
       <ChatDocumentLinks state={state} surface={surface}><main className="chat-main" id="chat-main">{state.view === "work" ? <ChatFirstConversation state={state} actions={actions} /> : <ChatFirstWorkspace state={state} actions={actions} />}</main></ChatDocumentLinks>
@@ -36,31 +37,6 @@ export function ChatFirstShell() {
     {state.inspector ? <><ChatPaneResize pane="context" value={state.layout.context} onChange={state.layout.setWidth} /><ChatFirstInspector state={state} /></> : null}
     <ChatFirstOverlays state={state} actions={actions} />
   </div>;
-}
-
-function ChatHeader({ state, surface }: { state: ChatFirstState; surface: ReturnType<typeof useDesktopSurface> }) {
-  const [runtimeOpen, setRuntimeOpen] = useState(false);
-  const labels = { work: chatTitle({ title: state.convo.activeTitle }), operate: "Today", outputs: "Outputs", scheduled: "Schedules", connect: "Connections", plugins: "Skills & tools", history: "Library" };
-  const { data } = state;
-  return <>
-    <header className="chat-header">
-      {!state.sidebar ? <button className="chat-icon" type="button" aria-label="Show sidebar" aria-expanded="false" onClick={() => state.setSidebar(true)}><PanelLeft size={18} /></button> : null}
-      {state.view !== "work" ? <button className="chat-back-button" type="button" onClick={() => state.setView("work")}><ArrowLeft size={16} aria-hidden="true" />Back to chat</button> : null}
-      <span className="chat-header-title">{labels[state.view]}</span>
-      <button className="chat-project-button" type="button" aria-expanded={runtimeOpen} onClick={() => setRuntimeOpen(!runtimeOpen)} title={data.status?.root}>
-        {data.status?.root?.split("/").filter(Boolean).pop() ?? "Local workspace"}<ChevronDown size={13} /></button>
-      <a className="chat-classic-link" href="?shell=classic" aria-disabled={state.convo.busy || state.pending} onClick={(event) => {
-        if (state.convo.busy || state.pending) { event.preventDefault(); state.setError("Stop the response before switching to Classic view."); }
-      }}>Classic view</a>
-      <button className="chat-icon" type="button" aria-label="Toggle context" aria-expanded={state.inspector} onClick={() => state.setInspector(!state.inspector)}><PanelRight size={18} /></button>
-      {surface.available ? <button className="chat-icon" type="button" onClick={surface.toggle}
-        aria-label={surface.mode === "mini" ? "Expand Vanta" : "Mini Vanta"} title={surface.mode === "mini" ? "Return to full workspace" : "Keep this workspace in a small window"}>
-        {surface.mode === "mini" ? <Maximize2 size={18} /> : <Minimize2 size={18} />}</button> : null}
-    </header>
-    {runtimeOpen ? <div className="chat-runtime"><RuntimeStrip runtime={data.runtime} agentModel={data.status?.model}
-      agentProvider={data.status?.provider} agentRoute={data.status?.providerRoute} phase={data.phase}
-      onSelect={data.setRuntimeHost} onAction={data.runRuntimeAction} /></div> : null}
-  </>;
 }
 
 function ChatStatus({ state }: { state: ChatFirstState }) {

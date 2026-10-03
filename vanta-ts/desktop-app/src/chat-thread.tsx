@@ -54,14 +54,14 @@ function TranscriptRows({ view, feedbackState }: { view: ReturnType<typeof useCh
             key={virtualTurn.key}
             style={typeof window === "undefined" ? undefined : { position: "absolute", top: 0, left: 0, width: "100%", transform: `translateY(${virtualTurn.start}px)` }}
           >
-            <MessageBubble
+            {message.content?.trim() || !message.toolCalls?.length ? <MessageBubble
               message={message}
               feedback={feedback[key]}
               feedbackReason={feedbackReasons[key]}
               onFeedback={(value) => setMessageFeedback(key, value)}
               onFeedbackReason={(value) => setMessageFeedbackReason(key, value)}
               onExpand={(opener) => setExpanded({ content: message.content ?? "", opener })}
-            />
+            /> : null}
             {message.toolCalls?.length ? <RunTimeline calls={message.toolCalls} messages={rows} /> : null}
           </div>
         );
@@ -74,7 +74,7 @@ function ActiveRunStatus(props: ChatThreadProps) {
   const recovery = props.recovery;
   return <>
       {props.busy ? <div className="thinking"><i />Working...</div> : null}
-      {props.events.length && props.events[0]?.label !== "No tool activity yet." ? <EventTimeline events={props.events} /> : null}
+      {props.events.length && props.events[0]?.label !== "No tool activity yet." ? <EventTimeline events={props.events} running={props.busy} /> : null}
       {recovery ? <RunRecovery receipt={recovery} onRetry={props.onRetry} onReconnect={() => props.onReconnect?.()} onEdit={() => props.onPrompt(recovery.checkpoint?.instruction ?? "")} onCheckpoint={() => props.onPrompt(checkpointPrompt(recovery))} /> : null}
   </>;
 }

@@ -30,7 +30,7 @@ async function signApp(target, identity) {
   await signAsync({ app: appPath, identity, identityValidation: false,
     platform: "darwin", type: "distribution", strictVerify: true,
     optionsForFile: (file) => ({ hardenedRuntime: true,
-      entitlements: resolve(file === appPath ? entitlements : "node_modules/app-builder-lib/templates/entitlements.mac.plist") }),
+      entitlements: resolve(file === appPath ? entitlements : "desktop-app/build/entitlements.mac.inherit.plist") }),
   });
   run("codesign", ["--verify", "--deep", "--strict", "--verbose=2", target]);
 }

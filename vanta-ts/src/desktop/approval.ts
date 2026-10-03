@@ -1,4 +1,4 @@
-import { buildPermissionRequest } from "../permissions/request.js";
+import { buildPermissionRequest, type ApprovalDetail } from "../permissions/request.js";
 import { grantAlways, grantNever } from "../permissions/grant.js";
 
 export type PendingApproval = {
@@ -6,7 +6,7 @@ export type PendingApproval = {
   action: string;
   reason: string;
   toolName?: string;
-  detail?: { diff?: string; fresh?: boolean };
+  detail?: ApprovalDetail;
   resolve: (approved: boolean) => void;
 };
 
@@ -26,6 +26,7 @@ export function approvalPayload(p: PendingApproval): unknown {
 export async function resolveApproval(p: PendingApproval, decision: ApprovalDecision): Promise<void> {
   if (decision === "always" || decision === "never") {
     if (p.detail?.fresh) throw new Error("This action requires one-time approval; a saved rule cannot replace it.");
+    if (p.detail?.canRemember === false) throw new Error("This approval policy requires a one-time decision; a saved rule cannot replace it.");
     if (!p.toolName) throw new Error("Cannot save an approval rule without a tool name.");
     try {
       if (decision === "always") await grantAlways(p.toolName);

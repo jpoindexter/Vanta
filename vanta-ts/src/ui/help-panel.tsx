@@ -24,6 +24,8 @@ export function HelpPanel(props: { onClose: () => void }): ReactElement {
   const shortcut = useShortcut();
   const rows: ReadonlyArray<[string, string]> = [
     ...STATIC_ROWS,
+    [shortcut(GLOBAL_ACTIONS.dictation, "global", "^R"), "local dictation 5s / cancel · review draft before sending"],
+    ["/voice", "dictation status, setup, model, record, test, cancel"],
     [shortcut(GLOBAL_ACTIONS.exitOrAbort, "global", "^C"), "interrupt a running turn · exit when idle"],
   ];
   return (

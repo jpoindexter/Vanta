@@ -1,5 +1,7 @@
 import { join } from "node:path";
-import { type Dispatch, type MutableRefObject } from "react";
+import { useEffect, useRef, useState, type Dispatch, type MutableRefObject } from "react";
+import type { ComposerDraft, VoicePhase } from "./dictation-context.js";
+import { voice } from "../repl/voice-cmd.js";
 import { executeSlash } from "../repl-commands.js";
 import { RESTART_EXIT_CODE } from "../repl/restart-cmd.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
@@ -23,7 +25,12 @@ export type SlashEffects = {
   composerAnchor: (mode: "float" | "bottom") => void;
   vimMode: (on: boolean) => void;
   setup: (request: SetupHandoff) => void;
+  draft?: (text: string) => void;
 };
+
+function applyDraft(r: SlashResult, fx: SlashEffects): void {
+  if (r.loadIntoComposer !== undefined) fx.draft?.(r.loadIntoComposer);
+}
 
 /** Map a SlashResult onto the host. Restart sets exit code 75 (run.sh re-execs). */
 export function applySlashResult(r: SlashResult, fx: SlashEffects): void {
@@ -35,6 +42,7 @@ export function applySlashResult(r: SlashResult, fx: SlashEffects): void {
   if (r.vimMode !== undefined) fx.vimMode(r.vimMode); // /vim → toggle composer vi-mode live
   if (r.cleared) fx.clear(); // /clear → wipe committed TUI scrollback before the fresh-session note
   if (r.output) fx.note(r.output);
+  applyDraft(r, fx);
   if (r.resend) fx.send(r.resend, r.resendDisplay);
   if (r.setupHandoff) fx.setup(r.setupHandoff);
 }
@@ -52,7 +60,12 @@ export type SlashDeps = {
   requestSetup: (request: SetupHandoff) => void;
 };
 
-export function useSlash(deps: SlashDeps): { runSlash: (line: string) => Promise<void> } {
+export function useSlash(deps: SlashDeps) {
+  const [composerDraft, setComposerDraft] = useState<ComposerDraft | null>(null);
+  const [voicePhase, setVoicePhase] = useState<VoicePhase>("idle");
+  const draftId = useRef(0);
+  const mounted = useRef(true);
+  const lifetime = useRef(new AbortController());
   const buildCtx = (): ReplCtx => ({
     convo: deps.convoRef.current!,
     setup: deps.setup,
@@ -61,6 +74,8 @@ export function useSlash(deps: SlashDeps): { runSlash: (line: string) => Promise
     env: process.env,
     now: () => new Date(),
     onCompacting: (active, progress) => deps.dispatch({ t: "compacting", active, progress }),
+    onVoicePhase: (phase) => { if (mounted.current) setVoicePhase(phase); },
+    voiceSignal: lifetime.current.signal,
   });
   const fx: SlashEffects = {
     clear: () => deps.dispatch({ t: "clear" }),
@@ -70,15 +85,28 @@ export function useSlash(deps: SlashDeps): { runSlash: (line: string) => Promise
     composerAnchor: deps.setComposerAnchor,
     vimMode: deps.setVim,
     setup: deps.requestSetup,
+    draft: (text) => setComposerDraft({ text, id: ++draftId.current }),
   };
   const runSlash = async (line: string): Promise<void> => {
     if (!deps.convoRef.current) return;
+    const origin = { convo: deps.convoRef.current, session: deps.replStateRef.current.sessionId };
+    if (/^\/(?:clear|new|reset|resume|fork|exit|quit|restart)(?:\s|$)/.test(line)) {
+      await voice("cancel", buildCtx());
+      setComposerDraft(null);
+    }
     const r = await executeSlash(line, buildCtx());
+    if (!mounted.current) return;
+    if (r.loadIntoComposer !== undefined && (origin.convo !== deps.convoRef.current || origin.session !== deps.replStateRef.current.sessionId)) return;
     if (r.resend) {
       const command = line.split(/\s/)[0]?.slice(1) ?? "";
       await fireHooks(join(deps.repoRoot, ".vanta"), "UserPromptExpansion", { command, prompt: r.resend }, { cwd: deps.repoRoot, matcherValue: command, promptProvider: deps.setup.provider });
     }
     applySlashResult(r, fx);
   };
-  return { runSlash };
+  useEffect(() => {
+    mounted.current = true;
+    lifetime.current = new AbortController();
+    return () => { mounted.current = false; lifetime.current.abort(); void voice("cancel", buildCtx()); };
+  }, []);
+  return { runSlash, composerDraft, consumeDraft: () => setComposerDraft(null), voicePhase };
 }

@@ -41,9 +41,9 @@ import { handleWorkflowRunRoute } from "./workflow-run-api.js";
 import { handleDesktopSchedules } from "./schedule-api.js";
 import { handleDesktopContinuity } from "./continuity-api.js";
 import { handleFilePreview } from "./file-preview.js";
+import { handleDesktopVoiceStatus, handleDesktopVoiceTranscribe } from "./voice-api.js";
 
 type RouteCtx = { req: http.IncomingMessage; res: http.ServerResponse; state: DesktopState; sid: string; sseClients: SseClients; pathname: string };
-
 async function routeGet(ctx: RouteCtx): Promise<boolean> {
   const { req, res, state, sid, sseClients, pathname: p } = ctx;
   if (await writeDesktopAsset(state.root, p, res)) return true;
@@ -55,6 +55,7 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
   }
   const handler: Record<string, () => Promise<void>> = {
     "/api/status": () => handleStatus(state, res),
+    "/api/voice": () => handleDesktopVoiceStatus(res),
     "/api/sessions": () => handleSessions(res),
     "/api/runs": () => handleRuns(state, req, res),
     "/api/schedules": () => handleDesktopSchedules(state, res),
@@ -118,6 +119,7 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
     "/api/chat/stop": () => handleStopChat(state, res),
     "/api/chat/queue": () => handleQueueChat(state, req, res),
     "/api/look": () => handleDesktopLookCapture(state, req, res),
+    "/api/voice/transcribe": () => handleDesktopVoiceTranscribe(req, res),
   };
   if (handlers[p]) { await handlers[p](); return true; }
   if (p === "/api/wake") {
@@ -132,7 +134,6 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
   }
   return false;
 }
-
 type ServerOpts = {
   sessions: SessionMap;
   sseClients: SseClients;

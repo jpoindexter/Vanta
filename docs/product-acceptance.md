@@ -1,6 +1,6 @@
 # Product acceptance
 
-Updated 2026-10-02 with a local product-recovery addendum. Historical release
+Updated 2026-10-03 with an installed-app and delivery reconciliation. Historical release
 receipts below retain their original version/date and are not current security attestations.
 This record separates executed behavior from static tests,
 repository integration, release state, and external setup gates. A receipt is
@@ -14,6 +14,20 @@ release. Cross-platform packages, live external accounts, external
 participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
+
+The [October 3 delivery reconciliation](delivery-reconciliation-2026-10-03.md)
+is the current status entry point. Installed Desktop ASAR
+`7e80b4f016281e0321f479527f650ef4ab52544c6b995a2db11c554c4bb09d69`
+matches the signed local-dictation candidate: six synthetic-audio packaged
+checks, four real-launcher TUI checks and normal-profile installed mic/shortcut
+discovery executed. Physical microphone/TCC proof remains open. Normal-profile
+Calculator launch was observed on the preceding package; it is not click/type
+or whole native-control acceptance. Details: [dictation](local-dictation-2026-10-03.md)
+and [approval/native launch](desktop-approval-native-control-2026-10-03.md).
+The current feature stack remains unmerged; dependency repair is separate.
+No whole Desktop or voice card is cleared by these increments.
+
+### Historical October 2 checkpoint
 
 The [October 2 application source checkpoint](development-checkpoint-2026-10-02.md)
 supersedes the earlier docs-only publication and size-gate status: 123 changed
