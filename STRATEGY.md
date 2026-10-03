@@ -149,9 +149,11 @@ The current open boundaries are explicit:
    accessibility work; their partial supporting components do not close them.
 5. Cross-platform packages, notarized/public artifacts, live-provider paths,
    and external acceptance receipts require their own executed evidence.
-6. The runtime dependency graph is currently audit-clean; the documentation
-   build retains the separately recorded upstream `image-size` advisories until a
-   compatible patched release exists.
+6. Dependency security is an explicit integration/release gate, not a standing
+   audit-clean claim. The installed feature stack and the separate dependency
+   repair PR require joint validation against current advisories. See the dated
+   [delivery reconciliation](docs/delivery-reconciliation-2026-10-03.md) and
+   `docs/product-acceptance.md`; historical clean audits do not certify later builds.
 
 No unattended high-consequence effect is allowed until exact authority,
 transaction integrity, verification, receipts, reversal or compensation,
