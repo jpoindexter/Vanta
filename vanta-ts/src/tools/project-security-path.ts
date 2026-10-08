@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, realpathSync, statSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { basename, join, relative, resolve, sep } from "node:path";
+import { instructionPathReason } from "./instruction-path-policy.js";
 
 export type ProjectPathPolicy =
   | { kind: "ordinary" }
@@ -26,13 +27,15 @@ function normalizedProjectRelative(abs: string, root: string): string | null {
 /** Classify paths whose ordinary file-tool access would cross the trust boundary. */
 export function projectPathPolicy(abs: string, root: string): ProjectPathPolicy {
   const rel = normalizedProjectRelative(abs, root);
-  if (rel === null) return { kind: "ordinary" };
-  if (/^\.env(?:\.|$)/i.test(basename(rel))) {
+  if (rel !== null && /^\.env(?:\.|$)/i.test(basename(rel))) {
     return { kind: "denied", reason: "a protected project credential file" };
   }
-  if (rel.startsWith(".vanta/") && KERNEL_PRIVATE_FILES.has(rel.slice(".vanta/".length))) {
+  if (rel?.startsWith(".vanta/") && KERNEL_PRIVATE_FILES.has(rel.slice(".vanta/".length))) {
     return { kind: "denied", reason: "protected kernel authentication or audit state" };
   }
+  const instruction = instructionPathReason(abs);
+  if (instruction) return { kind: "control-plane", reason: instruction };
+  if (rel === null) return { kind: "ordinary" };
   if (rel === ".mcp.json" || rel.startsWith(".vanta/") || rel.startsWith(".git/hooks/")) {
     return { kind: "control-plane", reason: "project control-plane state" };
   }
@@ -49,7 +52,7 @@ export function projectControlPlaneConfirmation(o: {
   if (policy.kind !== "control-plane") return null;
   const digest = createHash("sha256").update(o.content).digest("hex");
   return {
-    action: `Modify project control-plane file ${o.displayPath} (${Buffer.byteLength(o.content)} bytes, sha256 ${digest})`,
+    action: `Modify project control-plane file ${resolve(o.abs)} (requested ${o.displayPath}; ${Buffer.byteLength(o.content)} bytes, sha256 ${digest}; scope ${resolve(o.root)})`,
     reason: `${policy.reason} can change trusted execution or authority and requires a fresh exact confirmation`,
     detail: { fresh: true },
   };
