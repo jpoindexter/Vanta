@@ -1,3 +1,4 @@
+import { gitExecFile } from "../git/process.js";
 import type { VerifyResult } from "./types.js";
 
 // Leaf helpers for the verify chain: pure size/classify checks + the I/O
@@ -45,9 +46,7 @@ export async function checkNewFilesUnderLineLimit(
 
 /** List git-tracked files at HEAD (before the cycle's changes). */
 export async function listPreExistingFiles(root: string): Promise<Set<string>> {
-  const { execFile } = await import("node:child_process");
-  const { promisify } = await import("node:util");
-  const { stdout } = await promisify(execFile)("git", ["ls-files"], { cwd: root });
+  const { stdout } = await gitExecFile("git", ["ls-files"], { cwd: root });
   return new Set(stdout.trim().split("\n").filter(Boolean));
 }
 

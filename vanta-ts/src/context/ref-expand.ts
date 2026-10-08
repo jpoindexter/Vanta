@@ -1,7 +1,6 @@
-import { execFile } from "node:child_process";
+import { gitExecFile } from "../git/process.js";
 import { readFile, readdir } from "node:fs/promises";
 import { isAbsolute, relative, resolve } from "node:path";
-import { promisify } from "node:util";
 import { assertPublicUrl } from "../net/ssrf-guard.js";
 import { extractReadable } from "../tools/web-fetch.js";
 
@@ -9,7 +8,6 @@ export const MAX_REF_CHARS = 20_000;
 export const MAX_CONTEXT_CHARS = 60_000;
 const MAX_FOLDER_FILES = 200;
 const MAX_REDIRECTS = 5;
-const run = promisify(execFile);
 
 export type ContextRef =
   | { raw: string; kind: "file"; value: string; range?: [number, number] }
@@ -146,7 +144,7 @@ async function expandGit(ref: Exclude<ContextRef, { kind: "file" | "folder" | "u
 }
 
 function defaultGit(root: string): (args: string[]) => Promise<string> {
-  return async (args) => (await run("git", args, { cwd: root, maxBuffer: MAX_CONTEXT_CHARS * 2 })).stdout.trim();
+  return async (args) => (await gitExecFile("git", args, { cwd: root, maxBuffer: MAX_CONTEXT_CHARS * 2 })).stdout.trim();
 }
 
 function wrapUrl(ref: Extract<ContextRef, { kind: "url" }>, payload: string): OneResult {

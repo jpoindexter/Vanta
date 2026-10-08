@@ -230,8 +230,7 @@ describe("shell_cmd SANDBOX-SERVE-FASTFAIL", () => {
       "python3 -m http.server 8123",
       "/tmp/vanta-root",
       {},
-      "darwin",
-      false,
+      { platform: "darwin", hasBwrap: false },
     )).toBeNull();
   });
 

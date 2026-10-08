@@ -1,5 +1,5 @@
+import { gitExecFileSync } from "../git/process.js";
 import { createHash } from "node:crypto";
-import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
@@ -54,7 +54,7 @@ export function externalAccountProofDir(repoRoot: string): string {
 }
 
 export function currentReleaseCommit(repoRoot: string): string {
-  return execFileSync("git", ["rev-parse", "HEAD"], { cwd: repoRoot, encoding: "utf8" }).trim();
+  return gitExecFileSync("git", ["rev-parse", "HEAD"], { cwd: repoRoot, encoding: "utf8" }).trim();
 }
 
 export async function configuredReleaseAccounts(

@@ -1,8 +1,7 @@
+import { gitExecFile } from "../git/process.js";
 import { z } from "zod";
-import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { isAbsolute, join, relative, resolve } from "node:path";
-import { promisify } from "node:util";
 import {
   buildAgentInvocation,
   runExternalAgent,
@@ -20,7 +19,6 @@ import { recordAgentEdit } from "../agents/attribution-store.js";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
 import { effectGateFromToolContext } from "../effects/gate-context.js";
 
-const execFileAsync = promisify(execFile);
 
 /** Build the boxed autonomous invocation: the agent runs `--dangerously-skip-permissions` inside a
  *  Docker container scoped to the project (rw) + its auth (ro). The mount-set is the boundary —
@@ -43,7 +41,7 @@ const CODING_TIMEOUT_MS = 600_000; // a build takes longer than a Q&A — 10 min
 
 async function originRemoteUrl(root: string): Promise<string | undefined> {
   try {
-    const { stdout } = await execFileAsync("git", ["config", "--get", "remote.origin.url"], { cwd: root, timeout: 2000 });
+    const { stdout } = await gitExecFile("git", ["config", "--get", "remote.origin.url"], { cwd: root, timeout: 2000 });
     return stdout.trim() || undefined;
   } catch { return undefined; }
 }
