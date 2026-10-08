@@ -48,7 +48,7 @@ export async function dispatchTool(
   normalizeToolCall(call, tool, deps); // TOOL-CALL-REPAIR: log repair + coerce to schema
 
   // Plan mode: enforce read-only restriction when plan mode is active.
-  const planActive = resolveOperatingMode(process.env) === "plan" || (deps.planGate?.() ?? false);
+  const planActive = deps.planGate ? deps.planGate() : deps.permissionMode ? false : resolveOperatingMode(process.env) === "plan";
   if (isPlanBlocked(call.name, () => planActive)) {
     const output = "blocked: plan mode is active — read-only tools only. Leave plan mode or run /planmode approve to proceed.";
     deps.onToolResult?.(call.name, false, output);

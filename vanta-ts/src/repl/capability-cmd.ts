@@ -1,6 +1,5 @@
+import { gitExecFile } from "../git/process.js";
 import { dirname } from "node:path";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import {
   buildCapabilitySurface,
   resolveCapabilityConfig,
@@ -10,7 +9,6 @@ import {
 import { lastIntent } from "./where.js";
 import type { ReplCtx, SlashHandler, SlashResult } from "./types.js";
 
-const execFileAsync = promisify(execFile);
 
 /**
  * PAPER-CAPABILITY-PRESERVATION — `/explain` prints the capability-preservation
@@ -42,7 +40,7 @@ function parseNumstatLine(line: string): ChangedFile | null {
 /** Read the working-tree change set from git, falling back to an empty set on error. */
 async function readChangedFiles(repoRoot: string): Promise<ChangedFile[]> {
   try {
-    const { stdout } = await execFileAsync("git", ["diff", "--numstat", "HEAD"], { cwd: repoRoot });
+    const { stdout } = await gitExecFile("git", ["diff", "--numstat", "HEAD"], { cwd: repoRoot });
     return stdout
       .split("\n")
       .map((l) => l.trim())

@@ -52,10 +52,11 @@ describe("what-can-i-do workflow catalog", () => {
     expect(out).toContain("What Vanta can do now");
     expect(out).toContain("[Try] Fix a pasted error");
     expect(out).toContain(`Command: vanta run "Fix this error: <paste the error>"`);
-    expect(out).toContain("Needs: Shell, file reading, search, and edit tools are available.");
+    expect(out).toContain("Unavailable in this session: read_file, grep_files, edit_file");
+    expect(out).not.toContain("Needs: Shell, file reading, search, and edit tools are available.");
     expect(out).toContain("Demo: /what-can-i-do --demo fix-error");
     expect(out).not.toContain("Missing:");
-    expect(out).not.toMatch(/research_decompose|cron_create|send_chat|brain/);
+    expect(out).toContain("credentials, connectivity, OS access and effect approval");
   });
 
   it("ships three runnable demo fixtures with exact commands", () => {

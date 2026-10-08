@@ -60,4 +60,13 @@ describe("desktop operator data", () => {
       expect.objectContaining({ kind: "link", value: "https://example.test/result", sessionTitle: "Artifact work" }),
     ]));
   });
+
+  it("retains healthy output discovery beside a corrupt session", async () => {
+    await saveSession("healthy", [{ role: "assistant", content: "https://example.test/healthy" }], { env: process.env });
+    await writeFile(join(home, "sessions", "corrupt.json"), "{broken", "utf8");
+    await expect(desktopArtifacts(root)).resolves.toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: "link", value: "https://example.test/healthy" }),
+    ]));
+    expect(await readFile(join(home, "sessions", "corrupt.json"), "utf8")).toBe("{broken");
+  });
 });

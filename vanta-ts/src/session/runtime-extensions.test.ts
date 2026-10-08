@@ -50,7 +50,7 @@ describe("loadRuntimeExtensions — safe mode", () => {
 
   it("imports no enabled user plugin and spawns no configured MCP server", async () => {
     const registry = new ToolRegistry();
-    const result = await loadRuntimeExtensions(root, registry as never, undefined, { plugins: { enabled: ["unsafe"] } });
+    const result = await loadRuntimeExtensions(root, registry as never, undefined, { settings: { plugins: { enabled: ["unsafe"] } } });
 
     expect(result.pluginCommands.loadedPlugins()).toEqual([]);
     expect(result.mcpSkills).toEqual([]);
@@ -103,8 +103,7 @@ describe("loadRuntimeExtensions — MCP startup is opt-in", () => {
       root,
       new ToolRegistry() as never,
       undefined,
-      { mcp: { autoMount: true } },
-      allowTestEffectGate(root),
+      { settings: { mcp: { autoMount: true } }, effectGate: allowTestEffectGate(root) },
     );
     await expect(access(marker, constants.F_OK)).resolves.toBeUndefined();
   });

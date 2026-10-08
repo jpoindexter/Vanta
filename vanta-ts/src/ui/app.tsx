@@ -136,7 +136,7 @@ function useAppCommands(previous: ReturnType<typeof useAppRuntime>) {
   const { state, dispatch, convoRef, replStateRef, setGlobalSearch, setSearchSessions, runSlash } = previous;
   const openGlobalSearch = (): void => {
     void listSessions(process.env).then(async (metas) => {
-      const loaded = await Promise.all(metas.map((m) => loadSession(m.id, process.env)));
+      const loaded = await Promise.all(metas.filter((m) => !m.diagnostic).map((m) => loadSession(m.id, process.env)));
       setSearchSessions(loaded.flatMap((s) => s ? [{ id: s.id, title: s.title, messages: s.messages }] : []));
       setGlobalSearch(true);
     }).catch(() => setGlobalSearch(true));

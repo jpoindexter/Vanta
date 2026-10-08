@@ -5,7 +5,7 @@ import { providerById } from "../providers/catalog.js";
 import { setPlanInstruction } from "../repl/plan-mode.js";
 import { resolveTelegramSetupStatus } from "../setup/telegram-status.js";
 import { listRepoFiles } from "../term/at-context.js";
-import { desktopAccessModeLabel,isDesktopAccessMode,saveDesktopAccessMode } from "./access-mode.js";
+import { desktopAccessModeLabel,isDesktopAccessMode,permissionModeForAccess,saveDesktopAccessMode } from "./access-mode.js";
 import { buildDesktopFileContext,isSafeProjectFile } from "./file-context.js";
 import { startDesktopGateway } from "./gateway-control.js";
 import { ensureDesktopConversation,providerRouteStatus } from "./handler-conversation.js";
@@ -17,6 +17,7 @@ import { desktopArtifacts,desktopCapabilities,desktopMessagingPlatforms,saveDesk
 import { loadProviderAuthRequired } from "./provider-auth-store.js";
 import { desktopRuntimePayload,runDesktopRuntimeAction,selectDesktopRuntimeHost,type DesktopRuntimeAction } from "./runtime-controller.js";
 import { pushSseEvent } from "./session-state.js";
+import { capabilitySnapshot, providerCapabilityState } from "../agent/capability-snapshot.js";
 
 export async function handleStatus(state: DesktopState, res: http.ServerResponse): Promise<void> {
   state._providerAuthRequired ??= await loadProviderAuthRequired(state.root);
@@ -82,8 +83,14 @@ export async function handleTools(state: DesktopState, res: http.ServerResponse)
 
 export async function handleCapabilities(state: DesktopState, res: http.ServerResponse): Promise<void> {
   try {
+    state._providerAuthRequired ??= await loadProviderAuthRequired(state.root);
     const live = await ensureDesktopConversation(state);
-    sendJson(res, 200, await desktopCapabilities(live.setup.registry.schemas().map((t) => ({ name: t.name, description: t.description }))));
+    const schemas = live.setup.registry.schemas();
+    const snapshot = capabilitySnapshot(schemas, schemas, {
+      mode: permissionModeForAccess(live.accessMode ?? "approve"), planActive: live.accessMode === "plan",
+      providerState: state._providerAuthRequired ? "requires_auth" : providerCapabilityState(live.setup.provider),
+    });
+    sendJson(res, 200, await desktopCapabilities(snapshot.exposed));
   } catch {
     // Installed skills are useful before first-run provider setup succeeds.
     sendJson(res, 200, await desktopCapabilities([]));

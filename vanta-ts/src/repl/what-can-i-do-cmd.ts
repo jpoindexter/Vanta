@@ -1,6 +1,8 @@
 import type { RunSetup } from "../session.js";
 import { formatFreshActivationReviewPacket, recordFreshActivationReview, runFreshContextActivationReview, runFreshWorkspaceActivationProof } from "./activation-review.js";
 import type { SlashHandler } from "./types.js";
+import { capabilitySnapshot, providerCapabilityState, providerRecovery, type CapabilityContext, type CapabilitySnapshot } from "../agent/capability-snapshot.js";
+import { PLAN_MARKER } from "./plan-mode.js";
 
 export type WorkflowState = "Run" | "Try" | "Setup";
 
@@ -140,8 +142,10 @@ function stateForWorkflow(workflow: CapabilityWorkflow, tools: Set<string>): Wor
   return available > 0 ? "Try" : "Setup";
 }
 
-export function workflowViews(toolNames: Iterable<string>): WorkflowView[] {
-  const tools = new Set(toolNames);
+export function workflowViews(toolNames: Iterable<string>, context: CapabilityContext = {}): WorkflowView[] {
+  const schemas = [...toolNames].map((name) => ({ name, description: "", parameters: {} }));
+  const snapshot = capabilitySnapshot(schemas, schemas, context);
+  const tools = new Set(snapshot.exposed.map((tool) => tool.name));
   return CAPABILITY_WORKFLOWS.map((workflow) => ({
     ...workflow,
     state: stateForWorkflow(workflow, tools),
@@ -154,7 +158,9 @@ export function toolNamesFromSetup(setup: RunSetup): string[] {
 }
 
 function formatWorkflow(view: WorkflowView, index: number): string {
-  const setup = `\n     Needs: ${view.setup}`;
+  const setup = view.missing.length
+    ? `\n     Unavailable in this session: ${view.missing.join(", ")}. Check the access mode, role, or connection setup.`
+    : `\n     Needs: ${view.setup}`;
   const demo = view.demo ? `\n     Demo: /what-can-i-do --demo ${view.demo}` : "";
   return [
     `  ${index + 1}. [${view.state}] ${view.title}`,
@@ -164,7 +170,7 @@ function formatWorkflow(view: WorkflowView, index: number): string {
   ].join("\n");
 }
 
-export function formatWhatCanIDo(views: WorkflowView[]): string {
+export function formatWhatCanIDo(views: WorkflowView[], snapshot?: CapabilitySnapshot): string {
   const counts = views.reduce<Record<WorkflowState, number>>((acc, view) => {
     acc[view.state] += 1;
     return acc;
@@ -172,6 +178,9 @@ export function formatWhatCanIDo(views: WorkflowView[]): string {
   return [
     "What Vanta can do now",
     `Run ${counts.Run} · Try ${counts.Try} · Setup ${counts.Setup}`,
+    "Run means the required tools are registered for this mode; credentials, connectivity, OS access and effect approval still require checks when used.",
+    ...(snapshot ? [`Callable tool routes: ${snapshot.exposed.map((tool) => tool.name).join(", ") || "none"}.`,
+      ...(snapshot.providerState !== "unverified" ? [providerRecovery(snapshot.providerState)] : [])] : []),
     "",
     ...views.map(formatWorkflow),
   ].join("\n");
@@ -207,9 +216,9 @@ export function runWorkflowDemo(id: string): string {
   return DEMOS[id] ?? `Unknown demo '${id}'. Available: ${Object.keys(DEMOS).join(", ")}`;
 }
 
-export function runColdActivationCheck(toolNames: Iterable<string>, now: () => Date = () => new Date()): ColdActivationResult {
+export function runColdActivationCheck(toolNames: Iterable<string>, now: () => Date = () => new Date(), context: CapabilityContext = {}): ColdActivationResult {
   const started = now().getTime();
-  const chosen = workflowViews(toolNames).find((view) => view.state !== "Setup" && view.demo);
+  const chosen = workflowViews(toolNames, context).find((view) => view.state !== "Setup" && view.demo);
   if (!chosen?.demo) {
     return {
       ok: false,
@@ -235,28 +244,32 @@ export function runColdActivationCheck(toolNames: Iterable<string>, now: () => D
 }
 
 export const whatCanIDo: SlashHandler = async (arg, ctx) => {
+  const id = demoId(arg);
+  if (id) return { output: runWorkflowDemo(id) };
+  const planActive = !ctx.state?.planApproved && (ctx.convo?.messages ?? []).some((message) => message.role === "system" && message.content.includes(PLAN_MARKER));
+  const tools = ctx.setup.registry.schemas();
+  const snapshot = capabilitySnapshot(tools, tools, { planActive, providerState: providerCapabilityState(ctx.setup.provider) });
+  const toolNames = snapshot.exposed.map((tool) => tool.name);
+  const context = { mode: snapshot.mode };
+  const views = workflowViews(toolNames, context);
   if (wantsCheck(arg)) {
-    return { output: runColdActivationCheck(toolNamesFromSetup(ctx.setup), ctx.now).output };
+    return { output: runColdActivationCheck(toolNames, ctx.now, context).output };
   }
   if (wantsFreshWorkspaceCheck(arg)) {
-    const toolNames = toolNamesFromSetup(ctx.setup);
-    const proof = await runFreshWorkspaceActivationProof(ctx.dataDir, () => runColdActivationCheck(toolNames, ctx.now), ctx.now);
+    const proof = await runFreshWorkspaceActivationProof(ctx.dataDir, () => runColdActivationCheck(toolNames, ctx.now, context), ctx.now);
     return { output: proof.output };
   }
   if (wantsFreshContextReview(arg)) {
-    const toolNames = toolNamesFromSetup(ctx.setup);
-    const proof = await runFreshContextActivationReview(ctx.dataDir, workflowViews(toolNames), () => runColdActivationCheck(toolNames, ctx.now), ctx.now);
+    const proof = await runFreshContextActivationReview(ctx.dataDir, views, () => runColdActivationCheck(toolNames, ctx.now, context), ctx.now);
     return { output: proof.output };
   }
   if (wantsReviewPacket(arg)) {
-    return { output: formatFreshActivationReviewPacket(workflowViews(toolNamesFromSetup(ctx.setup))) };
+    return { output: formatFreshActivationReviewPacket(views) };
   }
   const reviewText = recordReviewText(arg);
   if (reviewText) {
     const file = await recordFreshActivationReview(ctx.dataDir, { reviewer: "fresh-context", confusion: reviewText }, ctx.now);
     return { output: `  ✓ fresh-context review recorded → ${file}` };
   }
-  const id = demoId(arg);
-  if (id) return { output: runWorkflowDemo(id) };
-  return { output: formatWhatCanIDo(workflowViews(toolNamesFromSetup(ctx.setup))) };
+  return { output: formatWhatCanIDo(views, snapshot) };
 };
