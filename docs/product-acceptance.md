@@ -1,6 +1,6 @@
 # Product acceptance
 
-Updated 2026-10-03 with an installed-app and delivery reconciliation. Historical release
+Updated 2026-10-08 with open-card execution and current-host reconciliation. Historical release
 receipts below retain their original version/date and are not current security attestations.
 This record separates executed behavior from static tests,
 repository integration, release state, and external setup gates. A receipt is
@@ -15,8 +15,27 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [October 8 execution record](open-card-execution-2026-10-08.md) is the current
+entry point. The capability-grounded prompt card completed its stated fixture
+contract; eleven cards remain open. Git isolation, session persistence and
+ordinary-conversation attention repairs have executed scoped checks, not whole
+trust or Desktop acceptance. Current dependency audits are not green.
+The expected `/Applications/Vanta.app` was absent at refresh and the running
+application came from an older September 30 artifact. It has now been replaced
+with the current signed chat-first candidate at that exact installed path,
+retaining normal-profile history and a rollback bundle. Installed ASAR SHA-256:
+`e7016146dc6f23d7c0350defb0fa2b9d69f836fcf5682e04671e948b79fe1e36`.
+Its 16 light/dark/high-contrast appearance checks passed, and native observation
+confirmed the white/grey workspace and soft sidebar elevation. The 77 core
+behavior checks and first-launch/instruction checks belong to separately named
+preceding builds in the execution record; they are not falsely attributed to
+this final archive. Whole redesigned flow, physical microphone/TCC, authenticated
+browser and arbitrary native control remain open.
+
+### Historical October 3 checkpoint
+
 The [October 3 delivery reconciliation](delivery-reconciliation-2026-10-03.md)
-is the current status entry point. Installed Desktop ASAR
+records the then-installed Desktop ASAR
 `7e80b4f016281e0321f479527f650ef4ab52544c6b995a2db11c554c4bb09d69`
 matches the signed local-dictation candidate: six synthetic-audio packaged
 checks, four real-launcher TUI checks and normal-profile installed mic/shortcut

@@ -87,7 +87,7 @@
       "primitives": {
         "provider": 2
       },
-      "effectSha256": "a5a70418416e010a05a5b24510c069db21a6e40c1c68d7f9faef75bd9fc83a82",
+      "effectSha256": "c2cd7b6a954e579ed979c9f320191fef234b0d5cacc9c0521f8afd018b2ba914",
       "classification": "mediated-host",
       "actor": "Registered Vanta tool or bounded host adapter",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -561,9 +561,9 @@
     {
       "source": "src/cli/batch-cmd.ts",
       "primitives": {
-        "process": 2
+        "process": 1
       },
-      "effectSha256": "5e38d31a7c25cd55c879f5c57ec94abecc2a4ea8971cb5fe01ffb31ddbd885c3",
+      "effectSha256": "6509de155c7c7f6fce0cbebfb9a8df59612e683c6d566e1901657914425f3946",
       "classification": "mediated-adapter",
       "actor": "Registered Vanta tool or bounded host adapter",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -814,7 +814,7 @@
         "provider": 1,
         "tool-dispatch": 1
       },
-      "effectSha256": "e17a919cbacdcee4b852f34f857bfa258ca902ca003e9c90b10ed7860ef2f368",
+      "effectSha256": "548064b0fa569d22515622809e2146bdd0dd22a75acf208dbc0455f5d3079f13",
       "classification": "mediated-adapter",
       "actor": "Registered Vanta tool or bounded host adapter",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -943,7 +943,7 @@
       "primitives": {
         "filesystem": 2
       },
-      "effectSha256": "ebba25ab6563017db5ae837fb6613611bd49e35e4e3716d5db21355ccbf54c21",
+      "effectSha256": "8c38b4672e99a0b2c8bbef1b2c9b1b1b34470dea2a05147dbc4be77b15f902b4",
       "classification": "trusted-infrastructure",
       "actor": "Vanta trusted infrastructure",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -1233,7 +1233,7 @@
       "primitives": {
         "network": 1
       },
-      "effectSha256": "1b1438a722b782311a7366d6e8e5d79243a69ee928ad6fe9ff2e7650d053562e",
+      "effectSha256": "c32c61fa69adf092ce54844a84f481b9eb5a837d7a5a22a04f9fd3ac1f60eb35",
       "classification": "mediated-adapter",
       "actor": "Registered Vanta tool or bounded host adapter",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -1424,25 +1424,6 @@
       ]
     },
     {
-      "source": "src/desktop/file-context.ts",
-      "primitives": {
-        "process": 1
-      },
-      "effectSha256": "1f41f944683159beaede07f8b37d8d70e00c96c04777a45ff3d118bd21b0631d",
-      "classification": "mediated-host",
-      "actor": "Registered Vanta tool or bounded host adapter",
-      "account": "Local project or explicitly configured provider account named by the owning callsite",
-      "credential": "Credential resolution remains in the owning provider or safe child environment; inventory stores no values",
-      "normalization": "The complete source file is SHA-256 pinned; consequential tool calls additionally bind normalized arguments",
-      "policyDecision": "The authoritative effect gateway or an explicitly reviewed host boundary decides before execution",
-      "executor": "src/desktop/file-context.ts",
-      "receipt": "Canonical effect journal and WorkItem receipt, or the named host receipt for an explicit adapter",
-      "compensation": "No blind consequential retry; uncertainty remains visible and provider-specific compensation is required where available",
-      "bypassTests": [
-        "scripts/lib/trust-01-effect-ledger.node-test.mjs"
-      ]
-    },
-    {
       "source": "src/desktop/gateway-control.ts",
       "primitives": {
         "filesystem": 1,
@@ -1543,7 +1524,7 @@
       "primitives": {
         "filesystem": 2
       },
-      "effectSha256": "467d740a6b39a89e70e34f1927275e050c376608bbff04409a33ddfc93722473",
+      "effectSha256": "a5254f080e5ff6370374ae2e55d5e2ebbad226ef1bd9efe2d7f71a29c9d6c042",
       "classification": "mediated-host",
       "actor": "Registered Vanta tool or bounded host adapter",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -1832,25 +1813,6 @@
       ]
     },
     {
-      "source": "src/factory/executor.ts",
-      "primitives": {
-        "process": 2
-      },
-      "effectSha256": "382e559995af8dddac14f3ba4e19426d944b06d032f689173214281ff0153ee5",
-      "classification": "protected-out-of-scope",
-      "actor": "Vanta trusted infrastructure",
-      "account": "Local project or explicitly configured provider account named by the owning callsite",
-      "credential": "Credential resolution remains in the owning provider or safe child environment; inventory stores no values",
-      "normalization": "The complete source file is SHA-256 pinned; consequential tool calls additionally bind normalized arguments",
-      "policyDecision": "Not model-dispatched directly; caller authority and scoped storage invariants apply",
-      "executor": "src/factory/executor.ts",
-      "receipt": "Owning infrastructure journal or atomic state record",
-      "compensation": "No blind consequential retry; uncertainty remains visible and provider-specific compensation is required where available",
-      "bypassTests": [
-        "scripts/lib/trust-01-effect-ledger.node-test.mjs"
-      ]
-    },
-    {
       "source": "src/factory/holdout.ts",
       "primitives": {
         "provider": 2
@@ -1934,9 +1896,9 @@
     {
       "source": "src/factory/verifier.ts",
       "primitives": {
-        "process": 3
+        "process": 1
       },
-      "effectSha256": "2285e7bad329c0125dba604ac5d3a379857184e7791f9739325e2324d62f868e",
+      "effectSha256": "542face04cd7659f1b76458b8494aebef5b7b5723ff098512f3c9d4e0ec4a569",
       "classification": "protected-out-of-scope",
       "actor": "Vanta trusted infrastructure",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -2539,6 +2501,25 @@
       "policyDecision": "The authoritative effect gateway or an explicitly reviewed host boundary decides before execution",
       "executor": "src/gateway/webhook.ts",
       "receipt": "Canonical effect journal and WorkItem receipt, or the named host receipt for an explicit adapter",
+      "compensation": "No blind consequential retry; uncertainty remains visible and provider-specific compensation is required where available",
+      "bypassTests": [
+        "scripts/lib/trust-01-effect-ledger.node-test.mjs"
+      ]
+    },
+    {
+      "source": "src/git/hostile-fixture.ts",
+      "primitives": {
+        "filesystem": 10
+      },
+      "effectSha256": "7ae059ba99b997b1a69a8af7bf6716ceceaff0a88c4fb092f9e200ce353e8a4f",
+      "classification": "trusted-infrastructure",
+      "actor": "Vanta trusted infrastructure",
+      "account": "Local project or explicitly configured provider account named by the owning callsite",
+      "credential": "Credential resolution remains in the owning provider or safe child environment; inventory stores no values",
+      "normalization": "The complete source file is SHA-256 pinned; consequential tool calls additionally bind normalized arguments",
+      "policyDecision": "Not model-dispatched directly; caller authority and scoped storage invariants apply",
+      "executor": "src/git/hostile-fixture.ts",
+      "receipt": "Owning infrastructure journal or atomic state record",
       "compensation": "No blind consequential retry; uncertainty remains visible and provider-specific compensation is required where available",
       "bypassTests": [
         "scripts/lib/trust-01-effect-ledger.node-test.mjs"
@@ -4001,27 +3982,21 @@
     {
       "source": "src/profiles/distribution.ts",
       "primitives": {
-        "filesystem": 8,
-        "process": 2
+        "filesystem": 8
       },
-      "effectSha256": "f74283e9e169601d0f9f0fa2eadd5b73a7e499016f17e2e2ea147f6d04ed530b",
-      "classification": "mediated-adapter",
-      "actor": "Registered Vanta tool or bounded host adapter",
+      "effectSha256": "326b0d8c22959d372d73b7fb8b35a4d25730190a2e71b5f79f36367092e3a692",
+      "classification": "trusted-infrastructure",
+      "actor": "Vanta trusted infrastructure",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
       "credential": "Credential resolution remains in the owning provider or safe child environment; inventory stores no values",
       "normalization": "The complete source file is SHA-256 pinned; consequential tool calls additionally bind normalized arguments",
-      "policyDecision": "The authoritative effect gateway or an explicitly reviewed host boundary decides before execution",
+      "policyDecision": "Not model-dispatched directly; caller authority and scoped storage invariants apply",
       "executor": "src/profiles/distribution.ts",
-      "receipt": "Canonical effect journal and WorkItem receipt, or the named host receipt for an explicit adapter",
+      "receipt": "Owning infrastructure journal or atomic state record",
       "compensation": "No blind consequential retry; uncertainty remains visible and provider-specific compensation is required where available",
       "bypassTests": [
         "scripts/lib/trust-01-effect-ledger.node-test.mjs"
-      ],
-      "provenance": "Owning gateway/host and exact source path src/profiles/distribution.ts",
-      "measurement": "Primitive kind/count plus normalized payload or argument SHA-256",
-      "cutoff": "Caller authority, kernel decision, operation id, and bounded target determine execution lifetime",
-      "rollback": "Provider-specific compensation or explicit needs-human settlement; never a blind retry",
-      "policyBoundary": false
+      ]
     },
     {
       "source": "src/profiles/store.ts",
@@ -4463,7 +4438,7 @@
       "primitives": {
         "filesystem": 2
       },
-      "effectSha256": "d57e63d8004a20d05e31586e6f4dd3144c1e483a9148d1d24d29ab6c33485a59",
+      "effectSha256": "d6e08325d7d7a625e83b426663b33518e8cb18f7de583083f02b9d034419c516",
       "classification": "trusted-infrastructure",
       "actor": "Vanta trusted infrastructure",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -4563,7 +4538,7 @@
       "primitives": {
         "filesystem": 2
       },
-      "effectSha256": "f04354d040902bec4a27fffaa9cf6d698ed5431211ba6048471a62e60f537e9e",
+      "effectSha256": "9b66d7b510b3b45a6b4f805af36f443c86b82f34be0e0fa756e1ef2fc5617fea",
       "classification": "trusted-infrastructure",
       "actor": "Vanta trusted infrastructure",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -4576,30 +4551,6 @@
       "bypassTests": [
         "scripts/lib/trust-01-effect-ledger.node-test.mjs"
       ]
-    },
-    {
-      "source": "src/repl/changed-files.ts",
-      "primitives": {
-        "process": 1
-      },
-      "effectSha256": "770b67b5687f4d5db70740fdb547688647ffffded5a631a3acf617ee697d3476",
-      "classification": "mediated-adapter",
-      "actor": "Registered Vanta tool or bounded host adapter",
-      "account": "Local project or explicitly configured provider account named by the owning callsite",
-      "credential": "Credential resolution remains in the owning provider or safe child environment; inventory stores no values",
-      "normalization": "The complete source file is SHA-256 pinned; consequential tool calls additionally bind normalized arguments",
-      "policyDecision": "The authoritative effect gateway or an explicitly reviewed host boundary decides before execution",
-      "executor": "src/repl/changed-files.ts",
-      "receipt": "Canonical effect journal and WorkItem receipt, or the named host receipt for an explicit adapter",
-      "compensation": "No blind consequential retry; uncertainty remains visible and provider-specific compensation is required where available",
-      "bypassTests": [
-        "scripts/lib/trust-01-effect-ledger.node-test.mjs"
-      ],
-      "provenance": "Owning gateway/host and exact source path src/repl/changed-files.ts",
-      "measurement": "Primitive kind/count plus normalized payload or argument SHA-256",
-      "cutoff": "Caller authority, kernel decision, operation id, and bounded target determine execution lifetime",
-      "rollback": "Provider-specific compensation or explicit needs-human settlement; never a blind retry",
-      "policyBoundary": false
     },
     {
       "source": "src/repl/checkpoint.ts",
@@ -4794,7 +4745,7 @@
       "primitives": {
         "process": 1
       },
-      "effectSha256": "bb74a8dff73cccc4b08fae501fed90ccfb0aac067fc922e9eaca0b0e41bf4e15",
+      "effectSha256": "4797baa04f409bbff9ebfdd93108ac61aa8af1499bcaa199738e0bf2d30cada5",
       "classification": "mediated-adapter",
       "actor": "Registered Vanta tool or bounded host adapter",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -4818,7 +4769,7 @@
       "primitives": {
         "filesystem": 2
       },
-      "effectSha256": "0663ee0958441c022e736872cee34a7dcd8f5a7cc0296c8d280cc0600a1652fa",
+      "effectSha256": "5643d73fc2e9683d1113ec644e3e61040d119c0a333ab7a71fbe78016c6e3084",
       "classification": "trusted-infrastructure",
       "actor": "Vanta trusted infrastructure",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -5979,7 +5930,7 @@
       "primitives": {
         "provider": 2
       },
-      "effectSha256": "680d64918050e8ebea1e7048d9adc1c6e466c4598bee8a621f129a02b604fa6b",
+      "effectSha256": "166617f5999ac6e38a8c8ca1b8cb14328315f620f33460965415158d8fe3a79b",
       "classification": "trusted-infrastructure",
       "actor": "Vanta trusted infrastructure",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -6089,6 +6040,25 @@
       ]
     },
     {
+      "source": "src/sessions/atomic-persistence.ts",
+      "primitives": {
+        "filesystem": 9
+      },
+      "effectSha256": "e66398df5270918e7c1520ee120d1dce948d780a2a59306b426c4591df556c47",
+      "classification": "trusted-infrastructure",
+      "actor": "Vanta trusted infrastructure",
+      "account": "Local project or explicitly configured provider account named by the owning callsite",
+      "credential": "Credential resolution remains in the owning provider or safe child environment; inventory stores no values",
+      "normalization": "The complete source file is SHA-256 pinned; consequential tool calls additionally bind normalized arguments",
+      "policyDecision": "Not model-dispatched directly; caller authority and scoped storage invariants apply",
+      "executor": "src/sessions/atomic-persistence.ts",
+      "receipt": "Owning infrastructure journal or atomic state record",
+      "compensation": "No blind consequential retry; uncertainty remains visible and provider-specific compensation is required where available",
+      "bypassTests": [
+        "scripts/lib/trust-01-effect-ledger.node-test.mjs"
+      ]
+    },
+    {
       "source": "src/sessions/auto-title.ts",
       "primitives": {
         "provider": 1
@@ -6129,9 +6099,9 @@
     {
       "source": "src/sessions/store.ts",
       "primitives": {
-        "filesystem": 4
+        "filesystem": 2
       },
-      "effectSha256": "e001d754710990d0c125a2612dd3b19b08a1aacfe33631d132cab8a091a62e14",
+      "effectSha256": "31b3507d9520844fc4a78232224557174558220b9da9179e4298f792d1af3972",
       "classification": "trusted-infrastructure",
       "actor": "Vanta trusted infrastructure",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -6594,7 +6564,7 @@
       "primitives": {
         "filesystem": 4
       },
-      "effectSha256": "e690ed41ca2f2921a0f02012deda23481687a28d8b8e22e0486d5b121c1453ac",
+      "effectSha256": "4b5dbbf388ca1c7a4936c91a7c60bce62200005a44a765a6f6e90c69db91993f",
       "classification": "trusted-infrastructure",
       "actor": "Vanta trusted infrastructure",
       "account": "Local project or explicitly configured provider account named by the owning callsite",
@@ -8240,7 +8210,7 @@
       "primitives": {
         "filesystem": 2
       },
-      "effectSha256": "173bf10bb70d397306d968d008626314152a844f7a55425562f2075e9f84af38",
+      "effectSha256": "8b52d4138210df971df7222ba3b76fea6bb91d277c2ee681caff9a86af524762",
       "classification": "trusted-infrastructure",
       "actor": "Vanta trusted infrastructure",
       "account": "Local project or explicitly configured provider account named by the owning callsite",

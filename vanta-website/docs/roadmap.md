@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1288 capabilities shipped · 5 in flight · 14 parked external-proof items · 7 on the horizon. Updated 2026-10-03._
+_1289 capabilities shipped · 5 in flight · 14 parked external-proof items · 6 on the horizon. Updated 2026-10-08._
 
 ## In flight
 
@@ -46,8 +46,9 @@ Make every current and future browser action use one explicit policy boundary. N
 
 ## Recently shipped
 
-The latest of 1288+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1289+ capabilities. See the [changelog](./changelog) for curated milestones.
 
+- **Capability-grounded prompt — promise only callable tools and routes** — Harness · 2026-10-08
 - **Explicit-empty MCP allowlist — zero means zero tools** — Harness · 2026-08-26
 - **Desktop semantic foundation — contrast, type, controls, and one token authority** — Desktop App · 2026-08-26
 - **Local document reading — bounded PDF and office-file context** — Operator · 2026-08-14
@@ -67,7 +68,6 @@ The latest of 1288+ capabilities. See the [changelog](./changelog) for curated m
 - **Hot reload continuity — preserve the active conversation and reset runtime status** — TUI · 2026-07-29
 - **AskUserQuestion tool — structured multi-question UI with options, previews, multi-select** — Operator · 2026-07-28
 - **Task-scoped go-ahead — one approval for repeated reversible work** — Operator · 2026-07-28
-- **Live todo / progress checklist (TodoWrite pattern)** — Operator · 2026-07-28
 
 ## Parked external-proof items
 
@@ -92,9 +92,8 @@ These remain unshipped until the real provider, device, or hosted environment pr
 
 Directional, not committed — grouped by area, newest thinking first.
 
-### Harness — 4 planned
+### Harness — 3 planned
 
-- Capability-grounded prompt — promise only callable tools and routes
 - Canonical action envelope and scoped capability
 - Untrusted-content quarantine across email, web, documents, messages, and social input
 - Safe factory, self-repair, and Vanta Lab production boundary

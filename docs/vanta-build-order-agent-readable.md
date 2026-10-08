@@ -1,7 +1,7 @@
 # Vanta Build Order — Agent-Readable
 
 Source: roadmap.json (generated view — do not edit; regenerate via `node scripts/build-order.mjs`)
-Roadmap updated: 2026-10-03
+Roadmap updated: 2026-10-08
 Strategy: STRATEGY.md (one product with Vanta, Engine, and Lab boundaries; roadmap tracks are compatible responsibilities)
 
 ## Agent instructions
@@ -13,8 +13,8 @@ The 28 convergence outcomes are an acceptance catalog, not 28 simultaneous proje
 
 ## Summary
 - total_cards: 1363
-- open_cards: 12
-- Harness: 7 open
+- open_cards: 11
+- Harness: 6 open
 - Operator: 5 open
 
 ## Build order
@@ -44,37 +44,32 @@ The 28 convergence outcomes are an acceptance catalog, not 28 simultaneous proje
     why: Make every current and future browser action use one explicit policy boundary. Navigation and extraction are read-only capabilities; click, fill, select, submit, upload, download, dialog handling, login, and authenticated reads declare their exact account, profile, domain, target, budget, authority, and expected evidence instead of inheriting a broad browser grant.
     done: The supported TUI, Desktop, workflow, and tool-host paths route every non-read browser action through one normalized intent and the kernel before Playwright/CDP execution; approval previews bind account/profile, origin and redirect scope, action, target, content/file hash, audience or recipient, and one-use authority; allowlisted navigation cannot smuggle click/fill/submit effects; authenticated reads require explicit revocable profile authority; external effects are never automatically retried after timeout/crash and settle failed or unknown honestly; blocked-domain, redirect, popup, frame, dialog, download, upload, cancellation, restart, and provider-acknowledgement fixtures plus one real packaged authenticated journey produce redacted evidence without cookies, storage, credentials, or full sensitive bodies.
 
-006. [horizon] CAPABILITY-GROUNDED-SYSTEM-PROMPT — Capability-grounded prompt — promise only callable tools and routes
-    track: Harness | tier: rock | size: S | effort: medium | model: sonnet | after: MCP-EXPLICIT-EMPTY-ALLOWLIST
-    why: Assemble the dynamic capability section from the effective post-policy tool and host registry so the agent never promises a tool, provider, connector, or route that the current session cannot call.
-    done: For manual, plan, accept-edits, auto, delegated, offline, disabled-server, explicit-empty MCP, and provider-degraded fixtures, the rendered prompt and What can I do surface name exactly the effective callable capability set; stable cacheable instructions remain byte-stable; dynamic capability text is isolated; unavailable actions include one truthful recovery route; and prompt-to-registry property tests catch every invented or omitted capability.
-
-007. [horizon] TRUST-03 — Canonical action envelope and scoped capability
+006. [horizon] TRUST-03 — Canonical action envelope and scoped capability
     track: Harness | tier: rock | size: L | effort: high | model: opus | after: TRUST-01, TRUST-02
     why: Bind actor, account, operation, complete normalized arguments, target, recipient, content/attachment hashes, amount or audience, quota, expiry, nonce, attempts, idempotency, state precondition, evidence, and compensation.
     done: Changing any bound actor, account, target, argument, recipient, content byte, attachment, amount, audience, state precondition, expiry, nonce, or replay status after approval produces zero provider calls; capabilities are atomically consumed by the executor and exact drift/replay/crash fixtures pass. R3 uses fresh one-use authority; R4 and R5 grants also bind allowlist, target, account, recipient, quota, budget, expiry, exclusions, cancellation, and review.
 
-008. [horizon] TRUST-05 — Untrusted-content quarantine across email, web, documents, messages, and social input
+007. [horizon] TRUST-05 — Untrusted-content quarantine across email, web, documents, messages, and social input
     track: Harness | tier: rock | size: L | effort: high | model: opus | after: TRUST-01, TRUST-02
     why: Raw external content enters a no-effect intake context and yields a small, validated, provenance-aware structure before any privileged operator receives it.
     done: Malicious email, web, document, attachment, message, social, and tool-output fixtures cannot access credentials, request authority, modify goals or authoritative memory, trigger outbound effects, or escape through links/redirects; the privileged operator receives validated facts and risk signals with source provenance; supported host and restart paths pass.
 
-009. [horizon] TRUST-06 — Safe factory, self-repair, and Vanta Lab production boundary
+008. [horizon] TRUST-06 — Safe factory, self-repair, and Vanta Lab production boundary
     track: Harness | tier: rock | size: L | effort: high | model: opus | after: TRUST-01, TRUST-02, TRUST-04
     why: Keep factory, self-repair, auto-research, tuning, experimental organizations, and self-modification absent from production defaults and unable to change the trust boundary.
     done: Flagship journeys run with Lab prompts, tools, workers, credentials, and navigation absent. Incidents may produce only isolated candidates in scrubbed worktrees with bounded diffs, frozen tests/evaluators, brokered Git/effects, receipts, rollback, and holdouts. Unrelated dirty files, evaluator edits, reward-hacked metrics, missing holdouts, push failures, aliases/symlinks, and post-canary regressions halt without success. Default-branch/production promotion, merge, deployment, policy, credential, audit, evaluator, kernel, manifesto, and factory-boundary changes remain human-gated.
 
-010. [horizon] OP-03 — Trustworthy Needs You — deterministic, deduplicated, expiring, and auto-resolving
+009. [horizon] OP-03 — Trustworthy Needs You — deterministic, deduplicated, expiring, and auto-resolving
     track: Operator | tier: rock | size: M | effort: high | model: opus | after: OP-01, TRUST-04
     why: Make the attention contract trustworthy: ordinary conversation creates nothing; only a deterministic blocker with one exact decision or authorization may set WorkItem state to needs human.
     done: Ordinary questions, greetings, status commands, read-only success, and model uncertainty create zero Needs You items; a blocked effect creates one item keyed by WorkItem, exact action, and blocker; it preserves the smallest resolution, source, expiry, and receipt; repeated failures merge into a timeline; setup, approval, replacement, success, stop, or expiry resolves it; actionable quality is at least 95% and duplicates below 1% in executed journeys. Additional acceptance from 2026-10-01 review: Keep deterministic quiet hours, interruption budgets, refusal scope, deduplication and expiry ahead of any model recommendation about notification timing or channel. A model timeout uses a conservative deterministic fallback, never an urgency escalation; cross-channel suppression prevents resurfacing a refused suggestion elsewhere. Show why attention is needed and the smallest resolution; test noisy repeated signals, model denial/timeout, revoked channel, stale blockers and resolution during delivery.
 
-011. [horizon] UX-04 — Contextual Review, first-run usefulness, and cross-host accessibility contract
+010. [horizon] UX-04 — Contextual Review, first-run usefulness, and cross-host accessibility contract
     track: Operator | tier: rock | size: L | effort: high | model: opus | after: UX-03, TRUST-04, DESKTOP-OPERATOR-DOSSIER-HIERARCHY
     why: One contextual Review surface renders Activity, Changes, Outputs, Evidence/Approvals, and durable background-session state; the supported launch path and generated artifacts satisfy the disability-led universal-design contract.
     done: The supported launch path reaches one persisted/resumable useful local outcome within ten minutes without Gmail/Calendar or diagnosis disclosure. Keyboard, focus including Cmd/Ctrl+L composer focus, screen reader, high contrast, common color-vision deficiencies, non-color meaning, reduced motion, density, notifications, optional streaming/auto-scroll, sound, stable layout, preserved reading position, summary-first detail, literal state, and narrow resize pass on the active build. Background events update unread, progress, and settlement state without navigating or stealing focus; session switch and restart preserve unread boundaries, queues, drafts, scroll anchors, and exact resume; optimistic direct manipulation rolls back visibly on persistence failure. Concrete aphantasia-safe previews and accessible charts/media pass. Support reason/scope/lifetime/reset/dismissal, multidimensional capacity including unknown, quiet hours, interruption budgets, and exact resume are consistent across Desktop, TUI, messaging, background, restart, and safe mode. Additional acceptance from 2026-10-01 review: The contextual memory inspector distinguishes saved, pending, selected-for-this-turn, actually injected and unavailable memory; show provenance, original observation date and degraded retrieval without implying that selected candidates influenced an answer. Expose verify, correct, challenge and opt-out paths; correction or disabling memory affects the next real turn through existing stores. Onboarding separates optional diagnostics/analytics from required service consent, preserves explicit choices on restart and explains changed policy rather than silently re-enabling sharing. Tests cover empty, disabled, stale, failed and cross-project memory without making a graph dashboard a prerequisite for chat.
 
-012. [horizon] BROWSER-AUTHENTICATED-WORKSPACE — Authenticated browser workspace — visible sessions, takeover, and revocation
+011. [horizon] BROWSER-AUTHENTICATED-WORKSPACE — Authenticated browser workspace — visible sessions, takeover, and revocation
     track: Operator | tier: rock | size: L | effort: high | model: opus | after: BROWSER-WORKFLOW-ACTION-BOUNDARY, AUTH-BROWSER, DESKTOP-OPERATOR-DOSSIER-HIERARCHY
     why: Turn Vanta's dedicated browser profile into a legible operator workspace: connect accounts in a headed Vanta-owned session, see which profile and site are active, watch or take over safely, and revoke or reset access without copying a live personal-browser profile into agent storage.
     done: Desktop and TUI expose the same named browser sessions, tabs, account/profile binding, domain scope, ownership, health, idle expiry, and revoke/reset actions; sign-in occurs in a headed Vanta-owned profile with explicit authority and never exports raw cookies, local storage, credentials, or authorization headers to the model; accessibility snapshots provide stable element references with frame, popup, dialog, download, and stale-reference handling; watch and human takeover suspend agent input without stealing the user's ordinary cursor or focus; restart, crash, idle TTL, corrupt profile, concurrent session, auth expiry, cancellation, and cleanup fixtures pass; one real packaged authenticated read journey and one freshly approved reversible action are observed end to end with redacted receipts. Additional acceptance from 2026-10-01 review: Maintain explicitly authorized browser session ownership across action batches, including dialog events, tab/frame targets and bounded reconnection; validate browser identity and redact debug endpoints. Existing cookie injection is not treated as absent. Real-profile attachment requires explicit profile/account selection, a visible scope and disconnect/revoke control; copying a personal profile remains out of scope and never happens silently, claim copied credentials are secret-free, or automatically replay an uncertain account mutation after reconnect.
