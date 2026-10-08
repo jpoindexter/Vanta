@@ -6,6 +6,7 @@ export async function chatPreviewProof(ctx) {
   const row = page.locator('.chat-nav-row[data-active="true"]');
   const preview = row.getByRole("tooltip");
   await ctx.check("sidebar preview accepts pointer entry and Escape without moving focus", async () => {
+    await page.mouse.move(800, 50);
     await page.locator("#vanta-composer").focus();
     await row.locator(".chat-nav-open").hover();
     await preview.waitFor();

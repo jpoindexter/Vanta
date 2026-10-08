@@ -3,6 +3,7 @@ import type { DesktopRunReceipt,EventRow,Message } from "./types.js";
 export type TurnCues = { prime?: () => void; complete?: () => unknown | Promise<unknown> };
 
 export type ConversationState = {
+  turnAdmission?: { begin: (sessionId?: string) => string; finish: () => void };
   sessionId?: string;
   refresh: () => Promise<void>;
   setMessages: (updater: (messages: Message[]) => Message[]) => void;

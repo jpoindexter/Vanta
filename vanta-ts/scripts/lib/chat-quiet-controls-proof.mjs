@@ -210,6 +210,8 @@ async function forcedColorStates(ctx) {
   await page.emulateMedia({ forcedColors: "active" });
   try {
     assert(await page.evaluate(() => matchMedia("(forced-colors: active)").matches));
+    const pane = await appearance(page.locator(".chat-main-column"));
+    assert.equal(pane.shadow, "none", "forced colors must remove decorative workspace shadows");
     const input = page.locator("#vanta-composer");
     await input.focus(); await input.fill("Unsent high-contrast focus proof");
     const focus = await appearance(input);
@@ -227,6 +229,21 @@ async function forcedColorStates(ctx) {
   } finally { await page.emulateMedia({ forcedColors: "none" }); }
 }
 
+async function workspaceElevation(ctx, theme) {
+  const { page, app, capture } = ctx;
+  const pane = await appearance(page.locator(".chat-main-column"));
+  assert.notEqual(pane.shadow, "none", `${theme} workspace has no sidebar separation`);
+  const frame = await page.locator(".chat-first-shell").evaluate((element) => {
+    const style = getComputedStyle(element, "::after");
+    return { shadow: style.boxShadow, pointerEvents: style.pointerEvents };
+  });
+  assert.notEqual(frame.shadow, "none", `${theme} app frame has no soft edge`);
+  assert.equal(frame.pointerEvents, "none", "frame elevation intercepts clicks");
+  const native = await app.browserWindow(page);
+  assert.equal(await native.evaluate((window) => window.hasShadow()), true, "native window shadow is disabled");
+  await capture(`workspace-elevation-${theme}`);
+}
+
 /** Computed styles plus real pointer/keyboard states; never submits a model request. */
 export async function chatQuietControlsProof(ctx) {
   const { page, app, fixture, check } = ctx;
@@ -237,6 +254,7 @@ export async function chatQuietControlsProof(ctx) {
   await window.evaluate((win) => win.setContentSize(1440, 900));
   for (const theme of ["light", "dark"]) {
     if (theme === "dark") await page.getByRole("button", { name: "Switch to dark mode", exact: true }).click();
+    await check(`${theme} workspace and app frame have soft elevation with a native window shadow`, () => workspaceElevation(ctx, theme));
     await check(`${theme} composer remains quiet while focused and typing`, () => composerStates(ctx, theme));
     await check(`${theme} starters are borderless with hover and visible keyboard focus`, () => starterStates(ctx, theme));
     await check(`${theme} model, access, workspace, tools and capture menus use quiet surfaces`, () => menuStates(ctx, theme));

@@ -29,7 +29,7 @@ function ChatComposer({ state, actions }: Props) {
       <ChatFirstQueue items={queue.snapshot.items} error={queue.error} onRefresh={queue.refresh} />
       <FullAccessWarning visible={state.warning.visible} onClose={state.warning.close} onAcknowledge={state.warning.acknowledge} />
       {convo.draftError ? <div className="chat-draft-error" role="alert"><span>{convo.draftError}</span><button type="button" onClick={() => void convo.retryDraft()}>Retry draft save</button></div> : null}
-      <Composer sessionId={convo.sessionId} value={convo.draft} busy={convo.busy} ready={state.ready && !state.pending} model={data.status?.model}
+      <Composer sessionId={convo.sessionId} value={convo.draft} busy={convo.busy} runReady={convo.turnStarted} ready={state.ready && !state.pending} model={data.status?.model}
         root={data.status?.root} tools={data.status?.tools} mcp={state.mcp.summary} accessMode={data.status?.accessMode ?? "approve"}
         attachments={attachments.items} images={attachments.images} attachmentError={attachments.error} lookBusy={attachments.capturing}
         onChange={convo.setDraft} onSubmit={(text) => void actions.submit(text)} onQueue={(text) => void actions.enqueue(text)}
@@ -44,6 +44,13 @@ function ChatComposer({ state, actions }: Props) {
 
 function ComposerHint({ state: { convo, data, settling } }: { state: ChatFirstState }) {
   const settings = data.status?.modelSettings;
-  return <div className="chat-composer-hint"><span>{settling ? "Updating conversation…" : convo.busy ? "Response running · messages queue next" : "Enter to send · Shift Enter for a new line"}{convo.draft && !convo.draftError ? ` · ${convo.draftStatus === "saving" ? "Saving draft…" : "Draft saved"}` : ""}</span>
+  return <div className="chat-composer-hint"><span>{conversationPhase(convo, settling)}{convo.draft && !convo.draftError ? ` · ${convo.draftStatus === "saving" ? "Saving draft…" : "Draft saved"}` : ""}</span>
     <span>{settings?.effortLevel ? `${settings.effortLevel} effort · ` : ""}{settings?.speed ?? "standard"} speed</span></div>;
+}
+
+function conversationPhase(convo: ChatFirstState["convo"], settling: boolean) {
+  if (settling) return "Updating conversation…";
+  if (convo.stopRequested) return "Stopping response…";
+  if (convo.busy && !convo.turnStarted) return "Starting response…";
+  return convo.busy ? "Response running · messages queue next" : "Enter to send · Shift Enter for a new line";
 }

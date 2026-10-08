@@ -15,6 +15,7 @@ export type ComposerProps = {
   sessionId?: string;
   value: string;
   busy: boolean;
+  runReady?: boolean;
   ready?: boolean;
   model?: string;
   root?: string;
@@ -92,6 +93,7 @@ function ComposerInput(props: ComposerProps & { ready: boolean }) {
 
 function submitComposer(event: FormEvent, props: ComposerProps) {
   event.preventDefault();
+  if (startingTurn(props)) return;
   const lookMode = desktopLookCommand(props.value);
   if (lookMode) { props.onChange(""); void props.onLookCapture(lookMode); return; }
   const imageCount = props.images?.length ?? 0;
@@ -118,9 +120,17 @@ function RemoveButton(props: { label: string; onClick: () => void }) {
 
 function ComposerFooter(props: ComposerProps & { ready: boolean; canSend: boolean; hasImages: boolean; voice: VoiceDictation }) {
   const hasFileAttachments = props.attachments.length > 0;
-  const queueDisabled = !props.ready || !props.value.trim() || props.hasImages || hasFileAttachments;
+  const queueDisabled = queueUnavailable(props);
   const queueTitle = props.hasImages || hasFileAttachments ? "Wait for the active run before sending attachment context" : "Queue next";
   return <div className="composer-footer"><div className="composer-context-controls"><button className="composer-context-button" type="button" title="Attach files or folders" aria-label="Attach files or folders" onClick={props.onAttach}><Paperclip size={16} /><span className="sr-only">Attachments</span></button><LookCaptureButton busy={props.lookBusy} onCapture={props.onLookCapture} /><VoiceButton voice={props.voice} ready={props.ready} sessionId={props.sessionId} /><button className="composer-command-button" type="button" title="Open commands" aria-label="Open commands" onClick={props.onCommand}><Plus size={16} /><span className="sr-only">Commands</span></button></div><div className="composer-actions"><button className="model-button" type="button" title="Change agent model" aria-label={`Agent model: ${props.model ?? "not selected"}. Change model`} onClick={props.onModel}><small>Agent model</small><span>{props.model ?? "Choose model"}</span></button><AccessModePicker mode={props.accessMode} onChange={props.onAccessMode} />{props.busy ? <><button className="queue-button" type="submit" disabled={queueDisabled} title={queueTitle}><ListPlus size={15} /><span>Queue next</span></button><button className="stop-button" type="button" title="Stop task" aria-label="Stop task" onClick={props.onStop}><Square size={14} /><span>Stop task</span></button></> : <button className="send-button" type="submit" disabled={!props.ready || !props.canSend} aria-label="Send"><ArrowUp size={16} /></button>}</div></div>;
+}
+
+function startingTurn(props: Pick<ComposerProps, "busy" | "runReady">) {
+  return props.busy && props.runReady === false;
+}
+
+function queueUnavailable(props: ComposerProps & { ready: boolean; hasImages: boolean }) {
+  return !props.ready || props.runReady === false || !props.value.trim() || props.hasImages || props.attachments.length > 0;
 }
 
 async function pasteImages(event: ClipboardEvent<HTMLTextAreaElement>, props: ComposerProps): Promise<void> {

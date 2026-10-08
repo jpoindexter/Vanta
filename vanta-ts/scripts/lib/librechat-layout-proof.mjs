@@ -38,6 +38,7 @@ export async function libreChatLayoutProof(ctx) {
     await rows.nth(1).getByRole("tooltip").waitFor();
     assert.equal(await page.locator('.chat-hover-preview:not([hidden])').count(), 1);
     await page.locator('.chat-nav-row[data-active="true"] .chat-nav-open').click();
+    await page.locator('.chat-hover-preview:not([hidden])').waitFor({ state: "hidden" });
     assert.equal(await page.locator('.chat-hover-preview:not([hidden])').count(), 0);
     await composer.focus();
   });

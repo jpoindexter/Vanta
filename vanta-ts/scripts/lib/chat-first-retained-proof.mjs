@@ -5,12 +5,44 @@ import { scanAccessibility } from "./desktop-accessibility-proof.mjs";
 
 /** Review-found regressions on the packaged shell; only the model is synthetic. */
 export async function retainedCapabilityProof(ctx) {
+  await startingAdmission(ctx);
   await queueControls(ctx);
   await failedQueueRetry(ctx);
   await failedSelection(ctx);
   await settingsHandoff(ctx);
   await replayInputs(ctx);
   await settlingNavigation(ctx);
+}
+
+async function startingAdmission(ctx) {
+  await ctx.check("queued follow-up survives a delayed turn admission without premature queue requests", async () => {
+    const page = ctx.getPage(); await newChat(page);
+    let release, entered, finishRoute;
+    const held = new Promise((resolve) => { release = resolve; });
+    const requested = new Promise((resolve) => { entered = resolve; });
+    const continued = new Promise((resolve) => { finishRoute = resolve; });
+    const queued = "Follow-up preserved through starting response";
+    const before = ctx.fixture.requests.length;
+    await page.route("**/api/chat", async (route) => {
+      entered(); await held;
+      try { await route.continue(); } finally { finishRoute(); }
+    });
+    try {
+      await ctx.send("Keep this response open during admission proof"); await requested;
+      await page.getByText("Starting response…", { exact: true }).waitFor();
+      await page.locator("#vanta-composer").fill(queued);
+      assert.equal(await page.getByRole("button", { name: "Queue next", exact: true }).isDisabled(), true);
+      await page.locator("#vanta-composer").press("Enter");
+      assert.equal(await page.locator("#vanta-composer").inputValue(), queued);
+      assert.equal((await ctx.api("/api/chat/queue")).items.length, 0);
+      assert.equal(ctx.fixture.requests.length, before);
+    } finally { release(); await continued; await page.unroute("**/api/chat"); }
+    await queueMessage(page, queued);
+    await page.getByText("Response streaming. Waiting for your next instruction.", { exact: true }).waitFor();
+    ctx.fixture.release(); await ctx.idle();
+    await page.getByRole("region", { name: "Queued messages" }).waitFor({ state: "hidden" });
+    assert.equal(ctx.fixture.requests.filter((request) => request.prompt === queued).length, 1);
+  });
 }
 
 async function settlingNavigation(ctx) {

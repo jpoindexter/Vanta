@@ -22,7 +22,12 @@ function validChatFiles(files: unknown): boolean {
   return files === undefined || (Array.isArray(files) && files.length <= 50 && files.every(file => typeof file === "string"));
 }
 
-function parseChatInput(body: { message?: unknown; images?: unknown; files?: unknown }): ChatInput | { error: string } {
+function validChatRequestId(value: unknown): boolean {
+  return value === undefined || (typeof value === "string" && /^[a-z0-9-]{1,80}$/i.test(value));
+}
+
+function parseChatInput(body: { message?: unknown; images?: unknown; files?: unknown; requestId?: unknown }): ChatInput | { error: string } {
+  if (!validChatRequestId(body.requestId)) return { error: "invalid chat request identity" };
   const parsedImages = parseDesktopImageInput(body.images);
   if (!parsedImages.ok) return { error: parsedImages.error };
   if (!validChatFiles(body.files)) {
@@ -31,7 +36,7 @@ function parseChatInput(body: { message?: unknown; images?: unknown; files?: unk
   const message = typeof body.message === "string" ? body.message.trim() : "";
   const instructionText = message || (parsedImages.images.length ? "Describe the attached image." : "");
   if (!instructionText) return { error: "message or image is required" };
-  return { instructionText, images: parsedImages.images, files: (body.files as string[] | undefined) ?? [] };
+  return { instructionText, images: parsedImages.images, files: (body.files as string[] | undefined) ?? [], ...(typeof body.requestId === "string" ? { requestId: body.requestId } : {}) };
 }
 
 function startChatExecution(state: DesktopState, input: ChatInput): ChatExecution {
@@ -41,12 +46,15 @@ function startChatExecution(state: DesktopState, input: ChatInput): ChatExecutio
   state._chatDeltas = [];
   state._streamTextDeltas = true;
   state.currentEvents = [];
+  if (input.requestId && state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, {
+    label: "Response started.", turnStarted: { sessionId: queueSessionId(state), requestId: input.requestId },
+  });
   return { ...input, state, controller, events: state.currentEvents, activeQueueSessionId: queueSessionId(state) };
 }
 
 export async function handleChat(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   if (state._chatActive) return sendJson(res, 409, { error: "a turn is already running" });
-  const body = await readJson(req) as { message?: unknown; images?: unknown; files?: unknown; sessionId?: unknown };
+  const body = await readJson(req) as { message?: unknown; images?: unknown; files?: unknown; sessionId?: unknown; requestId?: unknown };
   if (body.sessionId !== undefined && body.sessionId !== state.sessionId) {
     return sendJson(res, 409, { error: "The active chat changed. Reopen the intended chat before sending." });
   }

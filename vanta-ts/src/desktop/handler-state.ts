@@ -9,7 +9,7 @@ import { type ProviderAuthRequired } from "./provider-auth-store.js";
 import { type SseClients } from "./session-state.js";
 import { DesktopTurnQueue } from "./turn-queue.js";
 
-export type DesktopEvent = EventLabel & { delta?: string };
+export type DesktopEvent = EventLabel & { delta?: string; turnStarted?: { sessionId: string; requestId: string } };
 
 export type DesktopState = {
   setup?: RunSetup;
