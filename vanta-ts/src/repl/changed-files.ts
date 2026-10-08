@@ -1,9 +1,8 @@
-import { execFile, type ExecFileOptions } from "node:child_process";
-import { promisify } from "node:util";
+import { gitExecFile } from "../git/process.js";
+import type { ExecFileOptions } from "node:child_process";
 import { readFile, unlink } from "node:fs/promises";
 import { join } from "node:path";
 
-const exec = promisify(execFile);
 
 export type ChangedFile = {
   file: string;
@@ -15,7 +14,7 @@ export type ChangedFile = {
 type ExecResult = { stdout: string; stderr: string };
 
 async function git(args: string[], opts: ExecFileOptions): Promise<string> {
-  const { stdout } = (await exec("git", args, opts)) as ExecResult;
+  const { stdout } = (await gitExecFile("git", args, opts)) as ExecResult;
   return stdout;
 }
 

@@ -1,6 +1,7 @@
 import { ChevronRight,RefreshCw,Search,X } from "lucide-react";
 import { filterModels,ModelRow } from "./model-picker-catalog.js";
 import { useModelPicker } from "./model-picker-state.js";
+import { useModelPopoverPosition } from "./model-popover-position.js";
 import { ProviderSettingsControls } from "./provider-settings-controls.js";
 import type { Provider,ProviderModelSettings,Status } from "./types.js";
 
@@ -16,10 +17,11 @@ export function ModelPicker(props: ModelPickerProps) {
 
 function ModelSettingsPopover({ props, state }: ViewProps) {
   const { currentProvider, close, setView } = state;
+  const panelRef = useModelPopoverPosition();
   if (!currentProvider || !props.status) return null;
     const providerName = currentProvider.short || currentProvider.label;
     return <div className="model-popover-layer" onClick={close}>
-      <section className="model-settings-popover" role="dialog" aria-labelledby="model-settings-title" onClick={(event) => event.stopPropagation()}>
+      <section ref={panelRef} className="model-settings-popover" role="dialog" aria-labelledby="model-settings-title" onClick={(event) => event.stopPropagation()}>
         <header className="model-settings-popover-heading"><div><p className="eyebrow">Current provider</p><h2 id="model-settings-title">{providerName} settings</h2></div><button className="icon-button" type="button" aria-label="Close model settings" onClick={close}><X size={16} /></button></header>
         <button className="model-settings-row" type="button" autoFocus onClick={() => setView("browser")}><span>Model</span><strong>{props.status.model}</strong><ChevronRight size={15} aria-hidden="true" /></button>
         <ProviderSettingsControls compact provider={currentProvider} status={props.status} onSettings={props.onSettings} />

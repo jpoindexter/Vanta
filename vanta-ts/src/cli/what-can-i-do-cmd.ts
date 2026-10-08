@@ -1,5 +1,8 @@
 import { join } from "node:path";
-import { buildRegistry } from "../tools/index.js";
+import { bootstrapKernel } from "../session/bootstrap-kernel.js";
+import { prepareSessionCapabilities } from "../session/capability-setup.js";
+import { capabilitySnapshot } from "../agent/capability-snapshot.js";
+import { redactForLog } from "../store/redact-structural.js";
 import {
   formatFreshActivationReviewPacket,
   recordFreshActivationReview,
@@ -22,7 +25,18 @@ export async function runWhatCanIDoCommand(rest: string[] = [], dataDir = join(p
     console.log(runWorkflowDemo(rest[1] ?? ""));
     return 0;
   }
-  const toolNames = buildRegistry().schemas().map((schema) => schema.name);
+  let prepared: Awaited<ReturnType<typeof prepareSessionCapabilities>>;
+  try { prepared = await prepareSessionCapabilities(process.cwd(), await bootstrapKernel(process.cwd())); }
+  catch (error) {
+    console.log(`What Vanta can do now\nSetup required: ${redactForLog(error instanceof Error ? error.message : "session unavailable")}\nRepair the selected provider or local kernel in setup; no callable registry was established.`);
+    return 1;
+  }
+  try { return await renderLiveGallery(rest, dataDir, capabilitySnapshot(prepared.registry.schemas())); }
+  finally { prepared.dispose(); }
+}
+
+async function renderLiveGallery(rest: string[], dataDir: string, snapshot: ReturnType<typeof capabilitySnapshot>): Promise<number> {
+  const toolNames = snapshot.exposed.map((schema) => schema.name);
   const proofCode = await runProofCommand(rest, dataDir, toolNames);
   if (proofCode !== null) return proofCode;
   const reviewText = recordReviewText(rest);
@@ -31,7 +45,7 @@ export async function runWhatCanIDoCommand(rest: string[] = [], dataDir = join(p
     console.log(`  ✓ fresh-context review recorded → ${file}`);
     return 0;
   }
-  console.log(formatWhatCanIDo(workflowViews(toolNames)));
+  console.log(formatWhatCanIDo(workflowViews(toolNames), snapshot));
   return 0;
 }
 

@@ -44,6 +44,7 @@ type GlobalKeyDeps = {
   messageActionsOpen: boolean; openMessageActions: () => void;
   backgroundResponseAvailable: boolean; toggleBackgroundResponse: () => void;
   traceOpen?: boolean; toggleTrace?: () => void;
+  voiceActive?: boolean; toggleDictation?: () => void; cancelDictation?: () => void;
   /** Set only while a teammate tree is live; cycles focus between agents. */
   cycleAgent?: (dir: 1 | -1) => void;
   /** Transcript text selection owns Shift+arrows / Ctrl+C only while useful. */
@@ -78,6 +79,7 @@ export function useKeybindings(): KeyBinding[] {
 // before). Custom chords in ~/.vanta/keybindings.json therefore take effect on
 // the live TUI. Focus keys (tab/shift-tab) stay in handleFocusKey.
 export function handleGlobalKey(input: string, key: GlobalKey, d: GlobalKeyDeps): void {
+  if (d.voiceActive && (key.escape || (key.ctrl && input === "c"))) { d.cancelDictation?.(); return; }
   if (d.transcriptSelectionKey?.(input, key)) return;
   const chord = eventToChord(input, key as GlobalKey & { alt?: boolean; meta?: boolean; upArrow?: boolean; downArrow?: boolean });
   const resolved = resolveGlobalAction(chord, d);
@@ -119,6 +121,7 @@ function noteChordState(pending: string | null, message: string, d: GlobalKeyDep
 // this a table holds dispatchGlobalAction flat (one lookup, not a guard chain).
 const notBlocked = (d: GlobalKeyDeps): boolean => !d.quickOpenOpen && !d.globalSearchOpen && !d.messageActionsOpen && !d.traceOpen && !d.pending && !d.overlayOpen;
 const GLOBAL_HANDLERS: Record<string, { guard: (d: GlobalKeyDeps) => boolean; run: (d: GlobalKeyDeps) => void }> = {
+  [GLOBAL_ACTIONS.dictation]: { guard: (d) => notBlocked(d) && !d.busy && d.focus === "composer", run: (d) => d.toggleDictation?.() },
   [GLOBAL_ACTIONS.exitOrAbort]: { guard: () => true, run: (d) => void (d.busy ? d.abort() : d.exit()) },
   [GLOBAL_ACTIONS.quickOpen]: { guard: notBlocked, run: (d) => d.openQuickOpen() },
   [GLOBAL_ACTIONS.globalSearch]: { guard: notBlocked, run: (d) => d.openGlobalSearch() },

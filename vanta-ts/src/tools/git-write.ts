@@ -18,14 +18,15 @@ function withAttribution(message: string, line: string | undefined): string {
 // runGit + read tools (status, diff) stay in git.ts.
 
 const CommitArgs = z.object({ message: z.string().min(1) });
+const GitOperand = z.string().min(1).refine((value) => !value.startsWith("-"), "Git operand cannot be an option");
 const PushArgs = z.object({
-  remote: z.string().min(1).optional(),
-  branch: z.string().min(1).optional(),
+  remote: GitOperand.optional(),
+  branch: GitOperand.optional(),
   /** Force-push. Surfaced to describeForSafety so the kernel's DATA_LOSS net blocks it. */
   force: z.boolean().optional(),
 });
-const BranchArgs = z.object({ name: z.string().min(1).optional() });
-const CheckoutArgs = z.object({ ref: z.string().min(1) });
+const BranchArgs = z.object({ name: GitOperand.optional() });
+const CheckoutArgs = z.object({ ref: GitOperand });
 
 export const gitCommitTool: Tool = {
   schema: {
@@ -47,7 +48,7 @@ export const gitCommitTool: Tool = {
     }
     const approved = await ctx.requestApproval(
       "git commit",
-      "commits stage and record changes in history",
+      `Stage all changes and commit ${JSON.stringify(parsed.data.message)}. Repository hooks, filters, signing and editors are disabled; required hooks need separate execution authority.`,
     );
     if (!approved) return { ok: false, output: "denied" };
 
@@ -88,7 +89,7 @@ export const gitPushTool: Tool = {
     }
     const approved = await ctx.requestApproval(
       "git push",
-      "pushes local commits to a remote",
+      `Push ${parsed.data.remote ?? "configured upstream"} ${parsed.data.branch ?? "current branch"}${parsed.data.force ? " with force" : ""}. Repository hooks, credential helpers and SSH commands are disabled; authentication/transport needs separate explicit authority.`,
     );
     if (!approved) return { ok: false, output: "denied" };
 
@@ -121,7 +122,7 @@ export const gitBranchTool: Tool = {
     }
     const approved = await ctx.requestApproval(
       "git branch",
-      "creates or lists branches",
+      `Git branch ${parsed.data.name ? JSON.stringify(parsed.data.name) : "--list"}; repository execution sinks disabled.`,
     );
     if (!approved) return { ok: false, output: "denied" };
 
@@ -153,7 +154,7 @@ export const gitCheckoutTool: Tool = {
     }
     const approved = await ctx.requestApproval(
       "git checkout",
-      "switching refs changes the working tree",
+      `Checkout ${JSON.stringify(parsed.data.ref)}; changes the working tree with repository hooks and filters disabled.`,
     );
     if (!approved) return { ok: false, output: "denied" };
 

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 
 type Pane = "sidebar" | "context";
-const bounds = { sidebar: { minimum: 220, maximum: 360, initial: 260 }, context: { minimum: 300, maximum: 800, initial: 560 } };
+const bounds = { sidebar: { minimum: 220, maximum: 360, initial: 240 }, context: { minimum: 300, maximum: 800, initial: 360 } };
 
 export function paneWidth(pane: Pane, value: number): number {
   const { minimum, maximum, initial } = bounds[pane];

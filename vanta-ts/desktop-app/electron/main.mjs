@@ -9,11 +9,12 @@ import { app, BrowserWindow, Tray, Menu, nativeImage, dialog, clipboard, shell, 
 import { createTrayController } from "./tray.mjs";
 import { createDesktopPresence } from "./desktop-presence.mjs";
 import { resolveDroppedPaths } from "./dropped-paths.mjs";
-import { findAvailablePort, projectArg, readProjectSetting, resolveProjectRoot, saveProjectSetting } from "./project-root.mjs";
+import { findAvailablePort, resolveProjectRoot, saveProjectSetting } from "./project-root.mjs";
 import { resolveRuntimePaths } from "./runtime-paths.mjs";
 import { desktopRuntimeEnv } from "./runtime-env.mjs";
 import { showProjectFolderPicker } from "./project-folder-picker.mjs";
 import { createPendingProjectTaskStore, prepareProjectSwitch } from "./project-switch.mjs";
+import { installMicrophonePermissions } from "./microphone-permissions.mjs";
 
 app.setName("Vanta");
 
@@ -208,7 +209,7 @@ async function createWindow() {
   if (process.platform === "darwin" && icon) app.dock?.setIcon(icon);
   mainWindow = new BrowserWindow({
     width: 1440, height: 960, minWidth: 760, minHeight: 620, show: false,
-    title: "Vanta", backgroundColor: "#ffffff",
+    title: "Vanta", backgroundColor: "#ffffff", hasShadow: true,
     ...(icon ? { icon } : {}),
     ...(process.platform === "darwin" ? {
       titleBarStyle: "hiddenInset",
@@ -223,6 +224,7 @@ async function createWindow() {
     },
   });
   mainWindow.once("ready-to-show", () => { if (!smoke) mainWindow.show(); });
+  installMicrophonePermissions(mainWindow.webContents.session, { getWindow: () => mainWindow, getOrigin: () => `http://127.0.0.1:${port}` });
   desktopPresence = createDesktopPresence({ BrowserWindow, screen, ipcMain, getWindow: () => mainWindow });
   mainWindow.webContents.setWindowOpenHandler(({ url }) => { if (/^https?:/.test(url)) void shell.openExternal(url); return { action: "deny" }; });
   mainWindow.webContents.on("will-navigate", (event, target) => {
@@ -249,11 +251,8 @@ function splashHtml() {
 
 async function initialProject() {
   const userData = app.getPath("userData");
-  const saved = await readProjectSetting(userData);
-  if (app.isPackaged && !projectArg(args) && !process.env.VANTA_PROJECT_ROOT && !saved) {
-    const result = await dialog.showOpenDialog({ title: "Choose where Vanta should work", properties: ["openDirectory", "createDirectory"] });
-    if (!result.canceled && result.filePaths[0]) await saveProjectSetting(userData, result.filePaths[0]);
-  }
+  // Chat can begin in the ordinary default workspace. Project selection is an
+  // explicit action, not a first-message prerequisite; saved choices still win.
   return resolveProjectRoot({ args, env: process.env, userData, cwd: app.isPackaged ? homedir() : process.cwd() });
 }
 

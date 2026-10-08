@@ -1,6 +1,6 @@
-import { execFile } from "node:child_process";
+import { gitShellRefusal } from "../git/shell.js";
+import { backgroundEffectSeed, runLocal, runRemote } from "./shell-run.js";
 import { existsSync } from "node:fs";
-import { promisify } from "node:util";
 import { join } from "node:path";
 import { z } from "zod";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
@@ -10,15 +10,10 @@ import { isSandboxError } from "../sandbox/run.js";
 import { agentLaunchRedirect, isTmuxAgentLaunch } from "./agent-launch-hint.js";
 import { needsBackground, looksLikeServeIntent } from "./shell-background-detect.js";
 import { resolveExecBackend, wrapExec } from "../exec/backend.js";
-import { loadSettings } from "../settings/store.js";
-import { resolveSshTarget, buildSshArgs } from "../ssh/config.js";
 import { applySessionEnv, sessionEnvStore } from "../repl/session-env.js";
 import { sessionCwd, isCwdChanged } from "../repl/session-cwd.js";
 import {
-  combineOutput,
   formatRunFailure,
-  formatRunSuccess,
-  withTimingNote,
   type RunError,
 } from "./shell-output.js";
 import { sandboxServeRecovery } from "./sandbox-recovery.js";
@@ -31,14 +26,12 @@ import {
 import { buildSafeChildEnv } from "../exec/child-env.js";
 import {
   executeEffect,
-  payloadSha256,
   stableEffectId,
 } from "../effects/execute-effect.js";
-import { effectGateFromToolContext, effectOperationKey } from "../effects/gate-context.js";
+import { effectGateFromToolContext } from "../effects/gate-context.js";
 
 export { lastCommandWord, classifyExitCode } from "./shell-output.js";
 
-const run = promisify(execFile);
 const Args = z.object({
   command: z.string().min(1),
   background: z.boolean().optional(),
@@ -103,24 +96,6 @@ export function shellSandboxEnv(
   return { ...env, VANTA_SANDBOX: "1", VANTA_SANDBOX_NET: "1" };
 }
 
-/** Run the command on an SSH host — a configured `settings.sshConfigs` profile
- *  name or an explicit `user@host`. The kernel still assessed the command via
- *  describeForSafety; the local sandbox is not applied because execution happens
- *  on the remote host, not this machine. */
-async function runRemote(target: string, command: string, root: string, pfx: string, timeoutMs: number): Promise<ToolResult> {
-  const settings = await loadSettings(root, process.env);
-  const profile = resolveSshTarget(target, settings.sshConfigs);
-  if (!profile) {
-    return { ok: false, output: `unknown ssh profile "${target}" — configure it in settings.sshConfigs, or pass an explicit user@host` };
-  }
-  try {
-    const { stdout, stderr } = await run("ssh", buildSshArgs(profile, command), { timeout: timeoutMs, maxBuffer: MAX_OUTPUT });
-    const out = combineOutput(stdout, stderr);
-    return formatRunSuccess(command, out, pfx);
-  } catch (err) {
-    return formatRunFailure(command, err as RunError, pfx);
-  }
-}
 
 function warnPrefix(command: string): string {
   const warn = destructiveWarning(command);
@@ -130,7 +105,9 @@ function warnPrefix(command: string): string {
 /** Refusals that apply to EVERY path (destructive pattern, sandbox agent-launch
  *  dead-end). Returns the first refusal, or null to proceed. Kept out of execute()
  *  to hold its branching under the complexity gate. */
-function globalRefusal(command: string): ToolResult | null {
+function globalRefusal(command: string, options: { background?: boolean; ssh?: string }): ToolResult | null {
+  const git = gitShellRefusal(command, options);
+  if (git) return { ok: false, output: git };
   if (DESTRUCTIVE.test(command)) {
     return { ok: false, output: "refused: command matches a destructive pattern" };
   }
@@ -152,11 +129,10 @@ export function sandboxServeRefusal(
   command: string,
   root = process.cwd(),
   env: NodeJS.ProcessEnv = process.env,
-  platform: NodeJS.Platform = process.platform,
-  hasBwrap = bwrapOnPath(),
+  options: { platform?: NodeJS.Platform; hasBwrap?: boolean } = {},
 ): ToolResult | null {
   if (!looksLikeServeIntent(command)) return null;
-  const sandboxEnv = shellSandboxEnv(env, platform, hasBwrap);
+  const sandboxEnv = shellSandboxEnv(env, options.platform, options.hasBwrap);
   if (sandboxEnv.VANTA_SANDBOX !== "1" || sandboxEnv.VANTA_SANDBOX_NET === "1") return null;
   return {
     ok: false,
@@ -218,14 +194,8 @@ async function runBackground(
   if (isSandboxError(sb)) return { ok: false, output: sb.error };
   let cleanupTransferred = false;
   try {
-    const hash = payloadSha256(command);
-    const seed = {
-      host: "tool-host",
-      kind: "shell.background.launch",
-      targetClass: "sandboxed-background-process",
-      payloadSha256: hash,
-      idempotencyKey: effectOperationKey("shell-background", ctx),
-    };
+    const seed = backgroundEffectSeed(command, ctx);
+    const hash = seed.payloadSha256;
     const result = await executeEffect({
       id: stableEffectId(seed),
       actor: "shell_cmd",
@@ -253,29 +223,6 @@ async function runBackground(
   }
 }
 
-/** Run the command on the active execution backend (local / OS sandbox / docker). */
-async function runLocal(
-  command: string,
-  root: string,
-  pfx: string,
-  sandboxWritableDirs: readonly string[] = [],
-  timeoutMs = TIMEOUT_MS,
-): Promise<ToolResult> {
-  const local = localInvocation(command);
-  const workdir = shellCommandCwd(root);
-  const sb = await wrapExec({ env: shellSandboxEnv(process.env), root, workdir, baseCmd: local.cmd, baseArgs: local.args, additionalWritableDirs: sandboxWritableDirs });
-  if (isSandboxError(sb)) return { ok: false, output: pfx + sb.error };
-  const startedAt = Date.now();
-  try {
-    const { stdout, stderr } = await run(sb.cmd, sb.args, childRunOpts(root, timeoutMs));
-    const out = combineOutput(stdout, stderr);
-    return withTimingNote(formatRunSuccess(command, out, pfx), Date.now() - startedAt);
-  } catch (err) {
-    return withTimingNote(formatRunFailure(command, err as RunError, pfx), Date.now() - startedAt);
-  } finally {
-    await sb.cleanup?.();
-  }
-}
 
 export const shellCmdTool: Tool = {
   schema: {
@@ -303,15 +250,15 @@ export const shellCmdTool: Tool = {
       return { ok: false, output: 'shell_cmd needs a "command" string' };
     }
     const { command, background, timeout_ms = TIMEOUT_MS, ssh } = parsed.data;
-    const refusal = globalRefusal(command);
+    const sshTarget = ssh ?? process.env.VANTA_SSH_SESSION;
+    const refusal = globalRefusal(command, { background, ssh: sshTarget });
     if (refusal) return refusal;
     const pfx = warnPrefix(command);
     // An explicit ssh arg wins; otherwise an active SSH session (`vanta ssh
     // user@host` sets VANTA_SSH_SESSION) routes every command to the remote host.
-    const sshTarget = ssh ?? process.env.VANTA_SSH_SESSION;
     if (sshTarget) {
       if (background) return { ok: false, output: "refused: background tasks are not supported over ssh" };
-      return runRemote(sshTarget, command, ctx.root, pfx, timeout_ms);
+      return runRemote({ target: sshTarget, command, root: ctx.root, pfx, timeoutMs: timeout_ms });
     }
     // SANDBOX-SERVE-FASTFAIL: strict network-disabled sessions cannot bind a
     // listener. The default sandbox permits network and continues below.
@@ -329,16 +276,18 @@ export const shellCmdTool: Tool = {
       };
     }
     // Sandbox: opt-in OS isolation (VANTA_SANDBOX=1 or shell-only VANTA_SHELL_SANDBOX=1). Off → base unchanged.
-    const result = await runLocal(command, ctx.root, pfx, ctx.sandboxWritableDirs, timeout_ms);
+    const result = await runLocal({ command, root: ctx.root, workdir: shellCommandCwd(ctx.root), pfx,
+      sandboxWritableDirs: ctx.sandboxWritableDirs, sandboxEnv: shellSandboxEnv(process.env), childOptions: childRunOpts(ctx.root, timeout_ms) });
     // A human-approved direct mkdir is a project handoff, not a one-command dead end.
     // Keep only the exact newly-created directory writable for the rest of this
     // session; the dangerous-path floor and kernel gate still apply on every call.
-    const externalTargets = externalDirectMkdirTargets(command, shellCommandCwd(ctx.root), ctx.root);
-    if (result.ok && ctx.sandboxWritableDirs?.length) {
-      for (const target of externalTargets) {
-        if (existsSync(target)) addSessionDir(target, process.env);
-      }
-    }
+    trackCreatedDirectories(result, command, ctx);
     return result;
   },
 };
+
+function trackCreatedDirectories(result: ToolResult, command: string, ctx: ToolContext): void {
+  if (!result.ok || !ctx.sandboxWritableDirs?.length) return;
+  const targets = externalDirectMkdirTargets(command, shellCommandCwd(ctx.root), ctx.root);
+  for (const target of targets) if (existsSync(target)) addSessionDir(target, process.env);
+}

@@ -10,7 +10,7 @@ import { loadSettings } from "../settings/store.js";
 import { approvalPreferenceFor, loadOperatorProfile } from "../operator-profile/profile.js";
 
 /** A resolved permission decision over the kernel verdict. */
-export type Decision = { decision: "allow" | "ask" | "block"; reason: string };
+export type Decision = { decision: "allow" | "ask" | "block"; reason: string; canRemember?: boolean };
 
 /**
  * The tightening chain over the kernel verdict: rules → auto-mode → bash-classifier
@@ -40,6 +40,11 @@ async function applyOperatorProfile(
   const profile = await loadOperatorProfile(process.env).catch(() => null);
   if (!profile) return current;
   const next = approvalPreferenceFor(profile, { toolName, action, currentDecision: current.decision, kernelRisk });
+  const preference = profile.approvalPreferences[toolName] ?? profile.approvalPreferences["*"];
+  if (preference === "always_ask" && next.decision === "ask") {
+    return { ...next, canRemember: false,
+      reason: "Your saved operator profile requires approval every time for this tool. Allow once or change that preference separately." };
+  }
   return next.decision === current.decision ? current : next;
 }
 
@@ -63,7 +68,7 @@ async function applyBashClassifier(current: Decision, call: ToolCall): Promise<D
 function applyAdvisoryClassifier(current: Decision, toolName: string, action: string): Decision {
   if (current.decision === "block" || !classifierEnabled(process.env)) return current;
   const next = classifyTighten({ decision: current.decision, toolName, action });
-  return next.decision === current.decision ? current : next;
+  return next.decision === current.decision ? current : { ...current, ...next };
 }
 
 async function applyAutoMode(

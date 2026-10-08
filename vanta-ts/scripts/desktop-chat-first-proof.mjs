@@ -13,12 +13,17 @@ import { chatFirstEntryProof, openChatUtility } from "./lib/chat-first-entry-pro
 import { documentWorkbenchProof } from "./lib/chat-document-workbench-proof.mjs";
 import { documentLinksProof } from "./lib/chat-document-links-proof.mjs";
 import { desktopSurfaceProof } from "./lib/desktop-surface-proof.mjs";
+import { libreChatShellProof } from "./lib/librechat-shell-proof.mjs";
+import { libreChatLayoutProof } from "./lib/librechat-layout-proof.mjs";
+import { chatTypographyProof } from "./lib/chat-typography-proof.mjs";
+import { chatQuietControlsProof } from "./lib/chat-quiet-controls-proof.mjs";
 
 const root = await mkdtemp(join(tmpdir(), "vanta-chat-first-proof-"));
 const project = join(root, "project");
 const proofHome = join(root, "state");
 const userData = join(root, "profile");
 const artifacts = resolve(".artifacts/chat-first-proof");
+const scope = process.argv.includes("--quiet-controls-only") ? "quiet-controls-only" : "full-chat-first";
 const executablePath = resolve(process.env.VANTA_DESKTOP_APP ?? "release/mac-arm64/Vanta.app/Contents/MacOS/Vanta");
 const candidateAsar = resolve(dirname(executablePath), "../Resources/app.asar");
 const candidateHash = async () => createHash("sha256").update(await readFile(candidateAsar)).digest("hex");
@@ -75,7 +80,8 @@ async function api(path) {
 try {
   await launch();
   await check("new profile starts white and grey; theme choice persists across reload", async () => {
-    assert.equal(await page.locator(".chat-first-shell").evaluate((el) => getComputedStyle(el).backgroundColor), "rgb(255, 255, 255)");
+    assert.equal(await page.locator(".chat-titlebar").evaluate((el) => getComputedStyle(el).backgroundColor), "rgb(247, 247, 248)");
+    assert.equal(await page.locator(".chat-main-column").evaluate((el) => getComputedStyle(el).backgroundColor), "rgb(255, 255, 255)");
     await page.getByRole("button", { name: "Switch to dark mode", exact: true }).click();
     await page.reload();
     await page.locator(".chat-first-shell.theme-dark").waitFor();
@@ -103,11 +109,15 @@ try {
     assert.equal(fixture.requests.length, before);
     await capture("01-new-chat");
   });
+  await chatQuietControlsProof({ page, app, check, fixture, capture });
+  if (scope === "full-chat-first") {
   await chatFirstEntryProof({ page, check, fixture, capture });
+  await libreChatShellProof({ page, app, check, fixture, capture, candidateAsar });
   await check("send and completed response persist", async () => {
     await send("Remember this local conversation."); await reply("Remember this local conversation."); await idle();
     assert.equal(fixture.requests.length, 1); await capture("02-conversation");
   });
+  await libreChatLayoutProof({ page, app, check, fixture, capture });
   await check("visible queue supports edit and removal while streaming", async () => {
     await send("Keep this response open");
     await page.getByText("Response streaming. Waiting for your next instruction.", { exact: true }).waitFor();
@@ -129,17 +139,27 @@ try {
     await page.getByRole("button", { name: "Stop task", exact: true }).click(); await idle();
     await page.locator("#vanta-composer").fill("Draft belongs to the first chat");
   });
-  await check("chat switching restores distinct history and drafts", async () => {
+  await check("chat switching restores distinct history, drafts and activity", async () => {
     const row = page.locator(".chat-nav-row").filter({ has: page.locator('[aria-current="page"]') });
     const firstTitle = await row.locator(".chat-nav-open").innerText();
     await page.locator("button.chat-new").click();
     await page.waitForFunction(() => document.querySelector("#vanta-composer")?.value === "");
     assert.equal(await page.locator("#vanta-composer").inputValue(), "");
     await send("This is a second conversation."); await reply("This is a second conversation."); await idle();
+    await page.waitForFunction(() => document.querySelector('.chat-nav-row[data-active="true"] .chat-nav-open')?.textContent?.trim() === "This is a second conversation.");
+    const secondTitle = await row.locator(".chat-nav-open").innerText();
     await page.locator(".chat-nav-open").filter({ hasText: firstTitle }).first().click();
     await reply("Remember this local conversation.");
     assert.equal(await page.locator("#vanta-composer").inputValue(), "Draft belongs to the first chat");
     assert.equal(await page.getByText("Local provider reply: This is a second conversation.", { exact: true }).count(), 0);
+    const activity = page.getByRole("region", { name: "Current run activity", exact: true });
+    await activity.getByText("Stopped by operator.", { exact: true }).first().waitFor();
+    await page.locator(".chat-nav-open").filter({ hasText: secondTitle }).first().click();
+    await reply("This is a second conversation.");
+    assert.equal(await activity.getByText("Stopped by operator.", { exact: true }).count(), 0);
+    await page.locator(".chat-nav-open").filter({ hasText: firstTitle }).first().click();
+    await reply("Remember this local conversation.");
+    assert.equal(await page.locator("#vanta-composer").inputValue(), "Draft belongs to the first chat");
   });
   await check("queued turn executes once and both turns enter canonical history", async () => {
     await send("Keep this response open");
@@ -219,6 +239,7 @@ try {
     await page.keyboard.press("Escape");
   });
   await check("search, archive and restore use canonical chat records", async () => {
+    await page.getByRole("button", { name: "Find chats", exact: true }).click();
     await page.getByRole("searchbox", { name: "Search chats" }).fill("Desktop continuity proof");
     assert.equal(await page.locator(".chat-nav-open").count(), 1);
     await page.locator(".chat-nav-open").click();
@@ -235,7 +256,7 @@ try {
   });
   await check("project task creation stages context without running a model", async () => {
     const before = fixture.requests.length;
-    await page.getByRole("button", { name: "New project task", exact: true }).click();
+    await openChatUtility(page, "New project task");
     await page.getByRole("dialog", { name: "New project task", exact: true }).waitFor();
     await page.getByLabel("First instruction", { exact: true }).fill("Prepare a project task without executing it.");
     await capture("08-project-task");
@@ -248,21 +269,24 @@ try {
   await retainedCapabilityProof({ check, getPage: () => page, getApp: () => app, fixture, project, api, send, idle, capture });
   await workbenchInteractionProof({ check, getPage: () => page, getApp: () => app, fixture, project, proofHome, api, send, idle, capture,
     restart: async () => { await app.close(); app = undefined; await launch(); } });
+  await chatTypographyProof({ page, app, check, send, idle, capture });
   await check("Classic shell remains reachable", async () => {
+    await page.locator(".chat-window-options > summary").click();
     await page.getByRole("link", { name: "Classic view" }).click();
     await page.locator(".desktop-nav").waitFor();
     assert.equal(await page.locator(".chat-first-shell").count(), 0);
   });
+  }
   assert.deepEqual(rendererErrors, [], "renderer emitted uncaught errors");
   assert.equal(await candidateHash(), candidateSha256, "the candidate changed during packaged verification");
-  console.log(JSON.stringify({ verdict: "passed", candidateSha256, checks, providerRequests: fixture.requests.length, artifacts, isolatedState: root, rendererErrors, hostDiagnostics: errors }, null, 2));
-  await writeFile(join(artifacts, "result.json"), JSON.stringify({ verdict: "passed", candidateSha256, checks, providerRequests: fixture.requests.length, rendererErrors, hostDiagnostics: errors }, null, 2));
+  console.log(JSON.stringify({ verdict: "passed", scope, candidateSha256, checks, providerRequests: fixture.requests.length, artifacts, isolatedState: root, rendererErrors, hostDiagnostics: errors }, null, 2));
+  await writeFile(join(artifacts, "result.json"), JSON.stringify({ verdict: "passed", scope, candidateSha256, checks, providerRequests: fixture.requests.length, rendererErrors, hostDiagnostics: errors }, null, 2));
 } catch (error) {
   if (page && !page.isClosed()) {
     await capture("failure").catch(() => {});
     await writeFile(join(artifacts, "failure-ui.txt"), await page.locator("body").innerText());
   }
-  await writeFile(join(artifacts, "result.json"), JSON.stringify({ verdict: "failed", candidateSha256, checks, error: String(error), errors }, null, 2));
+  await writeFile(join(artifacts, "result.json"), JSON.stringify({ verdict: "failed", scope, candidateSha256, checks, error: String(error), errors }, null, 2));
   throw error;
 } finally {
   await app?.close().catch(() => {}); await fixture.close();

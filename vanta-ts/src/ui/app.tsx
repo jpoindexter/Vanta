@@ -6,6 +6,7 @@ import { useAgent, type Pending } from "./use-agent.js";
 import { freshGateState, type GateState } from "../repl/post-turn-gates.js";
 import { ApprovalPrompt } from "./approval-prompt.js";
 import { useSlash } from "./use-slash.js";
+import { DictationDraftContext, DictationIndicator } from "./dictation-context.js";
 import { useSubmit, type SubmitDeps } from "./use-submit.js";
 import { useOverlay } from "./use-overlay.js";
 import { useBusyTick } from "./use-busy-tick.js";
@@ -62,7 +63,9 @@ function buildSubmitRoute(o: SubmitRouteDeps): (text: string) => void {
   });
 }
 
-export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?: (request: SetupHandoff) => void; initialSession?: Session }): ReactElement {
+type AppProps = { setup: RunSetup; repoRoot: string; onSetupRequest?: (request: SetupHandoff) => void; initialSession?: Session };
+
+function useAppSession(props: AppProps) {
   const app = useApp();
   const [state, dispatch] = useReducer(reduce, initialState);
   const [pending, setPending] = useState<Pending | null>(null);
@@ -91,6 +94,11 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
     activeGoal: null,
   });
   const gatesRef = useRef<GateState>(freshGateState());
+  return { props, app, state, dispatch, pending, setPending, pendingQuestion, setPendingQuestion, taskApprovals, interruptRef, convoRef, replStateRef, gatesRef };
+}
+
+function useAppViewState(previous: ReturnType<typeof useAppSession>) {
+  const {  } = previous;
   const [files, setFiles] = useState<string[]>([]);
   const [history, setHistory] = useState<string[]>([]);
   const [focus, setFocus] = useState<FocusTarget>("composer");
@@ -102,6 +110,11 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
   const [searchSessions, setSearchSessions] = useState<SearchableSession[]>([]);
   const [transcriptSelection, setTranscriptSelection] = useState<TranscriptSelection | null>(null);
   const [traceOpen, setTraceOpen] = useState(false);
+  return { ...previous, files, setFiles, history, setHistory, focus, setFocus, composerAnchor, setComposerAnchor, vimEnabled, setVim, quickOpen, setQuickOpen, globalSearch, setGlobalSearch, messageActions, setMessageActions, searchSessions, setSearchSessions, transcriptSelection, setTranscriptSelection, traceOpen, setTraceOpen };
+}
+
+function useAppRuntime(previous: ReturnType<typeof useAppViewState>) {
+  const { props, app, dispatch, setPending, setPendingQuestion, taskApprovals, interruptRef, convoRef, replStateRef, gatesRef, setComposerAnchor, setVim } = previous;
   const setPlanActive = useCallback((active: boolean): void => {
     const messages = convoRef.current?.messages;
     if (messages && setPlanInstruction(messages, active)) {
@@ -114,11 +127,16 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
     props.onSetupRequest?.(request);
     app.exit();
   };
-  const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit, setComposerAnchor, setVim, requestSetup });
+  const { runSlash, composerDraft, consumeDraft, voicePhase } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit, setComposerAnchor, setVim, requestSetup });
   const { overlay, openOverlay, closeOverlay, selectRow, applyModelPick, switchProviderFromPick } = useOverlay({ setup: props.setup, repoRoot: props.repoRoot, runSlash, getContext: () => ctxSnapshot(props.setup, convoRef.current, replStateRef.current) });
+  return { ...previous, setPlanActive, mode, cycle, getMode, send, requestSetup, runSlash, composerDraft, consumeDraft, voicePhase, overlay, openOverlay, closeOverlay, selectRow, applyModelPick, switchProviderFromPick };
+}
+
+function useAppCommands(previous: ReturnType<typeof useAppRuntime>) {
+  const { state, dispatch, convoRef, replStateRef, setGlobalSearch, setSearchSessions, runSlash } = previous;
   const openGlobalSearch = (): void => {
     void listSessions(process.env).then(async (metas) => {
-      const loaded = await Promise.all(metas.map((m) => loadSession(m.id, process.env)));
+      const loaded = await Promise.all(metas.filter((m) => !m.diagnostic).map((m) => loadSession(m.id, process.env)));
       setSearchSessions(loaded.flatMap((s) => s ? [{ id: s.id, title: s.title, messages: s.messages }] : []));
       setGlobalSearch(true);
     }).catch(() => setGlobalSearch(true));
@@ -135,6 +153,11 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
     if (state.busy) detachBackgroundResponse();
     else runSlash("/bg");
   };
+  return { ...previous, openGlobalSearch, selectSearchHit, detachBackgroundResponse, toggleBackgroundResponse };
+}
+
+function useAppInput(previous: ReturnType<typeof useAppCommands>) {
+  const { props, state, dispatch, setHistory, transcriptSelection, setTranscriptSelection, send, runSlash, openOverlay, openGlobalSearch, detachBackgroundResponse } = previous;
   const transcriptSelectionKey = (input: string, key: { shift?: boolean; ctrl?: boolean; leftArrow?: boolean; rightArrow?: boolean; upArrow?: boolean; downArrow?: boolean }): boolean => {
     const result = handleTranscriptSelectionKey(state.entries, transcriptSelection, input, key);
     if (result.kind === "none") return false;
@@ -156,14 +179,21 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
     dispatch({ t: "dequeueAt", index });
     return text;
   };
+  return { ...previous, transcriptSelectionKey, route, onSubmit, editQueued };
+}
+
+function useAppLifecycle(previous: ReturnType<typeof useAppInput>) {
+  const { props, state, dispatch, pending, convoRef, replStateRef, setFiles, quickOpen, globalSearch, send, overlay } = previous;
   const tick = useBusyTick(state.busy);
-  const skillMatches = useSkillMatches(); const channels = useSlackChannels();
+  const skillMatches = useSkillMatches();
+  const channels = useSlackChannels();
   useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
   useEffect(() => {
     if (props.initialSession) {
       dispatch({ t: "note", text: `  ↻ Reloaded session ${props.initialSession.id} with ${replStateRef.current.turnIndex} turn(s)` });
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
+  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => { for (const worker of props.setup.pluginWorkers ?? []) worker.dispose(); }, [props.setup.pluginWorkers]);
   useHookLifecycle(props.repoRoot, replStateRef.current.sessionId, props.setup);
   const { mcp, elapsed } = useSessionStatus(props.setup, replStateRef, dispatch);
@@ -172,16 +202,37 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
   const provider = props.setup.provider;
   const est = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
   const teammate = useTeammateFocus(agents.length, { busy: state.busy, pending, overlay, quickOpen, globalSearch });
+  return { ...previous, tick, skillMatches, channels, mcp, elapsed, agents, provider, est, teammate };
+}
+
+function useAppVisibility(previous: ReturnType<typeof useAppLifecycle>) {
+  const { state, pending, pendingQuestion, quickOpen, globalSearch, messageActions, overlay, agents } = previous;
   const promptSuggestionsVisible = !state.busy && !quickOpen && !globalSearch && !messageActions && !pending && !pendingQuestion && !overlay && agents.length === 0 && state.promptSuggestions.length > 0;
+  return { ...previous, promptSuggestionsVisible };
+}
+
+function useAppFocus(previous: ReturnType<typeof useAppVisibility>) {
+  const { app, state, dispatch, pending, pendingQuestion, interruptRef, replStateRef, focus, setFocus, quickOpen, setQuickOpen, globalSearch, messageActions, setMessageActions, transcriptSelection, traceOpen, setTraceOpen, cycle, runSlash, voicePhase, overlay, openGlobalSearch, toggleBackgroundResponse, transcriptSelectionKey, teammate, promptSuggestionsVisible } = previous;
   const keyContexts = activeKeybindingContexts({ quickOpen, globalSearch, messageActions, pending: Boolean(pending), overlayKind: overlay?.kind ?? null, transcriptSelection: Boolean(transcriptSelection), autocomplete: promptSuggestionsVisible });
   const focusTargets = buildFocusTargets(pending, overlay, promptSuggestionsVisible);
   useFocusFallback(focus, focusTargets, pending ? "approval" : overlay?.kind ?? (promptSuggestionsVisible ? "composer+suggestions" : "composer"), setFocus);
-  useGlobalKeys({ bindings: useKeybindings(), keyContexts, busy: state.busy, pending, inputModal: Boolean(pendingQuestion), overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus, quickOpenOpen: quickOpen, openQuickOpen: () => setQuickOpen(true), globalSearchOpen: globalSearch, openGlobalSearch, messageActionsOpen: messageActions, openMessageActions: () => setMessageActions(true), backgroundResponseAvailable: Boolean(replStateRef.current.backgroundResponse), toggleBackgroundResponse, traceOpen, toggleTrace: () => setTraceOpen((open) => !open), cycleAgent: teammate.cycleAgent, transcriptSelectionKey, onChordState: (text) => dispatch({ t: "note", text }) });
+  useGlobalKeys({ bindings: useKeybindings(), keyContexts, busy: state.busy, pending, inputModal: Boolean(pendingQuestion), overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus, quickOpenOpen: quickOpen, openQuickOpen: () => setQuickOpen(true), globalSearchOpen: globalSearch, openGlobalSearch, messageActionsOpen: messageActions, openMessageActions: () => setMessageActions(true), backgroundResponseAvailable: Boolean(replStateRef.current.backgroundResponse), toggleBackgroundResponse, traceOpen, toggleTrace: () => setTraceOpen((open) => !open), cycleAgent: teammate.cycleAgent, transcriptSelectionKey, onChordState: (text) => dispatch({ t: "note", text }), voiceActive: voicePhase !== "idle", toggleDictation: () => { void runSlash(voicePhase === "idle" ? "/voice record" : "/voice cancel"); }, cancelDictation: () => { void runSlash("/voice cancel"); } });
+  return { ...previous, keyContexts, focusTargets };
+}
+
+function useAppPresentation(previous: ReturnType<typeof useAppFocus>) {
+  const { props, state, pending, pendingQuestion, replStateRef, vimEnabled, overlay, provider } = previous;
   const staticItems = buildStaticItems(provider.modelId(), props.repoRoot, state.entries, { tools: props.setup.registry.schemas().length, cmds: SLASH_COMMANDS.length });
   const vp = useViewportRows();
   const rich = useFooterRich({ repoRoot: props.repoRoot, sessionId: replStateRef.current.sessionId, sessionName: replStateRef.current.title, vimEnabled, outputStyle: process.env.VANTA_OUTPUT_STYLE, compacting: state.compacting });
+  const footerVisible = !pending && !pendingQuestion && !overlay;
+  return { ...previous, staticItems, vp, rich, footerVisible };
+}
 
+function renderApp(context: ReturnType<typeof useAppPresentation>): ReactElement {
+  const { props, state, dispatch, pending, setPending, pendingQuestion, setPendingQuestion, replStateRef, files, history, focus, setFocus, composerAnchor, vimEnabled, quickOpen, setQuickOpen, globalSearch, setGlobalSearch, messageActions, setMessageActions, searchSessions, transcriptSelection, traceOpen, mode, runSlash, composerDraft, consumeDraft, voicePhase, overlay, closeOverlay, selectRow, applyModelPick, switchProviderFromPick, selectSearchHit, onSubmit, editQueued, tick, skillMatches, channels, mcp, elapsed, agents, provider, est, teammate, promptSuggestionsVisible, staticItems, vp, rich } = context;
   return (
+    <DictationDraftContext.Provider value={{ draft: composerDraft, consumed: consumeDraft }}>
     <Box flexDirection="column">
         <Static items={staticItems}>{(item) => <Box key={item.key}>{item.node}</Box>}</Static>
         <PinnedRegion enabled={composerAnchor === "bottom"} viewportRows={vp.rows} committedRows={estimateCommittedRows(state.entries, vp.cols)}>
@@ -191,13 +242,27 @@ export function App(props: { setup: RunSetup; repoRoot: string; onSetupRequest?:
             ? <ApprovalPrompt pending={pending} focusedTarget={focus} onFocusTargetChange={setFocus} onDone={() => setPending(null)} />
             : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} liveThinking={state.liveThinking} agents={agents} selectedAgent={teammate.selectedAgent} leaderTokens={est} compacting={state.compacting} compactionProgress={state.compactionProgress} />}
           <TranscriptSelectionPanel entries={state.entries} selection={transcriptSelection} />
+          <DictationIndicator phase={voicePhase} />
           {traceOpen
             ? <TraceEvidencePanel entries={state.entries} />
             : <LiveBody quickOpen={quickOpen} globalSearch={globalSearch} messageActions={messageActions} searchSessions={searchSessions} entries={state.entries} overlay={overlay} pending={pending} inputModal={Boolean(pendingQuestion)} mode={mode} focus={focus} todos={state.todos} activity={{ elapsed, tokens: est, effort: replStateRef.current.effortLevel ?? props.setup.effortLevel }} queued={state.queued} onEditQueued={editQueued} files={files} history={history} skills={skillMatches} channels={channels} vim={vimEnabled} promptSuggestions={promptSuggestionsVisible ? state.promptSuggestions : []} onQuickActivate={(c) => { setQuickOpen(false); runSlash(c); }} onQuickClose={() => setQuickOpen(false)} onSearchSelect={selectSearchHit} onSearchClose={() => setGlobalSearch(false)} onMessageRetry={onSubmit} onMessageBranch={() => runSlash("/fork")} onMessageNote={(text) => dispatch({ t: "note", text })} onMessageClose={() => setMessageActions(false)} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onApplyModelPick={applyModelPick} onSwitchProvider={switchProviderFromPick} onClose={closeOverlay} />}
-          {!pending && !pendingQuestion && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} serviceTier={replStateRef.current.serviceTier ?? props.setup.serviceTier} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={replStateRef.current.activeGoal} mcp={mcp} elapsed={elapsed} agents={agents} rich={rich} /> : null}
+          {context.footerVisible ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} serviceTier={replStateRef.current.serviceTier ?? props.setup.serviceTier} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={replStateRef.current.activeGoal} mcp={mcp} elapsed={elapsed} agents={agents} rich={rich} /> : null}
         </PinnedRegion>
     </Box>
+    </DictationDraftContext.Provider>
   );
+}
+
+export function App(props: AppProps): ReactElement {
+  const session = useAppSession(props);
+  const view = useAppViewState(session);
+  const runtime = useAppRuntime(view);
+  const commands = useAppCommands(runtime);
+  const input = useAppInput(commands);
+  const lifecycle = useAppLifecycle(input);
+  const visibility = useAppVisibility(lifecycle);
+  const focus = useAppFocus(visibility);
+  return renderApp(useAppPresentation(focus));
 }
 
 export { Footer } from "./app-regions.js";

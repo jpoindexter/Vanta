@@ -1,6 +1,5 @@
+import { gitExecFile } from "../git/process.js";
 import { dirname } from "node:path";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import { readStack } from "../task-stack/store.js";
 import { selectNextTask } from "../task-stack/select.js";
 import { formatSessionCost } from "../pricing.js";
@@ -11,7 +10,6 @@ import { formatRouteUsage, listRouteUsage, summarizeRouteUsage } from "../cost/r
 
 // /dashboard — live operator state at a glance: tasks, goals, repo, model, cost.
 
-const execFileAsync = promisify(execFile);
 const MAX_GIT_LINES = 8;
 const MAX_PENDING_SHOWN = 3;
 
@@ -69,7 +67,7 @@ async function renderApprovals(ctx: import("./types.js").ReplCtx): Promise<strin
 
 async function renderGitStatus(repoRoot: string): Promise<{ output: string; clean: boolean }> {
   try {
-    const { stdout } = await execFileAsync("git", ["-C", repoRoot, "status", "--short"], {
+    const { stdout } = await gitExecFile("git", ["-C", repoRoot, "status", "--short"], {
       timeout: 1000,
     });
     const trimmed = stdout.trim();

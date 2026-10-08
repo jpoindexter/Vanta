@@ -102,6 +102,7 @@ import { buildOperatorHome } from "../operator-home/view.js";
 import { blueprint } from "./blueprint-cmd.js";
 import { promptCommand } from "./prompt-cmd.js";
 import { setupCommand } from "./setup-cmd.js";
+import { voice } from "./voice-cmd.js";
 
 const help: SlashHandler = (_arg, ctx) => ({ output: slashHelp(ctx.setup.pluginCommands?.list()) });
 const exit: SlashHandler = () => ({ exit: true });
@@ -215,7 +216,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
   routes, files, composer, vim, cockpit, agents, sandbox, rename, branch, summary, "output-style": outputStyle, permissions, "less-permission-prompts": lessPerms, "reload-plugins": reloadPlugins, "reload-skills": reloadSkills,
   tui: tuiCommand, focus: focusCommand, "terminal-setup": terminalSetup, preferences: async (arg, ctx) => (await import("./preferences-cmd.js")).preferences(arg, ctx),
   ultrathink, ultracode, "deep-research": deepResearch, skeptic, "security-review": securityReview, health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie, nd, support, peers, tickets, outreach, activity,
-  "add-dir": addDir, ...CLI_PASSTHROUGH,
+  "add-dir": addDir, voice, ...CLI_PASSTHROUGH,
 };
 
 /** Look up + run a parsed command; returns null for an unknown command. */

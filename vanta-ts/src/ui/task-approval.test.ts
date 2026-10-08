@@ -18,6 +18,30 @@ describe("TaskApprovalScope", () => {
     expect(scope.allows(edit)).toBe(false);
   });
 
+  it("an each-time policy cannot grant or reuse an existing task approval", () => {
+    const scope = new TaskApprovalScope();
+    expect(scope.grant(edit)).toBe(true);
+    const restricted = { ...edit, canRemember: false };
+    expect(canContinueTask(restricted)).toBe(false);
+    expect(scope.grant(restricted)).toBe(false);
+    expect(scope.allows(restricted)).toBe(false);
+  });
+
+  it("forwards the each-time flag and prompts despite an existing task grant", async () => {
+    const scope = new TaskApprovalScope();
+    scope.grant(edit);
+    const prompts: Pending[] = [];
+    const decision = requestApprovalWithTaskScope({
+      taskApprovals: scope, setPending: (pending) => { if (pending) prompts.push(pending); },
+      ...edit, detail: { canRemember: false },
+    });
+    expect(prompts).toHaveLength(1);
+    expect(prompts[0]!.canRemember).toBe(false);
+    expect(prompts[0]!.canContinueTask).toBe(false);
+    prompts[0]!.resolve(false);
+    await expect(decision).resolves.toBe(false);
+  });
+
   it.each([
     { toolName: "shell_cmd", action: "run shell command: git push", reason: "irreversible" },
     { toolName: "write_file", action: "overwrite existing file .env", reason: "file already exists" },
@@ -42,19 +66,21 @@ describe("TaskApprovalScope", () => {
   it("one go-ahead resolves the first prompt and suppresses the next matching task prompt", async () => {
     const scope = new TaskApprovalScope();
     const prompts: Pending[] = [];
-    const first = requestApprovalWithTaskScope(scope, (pending) => { if (pending) prompts.push(pending); }, edit.action, edit.reason, edit.toolName);
+    const first = requestApprovalWithTaskScope({
+      taskApprovals: scope, setPending: (pending) => { if (pending) prompts.push(pending); }, ...edit,
+    });
     expect(prompts).toHaveLength(1);
     prompts[0]!.grantTask?.();
     prompts[0]!.resolve(true);
     await expect(first).resolves.toBe(true);
 
-    await expect(requestApprovalWithTaskScope(
-      scope,
-      (pending) => { if (pending) prompts.push(pending); },
-      "edit file src/second.ts",
-      "file change",
-      "edit_file",
-    )).resolves.toBe(true);
+    await expect(requestApprovalWithTaskScope({
+      taskApprovals: scope,
+      setPending: (pending) => { if (pending) prompts.push(pending); },
+      action: "edit file src/second.ts",
+      reason: "file change",
+      toolName: "edit_file",
+    })).resolves.toBe(true);
     expect(prompts).toHaveLength(1);
   });
 
@@ -62,13 +88,13 @@ describe("TaskApprovalScope", () => {
     const scope = new TaskApprovalScope();
     scope.grant(edit);
     const prompts: Pending[] = [];
-    void requestApprovalWithTaskScope(
-      scope,
-      (pending) => { if (pending) prompts.push(pending); },
-      "overwrite existing file .env",
-      "credential file",
-      "write_file",
-    );
+    void requestApprovalWithTaskScope({
+      taskApprovals: scope,
+      setPending: (pending) => { if (pending) prompts.push(pending); },
+      action: "overwrite existing file .env",
+      reason: "credential file",
+      toolName: "write_file",
+    });
     expect(prompts).toHaveLength(1);
     expect(prompts[0]!.canContinueTask).toBe(false);
   });

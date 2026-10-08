@@ -3,8 +3,8 @@ import { paneWidth, resizedWidth } from "./chat-first-layout.js";
 
 describe("workbench pane geometry", () => {
   it("clamps stored values and recovers invalid preferences", () => {
-    expect(paneWidth("sidebar", NaN)).toBe(260);
-    expect(paneWidth("context", 0)).toBe(560);
+    expect(paneWidth("sidebar", NaN)).toBe(240);
+    expect(paneWidth("context", 0)).toBe(360);
     expect(paneWidth("sidebar", 900)).toBe(360);
     expect(paneWidth("context", 100)).toBe(300);
   });

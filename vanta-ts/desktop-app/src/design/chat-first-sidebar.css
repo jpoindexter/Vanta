@@ -29,11 +29,15 @@
 .chat-nav-open > svg { color: var(--muted); flex-shrink: 0; }
 .chat-row-action { display: flex; align-items: center; justify-content: center; width: 36px; height: 40px; border: 0; background: transparent; color: var(--muted); border-radius: var(--radius-md); }
 .chat-row-action:hover { color: var(--text); }
-.chat-hover-preview { position: fixed; z-index: 80; padding: var(--space-4); width: 300px; max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); overflow-y: auto; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--raised); box-shadow: var(--elevation-overlay); }
+.chat-hover-preview { position: fixed; z-index: 80; padding: var(--space-3); width: 300px; max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); overflow-y: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--raised); box-shadow: var(--elevation-overlay); }
 .chat-hover-preview[hidden] { display: none; }
 .chat-sidebar[inert] .chat-hover-preview { display: none; }
 .chat-preview-details strong { display: block; font-size: 14px; font-weight: 500; overflow-wrap: anywhere; }
 .chat-preview-details span { display: block; margin-block-start: var(--space-2); color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.chat-hover-preview .chat-preview-details { display: grid; grid-template-columns: 1fr auto; gap: var(--space-1) var(--space-2); }
+.chat-hover-preview strong { grid-column: 1 / -1; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; line-height: 1.5; }
+.chat-hover-preview span { margin: 0; font-size: 11px; line-height: 1.5; }
+.chat-hover-preview span:first-of-type { grid-column: 1 / -1; }
 .chat-row-menu .chat-preview-details { padding: var(--space-2); border-block-end: 1px solid var(--line); margin-block-end: var(--space-2); }
 .chat-row-menu { position: relative; width: 100%; padding: var(--space-2); border: 1px solid var(--line-strong); background: var(--raised); border-radius: var(--radius-md); }
 .chat-nav-row:has(.chat-row-menu) { flex-wrap: wrap; }

@@ -1,3 +1,4 @@
+import { gitExecFile } from "../git/process.js";
 import { join } from "node:path";
 import { mkdir, writeFile } from "node:fs/promises";
 import type { Goal, Message } from "../types.js";
@@ -42,9 +43,7 @@ export function maskValue(name: string, value: string): string {
 
 async function captureGitStatus(repoRoot: string): Promise<string> {
   try {
-    const { execFile } = await import("node:child_process");
-    const { promisify } = await import("node:util");
-    const { stdout } = await promisify(execFile)("git", ["-C", repoRoot, "status", "--short"]);
+    const { stdout } = await gitExecFile("git", ["-C", repoRoot, "status", "--short"]);
     return stdout.trim() || "(clean)";
   } catch {
     return "(git unavailable)";
@@ -53,9 +52,7 @@ async function captureGitStatus(repoRoot: string): Promise<string> {
 
 async function captureGitLog(repoRoot: string): Promise<string> {
   try {
-    const { execFile } = await import("node:child_process");
-    const { promisify } = await import("node:util");
-    const { stdout } = await promisify(execFile)("git", ["-C", repoRoot, "log", "--oneline", "-5"]);
+    const { stdout } = await gitExecFile("git", ["-C", repoRoot, "log", "--oneline", "-5"]);
     return stdout.trim() || "(no commits)";
   } catch {
     return "(git unavailable)";

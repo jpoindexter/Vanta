@@ -23,6 +23,7 @@ type SubmitMessageOptions = {
 export async function submitMessage(state: ConversationState, text: string, options: SubmitMessageOptions = {}): Promise<boolean> {
   const cues = options.cues ?? {};
   const onRecovery = options.onRecovery ?? (() => {});
+  const requestId = state.turnAdmission?.begin(state.sessionId);
   cues.prime?.();
   state.setMessages((m) => [...m, { role: "user", content: text }]);
   // Clear immediately so a running turn never leaves a second copy in the
@@ -34,7 +35,7 @@ export async function submitMessage(state: ConversationState, text: string, opti
   state.setRecovery(null);
   state.setBusy(true);
   try {
-    const result = await api<{ finalText: string; events?: EventRow[]; interrupted?: boolean; receipt?: DesktopRunReceipt }>("/api/chat", postJson(chatPayload(text, options.images, options.files, state.sessionId)));
+    const result = await api<{ finalText: string; events?: EventRow[]; interrupted?: boolean; receipt?: DesktopRunReceipt }>("/api/chat", postJson(chatPayload(text, options, state.sessionId, requestId)));
     const failed = result.receipt ? result.receipt.status !== "done" : !result.interrupted && Boolean(result.events?.some((event) => event.ok === false));
     state.setMessages((m) => [...m, { role: "assistant", content: result.finalText || "(no text)", ...(result.receipt ? { desktopRun: result.receipt } : {}) }]);
     state.setStreamText(() => "");
@@ -54,6 +55,7 @@ export async function submitMessage(state: ConversationState, text: string, opti
     onRecovery(true);
     return false;
   } finally {
+    state.turnAdmission?.finish();
     state.setBusy(false);
   }
 }
@@ -62,10 +64,11 @@ function restoreFailedDraft(state: ConversationState, text: string): void {
   state.setDraft((current) => current.length === 0 ? text : current);
 }
 
-function chatPayload(message: string, images?: ImageAttachment[], files?: string[], sessionId?: string) {
+function chatPayload(message: string, { images, files }: SubmitMessageOptions, sessionId?: string, requestId?: string) {
   return {
     message,
     ...(sessionId ? { sessionId } : {}),
+    ...(requestId ? { requestId } : {}),
     ...(images?.length ? { images } : {}),
     ...(files?.length ? { files } : {}),
   };

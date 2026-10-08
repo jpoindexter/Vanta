@@ -147,6 +147,11 @@ export async function runVoiceCommand(repoRoot: string, rest: string[] = []): Pr
     console.log(openPrivacyPane("microphone").message);
     return;
   }
+  if (rest[0] !== "conversation") {
+    const { runDictationCommand } = await import("./voice-cmd.js");
+    await runDictationCommand(rest);
+    return;
+  }
   const setup = await prepareRun(repoRoot, "voice session");
   const { runVoiceLoop } = await import("../voice/loop.js");
   await runVoiceLoop({

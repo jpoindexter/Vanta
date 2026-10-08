@@ -1,4 +1,4 @@
-import { useContext, type MouseEvent } from "react";
+import { useContext, useMemo, type MouseEvent } from "react";
 import { markdownToHtml } from "../../src/repl/copy-format.js";
 import { DocumentLinkContext } from "./document-link-context.js";
 import { localDocumentPath } from "./document-link.js";
@@ -7,7 +7,7 @@ const SAFE_LINK = /^https?:/i;
 
 export function MessageMarkdown({ content }: { content: string }) {
   const documents = useContext(DocumentLinkContext);
-  const html = safeMessageHtml(content, documents?.root);
+  const markup = useMemo(() => ({ __html: safeMessageHtml(content, documents?.root) }), [content, documents?.root]);
 
   function keepUnsafeLinksInert(event: MouseEvent<HTMLDivElement>) {
     const target = event.target;
@@ -24,7 +24,7 @@ export function MessageMarkdown({ content }: { content: string }) {
     <div
       className="message-markdown"
       onClick={keepUnsafeLinksInert}
-      dangerouslySetInnerHTML={{ __html: html }}
+      dangerouslySetInnerHTML={markup}
     />
   );
 }

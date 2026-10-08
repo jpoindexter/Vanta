@@ -1,4 +1,6 @@
 import { execFile } from "node:child_process";
+import { gitExecFile } from "../git/process.js";
+import { directGitArgs } from "../git/shell.js";
 import { promisify } from "node:util";
 import type { KernelClient } from "../kernel/client.js";
 import { resolveShellInvocation } from "../platform/shell.js";
@@ -26,6 +28,8 @@ export function buildGoalLoopMax(env: NodeJS.ProcessEnv): number {
 /** Run a shell command in `cwd`; return true only when exit code is 0. */
 export async function checkCondition(cmd: string, cwd: string): Promise<boolean> {
   try {
+    const git = directGitArgs(cmd);
+    if (git) { await gitExecFile("git", git, { cwd }); return true; }
     const shell = resolveShellInvocation(cmd);
     await execFileP(shell.cmd, shell.args, { cwd });
     return true;

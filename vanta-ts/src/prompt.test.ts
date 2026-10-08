@@ -96,7 +96,9 @@ describe("buildSystemPrompt", () => {
     });
     expect(prompt).toContain("Available tools (scoped)");
     expect(prompt).toContain("tool_search");
-    expect(prompt).not.toContain("gmail_send");
+    expect(prompt).toContain("Registered but deferred:");
+    expect(prompt).toContain("gmail_send");
+    expect(splitStableVolatile(prompt).stable).not.toContain("gmail_send");
   });
 
   it("defaults to the balanced length cap (no outputDensity) and scales it when minimal", async () => {
@@ -423,7 +425,8 @@ describe("splitStableVolatile", () => {
     const { stable, volatile } = splitStableVolatile(prompt);
     expect(volatile).toContain("Active goals:");
     expect(volatile).toContain("Session started:");
-    expect(stable).toContain("read_file"); // tools are in the stable part
+    expect(volatile).toContain("read_file"); // the live catalog is isolated from stable rules
+    expect(stable).not.toContain("Read a file");
     expect(stable).not.toContain("Session started:");
   });
 

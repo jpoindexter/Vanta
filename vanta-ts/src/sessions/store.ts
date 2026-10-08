@@ -1,109 +1,17 @@
-import { readdir, readFile, writeFile, mkdir, rm } from "node:fs/promises";
+import { readdir, rm } from "node:fs/promises";
 import { join } from "node:path";
-import { z } from "zod";
+import { createHash, randomUUID } from "node:crypto";
 import { resolveVantaHome } from "../store/home.js";
 import type { Message } from "../types.js";
 import { reconcileDanglingToolResults } from "../agent/effect-disposition.js";
 import { deleteUnsavedRunsForSession } from "../runs/store.js";
-
-// Session persistence sits behind the SessionStore port. The default adapter writes
-// JSON under ~/.vanta/sessions; alternate stores replace it without caller changes.
-// The exported convenience functions remain thin delegates for existing callers.
+import { SessionSchema, type Session, type SessionMeta, type SaveSessionOpts } from "./session-schema.js";
+import { assertSessionDirectory, atomicReplaceSessionFile, readSessionBytes, sessionFilePath, SessionStoreConflictError, SessionStoreUnreadableError, withSessionLock, writeSessionBytes } from "./atomic-persistence.js";
+export { SessionStoreConflictError, SessionStoreUnreadableError } from "./atomic-persistence.js";
 
 const SESSIONS_SUBDIR = "sessions";
 
-const MessageSchema: z.ZodType<Message> = z.lazy(() =>
-  z.union([
-    z.object({ role: z.literal("system"), content: z.string() }),
-    z.object({
-      role: z.literal("user"),
-      content: z.string(),
-      images: z.array(z.object({ mime: z.string(), dataBase64: z.string() })).optional(),
-    }),
-    z.object({
-      role: z.literal("assistant"),
-      content: z.string(),
-      toolCalls: z
-        .array(z.object({ id: z.string(), name: z.string(), arguments: z.record(z.unknown()), effectState: z.enum(["pending", "started"]).optional() }))
-        .optional(),
-      desktopRun: z.object({
-        status: z.enum(["done", "failed", "interrupted"]),
-        failureKind: z.enum(["setup", "tool", "model", "model_mismatch", "user_denied", "interrupted", "unknown"]).optional(),
-        events: z.array(z.object({ label: z.string(), ok: z.boolean().optional() })),
-        actions: z.array(z.enum(["retry_failed_step", "edit_request", "start_from_checkpoint"])),
-        checkpoint: z.object({ instruction: z.string(), partialText: z.string().optional() }).optional(),
-        counterexample: z.object({
-          modelVersion: z.number().int().positive(), transition: z.string(), path: z.string(),
-          predicted: z.string(), observed: z.string(), safeNextAction: z.string(),
-        }).optional(),
-        schemaTrace: z.object({
-          planId: z.string(),
-          runId: z.string(),
-          queue: z.object({
-            status: z.enum(["running", "stopped", "resumed"]),
-            reason: z.string().optional(),
-          }),
-          certification: z.object({
-            certified: z.boolean(), modelVersion: z.number().int().positive(), coverage: z.string(),
-          }),
-          transitions: z.array(z.object({
-            id: z.string(), sequence: z.number().int().nonnegative(), label: z.string(),
-            actionMode: z.enum(["simulated", "real"]),
-            status: z.enum(["match", "mismatch", "revised"]),
-            modelVersion: z.number().int().positive(), path: z.string().optional(),
-            predicted: z.string(), observed: z.string(),
-            modelDiff: z.object({
-              fromVersion: z.number().int().positive(), toVersion: z.number().int().positive(), summary: z.array(z.string()),
-            }).optional(),
-            backtest: z.object({
-              certified: z.boolean(), matchedTransitions: z.number().int().nonnegative(),
-              totalTransitions: z.number().int().nonnegative(), timelineHash: z.string(),
-            }).optional(),
-          })),
-        }).optional(),
-      }).optional(),
-    }),
-    z.object({
-      role: z.literal("tool"),
-      toolCallId: z.string(),
-      name: z.string(),
-      content: z.string(),
-      effectDisposition: z.enum(["none", "confirmed", "denied", "expired", "unknown", "compensated"]).optional(),
-    }),
-  ]),
-) as z.ZodType<Message>;
-
-const SessionSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  started: z.string(),
-  updated: z.string(),
-  // Origin project (canonicalProjectId). Optional + additive: sessions saved
-  // before this field still load. Enables cross-project resume (see cross-project.ts).
-  projectId: z.string().optional(),
-  providerId: z.string().optional(),
-  modelId: z.string().optional(),
-  // Archived sessions stay in the same durable store so they can be restored
-  // without losing transcript, model, or project metadata.
-  archived: z.boolean().optional(),
-  // Trashed sessions remain recoverable until the operator explicitly deletes forever.
-  trashed: z.boolean().optional(),
-  pinned: z.boolean().optional(),
-  pinOrder: z.number().int().nonnegative().optional(),
-  messages: z.array(MessageSchema),
-});
-
-export type Session = z.infer<typeof SessionSchema>;
-export type SessionMeta = Pick<Session, "id" | "title" | "started" | "updated" | "projectId" | "providerId" | "modelId" | "archived" | "trashed" | "pinned" | "pinOrder"> & {
-  turns: number;
-};
-/** Options for writing a session. The store binds its own location, so `env` is not
- *  a per-call field here (the delegator saveSession accepts it and passes it through). */
-export type SaveSessionOpts = {
-  now?: string; started?: string; updated?: string; title?: string; projectId?: string;
-  providerId?: string; modelId?: string; archived?: boolean; trashed?: boolean;
-  pinned?: boolean; pinOrder?: number;
-};
+export { type Session, type SessionMeta, type SaveSessionOpts } from "./session-schema.js";
 
 /**
  * The session persistence port. createFsSessionStore is the default (fs-JSON) adapter;
@@ -122,15 +30,26 @@ function sessionsDir(env?: NodeJS.ProcessEnv): string {
 }
 
 async function readRawSession(id: string, env?: NodeJS.ProcessEnv): Promise<Session | null> {
+  return parseSessionBytes(await readSessionBytes(sessionPath(id, env)), id, sessionPath(id, env));
+}
+
+function sessionPath(id: string, env?: NodeJS.ProcessEnv): string {
+  return sessionFilePath(sessionsDir(env), id);
+}
+
+function parseSessionBytes(bytes: string | null, id: string, path: string): Session | null {
+  if (bytes === null) return null;
   try {
-    const raw: unknown = JSON.parse(
-      await readFile(join(sessionsDir(env), `${id}.json`), "utf8"),
-    );
-    const parsed = SessionSchema.safeParse(raw);
-    return parsed.success ? parsed.data : null;
-  } catch {
-    return null;
-  }
+    const parsed = SessionSchema.safeParse(JSON.parse(bytes));
+    if (!parsed.success || parsed.data.id !== id) throw new Error("schema or identity mismatch");
+    return parsed.data;
+  } catch { throw new SessionStoreUnreadableError(path, "invalid JSON, schema or session identity"); }
+}
+
+async function persistSession(path: string, session: Session): Promise<void> {
+  const previous = await readSessionBytes(path);
+  parseSessionBytes(previous, session.id, path);
+  await writeSessionBytes(path, JSON.stringify(SessionSchema.parse(session), null, 2), previous);
 }
 
 /** Timestamp-based id `YYYYMMDD-HHMMSS`. `now` injectable for tests. */
@@ -167,67 +86,89 @@ function toMeta(session: Session): SessionMeta {
   };
 }
 
-/**
- * The default adapter: one JSON file per session under <vanta-home>/sessions/<id>.json.
- * Bind it to an env (which resolves the vanta home) once; the methods carry no env.
- */
+/** Default failure-atomic JSON adapter bound once to its Vanta home. */
 export function createFsSessionStore(env?: NodeJS.ProcessEnv): SessionStore {
-  const dir = sessionsDir(env);
-  const load: SessionStore["load"] = async (id) => {
-    const session = await readRawSession(id, env);
-    if (!session) return null;
-    const recovered = reconcileDanglingToolResults(session.messages);
-    if (recovered.added > 0) {
-      session.messages = recovered.messages;
-      await writeFile(join(dir, `${id}.json`), JSON.stringify(session, null, 2), "utf8");
-    }
-    return session;
+  return {
+    save: (id, messages, opts) => withSessionLock(sessionPath(id, env), () => saveUnlocked(id, messages, opts ?? {}, env)),
+    load: (id) => loadAndReconcile(id, env),
+    list: () => listMetadata(env),
+    delete: (id) => withSessionLock(sessionPath(id, env), async () => {
+      await rm(sessionPath(id, env), { force: true });
+      await rm(`${sessionPath(id, env)}.last-good`, { force: true });
+    }),
   };
-  const save: SessionStore["save"] = async (id, messages, opts = {}) => {
-    await mkdir(dir, { recursive: true });
-    const now = opts.now ?? new Date().toISOString();
-    const session: Session = {
-      id,
-      // Explicit /title override wins; otherwise derive from the first user message.
-      title: opts.title?.trim() || deriveTitle(messages),
-      started: opts.started ?? now,
-      updated: opts.updated ?? now,
-      // Origin project — additive; omitted when not provided so old sessions stay byte-identical.
-      ...(opts.projectId ? { projectId: opts.projectId } : {}),
-      ...(opts.providerId ? { providerId: opts.providerId } : {}),
-      ...(opts.modelId ? { modelId: opts.modelId } : {}),
-      ...(opts.archived ? { archived: true } : {}), ...(opts.trashed ? { trashed: true } : {}),
-      ...(opts.pinned ? { pinned: true, pinOrder: opts.pinOrder ?? 0 } : {}),
-      messages,
-    };
-    await writeFile(join(dir, `${id}.json`), JSON.stringify(session, null, 2), "utf8");
-  };
-  const list: SessionStore["list"] = async () => {
-    let files: string[];
-    try {
-      files = (await readdir(dir)).filter((f) => f.endsWith(".json"));
-    } catch {
-      return [];
-    }
-    const metas: SessionMeta[] = [];
-    for (const file of files) {
-      // Listing is read-only. `load()` may reconcile dangling tool results and
-      // persist the repaired transcript, which breaks read-only callers under a
-      // scoped/sandboxed home. Use the raw reader here and leave repair to an
-      // explicit load/resume path.
-      const session = await readRawSession(file.replace(/\.json$/, ""), env);
-      if (session) metas.push(toMeta(session));
-    }
-    return metas.sort((a, b) => b.updated.localeCompare(a.updated));
-  };
-  const del: SessionStore["delete"] = async (id) => {
-    await rm(join(dir, `${id}.json`), { force: true });
-  };
-  return { save, load, list, delete: del };
 }
 
-/** Write (create or overwrite) a session via the default fs store. Best-effort
- *  caller-side; throws only on fs errors. */
+function buildSession(id: string, messages: Message[], opts: SaveSessionOpts): Session {
+  const now = opts.now ?? new Date().toISOString();
+  return {
+    id, title: opts.title?.trim() || deriveTitle(messages), started: opts.started ?? now, updated: opts.updated ?? now,
+    ...sessionMetadata(opts), messages,
+  };
+}
+
+function sessionMetadata(opts: SaveSessionOpts): Partial<Session> {
+  return {
+    ...(opts.projectId ? { projectId: opts.projectId } : {}),
+    ...(opts.providerId ? { providerId: opts.providerId } : {}), ...(opts.modelId ? { modelId: opts.modelId } : {}),
+    ...(opts.archived ? { archived: true } : {}), ...(opts.trashed ? { trashed: true } : {}),
+    ...(opts.pinned ? { pinned: true, pinOrder: opts.pinOrder ?? 0 } : {}),
+  };
+}
+
+async function saveUnlocked(id: string, messages: Message[], opts: SaveSessionOpts, env?: NodeJS.ProcessEnv): Promise<void> {
+  const existing = await readRawSession(id, env);
+  if (opts.expectedVersion !== undefined && opts.expectedVersion !== (existing ? sessionVersion(existing) : null)) {
+    throw new SessionStoreConflictError(sessionPath(id, env), "session changed since snapshot");
+  }
+  const overrides = Object.fromEntries(Object.entries(opts).filter(([, value]) => value !== undefined)) as SaveSessionOpts;
+  const options = existing ? { ...existingSaveOptions(existing), ...overrides } : overrides;
+  if (existing && !opts.title && ["New chat", "(empty session)"].includes(existing.title)) options.title = deriveTitle(messages);
+  await persistSession(sessionPath(id, env), buildSession(id, messages, options));
+}
+
+/** Stable version precondition without changing the persisted session schema. */
+export function sessionVersion(session: Session): string {
+  return createHash("sha256").update(JSON.stringify(SessionSchema.parse(session))).digest("hex");
+}
+
+async function loadAndReconcile(id: string, env?: NodeJS.ProcessEnv): Promise<Session | null> {
+  const session = await readRawSession(id, env);
+  if (!session || reconcileDanglingToolResults(session.messages).added === 0) return session;
+  return withSessionLock(sessionPath(id, env), async () => {
+    const latest = await readRawSession(id, env);
+    if (!latest) return null;
+    const recovered = reconcileDanglingToolResults(latest.messages);
+    if (recovered.added > 0) {
+      latest.messages = recovered.messages;
+      await persistSession(sessionPath(id, env), latest);
+    }
+    return latest;
+  });
+}
+
+async function listMetadata(env?: NodeJS.ProcessEnv): Promise<SessionMeta[]> {
+  const dir = sessionsDir(env);
+  let files: string[];
+  try { await assertSessionDirectory(dir); files = (await readdir(dir)).filter((file) => file.endsWith(".json")); }
+  catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+    throw new SessionStoreUnreadableError(dir, "session directory cannot be listed");
+  }
+  const metas: SessionMeta[] = [];
+  for (const file of files) {
+    const id = file.slice(0, -5);
+    try { const session = await readRawSession(id, env); if (session) metas.push(toMeta(session)); }
+    catch (error) {
+      if (!(error instanceof SessionStoreUnreadableError)) throw error;
+      metas.push({ id, title: `Session needs recovery: ${id}`, started: "", updated: "", turns: 0,
+        diagnostic: { code: error.code, path: error.path, recovery: error.recovery } });
+    }
+  }
+  return metas.sort((a, b) => b.updated.localeCompare(a.updated));
+}
+
+/** Save a session; errors and optional stale-version preconditions reach the caller. */
 export async function saveSession(
   id: string,
   messages: Message[],
@@ -242,16 +183,12 @@ export async function checkpointSessionMessages(
   messages: Message[],
   env?: NodeJS.ProcessEnv,
 ): Promise<void> {
-  const store = createFsSessionStore(env);
   // A live checkpoint must not invoke restore-time reconciliation: a pending
   // tool call is valid while the turn is still running.
-  const existing = await readRawSession(id, env);
-  await store.save(id, messages, existing
-    ? { started: existing.started, title: existing.title, projectId: existing.projectId, providerId: existing.providerId, modelId: existing.modelId, archived: existing.archived, trashed: existing.trashed, pinned: existing.pinned, pinOrder: existing.pinOrder }
-    : undefined);
+  await withSessionLock(sessionPath(id, env), () => saveUnlocked(id, messages, {}, env));
 }
 
-/** Load a session by id, or null if missing/corrupt. */
+/** Absent sessions return null; corruption/unreadability raises an actionable diagnostic. */
 export async function loadSession(id: string, env?: NodeJS.ProcessEnv): Promise<Session | null> {
   return createFsSessionStore(env).load(id);
 }
@@ -263,7 +200,7 @@ export async function deleteSession(id: string, env?: NodeJS.ProcessEnv): Promis
   await deleteUnsavedRunsForSession(id, env);
 }
 
-/** List active session metadata, newest first. Skips unparseable files. */
+/** List active session metadata plus recoverable-entry diagnostics; never writes. */
 export async function listSessions(env?: NodeJS.ProcessEnv): Promise<SessionMeta[]> {
   return (await createFsSessionStore(env).list()).filter((session) => !session.archived && !session.trashed);
 }
@@ -290,30 +227,54 @@ function existingSaveOptions(session: Session, overrides: Pick<SaveSessionOpts, 
 
 /** Rename a persisted session without changing its transcript or routing metadata. */
 export async function renameSession(id: string, title: string, env?: NodeJS.ProcessEnv): Promise<Session | null> {
-  const store = createFsSessionStore(env);
-  const session = await store.load(id);
-  if (!session) return null;
-  await store.save(id, session.messages, existingSaveOptions(session, { title }));
-  return store.load(id);
+  return updateSession(id, env, (session) => existingSaveOptions(session, { title }));
 }
 
 /** Archive or restore a session while preserving its original ordering timestamp. */
 export async function setSessionArchived(id: string, archived: boolean, env?: NodeJS.ProcessEnv): Promise<Session | null> {
-  const store = createFsSessionStore(env);
-  const session = await store.load(id);
-  if (!session) return null;
-  await store.save(id, session.messages, existingSaveOptions(session, { archived, updated: session.updated }));
-  return store.load(id);
+  return updateSession(id, env, (session) => existingSaveOptions(session, { archived, updated: session.updated }));
 }
 
 /** Move a session into recoverable trash or restore it without changing its transcript. */
 export async function setSessionTrashed(id: string, trashed: boolean, env?: NodeJS.ProcessEnv): Promise<Session | null> {
-  const store = createFsSessionStore(env);
-  const session = await store.load(id);
-  if (!session) return null;
-  await store.save(id, session.messages, existingSaveOptions(session, { trashed, archived: trashed ? false : session.archived,
-    pinned: trashed ? false : session.pinned, pinOrder: trashed ? undefined : session.pinOrder, updated: session.updated }));
-  return store.load(id);
+  return updateSession(id, env, (session) => existingSaveOptions(session, { trashed,
+    archived: trashed ? false : session.archived, pinned: trashed ? false : session.pinned,
+    pinOrder: trashed ? undefined : session.pinOrder, updated: session.updated }));
+}
+
+async function updateSession(id: string, env: NodeJS.ProcessEnv | undefined, options: (session: Session) => SaveSessionOpts): Promise<Session | null> {
+  return withSessionLock(sessionPath(id, env), async () => {
+    const existing = await readRawSession(id, env);
+    if (!existing) return null;
+    const next = buildSession(id, reconcileDanglingToolResults(existing.messages).messages, options(existing));
+    await persistSession(sessionPath(id, env), next);
+    return next;
+  });
+}
+
+/** Inspect a validated last-good candidate without changing the live source. */
+export async function readSessionRecovery(id: string, env?: NodeJS.ProcessEnv): Promise<Session | null> {
+  const path = `${sessionPath(id, env)}.last-good`;
+  return parseSessionBytes(await readSessionBytes(path), id, path);
+}
+
+/** Explicit recovery retains suspect bytes separately before restoring the last-good candidate. */
+export async function recoverSession(id: string, env?: NodeJS.ProcessEnv): Promise<Session | null> {
+  const path = sessionPath(id, env);
+  return withSessionLock(path, async () => {
+    const candidate = await readSessionRecovery(id, env);
+    if (!candidate) return null;
+    const suspect = await readSessionBytes(path);
+    if (suspect !== null && validSessionBytes(suspect, id, path)) throw new SessionStoreConflictError(path, "Healthy session does not need recovery");
+    if (suspect !== null) await atomicReplaceSessionFile(`${path}.suspect-${randomUUID()}`, suspect);
+    await atomicReplaceSessionFile(path, JSON.stringify(candidate, null, 2));
+    return candidate;
+  });
+}
+
+function validSessionBytes(bytes: string, id: string, path: string): boolean {
+  try { parseSessionBytes(bytes, id, path); return true; }
+  catch (error) { if (error instanceof SessionStoreUnreadableError) return false; throw error; }
 }
 
 /** Create a new session seeded with an existing session's messages. */

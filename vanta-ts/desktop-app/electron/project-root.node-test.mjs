@@ -10,6 +10,13 @@ test("projectArg reads an explicit project path", () => {
   assert.equal(projectArg([]), undefined);
 });
 
+test("native first launch resolves its default workspace without a mandatory folder dialog", async () => {
+  const source = await readFile(new URL("./main.mjs", import.meta.url), "utf8");
+  const initial = source.slice(source.indexOf("async function initialProject()"), source.indexOf("function showFatal"));
+  assert.match(initial, /resolveProjectRoot/);
+  assert.doesNotMatch(initial, /showOpenDialog/);
+});
+
 test("resolveProjectRoot prefers explicit input and restores a saved project", async () => {
   const base = await mkdtemp(join(tmpdir(), "vanta-desktop-root-"));
   const explicit = await mkdtemp(join(base, "explicit-"));

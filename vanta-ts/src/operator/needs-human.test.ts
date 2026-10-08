@@ -20,6 +20,15 @@ function deps(): NeedsHumanDeps {
 }
 
 describe("needs-human queue", () => {
+  it.each([
+    ["What does blocked mean?", "Blocked means an action needs permission or a missing capability."],
+    ["What permissions are needed?", "Approval is required for consequential changes."],
+    ["Hi", "No tools are unavailable today."],
+    ["How do I set up Slack?", "The Slack adapter is not configured; human setup is required."],
+  ])("does not turn a completed conversation into attention work: %s", (instruction, finalText) => {
+    expect(classifyNeedsHuman(instruction, { finalText, stoppedReason: "done" })).toBeNull();
+  });
+
   it("deduplicates the same blocker and records another occurrence", async () => {
     const dir = await mkdtemp(join(tmpdir(), "vanta-needs-human-"));
     const clock = deps();
@@ -67,14 +76,14 @@ describe("needs-human queue", () => {
     expect(next.ticket.id).not.toBe(first.ticket.id);
   });
 
-  it("classifies stopped failures and explicit blockers but not ordinary questions", () => {
+  it("classifies stopped failures and typed blocked outcomes but not ordinary questions", () => {
     expect(classifyNeedsHuman("Run the migration", {
       finalText: "Stopped: called shell_cmd with identical arguments 3 times without progress.",
       stoppedReason: "repeated_failure",
     })?.kind).toBe("repeated_failure");
     expect(classifyNeedsHuman("Send the brief", {
       finalText: "The Slack adapter is not configured; human setup is required.",
-      stoppedReason: "done",
+      stoppedReason: "blocked",
     })?.kind).toBe("missing_tool");
     expect(classifyNeedsHuman("Which color?", {
       finalText: "Do you prefer blue or green?",

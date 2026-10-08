@@ -5,7 +5,7 @@ import { CanvasPanel } from "./canvas.js";
 import { mentionedProjectFiles } from "./file-context.js";
 import { TaskDossier } from "./task-dossier.js";
 import type { ChatFirstState } from "./chat-first-state.js";
-import { DocumentPreview, DocumentTabs } from "./chat-first-documents.js";
+import { DocumentPreview } from "./chat-first-documents.js";
 
 type Tab = ChatFirstState["contextTab"];
 const tabs: { id: Tab; label: string }[] = [{ id: "files", label: "Files" }, { id: "review", label: "Review" },
@@ -24,7 +24,6 @@ export function ChatFirstInspector({ state }: { state: ChatFirstState }) {
   }}>
     <header><strong>Workbench</strong><button ref={close} className="chat-icon" type="button" aria-label="Close context" onClick={() => state.setInspector(false)}><X size={18} /></button></header>
     <nav aria-label="Context views">{tabs.map((item) => <button key={item.id} type="button" aria-pressed={!state.documents.active && tab === item.id} onClick={() => { setTab(item.id); state.documents.setActive(null); }}>{item.label}</button>)}</nav>
-    {state.documents.paths.length ? <DocumentTabs documents={state.documents} /> : null}
     {state.documents.active ? <DocumentPreview key={state.documents.active} path={state.documents.active} onAttach={state.attachments.addFile} /> : <InspectorContent state={state} />}
   </aside>;
 }

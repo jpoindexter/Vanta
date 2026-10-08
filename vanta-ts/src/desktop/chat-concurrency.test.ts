@@ -28,8 +28,8 @@ function response() {
   };
 }
 
-function chatRequest(message: string, images?: Array<{ mime: string; dataBase64: string }>, sessionId?: string) {
-  const body = JSON.stringify({ message, ...(images ? { images } : {}), ...(sessionId ? { sessionId } : {}) });
+function chatRequest(message: string, images?: Array<{ mime: string; dataBase64: string }>, sessionId?: string, requestId?: string) {
+  const body = JSON.stringify({ message, ...(images ? { images } : {}), ...(sessionId ? { sessionId } : {}), ...(requestId ? { requestId } : {}) });
   const req = { on: (event: string, listener: (value?: Buffer) => void) => { if (event === "data") listener(Buffer.from(body)); if (event === "end") listener(); return req; } } as any;
   return req;
 }
@@ -57,6 +57,32 @@ function recoveryState(send: FakeSend, root = "/repo"): DesktopState {
 }
 
 describe("desktop chat concurrency", () => {
+  it("acknowledges the exact admitted request before queueing and retains its follow-up", async () => {
+    const frames: string[] = [];
+    let state: DesktopState;
+    const send = vi.fn(async () => {
+      expect(state._chatActive).toBe(true);
+      const frame = frames.find((value) => value.includes('"turnStarted"'))!;
+      expect(JSON.parse(frame.slice(6))).toMatchObject({ turnStarted: { sessionId: "desktop-test", requestId: "request-1" } });
+      const queued = response();
+      await handleQueueChat(state, chatRequest("Retained follow-up"), queued.res);
+      expect(queued.result().status).toBe(202);
+      return { finalText: "Stopped.", iterations: 1, stoppedReason: "interrupted" as const, toolIterations: 0 };
+    });
+    state = { ...recoveryState(send), _turnQueue: queueForTest(), _sseSessionId: "default",
+      _sseClients: new Map([["default", new Set([{ response: { write: (frame: string) => frames.push(frame) }, encode: (event: unknown) => ({ data: event }) }])]]) as any };
+    await handleChat(state, chatRequest("First instruction", undefined, "desktop-test", "request-1"), response().res);
+    expect(send).toHaveBeenCalledOnce();
+    expect((await state._turnQueue!.list("desktop-test")).items).toMatchObject([{ instruction: "Retained follow-up" }]);
+  });
+
+  it("rejects malformed request identity before provider admission", async () => {
+    const send = vi.fn(); const reply = response();
+    await handleChat(recoveryState(send), chatRequest("Never admitted", undefined, "desktop-test", "bad\nidentity"), reply.res);
+    expect(reply.result()).toEqual({ status: 400, body: { error: "invalid chat request identity" } });
+    expect(send).not.toHaveBeenCalled();
+  });
+
   it("rejects a stale renderer session before invoking the provider or recording a turn", async () => {
     const send = vi.fn(async () => ({ finalText: "Must not run", iterations: 1, stoppedReason: "done" as const, toolIterations: 0 }));
     const state = recoveryState(send);

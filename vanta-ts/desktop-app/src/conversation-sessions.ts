@@ -17,6 +17,8 @@ export function sessionHandlers(state: ConversationState, lastFailedMessage: { c
     const recoverable = latestRecoverableRun(opened.messages);
     state.setActiveTitle(opened.title);
     state.setMessages(() => opened.messages);
+    const latestReceipt = [...opened.messages].reverse().find((message) => message.desktopRun)?.desktopRun;
+    state.setEvents(latestReceipt?.events ?? []);
     state.setRecovery(recoverable?.receipt ?? null);
     lastFailedMessage.current = recoverable?.instruction ?? "";
     state.setStreamText(() => "");

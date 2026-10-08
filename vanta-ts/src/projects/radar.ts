@@ -1,11 +1,9 @@
+import { gitExecFile } from "../git/process.js";
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import { readStack } from "../task-stack/store.js";
 import type { TaskStack } from "../task-stack/types.js";
 
-const run = promisify(execFile);
 
 export type ProjectSignal = {
   roomId: string;
@@ -57,7 +55,7 @@ export function classifyStack(stack: TaskStack): Classification {
 
 async function gitDirtiness(projectPath: string): Promise<string> {
   try {
-    const { stdout } = await run(
+    const { stdout } = await gitExecFile(
       "git",
       ["-C", projectPath, "status", "--short"],
       { timeout: 1000 },

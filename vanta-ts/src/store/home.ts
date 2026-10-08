@@ -1,3 +1,4 @@
+import { gitExecFile } from "../git/process.js";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { mkdir, rename, writeFile } from "node:fs/promises";
@@ -95,9 +96,9 @@ export async function ensureVantaStore(
   await mkdir(memoriesDir(env), { recursive: true });
   if (!existsSync(join(home, ".git"))) {
     try {
-      await run("git", ["init", "-q"], { cwd: home });
-      await run("git", ["config", "user.email", "vanta@local"], { cwd: home });
-      await run("git", ["config", "user.name", "Vanta"], { cwd: home });
+      await gitExecFile("git", ["init", "-q"], { cwd: home });
+      await gitExecFile("git", ["config", "user.email", "vanta@local"], { cwd: home });
+      await gitExecFile("git", ["config", "user.name", "Vanta"], { cwd: home });
     } catch {
       // git unavailable — versioning is optional, store still works
     }
@@ -119,11 +120,11 @@ export async function commitInHome(
 ): Promise<void> {
   const home = resolveVantaHome(env);
   try {
-    await run("git", ["add", relPath], { cwd: home });
+    await gitExecFile("git", ["add", relPath], { cwd: home });
     // Git may launch auto-GC/maintenance after commit and return before that
     // background process finishes. Vanta owns teardown timing, so keep this
     // invocation synchronous and leave explicit/manual maintenance available.
-    await run("git", ["-c", "gc.auto=0", "-c", "maintenance.auto=false", "commit", "-q", "-m", message], { cwd: home });
+    await gitExecFile("git", ["-c", "gc.auto=0", "-c", "maintenance.auto=false", "commit", "-q", "-m", message], { cwd: home });
   } catch {
     // nothing to commit or git unavailable — fine
   }

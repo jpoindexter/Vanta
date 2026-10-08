@@ -32,7 +32,7 @@ export function ChatRow(props: Props) {
     if (!event.currentTarget.contains(event.relatedTarget)) { setOpen(false); setRenaming(false); }
   }}>
     <button className="chat-nav-open" type="button" aria-current={props.active ? "page" : undefined}
-      aria-describedby={preview} disabled={props.locked && !props.currentSession} onClick={() => props.onOpen(props.session.id)}
+      aria-describedby={preview} disabled={props.locked && !props.currentSession} onClick={() => { hint.dismiss(); props.onOpen(props.session.id); }}
       title={props.locked && !props.currentSession ? "Stop the current response before switching chats." : undefined}>
       <span>{label}</span>{props.session.pinned ? <Pin size={13} aria-label="Pinned" /> : null}
     </button>

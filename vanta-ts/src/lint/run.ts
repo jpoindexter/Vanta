@@ -1,3 +1,4 @@
+import { gitExecFile } from "../git/process.js";
 import { readFile } from "node:fs/promises";
 import { isAbsolute, join, resolve } from "node:path";
 import { analyzeSource, formatViolation, LIMITS, type Violation } from "./size.js";
@@ -7,9 +8,7 @@ import { analyzeSource, formatViolation, LIMITS, type Violation } from "./size.j
 // `--staged` (git index), or the default = all git-tracked .ts/.tsx.
 
 async function git(root: string, args: string[]): Promise<string> {
-  const { execFile } = await import("node:child_process");
-  const { promisify } = await import("node:util");
-  const { stdout } = await promisify(execFile)("git", ["-C", root, ...args]);
+  const { stdout } = await gitExecFile("git", ["-C", root, ...args]);
   return stdout;
 }
 

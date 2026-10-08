@@ -1,4 +1,5 @@
-import { useRef, useState, type ReactElement } from "react";
+import { useContext, useEffect, useRef, useState, type ReactElement } from "react";
+import { DictationDraftContext } from "./dictation-context.js";
 import { useInput } from "ink";
 import { matchSlash, completeSlash, isPartialSlash, type SlashMatch } from "./slash.js";
 import { activeAtRef, matchContextRefs, completeAtRef, slackCompletionFor, channelSuggestionLabels, completeChannelRef } from "./at.js";
@@ -90,6 +91,14 @@ export function Composer(props: ComposerProps): ReactElement {
   const histRef = useRef<HistState>(EMPTY_HIST);
   const inputAtRef = useRef(0); // ms timestamp of the last keystroke (paste-burst detection)
   const paste = usePasteCollapse();
+  const dictated = useContext(DictationDraftContext);
+  useEffect(() => {
+    if (!dictated.draft) return;
+    const current = valueRef.current;
+    const next = current + (current && !/\s$/.test(current) ? " " : "") + paste.collapse(dictated.draft.text);
+    setBuf(next, next.length);
+    dictated.consumed();
+  }, [dictated.draft?.id]);
   const { slashMatches, atMatches, channelMatches, activeLen } = useComposerPalettes({ value, cursor, files: props.files, channels: props.channels, skills: props.skills });
   const selClamped = Math.min(sel, Math.max(0, activeLen - 1));
   const ghost = activeLen === 0 && histRef.current.histIdx === -1 && cursor === value.length ? historyTypeahead(props.history, value) : "";

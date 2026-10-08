@@ -17,6 +17,7 @@ scopeToolsForClosure
 } from "./tool-budget.js";
 import { scopeToolSchemas,toolScopeContext } from "./tool-scope.js";
 import { makeInitialState } from "./turn-state.js";
+import { capabilitySnapshot } from "./capability-snapshot.js";
 
 import type { TurnOpts } from "./turn-loop.js";
 
@@ -52,7 +53,10 @@ export async function completeTurnIteration(runtime: TurnRuntime, iter: number) 
   // Scope schemas once per iteration so countTokens and getCompletion use the same set.
   const scoped = scopeToolSchemas(deps.registry.schemas(), toolScopeContext(messages, deps.activeGoalText), { env: process.env });
   const phaseScoped = state.toolBudgetClosure ? scopeToolsForClosure(scoped) : scoped;
-  const schemas = schemasWithStructuredOutput(phaseScoped, deps.outputSchema);
+  const snapshot = capabilitySnapshot(deps.registry.schemas(), schemasWithStructuredOutput(phaseScoped, deps.outputSchema), {
+    mode: deps.permissionMode?.(), planActive: deps.planGate?.(),
+  });
+  const schemas = snapshot.exposed;
   const depsWithTools = { ...deps, currentTools: schemas };
   const prepared = await prepareCallMessages(messages, depsWithTools, iter, turnCtx);
   const redirectForCall = state.adaptiveRedirect;

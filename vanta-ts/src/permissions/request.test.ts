@@ -6,6 +6,8 @@ describe("buildPermissionRequest", () => {
     const ordinary = { toolName: "write_file", action: "write file brief.md", reason: "review" };
     expect(buildPermissionRequest(ordinary)).toMatchObject({ canRemember: true, fresh: false });
     expect(buildPermissionRequest({ ...ordinary, detail: { fresh: true } })).toMatchObject({ canRemember: false, fresh: true });
+    expect(buildPermissionRequest({ ...ordinary, detail: { canRemember: false } })).toMatchObject({ canRemember: false, fresh: false });
+    expect(buildPermissionRequest({ ...ordinary, detail: { fresh: true, canRemember: true } })).toMatchObject({ canRemember: false });
     expect(buildPermissionRequest({ action: "unknown action", reason: "review" })).toMatchObject({ canRemember: false });
   });
   it("builds a bash-specific request from shell_cmd descriptors", () => {
@@ -40,5 +42,6 @@ describe("buildPermissionRequest", () => {
     expect(buildPermissionRequest({ toolName: "write_skill", action: "record a learned skill in vanta's memory", reason: "" }).kind).toBe("skill");
     expect(buildPermissionRequest({ toolName: "run_code", action: "run javascript code", reason: "" }).kind).toBe("sandbox");
     expect(buildPermissionRequest({ toolName: "browser_act", action: "drive browser: 2 action(s)", reason: "" }).kind).toBe("computer_use");
+    expect(buildPermissionRequest({ toolName: "native_app_launch", action: "launch native application com.apple.calculator", reason: "" }).kind).toBe("computer_use");
   });
 });

@@ -28,6 +28,16 @@ export async function chatFirstProviderFixture() {
         function: { name: "edit_file", arguments: JSON.stringify({ path: "brief.md", old_string: "# Local desktop proof", new_string: "# Approved local edit" }) } }] }));
       return response.end(event({}, "tool_calls") + "data: [DONE]\n\n");
     }
+    const instruction = prompt.startsWith("Instruction boundary proof:");
+    const ordinary = prompt.startsWith("Instruction ordinary source proof:");
+    if ((instruction || ordinary) && body.messages.at(-1)?.role !== "tool") {
+      const args = instruction
+        ? { path: "VANTA.md", content: "# Disposable instruction proof\nNo operator data.\n" }
+        : { path: "ordinary-source.ts", content: "export const proof = true;\n" };
+      response.write(event({ role: "assistant", tool_calls: [{ index: 0, id: `local-instruction-${requests.length}`, type: "function",
+        function: { name: "write_file", arguments: JSON.stringify(args) } }] }));
+      return response.end(event({}, "tool_calls") + "data: [DONE]\n\n");
+    }
     response.write(event({ role: "assistant", content: answer }));
     if (prompt.includes("Keep this response open")) {
       held.add(response);

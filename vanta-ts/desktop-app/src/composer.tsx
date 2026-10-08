@@ -7,10 +7,15 @@ import { desktopLookCommand, LookCaptureButton } from "./look-capture-button.js"
 import type { DesktopMcpSummary } from "./mcp-types.js";
 import type { AccessMode, DesktopImageAttachment, DesktopLookMode } from "./types.js";
 import type { DesktopAttachmentItem } from "./desktop-attachments.js";
+import { useVoiceDictation, type VoiceDictation } from "./voice-dictation.js";
+import { VoiceButton, VoiceStatus } from "./voice-button.js";
+import { useVoiceShortcuts } from "./voice-shortcuts.js";
 
 export type ComposerProps = {
+  sessionId?: string;
   value: string;
   busy: boolean;
+  runReady?: boolean;
   ready?: boolean;
   model?: string;
   root?: string;
@@ -38,21 +43,13 @@ export type ComposerProps = {
 };
 
 export function Composer(props: ComposerProps) {
+  const voice = useVoiceDictation(props);
+  useVoiceShortcuts(voice);
   const ready = props.ready ?? true;
   const images = props.images ?? [];
   const dragDepth = useRef(0);
   const [dropActive, setDropActive] = useState(false);
   const canSend = Boolean(props.value.trim() || images.length || props.attachments.length);
-  function send(event: FormEvent) {
-    event.preventDefault();
-    const lookMode = desktopLookCommand(props.value);
-    if (lookMode) { props.onChange(""); void props.onLookCapture(lookMode); return; }
-    const value = props.value.trim() || attachmentPrompt(props.attachments.length, images.length);
-    if (!value) return;
-    if (props.busy && (images.length || props.attachments.length)) return;
-    if (props.busy) props.onQueue(value);
-    else props.onSubmit(value);
-  }
   function dragEnter(event: DragEvent<HTMLFormElement>) {
     if (!hasDraggedFiles(event)) return;
     event.preventDefault();
@@ -78,15 +75,33 @@ export function Composer(props: ComposerProps) {
     const files = Array.from(event.dataTransfer.files);
     if (files.length) void props.onDropFiles?.(files);
   }
-  return <form className={`composer ${dropActive ? "drop-active" : ""}`} data-drop-active={dropActive ? "true" : "false"} aria-describedby="vanta-attachment-help" onSubmit={send} onDragEnter={dragEnter} onDragOver={dragOver} onDragLeave={dragLeave} onDrop={drop}>
+  return <form className={`composer ${dropActive ? "drop-active" : ""}`} data-drop-active={dropActive ? "true" : "false"} aria-describedby="vanta-attachment-help" onSubmit={(event) => { if (voice.isBusy()) { event.preventDefault(); return; } submitComposer(event, props); }} onDragEnter={dragEnter} onDragOver={dragOver} onDragLeave={dragLeave} onDrop={drop}>
     {dropActive ? <div className="composer-drop-target" role="status" aria-live="polite"><Upload size={22} /><strong>Drop files or folders to attach</strong><span>Folders stay compact while readable files are attached.</span></div> : null}
     <p className="sr-only" id="vanta-attachment-help">Drag files or folders here, or use the attachment button.</p>
     <label className="sr-only" htmlFor="vanta-composer">Message Vanta</label>
-    <textarea id="vanta-composer" value={props.value} disabled={!ready} onChange={(event) => props.onChange(event.target.value)} onPaste={(event) => void pasteImages(event, props)} onKeyDown={(event) => keyDown(event, props)} placeholder={!ready ? "Loading this project..." : props.busy ? "Queue next..." : "Ask Vanta to do something..."} />
+    <ComposerInput {...props} ready={ready} />
     <AttachmentChips items={props.attachments} images={images} onRemoveItem={props.onRemoveAttachment} onRemoveImage={props.onRemoveImage} />
     {props.attachmentError ? <p className="composer-attachment-error" role="alert">{props.attachmentError}</p> : null}
-    <ComposerFooter {...props} ready={ready} canSend={canSend} hasImages={images.length > 0} />
+    <VoiceStatus voice={voice} />
+    <ComposerFooter {...props} voice={voice} ready={ready && !voice.busy} canSend={canSend} hasImages={images.length > 0} />
   </form>;
+}
+
+function ComposerInput(props: ComposerProps & { ready: boolean }) {
+  return <textarea id="vanta-composer" rows={1} value={props.value} disabled={!props.ready} onChange={(event) => props.onChange(event.target.value)} onPaste={(event) => void pasteImages(event, props)} onKeyDown={(event) => keyDown(event, props)} placeholder={!props.ready ? "Loading this project..." : props.busy ? "Queue next..." : "Ask Vanta to do something..."} />;
+}
+
+function submitComposer(event: FormEvent, props: ComposerProps) {
+  event.preventDefault();
+  if (startingTurn(props)) return;
+  const lookMode = desktopLookCommand(props.value);
+  if (lookMode) { props.onChange(""); void props.onLookCapture(lookMode); return; }
+  const imageCount = props.images?.length ?? 0;
+  const value = props.value.trim() || attachmentPrompt(props.attachments.length, imageCount);
+  if (!value) return;
+  if (props.busy && (imageCount || props.attachments.length)) return;
+  if (props.busy) props.onQueue(value);
+  else props.onSubmit(value);
 }
 
 function AttachmentChips(props: { items: DesktopAttachmentItem[]; images: DesktopImageAttachment[]; onRemoveItem: (id: string) => void; onRemoveImage?: (id: string) => void }) {
@@ -103,11 +118,19 @@ function RemoveButton(props: { label: string; onClick: () => void }) {
   return <button type="button" aria-label={props.label} title={props.label} onClick={props.onClick}><X size={13} /></button>;
 }
 
-function ComposerFooter(props: ComposerProps & { ready: boolean; canSend: boolean; hasImages: boolean }) {
+function ComposerFooter(props: ComposerProps & { ready: boolean; canSend: boolean; hasImages: boolean; voice: VoiceDictation }) {
   const hasFileAttachments = props.attachments.length > 0;
-  const queueDisabled = !props.ready || !props.value.trim() || props.hasImages || hasFileAttachments;
+  const queueDisabled = queueUnavailable(props);
   const queueTitle = props.hasImages || hasFileAttachments ? "Wait for the active run before sending attachment context" : "Queue next";
-  return <div className="composer-footer"><div className="composer-context-controls"><button className="composer-context-button" type="button" title="Attach files or folders" aria-label="Attach files or folders" onClick={props.onAttach}><Paperclip size={16} /><span className="sr-only">Attachments</span></button><LookCaptureButton busy={props.lookBusy} onCapture={props.onLookCapture} /><button className="composer-command-button" type="button" title="Open commands" aria-label="Open commands" onClick={props.onCommand}><Plus size={16} /><span className="sr-only">Commands</span></button></div><div className="composer-actions"><button className="model-button" type="button" title="Change agent model" aria-label={`Agent model: ${props.model ?? "not selected"}. Change model`} onClick={props.onModel}><small>Agent model</small><span>{props.model ?? "Choose model"}</span></button><AccessModePicker mode={props.accessMode} onChange={props.onAccessMode} />{props.busy ? <><button className="queue-button" type="submit" disabled={queueDisabled} title={queueTitle}><ListPlus size={15} /><span>Queue next</span></button><button className="stop-button" type="button" title="Stop task" aria-label="Stop task" onClick={props.onStop}><Square size={14} /><span>Stop task</span></button></> : <button className="send-button" type="submit" disabled={!props.ready || !props.canSend} aria-label="Send"><ArrowUp size={16} /></button>}</div></div>;
+  return <div className="composer-footer"><div className="composer-context-controls"><button className="composer-context-button" type="button" title="Attach files or folders" aria-label="Attach files or folders" onClick={props.onAttach}><Paperclip size={16} /><span className="sr-only">Attachments</span></button><LookCaptureButton busy={props.lookBusy} onCapture={props.onLookCapture} /><VoiceButton voice={props.voice} ready={props.ready} sessionId={props.sessionId} /><button className="composer-command-button" type="button" title="Open commands" aria-label="Open commands" onClick={props.onCommand}><Plus size={16} /><span className="sr-only">Commands</span></button></div><div className="composer-actions"><button className="model-button" type="button" title="Change agent model" aria-label={`Agent model: ${props.model ?? "not selected"}. Change model`} onClick={props.onModel}><small>Agent model</small><span>{props.model ?? "Choose model"}</span></button><AccessModePicker mode={props.accessMode} onChange={props.onAccessMode} />{props.busy ? <><button className="queue-button" type="submit" disabled={queueDisabled} title={queueTitle}><ListPlus size={15} /><span>Queue next</span></button><button className="stop-button" type="button" title="Stop task" aria-label="Stop task" onClick={props.onStop}><Square size={14} /><span>Stop task</span></button></> : <button className="send-button" type="submit" disabled={!props.ready || !props.canSend} aria-label="Send"><ArrowUp size={16} /></button>}</div></div>;
+}
+
+function startingTurn(props: Pick<ComposerProps, "busy" | "runReady">) {
+  return props.busy && props.runReady === false;
+}
+
+function queueUnavailable(props: ComposerProps & { ready: boolean; hasImages: boolean }) {
+  return !props.ready || props.runReady === false || !props.value.trim() || props.hasImages || props.attachments.length > 0;
 }
 
 async function pasteImages(event: ClipboardEvent<HTMLTextAreaElement>, props: ComposerProps): Promise<void> {

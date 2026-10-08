@@ -41,6 +41,7 @@ describe("chat result to document preview", () => {
     expect(link.getAttribute("aria-disabled")).not.toBe("true");
     await act(async () => link.click());
     expect(fetch).toHaveBeenCalledExactlyOnceWith(`/api/file-preview?path=${encodeURIComponent(path)}`, expect.any(Object));
+    expect(host.querySelector('a[data-document-link]')).toBe(link);
     expect(host.querySelector('section[aria-label="Document vanta-ts/.artifacts/research.md"] h1')?.textContent).toBe("Verified research");
     expect(host.querySelector('a[href="https://example.com"]')?.getAttribute("target")).toBe("_blank");
   });

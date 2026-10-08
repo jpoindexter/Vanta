@@ -1,6 +1,5 @@
+import { gitExecFile } from "../git/process.js";
 import { dirname } from "node:path";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import type { SlashHandler, SlashResult } from "./types.js";
 
 // `/security-review` — a built-in security audit of the current branch's changes.
@@ -8,7 +7,6 @@ import type { SlashHandler, SlashResult } from "./types.js";
 // prompt over that diff as a fresh turn (the `resend` pattern, like `/skeptic`).
 // Read-only: it reviews the diff, it never modifies code. No diff → a clean no-op.
 
-const execFileAsync = promisify(execFile);
 
 const DEFAULT_BASE = "main";
 
@@ -67,7 +65,7 @@ export async function collectBranchDiff(deps: SecurityReviewDeps): Promise<strin
 function repoGitDiff(repoRoot: string): SecurityReviewDeps["gitDiff"] {
   return async (args: string[]): Promise<string> => {
     try {
-      const { stdout } = await execFileAsync("git", args, { cwd: repoRoot });
+      const { stdout } = await gitExecFile("git", args, { cwd: repoRoot });
       return stdout.trim();
     } catch {
       return ""; // missing base, not a repo, etc. → treat as no diff

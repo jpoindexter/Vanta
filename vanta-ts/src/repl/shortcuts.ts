@@ -1,4 +1,6 @@
 import { execFile } from "node:child_process";
+import { gitExecFile } from "../git/process.js";
+import { directGitArgs } from "../git/shell.js";
 import { promisify } from "node:util";
 import type { KernelClient } from "../kernel/client.js";
 import { resolveShellInvocation } from "../platform/shell.js";
@@ -43,10 +45,10 @@ export async function runBashShortcut(
   const prefix = verdict.risk === "ask" ? "⚠ risky — " : "";
   try {
     const shell = resolveShellInvocation(cmd);
-    const { stdout, stderr } = await execAsync(shell.cmd, shell.args, {
-      cwd: root,
-      timeout: 30_000,
-    });
+    const git = directGitArgs(cmd);
+    const { stdout, stderr } = git
+      ? await gitExecFile("git", git, { cwd: root, timeout: 30_000 })
+      : await execAsync(shell.cmd, shell.args, { cwd: root, timeout: 30_000 });
     const out = (stdout + stderr).trimEnd();
     return `${prefix}$ ${cmd}\n${out || "(no output)"}`;
   } catch (err: unknown) {

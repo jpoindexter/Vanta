@@ -4,7 +4,7 @@
 historical narrative and does not override the JSON, `STRATEGY.md`, or
 `DECISIONS.md`.
 
-## Current converged build order — 2026-10-02
+## Current converged build order — 2026-10-08
 
 Generated from `roadmap.json` by `node scripts/roadmap-current-projection.mjs`. Do not hand-edit this section.
 
@@ -21,19 +21,18 @@ Generated from `roadmap.json` by `node scripts/roadmap-current-projection.mjs`. 
 
 **Horizon**
 
-1. `CAPABILITY-GROUNDED-SYSTEM-PROMPT` — Capability-grounded prompt — promise only callable tools and routes
-2. `TRUST-03` — Canonical action envelope and scoped capability
-3. `TRUST-05` — Untrusted-content quarantine across email, web, documents, messages, and social input
-4. `TRUST-06` — Safe factory, self-repair, and Vanta Lab production boundary
-5. `OP-03` — Trustworthy Needs You — deterministic, deduplicated, expiring, and auto-resolving
-6. `UX-04` — Contextual Review, first-run usefulness, and cross-host accessibility contract
-7. `BROWSER-AUTHENTICATED-WORKSPACE` — Authenticated browser workspace — visible sessions, takeover, and revocation
+1. `TRUST-03` — Canonical action envelope and scoped capability
+2. `TRUST-05` — Untrusted-content quarantine across email, web, documents, messages, and social input
+3. `TRUST-06` — Safe factory, self-repair, and Vanta Lab production boundary
+4. `OP-03` — Trustworthy Needs You — deterministic, deduplicated, expiring, and auto-resolving
+5. `UX-04` — Contextual Review, first-run usefulness, and cross-host accessibility contract
+6. `BROWSER-AUTHENTICATED-WORKSPACE` — Authenticated browser workspace — visible sessions, takeover, and revocation
 
 **Blocked**
 
 No cards currently Blocked.
 
-Inventory: 1362 cards; 1288 shipped; 12 open; 62 parked.
+Inventory: 1363 cards; 1289 shipped; 11 open; 63 parked.
 
 Next means planned, not implemented. Preserve shipped evidence; card completion requires its executed Done contract.
 

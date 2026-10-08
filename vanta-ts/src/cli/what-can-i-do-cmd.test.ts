@@ -1,8 +1,18 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { runWhatCanIDoCommand } from "./what-can-i-do-cmd.js";
+vi.mock("../session/bootstrap-kernel.js", () => ({ bootstrapKernel: async () => ({ assess: async () => ({ risk: "allow" }) }) }));
+let fixtureHome: string;
+beforeEach(async () => {
+  fixtureHome = await mkdtemp(join(tmpdir(), "vanta-gallery-home-"));
+  vi.stubEnv("VANTA_HOME", fixtureHome);
+  vi.stubEnv("VANTA_PROVIDER", "ollama");
+  vi.stubEnv("VANTA_LOCAL_FULL_TOOLS", "1");
+  vi.stubEnv("VANTA_SAFE_MODE", "1");
+});
+afterEach(async () => { vi.unstubAllEnvs(); await rm(fixtureHome, { recursive: true, force: true }); });
 
 async function capture(fn: () => Promise<number>): Promise<{ code: number; output: string }> {
   const lines: string[] = [];
@@ -21,6 +31,16 @@ describe("runWhatCanIDoCommand", () => {
     expect(result.output).toContain("What Vanta can do now");
     expect(result.output).toContain("Fix a pasted error");
     expect(result.output).toContain("Needs:");
+  });
+
+  it("does not advertise Run when selected provider construction requires authentication", async () => {
+    vi.stubEnv("VANTA_PROVIDER", "openai");
+    vi.stubEnv("OPENAI_API_KEY", "");
+    const result = await capture(() => runWhatCanIDoCommand([]));
+    expect(result.code).toBe(1);
+    expect(result.output).toContain("Setup required:");
+    expect(result.output).toContain("no callable registry was established");
+    expect(result.output).not.toContain("[Run]");
   });
 
   it("prints linked demo fixtures", async () => {

@@ -9,7 +9,7 @@ import { beginRunCapture,finishRunCapture } from "./handler-run-capture.js";
 import type { DesktopEvent,DesktopState } from "./handler-state.js";
 import { saveProviderAuthRequired } from "./provider-auth-store.js";
 
-export type ChatInput = { instructionText: string; images: ImageAttachment[]; files: string[] };
+export type ChatInput = { instructionText: string; images: ImageAttachment[]; files: string[]; requestId?: string };
 export type ChatExecution = ChatInput & {
   state: DesktopState;
   controller: AbortController;
