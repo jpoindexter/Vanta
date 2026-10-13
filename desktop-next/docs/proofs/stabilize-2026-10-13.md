@@ -44,7 +44,7 @@ purpose (test updated, reason below); b = real regression (code fixed); c = surf
 | updates-overlay.manual (1) | a | runs with a feed configured; new test pins the not-configured overlay |
 | catalog-completeness: Updates copy in overlay (3: de, es, fr) | **b** | the new `updates.notConfigured` key had no de/es/fr translation; added |
 | gateway-choice, providers-settings (4), controls HUD, billing (4), slash-localization, version-details (2), onboarding picker, boot-failure (2) | a | follow the neutral catalog (Nous wording gone, `hey vanta`, "Hosted portal"). Picker and boot-failure also changed behavior, see section 4 |
-| hub picker tests (bot skills-hub 14, capabilities, plugins-tab, plugin-catalog, storage-corrupt-notice) | a | embedded hub, catalog feed and docs links are gated behind `VANTA_HUB_ORIGIN` / `VANTA_DOCS_URL`; tests run with a hub origin configured; the bot hub's embedded browser and its Vercel/Pages probe are gone, so its 14 pick/probe tests were replaced by 3 search-only tests |
+| hub picker tests (bot skills-hub 14, capabilities, plugins-tab, plugin-catalog, storage-corrupt-notice) | a | embedded hub, catalog feed and docs links are gated behind `VANTA_HUB_ORIGIN` / `VANTA_DOCS_URL`; tests run with a hub origin configured; the bot hub's embedded browser and its Vercel/Pages probe are gone, so its pick and probe tests were replaced by 3 search-only tests |
 
 Typecheck after: `src/app/session/hooks/use-session-actions.test.tsx(112,37): error TS2307: Cannot find module '../../../../../../tests/fixtures/session-resume-active-turn.json'` only, the baseline error.
 
@@ -112,7 +112,7 @@ null by default, so each control still exists and can be wired later.
 | comments | 1622 | 1408 |
 | URLs | 92 | 32 |
 | css/html/json | 82 | 80 |
-| test files (all categories) | 6711 | 6184 |
+| test files (all categories) | 7111 | 6784 |
 | **total** | 16777 | **13130** |
 
 Of the 425 remaining quoted sentences, 359 are in `electron/` (the imported Hermes main; not shipped, see below), 9 are French "nous"
