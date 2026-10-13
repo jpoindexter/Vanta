@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { en } from '@/i18n/en'
+import { DESKTOP_DOCS_URL } from '@/lib/docs'
 import { $desktopBoot } from '@/store/boot'
 import { $notifications } from '@/store/notifications'
 import { $desktopOnboarding } from '@/store/onboarding'
@@ -358,9 +359,7 @@ describe('BootFailureOverlay', () => {
       expect(screen.getByText(/reinstall the app to restore/i)).toBeTruthy()
 
       fireEvent.click(screen.getByRole('button', { name: /reinstall the app/i }))
-      await waitFor(() =>
-        expect(openExternal).toHaveBeenCalledWith('https://hermes-agent.nousresearch.com/docs/user-guide/desktop')
-      )
+      await waitFor(() => expect(openExternal).toHaveBeenCalledWith(DESKTOP_DOCS_URL))
     } finally {
       restore()
     }
