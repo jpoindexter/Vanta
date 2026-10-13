@@ -131,7 +131,7 @@ export function ScreenInstallCard({ bot, status, onInstalled }: ScreenInstallCar
           </Button>
         ) : null}
         {log.length > 0 ? (
-          <pre className="max-h-48 overflow-auto rounded bg-black/80 p-2 text-left font-mono text-[0.65rem] leading-tight text-white/85">
+          <pre className="max-h-48 overflow-auto rounded bg-black/80 p-2 text-left font-mono text-[0.75rem] leading-tight text-white/85">
             {log.join('\n')}
             <div ref={logEnd} />
           </pre>

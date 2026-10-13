@@ -111,7 +111,7 @@ export const PreviewStatusRow = memo(function PreviewStatusRow({ item, onDismiss
         }
         placement="row"
       >
-        <span className="min-w-0 truncate text-[0.73rem] leading-4 text-foreground/92">{item.label}</span>
+        <span className="min-w-0 truncate text-[0.75rem] leading-4 text-foreground/92">{item.label}</span>
       </Tip>
     </StatusRow>
   )

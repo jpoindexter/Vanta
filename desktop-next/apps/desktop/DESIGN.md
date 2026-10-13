@@ -162,6 +162,20 @@ Never hardcode `border-gray-*`, `bg-white`, `text-black`, etc. The two tiles in
 `BrandMark` (white in light mode, `#0d1117` in dark) are the sanctioned literals
 (the mark needs a fixed backdrop).
 
+## Type scale & floor
+
+Vanta text uses the scale 12 / 13 / 14 / 15 / 18 / 24px at weights 400 / 500 / 600.
+UI copy is 14px on a 20px line, chat body is 15px on 24px, secondary and meta
+text is 12-13px. **Nothing renders under 12px**: no `text-[<0.75rem]`, no
+`font-size` or `fontSize` below 12px, and an `em`-relative size below 1em is
+written `text-[length:max(0.75rem,0.86em)]` so a small parent cannot push it
+under the floor. `src/components/ui/__tests__/type-floor.test.ts` scans the
+renderer source and fails on any violation; fix the source, not the test.
+
+Small labels do not need to shrink to stay quiet: use `--ui-text-tertiary` and
+weight, not 10px type. A 12px label sits on a line-height of at least 16px
+(`leading-4`); `leading-none` is only for single glyphs centered in a fixed box.
+
 ## Buttons — one component
 
 `src/components/ui/button.tsx` is the single source. Pick a `variant` + `size`;
@@ -233,7 +247,7 @@ Notes:
 
 `src/components/ui/badge.tsx`. Variants: `default` (tinted primary), `muted`,
 `warn`, `destructive`, `outline`, `solid` (primary fill — icon-corner counts).
-Sizes: `default`, `xs`, `overlay` (titlebar glyph counts).
+Sizes: `default`, `xs`, `overlay` (titlebar glyph counts, 16px tall to hold the 12px floor).
 
 ## Profile rail
 

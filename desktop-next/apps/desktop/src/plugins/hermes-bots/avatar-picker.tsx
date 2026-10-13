@@ -168,7 +168,7 @@ export function AvatarPicker({ shape, color, image, onShape, onColor, onImage, g
                             size={32}
                           />
                         ) : (
-                          <span className="text-[0.6rem] text-(--ui-text-tertiary)">{b.editor.auto}</span>
+                          <span className="text-[0.75rem] text-(--ui-text-tertiary)">{b.editor.auto}</span>
                         )}
                       </RowButton>
                     </Tip>
@@ -197,7 +197,7 @@ export function AvatarPicker({ shape, color, image, onShape, onColor, onImage, g
                     {locked ? b.editor.unlock : b.editor.lockFace}
                   </Button>
                 </div>
-                <div className="text-center text-[0.65rem] text-(--ui-text-quaternary)">
+                <div className="text-center text-[0.75rem] text-(--ui-text-quaternary)">
                   {locked ? b.editor.lockedHint : b.editor.unlockedHint}
                 </div>
                 <Button
@@ -266,7 +266,7 @@ export function AvatarPicker({ shape, color, image, onShape, onColor, onImage, g
               {genBusy ? b.avatar.generating : b.avatar.generate}
             </Button>
             {describe.trim() ? null : (
-              <div className="text-center text-[0.65rem] text-(--ui-text-quaternary)">{b.bot.descriptionHint}</div>
+              <div className="text-center text-[0.75rem] text-(--ui-text-quaternary)">{b.bot.descriptionHint}</div>
             )}
           </div>
         ) : (

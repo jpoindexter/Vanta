@@ -520,7 +520,7 @@ export function useStatusbarItems({
         // solid and set off by a gap instead of touching the label.
         detail: (
           <span className="inline-flex items-center gap-2">
-            <span className="font-mono text-[0.625rem] text-muted-foreground/70">
+            <span className="font-mono text-[0.75rem] text-muted-foreground/70">
               {freeTier?.model ?? FREE_TIER_MODEL}
             </span>
             {/* The class merger drops Badge's own leading-none behind the size's

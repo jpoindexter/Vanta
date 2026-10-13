@@ -204,7 +204,7 @@ export function FreeTierSignInDialog({ onSelectModel }: FreeTierSignInDialogProp
           >
             {state.model && (
               <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <span className="font-mono text-[0.625rem] uppercase tracking-[0.2em] text-muted-foreground">
+                <span className="font-mono text-[0.75rem] uppercase tracking-[0.2em] text-muted-foreground">
                   {copy.defaultModel}
                 </span>
                 <span className="min-w-0 truncate font-mono text-[length:var(--conversation-text-font-size)]">

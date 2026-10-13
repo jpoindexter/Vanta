@@ -195,7 +195,7 @@ export function VoiceActivity({ state }: { state: VoiceActivityState }) {
         <span className="truncate font-medium text-foreground/85" title={state.partial || undefined}>
           {state.partial || title}
         </span>
-        <span aria-hidden="true" className="font-mono text-[0.6875rem] text-muted-foreground/85">
+        <span aria-hidden="true" className="font-mono text-[0.75rem] text-muted-foreground/85">
           {formatElapsed(state.elapsedSeconds)}
         </span>
       </div>
@@ -240,7 +240,7 @@ export function VoicePlaybackActivity() {
       </div>
 
       <Button
-        className="h-6 shrink-0 gap-1 rounded-full px-2 text-[0.6875rem]"
+        className="h-6 shrink-0 gap-1 rounded-full px-2 text-[0.75rem]"
         onClick={stopVoicePlayback}
         size="sm"
         type="button"

@@ -234,9 +234,9 @@ function PreviewLoadError({
             {compactUrl(error.url)}
             {error.code ? ` (${error.code})` : ''}
           </a>
-          <div className="mt-1 text-[0.6875rem] text-muted-foreground/70">{error.description}</div>
+          <div className="mt-1 text-[0.75rem] text-muted-foreground/70">{error.description}</div>
           {isRemoteLoopbackUrl(error.url) && (
-            <div className="mt-2 text-[0.6875rem] leading-relaxed text-muted-foreground/70">{copy.remoteLoopback}</div>
+            <div className="mt-2 text-[0.75rem] leading-relaxed text-muted-foreground/70">{copy.remoteLoopback}</div>
           )}
         </>
       }

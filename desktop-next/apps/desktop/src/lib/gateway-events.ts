@@ -262,7 +262,7 @@ export function buildGatewayLogItems(lines: readonly string[]): readonly Statusb
   }
 
   return lines.slice(-LOG_TAIL).map((line, index) => ({
-    className: 'font-mono text-[0.68rem] text-muted-foreground',
+    className: 'font-mono text-[0.75rem] text-muted-foreground',
     disabled: true,
     id: `gateway-log:${index}`,
     label: line.trim().slice(0, 120) || '(blank log line)'

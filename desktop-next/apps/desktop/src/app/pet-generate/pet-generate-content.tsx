@@ -251,7 +251,7 @@ export function PetGenerateContent() {
                 <ReferenceChip name={refName} onRemove={clearReference} src={refImage} />
               ) : (
                 <button
-                  className="ml-auto flex h-6 items-center gap-1.5 text-[0.6875rem] text-(--ui-text-tertiary) transition hover:text-foreground"
+                  className="ml-auto flex h-6 items-center gap-1.5 text-[0.75rem] text-(--ui-text-tertiary) transition hover:text-foreground"
                   onClick={() => fileRef.current?.click()}
                   type="button"
                 >

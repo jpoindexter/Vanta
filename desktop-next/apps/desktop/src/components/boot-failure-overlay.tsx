@@ -522,7 +522,7 @@ export function BootFailureOverlay() {
               <details className="mt-2 text-muted-foreground">
                 <summary className="cursor-pointer select-none font-medium">{copy.details}</summary>
                 <pre
-                  className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap wrap-break-word font-mono text-[0.6875rem] leading-relaxed"
+                  className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap wrap-break-word font-mono text-[0.75rem] leading-relaxed"
                   data-selectable-text="true"
                 >
                   {failureCopy.rawDetail}

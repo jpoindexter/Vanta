@@ -40,7 +40,7 @@ export function ContextUsagePanel({ breakdown, loading, usage }: ContextUsagePan
       <div className="flex items-baseline justify-between gap-2">
         <p className="font-medium text-foreground">{copy.title}</p>
 
-        <span className="text-[0.6875rem] text-muted-foreground">
+        <span className="text-[0.75rem] text-muted-foreground">
           {copy.tokenSummary(
             `${usage.context_estimated ? '~' : ''}${compactNumber(contextUsed)}`,
             compactNumber(contextMax)
@@ -48,7 +48,7 @@ export function ContextUsagePanel({ breakdown, loading, usage }: ContextUsagePan
         </span>
       </div>
 
-      <p className="flex items-center justify-between gap-2 text-[0.6875rem] text-foreground">
+      <p className="flex items-center justify-between gap-2 text-[0.75rem] text-foreground">
         <span>
           {usage.context_estimated ? '~' : ''}
           {copy.percentFull(contextPercent)}
@@ -81,9 +81,9 @@ export function ContextUsagePanel({ breakdown, loading, usage }: ContextUsagePan
         ))}
       </ul>
 
-      {loading && !categories.length && <p className="text-[0.6875rem] text-muted-foreground">{copy.loading}</p>}
+      {loading && !categories.length && <p className="text-[0.75rem] text-muted-foreground">{copy.loading}</p>}
 
-      {!loading && !categories.length && <p className="text-[0.6875rem] text-muted-foreground">{copy.empty}</p>}
+      {!loading && !categories.length && <p className="text-[0.75rem] text-muted-foreground">{copy.empty}</p>}
     </div>
   )
 }

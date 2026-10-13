@@ -71,7 +71,7 @@ export function useAgentTerminal({ active, id, procId }: { active: boolean; id: 
       cursorBlink: false,
       disableStdin: true,
       fontFamily: latestFontFamilyRef.current,
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: 'normal',
       fontWeightBold: 'bold',
       letterSpacing: 0,

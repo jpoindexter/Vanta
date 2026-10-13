@@ -128,7 +128,7 @@ export const UserMessageText: FC<UserMessageTextProps> = ({ className, text }) =
         if (segment.kind === 'fence') {
           return (
             <pre
-              className="my-1.5 max-w-full overflow-x-hidden whitespace-pre-wrap wrap-anywhere rounded-md border border-(--ui-stroke-tertiary) bg-[color-mix(in_srgb,currentColor_5%,transparent)] px-2.5 py-2 font-mono text-[0.86em] leading-snug"
+              className="my-1.5 max-w-full overflow-x-hidden whitespace-pre-wrap wrap-anywhere rounded-md border border-(--ui-stroke-tertiary) bg-[color-mix(in_srgb,currentColor_5%,transparent)] px-2.5 py-2 font-mono text-[length:max(0.75rem,0.86em)] leading-snug"
               data-slot="aui_user-fence"
               key={`fence-${segmentIndex}`}
             >
@@ -159,7 +159,7 @@ const InlineSegmentView: FC<{ text: string }> = ({ text }) => {
       {nodes.map((node, nodeIndex) =>
         node.kind === 'inline-code' ? (
           <code
-            className="mx-px rounded bg-[color-mix(in_srgb,currentColor_8%,transparent)] px-1 py-px font-mono text-[0.92em]"
+            className="mx-px rounded bg-[color-mix(in_srgb,currentColor_8%,transparent)] px-1 py-px font-mono text-[length:max(0.75rem,0.92em)]"
             data-slot="aui_user-inline-code"
             key={`code-${nodeIndex}`}
           >

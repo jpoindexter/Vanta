@@ -273,7 +273,7 @@ export function GroupMentionInput({ members, onChange, onSubmitDraft, value, ...
               onMouseEnter={() => setSelected(index)}
             >
               <span className="font-medium">{`@${option.handle}`}</span>
-              <span className="truncate text-[0.65rem] text-(--ui-text-quaternary)">{option.meta}</span>
+              <span className="truncate text-[0.75rem] text-(--ui-text-quaternary)">{option.meta}</span>
             </RowButton>
           ))}
         </div>
@@ -476,7 +476,7 @@ export function GroupClarifyCard({ entry, members }: GroupClarifyCardProps) {
           : b.group.asks(botHandle(entry.member, member))}
       </div>
       {isApproval && entry.command ? (
-        <code className="block overflow-x-auto rounded bg-(--ui-bg-secondary,rgba(0,0,0,0.25)) px-2 py-1 font-mono text-[0.7rem] whitespace-pre-wrap break-all">
+        <code className="block overflow-x-auto rounded bg-(--ui-bg-secondary,rgba(0,0,0,0.25)) px-2 py-1 font-mono text-[0.75rem] whitespace-pre-wrap break-all">
           {entry.command}
         </code>
       ) : null}
@@ -491,7 +491,7 @@ export function GroupClarifyCard({ entry, members }: GroupClarifyCardProps) {
                 return (
                   <Button
                     className={cn(
-                      'h-6 px-2 text-[0.7rem]',
+                      'h-6 px-2 text-[0.75rem]',
                       isApproval && choice === 'deny' && !chosen && 'text-destructive'
                     )}
                     disabled={sending || !member}

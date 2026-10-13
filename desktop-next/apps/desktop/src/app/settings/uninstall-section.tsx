@@ -154,7 +154,7 @@ export function UninstallSection(): ReactElement | null {
             <p className="text-sm font-medium text-destructive">{t.settings.uninstallSection.confirmUninstall}</p>
             <p className="mt-1 text-xs text-muted-foreground">{u.confirmBody(pendingOption.consequence)}</p>
             {summary?.running_app_path && (
-              <p className="mt-1 font-mono text-[0.68rem] text-muted-foreground/60">
+              <p className="mt-1 font-mono text-[0.75rem] text-muted-foreground/60">
                 {u.appLabel} {summary.running_app_path}
               </p>
             )}

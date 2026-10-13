@@ -182,13 +182,13 @@ function AttachmentPill({ attachment, onRemove }: { attachment: ComposerAttachme
               )}
             </span>
             <span className="min-w-0">
-              <span className="block truncate text-[0.72rem] font-medium leading-4 text-foreground/90">
+              <span className="block truncate text-[0.75rem] font-medium leading-4 text-foreground/90">
                 {attachment.label}
               </span>
               {detail && (
                 <span
                   className={cn(
-                    'block truncate text-[0.62rem] leading-3.5',
+                    'block truncate text-[0.75rem] leading-3.5',
                     hasUploadError ? 'text-destructive/80' : 'text-muted-foreground/65'
                   )}
                 >

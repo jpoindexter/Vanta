@@ -51,7 +51,7 @@ export interface DirectorySections {
 // The onboarding apps step showed search from this many apps on.
 const SEARCH_THRESHOLD = 12
 
-const LABEL_CLASS = 'text-[0.6875rem] leading-4 text-(--ui-text-tertiary)'
+const LABEL_CLASS = 'text-[0.75rem] leading-4 text-(--ui-text-tertiary)'
 
 const matches = (card: ConnectorCardModel, needle: string): boolean =>
   !needle || card.name.toLowerCase().includes(needle) || card.slug.includes(needle)

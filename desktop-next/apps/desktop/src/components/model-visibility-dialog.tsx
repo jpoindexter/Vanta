@@ -165,7 +165,7 @@ export function ModelVisibilityDialog({
                 <div className="py-0.5" key={provider.slug}>
                   <div className="flex items-center gap-2 px-3 pb-0.5 pt-1">
                     <button
-                      className="group/label flex w-full items-center gap-1 pb-0.5 pt-0.5 text-left text-[0.625rem] font-semibold uppercase tracking-wider text-(--ui-text-secondary) hover:bg-transparent"
+                      className="group/label flex w-full items-center gap-1 pb-0.5 pt-0.5 text-left text-[0.75rem] font-semibold uppercase tracking-wider text-(--ui-text-secondary) hover:bg-transparent"
                       onClick={() => toggleCollapsedProvider(provider.slug)}
                       type="button"
                     >
@@ -226,7 +226,7 @@ export function ModelVisibilityDialog({
           )}
           {customSlug && providers.length > 0 && (
             <div className="py-0.5">
-              <div className="px-3 pb-0.5 pt-1 text-[0.625rem] font-semibold uppercase tracking-wider text-(--ui-text-tertiary)">
+              <div className="px-3 pb-0.5 pt-1 text-[0.75rem] font-semibold uppercase tracking-wider text-(--ui-text-tertiary)">
                 {copy.addCustomModel}
               </div>
               {providers.map(provider => (

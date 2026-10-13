@@ -41,7 +41,7 @@ export function WslgWindowControls({ isFullscreen, isMaximized }: WslgWindowCont
   return (
     <div
       aria-label="Window controls"
-      className="fixed right-0 top-0 z-80 flex items-stretch overflow-hidden bg-(--ui-chat-surface-background) text-[10px]"
+      className="fixed right-0 top-0 z-80 flex items-stretch overflow-hidden bg-(--ui-chat-surface-background) text-[0.75rem]"
       // Pin the real titlebar height: the shared --titlebar-height var is
       // contextually zeroed inside the contrib shell, so read the constant.
       style={{ height: `${TITLEBAR_HEIGHT}px` } as CSSProperties}

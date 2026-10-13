@@ -700,7 +700,7 @@ function PlatformRow({
             <span
               aria-label={t.messaging.pendingAria(pendingCount)}
               className={cn(
-                'inline-flex min-w-4 items-center justify-center rounded-full px-1 text-[0.66rem] font-medium tabular-nums',
+                'inline-flex min-w-4 items-center justify-center rounded-full px-1 text-[0.75rem] font-medium tabular-nums',
                 PILL_TONE.warn
               )}
             >
@@ -919,7 +919,7 @@ function PlatformDetail({
       {hiddenCount > 0 && (
         <section>
           <button
-            className="flex w-full items-center justify-between gap-2 py-0.5 text-left text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground"
+            className="flex w-full items-center justify-between gap-2 py-0.5 text-left text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground"
             onClick={() => setShowAdvanced(value => !value)}
             type="button"
           >
@@ -1102,7 +1102,7 @@ function MessagingField({
       title={
         <span className="flex flex-wrap items-center gap-2">
           <label htmlFor={fieldId}>{copy.label}</label>
-          {field.is_set && <span className="text-[0.66rem] font-medium text-primary">{m.saved}</span>}
+          {field.is_set && <span className="text-[0.75rem] font-medium text-primary">{m.saved}</span>}
         </span>
       }
     />
@@ -1110,7 +1110,7 @@ function MessagingField({
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h4 className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{children}</h4>
+  return <h4 className="text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{children}</h4>
 }
 
 function PlatformHint({ platform }: { platform: MessagingPlatformInfo }) {
@@ -1147,7 +1147,7 @@ function StatePill({ children, tone }: { children: string; tone: StatusTone }) {
   return (
     <span
       className={cn(
-        'inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[0.66rem] font-medium',
+        'inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[0.75rem] font-medium',
         PILL_TONE[tone]
       )}
     >
@@ -1161,7 +1161,7 @@ function SetupPill({ active, children }: { active: boolean; children: string }) 
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full px-2 py-0.5 text-[0.66rem] font-medium',
+        'inline-flex items-center rounded-full px-2 py-0.5 text-[0.75rem] font-medium',
         PILL_TONE[active ? 'good' : 'muted']
       )}
     >

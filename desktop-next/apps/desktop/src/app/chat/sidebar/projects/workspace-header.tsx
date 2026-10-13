@@ -260,7 +260,7 @@ export function WorkspaceHeader({
   return (
     <div
       className={cn(
-        'group/workspace flex min-h-6 items-center gap-1 px-2 pt-1 text-[0.6875rem]',
+        'group/workspace flex min-h-6 items-center gap-1 px-2 pt-1 text-[0.75rem]',
         emphasis ? 'font-semibold text-(--ui-text-secondary)' : 'font-medium text-(--ui-text-tertiary)'
       )}
       ref={ref}

@@ -37,7 +37,7 @@ export function EmbedFacade({ descriptor, onLoad }: { descriptor: EmbedDescripto
         primaryIcon={<Play className="size-3 translate-x-px fill-current" />}
         value={choice}
       />
-      <span className="text-[0.6875rem] text-(--ui-text-tertiary)">{hostOf(descriptor)}</span>
+      <span className="text-[0.75rem] text-(--ui-text-tertiary)">{hostOf(descriptor)}</span>
     </span>
   )
 }

@@ -72,7 +72,7 @@ export function FlowPanel({
         {flow.detail ? (
           <details className="text-xs text-muted-foreground">
             <summary className="cursor-pointer select-none">{t.onboarding.errorDetails}</summary>
-            <pre className="mt-1 whitespace-pre-wrap wrap-break-word font-mono text-[0.6875rem]">{flow.detail}</pre>
+            <pre className="mt-1 whitespace-pre-wrap wrap-break-word font-mono text-[0.75rem]">{flow.detail}</pre>
           </details>
         ) : null}
         <div className="flex flex-wrap justify-end gap-2">
@@ -279,16 +279,16 @@ function ConfirmingModelPanel({
         )}
       >
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[0.625rem] uppercase tracking-[0.2em] text-muted-foreground">
+          <span className="font-mono text-[0.75rem] uppercase tracking-[0.2em] text-muted-foreground">
             {t.onboarding.defaultModel}
           </span>
           {freeTier === true && (
-            <span className="rounded-sm bg-emerald-500/15 px-1 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
+            <span className="rounded-sm bg-emerald-500/15 px-1 py-0.5 text-[0.75rem] font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
               {t.onboarding.freeTier}
             </span>
           )}
           {freeTier === false && (
-            <span className="rounded-sm bg-primary/15 px-1 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-primary">
+            <span className="rounded-sm bg-primary/15 px-1 py-0.5 text-[0.75rem] font-semibold uppercase tracking-wide text-primary">
               {t.onboarding.pro}
             </span>
           )}

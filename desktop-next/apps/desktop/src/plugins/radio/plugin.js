@@ -53,7 +53,7 @@ const CSS = `
 .hermes-radio-next{display:flex;align-items:center;width:12px;height:12px}
 .hermes-radio-waveform[data-active=true]{color:var(--ui-accent);opacity:1}
 .hermes-radio-signal{height:48px;padding:5px 6px 0;min-width:0}
-.hermes-radio-track{display:flex;align-items:center;gap:5px;height:19px;min-width:0;font-size:11px;line-height:16px;color:var(--ui-text-secondary)}
+.hermes-radio-track{display:flex;align-items:center;gap:5px;height:19px;min-width:0;font-size:12px;line-height:16px;color:var(--ui-text-secondary)}
 .hermes-radio-track-text{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0}
 .hermes-radio-track[data-track=true]{color:var(--ui-text-primary)}
 .hermes-radio-artist{min-width:0;max-width:55%;flex-shrink:1;font-size:inherit;font-weight:inherit}
@@ -88,7 +88,7 @@ const CSS = `
 .hermes-radio-volume{display:flex;align-items:center;gap:4px;height:28px;padding:2px 2px 0}
 .hermes-radio-volume-space{flex:1;min-width:6px}
 .hermes-radio-volume input{width:76px;min-width:0;height:3px;accent-color:var(--ui-accent);cursor:pointer}
-.hermes-radio-error{font-size:11px;line-height:17px;color:var(--ui-text-secondary);padding:4px 4px 12px}
+.hermes-radio-error{font-size:12px;line-height:17px;color:var(--ui-text-secondary);padding:4px 4px 12px}
 `
 
 function httpsUrl(value) {

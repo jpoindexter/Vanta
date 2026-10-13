@@ -74,7 +74,7 @@ export function ToolsSummary({
         <h3 className="min-w-0 truncate text-xs font-medium text-(--ui-text-primary)">
           {title ?? (preview ? copy.summaryPreviewTitle(connectorName) : copy.summaryTitle(connectorName))}
         </h3>
-        <span className="shrink-0 tabular-nums text-[0.7rem] text-(--ui-text-tertiary)">
+        <span className="shrink-0 tabular-nums text-[0.75rem] text-(--ui-text-tertiary)">
           {copy.summaryCount(total)}
         </span>
       </div>
@@ -100,7 +100,7 @@ export function ToolsSummary({
 
               {preview ? null : (
                 <>
-                  <span className="w-24 shrink-0 text-right text-[0.7rem] text-(--ui-text-tertiary)">
+                  <span className="w-24 shrink-0 text-right text-[0.75rem] text-(--ui-text-tertiary)">
                     {onLabel(copy, row)}
                   </span>
                   <Switch

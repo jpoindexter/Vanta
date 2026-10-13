@@ -131,7 +131,7 @@ export function LogTail({ className, emptyLabel, lines, search }: LogTailProps) 
         ref={scrollRef}
       >
         {lines === null || lines.length === 0 ? (
-          <p className="px-2 py-1.5 font-mono text-[0.7rem] leading-relaxed text-muted-foreground/50">
+          <p className="px-2 py-1.5 font-mono text-[0.75rem] leading-relaxed text-muted-foreground/50">
             {lines === null ? '…' : emptyLabel}
           </p>
         ) : (

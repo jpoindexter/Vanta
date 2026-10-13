@@ -537,7 +537,7 @@ export function useTerminalSession({
       convertEol: true,
       cursorBlink: true,
       fontFamily: latestFontFamilyRef.current,
-      fontSize: 11,
+      fontSize: 12,
       // VS Code's terminal renders 'normal'/'bold' (400/700); we were using Medium
       // (500) as the base, which reads a touch heavy at this size.
       fontWeight: 'normal',

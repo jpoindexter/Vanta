@@ -120,7 +120,7 @@ export function ProviderConfigModal({
         <div className="min-w-0">
           {groupFields(config.fields).map(([group, fields]) => (
             <section className="mt-6 first:mt-2" key={group}>
-              <h3 className="border-b border-(--ui-accent-secondary)/30 pb-1.5 font-mono text-[0.68rem] uppercase tracking-wide text-(--ui-accent-secondary)">
+              <h3 className="border-b border-(--ui-accent-secondary)/30 pb-1.5 font-mono text-[0.75rem] uppercase tracking-wide text-(--ui-accent-secondary)">
                 {group}
               </h3>
               <div className="pl-1">

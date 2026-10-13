@@ -90,13 +90,13 @@ export function ConnectorsDirectory({
               ) : null}
 
               {segmentFellBack ? (
-                <span className="text-[0.7rem] text-(--ui-text-tertiary)">
+                <span className="text-[0.75rem] text-(--ui-text-tertiary)">
                   {copy.page.segmentNoMatch(segmentLabel(filter.segment))}
                 </span>
               ) : null}
 
               {hiddenMatches > 0 ? (
-                <span className="flex items-center gap-1 text-[0.7rem] text-(--ui-text-tertiary)">
+                <span className="flex items-center gap-1 text-[0.75rem] text-(--ui-text-tertiary)">
                   {copy.page.matchesElsewhere(hiddenMatches)}
                   <Button onClick={() => set({ segment: 'all' })} size="xs" variant="text">
                     {copy.page.showAllMatches}
@@ -220,5 +220,5 @@ function Group({
 }
 
 function Note({ children }: { children: ReactNode }) {
-  return <span className="truncate text-[0.65rem] text-(--ui-text-tertiary)">{children}</span>
+  return <span className="truncate text-[0.75rem] text-(--ui-text-tertiary)">{children}</span>
 }

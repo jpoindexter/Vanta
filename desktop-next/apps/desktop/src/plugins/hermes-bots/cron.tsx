@@ -588,18 +588,18 @@ export function RoutineRow({ job, onOpen, owner }: RoutineRowProps) {
           pane can't fit both on one line the next-run label wraps to a second
           line instead of being cut to "next in 4" (#89534). */}
       <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 pl-3.5">
-        <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-(--ui-stroke-secondary) px-1.5 py-0.5 text-[0.65rem] text-(--ui-text-tertiary)">
-          <Codicon className="text-[0.7rem]" name="calendar" />
+        <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-(--ui-stroke-secondary) px-1.5 py-0.5 text-[0.75rem] text-(--ui-text-tertiary)">
+          <Codicon className="text-[0.75rem]" name="calendar" />
           {scheduleLabel(job.schedule)}
         </span>
-        <span className="ml-auto shrink-0 whitespace-nowrap text-[0.65rem] text-(--ui-text-quaternary)">
+        <span className="ml-auto shrink-0 whitespace-nowrap text-[0.75rem] text-(--ui-text-quaternary)">
           {active && job.next_run_at
             ? `${nextRunOverdueMs(job) === null ? c.next : c.overdueSince} ${relativeTime(new Date(job.next_run_at).getTime())}`
             : c.states.paused}
         </span>
       </div>
       {legacyUnsafe ? (
-        <div className="rounded-md border border-(--ui-stroke-secondary) px-2 py-1.5 text-[0.65rem] leading-4 text-(--ui-accent)">
+        <div className="rounded-md border border-(--ui-stroke-secondary) px-2 py-1.5 text-[0.75rem] leading-4 text-(--ui-accent)">
           {b.cron.legacyUnsafe}
         </div>
       ) : null}
@@ -923,7 +923,7 @@ function SchedulePicker({ state, setState }: SchedulePickerProps) {
           <span className="text-xs text-(--ui-text-tertiary)">{b.cron.runsHint}</span>
         </div>
       ) : null}
-      <div className="text-[0.65rem] text-(--ui-text-quaternary)">{`${scheduleSummary(state, b.cron, timeLabel)} \u00b7 ${composeSchedule(state) || '\u2014'}`}</div>
+      <div className="text-[0.75rem] text-(--ui-text-quaternary)">{`${scheduleSummary(state, b.cron, timeLabel)} \u00b7 ${composeSchedule(state) || '\u2014'}`}</div>
     </div>
   )
 }
@@ -1271,10 +1271,10 @@ export function RoutinesPane() {
               )}
             </div>
             {showsHandle(bot, meta) ? (
-              <span className="shrink-0 font-mono text-[0.65rem] text-(--ui-text-quaternary)">{`@${botHandle(bot)}`}</span>
+              <span className="shrink-0 font-mono text-[0.75rem] text-(--ui-text-quaternary)">{`@${botHandle(bot)}`}</span>
             ) : null}
           </div>
-          <div className="text-[0.65rem] uppercase tracking-wider text-(--ui-text-quaternary)">{c.title}</div>
+          <div className="text-[0.75rem] uppercase tracking-wider text-(--ui-text-quaternary)">{c.title}</div>
         </div>
         <Tip label={c.newCron}>
           <Button aria-label={c.newCron} onClick={openCreate} size="icon-xs" variant="ghost">
@@ -1284,7 +1284,7 @@ export function RoutinesPane() {
       </div>
       <div className="mx-3 border-t border-(--ui-stroke-secondary)" />
       {staleNotice ? (
-        <div className="mx-3 mt-2 rounded-md bg-(--chrome-action-hover) px-2 py-1.5 text-[0.6875rem] text-(--ui-text-tertiary)">
+        <div className="mx-3 mt-2 rounded-md bg-(--chrome-action-hover) px-2 py-1.5 text-[0.75rem] text-(--ui-text-tertiary)">
           {staleNotice}
         </div>
       ) : null}

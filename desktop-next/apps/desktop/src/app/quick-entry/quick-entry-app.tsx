@@ -185,7 +185,7 @@ export function QuickEntryApp() {
             style={{
               color: 'var(--muted-foreground, #8a8a8a)',
               flexShrink: 0,
-              fontSize: 11,
+              fontSize: 12,
               userSelect: 'none'
             }}
           >
@@ -207,7 +207,7 @@ export function QuickEntryApp() {
               border: '1px solid var(--ui-stroke-secondary, rgba(127,127,127,0.35))',
               borderRadius: 6,
               color: 'var(--foreground, #eee)',
-              fontSize: 11,
+              fontSize: 12,
               maxWidth: 320,
               padding: '2px 6px'
             }}
@@ -227,7 +227,7 @@ export function QuickEntryApp() {
           </select>
         </div>
         {state.error ? (
-          <div role="alert" style={{ color: 'var(--destructive, #ef4444)', fontSize: 11 }}>
+          <div role="alert" style={{ color: 'var(--destructive, #ef4444)', fontSize: 12 }}>
             {state.error}
           </div>
         ) : null}

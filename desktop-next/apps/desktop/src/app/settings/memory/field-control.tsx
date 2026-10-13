@@ -108,7 +108,7 @@ export function FieldControl({
           value={value}
         />
         {field.is_set && (
-          <span className="inline-flex items-center gap-1 self-start font-mono text-[0.65rem] text-(--ui-text-tertiary)">
+          <span className="inline-flex items-center gap-1 self-start font-mono text-[0.75rem] text-(--ui-text-tertiary)">
             <Check className="size-3 text-(--ui-accent-secondary)" />
             set
           </span>

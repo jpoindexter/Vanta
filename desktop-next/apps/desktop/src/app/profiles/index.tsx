@@ -237,7 +237,7 @@ function ProfileDetail({ profile }: { profile: ProfileInfo }) {
             {profile.has_env && <PanelPill tone="muted">.env</PanelPill>}
           </div>
           <p
-            className="mt-1 truncate font-mono text-[0.66rem] text-muted-foreground/55"
+            className="mt-1 truncate font-mono text-[0.75rem] text-muted-foreground/55"
             title={displayPath(profile.path)}
           >
             {displayPath(profile.path)}
@@ -330,10 +330,10 @@ function SoulEditor({ profileName }: { profileName: string }) {
     <section className="space-y-2">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <PanelSectionLabel className="text-[0.7rem] tracking-[0.14em]">SOUL.md</PanelSectionLabel>
+          <PanelSectionLabel className="text-[0.75rem] tracking-[0.14em]">SOUL.md</PanelSectionLabel>
           <p className="text-xs text-muted-foreground">{missing ? p.soulMissing : p.soulDesc}</p>
         </div>
-        {dirty && <span className="text-[0.65rem] text-muted-foreground">{p.unsavedChanges}</span>}
+        {dirty && <span className="text-[0.75rem] text-muted-foreground">{p.unsavedChanges}</span>}
       </div>
 
       {loading ? (

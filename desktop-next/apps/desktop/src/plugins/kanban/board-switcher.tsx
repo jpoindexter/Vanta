@@ -81,7 +81,7 @@ function ProjectPicker({ onChange, value }: { onChange: (id: string) => void; va
           ))}
         </SelectContent>
       </Select>
-      <span className="text-[0.6875rem] leading-relaxed text-(--ui-text-quaternary)">
+      <span className="text-[0.75rem] leading-relaxed text-(--ui-text-quaternary)">
         {k.projectHintPre}
         <span className="font-mono">{k.projectHintCmd}</span>.
       </span>
@@ -169,7 +169,7 @@ function BoardNameField({
         placeholder={k.boardNamePlaceholder}
         value={value}
       />
-      {slug && <span className="text-[0.6875rem] text-(--ui-text-quaternary)">{k.slug(slug)}</span>}
+      {slug && <span className="text-[0.75rem] text-(--ui-text-quaternary)">{k.slug(slug)}</span>}
     </label>
   )
 }
@@ -351,10 +351,10 @@ export function BoardSwitcher() {
               variant="ghost"
             >
               <Codicon className="shrink-0 text-(--ui-text-tertiary)" name="project" size="0.8125rem" />
-              <span className="shrink-0 text-[0.6875rem] font-medium text-(--ui-text-tertiary)">{k.board}</span>
+              <span className="shrink-0 text-[0.75rem] font-medium text-(--ui-text-tertiary)">{k.board}</span>
               <span className="min-w-0 flex-1 truncate text-[0.75rem] font-medium leading-none">{label}</span>
               {typeof current?.total === 'number' && (
-                <span className="text-[0.6875rem] tabular-nums text-(--ui-text-quaternary)">{current.total}</span>
+                <span className="text-[0.75rem] tabular-nums text-(--ui-text-quaternary)">{current.total}</span>
               )}
               <Codicon className="shrink-0 text-(--ui-text-tertiary)" name="chevron-down" size="0.8125rem" />
             </Button>
@@ -368,7 +368,7 @@ export function BoardSwitcher() {
             >
               {meta.name || meta.slug}
               {typeof meta.total === 'number' && (
-                <span className="text-[0.625rem] tabular-nums text-(--ui-text-quaternary)">{meta.total}</span>
+                <span className="text-[0.75rem] tabular-nums text-(--ui-text-quaternary)">{meta.total}</span>
               )}
               {meta.slug === currentSlug && <Codicon className="ml-auto" name="check" size="0.8rem" />}
             </DropdownMenuItem>

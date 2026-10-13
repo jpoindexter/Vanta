@@ -58,7 +58,7 @@ export function ReviewShipBar() {
     // it's a deliberate read-only view, not a broken pane.
     return (
       <div
-        className="shrink-0 px-2 pb-1.5 text-center text-[0.64rem] text-(--ui-text-tertiary)"
+        className="shrink-0 px-2 pb-1.5 text-center text-[0.75rem] text-(--ui-text-tertiary)"
         data-suppress-pane-reveal-side=""
       >
         {c.readOnlyScope}
@@ -146,7 +146,7 @@ export function ReviewShipBar() {
           the whole bar; px-7 reserves the icon's width on both sides. */}
       <div className="relative flex min-w-0 items-center">
         <Button
-          className="min-w-0 flex-1 justify-center px-7 text-[0.7rem] text-muted-foreground/85 hover:text-foreground"
+          className="min-w-0 flex-1 justify-center px-7 text-[0.75rem] text-muted-foreground/85 hover:text-foreground"
           disabled={!hasFiles}
           onClick={() => {
             if (!requestComposerSubmit(c.agentShipPrompt, { target: scopeTarget })) {

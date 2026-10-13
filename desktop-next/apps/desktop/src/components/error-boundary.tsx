@@ -170,7 +170,7 @@ function RootErrorFallback({ error, reset }: ErrorBoundaryFallbackProps) {
             {error.message ? (
               <details className="mt-2 text-left text-xs text-muted-foreground">
                 <summary className="cursor-pointer select-none text-center">{t.errors.boundaryDetails}</summary>
-                <pre className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap wrap-break-word font-mono text-[0.6875rem]">
+                <pre className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap wrap-break-word font-mono text-[0.75rem]">
                   {error.message}
                 </pre>
               </details>

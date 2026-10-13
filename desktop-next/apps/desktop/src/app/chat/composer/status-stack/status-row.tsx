@@ -128,7 +128,7 @@ export const StatusItemRow = memo(function StatusItemRow({
       >
         <span
           className={cn(
-            'min-w-0 flex-1 truncate text-[0.73rem] leading-4',
+            'min-w-0 flex-1 truncate text-[0.75rem] leading-4',
             failed
               ? 'text-destructive/90'
               : item.todoStatus && item.todoStatus !== 'in_progress'
@@ -139,17 +139,17 @@ export const StatusItemRow = memo(function StatusItemRow({
           {item.title}
         </span>
         {item.type === 'subagent' && item.currentTool && (
-          <span className="shrink-0 truncate text-[0.62rem] leading-4 text-muted-foreground/70">
+          <span className="shrink-0 truncate text-[0.75rem] leading-4 text-muted-foreground/70">
             {toolLabel(item.currentTool)}
           </span>
         )}
         {item.type === 'goal' && item.currentTool && (
-          <span className="shrink-0 truncate text-[0.62rem] leading-4 text-muted-foreground/70">
+          <span className="shrink-0 truncate text-[0.75rem] leading-4 text-muted-foreground/70">
             {item.currentTool}
           </span>
         )}
         {failed && typeof item.exitCode === 'number' && item.exitCode !== 0 && (
-          <span className="shrink-0 rounded bg-destructive/15 px-1 text-[0.58rem] font-semibold text-destructive tabular-nums">
+          <span className="shrink-0 rounded bg-destructive/15 px-1 text-[0.75rem] font-semibold text-destructive tabular-nums">
             {s.exit(item.exitCode)}
           </span>
         )}

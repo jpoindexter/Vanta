@@ -1946,7 +1946,7 @@ export function ChatSidebar({
                 labelMeta={
                   worktreeGroupingActive ? (
                     reposScanning && !projectsSkeletonVisible ? (
-                      <GlyphSpinner ariaLabel={s.loading} className="text-[0.6875rem] text-(--ui-text-quaternary)" />
+                      <GlyphSpinner ariaLabel={s.loading} className="text-[0.75rem] text-(--ui-text-quaternary)" />
                     ) : undefined
                   ) : undefined
                 }
@@ -2023,7 +2023,7 @@ export function ChatSidebar({
                     label={group.label}
                     labelIcon={
                       <PlatformAvatar
-                        className="size-4 rounded-[4px] text-[0.5625rem] [&_svg]:size-3"
+                        className="size-4 rounded-[4px] text-[0.75rem] [&_svg]:size-3"
                         platformId={group.sourceId}
                         platformName={group.label}
                       />

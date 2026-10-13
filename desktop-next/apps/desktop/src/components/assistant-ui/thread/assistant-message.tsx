@@ -167,7 +167,7 @@ export const AssistantMessage: FC<AssistantMessageProps> = props => {
 /** The compact stand-in a settled inter-agent reply collapses to (Grok-bots
  *  parity — the transcript shows the event; the text is one click away). */
 const InterAgentCollapsedNotice: FC<{ sender: string }> = ({ sender }) => (
-  <div className="flex max-w-[min(86%,44rem)] flex-col gap-0.5 self-center px-2 py-0.5 text-[0.6875rem] leading-5 text-muted-foreground/60">
+  <div className="flex max-w-[min(86%,44rem)] flex-col gap-0.5 self-center px-2 py-0.5 text-[0.75rem] leading-5 text-muted-foreground/60">
     <span className="flex items-center justify-center gap-1.5">
       <Codicon className="shrink-0 text-muted-foreground/55" name="arrow-small-right" size="0.8125rem" />
       <span className="wrap-anywhere">Replied to {sender}</span>
@@ -377,7 +377,7 @@ const StoppedNotice: FC = () => {
 
   return (
     <div
-      className="flex items-center gap-1 px-(--message-text-indent) pt-1 text-[0.72rem] text-(--ui-text-tertiary)"
+      className="flex items-center gap-1 px-(--message-text-indent) pt-1 text-[0.75rem] text-(--ui-text-tertiary)"
       data-slot="aui_assistant-message-stopped"
     >
       <Codicon className="size-3" name="debug-stop" />
@@ -602,7 +602,7 @@ const ErrorCardHeadline: FC = () => {
       <div className="font-medium">{title}</div>
       <div>{body}</div>
       {errorText && (
-        <details className="mt-0.5 min-w-0 text-[0.72rem] opacity-70">
+        <details className="mt-0.5 min-w-0 text-[0.75rem] opacity-70">
           <summary className="cursor-pointer select-none">{t.assistant.thread.errorDetails}</summary>
           <div className="wrap-anywhere mt-0.5 whitespace-pre-wrap font-mono">{errorText}</div>
         </details>
@@ -1036,7 +1036,7 @@ const AssistantActionBar: FC<MessageActionProps & { durationS?: number }> = ({
     <div className="relative flex w-full shrink-0 items-center justify-end gap-1.5">
       {durationS !== undefined && (
         <span
-          className="mr-auto select-none px-0.5 text-[0.6875rem] leading-5 tabular-nums text-muted-foreground"
+          className="mr-auto select-none px-0.5 text-[0.75rem] leading-5 tabular-nums text-muted-foreground"
           data-slot="aui_turn-duration"
           title={t.assistant.thread.turnDuration(formatElapsed(durationS))}
         >

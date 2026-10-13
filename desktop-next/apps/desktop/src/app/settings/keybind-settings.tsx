@@ -132,12 +132,12 @@ function ShortcutSettings({ includeScreenshot }: { includeScreenshot: boolean })
       <div className="flex items-center justify-between gap-3 pb-3">
         <div className="min-w-0">
           {!hasBreadcrumb && <h2 className="text-sm font-semibold text-foreground">{k.title}</h2>}
-          <p className="mt-0.5 text-[0.72rem] text-muted-foreground">
+          <p className="mt-0.5 text-[0.75rem] text-muted-foreground">
             {k.subtitle(openCombo ? formatCombo(openCombo) : '')}
           </p>
         </div>
         <button
-          className="flex shrink-0 items-center gap-1 rounded-md text-[0.72rem] text-muted-foreground hover:text-foreground"
+          className="flex shrink-0 items-center gap-1 rounded-md text-[0.75rem] text-muted-foreground hover:text-foreground"
           onClick={resetAllBindings}
           type="button"
         >
@@ -216,7 +216,7 @@ function CategoryHeader({ label, onToggle, open }: { label: string; onToggle: ()
       onClick={onToggle}
       type="button"
     >
-      <span className="min-w-0 truncate text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground/70">
+      <span className="min-w-0 truncate text-[0.75rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground/70">
         {label}
       </span>
       <DisclosureCaret

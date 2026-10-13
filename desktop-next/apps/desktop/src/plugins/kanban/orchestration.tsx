@@ -100,11 +100,11 @@ function ProfileDescriptionRow({ profile }: { profile: KanbanProfile }) {
       <span className="w-24 shrink-0 truncate text-[0.75rem] font-medium text-(--ui-text-secondary)">
         {profile.name}
         {profile.is_default && (
-          <span className="ml-1 text-[0.625rem] text-(--ui-text-quaternary)">{k.defaultParen}</span>
+          <span className="ml-1 text-[0.75rem] text-(--ui-text-quaternary)">{k.defaultParen}</span>
         )}
       </span>
       <Input
-        className="h-7 flex-1 text-[0.71rem]"
+        className="h-7 flex-1 text-[0.75rem]"
         onChange={event => setDraft(event.target.value)}
         placeholder={k.profileGoodAt}
         value={draft}
@@ -176,7 +176,7 @@ export function OrchestrationPanel() {
 
       <div className="flex flex-col gap-1.5">
         <span className={FIELD_LABEL}>{k.profileDescriptions}</span>
-        <p className="text-[0.6875rem] text-(--ui-text-quaternary)">{k.profileDescriptionsHint}</p>
+        <p className="text-[0.75rem] text-(--ui-text-quaternary)">{k.profileDescriptionsHint}</p>
         {roster.profiles.map(profile => (
           <ProfileDescriptionRow key={`${profile.name}:${profile.description}`} profile={profile} />
         ))}

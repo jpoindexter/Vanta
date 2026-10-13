@@ -427,7 +427,7 @@ function ArtifactsPagination({ className, itemLabel, onPageChange, page, pageSiz
 
   return (
     <div className={cn('flex h-6 items-center justify-between gap-2 px-1', className)}>
-      <div className="shrink-0 text-[0.62rem] text-muted-foreground">
+      <div className="shrink-0 text-[0.75rem] text-muted-foreground">
         {pageRangeLabel(total, page, pageSize, a)} {itemLabel}
       </div>
       {pageCount > 1 && (
@@ -525,17 +525,17 @@ function ArtifactImageCard({ artifact, failedImage, onImageError, onOpenChat }: 
 
       <div className="space-y-1.5 p-2">
         <div className="min-w-0">
-          <div className="mb-0.5 flex items-center gap-1 text-[0.625rem] uppercase tracking-[0.08em] text-(--ui-text-tertiary)">
+          <div className="mb-0.5 flex items-center gap-1 text-[0.75rem] uppercase tracking-[0.08em] text-(--ui-text-tertiary)">
             <FileImage className="size-3" />
             {kindLabel}
           </div>
           <div className="truncate text-[length:var(--conversation-caption-font-size)] font-medium">
             {artifact.label}
           </div>
-          <div className="mt-0.5 truncate text-[0.625rem] text-(--ui-text-tertiary)">{artifact.value}</div>
+          <div className="mt-0.5 truncate text-[0.75rem] text-(--ui-text-tertiary)">{artifact.value}</div>
         </div>
 
-        <div className="truncate text-[0.625rem] text-(--ui-text-tertiary)">
+        <div className="truncate text-[0.75rem] text-(--ui-text-tertiary)">
           {artifact.sessionTitle} · {formatArtifactTime(artifact.timestamp)}
         </div>
 
@@ -647,7 +647,7 @@ const SessionCell = memo(function SessionCell({ artifact, ctx }: { artifact: Art
     <ArtifactCellAction onClick={() => ctx.onOpenChat(artifact.sessionId)} title={artifact.sessionTitle}>
       <span className="flex min-w-0 flex-col">
         <span className="truncate">{artifact.sessionTitle}</span>
-        <span className="truncate text-[0.6875rem] font-normal text-(--ui-text-tertiary)">
+        <span className="truncate text-[0.75rem] font-normal text-(--ui-text-tertiary)">
           {formatArtifactTime(artifact.timestamp)}
         </span>
       </span>
@@ -694,7 +694,7 @@ function ArtifactTable({
 
   return (
     <table className="w-full min-w-176 table-fixed text-left text-[length:var(--conversation-caption-font-size)]">
-      <thead className="border-b border-(--ui-stroke-tertiary) bg-(--ui-bg-quinary) text-[0.625rem] uppercase tracking-[0.08em] text-(--ui-text-tertiary)">
+      <thead className="border-b border-(--ui-stroke-tertiary) bg-(--ui-bg-quinary) text-[0.75rem] uppercase tracking-[0.08em] text-(--ui-text-tertiary)">
         <tr>
           {ARTIFACT_COLUMNS.map(col => (
             <th className={cn(col.width(filter), 'px-2.5 py-1.5 font-medium')} key={col.id}>

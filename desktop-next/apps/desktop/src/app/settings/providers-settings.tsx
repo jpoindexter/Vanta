@@ -295,7 +295,7 @@ function ConnectedProviderRow({
         </div>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">{t.onboarding.flowSubtitles[provider.flow]}</p>
         {showHint && (
-          <p className="mt-0.5 truncate text-[0.68rem] leading-5 text-muted-foreground/70">
+          <p className="mt-0.5 truncate text-[0.75rem] leading-5 text-muted-foreground/70">
             {provider.flow === 'external' ? copy.removeExternalGeneric(title) : copy.removeKeyManaged(title)}
           </p>
         )}

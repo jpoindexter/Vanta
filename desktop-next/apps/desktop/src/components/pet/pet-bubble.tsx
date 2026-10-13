@@ -92,7 +92,7 @@ const BUBBLE_SURFACE = {
   border: '1px solid var(--ui-stroke-secondary)',
   boxShadow: '0 4px 14px rgba(0,0,0,0.22)',
   color: 'var(--foreground)',
-  fontSize: 11,
+  fontSize: 12,
   fontWeight: 500,
   pointerEvents: 'none'
 } as const
@@ -177,7 +177,7 @@ export function PetBubble({ showStatus = true }: PetBubbleProps = {}) {
         <span
           style={{
             color: 'var(--ui-text-secondary, var(--muted-foreground))',
-            fontSize: 9,
+            fontSize: 12,
             fontWeight: 600,
             letterSpacing: 0.2,
             lineHeight: 1,

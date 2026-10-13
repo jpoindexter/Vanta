@@ -27,7 +27,7 @@ function RuntimeChip({ prefs }) {
   return jsx(Tip, {
     label: `Loaded at RUNTIME through blob import + SDK injection (gateway: ${gateway})`,
     children: jsxs('span', {
-      className: cn('inline-flex h-full items-center gap-1 px-1.5 text-[0.6875rem]', 'text-(--ui-text-tertiary)'),
+      className: cn('inline-flex h-full items-center gap-1 px-1.5 text-[0.75rem]', 'text-(--ui-text-tertiary)'),
       children: [
         jsx('span', { 'aria-hidden': true, children: '⚡' }),
         label === 'word' ? jsx('span', { children: 'runtime' }) : null

@@ -142,7 +142,7 @@ export function SessionStatusDot({ storedSessionId, session, branchStem, classNa
   return (
     <span className={cn('flex items-center gap-0.5', className)}>
       {branchStem ? (
-        <span aria-hidden className="shrink-0 font-mono text-[0.625rem] leading-none text-(--ui-text-quaternary)">
+        <span aria-hidden className="shrink-0 font-mono text-[0.75rem] leading-none text-(--ui-text-quaternary)">
           {branchStem}
         </span>
       ) : null}

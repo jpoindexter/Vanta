@@ -189,7 +189,7 @@ export function PetTab({ image, onImage }: PetTabProps) {
 
   return (
     <div className="grid w-full gap-2">
-      <div className="text-center text-[0.65rem] text-(--ui-text-quaternary)">{b.avatar.pickPet}</div>
+      <div className="text-center text-[0.75rem] text-(--ui-text-quaternary)">{b.avatar.pickPet}</div>
       <Input
         className="h-7 text-xs"
         onChange={event => {
@@ -253,14 +253,14 @@ export function PetTab({ image, onImage }: PetTabProps) {
                 }}
               >
                 <PetThumb size={40} slug={pet.slug} spriteUrl={pet.spritesheetUrl} />
-                <span className="w-full truncate text-center text-[0.6rem] text-(--ui-text-tertiary)">
+                <span className="w-full truncate text-center text-[0.75rem] text-(--ui-text-tertiary)">
                   {pet.displayName}
                 </span>
               </RowButton>
             ))}
           </div>
           {limit < ranked.length ? (
-            <div className="py-2 text-center text-[0.65rem] text-(--ui-text-quaternary)">{`Scroll for more (${limit} of ${ranked.length})`}</div>
+            <div className="py-2 text-center text-[0.75rem] text-(--ui-text-quaternary)">{`Scroll for more (${limit} of ${ranked.length})`}</div>
           ) : null}
         </div>
       )}

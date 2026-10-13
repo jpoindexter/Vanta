@@ -30,7 +30,7 @@ import {
 export function ToolChip({ children, title }: { children: ReactNode; title?: string }) {
   return (
     <span
-      className="rounded-md bg-(--ui-bg-quinary) px-1.5 py-0.5 font-mono text-[0.65rem] text-(--ui-text-tertiary)"
+      className="rounded-md bg-(--ui-bg-quinary) px-1.5 py-0.5 font-mono text-[0.75rem] text-(--ui-text-tertiary)"
       title={title}
     >
       {children}
@@ -178,7 +178,7 @@ export function DetailColumn({
         <div className="mx-auto max-w-2xl space-y-5 px-5 py-4">{children}</div>
       </div>
       {footer && (
-        <div className="mx-auto w-full max-w-2xl shrink-0 px-5 pb-3 pt-1.5 text-right text-[0.65rem] text-muted-foreground/50">
+        <div className="mx-auto w-full max-w-2xl shrink-0 px-5 pb-3 pt-1.5 text-right text-[0.75rem] text-muted-foreground/50">
           {footer}
         </div>
       )}
@@ -409,7 +409,7 @@ export function ListStripButton({
   return (
     <button
       className={cn(
-        'cursor-pointer text-[0.68rem] font-medium transition-colors disabled:opacity-40',
+        'cursor-pointer text-[0.75rem] font-medium transition-colors disabled:opacity-40',
         active ? 'text-foreground' : 'text-muted-foreground/70 hover:text-foreground'
       )}
       disabled={disabled}
@@ -481,13 +481,13 @@ export function CapRow({
             {title}
           </span>
           {subtitle != null && (
-            <span className="flex min-w-0 items-center gap-1 text-[0.62rem] text-muted-foreground/50">
+            <span className="flex min-w-0 items-center gap-1 text-[0.75rem] text-muted-foreground/50">
               {typeof subtitle === 'string' ? <span className="truncate">{subtitle}</span> : subtitle}
             </span>
           )}
         </span>
         {meta != null && (
-          <span className="shrink-0 rounded bg-(--ui-bg-quinary) px-1 py-px text-[0.6rem] tabular-nums leading-3.5 text-(--ui-text-tertiary)">
+          <span className="shrink-0 rounded bg-(--ui-bg-quinary) px-1 py-px text-[0.75rem] tabular-nums leading-3.5 text-(--ui-text-tertiary)">
             {meta}
           </span>
         )}

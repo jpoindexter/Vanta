@@ -57,7 +57,7 @@ export const MessageHoverTime: FC<{ className?: string }> = ({ className }) => {
     <Tip label={<HoverTimeDetail ms={date.getTime()} />} side="top">
       <time
         className={cn(
-          'pointer-events-auto cursor-default select-none whitespace-nowrap text-[0.6875rem] leading-5 tabular-nums text-(--ui-text-tertiary)',
+          'pointer-events-auto cursor-default select-none whitespace-nowrap text-[0.75rem] leading-5 tabular-nums text-(--ui-text-tertiary)',
           className
         )}
         dateTime={date.toISOString()}
