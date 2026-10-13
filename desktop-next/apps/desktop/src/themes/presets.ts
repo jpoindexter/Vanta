@@ -125,7 +125,10 @@ export const githubTheme: DesktopTheme = {
  * Vanta — the default identity. Neutral grey ramp (no warm tint), inverted per
  * mode, with violet as the ONLY accent: focus ring, links, selection, send.
  * `primary` is the inverted near-black / near-white button fill, so the accent
- * stays in `midground` / `ring` / `composerRing` and is never a button fill.
+ * stays in `midground` / `ring` and is never a button fill. `composerRing` is
+ * the neutral foreground: styles.css mixes it at 7-18% into resting input and
+ * composer borders, which must stay grey (see styles/vanta.css for the violet
+ * focus states).
  * Dark violet is the same hue lifted to clear 3:1 on the near-black surface.
  */
 export const vantaTheme: DesktopTheme = {
@@ -152,7 +155,7 @@ export const vantaTheme: DesktopTheme = {
     ring: '#7c3aed',
     midground: '#7c3aed',
     midgroundForeground: '#ffffff',
-    composerRing: '#7c3aed',
+    composerRing: '#202024',
     destructive: '#d92d20',
     destructiveForeground: '#ffffff',
     sidebarBackground: '#f7f7f8',
@@ -180,7 +183,7 @@ export const vantaTheme: DesktopTheme = {
     ring: '#9d6bf5',
     midground: '#9d6bf5',
     midgroundForeground: '#161616',
-    composerRing: '#9d6bf5',
+    composerRing: '#ececee',
     destructive: '#f0554a',
     destructiveForeground: '#161616',
     sidebarBackground: '#101011',

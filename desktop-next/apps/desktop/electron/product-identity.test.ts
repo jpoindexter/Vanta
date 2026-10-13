@@ -92,8 +92,8 @@ test('nonstable runtime pins userData before the app name can change', async ():
   const canary: ProductIdentity = await identityForVariant('bundled')
   const runtime: { applyDesktopIdentity: typeof applyDesktopIdentity } = await import('./product-identity')
   const root: string = fs.mkdtempSync(path.join(os.tmpdir(), 'identity-userdata-'))
-  const paths: Record<string, string> = { appData: root, userData: path.join(root, 'Hermes') }
-  let name: string = 'Hermes'
+  const paths: Record<string, string> = { appData: root, userData: path.join(root, 'VantaBundled') }
+  let name: string = 'Vanta Bundled'
 
   const app: Parameters<typeof applyDesktopIdentity>[0] = {
     getPath: (key: string): string => paths[key],
@@ -108,7 +108,7 @@ test('nonstable runtime pins userData before the app name can change', async ():
 
   try {
     assert.equal(runtime.applyDesktopIdentity(app, stable), null)
-    assert.equal(paths.userData, path.join(root, 'Hermes'))
+    assert.equal(paths.userData, path.join(root, 'VantaBundled'))
     assert.equal(runtime.applyDesktopIdentity(app, canary), canary.displayName)
     assert.equal(paths.userData, path.join(paths.appData, canary.appNamePascal))
     assert.equal(name, canary.displayName)
@@ -118,9 +118,9 @@ test('nonstable runtime pins userData before the app name can change', async ():
 })
 
 test.each([
-  [undefined, 'Hermes', 'hermes', 'latest', 'canary'],
-  ['bundled', 'Hermes Agent', 'hermes', 'latest', 'canary'],
-  ['light', 'Hermes Light', 'hermes-light', 'light', 'light-canary']
+  [undefined, 'Vanta', 'vanta-next', 'latest', 'canary'],
+  ['bundled', 'Vanta Bundled', 'vanta-next', 'latest', 'canary'],
+  ['light', 'Vanta Light', 'vanta-light', 'light', 'light-canary']
 ] as const)(
   '%s separates stable, canary and independent commits',
   async (
@@ -290,12 +290,42 @@ test('nonstable builds cannot claim the official Store package', async (): Promi
 test('store carries the Partner Center MSIX identity and no other variant does', async (): Promise<void> => {
   const store: ProductIdentity = await identityForVariant('store')
   assert.deepEqual(store.storeMsix, {
-    identityName: 'NousResearchInc.HermesAgent',
-    publisher: 'CN=EE6D86E4-606F-4E38-B940-AD7248C9D519',
-    publisherDisplayName: 'Nous Research Inc.'
+    identityName: 'TheftStudio.Vanta',
+    publisher: 'CN=Theft Studio',
+    publisherDisplayName: 'Theft Studio'
   })
 
   for (const v of [undefined, 'bundled', 'light'] as const) {
     assert.equal((await identityForVariant(v)).storeMsix, undefined, `variant ${v} must carry no storeMsix`)
+  }
+})
+
+test('the default Vanta build is displayed as Vanta but keeps its own userData until cutover', async (): Promise<void> => {
+  const identity: ProductIdentity = await identityForVariant(undefined)
+  const runtime: { applyDesktopIdentity: typeof applyDesktopIdentity } = await import('./product-identity')
+  const root: string = fs.mkdtempSync(path.join(os.tmpdir(), 'identity-vanta-'))
+  const paths: Record<string, string> = { appData: root, userData: path.join(root, 'Vanta') }
+  let name = ''
+
+  try {
+    const applied = runtime.applyDesktopIdentity(
+      {
+        getPath: (key: string): string => paths[key],
+        setPath: (key: string, value: string): void => {
+          paths[key] = value
+        },
+        setName: (value: string): void => {
+          name = value
+        }
+      },
+      identity
+    )
+
+    assert.equal(applied, 'Vanta')
+    assert.equal(name, 'Vanta')
+    assert.equal(paths.userData, path.join(root, 'VantaNext'))
+    assert.notEqual(paths.userData, path.join(root, 'Vanta'))
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true })
   }
 })

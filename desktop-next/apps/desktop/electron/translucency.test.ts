@@ -602,12 +602,14 @@ describe('the defaults a fresh profile lands on', () => {
   const mac = (appearance: 'dark' | 'light') => defaultTranslucencyValues(appearance, false)
   const win = (appearance: 'dark' | 'light') => defaultTranslucencyValues(appearance, true)
 
-  it('ships glass on, not a lever resting at zero', () => {
+  it('ships glass off so the sidebar paints its own neutral panel', () => {
     for (const values of [mac('light'), mac('dark'), win('light'), win('dark')]) {
-      expect(values.intensity).toBeGreaterThan(0)
-      expect(glassActive({ ...values, mode: 'glass' })).toBe(true)
+      expect(values.intensity).toBe(0)
+      expect(glassActive({ ...values, mode: 'glass' })).toBe(false)
     }
 
+    // The mode still resolves to glass where the OS can do it, so raising the
+    // lever is all it takes to opt in.
     for (const appearance of ['light', 'dark'] as const) {
       expect(defaultTranslucencyState(appearance, true, false).mode).toBe('glass')
       expect(defaultTranslucencyState(appearance, true, true).mode).toBe('glass')
