@@ -5,8 +5,9 @@ import { sessionListSchema } from './schemas'
 import { matchRoute, type Send, type ShimRoute } from './shim-core'
 import { cronRoutes } from './shim-cron'
 import { profileRoutes } from './shim-profiles'
+import { sessionRoutes } from './shim-sessions'
 
-const ROUTES: readonly ShimRoute[] = [...profileRoutes, ...cronRoutes]
+const ROUTES: readonly ShimRoute[] = [...profileRoutes, ...cronRoutes, ...sessionRoutes]
 
 // The Hermes sidebar reads sessions and profiles over REST paths the Vanta server does not have
 // (`/api/profiles/sessions`, `/api/profiles`). The shim answers them from what Vanta does serve
@@ -40,6 +41,7 @@ function toSessionInfo(meta: ReturnType<typeof sessionListSchema.parse>[number],
     is_default_profile: true,
     source: 'vanta',
     started_at: started,
+    ...(meta.unread === true ? { unread: true } : {}),
     title: meta.title ?? null,
     tool_call_count: 0
   }
@@ -74,8 +76,6 @@ async function readSessions(send: Send): Promise<SessionInfo[]> {
   return metas.map(meta => toSessionInfo(meta, root?.root ?? null))
 }
 
-const SESSION_ID = /^\/api\/sessions\/([^/?]+)$/
-
 function sidebarSlices(rows: SessionInfo[], query: URLSearchParams) {
   const limit = String(query.get('recents_limit') ?? 50)
 
@@ -87,17 +87,6 @@ function sidebarSlices(rows: SessionInfo[], query: URLSearchParams) {
       sessions: listPage(rows, new URLSearchParams({ limit, min_messages: '1' })).sessions
     }
   }
-}
-
-function pinCall(path: string, method: string, request: HermesApiRequest, send: Send): null | Promise<unknown> {
-  const id = SESSION_ID.exec(path)?.[1]
-  const body = request.body as undefined | { pinned?: boolean }
-
-  if (method !== 'PATCH' || !id || typeof body?.pinned !== 'boolean') {
-    return null
-  }
-
-  return send({ body: { id: decodeURIComponent(id), pinned: body.pinned }, method: 'POST', path: '/api/sessions/pin' })
 }
 
 /** Returns the answer for a REST call Vanta serves differently, or null to let the call through. */
@@ -112,7 +101,7 @@ export function vantaRestShim(request: HermesApiRequest, send: Send): null | Pro
   }
 
   if (method !== 'GET') {
-    return pinCall(path, method, request, send)
+    return null
   }
 
   switch (path) {
@@ -121,9 +110,6 @@ export function vantaRestShim(request: HermesApiRequest, send: Send): null | Pro
 
     case '/api/profiles/sessions/sidebar':
       return readSessions(send).then(rows => sidebarSlices(rows, query))
-
-    case '/api/sessions/search':
-      return Promise.resolve({ results: [] })
 
     default:
       return null
