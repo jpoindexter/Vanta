@@ -5,11 +5,12 @@ import { checkoutTask } from "../team/checkout.js";
 import type { Worker } from "../team/store.js";
 import { advanceTask, type WorkerTask } from "../team/tasks.js";
 import { recordActivity } from "./company-activity.js";
+import { withCompanyLock } from "./company-lock.js";
 import { fail, succeed, type CompanyCtx, type Outcome } from "./company-context.js";
 import { announce } from "./company-emit.js";
 import { buildInstruction } from "./company-instruction.js";
 import { finishRun, failRun, type ActiveRun } from "./company-run-finish.js";
-import { isRunning, runningTaskIds, touchWorker, trackRun } from "./company-run-state.js";
+import { clearAbort, isRunning, registerAbort, touchWorker, trackRun } from "./company-run-state.js";
 import { appendRun, runsForTicket } from "./company-runs.js";
 import { departmentOf, isPaused } from "./company-roster.js";
 import type { WorkerRuntime } from "./company-ports.js";
@@ -54,15 +55,17 @@ async function moveToRunning(ctx: CompanyCtx, task: WorkerTask): Promise<Outcome
 
 async function launch(ctx: CompanyCtx, active: ActiveRun): Promise<void> {
   try {
-    const request = { worker: active.worker, task: active.task, instruction: active.instruction, env: ctx.env, progress: () => touchWorker(ctx.home, active.worker.id, ctx.ports.now()) };
+    const request = { worker: active.worker, task: active.task, instruction: active.instruction, env: ctx.env, signal: active.controller.signal, progress: () => touchWorker(ctx.home, active.worker.id, ctx.ports.now()) };
     const result = await active.runtime.run(request).catch((error: unknown) => ({ ok: false as const, error: error instanceof Error ? error.message : String(error) }));
-    await finishRun(ctx, active, result);
+    const aborted = active.controller.signal.aborted;
+    await withCompanyLock(ctx.home, () => (aborted ? failRun(ctx, active, "aborted: the worker was paused") : finishRun(ctx, active, result)));
   } catch (error) {
-    await failRun(ctx, active, error instanceof Error ? error.message : String(error)).catch(() => {});
+    await withCompanyLock(ctx.home, () => failRun(ctx, active, error instanceof Error ? error.message : String(error))).catch(() => {});
   } finally {
+    clearAbort(ctx.home, active.worker.id, active.controller);
     await active.release();
   }
-  await drainWorker(ctx, active.worker.id);
+  await withCompanyLock(ctx.home, () => drainWorker(ctx, active.worker.id));
 }
 
 type Claim = { task: WorkerTask; worker: Worker; snap: CompanySnapshot; release: () => Promise<void> };
@@ -105,8 +108,9 @@ export async function startRun(ctx: CompanyCtx, input: StartInput): Promise<Outc
   if (!moved.ok) { await release(); return moved; }
   const active: ActiveRun = {
     runId: ctx.ports.newId(), attempt: runsForTicket(snap.runs, task.id).length + 1, startedAt: ctx.ports.now().toISOString(),
-    task: moved.value, worker, runtime, release, instruction: buildInstruction(snap, worker, moved.value, input.note), reviseProductId: input.reviseProductId,
+    task: moved.value, worker, runtime, release, controller: new AbortController(), instruction: buildInstruction(snap, worker, moved.value, input.note), reviseProductId: input.reviseProductId,
   };
+  registerAbort(ctx.home, worker.id, active.controller);
   await recordStart(ctx, active);
   trackRun(ctx.home, task.id, launch(ctx, active));
   return succeed({ started: true, runId: active.runId });

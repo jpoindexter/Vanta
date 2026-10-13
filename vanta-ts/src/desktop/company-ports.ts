@@ -14,6 +14,8 @@ export type WorkerRunRequest = {
   task: WorkerTask;
   instruction: string;
   env: NodeJS.ProcessEnv;
+  /** Aborted when the owner pauses the worker; stop at the next safe point. */
+  signal: AbortSignal;
   /** Heartbeat: call whenever the worker shows signs of life. */
   progress: (note: string) => void;
 };

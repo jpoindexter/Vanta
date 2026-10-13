@@ -9,8 +9,10 @@ import { requireOwnerApproval } from "./company-approval.js";
 import { fail, succeed, type CompanyCtx, type Outcome } from "./company-context.js";
 import { announce } from "./company-emit.js";
 import { drainWorker } from "./company-run-engine.js";
+import { abortWorker } from "./company-run-state.js";
 import { buildWorker, isPaused } from "./company-roster.js";
 import type { CompanyWorker } from "./company-schemas.js";
+import { withCompanyLock } from "./company-lock.js";
 import { loadSnapshot, type CompanySnapshot } from "./company-snapshot.js";
 import type { HireBody } from "./company-write-schemas.js";
 
@@ -49,20 +51,21 @@ function validateHire(snap: CompanySnapshot, body: HireBodyT): Outcome<Hire> {
 }
 
 async function persistHire(ctx: CompanyCtx, snap: CompanySnapshot, hired: Hire, body: HireBodyT): Promise<Outcome<true>> {
-  const agent = hired.agent;
-  await appendTeam({ ...agent, ...(body.requestId ? { requestId: body.requestId } : {}) }, ctx.env);
+  let agent = hired.agent;
   if (body.managerId) {
     const managed = setManager([...snap.workers, agent], agent.id, body.managerId);
     if (!managed.ok) return fail(400, managed.error);
-    await appendTeam(managed.roster.find((w) => w.id === agent.id)!, ctx.env);
+    agent = managed.roster.find((w) => w.id === agent.id)!;
   }
+  await appendTeam({ ...agent, ...(body.requestId ? { requestId: body.requestId } : {}) }, ctx.env);
   if (body.departmentId) await addToDepartment(ctx, body.departmentId, agent.id);
   if (body.budgetUsd !== undefined) await setBudgetLimit(ctx.dataDir, { scope: `agent:${agent.id}`, limitUsd: body.budgetUsd, now: ctx.ports.now() });
   return succeed(true);
 }
 
+/** Not locked as a whole: the approval wait must not hold the company lock. */
 export async function hireWorker(ctx: CompanyCtx, body: HireBodyT): Promise<Outcome<WorkerWrite>> {
-  const snap = await loadSnapshot(ctx);
+  const snap = await withCompanyLock(ctx.home, () => loadSnapshot(ctx));
   const repeat = body.requestId ? snap.workers.find((w) => requestIdOf(w) === body.requestId) : undefined;
   if (repeat) return succeed({ worker: buildWorker(snap, repeat), changed: false });
   const valid = validateHire(snap, body);
@@ -71,11 +74,13 @@ export async function hireWorker(ctx: CompanyCtx, body: HireBodyT): Promise<Outc
   const budget = body.budgetUsd === undefined ? "no budget cap" : `budget ${body.budgetUsd} USD`;
   const approval = await requireOwnerApproval(ctx, { tool: "company.hire", action: `Hire ${agent.id} (${body.role}) on ${body.adapter}`, reason: `Adds a worker that can run tickets with ${budget}.` });
   if (!approval.ok) return approval;
-  const saved = await persistHire(ctx, snap, valid.value, body);
-  if (!saved.ok) return saved;
-  await recordActivity(ctx, { kind: "worker.hired", actor: "owner", summary: `hired ${agent.id} (${body.role}) on ${body.adapter}, ${budget}`, refs: { workerId: agent.id } });
-  await announce(ctx, { workerId: agent.id });
-  return succeed({ worker: await viewOf(ctx, agent.id), changed: true });
+  return withCompanyLock(ctx.home, async () => {
+    const saved = await persistHire(ctx, snap, valid.value, body);
+    if (!saved.ok) return saved;
+    await recordActivity(ctx, { kind: "worker.hired", actor: "owner", summary: `hired ${agent.id} (${body.role}) on ${body.adapter}, ${budget}`, refs: { workerId: agent.id } });
+    await announce(ctx, { workerId: agent.id });
+    return succeed({ worker: await viewOf(ctx, agent.id), changed: true });
+  });
 }
 
 /** Pause or resume. Pausing stops new runs from starting; a run already in flight finishes. */
@@ -96,6 +101,7 @@ export async function setWorkerPaused(ctx: CompanyCtx, input: { workerId: string
   const verb = input.paused ? "paused" : "resumed";
   await recordActivity(ctx, { kind: `worker.${verb}`, actor: "owner", summary: `${verb} ${worker.id}${input.reason ? `: ${input.reason}` : ""}`, refs: { workerId: worker.id } });
   await announce(ctx, { workerId: worker.id });
+  if (input.paused && abortWorker(ctx.home, worker.id)) await recordActivity(ctx, { kind: "run.finished", actor: "owner", summary: `aborted the in-flight run of ${worker.id}`, refs: { workerId: worker.id } });
   if (!input.paused) await drainWorker(ctx, worker.id);
   return succeed({ worker: await viewOf(ctx, worker.id), changed: true });
 }

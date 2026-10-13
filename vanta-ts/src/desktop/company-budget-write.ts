@@ -8,6 +8,7 @@ import { limitView, scopeParts } from "./company-budgets.js";
 import { fail, succeed, type CompanyCtx, type Outcome } from "./company-context.js";
 import { announce } from "./company-emit.js";
 import type { BudgetLimitView } from "./company-finance-schemas.js";
+import { withCompanyLock } from "./company-lock.js";
 import { loadSnapshot } from "./company-snapshot.js";
 import type { RaiseBudgetBody } from "./company-write-schemas.js";
 import { drainWorker } from "./company-run-engine.js";
@@ -36,8 +37,8 @@ async function applyRaise(ctx: CompanyCtx, body: z.infer<typeof RaiseBudgetBody>
 export async function raiseBudget(ctx: CompanyCtx, body: z.infer<typeof RaiseBudgetBody>): Promise<Outcome<BudgetWrite>> {
   const { kind, subject } = scopeParts(body.scope);
   const workerId = kind === "worker" ? (subject ?? undefined) : undefined;
-  if (workerId && !(await loadSnapshot(ctx)).workers.some((w) => w.id === workerId)) return fail(404, `no worker "${workerId}" for scope ${body.scope}. GET /api/company lists the roster.`);
-  const before = await getBudget(ctx.dataDir, body.scope);
+  const [snap, before] = await withCompanyLock(ctx.home, async () => [await loadSnapshot(ctx), await getBudget(ctx.dataDir, body.scope)] as const);
+  if (workerId && !snap.workers.some((w) => w.id === workerId)) return fail(404, `no worker "${workerId}" for scope ${body.scope}. GET /api/company lists the roster.`);
   if (before && before.limitUsd >= body.limitUsd) return succeed({ budget: limitView(before), changed: false, previousLimitUsd: before.limitUsd });
   const approval = await requireOwnerApproval(ctx, {
     tool: "company.budget",
@@ -45,5 +46,6 @@ export async function raiseBudget(ctx: CompanyCtx, body: z.infer<typeof RaiseBud
     reason: before ? `From ${before.limitUsd} USD; ${before.spentUsd.toFixed(2)} USD spent so far.` : "No limit is set for this scope yet.",
   });
   if (!approval.ok) return approval;
-  return succeed({ budget: await applyRaise(ctx, body, before, workerId), changed: true, previousLimitUsd: before?.limitUsd ?? null });
+  const budget = await withCompanyLock(ctx.home, () => applyRaise(ctx, body, before, workerId));
+  return succeed({ budget, changed: true, previousLimitUsd: before?.limitUsd ?? null });
 }

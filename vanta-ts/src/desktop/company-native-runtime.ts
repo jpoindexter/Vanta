@@ -23,7 +23,7 @@ export type NativeSeams = {
   setup?: (state: DesktopState) => Promise<RunSetup>;
   resolveProvider?: (env: NodeJS.ProcessEnv) => LLMProvider;
   buildRegistry?: () => AgentDeps["registry"];
-  spawn?: (opts: { goal: string; instruction: string; deps: AgentDeps; maxIterations: number }) => Promise<AgentOutcome>;
+  spawn?: (opts: { goal: string; instruction: string; deps: AgentDeps; maxIterations: number; signal?: AbortSignal }) => Promise<AgentOutcome>;
 };
 
 async function loadSeams(seams: NativeSeams): Promise<Required<NativeSeams>> {
@@ -55,6 +55,7 @@ async function runNative(state: DesktopState, request: WorkerRunRequest, seams: 
     goal: request.task.title,
     instruction: request.instruction,
     maxIterations: WORKER_MAX_ITERATIONS,
+    signal: request.signal,
     deps: {
       provider,
       safety: setup.safety,
