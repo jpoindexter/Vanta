@@ -44,6 +44,8 @@ export function createVantaBridge(ipc: IpcRendererLike) {
         }
       }
     },
+    /** Tells main which chat is in front, so an approval card from the terminal or Changes pane lands there. */
+    focusClient: (clientId: null | string): void => ipc.send(CH.focusClient, clientId),
     request: (call: VantaCall): Promise<VantaResult> => ipc.invoke<VantaResult>(CH.request, call)
   }
 }
