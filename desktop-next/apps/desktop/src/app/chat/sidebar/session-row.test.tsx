@@ -46,6 +46,9 @@ vi.mock('@/i18n', () => ({
           waitingForAnswer: 'Waiting for answer'
         }
       },
+      vantaShell: {
+        status: { done: 'Done', failed: 'Failed', needsInput: 'Needs your input', running: 'Running', waiting: 'Waiting for you' }
+      },
       assistant: {
         thread: {
           today: (time: string) => `Today at ${time}`,

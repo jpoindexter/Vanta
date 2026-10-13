@@ -1,5 +1,6 @@
 import { useStore } from '@nanostores/react'
 
+import { StatusMark, useGlyphStatus } from '@/app/chat/sidebar/vanta/status-mark'
 import { type Translations, useI18n } from '@/i18n'
 import { useStoreSelector } from '@/lib/use-session-slice'
 import { cn } from '@/lib/utils'
@@ -137,6 +138,8 @@ export function SessionStatusDot({ storedSessionId, session, branchStem, classNa
     storedSessionId ? (states[storedSessionId] ?? 'idle') : 'draft'
   )
 
+  // The Vanta status vocabulary wins for the four states that need a word: a shape plus text, never colour alone.
+  const glyphStatus = useGlyphStatus(storedSessionId, dotState)
   const variant = DOT_VARIANTS[dotState]
 
   return (
@@ -146,7 +149,9 @@ export function SessionStatusDot({ storedSessionId, session, branchStem, classNa
           {branchStem}
         </span>
       ) : null}
-      {dotState === 'idle' ? (
+      {glyphStatus ? (
+        <StatusMark status={glyphStatus} />
+      ) : dotState === 'idle' ? (
         // Rendered even with no color to paint: an empty dot of the same size
         // keeps every row's title on one left edge, so a session finishing
         // can't shift the list under the pointer.
