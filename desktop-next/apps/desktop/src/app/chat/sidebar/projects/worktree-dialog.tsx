@@ -26,7 +26,7 @@ import type { HermesGitBranch } from '@/global'
 import { useI18n } from '@/i18n'
 import { isSubmitEnter } from '@/lib/ime'
 import { gitRef } from '@/lib/sanitize'
-import { notifyError } from '@/store/notifications'
+import { notify, notifyError } from '@/store/notifications'
 import {
   $projectTree,
   $worktreeDialog,
@@ -166,6 +166,13 @@ export function WorktreeDialog() {
     closeWorktreeDialog()
   }
 
+  // Git changes ask for approval in the chat. A modal left open would sit over that card and block it, so the
+  // dialog closes first and a toast says what the app is waiting on.
+  const handOffToApproval = () => {
+    closeWorktreeDialog()
+    notify({ durationMs: 8_000, kind: 'info', message: p.startWorkWaiting })
+  }
+
   const submit = async () => {
     const branch = name.trim()
 
@@ -174,6 +181,7 @@ export function WorktreeDialog() {
     }
 
     setPending(true)
+    handOffToApproval()
 
     try {
       const result = await startWorkInRepo(repoPath, { base: selectedBase || undefined, branch, name: branch })
@@ -195,6 +203,7 @@ export function WorktreeDialog() {
     }
 
     setPending(true)
+    handOffToApproval()
 
     try {
       let result: null | { branch: string; path: string }

@@ -29,7 +29,7 @@ try {
   await app.page.waitForTimeout(8000);
   app.page.setDefaultTimeout(8000);
   const second = makeSecondProject(app.root);
-  await installNativeStubs(app, { confirm: true, pickFolder: second, savePath: path.join(app.root, "saved-image.png") });
+  await installNativeStubs(app, { confirm: true, downloadDir: app.root, pickFolder: second, savePath: path.join(app.root, "saved-image.png") });
   const ctx = { app, page: app.page, project: app.project, second, root: app.root };
   for (const group of GROUPS) {
     if (only.length && !only.includes(group.name)) continue;

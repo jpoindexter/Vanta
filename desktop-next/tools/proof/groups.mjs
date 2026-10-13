@@ -2,6 +2,7 @@
 // row when they can prove more (a seeded state turns a NOT-RUN into a PASS).
 import * as chrome from "./rows-chrome.mjs";
 import * as right from "./rows-right.mjs";
+import * as seeded from "./rows-seeded.mjs";
 import * as thread from "./rows-thread.mjs";
 import * as win from "./rows-window.mjs";
 import { dirtyProject } from "./rows-right.mjs";
@@ -22,6 +23,19 @@ export const GROUPS = [
       await chrome.bots(page);
       await chrome.statusBar(page);
       await chrome.surfaces(page);
+    }
+  },
+  {
+    name: "seeded",
+    run: async (ctx) => {
+      await ensureChat(ctx.page);
+      await seeded.dateAndPinned(ctx.page);
+      await seeded.rowMenuRows(ctx);
+      await seeded.tabRows(ctx.page);
+      await seeded.unreadRows(ctx);
+      await seeded.cronAndMore(ctx.page);
+      await seeded.folderRows(ctx);
+      await seeded.projectRows(ctx);
     }
   },
   {

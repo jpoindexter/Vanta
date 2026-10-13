@@ -53,6 +53,7 @@ export const enProjects: Translations['sidebar']['projects'] = {
   baseBranchPlaceholder: 'Search branches…',
   baseBranchNone: 'No branches found',
   startWorkFailed: 'Could not create worktree',
+  startWorkWaiting: 'Waiting for your approval in the chat…',
   worktreeStaleBackend:
     'Update the Vanta backend to create worktrees over this remote connection — it predates the git worktree API.',
   worktreeProjectLabel: 'Project',
