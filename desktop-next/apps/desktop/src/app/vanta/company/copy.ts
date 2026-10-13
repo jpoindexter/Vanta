@@ -31,7 +31,7 @@ export const TICKET_STATUS_WORD: Record<TicketStatus, string> = {
 }
 
 export const COPY = {
-  offline: 'Vanta is not reachable. Showing the last data it sent.',
+  offline: 'Vanta is not reachable. What you see may be out of date.',
   offlineRetry: 'Retry now',
   pageSubtitle: 'The workers, tickets, budgets and activity of your company.',
   pageTitle: 'Company',

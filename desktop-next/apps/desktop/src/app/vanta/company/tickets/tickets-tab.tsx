@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react'
 
+import type { CompanyWorker, TicketsResponse } from '@/api/vanta-company-schemas'
+
 import { VpButton } from '../../ui/button'
 import { useCompany } from '../company-context'
 import { ActionStatus } from '../ui/action-status'
 import { Empty, Loadable } from '../ui/loadable'
-import { useCompanyResource } from '../use-company-resource'
+import { type Resource, useCompanyResource } from '../use-company-resource'
 
 import { CreateTicketDialog } from './create-ticket-dialog'
 import { TicketBoard } from './ticket-board'
@@ -50,6 +52,55 @@ function useTicketsData(filters: TicketFilterValues) {
   }
 }
 
+interface ResultProps {
+  filters: TicketFilterValues
+  onOpen: (id: string) => void
+  onCreate: () => void
+  tickets: Resource<TicketsResponse>
+  view: TicketView
+  workers: CompanyWorker[]
+}
+
+/** The ticket list or board with its loading, error, empty and "showing N of M" states. */
+function TicketsResult({ filters, onCreate, onOpen, tickets, view, workers }: ResultProps) {
+  const empty = (
+    <Empty
+      action={
+        <VpButton onClick={onCreate} variant="primary">
+          New ticket
+        </VpButton>
+      }
+      text={
+        isFiltered(filters) ? 'No tickets match these filters.' : 'No tickets yet. Create one and give it to a worker.'
+      }
+    />
+  )
+
+  return (
+    <Loadable
+      empty={{ node: empty, when: data => data.tickets.length === 0 }}
+      errorLabel="Couldn't load tickets."
+      onRetry={tickets.reload}
+      state={tickets.state}
+    >
+      {data => (
+        <>
+          {view === 'list' ? (
+            <TicketList onOpen={onOpen} tickets={data.tickets} workers={workers} />
+          ) : (
+            <TicketBoard onOpen={onOpen} tickets={data.tickets} workers={workers} />
+          )}
+          {data.total > data.tickets.length && (
+            <p className="vp-note">
+              Showing {data.tickets.length} of {data.total} tickets. Narrow the filters to see the rest.
+            </p>
+          )}
+        </>
+      )}
+    </Loadable>
+  )
+}
+
 export function TicketsTab({ onSelectTicket, ticketId }: TicketsTabProps) {
   const [filters, setFilters] = useState(NO_FILTERS)
   const [view, setView] = useState<TicketView>('list')
@@ -72,43 +123,14 @@ export function TicketsTab({ onSelectTicket, ticketId }: TicketsTabProps) {
         workers={workers}
       />
       <ActionStatus error={null} notice={make.creating ? null : make.action.notice} />
-      <Loadable
-        empty={{
-          node: (
-            <Empty
-              action={
-                <VpButton onClick={make.open} variant="primary">
-                  New ticket
-                </VpButton>
-              }
-              text={
-                isFiltered(filters)
-                  ? 'No tickets match these filters.'
-                  : 'No tickets yet. Create one and give it to a worker.'
-              }
-            />
-          ),
-          when: data => data.tickets.length === 0
-        }}
-        errorLabel="Couldn't load tickets."
-        onRetry={tickets.reload}
-        state={tickets.state}
-      >
-        {data => (
-          <>
-            {view === 'list' ? (
-              <TicketList onOpen={onSelectTicket} tickets={data.tickets} workers={workers} />
-            ) : (
-              <TicketBoard onOpen={onSelectTicket} tickets={data.tickets} workers={workers} />
-            )}
-            {data.total > data.tickets.length && (
-              <p className="vp-note">
-                Showing {data.tickets.length} of {data.total} tickets. Narrow the filters to see the rest.
-              </p>
-            )}
-          </>
-        )}
-      </Loadable>
+      <TicketsResult
+        filters={filters}
+        onCreate={make.open}
+        onOpen={onSelectTicket}
+        tickets={tickets}
+        view={view}
+        workers={workers}
+      />
       {make.creating && (
         <CreateTicketDialog action={make.action} onClose={make.close} onCreate={make.create} workers={workers} />
       )}

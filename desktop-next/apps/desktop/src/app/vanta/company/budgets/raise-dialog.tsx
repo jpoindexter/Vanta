@@ -2,11 +2,11 @@ import { type FormEvent, useState } from 'react'
 
 import type { BudgetLimit, CompanyResponse } from '@/api/vanta-company-schemas'
 
-import { VpButton } from '../../ui/button'
 import { formatUsd } from '../format'
 import { ActionStatus } from '../ui/action-status'
 import { CompanyDialog } from '../ui/dialog'
 import { Field } from '../ui/field'
+import { FormActions } from '../ui/form-actions'
 import type { ActionState } from '../use-company-action'
 
 import { scopeLabel } from './scope-label'
@@ -63,17 +63,7 @@ export function RaiseDialog({ action, company, limit, onClose, onRaise }: RaiseD
           </p>
         )}
         <ActionStatus error={action.error} notice={null} />
-        {action.busy && (
-          <p className="vp-note" role="status">
-            Waiting for your approval.
-          </p>
-        )}
-        <div className="vp-acts vc-form__actions">
-          <VpButton disabled={action.busy} type="submit" variant="primary">
-            Raise and ask me to approve
-          </VpButton>
-          <VpButton onClick={onClose}>Cancel</VpButton>
-        </div>
+        <FormActions busy={action.busy} onCancel={onClose} submitLabel="Raise and ask me to approve" waiting />
       </form>
     </CompanyDialog>
   )

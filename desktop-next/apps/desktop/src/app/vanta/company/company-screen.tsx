@@ -9,6 +9,7 @@ import { ApprovalBanner, OfflineBanner } from './ui/banners'
 import { CompanyTabs, panelId, tabId } from './ui/tabs'
 import { WorkersTab } from './workers/workers-tab'
 
+import '@/styles/vanta-chat.css'
 import './company.css'
 
 export interface CompanyLocation {

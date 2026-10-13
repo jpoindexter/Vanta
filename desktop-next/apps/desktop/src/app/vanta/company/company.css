@@ -198,7 +198,7 @@
 .vc-board {
   display: grid;
   gap: 10px;
-  grid-auto-columns: minmax(180px, 1fr);
+  grid-auto-columns: minmax(168px, 1fr);
   grid-auto-flow: column;
   overflow-x: auto;
   padding-bottom: 4px;
