@@ -19,35 +19,47 @@ async function fetchStatus(hub: GatewayHub, client: ChatClient | undefined) {
   return parseBody(statusSchema, expectOk(await hub.caller.get(client, '/api/status'), 'status'), 'status')
 }
 
+type ConfigGetter = (hub: GatewayHub, client: ChatClient | undefined) => Promise<unknown>
+
+const statusValue =
+  (pick: (status: Awaited<ReturnType<typeof fetchStatus>>) => string | undefined): ConfigGetter =>
+  async (hub, client) => ({
+    value: pick(await fetchStatus(hub, client)) ?? ''
+  })
+
+const approvalModeGetter: ConfigGetter = async (hub, client) => {
+  const mode = parseBody(
+    accessModeSchema,
+    expectOk(await hub.caller.get(client, '/api/access-mode'), 'access mode'),
+    'access mode'
+  )
+
+  return { value: approvalModeForAccess(mode.mode) }
+}
+
+const projectGetter: ConfigGetter = async (hub, client) => ({
+  branch: null,
+  cwd: (await fetchStatus(hub, client)).root ?? ''
+})
+
+const CONFIG_GETTERS: Readonly<Record<string, ConfigGetter>> = {
+  approval_mode: approvalModeGetter,
+  'approvals.mode': approvalModeGetter,
+  cwd: projectGetter,
+  full: async () => ({ config: {} }),
+  model: statusValue(status => status.model),
+  project: projectGetter,
+  provider: statusValue(status => status.provider),
+  reasoning: statusValue(status => status.modelSettings?.effortLevel)
+}
+
 export const configGet: Handler = async (hub, params) => {
   const key = str(params.key)
-  const client = clientFor(hub, params)
 
-  switch (key) {
-    case 'model':
-      return { value: (await fetchStatus(hub, client)).model ?? '' }
-    case 'provider':
-      return { value: (await fetchStatus(hub, client)).provider ?? '' }
-    case 'reasoning':
-      return { value: (await fetchStatus(hub, client)).modelSettings?.effortLevel ?? '' }
-    case 'approvals.mode':
-    case 'approval_mode': {
-      const mode = parseBody(
-        accessModeSchema,
-        expectOk(await hub.caller.get(client, '/api/access-mode'), 'access mode'),
-        'access mode'
-      )
-
-      return { value: approvalModeForAccess(mode.mode) }
-    }
-    case 'project':
-    case 'cwd':
-      return { branch: null, cwd: (await fetchStatus(hub, client)).root ?? '' }
-    case 'full':
-      return { config: {} }
-    default:
-      return unsupportedKey('config.get', key)
-  }
+  // hasOwn: a key like "constructor" must not reach Object.prototype.
+  return Object.hasOwn(CONFIG_GETTERS, key)
+    ? CONFIG_GETTERS[key]!(hub, clientFor(hub, params))
+    : unsupportedKey('config.get', key)
 }
 
 /** `"<model> --provider <id> [--session]"` is the Hermes switch syntax. */

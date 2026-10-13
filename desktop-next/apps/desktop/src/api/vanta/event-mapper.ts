@@ -71,25 +71,29 @@ function mapTyped(event: TypedEvent): MappedEvent {
   }
 }
 
-export function createFrameMapper(): FrameMapper {
-  const open = new Map<string, string[]>()
-  let seq = 0
+/**
+ * Servers that predate typed events label tool steps without ids. Mint one per start and pair each
+ * end with the oldest open start of the same tool name, so the transcript still gets matched rows.
+ */
+class LegacyToolIds {
+  private readonly open = new Map<string, string[]>()
+  private seq = 0
 
-  const synthStart = (frame: SseFrame): MappedEvent => {
+  start(frame: SseFrame): MappedEvent {
     const name = frame.name ?? 'tool'
-    const id = `vanta-syn-${++seq}`
-    open.set(name, [...(open.get(name) ?? []), id])
+    const id = `vanta-syn-${++this.seq}`
+    this.open.set(name, [...(this.open.get(name) ?? []), id])
 
     return gateway('tool.start', { args: {}, context: frame.label ?? '', name, tool_id: id })
   }
 
-  const synthEnd = (frame: SseFrame): MappedEvent => {
+  end(frame: SseFrame): MappedEvent {
     const name = frame.name ?? 'tool'
-    const queue = open.get(name) ?? []
-    const id = queue.shift() ?? `vanta-syn-${++seq}`
+    const queue = this.open.get(name) ?? []
+    const id = queue.shift() ?? `vanta-syn-${++this.seq}`
 
     if (queue.length === 0) {
-      open.delete(name)
+      this.open.delete(name)
     }
 
     const text = frame.detail ?? frame.label ?? ''
@@ -103,21 +107,29 @@ export function createFrameMapper(): FrameMapper {
     })
   }
 
-  const legacy = (frame: SseFrame): MappedEvent[] => {
-    if (frame.kind === 'tool_start') {
-      return [synthStart(frame)]
-    }
-
-    if (frame.kind === 'tool_end') {
-      return [synthEnd(frame)]
-    }
-
-    if (frame.label && !frame.turnStarted && frame.delta === undefined) {
-      return [gateway('status.update', { kind: frame.kind ?? 'status', text: frame.label })]
-    }
-
-    return []
+  reset(): void {
+    this.open.clear()
   }
+}
+
+function legacyEvents(frame: SseFrame, ids: LegacyToolIds): MappedEvent[] {
+  if (frame.kind === 'tool_start') {
+    return [ids.start(frame)]
+  }
+
+  if (frame.kind === 'tool_end') {
+    return [ids.end(frame)]
+  }
+
+  if (frame.label && !frame.turnStarted && frame.delta === undefined) {
+    return [gateway('status.update', { kind: frame.kind ?? 'status', text: frame.label })]
+  }
+
+  return []
+}
+
+export function createFrameMapper(): FrameMapper {
+  const ids = new LegacyToolIds()
 
   const map = (raw: unknown): MappedEvent[] => {
     const parsed = sseFrameSchema.safeParse(raw)
@@ -139,11 +151,10 @@ export function createFrameMapper(): FrameMapper {
 
     // A frame the server typed is authoritative; an absent or unrecognised `typed` falls back to the label.
     const typed = frame.typed === undefined ? null : typedEventSchema.safeParse(frame.typed)
-
-    out.push(...(typed?.success ? [mapTyped(typed.data)] : legacy(frame)))
+    out.push(...(typed?.success ? [mapTyped(typed.data)] : legacyEvents(frame, ids)))
 
     return out
   }
 
-  return { map, reset: () => open.clear() }
+  return { map, reset: () => ids.reset() }
 }
