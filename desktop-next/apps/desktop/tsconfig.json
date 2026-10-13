@@ -24,6 +24,7 @@
       "@hermes/shared/color": ["../shared/src/color.ts"],
       "@hermes/shared/i18n": ["../shared/src/i18n.ts"],
       "@hermes/shared/translucency": ["../shared/src/translucency.ts"],
+      "@hermes/shared/vanta": ["../shared/src/vanta/index.ts"],
       "@hermes/shared": ["../shared/src/index.ts"]
     }
   },
