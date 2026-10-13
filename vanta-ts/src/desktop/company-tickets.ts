@@ -16,7 +16,7 @@ import type { AncestryNode, TicketDetail, TicketSummary, TicketViewStatus } from
 
 const TEXT_MAX = 1000;
 const ANCESTRY_MAX_DEPTH = 8;
-const INTERNAL_LABEL = /^req:/;
+const INTERNAL_LABEL = /^(req|cfg):/;
 
 const clip = (text: string): string => redactForLog(text.length > TEXT_MAX ? `${text.slice(0, TEXT_MAX)}…` : text);
 

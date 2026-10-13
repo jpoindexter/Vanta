@@ -8,7 +8,7 @@ const beats = new Map<string, string>();
 const key = (home: string, id: string): string => `${home}\u0000${id}`;
 
 export function trackRun(home: string, taskId: string, done: Promise<void>): void {
-  const tracked = done.finally(() => {
+  const tracked: Promise<void> = done.catch(() => undefined).finally(() => {
     if (inflight.get(key(home, taskId)) === tracked) inflight.delete(key(home, taskId));
   });
   inflight.set(key(home, taskId), tracked);
