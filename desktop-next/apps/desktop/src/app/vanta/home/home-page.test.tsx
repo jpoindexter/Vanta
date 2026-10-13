@@ -25,11 +25,19 @@ describe('HomePage', () => {
     expect(headings).toEqual(['Needs you 2', 'Running now', 'Next up', 'Recent outputs'])
   })
 
-  it('offers the composer with the wireframe prompt and recent projects', () => {
+  it('offers the composer with the wireframe prompt, recent projects and the project picker', () => {
     renderHome()
 
     expect(screen.getByPlaceholderText('What should Vanta do?')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Research' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Project: Vanta' }).textContent).toBe('Vanta project')
+  })
+
+  it('keeps the picker label in step with the chosen project chip', () => {
+    renderHome()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Portfolio' }))
+    expect(screen.getByRole('button', { name: 'Project: Portfolio' }).textContent).toBe('Portfolio project')
   })
 
   it('grants Allow once only on rows that carry a single approval', () => {

@@ -15,12 +15,14 @@ interface VpRowProps {
  *  deliberate: the second line takes the parent's strut so heights match the wireframe. */
 export function VpRow({ actions, detail, icon, title }: VpRowProps) {
   return (
-    <div className="vp-row" role="listitem">
-      <span>
+    <div className="vp-row" data-testid="list-row" role="listitem">
+      <span data-testid="list-row-title">
         {icon && <Glyph kind={icon} />}
         {title}
         <br />
-        <span className="vp-note vp-note--flush">{detail}</span>
+        <span className="vp-note vp-note--flush" data-testid="list-row-note">
+          {detail}
+        </span>
       </span>
       {actions && <span className="vp-acts">{actions}</span>}
     </div>
@@ -30,8 +32,8 @@ export function VpRow({ actions, detail, icon, title }: VpRowProps) {
 /** Single-line row (Recent outputs, workbench outputs). */
 export function VpSimpleRow({ actions, icon, title }: Pick<VpRowProps, 'actions' | 'icon' | 'title'>) {
   return (
-    <div className="vp-row" role="listitem">
-      <span>
+    <div className="vp-row" data-testid="list-row" role="listitem">
+      <span data-testid="list-row-title">
         {icon && <Glyph kind={icon} />}
         {title}
       </span>

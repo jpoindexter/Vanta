@@ -10,11 +10,18 @@ const PREVIEW_MIN_HEIGHT = 260
 export function BrowserTab({ data, preview }: { data: BrowserData; preview?: ReactNode }) {
   return (
     <>
-      <div className="vp-urlbar">
-        <input aria-label={WORKBENCH_COPY.address} readOnly value={data.url} />
+      <div
+        aria-label={WORKBENCH_COPY.address}
+        aria-readonly="true"
+        className="vp-urlbar"
+        data-testid="workbench-urlbar"
+        role="textbox"
+        tabIndex={0}
+      >
+        {data.url}
       </div>
       {preview ?? (
-        <div className="vp-ph" style={{ minHeight: PREVIEW_MIN_HEIGHT }}>
+        <div className="vp-ph" data-testid="workbench-placeholder" style={{ minHeight: PREVIEW_MIN_HEIGHT }}>
           {WORKBENCH_COPY.pagePreview}
         </div>
       )}
@@ -25,10 +32,14 @@ export function BrowserTab({ data, preview }: { data: BrowserData; preview?: Rea
 export function TerminalTab({ data, live }: { data: TerminalData; live?: ReactNode }) {
   return (
     <>
-      <div className="vp-code" role="log">
+      <div className="vp-code" data-testid="workbench-code" role="log">
         {data.output}
       </div>
-      {live ?? <div className="vp-ph">{WORKBENCH_COPY.liveOutput}</div>}
+      {live ?? (
+        <div className="vp-ph" data-testid="workbench-placeholder">
+          {WORKBENCH_COPY.liveOutput}
+        </div>
+      )}
     </>
   )
 }

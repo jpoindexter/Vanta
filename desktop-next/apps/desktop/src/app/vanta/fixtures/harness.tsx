@@ -40,6 +40,8 @@ export const SCREENS = [
 export type Screen = (typeof SCREENS)[number]
 
 export interface HarnessQuery {
+  /** Fill the viewport edge to edge with no border (the parity checker measures the viewport). */
+  bare: boolean
   filter: string
   screen: Screen
   section: SettingsSection
@@ -123,12 +125,26 @@ function SettingsHost({ query }: { query: HarnessQuery }) {
   )
 }
 
-export function Harness({ query }: { query: HarnessQuery }) {
+/** Frame widths the wireframe draws, picked from a real viewport width. */
+export function frameWidthFor(viewport: number): HarnessQuery['width'] {
+  if (viewport >= 1280) {
+    return 1440
+  }
+
+  return viewport >= 1024 ? 1100 : 800
+}
+
+export function Harness({ query: given }: { query: HarnessQuery }) {
+  const query = given.bare ? { ...given, width: frameWidthFor(window.innerWidth) } : given
   const showsWorkbench = query.screen === 'workbench'
 
   return (
     <div className="vp">
-      <div className={`vpx-frame vpx-w${query.width}`} id="frame" style={{ width: query.width }}>
+      <div
+        className={`vpx-frame vpx-w${query.width}${query.bare ? ' vpx-frame--bare' : ''}`}
+        id="frame"
+        style={query.bare ? undefined : { width: query.width }}
+      >
         <header className="vpx-titlebar" data-owner="shell-chrome" />
         <div className="vpx-body">
           <aside className="vpx-sidebar" data-owner="shell-chrome" />

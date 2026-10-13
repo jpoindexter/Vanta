@@ -27,8 +27,8 @@ export function HomePage({ actions, needsYou, nextUp, projects, recent, running,
   }
 
   return (
-    <div aria-label="Home" className="vp vp-page" role="region">
-      <div className="vp-col">
+    <div aria-label="Home" className="vp vp-page" data-testid="page" role="region">
+      <div className="vp-col" data-testid="page-column">
         <h2 className="sr-only">Home</h2>
         <HomeComposer
           onProjectChange={setProjectId}
@@ -40,7 +40,7 @@ export function HomePage({ actions, needsYou, nextUp, projects, recent, running,
         />
         <div aria-label={HOME_COPY.projectLabel} className="vp-chips" role="group">
           {projects.map(project => (
-            <VpChip aria-pressed={project.id === projectId} key={project.id} onClick={() => setProjectId(project.id)}>
+            <VpChip aria-pressed={project.id === projectId} data-testid="home-project-chip" key={project.id} onClick={() => setProjectId(project.id)}>
               {project.name}
             </VpChip>
           ))}

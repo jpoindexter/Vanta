@@ -35,30 +35,10 @@
   flex: 1;
 }
 
-.vp-select {
-  appearance: none;
-  background: var(--vp-bg);
-  border: 1px solid var(--vp-line);
-  border-radius: 999px;
-  color: var(--vp-ink2);
-  cursor: pointer;
-  font: inherit;
-  field-sizing: content;
-  font-size: 12px;
-  padding: 1px 18px 1px 9px;
-}
-
-.vp-select-wrap {
+.vp-chip--menu {
   align-items: center;
   display: inline-flex;
-  position: relative;
-}
-
-.vp-select-wrap svg {
-  color: var(--vp-ink2);
-  pointer-events: none;
-  position: absolute;
-  right: 6px;
+  gap: 4px;
 }
 
 .vp-chips {

@@ -20,6 +20,7 @@ function readQuery(search: string): HarnessQuery {
   const width = Number(params.get('w'))
 
   return {
+    bare: params.get('bare') === '1',
     filter: params.get('filter') ?? '',
     screen: pick<Screen>(params.get('screen'), SCREENS, 'home'),
     section: pick<SettingsSection>(params.get('section'), SETTINGS_SECTIONS, 'general'),

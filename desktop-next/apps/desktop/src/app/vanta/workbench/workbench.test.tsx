@@ -108,7 +108,7 @@ describe('Workbench', () => {
     const p = props('browser')
     const { rerender } = render(<Workbench {...p} />)
 
-    expect((screen.getByLabelText('Address') as HTMLInputElement).value).toBe('https://stripe.com/docs/webhooks')
+    expect(screen.getByRole('textbox', { name: 'Address' }).textContent).toBe('https://stripe.com/docs/webhooks')
     expect(screen.getByText('page preview')).toBeTruthy()
 
     rerender(<Workbench {...p} tab="terminal" />)

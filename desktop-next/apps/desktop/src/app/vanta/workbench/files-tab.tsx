@@ -83,15 +83,17 @@ export function FilesTab({ data, onSelectFile }: { data: FilesData; onSelectFile
 
   return (
     <>
-      <div aria-label="Files" className="vp-code vp-tree" role="group">
+      <div aria-label="Files" className="vp-code vp-tree" data-testid="workbench-code" role="group">
         <Tree depth={0} nodes={data.roots} onSelect={select} open={open} parent="" selected={selected} toggle={toggle} />
       </div>
       {data.preview ? (
-        <div aria-label={data.preview.path} className="vp-code" role="region">
+        <div aria-label={data.preview.path} className="vp-code" data-testid="workbench-code" role="region">
           {data.preview.text}
         </div>
       ) : (
-        <div className="vp-ph">{WORKBENCH_COPY.filePreview}</div>
+        <div className="vp-ph" data-testid="workbench-placeholder">
+          {WORKBENCH_COPY.filePreview}
+        </div>
       )}
     </>
   )

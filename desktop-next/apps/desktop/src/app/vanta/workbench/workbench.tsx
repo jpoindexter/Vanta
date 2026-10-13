@@ -93,13 +93,14 @@ export function Workbench(props: WorkbenchProps) {
   }
 
   return (
-    <aside aria-label={WORKBENCH_COPY.label} className={`vp vp-wb${mode === 'docked' ? '' : ` vp-wb--${mode}`}`} onKeyDown={event => event.key === 'Escape' && onClose()}>
-      <div className="vp-wb__tabs">
+    <aside aria-label={WORKBENCH_COPY.label} className={`vp vp-wb${mode === 'docked' ? '' : ` vp-wb--${mode}`}`} data-testid="workbench" onKeyDown={event => event.key === 'Escape' && onClose()}>
+      <div className="vp-wb__tabs" data-testid="workbench-tabs">
         <div aria-label={WORKBENCH_COPY.label} className="vp-wb__tablist" onKeyDown={handleKeyDown} role="tablist">
           {WORKBENCH_TABS.map(id => (
             <VpButton
               aria-controls="vp-wb-panel"
               aria-selected={tab === id}
+              data-testid={`workbench-tab-${id}`}
               id={`vp-wb-tab-${id}`}
               key={id}
               onClick={() => onTabChange(id)}
@@ -113,9 +114,9 @@ export function Workbench(props: WorkbenchProps) {
             </VpButton>
           ))}
         </div>
-        <VpCloseButton aria-label={WORKBENCH_COPY.close} className="vp-wb__close" onClick={onClose} />
+        <VpCloseButton aria-label={WORKBENCH_COPY.close} className="vp-wb__close" data-testid="workbench-close" onClick={onClose} />
       </div>
-      <div aria-labelledby={`vp-wb-tab-${tab}`} className="vp-wb__body" id="vp-wb-panel" role="tabpanel">
+      <div aria-labelledby={`vp-wb-tab-${tab}`} className="vp-wb__body" data-testid="workbench-body" id="vp-wb-panel" role="tabpanel">
         <Body {...props} />
       </div>
     </aside>
