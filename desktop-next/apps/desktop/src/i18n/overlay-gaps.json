@@ -1001,6 +1001,8 @@
   "sendDiagnostics.upload": ["ru"],
   "sendDiagnostics.uploadIdFallback": ["ru"],
   "sendDiagnostics.uploading": ["ru"],
+  "settings.about.backend": ["ar","de","es","fr","ja","ru","zh","zh-hant"],
+  "settings.about.backendLocal": ["ar","de","es","fr","ja","ru","zh","zh-hant"],
   "settings.appearance.appActionsDesc": ["ar"],
   "settings.appearance.appActionsLeft": ["ar"],
   "settings.appearance.appActionsRight": ["ar"],

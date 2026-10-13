@@ -8,6 +8,7 @@
 //   fail ...        the provider answers 500 (a failed turn)
 //   image ...       the reply carries a small image
 //   long ...        several paragraphs, a list and a code block
+//   link ...        the reply holds a web link
 import http from "node:http";
 
 const REPLY =
@@ -73,6 +74,7 @@ function plan(body, options) {
   if (/^slow\b/i.test(text)) return { text: REPLY, delay: 400 };
   if (/^image\b/i.test(text)) return { text: `Here is the image.\n\n![proof image](${options.imagePath ?? `data:image/png;base64,${PIXEL}`})` };
   if (/^long\b/i.test(text)) return { text: LONG };
+  if (/^link\b/i.test(text)) return { text: "Read the [example page](https://example.com/page) for details." };
   return { text: REPLY };
 }
 

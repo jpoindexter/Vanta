@@ -1191,7 +1191,12 @@ export const en: Translations = {
       screenRecording: 'Screen Recording',
       driverHealth: 'Driver health'
     },
-    about: { updates: 'Updates', channel: enUpdateChannel },
+    about: {
+      updates: 'Updates',
+      channel: enUpdateChannel,
+      backend: 'Backend',
+      backendLocal: 'Local (this computer)'
+    },
     config: {
       minimizeToTrayTitle: 'Minimize to tray',
       minimizeToTrayDesc:

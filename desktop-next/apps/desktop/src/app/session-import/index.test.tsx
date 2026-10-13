@@ -100,3 +100,15 @@ it('does not navigate when an import finishes after the view has closed', async 
   await waitFor(() => expect(setSessionOwnerHint).toHaveBeenCalledWith('existing', owner))
   expect(onOpenSession).not.toHaveBeenCalled()
 })
+
+it('shows an empty list instead of crashing when the server answers a page with no sessions', async () => {
+  // The Vanta server has no session.foreign.list route: the gateway answers an empty object.
+  vi.mocked(foreignRequest).mockResolvedValue({} as never)
+  mount()
+
+  await waitFor(() => expect(vi.mocked(foreignRequest)).toHaveBeenCalled())
+  // The rows are built after the query settles; if that threw, the page heading would be unmounted.
+  await new Promise(resolve => setTimeout(resolve, 80))
+  expect(screen.getByRole('heading', { name: 'Continue from another app' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: /Repair imports/ })).toBeNull()
+})

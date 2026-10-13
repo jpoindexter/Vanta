@@ -2,8 +2,11 @@
 // row when they can prove more (a seeded state turns a NOT-RUN into a PASS).
 import * as chrome from "./rows-chrome.mjs";
 import * as composer from "./rows-composer.mjs";
+import * as pages from "./rows-pages.mjs";
+import * as palette from "./rows-palette.mjs";
 import * as profiles from "./rows-profiles.mjs";
 import * as right from "./rows-right.mjs";
+import * as settings from "./rows-settings.mjs";
 import * as seeded from "./rows-seeded.mjs";
 import * as thread from "./rows-thread.mjs";
 import * as win from "./rows-window.mjs";
@@ -97,6 +100,29 @@ export const GROUPS = [
       await composer.attachRows(ctx);
       await composer.pillRows(ctx.page);
       await composer.runRows(ctx.page);
+    }
+  },
+  {
+    name: "palette",
+    run: async (ctx) => {
+      await ensureChat(ctx.page);
+      await palette.paletteRows(ctx.page);
+      await palette.contextRows(ctx);
+    }
+  },
+  {
+    name: "settings",
+    run: async (ctx) => {
+      await settings.settingsRows(ctx.page);
+    }
+  },
+  {
+    name: "pages",
+    run: async (ctx) => {
+      await ensureChat(ctx.page);
+      await pages.capabilityRows(ctx.page);
+      await pages.pageRows(ctx);
+      await pages.onboardingRows(ctx.page);
     }
   }
 ];
