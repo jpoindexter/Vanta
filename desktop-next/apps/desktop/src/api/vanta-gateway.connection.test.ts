@@ -104,7 +104,9 @@ describe('VantaGateway unsupported methods', () => {
         'session.list',
         'session.resume',
         'session.steer',
-        'session.title'
+        'session.title',
+        'setup.runtime_check',
+        'setup.status'
       ].sort()
     )
   })

@@ -3,6 +3,15 @@ import { map, type MapStore } from 'nanostores'
 
 import type { HermesApiRequest } from '@/global'
 
+import { vantaRestShim } from './vanta/rest-shim'
+
+declare global {
+  interface Window {
+    /** Present only in the Vanta shell; its preload exposes it. */
+    vantaDesktop?: unknown
+  }
+}
+
 // Desktop startup fires a burst of read-only data calls (config, profiles,
 // model info/options, cron) the moment the backend passes readiness. On a
 // profile-heavy or remote install these can each take tens of seconds — e.g.
@@ -190,7 +199,12 @@ export function ambientOwnerConnectionId(): string | undefined {
  *  underneath it. (It used to omit the key for 'local', which made the pin
  *  unable to beat the ambient tag; helpers then had to bypass this wrapper.) */
 export function hermesApi<T>(request: HermesApiRequest): Promise<T> {
-  return window.hermesDesktop.api<T>({ ...connectionScoped(), ...request })
+  const send = (call: HermesApiRequest) => window.hermesDesktop.api<unknown>({ ...connectionScoped(), ...call })
+
+  // Only the Vanta shell (preload exposes `vantaDesktop`) serves sessions and profiles from /api/sessions.
+  const shimmed = typeof window.vantaDesktop === 'undefined' ? null : vantaRestShim(request, send)
+
+  return (shimmed ?? send(request)) as Promise<T>
 }
 
 // ── Capability scope: (connection, profile) routing for the Capabilities

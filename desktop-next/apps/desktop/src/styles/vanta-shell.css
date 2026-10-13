@@ -175,14 +175,31 @@ button.vs-chip:hover {
   outline-offset: 2px;
 }
 
-/* Hamburger: only where the sidebar is a drawer (under 1024px). */
-.vs-tb-drawer {
-  display: none;
+/* Restored app controls (settings, layout editor, HUD, swap sides, right sidebar)
+   sit beside the workbench toggles; Hermes' own tool buttons, sized to match. */
+.vs-tb-tools {
+  display: flex;
+  align-items: center;
 }
 
-@media (max-width: 1023.98px) {
-  .vs-tb-drawer {
-    display: inline-grid;
+.vs-tb-tools [data-slot='button'],
+.vs-tb-left [data-slot='button'] {
+  width: var(--vs-control);
+  height: var(--vs-control);
+}
+
+.vs-tb-sep {
+  width: 1px;
+  height: 16px;
+  margin: 0 4px;
+  background: var(--ui-stroke-tertiary);
+}
+
+/* Under 1100px the less-used controls live only in More. */
+@media (max-width: 1099.98px) {
+  .vs-tb-opt,
+  .vs-tb-sep {
+    display: none;
   }
 }
 

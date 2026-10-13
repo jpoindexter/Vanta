@@ -10,24 +10,25 @@ describe('statusbar whole-bar visibility', () => {
     vi.resetModules()
   })
 
-  it('rests hidden on a fresh install and ignores the v1 key, whatever it held', async () => {
-    window.localStorage.setItem(LEGACY_VISIBLE_KEY, 'true')
+  it('is visible on a fresh install and ignores every earlier key, whatever it held', async () => {
+    window.localStorage.setItem(LEGACY_VISIBLE_KEY, 'false')
+    window.localStorage.setItem('hermes.desktop.statusbarVisible.v3', 'false')
 
     const { $statusbarVisible } = await loadStore()
 
-    expect($statusbarVisible.get()).toBe(false)
+    expect($statusbarVisible.get()).toBe(true)
   })
 
-  it('still honours a show made after the update', async () => {
+  it('still honours a hide made after the update', async () => {
     const first = await loadStore()
 
     first.toggleStatusbarVisible()
-    expect(first.$statusbarVisible.get()).toBe(true)
+    expect(first.$statusbarVisible.get()).toBe(false)
 
     vi.resetModules()
     const reloaded = await loadStore()
 
-    expect(reloaded.$statusbarVisible.get()).toBe(true)
+    expect(reloaded.$statusbarVisible.get()).toBe(false)
   })
 })
 
@@ -37,7 +38,7 @@ describe('statusbar hidden items', () => {
     vi.resetModules()
   })
 
-  it('surfaces the approval pill for installs that hid it under the v1 defaults, keeping their other choices', async () => {
+  it('hides only the two throughput diagnostics on a fresh install, whatever older keys held', async () => {
     window.localStorage.setItem(
       'hermes.desktop.statusbarHidden',
       JSON.stringify(['approval-mode', 'cron', 'gateway-health'])
@@ -45,7 +46,7 @@ describe('statusbar hidden items', () => {
 
     const { $statusbarHiddenIds } = await loadStore()
 
-    expect($statusbarHiddenIds.get()).toEqual(['cron', 'gateway-health'])
+    expect($statusbarHiddenIds.get()).toEqual(['cache-hit-rate', 'tokens-per-second'])
   })
 
   it('still honours hiding the approval pill after the update', async () => {

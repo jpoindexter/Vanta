@@ -1,4 +1,12 @@
-import { configGet, configSet, commandsCatalogHandler, completePath, modelOptions } from './handlers-config'
+import {
+  commandsCatalogHandler,
+  completePath,
+  configGet,
+  configSet,
+  modelOptions,
+  setupRuntimeCheck,
+  setupStatus
+} from './handlers-config'
 import { approvalPending, approvalRespond, promptSubmit, sessionSteer } from './handlers-prompt'
 import {
   type Handler,
@@ -32,7 +40,9 @@ export const DISPATCH: Readonly<Record<string, Handler>> = {
   'session.list': sessionList,
   'session.resume': sessionResume,
   'session.steer': sessionSteer,
-  'session.title': sessionTitle
+  'session.title': sessionTitle,
+  'setup.runtime_check': setupRuntimeCheck,
+  'setup.status': setupStatus
 }
 
 export const IMPLEMENTED_METHODS: readonly string[] = Object.keys(DISPATCH)

@@ -151,8 +151,8 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
   // Connections merged into the unified Gateways page: land old
   // `?tab=connections` routes/bookmarks there instead of a dead entry.
   useEffect(() => {
-    if (activeView === 'connections') {
-      setActiveView('gateway')
+    if (activeView === 'connections' || activeView === 'gateway') {
+      setActiveView('about')
     }
   }, [activeView, setActiveView])
   // Providers subnav (Accounts vs API keys) lives in its own param so each
@@ -316,13 +316,6 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
             id: 'providers',
             label: t.settings.nav.providers,
             onSelect: () => setActiveView('providers')
-          },
-          {
-            active: activeView === 'gateway',
-            icon: Globe,
-            id: 'gateway',
-            label: t.settings.nav.gateway,
-            onSelect: () => setActiveView('gateway')
           },
           {
             active: activeView === 'keybinds',

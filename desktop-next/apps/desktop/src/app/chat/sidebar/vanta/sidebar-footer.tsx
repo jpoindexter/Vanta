@@ -75,7 +75,13 @@ export function SidebarFooter({ onOpenSettings }: SidebarFooterProps) {
           </div>
         </PopoverContent>
       </Popover>
-      <button aria-label={copy.settings} className="vs-icon" onClick={onOpenSettings} type="button">
+      <button
+        aria-label={copy.settings}
+        className="vs-icon"
+        data-testid="sidebar-settings"
+        onClick={onOpenSettings}
+        type="button"
+      >
         <IconSettings aria-hidden size={16} />
       </button>
     </div>

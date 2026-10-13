@@ -48,17 +48,17 @@ function openContextMenu(target: HTMLElement) {
 
 describe('statusbar item visibility', () => {
   it('shows an item once the user enables it from the bar context menu', async () => {
-    const statusbar = bar([item('cron', 'Cron'), item('gateway-health', 'Gateway')])
+    const statusbar = bar([item('cache-hit-rate', 'Cache'), item('gateway-health', 'Gateway')])
 
-    expect(screen.queryByText('Cron')).toBeNull()
+    expect(screen.queryByText('Cache')).toBeNull()
 
     openContextMenu(statusbar)
 
-    const row = await screen.findByRole('menuitemcheckbox', { name: 'Cron' })
+    const row = await screen.findByRole('menuitemcheckbox', { name: 'Cache' })
     fireEvent.click(row)
 
-    expect($statusbarHiddenIds.get()).not.toContain('cron')
-    expect(within(statusbar).getByText('Cron')).toBeTruthy()
+    expect($statusbarHiddenIds.get()).not.toContain('cache-hit-rate')
+    expect(within(statusbar).getByText('Cache')).toBeTruthy()
   })
 
   it('never lets the user hide a locked item (system icon / update pill)', async () => {
@@ -83,10 +83,10 @@ describe('reset to defaults', () => {
   it('puts a customized bar back to the shipped show/hide set', async () => {
     $statusbarHiddenIds.set(['gateway-health'])
 
-    const statusbar = bar([item('cron', 'Cron'), item('gateway-health', 'Gateway')])
+    const statusbar = bar([item('cache-hit-rate', 'Cache'), item('gateway-health', 'Gateway')])
 
     expect(screen.queryByText('Gateway')).toBeNull()
-    expect(within(statusbar).getByText('Cron')).toBeTruthy()
+    expect(within(statusbar).getByText('Cache')).toBeTruthy()
 
     openContextMenu(statusbar)
     fireEvent.click(await screen.findByRole('menuitem', { name: /reset to defaults/i }))
@@ -95,11 +95,11 @@ describe('reset to defaults', () => {
     expect(within(statusbar).getByText('Gateway')).toBeTruthy()
     // Scoped to the bar: the menu stays open after a reset, so an unscoped query
     // matches its still-listed 'Cron' checkbox row rather than a bar item.
-    expect(within(statusbar).queryByText('Cron')).toBeNull()
+    expect(within(statusbar).queryByText('Cache')).toBeNull()
   })
 
   it('disables the row when the layout is already default', async () => {
-    const statusbar = bar([item('cron', 'Cron'), item('gateway-health', 'Gateway')])
+    const statusbar = bar([item('cache-hit-rate', 'Cache'), item('gateway-health', 'Gateway')])
 
     openContextMenu(statusbar)
 
@@ -108,10 +108,10 @@ describe('reset to defaults', () => {
   })
 
   it('enables the row as soon as one item differs, in either direction', async () => {
-    const statusbar = bar([item('cron', 'Cron'), item('gateway-health', 'Gateway')])
+    const statusbar = bar([item('cache-hit-rate', 'Cache'), item('gateway-health', 'Gateway')])
 
     // Showing a default-hidden item counts…
-    $statusbarHiddenIds.set(STATUSBAR_HIDDEN_BY_DEFAULT.filter(id => id !== 'cron'))
+    $statusbarHiddenIds.set(STATUSBAR_HIDDEN_BY_DEFAULT.filter(id => id !== 'cache-hit-rate'))
     openContextMenu(statusbar)
     expect(
       (await screen.findByRole('menuitem', { name: /reset to defaults/i })).getAttribute('data-disabled')

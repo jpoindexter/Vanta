@@ -57,7 +57,12 @@ export const enVantaShell = {
     more: 'More',
     project: 'Project',
     noProject: 'No project',
-    newChatTitle: 'New chat'
+    newChatTitle: 'New chat',
+    resetLayout: 'Reset layout',
+    hideStatusbar: 'Hide status bar',
+    showStatusbar: 'Show status bar',
+    simpleMode: 'Simple mode',
+    advancedMode: 'Advanced mode'
   },
   offline: {
     banner: 'Offline. Messages queue until Vanta reconnects.',

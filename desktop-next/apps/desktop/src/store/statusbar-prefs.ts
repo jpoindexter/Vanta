@@ -1,25 +1,18 @@
 import { Codecs, persistentAtom } from '@/lib/persisted'
-import { readKey } from '@/lib/storage'
 import { modeBound } from '@/store/interface-mode'
 
-// v1 (`hermes.desktop.statusbarHidden`) was seeded with the approval pill
-// hidden, so every existing store carries an `approval-mode` the user never
-// chose. v2 seeds from v1 minus that id: other customizations survive, the
-// pill appears once on update, and hiding it again persists here.
-const STATUSBAR_HIDDEN_STORAGE_KEY = 'hermes.desktop.statusbarHidden.v2'
-const LEGACY_HIDDEN_STORAGE_KEY = 'hermes.desktop.statusbarHidden'
-// v3: the bottom bar rests hidden. Its version, backend and model state moved
-// into the sidebar footer popover, and every earlier key is deliberately NOT
-// seeded from, so existing installs also start hidden once; showing it again
-// (the popover's switch, ⌘⇧S or ⌘K) persists here.
-const STATUSBAR_VISIBLE_STORAGE_KEY = 'hermes.desktop.statusbarVisible.v3'
+// The hidden-item set is versioned so a change of defaults reaches existing installs.
+const STATUSBAR_HIDDEN_STORAGE_KEY = 'vanta.desktop.statusbarHidden.v3'
+// v4: the bar is back and visible by default (the Vanta shell briefly rested it
+// hidden). Earlier keys are not seeded from, so every install sees it once.
+const STATUSBAR_VISIBLE_STORAGE_KEY = 'vanta.desktop.statusbarVisible.v4'
 
-// Whole-bar visibility, VS Code's `workbench.statusBar.visible`. Off by default.
+// Whole-bar visibility, VS Code's `workbench.statusBar.visible`. On by default.
 // Hiding it unmounts the bar (its 15s status poll goes with it), so the way back
-// is the sidebar footer's switch, the `view.toggleStatusbar` keybind or the ⌘K
-// row, never the bar itself. Simple mode rests the bar hidden without touching
+// is the More menu, the `view.toggleStatusbar` keybind or the ⌘K row, never the
+// bar itself. Simple mode rests the bar hidden without touching
 // this preference.
-const $statusbarVisiblePref = persistentAtom(STATUSBAR_VISIBLE_STORAGE_KEY, false, Codecs.bool)
+const $statusbarVisiblePref = persistentAtom(STATUSBAR_VISIBLE_STORAGE_KEY, true, Codecs.bool)
 
 export const $statusbarVisible = modeBound('statusbarVisible', $statusbarVisiblePref, value =>
   $statusbarVisiblePref.set(value)
@@ -29,27 +22,9 @@ export function toggleStatusbarVisible() {
   $statusbarVisible.set(!$statusbarVisible.get())
 }
 
-// Items the bar hides until the user turns them on from its context menu. The
-// bar's job is to answer "is the backend healthy, where am I, what's it doing" —
-// route shortcuts (cron/webhooks/agents) and the terminal toggle are
-// navigation, not status, so they start out of the way. The approval pill
-// (the yolo zap) stays: whether dangerous commands run unasked is state the
-// user should see at a glance. The per-turn
-// session readouts (running/session timers, context meter, cache hit rate,
-// tokens/sec) are diagnostics most users don't watch, so they start hidden too
-// and the bar stays quiet mid-turn.
-export const STATUSBAR_HIDDEN_BY_DEFAULT: readonly string[] = [
-  'agents',
-  'cache-hit-rate',
-  'context-usage',
-  'cron',
-  'running-timer',
-  'session-timer',
-  'system-resources',
-  'terminal',
-  'tokens-per-second',
-  'webhooks'
-]
+// Items the bar hides until the user turns them on from its context menu: only the
+// two throughput diagnostics. Everything else the Hermes bar carried is on.
+export const STATUSBAR_HIDDEN_BY_DEFAULT: readonly string[] = ['cache-hit-rate', 'tokens-per-second']
 
 // Stored as the explicit hidden set (not the visible one) so an item added to
 // the bar in a later version shows up for existing users instead of silently
@@ -59,23 +34,9 @@ export const STATUSBAR_HIDDEN_BY_DEFAULT: readonly string[] = [
 const sanitizeHiddenIds = (value: unknown): string[] =>
   Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string' && id.length > 0) : []
 
-function legacyHiddenSeed(): string[] {
-  const raw = readKey(LEGACY_HIDDEN_STORAGE_KEY)
-
-  if (raw === null) {
-    return [...STATUSBAR_HIDDEN_BY_DEFAULT]
-  }
-
-  try {
-    return sanitizeHiddenIds(JSON.parse(raw)).filter(id => id !== 'approval-mode')
-  } catch {
-    return [...STATUSBAR_HIDDEN_BY_DEFAULT]
-  }
-}
-
 export const $statusbarHiddenIds = persistentAtom<string[]>(
   STATUSBAR_HIDDEN_STORAGE_KEY,
-  legacyHiddenSeed(),
+  [...STATUSBAR_HIDDEN_BY_DEFAULT],
   Codecs.json<string[]>(sanitizeHiddenIds)
 )
 
