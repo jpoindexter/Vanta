@@ -94,6 +94,22 @@ async function switchProject(root: string, serverHost: ServerHost): Promise<void
   mainWindow?.webContents.reload()
 }
 
+/** A native question the renderer cannot script: may the agent's workspace move to this folder? */
+async function askToSwitchProject(dir: string): Promise<boolean> {
+  const options = {
+    buttons: ['Switch project', 'Cancel'],
+    cancelId: 1,
+    defaultId: 1,
+    detail: dir,
+    message: 'Let Vanta work in this folder?',
+    type: 'question' as const
+  }
+
+  const answer = mainWindow ? await dialog.showMessageBox(mainWindow, options) : await dialog.showMessageBox(options)
+
+  return answer.response === 0
+}
+
 function registerHandlers({ boot, host: serverHost, log }: Services): void {
   const ipc = ipcMain as never
 
@@ -109,6 +125,7 @@ function registerHandlers({ boot, host: serverHost, log }: Services): void {
   registerWindowHandlers(ipc, windowFor)
 
   registerProjectHandlers({
+    confirmSwitch: askToSwitchProject,
     dialog: dialog as never,
     getWindow: windowFor,
     ipc,
