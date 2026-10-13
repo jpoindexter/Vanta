@@ -5,7 +5,7 @@
 // how the two halves drift.
 //
 // A .cjs module (not JSON) so the variant is decided at require time:
-// HERMES_DESKTOP_VARIANT=light builds "Hermes Light". The whole config
+// HERMES_DESKTOP_VARIANT=light builds "Vanta Light". The whole config
 // derives from that one flag.
 // @ts-check
 'use strict'
@@ -57,7 +57,7 @@ const channelRequest = channelBuildRequest()
 
 /** @typedef {import("app-builder-lib").Configuration} Configuration */
 
-const [owner, repo] = (process.env.GITHUB_REPOSITORY || 'NousResearch/hermes-agent').split('/')
+const [owner, repo] = (process.env.GITHUB_REPOSITORY || 'jpoindexter/Vanta').split('/')
 if (!owner || !repo) {
   throw new Error(`invalid GITHUB_REPOSITORY ${process.env.GITHUB_REPOSITORY}`)
 }
@@ -203,7 +203,7 @@ module.exports = {
     // paste onto the stock removable-drive icon). It lives in packaging/ with
     // the background so the `files` whitelist keeps it out of the app bundle.
     icon: 'packaging/dmg-volume.icns',
-    title: 'Hermes Agent Installer',
+    title: 'Vanta Installer',
     // A prebuilt .tiff on purpose, not a PNG plus a @2x sibling: dmg-builder's
     // PNG path runs `tiffutil -cathidpicheck`, which on macOS 26 rewrites both
     // frames to 72 dpi and silently drops the 2x representation. A .tiff is
@@ -248,7 +248,7 @@ module.exports = {
     applicationId: appNamePascal,
     displayName,
     publisher: store ? mustStoreMsix(storeMsixWhenStore).publisher : OUT_OF_STORE_PUBLISHER,
-    publisherDisplayName: store ? mustStoreMsix(storeMsixWhenStore).publisherDisplayName : 'Nous Research',
+    publisherDisplayName: store ? mustStoreMsix(storeMsixWhenStore).publisherDisplayName : 'Theft Studio',
     // The native quad is the build time (scripts/msix-shared.mjs::nativeQuad),
     // baked into the manifest template, so the builder's own build-number
     // override would stamp a second, conflicting version.
@@ -278,10 +278,10 @@ module.exports = {
   },
   linux: {
     category: 'Development',
-    maintainer: 'Nous Research <support@nousresearch.com>',
+    maintainer: 'Theft Studio <jason@theft.studio>',
     synopsis: light
-      ? 'Remote-only desktop client for Hermes Agent.'
-      : 'Native desktop shell for Hermes Agent.',
+      ? 'Remote-only desktop client for Vanta.'
+      : 'Native desktop shell for Vanta.',
     target: ['AppImage']
   }
 }
