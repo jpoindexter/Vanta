@@ -133,6 +133,13 @@ const LONG_ANSWER = [
   'Each failure doubles the wait, starting at 200 ms, and gives up after five attempts so a dead endpoint never blocks the queue.'
 ].join('\n\n')
 
+function manyTurns(): ChatMessage[] {
+  return Array.from({ length: 24 }, (_, index) => [
+    user(`mu${index}`, `Question ${index + 1} about the billing handler`),
+    assistant(`ma${index}`, [text(`Answer ${index + 1}. The handler retries up to five times with exponential backoff.`)])
+  ]).flat()
+}
+
 export function fixtureMessages(params: FixtureParams): ChatMessage[] {
   const state: ChatFixtureState = params.state
 
@@ -146,6 +153,10 @@ export function fixtureMessages(params: FixtureParams): ChatMessage[] {
 
   const base = [user('u1', USER_PROMPT)]
   const parts = workParts()
+
+  if (params.flags.has('many')) {
+    return manyTurns()
+  }
 
   if (state === 'running') {
     return [
@@ -189,5 +200,5 @@ export function fixtureMessages(params: FixtureParams): ChatMessage[] {
     ]
   }
 
-  return [...base, assistant('a1', parts)]
+  return [...base, assistant('a1', parts, { pending: true })]
 }

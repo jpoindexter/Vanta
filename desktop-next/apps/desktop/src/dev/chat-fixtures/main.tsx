@@ -22,6 +22,7 @@ const params = parseFixtureParams(window.location.search)
 try {
   window.localStorage.setItem('hermes-desktop-mode-v1', params.theme)
   window.localStorage.setItem('hermes-desktop-theme-v2', 'vanta')
+  window.localStorage.removeItem('hermes.desktop.composerQueue.v1')
 } catch {
   // Storage may be blocked; the harness then follows the OS scheme.
 }
