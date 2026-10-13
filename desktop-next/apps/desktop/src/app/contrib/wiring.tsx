@@ -1137,6 +1137,7 @@ export function ContribWiring({ children }: { children: ReactNode }) {
     openCommandCenterSection,
     requestGateway,
     selectModel,
+    submitTextToNewSession: text => submitTextToNewSession(text),
     toggleCommandCenter
   }
 

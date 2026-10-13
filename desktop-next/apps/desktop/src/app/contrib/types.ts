@@ -70,6 +70,8 @@ export interface WiringActions extends SidebarActions, ChatActions {
   openAgents: () => void
   openCommandCenterSection: (section: CommandCenterSection) => void
   requestGateway: GatewayRequester
+  /** Create a chat and send `text` as its first message (Home's composer). */
+  submitTextToNewSession: (text: string) => Promise<unknown>
   selectModel: ComponentProps<typeof ModelMenuPanel>['onSelectModel']
   toggleCommandCenter: () => void
 }
