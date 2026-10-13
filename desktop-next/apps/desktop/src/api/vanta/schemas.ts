@@ -15,6 +15,7 @@ export const sessionMetaSchema = z.looseObject({
   started: z.string().optional(),
   title: z.string().optional(),
   trashed: z.boolean().optional(),
+  unread: z.boolean().optional(),
   turns: z.number().optional(),
   updated: z.string().optional()
 })
