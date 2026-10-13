@@ -11,7 +11,8 @@
   --vp-bg3: var(--dt-secondary);
   --vp-ink: var(--dt-foreground);
   --vp-ink2: color-mix(in srgb, var(--dt-foreground) 78%, var(--dt-background));
-  --vp-ink3: var(--dt-muted-foreground);
+  /* The wireframe's tertiary grey is 3.6:1 on white; mixed up to clear 4.5:1 at 12px. */
+  --vp-ink3: color-mix(in srgb, var(--dt-foreground) 72%, var(--dt-background));
   --vp-line: color-mix(in srgb, var(--dt-foreground) 22%, var(--dt-background));
   --vp-hair: var(--dt-border);
   --vp-focus: var(--dt-ring);

@@ -82,20 +82,29 @@ export const RECENT: RecentOutputItem[] = [
   { id: 'o3', name: 'billing-retry.diff' }
 ]
 
-const noop = () => undefined
+/** Records an intent on window.__vpEvents so browser drives can assert what a control did. */
+export const record =
+  (name: string) =>
+  (...args: unknown[]): void => {
+    if (typeof window !== 'undefined') {
+      const w = window as unknown as { __vpEvents?: unknown[][] }
+
+      ;(w.__vpEvents ??= []).push([name, ...args])
+    }
+  }
 
 export function homeProps(state: FixtureState): HomeProps {
   return {
     actions: {
-      onAllowOnce: noop,
-      onEditSchedule: noop,
-      onOpenOutput: noop,
-      onOpenSession: noop,
-      onRetry: noop,
-      onRevealOutput: noop,
-      onRunSchedule: noop,
-      onStopRun: noop,
-      onSubmitTask: noop
+      onAllowOnce: record('allowOnce'),
+      onEditSchedule: record('editSchedule'),
+      onOpenOutput: record('openOutput'),
+      onOpenSession: record('openSession'),
+      onRetry: record('retry'),
+      onRevealOutput: record('revealOutput'),
+      onRunSchedule: record('runSchedule'),
+      onStopRun: record('stopRun'),
+      onSubmitTask: record('submitTask')
     },
     needsYou: blockFor(state, NEEDS_YOU),
     nextUp: blockFor(state, NEXT_UP),
