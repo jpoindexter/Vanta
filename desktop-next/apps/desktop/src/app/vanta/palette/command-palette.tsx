@@ -44,8 +44,8 @@ export function CommandPalette({ commands, onClose, onRun }: PaletteProps) {
   }
 
   return (
-    <div className="vp vp-overlay" onMouseDown={event => event.target === event.currentTarget && onClose()}>
-      <div aria-label={PALETTE_COPY.label} aria-modal="true" className="vp-sheet" onKeyDown={handleKeyDown} role="dialog">
+    <div className="vp vp-overlay" data-testid="palette-overlay" onMouseDown={event => event.target === event.currentTarget && onClose()}>
+      <div aria-label={PALETTE_COPY.label} aria-modal="true" className="vp-sheet" data-testid="palette-sheet" onKeyDown={handleKeyDown} role="dialog">
         <input
           aria-activedescendant={activeCommand ? `${listId}-${active}` : undefined}
           aria-autocomplete="list"
@@ -53,6 +53,7 @@ export function CommandPalette({ commands, onClose, onRun }: PaletteProps) {
           aria-expanded="true"
           aria-label={PALETTE_COPY.label}
           className="vp-field"
+          data-testid="palette-input"
           onChange={event => {
             setQuery(event.target.value)
             setActive(0)
@@ -64,7 +65,7 @@ export function CommandPalette({ commands, onClose, onRun }: PaletteProps) {
         />
         <div className="vp-list">
           {matches.length === 0 ? (
-            <p className="vp-muted" role="status">
+            <p className="vp-muted" data-testid="palette-empty" role="status">
               {PALETTE_COPY.noMatches}
             </p>
           ) : (
@@ -73,6 +74,7 @@ export function CommandPalette({ commands, onClose, onRun }: PaletteProps) {
                 <button
                   aria-selected={index === active}
                   className="vp-opt"
+                  data-testid="palette-option"
                   id={`${listId}-${index}`}
                   key={command.id}
                   onClick={() => onRun(command.id)}
@@ -81,8 +83,10 @@ export function CommandPalette({ commands, onClose, onRun }: PaletteProps) {
                   tabIndex={-1}
                   type="button"
                 >
-                  <span>{command.label}</span>
-                  <span className="vp-opt__hint">{command.hint}</span>
+                  <span data-testid="palette-option-label">{command.label}</span>
+                  <span className="vp-opt__hint" data-testid="palette-option-shortcut">
+                    {command.hint}
+                  </span>
                 </button>
               ))}
             </div>

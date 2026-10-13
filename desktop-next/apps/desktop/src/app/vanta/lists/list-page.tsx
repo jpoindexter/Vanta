@@ -15,14 +15,16 @@ export function ListPage({ onPrimary, onRetry, onRowAction, page, rows }: ListPa
   const copy = LIST_COPY[page]
 
   return (
-    <div aria-label={copy.title} className="vp vp-page" role="region">
-      <div className="vp-col">
+    <div aria-label={copy.title} className="vp vp-page" data-testid="page" role="region">
+      <div className="vp-col" data-testid="page-column">
         <div className="vp-sechead">
           <div>
-            <h2 className="vp-page-title">{copy.title}</h2>
-            <p className="vp-muted">{copy.subtitle}</p>
+            <h2 className="vp-page-title" data-testid="listpage-title">{copy.title}</h2>
+            <p className="vp-muted" data-testid="listpage-sub">
+              {copy.subtitle}
+            </p>
           </div>
-          <VpButton onClick={onPrimary} variant="primary">
+          <VpButton data-testid="listpage-cta" onClick={onPrimary} variant="primary">
             {copy.cta}
           </VpButton>
         </div>

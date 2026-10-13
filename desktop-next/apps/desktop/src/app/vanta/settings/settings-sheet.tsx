@@ -24,7 +24,7 @@ function SectionBody({ approvals, onRevoke, onSave, onSectionChange, rows, secti
   }
 
   return (
-    <div className="vp-box" role="list">
+    <div className="vp-box" data-testid="settings-panel" role="list">
       {section === 'general' && (
         <VpRow
           actions={
@@ -58,18 +58,19 @@ export function SettingsSheet(props: SettingsProps) {
   }
 
   return (
-    <div className="vp vp-overlay" onMouseDown={event => event.target === event.currentTarget && onClose()}>
+    <div className="vp vp-overlay" data-testid="settings-overlay" onMouseDown={event => event.target === event.currentTarget && onClose()}>
       <div
         aria-label={SETTINGS_COPY.title}
         aria-modal="true"
         className="vp-sheet vp-sheet--settings"
+        data-testid="settings-sheet"
         onKeyDown={handleKeyDown}
         ref={sheetRef}
         role="dialog"
       >
         <div className="vp-sheet__head">
-          <h2 className="vp-sheet__title">{SETTINGS_COPY.title}</h2>
-          <VpCloseButton aria-label={SETTINGS_COPY.close} onClick={onClose} />
+          <h2 className="vp-sheet__title" data-testid="settings-title">{SETTINGS_COPY.title}</h2>
+          <VpCloseButton aria-label={SETTINGS_COPY.close} data-testid="settings-close" onClick={onClose} />
         </div>
         <div className="vp-settings">
           <nav aria-label={SETTINGS_COPY.title}>
@@ -77,6 +78,7 @@ export function SettingsSheet(props: SettingsProps) {
               <button
                 aria-current={id === section}
                 className="vp-nav"
+                data-testid="settings-nav-item"
                 key={id}
                 onClick={() => onSectionChange(id)}
                 type="button"

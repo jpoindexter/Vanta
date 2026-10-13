@@ -105,20 +105,6 @@
   padding: 4px 8px;
 }
 
-.vp-urlbar input {
-  background: transparent;
-  border: 0;
-  color: inherit;
-  font: inherit;
-  outline: none;
-  width: 100%;
-}
-
-.vp-urlbar:focus-within {
-  border-color: var(--vp-focus);
-  box-shadow: 0 0 0 1px var(--vp-focus);
-}
-
 .vp-tree {
   white-space: pre;
 }

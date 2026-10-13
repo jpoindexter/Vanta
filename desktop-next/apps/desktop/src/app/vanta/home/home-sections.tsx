@@ -6,22 +6,26 @@ import { VpRow, VpSimpleRow } from '../ui/row'
 
 type SectionProps = Pick<HomeProps, 'needsYou' | 'nextUp' | 'recent' | 'running'> & { actions: HomeActions }
 
-function Empty({ children }: { children: string }) {
-  return <p className="vp-empty-line">{children}</p>
+function Empty({ children, testId }: { children: string; testId?: string }) {
+  return (
+    <p className="vp-empty-line" data-testid={testId}>
+      {children}
+    </p>
+  )
 }
 
 function NeedsYouSection({ actions, needsYou }: Pick<SectionProps, 'actions' | 'needsYou'>) {
   const count = needsYou.status === 'ready' ? needsYou.items.length : null
 
   return (
-    <section aria-labelledby="vp-home-needs" className="vp-sec">
+    <section aria-labelledby="vp-home-needs" className="vp-sec" data-testid="home-section">
       <div className="vp-sechead">
-        <h3 id="vp-home-needs">
-          {HOME_COPY.needsYou} {count !== null && <span className="vp-badge">{count}</span>}
+        <h3 data-testid="home-section-title" id="vp-home-needs">
+          {HOME_COPY.needsYou} {count !== null && <span className="vp-badge" data-testid="home-needs-badge">{count}</span>}
         </h3>
       </div>
       <Block
-        empty={<Empty>{HOME_COPY.needsYouEmpty}</Empty>}
+        empty={<Empty testId="home-empty">{HOME_COPY.needsYouEmpty}</Empty>}
         errorLabel={BLOCK_ERROR.needsYou}
         onRetry={() => actions.onRetry('needsYou')}
         state={needsYou}
@@ -59,8 +63,8 @@ function NeedsYouSection({ actions, needsYou }: Pick<SectionProps, 'actions' | '
 
 function RunningSection({ actions, running }: Pick<SectionProps, 'actions' | 'running'>) {
   return (
-    <section aria-labelledby="vp-home-running" className="vp-sec">
-      <h3 id="vp-home-running">{HOME_COPY.running}</h3>
+    <section aria-labelledby="vp-home-running" className="vp-sec" data-testid="home-section">
+      <h3 data-testid="home-section-title" id="vp-home-running">{HOME_COPY.running}</h3>
       <Block
         empty={<Empty>{HOME_COPY.runningEmpty}</Empty>}
         errorLabel={BLOCK_ERROR.running}
@@ -94,8 +98,8 @@ function RunningSection({ actions, running }: Pick<SectionProps, 'actions' | 'ru
 
 function NextUpSection({ actions, nextUp }: Pick<SectionProps, 'actions' | 'nextUp'>) {
   return (
-    <section aria-labelledby="vp-home-next" className="vp-sec">
-      <h3 id="vp-home-next">{HOME_COPY.nextUp}</h3>
+    <section aria-labelledby="vp-home-next" className="vp-sec" data-testid="home-section">
+      <h3 data-testid="home-section-title" id="vp-home-next">{HOME_COPY.nextUp}</h3>
       <Block
         empty={<Empty>{HOME_COPY.nextUpEmpty}</Empty>}
         errorLabel={BLOCK_ERROR.nextUp}
@@ -129,8 +133,8 @@ function NextUpSection({ actions, nextUp }: Pick<SectionProps, 'actions' | 'next
 
 function RecentSection({ actions, recent }: Pick<SectionProps, 'actions' | 'recent'>) {
   return (
-    <section aria-labelledby="vp-home-recent" className="vp-sec">
-      <h3 id="vp-home-recent">{HOME_COPY.recent}</h3>
+    <section aria-labelledby="vp-home-recent" className="vp-sec" data-testid="home-section">
+      <h3 data-testid="home-section-title" id="vp-home-recent">{HOME_COPY.recent}</h3>
       <Block
         empty={<Empty>{HOME_COPY.recentEmpty}</Empty>}
         errorLabel={BLOCK_ERROR.recent}
