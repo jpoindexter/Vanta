@@ -6,12 +6,12 @@ const sameSet = (pairs, want) => pairs.size === want.length && want.every((w) =>
 export const MUTATIONS = [
   {
     id: "label",
-    description: 'approval button label "Allow once" -> "Approve once"',
+    description: 'approval button label "Allow once" -> "Allow only" (same length, so only the wording is wrong)',
     find: 'data-ap="once">Allow once</button>',
-    replace: 'data-ap="once">Approve once</button>',
+    replace: 'data-ap="once">Allow only</button>',
     assert: (pairs, run) => {
       const ok = sameSet(pairs, ["card.approval.allowOnce:text"]) && run.copyRows.some((c) => c.status === "FAIL");
-      return { ok, why: ok ? "only card.approval.allowOnce:text failed; its width/x shift stayed inside the hug/flow tolerance; copy inventory flagged it" : `unexpected FAIL set: ${[...pairs.keys()].join(", ")}` };
+      return { ok, why: ok ? "only card.approval.allowOnce:text failed; geometry stayed inside tolerance; the copy inventory flagged it too" : `unexpected FAIL set: ${[...pairs.keys()].join(", ")}` };
     },
   },
   {

@@ -71,7 +71,7 @@ function headline(s, meta) {
   return [
     `# Wireframe parity report`,
     "",
-    `Target: ${meta.target}. Spec: ${meta.specSha.slice(0, 12)} (${meta.specStates} states). Verdict: **${meta.verdict}**.`,
+    `Target: ${meta.target}. Wireframe sha256 ${meta.specSha.slice(0, 12)}, ${meta.specStates} states. Verdict: **${meta.verdict}**.`,
     "",
     ...table(["Measure", "Value"], [
       ["Rows (element x state)", `${r.total}: ${r.PASS} PASS, ${r.ALLOWED} ALLOWED, ${r.FAIL} FAIL, ${r.UNMAPPED} UNMAPPED`],

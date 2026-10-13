@@ -9,6 +9,6 @@
     "parity": "node tools/parity/check-app.mjs --electron",
     "parity:spec": "node tools/parity/extract-spec.mjs",
     "parity:selftest": "node tools/parity/selftest.mjs",
-    "parity:test": "node --test tools/parity/"
+    "parity:test": "node --test tools/parity/*.test.mjs"
   }
 }
