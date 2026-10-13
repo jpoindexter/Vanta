@@ -1,4 +1,7 @@
 // @vitest-environment jsdom
+// RETIRED (kept, skipped): reordering gateway sections is not offered. The Vanta sidebar (4ecd120d) replaced the
+// Hermes sidebar; whether this surface returns is decided by the shell control
+// inventory, not by this test. Un-skip when it does.
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, expect, it, vi } from 'vitest'
@@ -81,7 +84,7 @@ const arrange = () => {
   return { device, sectionIds }
 }
 
-it('arms the reorder from a pointer press on the header label', async () => {
+it.skip('arms the reorder from a pointer press on the header label', async () => {
   const { device } = arrange()
   // Pointer path: a press on the fold label plus a move past the 6px
   // activation distance arms the sortable (jsdom has no layout, so the drop
@@ -100,7 +103,7 @@ it('arms the reorder from a pointer press on the header label', async () => {
   expect(device.querySelector('[data-glass-opaque]')).toBeNull()
 })
 
-it('reorders gateway sections from the grabber by keyboard', async () => {
+it.skip('reorders gateway sections from the grabber by keyboard', async () => {
   const { device, sectionIds } = arrange()
   // Keyboard path: Space on the focused grabber arms the drag, ArrowUp moves it
   // over the previous item, Space drops. Drives the same listeners without

@@ -1,4 +1,7 @@
 // @vitest-environment jsdom
+// RETIRED (kept, skipped): multi-gateway profile groups (per-connection sections, usage totals) are not rendered. The Vanta sidebar (4ecd120d) replaced the
+// Hermes sidebar; whether this surface returns is decided by the shell control
+// inventory, not by this test. Un-skip when it does.
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, expect, it, vi } from 'vitest'
@@ -41,7 +44,7 @@ const mount = () =>
 
 afterEach(cleanup)
 
-it('keeps equal profile names on separate gateways and routes section creation and row navigation to their owner', () => {
+it.skip('keeps equal profile names on separate gateways and routes section creation and row navigation to their owner', () => {
   mount()
   act(() => {
     $connectionsRegistry.set({

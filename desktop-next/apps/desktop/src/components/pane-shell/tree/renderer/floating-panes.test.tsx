@@ -9,6 +9,7 @@
 import { act } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { TITLEBAR_HEIGHT } from '@/app/shell/titlebar'
 import type { registry as contributionRegistry } from '@/contrib/registry'
 import { reactRoot } from '@/test/react-root'
 
@@ -81,9 +82,9 @@ describe('FloatingPanes (live DOM)', () => {
     const el = card()!
 
     expect(el).toBeTruthy()
-    // 1440 - 224 - 12 margin = 1204; titlebar 34 + 12 = 46.
+    // 1440 - 224 - 12 margin = 1204; titlebar (44) + 12 margin below it.
     expect(el.style.left).toBe('1204px')
-    expect(el.style.top).toBe('46px')
+    expect(el.style.top).toBe(`${TITLEBAR_HEIGHT + 12}px`)
     expect(el.style.width).toBe('224px')
     expect(document.querySelector('[data-testid="hud-body"]')?.textContent).toBe('live')
   })
@@ -106,7 +107,8 @@ describe('FloatingPanes (live DOM)', () => {
     pointer(grab(), 'pointerup', 260, 240)
 
     expect(card()!.style.left).toBe('172px')
-    expect(card()!.style.top).toBe('186px')
+    // Starts at titlebar + 12 margin; the 140px pointer move adds to it.
+    expect(card()!.style.top).toBe(`${TITLEBAR_HEIGHT + 12 + 140}px`)
   })
 
   it('persists the dragged position across a remount', () => {
