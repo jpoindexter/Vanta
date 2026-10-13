@@ -2,14 +2,15 @@ import type { RouteCtx } from "./server-routes.js";
 import type { ControlHandler, ControlPattern, ControlTable } from "./control-http.js";
 import { profilesGet, profilesPost } from "./profiles-api.js";
 import { scheduleBlueprintsGet, scheduleBlueprintsPost } from "./schedule-blueprints-api.js";
+import { projectsGet, projectsPost } from "./projects-api.js";
 import { toolsGet, toolsPostPatterns } from "./tools-api.js";
 import { skillsGet, skillsPost } from "./skills-api.js";
 import { sessionsControlGet, sessionsControlPost } from "./sessions-control-api.js";
 import { scheduleControlPost } from "./schedule-control-api.js";
 import { scheduleRunsGetPatterns, scheduleTriggerPost } from "./schedule-trigger.js";
 
-const GET: ControlTable = { ...profilesGet, ...scheduleBlueprintsGet, ...sessionsControlGet, ...skillsGet, ...toolsGet };
-const POST: ControlTable = { ...profilesPost, ...scheduleControlPost, ...scheduleTriggerPost, ...scheduleBlueprintsPost, ...sessionsControlPost, ...skillsPost };
+const GET: ControlTable = { ...profilesGet, ...scheduleBlueprintsGet, ...sessionsControlGet, ...skillsGet, ...toolsGet, ...projectsGet };
+const POST: ControlTable = { ...profilesPost, ...scheduleControlPost, ...scheduleTriggerPost, ...scheduleBlueprintsPost, ...sessionsControlPost, ...skillsPost, ...projectsPost };
 const GET_PATTERNS: ControlPattern[] = [...scheduleRunsGetPatterns];
 const POST_PATTERNS: ControlPattern[] = [...toolsPostPatterns];
 
