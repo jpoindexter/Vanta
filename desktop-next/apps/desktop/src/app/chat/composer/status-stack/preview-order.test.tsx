@@ -2,27 +2,18 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, expect, it } from 'vitest'
 
+import { StatusSection } from '@/components/chat/status-section'
 import { $backgroundStatusBySession } from '@/store/composer-status'
 import { $previewStatusBySession } from '@/store/preview-status'
 import { $todosBySession } from '@/store/todos'
 
-import { QueuePanel } from '../queue-panel'
-
 import { ComposerStatusStack } from './index'
 
-const noop = () => {}
-
+// The stack's queue slot takes any section; a plain one stands in for it.
 const queue = (
-  <QueuePanel
-    busy
-    editingId={null}
-    entries={[{ attachments: [], id: 'queued', queuedAt: 1, text: 'Queued request' }]}
-    onDelete={noop}
-    onEdit={noop}
-    onResume={noop}
-    onSendNow={noop}
-    parked={false}
-  />
+  <StatusSection label="1 Queued">
+    <div>Queued request</div>
+  </StatusSection>
 )
 
 const stack = (queued: boolean) => (

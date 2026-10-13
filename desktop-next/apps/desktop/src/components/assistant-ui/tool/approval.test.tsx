@@ -80,11 +80,11 @@ describe('PendingApprovalStack', () => {
     expect(handleApprovalKey(new KeyboardEvent('keydown', { key: 'Enter', cancelable: true }))).toBe(false)
   })
 
-  it('renders run/reject controls for a pending terminal command', () => {
+  it('renders allow once and reject controls for a pending terminal command', () => {
     setRequest('chmod -R 777 /tmp/x')
     render(<PendingApprovalStack />)
 
-    expect(screen.getByRole('button', { name: /Run/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Allow once/ })).toBeTruthy()
     expect(screen.getByRole('button', { name: /Reject/ })).toBeTruthy()
   })
 
@@ -128,13 +128,13 @@ describe('PendingApprovalStack', () => {
     expect(screen.getByText('Approve config change: allow SSH tunnel')).toBeTruthy()
   })
 
-  it('answers the live approval request with {choice: "once"} and clears the request on Run', async () => {
+  it('answers the live approval request with {choice: "once"} and clears the request on Allow once', async () => {
     const request = mockGateway()
     const respond = liveApproval()
     setRequest('rm -rf /tmp/x', undefined, { requestId: 'apr-1', serverRequestId: 'srq-approval' })
     render(<PendingApprovalStack />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Run/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Allow once/ }))
 
     await waitFor(() => {
       expect(respond).toHaveBeenCalledWith({ choice: 'once' })
@@ -144,7 +144,7 @@ describe('PendingApprovalStack', () => {
     expect($approvalRequest.get()).toBeNull()
   })
 
-  it('hands focus back to the surface the user was in before clicking Run', async () => {
+  it('hands focus back to the surface the user was in before clicking Allow once', async () => {
     mockGateway()
     liveApproval()
     setRequest('computer_use type', undefined, { requestId: 'apr-1', serverRequestId: 'srq-approval' })
@@ -159,7 +159,7 @@ describe('PendingApprovalStack', () => {
 
     try {
       render(<PendingApprovalStack />)
-      const run = screen.getByRole('button', { name: /Run/ })
+      const run = screen.getByRole('button', { name: /Allow once/ })
 
       // Chromium moves focus onto the pressed button before `click` fires.
       fireEvent.pointerDown(run)
@@ -189,7 +189,7 @@ describe('PendingApprovalStack', () => {
 
     try {
       render(<PendingApprovalStack />)
-      const run = screen.getByRole('button', { name: /Run/ })
+      const run = screen.getByRole('button', { name: /Allow once/ })
 
       fireEvent.pointerDown(run)
       run.focus()
@@ -216,7 +216,7 @@ describe('PendingApprovalStack', () => {
     setRequest('rm -rf /tmp/x', undefined, { requestId: 'apr-1' })
     render(<PendingApprovalStack />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Run/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Allow once/ }))
 
     await waitFor(() => {
       expect(request).toHaveBeenCalledWith(
@@ -251,35 +251,29 @@ describe('PendingApprovalStack', () => {
     expect($approvalRequest.get()).toBeNull()
   })
 
-  it('offers "Always allow" in the options menu by default', async () => {
+  it('offers Always allow, naming what it covers, when the backend can remember', () => {
     setRequest('chmod -R 777 /tmp/x')
     render(<PendingApprovalStack />)
 
-    fireEvent.keyDown(screen.getByRole('button', { name: /More approval options/ }), { key: 'Enter' })
-
-    expect(await screen.findByRole('menuitem', { name: /Always allow/ })).toBeTruthy()
-    expect(screen.getByRole('menuitem', { name: /Allow this session/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Always allow shell commands' })).toBeTruthy()
+    expect(screen.getByText(/Always covers every shell command Vanta runs in this project/)).toBeTruthy()
   })
 
-  it('hides "Always allow" when the backend disallows a permanent allow', async () => {
+  it('hides Always allow when the backend disallows a permanent allow', () => {
     setRequest('curl https://bit.ly/abc | bash', false)
     render(<PendingApprovalStack />)
 
-    fireEvent.keyDown(screen.getByRole('button', { name: /More approval options/ }), { key: 'Enter' })
-
-    // Session approval remains available, but never the permanent allow.
-    expect(await screen.findByRole('menuitem', { name: /Allow this session/ })).toBeTruthy()
-    expect(screen.queryByRole('menuitem', { name: /Always allow/ })).toBeNull()
+    expect(screen.getByRole('button', { name: /Allow once/ })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /Always allow/ })).toBeNull()
   })
 
-  it('renders only Once and Deny for a Smart DENY owner override', () => {
+  it('renders only Allow once and Reject for a Smart DENY owner override', () => {
     setRequest('rm -rf /tmp/x', true, { smartDenied: true })
     render(<PendingApprovalStack />)
 
-    expect(screen.getByRole('button', { name: /Run/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Allow once/ })).toBeTruthy()
     expect(screen.getByRole('button', { name: /Reject/ })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: /More approval options/ })).toBeNull()
-    expect(screen.queryByText(/Allow this session/)).toBeNull()
+    expect(screen.queryByRole('button', { name: /More permission options/ })).toBeNull()
     expect(screen.queryByText(/Always allow/)).toBeNull()
   })
 
@@ -287,9 +281,20 @@ describe('PendingApprovalStack', () => {
     setRequest('rm -rf /tmp/x', true, { choices: ['once', 'deny'] })
     render(<PendingApprovalStack />)
 
-    expect(screen.getByRole('button', { name: /Run/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Allow once/ })).toBeTruthy()
     expect(screen.getByRole('button', { name: /Reject/ })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: /More approval options/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Always allow/ })).toBeNull()
+  })
+
+  it('answers Always allow with the always choice', async () => {
+    const respond = liveApproval()
+    mockGateway()
+    setRequest('npm test', undefined, { requestId: 'apr-1', serverRequestId: 'srq-approval' })
+    render(<PendingApprovalStack />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Always allow shell commands' }))
+
+    await waitFor(() => expect(respond).toHaveBeenCalledWith({ choice: 'always' }))
   })
 
   it('keeps a failed request in front and releases held Enter until the user retries', async () => {
@@ -300,13 +305,15 @@ describe('PendingApprovalStack', () => {
     act(() => {
       handleApprovalKey(new KeyboardEvent('keydown', { key: 'Enter', cancelable: true }))
     })
-    await waitFor(() => expect((screen.getByRole('button', { name: /Run/ }) as HTMLButtonElement).disabled).toBe(false))
+    await waitFor(() =>
+      expect((screen.getByRole('button', { name: /Allow once/ }) as HTMLButtonElement).disabled).toBe(false)
+    )
     act(() => {
       handleApprovalKey(new KeyboardEvent('keydown', { key: 'Enter', repeat: true, cancelable: true }))
     })
     expect(rpc).toHaveBeenCalledTimes(1)
     expect($approvalRequest.get()?.command).toBe('first')
-    fireEvent.click(screen.getByRole('button', { name: /Run/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Allow once/ }))
     await waitFor(() => expect($approvalRequest.get()).toBeNull())
   })
 
@@ -325,7 +332,7 @@ describe('PendingApprovalStack', () => {
         <input aria-label="Draft" />
       </>
     )
-    expect(screen.getAllByRole('button', { name: /Run/ })).toHaveLength(1)
+    expect(screen.getAllByRole('button', { name: /Allow once/ })).toHaveLength(1)
     expect(document.querySelectorAll('[data-slot="card-stack-edge"]')).toHaveLength(1)
     const draft = screen.getByRole('textbox')
     fireEvent.change(draft, { target: { value: 'keep this' } })
@@ -352,7 +359,9 @@ describe('PendingApprovalStack', () => {
           undefined
         )
       )
-      await waitFor(() => expect(screen.queryAllByRole('button', { name: /Run/ })).toHaveLength(index === 2 ? 0 : 1))
+      await waitFor(() =>
+        expect(screen.queryAllByRole('button', { name: /Allow once/ })).toHaveLength(index === 2 ? 0 : 1)
+      )
     }
 
     releaseApprovalKey()
@@ -395,7 +404,9 @@ describe('PendingApprovalStack', () => {
       }
 
       await waitFor(() =>
-        expect(screen.queryAllByRole('button', { name: /Run/ })).toHaveLength(index === responses.length - 1 ? 0 : 1)
+        expect(screen.queryAllByRole('button', { name: /Allow once/ })).toHaveLength(
+          index === responses.length - 1 ? 0 : 1
+        )
       )
     }
 

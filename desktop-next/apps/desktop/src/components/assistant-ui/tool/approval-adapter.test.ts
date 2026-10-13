@@ -4,7 +4,12 @@ import { summarizeApproval } from '@/components/chat/vanta/approval-summary'
 
 import { approvalPayload, CHOICE_FOR_DECISION } from './approval-adapter'
 
-const request = { command: 'npm test -- billing', description: 'run the billing tests', requestId: 'r1', sessionId: 's' }
+const request = {
+  command: 'npm test -- billing',
+  description: 'run the billing tests',
+  requestId: 'r1',
+  sessionId: 's'
+}
 
 describe('approvalPayload', () => {
   it('presents a shell command as a bash approval with the command as its preview', () => {
@@ -16,7 +21,10 @@ describe('approvalPayload', () => {
   })
 
   it('falls back to the description when the command is a synthetic plugin label', () => {
-    const payload = approvalPayload({ ...request, command: '<edit> (plugin approval rule)', description: 'Edit notes.md' }, false)
+    const payload = approvalPayload(
+      { ...request, command: '<edit> (plugin approval rule)', description: 'Edit notes.md' },
+      false
+    )
 
     expect(payload.request?.kind).toBe('generic')
     expect(payload.action).toBe('Edit notes.md')
