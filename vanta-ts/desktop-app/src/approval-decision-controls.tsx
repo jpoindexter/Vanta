@@ -32,7 +32,7 @@ export function ApprovalDecisionControls({ approval, onAnswer }: Props) {
       <ControlButton type="button" disabled={!!pending} onClick={() => void answer("deny")}>Reject</ControlButton>
     </ConfirmationActions>
     {approval.request?.fresh ? <p className="approval-note">This exact action needs approval each time. Remembered tool rules do not replace it.</p> : null}
-    {remember ? <p className="approval-note">Remembered choices apply to <code>{approval.toolName}</code> for future tasks on this Mac. Kernel restrictions and one-time approvals still apply.</p> : null}
+    {remember ? <p className="approval-note">Remembered choices apply to <code>{approval.toolName}</code> in this project, including future tasks. Kernel restrictions and one-time approvals still apply.</p> : null}
     {remember ? <details><summary>More permission options</summary><ControlButton type="button" disabled={!!pending} onClick={() => void answer("never")}>Never allow this tool</ControlButton></details> : null}
   </>;
 }

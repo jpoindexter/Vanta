@@ -72,7 +72,7 @@ describe("ApprovalOverlay", () => {
     expect(html).toContain("Reject");
     expect(html).toContain("Always allow this tool");
     expect(html).toContain("Never allow this tool");
-    expect(html).toContain("future tasks on this Mac");
+    expect(html).toContain("in this project, including future tasks");
     expect(html).toContain('role="dialog"');
   });
   it("keeps exact-action approvals one-time, even if remember eligibility is inconsistent", () => {

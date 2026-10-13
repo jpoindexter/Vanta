@@ -14,3 +14,19 @@
 - Inner approvals whose action differs from the approved outer action (for example the `write_file` overwrite prompt) are made fresh by `src/effects/tool-effect-approval.ts`; a saved `write_file` rule does not cover them. This is intentional and covered by a test.
 - The kernel `block` verdict is unchanged: `tighten()` still cannot loosen it.
 - Task-scope grants ("Yes - go ahead with this task") remain in memory for one turn.
+
+## Integration correction and real-path proof (lead)
+
+- Scoping saved rules to a project exposed a second lookup that still ignored the root:
+  `savedExactChoice` in `vanta-ts/src/agent/execution-context.ts` (the inner-approval path used by
+  `edit_file`). Project rules never matched there, so the Desktop card re-prompted every time.
+  `src/agent/saved-exact-choice-scope.test.ts` failed on the worker's commits (2 of 3) and passes
+  after the root is passed through.
+- Desktop copy now says remembered choices apply "in this project, including future tasks".
+- Executed in the real Electron app (source `main.mjs`, disposable `VANTA_HOME`/profile, fixture
+  provider): `node scripts/desktop-approval-persistence-proof.mjs` — Always allow in project A,
+  full app restart, new chat in A applies without a card; project B still asks and Reject leaves
+  its file unchanged. All six assertions passed.
+- Does NOT establish: the CLI/TUI path end to end, packaged-app behavior, real provider tools
+  (only the fixture's `edit_file`), or `shell_cmd` grants. Existing global rules stay global.
+- Open decision: a project-scoped Always outranks an unscoped Never for the same tool.
