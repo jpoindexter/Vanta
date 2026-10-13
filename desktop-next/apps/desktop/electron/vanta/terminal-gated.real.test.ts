@@ -7,6 +7,7 @@ import { afterAll, describe, expect, it } from 'vitest'
 import { createHttpTransport } from '../../../shared/src/vanta'
 
 import { startVantaServer, type VantaServer } from './launcher'
+import { stopKernelsStartedIn } from './real-runtime-helpers'
 
 // Runs a command through the REAL Vanta server's terminal route, the one a terminal pane line goes to, and
 // checks that nothing executes until the pending approval is allowed.
@@ -24,6 +25,7 @@ let server: VantaServer | undefined
 
 afterAll(() => {
   server?.stop()
+  stopKernelsStartedIn(project)
   rmSync(home, { force: true, recursive: true })
   rmSync(project, { force: true, recursive: true })
 })
