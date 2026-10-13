@@ -78,6 +78,13 @@ need glue in `src/desktop/`:
 4. `events.jsonl` can only be appended through a live kernel client, so the company
    activity feed needs its own append-only log (plus a best-effort kernel event).
 
+> UPDATE (Track E, 2026-10-13, branch `claude/desktop-worker-runtimes-20261013`): the verdict table below is the
+> pre-Track-E baseline. Claude Code, Codex, Hermes and `agents.json` CLIs are now launchable as ticket workers
+> (`cli:<id>` adapter) through the worker-runtime registry, with approval, usage and cost capture, work-product
+> provenance, pause and budget stops; `vanta heartbeat`, `vanta company tick` and `team run` honour `paused`.
+> See `docs/worker-runtimes-2026-10-13.md` for the interface, security model and what is still unverified
+> (no real agent run yet).
+
 ## Worker runtimes: what the engine can launch today
 
 Question (DN-15 "VERIFY first"): which of Vanta native, Claude Code, Codex, Hermes
@@ -143,9 +150,12 @@ Everything else reuses the existing readers and writers.
 ### Not verified, not built
 
 - The native adapter has only run against injected seams. It has not run against a live kernel or provider.
-- No Claude Code, Codex or Hermes worker. They remain `call_agent` tools without ticket, cost or work-product link.
+- ~~No Claude Code, Codex or Hermes worker.~~ Built in Track E (see the update note above): runtimes exist for
+  Claude Code, Codex, Hermes and custom CLIs, tested against fake processes and recorded or synthetic output.
+  No real external agent has been run end to end; Gemini and the other `call_agent` built-ins have no ticket runtime.
 - Self-org proposals (ratify or reject), handoffs, skill exchange, playbooks, delegated authority and the
   company template have READY engine functions but no desktop route yet.
-- `vanta heartbeat` and the CLI `team run` do not honour `paused`; the desktop dispatch path and the tick do.
+- ~~`vanta heartbeat` and the CLI `team run` do not honour `paused`~~ Fixed in Track E: `team run`, `vanta heartbeat`
+  and `vanta company tick` skip paused workers. Heartbeat and tick now start queued tickets of external CLI workers.
 - Stores are whole-file JSON. The per-home lock covers the desktop process only; a CLI write at the same
   moment can still interleave.

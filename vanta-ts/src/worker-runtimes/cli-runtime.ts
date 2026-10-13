@@ -109,16 +109,26 @@ async function runSpec(spec: CliSpec, deps: CliDeps, input: RunInput, sessionId?
   }
 }
 
+/** A stopped or failed run may still have edited files; say so, since those edits are not rolled back. */
+function leftovers(product: RunWorkProduct | undefined): string {
+  if (!product || product.files.length === 0) return "";
+  const shown = product.files.slice(0, 5).join(", ");
+  const many = product.files.length > 1;
+  return ` ${product.files.length} file${many ? "s were" : " was"} changed before it stopped and ${many ? "are" : "is"} left in place: ${shown}${product.files.length > 5 ? ", ..." : ""}.`;
+}
+
 async function finish(params: { spec: CliSpec; input: RunInput; outcome: ExecOutcome; parsed: ParsedRun; before: Awaited<ReturnType<typeof snapshotTree>> }): Promise<RunOutput> {
   const { spec, input, outcome, parsed, before } = params;
   const code = await changesProduct(input.cwd, before);
-  const products = code ? [code] : [];
-  if (outcome.aborted) return { ...failedOutput(`${spec.displayName} was stopped (the worker was paused or the run was cancelled)`, "aborted"), workProducts: products, ...(parsed.usage ? { usage: parsed.usage } : {}) };
+  const kept = {
+    workProducts: code ? [code] : [],
+    ...(parsed.usage ? { usage: parsed.usage } : {}),
+    ...(referenceFor(spec, parsed, input.cwd) ? { sessionRef: referenceFor(spec, parsed, input.cwd) } : {}),
+  };
+  if (outcome.aborted) return { ...failedOutput(`${spec.displayName} was stopped (the worker was paused or the run was cancelled).${leftovers(code)}`, "aborted"), ...kept };
   if (outcome.gateRefused) return failedOutput(`${spec.displayName} launch was refused by the effect gate`, "refused");
-  if (parsed.failed || !outcome.ok) {
-    return { ...failedOutput(failureText(outcome, parsed, spec)), workProducts: products, ...(parsed.usage ? { usage: parsed.usage } : {}), ...(referenceFor(spec, parsed, input.cwd) ? { sessionRef: referenceFor(spec, parsed, input.cwd) } : {}) };
-  }
-  return buildOutput(spec, input, parsed, products);
+  if (parsed.failed || !outcome.ok) return { ...failedOutput(`${failureText(outcome, parsed, spec)}${leftovers(code)}`), ...kept };
+  return buildOutput(spec, input, parsed, code ? [code] : []);
 }
 
 export function createCliRuntime(spec: CliSpec, deps: CliDeps): WorkerRuntime {

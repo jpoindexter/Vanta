@@ -63,6 +63,14 @@ describe("Claude Code runtime run()", () => {
     expect(out).toMatchObject({ status: "failed", error: "error_max_budget_usd", usage: { costUsd: 0.5012 } });
   });
 
+  it("says which files a failed run left changed", async () => {
+    const fake = fakeSpawn({ stdout: lines("claude-stream-budget.jsonl"), code: 1, run: () => writeFileSync(join(repo, "half-done.ts"), "x\n") });
+    const out = await createClaudeCodeRuntime({ gate: passGate, env: {}, spawnFactory: fake.factory }).run(input().input);
+    expect(out.status).toBe("failed");
+    expect(out.error).toContain("1 file was changed before it stopped and is left in place: half-done.ts");
+    expect(out.workProducts[0]).toMatchObject({ source: "git-diff", files: ["half-done.ts"] });
+  });
+
   it("reports not installed when the binary is missing", async () => {
     const out = await createClaudeCodeRuntime({ gate: passGate, env: {}, spawnFactory: fakeSpawn({ missing: true }).factory }).run(input().input);
     expect(out).toMatchObject({ status: "failed" });
