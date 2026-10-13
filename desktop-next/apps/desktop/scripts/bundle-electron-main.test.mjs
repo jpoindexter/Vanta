@@ -18,7 +18,7 @@ let preload
 // NODE_OPTIONS) makes that child print its argv instead of starting the app.
 beforeAll(async () => {
   root = mkdtempSync(join(tmpdir(), 'hermes-electron-entry-'))
-  await bundleElectronMain({ source: repo, out: join(root, 'dist'), dev: true })
+  await bundleElectronMain({ source: repo, out: join(root, 'dist'), dev: true, shell: 'hermes' })
   bundle = join(root, 'dist/electron-main.mjs')
   preload = join(root, 'preload.mjs')
   writeFileSync(

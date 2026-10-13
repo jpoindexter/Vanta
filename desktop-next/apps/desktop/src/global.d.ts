@@ -1,6 +1,7 @@
 import type { GatewayWsUrlResult } from '@hermes/shared'
 import type { HermesSkin } from '@hermes/shared/skin'
 import type { TranslucencyState } from '@hermes/shared/translucency'
+import type { VantaTransport } from '@hermes/shared/vanta'
 
 import type { ChallengeOutcome } from '../electron/challenge-window'
 import type { ScreenshotApi } from '../electron/command-screenshot-types'
@@ -289,6 +290,8 @@ declare global {
         set: (name: string | null) => Promise<DesktopActiveProfile>
       }
       api: <T>(request: HermesApiRequest) => Promise<T>
+      /** The Vanta server transport (HTTP + one SSE stream per chat), proxied by Electron main, which holds the boundary token. Present in the Vanta shell only. */
+      vanta?: VantaTransport
       notify: (payload: HermesNotification) => Promise<boolean>
       /** Launch -> ready ms for the first caller per app launch, null afterwards. Absent on older shells. */
       claimStartupLatency?: () => Promise<null | number>
@@ -1519,6 +1522,8 @@ export interface HermesApiRequest {
   // exclusive with `body`; bytes transfer over IPC as a structured-clone
   // ArrayBuffer. Token-mode backends only.
   upload?: { filename: string; contentType?: string; bytes: ArrayBuffer }
+  /** Vanta shell only: the chat whose server-side state this call belongs to (sent as `x-session-id`). */
+  clientId?: string
   timeoutMs?: number
   // Route this REST call to a specific profile's backend. Omit for the primary
   // (window) backend. Read-only cross-profile data is served by the primary, so
