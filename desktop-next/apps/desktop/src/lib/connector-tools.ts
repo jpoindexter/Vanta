@@ -42,9 +42,9 @@ export interface ConnectorRow {
   statusReason?: string
 }
 
-/** The vendor's public logo for a toolkit, keyed by its slug (the gateway slug is the vendor slug; checked
- *  for every lead-order pick). Served as an SVG with no CORS header, so it is only ever an `<img src>`. */
-export const connectorIconUrl = (slug: string): string => `https://logos.composio.dev/api/${slug}`
+/** Vendor logos came from a hosted registry; Vanta loads none, so a connector wears its curated glyph,
+ *  its product favicon or a monogram instead (see ConnectorLogo). */
+export const connectorIconUrl = (_slug: string): string | undefined => undefined
 
 export function connectorText(value: ToolCallMessagePart['result']): string | undefined {
   return typeof value === 'string' ? value : undefined

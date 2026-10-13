@@ -1,10 +1,12 @@
 import { useStore } from '@nanostores/react'
 import { memo, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react'
 
+import { HubNotConfigured } from '@/components/hub-not-configured'
 import { Button } from '@/components/ui/button'
 import type { ProfileScope } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { Loader2 } from '@/lib/icons'
+import { isHubConfigured, VANTA_HUB_ORIGIN } from '@/lib/vanta-endpoints'
 import { useStoreSelector } from '@/lib/use-session-slice'
 import { cn } from '@/lib/utils'
 import {
@@ -24,7 +26,8 @@ import { $paneHeightOverride, setPaneHeightOverride } from '@/store/panes'
 // to the parent window. We validate the origin and route the install through
 // the standard hub action pipeline (background action + tailed log + Skills
 // list invalidation), scoped to the Capabilities profile selector.
-const HUB_ORIGIN = 'https://hermes-agent.nousresearch.com'
+// Empty while no Vanta hub is configured; the frame below is only mounted once one is.
+const HUB_ORIGIN = VANTA_HUB_ORIGIN ?? ''
 const HUB_PICKER_URL = `${HUB_ORIGIN}/docs/skills?embed=picker`
 
 // Hub viewport height: persisted through the shared pane store (same one the
@@ -68,7 +71,7 @@ interface EmbeddedHubPickerProps {
  *  discovery IS the point — with a collapse toggle (persisted, like every
  *  other pane) and an update-all action. Memoized: the iframe must not sit in
  *  the parent's keystroke/re-render path. */
-export const EmbeddedHubPicker = memo(function EmbeddedHubPicker({
+const HubPickerFrame = memo(function HubPickerFrame({
   hidden = false,
   installedNames,
   profile
@@ -252,4 +255,9 @@ export const EmbeddedHubPicker = memo(function EmbeddedHubPicker({
       )}
     </section>
   )
+})
+
+/** The hub browser, or a plain notice while no Vanta hub origin is configured. */
+export const EmbeddedHubPicker = memo(function EmbeddedHubPicker(props: EmbeddedHubPickerProps) {
+  return isHubConfigured() ? <HubPickerFrame {...props} /> : props.hidden ? null : <HubNotConfigured />
 })

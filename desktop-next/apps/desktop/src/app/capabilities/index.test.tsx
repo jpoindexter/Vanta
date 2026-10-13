@@ -9,6 +9,13 @@ import type * as HermesApi from '@/hermes'
 import { queryClient } from '@/lib/query-client'
 import type * as HubActions from '@/store/hub-actions'
 
+// The embedded hub and catalog feed only run once a Vanta hub origin is configured.
+vi.mock('@/lib/vanta-endpoints', async importOriginal => ({
+  ...(await importOriginal<typeof import('@/lib/vanta-endpoints')>()),
+  isHubConfigured: () => true,
+  VANTA_HUB_ORIGIN: 'https://hub.example.test'
+}))
+
 const getSkills = vi.fn()
 const getToolsets = vi.fn()
 const setSkillEnabled = vi.fn()
@@ -274,7 +281,7 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
       window.dispatchEvent(
         new MessageEvent('message', {
           data: { type: 'hermes-skill-pick', name: 'web-research', identifier: 'web-research' },
-          origin: 'https://hermes-agent.nousresearch.com'
+          origin: 'https://hub.example.test'
         })
       )
     })

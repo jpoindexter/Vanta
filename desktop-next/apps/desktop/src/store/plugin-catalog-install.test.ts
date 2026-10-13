@@ -8,6 +8,13 @@ import { $notifications } from './notifications'
 import { openCatalogPluginInstall, requestPluginCatalogInstallFromDeepLink } from './plugin-catalog-install'
 import { $pluginInstallRequest } from './plugin-install-request'
 
+// The embedded hub and catalog feed only run once a Vanta hub origin is configured.
+vi.mock('@/lib/vanta-endpoints', async importOriginal => ({
+  ...(await importOriginal<typeof import('@/lib/vanta-endpoints')>()),
+  isHubConfigured: () => true,
+  VANTA_HUB_ORIGIN: 'https://hub.example.test'
+}))
+
 const lookupFor = (result: PluginCatalogLookup) => vi.fn(async () => result)
 
 describe('requestPluginCatalogInstallFromDeepLink', () => {

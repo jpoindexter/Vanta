@@ -10,6 +10,7 @@ import { AlertTriangle, CheckCircle2, ExternalLink, Loader2, RefreshCw } from '@
 import { rollbackRelease } from '@/lib/update-copy'
 import { cn } from '@/lib/utils'
 import { shortVersion } from '@/lib/version-label'
+import { VANTA_DOCS_URL } from '@/lib/vanta-endpoints'
 import {
   $backendUpdateApply,
   $backendUpdateChecking,
@@ -25,8 +26,8 @@ import {
   type UpdateTarget
 } from '@/store/updates'
 
-const RELEASE_NOTES_URL = 'https://github.com/NousResearch/hermes-agent/releases'
-const INSTALLER_URL = 'https://hermes-agent.nousresearch.com/'
+const RELEASE_NOTES_URL = 'https://github.com/jpoindexter/Vanta/releases'
+const INSTALLER_URL = VANTA_DOCS_URL
 
 export type UpdateStatusTone = 'idle' | 'available' | 'error' | 'unsupported'
 
