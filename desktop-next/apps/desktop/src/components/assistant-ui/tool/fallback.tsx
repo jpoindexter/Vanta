@@ -22,8 +22,6 @@ import { AnsiText } from '@/components/assistant-ui/ansi-text'
 import { MarkdownImage } from '@/components/assistant-ui/markdown-text'
 import { ChangedFilesCard } from '@/components/assistant-ui/thread/changed-files-card'
 import { TimelineTimestamp } from '@/components/assistant-ui/thread/timeline-timestamp'
-import { useElapsedSeconds } from '@/components/chat/activity-timer'
-import { ActivityTimerText } from '@/components/chat/activity-timer-text'
 import { CompactMarkdown } from '@/components/chat/compact-markdown'
 import { FileDiffPanel } from '@/components/chat/diff-lines'
 import { DisclosureRow } from '@/components/chat/disclosure-row'
@@ -83,6 +81,7 @@ import {
 } from './fallback-model'
 import { isToolCallPart, summarizeToolRun } from './run-summary'
 import { ToolRunTicker } from './run-ticker'
+import { RetryStepButton, StopStepButton } from './step-actions'
 
 // `true` when a ToolEntry is rendered inside an embedding wrapper that owns
 // the per-row chrome (timer / preview). The flat ToolGroupSlot sets this
@@ -414,7 +413,6 @@ function ToolEntry({ part }: ToolEntryProps) {
   // so they paint statically without a settle cascade. The wrapping group
   // handles its own enter animation, so embedded children skip it.
   const enterRef = useEnterAnimation(messageRunning && !embedded, `tool-entry:${disclosureId}`)
-  const elapsed = useElapsedSeconds(isPending, `tool:${disclosureId}`)
 
   // A stopped turn is not evidence that an unobserved tool succeeded. Use a
   // presentation-only completion marker, never manufacture a result.
@@ -424,6 +422,10 @@ function ToolEntry({ part }: ToolEntryProps) {
 
     return buildToolView(p, inlineDiff)
   }, [inlineDiff, isPending, result, stablePart])
+
+  // The gateway can narrate progress while a call runs ("Running tests: billing
+  // (12 of 41)"); that sentence is the live line when it is present.
+  const liveHint = isPending ? (toolResultMetadata?.summary || toolResultMetadata?.preview || '').trim() : ''
 
   // Keep counts and saved disclosure intent, but never mount code while hidden.
   // Failed edits still expose their explanation.
@@ -542,7 +544,6 @@ function ToolEntry({ part }: ToolEntryProps) {
   const trailing = !embedded ? (
     <span className="flex shrink-0 items-center gap-1.5">
       <TimelineTimestamp className={SCAFFOLD_META_CLASS} completedAt={completedAt} timestamp={timestamp} />
-      {isPending && <ActivityTimerText className={SCAFFOLD_META_CLASS} seconds={elapsed} />}
     </span>
   ) : undefined
 
@@ -571,6 +572,9 @@ function ToolEntry({ part }: ToolEntryProps) {
     </Button>
   ) : undefined
 
+  // The live line carries Stop; a failed step carries its own Retry.
+  const stepAction = isPending && !embedded ? <StopStepButton /> : view.status === 'error' && !embedded ? <RetryStepButton title={view.title} /> : undefined
+
   if (dismissed) {
     return null
   }
@@ -592,6 +596,7 @@ function ToolEntry({ part }: ToolEntryProps) {
       )}
       data-conversation-scaffold=""
       data-file-edit={isFileEdit && open ? '' : undefined}
+      data-disclosure-id={disclosureId}
       data-slot="tool-block"
       data-tool-open={open ? '' : undefined}
       data-tool-row=""
@@ -599,7 +604,8 @@ function ToolEntry({ part }: ToolEntryProps) {
     >
       <div className={cn(open && 'border-b border-(--ui-stroke-tertiary) px-2 py-1.5')}>
         <DisclosureRow
-          action={dismissAction}
+          action={stepAction ?? dismissAction}
+          live={isPending}
           onToggle={
             hasExpandableContent
               ? () => {
@@ -630,8 +636,8 @@ function ToolEntry({ part }: ToolEntryProps) {
               isPending={isPending}
               legendary={memoryLegendary}
               status={view.status}
-              title={view.title}
-              titleAction={view.titleAction}
+              title={liveHint || view.title}
+              titleAction={liveHint ? undefined : view.titleAction}
             />
             {!isPending && view.countLabel && (
               <span className={cn(SCAFFOLD_META_CLASS, memoryMetaClass)}>{view.countLabel}</span>

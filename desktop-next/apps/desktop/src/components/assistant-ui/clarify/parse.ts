@@ -3,6 +3,8 @@ import { normalizeChoices } from '@/store/clarify'
 import { parseMaybeObject } from '../tool/fallback-model/format'
 
 export interface ClarifyArgs {
+  /** Short headline for the question card ("I need a source"). */
+  title?: string
   questions?: { question: string; choices?: string[] | null; multiSelect?: boolean }[]
 }
 
@@ -39,7 +41,9 @@ export function readClarifyArgs(args: unknown): ClarifyArgs {
     })
     .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
 
-  return questions.length > 0 ? { questions } : {}
+  const title = stringField(row, 'title')?.trim()
+
+  return questions.length > 0 ? { questions, ...(title ? { title } : {}) } : {}
 }
 
 export interface ClarifyResponse {

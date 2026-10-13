@@ -43,15 +43,37 @@ function editFile(id: string, path: string, added: number, removed: number): Cha
   }
 }
 
-function terminalCall(id: string, command: string, result?: Record<string, unknown>): ChatMessagePart {
+function terminalCall(
+  id: string,
+  command: string,
+  extra: Partial<ChatMessagePart> & { result?: Record<string, unknown> } = {}
+): ChatMessagePart {
   return {
     type: 'tool-call',
     toolCallId: id,
     toolName: 'terminal',
     args: { command },
     argsText: JSON.stringify({ command }),
-    ...(result ? { result } : {})
-  }
+    ...extra
+  } as ChatMessagePart
+}
+
+export const BLOCKED_QUESTION = {
+  choices: ['Skip Acme', 'Paste the page text', 'Open browser to sign in'],
+  question: 'The Acme pricing page needs a login, so I cannot read it. Choose how to continue.',
+  title: 'I need a source'
+}
+
+function clarifyCall(): ChatMessagePart {
+  const args = { questions: [{ choices: BLOCKED_QUESTION.choices, question: BLOCKED_QUESTION.question }], title: BLOCKED_QUESTION.title }
+
+  return {
+    type: 'tool-call',
+    toolCallId: 'c1',
+    toolName: 'clarify',
+    args,
+    argsText: JSON.stringify(args)
+  } as ChatMessagePart
 }
 
 /** 09:41 UTC today, the time the wireframe prints under the first message. */
@@ -101,7 +123,7 @@ function blockedMessages(): ChatMessage[] {
 
   return [
     user('u1', BLOCKED_PROMPT),
-    assistant('a1', ['s1', 's2', 's3', 's4', 's5', 's6'].map(search))
+    assistant('a1', [...['s1', 's2', 's3', 's4', 's5', 's6'].map(search), clarifyCall()], { pending: true })
   ]
 }
 
@@ -128,7 +150,16 @@ export function fixtureMessages(params: FixtureParams): ChatMessage[] {
   if (state === 'running') {
     return [
       ...base,
-      assistant('a1', [...parts, terminalCall('t1', 'npm test -- billing')], { pending: true })
+      assistant(
+        'a1',
+        [
+          ...parts,
+          terminalCall('t1', 'npm test -- billing', {
+            toolResultMetadata: { summary: 'Running tests: billing (12 of 41)' }
+          })
+        ],
+        { pending: true }
+      )
     ]
   }
 
@@ -145,8 +176,15 @@ export function fixtureMessages(params: FixtureParams): ChatMessage[] {
   if (state === 'failed') {
     return [
       ...base,
-      assistant('a1', [...parts, terminalCall('t1', 'npm test -- billing', { exit_code: 1, output: '3 failed' })], {
-        error: 'The tests failed'
+      assistant('a1', [...parts, terminalCall('t1', 'npm test -- billing', { result: { error: '3 of 41 tests failed', exit_code: 1, output: '3 failed', success: false } })], {
+        error: 'The tests failed',
+        errorSurface: {
+          code: 'tool_failed',
+          headline: 'The tests failed',
+          layer: 'runtime',
+          message: '3 of 41 billing tests failed after the edit. Partial output is kept. Nothing was committed.',
+          retryable: true
+        }
       })
     ]
   }

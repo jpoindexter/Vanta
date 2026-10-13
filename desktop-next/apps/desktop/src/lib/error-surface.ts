@@ -90,6 +90,8 @@ export interface ErrorSurface {
   /** Free-tier codes: the backend's own plain sentence for this failure (it
    *  names the wait, the model, the way forward). Shown as the card body. */
   message?: string
+  /** A short title the producer wants on the card ("The tests failed"); `message` is then its body. */
+  headline?: string
   /** Epoch seconds when the provider said its limit lifts (Retry-After header /
    *  `resets_at` body field on a 429). Rendered as "Limit resets at HH:mm" next
    *  to Retry. Absent when the provider named no reset or on older backends. */
@@ -107,6 +109,7 @@ export function parseErrorSurface(value: unknown): ErrorSurface | null {
     auth_kind?: unknown
     code?: unknown
     layer?: unknown
+    headline?: unknown
     message?: unknown
     model?: unknown
     provider?: unknown
@@ -131,6 +134,7 @@ export function parseErrorSurface(value: unknown): ErrorSurface | null {
     ...(typeof raw.provider_label === 'string' && raw.provider_label ? { providerLabel: raw.provider_label } : {}),
     ...(typeof raw.api_key_env === 'string' && raw.api_key_env ? { apiKeyEnv: raw.api_key_env } : {}),
     ...(typeof raw.message === 'string' && raw.message.trim() ? { message: raw.message.trim() } : {}),
+    ...(typeof raw.headline === 'string' && raw.headline.trim() ? { headline: raw.headline.trim() } : {}),
     ...(typeof raw.resets_at === 'number' && Number.isFinite(raw.resets_at) && raw.resets_at > 0
       ? { resetsAt: raw.resets_at }
       : {})
