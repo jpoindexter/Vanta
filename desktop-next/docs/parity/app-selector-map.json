@@ -12,23 +12,291 @@
   "css": "#root"
  },
  "drivers": {
-  "chat:empty": [],
-  "chat:running": "UNMAPPED",
-  "chat:waiting": "UNMAPPED",
-  "chat:blocked": "UNMAPPED",
-  "chat:done": "UNMAPPED",
-  "chat:failed": "UNMAPPED",
-  "chat:offline": "UNMAPPED",
+  "chat:empty": [
+   {
+    "storage": {
+     "key": "vanta-shell-fixture",
+     "value": "empty"
+    }
+   },
+   {
+    "reload": true
+   },
+   {
+    "waitFor": {
+     "testId": "sidebar"
+    },
+    "timeout": 120000
+   },
+   {
+    "wait": 2800
+   }
+  ],
+  "chat:running": [
+   {
+    "storage": {
+     "key": "vanta-shell-fixture",
+     "value": "running"
+    }
+   },
+   {
+    "reload": true
+   },
+   {
+    "waitFor": {
+     "testId": "sidebar"
+    },
+    "timeout": 120000
+   },
+   {
+    "wait": 2800
+   }
+  ],
+  "chat:waiting": [
+   {
+    "storage": {
+     "key": "vanta-shell-fixture",
+     "value": "waiting"
+    }
+   },
+   {
+    "reload": true
+   },
+   {
+    "waitFor": {
+     "testId": "sidebar"
+    },
+    "timeout": 120000
+   },
+   {
+    "wait": 2800
+   }
+  ],
+  "chat:blocked": [
+   {
+    "storage": {
+     "key": "vanta-shell-fixture",
+     "value": "blocked"
+    }
+   },
+   {
+    "reload": true
+   },
+   {
+    "waitFor": {
+     "testId": "sidebar"
+    },
+    "timeout": 120000
+   },
+   {
+    "wait": 2800
+   }
+  ],
+  "chat:done": [
+   {
+    "storage": {
+     "key": "vanta-shell-fixture",
+     "value": "done"
+    }
+   },
+   {
+    "reload": true
+   },
+   {
+    "waitFor": {
+     "testId": "sidebar"
+    },
+    "timeout": 120000
+   },
+   {
+    "wait": 2800
+   }
+  ],
+  "chat:failed": [
+   {
+    "storage": {
+     "key": "vanta-shell-fixture",
+     "value": "failed"
+    }
+   },
+   {
+    "reload": true
+   },
+   {
+    "waitFor": {
+     "testId": "sidebar"
+    },
+    "timeout": 120000
+   },
+   {
+    "wait": 2800
+   }
+  ],
+  "chat:offline": [
+   {
+    "storage": {
+     "key": "vanta-shell-fixture",
+     "value": "offline"
+    }
+   },
+   {
+    "reload": true
+   },
+   {
+    "waitFor": {
+     "testId": "sidebar"
+    },
+    "timeout": 120000
+   },
+   {
+    "wait": 2800
+   }
+  ],
   "wb:changes": "UNMAPPED",
   "wb:files": "UNMAPPED",
   "wb:browser": "UNMAPPED",
   "wb:terminal": "UNMAPPED",
   "wb:outputs": "UNMAPPED",
-  "view:home": "UNMAPPED",
-  "view:schedules": "UNMAPPED",
-  "view:connections": "UNMAPPED",
-  "view:skills": "UNMAPPED",
-  "view:outputs": "UNMAPPED",
+  "view:home": [
+   {
+    "storage": {
+     "key": "vanta-shell-fixture",
+     "value": "waiting"
+    }
+   },
+   {
+    "reload": true
+   },
+   {
+    "waitFor": {
+     "testId": "sidebar"
+    },
+    "timeout": 120000
+   },
+   {
+    "wait": 2800
+   },
+   {
+    "click": {
+     "testId": "nav-home"
+    }
+   },
+   {
+    "wait": 600
+   }
+  ],
+  "view:schedules": [
+   {
+    "storage": {
+     "key": "vanta-shell-fixture",
+     "value": "waiting"
+    }
+   },
+   {
+    "reload": true
+   },
+   {
+    "waitFor": {
+     "testId": "sidebar"
+    },
+    "timeout": 120000
+   },
+   {
+    "wait": 2800
+   },
+   {
+    "click": {
+     "testId": "nav-schedules"
+    }
+   },
+   {
+    "wait": 600
+   }
+  ],
+  "view:connections": [
+   {
+    "storage": {
+     "key": "vanta-shell-fixture",
+     "value": "waiting"
+    }
+   },
+   {
+    "reload": true
+   },
+   {
+    "waitFor": {
+     "testId": "sidebar"
+    },
+    "timeout": 120000
+   },
+   {
+    "wait": 2800
+   },
+   {
+    "click": {
+     "testId": "nav-connections"
+    }
+   },
+   {
+    "wait": 600
+   }
+  ],
+  "view:skills": [
+   {
+    "storage": {
+     "key": "vanta-shell-fixture",
+     "value": "waiting"
+    }
+   },
+   {
+    "reload": true
+   },
+   {
+    "waitFor": {
+     "testId": "sidebar"
+    },
+    "timeout": 120000
+   },
+   {
+    "wait": 2800
+   },
+   {
+    "click": {
+     "testId": "nav-skills"
+    }
+   },
+   {
+    "wait": 600
+   }
+  ],
+  "view:outputs": [
+   {
+    "storage": {
+     "key": "vanta-shell-fixture",
+     "value": "waiting"
+    }
+   },
+   {
+    "reload": true
+   },
+   {
+    "waitFor": {
+     "testId": "sidebar"
+    },
+    "timeout": 120000
+   },
+   {
+    "wait": 2800
+   },
+   {
+    "click": {
+     "testId": "nav-outputs"
+    }
+   },
+   {
+    "wait": 600
+   }
+  ],
   "overlay:palette": "UNMAPPED",
   "overlay:paletteEmpty": "UNMAPPED",
   "overlay:settings": "UNMAPPED",
@@ -52,11 +320,26 @@
     "wait": 800
    }
   ],
-  "drawer:open": "UNMAPPED",
+  "drawer:open": [
+   {
+    "click": {
+     "testId": "titlebar-drawer"
+    }
+   },
+   {
+    "wait": 400
+   }
+  ],
   "extra:stepOpen": "UNMAPPED",
   "extra:queued": "UNMAPPED",
   "extra:toastAlways": "UNMAPPED",
   "base": [
+   {
+    "storage": {
+     "key": "vanta-shell-fixture",
+     "value": "none"
+    }
+   },
    {
     "reload": true
    },
@@ -75,78 +358,203 @@
   "w:800": []
  },
  "keys": {
-  "titlebar": "UNMAPPED",
-  "titlebar.dots": "UNMAPPED",
-  "titlebar.drawer": "UNMAPPED",
-  "titlebar.new": "UNMAPPED",
-  "titlebar.title": "UNMAPPED",
-  "titlebar.titleMenu": "UNMAPPED",
-  "titlebar.project": "UNMAPPED",
-  "titlebar.statusPill": "UNMAPPED",
-  "titlebar.changes": "UNMAPPED",
-  "titlebar.terminal": "UNMAPPED",
-  "titlebar.browser": "UNMAPPED",
-  "titlebar.files": "UNMAPPED",
-  "titlebar.more": "UNMAPPED",
+  "titlebar": {
+   "testId": "titlebar",
+   "textMode": "none"
+  },
+  "titlebar.dots": {
+   "testId": "titlebar-lights",
+   "textMode": "none"
+  },
+  "titlebar.drawer": {
+   "testId": "titlebar-drawer",
+   "textMode": "none"
+  },
+  "titlebar.new": {
+   "testId": "titlebar-new",
+   "textMode": "none"
+  },
+  "titlebar.title": {
+   "testId": "titlebar-title",
+   "hug": true
+  },
+  "titlebar.titleMenu": {
+   "testId": "titlebar-title-menu",
+   "hug": true,
+   "flow": true
+  },
+  "titlebar.project": {
+   "testId": "titlebar-project",
+   "hug": true,
+   "flow": true
+  },
+  "titlebar.statusPill": {
+   "testId": "titlebar-status",
+   "hug": true,
+   "flow": true
+  },
+  "titlebar.changes": {
+   "testId": "titlebar-changes",
+   "textMode": "none"
+  },
+  "titlebar.terminal": {
+   "testId": "titlebar-terminal",
+   "textMode": "none"
+  },
+  "titlebar.browser": {
+   "testId": "titlebar-browser",
+   "textMode": "none"
+  },
+  "titlebar.files": {
+   "testId": "titlebar-files",
+   "textMode": "none"
+  },
+  "titlebar.more": {
+   "testId": "titlebar-more",
+   "textMode": "none"
+  },
   "sidebar": {
-   "css": "[data-slot=\"sidebar\"]",
+   "testId": "sidebar",
    "textMode": "none"
   },
   "nav.new": {
-   "role": "button",
-   "name": "New session",
-   "within": "sidebar",
-   "textMode": "none",
-   "note": "label is 'New session', wireframe says 'New chat'"
+   "testId": "nav-new",
+   "textMode": "none"
   },
-  "nav.new.glyph": "UNMAPPED",
-  "nav.new.label": "UNMAPPED",
+  "nav.new.glyph": {
+   "testId": "nav-new-glyph"
+  },
+  "nav.new.label": {
+   "testId": "nav-new-label"
+  },
   "nav.new.shortcut": {
-   "css": "[data-slot=\"kbd-group\"]",
-   "within": "nav.new"
+   "testId": "nav-new-shortcut"
   },
-  "nav.search": "UNMAPPED",
-  "nav.search.glyph": "UNMAPPED",
-  "nav.search.label": "UNMAPPED",
-  "nav.search.shortcut": "UNMAPPED",
-  "nav.home": "UNMAPPED",
-  "nav.home.glyph": "UNMAPPED",
-  "nav.home.label": "UNMAPPED",
+  "nav.search": {
+   "testId": "nav-search",
+   "textMode": "none"
+  },
+  "nav.search.glyph": {
+   "testId": "nav-search-glyph"
+  },
+  "nav.search.label": {
+   "testId": "nav-search-label"
+  },
+  "nav.search.shortcut": {
+   "testId": "nav-search-shortcut"
+  },
+  "nav.home": {
+   "testId": "nav-home",
+   "textMode": "none"
+  },
+  "nav.home.glyph": {
+   "testId": "nav-home-glyph"
+  },
+  "nav.home.label": {
+   "testId": "nav-home-label"
+  },
   "nav.schedules": {
-   "role": "button",
-   "name": "Scheduled jobs",
-   "within": "sidebar",
-   "textMode": "none",
-   "note": "destination equivalent to Schedules"
+   "testId": "nav-schedules",
+   "textMode": "none"
   },
-  "nav.schedules.glyph": "UNMAPPED",
-  "nav.schedules.label": "UNMAPPED",
-  "nav.connections": "UNMAPPED",
-  "nav.connections.glyph": "UNMAPPED",
-  "nav.connections.label": "UNMAPPED",
-  "nav.skills": "UNMAPPED",
-  "nav.skills.glyph": "UNMAPPED",
-  "nav.skills.label": "UNMAPPED",
-  "nav.outputs": "UNMAPPED",
-  "nav.outputs.glyph": "UNMAPPED",
-  "nav.outputs.label": "UNMAPPED",
-  "needsYou.group": "UNMAPPED",
-  "needsYou.label": "UNMAPPED",
-  "needsYou.badge": "UNMAPPED",
-  "sidebar.groupLabel[]": "UNMAPPED",
-  "sidebar.groupName[]": "UNMAPPED",
-  "row.session[]": "UNMAPPED",
-  "row.session.status[]": "UNMAPPED",
-  "row.session.title[]": "UNMAPPED",
-  "row.session.time[]": "UNMAPPED",
-  "sidebar.footer": "UNMAPPED",
-  "sidebar.avatar": "UNMAPPED",
-  "sidebar.userName": "UNMAPPED",
-  "sidebar.userMeta": "UNMAPPED",
-  "sidebar.settings": "UNMAPPED",
-  "main": "UNMAPPED",
-  "banner.offline": "UNMAPPED",
-  "banner.retry": "UNMAPPED",
+  "nav.schedules.glyph": {
+   "testId": "nav-schedules-glyph"
+  },
+  "nav.schedules.label": {
+   "testId": "nav-schedules-label"
+  },
+  "nav.connections": {
+   "testId": "nav-connections",
+   "textMode": "none"
+  },
+  "nav.connections.glyph": {
+   "testId": "nav-connections-glyph"
+  },
+  "nav.connections.label": {
+   "testId": "nav-connections-label"
+  },
+  "nav.skills": {
+   "testId": "nav-skills",
+   "textMode": "none"
+  },
+  "nav.skills.glyph": {
+   "testId": "nav-skills-glyph"
+  },
+  "nav.skills.label": {
+   "testId": "nav-skills-label"
+  },
+  "nav.outputs": {
+   "testId": "nav-outputs",
+   "textMode": "none"
+  },
+  "nav.outputs.glyph": {
+   "testId": "nav-outputs-glyph"
+  },
+  "nav.outputs.label": {
+   "testId": "nav-outputs-label"
+  },
+  "needsYou.group": {
+   "css": "[data-testid=\"sidebar-group-label\"]:has([data-testid=\"needs-you-badge\"])",
+   "textMode": "none"
+  },
+  "needsYou.label": {
+   "css": "[data-testid=\"sidebar-group-name\"]",
+   "within": "needsYou.group"
+  },
+  "needsYou.badge": {
+   "testId": "needs-you-badge",
+   "hug": true
+  },
+  "sidebar.groupLabel[]": {
+   "testId": "sidebar-group-label",
+   "textMode": "none"
+  },
+  "sidebar.groupName[]": {
+   "testId": "sidebar-group-name"
+  },
+  "row.session[]": {
+   "testId": "session-row",
+   "textMode": "none"
+  },
+  "row.session.status[]": {
+   "testId": "session-row-status",
+   "textMode": "none"
+  },
+  "row.session.title[]": {
+   "testId": "session-row-title"
+  },
+  "row.session.time[]": {
+   "testId": "session-row-time"
+  },
+  "sidebar.footer": {
+   "testId": "sidebar-footer",
+   "textMode": "none"
+  },
+  "sidebar.avatar": {
+   "testId": "sidebar-avatar"
+  },
+  "sidebar.userName": {
+   "testId": "sidebar-user-name"
+  },
+  "sidebar.userMeta": {
+   "testId": "sidebar-user-meta"
+  },
+  "sidebar.settings": {
+   "testId": "sidebar-settings",
+   "textMode": "none"
+  },
+  "main": {
+   "testId": "shell-main",
+   "textMode": "none"
+  },
+  "banner.offline": {
+   "testId": "offline-banner",
+   "textMode": "own"
+  },
+  "banner.retry": {
+   "testId": "offline-retry",
+   "hug": true
+  },
   "thread.scroll": {
    "css": "[data-slot=\"aui_thread-viewport\"]",
    "textMode": "none"

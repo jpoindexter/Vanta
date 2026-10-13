@@ -16,10 +16,10 @@ export function OfflineBanner() {
   }
 
   return (
-    <div className="vs-banner" role="status">
+    <div className="vs-banner" data-testid="offline-banner" role="status">
       <IconCircle aria-hidden size={12} />
       <span>{t.vantaShell.offline.banner}</span>
-      <button onClick={() => void reconnectGateway().catch(() => undefined)} type="button">
+      <button data-testid="offline-retry" onClick={() => void reconnectGateway().catch(() => undefined)} type="button">
         {t.vantaShell.offline.retry}
       </button>
     </div>

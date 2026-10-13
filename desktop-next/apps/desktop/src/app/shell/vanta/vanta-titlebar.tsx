@@ -17,8 +17,7 @@ import { useTitlebarModel } from './use-titlebar-model'
 
 /** Native window controls (macOS traffic lights) sit over the titlebar's left
  *  edge; the bar reserves exactly their width. */
-const LIGHTS_WIDTH_PX = 58
-const LIGHTS_GAP_PX = 8
+const LIGHTS_RESERVE_PX = 51
 
 export interface VantaTitlebarProps {
   /** Tools pages and plugins register for each side of the bar. */
@@ -36,7 +35,7 @@ function lightsInset(connection: ReturnType<typeof $connection.get>): number {
     return 0
   }
 
-  return (connection.windowButtonPosition?.x ?? 0) + LIGHTS_WIDTH_PX + LIGHTS_GAP_PX
+  return LIGHTS_RESERVE_PX
 }
 
 /** The 44px titlebar: new chat, the chat title with its menu, the project chip,
@@ -58,18 +57,26 @@ export function VantaTitlebar({
   const style = { '--vs-lights-inset': `${lightsInset(connection)}px` } as CSSProperties
 
   return (
-    <header className="vs-titlebar" data-vanta-titlebar="" style={style}>
+    <header className="vs-titlebar" data-testid="titlebar" style={style}>
       <div className="vs-tb-left">
+        <span aria-hidden className="vs-lights" data-testid="titlebar-lights" />
         <button
           aria-label={copy.openSidebar}
           className="vs-icon vs-tb-drawer"
           data-narrow-toggle=""
+          data-testid="titlebar-drawer"
           onClick={toggleLeftSide}
           type="button"
         >
           <IconMenu2 aria-hidden size={16} />
         </button>
-        <button aria-label={copy.newChat} className="vs-icon" onClick={onNewChat} type="button">
+        <button
+          aria-label={copy.newChat}
+          className="vs-icon"
+          data-testid="titlebar-new"
+          onClick={onNewChat}
+          type="button"
+        >
           <IconPlus aria-hidden size={16} />
         </button>
       </div>
@@ -83,10 +90,12 @@ export function VantaTitlebar({
             title={model.title}
           />
         ) : (
-          <strong className="vs-tb-name">{model.title}</strong>
+          <strong className="vs-tb-name" data-testid="titlebar-title">
+            {model.title}
+          </strong>
         )}
         {model.isChat && model.project ? (
-          <span aria-label={`${copy.project}: ${model.project}`} className="vs-chip">
+          <span aria-label={`${copy.project}: ${model.project}`} className="vs-chip" data-testid="titlebar-project">
             {model.project}
           </span>
         ) : null}

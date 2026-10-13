@@ -4,27 +4,55 @@
     {
       "id": "icon-glyphs",
       "reason": "The wireframe draws icons as text glyphs (plus, magnifier, triangle...); the app uses Tabler icons. A text difference that is only these glyphs is allowed.",
-      "props": ["text", "placeholder"],
+      "props": [
+        "text",
+        "placeholder"
+      ],
       "transform": "stripGlyphs"
     },
     {
       "id": "icon-line-box",
       "reason": "A text glyph sits in a line box (about 20px tall); an SVG icon is its own height. Width and x still must match.",
-      "props": ["h", "y"],
-      "keys": ["*.glyph"],
+      "props": [
+        "h",
+        "y"
+      ],
+      "keys": [
+        "*.glyph"
+      ],
       "transform": "ignore"
     },
     {
       "id": "color-tokens",
       "reason": "The wireframe is grayscale on purpose; the app uses Vanta color tokens. Structure (filled vs not) is still compared; hue is not.",
-      "props": ["color", "bg"],
+      "props": [
+        "color",
+        "bg"
+      ],
       "transform": "ignore"
     },
     {
       "id": "native-window-controls",
       "reason": "The wireframe draws three gray dots for the window controls; the app uses the native macOS traffic lights.",
-      "props": ["*"],
-      "keys": ["titlebar.dots"],
+      "props": [
+        "*"
+      ],
+      "keys": [
+        "titlebar.dots"
+      ],
+      "transform": "ignore"
+    },
+    {
+      "id": "icon-font-metrics",
+      "reason": "An icon-only element (Tabler SVG) has no text node, so it reports no font size or weight; the wireframe's text glyph reports its 12-15px glyph font. Box geometry (x, w, radius) is still compared.",
+      "props": [
+        "fontSize",
+        "fontWeight"
+      ],
+      "keys": [
+        "*.glyph",
+        "titlebar.titleMenu"
+      ],
       "transform": "ignore"
     }
   ]

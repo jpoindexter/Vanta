@@ -41,16 +41,16 @@ export function SidebarFooter({ onOpenSettings }: SidebarFooterProps) {
   const statusbar = useStore($statusbarVisible)
 
   return (
-    <div className="vs-footer">
+    <div className="vs-footer" data-testid="sidebar-footer">
       <Popover>
         <PopoverTrigger asChild>
           <button aria-label={copy.account} className="vs-footer-id" type="button">
-            <span aria-hidden className="vs-icon vs-chip-avatar">
+            <span aria-hidden className="vs-icon vs-chip-avatar" data-testid="sidebar-avatar">
               {profileInitial(name)}
             </span>
             <span className="vs-footer-text">
-              <span>{name}</span>
-              <span className="vs-footer-sub">
+              <span data-testid="sidebar-user-name">{name}</span>
+              <span className="vs-footer-sub" data-testid="sidebar-user-meta">
                 {kind} · {modelName}
               </span>
             </span>
@@ -75,7 +75,13 @@ export function SidebarFooter({ onOpenSettings }: SidebarFooterProps) {
           </div>
         </PopoverContent>
       </Popover>
-      <button aria-label={copy.settings} className="vs-icon" onClick={onOpenSettings} type="button">
+      <button
+        aria-label={copy.settings}
+        className="vs-icon"
+        data-testid="sidebar-settings"
+        onClick={onOpenSettings}
+        type="button"
+      >
         <IconSettings aria-hidden size={16} />
       </button>
     </div>

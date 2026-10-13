@@ -41,7 +41,7 @@ export function StatusPill({ elapsed, status }: { elapsed?: string; status: Pill
   const word = t.vantaShell.status[WORD_KEY[status]]
 
   return (
-    <span className="vs-pill" data-status={status} role="status">
+    <span className="vs-pill" data-status={status} data-testid="titlebar-status" role="status">
       <PillIcon status={status} />
       <span>{word}</span>
       {elapsed ? <span aria-hidden>{elapsed}</span> : null}

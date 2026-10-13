@@ -18,7 +18,7 @@ export function GroupLabel({ addLabel, badge, badgeLabel, id, label, onAdd }: Gr
 
   if (badge) {
     trailing = (
-      <span aria-label={badgeLabel} className="vs-badge" role="status">
+      <span aria-label={badgeLabel} className="vs-badge" data-testid="needs-you-badge" role="status">
         {badge}
       </span>
     )
@@ -31,8 +31,10 @@ export function GroupLabel({ addLabel, badge, badgeLabel, id, label, onAdd }: Gr
   }
 
   return (
-    <div className="vs-grouplabel">
-      <span id={id}>{label}</span>
+    <div className="vs-grouplabel" data-testid="sidebar-group-label">
+      <span data-testid="sidebar-group-name" id={id}>
+        {label}
+      </span>
       {trailing}
     </div>
   )

@@ -28,7 +28,7 @@ export function TitleMenu({ onArchive, onBranch, onDelete, session, title }: Tit
 
   return (
     <>
-      <button className="vs-tb-name" onClick={() => setOpen(true)} type="button">
+      <button className="vs-tb-name" data-testid="titlebar-title" onClick={() => setOpen(true)} type="button">
         {title}
       </button>
       <SessionActionsMenu
@@ -45,7 +45,12 @@ export function TitleMenu({ onArchive, onBranch, onDelete, session, title }: Tit
         title={title}
         unread={session.unread === true}
       >
-        <button aria-label={t.vantaShell.titlebar.sessionMenu} className="vs-chip" type="button">
+        <button
+          aria-label={t.vantaShell.titlebar.sessionMenu}
+          className="vs-chip"
+          data-testid="titlebar-title-menu"
+          type="button"
+        >
           <IconChevronDown aria-hidden size={12} />
         </button>
       </SessionActionsMenu>

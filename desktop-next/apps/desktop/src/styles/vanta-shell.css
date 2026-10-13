@@ -25,6 +25,13 @@
   --vs-text-small: 13px;
   --vs-text-meta: 12px;
   --vs-weight-strong: 600;
+  --vs-leading: 1.45;
+  --vs-pad-chip: 1px 9px;
+  --vs-pad-chip-icon: 1px 6px;
+  --vs-gap-cluster: 6px;
+  --vs-add: 20px;
+  --vs-menu-btn: 24px;
+  --vs-popover-w: 240px;
   --vs-sidebar-track: 275px;
   --vs-sidebar-min: 240px;
   --vs-sidebar-max: 520px;
@@ -60,11 +67,10 @@
   height: var(--vs-titlebar-h);
   min-width: 0;
   padding: 0 var(--vs-pad-bar);
-  padding-inline-start: max(var(--vs-pad-bar), var(--vs-lights-inset, 0px));
   border-bottom: 1px solid var(--ui-stroke-tertiary);
-  background: var(--ui-bg-chrome);
   color: var(--ui-text-primary);
   font-size: var(--vs-text-ui);
+  line-height: var(--vs-leading);
   -webkit-app-region: drag;
   user-select: none;
 }
@@ -78,7 +84,7 @@
   display: flex;
   flex: none;
   align-items: center;
-  gap: 6px;
+  gap: var(--vs-gap-cluster);
 }
 
 .vs-tb-title {
@@ -112,17 +118,21 @@ button.vs-tb-name {
   display: inline-flex;
   flex: none;
   align-items: center;
-  padding: 1px 9px;
+  box-sizing: border-box;
+  min-height: calc(var(--vs-text-meta) * var(--vs-leading) + 4px);
+  padding: var(--vs-pad-chip);
   border: 1px solid var(--ui-stroke-secondary);
   border-radius: var(--vs-radius-pill);
   background: var(--ui-bg-chrome);
   color: var(--ui-text-secondary);
   font-size: var(--vs-text-meta);
-  line-height: 18px;
+  font-weight: 400;
+  line-height: var(--vs-leading);
   white-space: nowrap;
 }
 
 button.vs-chip {
+  padding: var(--vs-pad-chip-icon);
   cursor: pointer;
 }
 
@@ -135,11 +145,12 @@ button.vs-chip:hover {
   flex: none;
   align-items: center;
   gap: 4px;
+  box-sizing: border-box;
   padding: 1px 10px;
   border: 1px solid var(--ui-text-primary);
   border-radius: var(--vs-radius-pill);
   font-size: var(--vs-text-meta);
-  line-height: 18px;
+  line-height: var(--vs-leading);
   white-space: nowrap;
 }
 
@@ -153,6 +164,7 @@ button.vs-chip:hover {
   border-radius: var(--vs-radius-row);
   background: var(--ui-bg-chrome);
   color: var(--ui-text-primary);
+  font-size: 15px;
   cursor: pointer;
 }
 
@@ -164,10 +176,6 @@ button.vs-chip:hover {
   background: var(--ui-row-active-background);
 }
 
-.vs-chip-avatar {
-  border-radius: var(--vs-radius-pill);
-  font-size: var(--vs-text-meta);
-}
 
 /* Visible keyboard focus on every shell control. */
 :is(.vs-titlebar, .vs-sidebar, .vs-banner) :is(button, a, [tabindex]):focus-visible {
@@ -195,9 +203,11 @@ button.vs-chip:hover {
   width: 100%;
   height: 100%;
   min-height: 0;
-  background: var(--ui-sidebar-surface-background);
+  border-inline-end: 1px solid var(--ui-stroke-tertiary);
+  background: var(--ui-bg-sidebar);
   color: var(--ui-text-primary);
   font-size: var(--vs-text-ui);
+  line-height: var(--vs-leading);
 }
 
 .vs-sidebar-body {
@@ -206,6 +216,7 @@ button.vs-chip:hover {
   flex-direction: column;
   min-height: 0;
   padding: var(--vs-pad-sidebar-y) var(--vs-pad-sidebar-x) 0;
+  min-width: 0;
 }
 
 .vs-sidebar-scroll {
@@ -232,13 +243,13 @@ button.vs-chip:hover {
   cursor: pointer;
 }
 
-.vs-nav:hover,
-.vs-row:hover {
+button.vs-nav:hover,
+.vs-row-main:hover {
   background: var(--ui-row-hover-background);
 }
 
 .vs-nav[aria-current='page'],
-.vs-row[data-selected='true'] {
+.vs-row-main[aria-current='true'] {
   background: var(--ui-row-active-background);
   font-weight: var(--vs-weight-strong);
 }
@@ -261,12 +272,11 @@ button.vs-chip:hover {
   margin-inline-start: auto;
   color: var(--ui-text-tertiary);
   font-size: var(--vs-text-meta);
-  font-weight: 400;
 }
 
 .vs-grouplabel {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: space-between;
   min-height: 0;
   padding: var(--vs-pad-label);
@@ -279,9 +289,9 @@ button.vs-chip:hover {
 .vs-grouplabel-add {
   display: inline-grid;
   place-items: center;
-  width: 20px;
-  height: 20px;
-  margin: -4px 0;
+  width: var(--vs-add);
+  height: var(--vs-add);
+  margin: calc(var(--vs-add) / -5) 0;
   padding: 0;
   border: 0;
   border-radius: var(--vs-radius-row);
@@ -301,6 +311,7 @@ button.vs-chip:hover {
   border-radius: var(--vs-radius-pill);
   color: var(--ui-text-primary);
   font-size: var(--vs-text-meta);
+  line-height: var(--vs-leading);
   letter-spacing: 0;
   text-transform: none;
 }
@@ -344,7 +355,6 @@ button.vs-chip:hover {
 .vs-row-time {
   color: var(--ui-text-tertiary);
   font-size: var(--vs-text-meta);
-  font-weight: 400;
 }
 
 .vs-row-lead {
@@ -355,13 +365,18 @@ button.vs-chip:hover {
   font-size: var(--vs-text-meta);
 }
 
+/* An empty lead (a finished chat) takes no height, as drawn. */
+.vs-row-lead:not(:empty) {
+  height: calc(var(--vs-text-meta) * var(--vs-leading));
+}
+
 .vs-row-menu {
   position: absolute;
   inset-inline-end: 4px;
   display: none;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: var(--vs-menu-btn);
+  height: var(--vs-menu-btn);
   padding: 0;
   border: 0;
   border-radius: var(--vs-radius-row);
@@ -442,8 +457,9 @@ button.vs-chip:hover {
   align-items: center;
   gap: 8px;
   margin: var(--vs-pad-sidebar-y) 0 0;
-  padding: 8px 0 var(--vs-pad-sidebar-y);
+  padding: 8px 0 2px;
   border-top: 1px solid var(--ui-stroke-tertiary);
+  background: var(--ui-bg-sidebar);
 }
 
 .vs-footer-id {
@@ -463,10 +479,11 @@ button.vs-chip:hover {
 }
 
 .vs-footer-text {
+  flex: 1;
   min-width: 0;
   overflow: hidden;
   font-size: var(--vs-text-small);
-  line-height: 18px;
+  line-height: var(--vs-leading);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -475,14 +492,14 @@ button.vs-chip:hover {
   overflow: hidden;
   color: var(--ui-text-tertiary);
   font-size: var(--vs-text-meta);
-  line-height: 18px;
+  line-height: var(--vs-leading);
   text-overflow: ellipsis;
 }
 
 .vs-popover {
   display: grid;
   gap: 4px;
-  min-width: 240px;
+  min-width: var(--vs-popover-w);
   font-size: var(--vs-text-small);
 }
 
@@ -542,6 +559,7 @@ button.vs-chip:hover {
   background: var(--ui-row-active-background);
   color: var(--ui-text-primary);
   font-size: var(--vs-text-small);
+  line-height: var(--vs-leading);
 }
 
 .vs-banner button {
@@ -561,12 +579,6 @@ button.vs-chip:hover {
 /* Drawer / workbench overlays float with the wireframe's elevation. */
 [data-narrow-overlay] {
   box-shadow: var(--vs-elevation);
-}
-
-/* Main never narrower than 480px: the sidebar track and the workbench give way
-   first (the tree clamps them), the workspace keeps its floor. */
-[data-tree-group][data-pane-main] {
-  min-width: 480px;
 }
 
 /* ---------- sidebar states and popover ---------- */
@@ -599,4 +611,12 @@ button.vs-chip:hover {
 
 .vs-footer-text > span {
   display: block;
+}
+
+/* Holds the place of the native window controls (macOS traffic lights) at the
+   titlebar's left edge; zero wide wherever the platform draws none. */
+.vs-lights {
+  flex: none;
+  width: var(--vs-lights-inset, 0px);
+  height: 11px;
 }

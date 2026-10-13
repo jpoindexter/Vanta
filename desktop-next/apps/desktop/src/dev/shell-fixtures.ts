@@ -9,6 +9,8 @@
  */
 
 import { createClientSessionState } from '@/lib/chat-runtime'
+import { $currentModel } from '@/store/session'
+import { $activeGatewayProfile } from '@/store/profile'
 import { clearApprovalRequest, setApprovalRequest } from '@/store/prompts'
 import { $pinnedSessionIds } from '@/store/layout'
 import {
@@ -64,6 +66,7 @@ function sessionRow(seed: Seed): SessionInfo {
     model: null,
     output_tokens: 0,
     pinned: seed.pinned === true,
+    profile: 'Jason',
     preview: null,
     source: 'desktop',
     started_at: at,
@@ -136,6 +139,8 @@ export function applyShellFixture(name: ShellFixtureName): void {
   $activeSessionId.set(runtimeId(FOCUSED))
   $selectedStoredSessionId.set(name === 'empty' ? null : FOCUSED)
   $gatewayState.set(name === 'offline' ? 'closed' : 'open')
+  $activeGatewayProfile.set('Jason')
+  $currentModel.set('claude-sonnet-5-5')
 }
 
 declare global {
@@ -151,8 +156,14 @@ const NAMES: readonly ShellFixtureName[] = ['blocked', 'done', 'empty', 'failed'
  *  attempt has settled. */
 const RESEED_DELAYS_MS = [600, 1800]
 
-function fixtureFromHash(): ShellFixtureName | undefined {
-  const wanted = /[?&]shellFixture=([a-z]+)/.exec(window.location.hash)?.[1] as ShellFixtureName | undefined
+/** The parity harness can only set localStorage and reload, so the fixture may
+ *  also arrive through this key. */
+export const SHELL_FIXTURE_STORAGE_KEY = 'vanta-shell-fixture'
+
+function fixtureFromEnvironment(): ShellFixtureName | undefined {
+  const fromHash = /[?&]shellFixture=([a-z]+)/.exec(window.location.hash)?.[1]
+  const fromStorage = window.localStorage.getItem(SHELL_FIXTURE_STORAGE_KEY)
+  const wanted = (fromHash ?? fromStorage) as ShellFixtureName | null
 
   return wanted && NAMES.includes(wanted) ? wanted : undefined
 }
@@ -164,9 +175,14 @@ export function installShellFixtures(): void {
     RESEED_DELAYS_MS.forEach(delay => window.setTimeout(() => applyShellFixture(name), delay))
   }
 
-  const wanted = fixtureFromHash()
+  const wanted = fixtureFromEnvironment()
 
   if (wanted) {
     window.__vantaShellFixture(wanted)
+
+    // The seeded chat is the focused one; opening it makes the route agree.
+    if (wanted !== 'empty') {
+      window.location.hash = `#/${FOCUSED}`
+    }
   }
 }

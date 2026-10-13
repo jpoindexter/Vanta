@@ -29,28 +29,42 @@ export function PaneToggles({ onOpenSettings }: PaneTogglesProps) {
         aria-label={copy.changes}
         aria-pressed={reviewOpen}
         className="vs-icon"
+        data-testid="titlebar-changes"
         onClick={() => toggleReview()}
         type="button"
       >
         <IconGitCompare aria-hidden size={ICON} />
       </button>
-      <button aria-label={copy.terminal} className="vs-icon" onClick={toggleTerminalPane} type="button">
+      <button
+        aria-label={copy.terminal}
+        className="vs-icon"
+        data-testid="titlebar-terminal"
+        onClick={toggleTerminalPane}
+        type="button"
+      >
         <IconTerminal2 aria-hidden size={ICON} />
       </button>
-      <button aria-label={copy.browser} className="vs-icon" onClick={toggleBrowserTab} type="button">
+      <button
+        aria-label={copy.browser}
+        className="vs-icon"
+        data-testid="titlebar-browser"
+        onClick={toggleBrowserTab}
+        type="button"
+      >
         <IconWorld aria-hidden size={ICON} />
       </button>
       <button
         aria-label={copy.files}
         aria-pressed={filesOpen}
         className="vs-icon"
+        data-testid="titlebar-files"
         onClick={toggleFileBrowserOpen}
         type="button"
       >
         <IconFolder aria-hidden size={ICON} />
       </button>
       <MoreMenu onOpenSettings={onOpenSettings}>
-        <button aria-label={copy.more} className="vs-icon" type="button">
+        <button aria-label={copy.more} className="vs-icon" data-testid="titlebar-more" type="button">
           <IconDots aria-hidden size={ICON} />
         </button>
       </MoreMenu>

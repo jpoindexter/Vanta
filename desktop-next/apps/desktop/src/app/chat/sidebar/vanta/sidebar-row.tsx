@@ -53,20 +53,25 @@ function SidebarRowImpl({ isPinned, isSelected, session, status, ...actions }: S
 
   return (
     <SessionContextMenu {...menuActions}>
-      <div className="vs-row" data-selected={isSelected} data-status={status}>
+      <div className="vs-row" data-status={status}>
         <button
           aria-current={isSelected ? 'true' : undefined}
           className="vs-row-main"
+          data-testid="session-row"
           onClick={actions.onResume}
           type="button"
         >
           <Tip label={word || title}>
-            <span aria-hidden className="vs-row-lead">
+            <span aria-hidden className="vs-row-lead" data-testid="session-row-status">
               <StatusGlyph status={status} />
             </span>
           </Tip>
-          <span className="vs-row-title">{title}</span>
-          <span className="vs-row-time">{age}</span>
+          <span className="vs-row-title" data-testid="session-row-title">
+            {title}
+          </span>
+          <span className="vs-row-time" data-testid="session-row-time">
+            {age}
+          </span>
           {word ? <span className="vs-sr">{word}</span> : null}
         </button>
         <SessionActionsMenu {...menuActions}>
