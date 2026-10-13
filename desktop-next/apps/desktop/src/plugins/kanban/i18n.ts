@@ -428,7 +428,7 @@ export const en: KanbanMessages = {
   noProject: 'No project (scratch sandboxes)',
   projectHintPre:
     'New tasks run in the project’s repo (a worktree per task); each task can still override its workspace at creation. Manage projects with ',
-  projectHintCmd: 'hermes project',
+  projectHintCmd: 'vanta project',
   createBoard: 'Create board',
   orchestratorProfile: 'Orchestrator profile',
   defaultAssignee: 'Default assignee',
@@ -655,7 +655,7 @@ const ja: KanbanMessages = {
   noProject: 'プロジェクトなし（スクラッチのサンドボックス）',
   projectHintPre:
     '新しいタスクはプロジェクトのリポジトリで実行されます（タスクごとに worktree）。各タスクは作成時にワークスペースを上書きできます。プロジェクトの管理は ',
-  projectHintCmd: 'hermes project',
+  projectHintCmd: 'vanta project',
   createBoard: 'ボードを作成',
   orchestratorProfile: 'オーケストレータープロフィール',
   defaultAssignee: 'デフォルトの担当',
@@ -880,7 +880,7 @@ const zh: KanbanMessages = {
   noProject: '无项目（临时沙箱）',
   projectHintPre:
     '新任务将在项目的仓库中运行（每个任务一个 worktree）；每个任务在创建时仍可覆盖其工作区。管理项目请使用 ',
-  projectHintCmd: 'hermes project',
+  projectHintCmd: 'vanta project',
   createBoard: '创建面板',
   orchestratorProfile: '编排者配置档',
   defaultAssignee: '默认负责人',
@@ -1104,7 +1104,7 @@ const zhHant: KanbanMessages = {
   noProject: '無專案（暫存沙箱）',
   projectHintPre:
     '新任務將在專案的儲存庫中執行（每個任務一個 worktree）；每個任務在建立時仍可覆寫其工作區。管理專案請使用 ',
-  projectHintCmd: 'hermes project',
+  projectHintCmd: 'vanta project',
   createBoard: '建立面板',
   orchestratorProfile: '編排者設定檔',
   defaultAssignee: '預設負責人',

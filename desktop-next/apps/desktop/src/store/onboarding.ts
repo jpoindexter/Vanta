@@ -328,7 +328,7 @@ function notifyGatewayTools(tools: string[] | undefined) {
   notify({
     durationMs: 8000,
     kind: 'info',
-    message: `${list} now run through your Nous subscription — no separate API keys needed.`,
+    message: `${list} now run through your subscription — no separate API keys needed.`,
     title: 'Tool Gateway enabled'
   })
 }

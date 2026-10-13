@@ -42,7 +42,7 @@ const STOP_PHRASES: readonly string[] = [
 
 // Optional address prefixes so "hermes stop" / "ok stop" / "hey hermes, stop"
 // still count. Stripped before matching the core phrase.
-const ADDRESS_PREFIXES: readonly string[] = ['hey hermes', 'hey hermes,', 'hermes', 'hermes,', 'ok', 'okay', 'hey']
+const ADDRESS_PREFIXES: readonly string[] = ['hey vanta', 'hey vanta,', 'vanta', 'vanta,', 'hey hermes', 'hey hermes,', 'hermes', 'hermes,', 'ok', 'okay', 'hey']
 
 // Normalise: Unicode-compose (so an NFD "отбой" from STT equals the NFC phrase
 // in config.yaml), lowercase, turn punctuation from ANY script into spaces

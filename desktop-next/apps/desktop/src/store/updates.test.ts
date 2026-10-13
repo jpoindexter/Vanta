@@ -594,13 +594,13 @@ describe('requestActiveUpdate', () => {
     expect($backendUpdateApply.get().message).toContain('managed outside this dashboard')
   })
 
-  it('falls back to `hermes update` only when an older backend omits update_command', async () => {
+  it('falls back to `vanta update` only when an older backend omits update_command', async () => {
     setRemote(true)
     updateHermesSpy.mockResolvedValue({ ok: false, name: 'hermes-update', message: 'Run it yourself.' })
 
     await applyBackendUpdate()
 
-    expect($backendUpdateApply.get().command).toBe('hermes update')
+    expect($backendUpdateApply.get().command).toBe('vanta update')
   })
 })
 
