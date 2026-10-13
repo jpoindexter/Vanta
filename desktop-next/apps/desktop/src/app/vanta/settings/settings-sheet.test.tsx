@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { APPROVALS, SETTINGS_ROWS } from '../fixtures/data'
 import type { SettingsProps, SettingsSection } from '../types'
+
 import { SettingsSheet } from './settings-sheet'
 
 afterEach(cleanup)

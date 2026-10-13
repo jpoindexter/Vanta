@@ -2,6 +2,7 @@ import { type KeyboardEvent, useEffect, useId, useMemo, useRef, useState } from 
 
 import { PALETTE_COPY } from '../copy'
 import type { PaletteProps } from '../types'
+
 import { filterCommands, moveActive } from './palette-model'
 
 /** Cmd+K palette: one input, one list. Arrow keys move, Enter runs, Esc closes. */

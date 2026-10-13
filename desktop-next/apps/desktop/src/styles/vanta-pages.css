@@ -81,6 +81,12 @@
   width: 30px;
 }
 
+.vp-btn--close {
+  display: inline-grid;
+  height: calc(14px * 1.45 + 12px);
+  place-items: center;
+}
+
 .vp-btn--ghost {
   border-color: transparent;
 }
@@ -117,7 +123,6 @@
   border-radius: 999px;
   color: var(--vp-ink);
   font-size: 12px;
-  font-weight: 400;
   padding: 0 7px;
 }
 
@@ -289,8 +294,9 @@
   color: var(--vp-ink2);
   cursor: pointer;
   font: inherit;
+  field-sizing: content;
   font-size: 12px;
-  padding: 1px 22px 1px 9px;
+  padding: 1px 18px 1px 9px;
 }
 
 .vp-select-wrap {

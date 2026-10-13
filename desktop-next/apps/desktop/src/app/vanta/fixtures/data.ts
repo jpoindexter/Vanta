@@ -28,10 +28,13 @@ export function blockFor<T>(state: FixtureState, items: T[], message = 'The serv
   switch (state) {
     case 'loading':
       return { status: 'loading' }
+
     case 'error':
       return { status: 'error', message }
+
     case 'empty':
       return { status: 'ready', items: [] }
+
     default:
       return { status: 'ready', items }
   }
@@ -41,10 +44,13 @@ export function tabFor<T>(state: FixtureState, data: T, empty: T, message = 'The
   switch (state) {
     case 'loading':
       return { status: 'loading' }
+
     case 'error':
       return { status: 'error', message }
+
     case 'empty':
       return { status: 'ready', data: empty }
+
     default:
       return { status: 'ready', data }
   }

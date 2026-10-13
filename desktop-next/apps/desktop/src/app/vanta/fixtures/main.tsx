@@ -6,9 +6,10 @@ import { createRoot } from 'react-dom/client'
 import { RootTooltipProvider } from '@/components/ui/tooltip'
 import { ThemeProvider } from '@/themes/context'
 
-import { type FixtureState } from './data'
-import { Harness, type HarnessQuery, SCREENS, type Screen } from './harness'
 import { SETTINGS_SECTIONS, type SettingsSection, WORKBENCH_TABS, type WorkbenchTab } from '../types'
+
+import { type FixtureState } from './data'
+import { Harness, type HarnessQuery, type Screen, SCREENS } from './harness'
 
 function pick<T extends string>(value: null | string, allowed: readonly T[], fallback: T): T {
   return allowed.includes(value as T) ? (value as T) : fallback

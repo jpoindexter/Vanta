@@ -1,8 +1,9 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { BROWSER, CHANGES, FILES, OUTPUTS, TERMINAL, tabFor } from '../fixtures/data'
+import { BROWSER, CHANGES, FILES, OUTPUTS, tabFor, TERMINAL } from '../fixtures/data'
 import type { WorkbenchProps, WorkbenchTab } from '../types'
+
 import { formatCounts } from './changes-tab'
 import { Workbench } from './workbench'
 

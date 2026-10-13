@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { homeProps } from '../fixtures/data'
 import type { HomeProps } from '../types'
+
 import { HomePage } from './home-page'
 
 afterEach(cleanup)

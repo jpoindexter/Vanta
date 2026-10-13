@@ -1,11 +1,11 @@
-import { IconX } from '@tabler/icons-react'
 import { type KeyboardEvent, useRef } from 'react'
 
 import { SETTINGS_COPY } from '../copy'
 import { SETTINGS_SECTIONS, type SettingsProps, type SettingsSection } from '../types'
-import { VpButton } from '../ui/button'
+import { VpButton, VpCloseButton } from '../ui/button'
 import { VpRow } from '../ui/row'
 import { useFocusTrap } from '../ui/use-focus-trap'
+
 import { ChoiceRow } from './choice-row'
 import { PermissionsPanel } from './permissions-panel'
 
@@ -69,9 +69,7 @@ export function SettingsSheet(props: SettingsProps) {
       >
         <div className="vp-sheet__head">
           <h2 className="vp-sheet__title">{SETTINGS_COPY.title}</h2>
-          <VpButton aria-label={SETTINGS_COPY.close} onClick={onClose}>
-            <IconX aria-hidden size={14} stroke={2} />
-          </VpButton>
+          <VpCloseButton aria-label={SETTINGS_COPY.close} onClick={onClose} />
         </div>
         <div className="vp-settings">
           <nav aria-label={SETTINGS_COPY.title}>

@@ -1,12 +1,15 @@
+import './harness.css'
+
 import { type ReactNode, useState } from 'react'
 
 import { HomePage } from '../home/home-page'
 import { ConnectionsPage, OutputsPage, SchedulesPage, SkillsPage } from '../lists/pages'
 import { CommandPalette } from '../palette/command-palette'
 import { SettingsSheet } from '../settings/settings-sheet'
-import { WORKBENCH_TABS, type ListPageProps, type SettingsSection, type WorkbenchTab } from '../types'
-import { Workbench } from '../workbench/workbench'
+import { type ListPageProps, type SettingsSection, WORKBENCH_TABS, type WorkbenchTab } from '../types'
 import { workbenchModeFor } from '../workbench/mode'
+import { Workbench } from '../workbench/workbench'
+
 import {
   APPROVALS,
   blockFor,
@@ -22,7 +25,6 @@ import {
   tabFor,
   TERMINAL
 } from './data'
-import './harness.css'
 
 export const SCREENS = [
   'home',
@@ -56,14 +58,19 @@ function Page({ query }: { query: HarnessQuery }): ReactNode {
   switch (query.screen) {
     case 'home':
       return <HomePage {...homeProps(query.state)} />
+
     case 'schedules':
       return <SchedulesPage {...listProps('schedules', query.state)} />
+
     case 'connections':
       return <ConnectionsPage {...listProps('connections', query.state)} />
+
     case 'skills':
       return <SkillsPage {...listProps('skills', query.state)} />
+
     case 'outputs':
       return <OutputsPage {...listProps('outputs', query.state)} />
+
     default:
       return null
   }
