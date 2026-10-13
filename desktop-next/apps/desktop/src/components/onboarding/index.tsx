@@ -45,6 +45,7 @@ import {
   FeaturedProviderRow,
   FireworksProviderRow,
   LocalModelsProviderRow,
+  isOfferedProvider,
   OpenRouterProviderRow,
   ProviderRow,
   sortProviders
@@ -616,7 +617,7 @@ export function Picker({ ctx }: { ctx: OnboardingContext }) {
     setOnboardingMode('apikey')
   }
 
-  const ordered = useMemo(() => (providers ? sortProviders(providers) : []), [providers])
+  const ordered = useMemo(() => (providers ? sortProviders(providers.filter(isOfferedProvider)) : []), [providers])
   const hasOauth = ordered.length > 0
   const apiKeyOptions = useApiKeyCatalog(ctx.scope)
 

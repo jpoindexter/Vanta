@@ -65,11 +65,9 @@ export const enBoot = {
       remoteFailureHint: 'Check the gateway URL and sign-in under Gateway settings, or switch to the local gateway.',
       cloudDownTitle: 'Cloud agent is down',
       cloudDownDescription:
-        'The managed cloud agent this gateway connects to is returning a server error. It cannot be restarted from here — check its status, switch to the local gateway, or get support.',
+        'The managed cloud agent this gateway connects to is returning a server error. It cannot be restarted from here — switch to the local gateway or try again in a few minutes.',
       cloudDownHint:
-        'The buttons below open the provider portal (instance status and controls) and our Discord for support.',
-      cloudDownCheckPortal: 'Check Portal status',
-      cloudDownDiscord: 'Get help on Discord',
+        'Switch to the local gateway to keep working, or retry once the cloud agent is back.',
       hideRecentLogs: 'Hide recent logs',
       showRecentLogs: 'Show recent logs',
       signedInTitle: 'Signed in',

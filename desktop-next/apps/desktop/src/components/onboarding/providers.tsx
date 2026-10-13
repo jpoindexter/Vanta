@@ -22,6 +22,11 @@ const assetPath = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/
 export const providerTitle = (p: OAuthProvider) => PROVIDER_DISPLAY_NAMES[p.id] ?? p.name
 const orderOf = (p: OAuthProvider) => PROVIDER_ORDER[p.id] ?? 99
 
+/** Hosted-account providers Vanta does not offer: sign-in rows for them are never shown. */
+const HOSTED_ACCOUNT_PROVIDER_IDS: ReadonlySet<string> = new Set(['nous'])
+
+export const isOfferedProvider = (p: OAuthProvider): boolean => !HOSTED_ACCOUNT_PROVIDER_IDS.has(p.id)
+
 export const sortProviders = (providers: OAuthProvider[]) =>
   [...providers].sort((a, b) => orderOf(a) - orderOf(b) || a.name.localeCompare(b.name))
 
