@@ -3,6 +3,7 @@ import type { WorkProductKind } from "../cofounder/work-products.js";
 import type { Worker } from "../team/store.js";
 import type { WorkerTask } from "../team/tasks.js";
 import type { Goal } from "../types.js";
+import type { RunEvent } from "../worker-runtimes/types.js";
 import type { DesktopState } from "./handler-state.js";
 
 // Injectable seams for the company API. Production uses the defaults; tests
@@ -18,6 +19,13 @@ export type WorkerRunRequest = {
   signal: AbortSignal;
   /** Heartbeat: call whenever the worker shows signs of life. */
   progress: (note: string) => void;
+  /** Project directory the run works in. Present for runs started by the company engine. */
+  cwd?: string;
+  runId?: string;
+  /** Structured progress (tool use, messages); the engine logs it to the activity feed. */
+  onEvent?: (event: RunEvent) => void;
+  /** Spend left for this worker across its agent and department budgets. Absent when unbudgeted. */
+  maxBudgetUsd?: number;
 };
 
 export type RunCost = { usd: number; basis: "reported" | "estimated" };
