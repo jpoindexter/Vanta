@@ -2,7 +2,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { ChatThread, Composer } from "./chat.js";
-import type { DesktopRunReceipt } from "./types.js";
+import type { Approval, DesktopRunReceipt } from "./types.js";
 
 describe("ChatThread recovery", () => {
   it("renders failed-run receipts with the recovery actions", () => {
@@ -182,6 +182,16 @@ describe("ChatThread approval checkpoint", () => {
     expect(html).toContain("+ new");
     expect(html).toContain("Allow once");
     expect(html).toContain("Reject");
+  });
+
+  it("says the run is waiting on the human, not working, while an approval is open", () => {
+    const render = (approval: Approval | null) => renderToStaticMarkup(
+      <ChatThread messages={[]} busy={true} streamText="" events={[]} recovery={null} approval={approval}
+        onApproval={vi.fn()} onRetry={vi.fn()} onPrompt={vi.fn()} />,
+    );
+    expect(render({ id: "a", action: "Edit file x.md", reason: "routine", toolName: "edit_file" })).toContain("Waiting for your approval");
+    expect(render({ id: "a", action: "Edit file x.md", reason: "routine", toolName: "edit_file" })).not.toContain("Working...");
+    expect(render(null)).toContain("Working...");
   });
 });
 

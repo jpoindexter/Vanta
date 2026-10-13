@@ -13,6 +13,17 @@ export function chatTitle(session: Pick<Session, "title">): string {
   return !session.title || ["New session", "(empty session)"].includes(session.title) ? "New chat" : session.title;
 }
 
+const LIVE_TITLE_MAX = 48;
+
+/** Until the session store names the chat, show the first prompt rather than "New chat" beside a visible message. */
+export function liveChatTitle(title: string, messages: Pick<Message, "role" | "content">[]): string {
+  const current = chatTitle({ title });
+  if (current !== "New chat") return current;
+  const first = messages.find((message) => message.role === "user" && message.content?.trim())?.content?.trim().replace(/\s+/g, " ");
+  if (!first) return current;
+  return first.length > LIVE_TITLE_MAX ? `${first.slice(0, LIVE_TITLE_MAX - 1).trimEnd()}…` : first;
+}
+
 type SelectionStorage = Pick<Storage, "getItem" | "setItem">;
 const selectionKey = (root: string) => `vanta.desktop.selected-chat.v1:${encodeURIComponent(root)}`;
 
