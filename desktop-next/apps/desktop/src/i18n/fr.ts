@@ -4317,6 +4317,7 @@ export const frOverrides = {
     tryAgain: 'Réessayer',
     notAvailableTitle: 'Mise à jour indisponible',
     unsupportedMessage: "Cette version de Vanta ne peut pas se mettre à jour depuis l'application.",
+    notConfigured: "Les mises à jour ne sont pas configurées pour cette version. Ajoutez un flux de mises à jour Vanta pour les activer.",
     connectionRetry: 'Vérifiez votre connexion et réessayez.',
     gitUnusable: 'Vanta n’a pas pu exécuter Git sur cet ordinateur et n’a donc pas pu rechercher de mises à jour.',
     connectionSettings: 'Paramètres de connexion',

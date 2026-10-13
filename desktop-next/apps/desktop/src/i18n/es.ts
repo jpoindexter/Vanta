@@ -4301,6 +4301,7 @@ export const esOverrides = {
     tryAgain: 'Intentar de nuevo',
     notAvailableTitle: 'Actualización no disponible',
     unsupportedMessage: 'Esta versión de Vanta no puede actualizarse desde la app.',
+    notConfigured: 'Las actualizaciones no están configuradas para esta compilación. Añade un feed de actualizaciones de Vanta para activarlas.',
     connectionRetry:
       'Vanta no pudo llegar al servidor de actualizaciones. Comprueba tu conexión a internet y vuelve a intentarlo. Si usas un Vanta remoto, asegúrate de que esté en línea.',
     gitUnusable: 'Vanta no pudo ejecutar Git en este equipo, así que no pudo buscar actualizaciones.',
