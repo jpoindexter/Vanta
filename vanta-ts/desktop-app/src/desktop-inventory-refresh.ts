@@ -1,4 +1,7 @@
 import { api } from "./api.js";
+import { connectionRetryDelay, isConnectionFailure, MAX_CONNECTION_ATTEMPTS } from "./connection-retry.js";
+import { markLaunch } from "./launch-marks.js";
+import { browserStorage, saveCachedSessions } from "./session-cache.js";
 import type { DesktopInventory } from "./desktop-inventory.js";
 import type { Artifact,CanvasArtifact,Capability,DesktopRuntime,GoogleConnectStatus,MessagingPlatform,Provider,ReleaseProofReport,ScheduledTask,Session,Status,Tool } from "./types.js";
 
@@ -6,7 +9,16 @@ type Critical = [Status, Session[], Tool[], string[], Provider[]];
 type Optional = [CanvasArtifact | null, Capability[], MessagingPlatform[], Artifact[], DesktopRuntime, GoogleConnectStatus, ReleaseProofReport | null, ScheduledTask[]];
 type Settled<T extends unknown[]> = { [K in keyof T]: PromiseSettledResult<T[K]> };
 
+/** Refresh the inventory; while the runtime is still starting, retry with backoff before reporting an error. */
 export async function refreshDesktopInventory(inventory: DesktopInventory, versionRef: { current: number }) {
+  for (let attempt = 1; ; attempt += 1) {
+    const outcome = await refreshOnce(inventory, versionRef, attempt >= MAX_CONNECTION_ATTEMPTS);
+    if (outcome === "done") return;
+    await new Promise((resolve) => setTimeout(resolve, connectionRetryDelay(attempt - 1)));
+  }
+}
+
+async function refreshOnce(inventory: DesktopInventory, versionRef: { current: number }, final: boolean): Promise<"done" | "retry"> {
   const { setModels, setError, setPhase } = inventory;
   const version = ++versionRef.current;
   const critical = Promise.allSettled([
@@ -24,29 +36,32 @@ export async function refreshDesktopInventory(inventory: DesktopInventory, versi
   const [statusResult, sessionsResult, toolsResult, filesResult, modelsResult] = await critical;
   // A mutation can invalidate an older aggregate refresh while its requests
   // are still in flight. Never let stale status overwrite the saved mode.
-  if (version !== versionRef.current) return;
+  if (version !== versionRef.current) return "done";
   applyCritical(inventory, [statusResult, sessionsResult, toolsResult, filesResult, modelsResult]);
 
   const failure = [statusResult, sessionsResult, toolsResult, filesResult, modelsResult]
     .find((result): result is PromiseRejectedResult => result.status === "rejected");
   if (failure) {
+    if (!final && isConnectionFailure(failure.reason)) return "retry";
     setError(failure.reason instanceof Error ? failure.reason.message : String(failure.reason));
     setPhase("error");
     void api<Provider[]>("/api/setup").then(setModels).catch(() => undefined);
-    return;
+    return "done";
   }
   setError(""); setPhase("ready");
+  markLaunch("server-ready");
 
   const [canvasResult, capabilitiesResult, messagingResult, artifactsResult, runtimeResult, googleResult, releaseProofsResult, schedulesResult] = await optional;
-  if (version !== versionRef.current) return;
+  if (version !== versionRef.current) return "done";
   applyOptional(inventory, [canvasResult, capabilitiesResult, messagingResult, artifactsResult, runtimeResult, googleResult, releaseProofsResult, schedulesResult]);
+  return "done";
 }
 
 function applyCritical(inventory: DesktopInventory, results: Settled<Critical>) {
   const { setStatus, setSessions, setTools, setFiles, setModels } = inventory;
   const [statusResult, sessionsResult, toolsResult, filesResult, modelsResult] = results;
   if (statusResult.status === "fulfilled") setStatus(statusResult.value);
-  if (sessionsResult.status === "fulfilled") setSessions(sessionsResult.value);
+  if (sessionsResult.status === "fulfilled") { setSessions(sessionsResult.value); saveCachedSessions(browserStorage(), sessionsResult.value); }
   if (toolsResult.status === "fulfilled") setTools(toolsResult.value);
   if (filesResult.status === "fulfilled") setFiles(filesResult.value);
   if (modelsResult.status === "fulfilled") setModels(modelsResult.value);

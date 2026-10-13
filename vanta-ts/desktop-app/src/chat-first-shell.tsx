@@ -15,6 +15,7 @@ import { useChatDialogs } from "./chat-first-dialogs.js";
 import { ChatPaneResize } from "./chat-first-layout.js";
 import { useDesktopSurface } from "./desktop-surface.js";
 import { ChatDocumentLinks } from "./chat-first-document-links.js";
+import { markLaunch } from "./launch-marks.js";
 
 type Props = { state: ChatFirstState; actions: ChatFirstActions };
 
@@ -25,6 +26,8 @@ export function ChatFirstShell() {
   useChatProjectTask(state, actions);
   useChatDialogs();
   useChatShortcuts({ state, actions });
+  useEffect(() => { markLaunch("first-render"); }, []);
+  useEffect(() => { if (state.ready) markLaunch("chat-ready"); }, [state.ready]);
   return <div className={`app-shell chat-first-shell theme-${state.theme}`} style={state.layout.style} data-surface={surface.mode} data-sidebar={state.sidebar} data-inspector={state.inspector}>
     <ChatTitlebar state={state} actions={actions} surface={surface} />
     <ChatFirstSidebar state={state} actions={actions} />
