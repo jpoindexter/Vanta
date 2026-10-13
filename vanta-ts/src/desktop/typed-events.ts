@@ -1,5 +1,10 @@
 import { z } from "zod";
 import { redactForLog } from "../store/redact-structural.js";
+import {
+  ActivityAppendedEventSchema, BudgetAlertEventSchema, TicketUpdatedEventSchema, WorkerStatusEventSchema,
+  type BudgetAlertEvent, type WorkerStatusEvent,
+} from "./company-event-schemas.js";
+import type { ActivityEntry, TicketSummary } from "./company-schemas.js";
 
 // Typed SSE events for the desktop renderer. Additive: the legacy label/delta
 // frames are unchanged; these ride in the `typed` field of a frame (see CLAUDE.md).
@@ -60,6 +65,11 @@ export const TypedDesktopEventSchema = z.discriminatedUnion("type", [
     usage: UsageSchema.optional(),
     stoppedReason: z.string().optional(),
   }),
+  // Company surface (DN-18): see company-event-schemas.ts.
+  TicketUpdatedEventSchema,
+  WorkerStatusEventSchema,
+  BudgetAlertEventSchema,
+  ActivityAppendedEventSchema,
 ]);
 
 export type ApprovalPayload = z.infer<typeof ApprovalPayloadSchema>;
@@ -179,4 +189,20 @@ export function turnCompleteEvent(input: TurnCompleteInput): TypedDesktopEvent |
     ...(input.usage ? { usage: input.usage } : {}),
     ...(input.stoppedReason ? { stoppedReason: input.stoppedReason } : {}),
   });
+}
+
+export function ticketUpdatedEvent(ticket: TicketSummary): TypedDesktopEvent | null {
+  return parseTypedEvent({ type: "ticket.updated", ticket });
+}
+
+export function workerStatusEvent(input: Omit<WorkerStatusEvent, "type">): TypedDesktopEvent | null {
+  return parseTypedEvent({ type: "worker.status", ...input });
+}
+
+export function budgetAlertEvent(input: Omit<BudgetAlertEvent, "type">): TypedDesktopEvent | null {
+  return parseTypedEvent({ type: "budget.alert", ...input });
+}
+
+export function activityAppendedEvent(entry: ActivityEntry): TypedDesktopEvent | null {
+  return parseTypedEvent({ type: "activity.appended", entry });
 }
