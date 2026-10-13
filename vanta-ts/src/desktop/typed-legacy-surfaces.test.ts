@@ -66,7 +66,8 @@ describe("public API v1 SSE with typed events in flight", () => {
       const client = new VantaClient({ baseUrl, token: issued.token, channelId });
       const stream = client.events();
       const first = stream.next();
-      for (let attempt = 0; attempt < 100 && !sseClients.get(channelId)?.size; attempt++) await new Promise((resolve) => setTimeout(resolve, 10));
+      // Route modules load on first request, so the SSE attach can take longer than 1s on a cold, busy machine.
+      for (let attempt = 0; attempt < 1500 && !sseClients.get(channelId)?.size; attempt++) await new Promise((resolve) => setTimeout(resolve, 10));
       pushSseEvent(sseClients, channelId, { label: "", typed: approvalResolvedEvent("1")! });
       pushSseEvent(sseClients, channelId, { label: "→ read_file", kind: "tool_start", name: "read_file", typed: typedTool });
       await expect(first).resolves.toEqual({ done: false, value: { apiVersion: "v1", type: "activity", sessionId: channelId, label: "→ read_file" } });

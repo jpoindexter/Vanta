@@ -20,3 +20,11 @@ test("desktop package excludes the unused optional winnow ML dependency chain", 
     assert.ok(files.has(exclusion), `missing package exclusion: ${exclusion}`);
   }
 });
+
+test("desktop package ships the precompiled runtime bundle next to the tsx fallback sources", () => {
+  const files = new Set(manifest.build?.files ?? []);
+  assert.ok(files.has("dist-runtime/**/*"), "dist-runtime must be packaged so the server skips tsx");
+  assert.ok(files.has("src/**/*"), "src stays packaged for the tsx fallback and runtime assets");
+  assert.match(manifest.scripts["desktop:pack"], /desktop:runtime/, "desktop:pack must build the runtime bundle");
+  assert.match(manifest.scripts["desktop:dist"], /desktop:runtime/, "desktop:dist must build the runtime bundle");
+});

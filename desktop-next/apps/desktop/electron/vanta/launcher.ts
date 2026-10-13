@@ -1,12 +1,12 @@
 import { type ChildProcess, spawn } from 'node:child_process'
 import { randomBytes } from 'node:crypto'
 import path from 'node:path'
-import { pathToFileURL } from 'node:url'
 
 import { createHttpTransport } from '../../../shared/src/vanta'
 
 import { findAvailablePort } from '../../../../../vanta-ts/desktop-app/electron/project-root.mjs'
 import { desktopRuntimeEnv } from '../../../../../vanta-ts/desktop-app/electron/runtime-env.mjs'
+import { serverLaunchArgs } from '../../../../../vanta-ts/desktop-app/electron/runtime-launch.mjs'
 import {
   resolveRuntimePaths,
   type VantaRuntimePaths
@@ -18,7 +18,7 @@ const DEV_READY_TIMEOUT_MS = 20_000
 const PACKAGED_READY_TIMEOUT_MS = 60_000
 
 export interface LaunchInput {
-  /** Directory holding the Vanta runtime (`src/cli.ts`, `node_modules/tsx`). In a checkout this is `<repo>/vanta-ts`. */
+  /** Directory holding the Vanta runtime (`dist-runtime/cli.mjs`, falling back to `src/cli.ts` + `node_modules/tsx`). In a checkout this is `<repo>/vanta-ts`. */
   runtimeRoot: string
   companion?: boolean
   env?: NodeJS.ProcessEnv
@@ -70,15 +70,7 @@ export function newBoundaryToken(): string {
 export function buildServerCommand(input: LaunchInput, token: string, port: number, paths: VantaRuntimePaths) {
   const command = input.packaged ? input.execPath : (input.env?.VANTA_NODE ?? 'node')
 
-  const args = [
-    '--import',
-    pathToFileURL(paths.loader).href,
-    paths.cli,
-    'desktop',
-    String(port),
-    '--no-open',
-    ...(input.companion ? ['--companion'] : [])
-  ]
+  const launch = serverLaunchArgs({ companion: input.companion, env: input.env ?? process.env, paths, port })
 
   const env: NodeJS.ProcessEnv = {
     ...desktopRuntimeEnv(input.env ?? process.env),
@@ -89,7 +81,7 @@ export function buildServerCommand(input: LaunchInput, token: string, port: numb
     ...(input.packaged ? { ELECTRON_RUN_AS_NODE: '1' } : {})
   }
 
-  return { args, command, env }
+  return { args: launch.args, command, env, runtime: launch.runtime, runtimeReason: launch.reason }
 }
 
 function waitForListening(child: ChildProcess): Promise<void> {
@@ -129,7 +121,12 @@ export async function startVantaServer(input: LaunchInput, deps: Partial<LaunchD
     platform: input.platform,
     resourcesPath: input.resourcesPath
   })
-  const { args, command, env } = buildServerCommand(input, token, port, paths)
+  const { args, command, env, runtime, runtimeReason } = buildServerCommand(input, token, port, paths)
+
+  if (runtime === 'tsx') {
+    process.stderr.write(`[runtime] tsx fallback (${runtimeReason})\n`)
+  }
+
   const baseUrl = `http://127.0.0.1:${port}`
   const child = spawnProcess(command, args, { cwd: input.projectRoot, env })
   child.stderr?.on('data', (chunk: Buffer) => process.stderr.write(chunk))
