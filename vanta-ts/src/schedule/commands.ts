@@ -23,6 +23,7 @@ import { runAutoWatch, formatWatchChange } from "../watch/auto-watch.js";
 import { runAmbientScreenTick } from "../ambient/screen-context.js";
 import type { EffectGateContext } from "../effects/execute-effect.js";
 import { runScheduledScript } from "./effect-run.js";
+import { recordScheduleRun, runSucceeded } from "./run-log.js";
 
 /** Pull `--<flag> <value>` out of an argv slice (value + remaining args). */
 function parseValueFlag(args: string[], flag: string): { value: string | null; rest: string[] } {
@@ -210,6 +211,7 @@ export async function runCron(
     createIssue: (title) => createRoutineIssue(dataDir, title),
   });
   await saveLastFired(dataDir, updated);
+  await logScheduledRuns(dataDir, results, now);
   await sweepClaims(dataDir, fireWindowKey(now));
   const extraLines = await postCronSurfaceLines(dataDir, now);
   const taskLines = results.map((r) => `#${r.id} ${firstLine(r.result)}`);
@@ -219,6 +221,13 @@ export async function runCron(
     return;
   }
   for (const line of lines) console.log(line);
+}
+
+async function logScheduledRuns(dataDir: string, results: { id: number; result: string }[], now: Date): Promise<void> {
+  for (const item of results) {
+    // The run history is a convenience for the desktop; a write failure must never fail the tick.
+    await recordScheduleRun(dataDir, { jobId: item.id, at: now.toISOString(), trigger: "scheduled", ok: runSucceeded(item.result), summary: item.result }).catch(() => undefined);
+  }
 }
 
 async function postCronSurfaceLines(dataDir: string, now: Date): Promise<string[]> {

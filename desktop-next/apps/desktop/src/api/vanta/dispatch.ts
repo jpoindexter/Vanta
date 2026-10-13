@@ -7,6 +7,8 @@ import {
   setupRuntimeCheck,
   setupStatus
 } from './handlers-config'
+import { sessionBranch } from './handlers-branch'
+import { projectsCreate, projectsDelete, projectsList, projectsSetActive, projectsUpdate } from './handlers-projects'
 import { approvalPending, approvalRespond, promptSubmit, sessionSteer } from './handlers-prompt'
 import {
   type Handler,
@@ -30,8 +32,16 @@ export const DISPATCH: Readonly<Record<string, Handler>> = {
   'config.get': configGet,
   'config.set': configSet,
   'model.options': modelOptions,
+  'projects.create': projectsCreate,
+  'projects.delete': projectsDelete,
+  'projects.list': projectsList,
+  'projects.set_active': projectsSetActive,
+  'projects.update': projectsUpdate,
   'prompt.submit': promptSubmit,
   'session.archive': sessionArchive,
+  'session.branch': sessionBranch,
+  'session.branch_stored': sessionBranch,
+  'session.branch_whole': sessionBranch,
   'session.close': sessionClose,
   'session.create': sessionCreate,
   'session.delete': sessionDelete,

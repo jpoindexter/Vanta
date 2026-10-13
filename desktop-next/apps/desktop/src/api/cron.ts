@@ -1,4 +1,3 @@
-import { type ScheduleEntry, schedulesToCronJobs } from '@/app/vanta/adapters/schedule-jobs'
 import { stampRowsWithOwningConnection } from '@/lib/session-owner-stamp'
 import type {
   AutomationBlueprint,
@@ -28,15 +27,13 @@ const CRON_TRIGGER_REQUEST_TIMEOUT_MS = 24 * 60 * 60 * 1000
 // list just that profile's jobs, or 'all' for the unified cross-profile view.
 // Omitting the arg keeps the legacy 'all' default for non-profile callers.
 // profileScoped() still rides along for backend-process routing.
-/** Vanta keeps no per-profile job store: schedules are one list on the local server. */
-async function getVantaSchedules(): Promise<CronJob[]> {
-  const entries = await hermesApi<ScheduleEntry[]>({
+/** Vanta keeps no per-profile job store: schedules are one list on the local server, mapped by the REST shim. */
+function getVantaSchedules(): Promise<CronJob[]> {
+  return hermesApi<CronJob[]>({
     ...connectionScoped(),
-    path: '/api/schedules',
+    path: '/api/cron/jobs',
     timeoutMs: STARTUP_REQUEST_TIMEOUT_MS
   })
-
-  return schedulesToCronJobs(Array.isArray(entries) ? entries : [])
 }
 
 export function getCronJobs(profile?: string): Promise<CronJob[]> {

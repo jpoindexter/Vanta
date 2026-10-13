@@ -95,6 +95,47 @@ describe('frame mapper: typed events', () => {
   })
 })
 
+describe('frame mapper: usage meter', () => {
+  const usageFrame = (patch: Record<string, unknown>) => ({
+    label: '',
+    typed: { contextTokens: 2000, contextWindow: 8000, inputTokens: 100, outputTokens: 40, reported: true, sessionId: 's', type: 'usage', ...patch }
+  })
+
+  it('maps usage to a session.usage tick with context fill and a running token total', () => {
+    const mapper = createFrameMapper()
+    const first = mapper.map(usageFrame({}))
+    const second = mapper.map(usageFrame({ contextTokens: 4000, inputTokens: 300, outputTokens: 60 }))
+
+    expect(first).toEqual([
+      {
+        kind: 'gateway',
+        payload: {
+          usage: { calls: 1, context_estimated: true, context_max: 8000, context_percent: 25, context_source: 'vanta', context_used: 2000, input: 100, output: 40, total: 140 }
+        },
+        type: 'session.usage'
+      }
+    ])
+    expect(second[0]).toMatchObject({ payload: { usage: { calls: 2, context_percent: 50, input: 400, output: 100, total: 500 } } })
+  })
+
+  it('keeps earlier token totals when a turn reports none, and never overshoots 100%', () => {
+    const mapper = createFrameMapper()
+    mapper.map(usageFrame({}))
+    const [tick] = mapper.map(usageFrame({ contextTokens: 99999, inputTokens: 0, outputTokens: 0, reported: false }))
+    const usage = (tick as unknown as { payload: { usage: Record<string, number> } }).payload.usage
+
+    expect(usage).toMatchObject({ calls: 1, context_percent: 100, input: 100 })
+  })
+
+  it('omits token counts until the provider has reported some, and handles an unknown window', () => {
+    const [tick] = createFrameMapper().map(usageFrame({ contextWindow: 0, reported: false }))
+    const usage = (tick as unknown as { payload: { usage: Record<string, unknown> } }).payload.usage
+
+    expect(usage).not.toHaveProperty('input')
+    expect(usage.context_percent).toBe(0)
+  })
+})
+
 describe('frame mapper: legacy label fallback', () => {
   it('maps a delta to message.delta', () => {
     expect(createFrameMapper().map({ delta: 'Hel' })).toEqual([gateway('message.delta', { text: 'Hel' })])

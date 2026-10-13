@@ -2,8 +2,8 @@ import type { StreamEvent } from "../agent.js";
 import type { DesktopEvent } from "./handler-state.js";
 import { pushSseEvent, type SseClients } from "./session-state.js";
 import {
-  thinkingEvent, toolCompleteEvent, toolStartEvent, turnCompleteEvent,
-  type TurnCompleteInput, type TypedDesktopEvent,
+  thinkingEvent, toolCompleteEvent, toolStartEvent, turnCompleteEvent, usageEvent,
+  type TurnCompleteInput, type TypedDesktopEvent, type UsageInput,
 } from "./typed-events.js";
 
 /** The slice of DesktopState the typed emitters need. */
@@ -80,4 +80,9 @@ export function pushTypedEvent(host: TypedEventHost, typed: TypedDesktopEvent | 
 /** Session id comes from the state, so callers pass only the outcome. */
 export function pushTurnComplete(host: TypedEventHost & { sessionId?: string }, input: Omit<TurnCompleteInput, "sessionId">): void {
   pushTypedEvent(host, turnCompleteEvent({ ...input, sessionId: host.sessionId ?? "" }));
+}
+
+/** Live token and context-window numbers for the renderer's meter; sent after each settled instruction. */
+export function pushUsage(host: TypedEventHost & { sessionId?: string }, input: Omit<UsageInput, "sessionId">): void {
+  pushTypedEvent(host, usageEvent({ ...input, sessionId: host.sessionId ?? "" }));
 }
