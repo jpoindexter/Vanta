@@ -1,4 +1,4 @@
-import type { WorkerRuntime as EnginePort, WorkerRunRequest, WorkerRunResult } from "../desktop/company-ports.js";
+import type { RunSpend, WorkerRuntime as EnginePort, WorkerRunRequest, WorkerRunResult } from "../desktop/company-ports.js";
 import { ARTIFACT_MAX_CHARS, SUMMARY_MAX_CHARS } from "./constants.js";
 import type { RunInput, RunOutput, WorkerRuntime } from "./types.js";
 
@@ -28,23 +28,24 @@ function inputFor(request: WorkerRunRequest, cwd: string): RunInput {
 }
 
 /** Tokens only count as reported when the CLI gave both figures; a half figure would read as zero. */
-function usageFor(output: RunOutput): { inputTokens: number; outputTokens: number } | undefined {
-  const usage = output.usage;
-  return usage?.inputTokens !== undefined && usage.outputTokens !== undefined ? { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens } : undefined;
+function spendFor(output: RunOutput, runtimeId: string): RunSpend {
+  const { inputTokens, outputTokens, costUsd } = output.usage ?? {};
+  return {
+    ...(inputTokens !== undefined && outputTokens !== undefined ? { usage: { inputTokens, outputTokens } } : {}),
+    ...(typeof costUsd === "number" ? { cost: { usd: costUsd, basis: "reported" as const } } : {}),
+    provider: runtimeId,
+    ...(output.model ? { model: output.model } : {}),
+  };
 }
 
 export function resultFor(output: RunOutput, runtimeId: string): WorkerRunResult {
-  if (output.status !== "completed") return { ok: false, error: output.error ?? output.summary };
-  const usage = usageFor(output);
-  const cost = output.usage?.costUsd;
+  const spend = spendFor(output, runtimeId);
+  if (output.status !== "completed") return { ok: false, error: output.error ?? output.summary, ...spend };
   return {
     ok: true,
     summary: output.summary.slice(0, SUMMARY_MAX_CHARS),
     artifacts: output.workProducts.map((product) => ({ artifact: product.content.slice(0, ARTIFACT_MAX_CHARS), kind: product.kind })),
-    ...(usage ? { usage } : {}),
-    ...(typeof cost === "number" ? { cost: { usd: cost, basis: "reported" as const } } : {}),
-    provider: runtimeId,
-    ...(output.model ? { model: output.model } : {}),
+    ...spend,
   };
 }
 

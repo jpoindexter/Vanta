@@ -1,4 +1,5 @@
 import { providerById } from "../providers/catalog.js";
+import { isRuntimeAdapter, runtimeIdFromAdapter } from "../worker-runtimes/adapter-id.js";
 import type { Worker } from "./store.js";
 
 // PCLIP-AGENT-HIRE — pure roster helpers for hiring a budgeted, role-tagged
@@ -8,7 +9,11 @@ import type { Worker } from "./store.js";
 
 export type HireSpec = {
   role: string;
-  /** Provider/model adapter id — must be a known PROVIDER_CATALOG id. */
+  /**
+   * A known PROVIDER_CATALOG id (the Vanta loop on that model backend), or
+   * "cli:<runtime id>" to hire an external CLI worker such as "cli:claude-code".
+   * An unavailable CLI is reported when a ticket is dispatched, not at hire time.
+   */
   adapter: string;
   /** Optional spend budget in USD; must be a positive number when given. */
   budgetUsd?: number;
@@ -41,6 +46,13 @@ export function deriveAgentId(roster: Worker[], role: string): string {
   return `${base}-${n}`;
 }
 
+function checkAdapter(adapter: string): string | null {
+  if (isRuntimeAdapter(adapter)) {
+    return runtimeIdFromAdapter(adapter) ? null : `invalid worker runtime "${adapter}" — use cli:<id> with lowercase letters, digits and dashes (for example cli:claude-code)`;
+  }
+  return providerById(adapter) ? null : `unknown adapter "${adapter}" — not a known provider id`;
+}
+
 /**
  * Hire a budgeted, role-tagged agent into the roster. Returns the new roster
  * plus the created worker, or an error string. Pure — the caller persists.
@@ -50,9 +62,8 @@ export function hireAgent(roster: Worker[], spec: HireSpec): HireResult {
   if (!role) return { ok: false, error: "role is required" };
 
   const adapter = spec.adapter.trim();
-  if (!providerById(adapter)) {
-    return { ok: false, error: `unknown adapter "${adapter}" — not a known provider id` };
-  }
+  const adapterError = checkAdapter(adapter);
+  if (adapterError) return { ok: false, error: adapterError };
 
   if (spec.budgetUsd !== undefined && !(Number.isFinite(spec.budgetUsd) && spec.budgetUsd > 0)) {
     return { ok: false, error: `budget must be a positive number, got ${spec.budgetUsd}` };
@@ -67,7 +78,8 @@ export function hireAgent(roster: Worker[], spec: HireSpec): HireResult {
     kind: "worker",
     id,
     role,
-    model: providerById(adapter)!.defaultModel,
+    // An external CLI keeps its own default model; none is recorded unless set later.
+    ...(isRuntimeAdapter(adapter) ? {} : { model: providerById(adapter)!.defaultModel }),
     status: "idle",
     ts: new Date().toISOString(),
     adapter,

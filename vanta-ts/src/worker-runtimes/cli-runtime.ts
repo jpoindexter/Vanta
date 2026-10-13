@@ -87,8 +87,8 @@ async function prepare(spec: CliSpec, input: RunInput, sessionId?: string): Prom
 
 async function runSpec(spec: CliSpec, deps: CliDeps, input: RunInput, sessionId?: string): Promise<RunOutput> {
   const decision = await deps.gate.authorize({
-    runtimeId: spec.id, displayName: spec.displayName, command: spec.command, cwd: input.cwd, ticketId: input.ticket.id,
-    prompt: input.instruction, access: input.access ?? "edit", selfApproving: spec.selfApproving,
+    runtimeId: spec.id, displayName: spec.displayName, command: spec.command, cwd: input.cwd, ticketId: input.ticket.id, runId: input.ticket.runId,
+    prompt: input.instruction, access: input.access ?? "edit", selfApproving: spec.selfApproving, signal: input.signal,
   });
   if (!decision.ok) return failedOutput(decision.error, "refused");
   const prepared = await prepare(spec, input, sessionId);
