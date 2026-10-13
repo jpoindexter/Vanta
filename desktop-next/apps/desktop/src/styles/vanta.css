@@ -1,0 +1,86 @@
+/* Vanta skin tokens (see DESIGN.md "Vanta skin").
+ *
+ * Unlayered and scoped to the skin attribute that themes/context.tsx paints on
+ * <html>, so it beats the `@layer base` defaults in styles.css without
+ * !important and leaves every other skin untouched.
+ *
+ * styles.css derives most surfaces by mixing the accent into the foreground at
+ * 3-24%. With a violet accent that tints every grey. Vanta keeps the accent for
+ * focus, links, selection and the send button only, so each mix is zeroed here
+ * and surfaces read straight from the palette seeds.
+ */
+
+:root {
+  /* Motion: 140ms for controls, 200ms for surfaces. Reduced motion is handled
+     by the blanket override at the top of styles.css. */
+  --motion-control: 140ms;
+  --motion-surface: 200ms;
+  --motion-ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+:root[data-hermes-theme='vanta'] {
+  /* Neutral fills and strokes: no accent in the mix. */
+  --theme-fill-primary-accent-mix: 0%;
+  --theme-fill-secondary-accent-mix: 0%;
+  --theme-fill-tertiary-accent-mix: 0%;
+  --theme-fill-quaternary-accent-mix: 0%;
+  --theme-fill-quinary-accent-mix: 0%;
+  --theme-stroke-primary-accent-mix: 0%;
+  --theme-stroke-secondary-accent-mix: 0%;
+  --theme-stroke-tertiary-accent-mix: 0%;
+  --theme-stroke-quaternary-accent-mix: 0%;
+  --theme-row-hover-accent-mix: 0%;
+  --theme-row-active-accent-mix: 0%;
+  --theme-control-hover-accent-mix: 0%;
+  --theme-control-active-accent-mix: 0%;
+  --ui-bg-card: color-mix(in srgb, var(--ui-base) 4%, transparent);
+  --ui-sash-hover-border: var(--ui-stroke-secondary);
+  --ui-sash-hover-background: color-mix(in srgb, var(--ui-base) 4%, transparent);
+  --warm-glow: transparent;
+
+  /* Surfaces are the palette seeds themselves: base, panel, popover, bubble.
+     No blend toward the Hermes neutral ramp. */
+  --ui-bg-chrome: var(--theme-background-seed);
+  --ui-bg-sidebar: var(--theme-sidebar-seed);
+  --ui-bg-editor: var(--theme-card-seed);
+  --ui-bg-elevated: var(--theme-elevated-seed);
+  --ui-bg-input: var(--theme-background-seed);
+  --ui-chat-bubble-background: var(--theme-bubble-seed);
+
+  /* Flat: shadows belong to popovers and dialogs only. */
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-composer: none;
+  --dt-input-inset: none;
+
+  /* Type: UI 14/20, chat body 15/24, captions 13/18, tool and meta rows 12. */
+  --conversation-text-base-size: 0.9375rem;
+  --conversation-base-line-height: 1.5rem;
+  --conversation-caption-base-size: 0.8125rem;
+  --conversation-caption-base-line-height: 1.125rem;
+  --conversation-tool-base-size: 0.75rem;
+}
+
+/* Tertiary text is the quiet tier, but 12px text on white still has to clear
+   AA, which the 54% base mix does not in light mode. Dark mode already does. */
+:root[data-hermes-theme='vanta'][data-hermes-mode='light'] {
+  --ui-text-tertiary: color-mix(in srgb, var(--ui-base) 66%, transparent);
+  --ui-text-quaternary: color-mix(in srgb, var(--ui-base) 52%, transparent);
+}
+
+:root[data-hermes-theme='vanta'] body {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+/* Violet focus states. Resting borders are neutral (composerRing is grey), so
+   the focused field and composer take the ring colour explicitly. */
+:root[data-hermes-theme='vanta'] .desktop-input-chrome:focus,
+:root[data-hermes-theme='vanta'] .desktop-input-chrome:focus-within,
+:root[data-hermes-theme='vanta'] .desktop-input-chrome[data-state='open'] {
+  border-color: var(--dt-ring);
+}
+
+:root[data-hermes-theme='vanta'] [data-slot='composer-surface']:focus-within {
+  border-color: var(--dt-ring) !important;
+}

@@ -153,14 +153,16 @@
 
   --spacing-mul: var(--dt-spacing-mul, 1);
 
-  --radius-xs: calc(var(--radius-scalar) * 0.125rem);
-  --radius-sm: calc(var(--radius-scalar) * 0.5rem);
-  --radius-md: calc(var(--radius-scalar) * 0.625rem);
+  /* Vanta radius ramp 4 / 6 / 8 / 12 / 16 / 22 / pill. 3xl and 4xl alias the
+     22px step so there is no larger rounded rectangle than the composer. */
+  --radius-xs: calc(var(--radius-scalar) * 0.25rem);
+  --radius-sm: calc(var(--radius-scalar) * 0.375rem);
+  --radius-md: calc(var(--radius-scalar) * 0.5rem);
   --radius-lg: calc(var(--radius-scalar) * 0.75rem);
   --radius-xl: calc(var(--radius-scalar) * 1rem);
-  --radius-2xl: calc(var(--radius-scalar) * 1.5rem);
-  --radius-3xl: calc(var(--radius-scalar) * 2rem);
-  --radius-4xl: calc(var(--radius-scalar) * 2.5rem);
+  --radius-2xl: calc(var(--radius-scalar) * 1.375rem);
+  --radius-3xl: calc(var(--radius-scalar) * 1.375rem);
+  --radius-4xl: calc(var(--radius-scalar) * 1.375rem);
 
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -494,11 +496,8 @@
     --dt-spacing-mul: 1;
 
     --radius: 0.75rem;
-    /* Effective value everywhere: the chat backdrop used to force 0.2 onto the
-       root element at runtime (an ungated leva slider default), so this 0.6
-       only ever applied to the windows that don't mount the backdrop. Pinned
-       to the value the app actually renders at. */
-    --radius-scalar: 0.2;
+    /* 1 = the ramp in `@theme inline` above, unscaled. */
+    --radius-scalar: 1;
 
     /* Space under last message vs overlay composer — driven by the measured composer DOCK height (see
        composer/index.tsx), which covers the micro-action strip, the status stack, the composer, and the
@@ -1385,19 +1384,33 @@
   }
 }
 
-/* No focus rings, anywhere. Kills the native outline plus Tailwind's
-   `focus-visible:ring-*` (a box-shadow driven by --tw-ring-*). Unlayered so it
-   beats the utilities layer without !important on the outline. The composer /
-   .desktop-input-chrome focus glow is untouched — those set `box-shadow`
-   directly rather than through the ring vars. */
-*:focus,
-*:focus-visible {
+/* One keyboard focus indicator: a 2px outline in the ring colour (violet in
+   Vanta). Pointer focus stays quiet because only :focus-visible draws it.
+   Tailwind's `focus-visible:ring-*` box-shadow is killed so a control never
+   paints two rings, and unlayered so this beats the utilities layer without
+   !important on the outline. Surfaces that paint their own focus state
+   (composer glow, menu items, fields with an inline border) opt out below. */
+*:focus {
   outline: none;
 }
 
 *:focus-visible {
+  outline: 2px solid var(--dt-ring);
+  outline-offset: 1px;
   --tw-ring-shadow: 0 0 #0000 !important;
   --tw-ring-offset-shadow: 0 0 #0000 !important;
+}
+
+[data-slot='composer-root'] *:focus-visible,
+.desktop-input-chrome:focus-visible,
+.desktop-input-chrome *:focus-visible,
+[role='menuitem']:focus-visible,
+[role='menuitemcheckbox']:focus-visible,
+[role='menuitemradio']:focus-visible,
+[role='option']:focus-visible,
+[cmdk-item]:focus-visible,
+[cmdk-input]:focus-visible {
+  outline: none;
 }
 
 button {
