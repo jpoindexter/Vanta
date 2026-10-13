@@ -70,7 +70,7 @@ export const zhHantSettings = {
       openFolder: '開啟桌面外掛資料夾',
       installModal: {
         installUncertain:
-          'Hermes 已停止等待安裝結果，但外掛可能仍在安裝中。請關閉此視窗，重新掃描外掛清單後再嘗試安裝。',
+          'Vanta 已停止等待安裝結果，但外掛可能仍在安裝中。請關閉此視窗，重新掃描外掛清單後再嘗試安裝。',
         installFromGit: '從 Git 安裝',
         reviewRepository: '檢查儲存庫',
         repoPlaceholder: 'https://github.com/owner/repo',
@@ -84,7 +84,7 @@ export const zhHantSettings = {
     exportConfig: '匯出設定',
     importConfig: '匯入設定',
     resetToDefaults: '恢復預設值',
-    resetConfirm: '要將所有設定恢復為 Hermes 預設值嗎？',
+    resetConfirm: '要將所有設定恢復為 Vanta 預設值嗎？',
     exportFailed: '匯出失敗',
     resetFailed: '重設失敗',
     pluginPages: {
@@ -160,7 +160,7 @@ export const zhHantSettings = {
       deleteAction: '移除已儲存項目',
       otpField: '驗證器金鑰',
       otpPlaceholder: 'Base32 金鑰或 otpauth:// 連結',
-      otpHint: '啟用兩步驟驗證時網站顯示的「設定金鑰」。儲存後 Hermes 會自動產生驗證碼。',
+      otpHint: '啟用兩步驟驗證時網站顯示的「設定金鑰」。儲存後 Vanta 會自動產生驗證碼。',
       twoFactorBadge: '自動 2FA',
       deleteTitle: '刪除此項目？',
       deleteDescription: label => `「${label}」將從加密保險庫中移除。此操作無法復原。`,
@@ -170,10 +170,10 @@ export const zhHantSettings = {
         blurb:
           '已安裝的密碼管理器會被自動偵測。代理第一次需要其中的登入資訊時會請你解鎖（每個工作階段一次）；記憶體中只保留工作階段權杖，代理永遠看不到你的主密碼或任何登入資訊。',
         toggleFailed: '無法更新密碼管理器',
-        notInstalled: name => `未偵測到。安裝 ${name} 命令列工具並登入後，Hermes 會自動偵測。`,
-        disabledDesc: '已偵測到，但已為 Hermes 關閉。',
+        notInstalled: name => `未偵測到。安裝 ${name} 命令列工具並登入後，Vanta 會自動偵測。`,
+        disabledDesc: '已偵測到，但已為 Vanta 關閉。',
         lockedDesc: '已偵測到。代理需要登入資訊時會請你解鎖，也可立即解鎖。',
-        unlockedDesc: '本工作階段已解鎖。閒置 30 分鐘或關閉 Hermes 後會自動鎖定。',
+        unlockedDesc: '本工作階段已解鎖。閒置 30 分鐘或關閉 Vanta 後會自動鎖定。',
         statusLocked: '已鎖定',
         statusNotDetected: '未偵測到',
         statusOff: '已關閉',
@@ -192,7 +192,7 @@ export const zhHantSettings = {
       intro: '原生桌面通知，與應用程式內提示不同。設定會依裝置保存，每台電腦各自獨立。',
       enableAll: '啟用通知',
       enableAllDesc: '關閉後靜音下方所有通知。',
-      focusedHint: '完成提醒僅在 Hermes 位於背景時觸發。',
+      focusedHint: '完成提醒僅在 Vanta 位於背景時觸發。',
       kinds: {
         approval: {
           label: '需要核准',
@@ -200,11 +200,11 @@ export const zhHantSettings = {
         },
         input: {
           label: '需要輸入',
-          description: 'Hermes 提出了問題，或需要密碼或密鑰。'
+          description: 'Vanta 提出了問題，或需要密碼或密鑰。'
         },
         turnDone: {
           label: '回覆就緒',
-          description: 'Hermes 在背景時完成了一輪對話。'
+          description: 'Vanta 在背景時完成了一輪對話。'
         },
         turnError: {
           label: '本輪失敗',
@@ -220,11 +220,11 @@ export const zhHantSettings = {
         },
         plugin: {
           label: '外掛通知',
-          description: 'Hermes 在背景時，桌面外掛傳送了通知。'
+          description: 'Vanta 在背景時，桌面外掛傳送了通知。'
         }
       },
       test: '傳送測試通知',
-      testTitle: 'Hermes',
+      testTitle: 'Vanta',
       testBody: '通知運作正常。',
       testSent: '測試已傳送。若沒有出現，請檢查系統通知權限與專注模式／勿擾模式。',
       testUnsupported: '此系統不支援原生通知。',
@@ -243,7 +243,7 @@ export const zhHantSettings = {
       advanced: '進階'
     },
     searchPlaceholder: {
-      about: '關於 Hermes Desktop',
+      about: '關於 Vanta Desktop',
       config: '搜尋設定…',
       gateway: '閘道連線…',
       keys: '搜尋 API 金鑰…',
@@ -261,7 +261,7 @@ export const zhHantSettings = {
       title: '外觀',
       intro: '這些是僅限桌面端的顯示偏好。模式控制亮度；主題控制強調色與聊天介面樣式。',
       colorMode: '色彩模式',
-      colorModeDesc: '選擇固定模式，或讓 Hermes 跟隨系統設定。',
+      colorModeDesc: '選擇固定模式，或讓 Vanta 跟隨系統設定。',
       toolViewTitle: '工具呼叫顯示',
       toolViewDesc: '產品模式會隱藏原始工具 payload；技術模式會顯示完整輸入/輸出。',
       hideCodeDiffsTitle: '隱藏程式碼差異',
@@ -331,12 +331,12 @@ export const zhHantSettings = {
       modelPricingTitle: '模型價格',
       modelPricingDesc: '在模型選擇器中顯示每百萬 token 的輸入、輸出和快取讀取價格。',
       reactionsTitle: '訊息回應',
-      reactionsDesc: 'iMessage 風格的表情回應 — 你可以對訊息做出回應，Hermes 也能回應你的訊息。',
+      reactionsDesc: 'iMessage 風格的表情回應 — 你可以對訊息做出回應，Vanta 也能回應你的訊息。',
       tipsTitle: '應用程式內提示',
-      tipsDesc: '偶爾顯示來自應用程式和 Hermes 的提示，每則提示只出現一次。開始使用滿30天後自動關閉，你可以重新開啟。',
+      tipsDesc: '偶爾顯示來自應用程式和 Vanta 的提示，每則提示只出現一次。開始使用滿30天後自動關閉，你可以重新開啟。',
       tipsReset: (count: number) => `再次顯示 ${count} 則提示`,
       toursTitle: '導覽',
-      toursDesc: '讓 Hermes 逐步標示每個位置，帶你認識應用程式。開始使用滿30天後自動關閉，你可以重新開啟。',
+      toursDesc: '讓 Vanta 逐步標示每個位置，帶你認識應用程式。開始使用滿30天後自動關閉，你可以重新開啟。',
       composerPopoutTitle: '懸浮輸入框',
       composerPopoutDesc: '允許將輸入框拖出底部停靠區。關閉時，輸入框停靠在底部。',
       fileBrowserTitle: '檔案瀏覽器',
@@ -372,8 +372,8 @@ export const zhHantSettings = {
       pet: {
         title: '寵物',
         intro:
-          '領養一隻懸浮在應用上的 petdex 動畫寵物，它會根據 Hermes 的狀態做出反應——工具執行時奔跑、成功時歡呼、出錯時沮喪。',
-        restartHint: '寵物功能需要重新啟動——目前執行的應用在此功能加入前啟動。請結束並重新開啟 Hermes，然後回到此處。',
+          '領養一隻懸浮在應用上的 petdex 動畫寵物，它會根據 Vanta 的狀態做出反應——工具執行時奔跑、成功時歡呼、出錯時沮喪。',
+        restartHint: '寵物功能需要重新啟動——目前執行的應用在此功能加入前啟動。請結束並重新開啟 Vanta，然後回到此處。',
         scaleTitle: '大小',
         scaleDesc: '調整懸浮寵物的大小，所有介面即時生效。',
         roamTitle: '漫遊',
@@ -598,10 +598,10 @@ export const zhHantSettings = {
         repoScanRoots: '要掃描的資料夾。留空時掃描主目錄。',
         repoScanExcludePaths: '探索程式碼儲存庫時略過這些資料夾及其子目錄。'
       },
-      timezone: 'Hermes 需要本機時間上下文時使用。留空則使用系統時區。',
+      timezone: 'Vanta 需要本機時間上下文時使用。留空則使用系統時區。',
       agent: {
         imageInputMode: '控制圖片附件如何傳送給模型。',
-        maxTurns: 'Hermes 停止一次執行前的工具呼叫輪次上限。'
+        maxTurns: 'Vanta 停止一次執行前的工具呼叫輪次上限。'
       },
       terminal: {
         cwd: '工具與終端機操作的預設專案資料夾。',
@@ -615,9 +615,9 @@ export const zhHantSettings = {
       codeExecution: {
         mode: '程式碼執行被限制在目前專案中的嚴格程度。'
       },
-      fileReadMaxChars: 'Hermes 單次檔案讀取可讀取的最大字元數。',
+      fileReadMaxChars: 'Vanta 單次檔案讀取可讀取的最大字元數。',
       approvals: {
-        mode: 'Hermes 如何處理需要明確批准的指令。',
+        mode: 'Vanta 如何處理需要明確批准的指令。',
         timeout: '批准提示逾時前等待的時間。'
       },
       security: {
@@ -644,15 +644,15 @@ export const zhHantSettings = {
       },
       browser: {
         useRealProfile:
-          '本機瀏覽會使用你的真實登入狀態。Hermes 會將預設瀏覽器的設定（Cookie、登入資訊與偏好）複製成受管理的快照，再以內建的 Chromium 驅動它——不會直接開啟你正在使用的設定檔，且每次執行都會從目前的設定檔重新整理副本。設定雲端瀏覽器後端時，也允許代理視需要開啟本機真實設定檔工作階段。僅支援 Chromium 系瀏覽器（Chrome、Edge、Brave、Brave Origin、Chromium）；若預設瀏覽器並非 Chromium 系，會顯示明確錯誤。預設關閉。'
+          '本機瀏覽會使用你的真實登入狀態。Vanta 會將預設瀏覽器的設定（Cookie、登入資訊與偏好）複製成受管理的快照，再以內建的 Chromium 驅動它——不會直接開啟你正在使用的設定檔，且每次執行都會從目前的設定檔重新整理副本。設定雲端瀏覽器後端時，也允許代理視需要開啟本機真實設定檔工作階段。僅支援 Chromium 系瀏覽器（Chrome、Edge、Brave、Brave Origin、Chromium）；若預設瀏覽器並非 Chromium 系，會顯示明確錯誤。預設關閉。'
       },
       voice: {
         autoTts: '自動朗讀助手回覆。',
         voiceChatMode:
-          'chained：語音轉文字 → Hermes → 文字轉語音，使用下方的提供方。gpt-live：由全雙工 OpenAI 語音模型（gpt-live-1）負責聆聽與說話，並將每個實際請求交給 Hermes——由你選擇的任意模型使用完整工具集作答。需要 OpenAI API 金鑰；語音層每分鐘收費 $0.05。',
+          'chained：語音轉文字 → Vanta → 文字轉語音，使用下方的提供方。gpt-live：由全雙工 OpenAI 語音模型（gpt-live-1）負責聆聽與說話，並將每個實際請求交給 Vanta——由你選擇的任意模型使用完整工具集作答。需要 OpenAI API 金鑰；語音層每分鐘收費 $0.05。',
         gptLive: {
           voice: 'GPT-Live 模式使用的音色，可填入自訂音色 ID。',
-          instructions: '附加至即時語音人設的句子（語氣、語速、語言）。Hermes 會保留自己的系統提示詞。'
+          instructions: '附加至即時語音人設的句子（語氣、語速、語言）。Vanta 會保留自己的系統提示詞。'
         }
       },
       stt: {
@@ -678,13 +678,13 @@ export const zhHantSettings = {
       },
       updates: {
         nonInteractiveLocalChanges:
-          'Hermes 從應用程式內更新自身時，保留本機原始碼變更（stash）或丟棄（discard）。終端機更新一律會詢問。'
+          'Vanta 從應用程式內更新自身時，保留本機原始碼變更（stash）或丟棄（discard）。終端機更新一律會詢問。'
       }
     }),
     uninstallSection: {
       dangerZone: '危險操作',
       checkingInstalled: '正在檢查已安裝內容…',
-      uninstallHermes: '解除安裝 Hermes',
+      uninstallHermes: '解除安裝 Vanta',
       chooseHowMuch: '選擇要移除的內容。應用程式會關閉以完成作業；隨時重新開啟安裝程式即可返回。',
       confirmUninstall: '確認解除安裝',
       confirmBody: what => `這將移除${what}。此操作無法復原。`,
@@ -695,18 +695,18 @@ export const zhHantSettings = {
       options: {
         gui: {
           title: '僅解除安裝聊天 GUI',
-          description: '移除此桌面應用程式。Hermes 代理、你的設定和聊天記錄都會保留。',
+          description: '移除此桌面應用程式。Vanta 代理、你的設定和聊天記錄都會保留。',
           consequence: '桌面聊天 GUI（此應用程式及其資料）'
         },
         lite: {
           title: '解除安裝 GUI 與代理，保留資料',
-          description: '移除應用程式和 Hermes 代理，但保留設定、聊天記錄和機密，以便日後重新安裝。',
-          consequence: '聊天 GUI 和 Hermes 代理（設定、聊天記錄和機密會保留）'
+          description: '移除應用程式和 Vanta 代理，但保留設定、聊天記錄和機密，以便日後重新安裝。',
+          consequence: '聊天 GUI 和 Vanta 代理（設定、聊天記錄和機密會保留）'
         },
         full: {
           title: '解除安裝全部',
           description: '移除應用程式、代理和所有使用者資料——設定、聊天記錄、排程工作、機密和日誌。',
-          consequence: '全部內容——聊天 GUI、Hermes 代理，以及你的所有設定、聊天記錄、機密和日誌'
+          consequence: '全部內容——聊天 GUI、Vanta 代理，以及你的所有設定、聊天記錄、機密和日誌'
         }
       }
     },
@@ -769,7 +769,7 @@ export const zhHantSettings = {
     config: {
       minimizeToTrayTitle: '最小化至系統匣',
       minimizeToTrayDesc:
-        '最小化視窗或關閉主視窗時，將其隱藏至系統匣（macOS 上為選單列），讓 Hermes 繼續執行。透過系統匣選單中的「結束 Hermes」或 Cmd+Q 結束。預設關閉，僅適用於此裝置。',
+        '最小化視窗或關閉主視窗時，將其隱藏至系統匣（macOS 上為選單列），讓 Vanta 繼續執行。透過系統匣選單中的「結束 Vanta」或 Cmd+Q 結束。預設關閉，僅適用於此裝置。',
       minimizeToTrayUnavailable: '系統匣無法使用。視窗將正常最小化和關閉。關閉此選項後重新開啟即可重試。',
       none: '無',
       noneParen: '(無)',
@@ -779,7 +779,7 @@ export const zhHantSettings = {
       searchPlaceholder: '搜尋…',
       noResults: '找不到結果',
       systemDefault: '系統預設',
-      loading: '正在載入 Hermes 設定...',
+      loading: '正在載入 Vanta 設定...',
       emptyTitle: '無可設定項目',
       emptyDesc: '此區段沒有可調整的設定。',
       failedLoad: '設定載入失敗',
@@ -806,24 +806,24 @@ export const zhHantSettings = {
       title: '輕按叫出 HUD',
       description:
         '在 Mac 上按下並放開 ⌘ + Option，在 Windows/Linux 上按下並放開 Ctrl + Alt，即可從任何應用程式將 HUD 帶到前景。預設關閉，僅適用於此裝置。',
-      permission: '請在系統設定 → 隱私權與安全性 → 輸入監控中允許 Hermes，然後重試。此手勢不會記錄按鍵或擷取畫面。',
-      unavailable: 'HUD 手勢輔助程式無法啟動或意外停止。請重試或重新啟動 Hermes。Hermes 內原有的 HUD 快速鍵仍可使用。',
-      missingHelper: '此 Hermes 安裝缺少 HUD 手勢輔助程式。請更新或重新安裝 Hermes，然後重試。',
+      permission: '請在系統設定 → 隱私權與安全性 → 輸入監控中允許 Vanta，然後重試。此手勢不會記錄按鍵或擷取畫面。',
+      unavailable: 'HUD 手勢輔助程式無法啟動或意外停止。請重試或重新啟動 Vanta。Vanta 內原有的 HUD 快速鍵仍可使用。',
+      missingHelper: '此 Vanta 安裝缺少 HUD 手勢輔助程式。請更新或重新安裝 Vanta，然後重試。',
       unsupportedSession: '此桌面工作階段不支援全域修飾鍵輕按事件。Linux 需要 X11；不支援 Wayland。'
     },
     screenshot: {
       enabledTitle: '螢幕截圖快速鍵',
       enabledDesc:
-        '在任何應用程式中同時按下左右兩個 Command 鍵，即可擷取最前方的視窗並附加到目前的 Hermes 草稿。絕不會自動傳送。預設關閉，僅適用於這台 Mac。視窗可能包含敏感內容，請在傳送前檢查附件。',
+        '在任何應用程式中同時按下左右兩個 Command 鍵，即可擷取最前方的視窗並附加到目前的 Vanta 草稿。絕不會自動傳送。預設關閉，僅適用於這台 Mac。視窗可能包含敏感內容，請在傳送前檢查附件。',
       statusTitle: '螢幕截圖快速鍵狀態',
       checking: '正在檢查螢幕截圖快速鍵…',
       disabled: '螢幕截圖快速鍵已關閉。',
       starting: '正在啟動快速鍵偵測，尚未就緒。',
       ready: '快速鍵已就緒。截圖會附加到目前的草稿，不會傳送。',
       inputPermission:
-        '輸入監控權限可讓 Hermes 在其他應用程式使用中時偵測兩個 Command 鍵。請在系統設定 → 隱私權與安全性 → 輸入監控中允許 Hermes，然後返回此處重試。',
+        '輸入監控權限可讓 Vanta 在其他應用程式使用中時偵測兩個 Command 鍵。請在系統設定 → 隱私權與安全性 → 輸入監控中允許 Vanta，然後返回此處重試。',
       screenPermission:
-        '螢幕錄製權限可讓 Hermes 在你使用此快速鍵時擷取最前方的應用程式視窗。請在系統設定 → 隱私權與安全性 → 螢幕錄製中允許 Hermes，然後返回此處重試。如果 macOS 提示，請重新啟動 Hermes。',
+        '螢幕錄製權限可讓 Vanta 在你使用此快速鍵時擷取最前方的應用程式視窗。請在系統設定 → 隱私權與安全性 → 螢幕錄製中允許 Vanta，然後返回此處重試。如果 macOS 提示，請重新啟動 Vanta。',
       openSettings: '開啟系統設定',
       retry: '重試',
       unavailable: '螢幕截圖快速鍵無法使用。請重試或將其關閉。',
@@ -836,7 +836,7 @@ export const zhHantSettings = {
     },
     quickEntry: {
       enabledTitle: '快速輸入',
-      enabledDesc: '用全域快速鍵在任何地方喚出一個小輸入框，無需開啟 Hermes 即可送出提示。',
+      enabledDesc: '用全域快速鍵在任何地方喚出一個小輸入框，無需開啟 Vanta 即可送出提示。',
       shortcutTitle: '快速輸入快速鍵',
       shortcutDesc: '至少需要一個修飾鍵，例如 CommandOrControl+Shift+Space。',
       active: '快速鍵已生效。',
@@ -870,14 +870,14 @@ export const zhHantSettings = {
       title: '閘道連線',
       envOverride: '環境變數覆寫',
       intro:
-        'Hermes Desktop 預設會啟動自己的本機閘道。如果您希望此應用程式控制另一台機器或可信代理後面已執行的 Hermes 後端，請使用遠端閘道。閘道連線屬於本機層級設定；設定檔是從已連線的閘道中探索出來的。',
+        'Vanta Desktop 預設會啟動自己的本機閘道。如果您希望此應用程式控制另一台機器或可信代理後面已執行的 Vanta 後端，請使用遠端閘道。閘道連線屬於本機層級設定；設定檔是從已連線的閘道中探索出來的。',
       envOverrideTitle: '環境變數正在控制此桌面工作階段。',
       envOverrideDesc: '取消設定 HERMES_DESKTOP_REMOTE_URL 和 HERMES_DESKTOP_REMOTE_TOKEN 後才會使用下方儲存的設定。',
       localTitle: '本機閘道',
-      localDesc: '在 localhost 啟動私有 Hermes 後端。這是預設方式，可離線使用。',
+      localDesc: '在 localhost 啟動私有 Vanta 後端。這是預設方式，可離線使用。',
       remoteTitle: '遠端閘道',
       remoteDesc:
-        '將此桌面殼層連線至遠端 Hermes 後端。託管閘道使用 OAuth 或帳號密碼；自託管閘道也可使用工作階段 Token。',
+        '將此桌面殼層連線至遠端 Vanta 後端。託管閘道使用 OAuth 或帳號密碼；自託管閘道也可使用工作階段 Token。',
       remoteUrlTitle: '遠端 URL',
       remoteUrlDesc: '遠端儀表板後端的基礎 URL。支援路徑前綴，例如 /hermes。',
       probing: '正在檢查此閘道的驗證方式…',
@@ -921,9 +921,9 @@ export const zhHantSettings = {
       enterUrlFirst: '請先輸入遠端 URL。',
       restartingTitle: '閘道連線正在重新啟動',
       savedTitle: '閘道設定已儲存',
-      restartingMessage: 'Hermes Desktop 將使用已儲存的設定重新連線。',
+      restartingMessage: 'Vanta Desktop 將使用已儲存的設定重新連線。',
       savedMessage: '已儲存，下次重新啟動後生效。',
-      connectedTo: (baseUrl, version) => `已連線至 ${baseUrl}${version ? ` · Hermes ${version}` : ''}`,
+      connectedTo: (baseUrl, version) => `已連線至 ${baseUrl}${version ? ` · Vanta ${version}` : ''}`,
       reachableTitle: '遠端閘道可連線',
       signedOutTitle: '已登出',
       signedOutMessage: '已清除遠端閘道工作階段。',
@@ -935,7 +935,7 @@ export const zhHantSettings = {
       saveFailed: '無法儲存閘道設定',
       sshTitle: '透過 SSH 連線',
       sshDesc:
-        'Hermes 會透過 SSH 在遠端啟動並以通道連線到本應用程式——無需自行啟動或公開任何服務。前提：已具備到該主機的金鑰 SSH 存取。',
+        'Vanta 會透過 SSH 在遠端啟動並以通道連線到本應用程式——無需自行啟動或公開任何服務。前提：已具備到該主機的金鑰 SSH 存取。',
       sshTrustHint: '首次提供的主機金鑰會被信任並固定；後續變更將被拒絕。',
       sshHostTitle: '主機',
       sshHostDesc: 'user@host，或 ~/.ssh/config 中的 Host 別名。',
@@ -950,25 +950,25 @@ export const zhHantSettings = {
       sshPortDesc: '留空 = 22 或 ~/.ssh/config 中的連接埠。',
       sshKeyTitle: '金鑰檔案',
       sshKeyDesc: '私密金鑰路徑。留空 = ssh-agent 或 ~/.ssh/config。',
-      sshHermesPathTitle: 'Hermes 路徑（選用）',
+      sshHermesPathTitle: 'Vanta 路徑（選用）',
       sshHermesPathDesc: '遠端 hermes 執行檔的完整路徑。留空 = 自動偵測。',
       sshHermesPathPlaceholder: '自動偵測',
       sshTestConnection: '測試 SSH',
       sshConnect: '連線',
       sshButtonsHint: '「儲存」會在下次啟動時生效，「連線」則立即重新連線。',
-      sshReachable: (host, platform) => `可連線：${host}（${platform}）——已找到 Hermes`,
+      sshReachable: (host, platform) => `可連線：${host}（${platform}）——已找到 Vanta`,
       sshIncompleteHost: '連線前請輸入 SSH 主機。',
       sshErrUnreachable: '無法透過 SSH 連線到該主機。請檢查主機、連接埠和網路。',
       sshErrAuth:
-        'SSH 驗證失敗。請將金鑰載入 ssh-agent（ssh-add），或在 ~/.ssh/config 中設定 IdentityFile——Hermes 以非互動方式執行 ssh。',
+        'SSH 驗證失敗。請將金鑰載入 ssh-agent（ssh-add），或在 ~/.ssh/config 中設定 IdentityFile——Vanta 以非互動方式執行 ssh。',
       sshErrHostKey: '自上次連線以來主機金鑰已變更。請確認這是預期的，然後執行 ssh-keygen -R <host> 並重新連線。',
       sshErrNotInstalled:
-        '遠端主機上未安裝 Hermes。請在遠端安裝（curl -fsSL https://hermes-agent.nousresearch.com/install.sh | sh）或設定 Hermes 路徑。',
-      sshErrPlatform: '不支援的遠端平台。Hermes Desktop 的 SSH 模式支援 Linux、macOS 和 Windows 遠端主機。',
+        '遠端主機上未安裝 Vanta。請在遠端安裝（curl -fsSL https://hermes-agent.nousresearch.com/install.sh | sh）或設定 Vanta 路徑。',
+      sshErrPlatform: '不支援的遠端平台。Vanta Desktop 的 SSH 模式支援 Linux、macOS 和 Windows 遠端主機。',
       sshErrTimeout: 'SSH 連線逾時。主機可能無法存取或處於睡眠狀態。',
-      sshErrUpdateRequired: '使用 Desktop SSH 連線前，請更新遠端主機上的 Hermes。',
+      sshErrUpdateRequired: '使用 Desktop SSH 連線前，請更新遠端主機上的 Vanta。',
       sshErrInteractiveAuth:
-        'Tailscale SSH 需要互動式瀏覽器驗證。請在終端機執行 `ssh <host> true` 完成驗證後重試——Hermes 以非互動方式執行 SSH。',
+        'Tailscale SSH 需要互動式瀏覽器驗證。請在終端機執行 `ssh <host> true` 完成驗證後重試——Vanta 以非互動方式執行 SSH。',
       sshErrUnknown: 'SSH 連線失敗。'
     },
     keys: {
@@ -1010,7 +1010,7 @@ export const zhHantSettings = {
       authenticate: '驗證',
       noOutput: '尚無輸出。',
       deepLinkTitle: '新增 MCP 伺服器？',
-      deepLinkDescription: '一個連結要求將此 MCP 伺服器加入 Hermes。請檢查下方的完整設定——它來自該連結，而非 Hermes。',
+      deepLinkDescription: '一個連結要求將此 MCP 伺服器加入 Vanta。請檢查下方的完整設定——它來自該連結，而非 Vanta。',
       deepLinkStdioWarning: '此伺服器會使用下方所示指令在你的電腦上執行本機程序。僅在信任其來源時繼續。',
       deepLinkConfirm: '新增伺服器',
       deepLinkNameInvalid: '名稱須為 1-64 個字母、數字、點、連字號或底線。',
@@ -1089,7 +1089,7 @@ export const zhHantSettings = {
       runtimeReady: backend => `就緒 · ${backend}`,
       serverRunning: '執行中',
       runtimeInstalled: '已安裝 llama.cpp 執行環境',
-      runtimeInstalledDetail: (tag, backend) => `組建 ${tag}，${backend} 後端。Hermes 會為您啟動並管理伺服器。`,
+      runtimeInstalledDetail: (tag, backend) => `組建 ${tag}，${backend} 後端。Vanta 會為您啟動並管理伺服器。`,
       installTitle: '安裝本地執行環境',
       installDetail: '下載 llama.cpp 推理引擎（數百 MB）。下載的模型完全在本機執行——無需帳號，資料不會離開您的電腦。',
       installAction: '安裝執行環境',
@@ -1378,7 +1378,7 @@ export const zhHantSettings = {
         sessionRevoked: { title: '工作階段已登出', message: '你的工作階段已登出。請從「設定 → 閘道」重新登入。' },
         cliBillingDisabled: {
           title: '遠端支出已關閉',
-          message: '此帳戶的遠端支出已關閉，帳單管理員可在入口網站的 Hermes Agent 頁面開啟。'
+          message: '此帳戶的遠端支出已關閉，帳單管理員可在入口網站的 Vanta 頁面開啟。'
         },
         roleRequired: {
           title: '需要管理員權限',
@@ -1416,7 +1416,7 @@ export const zhHantSettings = {
     providers: {
       connectAccount: '連結帳號',
       haveApiKey: '改用 API 金鑰？',
-      intro: '使用訂閱登入，無需複製 API 金鑰。Hermes 會在應用程式中為您完成瀏覽器登入。',
+      intro: '使用訂閱登入，無需複製 API 金鑰。Vanta 會在應用程式中為您完成瀏覽器登入。',
       connected: '已連線',
       collapse: '收合',
       connectAnother: '連結其他提供方',
@@ -1431,7 +1431,7 @@ export const zhHantSettings = {
       noKeysMatch: '沒有符合的提供方。',
       localEndpoint: {
         title: '本地 / 自訂端點',
-        description: '將 Hermes 指向任意 OpenAI 相容端點（Zyphra、vLLM、llama.cpp、Ollama 等）。'
+        description: '將 Vanta 指向任意 OpenAI 相容端點（Zyphra、vLLM、llama.cpp、Ollama 等）。'
       },
       loading: '正在載入提供方...'
     },
@@ -1550,7 +1550,7 @@ export const zhHantSettings = {
         failedSave: '無法儲存真實設定檔設定',
         prompt: {
           title: '讓網站保持登入狀態',
-          body: '讓 Hermes 使用預設瀏覽器設定檔的快照進行瀏覽，網站開啟時即已登入。',
+          body: '讓 Vanta 使用預設瀏覽器設定檔的快照進行瀏覽，網站開啟時即已登入。',
           bulletSnapshot: 'Cookie 與登入資訊會複製到受管理的快照中。',
           bulletLiveProfile: '絕不會直接開啟你的真實瀏覽器設定檔。',
           bulletLocal: '所有資料都不會離開這台電腦。',

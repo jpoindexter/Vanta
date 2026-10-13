@@ -524,6 +524,7 @@ export interface Translations extends NoticeTranslations {
   sendDiagnostics: {
     title: string
     privacyNotice: string
+    notConfigured: string
     upload: string
     uploading: string
     cancel: string
@@ -3268,6 +3269,7 @@ export interface Translations extends NoticeTranslations {
     tryAgain: string
     notAvailableTitle: string
     unsupportedMessage: string
+    notConfigured: string
     connectionRetry: string
     gitUnusable: string
     connectionSettings: string
@@ -3524,7 +3526,7 @@ export interface Translations extends NoticeTranslations {
     }
     // First-launch set-up failure notice: the free tier could not be created at boot.
     // One sentence per backend code (`hermes_cli/anon_auth.py::ANON_*`); the copy never says
-    // the free MODEL is off — what is unavailable is using Hermes without signing in.
+    // the free MODEL is off — what is unavailable is using Vanta without signing in.
     setupFailed: {
       gateClosed: string
       paused: string

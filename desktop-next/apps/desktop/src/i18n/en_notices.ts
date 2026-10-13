@@ -9,7 +9,7 @@ export const enNotices = {
   butterbar: {
     goTo: (index, total) => `Show notice ${index} of ${total}`,
     legal: {
-      before: 'Use of Hermes Agent is subject to our ',
+      before: 'Use of Vanta is subject to our ',
       terms: 'Terms of Service',
       between: ' and ',
       privacy: 'Privacy Policy',

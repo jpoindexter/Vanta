@@ -1,13 +1,13 @@
 import type { TranslationOverrides } from './define-locale'
 
 export const frOnboarding: TranslationOverrides['onboarding'] = {
-  headerTitle: 'Configurons Hermes Agent pour vous',
+  headerTitle: 'Configurons Vanta pour vous',
   headerDesc:
     'Connectez un fournisseur de modèles pour commencer à discuter. La plupart des options nécessitent un clic.',
-  preparingInstall: "Hermes finalise l'installation. Cela prend généralement moins d'une minute au premier lancement.",
-  starting: 'Démarrage de Hermes…',
+  preparingInstall: "Vanta finalise l'installation. Cela prend généralement moins d'une minute au premier lancement.",
+  starting: 'Démarrage de Vanta…',
   setupSlowTitle: 'La configuration prend plus de temps que d’habitude.',
-  setupSlowBody: 'Hermes est toujours en cours de démarrage en arrière-plan.',
+  setupSlowBody: 'Vanta est toujours en cours de démarrage en arrière-plan.',
   continueWithoutSetup: 'Continuer sans configuration',
   lookingUpProviders: 'Recherche des fournisseurs...',
   collapse: 'Réduire',
@@ -16,7 +16,7 @@ export const frOnboarding: TranslationOverrides['onboarding'] = {
   chooseLater: 'Je choisirai un fournisseur plus tard',
   recommended: 'Recommandé',
   connected: 'Connecté',
-  featuredPitch: 'Un abonnement, 300+ modèles de pointe — la méthode recommandée pour exécuter Hermes',
+  featuredPitch: 'Un abonnement, 300+ modèles de pointe — la méthode recommandée pour exécuter Vanta',
   fireworksPitch: 'API de modèles directe — modèles de pointe hébergés par Fireworks',
   localModelsTitle: 'Exécuter des modèles en local',
   localModelsPitch: 'Aucun compte requis — téléchargez un modèle et exécutez-le sur cette machine',
@@ -46,7 +46,7 @@ export const frOnboarding: TranslationOverrides['onboarding'] = {
     local: {
       short: 'auto-hébergé',
       description:
-        'Pointez Hermes vers un point de terminaison local ou auto-hébergé compatible OpenAI (vLLM, llama.cpp, Ollama, etc).'
+        'Pointez Vanta vers un point de terminaison local ou auto-hébergé compatible OpenAI (vLLM, llama.cpp, Ollama, etc).'
     }
   },
   backToSignIn: 'Retour à la connexion',
@@ -60,7 +60,7 @@ export const frOnboarding: TranslationOverrides['onboarding'] = {
   update: 'Mettre à jour',
   flowSubtitles: {
     pkce: 'Ouvre votre navigateur pour vous connecter, puis continue ici',
-    device_code: 'Ouvre une page de vérification dans votre navigateur — Hermes se connecte automatiquement',
+    device_code: 'Ouvre une page de vérification dans votre navigateur — Vanta se connecte automatiquement',
     external: 'Connectez-vous une fois dans votre terminal, puis revenez discuter'
   },
   startingSignIn: provider => `Démarrage de la connexion pour ${provider}...`,
@@ -78,7 +78,7 @@ export const frOnboarding: TranslationOverrides['onboarding'] = {
   pickDifferentProvider: 'Choisissez un autre fournisseur',
   signInWith: provider => `Se connecter avec ${provider}`,
   openedBrowser: provider => `Nous avons ouvert ${provider} dans votre navigateur.`,
-  authorizeThere: 'Autorisez Hermes là-bas.',
+  authorizeThere: 'Autorisez Vanta là-bas.',
   copyAuthCode: "Copiez le code d'autorisation et collez-le ci-dessous.",
   pasteAuthCode: "Coller le code d'autorisation",
   reopenAuthPage: "Rouvrir la page d'autorisation",

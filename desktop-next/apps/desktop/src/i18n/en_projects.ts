@@ -43,8 +43,8 @@ export const enProjects: Translations['sidebar']['projects'] = {
   undoHide: 'Undo',
   createFailed: 'Could not create project',
   staleBackend:
-    'Update the Hermes backend to create projects — your backend is older than this desktop app (Settings → Updates → Backend).',
-  deleteConfirm: 'This removes the saved project from Hermes. Files, git repos, and worktrees stay untouched.',
+    'Update the Vanta backend to create projects — your backend is older than this desktop app (Settings → Updates → Backend).',
+  deleteConfirm: 'This removes the saved project from Vanta. Files, git repos, and worktrees stay untouched.',
   startWork: 'New worktree',
   newWorktreeTitle: 'New worktree',
   newWorktreeDesc: 'Name the branch for this worktree.',
@@ -54,7 +54,7 @@ export const enProjects: Translations['sidebar']['projects'] = {
   baseBranchNone: 'No branches found',
   startWorkFailed: 'Could not create worktree',
   worktreeStaleBackend:
-    'Update the Hermes backend to create worktrees over this remote connection — it predates the git worktree API.',
+    'Update the Vanta backend to create worktrees over this remote connection — it predates the git worktree API.',
   worktreeProjectLabel: 'Project',
   worktreeProjectPlaceholder: 'Search projects…',
   worktreeProjectNone: 'No projects with a folder',

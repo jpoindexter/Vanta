@@ -10,7 +10,7 @@ export const esLocalModels: TranslationOverride<Translations['settings']['localM
   serverRunning: 'En ejecución',
   runtimeInstalled: 'Entorno llama.cpp instalado',
   runtimeInstalledDetail: (tag, backend) =>
-    `Compilación ${tag}, backend ${backend}. Hermes inicia y gestiona el servidor por ti.`,
+    `Compilación ${tag}, backend ${backend}. Vanta inicia y gestiona el servidor por ti.`,
   installTitle: 'Instalar el entorno local',
   installDetail:
     'Descarga el motor de inferencia llama.cpp (unos cientos de MB). Los modelos que descargues se ejecutan por completo en este equipo: sin cuenta y sin que nada salga de tu computadora.',

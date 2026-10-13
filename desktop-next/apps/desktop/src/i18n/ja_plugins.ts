@@ -18,7 +18,7 @@ export const jaPluginSettings = {
     openFolder: 'デスクトッププラグインフォルダーを開く',
     installModal: {
       installUncertain:
-        'Hermes はインストール結果の待機を終了しましたが、プラグインのインストールはまだ進行中の可能性があります。この画面を閉じ、再インストールする前にプラグイン一覧を再スキャンしてください。',
+        'Vanta はインストール結果の待機を終了しましたが、プラグインのインストールはまだ進行中の可能性があります。この画面を閉じ、再インストールする前にプラグイン一覧を再スキャンしてください。',
       installFromGit: 'Git からインストール',
       reviewRepository: 'リポジトリを確認',
       repoPlaceholder: 'https://github.com/owner/repo',
