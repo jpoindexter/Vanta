@@ -1,0 +1,3 @@
+composer radius 22px -> 18px
+FAIL composer:radius in 29 state(s)
+FAIL home.composer:radius in 3 state(s) (w1440.view-home, w1100.view-home, w800.view-home)
