@@ -16,6 +16,8 @@ export interface ParsedStatus {
   branch: null | string;
   detached: boolean;
   entries: StatusEntry[];
+  /** The branch tracks a remote branch, so a plain `git push` knows where to go. */
+  hasUpstream: boolean;
 }
 
 const TRACKED_FIELDS = 8; // "1 XY sub mH mI mW hH hI <path>"
@@ -43,6 +45,8 @@ function applyHeader(status: ParsedStatus, header: string): void {
   if (key === "branch.head") {
     status.detached = value === "(detached)";
     status.branch = status.detached ? null : value;
+  } else if (key === "branch.upstream") {
+    status.hasUpstream = value.length > 0;
   } else if (key === "branch.ab") {
     const match = /^\+(\d+) -(\d+)$/.exec(value);
     status.ahead = match ? Number(match[1]) : 0;
@@ -52,7 +56,7 @@ function applyHeader(status: ParsedStatus, header: string): void {
 
 /** `git status --porcelain=v2 --branch -z`. */
 export function parseStatus(stdout: string): ParsedStatus {
-  const status: ParsedStatus = { ahead: 0, behind: 0, branch: null, detached: false, entries: [] };
+  const status: ParsedStatus = { ahead: 0, behind: 0, branch: null, detached: false, entries: [], hasUpstream: false };
   const records = stdout.split("\0");
 
   for (let index = 0; index < records.length; index += 1) {

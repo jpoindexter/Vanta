@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { PREVIEW_FILE_CHANGED_CHANNEL } from "../preview-file-watch";
 
@@ -20,9 +20,8 @@ describe("watchDirectory on the real filesystem", () => {
 
     const handle = (await registry.watchDirectory(owner as never, box.root)) as { id: string };
     write(path.join(box.root, "new.txt"), "x");
-    await new Promise(resolve => setTimeout(resolve, 400));
+    await vi.waitFor(() => expect(sent.length).toBeGreaterThanOrEqual(1), { timeout: 5000 });
 
-    expect(sent.length).toBeGreaterThanOrEqual(1);
     expect(sent[0]?.[0]).toBe(PREVIEW_FILE_CHANGED_CHANNEL);
     expect(registry.stop(handle.id)).toBe(true);
   });

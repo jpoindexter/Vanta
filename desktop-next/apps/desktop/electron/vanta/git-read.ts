@@ -8,7 +8,7 @@ export const STATUS_FILE_CAP = 200;
 const UNTRACKED_COUNT_FILES = 500;
 const TRUNK_CANDIDATES = ["origin/main", "origin/master", "main", "master"];
 
-async function statusOf(ctx: GitContext, cwd: string): Promise<null | ParsedStatus> {
+export async function statusOf(ctx: GitContext, cwd: string): Promise<null | ParsedStatus> {
   const result = await ctx.git.run(cwd, ["status", "--porcelain=v2", "--branch", "-z", "--untracked-files=normal"]);
 
   if (result.ok === false) {
