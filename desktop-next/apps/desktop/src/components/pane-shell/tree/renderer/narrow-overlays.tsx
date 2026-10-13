@@ -22,7 +22,7 @@ import { PANE_TOGGLE_REVEAL_EVENT } from '../..'
 import { useWindowControlsOverlap } from '../../geometry'
 import { NO_PANE_GROUP } from '../../pane-visibility'
 import { allPaneIds, findGroupOfPane, type LayoutNode } from '../model'
-import { $hiddenTreePanes, $layoutTree, $narrowViewport } from '../store'
+import { $drawerViewport, $hiddenTreePanes, $layoutTree, $narrowViewport, leavesGridWhenNarrow } from '../store'
 
 import { KeepAlivePaneSlot, useStablePaneHosts } from './keep-alive-panes'
 import { fixedTrackSize, paneChrome, type TrackContext } from './track-model'
@@ -35,6 +35,14 @@ import { fixedTrackSize, paneChrome, type TrackContext } from './track-model'
  *  regression test asserts the resolution itself (jsdom's CSSOM drops the
  *  `min()` wrapper from style.width, hiding the rendered result). */
 export function narrowOverlayWidth(ctx: TrackContext, tree: LayoutNode | null, revealed: Contribution): string {
+  // A pane that docks as a narrower rail (the sidebar's 56px icon rail) opens
+  // as its full self: the declared overlay width, not the docked track.
+  const declared = paneChrome(revealed).overlayWidth
+
+  if (declared) {
+    return declared
+  }
+
   if (!tree) {
     return paneChrome(revealed).width ?? '18rem'
   }
@@ -47,6 +55,7 @@ export function narrowOverlayWidth(ctx: TrackContext, tree: LayoutNode | null, r
 
 export function NarrowOverlays() {
   const narrow = useStore($narrowViewport)
+  const drawer = useStore($drawerViewport)
   const solo = useStore($chatOnboardingSolo)
   const tree = useStore($layoutTree)
   const panes = useContributions('panes')
@@ -74,6 +83,29 @@ export function NarrowOverlays() {
 
     setReveal(current => (current?.pinned ? current : null))
   }, [])
+
+  // A pinned reveal (toggle, hamburger) is a drawer: a press anywhere outside it
+  // dismisses it, like Escape. Hover reveals already follow the pointer out.
+  const pinnedReveal = reveal?.pinned === true
+  useEffect(() => {
+    if (!pinnedReveal) {
+      return
+    }
+
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target
+
+      if (target instanceof Element && target.closest('[data-narrow-overlay], [data-pane-overlay], [data-narrow-toggle]')) {
+        return
+      }
+
+      setReveal(null)
+    }
+
+    window.addEventListener('pointerdown', onPointerDown, true)
+
+    return () => window.removeEventListener('pointerdown', onPointerDown, true)
+  }, [pinnedReveal])
 
   // Own an Escape layer only while something is revealed, so Escape closes the
   // overlay only when it's the top layer (never under a dialog / edit mode).
@@ -155,7 +187,10 @@ export function NarrowOverlays() {
 
   const sideOf = (c: Contribution) => (paneChrome(c).placement === 'left' ? 'left' : 'right')
   const revealed = reveal ? collapsibles.find(p => p.id === reveal.id) : undefined
-  const sides = [...new Set(collapsibles.map(sideOf))]
+  // Hover strips belong to panes that actually left the grid; a docked rail has
+  // its own surface to hover.
+  const strippable = collapsibles.filter(p => leavesGridWhenNarrow(paneChrome(p), narrow, drawer))
+  const sides = [...new Set(strippable.map(sideOf))]
 
   // Size the overlay the way the pane's zone is sized while docked: declared
   // width refined by the user's drag override (fixedTrackSize), so a pane the
@@ -193,7 +228,7 @@ export function NarrowOverlays() {
           className={cn('absolute inset-y-0 z-30 w-1.5', side === 'left' ? 'left-0' : 'right-0')}
           key={side}
           onMouseEnter={() => {
-            const first = collapsibles.find(p => sideOf(p) === side)
+            const first = strippable.find(p => sideOf(p) === side)
 
             if (first) {
               setReveal(current => (current?.pinned ? current : { id: first.id, pinned: false }))

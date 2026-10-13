@@ -1,6 +1,6 @@
 import type { HermesConnection } from '@/global'
 
-export const TITLEBAR_HEIGHT = 34
+export const TITLEBAR_HEIGHT = 44
 /** Permanent native drag target beside a top-edge tab strip. */
 export const TITLEBAR_DRAG_HANDLE_WIDTH = 48
 export const MACOS_TRAFFIC_LIGHTS_HEIGHT = 14

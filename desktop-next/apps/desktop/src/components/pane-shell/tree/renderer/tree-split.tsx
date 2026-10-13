@@ -21,9 +21,11 @@ import type { LayoutNode, SplitNode } from '../model'
 import { allPaneIds } from '../model'
 import {
   $collapsedTreeSides,
+  $drawerViewport,
   $hiddenTreePanes,
   $narrowViewport,
   isCollapsePane,
+  leavesGridWhenNarrow,
   paneRootSide,
   persistTree,
   presetSplitWeights,
@@ -106,6 +108,7 @@ export function TreeSplit({
   const panes = useContributions('panes')
   const hiddenPanes = useStore($hiddenTreePanes)
   const narrow = useStore($narrowViewport)
+  const drawer = useStore($drawerViewport)
   // Scoped to THIS subtree's panes: a sash drag writes size overrides on every
   // pointermove, but only the splits whose subtree actually resized should
   // re-render — not every split in the tree.
@@ -142,7 +145,7 @@ export function TreeSplit({
   // (unregistered) or narrow-collapsed panes stay gone. Restores itself on exit
   // (render-only).
   const paneGone = (id: string) =>
-    !paneFor(id) || (!revealsHidden && hiddenPanes.has(id)) || (narrow && Boolean(paneChrome(paneFor(id)).collapsible))
+    !paneFor(id) || (!revealsHidden && hiddenPanes.has(id)) || leavesGridWhenNarrow(paneChrome(paneFor(id)), narrow, drawer)
 
   const trackCtx: TrackContext = { paneFor, paneGone, overrides }
 

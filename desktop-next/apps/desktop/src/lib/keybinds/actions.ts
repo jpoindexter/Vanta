@@ -148,6 +148,9 @@ export const KEYBIND_ACTIONS: readonly KeybindActionMeta[] = [
   { id: 'nav.commandCenter', category: 'navigation', defaults: ['mod+.'] },
   { id: 'nav.settings', category: 'navigation', defaults: ['mod+,'] },
   { id: 'nav.profiles', category: 'navigation', defaults: [] },
+  // Home is the shell's first destination, so it ships bound. The other
+  // destinations stay unbound until a user opts in (the palette reaches them all).
+  { id: 'nav.home', category: 'navigation', defaults: ['mod+shift+o'] },
   { id: 'nav.capabilities', category: 'navigation', defaults: [] },
   { id: 'nav.messaging', category: 'navigation', defaults: [] },
   { id: 'nav.artifacts', category: 'navigation', defaults: [] },
@@ -249,6 +252,7 @@ export const PLUGIN_APP_ACTIONS = [
   'nav.commandPalette',
   'nav.settings',
   'nav.profiles',
+  'nav.home',
   'nav.capabilities',
   'nav.messaging',
   'nav.artifacts',
