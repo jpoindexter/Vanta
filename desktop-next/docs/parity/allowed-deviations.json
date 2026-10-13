@@ -92,6 +92,100 @@
         "home.section.title[*]"
       ],
       "transform": "ignore"
+    },
+    {
+      "id": "owner-kept-titlebar-tools",
+      "reason": "Owner-kept feature (restore track R1): the Hermes titlebar tools stay visible beside the wireframe's pane toggles: settings gear, layout editor, HUD, swap sidebars, right-sidebar toggle, and the sidebar toggle at every width with its unread badge. The wireframe draws only the drawer button at 800px.",
+      "props": [
+        "w",
+        "x",
+        "y",
+        "h",
+        "filled",
+        "visible",
+        "radius",
+        "border.top",
+        "border.right",
+        "border.bottom",
+        "border.left"
+      ],
+      "transform": "ignore",
+      "keys": [
+        "titlebar",
+        "titlebar.drawer",
+        "titlebar.more",
+        "titlebar.new",
+        "titlebar.changes",
+        "titlebar.terminal",
+        "titlebar.browser",
+        "titlebar.files"
+      ]
+    },
+    {
+      "id": "owner-kept-sidebar-hermes-list",
+      "reason": "Owner-kept feature (R1): the sidebar keeps the original Hermes list controls the wireframe does not draw: SESSIONS | BOTS tab strip, Search sessions field, Pinned and Sessions sections with the filter menu, date dividers, per-row menus, messaging groups, CRON JOBS section, and project lanes. Needs you stays as the Vanta addition.",
+      "props": [
+        "h",
+        "y",
+        "w",
+        "text",
+        "visible"
+      ],
+      "transform": "ignore",
+      "keys": [
+        "sidebar",
+        "sidebar.groupLabel[*]",
+        "sidebar.groupName[*]",
+        "nav.new",
+        "nav.search",
+        "nav.home",
+        "nav.schedules",
+        "nav.connections",
+        "nav.skills",
+        "nav.outputs"
+      ]
+    },
+    {
+      "id": "owner-kept-profile-row",
+      "reason": "Owner-kept feature (R1): the bottom-left row keeps the Hermes profile controls (home, + New profile, Import profile, ... Manage profiles) beside the settings gear; the wireframe footer is the gear only. There is no profile chip.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "keys": [
+        "sidebar.footer",
+        "sidebar.avatar",
+        "sidebar.userName",
+        "sidebar.userMeta",
+        "sidebar.settings"
+      ]
+    },
+    {
+      "id": "owner-kept-statusbar",
+      "reason": "Owner-kept feature (R1): the slim Hermes status bar is visible by default (command center, backend health, workspace, agents, cron, webhooks, timers, context meter, approval mode, terminal toggle, version); the wireframe draws no status bar. Free-tier and gateway switcher are removed.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "keys": [
+        "frame.bottom",
+        "statusbar"
+      ]
+    },
+    {
+      "id": "owner-kept-nav-labels",
+      "reason": "Owner-kept feature (R1): the nav row for New chat reads New session and Search is a field, as in Hermes (the New session row is also a drag source for splits).",
+      "props": [
+        "text",
+        "h",
+        "y"
+      ],
+      "transform": "ignore",
+      "keys": [
+        "nav.new.label",
+        "nav.search.label",
+        "nav.search.glyph"
+      ]
     }
   ]
 }

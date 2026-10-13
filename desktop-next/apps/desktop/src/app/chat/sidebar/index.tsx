@@ -1519,8 +1519,10 @@ function FullSidebar({
         panesFlipped ? 'border-l border-r-0' : 'border-r border-l-0',
         'border-(--sidebar-edge-border) bg-(--ui-sidebar-surface-background) opacity-100'
       )}
+      aria-label={t.vantaShell.sidebar.label}
       collapsible="none"
       data-tip-region=""
+      role="complementary"
       data-tour="sessions-sidebar"
     >
       <SidebarContent className="gap-0 overflow-hidden bg-transparent px-2.5">
@@ -1552,11 +1554,10 @@ function FullSidebar({
                       // resolved region has been observed to swallow clicks on the
                       // top rows. Same carve-out as USER_BUBBLE_BASE_CLASS in
                       // thread.tsx.
-                      'flex h-7 w-full justify-start gap-2 rounded-md border border-transparent px-2 text-left text-[0.8125rem] font-medium text-(--ui-text-secondary) transition-colors duration-100 ease-out [-webkit-app-region:no-drag] hover:bg-(--ui-control-hover-background) hover:text-foreground hover:transition-none',
-                      active &&
-                        'border-(--ui-stroke-tertiary) bg-(--ui-control-active-background) text-foreground shadow-none hover:border-(--ui-stroke-tertiary)!',
+                      'flex h-7 w-full justify-start gap-2 rounded-md px-2 text-left text-[0.8125rem] font-medium text-(--ui-text-secondary) transition-colors duration-100 ease-out [-webkit-app-region:no-drag] hover:bg-(--ui-control-hover-background) hover:text-foreground hover:transition-none',
+                      active && 'bg-(--ui-control-active-background) text-foreground shadow-none',
                       !isInteractive &&
-                        'cursor-default hover:border-transparent hover:bg-transparent hover:text-inherit'
+                        'cursor-default hover:bg-transparent hover:text-inherit'
                     )}
                     // A tip anchored to the label points at the end of the
                     // word; the row is what it's actually about.
@@ -1933,7 +1934,7 @@ function FullSidebar({
                 labelMeta={
                   worktreeGroupingActive ? (
                     reposScanning && !projectsSkeletonVisible ? (
-                      <GlyphSpinner ariaLabel={s.loading} className="text-[0.6875rem] text-(--ui-text-quaternary)" />
+                      <GlyphSpinner ariaLabel={s.loading} className="text-[0.75rem] text-(--ui-text-quaternary)" />
                     ) : undefined
                   ) : undefined
                 }
@@ -2000,7 +2001,7 @@ function FullSidebar({
                     label={group.label}
                     labelIcon={
                       <PlatformAvatar
-                        className="size-4 rounded-[4px] text-[0.5625rem] [&_svg]:size-3"
+                        className="size-4 rounded-[4px] text-[0.75rem] [&_svg]:size-3"
                         platformId={group.sourceId}
                         platformName={group.label}
                       />
