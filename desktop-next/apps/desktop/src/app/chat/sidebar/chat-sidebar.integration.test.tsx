@@ -85,7 +85,10 @@ const expectOnlySelectedSession = (title: string | null) => {
 
 const focus = (groupId: null | string) => act(() => noteActiveTreeGroup(groupId))
 
-describe('ChatSidebar navigation activity', () => {
+// RETIRED (kept, skipped): plugin sidebarNav rows (Kanban, Reports) and sidebarNav.prefs are not rendered by the fixed Vanta destination list. The Vanta sidebar (4ecd120d) replaced the
+// Hermes sidebar; whether this surface returns is decided by the shell control
+// inventory, not by this test. Un-skip when it does.
+describe.skip('ChatSidebar navigation activity', () => {
   let disposeContributions: () => void
 
   beforeEach(() => {
@@ -217,8 +220,8 @@ describe('ChatSidebar cold-start load failure', () => {
 
     renderSidebar('/', 'chat', retry)
 
-    expect(screen.getByText('Could not load sessions')).toBeTruthy()
-    expect(screen.queryByText('No sessions yet')).toBeNull()
+    expect(screen.getByText(/Chats did not load\./)).toBeTruthy()
+    expect(screen.queryByText('No chats yet.')).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
     expect(retry).toHaveBeenCalledTimes(1)
@@ -228,7 +231,10 @@ describe('ChatSidebar cold-start load failure', () => {
 // Entering a project is a scope switch: the conversation main is showing keeps
 // its workspace, so Files/Review and the composer's Git context can't drift to
 // the project while the transcript stays on the old chat (#72772).
-describe('ChatSidebar project entry', () => {
+// RETIRED (kept, skipped): project-scope entry (re-homing a fresh draft's cwd into the entered project) lived in the old project switcher; the Vanta sidebar starts a chat in a project through the group's New chat button. The Vanta sidebar (4ecd120d) replaced the
+// Hermes sidebar; whether this surface returns is decided by the shell control
+// inventory, not by this test. Un-skip when it does.
+describe.skip('ChatSidebar project entry', () => {
   const project = {
     id: '/repos/new-project',
     label: 'new-project',
@@ -275,73 +281,45 @@ describe('ChatSidebar project entry', () => {
   })
 })
 
-// Messaging platforms group rows by owner the same way recents does once every
-// profile is on screen, so a Telegram thread is attributable to its profile
-// (#87715). The platform's row cap and load-more stay the section's.
-describe('ChatSidebar section labels', () => {
-  const realProject = {
-    id: '/repos/new-project',
-    label: 'new-project',
-    path: '/repos/new-project',
-    repos: [],
-    sessionCount: 0
-  }
-
-  // The synthetic Home bucket the backend emits when no project claimed a
-  // session (no cwd / deleted workspace): one lane, no repo structure.
-  const homeOnly = [
-    {
-      ...realProject,
-      id: '__no_project__',
-      label: 'Home',
-      path: null,
-      isNoProject: true,
-      sessionCount: 2
-    }
-  ]
+// Grouping is fixed in the Vanta sidebar: a session files under the project its
+// workspace belongs to, and under Recent when it has none. The old
+// "Projects" / "Sessions" section heading and the synthetic Home bucket are gone.
+describe('ChatSidebar group labels', () => {
+  const inProject = makeSessionInfo({
+    cwd: '/repos/new-project',
+    id: 'in-project',
+    last_active: 3,
+    profile: 'default',
+    title: 'Project chat'
+  })
 
   afterEach(() => {
     cleanup()
-    $projectScope.set(ALL_PROJECTS)
     $projectTree.set([])
-    setSidebarAgentsGrouped(false)
     $sessions.set([])
   })
 
-  it('labels the section "Projects" when the grouped tree has a real project', () => {
-    setSidebarAgentsGrouped(true)
-    $projectTree.set([realProject])
+  it('heads a project group with the project name and files the rest under Recent', () => {
+    $sessions.set([inProject, ...sessionRows])
 
     renderSidebar('/', 'chat')
 
-    expect(screen.getByText('Projects')).toBeTruthy()
+    const groupNames = screen.getAllByRole('group').map(node => node.textContent ?? '')
+
+    expect(screen.getByText('new-project')).toBeTruthy()
+    expect(screen.getByText('Recent')).toBeTruthy()
+    expect(groupNames.find(text => text.includes('Project chat'))).toContain('new-project')
+    expect(groupNames.find(text => text.includes('Tile one'))).toContain('Recent')
+  })
+
+  it('shows no project heading when no session has a workspace', () => {
+    $sessions.set(sessionRows)
+
+    renderSidebar('/', 'chat')
+
+    expect(screen.getByText('Recent')).toBeTruthy()
+    expect(screen.queryByText('Projects')).toBeNull()
     expect(screen.queryByText('Sessions')).toBeNull()
-  })
-
-  it('keeps the "Sessions" label when grouping is on but no projects exist', () => {
-    // The source-filter toggle with an empty tree: the section lists plain
-    // chat sessions, so heading it "Projects" mislabeled them (#62537).
-    setSidebarAgentsGrouped(true)
-    $projectTree.set([])
-    $sessions.set(sessionRows)
-
-    renderSidebar('/', 'chat')
-
-    expect(screen.getByText('Sessions')).toBeTruthy()
-    expect(screen.queryByText('Projects')).toBeNull()
-  })
-
-  it('keeps the "Sessions" label when the grouped tree is only the synthetic Home bucket', () => {
-    // No real projects — every session fell into Home. A lone Home bucket is
-    // the flat session list wearing a project costume, not a switcher.
-    setSidebarAgentsGrouped(true)
-    $projectTree.set(homeOnly)
-    $sessions.set(sessionRows)
-
-    renderSidebar('/', 'chat')
-
-    expect(screen.getByText('Sessions')).toBeTruthy()
-    expect(screen.queryByText('Projects')).toBeNull()
   })
 })
 
@@ -375,7 +353,10 @@ describe('ChatSidebar empty-profile sections', () => {
     $sessions.set([])
   })
 
-  it('shows the messaging section for a profile with no normal sessions', () => {
+  // RETIRED (kept, skipped): messaging platform sections (Telegram threads) are not rendered by the Vanta
+  // sidebar (4ecd120d); their threads reach the list only as ordinary sessions. Un-skip if the shell
+  // control inventory restores the section.
+  it.skip('shows the messaging section for a profile with no normal sessions', () => {
     const { container } = renderSidebar('/', 'chat')
 
     // The Telegram platform section renders with its threads…
@@ -391,16 +372,18 @@ describe('ChatSidebar empty-profile sections', () => {
     $messagingSessions.set([])
     $sidebarMessagingOpenIds.set([])
 
-    // SidebarBlankState: a centered "No sessions yet" plus a "New project"
-    // button, rendered INSTEAD of the whole session area (search included).
+    // The Vanta sidebar keeps its actions and destinations and says so in the list area.
     const { container } = renderSidebar('/', 'chat')
 
-    expect(container.textContent).toContain('No sessions yet')
-    expect(screen.queryByPlaceholderText('Search sessions…')).toBeNull()
+    expect(container.textContent).toContain('No chats yet.')
+    expect(screen.getByRole('button', { name: /New chat/ })).toBeTruthy()
   })
 })
 
-describe('ChatSidebar messaging owners', () => {
+// RETIRED (kept, skipped): messaging platform sections grouped by owning profile are not rendered. The Vanta sidebar (4ecd120d) replaced the
+// Hermes sidebar; whether this surface returns is decided by the shell control
+// inventory, not by this test. Un-skip when it does.
+describe.skip('ChatSidebar messaging owners', () => {
   const telegram = (id: string, profile: string, last_active: number) =>
     makeSessionInfo({ connection_id: 'local', id, last_active, profile, source: 'telegram', title: id })
 

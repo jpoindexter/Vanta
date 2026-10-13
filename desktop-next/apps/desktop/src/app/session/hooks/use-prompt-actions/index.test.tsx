@@ -1924,7 +1924,7 @@ describe('usePromptActions desktop slash pickers', () => {
     expect(requestGateway).not.toHaveBeenCalledWith('command.dispatch', expect.anything())
   })
 
-  it('reports each typed command to shared metrics once, locally handled ones included, never alias re-dispatches', async () => {
+  it('reports no typed command to shared metrics: Vanta collects no usage metrics', async () => {
     const openMemoryGraph = vi.fn()
 
     const requestGateway = vi.fn(
@@ -1946,12 +1946,8 @@ describe('usePromptActions desktop slash pickers', () => {
     await handle!.submitText('/mg') // user alias: the backend answers "run /journey"
 
     expect(openMemoryGraph).toHaveBeenCalledTimes(2)
-    expect(requestGateway.mock.calls.filter(([method]) => method === SLASH_METRIC).map(([, params]) => params)).toEqual(
-      [
-        { command: 'journey', session_id: RUNTIME_SESSION_ID },
-        { command: 'mg', session_id: RUNTIME_SESSION_ID }
-      ]
-    )
+    // The commands still run (asserted above); none is reported anywhere.
+    expect(requestGateway.mock.calls.filter(([method]) => method === SLASH_METRIC)).toEqual([])
   })
 
   it('marks a timed-out handoff as failed so the next attempt can retry', async () => {

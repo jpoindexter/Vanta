@@ -22,6 +22,11 @@ vi.mock('@/components/assistant-ui/thread/list', () => ({
   }
 }))
 
+// The live region reads the assistant-ui store, which this test does not mount.
+vi.mock('@/components/assistant-ui/thread/live-region', () => ({
+  ThreadLiveRegion: () => null
+}))
+
 vi.mock('@/components/assistant-ui/thread/timeline', () => ({
   ThreadTimeline: () => null
 }))
