@@ -9,7 +9,7 @@
 
 import { useStore } from '@nanostores/react'
 import { type ComponentProps, lazy, memo, type ReactNode, Suspense, useMemo } from 'react'
-import { Navigate, Route, Routes, useParams } from 'react-router'
+import { Navigate, Route, Routes, useNavigate, useParams } from 'react-router'
 
 import { ContribBoundary, ContribRender } from '@/contrib/react/boundary'
 import { useContributions } from '@/contrib/react/use-contributions'
@@ -22,8 +22,10 @@ import { $freshDraftReady, $gatewayState } from '@/store/session'
 
 import { ChatView } from '../chat'
 import { ChatSidebar } from '../chat/sidebar'
+import { newChatNavItem } from '../chat/sidebar/vanta/nav-items'
+import { VantaTitlebar } from '../shell/vanta/vanta-titlebar'
 import { TerminalPaneChrome } from '../right-sidebar/terminal/chrome'
-import { contributedRoutes, NEW_CHAT_ROUTE, ROUTES_AREA, sessionRoute } from '../routes'
+import { contributedRoutes, NEW_CHAT_ROUTE, ROUTES_AREA, SETTINGS_ROUTE, sessionRoute } from '../routes'
 import { useStatusSnapshot } from '../shell/hooks/use-status-snapshot'
 import { useStatusbarItems } from '../shell/hooks/use-statusbar-items'
 import { ModelMenuPanel } from '../shell/model-menu-panel'
@@ -31,7 +33,7 @@ import { ReasoningMenuPanel } from '../shell/reasoning-menu-panel'
 import { StatusbarControls } from '../shell/statusbar-controls'
 
 import { latestChatActions, latestSidebarActions } from './latest-actions'
-import { setStatusbarItemGroup, useStatusbarContributions } from './panes'
+import { setStatusbarItemGroup, useStatusbarContributions, useTitlebarToolContributions } from './panes'
 import type { SidebarActions, WiringActions } from './types'
 
 // Same lazy-view split as DesktopController — pages load on demand. The
@@ -57,6 +59,27 @@ export const SidebarSurface = memo(function SidebarSurface({
   const latestActions = useMemo(() => latestSidebarActions(actions), [actions])
 
   return <ChatSidebar currentView={currentView} {...latestActions} />
+})
+
+/** The 44px window titlebar. It reaches the same session handlers the sidebar
+ *  does, so the title menu and the rows can never disagree. */
+export const TitlebarSurface = memo(function TitlebarSurface({ actions }: { actions: SidebarActions }) {
+  const latestActions = useMemo(() => latestSidebarActions(actions), [actions])
+  const navigate = useNavigate()
+  const leftTools = useTitlebarToolContributions('left')
+  const rightTools = useTitlebarToolContributions('right')
+
+  return (
+    <VantaTitlebar
+      leftTools={leftTools}
+      rightTools={rightTools}
+      onArchiveSession={latestActions.onArchiveSession}
+      onBranchSession={latestActions.onBranchSession}
+      onDeleteSession={latestActions.onDeleteSession}
+      onNewChat={() => latestActions.onNavigate(newChatNavItem(''))}
+      onOpenSettings={() => navigate(SETTINGS_ROUTE)}
+    />
+  )
 })
 
 export const TerminalSurface = memo(function TerminalSurface() {

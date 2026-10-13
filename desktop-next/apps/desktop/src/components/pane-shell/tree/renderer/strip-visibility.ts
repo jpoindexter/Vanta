@@ -38,25 +38,17 @@ export interface StripZone {
 
 /**
  * A pane is STRANDED without a strip when the strip is the only thing carrying
- * its handle: a lone main tile needs its ✕ and +, a lone tool panel needs a
- * chip to grab. The workspace cannot leave the tree, but Close still empties
- * it to a draft and + still opens a tab — chromeless is a dead zone for those
- * handles. Hide-only chrome (sessions / Bots) is different: the panes stay,
- * Show/Hide is a separate verb, and a hidden strip comes back via ⌘⌥T.
- * Treating side chrome as stranded at any count made Hide tabs a silent no-op
- * on the sessions sidebar.
+ * its handle: a lone tool panel needs a chip to grab, and a lone closeable
+ * tile needs its ✕ and +. The lone WORKSPACE is not stranded any more: the
+ * titlebar owns its title, its rename/pin/archive menu and the new-chat button,
+ * so a single chat shows no strip and the strip appears once a second tab
+ * exists (⌘1…⌘9 and tab cycling need it then). Hide-only chrome (sessions) is
+ * different again: the panes stay, Show/Hide is a separate verb, and a hidden
+ * strip comes back via ⌘⌥T.
  *
  * This outranks an explicit `never` on purpose. "Hide the strip" is a request
- * about chrome, never a request to make a surface unreachable, and a zone that
- * answers no gesture at all is not a state any setting should be able to
- * produce. Hiding still works everywhere it cannot trap you.
- *
- * IT IS THE LAST HANDLE THAT IS PROTECTED, NOT THE PRESENCE OF TABS. A stack
- * of two or more answers tab cycling and ⌘1…⌘9, so hiding its strip costs
- * chrome and no handle. Scoping the tile and tool-panel rungs to a LONE pane is
- * what keeps "Hide tabs" a working command in the zone that actually
- * accumulates tabs: unscoped, one session tab in main pinned the strip on and
- * both the menu row and ⌘⌥T became silent no-ops.
+ * about chrome, never a request to make a surface unreachable, so a lone tool
+ * panel or closeable tile keeps its chip.
  */
 function stranded(shown: readonly StripPane[]): boolean {
   if (shown.length !== 1) {
@@ -65,7 +57,7 @@ function stranded(shown: readonly StripPane[]): boolean {
 
   const [only] = shown
 
-  return only.collapsePane || only.placement === 'main'
+  return only.collapsePane || (only.placement === 'main' && !only.uncloseable)
 }
 
 export function resolveTabStripVisible(zone: StripZone): boolean {

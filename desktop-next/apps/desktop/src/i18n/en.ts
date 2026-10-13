@@ -10,6 +10,7 @@ import { enConnectorCard } from './en_connector_card'
 import { enLocalModels } from './en_local_models'
 import { enModelMenu } from './en_model_menu'
 import { enNotices } from './en_notices'
+import { enVantaShell } from './en_vanta_shell'
 import { enOnboarding } from './en_onboarding'
 import { enProjects } from './en_projects'
 import { enSharedMetrics } from './en_shared_metrics'
@@ -484,6 +485,7 @@ export const en: Translations = {
   },
 
   ...enNotices,
+  vantaShell: enVantaShell,
 
   ...enBilling,
 
@@ -555,10 +557,11 @@ export const en: Translations = {
       'nav.commandCenter': 'Open command center',
       'nav.settings': 'Open settings',
       'nav.profiles': 'Open profiles',
-      'nav.capabilities': 'Open skills',
-      'nav.messaging': 'Open messaging',
-      'nav.artifacts': 'Open artifacts',
-      'nav.cron': 'Open scheduled jobs',
+      'nav.home': 'Open home',
+      'nav.capabilities': 'Open skills and tools',
+      'nav.messaging': 'Open connections',
+      'nav.artifacts': 'Open outputs',
+      'nav.cron': 'Open schedules',
       'nav.agents': 'Open agents',
       'session.new': 'New session',
       'session.newTab': 'New session tab',

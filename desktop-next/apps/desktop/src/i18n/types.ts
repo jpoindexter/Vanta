@@ -16,6 +16,7 @@ import type { CatalogInstallTranslations } from './types_catalog_install'
 import type { ConnectorAccountsTranslations, ConnectorCardTranslations } from './types_connectors'
 import type { ModelMenuTranslations } from './types_model_menu'
 import type { NoticeTranslations } from './types_notices'
+import type { VantaShellTranslations } from './types_vanta_shell'
 import type { OnboardingTranslations } from './types_onboarding'
 import type { SidebarProjectsTranslations } from './types_projects'
 import type { SharedMetricsTranslations } from './types_shared_metrics'
@@ -77,6 +78,8 @@ interface ModeOptionCopy {
 }
 
 export interface Translations extends NoticeTranslations {
+  /** Shell chrome: sidebar, titlebar, status words, offline banner. */
+  vantaShell: VantaShellTranslations
   /** Shared-metrics consent: first-run dialog + Settings › Safety toggles. */
   sharedMetrics: SharedMetricsTranslations
   appTour: AppTourTranslations

@@ -47,6 +47,7 @@ import {
 } from '../../workspace-scope'
 import type { DropPosition, GroupNode } from '../model'
 import {
+  $drawerViewport,
   $dropHint,
   $hiddenTreePanes,
   $narrowViewport,
@@ -64,6 +65,7 @@ import {
   hostsSessionDropTarget,
   isCollapsePane,
   isSessionStripPane,
+  leavesGridWhenNarrow,
   NEW_SESSION_DRAG,
   noteActiveTreeGroup,
   reloadTreePane,
@@ -278,6 +280,7 @@ export function TreeGroup({
 
   const hiddenPanes = useStore($hiddenTreePanes)
   const narrow = useStore($narrowViewport)
+  const drawer = useStore($drawerViewport)
   const workspaceMode = useStore($workspaceMode)
   const workspaceOwnerKey = useStore($workspaceOwnerKey)
   const newSessionTabAction = useStore($newSessionTabAction)
@@ -297,7 +300,7 @@ export function TreeGroup({
   // Edit mode (in Advanced) forces toggle-hidden panes visible so they can be
   // rearranged (mirrors tree-split's paneGone) — restores itself on exit.
   const paneShown = (id: string) =>
-    Boolean(paneFor(id)) && (revealsHidden || !hiddenPanes.has(id)) && !(narrow && paneChrome(paneFor(id)).collapsible)
+    Boolean(paneFor(id)) && (revealsHidden || !hiddenPanes.has(id)) && !leavesGridWhenNarrow(paneChrome(paneFor(id)), narrow, drawer)
 
   const shown = node.panes.filter(paneShown)
   const memoryKey = workspaceScopeKey(workspaceMode, workspaceOwnerKey)

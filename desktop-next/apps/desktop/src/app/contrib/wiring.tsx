@@ -147,7 +147,6 @@ import {
   titlebarToolsRightCss,
   titlebarToolsWidthCss
 } from '../shell/titlebar'
-import { TitlebarControls } from '../shell/titlebar-controls'
 import { WslgWindowControls } from '../shell/wslg-window-controls'
 import { UpdatesOverlay } from '../updates-overlay'
 
@@ -168,7 +167,7 @@ import { McpInstallDeepLinkDialog } from './mcp-install-deeplink-dialog'
 import { type KickoffSlashCommand, useOnboardingKickoff } from './onboarding-kickoff'
 import { useTitlebarToolContributions } from './panes'
 import { type AmbientGatewayRequest, createSessionRpcDispatcher } from './session-rpc-dispatcher'
-import { ChatRoutesSurface, SidebarSurface, StatusbarSurface, TerminalSurface } from './surfaces'
+import { ChatRoutesSurface, SidebarSurface, StatusbarSurface, TerminalSurface, TitlebarSurface } from './surfaces'
 import type { WiringActions, WiringApi } from './types'
 import {
   useCreditsNoticeDemo,
@@ -1160,6 +1159,8 @@ export function ContribWiring({ children }: { children: ReactNode }) {
     [actions, currentView]
   )
 
+  const titlebarNode = useMemo(() => <TitlebarSurface actions={actions} />, [actions])
+
   const terminalNode = useMemo(() => <TerminalSurface />, [])
 
   const statusbarNode = useMemo(
@@ -1186,9 +1187,10 @@ export function ContribWiring({ children }: { children: ReactNode }) {
       chatRoutes: chatRoutesNode,
       sidebar: sidebarNode,
       statusbar: statusbarNode,
-      terminal: terminalNode
+      terminal: terminalNode,
+      titlebar: titlebarNode
     }),
-    [chatRoutesNode, sidebarNode, statusbarNode, terminalNode]
+    [chatRoutesNode, sidebarNode, statusbarNode, terminalNode, titlebarNode]
   )
 
   // The REAL titlebar tool clusters (sidebar/flip toggles, haptics, keybinds,
@@ -1248,16 +1250,6 @@ export function ContribWiring({ children }: { children: ReactNode }) {
           } as CSSProperties
         }
       >
-        {/* HUD and the popped-out Browser have no titlebar to hang these off —
-            the clusters are `fixed`, so without this they'd float over the
-            surface as orphaned buttons. */}
-        {!isHudWindow() && !isBrowserWindow() && (
-          <TitlebarControls
-            leftTools={leftTitlebarTools}
-            onOpenSettings={() => navigate(SETTINGS_ROUTE)}
-            tools={rightTitlebarTools}
-          />
-        )}
         {!isHudWindow() && customWindowControls && (
           <WslgWindowControls
             isFullscreen={Boolean(connection?.isFullscreen)}
