@@ -2,6 +2,8 @@
 // row when they can prove more (a seeded state turns a NOT-RUN into a PASS).
 import * as chrome from "./rows-chrome.mjs";
 import * as right from "./rows-right.mjs";
+import * as thread from "./rows-thread.mjs";
+import * as win from "./rows-window.mjs";
 import { dirtyProject } from "./rows-right.mjs";
 import { ensureChat } from "./kit.mjs";
 
@@ -38,6 +40,30 @@ export const GROUPS = [
       await right.tabsAndOverlays(page);
       await right.narrow(page, app);
       right.paneRows();
+    }
+  },
+  {
+    name: "window",
+    run: async (ctx) => {
+      await ensureChat(ctx.page);
+      await win.menuRows(ctx);
+      await win.findRows(ctx);
+      await win.hudRows(ctx);
+      await win.trayRows(ctx);
+      await win.quickEntryRows(ctx);
+      await win.linkRows(ctx);
+    }
+  },
+  {
+    name: "thread",
+    run: async (ctx) => {
+      await ensureChat(ctx.page);
+      await thread.messageRows(ctx.page);
+      await thread.toolAndErrorRows(ctx.page);
+      await thread.approvalRows(ctx);
+      await thread.focusRouting(ctx);
+      await thread.imageRows(ctx);
+      await thread.threadStates(ctx.page);
     }
   }
 ];
