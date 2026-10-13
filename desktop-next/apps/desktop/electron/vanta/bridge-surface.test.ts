@@ -34,7 +34,22 @@ describe('window.hermesDesktop surface', () => {
       'notify',
       'windowControls.close',
       'settings.pickDefaultProjectDir',
-      'vanta.request'
+      'vanta.request',
+      'readDir',
+      'gitRoot',
+      'readFileText',
+      'readFileDataUrl',
+      'normalizePreviewTarget',
+      'watchDirectory',
+      'watchPreviewFile',
+      'stopPreviewFileWatch',
+      'onPreviewFileChanged',
+      'git.repoStatus',
+      'git.fileDiff',
+      'git.branchList',
+      'git.review.list',
+      'git.review.diff',
+      'git.review.revParse'
     ]) {
       expect(real.has(name)).toBe(true)
     }
@@ -46,7 +61,7 @@ describe('window.hermesDesktop surface', () => {
     const desktop = buildHermesDesktop(env(fakeIpc().ipc)) as Record<string, any>
 
     await expect(desktop.getPoolLimits()).rejects.toThrow(`${UNSUPPORTED_PREFIX} getPoolLimits is not available`)
-    await expect(desktop.git.review.commit()).rejects.toThrow('git.review.commit')
+    await expect(desktop.git.review.commitContext()).rejects.toThrow('git.review.commitContext')
     await expect(desktop.terminal.start()).rejects.toThrow('terminal.start')
   })
 

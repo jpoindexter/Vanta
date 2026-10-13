@@ -49,7 +49,30 @@ export const CH = {
   pickProjectFolder: 'vanta:pick-project-folder',
   switchProjectForNewTask: 'vanta:switch-project-for-new-task',
   readPendingProjectTask: 'vanta:read-pending-project-task',
-  acknowledgePendingProjectTask: 'vanta:acknowledge-pending-project-task'
+  acknowledgePendingProjectTask: 'vanta:acknowledge-pending-project-task',
+  // Read-only project files (confined to the active project root)
+  fsReadDir: 'vanta:fs:read-dir',
+  fsGitRoot: 'vanta:fs:git-root',
+  fsReadText: 'vanta:fs:read-text',
+  fsReadDataUrl: 'vanta:fs:read-data-url',
+  fsNormalizePreview: 'vanta:fs:normalize-preview',
+  fsWatchDirectory: 'vanta:fs:watch-directory',
+  fsWatchFile: 'vanta:fs:watch-file',
+  fsStopWatch: 'vanta:fs:stop-watch',
+  previewFileChanged: 'hermes:preview-file-changed',
+  // Read-only git (allow-listed argv, fixed cwd = project root)
+  gitRepoStatus: 'vanta:git:repo-status',
+  gitFileDiff: 'vanta:git:file-diff',
+  gitBranchList: 'vanta:git:branch-list',
+  gitBaseBranchList: 'vanta:git:base-branch-list',
+  gitWorktreeList: 'vanta:git:worktree-list',
+  gitScanRepos: 'vanta:git:scan-repos',
+  gitReviewList: 'vanta:git:review-list',
+  gitReviewDiff: 'vanta:git:review-diff',
+  gitReviewRevParse: 'vanta:git:review-rev-parse',
+  gitReviewShipInfo: 'vanta:git:review-ship-info',
+  gitReviewPrList: 'vanta:git:review-pr-list',
+  gitMutation: 'vanta:git:mutation'
 } as const
 
 export type Channel = (typeof CH)[keyof typeof CH]

@@ -8,8 +8,12 @@ import { registerNativeNotifications } from '../notification-ipc'
 
 import { createAppLog } from './app-log'
 import { CH } from './channels'
+import { registerFsHandlers } from './fs-handlers'
+import { createGitRunner } from './git-runner'
+import { registerGitHandlers } from './git-handlers'
 import { type LaunchInput, startVantaServer } from './launcher'
 import { registerNativeHandlers } from './native-handlers'
+import { createProjectGuard } from './project-guard'
 import { registerProjectHandlers } from './project-handlers'
 import { createRequestBridge } from './request-bridge'
 import { ServerHost } from './server-host'
@@ -33,6 +37,7 @@ let mainWindow: BrowserWindow | null = null
 let projectRoot = ''
 let shuttingDown = false
 let host: ServerHost | null = null
+let closeProjectWatches: () => void = () => undefined
 let logLine: (line: string) => void = () => undefined
 
 const windowFor = (sender: unknown): BrowserWindow | null =>
@@ -89,6 +94,7 @@ function createServices(): Services {
 /** Persist the project, restart the runtime in it, and reload the renderer so it reconnects. */
 async function switchProject(root: string, serverHost: ServerHost): Promise<void> {
   await saveProjectSetting(app.getPath('userData'), root)
+  closeProjectWatches()
   projectRoot = root
   await serverHost.start(launchInput(root)).catch(() => undefined)
   mainWindow?.webContents.reload()
@@ -110,6 +116,17 @@ async function askToSwitchProject(dir: string): Promise<boolean> {
   return answer.response === 0
 }
 
+/** Read-only file and git access, confined to the project root. Vanta's own state folders are never readable. */
+function registerProjectReaders(ipc: never): void {
+  const guard = createProjectGuard({
+    deniedRoots: () => [process.env.VANTA_HOME ?? path.join(app.getPath('home'), '.vanta'), app.getPath('userData')],
+    root: () => projectRoot
+  })
+
+  closeProjectWatches = registerFsHandlers({ guard, ipc }).closeAll
+  registerGitHandlers({ git: createGitRunner(), guard, ipc })
+}
+
 function registerHandlers({ boot, host: serverHost, log }: Services): void {
   const ipc = ipcMain as never
 
@@ -123,6 +140,7 @@ function registerHandlers({ boot, host: serverHost, log }: Services): void {
     shell
   })
   registerWindowHandlers(ipc, windowFor)
+  registerProjectReaders(ipc)
 
   registerProjectHandlers({
     confirmSwitch: askToSwitchProject,
