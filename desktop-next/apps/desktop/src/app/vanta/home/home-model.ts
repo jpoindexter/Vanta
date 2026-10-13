@@ -46,7 +46,11 @@ export function runningItems(sessions: readonly SessionInfo[], input: SessionFac
   return sessions
     .filter(session => statusOf(session, input) === 'running')
     .slice(0, MAX_ROWS)
-    .map(session => ({ detail: 'Running now', id: session.id, title: sessionTitle(session) }))
+    .map(session => ({
+      detail: 'Running now',
+      id: session.id,
+      title: sessionTitle(session)
+    }))
 }
 
 export function nextUpItems(jobs: readonly CronJob[], nowMs: number): NextUpItem[] {
@@ -56,7 +60,12 @@ export function nextUpItems(jobs: readonly CronJob[], nowMs: number): NextUpItem
     .map(job => {
       const row = cronJobToRow(job, { nowMs })
 
-      return { action: row.actionLabel === 'Run now' ? 'run' : 'edit', detail: row.detail, id: row.id, title: row.title }
+      return {
+        action: row.actionLabel === 'Run now' ? 'run' : 'edit',
+        detail: row.detail,
+        id: row.id,
+        title: row.title
+      }
     })
 }
 
@@ -71,5 +80,8 @@ export function recentOutputItems(entries: readonly ArtifactEntry[]): RecentOutp
 export function projectChips(projects: readonly ProjectInfo[]): ProjectChip[] {
   return projects
     .filter(project => !project.archived)
-    .map(project => ({ id: project.id, name: project.name.trim() || project.primary_path || project.id }))
+    .map(project => ({
+      id: project.id,
+      name: project.name.trim() || project.primary_path || project.id
+    }))
 }

@@ -7,10 +7,7 @@ import type { SessionInfo } from '@/types/hermes'
 
 /** Sessions that wait on the person (approval or a question), pinned ones
  *  first. They show under Needs you only, so every other list drops them. */
-export function useNeedsYouSessions(
-  pinned: readonly SessionInfo[],
-  recents: readonly SessionInfo[]
-): SessionInfo[] {
+export function useNeedsYouSessions(pinned: readonly SessionInfo[], recents: readonly SessionInfo[]): SessionInfo[] {
   const dots = useStore($sessionDotStateById)
   const facts = useStore($sessionFacts)
 

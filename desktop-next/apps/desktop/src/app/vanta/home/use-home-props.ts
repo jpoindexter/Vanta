@@ -33,8 +33,13 @@ export interface HomeWiring {
 
 const ready = <T>(items: T[]): BlockState<T> => ({ items, status: 'ready' })
 
-function useOutputs(): { outputs: BlockState<ArtifactEntry>; reload: () => void } {
-  const [outputs, setOutputs] = useState<BlockState<ArtifactEntry>>({ status: 'loading' })
+function useOutputs(): {
+  outputs: BlockState<ArtifactEntry>
+  reload: () => void
+} {
+  const [outputs, setOutputs] = useState<BlockState<ArtifactEntry>>({
+    status: 'loading'
+  })
   const [tick, setTick] = useState(0)
 
   useEffect(() => {
@@ -49,7 +54,10 @@ function useOutputs(): { outputs: BlockState<ArtifactEntry>; reload: () => void 
     }
   }, [tick])
 
-  return { outputs, reload: useCallback(() => setTick(value => value + 1), []) }
+  return {
+    outputs,
+    reload: useCallback(() => setTick(value => value + 1), [])
+  }
 }
 
 /** Home's four blocks from the stores the sidebar already reads, plus the outputs list. */
@@ -98,4 +106,3 @@ export function useHomeProps(wiring: HomeWiring): HomeProps {
     }
   }, [actions, dots, facts, jobs, outputs, projects, sessions])
 }
-

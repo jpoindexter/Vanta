@@ -83,43 +83,54 @@ async function readSessions(send: Send): Promise<SessionInfo[]> {
 
 const SESSION_ID = /^\/api\/sessions\/([^/?]+)$/
 
+function sidebarSlices(rows: SessionInfo[], query: URLSearchParams) {
+  const limit = String(query.get('recents_limit') ?? 50)
+
+  return {
+    cron: { sessions: [] },
+    messaging: { sessions: [] },
+    recents: {
+      profiles_truncated: {},
+      sessions: listPage(rows, new URLSearchParams({ limit, min_messages: '1' })).sessions
+    }
+  }
+}
+
+function pinCall(path: string, method: string, request: HermesApiRequest, send: Send): null | Promise<unknown> {
+  const id = SESSION_ID.exec(path)?.[1]
+  const body = request.body as undefined | { pinned?: boolean }
+
+  if (method !== 'PATCH' || !id || typeof body?.pinned !== 'boolean') {
+    return null
+  }
+
+  return send({ body: { id: decodeURIComponent(id), pinned: body.pinned }, method: 'POST', path: '/api/sessions/pin' })
+}
+
 /** Returns the answer for a REST call Vanta serves differently, or null to let the call through. */
 export function vantaRestShim(request: HermesApiRequest, send: Send): null | Promise<unknown> {
   const [path = '', search = ''] = request.path.split('?')
   const method = (request.method ?? 'GET').toUpperCase()
   const query = new URLSearchParams(search)
 
-  if (method === 'GET' && path === '/api/profiles/sessions') {
-    return readSessions(send).then(rows => listPage(rows, query))
+  if (method !== 'GET') {
+    return pinCall(path, method, request, send)
   }
 
-  if (method === 'GET' && path === '/api/profiles/sessions/sidebar') {
-    const limit = String(query.get('recents_limit') ?? 50)
+  switch (path) {
+    case '/api/profiles/sessions':
+      return readSessions(send).then(rows => listPage(rows, query))
 
-    return readSessions(send).then(rows => ({
-      cron: { sessions: [] },
-      messaging: { sessions: [] },
-      recents: {
-        profiles_truncated: {},
-        sessions: listPage(rows, new URLSearchParams({ limit, min_messages: '1' })).sessions
-      }
-    }))
+    case '/api/profiles/sessions/sidebar':
+      return readSessions(send).then(rows => sidebarSlices(rows, query))
+
+    case '/api/sessions/search':
+      return Promise.resolve({ results: [] })
+
+    case '/api/profiles':
+      return Promise.resolve({ profiles: [DEFAULT_PROFILE] } satisfies ProfilesResponse)
+
+    default:
+      return null
   }
-
-  if (method === 'GET' && path === '/api/sessions/search') {
-    return Promise.resolve({ results: [] })
-  }
-
-  if (method === 'GET' && path === '/api/profiles') {
-    return Promise.resolve({ profiles: [DEFAULT_PROFILE] } satisfies ProfilesResponse)
-  }
-
-  const id = SESSION_ID.exec(path)?.[1]
-  const body = request.body as undefined | { pinned?: boolean }
-
-  if (method === 'PATCH' && id && typeof body?.pinned === 'boolean') {
-    return send({ body: { id: decodeURIComponent(id), pinned: body.pinned }, method: 'POST', path: '/api/sessions/pin' })
-  }
-
-  return null
 }

@@ -24,7 +24,7 @@ function cronRequestScope(profile: string): string {
 
 async function refreshForGeneration(profile: string, request: CronJobsRequest): Promise<CronTriggerRefreshResult> {
   try {
-    const jobs = await getCronJobs()
+    const jobs = await getCronJobs(profile)
 
     if (!commitCronJobsRequest(request, jobs)) {
       return { jobs: null, refreshError: null, stale: true }
