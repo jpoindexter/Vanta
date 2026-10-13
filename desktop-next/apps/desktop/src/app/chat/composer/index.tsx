@@ -11,6 +11,7 @@ import {
   useRef
 } from 'react'
 
+import { useSessionView } from '@/app/chat/session-view'
 import { useTourMarker } from '@/app/chat/tour-marker'
 import { useHudComposerDrag } from '@/app/hud/composer-drag'
 import { composerFloatingStrip, composerInputBacking } from '@/components/chat/composer-dock'
@@ -55,7 +56,7 @@ import {
 } from './composer-utils'
 import { ContextMenu } from './context-menu'
 import { COMPOSER_AREAS } from './contrib'
-import { ComposerControls } from './controls'
+import { ComposerControls, ComposerVoice } from './controls'
 import { ComposerDirectiveActions } from './directive-actions'
 import { COMPOSER_DROP_ACTIVE_CLASS, COMPOSER_DROP_FADE_CLASS } from './drop-affordance'
 import { markActiveComposer, onComposerAttachImagesRequest } from './focus'
@@ -113,6 +114,9 @@ import {
   selectionLinkLabel
 } from './url-refs'
 import { VoiceActivity, VoicePlaybackActivity } from './voice-activity'
+
+const COMPOSER_HINT = 'Enter to send · Shift Enter for a new line'
+const COMPOSER_HINT_RUNNING = `${COMPOSER_HINT} · messages queue while running`
 
 export function ChatBar({
   busy,
@@ -176,6 +180,7 @@ export function ChatBar({
   const activeQueueSessionKey = queueSessionKey || sessionId || freshDraftKey || null
   const { collapsed: statusDrawerCollapsed, toggle: toggleStatusDrawer } = useStatusDrawer(activeQueueSessionKey)
   const statusDrawerId = useId()
+  const hintId = useId()
   const codingDrawerId = useId()
 
   // Status items (subagents, background processes) are keyed by the RUNTIME
@@ -357,7 +362,7 @@ export function ChatBar({
     sessionId
   })
 
-  const statusStackVisible = queuedPrompts.length > 0 || statusPresent
+  const statusStackVisible = statusPresent
 
   // Halt vs. reach-the-queue: every interrupt lands on onCancel, but only the
   // gestures that MEAN "stop working" (Stop button, Esc) go through this
@@ -373,13 +378,17 @@ export function ChatBar({
     return onCancel()
   }, [activeQueueSessionKeyRef, onCancel])
 
-  const { compactPill, foldVoice, minimal, stacked } = useComposerMetrics({
+  const { compactPill, foldVoice, minimal } = useComposerMetrics({
     composerDockRef,
     composerRef,
     composerSurfaceRef,
     editorRef,
     poppedOut
   })
+
+  // The input always owns its own row: the attach and mic buttons sit under it
+  // on the left, the chips and Send on the right.
+  const stacked = true
 
   const hasComposerPayload = hasText || attachments.length > 0
   const canSubmit = busy || hasComposerPayload
@@ -430,9 +439,9 @@ export function ChatBar({
     stashAt
   })
 
-  // Resting / reconnecting / starting placeholder text, re-rolled only on a real
-  // conversation change.
-  const placeholder = useComposerPlaceholder({ disabled, reconnecting, sessionId })
+  // Start-of-task vs follow-up placeholder, or why the transport is down.
+  const threadEmpty = useStore(useSessionView().$messagesEmpty)
+  const placeholder = useComposerPlaceholder({ disabled, empty: threadEmpty, reconnecting, sessionId })
 
   // Trigger / completion engine: @// detection, the adapter-driven item list,
   // popover selection, and chip insertion. The keydown nav block below consumes
@@ -1105,7 +1114,6 @@ export function ChatBar({
 
   const controls = (
     <ComposerControls
-      autoSpeak={autoSpeak}
       busy={busy}
       busyAction={busyAction}
       canSubmit={canSubmit}
@@ -1121,23 +1129,34 @@ export function ChatBar({
         status: conversation.status
       }}
       disabled={disabled}
-      foldVoice={foldVoice}
       hasComposerPayload={hasComposerPayload}
       hideModelPill={guidedChat}
       minimal={minimal || chatOnboardingSolo}
-      onDictate={dictate}
       onQueue={queueDraft}
-      onToggleAutoSpeak={handleToggleAutoSpeak}
       state={state}
-      voiceStatus={voiceStatus}
     />
   )
+
+  const voice =
+    voiceConversationActive || minimal || chatOnboardingSolo ? null : (
+      <ComposerVoice
+        autoSpeak={autoSpeak}
+        disabled={disabled}
+        foldVoice={foldVoice}
+        onDictate={dictate}
+        onStartConversation={startConversation}
+        onToggleAutoSpeak={handleToggleAutoSpeak}
+        state={state}
+        voiceStatus={voiceStatus}
+      />
+    )
 
   const inputWidthClass = composerInputWidthClass(stacked)
 
   const input = (
     <div className={cn('relative', inputWidthClass)}>
       <div
+        aria-describedby={hintId}
         aria-disabled={inputDisabled ? true : undefined}
         aria-label={t.composer.message}
         autoCapitalize="off"
@@ -1157,6 +1176,7 @@ export function ChatBar({
         contentEditable={!inputDisabled}
         data-placeholder={placeholder}
         data-slot={RICH_INPUT_SLOT}
+        data-vp="composer-input"
         dir={textDirection}
         onBeforeInput={handleEditorBeforeInput}
         onBlur={() => {
@@ -1310,36 +1330,35 @@ export function ChatBar({
           <StatusDrawerContent collapsed={statusDrawerCollapsed} id={statusDrawerId}>
             <ComposerStatusStack
               onSubmit={onSubmit}
-              queue={
-                activeQueueSessionKey && queuedPrompts.length > 0 ? (
-                  <QueuePanel
-                    busy={busy}
-                    editingId={queueEdit?.entryId ?? null}
-                    entries={queuedPrompts}
-                    onDelete={id => {
-                      if (removeQueuedPrompt(activeQueueSessionKey, id) && queueEdit?.entryId === id) {
-                        exitQueuedEdit('cancel')
-                      }
-                    }}
-                    onEdit={beginQueuedEdit}
-                    onResume={() => {
-                      unparkQueuedPrompts(activeQueueSessionKey)
-
-                      // Idle → kick the head immediately; busy → the settle drain
-                      // takes over now that the park is lifted.
-                      if (!busy) {
-                        void drainNextQueued()
-                      }
-                    }}
-                    onSendNow={id => void sendQueuedNow(id)}
-                    onSteerNow={id => void steerQueuedNow(id)}
-                    parked={queueParked}
-                  />
-                ) : null
-              }
+              queue={null}
               sessionId={statusSessionId}
             />
           </StatusDrawerContent>
+          {activeQueueSessionKey && queuedPrompts.length > 0 ? (
+            <QueuePanel
+              busy={busy}
+              editingId={queueEdit?.entryId ?? null}
+              entries={queuedPrompts}
+              onDelete={id => {
+                if (removeQueuedPrompt(activeQueueSessionKey, id) && queueEdit?.entryId === id) {
+                  exitQueuedEdit('cancel')
+                }
+              }}
+              onEdit={beginQueuedEdit}
+              onResume={() => {
+                unparkQueuedPrompts(activeQueueSessionKey)
+
+                // Idle → kick the head immediately; busy → the settle drain
+                // takes over now that the park is lifted.
+                if (!busy) {
+                  void drainNextQueued()
+                }
+              }}
+              onSendNow={id => void sendQueuedNow(id)}
+              onSteerNow={id => void steerQueuedNow(id)}
+              parked={queueParked}
+            />
+          ) : null}
           <ComposerPrimitive.Root
             className={cn(
               'group/composer relative w-full overflow-visible rounded-2xl',
@@ -1455,6 +1474,7 @@ export function ChatBar({
                   dragActive && COMPOSER_DROP_ACTIVE_CLASS
                 )}
                 data-slot="composer-surface"
+                data-vp="composer"
                 ref={composerSurfaceRef}
               >
                 <div aria-hidden className={composerInputBacking} />
@@ -1530,8 +1550,12 @@ export function ChatBar({
                         : 'grid-cols-[auto_1fr_auto] items-center gap-(--composer-control-gap) [grid-template-areas:"menu_input_controls"]'
                     )}
                   >
-                    <div className="flex translate-y-[3px] items-start gap-(--composer-control-gap) self-start [grid-area:menu]">
+                    <div
+                      className="vp-composer-left flex items-center gap-(--composer-control-gap) [grid-area:menu]"
+                      data-vp="composer-left"
+                    >
                       {contextMenu}
+                      {voice}
                       <ContribSlot area={COMPOSER_AREAS.leading} />
                     </div>
                     <div className="min-w-0 [grid-area:input]">{input}</div>
@@ -1557,6 +1581,9 @@ export function ChatBar({
           <div className={cn(composerFloatingStrip, 'px-[5px] pt-1.5 empty:hidden')}>
             <ContribSlot area={COMPOSER_AREAS.underside} />
           </div>
+          <p className="vp-hint" data-vp="composer-hint" id={hintId}>
+            {busy ? COMPOSER_HINT_RUNNING : COMPOSER_HINT}
+          </p>
         </div>
       </ComposerPrimitive.Unstable_TriggerPopoverRoot>
 

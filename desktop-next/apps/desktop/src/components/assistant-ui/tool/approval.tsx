@@ -3,25 +3,14 @@
 import { useAuiState } from '@assistant-ui/react'
 import { useStore } from '@nanostores/react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { createContext, type FC, useCallback, useContext, useMemo, useRef, useState } from 'react'
+import { createContext, type FC, useCallback, useContext, useMemo, useRef } from 'react'
 
 import { useSessionView } from '@/app/chat/session-view'
 import { SCAFFOLD_LABEL_CLASS, ScaffoldRow } from '@/components/chat/scaffold-row'
-import { Button } from '@/components/ui/button'
+import { ApprovalCard as VantaApprovalCard } from '@/components/chat/vanta/approval-card'
 import { CardStack, type CardStackAction } from '@/components/ui/card-stack'
-import { Codicon } from '@/components/ui/codicon'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
-import { ChevronDown, Loader2 } from '@/lib/icons'
 import { releaseApprovalKey } from '@/lib/keybinds/approval-keys'
 import { cn } from '@/lib/utils'
 import { $gateway } from '@/store/gateway'
@@ -39,10 +28,10 @@ import { $showToolActivity } from '@/store/tool-activity'
 import { setToolDisclosureOpen } from '@/store/tool-view'
 
 import { isApprovalActivity } from './approval-activity'
+import { approvalPayload, type ApprovalChoice, CHOICE_FOR_DECISION } from './approval-adapter'
 import { toolEntryDisclosureId } from './fallback-model/targets'
 import { isToolCallPart, summarizeToolRun } from './run-summary'
 
-type ApprovalChoice = 'once' | 'session' | 'always' | 'deny'
 export const ApprovalPlacementContext = createContext<'inline' | 'floating'>('inline')
 
 // One transcript-owned host for the session. Execution rows never mount,
@@ -61,7 +50,7 @@ export const PendingApprovalStack: FC = () => {
       aria-label={t.assistant.approval.jumpToApproval}
       className={cn(
         'min-w-0',
-        placement === 'floating' ? 'sticky bottom-4 z-10 mt-auto w-full max-w-xl self-center' : 'w-full max-w-xl'
+        placement === 'floating' ? 'sticky bottom-4 z-10 mt-auto w-full self-center' : 'w-full'
       )}
       data-approval-placement={placement}
       data-approval-stack=""
@@ -210,10 +199,7 @@ export function ApprovalQueue({
             notifyError(error, t.assistant.approval.sendFailed)
           })
       }}
-      surfaceClassName={cn(
-        'rounded-xl border bg-(--ui-chat-surface-background)',
-        floating ? 'border-(--stroke-nous) shadow-nous' : 'border-(--ui-stroke-secondary)'
-      )}
+      surfaceClassName={cn('rounded-xl', floating && 'shadow-nous')}
       swipeDirections={['left']}
     >
       {(request, action) => (
@@ -228,6 +214,8 @@ export function ApprovalQueue({
   )
 }
 
+const projectNameOf = (cwd: string): string | undefined => cwd.replace(/[\\/]+$/, '').split(/[\\/]/).pop() || undefined
+
 interface ApprovalCardProps {
   request: ApprovalRequest
   total: number
@@ -239,14 +227,10 @@ const ApprovalCard: FC<ApprovalCardProps> = ({ request, total, position, stack }
   const { t } = useI18n()
   const copy = t.assistant.approval
   const gateway = useStore($gateway)
-  const [submitting, setSubmitting] = useState<ApprovalChoice | null>(null)
+  const projectName = projectNameOf(useStore(useSessionView().$cwd))
   const submittingRef = useRef(false)
-  // "Always allow" persists the pattern to ~/.hermes/config.yaml permanently, so
-  // it goes through a confirm step rather than firing straight from the menu.
-  const [confirmAlways, setConfirmAlways] = useState(false)
 
   const present = stack.active
-  const busy = submitting !== null || !present || stack.busy
   // Answering with the pointer moves focus onto the card, and the card then
   // unmounts, which parks focus on <body> — where type-to-focus routes the next
   // keystrokes into the chat composer. For a computer_use flow the agent may
@@ -277,22 +261,8 @@ const ApprovalCard: FC<ApprovalCardProps> = ({ request, total, position, stack }
   }, [])
 
   // false when the backend won't honor a permanent allow → hide "Always allow".
-  const allowPermanent = request.allowPermanent !== false
   const choices = request.choices ?? (request.smartDenied ? ['once', 'deny'] : undefined)
-  const allowSession = choices ? choices.includes('session') : true
-  const allowAlways = choices ? choices.includes('always') : allowPermanent
-  const hasMoreOptions = allowSession || allowAlways
-  const hasCommand = request.command.trim().length > 0
-  // A plugin `approve` rule escalates through the same gate with a synthetic
-  // display target (`<tool> (plugin approval rule)`) while the real command /
-  // change lives in `description` — the user approves a label they cannot act
-  // on otherwise. Show the description whenever the command is missing or one
-  // of these synthetic labels; a real command keeps rendering as the command.
-  const SYNTHETIC_COMMAND_RE = /^<[^>]+> \(/
-
-  const showsDescription = !hasCommand || SYNTHETIC_COMMAND_RE.test(request.command.trim())
-
-  const details = showsDescription ? request.description.trim() : request.command.trim()
+  const canRemember = choices ? choices.includes('always') : request.allowPermanent !== false
 
   const respond = useCallback(
     async (choice: ApprovalChoice) => {
@@ -309,7 +279,6 @@ const ApprovalCard: FC<ApprovalCardProps> = ({ request, total, position, stack }
       }
 
       submittingRef.current = true
-      setSubmitting(choice)
 
       try {
         await stack.depart(() => sendApproval(request, choice))
@@ -318,7 +287,7 @@ const ApprovalCard: FC<ApprovalCardProps> = ({ request, total, position, stack }
         releaseApprovalKey()
         notifyError(error, copy.sendFailed)
         submittingRef.current = false
-        setSubmitting(null)
+        throw error
       }
     },
     [copy.gatewayDisconnected, copy.sendFailed, gateway, request, restoreFocusOrigin, stack]
@@ -330,94 +299,17 @@ const ApprovalCard: FC<ApprovalCardProps> = ({ request, total, position, stack }
       className="min-w-0"
       data-request-id={request.requestId}
       data-slot="tool-approval-card"
-      inert={!present}
+      inert={!present || stack.busy}
       onPointerDownCapture={rememberFocusOrigin}
       ref={cardRef}
     >
-      <div className="flex items-center gap-2 px-2.5 pt-2 text-xs text-(--ui-text-secondary)">
-        <Codicon name="terminal" size="0.875rem" />
-        <span>{showsDescription ? copy.commandDetails : copy.command}</span>
-        {total > 1 && (
-          <span className="ml-auto text-[0.75rem] tabular-nums text-(--ui-text-tertiary)">
-            {position} / {total}
-          </span>
-        )}
-      </div>
-      {details.length > 0 && (
-        <pre className="m-0 max-h-40 overflow-auto whitespace-pre-wrap break-words px-2.5 py-2 font-mono text-xs leading-relaxed text-(--ui-text-primary)">
-          {details}
-        </pre>
-      )}
-      <div className="flex items-center justify-end gap-1.5 px-2 pb-2 pt-1" data-slot="tool-approval-actions">
-        <Button data-approval-deny="" disabled={busy} onClick={() => void respond('deny')} size="sm" variant="text">
-          {submitting === 'deny' ? <Loader2 className="size-3 animate-spin" /> : copy.reject}
-        </Button>
-        {hasMoreOptions && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button aria-label={copy.moreOptions} disabled={busy} size="sm" variant="secondary">
-                {copy.alwaysAllowMenu}
-                <ChevronDown className="size-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-44">
-              {allowSession && (
-                <DropdownMenuItem onSelect={() => void respond('session')}>{copy.allowSession}</DropdownMenuItem>
-              )}
-              {allowAlways && (
-                <DropdownMenuItem
-                  onSelect={() => {
-                    // Defer one tick so the menu fully unmounts before the dialog
-                    // mounts — otherwise Radix's focus-return races the dialog and
-                    // dismisses it via onInteractOutside.
-                    setTimeout(() => setConfirmAlways(true), 0)
-                  }}
-                >
-                  {copy.alwaysAllowMenu}
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem onSelect={() => void respond('deny')} variant="destructive">
-                {copy.reject}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-        <Button data-approval-run="" disabled={busy} onClick={() => void respond('once')} size="sm">
-          {submitting === 'once' ? <Loader2 className="size-3 animate-spin" /> : copy.run}
-          <span className="opacity-60">↵</span>
-        </Button>
-      </div>
-
-      <Dialog onOpenChange={setConfirmAlways} open={confirmAlways}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{copy.alwaysTitle}</DialogTitle>
-            <DialogDescription>{copy.alwaysDescription(request.description)}</DialogDescription>
-          </DialogHeader>
-
-          {request.command.trim() && (
-            <pre className="max-h-32 overflow-auto whitespace-pre-wrap break-words rounded-md border border-(--ui-stroke-tertiary) bg-(--ui-chat-surface-background) px-2.5 py-1.5 font-mono text-xs leading-snug text-foreground">
-              {request.command.trim()}
-            </pre>
-          )}
-
-          <DialogFooter>
-            <Button onClick={() => setConfirmAlways(false)} size="sm" variant="ghost">
-              {t.common.cancel}
-            </Button>
-            <Button
-              onClick={() => {
-                setConfirmAlways(false)
-                void respond('always')
-              }}
-              size="sm"
-              variant="destructive"
-            >
-              {copy.alwaysAllow}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <VantaApprovalCard
+        allowNever={false}
+        approval={approvalPayload(request, canRemember)}
+        onAnswer={decision => respond(CHOICE_FOR_DECISION[decision])}
+        position={total > 1 ? `${position} / ${total}` : undefined}
+        projectName={projectName}
+      />
     </article>
   )
 }

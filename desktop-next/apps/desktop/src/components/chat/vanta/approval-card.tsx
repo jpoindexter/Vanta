@@ -5,8 +5,12 @@ import { summarizeApproval } from './approval-summary'
 import type { ApprovalDecision, ApprovalPayload } from './approval-types'
 
 export interface ApprovalCardProps {
+  /** False hides "More permission options" for hosts that cannot remember a "never" rule. */
+  allowNever?: boolean
   approval: ApprovalPayload
   onAnswer: (decision: ApprovalDecision) => Promise<void> | void
+  /** "2 / 3" when several approvals wait in a stack. */
+  position?: string
   /** Names the scope Always covers ("the Vanta project"); defaults to "this project". */
   projectName?: string
 }
@@ -50,7 +54,13 @@ function alwaysLabel(approval: ApprovalPayload): string {
 }
 
 /** Flat inline card that names the exact action; Reject carries the same weight as Allow. */
-export const ApprovalCard: FC<ApprovalCardProps> = ({ approval, onAnswer, projectName }) => {
+export const ApprovalCard: FC<ApprovalCardProps> = ({
+  allowNever = true,
+  approval,
+  onAnswer,
+  position,
+  projectName
+}) => {
   const titleId = useId()
   const inFlight = useRef(false)
   const [pending, setPending] = useState<ApprovalDecision | null>(null)
@@ -93,6 +103,7 @@ export const ApprovalCard: FC<ApprovalCardProps> = ({ approval, onAnswer, projec
       <h4 data-vp="approval-title" id={titleId}>
         <IconAlertTriangle aria-hidden className="vp-card-icon" size={15} />
         {summary.headline}
+        {position && <span className="vp-position">{position}</span>}
       </h4>
       {summary.lede && (
         <div className="vp-sub" data-vp="approval-sub">
@@ -132,7 +143,7 @@ export const ApprovalCard: FC<ApprovalCardProps> = ({ approval, onAnswer, projec
         <button className="vp-btn" disabled={pending !== null} onClick={() => void answer('deny')} type="button">
           {label('deny', 'Reject')}
         </button>
-        {remember && (
+        {remember && allowNever && (
           <span className="vp-more">
             <button
               aria-expanded={moreOpen}

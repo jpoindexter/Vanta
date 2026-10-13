@@ -1,13 +1,5 @@
-import { useState } from 'react'
+import { type FC } from 'react'
 
-import { StatusRow } from '@/components/chat/status-row'
-import { StatusSection } from '@/components/chat/status-section'
-import { Button } from '@/components/ui/button'
-import { Codicon } from '@/components/ui/codicon'
-import { Tip } from '@/components/ui/tooltip'
-import { type Translations, useI18n } from '@/i18n'
-import { CornerDownLeft, iconSize, Pencil, SteeringWheel } from '@/lib/icons'
-import { cn } from '@/lib/utils'
 import { isSteerableEntry, type QueuedPromptEntry } from '@/store/composer-queue'
 
 interface QueuePanelProps {
@@ -26,16 +18,24 @@ interface QueuePanelProps {
   parked: boolean
 }
 
-const entryPreview = (entry: QueuedPromptEntry, c: Translations['composer']) =>
-  entry.displayKind === 'hidden'
-    ? c.hiddenQueued
-    : (entry.displayText ?? entry.text).trim() || (entry.attachments.length > 0 ? c.attachmentOnly : c.emptyTurn)
+const HIDDEN_LABEL = 'a hidden note'
+const ATTACHMENT_ONLY = 'attachments only'
+const EMPTY_TURN = 'an empty message'
 
-/** A preview long enough (or multiline enough) that two lines may still hide
- *  part of it — the entry gets an in-place expand/collapse toggle (#45664). */
-const shouldOfferExpandedPreview = (preview: string) => preview.length > 140 || preview.includes('\n')
+const previewOf = (entry: QueuedPromptEntry): string => {
+  if (entry.displayKind === 'hidden') {
+    return HIDDEN_LABEL
+  }
 
-export function QueuePanel({
+  return (entry.displayText ?? entry.text).trim() || (entry.attachments.length > 0 ? ATTACHMENT_ONLY : EMPTY_TURN)
+}
+
+/**
+ * Messages waiting for the current run, one row each above the composer:
+ * "Queued: text" with Edit, Steer and Remove. Steer shows only where it can
+ * deliver (a live turn and an entry a redirect can carry).
+ */
+export const QueuePanel: FC<QueuePanelProps> = ({
   busy,
   editingId,
   entries,
@@ -45,157 +45,67 @@ export function QueuePanel({
   onSendNow,
   onSteerNow,
   parked
-}: QueuePanelProps) {
-  const { t } = useI18n()
-  const c = t.composer
-  const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(() => new Set())
-
-  const toggleExpanded = (id: string) => {
-    setExpandedIds(current => {
-      const next = new Set(current)
-
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
-
-      return next
-    })
-  }
-
+}) => {
   if (entries.length === 0) {
     return null
   }
 
   return (
-    <StatusSection
-      accessory={
-        parked ? (
-          <Tip label={c.queueResumeTip}>
-            <Button
-              className="text-muted-foreground/75 hover:text-foreground/90"
-              onClick={onResume}
-              size="micro"
-              type="button"
-              variant="text"
-            >
-              {c.queueResume}
-            </Button>
-          </Tip>
-        ) : undefined
-      }
-      icon={<Codicon className="text-muted-foreground/70" name={parked ? 'debug-pause' : 'layers'} size="0.8rem" />}
-      label={parked ? c.queuedPaused(entries.length) : c.queued(entries.length)}
-    >
+    <ul aria-label="Queued messages" className="vp-queue-list" data-vp="queue-list">
       {entries.map(entry => {
         const isEditing = editingId === entry.id
-        const attachmentsCount = entry.attachments.length
-        // Steer only surfaces where it can actually deliver: a live turn to
-        // redirect and an entry the redirect can carry (text-only, no slash).
         const canSteer = busy && Boolean(onSteerNow) && isSteerableEntry(entry)
-        const preview = entryPreview(entry, c)
-        const canExpand = shouldOfferExpandedPreview(preview)
-        const isExpanded = expandedIds.has(entry.id)
+        const attachments = entry.attachments.length
 
         return (
-          <StatusRow
-            className={cn(
-              isEditing &&
-                'ring-1 ring-inset ring-[color-mix(in_srgb,var(--dt-composer-ring)_40%,transparent)] bg-accent/25'
-            )}
-            dismiss={{ label: c.queueDelete, onDismiss: () => onDelete(entry.id) }}
-            key={entry.id}
-            leading={<Codicon className="text-muted-foreground/70" name="comment" size="0.8rem" />}
-            trailing={
-              <>
-                {canExpand && (
-                  <Tip label={isExpanded ? c.queueCollapse : c.queueExpand}>
-                    <Button
-                      aria-expanded={isExpanded}
-                      aria-label={isExpanded ? c.queueCollapse : c.queueExpand}
-                      className="size-5 rounded-md"
-                      onClick={() => toggleExpanded(entry.id)}
-                      size="icon-xs"
-                      type="button"
-                      variant="ghost"
-                    >
-                      <Codicon
-                        className={cn('transition-transform', isExpanded && 'rotate-180')}
-                        name="chevron-down"
-                        size={iconSize.xs}
-                      />
-                    </Button>
-                  </Tip>
-                )}
-                <Tip label={c.queueEdit}>
-                  <Button
-                    aria-label={c.queueEdit}
-                    className="size-5 rounded-md"
-                    disabled={Boolean(editingId) && !isEditing}
-                    onClick={() => onEdit(entry)}
-                    size="icon-xs"
-                    type="button"
-                    variant="ghost"
-                  >
-                    <Pencil className={iconSize.xs} />
-                  </Button>
-                </Tip>
-                {canSteer && (
-                  <Tip label={c.queueSteer}>
-                    <Button
-                      aria-label={c.queueSteer}
-                      className="size-5 rounded-md"
-                      disabled={isEditing}
-                      onClick={() => onSteerNow?.(entry.id)}
-                      size="icon-xs"
-                      type="button"
-                      variant="ghost"
-                    >
-                      <SteeringWheel className={iconSize.xs} />
-                    </Button>
-                  </Tip>
-                )}
-                <Tip label={busy ? c.queueSendNext : c.queueSend}>
-                  <Button
-                    aria-label={busy ? c.queueSendNext : c.queueSend}
-                    className="size-5 rounded-md"
-                    disabled={isEditing}
-                    onClick={() => onSendNow(entry.id)}
-                    size="icon-xs"
-                    type="button"
-                    variant="ghost"
-                  >
-                    <CornerDownLeft className={iconSize.xs} />
-                  </Button>
-                </Tip>
-              </>
-            }
-            trailingVisible={isEditing}
-          >
-            <div className="min-w-0 flex-1">
-              <p
-                className={cn(
-                  'text-[0.75rem] leading-4 text-foreground/92',
-                  isExpanded ? 'max-h-40 overflow-y-auto whitespace-pre-wrap pr-1' : 'line-clamp-2 break-words'
-                )}
+          <li className="vp-queue" data-editing={isEditing || undefined} data-vp="queue-row" key={entry.id}>
+            <span className="vp-queue-text">
+              Queued: {previewOf(entry)}
+              {attachments > 0 && <span className="vp-queue-meta"> · {attachments === 1 ? '1 attachment' : `${attachments} attachments`}</span>}
+              {isEditing && <span className="vp-queue-meta"> · editing in the composer</span>}
+            </span>
+            <span className="vp-queue-actions">
+              <button
+                className="vp-btn"
+                disabled={Boolean(editingId) && !isEditing}
+                onClick={() => onEdit(entry)}
+                type="button"
               >
-                {preview}
-              </p>
-              {(attachmentsCount > 0 || isEditing) && (
-                <div className="mt-0.5 flex items-center gap-1.5 text-[0.75rem] text-muted-foreground/75">
-                  {attachmentsCount > 0 && <span>{c.attachments(attachmentsCount)}</span>}
-                  {isEditing && (
-                    <span className="text-[color-mix(in_srgb,var(--dt-composer-ring)_78%,var(--muted-foreground))]">
-                      {c.editingInComposer}
-                    </span>
-                  )}
-                </div>
+                Edit
+              </button>
+              {canSteer && (
+                <button
+                  className="vp-btn"
+                  disabled={isEditing}
+                  onClick={() => onSteerNow?.(entry.id)}
+                  title="Redirect the live turn with this message now"
+                  type="button"
+                >
+                  Steer
+                </button>
               )}
-            </div>
-          </StatusRow>
+              {(!busy || parked) && (
+                <button className="vp-btn" disabled={isEditing} onClick={() => onSendNow(entry.id)} type="button">
+                  Send now
+                </button>
+              )}
+              <button className="vp-btn" data-vp="queue-remove" onClick={() => onDelete(entry.id)} type="button">
+                Remove
+              </button>
+            </span>
+          </li>
         )
       })}
-    </StatusSection>
+      {parked && (
+        <li className="vp-queue" data-vp="queue-paused">
+          <span className="vp-queue-text">Paused by Stop. Queued messages wait until you resume.</span>
+          <span className="vp-queue-actions">
+            <button className="vp-btn" onClick={onResume} type="button">
+              Resume
+            </button>
+          </span>
+        </li>
+      )}
+    </ul>
   )
 }
