@@ -1,4 +1,5 @@
 import { type IpcRendererLike, mergeSurface, stubsFrom, subscribe } from './bridge-core'
+import { gitApi, projectFileApi } from './bridge-native'
 import { createApiProxy, createVantaBridge } from './bridge-vanta'
 import { CH } from './channels'
 import { SURFACE_MANIFEST } from './surface-manifest'
@@ -142,6 +143,8 @@ function singleEntryRegistries() {
 export function buildImplemented(env: BridgeEnv): Record<string, unknown> {
   return {
     ...connectionAndBoot(env),
+    ...gitApi(env.ipc),
+    ...projectFileApi(env.ipc),
     ...nativeAndProject(env),
     ...singleEntryRegistries(),
     ...windowAndTheme(env),
