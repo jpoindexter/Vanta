@@ -1,6 +1,11 @@
 import { atom, computed, type ReadableAtom, type WritableAtom } from 'nanostores'
 
-import { SIDEBAR_COLLAPSE_MEDIA_QUERY } from '@/app/layout-constants'
+import {
+  SIDEBAR_COLLAPSE_MEDIA_QUERY,
+  SIDEBAR_DEFAULT_WIDTH_PX,
+  SIDEBAR_MAX_WIDTH_PX,
+  SIDEBAR_MIN_WIDTH_PX
+} from '@/app/layout-constants'
 import { PANE_TOGGLE_REVEAL_EVENT } from '@/components/pane-shell'
 import { allPaneIds, type GroupNode } from '@/components/pane-shell/tree/model'
 import {
@@ -31,12 +36,14 @@ import { $showAllProfiles, setShowAllProfiles } from './profile'
 import type { PullRequestBucket } from './pull-requests'
 import type { SessionStatusBucket } from './session-dot-state'
 
-export const SIDEBAR_DEFAULT_WIDTH = 237
-export const SIDEBAR_MAX_WIDTH = 360
-// Open at the same width as the sessions sidebar so the two rails match, but
-// allow shrinking well below that (~30% under the old 14rem floor) for users who
-// want a narrow tree.
-export const FILE_BROWSER_DEFAULT_WIDTH = `${SIDEBAR_DEFAULT_WIDTH}px`
+// Sidebar: 275px by default, resizable 240-520 (the sash persists the choice and
+// a double-click on it restores the default). The shell tiers in
+// app/layout-constants.ts own the rail and drawer widths.
+export const SIDEBAR_DEFAULT_WIDTH = SIDEBAR_DEFAULT_WIDTH_PX
+export const SIDEBAR_MIN_WIDTH = SIDEBAR_MIN_WIDTH_PX
+export const SIDEBAR_MAX_WIDTH = SIDEBAR_MAX_WIDTH_PX
+// The file tree keeps its own narrower rail; it is the workbench's, not the sidebar's.
+export const FILE_BROWSER_DEFAULT_WIDTH = '237px'
 export const FILE_BROWSER_MIN_WIDTH = '10rem'
 export const FILE_BROWSER_MAX_WIDTH = '20rem'
 
@@ -551,7 +558,7 @@ export function restoreWorktree(id: string): void {
 }
 
 export function setSidebarWidth(width: number) {
-  const bounded = Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_DEFAULT_WIDTH, width))
+  const bounded = Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, width))
   setPaneWidthOverride(CHAT_SIDEBAR_PANE_ID, bounded)
 }
 

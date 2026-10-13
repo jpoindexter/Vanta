@@ -67,7 +67,6 @@ import {
   setFileBrowserOpen,
   setSidebarOpen,
   SIDEBAR_DEFAULT_WIDTH,
-  SIDEBAR_MAX_WIDTH,
   sidebarSide
 } from '@/store/layout'
 import { $profiles } from '@/store/profile'
@@ -121,7 +120,11 @@ import { TermsButterbar } from '../shell/terms-butterbar'
 import { BASIC_TREE, DEFAULT_TREE, registerLayoutPresets } from './layout-presets'
 import { bindLayoutSides } from './layout-sides'
 import { FilesPane, LogsPane, ReviewPaneContent } from './panes'
+import { OfflineBanner } from '../shell/vanta/offline-banner'
+
+import { MAIN_MIN_WIDTH_PX } from '../layout-constants'
 import { ContribWiring, WiredPane } from './wiring'
+import '@/styles/vanta-shell.css'
 import { WorkspacePageHeaderHostContext } from './workspace-page-header'
 
 /**
@@ -147,9 +150,16 @@ import { WorkspacePageHeaderHostContext } from './workspace-page-header'
 // the contribution (new title) and a fresh closure would remount the chat.
 // The host context marks this subtree as the one whose zone paints
 // WORKSPACE_PAGE_HEADER_AREA; route tiles and the HUD render outside it.
+// The offline banner sits above the routes and pushes them down; the routes
+// keep the remaining height.
 const renderWorkspacePane = () => (
   <WorkspacePageHeaderHostContext.Provider value={true}>
-    <WiredPane part="chatRoutes" />
+    <div className="flex h-full min-h-0 w-full min-w-0 flex-col">
+      <OfflineBanner />
+      <div className="relative min-h-0 min-w-0 flex-1">
+        <WiredPane part="chatRoutes" />
+      </div>
+    </div>
   </WorkspacePageHeaderHostContext.Provider>
 )
 
@@ -207,11 +217,16 @@ registry.registerMany([
       // Standing chrome: no close gestures at all — the tab is shown/hidden
       // (zone menu Show/Hide rows + the auto-registered ⌘K toggle below).
       hideOnly: true,
+      // 275px (resize 240-520) at full width, a 56px icon rail between 1024 and
+      // 1279, a drawer under 1024: the tokens in styles/vanta-shell.css carry the
+      // tier, the pane declares which tokens size it.
+      railWhenNarrow: true,
+      overlayWidth: `${SIDEBAR_DEFAULT_WIDTH}px`,
       tabTitle: () => <LocalizedTabTitle select={t => t.sidebar.sessions} />,
       tabTitleText: () => translateNow('sidebar.sessions'),
-      width: `${SIDEBAR_DEFAULT_WIDTH}px`,
-      minWidth: `${SIDEBAR_DEFAULT_WIDTH}px`,
-      maxWidth: `${SIDEBAR_MAX_WIDTH}px`
+      width: 'var(--vs-sidebar-track)',
+      minWidth: 'var(--vs-sidebar-min)',
+      maxWidth: 'var(--vs-sidebar-max)'
     },
     render: () => <WiredPane part="sidebar" />
   },
@@ -222,7 +237,8 @@ registry.registerMany([
     title: NEW_SESSION_TITLE,
     data: {
       placement: 'main',
-      minWidth: '22vw',
+      // Main never narrows under 480px: the sidebar track and the workbench give way first.
+      minWidth: `${MAIN_MIN_WIDTH_PX}px`,
       tabDrag: workspaceTabDrag,
       tabWrap: wrapWorkspaceTab,
       uncloseable: true
@@ -523,7 +539,8 @@ const syncWorkspaceTitle = () => {
           ? () => <Slot area={WORKSPACE_PAGE_HEADER_AREA} />
           : undefined,
       placement: 'main',
-      minWidth: '22vw',
+      // Main never narrows under 480px: the sidebar track and the workbench give way first.
+      minWidth: `${MAIN_MIN_WIDTH_PX}px`,
       tabDrag: workspaceTabDrag,
       tabWrap: wrapWorkspaceTab,
       uncloseable: true
@@ -777,6 +794,12 @@ registerPaneCloser('files', () =>
 
 // ---------------------------------------------------------------------------
 
+// Shell fixtures exist only in builds made with VITE_SHELL_FIXTURES (parity and
+// proof runs); the guard folds to nothing otherwise.
+if (import.meta.env.VITE_SHELL_FIXTURES) {
+  void import('@/dev/shell-fixtures').then(module => module.installShellFixtures())
+}
+
 export function ContribController() {
   const sidebarOpen = useStore($sidebarOpen)
   const statusbarVisible = useStore($statusbarVisible)
@@ -821,7 +844,9 @@ export function ContribController() {
           data-contrib-shell=""
           style={{ '--titlebar-height': '0px' } as CSSProperties}
         >
-          <LayoutTreeRoot titlebar />
+          {/* The 44px window titlebar owns the top edge; the tree starts below it. */}
+          <WiredPane part="titlebar" />
+          <LayoutTreeRoot />
 
           {/* "Close running tab?" — the busy/input-blocked tile close gate. */}
           <SessionTileCloseConfirm />
