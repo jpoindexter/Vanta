@@ -9,7 +9,8 @@ import { sendJson } from "./handler-http.js";
 import { turnQueue } from "./handler-queue.js";
 import { beginRunCapture,finishRunCapture } from "./handler-run-capture.js";
 import { pushSseEvent } from "./session-state.js";
-import { pushTurnComplete } from "./typed-emit.js";
+import { pushTurnComplete, pushUsage } from "./typed-emit.js";
+import { estimateContextTokens } from "./usage-meter.js";
 
 type LiveExecution = ChatExecution & { live: Awaited<ReturnType<typeof ensureDesktopConversation>> };
 type Outcome = Awaited<ReturnType<LiveExecution["live"]["convo"]["send"]>>;
@@ -21,6 +22,13 @@ async function executeInstruction(context: LiveExecution, instruction: string, a
   return live.convo.send(instruction, attachments.images, controller.signal);
 }
 
+/** Meter numbers are best-effort: a provider that cannot report its window never fails a settled turn. */
+function emitUsage(state: LiveExecution["state"], live: LiveExecution["live"], usage: Outcome["usage"]): void {
+  try {
+    pushUsage(state, { usage, contextTokens: estimateContextTokens(live.convo.messages), contextWindow: live.setup.provider.contextWindow() });
+  } catch { /* the HTTP response and turn.complete stay authoritative */ }
+}
+
 async function settleInstruction(context: LiveExecution, instruction: string, outcome: Outcome): Promise<void> {
   const { state, live, events } = context;
   await writeRunMemory({ provider: live.setup.provider, goals: live.setup.goals, instruction, finalText: outcome.finalText, completionState: outcome.completionState });
@@ -28,6 +36,7 @@ async function settleInstruction(context: LiveExecution, instruction: string, ou
   const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events, instruction, partialText: outcome.finalText });
   attachDesktopRunReceipt(live.convo, receipt, outcome.finalText);
   await finishRunCapture(state, receipt.status, outcome.finalText, outcome.usage);
+  emitUsage(state, live, outcome.usage);
   if (context.claimedTurnId) {
     if (outcome.stoppedReason === "done") await turnQueue(state).complete(context.claimedTurnId);
     else await turnQueue(state).release(context.claimedTurnId, queuedTurnFailureReason(outcome.stoppedReason));
