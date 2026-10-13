@@ -4,7 +4,7 @@ import { parseActivity } from "../activity/feed.js";
 import { redactForLog } from "../store/redact-structural.js";
 import { ActivityEntrySchema, type ActivityEntry } from "./company-schemas.js";
 import type { CompanyCtx } from "./company-context.js";
-import { pushTypedEvent } from "./typed-emit.js";
+import { broadcastTyped } from "./company-broadcast.js";
 import { activityAppendedEvent } from "./typed-events.js";
 
 // Company activity log: append-only JSONL under the Vanta home. The kernel's
@@ -18,6 +18,8 @@ export const ACTIVITY_DEFAULT_LIMIT = 50;
 export const ACTIVITY_MAX_LIMIT = 200;
 
 export type ActivityInput = { kind: string; actor: string; summary: string; refs?: ActivityEntry["refs"] };
+
+let sequence = 0;
 
 export const activityPath = (home: string): string => join(home, FILE);
 
@@ -73,7 +75,7 @@ async function mirrorToKernel(ctx: CompanyCtx, entry: ActivityEntry): Promise<vo
 export async function recordActivity(ctx: CompanyCtx, input: ActivityInput): Promise<ActivityEntry> {
   const at = ctx.ports.now();
   const entry: ActivityEntry = {
-    id: `a-${at.getTime().toString(36)}-${ctx.ports.newId()}`,
+    id: `a-${at.getTime().toString(36)}-${String((sequence += 1) % 1_000_000).padStart(6, "0")}-${ctx.ports.newId()}`,
     at: at.toISOString(),
     source: "company",
     kind: input.kind,
@@ -84,7 +86,7 @@ export async function recordActivity(ctx: CompanyCtx, input: ActivityInput): Pro
   await mkdir(ctx.home, { recursive: true });
   await appendFile(activityPath(ctx.home), `${JSON.stringify(entry)}\n`, "utf8");
   await mirrorToKernel(ctx, entry);
-  pushTypedEvent(ctx.host, activityAppendedEvent(entry));
+  broadcastTyped(ctx, activityAppendedEvent(entry));
   return entry;
 }
 

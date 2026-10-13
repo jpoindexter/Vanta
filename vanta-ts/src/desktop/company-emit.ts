@@ -2,7 +2,7 @@ import type { CompanyCtx } from "./company-context.js";
 import { buildWorker } from "./company-roster.js";
 import { loadSnapshot, type CompanySnapshot } from "./company-snapshot.js";
 import { buildSummary } from "./company-tickets.js";
-import { pushTypedEvent } from "./typed-emit.js";
+import { broadcastTyped } from "./company-broadcast.js";
 import { budgetAlertEvent, ticketUpdatedEvent, workerStatusEvent } from "./typed-events.js";
 
 // Push `ticket.updated` and `worker.status` for what just changed. Events are
@@ -15,12 +15,12 @@ export async function announce(ctx: CompanyCtx, what: Announce): Promise<void> {
   const snap = what.snap ?? await loadSnapshot(ctx);
   if (what.ticketId) {
     const summary = buildSummary(snap, what.ticketId);
-    if (summary) pushTypedEvent(ctx.host, ticketUpdatedEvent(summary));
+    if (summary) broadcastTyped(ctx, ticketUpdatedEvent(summary));
   }
   const worker = what.workerId ? snap.workers.find((w) => w.id === what.workerId) : undefined;
   if (worker) {
     const view = buildWorker(snap, worker);
-    pushTypedEvent(ctx.host, workerStatusEvent({
+    broadcastTyped(ctx, workerStatusEvent({
       workerId: view.id,
       status: view.status,
       currentTicketId: view.currentTicketId,
@@ -31,5 +31,5 @@ export async function announce(ctx: CompanyCtx, what: Announce): Promise<void> {
 }
 
 export function announceBudget(ctx: CompanyCtx, alert: { scope: string; level: "warning" | "exceeded"; spentUsd: number; limitUsd: number }): void {
-  pushTypedEvent(ctx.host, budgetAlertEvent(alert));
+  broadcastTyped(ctx, budgetAlertEvent(alert));
 }

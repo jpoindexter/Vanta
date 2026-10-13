@@ -1,5 +1,5 @@
 import { approveArtifact, appendRevision, requestRevision, type ReviewDeps } from "../cofounder/outcome-approval.js";
-import { bySourceTask, readWorkProducts, setApproved, writeWorkProducts } from "../cofounder/work-products.js";
+import { bySourceTask, readWorkProducts, setApproved, writeWorkProducts, type WorkProduct } from "../cofounder/work-products.js";
 import { blockingStages, decideStage } from "../team/review-stage.js";
 import { advanceTask, type WorkerTask } from "../team/tasks.js";
 import { resolveTaskArtifactProbe } from "../tools/task-outcome-probe.js";
@@ -68,21 +68,24 @@ async function viewFor(ctx: CompanyCtx, productId: string): Promise<{ view: Work
   return { view: productView(product, snap.revisions), ticket: buildSummary(snap, product.sourceTaskId) };
 }
 
+async function settleApproval(ctx: CompanyCtx, task: WorkerTask | undefined, siblings: WorkProduct[]): Promise<{ closed: boolean; blockedBy?: string }> {
+  if (!task || !siblings.every((p) => p.approved)) return { closed: false };
+  return closeIfReady(ctx, await decideOwnerStages(ctx, task, { approve: true }));
+}
+
 export async function approveProduct(ctx: CompanyCtx, workProductId: string): Promise<Outcome<ProductWrite>> {
   const snap = await loadSnapshot(ctx);
   const product = snap.products.find((p) => p.id === workProductId);
   if (!product) return fail(404, `no work product "${workProductId}". GET /api/work-products lists them.`);
   const approved = await approveArtifact(workProductId, reviewDeps(ctx, async () => {}));
   if (!approved.ok) return fail(400, approved.error);
-  const task = snap.tasks.find((t) => t.id === product.sourceTaskId);
-  let closure: { closed: boolean; blockedBy?: string } = { closed: false };
-  const allApproved = bySourceTask(approved.value, product.sourceTaskId).every((p) => p.approved);
-  if (task && allApproved) closure = await closeIfReady(ctx, await decideOwnerStages(ctx, task, { approve: true }));
   if (!product.approved) await recordActivity(ctx, { kind: "work_product.approved", actor: OWNER, summary: `approved ${workProductId}`, refs: { ticketId: product.sourceTaskId, workProductId } });
+  const task = snap.tasks.find((t) => t.id === product.sourceTaskId);
+  const closure = await settleApproval(ctx, task, bySourceTask(approved.value, product.sourceTaskId));
   if (closure.closed && task?.status !== "done") await recordActivity(ctx, { kind: "ticket.closed", actor: OWNER, summary: `${product.sourceTaskId} closed after approval`, refs: { ticketId: product.sourceTaskId, workerId: product.producedBy } });
   await announce(ctx, { ticketId: product.sourceTaskId, workerId: product.producedBy });
   const { view, ticket } = await viewFor(ctx, workProductId);
-  return succeed({ workProduct: view, ticket, changed: !product.approved || closure.closed, closed: closure.closed, ...(closure.blockedBy ? { closeBlockedBy: closure.blockedBy } : {}) });
+  return succeed({ workProduct: view, ticket, changed: !product.approved || (closure.closed && task?.status !== "done"), closed: closure.closed, ...(closure.blockedBy ? { closeBlockedBy: closure.blockedBy } : {}) });
 }
 
 export async function reviseProduct(ctx: CompanyCtx, input: { workProductId: string; reason: string }): Promise<Outcome<ProductWrite>> {

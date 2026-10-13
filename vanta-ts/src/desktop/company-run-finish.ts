@@ -26,6 +26,7 @@ export type ActiveRun = {
   instruction: string;
   runtime: WorkerRuntime;
   release: () => Promise<void>;
+  controller: AbortController;
   /** Set when a revision re-run should update this work product instead of adding one. */
   reviseProductId?: string;
 };

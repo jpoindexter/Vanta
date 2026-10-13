@@ -4,6 +4,7 @@
 
 const inflight = new Map<string, Promise<void>>();
 const beats = new Map<string, string>();
+const controllers = new Map<string, AbortController>();
 
 const key = (home: string, id: string): string => `${home}\u0000${id}`;
 
@@ -30,4 +31,19 @@ export const workerBeat = (home: string, workerId: string): string | undefined =
 /** Resolves when no run is in flight (a finishing run may start the worker's next one). */
 export async function settleRuns(): Promise<void> {
   while (inflight.size) await Promise.allSettled([...inflight.values()]);
+}
+
+export function registerAbort(home: string, workerId: string, controller: AbortController): void {
+  controllers.set(key(home, workerId), controller);
+}
+
+export function clearAbort(home: string, workerId: string, controller: AbortController): void {
+  if (controllers.get(key(home, workerId)) === controller) controllers.delete(key(home, workerId));
+}
+
+/** Abort the worker's in-flight run, if any. Returns whether one was running. */
+export function abortWorker(home: string, workerId: string): boolean {
+  const controller = controllers.get(key(home, workerId));
+  controller?.abort();
+  return Boolean(controller);
 }

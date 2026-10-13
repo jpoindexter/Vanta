@@ -1,6 +1,6 @@
 import type http from "node:http";
 import type { z } from "zod";
-import { readJson, sendJson } from "./handler-http.js";
+import { sendJson } from "./handler-http.js";
 
 /** Zod messages as one actionable line: "field: problem; field: problem". */
 export function issueText(error: z.ZodError): string {
@@ -18,11 +18,27 @@ export function sendFailure(res: http.ServerResponse, status: number, error: str
   sendJson(res, status, { error });
 }
 
+/** Own reader: the shared readJson throws from inside a stream event, which a bad body would turn into a crash. */
+function readJsonBody(req: http.IncomingMessage): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    req.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
+    req.on("error", reject);
+    req.on("end", () => {
+      try {
+        resolve(chunks.length ? JSON.parse(Buffer.concat(chunks).toString("utf8")) : {});
+      } catch (error) {
+        reject(error);
+      }
+    });
+  });
+}
+
 /** Parse a JSON request body through a schema. Malformed JSON and bad fields both answer 400. */
 export async function parseBody<S extends z.ZodTypeAny>(req: http.IncomingMessage, schema: S): Promise<{ ok: true; value: z.infer<S> } | { ok: false; error: string }> {
   let raw: unknown;
   try {
-    raw = await readJson(req);
+    raw = await readJsonBody(req);
   } catch {
     return { ok: false, error: "request body must be valid JSON" };
   }

@@ -21,6 +21,8 @@ type WorkerOpts = {
   instruction: string;
   deps: AgentDeps;
   maxIterations?: number;
+  /** Aborts the worker's loop between steps (the company API's pause uses it). */
+  signal?: AbortSignal;
   soulPath?: string;
   /** Bounded role overlay; the standard Vanta prompt and kernel contract remain. */
   promptPreset?: PromptPreset;
@@ -126,7 +128,7 @@ async function runWorker(opts: WorkerOpts): Promise<AgentOutcome> {
   // names the file/symbol in flight. Sub-30s workers stop before billing one.
   const stopProgress = startProgressReporter({ id: randomUUID(), goal: opts.goal, provider: deps.provider, getRecentCalls });
   try {
-    const outcome = await convo.send(opts.instruction);
+    const outcome = await convo.send(opts.instruction, undefined, opts.signal);
     const rawSidechain = await persistSidechain({ root: deps.root, goal: opts.goal, instruction: opts.instruction, agentType, model: deps.provider.modelId(), createdAt: now, outcome, messages: convo.messages });
     await fireHooks(dataDir, "SubagentStop", { goal: opts.goal, result: outcome.finalText, stoppedReason: outcome.stoppedReason, agentType }, { cwd: deps.root, matcherValue: agentType, ...buildAgentHookDeps(deps) });
     return { ...outcome, workerEvidence: { rawSidechain, tools: getToolNames(), durationMs: Date.now() - started, model: deps.provider.modelId() } };
