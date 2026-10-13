@@ -113,3 +113,8 @@ The complete 22-card one-to-one mapping is in
 `docs/strategy-realignment-2026-07-30.md` records the superseded stale-baseline
 first pass. Revival requires its canonical dependency and acceptance owner to
 be active; do not revive a duplicate product lane.
+
+## size-gate baseline for vendored desktop-next code (ratchet: only new/worsened violations block)
+**Captured:** 2026-10-13. The vendored Hermes renderer under `desktop-next/apps/desktop` carries large pre-existing size-gate violations (for example `src/components/assistant-ui/tool/fallback.tsx` at 1212 lines, plus many functions over 50 lines or complexity 10). The whole-file pre-commit lint blocks any commit that stages such a file.
+**Why parked:** Splitting vendored upstream files is not shippable value before the desktop-next milestone; it also makes future upstream diffs harder to read. Interim rule: commit with `VANTA_LINT_BLOCK=0` (warn-only) after verifying the functions you touched are within limits and say so in the commit body. gitleaks and the architecture boundary check always run.
+**Cost to revisit:** Add a baseline file (path -> violation count/size) for `desktop-next/`, make the lint compare against it so only new or worsened violations block, then decompose the worst offenders one file per slice.
