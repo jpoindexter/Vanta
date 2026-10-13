@@ -4,8 +4,9 @@ import { createDefaultRegistry } from "../worker-runtimes/default-registry.js";
 import { toEnginePort } from "../worker-runtimes/port-bridge.js";
 import type { RuntimeRegistry } from "../worker-runtimes/registry.js";
 import { createNativeRuntime } from "./company-native-runtime.js";
-import type { WorkerRuntime as EnginePort } from "./company-ports.js";
+import { companyPorts, type WorkerRuntime as EnginePort } from "./company-ports.js";
 import type { SpawnFactory } from "../worker-runtimes/exec-core.js";
+import type { LaunchGate } from "../worker-runtimes/launch-gate.js";
 import type { ProbeFn } from "../worker-runtimes/probe.js";
 import { createDesktopLaunchGate, type GateSeams } from "./company-run-runtimes.js";
 import type { DesktopState } from "./handler-state.js";
@@ -17,11 +18,16 @@ import type { DesktopState } from "./handler-state.js";
 // approval and the process all happen inside run().
 
 /** Test seams: a fake process, fake detection and a stand-in kernel. Production passes none. */
-export type RuntimeSeams = GateSeams & { spawnFactory?: SpawnFactory; probe?: ProbeFn };
+export type RuntimeSeams = GateSeams & {
+  spawnFactory?: SpawnFactory;
+  probe?: ProbeFn;
+  /** Replaces the desktop launch gate. Headless hosts (`vanta heartbeat`) pass one with no approval card. */
+  gate?: LaunchGate;
+};
 
 export async function desktopRegistry(state: DesktopState, seams: RuntimeSeams = {}): Promise<RuntimeRegistry> {
   const env = state._env ?? process.env;
-  return createDefaultRegistry({ gate: createDesktopLaunchGate(state, seams), env, spawnFactory: seams.spawnFactory, probe: seams.probe, native: { port: async () => createNativeRuntime(state), env } });
+  return createDefaultRegistry({ gate: seams.gate ?? createDesktopLaunchGate(state, seams), env, spawnFactory: seams.spawnFactory, probe: seams.probe, native: { port: async () => createNativeRuntime(state), env } });
 }
 
 function externalPort(state: DesktopState, runtimeId: string, seams: RuntimeSeams): EnginePort {
@@ -39,7 +45,7 @@ function externalPort(state: DesktopState, runtimeId: string, seams: RuntimeSeam
   };
 }
 
-export function selectRuntime(state: DesktopState, worker?: Worker, seams: RuntimeSeams = {}): EnginePort {
+export function selectRuntime(state: DesktopState, worker?: Worker, seams: RuntimeSeams = companyPorts().runtimeSeams ?? {}): EnginePort {
   const runtimeId = runtimeIdFromAdapter(worker?.adapter);
   return runtimeId ? externalPort(state, runtimeId, seams) : createNativeRuntime(state);
 }

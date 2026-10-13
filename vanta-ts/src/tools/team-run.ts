@@ -1,6 +1,7 @@
 import type { ToolResult, ToolContext } from "./types.js";
 import { spawnSubagent } from "../subagent/spawn.js";
 import { resolveProvider } from "../providers/index.js";
+import { pausedReason } from "../team/paused.js";
 import { teammateEnv } from "../team/teammate-model.js";
 import { buildRegistry } from "./index.js";
 import { resolveTaskArtifactProbe } from "./task-outcome-probe.js";
@@ -39,6 +40,8 @@ export async function doRun(taskId: string | undefined, detail: string | undefin
   const task = latestTasks(await readTasks()).find((t) => t.id === taskId);
   if (!task) return { ok: false, output: `unknown task id "${taskId}" — dispatch it first` };
   if (task.status === "done") return { ok: false, output: `task ${taskId} already done` };
+  const paused = await pausedReason(task.workerId);
+  if (paused) return { ok: false, output: paused };
 
   // VANTA-TEAMMATE-DEFAULT-MODEL: a teammate inherits the parent's active model
   // (resolved provider's modelId() captures the provider's own default when

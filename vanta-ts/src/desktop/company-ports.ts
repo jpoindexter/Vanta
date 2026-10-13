@@ -4,6 +4,7 @@ import type { Worker } from "../team/store.js";
 import type { WorkerTask } from "../team/tasks.js";
 import type { Goal } from "../types.js";
 import type { RunEvent } from "../worker-runtimes/types.js";
+import type { RuntimeSeams } from "./company-run-select.js";
 import type { DesktopState } from "./handler-state.js";
 
 // Injectable seams for the company API. Production uses the defaults; tests
@@ -48,6 +49,8 @@ export type WorkerRuntime = { id: string; run: (request: WorkerRunRequest) => Pr
 export type CompanyPorts = {
   /** The runtime for a hired worker: the Vanta loop for a provider adapter, an external CLI for "cli:<id>". */
   runtime: (state: DesktopState, worker?: Worker) => WorkerRuntime | Promise<WorkerRuntime>;
+  /** Test seams for external CLI workers (fake process, detection, kernel). Production leaves it unset. */
+  runtimeSeams?: RuntimeSeams;
   /** Kernel goals when a live session exists; [] otherwise. Never starts a kernel. */
   readGoals: (state: DesktopState) => Promise<Goal[]>;
   newId: () => string;

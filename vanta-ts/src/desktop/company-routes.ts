@@ -6,6 +6,7 @@ import { parseBody, sendFailure } from "./company-http.js";
 import { withCompanyLock } from "./company-lock.js";
 import { approveProduct, reviseProduct } from "./company-products-write.js";
 import { handleCompanyRead } from "./company-read-routes.js";
+import { handleRuntimesRead } from "./company-runtime-routes.js";
 import { runTick } from "./company-tick.js";
 import { answerTicket, assignTicket, closeTicket, commentTicket, createTicketRoute } from "./company-tickets-write.js";
 import { hireWorker, setWorkerPaused } from "./company-workers-write.js";
@@ -17,6 +18,8 @@ import { sendJson } from "./handler-http.js";
 import type { DesktopState } from "./handler-state.js";
 
 const PREFIX = "/api/company/";
+/** Probes the installed CLIs (up to seconds), so it is served outside the company lock. */
+const RUNTIMES_ROUTE = "/api/company/runtimes";
 const GET_ROUTES = /^\/api\/(company|tickets|budgets|activity|okrs|work-products|heartbeats)(\/|$)/;
 
 type Action = (ctx: CompanyCtx, req: http.IncomingMessage) => Promise<{ status: number; body: unknown }>;
@@ -66,6 +69,7 @@ async function handleCompanyWrite(state: DesktopState, req: http.IncomingMessage
 export async function handleCompanyRoute(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<boolean> {
   const pathname = new URL(req.url ?? "/", "http://127.0.0.1").pathname;
   if (!GET_ROUTES.test(pathname)) return false;
+  if (req.method === "GET" && pathname === RUNTIMES_ROUTE) { await handleRuntimesRead(state, res); return true; }
   if (req.method === "GET") return withCompanyLock(companyCtx(state).home, () => handleCompanyRead(state, req, res));
   if (req.method === "POST" && pathname.startsWith(PREFIX)) return handleCompanyWrite(state, req, res, pathname);
   return false;

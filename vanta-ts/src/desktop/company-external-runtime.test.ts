@@ -28,7 +28,7 @@ afterEach(async () => {
 });
 
 function useKit(kit: ExternalKit): void {
-  setCompanyPorts({ runtime: (state, worker) => selectRuntime(state, worker, kit.seams) });
+  setCompanyPorts({ runtime: (state, worker) => selectRuntime(state, worker, kit.seams), runtimeSeams: kit.seams });
 }
 
 async function ticketFor(id: string, title: string, extra: Record<string, unknown> = {}): Promise<void> {
@@ -177,6 +177,17 @@ describe("ticket dispatched to a Claude Code worker", () => {
 });
 
 describe("availability", () => {
+  it("lists every runtime with its detect result and the adapter to hire it with", async () => {
+    useKit(externalKit({ stdout: [] }));
+    const reply = await h.get(`${P}/runtimes`);
+    expect(reply.status).toBe(200);
+    const byId = Object.fromEntries(reply.body.runtimes.map((r: { runtimeId: string }) => [r.runtimeId, r]));
+    expect(byId["vanta-native"]).toMatchObject({ installed: true, auth: "not-applicable", adapter: null, displayName: "Vanta" });
+    expect(byId["claude-code"]).toMatchObject({ installed: true, version: "2.1.222", auth: "authenticated", adapter: "cli:claude-code", selfApproving: false, displayName: "Claude Code" });
+    expect(byId.codex).toMatchObject({ installed: true, adapter: "cli:codex" });
+    expect(byId.hermes).toMatchObject({ adapter: "cli:hermes", selfApproving: true });
+  });
+
   it("a CLI that is not signed in fails before any card is shown", async () => {
     const kit = externalKit({ stdout: [] }, { auth: "signed-out" });
     useKit(kit);
