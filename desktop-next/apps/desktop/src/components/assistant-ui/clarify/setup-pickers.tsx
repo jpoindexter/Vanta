@@ -7,7 +7,7 @@ import { type CSSProperties, type FC, type ReactNode, useId, useState } from 're
 
 import { useSessionView } from '@/app/chat/session-view'
 import { Chip } from '@/components/onboarding-chat/chip'
-import { AccentSwatch, LayoutPreviewCard, LAYOUTS, NOUS_ACCENT } from '@/components/onboarding-chat/options'
+import { AccentSwatch, DEFAULT_ACCENT, LayoutPreviewCard, LAYOUTS } from '@/components/onboarding-chat/options'
 import { ConnectorLogo } from '@/components/ui/connector-logo'
 import { FadeScroll } from '@/components/ui/fade-scroll'
 import { SearchField } from '@/components/ui/search-field'
@@ -100,7 +100,7 @@ function ThemePicker({ cursor, onPick, picked, rows }: SetupPickerProps) {
 
 function AccentPicker({ cursor, onPick, onStage, picked, rows }: SetupPickerProps) {
   const { t } = useI18n()
-  const current = picked[0] ?? NOUS_ACCENT
+  const current = picked[0] ?? DEFAULT_ACCENT
   const custom = !rows.some(row => row.id.toLowerCase() === current.toLowerCase())
 
   return (
@@ -112,7 +112,7 @@ function AccentPicker({ cursor, onPick, onStage, picked, rows }: SetupPickerProp
       ))}
       <AccentSwatch
         active={picked.length > 0 && custom}
-        hex={custom ? current : NOUS_ACCENT}
+        hex={custom ? current : DEFAULT_ACCENT}
         name={t.assistant.setupChoose.customColor}
         onColorChange={onStage}
       />

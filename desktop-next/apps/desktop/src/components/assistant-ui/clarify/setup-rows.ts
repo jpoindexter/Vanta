@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 
 import { MODE_OPTIONS } from '@/app/settings/constants'
 import { $chatLayoutPicked, assembleChatOnboarding, snapshotChatLayout } from '@/components/onboarding-chat/assembly'
-import { accentsFor, LAYOUTS, NOUS_ACCENT, orderConnectorPicks } from '@/components/onboarding-chat/options'
+import { accentsFor, DEFAULT_ACCENT, LAYOUTS, orderConnectorPicks } from '@/components/onboarding-chat/options'
 import type { LayoutNode } from '@/components/pane-shell/tree/model'
 import { registry } from '@/contrib/registry'
 import { useI18n } from '@/i18n'
@@ -80,7 +80,7 @@ export const LIVE_LOOK: Partial<Record<SetupChooseKind, LiveLook>> = {
       const hex = normalizeHex(id)
 
       if (hex) {
-        setOnboardingAnswers({ accent: hex === NOUS_ACCENT ? null : hex })
+        setOnboardingAnswers({ accent: hex === DEFAULT_ACCENT ? null : hex })
         persistAccent(hex)
       }
     },
@@ -88,7 +88,7 @@ export const LIVE_LOOK: Partial<Record<SetupChooseKind, LiveLook>> = {
       const hex = normalizeHex(id)
 
       if (hex) {
-        const accent = hex === NOUS_ACCENT ? null : hex
+        const accent = hex === DEFAULT_ACCENT ? null : hex
 
         setOnboardingAnswers({ accent })
         setAccentOverride(accent)

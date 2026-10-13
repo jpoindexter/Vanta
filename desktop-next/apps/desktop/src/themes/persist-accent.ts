@@ -1,13 +1,13 @@
 import { setAccentOverride } from './accent-override'
 import { normalizeHex } from './color'
-import { nousTheme } from './presets'
+import { vantaTheme } from './presets'
 import { requestTheme } from './request'
 import { retintTheme } from './retint'
 import { installUserTheme } from './user-themes'
 
 /**
- * Save an accent as the live profile's theme: a Nous copy retinted to `accent`, installed as a user theme.
- * `null` or Nous blue returns to the built-in Nous theme. Clears the unsaved `$accentOverride` preview.
+ * Save an accent as the live profile's theme: a Vanta copy retinted to `accent`, installed as a user theme.
+ * `null` or Vanta violet returns to the built-in Vanta theme. Clears the unsaved `$accentOverride` preview.
  * An unparseable colour changes nothing.
  */
 export function persistAccent(accent: null | string): void {
@@ -18,12 +18,12 @@ export function persistAccent(accent: null | string): void {
   }
 
   const theme =
-    hex === null || hex === normalizeHex(nousTheme.colors.primary)
-      ? nousTheme
+    hex === null || hex === normalizeHex(vantaTheme.colors.midground ?? vantaTheme.colors.ring)
+      ? vantaTheme
       : installUserTheme({
-          ...retintTheme(nousTheme, hex),
-          name: `nous-accent-${hex.slice(1)}`,
-          label: `${nousTheme.label} · ${hex}`
+          ...retintTheme(vantaTheme, hex),
+          name: `vanta-accent-${hex.slice(1)}`,
+          label: `${vantaTheme.label} · ${hex}`
         })
 
   requestTheme(theme.name)

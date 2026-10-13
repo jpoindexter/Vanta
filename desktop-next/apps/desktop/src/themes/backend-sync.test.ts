@@ -107,9 +107,9 @@ describe('ingestBackendSkin', () => {
     ingestBackendSkin(skinWithCSS('default', 'body { background: red; }'), { apply: true })
 
     expect($backendThemes.get().default).toBeUndefined()
-    // setTheme normalizes `default` → DEFAULT_SKIN_NAME ('nous'), so the CSS
+    // setTheme normalizes `default` → DEFAULT_SKIN_NAME ('vanta'), so the CSS
     // must be findable under that name when the theme is derived.
-    expect($backendCustomCSS.get().nous).toBe('body { background: red; }')
+    expect($backendCustomCSS.get().vanta).toBe('body { background: red; }')
   })
 
   it('clears customCSS when a built-in-named skin drops the field', () => {
