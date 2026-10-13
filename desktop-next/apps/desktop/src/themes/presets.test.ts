@@ -1,6 +1,7 @@
+import { contrastRatio, parseColor } from '@hermes/shared/color'
 import { describe, expect, it } from 'vitest'
 
-import { BUILTIN_THEME_LIST, DEFAULT_TYPOGRAPHY, nousTheme } from './presets'
+import { BUILTIN_THEME_LIST, DEFAULT_SKIN_NAME, DEFAULT_TYPOGRAPHY, nousTheme, vantaTheme } from './presets'
 
 // #40364: none of the UI text/mono fonts carry emoji glyphs, so every font
 // stack must end with a color-emoji fallback or emoji render as tofu on
@@ -59,5 +60,70 @@ describe('theme typography Latin Extended fallback (#61392)', () => {
     expect(DEFAULT_TYPOGRAPHY.fontMono).toContain('DejaVu Sans Mono')
     expect(DEFAULT_TYPOGRAPHY.fontMono).toContain('Liberation Mono')
     expect(DEFAULT_TYPOGRAPHY.fontMono).toContain('Noto Sans Mono')
+  })
+})
+
+describe('Vanta theme contract (DESIGN-VANTA.md)', () => {
+  const light = vantaTheme.colors
+  const dark = vantaTheme.darkColors!
+  const channelSpread = (hex: string) => {
+    const rgb = parseColor(hex)!
+
+    return Math.max(...rgb) - Math.min(...rgb)
+  }
+
+  it('is the default skin', () => {
+    expect(DEFAULT_SKIN_NAME).toBe('vanta')
+    expect(BUILTIN_THEME_LIST.map(theme => theme.name)).toContain('vanta')
+  })
+
+  it('uses the specified light surfaces and text', () => {
+    expect(light.background).toBe('#ffffff')
+    expect(light.card).toBe('#f7f7f8')
+    expect(light.secondary).toBe('#e5e5e7')
+    expect(light.foreground).toBe('#202024')
+  })
+
+  it.each([
+    ['light', light],
+    ['dark', dark]
+  ])('keeps every %s surface and text colour neutral (no tint)', (_mode, colors) => {
+    for (const key of ['background', 'foreground', 'card', 'muted', 'mutedForeground', 'popover', 'secondary', 'accent', 'border', 'sidebarBackground', 'userBubble', 'primary'] as const) {
+      expect(channelSpread(colors[key]!), `${key} ${colors[key]}`).toBeLessThanOrEqual(6)
+    }
+  })
+
+  it('spends violet only on ring, midground and composer ring', () => {
+    expect([light.ring, light.midground, light.composerRing]).toEqual(['#7c3aed', '#7c3aed', '#7c3aed'])
+    expect([dark.ring, dark.midground, dark.composerRing]).toEqual(['#9d6bf5', '#9d6bf5', '#9d6bf5'])
+    expect(channelSpread(light.primary)).toBeLessThanOrEqual(6)
+    expect(channelSpread(dark.primary)).toBeLessThanOrEqual(6)
+  })
+
+  it('inverts the primary button between modes', () => {
+    expect(contrastRatio(light.primary, light.background)).toBeGreaterThan(12)
+    expect(contrastRatio(dark.primary, dark.background)).toBeGreaterThan(12)
+    expect(contrastRatio(light.primaryForeground, light.primary)).toBeGreaterThanOrEqual(7)
+    expect(contrastRatio(dark.primaryForeground, dark.primary)).toBeGreaterThanOrEqual(7)
+  })
+
+  it.each([
+    ['light', light],
+    ['dark', dark]
+  ])('keeps %s text and accent at WCAG AA on their surfaces', (_mode, colors) => {
+    expect(contrastRatio(colors.foreground, colors.background)).toBeGreaterThanOrEqual(7)
+    expect(contrastRatio(colors.mutedForeground, colors.card)).toBeGreaterThanOrEqual(4.5)
+    expect(contrastRatio(colors.mutedForeground, colors.background)).toBeGreaterThanOrEqual(4.5)
+    expect(contrastRatio(colors.midground!, colors.background)).toBeGreaterThanOrEqual(4.5)
+    expect(contrastRatio(colors.midground!, colors.sidebarBackground!)).toBeGreaterThanOrEqual(4.5)
+    expect(contrastRatio(colors.destructiveForeground, colors.destructive)).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('leads with the platform sans, then Inter, and keeps JetBrains Mono for code', () => {
+    const sans = vantaTheme.typography!.fontSans!
+
+    expect(sans.startsWith('-apple-system')).toBe(true)
+    expect(sans.indexOf('Inter')).toBeGreaterThan(sans.indexOf('-apple-system'))
+    expect(vantaTheme.typography!.fontMono).toContain('JetBrains Mono')
   })
 })

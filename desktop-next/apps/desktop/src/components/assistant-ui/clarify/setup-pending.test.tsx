@@ -4,7 +4,7 @@ import { atom } from 'nanostores'
 import { afterEach, beforeEach, describe, expect, it, type MockInstance, vi } from 'vitest'
 
 import { PRIMARY_SESSION_VIEW, type SessionView, SessionViewProvider } from '@/app/chat/session-view'
-import { accentsFor, NOUS_ACCENT } from '@/components/onboarding-chat/options'
+import { accentsFor, DEFAULT_ACCENT } from '@/components/onboarding-chat/options'
 import type { HermesConnection } from '@/global'
 import { I18nProvider } from '@/i18n'
 import {
@@ -171,7 +171,7 @@ describe('setup cards render without redrawing themselves', () => {
     modePref.assign('default', 'light')
     renderCard('accent-click', 'Pick an accent', 'accent')
     const original = primary()
-    const swatch = accentsFor(false).find(({ hex }) => hex !== NOUS_ACCENT)!
+    const swatch = accentsFor(false).find(({ hex }) => hex !== DEFAULT_ACCENT)!
 
     fireEvent.click(await screen.findByRole('button', { name: swatch.name }))
     expect(primary()).not.toBe(original)
@@ -190,7 +190,7 @@ describe('setup cards render without redrawing themselves', () => {
     expect($accentOverride.get()).toBeNull()
     cleanup()
 
-    renderCard('accent-blue', 'Pick an accent', 'accent', [NOUS_ACCENT])
+    renderCard('accent-blue', 'Pick an accent', 'accent', [DEFAULT_ACCENT])
     fireEvent.click(await screen.findByRole('button', { name: /confirm/i }))
     expect(theme.themeName).toBe(DEFAULT_SKIN_NAME)
     expect(primary()).toBe(original)

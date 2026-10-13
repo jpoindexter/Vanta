@@ -43,6 +43,13 @@ const SYSTEM_MONO =
   '"Noto Mono", "SF Mono", ui-monospace, Menlo, Monaco, Consolas, monospace, ' +
   EMOJI_FALLBACK
 
+// Vanta leads with the platform UI face (-apple-system on macOS). Inter is a
+// fallback only if installed; it is not bundled. Segoe stays ahead of it so
+// Windows keeps its native face.
+const VANTA_SANS =
+  '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Inter, system-ui, sans-serif, ' +
+  EMOJI_FALLBACK
+
 export const DEFAULT_TYPOGRAPHY: DesktopThemeTypography = { fontSans: SYSTEM_SANS, fontMono: SYSTEM_MONO }
 
 /**
@@ -112,6 +119,78 @@ export const githubTheme: DesktopTheme = {
     brightCyan: '#56d4dd',
     brightWhite: '#ffffff'
   }
+}
+
+/**
+ * Vanta — the default identity. Neutral grey ramp (no warm tint), inverted per
+ * mode, with violet as the ONLY accent: focus ring, links, selection, send.
+ * `primary` is the inverted near-black / near-white button fill, so the accent
+ * stays in `midground` / `ring` / `composerRing` and is never a button fill.
+ * Dark violet is the same hue lifted to clear 3:1 on the near-black surface.
+ */
+export const vantaTheme: DesktopTheme = {
+  name: 'vanta',
+  label: 'Vanta',
+  description: 'Neutral greys with a single violet accent',
+  colors: {
+    background: '#ffffff',
+    foreground: '#202024',
+    card: '#f7f7f8',
+    cardForeground: '#202024',
+    muted: '#f7f7f8',
+    mutedForeground: '#66666a',
+    popover: '#ffffff',
+    popoverForeground: '#202024',
+    primary: '#202024',
+    primaryForeground: '#ffffff',
+    secondary: '#e5e5e7',
+    secondaryForeground: '#202024',
+    accent: '#efeff1',
+    accentForeground: '#202024',
+    border: '#e2e2e5',
+    input: '#ffffff',
+    ring: '#7c3aed',
+    midground: '#7c3aed',
+    midgroundForeground: '#ffffff',
+    composerRing: '#7c3aed',
+    destructive: '#d92d20',
+    destructiveForeground: '#ffffff',
+    sidebarBackground: '#f7f7f8',
+    sidebarBorder: '#e2e2e5',
+    userBubble: '#f0f0f2',
+    userBubbleBorder: '#f0f0f2'
+  },
+  darkColors: {
+    background: '#161616',
+    foreground: '#ececee',
+    card: '#1c1c1d',
+    cardForeground: '#ececee',
+    muted: '#1c1c1d',
+    mutedForeground: '#a1a1a5',
+    popover: '#212122',
+    popoverForeground: '#ececee',
+    primary: '#f4f4f5',
+    primaryForeground: '#161616',
+    secondary: '#2b2b2e',
+    secondaryForeground: '#ececee',
+    accent: '#232325',
+    accentForeground: '#ececee',
+    border: '#2e2e32',
+    input: '#161616',
+    ring: '#9d6bf5',
+    midground: '#9d6bf5',
+    midgroundForeground: '#161616',
+    composerRing: '#9d6bf5',
+    destructive: '#f0554a',
+    destructiveForeground: '#161616',
+    sidebarBackground: '#101011',
+    sidebarBorder: '#2e2e32',
+    userBubble: '#262629',
+    userBubbleBorder: '#262629'
+  },
+  typography: { fontSans: VANTA_SANS, fontMono: SYSTEM_MONO },
+  terminal: githubTheme.terminal,
+  darkTerminal: githubTheme.darkTerminal
 }
 
 /** Catppuccin — Latte in light, Mocha in dark (Catppuccin.catppuccin-vsc). */
@@ -442,6 +521,7 @@ export const slateTheme: DesktopTheme = {
 }
 
 export const BUILTIN_THEMES: Record<string, DesktopTheme> = {
+  vanta: vantaTheme,
   nous: nousTheme,
   github: githubTheme,
   catppuccin: catppuccinTheme,
@@ -459,7 +539,7 @@ export const BUILTIN_THEMES: Record<string, DesktopTheme> = {
 export const BUILTIN_THEME_LIST = Object.values(BUILTIN_THEMES)
 
 /** Skin used when nothing is persisted or the persisted name is retired. */
-export const DEFAULT_SKIN_NAME = 'nous'
+export const DEFAULT_SKIN_NAME = 'vanta'
 
 /** Names that no longer resolve to a skin of their own. A stored pick of one
  *  falls back to DEFAULT_SKIN_NAME, and a cached backend theme under one is
