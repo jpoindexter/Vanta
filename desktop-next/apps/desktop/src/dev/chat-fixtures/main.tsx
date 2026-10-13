@@ -10,6 +10,7 @@ import { I18nProvider } from '@/i18n'
 import { queryClient } from '@/lib/query-client'
 import { ThemeProvider } from '@/themes'
 
+import { CardGallery } from './gallery'
 import { parseFixtureParams } from './params'
 import { FixtureScene } from './scene'
 
@@ -36,7 +37,7 @@ createRoot(document.getElementById('root')!).render(
         <ThemeProvider>
           <RootTooltipProvider>
             <MemoryRouter>
-              <FixtureScene params={params} />
+              {params.flags.has('gallery') ? <CardGallery width={params.width} /> : <FixtureScene params={params} />}
             </MemoryRouter>
           </RootTooltipProvider>
         </ThemeProvider>

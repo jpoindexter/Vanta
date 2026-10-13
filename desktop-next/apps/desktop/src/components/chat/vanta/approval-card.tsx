@@ -128,6 +128,7 @@ export const ApprovalCard: FC<ApprovalCardProps> = ({
       <div aria-busy={pending !== null} className="vp-acts" data-vp="approval-actions">
         <button
           className="vp-btn"
+          data-approval-run=""
           data-tone="primary"
           disabled={pending !== null}
           onClick={() => void answer('allow')}
@@ -140,7 +141,13 @@ export const ApprovalCard: FC<ApprovalCardProps> = ({
             {label('always', alwaysLabel(approval))}
           </button>
         )}
-        <button className="vp-btn" disabled={pending !== null} onClick={() => void answer('deny')} type="button">
+        <button
+          className="vp-btn"
+          data-approval-deny=""
+          disabled={pending !== null}
+          onClick={() => void answer('deny')}
+          type="button"
+        >
           {label('deny', 'Reject')}
         </button>
         {remember && allowNever && (

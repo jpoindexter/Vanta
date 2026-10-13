@@ -1,4 +1,4 @@
-import { ActionBarPrimitive, BranchPickerPrimitive } from '@assistant-ui/react'
+import { ActionBarPrimitive, BranchPickerPrimitive, useAuiState } from '@assistant-ui/react'
 import { useStore } from '@nanostores/react'
 import { type FC, useCallback, useState } from 'react'
 
@@ -215,6 +215,15 @@ const AssistantActionBar: FC<MessageActionProps & { durationS?: number }> = ({
 }
 
 export const AssistantFooter: FC<MessageActionProps & { durationS?: number }> = ({ durationS, ...props }) => {
+  // Copy, rate and retry belong to a finished reply: a running or failed turn
+  // shows none, so the cards around it keep the column's rhythm. The check
+  // lives in this leaf so a settling turn does not re-render the message root.
+  const isComplete = useAuiState(state => state.message.status?.type === 'complete')
+
+  if (!isComplete) {
+    return null
+  }
+
   return (
     <div className="vp-assistant-footer flex min-h-6 flex-col items-start gap-1">
       <BranchPickerPrimitive.Root

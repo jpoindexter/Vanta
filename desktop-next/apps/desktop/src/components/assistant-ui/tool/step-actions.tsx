@@ -62,7 +62,9 @@ export const ViewOutputButton: FC = () => {
       className="vp-btn"
       onClick={() => {
         setToolDisclosureOpen(target, true)
-        document.querySelector(`[data-tool-row][data-disclosure-id="${CSS.escape(target)}"]`)?.scrollIntoView({ block: 'nearest' })
+        document
+          .querySelector(`[data-tool-row][data-disclosure-id="${CSS.escape(target)}"]`)
+          ?.scrollIntoView({ block: 'nearest' })
       }}
       type="button"
     >

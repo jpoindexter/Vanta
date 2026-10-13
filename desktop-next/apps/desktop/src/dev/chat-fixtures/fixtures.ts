@@ -4,6 +4,7 @@ import type { ChatFixtureState, FixtureParams } from './params'
 
 const USER_PROMPT = 'Add retry with backoff to the billing webhook handler, then run the billing tests'
 const PLAN_TEXT = 'I will read the handler, add a bounded exponential backoff, and run the tests.'
+
 const DONE_TEXT =
   'Done. The handler now retries up to 5 times with backoff, and all 41 billing tests pass. The change is in the Changes panel.'
 
@@ -13,7 +14,13 @@ const OFFLINE_TEXT =
 const BLOCKED_PROMPT = 'Write this week’s competitor pricing brief'
 
 function unifiedDiff(path: string, added: number, removed: number): string {
-  const head = [`--- a/${path}`, `+++ b/${path}`, `@@ -1,${removed + 3} +1,${added + 3} @@`, ' import { send } from "./send"']
+  const head = [
+    `--- a/${path}`,
+    `+++ b/${path}`,
+    `@@ -1,${removed + 3} +1,${added + 3} @@`,
+    ' import { send } from "./send"'
+  ]
+
   const gone = Array.from({ length: removed }, (_, index) => `-  const attempt${index} = send(payload)`)
   const kept = [' ']
   const fresh = Array.from({ length: added }, (_, index) => `+  const attempt${index} = retry(send, payload)`)
@@ -65,7 +72,10 @@ export const BLOCKED_QUESTION = {
 }
 
 function clarifyCall(): ChatMessagePart {
-  const args = { questions: [{ choices: BLOCKED_QUESTION.choices, question: BLOCKED_QUESTION.question }], title: BLOCKED_QUESTION.title }
+  const args = {
+    questions: [{ choices: BLOCKED_QUESTION.choices, question: BLOCKED_QUESTION.question }],
+    title: BLOCKED_QUESTION.title
+  }
 
   return {
     type: 'tool-call',
@@ -136,7 +146,9 @@ const LONG_ANSWER = [
 function manyTurns(): ChatMessage[] {
   return Array.from({ length: 24 }, (_, index) => [
     user(`mu${index}`, `Question ${index + 1} about the billing handler`),
-    assistant(`ma${index}`, [text(`Answer ${index + 1}. The handler retries up to five times with exponential backoff.`)])
+    assistant(`ma${index}`, [
+      text(`Answer ${index + 1}. The handler retries up to five times with exponential backoff.`)
+    ])
   ]).flat()
 }
 
@@ -187,16 +199,25 @@ export function fixtureMessages(params: FixtureParams): ChatMessage[] {
   if (state === 'failed') {
     return [
       ...base,
-      assistant('a1', [...parts, terminalCall('t1', 'npm test -- billing', { result: { error: '3 of 41 tests failed', exit_code: 1, output: '3 failed', success: false } })], {
-        error: 'The tests failed',
-        errorSurface: {
-          code: 'tool_failed',
-          headline: 'The tests failed',
-          layer: 'runtime',
-          message: '3 of 41 billing tests failed after the edit. Partial output is kept. Nothing was committed.',
-          retryable: true
+      assistant(
+        'a1',
+        [
+          ...parts,
+          terminalCall('t1', 'npm test -- billing', {
+            result: { error: '3 of 41 tests failed', exit_code: 1, output: '3 failed', success: false }
+          })
+        ],
+        {
+          error: 'The tests failed',
+          errorSurface: {
+            code: 'tool_failed',
+            headline: 'The tests failed',
+            layer: 'runtime',
+            message: '3 of 41 billing tests failed after the edit. Partial output is kept. Nothing was committed.',
+            retryable: true
+          }
         }
-      })
+      )
     ]
   }
 

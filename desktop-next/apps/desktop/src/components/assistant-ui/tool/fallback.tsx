@@ -573,7 +573,12 @@ function ToolEntry({ part }: ToolEntryProps) {
   ) : undefined
 
   // The live line carries Stop; a failed step carries its own Retry.
-  const stepAction = isPending && !embedded ? <StopStepButton /> : view.status === 'error' && !embedded ? <RetryStepButton title={view.title} /> : undefined
+  const stepAction =
+    isPending && !embedded ? (
+      <StopStepButton />
+    ) : view.status === 'error' && !embedded ? (
+      <RetryStepButton title={view.title} />
+    ) : undefined
 
   if (dismissed) {
     return null
@@ -595,8 +600,8 @@ function ToolEntry({ part }: ToolEntryProps) {
         open && TOOL_EXPANDED_SHELL_CLASS
       )}
       data-conversation-scaffold=""
-      data-file-edit={isFileEdit && open ? '' : undefined}
       data-disclosure-id={disclosureId}
+      data-file-edit={isFileEdit && open ? '' : undefined}
       data-slot="tool-block"
       data-tool-open={open ? '' : undefined}
       data-tool-row=""

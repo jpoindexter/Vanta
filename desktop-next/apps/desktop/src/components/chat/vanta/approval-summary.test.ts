@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
 import { summarizeApproval } from './approval-summary'
-import { type ApprovalPayload, parseApprovalPayload, type PermissionKind, type PermissionSection } from './approval-types'
+import {
+  type ApprovalPayload,
+  parseApprovalPayload,
+  type PermissionKind,
+  type PermissionSection
+} from './approval-types'
 
 function approval(
   kind: PermissionKind,

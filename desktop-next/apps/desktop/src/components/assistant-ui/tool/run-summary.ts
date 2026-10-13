@@ -32,24 +32,13 @@ export function isToolCallPart<T extends { type: string }>(part: T): part is Ext
 }
 
 type RunCategory =
-  | 'analyze'
-  | 'browse'
-  | 'delegate'
-  | 'edit'
-  | 'explore'
-  | 'file'
-  | 'interact'
-  | 'other'
-  | 'read'
-  | 'run'
-  | 'search'
+  'analyze' | 'browse' | 'delegate' | 'edit' | 'explore' | 'file' | 'interact' | 'other' | 'read' | 'run' | 'search'
 
 // Clause order is fixed so the same run always reads the same way, whichever
 // category happens to be live.
 const CATEGORY_ORDER: readonly RunCategory[] = [
   'edit',
   'explore',
-  'file',
   'search',
   'read',
   'browse',
@@ -66,7 +55,6 @@ const CATEGORY_COPY: Record<RunCategory, { noun: [string, string]; past: string;
   delegate: { noun: ['task', 'tasks'], past: 'Delegated', present: 'Delegating' },
   edit: { noun: ['file', 'files'], past: 'Edited', present: 'Editing' },
   explore: { noun: ['file', 'files'], past: 'Explored', present: 'Exploring' },
-  file: { noun: ['file', 'files'], past: 'Read', present: 'Reading' },
   interact: { noun: ['browser action', 'browser actions'], past: 'Performed', present: 'Performing' },
   other: { noun: ['tool', 'tools'], past: 'Used', present: 'Using' },
   read: { noun: ['page', 'pages'], past: 'Read', present: 'Reading' },
@@ -82,7 +70,7 @@ const TOOL_CATEGORY: Record<string, RunCategory> = {
   delegate_task: 'delegate',
   execute_code: 'run',
   list_files: 'explore',
-  read_file: 'file',
+  read_file: 'explore',
   search_files: 'explore',
   session_search_recall: 'search',
   terminal: 'run',
@@ -171,7 +159,10 @@ function toolTarget(tool: ToolCallLike): string {
  */
 function clause(category: RunCategory, tools: ToolCallLike[], live: boolean): string {
   const copy = CATEGORY_COPY[category]
-  const verb = live ? copy.present : copy.past
+  // A run that only read files says so ("Read 3 files"); mixed with listing or
+  // searching it stays the broader "Explored".
+  const onlyReads = category === 'explore' && tools.every(tool => tool.toolName === 'read_file')
+  const verb = onlyReads ? (live ? 'Reading' : 'Read') : live ? copy.present : copy.past
   const count = tools.reduce((sum, tool) => sum + unitCount(tool), 0)
   const target = count === 1 && category !== 'interact' ? toolTarget(tools[0]) : ''
 

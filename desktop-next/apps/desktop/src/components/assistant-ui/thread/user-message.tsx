@@ -8,7 +8,6 @@ import {
   messageContentText,
   PROCESS_NOTIFICATION_RE
 } from '@/components/assistant-ui/thread/content'
-import { CopyAction, HoverActions } from '@/components/chat/vanta/message-actions'
 import { MessageHoverTime } from '@/components/assistant-ui/thread/message-hover-time'
 import { ReactionBadge, ReactionPicker } from '@/components/assistant-ui/thread/message-reactions'
 import { SetupLearnedNote, splitSetupLearned } from '@/components/assistant-ui/thread/setup-learned'
@@ -18,6 +17,7 @@ import { MessageTimelineTimestamp } from '@/components/assistant-ui/thread/timel
 import { type RestoreMessageTarget } from '@/components/assistant-ui/thread/types'
 import { useMessageReactions } from '@/components/assistant-ui/thread/use-message-reactions'
 import { UserMessageText } from '@/components/assistant-ui/thread/user-message-text'
+import { CopyAction, HoverActions } from '@/components/chat/vanta/message-actions'
 import { Codicon } from '@/components/ui/codicon'
 import { Tip } from '@/components/ui/tooltip'
 import { useResizeObserver } from '@/hooks/use-resize-observer'
@@ -560,6 +560,7 @@ export const UserMessage: FC<{
                   reverts (interrupt + rewind). A live text highlight never opens it. */}
               <ActionBarPrimitive.Edit asChild>
                 <button
+                  aria-label={copy.editMessage}
                   className="vp-action"
                   onClick={() => triggerHaptic('selection')}
                   onPointerDown={() => notifyThreadEditOpen()}

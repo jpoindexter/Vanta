@@ -28,18 +28,25 @@ function headlineFor(kind: PermissionKind, subject: string, title: string | unde
   switch (kind) {
     case 'file_edit':
       return `Edit ${subject}`
+
     case 'file_write':
       return `${/^overwrite/i.test(action) ? 'Overwrite' : 'Write'} ${subject}`
+
     case 'bash':
       return 'Run a command'
+
     case 'web_fetch':
       return `Open ${hostOf(subject)}`
+
     case 'computer_use':
       return 'Control your computer'
+
     case 'sandbox':
       return 'Run code'
+
     case 'skill':
       return 'Save a skill'
+
     default:
       return title?.replace(/\s*permission request$/i, '').trim() || action
   }

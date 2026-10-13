@@ -2,7 +2,13 @@ import { useStore } from '@nanostores/react'
 import { IconChevronDown } from '@tabler/icons-react'
 import type { FC } from 'react'
 
-import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
 import {
   $permissionMode,
   PERMISSION_MODES,

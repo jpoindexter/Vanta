@@ -6,7 +6,7 @@ import { I18nProvider } from '@/i18n'
 import { $hudMode } from '@/store/hud'
 import { applyWakeStartResult, applyWakeStatus, resetWakeWordState } from '@/store/wake-word'
 
-import { ComposerControls } from './controls'
+import { ComposerControls, ComposerVoice } from './controls'
 
 vi.mock('./model-pill', () => ({ ModelPill: () => null }))
 
@@ -16,11 +16,29 @@ const state: ChatBarState = {
   voice: { active: false, enabled: false }
 }
 
-function renderControls(overrides: Partial<React.ComponentProps<typeof ComposerControls>> = {}) {
+function renderControls(
+  overrides: Partial<React.ComponentProps<typeof ComposerControls>> & {
+    foldVoice?: boolean
+    voiceStatus?: 'idle' | 'recording' | 'transcribing'
+  } = {}
+) {
+  const { foldVoice, voiceStatus = 'idle', ...controlOverrides } = overrides
+
   return render(
     <I18nProvider configClient={null} initialLocale="en">
+      {controlOverrides.minimal ? null : (
+        <ComposerVoice
+          autoSpeak={false}
+          disabled={false}
+          foldVoice={foldVoice}
+          onDictate={vi.fn()}
+          onStartConversation={vi.fn()}
+          onToggleAutoSpeak={vi.fn()}
+          state={state}
+          voiceStatus={voiceStatus}
+        />
+      )}
       <ComposerControls
-        autoSpeak={false}
         busy={false}
         busyAction="stop"
         canSubmit={true}
@@ -36,12 +54,9 @@ function renderControls(overrides: Partial<React.ComponentProps<typeof ComposerC
         }}
         disabled={false}
         hasComposerPayload={true}
-        onDictate={vi.fn()}
         onQueue={vi.fn()}
-        onToggleAutoSpeak={vi.fn()}
         state={state}
-        voiceStatus="idle"
-        {...overrides}
+        {...controlOverrides}
       />
     </I18nProvider>
   )
@@ -70,7 +85,7 @@ describe('HUD mode', () => {
   it('keeps the mic inline, fans the toggles on hover, and offers no exit in the docked composer', async () => {
     renderControls()
 
-    const mic = screen.getByLabelText('Voice dictation')
+    const mic = screen.getByLabelText('Dictate')
 
     expect(mic).toBeTruthy()
     expect(screen.queryByLabelText('Read replies aloud')).toBeNull()
@@ -94,7 +109,7 @@ describe('HUD mode', () => {
     expect(screen.getByLabelText('Exit HUD mode')).toBeTruthy()
 
     // Folded away, not duplicated — the whole point is the row's width back.
-    expect(screen.queryByLabelText('Voice dictation')).toBeNull()
+    expect(screen.queryByLabelText('Dictate')).toBeNull()
     expect(screen.queryByLabelText('Read replies aloud')).toBeNull()
   })
 
@@ -119,7 +134,7 @@ describe('narrow tiles', () => {
     renderControls({ foldVoice: true })
 
     expect(screen.getByLabelText('Voice')).toBeTruthy()
-    expect(screen.queryByLabelText('Voice dictation')).toBeNull()
+    expect(screen.queryByLabelText('Dictate')).toBeNull()
     expect(screen.queryByLabelText('Read replies aloud')).toBeNull()
 
     // Folding is a width decision, not the HUD: no exit affordance appears.
@@ -174,7 +189,7 @@ describe('wake-word ear visibility', () => {
 
   // The ear lives in the mic's fan now: hover the mic to reach it.
   const findEar = async () => {
-    fireEvent.pointerEnter(screen.getByLabelText('Voice dictation').parentElement!)
+    fireEvent.pointerEnter(screen.getByLabelText('Dictate').parentElement!)
 
     return screen.findByLabelText('Wake word "hey hermes"')
   }
