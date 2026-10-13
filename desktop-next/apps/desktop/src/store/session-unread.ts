@@ -10,9 +10,11 @@ import {
   $selectedStoredSessionId,
   $sessions,
   $unreadFinishedSessionIds,
+  markAllSessionsRead,
   sessionMatchesStoredId,
   sessionPinId
 } from './session'
+import { markSessionUnread } from './session-unread-remote'
 import { isBrowserWindow, isSecondaryWindow } from './windows'
 
 /**
@@ -302,6 +304,19 @@ export function ackStoredSessionId(storedSessionId: null | string, profileHint?:
 export function ackAllSessionsRead(): void {
   for (const row of rowsFor([$sessions.get(), $cronSessions.get(), $messagingSessions.get()])) {
     ackSessionRow(row)
+  }
+}
+
+/** "Mark all as read" in full: the runtime markers, the persisted watermarks, and the server's explicit
+ *  unread flag on every loaded row (set by "Mark as unread"), so one press clears everything the badge counts. */
+export function markEverythingRead(): void {
+  markAllSessionsRead()
+  ackAllSessionsRead()
+
+  for (const row of $sessions.get()) {
+    if (row.unread === true) {
+      markSessionUnread(row.id, false).catch(() => undefined)
+    }
   }
 }
 

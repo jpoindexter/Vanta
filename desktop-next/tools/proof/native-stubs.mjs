@@ -6,8 +6,8 @@ import path from "node:path";
 
 /** Install the stubs. `answers` sets what the dialogs reply with; change it later with `setAnswers`. */
 export async function installNativeStubs(app, answers) {
-  await app.app.evaluate(({ dialog, shell }, initial) => {
-    const log = (globalThis.__proof = { answers: initial, dialogs: [], external: [], opened: [], revealed: [], saves: [], trashed: [] });
+  await app.app.evaluate(({ dialog, session, shell }, initial) => {
+    const log = (globalThis.__proof = { answers: initial, dialogs: [], downloads: [], external: [], opened: [], revealed: [], saves: [], trashed: [] });
     dialog.showMessageBox = async (...args) => {
       const options = args.at(-1);
       log.dialogs.push({ buttons: options.buttons, detail: options.detail, message: options.message });
@@ -23,6 +23,12 @@ export async function installNativeStubs(app, answers) {
       log.dialogs.push({ message: options.title ?? "open dialog", picker: true });
       return log.answers.pickFolder ? { canceled: false, filePaths: [log.answers.pickFolder] } : { canceled: true, filePaths: [] };
     };
+    // A page-triggered download (Export) would open the OS save panel; save it to the folder the proof names instead.
+    session.defaultSession.on("will-download", (_event, item) => {
+      const target = `${log.answers.downloadDir}/${item.getFilename()}`;
+      item.setSavePath(target);
+      log.downloads.push(target);
+    });
     shell.showItemInFolder = (target) => log.revealed.push(target);
     shell.openExternal = async (url) => void log.external.push(url);
     shell.openPath = async (target) => (log.opened.push(target), "");
@@ -38,7 +44,7 @@ export const readNativeLog = (app) => app.app.evaluate(() => JSON.parse(JSON.str
 export const clearNativeLog = (app) =>
   app.app.evaluate(() => {
     const log = globalThis.__proof;
-    for (const key of ["dialogs", "external", "opened", "revealed", "saves", "trashed"]) log[key].length = 0;
+    for (const key of ["dialogs", "downloads", "external", "opened", "revealed", "saves", "trashed"]) log[key].length = 0;
   });
 
 /** A second throwaway git project to switch to. */

@@ -122,16 +122,14 @@ import {
   $sessions,
   $sessionsLoadError,
   $sessionsLoading,
-  $unreadFinishedSessionIds,
-  markAllSessionsRead,
   sessionPinId
 } from '@/store/session'
-import { $sessionDotStateById, sessionStatusBucket } from '@/store/session-dot-state'
+import { $sessionDotStateById, $unreadSessionCount, sessionStatusBucket } from '@/store/session-dot-state'
 import { $focusedSessionIsTile, $focusedStoredSessionId } from '@/store/session-focus'
 import { $unconfirmedPinWrites } from '@/store/session-pin-sync'
 import { $removedSessionIds } from '@/store/session-removal'
 import { $workingSessionIds } from '@/store/session-states'
-import { ackAllSessionsRead } from '@/store/session-unread'
+import { markEverythingRead } from '@/store/session-unread'
 import { markSessionUnread } from '@/store/session-unread-remote'
 import { $archivedSessions, loadArchivedSessions } from '@/store/sidebar-archive'
 import { applySidebarNavPrefs, SIDEBAR_NAV_PREFS_AREA } from '@/store/sidebar-nav'
@@ -439,7 +437,7 @@ function FullSidebar({
   const sessionsLoading = useStore($sessionsLoading)
   const sessionsLoadError = useStore($sessionsLoadError)
   const sessionProfilesTruncated = useStore($sessionProfilesTruncated)
-  const unreadCount = useStore($unreadFinishedSessionIds).length
+  const unreadCount = useStore($unreadSessionCount)
   const profiles = useStore($profiles)
   const profileScope = useStore($profileScope)
   const activeConnectionId = useStore($activeConnectionId)
@@ -1858,10 +1856,8 @@ function FullSidebar({
                           className={HEADER_ACTION_BTN}
                           onClick={event => {
                             event.stopPropagation()
-                            markAllSessionsRead()
-                            // Ack the persisted layer too, or the next list
-                            // refresh repaints every dot just dismissed.
-                            ackAllSessionsRead()
+                            // Runtime markers, the persisted watermarks and the server's unread flags.
+                            markEverythingRead()
                           }}
                           size="icon-xs"
                           variant="ghost"

@@ -87,6 +87,20 @@ export async function waitUntil(read, ms = 8000, every = 400) {
   return value;
 }
 
+/** Run one row's check; a throw becomes a FAIL for that row only, so one broken control cannot hide the rest. */
+export async function attempt(page, id, area, label, body) {
+  try {
+    await body();
+    if (results.get(id)?.result === "FAIL" && process.env.PROOF_SHOTS) await page.screenshot({ path: `${process.env.PROOF_SHOTS}/fail-${id}.png` }).catch(() => undefined);
+  } catch (error) {
+    const message = String(error.message ?? error).split("\n").slice(0, 2).join(" | ").replace(/class="[^"]*"/g, "").slice(0, 220);
+    if (!results.has(id) || results.get(id).label === label) record(id, area, label, "FAIL", `threw: ${message}`);
+    if (process.env.PROOF_SHOTS) await page.screenshot({ path: `${process.env.PROOF_SHOTS}/fail-${id}.png` }).catch(() => undefined);
+  } finally {
+    await closeMenus(page).catch(() => undefined);
+  }
+}
+
 export async function goHome(page) {
   await closeMenus(page);
   await page.locator('[data-tour="sidebar-nav-home"]').click();
