@@ -45,6 +45,7 @@ async function applyOperatorProfile(
     return { ...next, canRemember: false,
       reason: "Your saved operator profile requires approval every time for this tool. Allow once or change that preference separately." };
   }
+  if (next.decision === "ask" && next.canRemember === false) return next;
   return next.decision === current.decision ? current : next;
 }
 
