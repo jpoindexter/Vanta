@@ -14,23 +14,17 @@ export const deSharedMetrics = {
   collectedUsage:
     'Agentenqualität: verfehlte Bearbeitungen, fehlerhafte Tool-Aufrufe, festgefahrene Schleifen, Kosten pro Aufgabe',
   collectedMachine: 'Gerät: Betriebssystem, RAM-Bereich, GPU-Typ, Vanta-Version, Nutzung lokaler Modelle',
-  sending:
-    'Statistiken bleiben auf diesem Computer, sofern Sie nicht „Teilen“ wählen. Geteilte Statistiken gehen einmal täglich mit einer zufälligen ID für dieses Profil an Nous. Abgesehen von einem einmaligen Hinweis, dass Vanta installiert wurde (erst nach Ihrer Zustimmung gezählt), werden Statistiken von vor Ihrer Zustimmung nie gesendet. Sie können das jederzeit in den Einstellungen ändern.',
   readDocs: 'Alle Details lesen',
-  share: 'Mit Nous teilen',
   local: 'Auf diesem Computer behalten',
   off: 'Nein, danke',
   saveFailed: 'Ihre Auswahl konnte nicht gespeichert werden',
   collectLabel: 'Nutzungsstatistiken erfassen',
   collectDesc:
     'Nur Zählwerte, auf diesem Computer gespeichert. Niemals Ihre Nachrichten, Dateien, Pfade oder Fehlertexte.',
-  sendLabel: 'Nutzungsstatistiken mit Nous teilen',
-  sendDesc:
-    'Sendet Statistiken einmal täglich mit einer zufälligen ID für dieses Profil an Nous. Abgesehen vom einmaligen Installationshinweis werden Statistiken von vor Ihrer Zustimmung nie gesendet. Erfordert aktive Erfassung.',
   unavailable: 'Aktualisieren Sie das Vanta-Backend, um diese Einstellung zu ändern.',
   stripBody: 'Nur Zählwerte. Niemals Ihre Nachrichten oder Dateien.',
   stripReaskBody:
     'Wir fragen noch einmal: Eine frühere Version konnte „Nein danke“ speichern, bevor Sie diese Frage gesehen haben.',
-  stripChoices: { share: 'Mit Nous teilen', local: 'Auf diesem Computer behalten', off: 'Nein danke' },
+  stripChoices: { local: 'Auf diesem Computer behalten', off: 'Nein danke' },
   stripDetails: 'Details'
 }

@@ -124,14 +124,14 @@ export const en: Translations = {
       showAllMatches: 'Show all matches',
       segmentNoMatch: (segment: string) => `No match in ${segment}, so every match is shown.`,
       freeTierNote: 'Connections stay on this computer until you sign in.',
-      signInLine: 'Sign in to Nous to use managed apps.',
+      signInLine: 'Sign in to use managed apps.',
       signIn: 'Sign in',
       managedUnavailable: 'Managed apps are not available for this account yet.',
       writeFailed: 'That change was not saved.',
       refreshFailed: 'The tool list was not refreshed.',
       disconnectNoAccount: 'Vanta has no account to disconnect here. Refresh the page and try again.',
       disconnectRefused:
-        'Nous could not remove this sign-in right now. Turn the app off with the switch instead, or try again later.'
+        'The provider could not remove this sign-in right now. Turn the app off with the switch instead, or try again later.'
     },
 
     add: {
@@ -185,7 +185,7 @@ export const en: Translations = {
       providedByPlugin: (plugin: string) => `Provided by plugin ${plugin}`,
       openPlugins: 'Open the Plugins tab',
       // Verbatim, by decision of the design of record.
-      nousLine: 'Nous apps follow your account, not the profile.',
+      nousLine: 'Managed apps follow your account, not the profile.',
       rulesReadOnly: 'Rules cannot be changed right now.',
       rulesAppOff: (name: string) => `Turn ${name} on to change its tools.`,
       rulesSignIn: 'Sign in to change what Vanta may do here.',
@@ -242,7 +242,7 @@ export const en: Translations = {
       remove: 'Remove',
       offTitle: (name: string) => `${name} is off.`,
       offBody: 'Turn it on with the switch above to read the tools it brings.',
-      signedOutTitle: 'Sign in to Nous to read the tool list.',
+      signedOutTitle: 'Sign in to read the tool list.',
       signedOutBody: 'Your servers on this computer are unaffected.',
       conflictTitle: 'Someone changed this rule while you were editing.',
       // Two sentences at most, and the second says the work is still here.
@@ -494,7 +494,7 @@ export const en: Translations = {
     notConfigured:
       'Diagnostics upload is not configured for this build, so nothing can be sent. Open the logs from the error card to read them on this computer.',
     privacyNotice:
-      'This uploads a debug bundle to Nous-internal storage (not a public paste). It includes system info (OS, versions, provider, which API keys are configured — never the keys themselves) and full agent, gateway, and desktop logs (up to 512 KB each), which likely contain conversation content, tool outputs, and file paths. Secrets are redacted before upload. The bundle is viewable only by Nous staff and allowlisted Discord moderators, and auto-deletes after 14 days.',
+      'This uploads a debug bundle to a private location (not a public paste). It includes system info (OS, versions, provider, which API keys are configured — never the keys themselves) and full agent, gateway, and desktop logs (up to 512 KB each), which likely contain conversation content, tool outputs, and file paths. Secrets are redacted before upload. The bundle is private to the people you share the link with and auto-deletes after 14 days.',
     upload: 'Upload',
     uploading: 'Uploading…',
     cancel: 'Cancel',
@@ -506,11 +506,11 @@ export const en: Translations = {
       'Your bundle was uploaded privately. Share the link below in your support thread so the team can see your logs.',
     failedTitle: 'Upload failed',
     failedHint:
-      'You can also run `hermes debug share --nous` from a terminal, or `hermes debug share --local` to print the report without uploading.',
+      'You can also open the logs from the error card and read them on this computer.',
     handoffLead: 'Pick up the discussion in:',
     links: {
       github: 'GitHub Issues',
-      portal: 'Nous Portal Support',
+      portal: 'Support',
       discord: 'Discord'
     }
   },
@@ -1422,7 +1422,7 @@ export const en: Translations = {
       cloudLoadingAgents: 'Loading your agents…',
       cloudNoAgents: {
         before: 'No agents found on this account. Create one in the ',
-        linkText: 'Nous portal',
+        linkText: 'provider portal',
         after: ', then refresh.'
       },
       cloudRefresh: 'Refresh',
@@ -1444,7 +1444,7 @@ export const en: Translations = {
       cloudAgentProvisioning: 'Provisioning…',
       cloudStatusLabel: status => `Status: ${status}`,
       remoteUrlTitle: 'Remote URL',
-      remoteUrlDesc: 'Base URL for the remote dashboard backend. Path prefixes are supported, for example /hermes.',
+      remoteUrlDesc: 'Base URL for the remote dashboard backend. Path prefixes are supported, for example /vanta.',
       probing: 'Checking how this gateway authenticates…',
       probeError:
         "Vanta can't reach that address. Check the URL and that the other computer is running Vanta — sign-in options appear once it answers.",
@@ -1518,7 +1518,7 @@ export const en: Translations = {
       sshKeyTitle: 'Identity file',
       sshKeyDesc: 'Private key path. Blank = ssh-agent or ~/.ssh/config.',
       sshHermesPathTitle: 'Vanta path (optional)',
-      sshHermesPathDesc: 'Full path to the remote hermes binary. Blank = auto-detect.',
+      sshHermesPathDesc: 'Full path to the remote vanta binary. Blank = auto-detect.',
       sshHermesPathPlaceholder: 'auto-detect',
       sshTestConnection: 'Test SSH',
       sshConnect: 'Connect',
@@ -1531,7 +1531,7 @@ export const en: Translations = {
       sshErrHostKey:
         'The host key has CHANGED since you last connected. Verify this is expected, then run ssh-keygen -R <host> and reconnect.',
       sshErrNotInstalled:
-        'Vanta is not installed on the remote host. Install it there (curl -fsSL https://hermes-agent.nousresearch.com/install.sh | sh) or set the Vanta path.',
+        'Vanta is not installed on the remote host. Install it there or set the Vanta path.',
       sshErrPlatform:
         'Unsupported remote platform. Vanta Desktop SSH mode supports Linux, macOS, and Windows remote hosts.',
       sshErrTimeout: 'SSH connection timed out. The host may be unreachable or asleep.',
@@ -1662,13 +1662,13 @@ export const en: Translations = {
       usageLabel: label => `${label} usage`,
       freeTier: {
         signIn: 'Sign in',
-        title: "You're on the Nous free tier",
-        message: 'Sign in with a Nous account to unlock more models and tools.',
+        title: "You're on the free tier",
+        message: 'Sign in with an account to unlock more models and tools.',
         caption:
-          'Runs on nous/welcome with connectors included. Signing in keeps your connectors and adds the tools that need an account and every other model.',
-        name: 'Nous · free tier',
+          'Runs on the free model with connectors included. Signing in keeps your connectors and adds the tools that need an account and every other model.',
+        name: 'Free tier',
         footnote:
-          'The free tier has no balance and nothing to pay. Payment and usage appear when you sign in with a Nous account.',
+          'The free tier has no balance and nothing to pay. Payment and usage appear when you sign in with an account.',
         plan: 'Free tier',
         model: 'Model',
         connectors: 'Connectors',
@@ -1776,8 +1776,8 @@ export const en: Translations = {
       state: {
         notice: {
           loggedOut: {
-            title: 'Connect your Nous account',
-            message: 'Sign in with your Nous account to see your balance, plan and usage here.',
+            title: 'Connect your account',
+            message: 'Sign in with your account to see your balance, plan and usage here.',
             action: 'Sign in'
           },
           openPortal: 'Open portal ↗',
@@ -2017,14 +2017,14 @@ export const en: Translations = {
       activeBackend: 'Active',
       activeBackendHint: 'This is your active backend',
       useBackend: 'Use this backend',
-      nousIncluded: 'Included with a Nous subscription — sign in with your Nous account to activate.',
-      nousAuthNeededTitle: 'Sign in with your Nous account',
+      nousIncluded: 'Included with a subscription — sign in with your account to activate.',
+      nousAuthNeededTitle: 'Sign in with your account',
       nousAuthNeededMessage: provider =>
-        `${provider} is saved but will only work once you sign in with your Nous account.`,
+        `${provider} is saved but will only work once you sign in with your account.`,
       nousAuthSignIn: 'Sign in',
-      nousAuthDoneTitle: 'Nous account connected',
+      nousAuthDoneTitle: 'Account connected',
       nousAuthDoneMessage: 'Your subscription backends are now active.',
-      nousAuthFailed: 'Nous sign-in did not complete',
+      nousAuthFailed: 'Sign-in did not complete',
       nousAuthFailedMessage: 'Try again.',
       nousAuthTryAgain: 'Try again',
       noApiKeyRequired: 'No API key required.',
@@ -2176,7 +2176,7 @@ export const en: Translations = {
     edit: 'Edit',
     archive: 'Archive',
     skillArchivedTitle: 'Skill archived',
-    skillArchivedMessage: 'Restorable via hermes curator restore.',
+    skillArchivedMessage: 'Restore it from the archived skills list.',
     tabPlugins: 'Plugins',
     plugins: {
       agentTitle: 'Agent plugins',
@@ -2768,7 +2768,7 @@ export const en: Translations = {
       },
       MATRIX_HOMESERVER: { label: 'Homeserver URL', placeholder: 'https://matrix.org' },
       MATRIX_ACCESS_TOKEN: { label: 'Access token' },
-      MATRIX_USER_ID: { label: 'Bot user ID', placeholder: '@hermes:example.org' },
+      MATRIX_USER_ID: { label: 'Bot user ID', placeholder: '@vanta:example.org' },
       MATRIX_ALLOWED_USERS: {
         label: 'Allowed Matrix user IDs',
         help: 'Recommended. User IDs in @user:server format, one per box.'
@@ -2910,7 +2910,7 @@ export const en: Translations = {
       title: (profile: string) => `Connect ${profile} to a remote host`,
       description: 'Sessions in this profile will run on the remote Vanta you point it at, instead of this computer.',
       urlLabel: 'Remote address',
-      urlPlaceholder: 'https://hermes.example.com',
+      urlPlaceholder: 'https://vanta.example.com',
       urlInvalid: 'Enter a full address starting with http:// or https://',
       tokenLabel: 'Access token',
       tokenPlaceholder: 'Paste the remote session token',
@@ -3443,7 +3443,7 @@ export const en: Translations = {
       '/resume': 'Resume a saved session',
       '/details': 'control transcript detail level',
       '/copy': 'copy selection or last assistant message',
-      '/quit': 'exit hermes',
+      '/quit': 'exit Vanta',
       '/start': 'Acknowledge platform start pings without a reply',
       '/new': 'Start a new desktop chat',
       '/topic': 'Enable or inspect Telegram DM topic sessions',
@@ -3472,7 +3472,7 @@ export const en: Translations = {
       '/refine': 'Review this conversation now and save lessons to memory/skills',
       '/review': 'Spawn an independent subagent to review the work just discussed (PR, code, docs)',
       '/loop': 'Re-run a prompt on a recurring interval in this session',
-      '/plan': 'Write a markdown implementation plan to .hermes/plans/ without executing anything',
+      '/plan': 'Write a markdown implementation plan to .vanta/plans/ without executing anything',
       '/moa': 'Run one prompt through the default Mixture of Agents preset, then restore your model',
       '/subgoal': 'Add or manage extra criteria on the active goal',
       '/status': 'Show current session status',
@@ -3504,8 +3504,8 @@ export const en: Translations = {
       '/browser': 'Manage the agent browser [connect|disconnect|status|use]',
       '/palette': 'Open the fuzzy command palette (also Ctrl+P)',
       '/usage': 'Show token usage and rate limits; `reset` redeems a banked Codex limit reset',
-      '/subscription': 'View your Nous plan and change it in the browser',
-      '/topup': 'Show your Nous balance and manage billing on the portal',
+      '/subscription': 'View your plan and change it in the browser',
+      '/topup': 'Show your balance and manage billing on the provider portal',
       '/platform': 'Pause, resume, or list a failing gateway platform',
       '/version': 'Show Vanta version',
       '/debug': 'Upload debug report (system info + logs) and get shareable links',
@@ -3901,7 +3901,7 @@ export const en: Translations = {
       notAvailable: 'Update not available for this backend.',
       failed: 'Backend update failed.',
       noReturn: 'Backend didn’t come back online. The update may not have completed — check the backend host.',
-      owed: steps => `Backend updated, but still owed: ${steps}. Re-run \`hermes update\` to finish them.`
+      owed: steps => `Backend updated, but still owed: ${steps}. Run the update again to finish them.`
     },
     appName: 'Vanta', // Update-status overlay + version-details (mechanism-aware update UI).
     version: (value: string) => `Version ${value}`,
@@ -3939,9 +3939,9 @@ export const en: Translations = {
     versionDetailsDistributionDesktopMsix: 'Desktop app (MSIX)',
     versionDetailsDistributionDesktopInstaller: 'Desktop app (installer)',
     versionDetailsDistributionSourceInstaller: 'Source (install script)',
-    versionDetailsDistributionSourceInstallerDesktop: 'Source (install script) + hermes desktop',
+    versionDetailsDistributionSourceInstallerDesktop: 'Source (install script) + Vanta Desktop',
     versionDetailsDistributionSource: 'Source',
-    versionDetailsDistributionSourceDesktop: 'Source + hermes desktop',
+    versionDetailsDistributionSourceDesktop: 'Source + Vanta Desktop',
     versionDetailsDistributionStore: 'Microsoft Store',
     versionDetailsRuntime: 'Runtime',
     versionDetailsRuntimeEmbedded: 'Embedded runtime',
@@ -3984,7 +3984,7 @@ export const en: Translations = {
     remoteSetupDesc: 'Enter your gateway URL. Vanta Desktop will detect whether it needs a token or browser sign-in.',
     remoteUrlTitle: 'Gateway URL',
     remoteUrlDesc: 'Use the base URL of the Vanta gateway, including https:// when remote.',
-    remoteUrlPlaceholder: 'https://gateway.example.com/hermes',
+    remoteUrlPlaceholder: 'https://gateway.example.com/vanta',
     probing: 'Detecting gateway authentication...',
     probeError:
       "Vanta can't reach that address. Check the URL and that the other computer is running Vanta — sign-in options appear once it answers.",
@@ -4034,21 +4034,21 @@ export const en: Translations = {
   onboarding: enOnboarding,
 
   freeTier: {
-    providerRowTitle: 'Nous · free tier',
-    providerRowPitch: 'Sign in with a Nous account to unlock more models and tools.',
+    providerRowTitle: 'Free tier',
+    providerRowPitch: 'Sign in with an account to unlock more models and tools.',
     readyTitle: 'Vanta is ready.',
     readyCaption: 'Free · connectors included',
     begin: 'Begin',
-    signInInstead: 'Sign in with a Nous account instead',
+    signInInstead: 'Sign in with an account instead',
     otherProviders: 'Other providers',
-    stripTitle: 'Free Nous inference and connectors are now available.',
-    stripBody: 'Open the model picker to try them, or sign in with a Nous account.',
+    stripTitle: 'Free inference and connectors are now available.',
+    stripBody: 'Open the model picker to try them, or sign in with an account.',
     openModelPicker: 'Open model picker',
     dismiss: 'Dismiss',
-    providerName: 'Nous',
-    statusLabel: model => `Nous · ${model}`,
+    providerName: 'Hosted',
+    statusLabel: model => model,
     signIn: 'Sign in',
-    signInHeading: 'Sign in with a Nous account to unlock more models and tools.',
+    signInHeading: 'Sign in with an account to unlock more models and tools.',
     settingUp: 'Setting up free inference…',
     codeBody: 'Enter this code in your browser to finish signing in.',
     copyLink: 'Copy link',
@@ -4066,42 +4066,42 @@ export const en: Translations = {
     tryAgain: 'Try again',
     startAgain: 'Start again',
     didNotComplete: "Sign-in didn't finish",
-    rejectedBody: "No problem, you're still on the free Nous service. Sign in whenever you're ready.",
+    rejectedBody: "No problem, you're still on the free service. Sign in whenever you're ready.",
     supersededBody: 'A newer sign-in code replaced this one. Use the newest one, or start again.',
     timedOutHeading: 'That sign-in link has expired',
-    timedOutBody: "Start again whenever you're ready. You're still on the free Nous service.",
+    timedOutBody: "Start again whenever you're ready. You're still on the free service.",
     retiredBody:
       "Your session ended before the sign-in finished. Vanta will start a new one; then sign in again whenever you're ready.",
     errorBody: "Sign-in didn't finish. Try again whenever you're ready.",
     busyHeading: 'Almost there',
     busyBody: wait =>
-      `Vanta couldn't finish signing you in because the Nous service is busy. Try again in ${wait}. Your session is still here in the meantime.`,
+      `Vanta couldn't finish signing you in because the hosted service is busy. Try again in ${wait}. Your session is still here in the meantime.`,
     unreachableBody:
-      "Vanta couldn't reach the Nous service to finish signing you in. Check your internet connection and try again. Your session is still here.",
+      "Vanta couldn't reach the hosted service to finish signing you in. Check your internet connection and try again. Your session is still here.",
     alreadySignedInHeading: 'Already signed in.',
-    alreadySignedInBody: 'This Vanta is already signed in to a Nous account.',
+    alreadySignedInBody: 'This Vanta is already signed in to an account.',
     offer: {
       heading: 'Keep going with Vanta',
-      body: "You're on the free allowance. If you keep using Vanta, you'll start running into limits. Sign in with a free Nous account for a bigger allowance.",
+      body: "You're on the free allowance. If you keep using Vanta, you'll start running into limits. Sign in with a free account for a bigger allowance.",
       signIn: 'Sign in',
       notNow: 'Not now'
     },
     setupFailed: {
       gateClosed:
-        "This version of Vanta can't start without a Nous account. Sign in or create one, it's free and only takes a minute.",
+        "This version of Vanta can't start without an account. Sign in or create one, it's free and only takes a minute.",
       paused:
         'Using Vanta without signing in is paused for a moment. Vanta will keep checking. Signing in is free and gets you going right now.',
       rateLimited: wait =>
         `Lots of people are getting started right now, so Vanta will try again in ${wait}. Signing in is free and skips the wait.`,
       unreachable:
-        "Vanta couldn't reach the Nous service. Check your internet connection, then tap Try again. Or connect another provider for now.",
-      serverError: 'The Nous service had a hiccup. Tap Try again in a moment, or connect another provider for now.',
+        "Vanta couldn't reach the hosted service. Check your internet connection, then tap Try again. Or connect another provider for now.",
+      serverError: 'The hosted service had a hiccup. Tap Try again in a moment, or connect another provider for now.',
       powRequired:
-        "The Nous server asked for a proof of work, but that isn't implemented in your Agent yet. Sign in or create a free Nous account to continue.",
-      locked: "This session can't continue without signing in. Sign in or create a free Nous account to keep going.",
+        "The server asked for a proof of work, but that isn't implemented in your Agent yet. Sign in or create a free account to continue.",
+      locked: "This session can't continue without signing in. Sign in or create a free account to keep going.",
       generic:
         "Vanta couldn't set up free access without signing in. Signing in is free, or connect another provider.",
-      signInBelow: 'Signing in is free. Pick Nous below.',
+      signInBelow: 'Signing in is free. Pick a provider below.',
       tryAgain: 'Try again',
       retrying: 'Trying again…'
     }
@@ -4120,7 +4120,7 @@ export const en: Translations = {
     localDownloadsHeading: 'Local',
     noAuthenticatedProviders: 'No authenticated providers.',
     pro: 'Pro',
-    proNeedsSubscription: 'Pro models need a paid Nous subscription.',
+    proNeedsSubscription: 'Pro models need a paid subscription.',
     free: 'Free',
     freeTier: 'Free tier',
     priceTitle: 'Input / Output price per million tokens',
@@ -4714,11 +4714,11 @@ export const en: Translations = {
         // and the way forward); these bodies stand in for an older backend that sent none.
         free_tier_disabled: {
           title: 'Using Vanta without signing in is switched off right now',
-          body: "Sign in with a Nous account to keep chatting, it's free."
+          body: "Sign in with an account to keep chatting, it's free."
         },
         free_tier_rate_limited: {
           title: "You've used up the allowance for chatting without signing in",
-          body: "It refreshes shortly. Sign in with a Nous account for a bigger allowance, it's free."
+          body: "It refreshes shortly. Sign in with an account for a bigger allowance, it's free."
         },
         free_tier_at_capacity: {
           title: 'Chatting without signing in is really busy right now',
@@ -4726,11 +4726,11 @@ export const en: Translations = {
         },
         free_tier_model_not_free: {
           title: "That model isn't available without signing in",
-          body: "Vanta uses the free model for now. Sign in with a Nous account for more models, it's free."
+          body: "Vanta uses the free model for now. Sign in with an account for more models, it's free."
         },
         free_tier_route: {
           title: "Vanta couldn't reach the free model on this route",
-          body: "Sign in with a Nous account, it's free, or check the NOUS_INFERENCE_BASE_URL setting."
+          body: "Sign in with an account, it's free, or check the inference base URL setting."
         },
         free_tier_outage: {
           title: 'The free model is having trouble responding right now',
@@ -4738,7 +4738,7 @@ export const en: Translations = {
         },
         free_tier_refused: {
           title: "Vanta couldn't send that without signing in",
-          body: 'Signing in with a Nous account is free.'
+          body: 'Signing in with an account is free.'
         }
       },
       errorAuthKinds: {
@@ -4767,7 +4767,7 @@ export const en: Translations = {
       errorOpenHermesFolderFailed: 'Could not open the Vanta folder',
       errorUpdateApiKey: 'Update API key',
       errorSignInAgain: provider => `Sign in to ${provider} again`,
-      errorSignInFreeTier: 'Sign in with a Nous account',
+      errorSignInFreeTier: 'Sign in with an account',
       errorOauthExpired: provider =>
         `Your ${provider} sign-in has expired or was revoked. Sign in again to keep chatting.`,
       errorOpenLogs: 'Open logs',
@@ -4817,7 +4817,7 @@ export const en: Translations = {
       reject: 'Reject',
       alwaysTitle: 'Always allow this command?',
       alwaysDescription: pattern =>
-        `This adds the “${pattern}” pattern to your permanent allowlist (~/.hermes/config.yaml). Vanta won’t ask again for commands like this — in this session or any future one.`,
+        `This adds the “${pattern}” pattern to your permanent allowlist. Vanta won’t ask again for commands like this — in this session or any future one.`,
       alwaysAllow: 'Always allow'
     },
     clarify: {

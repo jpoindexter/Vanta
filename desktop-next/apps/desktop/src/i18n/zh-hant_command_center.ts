@@ -281,7 +281,7 @@ export const zhHantCommandCenter = {
       MATTERMOST_ALLOWED_USERS: { label: '允許的使用者 ID', help: '建議設定。Mattermost 使用者 ID（每格一個）。' },
       MATRIX_HOMESERVER: { label: 'Homeserver URL', placeholder: 'https://matrix.org' },
       MATRIX_ACCESS_TOKEN: { label: '存取 Token' },
-      MATRIX_USER_ID: { label: 'Bot 使用者 ID', placeholder: '@hermes:example.org' },
+      MATRIX_USER_ID: { label: 'Bot 使用者 ID', },
       MATRIX_ALLOWED_USERS: {
         label: '允許的 Matrix 使用者 ID',
         help: '建議設定。@user:server 格式的使用者 ID（每格一個）。'
@@ -342,7 +342,6 @@ export const zhHantCommandCenter = {
       title: (profile: string) => `將 ${profile} 連線至遠端主機`,
       description: '此設定檔中的工作階段將在你指定的遠端 Vanta 上執行，而不是這台電腦。',
       urlLabel: '遠端位址',
-      urlPlaceholder: 'https://hermes.example.com',
       urlInvalid: '請輸入以 http:// 或 https:// 開頭的完整位址',
       tokenLabel: '存取權杖',
       tokenPlaceholder: '貼上遠端工作階段權杖',

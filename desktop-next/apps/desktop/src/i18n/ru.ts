@@ -235,7 +235,6 @@ export const ruOverrides = {
   ...ruNotices,
 
   billingBlock: {
-    titleNous: 'Кредиты Nous закончились',
     titleProvider: provider => `Кредиты закончились — ${provider}`,
     fallbackMessage: 'В вашем аккаунте закончились кредиты. Пополните баланс, чтобы продолжить.',
     openBilling: 'Открыть биллинг',
@@ -1153,8 +1152,6 @@ export const ruOverrides = {
       intro:
         'По умолчанию — локальный. Используйте удалённый, когда приложение должно управлять бэкендом Vanta в другом месте. Соединения шлюзов — на уровне машины; профили обнаруживаются из подключённых шлюзов.',
       envOverrideTitle: 'Переменные окружения управляют этой сессией приложения.',
-      envOverrideDesc:
-        'Сбросьте HERMES_DESKTOP_REMOTE_URL и HERMES_DESKTOP_REMOTE_TOKEN, чтобы использовать сохранённую настройку ниже.',
       modeTitle: 'Режим подключения',
       localTitle: 'Локальный шлюз',
       localDesc: 'Запускает приватный бэкенд Vanta на localhost. Это значение по умолчанию, работает офлайн.',
@@ -1177,7 +1174,6 @@ export const ruOverrides = {
       cloudLoadingAgents: 'Загрузка ваших агентов…',
       cloudNoAgents: {
         before: 'Агенты на этом аккаунте не найдены. Создайте агента в',
-        linkText: 'портале Nous',
         after: ', затем обновите страницу.'
       },
       cloudRefresh: 'Обновить',
@@ -1199,7 +1195,6 @@ export const ruOverrides = {
       cloudAgentProvisioning: 'Развёртывание…',
       cloudStatusLabel: status => `Статус: ${status}`,
       remoteUrlTitle: 'Удалённый URL',
-      remoteUrlDesc: 'Базовый URL удалённого бэкенда дашборда. Поддерживаются префиксы пути, например /hermes.',
       probing: 'Проверяем, как аутентифицируется этот шлюз…',
       probeError:
         'Пока не удалось связаться с этим шлюзом. Проверьте URL — способ аутентификации появится, когда он ответит.',
@@ -1271,7 +1266,6 @@ export const ruOverrides = {
       sshKeyTitle: 'Файл ключа',
       sshKeyDesc: 'Путь к закрытому ключу. Пусто = ssh-agent или ~/.ssh/config.',
       sshHermesPathTitle: 'Путь к Vanta (необязательно)',
-      sshHermesPathDesc: 'Полный путь к бинарнику hermes на удалённой машине. Пусто = автоопределение.',
       sshHermesPathPlaceholder: 'автоопределение',
       sshTestConnection: 'Проверить SSH',
       sshConnect: 'Подключиться',
@@ -1283,8 +1277,6 @@ export const ruOverrides = {
         'SSH-аутентификация не удалась. Загрузите ключ в ssh-agent (ssh-add) или задайте IdentityFile в ~/.ssh/config — Vanta запускает ssh в неинтерактивном режиме.',
       sshErrHostKey:
         'Ключ хоста ИЗМЕНИЛСЯ с последнего подключения. Убедитесь, что это ожидаемо, затем выполните ssh-keygen -R <host> и переподключитесь.',
-      sshErrNotInstalled:
-        'Vanta не установлен на удалённой машине. Установите его там (curl -fsSL https://hermes-agent.nousresearch.com/install.sh | sh) или задайте путь к Vanta.',
       sshErrPlatform:
         'Неподдерживаемая удалённая платформа. SSH-режим Vanta Desktop поддерживает удалённые хосты Linux, macOS и Windows.',
       sshErrTimeout: 'SSH-соединение истекло. Хост может быть недоступен или «спит».',
@@ -1492,13 +1484,8 @@ export const ruOverrides = {
       activeBackend: 'Активен',
       activeBackendHint: 'Это ваш активный бэкенд',
       useBackend: 'Использовать этот бэкенд',
-      nousIncluded: 'Входит в подписку Nous — войдите в Nous Portal, чтобы активировать.',
-      nousAuthNeededTitle: 'Войдите в Nous Portal',
-      nousAuthNeededMessage: provider => `${provider} сохранён, но не активируется, пока вы не войдёте в Nous Portal.`,
       nousAuthSignIn: 'Войти',
-      nousAuthDoneTitle: 'Nous Portal подключён',
       nousAuthDoneMessage: 'Ваши бэкенды по подписке теперь активны.',
-      nousAuthFailed: 'Вход в Nous Portal не завершён',
       noApiKeyRequired: 'API-ключ не требуется.',
       postSetupHint: step =>
         `Этому бэкенду нужна однократная установка (${step}). Выполняется на этой машине — может занять несколько минут.`,
@@ -1622,7 +1609,6 @@ export const ruOverrides = {
     edit: 'Изменить',
     archive: 'В архив',
     skillArchivedTitle: 'Навык в архиве',
-    skillArchivedMessage: 'Восстановить через hermes curator restore.',
     hub: {
       searchPlaceholder: 'Поиск в хабе навыков',
       search: 'Поиск',
@@ -2114,7 +2100,7 @@ export const ruOverrides = {
       },
       MATRIX_HOMESERVER: { label: 'URL homeserver', placeholder: 'https://matrix.org' },
       MATRIX_ACCESS_TOKEN: { label: 'Токен доступа' },
-      MATRIX_USER_ID: { label: 'ID пользователя бота', placeholder: '@hermes:example.org' },
+      MATRIX_USER_ID: { label: 'ID пользователя бота', },
       MATRIX_ALLOWED_USERS: {
         label: 'Разрешённые ID пользователей Matrix',
         help: 'Рекомендуется. ID пользователей (по одному в поле) в формате @user:server.'
@@ -2732,7 +2718,6 @@ export const ruOverrides = {
       '/resume': 'Возобновить сохранённый сеанс',
       '/details': 'уровень детализации транскрипта',
       '/copy': 'скопировать выделенное или последнее сообщение ассистента',
-      '/quit': 'выйти из hermes',
       '/start': 'Подтвердить запуск платформы без ответа',
       '/new': 'Начать новый чат в приложении',
       '/topic': 'Включить или просмотреть темы личных сообщений Telegram',
@@ -2761,7 +2746,7 @@ export const ruOverrides = {
       '/refine': 'Проанализировать беседу и сохранить выводы в памяти или навыках',
       '/review': 'Запустить независимого субагента для проверки обсуждаемой работы',
       '/loop': 'Повторять запрос с заданным интервалом в этом сеансе',
-      '/plan': 'Записать план реализации в Markdown в .hermes/plans/ без выполнения',
+      '/plan': 'Записать план реализации в Markdown в .vanta/plans/ без выполнения',
       '/moa': 'Выполнить запрос через Mixture of Agents, затем вернуть исходную модель',
       '/subgoal': 'Добавить или изменить критерии активной цели',
       '/status': 'Показать состояние текущего сеанса',
@@ -2792,8 +2777,6 @@ export const ruOverrides = {
       '/browser': 'Управлять браузером агента [connect|disconnect|status|use]',
       '/palette': 'Открыть палитру команд',
       '/usage': 'Показать расход токенов и лимиты; reset использует накопленный сброс лимита Codex',
-      '/subscription': 'Показать план Nous и изменить его в браузере',
-      '/topup': 'Показать баланс Nous и управлять оплатой',
       '/platform': 'Приостановить, возобновить или перечислить сбоящие платформы шлюза',
       '/version': 'Показать версию Vanta',
       '/debug': 'Загрузить отчёт отладки с данными системы и журналами и получить ссылку',
@@ -3230,7 +3213,6 @@ export const ruOverrides = {
     remoteSetupDesc: 'Введите URL вашего шлюза. Vanta Desktop определит, нужен токен или вход через браузер.',
     remoteUrlTitle: 'URL шлюза',
     remoteUrlDesc: 'Используйте базовый URL шлюза Vanta, включая https:// для удалённых.',
-    remoteUrlPlaceholder: 'https://gateway.example.com/hermes',
     probing: 'Определяем аутентификацию шлюза...',
     probeError: 'Не удалось подключиться к этому шлюзу Vanta.',
     identityProvider: 'ваш провайдер аутентификации',
@@ -3284,7 +3266,6 @@ export const ruOverrides = {
     loadFailed: 'Не удалось загрузить модели',
     noAuthenticatedProviders: 'Нет провайдеров с аутентификацией.',
     pro: 'Pro',
-    proNeedsSubscription: 'Модели Pro требуют платной подписки Nous.',
     free: 'Free',
     freeTier: 'Бесплатный тариф',
     priceTitle: 'Цена вход / выход за миллион токенов',
@@ -3744,7 +3725,7 @@ export const ruOverrides = {
       reject: 'Отклонить',
       alwaysTitle: 'Всегда разрешать эту команду?',
       alwaysDescription: pattern =>
-        `Это добавит паттерн «${pattern}» в ваш постоянный список разрешений (~/.hermes/config.yaml). Vanta больше не будет спрашивать о подобных командах — ни в этом сеансе, ни в будущем.`,
+        `Это добавит паттерн «${pattern}» в ваш постоянный список разрешений. Vanta больше не будет спрашивать о подобных командах — ни в этом сеансе, ни в будущем.`,
       alwaysAllow: 'Всегда разрешать'
     },
     clarify: {
@@ -4047,7 +4028,6 @@ export const ruOverrides = {
       success: platform => `Передаём в ${platform}. Возобновите здесь в любой момент.`,
       systemNote: platform => `↻ Передано в ${platform} — возобновите здесь в любой момент.`,
       failed: error => `Передача не удалась: ${error}`,
-      timedOut: 'Превышено время ожидания шлюза. Выполняется ли `hermes gateway`?'
     }
   },
   errors: {
@@ -4083,7 +4063,6 @@ export const ruOverrides = {
   freeTier: {
     offer: {
       heading: 'Продолжайте с Vanta',
-      body: 'Вы пользуетесь бесплатным лимитом. Если продолжите работать с Vanta, скоро начнёте упираться в ограничения. Войдите с бесплатной учётной записью Nous, чтобы получить больший лимит.',
       signIn: 'Войти',
       notNow: 'Не сейчас'
     }
