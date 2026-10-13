@@ -3,6 +3,9 @@ import { useStore } from '@nanostores/react'
 import { useNavigate } from 'react-router'
 
 import { toggleTerminalPane } from '@/app/right-sidebar/terminal/reveal-focus'
+import { $terminalTakeover } from '@/app/right-sidebar/store'
+import { $terminals } from '@/app/right-sidebar/terminal/terminals'
+import { $paneVisible } from '@/components/pane-shell/tree/store'
 import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
 import { toggleFileBrowserOpen, $fileBrowserOpen } from '@/store/layout'
@@ -51,6 +54,11 @@ function WorkbenchToggles() {
   const copy = t.vantaShell.titlebar
   const reviewOpen = useStore($reviewOpen)
   const filesOpen = useStore($fileBrowserOpen)
+  // A showing pane with no shell yet reads as closed: pressing the button starts one.
+  const terminalShown = useStore($paneVisible('terminal'))
+  const terminalCount = useStore($terminals).length
+  const terminalTookOver = useStore($terminalTakeover)
+  const terminalOpen = terminalShown && (terminalCount > 0 || terminalTookOver)
 
   return (
     <>
@@ -61,7 +69,7 @@ function WorkbenchToggles() {
         onClick={() => toggleReview()}
         pressed={reviewOpen}
       />
-      <ToggleButton Icon={IconTerminal2} id="terminal" label={copy.terminal} onClick={toggleTerminalPane} />
+      <ToggleButton Icon={IconTerminal2} id="terminal" label={copy.terminal} onClick={toggleTerminalPane} pressed={terminalOpen} />
       <ToggleButton Icon={IconWorld} id="browser" label={copy.browser} onClick={toggleBrowserTab} />
       <ToggleButton
         Icon={IconFolder}

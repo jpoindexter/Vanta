@@ -65,10 +65,12 @@ function sandboxEnv({ root, project, modelUrl, hidden }) {
 }
 
 /** Start the app. `hidden` (default) keeps the window off-screen and inactive. */
-export async function launchVanta({ hidden = true, width = 1440, height = 900 } = {}) {
+export async function launchVanta({ hidden = true, width = 1440, height = 900, seed } = {}) {
   const { _electron } = require("playwright-core");
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "vanta-desktop-"));
   const project = makeProject(root);
+  // Seed before the app starts: files under the sandbox's VANTA_HOME or project that the first screen should already show.
+  if (seed) await seed({ project, root, vantaHome: path.join(root, "vanta-home") });
   const mock = await startMockOpenAI();
   const userData = path.join(root, "user-data");
   fs.mkdirSync(userData, { recursive: true });
@@ -108,6 +110,7 @@ export async function launchVanta({ hidden = true, width = 1440, height = 900 } 
     page,
     root,
     project,
+    modelUrl: mock.url,
     errors,
     resize,
     async shot(file) {
