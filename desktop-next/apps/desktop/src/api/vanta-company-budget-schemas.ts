@@ -75,6 +75,8 @@ export const RuntimesResponseSchema = z.object({ runtimes: z.array(RuntimeOption
 
 /** One provider the server can run a worker on (GET /api/models). */
 export const ProviderOptionSchema = z.object({
+  /** The provider the server is set up to use now. The hire dialog starts there. */
+  current: z.boolean().default(false),
   defaultModel: z.string().default(''),
   id: z.string(),
   label: z.string()

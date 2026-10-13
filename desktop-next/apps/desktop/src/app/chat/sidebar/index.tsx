@@ -3,7 +3,7 @@ import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useStore } from '@nanostores/react'
 import type * as React from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { IconHome, IconSettings } from '@tabler/icons-react'
+import { IconHome, IconSettings, IconUsersGroup } from '@tabler/icons-react'
 import { useLocation } from 'react-router'
 
 import { PlatformAvatar } from '@/app/messaging/platform-icon'
@@ -141,6 +141,7 @@ import {
   type AppView,
   ARTIFACTS_ROUTE,
   CAPABILITIES_ROUTE,
+  COMPANY_ROUTE,
   CRON_ROUTE,
   MESSAGING_ROUTE,
   NEW_CHAT_ROUTE,
@@ -258,6 +259,12 @@ const SIDEBAR_NAV: SidebarNavItem[] = [
     route: CRON_ROUTE,
     keybindActionId: 'nav.cron',
     tier: 'advanced'
+  },
+  {
+    id: 'company',
+    label: '',
+    icon: props => <IconUsersGroup {...props} />,
+    route: COMPANY_ROUTE
   }
 ]
 
@@ -300,6 +307,7 @@ function useNavLabel() {
   const byId: Record<string, string> = {
     artifacts: v.outputs,
     capabilities: v.skills,
+    company: v.company,
     cron: v.schedules,
     home: v.home,
     messaging: v.connections

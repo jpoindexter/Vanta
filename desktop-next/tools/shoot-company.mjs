@@ -46,6 +46,22 @@ const SCENARIOS = [
   { id: "ticket-closeable", query: "tab=tickets&ticket=T-5" },
   { id: "ticket-done", query: "tab=tickets&ticket=T-1" },
   { id: "ticket-error", query: "tab=tickets&ticket=T-404" },
+  {
+    id: "ticket-assign-cli-approval",
+    query: "tab=workers",
+    steps: [
+      click("Hire worker"),
+      (p) => p.getByRole("dialog").getByLabel(/Codex/).check(),
+      fillDialog("Role", "Reviewer"),
+      submitIn("Hire and ask me to approve"),
+      (p) => p.getByRole("button", { name: "Allow once" }).click(),
+      (p) => p.getByRole("tab", { name: "Tickets" }).click(),
+      (p) => p.getByRole("button", { name: /^Open T-5/ }).click(),
+      (p) => p.getByLabel("Worker").selectOption("reviewer"),
+      click("Assign"),
+    ],
+    wait: "[data-vp='approval-card']",
+  },
   ...perState("budgets"),
   {
     id: "budgets-raise-approval",
