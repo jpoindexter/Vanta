@@ -1,6 +1,6 @@
 // The desktop product identity — THE single source for every name-shaped
-// value a variant owns. HERMES_DESKTOP_VARIANT=light builds "Hermes
-// Light", the remote-only client; everything else is full "Hermes".
+// value a variant owns. HERMES_DESKTOP_VARIANT=light builds "Vanta
+// Light", the remote-only client; everything else is full "Vanta".
 //
 // Consumed at build time by electron-builder.config.cjs (packaging
 // identity). electron/product-identity.ts is the typed runtime accessor.
@@ -8,17 +8,20 @@
 /// <reference types="node" />
 'use strict'
 
+// `appPascal` names the userData directory. Vanta Next is displayed as "Vanta"
+// but keeps its own userData and single-instance lock until the cutover card
+// retires the current desktop, so the two apps never share a profile.
 const variants = {
-  '': { display: 'Hermes', kebab: 'hermes', pascal: 'Hermes' },
+  '': { display: 'Vanta', kebab: 'vanta-next', pascal: 'Vanta', appPascal: 'VantaNext' },
   light: {
-    display: 'Hermes Light',
-    kebab: 'hermes-light',
-    pascal: 'HermesLight'
+    display: 'Vanta Light',
+    kebab: 'vanta-light',
+    pascal: 'VantaLight'
   },
   bundled: {
-    display: 'Hermes Agent',
-    kebab: 'hermes-bundled',
-    pascal: 'HermesBundled'
+    display: 'Vanta Bundled',
+    kebab: 'vanta-bundled',
+    pascal: 'VantaBundled'
   }
 }
 
@@ -54,7 +57,7 @@ const displayName = buildCommit
 
 const kebabSuffix = buildCommit ? `-${buildCommit}` : canary ? '-canary' : ''
 const pascalSuffix = buildCommit ? `Commit${buildCommit}` : canary ? 'Canary' : ''
-const cliName = `${light ? 'hermes-light' : 'hermes'}${kebabSuffix}`
+const cliName = `${light ? 'vanta-light' : 'vanta-next'}${kebabSuffix}`
 if (store && (canary || buildCommit)) {
   throw new Error('Store packaging is only eligible for stable releases')
 }
@@ -66,22 +69,22 @@ const identity = {
   store,
   light,
   displayName,
-  appId: `com.nousresearch.${name.kebab}${kebabSuffix}`,
+  appId: `studio.theft.${name.kebab}${kebabSuffix}`,
   // Store and commit builds do not publish a release feed.
   channel: store || buildCommit ? null : light ? (canary ? 'light-canary' : 'light') : (canary ? 'canary' : 'latest'),
-  appNamePascal: `${name.pascal}${pascalSuffix}`,
+  appNamePascal: `${name.appPascal ?? name.pascal}${pascalSuffix}`,
   artifactNamePascal: name.pascal,
   windowsExecutableName: kebabSuffix ? cliName : displayName,
   cliName,
-  msixAppIdWithOrg: `NousResearch.${name.pascal}${pascalSuffix}`,
+  msixAppIdWithOrg: `TheftStudio.${name.pascal}${pascalSuffix}`,
   ...(store
     ? {
         storeMsix: {
           // Partner Center publisher identity (the account's publisher ID) —
           // validated + re-signed by the Store on submission.
-          identityName: 'NousResearchInc.HermesAgent',
-          publisher: 'CN=EE6D86E4-606F-4E38-B940-AD7248C9D519',
-          publisherDisplayName: 'Nous Research Inc.'
+          identityName: 'TheftStudio.Vanta',
+          publisher: 'CN=Theft Studio',
+          publisherDisplayName: 'Theft Studio'
         }
       }
     : {})
