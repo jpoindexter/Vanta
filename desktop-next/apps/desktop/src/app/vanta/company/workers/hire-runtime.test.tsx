@@ -77,6 +77,32 @@ describe('Hire worker: runtime picker', () => {
   })
 })
 
+describe('Hire worker: provider default', () => {
+  it('starts on the provider the server is set up to use, not the first in the list', async () => {
+    const view = await renderCompany()
+    const original = view.server.request.bind(view.server)
+
+    view.server.request = call =>
+      call.path === '/api/models'
+        ? Promise.resolve({
+            data: [
+              { current: false, defaultModel: 'a-1', id: 'first', label: 'First' },
+              { current: true, defaultModel: 'b-2', id: 'second', label: 'Second' }
+            ],
+            ok: true,
+            status: 200
+          })
+        : original(call)
+
+    fireEvent.click(await screen.findByTestId('hire-open'))
+
+    const dialog = await screen.findByRole('dialog')
+
+    expect(await within(dialog).findByText(/Runs on b-2/)).toBeTruthy()
+    expect((within(dialog).getByLabelText('Provider') as HTMLSelectElement).value).toBe('second')
+  })
+})
+
 describe('Run-starting writes on CLI workers', () => {
   it('shows the call_agent approval with Always when assigning a ticket to a CLI worker, and runs after Allow once', async () => {
     const { server } = await renderCompany({ initial: { tab: 'tickets', ticketId: 'T-5' } })

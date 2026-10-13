@@ -40,7 +40,10 @@ export function HireDialog({ action, company, onClose, onHire }: HireDialogProps
   const runtimes = runtimeState.status === 'ready' ? runtimeState.data : null
   const [form, setForm] = useState(EMPTY)
   const [problem, setProblem] = useState<null | string>(null)
-  const values = { ...form, adapter: form.adapter || list?.[0]?.id || '' }
+  const values = {
+    ...form,
+    adapter: form.adapter || list?.find(provider => provider.current)?.id || list?.[0]?.id || ''
+  }
   const resolved = { ...values, adapter: adapterFor(values, runtimes) }
 
   const submit = (event: FormEvent) => {

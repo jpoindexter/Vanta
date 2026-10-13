@@ -18,7 +18,7 @@ import { fixtureNow, RECORDED } from './recorded'
 
 const PAGE_SIZE = 25
 const PROVIDERS = [
-  { defaultModel: 'gpt-5.6-sol', id: 'openai', label: 'OpenAI' },
+  { current: true, defaultModel: 'gpt-5.6-sol', id: 'openai', label: 'OpenAI' },
   { defaultModel: 'claude-sonnet-5-5', id: 'anthropic', label: 'Anthropic' },
   { defaultModel: 'llama3.2', id: 'ollama', label: 'Ollama (local)' }
 ]

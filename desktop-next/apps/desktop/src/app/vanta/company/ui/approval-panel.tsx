@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react'
+
 import { ApprovalCard } from '@/components/chat/vanta/approval-card'
 
 import { useCompany } from '../company-context'
