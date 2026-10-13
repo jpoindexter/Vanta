@@ -78,3 +78,11 @@ by paragraph, with a completion announcement; all motion respects reduced-motion
 Tokens are the single source of truth (semantic layer only in components). Rule of 3 before a new primitive.
 Definition of Done per primitive: keyboard, focus, all states, tokens only, tested, documented in this file in the
 same change. Additive by default; deprecate before removing. Visual regression snapshots for the shell.
+
+## Company (workers, tickets, budgets, activity)
+One nav destination (`/company`, `?tab=&ticket=`) with four tabs; code in `apps/desktop/src/app/vanta/company/`, client in `src/api/vanta-company*.ts`.
+- Data: typed client over the Vanta bridge, every response Zod-parsed; one event stream (`company-ui` client id) drives a debounced refetch (250 ms). Hire, budget raise and any start of an external CLI worker raise the one approval card (`call_agent` cards offer Always; hire and raise are one-time).
+- Status is shape plus word (worker, ticket, budget). Costs always carry a basis: Estimated, Reported, Reported by the CLI, or "Not reported" (never $0.00).
+- A ticket that declares an artifact has Close locked with the reason beside it; Won't fix is the escape.
+- Hire runtime picker: native Vanta loop is the default; a CLI that is missing or signed out is disabled with the reason; self-approving CLIs carry a warning.
+- Dev-only fixtures page: `company-fixtures.html` (payloads recorded off the real server by `tools/record-company-fixtures.mts`); proofs: `tools/shoot-company.mjs`, `tools/drive-company-real.mjs` into `docs/proofs/company/`.

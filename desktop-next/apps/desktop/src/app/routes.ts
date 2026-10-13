@@ -21,6 +21,7 @@ export const CRON_ROUTE = '/cron'
 export const PROFILES_ROUTE = '/profiles'
 export const AGENTS_ROUTE = '/agents'
 export const STARMAP_ROUTE = '/starmap'
+export const COMPANY_ROUTE = '/company'
 
 export type AppView =
   | 'session-import'
@@ -29,6 +30,7 @@ export type AppView =
   | 'capabilities'
   | 'chat'
   | 'command-center'
+  | 'company'
   | 'cron'
   // A contributed (plugin) full page at its own route — NOT chat. Without this
   // distinction contributed paths fell through appViewForPath's 'chat' default,
@@ -47,6 +49,7 @@ export type AppRouteId =
   | 'artifacts'
   | 'capabilities'
   | 'command-center'
+  | 'company'
   | 'cron'
   | 'messaging'
   | 'new'
@@ -73,7 +76,8 @@ export const APP_ROUTES = [
   { id: 'cron', path: CRON_ROUTE, view: 'cron' },
   { id: 'profiles', path: PROFILES_ROUTE, view: 'profiles' },
   { id: 'agents', path: AGENTS_ROUTE, view: 'agents' },
-  { id: 'starmap', path: STARMAP_ROUTE, view: 'starmap' }
+  { id: 'starmap', path: STARMAP_ROUTE, view: 'starmap' },
+  { id: 'company', path: COMPANY_ROUTE, view: 'company' }
 ] as const satisfies readonly AppRoute[]
 
 const APP_VIEW_BY_PATH = new Map<string, AppView>(APP_ROUTES.map(route => [route.path, route.view]))
