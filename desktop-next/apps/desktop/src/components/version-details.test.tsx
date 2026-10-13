@@ -77,12 +77,12 @@ describe('VersionDetails', () => {
         source: 'local',
         installedByScript: true
       },
-      visible: ['Source (install script) + hermes desktop'],
+      visible: ['Source (install script) + Vanta Desktop'],
       absent: ['Desktop app (installer)']
     },
     {
       version: { distribution: 'desktop-app', updateMechanism: 'self', payload: 'bootstrap', source: 'local' },
-      visible: ['Source + hermes desktop'],
+      visible: ['Source + Vanta Desktop'],
       absent: ['Desktop app (installer)']
     },
     // install.sh / install.ps1 checkout (receipt present) vs a manual git

@@ -160,8 +160,6 @@ export const zhOverrides = {
       remoteFailureHint: '在“网关设置”中检查网关 URL 和登录，或切换到本地网关。',
       cloudDownDescription:
         '此网关连接的托管云代理正在返回服务器错误。无法在此处重启——请检查其状态、切换到本地网关或获取支持。',
-      cloudDownCheckPortal: '查看 Portal 状态',
-      cloudDownDiscord: '在 Discord 获取帮助',
       hideRecentLogs: '隐藏最近日志',
       showRecentLogs: '显示最近日志',
       signedInTitle: '已登录',

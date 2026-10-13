@@ -291,10 +291,10 @@ describe('BootFailureOverlay', () => {
     }
   })
 
-  it('shows the Nous Cloud down recovery when the backend flags isCloudBackendDown', async () => {
+  it('shows the cloud-agent-down recovery when the backend flags isCloudBackendDown', async () => {
     const restore = stubDesktop(remoteToken)
     $desktopBoot.set({
-      error: 'Nous Cloud agent ares-3009.agents.nousresearch.com is down (HTTP 503: server-side fault).',
+      error: 'Cloud agent agent-3009.example.com is down (HTTP 503: server-side fault).',
       fakeMode: false,
       isCloudBackendDown: true,
       message: 'boot failed',
@@ -310,19 +310,17 @@ describe('BootFailureOverlay', () => {
       render(<BootFailureOverlay />)
       // Cloud-specific title + actionable recovery instead of the generic
       // remote-failure copy.
-      expect(await screen.findByText(/Nous Cloud agent is down/i)).toBeTruthy()
-      // Portal and Discord are dedicated action buttons (localized labels
-      // can't drift the URLs, which live in code).
-      expect(screen.getByRole('button', { name: /check portal status/i })).toBeTruthy()
-      expect(screen.getByRole('button', { name: /get help on discord/i })).toBeTruthy()
+      expect(await screen.findByText(/Cloud agent is down/i)).toBeTruthy()
+      // No hosted portal or support-chat links: the paths that remain are local.
+      expect(screen.queryByRole('button', { name: /portal/i })).toBeNull()
+      expect(screen.queryByRole('button', { name: /discord/i })).toBeNull()
       // Cloud-down is a remote failure: local-only Repair is dropped; the
       // actionable paths are Gateway settings + Use local gateway.
       expect(screen.queryByRole('button', { name: /repair/i })).toBeNull()
       expect(screen.getByRole('button', { name: /gateway settings/i })).toBeTruthy()
       expect(screen.getByRole('button', { name: /use local gateway/i })).toBeTruthy()
-      // The electron-built error message (portal / local mode / Discord) is
-      // still surfaced in the error box.
-      expect(screen.getByText(/ares-3009\.agents\.nousresearch\.com/i)).toBeTruthy()
+      // The boot error message is still surfaced in the error box.
+      expect(screen.getByText(/agent-3009\.example\.com/i)).toBeTruthy()
     } finally {
       restore()
     }
