@@ -1,0 +1,141 @@
+/* Command palette and settings sheet share the scrim + sheet surface. */
+.vp-overlay {
+  background: rgb(0 0 0 / 28%);
+  display: grid;
+  inset: var(--vp-titlebar) 0 0;
+  padding-top: 60px;
+  place-items: start center;
+  position: absolute;
+  z-index: var(--z-modal, 9);
+}
+
+.vp-sheet {
+  background: var(--vp-bg);
+  border: 1px solid var(--vp-line);
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 25%);
+  max-height: calc(100% - 20px);
+  overflow: auto;
+  padding: 10px;
+  width: min(560px, 92%);
+}
+
+.vp-sheet--settings {
+  width: min(640px, 94%);
+}
+
+.vp-sheet input.vp-field {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--vp-hair);
+  color: inherit;
+  font: inherit;
+  outline: none;
+  padding: 8px;
+  width: 100%;
+}
+
+.vp-sheet input.vp-field:focus-visible {
+  border-bottom-color: var(--vp-focus);
+  box-shadow: 0 1px 0 var(--vp-focus);
+}
+
+.vp-opt {
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  justify-content: space-between;
+  padding: 7px 8px;
+  text-align: left;
+  width: 100%;
+}
+
+.vp-opt:hover,
+.vp-opt[aria-selected='true'] {
+  background: var(--vp-bg3);
+}
+
+.vp-opt__hint {
+  color: var(--vp-ink2);
+}
+
+.vp-list {
+  margin-top: 6px;
+}
+
+.vp-list p {
+  margin: 0 0 8px;
+  padding: 8px;
+}
+
+.vp-settings {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 150px 1fr;
+  margin-top: 10px;
+}
+
+.vp-nav {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: 10px;
+  height: 36px;
+  padding: 0 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.vp-nav:hover,
+.vp-nav[aria-current='true'] {
+  background: var(--vp-bg3);
+}
+
+.vp-nav[aria-current='true'] {
+  font-weight: 600;
+}
+
+.vp-nav:focus-visible {
+  outline: 2px solid var(--vp-focus);
+  outline-offset: 2px;
+}
+
+.vp-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 0 8px;
+}
+
+.vp-error {
+  color: var(--dt-destructive);
+  font-size: 12px;
+  padding: 0 0 8px;
+}
+
+.vp-sheet__head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.vp-sheet__title {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.vp-group-title {
+  color: var(--vp-ink2);
+  font-size: 12px;
+  margin: 12px 0 4px;
+}

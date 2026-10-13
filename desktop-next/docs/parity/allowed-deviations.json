@@ -4,27 +4,93 @@
     {
       "id": "icon-glyphs",
       "reason": "The wireframe draws icons as text glyphs (plus, magnifier, triangle...); the app uses Tabler icons. A text difference that is only these glyphs is allowed.",
-      "props": ["text", "placeholder"],
+      "props": [
+        "text",
+        "placeholder"
+      ],
       "transform": "stripGlyphs"
     },
     {
       "id": "icon-line-box",
       "reason": "A text glyph sits in a line box (about 20px tall); an SVG icon is its own height. Width and x still must match.",
-      "props": ["h", "y"],
-      "keys": ["*.glyph"],
+      "props": [
+        "h",
+        "y"
+      ],
+      "keys": [
+        "*.glyph"
+      ],
       "transform": "ignore"
     },
     {
       "id": "color-tokens",
       "reason": "The wireframe is grayscale on purpose; the app uses Vanta color tokens. Structure (filled vs not) is still compared; hue is not.",
-      "props": ["color", "bg"],
+      "props": [
+        "color",
+        "bg"
+      ],
       "transform": "ignore"
     },
     {
       "id": "native-window-controls",
       "reason": "The wireframe draws three gray dots for the window controls; the app uses the native macOS traffic lights.",
-      "props": ["*"],
-      "keys": ["titlebar.dots"],
+      "props": [
+        "*"
+      ],
+      "keys": [
+        "titlebar.dots"
+      ],
+      "transform": "ignore"
+    },
+    {
+      "id": "w-composite-aria-roles",
+      "reason": "Workbench tabs and palette rows are real tab and option widgets (roving arrows, aria-selected, aria-activedescendant); the wireframe draws plain buttons. Track W, owner to confirm.",
+      "props": [
+        "aria"
+      ],
+      "keys": [
+        "wbtab.*",
+        "palette.option[*]"
+      ],
+      "transform": "ignore"
+    },
+    {
+      "id": "w-icon-box-width",
+      "reason": "A Tabler icon box replaces a text glyph whose advance differs per glyph, so a row title line is a few px wider or narrower when the title is the longest line. Track W.",
+      "props": [
+        "w"
+      ],
+      "keys": [
+        "list.row.title[*]"
+      ],
+      "transform": "ignore"
+    },
+    {
+      "id": "w-code-keeps-line-breaks",
+      "reason": "Wireframe .code has no white-space:pre, so its multi-line diff, tree and terminal text collapses to one line; the build keeps the line breaks, which changes the block height and what sits under it. Track W, owner to confirm.",
+      "props": [
+        "h",
+        "y"
+      ],
+      "keys": [
+        "workbench.code[*]",
+        "workbench.placeholder",
+        "workbench.row[*]",
+        "workbench.action[*]"
+      ],
+      "transform": "ignore"
+    },
+    {
+      "id": "w-rail-rule-leak",
+      "reason": "Wireframe rule .w1100 .badge{display:none} targets the sidebar rail but also hides Home's Needs you badge at 1100; the build keeps the badge visible. Track W, owner to confirm.",
+      "props": [
+        "visible",
+        "w"
+      ],
+      "keys": [
+        "home.needsYou.badge",
+        "home.section.title[*]"
+      ],
       "transform": "ignore"
     }
   ]
