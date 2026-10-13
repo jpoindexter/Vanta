@@ -740,8 +740,8 @@ export async function applyUpdates(opts: DesktopUpdateApplyOptions = {}): Promis
         ...IDLE,
         applying: false,
         stage: 'manual',
-        message: result.message ?? result.command ?? 'hermes update',
-        command: result.command ?? 'hermes update'
+        message: result.message ?? result.command ?? 'vanta update',
+        command: result.command ?? 'vanta update'
       })
 
       return result
@@ -1011,7 +1011,7 @@ async function runBackendUpdate(): Promise<DesktopUpdateApplyResult> {
       // An empty update_command is the backend saying "there is no command to
       // run here" (managed container, commit build) — render the message-only
       // view. Only a field absent from an older backend falls back.
-      const command = ((started as { update_command?: string | null }).update_command ?? 'hermes update') || null
+      const command = ((started as { update_command?: string | null }).update_command ?? 'vanta update') || null
       $backendUpdateApply.set({ ...IDLE, applying: false, stage: 'manual', message, command })
 
       return { ok: false, error: 'manual', manual: true, message, command: command ?? undefined }

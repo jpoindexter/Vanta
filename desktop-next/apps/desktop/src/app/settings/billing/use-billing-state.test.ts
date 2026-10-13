@@ -241,7 +241,7 @@ describe('deriveBillingView', () => {
     expect(view.status).toBe('logged_out')
     expect(view.summary.map(item => item.value)).toEqual(['—', '—', '—'])
     expect(view.notice).toMatchObject({
-      title: 'Connect your Nous account'
+      title: 'Connect your account'
     })
     expect(view.paymentRow).toBeUndefined()
     expect(view.topupRow).toBeUndefined()
@@ -270,14 +270,14 @@ describe('deriveBillingView', () => {
     )
 
     expect(view.status).toBe('free_tier')
-    expect(view.notice).toMatchObject({ title: "You're on the Nous free tier", tone: 'info' })
+    expect(view.notice).toMatchObject({ title: "You're on the free tier", tone: 'info' })
     expect(view.notice?.action?.label).toBe('Sign in')
     expect(view.summary).toEqual([
       { label: 'Plan', value: 'Free tier' },
       { label: 'Model', value: 'nous/welcome' },
       { label: 'Connectors', tone: 'primary', value: 'Included' }
     ])
-    expect(view.plan).toMatchObject({ tierName: 'Nous · free tier' })
+    expect(view.plan).toMatchObject({ tierName: 'Free tier' })
     expect(view.plan?.action).toBeUndefined()
     expect(view.planFootnote).toContain('no balance and nothing to pay')
     expect(view.paymentRow).toBeUndefined()

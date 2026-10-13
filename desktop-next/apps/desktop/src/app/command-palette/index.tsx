@@ -990,7 +990,7 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
             detail: updateVersionLabel,
             icon: Download,
             id: 'cc-update-hermes',
-            keywords: ['update', 'upgrade', 'hermes', 'version', 'system', 'restart'],
+            keywords: ['update', 'upgrade', 'vanta', 'version', 'system', 'restart'],
             label: cc.updateHermes,
             run: () => requestActiveUpdate()
           },

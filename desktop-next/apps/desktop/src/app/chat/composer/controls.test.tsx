@@ -93,7 +93,7 @@ describe('HUD mode', () => {
     fireEvent.pointerEnter(mic.parentElement!)
 
     expect(await screen.findByLabelText('Read replies aloud')).toBeTruthy()
-    expect(screen.getByLabelText('Wake word "hey hermes"')).toBeTruthy()
+    expect(screen.getByLabelText('Wake word "hey vanta"')).toBeTruthy()
     expect(screen.queryByLabelText('Exit HUD mode')).toBeNull()
     expect(screen.queryByLabelText('Reset HUD size and position')).toBeNull()
     // No folded menu trigger — the fan's group shares the "Voice" name.

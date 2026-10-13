@@ -31,7 +31,7 @@ describe('HermesGateway picks its transport from the shell', () => {
 
     expect(gateway).toBeInstanceOf(VantaGateway)
     expect(gateway).toBeInstanceOf(JsonRpcGatewayClient)
-    await expect(gateway.request('session.list')).rejects.toThrow('Hermes gateway is not connected')
+    await expect(gateway.request('session.list')).rejects.toThrow('Vanta gateway is not connected')
 
     await gateway.connect('vanta://local')
 

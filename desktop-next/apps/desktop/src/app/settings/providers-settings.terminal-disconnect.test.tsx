@@ -102,14 +102,14 @@ describe('connected external provider row', () => {
           docs_url: '',
           flow: 'device_code',
           id: 'nous',
-          name: 'Nous Portal',
+          name: 'Hosted portal',
           status: { logged_in: true }
         }
       ]
     })
 
     await renderAccounts()
-    fireEvent.click(await screen.findByRole('button', { name: 'Remove Nous Portal' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Remove Hosted portal' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Disconnect' }))
 
     await waitFor(() => expect(disconnectOAuthProvider).toHaveBeenCalled())

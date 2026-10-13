@@ -60,7 +60,7 @@ export function VoiceMenu({
   const c = t.composer
   const wake = useStore($wakeWord)
 
-  const phrase = wake.phrase || 'hey hermes'
+  const phrase = wake.phrase || 'hey vanta'
   const dictating = state.voice.active || voiceStatus !== 'idle'
   const wakeListening = wake.listening
   // Anything live keeps the trigger lit, so a folded menu can never look idle
