@@ -1,6 +1,8 @@
 // The order the proof runs in. Each group owns the rows it records; later groups may overwrite an earlier
 // row when they can prove more (a seeded state turns a NOT-RUN into a PASS).
 import * as chrome from "./rows-chrome.mjs";
+import * as composer from "./rows-composer.mjs";
+import * as profiles from "./rows-profiles.mjs";
 import * as right from "./rows-right.mjs";
 import * as seeded from "./rows-seeded.mjs";
 import * as thread from "./rows-thread.mjs";
@@ -78,6 +80,23 @@ export const GROUPS = [
       await thread.focusRouting(ctx);
       await thread.imageRows(ctx);
       await thread.threadStates(ctx.page);
+    }
+  },
+  {
+    name: "profiles",
+    run: async (ctx) => {
+      await profiles.profileRail(ctx);
+      await profiles.botsRows(ctx);
+    }
+  },
+  {
+    name: "composer",
+    run: async (ctx) => {
+      await ensureChat(ctx.page);
+      await composer.inputRows(ctx.page);
+      await composer.attachRows(ctx);
+      await composer.pillRows(ctx.page);
+      await composer.runRows(ctx.page);
     }
   }
 ];
