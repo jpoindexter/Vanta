@@ -1,5 +1,6 @@
 import { atom } from 'nanostores'
 
+import { isUnsupportedResult } from '@/api/vanta/unsupported'
 import { $gateway } from './gateway'
 import { refreshSessionGoal } from './goals'
 import { isSessionGone, isSessionGoneForBackgroundPolling, markSessionGone } from './runtime-gone'
@@ -760,6 +761,17 @@ export async function refreshSessionControl(
     )
 
     if (!isCurrent(sessionId, token)) {
+      return $sessionControlBySession.get()[sessionId]
+    }
+
+    // Vanta answers a method it lacks with an `unsupported` result rather than a JSON-RPC error.
+    if (isUnsupportedResult(response)) {
+      const transitioned = markUnsupported(sessionId, token)
+
+      if (transitioned) {
+        await refreshSessionGoal(sessionId)
+      }
+
       return $sessionControlBySession.get()[sessionId]
     }
 
