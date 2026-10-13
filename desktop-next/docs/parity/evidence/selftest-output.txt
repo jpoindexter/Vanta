@@ -1,0 +1,36 @@
+run1 wireframe-spec.json   sha256 8e7727d8797d5321c4d958b928720f3d3815f3665f64931e96a2befa27f9e35c
+run2 wireframe-spec.json   sha256 8e7727d8797d5321c4d958b928720f3d3815f3665f64931e96a2befa27f9e35c
+run1 copy-inventory.json   sha256 ab7daebfa29f61e8b2a7108b96e666b37d2fc1ee0d26068e01d440f2fe064ce0
+run2 copy-inventory.json   sha256 ab7daebfa29f61e8b2a7108b96e666b37d2fc1ee0d26068e01d440f2fe064ce0
+committed wireframe-spec.json sha256 8e7727d8797d5321c4d958b928720f3d3815f3665f64931e96a2befa27f9e35c
+committed copy-inventory.json sha256 ab7daebfa29f61e8b2a7108b96e666b37d2fc1ee0d26068e01d440f2fe064ce0
+DETERMINISM: PASS byte-identical (two fresh runs and the committed files)
+SELF-CHECK (wireframe vs itself): 6758 rows, 6758 PASS, 0 ALLOWED, 0 FAIL, 0 UNMAPPED; keys 160/160 mapped; copy 2889/2889 strings
+SELF-CHECK: PASS 100%
+NEGATIVE label: approval button label "Allow once" -> "Allow only" (same length, so only the wording is wrong)
+  FAIL card.approval.allowOnce:text in 19 state(s)
+  copy rows FAIL: 19
+  other rows still PASS: 6739 of 6758
+NEGATIVE label: PASS - only card.approval.allowOnce:text failed; geometry stayed inside tolerance; the copy inventory flagged it too
+NEGATIVE radius: composer radius 22px -> 18px
+  FAIL composer:radius in 29 state(s)
+  FAIL home.composer:radius in 3 state(s) (w1440.view-home, w1100.view-home, w800.view-home)
+  copy rows FAIL: 0
+  other rows still PASS: 6726 of 6758
+NEGATIVE radius: PASS - only the two composer keys failed, on radius
+NEGATIVE sidebar-280: sidebar column 275px -> 280px at 1440 (the 1100 and 800 layouts are untouched)
+  FAIL sidebar:w in 24 state(s)
+  FAIL nav.new:w in 24 state(s)
+  FAIL nav.new.shortcut:x in 24 state(s)
+  FAIL nav.search:w in 24 state(s)
+  FAIL nav.search.shortcut:x in 24 state(s)
+  FAIL nav.home:w in 24 state(s)
+  FAIL nav.schedules:w in 24 state(s)
+  FAIL nav.connections:w in 24 state(s)
+  FAIL nav.skills:w in 24 state(s)
+  FAIL nav.outputs:w in 24 state(s)
+  ... 74 more key:prop pairs (full list in evidence/negative-sidebar-280.txt)
+  copy rows FAIL: 0
+  other rows still PASS: 5293 of 6758
+NEGATIVE sidebar-280: PASS - sidebar:w failed in every 1440 state (plus its real knock-on rows); nothing failed at 1100/800
+SELFTEST: ALL PASS
