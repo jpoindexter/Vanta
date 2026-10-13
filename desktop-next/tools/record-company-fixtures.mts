@@ -99,7 +99,7 @@ async function recordApprovals(h: CompanyHarness, out: string) {
 async function main() {
   await mkdir(OUT, { recursive: true });
   const h = await startCompanyHarness();
-  setCompanyPorts({ runtime: () => ({ id: "stub", run: runtimeFor }), now: clock, newId: ids });
+  setCompanyPorts({ runtime: () => ({ id: "vanta-native", run: runtimeFor }), now: clock, newId: ids });
   const probe = await openSse(h.server.port, COMPANY_SID);
   try {
     await scenario(h);
@@ -112,6 +112,7 @@ async function main() {
     await dump(OUT, "okrs", h, "/api/okrs");
     await dump(OUT, "work-products", h, "/api/work-products");
     await dump(OUT, "heartbeats", h, "/api/heartbeats");
+    await dump(OUT, "runtimes", h, "/api/company/runtimes");
     await recordApprovals(h, OUT);
     const frames = probe.frames.filter((f): f is SseFrameJson => Boolean(f.typed));
     await writeFile(join(OUT, "events.json"), `${JSON.stringify(frames.slice(-40), null, 2)}\n`);

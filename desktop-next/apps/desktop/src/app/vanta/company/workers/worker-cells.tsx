@@ -1,6 +1,6 @@
 import type { CompanyWorker } from '@/api/vanta-company-schemas'
 
-import { costText, formatUsd } from '../format'
+import { costText, formatUsd, NATIVE_RUNTIME, runtimeName } from '../format'
 
 import type { OrgRow } from './org-rows'
 
@@ -31,7 +31,7 @@ export function NameCell({ row }: { row: OrgRow }) {
 export function RuntimeCell({ worker }: { worker: CompanyWorker }) {
   return (
     <>
-      <div>{worker.runtime.kind === 'vanta-native' ? 'Vanta native' : worker.runtime.kind}</div>
+      <div>{runtimeName(worker.runtime.kind)}</div>
       {worker.runtime.model && <div className="vp-note vp-note--flush">{worker.runtime.model}</div>}
     </>
   )
@@ -68,7 +68,7 @@ export function TicketCell({ onOpenTicket, worker }: TicketCellProps) {
 
 /** Cost so far with its basis; "Not reported" when nothing was reported, never $0.00. */
 export function CostCell({ worker }: { worker: CompanyWorker }) {
-  const cost = costText(worker.costUsd, worker.costBasis)
+  const cost = costText(worker.costUsd, worker.costBasis, worker.runtime.kind !== NATIVE_RUNTIME)
   const budget = worker.budgetUsd === null ? '' : `budget ${formatUsd(worker.budgetUsd)}`
 
   return (

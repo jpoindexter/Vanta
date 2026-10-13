@@ -74,7 +74,7 @@ describe('Workers tab', () => {
     const { server } = await renderCompany()
 
     fireEvent.click(await screen.findByRole('button', { name: 'Pause Designer' }))
-    await screen.findByText('Paused Designer.')
+    await screen.findByText('Paused Designer. Any run in flight was stopped.')
     expect(server.callsTo('POST /api/company/workers/pause')[0].body).toEqual({ workerId: 'designer' })
 
     fireEvent.click(await screen.findByRole('button', { name: 'Resume Designer' }))

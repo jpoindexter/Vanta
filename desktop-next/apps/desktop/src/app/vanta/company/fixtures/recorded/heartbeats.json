@@ -3,25 +3,25 @@
   "workers": [
     {
       "workerId": "engineer",
-      "lastHeartbeat": "2026-10-13T19:19:42.722Z",
+      "lastHeartbeat": "2026-10-13T19:49:28.267Z",
       "source": "task",
       "currentTicketId": "T-3"
     },
     {
       "workerId": "designer",
-      "lastHeartbeat": "2026-10-13T19:19:42.759Z",
+      "lastHeartbeat": "2026-10-13T19:49:28.302Z",
       "source": "task",
       "currentTicketId": null
     },
     {
       "workerId": "analyst",
-      "lastHeartbeat": "2026-10-13T19:19:42.766Z",
+      "lastHeartbeat": "2026-10-13T19:49:28.307Z",
       "source": "task",
       "currentTicketId": "T-7"
     },
     {
       "workerId": "researcher",
-      "lastHeartbeat": "2026-10-13T19:19:42.739Z",
+      "lastHeartbeat": "2026-10-13T19:49:28.284Z",
       "source": "task",
       "currentTicketId": "T-4"
     },

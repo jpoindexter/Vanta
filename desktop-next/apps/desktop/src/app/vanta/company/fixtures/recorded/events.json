@@ -31,7 +31,7 @@
       "workerId": "researcher",
       "status": "idle",
       "currentTicketId": null,
-      "lastHeartbeat": "2026-10-13T19:19:42.638Z",
+      "lastHeartbeat": "2026-10-13T19:49:28.184Z",
       "costUsd": 0
     }
   },
@@ -74,7 +74,7 @@
         "workProductCount": 0,
         "commentCount": 0,
         "createdAt": "2026-10-13T11:07:32.000Z",
-        "updatedAt": "2026-10-13T19:19:42.737Z"
+        "updatedAt": "2026-10-13T19:49:28.281Z"
       }
     }
   },
@@ -85,7 +85,7 @@
       "workerId": "researcher",
       "status": "working",
       "currentTicketId": "T-4",
-      "lastHeartbeat": "2026-10-13T19:19:42.737Z",
+      "lastHeartbeat": "2026-10-13T19:49:28.281Z",
       "costUsd": 0
     }
   },
@@ -128,7 +128,7 @@
         "workProductCount": 0,
         "commentCount": 0,
         "createdAt": "2026-10-13T11:07:32.000Z",
-        "updatedAt": "2026-10-13T19:19:42.739Z"
+        "updatedAt": "2026-10-13T19:49:28.284Z"
       }
     }
   },
@@ -139,7 +139,7 @@
       "workerId": "researcher",
       "status": "failed",
       "currentTicketId": "T-4",
-      "lastHeartbeat": "2026-10-13T19:19:42.739Z",
+      "lastHeartbeat": "2026-10-13T19:49:28.284Z",
       "costUsd": 0
     }
   },
@@ -277,7 +277,7 @@
       "workerId": "designer",
       "status": "idle",
       "currentTicketId": null,
-      "lastHeartbeat": "2026-10-13T19:19:42.711Z",
+      "lastHeartbeat": "2026-10-13T19:49:28.255Z",
       "costUsd": 0
     }
   },
@@ -320,7 +320,7 @@
         "workProductCount": 0,
         "commentCount": 0,
         "createdAt": "2026-10-13T11:52:48.000Z",
-        "updatedAt": "2026-10-13T19:19:42.753Z"
+        "updatedAt": "2026-10-13T19:49:28.298Z"
       }
     }
   },
@@ -331,7 +331,7 @@
       "workerId": "designer",
       "status": "working",
       "currentTicketId": "T-6",
-      "lastHeartbeat": "2026-10-13T19:19:42.753Z",
+      "lastHeartbeat": "2026-10-13T19:49:28.298Z",
       "costUsd": 0
     }
   },
@@ -438,7 +438,7 @@
         "workProductCount": 1,
         "commentCount": 0,
         "createdAt": "2026-10-13T11:52:48.000Z",
-        "updatedAt": "2026-10-13T19:19:42.759Z"
+        "updatedAt": "2026-10-13T19:49:28.302Z"
       }
     }
   },
@@ -449,7 +449,7 @@
       "workerId": "designer",
       "status": "idle",
       "currentTicketId": null,
-      "lastHeartbeat": "2026-10-13T19:19:42.759Z",
+      "lastHeartbeat": "2026-10-13T19:49:28.302Z",
       "costUsd": 0.1
     }
   },
@@ -545,7 +545,7 @@
       "workerId": "analyst",
       "status": "idle",
       "currentTicketId": null,
-      "lastHeartbeat": "2026-10-13T19:19:42.618Z",
+      "lastHeartbeat": "2026-10-13T19:49:28.164Z",
       "costUsd": 0
     }
   },
@@ -588,7 +588,7 @@
         "workProductCount": 0,
         "commentCount": 0,
         "createdAt": "2026-10-13T12:42:55.000Z",
-        "updatedAt": "2026-10-13T19:19:42.766Z"
+        "updatedAt": "2026-10-13T19:49:28.307Z"
       }
     }
   },
@@ -599,7 +599,7 @@
       "workerId": "analyst",
       "status": "working",
       "currentTicketId": "T-7",
-      "lastHeartbeat": "2026-10-13T19:19:42.766Z",
+      "lastHeartbeat": "2026-10-13T19:49:28.307Z",
       "costUsd": 0
     }
   },
@@ -641,7 +641,7 @@
         "workProductCount": 1,
         "commentCount": 2,
         "createdAt": "2026-10-13T10:17:25.000Z",
-        "updatedAt": "2026-10-13T19:19:42.722Z"
+        "updatedAt": "2026-10-13T19:49:28.267Z"
       }
     }
   },
@@ -678,7 +678,7 @@
     "typed": {
       "type": "approval.request",
       "approval": {
-        "id": "1791919182816",
+        "id": "1791920968999",
         "action": "Hire copywriter (Copywriter) on openai",
         "reason": "Adds a worker that can run tickets with budget 1.5 USD.",
         "toolName": "company.hire",
@@ -705,7 +705,7 @@
     "label": "",
     "typed": {
       "type": "approval.resolved",
-      "id": "1791919182816"
+      "id": "1791920968999"
     }
   },
   {
@@ -713,7 +713,7 @@
     "typed": {
       "type": "approval.request",
       "approval": {
-        "id": "1791919182835",
+        "id": "1791920969017",
         "action": "Raise agent:designer budget to 0.5 USD",
         "reason": "From 0.1 USD; 0.10 USD spent so far.",
         "toolName": "company.budget",

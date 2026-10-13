@@ -227,6 +227,8 @@ function findNode(chart: OrgChartNode[], workerId: string): OrgChartNode | undef
   return undefined
 }
 
+const runtimeKind = (adapter: string) => (adapter.startsWith('cli:') ? adapter.slice('cli:'.length) : 'vanta-native')
+
 export function addWorker(state: FakeState, body: Body): WriteOutcome {
   const role = text(body, 'role')
   const id = role.toLowerCase().replace(/\W+/g, '-')
@@ -245,7 +247,7 @@ export function addWorker(state: FakeState, body: Body): WriteOutcome {
     queuedTicketIds: [],
     reportsTo: text(body, 'managerId') || null,
     role,
-    runtime: { adapter: text(body, 'adapter'), kind: 'vanta-native', model: null },
+    runtime: { adapter: text(body, 'adapter'), kind: runtimeKind(text(body, 'adapter')), model: null },
     status: 'idle'
   }
 

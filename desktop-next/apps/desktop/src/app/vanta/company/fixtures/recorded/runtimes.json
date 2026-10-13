@@ -1,0 +1,44 @@
+{
+  "runtimes": [
+    {
+      "runtimeId": "vanta-native",
+      "installed": true,
+      "command": null,
+      "version": null,
+      "auth": "not-applicable",
+      "selfApproving": false,
+      "displayName": "Vanta",
+      "adapter": null
+    },
+    {
+      "runtimeId": "claude-code",
+      "installed": true,
+      "command": "claude",
+      "version": "2.1.222",
+      "auth": "unauthenticated",
+      "selfApproving": false,
+      "displayName": "Claude Code",
+      "adapter": "cli:claude-code"
+    },
+    {
+      "runtimeId": "codex",
+      "installed": true,
+      "command": "codex",
+      "version": "0.144.1",
+      "auth": "authenticated",
+      "selfApproving": false,
+      "displayName": "Codex",
+      "adapter": "cli:codex"
+    },
+    {
+      "runtimeId": "hermes",
+      "installed": true,
+      "command": "hermes",
+      "version": "0.21.7+495.g6e7b83a",
+      "auth": "unknown",
+      "selfApproving": true,
+      "displayName": "Hermes",
+      "adapter": "cli:hermes"
+    }
+  ]
+}

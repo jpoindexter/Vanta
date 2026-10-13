@@ -470,3 +470,31 @@ textarea.vc-input {
     grid-template-columns: 90px 1fr;
   }
 }
+
+/* ---- runtime picker ---- */
+.vc-fieldset {
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.vc-radio {
+  align-items: baseline;
+  column-gap: 8px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+}
+
+.vc-radio__note {
+  grid-column: 2;
+  max-width: 56ch;
+}
+
+.vc-radio input:focus-visible {
+  outline: 2px solid var(--vp-focus);
+  outline-offset: 2px;
+}

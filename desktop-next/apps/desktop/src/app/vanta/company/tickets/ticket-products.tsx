@@ -5,9 +5,18 @@ import type { TicketDetail, WorkProduct } from '@/api/vanta-company-schemas'
 
 import { VpButton } from '../../ui/button'
 import { useCompany } from '../company-context'
-import { clockTime } from '../format'
+import { clockTime, NATIVE_RUNTIME, runtimeName } from '../format'
 import { Field } from '../ui/field'
 import type { ActionState } from '../use-company-action'
+
+/** Where the artifact came from: worker, runtime and run (when a runtime produced it), ticket, department. */
+export function provenanceLine({ provenance }: WorkProduct): string {
+  const via =
+    provenance.runtimeId && provenance.runtimeId !== NATIVE_RUNTIME ? ` with ${runtimeName(provenance.runtimeId)}` : ''
+  const run = provenance.runId ? `, run ${provenance.runId}` : ''
+
+  return `Produced by ${provenance.workerId}${via}${run} for ${provenance.taskId}, ${provenance.departmentId} department`
+}
 
 function Approval({ product }: { product: WorkProduct }) {
   const Icon = product.approved ? IconCircleCheck : IconEye
@@ -31,7 +40,8 @@ function ReviseForm({ action, product }: { action: ActionState; product: WorkPro
     if (
       reason.trim() &&
       (await action.run(() => api.revise(product.id, reason.trim()), {
-        done: 'Revision requested. The worker is re-running.'
+        done: 'Revision requested. The worker is re-running.',
+        needsApproval: true
       }))
     ) {
       setReason('')
@@ -79,10 +89,7 @@ function ProductCard({ action, product }: { action: ActionState; product: WorkPr
         <Approval product={product} />
         <span className="vp-muted">{clockTime(product.createdAt)}</span>
       </div>
-      <p className="vp-note vp-note--flush">
-        Produced by {product.provenance.workerId} for {product.provenance.taskId}, {product.provenance.departmentId}{' '}
-        department
-      </p>
+      <p className="vp-note vp-note--flush">{provenanceLine(product)}</p>
       <pre aria-label={`${product.kind} contents`} className="vp-code vc-artifact">
         <code>{product.artifact}</code>
       </pre>

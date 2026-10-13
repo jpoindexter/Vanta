@@ -15,7 +15,7 @@
   "workProductCount": 1,
   "commentCount": 2,
   "createdAt": "2026-10-13T10:17:25.000Z",
-  "updatedAt": "2026-10-13T19:19:42.722Z",
+  "updatedAt": "2026-10-13T19:49:28.267Z",
   "thread": [
     {
       "at": "2026-10-13T10:19:02.000Z",
@@ -41,7 +41,7 @@
       "runId": "r0022",
       "ticketId": "T-3",
       "workerId": "engineer",
-      "runtime": "stub",
+      "runtime": "vanta-native",
       "status": "awaiting_review",
       "attempt": 1,
       "startedAt": "2026-10-13T10:41:40.000Z",
@@ -70,7 +70,9 @@
       "provenance": {
         "taskId": "T-3",
         "workerId": "engineer",
-        "departmentId": "product"
+        "departmentId": "product",
+        "runtimeId": "vanta-native",
+        "runId": "r0022"
       },
       "revisions": []
     }

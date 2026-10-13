@@ -21,7 +21,7 @@
       "paused": false,
       "currentTicketId": "T-3",
       "queuedTicketIds": [],
-      "lastHeartbeat": "2026-10-13T19:19:42.722Z",
+      "lastHeartbeat": "2026-10-13T19:49:28.267Z",
       "costUsd": 0.52,
       "costBasis": "estimated",
       "budgetUsd": 5
@@ -42,7 +42,7 @@
       "paused": false,
       "currentTicketId": null,
       "queuedTicketIds": [],
-      "lastHeartbeat": "2026-10-13T19:19:42.759Z",
+      "lastHeartbeat": "2026-10-13T19:49:28.302Z",
       "costUsd": 0.1,
       "costBasis": "estimated",
       "budgetUsd": 0.1
@@ -65,7 +65,7 @@
       "paused": false,
       "currentTicketId": "T-7",
       "queuedTicketIds": [],
-      "lastHeartbeat": "2026-10-13T19:19:42.766Z",
+      "lastHeartbeat": "2026-10-13T19:49:28.307Z",
       "costUsd": 0,
       "costBasis": "not-reported",
       "budgetUsd": 2
@@ -86,7 +86,7 @@
       "paused": false,
       "currentTicketId": "T-4",
       "queuedTicketIds": [],
-      "lastHeartbeat": "2026-10-13T19:19:42.739Z",
+      "lastHeartbeat": "2026-10-13T19:49:28.284Z",
       "costUsd": 0,
       "costBasis": "not-reported",
       "budgetUsd": 3

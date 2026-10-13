@@ -7,7 +7,8 @@ import { workerSpendText } from './budgets/spend-tables'
 import { scopeLabel } from './budgets/scope-label'
 import { costText, durationText, formatUsd, percent, relativeTime } from './format'
 import { RECORDED } from './fixtures/recorded'
-import { validateHire } from './workers/hire-form'
+import { adapterFor, validateHire } from './workers/hire-form'
+import { availabilityOf, SELF_APPROVING_WARNING } from './workers/runtime-availability'
 import { orgRows } from './workers/org-rows'
 import { nextTab } from './ui/tabs'
 
@@ -172,7 +173,15 @@ describe('spend and scope text', () => {
 })
 
 describe('hire form', () => {
-  const base = { adapter: 'openai', budget: '', departmentId: '', managerId: '', role: 'Engineer', title: '' }
+  const base = {
+    adapter: 'openai',
+    budget: '',
+    departmentId: '',
+    managerId: '',
+    role: 'Engineer',
+    runtimeId: 'vanta-native',
+    title: ''
+  }
 
   it('builds the request without empty optional fields', () => {
     expect(validateHire({ ...base, budget: '2.5', managerId: 'engineer' })).toEqual({
@@ -183,7 +192,7 @@ describe('hire form', () => {
 
   it.each([
     [{ role: '  ' }, 'Role is required, for example "Engineer".'],
-    [{ adapter: '' }, 'Runtime is required. Pick a provider.'],
+    [{ adapter: '' }, 'Provider is required. Pick one for the Vanta loop.'],
     [{ budget: '-3' }, 'Budget must be a number of US dollars above 0, got "-3".'],
     [{ budget: 'abc' }, 'Budget must be a number of US dollars above 0, got "abc".']
   ])('refuses %j with a message that names the field', (change, message) => {
@@ -199,5 +208,47 @@ describe('tab keys', () => {
     expect(nextTab('budgets', 'Home')).toBe('workers')
     expect(nextTab('budgets', 'End')).toBe('activity')
     expect(nextTab('budgets', 'a')).toBeUndefined()
+  })
+})
+
+describe('runtimes, on the detect results recorded from this machine', () => {
+  const byId = (id: string) => RECORDED.runtimes.runtimes.find(option => option.runtimeId === id)!
+
+  it('offers the native loop and a signed-in CLI', () => {
+    expect(availabilityOf(byId('vanta-native'))).toEqual({ blocked: null, caution: null })
+    expect(availabilityOf(byId('codex'))).toEqual({ blocked: null, caution: null })
+  })
+
+  it('blocks a signed-out CLI with the reason', () => {
+    expect(availabilityOf(byId('claude-code')).blocked).toBe(
+      'Claude Code is signed out. Sign in with its own command, then reopen this dialog.'
+    )
+  })
+
+  it('blocks a missing CLI, and warns about a self-approving one whose sign-in is unknown', () => {
+    expect(availabilityOf({ ...byId('codex'), installed: false }).blocked).toBe(
+      'Codex is not installed on this machine.'
+    )
+    expect(availabilityOf(byId('hermes'))).toEqual({
+      blocked: null,
+      caution: `${SELF_APPROVING_WARNING} Sign-in status could not be checked, so a run may fail to start.`
+    })
+  })
+
+  it('hires with cli:<id> for a CLI and with the provider id for the native loop', () => {
+    const base = {
+      adapter: 'openai',
+      budget: '',
+      departmentId: '',
+      managerId: '',
+      role: 'Engineer',
+      runtimeId: 'vanta-native',
+      title: ''
+    }
+    const values = { ...base, runtimeId: 'codex' }
+
+    expect(adapterFor(values, RECORDED.runtimes.runtimes)).toBe('cli:codex')
+    expect(adapterFor({ ...base }, RECORDED.runtimes.runtimes)).toBe('openai')
+    expect(adapterFor(values, null)).toBe('openai')
   })
 })

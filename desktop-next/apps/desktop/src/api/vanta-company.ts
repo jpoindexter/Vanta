@@ -11,6 +11,8 @@ import {
   type CompanyResponse,
   CompanyResponseSchema,
   ProviderListSchema,
+  type RuntimeOption,
+  RuntimesResponseSchema,
   type ProviderOption,
   type TicketDetail,
   TicketDetailSchema,
@@ -23,7 +25,7 @@ import {
 /** One id for the Company screen. The server keeps its pending approval per client id. */
 export const COMPANY_CLIENT_ID = 'company-ui'
 
-/** Hire and budget raise block on the owner's decision, so they get a long timeout. */
+/** Hire, budget raise and anything that starts an external CLI worker block on the owner's decision, so they get a long timeout. */
 const APPROVAL_WAIT_MS = 600_000
 const OFFLINE_MESSAGE = 'Could not reach the Vanta server. Check that Vanta is running, then retry.'
 const NO_RESPONSE_STATUS = 0
@@ -61,7 +63,7 @@ export interface CreateTicketInput {
   title: string
 }
 
-export type ApprovalDecision = 'allow' | 'deny'
+export type ApprovalDecision = 'allow' | 'always' | 'deny' | 'never'
 
 export interface CompanyApi {
   approve: (workProductId: string) => Promise<CompanyResult<WriteReply>>
@@ -78,6 +80,7 @@ export interface CompanyApi {
   readActivity: (query?: ActivityQuery) => Promise<CompanyResult<ActivityResponse>>
   readBudgets: () => Promise<CompanyResult<BudgetsResponse>>
   readCompany: () => Promise<CompanyResult<CompanyResponse>>
+  readRuntimes: () => Promise<CompanyResult<RuntimeOption[]>>
   readProviders: () => Promise<CompanyResult<ProviderOption[]>>
   readTicket: (id: string) => Promise<CompanyResult<TicketDetail>>
   readTickets: (filters?: TicketFilters) => Promise<CompanyResult<TicketsResponse>>
@@ -147,9 +150,9 @@ export function createCompanyApi(transport: VantaTransport, clientId: string = C
     send({ body, method: 'POST', path: `/api/company/${path}`, timeoutMs }, WriteReplySchema)
 
   return {
-    answer: (ticketId, answer) => write('tickets/answer', { answer, ticketId }),
+    answer: (ticketId, answer) => write('tickets/answer', { answer, ticketId }, APPROVAL_WAIT_MS),
     approve: workProductId => write('work-products/approve', { workProductId }),
-    assign: (ticketId, workerId) => write('tickets/assign', { ticketId, workerId }),
+    assign: (ticketId, workerId) => write('tickets/assign', { ticketId, workerId }, APPROVAL_WAIT_MS),
     close: (ticketId, resolution) => write('tickets/close', { resolution, ticketId }),
     comment: (ticketId, text) => write('tickets/comment', { text, ticketId }),
     createTicket: input => write('tickets/create', input),
@@ -163,10 +166,15 @@ export function createCompanyApi(transport: VantaTransport, clientId: string = C
     readBudgets: () => read('/api/budgets', BudgetsResponseSchema),
     readCompany: () => read('/api/company', CompanyResponseSchema),
     readProviders: () => read('/api/models', ProviderListSchema),
+    readRuntimes: async () => {
+      const result = await read('/api/company/runtimes', RuntimesResponseSchema)
+
+      return result.ok ? { data: result.data.runtimes, ok: true } : result
+    },
     readTicket: id => read(`/api/tickets/${encodeURIComponent(id)}`, TicketDetailSchema),
     readTickets: (filters = {}) => read(queryPath('/api/tickets', { ...filters }), TicketsResponseSchema),
-    resume: workerId => write('workers/resume', { workerId }),
-    revise: (workProductId, reason) => write('work-products/revise', { reason, workProductId }),
+    resume: workerId => write('workers/resume', { workerId }, APPROVAL_WAIT_MS),
+    revise: (workProductId, reason) => write('work-products/revise', { reason, workProductId }, APPROVAL_WAIT_MS),
     subscribe: listener => openCompanyStream(transport, clientId, listener)
   }
 }
