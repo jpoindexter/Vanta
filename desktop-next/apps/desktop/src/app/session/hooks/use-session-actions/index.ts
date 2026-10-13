@@ -37,6 +37,7 @@ import { setSessionYolo } from '@/lib/yolo-session'
 import { $clarifyRequests, clearClarifyRequest } from '@/store/clarify'
 import { announceGoneSessionDraft, announceNewSessionDraftKey, migrateSessionDraft } from '@/store/composer'
 import { clearQueuedPrompts, migrateQueuedPrompts } from '@/store/composer-queue'
+import { closeHome } from '@/store/home-view'
 import { resetSessionBackground } from '@/store/composer-status'
 import { $connectionRequests } from '@/store/connection-request'
 import {
@@ -968,6 +969,7 @@ export function useSessionActions({
   const selectSidebarItem = useCallback(
     (item: SidebarNavItem) => {
       if (item.action === 'new-session') {
+        closeHome()
         prepareDefaultNewSession()
         setWorkspaceScope('sessions')
         startFreshSessionDraft()

@@ -661,18 +661,6 @@ export function ProfileRail() {
 
       {localDeviceDialog}
 
-      {/* Multi-gateway discoverability: before a second source exists, a plug
-          pinned beside Manage deep-links to the unified Gateways page. Once
-          there are several sources, the same action lives in their selector. */}
-      {!multipleConnections && (
-        <ProfilePill
-          active={false}
-          glyph="plug"
-          label={p.connectGateway}
-          onSelect={() => navigate(`${SETTINGS_ROUTE}?tab=gateway`)}
-        />
-      )}
-
       {/* Land in the new profile on a fresh chat (selectProfile triggers the
           new-session reset), not stuck on the session you were just in. */}
       <CreateProfileDialog
