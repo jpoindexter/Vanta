@@ -86,7 +86,6 @@ import {
   setBusy,
   setMessages
 } from '@/store/session'
-import { reportPendingUpdateRun } from '@/store/shared-metrics'
 import { $archivedSessions } from '@/store/sidebar-archive'
 import { $titlebarAppActionsSide, titlebarAppActionsClusterCounts } from '@/store/titlebar-app-actions'
 import { armWakeWord, stopClientCapture } from '@/store/wake-word'
@@ -868,17 +867,6 @@ export function ContribWiring({ children }: { children: ReactNode }) {
       // same listener this auto-arm claims.
       void armWakeWord(requestGateway)
     }
-  }, [gatewayState, requestGateway])
-
-  useEffect(() => {
-    if (gatewayState !== 'open' || isAuxiliaryWindow()) {
-      return
-    }
-
-    const report = () => void reportPendingUpdateRun(requestGateway)
-    report()
-
-    return window.hermesDesktop?.updates?.onPendingRun?.(report)
   }, [gatewayState, requestGateway])
 
   useDesktopMetrics({
