@@ -28,8 +28,8 @@ const CRON_TRIGGER_REQUEST_TIMEOUT_MS = 24 * 60 * 60 * 1000
 // list just that profile's jobs, or 'all' for the unified cross-profile view.
 // Omitting the arg keeps the legacy 'all' default for non-profile callers.
 // profileScoped() still rides along for backend-process routing.
-export async function getCronJobs(): Promise<CronJob[]> {
-  // Vanta has no per-profile job store: schedules are one list on the local server.
+/** Vanta keeps no per-profile job store: schedules are one list on the local server. */
+async function getVantaSchedules(): Promise<CronJob[]> {
   const entries = await hermesApi<ScheduleEntry[]>({
     ...connectionScoped(),
     path: '/api/schedules',
@@ -37,6 +37,21 @@ export async function getCronJobs(): Promise<CronJob[]> {
   })
 
   return schedulesToCronJobs(Array.isArray(entries) ? entries : [])
+}
+
+export function getCronJobs(profile?: string): Promise<CronJob[]> {
+  if (typeof window.vantaDesktop !== 'undefined') {
+    return getVantaSchedules()
+  }
+
+  const suffix = profile ? `?profile=${encodeURIComponent(profile)}` : ''
+
+  return hermesApi<CronJob[]>({
+    ...profileScoped(),
+    ...connectionScoped(),
+    path: `/api/cron/jobs${suffix}`,
+    timeoutMs: STARTUP_REQUEST_TIMEOUT_MS
+  })
 }
 
 export function getCronJob(jobId: string): Promise<CronJob> {

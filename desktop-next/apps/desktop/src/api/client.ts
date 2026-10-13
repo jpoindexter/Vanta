@@ -5,6 +5,13 @@ import type { HermesApiRequest } from '@/global'
 
 import { vantaRestShim } from './vanta/rest-shim'
 
+declare global {
+  interface Window {
+    /** Present only in the Vanta shell; its preload exposes it. */
+    vantaDesktop?: unknown
+  }
+}
+
 // Desktop startup fires a burst of read-only data calls (config, profiles,
 // model info/options, cron) the moment the backend passes readiness. On a
 // profile-heavy or remote install these can each take tens of seconds — e.g.
@@ -194,7 +201,10 @@ export function ambientOwnerConnectionId(): string | undefined {
 export function hermesApi<T>(request: HermesApiRequest): Promise<T> {
   const send = (call: HermesApiRequest) => window.hermesDesktop.api<unknown>({ ...connectionScoped(), ...call })
 
-  return (vantaRestShim(request, send) ?? send(request)) as Promise<T>
+  // Only the Vanta shell (preload exposes `vantaDesktop`) serves sessions and profiles from /api/sessions.
+  const shimmed = typeof window.vantaDesktop === 'undefined' ? null : vantaRestShim(request, send)
+
+  return (shimmed ?? send(request)) as Promise<T>
 }
 
 // ── Capability scope: (connection, profile) routing for the Capabilities

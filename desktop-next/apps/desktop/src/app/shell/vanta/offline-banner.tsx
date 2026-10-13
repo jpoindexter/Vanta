@@ -1,27 +1,30 @@
-import { IconCircle } from '@tabler/icons-react'
-import { useStore } from '@nanostores/react'
+import { IconCircle } from "@tabler/icons-react";
+import { useStore } from "@nanostores/react";
 
-import { useI18n } from '@/i18n'
-import { reconnectGateway } from '@/store/gateway-reconnect'
-import { $gatewayState } from '@/store/session'
+import { useI18n } from "@/i18n";
+import { reconnectGateway } from "@/store/gateway-reconnect";
+import { $gatewayState } from "@/store/session";
 
 /** Pushes the thread down while the backend is away. The composer stays usable
  *  and messages queue until the connection returns. */
 export function OfflineBanner() {
-  const { t } = useI18n()
-  const gateway = useStore($gatewayState)
+  const { t } = useI18n();
+  const gateway = useStore($gatewayState);
 
-  if (gateway !== 'closed' && gateway !== 'error') {
-    return null
+  if (gateway !== "closed" && gateway !== "error") {
+    return null;
   }
 
   return (
     <div className="vs-banner" role="status">
       <IconCircle aria-hidden size={12} />
       <span>{t.vantaShell.offline.banner}</span>
-      <button onClick={() => void reconnectGateway().catch(() => undefined)} type="button">
+      <button
+        onClick={() => void reconnectGateway().catch(() => undefined)}
+        type="button"
+      >
         {t.vantaShell.offline.retry}
       </button>
     </div>
-  )
+  );
 }

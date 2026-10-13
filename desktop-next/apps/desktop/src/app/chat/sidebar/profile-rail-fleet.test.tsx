@@ -431,7 +431,8 @@ describe('ProfileRail fleet mode', () => {
     expect(getAgentRoster).not.toHaveBeenCalled()
     expect(screen.queryByRole('group', { name: /^Profiles on/ })).toBeNull()
     expect(container.querySelector('[data-slot="profile-rail-divider"]')).toBeNull()
-    expect(screen.getByRole('button', { name: 'Manage gateways…' })).toBeTruthy()
+    // The Manage gateways plug was dropped with the multi-gateway entry points.
+    expect(screen.queryByRole('button', { name: 'Manage gateways…' })).toBeNull()
   })
 
   it('lays every other gateway on the strip as an at-rest group, in switcher order', async () => {

@@ -33,6 +33,9 @@ function makeProject(root) {
   fs.mkdirSync(path.join(project, "src"), { recursive: true });
   fs.writeFileSync(path.join(project, "README.md"), "# Acme site\n\nA small project for trying Vanta.\n");
   fs.writeFileSync(path.join(project, "src", "index.ts"), "export const greeting = 'hello'\n");
+  // One schedule so Schedules, Home's Next up and the sidebar's cron section have data to show.
+  fs.mkdirSync(path.join(project, ".vanta"), { recursive: true });
+  fs.writeFileSync(path.join(project, ".vanta", "cron.tsv"), "1\t0 9 * * 1\tWeekly competitor brief\tactive\t\t\n");
   const git = (...args) => execFileSync("git", args, { cwd: project, stdio: "ignore" });
   git("init", "-q");
   git("-c", "user.email=proof@example.test", "-c", "user.name=Proof", "add", ".");
@@ -121,6 +124,6 @@ export async function launchVanta({ hidden = true, width = 1440, height = 900 } 
 /** Wait until the shell is on screen and the Vanta server answers. */
 export async function waitForShell(page, timeout = 90_000) {
   await page.locator("[data-vanta-titlebar]").first().waitFor({ state: "visible", timeout });
-  await page.locator("aside, [data-tour='sessions-sidebar']").first().waitFor({ state: "visible", timeout });
+  await page.locator("[data-tour='sessions-sidebar'], [data-testid='home-surface'], [data-slot='composer-root']").first().waitFor({ state: "attached", timeout });
   await page.waitForTimeout(800);
 }

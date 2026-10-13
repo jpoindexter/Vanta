@@ -1,7 +1,9 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { atom } from 'nanostores'
 import { MemoryRouter } from 'react-router'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { closeHome } from '@/store/home-view'
 
 import { APP_ROUTES, isOverlayView } from '../routes'
 
@@ -21,6 +23,7 @@ vi.mock('../capabilities', () => ({ CapabilitiesView: () => null }))
 vi.mock('../messaging', () => ({ MessagingView: () => null }))
 vi.mock('../artifacts', () => ({ ArtifactsView: () => null }))
 vi.mock('../chat/sidebar', () => ({ ChatSidebar: () => null }))
+vi.mock('../vanta/home/home-surface', () => ({ HomeSurface: () => null }))
 vi.mock('../shell/vanta/vanta-titlebar', () => ({ VantaTitlebar: () => null }))
 vi.mock('../right-sidebar/terminal/chrome', () => ({ TerminalPaneChrome: () => null }))
 vi.mock('../shell/hooks/use-status-snapshot', () => ({ useStatusSnapshot: () => ({}) }))
@@ -32,6 +35,8 @@ vi.mock('./latest-actions', () => ({ latestChatActions: () => ({}), latestSideba
 vi.mock('./panes', () => ({ setStatusbarItemGroup: vi.fn(), useStatusbarContributions: () => [] }))
 vi.mock('../shell/model-menu-panel', () => ({ ModelMenuPanel: () => null }))
 vi.mock('../shell/reasoning-menu-panel', () => ({ ReasoningMenuPanel: () => null }))
+
+beforeEach(() => closeHome())
 
 afterEach(cleanup)
 

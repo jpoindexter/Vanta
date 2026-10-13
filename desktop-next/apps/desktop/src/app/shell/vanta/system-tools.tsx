@@ -30,20 +30,19 @@ export interface SystemTools {
   sidebar: TitlebarTool
 }
 
-/** The original titlebar's fixed tools (sidebar toggle with its unread badge,
- *  settings, layout editor, HUD, swap sides, right sidebar), built once so the
- *  bar and the More menu offer the same verbs under the same names and chords. */
-export function useSystemTools(onOpenSettings: () => void): SystemTools {
-  const { t } = useI18n()
-  const modHeld = useModifierHeld()
-  const fileBrowserOpen = useStore($fileBrowserOpen)
-  const leftSideOpen = useStore($leftSideOpen)
-  const panesFlipped = useStore($panesFlipped)
-  const unreadCount = useStore($unreadSessionCount)
-  const unreadBadge = unreadCount > 0 ? unreadCount : undefined
-  const unreadHint = unreadBadge ? ` · ${t.titlebar.unreadSessions(unreadBadge)}` : ''
-  const leftLabel = leftSideOpen ? t.titlebar.hideSidebar : t.titlebar.showSidebar
-  const rightLabel = fileBrowserOpen ? t.titlebar.hideRightSidebar : t.titlebar.showRightSidebar
+interface EdgeState {
+  panesFlipped: boolean
+  rightOpen: boolean
+  leftOpen: boolean
+  unread: number | undefined
+}
+
+type Copy = ReturnType<typeof useI18n>['t']['titlebar']
+
+function edgeTools(copy: Copy, state: EdgeState): Pick<SystemTools, 'flip' | 'rightSidebar' | 'sidebar'> {
+  const unreadHint = state.unread ? ` · ${copy.unreadSessions(state.unread)}` : ''
+  const leftLabel = state.leftOpen ? copy.hideSidebar : copy.showSidebar
+  const rightLabel = state.rightOpen ? copy.hideRightSidebar : copy.showRightSidebar
 
   return {
     flip: {
@@ -51,78 +50,105 @@ export function useSystemTools(onOpenSettings: () => void): SystemTools {
       actionId: 'view.flipPanes',
       icon: <TitlebarIcon name="arrow-swap" />,
       id: 'flip-panes',
-      label: t.titlebar.swapSidebarSides,
+      label: copy.swapSidebarSides,
       onSelect: () => {
         triggerHaptic('tap')
         togglePanesFlipped()
       }
     },
-    hud: {
-      ...TITLEBAR_FIXED_TOOLS.hud,
-      actionId: 'view.toggleHud',
-      icon: <TitlebarIcon name="comment-discussion" />,
-      id: 'hud',
-      label: t.titlebar.enterHud,
-      onSelect: () => {
-        triggerHaptic('open')
-        toggleHud(hudTargetSessionId())
-      }
-    },
-    layout: {
-      ...TITLEBAR_FIXED_TOOLS.layout,
-      className: 'group/tool',
-      icon: <LayoutGlyph modHeld={modHeld} />,
-      id: 'layout',
-      label: t.titlebar.layoutEditor,
-      onSelect: event => {
-        if (event?.metaKey || event?.ctrlKey) {
-          triggerHaptic('warning')
-          resetLayoutTree()
-
-          return
-        }
-
-        triggerHaptic('open')
-        toggleLayoutEditMode()
-      },
-      title: t.titlebar.layoutEditorTitle(formatModifierToken('mod'))
-    },
     rightSidebar: {
       ...TITLEBAR_FIXED_TOOLS['right-sidebar'],
       actionId: 'view.toggleRightSidebar',
-      badge: panesFlipped ? unreadBadge : undefined,
+      badge: state.panesFlipped ? state.unread : undefined,
       icon: <TitlebarIcon name="layout-sidebar-right" />,
       id: 'right-sidebar',
-      label: `${rightLabel}${panesFlipped ? unreadHint : ''}`,
+      label: `${rightLabel}${state.panesFlipped ? unreadHint : ''}`,
       onSelect: () => {
         triggerHaptic('tap')
         toggleRightSide()
       },
       tour: 'right-pane-toggle'
     },
-    settings: {
-      ...TITLEBAR_FIXED_TOOLS.settings,
-      actionId: 'nav.settings',
-      icon: <TitlebarIcon name="settings-gear" />,
-      id: 'settings',
-      label: t.titlebar.openSettings,
-      onSelect: () => {
-        triggerHaptic('open')
-        onOpenSettings()
-      }
-    },
     sidebar: {
       ...TITLEBAR_FIXED_TOOLS.sidebar,
       actionId: 'view.toggleSidebar',
-      badge: panesFlipped ? undefined : unreadBadge,
+      badge: state.panesFlipped ? undefined : state.unread,
       icon: <TitlebarIcon name="layout-sidebar-left" />,
       id: 'sidebar',
+      label: `${leftLabel}${state.panesFlipped ? '' : unreadHint}`,
       narrowToggle: true,
-      label: `${leftLabel}${panesFlipped ? '' : unreadHint}`,
       onSelect: () => {
         triggerHaptic('tap')
         toggleLeftSide()
       }
     }
+  }
+}
+
+function layoutTool(copy: Copy, modHeld: boolean): TitlebarTool {
+  return {
+    ...TITLEBAR_FIXED_TOOLS.layout,
+    className: 'group/tool',
+    icon: <LayoutGlyph modHeld={modHeld} />,
+    id: 'layout',
+    label: copy.layoutEditor,
+    onSelect: event => {
+      if (event?.metaKey || event?.ctrlKey) {
+        triggerHaptic('warning')
+        resetLayoutTree()
+
+        return
+      }
+
+      triggerHaptic('open')
+      toggleLayoutEditMode()
+    },
+    title: copy.layoutEditorTitle(formatModifierToken('mod'))
+  }
+}
+
+function appTools(copy: Copy, onOpenSettings: () => void): Pick<SystemTools, 'hud' | 'settings'> {
+  return {
+    hud: {
+      ...TITLEBAR_FIXED_TOOLS.hud,
+      actionId: 'view.toggleHud',
+      icon: <TitlebarIcon name="comment-discussion" />,
+      id: 'hud',
+      label: copy.enterHud,
+      onSelect: () => {
+        triggerHaptic('open')
+        toggleHud(hudTargetSessionId())
+      }
+    },
+    settings: {
+      ...TITLEBAR_FIXED_TOOLS.settings,
+      actionId: 'nav.settings',
+      icon: <TitlebarIcon name="settings-gear" />,
+      id: 'settings',
+      label: copy.openSettings,
+      onSelect: () => {
+        triggerHaptic('open')
+        onOpenSettings()
+      }
+    }
+  }
+}
+
+/** The original titlebar's fixed tools (sidebar toggle with its unread badge,
+ *  settings, layout editor, HUD, swap sides, right sidebar), built once so the
+ *  bar and the More menu offer the same verbs under the same names and chords. */
+export function useSystemTools(onOpenSettings: () => void): SystemTools {
+  const { t } = useI18n()
+  const modHeld = useModifierHeld()
+  const rightOpen = useStore($fileBrowserOpen)
+  const leftOpen = useStore($leftSideOpen)
+  const panesFlipped = useStore($panesFlipped)
+  const unreadCount = useStore($unreadSessionCount)
+  const unread = unreadCount > 0 ? unreadCount : undefined
+
+  return {
+    ...edgeTools(t.titlebar, { leftOpen, panesFlipped, rightOpen, unread }),
+    ...appTools(t.titlebar, onOpenSettings),
+    layout: layoutTool(t.titlebar, modHeld)
   }
 }

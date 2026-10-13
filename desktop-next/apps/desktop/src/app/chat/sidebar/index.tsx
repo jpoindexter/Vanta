@@ -2072,10 +2072,16 @@ interface MessagingSection {
 
 const RAIL_QUERY = '(min-width: 1024px) and (max-width: 1279.98px)'
 
+const canMatchMedia = () => typeof window.matchMedia === 'function'
+
 function useRailTier(): boolean {
-  const [rail, setRail] = useState(() => window.matchMedia(RAIL_QUERY).matches)
+  const [rail, setRail] = useState(() => canMatchMedia() && window.matchMedia(RAIL_QUERY).matches)
 
   useEffect(() => {
+    if (!canMatchMedia()) {
+      return
+    }
+
     const query = window.matchMedia(RAIL_QUERY)
     const sync = () => setRail(query.matches)
 
