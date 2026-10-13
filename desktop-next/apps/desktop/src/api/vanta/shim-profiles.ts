@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import type { ProfileInfo, ProfilesResponse } from '@/types/hermes'
 
-import { get, post, segment, type ShimRoute, text } from './shim-core'
+import { APPROVAL_TIMEOUT_MS, get, post, segment, type ShimRoute, text } from './shim-core'
 
 const profileViewSchema = z.looseObject({
   home: z.string(),
@@ -55,7 +55,7 @@ export const profileRoutes: readonly ShimRoute[] = [
   },
   {
     handle: async ({ body, send }) => {
-      const result = okSchema.parse(await post(send, '/api/profiles/import', { source: text(body.archive) }))
+      const result = okSchema.parse(await post(send, '/api/profiles/import', { source: text(body.archive) }, APPROVAL_TIMEOUT_MS))
 
       return { desktop: null, name: result.id ?? result.name ?? '', ok: true, path: result.path ?? '' }
     },

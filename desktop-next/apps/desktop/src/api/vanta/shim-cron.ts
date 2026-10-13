@@ -4,7 +4,7 @@ import { type ScheduleEntry, scheduleToCronJob } from '@/app/vanta/adapters/sche
 import type { AutomationBlueprint, CronDeliveryTarget, CronJob } from '@/types/hermes'
 
 import { sessionRow, isoToSeconds } from './shim-session-row'
-import { get, post, segment, type Send, type ShimCall, type ShimRoute, text } from './shim-core'
+import { APPROVAL_TIMEOUT_MS, get, post, segment, type Send, type ShimCall, type ShimRoute, text } from './shim-core'
 
 const TRIGGER_TIMEOUT_MS = 30 * 60 * 1000
 const CRON_FIELDS = 5
@@ -71,13 +71,18 @@ async function updateJob(call: ShimCall): Promise<CronJob> {
   const schedule = typeof updates.schedule === 'string' ? updates.schedule : undefined
 
   if (prompt !== undefined || schedule !== undefined) {
-    await post(call.send, '/api/schedules/update', { id, ...(prompt === undefined ? {} : { instruction: prompt }), ...(schedule === undefined ? {} : whenOf(schedule)) })
+    await post(
+      call.send,
+      '/api/schedules/update',
+      { id, ...(prompt === undefined ? {} : { instruction: prompt }), ...(schedule === undefined ? {} : whenOf(schedule)) },
+      APPROVAL_TIMEOUT_MS
+    )
   }
 
   if (updates.enabled === false) {
     await post(call.send, '/api/schedules/pause', { id })
   } else if (updates.enabled === true) {
-    await post(call.send, '/api/schedules/resume', { id })
+    await post(call.send, '/api/schedules/resume', { id }, APPROVAL_TIMEOUT_MS)
   }
 
   return jobById(call.send, String(id))
@@ -111,7 +116,7 @@ export const cronRoutes: readonly ShimRoute[] = [
   { handle: call => jobById(call.send, segment(call)), method: 'GET', path: new RegExp(`^${JOB}$`) },
   { handle: updateJob, method: 'PUT', path: new RegExp(`^${JOB}$`) },
   { handle: action('/api/schedules/pause'), method: 'POST', path: new RegExp(`^${JOB}/pause$`) },
-  { handle: action('/api/schedules/resume'), method: 'POST', path: new RegExp(`^${JOB}/resume$`) },
+  { handle: action('/api/schedules/resume', APPROVAL_TIMEOUT_MS), method: 'POST', path: new RegExp(`^${JOB}/resume$`) },
   { handle: action('/api/schedules/trigger', TRIGGER_TIMEOUT_MS), method: 'POST', path: new RegExp(`^${JOB}/trigger$`) },
   {
     handle: async call => {

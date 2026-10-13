@@ -89,6 +89,17 @@ describe("profiles routes", () => {
     expect(await names()).toEqual(["default"]);
   });
 
+  it("refuses an approval-gated import when no window could show the approval", async () => {
+    await h.stop();
+    h = await startControlHarness({ listen: false });
+    const dir = join(h.root, "dist");
+    await writeDistribution(dir, "Triage");
+    const answer = await h.post("/api/profiles/import", { source: dir });
+    expect(answer.status).toBe(409);
+    expect(answer.body.error).toMatch(/Open a chat/);
+    expect(await names()).toEqual(["default"]);
+  });
+
   it("rejects option-shaped and non-https remote import sources", async () => {
     expect(importSourceError("--upload-pack=evil")).toMatch(/'-'/);
     expect(importSourceError("git@github.com:a/b.git")).toMatch(/absolute directory/);

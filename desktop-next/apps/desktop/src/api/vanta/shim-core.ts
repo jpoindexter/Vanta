@@ -1,5 +1,7 @@
 import type { HermesApiRequest } from '@/global'
 
+import { foregroundClientId } from './foreground-client'
+
 export type Send = (request: HermesApiRequest) => Promise<unknown>
 
 export interface ShimCall {
@@ -18,8 +20,24 @@ export interface ShimRoute {
 
 export const get = (send: Send, path: string): Promise<unknown> => send({ path })
 
-export const post = (send: Send, path: string, body: unknown, timeoutMs?: number): Promise<unknown> =>
-  send({ body, method: 'POST', path, ...(timeoutMs ? { timeoutMs } : {}) })
+/** A person may take minutes to answer the approval some of these calls wait on. */
+export const APPROVAL_TIMEOUT_MS = 10 * 60 * 1000
+
+/**
+ * POST to a Vanta route on behalf of the foreground chat, so an approval card the server raises
+ * reaches that chat's event stream (the server refuses an approval no window could show).
+ */
+export const post = (send: Send, path: string, body: unknown, timeoutMs?: number): Promise<unknown> => {
+  const clientId = foregroundClientId()
+
+  return send({
+    body,
+    method: 'POST',
+    path,
+    ...(clientId ? { clientId } : {}),
+    ...(timeoutMs ? { timeoutMs } : {})
+  })
+}
 
 /** A path segment captured by the route pattern, URL-decoded. */
 export const segment = (call: ShimCall, index = 1): string => decodeURIComponent(call.match[index] ?? '')
