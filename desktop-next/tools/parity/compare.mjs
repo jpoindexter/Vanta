@@ -34,7 +34,7 @@ export function findDeviation(deviations, { key, state, prop }) {
 function judge(ctx, prop, expected, actual, equal) {
   if (equal(expected, actual)) return { prop, status: "PASS" };
   const dev = findDeviation(ctx.deviations, { key: ctx.key, state: ctx.state, prop: prop.split(".")[0] });
-  const base = { prop, expected, actual };
+  const base = { prop, expected, actual: actual ?? null };
   if (!dev) return { ...base, status: "FAIL" };
   if (dev.transform === "ignore") return { ...base, status: "ALLOWED", deviation: dev.id };
   const same = typeof expected === "string" && typeof actual === "string" && stripGlyphs(expected) === stripGlyphs(actual);
