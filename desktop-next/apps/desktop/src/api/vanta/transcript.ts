@@ -6,35 +6,52 @@ function textOf(content: unknown): string {
     return content
   }
 
-  if (Array.isArray(content)) {
-    return content
-      .map(part =>
-        part && typeof part === 'object' && typeof (part as { text?: unknown }).text === 'string'
-          ? (part as { text: string }).text
-          : ''
-      )
-      .join('')
+  if (!Array.isArray(content)) {
+    return ''
   }
 
-  return ''
+  return content
+    .map(part => (typeof (part as { text?: unknown } | null)?.text === 'string' ? (part as { text: string }).text : ''))
+    .join('')
 }
 
 function argsOf(raw: unknown): Record<string, unknown> {
-  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
-    return raw as Record<string, unknown>
+  const parsed = typeof raw === 'string' ? safeParse(raw) : raw
+
+  return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as Record<string, unknown>) : {}
+}
+
+function safeParse(text: string): unknown {
+  try {
+    return JSON.parse(text)
+  } catch {
+    return null
   }
+}
 
-  if (typeof raw === 'string') {
-    try {
-      const parsed: unknown = JSON.parse(raw)
+type ToolCall = NonNullable<VantaMessage['toolCalls']>[number]
 
-      return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as Record<string, unknown>) : {}
-    } catch {
-      return {}
-    }
+function toolRow(call: ToolCall): TranscriptEntry {
+  return {
+    args: argsOf(call.arguments),
+    content: '',
+    name: call.name ?? 'tool',
+    role: 'tool',
+    text: '',
+    tool_call_id: call.id ?? ''
   }
+}
 
-  return {}
+function orphanToolResult(message: VantaMessage): TranscriptEntry {
+  const result = textOf(message.content)
+
+  return {
+    content: result,
+    name: message.name ?? 'tool',
+    role: 'tool',
+    text: result,
+    tool_call_id: message.toolCallId ?? ''
+  }
 }
 
 /**
@@ -47,20 +64,12 @@ export function toTranscript(messages: readonly VantaMessage[]): TranscriptEntry
 
   for (const message of messages) {
     if (message.role === 'tool') {
-      const result = textOf(message.content)
       const row = message.toolCallId ? toolRows.get(message.toolCallId) : undefined
 
       if (row) {
-        row.text = result
-        row.content = result
+        row.text = row.content = textOf(message.content)
       } else {
-        rows.push({
-          content: result,
-          name: message.name ?? 'tool',
-          role: 'tool',
-          text: result,
-          tool_call_id: message.toolCallId ?? ''
-        })
+        rows.push(orphanToolResult(message))
       }
 
       continue
@@ -73,15 +82,7 @@ export function toTranscript(messages: readonly VantaMessage[]): TranscriptEntry
     }
 
     for (const call of message.toolCalls ?? []) {
-      const row: TranscriptEntry = {
-        args: argsOf(call.arguments),
-        content: '',
-        name: call.name ?? 'tool',
-        role: 'tool',
-        text: '',
-        tool_call_id: call.id ?? ''
-      }
-
+      const row = toolRow(call)
       rows.push(row)
 
       if (call.id) {
