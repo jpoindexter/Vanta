@@ -37,6 +37,7 @@ export interface VantaSidebarProps {
 const VIEW_DESTINATION: Partial<Record<AppView, string>> = {
   artifacts: 'outputs',
   capabilities: 'skills',
+  company: 'company',
   cron: 'schedules',
   messaging: 'connections'
 }

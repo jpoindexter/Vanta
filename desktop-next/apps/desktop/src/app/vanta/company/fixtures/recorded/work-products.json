@@ -1,0 +1,65 @@
+{
+  "workProducts": [
+    {
+      "id": "product-wp-4",
+      "ticketId": "T-6",
+      "kind": "report",
+      "artifact": "# Report for Polish the empty states\nAll done.",
+      "truncated": false,
+      "approved": false,
+      "createdAt": "2026-10-13T12:23:31.000Z",
+      "provenance": {
+        "taskId": "T-6",
+        "workerId": "designer",
+        "departmentId": "product"
+      },
+      "revisions": []
+    },
+    {
+      "id": "product-wp-3",
+      "ticketId": "T-3",
+      "kind": "report",
+      "artifact": "# Report for Write the launch plan\nAll done.",
+      "truncated": false,
+      "approved": false,
+      "createdAt": "2026-10-13T10:51:22.000Z",
+      "provenance": {
+        "taskId": "T-3",
+        "workerId": "engineer",
+        "departmentId": "product"
+      },
+      "revisions": []
+    },
+    {
+      "id": "product-wp-2",
+      "ticketId": "T-2",
+      "kind": "report",
+      "artifact": "# Report for Redesign the pricing page [free]\nAll done.",
+      "truncated": false,
+      "approved": false,
+      "createdAt": "2026-10-13T10:02:52.000Z",
+      "provenance": {
+        "taskId": "T-2",
+        "workerId": "designer",
+        "departmentId": "product"
+      },
+      "revisions": []
+    },
+    {
+      "id": "product-wp-1",
+      "ticketId": "T-1",
+      "kind": "report",
+      "artifact": "# Report for Migrate invoices to the new ledger [reported]\nAll done.",
+      "truncated": false,
+      "approved": false,
+      "createdAt": "2026-10-13T09:12:45.000Z",
+      "provenance": {
+        "taskId": "T-1",
+        "workerId": "engineer",
+        "departmentId": "product"
+      },
+      "revisions": []
+    }
+  ],
+  "pending": 4
+}

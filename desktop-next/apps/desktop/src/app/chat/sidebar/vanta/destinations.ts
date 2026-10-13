@@ -4,10 +4,11 @@ import {
   IconFiles,
   IconHome,
   IconSparkles,
+  IconUsersGroup,
   type TablerIcon
 } from '@tabler/icons-react'
 
-import { ARTIFACTS_ROUTE, CAPABILITIES_ROUTE, CRON_ROUTE, MESSAGING_ROUTE, NEW_CHAT_ROUTE } from '@/app/routes'
+import { ARTIFACTS_ROUTE, CAPABILITIES_ROUTE, COMPANY_ROUTE, CRON_ROUTE, MESSAGING_ROUTE, NEW_CHAT_ROUTE } from '@/app/routes'
 import type { VantaShellTranslations } from '@/i18n/types_vanta_shell'
 
 export type DestinationLabelKey = keyof VantaShellTranslations['sidebar']['nav']
@@ -36,12 +37,13 @@ const BUILT_IN: readonly ShellDestination[] = [
   { id: 'outputs', labelKey: 'outputs', icon: IconFiles, route: ARTIFACTS_ROUTE, actionId: 'nav.artifacts' }
 ]
 
+const COMPANY: ShellDestination = { id: 'company', labelKey: 'company', icon: IconUsersGroup, route: COMPANY_ROUTE }
+
 export interface DestinationOptions {
-  /** Future Company entry. Absent until the Company surface exists, so nothing
-   *  renders for it; present, it joins the list after Outputs. */
+  /** Replaces the built-in Company entry (after Outputs). */
   company?: ShellDestination
 }
 
 export function shellDestinations({ company }: DestinationOptions = {}): readonly ShellDestination[] {
-  return company ? [...BUILT_IN, company] : BUILT_IN
+  return [...BUILT_IN, company ?? COMPANY]
 }
