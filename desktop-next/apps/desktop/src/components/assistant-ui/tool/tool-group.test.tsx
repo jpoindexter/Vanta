@@ -373,14 +373,14 @@ describe('settled tool run', () => {
   it('collapses to a summary line naming the work', async () => {
     const { container } = render(<GroupHarness message={settledRunMessage()} />)
 
-    expect(await screen.findByText('Explored wiring.tsx, ran 1 command')).toBeTruthy()
+    expect(await screen.findByText('Read wiring.tsx, ran 1 command')).toBeTruthy()
     expect(container.querySelectorAll('[data-tool-row]')).toHaveLength(0)
   })
 
   it('expands to the underlying rows when the summary is clicked', async () => {
     const { container } = render(<GroupHarness message={settledRunMessage()} />)
 
-    fireEvent.click(await screen.findByText('Explored wiring.tsx, ran 1 command'))
+    fireEvent.click(await screen.findByText('Read wiring.tsx, ran 1 command'))
 
     await waitFor(() => {
       expect(container.querySelectorAll('[data-tool-row]').length).toBeGreaterThan(0)
@@ -406,11 +406,12 @@ describe('a file edit among ordinary activity', () => {
 
     await screen.findByText('Explored 2 files')
 
-    const shape = [...container.querySelectorAll('[data-tool-summary],[data-tool-row]')].map(node =>
-      node.hasAttribute('data-tool-summary') ? 'summary' : 'row'
+    // The edit is presented as the "Edited N files" diff card, not as a tool row.
+    const shape = [...container.querySelectorAll('[data-tool-summary],[data-tool-row],[data-vp="diff-card"]')].map(
+      node => (node.hasAttribute('data-tool-summary') ? 'summary' : node.hasAttribute('data-tool-row') ? 'row' : 'card')
     )
 
-    expect(shape).toEqual(['summary', 'row', 'summary'])
+    expect(shape).toEqual(['summary', 'card', 'summary'])
   })
 })
 
@@ -532,7 +533,7 @@ describe('flat tool list approval surfacing', () => {
       <GroupHarness message={{ ...message, content: [{ type: 'text', text: 'Waiting for approval.' }] }} />
     )
 
-    const run = await screen.findByRole('button', { name: /Run/ })
+    const run = await screen.findByRole('button', { name: /Allow once/ })
     const host = run.closest('[data-approval-stack]')
     expect(host).not.toBeNull()
     expect(host?.parentElement?.getAttribute('data-slot')).toBe('aui_thread-content')
@@ -542,7 +543,7 @@ describe('flat tool list approval surfacing', () => {
 
     await waitFor(() => {
       expect(container.querySelector('[data-approval-stack]')).toBe(host)
-      expect(screen.getByRole('button', { name: /Run/ })).toBe(run)
+      expect(screen.getByRole('button', { name: /Allow once/ })).toBe(run)
       expect(run.closest('[hidden], [inert]')).toBeNull()
       expect(screen.getByRole('button', { name: /Reject/ })).toBeTruthy()
     })
