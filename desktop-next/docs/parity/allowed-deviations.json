@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "deviations": [
+    {
+      "id": "icon-glyphs",
+      "reason": "The wireframe draws icons as text glyphs (plus, magnifier, triangle...); the app uses Tabler icons. A text difference that is only these glyphs is allowed.",
+      "props": ["text", "placeholder"],
+      "transform": "stripGlyphs"
+    },
+    {
+      "id": "icon-line-box",
+      "reason": "A text glyph sits in a line box (about 20px tall); an SVG icon is its own height. Width and x still must match.",
+      "props": ["h", "y"],
+      "keys": ["*.glyph"],
+      "transform": "ignore"
+    },
+    {
+      "id": "color-tokens",
+      "reason": "The wireframe is grayscale on purpose; the app uses Vanta color tokens. Structure (filled vs not) is still compared; hue is not.",
+      "props": ["color", "bg"],
+      "transform": "ignore"
+    },
+    {
+      "id": "native-window-controls",
+      "reason": "The wireframe draws three gray dots for the window controls; the app uses the native macOS traffic lights.",
+      "props": ["*"],
+      "keys": ["titlebar.dots"],
+      "transform": "ignore"
+    }
+  ]
+}
