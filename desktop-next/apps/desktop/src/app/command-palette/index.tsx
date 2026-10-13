@@ -34,7 +34,6 @@ import {
   Clock,
   Cpu,
   Download,
-  Egg,
   GitBranch,
   Globe,
   type IconComponent,
@@ -46,14 +45,12 @@ import {
   Moon,
   Package,
   Palette,
-  PawPrint,
   Pin,
   Plus,
   RefreshCw,
   Settings,
   Settings2,
   SlidersHorizontal,
-  Starmap,
   Sun,
   Users,
   Wrench,
@@ -75,7 +72,6 @@ import {
 import { completeFlow, recordAction } from '@/store/desktop-metrics'
 import { $bindings, bindingsFor } from '@/store/keybinds'
 import { $dismissedAutoProjectIds, $pinnedSessionIds, filterVisibleProjects } from '@/store/layout'
-import { openPetGenerate } from '@/store/pet-generate'
 import { toggleBrowserTab } from '@/store/preview'
 import { $projectTree, goToProject, openFolderAsProject, requestStartWorkSession } from '@/store/projects'
 import { $connection, $cronSessions, $messagingSessions, $sessions } from '@/store/session'
@@ -107,8 +103,7 @@ import {
   navigateToWorkspacePage,
   NEW_CHAT_ROUTE,
   PROFILES_ROUTE,
-  SETTINGS_ROUTE,
-  STARMAP_ROUTE
+  SETTINGS_ROUTE
 } from '../routes'
 import { SECTIONS } from '../settings/constants'
 import { type SettingsSearchEntry, settingsSearchTargetQuery } from '../settings/settings-search'
@@ -116,8 +111,6 @@ import { useSettingsSearchCatalog } from '../settings/use-settings-search'
 
 import { usePaletteContributions } from './contrib'
 import { HighlightWatcher } from './highlight-watcher'
-import { MarketplaceThemePage } from './marketplace-theme-page'
-import { PetInlineToggle, PetPalettePage } from './pet-palette-page'
 
 interface PaletteItem {
   /** Keybind action id — its live combo renders as a hotkey hint. */
@@ -164,7 +157,7 @@ interface PaletteGroup {
 
 // Nested page → its parent, so Back / Esc step up one level instead of closing
 // the palette. Pages absent here go straight back to the root list.
-const PAGE_PARENTS: Record<string, string> = { 'install-theme': 'theme' }
+const PAGE_PARENTS: Record<string, string> = {}
 
 /** A nested page reachable from a root item via `to`. */
 interface PalettePage {
@@ -915,14 +908,7 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
             run: go(CRON_ROUTE)
           },
           { action: 'nav.profiles', icon: Users, id: 'nav-profiles', label: t.profiles.title, run: go(PROFILES_ROUTE) },
-          { action: 'nav.agents', icon: Cpu, id: 'nav-agents', label: t.agents.title, run: go(AGENTS_ROUTE) },
-          {
-            icon: Starmap,
-            id: 'nav-starmap',
-            keywords: ['star map', 'memory', 'memories', 'skills', 'graph', 'learning', 'constellation'],
-            label: t.starmap.title,
-            run: go(STARMAP_ROUTE)
-          }
+          { action: 'nav.agents', icon: Cpu, id: 'nav-agents', label: t.agents.title, run: go(AGENTS_ROUTE) }
         ]
       },
       projectGroup,
@@ -1030,20 +1016,6 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
             keywords: ['appearance', 'color mode', 'brightness', 'dark', 'light', 'system'],
             label: cc.changeColorMode,
             to: 'color-mode'
-          },
-          {
-            icon: PawPrint,
-            id: 'appearance-pets',
-            keywords: ['pet', 'petdex', 'mascot', 'pets', '/pet', 'paw'],
-            label: cc.pets.title,
-            to: 'pets'
-          },
-          {
-            icon: Egg,
-            id: 'appearance-generate-pet',
-            keywords: ['pet', 'generate', 'create', 'make', 'new pet', 'mascot', 'hatch', 'ai'],
-            label: cc.generatePet.title,
-            run: () => openPetGenerate()
           }
         ]
       },
@@ -1410,18 +1382,6 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
         title: t.settings.appearance.themeTitle,
         placeholder: t.settings.appearance.themeDesc,
         groups: [
-          // Pinned at the top: drills into the Marketplace browser.
-          {
-            items: [
-              {
-                icon: Download,
-                id: 'theme-install',
-                keywords: ['install', 'marketplace', 'vscode', 'vs code', 'download', 'new', 'color'],
-                label: t.commandCenter.installTheme.title,
-                to: 'install-theme'
-              }
-            ]
-          },
           // Brightness lives with the palettes: one mode toggle for the whole
           // list instead of splitting every theme across a Light and a Dark group.
           {
@@ -1487,19 +1447,6 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
             }))
           }
         ]
-      },
-      // Server-driven page: browse petdex gallery, adopt/switch, toggle off.
-      pets: {
-        title: t.commandCenter.pets.title,
-        placeholder: t.commandCenter.pets.placeholder,
-        groups: []
-      },
-      // Server-driven page: items come from the Marketplace, rendered by
-      // <MarketplaceThemePage> (loader + live search + per-row install).
-      'install-theme': {
-        title: t.commandCenter.installTheme.pageTitle,
-        placeholder: t.commandCenter.installTheme.placeholder,
-        groups: []
       },
       // Settings-scoped search (⌘K while the Settings overlay is up, or the
       // search pill beside its close button).
@@ -1670,32 +1617,18 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
             onValueChange={setSearch}
             placeholder={placeholder}
             ref={inputRef}
-            right={page === 'pets' ? <PetInlineToggle /> : undefined}
             value={search}
           />
           <CommandList className="dt-portal-scrollbar max-h-[min(20rem,56vh)]">
-            {/* Server-driven pages render their own list; the rest show groups. */}
-            {page === 'pets' ? (
-              <PetPalettePage
-                onGenerate={() => {
-                  closeCommandPalette()
-                  openPetGenerate()
-                }}
-                search={search}
-              />
-            ) : page === 'install-theme' ? (
-              <MarketplaceThemePage onPickTheme={setTheme} search={search} />
-            ) : (
-              <PaletteGroups
-                bindings={bindings}
-                groups={visibleGroups}
-                modHeld={modHeld}
-                noResultsLabel={t.commandCenter.noResults}
-                onSelectItem={handleSelect}
-                onSelectMods={noteSelectMods}
-                search={search}
-              />
-            )}
+            <PaletteGroups
+              bindings={bindings}
+              groups={visibleGroups}
+              modHeld={modHeld}
+              noResultsLabel={t.commandCenter.noResults}
+              onSelectItem={handleSelect}
+              onSelectMods={noteSelectMods}
+              search={search}
+            />
           </CommandList>
         </Command>
       </DialogPrimitive.Content>

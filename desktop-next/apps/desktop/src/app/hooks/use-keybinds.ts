@@ -38,6 +38,7 @@ import {
   findPrevious as findPreviousMatch,
   openFindBar
 } from '@/store/find-in-page'
+import { closeHome, openHome } from '@/store/home-view'
 import { toggleHud } from '@/store/hud'
 import { toggleSimpleMode } from '@/store/interface-mode'
 import { $capture, $comboIndex, captureStep, endCapture, setBinding } from '@/store/keybinds'
@@ -302,7 +303,10 @@ export function useKeybinds(deps: KeybindRuntimeDeps): void {
     'nav.commandCenter': deps.toggleCommandCenter,
     'nav.settings': () => navigate(SETTINGS_ROUTE),
     'nav.profiles': () => navigate(PROFILES_ROUTE),
-    'nav.home': () => navigateToWorkspacePage(navigate, NEW_CHAT_ROUTE),
+    'nav.home': () => {
+      openHome()
+      navigateToWorkspacePage(navigate, NEW_CHAT_ROUTE)
+    },
     'nav.capabilities': () => navigateToWorkspacePage(navigate, CAPABILITIES_ROUTE),
     'nav.messaging': () => navigateToWorkspacePage(navigate, MESSAGING_ROUTE),
     'nav.artifacts': () => navigateToWorkspacePage(navigate, ARTIFACTS_ROUTE),
@@ -315,6 +319,7 @@ export function useKeybinds(deps: KeybindRuntimeDeps): void {
       // selection from a prior action.
       setWorkspaceScope('sessions')
       $newChatProfile.set(null)
+      closeHome()
       deps.startFreshSession()
       window.dispatchEvent(new CustomEvent('hermes:new-session-shortcut'))
     },

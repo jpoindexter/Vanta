@@ -15,6 +15,7 @@ import { ContribBoundary, ContribRender } from '@/contrib/react/boundary'
 import { useContributions } from '@/contrib/react/use-contributions'
 import { $activeConnectionId } from '@/store/connections'
 import { $gateway } from '@/store/gateway'
+import { $homeOpen } from '@/store/home-view'
 import { $guideOpening } from '@/store/onboarding-gate'
 import { $chatOnboardingSolo } from '@/store/onboarding-intro'
 import { $activeGatewayProfile } from '@/store/profile'
@@ -31,6 +32,7 @@ import { useStatusbarItems } from '../shell/hooks/use-statusbar-items'
 import { ModelMenuPanel } from '../shell/model-menu-panel'
 import { ReasoningMenuPanel } from '../shell/reasoning-menu-panel'
 import { StatusbarControls } from '../shell/statusbar-controls'
+import { HomeSurface } from '../vanta/home/home-surface'
 
 import { latestChatActions, latestSidebarActions } from './latest-actions'
 import { setStatusbarItemGroup, useStatusbarContributions, useTitlebarToolContributions } from './panes'
@@ -81,6 +83,21 @@ export const TitlebarSurface = memo(function TitlebarSurface({ actions }: { acti
     />
   )
 })
+
+/** The root route is Home until the person starts a chat (New session, or Home's composer). */
+function HomeOrChat({ actions, chat }: { actions: WiringActions; chat: ReactNode }) {
+  const homeOpen = useStore($homeOpen)
+
+  return homeOpen ? (
+    <HomeSurface
+      openSession={actions.onResumeSession}
+      requestGateway={actions.requestGateway}
+      startTask={actions.submitTextToNewSession}
+    />
+  ) : (
+    chat
+  )
+}
 
 export const TerminalSurface = memo(function TerminalSurface() {
   return (
@@ -211,7 +228,7 @@ export const ChatRoutesSurface = memo(function ChatRoutesSurface({
 
   return (
     <Routes>
-      <Route element={chatView} index />
+      <Route element={<HomeOrChat chat={chatView} actions={actions} />} index />
       <Route element={chatView} path=":sessionId" />
       <Route element={page(<CapabilitiesView setStatusbarItemGroup={setStatusbarItemGroup} />)} path="capabilities" />
       <Route element={page(<MessagingView setStatusbarItemGroup={setStatusbarItemGroup} />)} path="messaging" />
