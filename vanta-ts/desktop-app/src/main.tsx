@@ -26,7 +26,9 @@ import "./design/reference-shell.css";
 import "./design/approval-card.css";
 import { isNativeCompanion } from "./companion-client";
 import { initializeDesktopTheme } from "./desktop-theme.js";
+import { markLaunch } from "./launch-marks.js";
 
+markLaunch("boot");
 initializeDesktopTheme();
 const Desktop = shellMode(window.location.search) === "classic" ? AppShell : ChatFirstShell;
 const Root = window.location.pathname === "/companion" || isNativeCompanion() ? CompanionApp : Desktop;

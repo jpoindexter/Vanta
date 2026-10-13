@@ -1,4 +1,7 @@
 import { EventEmitter } from 'node:events'
+import { mkdtempSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { PassThrough } from 'node:stream'
 
 import { describe, expect, it, vi } from 'vitest'
@@ -17,6 +20,7 @@ const input = (overrides: Partial<LaunchInput> = {}): LaunchInput => ({
 })
 
 const paths = {
+  bundle: '/repo/vanta-ts/dist-runtime/cli.mjs',
   cli: '/repo/vanta-ts/src/cli.ts',
   dist: '/repo/vanta-ts/desktop-app/dist',
   icon: '',
@@ -56,6 +60,23 @@ describe('buildServerCommand', () => {
       '7791',
       '--no-open'
     ])
+  })
+
+  it('starts the precompiled bundle in plain node when it is present', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'vanta-bundle-'))
+    const bundle = join(dir, 'cli.mjs')
+    writeFileSync(bundle, '')
+    const built = buildServerCommand(input(), 'tok', 7791, { ...paths, bundle })
+
+    expect(built.runtime).toBe('bundle')
+    expect(built.args).toEqual([bundle, 'desktop', '7791', '--no-open'])
+  })
+
+  it('reports the tsx fallback and why when the bundle is missing', () => {
+    const built = buildServerCommand(input(), 'tok', 7791, paths)
+
+    expect(built.runtime).toBe('tsx')
+    expect(built.runtimeReason).toContain('runtime bundle missing')
   })
 
   it('hands the server the boundary token, project root, kernel and dist, and nothing that makes it LAN-visible by default', () => {
