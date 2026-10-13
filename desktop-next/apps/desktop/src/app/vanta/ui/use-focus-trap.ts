@@ -2,8 +2,9 @@ import { type RefObject, useEffect } from 'react'
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
 
-/** Keeps Tab inside a modal surface and returns focus to the opener on unmount. */
-export function useFocusTrap(containerRef: RefObject<HTMLElement | null>) {
+/** Keeps Tab inside a modal surface and returns focus to the opener on unmount.
+ *  `initialFocus` picks what receives focus first (default: the first focusable). */
+export function useFocusTrap(containerRef: RefObject<HTMLElement | null>, initialFocus?: string) {
   useEffect(() => {
     const container = containerRef.current
     const opener = document.activeElement as HTMLElement | null
@@ -12,7 +13,7 @@ export function useFocusTrap(containerRef: RefObject<HTMLElement | null>) {
       return
     }
 
-    const first = container.querySelector<HTMLElement>(FOCUSABLE)
+    const first = (initialFocus && container.querySelector<HTMLElement>(initialFocus)) || container.querySelector<HTMLElement>(FOCUSABLE)
 
     first?.focus()
 
@@ -40,5 +41,5 @@ export function useFocusTrap(containerRef: RefObject<HTMLElement | null>) {
       container.removeEventListener('keydown', onKeyDown)
       opener?.focus?.()
     }
-  }, [containerRef])
+  }, [containerRef, initialFocus])
 }

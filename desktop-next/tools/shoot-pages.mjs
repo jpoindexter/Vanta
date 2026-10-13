@@ -1,6 +1,6 @@
 // Visual proof: screenshots every page/state this track owns from the fixtures harness
 // at 1440/1100/800, light and dark, into docs/proofs/pages/<width>/<theme>/.
-//   node tools/shoot-pages.mjs [--out docs/proofs/pages] [--url http://127.0.0.1:5291] [--only home,palette]
+//   node tools/shoot-pages.mjs [--out docs/proofs/pages] [--url http://127.0.0.1:5291] [--only home,palette] [--width 1440] [--theme dark]
 import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
@@ -34,6 +34,7 @@ const server = await ensureServer();
 const browser = await chromium.launch({ executablePath: CHROME });
 let count = 0;
 for (const width of WIDTHS) for (const theme of THEMES) {
+  if ((args.includes("--width") && Number(arg("--width")) !== width) || (args.includes("--theme") && arg("--theme") !== theme)) continue;
   const page = await (await browser.newContext({ viewport: { width: 1500, height: 740 }, reducedMotion: "reduce" })).newPage();
   const dir = path.join(outDir, String(width), theme);
   fs.mkdirSync(dir, { recursive: true });

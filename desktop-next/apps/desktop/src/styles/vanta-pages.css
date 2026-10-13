@@ -251,3 +251,9 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .vp-spin {
+    animation: none;
+  }
+}

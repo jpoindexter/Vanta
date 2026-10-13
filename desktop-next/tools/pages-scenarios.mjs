@@ -51,7 +51,7 @@ const HOME = [
   ["composer tools", "#frame .page .composer .tools", "#frame .vp-composer .vp-tools"],
   ["attach button", "#frame .page .composer .icon", "#frame .vp-composer .vp-btn--icon"],
   ["send button", "#frame .page .composer .send", "#frame .vp-composer .vp-send"],
-  ["project chip", "#frame .page .composer .chip", "#frame .vp-composer .vp-select"],
+  ["project chip", "#frame .page .composer .chip", "#frame .vp-composer .vp-chip--menu"],
   ["project chips row", "#frame .page > .col > .chips", "#frame .vp-col > .vp-chips"],
   ["project chip (row)", "#frame .page > .col > .chips button", "#frame .vp-col > .vp-chips button"],
   ["section", "#frame .page .sec", "#frame .vp-sec"],
@@ -105,7 +105,6 @@ export function pairsFor(id) {
 // Differences that come from wireframe CSS artefacts, not design intent. A FAIL on a matching
 // tag is reported as DEVIATION with the reason so the owner can overrule it.
 export const KNOWN = [
-  { tag: /home \/ project chip/, reason: "native select reserves 9px more right padding for its chevron, so the pill width still matches the wireframe's text+glyph" },
   { tag: /workbench-(files|terminal|changes) \/ (code block|placeholder|row|action)/, reason: "wireframe .code lacks white-space:pre, so its multi-line text collapses to one line; built keeps the line breaks" },
   { tag: /^1100 home \/ (count badge|section title)/, reason: "wireframe rule .w1100 .badge{display:none} was written for the sidebar rail and also hides Home's Needs you badge; built keeps it" },
   { tag: /^1100 settings-general \/ nav item/, reason: "wireframe rule .w1100 .nav{padding:0;center} was written for the sidebar rail and also squeezes the settings nav; built keeps the 150px nav layout" },
