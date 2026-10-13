@@ -7,7 +7,6 @@ import { LanguageSwitcher } from '@/components/language-switcher'
 import { SearchField } from '@/components/ui/search-field'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { Slider } from '@/components/ui/slider'
-import type { DesktopMarketplaceSearchItem } from '@/global'
 import { saveHermesConfig } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
@@ -38,11 +37,6 @@ import { $tabStripDefault, setTabStripDefault, type TabStripDefault } from '@/st
 import { $textDirection, setTextDirection, TEXT_DIRECTIONS, type TextDirection } from '@/store/text-direction'
 import { $hideThreadTimeline, setHideThreadTimeline } from '@/store/thread-timeline'
 import { $spentTipCount, $tipsEnabled, resetTips, setTipsEnabled } from '@/store/tips'
-import {
-  $titlebarAppActionsSide,
-  setTitlebarAppActionsSide,
-  type TitlebarAppActionsSide
-} from '@/store/titlebar-app-actions'
 import { $hideCodeDiffs, $toolViewMode, setHideCodeDiffs, setToolViewMode } from '@/store/tool-view'
 import { $toursEnabled, setToursEnabled } from '@/store/tours'
 import {
@@ -70,9 +64,8 @@ import { $userBubbleTransparency, setUserBubbleTransparency } from '@/store/user
 import { $vibeHeartsEnabled, setVibeHeartsEnabled } from '@/store/vibe-hearts-enabled'
 import { $zoomPercent, setZoomPercent } from '@/store/zoom'
 import { getBaseColors, useTheme } from '@/themes/context'
-import { installVscodeThemeFromMarketplace } from '@/themes/install'
 import type { DesktopTheme } from '@/themes/types'
-import { $marketplaceInstalls, isUserTheme, removeUserTheme } from '@/themes/user-themes'
+import { isUserTheme, removeUserTheme } from '@/themes/user-themes'
 
 import { setHermesConfigCache, useHermesConfigRecord } from '../hooks/use-config-record'
 
@@ -82,7 +75,6 @@ import { ChatFontSetting } from './chat-font-setting'
 import { MODE_OPTIONS } from './constants'
 import { setNested } from './helpers'
 import { MinimizeToTraySetting } from './minimize-to-tray-setting'
-import { PetSettings } from './pet-settings'
 import { ListRow, RowFootnoteAction, SectionHeading, SettingsContent, ToggleRow } from './primitives'
 import { SETTING_IDS, settingElementId } from './settings-manifest'
 import { TerminalFontSetting } from './terminal-font-setting'
@@ -178,158 +170,6 @@ function matchUiScalePreset(percent: number): UiScalePreset | null {
   return UI_SCALE_PRESETS.find(preset => Number(preset) === percent) ?? null
 }
 
-const compactNumber = new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 })
-
-/**
- * Live VS Code Marketplace theme search (the same backend as the Cmd-K "Install
- * theme…" page). Renders below the local grid when there's a query: each row
- * downloads + converts + installs via `installVscodeThemeFromMarketplace` and
- * activates it. Extensions already imported locally are marked installed.
- */
-function MarketplaceThemeResults({
-  query,
-  installs,
-  onInstalled
-}: {
-  query: string
-  installs: ReadonlyMap<string, DesktopTheme>
-  onInstalled: (name: string) => void
-}) {
-  const { t } = useI18n()
-  const copy = t.commandCenter.installTheme
-  const debounced = useDebounced(query.trim(), 300)
-  const [installingId, setInstallingId] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  const search = useQuery({
-    enabled: debounced.length > 0,
-    queryFn: () => window.hermesDesktop?.themes?.searchMarketplace(debounced) ?? Promise.resolve([]),
-    queryKey: ['marketplace-themes-settings', debounced],
-    staleTime: 5 * 60 * 1000
-  })
-
-  // Already installed → just re-activate it; never re-download what we have.
-  const select = (item: DesktopMarketplaceSearchItem) => {
-    const owned = installs.get(item.extensionId)
-
-    if (owned) {
-      triggerHaptic('crisp')
-      onInstalled(owned.name)
-
-      return
-    }
-
-    void install(item)
-  }
-
-  const install = async (item: DesktopMarketplaceSearchItem) => {
-    if (installingId) {
-      return
-    }
-
-    setInstallingId(item.extensionId)
-    setError(null)
-
-    try {
-      const theme = await installVscodeThemeFromMarketplace(item.extensionId)
-
-      triggerHaptic('crisp')
-      onInstalled(theme.name)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : copy.error)
-    } finally {
-      setInstallingId(null)
-    }
-  }
-
-  if (!debounced) {
-    return null
-  }
-
-  const header = (
-    <p className="mb-2 mt-4 text-[length:var(--conversation-caption-font-size)] font-medium text-(--ui-text-tertiary)">
-      From the VS Code Marketplace
-    </p>
-  )
-
-  if (search.isLoading) {
-    return (
-      <>
-        {header}
-        <p className="flex items-center gap-2 text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">
-          <Loader2 className="size-3.5 animate-spin" />
-          {copy.loading}
-        </p>
-      </>
-    )
-  }
-
-  if (search.isError) {
-    return (
-      <>
-        {header}
-        <p className="text-[length:var(--conversation-caption-font-size)] text-(--ui-red)">{copy.error}</p>
-      </>
-    )
-  }
-
-  const results = search.data ?? []
-
-  if (results.length === 0) {
-    return (
-      <>
-        {header}
-        <p className="text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">{copy.empty}</p>
-      </>
-    )
-  }
-
-  return (
-    <>
-      {header}
-      {error && <p className="mb-2 text-[length:var(--conversation-caption-font-size)] text-(--ui-red)">{error}</p>}
-      <div className="grid gap-2 sm:grid-cols-2">
-        {results.map(item => {
-          const busy = installingId === item.extensionId
-          const done = installs.has(item.extensionId)
-
-          return (
-            <button
-              className={cn(
-                'flex items-center gap-2.5 px-2.5 py-2 text-left disabled:opacity-60',
-                selectableCardClass({ prominent: done })
-              )}
-              disabled={Boolean(installingId) && !busy}
-              key={item.extensionId}
-              onClick={() => select(item)}
-              type="button"
-            >
-              <Palette className="size-4 shrink-0 text-(--ui-text-tertiary)" />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[length:var(--conversation-text-font-size)] font-medium">
-                  {item.displayName}
-                </span>
-                <span className="block truncate text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">
-                  {item.publisher}
-                  {item.installs > 0 ? ` · ${copy.installs(compactNumber.format(item.installs))}` : ''}
-                </span>
-              </span>
-              <span className="shrink-0 text-(--ui-text-tertiary)">
-                {busy ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : done ? (
-                  <Check className="size-4 text-(--ui-green)" />
-                ) : (
-                  <Download className="size-4" />
-                )}
-              </span>
-            </button>
-          )
-        })}
-      </div>
-    </>
-  )
-}
 
 // Keys a range input treats as a step, so the peek can flash the live window
 // for keyboard adjustment the way a pointer drag holds it open.
@@ -423,7 +263,6 @@ export function AppearanceSettings({ subpage }: AppearanceSettingsProps = {}) {
   const interfaceMode = useStore($interfaceMode)
   const sessionListDensity = useStore($sessionListDensity)
   const tabStripDefault = useStore($tabStripDefault)
-  const titlebarAppActionsSide = useStore($titlebarAppActionsSide)
   const zoomPercent = useStore($zoomPercent)
   const chatTextScale = useStore($chatTextScale)
   const embedMode = useStore($embedMode)
@@ -443,7 +282,6 @@ export function AppearanceSettings({ subpage }: AppearanceSettingsProps = {}) {
   const backdrop = useStore($backdrop)
   const introSplash = useStore($introSplash)
   const showModelPricing = useStore($showModelPricing)
-  const installs = useStore($marketplaceInstalls)
   const profiles = useStore($profiles)
   const activeProfileKey = normalizeProfileKey(useStore($activeGatewayProfile))
   const a = t.settings.appearance
@@ -527,11 +365,6 @@ export function AppearanceSettings({ subpage }: AppearanceSettingsProps = {}) {
     { id: 'always', label: a.tabStripAlways },
     { id: 'never', label: a.tabStripNever }
   ] as const satisfies readonly { id: TabStripDefault; label: string }[]
-
-  const appActionsOptions = [
-    { id: 'right', label: a.appActionsRight },
-    { id: 'left', label: a.appActionsLeft }
-  ] as const satisfies readonly { id: TitlebarAppActionsSide; label: string }[]
 
   const textDirectionOptions = TEXT_DIRECTIONS.map(id => ({
     id,
@@ -652,7 +485,6 @@ export function AppearanceSettings({ subpage }: AppearanceSettingsProps = {}) {
                         })}
                       </div>
                     )}
-                    <MarketplaceThemeResults installs={installs} onInstalled={name => setTheme(name)} query={query} />
                   </div>
                   {showProfileNote && (
                     <p className="mt-3 text-[length:var(--conversation-caption-font-size)] leading-(--conversation-caption-line-height) text-(--ui-text-tertiary)">
@@ -763,24 +595,6 @@ export function AppearanceSettings({ subpage }: AppearanceSettingsProps = {}) {
               description={a.tabStripDesc}
               id={settingElementId(ids.tabStrip)}
               title={a.tabStripTitle}
-            />
-          )}
-
-          {show('window-layout') && (
-            <ListRow
-              action={
-                <SegmentedControl
-                  onChange={id => {
-                    triggerHaptic('selection')
-                    setTitlebarAppActionsSide(id)
-                  }}
-                  options={appActionsOptions}
-                  value={titlebarAppActionsSide}
-                />
-              }
-              description={a.appActionsDesc}
-              id={settingElementId(ids.appActions)}
-              title={a.appActionsTitle}
             />
           )}
 
@@ -1086,12 +900,6 @@ export function AppearanceSettings({ subpage }: AppearanceSettingsProps = {}) {
           )}
         </div>
       </div>
-
-      {show('pet') && (
-        <div className={subpage === undefined ? 'mt-6' : undefined} id={settingElementId(ids.pet)}>
-          <PetSettings />
-        </div>
-      )}
 
       {/* Plugin-provided appearance controls — the sanctioned seam for a
           plugin that used to inject nodes into this page. Top-level page only:
