@@ -1,17 +1,21 @@
-import { IconMenu2, IconPlus } from '@tabler/icons-react'
+import { IconPlus } from '@tabler/icons-react'
 import { useStore } from '@nanostores/react'
 import type { CSSProperties } from 'react'
 
 import { Slot } from '@/contrib/react/slot'
 import { useI18n } from '@/i18n'
-import { toggleLeftSide } from '@/store/layout'
 import { $connection } from '@/store/session'
 
 import type { TitlebarTool } from '../titlebar-controls'
 
+import { useNavigate } from 'react-router'
+
+import { TitlebarToolButton } from '../titlebar-controls'
+
 import { ContributedTools } from './contributed-tools'
 import { PaneToggles } from './pane-toggles'
 import { StatusPill } from './status-pill'
+import { useSystemTools } from './system-tools'
 import { TitleMenu } from './title-menu'
 import { useTitlebarModel } from './use-titlebar-model'
 
@@ -54,22 +58,16 @@ export function VantaTitlebar({
   const copy = t.vantaShell.titlebar
   const model = useTitlebarModel()
   const connection = useStore($connection)
+  const navigate = useNavigate()
+  const tools = useSystemTools(onOpenSettings)
 
   const style = { '--vs-lights-inset': `${lightsInset(connection)}px` } as CSSProperties
 
   return (
     <header className="vs-titlebar" data-vanta-titlebar="" style={style}>
       <div className="vs-tb-left">
-        <button
-          aria-label={copy.openSidebar}
-          className="vs-icon vs-tb-drawer"
-          data-narrow-toggle=""
-          onClick={toggleLeftSide}
-          type="button"
-        >
-          <IconMenu2 aria-hidden size={16} />
-        </button>
-        <button aria-label={copy.newChat} className="vs-icon" onClick={onNewChat} type="button">
+        <TitlebarToolButton navigate={navigate} tool={tools.sidebar} />
+        <button aria-label={copy.newChat} className="vs-icon" data-testid="titlebar-new-chat" onClick={onNewChat} type="button">
           <IconPlus aria-hidden size={16} />
         </button>
       </div>
@@ -96,7 +94,7 @@ export function VantaTitlebar({
       <Slot area="titleBar.left" />
       <ContributedTools tools={leftTools} />
       <ContributedTools tools={rightTools} />
-      <PaneToggles onOpenSettings={onOpenSettings} />
+      <PaneToggles tools={tools} />
       <Slot area="titleBar.right" />
     </header>
   )

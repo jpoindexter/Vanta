@@ -50,6 +50,11 @@ export interface VantaShellTranslations {
     project: string
     noProject: string
     newChatTitle: string
+    resetLayout: string
+    hideStatusbar: string
+    showStatusbar: string
+    simpleMode: string
+    advancedMode: string
   }
   offline: {
     banner: string

@@ -56,6 +56,8 @@ export interface TitlebarTool extends Tiered {
   badge?: number
   title?: string
   to?: string
+  /** Marks the button that opens the narrow sidebar drawer, so an outside-click guard leaves it alone. */
+  narrowToggle?: boolean
   /** Durable `data-tour` handle. Tools are addressed by icon and translated
    *  label otherwise, and neither survives a theme or a locale change. */
   tour?: string
@@ -77,7 +79,7 @@ interface TitlebarControlsProps extends ComponentProps<'div'> {
  * held: hover gates via CSS (`group/tool` on the button), the modifier via
  * the window listener. Pressing the modifier elsewhere changes nothing.
  */
-function LayoutGlyph({ modHeld }: { modHeld: boolean }) {
+export function LayoutGlyph({ modHeld }: { modHeld: boolean }) {
   return (
     <>
       <span className={cn('inline-flex', modHeld && 'group-hover/tool:hidden')}>
@@ -94,7 +96,7 @@ function LayoutGlyph({ modHeld }: { modHeld: boolean }) {
 }
 
 /** Overlay count on a titlebar glyph. Hidden when count is 0/undefined. */
-function withCountBadge(icon: ReactNode, count: number | undefined): ReactNode {
+export function withCountBadge(icon: ReactNode, count: number | undefined): ReactNode {
   if (!count) {
     return icon
   }
@@ -113,7 +115,7 @@ function withCountBadge(icon: ReactNode, count: number | undefined): ReactNode {
 
 /** Live ⌘/Ctrl tracking — mod-click affordances telegraph themselves (the
  *  layout button morphs into its reset form while the modifier is down). */
-function useModifierHeld(): boolean {
+export function useModifierHeld(): boolean {
   const [held, setHeld] = useState(false)
 
   useEffect(() => {
@@ -356,7 +358,7 @@ export function TitlebarControls({ leftTools = [], tools = [], onOpenSettings }:
   )
 }
 
-function TitlebarToolButton({ navigate, tool }: { navigate: ReturnType<typeof useNavigate>; tool: TitlebarTool }) {
+export function TitlebarToolButton({ navigate, tool }: { navigate: ReturnType<typeof useNavigate>; tool: TitlebarTool }) {
   // Titlebar actions never show an active background — state reads from the
   // icon itself (e.g. the mute/unmute glyph). aria-pressed still carries it
   // for a11y.
@@ -393,6 +395,8 @@ function TitlebarToolButton({ navigate, tool }: { navigate: ReturnType<typeof us
         aria-label={tool.label}
         aria-pressed={tool.active ?? undefined}
         className={className}
+        data-narrow-toggle={tool.narrowToggle ? '' : undefined}
+        data-testid={`titlebar-${tool.id}`}
         data-tour={tool.tour}
         disabled={tool.disabled}
         onClick={event => {
