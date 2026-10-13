@@ -14,6 +14,8 @@
 // halves in one bundle.
 import { atom } from 'nanostores'
 
+import { translateNow } from '@/i18n'
+import { isDiagnosticsUploadConfigured } from '@/lib/vanta-endpoints'
 import { $gateway } from '@/store/gateway'
 
 export interface SendDiagnosticsResult {
@@ -78,11 +80,49 @@ async function collectLocalExtras(): Promise<Record<string, string>> {
 // S3 leg); the default WS timeout is too tight for slow disks/links.
 const SHARE_TIMEOUT_MS = 120_000
 
+interface UploadOutcome {
+  response?: ShareNousResponse
+  stale?: true
+}
+
+/** Collect the bundle and ask the backend to upload it; `stale` when the dialog closed meanwhile. */
+async function runUpload(current: SendDiagnosticsState, stillCurrent: () => boolean): Promise<UploadOutcome> {
+  const gateway = $gateway.get()
+
+  if (!gateway) {
+    throw new Error('Vanta gateway unavailable')
+  }
+
+  const extraFiles = await collectLocalExtras()
+
+  if (!stillCurrent()) {
+    return { stale: true }
+  }
+
+  const response = await gateway.request<ShareNousResponse>(
+    'diagnostics.share_nous',
+    {
+      ...(current.errorContext ? { error_context: current.errorContext } : {}),
+      ...(Object.keys(extraFiles).length ? { extra_files: extraFiles } : {})
+    },
+    SHARE_TIMEOUT_MS
+  )
+
+  return stillCurrent() ? { response } : { stale: true }
+}
+
 /** User confirmed — run the upload. Transitions consent → uploading → done/error. */
 export async function confirmSendDiagnostics(): Promise<void> {
   const current = $sendDiagnostics.get()
 
   if (!current || current.phase !== 'consent') {
+    return
+  }
+
+  // No Vanta endpoint is set: never reach the backend upload call.
+  if (!isDiagnosticsUploadConfigured()) {
+    $sendDiagnostics.set({ ...current, error: translateNow('sendDiagnostics.notConfigured'), phase: 'error' })
+
     return
   }
 
@@ -94,28 +134,9 @@ export async function confirmSendDiagnostics(): Promise<void> {
   $sendDiagnostics.set({ ...current, phase: 'uploading' })
 
   try {
-    const gateway = $gateway.get()
+    const { response, stale } = await runUpload(current, stillCurrent)
 
-    if (!gateway) {
-      throw new Error('Hermes gateway unavailable')
-    }
-
-    const extraFiles = await collectLocalExtras()
-
-    if (!stillCurrent()) {
-      return
-    }
-
-    const response = await gateway.request<ShareNousResponse>(
-      'diagnostics.share_nous',
-      {
-        ...(current.errorContext ? { error_context: current.errorContext } : {}),
-        ...(Object.keys(extraFiles).length ? { extra_files: extraFiles } : {})
-      },
-      SHARE_TIMEOUT_MS
-    )
-
-    if (!stillCurrent()) {
+    if (stale || !response) {
       return
     }
 
@@ -126,11 +147,7 @@ export async function confirmSendDiagnostics(): Promise<void> {
     $sendDiagnostics.set({
       ...current,
       phase: 'done',
-      result: {
-        expiresAt: response.expires_at,
-        uploadId: response.upload_id,
-        viewUrl: response.view_url
-      }
+      result: { expiresAt: response.expires_at, uploadId: response.upload_id, viewUrl: response.view_url }
     })
   } catch (error) {
     if (!stillCurrent()) {
