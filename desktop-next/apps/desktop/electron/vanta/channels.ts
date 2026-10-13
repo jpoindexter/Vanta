@@ -19,9 +19,6 @@ export const CH = {
   windowState: 'vanta:window-state-changed',
   titlebarTheme: 'vanta:titlebar-theme',
   nativeTheme: 'vanta:native-theme',
-  zoomGet: 'vanta:zoom:get',
-  zoomSet: 'vanta:zoom:set',
-  zoomChanged: 'vanta:zoom:changed',
   powerResume: 'vanta:power-resume',
   // Native helpers
   openExternal: 'vanta:openExternal',
@@ -52,9 +49,7 @@ export const CH = {
   pickProjectFolder: 'vanta:pick-project-folder',
   switchProjectForNewTask: 'vanta:switch-project-for-new-task',
   readPendingProjectTask: 'vanta:read-pending-project-task',
-  acknowledgePendingProjectTask: 'vanta:acknowledge-pending-project-task',
-  // Preload-time synchronous reads
-  glassSupport: 'vanta:translucency:support'
+  acknowledgePendingProjectTask: 'vanta:acknowledge-pending-project-task'
 } as const
 
 export type Channel = (typeof CH)[keyof typeof CH]
