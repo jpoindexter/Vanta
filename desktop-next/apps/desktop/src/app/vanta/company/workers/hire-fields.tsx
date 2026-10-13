@@ -68,6 +68,37 @@ function Pick({ busy, empty, label, onChange, options, value }: PickProps) {
   )
 }
 
+/** Who the worker reports to and which department it joins. */
+function PlaceFields({
+  busy,
+  company,
+  set,
+  values
+}: Omit<HireFieldsProps, 'onChange' | 'providers'> & { set: (key: keyof HireFormValues) => (value: string) => void }) {
+  return (
+    <>
+      <Pick
+        busy={busy}
+        empty="Nobody (top of the org)"
+        label="Reports to"
+        onChange={set('managerId')}
+        options={company?.workers ?? []}
+        value={values.managerId}
+      />
+      {company && company.departments.length > 0 && (
+        <Pick
+          busy={busy}
+          empty="None"
+          label="Department"
+          onChange={set('departmentId')}
+          options={company.departments}
+          value={values.departmentId}
+        />
+      )}
+    </>
+  )
+}
+
 /** The form body of the hire dialog: role, title, runtime (with the model it will use), manager, department, budget. */
 export function HireFields({ busy, company, onChange, providers, values }: HireFieldsProps) {
   const set = (key: keyof HireFormValues) => (value: string) => onChange(key, value)
@@ -94,24 +125,7 @@ export function HireFields({ busy, company, onChange, providers, values }: HireF
         />
       </Field>
       <RuntimeField onChange={set('adapter')} providers={providers} value={values.adapter} />
-      <Pick
-        busy={busy}
-        empty="Nobody (top of the org)"
-        label="Reports to"
-        onChange={set('managerId')}
-        options={company?.workers ?? []}
-        value={values.managerId}
-      />
-      {company && company.departments.length > 0 && (
-        <Pick
-          busy={busy}
-          empty="None"
-          label="Department"
-          onChange={set('departmentId')}
-          options={company.departments}
-          value={values.departmentId}
-        />
-      )}
+      <PlaceFields busy={busy} company={company} set={set} values={values} />
       <Field hint="Leave empty for no spending cap." label="Budget (US dollars)">
         <input
           className="vc-input"

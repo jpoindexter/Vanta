@@ -3,10 +3,10 @@ import { type FormEvent, useState } from 'react'
 import type { CreateTicketInput } from '@/api/vanta-company'
 import type { CompanyWorker } from '@/api/vanta-company-schemas'
 
-import { VpButton } from '../../ui/button'
 import { ActionStatus } from '../ui/action-status'
 import { CompanyDialog } from '../ui/dialog'
 import { Field } from '../ui/field'
+import { FormActions } from '../ui/form-actions'
 import type { ActionState } from '../use-company-action'
 
 interface CreateTicketDialogProps {
@@ -35,17 +35,13 @@ export function toInput(draft: Draft): CreateTicketInput {
   }
 }
 
-function Fields({
-  busy,
-  draft,
-  set,
-  workers
-}: {
+interface FieldsProps {
   busy: boolean
   draft: Draft
   set: <K extends keyof Draft>(key: K, value: Draft[K]) => void
-  workers: CompanyWorker[]
-}) {
+}
+
+function TextFields({ busy, draft, set }: FieldsProps) {
   return (
     <>
       <Field label="Title">
@@ -77,6 +73,13 @@ function Fields({
           value={draft.expectedOutput}
         />
       </Field>
+    </>
+  )
+}
+
+function ReviewAndAssign({ busy, draft, set, workers }: FieldsProps & { workers: CompanyWorker[] }) {
+  return (
+    <>
       <label className="vc-check">
         <input
           checked={draft.requireReview}
@@ -123,19 +126,15 @@ export function CreateTicketDialog({ action, onClose, onCreate, workers }: Creat
   return (
     <CompanyDialog onClose={onClose} title="New ticket">
       <form className="vc-form" onSubmit={submit}>
-        <Fields busy={action.busy} draft={draft} set={set} workers={workers} />
+        <TextFields busy={action.busy} draft={draft} set={set} />
+        <ReviewAndAssign busy={action.busy} draft={draft} set={set} workers={workers} />
         {problem && (
           <p className="vp-error" role="alert">
             {problem}
           </p>
         )}
         <ActionStatus error={action.error} notice={null} />
-        <div className="vp-acts vc-form__actions">
-          <VpButton disabled={action.busy} type="submit" variant="primary">
-            Create ticket
-          </VpButton>
-          <VpButton onClick={onClose}>Cancel</VpButton>
-        </div>
+        <FormActions busy={action.busy} onCancel={onClose} submitLabel="Create ticket" />
       </form>
     </CompanyDialog>
   )

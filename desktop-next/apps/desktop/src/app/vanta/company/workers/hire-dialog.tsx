@@ -3,10 +3,10 @@ import { type FormEvent, useState } from 'react'
 import type { HireInput } from '@/api/vanta-company'
 import type { CompanyResponse } from '@/api/vanta-company-schemas'
 
-import { VpButton } from '../../ui/button'
 import { useCompany } from '../company-context'
 import { ActionStatus } from '../ui/action-status'
 import { CompanyDialog } from '../ui/dialog'
+import { FormActions } from '../ui/form-actions'
 import type { ActionState } from '../use-company-action'
 import { useCompanyResource } from '../use-company-resource'
 
@@ -58,17 +58,7 @@ export function HireDialog({ action, company, onClose, onHire }: HireDialogProps
           </p>
         )}
         <ActionStatus error={action.error} notice={null} />
-        {action.busy && (
-          <p className="vp-note" role="status">
-            Waiting for your approval.
-          </p>
-        )}
-        <div className="vp-acts vc-form__actions">
-          <VpButton disabled={action.busy} type="submit" variant="primary">
-            Hire and ask me to approve
-          </VpButton>
-          <VpButton onClick={onClose}>Cancel</VpButton>
-        </div>
+        <FormActions busy={action.busy} onCancel={onClose} submitLabel="Hire and ask me to approve" waiting />
       </form>
     </CompanyDialog>
   )

@@ -9,27 +9,47 @@ import type { ActionState } from '../use-company-action'
 
 const KIND_LABEL = { blocker: 'Blocked', outcome: 'Missing artifact', review: 'Waiting for review' } as const
 
-/** What is stopping this ticket. A worker's own question gets an Answer box that restarts the worker. */
-export function TicketBlockers({ action, detail }: { action: ActionState; detail: TicketDetail }) {
+/** The worker's own question gets an Answer box; sending it restarts the worker with the answer. */
+function AnswerForm({ action, ticketId }: { action: ActionState; ticketId: string }) {
   const { api } = useCompany()
   const [answer, setAnswer] = useState('')
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault()
+    const text = answer.trim()
+    const done = 'Answer sent. The worker is running again.'
+
+    if (text && (await action.run(() => api.answer(ticketId, text), { done }))) {
+      setAnswer('')
+    }
+  }
+
+  return (
+    <form className="vc-form" onSubmit={submit}>
+      <Field label="Your answer">
+        <textarea
+          className="vc-input"
+          disabled={action.busy}
+          onChange={event => setAnswer(event.target.value)}
+          rows={3}
+          value={answer}
+        />
+      </Field>
+      <div className="vp-acts">
+        <VpButton disabled={action.busy || !answer.trim()} type="submit" variant="primary">
+          Send answer
+        </VpButton>
+      </div>
+    </form>
+  )
+}
+
+/** What is stopping this ticket, and the Answer box when the worker is the one asking. */
+export function TicketBlockers({ action, detail }: { action: ActionState; detail: TicketDetail }) {
   const asking = detail.status === 'blocked' && detail.blockers.some(item => item.kind === 'blocker')
 
   if (detail.blockers.length === 0) {
     return null
-  }
-
-  const submit = async (event: FormEvent) => {
-    event.preventDefault()
-
-    if (
-      answer.trim() &&
-      (await action.run(() => api.answer(detail.id, answer.trim()), {
-        done: 'Answer sent. The worker is running again.'
-      }))
-    ) {
-      setAnswer('')
-    }
   }
 
   return (
@@ -42,24 +62,7 @@ export function TicketBlockers({ action, detail }: { action: ActionState; detail
           </li>
         ))}
       </ul>
-      {asking && (
-        <form className="vc-form" onSubmit={submit}>
-          <Field label="Your answer">
-            <textarea
-              className="vc-input"
-              disabled={action.busy}
-              onChange={event => setAnswer(event.target.value)}
-              rows={3}
-              value={answer}
-            />
-          </Field>
-          <div className="vp-acts">
-            <VpButton disabled={action.busy || !answer.trim()} type="submit" variant="primary">
-              Send answer
-            </VpButton>
-          </div>
-        </form>
-      )}
+      {asking && <AnswerForm action={action} ticketId={detail.id} />}
     </section>
   )
 }

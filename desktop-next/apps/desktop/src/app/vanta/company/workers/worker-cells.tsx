@@ -1,6 +1,5 @@
 import type { CompanyWorker } from '@/api/vanta-company-schemas'
 
-import { VpButton } from '../../ui/button'
 import { costText, formatUsd } from '../format'
 
 import type { OrgRow } from './org-rows'
@@ -49,9 +48,14 @@ export function TicketCell({ onOpenTicket, worker }: TicketCellProps) {
   return (
     <>
       {current ? (
-        <VpButton aria-label={`Open ticket ${current}`} onClick={() => onOpenTicket(current)} variant="ghost">
+        <button
+          aria-label={`Open ticket ${current}`}
+          className="vc-link vc-id"
+          onClick={() => onOpenTicket(current)}
+          type="button"
+        >
           {current}
-        </VpButton>
+        </button>
       ) : (
         <span className="vp-muted">None</span>
       )}

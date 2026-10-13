@@ -40,6 +40,30 @@ function ViewToggle({ onChange, view }: { onChange: (view: TicketView) => void; 
   )
 }
 
+interface SelectFilterProps {
+  allLabel: string
+  disabled?: boolean
+  label: string
+  onChange: (value: string) => void
+  options: Array<{ label: string; value: string }>
+  value: string
+}
+
+function SelectFilter({ allLabel, disabled, label, onChange, options, value }: SelectFilterProps) {
+  return (
+    <Field label={label}>
+      <select className="vc-input" disabled={disabled} onChange={event => onChange(event.target.value)} value={value}>
+        <option value="">{allLabel}</option>
+        {options.map(option => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </Field>
+  )
+}
+
 export function TicketFilters({
   onChange,
   onCreate,
@@ -54,41 +78,28 @@ export function TicketFilters({
   return (
     <div className="vc-toolbar vc-toolbar--filters">
       <div className="vc-filters">
-        <Field label="Worker">
-          <select className="vc-input" onChange={event => pick('worker')(event.target.value)} value={values.worker}>
-            <option value="">All workers</option>
-            {workers.map(worker => (
-              <option key={worker.id} value={worker.id}>
-                {worker.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Status">
-          <select className="vc-input" onChange={event => pick('status')(event.target.value)} value={values.status}>
-            <option value="">All statuses</option>
-            {TICKET_STATUSES.map(status => (
-              <option key={status} value={status}>
-                {TICKET_STATUS_WORD[status]}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Project">
-          <select
-            className="vc-input"
-            disabled={projects.length === 0}
-            onChange={event => pick('project')(event.target.value)}
-            value={values.project}
-          >
-            <option value="">{projects.length === 0 ? 'No projects yet' : 'All projects'}</option>
-            {projects.map(project => (
-              <option key={project} value={project}>
-                {project}
-              </option>
-            ))}
-          </select>
-        </Field>
+        <SelectFilter
+          allLabel="All workers"
+          label="Worker"
+          onChange={pick('worker')}
+          options={workers.map(worker => ({ label: worker.name, value: worker.id }))}
+          value={values.worker}
+        />
+        <SelectFilter
+          allLabel="All statuses"
+          label="Status"
+          onChange={pick('status')}
+          options={TICKET_STATUSES.map(status => ({ label: TICKET_STATUS_WORD[status], value: status }))}
+          value={values.status}
+        />
+        <SelectFilter
+          allLabel={projects.length === 0 ? 'No projects yet' : 'All projects'}
+          disabled={projects.length === 0}
+          label="Project"
+          onChange={pick('project')}
+          options={projects.map(project => ({ label: project, value: project }))}
+          value={values.project}
+        />
       </div>
       <div className="vp-acts">
         <ViewToggle onChange={onViewChange} view={view} />
