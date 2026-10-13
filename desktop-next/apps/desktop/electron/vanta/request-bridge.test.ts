@@ -185,3 +185,61 @@ describe('latestClientFor', () => {
     expect(bridge.latestClientFor(sink)).toBeUndefined()
   })
 })
+
+describe('focused chat', () => {
+  const open = (bridge: ReturnType<typeof createRequestBridge>, sink: ReturnType<typeof fakeSink>['sink']) => {
+    bridge.openStream(sink, { clientId: 'chat-a', streamId: 's1' })
+    bridge.openStream(sink, { clientId: 'chat-b', streamId: 's2' })
+  }
+
+  it('prefers the chat the renderer says is in front over the one opened last', () => {
+    const bridge = createRequestBridge(fakeTransport().transport, CHANNELS)
+    const { sink } = fakeSink(1)
+
+    open(bridge, sink)
+    bridge.setFocusedClient(sink, 'chat-a')
+
+    expect(bridge.latestClientFor(sink)).toBe('chat-a')
+  })
+
+  it('falls back to the latest stream when the focused chat has no open stream', () => {
+    const bridge = createRequestBridge(fakeTransport().transport, CHANNELS)
+    const { sink } = fakeSink(1)
+
+    open(bridge, sink)
+    bridge.setFocusedClient(sink, 'chat-gone')
+    expect(bridge.latestClientFor(sink)).toBe('chat-b')
+
+    bridge.setFocusedClient(sink, 'chat-a')
+    bridge.closeStream(sink, 's1')
+    expect(bridge.latestClientFor(sink)).toBe('chat-b')
+  })
+
+  it('clears the focus on null, ignores junk, and keeps windows apart', () => {
+    const bridge = createRequestBridge(fakeTransport().transport, CHANNELS)
+    const { sink } = fakeSink(1)
+    const other = fakeSink(2).sink
+
+    open(bridge, sink)
+    bridge.openStream(other, { clientId: 'chat-z', streamId: 's1' })
+    bridge.setFocusedClient(sink, 'chat-a')
+    bridge.setFocusedClient(sink, 42)
+    expect(bridge.latestClientFor(sink)).toBe('chat-a')
+    expect(bridge.latestClientFor(other)).toBe('chat-z')
+
+    bridge.setFocusedClient(sink, null)
+    expect(bridge.latestClientFor(sink)).toBe('chat-b')
+  })
+
+  it('forgets the focus when the window closes its streams', () => {
+    const bridge = createRequestBridge(fakeTransport().transport, CHANNELS)
+    const { sink } = fakeSink(1)
+
+    open(bridge, sink)
+    bridge.setFocusedClient(sink, 'chat-a')
+    bridge.closeAllFor(sink)
+    open(bridge, sink)
+
+    expect(bridge.latestClientFor(sink)).toBe('chat-b')
+  })
+})

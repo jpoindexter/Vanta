@@ -2,6 +2,8 @@ import './styles.css'
 import './styles/vanta.css'
 // Side-effect: reports in-flight turns to the main process for the quit guard.
 import './store/active-work'
+// Side-effect: tells main which chat is in front so approval cards land there.
+import './store/focused-client'
 // Side-effect: mirrors the machine's AC/battery state for poll demotion.
 import './store/power'
 // Side-effect: applies the persisted window translucency on load.

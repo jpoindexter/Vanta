@@ -1,5 +1,7 @@
 import { useStore } from '@nanostores/react'
 
+import { TERMINAL_COPY } from '@/app/vanta/copy'
+
 import { TerminalSlot } from './persistent'
 import { TerminalRail } from './rail'
 import { $terminals } from './terminals'
@@ -16,6 +18,14 @@ export function TerminalPaneChrome() {
   return (
     <div className="flex min-h-0 min-w-0 flex-1">
       <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
+        <p
+          aria-label={TERMINAL_COPY.gateNoteLabel}
+          className="shrink-0 px-2 py-1 text-[0.6875rem] leading-snug text-(--ui-text-tertiary)"
+          data-testid="terminal-gate-note"
+          title={TERMINAL_COPY.gateNote}
+        >
+          {TERMINAL_COPY.gateNote}
+        </p>
         <TerminalSlot />
       </div>
       {terminals.length > 0 && <TerminalRail />}

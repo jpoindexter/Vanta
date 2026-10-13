@@ -61,7 +61,6 @@ function sandboxEnv({ root, project, modelUrl, hidden }) {
     VANTA_RUNTIME_ROOT: path.join(repoRoot, "vanta-ts"),
     VANTA_SKIP_QUIT_CONFIRM: "1",
   });
-  if (hidden) env.NODE_OPTIONS = `--require ${path.join(here, "hidden-window.cjs")}`;
   return env;
 }
 
@@ -77,6 +76,8 @@ export async function launchVanta({ hidden = true, width = 1440, height = 900 } 
   const app = await _electron.launch({
     executablePath: electronBinary(),
     args: [
+      // Electron strips NODE_OPTIONS in the main process; a --require argument is what reaches it.
+      ...(hidden ? ["--require", path.join(here, "hidden-window.cjs")] : []),
       desktopRoot,
       `--user-data-dir=${userData}`,
       "--disable-gpu",

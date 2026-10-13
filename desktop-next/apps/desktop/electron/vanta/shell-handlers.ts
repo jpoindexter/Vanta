@@ -50,6 +50,8 @@ export function registerShellHandlers(deps: ShellDeps): void {
     }
   })
 
+  ipc.on(CH.focusClient, (event, clientId: unknown) => requests.setFocusedClient(event.sender as Sender, clientId))
+
   ipc.handle(CH.connection, async event => deps.describe(await deps.baseUrl(), deps.getWindow(event.sender)))
   ipc.handle(CH.bootProgressGet, () => deps.boot())
   ipc.handle(CH.version, () => deps.appVersion())
