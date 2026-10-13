@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react'
 
 import { ChatRuntimeBoundary } from '@/app/chat'
 import { ChatBar } from '@/app/chat/composer'
+import { ScrollToBottomButton } from '@/app/chat/scroll-to-bottom-button'
 import { FloatingComposerSurface } from '@/app/chat/composer/floating-surface'
 import { ComposerSurfaceProvider } from '@/app/chat/composer/scope'
 import type { ChatBarState } from '@/app/chat/composer/types'
@@ -13,7 +14,7 @@ import { $gatewayState } from '@/store/session'
 
 import { fixtureMessages } from './fixtures'
 import { type FixtureParams, MAIN_HEIGHT, MAIN_WIDTH } from './params'
-import { seedClarify, seedPrompts } from './prompts'
+import { seedClarify, seedComposer, seedPrompts } from './prompts'
 
 const SESSION_ID = 'fixture-session'
 
@@ -53,6 +54,8 @@ export function FixtureScene({ params }: { params: FixtureParams }) {
     $gatewayState.set('open')
     seedPrompts(params, SESSION_ID)
     seedClarify(params, SESSION_ID)
+
+    return seedComposer(params, SESSION_ID)
   }, [params])
 
   return (
@@ -83,6 +86,7 @@ export function FixtureScene({ params }: { params: FixtureParams }) {
                 sessionId={SESSION_ID}
                 sessionKey={SESSION_ID}
               />
+              <ScrollToBottomButton sessionId={SESSION_ID} />
             </div>
             <ComposerSurfaceProvider value="fixture-surface">
               <PaneGroupContext.Provider value="fixture-group">

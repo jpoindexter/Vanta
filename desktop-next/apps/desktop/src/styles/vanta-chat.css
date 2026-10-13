@@ -230,6 +230,9 @@
 }
 
 [data-slot='aui_assistant-message-content'] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vp-gap);
   padding-left: 0;
   line-height: var(--vp-leading);
 }
@@ -604,4 +607,20 @@
 
 .vp-failure h4 .vp-card-icon {
   color: var(--dt-destructive);
+}
+
+/* The approval stack sits in the column like any other block: the same 14px
+   rhythm, no extra padding around the card. */
+[data-slot='tool-approval-stack'] {
+  padding-block: 0 !important;
+}
+
+/* One approval is a plain card in the column: no room reserved above it for a
+   stack peek that only exists when several approvals wait. */
+[data-slot='tool-approval-stack'] [data-slot='card-stack'][data-stack-count='1'] {
+  padding-top: 0 !important;
+}
+
+[data-slot='tool-approval-stack'] [data-slot='card-stack'][data-stack-count='1'] > [data-slot='card-stack-front'] {
+  top: 0 !important;
 }

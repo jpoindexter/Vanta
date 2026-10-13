@@ -230,6 +230,10 @@ const AssistantMessageBody: FC<AssistantMessageProps & { collapsedNotice?: null 
   // ChatMessage.interim).
   const isInterim = useAuiState(s => s.message.metadata?.custom?.interim === true)
 
+  // Copy, rate and retry belong to a finished reply: a running or failed turn
+  // shows none, so the cards around it keep the column's rhythm.
+  const isComplete = useAuiState(s => s.message.status?.type === 'complete')
+
   // Whole-turn wall-clock seconds (set once at completion — referentially
   // stable across the 30 Hz delta stream, so this adds no per-token renders).
   const turnDurationS = useAuiState(s => s.message.metadata?.custom?.durationS as number | undefined)
@@ -326,6 +330,7 @@ const AssistantMessageBody: FC<AssistantMessageProps & { collapsedNotice?: null 
               without the bar that turn has no copy/branch affordance at all
               (#118864). */}
           {hasVisibleText &&
+            isComplete &&
             responseTail &&
             (!isInterim || (responseIds.length > 0 && responseIds.at(-1) === messageId)) && (
               <AssistantFooter

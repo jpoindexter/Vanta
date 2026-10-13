@@ -9,7 +9,7 @@ export function collectInPage({ sel, mainSel, props }) {
   const r = el.getBoundingClientRect();
   const m = main.getBoundingClientRect();
   const cs = getComputedStyle(el);
-  const out = {};
+  const out = { _top: Math.round((r.top - m.top) * 10) / 10, _bottom: Math.round((r.bottom - m.top) * 10) / 10 };
   const effectiveOpacity = (node) => {
     let o = 1;
     for (let n = node; n && n.nodeType === 1; n = n.parentElement) o *= parseFloat(getComputedStyle(n).opacity);

@@ -17,7 +17,7 @@ export const ELEMENTS = [
   { id: "thread.userBubble", note: 5, wf: ".msg-u", built: '[data-vp="user-bubble"]', states: THREAD, props: ["borderRadius", "paddingTop", "paddingLeft", "fontSize", "lineHeight", "text", "alignRight", "maxWidthPct"] },
   { id: "thread.userActions", note: 5, wf: ".hov:has(.msg-u) .hover-actions", built: '[data-vp="user-actions"]', states: THREAD, props: ["text", "hiddenAtRest", "shownOnHover", "height"] },
   { id: "thread.assistantText", note: 5, wf: ".msg-a > div:first-child", built: '[data-slot="aui_assistant-message-content"] .aui-md', states: THREAD, props: ["fontSize", "lineHeight", "text", "noBackground"], first: true },
-  { id: "thread.assistantActions", note: 5, wf: ".msg-a .hover-actions", built: '[data-vp="assistant-actions"]', states: THREAD, props: ["text", "hiddenAtRest", "shownOnHover"], first: true },
+  { id: "thread.assistantActions", note: 5, wf: ".msg-a .hover-actions", built: '[data-vp="assistant-actions"]', states: ["done", "offline"], props: ["text", "hiddenAtRest", "shownOnHover"], first: true },
   // 6 collapsed tool step
   { id: "step.collapsed", note: 6, wf: ".step[data-step]", built: '[data-vp="step"]', states: ["waiting", "running", "failed", "done", "offline", "blocked"], props: ["text", "height", "fontSize", "ariaExpanded"], first: true },
   // 7 diff card
@@ -61,4 +61,12 @@ export const SCENARIOS = [
   { id: "queue.remove", note: 9, wf: ".queue button", built: '[data-vp="queue-remove"]', props: ["text", "height"] },
   { id: "composer.hint.running", note: 9, wf: ".hint", built: '[data-vp="composer-hint"]', props: ["text"] },
   { id: "composer.stop", note: 9, wf: ".composer .send", built: '[data-vp="composer-send"]', props: ["ariaLabel", "width", "height"] },
+];
+
+// Vertical rhythm: distance from the bottom of `a` to the top of `b`, in px.
+export const GAPS = [
+  { id: "gap.step-to-diff", note: 6, a: "step.collapsed", b: "diff.card", states: ["waiting", "failed", "offline", "done", "running"] },
+  { id: "gap.diff-to-approval", note: 8, a: "diff.card", b: "approval.card", states: ["waiting"] },
+  { id: "gap.step-to-blocked", note: 8, a: "step.collapsed", b: "blocked.card", states: ["blocked"] },
+  { id: "gap.diff-to-running", note: 6, a: "diff.card", b: "running.line", states: ["running"] },
 ];
