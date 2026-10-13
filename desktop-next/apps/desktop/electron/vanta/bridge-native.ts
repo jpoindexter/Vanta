@@ -71,3 +71,31 @@ export function gitApi(ipc: IpcRendererLike) {
     }
   };
 }
+
+/** Terminal panes. They are not a shell: each line typed is one command that waits for approval in the chat. */
+export function terminalApi(ipc: IpcRendererLike) {
+  const onFor = <T>(channel: string) => (id: string, callback: (payload: T) => void) => {
+    const listener = (_event: unknown, from: string, payload: T) => {
+      if (from === id) {
+        callback(payload);
+      }
+    };
+
+    ipc.on(channel, listener as never);
+
+    return () => void ipc.removeListener(channel, listener as never);
+  };
+
+  return {
+    terminal: {
+      attach: (id: string) => ipc.invoke<boolean>(CH.terminalAttach, id),
+      cwd: (id: string) => ipc.invoke<null | string>(CH.terminalCwd, id),
+      dispose: (id: string) => ipc.invoke<boolean>(CH.terminalDispose, id),
+      onData: onFor<string>(CH.terminalData),
+      onExit: onFor<{ code: null | number; signal: null | string }>(CH.terminalExit),
+      resize: (id: string, size: { cols: number; rows: number }) => ipc.invoke<boolean>(CH.terminalResize, id, size),
+      start: (options?: { cols?: number; cwd?: string; rows?: number }) => ipc.invoke(CH.terminalStart, options),
+      write: (id: string, data: string) => ipc.invoke<boolean>(CH.terminalWrite, id, data)
+    }
+  };
+}

@@ -135,7 +135,9 @@ function registerHandlers({ boot, host: serverHost, log }: Services): void {
     shell
   })
   registerWindowHandlers(ipc, windowFor)
-  wiring.registerAll(ipc, log.line, serverHost)
+  const requests = createRequestBridge(serverHost.transport, { closed: CH.eventsClosed, frame: CH.eventsFrame })
+
+  wiring.registerAll(ipc, log.line, serverHost, requests)
 
   registerProjectHandlers({
     confirmSwitch: askToSwitchProject,
@@ -164,7 +166,7 @@ function registerHandlers({ boot, host: serverHost, log }: Services): void {
     getWindow: windowFor,
     ipc,
     log,
-    requests: createRequestBridge(serverHost.transport, { closed: CH.eventsClosed, frame: CH.eventsFrame }),
+    requests,
     reveal: file => shell.showItemInFolder(file)
   })
 }

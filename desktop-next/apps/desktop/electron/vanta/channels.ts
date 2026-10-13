@@ -116,7 +116,16 @@ export const CH = {
   quickLateResult: 'vanta:quick-entry:late-result',
   trayGet: 'vanta:minimize-to-tray:get',
   traySet: 'vanta:minimize-to-tray:set',
-  trayChanged: 'vanta:minimize-to-tray:changed'
+  trayChanged: 'vanta:minimize-to-tray:changed',
+  // Approval-gated terminal (no pty)
+  terminalStart: 'vanta:terminal:start',
+  terminalWrite: 'vanta:terminal:write',
+  terminalResize: 'vanta:terminal:resize',
+  terminalAttach: 'vanta:terminal:attach',
+  terminalCwd: 'vanta:terminal:cwd',
+  terminalDispose: 'vanta:terminal:dispose',
+  terminalData: 'vanta:terminal:data',
+  terminalExit: 'vanta:terminal:exit'
 } as const
 
 export type Channel = (typeof CH)[keyof typeof CH]
