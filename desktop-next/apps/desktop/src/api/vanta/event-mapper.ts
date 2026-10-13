@@ -39,8 +39,45 @@ function gateway(type: GatewayEventName, payload: Record<string, unknown>): Mapp
   return { kind: 'gateway', payload, type }
 }
 
-function mapTyped(event: TypedEvent): MappedEvent {
+const PERCENT = 100
+const TENTH = 10
+
+/**
+ * Running totals for the chat this mapper serves. The server reports each settled instruction's
+ * tokens; the meter wants the session so far (since this window opened the chat).
+ */
+class UsageTotals {
+  private calls = 0
+  private input = 0
+  private output = 0
+
+  tick(event: Extract<TypedEvent, { type: 'usage' }>): MappedEvent {
+    const percent = event.contextWindow > 0 ? Math.min(PERCENT, (event.contextTokens / event.contextWindow) * PERCENT) : 0
+
+    if (event.reported) {
+      this.calls += 1
+      this.input += event.inputTokens
+      this.output += event.outputTokens
+    }
+
+    return gateway('session.usage', {
+      usage: {
+        // Token counts only move when the provider reported them; an unreported turn must not reset the totals.
+        ...(this.calls > 0 ? { calls: this.calls, input: this.input, output: this.output, total: this.input + this.output } : {}),
+        context_estimated: true,
+        context_max: event.contextWindow,
+        context_percent: Math.round(percent * TENTH) / TENTH,
+        context_source: 'vanta',
+        context_used: event.contextTokens
+      }
+    })
+  }
+}
+
+function mapTyped(event: TypedEvent, totals: UsageTotals): MappedEvent {
   switch (event.type) {
+    case 'usage':
+      return totals.tick(event)
     case 'tool.start':
       return gateway('tool.start', {
         args: event.args,
@@ -130,6 +167,7 @@ function legacyEvents(frame: SseFrame, ids: LegacyToolIds): MappedEvent[] {
 
 export function createFrameMapper(): FrameMapper {
   const ids = new LegacyToolIds()
+  const totals = new UsageTotals()
 
   const map = (raw: unknown): MappedEvent[] => {
     const parsed = sseFrameSchema.safeParse(raw)
@@ -151,7 +189,7 @@ export function createFrameMapper(): FrameMapper {
 
     // A frame the server typed is authoritative; an absent or unrecognised `typed` falls back to the label.
     const typed = frame.typed === undefined ? null : typedEventSchema.safeParse(frame.typed)
-    out.push(...(typed?.success ? [mapTyped(typed.data)] : legacyEvents(frame, ids)))
+    out.push(...(typed?.success ? [mapTyped(typed.data, totals)] : legacyEvents(frame, ids)))
 
     return out
   }

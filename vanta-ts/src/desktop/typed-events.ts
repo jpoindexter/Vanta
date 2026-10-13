@@ -59,6 +59,18 @@ export const TypedDesktopEventSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("approval.request"), approval: ApprovalPayloadSchema }),
   z.object({ type: z.literal("approval.resolved"), id: z.string() }),
   z.object({
+    type: z.literal("usage"),
+    sessionId: z.string(),
+    inputTokens: z.number(),
+    outputTokens: z.number(),
+    /** True when the provider reported token counts; false means the two counts are zero, not measured. */
+    reported: z.boolean(),
+    /** Estimated tokens the conversation now occupies (about four characters per token, images excluded). */
+    contextTokens: z.number(),
+    /** The model's context window in tokens. */
+    contextWindow: z.number(),
+  }),
+  z.object({
     type: z.literal("turn.complete"),
     sessionId: z.string(),
     finalText: z.string(),
@@ -205,4 +217,23 @@ export function budgetAlertEvent(input: Omit<BudgetAlertEvent, "type">): TypedDe
 
 export function activityAppendedEvent(entry: ActivityEntry): TypedDesktopEvent | null {
   return parseTypedEvent({ type: "activity.appended", entry });
+}
+
+export type UsageInput = {
+  sessionId: string;
+  usage?: { inputTokens: number; outputTokens: number };
+  contextTokens: number;
+  contextWindow: number;
+};
+
+export function usageEvent(input: UsageInput): TypedDesktopEvent | null {
+  return parseTypedEvent({
+    type: "usage",
+    sessionId: input.sessionId,
+    inputTokens: input.usage?.inputTokens ?? 0,
+    outputTokens: input.usage?.outputTokens ?? 0,
+    reported: input.usage !== undefined,
+    contextTokens: input.contextTokens,
+    contextWindow: input.contextWindow,
+  });
 }

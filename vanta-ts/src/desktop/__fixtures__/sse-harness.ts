@@ -17,7 +17,7 @@ export type TestServer = { port: number; close: () => Promise<void> };
 export function freshState(id: string, root: string): DesktopState {
   return {
     root, sessionId: id, sessionStarted: "2026-01-01T00:00:00.000Z",
-    setup: { provider: { modelId: () => "fake" } as never, goals: [], registry: {} as never, safety: {} as never, systemPrompt: "" } as never,
+    setup: { provider: { modelId: () => "fake", contextWindow: () => 200_000 } as never, goals: [], registry: {} as never, safety: {} as never, systemPrompt: "" } as never,
   };
 }
 

@@ -3,13 +3,15 @@ import { randomUUID } from "node:crypto";
 import { prepareRun } from "../session.js";
 import { providerIdFor,resolveSessionModel } from "../sessions/model-scope.js";
 import { reorderPinnedSessions,setSessionPinned } from "../sessions/pinning.js";
+import { isUnread, loadReadState } from "../sessions/read-state.js";
 import { deleteSession,listAllSessions,loadSession,newSessionId,renameSession,saveSession,setSessionArchived,setSessionTrashed } from "../sessions/store.js";
 import { attachConversation } from "./handler-conversation.js";
 import { readJson,sendJson } from "./handler-http.js";
 import { type DesktopState } from "./handler-state.js";
 
 export async function handleSessions(res: http.ServerResponse): Promise<void> {
-  sendJson(res, 200, await listAllSessions(process.env));
+  const [sessions, readState] = await Promise.all([listAllSessions(process.env), loadReadState(process.env)]);
+  sendJson(res, 200, sessions.map((session) => (isUnread(readState, session) ? { ...session, unread: true } : session)));
 }
 
 export async function handleNewSession(state: DesktopState, res: http.ServerResponse): Promise<void> {

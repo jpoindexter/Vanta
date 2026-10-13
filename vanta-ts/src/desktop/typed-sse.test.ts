@@ -87,6 +87,7 @@ describe("typed desktop SSE events over a real server", () => {
       { type: "tool.start", id: "tool-4", name: "read_file", args: { path: "c.ts" }, truncated: false },
       { type: "tool.complete", id: "tool-3", name: "read_file", ok: true, output: "contents of b", truncated: false },
       { type: "tool.complete", id: "tool-4", name: "read_file", ok: true, output: "contents of c", truncated: false },
+      { type: "usage", sessionId: "chat-1", inputTokens: 5, outputTokens: 7, reported: true, contextTokens: expect.any(Number), contextWindow: 200_000 },
       { type: "turn.complete", sessionId: "chat-1", finalText: "all done", usage: { inputTokens: 5, outputTokens: 7 }, stoppedReason: "done" },
     ]);
     expect(JSON.stringify(sse.frames)).not.toContain("hunter2-secret");
@@ -142,10 +143,36 @@ describe("typed desktop SSE events over a real server", () => {
     await sse.waitFor((frame) => frame.typed?.type === "turn.complete");
 
     const kinds = typedOf(sse.frames).map((event) => event.type);
-    expect(kinds).toEqual(["tool.start", "approval.request", "approval.resolved", "tool.complete", "turn.complete"]);
+    expect(kinds).toEqual(["tool.start", "approval.request", "approval.resolved", "tool.complete", "usage", "turn.complete"]);
     expect(typedOf(sse.frames)[2]).toEqual({ type: "approval.resolved", id: (polled as { id: string }).id });
     expect(sessions.get("chat-1")?.pendingApproval).toBeUndefined();
     expect(await (await fetch(`http://127.0.0.1:${server.port}/api/approval`, { headers: headers("chat-1") })).json()).toBeNull();
+  });
+
+  it("sends a usage event with reported tokens and a context estimate that grows with the conversation", async () => {
+    onSend("chat-1", async (_text, deps) => deps.onEvent?.({ type: "note", text: "n" }) as never ?? done("ok"));
+    onSend("chat-1", async () => done("ok", { usage: { inputTokens: 1200, outputTokens: 300 } }));
+    const sessions = await boot(["chat-1"]);
+    sessions.get("chat-1")!.convo = { messages: [{ role: "system", content: "s" }, { role: "user", content: "x".repeat(4000) }, { role: "assistant", content: "y".repeat(400), toolCalls: [{ id: "c", name: "read_file", arguments: {} }] }], send: (text: string) => hoisted.sends.get("chat-1")!(text, {} as AgentDeps) } as never;
+    const sse = await listen("chat-1");
+    await chat("chat-1", "go");
+    await sse.waitFor((frame) => frame.typed?.type === "turn.complete");
+    const usage = typedOf(sse.frames).find((event) => event.type === "usage") as unknown as { contextTokens: number; contextWindow: number; reported: boolean; inputTokens: number };
+    expect(usage).toMatchObject({ reported: true, inputTokens: 1200, contextWindow: 200_000 });
+    expect(usage.contextTokens).toBeGreaterThan(1100);
+    expect(usage.contextTokens).toBeLessThan(1200);
+  });
+
+  it("keeps the usage event off the legacy label surface", async () => {
+    onSend("chat-1", async () => done("ok", { usage: { inputTokens: 1, outputTokens: 2 } }));
+    await boot(["chat-1"]);
+    const sse = await listen("chat-1");
+    const { body } = await chat("chat-1", "go");
+    await sse.waitFor((frame) => frame.typed?.type === "turn.complete");
+    const usageFrame = sse.frames.find((frame) => frame.typed?.type === "usage");
+    expect(usageFrame?.label).toBe("");
+    expect(usageFrame?.delta).toBeUndefined();
+    expect(JSON.stringify(body)).not.toContain("contextWindow");
   });
 
   it("reports an interrupted turn through turn.complete with the stopped reason", async () => {
@@ -203,11 +230,13 @@ describe("two clients with distinct x-session-id", () => {
     expect(typedOf(a.frames)).toEqual([
       { type: "tool.start", id: "tool-1", name: "read_file", args: { who: "reply A" }, truncated: false },
       { type: "tool.complete", id: "tool-1", name: "read_file", ok: true, output: "read_file output", truncated: false },
+      { type: "usage", sessionId: "chat-a", inputTokens: 0, outputTokens: 0, reported: false, contextTokens: expect.any(Number), contextWindow: 200_000 },
       { type: "turn.complete", sessionId: "chat-a", finalText: "reply A", stoppedReason: "done" },
     ]);
     expect(typedOf(b.frames)).toEqual([
       { type: "tool.start", id: "tool-1", name: "shell_cmd", args: { who: "reply B" }, truncated: false },
       { type: "tool.complete", id: "tool-1", name: "shell_cmd", ok: true, output: "shell_cmd output", truncated: false },
+      { type: "usage", sessionId: "chat-b", inputTokens: 0, outputTokens: 0, reported: false, contextTokens: expect.any(Number), contextWindow: 200_000 },
       { type: "turn.complete", sessionId: "chat-b", finalText: "reply B", stoppedReason: "done" },
     ]);
     expect(JSON.stringify(a.frames)).not.toContain("shell_cmd");
