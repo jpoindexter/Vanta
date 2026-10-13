@@ -168,7 +168,7 @@ async function routinePrefix(entry: CronEntry, createIssue?: CreateIssue): Promi
 }
 
 /** Run one due entry, capturing a throw as an "error: <message>" result. */
-async function runOne(
+export async function runOne(
   entry: CronEntry,
   now: Date,
   run: RunTask,

@@ -3,9 +3,10 @@ import type { PaginatedSessions, SessionInfo } from '@/types/hermes'
 
 import { sessionListSchema } from './schemas'
 import { matchRoute, type Send, type ShimRoute } from './shim-core'
+import { cronRoutes } from './shim-cron'
 import { profileRoutes } from './shim-profiles'
 
-const ROUTES: readonly ShimRoute[] = [...profileRoutes]
+const ROUTES: readonly ShimRoute[] = [...profileRoutes, ...cronRoutes]
 
 // The Hermes sidebar reads sessions and profiles over REST paths the Vanta server does not have
 // (`/api/profiles/sessions`, `/api/profiles`). The shim answers them from what Vanta does serve
