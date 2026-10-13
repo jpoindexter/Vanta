@@ -42,7 +42,7 @@ function readBody(req) {
   });
 }
 
-const PIXEL =
+export const PIXEL =
   "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAFklEQVR4nGP8z8Dwn4EIwESMolGF5AEAH8cBF3yb8m8AAAAASUVORK5CYII=";
 const LONG = [
   "Here is a longer reply so the thread has something to scroll, copy and quote.",
@@ -58,7 +58,7 @@ function lastText(message) {
 }
 
 /** What the model does with this request: a tool call, an error, or text (with a per-word delay). */
-function plan(body) {
+function plan(body, options) {
   const messages = body.messages ?? [];
   const last = messages[messages.length - 1];
   if (last?.role === "tool") return { text: "Done. The command finished." };
@@ -71,7 +71,7 @@ function plan(body) {
   }
   if (/^fail\b/i.test(text)) return { fail: true };
   if (/^slow\b/i.test(text)) return { text: REPLY, delay: 400 };
-  if (/^image\b/i.test(text)) return { text: `Here is the image.\n\n![proof image](data:image/png;base64,${PIXEL})` };
+  if (/^image\b/i.test(text)) return { text: `Here is the image.\n\n![proof image](${options.imagePath ?? `data:image/png;base64,${PIXEL}`})` };
   if (/^long\b/i.test(text)) return { text: LONG };
   return { text: REPLY };
 }
@@ -92,13 +92,13 @@ function toolChunk(tool) {
   })}\n\n`;
 }
 
-async function handle(req, res) {
+async function handle(req, res, options) {
   if (req.url?.endsWith("/models")) {
     return sendJson(res, 200, { object: "list", data: [{ id: "vanta-proof", object: "model" }] });
   }
   if (!req.url?.endsWith("/chat/completions")) return sendJson(res, 404, { error: "not found" });
   const body = await readBody(req);
-  const step = plan(body);
+  const step = plan(body, options);
   if (step.fail) return sendJson(res, 500, { error: { message: "The proof model is set to fail this turn." } });
   if (body.stream !== true) {
     return sendJson(res, 200, {
@@ -125,8 +125,8 @@ async function handle(req, res) {
 }
 
 /** Starts the mock on a free port; resolves `{ url, close }` with url ending in /v1. */
-export function startMockOpenAI() {
-  const server = http.createServer((req, res) => void handle(req, res));
+export function startMockOpenAI(options = {}) {
+  const server = http.createServer((req, res) => void handle(req, res, options));
   return new Promise((resolve) => {
     server.listen(0, "127.0.0.1", () => {
       const { port } = server.address();
