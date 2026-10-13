@@ -1,4 +1,4 @@
-# IPC surface of the Vanta shell (2026-10-13, DN-07)
+# IPC surface of the Vanta shell (2026-10-13, DN-07; native capabilities restored in R2)
 
 What `window.hermesDesktop`, `window.vantaDesktop` and the Electron main process expose after the facade, against the Hermes
 surface it replaces. Source of truth for the code: `apps/desktop/electron/vanta/` (`channels.ts` lists every new channel).
@@ -8,9 +8,9 @@ Regenerate the stub inventory with `node scripts/generate-bridge-manifest.mjs` (
 
 | | Hermes shell | Vanta shell |
 |---|---|---|
-| `ipcMain` channels registered | 206 literal + 1 computed (`command-screenshot.ts`) across `electron/*.ts` | 41 channels in use: 36 new `vanta:*`, 5 `hermes:*` from two reused unchanged modules (table C). 37 old channels have a Vanta counterpart |
-| `window.hermesDesktop` members (leaves) | 268 | 268 present: 51 real, 217 typed-unsupported or absent (`screenshot`, `hudModifier`, macOS-only, left undefined) |
-| Main to renderer push channels | 72 | 7 kept, the rest removed |
+| `ipcMain` channels registered | 206 literal + 1 computed (`command-screenshot.ts`) across `electron/*.ts` | 120 channel names in `channels.ts`: 90 `vanta:*` and 30 `hermes:*` (pushes the renderer already listens for, plus three modules reused unchanged: notifications, machine profile, `hud-ipc.ts`). 37 old channels had a Vanta counterpart at DN-07; R2 adds the rest of table C |
+| `window.hermesDesktop` members (leaves) | 268 | 268 present: 141 real (includes the 2 `vanta.*` members and the `hud.windowing` flags), 127 typed-unsupported or absent (`screenshot`, `hudModifier`, macOS-only, left undefined). R2 moved 88 members from stub to real |
+| Main to renderer push channels | 72 | 23 kept (see D), the rest removed |
 | Python backend boot, bootstrap installer, SSH, cloud, pool, relay | in `main.ts` (19,776 lines) | not loaded: the Vanta shell entry is `electron/vanta/entry.ts` |
 | Updater (`electron-updater`, update hold, app installer) | wired | not loaded; `updates.*`, `updateHold.*`, `uninstall.*` are stubs |
 
@@ -45,14 +45,37 @@ authenticated HTTP proxy. The Vanta shell removes those and keeps only the handl
 | `vanta:logs:*` | Append renderer text to `desktop.log`; reveal the file | Lines capped at 2,000 chars; log truncated at 1 MB; reveal selects the file only | Log injection of text (no secrets are read). |
 | `vanta:window-control`, `native-theme`, `titlebar-theme`, `power-resume`, `window-state-changed` | Window chrome | Action allowlist; colours must be strings | None. |
 
-Removed outright (no handler, no stub behind it): `writeTextFile`, `renamePath`, `trashPath`, `saveImageBuffer`, `saveImageFromUrl`,
-`saveGatewayFile`, `selectSavePath` (file writes); `readFileText`, `readFileDataUrl*`, `readPluginSource`, `readDir`, `watchDirectory`,
-`watchPreviewFile`, `capturePreview` (arbitrary reads); `terminal.*` (node-pty), `git.*` (executes git, including push and PR),
-`openSessionInTerminal`, `installDesktopPlugin`/`removeDesktopPlugin`/`reconcileDesktopPlugins` (executes npm or git),
-`updates.*`/`updateHold.*`/`uninstall.*`/`repairBootstrap`/`recycleBackend` (runs installers and the Python backend), `sshConfigHosts`/`sshResolveHost`,
-`fetchLinkTitle`/`resolveFavicon`/`reachPreviewUrl`/`probePluginRepo` (renderer-chosen outbound requests), `cloud.*`, `mcpOauth`, OAuth connection config,
-`desktopMetrics`/`themes.fetchMarketplace` (telemetry and marketplace). These return when a later slice needs them, each behind the effect gate
-(`docs/hermes-feature-matrix-2026-10-13.md` section 3, "Later").
+Added in R2 (every row is covered by a unit test for the success path and the refusal path; section 5 explains the model):
+
+| Handler | What it can do | Gate | Residual risk |
+|---|---|---|---|
+| `vanta:fs:read-dir`, `read-text`, `read-data-url`, `normalize-preview`, `git-root` | List folders, read text (512 KiB cap) or a data URL (16 MiB cap), describe a preview target, find a repo root | `project-guard.ts`: the realpath must be inside the active project root (`..`, absolute escapes and symlinks that point out are refused); `.env*`, keys, `.ssh`, `.aws`, `.gnupg`, `.git`, `.vanta`, `VANTA_HOME` and the app's userData are refused even through a symlink alias; secrets are left out of listings; non-image schemes (`javascript:`, `data:`) are not previewable | Anything not secret-shaped inside the project is readable by the renderer. A secret with an ordinary name is not detected |
+| `vanta:fs:watch-directory`, `watch-file`, `stop-watch` | Debounced change ticks for a folder or one file | Same guard; 64 watches per window; one `destroyed` hook per window; all closed on project switch | None known |
+| `vanta:git:*` reads (`repo-status`, `file-diff`, `branch-list`, `base-branch-list`, `worktree-list`, `scan-repos`, `review-list`, `review-diff`, `review-rev-parse`, `review-ship-info`, `review-pr-list`) | Run git to read state | `git-runner.ts`: argv is built in main from typed values and re-validated per subcommand (status, diff, log `-n`, rev-parse, branch `--list`, ls-files, merge-base, check-ignore, worktree `list`); no `-c`, `--output`, `--no-index`, external diff, textconv or pager; fixed cwd = the repo inside the project; env is `PATH`, `HOME=/nonexistent`, `GIT_CONFIG_GLOBAL=/dev/null`, no prompts; fsmonitor, hooks, pager and external diff are forced off; 15 s timeout, 4 MiB output cap, 1 MiB per diff; refs must match a plain-ref pattern; file arguments are repo-relative, never a secret path; untracked files are diffed in JS, not with git | A repo's own `.gitattributes` clean filters could still run on `status` if `.git/config` defines them; that needs a write to `.git/config`, which is already full compromise of that repo |
+| `vanta:git:mutate` (stage, unstage, revert, commit, push, branchSwitch, worktreeAdd, worktreeRemove) | Change a repository | Main turns the typed request into exact shell commands (single-quoted arguments, named files instead of `add -A`, secrets excluded, `git -C` for a nested repo) and sends each one, in order, to `POST /api/terminal`: the kernel's decision, the approval card in the chat whose event stream the window opened last, and the OS sandbox. First failure stops the rest. No chat open means nothing runs | What the kernel allows without a card (for example `git add` inside the project) runs without one, exactly as it does for the agent |
+| `vanta:git:mutation` | Answer for `git.review.createPr` | Always refuses with a readable message | None |
+| `vanta:terminal:*` | A terminal pane | No pty. A line is one command sent to `POST /api/terminal` (same path as `git:mutate`). 8 panes per window, 20 queued lines, 4,000-character lines, 100,000-character writes, 200,000 characters of output; escape sequences (OSC 52, title, cursor) and control characters are stripped from output; a pane is usable only by the window that started it | `cd` and interactive programs are not available. Ctrl-C cannot stop a command already sent |
+| `vanta:fs:rename`, `vanta:fs:trash` | Rename or move to the Trash | Project-only; the project folder, secret names and existing names are refused; a native dialog (not scriptable by the page) names the exact paths; one dialog at a time | The user can approve an unwise rename |
+| `vanta:save-image` | Save an image | Accepts only `data:image/*` URLs and image files inside the project (nothing is fetched); the destination comes from the OS save dialog, never from the page; 50 MB cap | None known |
+| `vanta:find-in-page`, `stop-find-in-page` | Search the page text | Query is a string up to 500 characters; options are schema-checked | None |
+| `vanta:keep-awake`, `vanta:active-work`, `vanta:power-battery:get` | Hold the machine awake; mirror battery state | Mode is one of off, while-working, always; the work report is an integer 0 to 1000 | None |
+| `vanta:zoom:persist` | Save the zoom level | A finite percent 1 to 10,000, clamped to the 50 to 300 percent range | None |
+| `vanta:deep-link-ready` and `vanta://` links | Open a session, prefill a blueprint, report a finished connection | Only kinds `session`, `blueprint`, `connections` are honoured. Links that would install a plugin, skill or MCP server are dropped. Length, parameter count and control characters are bounded; links that arrive before the renderer listens are held (20 at most). The protocol is registered only in a packaged build | A web page can open Vanta at a session id or prefill a composer draft; it cannot send it |
+| `vanta:quick-entry:*` | Global shortcut composer | Only the quick window may submit, only the main window may acknowledge or push state; text is trimmed, 1 to 20,000 characters, keys are strict; the text goes to the main window's own prompt pipeline | The default chord `CommandOrControl+Shift+Space` is taken from other apps while Vanta runs; a taken chord is reported, not hidden |
+| `hermes:hud:*` (reused `hud-ipc.ts`), `vanta:minimize-to-tray:*` | Move and size the mini window; tray preference | Sender must be the mini window for move and resize; bounds are normalised; the tray setting is a boolean | None |
+| `vanta:context-menu:*` | Copy, cut, paste, select all, copy image, spelling | Edit verbs are an allowlist of four; spelling words up to 100 characters; each acts on the window that asked | None |
+
+Removed at DN-07 and still unsupported (every member rejects with `unsupported: <member> is not available in Vanta Desktop yet`):
+renderer file writes (`writeTextFile`, `saveImageBuffer`, `saveGatewayFile`, `selectSavePath`, `savePastedText`, `saveClipboardImage`);
+`readFileDataUrlForAttach` and `readPluginSource` (reads outside the project); `capturePreview`; `openSessionInTerminal`;
+`installDesktopPlugin`, `removeDesktopPlugin`, `reconcileDesktopPlugins`, `probePluginRepo` (execute npm or git);
+`updates.*`, `updateHold.*`, `uninstall.*`, `repairBootstrap`, `recycleBackend` (installers and the Python backend);
+`sshConfigHosts`, `sshResolveHost`; `fetchLinkTitle`, `resolveFavicon`, `reachPreviewUrl` (renderer-chosen outbound requests);
+`cloud.*`, `mcpOauth`, the OAuth connection config, `connections.*` writes; `desktopMetrics`, `themes` marketplace (telemetry and marketplace);
+`git.review.commitContext` (needs a model call that does not exist); `dataUrlReadMax`; multi-window (`openWindow`, `openSessionWindow`,
+`openBrowserWindow`, `windowRelay`); pool limits and the agent roster; pets and the wake indicator window; `hudModifier`, `screenshot`;
+the HUD's cursor feed and game overlay. Dropped on purpose by the owner: pets, theme marketplace, radio and sample plugins, fleet topology,
+the HUD game overlay.
 
 Server-side PUT/PATCH/DELETE: `desktopBoundaryDecision` answers 405 to everything but GET and POST under `/api/`. The transport sends those methods
 as POST. A Hermes REST path that Vanta has no POST route for answers 404 from the route table, which is the correct signal for DN-03 and later cards.
@@ -86,7 +109,7 @@ as POST. A Hermes REST path that Vanta has no POST route for answers 404 from th
 | `writeClipboard` | `hermes:writeClipboard` | vanta:writeClipboard |
 | `readClipboard` | `hermes:readClipboard` | vanta:readClipboard |
 | `getPathForFile` | (local) | `webUtils.getPathForFile` in preload (no IPC) |
-| `setActiveWork` | `hermes:active-work` | no-op |
+| `setActiveWork` | `hermes:active-work` | vanta:active-work |
 | `setTitleBarTheme` | `hermes:titlebar-theme` | vanta:titlebar-theme |
 | `setNativeTheme` | `hermes:native-theme` | vanta:native-theme |
 | `openExternal` | `hermes:openExternal` | vanta:openExternal |
@@ -96,8 +119,8 @@ as POST. A Hermes REST path that Vanta has no POST route for answers 404 from th
 | `settings.pickDefaultProjectDir` | `hermes:setting:defaultProjectDir:pick` | vanta:project:pick-default |
 | `zoom.get` | `hermes:zoom:get` | `webFrame`, in preload |
 | `zoom.factor` | (local) | `webFrame`, in preload |
-| `zoom.setPercent` | `hermes:zoom:set-percent` | `webFrame`, clamped 50-300% |
-| `zoom.onChanged` | `hermes:zoom:changed` | local listeners |
+| `zoom.setPercent` | `hermes:zoom:set-percent` | `webFrame` in preload, then `vanta:zoom:persist` (saved in userData) |
+| `zoom.onChanged` | `hermes:zoom:changed` | local listeners plus `hermes:zoom:changed` (push, from the View menu and restore) |
 | `revealLogs` | `hermes:logs:reveal` | vanta:logs:reveal |
 | `getRecentLogs` | `hermes:logs:recent` | vanta:logs:recent |
 | `reportRendererError` | `hermes:logs:renderer-error` | vanta:logs:renderer-error |
@@ -116,6 +139,94 @@ as POST. A Hermes REST path that Vanta has no POST route for answers 404 from th
 | `continueBootstrapLocal` | `hermes:bootstrap:continue-local` | constant: ok |
 | `getVersion` | `hermes:version` | vanta:version |
 | `getMachineProfile` | `hermes:machine:profile` | hermes:machine:profile (module reused) |
+| `readDir` | `hermes:fs:readDir` | vanta:fs:read-dir |
+| `gitRoot` | `hermes:fs:gitRoot` | vanta:fs:git-root |
+| `readFileText` | `hermes:readFileText` | vanta:fs:read-text |
+| `readFileDataUrl` | `hermes:readFileDataUrl` | vanta:fs:read-data-url |
+| `normalizePreviewTarget` | `hermes:normalizePreviewTarget` | vanta:fs:normalize-preview |
+| `watchDirectory` | `hermes:watchDirectory` | vanta:fs:watch-directory |
+| `watchPreviewFile` | `hermes:watchPreviewFile` | vanta:fs:watch-file |
+| `stopPreviewFileWatch` | `hermes:stopPreviewFileWatch` | vanta:fs:stop-watch |
+| `onPreviewFileChanged` | `hermes:preview-file-changed` | hermes:preview-file-changed (push) |
+| `git.repoStatus` | `hermes:git:repoStatus` | vanta:git:repo-status |
+| `git.fileDiff` | `hermes:git:fileDiff` | vanta:git:file-diff |
+| `git.branchList` | `hermes:git:branchList` | vanta:git:branch-list |
+| `git.baseBranchList` | `hermes:git:baseBranchList` | vanta:git:base-branch-list |
+| `git.worktreeList` | `hermes:git:worktreeList` | vanta:git:worktree-list |
+| `git.scanRepos` | `hermes:git:scanRepos` | vanta:git:scan-repos |
+| `git.review.list` | `hermes:git:review:list` | vanta:git:review-list |
+| `git.review.diff` | `hermes:git:review:diff` | vanta:git:review-diff |
+| `git.review.revParse` | `hermes:git:review:revParse` | vanta:git:review-rev-parse |
+| `git.review.shipInfo` | `hermes:git:review:shipInfo` | vanta:git:review-ship-info (always `ghReady: false`) |
+| `git.review.prList` | `hermes:git:review:prList` | vanta:git:review-pr-list (always empty) |
+| `git.review.stage` | `hermes:git:review:stage` | vanta:git:mutate (approval) |
+| `git.review.unstage` | `hermes:git:review:unstage` | vanta:git:mutate (approval) |
+| `git.review.revert` | `hermes:git:review:revert` | vanta:git:mutate (approval) |
+| `git.review.commit` | `hermes:git:review:commit` | vanta:git:mutate (approval) |
+| `git.review.push` | `hermes:git:review:push` | vanta:git:mutate (approval) |
+| `git.branchSwitch` | `hermes:git:branchSwitch` | vanta:git:mutate (approval) |
+| `git.worktreeAdd` | `hermes:git:worktreeAdd` | vanta:git:mutate (approval) |
+| `git.worktreeRemove` | `hermes:git:worktreeRemove` | vanta:git:mutate (approval) |
+| `git.review.createPr` | `hermes:git:review:createPr` | vanta:git:mutation (always refuses: needs `gh`) |
+| `terminal.start` | `hermes:terminal:start` | vanta:terminal:start |
+| `terminal.write` | `hermes:terminal:write` | vanta:terminal:write (each line is one approved command) |
+| `terminal.resize` | `hermes:terminal:resize` | vanta:terminal:resize |
+| `terminal.attach` | `hermes:terminal:attach` | vanta:terminal:attach |
+| `terminal.cwd` | `hermes:terminal:cwd` | vanta:terminal:cwd |
+| `terminal.dispose` | `hermes:terminal:dispose` | vanta:terminal:dispose |
+| `terminal.onData` | (local value) | vanta:terminal:data (push) |
+| `terminal.onExit` | (local value) | vanta:terminal:exit (push) |
+| `findInPage` | `hermes:find-in-page` | vanta:find-in-page |
+| `stopFindInPage` | `hermes:stop-find-in-page` | vanta:stop-find-in-page |
+| `onFoundInPage` | `hermes:found-in-page` | hermes:found-in-page (push) |
+| `onOpenFindBarRequested` | `hermes:open-find-bar` | hermes:open-find-bar (push) |
+| `setKeepAwake` | `hermes:keep-awake` | vanta:keep-awake |
+| `getOnBattery` | `hermes:power-battery:get` | vanta:power-battery:get |
+| `onBatteryChanged` | `hermes:power-battery` | hermes:power-battery (push) |
+| `onOpenFolderRequested` | `hermes:open-folder-requested` | hermes:open-folder-requested (push, from the File menu) |
+| `onClosePreviewRequested` | `hermes:close-preview-requested` | hermes:close-preview-requested (push, from the File menu) |
+| `onDeepLink` | `hermes:deep-link` | hermes:deep-link (push) |
+| `signalDeepLinkReady` | `hermes:deep-link-ready` | vanta:deep-link-ready |
+| `onExternalOpenFailed` | `hermes:external-open-failed` | hermes:external-open-failed (push) |
+| `minimizeToTray.get` | `hermes:minimize-to-tray:get` | vanta:minimize-to-tray:get |
+| `minimizeToTray.set` | `hermes:minimize-to-tray:set` | vanta:minimize-to-tray:set |
+| `minimizeToTray.onChanged` | `hermes:minimize-to-tray:changed` | vanta:minimize-to-tray:changed (push) |
+| `quickEntry.getSettings` | `hermes:quick-entry:settings:get` | vanta:quick-entry:settings:get |
+| `quickEntry.setSettings` | `hermes:quick-entry:settings:set` | vanta:quick-entry:settings:set |
+| `quickEntry.submit` | `hermes:quick-entry:submit` | vanta:quick-entry:submit |
+| `quickEntry.ackSubmit` | `hermes:quick-entry:ack` | vanta:quick-entry:ack |
+| `quickEntry.dismiss` | `hermes:quick-entry:dismiss` | vanta:quick-entry:dismiss |
+| `quickEntry.pushState` | `hermes:quick-entry:state` | vanta:quick-entry:state |
+| `quickEntry.onState` | `hermes:quick-entry:state` | vanta:quick-entry:state (push) |
+| `quickEntry.onSubmit` | `hermes:quick-entry:submit` | vanta:quick-entry:to-main (push) |
+| `quickEntry.onShown` | `hermes:quick-entry:shown` | vanta:quick-entry:shown (push) |
+| `quickEntry.onLateResult` | `hermes:quick-entry:late-result` | vanta:quick-entry:late-result (push) |
+| `hud.open` | `hermes:hud:open` | hermes:hud:open (reused hud-ipc.ts) |
+| `hud.close` | `hermes:hud:close` | hermes:hud:close (reused hud-ipc.ts) |
+| `hud.setIgnoreMouse` | `hermes:hud:ignore-mouse` | hermes:hud:ignore-mouse |
+| `hud.beginMove` | `hermes:hud:begin-move` | hermes:hud:begin-move |
+| `hud.endMove` | `hermes:hud:end-move` | hermes:hud:end-move |
+| `hud.moveBy` | `hermes:hud:move-by` | hermes:hud:move-by |
+| `hud.setWorkspaceTransfer` | `hermes:hud:workspace-transfer` | hermes:hud:workspace-transfer |
+| `hud.setBounds` | `hermes:hud:set-bounds` | hermes:hud:set-bounds |
+| `hud.resetLayout` | `hermes:hud:reset-layout` | hermes:hud:reset-layout |
+| `hud.setFrost` | `hermes:hud:frost` | hermes:hud:frost |
+| `hud.setSession` | `hermes:hud:session` | hermes:hud:session |
+| `hud.onGoto` | `hermes:hud:goto` | hermes:hud:goto (push) |
+| `hud.onChanged` | `hermes:hud:changed` | hermes:hud:changed (push) |
+| `hud.nativeDrag` | (local value) | value from `hermes:hud:windowing` (sync, at preload) |
+| `hud.windowing.clientPlacement` | (local value) | value from `hermes:hud:windowing` |
+| `hud.windowing.controlDrag` | (local value) | value from `hermes:hud:windowing` |
+| `hud.windowing.nativeDrag` | (local value) | value from `hermes:hud:windowing` |
+| `hud.windowing.solid` | (local value) | value from `hermes:hud:windowing` |
+| `hud.windowing.workspaceTransfer` | (local value) | value from `hermes:hud:windowing` |
+| `contextMenuEdit` | `hermes:context-menu:edit` | vanta:context-menu:edit |
+| `contextMenuCopyImage` | `hermes:context-menu:copy-image` | vanta:context-menu:copy-image |
+| `contextMenuSpellcheck` | `hermes:context-menu:spellcheck` | vanta:context-menu:spellcheck |
+| `onContextMenuSpellcheck` | `hermes:context-menu-spellcheck` | hermes:context-menu-spellcheck (push) |
+| `renamePath` | `hermes:fs:rename` | vanta:fs:rename (native confirm) |
+| `trashPath` | `hermes:fs:trash` | vanta:fs:trash (native confirm) |
+| `saveImageFromUrl` | `hermes:saveImageFromUrl` | vanta:save-image (OS save dialog) |
 
 ### A2. Preload members stubbed (typed unsupported)
 
@@ -155,39 +266,10 @@ Async members reject with `unsupported: <member> is not available in Vanta Deskt
 | `petOverlay.control` | `hermes:pet-overlay:control` | typed unsupported |  |
 | `petOverlay.onState` | `hermes:pet-overlay:state` | typed unsupported |  |
 | `petOverlay.onControl` | `hermes:pet-overlay:control` | typed unsupported |  |
-| `hud.nativeDrag` | (local value) | typed unsupported |  |
-| `hud.windowing.clientPlacement` | (local value) | typed unsupported |  |
-| `hud.windowing.controlDrag` | (local value) | typed unsupported |  |
-| `hud.windowing.nativeDrag` | (local value) | typed unsupported |  |
-| `hud.windowing.solid` | (local value) | typed unsupported |  |
-| `hud.windowing.workspaceTransfer` | (local value) | typed unsupported |  |
-| `hud.open` | `hermes:hud:open` | typed unsupported |  |
-| `hud.close` | `hermes:hud:close` | typed unsupported |  |
-| `hud.setIgnoreMouse` | `hermes:hud:ignore-mouse` | typed unsupported |  |
-| `hud.beginMove` | `hermes:hud:begin-move` | typed unsupported |  |
-| `hud.endMove` | `hermes:hud:end-move` | typed unsupported |  |
-| `hud.moveBy` | `hermes:hud:move-by` | typed unsupported |  |
-| `hud.setWorkspaceTransfer` | `hermes:hud:workspace-transfer` | typed unsupported |  |
-| `hud.setBounds` | `hermes:hud:set-bounds` | typed unsupported |  |
-| `hud.resetLayout` | `hermes:hud:reset-layout` | typed unsupported |  |
-| `hud.setFrost` | `hermes:hud:frost` | typed unsupported |  |
-| `hud.setSession` | `hermes:hud:session` | typed unsupported |  |
-| `hud.onGoto` | `hermes:hud:goto` | typed unsupported |  |
-| `hud.onChanged` | `hermes:hud:changed` | typed unsupported |  |
 | `hud.onCursor` | `hermes:hud:cursor` | typed unsupported |  |
 | `hud.onGameOverlay` | `hermes:hud:game-overlay` | typed unsupported |  |
 | `hudModifier` | `hermes:hud-modifier:settings:get`, `hermes:hud-modifier:settings:set`, `hermes:hud-modifier:permission`, `hermes:hud-modifier:status` | typed unsupported |  |
 | `screenshot` | `hermes:screenshot:settings:get`, `hermes:screenshot:settings:set`, `hermes:screenshot:permission`, `hermes:screenshot:capture`, `hermes:screenshot:status`, `hermes:screenshot:subscribe` | typed unsupported |  |
-| `quickEntry.getSettings` | `hermes:quick-entry:settings:get` | typed unsupported | exec/process |
-| `quickEntry.setSettings` | `hermes:quick-entry:settings:set` | typed unsupported | exec/process |
-| `quickEntry.submit` | `hermes:quick-entry:submit` | typed unsupported | exec/process |
-| `quickEntry.ackSubmit` | `hermes:quick-entry:ack` | typed unsupported | exec/process |
-| `quickEntry.dismiss` | `hermes:quick-entry:dismiss` | typed unsupported | exec/process |
-| `quickEntry.pushState` | `hermes:quick-entry:state` | typed unsupported | exec/process |
-| `quickEntry.onState` | `hermes:quick-entry:state` | typed unsupported | exec/process |
-| `quickEntry.onSubmit` | `hermes:quick-entry:submit` | typed unsupported | exec/process |
-| `quickEntry.onShown` | `hermes:quick-entry:shown` | typed unsupported | exec/process |
-| `quickEntry.onLateResult` | `hermes:quick-entry:late-result` | typed unsupported | exec/process |
 | `getConnectionConfig` | `hermes:connection-config:get` | typed unsupported | network/credentials |
 | `saveConnectionConfig` | `hermes:connection-config:save` | typed unsupported | network/credentials |
 | `applyConnectionConfig` | `hermes:connection-config:apply` | typed unsupported | network/credentials |
@@ -218,33 +300,18 @@ Async members reject with `unsupported: <member> is not available in Vanta Deskt
 | `claimStartupLatency` | `hermes:startup-latency:claim` | typed unsupported |  |
 | `requestMicrophoneAccess` | `hermes:requestMicrophoneAccess` | typed unsupported |  |
 | `readWindowBelow` | `hermes:window:readBelow` | typed unsupported |  |
-| `readFileDataUrl` | `hermes:readFileDataUrl` | typed unsupported | fs-read |
 | `readFileDataUrlForAttach` | `hermes:readFileDataUrlForAttach` | typed unsupported | fs-read |
 | `dataUrlReadMax.get` | `hermes:data-url-read-max:get` | typed unsupported | fs-read |
 | `dataUrlReadMax.set` | `hermes:data-url-read-max:set` | typed unsupported | fs-read |
-| `readFileText` | `hermes:readFileText` | typed unsupported | fs-read |
 | `readPluginSource` | `hermes:readPluginSource` | typed unsupported | fs-read |
 | `selectSavePath` | `hermes:selectSavePath` | typed unsupported | fs-write |
 | `saveGatewayFile` | `hermes:saveGatewayFile` | typed unsupported | fs-write |
-| `saveImageFromUrl` | `hermes:saveImageFromUrl` | typed unsupported | fs-write |
-| `contextMenuEdit` | `hermes:context-menu:edit` | typed unsupported |  |
-| `contextMenuCopyImage` | `hermes:context-menu:copy-image` | typed unsupported |  |
-| `contextMenuSpellcheck` | `hermes:context-menu:spellcheck` | typed unsupported |  |
 | `contextMenuGuestAddWord` | `hermes:context-menu:guest-add-word` | typed unsupported |  |
-| `onContextMenuSpellcheck` | `hermes:context-menu-spellcheck` | typed unsupported |  |
 | `saveImageBuffer` | `hermes:saveImageBuffer` | typed unsupported | fs-write |
 | `capturePreview` | `hermes:capturePreview` | typed unsupported | fs-read |
 | `savePastedText` | `hermes:savePastedText` | typed unsupported | fs-write |
 | `saveClipboardImage` | `hermes:saveClipboardImage` | typed unsupported | fs-write |
-| `normalizePreviewTarget` | `hermes:normalizePreviewTarget` | typed unsupported | fs-read |
-| `watchPreviewFile` | `hermes:watchPreviewFile` | typed unsupported | fs-read |
-| `watchDirectory` | `hermes:watchDirectory` | typed unsupported | fs-read |
-| `stopPreviewFileWatch` | `hermes:stopPreviewFileWatch` | typed unsupported | fs-read |
 | `setTranslucency` | `hermes:translucency` | typed unsupported |  |
-| `setKeepAwake` | `hermes:keep-awake` | typed unsupported |  |
-| `minimizeToTray.get` | `hermes:minimize-to-tray:get` | typed unsupported |  |
-| `minimizeToTray.set` | `hermes:minimize-to-tray:set` | typed unsupported |  |
-| `minimizeToTray.onChanged` | `hermes:minimize-to-tray:changed` | typed unsupported |  |
 | `setDisableF12` | `hermes:devtools:disable-f12` | typed unsupported |  |
 | `setF12ShortcutActive` | `hermes:f12ShortcutActive` | typed unsupported |  |
 | `onF12Shortcut` | `hermes:f12-shortcut` | typed unsupported |  |
@@ -259,58 +326,18 @@ Async members reject with `unsupported: <member> is not available in Vanta Deskt
 | `setActiveConnectionRoute` | `hermes:connection:active-route` | typed unsupported |  |
 | `fetchLinkTitle` | `hermes:fetchLinkTitle` | typed unsupported | network/credentials |
 | `resolveFavicon` | `hermes:resolveFavicon` | typed unsupported | network/credentials |
-| `readDir` | `hermes:fs:readDir` | typed unsupported | fs-read |
-| `gitRoot` | `hermes:fs:gitRoot` | typed unsupported | fs-read |
 | `desktopPluginsRoot` | `hermes:fs:desktopPluginsRoot` | typed unsupported | fs-read |
 | `reconcileDesktopPlugins` | `hermes:fs:reconcileDesktopPlugins` | typed unsupported | exec/process |
 | `logsRoot` | `hermes:fs:logsRoot` | typed unsupported | fs-read |
-| `renamePath` | `hermes:fs:rename` | typed unsupported | fs-write |
 | `writeTextFile` | `hermes:fs:writeText` | typed unsupported | fs-write |
-| `trashPath` | `hermes:fs:trash` | typed unsupported | fs-write |
-| `git.worktreeList` | `hermes:git:worktreeList` | typed unsupported | exec/process |
-| `git.worktreeAdd` | `hermes:git:worktreeAdd` | typed unsupported | exec/process |
-| `git.worktreeRemove` | `hermes:git:worktreeRemove` | typed unsupported | exec/process |
-| `git.branchSwitch` | `hermes:git:branchSwitch` | typed unsupported | exec/process |
-| `git.branchList` | `hermes:git:branchList` | typed unsupported | exec/process |
-| `git.baseBranchList` | `hermes:git:baseBranchList` | typed unsupported | exec/process |
-| `git.repoStatus` | `hermes:git:repoStatus` | typed unsupported | exec/process |
-| `git.fileDiff` | `hermes:git:fileDiff` | typed unsupported | exec/process |
-| `git.scanRepos` | `hermes:git:scanRepos` | typed unsupported | exec/process |
-| `git.review.list` | `hermes:git:review:list` | typed unsupported | exec/process |
-| `git.review.diff` | `hermes:git:review:diff` | typed unsupported | exec/process |
-| `git.review.stage` | `hermes:git:review:stage` | typed unsupported | exec/process |
-| `git.review.unstage` | `hermes:git:review:unstage` | typed unsupported | exec/process |
-| `git.review.revert` | `hermes:git:review:revert` | typed unsupported | exec/process |
-| `git.review.revParse` | `hermes:git:review:revParse` | typed unsupported | exec/process |
-| `git.review.commit` | `hermes:git:review:commit` | typed unsupported | exec/process |
 | `git.review.commitContext` | `hermes:git:review:commitContext` | typed unsupported | exec/process |
-| `git.review.push` | `hermes:git:review:push` | typed unsupported | exec/process |
-| `git.review.shipInfo` | `hermes:git:review:shipInfo` | typed unsupported | exec/process |
-| `git.review.prList` | `hermes:git:review:prList` | typed unsupported | exec/process |
-| `git.review.createPr` | `hermes:git:review:createPr` | typed unsupported | exec/process |
-| `terminal.attach` | `hermes:terminal:attach` | typed unsupported | exec/process |
-| `terminal.cwd` | `hermes:terminal:cwd` | typed unsupported | exec/process |
-| `terminal.dispose` | `hermes:terminal:dispose` | typed unsupported | exec/process |
-| `terminal.resize` | `hermes:terminal:resize` | typed unsupported | exec/process |
-| `terminal.start` | `hermes:terminal:start` | typed unsupported | exec/process |
-| `terminal.write` | `hermes:terminal:write` | typed unsupported | exec/process |
-| `terminal.onData` | (local value) | typed unsupported | exec/process |
-| `terminal.onExit` | (local value) | typed unsupported | exec/process |
-| `onClosePreviewRequested` | `hermes:close-preview-requested` | typed unsupported |  |
 | `onPreviewNav` | `hermes:preview-nav` | typed unsupported |  |
-| `onOpenFolderRequested` | `hermes:open-folder-requested` | typed unsupported |  |
 | `onOpenUpdatesRequested` | `hermes:open-updates` | typed unsupported |  |
-| `onDeepLink` | `hermes:deep-link` | typed unsupported |  |
-| `signalDeepLinkReady` | `hermes:deep-link-ready` | typed unsupported |  |
 | `probePluginRepo` | `hermes:plugin:probe` | typed unsupported | network/credentials |
 | `installDesktopPlugin` | `hermes:plugin:installDesktop` | typed unsupported | exec/process |
 | `removeDesktopPlugin` | `hermes:plugin:removeDesktop` | typed unsupported | exec/process |
-| `onExternalOpenFailed` | `hermes:external-open-failed` | typed unsupported |  |
-| `onPreviewFileChanged` | `hermes:preview-file-changed` | typed unsupported |  |
 | `onPoolBackendRetiring` | `hermes:pool:retiring` | typed unsupported |  |
 | `onConnectionApplied` | `hermes:connection:applied` | typed unsupported |  |
-| `getOnBattery` | `hermes:power-battery:get` | typed unsupported |  |
-| `onBatteryChanged` | `hermes:power-battery` | typed unsupported |  |
 | `recycleBackend` | `hermes:backend:recycle` | typed unsupported | exec/process |
 | `resetBootstrap` | `hermes:bootstrap:reset` | typed unsupported | exec/process |
 | `updateHold.recheck` | `hermes:update-hold:recheck` | typed unsupported | exec/process |
@@ -336,10 +363,6 @@ Async members reject with `unsupported: <member> is not available in Vanta Deskt
 | `desktopMetrics.ackRendererCrashes` | `hermes:desktop-metrics:crash:ack` | typed unsupported | network/credentials |
 | `themes.fetchMarketplace` | `hermes:vscode-theme:fetch` | typed unsupported | network/credentials |
 | `themes.searchMarketplace` | `hermes:vscode-theme:search` | typed unsupported | network/credentials |
-| `findInPage` | `hermes:find-in-page` | typed unsupported |  |
-| `stopFindInPage` | `hermes:stop-find-in-page` | typed unsupported |  |
-| `onFoundInPage` | `hermes:found-in-page` | typed unsupported |  |
-| `onOpenFindBarRequested` | `hermes:open-find-bar` | typed unsupported |  |
 
 ### B. Old `ipcMain` channels (Hermes `electron/*.ts`)
 
@@ -386,69 +409,69 @@ Every one of these is **gone from the Vanta bundle**. "replaced" means a Vanta h
 | `hermes:connections:test` | `main.ts` | `connections.test` | removed (member stubbed) |
 | `hermes:connections:update-all` | `main.ts` | `connections.updateAll` | removed (member stubbed) |
 | `hermes:connections:update-managed` | `main.ts` | `connections.updateManaged` | removed (member stubbed) |
-| `hermes:context-menu:copy-image` | `main.ts` | `contextMenuCopyImage` | removed (member stubbed) |
-| `hermes:context-menu:edit` | `main.ts` | `contextMenuEdit` | removed (member stubbed) |
+| `hermes:context-menu:copy-image` | `main.ts` | `contextMenuCopyImage` | replaced: vanta:context-menu:copy-image |
+| `hermes:context-menu:edit` | `main.ts` | `contextMenuEdit` | replaced: vanta:context-menu:edit |
 | `hermes:context-menu:guest-add-word` | `main.ts` | `contextMenuGuestAddWord` | removed (member stubbed) |
-| `hermes:context-menu:spellcheck` | `main.ts` | `contextMenuSpellcheck` | removed (member stubbed) |
+| `hermes:context-menu:spellcheck` | `main.ts` | `contextMenuSpellcheck` | replaced: vanta:context-menu:spellcheck |
 | `hermes:data-url-read-max:get` | `main.ts` | `dataUrlReadMax.get` | removed (member stubbed) |
 | `hermes:data-url-read-max:set` | `main.ts` | `dataUrlReadMax.set` | removed (member stubbed) |
-| `hermes:deep-link-ready` | `main.ts` | `signalDeepLinkReady` | removed (member stubbed) |
+| `hermes:deep-link-ready` | `main.ts` | `signalDeepLinkReady` | replaced: vanta:deep-link-ready |
 | `hermes:devtools:disable-f12` | `main.ts` | `setDisableF12` | removed (member stubbed) |
 | `hermes:embed-host:origin` | `main.ts` | `getEmbedHostOrigin` | removed (member stubbed) |
 | `hermes:f12ShortcutActive` | `main.ts` | `setF12ShortcutActive` | removed (member stubbed) |
 | `hermes:feature-flags` | `main.ts` | (none) | removed (main-internal, no renderer member) |
 | `hermes:fetchLinkTitle` | `main.ts` | `fetchLinkTitle` | removed (member stubbed) |
-| `hermes:find-in-page` | `main.ts` | `findInPage` | removed (member stubbed) |
+| `hermes:find-in-page` | `main.ts` | `findInPage` | replaced: vanta:find-in-page |
 | `hermes:freeTierChallenge:run` | `challenge-window-ipc.ts` | `freeTierChallenge.run` | removed (member stubbed) |
 | `hermes:fs:desktopPluginsRoot` | `fs-ipc.ts` | `desktopPluginsRoot` | removed (member stubbed) |
-| `hermes:fs:gitRoot` | `fs-ipc.ts` | `gitRoot` | removed (member stubbed) |
+| `hermes:fs:gitRoot` | `fs-ipc.ts` | `gitRoot` | replaced: vanta:fs:git-root |
 | `hermes:fs:logsRoot` | `fs-ipc.ts` | `logsRoot` | removed (member stubbed) |
 | `hermes:fs:openDir` | `fs-ipc.ts` | `openDir` | replaced: vanta:fs:openDir |
-| `hermes:fs:readDir` | `fs-ipc.ts` | `readDir` | removed (member stubbed) |
+| `hermes:fs:readDir` | `fs-ipc.ts` | `readDir` | replaced: vanta:fs:read-dir |
 | `hermes:fs:reconcileDesktopPlugins` | `fs-ipc.ts` | `reconcileDesktopPlugins` | removed (member stubbed) |
-| `hermes:fs:rename` | `fs-ipc.ts` | `renamePath` | removed (member stubbed) |
+| `hermes:fs:rename` | `fs-ipc.ts` | `renamePath` | replaced: vanta:fs:rename (native confirm) |
 | `hermes:fs:reveal` | `fs-ipc.ts` | `revealPath` | replaced: vanta:fs:reveal |
-| `hermes:fs:trash` | `fs-ipc.ts` | `trashPath` | removed (member stubbed) |
+| `hermes:fs:trash` | `fs-ipc.ts` | `trashPath` | replaced: vanta:fs:trash (native confirm) |
 | `hermes:fs:writeText` | `fs-ipc.ts` | `writeTextFile` | removed (member stubbed) |
 | `hermes:gateway:ws-url` | `main.ts` | `getGatewayWsUrl` | replaced: local |
 | `hermes:gateway:ws-url-for` | `main.ts` | `getGatewayWsUrlFor` | replaced: local |
 | `hermes:get-remote-display-reason` | `main.ts` | `getRemoteDisplayReason` | removed (member stubbed) |
-| `hermes:git:baseBranchList` | `git-ipc.ts` | `git.baseBranchList` | removed (member stubbed) |
-| `hermes:git:branchList` | `git-ipc.ts` | `git.branchList` | removed (member stubbed) |
-| `hermes:git:branchSwitch` | `git-ipc.ts` | `git.branchSwitch` | removed (member stubbed) |
-| `hermes:git:fileDiff` | `git-ipc.ts` | `git.fileDiff` | removed (member stubbed) |
-| `hermes:git:repoStatus` | `git-ipc.ts` | `git.repoStatus` | removed (member stubbed) |
-| `hermes:git:review:commit` | `git-ipc.ts` | `git.review.commit` | removed (member stubbed) |
+| `hermes:git:baseBranchList` | `git-ipc.ts` | `git.baseBranchList` | replaced: vanta:git:base-branch-list |
+| `hermes:git:branchList` | `git-ipc.ts` | `git.branchList` | replaced: vanta:git:branch-list |
+| `hermes:git:branchSwitch` | `git-ipc.ts` | `git.branchSwitch` | replaced: vanta:git:mutate (approval) |
+| `hermes:git:fileDiff` | `git-ipc.ts` | `git.fileDiff` | replaced: vanta:git:file-diff |
+| `hermes:git:repoStatus` | `git-ipc.ts` | `git.repoStatus` | replaced: vanta:git:repo-status |
+| `hermes:git:review:commit` | `git-ipc.ts` | `git.review.commit` | replaced: vanta:git:mutate (approval) |
 | `hermes:git:review:commitContext` | `git-ipc.ts` | `git.review.commitContext` | removed (member stubbed) |
-| `hermes:git:review:createPr` | `git-ipc.ts` | `git.review.createPr` | removed (member stubbed) |
-| `hermes:git:review:diff` | `git-ipc.ts` | `git.review.diff` | removed (member stubbed) |
-| `hermes:git:review:list` | `git-ipc.ts` | `git.review.list` | removed (member stubbed) |
-| `hermes:git:review:prList` | `git-ipc.ts` | `git.review.prList` | removed (member stubbed) |
-| `hermes:git:review:push` | `git-ipc.ts` | `git.review.push` | removed (member stubbed) |
-| `hermes:git:review:revParse` | `git-ipc.ts` | `git.review.revParse` | removed (member stubbed) |
-| `hermes:git:review:revert` | `git-ipc.ts` | `git.review.revert` | removed (member stubbed) |
-| `hermes:git:review:shipInfo` | `git-ipc.ts` | `git.review.shipInfo` | removed (member stubbed) |
-| `hermes:git:review:stage` | `git-ipc.ts` | `git.review.stage` | removed (member stubbed) |
-| `hermes:git:review:unstage` | `git-ipc.ts` | `git.review.unstage` | removed (member stubbed) |
-| `hermes:git:scanRepos` | `git-ipc.ts` | `git.scanRepos` | removed (member stubbed) |
-| `hermes:git:worktreeAdd` | `git-ipc.ts` | `git.worktreeAdd` | removed (member stubbed) |
-| `hermes:git:worktreeList` | `git-ipc.ts` | `git.worktreeList` | removed (member stubbed) |
-| `hermes:git:worktreeRemove` | `git-ipc.ts` | `git.worktreeRemove` | removed (member stubbed) |
+| `hermes:git:review:createPr` | `git-ipc.ts` | `git.review.createPr` | replaced: vanta:git:mutation (always refuses: needs `gh`) |
+| `hermes:git:review:diff` | `git-ipc.ts` | `git.review.diff` | replaced: vanta:git:review-diff |
+| `hermes:git:review:list` | `git-ipc.ts` | `git.review.list` | replaced: vanta:git:review-list |
+| `hermes:git:review:prList` | `git-ipc.ts` | `git.review.prList` | replaced: vanta:git:review-pr-list (always empty) |
+| `hermes:git:review:push` | `git-ipc.ts` | `git.review.push` | replaced: vanta:git:mutate (approval) |
+| `hermes:git:review:revParse` | `git-ipc.ts` | `git.review.revParse` | replaced: vanta:git:review-rev-parse |
+| `hermes:git:review:revert` | `git-ipc.ts` | `git.review.revert` | replaced: vanta:git:mutate (approval) |
+| `hermes:git:review:shipInfo` | `git-ipc.ts` | `git.review.shipInfo` | replaced: vanta:git:review-ship-info (always `ghReady: false`) |
+| `hermes:git:review:stage` | `git-ipc.ts` | `git.review.stage` | replaced: vanta:git:mutate (approval) |
+| `hermes:git:review:unstage` | `git-ipc.ts` | `git.review.unstage` | replaced: vanta:git:mutate (approval) |
+| `hermes:git:scanRepos` | `git-ipc.ts` | `git.scanRepos` | replaced: vanta:git:scan-repos |
+| `hermes:git:worktreeAdd` | `git-ipc.ts` | `git.worktreeAdd` | replaced: vanta:git:mutate (approval) |
+| `hermes:git:worktreeList` | `git-ipc.ts` | `git.worktreeList` | replaced: vanta:git:worktree-list |
+| `hermes:git:worktreeRemove` | `git-ipc.ts` | `git.worktreeRemove` | replaced: vanta:git:mutate (approval) |
 | `hermes:hud-modifier:${name}` | `hud-modifier.ts` | (none) | removed (main-internal, no renderer member) |
-| `hermes:hud:begin-move` | `hud-ipc.ts` | `hud.beginMove` | removed (member stubbed) |
-| `hermes:hud:close` | `hud-ipc.ts` | `hud.close` | removed (member stubbed) |
-| `hermes:hud:end-move` | `hud-ipc.ts` | `hud.endMove` | removed (member stubbed) |
-| `hermes:hud:frost` | `hud-ipc.ts` | `hud.setFrost` | removed (member stubbed) |
-| `hermes:hud:ignore-mouse` | `hud-ipc.ts` | `hud.setIgnoreMouse` | removed (member stubbed) |
-| `hermes:hud:move-by` | `hud-ipc.ts` | `hud.moveBy` | removed (member stubbed) |
+| `hermes:hud:begin-move` | `hud-ipc.ts` | `hud.beginMove` | replaced: hermes:hud:begin-move |
+| `hermes:hud:close` | `hud-ipc.ts` | `hud.close` | replaced: hermes:hud:close (reused hud-ipc.ts) |
+| `hermes:hud:end-move` | `hud-ipc.ts` | `hud.endMove` | replaced: hermes:hud:end-move |
+| `hermes:hud:frost` | `hud-ipc.ts` | `hud.setFrost` | replaced: hermes:hud:frost |
+| `hermes:hud:ignore-mouse` | `hud-ipc.ts` | `hud.setIgnoreMouse` | replaced: hermes:hud:ignore-mouse |
+| `hermes:hud:move-by` | `hud-ipc.ts` | `hud.moveBy` | replaced: hermes:hud:move-by |
 | `hermes:hud:native-drag` | `hud-ipc.ts` | (none) | removed (main-internal, no renderer member) |
-| `hermes:hud:open` | `hud-ipc.ts` | `hud.open` | removed (member stubbed) |
-| `hermes:hud:reset-layout` | `hud-ipc.ts` | `hud.resetLayout` | removed (member stubbed) |
-| `hermes:hud:session` | `hud-ipc.ts` | `hud.setSession` | removed (member stubbed) |
-| `hermes:hud:set-bounds` | `hud-ipc.ts` | `hud.setBounds` | removed (member stubbed) |
+| `hermes:hud:open` | `hud-ipc.ts` | `hud.open` | replaced: hermes:hud:open (reused hud-ipc.ts) |
+| `hermes:hud:reset-layout` | `hud-ipc.ts` | `hud.resetLayout` | replaced: hermes:hud:reset-layout |
+| `hermes:hud:session` | `hud-ipc.ts` | `hud.setSession` | replaced: hermes:hud:session |
+| `hermes:hud:set-bounds` | `hud-ipc.ts` | `hud.setBounds` | replaced: hermes:hud:set-bounds |
 | `hermes:hud:windowing` | `hud-ipc.ts` | (none) | removed (main-internal, no renderer member) |
-| `hermes:hud:workspace-transfer` | `hud-ipc.ts` | `hud.setWorkspaceTransfer` | removed (member stubbed) |
-| `hermes:keep-awake` | `main.ts` | `setKeepAwake` | removed (member stubbed) |
+| `hermes:hud:workspace-transfer` | `hud-ipc.ts` | `hud.setWorkspaceTransfer` | replaced: hermes:hud:workspace-transfer |
+| `hermes:keep-awake` | `main.ts` | `setKeepAwake` | replaced: vanta:keep-awake |
 | `hermes:local-backend:probe` | `main.ts` | `probeLocalBackend` | replaced: local |
 | `hermes:logs:recent` | `main.ts` | `getRecentLogs` | replaced: vanta:logs:recent |
 | `hermes:logs:renderer-error` | `main.ts` | `reportRendererError` | replaced: vanta:logs:renderer-error |
@@ -458,10 +481,10 @@ Every one of these is **gone from the Vanta bundle**. "replaced" means a Vanta h
 | `hermes:mcp-oauth:cancel` | `mcp-oauth-callback-ipc.ts` | `mcpOauth.cancel` | removed (member stubbed) |
 | `hermes:mcp-oauth:listen` | `mcp-oauth-callback-ipc.ts` | `mcpOauth.listen` | removed (member stubbed) |
 | `hermes:mcp-oauth:wait` | `mcp-oauth-callback-ipc.ts` | `mcpOauth.wait` | removed (member stubbed) |
-| `hermes:minimize-to-tray:get` | `minimize-to-tray.ts` | `minimizeToTray.get` | removed (member stubbed) |
-| `hermes:minimize-to-tray:set` | `minimize-to-tray.ts` | `minimizeToTray.set` | removed (member stubbed) |
+| `hermes:minimize-to-tray:get` | `minimize-to-tray.ts` | `minimizeToTray.get` | replaced: vanta:minimize-to-tray:get |
+| `hermes:minimize-to-tray:set` | `minimize-to-tray.ts` | `minimizeToTray.set` | replaced: vanta:minimize-to-tray:set |
 | `hermes:native-theme` | `main.ts` | `setNativeTheme` | replaced: vanta:native-theme |
-| `hermes:normalizePreviewTarget` | `main.ts` | `normalizePreviewTarget` | removed (member stubbed) |
+| `hermes:normalizePreviewTarget` | `main.ts` | `normalizePreviewTarget` | replaced: vanta:fs:normalize-preview |
 | `hermes:notify` | `notification-ipc.ts` | `notify` | replaced: hermes:notify (module reused) |
 | `hermes:openExternal` | `main.ts` | `openExternal` | replaced: vanta:openExternal |
 | `hermes:openPreviewInBrowser` | `main.ts` | `openPreviewInBrowser` | removed (member stubbed) |
@@ -478,7 +501,7 @@ Every one of these is **gone from the Vanta bundle**. "replaced" means a Vanta h
 | `hermes:plugin:removeDesktop` | `fs-ipc.ts` | `removeDesktopPlugin` | removed (member stubbed) |
 | `hermes:pool-limits:get` | `main.ts` | `getPoolLimits` | removed (member stubbed) |
 | `hermes:pool-limits:set` | `main.ts` | `setPoolLimits` | removed (member stubbed) |
-| `hermes:power-battery:get` | `main.ts` | `getOnBattery` | removed (member stubbed) |
+| `hermes:power-battery:get` | `main.ts` | `getOnBattery` | replaced: vanta:power-battery:get |
 | `hermes:preview-guest-hidden` | `main.ts` | `setPreviewGuestHidden` | removed (member stubbed) |
 | `hermes:preview:reach` | `main.ts` | `reachPreviewUrl` | removed (member stubbed) |
 | `hermes:previewShortcutActive` | `main.ts` | `setPreviewShortcutActive` | removed (member stubbed) |
@@ -487,23 +510,23 @@ Every one of these is **gone from the Vanta bundle**. "replaced" means a Vanta h
 | `hermes:profile:get` | `main.ts` | `profile.get` | replaced: local |
 | `hermes:profile:remember` | `main.ts` | `profile.remember` | replaced: local |
 | `hermes:profile:set` | `main.ts` | `profile.set` | replaced: local |
-| `hermes:quick-entry:ack` | `main.ts` | `quickEntry.ackSubmit` | removed (member stubbed) |
-| `hermes:quick-entry:dismiss` | `main.ts` | `quickEntry.dismiss` | removed (member stubbed) |
-| `hermes:quick-entry:settings:get` | `main.ts` | `quickEntry.getSettings` | removed (member stubbed) |
-| `hermes:quick-entry:settings:set` | `main.ts` | `quickEntry.setSettings` | removed (member stubbed) |
+| `hermes:quick-entry:ack` | `main.ts` | `quickEntry.ackSubmit` | replaced: vanta:quick-entry:ack |
+| `hermes:quick-entry:dismiss` | `main.ts` | `quickEntry.dismiss` | replaced: vanta:quick-entry:dismiss |
+| `hermes:quick-entry:settings:get` | `main.ts` | `quickEntry.getSettings` | replaced: vanta:quick-entry:settings:get |
+| `hermes:quick-entry:settings:set` | `main.ts` | `quickEntry.setSettings` | replaced: vanta:quick-entry:settings:set |
 | `hermes:quick-entry:state` | `main.ts` | `quickEntry.pushState`, `quickEntry.onState` | removed (member stubbed) |
 | `hermes:quick-entry:submit` | `main.ts` | `quickEntry.submit`, `quickEntry.onSubmit` | removed (member stubbed) |
 | `hermes:readClipboard` | `main.ts` | `readClipboard` | replaced: vanta:readClipboard |
-| `hermes:readFileDataUrl` | `main.ts` | `readFileDataUrl` | removed (member stubbed) |
+| `hermes:readFileDataUrl` | `main.ts` | `readFileDataUrl` | replaced: vanta:fs:read-data-url |
 | `hermes:readFileDataUrlForAttach` | `main.ts` | `readFileDataUrlForAttach` | removed (member stubbed) |
-| `hermes:readFileText` | `main.ts` | `readFileText` | removed (member stubbed) |
+| `hermes:readFileText` | `main.ts` | `readFileText` | replaced: vanta:fs:read-text |
 | `hermes:readPluginSource` | `main.ts` | `readPluginSource` | removed (member stubbed) |
 | `hermes:requestMicrophoneAccess` | `main.ts` | `requestMicrophoneAccess` | removed (member stubbed) |
 | `hermes:resolveFavicon` | `main.ts` | `resolveFavicon` | removed (member stubbed) |
 | `hermes:saveClipboardImage` | `main.ts` | `saveClipboardImage` | removed (member stubbed) |
 | `hermes:saveGatewayFile` | `main.ts` | `saveGatewayFile` | removed (member stubbed) |
 | `hermes:saveImageBuffer` | `main.ts` | `saveImageBuffer` | removed (member stubbed) |
-| `hermes:saveImageFromUrl` | `main.ts` | `saveImageFromUrl` | removed (member stubbed) |
+| `hermes:saveImageFromUrl` | `main.ts` | `saveImageFromUrl` | replaced: vanta:save-image (OS save dialog) |
 | `hermes:savePastedText` | `main.ts` | `savePastedText` | removed (member stubbed) |
 | `hermes:screenshot:subscribe` | `command-screenshot.ts` | `screenshot` | removed (member stubbed) |
 | `hermes:secret-storage:get` | `main.ts` | `getSecretStorageEncryption` | removed (member stubbed) |
@@ -517,15 +540,15 @@ Every one of these is **gone from the Vanta bundle**. "replaced" means a Vanta h
 | `hermes:ssh-config:hosts` | `main.ts` | `sshConfigHosts` | removed (member stubbed) |
 | `hermes:ssh-config:resolve` | `main.ts` | `sshResolveHost` | removed (member stubbed) |
 | `hermes:startup-latency:claim` | `startup-latency-ipc.ts` | `claimStartupLatency` | removed (member stubbed) |
-| `hermes:stop-find-in-page` | `main.ts` | `stopFindInPage` | removed (member stubbed) |
-| `hermes:stopPreviewFileWatch` | `main.ts` | `stopPreviewFileWatch` | removed (member stubbed) |
+| `hermes:stop-find-in-page` | `main.ts` | `stopFindInPage` | replaced: vanta:stop-find-in-page |
+| `hermes:stopPreviewFileWatch` | `main.ts` | `stopPreviewFileWatch` | replaced: vanta:fs:stop-watch |
 | `hermes:sync-status` | `main.ts` | (none) | removed (main-internal, no renderer member) |
-| `hermes:terminal:attach` | `terminal-ipc.ts` | `terminal.attach` | removed (member stubbed) |
-| `hermes:terminal:cwd` | `terminal-ipc.ts` | `terminal.cwd` | removed (member stubbed) |
-| `hermes:terminal:dispose` | `terminal-ipc.ts` | `terminal.dispose` | removed (member stubbed) |
-| `hermes:terminal:resize` | `terminal-ipc.ts` | `terminal.resize` | removed (member stubbed) |
-| `hermes:terminal:start` | `terminal-ipc.ts` | `terminal.start` | removed (member stubbed) |
-| `hermes:terminal:write` | `terminal-ipc.ts` | `terminal.write` | removed (member stubbed) |
+| `hermes:terminal:attach` | `terminal-ipc.ts` | `terminal.attach` | replaced: vanta:terminal:attach |
+| `hermes:terminal:cwd` | `terminal-ipc.ts` | `terminal.cwd` | replaced: vanta:terminal:cwd |
+| `hermes:terminal:dispose` | `terminal-ipc.ts` | `terminal.dispose` | replaced: vanta:terminal:dispose |
+| `hermes:terminal:resize` | `terminal-ipc.ts` | `terminal.resize` | replaced: vanta:terminal:resize |
+| `hermes:terminal:start` | `terminal-ipc.ts` | `terminal.start` | replaced: vanta:terminal:start |
+| `hermes:terminal:write` | `terminal-ipc.ts` | `terminal.write` | replaced: vanta:terminal:write (each line is one approved command) |
 | `hermes:titlebar-theme` | `main.ts` | `setTitleBarTheme` | replaced: vanta:titlebar-theme |
 | `hermes:translucency` | `main.ts` | `setTranslucency` | removed (member stubbed) |
 | `hermes:translucency:support` | `main.ts` | (none) | removed (main-internal, no renderer member) |
@@ -540,8 +563,8 @@ Every one of these is **gone from the Vanta bundle**. "replaced" means a Vanta h
 | `hermes:vscode-theme:search` | `main.ts` | `themes.searchMarketplace` | removed (member stubbed) |
 | `hermes:wake-indicator:get` | `main.ts` | `wakeIndicator.getState` | removed (member stubbed) |
 | `hermes:wake-indicator:set` | `main.ts` | `wakeIndicator.setState` | removed (member stubbed) |
-| `hermes:watchDirectory` | `main.ts` | `watchDirectory` | removed (member stubbed) |
-| `hermes:watchPreviewFile` | `main.ts` | `watchPreviewFile` | removed (member stubbed) |
+| `hermes:watchDirectory` | `main.ts` | `watchDirectory` | replaced: vanta:fs:watch-directory |
+| `hermes:watchPreviewFile` | `main.ts` | `watchPreviewFile` | replaced: vanta:fs:watch-file |
 | `hermes:window-control` | `window-controls.ts` | `windowControls.minimize`, `windowControls.toggleMaximize`, `windowControls.close` | replaced: vanta:window-control |
 | `hermes:window:openBrowser` | `main.ts` | `openBrowserWindow` | removed (member stubbed) |
 | `hermes:window:openInTerminal` | `main.ts` | `openSessionInTerminal` | removed (member stubbed) |
@@ -577,16 +600,33 @@ Every one of these is **gone from the Vanta bundle**. "replaced" means a Vanta h
 | `vanta:resolve-dropped-paths`, `vanta:pick-attachments` | invoke | `project-handlers.ts` | carried over from the Vanta shell |
 | `hermes:notify`, `hermes:notification-action`, `hermes:notification-activate`, `hermes:focus-session` | invoke, push | reused `notification-ipc.ts` | module unchanged |
 | `hermes:machine:profile` | invoke | reused `machine-profile.ts` | module unchanged |
+| `vanta:fs:read-dir`, `vanta:fs:git-root`, `vanta:fs:read-text`, `vanta:fs:read-data-url`, `vanta:fs:normalize-preview` | invoke | `fs-handlers.ts`, `fs-read.ts`, `fs-preview.ts` | read-only, project-confined (section 2) |
+| `vanta:fs:watch-directory`, `vanta:fs:watch-file`, `vanta:fs:stop-watch`, `hermes:preview-file-changed` | invoke, push | `fs-watch.ts` | |
+| `vanta:git:repo-status`, `file-diff`, `branch-list`, `base-branch-list`, `worktree-list`, `scan-repos`, `review-list`, `review-diff`, `review-rev-parse`, `review-ship-info`, `review-pr-list` | invoke | `git-handlers.ts`, `git-read.ts`, `git-diff.ts`, `git-branches.ts` | allow-listed read-only git |
+| `vanta:git:mutate` | invoke | `git-mutation-handlers.ts`, `git-mutations.ts`, `git-worktree-plans.ts` | approval flow |
+| `vanta:git:mutation` | invoke | `git-handlers.ts` | refusal for `createPr` |
+| `vanta:terminal:start`, `write`, `resize`, `attach`, `cwd`, `dispose`, `vanta:terminal:data`, `vanta:terminal:exit` | invoke, push | `terminal-gated.ts`, `terminal-line.ts` | no pty; each line is one approved command |
+| `vanta:fs:rename`, `vanta:fs:trash`, `vanta:save-image` | invoke | `file-actions.ts` | native confirmation or save dialog |
+| `vanta:find-in-page`, `vanta:stop-find-in-page`, `hermes:found-in-page`, `hermes:open-find-bar` | invoke, push | `find-handlers.ts` | reuses `find-in-page.ts` |
+| `vanta:zoom:persist`, `hermes:zoom:changed` | send, push | `zoom-controller.ts` | zoom is saved in `userData/zoom.json` |
+| `vanta:keep-awake`, `vanta:active-work`, `vanta:power-battery:get`, `hermes:power-battery` | send, invoke, push | `power-features.ts` | reuses `power-save.ts`; mode in `userData/keep-awake.json` |
+| `hermes:open-folder-requested`, `hermes:close-preview-requested` | push | `app-menu.ts` | File menu items |
+| `hermes:deep-link`, `vanta:deep-link-ready` | push, invoke | `deep-links.ts` | `vanta://` |
+| `hermes:external-open-failed` | push | `external-links.ts` | |
+| `hermes:hud:*` | invoke, send, push | reused `hud-ipc.ts`, `mini-window.ts`, `mini-window-controller.ts` | the mini window |
+| `vanta:quick-entry:settings:get`, `settings:set`, `submit`, `ack`, `dismiss`, `state`, `to-main`, `shown`, `late-result` | invoke, send, push | `quick-entry-host.ts` | reuses `quick-entry.ts` helpers; settings in `userData/quick-entry.json` |
+| `vanta:minimize-to-tray:get`, `set`, `changed` | invoke, push | `tray-setting.ts`, `vanta-tray.ts` | `userData/tray.json` |
+| `vanta:context-menu:edit`, `copy-image`, `spellcheck`, `hermes:context-menu-spellcheck` | invoke, push | `context-menu.ts` | |
 
 `window.vantaDesktop` (Vanta-only): `pickProjectFolder`, `switchProjectForNewTask`, `readPendingProjectTask`, `acknowledgePendingProjectTask`,
 `resolveDroppedFiles`, `pickAttachments`, `readClipboard`. Dropped from the old Vanta preload: `boundaryToken` (the renderer must never see it) and
-`readSurfaceMode`/`setSurfaceMode`/`reportSurfacePhase`/`onSurfaceMode` (mini window and avatar, DN-10).
+`readSurfaceMode`/`setSurfaceMode`/`reportSurfacePhase`/`onSurfaceMode` (the old resize-in-place mini surface and avatar; the HUD-based mini window of R2 replaces them).
 
 ### D. Main to renderer push channels
 
-Kept (7): `hermes:backend-exit` -> `vanta:backend-exit`, `hermes:boot-progress` -> `vanta:boot-progress`, `hermes:focus-session` -> `hermes:focus-session (module reused)`, `hermes:notification-action` -> `hermes:notification-action (module reused)`, `hermes:notification-activate` -> `hermes:notification-activate (module reused)`, `hermes:power-resume` -> `vanta:power-resume`, `hermes:window-state-changed` -> `vanta:window-state-changed`.
+Kept (23): `hermes:backend-exit` -> `vanta:backend-exit`, `hermes:boot-progress` -> `vanta:boot-progress`, `hermes:focus-session` -> `hermes:focus-session (module reused)`, `hermes:notification-action` -> `hermes:notification-action (module reused)`, `hermes:notification-activate` -> `hermes:notification-activate (module reused)`, `hermes:power-resume` -> `vanta:power-resume`, `hermes:window-state-changed` -> `vanta:window-state-changed`, `hermes:close-preview-requested`, `hermes:context-menu-spellcheck`, `hermes:deep-link`, `hermes:external-open-failed`, `hermes:found-in-page`, `hermes:hud:changed` -> `hermes:hud:changed (reused hud-ipc.ts)`, `hermes:hud:goto`, `hermes:minimize-to-tray:changed` -> `vanta:minimize-to-tray:changed`, `hermes:open-find-bar`, `hermes:open-folder-requested`, `hermes:power-battery`, `hermes:quick-entry:late-result` -> `vanta:quick-entry:late-result`, `hermes:quick-entry:shown` -> `vanta:quick-entry:shown`, `hermes:quick-entry:state` -> `vanta:quick-entry:state`, `hermes:quick-entry:submit` -> `vanta:quick-entry:to-main`, `hermes:zoom:changed`.
 
-Removed (65): `hermes:active-work`, `hermes:bootstrap:event`, `hermes:browser-popout:closed`, `hermes:close-preview-requested`, `hermes:connection:active-route`, `hermes:connection:applied`, `hermes:connections:changed`, `hermes:context-menu-spellcheck`, `hermes:deep-link`, `hermes:devtools:disable-f12`, `hermes:external-open-failed`, `hermes:f12-shortcut`, `hermes:f12ShortcutActive`, `hermes:found-in-page`, `hermes:hud-modifier:status`, `hermes:hud:begin-move`, `hermes:hud:changed`, `hermes:hud:cursor`, `hermes:hud:end-move`, `hermes:hud:game-overlay`, `hermes:hud:goto`, `hermes:hud:ignore-mouse`, `hermes:hud:move-by`, `hermes:hud:session`, `hermes:hud:set-bounds`, `hermes:hud:workspace-transfer`, `hermes:keep-awake`, `hermes:logs:renderer-error`, `hermes:logs:renderer-line`, `hermes:minimize-to-tray:changed`, `hermes:native-theme`, `hermes:open-find-bar`, `hermes:open-folder-requested`, `hermes:open-updates`, `hermes:pet-overlay:control`, `hermes:pet-overlay:ignore-mouse`, `hermes:pet-overlay:set-bounds`, `hermes:pet-overlay:set-focusable`, `hermes:pet-overlay:state`, `hermes:pool:retiring`, `hermes:power-battery`, `hermes:preview-guest-hidden`, `hermes:preview-nav`, `hermes:previewShortcutActive`, `hermes:profile:default:changed`, `hermes:quick-entry:ack`, `hermes:quick-entry:dismiss`, `hermes:quick-entry:late-result`, `hermes:quick-entry:shown`, `hermes:quick-entry:state`, `hermes:quick-entry:submit`, `hermes:screenshot:request`, `hermes:screenshot:status`, `hermes:screenshot:subscribe`, `hermes:titlebar-theme`, `hermes:translucency`, `hermes:updates:metric:pending`, `hermes:updates:progress`, `hermes:wake-indicator:set`, `hermes:wake-indicator:state`, `hermes:window-control`, `hermes:window:relay`, `hermes:window:size`, `hermes:zoom:changed`, `hermes:zoom:set-percent`.
+Removed (49): `hermes:active-work`, `hermes:bootstrap:event`, `hermes:browser-popout:closed`, `hermes:connection:active-route`, `hermes:connection:applied`, `hermes:connections:changed`, `hermes:devtools:disable-f12`, `hermes:f12-shortcut`, `hermes:f12ShortcutActive`, `hermes:hud-modifier:status`, `hermes:hud:begin-move`, `hermes:hud:cursor`, `hermes:hud:end-move`, `hermes:hud:game-overlay`, `hermes:hud:ignore-mouse`, `hermes:hud:move-by`, `hermes:hud:session`, `hermes:hud:set-bounds`, `hermes:hud:workspace-transfer`, `hermes:keep-awake`, `hermes:logs:renderer-error`, `hermes:logs:renderer-line`, `hermes:native-theme`, `hermes:open-updates`, `hermes:pet-overlay:control`, `hermes:pet-overlay:ignore-mouse`, `hermes:pet-overlay:set-bounds`, `hermes:pet-overlay:set-focusable`, `hermes:pet-overlay:state`, `hermes:pool:retiring`, `hermes:preview-guest-hidden`, `hermes:preview-nav`, `hermes:previewShortcutActive`, `hermes:profile:default:changed`, `hermes:quick-entry:ack`, `hermes:quick-entry:dismiss`, `hermes:screenshot:request`, `hermes:screenshot:status`, `hermes:screenshot:subscribe`, `hermes:titlebar-theme`, `hermes:translucency`, `hermes:updates:metric:pending`, `hermes:updates:progress`, `hermes:wake-indicator:set`, `hermes:wake-indicator:state`, `hermes:window-control`, `hermes:window:relay`, `hermes:window:size`, `hermes:zoom:set-percent`.
 
 ## 4. What was not verified
 
@@ -594,3 +634,75 @@ Removed (65): `hermes:active-work`, `hermes:bootstrap:event`, `hermes:browser-po
   (see the DN-07 report), not from `electron-builder` output. Packaging the Vanta runtime (`vanta-ts`, Node dependencies, kernel binary) as an
   `extraResources` folder is not done; `VANTA_RUNTIME_ROOT` or `<resources>/vanta-runtime` is where the shell looks.
 - `previewGuestPreload` is still emitted by the bundler and unused (`webviewTag` is off).
+- R2 (native capabilities) ran in a hidden Electron 40.10.2 window with an isolated userData folder and windows kept off screen. Executed: the application
+  menu, zoom save and restore, find-in-page match counting, the keep-awake blocker, `vanta://` routing, quick entry end to end (global shortcut
+  registration, state replay, a prompt relayed to the main renderer and acknowledged, a forged submit refused), the mini window loading the HUD variant,
+  and the whole wiring through the real preload (file, git, terminal, battery and tray members). Executed against the real Vanta runtime and kernel:
+  the gated terminal, stage, commit, revert and worktree add or remove (`terminal-gated.real.test.ts`, `git-mutations.real.test.ts`; both skip when
+  `target/debug/vanta-kernel` is not built).
+- Not executed in a real Electron run: the real `Tray` object (a menu-bar icon would have appeared), the native Rename/Trash/save dialogs (the dialog
+  functions are injected and tested with fakes), the macOS dock badge, `app.setAsDefaultProtocolClient` (packaged builds only), a real renderer UI
+  driving any of these members, and any non-macOS platform.
+
+## 5. Native capabilities restored (R2)
+
+### 5.1 Model
+
+The renderer never gets arbitrary exec, fs or network. Four mechanisms cover everything R2 enabled:
+
+1. **Project guard** (`project-guard.ts`) for reads. A path is usable only when its realpath is inside the active project root. Secret locations are refused
+   even inside it. Reads are size-capped and `O_NOFOLLOW`.
+2. **Allow-listed git runner** (`git-runner.ts`) for git reads. Argv is built in main; the renderer supplies only typed values.
+3. **Approval flow** for every change that runs a command: main builds the exact command and sends it to the Vanta server's `POST /api/terminal`, which applies
+   the kernel's decision, the approval card and the OS sandbox. This covers git changes and the terminal pane.
+4. **Native confirmation or save dialog** for changes that are not commands (Rename, Trash, Save image). The dialog names the exact path and the page
+   cannot answer it.
+
+### 5.2 What came back
+
+| Capability | Inventory | Mechanism | Tests |
+|---|---|---|---|
+| Files pane tree, preview, watch | F-095, F-096 | guard | `project-guard`, `fs-read`, `fs-watch`, `fs-watch.real`, `fs-handlers` |
+| Changes pane reads (status, list, diff, rev-parse, branches, worktree list) | F-098 | git runner | `git-runner`, `git-parse`, `git-read`, `git-handlers` |
+| Stage, unstage, revert, commit, push, branch switch | F-099, F-100 | approval flow | `git-mutations`, `git-mutations.real` |
+| New worktree, remove worktree | F-052 | approval flow | `git-mutations`, `git-mutations.real` |
+| Create PR, Open PR badge | F-100 | not available: needs `gh`; badge reports no PR | `git-handlers` |
+| File context menu: Rename, Delete | F-097 | native confirmation | `file-actions` |
+| Image save | F-154 | OS save dialog | `file-actions` |
+| Terminal | F-101, F-102, F-190 | approval flow, no pty | `terminal-line`, `terminal-gated`, `terminal-gated.real` |
+| Application menu, Window, Help | F-195 to F-200 | local | `app-menu` |
+| Find in page | F-207 | local | `find-handlers` |
+| Zoom saved across launches, View menu zoom | F-198 | local | `zoom-controller` |
+| Keep awake, battery events | F-211 | local | `power-features` |
+| `vanta://` links | F-209 | local, allowlisted kinds | `deep-links` |
+| External link failures | F-209 | local | `external-links` |
+| Notification actions (focus session) | F-206 | unchanged reused module | existing |
+| Mini window (HUD replacement) | F-004, F-203 | local | `mini-window-controller` |
+| Tray, minimize to tray, Needs you count, badge | F-201, F-178 | local plus pending-approval read | `vanta-tray`, `tray-setting` |
+| Quick entry | F-202, F-178 | local, relayed to the main window | `quick-entry-host` |
+| Context menu verbs | F-191 | allowlist | `context-menu` |
+
+### 5.3 Refused or left unsupported, and why
+
+- **A pty.** `node-pty` 1.1.0's prebuilt `darwin-arm64` binary loads and runs in Electron 40.10.2 (ABI 143, Node 24.15) with no rebuild; this was executed.
+  So a real terminal is technically possible. It is not shipped because a pty is arbitrary command execution that skips the approval flow, and a
+  compromised renderer could write to it. The gated line terminal gives the same panes with every command approved. Interactive programs, `cd`, and
+  stopping a running command are the cost.
+- **Renderer file writes** (`writeTextFile`, `saveImageBuffer`, `savePastedText`, `saveClipboardImage`, `saveGatewayFile`, `selectSavePath`): no equivalent of a
+  native dialog or approval card fits an in-page editor save; left unsupported.
+- **Plugin install, updates, SSH, cloud, telemetry, marketplace, outbound fetches chosen by the page:** exec or network under renderer control. Unchanged from DN-07.
+- **Create PR and PR badges:** need the `gh` CLI and a network call; reported as unavailable instead of faked.
+- **Multi-window** (`openWindow`, session windows, browser pop-out, `windowRelay`): the shell has one main window; not built.
+- **Install-type deep links** (plugin, skill, MCP): they run code; dropped until they can go through the approval flow.
+- **HUD game overlay, modifier gesture and snap shortcut:** dropped by the owner or not ported (global hotkeys beyond quick entry).
+
+### 5.4 Known limits and open questions
+
+- Terminal and repository changes show their approval card in the chat whose event stream the window opened last. If no chat is open, nothing runs and the
+  pane says so. With several chats open the card may appear in a chat that is not in view.
+- A repository whose root is above the project folder is not readable; `gitRoot` never climbs past the project root.
+- Images outside the project (a screenshot in `/tmp` the agent mentions) cannot be previewed: reads are project-only. A per-session grant for files the user
+  picked in a native dialog would fix this and is not built.
+- `git add` and similar inside the project run without a card if the kernel allows them, exactly as for the agent. Whether Changes-pane buttons should always ask
+  is a product question for the owner.
+- Rename and Trash act on the real path of a symlink, and the confirmation shows that real path.
