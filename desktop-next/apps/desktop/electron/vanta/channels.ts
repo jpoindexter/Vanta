@@ -88,7 +88,35 @@ export const CH = {
   closePreviewRequested: 'hermes:close-preview-requested',
   deepLink: 'hermes:deep-link',
   deepLinkReady: 'vanta:deep-link-ready',
-  externalOpenFailed: 'hermes:external-open-failed'
+  externalOpenFailed: 'hermes:external-open-failed',
+  // Mini window (the HUD's replacement), quick entry and the tray
+  hudChanged: 'hermes:hud:changed',
+  hudGoto: 'hermes:hud:goto',
+  hudOpen: 'hermes:hud:open',
+  hudClose: 'hermes:hud:close',
+  hudIgnoreMouse: 'hermes:hud:ignore-mouse',
+  hudBeginMove: 'hermes:hud:begin-move',
+  hudEndMove: 'hermes:hud:end-move',
+  hudMoveBy: 'hermes:hud:move-by',
+  hudSetBounds: 'hermes:hud:set-bounds',
+  hudResetLayout: 'hermes:hud:reset-layout',
+  hudFrost: 'hermes:hud:frost',
+  hudSession: 'hermes:hud:session',
+  hudWorkspaceTransfer: 'hermes:hud:workspace-transfer',
+  hudWindowing: 'hermes:hud:windowing',
+  hudNativeDrag: 'hermes:hud:native-drag',
+  quickSettingsGet: 'vanta:quick-entry:settings:get',
+  quickSettingsSet: 'vanta:quick-entry:settings:set',
+  quickSubmit: 'vanta:quick-entry:submit',
+  quickAck: 'vanta:quick-entry:ack',
+  quickDismiss: 'vanta:quick-entry:dismiss',
+  quickState: 'vanta:quick-entry:state',
+  quickSubmitToMain: 'vanta:quick-entry:to-main',
+  quickShown: 'vanta:quick-entry:shown',
+  quickLateResult: 'vanta:quick-entry:late-result',
+  trayGet: 'vanta:minimize-to-tray:get',
+  traySet: 'vanta:minimize-to-tray:set',
+  trayChanged: 'vanta:minimize-to-tray:changed'
 } as const
 
 export type Channel = (typeof CH)[keyof typeof CH]

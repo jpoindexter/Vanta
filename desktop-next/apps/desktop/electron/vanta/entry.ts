@@ -9,19 +9,15 @@ import { registerNativeNotifications } from '../notification-ipc'
 import { createAppLog } from './app-log'
 import { CH } from './channels'
 import { deepLinkFromArgv } from './deep-links'
-import { createExternalOpener } from './external-links'
-import { registerFsHandlers } from './fs-handlers'
-import { createGitRunner } from './git-runner'
-import { registerGitHandlers } from './git-handlers'
 import { type LaunchInput, startVantaServer } from './launcher'
 import { registerNativeHandlers } from './native-handlers'
-import { createProjectGuard } from './project-guard'
 import { registerProjectHandlers } from './project-handlers'
 import { createRequestBridge } from './request-bridge'
 import { ServerHost } from './server-host'
 import { registerShellHandlers } from './shell-handlers'
 import { createBootTracker } from './shell-state'
-import { listenForDeepLinks, registerWindowFeatures, type WindowFeatures } from './window-features'
+import { createShellWiring } from './shell-wiring'
+import { listenForDeepLinks } from './window-features'
 import {
   connectionDescriptor,
   createMainWindow,
@@ -40,19 +36,14 @@ let mainWindow: BrowserWindow | null = null
 let projectRoot = ''
 let shuttingDown = false
 let host: ServerHost | null = null
-let closeProjectWatches: () => void = () => undefined
-let features: WindowFeatures | null = null
-const earlyLinks: string[] = []
 
-const openExternalLink = createExternalOpener({
-  notify: (channel, payload) => mainWindow?.webContents.send(channel, payload),
-  openExternal: url => shell.openExternal(url)
+const wiring = createShellWiring({
+  devServer: DEV_SERVER,
+  getMainWindow: () => mainWindow,
+  getProjectRoot: () => projectRoot,
+  openMain: () => openWindow(),
+  windowFor: sender => windowFor(sender)
 })
-
-/** A vanta:// link may arrive before the window features exist; hold it until they do. */
-const routeDeepLink = (url: string): void => {
-  features ? features.deepLinks.handleUrl(url) : earlyLinks.push(url)
-}
 let logLine: (line: string) => void = () => undefined
 
 const windowFor = (sender: unknown): BrowserWindow | null =>
@@ -109,7 +100,7 @@ function createServices(): Services {
 /** Persist the project, restart the runtime in it, and reload the renderer so it reconnects. */
 async function switchProject(root: string, serverHost: ServerHost): Promise<void> {
   await saveProjectSetting(app.getPath('userData'), root)
-  closeProjectWatches()
+  wiring.closeProjectWatches()
   projectRoot = root
   await serverHost.start(launchInput(root)).catch(() => undefined)
   mainWindow?.webContents.reload()
@@ -131,23 +122,6 @@ async function askToSwitchProject(dir: string): Promise<boolean> {
   return answer.response === 0
 }
 
-/** Find, zoom, menu, keep-awake and vanta:// links; then replay any link that arrived before they existed. */
-function registerFeatures(ipc: never, log: (line: string) => void): void {
-  features = registerWindowFeatures({ getMainWindow: () => mainWindow, ipc, log, openExternal: openExternalLink, windowFor })
-  earlyLinks.splice(0).forEach(url => features?.deepLinks.handleUrl(url))
-}
-
-/** Read-only file and git access, confined to the project root. Vanta's own state folders are never readable. */
-function registerProjectReaders(ipc: never): void {
-  const guard = createProjectGuard({
-    deniedRoots: () => [process.env.VANTA_HOME ?? path.join(app.getPath('home'), '.vanta'), app.getPath('userData')],
-    root: () => projectRoot
-  })
-
-  closeProjectWatches = registerFsHandlers({ guard, ipc }).closeAll
-  registerGitHandlers({ git: createGitRunner(), guard, ipc })
-}
-
 function registerHandlers({ boot, host: serverHost, log }: Services): void {
   const ipc = ipcMain as never
 
@@ -161,9 +135,7 @@ function registerHandlers({ boot, host: serverHost, log }: Services): void {
     shell
   })
   registerWindowHandlers(ipc, windowFor)
-  registerProjectReaders(ipc)
-
-  registerFeatures(ipc, log.line)
+  wiring.registerAll(ipc, log.line, serverHost)
 
   registerProjectHandlers({
     confirmSwitch: askToSwitchProject,
@@ -219,10 +191,10 @@ function openWindow(): void {
   lockNavigation(
     window,
     url => location.isRenderer(url),
-    openExternalLink
+    wiring.openExternalLink
   )
   wireWindowEvents(window)
-  features?.attachWindow(window)
+  wiring.attachWindow(window)
   window.on('closed', () => {
     mainWindow = null
   })
@@ -234,7 +206,7 @@ function openWindow(): void {
 if (!app.requestSingleInstanceLock()) {
   app.quit()
 } else {
-  listenForDeepLinks(routeDeepLink)
+  listenForDeepLinks(wiring.routeDeepLink)
 
   app.on('second-instance', (_event, commandLine) => {
     const link = deepLinkFromArgv(commandLine)
@@ -243,7 +215,7 @@ if (!app.requestSingleInstanceLock()) {
     mainWindow?.focus()
 
     if (link) {
-      routeDeepLink(link)
+      wiring.routeDeepLink(link)
     }
   })
 
@@ -260,7 +232,8 @@ if (!app.requestSingleInstanceLock()) {
   }
 
   app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin' || shuttingDown) {
+    // The tray keeps Vanta, and the agent in it, running with no window open; macOS always does.
+    if (shuttingDown || (process.platform !== 'darwin' && !wiring.keepRunningWithoutWindows())) {
       app.quit()
     }
   })

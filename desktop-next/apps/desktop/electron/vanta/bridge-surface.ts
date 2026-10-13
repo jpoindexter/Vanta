@@ -1,4 +1,5 @@
 import { type IpcRendererLike, mergeSurface, stubsFrom, subscribe } from './bridge-core'
+import { miniWindowApi, type HudWindowingView } from './bridge-mini'
 import { gitApi, projectFileApi } from './bridge-native'
 import { windowFeatureApi } from './bridge-window'
 import { createApiProxy, createVantaBridge } from './bridge-vanta'
@@ -8,6 +9,7 @@ import { LOCAL_GATEWAY_URL } from './shell-state'
 
 export interface BridgeEnv {
   customWindowControls: boolean
+  hudWindowing?: HudWindowingView
   ipc: IpcRendererLike
   pathForFile: (file: unknown) => string
   zoom: { factor: () => number; level: () => number; set: (factor: number) => void }
@@ -154,6 +156,7 @@ export function buildImplemented(env: BridgeEnv): Record<string, unknown> {
     ...gitApi(env.ipc),
     ...projectFileApi(env.ipc),
     ...windowFeatureApi(env.ipc),
+    ...miniWindowApi(env),
     ...nativeAndProject(env),
     ...singleEntryRegistries(),
     ...windowAndTheme(env),
