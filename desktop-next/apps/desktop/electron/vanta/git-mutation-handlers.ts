@@ -13,7 +13,7 @@ export interface MutationDeps extends GitContext {
   run: GatedRunner;
 }
 
-export type MutationAnswer = { message: string; ok: false } | { ok: true };
+export type MutationAnswer = { message: string; ok: false } | { ok: true; result?: unknown };
 
 /**
  * Stage, unstage, revert, commit, push and branch switch. The renderer names the change; main works out the
@@ -47,6 +47,6 @@ export function registerGitMutations(deps: MutationDeps): void {
       }
     }
 
-    return { ok: true };
+    return plan.result === undefined ? { ok: true } : { ok: true, result: plan.result };
   });
 }

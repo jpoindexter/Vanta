@@ -40,16 +40,21 @@ function mutation(ipc: IpcRendererLike, member: string) {
   };
 }
 
+/** Only the named string fields of an options object, so nothing else rides along to main. */
+function pick(options: Record<string, unknown> | undefined, keys: string[]): Record<string, string> {
+  return Object.fromEntries(keys.flatMap(key => (typeof options?.[key] === "string" ? [[key, options[key] as string]] : [])));
+}
+
 /** A repository change: main plans the exact commands and runs each through the approval flow; a change not approved rejects. */
 export function bridgeChange(ipc: IpcRendererLike, request: Record<string, unknown>) {
-  return async (): Promise<{ ok: true }> => {
-    const answer = await ipc.invoke<{ message?: string; ok: boolean }>(CH.gitMutate, request);
+  return async (): Promise<unknown> => {
+    const answer = await ipc.invoke<{ message?: string; ok: boolean; result?: unknown }>(CH.gitMutate, request);
 
     if (!answer?.ok) {
       throw new NeedsApprovalError(answer?.message ?? "That change was not made.");
     }
 
-    return { ok: true };
+    return answer.result ?? { ok: true };
   };
 }
 
@@ -78,9 +83,11 @@ export function gitApi(ipc: IpcRendererLike) {
         unstage: (repo: string, file?: null | string) => bridgeChange(ipc, { file: file ?? null, op: "unstage", repo })()
       },
       scanRepos: (roots: string[], options?: unknown) => ipc.invoke(CH.gitScanRepos, roots, options),
-      worktreeAdd: mutation(ipc, "worktreeAdd"),
+      worktreeAdd: (repo: string, options?: Record<string, unknown>) =>
+        bridgeChange(ipc, { ...pick(options, ["base", "branch", "existingBranch", "name"]), op: "worktreeAdd", repo })(),
       worktreeList: (repo: string) => ipc.invoke(CH.gitWorktreeList, repo),
-      worktreeRemove: mutation(ipc, "worktreeRemove")
+      worktreeRemove: (repo: string, worktreePath: string, options?: { force?: boolean }) =>
+        bridgeChange(ipc, { force: Boolean(options?.force), op: "worktreeRemove", repo, worktreePath })()
     }
   };
 }
@@ -110,6 +117,16 @@ export function terminalApi(ipc: IpcRendererLike) {
       start: (options?: { cols?: number; cwd?: string; rows?: number }) => ipc.invoke(CH.terminalStart, options),
       write: (id: string, data: string) => ipc.invoke<boolean>(CH.terminalWrite, id, data)
     }
+  };
+}
+
+/** The page's own context menu: edit verbs, copying the image under the click, and spelling. */
+export function contextMenuApi(ipc: IpcRendererLike) {
+  return {
+    contextMenuCopyImage: () => ipc.invoke(CH.contextMenuCopyImage),
+    contextMenuEdit: (command: string) => ipc.invoke(CH.contextMenuEdit, command),
+    contextMenuSpellcheck: (action: unknown) => ipc.invoke(CH.contextMenuSpellcheck, action),
+    onContextMenuSpellcheck: (callback: (info: unknown) => void) => subscribe(ipc, CH.contextMenuSpellcheckInfo, callback)
   };
 }
 

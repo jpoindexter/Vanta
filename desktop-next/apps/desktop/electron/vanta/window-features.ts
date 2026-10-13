@@ -5,6 +5,7 @@ import { app, BrowserWindow, Menu, powerMonitor, powerSaveBlocker, type MenuItem
 import { buildAppMenuTemplate } from "./app-menu";
 import { CH } from "./channels";
 import { createDeepLinkRouter, deepLinkFromArgv } from "./deep-links";
+import { registerContextMenu } from "./context-menu";
 import { registerFindHandlers, installLinuxFindShortcut } from "./find-handlers";
 import type { IpcLike } from "./native-handlers";
 import { registerPowerFeatures } from "./power-features";
@@ -85,6 +86,7 @@ export function registerWindowFeatures(deps: WindowFeatureDeps) {
   const zoom = createZoomController(createJsonZoomStore(path.join(userData, "zoom.json")), getMainWindow);
 
   registerFindHandlers({ getWindow: deps.windowFor, ipc });
+  const contextMenu = registerContextMenu(ipc);
   ipc.on(CH.zoomPersist, (_event, percent: unknown) => zoom.persistPercent(percent));
 
   registerPowerFeatures({
@@ -105,6 +107,7 @@ export function registerWindowFeatures(deps: WindowFeatureDeps) {
     attachWindow: (window: BrowserWindow) => {
       keepZoomApplied(window, zoom);
       installLinuxFindShortcut(window);
+      contextMenu.attach(window.webContents as never);
       window.webContents.on("did-start-loading", deepLinks.markNotReady);
     },
     zoom

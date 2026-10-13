@@ -65,9 +65,7 @@ describe("renderer git bridge", () => {
   const { git: bridge } = gitApi(fakeIpc({ message: NEEDS_APPROVAL_MESSAGE, needsApproval: true }).ipc);
 
   it.each([
-    ["createPr", () => bridge.review.createPr()],
-    ["worktreeAdd", () => bridge.worktreeAdd()],
-    ["worktreeRemove", () => bridge.worktreeRemove()]
+    ["createPr", () => bridge.review.createPr()]
   ])("rejects %s with the approval message", async (_member, run) => {
     await expect(run()).rejects.toThrow(NEEDS_APPROVAL_MESSAGE);
     await expect(run()).rejects.toBeInstanceOf(NeedsApprovalError);

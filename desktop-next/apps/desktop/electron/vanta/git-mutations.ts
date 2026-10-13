@@ -4,6 +4,11 @@ import { z } from "zod";
 
 import { type GitContext, repoDir, safeRef, safeRelativeFile } from "./git-common";
 import { statusOf } from "./git-read";
+import { type Plan, refuse, shellQuote, type Target } from "./git-plan-core";
+import { addWorktreePlan, removeWorktreePlan } from "./git-worktree-plans";
+
+export { shellQuote } from "./git-plan-core";
+export type { Plan } from "./git-plan-core";
 
 export const MAX_MESSAGE = 5000;
 export const FILES_PER_COMMAND = 40;
@@ -19,28 +24,22 @@ export const mutationRequest = z.discriminatedUnion("op", [
   z.object({ file, op: z.literal("revert"), repo }),
   z.object({ message: z.string().trim().min(1).max(MAX_MESSAGE), op: z.literal("commit"), push: z.boolean(), repo }),
   z.object({ op: z.literal("push"), repo }),
-  z.object({ branch: z.string().max(200), op: z.literal("branchSwitch"), repo })
+  z.object({ branch: z.string().max(200), op: z.literal("branchSwitch"), repo }),
+  z.object({
+    base: z.string().max(200).optional(),
+    branch: z.string().max(200).optional(),
+    existingBranch: z.string().max(200).optional(),
+    name: z.string().max(100).optional(),
+    op: z.literal("worktreeAdd"),
+    repo
+  }),
+  z.object({ force: z.boolean().optional(), op: z.literal("worktreeRemove"), repo, worktreePath: z.string().min(1).max(4096) })
 ]);
 
 export type MutationRequest = z.infer<typeof mutationRequest>;
 
-export type Plan = { commands: string[]; ok: true } | { message: string; ok: false };
-
-const refuse = (message: string): Plan => ({ message, ok: false });
-
-/** POSIX single-quote escaping, so a file name or message is one literal argument and never shell syntax. */
-export function shellQuote(value: string): string {
-  return `'${value.replace(/'/g, `'\\''`)}'`;
-}
-
 const chunk = <T>(items: T[], size: number): T[][] =>
   Array.from({ length: Math.ceil(items.length / size) }, (_, index) => items.slice(index * size, (index + 1) * size));
-
-interface Target {
-  /** `git` or `git -C <folder>` when the repository is a folder inside the project. */
-  git: string;
-  cwd: string;
-}
 
 async function targetFor(ctx: GitContext, raw: string): Promise<null | Target> {
   const cwd = await repoDir(ctx, raw);
@@ -179,5 +178,9 @@ export async function planMutation(ctx: GitContext, request: MutationRequest): P
       return pushPlan(ctx, target);
     case "branchSwitch":
       return switchPlan(ctx, target, request.branch);
+    case "worktreeAdd":
+      return addWorktreePlan(ctx, target, request);
+    case "worktreeRemove":
+      return removeWorktreePlan(ctx, target, request);
   }
 }

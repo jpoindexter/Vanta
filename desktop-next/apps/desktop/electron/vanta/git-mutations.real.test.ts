@@ -117,5 +117,21 @@ describe.skipIf(!available)('repository changes against the real Vanta runtime',
 
     expect(await allowed).toEqual({ ok: true })
     expect(readFileSync(path.join(project, 'a.txt'), 'utf8')).toBe('one\ntwo\n')
+
+    // Worktrees: add creates the folder under .worktrees on a new branch, remove takes it away again. The kernel
+    // asks about both (the path is an argument), so each is allowed from the card.
+    const adding = change({ name: 'try it', op: 'worktreeAdd', repo: project })
+    expect(await decideNext('allow')).toContain('git worktree add')
+    const added = (await adding) as { ok: boolean; result: { branch: string; path: string; repoRoot: string } }
+
+    expect(added.ok).toBe(true)
+    expect(added.result).toEqual({ branch: 'vanta/try-it', path: path.join(project, '.worktrees', 'try-it'), repoRoot: project })
+    expect(existsSync(path.join(added.result.path, 'a.txt'))).toBe(true)
+
+    const removing = change({ op: 'worktreeRemove', repo: project, worktreePath: added.result.path })
+    expect(await decideNext('allow')).toContain('git worktree remove')
+
+    expect(await removing).toEqual({ ok: true, result: { removed: added.result.path } })
+    expect(existsSync(added.result.path)).toBe(false)
   }, 180_000)
 })
