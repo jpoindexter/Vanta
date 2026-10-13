@@ -114,7 +114,7 @@ export function VantaSidebar(props: VantaSidebarProps) {
   const activeId = onHome ? 'home' : (VIEW_DESTINATION[props.currentView] ?? null)
 
   return (
-    <aside aria-label={copy.label} className="vs-sidebar">
+    <aside aria-label={copy.label} className="vs-sidebar" data-slot="sidebar">
       <div className="vs-sidebar-body">
         <div className="vs-sidebar-scroll">
           <SidebarNav
