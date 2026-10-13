@@ -49,7 +49,7 @@ function failGroups(rows) {
   const groups = new Map();
   for (const r of rows.filter((x) => x.status === "FAIL")) {
     const base = r.key.replace(/\[\d+\]$/, "[]");
-    for (const p of r.props ?? []) {
+    for (const p of (r.props ?? []).filter((x) => x.status === "FAIL")) {
       const id = `${base} :: ${p.prop}`;
       const g = groups.get(id) ?? { key: base, prop: p.prop, n: 0, example: r, p };
       g.n += 1;

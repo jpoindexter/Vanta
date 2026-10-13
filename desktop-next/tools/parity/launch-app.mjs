@@ -61,11 +61,18 @@ export async function launchMockApp({ desktopRoot, width, height }) {
   const page = await app.firstWindow();
   await page.locator(COMPOSER).first().waitFor({ state: "visible", timeout: READY_TIMEOUT_MS });
   await page.getByText("Waiting for Hermes backend").first().waitFor({ state: "detached", timeout: READY_TIMEOUT_MS });
+  await page.getByText("Starting Hermes").first().waitFor({ state: "detached", timeout: READY_TIMEOUT_MS });
+  await page.waitForTimeout(500);
   const resize = (w, h) => app.evaluate(({ BrowserWindow }, [cw, ch]) => BrowserWindow.getAllWindows()[0].setContentSize(cw, ch), [w, h]);
   const close = async () => {
     await app.close().catch(() => {});
     await mock.close();
-    fs.rmSync(box.root, { recursive: true, force: true });
+    // The Python backend can still be writing its cache as we exit; a leftover temp dir is harmless.
+    try {
+      fs.rmSync(box.root, { recursive: true, force: true, maxRetries: 5, retryDelay: 300 });
+    } catch {
+      // ignore
+    }
   };
   return { page, resize, close };
 }
