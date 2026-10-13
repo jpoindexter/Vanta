@@ -205,7 +205,6 @@ async function filterMenu(page) {
     const hit = page.getByRole("menuitem", { name }).or(page.getByText(name)).first();
     await check(id, "sidebar list", `Filter menu: ${label}`, hit, { inert: id === "F-047" ? "PR bucket filter needs /api/profiles/sessions/pull-requests (not served)" : "" });
   }
-  await page.screenshot({ path: path.join(OUT_DIR, "..", "proofs", "restore", "_filter-menu-probe.png") }).catch(() => undefined);
   await closeMenus(page);
 }
 
