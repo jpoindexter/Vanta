@@ -41,6 +41,26 @@ const WRITERS: Record<string, Writer> = {
   'workers/resume': (state, body) => pauseWorker(state, workerOf(body), false)
 }
 
+const workerFor = (state: FakeState, body: Record<string, unknown>) =>
+  state.company.workers.find(worker => worker.id === body.workerId)
+
+/** Shaped like the real `call_agent` card: names the CLI and ticket, carries a prompt hash, and may be remembered. */
+const cliApproval = (workerId: string, ticketId: string): Record<string, unknown> => ({
+  action: `Run ${workerId} (external CLI) on ${ticketId} in the project directory, edit access`,
+  reason: 'Starts an external agent CLI. Prompt sha256 3f5a9c1e07b2d4a8, 412 characters.',
+  request: {
+    canRemember: true,
+    fresh: false,
+    kind: 'generic',
+    reason: 'Starts an external agent CLI.',
+    sections: [{ label: 'Prompt preview', tone: 'code', value: 'Write the changelog for 1.4. Keep it to one page.' }],
+    subject: `Run ${workerId} on ${ticketId}`,
+    title: 'Permission request',
+    toolName: 'call_agent'
+  },
+  toolName: 'call_agent'
+})
+
 const ok = (data: unknown): VantaResult => ({ data, ok: true, status: 200 })
 const fail = (status: number, error: string): VantaResult => ({ data: { error }, ok: false, status })
 
@@ -118,35 +138,30 @@ export class FakeCompanyServer implements VantaTransport {
 
   private read(path: string): VantaResult {
     const url = new URL(path, 'http://vanta.test')
-    const query = url.searchParams
+    const route = this.routes()[url.pathname]
 
-    switch (true) {
-      case url.pathname === '/api/company':
-        return ok(this.state.company)
+    if (route) {
+      return route(url.searchParams)
+    }
 
-      case url.pathname === '/api/tickets':
-        return ok(this.tickets(query))
+    if (url.pathname.startsWith('/api/tickets/')) {
+      const detail = this.state.details.get(decodeURIComponent(url.pathname.slice('/api/tickets/'.length)))
 
-      case url.pathname.startsWith('/api/tickets/'): {
-        const detail = this.state.details.get(decodeURIComponent(url.pathname.slice('/api/tickets/'.length)))
+      return detail ? ok(detail) : fail(404, 'no such ticket')
+    }
 
-        return detail ? ok(detail) : fail(404, 'no such ticket')
-      }
+    return fail(404, `no fake route for GET ${url.pathname}`)
+  }
 
-      case url.pathname === '/api/budgets':
-        return ok(this.state.budgets)
-
-      case url.pathname === '/api/activity':
-        return ok(this.activity(query))
-
-      case url.pathname === '/api/models':
-        return ok(PROVIDERS)
-
-      case url.pathname === '/api/approval':
-        return ok(this.approval?.payload ?? null)
-
-      default:
-        return fail(404, `no fake route for GET ${url.pathname}`)
+  private routes(): Record<string, (query: URLSearchParams) => VantaResult> {
+    return {
+      '/api/activity': query => ok(this.activity(query)),
+      '/api/approval': () => ok(this.approval?.payload ?? null),
+      '/api/budgets': () => ok(this.state.budgets),
+      '/api/company': () => ok(this.state.company),
+      '/api/company/runtimes': () => ok(RECORDED.runtimes),
+      '/api/models': () => ok(PROVIDERS),
+      '/api/tickets': query => ok(this.tickets(query))
     }
   }
 
@@ -181,15 +196,28 @@ export class FakeCompanyServer implements VantaTransport {
       return this.decide(body)
     }
 
-    if (call.path === '/api/company/workers/hire' || call.path === '/api/company/budgets/raise') {
-      const hire = call.path.endsWith('hire')
+    const template = this.approvalFor(call.path, body)
 
-      if (!(await this.askOwner(call.clientId, hire ? RECORDED.approvalHire : RECORDED.approvalRaise))) {
-        return fail(403, `declined: ${hire ? 'hire' : 'budget raise'}`)
-      }
+    if (template && !(await this.askOwner(call.clientId, template))) {
+      return fail(403, `declined: ${String(template.action)}`)
     }
 
     return this.settle(this.apply(call.path.replace('/api/company/', ''), body))
+  }
+
+  /** The approval the real server would ask for before this write, or null when it asks for none. */
+  private approvalFor(path: string, body: Record<string, unknown>): Record<string, unknown> | null {
+    if (path.endsWith('/workers/hire')) {
+      return RECORDED.approvalHire
+    }
+
+    if (path.endsWith('/budgets/raise')) {
+      return RECORDED.approvalRaise
+    }
+
+    const worker = path.endsWith('/tickets/assign') ? workerFor(this.state, body) : undefined
+
+    return worker?.runtime.adapter?.startsWith('cli:') ? cliApproval(worker.id, String(body.ticketId)) : null
   }
 
   private apply(action: string, body: Record<string, unknown>): WriteOutcome {
@@ -232,7 +260,7 @@ export class FakeCompanyServer implements VantaTransport {
 
     this.approval = null
     this.streams.forEach(handlers => handlers.onFrame({ label: '', typed: { id: body.id, type: 'approval.resolved' } }))
-    pending.resolve(body.decision === 'allow')
+    pending.resolve(body.decision === 'allow' || body.decision === 'always')
 
     return ok({ ok: true })
   }

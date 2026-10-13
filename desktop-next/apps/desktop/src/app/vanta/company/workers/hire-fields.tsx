@@ -1,18 +1,21 @@
-import type { CompanyResponse, ProviderOption } from '@/api/vanta-company-schemas'
+import type { CompanyResponse, ProviderOption, RuntimeOption } from '@/api/vanta-company-schemas'
 
+import { NATIVE_RUNTIME } from '../format'
 import { Field } from '../ui/field'
 
 import type { HireFormValues } from './hire-form'
+import { RuntimePicker } from './runtime-picker'
 
 interface HireFieldsProps {
   busy: boolean
   company: CompanyResponse | null
   onChange: (key: keyof HireFormValues, value: string) => void
   providers: ProviderOption[] | null
+  runtimes: RuntimeOption[] | null
   values: HireFormValues
 }
 
-function RuntimeField({
+function ProviderField({
   onChange,
   providers,
   value
@@ -23,7 +26,7 @@ function RuntimeField({
 }) {
   if (!providers || providers.length === 0) {
     return (
-      <Field hint="Providers did not load. Type a provider id such as openai." label="Runtime">
+      <Field hint="Providers did not load. Type a provider id such as openai." label="Provider">
         <input className="vc-input" onChange={event => onChange(event.target.value)} value={value} />
       </Field>
     )
@@ -32,11 +35,11 @@ function RuntimeField({
   const model = providers.find(provider => provider.id === value)?.defaultModel
 
   return (
-    <Field hint={model ? `Runs on ${model}, the provider's default model.` : undefined} label="Runtime">
+    <Field hint={model ? `Runs on ${model}, the provider's default model.` : undefined} label="Provider">
       <select className="vc-input" onChange={event => onChange(event.target.value)} value={value}>
         {providers.map(provider => (
           <option key={provider.id} value={provider.id}>
-            Vanta native · {provider.label}
+            {provider.label}
           </option>
         ))}
       </select>
@@ -74,7 +77,9 @@ function PlaceFields({
   company,
   set,
   values
-}: Omit<HireFieldsProps, 'onChange' | 'providers'> & { set: (key: keyof HireFormValues) => (value: string) => void }) {
+}: Omit<HireFieldsProps, 'onChange' | 'providers' | 'runtimes'> & {
+  set: (key: keyof HireFormValues) => (value: string) => void
+}) {
   return (
     <>
       <Pick
@@ -100,7 +105,7 @@ function PlaceFields({
 }
 
 /** The form body of the hire dialog: role, title, runtime (with the model it will use), manager, department, budget. */
-export function HireFields({ busy, company, onChange, providers, values }: HireFieldsProps) {
+export function HireFields({ busy, company, onChange, providers, runtimes, values }: HireFieldsProps) {
   const set = (key: keyof HireFormValues) => (value: string) => onChange(key, value)
 
   return (
@@ -124,7 +129,10 @@ export function HireFields({ busy, company, onChange, providers, values }: HireF
           value={values.title}
         />
       </Field>
-      <RuntimeField onChange={set('adapter')} providers={providers} value={values.adapter} />
+      <RuntimePicker busy={busy} onChange={set('runtimeId')} runtimes={runtimes} selected={values.runtimeId} />
+      {values.runtimeId === NATIVE_RUNTIME && (
+        <ProviderField onChange={set('adapter')} providers={providers} value={values.adapter} />
+      )}
       <PlaceFields busy={busy} company={company} set={set} values={values} />
       <Field hint="Leave empty for no spending cap." label="Budget (US dollars)">
         <input

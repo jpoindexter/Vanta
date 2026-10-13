@@ -2,6 +2,7 @@ import {
   ActivityResponseSchema,
   BudgetsResponseSchema,
   CompanyResponseSchema,
+  RuntimesResponseSchema,
   TicketDetailSchema,
   TicketsResponseSchema
 } from '@/api/vanta-company-schemas'
@@ -13,6 +14,7 @@ import approvalRaiseJson from './recorded/approval-raise.json'
 import budgetsJson from './recorded/budgets.json'
 import companyJson from './recorded/company.json'
 import eventsJson from './recorded/events.json'
+import runtimesJson from './recorded/runtimes.json'
 import ticketsJson from './recorded/tickets.json'
 
 // Payloads recorded from the real desktop server over a temp VANTA_HOME by
@@ -30,6 +32,7 @@ export const RECORDED = {
   company: CompanyResponseSchema.parse(companyJson),
   details: Object.values(detailFiles).map(json => TicketDetailSchema.parse(json)),
   events: eventsJson as Array<{ label: string; typed: { type: string } }>,
+  runtimes: RuntimesResponseSchema.parse(runtimesJson),
   tickets: TicketsResponseSchema.parse(ticketsJson)
 }
 

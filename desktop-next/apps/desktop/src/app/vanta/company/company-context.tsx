@@ -1,13 +1,13 @@
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from 'react'
 
-import type { CompanyApi } from '@/api/vanta-company'
+import type { ApprovalDecision, CompanyApi } from '@/api/vanta-company'
 
 import { type LiveState, useCompanyLive } from './use-company-live'
 
 export interface CompanyContextValue extends LiveState {
   api: CompanyApi
   /** Answer the pending owner approval. Rejects with the server's reason when the answer did not land. */
-  decideApproval: (decision: 'allow' | 'deny') => Promise<void>
+  decideApproval: (decision: ApprovalDecision) => Promise<void>
   /** True while a dialog is open; the dialog then shows the approval itself instead of the page banner. */
   hasDialog: boolean
   now: () => number
@@ -29,7 +29,7 @@ export function CompanyProvider({ api, children, now = Date.now }: CompanyProvid
   const { approval, clearApproval } = live
 
   const decideApproval = useCallback(
-    async (decision: 'allow' | 'deny') => {
+    async (decision: ApprovalDecision) => {
       if (!approval) {
         return
       }

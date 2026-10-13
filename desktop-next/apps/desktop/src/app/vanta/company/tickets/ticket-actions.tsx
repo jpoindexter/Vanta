@@ -22,7 +22,8 @@ function AssignControl({ action, detail, workers }: Props & { workers: CompanyWo
       done: data =>
         data.run?.started === false
           ? `Assigned. The run did not start: ${data.run.reason ?? 'the worker is busy'}. It is queued.`
-          : 'Assigned.'
+          : 'Assigned.',
+      needsApproval: true
     })
 
   return (

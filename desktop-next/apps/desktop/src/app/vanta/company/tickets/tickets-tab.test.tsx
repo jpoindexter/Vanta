@@ -117,7 +117,7 @@ describe('Ticket detail', () => {
     const product = screen.getByTestId('work-product')
 
     expect(within(product).getByText('Waiting for your approval')).toBeTruthy()
-    expect(within(product).getByText(/Produced by engineer for T-3, product department/)).toBeTruthy()
+    expect(within(product).getByText(/Produced by engineer, run r\d+ for T-3, product department/)).toBeTruthy()
     expect(screen.getAllByTestId('run-row')).toHaveLength(1)
   })
 

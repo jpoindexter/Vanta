@@ -19,7 +19,7 @@ function AnswerForm({ action, ticketId }: { action: ActionState; ticketId: strin
     const text = answer.trim()
     const done = 'Answer sent. The worker is running again.'
 
-    if (text && (await action.run(() => api.answer(ticketId, text), { done }))) {
+    if (text && (await action.run(() => api.answer(ticketId, text), { done, needsApproval: true }))) {
       setAnswer('')
     }
   }

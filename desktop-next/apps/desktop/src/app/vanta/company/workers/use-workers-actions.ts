@@ -15,7 +15,8 @@ export function useWorkersActions() {
 
   const toggle = (worker: CompanyWorker) =>
     action.run(() => (worker.paused ? api.resume(worker.id) : api.pause(worker.id)), {
-      done: `${worker.paused ? 'Resumed' : 'Paused'} ${worker.name}.`
+      done: worker.paused ? `Resumed ${worker.name}.` : `Paused ${worker.name}. Any run in flight was stopped.`,
+      needsApproval: worker.paused
     })
 
   const hire = async (input: HireInput) => {

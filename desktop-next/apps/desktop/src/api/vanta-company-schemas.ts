@@ -1,16 +1,16 @@
 import { z } from 'zod'
 
+import { COST_BASES } from './vanta-company-budget-schemas'
+
 // Response shapes of the company API (GET /api/company, /api/tickets, /api/budgets, /api/activity and
 // the typed SSE events). Mirrors vanta-ts/src/desktop/company-schemas.ts. Objects are not strict: the
 // server may add fields and an extra key must not turn a working screen into an error.
 
 export const WORKER_STATUSES = ['idle', 'working', 'waiting', 'failed', 'paused'] as const
 export const TICKET_STATUSES = ['open', 'assigned', 'in_progress', 'blocked', 'in_review', 'done', 'closed'] as const
-export const COST_BASES = ['reported', 'estimated', 'not-reported'] as const
 
 export type WorkerStatus = (typeof WORKER_STATUSES)[number]
 export type TicketStatus = (typeof TICKET_STATUSES)[number]
-export type CostBasis = (typeof COST_BASES)[number]
 
 const nullableString = z.string().nullable()
 
@@ -139,7 +139,13 @@ export const WorkProductSchema = z.object({
   createdAt: z.string(),
   id: z.string(),
   kind: z.string(),
-  provenance: z.object({ departmentId: z.string(), taskId: z.string(), workerId: z.string() }),
+  provenance: z.object({
+    departmentId: z.string(),
+    runId: z.string().optional(),
+    runtimeId: z.string().optional(),
+    taskId: z.string(),
+    workerId: z.string()
+  }),
   revisions: z.array(z.object({ at: z.string(), reason: z.string() })),
   ticketId: z.string(),
   truncated: z.boolean()
@@ -190,64 +196,6 @@ export const ActivityResponseSchema = z.object({
 })
 export type ActivityResponse = z.infer<typeof ActivityResponseSchema>
 
-export const BudgetLimitSchema = z.object({
-  hardStop: z.object({ reason: nullableString, tripped: z.boolean() }),
-  kind: z.enum(['worker', 'department', 'loop', 'goal', 'session', 'other']),
-  limitUsd: z.number(),
-  remainingUsd: z.number(),
-  scope: z.string(),
-  spentUsd: z.number(),
-  status: z.enum(['active', 'warning', 'exceeded']),
-  subject: nullableString,
-  thresholds: z.object({ hardStopAtUsd: z.number(), warnAtUsd: z.number() }),
-  warnFraction: z.number()
-})
-export type BudgetLimit = z.infer<typeof BudgetLimitSchema>
-
-const WorkerBudgetSchema = z.object({
-  declaredBudgetUsd: z.number().nullable(),
-  estimatedUsd: z.number(),
-  reportedUsd: z.number(),
-  runs: z.object({ estimated: z.number(), notReported: z.number(), reported: z.number() }),
-  scope: nullableString,
-  spentUsd: z.number(),
-  workerId: z.string()
-})
-
-const DepartmentBudgetSchema = z.object({
-  departmentId: z.string(),
-  limitUsd: z.number().nullable(),
-  scope: z.string(),
-  spentUsd: z.number()
-})
-
-export const BudgetsResponseSchema = z.object({
-  costBases: z.object({ note: z.string(), values: z.array(z.enum(COST_BASES)) }),
-  day: z.string(),
-  days: z.array(z.object({ day: z.string(), entries: z.number(), totalUsd: z.number(), workerUsd: z.number() })),
-  departments: z.array(DepartmentBudgetSchema),
-  generatedAt: z.string(),
-  limits: z.array(BudgetLimitSchema),
-  totals: z.object({
-    estimatedUsd: z.number(),
-    notReportedRuns: z.number(),
-    reportedUsd: z.number(),
-    spentUsd: z.number()
-  }),
-  workers: z.array(WorkerBudgetSchema)
-})
-export type BudgetsResponse = z.infer<typeof BudgetsResponseSchema>
-export type WorkerBudget = z.infer<typeof WorkerBudgetSchema>
-
-/** One provider the server can run a worker on (GET /api/models). */
-export const ProviderOptionSchema = z.object({
-  defaultModel: z.string().default(''),
-  id: z.string(),
-  label: z.string()
-})
-export type ProviderOption = z.infer<typeof ProviderOptionSchema>
-export const ProviderListSchema = z.array(ProviderOptionSchema)
-
 /** The reply every company write shares; only the fields a screen reads are named. */
 export const WriteReplySchema = z.looseObject({
   changed: z.boolean().optional(),
@@ -289,3 +237,5 @@ export const ApprovalEventSchema = z.discriminatedUnion('type', [
 export type ApprovalEvent = z.infer<typeof ApprovalEventSchema>
 
 export const TypedFrameSchema = z.object({ typed: z.object({ type: z.string() }).loose() })
+
+export * from './vanta-company-budget-schemas'

@@ -15,7 +15,7 @@
   "workProductCount": 0,
   "commentCount": 0,
   "createdAt": "2026-10-13T11:07:32.000Z",
-  "updatedAt": "2026-10-13T19:19:42.739Z",
+  "updatedAt": "2026-10-13T19:49:28.284Z",
   "thread": [],
   "blockers": [
     {
@@ -28,7 +28,7 @@
       "runId": "r0028",
       "ticketId": "T-4",
       "workerId": "researcher",
-      "runtime": "stub",
+      "runtime": "vanta-native",
       "status": "failed",
       "attempt": 1,
       "startedAt": "2026-10-13T11:28:33.000Z",

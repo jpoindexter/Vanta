@@ -1,11 +1,11 @@
 import type { RunRecord, TicketDetail } from '@/api/vanta-company-schemas'
 
-import { clockTime, costText, durationText } from '../format'
+import { clockTime, costText, durationText, NATIVE_RUNTIME, runtimeName } from '../format'
 
 const RUN_WORD = { awaiting_review: 'Awaiting review', done: 'Done', failed: 'Failed', running: 'Running' } as const
 
 function RunRow({ run }: { run: RunRecord }) {
-  const cost = costText(run.costUsd, run.costBasis)
+  const cost = costText(run.costUsd, run.costBasis, run.runtime !== NATIVE_RUNTIME)
 
   return (
     <tr data-testid="run-row">
@@ -18,7 +18,9 @@ function RunRow({ run }: { run: RunRecord }) {
       <td>
         {run.workerId}
         <div className="vp-note vp-note--flush">
-          {[run.provider, run.model].filter(Boolean).join(' · ') || run.runtime}
+          {[run.runtime === NATIVE_RUNTIME ? null : runtimeName(run.runtime), run.provider, run.model]
+            .filter(Boolean)
+            .join(' · ') || runtimeName(run.runtime)}
         </div>
       </td>
       <td>{clockTime(run.startedAt)}</td>

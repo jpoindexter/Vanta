@@ -22,7 +22,10 @@ export function useCreateTicket() {
     })
 
     if (made && workerId && createdId) {
-      await action.run(() => api.assign(createdId, workerId), { done: `Created ${createdId} and assigned it.` })
+      await action.run(() => api.assign(createdId, workerId), {
+        done: `Created ${createdId} and assigned it.`,
+        needsApproval: true
+      })
     }
 
     if (made) {
