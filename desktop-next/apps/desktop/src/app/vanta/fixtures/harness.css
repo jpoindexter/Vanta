@@ -1,0 +1,65 @@
+/* Fixtures harness only (never shipped): a stand-in app frame with the wireframe's
+   exact geometry, so the page surfaces render at their real size and position.
+   The sidebar, titlebar and status chrome here are placeholders owned by the shell track. */
+.vpx-frame {
+  background: var(--dt-background);
+  border: 1px solid color-mix(in srgb, var(--dt-foreground) 22%, var(--dt-background));
+  border-radius: 12px;
+  box-sizing: border-box;
+  display: grid;
+  font-size: 14px;
+  grid-template-rows: 44px 1fr;
+  height: 660px;
+  overflow: hidden;
+  position: relative;
+}
+
+.vpx-frame *,
+.vpx-frame *::before,
+.vpx-frame *::after {
+  box-sizing: border-box;
+}
+
+.vpx-titlebar {
+  align-items: center;
+  border-bottom: 1px solid var(--dt-border);
+  display: flex;
+  gap: 10px;
+  padding: 0 12px;
+}
+
+.vpx-body {
+  display: grid;
+  grid-template-columns: 275px minmax(0, 1fr) auto;
+  min-height: 0;
+}
+
+.vpx-w1100 .vpx-body {
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+}
+
+.vpx-w800 .vpx-body {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.vpx-sidebar {
+  background: var(--dt-card);
+  border-right: 1px solid var(--dt-border);
+}
+
+.vpx-w800 .vpx-sidebar {
+  display: none;
+}
+
+.vpx-main {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+}
+
+.vpx-main > .vpx-scroll {
+  min-height: 0;
+  overflow: auto;
+}

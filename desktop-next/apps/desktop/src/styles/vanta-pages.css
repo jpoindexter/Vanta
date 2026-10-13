@@ -1,0 +1,354 @@
+/* Vanta pages: Home, list pages, shared primitives. Mirrors the approved
+   wireframe (desktop-next/docs/wireframe) metric for metric. Everything is
+   scoped under `.vp` so nothing here can leak into the rest of the shell.
+   Colours are theme tokens (--dt-*); the wireframe's grey ramp maps onto them. */
+@import './vanta-workbench.css';
+@import './vanta-overlays.css';
+
+.vp {
+  --vp-bg: var(--dt-background);
+  --vp-bg2: var(--dt-card);
+  --vp-bg3: var(--dt-secondary);
+  --vp-ink: var(--dt-foreground);
+  --vp-ink2: color-mix(in srgb, var(--dt-foreground) 78%, var(--dt-background));
+  --vp-ink3: var(--dt-muted-foreground);
+  --vp-line: color-mix(in srgb, var(--dt-foreground) 22%, var(--dt-background));
+  --vp-hair: var(--dt-border);
+  --vp-focus: var(--dt-ring);
+  --vp-mono: var(--dt-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  --vp-titlebar: 44px;
+  box-sizing: border-box;
+  color: var(--vp-ink);
+  font: 14px/1.45 var(--dt-font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif);
+}
+
+.vp *,
+.vp *::before,
+.vp *::after {
+  box-sizing: border-box;
+}
+
+.vp [hidden] {
+  display: none !important;
+}
+
+/* ---- controls ---- */
+.vp-btn {
+  background: var(--vp-bg);
+  border: 1px solid var(--vp-line);
+  border-radius: 8px;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 5px 10px;
+}
+
+.vp-btn:hover {
+  background: var(--vp-bg2);
+}
+
+.vp-btn:focus-visible,
+.vp-field:focus-visible,
+.vp-composer textarea:focus-visible,
+.vp-select:focus-visible {
+  outline: 2px solid var(--vp-focus);
+  outline-offset: 2px;
+}
+
+.vp-btn[disabled] {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.vp-btn--primary {
+  background: var(--vp-ink);
+  border-color: var(--vp-ink);
+  color: var(--vp-bg);
+}
+
+.vp-btn--primary:hover {
+  background: var(--vp-ink);
+  opacity: 0.88;
+}
+
+.vp-btn--icon {
+  border-radius: 8px;
+  display: inline-grid;
+  font-size: 15px;
+  height: 30px;
+  padding: 0;
+  place-items: center;
+  width: 30px;
+}
+
+.vp-btn--ghost {
+  border-color: transparent;
+}
+
+.vp-chip {
+  background: var(--vp-bg);
+  border: 1px solid var(--vp-line);
+  border-radius: 999px;
+  color: var(--vp-ink2);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  padding: 1px 9px;
+  white-space: nowrap;
+}
+
+.vp-chip:hover {
+  background: var(--vp-bg2);
+}
+
+.vp-chip:focus-visible {
+  outline: 2px solid var(--vp-focus);
+  outline-offset: 2px;
+}
+
+.vp-chip[aria-pressed='true'],
+.vp-chip[aria-checked='true'] {
+  border-color: var(--vp-ink);
+  color: var(--vp-ink);
+}
+
+.vp-badge {
+  border: 1px solid var(--vp-ink);
+  border-radius: 999px;
+  color: var(--vp-ink);
+  font-size: 12px;
+  font-weight: 400;
+  padding: 0 7px;
+}
+
+.vp-send {
+  background: var(--dt-midground);
+  border: 1px solid var(--dt-midground);
+  border-radius: 50%;
+  color: var(--dt-midground-foreground);
+  cursor: pointer;
+  display: inline-grid;
+  height: 32px;
+  padding: 0;
+  place-items: center;
+  width: 32px;
+}
+
+.vp-send:focus-visible {
+  outline: 2px solid var(--vp-focus);
+  outline-offset: 2px;
+}
+
+.vp-note {
+  color: var(--vp-ink3);
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.vp-note--flush {
+  margin: 0;
+}
+
+.vp-muted {
+  color: var(--vp-ink2);
+}
+
+.vp-spin {
+  animation: vp-spin 1.1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes vp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.vp-glyph {
+  display: inline-block;
+  flex: none;
+  height: 16px;
+  margin-right: 6px;
+  vertical-align: -3px;
+  width: 16px;
+}
+
+/* ---- page frame ---- */
+.vp-page {
+  min-height: 0;
+  padding: 22px 24px;
+}
+
+/* The host gives pages one scroll container; pages themselves are content-sized. */
+.vp-scroll {
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+}
+
+.vp-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0 auto;
+  max-width: 860px;
+}
+
+.vp-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vp-sec h3 {
+  align-items: center;
+  display: flex;
+  font-size: 14px;
+  font-weight: 600;
+  gap: 8px;
+  margin: 0;
+}
+
+.vp-sechead {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+
+.vp-sechead p {
+  margin: 0;
+}
+
+.vp-box {
+  border: 1px solid var(--vp-line);
+  border-radius: 12px;
+  padding: 0 12px;
+}
+
+.vp-row {
+  align-items: center;
+  border-bottom: 1px solid var(--vp-hair);
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.vp-row > span:first-child {
+  min-width: 0;
+}
+
+.vp-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ---- composer ---- */
+.vp-composer {
+  background: var(--vp-bg);
+  border: 1px solid var(--vp-line);
+  border-radius: 22px;
+  padding: 10px 12px;
+}
+
+.vp-composer textarea {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  min-height: 44px;
+  outline: none;
+  padding: 2px;
+  resize: none;
+  width: 100%;
+}
+
+.vp-composer:focus-within {
+  border-color: var(--vp-focus);
+  box-shadow: 0 0 0 1px var(--vp-focus);
+}
+
+.vp-tools {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.vp-tools .vp-grow {
+  flex: 1;
+}
+
+.vp-select {
+  appearance: none;
+  background: var(--vp-bg);
+  border: 1px solid var(--vp-line);
+  border-radius: 999px;
+  color: var(--vp-ink2);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  padding: 1px 22px 1px 9px;
+}
+
+.vp-select-wrap {
+  align-items: center;
+  display: inline-flex;
+  position: relative;
+}
+
+.vp-select-wrap svg {
+  color: var(--vp-ink2);
+  pointer-events: none;
+  position: absolute;
+  right: 6px;
+}
+
+.vp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ---- skeleton ---- */
+.vp-skel {
+  animation: vp-pulse 1.4s ease-in-out infinite;
+  background: var(--vp-bg3);
+  border-radius: 6px;
+  display: block;
+}
+
+@keyframes vp-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.vp-row--skeleton {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 0;
+  height: calc(14px * 1.45 * 2 + 17px);
+  justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vp-spin,
+  .vp-skel {
+    animation: none;
+  }
+}
+
+.vp-empty-line {
+  color: var(--vp-ink2);
+  margin: 0 0 8px;
+}
+
+/* Wireframe list pages set h3 {font-size:18px} on the UA bold weight. */
+.vp-page-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
