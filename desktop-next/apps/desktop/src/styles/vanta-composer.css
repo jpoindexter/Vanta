@@ -1,0 +1,109 @@
+/* Home composer, project select, chips and loading skeletons (scoped under `.vp`). */
+/* ---- composer ---- */
+.vp-composer {
+  background: var(--vp-bg);
+  border: 1px solid var(--vp-line);
+  border-radius: 22px;
+  padding: 10px 12px;
+}
+
+.vp-composer textarea {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  min-height: 44px;
+  outline: none;
+  padding: 2px;
+  resize: none;
+  width: 100%;
+}
+
+.vp-composer:focus-within {
+  border-color: var(--vp-focus);
+  box-shadow: 0 0 0 1px var(--vp-focus);
+}
+
+.vp-tools {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.vp-tools .vp-grow {
+  flex: 1;
+}
+
+.vp-select {
+  appearance: none;
+  background: var(--vp-bg);
+  border: 1px solid var(--vp-line);
+  border-radius: 999px;
+  color: var(--vp-ink2);
+  cursor: pointer;
+  font: inherit;
+  field-sizing: content;
+  font-size: 12px;
+  padding: 1px 18px 1px 9px;
+}
+
+.vp-select-wrap {
+  align-items: center;
+  display: inline-flex;
+  position: relative;
+}
+
+.vp-select-wrap svg {
+  color: var(--vp-ink2);
+  pointer-events: none;
+  position: absolute;
+  right: 6px;
+}
+
+.vp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ---- skeleton ---- */
+.vp-skel {
+  animation: vp-pulse 1.4s ease-in-out infinite;
+  background: var(--vp-bg3);
+  border-radius: 6px;
+  display: block;
+}
+
+@keyframes vp-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.vp-row--skeleton {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 0;
+  height: calc(14px * 1.45 * 2 + 17px);
+  justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vp-spin,
+  .vp-skel {
+    animation: none;
+  }
+}
+
+.vp-empty-line {
+  color: var(--vp-ink2);
+  margin: 0 0 8px;
+}
+
+/* Wireframe list pages set h3 {font-size:18px} on the UA bold weight. */
+.vp-page-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
