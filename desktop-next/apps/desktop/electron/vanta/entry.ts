@@ -8,6 +8,8 @@ import { registerNativeNotifications } from '../notification-ipc'
 
 import { createAppLog } from './app-log'
 import { CH } from './channels'
+import { deepLinkFromArgv } from './deep-links'
+import { createExternalOpener } from './external-links'
 import { registerFsHandlers } from './fs-handlers'
 import { createGitRunner } from './git-runner'
 import { registerGitHandlers } from './git-handlers'
@@ -19,6 +21,7 @@ import { createRequestBridge } from './request-bridge'
 import { ServerHost } from './server-host'
 import { registerShellHandlers } from './shell-handlers'
 import { createBootTracker } from './shell-state'
+import { listenForDeepLinks, registerWindowFeatures, type WindowFeatures } from './window-features'
 import {
   connectionDescriptor,
   createMainWindow,
@@ -38,6 +41,18 @@ let projectRoot = ''
 let shuttingDown = false
 let host: ServerHost | null = null
 let closeProjectWatches: () => void = () => undefined
+let features: WindowFeatures | null = null
+const earlyLinks: string[] = []
+
+const openExternalLink = createExternalOpener({
+  notify: (channel, payload) => mainWindow?.webContents.send(channel, payload),
+  openExternal: url => shell.openExternal(url)
+})
+
+/** A vanta:// link may arrive before the window features exist; hold it until they do. */
+const routeDeepLink = (url: string): void => {
+  features ? features.deepLinks.handleUrl(url) : earlyLinks.push(url)
+}
 let logLine: (line: string) => void = () => undefined
 
 const windowFor = (sender: unknown): BrowserWindow | null =>
@@ -116,6 +131,12 @@ async function askToSwitchProject(dir: string): Promise<boolean> {
   return answer.response === 0
 }
 
+/** Find, zoom, menu, keep-awake and vanta:// links; then replay any link that arrived before they existed. */
+function registerFeatures(ipc: never, log: (line: string) => void): void {
+  features = registerWindowFeatures({ getMainWindow: () => mainWindow, ipc, log, openExternal: openExternalLink, windowFor })
+  earlyLinks.splice(0).forEach(url => features?.deepLinks.handleUrl(url))
+}
+
 /** Read-only file and git access, confined to the project root. Vanta's own state folders are never readable. */
 function registerProjectReaders(ipc: never): void {
   const guard = createProjectGuard({
@@ -141,6 +162,8 @@ function registerHandlers({ boot, host: serverHost, log }: Services): void {
   })
   registerWindowHandlers(ipc, windowFor)
   registerProjectReaders(ipc)
+
+  registerFeatures(ipc, log.line)
 
   registerProjectHandlers({
     confirmSwitch: askToSwitchProject,
@@ -196,9 +219,10 @@ function openWindow(): void {
   lockNavigation(
     window,
     url => location.isRenderer(url),
-    url => void shell.openExternal(url)
+    openExternalLink
   )
   wireWindowEvents(window)
+  features?.attachWindow(window)
   window.on('closed', () => {
     mainWindow = null
   })
@@ -210,9 +234,17 @@ function openWindow(): void {
 if (!app.requestSingleInstanceLock()) {
   app.quit()
 } else {
-  app.on('second-instance', () => {
+  listenForDeepLinks(routeDeepLink)
+
+  app.on('second-instance', (_event, commandLine) => {
+    const link = deepLinkFromArgv(commandLine)
+
     mainWindow?.show()
     mainWindow?.focus()
+
+    if (link) {
+      routeDeepLink(link)
+    }
   })
 
   app.on('before-quit', () => {
