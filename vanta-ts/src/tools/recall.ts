@@ -3,6 +3,8 @@ import { join } from "node:path";
 import type { Tool, ToolContext } from "./types.js";
 import { listSkills, LEARNED_TAG } from "../skills/store.js";
 import { searchSkills } from "../skills/recall.js";
+import { readSkillOverrides } from "../skills/enable-state.js";
+import { skillVisibleToModel } from "../skills/overrides.js";
 import { markVolatile } from "../skills/volatile.js";
 import { distilledEnabled, readDistilled } from "../skills/distill.js";
 import { recordLearning, type LearningEvent } from "../learning/ledger.js";
@@ -53,7 +55,8 @@ export const recallTool: Tool = {
       return { ok: false, output: 'recall needs a "query" string' };
     }
     try {
-      const skills = await listSkills();
+      const overrides = await readSkillOverrides(process.env);
+      const skills = (await listSkills()).filter((skill) => skillVisibleToModel(skill.meta.name, overrides));
       const matches = searchSkills(parsed.data.query, skills).slice(0, MAX_MATCHES);
       if (matches.length === 0) {
         return { ok: true, output: "(no matching skills)" };

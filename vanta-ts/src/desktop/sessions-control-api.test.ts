@@ -16,7 +16,7 @@ const TRANSCRIPT: Message[] = [
   { role: "user", content: "Thanks" },
 ];
 
-const listed = async () => (await h.get("/api/sessions")).body as Array<{ id: string; unread?: boolean; title: string }>;
+const listed = async () => (await h.get("/api/sessions")).body as Array<{ id: string; unread?: boolean; archived?: boolean; title: string }>;
 
 describe("session search", () => {
   it("finds a phrase inside a transcript with a snippet, and skips trashed sessions", async () => {
