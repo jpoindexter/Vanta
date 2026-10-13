@@ -86,6 +86,8 @@ export const frBoot = {
         "L'assistant de mise à jour n'a pas pu vérifier qui détient l'installation de Vanta. Vanta continue de vérifier.",
       since: time => `En attente depuis ${time}`,
       lastChecked: time => `Dernière vérification ${time}`,
+      recoveryHint:
+        "Cela se règle généralement en quelques minutes. Sinon : quittez Vanta, arrêtez les processus git ou Vanta restants (ou redémarrez l'ordinateur), puis rouvrez Vanta.",
       checkAgain: 'Vérifier à nouveau',
       quit: 'Quitter Vanta',
       openLogs: 'Ouvrir les journaux',

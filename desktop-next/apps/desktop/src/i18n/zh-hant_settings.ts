@@ -949,6 +949,7 @@ export const zhHantSettings = {
       sshKeyTitle: '金鑰檔案',
       sshKeyDesc: '私密金鑰路徑。留空 = ssh-agent 或 ~/.ssh/config。',
       sshHermesPathTitle: 'Vanta 路徑（選用）',
+      sshHermesPathDesc: '遠端 Vanta 執行檔的完整路徑。留空 = 自動偵測。',
       sshHermesPathPlaceholder: '自動偵測',
       sshTestConnection: '測試 SSH',
       sshConnect: '連線',
@@ -1190,6 +1191,10 @@ export const zhHantSettings = {
       usageLabel: label => `${label}用量`,
       freeTier: {
         signIn: '登入',
+        title: '你正在使用免費服務',
+        message: '登入帳戶以解鎖更多模型和工具。',
+        name: '免費服務',
+        footnote: '免費服務沒有餘額，無需付款。登入帳戶後才會顯示支付與用量。',
         plan: '免費服務',
         model: '模型',
         connectors: '連接器',
@@ -1288,6 +1293,8 @@ export const zhHantSettings = {
       state: {
         notice: {
           loggedOut: {
+            title: '連接你的帳戶',
+            message: '登入你的帳戶，即可在此查看餘額、方案和用量。',
             action: '登入'
           },
           openPortal: '開啟入口網站 ↗',
@@ -1557,6 +1564,7 @@ export const zhHantSettings = {
     localDownloadsHeading: '本地',
     noAuthenticatedProviders: '沒有已驗證的提供方。',
     pro: 'Pro',
+    proNeedsSubscription: 'Pro 模型需要付費訂閱。',
     free: '免費',
     freeTier: '免費層',
     priceTitle: '每百萬 Token 的輸入/輸出價格',

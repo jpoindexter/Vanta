@@ -64,6 +64,7 @@ export const zhHantChat = {
       '/resume': '繼續已儲存的工作階段',
       '/details': '控制對話記錄的詳細程度',
       '/copy': '複製所選內容或最後一條助手訊息',
+      '/quit': '結束 Vanta',
       '/start': '確認平台啟動請求，不傳送回覆',
       '/new': '開始新的桌面聊天',
       '/topic': '啟用或查看 Telegram 私訊話題工作階段',

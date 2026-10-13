@@ -158,6 +158,8 @@ export const zhOverrides = {
         `先退出已保存的远程浏览器会话，然后打开${signInLabel}。也可以使用本地网关切换到随应用提供的后端。`,
       signOutAndSignIn: '退出并重新登录',
       remoteFailureHint: '在“网关设置”中检查网关 URL 和登录，或切换到本地网关。',
+      cloudDownDescription:
+        '此网关连接的托管云代理正在返回服务器错误。无法在此处重启——请检查其状态、切换到本地网关或获取支持。',
       cloudDownCheckPortal: '查看 Portal 状态',
       cloudDownDiscord: '在 Discord 获取帮助',
       hideRecentLogs: '隐藏最近日志',
@@ -265,6 +267,7 @@ export const zhOverrides = {
   ...zhNotices,
 
   billingBlock: {
+    titleNous: '额度已用尽',
     titleProvider: provider => `额度已用尽 — ${provider}`,
     fallbackMessage: '您的账户额度已用尽。请充值以继续使用。',
     openBilling: '打开账单',
@@ -1449,6 +1452,7 @@ export const zhOverrides = {
       cloudLoadingAgents: '正在加载你的智能体…',
       cloudNoAgents: {
         before: '此账户下未找到智能体。请在',
+        linkText: '门户',
         after: '中创建一个，然后刷新。'
       },
       cloudRefresh: '刷新',
@@ -1540,6 +1544,7 @@ export const zhOverrides = {
       sshKeyTitle: '密钥文件',
       sshKeyDesc: '私钥路径。留空 = ssh-agent 或 ~/.ssh/config。',
       sshHermesPathTitle: 'Vanta 路径（可选）',
+      sshHermesPathDesc: '远程 Vanta 可执行文件的完整路径。留空 = 自动检测。',
       sshHermesPathPlaceholder: '自动检测',
       sshTestConnection: '测试 SSH',
       sshConnect: '连接',
@@ -1676,6 +1681,10 @@ export const zhOverrides = {
       usageLabel: label => `${label}用量`,
       freeTier: {
         signIn: '登录',
+        title: '你正在使用免费服务',
+        message: '登录账户以解锁更多模型和工具。',
+        name: '免费服务',
+        footnote: '免费服务没有余额，无需支付。登录账户后才会显示支付与用量。',
         plan: '免费服务',
         model: '模型',
         connectors: '连接器',
@@ -1774,6 +1783,8 @@ export const zhOverrides = {
       state: {
         notice: {
           loggedOut: {
+            title: '连接你的账户',
+            message: '登录你的账户，即可在此查看余额、套餐和用量。',
             action: '登录'
           },
           openPortal: '打开门户 ↗',
@@ -3317,6 +3328,7 @@ export const zhOverrides = {
       '/resume': '恢复已保存的会话',
       '/details': '控制对话记录的详细程度',
       '/copy': '复制所选内容或最后一条助手消息',
+      '/quit': '退出 Vanta',
       '/start': '确认平台启动请求，不发送回复',
       '/new': '开始新的桌面对话',
       '/topic': '启用或查看 Telegram 私聊话题会话',
@@ -3880,13 +3892,20 @@ export const zhOverrides = {
   // Not yet translated — English fallbacks so the free-tier surfaces stay
   // readable until a zh pass lands.
   freeTier: {
+    providerRowTitle: '免费层',
+    providerRowPitch: '登录账户以解锁更多模型和工具。',
     readyTitle: 'Vanta 已就绪。',
     readyCaption: '免费 · 含连接器',
     begin: '开始',
+    signInInstead: '改为登录账户',
     otherProviders: '其他提供方',
+    stripTitle: '免费的推理和连接器现已可用。',
+    stripBody: '打开模型选择器试用，或登录账户。',
     openModelPicker: '打开模型选择器',
     dismiss: '关闭',
+    statusLabel: model => `${model}`,
     signIn: '登录',
+    signInHeading: '登录账户以解锁更多模型和工具。',
     settingUp: '正在设置免费推理…',
     codeBody: '在浏览器中输入此代码以完成登录。',
     copyLink: '复制链接',
@@ -3911,8 +3930,10 @@ export const zhOverrides = {
     retiredBody: '此免费层身份已被使用或已过期；下次启动时会重新设置。',
     errorBody: '登录未完成；请重试。',
     alreadySignedInHeading: '已登录。',
+    alreadySignedInBody: '此 Vanta 已登录账户。',
     offer: {
       heading: '继续使用 Vanta',
+      body: '你正在使用免费额度。继续使用 Vanta 的话，你会开始遇到限制。登录免费的账户，即可获得更多额度。',
       signIn: '登录',
       notNow: '暂不'
     }
@@ -3931,6 +3952,7 @@ export const zhOverrides = {
     localDownloadsHeading: '本地',
     noAuthenticatedProviders: '没有已认证的提供方。',
     pro: 'Pro',
+    proNeedsSubscription: 'Pro 模型需要付费订阅。',
     free: '免费',
     freeTier: '免费层',
     priceTitle: '每百万 token 的输入/输出价格',

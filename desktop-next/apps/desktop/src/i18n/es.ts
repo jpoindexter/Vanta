@@ -3836,6 +3836,7 @@ export const esOverrides = {
       '/resume': 'Reanudar una sesión guardada',
       '/details': 'controlar el nivel de detalle de la transcripción',
       '/copy': 'copiar selección o último mensaje del asistente',
+      '/quit': 'salir de Vanta',
       '/start': 'Confirmar los pings de inicio de la plataforma sin responder',
       '/new': 'Iniciar un chat nuevo de escritorio',
       '/topic': 'Activar o inspeccionar las sesiones por tema de los MD de Telegram',

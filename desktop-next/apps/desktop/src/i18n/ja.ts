@@ -128,6 +128,8 @@ export const jaOverrides = {
       signOutAndSignIn: 'サインアウトして再サインイン',
       remoteFailureHint:
         '「ゲートウェイ設定」でゲートウェイの URL とサインインを確認するか、ローカルゲートウェイに切り替えてください。',
+      cloudDownDescription:
+        'このゲートウェイが接続している管理のクラウドエージェントがサーバーエラーを返しています。ここから再起動することはできません。ステータスを確認するか、ローカルゲートウェイに切り替えるか、サポートに連絡してください。',
       cloudDownCheckPortal: 'Portal のステータスを確認',
       cloudDownDiscord: 'Discord でサポートを受ける',
       hideRecentLogs: '最近のログを非表示',
@@ -232,6 +234,7 @@ export const jaOverrides = {
   ...jaNotices,
 
   billingBlock: {
+    titleNous: 'クレジットが不足しています',
     titleProvider: provider => `クレジット不足 — ${provider}`,
     fallbackMessage: 'アカウントのクレジットが不足しています。続行するにはクレジットを追加してください。',
     openBilling: '請求を開く',
@@ -1139,6 +1142,7 @@ export const jaOverrides = {
       sshKeyTitle: '鍵ファイル',
       sshKeyDesc: '秘密鍵のパス。空欄 = ssh-agent または ~/.ssh/config。',
       sshHermesPathTitle: 'Vanta パス（任意）',
+      sshHermesPathDesc: 'リモートの Vanta バイナリへのフルパス。空欄 = 自動検出。',
       sshHermesPathPlaceholder: '自動検出',
       sshTestConnection: 'SSH をテスト',
       sshConnect: '接続',
@@ -2442,6 +2446,7 @@ export const jaOverrides = {
       '/resume': '以前のセッションを再開',
       '/details': 'トランスクリプトの詳細レベルを制御',
       '/copy': '選択または最後のアシスタントメッセージをコピー',
+      '/quit': 'Vanta を終了',
       '/start': '返信せずにプラットフォームの開始要求を確認',
       '/new': '新しいデスクトップチャットを開始',
       '/topic': 'Telegram の個人チャットのトピックを有効化または確認',
@@ -2968,6 +2973,7 @@ export const jaOverrides = {
     localDownloadsHeading: 'ローカル',
     noAuthenticatedProviders: '認証済みプロバイダーがありません。',
     pro: 'Pro',
+    proNeedsSubscription: 'Pro モデルには有料のサブスクリプションが必要です。',
     free: '無料',
     freeTier: '無料プラン',
     priceTitle: '100 万トークンあたりの入力/出力価格',
@@ -3927,6 +3933,7 @@ export const jaOverrides = {
   freeTier: {
     offer: {
       heading: 'Vanta を使い続ける',
+      body: '現在は無料枠をご利用中です。Vanta を使い続けると、いずれ上限に達します。無料のアカウントでサインインすると、より多くの利用枠が使えます。',
       signIn: 'サインイン',
       notNow: '今はしない'
     }

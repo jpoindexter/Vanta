@@ -39,6 +39,8 @@ export const zhHantBoot = {
         `先登出已儲存的遠端瀏覽器工作階段，然後開啟${signInLabel}。使用本機閘道可切換至內建後端。`,
       signOutAndSignIn: '登出並重新登入',
       remoteFailureHint: '在「閘道設定」中檢查閘道 URL 與登入，或切換至本機閘道。',
+      cloudDownDescription:
+        '此閘道連線的託管雲端代理正在回傳伺服器錯誤。無法在此處重新啟動——請檢查其狀態、切換至本機閘道，或取得支援。',
       cloudDownCheckPortal: '查看 Portal 狀態',
       cloudDownDiscord: '在 Discord 取得協助',
       hideRecentLogs: '隱藏最近記錄',

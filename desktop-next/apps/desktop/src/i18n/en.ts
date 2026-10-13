@@ -3504,8 +3504,6 @@ export const en: Translations = {
       '/browser': 'Manage the agent browser [connect|disconnect|status|use]',
       '/palette': 'Open the fuzzy command palette (also Ctrl+P)',
       '/usage': 'Show token usage and rate limits; `reset` redeems a banked Codex limit reset',
-      '/subscription': 'View your plan and change it in the browser',
-      '/topup': 'Show your balance and manage billing on the provider portal',
       '/platform': 'Pause, resume, or list a failing gateway platform',
       '/version': 'Show Vanta version',
       '/debug': 'Upload debug report (system info + logs) and get shareable links',

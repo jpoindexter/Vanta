@@ -1859,6 +1859,7 @@ export const frOverrides = {
       sshKeyTitle: "Fichier d'identité",
       sshKeyDesc: 'Chemin de la clé privée. Vide = ssh-agent ou ~/.ssh/config.',
       sshHermesPathTitle: 'Chemin Vanta (facultatif)',
+      sshHermesPathDesc: 'Chemin complet vers le binaire Vanta distant. Vide = détection automatique.',
       sshHermesPathPlaceholder: 'détection automatique',
       sshTestConnection: 'Tester SSH',
       sshConnect: 'Se connecter',
