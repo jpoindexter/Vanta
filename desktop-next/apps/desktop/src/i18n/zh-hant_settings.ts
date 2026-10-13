@@ -872,14 +872,12 @@ export const zhHantSettings = {
       intro:
         'Vanta Desktop 預設會啟動自己的本機閘道。如果您希望此應用程式控制另一台機器或可信代理後面已執行的 Vanta 後端，請使用遠端閘道。閘道連線屬於本機層級設定；設定檔是從已連線的閘道中探索出來的。',
       envOverrideTitle: '環境變數正在控制此桌面工作階段。',
-      envOverrideDesc: '取消設定 HERMES_DESKTOP_REMOTE_URL 和 HERMES_DESKTOP_REMOTE_TOKEN 後才會使用下方儲存的設定。',
       localTitle: '本機閘道',
       localDesc: '在 localhost 啟動私有 Vanta 後端。這是預設方式，可離線使用。',
       remoteTitle: '遠端閘道',
       remoteDesc:
         '將此桌面殼層連線至遠端 Vanta 後端。託管閘道使用 OAuth 或帳號密碼；自託管閘道也可使用工作階段 Token。',
       remoteUrlTitle: '遠端 URL',
-      remoteUrlDesc: '遠端儀表板後端的基礎 URL。支援路徑前綴，例如 /hermes。',
       probing: '正在檢查此閘道的驗證方式…',
       probeError: '暫時無法連線此閘道。請檢查 URL；閘道回應後將顯示驗證方式。',
       signedIn: '已登入',
@@ -951,7 +949,6 @@ export const zhHantSettings = {
       sshKeyTitle: '金鑰檔案',
       sshKeyDesc: '私密金鑰路徑。留空 = ssh-agent 或 ~/.ssh/config。',
       sshHermesPathTitle: 'Vanta 路徑（選用）',
-      sshHermesPathDesc: '遠端 hermes 執行檔的完整路徑。留空 = 自動偵測。',
       sshHermesPathPlaceholder: '自動偵測',
       sshTestConnection: '測試 SSH',
       sshConnect: '連線',
@@ -962,8 +959,6 @@ export const zhHantSettings = {
       sshErrAuth:
         'SSH 驗證失敗。請將金鑰載入 ssh-agent（ssh-add），或在 ~/.ssh/config 中設定 IdentityFile——Vanta 以非互動方式執行 ssh。',
       sshErrHostKey: '自上次連線以來主機金鑰已變更。請確認這是預期的，然後執行 ssh-keygen -R <host> 並重新連線。',
-      sshErrNotInstalled:
-        '遠端主機上未安裝 Vanta。請在遠端安裝（curl -fsSL https://hermes-agent.nousresearch.com/install.sh | sh）或設定 Vanta 路徑。',
       sshErrPlatform: '不支援的遠端平台。Vanta Desktop 的 SSH 模式支援 Linux、macOS 和 Windows 遠端主機。',
       sshErrTimeout: 'SSH 連線逾時。主機可能無法存取或處於睡眠狀態。',
       sshErrUpdateRequired: '使用 Desktop SSH 連線前，請更新遠端主機上的 Vanta。',
@@ -1195,11 +1190,6 @@ export const zhHantSettings = {
       usageLabel: label => `${label}用量`,
       freeTier: {
         signIn: '登入',
-        title: '你正在使用 Nous 免費服務',
-        message: '登入 Nous 帳戶以解鎖更多模型和工具。',
-        caption: '使用 nous/welcome，包含連接器。登入後會保留連接器，並增加需要帳戶的工具和其他所有模型。',
-        name: 'Nous · 免費服務',
-        footnote: '免費服務沒有餘額，無需付款。登入 Nous 帳戶後才會顯示支付與用量。',
         plan: '免費服務',
         model: '模型',
         connectors: '連接器',
@@ -1298,8 +1288,6 @@ export const zhHantSettings = {
       state: {
         notice: {
           loggedOut: {
-            title: '連接你的 Nous 帳戶',
-            message: '登入你的 Nous 帳戶，即可在此查看餘額、方案和用量。',
             action: '登入'
           },
           openPortal: '開啟入口網站 ↗',
@@ -1490,13 +1478,8 @@ export const zhHantSettings = {
       activeBackend: '目前後端',
       activeBackendHint: '這是你目前使用的後端',
       useBackend: '使用此後端',
-      nousIncluded: '包含在 Nous 訂閱中；登入 Nous Portal 即可啟用。',
-      nousAuthNeededTitle: '登入 Nous Portal',
-      nousAuthNeededMessage: provider => `已儲存 ${provider}，但在登入 Nous Portal 之前不會啟用。`,
       nousAuthSignIn: '登入',
-      nousAuthDoneTitle: '已連接 Nous Portal',
       nousAuthDoneMessage: '訂閱後端現已啟用。',
-      nousAuthFailed: 'Nous Portal 登入未完成',
       noApiKeyRequired: '不需要 API 金鑰。',
       postSetupHint: step => `此後端需要一次性安裝 (${step})。將在此機器上執行，可能需要幾分鐘。`,
       postSetupInstalledHint: '已安裝。僅在出現問題時才需要重新執行安裝。',
@@ -1574,7 +1557,6 @@ export const zhHantSettings = {
     localDownloadsHeading: '本地',
     noAuthenticatedProviders: '沒有已驗證的提供方。',
     pro: 'Pro',
-    proNeedsSubscription: 'Pro 模型需要付費 Nous 訂閱。',
     free: '免費',
     freeTier: '免費層',
     priceTitle: '每百萬 Token 的輸入/輸出價格',

@@ -39,10 +39,6 @@ export const zhHantBoot = {
         `先登出已儲存的遠端瀏覽器工作階段，然後開啟${signInLabel}。使用本機閘道可切換至內建後端。`,
       signOutAndSignIn: '登出並重新登入',
       remoteFailureHint: '在「閘道設定」中檢查閘道 URL 與登入，或切換至本機閘道。',
-      cloudDownTitle: 'Nous Cloud 代理已停機',
-      cloudDownDescription:
-        '此閘道連線的 Nous 託管雲端代理正在回傳伺服器錯誤。無法在此處重新啟動——請檢查其狀態、切換至本機閘道，或取得支援。',
-      cloudDownHint: '使用下方按鈕開啟 Nous Portal（檢視執行個體狀態與操作）或加入 Discord 取得支援。',
       cloudDownCheckPortal: '查看 Portal 狀態',
       cloudDownDiscord: '在 Discord 取得協助',
       hideRecentLogs: '隱藏最近記錄',
@@ -221,7 +217,6 @@ export const zhHantBoot = {
     remoteSetupDesc: '輸入閘道 URL。Vanta Desktop 會偵測需要權杖還是瀏覽器登入。',
     remoteUrlTitle: '閘道 URL',
     remoteUrlDesc: '使用 Vanta 閘道的基礎 URL；遠端位址請包含 https://。',
-    remoteUrlPlaceholder: 'https://gateway.example.com/hermes',
     probing: '正在偵測閘道驗證方式...',
     probeError: '無法連線到該 Vanta 閘道。',
     identityProvider: '您的身分提供者',

@@ -15,23 +15,17 @@ export const frSharedMetrics = {
     'Qualité de l’agent : modifications manquées, appels d’outils défaillants, boucles bloquées, coût par tâche',
   collectedMachine:
     'Machine : système d’exploitation, plage de RAM, type de GPU, version de Vanta, utilisation de modèles locaux',
-  sending:
-    'Les statistiques restent sur cet ordinateur sauf si vous choisissez Partager. Les statistiques partagées sont envoyées à Nous une fois par jour avec un identifiant aléatoire propre à ce profil. Hormis une note unique indiquant que Vanta a été installé, comptée seulement après votre accord, les statistiques d’avant votre accord ne sont jamais envoyées. Modifiez ce choix à tout moment dans les Paramètres.',
   readDocs: 'Lire tous les détails',
-  share: 'Partager avec Nous',
   local: 'Garder sur cet ordinateur',
   off: 'Non merci',
   saveFailed: 'Impossible d’enregistrer votre choix',
   collectLabel: 'Collecter les statistiques d’utilisation',
   collectDesc:
     'Uniquement des comptages, conservés sur cet ordinateur. Jamais vos messages, fichiers, chemins ni textes d’erreur.',
-  sendLabel: 'Partager les statistiques d’utilisation avec Nous',
-  sendDesc:
-    'Envoie les statistiques à Nous une fois par jour avec un identifiant aléatoire pour ce profil. Hormis la note unique d’installation, les statistiques d’avant votre accord ne sont jamais envoyées. Nécessite la collecte activée.',
   unavailable: 'Mettez à jour le backend Vanta pour modifier ce réglage.',
   stripBody: 'Uniquement des comptages. Jamais vos messages ni vos fichiers.',
   stripReaskBody:
     'Nouvelle demande : une version précédente pouvait enregistrer « Non merci » avant que vous ne voyiez cette question.',
-  stripChoices: { share: 'Partager avec Nous', local: 'Garder sur cet ordinateur', off: 'Non merci' },
+  stripChoices: { local: 'Garder sur cet ordinateur', off: 'Non merci' },
   stripDetails: 'Détails'
 }

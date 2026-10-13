@@ -128,11 +128,6 @@ export const jaOverrides = {
       signOutAndSignIn: 'サインアウトして再サインイン',
       remoteFailureHint:
         '「ゲートウェイ設定」でゲートウェイの URL とサインインを確認するか、ローカルゲートウェイに切り替えてください。',
-      cloudDownTitle: 'Nous Cloud エージェントが停止しています',
-      cloudDownDescription:
-        'このゲートウェイが接続している Nous 管理のクラウドエージェントがサーバーエラーを返しています。ここから再起動することはできません。ステータスを確認するか、ローカルゲートウェイに切り替えるか、サポートに連絡してください。',
-      cloudDownHint:
-        '下のボタンから Nous Portal（インスタンスの状態と操作）を開くか、Discord でサポートを受けられます。',
       cloudDownCheckPortal: 'Portal のステータスを確認',
       cloudDownDiscord: 'Discord でサポートを受ける',
       hideRecentLogs: '最近のログを非表示',
@@ -237,7 +232,6 @@ export const jaOverrides = {
   ...jaNotices,
 
   billingBlock: {
-    titleNous: 'Nous クレジットが不足しています',
     titleProvider: provider => `クレジット不足 — ${provider}`,
     fallbackMessage: 'アカウントのクレジットが不足しています。続行するにはクレジットを追加してください。',
     openBilling: '請求を開く',
@@ -246,9 +240,6 @@ export const jaOverrides = {
   },
 
   sendDiagnostics: {
-    title: 'Nous に診断情報を送信',
-    privacyNotice:
-      'デバッグバンドルを Nous 内部ストレージにアップロードします（公開ペーストではありません）。システム情報（OS、バージョン、プロバイダー、設定済み API キーの種類 — キー自体は含まれません）と、エージェント/ゲートウェイ/デスクトップの完全なログ（各最大 512 KB。会話内容、ツール出力、ファイルパスを含む可能性が高い）が含まれます。シークレットはアップロード前にマスクされます。閲覧できるのは Nous スタッフと許可された Discord モデレーターのみで、14 日後に自動削除されます。',
     upload: 'アップロード',
     uploading: 'アップロード中…',
     cancel: 'キャンセル',
@@ -259,12 +250,9 @@ export const jaOverrides = {
     doneDescription:
       'バンドルは非公開でアップロードされました。サポートスレッドで以下のリンクを共有すると、チームがログを確認できます。',
     failedTitle: 'アップロードに失敗しました',
-    failedHint:
-      'ターミナルから `hermes debug share --nous` を実行するか、`hermes debug share --local` でアップロードせずにレポートを表示することもできます。',
     handoffLead: '続きは次の場所で:',
     links: {
       github: 'GitHub Issues',
-      portal: 'Nous Portal サポート',
       discord: 'Discord'
     }
   },
@@ -635,7 +623,7 @@ export const jaOverrides = {
       modelPricingDesc: 'モデル選択で、100万トークンあたりの入力・出力・キャッシュ読み取り料金を表示します。',
       reactionsTitle: 'メッセージリアクション',
       reactionsDesc:
-        'iMessage風の絵文字タップバック — メッセージにリアクションでき、Hermesもあなたのメッセージにリアクションします。',
+        'iMessage風の絵文字タップバック — メッセージにリアクションでき、Vantaもあなたのメッセージにリアクションします。',
       tipsTitle: 'アプリ内ヒント',
       tipsDesc:
         'アプリや Vanta からのヒントをときどき表示します。各ヒントは一度だけ表示されます。利用開始から30日後に自動でオフになりますが、再びオンにできます。',
@@ -1068,8 +1056,6 @@ export const jaOverrides = {
       intro:
         'Vanta Desktop はデフォルトで独自のローカルゲートウェイを起動します。別のマシンや信頼できるプロキシの背後で既に動作している Vanta バックエンドをこのアプリで制御する場合は、リモートゲートウェイを使用してください。ゲートウェイ接続はマシン単位の設定で、プロファイルは接続したゲートウェイから検出されます。',
       envOverrideTitle: '環境変数がこのデスクトップセッションを制御しています。',
-      envOverrideDesc:
-        '保存された設定を使用するには HERMES_DESKTOP_REMOTE_URL と HERMES_DESKTOP_REMOTE_TOKEN の設定を解除してください。',
       localTitle: 'ローカルゲートウェイ',
       localDesc:
         'ローカルホストでプライベートな Vanta バックエンドを起動します。これがデフォルトで、オフラインでも動作します。',
@@ -1077,8 +1063,6 @@ export const jaOverrides = {
       remoteDesc:
         'このデスクトップシェルをリモートの Vanta バックエンドに接続します。ホスト型ゲートウェイは OAuth またはユーザー名とパスワードを使用します。自己ホスト型はセッショントークンを使用する場合があります。',
       remoteUrlTitle: 'リモート URL',
-      remoteUrlDesc:
-        'リモートダッシュボードバックエンドのベース URL。/hermes などのパスプレフィックスもサポートしています。',
       probing: 'このゲートウェイの認証方法を確認中…',
       probeError: 'このゲートウェイにまだ到達できません。URL を確認してください。応答後に認証方法が表示されます。',
       signedIn: 'サインイン済み',
@@ -1155,7 +1139,6 @@ export const jaOverrides = {
       sshKeyTitle: '鍵ファイル',
       sshKeyDesc: '秘密鍵のパス。空欄 = ssh-agent または ~/.ssh/config。',
       sshHermesPathTitle: 'Vanta パス（任意）',
-      sshHermesPathDesc: 'リモートの hermes バイナリへのフルパス。空欄 = 自動検出。',
       sshHermesPathPlaceholder: '自動検出',
       sshTestConnection: 'SSH をテスト',
       sshConnect: '接続',
@@ -1167,8 +1150,6 @@ export const jaOverrides = {
         'SSH 認証に失敗しました。鍵を ssh-agent に読み込む（ssh-add）か、~/.ssh/config に IdentityFile を設定してください。Vanta は非対話的に ssh を実行します。',
       sshErrHostKey:
         '前回の接続以降、ホスト鍵が変更されています。想定どおりか確認し、ssh-keygen -R <host> を実行してから再接続してください。',
-      sshErrNotInstalled:
-        'リモートホストに Vanta がインストールされていません。リモートでインストールする（curl -fsSL https://hermes-agent.nousresearch.com/install.sh | sh）か、Vanta パスを設定してください。',
       sshErrPlatform:
         'サポートされていないリモートプラットフォームです。Vanta Desktop の SSH モードは Linux、macOS、Windows のリモートホストに対応しています。',
       sshErrTimeout: 'SSH 接続がタイムアウトしました。ホストが到達不能、またはスリープ中の可能性があります。',
@@ -1364,14 +1345,8 @@ export const jaOverrides = {
       activeBackend: '使用中',
       activeBackendHint: 'これが現在アクティブなバックエンドです',
       useBackend: 'このバックエンドを使う',
-      nousIncluded: 'Nous サブスクリプションに含まれています。有効にするには Nous Portal にサインインしてください。',
-      nousAuthNeededTitle: 'Nous Portal にサインイン',
-      nousAuthNeededMessage: provider =>
-        `${provider} は保存されましたが、Nous Portal にサインインするまで有効になりません。`,
       nousAuthSignIn: 'サインイン',
-      nousAuthDoneTitle: 'Nous Portal に接続しました',
       nousAuthDoneMessage: 'サブスクリプションのバックエンドが有効になりました。',
-      nousAuthFailed: 'Nous Portal のサインインが完了しませんでした',
       noApiKeyRequired: 'API キーは不要です。',
       postSetupHint: step =>
         `このバックエンドは一度だけインストールが必要です (${step})。このマシン上で実行され、数分かかる場合があります。`,
@@ -1518,7 +1493,6 @@ export const jaOverrides = {
     edit: '編集',
     archive: 'アーカイブ',
     skillArchivedTitle: 'スキルをアーカイブしました',
-    skillArchivedMessage: 'hermes curator restore で復元できます。',
     officialCatalog: 'インストール可能',
     officialPill: '公式'
   },
@@ -1876,7 +1850,7 @@ export const jaOverrides = {
       },
       MATRIX_HOMESERVER: { label: 'ホームサーバー URL', placeholder: 'https://matrix.org' },
       MATRIX_ACCESS_TOKEN: { label: 'アクセストークン' },
-      MATRIX_USER_ID: { label: 'ボットユーザー ID', placeholder: '@hermes:example.org' },
+      MATRIX_USER_ID: { label: 'ボットユーザー ID', },
       MATRIX_ALLOWED_USERS: {
         label: '許可する Matrix ユーザー ID',
         help: '推奨。@user:server 形式のユーザー ID（1 欄に 1 件）。'
@@ -1942,7 +1916,6 @@ export const jaOverrides = {
       title: (profile: string) => `${profile} をリモートホストに接続`,
       description: 'このプロファイルのセッションは、このパソコンではなく指定したリモートの Vanta で実行されます。',
       urlLabel: 'リモートアドレス',
-      urlPlaceholder: 'https://hermes.example.com',
       urlInvalid: 'http:// または https:// で始まる完全なアドレスを入力してください',
       tokenLabel: 'アクセストークン',
       tokenPlaceholder: 'リモートのセッショントークンを貼り付け',
@@ -2469,7 +2442,6 @@ export const jaOverrides = {
       '/resume': '以前のセッションを再開',
       '/details': 'トランスクリプトの詳細レベルを制御',
       '/copy': '選択または最後のアシスタントメッセージをコピー',
-      '/quit': 'hermes を終了',
       '/start': '返信せずにプラットフォームの開始要求を確認',
       '/new': '新しいデスクトップチャットを開始',
       '/topic': 'Telegram の個人チャットのトピックを有効化または確認',
@@ -2498,7 +2470,7 @@ export const jaOverrides = {
       '/refine': 'この会話を見直し、学びをメモリやスキルに保存',
       '/review': '独立したサブエージェントに作業のレビューを依頼',
       '/loop': 'このセッションで一定間隔でプロンプトを繰り返す',
-      '/plan': '実行せずに .hermes/plans/ に Markdown の実装計画を作成',
+      '/plan': '実行せずに .vanta/plans/ に Markdown の実装計画を作成',
       '/moa': 'Mixture of Agents のプリセットで実行し、元のモデルに戻す',
       '/subgoal': '進行中の目標の追加条件を管理',
       '/status': '現在のセッション状態を表示',
@@ -2529,8 +2501,6 @@ export const jaOverrides = {
       '/browser': 'エージェントのブラウザーを管理 [connect|disconnect|status|use]',
       '/palette': 'コマンドパレットを開く',
       '/usage': 'このセッションのトークン使用量を表示',
-      '/subscription': 'Nous のプランを確認し、ブラウザーで変更',
-      '/topup': 'Nous の残高を表示し、請求を管理',
       '/platform': '問題のあるゲートウェイプラットフォームを一時停止、再開、一覧表示',
       '/version': 'Vanta のバージョンを表示',
       '/debug': 'デバッグレポートを作成',
@@ -2781,9 +2751,9 @@ export const jaOverrides = {
   },
 
   updates: {
-    discontinuedTitle: 'このHermesビルドはサポートされていません',
+    discontinuedTitle: 'このVantaビルドはサポートされていません',
     discontinuedBody:
-      'このHermesビルドはサポートが終了し、動作しなくなる可能性があります。アンインストールしてください。データはディスクに残ります。',
+      'このVantaビルドはサポートが終了し、動作しなくなる可能性があります。アンインストールしてください。データはディスクに残ります。',
     channels: { stable: '安定版', canary: '先行版' },
     bundleSwapPending: '再起動して更新を完了',
     bundleSwapPendingDesc:
@@ -2941,7 +2911,6 @@ export const jaOverrides = {
       'ゲートウェイ URL を入力してください。Vanta Desktop がトークンとブラウザーサインインのどちらが必要かを検出します。',
     remoteUrlTitle: 'ゲートウェイ URL',
     remoteUrlDesc: 'Vanta ゲートウェイのベース URL を使用します。リモートの場合は https:// を含めてください。',
-    remoteUrlPlaceholder: 'https://gateway.example.com/hermes',
     probing: 'ゲートウェイ認証方式を検出中...',
     probeError: 'その Vanta ゲートウェイに到達できませんでした。',
     identityProvider: 'ID プロバイダー',
@@ -2999,7 +2968,6 @@ export const jaOverrides = {
     localDownloadsHeading: 'ローカル',
     noAuthenticatedProviders: '認証済みプロバイダーがありません。',
     pro: 'Pro',
-    proNeedsSubscription: 'Pro モデルには有料の Nous サブスクリプションが必要です。',
     free: '無料',
     freeTier: '無料プラン',
     priceTitle: '100 万トークンあたりの入力/出力価格',
@@ -3568,7 +3536,7 @@ export const jaOverrides = {
       reject: '拒否',
       alwaysTitle: 'このコマンドを常に許可しますか？',
       alwaysDescription: pattern =>
-        `これにより "${pattern}" パターンが永続的な許可リスト (~/.hermes/config.yaml) に追加されます。Vanta はこのセッションや将来のセッションで、このようなコマンドについて再度尋ねません。`,
+        `これにより "${pattern}" パターンが永続的な許可リスト に追加されます。Vanta はこのセッションや将来のセッションで、このようなコマンドについて再度尋ねません。`,
       alwaysAllow: '常に許可'
     },
     clarify: {
@@ -3876,7 +3844,6 @@ export const jaOverrides = {
       success: platform => `${platform} に引き継ぎました。いつでもここで再開できます。`,
       systemNote: platform => `↻ ${platform} に引き継ぎました — いつでもここで再開できます。`,
       failed: error => `引き継ぎに失敗しました: ${error}`,
-      timedOut: 'ゲートウェイの待機がタイムアウトしました。`hermes gateway` は起動していますか？'
     }
   },
 
@@ -3960,7 +3927,6 @@ export const jaOverrides = {
   freeTier: {
     offer: {
       heading: 'Vanta を使い続ける',
-      body: '現在は無料枠をご利用中です。Vanta を使い続けると、いずれ上限に達します。無料の Nous アカウントでサインインすると、より多くの利用枠が使えます。',
       signIn: 'サインイン',
       notNow: '今はしない'
     }

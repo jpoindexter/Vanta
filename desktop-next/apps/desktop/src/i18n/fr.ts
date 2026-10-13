@@ -103,14 +103,11 @@ export const frOverrides = {
       showAllMatches: 'Afficher tous les résultats',
       segmentNoMatch: (segment: string) => `Aucun résultat dans ${segment} : tous les résultats sont affichés.`,
       freeTierNote: 'Les connexions restent sur cet ordinateur jusqu’à ce que vous vous connectiez.',
-      signInLine: 'Connectez-vous à Nous pour utiliser les applications gérées.',
       signIn: 'Se connecter',
       managedUnavailable: 'Les applications gérées ne sont pas encore disponibles pour ce compte.',
       writeFailed: 'Cette modification n’a pas été enregistrée.',
       refreshFailed: 'La liste des outils n’a pas été actualisée.',
       disconnectNoAccount: 'Vanta n’a aucun compte à déconnecter ici. Actualisez la page et réessayez.',
-      disconnectRefused:
-        'Nous ne peut pas supprimer cette connexion pour le moment. Désactivez plutôt l’application avec l’interrupteur, ou réessayez plus tard.'
     },
     add: {
       action: 'Ajouter le vôtre',
@@ -161,7 +158,6 @@ export const frOverrides = {
       turnOffLocal: 'Désactiver le serveur local',
       providedByPlugin: (plugin: string) => `Fourni par le plugin ${plugin}`,
       openPlugins: "Ouvrir l'onglet Plugins",
-      nousLine: 'Les applications Nous suivent votre compte, pas le profil.',
       rulesReadOnly: 'Les règles ne peuvent pas être modifiées pour le moment.',
       rulesAppOff: (name: string) => `Activez ${name} pour modifier ses outils.`,
       rulesSignIn: 'Connectez-vous pour modifier ce que Vanta peut faire ici.',
@@ -218,7 +214,6 @@ export const frOverrides = {
       remove: 'Supprimer',
       offTitle: (name: string) => `${name} est désactivé.`,
       offBody: "Activez-le avec l'interrupteur ci-dessus pour lire les outils qu'il apporte.",
-      signedOutTitle: 'Connectez-vous à Nous pour lire la liste des outils.',
       signedOutBody: 'Vos serveurs sur cet ordinateur ne sont pas affectés.',
       conflictTitle: "Quelqu'un a modifié cette règle pendant que vous l'éditiez.",
       conflictBody: (theyOff: number, theyOn: number) => {
@@ -490,7 +485,6 @@ export const frOverrides = {
   },
   ...frNotices,
   billingBlock: {
-    titleNous: 'Plus de crédits Nous',
     titleProvider: provider => `Plus de crédits — ${provider}`,
     fallbackMessage: 'Votre compte est à court de crédits. Ajoutez-en pour continuer.',
     openBilling: 'Ouvrir la facturation',
@@ -498,9 +492,6 @@ export const frOverrides = {
     dismiss: 'Fermer'
   },
   sendDiagnostics: {
-    title: 'Envoyer les diagnostics à Nous',
-    privacyNotice:
-      "Cela téléverse un paquet de débogage vers un stockage interne de Nous, et non vers un service de partage public. Il contient des informations système (système d'exploitation, versions, fournisseur et clés API configurées — jamais les clés elles-mêmes) ainsi que les journaux complets de l'agent, du gateway et du Desktop (jusqu'à 512 Ko chacun), susceptibles de contenir des conversations, des résultats d'outils et des chemins de fichiers. Les secrets sont expurgés avant l'envoi. Seuls le personnel de Nous et les modérateurs Discord autorisés peuvent consulter le paquet, qui est automatiquement supprimé après 14 jours.",
     upload: 'Envoyer',
     uploading: 'Envoi en cours…',
     cancel: 'Annuler',
@@ -511,12 +502,9 @@ export const frOverrides = {
     doneDescription:
       "Votre paquet a été téléversé de manière privée. Partagez le lien ci-dessous dans votre fil d'assistance afin que l'équipe puisse consulter vos journaux.",
     failedTitle: "Échec de l'envoi",
-    failedHint:
-      'Vous pouvez également exécuter `hermes debug share --nous` dans un terminal, ou `hermes debug share --local` pour afficher le rapport sans le téléverser.',
     handoffLead: 'Poursuivez la discussion sur :',
     links: {
       github: 'Issues GitHub',
-      portal: 'Assistance du portail Nous',
       discord: 'Discord'
     }
   },
@@ -1772,7 +1760,6 @@ export const frOverrides = {
       cloudLoadingAgents: 'Chargement de vos agents…',
       cloudNoAgents: {
         before: 'Aucun agent trouvé sur ce compte… Créez-en un dans le ',
-        linkText: 'portail Nous',
         after: ', puis actualisez.'
       },
       cloudRefresh: 'Actualiser',
@@ -1794,8 +1781,6 @@ export const frOverrides = {
       cloudAgentProvisioning: 'Provisionnement…',
       cloudStatusLabel: status => `État : ${status}`,
       remoteUrlTitle: 'URL distante',
-      remoteUrlDesc:
-        'URL de base du backend de tableau de bord distant. Les préfixes de chemin sont pris en charge, par exemple /hermes.',
       probing: "Vérification de la méthode d'authentification de ce gateway…",
       probeError:
         "Impossible d'atteindre ce gateway pour le moment. Vérifiez l'URL — la méthode d'authentification apparaîtra une fois qu'il répondra.",
@@ -1874,7 +1859,6 @@ export const frOverrides = {
       sshKeyTitle: "Fichier d'identité",
       sshKeyDesc: 'Chemin de la clé privée. Vide = ssh-agent ou ~/.ssh/config.',
       sshHermesPathTitle: 'Chemin Vanta (facultatif)',
-      sshHermesPathDesc: 'Chemin complet vers le binaire hermes distant. Vide = détection automatique.',
       sshHermesPathPlaceholder: 'détection automatique',
       sshTestConnection: 'Tester SSH',
       sshConnect: 'Se connecter',
@@ -1886,8 +1870,6 @@ export const frOverrides = {
         "Échec de l'authentification SSH. Chargez votre clé dans ssh-agent (ssh-add) ou définissez un IdentityFile dans ~/.ssh/config — Vanta exécute ssh de manière non interactive.",
       sshErrHostKey:
         "La clé de l'hôte a changé depuis votre dernière connexion. Vérifiez que ce changement est attendu, puis exécutez ssh-keygen -R <host> et reconnectez-vous.",
-      sshErrNotInstalled:
-        "Vanta n'est pas installé sur l'hôte distant. Installez-le là-bas (curl -fsSL https://hermes-agent.nousresearch.com/install.sh | sh) ou définissez le chemin Vanta.",
       sshErrPlatform:
         'Plateforme distante non prise en charge. Le mode SSH de Vanta Desktop supporte les hôtes distants Linux, macOS et Windows.',
       sshErrTimeout: "Expiration de la connexion SSH. L'hôte peut être inaccessible ou en veille.",
@@ -2025,13 +2007,6 @@ export const frOverrides = {
       usageLabel: (label: string) => `Utilisation ${label}`,
       freeTier: {
         signIn: 'Se connecter',
-        title: 'Vous utilisez l’offre gratuite Nous',
-        message: 'Connectez-vous avec un compte Nous pour débloquer davantage de modèles et d’outils.',
-        caption:
-          'Fonctionne avec nous/welcome, connecteurs inclus. La connexion conserve vos connecteurs et ajoute les outils qui nécessitent un compte ainsi que tous les autres modèles.',
-        name: 'Nous · offre gratuite',
-        footnote:
-          'L’offre gratuite n’a ni solde ni rien à payer. Le paiement et l’utilisation apparaissent une fois connecté avec un compte Nous.',
         plan: 'Offre gratuite',
         model: 'Modèle',
         connectors: 'Connecteurs',
@@ -2138,9 +2113,6 @@ export const frOverrides = {
       state: {
         notice: {
           loggedOut: {
-            title: 'Connectez votre compte Nous',
-            message:
-              'Connectez-vous avec votre compte Nous pour voir ici votre solde, votre offre et votre utilisation.',
             action: 'Se connecter'
           },
           openPortal: 'Ouvrir le portail ↗',
@@ -2391,14 +2363,8 @@ export const frOverrides = {
       activeBackend: 'Actif',
       activeBackendHint: "Il s'agit de votre backend actif",
       useBackend: 'Utiliser ce backend',
-      nousIncluded: 'Inclus avec un abonnement Nous — connectez-vous au portail Nous pour activer.',
-      nousAuthNeededTitle: 'Se connecter au portail Nous',
-      nousAuthNeededMessage: provider =>
-        `${provider} est enregistré mais ne s'activera pas tant que vous ne vous serez pas connecté au portail Nous.`,
       nousAuthSignIn: 'Se connecter',
-      nousAuthDoneTitle: 'Portail Nous connecté',
       nousAuthDoneMessage: "Vos backends d'abonnement sont maintenant actifs.",
-      nousAuthFailed: "La connexion au portail Nous n'a pas été terminée",
       nousAuthFailedMessage: 'Réessayez.',
       nousAuthTryAgain: 'Réessayer',
       noApiKeyRequired: 'Aucune clé API requise.',
@@ -2541,7 +2507,6 @@ export const frOverrides = {
     edit: 'Modifier',
     archive: 'Archiver',
     skillArchivedTitle: 'Skill archivé',
-    skillArchivedMessage: 'Restaurable via hermes curator restore.',
     tabPlugins: 'Plugins',
     plugins: {
       agentTitle: "Plugins de l'agent",
@@ -3201,7 +3166,6 @@ export const frOverrides = {
       },
       MATRIX_USER_ID: {
         label: "ID d'utilisateur du bot",
-        placeholder: '@hermes:example.org'
       },
       MATRIX_ALLOWED_USERS: {
         label: "IDs d'utilisateurs Matrix autorisés",
@@ -3352,7 +3316,6 @@ export const frOverrides = {
       description:
         "Les sessions de ce profil s'exécuteront sur le système Vanta distant indiqué, plutôt que sur cet ordinateur.",
       urlLabel: 'Adresse distante',
-      urlPlaceholder: 'https://hermes.exemple.fr',
       urlInvalid: 'Saisissez une adresse complète commençant par http:// ou https://',
       tokenLabel: "Jeton d'accès",
       tokenPlaceholder: 'Collez le jeton de session distant',
@@ -3916,7 +3879,7 @@ export const frOverrides = {
       '/refine': 'Passer en revue cette conversation maintenant et enregistrer les leçons en mémoire/skills',
       '/review': 'Lancer un sous-agent indépendant pour relire le travail qui vient d’être discuté (PR, code, docs)',
       '/loop': 'Relancer un prompt à intervalle régulier dans cette session',
-      '/plan': 'Écrire un plan d’implémentation markdown dans .hermes/plans/ sans rien exécuter',
+      '/plan': 'Écrire un plan d’implémentation markdown dans .vanta/plans/ sans rien exécuter',
       '/moa': 'Exécuter un prompt avec le préréglage Mixture of Agents par défaut, puis restaurer votre modèle',
       '/subgoal': 'Ajouter ou gérer des critères supplémentaires sur l’objectif actif',
       '/status': 'Afficher l’état de la session actuelle',
@@ -3950,8 +3913,6 @@ export const frOverrides = {
       '/palette': 'Ouvrir la palette de commandes floue (aussi Ctrl+P)',
       '/usage':
         'Afficher l’utilisation des jetons et les limites de débit ; `reset` utilise une réinitialisation de limite Codex en réserve',
-      '/subscription': 'Voir votre forfait Nous et le modifier dans le navigateur',
-      '/topup': 'Afficher votre solde Nous et gérer la facturation sur le portail',
       '/platform': 'Suspendre, reprendre ou lister une plateforme de gateway en échec',
       '/version': 'Afficher la version de Vanta',
       '/debug': 'Téléverser un rapport de débogage (infos système + journaux) et obtenir des liens partageables',
@@ -4263,9 +4224,9 @@ export const frOverrides = {
     versionDetailsDistributionDesktopMsix: 'Application Desktop (MSIX)',
     versionDetailsDistributionDesktopInstaller: 'Application Desktop (installateur)',
     versionDetailsDistributionSourceInstaller: "Code source (script d'installation)",
-    versionDetailsDistributionSourceInstallerDesktop: "Code source (script d'installation) + hermes desktop",
+    versionDetailsDistributionSourceInstallerDesktop: "Code source (script d'installation) + Vanta Desktop",
     versionDetailsDistributionSource: 'Code source',
-    versionDetailsDistributionSourceDesktop: 'Code source + hermes desktop',
+    versionDetailsDistributionSourceDesktop: 'Code source + Vanta Desktop',
     versionDetailsDistributionStore: 'Microsoft Store',
     versionDetailsRuntime: "Environnement d'exécution",
     versionDetailsRuntimeEmbedded: "Environnement d'exécution intégré",
@@ -4442,7 +4403,6 @@ export const frOverrides = {
       "Entrez l'URL du gateway. Vanta Desktop détectera s'il a besoin d'un jeton ou d'une connexion par navigateur.",
     remoteUrlTitle: 'URL du gateway',
     remoteUrlDesc: "Utilisez l'URL de base du gateway Vanta, y compris https:// pour les connexions distantes.",
-    remoteUrlPlaceholder: 'https://gateway.example.com/hermes',
     probing: "Détection de l'authentification du gateway...",
     probeError: "Impossible d'atteindre ce gateway Vanta.",
     probeErrorDetails: 'Détails',
@@ -4489,21 +4449,13 @@ export const frOverrides = {
   },
   onboarding: frOnboarding,
   freeTier: {
-    providerRowTitle: 'Nous · offre gratuite',
-    providerRowPitch: 'Connectez-vous avec un compte Nous pour débloquer davantage de modèles et outils.',
     readyTitle: 'Vanta est prêt.',
     readyCaption: 'Gratuit · connecteurs inclus',
     begin: 'Commencer',
-    signInInstead: 'Se connecter plutôt avec un compte Nous',
     otherProviders: 'Autres fournisseurs',
-    stripTitle: "L'inférence Nous gratuite et les connecteurs sont maintenant disponibles.",
-    stripBody: 'Ouvrez le sélecteur de modèle pour les essayer ou connectez-vous avec un compte Nous.',
     openModelPicker: 'Ouvrir le sélecteur de modèle',
     dismiss: 'Fermer',
-    providerName: 'Nous',
-    statusLabel: model => `Nous · ${model}`,
     signIn: 'Se connecter',
-    signInHeading: 'Connectez-vous avec un compte Nous pour débloquer davantage de modèles et outils.',
     settingUp: "Configuration de l'inférence gratuite…",
     codeBody: 'Saisissez ce code dans votre navigateur pour terminer la connexion.',
     copyLink: 'Copier le lien',
@@ -4529,36 +4481,19 @@ export const frOverrides = {
       "Cette identité d'offre gratuite a déjà été utilisée ou a expiré ; une nouvelle sera créée au prochain démarrage.",
     errorBody: "La connexion n'a pas abouti ; relancez-la.",
     busyHeading: 'Presque terminé',
-    busyBody: wait =>
-      `Vanta n'a pas pu terminer votre connexion car le service Nous est occupé. Réessayez dans ${wait}. Votre session reste disponible entre-temps.`,
-    unreachableBody:
-      "Vanta n'a pas pu joindre le service Nous pour terminer votre connexion. Vérifiez votre connexion Internet et réessayez. Votre session reste disponible.",
     alreadySignedInHeading: 'Déjà connecté.',
-    alreadySignedInBody: 'Cette installation Vanta est déjà connectée à un compte Nous.',
     offer: {
       heading: 'Continuez avec Vanta',
-      body: 'Vous utilisez le quota gratuit. Si vous continuez à utiliser Vanta, vous allez commencer à atteindre des limites. Connectez-vous avec un compte Nous gratuit pour obtenir un quota plus important.',
       signIn: 'Se connecter',
       notNow: 'Pas maintenant'
     },
     setupFailed: {
-      gateClosed:
-        'Cette version de Vanta ne peut pas démarrer sans compte Nous. Connectez-vous ou créez-en un gratuitement en une minute.',
       paused:
         "L'utilisation de Vanta sans connexion est momentanément suspendue. Vanta continuera à vérifier. La connexion est gratuite et vous permet de continuer immédiatement.",
       rateLimited: wait =>
         `Beaucoup de personnes démarrent en ce moment ; Vanta réessaiera dans ${wait}. La connexion est gratuite et évite l'attente.`,
-      unreachable:
-        "Vanta n'a pas pu joindre le service Nous. Vérifiez votre connexion Internet, puis appuyez sur Réessayer. Vous pouvez aussi connecter un autre fournisseur.",
-      serverError:
-        'Le service Nous a rencontré un problème. Réessayez dans un instant ou connectez un autre fournisseur.',
-      powRequired:
-        "Le serveur Nous a demandé une preuve de travail qui n'est pas encore gérée par votre Agent. Connectez-vous ou créez un compte Nous gratuit pour continuer.",
-      locked:
-        'Cette session ne peut pas continuer sans connexion. Connectez-vous ou créez un compte Nous gratuit pour poursuivre.',
       generic:
         "Vanta n'a pas pu configurer l'accès gratuit sans connexion. Connectez-vous gratuitement ou choisissez un autre fournisseur.",
-      signInBelow: 'La connexion est gratuite. Choisissez Nous ci-dessous.',
       tryAgain: 'Réessayer',
       retrying: 'Nouvelle tentative…'
     }
@@ -4576,7 +4511,6 @@ export const frOverrides = {
     localDownloadsHeading: 'Local',
     noAuthenticatedProviders: 'Aucun fournisseur authentifié.',
     pro: 'Pro',
-    proNeedsSubscription: 'Les modèles Pro nécessitent un abonnement payant Nous.',
     free: 'Gratuit',
     freeTier: 'Gratuit',
     priceTitle: 'Prix entrant / sortant par million de jetons',
@@ -5161,11 +5095,9 @@ export const frOverrides = {
         },
         free_tier_disabled: {
           title: "L'utilisation de Vanta sans connexion est désactivée pour le moment",
-          body: 'Connectez-vous avec un compte Nous gratuit pour continuer.'
         },
         free_tier_rate_limited: {
           title: 'Vous avez épuisé le quota sans connexion',
-          body: 'Il sera bientôt renouvelé. Connectez-vous avec un compte Nous gratuit pour obtenir un quota plus élevé.'
         },
         free_tier_at_capacity: {
           title: 'Le service sans connexion est très sollicité',
@@ -5173,11 +5105,9 @@ export const frOverrides = {
         },
         free_tier_model_not_free: {
           title: "Ce modèle n'est pas disponible sans connexion",
-          body: 'Vanta utilise le modèle gratuit pour le moment. Connectez-vous avec un compte Nous gratuit pour accéder à plus de modèles.'
         },
         free_tier_route: {
           title: "Vanta n'a pas pu joindre le modèle gratuit par cette route",
-          body: 'Connectez-vous avec un compte Nous gratuit ou vérifiez le paramètre NOUS_INFERENCE_BASE_URL.'
         },
         free_tier_outage: {
           title: 'Le modèle gratuit rencontre des difficultés',
@@ -5185,7 +5115,6 @@ export const frOverrides = {
         },
         free_tier_refused: {
           title: "Vanta n'a pas pu envoyer ce message sans connexion",
-          body: 'La connexion avec un compte Nous est gratuite.'
         }
       },
       errorAuthKinds: {
@@ -5215,7 +5144,6 @@ export const frOverrides = {
       errorOpenHermesFolderFailed: "Impossible d'ouvrir le dossier Vanta",
       errorUpdateApiKey: 'Mettre à jour la clé API',
       errorSignInAgain: provider => `Se reconnecter à ${provider}`,
-      errorSignInFreeTier: 'Se connecter avec un compte Nous',
       errorOauthExpired: provider =>
         `Votre connexion à ${provider} a expiré ou a été révoquée. Reconnectez-vous pour continuer la conversation.`,
       errorOpenLogs: 'Ouvrir les journaux',
@@ -5263,7 +5191,7 @@ export const frOverrides = {
       reject: 'Rejeter',
       alwaysTitle: 'Toujours autoriser cette commande ?',
       alwaysDescription: pattern =>
-        `Cela ajoute le motif « ${pattern} » à votre liste d'autorisation permanente (~/.hermes/config.yaml). Vanta ne redemandera plus pour ce type de commande — que ce soit dans cette session ou dans une session future.`,
+        `Cela ajoute le motif « ${pattern} » à votre liste d'autorisation permanente. Vanta ne redemandera plus pour ce type de commande — que ce soit dans cette session ou dans une session future.`,
       alwaysAllow: 'Toujours autoriser'
     },
     clarify: {
@@ -5680,7 +5608,6 @@ export const frOverrides = {
       success: platform => `Transféré vers ${platform}. Reprenez ici à tout moment.`,
       systemNote: platform => `↻ Transféré vers ${platform} — reprenez ici à tout moment.`,
       failed: error => `Échec du transfert : ${error}`,
-      timedOut: "Délai d'expiration en attendant la Gateway. `hermes gateway` est-il en cours d'exécution ?",
       startMessaging: 'Démarrer la messagerie'
     }
   },

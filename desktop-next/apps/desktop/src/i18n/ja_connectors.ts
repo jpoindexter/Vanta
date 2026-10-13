@@ -14,7 +14,7 @@ export const jaConnectors = {
   },
   sessionImport: {
     title: '別のアプリから続ける',
-    subtitle: '会話をHermesに取り込み、続きを始めましょう。',
+    subtitle: '会話をVantaに取り込み、続きを始めましょう。',
     action: 'セッションを取り込む',
     readingFrom: '読み込み元',
     connectedComputer: '接続先のコンピューター',
@@ -41,8 +41,8 @@ export const jaConnectors = {
     snapshot: 'この会話は取り込み済みです。既存のコピーを開いて続けられます。',
     copyNotice: '会話のテキストをコピーします。元のファイルは変更されません。ツール出力と推論は含まれません。',
     importing: '取り込み中…',
-    open: 'Hermesで開く',
-    continue: 'Hermesで続ける',
+    open: 'Vantaで開く',
+    continue: 'Vantaで続ける',
     importError: '会話を取り込めませんでした。'
   }
 } satisfies Pick<TranslationOverrides, 'connectors' | 'sessionImport'>

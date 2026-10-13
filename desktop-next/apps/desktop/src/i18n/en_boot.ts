@@ -63,11 +63,11 @@ export const enBoot = {
         `Signs out of the saved remote browser session, then opens ${signInLabel}. Use local gateway to switch to the bundled backend instead.`,
       signOutAndSignIn: 'Sign out & sign in',
       remoteFailureHint: 'Check the gateway URL and sign-in under Gateway settings, or switch to the local gateway.',
-      cloudDownTitle: 'Nous Cloud agent is down',
+      cloudDownTitle: 'Cloud agent is down',
       cloudDownDescription:
-        'The Nous-managed cloud agent this gateway connects to is returning a server error. It cannot be restarted from here — check its status, switch to the local gateway, or get support.',
+        'The managed cloud agent this gateway connects to is returning a server error. It cannot be restarted from here — check its status, switch to the local gateway, or get support.',
       cloudDownHint:
-        'The buttons below open the Nous Portal (instance status and controls) and our Discord for support.',
+        'The buttons below open the provider portal (instance status and controls) and our Discord for support.',
       cloudDownCheckPortal: 'Check Portal status',
       cloudDownDiscord: 'Get help on Discord',
       hideRecentLogs: 'Hide recent logs',
@@ -93,7 +93,7 @@ export const enBoot = {
       since: time => `Waiting since ${time}`,
       lastChecked: time => `Last checked ${time}`,
       recoveryHint:
-        'This usually clears in a few minutes. If it does not: quit Vanta, end leftover git or hermes processes (or restart the computer), then open Vanta again.',
+        'This usually clears in a few minutes. If it does not: quit Vanta, end leftover git or vanta processes (or restart the computer), then open Vanta again.',
       checkAgain: 'Check again',
       quit: 'Quit Vanta',
       openLogs: 'Open logs',

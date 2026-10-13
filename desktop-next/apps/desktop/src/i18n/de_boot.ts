@@ -61,11 +61,6 @@ export const deBoot = {
       signOutAndSignIn: 'Abmelden & anmelden',
       remoteFailureHint:
         'Überprüfen Sie die Gateway-URL und die Anmeldung in den Gateway-Einstellungen, oder wechseln Sie zum lokalen Gateway.',
-      cloudDownTitle: 'Nous Cloud Agent ist down',
-      cloudDownDescription:
-        'Der von Nous verwaltete Cloud-Agent, mit dem sich dieses Gateway verbindet, meldet einen Serverfehler. Er kann von hier aus nicht neu gestartet werden – prüfen Sie seinen Status, wechseln Sie zum lokalen Gateway oder wenden Sie sich an den Support.',
-      cloudDownHint:
-        'Die Schaltflächen unten öffnen das Nous Portal (Instanzstatus und Steuerung) und unseren Discord für Support.',
       cloudDownCheckPortal: 'Portal-Status prüfen',
       cloudDownDiscord: 'Hilfe auf Discord holen',
       hideRecentLogs: 'Neueste Logs ausblenden',
@@ -92,8 +87,6 @@ export const deBoot = {
         'Der Update-Helfer konnte gerade nicht prüfen, wem die Vanta-Installation gehört. Vanta prüft weiter.',
       since: time => `Wartet seit ${time}`,
       lastChecked: time => `Zuletzt geprüft ${time}`,
-      recoveryHint:
-        'Das löst sich meist in wenigen Minuten. Falls nicht: Vanta beenden, übrig gebliebene git- oder hermes-Prozesse beenden (oder den Computer neu starten) und Vanta erneut öffnen.',
       checkAgain: 'Erneut prüfen',
       quit: 'Vanta beenden',
       openLogs: 'Logs öffnen',

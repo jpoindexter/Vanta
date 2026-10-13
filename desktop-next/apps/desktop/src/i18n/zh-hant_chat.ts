@@ -64,7 +64,6 @@ export const zhHantChat = {
       '/resume': '繼續已儲存的工作階段',
       '/details': '控制對話記錄的詳細程度',
       '/copy': '複製所選內容或最後一條助手訊息',
-      '/quit': '結束 hermes',
       '/start': '確認平台啟動請求，不傳送回覆',
       '/new': '開始新的桌面聊天',
       '/topic': '啟用或查看 Telegram 私訊話題工作階段',
@@ -93,7 +92,7 @@ export const zhHantChat = {
       '/refine': '立即檢查此對話，並將心得儲存至記憶或技能',
       '/review': '產生獨立子代理，審查剛才討論的工作（PR、程式碼、文件）',
       '/loop': '在此工作階段以固定間隔重新執行提示詞',
-      '/plan': '將 Markdown 實作計畫寫入 .hermes/plans/，不執行任何操作',
+      '/plan': '將 Markdown 實作計畫寫入 .vanta/plans/，不執行任何操作',
       '/moa': '使用預設的 Mixture of Agents 組合執行提示詞，完成後還原模型',
       '/subgoal': '新增或管理作用中目標的額外條件',
       '/status': '顯示目前工作階段狀態',
@@ -124,8 +123,6 @@ export const zhHantChat = {
       '/browser': '管理代理瀏覽器 [connect|disconnect|status|use]',
       '/palette': '開啟模糊搜尋指令面板（也可使用 Ctrl+P）',
       '/usage': '顯示 Token 用量與速率限制；`reset` 可兌換保留的 Codex 限額重設',
-      '/subscription': '檢視你的 Nous 方案，並在瀏覽器中變更',
-      '/topup': '顯示你的 Nous 餘額，並在 Portal 管理帳務',
       '/platform': '暫停、恢復或列出故障的閘道平台',
       '/version': '顯示 Vanta 版本',
       '/debug': '上傳偵錯報告（系統資訊與記錄），並取得可分享連結',
@@ -499,7 +496,6 @@ export const zhHantChat = {
       success: platform => `已移交到 ${platform}。隨時可在此處恢復。`,
       systemNote: platform => `↻ 已移交到 ${platform} — 隨時可在此處恢復。`,
       failed: error => `移交失敗：${error}`,
-      timedOut: '等待閘道逾時。`hermes gateway` 是否正在執行？'
     }
   },
 

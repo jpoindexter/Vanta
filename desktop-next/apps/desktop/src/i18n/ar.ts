@@ -83,7 +83,6 @@ export const arOverrides = {
   freeTier: {
     offer: {
       heading: 'واصل مع Vanta',
-      body: 'أنت تستخدم الحصة المجانية. إذا واصلت استخدام Vanta فستبدأ بمواجهة حدود الاستخدام. سجّل الدخول بحساب Nous مجاني للحصول على حصة أكبر.',
       signIn: 'تسجيل الدخول',
       notNow: 'ليس الآن'
     }
