@@ -1,8 +1,11 @@
+import '@/styles/vanta-chat.css'
+
 import { createContext, memo, useCallback, useContext, useMemo, useRef, useState } from 'react'
 
 import { ChatEmptySlot } from '@/components/assistant-ui/chat-empty-slot'
 import { AssistantMessage } from '@/components/assistant-ui/thread/assistant-message'
 import { ThreadMessageList } from '@/components/assistant-ui/thread/list'
+import { ThreadLiveRegion } from '@/components/assistant-ui/thread/live-region'
 import { BackgroundResumeNotice, CenteredThreadSpinner } from '@/components/assistant-ui/thread/status'
 import { SystemMessage } from '@/components/assistant-ui/thread/system-message'
 import { ThreadTimeline } from '@/components/assistant-ui/thread/timeline'
@@ -15,8 +18,6 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import type { HermesGateway } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { notifyError } from '@/store/notifications'
-
-import '@/styles/vanta-chat.css'
 
 type ThreadLoadingState = 'response' | 'session'
 
@@ -168,9 +169,7 @@ export const Thread = memo(function Thread({
   const emptyBody = intro ? <Intro {...intro} /> : sessionId ? <ChatEmptySlot sessionId={sessionId} /> : null
 
   const emptyPlaceholder = emptyBody ? (
-    <div className="flex min-h-0 w-full flex-col items-center justify-start">
-      {emptyBody}
-    </div>
+    <div className="flex min-h-0 w-full flex-col items-center justify-start">{emptyBody}</div>
   ) : undefined
 
   // Stable element identity, for the same reason the component map above is
@@ -196,6 +195,7 @@ export const Thread = memo(function Thread({
           sessionKey={sessionKey}
           sessionLoading={loading === 'session'}
         />
+        <ThreadLiveRegion />
         {loading === 'session' && <CenteredThreadSpinner />}
         <ThreadTimeline />
         <ConfirmDialog

@@ -28,7 +28,7 @@ import { $showToolActivity } from '@/store/tool-activity'
 import { setToolDisclosureOpen } from '@/store/tool-view'
 
 import { isApprovalActivity } from './approval-activity'
-import { approvalPayload, type ApprovalChoice, CHOICE_FOR_DECISION } from './approval-adapter'
+import { type ApprovalChoice, approvalPayload, CHOICE_FOR_DECISION } from './approval-adapter'
 import { toolEntryDisclosureId } from './fallback-model/targets'
 import { isToolCallPart, summarizeToolRun } from './run-summary'
 
@@ -48,10 +48,7 @@ export const PendingApprovalStack: FC = () => {
     <motion.section
       animate={{ paddingBlock: requests.length ? 8 : 0 }}
       aria-label={t.assistant.approval.jumpToApproval}
-      className={cn(
-        'min-w-0',
-        placement === 'floating' ? 'sticky bottom-4 z-10 mt-auto w-full self-center' : 'w-full'
-      )}
+      className={cn('min-w-0', placement === 'floating' ? 'sticky bottom-4 z-10 mt-auto w-full self-center' : 'w-full')}
       data-approval-placement={placement}
       data-approval-stack=""
       data-session-id={sessionId ?? undefined}
@@ -214,7 +211,11 @@ export function ApprovalQueue({
   )
 }
 
-const projectNameOf = (cwd: string): string | undefined => cwd.replace(/[\\/]+$/, '').split(/[\\/]/).pop() || undefined
+const projectNameOf = (cwd: string): string | undefined =>
+  cwd
+    .replace(/[\\/]+$/, '')
+    .split(/[\\/]/)
+    .pop() || undefined
 
 interface ApprovalCardProps {
   request: ApprovalRequest

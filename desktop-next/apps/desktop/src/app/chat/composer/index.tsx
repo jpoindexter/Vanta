@@ -1328,11 +1328,7 @@ export function ChatBar({
               grows upward over the thread and the dock's own measurement covers
               it. Collapses to nothing when every status is empty. */}
           <StatusDrawerContent collapsed={statusDrawerCollapsed} id={statusDrawerId}>
-            <ComposerStatusStack
-              onSubmit={onSubmit}
-              queue={null}
-              sessionId={statusSessionId}
-            />
+            <ComposerStatusStack onSubmit={onSubmit} queue={null} sessionId={statusSessionId} />
           </StatusDrawerContent>
           {activeQueueSessionKey && queuedPrompts.length > 0 ? (
             <QueuePanel

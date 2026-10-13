@@ -169,7 +169,7 @@ describe('ReasoningPill', () => {
         )
       )
     })
-    expect(label()).toBe('Med')
+    expect(label()).toBe('Medium')
   })
 
   it('falls back to the profile default once the runtime reports the session has no pin of its own', () => {

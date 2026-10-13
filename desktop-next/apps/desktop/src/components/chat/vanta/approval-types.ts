@@ -1,14 +1,7 @@
 /** Typed contract for the server's `approval.request` payload (vanta-ts/src/desktop/typed-events.ts). */
 
 export type PermissionKind =
-  | 'bash'
-  | 'computer_use'
-  | 'file_edit'
-  | 'file_write'
-  | 'generic'
-  | 'sandbox'
-  | 'skill'
-  | 'web_fetch'
+  'bash' | 'computer_use' | 'file_edit' | 'file_write' | 'generic' | 'sandbox' | 'skill' | 'web_fetch'
 
 export interface PermissionSection {
   label: string

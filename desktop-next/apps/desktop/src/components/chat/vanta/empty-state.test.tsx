@@ -17,7 +17,12 @@ describe('EmptyState', () => {
   it('names each chip concretely, not by category', () => {
     render(<EmptyState onPick={vi.fn()} />)
 
-    for (const label of ['Compare three CRM tools', 'Summarise my Downloads PDFs', 'Watch competitor pricing', 'Draft follow-ups']) {
+    for (const label of [
+      'Compare three CRM tools',
+      'Summarise my Downloads PDFs',
+      'Watch competitor pricing',
+      'Draft follow-ups'
+    ]) {
       expect(screen.getByRole('button', { name: label })).toBeTruthy()
     }
   })

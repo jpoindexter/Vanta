@@ -24,26 +24,29 @@ const running = (tools: ToolCallLike[]) => summarizeToolRun(tools, true)
 // edits and other cards are split out before a run is summarized, so there is
 // no "Edited …" clause to test here — that work shows as its own diff card.
 describe('summarizeToolRun', () => {
+  it('says "Read" when a run only read files, and "Explored" once it also searched or listed', () => {
+    expect(settled([read('a.ts'), read('b.ts'), read('c.ts')])).toBe('Read 3 files')
+    expect(settled([searched('x'), read('a.ts')])).toBe('Explored 2 files')
+  })
+
   it('names a lone target and counts the rest', () => {
     expect(settled([searched('toolRuns'), read('a.ts'), read('b.ts'), read('c.ts')])).toBe('Explored 4 files')
   })
 
   it('orders clauses explore then run regardless of call order', () => {
-    expect(settled([ran('ls'), read('a.ts'), read('b.ts'), ran('pwd'), ran('id')])).toBe(
-      'Explored 2 files, ran 3 commands'
-    )
+    expect(settled([ran('ls'), read('a.ts'), read('b.ts'), ran('pwd'), ran('id')])).toBe('Read 2 files, ran 3 commands')
   })
 
   it('counts commands rather than naming them once they have run', () => {
     expect(settled([ran('git status')])).toBe('Ran 1 command')
     expect(settled([read('status.ts'), ran('a'), ran('b'), ran('c'), ran('d'), ran('e')])).toBe(
-      'Explored status.ts, ran 5 commands'
+      'Read status.ts, ran 5 commands'
     )
   })
 
   it('puts the running category in the present tense and leaves the rest past', () => {
     expect(running([read('a.ts'), tool('read_file', { path: 'b.ts' }), ran('x'), ran('y')])).toBe(
-      'Exploring 2 files, ran 2 commands'
+      'Reading 2 files, ran 2 commands'
     )
   })
 
@@ -55,7 +58,7 @@ describe('summarizeToolRun', () => {
   // pending. Falling back to past tense there contradicted the ticker still
   // scrolling underneath, so the most recent call carries the present tense.
   it('stays in the present tense between two sequential calls', () => {
-    expect(running([read('a.ts'), ran('x'), ran('y')])).toBe('Explored a.ts, running 2 commands')
+    expect(running([read('a.ts'), ran('x'), ran('y')])).toBe('Read a.ts, running 2 commands')
   })
 
   // A turn can end — or the agent can simply move on — with a call that never
@@ -69,8 +72,8 @@ describe('summarizeToolRun', () => {
   // bucket they read as "Explored 2 files" while their own rows say Searched
   // (#123085).
   it('counts web searches as queries, not explored files', () => {
-    expect(settled([webSearched('hermes agent'), webSearched('kv cache')])).toBe('Searched 2 queries')
-    expect(running([webSearched('hermes agent'), webSearched('kv cache')])).toBe('Searching 2 queries')
+    expect(settled([webSearched('hermes agent'), webSearched('kv cache')])).toBe('Searched 2 sources')
+    expect(running([webSearched('hermes agent'), webSearched('kv cache')])).toBe('Searching 2 sources')
   })
 
   it('names a lone web search the way its row does', () => {
@@ -89,7 +92,7 @@ describe('summarizeToolRun', () => {
   })
 
   it('gives web searches their own clause after explored files', () => {
-    expect(settled([read('a.ts'), webSearched('x'), webSearched('y')])).toBe('Explored a.ts, searched 2 queries')
+    expect(settled([read('a.ts'), webSearched('x'), webSearched('y')])).toBe('Read a.ts, searched 2 sources')
   })
 
   // One web_extract call fetches up to five URLs, so the page count follows

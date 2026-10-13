@@ -61,7 +61,12 @@ export const QueuePanel: FC<QueuePanelProps> = ({
           <li className="vp-queue" data-editing={isEditing || undefined} data-vp="queue-row" key={entry.id}>
             <span className="vp-queue-text">
               Queued: {previewOf(entry)}
-              {attachments > 0 && <span className="vp-queue-meta"> · {attachments === 1 ? '1 attachment' : `${attachments} attachments`}</span>}
+              {attachments > 0 && (
+                <span className="vp-queue-meta">
+                  {' '}
+                  · {attachments === 1 ? '1 attachment' : `${attachments} attachments`}
+                </span>
+              )}
               {isEditing && <span className="vp-queue-meta"> · editing in the composer</span>}
             </span>
             <span className="vp-queue-actions">
