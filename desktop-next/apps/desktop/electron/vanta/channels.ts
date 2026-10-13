@@ -72,7 +72,23 @@ export const CH = {
   gitReviewRevParse: 'vanta:git:review-rev-parse',
   gitReviewShipInfo: 'vanta:git:review-ship-info',
   gitReviewPrList: 'vanta:git:review-pr-list',
-  gitMutation: 'vanta:git:mutation'
+  gitMutation: 'vanta:git:mutation',
+  // Window-level features (all local to Electron)
+  findInPage: 'vanta:find-in-page',
+  stopFindInPage: 'vanta:stop-find-in-page',
+  foundInPage: 'hermes:found-in-page',
+  openFindBar: 'hermes:open-find-bar',
+  zoomPersist: 'vanta:zoom:persist',
+  zoomChanged: 'hermes:zoom:changed',
+  keepAwake: 'vanta:keep-awake',
+  activeWork: 'vanta:active-work',
+  batteryGet: 'vanta:power-battery:get',
+  batteryChanged: 'hermes:power-battery',
+  openFolderRequested: 'hermes:open-folder-requested',
+  closePreviewRequested: 'hermes:close-preview-requested',
+  deepLink: 'hermes:deep-link',
+  deepLinkReady: 'vanta:deep-link-ready',
+  externalOpenFailed: 'hermes:external-open-failed'
 } as const
 
 export type Channel = (typeof CH)[keyof typeof CH]

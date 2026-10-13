@@ -47,7 +47,11 @@ describe('window, zoom, and native members', () => {
     desktop.zoom.setPercent(900)
     desktop.zoom.setPercent(10)
 
-    expect(sent).toEqual([[CH.windowControl, 'toggle-maximize']])
+    expect(sent).toEqual([
+      [CH.windowControl, 'toggle-maximize'],
+      [CH.zoomPersist, 300],
+      [CH.zoomPersist, 50]
+    ])
     expect(zoomEnv.zoom.set).toHaveBeenNthCalledWith(1, 3)
     expect(zoomEnv.zoom.set).toHaveBeenNthCalledWith(2, 0.5)
   })
