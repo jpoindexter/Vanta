@@ -21,6 +21,7 @@ import {
   LIST_ROWS,
   OUTPUTS,
   PALETTE,
+  record,
   SETTINGS_ROWS,
   tabFor,
   TERMINAL
@@ -47,11 +48,10 @@ export interface HarnessQuery {
   width: 800 | 1100 | 1440
 }
 
-const noop = () => undefined
 const wait = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
 
 function listProps(page: keyof typeof LIST_ROWS, state: FixtureState): ListPageProps {
-  return { onPrimary: noop, onRetry: noop, onRowAction: noop, rows: blockFor(state, LIST_ROWS[page]) }
+  return { onPrimary: record('primary'), onRetry: record('retry'), onRowAction: record('rowAction'), rows: blockFor(state, LIST_ROWS[page]) }
 }
 
 function Page({ query }: { query: HarnessQuery }): ReactNode {
@@ -86,11 +86,11 @@ function WorkbenchHost({ query }: { query: HarnessQuery }) {
       changes={tabFor(s, CHANGES, { files: [] })}
       files={tabFor(s, FILES, FILES)}
       mode={workbenchModeFor(query.width)}
-      onClose={noop}
-      onOpenOutput={noop}
-      onRestore={noop}
-      onRetry={noop}
-      onSelectFile={noop}
+      onClose={record('workbenchClose')}
+      onOpenOutput={record('openOutput')}
+      onRestore={record('restore')}
+      onRetry={record('retry')}
+      onSelectFile={record('selectFile')}
       onTabChange={setTab}
       outputs={tabFor(s, OUTPUTS, { items: [] })}
       tab={tab}
@@ -105,9 +105,17 @@ function SettingsHost({ query }: { query: HarnessQuery }) {
   return (
     <SettingsSheet
       approvals={APPROVALS}
-      onClose={noop}
-      onRevoke={() => wait(150)}
-      onSave={() => wait(150)}
+      onClose={record('settingsClose')}
+      onRevoke={id => {
+        record('revoke')(id)
+
+        return wait(150)
+      }}
+      onSave={(id, value) => {
+        record('save')(id, value)
+
+        return wait(150)
+      }}
       onSectionChange={setSection}
       rows={SETTINGS_ROWS}
       section={section}
@@ -133,7 +141,7 @@ export function Harness({ query }: { query: HarnessQuery }) {
           </main>
           {showsWorkbench && <WorkbenchHost query={query} />}
         </div>
-        {query.screen === 'palette' && <CommandPalette commands={PALETTE} onClose={noop} onRun={noop} />}
+        {query.screen === 'palette' && <CommandPalette commands={PALETTE} onClose={record('paletteClose')} onRun={record('paletteRun')} />}
         {query.screen === 'settings' && <SettingsHost query={query} />}
       </div>
     </div>
