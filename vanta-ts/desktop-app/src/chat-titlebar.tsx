@@ -2,7 +2,7 @@ import { ArrowLeft, Maximize2, MessageSquare, MessageSquarePlus, Minimize2, Pane
 import type { ChatFirstState } from "./chat-first-state.js";
 import type { ChatFirstActions } from "./chat-first-actions.js";
 import type { useDesktopSurface } from "./desktop-surface.js";
-import { chatTitle } from "./chat-first-navigation.js";
+import { liveChatTitle } from "./chat-first-navigation.js";
 import { ChatWindowOptions } from "./chat-window-options.js";
 import { DocumentTabs } from "./chat-first-documents.js";
 
@@ -10,7 +10,7 @@ type Props = { state: ChatFirstState; actions: ChatFirstActions; surface: Return
 
 /** A single window bar. Tabs refer to real open documents, never placeholder UI. */
 export function ChatTitlebar({ state, actions, surface }: Props) {
-  const labels = { work: chatTitle({ title: state.convo.activeTitle }), operate: "Today", outputs: "Outputs", scheduled: "Schedules", connect: "Connections", plugins: "Skills & tools", history: "Library" };
+  const labels = { work: liveChatTitle(state.convo.activeTitle, state.convo.messages), operate: "Today", outputs: "Outputs", scheduled: "Schedules", connect: "Connections", plugins: "Skills & tools", history: "Library" };
   return <header className="chat-header chat-titlebar">
     <div className="chat-window-controls">
       <button className="chat-icon" type="button" aria-label={state.sidebar ? "Hide sidebar" : "Show sidebar"} aria-expanded={state.sidebar} onClick={() => state.setSidebar(!state.sidebar)}><PanelLeft size={16} /></button>

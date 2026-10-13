@@ -7,7 +7,7 @@ import { ChatFirstConversation } from "./chat-first-conversation.js";
 import { ChatFirstWorkspace } from "./chat-first-workspaces.js";
 import { ChatFirstOverlays } from "./chat-first-overlays.js";
 import { ChatFirstInspector } from "./chat-first-inspector.js";
-import { chatTitle } from "./chat-first-navigation.js";
+import { liveChatTitle } from "./chat-first-navigation.js";
 import { ChatTitlebar } from "./chat-titlebar.js";
 import { focusDesktopComposer, handleGlobalShortcut } from "./global-shortcuts.js";
 import { useChatProjectTask } from "./chat-first-project-task.js";
@@ -51,7 +51,7 @@ function ChatStatus({ state }: { state: ChatFirstState }) {
 
 function ActiveChatNavigation({ state }: { state: ChatFirstState }) {
   if (state.view === "work" || !state.convo.busy) return null;
-  return <div className="chat-active-run" role="status"><span>Response running in {chatTitle({ title: state.convo.activeTitle })}</span>
+  return <div className="chat-active-run" role="status"><span>Response running in {liveChatTitle(state.convo.activeTitle, state.convo.messages)}</span>
     <button type="button" onClick={() => state.setView("work")}>Return to running chat</button>
     <button type="button" onClick={() => void state.convo.stop()}>Stop response</button></div>;
 }

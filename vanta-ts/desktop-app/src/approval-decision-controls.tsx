@@ -8,6 +8,14 @@ function canRemember(approval: Approval): boolean {
   return Boolean(approval.toolName && approval.request?.canRemember && !approval.request?.fresh);
 }
 
+/** One honest sentence about what "Always allow" will cover, chosen by the request's kind. */
+function ApprovalNote({ approval, remember }: { approval: Approval; remember: boolean }) {
+  if (approval.request?.fresh) return <p className="approval-note">This exact action needs approval each time. Remembered tool rules do not replace it.</p>;
+  if (!remember) return null;
+  if (approval.request?.kind === "bash") return <p className="approval-note"><strong>Always allow covers every shell command</strong> Vanta runs in this project, not just this one. Kernel restrictions and one-time approvals still apply.</p>;
+  return <p className="approval-note">Remembered choices apply to <code>{approval.toolName}</code> in this project, including future tasks. Kernel restrictions and one-time approvals still apply.</p>;
+}
+
 export function ApprovalDecisionControls({ approval, onAnswer }: Props) {
   const [pending, setPending] = useState<ApprovalDecision | null>(null);
   const [error, setError] = useState("");
@@ -25,14 +33,13 @@ export function ApprovalDecisionControls({ approval, onAnswer }: Props) {
     <ControlButton type="button" onClick={() => void answer("deny")}>Dismiss</ControlButton>
   </>;
   return <>
-    {approval.request?.fresh ? <p className="muted">This exact action needs approval each time. Remembered tool rules do not replace it.</p> : null}
-    {remember ? <p className="muted">Remembered choices apply to <code>{approval.toolName}</code> for future tasks on this Mac. Kernel restrictions and one-time approvals still apply.</p> : null}
     {error ? <InlineError>{error}</InlineError> : null}
     <ConfirmationActions className="approval-actions">
       <ControlButton tone="primary" type="button" disabled={!!pending} aria-busy={pending === "allow"} onClick={() => void answer("allow")}>{pending === "allow" ? "Allowing…" : "Allow once"}</ControlButton>
       {remember ? <ControlButton type="button" disabled={!!pending} aria-busy={pending === "always"} onClick={() => void answer("always")}>{pending === "always" ? "Saving…" : "Always allow this tool"}</ControlButton> : null}
       <ControlButton type="button" disabled={!!pending} onClick={() => void answer("deny")}>Reject</ControlButton>
     </ConfirmationActions>
+    <ApprovalNote approval={approval} remember={remember} />
     {remember ? <details><summary>More permission options</summary><ControlButton type="button" disabled={!!pending} onClick={() => void answer("never")}>Never allow this tool</ControlButton></details> : null}
   </>;
 }

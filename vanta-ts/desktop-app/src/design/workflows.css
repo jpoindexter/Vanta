@@ -60,7 +60,6 @@
 .run-summary,
 .transcript-turn,
 .run-timeline,
-.inline-approval,
 .thinking,
 .run-recovery,
 .event-timeline {
@@ -168,18 +167,12 @@
   border-radius: 1px;
 }
 
-.inline-approval,
 .run-recovery {
   border-radius: var(--radius-sm);
   box-shadow: inset 3px 0 var(--amber);
   background: var(--surface-warning);
 }
 
-.inline-approval {
-  border-color: var(--line-strong);
-}
-
-.inline-approval button,
 .run-recovery button {
   min-height: var(--control-height-compact);
   border-radius: var(--radius-sm);
@@ -356,11 +349,6 @@
 .run-recovery-actions button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
-}
-
-.inline-approval button.primary {
-  border-color: var(--accent);
-  background: var(--surface-selected);
 }
 
 .composer {

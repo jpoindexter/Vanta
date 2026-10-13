@@ -72,8 +72,14 @@ describe("ApprovalOverlay", () => {
     expect(html).toContain("Reject");
     expect(html).toContain("Always allow this tool");
     expect(html).toContain("Never allow this tool");
-    expect(html).toContain("future tasks on this Mac");
+    expect(html).toContain("Always allow covers every shell command");
+    expect(html).not.toContain("in this project, including future tasks");
     expect(html).toContain('role="dialog"');
+  });
+  it("scopes a remembered non-shell tool to the project in plain words", () => {
+    const html = renderToStaticMarkup(<ApprovalOverlay approval={{ id: "e1", action: "Edit file notes.md", reason: "routine", toolName: "edit_file", request: { kind: "file_edit", title: "File edit permission request", subject: "notes.md", reason: "routine", sections: [], canRemember: true } }} onAnswer={vi.fn()} />);
+    expect(html).toContain("in this project, including future tasks");
+    expect(html).not.toContain("every shell command");
   });
   it("keeps exact-action approvals one-time, even if remember eligibility is inconsistent", () => {
     const html = renderToStaticMarkup(<ApprovalOverlay approval={{ id: "fresh", action: "publish exact post", reason: "review", toolName: "linkedin_post", request: { kind: "generic", title: "Publish", subject: "post", reason: "review", sections: [], fresh: true, canRemember: true } }} onAnswer={vi.fn()} />);

@@ -118,11 +118,11 @@
     "@typescript/native": "npm:typescript@^7.0.2",
     "exceljs": "^4.4.0",
     "google-auth-library": "^10.6.2",
-    "imapflow": "1.4.2",
+    "imapflow": "1.7.8",
     "ink": "^7.0.6",
     "linkedom": "^0.18.12",
     "lucide-react": "^0.468.0",
-    "nodemailer": "9.0.1",
+    "nodemailer": "10.0.13",
     "openai": "^5.12.0",
     "playwright-core": "^1.60.0",
     "react": "^19.2.7",
@@ -141,7 +141,7 @@
     "@types/react": "^19.2.16",
     "@types/react-dom": "^19.2.3",
     "axe-core": "^4.12.1",
-    "electron": "^43.1.0",
+    "electron": "^43.5.1",
     "electron-builder": "^26.15.3",
     "pixelmatch": "^7.2.0",
     "pngjs": "^7.0.0",
@@ -235,7 +235,7 @@
   "overrides": {
     "adm-zip": "0.6.0",
     "esbuild": "^0.28.1",
-    "ip-address": "10.4.0",
+    "ip-address": "10.7.4",
     "sharp": "0.35.3",
     "uuid": "^11.1.1"
   }

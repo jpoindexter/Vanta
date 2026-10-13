@@ -23,7 +23,7 @@ export async function resolveLayeredDecision(
   action: string,
   ctx: ToolContext,
 ): Promise<Decision> {
-  const ruleDecision = tighten(verdict.risk, matchRule(await loadRules(process.env), call.name, action));
+  const ruleDecision = tighten(verdict.risk, matchRule(await loadRules(process.env), call.name, action, ctx.root));
   const autoDecision = await applyAutoMode(ruleDecision, call.name, action, ctx);
   const bashDecision = await applyBashClassifier(autoDecision, call);
   const profileDecision = await applyOperatorProfile(bashDecision, verdict.risk, call.name, action);
@@ -45,6 +45,7 @@ async function applyOperatorProfile(
     return { ...next, canRemember: false,
       reason: "Your saved operator profile requires approval every time for this tool. Allow once or change that preference separately." };
   }
+  if (next.decision === "ask" && next.canRemember === false) return next;
   return next.decision === current.decision ? current : next;
 }
 
