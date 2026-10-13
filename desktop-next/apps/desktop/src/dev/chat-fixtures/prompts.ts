@@ -26,14 +26,19 @@ export function seedClarify(params: FixtureParams, sessionId: string): void {
 
   if (params.state === 'blocked') {
     setClarifyRequest({
-      questions: [{ choices: BLOCKED_QUESTION.choices, multiSelect: false, qid: 'q1', question: BLOCKED_QUESTION.question }],
+      questions: [
+        { choices: BLOCKED_QUESTION.choices, multiSelect: false, qid: 'q1', question: BLOCKED_QUESTION.question }
+      ],
       requestId: 'clarify-1',
       sessionId
     })
   }
 }
 
-const DRAFT_10 = Array.from({ length: 10 }, (_, index) => `Line ${index + 1} of a long draft the composer should grow around`).join('\n')
+const DRAFT_10 = Array.from(
+  { length: 10 },
+  (_, index) => `Line ${index + 1} of a long draft the composer should grow around`
+).join('\n')
 
 /** Composer-side scenarios: queued messages, attachment chips, a ten-line draft. */
 export function seedComposer(params: FixtureParams, sessionId: string): () => void {

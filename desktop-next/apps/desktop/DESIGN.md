@@ -115,7 +115,12 @@ transcript-level host owns approvals, independent of tool rows and assistant
 message boundaries. Prepared approvals can precede tool.start: execution must
 not relocate or remount the stack. While approvals remain, a real activity line
 above the cards changes from awaiting approval to current-turn command status;
-represented execution rows appear only when explicitly expanded. Empty text
+represented execution rows appear only when explicitly expanded. The Vanta skin
+keeps that line in the DOM but does not paint it: the approval card names the
+exact action, so a second line above it would repeat it. One approval renders
+as one flat card (hairline border, radius 12, no card-in-card, no reserved
+stack-peek space); `components/chat/vanta/approval-card.tsx` is the only
+renderer, fed by `tool/approval-adapter.ts` for gateway requests. Empty text
 continuations must not introduce paragraph gaps. Keep inline approvals beside
 the conversation and let genuine content scroll normally; do not inject padding
 or write scroll offsets to pin the decision. Preview this order with delayed
@@ -431,7 +436,9 @@ from their root base tokens; do not multiply the global tokens or nest CSS zoom.
   horizontal code/output boundaries may remain contained. Thinking previews
   follow new tokens only while near the bottom, preserving the user's reading
   position until they scroll back down.
-- Composer status groups start collapsed except todos. Progress updates and queue
+- Queued messages are rows above the composer (`queue-panel.tsx`: "Queued: text"
+  with Edit, Steer while a run is live, Remove), not a status-stack group. The
+  other status groups start collapsed except todos. Progress updates and queue
   pause/resume preserve the user's disclosure choice. Error banners meet the
   stack's top edge without a blank padding strip. File and preview links remain
   visible at the bottom of the stack, below the queue and all status groups.
@@ -622,3 +629,27 @@ The detailed state contract lives in the scoped
 - [ ] `cursor-pointer`, focus ring, and `Esc`-to-close behave?
 - [ ] Touched a primitive, token, or variant? Its named-contract entry in this
       file is updated in the same change.
+
+
+## Vanta chat surface (DN-03)
+
+The chat surface follows `docs/wireframe/vanta-desktop-wireframe.html` (annotations 5 to 10). The numbers below are
+the wireframe's and are measured by `tools/chat-parity` against the fixtures harness
+(`chat-fixtures.html`, dev only, never in the production bundle).
+
+- Column 720, centred; thread gutter 16; vertical rhythm 14. Body 14/1.45, UI 14, meta 12 (nothing under 12).
+- User message: soft bubble, radius 16, padding 8/14, at most 80% of the column, no border. Assistant text is plain.
+- Message actions (Copy, Edit, time; Copy, rate, Retry) are hidden at rest and shown on hover or focus-within, and
+  always shown where there is no hover. They are real buttons.
+- Tool steps are one chevron row ("Read 3 files"), collapsed by default, `aria-expanded`, one nesting level. A live
+  step is a line with Stop on it. A failed step stays and carries its own Retry. File edits are summarised by one
+  "Edited N files" card at the last edit with a Review changes button that never opens a panel by itself.
+- Cards (`.vp-card`): hairline border, radius 12, padding 12, no card-in-card. Approval, blocked question and failed
+  run share it. Allow once and Reject carry the same weight; Always shows what it covers, and one-way actions hide
+  it and say why.
+- Composer: radius 22, width 720, min input height 44 growing to about 10 lines, attach and mic on the left, model,
+  effort and permission chips and Send (32px circle) on the right. Send becomes Stop in the same slot while running.
+  The hint line sits under it. Chips are `.vp-chip`.
+- Strings: new chat copy is English literals in `components/chat/vanta/*` (the wireframe's copy, verbatim);
+  moving it into the i18n catalogs is parked.
+- Styles live in `src/styles/vanta-chat.css`, tokens only; `--vp-*` names carry the contract numbers.

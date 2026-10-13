@@ -38,7 +38,11 @@ function useMessageChangedFiles(): readonly ChangedFile[] {
  */
 export const ChangedFilesCard: FC = () => {
   const changed = useMessageChangedFiles()
-  const files = useMemo(() => changed.map(file => ({ ...file, id: file.path, label: displayPath(file.path) })), [changed])
+
+  const files = useMemo(
+    () => changed.map(file => ({ ...file, id: file.path, label: displayPath(file.path) })),
+    [changed]
+  )
 
   // Review THIS surface's repo: a tile transcript pins the pane to the tile's
   // worktree; the primary passes null (follow the active session, as before).

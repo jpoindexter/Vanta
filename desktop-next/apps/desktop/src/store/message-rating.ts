@@ -10,8 +10,8 @@ const MAX_RATINGS = 500
 
 function readRatings(): Record<string, MessageRating> {
   return Object.fromEntries(
-    Object.entries(storedStringRecord(KEY)).filter((entry): entry is [string, MessageRating] =>
-      entry[1] === 'up' || entry[1] === 'down'
+    Object.entries(storedStringRecord(KEY)).filter(
+      (entry): entry is [string, MessageRating] => entry[1] === 'up' || entry[1] === 'down'
     )
   )
 }

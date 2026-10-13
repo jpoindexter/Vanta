@@ -1,6 +1,5 @@
 import {
   ActionBarPrimitive,
-  BranchPickerPrimitive,
   ErrorPrimitive,
   MessagePrimitive,
   useAui,
@@ -9,8 +8,8 @@ import {
   useThreadRuntime
 } from '@assistant-ui/react'
 import { useStore } from '@nanostores/react'
-import { type FC, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { IconCircleX } from '@tabler/icons-react'
+import { type FC, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { useInRouterContext, useNavigate } from 'react-router'
 
 import { requestModelMenuToggle } from '@/app/chat/composer/focus'
@@ -24,19 +23,16 @@ import {
   messageContentText,
   pickPrimaryPreviewTarget
 } from '@/components/assistant-ui/thread/content'
-import { MessageHoverTime } from '@/components/assistant-ui/thread/message-hover-time'
 import { MESSAGE_PARTS_COMPONENTS } from '@/components/assistant-ui/thread/message-parts'
-import { ReactionPicker } from '@/components/assistant-ui/thread/message-reactions'
 import { ResponseMessageIds } from '@/components/assistant-ui/thread/response-group'
 import { ResponseLoadingIndicator, TurnActivityIndicator } from '@/components/assistant-ui/thread/status'
 import { threadMessageIndex } from '@/components/assistant-ui/thread/thread-message-index'
 import { MessageTimelineTimestamp } from '@/components/assistant-ui/thread/timeline-timestamp'
-import { useMessageReactions, useTapbackDoubleClick } from '@/components/assistant-ui/thread/use-message-reactions'
+import { useTapbackDoubleClick } from '@/components/assistant-ui/thread/use-message-reactions'
 import { AGENT_MESSAGE_RE } from '@/components/assistant-ui/thread/user-message'
 import { isApprovalActivity, isCurrentTurnMessage } from '@/components/assistant-ui/tool/approval-activity'
 import { ViewOutputButton } from '@/components/assistant-ui/tool/step-actions'
 import { TooltipIconButton } from '@/components/assistant-ui/tooltip-icon-button'
-import { formatElapsed } from '@/components/chat/activity-timer'
 import { PreviewAttachment } from '@/components/chat/preview-attachment'
 import { Codicon } from '@/components/ui/codicon'
 import { CopyButton } from '@/components/ui/copy-button'
@@ -53,22 +49,10 @@ import {
 } from '@/lib/error-surface'
 import { errorCardText } from '@/lib/error-surface-copy'
 import { triggerHaptic } from '@/lib/haptics'
-import {
-  AudioLines,
-  GitForkIcon,
-  KeyRound,
-  Loader2Icon,
-  RefreshCwIcon,
-  SmilePlusIcon,
-  Upload,
-  VolumeXIcon,
-  XIcon
-} from '@/lib/icons'
+import { KeyRound, RefreshCwIcon, Upload, XIcon } from '@/lib/icons'
 import { extractPreviewTargets } from '@/lib/preview-targets'
-import { markAssistantIdSpoken } from '@/lib/spoken-reply'
 import { useEnterAnimation } from '@/lib/use-enter-animation'
 import { cn } from '@/lib/utils'
-import { playSpeechText, stopVoicePlayback } from '@/lib/voice-playback'
 import { DESKTOP_BUTTON_ACTIONS, recordAction } from '@/store/desktop-metrics'
 import { openFreeTierSignIn } from '@/store/free-tier-sign-in'
 import { notifyError } from '@/store/notifications'
@@ -79,7 +63,6 @@ import { requestSendDiagnostics } from '@/store/send-diagnostics'
 import { $connection, $currentModel, setModelPickerOpen } from '@/store/session'
 import { sessionTileDelegate } from '@/store/session-states'
 import { notifyThreadEditOpen } from '@/store/thread-scroll'
-import { $voicePlayback } from '@/store/voice-playback'
 
 // Stable empty identity for the settled-parts selector — a fresh [] per render
 // would re-derive the changed-files card on every message re-render.
@@ -230,10 +213,6 @@ const AssistantMessageBody: FC<AssistantMessageProps & { collapsedNotice?: null 
   // ChatMessage.interim).
   const isInterim = useAuiState(s => s.message.metadata?.custom?.interim === true)
 
-  // Copy, rate and retry belong to a finished reply: a running or failed turn
-  // shows none, so the cards around it keep the column's rhythm.
-  const isComplete = useAuiState(s => s.message.status?.type === 'complete')
-
   // Whole-turn wall-clock seconds (set once at completion — referentially
   // stable across the 30 Hz delta stream, so this adds no per-token renders).
   const turnDurationS = useAuiState(s => s.message.metadata?.custom?.durationS as number | undefined)
@@ -330,7 +309,6 @@ const AssistantMessageBody: FC<AssistantMessageProps & { collapsedNotice?: null 
               without the bar that turn has no copy/branch affordance at all
               (#118864). */}
           {hasVisibleText &&
-            isComplete &&
             responseTail &&
             (!isInterim || (responseIds.length > 0 && responseIds.at(-1) === messageId)) && (
               <AssistantFooter

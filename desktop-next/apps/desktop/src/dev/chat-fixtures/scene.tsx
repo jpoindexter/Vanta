@@ -3,10 +3,10 @@ import { useEffect, useMemo } from 'react'
 
 import { ChatRuntimeBoundary } from '@/app/chat'
 import { ChatBar } from '@/app/chat/composer'
-import { ScrollToBottomButton } from '@/app/chat/scroll-to-bottom-button'
 import { FloatingComposerSurface } from '@/app/chat/composer/floating-surface'
 import { ComposerSurfaceProvider } from '@/app/chat/composer/scope'
 import type { ChatBarState } from '@/app/chat/composer/types'
+import { ScrollToBottomButton } from '@/app/chat/scroll-to-bottom-button'
 import { PRIMARY_SESSION_VIEW, SessionViewProvider } from '@/app/chat/session-view'
 import { Thread } from '@/components/assistant-ui/thread'
 import { PaneGroupContext } from '@/components/pane-shell/pane-visibility'
@@ -51,7 +51,7 @@ export function FixtureScene({ params }: { params: FixtureParams }) {
   )
 
   useEffect(() => {
-    $gatewayState.set('open')
+    $gatewayState.set(params.flags.has('netdown') ? 'closed' : 'open')
     seedPrompts(params, SESSION_ID)
     seedClarify(params, SESSION_ID)
 
@@ -61,7 +61,13 @@ export function FixtureScene({ params }: { params: FixtureParams }) {
   return (
     <div
       data-fixture-main=""
-      style={{ height: MAIN_HEIGHT, margin: 0, overflow: 'hidden', position: 'relative', width: MAIN_WIDTH[params.width] }}
+      style={{
+        height: MAIN_HEIGHT,
+        margin: 0,
+        overflow: 'hidden',
+        position: 'relative',
+        width: MAIN_WIDTH[params.width]
+      }}
     >
       <SessionViewProvider value={view}>
         <ChatRuntimeBoundary
@@ -93,7 +99,7 @@ export function FixtureScene({ params }: { params: FixtureParams }) {
                 <FloatingComposerSurface>
                   <ChatBar
                     busy={busy}
-                    disabled={false}
+                    disabled={params.flags.has('netdown')}
                     gateway={null}
                     onCancel={noop}
                     onSubmit={noopAsync}
