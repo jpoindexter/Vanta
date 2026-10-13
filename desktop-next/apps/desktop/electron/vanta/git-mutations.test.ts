@@ -1,3 +1,5 @@
+import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import path from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -154,6 +156,93 @@ describe("plans", () => {
     git(sub, "init", "-q", "-b", "main");
 
     expect(await commandsOf({ file: "x.txt", op: "stage", repo: sub })).toEqual([`git -C 'pkg' add -- 'x.txt'`]);
+  });
+});
+
+const planOf = async (request: unknown) => {
+  const result = await plan(request);
+
+  if (result.ok === false) {
+    throw new Error(result.message);
+  }
+
+  return result;
+};
+
+const sh = (command: string) =>
+  execFileSync("sh", ["-c", command], { cwd: box.root, encoding: "utf8", env: { ...process.env, GIT_CONFIG_GLOBAL: "/dev/null" } });
+
+describe("worktrees", () => {
+  it("adds a worktree on a new branch under .worktrees, and the command is valid git", async () => {
+    const result = await planOf({ name: "Fix the build!", op: "worktreeAdd", repo: box.root });
+    const created = result.result as { branch: string; path: string; repoRoot: string };
+
+    expect(created).toEqual({ branch: "vanta/fix-the-build", path: path.join(box.root, ".worktrees", "fix-the-build"), repoRoot: box.root });
+    expect(result.commands).toEqual([`git worktree add -b 'vanta/fix-the-build' '${created.path}'`]);
+
+    sh(result.commands[0] as string);
+    expect(existsSync(path.join(created.path, "a.txt"))).toBe(true);
+    expect(git(box.root, "branch", "--list", "vanta/fix-the-build").trim()).toContain("vanta/fix-the-build");
+  });
+
+  it("picks a free folder when the name is taken", async () => {
+    const first = await planOf({ name: "work", op: "worktreeAdd", repo: box.root });
+    sh(first.commands[0] as string);
+
+    const second = (await planOf({ name: "work", op: "worktreeAdd", repo: box.root })).result as { path: string };
+
+    expect(second.path).toBe(path.join(box.root, ".worktrees", "work-2"));
+  });
+
+  it("branches off a base, and does not track a remote base", async () => {
+    git(box.root, "branch", "topic");
+
+    expect((await planOf({ base: "topic", branch: "feature/x", name: "x", op: "worktreeAdd", repo: box.root })).commands[0]).toBe(
+      `git worktree add -b 'feature/x' '${path.join(box.root, ".worktrees", "x")}' 'topic'`
+    );
+    expect((await planOf({ base: "origin/main", name: "y", op: "worktreeAdd", repo: box.root })).commands[0]).toContain("--no-track 'origin/main'");
+  });
+
+  it("checks out an existing local branch, and tracks a remote-only one", async () => {
+    git(box.root, "branch", "topic");
+
+    const local = await planOf({ existingBranch: "topic", op: "worktreeAdd", repo: box.root });
+    expect(local.commands[0]).toBe(`git worktree add '${path.join(box.root, ".worktrees", "topic")}' 'topic'`);
+    sh(local.commands[0] as string);
+
+    const remote = await planOf({ existingBranch: "origin/feat", op: "worktreeAdd", repo: box.root });
+    expect(remote.commands[0]).toBe(`git worktree add --track -b 'feat' '${path.join(box.root, ".worktrees", "origin-feat")}' 'origin/feat'`);
+  });
+
+  it.each([
+    ["a base with spaces", { base: "a b", name: "n" }],
+    ["a base that starts like an option", { base: "--force", name: "n" }]
+  ])("refuses %s", async (_label, fields) => {
+    expect(await commandsOf({ op: "worktreeAdd", repo: box.root, ...fields })).toBe("That is not a branch name Vanta can use.");
+  });
+
+  it("cleans a typed branch name instead of passing odd characters on", async () => {
+    const result = await planOf({ branch: "feat/x{y} z;rm -rf ~", name: "n", op: "worktreeAdd", repo: box.root });
+
+    expect(result.commands[0]).toContain("-b 'feat/xy-zrm-rf'");
+    expect(result.commands[0]).not.toMatch(/[;{}~]/);
+  });
+
+  it("removes one of the project's extra worktrees, with --force only when asked", async () => {
+    const created = await planOf({ name: "gone", op: "worktreeAdd", repo: box.root });
+    sh(created.commands[0] as string);
+    const tree = (created.result as { path: string }).path;
+
+    expect(await commandsOf({ op: "worktreeRemove", repo: box.root, worktreePath: tree })).toEqual([`git worktree remove -- '${tree}'`]);
+    expect(await commandsOf({ force: true, op: "worktreeRemove", repo: box.root, worktreePath: tree })).toEqual([`git worktree remove --force -- '${tree}'`]);
+  });
+
+  it.each([
+    ["the main checkout", () => box.root],
+    ["a folder that is not a worktree", () => path.join(box.root, "src")],
+    ["a path outside the project", () => box.outside]
+  ])("refuses to remove %s", async (_label, tree) => {
+    expect(await commandsOf({ op: "worktreeRemove", repo: box.root, worktreePath: tree() })).toContain("extra worktrees");
   });
 });
 

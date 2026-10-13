@@ -130,7 +130,12 @@ export const CH = {
   // Confirmed file actions
   renamePath: 'vanta:fs:rename',
   trashPath: 'vanta:fs:trash',
-  saveImage: 'vanta:save-image'
+  saveImage: 'vanta:save-image',
+  // The page's own context menu
+  contextMenuEdit: 'vanta:context-menu:edit',
+  contextMenuCopyImage: 'vanta:context-menu:copy-image',
+  contextMenuSpellcheck: 'vanta:context-menu:spellcheck',
+  contextMenuSpellcheckInfo: 'hermes:context-menu-spellcheck'
 } as const
 
 export type Channel = (typeof CH)[keyof typeof CH]
