@@ -1,0 +1,392 @@
+[
+ {
+  "name": "home: Enter submits the task with the chosen project",
+  "ok": true,
+  "detail": "[[\"submitTask\",\"Summarise my Downloads PDFs\",\"research\"]]"
+ },
+ {
+  "name": "home: Allow once fires with the session id",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "home: Stop fires",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "home: Run now fires",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "home: Reveal fires",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "home: keyboard focus shows a 2px outline",
+  "ok": true,
+  "detail": "{\"w\":\"2px\",\"s\":\"solid\",\"c\":\"rgb(124, 58, 237)\",\"tag\":\"BUTTON\",\"name\":\"Open Fix flaky skills test\"}"
+ },
+ {
+  "name": "home: block Retry fires",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "schedules: Run now fires rowAction",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "connections: Reconnect fires rowAction",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "outputs: Locate fires rowAction",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "skills: primary CTA fires",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "palette: input is focused on open",
+  "ok": true,
+  "detail": "combobox"
+ },
+ {
+  "name": "palette: filter leaves three Go to commands",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "palette: arrows then Enter run the third command",
+  "ok": true,
+  "detail": "[[\"paletteRun\",\"connections\"]]"
+ },
+ {
+  "name": "palette: Escape closes",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "palette: shows No matches.",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "workbench: ArrowRight selects Files and moves focus",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "workbench: End selects Outputs",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "workbench: Restore fires",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "workbench: selecting a file fires",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "workbench: Escape closes",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "workbench: close button fires",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "settings: choosing a value saves at once",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "settings: row shows the new value",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "settings: Manage opens Permissions",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "settings: Revoke removes the row and fires",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "settings: Tab stays inside the dialog (focus trap)",
+  "ok": true,
+  "detail": "left after 30 tabs"
+ },
+ {
+  "name": "settings: Escape closes",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light home: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light home: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light schedules: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light schedules: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light connections: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light connections: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light skills: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light skills: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light outputs: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light outputs: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light workbench&tab=changes: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light workbench&tab=changes: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light workbench&tab=files: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light workbench&tab=files: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light workbench&tab=browser: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light workbench&tab=browser: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light workbench&tab=terminal: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light workbench&tab=terminal: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light workbench&tab=outputs: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light workbench&tab=outputs: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light palette: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light palette: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light settings: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "light settings: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark home: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark home: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark schedules: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark schedules: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark connections: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark connections: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark skills: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark skills: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark outputs: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark outputs: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark workbench&tab=changes: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark workbench&tab=changes: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark workbench&tab=files: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark workbench&tab=files: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark workbench&tab=browser: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark workbench&tab=browser: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark workbench&tab=terminal: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark workbench&tab=terminal: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark workbench&tab=outputs: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark workbench&tab=outputs: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark palette: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark palette: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark settings: no text under 12px",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "dark settings: all text >= 4.5:1",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "reduced motion: running spinner is static",
+  "ok": true,
+  "detail": "none"
+ },
+ {
+  "name": "reduced motion: skeleton is static",
+  "ok": true,
+  "detail": "none"
+ }
+]

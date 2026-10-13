@@ -1,0 +1,4081 @@
+{
+ "pass": 657,
+ "deviation": 22,
+ "fail": 0,
+ "rows": [
+  {
+   "tag": "1440 home / page",
+   "wire": "1163.0x788.3 @276.0,45.0 14px/20.3px 400 r0px",
+   "built": "1163.0x788.3 @276.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / column",
+   "wire": "860.0x744.3 @427.5,67.0 14px/20.3px 400 r0px",
+   "built": "860.0x744.3 @427.5,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / composer",
+   "wire": "860.0x103.9 @427.5,67.0 14px/20.3px 400 r22px",
+   "built": "860.0x103.9 @427.5,67.0 14px/20.3px 400 r22px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / composer textarea",
+   "wire": "834.0x44.6 @440.5,78.0 14px/20.3px 400 r0px",
+   "built": "834.0x44.6 @440.5,78.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / composer tools",
+   "wire": "834.0x32.0 @440.5,127.9 14px/20.3px 400 r0px",
+   "built": "834.0x32.0 @440.5,127.9 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / attach button",
+   "wire": "30.0x30.0 @440.5,128.9 15px/21.75px 400 r8px",
+   "built": "30.0x30.0 @440.5,128.9 15px/21.75px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / send button",
+   "wire": "32.0x32.0 @1242.5,127.9 14px/20.3px 400 r50%",
+   "built": "32.0x32.0 @1242.5,127.9 14px/20.3px 400 r50%",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / project chip",
+   "wire": "104.3x21.4 @1132.2,133.2 12px/17.4px 400 r999px",
+   "built": "104.3x21.4 @1132.2,133.2 12px/17.4px 400 r999px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / project chips row",
+   "wire": "860.0x21.4 @427.5,184.9 14px/20.3px 400 r0px",
+   "built": "860.0x21.4 @427.5,184.9 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / project chip (row) #1",
+   "wire": "52.1x21.4 @427.5,184.9 12px/17.4px 400 r999px",
+   "built": "52.1x21.4 @427.5,184.9 12px/17.4px 400 r999px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / project chip (row) #2",
+   "wire": "72.5x21.4 @487.6,184.9 12px/17.4px 400 r999px",
+   "built": "72.5x21.4 @487.6,184.9 12px/17.4px 400 r999px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / project chip (row) #3",
+   "wire": "67.8x21.4 @568.1,184.9 12px/17.4px 400 r999px",
+   "built": "67.8x21.4 @568.1,184.9 12px/17.4px 400 r999px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / section #1",
+   "wire": "860.0x143.5 @427.5,220.3 14px/20.3px 400 r0px",
+   "built": "860.0x143.5 @427.5,220.3 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / section #2",
+   "wire": "860.0x85.9 @427.5,377.8 14px/20.3px 400 r0px",
+   "built": "860.0x85.9 @427.5,377.8 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / section #3",
+   "wire": "860.0x143.5 @427.5,477.7 14px/20.3px 400 r0px",
+   "built": "860.0x143.5 @427.5,477.7 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / section #4",
+   "wire": "860.0x176.2 @427.5,635.1 14px/20.3px 400 r0px",
+   "built": "860.0x176.2 @427.5,635.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / section title #1",
+   "wire": "102.7x20.3 @427.5,220.3 14px/20.3px 600 r0px",
+   "built": "102.7x20.3 @427.5,220.3 14px/20.3px 600 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / section title #2",
+   "wire": "860.0x20.3 @427.5,377.8 14px/20.3px 600 r0px",
+   "built": "860.0x20.3 @427.5,377.8 14px/20.3px 600 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / section title #3",
+   "wire": "860.0x20.3 @427.5,477.7 14px/20.3px 600 r0px",
+   "built": "860.0x20.3 @427.5,477.7 14px/20.3px 600 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / section title #4",
+   "wire": "860.0x20.3 @427.5,635.1 14px/20.3px 600 r0px",
+   "built": "860.0x20.3 @427.5,635.1 14px/20.3px 600 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / count badge",
+   "wire": "23.6x19.4 @506.7,220.7 12px/17.4px 600 r999px",
+   "built": "23.6x19.4 @506.7,220.7 12px/17.4px 600 r999px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row box #1",
+   "wire": "860.0x117.2 @427.5,246.6 14px/20.3px 400 r12px",
+   "built": "860.0x117.2 @427.5,246.6 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row box #2",
+   "wire": "860.0x59.6 @427.5,404.1 14px/20.3px 400 r12px",
+   "built": "860.0x59.6 @427.5,404.1 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row box #3",
+   "wire": "860.0x117.2 @427.5,504.0 14px/20.3px 400 r12px",
+   "built": "860.0x117.2 @427.5,504.0 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row box #4",
+   "wire": "860.0x149.9 @427.5,661.4 14px/20.3px 400 r12px",
+   "built": "860.0x149.9 @427.5,661.4 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row #1",
+   "wire": "834.0x57.6 @440.5,247.6 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @440.5,247.6 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row #2",
+   "wire": "834.0x57.6 @440.5,305.2 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @440.5,305.2 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row #3",
+   "wire": "834.0x57.6 @440.5,405.1 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @440.5,405.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row #4",
+   "wire": "834.0x57.6 @440.5,505.0 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @440.5,505.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row #5",
+   "wire": "834.0x57.6 @440.5,562.5 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @440.5,562.5 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row #6",
+   "wire": "834.0x49.3 @440.5,662.4 14px/20.3px 400 r0px",
+   "built": "834.0x49.3 @440.5,662.4 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row #7",
+   "wire": "834.0x49.3 @440.5,711.7 14px/20.3px 400 r0px",
+   "built": "834.0x49.3 @440.5,711.7 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row #8",
+   "wire": "834.0x49.3 @440.5,761.0 14px/20.3px 400 r0px",
+   "built": "834.0x49.3 @440.5,761.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row note #1",
+   "wire": "199.5x15.0 @440.5,278.9 12px/17.4px 400 r0px",
+   "built": "199.5x15.0 @440.5,278.9 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row note #2",
+   "wire": "142.2x15.0 @440.5,336.5 12px/17.4px 400 r0px",
+   "built": "142.2x15.0 @440.5,336.5 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row note #3",
+   "wire": "244.6x15.0 @440.5,436.4 12px/17.4px 400 r0px",
+   "built": "244.6x15.0 @440.5,436.4 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row note #4",
+   "wire": "251.6x15.0 @440.5,536.3 12px/17.4px 400 r0px",
+   "built": "251.6x15.0 @440.5,536.3 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row note #5",
+   "wire": "234.5x15.0 @440.5,593.8 12px/17.4px 400 r0px",
+   "built": "234.5x15.0 @440.5,593.8 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row action #1",
+   "wire": "92.1x32.3 @1117.5,259.7 14px/20.3px 400 r8px",
+   "built": "92.1x32.3 @1117.5,259.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row action #2",
+   "wire": "56.9x32.3 @1217.6,259.7 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @1217.6,259.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row action #3",
+   "wire": "56.9x32.3 @1217.6,317.3 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @1217.6,317.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row action #4",
+   "wire": "56.9x32.3 @1157.5,417.2 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @1157.5,417.2 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row action #5",
+   "wire": "52.1x32.3 @1222.4,417.2 14px/20.3px 400 r8px",
+   "built": "52.1x32.3 @1222.4,417.2 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row action #6",
+   "wire": "77.4x32.3 @1197.1,517.1 14px/20.3px 400 r8px",
+   "built": "77.4x32.3 @1197.1,517.1 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row action #7",
+   "wire": "46.9x32.3 @1227.6,574.7 14px/20.3px 400 r8px",
+   "built": "46.9x32.3 @1227.6,574.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row action #8",
+   "wire": "56.9x32.3 @1145.1,670.4 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @1145.1,670.4 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row action #9",
+   "wire": "64.5x32.3 @1210.0,670.4 14px/20.3px 400 r8px",
+   "built": "64.5x32.3 @1210.0,670.4 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row action #10",
+   "wire": "56.9x32.3 @1145.1,719.7 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @1145.1,719.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row action #11",
+   "wire": "64.5x32.3 @1210.0,719.7 14px/20.3px 400 r8px",
+   "built": "64.5x32.3 @1210.0,719.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row action #12",
+   "wire": "56.9x32.3 @1145.1,769.0 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @1145.1,769.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 home / row action #13",
+   "wire": "64.5x32.3 @1210.0,769.0 14px/20.3px 400 r8px",
+   "built": "64.5x32.3 @1210.0,769.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 schedules / page",
+   "wire": "1163.0x279.2 @276.0,45.0 14px/20.3px 400 r0px",
+   "built": "1163.0x279.2 @276.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 schedules / column",
+   "wire": "860.0x235.2 @427.5,67.0 14px/20.3px 400 r0px",
+   "built": "860.0x235.2 @427.5,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 schedules / header row",
+   "wire": "860.0x46.4 @427.5,67.0 14px/20.3px 400 r0px",
+   "built": "860.0x46.4 @427.5,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 schedules / page title",
+   "wire": "487.1x26.1 @427.5,67.0 18px/26.1px 700 r0px",
+   "built": "487.1x26.1 @427.5,67.0 18px/26.1px 700 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 schedules / page subtitle",
+   "wire": "487.1x20.3 @427.5,93.1 14px/20.3px 400 r0px",
+   "built": "487.1x20.3 @427.5,93.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 schedules / primary CTA",
+   "wire": "113.1x32.3 @1174.4,74.0 14px/20.3px 400 r8px",
+   "built": "113.1x32.3 @1174.4,74.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 schedules / row box",
+   "wire": "860.0x174.8 @427.5,127.4 14px/20.3px 400 r12px",
+   "built": "860.0x174.8 @427.5,127.4 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 schedules / row #1",
+   "wire": "834.0x57.6 @440.5,128.4 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @440.5,128.4 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 schedules / row #2",
+   "wire": "834.0x57.6 @440.5,186.0 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @440.5,186.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 schedules / row #3",
+   "wire": "834.0x57.6 @440.5,243.6 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @440.5,243.6 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 schedules / row note #1",
+   "wire": "281.0x15.0 @440.5,159.7 12px/17.4px 400 r0px",
+   "built": "281.0x15.0 @440.5,159.7 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 schedules / row note #2",
+   "wire": "122.4x15.0 @440.5,217.3 12px/17.4px 400 r0px",
+   "built": "122.4x15.0 @440.5,217.3 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 schedules / row note #3",
+   "wire": "220.9x15.0 @440.5,274.9 12px/17.4px 400 r0px",
+   "built": "220.9x15.0 @440.5,274.9 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 schedules / row action #1",
+   "wire": "46.9x32.3 @1227.6,140.5 14px/20.3px 400 r8px",
+   "built": "46.9x32.3 @1227.6,140.5 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 schedules / row action #2",
+   "wire": "46.9x32.3 @1227.6,198.1 14px/20.3px 400 r8px",
+   "built": "46.9x32.3 @1227.6,198.1 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 schedules / row action #3",
+   "wire": "77.4x32.3 @1197.1,255.7 14px/20.3px 400 r8px",
+   "built": "77.4x32.3 @1197.1,255.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 connections / page",
+   "wire": "1163.0x336.8 @276.0,45.0 14px/20.3px 400 r0px",
+   "built": "1163.0x336.8 @276.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 connections / column",
+   "wire": "860.0x292.8 @427.5,67.0 14px/20.3px 400 r0px",
+   "built": "860.0x292.8 @427.5,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 connections / header row",
+   "wire": "860.0x46.4 @427.5,67.0 14px/20.3px 400 r0px",
+   "built": "860.0x46.4 @427.5,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 connections / page title",
+   "wire": "222.0x26.1 @427.5,67.0 18px/26.1px 700 r0px",
+   "built": "222.0x26.1 @427.5,67.0 18px/26.1px 700 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 connections / page subtitle",
+   "wire": "222.0x20.3 @427.5,93.1 14px/20.3px 400 r0px",
+   "built": "222.0x20.3 @427.5,93.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 connections / primary CTA",
+   "wire": "76.6x32.3 @1210.9,74.0 14px/20.3px 400 r8px",
+   "built": "76.6x32.3 @1210.9,74.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 connections / row box",
+   "wire": "860.0x232.4 @427.5,127.4 14px/20.3px 400 r12px",
+   "built": "860.0x232.4 @427.5,127.4 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 connections / row #1",
+   "wire": "834.0x57.6 @440.5,128.4 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @440.5,128.4 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 connections / row #2",
+   "wire": "834.0x57.6 @440.5,186.0 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @440.5,186.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 connections / row #3",
+   "wire": "834.0x57.6 @440.5,243.6 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @440.5,243.6 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 connections / row #4",
+   "wire": "834.0x57.6 @440.5,301.2 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @440.5,301.2 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 connections / row note #1",
+   "wire": "125.8x15.0 @440.5,159.7 12px/17.4px 400 r0px",
+   "built": "125.8x15.0 @440.5,159.7 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 connections / row note #2",
+   "wire": "190.6x15.0 @440.5,217.3 12px/17.4px 400 r0px",
+   "built": "190.6x15.0 @440.5,217.3 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 connections / row note #3",
+   "wire": "96.8x15.0 @440.5,274.9 12px/17.4px 400 r0px",
+   "built": "96.8x15.0 @440.5,274.9 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 connections / row note #4",
+   "wire": "38.7x15.0 @440.5,332.5 12px/17.4px 400 r0px",
+   "built": "38.7x15.0 @440.5,332.5 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 connections / row action #1",
+   "wire": "73.5x32.3 @1201.0,140.5 14px/20.3px 400 r8px",
+   "built": "73.5x32.3 @1201.0,140.5 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 connections / row action #2",
+   "wire": "73.5x32.3 @1201.0,198.1 14px/20.3px 400 r8px",
+   "built": "73.5x32.3 @1201.0,198.1 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 connections / row action #3",
+   "wire": "91.1x32.3 @1183.4,255.7 14px/20.3px 400 r8px",
+   "built": "91.1x32.3 @1183.4,255.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 connections / row action #4",
+   "wire": "73.5x32.3 @1201.0,313.3 14px/20.3px 400 r8px",
+   "built": "73.5x32.3 @1201.0,313.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 skills / page",
+   "wire": "1163.0x336.8 @276.0,45.0 14px/20.3px 400 r0px",
+   "built": "1163.0x336.8 @276.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 skills / column",
+   "wire": "860.0x292.8 @427.5,67.0 14px/20.3px 400 r0px",
+   "built": "860.0x292.8 @427.5,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 skills / header row",
+   "wire": "860.0x46.4 @427.5,67.0 14px/20.3px 400 r0px",
+   "built": "860.0x46.4 @427.5,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 skills / page title",
+   "wire": "359.9x26.1 @427.5,67.0 18px/26.1px 700 r0px",
+   "built": "359.9x26.1 @427.5,67.0 18px/26.1px 700 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 skills / page subtitle",
+   "wire": "359.9x20.3 @427.5,93.1 14px/20.3px 400 r0px",
+   "built": "359.9x20.3 @427.5,93.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 skills / primary CTA",
+   "wire": "105.1x32.3 @1182.4,74.0 14px/20.3px 400 r8px",
+   "built": "105.1x32.3 @1182.4,74.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 skills / row box",
+   "wire": "860.0x232.4 @427.5,127.4 14px/20.3px 400 r12px",
+   "built": "860.0x232.4 @427.5,127.4 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 skills / row #1",
+   "wire": "834.0x57.6 @440.5,128.4 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @440.5,128.4 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 skills / row #2",
+   "wire": "834.0x57.6 @440.5,186.0 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @440.5,186.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 skills / row #3",
+   "wire": "834.0x57.6 @440.5,243.6 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @440.5,243.6 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 skills / row #4",
+   "wire": "834.0x57.6 @440.5,301.2 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @440.5,301.2 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 skills / row note #1",
+   "wire": "16.3x15.0 @440.5,159.7 12px/17.4px 400 r0px",
+   "built": "16.3x15.0 @440.5,159.7 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 skills / row note #2",
+   "wire": "16.3x15.0 @440.5,217.3 12px/17.4px 400 r0px",
+   "built": "16.3x15.0 @440.5,217.3 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 skills / row note #3",
+   "wire": "16.3x15.0 @440.5,274.9 12px/17.4px 400 r0px",
+   "built": "16.3x15.0 @440.5,274.9 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 skills / row note #4",
+   "wire": "79.4x15.0 @440.5,332.5 12px/17.4px 400 r0px",
+   "built": "79.4x15.0 @440.5,332.5 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 skills / row action #1",
+   "wire": "69.8x32.3 @1204.7,140.5 14px/20.3px 400 r8px",
+   "built": "69.8x32.3 @1204.7,140.5 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 skills / row action #2",
+   "wire": "69.8x32.3 @1204.7,198.1 14px/20.3px 400 r8px",
+   "built": "69.8x32.3 @1204.7,198.1 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 skills / row action #3",
+   "wire": "69.8x32.3 @1204.7,255.7 14px/20.3px 400 r8px",
+   "built": "69.8x32.3 @1204.7,255.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 skills / row action #4",
+   "wire": "71.8x32.3 @1202.7,313.3 14px/20.3px 400 r8px",
+   "built": "71.8x32.3 @1202.7,313.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 outputs / page",
+   "wire": "1163.0x279.2 @276.0,45.0 14px/20.3px 400 r0px",
+   "built": "1163.0x279.2 @276.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 outputs / column",
+   "wire": "860.0x235.2 @427.5,67.0 14px/20.3px 400 r0px",
+   "built": "860.0x235.2 @427.5,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 outputs / header row",
+   "wire": "860.0x46.4 @427.5,67.0 14px/20.3px 400 r0px",
+   "built": "860.0x46.4 @427.5,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 outputs / page title",
+   "wire": "216.2x26.1 @427.5,67.0 18px/26.1px 700 r0px",
+   "built": "216.2x26.1 @427.5,67.0 18px/26.1px 700 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 outputs / page subtitle",
+   "wire": "216.2x20.3 @427.5,93.1 14px/20.3px 400 r0px",
+   "built": "216.2x20.3 @427.5,93.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 outputs / primary CTA",
+   "wire": "98.3x32.3 @1189.2,74.0 14px/20.3px 400 r8px",
+   "built": "98.3x32.3 @1189.2,74.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 outputs / row box",
+   "wire": "860.0x174.8 @427.5,127.4 14px/20.3px 400 r12px",
+   "built": "860.0x174.8 @427.5,127.4 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 outputs / row #1",
+   "wire": "834.0x57.6 @440.5,128.4 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @440.5,128.4 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 outputs / row #2",
+   "wire": "834.0x57.6 @440.5,186.0 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @440.5,186.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 outputs / row #3",
+   "wire": "834.0x57.6 @440.5,243.6 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @440.5,243.6 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 outputs / row note #1",
+   "wire": "193.9x15.0 @440.5,159.7 12px/17.4px 400 r0px",
+   "built": "193.9x15.0 @440.5,159.7 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 outputs / row note #2",
+   "wire": "231.0x15.0 @440.5,217.3 12px/17.4px 400 r0px",
+   "built": "231.0x15.0 @440.5,217.3 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 outputs / row note #3",
+   "wire": "122.4x15.0 @440.5,274.9 12px/17.4px 400 r0px",
+   "built": "122.4x15.0 @440.5,274.9 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 outputs / row action #1",
+   "wire": "56.9x32.3 @1217.6,140.5 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @1217.6,140.5 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 outputs / row action #2",
+   "wire": "56.9x32.3 @1217.6,198.1 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @1217.6,198.1 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 outputs / row action #3",
+   "wire": "65.5x32.3 @1209.0,255.7 14px/20.3px 400 r8px",
+   "built": "65.5x32.3 @1209.0,255.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-changes / workbench",
+   "wire": "400.0x614.0 @1039.0,45.0 14px/20.3px 400 r0px",
+   "built": "400.0x614.0 @1039.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-changes / tab bar",
+   "wire": "399.0x45.3 @1040.0,45.0 14px/20.3px 400 r0px",
+   "built": "399.0x45.3 @1040.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-changes / tab #1",
+   "wire": "79.0x32.3 @1048.0,51.0 14px/20.3px 400 r8px",
+   "built": "79.0x32.3 @1048.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-changes / tab #2",
+   "wire": "51.6x32.3 @1129.0,51.0 14px/20.3px 400 r8px",
+   "built": "51.6x32.3 @1129.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-changes / tab #3",
+   "wire": "74.6x32.3 @1182.6,51.0 14px/20.3px 400 r8px",
+   "built": "74.6x32.3 @1182.6,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-changes / tab #4",
+   "wire": "76.9x32.3 @1259.1,51.0 14px/20.3px 400 r8px",
+   "built": "76.9x32.3 @1259.1,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-changes / tab #5",
+   "wire": "74.0x32.3 @1338.0,51.0 14px/20.3px 400 r8px",
+   "built": "74.0x32.3 @1338.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-changes / tab #6",
+   "wire": "32.7x32.3 @1414.0,51.0 14px/20.3px 400 r8px",
+   "built": "32.7x32.3 @1414.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-changes / body",
+   "wire": "399.0x568.7 @1040.0,90.3 13px/18.85px 400 r0px",
+   "built": "399.0x568.7 @1040.0,90.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-changes / row #1",
+   "wire": "375.0x35.8 @1052.0,102.3 13px/18.85px 400 r0px",
+   "built": "375.0x35.8 @1052.0,102.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-changes / row #2",
+   "wire": "375.0x35.8 @1052.0,204.1 13px/18.85px 400 r0px",
+   "built": "375.0x35.8 @1052.0,204.1 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-changes / code block",
+   "wire": "375.0x50.0 @1052.0,146.1 12px/18px 400 r6px",
+   "built": "375.0x50.0 @1052.0,146.1 12px/18px 400 r6px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-changes / action",
+   "wire": "176.1x30.8 @1052.0,250.0 13px/18.85px 400 r8px",
+   "built": "176.1x30.8 @1052.0,250.0 13px/18.85px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-files / workbench",
+   "wire": "400.0x614.0 @1039.0,45.0 14px/20.3px 400 r0px",
+   "built": "400.0x614.0 @1039.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-files / tab bar",
+   "wire": "399.0x45.3 @1040.0,45.0 14px/20.3px 400 r0px",
+   "built": "399.0x45.3 @1040.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-files / tab #1",
+   "wire": "79.0x32.3 @1048.0,51.0 14px/20.3px 400 r8px",
+   "built": "79.0x32.3 @1048.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-files / tab #2",
+   "wire": "51.6x32.3 @1129.0,51.0 14px/20.3px 400 r8px",
+   "built": "51.6x32.3 @1129.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-files / tab #3",
+   "wire": "74.6x32.3 @1182.6,51.0 14px/20.3px 400 r8px",
+   "built": "74.6x32.3 @1182.6,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-files / tab #4",
+   "wire": "76.9x32.3 @1259.1,51.0 14px/20.3px 400 r8px",
+   "built": "76.9x32.3 @1259.1,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-files / tab #5",
+   "wire": "74.0x32.3 @1338.0,51.0 14px/20.3px 400 r8px",
+   "built": "74.0x32.3 @1338.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-files / tab #6",
+   "wire": "32.7x32.3 @1414.0,51.0 14px/20.3px 400 r8px",
+   "built": "32.7x32.3 @1414.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-files / body",
+   "wire": "399.0x568.7 @1040.0,90.3 13px/18.85px 400 r0px",
+   "built": "399.0x568.7 @1040.0,90.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-files / code block",
+   "wire": "375.0x50.0 @1052.0,102.3 12px/18px 400 r6px",
+   "built": "375.0x104.0 @1052.0,102.3 12px/18px 400 r6px",
+   "result": "DEVIATION (wireframe .code lacks white-space:pre, so its multi-line text collapses to one line; built keeps the line breaks) h 50.0→104.0"
+  },
+  {
+   "tag": "1440 workbench-files / placeholder",
+   "wire": "375.0x90.0 @1052.0,160.3 12px/17.4px 400 r8px",
+   "built": "375.0x90.0 @1052.0,214.3 12px/17.4px 400 r8px",
+   "result": "DEVIATION (wireframe .code lacks white-space:pre, so its multi-line text collapses to one line; built keeps the line breaks) y 160.3→214.3"
+  },
+  {
+   "tag": "1440 workbench-browser / workbench",
+   "wire": "400.0x614.0 @1039.0,45.0 14px/20.3px 400 r0px",
+   "built": "400.0x614.0 @1039.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-browser / tab bar",
+   "wire": "399.0x45.3 @1040.0,45.0 14px/20.3px 400 r0px",
+   "built": "399.0x45.3 @1040.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-browser / tab #1",
+   "wire": "79.0x32.3 @1048.0,51.0 14px/20.3px 400 r8px",
+   "built": "79.0x32.3 @1048.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-browser / tab #2",
+   "wire": "51.6x32.3 @1129.0,51.0 14px/20.3px 400 r8px",
+   "built": "51.6x32.3 @1129.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-browser / tab #3",
+   "wire": "74.6x32.3 @1182.6,51.0 14px/20.3px 400 r8px",
+   "built": "74.6x32.3 @1182.6,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-browser / tab #4",
+   "wire": "76.9x32.3 @1259.1,51.0 14px/20.3px 400 r8px",
+   "built": "76.9x32.3 @1259.1,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-browser / tab #5",
+   "wire": "74.0x32.3 @1338.0,51.0 14px/20.3px 400 r8px",
+   "built": "74.0x32.3 @1338.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-browser / tab #6",
+   "wire": "32.7x32.3 @1414.0,51.0 14px/20.3px 400 r8px",
+   "built": "32.7x32.3 @1414.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-browser / body",
+   "wire": "399.0x568.7 @1040.0,90.3 13px/18.85px 400 r0px",
+   "built": "399.0x568.7 @1040.0,90.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-browser / placeholder",
+   "wire": "375.0x260.0 @1052.0,139.1 12px/17.4px 400 r8px",
+   "built": "375.0x260.0 @1052.0,139.1 12px/17.4px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-browser / url bar",
+   "wire": "375.0x28.8 @1052.0,102.3 13px/18.85px 400 r8px",
+   "built": "375.0x28.8 @1052.0,102.3 13px/18.85px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-terminal / workbench",
+   "wire": "400.0x614.0 @1039.0,45.0 14px/20.3px 400 r0px",
+   "built": "400.0x614.0 @1039.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-terminal / tab bar",
+   "wire": "399.0x45.3 @1040.0,45.0 14px/20.3px 400 r0px",
+   "built": "399.0x45.3 @1040.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-terminal / tab #1",
+   "wire": "79.0x32.3 @1048.0,51.0 14px/20.3px 400 r8px",
+   "built": "79.0x32.3 @1048.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-terminal / tab #2",
+   "wire": "51.6x32.3 @1129.0,51.0 14px/20.3px 400 r8px",
+   "built": "51.6x32.3 @1129.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-terminal / tab #3",
+   "wire": "74.6x32.3 @1182.6,51.0 14px/20.3px 400 r8px",
+   "built": "74.6x32.3 @1182.6,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-terminal / tab #4",
+   "wire": "76.9x32.3 @1259.1,51.0 14px/20.3px 400 r8px",
+   "built": "76.9x32.3 @1259.1,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-terminal / tab #5",
+   "wire": "74.0x32.3 @1338.0,51.0 14px/20.3px 400 r8px",
+   "built": "74.0x32.3 @1338.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-terminal / tab #6",
+   "wire": "32.7x32.3 @1414.0,51.0 14px/20.3px 400 r8px",
+   "built": "32.7x32.3 @1414.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-terminal / body",
+   "wire": "399.0x568.7 @1040.0,90.3 13px/18.85px 400 r0px",
+   "built": "399.0x568.7 @1040.0,90.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-terminal / code block",
+   "wire": "375.0x32.0 @1052.0,102.3 12px/18px 400 r6px",
+   "built": "375.0x68.0 @1052.0,102.3 12px/18px 400 r6px",
+   "result": "DEVIATION (wireframe .code lacks white-space:pre, so its multi-line text collapses to one line; built keeps the line breaks) h 32.0→68.0"
+  },
+  {
+   "tag": "1440 workbench-terminal / placeholder",
+   "wire": "375.0x90.0 @1052.0,142.3 12px/17.4px 400 r8px",
+   "built": "375.0x90.0 @1052.0,178.3 12px/17.4px 400 r8px",
+   "result": "DEVIATION (wireframe .code lacks white-space:pre, so its multi-line text collapses to one line; built keeps the line breaks) y 142.3→178.3"
+  },
+  {
+   "tag": "1440 workbench-outputs / workbench",
+   "wire": "400.0x614.0 @1039.0,45.0 14px/20.3px 400 r0px",
+   "built": "400.0x614.0 @1039.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-outputs / tab bar",
+   "wire": "399.0x45.3 @1040.0,45.0 14px/20.3px 400 r0px",
+   "built": "399.0x45.3 @1040.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-outputs / tab #1",
+   "wire": "79.0x32.3 @1048.0,51.0 14px/20.3px 400 r8px",
+   "built": "79.0x32.3 @1048.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-outputs / tab #2",
+   "wire": "51.6x32.3 @1129.0,51.0 14px/20.3px 400 r8px",
+   "built": "51.6x32.3 @1129.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-outputs / tab #3",
+   "wire": "74.6x32.3 @1182.6,51.0 14px/20.3px 400 r8px",
+   "built": "74.6x32.3 @1182.6,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-outputs / tab #4",
+   "wire": "76.9x32.3 @1259.1,51.0 14px/20.3px 400 r8px",
+   "built": "76.9x32.3 @1259.1,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-outputs / tab #5",
+   "wire": "74.0x32.3 @1338.0,51.0 14px/20.3px 400 r8px",
+   "built": "74.0x32.3 @1338.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-outputs / tab #6",
+   "wire": "32.7x32.3 @1414.0,51.0 14px/20.3px 400 r8px",
+   "built": "32.7x32.3 @1414.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-outputs / body",
+   "wire": "399.0x568.7 @1040.0,90.3 13px/18.85px 400 r0px",
+   "built": "399.0x568.7 @1040.0,90.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-outputs / row #1",
+   "wire": "375.0x47.8 @1052.0,102.3 13px/18.85px 400 r0px",
+   "built": "375.0x47.8 @1052.0,102.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-outputs / row #2",
+   "wire": "375.0x47.8 @1052.0,150.1 13px/18.85px 400 r0px",
+   "built": "375.0x47.8 @1052.0,150.1 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-outputs / action #1",
+   "wire": "54.7x30.8 @1372.3,110.3 13px/18.85px 400 r8px",
+   "built": "54.7x30.8 @1372.3,110.3 13px/18.85px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 workbench-outputs / action #2",
+   "wire": "54.7x30.8 @1372.3,158.1 13px/18.85px 400 r8px",
+   "built": "54.7x30.8 @1372.3,158.1 13px/18.85px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / scrim",
+   "wire": "1438.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "built": "1438.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / sheet",
+   "wire": "560.0x374.0 @440.0,105.0 14px/20.3px 400 r14px",
+   "built": "560.0x374.0 @440.0,105.0 14px/20.3px 400 r14px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / input",
+   "wire": "538.0x37.3 @451.0,116.0 14px/20.3px 400 r0px",
+   "built": "538.0x37.3 @451.0,116.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / option #1",
+   "wire": "538.0x34.3 @451.0,159.3 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @451.0,159.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / option #2",
+   "wire": "538.0x34.3 @451.0,193.6 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @451.0,193.6 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / option #3",
+   "wire": "538.0x34.3 @451.0,227.9 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @451.0,227.9 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / option #4",
+   "wire": "538.0x34.3 @451.0,262.2 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @451.0,262.2 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / option #5",
+   "wire": "538.0x34.3 @451.0,296.5 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @451.0,296.5 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / option #6",
+   "wire": "538.0x34.3 @451.0,330.8 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @451.0,330.8 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / option #7",
+   "wire": "538.0x34.3 @451.0,365.1 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @451.0,365.1 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / option #8",
+   "wire": "538.0x34.3 @451.0,399.4 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @451.0,399.4 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / option #9",
+   "wire": "538.0x34.3 @451.0,433.7 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @451.0,433.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / option hint #1",
+   "wire": "23.0x20.3 @958.0,166.3 14px/20.3px 400 r0px",
+   "built": "23.0x20.3 @958.0,166.3 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / option hint #2",
+   "wire": "0.0x20.3 @981.0,200.6 14px/20.3px 400 r0px",
+   "built": "0.0x20.3 @981.0,200.6 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / option hint #3",
+   "wire": "0.0x20.3 @981.0,234.9 14px/20.3px 400 r0px",
+   "built": "0.0x20.3 @981.0,234.9 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / option hint #4",
+   "wire": "0.0x20.3 @981.0,269.2 14px/20.3px 400 r0px",
+   "built": "0.0x20.3 @981.0,269.2 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / option hint #5",
+   "wire": "0.0x20.3 @981.0,303.5 14px/20.3px 400 r0px",
+   "built": "0.0x20.3 @981.0,303.5 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / option hint #6",
+   "wire": "0.0x20.3 @981.0,337.8 14px/20.3px 400 r0px",
+   "built": "0.0x20.3 @981.0,337.8 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / option hint #7",
+   "wire": "21.8x20.3 @959.2,372.1 14px/20.3px 400 r0px",
+   "built": "21.8x20.3 @959.2,372.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / option hint #8",
+   "wire": "0.0x20.3 @981.0,406.4 14px/20.3px 400 r0px",
+   "built": "0.0x20.3 @981.0,406.4 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette / option hint #9",
+   "wire": "16.7x20.3 @964.3,440.7 14px/20.3px 400 r0px",
+   "built": "16.7x20.3 @964.3,440.7 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette-no-matches / scrim",
+   "wire": "1438.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "built": "1438.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette-no-matches / sheet",
+   "wire": "560.0x109.6 @440.0,105.0 14px/20.3px 400 r14px",
+   "built": "560.0x109.6 @440.0,105.0 14px/20.3px 400 r14px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette-no-matches / input",
+   "wire": "538.0x37.3 @451.0,116.0 14px/20.3px 400 r0px",
+   "built": "538.0x37.3 @451.0,116.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 palette-no-matches / no matches",
+   "wire": "538.0x36.3 @451.0,159.3 14px/20.3px 400 r0px",
+   "built": "538.0x36.3 @451.0,159.3 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / scrim",
+   "wire": "1438.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "built": "1438.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / sheet",
+   "wire": "640.0x244.3 @400.0,105.0 14px/20.3px 400 r14px",
+   "built": "640.0x244.3 @400.0,105.0 14px/20.3px 400 r14px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / header",
+   "wire": "618.0x32.3 @411.0,116.0 14px/20.3px 400 r0px",
+   "built": "618.0x32.3 @411.0,116.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / title",
+   "wire": "58.1x20.3 @411.0,122.0 14px/20.3px 700 r0px",
+   "built": "58.1x20.3 @411.0,122.0 14px/20.3px 700 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / close",
+   "wire": "32.7x32.3 @996.3,116.0 14px/20.3px 400 r8px",
+   "built": "32.7x32.3 @996.3,116.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / nav item #1",
+   "wire": "150.0x36.0 @411.0,158.3 14px/20.3px 600 r8px",
+   "built": "150.0x36.0 @411.0,158.3 14px/20.3px 600 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / nav item #2",
+   "wire": "150.0x36.0 @411.0,194.3 14px/20.3px 400 r8px",
+   "built": "150.0x36.0 @411.0,194.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / nav item #3",
+   "wire": "150.0x36.0 @411.0,230.3 14px/20.3px 400 r8px",
+   "built": "150.0x36.0 @411.0,230.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / nav item #4",
+   "wire": "150.0x36.0 @411.0,266.3 14px/20.3px 400 r8px",
+   "built": "150.0x36.0 @411.0,266.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / nav item #5",
+   "wire": "150.0x36.0 @411.0,302.3 14px/20.3px 400 r8px",
+   "built": "150.0x36.0 @411.0,302.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / row box",
+   "wire": "454.0x180.0 @575.0,158.3 14px/20.3px 400 r12px",
+   "built": "454.0x180.0 @575.0,158.3 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / row #1",
+   "wire": "428.0x57.6 @588.0,159.3 14px/20.3px 400 r0px",
+   "built": "428.0x57.6 @588.0,159.3 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / row #2",
+   "wire": "428.0x57.6 @588.0,216.9 14px/20.3px 400 r0px",
+   "built": "428.0x57.6 @588.0,216.9 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / row #3",
+   "wire": "428.0x57.6 @588.0,274.5 14px/20.3px 400 r0px",
+   "built": "428.0x57.6 @588.0,274.5 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / row note #1",
+   "wire": "251.7x15.0 @588.0,190.6 12px/17.4px 400 r0px",
+   "built": "251.7x15.0 @588.0,190.6 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / row note #2",
+   "wire": "79.4x15.0 @588.0,248.2 12px/17.4px 400 r0px",
+   "built": "79.4x15.0 @588.0,248.2 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / row note #3",
+   "wire": "94.5x15.0 @588.0,305.8 12px/17.4px 400 r0px",
+   "built": "94.5x15.0 @588.0,305.8 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / row action #1",
+   "wire": "73.5x32.3 @942.5,171.4 14px/20.3px 400 r8px",
+   "built": "73.5x32.3 @942.5,171.4 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / row action #2",
+   "wire": "71.8x32.3 @944.2,229.0 14px/20.3px 400 r8px",
+   "built": "71.8x32.3 @944.2,229.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1440 settings-general / row action #3",
+   "wire": "71.8x32.3 @944.2,286.6 14px/20.3px 400 r8px",
+   "built": "71.8x32.3 @944.2,286.6 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / page",
+   "wire": "1042.0x788.3 @57.0,45.0 14px/20.3px 400 r0px",
+   "built": "1042.0x788.3 @57.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / column",
+   "wire": "860.0x744.3 @148.0,67.0 14px/20.3px 400 r0px",
+   "built": "860.0x744.3 @148.0,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / composer",
+   "wire": "860.0x103.9 @148.0,67.0 14px/20.3px 400 r22px",
+   "built": "860.0x103.9 @148.0,67.0 14px/20.3px 400 r22px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / composer textarea",
+   "wire": "834.0x44.6 @161.0,78.0 14px/20.3px 400 r0px",
+   "built": "834.0x44.6 @161.0,78.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / composer tools",
+   "wire": "834.0x32.0 @161.0,127.9 14px/20.3px 400 r0px",
+   "built": "834.0x32.0 @161.0,127.9 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / attach button",
+   "wire": "30.0x30.0 @161.0,128.9 15px/21.75px 400 r8px",
+   "built": "30.0x30.0 @161.0,128.9 15px/21.75px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / send button",
+   "wire": "32.0x32.0 @963.0,127.9 14px/20.3px 400 r50%",
+   "built": "32.0x32.0 @963.0,127.9 14px/20.3px 400 r50%",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / project chip",
+   "wire": "104.3x21.4 @852.7,133.2 12px/17.4px 400 r999px",
+   "built": "104.3x21.4 @852.7,133.2 12px/17.4px 400 r999px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / project chips row",
+   "wire": "860.0x21.4 @148.0,184.9 14px/20.3px 400 r0px",
+   "built": "860.0x21.4 @148.0,184.9 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / project chip (row) #1",
+   "wire": "52.1x21.4 @148.0,184.9 12px/17.4px 400 r999px",
+   "built": "52.1x21.4 @148.0,184.9 12px/17.4px 400 r999px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / project chip (row) #2",
+   "wire": "72.5x21.4 @208.1,184.9 12px/17.4px 400 r999px",
+   "built": "72.5x21.4 @208.1,184.9 12px/17.4px 400 r999px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / project chip (row) #3",
+   "wire": "67.8x21.4 @288.6,184.9 12px/17.4px 400 r999px",
+   "built": "67.8x21.4 @288.6,184.9 12px/17.4px 400 r999px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / section #1",
+   "wire": "860.0x143.5 @148.0,220.3 14px/20.3px 400 r0px",
+   "built": "860.0x143.5 @148.0,220.3 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / section #2",
+   "wire": "860.0x85.9 @148.0,377.8 14px/20.3px 400 r0px",
+   "built": "860.0x85.9 @148.0,377.8 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / section #3",
+   "wire": "860.0x143.5 @148.0,477.7 14px/20.3px 400 r0px",
+   "built": "860.0x143.5 @148.0,477.7 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / section #4",
+   "wire": "860.0x176.2 @148.0,635.1 14px/20.3px 400 r0px",
+   "built": "860.0x176.2 @148.0,635.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / section title #1",
+   "wire": "71.2x20.3 @148.0,220.3 14px/20.3px 600 r0px",
+   "built": "102.7x20.3 @148.0,220.3 14px/20.3px 600 r0px",
+   "result": "DEVIATION (wireframe rule .w1100 .badge{display:none} was written for the sidebar rail and also hides Home's Needs you badge; built keeps it) w 71.2→102.7"
+  },
+  {
+   "tag": "1100 home / section title #2",
+   "wire": "860.0x20.3 @148.0,377.8 14px/20.3px 600 r0px",
+   "built": "860.0x20.3 @148.0,377.8 14px/20.3px 600 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / section title #3",
+   "wire": "860.0x20.3 @148.0,477.7 14px/20.3px 600 r0px",
+   "built": "860.0x20.3 @148.0,477.7 14px/20.3px 600 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / section title #4",
+   "wire": "860.0x20.3 @148.0,635.1 14px/20.3px 600 r0px",
+   "built": "860.0x20.3 @148.0,635.1 14px/20.3px 600 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / count badge",
+   "wire": "0.0x0.0 @-61.0,-365.8 12px/17.4px 600 r999px",
+   "built": "23.6x19.4 @227.2,220.7 12px/17.4px 600 r999px",
+   "result": "DEVIATION (wireframe rule .w1100 .badge{display:none} was written for the sidebar rail and also hides Home's Needs you badge; built keeps it) x -61.0→227.2; y -365.8→220.7; w 0.0→23.6; h 0.0→19.4"
+  },
+  {
+   "tag": "1100 home / row box #1",
+   "wire": "860.0x117.2 @148.0,246.6 14px/20.3px 400 r12px",
+   "built": "860.0x117.2 @148.0,246.6 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row box #2",
+   "wire": "860.0x59.6 @148.0,404.1 14px/20.3px 400 r12px",
+   "built": "860.0x59.6 @148.0,404.1 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row box #3",
+   "wire": "860.0x117.2 @148.0,504.0 14px/20.3px 400 r12px",
+   "built": "860.0x117.2 @148.0,504.0 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row box #4",
+   "wire": "860.0x149.9 @148.0,661.4 14px/20.3px 400 r12px",
+   "built": "860.0x149.9 @148.0,661.4 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row #1",
+   "wire": "834.0x57.6 @161.0,247.6 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @161.0,247.6 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row #2",
+   "wire": "834.0x57.6 @161.0,305.2 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @161.0,305.2 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row #3",
+   "wire": "834.0x57.6 @161.0,405.1 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @161.0,405.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row #4",
+   "wire": "834.0x57.6 @161.0,505.0 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @161.0,505.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row #5",
+   "wire": "834.0x57.6 @161.0,562.5 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @161.0,562.5 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row #6",
+   "wire": "834.0x49.3 @161.0,662.4 14px/20.3px 400 r0px",
+   "built": "834.0x49.3 @161.0,662.4 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row #7",
+   "wire": "834.0x49.3 @161.0,711.7 14px/20.3px 400 r0px",
+   "built": "834.0x49.3 @161.0,711.7 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row #8",
+   "wire": "834.0x49.3 @161.0,761.0 14px/20.3px 400 r0px",
+   "built": "834.0x49.3 @161.0,761.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row note #1",
+   "wire": "199.5x15.0 @161.0,278.9 12px/17.4px 400 r0px",
+   "built": "199.5x15.0 @161.0,278.9 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row note #2",
+   "wire": "142.2x15.0 @161.0,336.5 12px/17.4px 400 r0px",
+   "built": "142.2x15.0 @161.0,336.5 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row note #3",
+   "wire": "244.6x15.0 @161.0,436.4 12px/17.4px 400 r0px",
+   "built": "244.6x15.0 @161.0,436.4 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row note #4",
+   "wire": "251.6x15.0 @161.0,536.3 12px/17.4px 400 r0px",
+   "built": "251.6x15.0 @161.0,536.3 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row note #5",
+   "wire": "234.5x15.0 @161.0,593.8 12px/17.4px 400 r0px",
+   "built": "234.5x15.0 @161.0,593.8 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row action #1",
+   "wire": "92.1x32.3 @838.0,259.7 14px/20.3px 400 r8px",
+   "built": "92.1x32.3 @838.0,259.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row action #2",
+   "wire": "56.9x32.3 @938.1,259.7 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @938.1,259.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row action #3",
+   "wire": "56.9x32.3 @938.1,317.3 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @938.1,317.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row action #4",
+   "wire": "56.9x32.3 @878.0,417.2 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @878.0,417.2 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row action #5",
+   "wire": "52.1x32.3 @942.9,417.2 14px/20.3px 400 r8px",
+   "built": "52.1x32.3 @942.9,417.2 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row action #6",
+   "wire": "77.4x32.3 @917.6,517.1 14px/20.3px 400 r8px",
+   "built": "77.4x32.3 @917.6,517.1 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row action #7",
+   "wire": "46.9x32.3 @948.1,574.7 14px/20.3px 400 r8px",
+   "built": "46.9x32.3 @948.1,574.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row action #8",
+   "wire": "56.9x32.3 @865.6,670.4 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @865.6,670.4 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row action #9",
+   "wire": "64.5x32.3 @930.5,670.4 14px/20.3px 400 r8px",
+   "built": "64.5x32.3 @930.5,670.4 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row action #10",
+   "wire": "56.9x32.3 @865.6,719.7 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @865.6,719.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row action #11",
+   "wire": "64.5x32.3 @930.5,719.7 14px/20.3px 400 r8px",
+   "built": "64.5x32.3 @930.5,719.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row action #12",
+   "wire": "56.9x32.3 @865.6,769.0 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @865.6,769.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 home / row action #13",
+   "wire": "64.5x32.3 @930.5,769.0 14px/20.3px 400 r8px",
+   "built": "64.5x32.3 @930.5,769.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 schedules / page",
+   "wire": "1042.0x279.2 @57.0,45.0 14px/20.3px 400 r0px",
+   "built": "1042.0x279.2 @57.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 schedules / column",
+   "wire": "860.0x235.2 @148.0,67.0 14px/20.3px 400 r0px",
+   "built": "860.0x235.2 @148.0,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 schedules / header row",
+   "wire": "860.0x46.4 @148.0,67.0 14px/20.3px 400 r0px",
+   "built": "860.0x46.4 @148.0,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 schedules / page title",
+   "wire": "487.1x26.1 @148.0,67.0 18px/26.1px 700 r0px",
+   "built": "487.1x26.1 @148.0,67.0 18px/26.1px 700 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 schedules / page subtitle",
+   "wire": "487.1x20.3 @148.0,93.1 14px/20.3px 400 r0px",
+   "built": "487.1x20.3 @148.0,93.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 schedules / primary CTA",
+   "wire": "113.1x32.3 @894.9,74.0 14px/20.3px 400 r8px",
+   "built": "113.1x32.3 @894.9,74.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 schedules / row box",
+   "wire": "860.0x174.8 @148.0,127.4 14px/20.3px 400 r12px",
+   "built": "860.0x174.8 @148.0,127.4 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 schedules / row #1",
+   "wire": "834.0x57.6 @161.0,128.4 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @161.0,128.4 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 schedules / row #2",
+   "wire": "834.0x57.6 @161.0,186.0 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @161.0,186.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 schedules / row #3",
+   "wire": "834.0x57.6 @161.0,243.6 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @161.0,243.6 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 schedules / row note #1",
+   "wire": "281.0x15.0 @161.0,159.7 12px/17.4px 400 r0px",
+   "built": "281.0x15.0 @161.0,159.7 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 schedules / row note #2",
+   "wire": "122.4x15.0 @161.0,217.3 12px/17.4px 400 r0px",
+   "built": "122.4x15.0 @161.0,217.3 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 schedules / row note #3",
+   "wire": "220.9x15.0 @161.0,274.9 12px/17.4px 400 r0px",
+   "built": "220.9x15.0 @161.0,274.9 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 schedules / row action #1",
+   "wire": "46.9x32.3 @948.1,140.5 14px/20.3px 400 r8px",
+   "built": "46.9x32.3 @948.1,140.5 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 schedules / row action #2",
+   "wire": "46.9x32.3 @948.1,198.1 14px/20.3px 400 r8px",
+   "built": "46.9x32.3 @948.1,198.1 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 schedules / row action #3",
+   "wire": "77.4x32.3 @917.6,255.7 14px/20.3px 400 r8px",
+   "built": "77.4x32.3 @917.6,255.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 connections / page",
+   "wire": "1042.0x336.8 @57.0,45.0 14px/20.3px 400 r0px",
+   "built": "1042.0x336.8 @57.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 connections / column",
+   "wire": "860.0x292.8 @148.0,67.0 14px/20.3px 400 r0px",
+   "built": "860.0x292.8 @148.0,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 connections / header row",
+   "wire": "860.0x46.4 @148.0,67.0 14px/20.3px 400 r0px",
+   "built": "860.0x46.4 @148.0,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 connections / page title",
+   "wire": "222.0x26.1 @148.0,67.0 18px/26.1px 700 r0px",
+   "built": "222.0x26.1 @148.0,67.0 18px/26.1px 700 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 connections / page subtitle",
+   "wire": "222.0x20.3 @148.0,93.1 14px/20.3px 400 r0px",
+   "built": "222.0x20.3 @148.0,93.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 connections / primary CTA",
+   "wire": "76.6x32.3 @931.4,74.0 14px/20.3px 400 r8px",
+   "built": "76.6x32.3 @931.4,74.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 connections / row box",
+   "wire": "860.0x232.4 @148.0,127.4 14px/20.3px 400 r12px",
+   "built": "860.0x232.4 @148.0,127.4 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 connections / row #1",
+   "wire": "834.0x57.6 @161.0,128.4 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @161.0,128.4 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 connections / row #2",
+   "wire": "834.0x57.6 @161.0,186.0 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @161.0,186.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 connections / row #3",
+   "wire": "834.0x57.6 @161.0,243.6 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @161.0,243.6 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 connections / row #4",
+   "wire": "834.0x57.6 @161.0,301.2 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @161.0,301.2 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 connections / row note #1",
+   "wire": "125.8x15.0 @161.0,159.7 12px/17.4px 400 r0px",
+   "built": "125.8x15.0 @161.0,159.7 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 connections / row note #2",
+   "wire": "190.6x15.0 @161.0,217.3 12px/17.4px 400 r0px",
+   "built": "190.6x15.0 @161.0,217.3 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 connections / row note #3",
+   "wire": "96.8x15.0 @161.0,274.9 12px/17.4px 400 r0px",
+   "built": "96.8x15.0 @161.0,274.9 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 connections / row note #4",
+   "wire": "38.7x15.0 @161.0,332.5 12px/17.4px 400 r0px",
+   "built": "38.7x15.0 @161.0,332.5 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 connections / row action #1",
+   "wire": "73.5x32.3 @921.5,140.5 14px/20.3px 400 r8px",
+   "built": "73.5x32.3 @921.5,140.5 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 connections / row action #2",
+   "wire": "73.5x32.3 @921.5,198.1 14px/20.3px 400 r8px",
+   "built": "73.5x32.3 @921.5,198.1 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 connections / row action #3",
+   "wire": "91.1x32.3 @903.9,255.7 14px/20.3px 400 r8px",
+   "built": "91.1x32.3 @903.9,255.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 connections / row action #4",
+   "wire": "73.5x32.3 @921.5,313.3 14px/20.3px 400 r8px",
+   "built": "73.5x32.3 @921.5,313.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 skills / page",
+   "wire": "1042.0x336.8 @57.0,45.0 14px/20.3px 400 r0px",
+   "built": "1042.0x336.8 @57.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 skills / column",
+   "wire": "860.0x292.8 @148.0,67.0 14px/20.3px 400 r0px",
+   "built": "860.0x292.8 @148.0,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 skills / header row",
+   "wire": "860.0x46.4 @148.0,67.0 14px/20.3px 400 r0px",
+   "built": "860.0x46.4 @148.0,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 skills / page title",
+   "wire": "359.9x26.1 @148.0,67.0 18px/26.1px 700 r0px",
+   "built": "359.9x26.1 @148.0,67.0 18px/26.1px 700 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 skills / page subtitle",
+   "wire": "359.9x20.3 @148.0,93.1 14px/20.3px 400 r0px",
+   "built": "359.9x20.3 @148.0,93.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 skills / primary CTA",
+   "wire": "105.1x32.3 @902.9,74.0 14px/20.3px 400 r8px",
+   "built": "105.1x32.3 @902.9,74.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 skills / row box",
+   "wire": "860.0x232.4 @148.0,127.4 14px/20.3px 400 r12px",
+   "built": "860.0x232.4 @148.0,127.4 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 skills / row #1",
+   "wire": "834.0x57.6 @161.0,128.4 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @161.0,128.4 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 skills / row #2",
+   "wire": "834.0x57.6 @161.0,186.0 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @161.0,186.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 skills / row #3",
+   "wire": "834.0x57.6 @161.0,243.6 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @161.0,243.6 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 skills / row #4",
+   "wire": "834.0x57.6 @161.0,301.2 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @161.0,301.2 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 skills / row note #1",
+   "wire": "16.3x15.0 @161.0,159.7 12px/17.4px 400 r0px",
+   "built": "16.3x15.0 @161.0,159.7 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 skills / row note #2",
+   "wire": "16.3x15.0 @161.0,217.3 12px/17.4px 400 r0px",
+   "built": "16.3x15.0 @161.0,217.3 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 skills / row note #3",
+   "wire": "16.3x15.0 @161.0,274.9 12px/17.4px 400 r0px",
+   "built": "16.3x15.0 @161.0,274.9 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 skills / row note #4",
+   "wire": "79.4x15.0 @161.0,332.5 12px/17.4px 400 r0px",
+   "built": "79.4x15.0 @161.0,332.5 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 skills / row action #1",
+   "wire": "69.8x32.3 @925.2,140.5 14px/20.3px 400 r8px",
+   "built": "69.8x32.3 @925.2,140.5 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 skills / row action #2",
+   "wire": "69.8x32.3 @925.2,198.1 14px/20.3px 400 r8px",
+   "built": "69.8x32.3 @925.2,198.1 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 skills / row action #3",
+   "wire": "69.8x32.3 @925.2,255.7 14px/20.3px 400 r8px",
+   "built": "69.8x32.3 @925.2,255.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 skills / row action #4",
+   "wire": "71.8x32.3 @923.2,313.3 14px/20.3px 400 r8px",
+   "built": "71.8x32.3 @923.2,313.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 outputs / page",
+   "wire": "1042.0x279.2 @57.0,45.0 14px/20.3px 400 r0px",
+   "built": "1042.0x279.2 @57.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 outputs / column",
+   "wire": "860.0x235.2 @148.0,67.0 14px/20.3px 400 r0px",
+   "built": "860.0x235.2 @148.0,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 outputs / header row",
+   "wire": "860.0x46.4 @148.0,67.0 14px/20.3px 400 r0px",
+   "built": "860.0x46.4 @148.0,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 outputs / page title",
+   "wire": "216.2x26.1 @148.0,67.0 18px/26.1px 700 r0px",
+   "built": "216.2x26.1 @148.0,67.0 18px/26.1px 700 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 outputs / page subtitle",
+   "wire": "216.2x20.3 @148.0,93.1 14px/20.3px 400 r0px",
+   "built": "216.2x20.3 @148.0,93.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 outputs / primary CTA",
+   "wire": "98.3x32.3 @909.7,74.0 14px/20.3px 400 r8px",
+   "built": "98.3x32.3 @909.7,74.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 outputs / row box",
+   "wire": "860.0x174.8 @148.0,127.4 14px/20.3px 400 r12px",
+   "built": "860.0x174.8 @148.0,127.4 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 outputs / row #1",
+   "wire": "834.0x57.6 @161.0,128.4 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @161.0,128.4 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 outputs / row #2",
+   "wire": "834.0x57.6 @161.0,186.0 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @161.0,186.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 outputs / row #3",
+   "wire": "834.0x57.6 @161.0,243.6 14px/20.3px 400 r0px",
+   "built": "834.0x57.6 @161.0,243.6 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 outputs / row note #1",
+   "wire": "193.9x15.0 @161.0,159.7 12px/17.4px 400 r0px",
+   "built": "193.9x15.0 @161.0,159.7 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 outputs / row note #2",
+   "wire": "231.0x15.0 @161.0,217.3 12px/17.4px 400 r0px",
+   "built": "231.0x15.0 @161.0,217.3 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 outputs / row note #3",
+   "wire": "122.4x15.0 @161.0,274.9 12px/17.4px 400 r0px",
+   "built": "122.4x15.0 @161.0,274.9 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 outputs / row action #1",
+   "wire": "56.9x32.3 @938.1,140.5 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @938.1,140.5 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 outputs / row action #2",
+   "wire": "56.9x32.3 @938.1,198.1 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @938.1,198.1 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 outputs / row action #3",
+   "wire": "65.5x32.3 @929.5,255.7 14px/20.3px 400 r8px",
+   "built": "65.5x32.3 @929.5,255.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-changes / workbench",
+   "wire": "400.0x614.0 @699.0,45.0 14px/20.3px 400 r0px",
+   "built": "400.0x614.0 @699.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-changes / tab bar",
+   "wire": "399.0x45.3 @700.0,45.0 14px/20.3px 400 r0px",
+   "built": "399.0x45.3 @700.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-changes / tab #1",
+   "wire": "79.0x32.3 @708.0,51.0 14px/20.3px 400 r8px",
+   "built": "79.0x32.3 @708.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-changes / tab #2",
+   "wire": "51.6x32.3 @789.0,51.0 14px/20.3px 400 r8px",
+   "built": "51.6x32.3 @789.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-changes / tab #3",
+   "wire": "74.6x32.3 @842.6,51.0 14px/20.3px 400 r8px",
+   "built": "74.6x32.3 @842.6,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-changes / tab #4",
+   "wire": "76.9x32.3 @919.1,51.0 14px/20.3px 400 r8px",
+   "built": "76.9x32.3 @919.1,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-changes / tab #5",
+   "wire": "74.0x32.3 @998.0,51.0 14px/20.3px 400 r8px",
+   "built": "74.0x32.3 @998.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-changes / tab #6",
+   "wire": "32.7x32.3 @1074.0,51.0 14px/20.3px 400 r8px",
+   "built": "32.7x32.3 @1074.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-changes / body",
+   "wire": "399.0x568.7 @700.0,90.3 13px/18.85px 400 r0px",
+   "built": "399.0x568.7 @700.0,90.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-changes / row #1",
+   "wire": "375.0x35.8 @712.0,102.3 13px/18.85px 400 r0px",
+   "built": "375.0x35.8 @712.0,102.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-changes / row #2",
+   "wire": "375.0x35.8 @712.0,204.1 13px/18.85px 400 r0px",
+   "built": "375.0x35.8 @712.0,204.1 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-changes / code block",
+   "wire": "375.0x50.0 @712.0,146.1 12px/18px 400 r6px",
+   "built": "375.0x50.0 @712.0,146.1 12px/18px 400 r6px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-changes / action",
+   "wire": "176.1x30.8 @712.0,250.0 13px/18.85px 400 r8px",
+   "built": "176.1x30.8 @712.0,250.0 13px/18.85px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-files / workbench",
+   "wire": "400.0x614.0 @699.0,45.0 14px/20.3px 400 r0px",
+   "built": "400.0x614.0 @699.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-files / tab bar",
+   "wire": "399.0x45.3 @700.0,45.0 14px/20.3px 400 r0px",
+   "built": "399.0x45.3 @700.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-files / tab #1",
+   "wire": "79.0x32.3 @708.0,51.0 14px/20.3px 400 r8px",
+   "built": "79.0x32.3 @708.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-files / tab #2",
+   "wire": "51.6x32.3 @789.0,51.0 14px/20.3px 400 r8px",
+   "built": "51.6x32.3 @789.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-files / tab #3",
+   "wire": "74.6x32.3 @842.6,51.0 14px/20.3px 400 r8px",
+   "built": "74.6x32.3 @842.6,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-files / tab #4",
+   "wire": "76.9x32.3 @919.1,51.0 14px/20.3px 400 r8px",
+   "built": "76.9x32.3 @919.1,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-files / tab #5",
+   "wire": "74.0x32.3 @998.0,51.0 14px/20.3px 400 r8px",
+   "built": "74.0x32.3 @998.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-files / tab #6",
+   "wire": "32.7x32.3 @1074.0,51.0 14px/20.3px 400 r8px",
+   "built": "32.7x32.3 @1074.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-files / body",
+   "wire": "399.0x568.7 @700.0,90.3 13px/18.85px 400 r0px",
+   "built": "399.0x568.7 @700.0,90.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-files / code block",
+   "wire": "375.0x50.0 @712.0,102.3 12px/18px 400 r6px",
+   "built": "375.0x104.0 @712.0,102.3 12px/18px 400 r6px",
+   "result": "DEVIATION (wireframe .code lacks white-space:pre, so its multi-line text collapses to one line; built keeps the line breaks) h 50.0→104.0"
+  },
+  {
+   "tag": "1100 workbench-files / placeholder",
+   "wire": "375.0x90.0 @712.0,160.3 12px/17.4px 400 r8px",
+   "built": "375.0x90.0 @712.0,214.3 12px/17.4px 400 r8px",
+   "result": "DEVIATION (wireframe .code lacks white-space:pre, so its multi-line text collapses to one line; built keeps the line breaks) y 160.3→214.3"
+  },
+  {
+   "tag": "1100 workbench-browser / workbench",
+   "wire": "400.0x614.0 @699.0,45.0 14px/20.3px 400 r0px",
+   "built": "400.0x614.0 @699.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-browser / tab bar",
+   "wire": "399.0x45.3 @700.0,45.0 14px/20.3px 400 r0px",
+   "built": "399.0x45.3 @700.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-browser / tab #1",
+   "wire": "79.0x32.3 @708.0,51.0 14px/20.3px 400 r8px",
+   "built": "79.0x32.3 @708.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-browser / tab #2",
+   "wire": "51.6x32.3 @789.0,51.0 14px/20.3px 400 r8px",
+   "built": "51.6x32.3 @789.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-browser / tab #3",
+   "wire": "74.6x32.3 @842.6,51.0 14px/20.3px 400 r8px",
+   "built": "74.6x32.3 @842.6,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-browser / tab #4",
+   "wire": "76.9x32.3 @919.1,51.0 14px/20.3px 400 r8px",
+   "built": "76.9x32.3 @919.1,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-browser / tab #5",
+   "wire": "74.0x32.3 @998.0,51.0 14px/20.3px 400 r8px",
+   "built": "74.0x32.3 @998.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-browser / tab #6",
+   "wire": "32.7x32.3 @1074.0,51.0 14px/20.3px 400 r8px",
+   "built": "32.7x32.3 @1074.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-browser / body",
+   "wire": "399.0x568.7 @700.0,90.3 13px/18.85px 400 r0px",
+   "built": "399.0x568.7 @700.0,90.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-browser / placeholder",
+   "wire": "375.0x260.0 @712.0,139.1 12px/17.4px 400 r8px",
+   "built": "375.0x260.0 @712.0,139.1 12px/17.4px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-browser / url bar",
+   "wire": "375.0x28.8 @712.0,102.3 13px/18.85px 400 r8px",
+   "built": "375.0x28.8 @712.0,102.3 13px/18.85px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-terminal / workbench",
+   "wire": "400.0x614.0 @699.0,45.0 14px/20.3px 400 r0px",
+   "built": "400.0x614.0 @699.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-terminal / tab bar",
+   "wire": "399.0x45.3 @700.0,45.0 14px/20.3px 400 r0px",
+   "built": "399.0x45.3 @700.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-terminal / tab #1",
+   "wire": "79.0x32.3 @708.0,51.0 14px/20.3px 400 r8px",
+   "built": "79.0x32.3 @708.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-terminal / tab #2",
+   "wire": "51.6x32.3 @789.0,51.0 14px/20.3px 400 r8px",
+   "built": "51.6x32.3 @789.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-terminal / tab #3",
+   "wire": "74.6x32.3 @842.6,51.0 14px/20.3px 400 r8px",
+   "built": "74.6x32.3 @842.6,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-terminal / tab #4",
+   "wire": "76.9x32.3 @919.1,51.0 14px/20.3px 400 r8px",
+   "built": "76.9x32.3 @919.1,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-terminal / tab #5",
+   "wire": "74.0x32.3 @998.0,51.0 14px/20.3px 400 r8px",
+   "built": "74.0x32.3 @998.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-terminal / tab #6",
+   "wire": "32.7x32.3 @1074.0,51.0 14px/20.3px 400 r8px",
+   "built": "32.7x32.3 @1074.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-terminal / body",
+   "wire": "399.0x568.7 @700.0,90.3 13px/18.85px 400 r0px",
+   "built": "399.0x568.7 @700.0,90.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-terminal / code block",
+   "wire": "375.0x32.0 @712.0,102.3 12px/18px 400 r6px",
+   "built": "375.0x68.0 @712.0,102.3 12px/18px 400 r6px",
+   "result": "DEVIATION (wireframe .code lacks white-space:pre, so its multi-line text collapses to one line; built keeps the line breaks) h 32.0→68.0"
+  },
+  {
+   "tag": "1100 workbench-terminal / placeholder",
+   "wire": "375.0x90.0 @712.0,142.3 12px/17.4px 400 r8px",
+   "built": "375.0x90.0 @712.0,178.3 12px/17.4px 400 r8px",
+   "result": "DEVIATION (wireframe .code lacks white-space:pre, so its multi-line text collapses to one line; built keeps the line breaks) y 142.3→178.3"
+  },
+  {
+   "tag": "1100 workbench-outputs / workbench",
+   "wire": "400.0x614.0 @699.0,45.0 14px/20.3px 400 r0px",
+   "built": "400.0x614.0 @699.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-outputs / tab bar",
+   "wire": "399.0x45.3 @700.0,45.0 14px/20.3px 400 r0px",
+   "built": "399.0x45.3 @700.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-outputs / tab #1",
+   "wire": "79.0x32.3 @708.0,51.0 14px/20.3px 400 r8px",
+   "built": "79.0x32.3 @708.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-outputs / tab #2",
+   "wire": "51.6x32.3 @789.0,51.0 14px/20.3px 400 r8px",
+   "built": "51.6x32.3 @789.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-outputs / tab #3",
+   "wire": "74.6x32.3 @842.6,51.0 14px/20.3px 400 r8px",
+   "built": "74.6x32.3 @842.6,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-outputs / tab #4",
+   "wire": "76.9x32.3 @919.1,51.0 14px/20.3px 400 r8px",
+   "built": "76.9x32.3 @919.1,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-outputs / tab #5",
+   "wire": "74.0x32.3 @998.0,51.0 14px/20.3px 400 r8px",
+   "built": "74.0x32.3 @998.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-outputs / tab #6",
+   "wire": "32.7x32.3 @1074.0,51.0 14px/20.3px 400 r8px",
+   "built": "32.7x32.3 @1074.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-outputs / body",
+   "wire": "399.0x568.7 @700.0,90.3 13px/18.85px 400 r0px",
+   "built": "399.0x568.7 @700.0,90.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-outputs / row #1",
+   "wire": "375.0x47.8 @712.0,102.3 13px/18.85px 400 r0px",
+   "built": "375.0x47.8 @712.0,102.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-outputs / row #2",
+   "wire": "375.0x47.8 @712.0,150.1 13px/18.85px 400 r0px",
+   "built": "375.0x47.8 @712.0,150.1 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-outputs / action #1",
+   "wire": "54.7x30.8 @1032.3,110.3 13px/18.85px 400 r8px",
+   "built": "54.7x30.8 @1032.3,110.3 13px/18.85px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 workbench-outputs / action #2",
+   "wire": "54.7x30.8 @1032.3,158.1 13px/18.85px 400 r8px",
+   "built": "54.7x30.8 @1032.3,158.1 13px/18.85px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / scrim",
+   "wire": "1098.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "built": "1098.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / sheet",
+   "wire": "560.0x374.0 @270.0,105.0 14px/20.3px 400 r14px",
+   "built": "560.0x374.0 @270.0,105.0 14px/20.3px 400 r14px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / input",
+   "wire": "538.0x37.3 @281.0,116.0 14px/20.3px 400 r0px",
+   "built": "538.0x37.3 @281.0,116.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / option #1",
+   "wire": "538.0x34.3 @281.0,159.3 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @281.0,159.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / option #2",
+   "wire": "538.0x34.3 @281.0,193.6 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @281.0,193.6 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / option #3",
+   "wire": "538.0x34.3 @281.0,227.9 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @281.0,227.9 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / option #4",
+   "wire": "538.0x34.3 @281.0,262.2 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @281.0,262.2 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / option #5",
+   "wire": "538.0x34.3 @281.0,296.5 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @281.0,296.5 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / option #6",
+   "wire": "538.0x34.3 @281.0,330.8 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @281.0,330.8 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / option #7",
+   "wire": "538.0x34.3 @281.0,365.1 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @281.0,365.1 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / option #8",
+   "wire": "538.0x34.3 @281.0,399.4 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @281.0,399.4 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / option #9",
+   "wire": "538.0x34.3 @281.0,433.7 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @281.0,433.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / option hint #1",
+   "wire": "23.0x20.3 @788.0,166.3 14px/20.3px 400 r0px",
+   "built": "23.0x20.3 @788.0,166.3 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / option hint #2",
+   "wire": "0.0x20.3 @811.0,200.6 14px/20.3px 400 r0px",
+   "built": "0.0x20.3 @811.0,200.6 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / option hint #3",
+   "wire": "0.0x20.3 @811.0,234.9 14px/20.3px 400 r0px",
+   "built": "0.0x20.3 @811.0,234.9 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / option hint #4",
+   "wire": "0.0x20.3 @811.0,269.2 14px/20.3px 400 r0px",
+   "built": "0.0x20.3 @811.0,269.2 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / option hint #5",
+   "wire": "0.0x20.3 @811.0,303.5 14px/20.3px 400 r0px",
+   "built": "0.0x20.3 @811.0,303.5 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / option hint #6",
+   "wire": "0.0x20.3 @811.0,337.8 14px/20.3px 400 r0px",
+   "built": "0.0x20.3 @811.0,337.8 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / option hint #7",
+   "wire": "21.8x20.3 @789.2,372.1 14px/20.3px 400 r0px",
+   "built": "21.8x20.3 @789.2,372.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / option hint #8",
+   "wire": "0.0x20.3 @811.0,406.4 14px/20.3px 400 r0px",
+   "built": "0.0x20.3 @811.0,406.4 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette / option hint #9",
+   "wire": "16.7x20.3 @794.3,440.7 14px/20.3px 400 r0px",
+   "built": "16.7x20.3 @794.3,440.7 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette-no-matches / scrim",
+   "wire": "1098.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "built": "1098.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette-no-matches / sheet",
+   "wire": "560.0x109.6 @270.0,105.0 14px/20.3px 400 r14px",
+   "built": "560.0x109.6 @270.0,105.0 14px/20.3px 400 r14px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette-no-matches / input",
+   "wire": "538.0x37.3 @281.0,116.0 14px/20.3px 400 r0px",
+   "built": "538.0x37.3 @281.0,116.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 palette-no-matches / no matches",
+   "wire": "538.0x36.3 @281.0,159.3 14px/20.3px 400 r0px",
+   "built": "538.0x36.3 @281.0,159.3 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 settings-general / scrim",
+   "wire": "1098.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "built": "1098.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 settings-general / sheet",
+   "wire": "640.0x244.3 @230.0,105.0 14px/20.3px 400 r14px",
+   "built": "640.0x244.3 @230.0,105.0 14px/20.3px 400 r14px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 settings-general / header",
+   "wire": "618.0x32.3 @241.0,116.0 14px/20.3px 400 r0px",
+   "built": "618.0x32.3 @241.0,116.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 settings-general / title",
+   "wire": "58.1x20.3 @241.0,122.0 14px/20.3px 700 r0px",
+   "built": "58.1x20.3 @241.0,122.0 14px/20.3px 700 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 settings-general / close",
+   "wire": "32.7x32.3 @826.3,116.0 14px/20.3px 400 r8px",
+   "built": "32.7x32.3 @826.3,116.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 settings-general / nav item #1",
+   "wire": "150.0x36.0 @241.0,158.3 14px/20.3px 600 r8px",
+   "built": "150.0x36.0 @241.0,158.3 14px/20.3px 600 r8px",
+   "result": "DEVIATION (wireframe rule .w1100 .nav{padding:0;center} was written for the sidebar rail and also squeezes the settings nav; built keeps the 150px nav layout) padding 0px 0px 0px 0px→0px 10px 0px 10px"
+  },
+  {
+   "tag": "1100 settings-general / nav item #2",
+   "wire": "150.0x36.0 @241.0,194.3 14px/20.3px 400 r8px",
+   "built": "150.0x36.0 @241.0,194.3 14px/20.3px 400 r8px",
+   "result": "DEVIATION (wireframe rule .w1100 .nav{padding:0;center} was written for the sidebar rail and also squeezes the settings nav; built keeps the 150px nav layout) padding 0px 0px 0px 0px→0px 10px 0px 10px"
+  },
+  {
+   "tag": "1100 settings-general / nav item #3",
+   "wire": "150.0x36.0 @241.0,230.3 14px/20.3px 400 r8px",
+   "built": "150.0x36.0 @241.0,230.3 14px/20.3px 400 r8px",
+   "result": "DEVIATION (wireframe rule .w1100 .nav{padding:0;center} was written for the sidebar rail and also squeezes the settings nav; built keeps the 150px nav layout) padding 0px 0px 0px 0px→0px 10px 0px 10px"
+  },
+  {
+   "tag": "1100 settings-general / nav item #4",
+   "wire": "150.0x36.0 @241.0,266.3 14px/20.3px 400 r8px",
+   "built": "150.0x36.0 @241.0,266.3 14px/20.3px 400 r8px",
+   "result": "DEVIATION (wireframe rule .w1100 .nav{padding:0;center} was written for the sidebar rail and also squeezes the settings nav; built keeps the 150px nav layout) padding 0px 0px 0px 0px→0px 10px 0px 10px"
+  },
+  {
+   "tag": "1100 settings-general / nav item #5",
+   "wire": "150.0x36.0 @241.0,302.3 14px/20.3px 400 r8px",
+   "built": "150.0x36.0 @241.0,302.3 14px/20.3px 400 r8px",
+   "result": "DEVIATION (wireframe rule .w1100 .nav{padding:0;center} was written for the sidebar rail and also squeezes the settings nav; built keeps the 150px nav layout) padding 0px 0px 0px 0px→0px 10px 0px 10px"
+  },
+  {
+   "tag": "1100 settings-general / row box",
+   "wire": "454.0x180.0 @405.0,158.3 14px/20.3px 400 r12px",
+   "built": "454.0x180.0 @405.0,158.3 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 settings-general / row #1",
+   "wire": "428.0x57.6 @418.0,159.3 14px/20.3px 400 r0px",
+   "built": "428.0x57.6 @418.0,159.3 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 settings-general / row #2",
+   "wire": "428.0x57.6 @418.0,216.9 14px/20.3px 400 r0px",
+   "built": "428.0x57.6 @418.0,216.9 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 settings-general / row #3",
+   "wire": "428.0x57.6 @418.0,274.5 14px/20.3px 400 r0px",
+   "built": "428.0x57.6 @418.0,274.5 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 settings-general / row note #1",
+   "wire": "251.7x15.0 @418.0,190.6 12px/17.4px 400 r0px",
+   "built": "251.7x15.0 @418.0,190.6 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 settings-general / row note #2",
+   "wire": "79.4x15.0 @418.0,248.2 12px/17.4px 400 r0px",
+   "built": "79.4x15.0 @418.0,248.2 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 settings-general / row note #3",
+   "wire": "94.5x15.0 @418.0,305.8 12px/17.4px 400 r0px",
+   "built": "94.5x15.0 @418.0,305.8 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 settings-general / row action #1",
+   "wire": "73.5x32.3 @772.5,171.4 14px/20.3px 400 r8px",
+   "built": "73.5x32.3 @772.5,171.4 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 settings-general / row action #2",
+   "wire": "71.8x32.3 @774.2,229.0 14px/20.3px 400 r8px",
+   "built": "71.8x32.3 @774.2,229.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "1100 settings-general / row action #3",
+   "wire": "71.8x32.3 @774.2,286.6 14px/20.3px 400 r8px",
+   "built": "71.8x32.3 @774.2,286.6 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / page",
+   "wire": "798.0x788.3 @1.0,45.0 14px/20.3px 400 r0px",
+   "built": "798.0x788.3 @1.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / column",
+   "wire": "750.0x744.3 @25.0,67.0 14px/20.3px 400 r0px",
+   "built": "750.0x744.3 @25.0,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / composer",
+   "wire": "750.0x103.9 @25.0,67.0 14px/20.3px 400 r22px",
+   "built": "750.0x103.9 @25.0,67.0 14px/20.3px 400 r22px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / composer textarea",
+   "wire": "724.0x44.6 @38.0,78.0 14px/20.3px 400 r0px",
+   "built": "724.0x44.6 @38.0,78.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / composer tools",
+   "wire": "724.0x32.0 @38.0,127.9 14px/20.3px 400 r0px",
+   "built": "724.0x32.0 @38.0,127.9 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / attach button",
+   "wire": "30.0x30.0 @38.0,128.9 15px/21.75px 400 r8px",
+   "built": "30.0x30.0 @38.0,128.9 15px/21.75px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / send button",
+   "wire": "32.0x32.0 @730.0,127.9 14px/20.3px 400 r50%",
+   "built": "32.0x32.0 @730.0,127.9 14px/20.3px 400 r50%",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / project chip",
+   "wire": "104.3x21.4 @619.7,133.2 12px/17.4px 400 r999px",
+   "built": "104.3x21.4 @619.7,133.2 12px/17.4px 400 r999px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / project chips row",
+   "wire": "750.0x21.4 @25.0,184.9 14px/20.3px 400 r0px",
+   "built": "750.0x21.4 @25.0,184.9 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / project chip (row) #1",
+   "wire": "52.1x21.4 @25.0,184.9 12px/17.4px 400 r999px",
+   "built": "52.1x21.4 @25.0,184.9 12px/17.4px 400 r999px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / project chip (row) #2",
+   "wire": "72.5x21.4 @85.1,184.9 12px/17.4px 400 r999px",
+   "built": "72.5x21.4 @85.1,184.9 12px/17.4px 400 r999px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / project chip (row) #3",
+   "wire": "67.8x21.4 @165.6,184.9 12px/17.4px 400 r999px",
+   "built": "67.8x21.4 @165.6,184.9 12px/17.4px 400 r999px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / section #1",
+   "wire": "750.0x143.5 @25.0,220.3 14px/20.3px 400 r0px",
+   "built": "750.0x143.5 @25.0,220.3 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / section #2",
+   "wire": "750.0x85.9 @25.0,377.8 14px/20.3px 400 r0px",
+   "built": "750.0x85.9 @25.0,377.8 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / section #3",
+   "wire": "750.0x143.5 @25.0,477.7 14px/20.3px 400 r0px",
+   "built": "750.0x143.5 @25.0,477.7 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / section #4",
+   "wire": "750.0x176.2 @25.0,635.1 14px/20.3px 400 r0px",
+   "built": "750.0x176.2 @25.0,635.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / section title #1",
+   "wire": "102.7x20.3 @25.0,220.3 14px/20.3px 600 r0px",
+   "built": "102.7x20.3 @25.0,220.3 14px/20.3px 600 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / section title #2",
+   "wire": "750.0x20.3 @25.0,377.8 14px/20.3px 600 r0px",
+   "built": "750.0x20.3 @25.0,377.8 14px/20.3px 600 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / section title #3",
+   "wire": "750.0x20.3 @25.0,477.7 14px/20.3px 600 r0px",
+   "built": "750.0x20.3 @25.0,477.7 14px/20.3px 600 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / section title #4",
+   "wire": "750.0x20.3 @25.0,635.1 14px/20.3px 600 r0px",
+   "built": "750.0x20.3 @25.0,635.1 14px/20.3px 600 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / count badge",
+   "wire": "23.6x19.4 @104.2,220.7 12px/17.4px 600 r999px",
+   "built": "23.6x19.4 @104.2,220.7 12px/17.4px 600 r999px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row box #1",
+   "wire": "750.0x117.2 @25.0,246.6 14px/20.3px 400 r12px",
+   "built": "750.0x117.2 @25.0,246.6 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row box #2",
+   "wire": "750.0x59.6 @25.0,404.1 14px/20.3px 400 r12px",
+   "built": "750.0x59.6 @25.0,404.1 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row box #3",
+   "wire": "750.0x117.2 @25.0,504.0 14px/20.3px 400 r12px",
+   "built": "750.0x117.2 @25.0,504.0 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row box #4",
+   "wire": "750.0x149.9 @25.0,661.4 14px/20.3px 400 r12px",
+   "built": "750.0x149.9 @25.0,661.4 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row #1",
+   "wire": "724.0x57.6 @38.0,247.6 14px/20.3px 400 r0px",
+   "built": "724.0x57.6 @38.0,247.6 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row #2",
+   "wire": "724.0x57.6 @38.0,305.2 14px/20.3px 400 r0px",
+   "built": "724.0x57.6 @38.0,305.2 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row #3",
+   "wire": "724.0x57.6 @38.0,405.1 14px/20.3px 400 r0px",
+   "built": "724.0x57.6 @38.0,405.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row #4",
+   "wire": "724.0x57.6 @38.0,505.0 14px/20.3px 400 r0px",
+   "built": "724.0x57.6 @38.0,505.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row #5",
+   "wire": "724.0x57.6 @38.0,562.5 14px/20.3px 400 r0px",
+   "built": "724.0x57.6 @38.0,562.5 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row #6",
+   "wire": "724.0x49.3 @38.0,662.4 14px/20.3px 400 r0px",
+   "built": "724.0x49.3 @38.0,662.4 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row #7",
+   "wire": "724.0x49.3 @38.0,711.7 14px/20.3px 400 r0px",
+   "built": "724.0x49.3 @38.0,711.7 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row #8",
+   "wire": "724.0x49.3 @38.0,761.0 14px/20.3px 400 r0px",
+   "built": "724.0x49.3 @38.0,761.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row note #1",
+   "wire": "199.5x15.0 @38.0,278.9 12px/17.4px 400 r0px",
+   "built": "199.5x15.0 @38.0,278.9 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row note #2",
+   "wire": "142.2x15.0 @38.0,336.5 12px/17.4px 400 r0px",
+   "built": "142.2x15.0 @38.0,336.5 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row note #3",
+   "wire": "244.6x15.0 @38.0,436.4 12px/17.4px 400 r0px",
+   "built": "244.6x15.0 @38.0,436.4 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row note #4",
+   "wire": "251.6x15.0 @38.0,536.3 12px/17.4px 400 r0px",
+   "built": "251.6x15.0 @38.0,536.3 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row note #5",
+   "wire": "234.5x15.0 @38.0,593.8 12px/17.4px 400 r0px",
+   "built": "234.5x15.0 @38.0,593.8 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row action #1",
+   "wire": "92.1x32.3 @605.0,259.7 14px/20.3px 400 r8px",
+   "built": "92.1x32.3 @605.0,259.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row action #2",
+   "wire": "56.9x32.3 @705.1,259.7 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @705.1,259.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row action #3",
+   "wire": "56.9x32.3 @705.1,317.3 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @705.1,317.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row action #4",
+   "wire": "56.9x32.3 @645.0,417.2 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @645.0,417.2 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row action #5",
+   "wire": "52.1x32.3 @709.9,417.2 14px/20.3px 400 r8px",
+   "built": "52.1x32.3 @709.9,417.2 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row action #6",
+   "wire": "77.4x32.3 @684.6,517.1 14px/20.3px 400 r8px",
+   "built": "77.4x32.3 @684.6,517.1 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row action #7",
+   "wire": "46.9x32.3 @715.1,574.7 14px/20.3px 400 r8px",
+   "built": "46.9x32.3 @715.1,574.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row action #8",
+   "wire": "56.9x32.3 @632.6,670.4 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @632.6,670.4 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row action #9",
+   "wire": "64.5x32.3 @697.5,670.4 14px/20.3px 400 r8px",
+   "built": "64.5x32.3 @697.5,670.4 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row action #10",
+   "wire": "56.9x32.3 @632.6,719.7 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @632.6,719.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row action #11",
+   "wire": "64.5x32.3 @697.5,719.7 14px/20.3px 400 r8px",
+   "built": "64.5x32.3 @697.5,719.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row action #12",
+   "wire": "56.9x32.3 @632.6,769.0 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @632.6,769.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 home / row action #13",
+   "wire": "64.5x32.3 @697.5,769.0 14px/20.3px 400 r8px",
+   "built": "64.5x32.3 @697.5,769.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 schedules / page",
+   "wire": "798.0x279.2 @1.0,45.0 14px/20.3px 400 r0px",
+   "built": "798.0x279.2 @1.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 schedules / column",
+   "wire": "750.0x235.2 @25.0,67.0 14px/20.3px 400 r0px",
+   "built": "750.0x235.2 @25.0,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 schedules / header row",
+   "wire": "750.0x46.4 @25.0,67.0 14px/20.3px 400 r0px",
+   "built": "750.0x46.4 @25.0,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 schedules / page title",
+   "wire": "487.1x26.1 @25.0,67.0 18px/26.1px 700 r0px",
+   "built": "487.1x26.1 @25.0,67.0 18px/26.1px 700 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 schedules / page subtitle",
+   "wire": "487.1x20.3 @25.0,93.1 14px/20.3px 400 r0px",
+   "built": "487.1x20.3 @25.0,93.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 schedules / primary CTA",
+   "wire": "113.1x32.3 @661.9,74.0 14px/20.3px 400 r8px",
+   "built": "113.1x32.3 @661.9,74.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 schedules / row box",
+   "wire": "750.0x174.8 @25.0,127.4 14px/20.3px 400 r12px",
+   "built": "750.0x174.8 @25.0,127.4 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 schedules / row #1",
+   "wire": "724.0x57.6 @38.0,128.4 14px/20.3px 400 r0px",
+   "built": "724.0x57.6 @38.0,128.4 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 schedules / row #2",
+   "wire": "724.0x57.6 @38.0,186.0 14px/20.3px 400 r0px",
+   "built": "724.0x57.6 @38.0,186.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 schedules / row #3",
+   "wire": "724.0x57.6 @38.0,243.6 14px/20.3px 400 r0px",
+   "built": "724.0x57.6 @38.0,243.6 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 schedules / row note #1",
+   "wire": "281.0x15.0 @38.0,159.7 12px/17.4px 400 r0px",
+   "built": "281.0x15.0 @38.0,159.7 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 schedules / row note #2",
+   "wire": "122.4x15.0 @38.0,217.3 12px/17.4px 400 r0px",
+   "built": "122.4x15.0 @38.0,217.3 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 schedules / row note #3",
+   "wire": "220.9x15.0 @38.0,274.9 12px/17.4px 400 r0px",
+   "built": "220.9x15.0 @38.0,274.9 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 schedules / row action #1",
+   "wire": "46.9x32.3 @715.1,140.5 14px/20.3px 400 r8px",
+   "built": "46.9x32.3 @715.1,140.5 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 schedules / row action #2",
+   "wire": "46.9x32.3 @715.1,198.1 14px/20.3px 400 r8px",
+   "built": "46.9x32.3 @715.1,198.1 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 schedules / row action #3",
+   "wire": "77.4x32.3 @684.6,255.7 14px/20.3px 400 r8px",
+   "built": "77.4x32.3 @684.6,255.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 connections / page",
+   "wire": "798.0x336.8 @1.0,45.0 14px/20.3px 400 r0px",
+   "built": "798.0x336.8 @1.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 connections / column",
+   "wire": "750.0x292.8 @25.0,67.0 14px/20.3px 400 r0px",
+   "built": "750.0x292.8 @25.0,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 connections / header row",
+   "wire": "750.0x46.4 @25.0,67.0 14px/20.3px 400 r0px",
+   "built": "750.0x46.4 @25.0,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 connections / page title",
+   "wire": "222.0x26.1 @25.0,67.0 18px/26.1px 700 r0px",
+   "built": "222.0x26.1 @25.0,67.0 18px/26.1px 700 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 connections / page subtitle",
+   "wire": "222.0x20.3 @25.0,93.1 14px/20.3px 400 r0px",
+   "built": "222.0x20.3 @25.0,93.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 connections / primary CTA",
+   "wire": "76.6x32.3 @698.4,74.0 14px/20.3px 400 r8px",
+   "built": "76.6x32.3 @698.4,74.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 connections / row box",
+   "wire": "750.0x232.4 @25.0,127.4 14px/20.3px 400 r12px",
+   "built": "750.0x232.4 @25.0,127.4 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 connections / row #1",
+   "wire": "724.0x57.6 @38.0,128.4 14px/20.3px 400 r0px",
+   "built": "724.0x57.6 @38.0,128.4 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 connections / row #2",
+   "wire": "724.0x57.6 @38.0,186.0 14px/20.3px 400 r0px",
+   "built": "724.0x57.6 @38.0,186.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 connections / row #3",
+   "wire": "724.0x57.6 @38.0,243.6 14px/20.3px 400 r0px",
+   "built": "724.0x57.6 @38.0,243.6 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 connections / row #4",
+   "wire": "724.0x57.6 @38.0,301.2 14px/20.3px 400 r0px",
+   "built": "724.0x57.6 @38.0,301.2 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 connections / row note #1",
+   "wire": "125.8x15.0 @38.0,159.7 12px/17.4px 400 r0px",
+   "built": "125.8x15.0 @38.0,159.7 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 connections / row note #2",
+   "wire": "190.6x15.0 @38.0,217.3 12px/17.4px 400 r0px",
+   "built": "190.6x15.0 @38.0,217.3 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 connections / row note #3",
+   "wire": "96.8x15.0 @38.0,274.9 12px/17.4px 400 r0px",
+   "built": "96.8x15.0 @38.0,274.9 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 connections / row note #4",
+   "wire": "38.7x15.0 @38.0,332.5 12px/17.4px 400 r0px",
+   "built": "38.7x15.0 @38.0,332.5 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 connections / row action #1",
+   "wire": "73.5x32.3 @688.5,140.5 14px/20.3px 400 r8px",
+   "built": "73.5x32.3 @688.5,140.5 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 connections / row action #2",
+   "wire": "73.5x32.3 @688.5,198.1 14px/20.3px 400 r8px",
+   "built": "73.5x32.3 @688.5,198.1 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 connections / row action #3",
+   "wire": "91.1x32.3 @670.9,255.7 14px/20.3px 400 r8px",
+   "built": "91.1x32.3 @670.9,255.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 connections / row action #4",
+   "wire": "73.5x32.3 @688.5,313.3 14px/20.3px 400 r8px",
+   "built": "73.5x32.3 @688.5,313.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 skills / page",
+   "wire": "798.0x336.8 @1.0,45.0 14px/20.3px 400 r0px",
+   "built": "798.0x336.8 @1.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 skills / column",
+   "wire": "750.0x292.8 @25.0,67.0 14px/20.3px 400 r0px",
+   "built": "750.0x292.8 @25.0,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 skills / header row",
+   "wire": "750.0x46.4 @25.0,67.0 14px/20.3px 400 r0px",
+   "built": "750.0x46.4 @25.0,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 skills / page title",
+   "wire": "359.9x26.1 @25.0,67.0 18px/26.1px 700 r0px",
+   "built": "359.9x26.1 @25.0,67.0 18px/26.1px 700 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 skills / page subtitle",
+   "wire": "359.9x20.3 @25.0,93.1 14px/20.3px 400 r0px",
+   "built": "359.9x20.3 @25.0,93.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 skills / primary CTA",
+   "wire": "105.1x32.3 @669.9,74.0 14px/20.3px 400 r8px",
+   "built": "105.1x32.3 @669.9,74.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 skills / row box",
+   "wire": "750.0x232.4 @25.0,127.4 14px/20.3px 400 r12px",
+   "built": "750.0x232.4 @25.0,127.4 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 skills / row #1",
+   "wire": "724.0x57.6 @38.0,128.4 14px/20.3px 400 r0px",
+   "built": "724.0x57.6 @38.0,128.4 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 skills / row #2",
+   "wire": "724.0x57.6 @38.0,186.0 14px/20.3px 400 r0px",
+   "built": "724.0x57.6 @38.0,186.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 skills / row #3",
+   "wire": "724.0x57.6 @38.0,243.6 14px/20.3px 400 r0px",
+   "built": "724.0x57.6 @38.0,243.6 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 skills / row #4",
+   "wire": "724.0x57.6 @38.0,301.2 14px/20.3px 400 r0px",
+   "built": "724.0x57.6 @38.0,301.2 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 skills / row note #1",
+   "wire": "16.3x15.0 @38.0,159.7 12px/17.4px 400 r0px",
+   "built": "16.3x15.0 @38.0,159.7 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 skills / row note #2",
+   "wire": "16.3x15.0 @38.0,217.3 12px/17.4px 400 r0px",
+   "built": "16.3x15.0 @38.0,217.3 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 skills / row note #3",
+   "wire": "16.3x15.0 @38.0,274.9 12px/17.4px 400 r0px",
+   "built": "16.3x15.0 @38.0,274.9 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 skills / row note #4",
+   "wire": "79.4x15.0 @38.0,332.5 12px/17.4px 400 r0px",
+   "built": "79.4x15.0 @38.0,332.5 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 skills / row action #1",
+   "wire": "69.8x32.3 @692.2,140.5 14px/20.3px 400 r8px",
+   "built": "69.8x32.3 @692.2,140.5 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 skills / row action #2",
+   "wire": "69.8x32.3 @692.2,198.1 14px/20.3px 400 r8px",
+   "built": "69.8x32.3 @692.2,198.1 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 skills / row action #3",
+   "wire": "69.8x32.3 @692.2,255.7 14px/20.3px 400 r8px",
+   "built": "69.8x32.3 @692.2,255.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 skills / row action #4",
+   "wire": "71.8x32.3 @690.2,313.3 14px/20.3px 400 r8px",
+   "built": "71.8x32.3 @690.2,313.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 outputs / page",
+   "wire": "798.0x279.2 @1.0,45.0 14px/20.3px 400 r0px",
+   "built": "798.0x279.2 @1.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 outputs / column",
+   "wire": "750.0x235.2 @25.0,67.0 14px/20.3px 400 r0px",
+   "built": "750.0x235.2 @25.0,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 outputs / header row",
+   "wire": "750.0x46.4 @25.0,67.0 14px/20.3px 400 r0px",
+   "built": "750.0x46.4 @25.0,67.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 outputs / page title",
+   "wire": "216.2x26.1 @25.0,67.0 18px/26.1px 700 r0px",
+   "built": "216.2x26.1 @25.0,67.0 18px/26.1px 700 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 outputs / page subtitle",
+   "wire": "216.2x20.3 @25.0,93.1 14px/20.3px 400 r0px",
+   "built": "216.2x20.3 @25.0,93.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 outputs / primary CTA",
+   "wire": "98.3x32.3 @676.7,74.0 14px/20.3px 400 r8px",
+   "built": "98.3x32.3 @676.7,74.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 outputs / row box",
+   "wire": "750.0x174.8 @25.0,127.4 14px/20.3px 400 r12px",
+   "built": "750.0x174.8 @25.0,127.4 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 outputs / row #1",
+   "wire": "724.0x57.6 @38.0,128.4 14px/20.3px 400 r0px",
+   "built": "724.0x57.6 @38.0,128.4 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 outputs / row #2",
+   "wire": "724.0x57.6 @38.0,186.0 14px/20.3px 400 r0px",
+   "built": "724.0x57.6 @38.0,186.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 outputs / row #3",
+   "wire": "724.0x57.6 @38.0,243.6 14px/20.3px 400 r0px",
+   "built": "724.0x57.6 @38.0,243.6 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 outputs / row note #1",
+   "wire": "193.9x15.0 @38.0,159.7 12px/17.4px 400 r0px",
+   "built": "193.9x15.0 @38.0,159.7 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 outputs / row note #2",
+   "wire": "231.0x15.0 @38.0,217.3 12px/17.4px 400 r0px",
+   "built": "231.0x15.0 @38.0,217.3 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 outputs / row note #3",
+   "wire": "122.4x15.0 @38.0,274.9 12px/17.4px 400 r0px",
+   "built": "122.4x15.0 @38.0,274.9 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 outputs / row action #1",
+   "wire": "56.9x32.3 @705.1,140.5 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @705.1,140.5 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 outputs / row action #2",
+   "wire": "56.9x32.3 @705.1,198.1 14px/20.3px 400 r8px",
+   "built": "56.9x32.3 @705.1,198.1 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 outputs / row action #3",
+   "wire": "65.5x32.3 @696.5,255.7 14px/20.3px 400 r8px",
+   "built": "65.5x32.3 @696.5,255.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-changes / workbench",
+   "wire": "798.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "built": "798.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-changes / tab bar",
+   "wire": "797.0x45.3 @2.0,45.0 14px/20.3px 400 r0px",
+   "built": "797.0x45.3 @2.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-changes / tab #1",
+   "wire": "79.0x32.3 @10.0,51.0 14px/20.3px 400 r8px",
+   "built": "79.0x32.3 @10.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-changes / tab #2",
+   "wire": "51.6x32.3 @91.0,51.0 14px/20.3px 400 r8px",
+   "built": "51.6x32.3 @91.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-changes / tab #3",
+   "wire": "74.6x32.3 @144.6,51.0 14px/20.3px 400 r8px",
+   "built": "74.6x32.3 @144.6,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-changes / tab #4",
+   "wire": "76.9x32.3 @221.1,51.0 14px/20.3px 400 r8px",
+   "built": "76.9x32.3 @221.1,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-changes / tab #5",
+   "wire": "74.0x32.3 @300.0,51.0 14px/20.3px 400 r8px",
+   "built": "74.0x32.3 @300.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-changes / tab #6",
+   "wire": "32.7x32.3 @758.3,51.0 14px/20.3px 400 r8px",
+   "built": "32.7x32.3 @758.3,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-changes / body",
+   "wire": "797.0x568.7 @2.0,90.3 13px/18.85px 400 r0px",
+   "built": "797.0x568.7 @2.0,90.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-changes / row #1",
+   "wire": "773.0x35.8 @14.0,102.3 13px/18.85px 400 r0px",
+   "built": "773.0x35.8 @14.0,102.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-changes / row #2",
+   "wire": "773.0x35.8 @14.0,186.1 13px/18.85px 400 r0px",
+   "built": "773.0x35.8 @14.0,204.1 13px/18.85px 400 r0px",
+   "result": "DEVIATION (wireframe .code lacks white-space:pre, so its multi-line text collapses to one line; built keeps the line breaks) y 186.1→204.1"
+  },
+  {
+   "tag": "800 workbench-changes / code block",
+   "wire": "773.0x32.0 @14.0,146.1 12px/18px 400 r6px",
+   "built": "773.0x50.0 @14.0,146.1 12px/18px 400 r6px",
+   "result": "DEVIATION (wireframe .code lacks white-space:pre, so its multi-line text collapses to one line; built keeps the line breaks) h 32.0→50.0"
+  },
+  {
+   "tag": "800 workbench-changes / action",
+   "wire": "176.1x30.8 @14.0,232.0 13px/18.85px 400 r8px",
+   "built": "176.1x30.8 @14.0,250.0 13px/18.85px 400 r8px",
+   "result": "DEVIATION (wireframe .code lacks white-space:pre, so its multi-line text collapses to one line; built keeps the line breaks) y 232.0→250.0"
+  },
+  {
+   "tag": "800 workbench-files / workbench",
+   "wire": "798.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "built": "798.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-files / tab bar",
+   "wire": "797.0x45.3 @2.0,45.0 14px/20.3px 400 r0px",
+   "built": "797.0x45.3 @2.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-files / tab #1",
+   "wire": "79.0x32.3 @10.0,51.0 14px/20.3px 400 r8px",
+   "built": "79.0x32.3 @10.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-files / tab #2",
+   "wire": "51.6x32.3 @91.0,51.0 14px/20.3px 400 r8px",
+   "built": "51.6x32.3 @91.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-files / tab #3",
+   "wire": "74.6x32.3 @144.6,51.0 14px/20.3px 400 r8px",
+   "built": "74.6x32.3 @144.6,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-files / tab #4",
+   "wire": "76.9x32.3 @221.1,51.0 14px/20.3px 400 r8px",
+   "built": "76.9x32.3 @221.1,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-files / tab #5",
+   "wire": "74.0x32.3 @300.0,51.0 14px/20.3px 400 r8px",
+   "built": "74.0x32.3 @300.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-files / tab #6",
+   "wire": "32.7x32.3 @758.3,51.0 14px/20.3px 400 r8px",
+   "built": "32.7x32.3 @758.3,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-files / body",
+   "wire": "797.0x568.7 @2.0,90.3 13px/18.85px 400 r0px",
+   "built": "797.0x568.7 @2.0,90.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-files / code block",
+   "wire": "773.0x32.0 @14.0,102.3 12px/18px 400 r6px",
+   "built": "773.0x104.0 @14.0,102.3 12px/18px 400 r6px",
+   "result": "DEVIATION (wireframe .code lacks white-space:pre, so its multi-line text collapses to one line; built keeps the line breaks) h 32.0→104.0"
+  },
+  {
+   "tag": "800 workbench-files / placeholder",
+   "wire": "773.0x90.0 @14.0,142.3 12px/17.4px 400 r8px",
+   "built": "773.0x90.0 @14.0,214.3 12px/17.4px 400 r8px",
+   "result": "DEVIATION (wireframe .code lacks white-space:pre, so its multi-line text collapses to one line; built keeps the line breaks) y 142.3→214.3"
+  },
+  {
+   "tag": "800 workbench-browser / workbench",
+   "wire": "798.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "built": "798.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-browser / tab bar",
+   "wire": "797.0x45.3 @2.0,45.0 14px/20.3px 400 r0px",
+   "built": "797.0x45.3 @2.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-browser / tab #1",
+   "wire": "79.0x32.3 @10.0,51.0 14px/20.3px 400 r8px",
+   "built": "79.0x32.3 @10.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-browser / tab #2",
+   "wire": "51.6x32.3 @91.0,51.0 14px/20.3px 400 r8px",
+   "built": "51.6x32.3 @91.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-browser / tab #3",
+   "wire": "74.6x32.3 @144.6,51.0 14px/20.3px 400 r8px",
+   "built": "74.6x32.3 @144.6,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-browser / tab #4",
+   "wire": "76.9x32.3 @221.1,51.0 14px/20.3px 400 r8px",
+   "built": "76.9x32.3 @221.1,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-browser / tab #5",
+   "wire": "74.0x32.3 @300.0,51.0 14px/20.3px 400 r8px",
+   "built": "74.0x32.3 @300.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-browser / tab #6",
+   "wire": "32.7x32.3 @758.3,51.0 14px/20.3px 400 r8px",
+   "built": "32.7x32.3 @758.3,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-browser / body",
+   "wire": "797.0x568.7 @2.0,90.3 13px/18.85px 400 r0px",
+   "built": "797.0x568.7 @2.0,90.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-browser / placeholder",
+   "wire": "773.0x260.0 @14.0,139.1 12px/17.4px 400 r8px",
+   "built": "773.0x260.0 @14.0,139.1 12px/17.4px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-browser / url bar",
+   "wire": "773.0x28.8 @14.0,102.3 13px/18.85px 400 r8px",
+   "built": "773.0x28.8 @14.0,102.3 13px/18.85px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-terminal / workbench",
+   "wire": "798.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "built": "798.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-terminal / tab bar",
+   "wire": "797.0x45.3 @2.0,45.0 14px/20.3px 400 r0px",
+   "built": "797.0x45.3 @2.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-terminal / tab #1",
+   "wire": "79.0x32.3 @10.0,51.0 14px/20.3px 400 r8px",
+   "built": "79.0x32.3 @10.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-terminal / tab #2",
+   "wire": "51.6x32.3 @91.0,51.0 14px/20.3px 400 r8px",
+   "built": "51.6x32.3 @91.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-terminal / tab #3",
+   "wire": "74.6x32.3 @144.6,51.0 14px/20.3px 400 r8px",
+   "built": "74.6x32.3 @144.6,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-terminal / tab #4",
+   "wire": "76.9x32.3 @221.1,51.0 14px/20.3px 400 r8px",
+   "built": "76.9x32.3 @221.1,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-terminal / tab #5",
+   "wire": "74.0x32.3 @300.0,51.0 14px/20.3px 400 r8px",
+   "built": "74.0x32.3 @300.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-terminal / tab #6",
+   "wire": "32.7x32.3 @758.3,51.0 14px/20.3px 400 r8px",
+   "built": "32.7x32.3 @758.3,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-terminal / body",
+   "wire": "797.0x568.7 @2.0,90.3 13px/18.85px 400 r0px",
+   "built": "797.0x568.7 @2.0,90.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-terminal / code block",
+   "wire": "773.0x32.0 @14.0,102.3 12px/18px 400 r6px",
+   "built": "773.0x68.0 @14.0,102.3 12px/18px 400 r6px",
+   "result": "DEVIATION (wireframe .code lacks white-space:pre, so its multi-line text collapses to one line; built keeps the line breaks) h 32.0→68.0"
+  },
+  {
+   "tag": "800 workbench-terminal / placeholder",
+   "wire": "773.0x90.0 @14.0,142.3 12px/17.4px 400 r8px",
+   "built": "773.0x90.0 @14.0,178.3 12px/17.4px 400 r8px",
+   "result": "DEVIATION (wireframe .code lacks white-space:pre, so its multi-line text collapses to one line; built keeps the line breaks) y 142.3→178.3"
+  },
+  {
+   "tag": "800 workbench-outputs / workbench",
+   "wire": "798.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "built": "798.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-outputs / tab bar",
+   "wire": "797.0x45.3 @2.0,45.0 14px/20.3px 400 r0px",
+   "built": "797.0x45.3 @2.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-outputs / tab #1",
+   "wire": "79.0x32.3 @10.0,51.0 14px/20.3px 400 r8px",
+   "built": "79.0x32.3 @10.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-outputs / tab #2",
+   "wire": "51.6x32.3 @91.0,51.0 14px/20.3px 400 r8px",
+   "built": "51.6x32.3 @91.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-outputs / tab #3",
+   "wire": "74.6x32.3 @144.6,51.0 14px/20.3px 400 r8px",
+   "built": "74.6x32.3 @144.6,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-outputs / tab #4",
+   "wire": "76.9x32.3 @221.1,51.0 14px/20.3px 400 r8px",
+   "built": "76.9x32.3 @221.1,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-outputs / tab #5",
+   "wire": "74.0x32.3 @300.0,51.0 14px/20.3px 400 r8px",
+   "built": "74.0x32.3 @300.0,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-outputs / tab #6",
+   "wire": "32.7x32.3 @758.3,51.0 14px/20.3px 400 r8px",
+   "built": "32.7x32.3 @758.3,51.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-outputs / body",
+   "wire": "797.0x568.7 @2.0,90.3 13px/18.85px 400 r0px",
+   "built": "797.0x568.7 @2.0,90.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-outputs / row #1",
+   "wire": "773.0x47.8 @14.0,102.3 13px/18.85px 400 r0px",
+   "built": "773.0x47.8 @14.0,102.3 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-outputs / row #2",
+   "wire": "773.0x47.8 @14.0,150.1 13px/18.85px 400 r0px",
+   "built": "773.0x47.8 @14.0,150.1 13px/18.85px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-outputs / action #1",
+   "wire": "54.7x30.8 @732.3,110.3 13px/18.85px 400 r8px",
+   "built": "54.7x30.8 @732.3,110.3 13px/18.85px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 workbench-outputs / action #2",
+   "wire": "54.7x30.8 @732.3,158.1 13px/18.85px 400 r8px",
+   "built": "54.7x30.8 @732.3,158.1 13px/18.85px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / scrim",
+   "wire": "798.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "built": "798.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / sheet",
+   "wire": "560.0x374.0 @120.0,105.0 14px/20.3px 400 r14px",
+   "built": "560.0x374.0 @120.0,105.0 14px/20.3px 400 r14px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / input",
+   "wire": "538.0x37.3 @131.0,116.0 14px/20.3px 400 r0px",
+   "built": "538.0x37.3 @131.0,116.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / option #1",
+   "wire": "538.0x34.3 @131.0,159.3 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @131.0,159.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / option #2",
+   "wire": "538.0x34.3 @131.0,193.6 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @131.0,193.6 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / option #3",
+   "wire": "538.0x34.3 @131.0,227.9 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @131.0,227.9 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / option #4",
+   "wire": "538.0x34.3 @131.0,262.2 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @131.0,262.2 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / option #5",
+   "wire": "538.0x34.3 @131.0,296.5 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @131.0,296.5 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / option #6",
+   "wire": "538.0x34.3 @131.0,330.8 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @131.0,330.8 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / option #7",
+   "wire": "538.0x34.3 @131.0,365.1 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @131.0,365.1 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / option #8",
+   "wire": "538.0x34.3 @131.0,399.4 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @131.0,399.4 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / option #9",
+   "wire": "538.0x34.3 @131.0,433.7 14px/20.3px 400 r8px",
+   "built": "538.0x34.3 @131.0,433.7 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / option hint #1",
+   "wire": "23.0x20.3 @638.0,166.3 14px/20.3px 400 r0px",
+   "built": "23.0x20.3 @638.0,166.3 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / option hint #2",
+   "wire": "0.0x20.3 @661.0,200.6 14px/20.3px 400 r0px",
+   "built": "0.0x20.3 @661.0,200.6 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / option hint #3",
+   "wire": "0.0x20.3 @661.0,234.9 14px/20.3px 400 r0px",
+   "built": "0.0x20.3 @661.0,234.9 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / option hint #4",
+   "wire": "0.0x20.3 @661.0,269.2 14px/20.3px 400 r0px",
+   "built": "0.0x20.3 @661.0,269.2 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / option hint #5",
+   "wire": "0.0x20.3 @661.0,303.5 14px/20.3px 400 r0px",
+   "built": "0.0x20.3 @661.0,303.5 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / option hint #6",
+   "wire": "0.0x20.3 @661.0,337.8 14px/20.3px 400 r0px",
+   "built": "0.0x20.3 @661.0,337.8 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / option hint #7",
+   "wire": "21.8x20.3 @639.2,372.1 14px/20.3px 400 r0px",
+   "built": "21.8x20.3 @639.2,372.1 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / option hint #8",
+   "wire": "0.0x20.3 @661.0,406.4 14px/20.3px 400 r0px",
+   "built": "0.0x20.3 @661.0,406.4 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette / option hint #9",
+   "wire": "16.7x20.3 @644.3,440.7 14px/20.3px 400 r0px",
+   "built": "16.7x20.3 @644.3,440.7 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette-no-matches / scrim",
+   "wire": "798.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "built": "798.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette-no-matches / sheet",
+   "wire": "560.0x109.6 @120.0,105.0 14px/20.3px 400 r14px",
+   "built": "560.0x109.6 @120.0,105.0 14px/20.3px 400 r14px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette-no-matches / input",
+   "wire": "538.0x37.3 @131.0,116.0 14px/20.3px 400 r0px",
+   "built": "538.0x37.3 @131.0,116.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 palette-no-matches / no matches",
+   "wire": "538.0x36.3 @131.0,159.3 14px/20.3px 400 r0px",
+   "built": "538.0x36.3 @131.0,159.3 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / scrim",
+   "wire": "798.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "built": "798.0x614.0 @1.0,45.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / sheet",
+   "wire": "640.0x244.3 @80.0,105.0 14px/20.3px 400 r14px",
+   "built": "640.0x244.3 @80.0,105.0 14px/20.3px 400 r14px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / header",
+   "wire": "618.0x32.3 @91.0,116.0 14px/20.3px 400 r0px",
+   "built": "618.0x32.3 @91.0,116.0 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / title",
+   "wire": "58.1x20.3 @91.0,122.0 14px/20.3px 700 r0px",
+   "built": "58.1x20.3 @91.0,122.0 14px/20.3px 700 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / close",
+   "wire": "32.7x32.3 @676.3,116.0 14px/20.3px 400 r8px",
+   "built": "32.7x32.3 @676.3,116.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / nav item #1",
+   "wire": "150.0x36.0 @91.0,158.3 14px/20.3px 600 r8px",
+   "built": "150.0x36.0 @91.0,158.3 14px/20.3px 600 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / nav item #2",
+   "wire": "150.0x36.0 @91.0,194.3 14px/20.3px 400 r8px",
+   "built": "150.0x36.0 @91.0,194.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / nav item #3",
+   "wire": "150.0x36.0 @91.0,230.3 14px/20.3px 400 r8px",
+   "built": "150.0x36.0 @91.0,230.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / nav item #4",
+   "wire": "150.0x36.0 @91.0,266.3 14px/20.3px 400 r8px",
+   "built": "150.0x36.0 @91.0,266.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / nav item #5",
+   "wire": "150.0x36.0 @91.0,302.3 14px/20.3px 400 r8px",
+   "built": "150.0x36.0 @91.0,302.3 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / row box",
+   "wire": "454.0x180.0 @255.0,158.3 14px/20.3px 400 r12px",
+   "built": "454.0x180.0 @255.0,158.3 14px/20.3px 400 r12px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / row #1",
+   "wire": "428.0x57.6 @268.0,159.3 14px/20.3px 400 r0px",
+   "built": "428.0x57.6 @268.0,159.3 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / row #2",
+   "wire": "428.0x57.6 @268.0,216.9 14px/20.3px 400 r0px",
+   "built": "428.0x57.6 @268.0,216.9 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / row #3",
+   "wire": "428.0x57.6 @268.0,274.5 14px/20.3px 400 r0px",
+   "built": "428.0x57.6 @268.0,274.5 14px/20.3px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / row note #1",
+   "wire": "251.7x15.0 @268.0,190.6 12px/17.4px 400 r0px",
+   "built": "251.7x15.0 @268.0,190.6 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / row note #2",
+   "wire": "79.4x15.0 @268.0,248.2 12px/17.4px 400 r0px",
+   "built": "79.4x15.0 @268.0,248.2 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / row note #3",
+   "wire": "94.5x15.0 @268.0,305.8 12px/17.4px 400 r0px",
+   "built": "94.5x15.0 @268.0,305.8 12px/17.4px 400 r0px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / row action #1",
+   "wire": "73.5x32.3 @622.5,171.4 14px/20.3px 400 r8px",
+   "built": "73.5x32.3 @622.5,171.4 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / row action #2",
+   "wire": "71.8x32.3 @624.2,229.0 14px/20.3px 400 r8px",
+   "built": "71.8x32.3 @624.2,229.0 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "800 settings-general / row action #3",
+   "wire": "71.8x32.3 @624.2,286.6 14px/20.3px 400 r8px",
+   "built": "71.8x32.3 @624.2,286.6 14px/20.3px 400 r8px",
+   "result": "PASS"
+  },
+  {
+   "tag": "light / primary button fill = ink token",
+   "wire": "ink fill",
+   "built": "color(srgb 0.12549 0.12549 0.141176 / 0.94) on color(srgb 0.12549 0.12549 0.141176 / 0.94)",
+   "result": "PASS"
+  },
+  {
+   "tag": "light / send button = violet midground token",
+   "wire": "violet (allowed deviation)",
+   "built": "rgb(124, 58, 237) vs #7c3aed",
+   "result": "PASS"
+  },
+  {
+   "tag": "dark / primary button fill = ink token",
+   "wire": "ink fill",
+   "built": "color(srgb 0.92549 0.92549 0.933333 / 0.94) on color(srgb 0.92549 0.92549 0.933333 / 0.94)",
+   "result": "PASS"
+  },
+  {
+   "tag": "dark / send button = violet midground token",
+   "wire": "violet (allowed deviation)",
+   "built": "rgb(157, 107, 245) vs #9d6bf5",
+   "result": "PASS"
+  }
+ ]
+}
