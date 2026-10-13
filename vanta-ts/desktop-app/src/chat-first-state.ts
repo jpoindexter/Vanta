@@ -11,6 +11,7 @@ import { currentRecovery, rememberChatSelection, restoreChatSelection } from "./
 import { useChatLayout } from "./chat-first-layout.js";
 import { useDocumentWorkbench } from "./chat-first-documents.js";
 import { useDesktopTheme } from "./desktop-theme.js";
+import { startsNarrow } from "./narrow-viewport.js";
 
 export function useChatFirstState() {
   const data = useDesktopData();
@@ -29,7 +30,7 @@ export function useChatFirstState() {
   const [connectTarget, setConnectTarget] = useState<{ key: number; section: "overview" | "capabilities" | "mcp" | "messaging" | "google"; messagingId?: string }>({ key: 0, section: "overview" });
   const [contextTab, setContextTab] = useState<"files" | "review" | "sources" | "activity" | "canvas">("files");
   const [inspector, setInspector] = useState(false);
-  const [sidebar, setSidebar] = useState(true);
+  const [sidebar, setSidebar] = useState(() => !startsNarrow());
   const [taskOpen, setTaskOpen] = useState(false);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
