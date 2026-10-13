@@ -11,6 +11,7 @@ import { createGatedRunner } from './gated-run'
 import { registerGitMutations } from './git-mutation-handlers'
 import { createGitRunner } from './git-runner'
 import { startVantaServer, type VantaServer } from './launcher'
+import { stopKernelsStartedIn } from './real-runtime-helpers'
 import type { IpcLike } from './native-handlers'
 import { CH } from './channels'
 import { createProjectGuard } from './project-guard'
@@ -30,6 +31,7 @@ let server: VantaServer | undefined
 
 afterAll(() => {
   server?.stop()
+  stopKernelsStartedIn(project)
   rmSync(home, { force: true, recursive: true })
   rmSync(project, { force: true, recursive: true })
 })
