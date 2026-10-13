@@ -16,7 +16,7 @@ export const ELEMENTS = [
   { id: "thread.column", note: 5, wf: ".scroll > .col", built: '[data-vp="column"]', states: ALL.filter((s) => s !== "empty"), props: ["width", "centeredOffset"] },
   { id: "thread.userBubble", note: 5, wf: ".msg-u", built: '[data-vp="user-bubble"]', states: THREAD, props: ["borderRadius", "paddingTop", "paddingLeft", "fontSize", "lineHeight", "text", "alignRight", "maxWidthPct"] },
   { id: "thread.userActions", note: 5, wf: ".hov:has(.msg-u) .hover-actions", built: '[data-vp="user-actions"]', states: THREAD, props: ["text", "hiddenAtRest", "shownOnHover", "height"] },
-  { id: "thread.assistantText", note: 5, wf: ".msg-a > div:first-child", built: '[data-vp="assistant-text"]', states: THREAD, props: ["fontSize", "lineHeight", "text", "noBackground"], first: true },
+  { id: "thread.assistantText", note: 5, wf: ".msg-a > div:first-child", built: '[data-slot="aui_assistant-message-content"] .aui-md', states: THREAD, props: ["fontSize", "lineHeight", "text", "noBackground"], first: true },
   { id: "thread.assistantActions", note: 5, wf: ".msg-a .hover-actions", built: '[data-vp="assistant-actions"]', states: THREAD, props: ["text", "hiddenAtRest", "shownOnHover"], first: true },
   // 6 collapsed tool step
   { id: "step.collapsed", note: 6, wf: ".step[data-step]", built: '[data-vp="step"]', states: ["waiting", "running", "failed", "done", "offline", "blocked"], props: ["text", "height", "fontSize", "ariaExpanded"], first: true },

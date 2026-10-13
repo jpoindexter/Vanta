@@ -16,6 +16,8 @@ import type { HermesGateway } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { notifyError } from '@/store/notifications'
 
+import '@/styles/vanta-chat.css'
+
 type ThreadLoadingState = 'response' | 'session'
 
 interface ThreadEditContextValue {

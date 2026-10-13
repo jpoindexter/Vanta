@@ -12,7 +12,7 @@ export const WIREFRAME = path.resolve(here, "..", "..", "docs", "wireframe", "va
 export const MAIN_WIDTH = { 1440: 1165, 1100: 1044, 800: 800 };
 
 export async function openWireframe(browser, { w, theme, state }) {
-  const ctx = await browser.newContext({ viewport: { width: 1700, height: 1100 }, colorScheme: theme });
+  const ctx = await browser.newContext({ viewport: { width: 1700, height: 1100 }, colorScheme: theme, locale: "en-GB", timezoneId: "UTC" });
   const page = await ctx.newPage();
   await page.goto(pathToFileURL(WIREFRAME).href);
   await page.click(`[data-w="${w}"]`);
@@ -22,7 +22,7 @@ export async function openWireframe(browser, { w, theme, state }) {
 }
 
 export async function openBuilt(browser, { w, theme, state, flags = "", base }) {
-  const ctx = await browser.newContext({ viewport: { width: 1700, height: 760 }, colorScheme: theme });
+  const ctx = await browser.newContext({ viewport: { width: 1700, height: 760 }, colorScheme: theme, locale: "en-GB", timezoneId: "UTC" });
   const page = await ctx.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));

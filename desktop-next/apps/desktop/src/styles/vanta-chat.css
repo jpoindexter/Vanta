@@ -1,0 +1,343 @@
+/* Vanta chat surface (DN-03). Imported after styles.css and unlayered, so these
+ * rules beat the Tailwind utility layer without !important.
+ *
+ * Every number below is a design-contract value from the approved wireframe
+ * (desktop-next/docs/wireframe). Colours are tokens only: the surface is neutral,
+ * violet appears on focus rings, links and the send button, and primary buttons
+ * are ink-filled. Component classes are `vp-*`; measured parts carry a
+ * `data-vp` hook that tools/chat-parity reads.
+ */
+
+:root {
+  --vp-column: 720px;
+  --vp-gutter: 16px;
+  --vp-gap: 14px;
+  --vp-text: 14px;
+  --vp-leading: 1.45;
+  --vp-small: 13px;
+  --vp-meta: 12px;
+  --vp-radius-bubble: 16px;
+  --vp-radius-card: 12px;
+  --vp-radius-composer: 22px;
+  --vp-radius-control: 8px;
+  --vp-radius-code: 6px;
+  --vp-hit: 30px;
+  --vp-send: 32px;
+
+  --vp-bg: var(--ui-chat-surface-background);
+  --vp-panel: var(--ui-bg-sidebar);
+  --vp-raised: var(--ui-chat-bubble-background);
+  --vp-line: var(--ui-stroke-primary);
+  --vp-hair: var(--ui-stroke-secondary);
+  --vp-ink: var(--ui-text-primary);
+  --vp-ink2: var(--ui-text-secondary);
+  --vp-ink3: var(--ui-text-tertiary);
+  --vp-ring: var(--ui-accent);
+
+  /* The thread and the dock share one column. */
+  --composer-width: var(--vp-column);
+  --conversation-text-base-size: var(--vp-text);
+  --conversation-text-font-size: var(--vp-text);
+  --conversation-base-line-height: calc(var(--vp-text) * var(--vp-leading));
+  --conversation-line-height: calc(var(--vp-text) * var(--vp-leading));
+  --conversation-tool-base-size: var(--vp-meta);
+  --conversation-turn-gap: var(--vp-gap);
+  --turn-block-gap: var(--vp-gap);
+}
+
+/* ---------- shared primitives ---------- */
+
+.vp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--vp-line);
+  border-radius: var(--vp-radius-control);
+  background: var(--vp-bg);
+  color: var(--vp-ink);
+  font: inherit;
+  font-size: var(--vp-text);
+  line-height: var(--vp-leading);
+  cursor: pointer;
+}
+
+.vp-btn:hover:not(:disabled) {
+  background: var(--vp-panel);
+}
+
+.vp-btn[data-tone='primary'] {
+  border-color: var(--vp-ink);
+  background: var(--vp-ink);
+  color: var(--vp-bg);
+}
+
+.vp-btn[data-tone='primary']:hover:not(:disabled) {
+  background: var(--vp-ink);
+  opacity: 0.88;
+}
+
+.vp-btn:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.vp-btn:focus-visible,
+.vp-action:focus-visible,
+.vp-step:focus-visible,
+.vp-chip:focus-visible {
+  outline: 2px solid var(--vp-ring);
+  outline-offset: 2px;
+}
+
+.vp-card {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--vp-line);
+  border-radius: var(--vp-radius-card);
+  background: var(--vp-bg);
+  color: var(--vp-ink);
+  font-size: var(--vp-text);
+  line-height: var(--vp-leading);
+}
+
+.vp-card h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 2px;
+  font-size: var(--vp-text);
+  font-weight: 600;
+  line-height: var(--vp-leading);
+}
+
+.vp-card-icon {
+  flex: none;
+}
+
+.vp-sub {
+  margin-bottom: 8px;
+  color: var(--vp-ink2);
+  font-size: var(--vp-small);
+}
+
+.vp-code {
+  margin: 0 0 8px;
+  padding: 6px 8px;
+  max-height: 200px;
+  overflow: auto;
+  border: 1px solid var(--vp-hair);
+  border-radius: var(--vp-radius-code);
+  background: var(--vp-panel);
+  color: var(--vp-ink);
+  font: var(--vp-meta) / 1.5 var(--dt-font-mono);
+  white-space: pre;
+}
+
+.vp-acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.vp-note {
+  margin-top: 8px;
+  color: var(--vp-ink3);
+  font-size: var(--vp-meta);
+  line-height: var(--vp-leading);
+}
+
+.vp-error {
+  margin-top: 8px;
+  color: var(--dt-destructive);
+  font-size: var(--vp-meta);
+}
+
+/* Hover-only message actions: hidden at rest, shown on hover or keyboard focus,
+   always visible where there is no hover (touch). */
+.vp-hover-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity 120ms;
+}
+
+[data-vp-hover]:hover .vp-hover-actions,
+[data-vp-hover]:focus-within .vp-hover-actions {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .vp-hover-actions {
+    opacity: 1;
+  }
+}
+
+.vp-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--vp-radius-control);
+  background: transparent;
+  color: var(--vp-ink2);
+  font: inherit;
+  font-size: var(--vp-meta);
+  line-height: var(--vp-leading);
+  cursor: pointer;
+}
+
+.vp-action:hover {
+  background: var(--vp-panel);
+}
+
+.vp-action[aria-pressed='true'] {
+  color: var(--vp-ink);
+  background: var(--vp-raised);
+}
+
+.vp-action-time {
+  padding: 0 0 0 6px;
+  color: var(--vp-ink3);
+  font-size: var(--vp-meta);
+  line-height: var(--vp-leading);
+}
+
+/* ---------- thread ---------- */
+
+[data-slot='aui_thread-viewport'] {
+  padding-inline: var(--vp-gutter);
+}
+
+[data-slot='aui_thread-content'][data-vp='column'] {
+  max-width: var(--vp-column);
+  padding-inline: 0;
+}
+
+[data-slot='aui_assistant-message-content'] {
+  line-height: var(--vp-leading);
+}
+
+[data-slot='aui_assistant-message-root'] {
+  overflow: visible;
+}
+
+.vp-assistant-footer {
+  padding: 0;
+}
+
+.vp-user-bubble {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: var(--vp-radius-bubble);
+  background: var(--vp-raised);
+  color: var(--vp-ink);
+  font-size: var(--vp-text);
+  line-height: var(--vp-leading);
+}
+
+.vp-user .vp-hover-actions {
+  justify-content: flex-end;
+}
+
+/* ---------- tool steps ---------- */
+
+.vp-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--vp-ink2);
+  font: inherit;
+  font-size: var(--vp-text);
+  line-height: var(--vp-leading);
+  text-align: left;
+}
+
+.vp-step > span {
+  min-width: 0;
+}
+
+.vp-step span,
+.vp-step span span {
+  font-size: var(--vp-text);
+  line-height: var(--vp-leading);
+  color: inherit;
+}
+
+.vp-step-caret {
+  flex: none;
+  transition: transform 140ms;
+}
+
+.vp-step-caret[data-open] {
+  transform: rotate(90deg);
+}
+
+.vp-diff {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.vp-diff-text {
+  min-width: 0;
+}
+
+.vp-diff .vp-sub {
+  margin: 0;
+}
+
+.vp-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.vp-link:hover {
+  text-decoration: underline;
+}
+
+.vp-more {
+  position: relative;
+  margin-left: auto;
+}
+
+.vp-more-toggle {
+  padding-inline: 6px;
+}
+
+.vp-more-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 4px);
+  z-index: 5;
+  display: flex;
+  padding: 4px;
+  border: 1px solid var(--vp-line);
+  border-radius: var(--vp-radius-card);
+  background: var(--vp-bg);
+  box-shadow: 0 8px 16px -4px color-mix(in srgb, #000 18%, transparent);
+  white-space: nowrap;
+}
+
+.vp-details > summary {
+  width: fit-content;
+  margin-bottom: 8px;
+  color: var(--vp-ink2);
+  font-size: var(--vp-meta);
+  cursor: pointer;
+}

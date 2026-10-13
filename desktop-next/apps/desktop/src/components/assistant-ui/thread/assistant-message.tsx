@@ -17,7 +17,7 @@ import { useComposerScope } from '@/app/chat/composer/scope'
 import { useSessionView } from '@/app/chat/session-view'
 import { SETTINGS_ROUTE } from '@/app/routes'
 import { dispatchedTo } from '@/components/assistant-ui/thread/agent-delivery'
-import { ChangedFilesCard } from '@/components/assistant-ui/thread/changed-files-card'
+import { AssistantFooter } from '@/components/assistant-ui/thread/assistant-actions'
 import {
   contentHasVisibleText,
   messageContentText,
@@ -90,23 +90,6 @@ const EMPTY_PARTS: readonly unknown[] = []
 // descend into the parts subtree at all. Its props were already the module
 // constant MESSAGE_PARTS_COMPONENTS, so nothing per-message is captured here.
 const MESSAGE_PARTS = <MessagePrimitive.Parts components={MESSAGE_PARTS_COMPONENTS} />
-
-interface MessageActionProps {
-  messageId: string
-  /** Lazy accessor — reads the live message text at action time. Passing the
-   *  text itself as a prop forces the whole footer to re-render on every
-   *  streaming delta flush (the text changes ~30×/s), which profiling showed
-   *  was a large slice of per-token script time on long transcripts. */
-  getMessageText: () => string
-  /** Lazy accessor for the whole response group's blank-line-joined text — the
-   *  explicit full-response copy/read-aloud scope (#118864). Identical to
-   *  `getMessageText` on a solo reply. */
-  getFullResponseText: () => string
-  /** True when the response group carries more than one text-bearing reply, so
-   *  the current-reply and full-response scopes actually differ. */
-  fullResponseAvailable: boolean
-  onBranchInNewChat?: (messageId: string) => void
-}
 
 interface AssistantMessageProps {
   onBranchInNewChat?: (messageId: string) => void
@@ -295,6 +278,7 @@ const AssistantMessageBody: FC<AssistantMessageProps & { collapsedNotice?: null 
       data-approval-activity-only={approval && activityOnly ? '' : undefined}
       data-role="assistant"
       data-slot="aui_assistant-message-root"
+      data-vp-hover=""
       // Collapsed inter-agent rows never carried the tapback listener; keeping
       // that exact truth table means gating it on the notice rather than on
       // whether the hook returned a handler.
@@ -354,9 +338,6 @@ const AssistantMessageBody: FC<AssistantMessageProps & { collapsedNotice?: null 
                 onBranchInNewChat={onBranchInNewChat}
               />
             )}
-          {/* Last thing in the turn — under the action bar, the way Cursor ends a
-          turn on its summary rather than burying it above the controls. */}
-          <SettledChangedFiles />
           <StreamingMarker />
         </>
       )}
@@ -490,34 +471,6 @@ const AssistantPreviewEmbeds: FC = () => {
       ))}
     </div>
   )
-}
-
-/**
- * PERF leaf: owns the `settledParts` selector so the tail's settle stops
- * re-rendering the message root. This is the one status-derived selector that
- * returns an OBJECT (`s.message.parts`) rather than a primitive, so it cannot
- * bail out on identity churn — keeping it at the root meant every settle
- * re-rendered the root and everything under it.
- *
- * Cursor's changed-files card only appears once the turn settles: while the
- * agent is still editing, the tool rows narrate each patch and a card that
- * grew a row per write would thrash the transcript. `EMPTY_PARTS` while
- * running keeps this selector referentially stable across the 30 Hz delta
- * stream.
- *
- * It also only rides the LAST turn. The card is a "here's what just landed"
- * summary, not a per-turn artifact: leaving one behind on every reply would
- * stack a wall of stale cards down the transcript. Sending the next message
- * retires it — the working tree it describes is already history by then.
- */
-const SettledChangedFiles: FC = () => {
-  const settledParts = useAuiState(s => {
-    const isLastMessage = s.thread.messages[s.thread.messages.length - 1]?.id === s.message.id
-
-    return s.message.status?.type === 'running' || !isLastMessage ? EMPTY_PARTS : s.message.parts
-  })
-
-  return <ChangedFilesCard parts={settledParts} />
 }
 
 /**
@@ -1006,218 +959,6 @@ const ErrorRecoveryActions: FC = () => {
         label={copy.errorCopyDiagnostics}
         text={diagnosticsText}
       />
-    </div>
-  )
-}
-
-const AssistantActionBar: FC<MessageActionProps & { durationS?: number }> = ({
-  durationS,
-  fullResponseAvailable,
-  getFullResponseText,
-  messageId,
-  getMessageText,
-  onBranchInNewChat
-}) => {
-  const { t } = useI18n()
-  const copy = t.assistant.thread
-
-  const [pickerOpen, setPickerOpen] = useState(false)
-  const { enabled: reactionsEnabled, react, reactions: shownReactions } = useMessageReactions(messageId, 'assistant')
-
-  const pickEmoji = useCallback(
-    (emoji: null | string) => {
-      setPickerOpen(false)
-      react(emoji)
-    },
-    [react]
-  )
-
-  return (
-    <div className="relative flex w-full shrink-0 items-center justify-end gap-1.5">
-      {durationS !== undefined && (
-        <span
-          className="mr-auto select-none px-0.5 text-[0.75rem] leading-5 tabular-nums text-muted-foreground"
-          data-slot="aui_turn-duration"
-          title={t.assistant.thread.turnDuration(formatElapsed(durationS))}
-        >
-          ⏱ {formatElapsed(durationS)}
-        </span>
-      )}
-      <ActionBarPrimitive.Root
-        className={
-          // NOTE: intentionally NOT `hideWhenRunning`. That prop unmounts the
-          // bar while the thread streams, which collapses every completed
-          // assistant message's footer by this bar's height and shifts the
-          // whole conversation when the turn resolves. The bar is already
-          // invisible by default (opacity-0 + pointer-events-none, reveals on
-          // hover), so keeping it mounted reserves stable layout height with
-          // no visual change during streaming.
-          'relative flex flex-row items-center justify-end gap-1.5 py-1.5 opacity-0 pointer-events-none group-hover:pointer-events-auto group-hover:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100'
-        }
-        data-slot="aui_msg-actions"
-      >
-        <MessageHoverTime className="mr-1 px-0.5" />
-        {onBranchInNewChat && (
-          <TooltipIconButton
-            onClick={() => {
-              triggerHaptic('selection')
-              onBranchInNewChat(messageId)
-            }}
-            tooltip={copy.branchNewChat}
-          >
-            <GitForkIcon className="size-3.5" />
-          </TooltipIconButton>
-        )}
-        <CopyButton
-          appearance="icon"
-          buttonSize="icon"
-          label={copy.copy}
-          onCopied={() => recordAction(DESKTOP_BUTTON_ACTIONS.messageCopy, 'click')}
-          text={getMessageText}
-        />
-        {fullResponseAvailable && (
-          <CopyButton appearance="icon" buttonSize="icon" label={copy.copyFullResponse} text={getFullResponseText} />
-        )}
-        <ReadAloudButton
-          fullResponseAvailable={fullResponseAvailable}
-          getFullText={getFullResponseText}
-          getText={getMessageText}
-          messageId={messageId}
-        />
-        <ActionBarPrimitive.Reload asChild>
-          <TooltipIconButton
-            onClick={() => {
-              triggerHaptic('submit')
-              recordAction(DESKTOP_BUTTON_ACTIONS.messageRetry, 'click')
-            }}
-            tooltip={copy.refresh}
-          >
-            <RefreshCwIcon className="size-3.5" />
-          </TooltipIconButton>
-        </ActionBarPrimitive.Reload>
-      </ActionBarPrimitive.Root>
-      {/* ONE slot, Slack-style: the picker trigger and the landed reaction are
-          the same element, so reacting never shifts layout. Empty → ☺, hidden
-          until hover like its action-bar neighbors (state lives in styles.css
-          — the aui_msg-reactions rules outweigh Tailwind utilities here).
-          Reacted → the emoji itself, always visible at full strength, and
-          clicking it reopens the picker to switch or retract. Outside
-          ActionBarPrimitive.Root so a landed reaction doesn't ride the bar's
-          hover opacity. */}
-      {(reactionsEnabled || shownReactions.length > 0) && (
-        <ReactionPicker
-          onOpenChange={setPickerOpen}
-          onSelect={pickEmoji}
-          open={pickerOpen}
-          selected={shownReactions.find(reaction => reaction.author === 'user')?.emoji}
-        >
-          <TooltipIconButton
-            data-reacted={shownReactions.length > 0 || undefined}
-            data-slot="aui_msg-reactions"
-            data-state={pickerOpen ? 'open' : undefined}
-            onClick={reactionsEnabled ? () => setPickerOpen(open => !open) : undefined}
-            tooltip={copy.react}
-          >
-            {shownReactions.length > 0 ? (
-              <span className="flex items-center gap-0.5 text-[0.8125rem] leading-none">
-                {shownReactions.map(reaction => (
-                  <span className="reaction-pop" key={`${reaction.author}-${reaction.emoji}`}>
-                    {reaction.emoji}
-                  </span>
-                ))}
-              </span>
-            ) : (
-              <SmilePlusIcon className="size-3.5" />
-            )}
-          </TooltipIconButton>
-        </ReactionPicker>
-      )}
-    </div>
-  )
-}
-
-const ReadAloudButton: FC<{
-  fullResponseAvailable: boolean
-  getFullText: () => string
-  getText: () => string
-  messageId: string
-}> = ({ fullResponseAvailable, getFullText, getText, messageId }) => {
-  const { t } = useI18n()
-  const copy = t.assistant.thread
-  const voicePlayback = useStore($voicePlayback)
-  const view = useSessionView()
-  const sessionId = useStore(view.$runtimeId)
-  // A Bot chat's session owns its own (connection, profile) → its own TTS voice.
-  const { connectionId, profile } = useComposerScope()
-
-  const readAloudStatus =
-    voicePlayback.source === 'read-aloud' && voicePlayback.messageId === messageId ? voicePlayback.status : 'idle'
-
-  const isPreparing = readAloudStatus === 'preparing'
-  const isSpeaking = readAloudStatus === 'speaking'
-  const anyPlaybackActive = voicePlayback.status !== 'idle'
-  const Icon = isPreparing ? Loader2Icon : isSpeaking ? VolumeXIcon : AudioLines
-
-  const tooltip = isPreparing
-    ? copy.preparingAudio
-    : isSpeaking
-      ? copy.stopReading
-      : fullResponseAvailable
-        ? `${copy.readAloud} (${copy.readAloudFullResponseHint})`
-        : copy.readAloud
-
-  // Default reads the current reply only; Shift-click reads the whole response
-  // group — the read-aloud mirror of the two copy scopes (#118864).
-  const read = useCallback(
-    async (full: boolean) => {
-      const text = full ? getFullText() : getText()
-
-      if (!text || $voicePlayback.get().status !== 'idle') {
-        return
-      }
-
-      try {
-        await playSpeechText(text, { connectionId, messageId, profile, source: 'read-aloud' })
-        markAssistantIdSpoken(sessionId, view.$messages.get(), messageId)
-      } catch (error) {
-        notifyError(error, copy.readAloudFailed)
-      }
-    },
-    [connectionId, copy.readAloudFailed, getFullText, getText, messageId, profile, sessionId, view.$messages]
-  )
-
-  return (
-    <TooltipIconButton
-      disabled={isPreparing || (!isSpeaking && anyPlaybackActive)}
-      onClick={event => {
-        triggerHaptic('selection')
-        void (isSpeaking ? stopVoicePlayback() : read(event.shiftKey))
-      }}
-      tooltip={tooltip}
-    >
-      <Icon className={cn('size-3.5', isPreparing && 'animate-spin')} />
-    </TooltipIconButton>
-  )
-}
-
-const AssistantFooter: FC<MessageActionProps & { durationS?: number }> = ({ durationS, ...props }) => {
-  return (
-    <div className="flex min-h-6 flex-col items-end gap-1 pr-(--message-text-indent) pl-(--message-text-indent)">
-      <BranchPickerPrimitive.Root
-        className="inline-flex h-6 items-center gap-1 text-xs text-muted-foreground"
-        hideWhenSingleBranch
-      >
-        <BranchPickerPrimitive.Previous className="grid size-6 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:cursor-default disabled:opacity-35">
-          <Codicon name="chevron-left" size="0.875rem" />
-        </BranchPickerPrimitive.Previous>
-        <span className="tabular-nums">
-          <BranchPickerPrimitive.Number /> / <BranchPickerPrimitive.Count />
-        </span>
-        <BranchPickerPrimitive.Next className="grid size-6 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:cursor-default disabled:opacity-35">
-          <Codicon name="chevron-right" size="0.875rem" />
-        </BranchPickerPrimitive.Next>
-      </BranchPickerPrimitive.Root>
-      <AssistantActionBar durationS={durationS} {...props} />
     </div>
   )
 }

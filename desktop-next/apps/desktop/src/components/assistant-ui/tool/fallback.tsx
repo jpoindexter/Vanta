@@ -20,6 +20,7 @@ import {
 import { useSessionView } from '@/app/chat/session-view'
 import { AnsiText } from '@/components/assistant-ui/ansi-text'
 import { MarkdownImage } from '@/components/assistant-ui/markdown-text'
+import { ChangedFilesCard } from '@/components/assistant-ui/thread/changed-files-card'
 import { TimelineTimestamp } from '@/components/assistant-ui/thread/timeline-timestamp'
 import { useElapsedSeconds } from '@/components/chat/activity-timer'
 import { ActivityTimerText } from '@/components/chat/activity-timer-text'
@@ -73,6 +74,7 @@ import {
   looksRedundant,
   type SearchResultRow,
   selectMessageRunning,
+  toolCallFailed,
   toolCopyPayload,
   toolEntryDisclosureId,
   type ToolPart,
@@ -1046,6 +1048,46 @@ const ToolRun: FC<PropsWithChildren<{ endIndex: number; startIndex: number }>> =
   )
 }
 
+type EditSlot = 'last' | 'pending' | 'row' | 'summarized'
+
+/** Per call in the range: how a file edit is shown ('' for every other tool). */
+function editSlotKeyFor(
+  parts: readonly { result?: unknown; toolName?: string; type: string }[],
+  startIndex: number,
+  endIndex: number
+): string {
+  const landed = (part: (typeof parts)[number]) =>
+    part.type === 'tool-call' &&
+    isFileEditTool(part.toolName ?? '') &&
+    part.result !== undefined &&
+    !toolCallFailed(part as ToolPart)
+
+  const lastLanded = parts.findLastIndex(landed)
+
+  return parts
+    .slice(Math.max(0, startIndex), endIndex + 1)
+    .map((part, offset): '' | EditSlot => {
+      if (part.type !== 'tool-call' || !isFileEditTool(part.toolName ?? '')) {
+        return ''
+      }
+
+      if (!landed(part)) {
+        return part.result === undefined ? 'pending' : 'row'
+      }
+
+      return Math.max(0, startIndex) + offset === lastLanded ? 'last' : 'summarized'
+    })
+    .join('\u0000')
+}
+
+function cardRow(slot: '' | EditSlot | undefined, row: ReactNode): ReactNode {
+  if (slot === 'last') {
+    return <ChangedFilesCard />
+  }
+
+  return slot === 'summarized' ? null : row
+}
+
 /**
  * A range of consecutive tool calls, split into the cards that must stay on
  * screen and the runs of activity between them.
@@ -1083,6 +1125,11 @@ export const ToolGroupSlot: FC<PropsWithChildren<{ endIndex: number; startIndex:
   const items = useMemo(() => splitRunItems(toolNameKey.split('\u0000')), [toolNameKey])
   const rows = Children.toArray(children)
 
+  // A landed edit is shown once, by the "Edited N files" card at the last edit.
+  // Pending and failed edits keep their own row so a failure stays visible.
+  const editSlotKey = useAuiState(state => editSlotKeyFor(state.message.parts, startIndex, endIndex))
+  const editSlots = editSlotKey.split('\u0000')
+
   // The run scaffold ("Explored N files") is part of the tool feed and follows
   // display.tool_progress. Children still mount so clarify, diffs, and failed
   // calls can render on their own.
@@ -1094,7 +1141,7 @@ export const ToolGroupSlot: FC<PropsWithChildren<{ endIndex: number; startIndex:
     <ToolEmbedContext.Provider value={false}>
       {items.map(item =>
         item.kind === 'card' ? (
-          <Fragment key={`card:${item.index}`}>{rows[item.index]}</Fragment>
+          <Fragment key={`card:${item.index}`}>{cardRow(editSlots[item.index], rows[item.index])}</Fragment>
         ) : (
           <ToolRun endIndex={startIndex + item.end} key={`run:${item.start}`} startIndex={startIndex + item.start}>
             {rows.slice(item.start, item.end + 1)}
