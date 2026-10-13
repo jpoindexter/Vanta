@@ -1,0 +1,291 @@
+{
+ "version": 1,
+ "target": "app (apps/desktop, Hermes shell)",
+ "description": "Selector map for the built Vanta Desktop renderer. Keys are the wireframe role keys; UNMAPPED means the app has no hook yet. See docs/parity/README.md.",
+ "viewport": {
+  "mode": "frame"
+ },
+ "prepare": {
+  "css": "*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important;scrollbar-width:none!important}"
+ },
+ "copyRoot": {
+  "css": "#root"
+ },
+ "drivers": {
+  "chat:empty": [],
+  "chat:running": "UNMAPPED",
+  "chat:waiting": "UNMAPPED",
+  "chat:blocked": "UNMAPPED",
+  "chat:done": "UNMAPPED",
+  "chat:failed": "UNMAPPED",
+  "chat:offline": "UNMAPPED",
+  "wb:changes": "UNMAPPED",
+  "wb:files": "UNMAPPED",
+  "wb:browser": "UNMAPPED",
+  "wb:terminal": "UNMAPPED",
+  "wb:outputs": "UNMAPPED",
+  "view:home": "UNMAPPED",
+  "view:schedules": "UNMAPPED",
+  "view:connections": "UNMAPPED",
+  "view:skills": "UNMAPPED",
+  "view:outputs": "UNMAPPED",
+  "overlay:palette": "UNMAPPED",
+  "overlay:paletteEmpty": "UNMAPPED",
+  "overlay:settings": "UNMAPPED",
+  "theme:dark": [
+   {
+    "storage": {
+     "key": "hermes-desktop-mode-v1",
+     "value": "dark"
+    }
+   },
+   {
+    "reload": true
+   },
+   {
+    "waitFor": {
+     "css": "[data-slot=\"composer-root\"] [contenteditable=\"true\"]"
+    },
+    "timeout": 120000
+   },
+   {
+    "wait": 800
+   }
+  ],
+  "drawer:open": "UNMAPPED",
+  "extra:stepOpen": "UNMAPPED",
+  "extra:queued": "UNMAPPED",
+  "extra:toastAlways": "UNMAPPED",
+  "base": [
+   {
+    "reload": true
+   },
+   {
+    "waitFor": {
+     "css": "[data-slot=\"composer-root\"] [contenteditable=\"true\"]"
+    },
+    "timeout": 120000
+   },
+   {
+    "wait": 800
+   }
+  ],
+  "w:1440": [],
+  "w:1100": [],
+  "w:800": []
+ },
+ "keys": {
+  "titlebar": "UNMAPPED",
+  "titlebar.dots": "UNMAPPED",
+  "titlebar.drawer": "UNMAPPED",
+  "titlebar.new": "UNMAPPED",
+  "titlebar.title": "UNMAPPED",
+  "titlebar.titleMenu": "UNMAPPED",
+  "titlebar.project": "UNMAPPED",
+  "titlebar.statusPill": "UNMAPPED",
+  "titlebar.changes": "UNMAPPED",
+  "titlebar.terminal": "UNMAPPED",
+  "titlebar.browser": "UNMAPPED",
+  "titlebar.files": "UNMAPPED",
+  "titlebar.more": "UNMAPPED",
+  "sidebar": {
+   "css": "[data-slot=\"sidebar\"]",
+   "textMode": "none"
+  },
+  "nav.new": {
+   "role": "button",
+   "name": "New session",
+   "within": "sidebar",
+   "textMode": "none",
+   "note": "label is 'New session', wireframe says 'New chat'"
+  },
+  "nav.new.glyph": "UNMAPPED",
+  "nav.new.label": "UNMAPPED",
+  "nav.new.shortcut": {
+   "css": "[data-slot=\"kbd-group\"]",
+   "within": "nav.new"
+  },
+  "nav.search": "UNMAPPED",
+  "nav.search.glyph": "UNMAPPED",
+  "nav.search.label": "UNMAPPED",
+  "nav.search.shortcut": "UNMAPPED",
+  "nav.home": "UNMAPPED",
+  "nav.home.glyph": "UNMAPPED",
+  "nav.home.label": "UNMAPPED",
+  "nav.schedules": {
+   "role": "button",
+   "name": "Scheduled jobs",
+   "within": "sidebar",
+   "textMode": "none",
+   "note": "destination equivalent to Schedules"
+  },
+  "nav.schedules.glyph": "UNMAPPED",
+  "nav.schedules.label": "UNMAPPED",
+  "nav.connections": "UNMAPPED",
+  "nav.connections.glyph": "UNMAPPED",
+  "nav.connections.label": "UNMAPPED",
+  "nav.skills": "UNMAPPED",
+  "nav.skills.glyph": "UNMAPPED",
+  "nav.skills.label": "UNMAPPED",
+  "nav.outputs": "UNMAPPED",
+  "nav.outputs.glyph": "UNMAPPED",
+  "nav.outputs.label": "UNMAPPED",
+  "needsYou.group": "UNMAPPED",
+  "needsYou.label": "UNMAPPED",
+  "needsYou.badge": "UNMAPPED",
+  "sidebar.groupLabel[]": "UNMAPPED",
+  "sidebar.groupName[]": "UNMAPPED",
+  "row.session[]": "UNMAPPED",
+  "row.session.status[]": "UNMAPPED",
+  "row.session.title[]": "UNMAPPED",
+  "row.session.time[]": "UNMAPPED",
+  "sidebar.footer": "UNMAPPED",
+  "sidebar.avatar": "UNMAPPED",
+  "sidebar.userName": "UNMAPPED",
+  "sidebar.userMeta": "UNMAPPED",
+  "sidebar.settings": "UNMAPPED",
+  "main": "UNMAPPED",
+  "banner.offline": "UNMAPPED",
+  "banner.retry": "UNMAPPED",
+  "thread.scroll": {
+   "css": "[data-slot=\"aui_thread-viewport\"]",
+   "textMode": "none"
+  },
+  "thread.column": {
+   "css": "[data-slot=\"aui_thread-content\"]",
+   "textMode": "none"
+  },
+  "thread.note": "UNMAPPED",
+  "msg.user[]": "UNMAPPED",
+  "msg.user.actions[]": "UNMAPPED",
+  "msg.user.action[]": "UNMAPPED",
+  "msg.user.time[]": "UNMAPPED",
+  "msg.assistant[]": "UNMAPPED",
+  "msg.assistant.actions[]": "UNMAPPED",
+  "msg.assistant.action[]": "UNMAPPED",
+  "step[]": "UNMAPPED",
+  "step.body[]": "UNMAPPED",
+  "running.line": "UNMAPPED",
+  "running.spinner": "UNMAPPED",
+  "running.label": "UNMAPPED",
+  "running.stop": "UNMAPPED",
+  "card.diff": "UNMAPPED",
+  "card.diff.title": "UNMAPPED",
+  "card.diff.summary": "UNMAPPED",
+  "card.diff.review": "UNMAPPED",
+  "card.approval": "UNMAPPED",
+  "card.approval.title": "UNMAPPED",
+  "card.approval.body": "UNMAPPED",
+  "card.blocked": "UNMAPPED",
+  "card.blocked.title": "UNMAPPED",
+  "card.blocked.body": "UNMAPPED",
+  "card.error": "UNMAPPED",
+  "card.error.title": "UNMAPPED",
+  "card.error.body": "UNMAPPED",
+  "card.approval.command": "UNMAPPED",
+  "card.approval.allowOnce": "UNMAPPED",
+  "card.approval.always": "UNMAPPED",
+  "card.approval.reject": "UNMAPPED",
+  "card.approval.note": "UNMAPPED",
+  "card.blocked.skip": "UNMAPPED",
+  "card.blocked.paste": "UNMAPPED",
+  "card.blocked.browser": "UNMAPPED",
+  "card.error.retry": "UNMAPPED",
+  "card.error.viewOutput": "UNMAPPED",
+  "empty": {
+   "css": "[data-slot=\"aui_intro\"]",
+   "textMode": "none"
+  },
+  "empty.title": "UNMAPPED",
+  "empty.body": "UNMAPPED",
+  "empty.chip[]": "UNMAPPED",
+  "composer.dock": {
+   "css": "[data-slot=\"composer-dock\"]",
+   "textMode": "none"
+  },
+  "composer.queue[]": "UNMAPPED",
+  "composer.queue.remove[]": "UNMAPPED",
+  "composer": {
+   "css": "[data-slot=\"composer-surface\"]",
+   "textMode": "none"
+  },
+  "composer.input": {
+   "css": "[data-slot=\"composer-rich-input\"]"
+  },
+  "composer.attach": {
+   "role": "button",
+   "name": "Add context",
+   "textMode": "none",
+   "within": "composer"
+  },
+  "composer.dictate": {
+   "role": "button",
+   "name": "Voice dictation",
+   "textMode": "none",
+   "within": "composer"
+  },
+  "composer.model": {
+   "role": "button",
+   "name": "Model",
+   "within": "composer"
+  },
+  "composer.effort": {
+   "testId": "reasoning-pill",
+   "within": "composer"
+  },
+  "composer.permission": "UNMAPPED",
+  "composer.send": "UNMAPPED",
+  "composer.hint": "UNMAPPED",
+  "workbench": "UNMAPPED",
+  "wbtabs": "UNMAPPED",
+  "wbtab.changes": "UNMAPPED",
+  "wbtab.files": "UNMAPPED",
+  "wbtab.browser": "UNMAPPED",
+  "wbtab.terminal": "UNMAPPED",
+  "wbtab.outputs": "UNMAPPED",
+  "wbtab.close": "UNMAPPED",
+  "workbench.body": "UNMAPPED",
+  "workbench.row[]": "UNMAPPED",
+  "workbench.code[]": "UNMAPPED",
+  "workbench.placeholder": "UNMAPPED",
+  "workbench.action[]": "UNMAPPED",
+  "workbench.urlBar": "UNMAPPED",
+  "page": "UNMAPPED",
+  "page.column": "UNMAPPED",
+  "listpage.title": "UNMAPPED",
+  "listpage.sub": "UNMAPPED",
+  "listpage.cta": "UNMAPPED",
+  "list.row[]": "UNMAPPED",
+  "list.row.title[]": "UNMAPPED",
+  "list.row.note[]": "UNMAPPED",
+  "list.row.action[]": "UNMAPPED",
+  "home.composer": "UNMAPPED",
+  "home.composer.input": "UNMAPPED",
+  "home.composer.attach": "UNMAPPED",
+  "home.composer.project": "UNMAPPED",
+  "home.composer.send": "UNMAPPED",
+  "home.projectChip[]": "UNMAPPED",
+  "home.section[]": "UNMAPPED",
+  "home.section.title[]": "UNMAPPED",
+  "home.needsYou.badge": "UNMAPPED",
+  "home.empty": "UNMAPPED",
+  "toast": "UNMAPPED",
+  "palette.overlay": "UNMAPPED",
+  "palette.sheet": "UNMAPPED",
+  "palette.input": "UNMAPPED",
+  "palette.option[]": "UNMAPPED",
+  "palette.option.label[]": "UNMAPPED",
+  "palette.option.shortcut[]": "UNMAPPED",
+  "palette.empty": "UNMAPPED",
+  "settings.overlay": "UNMAPPED",
+  "settings.sheet": "UNMAPPED",
+  "settings.title": "UNMAPPED",
+  "settings.close": "UNMAPPED",
+  "settings.nav[]": "UNMAPPED",
+  "settings.panel": "UNMAPPED",
+  "settings.row[]": "UNMAPPED",
+  "settings.row.title[]": "UNMAPPED",
+  "settings.row.note[]": "UNMAPPED",
+  "settings.row.action[]": "UNMAPPED"
+ }
+}
