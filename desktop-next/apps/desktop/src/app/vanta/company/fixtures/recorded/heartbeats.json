@@ -1,0 +1,37 @@
+{
+  "runs": [],
+  "workers": [
+    {
+      "workerId": "engineer",
+      "lastHeartbeat": "2026-10-13T19:49:28.267Z",
+      "source": "task",
+      "currentTicketId": "T-3"
+    },
+    {
+      "workerId": "designer",
+      "lastHeartbeat": "2026-10-13T19:49:28.302Z",
+      "source": "task",
+      "currentTicketId": null
+    },
+    {
+      "workerId": "analyst",
+      "lastHeartbeat": "2026-10-13T19:49:28.307Z",
+      "source": "task",
+      "currentTicketId": "T-7"
+    },
+    {
+      "workerId": "researcher",
+      "lastHeartbeat": "2026-10-13T19:49:28.284Z",
+      "source": "task",
+      "currentTicketId": "T-4"
+    },
+    {
+      "workerId": "support",
+      "lastHeartbeat": "2026-10-13T13:26:34.000Z",
+      "source": "roster",
+      "currentTicketId": null
+    }
+  ],
+  "schedulesUrl": "/api/schedules",
+  "note": "runs is the company wakeup pipeline log (heartbeat-runs.json). It drains loop wakes, not team tasks. Per-worker heartbeats are derived: the latest run, task update or roster write. Routine and cron rows are served by /api/schedules."
+}

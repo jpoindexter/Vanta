@@ -1,0 +1,169 @@
+{
+  "generatedAt": "2026-10-13T13:33:02.000Z",
+  "workers": [
+    {
+      "id": "engineer",
+      "name": "Head of engineering",
+      "role": "Engineer",
+      "department": "product",
+      "reportsTo": null,
+      "directReports": [
+        "designer",
+        "analyst",
+        "support"
+      ],
+      "runtime": {
+        "kind": "vanta-native",
+        "adapter": "openai",
+        "model": "gpt-5.6-sol"
+      },
+      "status": "waiting",
+      "paused": false,
+      "currentTicketId": "T-3",
+      "queuedTicketIds": [],
+      "lastHeartbeat": "2026-10-13T19:49:28.267Z",
+      "costUsd": 0.52,
+      "costBasis": "estimated",
+      "budgetUsd": 5
+    },
+    {
+      "id": "designer",
+      "name": "Designer",
+      "role": "Designer",
+      "department": "product",
+      "reportsTo": "engineer",
+      "directReports": [],
+      "runtime": {
+        "kind": "vanta-native",
+        "adapter": "openai",
+        "model": "gpt-5.6-sol"
+      },
+      "status": "idle",
+      "paused": false,
+      "currentTicketId": null,
+      "queuedTicketIds": [],
+      "lastHeartbeat": "2026-10-13T19:49:28.302Z",
+      "costUsd": 0.1,
+      "costBasis": "estimated",
+      "budgetUsd": 0.1
+    },
+    {
+      "id": "analyst",
+      "name": "Analyst",
+      "role": "Analyst",
+      "department": "product",
+      "reportsTo": "engineer",
+      "directReports": [
+        "researcher"
+      ],
+      "runtime": {
+        "kind": "vanta-native",
+        "adapter": "openai",
+        "model": "gpt-5.6-sol"
+      },
+      "status": "working",
+      "paused": false,
+      "currentTicketId": "T-7",
+      "queuedTicketIds": [],
+      "lastHeartbeat": "2026-10-13T19:49:28.307Z",
+      "costUsd": 0,
+      "costBasis": "not-reported",
+      "budgetUsd": 2
+    },
+    {
+      "id": "researcher",
+      "name": "Researcher",
+      "role": "Researcher",
+      "department": null,
+      "reportsTo": "analyst",
+      "directReports": [],
+      "runtime": {
+        "kind": "vanta-native",
+        "adapter": "openai",
+        "model": "gpt-5.6-sol"
+      },
+      "status": "failed",
+      "paused": false,
+      "currentTicketId": "T-4",
+      "queuedTicketIds": [],
+      "lastHeartbeat": "2026-10-13T19:49:28.284Z",
+      "costUsd": 0,
+      "costBasis": "not-reported",
+      "budgetUsd": 3
+    },
+    {
+      "id": "support",
+      "name": "Support",
+      "role": "Support",
+      "department": null,
+      "reportsTo": "engineer",
+      "directReports": [],
+      "runtime": {
+        "kind": "vanta-native",
+        "adapter": "openai",
+        "model": "gpt-5.6-sol"
+      },
+      "status": "paused",
+      "paused": true,
+      "currentTicketId": null,
+      "queuedTicketIds": [],
+      "lastHeartbeat": "2026-10-13T13:26:34.000Z",
+      "costUsd": 0,
+      "costBasis": null,
+      "budgetUsd": 1
+    }
+  ],
+  "orgChart": [
+    {
+      "workerId": "engineer",
+      "reports": [
+        {
+          "workerId": "designer",
+          "reports": []
+        },
+        {
+          "workerId": "analyst",
+          "reports": [
+            {
+              "workerId": "researcher",
+              "reports": []
+            }
+          ]
+        },
+        {
+          "workerId": "support",
+          "reports": []
+        }
+      ]
+    }
+  ],
+  "departments": [
+    {
+      "id": "product",
+      "name": "Product",
+      "workerIds": [
+        "engineer",
+        "designer",
+        "analyst"
+      ],
+      "budgetScope": "dept:product",
+      "goalIds": [
+        1
+      ]
+    }
+  ],
+  "totals": {
+    "workers": 5,
+    "working": 1,
+    "waiting": 1,
+    "failed": 1,
+    "paused": 1,
+    "openTickets": 4,
+    "costUsd": 0.62
+  },
+  "pending": {
+    "workProducts": 4,
+    "proposals": 0,
+    "reviews": 1
+  }
+}
