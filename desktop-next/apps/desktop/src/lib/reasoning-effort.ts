@@ -2,15 +2,16 @@ import { DEFAULT_REASONING_EFFORT, isReasoningEffort, type ReasoningEffort } fro
 
 import { normalize } from '@/lib/text'
 
-/** Compact labels for chrome where space is tight (pill, picker rows). Menus
- *  and settings use the translated `shell.modelOptions` strings instead. */
+/** Labels for chrome (pill, picker rows): full words, so the effort chip reads
+ *  "Medium". Menus and settings use the translated `shell.modelOptions`
+ *  strings instead. */
 const SHORT_LABELS: Record<string, string> = {
   none: 'Off',
-  minimal: 'Min',
+  minimal: 'Minimal',
   low: 'Low',
-  medium: 'Med',
+  medium: 'Medium',
   high: 'High',
-  xhigh: 'XHigh',
+  xhigh: 'Extra high',
   max: 'Max',
   ultra: 'Ultra'
 }

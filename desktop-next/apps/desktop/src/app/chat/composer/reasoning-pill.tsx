@@ -17,10 +17,7 @@ import { $defaultReasoningEffort } from '@/store/session'
 
 import type { ChatBarState } from './types'
 
-const PILL = cn(
-  'h-(--composer-control-size) shrink-0 gap-1 rounded-md px-2 text-xs font-normal',
-  'text-(--ui-text-tertiary) hover:bg-(--chrome-action-hover) hover:text-foreground'
-)
+const PILL = cn('vp-chip shrink-0')
 
 /**
  * Composer reasoning selector: the active model's effort level as its own
@@ -78,6 +75,7 @@ export function ReasoningPill({ disabled, model }: { disabled: boolean; model: C
             aria-label={title}
             className={PILL}
             data-testid="reasoning-pill"
+            data-vp="chip-effort"
             disabled={disabled}
             type="button"
             variant="ghost"

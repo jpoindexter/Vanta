@@ -28,6 +28,11 @@ export function errorCardText(
 ): ErrorCardText {
   const provider = errorProviderName(thread, surface)
 
+  // The producer named the failure itself ("The tests failed"): say that.
+  if (surface?.headline) {
+    return { body: surface.message ?? '', title: surface.headline }
+  }
+
   // A credential rejection is worded by HOW the provider is credentialed
   // (key vs sign-in), which the code alone (`auth`) cannot tell.
   if (surface?.layer === 'auth' && surface.authKind === 'oauth') {

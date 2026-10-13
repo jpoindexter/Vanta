@@ -31,10 +31,7 @@ import type { ChatBarState } from './types'
 // arbitrary 160px.
 const UNKNOWN_TIER = atom('')
 
-const PILL = cn(
-  'h-(--composer-control-size) min-w-0 shrink gap-1 rounded-md px-2 text-xs font-normal',
-  'text-(--ui-text-tertiary) hover:bg-(--chrome-action-hover) hover:text-foreground'
-)
+const PILL = cn('vp-chip min-w-0 shrink')
 
 /**
  * Composer model selector — the relocated status-bar pill. Reuses the live
@@ -182,6 +179,7 @@ export function ModelPill({
           aria-label={copy.openModelPicker}
           className={pillClass}
           data-tour={tourMarker}
+          data-vp="chip-model"
           disabled={disabled}
           onClick={() => setModelPickerOpen(true)}
           type="button"
@@ -212,6 +210,7 @@ export function ModelPill({
             aria-label={title}
             className={pillClass}
             data-tour={tourMarker}
+            data-vp="chip-model"
             disabled={disabled}
             type="button"
             variant="ghost"

@@ -1,0 +1,180 @@
+import { IconAlertTriangle, IconDots } from '@tabler/icons-react'
+import { type FC, useId, useRef, useState } from 'react'
+
+import { summarizeApproval } from './approval-summary'
+import type { ApprovalDecision, ApprovalPayload } from './approval-types'
+
+export interface ApprovalCardProps {
+  /** False hides "More permission options" for hosts that cannot remember a "never" rule. */
+  allowNever?: boolean
+  approval: ApprovalPayload
+  onAnswer: (decision: ApprovalDecision) => Promise<void> | void
+  /** "2 / 3" when several approvals wait in a stack. */
+  position?: string
+  /** Names the scope Always covers ("the Vanta project"); defaults to "this project". */
+  projectName?: string
+}
+
+const ONE_WAY_NOTE = "This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow."
+const ANSWER_FAILED = 'Could not confirm the decision. Check activity before trying again.'
+
+const PENDING_LABEL: Record<ApprovalDecision, string> = {
+  allow: 'Allowing…',
+  always: 'Saving…',
+  deny: 'Rejecting…',
+  never: 'Saving…'
+}
+
+const canRemember = (approval: ApprovalPayload): boolean =>
+  Boolean(approval.toolName && approval.request?.canRemember && !approval.request?.fresh)
+
+const scopeOf = (projectName?: string): string => (projectName ? `the ${projectName} project` : 'this project')
+
+/** One honest sentence about what Always covers, chosen by the request's kind. */
+export function alwaysNote(approval: ApprovalPayload, projectName?: string): string {
+  if (approval.request?.fresh) {
+    return ONE_WAY_NOTE
+  }
+
+  if (!canRemember(approval)) {
+    return ''
+  }
+
+  const scope = scopeOf(projectName)
+
+  if (approval.request?.kind === 'bash') {
+    return `Always covers every shell command Vanta runs in ${scope}, not just this one. Irreversible commands (delete, deploy, publish) always ask and do not offer Always.`
+  }
+
+  return `Always covers every use of ${approval.toolName} in ${scope}, not just this one. Irreversible actions always ask and do not offer Always.`
+}
+
+function alwaysLabel(approval: ApprovalPayload): string {
+  return approval.request?.kind === 'bash' ? 'Always allow shell commands' : 'Always allow this tool'
+}
+
+/** Flat inline card that names the exact action; Reject carries the same weight as Allow. */
+export const ApprovalCard: FC<ApprovalCardProps> = ({
+  allowNever = true,
+  approval,
+  onAnswer,
+  position,
+  projectName
+}) => {
+  const titleId = useId()
+  const inFlight = useRef(false)
+  const [pending, setPending] = useState<ApprovalDecision | null>(null)
+  const [error, setError] = useState('')
+  const [moreOpen, setMoreOpen] = useState(false)
+  const summary = summarizeApproval(approval)
+  const remember = canRemember(approval)
+  const note = alwaysNote(approval, projectName)
+
+  const answer = async (decision: ApprovalDecision) => {
+    if (inFlight.current) {
+      return
+    }
+
+    inFlight.current = true
+    setPending(decision)
+    setError('')
+    setMoreOpen(false)
+
+    try {
+      await onAnswer(decision)
+    } catch (cause) {
+      setError(cause instanceof Error && cause.message ? cause.message : ANSWER_FAILED)
+    } finally {
+      inFlight.current = false
+      setPending(null)
+    }
+  }
+
+  const label = (decision: ApprovalDecision, idle: string) => (pending === decision ? PENDING_LABEL[decision] : idle)
+
+  return (
+    <section
+      aria-labelledby={titleId}
+      className="vp-card vp-approval"
+      data-vp="approval-card"
+      data-vp-kind={approval.request?.kind ?? 'generic'}
+      role="alert"
+    >
+      <h4 data-vp="approval-title" id={titleId}>
+        <IconAlertTriangle aria-hidden className="vp-card-icon" size={15} />
+        {summary.headline}
+        {position && <span className="vp-position">{position}</span>}
+      </h4>
+      {summary.lede && (
+        <div className="vp-sub" data-vp="approval-sub">
+          {summary.lede}
+        </div>
+      )}
+      {summary.preview && (
+        <pre aria-label={summary.preview.label} className="vp-code" data-vp="approval-code">
+          <code>{summary.preview.text}</code>
+        </pre>
+      )}
+      {summary.details.length > 0 && (
+        <details className="vp-details">
+          <summary>Details</summary>
+          {summary.details.map(section => (
+            <div className="vp-note" key={section.label}>
+              <strong>{section.label}</strong> <code>{section.value}</code>
+            </div>
+          ))}
+        </details>
+      )}
+      <div aria-busy={pending !== null} className="vp-acts" data-vp="approval-actions">
+        <button
+          className="vp-btn"
+          data-tone="primary"
+          disabled={pending !== null}
+          onClick={() => void answer('allow')}
+          type="button"
+        >
+          {label('allow', 'Allow once')}
+        </button>
+        {remember && (
+          <button className="vp-btn" disabled={pending !== null} onClick={() => void answer('always')} type="button">
+            {label('always', alwaysLabel(approval))}
+          </button>
+        )}
+        <button className="vp-btn" disabled={pending !== null} onClick={() => void answer('deny')} type="button">
+          {label('deny', 'Reject')}
+        </button>
+        {remember && allowNever && (
+          <span className="vp-more">
+            <button
+              aria-expanded={moreOpen}
+              aria-label="More permission options"
+              className="vp-btn vp-more-toggle"
+              disabled={pending !== null}
+              onClick={() => setMoreOpen(open => !open)}
+              type="button"
+            >
+              <IconDots aria-hidden size={15} />
+            </button>
+            {moreOpen && (
+              <span className="vp-more-menu">
+                <button className="vp-btn" onClick={() => void answer('never')} type="button">
+                  {label('never', 'Never allow this tool')}
+                </button>
+              </span>
+            )}
+          </span>
+        )}
+      </div>
+      {error && (
+        <p className="vp-error" role="status">
+          {error}
+        </p>
+      )}
+      {note && (
+        <div className="vp-note" data-vp="approval-note">
+          {note}
+        </div>
+      )}
+    </section>
+  )
+}

@@ -1,72 +1,70 @@
-import type { ReactNode } from 'react'
+import { IconChevronRight } from "@tabler/icons-react";
+import type { ReactNode } from "react";
 
-import { DisclosureCaret } from '@/components/ui/disclosure-caret'
-import { cn } from '@/lib/utils'
+import { cn } from "@/lib/utils";
 
 // Shared header row for any collapsible block (thinking, tool group, single
-// tool). Each parent supplies its own outer wrapper (with the data-slot CSS
-// uses to escape the message padding) and its own expanded body.
+// tool): "> Read 3 files". Each parent supplies its own outer wrapper (with the
+// data-slot CSS uses to escape the message padding) and its own expanded body.
 //
 // Affordance:
-//   - No leading chevron; a caret appears to the RIGHT of the text on hover
-//     (and stays visible when the row is open).
-//   - The hover background is a tight content-shaped pill — sized to the
-//     title text, NOT the full row — and reaches just past the chevron with
-//     `-mx-1.5 px-1.5` so it reads as a soft hit-target rather than a slab
-//     stretching to the message edge.
+//   - The chevron leads the label and is always visible, so a collapsed step
+//     reads as expandable without hovering. It turns to point down when open.
 //   - `trailing` stays in flow (e.g. a duration timer), so the title always
 //     reserves space for it instead of painting underneath it. Interactive
-//     controls go in `action`, which lays out *in flow* at the far right so it
-//     never sits on top of the caret's hit-target.
+//     controls go in `action`, which lays out in flow at the far right so it
+//     never sits on top of the row's hit target.
 export function DisclosureRow({
   action,
   children,
+  live = false,
   onToggle,
   open,
-  trailing
+  trailing,
 }: {
-  action?: ReactNode
-  children: ReactNode
-  onToggle?: () => void
-  open: boolean
-  trailing?: ReactNode
+  action?: ReactNode;
+  children: ReactNode;
+  /** The row narrates work in progress: announced politely, and the live line. */
+  live?: boolean;
+  onToggle?: () => void;
+  open: boolean;
+  trailing?: ReactNode;
 }) {
   return (
-    <div className="group/disclosure-row relative flex w-full max-w-full min-w-0 text-(--ui-text-tertiary)">
+    <div
+      aria-live={live ? "polite" : undefined}
+      data-vp={live ? "running-line" : undefined}
+      className="vp-step-row group/disclosure-row relative flex w-full max-w-full min-w-0 items-center text-(--ui-text-secondary)"
+    >
       <button
         aria-expanded={onToggle ? open : undefined}
         className={cn(
-          // max-w-fit so the click target hugs the title text width — no
-          // background fill, just the cursor + the affordance caret.
-          'flex min-w-0 max-w-fit items-start gap-1.5 text-left transition-colors',
-          onToggle ? 'hover:text-foreground focus-visible:text-foreground focus-visible:outline-none' : 'cursor-default'
+          "vp-step",
+          onToggle ? "hover:text-foreground" : "cursor-default",
         )}
+        data-vp="step"
         disabled={!onToggle}
         onClick={onToggle}
         type="button"
       >
-        <span className="flex min-w-0 flex-col gap-0.5">{children}</span>
         {onToggle && (
-          // Wrapper height matches the title row's actual line-height so the
-          // caret centres with the title, not the whole subtitle stack.
-          <span
-            className={cn(
-              'flex h-(--conversation-line-height) shrink-0 items-center justify-center transition-opacity duration-150',
-              open
-                ? 'opacity-80'
-                : 'opacity-(--disclosure-caret-rest) group-hover/disclosure-row:opacity-80 group-focus-within/disclosure-row:opacity-80'
-            )}
-          >
-            <DisclosureCaret open={open} />
-          </span>
+          <IconChevronRight
+            aria-hidden
+            className="vp-step-caret"
+            data-open={open || undefined}
+            size={14}
+          />
         )}
+        <span className="flex min-w-0 flex-col gap-0.5">{children}</span>
       </button>
       {action && (
-        <span className="ml-auto flex h-(--conversation-line-height) shrink-0 items-center self-start pl-1.5">
+        <span className="ml-auto flex shrink-0 items-center self-start pl-1.5">
           {action}
         </span>
       )}
-      {trailing && <span className="flex h-(--conversation-line-height) shrink-0 items-center pl-1.5">{trailing}</span>}
+      {trailing && (
+        <span className="flex shrink-0 items-center pl-1.5">{trailing}</span>
+      )}
     </div>
-  )
+  );
 }

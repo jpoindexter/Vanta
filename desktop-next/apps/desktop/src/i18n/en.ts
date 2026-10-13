@@ -3421,7 +3421,7 @@ export const en: Translations = {
     voiceEngineChangeFailed: 'Could not change the voice chat engine',
     voiceEngineChainedShort: 'speech-to-text',
     voiceEngineLiveShort: 'GPT-Live',
-    voiceDictation: 'Voice dictation',
+    voiceDictation: 'Dictate',
     speakReplies: 'Read replies aloud',
     stopSpeakingReplies: 'Stop reading replies aloud',
     wakeWord: phrase => `Wake word "${phrase}"`,
