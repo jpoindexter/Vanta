@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { VANTA_DOCS_URL } from '@/lib/vanta-endpoints'
 import { $corruptSessionStores, setCorruptSessionStores } from '@/store/session'
 
 import { SidebarStorageCorruptNotice } from './section-states'
@@ -39,7 +40,7 @@ describe('SidebarStorageCorruptNotice', () => {
     expect(notice.textContent).not.toContain('sessions repair')
 
     screen.getByRole('button', { name: /recovery guide/i }).click()
-    expect(openRecoveryGuide).toHaveBeenCalledWith(expect.stringContaining('/user-guide/session-storage-recovery'))
+    expect(openRecoveryGuide).toHaveBeenCalledWith(VANTA_DOCS_URL)
   })
 
   it('keeps atom identity when a refresh reports the same stores', () => {

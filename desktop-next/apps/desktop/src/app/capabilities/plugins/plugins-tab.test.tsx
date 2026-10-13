@@ -13,6 +13,13 @@ import { $connection } from '@/store/session'
 
 import { PluginsTab } from './plugins-tab'
 
+// The embedded hub and catalog feed only run once a Vanta hub origin is configured.
+vi.mock('@/lib/vanta-endpoints', async importOriginal => ({
+  ...(await importOriginal<typeof import('@/lib/vanta-endpoints')>()),
+  isHubConfigured: () => true,
+  VANTA_HUB_ORIGIN: 'https://hub.example.test'
+}))
+
 const requestGateway = vi.fn(async () => ({ plugins: [] }))
 
 const connectionFixture = {
@@ -239,7 +246,7 @@ describe('PluginsTab', () => {
           tier: 'community',
           type: 'hermes-plugin-pick'
         },
-        origin: 'https://hermes-agent.nousresearch.com'
+        origin: 'https://hub.example.test'
       })
     )
 
@@ -386,7 +393,7 @@ describe('PluginsTab', () => {
           subdir: 'nested-plugin',
           type: 'hermes-plugin-pick'
         },
-        origin: 'https://hermes-agent.nousresearch.com'
+        origin: 'https://hub.example.test'
       })
     )
 
@@ -733,7 +740,7 @@ describe('PluginsTab catalog UX', () => {
           repo: 'https://github.com/example/demo-weather',
           type: 'hermes-plugin-pick'
         },
-        origin: 'https://hermes-agent.nousresearch.com'
+        origin: 'https://hub.example.test'
       })
     )
 
@@ -766,7 +773,7 @@ describe('PluginsTab catalog UX', () => {
           repo: 'https://github.com/example/demo-weather',
           type: 'hermes-plugin-pick'
         },
-        origin: 'https://hermes-agent.nousresearch.com'
+        origin: 'https://hub.example.test'
       })
     )
 

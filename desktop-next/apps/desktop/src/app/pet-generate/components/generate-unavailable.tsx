@@ -29,15 +29,7 @@ export function GenerateUnavailable({ onSetup }: GenerateUnavailableProps) {
       </Button>
       <p className="flex flex-wrap items-center justify-center gap-x-1.5 text-[0.75rem] text-(--ui-text-tertiary)">
         <span>Grab a key from</span>
-        <ExternalLink href="https://portal.nousresearch.com" showExternalIcon={false}>
-          Nous Portal
-        </ExternalLink>
-        <span>·</span>
-        <ExternalLink
-          className="opacity-40 transition-opacity hover:opacity-100"
-          href="https://openrouter.ai/keys"
-          showExternalIcon={false}
-        >
+        <ExternalLink href="https://openrouter.ai/keys" showExternalIcon={false}>
           OpenRouter
         </ExternalLink>
         <span>·</span>

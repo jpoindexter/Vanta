@@ -23,11 +23,13 @@ import type { ConnectionState } from '@hermes/shared'
 import type { ReadableAtom } from 'nanostores'
 
 import { isMissingRpcMethod } from '@/lib/gateway-rpc'
+import { isHubConfigured, VANTA_HUB_ORIGIN } from '@/lib/vanta-endpoints'
 import { BACKEND_BOOT_WAIT_TIMEOUT_MS, withTimeout } from '@/lib/with-timeout'
 import { activeGatewayProfileKey, requestGatewayForProfile } from '@/store/gateway'
 import { $gatewayState } from '@/store/session'
 
-export const CATALOG_ORIGIN = 'https://hermes-agent.nousresearch.com'
+// Empty while no Vanta hub is configured; every use is gated on isHubConfigured().
+export const CATALOG_ORIGIN = VANTA_HUB_ORIGIN ?? ''
 export const CATALOG_PICKER_URL = `${CATALOG_ORIGIN}/docs/plugins?embed=picker`
 export const PLUGIN_CATALOG_URL = `${CATALOG_ORIGIN}/docs/api/plugins.json`
 
@@ -130,6 +132,10 @@ const activeProfileRequest: CatalogRequest = (method, params) =>
   )
 
 async function lookupFromFeed(name: string, fetchImpl: typeof fetch): Promise<PluginCatalogLookup> {
+  if (!isHubConfigured()) {
+    return { ok: false, error: 'unavailable' }
+  }
+
   let rows: unknown
 
   try {

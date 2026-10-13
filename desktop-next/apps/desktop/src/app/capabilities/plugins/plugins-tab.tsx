@@ -11,6 +11,7 @@ import {
 
 import { getToolsets, setToolsetEnabled } from '@/api/toolsets'
 import { useGatewayRequest } from '@/app/gateway/hooks/use-gateway-request'
+import { HubNotConfigured } from '@/components/hub-not-configured'
 import { Button } from '@/components/ui/button'
 import { Codicon } from '@/components/ui/codicon'
 import { Switch } from '@/components/ui/switch'
@@ -25,6 +26,7 @@ import { DESKTOP_PLUGIN_TOOLSETS } from '@/lib/desktop-toolsets'
 import { triggerHaptic } from '@/lib/haptics'
 import { FolderOpen, Loader2, Monitor, Package, RefreshCw, Trash2 } from '@/lib/icons'
 import { CATALOG_ORIGIN, CATALOG_PICKER_URL } from '@/lib/plugin-catalog'
+import { isHubConfigured } from '@/lib/vanta-endpoints'
 import { queryClient } from '@/lib/query-client'
 import { cn } from '@/lib/utils'
 import {
@@ -850,7 +852,8 @@ export const PluginsTab = memo(function PluginsTab({
             {open ? p.catalogHide : p.catalogBrowse}
           </Button>
         </div>
-        {pickerMounted && (
+        {pickerMounted && !isHubConfigured() && open && <HubNotConfigured />}
+        {pickerMounted && isHubConfigured() && (
           <div className={cn('flex min-h-0 flex-col gap-1 px-3 pb-2', !open && 'hidden')}>
             <div
               style={{

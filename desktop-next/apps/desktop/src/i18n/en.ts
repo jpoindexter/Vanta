@@ -2274,6 +2274,7 @@ export const en: Translations = {
     officialCatalog: 'Available to install',
     officialPill: 'Official',
     hub: {
+      notConfigured: 'The hub is not configured for this build, so there is nothing to browse yet.',
       searchPlaceholder: 'Search the skill hub',
       search: 'Search',
       searching: 'Searching...',

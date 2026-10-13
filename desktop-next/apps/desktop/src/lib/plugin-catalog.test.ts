@@ -9,6 +9,13 @@ import {
   sendWhenGatewayOpen
 } from './plugin-catalog'
 
+// The embedded hub and catalog feed only run once a Vanta hub origin is configured.
+vi.mock('@/lib/vanta-endpoints', async importOriginal => ({
+  ...(await importOriginal<typeof import('@/lib/vanta-endpoints')>()),
+  isHubConfigured: () => true,
+  VANTA_HUB_ORIGIN: 'https://hub.example.test'
+}))
+
 const SHA = 'a'.repeat(40)
 
 const replying =

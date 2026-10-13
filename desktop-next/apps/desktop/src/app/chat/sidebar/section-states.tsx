@@ -8,6 +8,7 @@ import { useI18n } from '@/i18n'
 import { openExternalLink } from '@/lib/external-link'
 import { AlertTriangle, ExternalLink } from '@/lib/icons'
 import { cn } from '@/lib/utils'
+import { VANTA_DOCS_URL } from '@/lib/vanta-endpoints'
 import { $corruptSessionStores } from '@/store/session'
 
 import { SidebarRowCluster, SidebarRowShell, SidebarRowStack } from './chrome'
@@ -80,8 +81,7 @@ export function SidebarLoadErrorState({ onRetry }: { onRetry: () => void }) {
   )
 }
 
-const SESSION_STORAGE_RECOVERY_URL =
-  'https://hermes-agent.nousresearch.com/docs/user-guide/session-storage-recovery#when-the-three-steps-do-not-work'
+const SESSION_STORAGE_RECOVERY_URL = VANTA_DOCS_URL
 
 interface SidebarStorageCorruptNoticeProps {
   openRecoveryGuide?: (url: string) => void

@@ -2037,6 +2037,7 @@ export interface Translations extends NoticeTranslations {
     officialCatalog: string
     officialPill: string
     hub: {
+      notConfigured: string
       searchPlaceholder: string
       search: string
       searching: string
