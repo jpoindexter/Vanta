@@ -11,12 +11,17 @@ export const zhSharedMetrics = {
   collectedReliability: '应用状况：崩溃、启动与回复速度、更新、消息平台连接',
   collectedUsage: '代理质量：未成功的编辑、出错的工具调用、卡住的循环、每个任务的成本',
   collectedMachine: '机器：操作系统、内存范围、GPU 类型、Vanta 版本、本地模型使用情况',
+  sending:
+    '除非你选择分享，否则统计数据只保存在这台电脑上。分享的统计数据每天发送给一次，并附带此配置文件的随机 ID。除了一条 Vanta 已安装的一次性记录（仅在你同意后计入）之外，你同意之前的统计数据永远不会被发送。你可以随时在设置中更改。',
   readDocs: '查看完整说明',
   local: '仅保存在这台电脑上',
   off: '不用了',
   saveFailed: '无法保存你的选择',
   collectLabel: '收集使用统计',
   collectDesc: '仅包含计数，保存在这台电脑上。绝不包含你的消息、文件、路径或错误文本。',
+  sendLabel: '与分享使用统计',
+  sendDesc:
+    '每天一次将统计数据发送给，并附带此配置文件的随机 ID。除一次性的安装记录外，你同意之前的统计数据绝不会被发送。需要先开启收集。',
   unavailable: '请更新 Vanta 后端以更改此设置。',
   stripBody: '仅包含计数，绝不包含你的消息或文件。',
   stripReaskBody: '再次询问：旧版本可能在你看到此问题之前就已保存了“不用了”。',

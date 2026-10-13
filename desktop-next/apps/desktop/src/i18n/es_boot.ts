@@ -83,6 +83,8 @@ export const esBoot = {
         'El asistente de actualización no pudo comprobar quién tiene la instalación de Vanta. Vanta sigue comprobando.',
       since: time => `Esperando desde ${time}`,
       lastChecked: time => `Última comprobación ${time}`,
+      recoveryHint:
+        'Esto suele resolverse en unos minutos. Si no: cierra Vanta, termina los procesos git o Vanta que queden (o reinicia el equipo) y vuelve a abrir Vanta.',
       checkAgain: 'Comprobar de nuevo',
       quit: 'Salir de Vanta',
       openLogs: 'Abrir registros',

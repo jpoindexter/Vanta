@@ -3840,6 +3840,7 @@ export const deOverrides = {
       '/resume': 'Gespeicherte Session fortsetzen',
       '/details': 'Transkript-Detailgrad steuern',
       '/copy': 'Auswahl oder letzte Assistenten-Nachricht kopieren',
+      '/quit': 'Vanta beenden',
       '/start': 'Start-Pings der Plattform ohne Antwort bestätigen',
       '/new': 'Neuen Desktop-Chat starten',
       '/topic': 'Telegram-DM-Themen-Sessions aktivieren oder prüfen',
