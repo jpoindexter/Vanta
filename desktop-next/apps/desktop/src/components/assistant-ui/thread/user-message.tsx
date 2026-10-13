@@ -8,6 +8,7 @@ import {
   messageContentText,
   PROCESS_NOTIFICATION_RE
 } from '@/components/assistant-ui/thread/content'
+import { CopyAction, HoverActions } from '@/components/chat/vanta/message-actions'
 import { MessageHoverTime } from '@/components/assistant-ui/thread/message-hover-time'
 import { ReactionBadge, ReactionPicker } from '@/components/assistant-ui/thread/message-reactions'
 import { SetupLearnedNote, splitSetupLearned } from '@/components/assistant-ui/thread/setup-learned'
@@ -52,7 +53,7 @@ export function StickyHumanMessageContainer({
     // while attachments below it scroll away.
     <>
       <div
-        className="group/user-message sticky z-40 -mx-4 flex w-[calc(100%+2rem)] min-w-0 max-w-none flex-col items-stretch gap-0 self-end overflow-visible px-4 pb-(--conversation-turn-gap) pt-1"
+        className="group/user-message flex w-full min-w-0 max-w-full flex-col items-end gap-0 self-end overflow-visible"
         data-message-id={messageId}
         data-role="user"
         data-slot="aui_user-message-root"
@@ -75,7 +76,7 @@ export function StickyHumanMessageContainer({
 // so without the carve-out, clicking a stuck bubble drags the window instead of
 // opening the edit composer.
 export const USER_BUBBLE_BASE_CLASS =
-  'composer-human-message standalone-glass relative flex w-full min-w-0 max-w-full flex-col gap-1.5 overflow-y-auto rounded-xl border bg-(--dt-user-bubble) px-3 py-2 text-left [-webkit-app-region:no-drag]'
+  'composer-human-message vp-user-bubble relative flex min-w-0 max-w-full flex-col gap-1.5 text-left [-webkit-app-region:no-drag]'
 
 export const USER_ACTION_ICON_BUTTON_CLASS =
   'grid place-items-center rounded-md bg-transparent text-(--ui-text-secondary) transition-colors hover:bg-(--ui-control-active-background) hover:text-foreground disabled:cursor-default disabled:text-(--ui-text-quaternary) disabled:opacity-70'
@@ -442,11 +443,7 @@ export const UserMessage: FC<{
   // the live turn before rewinding.
   const showRestore = !readOnly && !showStop && Boolean(onRequestRestoreConfirm) && hasBody
 
-  const bubbleClassName = cn(
-    USER_BUBBLE_BASE_CLASS,
-    'cursor-pointer pr-9 text-[length:var(--conversation-text-font-size)] leading-(--dt-line-height) text-foreground/95 transition-colors',
-    'border-(--ui-stroke-tertiary) hover:border-(--ui-stroke-secondary)'
-  )
+  const bubbleClassName = cn(USER_BUBBLE_BASE_CLASS, 'text-[length:var(--conversation-text-font-size)] text-foreground')
 
   const bubbleContent = hasBody ? (
     // Render the user's text through a minimal markdown pipeline:
@@ -494,138 +491,126 @@ export const UserMessage: FC<{
         }
         messageId={messageId}
       >
-        <ActionBarPrimitive.Root className="relative w-full max-w-full" data-slot="aui_user-bubble-actions">
-          <div className="human-message-with-todos-wrapper flex w-full flex-col gap-0">
-            <ReactionPicker
-              onOpenChange={setPickerOpen}
-              onSelect={pickEmoji}
-              open={pickerOpen}
-              selected={shownReactions.find(reaction => reaction.author === 'user')?.emoji}
-            >
-              <div
-                className="relative w-full"
-                // The app context menu skips PLAIN right-clicks here (the
-                // attr below) so this handler keeps the picker gesture; a
-                // link/image/selection inside the bubble still gets the app
-                // menu, and this handler's selection guard keeps ⌘C flows.
-                data-context-menu-skip=""
-                onContextMenu={
-                  // Right-click is the desktop stand-in for iOS touch-and-hold —
-                  // but only when there's nothing selected. A live highlight
-                  // keeps the native Copy menu (and ⌘C) instead of the picker.
-                  readOnly || !reactionsEnabled
-                    ? undefined
-                    : event => {
-                        if (hasTextSelection()) {
-                          return
-                        }
-
-                        event.preventDefault()
-                        setPickerOpen(true)
-                      }
-                }
-              >
-                {readOnly ? (
-                  // Spectator transcript: clicking only toggles the clamp so the
-                  // full prompt is readable — never opens an edit composer.
-                  <button
-                    aria-expanded={bodyClamped ? expanded : undefined}
-                    className={cn(bubbleClassName, !bodyClamped && 'cursor-default')}
-                    onClick={() => {
-                      // Drag-select ends on mouseup→click; don't collapse the
-                      // clamp just because the highlight finished.
-                      if (hasTextSelection() || !bodyClamped) {
+        <ActionBarPrimitive.Root
+          className="vp-user relative flex min-w-0 max-w-(--vp-bubble-max,80%) flex-col items-end self-end"
+          data-slot="aui_user-bubble-actions"
+          data-vp="user-message"
+          data-vp-hover=""
+        >
+          <ReactionPicker
+            onOpenChange={setPickerOpen}
+            onSelect={pickEmoji}
+            open={pickerOpen}
+            selected={shownReactions.find(reaction => reaction.author === 'user')?.emoji}
+          >
+            <div
+              className="relative max-w-full"
+              // The app context menu skips PLAIN right-clicks here (the attr
+              // below) so this handler keeps the picker gesture; a link, image
+              // or selection inside the bubble still gets the app menu.
+              data-context-menu-skip=""
+              onContextMenu={
+                // Right-click is the desktop stand-in for iOS touch-and-hold,
+                // but only when nothing is selected: a live highlight keeps
+                // the native Copy menu.
+                readOnly || !reactionsEnabled
+                  ? undefined
+                  : event => {
+                      if (hasTextSelection()) {
                         return
                       }
 
-                      triggerHaptic('selection')
-                      setExpanded(value => !value)
-                    }}
-                    type="button"
-                  >
-                    {bubbleContent}
-                  </button>
-                ) : (
-                  // Always editable — clicking opens the edit composer even while a
-                  // turn streams; sending the edit reverts (interrupt + rewind).
-                  // A live text highlight wins: finishing a drag-select must not
-                  // open the editor and throw the selection away.
-                  <ActionBarPrimitive.Edit asChild>
-                    <button
-                      aria-label={copy.editMessage}
-                      className={bubbleClassName}
-                      onClick={event => {
-                        if (hasTextSelection()) {
-                          event.preventDefault()
-                          event.stopPropagation()
-
-                          return
-                        }
-
-                        triggerHaptic('selection')
-                      }}
-                      onPointerDown={() => {
-                        if (hasTextSelection()) {
-                          return
-                        }
-
-                        notifyThreadEditOpen()
-                      }}
-                      type="button"
-                    >
-                      {bubbleContent}
-                    </button>
-                  </ActionBarPrimitive.Edit>
-                )}
-                {/* Hover cluster, bottom-right: when it was sent, then Stop or
-                    Restore. Its fill masks the last line's tail while shown. */}
-                <div className="pointer-events-none absolute right-2 bottom-2 z-10 flex items-center gap-1 rounded-md bg-(--dt-user-bubble) pl-1 opacity-0 transition-opacity group-hover/user-message:opacity-100 group-hover/user-message:transition-none group-focus-within/user-message:opacity-100">
-                  <UserBubbleActions
-                    fullText={fullText}
-                    messageId={messageId}
-                    onCancel={onCancel}
-                    onRequestRestoreConfirm={onRequestRestoreConfirm}
-                    runtimeUserOrdinal={runtimeUserOrdinal}
-                    showRestore={showRestore}
-                    showStop={showStop}
-                  />
-                </div>
-              </div>
-            </ReactionPicker>
-            {/* Below the bubble, same register as the assistant action row:
-                same emoji size, same vertical padding, right-aligned to the
-                sent bubble. Overlaying the corner read badly in practice. */}
-            <ReactionBadge
-              className="justify-end gap-1.5 py-1.5 pr-1.5"
-              onRetract={() => react(null)}
-              reactions={shownReactions}
-            />
-            <MessageTimelineTimestamp className="self-end pr-1.5" />
-            <BranchPickerPrimitive.Root
-              className={cn(
-                'checkpoint-container flex items-center gap-1 pb-0 pt-1 pl-1.5 text-[0.75rem] leading-none text-(--ui-text-tertiary)',
-                readOnly && 'hidden'
-              )}
-              hideWhenSingleBranch
+                      event.preventDefault()
+                      setPickerOpen(true)
+                    }
+              }
             >
-              <span aria-hidden className="checkpoint-icon size-1.5 rounded-full border border-current" />
-              <BranchPickerPrimitive.Previous
-                className="checkpoint-restore-text rounded-sm bg-transparent px-1 opacity-65 hover:opacity-100 disabled:hidden disabled:cursor-default"
-                title={copy.restorePrevious}
-              >
-                {copy.restoreCheckpoint}
-              </BranchPickerPrimitive.Previous>
-              <span className="checkpoint-divider opacity-55">
-                <BranchPickerPrimitive.Number />/<BranchPickerPrimitive.Count />
-              </span>
-              <BranchPickerPrimitive.Next
-                className="checkpoint-restore-text rounded-sm bg-transparent px-1 opacity-65 hover:opacity-100 disabled:hidden disabled:cursor-default"
-                title={copy.restoreNext}
-              >
-                {copy.goForward}
-              </BranchPickerPrimitive.Next>
-            </BranchPickerPrimitive.Root>
-          </div>
+              {readOnly ? (
+                // Spectator transcript: clicking only toggles the clamp so the
+                // full prompt is readable; it never opens an edit composer.
+                <button
+                  aria-expanded={bodyClamped ? expanded : undefined}
+                  className={cn(bubbleClassName, !bodyClamped && 'cursor-default')}
+                  data-vp="user-bubble"
+                  onClick={() => {
+                    // Drag-select ends on mouseup then click; don't collapse
+                    // the clamp just because the highlight finished.
+                    if (hasTextSelection() || !bodyClamped) {
+                      return
+                    }
+
+                    triggerHaptic('selection')
+                    setExpanded(value => !value)
+                  }}
+                  type="button"
+                >
+                  {bubbleContent}
+                </button>
+              ) : (
+                <div className={bubbleClassName} data-vp="user-bubble">
+                  {bubbleContent}
+                </div>
+              )}
+            </div>
+          </ReactionPicker>
+          {!readOnly && (
+            <HoverActions vp="user-actions">
+              <CopyAction label={copy.copy} text={fullText} />
+              {/* Editing is allowed even while a turn streams; sending the edit
+                  reverts (interrupt + rewind). A live text highlight never opens it. */}
+              <ActionBarPrimitive.Edit asChild>
+                <button
+                  className="vp-action"
+                  onClick={() => triggerHaptic('selection')}
+                  onPointerDown={() => notifyThreadEditOpen()}
+                  type="button"
+                >
+                  Edit
+                </button>
+              </ActionBarPrimitive.Edit>
+              <UserBubbleActions
+                fullText={fullText}
+                messageId={messageId}
+                onCancel={onCancel}
+                onRequestRestoreConfirm={onRequestRestoreConfirm}
+                runtimeUserOrdinal={runtimeUserOrdinal}
+                showRestore={showRestore}
+                showStop={showStop}
+              />
+            </HoverActions>
+          )}
+          {/* Below the bubble, right-aligned to it: same register as the
+              assistant action row. */}
+          <ReactionBadge
+            className="justify-end gap-1.5 py-1.5 pr-1.5"
+            onRetract={() => react(null)}
+            reactions={shownReactions}
+          />
+          <MessageTimelineTimestamp className="self-end pr-1.5" />
+          <BranchPickerPrimitive.Root
+            className={cn(
+              'checkpoint-container flex items-center gap-1 pb-0 pt-1 pl-1.5 text-[0.75rem] leading-none text-(--ui-text-tertiary)',
+              readOnly && 'hidden'
+            )}
+            hideWhenSingleBranch
+          >
+            <span aria-hidden className="checkpoint-icon size-1.5 rounded-full border border-current" />
+            <BranchPickerPrimitive.Previous
+              className="checkpoint-restore-text rounded-sm bg-transparent px-1 opacity-65 hover:opacity-100 disabled:hidden disabled:cursor-default"
+              title={copy.restorePrevious}
+            >
+              {copy.restoreCheckpoint}
+            </BranchPickerPrimitive.Previous>
+            <span className="checkpoint-divider opacity-55">
+              <BranchPickerPrimitive.Number />/<BranchPickerPrimitive.Count />
+            </span>
+            <BranchPickerPrimitive.Next
+              className="checkpoint-restore-text rounded-sm bg-transparent px-1 opacity-65 hover:opacity-100 disabled:hidden disabled:cursor-default"
+              title={copy.restoreNext}
+            >
+              {copy.goForward}
+            </BranchPickerPrimitive.Next>
+          </BranchPickerPrimitive.Root>
         </ActionBarPrimitive.Root>
       </StickyHumanMessageContainer>
     </MessagePrimitive.Root>

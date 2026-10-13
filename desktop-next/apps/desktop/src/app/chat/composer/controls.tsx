@@ -14,8 +14,8 @@ import { $wakeWord, toggleWakeWord } from '@/store/wake-word'
 import { ACTIVE_ICON_BTN, GHOST_ICON_BTN, PRIMARY_ICON_BTN } from './control-classes'
 import type { ConversationStatus } from './hooks/use-voice-conversation'
 import { ModelPill } from './model-pill'
+import { PermissionChip } from './permission-chip'
 import { ReasoningPill } from './reasoning-pill'
-import { StartVoiceButton } from './start-voice-button'
 import type { ChatBarState, VoiceStatus } from './types'
 import { VoiceFan } from './voice-fan'
 import { VoiceMenu } from './voice-menu'
@@ -36,39 +36,29 @@ interface ConversationProps {
 }
 
 export function ComposerControls({
-  autoSpeak,
   busy,
   busyAction,
   canSubmit,
   compactModelPill = false,
   conversation,
   disabled,
-  foldVoice = false,
   hasComposerPayload,
   hideModelPill = false,
   minimal = false,
   state,
-  voiceStatus,
-  onDictate,
-  onQueue,
-  onToggleAutoSpeak
+  onQueue
 }: {
-  autoSpeak: boolean
   busy: boolean
   busyAction: 'steer' | 'queue' | 'stop'
   canSubmit: boolean
   compactModelPill?: boolean
   conversation: ConversationProps
   disabled: boolean
-  foldVoice?: boolean
   hasComposerPayload: boolean
   hideModelPill?: boolean
   minimal?: boolean
   state: ChatBarState
-  voiceStatus: VoiceStatus
-  onDictate: () => void
   onQueue: () => void
-  onToggleAutoSpeak: () => void
 }) {
   const { t } = useI18n()
   const c = t.composer
@@ -78,40 +68,10 @@ export function ComposerControls({
     return <ConversationPill {...conversation} disabled={disabled} />
   }
 
-  const showVoicePrimary = !busy && !hasComposerPayload
   // Steer is just send: a payload keeps the Send affordance mid-turn. Stop
   // only when the composer is empty and a turn is running.
   const showStop = busy && !hasComposerPayload
   const showQueueButton = busy && busyAction !== 'stop' && hasComposerPayload
-  // The HUD is a Spotlight bar a few hundred pixels wide, so the four separate
-  // voice toggles fold into one menu there and leave the row to the input. A
-  // narrow tile hits the same wall from the other direction and folds for the
-  // same reason — same controls, same state, different budget. Below that
-  // even the menu goes: at `minimal` the row is the send button and nothing
-  // else, which is the one thing that must survive every width.
-  const foldedVoice = hudMode || foldVoice
-
-  const voiceControls = foldedVoice ? (
-    <VoiceMenu
-      autoSpeak={autoSpeak}
-      disabled={disabled}
-      onDictate={onDictate}
-      onStartConversation={conversation.onStart}
-      onToggleAutoSpeak={onToggleAutoSpeak}
-      state={state}
-      voiceStatus={voiceStatus}
-    />
-  ) : (
-    // One mic in the row; hovering it fans the other voice toggles out of it.
-    <VoiceFan
-      autoSpeak={autoSpeak}
-      disabled={disabled}
-      onDictate={onDictate}
-      onToggleAutoSpeak={onToggleAutoSpeak}
-      state={state}
-      voiceStatus={voiceStatus}
-    />
-  )
 
   return (
     <div className="flex min-w-0 shrink items-center gap-(--composer-control-gap)">
@@ -121,9 +81,9 @@ export function ComposerControls({
             <>
               <ModelPill compact={compactModelPill} disabled={disabled} model={state.model} />
               {compactModelPill ? null : <ReasoningPill disabled={disabled} model={state.model} />}
+              {compactModelPill ? null : <PermissionChip disabled={disabled} />}
             </>
           )}
-          {voiceControls}
         </>
       )}
       {showQueueButton ? (
@@ -141,34 +101,33 @@ export function ComposerControls({
           </Button>
         </Tip>
       ) : null}
-      {showVoicePrimary ? (
-        <StartVoiceButton disabled={disabled} label={c.startVoice} onStart={conversation.onStart} />
-      ) : (
-        <Tip
-          label={
-            showStop ? (
-              <TipKeybindLabel actionId="composer.send" text={c.stop} />
-            ) : (
-              <TipKeybindLabel actionId="composer.send" text={c.send} />
-            )
-          }
-          placement="control"
+      {/* Send and Stop share one slot: the same circle, so the control a
+          person is aiming at never moves when a run starts. */}
+      <Tip
+        label={
+          showStop ? (
+            <TipKeybindLabel actionId="composer.send" text={c.stop} />
+          ) : (
+            <TipKeybindLabel actionId="composer.send" text={c.send} />
+          )
+        }
+        placement="control"
+      >
+        <Button
+          aria-label={showStop ? c.stop : c.send}
+          className={PRIMARY_ICON_BTN}
+          data-vp="composer-send"
+          disabled={disabled || !canSubmit}
+          onClick={() => recordAction(showStop ? 'composer.cancel' : 'composer.send', 'click')}
+          type="submit"
         >
-          <Button
-            aria-label={showStop ? c.stop : c.send}
-            className={PRIMARY_ICON_BTN}
-            disabled={disabled || !canSubmit}
-            onClick={() => recordAction(showStop ? 'composer.cancel' : 'composer.send', 'click')}
-            type="submit"
-          >
-            {showStop ? (
-              <span className="block size-2.5 rounded-[0.1875rem] bg-current" />
-            ) : (
-              <Codicon name="arrow-up" size="0.875rem" />
-            )}
-          </Button>
-        </Tip>
-      )}
+          {showStop ? (
+            <span className="block size-2.5 rounded-[0.1875rem] bg-current" />
+          ) : (
+            <Codicon name="arrow-up" size="0.875rem" />
+          )}
+        </Button>
+      </Tip>
       {/* The way out of HUD mode, riding the controls row rather than floating
           above the bar. The old chip lived in a 26px transparent strip reserved
           over the composer (--hud-chip-strip), which under glass is bare
@@ -178,6 +137,55 @@ export function ComposerControls({
           things you can press. */}
       {hudMode ? <HudWindowButtons /> : null}
     </div>
+  )
+}
+
+/**
+ * The mic and, behind it, the other voice controls. Lives beside the attach
+ * button on the left of the composer; the chips and Send own the right.
+ */
+export function ComposerVoice({
+  autoSpeak,
+  disabled,
+  foldVoice = false,
+  onDictate,
+  onStartConversation,
+  onToggleAutoSpeak,
+  state,
+  voiceStatus
+}: {
+  autoSpeak: boolean
+  disabled: boolean
+  foldVoice?: boolean
+  onDictate: () => void
+  onStartConversation: () => void
+  onToggleAutoSpeak: () => void
+  state: ChatBarState
+  voiceStatus: VoiceStatus
+}) {
+  const hudMode = useStore($hudMode)
+
+  return hudMode || foldVoice ? (
+    <VoiceMenu
+      autoSpeak={autoSpeak}
+      disabled={disabled}
+      onDictate={onDictate}
+      onStartConversation={onStartConversation}
+      onToggleAutoSpeak={onToggleAutoSpeak}
+      state={state}
+      voiceStatus={voiceStatus}
+    />
+  ) : (
+    // One mic in the row; hovering it fans the other voice toggles out of it.
+    <VoiceFan
+      autoSpeak={autoSpeak}
+      disabled={disabled}
+      onDictate={onDictate}
+      onStartConversation={onStartConversation}
+      onToggleAutoSpeak={onToggleAutoSpeak}
+      state={state}
+      voiceStatus={voiceStatus}
+    />
   )
 }
 
