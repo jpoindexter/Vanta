@@ -18,6 +18,7 @@ the gateway track later.
   (screens: home, schedules, connections, skills, outputs, workbench&tab=, palette, settings&section=).
 - `node tools/parity-pages.mjs` wireframe-vs-build table to `docs/proofs/pages/parity.md`.
 - `node tools/shoot-pages.mjs` every screen and state at 1440/1100/800, light and dark.
+- `node tools/parity-pages-run.mjs [--spec <spec>] [--copy <copy-inventory>]` runs the shared checker (`tools/parity/`) against the harness (`?bare=1`, viewport = frame) for this track's 50 role keys.
 - `node tools/drive-pages.mjs` drives each control in a real browser and checks focus, 12px floor, contrast, reduced motion.
 
 ## Deliberate deviations from the wireframe
@@ -32,3 +33,11 @@ Also, each flagged for owner decision:
 6. Palette shows no group headers (the wireframe list is flat); `PaletteCommand.group` only orders.
 7. Settings Models, Permissions, Voice and Appearance are not drawn in the wireframe; they reuse its row treatment.
 8. Focus indication is added (violet 2px outline; palette input gets a 2px underline); the wireframe's palette input has none.
+
+## Shared parity checker notes
+- Test ids (`data-testid`) on every mapped element; `docs/parity/app-selector-map.json` maps the 50 keys and the `wb:`, `view:`, `overlay:` drivers to the fixtures route.
+- `docs/parity/wireframe-spec.json` was extracted from the raw wireframe file, which has no doctype and renders in quirks mode
+  (two-line rows 54.69px). The published artifact is wrapped in `<!doctype html>` (standards mode, rows 57.59px). Regenerate the
+  spec from a doctype-wrapped copy before judging any track against it.
+- Declared deviations added to `docs/parity/allowed-deviations.json` (ids `w-*`) and listed above. Visibility is not deviation-able:
+  Home's Needs-you badge at 1100 is the one honest FAIL (the wireframe hides it by an accidental rail rule).

@@ -48,7 +48,7 @@ export function SettingsSheet(props: SettingsProps) {
   const { onClose, onSectionChange, section } = props
   const sheetRef = useRef<HTMLDivElement>(null)
 
-  useFocusTrap(sheetRef)
+  useFocusTrap(sheetRef, '.vp-nav[aria-current="true"]')
 
   const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'Escape') {
