@@ -23,7 +23,7 @@
 
 import { atom } from 'nanostores'
 
-import { setSessionPinnedRemote } from '@/hermes'
+import { reorderPinnedSessionsRemote, setSessionPinnedRemote } from '@/hermes'
 import { onConnectionScopeChange } from '@/lib/connection-scoped'
 import { $pinnedSessionIds, pinSession, unpinSession } from '@/store/layout'
 import { $activeGatewayProfile, normalizeProfileKey } from '@/store/profile'
@@ -364,6 +364,27 @@ function reconcileInner(): void {
   pullRemotePins()
 }
 
+const sameMembers = (a: readonly string[], b: readonly string[]) => a.length === b.length && b.every(id => a.includes(id))
+
+/** Same pins in a new order is a drag in the sidebar: the order is the person's, so it goes to the server too. */
+export function isPinReorder(prev: readonly string[], next: readonly string[]): boolean {
+  return sameMembers(prev, next) && prev.some((id, index) => id !== next[index])
+}
+
+function watchPinOrder(): void {
+  let last = $pinnedSessionIds.get()
+
+  $pinnedSessionIds.listen(next => {
+    if (isPinReorder(last, next)) {
+      reorderPinnedSessionsRemote([...next]).catch(() => {
+        // The next reconcile or reload shows the server's order; a failed write leaves the local order alone.
+      })
+    }
+
+    last = next
+  })
+}
+
 // Sync once, then re-sync on pin-set and session-list changes. Call once per app.
 export function watchSessionPins(): void {
   // A connection rescope repaints $pinnedSessionIds from the new backend's
@@ -372,6 +393,7 @@ export function watchSessionPins(): void {
   onConnectionScopeChange(resetSessionPinMirror)
   reconcile()
   $pinnedSessionIds.listen(reconcile)
+  watchPinOrder()
   $sessions.listen(reconcile)
   $cronSessions.listen(reconcile)
   $messagingSessions.listen(reconcile)

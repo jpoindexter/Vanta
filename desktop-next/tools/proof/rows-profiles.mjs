@@ -59,6 +59,22 @@ export async function profileRail(ctx) {
     const text = await page.locator("body").innerText();
     verdict("F-063", AREA, "... Manage profiles", /research/.test(text) && /default/.test(text), { pass: "the Profiles page lists default and research", why: text.slice(0, 160) });
   });
+  await attempt(page, "F-055", "sidebar list", "Profile grouping has no gateway headers", async () => {
+    await goHome(page);
+    await side(page).getByRole("button", { name: /^Filters$/ }).first().click();
+    await page.getByRole("menuitem", { name: /^Grouping/ }).hover();
+    await page.waitForTimeout(300);
+    const options = await menuItems(page);
+    await pick(page, "Profile");
+    await closeMenus(page);
+    await page.waitForTimeout(1200);
+    const text = await side(page).innerText();
+    const noGateway = (await page.locator('[data-slot="profile-rail-gateway"]').count()) === 0 && !/Gateway|This computer ·/i.test(text) && !options.some((o) => /Gateway/i.test(o));
+    verdict("F-055", "sidebar list", "Profile grouping: plain profile groups, no gateway or fleet headers", noGateway, { pass: `the grouping option reads "Profile" and the list shows plain profile groups (${/default/.test(text) ? "default" : "none"}); no gateway header is drawn (owner decision)`, why: `options=${options.join("/")} text=${text.slice(0, 120)}` });
+    await side(page).getByRole("button", { name: /^Filters$/ }).first().click();
+    await pick(page, "Reset to defaults");
+    await closeMenus(page);
+  });
   await goHome(page);
 }
 
