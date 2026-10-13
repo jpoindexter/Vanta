@@ -40,29 +40,42 @@ function mutation(ipc: IpcRendererLike, member: string) {
   };
 }
 
-/** Read-only git for the Files, Changes and branch UI. Anything that writes is refused with a readable reason. */
+/** A repository change: main plans the exact commands and runs each through the approval flow; a change not approved rejects. */
+export function bridgeChange(ipc: IpcRendererLike, request: Record<string, unknown>) {
+  return async (): Promise<{ ok: true }> => {
+    const answer = await ipc.invoke<{ message?: string; ok: boolean }>(CH.gitMutate, request);
+
+    if (!answer?.ok) {
+      throw new NeedsApprovalError(answer?.message ?? "That change was not made.");
+    }
+
+    return { ok: true };
+  };
+}
+
+/** Read-only git for the Files, Changes and branch UI. Changes ask for approval; what cannot be done says why. */
 export function gitApi(ipc: IpcRendererLike) {
   return {
     git: {
       baseBranchList: (repo: string) => ipc.invoke(CH.gitBaseBranchList, repo),
       branchList: (repo: string) => ipc.invoke(CH.gitBranchList, repo),
-      branchSwitch: mutation(ipc, "branchSwitch"),
+      branchSwitch: (repo: string, branch: string) => bridgeChange(ipc, { branch, op: "branchSwitch", repo })(),
       fileDiff: (repo: string, file: string) => ipc.invoke(CH.gitFileDiff, repo, file),
       repoStatus: (repo: string) => ipc.invoke(CH.gitRepoStatus, repo),
       review: {
-        commit: mutation(ipc, "commit"),
+        commit: (repo: string, message: string, push: boolean) => bridgeChange(ipc, { message, op: "commit", push: Boolean(push), repo })(),
         createPr: mutation(ipc, "createPr"),
         diff: (...[repo, file, scope, baseRef, staged]: [string, string, string, (null | string)?, boolean?]) =>
           ipc.invoke(CH.gitReviewDiff, repo, file, { baseRef, scope, staged }),
         list: (repo: string, scope: string, baseRef?: null | string) => ipc.invoke(CH.gitReviewList, repo, scope, baseRef),
         prList: (repo: string, branches: string[], numbers?: number[]) =>
           ipc.invoke(CH.gitReviewPrList, repo, branches, numbers),
-        push: mutation(ipc, "push"),
+        push: (repo: string) => bridgeChange(ipc, { op: "push", repo })(),
         revParse: (repo: string, ref?: null | string) => ipc.invoke(CH.gitReviewRevParse, repo, ref),
-        revert: mutation(ipc, "revert"),
+        revert: (repo: string, file?: null | string) => bridgeChange(ipc, { file: file ?? null, op: "revert", repo })(),
         shipInfo: (repo: string) => ipc.invoke(CH.gitReviewShipInfo, repo),
-        stage: mutation(ipc, "stage"),
-        unstage: mutation(ipc, "unstage")
+        stage: (repo: string, file?: null | string) => bridgeChange(ipc, { file: file ?? null, op: "stage", repo })(),
+        unstage: (repo: string, file?: null | string) => bridgeChange(ipc, { file: file ?? null, op: "unstage", repo })()
       },
       scanRepos: (roots: string[], options?: unknown) => ipc.invoke(CH.gitScanRepos, roots, options),
       worktreeAdd: mutation(ipc, "worktreeAdd"),
@@ -97,5 +110,14 @@ export function terminalApi(ipc: IpcRendererLike) {
       start: (options?: { cols?: number; cwd?: string; rows?: number }) => ipc.invoke(CH.terminalStart, options),
       write: (id: string, data: string) => ipc.invoke<boolean>(CH.terminalWrite, id, data)
     }
+  };
+}
+
+/** Rename, move to the Trash and save an image. Each waits for a native confirmation or save dialog. */
+export function fileActionApi(ipc: IpcRendererLike) {
+  return {
+    renamePath: (target: string, newName: string) => ipc.invoke<{ path: string }>(CH.renamePath, target, newName),
+    saveImageFromUrl: (source: string) => ipc.invoke<boolean>(CH.saveImage, source),
+    trashPath: (target: string) => ipc.invoke<boolean>(CH.trashPath, target)
   };
 }

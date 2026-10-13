@@ -65,13 +65,7 @@ describe("renderer git bridge", () => {
   const { git: bridge } = gitApi(fakeIpc({ message: NEEDS_APPROVAL_MESSAGE, needsApproval: true }).ipc);
 
   it.each([
-    ["stage", () => bridge.review.stage("/r", "a.txt")],
-    ["unstage", () => bridge.review.unstage("/r", null)],
-    ["revert", () => bridge.review.revert("/r", "a.txt")],
-    ["commit", () => bridge.review.commit()],
-    ["push", () => bridge.review.push()],
     ["createPr", () => bridge.review.createPr()],
-    ["branchSwitch", () => bridge.branchSwitch()],
     ["worktreeAdd", () => bridge.worktreeAdd()],
     ["worktreeRemove", () => bridge.worktreeRemove()]
   ])("rejects %s with the approval message", async (_member, run) => {

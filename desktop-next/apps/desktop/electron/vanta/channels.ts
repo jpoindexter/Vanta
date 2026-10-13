@@ -73,6 +73,7 @@ export const CH = {
   gitReviewShipInfo: 'vanta:git:review-ship-info',
   gitReviewPrList: 'vanta:git:review-pr-list',
   gitMutation: 'vanta:git:mutation',
+  gitMutate: 'vanta:git:mutate',
   // Window-level features (all local to Electron)
   findInPage: 'vanta:find-in-page',
   stopFindInPage: 'vanta:stop-find-in-page',
@@ -125,7 +126,11 @@ export const CH = {
   terminalCwd: 'vanta:terminal:cwd',
   terminalDispose: 'vanta:terminal:dispose',
   terminalData: 'vanta:terminal:data',
-  terminalExit: 'vanta:terminal:exit'
+  terminalExit: 'vanta:terminal:exit',
+  // Confirmed file actions
+  renamePath: 'vanta:fs:rename',
+  trashPath: 'vanta:fs:trash',
+  saveImage: 'vanta:save-image'
 } as const
 
 export type Channel = (typeof CH)[keyof typeof CH]

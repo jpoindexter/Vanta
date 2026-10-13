@@ -1,6 +1,6 @@
 import { type IpcRendererLike, mergeSurface, stubsFrom, subscribe } from './bridge-core'
 import { miniWindowApi, type HudWindowingView } from './bridge-mini'
-import { gitApi, projectFileApi, terminalApi } from './bridge-native'
+import { fileActionApi, gitApi, projectFileApi, terminalApi } from './bridge-native'
 import { windowFeatureApi } from './bridge-window'
 import { createApiProxy, createVantaBridge } from './bridge-vanta'
 import { CH } from './channels'
@@ -154,6 +154,7 @@ export function buildImplemented(env: BridgeEnv): Record<string, unknown> {
   return {
     ...connectionAndBoot(env),
     ...gitApi(env.ipc),
+    ...fileActionApi(env.ipc),
     ...projectFileApi(env.ipc),
     ...terminalApi(env.ipc),
     ...windowFeatureApi(env.ipc),

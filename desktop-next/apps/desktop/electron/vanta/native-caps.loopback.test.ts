@@ -1,12 +1,13 @@
 import path from "node:path";
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 
 import type { IpcRendererLike } from "./bridge-core";
 import { buildHermesDesktop } from "./bridge-surface";
 import { env } from "./bridge-test-helpers";
 import { registerFsHandlers } from "./fs-handlers";
 import { registerGitHandlers } from "./git-handlers";
+import { registerGitMutations } from "./git-mutation-handlers";
 import { createGitRunner } from "./git-runner";
 import type { IpcLike } from "./native-handlers";
 import { git, initRepo, makeSandbox, type Sandbox, write } from "./project-test-helpers";
@@ -17,6 +18,7 @@ import { git, initRepo, makeSandbox, type Sandbox, write } from "./project-test-
  */
 let box: Sandbox;
 let desktop: Record<string, any>;
+let run: Mock<(command: string, clientId: string) => Promise<{ ok: boolean; output: string }>>;
 
 beforeEach(() => {
   box = makeSandbox();
@@ -26,7 +28,11 @@ beforeEach(() => {
   const sender = { isDestroyed: () => false, once: () => undefined, removeListener: () => undefined, send: () => undefined };
 
   registerFsHandlers({ guard: box.guard, ipc: main });
-  registerGitHandlers({ git: createGitRunner(), guard: box.guard, ipc: main });
+  const git = createGitRunner();
+  run = vi.fn(async (_command: string, _clientId: string) => ({ ok: false, output: "denied by user: not approved" }));
+
+  registerGitHandlers({ git, guard: box.guard, ipc: main });
+  registerGitMutations({ clientFor: () => "chat-1", git, guard: box.guard, ipc: main, run });
 
   const ipc: IpcRendererLike = {
     invoke: (async (channel: string, ...args: unknown[]) => structuredClone(await handlers.get(channel)!({ sender }, ...args))) as never,
@@ -66,7 +72,7 @@ describe("Files pane over the bridge", () => {
 });
 
 describe("Changes pane over the bridge", () => {
-  it("shows status, the changed-file list and a diff, and refuses to stage or commit", async () => {
+  it("shows status, the changed-file list and a diff, and a change that is not approved does not happen", async () => {
     write(path.join(box.root, "a.txt"), "one\ntwo\nthree\n");
     const before = git(box.root, "status", "--porcelain");
 
@@ -79,9 +85,15 @@ describe("Changes pane over the bridge", () => {
     expect(diff).toContain("+three");
     expect(await desktop.git.review.revParse(box.root, "HEAD")).toMatch(/^[0-9a-f]{40}$/);
 
-    await expect(desktop.git.review.stage(box.root, "a.txt")).rejects.toThrow("needs your approval");
-    await expect(desktop.git.review.commit(box.root, "msg", false)).rejects.toThrow("needs your approval");
-    await expect(desktop.git.review.revert(box.root, "a.txt")).rejects.toThrow("needs your approval");
+    await expect(desktop.git.review.stage(box.root, "a.txt")).rejects.toThrow("denied by user");
+    await expect(desktop.git.review.commit(box.root, "msg", false)).rejects.toThrow("denied by user");
+    await expect(desktop.git.review.revert(box.root, "a.txt")).rejects.toThrow("denied by user");
+    expect(run.mock.calls.map(call => call[0])).toEqual([
+      "git add -- 'a.txt'",
+      "git add -- 'a.txt'",
+      "git restore --source=HEAD --staged --worktree -- 'a.txt'"
+    ]);
+    // The fake runner stood in for the approval flow and the shell: nothing changed in the repository.
     expect(git(box.root, "status", "--porcelain")).toBe(before);
   });
 });
