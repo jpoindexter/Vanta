@@ -488,7 +488,7 @@ function settleEndedLiveTurn(runtimeId: string) {
 // Raised only after the backend confirmed the turn is over and no reply reached
 // this window, so Retry cannot run the prompt twice.
 const NO_REPLY_SURFACE: ErrorSurface = { code: 'no_reply', layer: 'runtime', retryable: true }
-const NO_REPLY_ERROR = 'Hermes ended this turn without a reply.'
+const NO_REPLY_ERROR = 'Vanta ended this turn without a reply.'
 
 function turnHasReply(messages: ChatMessage[]): boolean {
   for (let index = messages.length - 1; index >= 0; index -= 1) {

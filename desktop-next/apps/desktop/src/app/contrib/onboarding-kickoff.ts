@@ -137,7 +137,7 @@ export function useOnboardingKickoff({ requestGateway, resumeSession, runSlashCo
     const offerExit = window.setTimeout(
       () =>
         $introStartExit.set(() =>
-          machine.stop(new KickoffSkipped('Setup was skipped while Hermes was still starting.'))
+          machine.stop(new KickoffSkipped('Setup was skipped while Vanta was still starting.'))
         ),
       BACKEND_BOOT_WAIT_TIMEOUT_MS
     )

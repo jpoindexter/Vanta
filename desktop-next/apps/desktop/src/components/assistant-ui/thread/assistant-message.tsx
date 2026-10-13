@@ -805,7 +805,7 @@ const ErrorRecoveryActions: FC = () => {
   }, [])
 
   // Reveal a local folder through Electron; `logsRoot` is the profile's
-  // HERMES_HOME/logs, and its parent is the Hermes data folder itself (what
+  // HERMES_HOME/logs, and its parent is the Vanta data folder itself (what
   // the user needs to see to free space after a disk-full failure). Resolved
   // for the profile that OWNS this session (a tile / Bot chat names it in its
   // composer scope), not the pooled backend's launch profile (#119080).

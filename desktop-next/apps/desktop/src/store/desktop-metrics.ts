@@ -1,7 +1,7 @@
 /**
  * Vanta does not collect usage metrics. This module keeps the closed vocabularies
  * (types and pure id helpers) that call sites use, and every recorder is a no-op:
- * nothing is stored, queued or sent. It exists so the imported Hermes call sites
+ * nothing is stored, queued or sent. It exists so the imported Vanta call sites
  * compile unchanged; delete a call site together with its import when you touch it.
  */
 

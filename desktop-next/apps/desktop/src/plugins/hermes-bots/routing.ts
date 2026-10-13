@@ -307,7 +307,7 @@ function asRpcError(value: unknown, fallback: string): unknown {
 // backend answers the roster itself, the row's identity is (C, 'default') —
 // a DIFFERENT key than the alias meta (C::moxie / 'moxie') — so the friendly
 // name fell off after source/session activation: the row regressed to the
-// raw Cloud hostname, or to generic 'Hermes' in Cloud-only mode.
+// raw Cloud hostname, or to generic 'Vanta' in Cloud-only mode.
 //
 // aliasRouteIndex bridges the backend row identity back to its configured
 // alias. It is keyed by (connectionId, targetProfile), so two same-named

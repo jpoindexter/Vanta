@@ -1,4 +1,4 @@
-/* Hermes surface treatment for the APP surface's tour popovers.
+/* Vanta surface treatment for the APP surface's tour popovers.
 
    driver.js ships a fixed light palette, a heavy drop shadow, and 19px/14px
    type — none of which is how this app draws a floating popover. Repaint it

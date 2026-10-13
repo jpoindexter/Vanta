@@ -93,7 +93,7 @@ export function createKickoffMachine(): KickoffMachine {
     }
 
     exitFailure = new KickoffFailure(
-      `The Hermes backend stopped before the welcome chat opened (code ${code ?? 'none'}, signal ${signal ?? 'none'}).`
+      `The Vanta backend stopped before the welcome chat opened (code ${code ?? 'none'}, signal ${signal ?? 'none'}).`
     )
 
     for (const reject of exitWaiters) {
