@@ -106,3 +106,17 @@ describe("typed event redaction and caps", () => {
     expect(turnCompleteEvent({ sessionId: "s1", finalText: "x" })).toEqual({ type: "turn.complete", sessionId: "s1", finalText: "x" });
   });
 });
+
+describe("usage event", () => {
+  it("is built from reported tokens and the context numbers", async () => {
+    const { usageEvent } = await import("./typed-events.js");
+    expect(usageEvent({ sessionId: "s", usage: { inputTokens: 9, outputTokens: 4 }, contextTokens: 100, contextWindow: 1000 })).toEqual({
+      type: "usage", sessionId: "s", inputTokens: 9, outputTokens: 4, reported: true, contextTokens: 100, contextWindow: 1000,
+    });
+  });
+
+  it("marks tokens as not reported when the provider gave none", async () => {
+    const { usageEvent } = await import("./typed-events.js");
+    expect(usageEvent({ sessionId: "s", contextTokens: 5, contextWindow: 10 })).toMatchObject({ inputTokens: 0, outputTokens: 0, reported: false });
+  });
+});

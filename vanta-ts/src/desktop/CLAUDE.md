@@ -51,6 +51,7 @@ type TypedDesktopEvent =
   | { type: "thinking"; text: string; truncated: boolean }
   | { type: "approval.request"; approval: ApprovalPayload }   // exactly what GET /api/approval returns
   | { type: "approval.resolved"; id: string }
+  | { type: "usage"; sessionId: string; inputTokens: number; outputTokens: number; reported: boolean; contextTokens: number; contextWindow: number }
   | { type: "turn.complete"; sessionId: string; finalText: string;
       usage?: { inputTokens: number; outputTokens: number }; stoppedReason?: string };
 
@@ -72,6 +73,7 @@ Semantics:
 - `approval.request` is pushed the moment the agent blocks on a human decision; polling `GET /api/approval` still returns the identical payload. `approval.resolved` is pushed when `POST /api/approval` claims the request, before the agent is released, so it precedes any follow-on tool event. It is not pushed if a turn is aborted while an approval is pending (no code path clears it today); poll `GET /api/approval` to reconcile.
 - `turn.complete` is pushed once per `POST /api/chat`, after the session is persisted and just before the HTTP response is written (queued follow-ups that run inside the same request do not emit their own). `stoppedReason` is the agent's reason (`done`, `interrupted`, `blocked`, `max_iterations`, ...) or `failed` / `provider_auth` on the failure paths. The POST response stays authoritative, so renderers must treat both as idempotent.
 - Parallel chats: each client id owns its own state and SSE channel; send a distinct `x-session-id` per chat. Events are never delivered across ids. The body `sessionId` on `POST /api/chat` must equal that state's open session or the server answers 409.
+- `usage` is pushed after every settled instruction (a queued follow-up that runs inside the same request pushes its own), just before `turn.complete`. `inputTokens`/`outputTokens` are that instruction's provider-reported totals; `reported:false` means the provider gave none and both are zero (not measured). `contextTokens` is an estimate of what the conversation now occupies (about four characters per token over text, tool-call arguments and tool results; image bytes excluded), `contextWindow` is the model's window. It is a typed-only frame like `turn.complete`, so legacy renderers ignore it, and the public API and companion streams never receive it.
 - Typed pushes are best-effort: a failed or invalid typed event is dropped and never breaks a turn.
 
 ## Safety

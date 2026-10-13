@@ -123,6 +123,14 @@ export const typedEventSchema = z.discriminatedUnion('type', [
   z.looseObject({ approval: approvalPayloadSchema, type: z.literal('approval.request') }),
   z.looseObject({ id: z.string(), type: z.literal('approval.resolved') }),
   z.looseObject({
+    contextTokens: z.number().default(0),
+    contextWindow: z.number().default(0),
+    inputTokens: z.number().default(0),
+    outputTokens: z.number().default(0),
+    reported: z.boolean().default(false),
+    type: z.literal('usage')
+  }),
+  z.looseObject({
     finalText: z.string().default(''),
     sessionId: z.string(),
     stoppedReason: z.string().optional(),
