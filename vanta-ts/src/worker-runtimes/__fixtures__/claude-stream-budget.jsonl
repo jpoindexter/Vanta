@@ -1,0 +1,2 @@
+{"type":"system","subtype":"init","session_id":"aa11bb22-0000-4000-8000-000000000002","model":"claude-sonnet-4-5"}
+{"type":"result","subtype":"error_max_budget_usd","is_error":true,"duration_ms":4000,"num_turns":2,"session_id":"aa11bb22-0000-4000-8000-000000000002","total_cost_usd":0.5012,"usage":{"input_tokens":900,"output_tokens":300}}

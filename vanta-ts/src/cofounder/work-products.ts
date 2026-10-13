@@ -33,6 +33,9 @@ export const WorkProductSchema = z.object({
   /** Whether the artifact has been approved (false until reviewed). */
   approved: z.boolean().default(false),
   createdAt: z.string().min(1),
+  /** Which worker runtime produced it ("claude-code", "vanta-native") and in which run. Absent on older rows. */
+  runtimeId: z.string().min(1).optional(),
+  runId: z.string().min(1).optional(),
 });
 export type WorkProduct = z.infer<typeof WorkProductSchema>;
 
@@ -49,6 +52,9 @@ export type RecordWorkProductSpec = {
   producedBy: string;
   /** Whether the artifact lands already approved (defaults to false → pending). */
   approved?: boolean;
+  /** Runtime and run that produced it, when a worker runtime did. */
+  runtimeId?: string;
+  runId?: string;
 };
 
 /** Stable, unique id for a work product: `<departmentId>-wp-<n>`, n the next free index. Pure. */
@@ -92,6 +98,8 @@ export function recordWorkProduct(
     producedBy,
     approved: spec.approved ?? false,
     createdAt: now.toISOString(),
+    ...(spec.runtimeId ? { runtimeId: spec.runtimeId } : {}),
+    ...(spec.runId ? { runId: spec.runId } : {}),
   };
   return { ok: true, value: product };
 }
