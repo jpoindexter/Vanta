@@ -10,6 +10,7 @@ import {
 } from '@assistant-ui/react'
 import { useStore } from '@nanostores/react'
 import { type FC, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { IconCircleX } from '@tabler/icons-react'
 import { useInRouterContext, useNavigate } from 'react-router'
 
 import { requestModelMenuToggle } from '@/app/chat/composer/focus'
@@ -33,6 +34,7 @@ import { MessageTimelineTimestamp } from '@/components/assistant-ui/thread/timel
 import { useMessageReactions, useTapbackDoubleClick } from '@/components/assistant-ui/thread/use-message-reactions'
 import { AGENT_MESSAGE_RE } from '@/components/assistant-ui/thread/user-message'
 import { isApprovalActivity, isCurrentTurnMessage } from '@/components/assistant-ui/tool/approval-activity'
+import { ViewOutputButton } from '@/components/assistant-ui/tool/step-actions'
 import { TooltipIconButton } from '@/components/assistant-ui/tooltip-icon-button'
 import { formatElapsed } from '@/components/chat/activity-timer'
 import { PreviewAttachment } from '@/components/chat/preview-attachment'
@@ -297,10 +299,7 @@ const AssistantMessageBody: FC<AssistantMessageProps & { collapsedNotice?: null 
             <AssistantStatusSlot />
             <AssistantPreviewEmbeds />
             <MessagePrimitive.Error>
-              <ErrorPrimitive.Root
-                className="mt-1.5 flex flex-col gap-1.5 rounded-lg border border-[color-mix(in_srgb,var(--dt-destructive)_35%,transparent)] bg-[color-mix(in_srgb,var(--dt-destructive)_7%,transparent)] px-3 py-2 text-[0.78rem] leading-5 text-[color-mix(in_srgb,var(--dt-destructive)_78%,var(--ui-text-secondary))]"
-                role="alert"
-              >
+              <ErrorPrimitive.Root className="vp-card vp-failure" data-vp="failure-card" role="alert">
                 <div className="flex items-start gap-1.5">
                   <div className="min-w-0 flex-1">
                     <ErrorCardHeadline />
@@ -552,10 +551,13 @@ const ErrorCardHeadline: FC = () => {
 
   return (
     <>
-      <div className="font-medium">{title}</div>
-      <div>{body}</div>
-      {errorText && (
-        <details className="mt-0.5 min-w-0 text-[0.75rem] opacity-70">
+      <h4>
+        <IconCircleX aria-hidden className="vp-card-icon" size={15} />
+        {title}
+      </h4>
+      <div className="vp-sub">{body}</div>
+      {errorText && errorText !== title && errorText !== body && (
+        <details className="vp-note mb-2 min-w-0">
           <summary className="cursor-pointer select-none">{t.assistant.thread.errorDetails}</summary>
           <div className="wrap-anywhere mt-0.5 whitespace-pre-wrap font-mono">{errorText}</div>
         </details>
@@ -884,8 +886,31 @@ const ErrorRecoveryActions: FC = () => {
   // Retry will work instead of guessing (#98852). Informational only: no automatic retry.
   const limitReset = formatLimitReset(surface?.resetsAt)
 
+  // A task failure ("The tests failed") is not a provider problem: it offers
+  // the two things that matter, retrying the step and reading its output.
+  if (surface?.headline) {
+    return (
+      <div className="vp-acts" data-vp="failure-actions">
+        <ActionBarPrimitive.Reload asChild>
+          <button
+            className="aui-error-action"
+            data-tone="primary"
+            onClick={() => {
+              triggerHaptic('submit')
+              recordAction(DESKTOP_BUTTON_ACTIONS.messageRetry, 'click')
+            }}
+            type="button"
+          >
+            Retry the step
+          </button>
+        </ActionBarPrimitive.Reload>
+        <ViewOutputButton />
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <div className="vp-acts" data-vp="failure-actions">
       {plan.editMessage && <EditPreviousMessageAction label={copy.editMessage} />}
       {plan.compress && <CompressConversationAction label={copy.errorCompressConversation} />}
       {plan.chooseModel && (
@@ -926,6 +951,7 @@ const ErrorRecoveryActions: FC = () => {
         <ActionBarPrimitive.Reload asChild>
           <button
             className="aui-error-action"
+            data-tone="primary"
             onClick={() => {
               triggerHaptic('submit')
               recordAction(DESKTOP_BUTTON_ACTIONS.messageRetry, 'click')

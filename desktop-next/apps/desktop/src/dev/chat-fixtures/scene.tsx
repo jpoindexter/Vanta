@@ -13,7 +13,7 @@ import { $gatewayState } from '@/store/session'
 
 import { fixtureMessages } from './fixtures'
 import { type FixtureParams, MAIN_HEIGHT, MAIN_WIDTH } from './params'
-import { seedPrompts } from './prompts'
+import { seedClarify, seedPrompts } from './prompts'
 
 const SESSION_ID = 'fixture-session'
 
@@ -52,6 +52,7 @@ export function FixtureScene({ params }: { params: FixtureParams }) {
   useEffect(() => {
     $gatewayState.set('open')
     seedPrompts(params, SESSION_ID)
+    seedClarify(params, SESSION_ID)
   }, [params])
 
   return (

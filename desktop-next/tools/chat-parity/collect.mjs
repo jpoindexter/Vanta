@@ -1,6 +1,6 @@
 // Runs inside the page: measure one element for the listed props, relative to `mainSel`.
 export function collectInPage({ sel, mainSel, props }) {
-  const ICONS = /[▲▸▾✕◌✓○＋🎙■↑▤±◎⌂⌕⇄✦◷👍👎⌘]/g;
+  const ICONS = /[▲▸▾✕◌✓○＋🎙■↑▤±◎⌂⌕⇄✦◷👍👎⌘\u2800-\u28ff]/g;
   const clean = (s) => (s || "").replace(ICONS, "").replace(/\s+/g, " ").trim();
   const px = (v) => Math.round(parseFloat(v) * 10) / 10;
   const main = document.querySelector(mainSel);

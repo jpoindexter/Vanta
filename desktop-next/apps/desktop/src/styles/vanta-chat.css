@@ -524,3 +524,84 @@
   flex: none;
   gap: 8px;
 }
+
+/* ---------- empty state ---------- */
+
+.vp-empty {
+  max-width: 640px;
+  margin: 38px auto 0;
+  text-align: center;
+}
+
+.vp-empty h3 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: var(--vp-leading);
+}
+
+.vp-empty p {
+  margin: 0 0 8px;
+  color: var(--vp-ink2);
+  font-size: var(--vp-text);
+  line-height: var(--vp-leading);
+}
+
+.vp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+/* The starter chips are buttons at body size, pill-shaped. */
+.vp-chip--lg {
+  padding: 5px 10px;
+  font-size: var(--vp-text);
+  color: var(--vp-ink);
+}
+
+/* ---------- live line and step actions ---------- */
+
+.vp-btn--inline {
+  margin-left: auto;
+}
+
+.vp-step-row {
+  gap: 8px;
+  font-size: var(--vp-text);
+  line-height: var(--vp-leading);
+}
+
+.vp-step-row:has(.vp-btn) {
+  padding-block: 2px;
+}
+
+/* ---------- failed run ---------- */
+
+/* The recovery actions are ordinary Vanta buttons, not tinted pills. */
+.vp-failure .aui-error-action {
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--vp-line);
+  border-radius: var(--vp-radius-control);
+  background: var(--vp-bg);
+  color: var(--vp-ink);
+  font-size: var(--vp-text);
+  line-height: var(--vp-leading);
+}
+
+.vp-failure .aui-error-action:hover {
+  background: var(--vp-panel);
+}
+
+.vp-failure .aui-error-action[data-tone='primary'] {
+  border-color: var(--vp-ink);
+  background: var(--vp-ink);
+  color: var(--vp-bg);
+}
+
+.vp-failure h4 .vp-card-icon {
+  color: var(--dt-destructive);
+}
