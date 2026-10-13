@@ -1,0 +1,193 @@
+{
+  "generatedAt": "2026-10-13T13:47:35.000Z",
+  "day": "2026-10-13",
+  "limits": [
+    {
+      "scope": "agent:analyst",
+      "kind": "worker",
+      "subject": "analyst",
+      "limitUsd": 2,
+      "spentUsd": 0,
+      "remainingUsd": 2,
+      "warnFraction": 0.8,
+      "thresholds": {
+        "warnAtUsd": 1.6,
+        "hardStopAtUsd": 2
+      },
+      "status": "active",
+      "hardStop": {
+        "tripped": false,
+        "reason": null
+      }
+    },
+    {
+      "scope": "agent:designer",
+      "kind": "worker",
+      "subject": "designer",
+      "limitUsd": 0.1,
+      "spentUsd": 0.1,
+      "remainingUsd": 0,
+      "warnFraction": 0.8,
+      "thresholds": {
+        "warnAtUsd": 0.08000000000000002,
+        "hardStopAtUsd": 0.1
+      },
+      "status": "exceeded",
+      "hardStop": {
+        "tripped": true,
+        "reason": "budget"
+      }
+    },
+    {
+      "scope": "agent:engineer",
+      "kind": "worker",
+      "subject": "engineer",
+      "limitUsd": 5,
+      "spentUsd": 0.52,
+      "remainingUsd": 4.48,
+      "warnFraction": 0.8,
+      "thresholds": {
+        "warnAtUsd": 4,
+        "hardStopAtUsd": 5
+      },
+      "status": "active",
+      "hardStop": {
+        "tripped": false,
+        "reason": null
+      }
+    },
+    {
+      "scope": "agent:researcher",
+      "kind": "worker",
+      "subject": "researcher",
+      "limitUsd": 3,
+      "spentUsd": 0,
+      "remainingUsd": 3,
+      "warnFraction": 0.8,
+      "thresholds": {
+        "warnAtUsd": 2.4000000000000004,
+        "hardStopAtUsd": 3
+      },
+      "status": "active",
+      "hardStop": {
+        "tripped": false,
+        "reason": null
+      }
+    },
+    {
+      "scope": "agent:support",
+      "kind": "worker",
+      "subject": "support",
+      "limitUsd": 1,
+      "spentUsd": 0,
+      "remainingUsd": 1,
+      "warnFraction": 0.8,
+      "thresholds": {
+        "warnAtUsd": 0.8,
+        "hardStopAtUsd": 1
+      },
+      "status": "active",
+      "hardStop": {
+        "tripped": false,
+        "reason": null
+      }
+    }
+  ],
+  "workers": [
+    {
+      "workerId": "engineer",
+      "declaredBudgetUsd": 5,
+      "scope": "agent:engineer",
+      "spentUsd": 0.52,
+      "estimatedUsd": 0.1,
+      "reportedUsd": 0.42,
+      "runs": {
+        "estimated": 1,
+        "reported": 1,
+        "notReported": 0
+      }
+    },
+    {
+      "workerId": "designer",
+      "declaredBudgetUsd": 0.1,
+      "scope": "agent:designer",
+      "spentUsd": 0.1,
+      "estimatedUsd": 0.1,
+      "reportedUsd": 0,
+      "runs": {
+        "estimated": 1,
+        "reported": 0,
+        "notReported": 1
+      }
+    },
+    {
+      "workerId": "analyst",
+      "declaredBudgetUsd": 2,
+      "scope": "agent:analyst",
+      "spentUsd": 0,
+      "estimatedUsd": 0,
+      "reportedUsd": 0,
+      "runs": {
+        "estimated": 0,
+        "reported": 0,
+        "notReported": 1
+      }
+    },
+    {
+      "workerId": "researcher",
+      "declaredBudgetUsd": 3,
+      "scope": "agent:researcher",
+      "spentUsd": 0,
+      "estimatedUsd": 0,
+      "reportedUsd": 0,
+      "runs": {
+        "estimated": 0,
+        "reported": 0,
+        "notReported": 1
+      }
+    },
+    {
+      "workerId": "support",
+      "declaredBudgetUsd": 1,
+      "scope": "agent:support",
+      "spentUsd": 0,
+      "estimatedUsd": 0,
+      "reportedUsd": 0,
+      "runs": {
+        "estimated": 0,
+        "reported": 0,
+        "notReported": 0
+      }
+    }
+  ],
+  "departments": [
+    {
+      "departmentId": "product",
+      "scope": "dept:product",
+      "limitUsd": null,
+      "spentUsd": 0
+    }
+  ],
+  "days": [
+    {
+      "day": "2026-10-13",
+      "totalUsd": 0.62,
+      "workerUsd": 0.62,
+      "entries": 3
+    }
+  ],
+  "totals": {
+    "spentUsd": 0.62,
+    "estimatedUsd": 0.2,
+    "reportedUsd": 0.42,
+    "notReportedRuns": 3
+  },
+  "costBases": {
+    "values": [
+      "reported",
+      "estimated",
+      "not-reported"
+    ],
+    "note": "estimated = tokens times the pricing table; reported = the runtime returned a dollar figure; not-reported = the run had no cost figure (external CLI, subscription provider, unpriced model) and adds nothing to the USD totals."
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "id": "T-6",
+  "title": "Polish the empty states",
+  "status": "done",
+  "workerId": "designer",
+  "projectId": null,
+  "goalId": null,
+  "parentId": null,
+  "labels": [],
+  "inbox": "unread",
+  "source": "both",
+  "blocker": null,
+  "result": "finished T-6",
+  "pendingReviews": 0,
+  "workProductCount": 1,
+  "commentCount": 0,
+  "createdAt": "2026-10-13T11:52:48.000Z",
+  "updatedAt": "2026-10-13T19:19:42.759Z",
+  "thread": [],
+  "blockers": [],
+  "runs": [
+    {
+      "runId": "r0034",
+      "ticketId": "T-6",
+      "workerId": "designer",
+      "runtime": "stub",
+      "status": "done",
+      "attempt": 1,
+      "startedAt": "2026-10-13T12:13:49.000Z",
+      "finishedAt": "2026-10-13T12:34:50.000Z",
+      "summary": "finished T-6",
+      "error": null,
+      "usage": {
+        "inputTokens": 100,
+        "outputTokens": 50
+      },
+      "costUsd": 0.1,
+      "costBasis": "estimated",
+      "provider": "openai",
+      "model": "gpt-stub"
+    }
+  ],
+  "workProducts": [
+    {
+      "id": "product-wp-4",
+      "ticketId": "T-6",
+      "kind": "report",
+      "artifact": "# Report for Polish the empty states\nAll done.",
+      "truncated": false,
+      "approved": false,
+      "createdAt": "2026-10-13T12:23:31.000Z",
+      "provenance": {
+        "taskId": "T-6",
+        "workerId": "designer",
+        "departmentId": "product"
+      },
+      "revisions": []
+    }
+  ],
+  "ancestry": [],
+  "reviewStages": [],
+  "outcome": null,
+  "attachments": []
+}

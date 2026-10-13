@@ -1,0 +1,62 @@
+{
+  "entries": [
+    {
+      "id": "a-mv6puvw8-000039-r0045",
+      "at": "2026-10-13T13:28:11.000Z",
+      "source": "company",
+      "kind": "worker.paused",
+      "actor": "owner",
+      "summary": "paused support: on leave until Monday",
+      "refs": {
+        "workerId": "support"
+      }
+    },
+    {
+      "id": "a-mv6pkho0-000038-r0044",
+      "at": "2026-10-13T13:20:06.000Z",
+      "source": "company",
+      "kind": "ticket.commented",
+      "actor": "owner",
+      "summary": "commented on T-3",
+      "refs": {
+        "ticketId": "T-3"
+      }
+    },
+    {
+      "id": "a-mv6p5xqw-000037-r0043",
+      "at": "2026-10-13T13:08:47.000Z",
+      "source": "company",
+      "kind": "run.started",
+      "actor": "analyst",
+      "summary": "analyst started T-7: Rebuild the search index [hold]",
+      "refs": {
+        "ticketId": "T-7",
+        "workerId": "analyst"
+      }
+    },
+    {
+      "id": "a-mv6opazc-000036-r0041",
+      "at": "2026-10-13T12:55:51.000Z",
+      "source": "company",
+      "kind": "ticket.assigned",
+      "actor": "owner",
+      "summary": "assigned T-7 to analyst",
+      "refs": {
+        "ticketId": "T-7",
+        "workerId": "analyst"
+      }
+    },
+    {
+      "id": "a-mv6oar28-000035-r0040",
+      "at": "2026-10-13T12:44:32.000Z",
+      "source": "company",
+      "kind": "ticket.created",
+      "actor": "owner",
+      "summary": "created T-7: Rebuild the search index [hold]",
+      "refs": {
+        "ticketId": "T-7"
+      }
+    }
+  ],
+  "nextCursor": "eyJhdCI6IjIwMjYtMTAtMTNUMTI6NDQ6MzIuMDAwWiIsImlkIjoiYS1tdjZvYXIyOC0wMDAwMzUtcjAwNDAifQ"
+}
