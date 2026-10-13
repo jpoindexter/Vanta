@@ -682,6 +682,8 @@ The renderer never gets arbitrary exec, fs or network. Four mechanisms cover eve
 | Tray, minimize to tray, Needs you count, badge | F-201, F-178 | local plus pending-approval read | `vanta-tray`, `tray-setting` |
 | Quick entry | F-202, F-178 | local, relayed to the main window | `quick-entry-host` |
 | Context menu verbs | F-191 | allowlist | `context-menu` |
+| Agent roster, default profile (W2) | F-058 to F-076, F-233 | the server's `/api/profiles` and `POST /api/profiles/set-default` through the request bridge | `bridge-profiles` |
+| About: version and runtime (W2) | F-176 | `vanta:version` now answers the `DesktopVersionInfo` object the page reads, not a bare string | `shell-version` |
 
 ### 5.3 Refused or left unsupported, and why
 

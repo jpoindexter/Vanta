@@ -70,10 +70,14 @@ export async function startChat(page, text = "Say hello", reply = "Hello from th
   await page.waitForTimeout(1500);
 }
 
-/** A chat must be open for anything that asks the server to run a command: its approval card has to land somewhere. */
+/** A chat must be open for anything that asks the server to run a command: its approval card has to land somewhere.
+ *  Also puts that chat in front, so the panes read the project the chat runs in. */
 export async function ensureChat(page) {
+  await goHome(page);
   const sidebar = page.locator('[data-tour="sessions-sidebar"]').first();
   if ((await sidebar.getByText("Say hello", { exact: true }).count()) === 0) await startChat(page);
+  await sidebar.getByText("Say hello", { exact: true }).first().click();
+  await page.waitForTimeout(800);
 }
 
 /** Poll `read()` until it returns something truthy, or `ms` runs out; returns the last value. */
