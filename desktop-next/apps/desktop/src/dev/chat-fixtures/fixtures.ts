@@ -54,18 +54,25 @@ function terminalCall(id: string, command: string, result?: Record<string, unkno
   }
 }
 
+/** 09:41 UTC today, the time the wireframe prints under the first message. */
+function nineForty(): number {
+  const now = new Date()
+
+  return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 9, 41) / 1000
+}
+
 const user = (id: string, text: string): ChatMessage => ({
   id,
   role: 'user',
   parts: [{ type: 'text', text }],
-  timestamp: 1_760_000_000
+  timestamp: nineForty()
 })
 
 const assistant = (id: string, parts: ChatMessagePart[], extra: Partial<ChatMessage> = {}): ChatMessage => ({
   id,
   role: 'assistant',
   parts,
-  timestamp: 1_760_000_020,
+  timestamp: nineForty() + 20,
   ...extra
 })
 

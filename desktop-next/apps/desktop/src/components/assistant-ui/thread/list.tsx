@@ -1595,6 +1595,7 @@ const ThreadMessageListInner: FC<ThreadMessageListProps> = ({
             renderEmpty ? 'py-8' : threadContentTopPad
           )}
           data-slot="aui_thread-content"
+          data-vp="column"
           ref={contentRef as React.RefCallback<HTMLDivElement>}
         >
           {!renderEmpty && (hiddenCount > 0 || olderAvailable) && (

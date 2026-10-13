@@ -32,13 +32,24 @@ export function isToolCallPart<T extends { type: string }>(part: T): part is Ext
 }
 
 type RunCategory =
-  'analyze' | 'browse' | 'delegate' | 'edit' | 'explore' | 'interact' | 'other' | 'read' | 'run' | 'search'
+  | 'analyze'
+  | 'browse'
+  | 'delegate'
+  | 'edit'
+  | 'explore'
+  | 'file'
+  | 'interact'
+  | 'other'
+  | 'read'
+  | 'run'
+  | 'search'
 
 // Clause order is fixed so the same run always reads the same way, whichever
 // category happens to be live.
 const CATEGORY_ORDER: readonly RunCategory[] = [
   'edit',
   'explore',
+  'file',
   'search',
   'read',
   'browse',
@@ -55,11 +66,12 @@ const CATEGORY_COPY: Record<RunCategory, { noun: [string, string]; past: string;
   delegate: { noun: ['task', 'tasks'], past: 'Delegated', present: 'Delegating' },
   edit: { noun: ['file', 'files'], past: 'Edited', present: 'Editing' },
   explore: { noun: ['file', 'files'], past: 'Explored', present: 'Exploring' },
+  file: { noun: ['file', 'files'], past: 'Read', present: 'Reading' },
   interact: { noun: ['browser action', 'browser actions'], past: 'Performed', present: 'Performing' },
   other: { noun: ['tool', 'tools'], past: 'Used', present: 'Using' },
   read: { noun: ['page', 'pages'], past: 'Read', present: 'Reading' },
   run: { noun: ['command', 'commands'], past: 'Ran', present: 'Running' },
-  search: { noun: ['query', 'queries'], past: 'Searched', present: 'Searching' }
+  search: { noun: ['source', 'sources'], past: 'Searched', present: 'Searching' }
 }
 
 // Routed by name so a web search never counts as an explored file (#123085).
@@ -70,7 +82,7 @@ const TOOL_CATEGORY: Record<string, RunCategory> = {
   delegate_task: 'delegate',
   execute_code: 'run',
   list_files: 'explore',
-  read_file: 'explore',
+  read_file: 'file',
   search_files: 'explore',
   session_search_recall: 'search',
   terminal: 'run',
