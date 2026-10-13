@@ -10,7 +10,7 @@ export const frLocalModels: TranslationOverride<Translations['settings']['localM
   serverRunning: 'En cours',
   runtimeInstalled: 'Moteur llama.cpp installé',
   runtimeInstalledDetail: (tag, backend) =>
-    `Build ${tag}, backend ${backend}. Hermes démarre et gère le serveur pour vous.`,
+    `Build ${tag}, backend ${backend}. Vanta démarre et gère le serveur pour vous.`,
   installTitle: 'Installer le moteur local',
   installDetail:
     "Télécharge le moteur d'inférence llama.cpp (quelques centaines de Mo). Les modèles téléchargés s'exécutent entièrement sur cette machine : aucun compte requis et aucune donnée ne quitte votre ordinateur.",
@@ -61,7 +61,7 @@ export const frLocalModels: TranslationOverride<Translations['settings']['localM
   updating: 'Mise à jour du moteur…',
   upToDateTitle: 'Moteur à jour',
   upToDateDetail: (tag, backend) =>
-    `llama.cpp ${tag} (${backend}) est en cours d'exécution : il s'agit de la dernière build fournie par Hermes.`,
+    `llama.cpp ${tag} (${backend}) est en cours d'exécution : il s'agit de la dernière build fournie par Vanta.`,
   activeDetail:
     "Les nouvelles conversations utilisent ce modèle. Il se charge lors de l'envoi de votre premier message.",
   activeNotLoaded: 'Se charge avec votre premier message',

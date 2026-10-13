@@ -3,21 +3,21 @@ import type { TranslationOverrides } from './define-locale'
 // The boot screen's copy (including the update-hold screen), composed by de.ts.
 export const deBoot = {
   boot: {
-    ready: 'Hermes Desktop ist bereit',
+    ready: 'Vanta Desktop ist bereit',
     desktopBootFailedWithMessage: message => `Desktop-Start fehlgeschlagen: ${message}`,
     steps: {
       connectingGateway: 'Live-Desktop-Gateway wird verbunden',
-      loadingSettings: 'Hermes-Einstellungen werden geladen',
+      loadingSettings: 'Vanta-Einstellungen werden geladen',
       loadingSessions: 'Letzte Sessions werden geladen',
-      retryingRemoteBackend: 'Wird mit dem Remote-Hermes-Backend neu verbunden…',
+      retryingRemoteBackend: 'Wird mit dem Remote-Vanta-Backend neu verbunden…',
       startingDesktopConnection: 'Desktop-Verbindung wird gestartet',
-      startingHermesDesktop: 'Hermes Desktop wird gestartet…'
+      startingHermesDesktop: 'Vanta Desktop wird gestartet…'
     },
     errors: {
-      backgroundExited: 'Der Hermes-Hintergrundprozess wurde beendet.',
-      backgroundExitedDuringStartup: 'Der Hermes-Hintergrundprozess wurde während des Starts beendet.',
+      backgroundExited: 'Der Vanta-Hintergrundprozess wurde beendet.',
+      backgroundExitedDuringStartup: 'Der Vanta-Hintergrundprozess wurde während des Starts beendet.',
       backendStopped: 'Backend gestoppt',
-      restartHermes: 'Hermes neu starten',
+      restartHermes: 'Vanta neu starten',
       openLogs: 'Logs öffnen',
       desktopBootFailed: 'Desktop-Start fehlgeschlagen',
       gatewayConnectionLost: 'Verbindung zum Gateway verloren',
@@ -32,16 +32,16 @@ export const deBoot = {
       ipcBridgeUnavailable: 'Der Desktop-IPC-Bridge ist nicht verfügbar.'
     },
     causes: {
-      exitedEarly: 'Der Hintergrunddienst von Hermes hat direkt nach dem Start aufgehört.',
-      timedOut: 'Der Hintergrunddienst von Hermes hat nicht rechtzeitig geantwortet.',
-      permission: 'Hermes konnte nicht in seinen Datenordner schreiben (Berechtigungsproblem).',
-      diskFull: 'Die Festplatte ist voll, deshalb konnte Hermes nicht starten.',
-      portInUse: 'Ein anderes Programm verwendet den Netzwerkport, den Hermes braucht.',
+      exitedEarly: 'Der Hintergrunddienst von Vanta hat direkt nach dem Start aufgehört.',
+      timedOut: 'Der Hintergrunddienst von Vanta hat nicht rechtzeitig geantwortet.',
+      permission: 'Vanta konnte nicht in seinen Datenordner schreiben (Berechtigungsproblem).',
+      diskFull: 'Die Festplatte ist voll, deshalb konnte Vanta nicht starten.',
+      portInUse: 'Ein anderes Programm verwendet den Netzwerkport, den Vanta braucht.',
       installMissing:
-        'Ein Teil der Hermes-Installation fehlt. Wählen Sie „Installation reparieren“, um sie wiederherzustellen.'
+        'Ein Teil der Vanta-Installation fehlt. Wählen Sie „Installation reparieren“, um sie wiederherzustellen.'
     },
     failure: {
-      title: 'Hermes konnte nicht gestartet werden',
+      title: 'Vanta konnte nicht gestartet werden',
       description:
         'Das Hintergrund-Gateway ist nicht gestartet. Probieren Sie einen der Wiederherstellungsschritte unten. Keiner davon löscht Ihre Chats oder Einstellungen.',
       details: 'Details',
@@ -80,31 +80,31 @@ export const deBoot = {
       identityProvider: 'Ihr Identity-Provider'
     },
     updateHold: {
-      title: 'Ein früheres Update hält Hermes noch fest',
-      titleUnverified: 'Hermes kann nicht bestätigen, dass das letzte Update fertig ist',
+      title: 'Ein früheres Update hält Vanta noch fest',
+      titleUnverified: 'Vanta kann nicht bestätigen, dass das letzte Update fertig ist',
       description:
-        'Hermes startet noch nicht, damit es keine Dateien lädt, die ein Update womöglich noch ändert. Sobald die Sperre endet, startet Hermes von selbst.',
+        'Vanta startet noch nicht, damit es keine Dateien lädt, die ein Update womöglich noch ändert. Sobald die Sperre endet, startet Vanta von selbst.',
       heldByProcess: pid =>
-        `Das Update (Prozess ${pid}) wurde beendet, aber ein von ihm gestarteter Prozess hält die Hermes-Installation noch fest.`,
+        `Das Update (Prozess ${pid}) wurde beendet, aber ein von ihm gestarteter Prozess hält die Vanta-Installation noch fest.`,
       heldUnknown:
-        'Ein Update wurde beendet, aber ein von ihm gestarteter Prozess hält die Hermes-Installation noch fest.',
+        'Ein Update wurde beendet, aber ein von ihm gestarteter Prozess hält die Vanta-Installation noch fest.',
       unverified:
-        'Der Update-Helfer konnte gerade nicht prüfen, wem die Hermes-Installation gehört. Hermes prüft weiter.',
+        'Der Update-Helfer konnte gerade nicht prüfen, wem die Vanta-Installation gehört. Vanta prüft weiter.',
       since: time => `Wartet seit ${time}`,
       lastChecked: time => `Zuletzt geprüft ${time}`,
       recoveryHint:
-        'Das löst sich meist in wenigen Minuten. Falls nicht: Hermes beenden, übrig gebliebene git- oder hermes-Prozesse beenden (oder den Computer neu starten) und Hermes erneut öffnen.',
+        'Das löst sich meist in wenigen Minuten. Falls nicht: Vanta beenden, übrig gebliebene git- oder hermes-Prozesse beenden (oder den Computer neu starten) und Vanta erneut öffnen.',
       checkAgain: 'Erneut prüfen',
-      quit: 'Hermes beenden',
+      quit: 'Vanta beenden',
       openLogs: 'Logs öffnen',
       startAnyway: 'Trotzdem starten…',
-      confirmTitle: 'Hermes starten, obwohl das Update es noch festhält?',
+      confirmTitle: 'Vanta starten, obwohl das Update es noch festhält?',
       confirmBody:
-        'Der übrig gebliebene Update-Prozess ändert womöglich noch Dateien von Hermes. Ein Start jetzt kann eine halb aktualisierte Installation laden, die erst nach einem erneuten Update wieder funktioniert. Hermes protokolliert diese Entscheidung und lässt die Update-Markierung bestehen.',
+        'Der übrig gebliebene Update-Prozess ändert womöglich noch Dateien von Vanta. Ein Start jetzt kann eine halb aktualisierte Installation laden, die erst nach einem erneuten Update wieder funktioniert. Vanta protokolliert diese Entscheidung und lässt die Update-Markierung bestehen.',
       confirmKeepWaiting: 'Weiter warten',
       confirmStart: 'Trotzdem starten',
       startAnywayRefused:
-        'Was die Installation festhält, hat sich geändert, bevor Hermes starten konnte. Bitte erneut prüfen.'
+        'Was die Installation festhält, hat sich geändert, bevor Vanta starten konnte. Bitte erneut prüfen.'
     }
   }
 } satisfies Pick<TranslationOverrides, 'boot'>

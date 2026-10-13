@@ -8,7 +8,7 @@ export const enLocalModels: Translations['settings']['localModels'] = {
   serverRunning: 'Running',
   runtimeInstalled: 'llama.cpp runtime installed',
   runtimeInstalledDetail: (tag, backend) =>
-    `Build ${tag}, ${backend} backend. Hermes starts and manages the server for you.`,
+    `Build ${tag}, ${backend} backend. Vanta starts and manages the server for you.`,
   installTitle: 'Install the local runtime',
   installDetail:
     'Downloads the llama.cpp inference engine (a few hundred MB). Models you download run entirely on this machine — no account, nothing leaves your computer.',

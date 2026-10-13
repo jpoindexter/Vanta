@@ -9,7 +9,7 @@ export const frNotices = {
   butterbar: {
     goTo: (index, total) => `Afficher l'avis ${index} sur ${total}`,
     legal: {
-      before: "L'utilisation de Hermes Agent est soumise à nos ",
+      before: "L'utilisation de Vanta est soumise à nos ",
       terms: "Conditions d'utilisation",
       between: ' et à notre ',
       privacy: 'Politique de confidentialité',

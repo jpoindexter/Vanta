@@ -8,7 +8,7 @@ export const zhNotices = {
   butterbar: {
     goTo: (index, total) => `显示第 ${index} 条通知，共 ${total} 条`,
     legal: {
-      before: '使用 Hermes Agent 即表示受我们的',
+      before: '使用 Vanta 即表示受我们的',
       terms: '服务条款',
       between: '和',
       privacy: '隐私政策',
