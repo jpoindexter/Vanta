@@ -4,6 +4,8 @@ import { approvalDecision,approvalPayload,resolveApproval } from "./approval.js"
 import { runDesktopTerminal } from "./terminal-tool.js";
 import { readJson,sendJson } from "./handler-http.js";
 import { type DesktopState } from "./handler-state.js";
+import { pushTypedEvent } from "./typed-emit.js";
+import { approvalResolvedEvent } from "./typed-events.js";
 
 export async function handleApproval(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   if (req.method === "GET") {
@@ -16,6 +18,8 @@ export async function handleApproval(state: DesktopState, req: http.IncomingMess
   const decision = approvalDecision(body.decision, body.approved);
   // Claim the request before awaiting storage so duplicate submissions cannot run it twice.
   state.pendingApproval = undefined;
+  // Pushed before the agent is released so `approval.resolved` precedes any follow-on tool event.
+  pushTypedEvent(state, approvalResolvedEvent(p.id));
   try {
     await resolveApproval(p, decision);
   } catch (error) {

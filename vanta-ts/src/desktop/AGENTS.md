@@ -10,3 +10,4 @@ Local command-center surface for Vanta.
 - `assets.ts` serves the built React app from `vanta-ts/desktop-app/dist`; `page.ts` is only the no-build fallback notice.
 - `approval.ts` owns the pending approval payload/decision adapter for desktop; server routes stay thin.
 - Browser UI code lives in `vanta-ts/desktop-app/`; do not import Vanta runtime modules into that app.
+- `typed-events.ts` / `typed-emit.ts` own the additive typed SSE events (`DesktopEvent.typed`); the contract lives in `CLAUDE.md`. Keep label/delta/turnStarted frames unchanged for the legacy renderer.

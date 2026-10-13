@@ -9,6 +9,7 @@ import { sendJson } from "./handler-http.js";
 import { turnQueue } from "./handler-queue.js";
 import { beginRunCapture,finishRunCapture } from "./handler-run-capture.js";
 import { pushSseEvent } from "./session-state.js";
+import { pushTurnComplete } from "./typed-emit.js";
 
 type LiveExecution = ChatExecution & { live: Awaited<ReturnType<typeof ensureDesktopConversation>> };
 type Outcome = Awaited<ReturnType<LiveExecution["live"]["convo"]["send"]>>;
@@ -61,6 +62,7 @@ export async function executeChat(context: ChatExecution, res: http.ServerRespon
     instruction = next;
   }
   await persistActiveSession(context.state);
+  pushTurnComplete(context.state, { finalText: outcome.finalText, usage: outcome.usage, stoppedReason: outcome.stoppedReason });
   const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events: context.events, instruction, partialText: outcome.finalText });
   sendJson(res, 200, { finalText: outcome.finalText, events: context.events, usage: outcome.usage, sessionId: context.state.sessionId, receipt });
 }

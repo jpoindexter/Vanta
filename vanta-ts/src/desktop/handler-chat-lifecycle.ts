@@ -8,6 +8,7 @@ import { turnQueue } from "./handler-queue.js";
 import { beginRunCapture,finishRunCapture } from "./handler-run-capture.js";
 import type { DesktopEvent,DesktopState } from "./handler-state.js";
 import { saveProviderAuthRequired } from "./provider-auth-store.js";
+import { pushTurnComplete } from "./typed-emit.js";
 
 export type ChatInput = { instructionText: string; images: ImageAttachment[]; files: string[]; requestId?: string };
 export type ChatExecution = ChatInput & {
@@ -34,6 +35,7 @@ export async function respondAuthRequired(state: DesktopState, input: ChatInput,
   live.convo.messages.push({ role: "user", content: instructionText, ...(images.length ? { images } : {}) }, { role: "assistant", content: finalText, desktopRun: receipt });
   await finishRunCapture(state, "failed", finalText);
   await persistActiveSession(state);
+  pushTurnComplete(state, { finalText, stoppedReason: "provider_auth" });
   sendJson(res, 200, { finalText, events: receipt.events, sessionId: state.sessionId, receipt });
 }
 
@@ -52,6 +54,11 @@ function failureText(state: DesktopState, failure: { partial?: string; wasInterr
   if (wasInterrupted) return "Stopped by operator.";
   if (kind === "provider_auth" && state._providerAuthRequired) return authRequiredText(state);
   return safeError;
+}
+
+function failureStoppedReason(wasInterrupted: boolean, kind: DesktopRunFailureKind): string {
+  if (wasInterrupted) return "interrupted";
+  return kind === "provider_auth" ? "provider_auth" : "failed";
 }
 
 export async function respondChatFailure(context: ChatExecution, error: unknown, res: http.ServerResponse): Promise<void> {
@@ -73,6 +80,7 @@ export async function respondChatFailure(context: ChatExecution, error: unknown,
     await finishRunCapture(state, wasInterrupted ? "interrupted" : "failed", finalText);
     await persistActiveSession(state);
   }
+  pushTurnComplete(state, { finalText, stoppedReason: failureStoppedReason(wasInterrupted, failureKind) });
   sendJson(res, 200, { finalText, events, interrupted: wasInterrupted, sessionId: state.sessionId, receipt });
 }
 

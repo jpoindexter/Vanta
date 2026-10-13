@@ -7,9 +7,12 @@ import { type DesktopAccessMode } from "./access-mode.js";
 import { type PendingApproval } from "./approval.js";
 import { type ProviderAuthRequired } from "./provider-auth-store.js";
 import { type SseClients } from "./session-state.js";
+import { type ToolIdTracker } from "./typed-emit.js";
+import { type TypedDesktopEvent } from "./typed-events.js";
 import { DesktopTurnQueue } from "./turn-queue.js";
 
-export type DesktopEvent = EventLabel & { delta?: string; turnStarted?: { sessionId: string; requestId: string } };
+/** One SSE frame. `typed` is the additive machine-readable event (see typed-events.ts); legacy fields are unchanged. */
+export type DesktopEvent = EventLabel & { delta?: string; turnStarted?: { sessionId: string; requestId: string }; typed?: TypedDesktopEvent };
 
 export type DesktopState = {
   setup?: RunSetup;
@@ -47,6 +50,7 @@ export type DesktopState = {
   runtimeHostBySession?: Record<string, string>;
   _sseSessionId?: string;
   _sseClients?: SseClients;
+  _toolIds?: ToolIdTracker;
   _env?: NodeJS.ProcessEnv;
   _continuitySessionOff?: boolean;
 };
