@@ -3256,7 +3256,7 @@ export const en: Translations = {
       noPR: 'No PR'
     },
     gatewayGroups: {
-      grouping: 'Gateway & profile',
+      grouping: 'Profile',
       rename: 'Rename group',
       aliasLabel: 'Display name',
       aliasHint: 'Display name only; gateway and profile names stay unchanged.',

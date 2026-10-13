@@ -3648,7 +3648,7 @@ export const esOverrides = {
       noPR: 'Sin PR'
     },
     gatewayGroups: {
-      grouping: 'Gateway y perfil',
+      grouping: 'Perfil',
       rename: 'Renombrar grupo',
       aliasLabel: 'Nombre visible',
       aliasHint: 'Solo el nombre visible; los nombres del gateway y del perfil no cambian.',
