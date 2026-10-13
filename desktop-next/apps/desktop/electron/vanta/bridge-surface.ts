@@ -1,4 +1,7 @@
 import { type IpcRendererLike, mergeSurface, stubsFrom, subscribe } from './bridge-core'
+import { miniWindowApi, type HudWindowingView } from './bridge-mini'
+import { contextMenuApi, fileActionApi, gitApi, projectFileApi, terminalApi } from './bridge-native'
+import { windowFeatureApi } from './bridge-window'
 import { createApiProxy, createVantaBridge } from './bridge-vanta'
 import { CH } from './channels'
 import { SURFACE_MANIFEST } from './surface-manifest'
@@ -6,6 +9,7 @@ import { LOCAL_GATEWAY_URL } from './shell-state'
 
 export interface BridgeEnv {
   customWindowControls: boolean
+  hudWindowing?: HudWindowingView
   ipc: IpcRendererLike
   pathForFile: (file: unknown) => string
   zoom: { factor: () => number; level: () => number; set: (factor: number) => void }
@@ -51,9 +55,13 @@ function windowAndTheme({ customWindowControls, ipc }: BridgeEnv) {
   }
 }
 
-function zoomApi({ zoom }: BridgeEnv) {
+function zoomApi({ ipc, zoom }: BridgeEnv) {
   const listeners = new Set<(payload: { level: number; percent: number }) => void>()
   const read = () => ({ level: zoom.level(), percent: Math.round(zoom.factor() * 100) })
+  const notify = () => listeners.forEach(listener => listener(read()))
+
+  // The View menu and the restore-on-load path change zoom in the main process; the settings control follows them.
+  subscribe(ipc, CH.zoomChanged, notify)
 
   return {
     zoom: {
@@ -65,8 +73,12 @@ function zoomApi({ zoom }: BridgeEnv) {
         return () => listeners.delete(callback)
       },
       setPercent: (percent: number) => {
-        zoom.set(Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Number(percent) / 100)))
-        listeners.forEach(listener => listener(read()))
+        const factor = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Number(percent) / 100))
+
+        zoom.set(factor)
+        // Main saves the level so the next launch opens at the same size.
+        ipc.send(CH.zoomPersist, Math.round(factor * 100))
+        notify()
       }
     }
   }
@@ -116,7 +128,6 @@ function nativeAndProject({ ipc, pathForFile }: BridgeEnv) {
     revealPath: (target: string) => ipc.invoke(CH.revealPath, target),
     sanitizeWorkspaceCwd: (cwd: string) => ipc.invoke(CH.sanitizeCwd, cwd),
     selectPaths: (options?: unknown) => ipc.invoke(CH.selectPaths, options),
-    setActiveWork: () => undefined,
     settings: {
       getDefaultProjectDir: () => ipc.invoke(CH.projectGetDefault),
       pickDefaultProjectDir: () => ipc.invoke(CH.projectPickDefault),
@@ -142,6 +153,13 @@ function singleEntryRegistries() {
 export function buildImplemented(env: BridgeEnv): Record<string, unknown> {
   return {
     ...connectionAndBoot(env),
+    ...gitApi(env.ipc),
+    ...contextMenuApi(env.ipc),
+    ...fileActionApi(env.ipc),
+    ...projectFileApi(env.ipc),
+    ...terminalApi(env.ipc),
+    ...windowFeatureApi(env.ipc),
+    ...miniWindowApi(env),
     ...nativeAndProject(env),
     ...singleEntryRegistries(),
     ...windowAndTheme(env),

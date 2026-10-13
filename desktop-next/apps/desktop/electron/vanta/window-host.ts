@@ -64,7 +64,7 @@ export function lockNavigation(
   openExternal: (url: string) => void
 ): void {
   window.webContents.setWindowOpenHandler(({ url }) => {
-    if (/^https?:/i.test(url)) {
+    if (/^(https?|mailto):/i.test(url)) {
       openExternal(url)
     }
 
@@ -74,6 +74,10 @@ export function lockNavigation(
   window.webContents.on('will-navigate', (event, url) => {
     if (!rendererOrigin(url)) {
       event.preventDefault()
+
+      if (/^(https?|mailto):/i.test(url)) {
+        openExternal(url)
+      }
     }
   })
 }
