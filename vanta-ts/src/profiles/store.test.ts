@@ -9,7 +9,10 @@ import {
   createProfile,
   listProfileInbox,
   listProfiles,
+  clearActiveProfile,
   profileHome,
+  readActiveProfileId,
+  renameProfile,
   switchProfile,
   targetProfile,
 } from "./store.js";
@@ -94,5 +97,22 @@ describe("profile store", () => {
     await createProfile({ name: "Research Lead" }, env);
     await expect(createProfile({ name: "Research Lead" }, env)).rejects.toThrow("already exists");
     await expect(targetProfile("../../research-lead", "x", env)).rejects.toThrow("profile not found");
+  });
+
+  it("renames the display name but keeps the id and home, and refuses a taken name", async () => {
+    await createProfile({ name: "alpha" }, env, at("2026-10-13T10:00:00Z"));
+    await createProfile({ name: "beta" }, env, at("2026-10-13T10:00:00Z"));
+    const renamed = await renameProfile("alpha", "Alpha Prime", env, at("2026-10-13T11:00:00Z"));
+    expect(renamed).toMatchObject({ id: "alpha", name: "Alpha Prime", home: profileHome("alpha", env) });
+    await expect(renameProfile("alpha", "beta", env)).rejects.toThrow(/already exists/);
+    await expect(renameProfile("ghost", "x", env)).rejects.toThrow(/not found/);
+  });
+
+  it("clears the active profile back to the base home", async () => {
+    await createProfile({ name: "alpha" }, env);
+    await switchProfile("alpha", env);
+    expect(await readActiveProfileId(env)).toBe("alpha");
+    await clearActiveProfile(env);
+    expect(await readActiveProfileId(env)).toBeNull();
   });
 });
