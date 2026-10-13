@@ -1,0 +1,57 @@
+/* Inline approval: one flat card, semantic tokens only. Radii are concentric:
+   card 12 = preview 4 + 8 inset. Warning is carried by the icon, not the surface. */
+.approval-card {
+  display: grid;
+  gap: var(--space-3);
+  margin-block: var(--space-2) var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: 0 1px 2px color-mix(in srgb, #000 6%, transparent);
+  animation: approval-card-in var(--motion-standard) cubic-bezier(0, 0, 0.2, 1);
+}
+
+.approval-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.approval-card-head > svg { flex: none; margin-block-start: 2px; color: var(--amber); }
+.approval-card-head > div { display: grid; gap: 2px; min-width: 0; }
+.approval-card-head strong { overflow-wrap: anywhere; color: var(--text); font-size: 14px; font-weight: 600; line-height: 1.4; }
+.approval-card-head p { margin: 0; color: var(--muted); font-size: var(--type-body); line-height: 1.45; text-wrap: pretty; }
+
+.approval-card-preview {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--workspace);
+}
+
+.approval-card-preview figcaption { color: var(--faint); font-size: var(--type-metadata); }
+.approval-card-preview pre { max-height: 200px; margin: 0; overflow: auto; }
+.approval-card-preview code { color: var(--text); font: var(--type-metadata)/1.5 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.approval-card-details summary,
+.approval-card details > summary { width: fit-content; color: var(--muted); font-size: var(--type-metadata); cursor: pointer; }
+.approval-card-details { display: grid; gap: var(--space-2); }
+.approval-card-details .approval-section { margin: var(--space-2) 0 0; padding: 0; border: 0; background: transparent; }
+.approval-card-details .approval-section strong { color: var(--faint); font-size: var(--type-metadata); font-weight: 500; letter-spacing: 0; text-transform: none; }
+
+.approval-card .approval-actions { gap: var(--space-2); }
+.approval-note { margin: 0; color: var(--faint); font-size: var(--type-metadata); line-height: 1.45; text-wrap: pretty; }
+.approval-note code { font-family: var(--font-mono); }
+
+@keyframes approval-card-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .approval-card { animation: none; }
+}

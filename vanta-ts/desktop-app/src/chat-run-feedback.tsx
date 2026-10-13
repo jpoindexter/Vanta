@@ -1,5 +1,6 @@
 import { Plug,RotateCcw,ShieldCheck } from "lucide-react";
 import { ApprovalDecisionControls } from "./approval-decision-controls.js";
+import { summarizeApproval } from "./approval-summary.js";
 import { SchemaTraceExplorer,schemaRetryReady } from "./schema-trace-explorer.js";
 import type { Approval,ApprovalDecision,DesktopRunReceipt,PermissionSection } from "./types.js";
 export { ToolActivity as RunTimeline } from "./librechat/tool-activity.js";
@@ -30,18 +31,19 @@ export function checkpointPrompt(receipt: DesktopRunReceipt): string {
 export function ApprovalCheckpoint(props: { approval: Approval; onAnswer: (decision: ApprovalDecision) => void | Promise<void> }) {
   const request = props.approval.request;
   const titleId = `approval-${props.approval.id}`;
-  const sections = request?.sections?.length ? request.sections : [{ label: "Action", value: props.approval.action, tone: "code" as const }];
+  const summary = summarizeApproval(props.approval);
 
   return (
-    <section className={`inline-approval ${request?.kind ?? "generic"}`} role="alert" aria-labelledby={titleId}>
-      <header><ShieldCheck size={15} /><div><strong id={titleId}>Approval required</strong><span>{request?.title ?? props.approval.action}</span></div></header>
-      <div className="approval-brief">
-        <p>{request?.reason ?? props.approval.reason}</p>
-        <code>{request?.subject ?? props.approval.action}</code>
-      </div>
-      <div className="approval-sections">
-        {sections.map((section) => <ApprovalSection key={section.label} section={section} />)}
-      </div>
+    <section className={`inline-approval approval-card ${request?.kind ?? "generic"}`} role="alert" aria-labelledby={titleId}>
+      <header className="approval-card-head">
+        <ShieldCheck size={16} aria-hidden="true" />
+        <div>
+          <strong id={titleId}><span className="sr-only">Approval required: </span>{summary.headline}</strong>
+          {summary.lede ? <p>{summary.lede}</p> : null}
+        </div>
+      </header>
+      {summary.preview ? <figure className="approval-card-preview"><figcaption>{summary.preview.label}</figcaption><pre><code>{summary.preview.text}</code></pre></figure> : null}
+      {summary.details.length ? <details className="approval-card-details"><summary>Details</summary>{summary.details.map((section) => <ApprovalSection key={section.label} section={section} />)}</details> : null}
       <ApprovalDecisionControls key={props.approval.id} approval={props.approval} onAnswer={props.onAnswer} />
     </section>
   );

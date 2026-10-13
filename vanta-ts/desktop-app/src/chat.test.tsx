@@ -174,9 +174,9 @@ describe("ChatThread approval checkpoint", () => {
     );
 
     expect(html).toContain("Approval required");
-    expect(html).toContain("File edit permission request");
-    expect(html).toContain("desktop-app/src/chat.tsx");
-    expect(html).toContain("modifying existing file content");
+    expect(html).toContain("Edit desktop-app/src/chat.tsx");
+    expect(html).toContain("Modifying existing file content.");
+    expect(html).not.toContain("Target file");
     expect(html).toContain("Preview");
     expect(html).toContain("- old");
     expect(html).toContain("+ new");

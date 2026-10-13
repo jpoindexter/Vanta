@@ -2,6 +2,7 @@ import { ApprovalCheckpoint,EmptyState,EventTimeline,RunRecovery,RunTimeline,che
 import { LatestButton,PromptMarkers } from "./long-session-navigation.js";
 import { ExpandedResponseDialog,MessageBubble,messageFeedbackKey } from "./message-bubble.js";
 import { MessageMarkdown } from "./message-markdown.js";
+import { hasPromptMap } from "./prompt-map.js";
 import { TaskDossier } from "./task-dossier.js";
 import type { Approval,ApprovalDecision,DesktopRunReceipt,Message } from "./types.js";
 import { useChatTranscript,useMessageFeedback } from "./use-chat-transcript.js";
@@ -16,7 +17,7 @@ export function ChatThread(props: ChatThreadProps) {
   return (
     <div className="chat-thread-frame">
     <TaskDossier title={props.title} hasMessages={rows.length > 0} busy={props.busy} streaming={Boolean(props.streamText)} approval={props.approval} recovery={props.recovery} queueCount={props.queueCount} />
-    <PromptMarkers messages={rows} onJump={jumpToPrompt} />
+    {hasPromptMap(rows) ? <PromptMarkers messages={rows} onJump={jumpToPrompt} /> : null}
     <section ref={navigation.scrollerRef} className="chat-thread" aria-label="Conversation history" aria-live="polite" tabIndex={0}>
       {rows.length === 0 ? <EmptyState onPrompt={props.onPrompt} /> : null}
       <TranscriptRows view={view} feedbackState={feedbackState} />

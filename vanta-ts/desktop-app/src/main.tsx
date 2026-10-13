@@ -23,6 +23,7 @@ import "./design/chat-workbench.css";
 import "./librechat/presentation.css";
 import "./librechat/tool-activity.css";
 import "./design/reference-shell.css";
+import "./design/approval-card.css";
 import { isNativeCompanion } from "./companion-client";
 import { initializeDesktopTheme } from "./desktop-theme.js";
 
