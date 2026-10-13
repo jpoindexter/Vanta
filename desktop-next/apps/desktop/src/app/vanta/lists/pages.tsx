@@ -1,4 +1,5 @@
 import type { ListPageProps } from '../types'
+
 import { ListPage } from './list-page'
 
 export function SchedulesPage(props: ListPageProps) {

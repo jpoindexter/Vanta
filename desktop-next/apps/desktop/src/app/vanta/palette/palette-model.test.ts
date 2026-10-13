@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { PALETTE } from '../fixtures/data'
+
 import { filterCommands, moveActive } from './palette-model'
 
 describe('filterCommands', () => {

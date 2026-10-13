@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 
-import { VpButton } from './button'
 import type { BlockState } from '../types'
+
+import { VpButton } from './button'
 
 export const SKELETON_ROWS = 2
 

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { HOME_COPY } from '../copy'
 import type { BlockState, HomeProps } from '../types'
 import { VpChip } from '../ui/button'
+
 import { HomeComposer } from './home-composer'
 import { HomeSections } from './home-sections'
 

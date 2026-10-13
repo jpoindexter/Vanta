@@ -1,9 +1,9 @@
-import { IconX } from '@tabler/icons-react'
 import { type KeyboardEvent, useRef } from 'react'
 
 import { WORKBENCH_COPY } from '../copy'
 import { WORKBENCH_TABS, type WorkbenchProps, type WorkbenchTab } from '../types'
-import { VpButton } from '../ui/button'
+import { VpButton, VpCloseButton } from '../ui/button'
+
 import { ChangesTab } from './changes-tab'
 import { FilesTab } from './files-tab'
 import { BrowserTab, OutputsTab, TerminalTab } from './live-tabs'
@@ -42,24 +42,28 @@ function Body(props: WorkbenchProps) {
           {data => <ChangesTab data={data} onRestore={props.onRestore} />}
         </TabBody>
       )
+
     case 'files':
       return (
         <TabBody onRetry={retry} state={props.files}>
           {data => <FilesTab data={data} onSelectFile={props.onSelectFile} />}
         </TabBody>
       )
+
     case 'browser':
       return (
         <TabBody onRetry={retry} state={props.browser}>
           {data => <BrowserTab data={data} preview={props.slots?.browserPreview} />}
         </TabBody>
       )
+
     case 'terminal':
       return (
         <TabBody onRetry={retry} state={props.terminal}>
           {data => <TerminalTab data={data} live={props.slots?.terminalLive} />}
         </TabBody>
       )
+
     case 'outputs':
       return (
         <TabBody
@@ -109,9 +113,7 @@ export function Workbench(props: WorkbenchProps) {
             </VpButton>
           ))}
         </div>
-        <VpButton aria-label={WORKBENCH_COPY.close} className="vp-wb__close" onClick={onClose}>
-          <IconX aria-hidden size={14} stroke={2} />
-        </VpButton>
+        <VpCloseButton aria-label={WORKBENCH_COPY.close} className="vp-wb__close" onClick={onClose} />
       </div>
       <div aria-labelledby={`vp-wb-tab-${tab}`} className="vp-wb__body" id="vp-wb-panel" role="tabpanel">
         <Body {...props} />

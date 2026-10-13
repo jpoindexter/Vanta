@@ -2,8 +2,8 @@ import { IconArrowUp, IconChevronDown, IconPlus } from '@tabler/icons-react'
 import { type KeyboardEvent, useId } from 'react'
 
 import { HOME_COPY } from '../copy'
-import { VpButton } from '../ui/button'
 import type { ProjectChip } from '../types'
+import { VpButton } from '../ui/button'
 
 interface HomeComposerProps {
   onProjectChange: (id: string) => void

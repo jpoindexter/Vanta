@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 
-import { Glyph } from './glyph'
 import type { ListIconKind } from '../types'
+
+import { Glyph } from './glyph'
 
 interface VpRowProps {
   actions?: ReactNode
