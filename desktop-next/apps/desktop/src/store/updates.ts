@@ -19,6 +19,7 @@ import type {
 import { checkHermesUpdate, getActionStatus, updateHermes } from '@/hermes'
 import { translateNow } from '@/i18n'
 import { persistString, storedString } from '@/lib/storage'
+import { isUpdateFeedConfigured } from '@/lib/vanta-endpoints'
 import { $connectionsRegistry, refreshConnectionsRegistry } from '@/store/connections'
 import { reconnectGateway } from '@/store/gateway-reconnect'
 import { dismissNotification, notify } from '@/store/notifications'
@@ -592,7 +593,19 @@ export async function checkBackendUpdates({
   }
 }
 
+/** What every client-update surface shows while no Vanta update feed is set. */
+function notConfiguredStatus(): DesktopUpdateStatus {
+  return { supported: false, message: translateNow('updates.notConfigured'), fetchedAt: Date.now() }
+}
+
 export async function checkUpdates({ force = false }: UpdateCheckOptions = {}): Promise<DesktopUpdateStatus | null> {
+  if (!isUpdateFeedConfigured()) {
+    const status = notConfiguredStatus()
+    $updateStatus.set(status)
+
+    return status
+  }
+
   const bridge = window.hermesDesktop?.updates
 
   if (!bridge || $updateChecking.get()) {
@@ -697,6 +710,10 @@ export async function setUpdateChannel(channel: SourceUpdateChannel): Promise<De
 }
 
 export async function applyUpdates(opts: DesktopUpdateApplyOptions = {}): Promise<DesktopUpdateApplyResult> {
+  if (!isUpdateFeedConfigured()) {
+    return { ok: false, error: 'not-configured', message: translateNow('updates.notConfigured') }
+  }
+
   if ($updateStatus.get()?.retirement) {
     openUpdateOverlayFor('client')
 
@@ -1330,6 +1347,16 @@ function runPassiveChecks(): void {
 /** Wire up background polling + progress streaming. Idempotent. */
 export function startUpdatePoller(): void {
   if (pollerStarted || typeof window === 'undefined') {
+    return
+  }
+
+  // No feed, nothing to poll: read the installed version locally and show the
+  // "not configured" status. The bridge's update calls are never made.
+  if (!isUpdateFeedConfigured()) {
+    pollerStarted = true
+    $updateStatus.set(notConfiguredStatus())
+    void refreshDesktopVersion()
+
     return
   }
 

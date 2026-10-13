@@ -40,7 +40,6 @@ import { $onboardingSurfaces, onboardingSurfaceActive } from '@/store/onboarding
 import type { OAuthProvider } from '@/types/hermes'
 
 import { DocsLink, FlowPanel, Status } from './flow'
-import { FreeTierSetupNotice } from './free-tier-setup-notice'
 import { DecodedLabel } from './glyph'
 import {
   FeaturedProviderRow,
@@ -454,7 +453,6 @@ export function DesktopOnboardingOverlay({
         ) : null}
         <div className="grid gap-3 p-5">
           {reason ? <ReasonNotice reason={reason} /> : null}
-          {ready && showPicker && !freeTierIntro && !onboarding.manual ? <FreeTierSetupNotice ctx={ctx} /> : null}
           {ready ? (
             freeTierIntro ? (
               <FreeTierReadyPanel leaving={leaving} onDismiss={dismissFreeTierIntro} />

@@ -7,7 +7,7 @@
 //               with an explicit Upload button; nothing is sent before it.
 //   uploading — spinner while the backend collects, redacts and uploads.
 //   done      — the private view link (copyable) + where to pick up the
-//               discussion: GitHub Issues · Nous Portal Support · Discord.
+//               discussion: GitHub Issues.
 import { useStore } from '@nanostores/react'
 
 import { Button } from '@/components/ui/button'
@@ -23,13 +23,10 @@ import {
 import { useI18n } from '@/i18n'
 import { ExternalLink as ExternalLinkAnchor, openExternalLink } from '@/lib/external-link'
 import { ExternalLink, Loader2Icon, Lock } from '@/lib/icons'
+import { isDiagnosticsUploadConfigured, VANTA_SUPPORT_URL } from '@/lib/vanta-endpoints'
 import { $sendDiagnostics, confirmSendDiagnostics, dismissSendDiagnostics } from '@/store/send-diagnostics'
 
-const SUPPORT_LINKS = [
-  { key: 'github', url: 'https://github.com/NousResearch/hermes-agent/issues' },
-  { key: 'portal', url: 'https://portal.nousresearch.com/help' },
-  { key: 'discord', url: 'https://discord.gg/NousResearch' }
-] as const
+const SUPPORT_LINKS = [{ key: 'github', url: VANTA_SUPPORT_URL }] as const
 
 export function SendDiagnosticsHost() {
   const { t } = useI18n()
@@ -41,6 +38,7 @@ export function SendDiagnosticsHost() {
   }
 
   const busy = state.phase === 'uploading'
+  const canUpload = isDiagnosticsUploadConfigured()
 
   return (
     // Dismissal is allowed in EVERY phase, including mid-upload: the store's
@@ -56,13 +54,15 @@ export function SendDiagnosticsHost() {
                 <Lock className="size-4 text-(--ui-text-tertiary)" />
                 {copy.title}
               </DialogTitle>
-              <DialogDescription className="whitespace-pre-line text-left">{copy.privacyNotice}</DialogDescription>
+              <DialogDescription className="whitespace-pre-line text-left">
+                {canUpload ? copy.privacyNotice : copy.notConfigured}
+              </DialogDescription>
             </DialogHeader>
             <DialogFooter>
               <Button onClick={dismissSendDiagnostics} variant="ghost">
                 {copy.cancel}
               </Button>
-              <Button disabled={busy} onClick={() => void confirmSendDiagnostics()}>
+              <Button disabled={busy || !canUpload} onClick={() => void confirmSendDiagnostics()}>
                 {busy ? (
                   <span className="flex items-center gap-1.5">
                     <Loader2Icon className="size-3.5 animate-spin" />
