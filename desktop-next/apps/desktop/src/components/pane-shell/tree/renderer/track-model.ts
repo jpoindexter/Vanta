@@ -47,6 +47,13 @@ export interface PaneSizing {
 interface PaneChrome extends PaneSizing {
   /** Leaves the grid on narrow viewports; revealed as an edge overlay. */
   collapsible?: boolean
+  /** A collapsible pane that stays docked (as a narrower rail it renders for
+   *  itself) while the viewport is merely narrow, and leaves the grid only at
+   *  the drawer tier. */
+  railWhenNarrow?: boolean
+  /** The width a revealed overlay opens at, when it differs from the docked
+   *  track (the sidebar's rail docks at 56px but opens at its full width). */
+  overlayWidth?: string
   /** Arrive minimized — a rail tab rather than an open zone. For a pane that
    *  docks to an edge this is the vertical strip; the user's first expand is
    *  persisted on the zone and wins from then on. Applied when the pane ENTERS

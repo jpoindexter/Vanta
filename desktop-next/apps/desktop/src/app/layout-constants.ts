@@ -18,15 +18,23 @@ export const PAGE_INSET_NEG_X = '-mx-[clamp(1.25rem,4vw,4rem)]'
 // for Tailwind's scanner (see PAGE_INSET_X note).
 export const PAGE_MAX_W = 'max-w-[75rem]'
 
-// Narrowest window that still docks a rail in the grid; under it both rails
-// leave the grid and become the hover-reveal overlay. Single source of truth for
-// the responsive collapse point.
-//
-// A rail costs 237px (SIDEBAR_DEFAULT_WIDTH) and the chat beside it wants roughly
-// what a popped-out session window enforces on itself (420px), so docking stops
-// paying for itself around here — while still leaving an overlay band down to the
-// window's own 400px minimum. Expressed as a dock floor rather than a collapse
-// ceiling so half-screen splits stay docked on common laptop widths (1280 → 640).
-export const SIDEBAR_DOCK_MIN_WIDTH_PX = 640
-// `max-width` is inclusive: shave a hair so an exactly-640px window docks.
-export const SIDEBAR_COLLAPSE_MEDIA_QUERY = `(max-width: ${SIDEBAR_DOCK_MIN_WIDTH_PX - 0.02}px)`
+// Shell tiers (flow-app-shell collapse order). The sidebar docks at full width
+// from SHELL_FULL_MIN_WIDTH_PX up; between SHELL_RAIL_MIN_WIDTH_PX and that it
+// stays docked as a 56px icon rail while every other collapsible pane (the
+// workbench) leaves the grid and overlays; under SHELL_RAIL_MIN_WIDTH_PX the
+// sidebar leaves the grid too and opens as a drawer. Main keeps at least
+// MAIN_MIN_WIDTH_PX at every tier. Single source of truth for the collapse
+// points; vanta-shell.css repeats the same numbers in its media queries.
+export const SHELL_FULL_MIN_WIDTH_PX = 1280
+export const SHELL_RAIL_MIN_WIDTH_PX = 1024
+export const MAIN_MIN_WIDTH_PX = 480
+export const SIDEBAR_RAIL_WIDTH_PX = 56
+export const SIDEBAR_DEFAULT_WIDTH_PX = 275
+export const SIDEBAR_MIN_WIDTH_PX = 240
+export const SIDEBAR_MAX_WIDTH_PX = 520
+
+// `max-width` is inclusive: shave a hair so an exactly-1280px window is full.
+// Panes that declare `collapsible` leave the grid under this width.
+export const SIDEBAR_COLLAPSE_MEDIA_QUERY = `(max-width: ${SHELL_FULL_MIN_WIDTH_PX - 0.02}px)`
+// The sidebar itself leaves the grid (drawer) under this width.
+export const SIDEBAR_DRAWER_MEDIA_QUERY = `(max-width: ${SHELL_RAIL_MIN_WIDTH_PX - 0.02}px)`

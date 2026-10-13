@@ -11,9 +11,13 @@ const toolPanel = (): StripPane => ({ collapsePane: true, placement: 'bottom' })
 const sideChrome = (): StripPane => ({ collapsePane: false, placement: 'right' })
 
 describe('auto (no stored choice)', () => {
-  it('gives a lone workspace its strip so the tab and + stay on screen', () => {
-    expect(resolveTabStripVisible({ shown: [workspace()] })).toBe(true)
+  it('hides the strip for a lone workspace: the titlebar owns its title and new-chat', () => {
+    expect(resolveTabStripVisible({ shown: [workspace()] })).toBe(false)
+  })
+
+  it('shows the strip once the workspace has a neighbor to switch to', () => {
     expect(resolveTabStripVisible({ shown: [workspace(), sideChrome()] })).toBe(true)
+    expect(resolveTabStripVisible({ shown: [workspace(), tile()] })).toBe(true)
   })
 
   it('leaves standing side chrome alone in its own zone', () => {
@@ -44,10 +48,10 @@ describe('no dead zone', () => {
     expect(resolveTabStripVisible({ mode: 'never', shown: [toolPanel()] })).toBe(true)
   })
 
-  it('keeps the strip for a lone workspace even when the zone says never', () => {
-    // Workspace cannot leave the tree, but Close still empties it to a draft
-    // and + still opens a tab. Chromeless is a dead zone for those handles.
-    expect(resolveTabStripVisible({ mode: 'never', shown: [workspace()] })).toBe(true)
+  it('lets a lone workspace go chromeless: the titlebar carries its handles', () => {
+    // The titlebar names the chat, offers rename/pin/archive and starts a new
+    // chat, so nothing is stranded without the strip.
+    expect(resolveTabStripVisible({ mode: 'never', shown: [workspace()] })).toBe(false)
   })
 
   it('still hides a zone that cannot strand anything', () => {
@@ -90,12 +94,13 @@ describe('a full-page view', () => {
   })
 })
 
-// Every launch and client update lands on a lone workspace. Chromeless, that
-// layout had no session switcher, no Close and no "+" (#89350).
+// Every launch lands on a lone workspace. The Vanta titlebar replaces its strip
+// (title, chat menu, new chat), so the strip is opt-in there.
 describe('a lone workspace', () => {
-  it('keeps its strip whatever the zone says', () => {
-    expect(resolveTabStripVisible({ shown: [workspace()] })).toBe(true)
-    expect(resolveTabStripVisible({ mode: 'never', shown: [workspace()] })).toBe(true)
+  it('shows its strip only when the zone asks for it', () => {
+    expect(resolveTabStripVisible({ shown: [workspace()] })).toBe(false)
+    expect(resolveTabStripVisible({ mode: 'never', shown: [workspace()] })).toBe(false)
+    expect(resolveTabStripVisible({ mode: 'always', shown: [workspace()] })).toBe(true)
     // Standing side chrome never joins the tabbed workflow.
     expect(resolveTabStripVisible({ shown: [sideChrome()] })).toBe(false)
   })
@@ -129,8 +134,8 @@ describe('tabStripVisibleForZone', () => {
   afterEach(() => setTabStripDefault('auto'))
 
   it('reads placement, uncloseable and collapse off the contributions', () => {
-    expect(visible(['workspace'])).toBe(true)
-    expect(visible(['workspace'], 'never')).toBe(true)
+    expect(visible(['workspace'])).toBe(false)
+    expect(visible(['workspace'], 'always')).toBe(true)
     expect(visible(['tile:a'], 'never')).toBe(true)
     expect(visible(['terminal'], 'never')).toBe(true)
   })
@@ -140,7 +145,7 @@ describe('tabStripVisibleForZone', () => {
     expect(visible(['workspace'])).toBe(true)
 
     setTabStripDefault('never')
-    expect(visible(['workspace'])).toBe(true)
+    expect(visible(['workspace'])).toBe(false)
     expect(visible(['workspace', 'terminal'])).toBe(false)
   })
 
