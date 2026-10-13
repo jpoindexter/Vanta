@@ -1091,6 +1091,26 @@ function editSlotKeyFor(
     .join('\u0000')
 }
 
+/** Per call in the range: the tool name, or the connection card key for connector calls ('' for non-tool parts). */
+function toolNameKeyFor(
+  parts: readonly { args?: Parameters<typeof connectorCalls>[1]; toolName?: string; type: string }[],
+  startIndex: number,
+  endIndex: number
+): string {
+  return parts
+    .slice(Math.max(0, startIndex), endIndex + 1)
+    .map(part => {
+      if (part.type !== 'tool-call') {
+        return ''
+      }
+
+      const name = part.toolName ?? ''
+
+      return connectorCalls(name, part.args).length || mcpTargets(name, part.args).length ? CONNECTION_CARD_KEY : name
+    })
+    .join('\u0000')
+}
+
 function cardRow(slot: '' | EditSlot | undefined, row: ReactNode): ReactNode {
   if (slot === 'last') {
     return <ChangedFilesCard />
@@ -1120,18 +1140,7 @@ export const ToolGroupSlot: FC<PropsWithChildren<{ endIndex: number; startIndex:
   // Joined rather than returned as an array: assistant-ui compares selector
   // results with `Object.is` and re-runs them on every store update, so a
   // fresh array would re-render the whole group on every text delta.
-  const toolNameKey = useAuiState(state =>
-    state.message.parts
-      .slice(Math.max(0, startIndex), endIndex + 1)
-      .map(part =>
-        part.type === 'tool-call'
-          ? connectorCalls(part.toolName, part.args).length || mcpTargets(part.toolName, part.args).length
-            ? CONNECTION_CARD_KEY
-            : part.toolName
-          : ''
-      )
-      .join('\u0000')
-  )
+  const toolNameKey = useAuiState(state => toolNameKeyFor(state.message.parts, startIndex, endIndex))
 
   const items = useMemo(() => splitRunItems(toolNameKey.split('\u0000')), [toolNameKey])
   const rows = Children.toArray(children)
@@ -1139,7 +1148,8 @@ export const ToolGroupSlot: FC<PropsWithChildren<{ endIndex: number; startIndex:
   // A landed edit is shown once, by the "Edited N files" card at the last edit.
   // Pending and failed edits keep their own row so a failure stays visible.
   const editSlotKey = useAuiState(state => editSlotKeyFor(state.message.parts, startIndex, endIndex))
-  const editSlots = editSlotKey.split('\u0000')
+  // The key is built by editSlotKeyFor from EditSlot values only, so the split parts keep that type.
+  const editSlots = editSlotKey.split('\u0000') as ('' | EditSlot)[]
 
   // The run scaffold ("Explored N files") is part of the tool feed and follows
   // display.tool_progress. Children still mount so clarify, diffs, and failed
