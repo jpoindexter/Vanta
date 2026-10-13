@@ -8,6 +8,7 @@ import { registerNativeNotifications } from '../notification-ipc'
 
 import { createAppLog } from './app-log'
 import { CH } from './channels'
+import { deepLinkFromArgv } from './deep-links'
 import { type LaunchInput, startVantaServer } from './launcher'
 import { registerNativeHandlers } from './native-handlers'
 import { registerProjectHandlers } from './project-handlers'
@@ -15,6 +16,8 @@ import { createRequestBridge } from './request-bridge'
 import { ServerHost } from './server-host'
 import { registerShellHandlers } from './shell-handlers'
 import { createBootTracker } from './shell-state'
+import { createShellWiring } from './shell-wiring'
+import { listenForDeepLinks } from './window-features'
 import {
   connectionDescriptor,
   createMainWindow,
@@ -33,6 +36,14 @@ let mainWindow: BrowserWindow | null = null
 let projectRoot = ''
 let shuttingDown = false
 let host: ServerHost | null = null
+
+const wiring = createShellWiring({
+  devServer: DEV_SERVER,
+  getMainWindow: () => mainWindow,
+  getProjectRoot: () => projectRoot,
+  openMain: () => openWindow(),
+  windowFor: sender => windowFor(sender)
+})
 let logLine: (line: string) => void = () => undefined
 
 const windowFor = (sender: unknown): BrowserWindow | null =>
@@ -89,6 +100,7 @@ function createServices(): Services {
 /** Persist the project, restart the runtime in it, and reload the renderer so it reconnects. */
 async function switchProject(root: string, serverHost: ServerHost): Promise<void> {
   await saveProjectSetting(app.getPath('userData'), root)
+  wiring.closeProjectWatches()
   projectRoot = root
   await serverHost.start(launchInput(root)).catch(() => undefined)
   mainWindow?.webContents.reload()
@@ -123,6 +135,9 @@ function registerHandlers({ boot, host: serverHost, log }: Services): void {
     shell
   })
   registerWindowHandlers(ipc, windowFor)
+  const requests = createRequestBridge(serverHost.transport, { closed: CH.eventsClosed, frame: CH.eventsFrame })
+
+  wiring.registerAll(ipc, log.line, serverHost, requests)
 
   registerProjectHandlers({
     confirmSwitch: askToSwitchProject,
@@ -151,7 +166,7 @@ function registerHandlers({ boot, host: serverHost, log }: Services): void {
     getWindow: windowFor,
     ipc,
     log,
-    requests: createRequestBridge(serverHost.transport, { closed: CH.eventsClosed, frame: CH.eventsFrame }),
+    requests,
     reveal: file => shell.showItemInFolder(file)
   })
 }
@@ -178,9 +193,10 @@ function openWindow(): void {
   lockNavigation(
     window,
     url => location.isRenderer(url),
-    url => void shell.openExternal(url)
+    wiring.openExternalLink
   )
   wireWindowEvents(window)
+  wiring.attachWindow(window)
   window.on('closed', () => {
     mainWindow = null
   })
@@ -192,9 +208,17 @@ function openWindow(): void {
 if (!app.requestSingleInstanceLock()) {
   app.quit()
 } else {
-  app.on('second-instance', () => {
+  listenForDeepLinks(wiring.routeDeepLink)
+
+  app.on('second-instance', (_event, commandLine) => {
+    const link = deepLinkFromArgv(commandLine)
+
     mainWindow?.show()
     mainWindow?.focus()
+
+    if (link) {
+      wiring.routeDeepLink(link)
+    }
   })
 
   app.on('before-quit', () => {
@@ -210,7 +234,8 @@ if (!app.requestSingleInstanceLock()) {
   }
 
   app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin' || shuttingDown) {
+    // The tray keeps Vanta, and the agent in it, running with no window open; macOS always does.
+    if (shuttingDown || (process.platform !== 'darwin' && !wiring.keepRunningWithoutWindows())) {
       app.quit()
     }
   })

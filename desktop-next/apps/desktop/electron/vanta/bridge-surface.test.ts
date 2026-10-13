@@ -34,20 +34,40 @@ describe('window.hermesDesktop surface', () => {
       'notify',
       'windowControls.close',
       'settings.pickDefaultProjectDir',
-      'vanta.request'
+      'vanta.request',
+      'readDir',
+      'gitRoot',
+      'readFileText',
+      'readFileDataUrl',
+      'normalizePreviewTarget',
+      'watchDirectory',
+      'watchPreviewFile',
+      'stopPreviewFileWatch',
+      'onPreviewFileChanged',
+      'git.repoStatus',
+      'git.fileDiff',
+      'git.branchList',
+      'git.review.list',
+      'git.review.diff',
+      'git.review.revParse'
     ]) {
       expect(real.has(name)).toBe(true)
     }
 
-    expect(all.length - real.size).toBeGreaterThan(150)
+    // What stays unsupported on purpose: pty, updater, cloud and pool, plugin installs, pets, file writes.
+    for (const name of ['updates.check', 'cloud.status', 'petOverlay.open', 'writeTextFile', 'installDesktopPlugin']) {
+      expect(real.has(name)).toBe(false)
+    }
+
+    expect(all.length - real.size).toBeGreaterThan(100)
   })
 
   it('rejects an unimplemented async member with an "unsupported:" message naming it', async () => {
     const desktop = buildHermesDesktop(env(fakeIpc().ipc)) as Record<string, any>
 
     await expect(desktop.getPoolLimits()).rejects.toThrow(`${UNSUPPORTED_PREFIX} getPoolLimits is not available`)
-    await expect(desktop.git.review.commit()).rejects.toThrow('git.review.commit')
-    await expect(desktop.terminal.start()).rejects.toThrow('terminal.start')
+    await expect(desktop.git.review.commitContext()).rejects.toThrow('git.review.commitContext')
+    await expect(desktop.updates.check()).rejects.toThrow('updates.check')
   })
 
   it('gives unimplemented subscriptions a no-op unsubscribe, flags false and facts null', () => {

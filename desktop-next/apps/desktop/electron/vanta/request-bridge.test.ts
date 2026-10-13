@@ -161,3 +161,27 @@ describe('event streams', () => {
     )
   })
 })
+
+describe('latestClientFor', () => {
+  it('names the chat whose event stream the window opened most recently and still has open', () => {
+    const { transport } = fakeTransport()
+    const bridge = createRequestBridge(transport, CHANNELS)
+    const { sink } = fakeSink(1)
+    const other = fakeSink(2).sink
+
+    expect(bridge.latestClientFor(sink)).toBeUndefined()
+
+    bridge.openStream(sink, { clientId: 'chat-a', streamId: 's1' })
+    bridge.openStream(sink, { clientId: 'chat-b', streamId: 's2' })
+    bridge.openStream(other, { clientId: 'chat-z', streamId: 's1' })
+
+    expect(bridge.latestClientFor(sink)).toBe('chat-b')
+    expect(bridge.latestClientFor(other)).toBe('chat-z')
+
+    bridge.closeStream(sink, 's2')
+    expect(bridge.latestClientFor(sink)).toBe('chat-a')
+
+    bridge.closeAllFor(sink)
+    expect(bridge.latestClientFor(sink)).toBeUndefined()
+  })
+})
