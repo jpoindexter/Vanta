@@ -386,40 +386,32 @@ describe('useStatusbarItems session timer — runtime cache anchor', () => {
   })
 })
 
-// The statusbar chip is a free-tier user's standing way in to a sign-in, and
-// an interface mode decides whether the bar is mounted at all. Whatever a mode
-// rests, a signed-out free-tier user keeps one visible Sign in.
-describe('free-tier Sign in in every interface mode', () => {
+// The free-tier Sign in chip was a Nous account entry point and is gone. The
+// interface mode still reads the free-tier status to decide whether Simple
+// rests the bar, which this block keeps pinned until that rule is removed too.
+describe('free-tier status and the statusbar', () => {
   const freeTier = (available: boolean): FreeTierStatus => ({
     available,
     enabled: true,
     has_guest: available,
-    label: 'Nous · free tier',
-    model: 'nous/welcome',
+    label: 'free tier',
+    model: 'free/welcome',
     notice_pending: false
   })
-
-  const desktopBridge = window.hermesDesktop
-
-  function signInChipVisible(): boolean {
-    const { leftStatusbarItems, statusbarItems } = renderStatusbarItems()
-    const chip = [...leftStatusbarItems, ...statusbarItems].find(item => item.id === 'free-tier')
-
-    return $statusbarVisible.get() && chip !== undefined && !chip.hidden
-  }
 
   afterEach(() => {
     $freeTierStatus.set(null)
     $onboardingGate.set({ ...$onboardingGate.get(), phase: 'idle' })
-    window.hermesDesktop = desktopBridge
     setInterfaceMode('advanced')
   })
 
-  it.each(INTERFACE_MODES)('shows the Sign in chip to a signed-out free-tier user in %s mode', mode => {
+  it.each(INTERFACE_MODES)('offers no Sign in chip, whatever the free-tier status, in %s mode', mode => {
     setInterfaceMode(mode)
     $freeTierStatus.set(freeTier(true))
 
-    expect(signInChipVisible()).toBe(true)
+    const { leftStatusbarItems, statusbarItems } = renderStatusbarItems()
+
+    expect([...leftStatusbarItems, ...statusbarItems].some(item => item.id === 'free-tier')).toBe(false)
   })
 
   it('lets Simple rest the bar again once the user has signed in', () => {
@@ -429,15 +421,5 @@ describe('free-tier Sign in in every interface mode', () => {
 
     $freeTierStatus.set(freeTier(false))
     expect($statusbarVisible.get()).toBe(false)
-  })
-
-  it('holds the chip while a guided setup is running and brings it back after', () => {
-    window.hermesDesktop = { ...desktopBridge, guestOnboardingEnabled: true } as typeof desktopBridge
-    $freeTierStatus.set(freeTier(true))
-    $onboardingGate.set({ ...$onboardingGate.get(), phase: 'guided' })
-    expect(signInChipVisible()).toBe(false)
-
-    $onboardingGate.set({ ...$onboardingGate.get(), phase: 'done' })
-    expect(signInChipVisible()).toBe(true)
   })
 })

@@ -4,7 +4,7 @@
  * gateway socket's home. Tab focus moves without swapping the socket, so
  * keying off `host.state.profile` highlighted the wrong bot whenever a focused
  * tab showed another profile's chat (community report: Newsanalyst chat open,
- * Hermes highlighted).
+ * Vanta highlighted).
  *
  * Newer desktops publish the complete pair as `host.state.focusedSessionOwner`.
  * Older ones expose only `focusedSessionProfile`, a legacy HALF-SHAPE with no

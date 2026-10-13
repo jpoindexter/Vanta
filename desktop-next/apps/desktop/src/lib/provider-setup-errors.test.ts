@@ -8,7 +8,7 @@ describe('isProviderSetupErrorMessage', () => {
       true
     )
     expect(isProviderSetupErrorMessage('No inference provider is configured.')).toBe(true)
-    expect(isProviderSetupErrorMessage('No Hermes provider is configured.')).toBe(true)
+    expect(isProviderSetupErrorMessage('No Vanta provider is configured.')).toBe(true)
     expect(isProviderSetupErrorMessage('set an API key (OPENROUTER_API_KEY) in ~/.hermes/.env')).toBe(true)
   })
 
@@ -16,7 +16,7 @@ describe('isProviderSetupErrorMessage', () => {
     // tui_gateway/user_messages.py::agent_init_failed_message wrapping agent/agent_init.py's raise.
     expect(
       isProviderSetupErrorMessage(
-        'Hermes could not start the assistant for this session. Details: No LLM provider configured. Run `hermes model` to select a provider, or run `hermes setup` for first-time configuration. Check the model and provider with /model, or run `hermes setup` in a terminal to reconfigure.'
+        'Vanta could not start the assistant for this session. Details: No LLM provider configured. Run `hermes model` to select a provider, or run `hermes setup` for first-time configuration. Check the model and provider with /model, or run `hermes setup` in a terminal to reconfigure.'
       )
     ).toBe(true)
   })

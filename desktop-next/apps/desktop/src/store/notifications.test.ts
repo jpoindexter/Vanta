@@ -58,7 +58,7 @@ test('structured storage_* error codes route to Maintenance', () => {
   expect($routeRequest.get()?.path).toBe('/command-center?section=maintenance')
 })
 
-test('405 method-not-allowed toasts a restart in plain words with a Restart Hermes action', () => {
+test('405 method-not-allowed toasts a restart in plain words with a Restart Vanta action', () => {
   const before = $backendRestartRequest.get()
   notifyError(new Error('405 Method Not Allowed'), 'Request failed')
 

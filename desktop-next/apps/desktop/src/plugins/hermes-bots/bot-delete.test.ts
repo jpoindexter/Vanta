@@ -1,5 +1,5 @@
 /**
- * Deleting a bot deletes its Hermes profile, then everything plugin-local
+ * Deleting a bot deletes its Vanta profile, then everything plugin-local
  * that would otherwise leave stale appearance/unread data behind.
  *
  * `host.deleteProfile` is preferred whenever the Desktop build ships it: it

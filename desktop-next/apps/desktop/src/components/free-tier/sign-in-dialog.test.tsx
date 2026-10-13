@@ -54,7 +54,7 @@ describe('FreeTierSignInDialog', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     pollOAuthSession.mockResolvedValue({
       account_email: 'someone@example.com',
-      model: 'Hermes-4-405B',
+      model: 'Vanta-4-405B',
       reason: null,
       session_id: 'session-1',
       status: 'approved'
@@ -82,7 +82,7 @@ describe('FreeTierSignInDialog', () => {
     })
 
     await waitFor(() => expect(screen.getByText('Signed in as someone@example.com')).toBeTruthy())
-    expect(screen.getByText('Hermes-4-405B')).toBeTruthy()
+    expect(screen.getByText('Vanta-4-405B')).toBeTruthy()
   })
 
   describe('sign-in offer', () => {
@@ -121,7 +121,7 @@ describe('FreeTierSignInDialog', () => {
         $onboardingGate.set({ guideKickoff: 'started', guideQueued: false, phase: 'done' })
       })
 
-      await waitFor(() => expect(screen.getByText('Keep going with Hermes')).toBeTruthy())
+      await waitFor(() => expect(screen.getByText('Keep going with Vanta')).toBeTruthy())
       expect(requestGateway).toHaveBeenCalledWith('free_tier.claim_nudge')
     })
 
@@ -137,7 +137,7 @@ describe('FreeTierSignInDialog', () => {
 
       await act(async () => noteFreeTierTurnComplete())
 
-      await waitFor(() => expect(screen.getByText('Keep going with Hermes')).toBeTruthy())
+      await waitFor(() => expect(screen.getByText('Keep going with Vanta')).toBeTruthy())
     })
 
     it('Sign in continues into the normal sign-in flow', async () => {
@@ -156,7 +156,7 @@ describe('FreeTierSignInDialog', () => {
       await act(async () => screen.getByRole('button', { name: 'Not now' }).click())
 
       expect($freeTierSignIn.get()).toEqual({ status: 'closed' })
-      expect(screen.queryByText('Keep going with Hermes')).toBeNull()
+      expect(screen.queryByText('Keep going with Vanta')).toBeNull()
     })
   })
 })

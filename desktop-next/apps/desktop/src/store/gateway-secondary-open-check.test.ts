@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 // publish the closed gateway as the active route. entry.connection is set
 // BEFORE the dial completes in openSecondary(), so checking only its
 // truthiness previously let a failed activation still "succeed" and
-// publish -- the next chat RPC then failed with "Hermes gateway is not
+// publish -- the next chat RPC then failed with "Vanta gateway is not
 // connected" even though the UI had already switched to that route.
 
 const gatewayMocks = vi.hoisted(() => ({

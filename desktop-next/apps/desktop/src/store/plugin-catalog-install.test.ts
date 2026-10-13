@@ -45,8 +45,8 @@ describe('requestPluginCatalogInstallFromDeepLink', () => {
   })
 
   it.each([
-    ['unknown', 'not in the Hermes plugin catalog'],
-    ['unavailable', 'Could not load the Hermes plugin catalog'],
+    ['unknown', 'not in the Vanta plugin catalog'],
+    ['unavailable', 'Could not load the Vanta plugin catalog'],
     ['invalid_name', 'missing or invalid']
   ] as const)('%s → error toast, no dialog, no git fallback', async (error, fragment) => {
     await requestPluginCatalogInstallFromDeepLink('not-a-real-plugin', lookupFor({ ok: false, error }))
@@ -76,7 +76,7 @@ describe('requestPluginCatalogInstallFromDeepLink', () => {
 
     expect(fetchSpy).toHaveBeenCalledWith(PLUGIN_CATALOG_URL, expect.anything())
     expect($pluginInstallRequest.get()).toBeNull()
-    expect($notifications.get()[0]?.message).toContain('\u201Cweather-evil\u201D is not in the Hermes plugin catalog')
+    expect($notifications.get()[0]?.message).toContain('\u201Cweather-evil\u201D is not in the Vanta plugin catalog')
 
     await requestPluginCatalogInstallFromDeepLink('weather', lookup)
 
