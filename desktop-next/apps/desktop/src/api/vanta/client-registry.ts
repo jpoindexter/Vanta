@@ -1,4 +1,5 @@
 import { createFrameMapper, type FrameMapper } from './event-mapper'
+import { dropForegroundClient, noteForegroundClient } from './foreground-client'
 
 export interface TranscriptEntry {
   role: string
@@ -64,6 +65,7 @@ export class ClientRegistry {
     }
 
     this.clients.set(clientId, client)
+    noteForegroundClient(clientId)
 
     return client
   }
@@ -98,6 +100,7 @@ export class ClientRegistry {
     }
 
     this.clients.delete(clientId)
+    dropForegroundClient(clientId)
   }
 
   all(): ChatClient[] {

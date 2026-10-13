@@ -45,6 +45,12 @@ export function parseQuery<S extends z.ZodType>(ctx: ControlCtx, schema: S): z.i
   return null;
 }
 
+/** The approval card travels on the caller's event stream; with no stream open nobody could ever answer it. */
+function hasApprovalListener(ctx: ControlCtx): boolean {
+  const id = ctx.state._sseSessionId;
+  return Boolean(id && ctx.state._sseClients?.get(id)?.size);
+}
+
 export type ExactAction = { action: string; reason: string; toolName: string };
 
 /**
@@ -53,6 +59,10 @@ export type ExactAction = { action: string; reason: string; toolName: string };
  * false when the action is denied or another approval is already waiting.
  */
 export async function approveExactAction(ctx: ControlCtx, spec: ExactAction): Promise<boolean> {
+  if (!hasApprovalListener(ctx)) {
+    sendFail(ctx.res, 409, "No open chat window can show this approval. Open a chat in Vanta and try again.");
+    return false;
+  }
   const approved = await requestWebApproval(ctx.state, spec.action, spec.reason, { toolName: spec.toolName, detail: { fresh: true, canRemember: false } });
   if (!approved) sendFail(ctx.res, 403, "approval denied or another approval is already waiting");
   return approved;

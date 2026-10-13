@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { ClientRegistry } from './client-registry'
 import { vantaRestShim } from './rest-shim'
 
 const views = {
@@ -67,7 +68,12 @@ describe('profile shim', () => {
     const send = makeSend()
     const imported = await vantaRestShim({ body: { archive: '/v/exports/research' }, method: 'POST', path: '/api/profiles/import' }, send)
 
-    expect(send).toHaveBeenCalledWith({ body: { source: '/v/exports/research' }, method: 'POST', path: '/api/profiles/import' })
+    expect(send).toHaveBeenCalledWith({
+      body: { source: '/v/exports/research' },
+      method: 'POST',
+      path: '/api/profiles/import',
+      timeoutMs: 600_000
+    })
     expect(imported).toMatchObject({ desktop: null, name: 'research', ok: true })
   })
 
@@ -76,5 +82,17 @@ describe('profile shim', () => {
     const page = (await vantaRestShim({ path: '/api/profiles/sessions' }, send)) as { sessions: unknown[] }
 
     expect(page.sessions).toEqual([])
+  })
+
+  it('sends writes on behalf of the open chat so an approval card reaches its stream, and stops when it closes', async () => {
+    const registry = new ClientRegistry()
+    const chat = registry.create('vanta-chat-1')
+    const send = makeSend()
+
+    await vantaRestShim({ body: { archive: '/x' }, method: 'POST', path: '/api/profiles/import' }, send)
+    registry.remove(chat.clientId)
+    await vantaRestShim({ body: { archive: '/x' }, method: 'POST', path: '/api/profiles/import' }, send)
+
+    expect(send.mock.calls.map(([call]) => (call as { clientId?: string }).clientId)).toEqual(['vanta-chat-1', undefined])
   })
 })
