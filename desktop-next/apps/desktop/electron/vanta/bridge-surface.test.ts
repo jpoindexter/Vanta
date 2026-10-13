@@ -54,7 +54,12 @@ describe('window.hermesDesktop surface', () => {
       expect(real.has(name)).toBe(true)
     }
 
-    expect(all.length - real.size).toBeGreaterThan(150)
+    // What stays unsupported on purpose: pty, updater, cloud and pool, plugin installs, pets, file writes.
+    for (const name of ['terminal.start', 'updates.check', 'cloud.status', 'petOverlay.open', 'writeTextFile', 'installDesktopPlugin']) {
+      expect(real.has(name)).toBe(false)
+    }
+
+    expect(all.length - real.size).toBeGreaterThan(100)
   })
 
   it('rejects an unimplemented async member with an "unsupported:" message naming it', async () => {

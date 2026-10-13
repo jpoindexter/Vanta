@@ -18,8 +18,6 @@ export interface WindowFeatureDeps {
   windowFor: (sender: unknown) => BrowserWindow | null;
 }
 
-const targetWindow = (main: () => BrowserWindow | null): BrowserWindow | null => BrowserWindow.getFocusedWindow() ?? main();
-
 const broadcast = (channel: string, payload: unknown): void => {
   for (const window of BrowserWindow.getAllWindows()) {
     if (!window.isDestroyed()) {
@@ -60,7 +58,7 @@ function routeDeepLinks(getMainWindow: () => BrowserWindow | null, ipc: IpcLike)
 }
 
 function installAppMenu(deps: WindowFeatureDeps, zoom: ZoomController): void {
-  const sendToRenderer = (channel: string) => targetWindow(deps.getMainWindow)?.webContents.send(channel);
+  const sendToRenderer = (channel: string) => deps.getMainWindow()?.webContents.send(channel);
 
   Menu.setApplicationMenu(
     Menu.buildFromTemplate(
@@ -84,7 +82,7 @@ function installAppMenu(deps: WindowFeatureDeps, zoom: ZoomController): void {
 export function registerWindowFeatures(deps: WindowFeatureDeps) {
   const { getMainWindow, ipc } = deps;
   const userData = app.getPath("userData");
-  const zoom = createZoomController(createJsonZoomStore(path.join(userData, "zoom.json")), () => targetWindow(getMainWindow));
+  const zoom = createZoomController(createJsonZoomStore(path.join(userData, "zoom.json")), getMainWindow);
 
   registerFindHandlers({ getWindow: deps.windowFor, ipc });
   ipc.on(CH.zoomPersist, (_event, percent: unknown) => zoom.persistPercent(percent));
