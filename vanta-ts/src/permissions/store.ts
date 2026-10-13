@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir, rename } from "node:fs/promises";
 import { resolveVantaHome, commitInHome } from "../store/home.js";
 import type { PermAction, PermRule } from "./rules.js";
 
@@ -13,7 +13,7 @@ function isPermAction(value: string): value is PermAction {
 }
 
 /**
- * Parse the TSV body into rules. Format: `action\ttool\tpattern`, one per line;
+ * Parse the TSV body into rules. Format: `action\ttool\tpattern[\troot]`, one per line;
  * empty tool/pattern fields are blank. Empty fields become `undefined` (so a
  * parse→serialize round-trip is stable) and blank lines / unknown actions are
  * skipped. Pure.
@@ -22,11 +22,12 @@ export function parseRules(text: string): PermRule[] {
   const rules: PermRule[] = [];
   for (const line of text.split("\n")) {
     if (!line.trim()) continue;
-    const [action = "", tool = "", pattern = ""] = line.split("\t");
+    const [action = "", tool = "", pattern = "", root = ""] = line.split("\t");
     if (!isPermAction(action)) continue;
     const rule: PermRule = { action };
     if (tool) rule.tool = tool;
     if (pattern) rule.pattern = pattern;
+    if (root) rule.root = root;
     rules.push(rule);
   }
   return rules;
@@ -34,7 +35,10 @@ export function parseRules(text: string): PermRule[] {
 
 /** Serialize rules back to the TSV body. Inverse of `parseRules`. Pure. */
 export function serializeRules(rules: PermRule[]): string {
-  return rules.map((r) => `${r.action}\t${r.tool ?? ""}\t${r.pattern ?? ""}`).join("\n");
+  return rules.map((r) => {
+    const base = `${r.action}\t${r.tool ?? ""}\t${r.pattern ?? ""}`;
+    return r.root ? `${base}\t${r.root}` : base;
+  }).join("\n");
 }
 
 function rulesPath(env: NodeJS.ProcessEnv): string {
@@ -57,7 +61,10 @@ export async function saveRules(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<void> {
   await mkdir(resolveVantaHome(env), { recursive: true });
-  await writeFile(rulesPath(env), serializeRules(rules), "utf8");
+  // Write-then-rename so a crash mid-write cannot truncate the saved rules.
+  const temp = `${rulesPath(env)}.${process.pid}.tmp`;
+  await writeFile(temp, serializeRules(rules), "utf8");
+  await rename(temp, rulesPath(env));
   await commitInHome(PERMISSIONS_FILE, "permissions: update rules", env);
 }
 
