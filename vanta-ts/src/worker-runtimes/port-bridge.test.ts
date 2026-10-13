@@ -32,13 +32,17 @@ describe("resultFor", () => {
     expect(result).not.toHaveProperty("usage");
   });
 
+  it("carries the spend of a failed run so a stopped agent still counts against the budget", () => {
+    expect(resultFor({ status: "failed", summary: "s", error: "budget", workProducts: [], usage: { inputTokens: 9, outputTokens: 3, costUsd: 0.5 } }, "claude-code")).toEqual({ ok: false, error: "budget", usage: { inputTokens: 9, outputTokens: 3 }, cost: { usd: 0.5, basis: "reported" }, provider: "claude-code" });
+  });
+
   it("keeps a reported zero cost distinct from not reported", () => {
     expect(resultFor({ status: "completed", summary: "x", workProducts: [], usage: { costUsd: 0 } }, "claude-code")).toMatchObject({ cost: { usd: 0, basis: "reported" } });
   });
 
   it("maps every non-completed status to a failure with the error text", () => {
     for (const status of ["failed", "aborted", "refused"] as const) {
-      expect(resultFor({ status, summary: "s", error: "why", workProducts: [] }, "x")).toEqual({ ok: false, error: "why" });
+      expect(resultFor({ status, summary: "s", error: "why", workProducts: [] }, "x")).toEqual({ ok: false, error: "why", provider: "x" });
     }
   });
 });

@@ -9,11 +9,13 @@ import { withCompanyLock } from "./company-lock.js";
 import { fail, succeed, type CompanyCtx, type Outcome } from "./company-context.js";
 import { announce } from "./company-emit.js";
 import { buildInstruction } from "./company-instruction.js";
+import { remainingBudgetUsd } from "./company-run-budget.js";
+import { createProgressSink } from "./company-run-progress.js";
 import { finishRun, failRun, type ActiveRun } from "./company-run-finish.js";
 import { clearAbort, isRunning, registerAbort, touchWorker, trackRun } from "./company-run-state.js";
 import { appendRun, runsForTicket } from "./company-runs.js";
 import { departmentOf, isPaused } from "./company-roster.js";
-import type { WorkerRuntime } from "./company-ports.js";
+import type { WorkerRunRequest, WorkerRunResult, WorkerRuntime } from "./company-ports.js";
 import { loadSnapshot, type CompanySnapshot } from "./company-snapshot.js";
 import { persistTask } from "./company-tasks.js";
 
@@ -54,11 +56,17 @@ async function moveToRunning(ctx: CompanyCtx, task: WorkerTask): Promise<Outcome
 }
 
 async function launch(ctx: CompanyCtx, active: ActiveRun): Promise<void> {
+  const sink = createProgressSink(ctx, { workerId: active.worker.id, ticketId: active.task.id });
   try {
-    const request = { worker: active.worker, task: active.task, instruction: active.instruction, env: ctx.env, signal: active.controller.signal, progress: () => touchWorker(ctx.home, active.worker.id, ctx.ports.now()) };
-    const result = await active.runtime.run(request).catch((error: unknown) => ({ ok: false as const, error: error instanceof Error ? error.message : String(error) }));
+    const request: WorkerRunRequest = {
+      worker: active.worker, task: active.task, instruction: active.instruction, env: ctx.env, signal: active.controller.signal,
+      progress: () => touchWorker(ctx.home, active.worker.id, ctx.ports.now()),
+      cwd: ctx.root, runId: active.runId, onEvent: sink.onEvent, maxBudgetUsd: active.maxBudgetUsd,
+    };
+    const result = await active.runtime.run(request).catch((error: unknown): WorkerRunResult => ({ ok: false, error: error instanceof Error ? error.message : String(error) }));
+    await sink.flush();
     const aborted = active.controller.signal.aborted;
-    await withCompanyLock(ctx.home, () => (aborted ? failRun(ctx, active, "aborted: the worker was paused") : finishRun(ctx, active, result)));
+    await withCompanyLock(ctx.home, () => (aborted ? failRun(ctx, active, "aborted: the worker was paused", result) : finishRun(ctx, active, result)));
   } catch (error) {
     await withCompanyLock(ctx.home, () => failRun(ctx, active, error instanceof Error ? error.message : String(error))).catch(() => {});
   } finally {
@@ -93,22 +101,28 @@ async function recordStart(ctx: CompanyCtx, active: ActiveRun): Promise<void> {
   await announce(ctx, { ticketId: task.id, workerId: worker.id });
 }
 
-export async function startRun(ctx: CompanyCtx, input: StartInput): Promise<Outcome<StartResult>> {
-  let runtime: WorkerRuntime;
+async function resolveRuntime(ctx: CompanyCtx, worker: Worker): Promise<Outcome<WorkerRuntime>> {
   try {
-    runtime = await ctx.ports.runtime(ctx.state);
+    return succeed(await ctx.ports.runtime(ctx.state, worker));
   } catch (error) {
     return fail(503, `worker runtime unavailable: ${error instanceof Error ? error.message : String(error)}`);
   }
+}
+
+export async function startRun(ctx: CompanyCtx, input: StartInput): Promise<Outcome<StartResult>> {
   const claimed = await claimTask(ctx, input.taskId);
   if (!claimed.ok) return claimed;
   if ("reason" in claimed.value) return succeed({ started: false, reason: claimed.value.reason });
   const { task, worker, snap, release } = claimed.value;
+  const resolved = await resolveRuntime(ctx, worker);
+  if (!resolved.ok) { await release(); return resolved; }
+  const runtime = resolved.value;
   const moved = await moveToRunning(ctx, task);
   if (!moved.ok) { await release(); return moved; }
   const active: ActiveRun = {
     runId: ctx.ports.newId(), attempt: runsForTicket(snap.runs, task.id).length + 1, startedAt: ctx.ports.now().toISOString(),
     task: moved.value, worker, runtime, release, controller: new AbortController(), instruction: buildInstruction(snap, worker, moved.value, input.note), reviseProductId: input.reviseProductId,
+    maxBudgetUsd: await remainingBudgetUsd(ctx, snap, worker),
   };
   registerAbort(ctx.home, worker.id, active.controller);
   await recordStart(ctx, active);

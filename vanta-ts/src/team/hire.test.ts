@@ -175,4 +175,19 @@ describe("parseHireArgs", () => {
     if (!r.ok) return;
     expect(r.spec.budgetUsd).toBeUndefined();
   });
+
+  it("hires an external CLI worker with cli:<runtime> and records no provider model", () => {
+    const r = hireAgent([], { role: "Reviewer", adapter: "cli:claude-code", budgetUsd: 5 });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.agent).toMatchObject({ adapter: "cli:claude-code", budgetUsd: 5, status: "idle" });
+    expect(r.agent.model).toBeUndefined();
+  });
+
+  it("rejects a malformed cli: adapter", () => {
+    const r = hireAgent([], { role: "Reviewer", adapter: "cli:Claude Code" });
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.error).toMatch(/invalid worker runtime/);
+  });
 });

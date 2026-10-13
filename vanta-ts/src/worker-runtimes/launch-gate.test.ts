@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { authorizeLaunch, launchAction, type GateDeps, type LaunchRequest } from "./launch-gate.js";
 
-const request: LaunchRequest = { runtimeId: "claude-code", displayName: "Claude Code", command: "claude", cwd: "/work/app", ticketId: "T-7", prompt: "Fix the login bug.\nuse key sk-ant-api03-AAAAAAAAAAAAAAAAAAAAAAAA", access: "edit", selfApproving: false };
+const request: LaunchRequest = { runtimeId: "claude-code", displayName: "Claude Code", command: "claude", cwd: "/work/app", ticketId: "T-7", runId: "run-1", prompt: "Fix the login bug.\nuse key sk-ant-api03-AAAAAAAAAAAAAAAAAAAAAAAA", access: "edit", selfApproving: false };
 
 type Asked = { action: string; reason: string; tool: string; canRemember?: boolean; diff?: string };
 
@@ -12,7 +12,7 @@ function deps(patch: Partial<GateDeps> = {}): { deps: GateDeps; asked: Asked[] }
     deps: {
       assess: async () => ({ risk: "allow" }),
       loadRules: async () => [],
-      requestApproval: async (action, reason, tool, detail) => { asked.push({ action, reason, tool, canRemember: detail.canRemember, diff: detail.diff }); return true; },
+      requestApproval: async ({ action, reason, toolName, detail }) => { asked.push({ action, reason, tool: toolName, canRemember: detail.canRemember, diff: detail.diff }); return true; },
       projectRoot: "/work/app",
       ...patch,
     },

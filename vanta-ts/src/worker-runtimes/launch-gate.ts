@@ -18,20 +18,26 @@ export type LaunchRequest = {
   command: string;
   cwd: string;
   ticketId: string;
+  /** Distinguishes launches that share one argv (the prompt is on stdin), so each run is its own effect. */
+  runId: string;
   prompt: string;
   access: AccessMode;
   selfApproving: boolean;
+  /** Aborted when the worker is paused; a card still waiting on the owner must give up. */
+  signal?: AbortSignal;
 };
 
 export type LaunchDecision = { ok: true; effectGate?: EffectGateContext } | { ok: false; error: string };
 
 export type LaunchGate = { authorize: (request: LaunchRequest) => Promise<LaunchDecision> };
 
+export type ApprovalAsk = { action: string; reason: string; toolName: string; detail: ApprovalDetail };
+
 export type GateDeps = {
   assess: (action: string) => Promise<{ risk: "allow" | "ask" | "block"; reason?: string }>;
   loadRules: () => Promise<PermRule[]>;
   /** Absent in headless hosts: an approval that is needed is then refused, never assumed. */
-  requestApproval?: (action: string, reason: string, toolName: string, detail: ApprovalDetail) => Promise<boolean>;
+  requestApproval?: (ask: ApprovalAsk, signal?: AbortSignal) => Promise<boolean>;
   effectGate?: EffectGateContext;
   projectRoot: string;
 };
@@ -70,7 +76,8 @@ export async function authorizeLaunch(deps: GateDeps, request: LaunchRequest): P
   if (!savedAllow) {
     if (!deps.requestApproval) return { ok: false, error: `${request.displayName} needs the owner's approval to launch and no approval channel is open. Run it from the desktop, or save an Always rule for call_agent in this project.` };
     const preview = redactSecrets(request.prompt).slice(0, PROMPT_PREVIEW_CHARS);
-    const approved = await deps.requestApproval(action, reasonFor(request), APPROVAL_TOOL_NAME, { diff: preview, ...(request.selfApproving ? { canRemember: false } : {}) });
+    const detail: ApprovalDetail = { diff: preview, ...(request.selfApproving ? { canRemember: false } : {}) };
+    const approved = await deps.requestApproval({ action, reason: reasonFor(request), toolName: APPROVAL_TOOL_NAME, detail }, request.signal);
     if (!approved) return { ok: false, error: `the owner declined to launch ${request.displayName} for ${request.ticketId}` };
   }
   return { ok: true, effectGate: deps.effectGate };

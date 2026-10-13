@@ -30,23 +30,24 @@ export type WorkerRunRequest = {
 
 export type RunCost = { usd: number; basis: "reported" | "estimated" };
 
+/** What a run spent. Present on a failure too: an external CLI that stopped partway still billed. */
+export type RunSpend = {
+  usage?: { inputTokens: number; outputTokens: number };
+  /** Omit when the runtime has no dollar figure: the run is recorded as not-reported. */
+  cost?: RunCost;
+  provider?: string;
+  model?: string;
+};
+
 export type WorkerRunResult =
-  | {
-      ok: true;
-      summary: string;
-      artifacts: Array<{ artifact: string; kind?: WorkProductKind }>;
-      usage?: { inputTokens: number; outputTokens: number };
-      /** Omit when the runtime has no dollar figure: the run is recorded as not-reported. */
-      cost?: RunCost;
-      provider?: string;
-      model?: string;
-    }
-  | { ok: false; error: string };
+  | ({ ok: true; summary: string; artifacts: Array<{ artifact: string; kind?: WorkProductKind }> } & RunSpend)
+  | ({ ok: false; error: string } & RunSpend);
 
 export type WorkerRuntime = { id: string; run: (request: WorkerRunRequest) => Promise<WorkerRunResult> };
 
 export type CompanyPorts = {
-  runtime: (state: DesktopState) => WorkerRuntime | Promise<WorkerRuntime>;
+  /** The runtime for a hired worker: the Vanta loop for a provider adapter, an external CLI for "cli:<id>". */
+  runtime: (state: DesktopState, worker?: Worker) => WorkerRuntime | Promise<WorkerRuntime>;
   /** Kernel goals when a live session exists; [] otherwise. Never starts a kernel. */
   readGoals: (state: DesktopState) => Promise<Goal[]>;
   newId: () => string;
@@ -61,9 +62,9 @@ async function defaultReadGoals(state: DesktopState): Promise<Goal[]> {
   return safety.getGoals().catch(() => state.setup?.goals ?? []);
 }
 
-async function defaultRuntime(state: DesktopState): Promise<WorkerRuntime> {
-  const { createNativeRuntime } = await import("./company-native-runtime.js");
-  return createNativeRuntime(state);
+async function defaultRuntime(state: DesktopState, worker?: Worker): Promise<WorkerRuntime> {
+  const { selectRuntime } = await import("./company-run-select.js");
+  return selectRuntime(state, worker);
 }
 
 const DEFAULTS: CompanyPorts = {

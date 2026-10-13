@@ -21,7 +21,7 @@ export function productView(product: WorkProduct, revisions: RevisionRecord[]): 
     truncated,
     approved: product.approved,
     createdAt: product.createdAt,
-    provenance: { taskId: product.sourceTaskId, workerId: product.producedBy, departmentId: product.departmentId },
+    provenance: { taskId: product.sourceTaskId, workerId: product.producedBy, departmentId: product.departmentId, ...(product.runtimeId ? { runtimeId: product.runtimeId } : {}), ...(product.runId ? { runId: product.runId } : {}) },
     revisions: revisions.filter((r) => r.workProductId === product.id).map((r) => ({ reason: redactForLog(r.reason), at: r.at })),
   };
 }
