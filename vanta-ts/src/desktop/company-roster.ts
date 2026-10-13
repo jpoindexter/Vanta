@@ -2,6 +2,7 @@ import { buildOrgTree, resolveEscalateTarget, type OrgNode } from "../team/org-c
 import { blockingStages } from "../team/review-stage.js";
 import type { Worker } from "../team/store.js";
 import type { WorkerTask } from "../team/tasks.js";
+import { runtimeIdFromAdapter } from "../worker-runtimes/adapter-id.js";
 import { workerBeat } from "./company-run-state.js";
 import type { CompanySnapshot } from "./company-snapshot.js";
 import type { CompanyWorker, CostBasis, OrgChartNode, RunRecord, WorkerStatus } from "./company-schemas.js";
@@ -9,6 +10,14 @@ import type { CompanyWorker, CostBasis, OrgChartNode, RunRecord, WorkerStatus } 
 // Pure views over the worker roster. "paused" is stored as an extra field on the
 // worker row (the roster schema is passthrough), so the engine ignores it; the
 // desktop dispatch path and the company tick honour it.
+
+const EXTERNAL_KINDS: Record<string, CompanyWorker["runtime"]["kind"]> = { "claude-code": "claude-code", codex: "codex", hermes: "hermes" };
+
+/** The runtime kind behind a hire-time adapter: "cli:codex" is codex, any other "cli:<id>" is a declared custom CLI. */
+export function runtimeKindOf(adapter: string | undefined): CompanyWorker["runtime"]["kind"] {
+  const id = runtimeIdFromAdapter(adapter);
+  return id ? EXTERNAL_KINDS[id] ?? "custom-cli" : "vanta-native";
+}
 
 export const isPaused = (worker: Worker): boolean => (worker as Record<string, unknown>).paused === true;
 
@@ -71,7 +80,7 @@ export function buildWorker(snap: CompanySnapshot, worker: Worker): CompanyWorke
     department: departmentOf(snap, worker.id),
     reportsTo: resolveEscalateTarget(snap.workers, worker.id)?.id ?? null,
     directReports: snap.workers.filter((w) => resolveEscalateTarget(snap.workers, w.id)?.id === worker.id).map((w) => w.id),
-    runtime: { kind: "vanta-native", adapter: worker.adapter ?? null, model: worker.model ?? null },
+    runtime: { kind: runtimeKindOf(worker.adapter), adapter: worker.adapter ?? null, model: worker.model ?? null },
     status,
     paused: isPaused(worker),
     currentTicketId: current?.id ?? null,

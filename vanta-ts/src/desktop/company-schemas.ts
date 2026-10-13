@@ -17,9 +17,12 @@ export type RunStatus = (typeof RUN_STATUSES)[number];
 const Iso = z.string();
 const NullableString = z.string().nullable();
 
+export const RUNTIME_KINDS = ["vanta-native", "claude-code", "codex", "hermes", "custom-cli"] as const;
+
 export const RuntimeInfoSchema = z.object({
-  kind: z.literal("vanta-native"),
-  /** Provider id stored at hire time; informational today, see the runtime verdict. */
+  /** `vanta-native` = the Vanta loop on a provider; the rest are external CLIs hired as "cli:<id>". */
+  kind: z.enum(RUNTIME_KINDS),
+  /** The adapter stored at hire time: a provider id, or "cli:<runtime id>". */
   adapter: NullableString,
   model: NullableString,
 });
@@ -161,7 +164,7 @@ export const WorkProductViewSchema = z.object({
   truncated: z.boolean(),
   approved: z.boolean(),
   createdAt: Iso,
-  provenance: z.object({ taskId: z.string(), workerId: z.string(), departmentId: z.string() }),
+  provenance: z.object({ taskId: z.string(), workerId: z.string(), departmentId: z.string(), /** Present when a worker runtime produced the artifact. */ runtimeId: z.string().optional(), runId: z.string().optional() }),
   revisions: z.array(RevisionViewSchema),
 });
 export type WorkProductView = z.infer<typeof WorkProductViewSchema>;

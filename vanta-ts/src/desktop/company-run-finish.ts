@@ -10,7 +10,7 @@ import { resolveTaskArtifactProbe } from "../tools/task-outcome-probe.js";
 import { recordActivity } from "./company-activity.js";
 import type { CompanyCtx } from "./company-context.js";
 import { announce, announceBudget } from "./company-emit.js";
-import type { WorkerRunResult, WorkerRuntime } from "./company-ports.js";
+import type { RunSpend, WorkerRunResult, WorkerRuntime } from "./company-ports.js";
 import { departmentOf } from "./company-roster.js";
 import { appendRun } from "./company-runs.js";
 import type { CostBasis, RunStatus } from "./company-schemas.js";
@@ -27,18 +27,21 @@ export type ActiveRun = {
   runtime: WorkerRuntime;
   release: () => Promise<void>;
   controller: AbortController;
+  /** Spend left across the worker's budgets when the run started; absent when unbudgeted. */
+  maxBudgetUsd?: number;
   /** Set when a revision re-run should update this work product instead of adding one. */
   reviseProductId?: string;
 };
 
 type Success = Extract<WorkerRunResult, { ok: true }>;
+type Spent = RunSpend;
 const ERROR_MAX = 500;
 
 async function currentTask(ctx: CompanyCtx, id: string): Promise<WorkerTask | undefined> {
   return latestTasks(await readTasks(ctx.env)).find((t) => t.id === id);
 }
 
-async function writeRun(ctx: CompanyCtx, active: ActiveRun, patch: { status: RunStatus; summary?: string; error?: string; result?: Success; costUsd?: number | null; costBasis?: CostBasis }): Promise<void> {
+async function writeRun(ctx: CompanyCtx, active: ActiveRun, patch: { status: RunStatus; summary?: string; error?: string; result?: Spent; costUsd?: number | null; costBasis?: CostBasis }): Promise<void> {
   const result = patch.result;
   await appendRun(ctx.home, {
     runId: active.runId,
@@ -59,13 +62,14 @@ async function writeRun(ctx: CompanyCtx, active: ActiveRun, patch: { status: Run
   });
 }
 
-export async function failRun(ctx: CompanyCtx, active: ActiveRun, error: string): Promise<void> {
+export async function failRun(ctx: CompanyCtx, active: ActiveRun, error: string, spent?: Spent): Promise<void> {
   const task = await currentTask(ctx, active.task.id);
   if (task?.status === "running") {
     const blocked = advanceTask(task, "blocked", `run failed: ${redactForLog(error).slice(0, ERROR_MAX)}`);
     if (blocked.ok) await persistTask(ctx, blocked.value);
   }
-  await writeRun(ctx, active, { status: "failed", error });
+  const cost = spent ? await recordCost(ctx, active, spent) : {};
+  await writeRun(ctx, active, { status: "failed", error, ...(spent ? { result: spent } : {}), ...cost });
   await recordActivity(ctx, { kind: "run.finished", actor: active.worker.id, summary: `${active.worker.id} failed on ${active.task.id}: ${error}`, refs: { ticketId: active.task.id, workerId: active.worker.id } });
   await announce(ctx, { ticketId: active.task.id, workerId: active.worker.id });
 }
@@ -77,12 +81,12 @@ async function recordProducts(ctx: CompanyCtx, active: ActiveRun, result: Succes
   const touched: WorkProduct[] = [];
   const revised = list.find((p) => p.id === active.reviseProductId);
   if (revised) {
-    const next = { ...revised, artifact: result.artifacts[0]!.artifact, approved: false };
+    const next = { ...revised, artifact: result.artifacts[0]!.artifact, approved: false, runtimeId: active.runtime.id, runId: active.runId };
     list = list.map((p) => (p.id === revised.id ? next : p));
     touched.push(next);
   } else {
     for (const spec of result.artifacts) {
-      const made = recordWorkProduct(list, { ...spec, sourceTaskId: active.task.id, departmentId: departmentOf(snap, active.worker.id) ?? "team", producedBy: active.worker.id }, ctx.ports.now());
+      const made = recordWorkProduct(list, { ...spec, sourceTaskId: active.task.id, departmentId: departmentOf(snap, active.worker.id) ?? "team", producedBy: active.worker.id, runtimeId: active.runtime.id, runId: active.runId }, ctx.ports.now());
       if (!made.ok) continue;
       list = [...list, made.value];
       touched.push(made.value);
@@ -105,7 +109,7 @@ async function meterScope(ctx: CompanyCtx, scope: string, deltaUsd: number): Pro
   await recordActivity(ctx, { kind: "budget.alert", actor: "system", summary: `${scope} is ${after.status}: ${after.spentUsd.toFixed(2)} of ${after.limitUsd.toFixed(2)} USD`, refs: { scope } });
 }
 
-async function meterSpend(ctx: CompanyCtx, active: ActiveRun, result: Success, usd: number): Promise<void> {
+async function meterSpend(ctx: CompanyCtx, active: ActiveRun, result: Spent, usd: number): Promise<void> {
   await appendSpend(ctx.dataDir, {
     agent: `worker:${active.worker.id}`,
     provider: result.provider ?? active.worker.adapter ?? "unknown",
@@ -118,7 +122,7 @@ async function meterSpend(ctx: CompanyCtx, active: ActiveRun, result: Success, u
   for (const scope of [`agent:${active.worker.id}`, ...(dept ? [`dept:${dept}`] : [])]) await meterScope(ctx, scope, usd);
 }
 
-async function recordCost(ctx: CompanyCtx, active: ActiveRun, result: Success): Promise<{ costUsd: number | null; costBasis: CostBasis }> {
+async function recordCost(ctx: CompanyCtx, active: ActiveRun, result: Spent): Promise<{ costUsd: number | null; costBasis: CostBasis }> {
   const cost = result.cost;
   if (!cost) return { costUsd: null, costBasis: "not-reported" };
   if (cost.usd > 0) await meterSpend(ctx, active, result, cost.usd);
@@ -143,7 +147,7 @@ async function tryComplete(ctx: CompanyCtx, active: ActiveRun, summary: string):
 }
 
 export async function finishRun(ctx: CompanyCtx, active: ActiveRun, result: WorkerRunResult): Promise<void> {
-  if (!result.ok) return failRun(ctx, active, result.error);
+  if (!result.ok) return failRun(ctx, active, result.error, result);
   await recordProducts(ctx, active, result);
   const cost = await recordCost(ctx, active, result);
   const closure = await tryComplete(ctx, active, result.summary);
