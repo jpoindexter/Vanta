@@ -18,8 +18,14 @@ import { seedPrompts } from './prompts'
 const SESSION_ID = 'fixture-session'
 
 const CHAT_BAR_STATE: ChatBarState = {
-  model: { canSwitch: true, model: 'Sonnet 5.5', provider: 'vanta' },
-  tools: { enabled: true, label: '' },
+  model: {
+    canSwitch: true,
+    model: 'Sonnet 5.5',
+    provider: 'vanta',
+    reasoningMenuContent: <div className="p-2 text-xs">Effort</div>,
+    supportsReasoning: true
+  },
+  tools: { enabled: true, label: 'Attach' },
   voice: { enabled: true, active: false }
 }
 
@@ -35,6 +41,8 @@ export function FixtureScene({ params }: { params: FixtureParams }) {
       ...PRIMARY_SESSION_VIEW,
       $messages: atom(messages),
       $busy: atom(busy),
+      $cwd: atom('/work/Vanta'),
+      $messagesEmpty: atom(messages.length === 0),
       $runtimeId: atom<string | null>(SESSION_ID),
       $storedId: atom<string | null>(SESSION_ID)
     }),

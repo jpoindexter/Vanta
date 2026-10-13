@@ -39,11 +39,11 @@ export const ELEMENTS = [
   // 9 composer + queue
   { id: "composer.shell", note: 9, wf: ".composer", built: '[data-vp="composer"]', states: ALL, props: ["borderRadius", "borderWidth", "paddingTop", "paddingLeft", "width", "height"] },
   { id: "composer.textarea", note: 9, wf: ".composer textarea", built: '[data-vp="composer-input"]', states: ALL, props: ["height", "fontSize", "placeholder"] },
-  { id: "composer.attach", note: 9, wf: ".composer .tools > .icon:nth-child(1)", built: '[data-vp="composer-attach"]', states: ALL, props: ["width", "height", "ariaLabel"] },
-  { id: "composer.dictate", note: 9, wf: ".composer .tools > .icon:nth-child(2)", built: '[data-vp="composer-dictate"]', states: ALL, props: ["width", "height", "ariaLabel"] },
+  { id: "composer.attach", note: 9, wf: ".composer .tools > .icon:nth-child(1)", built: '[data-vp="composer-left"] > button', states: ALL, props: ["width", "height", "ariaLabel"] },
+  { id: "composer.dictate", note: 9, wf: ".composer .tools > .icon:nth-child(2)", built: '[data-vp="composer-left"] [data-slot="fan-menu-anchor"] > button', states: ALL, props: ["width", "height", "ariaLabel"] },
   { id: "composer.send", note: 9, wf: ".composer .send", built: '[data-vp="composer-send"]', states: ALL, props: ["width", "height", "borderRadius", "ariaLabel"] },
   { id: "composer.hint", note: 9, wf: ".hint", built: '[data-vp="composer-hint"]', states: ALL, props: ["text", "fontSize", "textAlign"] },
-  { id: "composer.dock", note: 9, wf: ".dock .col", built: '[data-vp="dock-column"]', states: ALL, props: ["width", "centeredOffset"] },
+  { id: "composer.dock", note: 9, wf: ".dock .col", built: '[data-vp="composer"]', states: ALL, props: ["width", "centeredOffset"] },
   // 10 chips
   { id: "chips.model", note: 10, wf: ".composer .rel .chip:nth-of-type(1)", built: '[data-vp="chip-model"]', states: ALL, props: ["text", "height", "borderRadius", "fontSize"] },
   { id: "chips.effort", note: 10, wf: ".composer .rel .chip:nth-of-type(2)", built: '[data-vp="chip-effort"]', states: ALL, props: ["text", "height", "borderRadius", "fontSize"] },

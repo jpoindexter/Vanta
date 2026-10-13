@@ -24,7 +24,7 @@
   --vp-hit: 30px;
   --vp-send: 32px;
 
-  --vp-bg: var(--ui-chat-surface-background);
+  --vp-bg: var(--dt-background);
   --vp-panel: var(--ui-bg-sidebar);
   --vp-raised: var(--ui-chat-bubble-background);
   --vp-line: var(--ui-stroke-primary);
@@ -43,6 +43,16 @@
   --conversation-tool-base-size: var(--vp-meta);
   --conversation-turn-gap: var(--vp-gap);
   --turn-block-gap: var(--vp-gap);
+  --message-text-indent: 0px;
+
+  --composer-shell-pad-block-end: 12px;
+  --composer-surface-pad-x: 0px;
+  --composer-surface-pad-y: 0px;
+  --composer-row-gap: 0px;
+  --composer-control-gap: 6px;
+  --composer-control-primary-size: var(--vp-send);
+  --composer-input-min-height: 44px;
+  --composer-input-max-height: calc(10 * var(--vp-text) * var(--vp-leading));
 }
 
 /* ---------- shared primitives ---------- */
@@ -220,6 +230,7 @@
 }
 
 [data-slot='aui_assistant-message-content'] {
+  padding-left: 0;
   line-height: var(--vp-leading);
 }
 
@@ -340,4 +351,176 @@
   color: var(--vp-ink2);
   font-size: var(--vp-meta);
   cursor: pointer;
+}
+
+/* Hermes strips padding and dims every button in the action bar; the Vanta bar
+   draws its own flat buttons, so restore them at higher specificity. */
+[data-slot='aui_msg-actions'].vp-hover-actions button.vp-action {
+  gap: 4px;
+  padding: 1px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--vp-radius-control);
+  color: var(--vp-ink2);
+  opacity: 1;
+}
+
+[data-slot='aui_msg-actions'].vp-hover-actions button.vp-action:hover {
+  background: var(--vp-panel);
+  color: var(--vp-ink);
+}
+
+[data-slot='aui_msg-actions'].vp-hover-actions button.vp-action svg {
+  width: 14px;
+  height: 14px;
+}
+
+.vp-position {
+  margin-left: auto;
+  color: var(--vp-ink3);
+  font-size: var(--vp-meta);
+  font-weight: 400;
+}
+
+/* The approval card is the only surface for an approval: the activity summary
+   that used to stand in for the held tool rows would repeat it. */
+[data-slot='tool-approval-stack'] [data-approval-activity] {
+  display: none;
+}
+
+/* ---------- composer ---------- */
+
+[data-slot='composer-root'] {
+  border-radius: var(--vp-radius-composer);
+}
+
+[data-slot='composer-surface'][data-vp='composer'] {
+  padding: 10px 12px;
+  border-width: 1px;
+  /* styles.css pins this colour with !important. */
+  border-color: var(--vp-line) !important;
+  border-radius: var(--vp-radius-composer);
+  background: var(--vp-bg);
+  box-shadow: none;
+}
+
+[data-slot='composer-surface'][data-vp='composer'] [data-slot='composer-fade'] {
+  min-height: 0;
+}
+
+[data-vp='composer-input'] {
+  min-height: var(--composer-input-min-height);
+  padding: 0;
+  font-size: var(--vp-text);
+  line-height: var(--vp-leading);
+}
+
+.vp-composer-left {
+  align-self: center;
+}
+
+.vp-composer-left > button,
+.vp-composer-left [data-slot='fan-menu-anchor'] > button {
+  display: inline-grid;
+  place-items: center;
+  width: var(--vp-hit);
+  height: var(--vp-hit);
+  padding: 0;
+  border: 1px solid var(--vp-line);
+  border-radius: var(--vp-radius-control);
+  background: var(--vp-bg);
+  color: var(--vp-ink);
+  opacity: 1;
+}
+
+.vp-composer-left [data-slot='fan-menu-anchor'] {
+  width: var(--vp-hit);
+  height: var(--vp-hit);
+}
+
+[data-vp='composer-send'] {
+  width: var(--vp-send);
+  height: var(--vp-send);
+  border-radius: 50%;
+}
+
+.vp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: auto;
+  padding: 1px 9px;
+  border: 1px solid var(--vp-line);
+  border-radius: 999px;
+  background: var(--vp-bg);
+  color: var(--vp-ink2);
+  font: inherit;
+  font-size: var(--vp-meta);
+  font-weight: 400;
+  line-height: var(--vp-leading);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.vp-chip:hover:not(:disabled) {
+  background: var(--vp-panel);
+  color: var(--vp-ink);
+}
+
+.vp-chip:focus-visible {
+  outline: 2px solid var(--vp-ring);
+  outline-offset: 2px;
+}
+
+.vp-chip:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.vp-hint {
+  margin: 8px 0 0;
+  padding-inline: 5px;
+  color: var(--vp-ink3);
+  font-size: var(--vp-meta);
+  line-height: var(--vp-leading);
+  text-align: center;
+}
+
+.vp-queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 0 5px;
+  list-style: none;
+}
+
+.vp-queue {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--vp-hair);
+  border-radius: var(--vp-radius-card);
+  background: var(--vp-bg);
+  color: var(--vp-ink2);
+  font-size: var(--vp-small);
+}
+
+.vp-queue[data-editing] {
+  border-color: var(--vp-ring);
+}
+
+.vp-queue-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.vp-queue-meta {
+  color: var(--vp-ink3);
+}
+
+.vp-queue-actions {
+  display: flex;
+  flex: none;
+  gap: 8px;
 }
