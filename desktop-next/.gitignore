@@ -5,3 +5,8 @@ pr-assets
 *.tsbuildinfo
 test-results
 playwright-report
+
+# generated packaging output (re-created by the build; never commit)
+apps/desktop/build/packager/
+apps/desktop/build/prepared-packaging-tools/
+*.zip
