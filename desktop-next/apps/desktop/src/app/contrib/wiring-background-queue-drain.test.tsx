@@ -104,7 +104,8 @@ vi.mock('./surfaces', () => ({
   ChatRoutesSurface: () => null,
   SidebarSurface: () => null,
   StatusbarSurface: () => null,
-  TerminalSurface: () => null
+  TerminalSurface: () => null,
+  TitlebarSurface: () => null
 }))
 vi.mock('../gateway/hooks/use-gateway-boot', () => ({ useGatewayBoot: () => ({}) }))
 vi.mock('../session/hooks/use-context-suggestions', () => ({ useContextSuggestions: () => ({}) }))

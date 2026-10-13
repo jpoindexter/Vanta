@@ -126,7 +126,7 @@ describe('tool feed visibility policy', () => {
     expect(await screen.findByText('final answer only')).toBeTruthy()
     expect(container.querySelector('[data-slot="aui_thinking-disclosure"]')).toBeNull()
     expect(container.querySelector('[data-tool-summary]')).toBeNull()
-    expect(screen.getByRole('button', { name: /Run/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Allow once/ })).toBeTruthy()
     expect(container.querySelectorAll('[data-tool-row]')).toHaveLength(1)
   })
 

@@ -114,7 +114,7 @@ it.each(Object.entries(receipts))(
     )
 
     if (receipt.changed) {
-      await waitFor(() => expect(liveUi.container.querySelector('[data-tool-row][data-file-edit]')).not.toBeNull())
+      await waitFor(() => expect(liveUi.container.querySelector('[data-vp="diff-card"]')).not.toBeNull())
     }
 
     cleanup()
@@ -145,23 +145,16 @@ it.each(Object.entries(receipts))(
         )
 
         await waitFor(() => {
-          expect(Boolean(ui.container.querySelector('[data-tool-row][data-file-edit]'))).toBe(receipt.changed)
+          expect(Boolean(ui.container.querySelector('[data-vp="diff-card"]'))).toBe(receipt.changed)
         })
 
         if (receipt.changed) {
           expect(ui.container.textContent).toContain('publish.py')
           expect(ui.container.textContent).not.toContain('unrelated later edit')
 
-          const diffLines = receipt.completion.inline_diff ?? (receipt.completion.result as { diff: string }).diff
-
-          const addition = parseAnsi(diffLines)
-            .map(segment => segment.text)
-            .join('')
-            .split('\n')
-            .find(line => line.includes('+print('))
-
-          expect(addition).toBeDefined()
-          expect(ui.container.textContent).toContain(addition!.slice(1))
+          // The diff itself lives in Review changes; the card carries the counts.
+          expect(ui.container.textContent).toContain('+1')
+          expect(ui.container.textContent).toContain('−1')
         }
 
         cleanup()

@@ -43,7 +43,7 @@ afterEach(() => {
   $toolDisclosureStates.set({})
 })
 
-it('keeps edit counts without code in either display mode and restores disclosure when disabled', async () => {
+it('summarises landed edits as counts without code, whatever the display mode', async () => {
   for (const toolName of ['patch', 'edit_file', 'write_file']) {
     const { container } = render(
       <ThreadRuntime messages={[editMessage(toolName)]}>
@@ -51,30 +51,26 @@ it('keeps edit counts without code in either display mode and restores disclosur
       </ThreadRuntime>
     )
 
-    await waitFor(() => expect(container.querySelector('[data-tool-row][data-file-edit]')).not.toBeNull())
-    const row = container.querySelector('[data-tool-row]')!
-    // An explicitly open historical row must not override the preference.
-    const toggle = row.querySelector('button[aria-expanded]')!
-    fireEvent.click(toggle)
-    fireEvent.click(toggle)
+    await waitFor(() => expect(container.querySelector('[data-vp="diff-card"]')).not.toBeNull())
+    const card = container.querySelector('[data-vp="diff-card"]')!
 
     for (const mode of ['product', 'technical'] as const) {
-      act(() => {
-        setToolViewMode(mode)
-        setHideCodeDiffs(true)
-      })
-      await waitFor(() => expect(row.hasAttribute('data-tool-open')).toBe(false))
-      expect(row.textContent).toContain('+2')
-      expect(row.textContent).toContain('−1')
-      expect(row.textContent).not.toContain('afterEdit')
-      expect(row.textContent).not.toContain('beforeEdit')
-      expect(row.querySelector('pre, code, button[aria-expanded]')).toBeNull()
-      expect($hideCodeDiffs.get()).toBe(true)
-      expect(localStorage.getItem('hermes.desktop.toolView.hideCodeDiffs')).toBe('true')
+      for (const hide of [true, false]) {
+        act(() => {
+          setToolViewMode(mode)
+          setHideCodeDiffs(hide)
+        })
+        expect(card.textContent).toContain('Edited 1 file')
+        expect(card.textContent).toContain('+2')
+        expect(card.textContent).toContain('−1')
+        expect(card.textContent).not.toContain('afterEdit')
+        expect(card.textContent).not.toContain('beforeEdit')
+        expect(card.querySelector('pre, code')).toBeNull()
+      }
     }
 
-    act(() => setHideCodeDiffs(false))
-    await waitFor(() => expect(row.hasAttribute('data-tool-open')).toBe(true))
+    // The landed edit has no row of its own: the card is its only presentation.
+    expect(container.querySelector('[data-tool-row][data-file-edit]')).toBeNull()
     cleanup()
   }
 })
