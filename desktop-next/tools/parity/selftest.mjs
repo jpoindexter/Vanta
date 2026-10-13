@@ -15,6 +15,7 @@ import { PARITY_DOCS, WIREFRAME_HTML, stringifyCompact, writeText } from "./io.m
 
 const EVIDENCE = path.join(PARITY_DOCS, "evidence");
 const MAP = path.join(PARITY_DOCS, "selector-map.json");
+const MAX_PRINTED = 10;
 const sha = (text) => crypto.createHash("sha256").update(text).digest("hex");
 const log = [];
 const say = (line) => {
@@ -77,7 +78,10 @@ async function negative(m) {
   const verdict = m.assert(pairs, run);
   const copyFails = run.copyRows.filter((c) => c.status === "FAIL").map((c) => c.state);
   say(`NEGATIVE ${m.id}: ${m.description}`);
-  for (const [id, states] of pairs) say(`  FAIL ${id} in ${states.length} state(s)${states.length < 4 ? ` (${states.join(", ")})` : ""}`);
+  const detail = [...pairs].map(([id, states]) => `FAIL ${id} in ${states.length} state(s)${states.length < 4 ? ` (${states.join(", ")})` : ""}`);
+  writeText(path.join(EVIDENCE, `negative-${m.id}.txt`), `${m.description}\n${detail.join("\n")}\n`);
+  detail.slice(0, MAX_PRINTED).forEach((d) => say(`  ${d}`));
+  if (detail.length > MAX_PRINTED) say(`  ... ${detail.length - MAX_PRINTED} more key:prop pairs (full list in evidence/negative-${m.id}.txt)`);
   say(`  copy rows FAIL: ${copyFails.length}`);
   say(`  other rows still PASS: ${run.summary.rows.PASS} of ${run.summary.rows.total}`);
   say(`NEGATIVE ${m.id}: ${verdict.ok ? "PASS" : "FAIL"} - ${verdict.why}`);
