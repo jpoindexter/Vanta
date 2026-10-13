@@ -32,8 +32,18 @@ export const electronOutputs = Object.freeze({
   main: 'electron-main.mjs', preload: 'electron-preload.js', previewGuestPreload: 'preview-guest-preload.js',
 })
 
+// Which main/preload pair to bundle. 'vanta' is the Vanta shell (electron/vanta/*): it boots the Vanta
+// server and exposes the bridge facade. 'hermes' is the imported Hermes main, kept only until the old
+// renderer is retired (DN-14), and still pinned by bundle-electron-main.test.mjs.
+const shellEntries = Object.freeze({
+  hermes: { main: 'apps/desktop/electron/entry.ts', preload: 'apps/desktop/electron/preload.ts' },
+  vanta: { main: 'apps/desktop/electron/vanta/entry.ts', preload: 'apps/desktop/electron/vanta/preload.ts' },
+})
+
 /** Bundle main/preload using only the prepared workspace's compiler. */
-export async function bundleElectronMain({ source, out, stamp, dev = false }) {
+export async function bundleElectronMain({ source, out, stamp, dev = false, shell = process.env.VANTA_DESKTOP_SHELL || 'vanta' }) {
+  const entries = shellEntries[shell]
+  if (!entries) throw new Error(`Unknown desktop shell "${shell}". Use "vanta" or "hermes".`)
   source = resolve(source)
   out = resolve(out)
   const { build } = await import(pathToFileURL(workspaceTool(source, 'apps/desktop', 'esbuild')).href)
@@ -67,14 +77,14 @@ export async function bundleElectronMain({ source, out, stamp, dev = false }) {
     ...common,
     // entry.ts picks the Linux ozone platform (native Wayland/WSLg) and
     // relaunches before main.ts loads; Electron reads it only from argv.
-    entryPoints: [join(source, 'apps/desktop/electron/entry.ts')],
+    entryPoints: [join(source, entries.main)],
     format: 'esm',
     outfile: join(out, electronOutputs.main),
     banner: { js: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);" + envBanner },
   })
   await build({
     ...common,
-    entryPoints: [join(source, 'apps/desktop/electron/preload.ts')],
+    entryPoints: [join(source, entries.preload)],
     format: 'cjs',
     outfile: join(out, electronOutputs.preload),
   })
@@ -92,7 +102,7 @@ export async function bundleElectronMain({ source, out, stamp, dev = false }) {
 if (isMain(import.meta.url)) {
   const { values } = parseArgs({ options: {
     source: { type: 'string', default: repoRoot },
-    out: { type: 'string' }, stamp: { type: 'string' }, dev: { type: 'boolean' },
+    out: { type: 'string' }, stamp: { type: 'string' }, dev: { type: 'boolean' }, shell: { type: 'string' },
   } })
   await bundleElectronMain({
     ...values,
