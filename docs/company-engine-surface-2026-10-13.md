@@ -112,3 +112,40 @@ Consequences for the desktop:
 
 This track adds a `WorkerRuntime` port and one native adapter. It does not add
 external CLI workers; that is an open question at the end of this file.
+
+## Desktop company API (implemented in this track)
+
+Route and event contract: `vanta-ts/src/desktop/CLAUDE.md`, section "Company API (DN-18)".
+Source map: `company-*.ts` in `vanta-ts/src/desktop/`. Tests: `company-read-routes.test.ts`,
+`company-write-routes.test.ts`, `company-flow.test.ts` (real stores in a temp `VANTA_HOME`; only the
+worker runtime is stubbed).
+
+How the four gaps above were closed:
+
+1. Ticket to task join: same id. Assign creates the task; status is derived from both.
+2. Launch: a `WorkerRuntime` port with one adapter, the Vanta native loop. It honours the hired worker's
+   adapter and model, which `team run` ignores. Runs are checked out atomically (`checkoutTask`), one per
+   worker, FIFO queued, and close through `advanceTask` so outcome and review gates apply.
+3. Cost: each run is recorded in `company-runs.jsonl` with usage, cost and basis, a `worker:<id>` row goes
+   to the spend ledger, and `agent:<id>` / `dept:<id>` scopes are metered with `enforceScopeBudget`.
+4. Activity: `company-activity.jsonl`, mirrored to the kernel log when a session is live.
+
+Engine edits (the only ones): `subagent/spawn.ts` takes an optional `signal` so pause can abort a run.
+Everything else reuses the existing readers and writers.
+
+### Decisions taken (owner defaults, 2026-10-13)
+
+- Company events are broadcast to every connected client.
+- Pause aborts the in-flight run.
+- Budget changes are journaled in the company activity log, not config-revisions (that file is `.env` history
+  and `vanta config rollback` writes it back into `.env`).
+
+### Not verified, not built
+
+- The native adapter has only run against injected seams. It has not run against a live kernel or provider.
+- No Claude Code, Codex or Hermes worker. They remain `call_agent` tools without ticket, cost or work-product link.
+- Self-org proposals (ratify or reject), handoffs, skill exchange, playbooks, delegated authority and the
+  company template have READY engine functions but no desktop route yet.
+- `vanta heartbeat` and the CLI `team run` do not honour `paused`; the desktop dispatch path and the tick do.
+- Stores are whole-file JSON. The per-home lock covers the desktop process only; a CLI write at the same
+  moment can still interleave.
