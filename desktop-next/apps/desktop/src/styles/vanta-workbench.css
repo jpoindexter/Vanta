@@ -1,0 +1,156 @@
+/* Workbench: 400px docked at >=1280, right overlay 1024-1279, full sheet below.
+   The overlay and sheet modes position against the app root (the shell mounts
+   `.vp-wb` inside a positioned container whose top edge is the titlebar). */
+.vp-wb {
+  background: var(--vp-bg);
+  border-left: 1px solid var(--vp-hair);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 400px;
+}
+
+.vp-wb--overlay {
+  bottom: 0;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 25%);
+  position: absolute;
+  right: 0;
+  top: var(--vp-titlebar);
+  z-index: 5;
+}
+
+.vp-wb--sheet {
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: var(--vp-titlebar);
+  width: auto;
+  z-index: 5;
+}
+
+.vp-wb__tabs {
+  align-items: center;
+  border-bottom: 1px solid var(--vp-hair);
+  display: flex;
+  gap: 2px;
+  overflow: auto;
+  padding: 6px 8px;
+}
+
+.vp-wb__tablist {
+  display: flex;
+  gap: 2px;
+}
+
+.vp-wb__tabs .vp-btn {
+  border-color: transparent;
+  border-radius: 8px;
+}
+
+.vp-wb__tabs .vp-btn[aria-selected='true'] {
+  background: var(--vp-bg3);
+  color: var(--vp-ink);
+}
+
+.vp-wb__close {
+  margin-left: auto;
+}
+
+.vp-wb__body {
+  flex: 1;
+  font-size: 13px;
+  overflow: auto;
+  padding: 12px;
+}
+
+.vp-code {
+  background: var(--vp-bg2);
+  border: 1px solid var(--vp-hair);
+  border-radius: 6px;
+  font: 12px/1.5 var(--vp-mono);
+  margin-bottom: 8px;
+  overflow-x: auto;
+  padding: 6px 8px;
+  white-space: pre-wrap;
+}
+
+.vp-code--flush {
+  margin-bottom: 0;
+}
+
+.vp-diff-add {
+  color: var(--vp-ink);
+}
+
+.vp-diff-del {
+  color: var(--vp-ink2);
+}
+
+.vp-ph {
+  border: 1px dashed var(--vp-line);
+  border-radius: 8px;
+  color: var(--vp-ink3);
+  display: grid;
+  font-size: 12px;
+  min-height: 90px;
+  place-items: center;
+}
+
+.vp-urlbar {
+  background: var(--vp-bg);
+  border: 1px solid var(--vp-line);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+}
+
+.vp-urlbar input {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  outline: none;
+  width: 100%;
+}
+
+.vp-urlbar:focus-within {
+  border-color: var(--vp-focus);
+  box-shadow: 0 0 0 1px var(--vp-focus);
+}
+
+.vp-tree {
+  white-space: pre;
+}
+
+.vp-tree button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: 4px;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.vp-tree button:hover,
+.vp-tree button[aria-current='true'] {
+  background: var(--vp-bg3);
+}
+
+.vp-tree button:focus-visible {
+  outline: 2px solid var(--vp-focus);
+  outline-offset: -2px;
+}
+
+.vp-tab-state {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
