@@ -42,7 +42,7 @@ describe("Desktop each-time approval eligibility", () => {
   it("still saves an eligible ordinary tool before approving", async () => {
     const pending = pendingRequest();
     await resolveApproval(pending, "always");
-    expect(grantAlways).toHaveBeenCalledExactlyOnceWith("edit_file");
+    expect(grantAlways).toHaveBeenCalledExactlyOnceWith("edit_file", process.env, undefined);
     expect(pending.resolve).toHaveBeenCalledExactlyOnceWith(true);
     expect(vi.mocked(grantAlways).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(pending.resolve).mock.invocationCallOrder[0]!);
   });
