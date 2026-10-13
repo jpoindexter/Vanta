@@ -118,4 +118,4 @@ Totals: PASS 50, INERT 18, NOT-RUN 24, DROPPED 6
 | SET-NOBILL | settings | Settings has no Billing section | PASS |  |
 | SET-NOGW | settings | Settings has no Gateways section | PASS |  |
 
-Renderer errors seen (18): Error: unsupported: getOnBattery is not available in Vanta Desktop yet ; Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet ; Error: unsupported: signalDeepLinkReady is not available in Vanta Desktop yet ; Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet ; Error: unsupported: signalDeepLinkReady is not available in Vanta Desktop yet ; Error: unsupported: signalDeepLinkReady is not available in Vanta Desktop yet
+Renderer errors seen (2): Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet ; Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet
