@@ -197,7 +197,7 @@ function withOptionalCells(
 }
 
 /** Read all cron entries from <dataDir>/cron.tsv, or [] if absent. */
-async function loadLegacyCron(dataDir: string): Promise<CronEntry[]> {
+export async function loadLegacyCron(dataDir: string): Promise<CronEntry[]> {
   let raw = "";
   try {
     raw = await readFile(cronPath(dataDir), "utf8");

@@ -9,9 +9,12 @@ export type ControlCtx = {
   res: http.ServerResponse;
   state: DesktopState;
   pathname: string;
+  /** Captured groups of the matched path pattern, URL-decoded; empty for exact routes. */
+  params: string[];
 };
 export type ControlHandler = (ctx: ControlCtx) => Promise<void>;
 export type ControlTable = Record<string, ControlHandler>;
+export type ControlPattern = [path: RegExp, handler: ControlHandler];
 
 export function sendFail(res: http.ServerResponse, status: number, error: string): void {
   sendJson(res, status, { error });
