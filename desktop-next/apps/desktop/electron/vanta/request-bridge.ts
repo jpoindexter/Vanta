@@ -34,7 +34,7 @@ const refused = (message: string): VantaResult => ({ data: { error: message }, o
  * crosses to the renderer; every input is validated here before it becomes an HTTP call.
  */
 export class RequestBridge {
-  private readonly streams = new Map<string, { sink: FrameSink; stop: () => void }>()
+  private readonly streams = new Map<string, { clientId: string; sink: FrameSink; stop: () => void }>()
 
   constructor(
     private readonly transport: VantaTransport,
@@ -81,9 +81,14 @@ export class RequestBridge {
       onFrame: frame => this.push(sink, this.channels.frame, streamId, frame)
     })
 
-    this.streams.set(key, { sink, stop })
+    this.streams.set(key, { clientId, sink, stop })
 
     return { ok: true }
+  }
+
+  /** The chat whose event stream this window opened most recently and still has open: where an approval card would show. */
+  latestClientFor(sink: FrameSink): string | undefined {
+    return [...this.streams.values()].reverse().find(stream => stream.sink.id === sink.id)?.clientId
   }
 
   closeStream(sink: FrameSink, streamId: string): void {

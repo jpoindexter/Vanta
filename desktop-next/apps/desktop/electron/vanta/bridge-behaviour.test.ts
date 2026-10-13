@@ -135,3 +135,40 @@ describe('vanta event streams over IPC', () => {
     expect(sent.filter(call => call[0] === CH.eventsClose)).toHaveLength(1)
   })
 })
+
+describe('terminal members', () => {
+  it('start, write, resize, attach, cwd and dispose go to the main process, and data is filtered by terminal id', async () => {
+    const { emit, invoked, ipc } = fakeIpc({ id: 'vt1' })
+    const desktop = buildHermesDesktop(env(ipc)) as Record<string, any>
+    const seen: string[] = []
+    const exits: unknown[] = []
+
+    await desktop.terminal.start({ cols: 80, rows: 24 })
+    await desktop.terminal.write('vt1', 'ls\r')
+    await desktop.terminal.resize('vt1', { cols: 100, rows: 30 })
+    await desktop.terminal.attach('vt1')
+    await desktop.terminal.cwd('vt1')
+    await desktop.terminal.dispose('vt1')
+
+    expect(invoked.map(call => call[0])).toEqual([
+      CH.terminalStart,
+      CH.terminalWrite,
+      CH.terminalResize,
+      CH.terminalAttach,
+      CH.terminalCwd,
+      CH.terminalDispose
+    ])
+
+    const off = desktop.terminal.onData('vt1', (data: string) => seen.push(data))
+    desktop.terminal.onExit('vt1', (exit: unknown) => exits.push(exit))
+    emit(CH.terminalData, 'vt1', 'hello')
+    emit(CH.terminalData, 'vt2', 'someone else')
+    emit(CH.terminalExit, 'vt2', { code: 0, signal: null })
+    emit(CH.terminalExit, 'vt1', { code: 0, signal: null })
+    off()
+    emit(CH.terminalData, 'vt1', 'after unsubscribe')
+
+    expect(seen).toEqual(['hello'])
+    expect(exits).toEqual([{ code: 0, signal: null }])
+  })
+})

@@ -55,7 +55,7 @@ describe('window.hermesDesktop surface', () => {
     }
 
     // What stays unsupported on purpose: pty, updater, cloud and pool, plugin installs, pets, file writes.
-    for (const name of ['terminal.start', 'updates.check', 'cloud.status', 'petOverlay.open', 'writeTextFile', 'installDesktopPlugin']) {
+    for (const name of ['updates.check', 'cloud.status', 'petOverlay.open', 'writeTextFile', 'installDesktopPlugin']) {
       expect(real.has(name)).toBe(false)
     }
 
@@ -67,7 +67,7 @@ describe('window.hermesDesktop surface', () => {
 
     await expect(desktop.getPoolLimits()).rejects.toThrow(`${UNSUPPORTED_PREFIX} getPoolLimits is not available`)
     await expect(desktop.git.review.commitContext()).rejects.toThrow('git.review.commitContext')
-    await expect(desktop.terminal.start()).rejects.toThrow('terminal.start')
+    await expect(desktop.updates.check()).rejects.toThrow('updates.check')
   })
 
   it('gives unimplemented subscriptions a no-op unsubscribe, flags false and facts null', () => {
