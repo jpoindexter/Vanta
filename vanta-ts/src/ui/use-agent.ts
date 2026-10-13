@@ -130,7 +130,7 @@ function convoConfig(deps: AgentDeps, scope?: TurnScope): Parameters<typeof crea
       if (name === "todo") void refreshTodos(deps.dispatch); // reflect plan edits live
     },
     requestApproval: (action, reason, toolName, detail) =>
-      requestApprovalWithTaskScope({ taskApprovals: deps.taskApprovals, setPending: deps.setPending, action, reason, toolName, detail }),
+      requestApprovalWithTaskScope({ taskApprovals: deps.taskApprovals, setPending: deps.setPending, action, reason, toolName, detail, root: deps.repoRoot }),
     requestQuestion: (questions) =>
       new Promise((resolve) => deps.setPendingQuestion({ questions, resolve })),
   };

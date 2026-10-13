@@ -11,6 +11,8 @@ export type ApprovalScopeInput = {
 
 /** A pending approval, including whether the effective policy permits reuse. */
 export type Pending = ApprovalScopeInput & {
+  /** Project root a saved "don't ask again" rule is limited to. */
+  root?: string;
   canContinueTask?: boolean;
   grantTask?: () => void;
   resolve: (ok: boolean) => void;
@@ -74,12 +76,14 @@ export function requestApprovalWithTaskScope(options: {
   reason: string;
   toolName?: string;
   detail?: ApprovalDetail;
+  root?: string;
 }): Promise<boolean> {
-  const { taskApprovals, setPending, action, reason, toolName, detail } = options;
+  const { taskApprovals, setPending, action, reason, toolName, detail, root } = options;
   const input = { action, reason, toolName, fresh: detail?.fresh, canRemember: detail?.canRemember };
   if (taskApprovals.allows(input)) return Promise.resolve(true);
   return new Promise<boolean>((resolve) => setPending({
     ...input,
+    root,
     canContinueTask: canContinueTask(input),
     grantTask: () => { taskApprovals.grant(input); },
     resolve,

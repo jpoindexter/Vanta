@@ -44,7 +44,7 @@ describe("desktop approval persistence", () => {
     let finish!: () => void;
     grant.mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve; }));
     const operation = resolveApproval(p, decision);
-    expect(grant).toHaveBeenCalledExactlyOnceWith("shell_cmd");
+    expect(grant).toHaveBeenCalledExactlyOnceWith("shell_cmd", process.env, undefined);
     expect(p.resolve).not.toHaveBeenCalled();
     finish();
     await operation;
