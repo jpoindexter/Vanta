@@ -1179,7 +1179,7 @@ export function botHandle(name: string, bot?: Partial<RosterRow> | null): string
  *  display name (`hermes profile rename`) and the Bot Mode title. Free text
  *  reduces to the mention charset two ways: slugified ("Research Buddy" →
  *  research-buddy, the form autocomplete inserts) and collapsed
- *  (researchbuddy). Reserved tokens are dropped so a bot renamed "Vanta"
+ *  (researchbuddy). Reserved tokens are dropped so a bot renamed "Hermes"
  *  can never hijack the primary profile's @hermes alias. */
 export function mentionNameForms(value: null | string | undefined): string[] {
   const name = String(value || '')

@@ -486,7 +486,7 @@ describe('useStatusSnapshot', () => {
     await flushAsync()
     expect(result.current.inferenceStatus).toMatchObject({ ready: false, source: 'runtime_check' })
 
-    // User leaves Hermes for the browser to complete OAuth; no focus event fires.
+    // User leaves Vanta for the browser to complete OAuth; no focus event fires.
     vi.mocked(document.hasFocus).mockReturnValue(false)
     healthy = true
 

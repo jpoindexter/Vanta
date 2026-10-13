@@ -31,7 +31,7 @@ test('the current CLI "Not installed:" tail parses into findings + trust', () =>
   const hardBlock = [
     'Scan: 3 findings. Verdict: DANGEROUS',
     "Not installed: the security scan found 3 high-risk pattern(s) in 'org/skill' (listed above). " +
-      'Hermes never installs unverified skills with high-risk findings, even with --force. ' +
+      'Vanta never installs unverified skills with high-risk findings, even with --force. ' +
       'Review the findings or ask the author to fix them; to read the skill without installing, run `hermes skills inspect org/skill`.'
   ]
 
@@ -56,7 +56,7 @@ test('the current CLI "Not installed:" tail parses into findings + trust', () =>
   // hard-block clause between "never" and "installs" (seen on a live arxiv install).
   const wrappedHardBlock = [
     'Not installed: the security scan found 9 high-risk pattern(s) in ',
-    "'NousResearch/hermes-agent/skills/research/arxiv' (listed above). Hermes never ",
+    "'NousResearch/hermes-agent/skills/research/arxiv' (listed above). Vanta never ",
     'installs unverified skills with high-risk findings, even with --force. Review '
   ]
 

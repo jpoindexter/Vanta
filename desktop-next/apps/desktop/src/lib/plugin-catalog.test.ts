@@ -77,7 +77,7 @@ describe('lookupPluginCatalogEntry', () => {
 
   it('reads an unreachable backend as unavailable, without fetching', async () => {
     const request: CatalogRequest = async () => {
-      throw new Error('Hermes gateway unavailable for profile "default"')
+      throw new Error('Vanta gateway unavailable for profile "default"')
     }
 
     await expect(lookupPluginCatalogEntry('weather', { fetchImpl: noFetch, request })).resolves.toEqual({
@@ -108,7 +108,7 @@ describe('sendWhenGatewayOpen', () => {
 
     await expect(
       sendWhenGatewayOpen(send, { state: atom<ConnectionState>('connecting'), timeoutMs: 10 })
-    ).rejects.toThrow('Hermes backend did not connect')
+    ).rejects.toThrow('Vanta backend did not connect')
     expect(send).not.toHaveBeenCalled()
   })
 })

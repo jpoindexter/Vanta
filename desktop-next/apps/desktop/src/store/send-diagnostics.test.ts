@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+const endpoints = vi.hoisted(() => ({ configured: true }))
+
+vi.mock('@/lib/vanta-endpoints', async importOriginal => ({
+  ...(await importOriginal<typeof import('@/lib/vanta-endpoints')>()),
+  isDiagnosticsUploadConfigured: () => endpoints.configured
+}))
+
 import { $gateway } from '@/store/gateway'
 import {
   $sendDiagnostics,
@@ -32,7 +39,27 @@ function stubDesktopLogs(lines: null | string[]) {
 describe('send-diagnostics store', () => {
   afterEach(() => {
     $sendDiagnostics.set(null)
+    endpoints.configured = true
     vi.restoreAllMocks()
+  })
+
+  it('reports "not configured" on confirm and never reaches the backend when no endpoint is set', async () => {
+    endpoints.configured = false
+    const request = vi.fn()
+    const restore = stubGateway(request)
+
+    try {
+      requestSendDiagnostics('layer: provider')
+      await confirmSendDiagnostics()
+
+      expect(request).not.toHaveBeenCalled()
+      expect($sendDiagnostics.get()).toMatchObject({
+        error: expect.stringContaining('not configured'),
+        phase: 'error'
+      })
+    } finally {
+      restore()
+    }
   })
 
   it('opens in consent phase without any network I/O', () => {

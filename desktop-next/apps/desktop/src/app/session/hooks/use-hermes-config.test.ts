@@ -88,7 +88,7 @@ describe('useHermesConfig refreshHermesConfig', () => {
   // composer reseed. The profile default must still be published, because the
   // model picker resolves "the default effort" from it when applying a model's
   // preset — otherwise selecting a model silently downgrades a configured
-  // `agent.reasoning_effort: high` to Hermes' built-in medium.
+  // `agent.reasoning_effort: high` to Vanta' built-in medium.
   it('publishes the profile default effort even when a manual pick blocks the composer reseed', async () => {
     setCurrentModelSource('manual')
     setCurrentReasoningEffort('low')

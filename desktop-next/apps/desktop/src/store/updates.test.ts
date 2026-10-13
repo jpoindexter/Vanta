@@ -42,6 +42,15 @@ vi.mock('@/lib/storage', () => ({
   storedString: (key: string) => storage.get(key) ?? null
 }))
 
+// The renderer only talks to the update bridge when a Vanta feed is configured;
+// these suites exercise that path, and the "not configured" block below flips it off.
+const feed = { configured: true }
+
+vi.mock('@/lib/vanta-endpoints', async importOriginal => ({
+  ...(await importOriginal<typeof import('@/lib/vanta-endpoints')>()),
+  isUpdateFeedConfigured: () => feed.configured
+}))
+
 const notifySpy = vi.fn()
 const dismissSpy = vi.fn()
 
@@ -470,7 +479,7 @@ describe('checkBackendUpdates', () => {
   })
 })
 
-// The ⌘K "Update Hermes" row. It used to call applyBackendUpdate() flat, which
+// The ⌘K "Update Vanta" row. It used to call applyBackendUpdate() flat, which
 // in local mode aimed at the backend checkout instead of the client and, with
 // no overlay open, showed nothing at all.
 describe('requestActiveUpdate', () => {
@@ -572,7 +581,7 @@ describe('requestActiveUpdate', () => {
       ok: false,
       name: 'hermes-update',
       error: 'dashboard_update_managed_externally',
-      message: 'Hermes updates are managed outside this dashboard in containerized environments.',
+      message: 'Vanta updates are managed outside this dashboard in containerized environments.',
       update_command: ''
     })
 
@@ -1078,7 +1087,7 @@ describe('applyUpdates terminal state', () => {
       guiUpdated: false,
       manualRestart: true,
       sandboxBlocked: true,
-      message: 'Backend updated. Quit and reopen Hermes to finish.'
+      message: 'Backend updated. Quit and reopen Vanta to finish.'
     })
 
     const result = await applyUpdates()
@@ -1886,5 +1895,54 @@ describe('discontinued retirement notice', () => {
     await checkUpdates({ force: true })
 
     expect(notifySpy.mock.calls.filter(call => call[0]?.id === 'desktop-build-discontinued')).toHaveLength(0)
+  })
+})
+
+describe('no update feed configured', () => {
+  const checkMock = vi.fn()
+  const applyMock = vi.fn()
+  const onProgressMock = vi.fn()
+
+  beforeEach(() => {
+    feed.configured = false
+    checkMock.mockReset()
+    applyMock.mockReset()
+    onProgressMock.mockReset()
+    $updateStatus.set(null)
+    ;(globalThis as unknown as { window: unknown }).window = {
+      hermesDesktop: { updates: { apply: applyMock, check: checkMock, onProgress: onProgressMock } },
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
+    }
+    stopUpdatePoller()
+  })
+
+  afterEach(() => {
+    stopUpdatePoller()
+    feed.configured = true
+    delete (globalThis as unknown as { window?: unknown }).window
+  })
+
+  it('checkUpdates reports "not configured" and never calls the bridge', async () => {
+    const result = await checkUpdates({ force: true })
+
+    expect(checkMock).not.toHaveBeenCalled()
+    expect(result).toMatchObject({ supported: false, message: en.updates.notConfigured })
+    expect($updateStatus.get()).toEqual(result)
+  })
+
+  it('the poller shows the same state without checking or subscribing to progress', () => {
+    startUpdatePoller()
+
+    expect(checkMock).not.toHaveBeenCalled()
+    expect(onProgressMock).not.toHaveBeenCalled()
+    expect($updateStatus.get()).toMatchObject({ supported: false, message: en.updates.notConfigured })
+  })
+
+  it('applyUpdates refuses without calling the bridge', async () => {
+    const result = await applyUpdates()
+
+    expect(applyMock).not.toHaveBeenCalled()
+    expect(result).toMatchObject({ error: 'not-configured', ok: false })
   })
 })

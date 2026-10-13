@@ -123,7 +123,7 @@ describe('useSlashCompletions', () => {
   })
 
   // An alphabetical `/` menu buries the skills someone runs daily under the
-  // ones that shipped with Hermes and were never opened.
+  // ones that shipped with Vanta and were never opened.
   it('orders skills by use and hides never-used built-ins on a bare slash', async () => {
     const request = vi.fn().mockResolvedValue(RANKED_CATALOG)
     const api = harness({ request } as unknown as HermesGateway)

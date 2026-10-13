@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { HermesConnection } from '@/global'
-import type * as Hermes from '@/hermes'
+import type * as Vanta from '@/hermes'
 import type { LocalCatalogModel, LocalModelsStatus } from '@/types/hermes'
 
 const backend = vi.hoisted(() => ({ catalog: vi.fn(), status: vi.fn() }))
 
 vi.mock('@/hermes', async importOriginal => ({
-  ...(await importOriginal<typeof Hermes>()),
+  ...(await importOriginal<typeof Vanta>()),
   getLocalCatalog: () => backend.catalog(),
   getLocalModelsStatus: () => backend.status()
 }))

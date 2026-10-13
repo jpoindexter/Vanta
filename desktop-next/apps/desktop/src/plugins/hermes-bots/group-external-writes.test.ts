@@ -7,7 +7,7 @@ import { createGroupGateway, drain, runTimersInline, scriptedStorage } from './g
 import type { GatewayOptions, ScriptedGateway } from './group-test-utils'
 import type { GroupChat, GroupMember } from './types'
 
-// #93813: a member's per-group session is a plain Hermes session, so the CLI
+// #93813: a member's per-group session is a plain Vanta session, so the CLI
 // (`hermes -p <bot> chat --resume "Group: …"`), cron and the agent's tools
 // write to it too. Those rows must reach the room log — once — or the room
 // silently diverges from what the member actually said.

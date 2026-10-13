@@ -80,7 +80,7 @@ function Harness({ messages }: { messages: ThreadMessage[] }) {
   )
 }
 
-const DELIVERY = 'Message from 🤖 Hermes (@hermes): please check the build'
+const DELIVERY = 'Message from 🤖 Vanta (@hermes): please check the build'
 
 /** This bot's own `message_agent` dispatch to a teammate (a Bot Chat turn). */
 function dispatch(id: string, target: string): ThreadMessage {
@@ -111,7 +111,7 @@ describe('inter-agent collapse gate', () => {
       <Harness
         messages={[
           user('u1', 'ask hermes for the list'),
-          dispatch('a0', '@Hermes'),
+          dispatch('a0', '@Vanta'),
           user('u2', DELIVERY),
           assistant('a1', 'here is the list hermes sent', false)
         ]}
@@ -140,12 +140,12 @@ describe('inter-agent collapse gate', () => {
       <Harness
         messages={[
           user('u1', 'ask hermes for the list'),
-          dispatch('a0', '@Hermes'),
+          dispatch('a0', '@Vanta'),
           user('u2', DELIVERY),
           assistant('a1', 'here is the list hermes sent', false),
           user('u3', 'ok thanks'),
           assistant('a2', 'anytime', false),
-          user('u4', 'Message from 🤖 Hermes (@hermes): unsolicited: build broke'),
+          user('u4', 'Message from 🤖 Vanta (@hermes): unsolicited: build broke'),
           assistant('a3', 'on it, checking the build', false)
         ]}
       />
