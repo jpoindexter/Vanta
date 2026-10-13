@@ -188,7 +188,7 @@ export function ListRow({
               {description}
             </div>
           )}
-          {hint && <div className="mt-1 block font-mono text-[0.68rem] text-muted-foreground/45">{hint}</div>}
+          {hint && <div className="mt-1 block font-mono text-[0.75rem] text-muted-foreground/45">{hint}</div>}
           {below}
         </div>
         {!wide && action && (

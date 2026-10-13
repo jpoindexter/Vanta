@@ -43,7 +43,7 @@ export function PrTag({
         // A flex box doesn't pass text-decoration down to its items, so the
         // underline goes on the number itself rather than the chip.
         className={cn(
-          'group/pr flex shrink-0 items-center gap-0.5 text-[0.625rem] leading-none tabular-nums',
+          'group/pr flex shrink-0 items-center gap-0.5 text-[0.75rem] leading-none tabular-nums',
           style.className,
           className
         )}

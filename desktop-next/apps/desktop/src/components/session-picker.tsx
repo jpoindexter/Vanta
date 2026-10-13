@@ -56,7 +56,7 @@ export function SessionPickerDialog({ activeStoredSessionId, onOpenChange, onRes
             <CommandList className="max-h-[min(24rem,60vh)]">
               <CommandEmpty>{t.commandCenter.noResults}</CommandEmpty>
               <CommandGroup
-                className="**:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:tracking-wider **:[[cmdk-group-heading]]:text-[0.6875rem] **:[[cmdk-group-heading]]:text-muted-foreground/70"
+                className="**:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:tracking-wider **:[[cmdk-group-heading]]:text-[0.75rem] **:[[cmdk-group-heading]]:text-muted-foreground/70"
                 heading={t.commandCenter.sections.sessions}
               >
                 {sessions.map(session => {

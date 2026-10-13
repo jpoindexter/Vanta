@@ -15,7 +15,7 @@ export function OnboardingSkip() {
   return (
     <Tip label="Switching you over to your default profile">
       <button
-        className="ml-auto text-[11px] text-(--ui-text-quaternary) transition-colors hover:text-(--ui-text-secondary)"
+        className="ml-auto text-[0.75rem] text-(--ui-text-quaternary) transition-colors hover:text-(--ui-text-secondary)"
         onClick={skipIntro}
         type="button"
       >

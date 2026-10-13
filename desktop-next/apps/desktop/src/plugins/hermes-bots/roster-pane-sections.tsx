@@ -142,7 +142,7 @@ export function rosterSectionRenderers({
               ) : (
                 // Empty section: a quiet dashed slot that says what it is for,
                 // and doubles as a roomy drop target.
-                <div className="mx-1 mb-1 rounded-md border border-dashed border-(--ui-stroke-secondary) px-2 py-2 text-center text-[0.6875rem] text-(--ui-text-quaternary)">
+                <div className="mx-1 mb-1 rounded-md border border-dashed border-(--ui-stroke-secondary) px-2 py-2 text-center text-[0.75rem] text-(--ui-text-quaternary)">
                   {b.sections.emptyHint}
                 </div>
               )}
@@ -194,7 +194,7 @@ export function rosterSectionRenderers({
 
   const renderHiddenGatewaySection = (section: ResolvedRosterGatewaySection) => (
     <div className="min-w-0" key={`hidden-gateway:${section.id}`}>
-      <div className="flex min-w-0 items-center gap-1.5 px-2 py-1 text-[0.625rem] font-semibold uppercase tracking-wider text-(--ui-text-quaternary)">
+      <div className="flex min-w-0 items-center gap-1.5 px-2 py-1 text-[0.75rem] font-semibold uppercase tracking-wider text-(--ui-text-quaternary)">
         <GatewayKindGlyph kind={section.option?.kind} />
         <span className="min-w-0 flex-1 truncate">
           {section.option?.label || section.option?.connectionId || 'Current gateway'}

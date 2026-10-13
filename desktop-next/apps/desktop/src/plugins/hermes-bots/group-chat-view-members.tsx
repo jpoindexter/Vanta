@@ -219,7 +219,7 @@ export function GroupMemberPicker({ group, members, open, onClose }: GroupMember
                 />
                 <div className="min-w-0 flex-1 text-left">
                   <div className="truncate text-xs text-foreground">{displayName(bot, meta)}</div>
-                  <div className="truncate text-[0.625rem] text-(--ui-text-quaternary)">
+                  <div className="truncate text-[0.75rem] text-(--ui-text-quaternary)">
                     {`@${botHandle(bot.name, bot)}${bot.remoteSource && bot.connectionLabel ? ` · ${bot.connectionLabel}` : ''}`}
                   </div>
                 </div>

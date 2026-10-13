@@ -52,7 +52,7 @@
 
 .driver-popover-progress-text {
   color: var(--ui-text-tertiary);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
 }
 

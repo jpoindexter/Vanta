@@ -329,7 +329,7 @@ function CronJobSidebarRow({
           actions={
             /* Trailing cluster: countdown by default, quick actions on hover. */
             <div className="flex items-center gap-0.5">
-              <span className="text-[0.6875rem] text-(--ui-text-tertiary) tabular-nums group-hover/cron:hidden">
+              <span className="text-[0.75rem] text-(--ui-text-tertiary) tabular-nums group-hover/cron:hidden">
                 {meta}
               </span>
               <div className="hidden items-center gap-0.5 group-hover/cron:flex">
@@ -463,18 +463,18 @@ function CronJobSidebarRuns({
   return (
     <div className="mb-1 ml-[1.375rem] flex flex-col gap-px">
       {runs === null ? (
-        <div className="flex items-center gap-1.5 py-1 pl-1 text-[0.6875rem] text-(--ui-text-tertiary)">
+        <div className="flex items-center gap-1.5 py-1 pl-1 text-[0.75rem] text-(--ui-text-tertiary)">
           <GlyphSpinner ariaLabel={c.loading} className="text-[0.75rem]" />
         </div>
       ) : runs.length === 0 ? (
-        <div className="py-1 pl-1 text-[0.6875rem] text-(--ui-text-tertiary)">{c.noRuns}</div>
+        <div className="py-1 pl-1 text-[0.75rem] text-(--ui-text-tertiary)">{c.noRuns}</div>
       ) : (
         <>
           {runs.map(run =>
             isSyntheticCronOutputRun(run) ? (
               // Output-doc rows have no backing session to open.
               <div
-                className="truncate rounded-md px-1.5 py-0.5 text-[0.6875rem] text-(--ui-text-secondary) tabular-nums"
+                className="truncate rounded-md px-1.5 py-0.5 text-[0.75rem] text-(--ui-text-secondary) tabular-nums"
                 key={run.id}
               >
                 {formatRunTime(run.last_active || run.started_at)}
@@ -484,7 +484,7 @@ function CronJobSidebarRuns({
               // closed (watchdog kill / crash) opens view-only (#88443).
               <button
                 className={cn(
-                  'truncate rounded-md px-1.5 py-0.5 text-left text-[0.6875rem] tabular-nums focus-visible:bg-(--chrome-action-hover) focus-visible:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+                  'truncate rounded-md px-1.5 py-0.5 text-left text-[0.75rem] tabular-nums focus-visible:bg-(--chrome-action-hover) focus-visible:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
                   run.id === selectedSessionId
                     ? 'bg-(--ui-row-active-background) text-foreground'
                     : 'text-(--ui-text-secondary) hover:bg-(--chrome-action-hover) hover:text-foreground'

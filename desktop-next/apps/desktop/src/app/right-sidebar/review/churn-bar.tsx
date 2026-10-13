@@ -45,7 +45,7 @@ export function ChurnBar({ file }: { file: HermesReviewFile }) {
   return (
     <span
       aria-hidden
-      className="pointer-events-none absolute inset-y-0 right-0 -z-10 block overflow-hidden text-right font-mono text-[0.7rem] leading-6 tracking-tight whitespace-nowrap opacity-30 dark:opacity-40"
+      className="pointer-events-none absolute inset-y-0 right-0 -z-10 block overflow-hidden text-right font-mono text-[0.75rem] leading-6 tracking-tight whitespace-nowrap opacity-30 dark:opacity-40"
       style={{
         WebkitMaskImage: MASK,
         color: `var(--ui-${file.added >= file.removed ? 'green' : 'red'})`,

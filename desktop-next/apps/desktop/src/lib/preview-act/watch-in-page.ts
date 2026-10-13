@@ -415,7 +415,7 @@ export function watchInPage(doc: Document, holder: WatchHolder, stage: WatchStag
       background: line,
       color: '#FFFFFF',
       'font-family': face,
-      'font-size': '8px',
+      'font-size': '12px',
       'font-weight': '700',
       // Tracked OUT, not in. Tightening is for display sizes; at 8px, and in
       // caps especially — no ascenders or descenders to separate one letter from

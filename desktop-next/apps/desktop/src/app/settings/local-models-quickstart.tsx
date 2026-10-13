@@ -82,7 +82,7 @@ export function LocalModelsQuickstart({
                 {stages.map((label, i) => (
                   <span
                     className={cn(
-                      'inline-flex items-center gap-1.5 text-[0.72rem]',
+                      'inline-flex items-center gap-1.5 text-[0.75rem]',
                       i < stageIndex && 'text-(--ui-text-tertiary)',
                       i === stageIndex && 'font-medium text-foreground',
                       i > stageIndex && 'text-(--ui-text-tertiary) opacity-60'

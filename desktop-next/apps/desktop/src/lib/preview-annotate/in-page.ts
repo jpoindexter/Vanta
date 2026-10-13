@@ -464,7 +464,7 @@ export function annotateInPage(doc: Document): AnnotateInPage {
       color: '#fff',
       display: 'flex',
       'font-family': "-apple-system, 'Segoe UI', sans-serif",
-      'font-size': '11px',
+      'font-size': '12px',
       'font-weight': '700',
       height: `${markerSize}px`,
       'justify-content': 'center',

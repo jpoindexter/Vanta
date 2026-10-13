@@ -93,7 +93,7 @@ export function PetPalettePage({ search, onGenerate }: PetPalettePageProps) {
         </button>
       )}
 
-      {error && <p className="px-2 pb-1 pt-1.5 text-[0.6875rem] text-(--ui-red)">{error}</p>}
+      {error && <p className="px-2 pb-1 pt-1.5 text-[0.75rem] text-(--ui-red)">{error}</p>}
 
       {shown.length === 0 ? (
         <StatusRow text={copy.empty} />
@@ -128,17 +128,17 @@ export function PetPalettePage({ search, onGenerate }: PetPalettePageProps) {
                 <span className="flex items-center gap-1.5">
                   <span className="truncate font-medium">{pet.displayName}</span>
                   {pet.generated && (
-                    <span className="shrink-0 rounded-full bg-primary/15 px-1.5 py-px text-[0.625rem] font-medium text-primary">
+                    <span className="shrink-0 rounded-full bg-primary/15 px-1.5 py-px text-[0.75rem] font-medium text-primary">
                       {copy.generatedTag}
                     </span>
                   )}
                 </span>
-                <span className="truncate text-[0.6875rem] text-muted-foreground/80">
+                <span className="truncate text-[0.75rem] text-muted-foreground/80">
                   {pet.slug}
                   {pet.installed ? ` · ${copy.installed}` : ''}
                 </span>
               </span>
-              <span className="ml-auto flex shrink-0 items-center text-[0.6875rem] text-muted-foreground">
+              <span className="ml-auto flex shrink-0 items-center text-[0.75rem] text-muted-foreground">
                 {isBusy ? (
                   <Loader2 className="size-3 animate-spin" />
                 ) : isActive ? (

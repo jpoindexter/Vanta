@@ -509,7 +509,7 @@
     --composer-shell-pad-block-end: 0.625rem;
     --message-text-indent: 0.75rem;
     --conversation-text-base-size: 0.8125rem;
-    --conversation-tool-base-size: 0.6875rem;
+    --conversation-tool-base-size: 0.75rem;
     --conversation-caption-base-size: 0.75rem;
     --conversation-base-line-height: 1.125rem;
     --conversation-caption-base-line-height: 1rem;
@@ -965,7 +965,7 @@
 }
 
 .ref > i.codicon {
-  font-size: 0.875em;
+  font-size: max(0.75rem, 0.875em);
 }
 
 /* Hover-reveal suppression — the shared, declarative escape hatch.
@@ -2478,7 +2478,7 @@ button[data-slot='aui_msg-reactions']:not([data-reacted])[data-state='open'] {
   border-radius: 9999px;
   background: transparent;
   padding: 0.1rem 0.55rem;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   line-height: 1.1rem;
   color: color-mix(in srgb, var(--dt-destructive) 80%, var(--ui-text-secondary));
   cursor: pointer;

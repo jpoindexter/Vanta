@@ -24,7 +24,7 @@ export function GlyphText({ text }: { text: string }) {
     <>
       {Array.from(text, (ch, i) =>
         GLYPH_SET.has(ch) ? (
-          <span className="text-[0.62em]" key={i}>
+          <span className="text-[length:max(0.75rem,0.62em)]" key={i}>
             {ch}
           </span>
         ) : (

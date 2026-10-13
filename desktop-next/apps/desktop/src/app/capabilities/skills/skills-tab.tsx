@@ -262,7 +262,7 @@ export function SkillsTab({ onRefresh, profile, query, skills }: SkillsTabProps)
       }
       id="skill-editor"
       onClose={() => setSkillEditor(null)}
-      title={<span className="text-[0.68rem] font-normal text-muted-foreground/60">{skillEditor.name}/SKILL.md</span>}
+      title={<span className="text-[0.75rem] font-normal text-muted-foreground/60">{skillEditor.name}/SKILL.md</span>}
     >
       <CodeEditor
         filePath="SKILL.md"
@@ -319,7 +319,7 @@ export function SkillsTab({ onRefresh, profile, query, skills }: SkillsTabProps)
               />
             ))}
             {visibleOfficial.length > 0 && (
-              <div className="flex h-7 shrink-0 items-end px-2 pb-1 text-[0.62rem] font-medium uppercase tracking-wide text-(--ui-text-quaternary)">
+              <div className="flex h-7 shrink-0 items-end px-2 pb-1 text-[0.75rem] font-medium uppercase tracking-wide text-(--ui-text-quaternary)">
                 {t.skills.officialCatalog}
               </div>
             )}

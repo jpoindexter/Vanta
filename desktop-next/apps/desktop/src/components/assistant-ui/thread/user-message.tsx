@@ -207,7 +207,7 @@ const AgentMessageNote: FC<{ text: string }> = ({ text }) => {
   // message, so the exchange still reads in order.
   return (
     <div
-      className="flex max-w-[min(86%,44rem)] flex-col gap-0.5 self-center px-2 py-0.5 text-[0.6875rem] leading-5 text-muted-foreground/60"
+      className="flex max-w-[min(86%,44rem)] flex-col gap-0.5 self-center px-2 py-0.5 text-[0.75rem] leading-5 text-muted-foreground/60"
       data-slot="aui_agent-message-note"
     >
       <span className="flex items-center justify-center gap-1.5">

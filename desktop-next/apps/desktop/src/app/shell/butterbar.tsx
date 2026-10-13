@@ -45,7 +45,7 @@ export function Butterbar() {
 
   return (
     <div
-      className="grid h-6 shrink-0 grid-cols-[1fr_minmax(0,max-content)_1fr] items-center gap-2 px-2.5 text-[0.6875rem] leading-4 [-webkit-app-region:no-drag]"
+      className="grid h-6 shrink-0 grid-cols-[1fr_minmax(0,max-content)_1fr] items-center gap-2 px-2.5 text-[0.75rem] leading-4 [-webkit-app-region:no-drag]"
       data-slot="butterbar"
       data-tone={item.tone ?? 'accent'}
       data-variant={item.variant ?? 'soft'}

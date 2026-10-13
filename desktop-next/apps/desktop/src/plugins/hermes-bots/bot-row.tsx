@@ -281,12 +281,12 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, onNewSection, showHandl
             </SidebarRowLead>
             {pinned ? (
               <Tip label={b.roster.pinned}>
-                <Codicon className="shrink-0 text-[0.6875rem] text-(--ui-text-quaternary)" name="pinned" />
+                <Codicon className="shrink-0 text-[0.75rem] text-(--ui-text-quaternary)" name="pinned" />
               </Tip>
             ) : null}
             {hidden ? (
               <Tip label={b.roster.hiddenFromRoster}>
-                <Codicon className="shrink-0 text-[0.6875rem] text-(--ui-text-quaternary)" name="eye-closed" />
+                <Codicon className="shrink-0 text-[0.75rem] text-(--ui-text-quaternary)" name="eye-closed" />
               </Tip>
             ) : null}
             <Tip label={rowTooltip}>
@@ -297,7 +297,7 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, onNewSection, showHandl
             <Tip label={botAttentionHint(attention.reason)}>
               <Codicon
                 aria-label={b.roster.needsAttention}
-                className="shrink-0 text-[0.6875rem] text-amber-600 dark:text-amber-300"
+                className="shrink-0 text-[0.75rem] text-amber-600 dark:text-amber-300"
                 name="warning"
               />
             </Tip>
@@ -306,7 +306,7 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, onNewSection, showHandl
             <GlyphSpinner ariaLabel={b.bot.openingChat} className="shrink-0 text-xs text-(--ui-text-secondary)" />
           ) : null}
           {rowAgeTs ? (
-            <span className="shrink-0 text-[0.6875rem] text-(--ui-text-quaternary)">
+            <span className="shrink-0 text-[0.75rem] text-(--ui-text-quaternary)">
               {rowAge(rowAgeTs * 1000, t.sidebar.row)}
             </span>
           ) : null}
@@ -314,7 +314,7 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, onNewSection, showHandl
         {showDetailsRow ? (
           <div className="flex min-w-0 items-center gap-1.5 text-xs text-(--ui-text-tertiary)">
             {showHandle ? (
-              <span className="shrink-0 font-mono text-[0.6875rem] text-(--ui-text-quaternary)">{`@${handle}`}</span>
+              <span className="shrink-0 font-mono text-[0.75rem] text-(--ui-text-quaternary)">{`@${handle}`}</span>
             ) : null}
             {showHandle && displayPreview ? <span className="shrink-0 text-(--ui-text-quaternary)">·</span> : null}
             {displayPreview ? (
@@ -588,7 +588,7 @@ export function GroupRow({ active, group, members, needsYou, onOpen, onDisband, 
           <Tip label={availabilityLabel}>
             <span
               aria-label={availabilityLabel}
-              className="absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-(--ui-bg-primary) text-[0.625rem] text-amber-600 ring-1 ring-(--ui-stroke-tertiary) dark:text-amber-300"
+              className="absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-(--ui-bg-primary) text-[0.75rem] text-amber-600 ring-1 ring-(--ui-stroke-tertiary) dark:text-amber-300"
             >
               <Codicon name="debug-disconnect" />
             </span>
@@ -600,7 +600,7 @@ export function GroupRow({ active, group, members, needsYou, onOpen, onDisband, 
           <span className="min-w-0 flex-1 truncate text-[0.8125rem] font-medium">{group}</span>
           {room.pinned ? (
             <Tip label={b.roster.pinned}>
-              <Codicon className="shrink-0 text-[0.6875rem] text-(--ui-text-quaternary)" name="pinned" />
+              <Codicon className="shrink-0 text-[0.75rem] text-(--ui-text-quaternary)" name="pinned" />
             </Tip>
           ) : null}
           {needsYou ? (
@@ -609,7 +609,7 @@ export function GroupRow({ active, group, members, needsYou, onOpen, onDisband, 
             </Tip>
           ) : null}
           {lastAt ? (
-            <span className="shrink-0 text-[0.6875rem] text-(--ui-text-quaternary)">
+            <span className="shrink-0 text-[0.75rem] text-(--ui-text-quaternary)">
               {rowAge(lastAt, t.sidebar.row)}
             </span>
           ) : null}

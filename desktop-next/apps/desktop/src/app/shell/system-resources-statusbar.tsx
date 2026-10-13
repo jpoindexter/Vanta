@@ -161,7 +161,7 @@ export function useSystemResourcesStatusbarItem(): StatusbarItem {
           <p className="shrink-0 font-medium text-foreground">{copy.title}</p>
 
           {hardware?.gpu_name && (
-            <span className="min-w-0 truncate text-[0.6875rem] text-muted-foreground">{hardware.gpu_name}</span>
+            <span className="min-w-0 truncate text-[0.75rem] text-muted-foreground">{hardware.gpu_name}</span>
           )}
         </div>
 
@@ -187,7 +187,7 @@ export function useSystemResourcesStatusbarItem(): StatusbarItem {
           value={`${gbLong(ramUsed)} / ${gbLong(hardware?.ram_total_bytes)}`}
         />
 
-        {hardware?.uma && <p className="text-[0.6875rem] text-muted-foreground">{copy.unifiedNote}</p>}
+        {hardware?.uma && <p className="text-[0.75rem] text-muted-foreground">{copy.unifiedNote}</p>}
       </div>
     ),
     toggleLabel: enabled ? copy.toggle : undefined,

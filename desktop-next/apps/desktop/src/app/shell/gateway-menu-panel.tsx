@@ -152,7 +152,7 @@ export function GatewayMenuPanel({
   return (
     <div className="text-sm">
       <div className="flex items-center justify-between gap-3 px-3 py-2">
-        <div className="flex min-w-0 flex-col gap-1 text-[0.7rem] leading-none">
+        <div className="flex min-w-0 flex-col gap-1 text-[0.75rem] leading-none">
           <span className="flex items-center gap-1.5 font-medium">
             <StatusDot tone={gatewayOpen ? 'good' : gatewayConnecting ? 'warn' : 'bad'} />
             {connectionLabel}
@@ -238,7 +238,7 @@ export function GatewayMenuPanel({
             {platforms.map(([name, platform]) => (
               <li className="flex items-center justify-between gap-2 text-xs" key={name}>
                 <span className="truncate capitalize">{name}</span>
-                <span className="flex items-center gap-1.5 text-[0.66rem] text-muted-foreground">
+                <span className="flex items-center gap-1.5 text-[0.75rem] text-muted-foreground">
                   <StatusDot tone={platformStatusTone({ state: platform.state })} />
                   {prettyState(platform.state)}
                 </span>
@@ -257,6 +257,6 @@ function Section({ children, className }: { children: ReactNode; className?: str
 
 function SectionLabel({ children }: { children: string }) {
   return (
-    <div className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground/80">{children}</div>
+    <div className="text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground/80">{children}</div>
   )
 }

@@ -231,7 +231,7 @@ export function PreviewAttachment({ target }: { target: string }) {
           {name}
         </span>
         <button
-          className="flex shrink-0 items-center gap-1 rounded-md border border-(--ui-stroke-tertiary) bg-background/40 px-2 py-1 text-[0.7rem] font-medium text-muted-foreground transition-colors hover:bg-accent/55 hover:text-foreground disabled:opacity-50"
+          className="flex shrink-0 items-center gap-1 rounded-md border border-(--ui-stroke-tertiary) bg-background/40 px-2 py-1 text-[0.75rem] font-medium text-muted-foreground transition-colors hover:bg-accent/55 hover:text-foreground disabled:opacity-50"
           disabled={opening}
           onClick={() => void openInFileManager(localTarget.path, true)}
           type="button"
@@ -255,7 +255,7 @@ export function PreviewAttachment({ target }: { target: string }) {
         // The file already exists on this machine: reveal it in the OS file
         // manager instead of offering to download it again (#101683).
         <button
-          className="flex shrink-0 items-center gap-1 rounded-md border border-(--ui-stroke-tertiary) bg-background/40 px-2 py-1 text-[0.7rem] font-medium text-muted-foreground transition-colors hover:bg-accent/55 hover:text-foreground disabled:opacity-50"
+          className="flex shrink-0 items-center gap-1 rounded-md border border-(--ui-stroke-tertiary) bg-background/40 px-2 py-1 text-[0.75rem] font-medium text-muted-foreground transition-colors hover:bg-accent/55 hover:text-foreground disabled:opacity-50"
           disabled={opening}
           onClick={() => void openInFileManager(localTarget.path, false)}
           type="button"
@@ -266,7 +266,7 @@ export function PreviewAttachment({ target }: { target: string }) {
       ) : (
         <button
           aria-label={t.fileMenu.download}
-          className="flex shrink-0 items-center gap-1 rounded-md border border-(--ui-stroke-tertiary) bg-background/40 px-2 py-1 text-[0.7rem] font-medium text-muted-foreground transition-colors hover:bg-accent/55 hover:text-foreground disabled:opacity-50"
+          className="flex shrink-0 items-center gap-1 rounded-md border border-(--ui-stroke-tertiary) bg-background/40 px-2 py-1 text-[0.75rem] font-medium text-muted-foreground transition-colors hover:bg-accent/55 hover:text-foreground disabled:opacity-50"
           disabled={downloading}
           onClick={() => void downloadFile()}
           type="button"
@@ -276,7 +276,7 @@ export function PreviewAttachment({ target }: { target: string }) {
         </button>
       )}
       <button
-        className="shrink-0 rounded-md border border-(--ui-stroke-tertiary) bg-background/40 px-2 py-1 text-[0.7rem] font-medium text-muted-foreground transition-colors hover:bg-accent/55 hover:text-foreground disabled:opacity-50"
+        className="shrink-0 rounded-md border border-(--ui-stroke-tertiary) bg-background/40 px-2 py-1 text-[0.75rem] font-medium text-muted-foreground transition-colors hover:bg-accent/55 hover:text-foreground disabled:opacity-50"
         disabled={opening}
         onClick={() => void togglePreview()}
         type="button"

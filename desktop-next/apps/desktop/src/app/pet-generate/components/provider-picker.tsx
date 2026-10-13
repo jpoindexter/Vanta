@@ -24,7 +24,7 @@ export function ProviderPicker() {
       <DropdownMenuTrigger asChild>
         {/* Plain text affordance (matches "Add a reference"), not a padded pill. */}
         <button
-          className="flex h-6 items-center gap-1 text-[0.6875rem] text-(--ui-text-tertiary) transition hover:text-foreground"
+          className="flex h-6 items-center gap-1 text-[0.75rem] text-(--ui-text-tertiary) transition hover:text-foreground"
           type="button"
         >
           {current?.label}

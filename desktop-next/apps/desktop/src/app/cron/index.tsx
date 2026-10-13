@@ -910,7 +910,7 @@ function CronJobDetail({
         />
 
         {job.last_error ? (
-          <div className="space-y-1.5 rounded bg-destructive/10 p-2 text-[0.7rem] text-destructive">
+          <div className="space-y-1.5 rounded bg-destructive/10 p-2 text-[0.75rem] text-destructive">
             <div className="flex items-start gap-1.5">
               <AlertTriangle className="mt-px size-3 shrink-0" />
               <span className="min-w-0 break-words" title={job.last_error}>
@@ -1110,7 +1110,7 @@ function CronJobRuns({
                 <Codicon name="loading" size="0.75rem" spinning />
                 <span className="truncate">{c.queuedRun}</span>
               </span>
-              <span className="shrink-0 text-[0.62rem] text-muted-foreground/55 tabular-nums">
+              <span className="shrink-0 text-[0.75rem] text-muted-foreground/55 tabular-nums">
                 {formatRunTime(pendingRunAt / 1000)}
               </span>
             </div>
@@ -1123,7 +1123,7 @@ function CronJobRuns({
                 <span className="truncate text-foreground/85">
                   {run.title?.trim() || run.preview?.trim() || run.id}
                 </span>
-                <span className="shrink-0 text-[0.62rem] text-muted-foreground/55 tabular-nums">
+                <span className="shrink-0 text-[0.75rem] text-muted-foreground/55 tabular-nums">
                   {formatRunTime(run.last_active || run.started_at)}
                 </span>
               </div>
@@ -1139,7 +1139,7 @@ function CronJobRuns({
                 <span className="truncate text-foreground/85">
                   {run.title?.trim() || run.preview?.trim() || run.id}
                 </span>
-                <span className="shrink-0 text-[0.62rem] text-muted-foreground/55 tabular-nums">
+                <span className="shrink-0 text-[0.75rem] text-muted-foreground/55 tabular-nums">
                   {formatRunTime(run.last_active || run.started_at)}
                 </span>
               </button>

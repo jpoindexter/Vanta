@@ -24,7 +24,7 @@ const SOURCE_LANGUAGE_BY_KIND: Record<ArtifactKind, string | undefined> = {
 }
 
 const HEADER_BUTTON_CLASS =
-  'flex items-center gap-1 rounded-md px-1.5 text-[0.625rem] font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-40'
+  'flex items-center gap-1 rounded-md px-1.5 text-[0.75rem] font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-40'
 
 /** Wrap an HTML fragment in a minimal document shell; full documents pass
  *  through untouched. Keeps generated fragments (no <html>/<body>) rendering
@@ -136,7 +136,7 @@ function VersionStepper({
           <ChevronLeft className="size-3" />
         </button>
       </Tip>
-      <span className="text-[0.625rem] font-bold tabular-nums text-muted-foreground">
+      <span className="text-[0.75rem] font-bold tabular-nums text-muted-foreground">
         {copy.versionOf(current + 1, total)}
       </span>
       <Tip label={copy.newerVersion}>
@@ -152,7 +152,7 @@ function VersionStepper({
       </Tip>
       {current < total - 1 && (
         <button
-          className="text-[0.625rem] font-bold text-muted-foreground underline decoration-current/25 underline-offset-4 transition-colors hover:text-foreground"
+          className="text-[0.75rem] font-bold text-muted-foreground underline decoration-current/25 underline-offset-4 transition-colors hover:text-foreground"
           onClick={() => onSelect(total - 1)}
           type="button"
         >

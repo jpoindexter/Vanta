@@ -106,7 +106,7 @@ export function ConnectorRowCard({
             <span className="sr-only">{` — ${copy.open(card.name)}`}</span>
           </button>
 
-          <span className="shrink-0 text-[0.6875rem] text-(--ui-text-tertiary)">{connectorKindWord(card, copy)}</span>
+          <span className="shrink-0 text-[0.75rem] text-(--ui-text-tertiary)">{connectorKindWord(card, copy)}</span>
 
           {showsCatalogMark(card) ? <CatalogMark /> : null}
 
@@ -156,7 +156,7 @@ function CardLane({
 
   return (
     <div className="relative z-10 flex w-[7.75rem] shrink-0 flex-col items-end gap-1">
-      <span className="flex items-center gap-1.5 text-[0.6875rem] text-(--ui-text-secondary)">
+      <span className="flex items-center gap-1.5 text-[0.75rem] text-(--ui-text-secondary)">
         {withDot ? (
           <span aria-hidden className={cn('size-[5px] shrink-0 rounded-full', STATE_DOT[card.state])} />
         ) : null}
@@ -185,7 +185,7 @@ function CardLane({
       ) : null}
 
       {card.verb === undefined && fact !== null ? (
-        <span className="truncate text-[0.6875rem] text-(--ui-text-tertiary)">{fact}</span>
+        <span className="truncate text-[0.75rem] text-(--ui-text-tertiary)">{fact}</span>
       ) : null}
     </div>
   )
@@ -199,7 +199,7 @@ function AccountSummary({ card }: { card: ConnectorCardModel }) {
 
   return summary ? (
     <span
-      className="min-w-0 truncate text-[0.6875rem] text-(--ui-text-secondary)"
+      className="min-w-0 truncate text-[0.75rem] text-(--ui-text-secondary)"
       data-slot="connector-account-summary"
     >
       {summary}
@@ -209,10 +209,10 @@ function AccountSummary({ card }: { card: ConnectorCardModel }) {
 
 function SecondLine({ card, reason }: { card: ConnectorCardModel; reason?: string }) {
   if (reason) {
-    return <p className={cn('truncate text-[0.72rem]', REASON_TONE[card.state])}>{reason}</p>
+    return <p className={cn('truncate text-[0.75rem]', REASON_TONE[card.state])}>{reason}</p>
   }
 
   return card.description ? (
-    <p className="line-clamp-2 text-[0.72rem] leading-snug text-(--ui-text-secondary)">{card.description}</p>
+    <p className="line-clamp-2 text-[0.75rem] leading-snug text-(--ui-text-secondary)">{card.description}</p>
   ) : null
 }

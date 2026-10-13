@@ -178,10 +178,10 @@ function ScreenHeroContent({ bot, meta }: { bot: RosterRow; meta?: BotMeta | nul
         />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-xs font-medium">{t.screen.portalTitle}</span>
-          <span className="block truncate text-[0.65rem] text-white/70">{caption}</span>
+          <span className="block truncate text-[0.75rem] text-white/70">{caption}</span>
         </span>
         {cta ? (
-          <span className="flex shrink-0 items-center gap-1 rounded-md bg-white/15 px-2 py-1 text-[0.65rem] font-medium backdrop-blur-sm transition-colors group-hover:bg-white/25">
+          <span className="flex shrink-0 items-center gap-1 rounded-md bg-white/15 px-2 py-1 text-[0.75rem] font-medium backdrop-blur-sm transition-colors group-hover:bg-white/25">
             {cta} <Codicon name="arrow-right" />
           </span>
         ) : null}

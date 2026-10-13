@@ -500,7 +500,7 @@ function FreeTierReadyPanel({
         )}
       >
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[0.625rem] uppercase tracking-[0.2em] text-muted-foreground">
+          <span className="font-mono text-[0.75rem] uppercase tracking-[0.2em] text-muted-foreground">
             {t.onboarding.defaultModel}
           </span>
           <Badge size="xs" variant="success">

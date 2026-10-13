@@ -527,7 +527,7 @@ const MARKDOWN_CONTAINER_CLASS_NAME = cn(
   'prose-pre:text-foreground',
   'prose-a:break-words prose-p:[overflow-wrap:anywhere]',
   'prose-li:marker:text-muted-foreground/70',
-  'prose-code:rounded-[0.25rem] prose-code:px-[0.1875rem] prose-code:py-px prose-code:font-mono prose-code:text-[0.9em] prose-code:font-normal prose-code:before:content-none prose-code:after:content-none',
+  'prose-code:rounded-[0.25rem] prose-code:px-[0.1875rem] prose-code:py-px prose-code:font-mono prose-code:text-[length:max(0.75rem,0.9em)] prose-code:font-normal prose-code:before:content-none prose-code:after:content-none',
   '[&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&>*+*]:mt-(--paragraph-gap)'
 )
 
@@ -539,7 +539,7 @@ function HugeTextFallback({ containerClassName, text }: { containerClassName?: s
   return (
     <div
       className={cn(
-        'aui-md w-full max-w-none overflow-hidden rounded-[0.625rem] border border-(--ui-stroke-tertiary) font-mono text-[0.7rem] leading-relaxed text-foreground/90',
+        'aui-md w-full max-w-none overflow-hidden rounded-[0.625rem] border border-(--ui-stroke-tertiary) font-mono text-[0.75rem] leading-relaxed text-foreground/90',
         containerClassName
       )}
     >

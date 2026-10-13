@@ -177,7 +177,7 @@ export function ProfileSwitcher({ compact = false }: { compact?: boolean }) {
             aria-label={`${p.title}: ${triggerLabel}`}
             className={cn(
               'w-full min-w-0 justify-between overflow-hidden px-1 text-(--ui-text-secondary) data-[state=open]:bg-(--ui-control-active-background) data-[state=open]:text-foreground',
-              compact && 'h-full min-h-0 rounded-none px-1.5 text-[0.6875rem] font-normal'
+              compact && 'h-full min-h-0 rounded-none px-1.5 text-[0.75rem] font-normal'
             )}
             size="xs"
             type="button"
@@ -191,7 +191,7 @@ export function ProfileSwitcher({ compact = false }: { compact?: boolean }) {
               ) : (
                 <ProfileGlyph
                   aria-hidden="true"
-                  className="size-3 text-[0.4375rem]"
+                  className="size-3 text-[0.75rem]"
                   color={resolveProfileColor(active.name, colors)}
                   isDefault={active.is_default}
                   name={active.name}

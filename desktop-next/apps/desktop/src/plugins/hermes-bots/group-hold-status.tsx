@@ -46,7 +46,7 @@ export function GroupHoldStatus(props: GroupHoldStatusProps) {
 
   return (
     <div
-      className="flex items-start gap-1.5 border-b border-(--ui-stroke-secondary) bg-(--ui-bg-tertiary) px-2.5 py-1.5 text-[0.7rem]"
+      className="flex items-start gap-1.5 border-b border-(--ui-stroke-secondary) bg-(--ui-bg-tertiary) px-2.5 py-1.5 text-[0.75rem]"
       data-slot="group-hold-status"
       role="status"
     >

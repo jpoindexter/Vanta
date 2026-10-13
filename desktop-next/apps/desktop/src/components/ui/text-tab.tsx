@@ -3,7 +3,7 @@ import * as React from 'react'
 import { cn } from '@/lib/utils'
 
 function TextTabMeta({ className, ...props }: React.ComponentProps<'span'>) {
-  return <span className={cn('text-[0.72em] font-normal text-(--ui-text-tertiary)', className)} {...props} />
+  return <span className={cn('text-[length:max(0.75rem,0.72em)] font-normal text-(--ui-text-tertiary)', className)} {...props} />
 }
 
 interface TextTabProps extends React.ComponentProps<'button'> {

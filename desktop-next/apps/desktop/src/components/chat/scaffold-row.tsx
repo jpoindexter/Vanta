@@ -20,7 +20,7 @@ export const SCAFFOLD_LABEL_CLASS =
   'text-[length:var(--conversation-tool-font-size)] leading-(--conversation-line-height) text-(--conversation-scaffold-text)'
 
 /** Durations, counts and diff stats trailing a scaffold label. */
-export const SCAFFOLD_META_CLASS = 'shrink-0 text-[0.625rem] tabular-nums text-(--conversation-scaffold-meta)'
+export const SCAFFOLD_META_CLASS = 'shrink-0 text-[0.75rem] tabular-nums text-(--conversation-scaffold-meta)'
 
 /** The fixed cell a scaffold line's leading glyph sits in — status dot, tool
  *  icon, spinner. Same box on every line, so the labels share a left edge. */

@@ -127,7 +127,7 @@ export function ManagedUpdatesSection() {
                   <div className="mt-1 grid gap-1 text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">
                     {updating ? <p>{m.progress}</p> : null}
                     {!updating && state.message ? <p>{state.message}</p> : null}
-                    {receipt ? <p className="font-mono text-[0.68rem]">{receipt}</p> : null}
+                    {receipt ? <p className="font-mono text-[0.75rem]">{receipt}</p> : null}
                     {!updating && restored.length > 0 ? <p>{m.scopesRestored(restored.join(', '))}</p> : null}
                     {!updating &&
                       unrestored.map(scope => (

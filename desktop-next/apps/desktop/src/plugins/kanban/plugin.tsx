@@ -65,7 +65,7 @@ function KanbanCount() {
     <Tip label={k.countTip(count('running'), count('ready'))}>
       <button
         className={cn(
-          'inline-flex h-full items-center gap-1 rounded-none px-1.5 text-[0.6875rem] tabular-nums transition-colors',
+          'inline-flex h-full items-center gap-1 rounded-none px-1.5 text-[0.75rem] tabular-nums transition-colors',
           'text-(--ui-text-tertiary) hover:bg-(--chrome-action-hover) hover:text-foreground'
         )}
         onClick={() => host.navigate('/kanban')}

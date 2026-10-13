@@ -927,7 +927,7 @@ export const UserEditComposer: FC<UserEditComposerProps> = ({ cwd, gateway, sess
             </ComposerPrimitive.Input>
             {staging && (
               <span
-                className="pointer-events-none absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-background/80 px-1.5 py-0.5 text-[0.62rem] text-muted-foreground backdrop-blur-[1px]"
+                className="pointer-events-none absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-background/80 px-1.5 py-0.5 text-[0.75rem] text-muted-foreground backdrop-blur-[1px]"
                 data-slot="aui_edit-staging"
               >
                 <Loader2Icon className="size-3 animate-spin" />

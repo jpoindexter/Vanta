@@ -223,7 +223,7 @@ function StatusColumn({
 function Line({ action, label }: { action?: ReactNode; label: string }) {
   return (
     <div className="flex shrink-0 items-center gap-2 border-b border-(--ui-stroke-tertiary) px-3.5 py-1.5">
-      <span className="min-w-0 flex-1 text-[0.7rem] text-(--ui-text-tertiary)">{label}</span>
+      <span className="min-w-0 flex-1 text-[0.75rem] text-(--ui-text-tertiary)">{label}</span>
       {action}
     </div>
   )

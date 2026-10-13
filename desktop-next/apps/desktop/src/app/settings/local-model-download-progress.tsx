@@ -171,7 +171,7 @@ export function LocalModelDownloadProgress({ job }: LocalModelDownloadProps) {
     <div className="grid gap-1">
       <ProgressBar paused={job.status === 'paused'} percent={job.percent} />
 
-      <p className="text-[0.68rem] text-muted-foreground">{downloadStatusText(job, copy)}</p>
+      <p className="text-[0.75rem] text-muted-foreground">{downloadStatusText(job, copy)}</p>
     </div>
   )
 }

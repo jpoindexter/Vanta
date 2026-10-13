@@ -174,7 +174,7 @@ function FloatingPane({ pane }: { pane: Contribution }) {
     >
       {/* Header IS the drag handle — the floating equivalent of a tab strip. */}
       <header
-        className="flex shrink-0 cursor-grab items-center justify-between gap-2 px-2.5 py-1.5 text-[0.6875rem] text-(--ui-text-secondary) select-none"
+        className="flex shrink-0 cursor-grab items-center justify-between gap-2 px-2.5 py-1.5 text-[0.75rem] text-(--ui-text-secondary) select-none"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}

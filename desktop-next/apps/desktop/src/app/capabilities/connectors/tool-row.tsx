@@ -53,7 +53,7 @@ export function ToolRow({ expanded, on, onExpand, onToggle, preview = false, rea
         {tool.name}
       </span>
 
-      <span className="flex shrink-0 items-center gap-1.5 text-[0.65rem] text-(--ui-text-quaternary)">
+      <span className="flex shrink-0 items-center gap-1.5 text-[0.75rem] text-(--ui-text-quaternary)">
         {tool.facet === 'unclassified' ? null : (
           <Tip label={facetCopy.long}>
             <span className={cn('whitespace-nowrap', locked ? 'text-(--ui-text-quaternary)' : TONE_CLASS[facet.tone])}>
@@ -135,9 +135,9 @@ function ToolDetail({ hints, tool }: { hints: ReturnType<typeof hintTags>; tool:
 
   return (
     <div className="grid gap-1 pb-2.5 pl-[3.625rem] pr-3.5">
-      <p className="max-w-[60ch] text-[0.7rem] leading-relaxed text-(--ui-text-secondary)">{tool.description}</p>
+      <p className="max-w-[60ch] text-[0.75rem] leading-relaxed text-(--ui-text-secondary)">{tool.description}</p>
       {hints.length > MAX_ROW_HINTS ? (
-        <p className="text-[0.65rem] text-(--ui-text-quaternary)">
+        <p className="text-[0.75rem] text-(--ui-text-quaternary)">
           {hints.map(hint => tagCopy(hint, t.connectorsPage.vocabulary).label).join(' · ')}
         </p>
       ) : null}

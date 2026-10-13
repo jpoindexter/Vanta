@@ -394,11 +394,11 @@ function ModelResults({
                           style={{ width: `${Math.max(2, loadProgress.percent)}%` }}
                         />
                       </span>
-                      <span className="text-[0.62rem] tabular-nums text-muted-foreground">{loadProgress.percent}%</span>
+                      <span className="text-[0.75rem] tabular-nums text-muted-foreground">{loadProgress.percent}%</span>
                     </span>
                   )}
                   {locked && (
-                    <span className="shrink-0 text-[0.62rem] uppercase tracking-wide opacity-80">{copy.pro}</span>
+                    <span className="shrink-0 text-[0.75rem] uppercase tracking-wide opacity-80">{copy.pro}</span>
                   )}
                   {resetLabel && (
                     <Badge
@@ -418,7 +418,7 @@ function ModelResults({
               <DownloadingModelRow jobId={job.jobId} key={job.jobId} owner={owner} target={job.target} />
             ))}
             {unavailable.size > 0 && (
-              <div className="px-6 pb-2 pt-1 text-[0.62rem] leading-relaxed text-muted-foreground">
+              <div className="px-6 pb-2 pt-1 text-[0.75rem] leading-relaxed text-muted-foreground">
                 {copy.proNeedsSubscription}
               </div>
             )}
@@ -442,7 +442,7 @@ function ModelResults({
               value={`custom:${provider.slug}:${customSlug}`}
             >
               <span className="min-w-0 flex-1 truncate">{customSlug}</span>
-              <span className="shrink-0 text-[0.66rem] text-muted-foreground">{provider.name}</span>
+              <span className="shrink-0 text-[0.75rem] text-muted-foreground">{provider.name}</span>
             </CommandItem>
           ))}
         </CommandGroup>
@@ -502,7 +502,7 @@ function DownloadingModelRow({
             style={{ width: `${Math.max(2, percent ?? 0)}%` }}
           />
         </span>
-        <span className="text-[0.62rem] tabular-nums text-muted-foreground">
+        <span className="text-[0.75rem] tabular-nums text-muted-foreground">
           {paused ? copyLocal.downloadPausedLabel : typeof percent === 'number' ? `${percent}%` : copy.downloading}
         </span>
       </span>
@@ -526,7 +526,7 @@ function ModelPrice({ price, isCurrent }: { price?: ModelPricing; isCurrent: boo
         {typeof price.discount_percent === 'number' ? (
           <span
             className={cn(
-              'rounded-sm px-1 py-0.5 text-[0.62rem] font-semibold',
+              'rounded-sm px-1 py-0.5 text-[0.75rem] font-semibold',
               isCurrent ? 'bg-primary-foreground/20' : 'bg-amber-500/15 text-amber-700 dark:text-amber-400'
             )}
           >
@@ -535,7 +535,7 @@ function ModelPrice({ price, isCurrent }: { price?: ModelPricing; isCurrent: boo
         ) : null}
         <span
           className={cn(
-            'shrink-0 rounded-sm px-1 py-0.5 text-[0.62rem] font-semibold uppercase tracking-wide',
+            'shrink-0 rounded-sm px-1 py-0.5 text-[0.75rem] font-semibold uppercase tracking-wide',
             isCurrent ? 'bg-primary-foreground/20' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
           )}
         >
@@ -550,7 +550,7 @@ function ModelPrice({ price, isCurrent }: { price?: ModelPricing; isCurrent: boo
   return (
     <span
       className={cn(
-        'shrink-0 inline-flex items-center gap-1.5 text-[0.66rem] tabular-nums',
+        'shrink-0 inline-flex items-center gap-1.5 text-[0.75rem] tabular-nums',
         isCurrent ? 'text-primary-foreground/80' : 'text-muted-foreground'
       )}
       title={copy.priceTitle}
@@ -558,7 +558,7 @@ function ModelPrice({ price, isCurrent }: { price?: ModelPricing; isCurrent: boo
       {onSale ? (
         <span
           className={cn(
-            'rounded-sm px-1 py-0.5 text-[0.62rem] font-semibold',
+            'rounded-sm px-1 py-0.5 text-[0.75rem] font-semibold',
             isCurrent ? 'bg-primary-foreground/20' : 'bg-amber-500/15 text-amber-700 dark:text-amber-400'
           )}
         >
@@ -604,11 +604,11 @@ function ProviderHeading({ provider }: { provider: ModelOptionProvider }) {
   // route by name — the label is copy.
   const tierBadge =
     provider.free_tier === true || provider.free_tier_row === true ? (
-      <span className="rounded-sm bg-emerald-500/15 px-1 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
+      <span className="rounded-sm bg-emerald-500/15 px-1 py-0.5 text-[0.75rem] font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
         {copy.freeTier}
       </span>
     ) : provider.free_tier === false ? (
-      <span className="rounded-sm bg-primary/15 px-1 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-primary">
+      <span className="rounded-sm bg-primary/15 px-1 py-0.5 text-[0.75rem] font-semibold uppercase tracking-wide text-primary">
         {copy.pro}
       </span>
     ) : null
