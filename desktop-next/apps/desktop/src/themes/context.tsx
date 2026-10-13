@@ -9,7 +9,7 @@
  * The two are persisted independently. Shift+X toggles light/dark.
  */
 
-import { ensureContrast, mix, parseColor } from '@hermes/shared/color'
+import { mix, parseColor } from '@hermes/shared/color'
 import { useStore } from '@nanostores/react'
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
@@ -32,6 +32,7 @@ import {
 import { $chatFontFamily, resolveChatFontFamily } from './chat-font'
 import { harmonize, readableInk } from './color'
 import { BUILTIN_THEME_LIST, DEFAULT_SKIN_NAME, DEFAULT_TYPOGRAPHY, nousTheme, RETIRED_SKINS } from './presets'
+import { resolvePrimarySolid } from './primary-solid'
 import { retintTheme } from './retint'
 import type { DesktopTheme, DesktopThemeColors, DesktopThemeTypography } from './types'
 import { $userThemes, listAllThemes, resolveTheme } from './user-themes'
@@ -232,11 +233,6 @@ function renderedModeFor(colors: DesktopThemeColors, mode: 'light' | 'dark'): 'l
 // styles.css --theme-neutral-chrome — keep in sync.
 const NEUTRAL_CHROME = { light: '#f3f3f3', dark: '#0d0d0e' } as const
 
-// The one foreground --dt-primary-solid is built to carry. Fixed rather than
-// measured: the surface is derived to suit IT, not the other way round.
-// styles.css --dt-primary-solid-foreground fallback — keep in sync.
-const PRIMARY_SOLID_FOREGROUND = '#fcfcfc'
-
 const chromeBackground = (background: string, isDark: boolean) =>
   mix(background, NEUTRAL_CHROME[isDark ? 'dark' : 'light'], isDark ? 0.26 : 0.08)
 
@@ -281,6 +277,7 @@ function applyTheme(theme: DesktopTheme, mode: 'light' | 'dark', chatFontFamily 
   const rendered = renderedModeFor(c, mode)
   const isDark = rendered === 'dark'
   const midground = c.midground ?? c.ring
+  const primarySolid = resolvePrimarySolid(c)
   const skinName = theme.name.endsWith(`-${mode}`) ? theme.name.slice(0, -mode.length - 1) : theme.name
 
   root.style.setProperty('color-scheme', rendered)
@@ -327,8 +324,8 @@ function applyTheme(theme: DesktopTheme, mode: 'light' | 'dark', chatFontFamily 
     // whispering. Deepening the hue until the LIGHT foreground clears AA keeps
     // one look across every theme: no-ops on an accent that is already deep,
     // and only ever darkens, so the hue survives.
-    '--dt-primary-solid': ensureContrast(c.primary, PRIMARY_SOLID_FOREGROUND, 4.5),
-    '--dt-primary-solid-foreground': PRIMARY_SOLID_FOREGROUND,
+    '--dt-primary-solid': primarySolid.background,
+    '--dt-primary-solid-foreground': primarySolid.foreground,
     '--dt-composer-ring': c.composerRing ?? midground,
     '--dt-destructive': c.destructive,
     '--dt-destructive-foreground': c.destructiveForeground,

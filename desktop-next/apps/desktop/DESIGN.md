@@ -138,7 +138,9 @@ ordinary minimize/close behavior is retained rather than hiding an unreachable a
 
 ## Window glass
 
-Glass defaults to **29% Tint, Sidebar only** in both light and dark appearances.
+Glass defaults to **off (0% Tint)** in both light and dark appearances, so Vanta's
+sidebar paints its own flat `#f7f7f8` / near-black panel and the greys stay neutral.
+Raising the lever opts in to Sidebar-only glass.
 Fade defaults to zero so the content column and text stay opaque. Native frost
 keeps its platform/appearance defaults. Explicitly saved settings take precedence;
 changing defaults must not overwrite a user's existing choices. The shared
@@ -161,6 +163,38 @@ renderer and Electron's first window paint.
 Never hardcode `border-gray-*`, `bg-white`, `text-black`, etc. The two tiles in
 `BrandMark` (white in light mode, `#0d1117` in dark) are the sanctioned literals
 (the mark needs a fixed backdrop).
+
+## Vanta skin
+
+`vanta` is the default skin (`DEFAULT_SKIN_NAME`, `src/themes/presets.ts`). Its palette
+is neutral: light base `#ffffff`, panel `#f7f7f8`, selected `#e5e5e7`, text `#202024`;
+dark base `#161616`, panel `#1c1c1d`, sidebar `#101011`, text `#ececee`. Channel spread
+of every surface and text colour stays under 6, enforced by `presets.test.ts`.
+
+Violet (`#7c3aed` light, `#9d6bf5` dark) is the only accent and appears in exactly four
+places: the keyboard focus ring and focused field/composer border (`--dt-ring`), links
+(`Button` variant `link`, markdown links), selected/on states (`ACTIVE_ICON_BTN`), and the
+send button (`PRIMARY_ICON_BTN`). The primary `Button` (`variant="default"`) is
+inverted: near-black fill with white ink in light mode, near-white fill with dark ink in
+dark mode. `--dt-primary-solid` (tooltips, solid badges) follows the same pair through
+`resolvePrimarySolid` (`src/themes/primary-solid.ts`); only a hued primary is deepened.
+
+`src/styles/vanta.css` is the one place the skin leaves the palette seeds: it zeroes the
+accent-into-fill mixes that `styles.css` applies at 3-24%, reads the surfaces straight
+from the seeds, drops resting shadows (shadows are for popovers and dialogs only), sets
+the 14/20 UI and 15/24 chat body sizes, and lifts light-mode tertiary/quaternary text to
+clear AA at 12px. Do not re-add accent mixes to resting fills or borders; `composerRing`
+in the preset is deliberately neutral because `styles.css` mixes it into resting borders.
+
+Focus: one 2px outline in the ring colour on `:focus-visible` (unlayered rule in
+`styles.css`); Tailwind `focus-visible:ring-*` is neutralised so a control never paints
+two rings. Menu items, `cmdk` rows and the composer opt out because they paint their own
+state. Radius ramp (`--radius-xs..2xl`): 4 / 6 / 8 / 12 / 16 / 22 px, plus pill; 3xl and 4xl
+alias 22. Motion: `--motion-control` 140ms, `--motion-surface` 200ms, `--motion-ease`;
+reduced motion is the blanket override at the top of `styles.css`. Chat Text Size defaults
+to 100%. Fonts: platform sans first (`-apple-system`), `Inter` only if installed (not
+bundled), `JetBrains Mono` for code. `tools/theme-proof.mjs` is the executed check for
+all of the above (see `docs/proofs/`).
 
 ## Type scale & floor
 
@@ -238,8 +272,8 @@ context-dependent (e.g. "Show" / "Hide"). Never hardcode combos; always use
 `useKeybindHint` or `TipKeybindLabel`.
 
 Notes:
-- Text buttons are square (no radius) and sized by padding + line-height (no
-  fixed heights). Only icon buttons carry the shared 4px radius.
+- Text buttons take the 8px radius step and are sized by padding + line-height (no
+  fixed heights). Icon buttons take the 6px step.
 - SVGs inherit `size-3.5` (`size-3` at `xs`). Don't re-set icon size.
 - Polymorph with `asChild` when the button must render as a link/Slot.
 
@@ -361,7 +395,7 @@ so glass and message-bubble transparency do not reveal scrolling text.
 ## Chat typography
 
 Appearance → Typography keeps **UI Scale** as whole-window zoom (100% by
-default). **Chat Text Size** is a separate desktop-local multiplier (110% by
+default). **Chat Text Size** is a separate desktop-local multiplier (100% by
 default) on conversation text and the composer editor, including floating and
 inline-edit composers.
 It does not resize the sidebar, settings, toolbars, media, or pane geometry.
@@ -478,7 +512,7 @@ from their root base tokens; do not multiply the global tokens or nest CSS zoom.
   windows and inactive panes may pause; background polling stays focus-gated.
 - Animated integer counts reuse `AnimatedInt` in `src/components/ui/diff-count.tsx`.
   Its spring updates the DOM directly without per-frame React renders.
-- Quick, functional transitions (~100ms on controls). Respect
+- Quick, functional transitions (140ms on controls, 200ms on surfaces: `--motion-control`, `--motion-surface`). Respect
   `prefers-reduced-motion` for anything beyond a fade.
 - Choreographed exits (e.g. onboarding's "matrix" fade-down) stagger per-element
   then settle the surface — the outer container's fade is *delayed* so it
@@ -560,7 +594,7 @@ The detailed state contract lives in the scoped
 
 - `cursor-pointer` at the primitive level (Button, dropdown/select) — don't
   hardcode it per call site.
-- Global focus-ring reset; titlebar actions have no active-background state.
+- One keyboard focus ring (2px, ring colour, `:focus-visible` only); titlebar actions have no active-background state.
 - `Esc` closes every dismissable overlay/dialog (install/onboarding excluded);
   close is an x-icon, not the word "Close".
 
