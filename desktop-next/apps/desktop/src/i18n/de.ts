@@ -4306,6 +4306,7 @@ export const deOverrides = {
     tryAgain: 'Erneut versuchen',
     notAvailableTitle: 'Kein Update verfügbar',
     unsupportedMessage: 'Diese Vanta-Version kann sich nicht aus der App heraus aktualisieren.',
+    notConfigured: 'Updates sind für diese Version nicht eingerichtet. Füge einen Vanta-Update-Feed hinzu, um sie zu aktivieren.',
     connectionRetry: 'Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
     gitUnusable: 'Vanta konnte Git auf diesem Computer nicht ausführen und daher nicht nach Updates suchen.',
     connectionSettings: 'Verbindungseinstellungen',
