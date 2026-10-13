@@ -3,6 +3,7 @@
 
 declare module '*/vanta-ts/desktop-app/electron/runtime-paths.mjs' {
   export interface VantaRuntimePaths {
+    bundle: string
     cli: string
     dist: string
     icon: string
@@ -16,6 +17,16 @@ declare module '*/vanta-ts/desktop-app/electron/runtime-paths.mjs' {
     platform: string
     resourcesPath: string
   }): VantaRuntimePaths
+}
+
+declare module '*/vanta-ts/desktop-app/electron/runtime-launch.mjs' {
+  export function serverLaunchArgs(input: {
+    companion?: boolean
+    env?: NodeJS.ProcessEnv
+    exists?: (path: string) => boolean
+    paths: { bundle: string; cli: string; loader: string }
+    port: number
+  }): { args: string[]; reason?: string; runtime: 'bundle' | 'tsx' }
 }
 
 declare module '*/vanta-ts/desktop-app/electron/runtime-env.mjs' {

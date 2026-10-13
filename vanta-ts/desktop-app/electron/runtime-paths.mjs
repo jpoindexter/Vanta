@@ -5,6 +5,7 @@ export function resolveRuntimePaths({ appPath, packaged, resourcesPath, platform
   const loaderRoot = packaged ? join(resourcesPath, "app.asar.unpacked") : appPath;
   return {
     cli: join(appPath, "src", "cli.ts"),
+    bundle: join(appPath, "dist-runtime", "cli.mjs"),
     loader: join(loaderRoot, "node_modules", "tsx", "dist", "loader.mjs"),
     dist: join(appPath, "desktop-app", "dist"),
     icon: join(appPath, "desktop-app", "build", "icon.png"),

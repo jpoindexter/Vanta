@@ -2,7 +2,7 @@ import { execFileSync, spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { homedir } from "node:os";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
 import { randomBytes } from "node:crypto";
 import { app, BrowserWindow, Tray, Menu, nativeImage, dialog, clipboard, shell, ipcMain, screen } from "electron";
@@ -11,6 +11,7 @@ import { createDesktopPresence } from "./desktop-presence.mjs";
 import { resolveDroppedPaths } from "./dropped-paths.mjs";
 import { findAvailablePort, resolveProjectRoot, saveProjectSetting } from "./project-root.mjs";
 import { resolveRuntimePaths } from "./runtime-paths.mjs";
+import { serverLaunchArgs } from "./runtime-launch.mjs";
 import { desktopRuntimeEnv } from "./runtime-env.mjs";
 import { showProjectFolderPicker } from "./project-folder-picker.mjs";
 import { createPendingProjectTaskStore, prepareProjectSwitch } from "./project-switch.mjs";
@@ -95,7 +96,9 @@ function desktopIconPath() {
 function startServer() {
   const paths = runtimePaths();
   const executable = app.isPackaged ? process.execPath : (process.env.VANTA_NODE || "node");
-  const childArgs = ["--import", pathToFileURL(paths.loader).href, paths.cli, "desktop", String(port), "--no-open", ...(companion ? ["--companion"] : [])];
+  const launch = serverLaunchArgs({ paths, port, companion });
+  if (launch.runtime === "tsx") console.warn(`desktop runtime: tsx fallback (${launch.reason})`);
+  const childArgs = launch.args;
   const env = {
     ...desktopRuntimeEnv(process.env),
     VANTA_DESKTOP_DIST: paths.dist,
