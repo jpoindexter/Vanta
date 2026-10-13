@@ -6,7 +6,7 @@
 
 import { atom, computed, type ReadableAtom } from 'nanostores'
 
-import { SIDEBAR_COLLAPSE_MEDIA_QUERY } from '@/app/layout-constants'
+import { SIDEBAR_COLLAPSE_MEDIA_QUERY, SIDEBAR_DRAWER_MEDIA_QUERY } from '@/app/layout-constants'
 import { setPluginEnabled } from '@/contrib/plugins-store'
 import { registry } from '@/contrib/registry'
 import { translateNow } from '@/i18n'
@@ -837,8 +837,11 @@ export function shownPanesInGroup(group: { panes: readonly string[] }): string[]
     // panes drop out of the strip when the viewport collapses them.
     if (
       typeof window !== 'undefined' &&
-      window.matchMedia?.(SIDEBAR_COLLAPSE_MEDIA_QUERY).matches &&
-      Boolean((pane.data as { collapsible?: boolean } | undefined)?.collapsible)
+      leavesGridWhenNarrow(
+        (pane.data ?? {}) as { collapsible?: boolean; railWhenNarrow?: boolean },
+        Boolean(window.matchMedia?.(SIDEBAR_COLLAPSE_MEDIA_QUERY).matches),
+        Boolean(window.matchMedia?.(SIDEBAR_DRAWER_MEDIA_QUERY).matches)
+      )
     ) {
       return false
     }
@@ -1302,6 +1305,30 @@ const narrowQuery = typeof window !== 'undefined' ? window.matchMedia?.(SIDEBAR_
 export const $narrowViewport = atom(Boolean(narrowQuery?.matches))
 
 narrowQuery?.addEventListener('change', event => $narrowViewport.set(event.matches))
+
+/** Narrower still (the drawer tier): panes that stay docked as a rail while
+ *  merely narrow (`railWhenNarrow`) leave the grid here too. */
+const drawerQuery = typeof window !== 'undefined' ? window.matchMedia?.(SIDEBAR_DRAWER_MEDIA_QUERY) : undefined
+
+export const $drawerViewport = atom(Boolean(drawerQuery?.matches))
+
+drawerQuery?.addEventListener('change', event => $drawerViewport.set(event.matches))
+
+/** Does a collapsible pane leave the grid at this viewport? One rule for the
+ *  split, the zone and the strip: collapsible panes leave when narrow, except a
+ *  `railWhenNarrow` pane (the sidebar), which keeps its icon rail until the
+ *  drawer tier. */
+export function leavesGridWhenNarrow(
+  chrome: { collapsible?: boolean; railWhenNarrow?: boolean },
+  narrow: boolean,
+  drawer: boolean
+): boolean {
+  if (!narrow || !chrome.collapsible) {
+    return false
+  }
+
+  return chrome.railWhenNarrow ? drawer : true
+}
 
 /** The titlebar flip toggle (⌘\): mirror the whole layout left↔right. */
 export function mirrorLayoutTree() {
