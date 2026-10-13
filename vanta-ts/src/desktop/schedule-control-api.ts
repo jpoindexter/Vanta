@@ -82,20 +82,29 @@ function hasUpdate(body: z.infer<typeof UpdateBody>): boolean {
   return [body.cron, body.when, body.instruction, body.script].some((value) => value !== undefined);
 }
 
+/** Timing and script changes for an update, or the error to answer with. */
+function planUpdate(entry: CronEntry, body: z.infer<typeof UpdateBody>): { patch: CronPatch; newScript?: string } | { error: string } {
+  const patch: CronPatch = { instruction: body.instruction, script: body.script };
+  if (body.cron !== undefined || body.when !== undefined) {
+    const timing = resolveCron(body);
+    if ("error" in timing) return timing;
+    patch.cron = timing.cron;
+  }
+  return { patch, newScript: changedScript(entry, body) };
+}
+
 const update: Handler = async (ctx) => {
   const body = await parseBody(ctx, UpdateBody);
   if (!body) return;
   if (!hasUpdate(body)) return sendFail(ctx.res, 400, "nothing to update: send cron, when, instruction or script");
   const entry = await editableEntry(ctx, body.id);
   if (!entry) return;
-  const patch: CronPatch = { instruction: body.instruction, script: body.script };
-  const timing = body.cron !== undefined || body.when !== undefined ? resolveCron(body) : undefined;
-  if (timing && "error" in timing) return sendFail(ctx.res, 400, timing.error);
-  if (timing) patch.cron = timing.cron;
-  const script = changedScript(entry, body);
-  if (script !== undefined) {
-    if (!(await scriptApproval(ctx, `change #${entry.id}`, patch.cron ?? entry.cron, script))) return;
-    patch.authority = newAuthority(script);
+  const plan = planUpdate(entry, body);
+  if ("error" in plan) return sendFail(ctx.res, 400, plan.error);
+  const { patch, newScript } = plan;
+  if (newScript !== undefined) {
+    if (!(await scriptApproval(ctx, `change #${entry.id}`, patch.cron ?? entry.cron, newScript))) return;
+    patch.authority = newAuthority(newScript);
   }
   sendOk(ctx.res, { schedule: await updateCron(dataDirFor(ctx.state.root), entry.id, patch) });
 };
