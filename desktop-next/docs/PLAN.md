@@ -108,7 +108,7 @@ Repo `jpoindexter/Vanta`, feature stack on `codex/librechat-shell-adapter-202610
 - Branch `claude/vanta-desktop-agent-rebuild-20261013` @ 7b86fc08, draft PR #63 (base is the stacked branch): exact-action approval card,
   project-scoped remembered approvals, inner-approval lookup fix, one-way-door false positives fixed (edit paths with deploy/production no longer re-ask),
   honest waiting status, narrow launch fix. Real-Electron proof `vanta-ts/scripts/desktop-approval-persistence-proof.mjs` passes.
-- Branch `claude/dependency-runtime-bumps-20261013` (local worktree, cherry-picked into the rebuild branch): electron 43.5.1, nodemailer 10.0.13,
+- Branch `claude/dependency-runtime-bumps-20261013` (pushed; its commits are in the rebuild branch and PR #63): electron 43.5.1, nodemailer 10.0.13,
   imapflow 1.7.8, brace-expansion, ip-address, capacitor-swift-pm 8.5.0. 24 alerts clear by range check; Dependabot closes them only after main.
 - Branch `claude/desktop-next-20261013`: `desktop-next/` import (Hermes 6e7b83a2f1), lockfile, vendored scripts, mock launcher, telemetry removal (a2f303d4).
   Builds and runs in Electron against Hermes's mock backend with a temp HERMES_HOME.
