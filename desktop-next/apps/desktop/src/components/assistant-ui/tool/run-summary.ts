@@ -32,7 +32,7 @@ export function isToolCallPart<T extends { type: string }>(part: T): part is Ext
 }
 
 type RunCategory =
-  'analyze' | 'browse' | 'delegate' | 'edit' | 'explore' | 'file' | 'interact' | 'other' | 'read' | 'run' | 'search'
+  'analyze' | 'browse' | 'delegate' | 'edit' | 'explore' | 'interact' | 'other' | 'read' | 'run' | 'search'
 
 // Clause order is fixed so the same run always reads the same way, whichever
 // category happens to be live.
@@ -152,6 +152,21 @@ function toolTarget(tool: ToolCallLike): string {
 }
 
 /**
+ * A run that only read files says so ("Read 3 files"); mixed with listing or
+ * searching it stays the broader "Explored".
+ */
+function clauseVerb(category: RunCategory, tools: ToolCallLike[], live: boolean): string {
+  const copy = CATEGORY_COPY[category]
+  const onlyReads = category === 'explore' && tools.every(tool => tool.toolName === 'read_file')
+
+  if (onlyReads) {
+    return live ? 'Reading' : 'Read'
+  }
+
+  return live ? copy.present : copy.past
+}
+
+/**
  * One clause per category. A category holding a single thing says what it was
  * ("Edited wiring.tsx"); anything else counts ("explored 3 files"). A settled
  * command is the exception — "ran 5 commands" is the useful reading, and a
@@ -159,10 +174,7 @@ function toolTarget(tool: ToolCallLike): string {
  */
 function clause(category: RunCategory, tools: ToolCallLike[], live: boolean): string {
   const copy = CATEGORY_COPY[category]
-  // A run that only read files says so ("Read 3 files"); mixed with listing or
-  // searching it stays the broader "Explored".
-  const onlyReads = category === 'explore' && tools.every(tool => tool.toolName === 'read_file')
-  const verb = onlyReads ? (live ? 'Reading' : 'Read') : live ? copy.present : copy.past
+  const verb = clauseVerb(category, tools, live)
   const count = tools.reduce((sum, tool) => sum + unitCount(tool), 0)
   const target = count === 1 && category !== 'interact' ? toolTarget(tools[0]) : ''
 

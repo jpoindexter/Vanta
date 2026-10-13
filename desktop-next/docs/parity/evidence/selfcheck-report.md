@@ -1,6 +1,6 @@
 # Wireframe parity report
 
-Target: file /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-parity-20261013/desktop-next/docs/wireframe/vanta-desktop-wireframe.html. Spec: 617372c7d41d (36 states). Verdict: **PARITY**.
+Target: file /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-integration-20261013/desktop-next/docs/wireframe/vanta-desktop-wireframe.html. Wireframe sha256 ef50e2478569, 36 states. Verdict: **PARITY**.
 
 | Measure | Value |
 | --- | --- |
