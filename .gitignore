@@ -65,3 +65,4 @@ Compiled-Vaults/**/Sources/local-vanta-session-memory.md
 
 # vitest 3 in-repo temp fixtures (plugin loader dynamic-import tests)
 .vitest-tmp/
+vanta-ts/dist-runtime/

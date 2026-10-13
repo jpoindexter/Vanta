@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Archive, ChevronDown, Folder, MessageSquarePlus, Search } from "lucide-react";
 import { ChatWorkspaceNavigation } from "./chat-workspace-navigation.js";
 import { chatGroups } from "./chat-first-navigation.js";
@@ -6,6 +6,7 @@ import { ChatRow } from "./chat-first-row.js";
 import { groupProjectChats } from "./chat-first-projects.js";
 import type { ChatFirstState } from "./chat-first-state.js";
 import type { ChatFirstActions } from "./chat-first-actions.js";
+import { markLaunch } from "./launch-marks.js";
 
 type Props = { state: ChatFirstState; actions: ChatFirstActions };
 
@@ -14,6 +15,8 @@ export function ChatFirstSidebar({ state, actions }: Props) {
   const [archived, setArchived] = useState(false);
   const [searching, setSearching] = useState(false);
   const locked = state.convo.busy || state.pending || !state.ready;
+  const hasSessions = state.data.sessions.length > 0;
+  useEffect(() => { if (hasSessions) markLaunch("sessions-rendered"); }, [hasSessions]);
   return <aside className="chat-sidebar lc-sidebar" data-expanded={state.sidebar} aria-label="Chat navigation" id="chat-navigation">
     <div className="lc-sidebar-body">
     <ChatWorkspaceNavigation state={state} />

@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { browserStorage, loadCachedSessions } from "./session-cache.js";
 import type { Artifact,CanvasArtifact,Capability,DesktopRuntime,GoogleConnectStatus,MessagingPlatform,Provider,ReleaseProofReport,ScheduledTask,Session,Status,Tool } from "./types.js";
 
 export function useDesktopInventory() {
   const [status, setStatus] = useState<Status | null>(null);
-  const [sessions, setSessions] = useState<Session[]>([]);
+  const [sessions, setSessions] = useState<Session[]>(() => loadCachedSessions(browserStorage()));
   const [tools, setTools] = useState<Tool[]>([]);
   const [files, setFiles] = useState<string[]>([]);
   const [models, setModels] = useState<Provider[]>([]);
