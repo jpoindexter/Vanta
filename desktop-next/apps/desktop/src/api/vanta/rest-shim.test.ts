@@ -63,12 +63,6 @@ describe('vantaRestShim', () => {
     expect(result.messaging.sessions).toEqual([])
   })
 
-  it('offers the one default profile', async () => {
-    const result = (await vantaRestShim({ path: '/api/profiles' }, makeSend())) as { profiles: Array<{ name: string }> }
-
-    expect(result.profiles.map(profile => profile.name)).toEqual(['default'])
-  })
-
   it('maps a PATCH pin to the Vanta pin route', async () => {
     const send = makeSend()
 

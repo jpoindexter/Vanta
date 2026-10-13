@@ -1,13 +1,15 @@
 import type { HermesApiRequest } from '@/global'
-import type { PaginatedSessions, ProfileInfo, ProfilesResponse, SessionInfo } from '@/types/hermes'
+import type { PaginatedSessions, SessionInfo } from '@/types/hermes'
 
 import { sessionListSchema } from './schemas'
+import { matchRoute, type Send, type ShimRoute } from './shim-core'
+import { profileRoutes } from './shim-profiles'
+
+const ROUTES: readonly ShimRoute[] = [...profileRoutes]
 
 // The Hermes sidebar reads sessions and profiles over REST paths the Vanta server does not have
 // (`/api/profiles/sessions`, `/api/profiles`). The shim answers them from what Vanta does serve
 // (`/api/sessions`) so the restored list, pins and rename work; every other path passes through.
-
-type Send = (request: HermesApiRequest) => Promise<unknown>
 
 const SECONDS = 1000
 
@@ -64,16 +66,6 @@ function listPage(rows: SessionInfo[], query: URLSearchParams): PaginatedSession
   }
 }
 
-const DEFAULT_PROFILE: ProfileInfo = {
-  has_env: false,
-  is_default: true,
-  model: null,
-  name: 'default',
-  path: '',
-  provider: null,
-  skill_count: 0
-}
-
 async function readSessions(send: Send): Promise<SessionInfo[]> {
   const root = (await send({ path: '/api/status' }).catch(() => null)) as null | { root?: string }
   const metas = sessionListSchema.parse(await send({ path: '/api/sessions' }))
@@ -112,6 +104,11 @@ export function vantaRestShim(request: HermesApiRequest, send: Send): null | Pro
   const [path = '', search = ''] = request.path.split('?')
   const method = (request.method ?? 'GET').toUpperCase()
   const query = new URLSearchParams(search)
+  const routed = matchRoute(ROUTES, request, send)
+
+  if (routed) {
+    return routed
+  }
 
   if (method !== 'GET') {
     return pinCall(path, method, request, send)
@@ -126,9 +123,6 @@ export function vantaRestShim(request: HermesApiRequest, send: Send): null | Pro
 
     case '/api/sessions/search':
       return Promise.resolve({ results: [] })
-
-    case '/api/profiles':
-      return Promise.resolve({ profiles: [DEFAULT_PROFILE] } satisfies ProfilesResponse)
 
     default:
       return null

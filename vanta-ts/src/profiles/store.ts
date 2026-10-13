@@ -235,3 +235,26 @@ export async function activateProfileEnvironment(env: NodeJS.ProcessEnv = proces
   if (profile.provider) env.VANTA_PROVIDER = profile.provider;
   return profile;
 }
+
+export async function readActiveProfileId(env: NodeJS.ProcessEnv = process.env): Promise<string | null> {
+  return readActiveId(env);
+}
+
+/** Back to the implicit default profile (the base home); no profile stays marked active. */
+export async function clearActiveProfile(env: NodeJS.ProcessEnv = process.env): Promise<void> {
+  await rm(join(profilesDir(env), ACTIVE), { force: true });
+}
+
+/** Changes the display name only; the id (and so the profile's home directory) stays stable. */
+export async function renameProfile(nameOrId: string, newName: string, env: NodeJS.ProcessEnv = process.env, now = () => new Date()): Promise<ProfileRecord> {
+  const profile = await findProfile(nameOrId, env);
+  if (!profile || profile.status === "archived") throw new Error(`profile not found: ${nameOrId}`);
+  const name = newName.trim();
+  const key = safeLookup(name);
+  if (!key) throw new Error("profile name must contain letters or numbers and no path separators");
+  const taken = (await listProfiles(env)).some((item) => item.id !== profile.id && (item.id === key || item.name.toLowerCase() === name.toLowerCase()));
+  if (taken) throw new Error(`profile already exists: ${name}`);
+  const renamed = { ...profile, active: undefined, name, updatedAt: now().toISOString() };
+  await writeProfile(renamed, env);
+  return { ...renamed, active: profile.active };
+}

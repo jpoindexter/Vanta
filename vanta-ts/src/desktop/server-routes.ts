@@ -28,6 +28,7 @@ import { handleDesktopReleaseProofs } from "./release-proofs.js";
 import { handleDesktopLookCapture } from "./look-capture-api.js";
 import { handleWorkflowRunRoute } from "./workflow-run-api.js";
 import { handleDesktopSchedules } from "./schedule-api.js";
+import { handleControlRoute } from "./control-routes.js";
 import { handleDesktopContinuity } from "./continuity-api.js";
 import { handleFilePreview } from "./file-preview.js";
 import { handleDesktopVoiceStatus, handleDesktopVoiceTranscribe } from "./voice-api.js";
@@ -125,6 +126,7 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
 
 export async function routeByMethod(ctx: RouteCtx): Promise<boolean> {
   if (await handleWorkflowRunRoute(ctx.state, ctx.req, ctx.res, ctx.pathname)) return true;
+  if (await handleControlRoute(ctx)) return true;
   if (ctx.req.method === "GET") return routeGet(ctx);
   if (ctx.req.method === "POST") return routePost(ctx);
   return false;
