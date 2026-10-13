@@ -386,7 +386,7 @@ type BotsMessages = {
     portalNotInstalled: string
     portalUnsupported: string
     portalUnavailable: string
-    /** Managed runtimes (Hermes Cloud): updates are the platform's job, not the user's. */
+    /** Managed runtimes (Vanta Cloud): updates are the platform's job, not the user's. */
     portalUnavailableManaged: string
     unavailableTitle: string
     autoOpenMenu: string
@@ -485,7 +485,7 @@ type BotsMessages = {
 
 const en: BotsMessages = {
   editor: {
-    fullConfigHint: 'Full configuration needs a newer gateway (restart it after updating Hermes).',
+    fullConfigHint: 'Full configuration needs a newer gateway (restart it after updating Vanta).',
     liveCapabilities: 'Capabilities (applies immediately — skills, tools, MCP)',
     editSoul: 'SOUL.md (persona + agent-messaging protocol)',
     remoteCapabilitiesHint:
@@ -524,8 +524,8 @@ const en: BotsMessages = {
     createEmpty: 'Create empty (skip bundled skills)',
     nameTakenHint: 'That name is taken — pick another before configuring capabilities.',
     nameFirstHint: 'Name the bot first — a draft profile is created when you open this tab (discarded if you cancel).',
-    newerDesktop: 'Skills need a newer Hermes Desktop.',
-    newerGateway: 'Capability catalog needs a newer gateway (restart it after updating Hermes).',
+    newerDesktop: 'Skills need a newer Vanta.',
+    newerGateway: 'Capability catalog needs a newer gateway (restart it after updating Vanta).',
     emptySkillsHint: '“Create empty” is checked — no bundled skills will be installed.',
     defaultToolsHint: 'Leaving all (or none) checked keeps the default toolset behavior.',
     catalog: 'catalog',
@@ -541,7 +541,7 @@ const en: BotsMessages = {
     lockedHint: 'Face locked — renaming won’t change it.',
     unlockedHint: 'Face follows the name.',
     noImageModel:
-      'No image model available. If you just enabled one (or updated Hermes), restart the gateway: Ctrl+K → "Restart gateway".',
+      'No image model available. If you just enabled one (or updated Vanta), restart the gateway: Ctrl+K → "Restart gateway".',
     checkingImage: 'Checking image backend…',
     chooseImage: 'Choose an image…',
     editDescription: (name, profile) => `Appearance and role for ${name} (${profile}).`,
@@ -591,7 +591,7 @@ const en: BotsMessages = {
     unavailable: 'Unavailable',
     retryNow: 'Retry now',
     rosterUnavailable: reason =>
-      `Roster unavailable: ${reason}. If your gateway predates profiles.list, update Hermes and restart the gateway.`,
+      `Roster unavailable: ${reason}. If your gateway predates profiles.list, update Vanta and restart the gateway.`,
     waitingForGateway:
       'Waiting for the gateway connection… (remote gateways can take a few seconds; retries automatically)'
   },
@@ -655,11 +655,11 @@ const en: BotsMessages = {
     advanced: 'Advanced',
     advancedHint: 'Advanced — model, skills, toolsets, SOUL.md',
     advancedFailed: 'Advanced configuration failed',
-    openAnotherChatUnsupported: 'Update Hermes Desktop to open another Bot chat.',
-    remoteConnectionsUnsupported: 'Update Hermes Desktop to chat with bots on other connections.',
-    openNeedsUpdateTitle: 'This bot lives on an older Hermes',
+    openAnotherChatUnsupported: 'Update Vanta to open another Bot chat.',
+    remoteConnectionsUnsupported: 'Update Vanta to chat with bots on other connections.',
+    openNeedsUpdateTitle: 'This bot lives on an older Vanta',
     openNeedsUpdateMessage: connectionLabel => `Update ${connectionLabel}, then try again.`,
-    openUnreachableTitle: 'Hermes couldn’t reach the computer this bot runs on',
+    openUnreachableTitle: 'Vanta couldn’t reach the computer this bot runs on',
     openUnreachableMessage: 'Check it is online and try again.',
     openChatFailedTitle: botName => `Could not open ${botName}’s chat`,
     openChatFailedMessage: 'Try again.',
@@ -791,7 +791,7 @@ const en: BotsMessages = {
     setupFailed: 'Setup failed',
     signIn: 'Sign in…',
     setUp: 'Set up…',
-    skillsHub: 'Hermes Skills Hub',
+    skillsHub: 'Vanta Skills Hub',
     filterSkills: 'Filter skills…',
     searchHub: 'Search the hub (community + well-known sources)…',
     noMcpServers: 'No MCP servers configured or in the catalog.'
@@ -803,7 +803,7 @@ const en: BotsMessages = {
     unsupportedBody: 'Bot screens run on Linux gateway hosts. This bot uses the host\u2019s own display.',
     notInstalledTitle: 'Screen packages missing',
     notInstalledBody: 'The gateway host needs TigerVNC and the Xfce core to give this bot a screen. Run on the host:',
-    installHint: 'Runs on the gateway host as the user Hermes runs as; sudo is asked for once, through Hermes.',
+    installHint: 'Runs on the gateway host as the user Vanta runs as; sudo is asked for once, through Vanta.',
     install: 'Install on host',
     installing: 'Installing…',
     installCancelled: 'Install cancelled: no sudo password was provided.',
@@ -825,9 +825,9 @@ const en: BotsMessages = {
     portalStopped: 'Stopped',
     portalNotInstalled: 'Not installed on host',
     portalUnsupported: 'Not available on this host',
-    portalUnavailable: 'Update the bot\u2019s Hermes to use Screen',
-    portalUnavailableManaged: 'Screen is not available on this managed Hermes release yet',
-    unavailableTitle: 'Screen needs a newer Hermes',
+    portalUnavailable: 'Update the bot\u2019s Vanta to use Screen',
+    portalUnavailableManaged: 'Screen is not available on this managed Vanta release yet',
+    unavailableTitle: 'Screen needs a newer Vanta',
     autoOpenMenu: 'Open Screen when the bot uses it',
     autoOpenOnToast: name => `${name}’s Screen opens when it starts using its desktop`,
     autoOpenOffToast: name => `${name}’s Screen stays closed until you open it`,
@@ -847,7 +847,7 @@ const en: BotsMessages = {
     handBack: 'Hand back',
     handBackForce: 'Hand back (force)',
     handBackForceHint: 'Release a lease held by a viewer that is no longer here, e.g. after a reload.',
-    openNeedsUpdate: 'Update Hermes Desktop to open bot screens.',
+    openNeedsUpdate: 'Update Vanta to open bot screens.',
     youControl: 'You are in control',
     otherControls: 'Another viewer is in control',
     agentControls: 'Bot is in control',
@@ -921,7 +921,7 @@ const en: BotsMessages = {
 
 const ja: BotsMessages = {
   editor: {
-    fullConfigHint: 'すべての設定を使うには新しいゲートウェイが必要です（Hermes 更新後に再起動してください）。',
+    fullConfigHint: 'すべての設定を使うには新しいゲートウェイが必要です（Vanta 更新後に再起動してください）。',
     liveCapabilities: '機能（即時適用 — スキル、ツール、MCP）',
     editSoul: 'SOUL.md（人格 + エージェント間メッセージプロトコル）',
     remoteCapabilitiesHint:
@@ -962,8 +962,8 @@ const ja: BotsMessages = {
     nameTakenHint: 'その名前は使用済みです。機能を設定する前に別の名前を選んでください。',
     nameFirstHint:
       '先にボットに名前を付けてください。このタブを開くと下書きプロファイルが作成されます（キャンセルすると破棄されます）。',
-    newerDesktop: 'スキルには新しい Hermes Desktop が必要です。',
-    newerGateway: '機能カタログには新しいゲートウェイが必要です（Hermes 更新後に再起動してください）。',
+    newerDesktop: 'スキルには新しい Vanta が必要です。',
+    newerGateway: '機能カタログには新しいゲートウェイが必要です（Vanta 更新後に再起動してください）。',
     emptySkillsHint: '「空のプロファイルを作成」が選択されているため、同梱スキルはインストールされません。',
     defaultToolsHint: 'すべて選択するか、何も選択しない場合は、既定のツールセット動作を維持します。',
     catalog: 'カタログ',
@@ -979,7 +979,7 @@ const ja: BotsMessages = {
     lockedHint: '顔を固定しました。名前を変えても変化しません。',
     unlockedHint: '顔は名前に合わせて変わります。',
     noImageModel:
-      '画像モデルがありません。有効にした直後や Hermes 更新後の場合は、Ctrl+K →「ゲートウェイを再起動」で再起動してください。',
+      '画像モデルがありません。有効にした直後や Vanta 更新後の場合は、Ctrl+K →「ゲートウェイを再起動」で再起動してください。',
     checkingImage: '画像バックエンドを確認中…',
     chooseImage: '画像を選択…',
     editDescription: (name, profile) => `${name}（${profile}）の外観と役割。`,
@@ -1029,7 +1029,7 @@ const ja: BotsMessages = {
     unavailable: '利用できません',
     retryNow: '今すぐ再試行',
     rosterUnavailable: reason =>
-      `名簿を取得できません: ${reason}。ゲートウェイが profiles.list より前の場合は、Hermes を更新してゲートウェイを再起動してください。`,
+      `名簿を取得できません: ${reason}。ゲートウェイが profiles.list より前の場合は、Vanta を更新してゲートウェイを再起動してください。`,
     waitingForGateway: 'ゲートウェイ接続を待っています…（リモートは数秒かかることがあります。自動で再試行します）'
   },
   sections: {
@@ -1092,11 +1092,11 @@ const ja: BotsMessages = {
     advanced: '詳細設定',
     advancedHint: '詳細設定 — モデル、スキル、ツールセット、SOUL.md',
     advancedFailed: '詳細設定に失敗しました',
-    openAnotherChatUnsupported: '別のボットチャットを開くには Hermes Desktop を更新してください。',
-    remoteConnectionsUnsupported: '他の接続上のボットとチャットするには Hermes Desktop を更新してください。',
-    openNeedsUpdateTitle: 'このボットは古い Hermes 上で動いています',
+    openAnotherChatUnsupported: '別のボットチャットを開くには Vanta を更新してください。',
+    remoteConnectionsUnsupported: '他の接続上のボットとチャットするには Vanta を更新してください。',
+    openNeedsUpdateTitle: 'このボットは古い Vanta 上で動いています',
     openNeedsUpdateMessage: connectionLabel => `${connectionLabel} を更新してから、もう一度お試しください。`,
-    openUnreachableTitle: 'このボットが動いているコンピューターに Hermes が接続できませんでした',
+    openUnreachableTitle: 'このボットが動いているコンピューターに Vanta が接続できませんでした',
     openUnreachableMessage: 'オンラインか確認して、もう一度お試しください。',
     openChatFailedTitle: botName => `${botName} のチャットを開けませんでした`,
     openChatFailedMessage: 'もう一度お試しください。',
@@ -1228,7 +1228,7 @@ const ja: BotsMessages = {
     setupFailed: '設定に失敗しました',
     signIn: 'サインイン…',
     setUp: '設定…',
-    skillsHub: 'Hermes スキルハブ',
+    skillsHub: 'Vanta スキルハブ',
     filterSkills: 'スキルを絞り込み…',
     searchHub: 'ハブを検索（コミュニティと既知のソース）…',
     noMcpServers: '設定済みまたはカタログ内の MCP サーバーはありません。'
@@ -1243,7 +1243,7 @@ const ja: BotsMessages = {
     notInstalledBody:
       'このボットに画面を与えるには、ゲートウェイホストに TigerVNC と Xfce コアが必要です。ホストで実行:',
     installHint:
-      'Hermes を実行しているユーザーとしてゲートウェイホスト上で実行されます。sudo は Hermes 経由で一度だけ求められます。',
+      'Vanta を実行しているユーザーとしてゲートウェイホスト上で実行されます。sudo は Vanta 経由で一度だけ求められます。',
     install: 'ホストにインストール',
     installing: 'インストール中…',
     installCancelled: 'インストールを中止しました: sudo パスワードが入力されませんでした。',
@@ -1265,9 +1265,9 @@ const ja: BotsMessages = {
     portalStopped: '停止中',
     portalNotInstalled: 'ホストに未インストール',
     portalUnsupported: 'このホストでは利用できません',
-    portalUnavailable: 'Screen を使うにはボットの Hermes を更新してください',
-    portalUnavailableManaged: 'この管理された Hermes リリースではまだ Screen を利用できません',
-    unavailableTitle: 'Screen には新しい Hermes が必要です',
+    portalUnavailable: 'Screen を使うにはボットの Vanta を更新してください',
+    portalUnavailableManaged: 'この管理された Vanta リリースではまだ Screen を利用できません',
+    unavailableTitle: 'Screen には新しい Vanta が必要です',
     autoOpenMenu: 'ボットが画面を使い始めたら Screen を開く',
     autoOpenOnToast: name => `${name} がデスクトップを使い始めると Screen が開きます`,
     autoOpenOffToast: name => `${name} の Screen は手動で開くまで閉じたままです`,
@@ -1287,7 +1287,7 @@ const ja: BotsMessages = {
     handBack: '戻す',
     handBackForce: '強制的に戻す',
     handBackForceHint: 'もう存在しないビューア（再読み込み後など）が保持しているリースを解放します。',
-    openNeedsUpdate: 'ボットの画面を開くには Hermes Desktop を更新してください。',
+    openNeedsUpdate: 'ボットの画面を開くには Vanta を更新してください。',
     youControl: 'あなたが操作中',
     otherControls: '別のビューアが操作中',
     agentControls: 'ボットが操作中',
@@ -1361,7 +1361,7 @@ const ja: BotsMessages = {
 
 const zh: BotsMessages = {
   editor: {
-    fullConfigHint: '完整配置需要更新网关（更新 Hermes 后请重启网关）。',
+    fullConfigHint: '完整配置需要更新网关（更新 Vanta 后请重启网关）。',
     liveCapabilities: '功能（立即生效 — 技能、工具、MCP）',
     editSoul: 'SOUL.md（人格 + 智能体消息协议）',
     remoteCapabilitiesHint: '远程功能需要更新桌面应用。模型和 SOUL 的更改会在保存后生效。',
@@ -1398,8 +1398,8 @@ const zh: BotsMessages = {
     createEmpty: '创建空配置（跳过内置技能）',
     nameTakenHint: '此名称已被占用，请先选择其他名称再配置能力。',
     nameFirstHint: '请先为机器人命名，打开此标签页时将创建草稿配置档案（取消时会丢弃）。',
-    newerDesktop: '技能功能需要更新的 Hermes Desktop。',
-    newerGateway: '能力目录需要更新的网关（更新 Hermes 后请重启网关）。',
+    newerDesktop: '技能功能需要更新的 Vanta。',
+    newerGateway: '能力目录需要更新的网关（更新 Vanta 后请重启网关）。',
     emptySkillsHint: '已勾选“创建空配置”，不会安装内置技能。',
     defaultToolsHint: '全部勾选或全部不选将保留默认工具集行为。',
     catalog: '目录',
@@ -1414,7 +1414,7 @@ const zh: BotsMessages = {
     lockFace: '锁定外观',
     lockedHint: '外观已锁定，重命名不会改变外观。',
     unlockedHint: '外观随名称变化。',
-    noImageModel: '没有可用的图像模型。如果刚启用模型或更新了 Hermes，请重启网关：Ctrl+K →“重启网关”。',
+    noImageModel: '没有可用的图像模型。如果刚启用模型或更新了 Vanta，请重启网关：Ctrl+K →“重启网关”。',
     checkingImage: '正在检查图像后端…',
     chooseImage: '选择图像…',
     editDescription: (name, profile) => `${name}（${profile}）的外观和职责。`,
@@ -1462,7 +1462,7 @@ const zh: BotsMessages = {
     statusUnknown: '状态未知',
     unavailable: '不可用',
     retryNow: '立即重试',
-    rosterUnavailable: reason => `无法获取名单：${reason}。如果网关早于 profiles.list，请更新 Hermes 并重启网关。`,
+    rosterUnavailable: reason => `无法获取名单：${reason}。如果网关早于 profiles.list，请更新 Vanta 并重启网关。`,
     waitingForGateway: '正在等待网关连接…（远程网关可能需要几秒；会自动重试）'
   },
   sections: {
@@ -1522,11 +1522,11 @@ const zh: BotsMessages = {
     advanced: '高级',
     advancedHint: '高级 — 模型、技能、工具集、SOUL.md',
     advancedFailed: '高级配置失败',
-    openAnotherChatUnsupported: '请更新 Hermes Desktop 以打开另一个机器人聊天。',
-    remoteConnectionsUnsupported: '请更新 Hermes Desktop 以与其他连接上的机器人聊天。',
-    openNeedsUpdateTitle: '这个机器人运行在较旧的 Hermes 上',
+    openAnotherChatUnsupported: '请更新 Vanta 以打开另一个机器人聊天。',
+    remoteConnectionsUnsupported: '请更新 Vanta 以与其他连接上的机器人聊天。',
+    openNeedsUpdateTitle: '这个机器人运行在较旧的 Vanta 上',
     openNeedsUpdateMessage: connectionLabel => `请更新 ${connectionLabel}，然后重试。`,
-    openUnreachableTitle: 'Hermes 无法连接到运行这个机器人的电脑',
+    openUnreachableTitle: 'Vanta 无法连接到运行这个机器人的电脑',
     openUnreachableMessage: '请确认它在线后重试。',
     openChatFailedTitle: botName => `无法打开 ${botName} 的聊天`,
     openChatFailedMessage: '请重试。',
@@ -1655,7 +1655,7 @@ const zh: BotsMessages = {
     setupFailed: '设置失败',
     signIn: '登录…',
     setUp: '设置…',
-    skillsHub: 'Hermes 技能中心',
+    skillsHub: 'Vanta 技能中心',
     filterSkills: '筛选技能…',
     searchHub: '搜索技能中心（社区和常见来源）…',
     noMcpServers: '未配置 MCP 服务器，目录中也没有。'
@@ -1667,7 +1667,7 @@ const zh: BotsMessages = {
     unsupportedBody: '机器人屏幕在 Linux 网关主机上运行。此机器人使用主机自身的显示器。',
     notInstalledTitle: '缺少屏幕软件包',
     notInstalledBody: '网关主机需要 TigerVNC 和 Xfce 核心组件才能为此机器人提供屏幕。在主机上运行:',
-    installHint: '在网关主机上以运行 Hermes 的用户身份执行；sudo 只会通过 Hermes 询问一次。',
+    installHint: '在网关主机上以运行 Vanta 的用户身份执行；sudo 只会通过 Vanta 询问一次。',
     install: '安装到主机',
     installing: '正在安装…',
     installCancelled: '安装已取消：未提供 sudo 密码。',
@@ -1689,9 +1689,9 @@ const zh: BotsMessages = {
     portalStopped: '已停止',
     portalNotInstalled: '主机未安装',
     portalUnsupported: '此主机不可用',
-    portalUnavailable: '更新机器人的 Hermes 以使用屏幕',
-    portalUnavailableManaged: '此托管 Hermes 版本尚不支持屏幕',
-    unavailableTitle: '屏幕需要更新版的 Hermes',
+    portalUnavailable: '更新机器人的 Vanta 以使用屏幕',
+    portalUnavailableManaged: '此托管 Vanta 版本尚不支持屏幕',
+    unavailableTitle: '屏幕需要更新版的 Vanta',
     autoOpenMenu: '机器人使用屏幕时自动打开',
     autoOpenOnToast: name => `${name} 开始使用桌面时会自动打开屏幕`,
     autoOpenOffToast: name => `${name} 的屏幕将保持关闭，直到你手动打开`,
@@ -1711,7 +1711,7 @@ const zh: BotsMessages = {
     handBack: '交还',
     handBackForce: '强制交还',
     handBackForceHint: '释放已不在场的查看者（例如重新加载后）持有的控制权。',
-    openNeedsUpdate: '更新 Hermes Desktop 以打开机器人屏幕。',
+    openNeedsUpdate: '更新 Vanta 以打开机器人屏幕。',
     youControl: '你正在控制',
     otherControls: '另一位查看者正在控制',
     agentControls: '机器人正在控制',
@@ -1785,7 +1785,7 @@ const zh: BotsMessages = {
 
 const zhHant: BotsMessages = {
   editor: {
-    fullConfigHint: '完整設定需要更新閘道（更新 Hermes 後請重新啟動閘道）。',
+    fullConfigHint: '完整設定需要更新閘道（更新 Vanta 後請重新啟動閘道）。',
     liveCapabilities: '功能（立即生效 — 技能、工具、MCP）',
     editSoul: 'SOUL.md（人格 + 智慧代理訊息協定）',
     remoteCapabilitiesHint: '遠端功能需要更新桌面應用程式。模型和 SOUL 的變更會在儲存後生效。',
@@ -1822,8 +1822,8 @@ const zhHant: BotsMessages = {
     createEmpty: '建立空白設定（略過內建技能）',
     nameTakenHint: '此名稱已被使用，請先選擇其他名稱再設定功能。',
     nameFirstHint: '請先為機器人命名，開啟此分頁時將建立草稿設定檔（取消時會捨棄）。',
-    newerDesktop: '技能功能需要更新的 Hermes Desktop。',
-    newerGateway: '功能目錄需要更新的閘道（更新 Hermes 後請重新啟動閘道）。',
+    newerDesktop: '技能功能需要更新的 Vanta。',
+    newerGateway: '功能目錄需要更新的閘道（更新 Vanta 後請重新啟動閘道）。',
     emptySkillsHint: '已勾選「建立空白設定」，不會安裝內建技能。',
     defaultToolsHint: '全部勾選或全部不選將保留預設工具集行為。',
     catalog: '目錄',
@@ -1838,7 +1838,7 @@ const zhHant: BotsMessages = {
     lockFace: '鎖定外觀',
     lockedHint: '外觀已鎖定，重新命名不會改變外觀。',
     unlockedHint: '外觀隨名稱變化。',
-    noImageModel: '沒有可用的影像模型。如果剛啟用模型或更新了 Hermes，請重新啟動閘道：Ctrl+K →「重新啟動閘道」。',
+    noImageModel: '沒有可用的影像模型。如果剛啟用模型或更新了 Vanta，請重新啟動閘道：Ctrl+K →「重新啟動閘道」。',
     checkingImage: '正在檢查影像後端…',
     chooseImage: '選擇影像…',
     editDescription: (name, profile) => `${name}（${profile}）的外觀和職責。`,
@@ -1886,7 +1886,7 @@ const zhHant: BotsMessages = {
     statusUnknown: '狀態未知',
     unavailable: '不可用',
     retryNow: '立即重試',
-    rosterUnavailable: reason => `無法取得名單：${reason}。如果閘道早於 profiles.list，請更新 Hermes 並重新啟動閘道。`,
+    rosterUnavailable: reason => `無法取得名單：${reason}。如果閘道早於 profiles.list，請更新 Vanta 並重新啟動閘道。`,
     waitingForGateway: '正在等待閘道連線…（遠端閘道可能需要幾秒；會自動重試）'
   },
   sections: {
@@ -1946,11 +1946,11 @@ const zhHant: BotsMessages = {
     advanced: '進階',
     advancedHint: '進階 — 模型、技能、工具集、SOUL.md',
     advancedFailed: '進階設定失敗',
-    openAnotherChatUnsupported: '請更新 Hermes Desktop 以開啟另一個機器人聊天。',
-    remoteConnectionsUnsupported: '請更新 Hermes Desktop 以與其他連線上的機器人聊天。',
-    openNeedsUpdateTitle: '這個機器人運行在較舊的 Hermes 上',
+    openAnotherChatUnsupported: '請更新 Vanta 以開啟另一個機器人聊天。',
+    remoteConnectionsUnsupported: '請更新 Vanta 以與其他連線上的機器人聊天。',
+    openNeedsUpdateTitle: '這個機器人運行在較舊的 Vanta 上',
     openNeedsUpdateMessage: connectionLabel => `請更新 ${connectionLabel}，然後再試一次。`,
-    openUnreachableTitle: 'Hermes 無法連線到運行這個機器人的電腦',
+    openUnreachableTitle: 'Vanta 無法連線到運行這個機器人的電腦',
     openUnreachableMessage: '請確認它在線上後再試一次。',
     openChatFailedTitle: botName => `無法開啟 ${botName} 的聊天`,
     openChatFailedMessage: '請再試一次。',
@@ -2079,7 +2079,7 @@ const zhHant: BotsMessages = {
     setupFailed: '設定失敗',
     signIn: '登入…',
     setUp: '設定…',
-    skillsHub: 'Hermes 技能中心',
+    skillsHub: 'Vanta 技能中心',
     filterSkills: '篩選技能…',
     searchHub: '搜尋技能中心（社群和常見來源）…',
     noMcpServers: '未設定 MCP 伺服器，目錄中也沒有。'
@@ -2091,7 +2091,7 @@ const zhHant: BotsMessages = {
     unsupportedBody: '機器人螢幕在 Linux 閘道主機上執行。此機器人使用主機自身的顯示器。',
     notInstalledTitle: '缺少螢幕套件',
     notInstalledBody: '閘道主機需要 TigerVNC 與 Xfce 核心元件才能為此機器人提供螢幕。在主機上執行:',
-    installHint: '在閘道主機上以執行 Hermes 的使用者身分執行；sudo 只會透過 Hermes 詢問一次。',
+    installHint: '在閘道主機上以執行 Vanta 的使用者身分執行；sudo 只會透過 Vanta 詢問一次。',
     install: '安裝到主機',
     installing: '安裝中…',
     installCancelled: '安裝已取消：未提供 sudo 密碼。',
@@ -2113,9 +2113,9 @@ const zhHant: BotsMessages = {
     portalStopped: '已停止',
     portalNotInstalled: '主機未安裝',
     portalUnsupported: '此主機不可用',
-    portalUnavailable: '更新機器人的 Hermes 以使用螢幕',
-    portalUnavailableManaged: '此託管 Hermes 版本尚不支援螢幕',
-    unavailableTitle: '螢幕需要較新版的 Hermes',
+    portalUnavailable: '更新機器人的 Vanta 以使用螢幕',
+    portalUnavailableManaged: '此託管 Vanta 版本尚不支援螢幕',
+    unavailableTitle: '螢幕需要較新版的 Vanta',
     autoOpenMenu: '機器人使用螢幕時自動開啟',
     autoOpenOnToast: name => `${name} 開始使用桌面時會自動開啟螢幕`,
     autoOpenOffToast: name => `${name} 的螢幕將保持關閉，直到你手動開啟`,
@@ -2135,7 +2135,7 @@ const zhHant: BotsMessages = {
     handBack: '交還',
     handBackForce: '強制交還',
     handBackForceHint: '釋放已不在場的檢視者（例如重新載入後）持有的控制權。',
-    openNeedsUpdate: '更新 Hermes Desktop 以開啟機器人螢幕。',
+    openNeedsUpdate: '更新 Vanta 以開啟機器人螢幕。',
     youControl: '你正在控制',
     otherControls: '另一位檢視者正在控制',
     agentControls: '機器人正在控制',

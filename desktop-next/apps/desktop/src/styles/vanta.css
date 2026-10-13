@@ -39,7 +39,7 @@
   --warm-glow: transparent;
 
   /* Surfaces are the palette seeds themselves: base, panel, popover, bubble.
-     No blend toward the Hermes neutral ramp. */
+     No blend toward the Vanta neutral ramp. */
   --ui-bg-chrome: var(--theme-background-seed);
   --ui-bg-sidebar: var(--theme-sidebar-seed);
   --ui-bg-editor: var(--theme-card-seed);

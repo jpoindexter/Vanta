@@ -371,7 +371,7 @@ export async function answerApproval(
   }
 
   if (!gateway) {
-    throw new Error('Hermes gateway is not connected')
+    throw new Error('Vanta gateway is not connected')
   }
 
   const params = {

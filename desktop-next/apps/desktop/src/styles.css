@@ -1170,7 +1170,7 @@
   display: none;
 }
 
-/* Hermes speaks first here: no user bubble sits above the opening assistant
+/* Vanta speaks first here: no user bubble sits above the opening assistant
    turn, so the first painted row would press against the pane chrome. The
    utility class on the row pulls the top pad 0.5rem ABOVE the titlebar; give
    the air back, and only in this thread. */

@@ -1,5 +1,5 @@
 /**
- * The curated Hermes plugin catalog as the Desktop sees it.
+ * The curated Vanta plugin catalog as the Desktop sees it.
  *
  * The Capabilities → Plugins tab embeds the docs-site catalog page
  * (`CATALOG_PICKER_URL`) as a one-click picker; that page renders
@@ -115,7 +115,7 @@ export function sendWhenGatewayOpen<T>(
     })
   })
 
-  return withTimeout(opened, timeoutMs, 'Hermes backend did not connect', () => stop()).then(send)
+  return withTimeout(opened, timeoutMs, 'Vanta backend did not connect', () => stop()).then(send)
 }
 
 // The route lookup inside requestGatewayForProfile has no deadline of its own, so the

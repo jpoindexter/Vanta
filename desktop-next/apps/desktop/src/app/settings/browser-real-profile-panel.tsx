@@ -34,7 +34,7 @@ export function readUseRealProfile(record: Record<string, unknown> | undefined):
  * users reasonably never found ("no toggle in the browser section").
  *
  * Semantics mirror the config comment: turning it ON consents to snapshotting
- * the default browser's profile (cookies/logins) into a Hermes-owned copy;
+ * the default browser's profile (cookies/logins) into a Vanta-owned copy;
  * turning it OFF deletes the snapshot store on next use. The toggle writes
  * config.yaml through the same deep-merging PUT /api/config every other
  * settings surface uses — applies to new sessions.

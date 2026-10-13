@@ -62,7 +62,7 @@ export interface PluginStorage {
 export interface PluginOs {
   /** Native OS notification (Electron), attributed to this plugin. Gated by
    *  Settings ▸ Notifications ▸ "Plugin notifications" and fires only while
-   *  the user is away from Hermes — use `host.notify` for the in-app toast.
+   *  the user is away from Vanta — use `host.notify` for the in-app toast.
    *  Throttled per plugin; reserve it for genuinely notable events.
    *  Supports `icon`, `activate` (e.g. `hermes://index-network/intent/1`),
    *  action buttons, and renderer `onActivate` / `onAction` callbacks. */

@@ -50,7 +50,7 @@ export async function resolveSiblingWsUrl(
   const desktop = window.hermesDesktop
 
   if (!desktop?.getConnection) {
-    throw new Error('Hermes Desktop connection bridge unavailable')
+    throw new Error('Vanta connection bridge unavailable')
   }
 
   const connectionId = route.connectionId?.trim() || null
