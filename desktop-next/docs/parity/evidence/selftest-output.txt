@@ -1,8 +1,8 @@
-run1 wireframe-spec.json   sha256 8e7727d8797d5321c4d958b928720f3d3815f3665f64931e96a2befa27f9e35c
-run2 wireframe-spec.json   sha256 8e7727d8797d5321c4d958b928720f3d3815f3665f64931e96a2befa27f9e35c
+run1 wireframe-spec.json   sha256 81d482067092419d90e2d67f4c085ae7722b8f8e0ba4fafbdca652fbb1321288
+run2 wireframe-spec.json   sha256 81d482067092419d90e2d67f4c085ae7722b8f8e0ba4fafbdca652fbb1321288
 run1 copy-inventory.json   sha256 ab7daebfa29f61e8b2a7108b96e666b37d2fc1ee0d26068e01d440f2fe064ce0
 run2 copy-inventory.json   sha256 ab7daebfa29f61e8b2a7108b96e666b37d2fc1ee0d26068e01d440f2fe064ce0
-committed wireframe-spec.json sha256 8e7727d8797d5321c4d958b928720f3d3815f3665f64931e96a2befa27f9e35c
+committed wireframe-spec.json sha256 81d482067092419d90e2d67f4c085ae7722b8f8e0ba4fafbdca652fbb1321288
 committed copy-inventory.json sha256 ab7daebfa29f61e8b2a7108b96e666b37d2fc1ee0d26068e01d440f2fe064ce0
 DETERMINISM: PASS byte-identical (two fresh runs and the committed files)
 SELF-CHECK (wireframe vs itself): 6758 rows, 6758 PASS, 0 ALLOWED, 0 FAIL, 0 UNMAPPED; keys 160/160 mapped; copy 2889/2889 strings
