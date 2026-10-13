@@ -146,7 +146,7 @@ export function scanSkillHub(identifier: string, profile?: null | string): Promi
 }
 
 export function installSkillFromHub(identifier: string, profile?: ProfileScope): Promise<ActionResponse> {
-  return window.hermesDesktop.api<ActionResponse>({
+  return hermesApi<ActionResponse>({
     ...capabilityScoped(profile),
     path: '/api/skills/hub/install',
     method: 'POST',
