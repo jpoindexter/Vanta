@@ -1,5 +1,7 @@
 import { buildPermissionRequest, type ApprovalDetail } from "../permissions/request.js";
 import { grantAlways, grantNever } from "../permissions/grant.js";
+import { pushTypedEvent, type TypedEventHost } from "./typed-emit.js";
+import { approvalRequestEvent, type ApprovalPayload } from "./typed-events.js";
 
 export type PendingApproval = {
   id: string;
@@ -13,7 +15,7 @@ export type PendingApproval = {
 };
 
 export type ApprovalDecision = "allow" | "always" | "deny" | "never";
-type ApprovalHost = { pendingApproval?: PendingApproval; root?: string };
+type ApprovalHost = TypedEventHost & { pendingApproval?: PendingApproval; root?: string };
 
 export function approvalDecision(decision: unknown, approved: unknown): ApprovalDecision {
   if (decision === "always" || decision === "deny" || decision === "never") return decision;
@@ -21,7 +23,7 @@ export function approvalDecision(decision: unknown, approved: unknown): Approval
   return approved ? "allow" : "deny";
 }
 
-export function approvalPayload(p: PendingApproval): unknown {
+export function approvalPayload(p: PendingApproval): ApprovalPayload {
   return { id: p.id, action: p.action, reason: p.reason, toolName: p.toolName, request: buildPermissionRequest(p) };
 }
 
@@ -46,5 +48,7 @@ export async function requestWebApproval(host: ApprovalHost, action: string, rea
   if (host.pendingApproval) return false;
   return new Promise<boolean>((resolve) => {
     host.pendingApproval = { id: `${Date.now()}`, action, reason, toolName, root: host.root, detail, resolve };
+    // Push alongside (not instead of) the polled GET /api/approval payload.
+    pushTypedEvent(host, approvalRequestEvent(approvalPayload(host.pendingApproval)));
   });
 }

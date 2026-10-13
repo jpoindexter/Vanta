@@ -14,6 +14,7 @@ import { loadDesktopAccessMode,permissionModeForAccess } from "./access-mode.js"
 import { requestWebApproval } from "./approval.js";
 import { type DesktopEvent,type DesktopState } from "./handler-state.js";
 import { pushSseEvent } from "./session-state.js";
+import { pushFrame,typedFromStreamEvent } from "./typed-emit.js";
 
 export function eventLabel(event: StreamEvent): DesktopEvent | null {
   // Delegates to the shared StreamEventFormatter port (term/event-format) so the
@@ -74,10 +75,10 @@ export function attachConversation(state: DesktopState, setup: RunSetup, history
         state.currentRunEvents?.push(runEventFromTool(event));
       }
       const label = eventLabel(event);
-      if (label) {
-        state.currentEvents?.push(label);
-        if (state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, label);
-      }
+      const typed = typedFromStreamEvent(state, event);
+      // currentEvents feeds the POST /api/chat response and stays label-only; `typed` rides the SSE frame only.
+      if (label) state.currentEvents?.push(label);
+      if (label || typed) pushFrame(state, { ...(label ?? { label: "" }), ...(typed ? { typed } : {}) });
     },
   }, history);
   setPlanInstruction(convo.messages, state.accessMode === "plan");

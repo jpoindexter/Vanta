@@ -7,6 +7,7 @@ import type { DesktopState } from "./handler-state.js";
 import { parseDesktopImageInput } from "./image-input.js";
 import { loadProviderAuthRequired } from "./provider-auth-store.js";
 import { pushSseEvent } from "./session-state.js";
+import { resetToolIds } from "./typed-emit.js";
 
 export async function handleStopChat(state: DesktopState, res: http.ServerResponse): Promise<void> {
   const controller = state._chatAbort;
@@ -46,6 +47,7 @@ function startChatExecution(state: DesktopState, input: ChatInput): ChatExecutio
   state._chatDeltas = [];
   state._streamTextDeltas = true;
   state.currentEvents = [];
+  resetToolIds(state);
   if (input.requestId && state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, {
     label: "Response started.", turnStarted: { sessionId: queueSessionId(state), requestId: input.requestId },
   });
