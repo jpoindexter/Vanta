@@ -1,4 +1,4 @@
-import { useRef, useState, type ClipboardEvent, type DragEvent, type FormEvent, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type ClipboardEvent, type DragEvent, type FormEvent, type KeyboardEvent } from "react";
 import { ArrowUp, Folder, ListPlus, Paperclip, Plus, Square, Upload, X } from "lucide-react";
 import { AccessModePicker } from "./access-mode-picker.js";
 import { clipboardImageFiles, imagePreviewUrl, insertClipboardText } from "./clipboard-paste.js";
@@ -10,6 +10,8 @@ import type { DesktopAttachmentItem } from "./desktop-attachments.js";
 import { useVoiceDictation, type VoiceDictation } from "./voice-dictation.js";
 import { VoiceButton, VoiceStatus } from "./voice-button.js";
 import { useVoiceShortcuts } from "./voice-shortcuts.js";
+import type { EarlyComposer } from "./early-composer.js";
+import { markLaunch } from "./launch-marks.js";
 
 export type ComposerProps = {
   sessionId?: string;
@@ -17,6 +19,8 @@ export type ComposerProps = {
   busy: boolean;
   runReady?: boolean;
   ready?: boolean;
+  /** While the runtime connects, typing stays enabled and a sent message is held for it. */
+  early?: EarlyComposer;
   model?: string;
   root?: string;
   tools?: number;
@@ -43,6 +47,23 @@ export type ComposerProps = {
 };
 
 export function Composer(props: ComposerProps) {
+  const early = props.early && props.ready === false ? props.early : undefined;
+  if (!early) return <ComposerBody {...props} earlyMode={false} />;
+  return <ComposerBody {...props} value={early.text} onChange={early.onChange} onSubmit={early.onQueue} ready earlyMode earlyQueued={early.queued} />;
+}
+
+function AttachmentError({ message }: { message?: string }) {
+  return message ? <p className="composer-attachment-error" role="alert">{message}</p> : null;
+}
+
+function EarlyNote({ active, queued }: { active: boolean; queued?: boolean }) {
+  if (!active) return null;
+  return <p className="composer-early-note" role="status">{queued ? "Queued. It sends the moment Vanta connects." : "Connecting to Vanta. You can type now."}</p>;
+}
+
+type BodyProps = ComposerProps & { earlyMode: boolean; earlyQueued?: boolean };
+
+function ComposerBody(props: BodyProps) {
   const voice = useVoiceDictation(props);
   useVoiceShortcuts(voice);
   const ready = props.ready ?? true;
@@ -80,15 +101,17 @@ export function Composer(props: ComposerProps) {
     <p className="sr-only" id="vanta-attachment-help">Drag files or folders here, or use the attachment button.</p>
     <label className="sr-only" htmlFor="vanta-composer">Message Vanta</label>
     <ComposerInput {...props} ready={ready} />
+    <EarlyNote active={props.earlyMode} queued={props.earlyQueued} />
     <AttachmentChips items={props.attachments} images={images} onRemoveItem={props.onRemoveAttachment} onRemoveImage={props.onRemoveImage} />
-    {props.attachmentError ? <p className="composer-attachment-error" role="alert">{props.attachmentError}</p> : null}
+    <AttachmentError message={props.attachmentError} />
     <VoiceStatus voice={voice} />
-    <ComposerFooter {...props} voice={voice} ready={ready && !voice.busy} canSend={canSend} hasImages={images.length > 0} />
+    <ComposerFooter {...props} voice={voice} ready={ready && !voice.busy && !props.earlyMode} canSend={canSend} hasImages={images.length > 0} />
   </form>;
 }
 
-function ComposerInput(props: ComposerProps & { ready: boolean }) {
-  return <textarea id="vanta-composer" rows={1} value={props.value} disabled={!props.ready} onChange={(event) => props.onChange(event.target.value)} onPaste={(event) => void pasteImages(event, props)} onKeyDown={(event) => keyDown(event, props)} placeholder={!props.ready ? "Loading this project..." : props.busy ? "Queue next..." : "Ask Vanta to do something..."} />;
+function ComposerInput(props: BodyProps & { ready: boolean }) {
+  useEffect(() => { if (props.ready) markLaunch("composer-interactive"); }, [props.ready]);
+  return <textarea id="vanta-composer" rows={1} value={props.value} disabled={!props.ready} onChange={(event) => props.onChange(event.target.value)} onPaste={(event) => void pasteImages(event, props)} onKeyDown={(event) => keyDown(event, props)} placeholder={props.earlyMode ? "Connecting… you can type now" : !props.ready ? "Loading this project..." : props.busy ? "Queue next..." : "Ask Vanta to do something..."} />;
 }
 
 function submitComposer(event: FormEvent, props: ComposerProps) {
@@ -118,11 +141,11 @@ function RemoveButton(props: { label: string; onClick: () => void }) {
   return <button type="button" aria-label={props.label} title={props.label} onClick={props.onClick}><X size={13} /></button>;
 }
 
-function ComposerFooter(props: ComposerProps & { ready: boolean; canSend: boolean; hasImages: boolean; voice: VoiceDictation }) {
+function ComposerFooter(props: BodyProps & { ready: boolean; canSend: boolean; hasImages: boolean; voice: VoiceDictation }) {
   const hasFileAttachments = props.attachments.length > 0;
   const queueDisabled = queueUnavailable(props);
   const queueTitle = props.hasImages || hasFileAttachments ? "Wait for the active run before sending attachment context" : "Queue next";
-  return <div className="composer-footer"><div className="composer-context-controls"><button className="composer-context-button" type="button" title="Attach files or folders" aria-label="Attach files or folders" onClick={props.onAttach}><Paperclip size={16} /><span className="sr-only">Attachments</span></button><LookCaptureButton busy={props.lookBusy} onCapture={props.onLookCapture} /><VoiceButton voice={props.voice} ready={props.ready} sessionId={props.sessionId} /><button className="composer-command-button" type="button" title="Open commands" aria-label="Open commands" onClick={props.onCommand}><Plus size={16} /><span className="sr-only">Commands</span></button></div><div className="composer-actions"><button className="model-button" type="button" title="Change agent model" aria-label={`Agent model: ${props.model ?? "not selected"}. Change model`} onClick={props.onModel}><small>Agent model</small><span>{props.model ?? "Choose model"}</span></button><AccessModePicker mode={props.accessMode} onChange={props.onAccessMode} />{props.busy ? <><button className="queue-button" type="submit" disabled={queueDisabled} title={queueTitle}><ListPlus size={15} /><span>Queue next</span></button><button className="stop-button" type="button" title="Stop task" aria-label="Stop task" onClick={props.onStop}><Square size={14} /><span>Stop task</span></button></> : <button className="send-button" type="submit" disabled={!props.ready || !props.canSend} aria-label="Send"><ArrowUp size={16} /></button>}</div></div>;
+  return <div className="composer-footer"><div className="composer-context-controls"><button className="composer-context-button" type="button" title="Attach files or folders" aria-label="Attach files or folders" onClick={props.onAttach}><Paperclip size={16} /><span className="sr-only">Attachments</span></button><LookCaptureButton busy={props.lookBusy} onCapture={props.onLookCapture} /><VoiceButton voice={props.voice} ready={props.ready} sessionId={props.sessionId} /><button className="composer-command-button" type="button" title="Open commands" aria-label="Open commands" onClick={props.onCommand}><Plus size={16} /><span className="sr-only">Commands</span></button></div><div className="composer-actions"><button className="model-button" type="button" title="Change agent model" aria-label={`Agent model: ${props.model ?? "not selected"}. Change model`} onClick={props.onModel}><small>Agent model</small><span>{props.model ?? "Choose model"}</span></button><AccessModePicker mode={props.accessMode} onChange={props.onAccessMode} />{props.busy ? <><button className="queue-button" type="submit" disabled={queueDisabled} title={queueTitle}><ListPlus size={15} /><span>Queue next</span></button><button className="stop-button" type="button" title="Stop task" aria-label="Stop task" onClick={props.onStop}><Square size={14} /><span>Stop task</span></button></> : <button className="send-button" type="submit" disabled={!(props.ready || props.earlyMode) || !props.canSend} aria-label="Send"><ArrowUp size={16} /></button>}</div></div>;
 }
 
 function startingTurn(props: Pick<ComposerProps, "busy" | "runReady">) {

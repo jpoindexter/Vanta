@@ -1,4 +1,4 @@
-import { execFileSync, spawn } from "node:child_process";
+import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { homedir } from "node:os";
@@ -16,10 +16,18 @@ import { desktopRuntimeEnv } from "./runtime-env.mjs";
 import { showProjectFolderPicker } from "./project-folder-picker.mjs";
 import { createPendingProjectTaskStore, prepareProjectSwitch } from "./project-switch.mjs";
 import { installMicrophonePermissions } from "./microphone-permissions.mjs";
+import { createLaunchTrace, printRendererMarks } from "./launch-trace.mjs";
+import { checkPackagedKernel } from "./smoke-kernel.mjs";
+import { buildApplicationMenu } from "./app-menu.mjs";
 
+const trace = createLaunchTrace();
+trace("main loaded");
 app.setName("Vanta");
 
 const DEFAULT_DESKTOP_PORT = 7790;
+// If the runtime is not listening this soon after the window exists, show the splash instead of a blank window.
+const SPLASH_AFTER_MS = 600;
+const RENDERER_MARKS_AFTER_MS = 4000;
 const args = process.argv.slice(app.isPackaged ? 1 : 2);
 const smoke = args.includes("--smoke");
 const devtools = args.includes("--devtools");
@@ -143,7 +151,8 @@ function stopServer() {
   serverProcess = undefined;
 }
 
-async function loadProject() {
+/** Stop any running runtime, pick a port and spawn the server; resolves once it is listening. */
+async function launchServer() {
   stopServer();
   desktopPresence?.reset();
   port = await findAvailablePort(Number(process.env.VANTA_DESKTOP_PORT) || DEFAULT_DESKTOP_PORT);
@@ -152,28 +161,32 @@ async function loadProject() {
     automationKernelUrl = `http://127.0.0.1:${await findAvailablePort(preferredKernelPort)}`;
   }
   startServer();
+  trace("runtime spawned");
   const url = await waitForServer();
+  trace("runtime listening");
+  return url;
+}
+
+async function attachRenderer(url) {
   if (smoke) console.log(`desktop smoke: renderer assets ready at ${url}`);
   mainWindow.setTitle(`Vanta — ${basename(projectRoot)}`);
-  if (!smoke) void mainWindow.loadURL(url).catch((error) => showFatal(`Desktop renderer failed: ${error.message}`));
-  if (smoke) await waitForKernel(url);
+  if (!smoke) void loadRenderer(url);
+  if (smoke) checkPackagedKernel(url, boundaryToken);
   if (smoke) console.log("desktop smoke: packaged kernel online");
   if (!smoke) trayController = createTrayController({ Tray, Menu, nativeImage, dialog, clipboard, app, baseUrl: url, boundaryToken,
     openWorkspace: (mode) => desktopPresence.setMode(mode), showAvatar: () => desktopPresence.showAvatar() });
 }
 
-async function waitForKernel(url) {
-  const boundaryHeader = ["--header", `x-vanta-desktop-boundary: ${boundaryToken}`];
-  const root = execFileSync("/usr/bin/curl", ["--fail", "--silent", "--max-time", "60", ...boundaryHeader, url], { encoding: "utf8" });
-  if (!root.includes('id="root"')) throw new Error("Packaged renderer asset did not contain the Vanta root.");
-  try {
-    const status = JSON.parse(execFileSync("/usr/bin/curl", ["--fail", "--silent", "--max-time", "60", ...boundaryHeader, `${url}/api/status`], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }));
-    if (status.kernel !== "online") throw new Error(`Packaged kernel reported ${status.kernel ?? "unknown"}.`);
-  } catch {
-    const setup = JSON.parse(execFileSync("/usr/bin/curl", ["--fail", "--silent", "--max-time", "10", ...boundaryHeader, `${url}/api/setup`], { encoding: "utf8" }));
-    if (!Array.isArray(setup) || setup.length === 0) throw new Error("Packaged first-run setup is unavailable.");
-    console.log("desktop smoke: first-run model setup ready");
-  }
+async function loadRenderer(url) {
+  trace("renderer load start");
+  await mainWindow.loadURL(url).catch((error) => showFatal(`Desktop renderer failed: ${error.message}`));
+  trace("renderer loaded");
+  if (process.env.VANTA_LAUNCH_TRACE === "1") setTimeout(() => void printRendererMarks(mainWindow), RENDERER_MARKS_AFTER_MS);
+}
+
+/** Switch projects after the window exists: restart the runtime and reload the renderer. */
+async function loadProject() {
+  await attachRenderer(await launchServer());
 }
 
 async function chooseProject() {
@@ -182,23 +195,6 @@ async function chooseProject() {
   projectRoot = result.filePaths[0];
   await saveProjectSetting(app.getPath("userData"), projectRoot);
   await loadProject();
-}
-
-function buildApplicationMenu() {
-  const template = [
-    { label: "Vanta", submenu: [
-      { label: "About Vanta", role: "about" }, { type: "separator" },
-      { label: "Open Project…", accelerator: "CmdOrCtrl+O", click: () => { void chooseProject(); } },
-      { label: "Show Vanta", accelerator: "CmdOrCtrl+Shift+V", click: () => { void desktopPresence?.setMode("full"); } },
-      { label: "Mini Vanta", click: () => { void desktopPresence?.setMode("mini"); } },
-      { label: "Show Vanta avatar", click: () => { void desktopPresence?.showAvatar(); } },
-      { type: "separator" }, { role: "hide" }, { role: "hideOthers" }, { role: "unhide" }, { type: "separator" }, { role: "quit" },
-    ] },
-    { label: "Edit", submenu: [{ role: "undo" }, { role: "redo" }, { type: "separator" }, { role: "cut" }, { role: "copy" }, { role: "paste" }, { role: "selectAll" }] },
-    { label: "View", submenu: [{ role: "reload" }, { label: "Developer Tools", accelerator: process.platform === "darwin" ? "Alt+Command+I" : "Ctrl+Shift+I", visible: !app.isPackaged, click: () => toggleDeveloperTools() }, { type: "separator" }, { role: "resetZoom" }, { role: "zoomIn" }, { role: "zoomOut" }, { role: "togglefullscreen" }] },
-    { label: "Window", submenu: [{ role: "minimize" }, { role: "zoom" }, { role: "front" }] },
-  ];
-  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
 function toggleDeveloperTools() {
@@ -226,7 +222,7 @@ async function createWindow() {
       additionalArguments: [`--vanta-desktop-boundary=${boundaryToken}`],
     },
   });
-  mainWindow.once("ready-to-show", () => { if (!smoke) mainWindow.show(); });
+  mainWindow.once("ready-to-show", () => { trace("window visible"); if (!smoke) mainWindow.show(); });
   installMicrophonePermissions(mainWindow.webContents.session, { getWindow: () => mainWindow, getOrigin: () => `http://127.0.0.1:${port}` });
   desktopPresence = createDesktopPresence({ BrowserWindow, screen, ipcMain, getWindow: () => mainWindow });
   mainWindow.webContents.setWindowOpenHandler(({ url }) => { if (/^https?:/.test(url)) void shell.openExternal(url); return { action: "deny" }; });
@@ -235,7 +231,12 @@ async function createWindow() {
     event.preventDefault();
   });
   mainWindow.on("close", (event) => { if (!shuttingDown && !smoke && !automation) { event.preventDefault(); mainWindow.hide(); } });
-  if (!smoke) await mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(splashHtml())}`);
+  trace("window created");
+}
+
+async function showSplash() {
+  trace("splash shown");
+  await mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(splashHtml())}`);
 }
 
 function trustedRendererNavigation(target) {
@@ -275,9 +276,17 @@ else {
   app.on("before-quit", () => { shuttingDown = true; desktopPresence?.dispose(); stopServer(); });
   app.on("window-all-closed", () => { if (automation || process.platform !== "darwin") app.quit(); });
   app.on("activate", () => { mainWindow?.show(); });
+  // Spawn the runtime before Electron finishes initialising: the listener is up
+  // by the time the window exists, so the first load is the real renderer.
+  const earlyServer = initialProject().then((root) => { projectRoot = root; return launchServer(); });
+  earlyServer.catch(() => undefined);
   app.whenReady().then(async () => {
-    projectRoot = await initialProject();
-    await createWindow(); buildApplicationMenu(); await loadProject();
+    trace("app ready");
+    await createWindow(); buildApplicationMenu({ app, chooseProject, getPresence: () => desktopPresence, toggleDeveloperTools });
+    let url = smoke ? undefined : await Promise.race([earlyServer, delay(SPLASH_AFTER_MS).then(() => undefined)]);
+    if (!url && !smoke) await showSplash();
+    url ??= await earlyServer;
+    await attachRenderer(url);
     if (devtools) mainWindow.webContents.openDevTools({ mode: "detach", activate: true });
     if (smoke) { console.log(`desktop native smoke ok: http://127.0.0.1:${port} · ${projectRoot}`); shuttingDown = true; app.quit(); }
   }).catch((error) => showFatal(error instanceof Error ? error.message : String(error)));
