@@ -43,7 +43,7 @@ function fakeQueue(items: ServerQueueItem[] = []) {
   return queue
 }
 
-function setup(remote: ServerQueue, options: { attachments?: never[]; busy?: boolean; draft?: string } = {}) {
+function setup(remote: ServerQueue, options: { attachments?: never[]; busy?: boolean; draft?: string; offline?: boolean } = {}) {
   const onSubmit = vi.fn<ChatBarProps['onSubmit']>(async () => true)
   const queueEditRef: { current: QueueEditState | null } = { current: null }
   const draftRef = { current: options.draft ?? '' }
@@ -67,6 +67,7 @@ function setup(remote: ServerQueue, options: { attachments?: never[]; busy?: boo
         onCancel: vi.fn(),
         onSteer: undefined,
         onSubmit,
+        offline: options.offline,
         queueEditRef,
         queueSessionKey: KEY,
         remote,
@@ -93,6 +94,17 @@ afterEach(() => {
 })
 
 describe('queueing a message', () => {
+  it('keeps plain text in this window while the backend is down, and never asks the server', () => {
+    const remote = fakeQueue()
+    const { draftRef, hook } = setup(remote, { draft: 'Wait for the backend', offline: true })
+
+    act(() => void hook.result.current.queueCurrentDraft())
+
+    expect(remote.enqueue).not.toHaveBeenCalled()
+    expect(draftRef.current).toBe('')
+    expect(getQueuedPrompts(KEY).map(entry => entry.text)).toEqual(['Wait for the backend'])
+  })
+
   it('saves plain text on the server, not in this window', () => {
     const remote = fakeQueue()
     const { draftRef, hook } = setup(remote, { draft: 'Then tag the release' })

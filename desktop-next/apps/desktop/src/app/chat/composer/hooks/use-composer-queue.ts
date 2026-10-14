@@ -83,6 +83,8 @@ interface UseComposerQueueArgs {
   onCancel: ChatBarProps['onCancel']
   onSteer: ChatBarProps['onSteer']
   onSubmit: ChatBarProps['onSubmit']
+  /** The backend is down: queue in this window (the server cannot take it) and run it after reconnect. */
+  offline?: boolean
   queueEditRef: RefObject<QueueEditState | null>
   queueSessionKey: ChatBarProps['queueSessionKey']
   /** The server's saved queue. Text-only messages queue there and survive an app restart; messages with
@@ -110,6 +112,7 @@ export function useComposerQueue({
   loadIntoComposer,
   onCancel,
   onSteer,
+  offline,
   onSubmit,
   queueEditRef,
   queueSessionKey,
@@ -339,7 +342,7 @@ export function useComposerQueue({
 
     // Plain text queues on the server, which keeps it across an app restart. Attachments and frozen terminal
     // selections cannot ride the server queue, so those stay in this window's queue.
-    if (remote && sessionId && attachments.length === 0 && !frozen.frozenTransport) {
+    if (!offline && remote && sessionId && attachments.length === 0 && !frozen.frozenTransport) {
       const queued = frozen.text
       clearDraft()
       triggerHaptic('selection')
@@ -373,7 +376,7 @@ export function useComposerQueue({
     triggerHaptic('selection')
 
     return true
-  }, [activeQueueSessionKey, attachments, clearDraft, draftRef, loadIntoComposer, onSubmit, remote, scope.attachments, sessionId, t.composer])
+  }, [activeQueueSessionKey, attachments, clearDraft, draftRef, loadIntoComposer, offline, onSubmit, remote, scope.attachments, sessionId, t.composer])
 
   // All queue drain paths share one lock + send-then-remove sequence.
   // `pickEntry` lets each caller choose head, by-id, or skip-edited, from the

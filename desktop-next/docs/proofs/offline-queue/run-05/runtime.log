@@ -1,0 +1,10 @@
+
+--- runtime started 2026-10-14T20:15:10.834Z (pid 94104) ---
+[20:15:11.173] vanta desktop — http://127.0.0.1:7790/#boundary=3166fffe5f60b98e252aabcd51ecefb840a6ca7b0e84270f99cd59c381c7b84c
+
+--- runtime exited 2026-10-14T20:15:12.903Z (code null, signal SIGKILL) ---
+
+--- runtime started 2026-10-14T20:15:22.016Z (pid 94547) ---
+[20:15:22.228] vanta desktop — http://127.0.0.1:7790/#boundary=cb6fa21d0dfc224cb8c1c528343971146974c213ab23ecd74eb4e2cd71ed563e
+
+--- runtime exited 2026-10-14T20:15:44.067Z (code 0, signal null) ---

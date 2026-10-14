@@ -15,7 +15,15 @@ export interface ServerHostDeps {
   log: (line: string) => void
   /** Called when the server dies after it was ready. */
   onUnexpectedExit: (exit: { code: null | number; signal: null | string }) => void
+  /** The clock the restart limit reads. Tests set it. */
+  now?: () => number
+  /** How long to wait before starting a runtime that died on its own (0 by default). */
+  respawnDelayMs?: number
 }
+
+/** A runtime that died on its own is started again when something asks for it, at most this often. */
+const RESPAWN_LIMIT = 3
+const RESPAWN_WINDOW_MS = 120_000
 
 export type { BootProgress }
 
@@ -31,6 +39,10 @@ export class ServerHost {
   private intentionalStop = false
   private lastError: null | string = null
   private generation = 0
+  private lastInput: LaunchInput | null = null
+  private needsRespawn = false
+  private respawnTimes: number[] = []
+  private respawning: null | Promise<void> = null
 
   constructor(private readonly deps: ServerHostDeps) {}
 
@@ -45,6 +57,8 @@ export class ServerHost {
 
     previous?.stop()
     this.current = null
+    this.lastInput = input
+    this.needsRespawn = false
     this.intentionalStop = false
     this.lastError = null
     const generation = (this.generation += 1)
@@ -92,6 +106,7 @@ export class ServerHost {
     }
 
     await pending
+    await this.respawnIfNeeded()
 
     const url = this.baseUrl
 
@@ -100,6 +115,43 @@ export class ServerHost {
     }
 
     return url
+  }
+
+  /**
+   * A runtime that was running and then died on its own is started again the next time something asks
+   * for the connection (the renderer's Retry does), as the Hermes shell does for its backend. Callers
+   * that arrive meanwhile share the one restart. A runtime that keeps dying is left stopped with its
+   * last error instead of looping.
+   */
+  private async respawnIfNeeded(): Promise<void> {
+    if (this.respawning) {
+      return this.respawning
+    }
+
+    if (!this.needsRespawn || this.intentionalStop || this.current || !this.lastInput) {
+      return
+    }
+
+    const now = this.deps.now?.() ?? Date.now()
+    this.respawnTimes = this.respawnTimes.filter(at => now - at < RESPAWN_WINDOW_MS)
+
+    if (this.respawnTimes.length >= RESPAWN_LIMIT) {
+      return
+    }
+
+    this.respawnTimes.push(now)
+    this.deps.log('[runtime] starting again after it exited on its own')
+    const input = this.lastInput
+    const delay = this.deps.respawnDelayMs ?? 0
+
+    this.respawning = (delay > 0 ? new Promise<void>(resolve => setTimeout(resolve, delay)) : Promise.resolve())
+      .then(() => this.start(input))
+      .catch(() => undefined)
+      .finally(() => {
+        this.respawning = null
+      })
+
+    return this.respawning
   }
 
   stop(): void {
@@ -163,6 +215,7 @@ export class ServerHost {
     if (generation === this.generation && !this.intentionalStop) {
       const output = this.current?.output?.() ?? ''
       this.current = null
+      this.needsRespawn = true
       this.lastError = `The Vanta runtime exited (${exit.signal ?? exit.code ?? 'unknown'}).${output}`
       this.deps.boot.fail(this.lastError)
       this.deps.onUnexpectedExit(exit)
