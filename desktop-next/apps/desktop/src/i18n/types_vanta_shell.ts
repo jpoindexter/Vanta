@@ -81,4 +81,11 @@ export interface VantaShellTranslations {
     noKeyRoute: string
     failed: string
   }
+  runRecovery: {
+    retryStep: string
+    editRequest: string
+    startFromCheckpoint: string
+    checkpointReady: string
+    actionsLabel: string
+  }
 }

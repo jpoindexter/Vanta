@@ -4,6 +4,7 @@ import type { ChatClient } from './client-registry'
 import type { GatewayHub } from './hub'
 import { errorText } from './rpc'
 import { type ChatResult, chatResultSchema } from './schemas'
+import { failureSurface } from './run-stop'
 import { completeTurn } from './turn-complete'
 
 // A turn can legitimately run for many minutes; the ack is the end of the turn, not a quick receipt.
@@ -14,6 +15,8 @@ const BUSY_BACKOFF_MS = 150
 export interface TurnInput {
   files?: string[]
   images?: Array<{ dataBase64: string; mime: string }>
+  /** Run the head of the server's saved queue instead of a new message. */
+  resumeQueue?: boolean
   text: string
 }
 
@@ -37,7 +40,10 @@ const isBusy = (status: number, data: unknown) => status === 409 && /already run
 export function startTurn(hub: GatewayHub, client: ChatClient, input: TurnInput): void {
   const turn = { completed: false, controller: new AbortController(), requestId: newRequestId() }
   client.turn = turn
-  client.transcript.push({ role: 'user', text: input.text })
+  if (!input.resumeQueue) {
+    client.transcript.push({ role: 'user', text: input.text })
+  }
+
   attachStream(hub, client)
   client.stopApprovalPoll?.()
   client.stopApprovalPoll = startApprovalPoll(hub, client)
@@ -67,7 +73,7 @@ async function postChat(hub: GatewayHub, client: ChatClient, input: TurnInput) {
   const body = {
     ...(input.files?.length ? { files: input.files } : {}),
     ...(input.images?.length ? { images: input.images } : {}),
-    message: input.text,
+    ...(input.resumeQueue ? { resumeQueue: true } : { message: input.text }),
     requestId: turn.requestId,
     ...(client.storedId ? { sessionId: client.storedId } : {})
   }
@@ -124,6 +130,8 @@ async function runChat(hub: GatewayHub, client: ChatClient, input: TurnInput): P
   finishFromChat(hub, client, parsed.data)
 }
 
+const lastUserText = (client: ChatClient) => client.transcript.findLast(entry => entry.role === 'user')?.text ?? ''
+
 const turnStatus = (chat: ChatResult): 'complete' | 'error' | 'interrupted' => {
   const receipt = chat.receipt?.status
 
@@ -136,6 +144,22 @@ function finishFromChat(hub: GatewayHub, client: ChatClient, chat: ChatResult): 
 
   if (failureKind === 'setup' && MISSING_KEY_TEXT.test(chat.finalText)) {
     fail(hub, client, `${NO_PROVIDER} ${chat.finalText}`.trim(), PROVIDER_NOT_CONFIGURED)
+
+    return
+  }
+
+  // A run that failed or stopped early keeps its partial output and offers the recovery the server saved.
+  if (chat.receipt?.status === 'failed' && failureKind !== 'provider_auth') {
+    const { partial, stop, surface } = failureSurface(chat, lastUserText(client))
+
+    completeTurn(hub, client, {
+      error: stop.message,
+      errorSurface: surface,
+      finalText: chat.finalText,
+      partial,
+      status: 'error',
+      usage: chat.usage
+    })
 
     return
   }

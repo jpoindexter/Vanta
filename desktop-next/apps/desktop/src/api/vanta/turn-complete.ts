@@ -8,8 +8,12 @@ const SERVER_AUTH_TEXT = /^Provider authentication required/
 
 export interface TurnResult {
   error?: string
+  /** The card descriptor for a run that failed or stopped early (see run-stop.ts). */
+  errorSurface?: Record<string, unknown>
   failureKind?: FailureKind
   finalText: string
+  /** `finalText` is output the run produced before it stopped: keep it on screen beside the card. */
+  partial?: boolean
   status?: 'complete' | 'error' | 'interrupted'
   stoppedReason?: string
   usage?: UsagePayload
@@ -45,13 +49,20 @@ export function completeTurn(hub: GatewayHub, client: ChatClient, result: TurnRe
 
   hub.emit(client.clientId, 'message.complete', {
     ...(outcome.error ? { error: outcome.error, failure_reason: outcome.error } : {}),
-    ...(outcome.failureKind === 'provider_auth' ? { error_surface: providerAuthSurface(client) } : {}),
+    ...failureFields(client, outcome.failureKind, result),
     status: outcome.status,
     text: finalText,
     usage: usagePayload(result.usage)
   })
 
   return true
+}
+
+/** The card descriptor (the reconnect card, or the run's own reason and recovery) and whether the text is kept output. */
+function failureFields(client: ChatClient, failureKind: FailureKind | undefined, result: TurnResult): Record<string, unknown> {
+  const surface = result.errorSurface ?? (failureKind === 'provider_auth' ? providerAuthSurface(client) : undefined)
+
+  return { ...(surface ? { error_surface: surface } : {}), ...(result.partial ? { partial: true } : {}) }
 }
 
 /**

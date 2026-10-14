@@ -1,6 +1,6 @@
 import type http from "node:http";
-import { executeChat } from "./handler-chat-execution.js";
-import { clearChatExecution,respondAuthRequired,respondChatFailure,type ChatExecution,type ChatInput } from "./handler-chat-lifecycle.js";
+import { claimQueuedChatInput, executeChat } from "./handler-chat-execution.js";
+import { authRequiredText,clearChatExecution,respondAuthRequired,respondChatFailure,type ChatExecution,type ChatInput } from "./handler-chat-lifecycle.js";
 import { readJson,sendJson } from "./handler-http.js";
 import { queueSessionId } from "./handler-queue.js";
 import type { DesktopState } from "./handler-state.js";
@@ -55,23 +55,40 @@ function startChatExecution(state: DesktopState, input: ChatInput): ChatExecutio
   return { ...input, state, controller, events: state.currentEvents, activeQueueSessionId: queueSessionId(state) };
 }
 
-export async function handleChat(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  if (state._chatActive) return sendJson(res, 409, { error: "a turn is already running" });
-  const body = await readJson(req) as { message?: unknown; images?: unknown; files?: unknown; sessionId?: unknown; requestId?: unknown };
-  if (body.sessionId !== undefined && body.sessionId !== state.sessionId) {
-    return sendJson(res, 409, { error: "The active chat changed. Reopen the intended chat before sending." });
-  }
-  const input = parseChatInput(body);
-  if ("error" in input) return sendJson(res, 400, input);
+/** Run the saved queue with no new message: after an app restart nothing is running to drain it. */
+async function handleResumeQueue(state: DesktopState, requestId: unknown, res: http.ServerResponse): Promise<void> {
+  if (!validChatRequestId(requestId)) return sendJson(res, 400, { error: "invalid chat request identity" });
   adoptSetupGeneration(state);
   state._providerAuthRequired ??= await loadProviderAuthRequired(state.root);
-  if (state._providerAuthRequired) return respondAuthRequired(state, input, res);
-  const context = startChatExecution(state, input);
+  if (state._providerAuthRequired) return sendJson(res, 409, { error: authRequiredText(state) });
+  const claimed = await claimQueuedChatInput(state, typeof requestId === "string" ? requestId : undefined);
+  if (!claimed) return sendJson(res, 409, { error: "nothing is queued" });
+  const context = startChatExecution(state, claimed.input);
+  context.claimedTurnId = claimed.claimedTurnId;
+  await runChatExecution(context, res);
+}
+
+async function runChatExecution(context: ChatExecution, res: http.ServerResponse): Promise<void> {
   try {
     await executeChat(context, res);
   } catch (error) {
     await respondChatFailure(context, error, res);
   } finally {
-    clearChatExecution(state, context.controller);
+    clearChatExecution(context.state, context.controller);
   }
+}
+
+export async function handleChat(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  if (state._chatActive) return sendJson(res, 409, { error: "a turn is already running" });
+  const body = await readJson(req) as { message?: unknown; images?: unknown; files?: unknown; sessionId?: unknown; requestId?: unknown; resumeQueue?: unknown };
+  if (body.sessionId !== undefined && body.sessionId !== state.sessionId) {
+    return sendJson(res, 409, { error: "The active chat changed. Reopen the intended chat before sending." });
+  }
+  if (body.resumeQueue === true) return handleResumeQueue(state, body.requestId, res);
+  const input = parseChatInput(body);
+  if ("error" in input) return sendJson(res, 400, input);
+  adoptSetupGeneration(state);
+  state._providerAuthRequired ??= await loadProviderAuthRequired(state.root);
+  if (state._providerAuthRequired) return respondAuthRequired(state, input, res);
+  await runChatExecution(startChatExecution(state, input), res);
 }

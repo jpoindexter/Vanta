@@ -36,6 +36,16 @@ export interface QueuedPromptEntry {
   drainFailures?: number
   attachments: ComposerAttachment[]
   queuedAt: number
+  /** Present when this entry is the server's saved queue item rather than a window-local one. The server owns its
+   *  order, text and status; `revision` is what a change must quote. Never written to localStorage. */
+  remote?: RemoteQueueMeta
+}
+
+export interface RemoteQueueMeta {
+  failure?: string
+  intent: 'next' | 'steer'
+  revision: number
+  status: 'failed' | 'queued' | 'starting'
 }
 
 export interface EnqueueQueuedPromptPayload {

@@ -53,11 +53,20 @@ export const usageSchema = z.looseObject({
   outputTokens: z.number().optional()
 })
 
+/** The saved run receipt of a turn: what the server offers to do about a failed or stopped run. */
+export const runReceiptSchema = z.looseObject({
+  actions: z.array(z.string()).default([]),
+  checkpoint: z.looseObject({ instruction: z.string(), partialText: z.string().optional() }).optional(),
+  failureKind: z.string().optional(),
+  status: z.string().optional()
+})
+
 export const chatResultSchema = z.looseObject({
   finalText: z.string().default(''),
   interrupted: z.boolean().optional(),
-  receipt: z.looseObject({ failureKind: z.string().optional(), status: z.string().optional() }).optional(),
+  receipt: runReceiptSchema.optional(),
   sessionId: z.string().optional(),
+  stoppedReason: z.string().optional(),
   usage: usageSchema.optional()
 })
 
@@ -83,6 +92,30 @@ export const pendingApprovalSchema = approvalPayloadSchema.nullable()
 export const queueEnqueueSchema = z.looseObject({
   item: z.looseObject({ id: z.string(), revision: z.number() }).optional(),
   queued: z.boolean().optional()
+})
+
+/** One saved instruction of the server's durable turn queue. */
+export const queuedTurnSchema = z.looseObject({
+  failure: z.looseObject({ attempts: z.number().optional(), reason: z.string() }).optional(),
+  id: z.string().min(1),
+  imageCount: z.number().optional(),
+  instruction: z.string(),
+  intent: z.enum(['next', 'steer']).default('next'),
+  position: z.number().optional(),
+  revision: z.number(),
+  status: z.enum(['queued', 'starting', 'failed']).default('queued')
+})
+
+export const queueSnapshotSchema = z.looseObject({
+  items: z.array(queuedTurnSchema).default([]),
+  revision: z.number().default(0)
+})
+
+/** The server's answer to a stale queue change: the reason code and the list as it is now. */
+export const queueConflictSchema = z.looseObject({
+  code: z.string().optional(),
+  error: z.string(),
+  snapshot: queueSnapshotSchema
 })
 
 export const providerOptionSchema = z.looseObject({
@@ -161,6 +194,8 @@ export const sseFrameSchema = z.looseObject({
 
 export type ApprovalPayload = z.infer<typeof approvalPayloadSchema>
 export type ChatResult = z.infer<typeof chatResultSchema>
+export type RunReceipt = z.infer<typeof runReceiptSchema>
+export type QueueSnapshot = z.infer<typeof queueSnapshotSchema>
 export type SessionMeta = z.infer<typeof sessionMetaSchema>
 export type SseFrame = z.infer<typeof sseFrameSchema>
 export type StatusPayload = z.infer<typeof statusSchema>

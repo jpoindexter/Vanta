@@ -2,12 +2,13 @@ import type http from "node:http";
 import { writeRunMemory } from "../session.js";
 import { checkpointSessionMessages } from "../sessions/store.js";
 import type { ImageAttachment } from "../types.js";
-import type { ChatExecution } from "./handler-chat-lifecycle.js";
+import type { ChatExecution, ChatInput } from "./handler-chat-lifecycle.js";
 import { attachDesktopRunReceipt,buildRunReceipt,queuedTurnFailureReason,receiptStatusForStoppedReason } from "./handler-chat-receipts.js";
 import { ensureDesktopConversation,persistActiveSession } from "./handler-conversation.js";
 import { sendJson } from "./handler-http.js";
-import { turnQueue } from "./handler-queue.js";
+import { queueSessionId, turnQueue } from "./handler-queue.js";
 import { beginRunCapture,finishRunCapture } from "./handler-run-capture.js";
+import type { DesktopState } from "./handler-state.js";
 import { deleteQueuedImages,loadQueuedImages } from "./turn-queue-images.js";
 import { pushSseEvent } from "./session-state.js";
 import { pushTurnComplete, pushUsage } from "./typed-emit.js";
@@ -62,6 +63,19 @@ async function claimNextInstruction(context: LiveExecution, outcome: Outcome): P
   return { instruction: queued.instruction, images };
 }
 
+/**
+ * Start a turn from the durable queue instead of a typed message. The queue normally drains only after a running turn
+ * finishes; after an app restart nothing is running, so the user asks for the queue to run. The head is claimed
+ * (status "starting", owned by this process) and settles exactly like a drained item: removed when done, kept as
+ * failed with its reason otherwise.
+ */
+export async function claimQueuedChatInput(state: DesktopState, requestId?: string): Promise<{ input: ChatInput; claimedTurnId: string } | undefined> {
+  const queued = await turnQueue(state).claimNext(queueSessionId(state));
+  if (!queued) return undefined;
+  const images = queued.imageCount ? await loadQueuedImages(state.root, queued.id) : [];
+  return { claimedTurnId: queued.id, input: { instructionText: queued.instruction, images, files: [], ...(requestId ? { requestId } : {}) } };
+}
+
 export async function executeChat(context: ChatExecution, res: http.ServerResponse): Promise<void> {
   context.live = await ensureDesktopConversation(context.state);
   const liveContext = context as LiveExecution;
@@ -80,5 +94,5 @@ export async function executeChat(context: ChatExecution, res: http.ServerRespon
   await persistActiveSession(context.state);
   pushTurnComplete(context.state, { finalText: outcome.finalText, usage: outcome.usage, stoppedReason: outcome.stoppedReason });
   const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events: context.events, instruction, partialText: outcome.finalText });
-  sendJson(res, 200, { finalText: outcome.finalText, events: context.events, usage: outcome.usage, sessionId: context.state.sessionId, receipt });
+  sendJson(res, 200, { finalText: outcome.finalText, events: context.events, usage: outcome.usage, sessionId: context.state.sessionId, stoppedReason: outcome.stoppedReason, receipt });
 }
