@@ -7,12 +7,18 @@ import type { BillingMode, ProviderRoute, Usage } from "../providers/interface.j
 
 const BillingStatusSchema = z.enum(["estimated", "actual", "included", "local", "unknown"]);
 
+/** What a model call was for. Rows written before this field existed were all main-agent calls. */
+export const ROUTE_PURPOSES = ["main", "learn", "verify", "summarize", "vision", "extract", "tts", "other"] as const;
+export const RoutePurposeSchema = z.enum(ROUTE_PURPOSES);
+export type RoutePurpose = z.infer<typeof RoutePurposeSchema>;
+
 const RouteUsageSchema = z.object({
   version: z.literal(1),
   callId: z.string().min(1),
   ts: z.string(),
   sessionId: z.string(),
   agent: z.string(),
+  purpose: RoutePurposeSchema.default("main"),
   provider: z.string(),
   model: z.string(),
   baseRoute: z.string(),
@@ -70,6 +76,7 @@ export async function appendRouteUsage(
     ts?: string;
     sessionId: string;
     agent: string;
+    purpose?: RoutePurpose;
     route: ProviderRoute;
     usage?: Usage;
   },
@@ -82,6 +89,7 @@ export async function appendRouteUsage(
     ts: input.ts ?? new Date().toISOString(),
     sessionId: input.sessionId,
     agent: input.agent,
+    purpose: input.purpose ?? "main",
     provider: input.route.provider,
     model: input.route.model,
     baseRoute: input.route.baseRoute,
@@ -118,11 +126,21 @@ export type RouteUsageSummary = {
   knownCostUsd: number;
   hasUnknownCost: boolean;
   byRoute: Array<{ key: string; apiCalls: number; inputTokens: number; outputTokens: number; costUsd: number; hasUnknownCost: boolean }>;
+  byPurpose: Array<{ purpose: RoutePurpose; apiCalls: number; costUsd: number; hasUnknownCost: boolean }>;
 };
+
+function addToPurpose(byPurpose: Map<RoutePurpose, RouteUsageSummary["byPurpose"][number]>, row: RouteUsageEntry): void {
+  const current = byPurpose.get(row.purpose) ?? { purpose: row.purpose, apiCalls: 0, costUsd: 0, hasUnknownCost: false };
+  current.apiCalls += row.apiCalls;
+  if (row.costUsd === null) current.hasUnknownCost = true;
+  else current.costUsd += row.costUsd;
+  byPurpose.set(row.purpose, current);
+}
 
 export function summarizeRouteUsage(rows: RouteUsageEntry[]): RouteUsageSummary {
   const byRoute = new Map<string, RouteUsageSummary["byRoute"][number]>();
-  const total: RouteUsageSummary = { apiCalls: 0, inputTokens: 0, outputTokens: 0, cacheTokens: 0, reasoningTokens: 0, knownCostUsd: 0, hasUnknownCost: false, byRoute: [] };
+  const total: RouteUsageSummary = { apiCalls: 0, inputTokens: 0, outputTokens: 0, cacheTokens: 0, reasoningTokens: 0, knownCostUsd: 0, hasUnknownCost: false, byRoute: [], byPurpose: [] };
+  const byPurpose = new Map<RoutePurpose, RouteUsageSummary["byPurpose"][number]>();
   for (const row of rows) {
     total.apiCalls += row.apiCalls;
     total.inputTokens += row.inputTokens;
@@ -139,7 +157,9 @@ export function summarizeRouteUsage(rows: RouteUsageEntry[]): RouteUsageSummary 
     if (row.costUsd === null) current.hasUnknownCost = true;
     else current.costUsd += row.costUsd;
     byRoute.set(key, current);
+    addToPurpose(byPurpose, row);
   }
+  total.byPurpose = ROUTE_PURPOSES.flatMap((name) => byPurpose.get(name) ?? []);
   total.byRoute = [...byRoute.values()].sort((a, b) => b.apiCalls - a.apiCalls || a.key.localeCompare(b.key));
   return total;
 }
@@ -147,8 +167,12 @@ export function summarizeRouteUsage(rows: RouteUsageEntry[]): RouteUsageSummary 
 export function formatRouteUsage(summary: RouteUsageSummary): string {
   if (summary.apiCalls === 0) return "No model calls recorded for this window.";
   const cost = `${formatUsd(summary.knownCostUsd)}${summary.hasUnknownCost ? "+~?" : ""}`;
+  const purposeLine = summary.byPurpose.some((row) => row.purpose !== "main")
+    ? [`  by purpose: ${summary.byPurpose.map((row) => `${row.purpose} ${row.apiCalls} · ${formatUsd(row.costUsd)}${row.hasUnknownCost ? "+~?" : ""}`).join(" | ")}`]
+    : [];
   return [
     `Model calls: ${summary.apiCalls} · ${summary.inputTokens} in / ${summary.outputTokens} out / ${summary.cacheTokens} cached / ${summary.reasoningTokens} reasoning · ${cost}`,
     ...summary.byRoute.map((row) => `  ${row.key}: ${row.apiCalls} call${row.apiCalls === 1 ? "" : "s"} · ${row.inputTokens} in / ${row.outputTokens} out · ${formatUsd(row.costUsd)}${row.hasUnknownCost ? "+~?" : ""}`),
+    ...purposeLine,
   ].join("\n");
 }
