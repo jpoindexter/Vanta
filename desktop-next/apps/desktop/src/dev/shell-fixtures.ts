@@ -8,7 +8,11 @@
  * `window.__vantaShellFixture(name)` or open `#/?shellFixture=<name>`.
  */
 
+import { installFixtureDriver } from '@/dev/shell-fixture-driver'
+import { fixtureMessages } from '@/dev/chat-fixtures/fixtures'
+import { seedClarify } from '@/dev/chat-fixtures/prompts'
 import { createClientSessionState } from '@/lib/chat-runtime'
+import type { ChatMessage } from '@/lib/chat-messages'
 import { clearApprovalRequest, setApprovalRequest } from '@/store/prompts'
 import { $pinnedSessionIds } from '@/store/layout'
 import {
@@ -73,17 +77,27 @@ function sessionRow(seed: Seed): SessionInfo {
 }
 
 /** The status each chat shows once the focused chat is in `name`. The wireframe
- *  only rewrites the focused chat's status for these four states. */
+ *  leaves the focused row at Waiting in its failed, offline and empty states, which no
+ *  real chat can be (the row and the pill read one state), so those settle as done. */
 function statusFor(seed: Seed, name: ShellFixtureName): Status {
   if (seed.id !== FOCUSED) {
     return seed.status
   }
 
-  return name === 'waiting' || name === 'blocked' || name === 'running' || name === 'done' ? name : seed.status
+  return name === 'waiting' || name === 'blocked' || name === 'running' || name === 'done' ? name : 'done'
 }
 
-function runtimeState(seed: Seed, status: Status, failed: boolean) {
-  const state = createClientSessionState(seed.id, [
+/** The focused chat carries the wireframe's thread for the state; the others a one-line stub. */
+function threadFor(seed: Seed, name: ShellFixtureName, failed: boolean): ChatMessage[] {
+  if (seed.id === FOCUSED && name === 'empty') {
+    return []
+  }
+
+  if (seed.id === FOCUSED) {
+    return fixtureMessages({ flags: new Set(), state: name, theme: 'light', width: 1440 })
+  }
+
+  return [
     { id: `${seed.id}-u`, parts: [{ text: seed.title, type: 'text' }], role: 'user', timestamp: nowSeconds() },
     {
       id: `${seed.id}-a`,
@@ -92,7 +106,11 @@ function runtimeState(seed: Seed, status: Status, failed: boolean) {
       timestamp: nowSeconds(),
       ...(failed ? { error: 'The tests failed' } : {})
     }
-  ])
+  ]
+}
+
+function runtimeState(seed: Seed, status: Status, name: ShellFixtureName) {
+  const state = createClientSessionState(seed.id, threadFor(seed, name, name === 'failed' && seed.id === FOCUSED))
 
   return {
     ...state,
@@ -104,13 +122,12 @@ function runtimeState(seed: Seed, status: Status, failed: boolean) {
 }
 
 export function applyShellFixture(name: ShellFixtureName): void {
-  const failed = name === 'failed'
   const states: Record<string, ReturnType<typeof runtimeState>> = {}
   const approvals: Record<string, unknown> = {}
 
   for (const seed of SEEDS) {
     const status = statusFor(seed, name)
-    states[runtimeId(seed.id)] = runtimeState(seed, status, failed && seed.id === FOCUSED)
+    states[runtimeId(seed.id)] = runtimeState(seed, status, name)
 
     if (status === 'waiting') {
       approvals[runtimeId(seed.id)] = true
@@ -133,8 +150,9 @@ export function applyShellFixture(name: ShellFixtureName): void {
     })
   }
 
+  seedClarify({ flags: new Set(), state: name, theme: 'light', width: 1440 }, runtimeId(FOCUSED))
   $activeSessionId.set(runtimeId(FOCUSED))
-  $selectedStoredSessionId.set(name === 'empty' ? null : FOCUSED)
+  $selectedStoredSessionId.set(FOCUSED)
   $gatewayState.set(name === 'offline' ? 'closed' : 'open')
 }
 
@@ -144,12 +162,28 @@ declare global {
   }
 }
 
-const NAMES: readonly ShellFixtureName[] = ['blocked', 'done', 'empty', 'failed', 'offline', 'running', 'waiting']
+export const SHELL_FIXTURE_NAMES: readonly ShellFixtureName[] = [
+  'blocked',
+  'done',
+  'empty',
+  'failed',
+  'offline',
+  'running',
+  'waiting'
+]
+
+const NAMES = SHELL_FIXTURE_NAMES
 
 /** Opening a seeded chat makes the app try to resume it from a backend that has
  *  never heard of it, which overwrites the seed. Re-assert it once the resume
  *  attempt has settled. */
 const RESEED_DELAYS_MS = [600, 1800]
+
+/** Seed a chat state now and again after the resume attempt has settled. */
+export function seedShellFixtureLater(name: ShellFixtureName): void {
+  applyShellFixture(name)
+  RESEED_DELAYS_MS.forEach(delay => window.setTimeout(() => applyShellFixture(name), delay))
+}
 
 function fixtureFromHash(): ShellFixtureName | undefined {
   const wanted = /[?&]shellFixture=([a-z]+)/.exec(window.location.hash)?.[1] as ShellFixtureName | undefined
@@ -159,10 +193,8 @@ function fixtureFromHash(): ShellFixtureName | undefined {
 
 /** Expose the hook and honour `#/...?shellFixture=<name>` on load. */
 export function installShellFixtures(): void {
-  window.__vantaShellFixture = name => {
-    applyShellFixture(name)
-    RESEED_DELAYS_MS.forEach(delay => window.setTimeout(() => applyShellFixture(name), delay))
-  }
+  window.__vantaShellFixture = seedShellFixtureLater
+  installFixtureDriver(seedShellFixtureLater, FOCUSED)
 
   const wanted = fixtureFromHash()
 

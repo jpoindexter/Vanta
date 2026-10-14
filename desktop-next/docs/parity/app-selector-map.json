@@ -12,26 +12,199 @@
   "css": "#root"
  },
  "drivers": {
-  "chat:empty": [],
-  "chat:running": "UNMAPPED",
-  "chat:waiting": "UNMAPPED",
-  "chat:blocked": "UNMAPPED",
-  "chat:done": "UNMAPPED",
-  "chat:failed": "UNMAPPED",
-  "chat:offline": "UNMAPPED",
-  "wb:changes": [{"goto": "${url}/vanta-fixtures.html?bare=1&screen=workbench&tab=changes"}],
-  "wb:files": [{"goto": "${url}/vanta-fixtures.html?bare=1&screen=workbench&tab=files"}],
-  "wb:browser": [{"goto": "${url}/vanta-fixtures.html?bare=1&screen=workbench&tab=browser"}],
-  "wb:terminal": [{"goto": "${url}/vanta-fixtures.html?bare=1&screen=workbench&tab=terminal"}],
-  "wb:outputs": [{"goto": "${url}/vanta-fixtures.html?bare=1&screen=workbench&tab=outputs"}],
-  "view:home": [{"goto": "${url}/vanta-fixtures.html?bare=1&screen=home"}],
-  "view:schedules": [{"goto": "${url}/vanta-fixtures.html?bare=1&screen=schedules"}],
-  "view:connections": [{"goto": "${url}/vanta-fixtures.html?bare=1&screen=connections"}],
-  "view:skills": [{"goto": "${url}/vanta-fixtures.html?bare=1&screen=skills"}],
-  "view:outputs": [{"goto": "${url}/vanta-fixtures.html?bare=1&screen=outputs"}],
-  "overlay:palette": [{"goto": "${url}/vanta-fixtures.html?bare=1&screen=palette"}],
-  "overlay:paletteEmpty": [{"goto": "${url}/vanta-fixtures.html?bare=1&screen=palette"}, {"fill": {"testId": "palette-input"}, "value": "zzz"}],
-  "overlay:settings": [{"goto": "${url}/vanta-fixtures.html?bare=1&screen=settings"}],
+  "base": [
+   {
+    "storage": {
+     "key": "hermes-desktop-mode-v1",
+     "value": "light"
+    }
+   },
+   {
+    "reload": true
+   },
+   {
+    "waitFor": {
+     "css": "[data-vanta-titlebar]"
+    },
+    "timeout": 120000
+   },
+   {
+    "eval": "new Promise(r=>{const t=setInterval(()=>{if(typeof window.__vantaFixture==='function'){clearInterval(t);r()}},100)})"
+   },
+   {
+    "wait": 600
+   }
+  ],
+  "w:1440": [],
+  "w:1100": [],
+  "w:800": [],
+  "chat:empty": [
+   {
+    "eval": "window.__vantaFixture({chat:'empty'})"
+   },
+   {
+    "wait": 2600
+   }
+  ],
+  "chat:running": [
+   {
+    "eval": "window.__vantaFixture({chat:'running'})"
+   },
+   {
+    "wait": 2600
+   }
+  ],
+  "chat:waiting": [
+   {
+    "eval": "window.__vantaFixture({chat:'waiting'})"
+   },
+   {
+    "wait": 2600
+   }
+  ],
+  "chat:blocked": [
+   {
+    "eval": "window.__vantaFixture({chat:'blocked'})"
+   },
+   {
+    "wait": 2600
+   }
+  ],
+  "chat:done": [
+   {
+    "eval": "window.__vantaFixture({chat:'done'})"
+   },
+   {
+    "wait": 2600
+   }
+  ],
+  "chat:failed": [
+   {
+    "eval": "window.__vantaFixture({chat:'failed'})"
+   },
+   {
+    "wait": 2600
+   }
+  ],
+  "chat:offline": [
+   {
+    "eval": "window.__vantaFixture({chat:'offline'})"
+   },
+   {
+    "wait": 2600
+   }
+  ],
+  "wb:changes": [
+   {
+    "eval": "window.__vantaFixture({workbench:'changes'})"
+   },
+   {
+    "wait": 400
+   }
+  ],
+  "wb:files": [
+   {
+    "eval": "window.__vantaFixture({workbench:'files'})"
+   },
+   {
+    "wait": 400
+   }
+  ],
+  "wb:browser": [
+   {
+    "eval": "window.__vantaFixture({workbench:'browser'})"
+   },
+   {
+    "wait": 400
+   }
+  ],
+  "wb:terminal": [
+   {
+    "eval": "window.__vantaFixture({workbench:'terminal'})"
+   },
+   {
+    "wait": 400
+   }
+  ],
+  "wb:outputs": [
+   {
+    "eval": "window.__vantaFixture({workbench:'outputs'})"
+   },
+   {
+    "wait": 400
+   }
+  ],
+  "view:home": [
+   {
+    "eval": "window.__vantaFixture({chat:'waiting',page:'home'})"
+   },
+   {
+    "wait": 2600
+   }
+  ],
+  "view:schedules": [
+   {
+    "eval": "window.__vantaFixture({chat:'waiting',page:'schedules'})"
+   },
+   {
+    "wait": 2600
+   }
+  ],
+  "view:connections": [
+   {
+    "eval": "window.__vantaFixture({chat:'waiting',page:'connections'})"
+   },
+   {
+    "wait": 2600
+   }
+  ],
+  "view:skills": [
+   {
+    "eval": "window.__vantaFixture({chat:'waiting',page:'skills'})"
+   },
+   {
+    "wait": 2600
+   }
+  ],
+  "view:outputs": [
+   {
+    "eval": "window.__vantaFixture({chat:'waiting',page:'outputs'})"
+   },
+   {
+    "wait": 2600
+   }
+  ],
+  "overlay:palette": [
+   {
+    "eval": "window.__vantaFixture({overlay:'palette'})"
+   },
+   {
+    "waitFor": {
+     "testId": "palette-input"
+    }
+   }
+  ],
+  "overlay:paletteEmpty": [
+   {
+    "eval": "window.__vantaFixture({overlay:'palette'})"
+   },
+   {
+    "fill": {
+     "testId": "palette-input"
+    },
+    "value": "zzz"
+   }
+  ],
+  "overlay:settings": [
+   {
+    "eval": "window.__vantaFixture({overlay:'settings'})"
+   },
+   {
+    "waitFor": {
+     "testId": "settings-sheet"
+    }
+   }
+  ],
   "theme:dark": [
    {
     "storage": {
@@ -44,50 +217,78 @@
    },
    {
     "waitFor": {
-     "css": "[data-slot=\"composer-root\"] [contenteditable=\"true\"]"
+     "css": "[data-vanta-titlebar]"
     },
     "timeout": 120000
    },
    {
-    "wait": 800
+    "eval": "new Promise(r=>{const t=setInterval(()=>{if(typeof window.__vantaFixture==='function'){clearInterval(t);r()}},100)})"
+   },
+   {
+    "wait": 600
    }
   ],
-  "drawer:open": "UNMAPPED",
+  "drawer:open": [
+   {
+    "click": {
+     "testId": "titlebar-sidebar"
+    }
+   },
+   {
+    "wait": 400
+   }
+  ],
   "extra:stepOpen": "UNMAPPED",
   "extra:queued": "UNMAPPED",
-  "extra:toastAlways": "UNMAPPED",
-  "base": [
-   {
-    "reload": true
-   },
-   {
-    "waitFor": {
-     "css": "[data-slot=\"composer-root\"] [contenteditable=\"true\"]"
-    },
-    "timeout": 120000
-   },
-   {
-    "wait": 800
-   }
-  ],
-  "w:1440": [],
-  "w:1100": [],
-  "w:800": []
+  "extra:toastAlways": "UNMAPPED"
  },
  "keys": {
-  "titlebar": {"css": "[data-vanta-titlebar]", "textMode": "none"},
+  "titlebar": {
+   "css": "[data-vanta-titlebar]",
+   "textMode": "none"
+  },
   "titlebar.dots": "UNMAPPED",
-  "titlebar.drawer": {"testId": "titlebar-sidebar", "textMode": "none", "note": "visible at every width (owner-kept: the sidebar toggle with its unread badge)"},
-  "titlebar.new": {"testId": "titlebar-new-chat", "textMode": "none"},
-  "titlebar.title": "UNMAPPED",
-  "titlebar.titleMenu": "UNMAPPED",
-  "titlebar.project": "UNMAPPED",
-  "titlebar.statusPill": "UNMAPPED",
-  "titlebar.changes": {"testId": "titlebar-changes", "textMode": "none"},
-  "titlebar.terminal": {"testId": "titlebar-terminal", "textMode": "none"},
-  "titlebar.browser": {"testId": "titlebar-browser", "textMode": "none"},
-  "titlebar.files": {"testId": "titlebar-files", "textMode": "none"},
-  "titlebar.more": {"testId": "titlebar-more", "textMode": "none"},
+  "titlebar.drawer": {
+   "testId": "titlebar-sidebar",
+   "textMode": "none",
+   "note": "visible at every width (owner-kept: the sidebar toggle with its unread badge)"
+  },
+  "titlebar.new": {
+   "testId": "titlebar-new-chat",
+   "textMode": "none"
+  },
+  "titlebar.title": {
+   "css": ".vs-tb-title .vs-tb-name"
+  },
+  "titlebar.titleMenu": {
+   "css": ".vs-tb-title button.vs-chip:not([data-testid])"
+  },
+  "titlebar.project": {
+   "testId": "titlebar-project-chip"
+  },
+  "titlebar.statusPill": {
+   "css": ".vs-pill"
+  },
+  "titlebar.changes": {
+   "testId": "titlebar-changes",
+   "textMode": "none"
+  },
+  "titlebar.terminal": {
+   "testId": "titlebar-terminal",
+   "textMode": "none"
+  },
+  "titlebar.browser": {
+   "testId": "titlebar-browser",
+   "textMode": "none"
+  },
+  "titlebar.files": {
+   "testId": "titlebar-files",
+   "textMode": "none"
+  },
+  "titlebar.more": {
+   "testId": "titlebar-more",
+   "textMode": "none"
+  },
   "sidebar": {
    "css": "[data-slot=\"sidebar\"]",
    "textMode": "none"
@@ -109,19 +310,44 @@
   "nav.search.glyph": "UNMAPPED",
   "nav.search.label": "UNMAPPED",
   "nav.search.shortcut": "UNMAPPED",
-  "nav.home": {"role": "button", "name": "Home", "within": "sidebar", "textMode": "none"},
+  "nav.home": {
+   "role": "button",
+   "name": "Home",
+   "within": "sidebar",
+   "textMode": "none"
+  },
   "nav.home.glyph": "UNMAPPED",
   "nav.home.label": "UNMAPPED",
-  "nav.schedules": {"role": "button", "name": "Schedules", "within": "sidebar", "textMode": "none"},
+  "nav.schedules": {
+   "role": "button",
+   "name": "Schedules",
+   "within": "sidebar",
+   "textMode": "none"
+  },
   "nav.schedules.glyph": "UNMAPPED",
   "nav.schedules.label": "UNMAPPED",
-  "nav.connections": {"role": "button", "name": "Connections", "within": "sidebar", "textMode": "none"},
+  "nav.connections": {
+   "role": "button",
+   "name": "Connections",
+   "within": "sidebar",
+   "textMode": "none"
+  },
   "nav.connections.glyph": "UNMAPPED",
   "nav.connections.label": "UNMAPPED",
-  "nav.skills": {"role": "button", "name": "Skills & tools", "within": "sidebar", "textMode": "none"},
+  "nav.skills": {
+   "role": "button",
+   "name": "Skills & tools",
+   "within": "sidebar",
+   "textMode": "none"
+  },
   "nav.skills.glyph": "UNMAPPED",
   "nav.skills.label": "UNMAPPED",
-  "nav.outputs": {"role": "button", "name": "Outputs", "within": "sidebar", "textMode": "none"},
+  "nav.outputs": {
+   "role": "button",
+   "name": "Outputs",
+   "within": "sidebar",
+   "textMode": "none"
+  },
   "nav.outputs.glyph": "UNMAPPED",
   "nav.outputs.label": "UNMAPPED",
   "needsYou.group": "UNMAPPED",
@@ -137,10 +363,18 @@
   "sidebar.avatar": "UNMAPPED",
   "sidebar.userName": "UNMAPPED",
   "sidebar.userMeta": "UNMAPPED",
-  "sidebar.settings": {"testId": "sidebar-settings", "textMode": "none"},
+  "sidebar.settings": {
+   "testId": "sidebar-settings",
+   "textMode": "none"
+  },
   "main": "UNMAPPED",
-  "banner.offline": "UNMAPPED",
-  "banner.retry": "UNMAPPED",
+  "banner.offline": {
+   "css": ".vs-banner",
+   "textMode": "own"
+  },
+  "banner.retry": {
+   "css": ".vs-banner button"
+  },
   "thread.scroll": {
    "css": "[data-slot=\"aui_thread-viewport\"]",
    "textMode": "none"
@@ -149,62 +383,158 @@
    "css": "[data-slot=\"aui_thread-content\"]",
    "textMode": "none"
   },
-  "thread.note": "UNMAPPED",
-  "msg.user[]": "UNMAPPED",
-  "msg.user.actions[]": "UNMAPPED",
-  "msg.user.action[]": "UNMAPPED",
-  "msg.user.time[]": "UNMAPPED",
-  "msg.assistant[]": "UNMAPPED",
-  "msg.assistant.actions[]": "UNMAPPED",
-  "msg.assistant.action[]": "UNMAPPED",
-  "step[]": "UNMAPPED",
-  "step.body[]": "UNMAPPED",
-  "running.line": "UNMAPPED",
-  "running.spinner": "UNMAPPED",
-  "running.label": "UNMAPPED",
-  "running.stop": "UNMAPPED",
-  "card.diff": "UNMAPPED",
-  "card.diff.title": "UNMAPPED",
-  "card.diff.summary": "UNMAPPED",
-  "card.diff.review": "UNMAPPED",
-  "card.approval": "UNMAPPED",
-  "card.approval.title": "UNMAPPED",
-  "card.approval.body": "UNMAPPED",
-  "card.blocked": "UNMAPPED",
-  "card.blocked.title": "UNMAPPED",
-  "card.blocked.body": "UNMAPPED",
-  "card.error": "UNMAPPED",
-  "card.error.title": "UNMAPPED",
-  "card.error.body": "UNMAPPED",
-  "card.approval.command": "UNMAPPED",
-  "card.approval.allowOnce": "UNMAPPED",
-  "card.approval.always": "UNMAPPED",
-  "card.approval.reject": "UNMAPPED",
-  "card.approval.note": "UNMAPPED",
-  "card.blocked.skip": "UNMAPPED",
-  "card.blocked.paste": "UNMAPPED",
-  "card.blocked.browser": "UNMAPPED",
-  "card.error.retry": "UNMAPPED",
-  "card.error.viewOutput": "UNMAPPED",
-  "empty": {
-   "css": "[data-slot=\"aui_intro\"]",
+  "thread.note": {
+   "css": "[data-vp=\"thread-note\"]"
+  },
+  "msg.user[]": {
+   "css": "[data-vp=\"user-bubble\"]"
+  },
+  "msg.user.actions[]": {
+   "css": "[data-vp=\"user-actions\"]",
+   "textMode": "none",
+   "hoverOnly": true
+  },
+  "msg.user.action[]": {
+   "css": "[data-vp=\"user-actions\"] button",
+   "hoverOnly": true
+  },
+  "msg.user.time[]": {
+   "css": "[data-vp=\"user-message\"] [data-slot=\"timeline-timestamp\"]",
+   "hoverOnly": true
+  },
+  "msg.assistant[]": {
+   "css": "[data-slot=\"aui_assistant-message-content\"] .aui-md"
+  },
+  "msg.assistant.actions[]": {
+   "css": "[data-vp=\"assistant-actions\"]",
+   "textMode": "none",
+   "hoverOnly": true
+  },
+  "msg.assistant.action[]": {
+   "css": "[data-vp=\"assistant-actions\"] button",
+   "hoverOnly": true
+  },
+  "step[]": {
+   "css": "[data-vp=\"step\"]:not([data-vp=\"running-line\"] [data-vp=\"step\"])"
+  },
+  "step.body[]": {
+   "css": "[data-vp=\"step-body\"]"
+  },
+  "running.line": {
+   "css": "[data-vp=\"running-line\"]"
+  },
+  "running.spinner": {
+   "css": "[data-vp=\"running-line\"] [data-vp=\"step\"] svg",
    "textMode": "none"
   },
-  "empty.title": "UNMAPPED",
-  "empty.body": "UNMAPPED",
-  "empty.chip[]": "UNMAPPED",
+  "running.label": {
+   "css": "[data-vp=\"running-line\"] [data-vp=\"step\"]"
+  },
+  "running.stop": {
+   "css": "[data-vp=\"running-stop\"]"
+  },
+  "card.diff": {
+   "css": "[data-vp=\"diff-card\"]",
+   "textMode": "none"
+  },
+  "card.diff.title": {
+   "css": "[data-vp=\"diff-card\"] h4"
+  },
+  "card.diff.summary": {
+   "css": "[data-vp=\"diff-card\"] .vp-sub"
+  },
+  "card.diff.review": {
+   "css": "[data-vp=\"diff-review\"]"
+  },
+  "card.approval": {
+   "css": "[data-vp=\"approval-card\"]",
+   "textMode": "none"
+  },
+  "card.approval.title": {
+   "css": "[data-vp=\"approval-title\"]"
+  },
+  "card.approval.body": {
+   "css": "[data-vp=\"approval-sub\"]"
+  },
+  "card.blocked": {
+   "css": "[data-vp=\"blocked-card\"]",
+   "textMode": "none"
+  },
+  "card.blocked.title": {
+   "css": "[data-vp=\"blocked-card\"] h4"
+  },
+  "card.blocked.body": {
+   "css": "[data-vp=\"blocked-card\"] .vp-sub"
+  },
+  "card.error": {
+   "css": "[data-vp=\"failure-card\"]",
+   "textMode": "none"
+  },
+  "card.error.title": {
+   "css": "[data-vp=\"failure-card\"] h4"
+  },
+  "card.error.body": {
+   "css": "[data-vp=\"failure-card\"] .vp-sub"
+  },
+  "card.approval.command": {
+   "css": "[data-vp=\"approval-code\"]"
+  },
+  "card.approval.allowOnce": {
+   "css": "[data-vp=\"approval-actions\"] button:nth-of-type(1)"
+  },
+  "card.approval.always": {
+   "css": "[data-vp=\"approval-actions\"] button:nth-of-type(2)"
+  },
+  "card.approval.reject": {
+   "css": "[data-vp=\"approval-actions\"] button:nth-of-type(3)"
+  },
+  "card.approval.note": {
+   "css": "[data-vp=\"approval-note\"]"
+  },
+  "card.blocked.skip": {
+   "css": "[data-vp=\"blocked-actions\"] button:nth-of-type(1)"
+  },
+  "card.blocked.paste": {
+   "css": "[data-vp=\"blocked-actions\"] button:nth-of-type(2)"
+  },
+  "card.blocked.browser": {
+   "css": "[data-vp=\"blocked-actions\"] button:nth-of-type(3)"
+  },
+  "card.error.retry": {
+   "css": "[data-vp=\"failure-actions\"] button:nth-of-type(1)"
+  },
+  "card.error.viewOutput": {
+   "css": "[data-vp=\"failure-actions\"] button:nth-of-type(2)"
+  },
+  "empty": {
+   "css": "[data-vp=\"empty\"]",
+   "textMode": "none"
+  },
+  "empty.title": {
+   "css": "[data-vp=\"empty-heading\"]"
+  },
+  "empty.body": {
+   "css": "[data-vp=\"empty-copy\"]"
+  },
+  "empty.chip[]": {
+   "css": "[data-vp=\"empty-chips\"] button"
+  },
   "composer.dock": {
    "css": "[data-slot=\"composer-dock\"]",
    "textMode": "none"
   },
-  "composer.queue[]": "UNMAPPED",
-  "composer.queue.remove[]": "UNMAPPED",
+  "composer.queue[]": {
+   "css": "[data-vp=\"queue-row\"]"
+  },
+  "composer.queue.remove[]": {
+   "css": "[data-vp=\"queue-remove\"]"
+  },
   "composer": {
-   "css": "[data-slot=\"composer-surface\"]",
+   "css": "[data-vp=\"composer\"]",
    "textMode": "none"
   },
   "composer.input": {
-   "css": "[data-slot=\"composer-rich-input\"]"
+   "css": "[data-vp=\"composer-input\"]"
   },
   "composer.attach": {
    "role": "button",
@@ -219,67 +549,225 @@
    "within": "composer"
   },
   "composer.model": {
-   "role": "button",
-   "name": "Model",
-   "within": "composer"
+   "css": "[data-vp=\"chip-model\"]"
   },
   "composer.effort": {
-   "testId": "reasoning-pill",
-   "within": "composer"
+   "css": "[data-vp=\"chip-effort\"]"
   },
-  "composer.permission": "UNMAPPED",
-  "composer.send": "UNMAPPED",
-  "composer.hint": "UNMAPPED",
-  "workbench": {"testId": "workbench", "textMode": "none"},
-  "wbtabs": {"testId": "workbench-tabs", "textMode": "none"},
-  "wbtab.changes": {"testId": "workbench-tab-changes", "hug": true, "flow": true},
-  "wbtab.files": {"testId": "workbench-tab-files", "hug": true, "flow": true},
-  "wbtab.browser": {"testId": "workbench-tab-browser", "hug": true, "flow": true},
-  "wbtab.terminal": {"testId": "workbench-tab-terminal", "hug": true, "flow": true},
-  "wbtab.outputs": {"testId": "workbench-tab-outputs", "hug": true, "flow": true},
-  "wbtab.close": {"testId": "workbench-close", "textMode": "none"},
-  "workbench.body": {"testId": "workbench-body", "textMode": "none"},
-  "workbench.row[]": {"testId": "list-row", "within": "workbench.body"},
-  "workbench.code[]": {"testId": "workbench-code"},
-  "workbench.placeholder": {"testId": "workbench-placeholder"},
-  "workbench.action[]": {"testId": "workbench-action", "hug": true},
-  "workbench.urlBar": {"testId": "workbench-urlbar"},
-  "page": {"testId": "page", "textMode": "none"},
-  "page.column": {"testId": "page-column", "textMode": "none"},
-  "listpage.title": {"testId": "listpage-title"},
-  "listpage.sub": {"testId": "listpage-sub"},
-  "listpage.cta": {"testId": "listpage-cta", "hug": true},
-  "list.row[]": {"testId": "list-row", "within": "page", "textMode": "none"},
-  "list.row.title[]": {"testId": "list-row-title", "within": "page", "textMode": "own"},
-  "list.row.note[]": {"testId": "list-row-note", "within": "page"},
-  "list.row.action[]": {"css": "[data-testid='list-row'] button", "within": "page", "hug": true, "flow": true},
-  "home.composer": {"testId": "home-composer", "textMode": "none"},
-  "home.composer.input": {"testId": "home-composer-input"},
-  "home.composer.attach": {"testId": "home-composer-attach", "textMode": "none"},
-  "home.composer.project": {"testId": "home-composer-project", "hug": true, "flow": true},
-  "home.composer.send": {"testId": "home-composer-send", "textMode": "none"},
-  "home.projectChip[]": {"testId": "home-project-chip", "hug": true, "flow": true},
-  "home.section[]": {"testId": "home-section", "textMode": "none"},
-  "home.section.title[]": {"testId": "home-section-title", "textMode": "own"},
-  "home.needsYou.badge": {"testId": "home-needs-badge", "hug": true},
-  "home.empty": {"testId": "home-empty"},
-  "toast": "UNMAPPED",
-  "palette.overlay": {"testId": "palette-overlay", "textMode": "none"},
-  "palette.sheet": {"testId": "palette-sheet", "textMode": "none"},
-  "palette.input": {"testId": "palette-input"},
-  "palette.option[]": {"testId": "palette-option", "textMode": "none"},
-  "palette.option.label[]": {"testId": "palette-option-label"},
-  "palette.option.shortcut[]": {"testId": "palette-option-shortcut"},
-  "palette.empty": {"testId": "palette-empty"},
-  "settings.overlay": {"testId": "settings-overlay", "textMode": "none"},
-  "settings.sheet": {"testId": "settings-sheet", "textMode": "none"},
-  "settings.title": {"testId": "settings-title"},
-  "settings.close": {"testId": "settings-close", "textMode": "none"},
-  "settings.nav[]": {"testId": "settings-nav-item"},
-  "settings.panel": {"testId": "settings-panel", "textMode": "none"},
-  "settings.row[]": {"testId": "list-row", "within": "settings.sheet", "textMode": "none"},
-  "settings.row.title[]": {"testId": "list-row-title", "within": "settings.sheet", "textMode": "own"},
-  "settings.row.note[]": {"testId": "list-row-note", "within": "settings.sheet"},
-  "settings.row.action[]": {"css": "[data-testid='list-row'] button", "within": "settings.sheet", "hug": true, "flow": true}
+  "composer.permission": {
+   "css": "[data-vp=\"chip-permission\"]"
+  },
+  "composer.send": {
+   "css": "[data-vp=\"composer-send\"]",
+   "textMode": "none"
+  },
+  "composer.hint": {
+   "css": "[data-vp=\"composer-hint\"]"
+  },
+  "workbench": {
+   "testId": "workbench",
+   "textMode": "none"
+  },
+  "wbtabs": {
+   "testId": "workbench-tabs",
+   "textMode": "none"
+  },
+  "wbtab.changes": {
+   "testId": "workbench-tab-changes",
+   "hug": true,
+   "flow": true
+  },
+  "wbtab.files": {
+   "testId": "workbench-tab-files",
+   "hug": true,
+   "flow": true
+  },
+  "wbtab.browser": {
+   "testId": "workbench-tab-browser",
+   "hug": true,
+   "flow": true
+  },
+  "wbtab.terminal": {
+   "testId": "workbench-tab-terminal",
+   "hug": true,
+   "flow": true
+  },
+  "wbtab.outputs": {
+   "testId": "workbench-tab-outputs",
+   "hug": true,
+   "flow": true
+  },
+  "wbtab.close": {
+   "testId": "workbench-close",
+   "textMode": "none"
+  },
+  "workbench.body": {
+   "testId": "workbench-body",
+   "textMode": "none"
+  },
+  "workbench.row[]": {
+   "testId": "list-row",
+   "within": "workbench.body"
+  },
+  "workbench.code[]": {
+   "testId": "workbench-code"
+  },
+  "workbench.placeholder": {
+   "testId": "workbench-placeholder"
+  },
+  "workbench.action[]": {
+   "testId": "workbench-action",
+   "hug": true
+  },
+  "workbench.urlBar": {
+   "testId": "workbench-urlbar"
+  },
+  "page": {
+   "testId": "page",
+   "textMode": "none"
+  },
+  "page.column": {
+   "testId": "page-column",
+   "textMode": "none"
+  },
+  "listpage.title": {
+   "testId": "listpage-title"
+  },
+  "listpage.sub": {
+   "testId": "listpage-sub"
+  },
+  "listpage.cta": {
+   "testId": "listpage-cta",
+   "hug": true
+  },
+  "list.row[]": {
+   "testId": "list-row",
+   "within": "page",
+   "textMode": "none"
+  },
+  "list.row.title[]": {
+   "testId": "list-row-title",
+   "within": "page",
+   "textMode": "own"
+  },
+  "list.row.note[]": {
+   "testId": "list-row-note",
+   "within": "page"
+  },
+  "list.row.action[]": {
+   "css": "[data-testid='list-row'] button",
+   "within": "page",
+   "hug": true,
+   "flow": true
+  },
+  "home.composer": {
+   "testId": "home-composer",
+   "textMode": "none"
+  },
+  "home.composer.input": {
+   "testId": "home-composer-input"
+  },
+  "home.composer.attach": {
+   "testId": "home-composer-attach",
+   "textMode": "none"
+  },
+  "home.composer.project": {
+   "testId": "home-composer-project",
+   "hug": true,
+   "flow": true
+  },
+  "home.composer.send": {
+   "testId": "home-composer-send",
+   "textMode": "none"
+  },
+  "home.projectChip[]": {
+   "testId": "home-project-chip",
+   "hug": true,
+   "flow": true
+  },
+  "home.section[]": {
+   "testId": "home-section",
+   "textMode": "none"
+  },
+  "home.section.title[]": {
+   "testId": "home-section-title",
+   "textMode": "own"
+  },
+  "home.needsYou.badge": {
+   "testId": "home-needs-badge",
+   "hug": true
+  },
+  "home.empty": {
+   "testId": "home-empty"
+  },
+  "toast": {
+   "css": "[data-sonner-toast], [data-slot=\"toast\"]"
+  },
+  "palette.overlay": {
+   "testId": "palette-overlay",
+   "textMode": "none"
+  },
+  "palette.sheet": {
+   "testId": "palette-sheet",
+   "textMode": "none"
+  },
+  "palette.input": {
+   "testId": "palette-input"
+  },
+  "palette.option[]": {
+   "testId": "palette-option",
+   "textMode": "none"
+  },
+  "palette.option.label[]": {
+   "testId": "palette-option-label"
+  },
+  "palette.option.shortcut[]": {
+   "testId": "palette-option-shortcut"
+  },
+  "palette.empty": {
+   "testId": "palette-empty"
+  },
+  "settings.overlay": {
+   "testId": "settings-overlay",
+   "textMode": "none"
+  },
+  "settings.sheet": {
+   "testId": "settings-sheet",
+   "textMode": "none"
+  },
+  "settings.title": {
+   "testId": "settings-title"
+  },
+  "settings.close": {
+   "testId": "settings-close",
+   "textMode": "none"
+  },
+  "settings.nav[]": {
+   "testId": "settings-nav-item"
+  },
+  "settings.panel": {
+   "testId": "settings-panel",
+   "textMode": "none"
+  },
+  "settings.row[]": {
+   "testId": "list-row",
+   "within": "settings.sheet",
+   "textMode": "none"
+  },
+  "settings.row.title[]": {
+   "testId": "list-row-title",
+   "within": "settings.sheet",
+   "textMode": "own"
+  },
+  "settings.row.note[]": {
+   "testId": "list-row-note",
+   "within": "settings.sheet"
+  },
+  "settings.row.action[]": {
+   "css": "[data-testid='list-row'] button",
+   "within": "settings.sheet",
+   "hug": true,
+   "flow": true
+  }
  }
 }
