@@ -47,7 +47,7 @@ export class ServerHost {
 
     const ready = this.deps.launch(input).then(async server => {
       if (generation !== this.generation) {
-        server.stop()
+        await server.stopAndWait()
         throw new Error('The Vanta runtime start was superseded by a newer one.')
       }
 
@@ -95,6 +95,19 @@ export class ServerHost {
   stop(): void {
     this.intentionalStop = true
     this.stopCurrent()
+  }
+
+  /**
+   * Stop the runtime and everything it started, and wait until they are gone. For quit: a launch that is
+   * still in flight stops its own server when it resolves, and this waits for that too.
+   */
+  async stopAndWait(): Promise<void> {
+    this.intentionalStop = true
+    this.generation += 1
+    const current = this.current
+
+    this.current = null
+    await Promise.allSettled([current?.stopAndWait(), this.launching?.catch(() => undefined)])
   }
 
   /** A transport that outlives restarts. */

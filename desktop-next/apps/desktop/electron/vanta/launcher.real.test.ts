@@ -60,6 +60,9 @@ describe.skipIf(!available)('startVantaServer with the real Vanta runtime', () =
 
     const exited = server.exited
     server.stop()
-    await expect(exited).resolves.toMatchObject({ signal: 'SIGTERM' })
+    // A runtime that started its own kernel handles SIGTERM itself (stops the kernel, exits 0); otherwise it is killed by the signal.
+    const exit = await exited
+
+    expect(exit.signal === 'SIGTERM' || exit.code === 0).toBe(true)
   }, 90_000)
 })

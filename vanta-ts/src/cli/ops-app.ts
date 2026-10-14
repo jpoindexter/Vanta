@@ -1,9 +1,11 @@
 import { join } from "node:path";
 import { randomBytes } from "node:crypto";
 import { resolveVantaHome } from "../store/home.js";
+import { applyDesktopKernelLifecycle } from "../kernel-guard/desktop-lifecycle.js";
 import { authenticatedDesktopUrl, parseDesktopLaunchArgs } from "../desktop/native-shell.js";
 
 export async function runDesktopCommand(repoRoot: string, rest: string[]): Promise<void> {
+  await applyDesktopKernelLifecycle();
   const launch = parseDesktopLaunchArgs(rest, process.env);
   const { serveDesktop } = await import("../desktop/server.js");
   const boundaryToken = process.env.VANTA_DESKTOP_BOUNDARY_TOKEN ?? randomBytes(32).toString("hex");

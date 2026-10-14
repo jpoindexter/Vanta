@@ -27,6 +27,7 @@ function fakeServer(port: number, behaviour: { failReady?: string } = {}) {
     exited,
     ready: behaviour.failReady ? Promise.reject(new Error(behaviour.failReady)) : Promise.resolve(),
     stop: vi.fn(),
+    stopAndWait: vi.fn(async () => undefined),
     token: `token-${port}`
   }
 
@@ -101,6 +102,42 @@ describe('ServerHost', () => {
     await Promise.resolve()
 
     expect(second.onUnexpectedExit).not.toHaveBeenCalled()
+  })
+
+  it('stopAndWait waits for the running server tree and does not report it as a crash', async () => {
+    const running = fakeServer(7801)
+    let released!: () => void
+    running.server.stopAndWait = vi.fn(() => new Promise<void>(resolve => { released = resolve }))
+    const { host, onUnexpectedExit } = setup([running])
+    await host.start(input)
+
+    let settled = false
+    const stopping = host.stopAndWait().then(() => { settled = true })
+    await Promise.resolve()
+    expect(settled).toBe(false)
+    expect(running.server.stopAndWait).toHaveBeenCalledOnce()
+
+    released()
+    await stopping
+    running.exit({ code: null, signal: 'SIGTERM' })
+    await Promise.resolve()
+
+    expect(settled).toBe(true)
+    expect(onUnexpectedExit).not.toHaveBeenCalled()
+  })
+
+  it('stopAndWait also stops a server whose launch was still in flight', async () => {
+    const late = fakeServer(7801)
+    let deliver!: () => void
+    const launch = vi.fn(() => new Promise<VantaServer>(resolve => { deliver = () => resolve(late.server) }))
+    const host = new ServerHost({ boot: { fail: vi.fn(), ready: vi.fn(), verifying: vi.fn() }, launch, log: vi.fn(), onUnexpectedExit: vi.fn() })
+    void host.start(input).catch(() => undefined)
+
+    const stopping = host.stopAndWait()
+    deliver()
+    await stopping
+
+    expect(late.server.stopAndWait).toHaveBeenCalledOnce()
   })
 
   it('the stable transport waits for the server before sending, then forwards the call', async () => {
