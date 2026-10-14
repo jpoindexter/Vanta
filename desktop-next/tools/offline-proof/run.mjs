@@ -22,6 +22,8 @@ const outDir = path.resolve(option("--out", path.join(import.meta.dirname, "..",
 const TIMEOUT = 20_000;
 const OFFLINE_TEXT = "offline question that must wait";
 const ANSWER = "Scripted turn finished.";
+const SKILL_NAME = "Invoice triage";
+const MEMORY_TITLE = "Prefers short answers";
 const RESPAWN_DELAY_MS = 9000;
 
 const ctx = { box: null, cur: null, model: null, steps: [], facts: {} };
@@ -54,6 +56,15 @@ async function send(text) {
 }
 
 const promptsContaining = (needle) => ctx.model.requests.filter((r) => String(r.prompt ?? "").includes(needle)).length;
+
+/** One learned skill and one memory, so the Memory Graph has something to draw. */
+function seedLearning(box) {
+  const skill = path.join(box.vantaHome, "skills", "invoice-triage");
+  fs.mkdirSync(skill, { recursive: true });
+  fs.writeFileSync(path.join(skill, "SKILL.md"), `---\nname: ${SKILL_NAME}\ndescription: Triage incoming invoices\ntags: [finance]\n---\nOpen the inbox, sort invoices by due date.\n`);
+  fs.mkdirSync(path.join(box.vantaHome, "memories"), { recursive: true });
+  fs.writeFileSync(path.join(box.vantaHome, "memories", "1.md"), `# ${MEMORY_TITLE}\nKeep replies under five lines.\n`);
+}
 
 const STEPS = [
   ["a", "online baseline: a typed message is answered", async () => {
@@ -93,27 +104,30 @@ const STEPS = [
     must(!(await page().getByTestId("offline-banner").isVisible().catch(() => false)), "the offline banner is still showing after the backend came back");
     return { requestsAfter: ctx.model.requests.length, retryClicked: retried };
   }],
-  ["e", "Memory Graph opens from the command palette", async () => {
+  ["e", "Memory Graph opens from the command palette and draws the seeded skill and memory", async () => {
     await page().keyboard.press("Meta+k");
     await page().waitForTimeout(500);
     await page().keyboard.type("memory graph");
-    const row = page().getByText("Memory Graph", { exact: true }).first();
-    await row.waitFor({ state: "visible", timeout: TIMEOUT });
-    await shot("01-palette-memory-graph");
+    await page().getByText("Memory Graph", { exact: true }).first().waitFor({ state: "visible", timeout: TIMEOUT });
+    await shot("06-palette-memory-graph");
     await page().keyboard.press("Enter");
     await waitFor(async () => /#\/starmap/.test(page().url()), "the Memory Graph route");
-    await waitFor(async () => /Memory Graph/.test(await bodyText()), "the Memory Graph overlay title");
-    await shot("02-memory-graph");
-    await page().keyboard.press("Escape");
-    await page().evaluate(() => { window.location.hash = "#/"; });
-    await page().waitForTimeout(800);
-    return { url: page().url().replace(/#.*/, "#…") };
+    await waitFor(async () => !/Could not load memory graph/.test(await bodyText()), "the graph to load without an error");
+    // The graph is drawn on a canvas, so node names are not page text; the legend and key are.
+    await waitFor(async () => /core = oldest/.test(await bodyText()), "the graph legend (a loaded graph, not the empty state)");
+    await shot("07-memory-graph");
+    const text = await bodyText();
+    must(!/Nothing learned yet/.test(text), "the graph shows the empty state although a skill and a memory exist");
+    must(/skill/.test(text) && /memory/.test(text), "the legend lacks the skill or memory entry");
+    const counter = (text.match(/\d+ \/ \d+/) ?? [""])[0];
+    return { legend: true, counter };
   }],
 ];
 
 async function main() {
   fs.mkdirSync(outDir, { recursive: true });
   ctx.box = await makeSandbox();
+  seedLearning(ctx.box);
   ctx.model = await startScriptedModel();
   let failed = false;
   try {
