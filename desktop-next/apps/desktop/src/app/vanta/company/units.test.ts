@@ -203,6 +203,13 @@ describe('hire form', () => {
 describe('tab keys', () => {
   it('moves with arrows (wrapping), Home and End, and ignores other keys', () => {
     expect(nextTab('workers', 'ArrowRight')).toBe('tickets')
+    expect(['tickets', 'okrs', 'heartbeats', 'products', 'budgets'].map(tab => nextTab(tab as never, 'ArrowRight'))).toEqual([
+      'okrs',
+      'heartbeats',
+      'products',
+      'budgets',
+      'activity'
+    ])
     expect(nextTab('workers', 'ArrowLeft')).toBe('activity')
     expect(nextTab('activity', 'ArrowRight')).toBe('workers')
     expect(nextTab('budgets', 'Home')).toBe('workers')
