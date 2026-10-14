@@ -7,6 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { launchVanta, waitForShell } from "./vanta-app.mjs";
+import { installNativeStubs, setAnswers } from "./proof/native-stubs.mjs";
 import { closeMenus, goHome, overlay, pick, startChat, waitUntil } from "./proof/kit.mjs";
 
 const only = (process.argv.find((a) => a.startsWith("--only=")) ?? "").replace("--only=", "").split(",").filter(Boolean);
@@ -173,6 +174,29 @@ try {
     const toast = (await page.locator("[role=alert], [role=status], [data-sonner-toast], [class*=toast i]").allInnerTexts()).join(" | ").replace(/\n+/g, " / ");
     const stillAsk = (await api({ method: "GET", path: "/api/access-mode" })).mode;
     say("F-163x", /must be one of manual, smart/.test(toast) && stillAsk === "ask", `choosing Off is refused and says why: "${toast.slice(0, 200)}" (mode still ${stillAsk})`);
+  }
+  if (wants("queue-images")) {
+    await installNativeStubs(app, { confirm: true, downloadDir: app.root, pickFolder: path.join(app.project, "pixel.png"), savePath: path.join(app.root, "saved.png") });
+    await goHome(page);
+    await startChat(page);
+    const editor = page.locator('[data-slot="composer-root"] [contenteditable="true"], [data-slot="composer-root"] textarea').first();
+    await editor.click();
+    await page.keyboard.type("slow count to ten");
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(500);
+    await page.getByRole("button", { name: "Add context" }).click();
+    await page.waitForTimeout(400);
+    await pick(page, "Images…");
+    const chip = await waitUntil(async () => /pixel\.png/.test(await page.locator('[data-slot="composer-root"]').first().innerText()), 6000, 250);
+    await editor.click();
+    await page.keyboard.type("look at this too");
+    await page.keyboard.press("Meta+Enter");
+    await page.waitForTimeout(800);
+    const queuedShown = /look at this too/.test(await page.locator("body").innerText());
+    const answered = await waitUntil(async () => /I can see the attached image/.test(await page.locator("body").innerText()), 40000, 500);
+    say("F-115q", Boolean(chip) && queuedShown && Boolean(answered), `image attached while a turn ran: chip=${Boolean(chip)}, queued row shown=${queuedShown}, the model received it when the queued turn ran and answered "I can see the attached image."=${Boolean(answered)}`);
+    const left = fs.existsSync(path.join(app.root, "vanta-home", "desktop-turn-queues", "images")) ? fs.readdirSync(path.join(app.root, "vanta-home", "desktop-turn-queues", "images")).filter((f) => f.endsWith(".json")) : [];
+    say("F-115r", left.length === 0, `queued image files left behind after it ran: ${left.length}`);
   }
   if (wants("effort")) {
     await goHome(page);

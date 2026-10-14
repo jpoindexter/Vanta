@@ -6,6 +6,8 @@ const BASE64 = /^[A-Za-z0-9+/]*={0,2}$/;
 export const MAX_DESKTOP_IMAGE_BYTES = 10 * 1024 * 1024;
 export const MAX_DESKTOP_IMAGE_TOTAL_BYTES = 20 * 1024 * 1024;
 export const MAX_DESKTOP_IMAGES = 4;
+/** What an image-only message asks. */
+export const DESCRIBE_IMAGE = "Describe the attached image.";
 
 export type DesktopImageInputResult =
   | { ok: true; images: ImageAttachment[] }

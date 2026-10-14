@@ -1,8 +1,10 @@
 import http from "node:http";
 import { readJson,sendJson } from "./handler-http.js";
+import { DESCRIBE_IMAGE,parseDesktopImageInput } from "./image-input.js";
 import { type DesktopState } from "./handler-state.js";
 import { loadDesktopSessionDraft,saveDesktopSessionDraft } from "./session-draft-store.js";
 import { pushSseEvent } from "./session-state.js";
+import { deleteQueuedImages,saveQueuedImages } from "./turn-queue-images.js";
 import { DesktopTurnQueue,QueueConflictError,desktopTurnQueuePath,fileTurnQueueDeps,type QueuedTurnTarget } from "./turn-queue.js";
 
 export const desktopTurnQueues = new Map<string, DesktopTurnQueue>();
@@ -50,26 +52,29 @@ export async function handleSessionDraft(state: DesktopState, req: http.Incoming
   sendJson(res, 400, { error: "unsupported draft action" });
 }
 
-type QueueBody = { action?: unknown; id?: unknown; revision?: unknown; message?: unknown; direction?: unknown };
+type QueueBody = { action?: unknown; id?: unknown; revision?: unknown; message?: unknown; direction?: unknown; images?: unknown };
 
 async function enqueueInstruction(state: DesktopState, body: QueueBody, res: http.ServerResponse): Promise<void> {
   const queue = turnQueue(state);
   if (!state._chatActive) return sendJson(res, 409, { error: "no turn is running" });
-  const message = typeof body.message === "string" ? body.message.trim() : "";
-  if (!message) return sendJson(res, 400, { error: "message is required" });
-  const item = await queue.enqueue({ instruction: message, target: queuedTurnTarget(state) });
+  const parsedImages = parseDesktopImageInput(body.images);
+  if (!parsedImages.ok) return sendJson(res, 400, { error: parsedImages.error });
+  const message = (typeof body.message === "string" ? body.message.trim() : "") || (parsedImages.images.length ? DESCRIBE_IMAGE : "");
+  if (!message) return sendJson(res, 400, { error: "message or image is required" });
+  const item = await queue.enqueue({ instruction: message, target: queuedTurnTarget(state), imageCount: parsedImages.images.length });
+  await saveQueuedImages(state.root, item.id, parsedImages.images);
   const event = { label: "Next instruction queued.", ok: true };
   state.currentEvents?.push(event);
   if (state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, event);
   sendJson(res, 202, { queued: true, item, snapshot: await queue.list(queueSessionId(state)) });
 }
 
-async function mutateQueuedInstruction(queue: DesktopTurnQueue, action: string, body: QueueBody): Promise<boolean> {
+async function mutateQueuedInstruction(queue: DesktopTurnQueue, root: string, action: string, body: QueueBody): Promise<boolean> {
   const id = body.id as string;
   const revision = body.revision as number;
   if (action === "edit") await queue.edit(id, revision, typeof body.message === "string" ? body.message : "");
   else if (action === "move" && (body.direction === "up" || body.direction === "down")) await queue.move(id, revision, body.direction);
-  else if (action === "cancel") await queue.cancel(id, revision);
+  else if (action === "cancel") { await queue.cancel(id, revision); await deleteQueuedImages(root, id); }
   else if (action === "steer") await queue.steer(id, revision);
   else if (action === "retry") await queue.retry(id, revision);
   else return false;
@@ -90,7 +95,7 @@ export async function handleQueueChat(state: DesktopState, req: http.IncomingMes
     }
     const { id, revision } = queueMutationIdentity(body);
     if (!id || revision < 0) return sendJson(res, 400, { error: "id and revision are required" });
-    if (!await mutateQueuedInstruction(queue, action, body)) return sendJson(res, 400, { error: "unsupported queue action" });
+    if (!await mutateQueuedInstruction(queue, state.root, action, body)) return sendJson(res, 400, { error: "unsupported queue action" });
     sendJson(res, 200, await queue.list(queueSessionId(state)));
   } catch (error) {
     if (error instanceof QueueConflictError) return sendJson(res, 409, { error: error.message, code: error.code, snapshot: await queue.list(queueSessionId(state)) });
