@@ -104,10 +104,15 @@ function createServices(): Services {
 
 /** Persist the project, restart the runtime in it, and reload the renderer so it reconnects. */
 async function switchProject(root: string, serverHost: ServerHost): Promise<void> {
+  logLine(`[project] switching ${projectRoot || '(none)'} -> ${root}`)
   await saveProjectSetting(app.getPath('userData'), root)
   wiring.closeProjectWatches()
   projectRoot = root
-  await serverHost.start(launchInput(root)).catch(() => undefined)
+  const outcome = await serverHost.start(launchInput(root)).then(
+    () => 'runtime ready',
+    (error: unknown) => `runtime failed: ${error instanceof Error ? error.message : String(error)}`
+  )
+  logLine(`[project] ${outcome} for ${root}; reloading the window (main thinks the project is ${projectRoot})`)
   mainWindow?.webContents.reload()
 }
 
