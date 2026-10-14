@@ -102,7 +102,7 @@ export const providerOptionSchema = z.looseObject({
 
 export const providerOptionsSchema = z.array(providerOptionSchema)
 
-export const accessModeSchema = z.looseObject({ mode: z.string() })
+export const accessModeSchema = z.looseObject({ mode: z.string(), root: z.string().optional() })
 
 export const fileListSchema = z.array(z.string())
 

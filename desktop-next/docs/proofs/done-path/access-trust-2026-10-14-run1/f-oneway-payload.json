@@ -1,0 +1,27 @@
+{
+  "id": "1791990778571",
+  "action": "run shell command: npm publish --dry-run",
+  "reason": "This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow.",
+  "toolName": "shell_cmd",
+  "request": {
+    "kind": "bash",
+    "title": "Bash permission request",
+    "subject": "npm publish --dry-run",
+    "reason": "This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow.",
+    "toolName": "shell_cmd",
+    "fresh": false,
+    "canRemember": false,
+    "sections": [
+      {
+        "label": "Command",
+        "value": "npm publish --dry-run",
+        "tone": "code"
+      },
+      {
+        "label": "Options",
+        "value": "Runs inside the current project root.",
+        "tone": "muted"
+      }
+    ]
+  }
+}

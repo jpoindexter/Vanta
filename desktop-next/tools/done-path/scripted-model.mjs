@@ -34,7 +34,8 @@ function plan(body) {
   const done = messages.slice(lastUserAt + 1).filter((m) => m.role === "tool").length;
   const next = calls[done];
   const hasImage = JSON.stringify(messages[lastUserAt]?.content ?? "").includes("image_url");
-  return { needsTool: Boolean(next), name: next?.name, args: next?.args, prompt, promptLength: prompt.length, hasImage };
+  const toolResult = textOf(messages.slice(lastUserAt + 1).filter((m) => m.role === "tool").at(-1)?.content).slice(0, 200);
+  return { needsTool: Boolean(next), name: next?.name, args: next?.args, prompt, promptLength: prompt.length, hasImage, toolResult };
 }
 
 /** Starts the model on a free port; resolves `{ url, requests, close }` (url ends in /v1). */
@@ -46,7 +47,7 @@ export function startScriptedModel() {
     if (!req.url?.endsWith("/chat/completions")) return json(404, { error: "not found" });
     const body = await readBody(req);
     const step = plan(body);
-    requests.push({ at: Date.now(), stream: body.stream === true, toolCall: step.needsTool ? step.name : null, prompt: step.prompt.slice(0, 160), promptLength: step.promptLength, hasImage: step.hasImage, lastRole: body.messages?.at(-1)?.role, messageCount: body.messages?.length ?? 0 });
+    requests.push({ at: Date.now(), stream: body.stream === true, toolCall: step.needsTool ? step.name : null, prompt: step.prompt.slice(0, 160), promptLength: step.promptLength, hasImage: step.hasImage, toolResult: step.toolResult, lastRole: body.messages?.at(-1)?.role, messageCount: body.messages?.length ?? 0 });
     const answer = step.needsTool ? "" : "Scripted turn finished.";
     if (body.stream !== true) return json(200, { id: "dp", object: "chat.completion", model: "done-path", choices: [{ index: 0, message: { role: "assistant", content: answer || "Scripted turn finished." }, finish_reason: "stop" }] });
     res.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-cache" });

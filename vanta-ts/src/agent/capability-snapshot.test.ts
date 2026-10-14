@@ -36,10 +36,10 @@ describe("live capability grounding", () => {
   it("plan mode and the workflow surface agree with the dispatch gate", () => {
     const tools = ["read_file", "edit_file", "grep_files", "shell_cmd", "write_file"].map(schema);
     const snapshot = capabilitySnapshot(tools, tools, { planActive: true });
-    expect(snapshot.exposed.map((tool) => tool.name)).toEqual(["read_file", "edit_file", "grep_files"]);
-    expect(snapshot.blocked).toEqual(["shell_cmd", "write_file"]);
+    expect(snapshot.exposed.map((tool) => tool.name)).toEqual(["read_file", "grep_files"]);
+    expect(snapshot.blocked).toEqual(["edit_file", "shell_cmd", "write_file"]);
     const workflow = workflowViews(tools.map((tool) => tool.name), { planActive: true }).find((item) => item.id === "fix-error");
-    expect(workflow?.missing).toEqual(["shell_cmd"]);
+    expect(workflow?.missing).toEqual(["shell_cmd", "edit_file"]);
     expect(workflow?.state).toBe("Try");
   });
 

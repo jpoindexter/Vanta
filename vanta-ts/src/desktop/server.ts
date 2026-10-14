@@ -97,7 +97,7 @@ async function routeRequest(req: http.IncomingMessage, res: http.ServerResponse,
   state._env ??= opts.env;
   if (handleNativePreflight(req, res, url.pathname)) return;
   applyCompanionCors(req, res, url.pathname);
-  state._sseSessionId = sid; state._sseClients = sseClients;
+  state._sseSessionId = sid; state._sseClients = sseClients; state._sessions = sessions;
   const ctx: RouteCtx = { req, res, state, sid, sseClients, pathname: url.pathname };
   if (await handlePublicApiRouteLazy({ req, res, state, pathname: url.pathname, options: opts.publicApi, sseClients, sid })) return;
   // Loopback is not authentication: other callers retain only the enabled, code/bearer-gated companion paths.
