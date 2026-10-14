@@ -11,7 +11,7 @@ import { startTurn, type TurnInput } from './turn-runner'
 
 const str = (value: unknown): string => (typeof value === 'string' ? value : '')
 
-function requireClient(hub: GatewayHub, params: Params): ChatClient {
+export function requireClient(hub: GatewayHub, params: Params): ChatClient {
   const client = hub.registry.get(str(params.session_id))
 
   if (!client) {
@@ -49,7 +49,7 @@ function turnInput(params: Params): TurnInput {
 }
 
 // Queue a follow-up behind the running turn. Null when the turn ended in the meantime (the caller then starts one).
-async function enqueue(hub: GatewayHub, client: ChatClient, text: string, images?: TurnInput['images']) {
+export async function enqueue(hub: GatewayHub, client: ChatClient, text: string, images?: TurnInput['images']) {
   const result = await hub.caller.post(client, '/api/chat/queue', {
     action: 'enqueue',
     ...(images?.length ? { images } : {}),

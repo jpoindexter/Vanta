@@ -12,6 +12,7 @@ import { profilesList } from './handlers-profiles'
 import { projectsProjectSessions, projectsTree } from './handlers-project-tree'
 import { projectsCreate, projectsDelete, projectsList, projectsSetActive, projectsUpdate } from './handlers-projects'
 import { approvalPending, approvalRespond, promptSubmit, sessionSteer } from './handlers-prompt'
+import { queueAction, queueEnqueue, queueList, queueRun } from './handlers-queue'
 import {
   type Handler,
   sessionArchive,
@@ -43,6 +44,10 @@ export const DISPATCH: Readonly<Record<string, Handler>> = {
   'projects.tree': projectsTree,
   'projects.update': projectsUpdate,
   'prompt.submit': promptSubmit,
+  'queue.action': queueAction,
+  'queue.enqueue': queueEnqueue,
+  'queue.list': queueList,
+  'queue.run': queueRun,
   'session.archive': sessionArchive,
   'session.branch': sessionBranch,
   'session.branch_stored': sessionBranch,
