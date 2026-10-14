@@ -4,6 +4,7 @@ import type { ChatClient } from './client-registry'
 import type { GatewayHub } from './hub'
 import { errorText } from './rpc'
 import { type ChatResult, chatResultSchema } from './schemas'
+import { failureSurface } from './run-stop'
 import { completeTurn } from './turn-complete'
 
 // A turn can legitimately run for many minutes; the ack is the end of the turn, not a quick receipt.
@@ -124,6 +125,8 @@ async function runChat(hub: GatewayHub, client: ChatClient, input: TurnInput): P
   finishFromChat(hub, client, parsed.data)
 }
 
+const lastUserText = (client: ChatClient) => client.transcript.findLast(entry => entry.role === 'user')?.text ?? ''
+
 const turnStatus = (chat: ChatResult): 'complete' | 'error' | 'interrupted' => {
   const receipt = chat.receipt?.status
 
@@ -136,6 +139,22 @@ function finishFromChat(hub: GatewayHub, client: ChatClient, chat: ChatResult): 
 
   if (failureKind === 'setup' && MISSING_KEY_TEXT.test(chat.finalText)) {
     fail(hub, client, `${NO_PROVIDER} ${chat.finalText}`.trim(), PROVIDER_NOT_CONFIGURED)
+
+    return
+  }
+
+  // A run that failed or stopped early keeps its partial output and offers the recovery the server saved.
+  if (chat.receipt?.status === 'failed' && failureKind !== 'provider_auth') {
+    const { partial, stop, surface } = failureSurface(chat, lastUserText(client))
+
+    completeTurn(hub, client, {
+      error: stop.message,
+      errorSurface: surface,
+      finalText: chat.finalText,
+      partial,
+      status: 'error',
+      usage: chat.usage
+    })
 
     return
   }

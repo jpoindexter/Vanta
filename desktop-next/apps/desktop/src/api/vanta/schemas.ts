@@ -53,11 +53,20 @@ export const usageSchema = z.looseObject({
   outputTokens: z.number().optional()
 })
 
+/** The saved run receipt of a turn: what the server offers to do about a failed or stopped run. */
+export const runReceiptSchema = z.looseObject({
+  actions: z.array(z.string()).default([]),
+  checkpoint: z.looseObject({ instruction: z.string(), partialText: z.string().optional() }).optional(),
+  failureKind: z.string().optional(),
+  status: z.string().optional()
+})
+
 export const chatResultSchema = z.looseObject({
   finalText: z.string().default(''),
   interrupted: z.boolean().optional(),
-  receipt: z.looseObject({ failureKind: z.string().optional(), status: z.string().optional() }).optional(),
+  receipt: runReceiptSchema.optional(),
   sessionId: z.string().optional(),
+  stoppedReason: z.string().optional(),
   usage: usageSchema.optional()
 })
 
@@ -161,6 +170,7 @@ export const sseFrameSchema = z.looseObject({
 
 export type ApprovalPayload = z.infer<typeof approvalPayloadSchema>
 export type ChatResult = z.infer<typeof chatResultSchema>
+export type RunReceipt = z.infer<typeof runReceiptSchema>
 export type SessionMeta = z.infer<typeof sessionMetaSchema>
 export type SseFrame = z.infer<typeof sseFrameSchema>
 export type StatusPayload = z.infer<typeof statusSchema>

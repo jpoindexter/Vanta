@@ -29,6 +29,19 @@ async function* hangUntilAborted(signal: AbortSignal | undefined) {
   throw Object.assign(new Error('aborted'), { name: 'AbortError' })
 }
 
+// Calls a tool that does not exist, with the same arguments every time: the agent gives up with repeated_failure.
+async function* loopOnMissingTool() {
+  const call = toolCall('no_such_tool', { path: 'x' })
+  yield { call, type: 'tool_call' }
+  yield { result: { finishReason: 'tool_calls', text: '', toolCalls: [call] }, type: 'done' }
+}
+
+// The model server refuses to go on halfway through an answer (a 400 is not retried by the provider layer).
+async function* dropMidAnswer() {
+  yield { delta: 'The first half of the answer. ', type: 'text' }
+  throw Object.assign(new Error('the model server returned an unusable reply'), { status: 400 })
+}
+
 async function* greet() {
   yield { delta: 'Hi ', type: 'text' }
   yield { delta: 'there', type: 'text' }
@@ -40,10 +53,22 @@ async function* greet() {
 
 /**
  * A scripted stand-in for the model, chosen by the latest user message: "edit <file>" asks to edit that file,
- * "hang ..." streams a word and then waits to be stopped, anything else greets. After a tool result it wraps up.
+ * "hang ..." streams a word and then waits to be stopped, "loop ..." keeps calling a missing tool until the agent stops,
+ * "drop ..." fails halfway through an answer, "flaky ..." does that once and then answers, anything else greets.
+ * After a tool result it wraps up (except for "loop").
  * `revoked` makes it refuse every call like a provider whose key was revoked.
  */
 export function scriptedProvider(options: { revoked?: boolean } = {}) {
+  const flakyAttempts = new Map<string, number>()
+
+  // "flaky" fails the first time a prompt is seen and answers the second time.
+  const flaky = (prompt: string) => {
+    const attempt = (flakyAttempts.get(prompt) ?? 0) + 1
+    flakyAttempts.set(prompt, attempt)
+
+    return attempt === 1 ? dropMidAnswer() : greet()
+  }
+
   return {
     contextWindow: () => 100_000,
     modelId: () => 'stub-model',
@@ -57,6 +82,9 @@ export function scriptedProvider(options: { revoked?: boolean } = {}) {
       const prompt = String([...messages].reverse().find(m => m.role === 'user')?.content ?? '')
       const edit = /^edit (\S+)/.exec(prompt)
 
+      if (prompt.startsWith('loop')) return loopOnMissingTool()
+      if (prompt.startsWith('drop')) return dropMidAnswer()
+      if (prompt.startsWith('flaky')) return flaky(prompt)
       if (messages.at(-1)?.role === 'tool') return finishAfterTool()
       if (edit) return editFile(edit[1]!)
       if (prompt.startsWith('hang')) return hangUntilAborted(config?.signal)
