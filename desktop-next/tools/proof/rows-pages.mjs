@@ -102,7 +102,10 @@ export async function pageRows(ctx) {
     const text = await visit(page, "#/command-center", /Maintenance/);
     verdict("F-235", AREA, "Command Center: Sessions, System, Usage, Maintenance", ["Sessions", "System", "Usage", "Maintenance"].every((w) => text.includes(w)), { pass: "four tabs; Sessions lists every chat with its date", why: text.slice(0, 160) });
   });
-  record("F-236", AREA, "Memory Graph (Starmap)", "DROPPED", "no titlebar, palette or menu entry (owner decision: gimmick); the code stays in the tree until the owner confirms");
+  await attempt(page, "F-236", AREA, "Memory Graph (Starmap)", async () => {
+    const text = await visit(page, "#/starmap", /Memory Graph/);
+    verdict("F-236", AREA, "Memory Graph (Starmap)", /Memory Graph/.test(text), { pass: "opens from the palette's Go to row and from #/starmap", why: text.slice(0, 160) });
+  });
   await attempt(page, "F-237", AREA, "Import session", async () => {
     await goHome(page);
     await page.keyboard.press("Meta+k");

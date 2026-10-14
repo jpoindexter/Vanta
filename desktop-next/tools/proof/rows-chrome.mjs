@@ -256,7 +256,7 @@ export async function surfaces(page) {
   extra.push(["PAL", "palette", "Command palette (⌘K)", (await page.getByRole("dialog").count()) > 0 || (await page.getByPlaceholder(/search|type/i).count()) > 0]);
   const text = await page.locator("body").innerText();
   extra.push(["PAL-HOME", "palette", "Palette: Home / New session / Settings rows", /Home|New session|Settings/.test(text)]);
-  extra.push(["PAL-NOPET", "palette", "Palette has no Pets / Memory Graph rows", !/Pets|Generate a pet|Memory Graph|Starmap/.test(text)]);
+  extra.push(["PAL-NOPET", "palette", "Palette has no Pets rows", !/Pets|Generate a pet/.test(text)]);
   await closeMenus(page);
   await page.getByTestId("titlebar-settings").click();
   await page.waitForTimeout(800);

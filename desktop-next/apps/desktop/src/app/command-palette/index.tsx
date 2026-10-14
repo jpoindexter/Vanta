@@ -51,6 +51,7 @@ import {
   Settings,
   Settings2,
   SlidersHorizontal,
+  Starmap,
   Sun,
   Users,
   Wrench,
@@ -103,7 +104,8 @@ import {
   navigateToWorkspacePage,
   NEW_CHAT_ROUTE,
   PROFILES_ROUTE,
-  SETTINGS_ROUTE
+  SETTINGS_ROUTE,
+  STARMAP_ROUTE
 } from '../routes'
 import { SECTIONS } from '../settings/constants'
 import { type SettingsSearchEntry, settingsSearchTargetQuery } from '../settings/settings-search'
@@ -906,6 +908,13 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
             keywords: ['schedule', 'jobs'],
             label: t.shell.statusbar.cron,
             run: go(CRON_ROUTE)
+          },
+          {
+            icon: Starmap,
+            id: 'nav-memory-graph',
+            keywords: ['starmap', 'learning', 'skills', 'memories', 'graph'],
+            label: t.shell.statusbar.starmap,
+            run: go(STARMAP_ROUTE)
           },
           { action: 'nav.profiles', icon: Users, id: 'nav-profiles', label: t.profiles.title, run: go(PROFILES_ROUTE) },
           { action: 'nav.agents', icon: Cpu, id: 'nav-agents', label: t.agents.title, run: go(AGENTS_ROUTE) }
