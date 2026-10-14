@@ -161,8 +161,9 @@ export class ServerHost {
 
   private handleExit(generation: number, exit: { code: null | number; signal: null | string }): void {
     if (generation === this.generation && !this.intentionalStop) {
+      const output = this.current?.output?.() ?? ''
       this.current = null
-      this.lastError = `The Vanta runtime exited (${exit.signal ?? exit.code ?? 'unknown'}).`
+      this.lastError = `The Vanta runtime exited (${exit.signal ?? exit.code ?? 'unknown'}).${output}`
       this.deps.boot.fail(this.lastError)
       this.deps.onUnexpectedExit(exit)
     }
