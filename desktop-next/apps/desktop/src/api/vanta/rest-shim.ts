@@ -6,6 +6,7 @@ import { matchRoute, type Send, type ShimRoute } from './shim-core'
 import { configRoutes } from './shim-config'
 import { cronRoutes } from './shim-cron'
 import { localEndpointRoutes } from './shim-local-endpoint'
+import { mcpRoutes } from './shim-mcp'
 import { messagingRoutes } from './shim-messaging'
 import { modelRoutes } from './shim-model'
 import { profileRoutes } from './shim-profiles'
@@ -20,6 +21,7 @@ const ROUTES: readonly ShimRoute[] = [
   ...providerRoutes,
   ...localEndpointRoutes,
   ...messagingRoutes,
+  ...mcpRoutes,
   ...profileRoutes,
   ...cronRoutes,
   ...sessionRoutes,

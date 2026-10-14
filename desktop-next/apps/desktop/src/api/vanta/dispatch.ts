@@ -8,6 +8,7 @@ import {
   setupStatus
 } from './handlers-config'
 import { sessionBranch } from './handlers-branch'
+import { connectorsAccounts, connectorsCatalog, connectorsList, connectorsPolicyGet, mcpServersList, mcpServersStatus } from './handlers-connectors'
 import { profilesList } from './handlers-profiles'
 import { projectsProjectSessions, projectsTree } from './handlers-project-tree'
 import { projectsCreate, projectsDelete, projectsList, projectsSetActive, projectsUpdate } from './handlers-projects'
@@ -33,7 +34,13 @@ export const DISPATCH: Readonly<Record<string, Handler>> = {
   'commands.catalog': commandsCatalogHandler,
   'complete.path': completePath,
   'config.get': configGet,
+  'connectors.accounts': connectorsAccounts,
+  'connectors.catalog': connectorsCatalog,
+  'connectors.list': connectorsList,
+  'connectors.policy.get': connectorsPolicyGet,
   'config.set': configSet,
+  'mcp.servers.list': mcpServersList,
+  'mcp.servers.status': mcpServersStatus,
   'model.options': modelOptions,
   'profiles.list': profilesList,
   'projects.create': projectsCreate,
