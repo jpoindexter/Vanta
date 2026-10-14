@@ -13,6 +13,8 @@ import { $sessionDotStateById } from '@/store/session-dot-state'
 
 import type { BlockState, HomeActions, HomeBlock, HomeProps } from '../types'
 
+import { companyItemRoute, mergeNeedsYou, useCompanyNeedsYou } from '../company/adapters/company-needs-you'
+
 import {
   type ArtifactEntry,
   needsYouItems,
@@ -69,13 +71,19 @@ export function useHomeProps(wiring: HomeWiring): HomeProps {
   const jobs = useStore($cronJobs)
   const projects = useStore($projects)
   const { outputs, reload } = useOutputs()
+  const company = useCompanyNeedsYou()
 
   const actions = useMemo<HomeActions>(
     () => ({
       onAllowOnce: id => void wiring.allowOnce(id).catch(error => notifyError(error, 'Could not allow that.')),
       onEditSchedule: () => navigate(CRON_ROUTE),
       onOpenOutput: () => navigate(ARTIFACTS_ROUTE),
-      onOpenSession: id => wiring.openSession(id),
+      // A company row opens its ticket in the Company screen; a chat row opens the chat.
+      onOpenSession: id => {
+        const route = companyItemRoute(id)
+
+        route ? navigate(route) : wiring.openSession(id)
+      },
       onRetry: (block: HomeBlock) => block === 'recent' && reload(),
       onRevealOutput: id => {
         const entry = outputs.status === 'ready' ? outputs.items.find(item => item.id === id) : undefined
@@ -97,12 +105,12 @@ export function useHomeProps(wiring: HomeWiring): HomeProps {
 
     return {
       actions,
-      needsYou: ready(needsYouItems(sessions, input)),
+      needsYou: mergeNeedsYou(ready(needsYouItems(sessions, input)), company),
       nextUp: ready(nextUpItems(jobs, Date.now())),
       projects: projectChips(projects),
       recent: outputs.status === 'ready' ? ready(recentOutputItems(outputs.items)) : outputs,
       running: ready(runningItems(sessions, input)),
       starterPrompt: 'Summarize what changed in this project this week'
     }
-  }, [actions, dots, facts, jobs, outputs, projects, sessions])
+  }, [actions, company, dots, facts, jobs, outputs, projects, sessions])
 }
