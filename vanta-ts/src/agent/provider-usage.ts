@@ -32,7 +32,7 @@ export async function completeAndRecordUsage(args: CompletionRetryArgs) {
   if (!args.deps.sessionId && !args.deps.usageAgent) return completion;
   const route = completion.result.servedRoute ?? fallbackRoute(args.deps);
   await recordProviderCall(join(args.deps.root, ".vanta"), {
-    callId, sessionId: args.deps.sessionId ?? "one-shot", agent: args.deps.usageAgent ?? "agent", route, usage: completion.result.usage,
+    callId, sessionId: args.deps.sessionId ?? "one-shot", agent: args.deps.usageAgent ?? "agent", purpose: "main", route, usage: completion.result.usage,
   });
   await recordRuntimeResourceUsage(args.deps.root, { ...resourceInput(args.deps, callId, started, route), usage: completion.result.usage });
   return completion;
