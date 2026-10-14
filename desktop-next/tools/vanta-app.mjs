@@ -9,6 +9,7 @@ import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
+import net from "node:net";
 
 import { PIXEL, startMockOpenAI } from "./mock-openai.mjs";
 
@@ -45,7 +46,7 @@ function makeProject(root) {
   return project;
 }
 
-function sandboxEnv({ root, project, modelUrl, hidden }) {
+function sandboxEnv({ root, project, modelUrl, hidden, kernelPort }) {
   const env = {};
   for (const [key, value] of Object.entries(process.env)) {
     if (value && !SECRET.test(key) && !key.startsWith("VANTA_") && !key.startsWith("HERMES_")) env[key] = value;
@@ -62,8 +63,21 @@ function sandboxEnv({ root, project, modelUrl, hidden }) {
     VANTA_MODEL: "vanta-proof",
     VANTA_RUNTIME_ROOT: path.join(repoRoot, "vanta-ts"),
     VANTA_SKIP_QUIT_CONFIRM: "1",
+    // A free port, so the sandbox kernel never collides with the owner's own app on the default 7788.
+    VANTA_KERNEL_URL: `http://127.0.0.1:${kernelPort}`,
   });
   return env;
+}
+
+function freePort() {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const { port } = server.address();
+      server.close(() => resolve(port));
+    });
+  });
 }
 
 /** Start the app. `hidden` (default) keeps the window off-screen and inactive. */
@@ -92,7 +106,7 @@ export async function launchVanta({ hidden = true, width = 1440, height = 900, s
       "--disable-backgrounding-occluded-windows",
       "--disable-renderer-backgrounding",
     ],
-    env: sandboxEnv({ root, project, modelUrl: mock.url, hidden }),
+    env: sandboxEnv({ root, project, modelUrl: mock.url, hidden, kernelPort: await freePort() }),
     cwd: desktopRoot,
   });
   const page = await app.firstWindow();
