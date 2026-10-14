@@ -450,6 +450,18 @@ export function ChatBar({
   const threadEmpty = useStore(useSessionView().$messagesEmpty)
   const placeholder = useComposerPlaceholder({ disabled, empty: threadEmpty, reconnecting, sessionId })
 
+  // Messages queued while Vanta was down run once it is back (the offline banner's promise).
+  const wasDisabledRef = useRef(disabled)
+
+  useEffect(() => {
+    const reopened = wasDisabledRef.current && !disabled
+    wasDisabledRef.current = disabled
+
+    if (reopened && !busy && queuedPrompts.length > 0) {
+      void drainNextQueued()
+    }
+  }, [busy, disabled, drainNextQueued, queuedPrompts.length])
+
   // Trigger / completion engine: @// detection, the adapter-driven item list,
   // popover selection, and chip insertion. The keydown nav block below consumes
   // this API; keyup uses triggerKeyConsumedRef to skip its refresh.
@@ -995,7 +1007,8 @@ export function ChatBar({
       const editorText = liveComposerDraft(editorRef.current, draftRef.current)
       const hasLivePayload = editorText.trim().length > 0 || attachments.length > 0
 
-      if (disabled) {
+      // Offline with words typed: fall through, submitDraft() queues them until Vanta reconnects.
+      if (disabled && !hasLivePayload) {
         return
       }
 

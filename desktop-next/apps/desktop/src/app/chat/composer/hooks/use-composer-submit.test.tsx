@@ -30,6 +30,7 @@ import { useComposerSubmit } from './use-composer-submit'
 interface SubmitHarnessOptions {
   attachments?: ComposerAttachment[]
   busy?: boolean
+  disabled?: boolean
   inputDisabled?: boolean
   scopeTarget?: ComposerTarget
   sessionKey?: string | null
@@ -44,6 +45,7 @@ let surfaceSequence = 0
 function renderSubmitHook({
   attachments = [],
   busy = false,
+  disabled = false,
   inputDisabled = false,
   scopeTarget = 'main',
   sessionKey = 'stored-session',
@@ -108,7 +110,7 @@ function renderSubmitHook({
         attachments,
         busy,
         clearDraft,
-        disabled: false,
+        disabled,
         draftScopeRef,
         draftRef,
         drainNextQueued: vi.fn(async () => false),
@@ -338,6 +340,28 @@ describe('useComposerSubmit external request routing', () => {
     requestComposerSubmit('do not send this', { target: 'main' })
 
     expect(disabled.onSubmit).not.toHaveBeenCalled()
+  })
+})
+
+describe('useComposerSubmit while Vanta is offline', () => {
+  afterEach(cleanup)
+
+  it('queues the typed message instead of sending it', () => {
+    const offline = renderSubmitHook({ disabled: true, text: 'send when you are back' })
+
+    act(() => offline.hook.result.current.submitDraft())
+
+    expect(offline.queueCurrentDraft).toHaveBeenCalledTimes(1)
+    expect(offline.onSubmit).not.toHaveBeenCalled()
+  })
+
+  it('still sends normally once Vanta is back', () => {
+    const online = renderSubmitHook({ disabled: false, text: 'hello' })
+
+    act(() => online.hook.result.current.submitDraft())
+
+    expect(online.queueCurrentDraft).not.toHaveBeenCalled()
+    expect(online.onSubmit).toHaveBeenCalledTimes(1)
   })
 })
 
