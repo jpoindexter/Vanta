@@ -8,6 +8,7 @@ From `desktop-next`: `npm run vanta:package` (about 1 minute). Output in `apps/d
 `Vanta Next.app`, `Vanta-Next-<version>-arm64.zip`, `bundle-report.json` (size, 10 largest files, symlink and brand-string audit).
 
 Prove it boots: `node tools/prove-packaged.mjs [--runs 2]` (sandbox, hidden window, canned model; writes `docs/proofs/packaging/`).
+Prove nothing is left running after quit, SIGTERM and SIGKILL of the app: `node tools/prove-kernel-lifecycle.mjs` (writes nothing unless `--out`; results in `docs/proofs/kernel-lifecycle/`).
 Unit tests: `npm run vanta:package:test`. Icons: `node tools/make-icons.mjs` (from `vanta-ts/desktop-app/build/vanta-brand-icon.svg`).
 
 ## Prerequisites
@@ -40,4 +41,4 @@ Delete `Vanta Next.app`, then `~/Library/Application Support/Vanta Next`. It nev
 
 Developer ID signing and notarization; hardened runtime and entitlements; auto-update feed; DMG (art exists, `electron-builder` path not exercised);
 Intel and universal builds; Windows and Linux packages; trimming the runtime (about 246 MB, mostly TypeScript compilers, exceljs, playwright-core, esbuild);
-the renderer still contains Hermes/Nous identifiers (`window.hermesDesktop`, some strings); the Vanta runtime can leave its `vanta-kernel` child running after the app quits (the proof script kills it).
+the renderer still contains Hermes/Nous identifiers (`window.hermesDesktop`, some strings).
