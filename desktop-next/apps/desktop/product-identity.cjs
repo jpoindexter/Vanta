@@ -8,11 +8,11 @@
 /// <reference types="node" />
 'use strict'
 
-// `appPascal` names the userData directory. Vanta Next is displayed as "Vanta"
-// but keeps its own userData and single-instance lock until the cutover card
-// retires the current desktop, so the two apps never share a profile.
+// `appPascal` names the userData directory. The product is "Vanta Next" so it
+// installs beside the current Vanta.app and never shares its userData,
+// single-instance lock, bundle id or URL handler registration.
 const variants = {
-  '': { display: 'Vanta', kebab: 'vanta-next', pascal: 'Vanta', appPascal: 'VantaNext' },
+  '': { display: 'Vanta Next', kebab: 'vanta-next', pascal: 'Vanta', appPascal: 'VantaNext' },
   light: {
     display: 'Vanta Light',
     kebab: 'vanta-light',
