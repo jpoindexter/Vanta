@@ -9,7 +9,8 @@ import { registerNativeNotifications } from '../notification-ipc'
 import { createAppLog } from './app-log'
 import { CH } from './channels'
 import { deepLinkFromArgv } from './deep-links'
-import { type LaunchInput, startVantaServer } from './launcher'
+import { type LaunchInput } from './launcher'
+import { startWithPortRetry } from './launch-retry'
 import { registerNativeHandlers } from './native-handlers'
 import { registerProjectHandlers } from './project-handlers'
 import { createRequestBridge } from './request-bridge'
@@ -90,7 +91,7 @@ function createServices(): Services {
 
   const serverHost = new ServerHost({
     boot,
-    launch: startVantaServer,
+    launch: input => startWithPortRetry(input),
     log: log.line,
     onUnexpectedExit: exit => broadcast(CH.backendExit, exit)
   })

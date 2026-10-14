@@ -13,7 +13,7 @@ import {
   type VantaRuntimePaths
 } from '../../../../../vanta-ts/desktop-app/electron/runtime-paths.mjs'
 
-import { captureRuntimeOutput } from './runtime-output'
+import { captureRuntimeOutput, type RuntimeOutput } from './runtime-output'
 import { withBundledLoader } from './runtime-root'
 
 export const DEFAULT_SERVER_PORT = 7790
@@ -98,15 +98,15 @@ export function buildServerCommand(input: LaunchInput, token: string, port: numb
   return { args: launch.args, command, env, runtime: launch.runtime, runtimeReason: launch.reason }
 }
 
-function waitForListening(child: ChildProcess, excerpt: () => string): Promise<void> {
+function waitForListening(child: ChildProcess, output: RuntimeOutput): Promise<void> {
   return new Promise((resolve, reject) => {
-    let output = ''
+    let seen = ''
     let listening = false
 
     child.stdout?.on('data', (chunk: Buffer) => {
-      output += chunk.toString()
+      seen += chunk.toString()
 
-      if (!listening && output.includes(LISTENING_MARKER)) {
+      if (!listening && seen.includes(LISTENING_MARKER)) {
         listening = true
         resolve()
       }
@@ -115,7 +115,12 @@ function waitForListening(child: ChildProcess, excerpt: () => string): Promise<v
     child.once('error', reject)
     child.once('exit', code => {
       if (!listening) {
-        reject(new Error(`The Vanta runtime exited before it was listening (code ${code ?? 'unknown'}).${excerpt()}`))
+        reject(
+          Object.assign(
+            new Error(`The Vanta runtime exited before it was listening (code ${code ?? 'unknown'}).${output.excerpt()}`),
+            { portInUse: output.includes(/EADDRINUSE/) }
+          )
+        )
       }
     })
   })
@@ -160,7 +165,7 @@ export async function startVantaServer(input: LaunchInput, deps: Partial<LaunchD
   const timeoutMs = input.packaged ? PACKAGED_READY_TIMEOUT_MS : DEV_READY_TIMEOUT_MS
 
   const ready = Promise.race([
-    waitForListening(child, output.excerpt).then(() => verifyAnswers(probe, baseUrl, token)),
+    waitForListening(child, output).then(() => verifyAnswers(probe, baseUrl, token)),
     new Promise<never>((_, reject) =>
       setTimeout(
         () => reject(new Error(`Timed out waiting for the Vanta runtime on port ${port}.${output.excerpt()}`)),
