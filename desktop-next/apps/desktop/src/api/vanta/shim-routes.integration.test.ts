@@ -4,8 +4,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
 import type { GatewayEvent, ServerRequest } from '@hermes/shared'
-import { createHttpTransport } from '@hermes/shared/vanta'
-import { remapMethod } from '@hermes/shared/vanta/api-path'
+import { createHttpTransport, remapMethod } from '@hermes/shared/vanta'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import type { HermesApiRequest } from '@/global'
