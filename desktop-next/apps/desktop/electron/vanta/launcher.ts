@@ -13,6 +13,7 @@ import {
   type VantaRuntimePaths
 } from '../../../../../vanta-ts/desktop-app/electron/runtime-paths.mjs'
 
+import { captureRuntimeOutput } from './runtime-output'
 import { withBundledLoader } from './runtime-root'
 
 export const DEFAULT_SERVER_PORT = 7790
@@ -28,6 +29,8 @@ export interface LaunchInput {
   /** Electron's `process.execPath` when packaged: it runs the CLI with ELECTRON_RUN_AS_NODE. */
   execPath: string
   packaged: boolean
+  /** Where the runtime's output is kept (appended, bounded); the reason a runtime died is read from here. */
+  logFile?: string
   platform: NodeJS.Platform
   preferredPort?: number
   projectRoot: string
@@ -44,6 +47,8 @@ export interface VantaServer {
   /** Kept in main. Never hand this to a renderer. */
   token: string
   readonly exited: Promise<{ code: null | number; signal: null | string }>
+  /** What the runtime last printed, formatted to append to an error message ('' when nothing). */
+  output?: () => string
 }
 
 export interface LaunchDeps {
@@ -93,7 +98,7 @@ export function buildServerCommand(input: LaunchInput, token: string, port: numb
   return { args: launch.args, command, env, runtime: launch.runtime, runtimeReason: launch.reason }
 }
 
-function waitForListening(child: ChildProcess): Promise<void> {
+function waitForListening(child: ChildProcess, excerpt: () => string): Promise<void> {
   return new Promise((resolve, reject) => {
     let output = ''
     let listening = false
@@ -110,7 +115,7 @@ function waitForListening(child: ChildProcess): Promise<void> {
     child.once('error', reject)
     child.once('exit', code => {
       if (!listening) {
-        reject(new Error(`The Vanta runtime exited before it was listening (code ${code ?? 'unknown'}).`))
+        reject(new Error(`The Vanta runtime exited before it was listening (code ${code ?? 'unknown'}).${excerpt()}`))
       }
     })
   })
@@ -146,6 +151,7 @@ export async function startVantaServer(input: LaunchInput, deps: Partial<LaunchD
   const baseUrl = `http://127.0.0.1:${port}`
   const child = spawnProcess(command, args, { cwd: input.projectRoot, env })
   child.stderr?.on('data', (chunk: Buffer) => process.stderr.write(chunk))
+  const output = captureRuntimeOutput(child, input.logFile)
 
   const exited = new Promise<{ code: null | number; signal: null | string }>(resolve => {
     child.once('exit', (code, signal) => resolve({ code, signal }))
@@ -154,9 +160,12 @@ export async function startVantaServer(input: LaunchInput, deps: Partial<LaunchD
   const timeoutMs = input.packaged ? PACKAGED_READY_TIMEOUT_MS : DEV_READY_TIMEOUT_MS
 
   const ready = Promise.race([
-    waitForListening(child).then(() => verifyAnswers(probe, baseUrl, token)),
+    waitForListening(child, output.excerpt).then(() => verifyAnswers(probe, baseUrl, token)),
     new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error(`Timed out waiting for the Vanta runtime on port ${port}.`)), timeoutMs).unref()
+      setTimeout(
+        () => reject(new Error(`Timed out waiting for the Vanta runtime on port ${port}.${output.excerpt()}`)),
+        timeoutMs
+      ).unref()
     )
   ])
 
@@ -165,6 +174,7 @@ export async function startVantaServer(input: LaunchInput, deps: Partial<LaunchD
   return {
     baseUrl,
     exited,
+    output: output.excerpt,
     ready,
     stop: () => {
       if (!child.killed) {

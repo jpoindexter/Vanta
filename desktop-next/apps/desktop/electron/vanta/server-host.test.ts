@@ -36,6 +36,13 @@ function fakeServer(port: number, behaviour: { failReady?: string } = {}) {
   return { exit, server }
 }
 
+function fakeServerWithOutput(port: number, output: string) {
+  const made = fakeServer(port)
+  made.server.output = () => output
+
+  return made
+}
+
 function setup(servers: Array<ReturnType<typeof fakeServer>>) {
   const boot = { fail: vi.fn(), ready: vi.fn(), verifying: vi.fn() }
   const onUnexpectedExit = vi.fn()
@@ -46,6 +53,16 @@ function setup(servers: Array<ReturnType<typeof fakeServer>>) {
 }
 
 describe('ServerHost', () => {
+  it('puts what the runtime last printed into the message when it dies after starting', async () => {
+    const crashing = fakeServerWithOutput(7801, ' Last output:\nkernel did not answer')
+    const { boot, host } = setup([crashing])
+    await host.start(input)
+    crashing.exit({ code: 1, signal: null })
+    await new Promise(resolve => setImmediate(resolve))
+
+    expect(boot.fail).toHaveBeenCalledWith(expect.stringContaining('The Vanta runtime exited (1). Last output:\nkernel did not answer'))
+  })
+
   it('waits for the previous runtime to be gone before it launches the next one (project switch)', async () => {
     const events: string[] = []
     const first = fakeServer(7801)

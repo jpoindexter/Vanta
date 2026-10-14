@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { mkdtempSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { PassThrough } from 'node:stream'
@@ -141,6 +141,25 @@ describe('startVantaServer', () => {
 
     await expect(server.ready).rejects.toThrow('exited before it was listening (code 1)')
     expect(child.kill).toHaveBeenCalledWith('SIGTERM')
+  })
+
+  it('says what the runtime last printed when it exits before listening, and keeps it in the log file', async () => {
+    const child = fakeChild()
+    const logFile = join(mkdtempSync(join(tmpdir(), 'vanta-runtime-log-')), 'logs', 'runtime.log')
+
+    const server = await startVantaServer(input({ logFile }), {
+      findPort: async () => 7795,
+      probe: async () => true,
+      spawnProcess: () => child as never
+    })
+
+    child.stderr.write('Error: kernel did not answer on 127.0.0.1:7788\n')
+    await new Promise(resolve => setImmediate(resolve))
+    child.emit('exit', 1, null)
+
+    await expect(server.ready).rejects.toThrow(/exited before it was listening \(code 1\)\. Last output:\n.*kernel did not answer/s)
+    expect(server.output?.()).toContain('kernel did not answer')
+    expect(readFileSync(logFile, 'utf8')).toMatch(/\[err\] Error: kernel did not answer[\s\S]*runtime exited .*code 1/)
   })
 
   it('rejects when the server is up but refuses the boundary token', async () => {

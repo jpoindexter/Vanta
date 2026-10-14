@@ -1,7 +1,8 @@
 // Flake measurement: runs the whole done-path script N times, each in fresh isolated state,
 // and reports pass rate per step and overall, plus every distinct failure message.
 //
-//   node tools/done-path/flake.mjs [--runs 20] [--out docs/proofs/done-path/flake] [--script tools/company-proof/run.mjs]
+//   node tools/done-path/flake.mjs [--runs 20] [--out docs/proofs/done-path/flake] [--script tools/company-proof/run.mjs] [--keep]
+// --keep leaves the sandbox (runtime, kernel and app logs) of every run that did not fully pass, and prints its path.
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -15,13 +16,16 @@ const script = path.resolve(option("--script", path.join(import.meta.dirname, "r
 
 function oneRun(index) {
   const dir = path.join(outDir, `run-${String(index).padStart(2, "0")}`);
-  const flags = index === 1 ? [] : ["--no-shots"];
+  const keep = args.includes("--keep");
+  const flags = [...(index === 1 ? [] : ["--no-shots"]), ...(keep ? ["--keep"] : [])];
   const started = Date.now();
   const child = spawnSync(process.execPath, [script, "--out", dir, ...flags], { encoding: "utf8", timeout: RUN_TIMEOUT_MS, maxBuffer: 64 * 1024 * 1024 });
   const line = (child.stdout ?? "").split("\n").reverse().find((l) => l.startsWith("{"));
   let result = null;
   try { result = line ? JSON.parse(line) : null; } catch { result = null; }
   const seconds = Math.round((Date.now() - started) / 1000);
+  // A passing run has nothing to investigate; only failures keep their sandbox.
+  if (keep && result?.pass && result.sandbox && fs.existsSync(result.sandbox)) fs.rmSync(result.sandbox, { recursive: true, force: true });
   if (!result) return { index, seconds, crash: `no result (exit ${child.status}, signal ${child.signal}): ${(child.stderr ?? "").trim().split("\n").slice(-2).join(" ").slice(0, 300)}` };
   return { index, seconds, ...result };
 }
@@ -51,6 +55,7 @@ function markdown(summary, results) {
   lines.push("", "Failure messages:", "");
   for (const r of summary.rows) for (const f of new Set(r.failures)) lines.push(`- ${r.id}: ${f}`);
   for (const r of results.filter((x) => x.crash)) lines.push(`- run ${r.index}: ${r.crash}`);
+  for (const r of results.filter((x) => !x.pass && x.sandbox && x.sandbox !== "(removed)")) lines.push(`- run ${r.index} sandbox kept: ${r.sandbox}`);
   lines.push("", `Seconds per run: ${results.map((r) => r.seconds).join(", ")}`);
   return `${lines.join("\n")}\n`;
 }

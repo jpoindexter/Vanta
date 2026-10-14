@@ -67,6 +67,7 @@ function launchInput(root: string): LaunchInput {
     companion: process.env.VANTA_DESKTOP_COMPANION === '1',
     env: process.env,
     execPath: process.execPath,
+    logFile: path.join(app.getPath('userData'), 'logs', 'runtime.log'),
     packaged: app.isPackaged,
     platform: process.platform,
     projectRoot: root,
