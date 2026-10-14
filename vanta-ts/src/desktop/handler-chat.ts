@@ -7,6 +7,7 @@ import type { DesktopState } from "./handler-state.js";
 import { DESCRIBE_IMAGE,parseDesktopImageInput } from "./image-input.js";
 import { loadProviderAuthRequired } from "./provider-auth-store.js";
 import { pushSseEvent } from "./session-state.js";
+import { adoptSetupGeneration } from "./setup-generation.js";
 import { resetToolIds } from "./typed-emit.js";
 
 export async function handleStopChat(state: DesktopState, res: http.ServerResponse): Promise<void> {
@@ -62,6 +63,7 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
   }
   const input = parseChatInput(body);
   if ("error" in input) return sendJson(res, 400, input);
+  adoptSetupGeneration(state);
   state._providerAuthRequired ??= await loadProviderAuthRequired(state.root);
   if (state._providerAuthRequired) return respondAuthRequired(state, input, res);
   const context = startChatExecution(state, input);
