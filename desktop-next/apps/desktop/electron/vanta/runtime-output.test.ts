@@ -65,7 +65,7 @@ describe('captureRuntimeOutput', () => {
     const log = readFileSync(file, 'utf8')
 
     expect(log).toMatch(/runtime started .*pid 4242/)
-    expect(log).toContain('[err] bad thing')
+    expect(log).toMatch(/\[\d\d:\d\d:\d\d\.\d{3}\] \[err\] bad thing/)
     expect(log).toMatch(/runtime exited .*code 2/)
   })
 

@@ -63,7 +63,8 @@ export function captureRuntimeOutput(child: ChildProcess, logFile?: string): Run
     stream?.on('data', (chunk: Buffer) => {
       const text = chunk.toString()
       tail.push(text)
-      write(name === 'err' ? text.replace(/^/gm, '[err] ') : text)
+      const stamp = `[${new Date().toISOString().slice(11, 23)}] `
+      write(text.replace(/^(?=.)/gm, name === 'err' ? `${stamp}[err] ` : stamp))
     })
   }
 
