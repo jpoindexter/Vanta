@@ -86,11 +86,13 @@ function clarifyCall(): ChatMessagePart {
   } as ChatMessagePart
 }
 
-/** 09:41 UTC today, the time the wireframe prints under the first message. */
+/** 09:41 local time today, the time the wireframe prints under the first message. */
 function nineForty(): number {
-  const now = new Date()
+  const at = new Date()
 
-  return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 9, 41) / 1000
+  at.setHours(9, 41, 0, 0)
+
+  return at.getTime() / 1000
 }
 
 const user = (id: string, text: string): ChatMessage => ({

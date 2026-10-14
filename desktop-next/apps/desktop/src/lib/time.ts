@@ -9,7 +9,8 @@ export const DAY = 86_400_000
 
 // ── Absolute date/time formatters ──────────────────────────────────────────
 // `hh:mm` clock (thread today/yesterday lines).
-export const fmtClock = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' })
+// 24-hour, as the wireframe prints message times (09:41).
+export const fmtClock = new Intl.DateTimeFormat(undefined, { hour: '2-digit', hourCycle: 'h23', minute: '2-digit' })
 
 // Compact "day + clock", no year/seconds (artifacts, thread fallback, cron runs).
 export const fmtDayTime = new Intl.DateTimeFormat(undefined, {

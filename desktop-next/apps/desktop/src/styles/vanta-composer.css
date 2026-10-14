@@ -35,20 +35,22 @@
   flex: 1;
 }
 
-.vp-chip--menu {
+.vp .vp-chip--menu {
   align-items: center;
   display: inline-flex;
 }
 
 /* The caret box overlaps the text gap so the pill is as wide as the wireframe's "text ▾". */
-.vp-chip--menu svg {
+.vp .vp-chip--menu svg {
   margin-left: -3px;
 }
 
-.vp-chips {
+.vp .vp-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  justify-content: flex-start;
+  margin: 0;
 }
 
 /* ---- skeleton ---- */

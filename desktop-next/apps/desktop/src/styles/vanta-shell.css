@@ -126,6 +126,14 @@ button.vs-chip {
   cursor: pointer;
 }
 
+/* The chat menu chip is the wireframe's "▾": a 26x21 pill around one caret. */
+.vs-chip:has(> svg:only-child) {
+  justify-content: center;
+  width: 25.7px;
+  height: 21.4px;
+  padding: 0;
+}
+
 button.vs-chip:hover {
   background: var(--ui-row-hover-background);
 }
@@ -616,4 +624,9 @@ button.vs-chip:hover {
 
 .vs-footer-text > span {
   display: block;
+}
+
+/* The rail keeps the wireframe's hairline on its right edge (the pane shell zeroes sidebar borders). */
+[data-tree-group] .vs-sidebar[data-slot='sidebar'] {
+  border-right: 1px solid var(--ui-stroke-tertiary);
 }

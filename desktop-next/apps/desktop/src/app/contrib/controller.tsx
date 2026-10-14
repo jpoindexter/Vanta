@@ -124,6 +124,7 @@ import { OfflineBanner } from '../shell/vanta/offline-banner'
 import { MAIN_MIN_WIDTH_PX } from '../layout-constants'
 import { ContribWiring, WiredPane } from './wiring'
 import '@/styles/vanta-shell.css'
+import '@/styles/vanta-sidebar.css'
 import { WorkspacePageHeaderHostContext } from './workspace-page-header'
 
 /**

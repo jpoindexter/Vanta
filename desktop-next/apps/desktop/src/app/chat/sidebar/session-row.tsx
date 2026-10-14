@@ -225,7 +225,10 @@ function SidebarSessionRowImpl({
     trailing.push({
       key: 'figures',
       node: (
-        <span className="pointer-events-none whitespace-nowrap text-[0.75rem] leading-none text-(--ui-text-tertiary)">
+        <span
+          className="pointer-events-none whitespace-nowrap text-[0.75rem] leading-none text-(--ui-text-tertiary)"
+          data-testid="sidebar-row-time"
+        >
           {head}
           {/* The figures own their tail: the separator goes with it. */}
           <span className={cn('inline-block text-right', TAIL_HIDES)}>
@@ -391,6 +394,8 @@ function SidebarSessionRowImpl({
           className
         )}
         data-glass-opaque={dragging ? '' : undefined}
+        data-selected={isSelected ? 'true' : undefined}
+        data-testid="sidebar-row"
         data-working={liveTurn ? 'true' : undefined}
         // The row runs BOTH drags off one press, and each declines outside its
         // own region — so no timing/arbitration rule is needed and neither can
@@ -559,7 +564,7 @@ function SidebarSessionRowImpl({
                         exactly as they did on the old full-row button. The
                         OverflowTip stays on the truncating label so its
                         scrollWidth measurement is unchanged. */}
-                    <RowButton className="block w-full text-left">
+                    <RowButton className="block w-full text-left" data-testid="sidebar-row-title">
                       <OverflowTip label={title} placement="row">
                         <SidebarRowLabel
                           className="hover-marquee block font-normal group-hover:text-foreground group-data-[working=true]:text-foreground/90"
