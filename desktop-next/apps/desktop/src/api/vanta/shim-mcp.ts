@@ -116,7 +116,7 @@ export const mcpRoutes: readonly ShimRoute[] = [
     handle: async ({ body, send }) => {
       const name = z.string().parse(body.name)
 
-      await act(send, 'install', name)
+      await post(send, MCP_PATH, { action: 'install', env: body.env, name })
 
       if (body.enable !== false) {
         await act(send, 'trust', name)
@@ -127,6 +127,24 @@ export const mcpRoutes: readonly ShimRoute[] = [
     },
     method: 'POST',
     path: /^\/api\/mcp\/catalog\/install$/
+  },
+  {
+    // A custom server starts untrusted and off: turning it on later is the owner's explicit grant.
+    handle: async ({ body, send }): Promise<McpServerSummary> => {
+      const name = z.string().parse(body.name)
+
+      await post(send, MCP_PATH, { action: 'add', args: body.args, command: body.command, env: body.env, name, url: body.url })
+
+      const added = (await readPayload(send)).connectors.find(connector => connector.name === name)
+
+      if (!added) {
+        throw new Error(`${name} was not found after adding it`)
+      }
+
+      return toServer(added)
+    },
+    method: 'POST',
+    path: /^\/api\/mcp\/servers$/
   },
   {
     handle: async call => {
