@@ -20,7 +20,16 @@ function session(id, title, ageDays, extra = {}) {
   };
 }
 
+/** One blocked ticket (a team task) so Home's Needs you has a company row. */
+function seedBlockedTask(vantaHome) {
+  const at = new Date().toISOString();
+  const task = { kind: "task", id: "T-1", workerId: "dev", title: "Ship the onboarding flow", status: "blocked", blocker: "needs the final copy", created: at, updated: at };
+  fs.mkdirSync(vantaHome, { recursive: true });
+  fs.writeFileSync(path.join(vantaHome, "team-tasks.jsonl"), `${JSON.stringify(task)}\n`);
+}
+
 export function seedSessions({ vantaHome }) {
+  seedBlockedTask(vantaHome);
   const dir = path.join(vantaHome, "sessions");
   fs.mkdirSync(dir, { recursive: true });
   const rows = [

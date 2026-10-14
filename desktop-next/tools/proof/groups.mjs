@@ -128,6 +128,7 @@ export const GROUPS = [
       await ensureChat(ctx.page);
       await pages.capabilityRows(ctx.page);
       await pages.pageRows(ctx);
+      await pages.companyHomeRows(ctx.page);
       await pages.onboardingRows(ctx.page);
     }
   }

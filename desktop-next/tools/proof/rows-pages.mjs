@@ -151,6 +151,22 @@ export async function pageRows(ctx) {
   record("F-245", AREA, "Keyboard shortcuts: complete default map", "PASS", "Settings > Keyboard Shortcuts lists every chord by group (see F-172); the map is unchanged from the original");
 }
 
+export async function companyHomeRows(page) {
+  await goHome(page);
+  await attempt(page, "HOME-COMPANY", AREA, "Home Needs you shows company rows and opens the ticket", async () => {
+    await page.locator('[data-tour="sidebar-nav-home"]').click();
+    const row = await waitUntil(async () => (await body(page)).includes("Ship the onboarding flow"), 10000, 500);
+    const text = await body(page);
+    verdict("HOME-COMPANY", "home", "Home Needs you: blocked company ticket", Boolean(row) && /needs the final copy|Blocked/.test(text), { pass: "a blocked ticket from the Company API is a Needs you row beside the chats, with its blocker as the detail", why: text.slice(0, 200) });
+    const home = page.getByTestId("home-surface");
+    await home.getByText("Ship the onboarding flow", { exact: false }).first().hover();
+    await home.getByRole("button", { name: /^Open/ }).first().click();
+    await page.waitForTimeout(1200);
+    const hash = await page.evaluate(() => location.hash);
+    verdict("HOME-COMPANY-OPEN", "home", "Open on a company row goes to the ticket", /ticket=T-1/.test(hash), { pass: `Open navigated to ${hash}`, why: `hash=${hash}` });
+  });
+}
+
 export async function onboardingRows(page) {
   await goHome(page);
   const text = await body(page);
