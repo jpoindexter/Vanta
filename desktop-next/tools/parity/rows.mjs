@@ -1,6 +1,6 @@
 // Turn one measured state into report rows: one row per wireframe element,
 // one per key the wireframe says must be absent, one visible-count row per list.
-import { compareElement, findDeviation, resolveTol, visibility } from "./compare.mjs";
+import { compareElement, findDeviation, findDeviations, resolveTol, visibility } from "./compare.mjs";
 import { baseKey, isListKey } from "./locate.mjs";
 
 const isMapped = (map, base) => map.keys[base] !== undefined && map.keys[base] !== "UNMAPPED";
@@ -52,9 +52,10 @@ function countRow(c, listKey) {
   const skipped = unmappedRow(c, listKey, listKey);
   if (skipped) return skipped;
   const actual = (c.measured.found[listKey] ?? []).filter((e) => e.visible).length;
-  const ok = expected === actual;
-  const props = ok ? undefined : [{ prop: "visibleCount", expected, actual, status: "FAIL" }];
-  return { state: c.stateId, key: listKey, status: ok ? "PASS" : "FAIL", checked: 1, ...(props && { props }) };
+  if (expected === actual) return { state: c.stateId, key: listKey, status: "PASS", checked: 1 };
+  const dev = findDeviations(c.deviations, { key: listKey, state: c.stateId, prop: "visibleCount" }).find((d) => d.transform === "ignore");
+  const status = dev ? "ALLOWED" : "FAIL";
+  return { state: c.stateId, key: listKey, status, checked: 1, props: [{ prop: "visibleCount", expected, actual, status, ...(dev && { deviation: dev.id }) }] };
 }
 
 /**

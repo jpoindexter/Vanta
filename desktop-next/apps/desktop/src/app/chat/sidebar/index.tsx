@@ -1575,6 +1575,7 @@ function FullSidebar({
                     )}
                     // A tip anchored to the label points at the end of the
                     // word; the row is what it's actually about.
+                    data-active={active ? 'true' : undefined}
                     data-testid={`nav-${item.id}`}
                     data-tip-region=""
                     onClick={() => {

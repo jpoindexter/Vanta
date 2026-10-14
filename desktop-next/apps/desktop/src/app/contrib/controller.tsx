@@ -154,7 +154,7 @@ import { WorkspacePageHeaderHostContext } from './workspace-page-header'
 // keep the remaining height.
 const renderWorkspacePane = () => (
   <WorkspacePageHeaderHostContext.Provider value={true}>
-    <div className="flex h-full min-h-0 w-full min-w-0 flex-col">
+    <div className="flex h-full min-h-0 w-full min-w-0 flex-col" data-testid="shell-main">
       <OfflineBanner />
       <div className="relative min-h-0 min-w-0 flex-1">
         <WiredPane part="chatRoutes" />
