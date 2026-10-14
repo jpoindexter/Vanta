@@ -1,7 +1,7 @@
 // Flake measurement: runs the whole done-path script N times, each in fresh isolated state,
 // and reports pass rate per step and overall, plus every distinct failure message.
 //
-//   node tools/done-path/flake.mjs [--runs 20] [--out docs/proofs/done-path/flake]
+//   node tools/done-path/flake.mjs [--runs 20] [--out docs/proofs/done-path/flake] [--script tools/company-proof/run.mjs]
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -11,7 +11,7 @@ const option = (name, fallback) => (args.includes(name) ? args[args.indexOf(name
 const runs = Number(option("--runs", "20"));
 const outDir = path.resolve(option("--out", path.join(import.meta.dirname, "..", "..", "docs", "proofs", "done-path", "flake")));
 const RUN_TIMEOUT_MS = 6 * 60_000;
-const script = path.join(import.meta.dirname, "run.mjs");
+const script = path.resolve(option("--script", path.join(import.meta.dirname, "run.mjs")));
 
 function oneRun(index) {
   const dir = path.join(outDir, `run-${String(index).padStart(2, "0")}`);
