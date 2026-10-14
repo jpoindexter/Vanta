@@ -12,7 +12,6 @@
 
 const fs = require('node:fs')
 const path = require('node:path')
-const feedContract = require('./update-feed.cjs')
 const { createMacSigner } = require('./scripts/mac-sign.mjs')
 
 const {
@@ -57,17 +56,11 @@ const channelRequest = channelBuildRequest()
 
 /** @typedef {import("app-builder-lib").Configuration} Configuration */
 
-const [owner, repo] = (process.env.GITHUB_REPOSITORY || 'jpoindexter/Vanta').split('/')
-if (!owner || !repo) {
-  throw new Error(`invalid GITHUB_REPOSITORY ${process.env.GITHUB_REPOSITORY}`)
-}
 const electronVersion = require('./package.json').devDependencies.electron
 if (!/^\d+\.\d+\.\d+$/.test(electronVersion)) {
   throw new Error(`invalid electron version ${electronVersion} in package.json`)
 }
 
-const macFeed = channelRequest ? null : feedContract.darwinFeed(channel === 'canary' || channel === 'light-canary' ? 'canary' : 'stable', light)
-const publicUrl = feedContract.feedBaseUrl(process.env.CLOUDFLARE_R2_PUBLIC_URL)
 
 /** @satisfies {Configuration} */
 module.exports = {
@@ -75,10 +68,11 @@ module.exports = {
   appId,
   productName: displayName,
   executableName: displayName,
+  copyright: 'Copyright © 2026 Theft Studio. Portions © 2025 Nous Research (MIT), see LICENSE-HERMES-MIT.',
   protocols: [
     {
       name: `${displayName} Protocol`,
-      schemes: ['hermes']
+      schemes: ['vanta']
     }
   ],
   // A store build is archived, never served to a feed — prefix its artifact
@@ -86,20 +80,9 @@ module.exports = {
   // the release pipeline can keep the two apart.
   artifactName: `${store ? 'Store-' : ''}${artifactNamePascal}-\${version}-\${os}-\${arch}.\${ext}`,
   icon: 'assets/icon',
-  // The electron-updater feed. CI builds set CLOUDFLARE_R2_PUBLIC_URL (the R2
-  // public bucket / custom domain) and publish there — the feed yml, blockmaps
-  // and installers all live in the same flat R2 bucket, and electron-updater
-  // resolves the yml's relative artifact paths against it. Builds without the
-  // var (local, or a fork without the R2 vars) keep the github provider, which
-  // is exactly today's behavior. The store build has no feed at all (the Store
-  // owns its distribution and updates).
-  publish: channelRequest ? null : !channel
-    ? null
-    : [
-        publicUrl
-          ? { provider: 'generic', url: publicUrl, channel }
-          : { provider: 'github', owner, repo, channel }
-      ],
+  // No update feed: Vanta Next is installed by hand and reports updates as "not
+  // configured". A feed returns here only with the cutover card.
+  publish: null,
   extraMetadata: {
     name: appNamePascal,
     // Electron bootstrap reads package.productName before main.ts. Keep the
@@ -138,7 +121,7 @@ module.exports = {
     }
   ],
   asar: {
-    unpack: ['**/*.node', '**/prebuilds/**', 'dist/**']
+    unpack: ['**/*.node', '**/prebuilds/**']
   },
   mac: {
     // macOS 26 masks every icon into its own squircle: the layered Icon
@@ -150,14 +133,7 @@ module.exports = {
     icon: macIconResource(__dirname),
     // The afterSign hook owns notarization, including keychain-profile builds.
     notarize: false,
-    // The packaged client reads this generated app-update.yml by default.
-    publish: channelRequest?.receiverCandidate
-      ? [{ provider: 'generic', url: `${channelRequest.publicBase}/releases/darwin/stable/`, channel: 'stable' }]
-      : channelRequest
-      ? [{ provider: 'generic', url: `${channelRequest.publicBase}/releases/channel-builds/${channelRequest.buildId}/darwin/`, channel: 'latest' }]
-      : publicUrl && channel && macFeed
-      ? [{ provider: 'generic', url: `${publicUrl}/${macFeed.directory}/`, channel: macFeed.channel }]
-      : null,
+    publish: null,
     category: 'public.app-category.developer-tools',
     extendInfo: {
       CFBundleDisplayName: displayName,
@@ -199,17 +175,17 @@ module.exports = {
     shrink: false,
     // The volume icon defaults to the packager's icns, which is actool's 256px
     // fallback whenever `mac.icon` is the Icon Composer package. Ship our own
-    // drive-with-the-girl artwork instead (dmgbuild's badge option can only
+    // Vanta artwork instead (dmgbuild's badge option can only
     // paste onto the stock removable-drive icon). It lives in packaging/ with
     // the background so the `files` whitelist keeps it out of the app bundle.
     icon: 'packaging/dmg-volume.icns',
-    title: 'Vanta Installer',
+    title: `${displayName} Installer`,
     // A prebuilt .tiff on purpose, not a PNG plus a @2x sibling: dmg-builder's
     // PNG path runs `tiffutil -cathidpicheck`, which on macOS 26 rewrites both
     // frames to 72 dpi and silently drops the 2x representation. A .tiff is
     // handed to dmgbuild untouched (dmg-builder/dist/dmgUtil.js), and living
     // outside assets/ keeps it out of the app bundle via the `files` whitelist.
-    background: 'packaging/nous-dmg-2b.tiff',
+    background: 'packaging/vanta-dmg-background.tiff',
     iconSize: 96,
     iconTextSize: 11,
     window: {
