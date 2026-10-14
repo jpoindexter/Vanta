@@ -10,6 +10,7 @@ import { isLoopbackRequest } from "../companion/loopback.js";
 import type { PublicApiRouteOptions } from "../public-api/routes.js";
 import type { ReadinessDeps } from "../public-api/readiness.js";
 import { resolveVantaHome } from "../store/home.js";
+import { applyTimezone, loadDesktopPrefs } from "./desktop-prefs.js";
 import { ensureDesktopPermissionMode } from "./permission-mode.js";
 import { loadDesktopRoutes, handleCompanionRouteLazy, handlePublicApiRouteLazy, handlePublicApiProbeRouteLazy } from "./server-lazy.js";
 export type { PendingApproval, DesktopEvent, DesktopState } from "./handlers.js";
@@ -127,6 +128,7 @@ type DesktopServerOptions = Partial<CompanionRouteOptions> & {
 export function createDesktopServer(repoRoot: string, options: DesktopServerOptions = {}): http.Server {
   ensureDesktopPermissionMode();
   const opts = desktopServerOptions(repoRoot, options);
+  void loadDesktopPrefs(opts.env).then((prefs) => applyTimezone(prefs, opts.env)).catch(() => undefined);
   return http.createServer((req, res) => {
     void routeRequest(req, res, opts)
       .catch((err: unknown) => sendJson(res, 500, { error: errorMessage(err) }));

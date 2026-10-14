@@ -11,6 +11,7 @@ const metas = [
     updated: '2026-10-13T10:05:00Z'
   },
   {
+    cwd: '/work/acme',
     id: 'b',
     pinned: true,
     started: '2026-10-13T11:00:00Z',
@@ -31,15 +32,16 @@ const makeSend = () =>
   vi.fn(async (request: { path: string }) => (request.path === '/api/status' ? { root: '/work/acme' } : metas))
 
 describe('vantaRestShim', () => {
-  it('lists sessions newest first, hiding archived ones, with the project root as cwd', async () => {
+  it('lists sessions newest first, hiding archived ones, with each session\'s own folder as cwd (null when none was recorded)', async () => {
     const send = makeSend()
     const page = (await vantaRestShim({ path: '/api/profiles/sessions?limit=10&archived=exclude' }, send)) as {
-      sessions: Array<{ cwd: string; id: string; pinned: boolean }>
+      sessions: Array<{ cwd: null | string; id: string; pinned: boolean }>
       total: number
     }
 
     expect(page.sessions.map(row => row.id)).toEqual(['b', 'a'])
     expect(page.sessions[0]).toMatchObject({ cwd: '/work/acme', pinned: true })
+    expect(page.sessions[1]?.cwd).toBeNull()
     expect(page.total).toBe(2)
   })
 

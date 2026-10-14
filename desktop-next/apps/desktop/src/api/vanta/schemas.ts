@@ -8,6 +8,7 @@ export const idResponseSchema = z.object({ id: z.string().min(1) })
 
 export const sessionMetaSchema = z.looseObject({
   archived: z.boolean().optional(),
+  cwd: z.string().optional(),
   id: z.string().min(1),
   modelId: z.string().optional(),
   pinned: z.boolean().optional(),
@@ -89,6 +90,12 @@ export const providerOptionSchema = z.looseObject({
   defaultModel: z.string().optional(),
   id: z.string().min(1),
   label: z.string().optional(),
+  modelSettings: z
+    .looseObject({
+      effort: z.looseObject({ options: z.array(z.string()).default([]) }).optional(),
+      speed: z.looseObject({ options: z.array(z.string()).default([]) }).optional()
+    })
+    .optional(),
   models: z.array(z.string()).default([]),
   savedDefaultModel: z.string().optional()
 })

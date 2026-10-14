@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import { app, BrowserWindow, clipboard, dialog, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, clipboard, dialog, ipcMain, session, shell } from 'electron'
 
 import { resolveProjectRoot, saveProjectSetting } from '../../../../../vanta-ts/desktop-app/electron/project-root.mjs'
 import { registerMachineProfile } from '../machine-profile'
@@ -17,6 +17,7 @@ import { resolveRuntimeRoot } from './runtime-root'
 import { ServerHost } from './server-host'
 import { registerShellHandlers } from './shell-handlers'
 import { createBootTracker } from './shell-state'
+import { installWebviewGuard } from './webview-guard'
 import { createShellWiring } from './shell-wiring'
 import { listenForDeepLinks } from './window-features'
 import {
@@ -267,6 +268,11 @@ if (!app.requestSingleInstanceLock()) {
   app
     .whenReady()
     .then(async () => {
+      installWebviewGuard({
+        fromPartition: partition => session.fromPartition(partition) as never,
+        onWebContentsCreated: listener => app.on('web-contents-created', (_event, contents) => listener(contents as never)),
+        openExternal: url => wiring.openExternalLink(url)
+      })
       await startServices()
       openWindow()
     })

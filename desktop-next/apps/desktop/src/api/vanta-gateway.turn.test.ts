@@ -184,6 +184,23 @@ describe('prompt.submit and the turn lifecycle', () => {
     chat.resolve(chatOk('done'))
   })
 
+  it('sends images attached behind a running turn with the queued instruction', async () => {
+    const transport = healthyTransport()
+    const chat = deferred<VantaResult>()
+    transport
+      .route('POST /api/chat', () => chat.promise)
+      .ok('POST /api/chat/queue', { item: { id: 'q1', revision: 1 }, queued: true }, 202)
+    const harness = await connectedHarness(transport)
+    const created = await newChat(harness)
+    const images = [{ dataBase64: 'AAAA', mime: 'image/png' }]
+
+    await harness.gateway.request('prompt.submit', { session_id: created.session_id, text: 'first' })
+    await harness.gateway.request('prompt.submit', { images, session_id: created.session_id, text: '' })
+
+    expect(transport.callsTo('POST /api/chat/queue')[0]?.body).toEqual({ action: 'enqueue', images, message: '' })
+    chat.resolve(chatOk('done'))
+  })
+
   it('session.steer enqueues then marks the item as steer', async () => {
     const transport = healthyTransport()
     transport
