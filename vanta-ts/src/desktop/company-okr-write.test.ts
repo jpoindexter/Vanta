@@ -92,7 +92,7 @@ describe("OKR writes leave a trail", () => {
     probes.push(probe);
     await h.post(`${P}/create`, { title: "Grow revenue", keyResults: [KR] });
     await h.post(`${P}/progress`, { objectiveId: "grow-revenue", name: "signups", current: 60 });
-    const pushed = await probe.waitFor((f) => f.typed?.type === "activity.appended" && (f.typed as { entry: { kind: string } }).entry.kind === "okr.progress");
+    const pushed = await probe.waitFor((f) => f.typed?.type === "activity.appended" && (f.typed as unknown as { entry: { kind: string } }).entry.kind === "okr.progress");
     expect(pushed).toBeTruthy();
     const log = (await readFile(join(h.home, "company-activity.jsonl"), "utf8")).trim().split("\n").map((l) => JSON.parse(l) as { kind: string; actor: string });
     expect(log.map((e) => e.kind)).toEqual(["okr.created", "okr.progress"]);
