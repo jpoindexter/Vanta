@@ -8,6 +8,7 @@
 // Exit 1 on any FAIL or UNMAPPED (UNMAPPED tolerated with --allow-unmapped).
 import fs from "node:fs";
 import path from "node:path";
+import { globToRe } from "./compare.mjs";
 import { copyRow } from "./copy-check.mjs";
 import { measureAll, measureCopy } from "./probe.mjs";
 import { enterState } from "./runner.mjs";
@@ -39,6 +40,11 @@ function openOptions(args, map) {
   throw new Error("Pick a target: --electron, --url <url> or --file <html>.");
 }
 
+/** Wireframe strings declared absent from the app for this state. */
+function declaredCopy(deviations, stateId) {
+  return deviations.filter((d) => d.copy && (!d.states || d.states.some((g) => globToRe(g).test(stateId)))).flatMap((d) => d.copy);
+}
+
 async function checkState(env, specState, stateId) {
   const { target, appMap, spec, deviations, copyInv, settle } = env;
   const state = { id: stateId, ...specState };
@@ -47,11 +53,11 @@ async function checkState(env, specState, stateId) {
   const base = { stateId, specState, appMap, keyOptions: spec.keyOptions, deviations: env.devList };
   const allowGlyphs = deviations.some((d) => d.transform === "stripGlyphs" && d.props.includes("text"));
   if (!entered.ok) {
-    return { rows: buildRows({ ...base, measured: null, blocked: entered.reason }), copy: copyRow({ stateId, expected: copyInv.states[stateId], appStrings: [], blocked: entered.reason, allowGlyphs }), blocked: entered.reason };
+    return { rows: buildRows({ ...base, measured: null, blocked: entered.reason }), copy: copyRow({ stateId, expected: copyInv.states[stateId], appStrings: [], blocked: entered.reason, allowGlyphs, declared: declaredCopy(env.devList, stateId) }), blocked: entered.reason };
   }
   const measured = await measureAll(target.page, appMap, { keys, hoverOnlyKeys: new Set(spec.hoverOnlyKeys) });
   const appCopy = await measureCopy(target.page, appMap);
-  const copy = copyRow({ stateId, expected: copyInv.states[stateId], appStrings: [...appCopy.rest, ...appCopy.hover], allowGlyphs });
+  const copy = copyRow({ stateId, expected: copyInv.states[stateId], appStrings: [...appCopy.rest, ...appCopy.hover], allowGlyphs, declared: declaredCopy(env.devList, stateId) });
   return { rows: buildRows({ ...base, measured, blocked: null }), copy, frame: measured.frame };
 }
 
@@ -88,10 +94,14 @@ export async function runCheck(args) {
   return assemble({ spec, appMap, devFile, rows, copyRows, stateNotes, label: opened.label, mapFile });
 }
 
+/** True when a declared not-applicable deviation names this base key (any state). */
+const declaresNa = (deviations, key) => deviations.some((d) => d.na && (d.keys ?? []).some((g) => globToRe(g).test(key)));
+
 function assemble({ spec, appMap, devFile, rows, copyRows, stateNotes, label, mapFile }) {
   const mappedKeys = new Set(Object.keys(appMap.keys).filter((k) => appMap.keys[k] !== "UNMAPPED"));
   const keys = specKeys(spec);
-  const summary = summarize({ rows, copyRows, mappedKeys, specKeys: keys });
+  const naKeys = new Set(keys.filter((k) => !mappedKeys.has(k) && declaresNa(devFile.deviations, k)));
+  const summary = summarize({ rows, copyRows, mappedKeys, naKeys, specKeys: keys });
   const stateIds = Object.keys(stateNotes);
   const driven = stateIds.filter((id) => !stateNotes[id].startsWith("no driver") && !stateNotes[id].startsWith("driver failed")).length;
   const bad = summary.rows.FAIL + summary.copy.states.FAIL;

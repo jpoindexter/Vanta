@@ -17,6 +17,7 @@ async function runStep(ctx, step) {
   if (step.reload) return page.reload({ waitUntil: "load" });
   if (step.storage) return page.evaluate(([k, v]) => localStorage.setItem(k, v), [step.storage.key, step.storage.value]);
   if (step.waitFor) return loc(step.waitFor).waitFor({ timeout: step.timeout ?? timeout });
+  if (step.eval) return page.evaluate(step.eval);
   if (step.wait !== undefined) return page.waitForTimeout(step.wait);
   throw new Error(`unknown step ${JSON.stringify(step)}`);
 }

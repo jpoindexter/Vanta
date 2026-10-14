@@ -59,3 +59,40 @@ test("stripGlyphs removes icon placeholders and collapses space", () => {
   assert.equal(stripGlyphs("▸ Read 3 files"), "Read 3 files");
   assert.equal(stripGlyphs("Sonnet 5.5 ▾"), "Sonnet 5.5");
 });
+
+import { buildRows } from "./rows.mjs";
+import { copyRow } from "./copy-check.mjs";
+
+const naState = (deviations, keys = {}) => ({
+  stateId: "w1440.chat-waiting",
+  specState: { elements: { "titlebar.dots": { visible: true, display: "block", x: 12, y: 16, w: 45, h: 11 } }, absent: ["banner.offline"], lists: {} },
+  appMap: { keys },
+  keyOptions: {},
+  deviations,
+  measured: { found: {}, counts: {} },
+  blocked: null,
+});
+
+test("an unmapped key is UNMAPPED unless a not-applicable deviation names it", () => {
+  const na = [{ id: "native-controls", reason: "x", props: ["*"], transform: "ignore", na: true, keys: ["titlebar.dots"] }];
+  assert.equal(buildRows(naState([])).find((r) => r.key === "titlebar.dots").status, "UNMAPPED");
+  const row = buildRows(naState(na)).find((r) => r.key === "titlebar.dots");
+  assert.equal(row.status, "ALLOWED");
+  assert.equal(row.props[0].deviation, "native-controls");
+  assert.equal(buildRows(naState(na)).find((r) => r.key === "banner.offline").status, "UNMAPPED");
+});
+
+test("a not-applicable deviation is not a blanket pass for other keys", () => {
+  const na = [{ id: "native-controls", reason: "x", props: ["*"], transform: "ignore", na: true, keys: ["titlebar.dots"] }];
+  const rows = buildRows(naState(na, { "titlebar.dots": "UNMAPPED" }));
+  assert.equal(rows.filter((r) => r.status === "ALLOWED").length, 1);
+});
+
+test("copy declared absent is not counted as missing and makes the row ALLOWED", () => {
+  const expected = { strings: ["Jason", "Home"], hoverOnly: [] };
+  assert.equal(copyRow({ stateId: "s", expected, appStrings: ["Home"] }).status, "FAIL");
+  const r = copyRow({ stateId: "s", expected, appStrings: ["Home"], declared: ["Jason"] });
+  assert.equal(r.status, "ALLOWED");
+  assert.equal(r.declared, 1);
+  assert.equal(r.found, 1);
+});

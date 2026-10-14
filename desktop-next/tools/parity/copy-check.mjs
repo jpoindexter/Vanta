@@ -29,13 +29,16 @@ function missing(want, have, allowGlyphs) {
  * One row per state. FAIL lists missing strings; ALLOWED means the only differences were
  * icon glyphs and `allowGlyphs` is set (a declared stripGlyphs deviation); UNMAPPED when the state was not drivable.
  */
-export function copyRow({ stateId, expected, appStrings, blocked, allowGlyphs }) {
-  const want = [...expected.strings, ...expected.hoverOnly];
-  const total = want.length;
+export function copyRow({ stateId, expected, appStrings, blocked, allowGlyphs, declared = [] }) {
+  const all = [...expected.strings, ...expected.hoverOnly];
+  const total = all.length;
   if (blocked) return { state: stateId, status: "UNMAPPED", reason: blocked, total, found: 0 };
+  const skip = tally(declared);
+  const want = all.filter((s) => (skip.get(s) > 0 ? (skip.set(s, skip.get(s) - 1), false) : true));
+  const declaredCount = total - want.length;
   const { lost, glyphOnly } = missing(want, appStrings, allowGlyphs);
-  const found = total - lost.length;
+  const found = want.length - lost.length;
   const extra = missing(appStrings, want, allowGlyphs).lost.length;
-  const status = lost.length ? "FAIL" : glyphOnly ? "ALLOWED" : "PASS";
-  return { state: stateId, status, total, found, glyphOnly, extra, ...(lost.length && { missing: lost }) };
+  const status = lost.length ? "FAIL" : glyphOnly || declaredCount ? "ALLOWED" : "PASS";
+  return { state: stateId, status, total, found, glyphOnly, declared: declaredCount, extra, ...(lost.length && { missing: lost }) };
 }

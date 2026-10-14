@@ -52,6 +52,7 @@ export const Step = z.union([
   z.object({ storage: z.object({ key: z.string(), value: z.string() }) }).strict(),
   z.object({ waitFor: LocatorSpec, timeout: z.number().optional() }).strict(),
   z.object({ wait: z.number() }).strict(),
+  z.object({ eval: z.string() }).strict(),
 ]);
 
 export const Driver = z.union([z.literal("UNMAPPED"), z.array(Step)]);
@@ -134,6 +135,10 @@ export const Deviation = z
     keys: z.array(z.string()).optional(),
     states: z.array(z.string()).optional(),
     transform: z.enum(["stripGlyphs", "ignore"]),
+    /** The wireframe element has no counterpart in the app. Covered keys need no locator; their rows are ALLOWED. */
+    na: z.boolean().optional(),
+    /** Wireframe strings declared absent from the app (with `reason`); they are not counted as missing. */
+    copy: z.array(z.string()).optional(),
   })
   .strict();
 
