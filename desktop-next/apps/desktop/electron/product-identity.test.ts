@@ -118,7 +118,7 @@ test('nonstable runtime pins userData before the app name can change', async ():
 })
 
 test.each([
-  [undefined, 'Vanta', 'vanta-next', 'latest', 'canary'],
+  [undefined, 'Vanta Next', 'vanta-next', 'latest', 'canary'],
   ['bundled', 'Vanta Bundled', 'vanta-next', 'latest', 'canary'],
   ['light', 'Vanta Light', 'vanta-light', 'light', 'light-canary']
 ] as const)(
@@ -254,7 +254,7 @@ test('packaging isolates boot metadata and executable names without renaming rel
     const artifact: ReturnType<typeof appIdentity> = appIdentity(fileURLToPath(new URL('../', import.meta.url)))
     assert.equal(artifact.name, identity.artifactNamePascal)
     assert.equal(artifact.identity.msixAppIdWithOrg, config.msix.identityName)
-    assert.deepEqual(config.protocols[0].schemes, ['hermes'])
+    assert.deepEqual(config.protocols[0].schemes, ['vanta'])
 
     if (build !== 'canary') {
       assert.equal(config.publish, null)
@@ -300,7 +300,7 @@ test('store carries the Partner Center MSIX identity and no other variant does',
   }
 })
 
-test('the default Vanta build is displayed as Vanta but keeps its own userData until cutover', async (): Promise<void> => {
+test('the default build is displayed as Vanta Next and keeps its own userData beside the current Vanta', async (): Promise<void> => {
   const identity: ProductIdentity = await identityForVariant(undefined)
   const runtime: { applyDesktopIdentity: typeof applyDesktopIdentity } = await import('./product-identity')
   const root: string = fs.mkdtempSync(path.join(os.tmpdir(), 'identity-vanta-'))
@@ -321,8 +321,8 @@ test('the default Vanta build is displayed as Vanta but keeps its own userData u
       identity
     )
 
-    assert.equal(applied, 'Vanta')
-    assert.equal(name, 'Vanta')
+    assert.equal(applied, 'Vanta Next')
+    assert.equal(name, 'Vanta Next')
     assert.equal(paths.userData, path.join(root, 'VantaNext'))
     assert.notEqual(paths.userData, path.join(root, 'Vanta'))
   } finally {
