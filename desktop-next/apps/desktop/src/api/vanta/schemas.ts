@@ -88,6 +88,7 @@ export const queueEnqueueSchema = z.looseObject({
 export const providerOptionSchema = z.looseObject({
   current: z.boolean().optional(),
   defaultModel: z.string().optional(),
+  discoveryError: z.string().optional(),
   id: z.string().min(1),
   label: z.string().optional(),
   modelSettings: z
@@ -96,6 +97,7 @@ export const providerOptionSchema = z.looseObject({
       speed: z.looseObject({ options: z.array(z.string()).default([]) }).optional()
     })
     .optional(),
+  modelSource: z.enum(['catalog', 'live']).optional(),
   models: z.array(z.string()).default([]),
   savedDefaultModel: z.string().optional()
 })
