@@ -62,10 +62,10 @@ describe('reasoning effort and fast mode through config.set', () => {
 
     const result = await harness.gateway.request<{ providers: Array<{ capabilities?: Record<string, unknown> }> }>('model.options', {})
 
-    expect(result.providers[0]?.capabilities).toEqual({ 'gpt-5.5': { fast: true, reasoning: true } })
+    expect(result.providers[0]?.capabilities).toEqual({ 'gpt-5.5': { fast: true, reasoning: true, reasoning_levels: ['low', 'medium', 'high'] } })
 
     const bare = await (await harnessFor(withoutEffort)).harness.gateway.request<{ providers: Array<{ capabilities?: Record<string, unknown> }> }>('model.options', {})
 
-    expect(bare.providers[0]?.capabilities).toEqual({ 'vanta-proof': { fast: false, reasoning: false } })
+    expect(bare.providers[0]?.capabilities).toEqual({ 'vanta-proof': { fast: false, reasoning: false, reasoning_levels: [] } })
   })
 })

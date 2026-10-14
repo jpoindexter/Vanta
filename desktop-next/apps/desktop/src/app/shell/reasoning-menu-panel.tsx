@@ -3,7 +3,7 @@ import { useStore } from '@nanostores/react'
 import { useSessionView } from '@/app/chat/session-view'
 import { DropdownMenuItem, dropdownMenuRow } from '@/components/ui/dropdown-menu'
 import { useI18n } from '@/i18n'
-import { catalogProviderMatches, currentModelCapabilities } from '@/lib/model-options'
+import { catalogProviderMatches, currentModelCapabilities, reasoningLevelsOf } from '@/lib/model-options'
 
 import { ModelOptionsContent, resolveFastControl } from './model-edit-submenu'
 import { type ModelMenuHostProps, useModelMenuController } from './use-model-menu-controller'
@@ -56,6 +56,7 @@ export function ReasoningMenuPanel(props: ModelMenuHostProps) {
       provider={provider}
       reasoning={caps?.reasoning ?? true}
       serviceTier={controller.current.serviceTier}
+      effortLevels={reasoningLevelsOf(caps)}
       ultrafastSupported={caps?.ultrafast ?? false}
     />
   )

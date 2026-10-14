@@ -53,7 +53,7 @@ describe.skipIf(!vantaRuntimeAvailable)('reasoning effort against the real Vanta
     const options = await gateway.request<Options>('model.options', { session_id: chat.session_id })
     const current = options.providers.find(provider => provider.is_current)
 
-    expect(Object.values(current?.capabilities ?? {})).toEqual([{ fast: false, reasoning: false }])
+    expect(Object.values(current?.capabilities ?? {})).toEqual([{ fast: false, reasoning: false, reasoning_levels: [] }])
 
     await expect(
       gateway.request('config.set', { key: 'reasoning', session_id: chat.session_id, value: 'high' })

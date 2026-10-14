@@ -36,7 +36,7 @@ import type { HermesGateway } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
 import { isSubmitEnter } from '@/lib/ime'
-import { catalogProviderMatches, modelOptionsQueryKey, requestModelOptions } from '@/lib/model-options'
+import { catalogProviderMatches, modelOptionsQueryKey, reasoningLevelsOf, requestModelOptions } from '@/lib/model-options'
 import { displayModelName, modelDisplayParts } from '@/lib/model-status-label'
 import { accountResetMs, formatReset, modelResetMs } from '@/lib/provider-limit'
 import { reasoningEffortLabel } from '@/lib/reasoning-effort'
@@ -1166,6 +1166,7 @@ function ModelFamilyRow({
         canDisableReasoning={caps?.can_disable_reasoning ?? undefined}
         defaultEffort={defaultEffort}
         effort={effEffort}
+        effortLevels={reasoningLevelsOf(caps)}
         effortWire={isCurrent ? current.effortWire : undefined}
         fastControl={fastControl}
         isActive={isCurrent}

@@ -80,6 +80,8 @@ interface ModelEditSubmenuProps {
   fastControl: FastControl
   serviceTier?: string
   ultrafastSupported?: boolean
+  /** Levels the model takes; absent lists every level. */
+  effortLevels?: readonly string[]
   /** Whether this row's model is the active one. */
   isActive: boolean
   /** This row's model id. */
@@ -120,6 +122,7 @@ export function ModelOptionsContent({
   fastControl,
   serviceTier,
   ultrafastSupported = false,
+  effortLevels,
   isActive,
   onSelectModel,
   onSetOptions,
@@ -206,7 +209,7 @@ export function ModelOptionsContent({
           <DropdownMenuSeparator className="mx-0" />
           <DropdownMenuLabel className={dropdownMenuSectionLabel}>{copy.effort}</DropdownMenuLabel>
           <DropdownMenuRadioGroup onValueChange={value => onSetOptions({ effort: value })} value={effortValue}>
-            {REASONING_EFFORTS.map(value => (
+            {REASONING_EFFORTS.filter(value => !effortLevels || effortLevels.includes(value)).map(value => (
               <DropdownMenuRadioItem
                 className={dropdownMenuRow}
                 key={value}

@@ -26,6 +26,7 @@ afterEach(() => {
 function renderSubmenu(opts: {
   defaultEffort?: string
   effort?: string
+  effortLevels?: readonly string[]
   fastControl: FastControl
   isActive?: boolean
   onSelectModel?: (model: string) => void
@@ -40,6 +41,7 @@ function renderSubmenu(opts: {
           <ModelEditSubmenu
             defaultEffort={opts.defaultEffort ?? 'medium'}
             effort={opts.effort ?? 'medium'}
+            effortLevels={opts.effortLevels}
             fastControl={opts.fastControl}
             isActive={opts.isActive ?? true}
             model="m1"
@@ -127,5 +129,17 @@ describe('ModelEditSubmenu reports edits without performing them', () => {
     fireEvent.click(screen.getByRole('switch'))
 
     expect(onSelectModel).toHaveBeenCalledWith('m1-fast')
+  })
+
+  it('lists only the effort levels the model takes when the backend names them', () => {
+    renderSubmenu({ effortLevels: ['low', 'medium', 'high'], fastControl: { kind: 'none' }, onSetOptions: vi.fn(), reasoning: true })
+
+    expect(screen.getAllByRole('menuitemradio').map(item => item.textContent)).toEqual(['Low', 'Medium', 'High'])
+  })
+
+  it('keeps every level when the backend does not say (Hermes behaviour)', () => {
+    renderSubmenu({ fastControl: { kind: 'none' }, onSetOptions: vi.fn(), reasoning: true })
+
+    expect(screen.getAllByRole('menuitemradio').length).toBeGreaterThan(3)
   })
 })

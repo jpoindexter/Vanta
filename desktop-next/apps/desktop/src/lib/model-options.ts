@@ -218,3 +218,14 @@ export async function requestModelOptions({
 
   return restModelOptions(explicitOnly, refresh, profile)
 }
+
+/**
+ * The effort levels a model actually takes, when the backend says. Vanta's catalog names them
+ * (`reasoning_levels`, not part of the generated Hermes contract); Hermes backends omit it and
+ * keep the full list.
+ */
+export function reasoningLevelsOf(caps: unknown): readonly string[] | undefined {
+  const levels = (caps as { reasoning_levels?: unknown } | null | undefined)?.reasoning_levels
+
+  return Array.isArray(levels) && levels.length > 0 ? levels.filter((l): l is string => typeof l === 'string') : undefined
+}
