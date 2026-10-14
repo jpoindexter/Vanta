@@ -14,7 +14,7 @@ export function launcherScript(appPath) {
     LAUNCHER_MARKER,
     `APP="${appPath}"`,
     'if [ ! -d "$APP" ]; then',
-    '  echo "Vanta Next is not installed at $APP. Run `npm run vanta:install` in desktop-next." >&2',
+    `  echo 'Vanta Next is not installed at '"$APP"'. Run: npm run vanta:install (in desktop-next).' >&2`,
     "  exit 1",
     "fi",
     'exec open "$APP" --args "$@"',

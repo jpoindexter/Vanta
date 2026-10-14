@@ -39,6 +39,10 @@ test("the launcher opens the app and explains a missing install", () => {
   const script = launcherScript("/Users/x/Applications/Vanta Next.app");
   assert.match(script, /exec open "\$APP" --args "\$@"/);
   assert.match(script, /npm run vanta:install/);
+  // Backticks or $( ) in an executable line would run a command instead of printing it (comments are inert).
+  const code = script.split("\n").filter((line) => !line.startsWith("#")).join("\n");
+  assert.ok(!code.includes("`"), "the launcher must not contain backticks");
+  assert.ok(!/\$\(/.test(code), "the launcher must not contain command substitution");
   assert.ok(script.includes(LAUNCHER_MARKER));
 });
 
